@@ -137,6 +137,21 @@ struct android_gc
 
   /* Current background color.  */
   unsigned long background;
+
+  /* The function.  */
+  enum android_gc_function function;
+
+  /* The fill style.  */
+  enum android_fill_style fill_style;
+
+  /* The clip X and Y origin.  */
+  int clip_x_origin, clip_y_origin;
+
+  /* The clip mask image and stipple.  */
+  android_pixmap clip_mask, stipple;
+
+  /* The tile-stipple X and Y origins.  */
+  int ts_x_origin, ts_y_origin;
 };
 
 enum android_swap_action

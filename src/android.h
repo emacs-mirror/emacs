@@ -68,7 +68,7 @@ enum android_handle_type
 
 extern jobject android_resolve_handle (android_handle,
 				       enum android_handle_type);
-extern unsigned char *android_lock_bitmap (android_window,
+extern unsigned char *android_lock_bitmap (android_drawable,
 					   AndroidBitmapInfo *,
 					   jobject *);
 extern void android_damage_window (android_window,

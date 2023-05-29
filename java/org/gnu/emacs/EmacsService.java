@@ -375,18 +375,6 @@ public final class EmacsService extends Service
   }
 
   public void
-  copyArea (EmacsDrawable srcDrawable, EmacsDrawable dstDrawable,
-	    EmacsGC gc,
-	    int srcX, int srcY, int width, int height, int destX,
-	    int destY)
-  {
-    checkEmacsThread ();
-    EmacsCopyArea.perform (srcDrawable, gc, dstDrawable,
-			   srcX, srcY, width, height, destX,
-			   destY);
-  }
-
-  public void
   clearWindow (EmacsWindow window)
   {
     checkEmacsThread ();

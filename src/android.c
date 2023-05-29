@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <math.h>
 #include <string.h>
+#include <stdckdint.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -68,6 +69,10 @@ bool android_init_gui;
 
 #include <sys/syscall.h>
 
+#ifdef __aarch64__
+#include <arm_neon.h>
+#endif /* __aarch64__ */
+
 #define ANDROID_THROW(env, class, msg)					\
   ((*(env))->ThrowNew ((env), (*(env))->FindClass ((env), class), msg))
 
@@ -95,7 +100,6 @@ struct android_emacs_service
   jmethodID draw_rectangle;
   jmethodID draw_line;
   jmethodID draw_point;
-  jmethodID copy_area;
   jmethodID clear_window;
   jmethodID clear_area;
   jmethodID ring_bell;
@@ -2178,10 +2182,6 @@ android_init_emacs_service (void)
   FIND_METHOD (draw_point, "drawPoint",
 	       "(Lorg/gnu/emacs/EmacsDrawable;"
 	       "Lorg/gnu/emacs/EmacsGC;II)V");
-  FIND_METHOD (copy_area, "copyArea",
-	       "(Lorg/gnu/emacs/EmacsDrawable;"
-	       "Lorg/gnu/emacs/EmacsDrawable;"
-	       "Lorg/gnu/emacs/EmacsGC;IIIIII)V");
   FIND_METHOD (clear_window, "clearWindow",
 	       "(Lorg/gnu/emacs/EmacsWindow;)V");
   FIND_METHOD (clear_area, "clearArea",
@@ -3356,6 +3356,16 @@ android_create_gc (enum android_gc_value_mask mask,
   /* This means to not apply any clipping.  */
   gc->num_clip_rects = -1;
 
+  /* Apply the other default values.  */
+  gc->function = ANDROID_GC_COPY;
+  gc->fill_style = ANDROID_FILL_SOLID;
+  gc->clip_x_origin = 0;
+  gc->clip_y_origin = 0;
+  gc->clip_mask = ANDROID_NONE;
+  gc->stipple = ANDROID_NONE;
+  gc->ts_x_origin = 0;
+  gc->ts_y_origin = 0;
+
   if (!gc->gcontext)
     {
       xfree (gc);
@@ -3430,10 +3440,13 @@ android_change_gc (struct android_gc *gc,
     }
 
   if (mask & ANDROID_GC_FUNCTION)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_function,
-				      values->function);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_function,
+					values->function);
+      gc->function = values->function;
+    }
 
   if (mask & ANDROID_GC_CLIP_X_ORIGIN)
     {
@@ -3441,6 +3454,7 @@ android_change_gc (struct android_gc *gc,
 					gcontext,
 					emacs_gc_clip_x_origin,
 					values->clip_x_origin);
+      gc->clip_x_origin = values->clip_x_origin;
       clip_changed = true;
     }
 
@@ -3450,6 +3464,7 @@ android_change_gc (struct android_gc *gc,
 					gcontext,
 					emacs_gc_clip_y_origin,
 					values->clip_y_origin);
+      gc->clip_y_origin = values->clip_y_origin;
       clip_changed = true;
     }
 
@@ -3461,6 +3476,7 @@ android_change_gc (struct android_gc *gc,
 					   gcontext,
 					   emacs_gc_clip_mask,
 					   what);
+      gc->clip_mask = values->clip_mask;
 
       /* Changing GCClipMask also clears the clip rectangles.  */
       (*android_java_env)->SetObjectField (android_java_env,
@@ -3482,25 +3498,35 @@ android_change_gc (struct android_gc *gc,
 					   gcontext,
 					   emacs_gc_stipple,
 					   what);
+      gc->stipple = values->stipple;
     }
 
   if (mask & ANDROID_GC_FILL_STYLE)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_fill_style,
-				      values->fill_style);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_fill_style,
+					values->fill_style);
+      gc->fill_style = values->fill_style;
+    }
 
   if (mask & ANDROID_GC_TILE_STIP_X_ORIGIN)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_ts_origin_x,
-				      values->ts_x_origin);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_ts_origin_x,
+					values->ts_x_origin);
+      gc->ts_x_origin = values->ts_x_origin;
+    }
 
   if (mask & ANDROID_GC_TILE_STIP_Y_ORIGIN)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_ts_origin_y,
-				      values->ts_y_origin);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_ts_origin_y,
+					values->ts_y_origin);
+      gc->ts_y_origin = values->ts_y_origin;
+    }
 
   if (mask)
     {
@@ -3732,22 +3758,13 @@ android_get_gc_values (struct android_gc *gc,
     values->background = gc->background;
 
   if (mask & ANDROID_GC_FUNCTION)
-    values->function
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_function);
+    values->function = gc->function;
 
   if (mask & ANDROID_GC_CLIP_X_ORIGIN)
-    values->clip_x_origin
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_clip_x_origin);
+    values->clip_x_origin = gc->clip_x_origin;
 
   if (mask & ANDROID_GC_CLIP_Y_ORIGIN)
-    values->clip_y_origin
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_clip_y_origin);
+    values->clip_y_origin = gc->clip_y_origin;
 
   if (mask & ANDROID_GC_FILL_STYLE)
     values->fill_style
@@ -3913,33 +3930,826 @@ android_set_fill_style (struct android_gc *gc,
   android_change_gc (gc, ANDROID_GC_FILL_STYLE, &gcv);
 }
 
+
+
+/* Pixmap bit blit implementation.  This exists as `Canvas.drawBitmap'
+   seems to have trouble with copying bitmap data from one bitmap back
+   to itself on Android 8.0.  */
+
+/* Function called to actually perform the copy.  */
+
+typedef void (*android_blit_func) (int, int, int, int, int, int,
+				   struct android_gc *,
+				   unsigned char *, AndroidBitmapInfo *,
+				   unsigned char *, AndroidBitmapInfo *,
+				   unsigned char *, AndroidBitmapInfo *);
+
+
+
+#ifdef __aarch64__
+
+/* Copy N pixels from SRC to DST, using MASK as a depth 1 clip
+   mask.  */
+
+static void
+android_neon_mask_line (unsigned int *src, unsigned int *dst,
+			unsigned char *mask, int n)
+{
+  uint32x4_t src_low, src_high, dst_low, dst_high;
+  int16x8_t vmask;
+  int32x4_t ext_mask_low, ext_mask_high, low, high;
+  int rem;
+
+  /* Calculate the remainder.  */
+  rem = n & 7;
+
+  /* Process eight pixels at a time.  */
+
+  if (n -= rem)
+    {
+    again:
+      /* Load the low and high four pixels from the source.  */
+      src_low = vld1q_u32 (src);
+      src_high = vld1q_u32 (src + 4);
+
+      /* Do the same with the destination.  */
+      dst_low = vld1q_u32 (dst);
+      dst_high = vld1q_u32 (dst + 4);
+
+      /* Load and sign extend the mask.  */
+      vmask = vmovl_s8 (vld1_u8 (mask));
+      ext_mask_low = vmovl_s16 (vget_low_s16 (vmask));
+      ext_mask_high = vmovl_s16 (vget_high_s16 (vmask));
+
+      /* Reinterpret the mask.  */
+      low = vreinterpretq_u32_s32 (ext_mask_low);
+      high = vreinterpretq_u32_s32 (ext_mask_high);
+
+      /* Apply the mask.  */
+      dst_low = vbicq_u32 (dst_low, low);
+      src_low = vandq_u32 (src_low, low);
+      dst_high = vbicq_u32 (dst_high, high);
+      src_high = vandq_u32 (src_high, high);
+
+      /* Write the result after combining both masked vectors.  */
+      vst1q_u32 (dst, vorrq_u32 (dst_low, src_low));
+      vst1q_u32 (dst + 4, vorrq_u32 (dst_high, src_high));
+
+      /* Adjust src, dst and mask.  */
+      dst += 8;
+      src += 8;
+      mask += 8;
+
+      /* See if this loop should continue.  */
+      n -= 8;
+      if (n > 0)
+	goto again;
+    }
+
+  /* Process the remaining pixels.  */
+
+  while (--rem)
+    {
+      /* Sign extend the mask.  */
+      n = *(signed char *) mask++;
+
+      /* Combine src and dst.  */
+      *dst = ((*src & n) | (*dst & ~n));
+      src++, dst++;
+    }
+}
+
+#endif /* __aarch64__ */
+
+
+
+/* Copy a rectangle SRC_X, SRC_Y, WIDTH and HEIGHT from SRC, described
+   by SRC_INFO, to DST_X and DST_Y in DST, as described by DST_INFO.
+
+   If MASK is set, mask the source data using MASK_INFO, translating
+   it by GC->clip_x_origin and GC->clip_y_origin.  MASK must be a
+   pixmap of depth 1.
+
+   N.B. that currently only copies between bitmaps of depth 24 are
+   implemented.  */
+
+void
+android_blit_copy (int src_x, int src_y, int width, int height,
+		   int dst_x, int dst_y, struct android_gc *gc,
+		   unsigned char *src, AndroidBitmapInfo *src_info,
+		   unsigned char *dst, AndroidBitmapInfo *dst_info,
+		   unsigned char *mask, AndroidBitmapInfo *mask_info)
+{
+  uintptr_t start, end;
+  int mask_offset;
+  size_t pixel, offset, offset1;
+  unsigned char *src_current, *dst_current;
+  unsigned char *mask_current;
+  int overflow, temp, i, xdir;
+  bool backwards;
+  unsigned int *long_src, *long_dst;
+
+  /* Assert that the specified coordinates are within bounds.  */
+  eassert (src_x >= 0 && src_y >= 0
+	   && dst_x >= 0 && dst_y >= 0);
+  eassert (src_x + width <= src_info->width);
+  eassert (src_y + height <= src_info->height);
+  eassert (dst_x + width <= dst_info->width);
+  eassert (dst_y + height <= dst_info->height);
+
+  /* Now check that each bitmap has the correct format.  */
+  eassert (src_info->format == dst_info->format
+	   && src_info->format == ANDROID_BITMAP_FORMAT_RGBA_8888);
+  pixel = sizeof (unsigned int);
+
+  /* Android doesn't have A1 bitmaps, so A8 is used to represent
+     packed bitmaps of depth 1.  */
+  eassert (!mask || mask_info->format == ANDROID_BITMAP_FORMAT_A_8);
+
+  /* Calculate the address of the first pixel of the first row to be
+     copied in both src and dst.  Compare them to determine the
+     direction in which the copy is to take place.  */
+
+  overflow  = ckd_mul (&start, src_y, src_info->stride);
+  overflow |= ckd_mul (&end, src_x, pixel);
+  overflow |= ckd_add (&start, end, start);
+  overflow |= ckd_add (&start, (uintptr_t) src, start);
+
+  if (overflow)
+    return;
+
+  src_current = (unsigned char *) start;
+
+  overflow  = ckd_mul (&start, dst_y, dst_info->stride);
+  overflow |= ckd_mul (&end, dst_x, pixel);
+  overflow |= ckd_add (&start, end, start);
+  overflow |= ckd_add (&start, (uintptr_t) dst, start);
+
+  if (overflow)
+    return;
+
+  dst_current = (unsigned char *) start;
+  backwards = false;
+
+  /* Now see if copying should proceed from the bottom up.  */
+
+  if (src == dst && dst_current >= src_current)
+    {
+      backwards = true;
+
+      /* Walk src and dst from bottom to top, in order to avoid
+	 overlap.  Calculate the coordinate of the last pixel of the
+	 last row in both src and dst.  */
+
+      overflow  = ckd_mul (&start, src_y + height - 1,
+			   src_info->stride);
+      if (mask) /* If a mask is set, put the pointers before the end
+		   of the row.  */
+	overflow |= ckd_mul (&end, src_x + width - 1, pixel);
+      else
+	overflow |= ckd_mul (&end, src_x, pixel);
+      overflow |= ckd_add (&start, start, end);
+      overflow |= ckd_add (&start, (uintptr_t) src, start);
+
+      if (overflow)
+	return;
+
+      src_current = (unsigned char *) start;
+
+      overflow  = ckd_mul (&start, dst_y + height - 1,
+			   dst_info->stride);
+      if (mask) /* If a mask is set, put the pointers before the end
+		   of the row.  */
+	overflow |= ckd_mul (&end, dst_x + width - 1, pixel);
+      else
+	overflow |= ckd_mul (&end, dst_x, pixel);
+      overflow |= ckd_add (&start, start, end);
+      overflow |= ckd_add (&start, (uintptr_t) dst, start);
+
+      if (overflow)
+	return;
+
+      dst_current = (unsigned char *) start;
+    }
+
+  if (!mask)
+    {
+      /* Change the direction of the copy depending on how SRC and DST
+	 overlap.  */
+
+      for (i = 0; i < height; ++i)
+	{
+	  memmove (dst_current, src_current,
+		   width * pixel);
+
+	  if (backwards)
+	    {
+	      /* Proceed to the last row.  */
+	      src_current -= src_info->stride;
+	      dst_current -= dst_info->stride;
+	    }
+	  else
+	    {
+	      /* Proceed to the next row.  */
+	      src_current += src_info->stride;
+	      dst_current += dst_info->stride;
+	    }
+	}
+    }
+  else
+    {
+      /* Adjust the source and destination Y.  The start is MAX
+         (dst_y, gc->clip_y_origin); the difference between that value
+         and dst_y is the offset to apply to src_y. */
+
+      temp    = dst_y;
+      dst_y   = MAX (dst_y, gc->clip_y_origin);
+      src_y  += dst_y - temp;
+      height -= dst_y - temp;
+
+      /* Verify that the bounds are correct.  */
+      eassert (dst_y + height
+	       <= gc->clip_y_origin + mask_info->height);
+      eassert (dst_y >= gc->clip_y_origin);
+
+      /* There is a mask.  For each scan line... */
+
+      if (backwards)
+	{
+	  /* Calculate the number of pixels at the end of the
+	     mask.  */
+
+	  mask_offset  = dst_x + width;
+	  mask_offset -= mask_info->width + gc->clip_x_origin;
+
+	  if (mask_offset < 0)
+	    mask_offset = 0;
+
+	  /* Calculate the last column of the mask that will be
+	     consulted.  */
+
+	  temp = dst_x - gc->clip_x_origin;
+	  temp += MIN (mask_info->width - temp,
+		       width - mask_offset);
+
+	  if (temp < 0)
+	    return;
+
+	  /* Now calculate the last row of the mask that will be
+	     consulted.  */
+	  i = dst_y - gc->clip_y_origin + height;
+
+	  /* Turn both into offsets.  */
+
+	  if (INT_MULTIPLY_WRAPV (temp, pixel, &offset)
+	      || INT_MULTIPLY_WRAPV (i, mask_info->stride, &offset1)
+	      || INT_ADD_WRAPV (offset, offset1, &offset)
+	      || INT_ADD_WRAPV ((uintptr_t) mask, offset, &start))
+	    return;
+
+	  mask = mask_current = (unsigned char *) start;
+
+	  while (--height)
+	    {
+	      /* Skip backwards past the end of the mask.  */
+
+	      long_src = (unsigned int *) (src_current - mask_offset * pixel);
+	      long_dst = (unsigned int *) (dst_current - mask_offset * pixel);
+	      mask = mask_current;
+
+	      /* For each pixel covered by the mask... */
+	      temp = MIN (mask_info->width - temp, width - mask_offset);
+	      while (temp--)
+		{
+		  /* Copy the destination it to the source, masked by
+		     the mask.  */
+
+		  /* Sign extend the mask.  */
+		  i = *(signed char *) mask--;
+
+		  /* Apply the mask.  */
+		  *long_dst = ((*long_src & i) | (*long_dst & ~i));
+
+		  long_dst--;
+		  long_src--;
+		}
+
+	      /* Return to the last row.  */
+	      src_current -= src_info->stride;
+	      dst_current -= dst_info->stride;
+	      mask_current -= mask_info->stride;
+	    }
+	}
+      else
+	{
+	  /* Calculate the first column of the mask that will be
+	     consulted.  */
+
+	  mask_offset = dst_x - gc->clip_x_origin;
+
+	  /* Adjust the mask by that much.  */
+
+	  if (mask_offset > 0)
+	    mask += mask_offset;
+	  else
+	    {
+	      /* Offset src and dst by the mask offset.  */
+	      src_current += -mask_offset * pixel;
+	      dst_current += -mask_offset * pixel;
+	      width += mask_offset;
+	    }
+
+	  /* Make sure it's not out of bounds.  */
+
+	  eassert (dst_y - gc->clip_y_origin >= 0);
+	  if ((dst_y - gc->clip_y_origin) + height > mask_info->height)
+	    return;
+
+	  /* Now move mask to the position of the first row.  */
+
+	  mask += ((dst_y - gc->clip_y_origin)
+		   * mask_info->stride);
+
+	  /* Determine how many bytes need to be copied.  */
+
+	  if (mask_offset > 0)
+	    temp = MIN (mask_info->width - mask_offset, width);
+	  else
+	    temp = MIN (mask_info->width, width);
+
+	  /* Copy bytes according to the mask.  */
+
+	  while (--height)
+	    {
+	      long_src = (unsigned int *) src_current;
+	      long_dst = (unsigned int *) dst_current;
+	      mask_current = mask;
+
+#ifndef __aarch64__
+	      while (temp--)
+		{
+		  /* Sign extend the mask.  */
+		  height = *(signed char *) mask_current++;
+
+		  /* Apply the mask.  */
+		  *long_dst = ((*long_src & height)
+			       | (*long_dst & ~height));
+		}
+#else /* __aarch64__ */
+	      android_neon_mask_line (long_src, long_dst, mask, temp);
+#endif /* __aarch64__ */
+
+	      src_current += src_info->stride;
+	      dst_current += dst_info->stride;
+	      mask	  += mask_info->stride;
+	    }
+	}
+    }
+}
+
+
+/* Xor a rectangle SRC_X, SRC_Y, WIDTH and HEIGHT from SRC, described
+   by SRC_INFO, to DST_X and DST_Y in DST, as described by DST_INFO.
+
+   Ignore the alpha channel when computing the exclusive-or of the
+   destination pixel.
+
+   If MASK is set, mask the source data using MASK_INFO, translating
+   it by GC->clip_x_origin and GC->clip_y_origin.  MASK must be a
+   pixmap of depth 1.
+
+   N.B. that currently only copies between bitmaps of depth 24 are
+   implemented.  */
+
+void
+android_blit_xor (int src_x, int src_y, int width, int height,
+		  int dst_x, int dst_y, struct android_gc *gc,
+		  unsigned char *src, AndroidBitmapInfo *src_info,
+		  unsigned char *dst, AndroidBitmapInfo *dst_info,
+		  unsigned char *mask, AndroidBitmapInfo *mask_info)
+{
+  uintptr_t start, end;
+  int mask_offset;
+  size_t pixel, offset, offset1;
+  unsigned char *src_current, *dst_current;
+  unsigned char *mask_current;
+  int overflow, temp, i, xdir;
+  bool backwards;
+  unsigned int *long_src, *long_dst;
+
+  /* Note that this alu hasn't been tested -- it probably does not
+     work! */
+  emacs_abort ();
+
+#if 0
+  /* Assert that the specified coordinates are within bounds.  */
+  eassert (src_x >= 0 && src_y >= 0
+	   && dst_x >= 0 && dst_y >= 0);
+  eassert (src_x + width <= src_info->width);
+  eassert (src_y + height <= src_info->height);
+  eassert (dst_x + width <= dst_info->width);
+  eassert (dst_y + height <= dst_info->height);
+
+  /* Now check that each bitmap has the correct format.  */
+  eassert (src_info->format == dst_info->format
+	   && src_info->format == ANDROID_BITMAP_FORMAT_RGBA_8888);
+  pixel = sizeof (unsigned int);
+
+  /* Android doesn't have A1 bitmaps, so A8 is used to represent
+     packed bitmaps of depth 1.  */
+  eassert (!mask || mask_info->format == ANDROID_BITMAP_FORMAT_A_8);
+
+  /* Calculate the address of the first pixel of the first row to be
+     copied in both src and dst.  Compare them to determine the
+     direction in which the copy is to take place.  */
+
+  overflow  = ckd_mul (&start, src_y, src_info->stride);
+  overflow |= ckd_mul (&end, src_x, pixel);
+  overflow |= ckd_add (&start, (uintptr_t) src, start);
+
+  if (overflow)
+    return;
+
+  src_current = (unsigned char *) start;
+
+  overflow  = ckd_mul (&start, dst_y, src_info->stride);
+  overflow |= ckd_mul (&end, dst_x, pixel);
+  overflow |= ckd_add (&start, (uintptr_t) dst, start);
+
+  if (overflow)
+    return;
+
+  dst_current = (unsigned char *) start;
+  backwards = false;
+
+  /* Now see if copying should proceed from the bottom up.  */
+
+  if (src == dst && dst_current >= src_current)
+    {
+      backwards = true;
+
+      /* Walk src and dst from bottom to top, in order to avoid
+	 overlap.  Calculate the coordinate of the last pixel of the
+	 last row in both src and dst.  */
+
+      overflow  = ckd_mul (&start, src_y + height - 1,
+			   src_info->stride);
+      if (mask) /* If a mask is set, put the pointers before the end
+		   of the row.  */
+	overflow |= ckd_mul (&end, src_x + width - 1, pixel);
+      else
+	overflow |= ckd_mul (&end, src_x, pixel);
+      overflow |= ckd_add (&start, start, end);
+      overflow |= ckd_add (&start, (uintptr_t) src, start);
+
+      if (overflow)
+	return;
+
+      src_current = (unsigned char *) start;
+
+      overflow  = ckd_mul (&start, dst_y + height - 1,
+			   dst_info->stride);
+      if (mask) /* If a mask is set, put the pointers before the end
+		   of the row.  */
+	overflow |= ckd_mul (&end, dst_x + width - 1, pixel);
+      else
+	overflow |= ckd_mul (&end, dst_x, pixel);
+      overflow |= ckd_add (&start, start, end);
+      overflow |= ckd_add (&start, (uintptr_t) dst, start);
+
+      if (overflow)
+	return;
+
+      dst_current = (unsigned char *) start;
+    }
+
+  if (!mask)
+    {
+      /* Change the direction of the copy depending on how SRC and DST
+	 overlap.  */
+
+      for (i = 0; i < height; ++i)
+	{
+	  if (backwards)
+	    {
+	      for (i = width - 1; i <= 0; --i)
+		(((unsigned int *) dst_current)[i])
+		  /* Keep the alpha channel intact.  */
+		  ^= (((unsigned int *) src_current)[i]) & 0xffffff;
+
+	      /* Proceed to the last row.  */
+	      src_current -= src_info->stride;
+	      dst_current -= dst_info->stride;
+	    }
+	  else
+	    {
+	      for (i = 0; i < width; ++i)
+		(((unsigned int *) dst_current)[i])
+		  /* Keep the alpha channel intact.  */
+		  ^= (((unsigned int *) src_current)[i]) & 0xffffff;
+
+	      /* Proceed to the next row.  */
+	      src_current += src_info->stride;
+	      dst_current += dst_info->stride;
+	    }
+	}
+    }
+  else
+    {
+      /* Adjust the source and destination Y.  The start is MAX
+         (dst_y, gc->clip_y_origin); the difference between that value
+         and dst_y is the offset to apply to src_y. */
+
+      temp    = dst_y;
+      dst_y   = MAX (dst_y, gc->clip_y_origin);
+      src_y  += dst_y - temp;
+      height -= dst_y - temp;
+
+      /* Verify that the bounds are correct.  */
+      eassert (dst_y + height
+	       <= gc->clip_y_origin + mask_info->height);
+      eassert (dst_y >= gc->clip_y_origin);
+
+      /* There is a mask.  For each scan line... */
+
+      if (backwards)
+	{
+	  /* Calculate the number of pixels at the end of the
+	     mask.  */
+
+	  mask_offset  = dst_x + width;
+	  mask_offset -= mask_info->width + gc->clip_x_origin;
+
+	  if (mask_info < 0)
+	    mask_info = 0;
+
+	  /* Calculate the last column of the mask that will be
+	     consulted.  */
+
+	  temp = dst_x - gc->clip_x_origin;
+	  temp += MIN (mask_info->width - temp,
+		       width - mask_offset);
+
+	  if (temp < 0)
+	    return;
+
+	  /* Now calculate the last row of the mask that will be
+	     consulted.  */
+	  i = dst_y - gc->clip_y_origin + height;
+
+	  /* Turn both into offsets.  */
+
+	  if (INT_MULTIPLY_WRAPV (temp, pixel, &offset)
+	      || INT_MULTIPLY_WRAPV (i, mask_info->stride, &offset1)
+	      || INT_ADD_WRAPV (offset, offset1, &offset)
+	      || INT_ADD_WRAPV ((uintptr_t) mask, offset, &start))
+	    return;
+
+	  mask = mask_current = (unsigned char *) start;
+
+	  for (i = 0; i < height; ++i)
+	    {
+	      /* Skip backwards past the end of the mask.  */
+
+	      long_src = (unsigned int *) (src_current - mask_offset * pixel);
+	      long_dst = (unsigned int *) (dst_current - mask_offset * pixel);
+	      mask = mask_current;
+
+	      /* For each pixel covered by the mask... */
+	      temp = MIN (mask_info->width - temp, width - mask_offset);
+	      while (temp--)
+		/* XOR the source to the destination, masked by the
+		   mask.  */
+		*long_dst-- ^= ((*(long_src--) & (0u - (*(mask--) & 1)))
+				& 0xffffff);
+
+	      /* Return to the last row.  */
+	      src_current -= src_info->stride;
+	      dst_current -= dst_info->stride;
+	      mask_current -= mask_info->stride;
+	    }
+	}
+      else
+	{
+	  /* Calculate the first column of the mask that will be
+	     consulted.  */
+
+	  mask_offset = dst_x - gc->clip_x_origin;
+
+	  /* Adjust the mask by that much.  */
+
+	  if (mask_offset > 0)
+	    mask += mask_offset;
+	  else
+	    {
+	      /* Offset src and dst by the mask offset.  */
+	      src_current += -mask_offset * pixel;
+	      dst_current += -mask_offset * pixel;
+	      width -= mask_offset;
+	    }
+
+	  /* Now move mask to the position of the first row.  */
+
+	  mask += gc->clip_y_origin * mask_info->stride;
+
+	  for (i = 0; i < height; ++i)
+	    {
+	      long_src = (unsigned int *) src_current;
+	      long_dst = (unsigned int *) dst_current;
+	      mask_current = mask;
+
+	      if (mask_offset > 0)
+		{
+		  /* Copy bytes according to the mask.  */
+		  temp = MIN (mask_info->width - mask_offset, width);
+		  while (temp--)
+		    *long_dst++ ^= ((*(long_src++)
+				     & (0u - (*(mask_current++) & 1)))
+				    & 0xffffff);
+		}
+	      else
+		{
+		  /* Copy bytes according to the mask.  */
+		  temp = MIN (mask_info->width, width);
+		  while (temp--)
+		    *long_dst++ = ((*(long_src++)
+				     & (0u - (*(mask_current++) & 1)))
+				    & 0xffffff);
+		}
+
+	      src_current += src_info->stride;
+	      dst_current += dst_info->stride;
+	      mask	  += mask_info->stride;
+	    }
+	}
+    }
+#endif /* 0 */
+}
+
 void
 android_copy_area (android_drawable src, android_drawable dest,
 		   struct android_gc *gc, int src_x, int src_y,
 		   unsigned int width, unsigned int height,
 		   int dest_x, int dest_y)
 {
-  jobject src_object, dest_object, gcontext;
+  jobject src_object, dest_object, mask;
+  android_blit_func do_blit;
+  AndroidBitmapInfo src_info, dest_info, mask_info;
+  void *src_data, *dest_data, *mask_data;
+  int n_clip_rects, i;
+  bool flag;
+  struct android_rectangle bounds, rect, temp, *clip_rectangles;
 
-  src_object = android_resolve_handle2 (src, ANDROID_HANDLE_WINDOW,
-					ANDROID_HANDLE_PIXMAP);
-  dest_object = android_resolve_handle2 (dest, ANDROID_HANDLE_WINDOW,
-					 ANDROID_HANDLE_PIXMAP);
-  gcontext = android_resolve_handle (gc->gcontext,
-				     ANDROID_HANDLE_GCONTEXT);
+  /* Perform the copy.  Loop over each clip rectangle, unless none are
+     set.  Also, obtain bitmaps for src and dst, and possibly the mask
+     as well if it is present.  */
 
-  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
-						 emacs_service,
-						 service_class.class,
-						 service_class.copy_area,
-						 src_object,
-						 dest_object,
-						 gcontext,
-						 (jint) src_x, (jint) src_y,
-						 (jint) width, (jint) height,
-						 (jint) dest_x, (jint) dest_y);
-  android_exception_check ();
+  src_data = android_lock_bitmap (src, &src_info, &src_object);
+  if (!src_data)
+    return;
+
+  mask_data = mask = NULL;
+
+  if (src != dest)
+    {
+      dest_data = android_lock_bitmap (dest, &dest_info, &dest_object);
+      if (!dest_data)
+	goto fail;
+    }
+  else
+    {
+      dest_data = src_data;
+      dest_info = src_info;
+    }
+
+  /* Obtain the bitmap for the mask if necessary.  */
+
+  if (gc->clip_mask)
+    {
+      mask_data = android_lock_bitmap (gc->clip_mask,
+				       &mask_info, &mask);
+      if (!mask_data)
+	goto fail1;
+    }
+
+  /* Calculate the number of clip rectangles.  */
+  n_clip_rects = gc->num_clip_rects;
+
+  /* If n_clip_rects is -1, then no clipping is in effect.  Set rect
+     to the bounds of the destination.  */
+
+  flag = n_clip_rects == -1;
+  if (flag)
+    {
+      n_clip_rects = 1;
+      clip_rectangles = &rect;
+    }
+  else if (!n_clip_rects)
+    goto fail2;
+  else
+    clip_rectangles = gc->clip_rects;
+
+  /* Set rect to the bounds of the destination.  */
+
+  rect.x = 0;
+  rect.y = 0;
+  rect.width = dest_info.width;
+  rect.height = dest_info.height;
+
+  if (mask_data)
+    {
+      /* Clip width and height to that of the mask.  */
+
+      if (src_x + width > mask_info.width)
+	width = mask_info.width - src_x;
+
+      if (src_y + height > mask_info.height)
+	height = mask_info.height - src_y;
+    }
+
+  /* Clip width and height to that of the source.  */
+
+  if (src_x + width > src_info.width)
+    width = src_info.width - src_x;
+
+  if (src_y + height > src_info.height)
+    height = src_info.height - src_y;
+
+  /* Return if the copy is outside the source.  */
+
+  if (width <= 0 || height <= 0)
+    goto fail2;
+
+  /* Look up the right function for the alu.  */
+
+  switch (gc->function)
+    {
+    case ANDROID_GC_COPY:
+      do_blit = android_blit_copy;
+      break;
+
+    case ANDROID_GC_XOR:
+      do_blit = android_blit_xor;
+      break;
+    }
+
+  /* Load the bounds of the destination rectangle.  */
+  bounds.x = dest_x;
+  bounds.y = dest_y;
+  bounds.width = width;
+  bounds.height = height;
+
+  /* For each clip rectangle... */
+  for (i = 0; i < n_clip_rects; ++i)
+    {
+      /* Calculate its intersection with the destination
+	 rectangle.  */
+
+      if (!gui_intersect_rectangles (&clip_rectangles[i], &bounds,
+				     &temp))
+	continue;
+
+      /* And that of the destination itself.  */
+
+      if (!flag && !gui_intersect_rectangles (&temp, &rect, &temp))
+	continue;
+
+      /* Now perform the copy.  */
+      (*do_blit) (src_x + temp.x - dest_x,	/* temp.x relative to src_x */
+		  src_y + temp.y - dest_y,	/* temp.y relative to src_y */
+		  temp.width,			/* Width of area to copy.  */
+		  temp.height,			/* Height of area to copy.  */
+		  temp.x, temp.y,		/* Coordinates to copy to.  */
+		  gc,				/* GC.  */
+		  src_data, &src_info,		/* Source drawable.  */
+		  dest_data, &dest_info,	/* Destination drawable.  */
+		  mask_data, &mask_info);	/* Mask drawable.  */
+    }
+
+  /* Now damage the destination drawable accordingly, should it be a
+     window.  */
+
+  if (android_handles[dest].type == ANDROID_HANDLE_WINDOW)
+    android_damage_window (dest, &bounds);
+
+ fail2:
+  if (mask)
+    {
+      AndroidBitmap_unlockPixels (android_java_env, mask);
+      ANDROID_DELETE_LOCAL_REF (mask);
+    }
+ fail1:
+  if (src != dest)
+    {
+      AndroidBitmap_unlockPixels (android_java_env, dest_object);
+      ANDROID_DELETE_LOCAL_REF (dest_object);
+    }
+ fail:
+  AndroidBitmap_unlockPixels (android_java_env, src_object);
+  ANDROID_DELETE_LOCAL_REF (src_object);
 }
+
+
 
 void
 android_free_pixmap (android_pixmap pixmap)
@@ -4815,26 +5625,27 @@ android_wc_lookup_string (android_key_pressed_event *event,
 
 /* Low level drawing primitives.  */
 
-/* Lock the bitmap corresponding to the window WINDOW.  Return the
+/* Lock the bitmap corresponding to the drawable DRAWABLE.  Return the
    bitmap data upon success, and store the bitmap object in
    BITMAP_RETURN.  Value is NULL upon failure.
 
    The caller must take care to unlock the bitmap data afterwards.  */
 
 unsigned char *
-android_lock_bitmap (android_window window,
+android_lock_bitmap (android_window drawable,
 		     AndroidBitmapInfo *bitmap_info,
 		     jobject *bitmap_return)
 {
-  jobject drawable, bitmap;
+  jobject object, bitmap;
   void *data;
 
-  drawable = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  object = android_resolve_handle2 (drawable, ANDROID_HANDLE_WINDOW,
+				    ANDROID_HANDLE_PIXMAP);
 
   /* Look up the drawable and get the bitmap corresponding to it.
      Then, lock the bitmap's bits.  */
   bitmap = (*android_java_env)->CallObjectMethod (android_java_env,
-						  drawable,
+						  object,
 						  drawable_class.get_bitmap);
   if (!bitmap)
     /* NULL is returned when the bitmap does not currently exist due
