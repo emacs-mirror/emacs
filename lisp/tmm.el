@@ -170,9 +170,11 @@ instead of executing it."
 	(error "Empty menu reached"))
       (and tmm-km-list
 	   (let ((index-of-default 0))
-	     (if tmm-mid-prompt
-		 (setq tmm-km-list (tmm-add-shortcuts tmm-km-list))
-	       t)
+             (setq tmm-km-list
+	           (if tmm-mid-prompt
+                       (tmm-add-shortcuts tmm-km-list)
+                     ;; tmm-add-shortcuts reverses tmm-km-list internally.
+                     (reverse tmm-km-list)))
 	     ;; Find the default item's index within the menu bar.
 	     ;; We use this to decide the initial minibuffer contents
 	     ;; and initial history position.
