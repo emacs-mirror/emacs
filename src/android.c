@@ -4044,7 +4044,7 @@ android_blit_copy (int src_x, int src_y, int width, int height,
   size_t pixel, offset, offset1;
   unsigned char *src_current, *dst_current;
   unsigned char *mask_current;
-  int overflow, temp, i, xdir;
+  int overflow, temp, i, j;
   bool backwards;
   unsigned int *long_src, *long_dst;
 
@@ -4292,7 +4292,7 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	      mask_current = mask;
 
 #ifndef __aarch64__
-	      while (temp--)
+	      for (j = 0; j < temp; ++j)
 		{
 		  /* Sign extend the mask.  */
 		  i = *(signed char *) mask_current++;
@@ -4335,14 +4335,16 @@ android_blit_xor (int src_x, int src_y, int width, int height,
 		  unsigned char *dst, AndroidBitmapInfo *dst_info,
 		  unsigned char *mask, AndroidBitmapInfo *mask_info)
 {
+#if 0
   uintptr_t start, end;
   int mask_offset;
   size_t pixel, offset, offset1;
   unsigned char *src_current, *dst_current;
   unsigned char *mask_current;
-  int overflow, temp, i, xdir;
+  int overflow, temp, i;
   bool backwards;
   unsigned int *long_src, *long_dst;
+#endif /* 0 */
 
   /* Note that this alu hasn't been tested -- it probably does not
      work! */
