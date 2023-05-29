@@ -3127,7 +3127,7 @@ implementation will be used."
             (if (tramp-compat-string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
-      (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)
+      (setq env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
       (when env
 	(setq command
 	      (format
@@ -4316,6 +4316,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
 	 proc timeout
 	 (rx
 	  (| (regexp shell-prompt-pattern) (regexp tramp-shell-prompt-pattern))
+	  (? (regexp ansi-color-control-seq-regexp))
 	  eos))
       (error
        (delete-process proc)
