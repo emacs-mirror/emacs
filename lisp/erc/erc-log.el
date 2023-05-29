@@ -124,6 +124,7 @@ custom function which returns the directory part and set
 (defcustom erc-truncate-buffer-on-save nil
   "Erase the contents of any ERC (channel, query, server) buffer when it is saved."
   :type 'boolean)
+(make-obsolete 'erc-truncate-buffer-on-save 'erc-cmd-CLEAR "30.1")
 
 (defcustom erc-enable-logging t
   "If non-nil, ERC will log IRC conversations.
@@ -230,6 +231,7 @@ also be a predicate function.  To only log when you are not set away, use:
    (add-hook 'erc-part-hook #'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
    (add-hook 'erc-connect-pre-hook #'erc-log-setup-logging 'append)
+   (add-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs)
    (dolist (buffer (erc-buffer-list))
      (erc-log-setup-logging buffer))
    (erc--modify-local-map t "C-c C-l" #'erc-save-buffer-in-logs))
@@ -242,6 +244,7 @@ also be a predicate function.  To only log when you are not set away, use:
    (remove-hook 'erc-quit-hook #'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook #'erc-conditional-save-buffer)
    (remove-hook 'erc-connect-pre-hook #'erc-log-setup-logging)
+   (remove-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs)
    (dolist (buffer (erc-buffer-list))
      (erc-log-disable-logging buffer))
    (erc--modify-local-map nil "C-c C-l" #'erc-save-buffer-in-logs)))
@@ -301,6 +304,8 @@ Returns nil if `erc-server-buffer-p' returns t."
   (dolist (buffer (erc-buffer-list))
     (erc-save-buffer-in-logs buffer)))
 
+(defvar erc-log--save-in-progress-p nil)
+
 ;;;###autoload
 (defun erc-logging-enabled (&optional buffer)
   "Return non-nil if logging is enabled for BUFFER.
@@ -310,6 +315,7 @@ is writable (it will be created as necessary) and
 `erc-enable-logging' returns a non-nil value."
   (or buffer (setq buffer (current-buffer)))
   (and erc-log-channels-directory
+       (not erc-log--save-in-progress-p)
        (or (functionp erc-log-channels-directory)
 	   (erc-directory-writable-p erc-log-channels-directory))
        (if (functionp erc-enable-logging)
@@ -399,7 +405,7 @@ automatically.
 You can save every individual message by putting this function on
 `erc-insert-post-hook'."
   (interactive)
-  (or buffer (setq buffer (current-buffer)))
+  (unless (bufferp buffer) (setq buffer (current-buffer)))
   (when (erc-logging-enabled buffer)
     (let ((file (erc-current-logfile buffer))
           (coding-system erc-log-file-coding-system))
@@ -423,10 +429,11 @@ You can save every individual message by putting this function on
 		    (write-region start end file t 'nomessage))))
 	      (if (and erc-truncate-buffer-on-save
 		       (called-interactively-p 'interactive))
-		  (progn
-		    (let ((inhibit-read-only t)) (erase-buffer))
-		    (move-marker erc-last-saved-position (point-max))
-		    (erc-display-prompt))
+                  (let ((erc-log--save-in-progress-p t))
+                    (erc-cmd-CLEAR)
+                    (erc-button--display-error-notice-with-keys
+                     (erc-server-buffer) "Option `%s' is deprecated."
+                     " Use /CLEAR instead." 'erc-truncate-buffer-on-save))
 		(move-marker erc-last-saved-position
 			     ;; If we place erc-last-saved-position at
 			     ;; erc-insert-marker, because text gets

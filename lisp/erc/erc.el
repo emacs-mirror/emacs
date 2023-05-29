@@ -3436,10 +3436,17 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
       (erc-with-server-buffer
         (setq erc-ignore-list (delete user erc-ignore-list))))))
 
+(defvar erc--pre-clear-functions nil
+  "Abnormal hook run when truncating buffers.
+Called with position indicating boundary of interval to be excised.")
+
 (defun erc-cmd-CLEAR ()
   "Clear the window content."
   (let ((inhibit-read-only t))
-    (delete-region (point-min) (line-beginning-position)))
+    (run-hook-with-args 'erc--pre-clear-functions (1- erc-insert-marker))
+    ;; Ostensibly, `line-beginning-position' is for use in lisp code.
+    (delete-region (point-min) (min (line-beginning-position)
+                                    (1- erc-insert-marker))))
   t)
 (put 'erc-cmd-CLEAR 'process-not-needed t)
 
