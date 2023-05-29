@@ -4206,9 +4206,12 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	      || INT_ADD_WRAPV ((uintptr_t) mask, offset, &start))
 	    return;
 
+	  if (height <= 0)
+	    return;
+
 	  mask = mask_current = (unsigned char *) start;
 
-	  while (--height)
+	  while (height--)
 	    {
 	      /* Skip backwards past the end of the mask.  */
 
@@ -4277,12 +4280,12 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	  else
 	    temp = MIN (mask_info->width, width);
 
-	  if (temp <= 0)
+	  if (temp <= 0 || height <= 0)
 	    return;
 
 	  /* Copy bytes according to the mask.  */
 
-	  while (--height)
+	  while (height--)
 	    {
 	      long_src = (unsigned int *) src_current;
 	      long_dst = (unsigned int *) dst_current;
@@ -4292,11 +4295,12 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	      while (temp--)
 		{
 		  /* Sign extend the mask.  */
-		  height = *(signed char *) mask_current++;
+		  i = *(signed char *) mask_current++;
 
 		  /* Apply the mask.  */
-		  *long_dst = ((*long_src & height)
-			       | (*long_dst & ~height));
+		  *long_dst = ((*long_src & i) | (*long_dst & ~i));
+		  long_dst++;
+		  long_src++;
 		}
 #else /* __aarch64__ */
 	      android_neon_mask_line (long_src, long_dst, mask, temp);
