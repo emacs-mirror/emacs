@@ -3958,14 +3958,14 @@ android_neon_mask_line (unsigned int *src, unsigned int *dst,
   uint32x4_t src_low, src_high, dst_low, dst_high;
   int16x8_t vmask;
   int32x4_t ext_mask_low, ext_mask_high, low, high;
-  int rem;
+  int rem, i;
 
   /* Calculate the remainder.  */
-  rem = n & 7;
+  rem = n & 7, n &= ~7;
 
   /* Process eight pixels at a time.  */
 
-  if (n -= rem)
+  if (n)
     {
     again:
       /* Load the low and high four pixels from the source.  */
@@ -4008,14 +4008,13 @@ android_neon_mask_line (unsigned int *src, unsigned int *dst,
 
   /* Process the remaining pixels.  */
 
-  while (--rem)
+  for (i = 0; i < rem; ++i)
     {
       /* Sign extend the mask.  */
-      n = *(signed char *) mask++;
+      n = ((signed char *) mask)[i];
 
       /* Combine src and dst.  */
-      *dst = ((*src & n) | (*dst & ~n));
-      src++, dst++;
+      dst[i] = ((src[i] & n) | (dst[i] & ~n));
     }
 }
 
@@ -4262,7 +4261,8 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	  /* Make sure it's not out of bounds.  */
 
 	  eassert (dst_y - gc->clip_y_origin >= 0);
-	  if ((dst_y - gc->clip_y_origin) + height > mask_info->height)
+	  if ((dst_y - gc->clip_y_origin) + height > mask_info->height
+	      || width <= 0)
 	    return;
 
 	  /* Now move mask to the position of the first row.  */
@@ -4276,6 +4276,9 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	    temp = MIN (mask_info->width - mask_offset, width);
 	  else
 	    temp = MIN (mask_info->width, width);
+
+	  if (temp <= 0)
+	    return;
 
 	  /* Copy bytes according to the mask.  */
 
