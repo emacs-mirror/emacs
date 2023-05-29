@@ -1886,7 +1886,9 @@ These commands can be useful if the ".elc" files are out of date
 +++
 *** New DWIM action on 'x' in "*Packages*" buffer.
 If no packages are marked, 'x' will install the package under point if
-it isn't already, and remove it if it is installed.
+it isn't already, and remove it if it is installed.  Customize the new
+option 'package-menu-use-current-if-no-marks' to the nil value to get
+back the old behavior of signaling an error in that case.
 
 +++
 *** New command 'package-vc-install'.
