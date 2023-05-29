@@ -4754,6 +4754,104 @@ android_copy_area (android_drawable src, android_drawable dest,
 
 
 
+JNIEXPORT void JNICALL
+NATIVE_NAME (blitRect) (JNIEnv *env, jobject object,
+			jobject src, jobject dest,
+			jint x1, jint y1, jint x2, jint y2)
+{
+  AndroidBitmapInfo src_info, dest_info;
+  unsigned char *src_data_1, *dest_data_1;
+  void *src_data, *dest_data;
+
+  /* N.B. that X2 and Y2 represent the pixel past the edge of the
+     rectangle; thus, the width is x2 - x1 and the height is y2 -
+     y1.  */
+
+  memset (&src_info, 0, sizeof src_info);
+  memset (&dest_info, 0, sizeof dest_info);
+  AndroidBitmap_getInfo (env, src, &src_info);
+  AndroidBitmap_getInfo (env, dest, &dest_info);
+
+  /* If the stride is 0 after a call to `getInfo', assume it
+     failed.  */
+
+  if (!src_info.stride || !dest_info.stride)
+    return;
+
+  /* If formats differ, abort.  */
+  eassert (src_info.format == dest_info.format
+	   && src_info.format == ANDROID_BITMAP_FORMAT_RGBA_8888);
+
+  /* Lock the image data.  */
+  src_data = NULL;
+  AndroidBitmap_lockPixels (env, src, &src_data);
+
+  if (!src_data)
+    return;
+
+  dest_data = NULL;
+  AndroidBitmap_lockPixels (env, dest, &dest_data);
+
+  if (!dest_data)
+    goto fail1;
+
+  /* Now clip the rectangle to the bounds of the source and
+     destination bitmap.  */
+
+  x1 = MAX (x1, 0);
+  y1 = MAX (y1, 0);
+  x2 = MAX (x2, 0);
+  y2 = MAX (y2, 0);
+
+
+  if (x1 >= src_info.width
+      || x1 >= dest_info.width)
+    x1 = MIN (dest_info.width - 1, src_info.width - 1);
+
+  if (x2 > src_info.width
+      || x2 > dest_info.width)
+    x2 = MIN (src_info.width, dest_info.width);
+
+  if (y1 >= src_info.height
+      || y1 >= dest_info.height)
+    y1 = MIN (dest_info.height - 1, src_info.height - 1);
+
+  if (y2 > src_info.height
+      || y2 > dest_info.height)
+    y2 = MIN (src_info.height, dest_info.height);
+
+  if (x1 >= x2 || y1 >= y2)
+    goto fail2;
+
+  /* Determine the address of the first line to copy.  */
+
+  src_data_1 = src_data;
+  dest_data_1 = dest_data;
+  src_data_1 += x1 * 4;
+  src_data_1 += y1 * src_info.stride;
+  dest_data_1 += x1 * 4;
+  dest_data_1 += y1 * dest_info.stride;
+
+  /* Start copying each line.  */
+
+  while (y1 != y2)
+    {
+      memcpy (dest_data_1, src_data_1, (x2 - x1) * 4);
+      src_data_1 += src_info.stride;
+      dest_data_1 += dest_info.stride;
+      y1++;
+    }
+
+  /* Complete the copy and unlock the bitmap.  */
+
+ fail2:
+  AndroidBitmap_unlockPixels (env, dest);
+ fail1:
+  AndroidBitmap_unlockPixels (env, src);
+}
+
+
+
 void
 android_free_pixmap (android_pixmap pixmap)
 {

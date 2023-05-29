@@ -20,6 +20,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 package org.gnu.emacs;
 
 import android.content.res.AssetManager;
+
+import android.graphics.Bitmap;
+
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 
@@ -215,6 +218,13 @@ public final class EmacsNative
   /* Return the current value of the selection, or -1 upon
      failure.  */
   public static native int[] getSelection (short window);
+
+
+  /* Graphics functions used as a replacement for potentially buggy
+     Android APIs.  */
+
+  public static native void blitRect (Bitmap src, Bitmap dest, int x1,
+				      int y1, int x2, int y2);
 
   static
   {

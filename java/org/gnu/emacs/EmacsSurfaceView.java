@@ -57,11 +57,36 @@ public final class EmacsSurfaceView extends View
   private void
   copyToFrontBuffer (Bitmap bitmap, Rect damageRect)
   {
-    if (damageRect != null)
-      bitmapCanvas.drawBitmap (bitmap, damageRect, damageRect,
-			       bitmapPaint);
+    EmacsService.checkEmacsThread ();
+
+    if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O
+	&& Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1)
+      {
+	/* If `drawBitmap' can safely be used while a bitmap is locked
+	   by another thread, continue here... */
+
+	if (damageRect != null)
+	  bitmapCanvas.drawBitmap (bitmap, damageRect, damageRect,
+				   bitmapPaint);
+	else
+	  bitmapCanvas.drawBitmap (bitmap, 0f, 0f, bitmapPaint);
+      }
     else
-      bitmapCanvas.drawBitmap (bitmap, 0f, 0f, bitmapPaint);
+      {
+	/* But if it can not, as on Android 8.0 and 8.1, then use a
+	   replacement function.  */
+
+	if (damageRect != null)
+	  EmacsNative.blitRect (bitmap, frontBuffer,
+				damageRect.left,
+				damageRect.top,
+				damageRect.right,
+				damageRect.bottom);
+	else
+	  EmacsNative.blitRect (bitmap, frontBuffer, 0, 0,
+				bitmap.getWidth (),
+				bitmap.getHeight ());
+      }
   }
 
   private void
