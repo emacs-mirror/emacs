@@ -277,10 +277,10 @@ Useful to hook into pass checkers.")
 ;; FIXME this probably should not be here but... good for now.
 (defconst comp-known-type-specifiers
   `(
-    ;; Functions we can trust not to be or if redefined should expose
-    ;; the same type.  Vast majority of these is either pure or
-    ;; primitive, the original list is the union of pure +
-    ;; side-effect-free-fns + side-effect-and-error-free-fns:
+    ;; Functions we can trust not to be redefined or if redefined
+    ;; should expose the same type.  The vast majority of these is
+    ;; either pure or primitive, the original list is the union of
+    ;; pure + side-effect-free-fns + side-effect-and-error-free-fns:
     (% (function ((or number marker) (or number marker)) number))
     (* (function (&rest (or number marker)) number))
     (+ (function (&rest (or number marker)) number))
@@ -4446,6 +4446,26 @@ of (commands) to run simultaneously."
           (when (directory-empty-p subdir)
             (delete-directory subdir))))))
   (message "Cache cleared"))
+
+;;;###autoload
+(defun comp-funciton-type-spec (function)
+  "Given FUNCTION gives its type specifier.
+Return a cons with its car being the function specifier and its
+cdr being a symbol.
+
+If the symbol is `inferred' the type specifier is automatically
+inferred from the code itself by the native compiler, if it is
+`know' the type specifier comes from
+`comp-known-type-specifiers'."
+  (let ((kind 'know)
+        type-spec )
+    (when-let ((res (gethash function comp-known-func-cstr-h)))
+      (setf type-spec (comp-cstr-to-type-spec res)))
+    (unless type-spec
+      (setf kind 'inferred
+            type-spec (subr-type (symbol-function function))))
+    (when type-spec
+        (cons type-spec kind))))
 
 (provide 'comp)
 
