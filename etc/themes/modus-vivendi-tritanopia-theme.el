@@ -1,4 +1,4 @@
-;;; modus-vivendi-deuteranopia-theme.el --- Deuteranopia-optimized theme with a black background -*- lexical-binding:t -*-
+;;; modus-vivendi-tritanopia-theme.el --- Tritanopia-optimized theme with a black background -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
 
@@ -42,16 +42,16 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
-  (deftheme modus-vivendi-deuteranopia
-    "Deuteranopia-optimized theme with a black background.
-This variant is optimized for users with red-green color
-deficiency (deuteranopia).  It conforms with the highest
+  (deftheme modus-vivendi-tritanopia
+    "Tritanopia-optimized theme with a black background.
+This variant is optimized for users with blue-yellow color
+deficiency (tritanopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
 standard).")
 
-  (defconst modus-vivendi-deuteranopia-palette
+  (defconst modus-vivendi-tritanopia-palette
     '(
 ;;; Basic values
 
@@ -67,9 +67,9 @@ standard).")
 ;;; Common accent foregrounds
 
       (red             "#ff5f59")
-      (red-warmer      "#ff6b55")
-      (red-cooler      "#ff7f9f")
-      (red-faint       "#ff9580")
+      (red-warmer      "#ff6740")
+      (red-cooler      "#ff6f9f")
+      (red-faint       "#ff9070")
       (red-intense     "#ff5f5f")
       (green           "#44bc44")
       (green-warmer    "#70b900")
@@ -90,11 +90,11 @@ standard).")
       (magenta-warmer  "#f78fe7")
       (magenta-cooler  "#b6a0ff")
       (magenta-faint   "#caa6df")
-      (magenta-intense "#ff66ff")
+      (magenta-intense "#ef7fff")
       (cyan            "#00d3d0")
-      (cyan-warmer     "#4ae2f0")
+      (cyan-warmer     "#4ae2ff")
       (cyan-cooler     "#6ae4b9")
-      (cyan-faint      "#9ac8e0")
+      (cyan-faint      "#7fdbdf")
       (cyan-intense    "#00eff0")
 
 ;;; Uncommon accent foregrounds
@@ -138,42 +138,42 @@ standard).")
 
 ;;; Graphs
 
-      (bg-graph-red-0     "#bf6000")
-      (bg-graph-red-1     "#733500")
-      (bg-graph-green-0   "#6fbf8f")
-      (bg-graph-green-1   "#2f5f4f")
-      (bg-graph-yellow-0  "#c1c00a")
-      (bg-graph-yellow-1  "#7f6640")
-      (bg-graph-blue-0    "#0f90ef")
-      (bg-graph-blue-1    "#1f2f8f")
-      (bg-graph-magenta-0 "#7f7f8e")
-      (bg-graph-magenta-1 "#4f4f5f")
-      (bg-graph-cyan-0    "#376f9a")
-      (bg-graph-cyan-1    "#00404f")
+      (bg-graph-red-0     "#b52c2c")
+      (bg-graph-red-1     "#702020")
+      (bg-graph-green-0   "#afd1c0")
+      (bg-graph-green-1   "#607a8f")
+      (bg-graph-yellow-0  "#facfd6")
+      (bg-graph-yellow-1  "#b57b85")
+      (bg-graph-blue-0    "#4f9fdf")
+      (bg-graph-blue-1    "#004559")
+      (bg-graph-magenta-0 "#b6427f")
+      (bg-graph-magenta-1 "#7f506f")
+      (bg-graph-cyan-0    "#57dfea")
+      (bg-graph-cyan-1    "#00808f")
 
 ;;; Special purpose
 
-      (bg-completion       "#2f447f")
-      (bg-hover            "#004f70")
-      (bg-hover-secondary  "#654a39")
+      (bg-completion       "#004253")
+      (bg-hover            "#8e3e3b")
+      (bg-hover-secondary  "#00405f")
       (bg-hl-line          "#2f3849")
       (bg-region           "#5a5a5a")
       (fg-region           "#ffffff")
 
-      (bg-char-0 "#0050af")
-      (bg-char-1 "#7f1f7f")
-      (bg-char-2 "#625a00")
+      (bg-char-0 "#922a00")
+      (bg-char-1 "#4f3f7f")
+      (bg-char-2 "#00709f")
 
-      (bg-mode-line-active        "#2a2a6a")
+      (bg-mode-line-active        "#003c52")
       (fg-mode-line-active        "#f0f0f0")
-      (border-mode-line-active    "#8080a7")
+      (border-mode-line-active    "#5f8fb4")
       (bg-mode-line-inactive      "#2d2d2d")
       (fg-mode-line-inactive      "#969696")
       (border-mode-line-inactive  "#606060")
 
-      (modeline-err     "#e5bf00")
-      (modeline-warning "#c0cf35")
-      (modeline-info    "#abeadf")
+      (modeline-err     "#ff7fbf")
+      (modeline-warning "#df9f93")
+      (modeline-info    "#4fcfef")
 
       (bg-tab-bar      "#313131")
       (bg-tab-current  "#000000")
@@ -181,12 +181,12 @@ standard).")
 
 ;;; Diffs
 
-      (bg-added           "#003066")
-      (bg-added-faint     "#001a4f")
-      (bg-added-refine    "#0f4a77")
-      (bg-added-fringe    "#006fff")
-      (fg-added           "#c4d5ff")
-      (fg-added-intense   "#8080ff")
+      (bg-added           "#004254")
+      (bg-added-faint     "#003042")
+      (bg-added-refine    "#004f7f")
+      (bg-added-fringe    "#008fcf")
+      (fg-added           "#9fdfdf")
+      (fg-added-intense   "#50c0ef")
 
       (bg-changed         "#2f123f")
       (bg-changed-faint   "#1f022f")
@@ -195,12 +195,12 @@ standard).")
       (fg-changed         "#e3cfff")
       (fg-changed-intense "#cf9fe2")
 
-      (bg-removed         "#3d3d00")
-      (bg-removed-faint   "#281f00")
-      (bg-removed-refine  "#515100")
-      (bg-removed-fringe  "#d0c03f")
-      (fg-removed         "#d4d48f")
-      (fg-removed-intense "#d0b05f")
+      (bg-removed         "#4f1119")
+      (bg-removed-faint   "#380a0f")
+      (bg-removed-refine  "#781a1f")
+      (bg-removed-fringe  "#b81a1f")
+      (fg-removed         "#ffbfbf")
+      (fg-removed-intense "#ff9095")
 
       (bg-diff-context    "#1a1a1a")
 
@@ -215,21 +215,21 @@ standard).")
 ;;;; General mappings
 
       (fringe bg-dim)
-      (cursor yellow-intense)
+      (cursor red-intense)
 
-      (keybind blue-cooler)
-      (name blue-cooler)
-      (identifier yellow-faint)
+      (keybind red)
+      (name red-cooler)
+      (identifier red-faint)
 
-      (err yellow-warmer)
-      (warning yellow)
-      (info blue)
+      (err red-warmer)
+      (warning magenta)
+      (info cyan)
 
-      (underline-err yellow-intense)
-      (underline-warning magenta-faint)
-      (underline-note cyan)
+      (underline-err red-intense)
+      (underline-warning magenta-intense)
+      (underline-note cyan-intense)
 
-      (bg-prominent-err bg-yellow-intense)
+      (bg-prominent-err bg-red-intense)
       (fg-prominent-err fg-main)
       (bg-prominent-warning bg-magenta-intense)
       (fg-prominent-warning fg-main)
@@ -238,26 +238,26 @@ standard).")
 
 ;;;; Code mappings
 
-      (builtin magenta-warmer)
-      (comment yellow-cooler)
-      (constant blue-cooler)
-      (docstring cyan-faint)
+      (builtin magenta)
+      (comment red-faint)
+      (constant green-faint)
+      (docstring fg-alt)
       (docmarkup magenta-faint)
-      (fnname magenta)
-      (keyword magenta-cooler)
-      (preprocessor red-cooler)
-      (string blue-warmer)
-      (type cyan-cooler)
-      (variable cyan)
-      (rx-construct yellow-cooler)
-      (rx-backslash blue-cooler)
+      (fnname cyan-warmer)
+      (keyword red-cooler)
+      (preprocessor red-warmer)
+      (string cyan)
+      (type blue-warmer)
+      (variable cyan-cooler)
+      (rx-construct red)
+      (rx-backslash magenta)
 
 ;;;; Accent mappings
 
-      (accent-0 blue-cooler)
-      (accent-1 yellow)
+      (accent-0 cyan)
+      (accent-1 red-warmer)
       (accent-2 cyan-cooler)
-      (accent-3 magenta-warmer)
+      (accent-3 magenta)
 
 ;;;; Button mappings
 
@@ -268,10 +268,10 @@ standard).")
 
 ;;;; Completion mappings
 
-      (fg-completion-match-0 blue-cooler)
-      (fg-completion-match-1 yellow)
-      (fg-completion-match-2 cyan-cooler)
-      (fg-completion-match-3 magenta-warmer)
+      (fg-completion-match-0 cyan)
+      (fg-completion-match-1 red-warmer)
+      (fg-completion-match-2 magenta)
+      (fg-completion-match-3 cyan-cooler)
       (bg-completion-match-0 unspecified)
       (bg-completion-match-1 unspecified)
       (bg-completion-match-2 unspecified)
@@ -279,15 +279,15 @@ standard).")
 
 ;;;; Date mappings
 
-      (date-common cyan)
-      (date-deadline yellow-warmer)
+      (date-common cyan-cooler)
+      (date-deadline red)
       (date-event fg-alt)
-      (date-holiday yellow-warmer)
-      (date-now blue-faint)
+      (date-holiday red-intense)
+      (date-now fg-main)
       (date-range fg-alt)
-      (date-scheduled yellow-cooler)
+      (date-scheduled magenta)
       (date-weekday cyan)
-      (date-weekend yellow-faint)
+      (date-weekend red-faint)
 
 ;;;; Line number mappings
 
@@ -298,33 +298,33 @@ standard).")
 
 ;;;; Link mappings
 
-      (fg-link blue-warmer)
+      (fg-link cyan)
       (bg-link unspecified)
-      (underline-link blue-warmer)
+      (underline-link cyan)
 
-      (fg-link-symbolic cyan)
+      (fg-link-symbolic cyan-cooler)
       (bg-link-symbolic unspecified)
-      (underline-link-symbolic cyan)
+      (underline-link-symbolic cyan-cooler)
 
-      (fg-link-visited yellow-faint)
+      (fg-link-visited magenta)
       (bg-link-visited unspecified)
-      (underline-link-visited yellow-faint)
+      (underline-link-visited magenta)
 
 ;;;; Mail mappings
 
-      (mail-cite-0 blue-warmer)
-      (mail-cite-1 yellow-cooler)
-      (mail-cite-2 cyan-faint)
-      (mail-cite-3 yellow)
-      (mail-part blue)
-      (mail-recipient blue)
-      (mail-subject yellow-warmer)
-      (mail-other cyan-faint)
+      (mail-cite-0 cyan-faint)
+      (mail-cite-1 red-faint)
+      (mail-cite-2 magenta-warmer)
+      (mail-cite-3 cyan-warmer)
+      (mail-part cyan-cooler)
+      (mail-recipient cyan)
+      (mail-subject red-cooler)
+      (mail-other cyan)
 
 ;;;; Mark mappings
 
-      (bg-mark-delete bg-yellow-subtle)
-      (fg-mark-delete yellow)
+      (bg-mark-delete bg-red-subtle)
+      (fg-mark-delete red)
       (bg-mark-select bg-cyan-subtle)
       (fg-mark-select cyan)
       (bg-mark-other bg-magenta-subtle)
@@ -332,49 +332,49 @@ standard).")
 
 ;;;; Prompt mappings
 
-      (fg-prompt blue)
+      (fg-prompt cyan-cooler)
       (bg-prompt unspecified)
 
 ;;;; Prose mappings
 
       (prose-block fg-dim)
-      (prose-code cyan-cooler)
-      (prose-done blue)
-      (prose-macro magenta-cooler)
+      (prose-code cyan)
+      (prose-done cyan)
+      (prose-macro red-warmer)
       (prose-metadata fg-dim)
       (prose-metadata-value fg-alt)
       (prose-table fg-alt)
-      (prose-tag magenta-faint)
-      (prose-todo yellow-warmer)
+      (prose-tag fg-alt)
+      (prose-todo red)
       (prose-verbatim magenta-warmer)
 
 ;;;; Rainbow mappings
 
-      (rainbow-0 yellow-warmer)
-      (rainbow-1 blue)
-      (rainbow-2 yellow-cooler)
-      (rainbow-3 blue-warmer)
-      (rainbow-4 yellow)
-      (rainbow-5 cyan-warmer)
-      (rainbow-6 yellow-faint)
-      (rainbow-7 blue-faint)
-      (rainbow-8 magenta-faint)
+      (rainbow-0 cyan)
+      (rainbow-1 red)
+      (rainbow-2 cyan-warmer)
+      (rainbow-3 red-cooler)
+      (rainbow-4 cyan-cooler)
+      (rainbow-5 magenta)
+      (rainbow-6 cyan-faint)
+      (rainbow-7 magenta-faint)
+      (rainbow-8 red-faint)
 
 ;;;; Space mappings
 
       (bg-space unspecified)
       (fg-space border)
-      (bg-space-err bg-yellow-intense)
+      (bg-space-err bg-red-intense)
 
 ;;;; Heading mappings
 
       (fg-heading-0 cyan-cooler)
       (fg-heading-1 fg-main)
-      (fg-heading-2 yellow-faint)
-      (fg-heading-3 blue-faint)
+      (fg-heading-2 red-faint)
+      (fg-heading-3 cyan-faint)
       (fg-heading-4 magenta)
       (fg-heading-5 green-faint)
-      (fg-heading-6 red-faint)
+      (fg-heading-6 magenta-faint)
       (fg-heading-7 cyan-faint)
       (fg-heading-8 fg-dim)
 
@@ -397,7 +397,7 @@ standard).")
       (overline-heading-6 unspecified)
       (overline-heading-7 unspecified)
       (overline-heading-8 unspecified))
-    "The entire palette of the `modus-vivendi-deuteranopia' theme.
+    "The entire palette of the `modus-vivendi-tritanopia' theme.
 
 Named colors have the form (COLOR-NAME HEX-VALUE) with the former
 as a symbol and the latter as a string.
@@ -406,8 +406,8 @@ Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
 exists in the palette and is associated with a HEX-VALUE.")
 
-  (defcustom modus-vivendi-deuteranopia-palette-overrides nil
-    "Overrides for `modus-vivendi-deuteranopia-palette'.
+  (defcustom modus-vivendi-tritanopia-palette-overrides nil
+    "Overrides for `modus-vivendi-tritanopia-palette'.
 
 Mirror the elements of the aforementioned palette, overriding
 their value.
@@ -429,13 +429,13 @@ represents."
     :initialize #'custom-initialize-default
     :link '(info-link "(modus-themes) Palette overrides"))
 
-  (modus-themes-theme modus-vivendi-deuteranopia
-                      modus-vivendi-deuteranopia-palette
-                      modus-vivendi-deuteranopia-palette-overrides)
+  (modus-themes-theme modus-vivendi-tritanopia
+                      modus-vivendi-tritanopia-palette
+                      modus-vivendi-tritanopia-palette-overrides)
 
-  (provide-theme 'modus-vivendi-deuteranopia))
+  (provide-theme 'modus-vivendi-tritanopia))
 
 ;;;###theme-autoload
-(put 'modus-vivendi-deuteranopia 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
+(put 'modus-vivendi-tritanopia 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
 
-;;; modus-vivendi-deuteranopia-theme.el ends here
+;;; modus-vivendi-tritanopia-theme.el ends here
