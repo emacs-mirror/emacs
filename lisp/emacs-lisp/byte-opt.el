@@ -1685,7 +1685,8 @@ See Info node `(elisp) Integer Basics'."
          category-docstring category-set-mnemonics char-category-set
          copy-category-table get-unused-category make-category-set
          ;; character.c
-         char-width multibyte-char-to-unibyte string unibyte-char-to-multibyte
+         char-width get-byte multibyte-char-to-unibyte string string-width
+         unibyte-char-to-multibyte unibyte-string
          ;; charset.c
          decode-char encode-char
          ;; chartab.c
@@ -1715,6 +1716,8 @@ See Info node `(elisp) Integer Basics'."
          line-beginning-position line-end-position ngettext pos-bol pos-eol
          propertize region-beginning region-end string-to-char
          user-full-name user-login-name
+         ;; eval.c
+         special-variable-p
          ;; fileio.c
          car-less-than-car directory-name-p file-directory-p file-exists-p
          file-name-absolute-p file-name-concat file-newer-than-file-p
@@ -1723,23 +1726,28 @@ See Info node `(elisp) Integer Basics'."
          file-locked-p
          ;; floatfns.c
          abs acos asin atan ceiling copysign cos exp expt fceiling ffloor
-         float floor fround ftruncate isnan ldexp log logb round sin sqrt tan
+         float floor frexp fround ftruncate isnan ldexp log logb round
+         sin sqrt tan
          truncate
          ;; fns.c
          append assq
          base64-decode-string base64-encode-string base64url-encode-string
+         buffer-hash buffer-line-statistics
          compare-strings concat copy-alist copy-hash-table copy-sequence elt
          featurep get
          gethash hash-table-count hash-table-rehash-size
          hash-table-rehash-threshold hash-table-size hash-table-test
          hash-table-weakness
          length length< length= length>
-         line-number-at-pos locale-info make-hash-table
+         line-number-at-pos load-average locale-info make-hash-table md5
          member memq memql nth nthcdr
-         object-intervals rassoc rassq reverse
-         string-as-multibyte string-as-unibyte string-bytes string-distance
+         object-intervals rassoc rassq reverse secure-hash
+         string-as-multibyte string-as-unibyte string-bytes
+         string-collate-equalp string-collate-lessp string-distance
          string-equal string-lessp string-make-multibyte string-make-unibyte
-         string-search string-to-multibyte substring substring-no-properties
+         string-search string-to-multibyte string-to-unibyte
+         string-version-lessp
+         substring substring-no-properties
          sxhash-eq sxhash-eql sxhash-equal sxhash-equal-including-properties
          take vconcat
          ;; frame.c
@@ -1799,6 +1807,7 @@ See Info node `(elisp) Integer Basics'."
          all-threads condition-mutex condition-name mutex-name thread-live-p
          thread-name
          ;; timefns.c
+         current-cpu-time
          current-time-string current-time-zone decode-time encode-time
          float-time format-time-string time-add time-convert time-equal-p
          time-less-p time-subtract
@@ -1858,7 +1867,8 @@ See Info node `(elisp) Integer Basics'."
          ;; fileio.c
          default-file-modes
          ;; fns.c
-         eql equal hash-table-p identity proper-list-p safe-length
+         eql equal equal-including-properties
+         hash-table-p identity proper-list-p safe-length
          secure-hash-algorithms
          ;; frame.c
          frame-list frame-live-p framep last-nonminibuffer-frame
@@ -1936,10 +1946,11 @@ See Info node `(elisp) Integer Basics'."
          isnan ldexp logb round sqrt truncate
          ;; fns.c
          assq base64-decode-string base64-encode-string base64url-encode-string
-         concat elt eql equal hash-table-p identity length length< length=
+         concat elt eql equal equal-including-properties
+         hash-table-p identity length length< length=
          length> member memq memql nth nthcdr proper-list-p rassoc rassq
          safe-length string-bytes string-distance string-equal string-lessp
-         string-search take
+         string-search string-version-lessp take
          ;; search.c
          regexp-quote
          ;; syntax.c

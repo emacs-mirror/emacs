@@ -3566,6 +3566,8 @@ lambda-expression."
          ;; when used on arrays, but most calls pass lists.
          nreverse sort
 
+         match-data
+
          ;; Adding these functions causes many warnings;
          ;; evaluate how many of them are false first.
          delq delete
