@@ -283,7 +283,7 @@ test-tree-sitter:
     # This is needed in order to get a JUnit test report.
     files: >-
       lisp/progmodes/c-ts-mode-tests.log
-      lisp/progmodes/elixir-ts-mode-tests.el
+      lisp/progmodes/elixir-ts-mode-tests.log
       lisp/progmodes/go-ts-mode-tests.log
       lisp/progmodes/heex-ts-mode-tests.log
       lisp/progmodes/java-ts-mode-tests.log
