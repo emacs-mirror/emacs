@@ -669,10 +669,7 @@ Leave point at the first non-blank character after the tag."
       (if (assoc name attlist)
 	  (error "XML: (Not Well-Formed) Each attribute must be unique within an element"))
 
-      ;; Multiple whitespace characters should be replaced with a single one
-      ;; in the attributes
       (let ((string (match-string-no-properties 1)))
-	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
 	  (unless (stringp expansion)
 	    ;; We say this is the constraint.  It is actually that
