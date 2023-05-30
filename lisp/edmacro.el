@@ -91,17 +91,17 @@ Default nil means to write characters above \\177 in octal notation."
   `((,(rx bol (group (or "Command" "Key" "Macro") ":")) 0 'edmacro-label)
     (,(rx bol
           (group ";; Keyboard Macro Editor.  Press ")
-          (group (*? any))
+          (group (*? nonl))
           (group  " to finish; press "))
      (1 'font-lock-comment-face)
      (2 'help-key-binding)
      (3 'font-lock-comment-face)
-     (,(rx (group (*? any))
-           (group " to cancel" (* any)))
+     (,(rx (group (*? nonl))
+           (group " to cancel" (* nonl)))
       nil nil
       (1 'help-key-binding)
       (2 'font-lock-comment-face)))
-    (,(rx (one-or-more ";") (zero-or-more any)) 0 'font-lock-comment-face)))
+    (,(rx (one-or-more ";") (zero-or-more nonl)) 0 'font-lock-comment-face)))
 
 (defvar edmacro-store-hook)
 (defvar edmacro-finish-hook)

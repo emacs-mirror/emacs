@@ -5374,7 +5374,7 @@ by a #."
 			  (zero-or-more (any " \t"))
 			  (group (group (zero-or-more (not (any " \t\n"))))
 				 (zero-or-more (any " \t"))
-				 (group (zero-or-more any)))))
+				 (group (zero-or-more nonl)))))
 	   limit t)
       (let ((beg (match-beginning 0))
 	    (end-of-beginline (match-end 0))
@@ -5400,7 +5400,7 @@ by a #."
 						    "#+end"
 						    ,(match-string 4)
 						    word-end
-						    (zero-or-more any)))))
+						    (zero-or-more nonl)))))
 		 ;; We look further than LIMIT on purpose.
 		 nil t)
 	    ;; We do have a matching #+end line.
@@ -5473,7 +5473,7 @@ by a #."
 	    (beginning-of-line)
 	    (looking-at (rx (group (zero-or-more (any " \t"))
 				   "#+caption"
-				   (optional "[" (zero-or-more any) "]")
+				   (optional "[" (zero-or-more nonl) "]")
 				   ":")
 			    (zero-or-more (any " \t")))))
 	  (add-text-properties (line-beginning-position) (match-end 1)

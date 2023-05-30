@@ -2398,9 +2398,9 @@ parameters SERVER and NICK."
 
 (defun erc--ensure-url (input)
   (unless (string-match (rx bot "irc" (? "6") (? "s") "://") input)
-    (when (and (string-match (rx (? (+ any) "@")
-                                 (or (group (* (not "[")) ":" (* any))
-                                     (+ any))
+    (when (and (string-match (rx (? (+ nonl) "@")
+                                 (or (group (* (not "[")) ":" (* nonl))
+                                     (+ nonl))
                                  ":" (+ (not (any ":]"))) eot)
                              input)
                (match-beginning 1))
