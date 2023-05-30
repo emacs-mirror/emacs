@@ -4,9 +4,9 @@
 #+language:              en
 #+options:               ':t toc:nil author:t email:t num:t
 #+startup:               content
-#+macro:                 stable-version 4.1.0
-#+macro:                 release-date 2023-02-22
-#+macro:                 development-version 4.2.0-dev
+#+macro:                 stable-version 4.2.0
+#+macro:                 release-date 2023-05-30
+#+macro:                 development-version 4.3.0-dev
 #+macro:                 file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro:                 space @@texinfo:@: @@
 #+macro:                 kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -77,7 +77,7 @@ combinations of background and foreground values.  For small sized
 text, this corresponds to the WCAG AAA standard, which specifies a
 minimum rate of distance in relative luminance of 7:1.
 
-The Modus themes consist of six themes, divided into three subgroups.
+The Modus themes consist of eight themes, divided into four subgroups.
 
 - Main themes :: ~modus-operandi~ is the project's main light theme,
   while ~modus-vivendi~ is its dark counterpart.  These two themes are
@@ -101,15 +101,23 @@ The Modus themes consist of six themes, divided into three subgroups.
   users with deueteranopia or deuteranomaly (mostly yellow and blue
   hues).
 
+- Tritanopia themes :: ~modus-operandi-tritanopia~ and its counterpart
+  ~modus-vivendi-tritanopia~ are optimized for users with blue-yellow
+  color deficiency.  The idea is the same as with the deuteranopia
+  variants: color coding relies only on hues that are accessible to
+  people with tritanopia or tritanomaly, namely, shades of red and
+  cyan.
+
 To ensure that users have a consistently accessible experience, the
 themes strive to achieve as close to full face coverage as possible,
 while still targeting a curated list of well-maintained packages
 ([[#h:a9c8f29d-7f72-4b54-b74b-ddefe15d6a19][Face coverage]]).
 
-The overarching objective of this project is to always offer accessible
-color combinations.  There shall never be a compromise on this
-principle.  If there arises an inescapable trade-off between readability
-and stylistic considerations, we will always opt for the former.
+The overarching objective of this project is to always offer
+accessible color combinations.  There shall never be a compromise on
+this principle.  If there arises an inescapable trade-off between
+usability and stylistic considerations, we will always opt for the
+former.
 
 Starting with version 0.12.0 and onwards, the themes are built into GNU
 Emacs.
@@ -440,6 +448,8 @@ or ~custom-theme-directory~ after the themes' package declaration.  That
 will lead to failures in loading the files.  If either or both of those
 variables need to be changed, their values should be defined before the
 package declaration of the themes.
+
+[[#h:aabcada6-810d-4eee-b34a-d2a9c301824d][Make the themes look like what the maintainer uses]]
 
 ** Differences between loading and enabling
 :properties:
@@ -1066,6 +1076,9 @@ palette variable is =THEME-NAME-palette-overrides=, thus yielding:
 #+vindex: modus-operandi-tinted-palette-overrides
 + ~modus-operandi-tinted-palette-overrides~
 
+#+vindex: modus-operandi-tritanopia-palette-overrides
++ ~modus-operandi-tritanopia-palette-overrides~
+
 #+vindex: modus-vivendi-palette-overrides
 + ~modus-vivendi-palette-overrides~
 
@@ -1074,6 +1087,9 @@ palette variable is =THEME-NAME-palette-overrides=, thus yielding:
 
 #+vindex: modus-vivendi-tinted-palette-overrides
 + ~modus-vivendi-tinted-palette-overrides~
+
+#+vindex: modus-vivendi-tritanopia-palette-overrides
++ ~modus-vivendi-tritanopia-palette-overrides~
 
 Theme-specific overrides take precedence over the shared ones.  It is
 strongly advised that shared overrides do NOT alter color values, as
@@ -1123,7 +1139,7 @@ For example, the ~modus-operandi-palette~ is like this:
 #+end_src
 
 The ~modus-operandi-palette-overrides~ targets the entries that need
-to be changed.  For example, to make the main foreground colour a dark
+to be changed.  For example, to make the main foreground color a dark
 gray instead of pure black, use a shade of red for comments, and apply
 a cyan hue to keywords:
 
@@ -1153,15 +1169,30 @@ Named colors can be previewed, such as with the command
 For a video tutorial that users of all skill levels can approach,
 watch: https://protesilaos.com/codelog/2022-12-17-modus-themes-v4-demo/.
 
-*** Palette override presets
+* Advanced customization
+:properties:
+:custom_id: h:f4651d55-8c07-46aa-b52b-bed1e53463bb
+:end:
+
+Unlike the predefined customization options which follow a clear pattern
+of allowing the user to quickly specify their preference, the themes
+also provide a more flexible, albeit difficult, mechanism to control
+things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization Options]]).
+
+This section is of interest only to users who are prepared to maintain
+their own local tweaks and who are willing to deal with any possible
+incompatibilities between versioned releases of the themes.  As such,
+they are labeled as "do-it-yourself" or "DIY".
+
+** Palette override presets
 :PROPERTIES:
 :CUSTOM_ID: h:b0bc811c-227e-42ec-bf67-15e1f41eb7bc
 :END:
 
 This section shows how to refashion the themes by opting in to the
 stylistic presets we provide.  Those presets override the default
-color mappings to amplify or tone down the overall coloration of the
-them.
+color mappings to amplify, tone down, or refashion the overall
+coloration of the themes.
 
 To make almost all aspects of the themes less intense, use this:
 
@@ -1186,6 +1217,18 @@ On the opposite end of the stylistic spectrum, we have this
 The ~modus-themes-preset-overrides-intense~ makes many background
 colors accented instead of gray and increases coloration in a number
 of places.  Colors stand out more and are made easier to spot.
+
+#+vindex: modus-themes-preset-overrides-cooler
+#+vindex: modus-themes-preset-overrides-warmer
+For some stylistic variation try the "cooler" and "warmer" presets:
+
+#+begin_src emacs-lisp
+;; This:
+(setq modus-themes-common-palette-overrides modus-themes-preset-overrides-cooler)
+
+;; Or:
+(setq modus-themes-common-palette-overrides modus-themes-preset-overrides-warmer)
+#+end_src
 
 Note that the user is not limited to those presets.  The system of
 overrides we provide makes it possible to tweak the value of each
@@ -1214,7 +1257,7 @@ the general idea (extra space for didactic purposes):
         ,@modus-themes-preset-overrides-intense))
 #+end_src
 
-*** Stylistic variants using palette overrides
+** Stylistic variants using palette overrides
 :PROPERTIES:
 :CUSTOM_ID: h:df1199d8-eaba-47db-805d-6b568a577bf3
 :END:
@@ -1226,7 +1269,7 @@ to take effect.  To apply overrides at startup simply define them
 before the call that loads the theme.  Remember that we also provide
 presets that are easier to apply ([[#h:b0bc811c-227e-42ec-bf67-15e1f41eb7bc][Palette override presets]]).
 
-**** Make the mode line borderless
+*** Make the mode line borderless
 :PROPERTIES:
 :CUSTOM_ID: h:80ddba52-e188-411f-8cc0-480ebd75befe
 :END:
@@ -1263,7 +1306,7 @@ set their color to that of the underlying background.
         (border-mode-line-inactive bg-mode-line-inactive)))
 #+end_src
 
-**** Make the active mode line colorful
+*** Make the active mode line colorful
 :PROPERTIES:
 :CUSTOM_ID: h:e8d781be-eefc-4a81-ac4e-5ed156190df7
 :END:
@@ -1307,7 +1350,7 @@ have a blue mode line for ~modus-operandi~ and a red one for
         (border-mode-line-active bg-red-subtle)))
 #+end_src
 
-**** Make the tab bar more or less colorful
+*** Make the tab bar more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:096658d7-a0bd-4a99-b6dc-9b20a20cda37
 :END:
@@ -1359,7 +1402,7 @@ manual.
         (bg-tab-other bg-cyan-subtle)))
 #+end_src
 
-**** Make the fringe invisible or another color
+*** Make the fringe invisible or another color
 :PROPERTIES:
 :CUSTOM_ID: h:c312dcac-36b6-4a1f-b1f5-ab1c9abe27b0
 :END:
@@ -1393,7 +1436,7 @@ or continuation lines.
       '((fringe bg-blue-nuanced)))
 #+end_src
 
-**** Make links use subtle or no underlines
+*** Make links use subtle or no underlines
 :PROPERTIES:
 :CUSTOM_ID: h:6c1d1dea-5cbf-4d92-b7bb-570a7a23ffe9
 :END:
@@ -1417,7 +1460,7 @@ that underline mappings can read correctly.
         (underline-link-symbolic unspecified)))
 #+end_src
 
-**** Make prompts more or less colorful
+*** Make prompts more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:bd75b43a-0bf1-45e7-b8b4-20944ca8b7f8
 :END:
@@ -1454,7 +1497,7 @@ block we show how to add or remove color from prompts.
         (bg-prompt bg-yellow-subtle))) ; try to replace "subtle" with "intense"
 #+end_src
 
-**** Make completion matches more or less colorful
+*** Make completion matches more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:d959f789-0517-4636-8780-18123f936f91
 :END:
@@ -1541,7 +1584,7 @@ colors to two:
 
 The user can mix and match to their liking.
 
-**** Make comments yellow and strings green
+*** Make comments yellow and strings green
 :PROPERTIES:
 :CUSTOM_ID: h:26f53daa-0065-48dc-88ab-6a718d16cd95
 :END:
@@ -1584,7 +1627,7 @@ reproduce the effect, but also how to tweak it to one's liking.
         (string yellow-cooler)))
 #+end_src
 
-**** Make code syntax use the old alt-syntax style
+*** Make code syntax use the old alt-syntax style
 :PROPERTIES:
 :CUSTOM_ID: h:c8767172-bf11-4c96-81dc-e736c464fc9c
 :END:
@@ -1669,7 +1712,7 @@ The user can always mix and match styles to their liking.
 
 [[#h:943063da-7b27-4ba4-9afe-f8fe77652fd1][Make use of alternative styles for code syntax]].
 
-**** Make use of alternative styles for code syntax
+*** Make use of alternative styles for code syntax
 :PROPERTIES:
 :CUSTOM_ID: h:943063da-7b27-4ba4-9afe-f8fe77652fd1
 :END:
@@ -1760,7 +1803,7 @@ theme palette.
         (variable cyan-warmer)))
 #+end_src
 
-**** Make matching parenthesis more or less intense
+*** Make matching parenthesis more or less intense
 :PROPERTIES:
 :CUSTOM_ID: h:259cf8f5-48ec-4b13-8a69-5d6387094468
 :END:
@@ -1790,7 +1833,7 @@ to enable underlines for those highlights.
         (underline-paren-match fg-main)))
 #+end_src
 
-**** Make box buttons more or less gray
+*** Make box buttons more or less gray
 :PROPERTIES:
 :CUSTOM_ID: h:4f6b6ca3-f5bb-4830-8312-baa232305360
 :END:
@@ -1818,7 +1861,7 @@ inactive ones.
         (fg-button-inactive "gray50")))
 #+end_src
 
-**** Make TODO and DONE more or less intense
+*** Make TODO and DONE more or less intense
 :PROPERTIES:
 :CUSTOM_ID: h:b57bb50b-a863-4ea8-bb38-6de2275fa868
 :END:
@@ -1858,7 +1901,7 @@ to subdue them.
       '((prose-done fg-dim)))
 #+end_src
 
-**** Make headings more or less colorful
+*** Make headings more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:11297984-85ea-4678-abe9-a73aeab4676a
 :END:
@@ -1915,7 +1958,7 @@ match styles at will.
         (overline-heading-1 border)))
 #+end_src
 
-**** Make Org agenda more or less colorful
+*** Make Org agenda more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:a5af0452-a50f-481d-bf60-d8143f98105f
 :END:
@@ -1980,7 +2023,25 @@ A third example that makes the agenda more blue:
         (date-weekend fg-dim)))
 #+end_src
 
-**** Make inline code in prose use alternative styles
+Yet another example that also affects =DONE= and =TODO= keywords:
+
+#+begin_src emacs-lisp
+;; Change dates to a set of more subtle combinations.  Deadlines are a
+;; shade of magenta, scheduled dates are a shade of green that
+;; complements that of the deadlines, weekday headings use the main
+;; foreground color while weekends are a shade of gray.  The DONE
+;; keyword is a faint blue-gray while TODO is yellow.
+(setq modus-themes-common-palette-overrides
+      '((date-deadline magenta-warmer)
+        (date-scheduled green-cooler)
+        (date-weekday fg-main)
+        (date-event fg-dim)
+        (date-now blue)
+        (prose-done fg-alt)
+        (prose-todo yellow)))
+#+end_src
+
+*** Make inline code in prose use alternative styles
 :PROPERTIES:
 :CUSTOM_ID: h:bb5b396f-5532-4d52-ab13-149ca24854f1
 :END:
@@ -2039,7 +2100,7 @@ do not show every possible permutation.
         (prose-verbatim red-warmer)))
 #+end_src
 
-**** Make mail citations and headers more or less colorful
+*** Make mail citations and headers more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:7da7a4ad-5d3a-4f11-9796-5a1abed0f0c4
 :END:
@@ -2108,7 +2169,7 @@ We thus have the following:
         (mail-other green)))
 #+end_src
 
-**** Make the region preserve text colors, plus other styles
+*** Make the region preserve text colors, plus other styles
 :PROPERTIES:
 :CUSTOM_ID: h:c8605d37-66e1-42aa-986e-d7514c3af6fe
 :END:
@@ -2148,7 +2209,7 @@ with an appropriate foreground value.
         (fg-region fg-main)))
 #+end_src
 
-**** Make mouse highlights more or less colorful
+*** Make mouse highlights more or less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:b5cab69d-d7cb-451c-8ff9-1f545ceb6caf
 :END:
@@ -2177,7 +2238,7 @@ mapping that covers mouse hover effects and related highlights:
       '((bg-hover bg-green-subtle)))
 #+end_src
 
-**** Make language underlines less colorful
+*** Make language underlines less colorful
 :PROPERTIES:
 :CUSTOM_ID: h:03dbd5af-6bae-475e-85a2-cec189f69598
 :END:
@@ -2210,7 +2271,7 @@ by code linters and prose spell checkers.
         (underline-note green-intense)))
 #+end_src
 
-**** Make line numbers use alternative styles
+*** Make line numbers use alternative styles
 :PROPERTIES:
 :CUSTOM_ID: h:b6466f51-cb58-4007-9ebe-53a27af655c7
 :END:
@@ -2252,7 +2313,7 @@ this section we show how to affect the ~display-line-numbers-mode~.
         (bg-line-number-active bg-cyan-intense)))
 #+end_src
 
-**** Make diffs use only a foreground
+*** Make diffs use only a foreground
 :PROPERTIES:
 :CUSTOM_ID: h:b3761482-bcbf-4990-a41e-4866fb9dad15
 :END:
@@ -2268,7 +2329,7 @@ adjustments for them by overriding their palettes directly instead of
 just using the "common" overrides.
 
 #+begin_src emacs-lisp
-;; Diffs with only foreground colours.  Word-wise ("refined") diffs
+;; Diffs with only foreground colors.  Word-wise ("refined") diffs
 ;; have a gray background to draw attention to themselves.
 (setq modus-themes-common-palette-overrides
       '((bg-added           unspecified)
@@ -2316,7 +2377,7 @@ just using the "common" overrides.
         (fg-removed-intense yellow-intense)))
 #+end_src
 
-**** Make deuteranopia diffs red and blue instead of yellow and blue
+*** Make deuteranopia diffs red and blue instead of yellow and blue
 :PROPERTIES:
 :CUSTOM_ID: h:16389ea1-4cb6-4b18-9409-384324113541
 :END:
@@ -2367,20 +2428,110 @@ respectively.  This is achieved by overriding the "changed" and
         (fg-removed-intense "#ff9095")))
 #+end_src
 
-* Advanced customization
-:properties:
-:custom_id: h:f4651d55-8c07-46aa-b52b-bed1e53463bb
-:end:
+*** Make the themes look like what the maintainer uses
+:PROPERTIES:
+:CUSTOM_ID: h:aabcada6-810d-4eee-b34a-d2a9c301824d
+:END:
 
-Unlike the predefined customization options which follow a clear pattern
-of allowing the user to quickly specify their preference, the themes
-also provide a more flexible, albeit difficult, mechanism to control
-things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization Options]]).
+Based on what we have learnt from the previous sections of this
+manual, here is what Protesilaos uses:
 
-This section is of interest only to users who are prepared to maintain
-their own local tweaks and who are willing to deal with any possible
-incompatibilities between versioned releases of the themes.  As such,
-they are labeled as "do-it-yourself" or "DIY".
+#+begin_src emacs-lisp
+;; Always reload the theme for changes to take effect!
+
+(setq modus-themes-custom-auto-reload nil
+      modus-themes-to-toggle '(modus-operandi modus-vivendi)
+      modus-themes-mixed-fonts t
+      modus-themes-variable-pitch-ui nil
+      modus-themes-italic-constructs t
+      modus-themes-bold-constructs nil
+      modus-themes-org-blocks nil
+      modus-themes-completions '((t . (extrabold)))
+      modus-themes-prompts nil
+      modus-themes-headings
+      '((agenda-structure . (variable-pitch light 2.2))
+        (agenda-date . (variable-pitch regular 1.3))
+        (t . (regular 1.15))))
+
+(setq modus-themes-common-palette-overrides
+      '((cursor magenta-cooler)
+        ;; Make the fringe invisible.
+        (fringe unspecified)
+        ;; Make line numbers less intense and add a shade of cyan
+        ;; for the current line number.
+        (fg-line-number-inactive "gray50")
+        (fg-line-number-active cyan-cooler)
+        (bg-line-number-inactive unspecified)
+        (bg-line-number-active unspecified)
+        ;; Make the current line of `hl-line-mode' a fine shade of
+        ;; gray (though also see my `lin' package).
+        (bg-hl-line bg-dim)
+        ;; Make the region have a cyan-green background with no
+        ;; specific foreground (use foreground of underlying text).
+        ;; "bg-sage" refers to Salvia officinalis, else the common
+        ;; sage.
+        (bg-region bg-sage)
+        (fg-region unspecified)
+        ;; Make matching parentheses a shade of magenta.  It
+        ;; complements the region nicely.
+        (bg-paren-match bg-magenta-intense)
+        ;; Make email citations faint and neutral, reducing the
+        ;; default four colors to two; make mail headers cyan-blue.
+        (mail-cite-0 fg-dim)
+        (mail-cite-1 blue-faint)
+        (mail-cite-2 fg-dim)
+        (mail-cite-3 blue-faint)
+        (mail-part cyan-warmer)
+        (mail-recipient blue-warmer)
+        (mail-subject magenta-cooler)
+        (mail-other cyan-warmer)
+        ;; Change dates to a set of more subtle combinations.
+        (date-deadline magenta-cooler)
+        (date-scheduled magenta)
+        (date-weekday fg-main)
+        (date-event fg-dim)
+        (date-now blue-faint)
+        ;; Make tags (Org) less colorful and tables look the same as
+        ;; the default foreground.
+        (prose-done cyan-cooler)
+        (prose-tag fg-dim)
+        (prose-table fg-main)
+        ;; Make headings less colorful (though I never use deeply
+        ;; nested headings).
+        (fg-heading-2 blue-faint)
+        (fg-heading-3 magenta-faint)
+        (fg-heading-4 blue-faint)
+        (fg-heading-5 magenta-faint)
+        (fg-heading-6 blue-faint)
+        (fg-heading-7 magenta-faint)
+        (fg-heading-8 blue-faint)
+        ;; Make the active mode line a fine shade of lavender
+        ;; (purple) and tone down the gray of the inactive mode
+        ;; lines.
+        (bg-mode-line-active bg-lavender)
+        (border-mode-line-active bg-lavender)
+
+        (bg-mode-line-inactive bg-dim)
+        (border-mode-line-inactive bg-inactive)
+        ;; Make the prompts a shade of magenta, to fit in nicely with
+        ;; the overall blue-cyan-purple style of the other overrides.
+        ;; Add a nuanced background as well.
+        (bg-prompt bg-magenta-nuanced)
+        (fg-prompt magenta-cooler)
+        ;; Tweak some more constructs for stylistic constistency.
+        (name blue-warmer)
+        (identifier magenta-faint)
+        (keybind magenta-cooler)
+        (accent-0 magenta-cooler)
+        (accent-1 cyan-cooler)
+        (accent-2 blue-warmer)
+        (accent-3 red-cooler)))
+
+;; Make the active mode line have a pseudo 3D effect (this assumes
+;; you are using the default mode line and not an extra package).
+(custom-set-faces
+ '(mode-line ((t :box (:style released-button)))))
+#+end_src
 
 ** More accurate colors in terminal emulators
 :PROPERTIES:
@@ -2584,8 +2735,9 @@ for palette overrides.  Else it reads only the default palette.
 
 [[#h:34c7a691-19bb-4037-8d2f-67a07edab150][Option for palette overrides]].
 
-With optional =THEME= as a symbol among ~modus-themes-items~, use the
-palette of that item.  Else use the current Modus theme.
+With optional =THEME= as a symbol among ~modus-themes-items~ (alias
+~modus-themes-collection~), use the palette of that item.  Else use
+the current Modus theme.
 
 If =COLOR= is not present in the palette, this function returns the
 ~unspecified~ symbol, which is safe when used as a face attribute's
@@ -3479,6 +3631,90 @@ In this document, we cover ~modus-themes-after-load-theme-hook~ though
 the user can replace it with ~after-enable-theme-hook~ should they
 need to (provided they understand the implications).
 
+** Use more spacious margins or padding in Emacs frames
+:PROPERTIES:
+:CUSTOM_ID: h:43bcb5d0-e25f-470f-828c-662cee9e21f1
+:END:
+
+By default, Emacs frames try to maximize the number of characters that
+fit in the current visible portion of the buffer.  Users may prefer to
+have some extra padding instead.  This can make Emacs frames look more
+pleasant, but also make it easier to identify the currently active
+window.
+
+The way to implement such padding is two-fold:
+
+1. In the =early-init.el= file instruct Emacs to use a higher value
+   for the ~internal-border-width~ of all frames, as well as for the
+   ~right-divider-width~.  The former concerns the outer boundaries of
+   Emacs frames, while the latter pertains to dividers between Emacs
+   windows.
+
+2. Make the relevant faces invisible by changing the value of their
+   relevant attributes to that of the current theme's main background.
+
+The parameters of Emacs frames are specified in the variables
+~initial-frame-alist~ and ~default-frame-alist~.  The "initial frame"
+refers to the first frame that appears on Emacs startup.  The
+"default" refers to the fallback values that apply to all other frames
+that Emacs creates (unless those are explicitly overridden by a
+bespoke ~make-frame~ call).
+
+In detail, first we use the same values for the two frame alist variables:
+
+#+begin_src emacs-lisp
+;; This must go in the early-init.el so that it applies to the initial
+;; frame.
+(dolist (var '(default-frame-alist initial-frame-alist))
+  (add-to-list var '(right-divider-width . 20))
+  (add-to-list var '(internal-border-width . 20)))
+#+end_src
+
+What the ~dolist~ does is to call ~add-to-list~ for the two variables
+we specify there.  This economizes on typing.
+
+Then we define a function that makes the relevant faces invisible.
+The reason we do this with a function is so we can hook it to the
+"post load" phase of a theme, thus applying the new background value
+(otherwise you keep the old background, which likely means that the
+faces will no longer be invisible).
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-invisible-dividers ()
+  "Make window dividers invisible.
+Add this to the `modus-themes-post-load-hook'."
+  (let ((bg (face-background 'default)))
+    (custom-set-faces
+     `(fringe ((t :background ,bg :foreground ,bg)))
+     `(window-divider ((t :background ,bg :foreground ,bg)))
+     `(window-divider-first-pixel ((t :background ,bg :foreground ,bg)))
+     `(window-divider-last-pixel ((t :background ,bg :foreground ,bg))))))
+
+(add-hook 'modus-themes-post-load-hook #'my-modus-themes-invisible-dividers)
+#+end_src
+
+The above will work only for themes that belong to the Modus family.
+For users of Emacs version 29 or higher, there exists a theme-agnostic
+hook that takes a function with one argument---that of the theme---and
+calls in the the "post enable" phase of theme loading.  Here is the
+above snippet, with the necessary tweaks:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-invisible-dividers (_theme)
+  "Make window dividers for THEME invisible."
+  (let ((bg (face-background 'default)))
+    (custom-set-faces
+     `(fringe ((t :background ,bg :foreground ,bg)))
+     `(window-divider ((t :background ,bg :foreground ,bg)))
+     `(window-divider-first-pixel ((t :background ,bg :foreground ,bg)))
+     `(window-divider-last-pixel ((t :background ,bg :foreground ,bg))))))
+
+(add-hook 'enable-theme-functions #'my-modus-themes-invisible-dividers)
+#+end_src
+
+Users of older versions of Emacs can read the entry herein about
+defining their own theme-agnostic hook ([[#h:86f6906b-f090-46cc-9816-1fe8aeb38776][A theme-agnostic hook for theme loading]]).
+
 ** Custom hl-todo colors
 :PROPERTIES:
 :CUSTOM_ID: h:2ef83a21-2f0a-441e-9634-473feb940743
@@ -3636,7 +3872,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + csv-mode
 + ctrlf
 + custom (what you get with {{{kbd(M-x customize)}}})
-- dashboard
++ dashboard
 + deadgrep
 + deft
 + devdocs
@@ -3651,6 +3887,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + dired-narrow
 + dired-subtree
 + diredfl
++ disk-usage
 + display-fill-column-indicator-mode
 + doom-modeline
 + ediff
@@ -3715,6 +3952,8 @@ have lots of extensions, so the "full support" may not be 100% true…
 + ivy*
 + ivy-posframe
 + jira (org-jira)
++ jit-spell
++ jinx
 + journalctl-mode
 + js2-mode
 + julia
@@ -3733,7 +3972,6 @@ have lots of extensions, so the "full support" may not be 100% true…
 + minimap
 + mode-line
 + mood-line
-+ moody
 + mpdel
 + mu4e
 + multiple-cursors
@@ -3780,6 +4018,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + rg (rg.el)
 + ripgrep
 + rmail
++ rst-mode
 + ruler-mode
 + sesman
 + shell-script-mode
@@ -3969,9 +4208,9 @@ length elsewhere in this manual:
      ;; Doom should not be implementing such hacks because themes
      ;; cannot support them:
      ;; <https://protesilaos.com/codelog/2022-08-04-doom-git-gutter-modus-themes/>.
-     `(git-gutter-fr:added ((,c :foreground ,bg-added-intense)))
-     `(git-gutter-fr:deleted ((,c :foreground ,bg-removed-intense)))
-     `(git-gutter-fr:modified ((,c :foreground ,bg-changed-intense))))))
+     `(git-gutter-fr:added ((,c :foreground ,bg-added-fringe)))
+     `(git-gutter-fr:deleted ((,c :foreground ,bg-removed-fringe)))
+     `(git-gutter-fr:modified ((,c :foreground ,bg-changed-fringe))))))
 
 (add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
 #+end_src
@@ -4941,9 +5180,10 @@ themes remains consistent.
 
 The former criterion should be crystal clear as it pertains to the
 scientific foundations of the themes: high legibility and taking care
-of the needs of users with red-green color deficiency (deuteranopia)
-by avoiding red+green color coding paradigms and/or by providing
-yellow+blue variants ([[#h:f0f3dbcb-602d-40cf-b918-8f929c441baf][Overview]]).
+of the needs of users with red-green/blue-yellow color deficiency
+(deuteranopia and tritanopia) by avoiding red+green color coding
+paradigms and/or by providing yellow+blue variants for deuteranopia
+and red+cyan for tritanopia ([[#h:f0f3dbcb-602d-40cf-b918-8f929c441baf][Overview]]).
 
 The latter criterion is the "je ne sais quoi" of the artistic aspect of
 the themes, which is partially fleshed out in this manual.
@@ -5099,13 +5339,14 @@ The Modus themes are a collective effort.  Every bit of work matters.
 + Contributions to code or documentation :: Aleksei Gusev, Alex
   Griffin, Anders Johansson, Antonio Ruiz, Basil L.{{{space()}}}
   Contovounesios, Björn Lindström, Carlo Zancanaro, Christian Tietze,
-  Daniel Mendler, Eli Zaretskii, Fritz Grabo, Illia Ostapyshyn, Kévin
-  Le Gouguec, Koen van Greevenbroek, Kostadin Ninev, Madhavan
-  Krishnan, Manuel Giraud, Markus Beppler, Matthew Stevenson, Mauro
-  Aranda, Nicolas De Jaeghere, Paul David, Philip Kaludercic, Pierre
-  Téchoueyres, Rudolf Adamkovič, Sergey Nichiporchik, Stephen Gildea,
-  Shreyas Ragavan, Stefan Kangas, Utkarsh Singh, Vincent Murphy,
-  Xinglu Chen, Yuanchen Xie, okamsn.
+  Daniel Mendler, David Edmondson, Eli Zaretskii, Fritz Grabo, Gautier
+  Ponsinet, Illia Ostapyshyn, Kévin Le Gouguec, Koen van Greevenbroek,
+  Kostadin Ninev, Madhavan Krishnan, Manuel Giraud, Markus Beppler,
+  Matthew Stevenson, Mauro Aranda, Nacho Barrientos, Nicolas De
+  Jaeghere, Paul David, Philip Kaludercic, Pierre Téchoueyres, Rudolf
+  Adamkovič, Sergey Nichiporchik, Shreyas Ragavan, Stefan Kangas,
+  Stephen Gildea, Steve Downey, Tomasz Hołubowicz, Utkarsh Singh,
+  Vincent Murphy, Xinglu Chen, Yuanchen Xie, okamsn.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
   Adrian Manea, Aleksei Pirogov, Alex Griffin, Alex Koen, Alex
@@ -5127,19 +5368,20 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Bestley, Mark Burton, Mark Simpson, Marko Kocic, Markus Beppler,
   Matt Armstrong, Matthias Fuchs, Mattias Engdegård, Mauro Aranda,
   Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock,
-  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Pablo
-  Stafforini, Paul Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu,
-  Philip Kaludercic, Pierre Téchoueyres, Przemysław Kryger, Robert
-  Hepple, Roman Rudakov, Russell Sim, Ryan Phillips, Rytis Paškauskas,
-  Rudolf Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška,
-  Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thanos Apollo, Thibaut
-  Verron, Thomas Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley,
-  Tomasz Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent
-  Foley, Zoltan Kiraly.  As well as users: Ben, CsBigDataHub1, Emacs
-  Contrib, Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs,
-  TheBlob42, TitusMu, Trey, bepolymathe, bit9tream, bangedorrunt,
-  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
-  pRot0ta1p, soaringbird, tumashu, wakamenod.
+  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Nicolas
+  Semrau, Oliver Epper, Pablo Stafforini, Paul Poloskov, Pengji Zhang,
+  Pete Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres,
+  Przemysław Kryger, Robert Hepple, Roman Rudakov, Russell Sim, Ryan
+  Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam Kleinman, Samuel
+  Culpepper, Saša Janiška, Shreyas Ragavan, Simon Pugnet, Steve
+  Downey, Tassilo Horn, Thanos Apollo, Thibaut Verron, Thomas
+  Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz
+  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley,
+  Zoltan Kiraly.  As well as users: Ben, CsBigDataHub1, Emacs Contrib,
+  Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42,
+  TitusMu, Trey, bepolymathe, bit9tream, bangedorrunt, derek-upham,
+  doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p,
+  soaringbird, tumashu, wakamenod.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
   Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core

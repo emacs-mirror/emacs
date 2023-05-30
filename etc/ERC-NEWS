@@ -131,14 +131,26 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
+** Improved interplay between buffer truncation and message logging.
+While most of these improvements are subtle, some affect everyday use.
+For example, users of the 'truncate' module may notice that truncation
+now happens between messages rather than arbitrary lines.  And those
+with the default 'erc-insert-timestamp-left-and-right' for their
+'erc-insert-timestamp-function' will see date stamps reprinted after
+every "/CLEAR" but omitted from any logs.  One notable casualty of
+these changes has been the deprecation of the ancient option
+'erc-truncate-buffer-on-save'.  Users of the 'log' module can achieve
+the same effect by issuing a "/CLEAR" at the prompt.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
 interactive and can be invoked on any message to view its timestamp in
 the echo area.  The command 'erc-button-previous' now moves to the
-beginning instead of the end of buttons.  And the 'irccontrols' module
-now supports additional colors and special handling for "spoilers"
-(hidden text).
+beginning instead of the end of buttons.  A new command, 'erc-news',
+can now be invoked to visit this very file.  And the 'irccontrols'
+module now supports additional colors and special handling for
+"spoilers" (hidden text).
 
 ** Changes in the library API.
 
@@ -215,12 +227,12 @@ changes are encouraged to voice their concerns on the bug list.
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to
 third-party modules as 'erc-compat-call' and 'erc-compat-function'.
-In the area of buttons, 'Info-goto-node' has been supplanted by plain
-old 'info' in 'erc-button-alist', and the bracketed "<URL:...>"
-pattern entry has been removed because it was more or less redundant.
-And the "TAB" key is now bound to a new command, 'erc-tab', that only
-calls 'completion-at-point' when point is in the input area and
-module-specific commands, like 'erc-button-next', otherwise.
+In 'erc-button-alist', 'Info-goto-node' has been supplanted by plain
+old 'info', and the "<URL:...>" entry has been removed because it was
+more or less redundant.  In all ERC buffers, the "<TAB>" key is now
+bound to a new command, 'erc-tab', that calls 'completion-at-point'
+inside the input area and otherwise dispatches module-specific
+commands, like 'erc-button-next'.
 
 
 * Changes in ERC 5.5

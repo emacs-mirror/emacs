@@ -1,4 +1,4 @@
-;;; modus-vivendi-theme.el --- Elegant, highly legible and customizable dark theme -*- lexical-binding:t -*-
+;;; modus-vivendi-theme.el --- Elegant, highly legible theme with a black background -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
 
@@ -43,7 +43,7 @@
     (require 'modus-themes))
 
   (deftheme modus-vivendi
-    "Elegant, highly legible and customizable dark theme.
+    "Elegant, highly legible theme with a black background.
 Conforms with the highest legibility standard for color contrast
 between background and foreground in any given piece of text,
 which corresponds to a minimum contrast in relative luminance of
@@ -138,10 +138,10 @@ which corresponds to a minimum contrast in relative luminance of
 
       (bg-graph-red-0     "#b52c2c")
       (bg-graph-red-1     "#702020")
-      (bg-graph-green-0   "#4fd100")
+      (bg-graph-green-0   "#0fed00")
       (bg-graph-green-1   "#007800")
       (bg-graph-yellow-0  "#f1e00a")
-      (bg-graph-yellow-1  "#b08600")
+      (bg-graph-yellow-1  "#b08940")
       (bg-graph-blue-0    "#2fafef")
       (bg-graph-blue-1    "#1f2f8f")
       (bg-graph-magenta-0 "#bf94fe")
@@ -227,6 +227,13 @@ which corresponds to a minimum contrast in relative luminance of
       (underline-warning yellow)
       (underline-note cyan)
 
+      (bg-prominent-err bg-red-intense)
+      (fg-prominent-err fg-main)
+      (bg-prominent-warning bg-yellow-intense)
+      (fg-prominent-warning fg-main)
+      (bg-prominent-note bg-cyan-intense)
+      (fg-prominent-note fg-main)
+
 ;;;; Code mappings
 
       (builtin magenta-warmer)
@@ -273,8 +280,9 @@ which corresponds to a minimum contrast in relative luminance of
       (date-common cyan)
       (date-deadline red)
       (date-event fg-alt)
-      (date-holiday magenta)
+      (date-holiday red-cooler)
       (date-now fg-main)
+      (date-range fg-alt)
       (date-scheduled yellow-warmer)
       (date-weekday cyan)
       (date-weekend red-faint)
@@ -311,6 +319,15 @@ which corresponds to a minimum contrast in relative luminance of
       (mail-subject magenta-warmer)
       (mail-other magenta-faint)
 
+;;;; Mark mappings
+
+      (bg-mark-delete bg-red-subtle)
+      (fg-mark-delete red-cooler)
+      (bg-mark-select bg-cyan-subtle)
+      (fg-mark-select cyan)
+      (bg-mark-other bg-yellow-subtle)
+      (fg-mark-other yellow)
+
 ;;;; Prompt mappings
 
       (fg-prompt cyan-cooler)
@@ -340,6 +357,12 @@ which corresponds to a minimum contrast in relative luminance of
       (rainbow-6 green-intense)
       (rainbow-7 blue-warmer)
       (rainbow-8 magenta-warmer)
+
+;;;; Space mappings
+
+      (bg-space unspecified)
+      (fg-space border)
+      (bg-space-err bg-red-intense)
 
 ;;;; Heading mappings
 

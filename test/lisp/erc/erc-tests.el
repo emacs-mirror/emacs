@@ -269,6 +269,105 @@
       (kill-buffer "bob")
       (kill-buffer "ServNet"))))
 
+(ert-deftest erc--refresh-prompt ()
+  (let* ((counter 0)
+         (erc-prompt (lambda ()
+                       (format "%s %d>"
+                               (erc-format-target-and/or-network)
+                               (cl-incf counter))))
+         erc-accidental-paste-threshold-seconds
+         erc-insert-modify-hook
+         erc--input-review-functions
+         erc-send-completed-hook)
+
+    (ert-info ("Server buffer")
+      (with-current-buffer (get-buffer-create "ServNet")
+        (erc-tests--send-prep)
+        (goto-char erc-insert-marker)
+        (should (looking-at-p "ServNet 3>"))
+        (erc-tests--set-fake-server-process "sleep" "1")
+        (set-process-sentinel erc-server-process #'ignore)
+        (setq erc-network 'ServNet
+              erc-server-current-nick "tester"
+              erc-networks--id (erc-networks--id-create nil)
+              erc-server-users (make-hash-table :test 'equal))
+        (set-process-query-on-exit-flag erc-server-process nil)
+        ;; Incoming message redraws prompt
+        (erc-display-message nil 'notice nil "Welcome")
+        (should (looking-at-p "ServNet 4>"))
+        ;; Say something
+        (save-excursion (goto-char erc-input-marker)
+                        (insert "Howdy")
+                        (erc-send-current-line)
+                        (forward-line -1)
+                        (should (looking-at "No target"))
+                        (forward-line -1)
+                        (should (looking-at "<tester> Howdy")))
+        (should (looking-at-p "ServNet 6>"))
+        ;; Space after prompt is unpropertized
+        (should (get-text-property (1- erc-input-marker) 'erc-prompt))
+        (should-not (get-text-property erc-input-marker 'erc-prompt))
+        ;; No sign of old prompts
+        (save-excursion
+          (goto-char (point-min))
+          (should-not (search-forward (rx (any "3-5") ">") nil t)))))
+
+    (ert-info ("Channel buffer")
+      (with-current-buffer (get-buffer-create "#chan")
+        (erc-tests--send-prep)
+        (goto-char erc-insert-marker)
+        (should (looking-at-p "#chan 9>"))
+        (setq erc-server-process (buffer-local-value 'erc-server-process
+                                                     (get-buffer "ServNet"))
+              erc-networks--id (erc-with-server-buffer erc-networks--id)
+              erc--target (erc--target-from-string "#chan")
+              erc-default-recipients (list "#chan")
+              erc-channel-users (make-hash-table :test 'equal))
+        (erc-update-current-channel-member "alice" "alice")
+        (erc-update-current-channel-member "bob" "bob")
+        (erc-update-current-channel-member "tester" "tester")
+        (erc-display-message nil nil (current-buffer)
+                             (erc-format-privmessage "alice" "Hi" nil t))
+        (should (looking-at-p "#chan@ServNet 10>"))
+        (save-excursion (goto-char erc-input-marker)
+                        (insert "Howdy")
+                        (erc-send-current-line)
+                        (forward-line -1)
+                        (should (looking-at "<tester> Howdy")))
+        (should (looking-at-p "#chan@ServNet 11>"))
+        (save-excursion (goto-char erc-input-marker)
+                        (insert "/query bob")
+                        (erc-send-current-line))
+        ;; Query does not redraw (nor /help, only message input)
+        (should (looking-at-p "#chan@ServNet 11>"))
+        ;; No sign of old prompts
+        (save-excursion
+          (goto-char (point-min))
+          (should-not (search-forward (rx (or "9" "10") ">") nil t)))))
+
+    (ert-info ("Query buffer")
+      (with-current-buffer (get-buffer "bob")
+        (goto-char erc-insert-marker)
+        (should (looking-at-p "bob@ServNet 14>"))
+        (erc-display-message nil nil (current-buffer)
+                             (erc-format-privmessage "bob" "Hi" nil t))
+        (should (looking-at-p "bob@ServNet 15>"))
+        (save-excursion (goto-char erc-input-marker)
+                        (insert "Howdy")
+                        (erc-send-current-line)
+                        (forward-line -1)
+                        (should (looking-at "<tester> Howdy")))
+        (should (looking-at-p "bob@ServNet 16>"))
+        ;; No sign of old prompts
+        (save-excursion
+          (goto-char (point-min))
+          (should-not (search-forward (rx (or "14" "15") ">") nil t)))))
+
+    (when noninteractive
+      (kill-buffer "#chan")
+      (kill-buffer "bob")
+      (kill-buffer "ServNet"))))
+
 (ert-deftest erc--initialize-markers ()
   (let ((proc (start-process "true" (current-buffer) "true"))
         erc-modules

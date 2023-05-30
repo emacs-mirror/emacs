@@ -97,15 +97,16 @@ recent Emacs branch, and apply the command
 This creates the Debian-based image emacs-inotify, based on the
 instructions in the file Dockerfile.emba.  This image is good for the
 majority of tests.  However, there are also other image build
-instructions like emacs-filenotify-gio, emacs-eglot, emacs-gnustep and
-emacs-native-comp-speed{0,1,2}.  Use the appropriate one.
+instructions like emacs-filenotify-gio, emacs-eglot,
+emacs-tree-sitter, emacs-gnustep and emacs-native-comp-speed{0,1,2}.
+Use the appropriate one.
 
 The image contains a directory "/checkout", which is a copy of your
 local Emacs git repository.  Emacs has been built in this directory
 via "make bootstrap".  In order to use the image, start a container
 like
 
-  docker run --interactive --env EMACS_EMBA_CI=1 --name emacs-inotify \
+  docker run --interactive --tty --env EMACS_EMBA_CI=1 --name emacs-inotify \
     emacs-inotify /bin/sh -i
 
 In this container, change the current directory to "/checkout".  Now

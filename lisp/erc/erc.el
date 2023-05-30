@@ -144,6 +144,8 @@ concerning buffers."
 (declare-function word-at-point "thingatpt" (&optional no-properties))
 (autoload 'word-at-point "thingatpt") ; for hl-nicks
 
+(declare-function gnutls-negotiate "gnutls" (&rest rest))
+(declare-function socks-open-network-stream "socks" (name buffer host service))
 (declare-function url-host "url-parse" (cl-x))
 (declare-function url-password "url-parse" (cl-x))
 (declare-function url-portspec "url-parse" (cl-x))
@@ -2598,6 +2600,22 @@ PARAMETERS should be a sequence of keywords and values, per
     (setq args `(,name ,buffer ,host ,port ,@p))
     (apply #'open-network-stream args)))
 
+(defun erc-open-socks-tls-stream (name buffer host service &rest parameters)
+  "Connect to an IRC server via SOCKS proxy over TLS.
+Bind `erc-server-connect-function' to this function around calls
+to `erc-tls'.  See `erc-open-network-stream' for the meaning of
+NAME and BUFFER.  HOST should be a \".onion\" URL, SERVICE a TLS
+port number, and PARAMETERS a sequence of key/value pairs, per
+`open-network-stream'.  See Info node `(erc) SOCKS' for more
+info."
+  (require 'gnutls)
+  (require 'socks)
+  (let ((proc (socks-open-network-stream name buffer host service))
+        (cert-info (plist-get parameters :client-certificate)))
+    (gnutls-negotiate :process proc
+                      :hostname host
+                      :keylist (and cert-info (list cert-info)))))
+
 ;;; Displaying error messages
 
 (defun erc-error (&rest args)
@@ -2787,6 +2805,18 @@ this option to nil."
           (cl-assert (< erc-insert-marker erc-input-marker))
           (cl-assert (= (field-end erc-insert-marker) erc-input-marker)))))
 
+(defun erc--refresh-prompt ()
+  "Re-render ERC's prompt when the option `erc-prompt' is a function."
+  (erc--assert-input-bounds)
+  (when (functionp erc-prompt)
+    (save-excursion
+      (goto-char erc-insert-marker)
+      ;; Avoid `erc-prompt' (the named function), which appends a
+      ;; space, and `erc-display-prompt', which propertizes all but
+      ;; that space.
+      (insert-and-inherit (funcall erc-prompt))
+      (delete-region (point) (1- erc-input-marker)))))
+
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
 Auxiliary function used in `erc-display-line'.  The line gets filtered to
@@ -2830,7 +2860,7 @@ If STRING is nil, the function does nothing."
                   (when erc-remove-parsed-property
                     (remove-text-properties (point-min) (point-max)
                                             '(erc-parsed nil))))
-                (erc--assert-input-bounds)))))
+                (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
         (erc-update-undo-list (- (or (marker-position erc-insert-marker)
                                      (point-max))
@@ -3406,10 +3436,17 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
       (erc-with-server-buffer
         (setq erc-ignore-list (delete user erc-ignore-list))))))
 
+(defvar erc--pre-clear-functions nil
+  "Abnormal hook run when truncating buffers.
+Called with position indicating boundary of interval to be excised.")
+
 (defun erc-cmd-CLEAR ()
   "Clear the window content."
   (let ((inhibit-read-only t))
-    (delete-region (point-min) (line-beginning-position)))
+    (run-hook-with-args 'erc--pre-clear-functions (1- erc-insert-marker))
+    ;; Ostensibly, `line-beginning-position' is for use in lisp code.
+    (delete-region (point-min) (min (line-beginning-position)
+                                    (1- erc-insert-marker))))
   t)
 (put 'erc-cmd-CLEAR 'process-not-needed t)
 
@@ -4755,11 +4792,11 @@ This places `point' just after the prompt, or at the beginning of the line."
   "Functions to try when user hits \\`TAB' outside of input area.
 Called with a numeric prefix arg.")
 
-(defun erc-tab (&optional arg)
+(defun erc-tab (arg)
   "Call `completion-at-point' when typing in the input area.
-Otherwise call members of `erc--tab-functions' with raw prefix
-ARG until one of them returns non-nil."
-  (interactive "P")
+Otherwise call members of `erc--tab-functions' with a numeric
+prefix ARG until one of them returns non-nil."
+  (interactive "p")
   (if (>= (point) erc-input-marker)
       (completion-at-point)
     (run-hook-with-args-until-success 'erc--tab-functions arg)))
@@ -6452,7 +6489,7 @@ Return non-nil only if we actually send anything."
           (narrow-to-region insert-position (point))
           (run-hooks 'erc-send-modify-hook)
           (run-hooks 'erc-send-post-hook))
-        (erc--assert-input-bounds)))))
+        (erc--refresh-prompt)))))
 
 (defun erc-command-symbol (command)
   "Return the ERC command symbol for COMMAND if it exists and is bound."
@@ -7409,6 +7446,51 @@ If BUFFER is nil, update the mode line in all ERC buffers."
   (save-excursion
     (goto-char (point-min))
     (insert "X-Debbugs-CC: emacs-erc@gnu.org\n")))
+
+(defconst erc--news-url
+  "https://git.savannah.gnu.org/cgit/emacs.git/plain/etc/ERC-NEWS")
+
+(defvar erc--news-temp-file nil)
+
+(defun erc-news (arg)
+  "Show ERC news in a manner similar to `view-emacs-news'.
+With ARG, download and display the latest revision, which may
+contain more up-to-date information, even for older versions."
+  (interactive "P")
+  (find-file
+   (or (and arg erc--news-temp-file
+            (time-less-p (current-time) (car erc--news-temp-file))
+            (cdr erc--news-temp-file))
+       (and arg
+            (with-current-buffer (url-retrieve-synchronously erc--news-url)
+              (goto-char (point-min))
+              (search-forward "200 OK" (pos-eol))
+              (search-forward "\n\n")
+              (delete-region (point-min) (point))
+              (let ((tempfile (make-temp-file "erc-news.")))
+                (write-region (point-min) (point-max) tempfile)
+                (kill-buffer)
+                (cdr (setq erc--news-temp-file
+                           (cons (time-add (current-time) (* 60 60 12))
+                                 tempfile))))))
+       (and-let* ((file (or (eval-when-compile (macroexp-file-name))
+                            (locate-library "erc")))
+                  (dir (file-name-directory file))
+                  (adjacent (expand-file-name "ERC-NEWS" dir))
+                  ((file-exists-p adjacent)))
+         adjacent)
+       (expand-file-name "ERC-NEWS" data-directory)))
+  (when (fboundp 'emacs-news-view-mode)
+    (emacs-news-view-mode))
+  (let ((v (mapcar #'number-to-string
+                   (seq-take-while #'natnump (version-to-list erc-version)))))
+    (while (and v
+                (goto-char (point-min))
+                (not (search-forward (concat "\014\n* Changes in ERC "
+                                             (string-join v "."))
+                                     nil t)))
+      (setq v (butlast v))))
+  (beginning-of-line))
 
 (defun erc-port-to-string (p)
   "Convert port P to a string.

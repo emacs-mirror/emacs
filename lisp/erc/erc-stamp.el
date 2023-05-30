@@ -166,12 +166,14 @@ from entering them and instead jump over them."
    (add-hook 'erc-insert-modify-hook #'erc-add-timestamp t)
    (add-hook 'erc-send-modify-hook #'erc-add-timestamp t)
    (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
+   (add-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
    (unless erc--updating-modules-p
      (erc-buffer-filter #'erc-munge-invisibility-spec)))
   ((remove-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
    (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
+   (remove-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
    (erc-with-all-buffers-of-server nil nil
      (kill-local-variable 'erc-timestamp-last-inserted)
      (kill-local-variable 'erc-timestamp-last-inserted-left)
@@ -583,6 +585,20 @@ enabled when the message was inserted."
 
 (defun erc--echo-ts-csf (_window _before dir)
   (erc-echo-timestamp dir (get-text-property (point) 'erc-timestamp)))
+
+(defun erc-stamp--update-saved-position (&rest _)
+  (remove-function (local 'erc-stamp--insert-date-function)
+                   #'erc-stamp--update-saved-position)
+  (move-marker erc-last-saved-position (1- (point))))
+
+(defun erc-stamp--reset-on-clear (pos)
+  "Forget last-inserted stamps when POS is at insert marker."
+  (when (= pos (1- erc-insert-marker))
+    (add-function :after (local 'erc-stamp--insert-date-function)
+                  #'erc-stamp--update-saved-position)
+    (setq erc-timestamp-last-inserted nil
+          erc-timestamp-last-inserted-left nil
+          erc-timestamp-last-inserted-right nil)))
 
 (provide 'erc-stamp)
 

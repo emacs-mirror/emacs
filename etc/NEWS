@@ -425,15 +425,16 @@ A major mode based on the tree-sitter library for editing Elixir
 files.
 
 ---
-** The highly accessible Modus themes collection has six items.
+** The highly accessible Modus themes collection has eight items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have
 been part of Emacs since version 28.  The former is light, the latter
 dark.  In addition to these, we now have 'modus-operandi-tinted' and
 'modus-vivendi-tinted' for easier legibility, as well as
-'modus-operandi-deuteranopia' and 'modus-vivendi-deuteranopia' to
-cover the needs of users with red-green color deficiency.  The Info
-manual "(modus-themes) Top" describes the details and showcases all
-their customization options.
+'modus-operandi-deuteranopia', 'modus-vivendi-deuteranopia',
+'modus-operandi-tritanopia', and 'modus-vivendi-tritanopia' to cover
+the needs of users with red-green or blue-yellow color deficiency.
+The Info manual "(modus-themes) Top" describes the details and
+showcases all their customization options.
 
 
 * Incompatible Lisp Changes in Emacs 30.1
