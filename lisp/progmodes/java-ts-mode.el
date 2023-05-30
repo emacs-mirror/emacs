@@ -226,6 +226,9 @@ the available version of Tree-sitter for java."
      (constructor_declaration
       name: (identifier) @font-lock-type-face)
 
+     (compact_constructor_declaration
+      name: (identifier) @font-lock-type-face)
+
      (field_access
       object: (identifier) @font-lock-type-face)
 
