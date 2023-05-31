@@ -613,6 +613,7 @@ Integrations
 * URL::                         Opening IRC URLs in ERC.
 * SOCKS::                       Connecting to IRC with a SOCKS proxy.
 * auth-source::                 Retrieving auth-source entries with ERC.
+* display-buffer::              Controlling how ERC displays buffers.
 
 @end detailmenu
 @end menu
@@ -1226,6 +1227,7 @@ stuff, to the current ERC buffer."
 
 @menu
 * auth-source::                 Retrieving auth-source entries with ERC.
+* display-buffer::              Controlling how ERC displays buffers.
 @end menu
 
 @anchor{URL}
@@ -1468,6 +1470,185 @@ required by certain channels you join.  When modifying a traditional
 @samp{user} field (for example, @samp{login "#fsf"}, in netrc's case).
 The actual key goes in the @samp{password} (or @samp{secret}) field.
 
+@node display-buffer
+@subsection display-buffer
+@cindex display-buffer
+
+ERC supports the ``action'' interface used by @code{display-buffer}
+and friends from @file{window.el}.  @xref{Displaying Buffers,,, elisp,
+Emacs Lisp}, for specifics.  When ERC displays a new or
+``reassociated'' buffer, it consults its various buffer-display
+options, such as @code{erc-buffer-display}, to decide whether and how
+the buffer ought to appear in a window.  Exactly which one it consults
+depends on the context in which the buffer is being manifested.
+
+For some buffer-display options, the context is pretty cut and dry.
+For instance, in the case of @code{erc-receive-query-display}, you're
+receiving a query from someone you haven't yet chatted with in the
+current session.  For other options, like
+@code{erc-interactive-display}, the precise context varies.  For
+example, you might be opening a query buffer with the command
+@kbd{/QUERY bob @key{RET}} or joining a new channel with @kbd{/JOIN
+#chan @key{RET}}.  Power users wishing to distinguish between such
+nuanced contexts or just exercise more control over buffer-display
+behavior generally can elect to override these options by setting one
+or more to a ``@code{display-buffer}-like'' function that accepts a
+@var{buffer} and an @var{action} argument.
+
+@subsubheading Examples
+
+In this first example, a user-provided buffer-display function
+displays new server buffers in the current window when issuing an
+@kbd{M-x erc-tls @key{RET}} and in a split window for all other
+interactve contexts covered by the option
+@code{erc-interactive-display}, like clicking an @samp{irc://}-style
+@acronym{URL} (@pxref{URL}).
+
+@lisp
+(defun my-erc-interactive-display-buffer (buffer action)
+  "Pop to BUFFER when running \\[erc-tls], clicking a link, etc."
+  (when-let ((alist (cdr action))
+             (found (alist-get 'erc-interactive-display alist)))
+    (if (eq found 'erc-tls)
+        (pop-to-buffer-same-window buffer action)
+      (pop-to-buffer buffer action))))
+
+(setopt erc-interactive-display #'my-erc-interactive-display-buffer)
+@end lisp
+
+@noindent
+Observe that ERC supplies the names of buffer-display options as
+@var{action} alist keys and pairs them with contextual constants, like
+the symbols @samp{erc-tls} or @samp{url}, the full lineup of which are
+listed below.
+
+In this second example, the user writes three predicates that somewhat
+resemble the ``@code{display-buffer}-like'' function above.  These too
+look for @var{action} alist keys sharing the names of buffer-display
+options (and, in one case, a module's minor mode).
+
+@lisp
+(defun my-erc-disp-entry-p (_ action)
+  (memq (cdr (or (assq 'erc-buffer-display action)
+                 (assq 'erc-interactive-display action)))
+        '(erc-tls url)))
+
+(defun my-erc-disp-query-p (_ action)
+  (or (eq (cdr (assq 'erc-interactive-display action)) '/QUERY)
+      (and (eq (cdr (assq 'erc-receive-query-display action)) 'PRIVMSG)
+           (member (erc-default-target) '("bob" "alice")))))
+
+(defun my-erc-disp-chan-p (_ action)
+  (or (assq 'erc-autojoin-mode action)
+      (and (memq (cdr (assq 'erc-buffer-display alist)) 'JOIN)
+           (member (erc-default-target) '("#emacs" "#fsf")))))
+@end lisp
+
+@noindent
+You'll notice we ignore the @var{buffer} parameter of these predicates
+because ERC ensures that @var{buffer} is already current (which is why
+we can freely call @code{erc-default-target}).  Note also that we
+cheat a little by treating the @var{action} parameter like an alist
+when it's really a cons of one or more functions and an alist.
+
+@noindent
+To complement our predicates, we set all three buffer-display options
+referenced in their @var{action}-alist lookups to
+@code{display-buffer}.  This tells ERC to defer to that function in
+the display contexts covered by these options.
+
+@lisp
+(setopt erc-buffer-display #'display-buffer
+        erc-interactive-display #'display-buffer
+        erc-receive-query-display #'display-buffer
+        ;;
+        erc-auto-reconnect-display 'bury)
+@end lisp
+
+@noindent
+The last option above just tells ERC to avoid any buffer-display
+machinery when auto-reconnecting.  (For historical reasons, ERC's
+buffer-display options use the term ``bury'' to mean ``ignore'' rather
+than @code{bury-buffer}.)
+
+Finally, we compose our predicates into @code{buffer-match-p}
+conditions and pair them with various well known @code{display-buffer}
+action functions and action-alist members.
+
+@lisp
+(setopt display-buffer-alist
+
+        ;; Create new frame with M-x erc-tls RET or (erc-tls ...)
+        '(((and (major-mode . erc-mode) my-erc-disp-entry-p)
+           display-buffer-pop-up-frame
+           (reusable-frames . visible))
+
+          ;; Show important chans and queries in a split.
+          ((and (major-mode . erc-mode)
+                (or my-erc-disp-chan-p my-erc-disp-query-p))
+           display-buffer-pop-up-window)
+
+          ;; Ignore everything else.
+          ((major-mode . erc-mode)
+           display-buffer-no-window
+           (allow-no-window . t))))
+@end lisp
+
+@noindent
+Of course, we could just as well set our buffer-display options to one
+or more homespun functions instead of bothering with
+@code{display-buffer-alist} at all (in what would make for a more
+complicated version of our first example).  But perhaps we already
+have a growing menagerie of similar predicates and like to keep
+everything in one place in our @file{init.el}.
+
+@subsubheading Action alist items
+
+@table @asis
+@item Option-based keys:
+All keys are symbols, as are values, unless otherwise noted.
+
+@itemize @bullet
+@item @code{erc-buffer-display}
+@itemize @minus
+@item @samp{JOIN}
+@item @samp{NOTICE}
+@item @samp{PRIVMSG}
+@item @samp{erc} (entry point called non-interactively)
+@item @samp{erc-tls}
+@end itemize
+
+@item @code{erc-interactive-display}
+@itemize @minus
+@item @samp{/QUERY}
+@item @samp{/JOIN}
+@item @samp{/RECONNECT}
+@item @samp{url} (hyperlink clicked)
+@item @samp{erc} (entry point called interactively)
+@item @samp{erc-tls}
+@end itemize
+
+@item @code{erc-receive-query-display}
+@itemize @minus
+@item @samp{NOTICE}
+@item @samp{PRIVMSG}
+@end itemize
+
+@item @code{erc-auto-reconnect-display}
+@itemize @minus
+@item something non-@code{nil}
+@end itemize
+@end itemize
+
+@item Module-based (minor-mode) keys:
+
+@itemize @bullet
+@item @code{erc-autojoin-mode}
+@itemize @minus
+@item channel name as a string, e.g., @code{"#chan"}
+@end itemize
+@end itemize
+@end table
 
 @node Options
 @section Options

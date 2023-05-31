@@ -427,8 +427,9 @@
       (should (looking-at-p (regexp-quote "*** Welcome"))))
 
     (ert-info ("Reconnect")
-      (erc-open "localhost" 6667 "tester" "Tester" nil
-                "fake" nil "#chan" proc nil "user" nil)
+      (with-current-buffer (erc-server-buffer)
+        (erc-open "localhost" 6667 "tester" "Tester" nil
+                  "fake" nil "#chan" proc nil "user" nil))
       (should-not (get-buffer "#chan<2>")))
 
     (ert-info ("Existing prompt respected")
@@ -511,6 +512,50 @@
 
     (dolist (b '("server" "other" "#chan" "#foo" "#fake"))
       (kill-buffer b))))
+
+(ert-deftest erc-setup-buffer--custom-action ()
+  (erc-mode)
+  (erc-tests--set-fake-server-process "sleep" "1")
+  (setq erc--server-last-reconnect-count 0)
+  (let ((owin (selected-window))
+        (obuf (window-buffer))
+        (mbuf (messages-buffer))
+        calls)
+    (cl-letf (((symbol-function 'switch-to-buffer) ; regression
+               (lambda (&rest r) (push (cons 'switch-to-buffer r) calls)))
+              ((symbol-function 'erc--test-fun)
+               (lambda (&rest r) (push (cons 'erc--test-fun r) calls)))
+              ((symbol-function 'display-buffer)
+               (lambda (&rest r) (push (cons 'display-buffer r) calls))))
+
+      ;; Baseline
+      (let ((erc-join-buffer 'bury))
+        (erc-setup-buffer mbuf)
+        (should-not calls))
+
+      (should-not erc--display-context)
+
+      ;; `display-buffer'
+      (let ((erc--display-context '((erc-buffer-display . 1)))
+            (erc-join-buffer 'erc--test-fun))
+        (erc-setup-buffer mbuf)
+        (should (equal `(erc--test-fun ,mbuf (nil (erc-buffer-display . 1)))
+                       (pop calls)))
+        (should-not calls))
+
+      ;; `pop-to-buffer' with `erc-auto-reconnect-display'
+      (let* ((erc--server-last-reconnect-count 1)
+             (erc--display-context '((erc-buffer-display . 1)))
+             (erc-auto-reconnect-display 'erc--test-fun))
+        (erc-setup-buffer mbuf)
+        (should (equal `(erc--test-fun ,mbuf
+                                       (nil (erc-auto-reconnect-display . t)
+                                            (erc-buffer-display . 1)))
+                       (pop calls)))
+        (should-not calls)))
+
+    (should (eq owin (selected-window)))
+    (should (eq obuf (window-buffer)))))
 
 (ert-deftest erc-lurker-maybe-trim ()
   (let (erc-lurker-trim-nicks
@@ -1537,14 +1582,18 @@
                            (erc-join-buffer . window))))))
 
   (ert-info ("Switches to TLS when URL is ircs://")
-    (should (equal (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
-                     (erc-select-read-args))
-                   (list :server "irc.gnu.org"
-                         :port 6697
-                         :nick (user-login-name)
-                         '&interactive-env
-                         '((erc-server-connect-function . erc-open-tls-stream)
-                           (erc-join-buffer . window))))))
+    (let ((erc--display-context '((erc-interactive-display . erc))))
+      (should (equal (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
+                       (erc-select-read-args))
+                     (list :server "irc.gnu.org"
+                           :port 6697
+                           :nick (user-login-name)
+                           '&interactive-env
+                           '((erc-server-connect-function
+                              . erc-open-tls-stream)
+                             (erc--display-context
+                              . ((erc-interactive-display . erc)))
+                             (erc-join-buffer . window)))))))
 
   (setq-local erc-interactive-display nil) ; cheat to save space
 
@@ -1624,6 +1673,7 @@
               ((symbol-function 'erc-open)
                (lambda (&rest r)
                  (push `((erc-join-buffer ,erc-join-buffer)
+                         (erc--display-context ,@erc--display-context)
                          (erc-server-connect-function
                           ,erc-server-connect-function))
                        env)
@@ -1636,6 +1686,7 @@
                          nil nil nil nil nil "user" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer bury)
+                         (erc--display-context (erc-buffer-display . erc-tls))
                          (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Full")
@@ -1652,6 +1703,7 @@
                          "bob:changeme" nil nil nil t "bobo" GNU.org)))
         (should (equal (pop env)
                        '((erc-join-buffer bury)
+                         (erc--display-context (erc-buffer-display . erc-tls))
                          (erc-server-connect-function erc-open-tls-stream)))))
 
       ;; Values are often nil when called by lisp code, which leads to
@@ -1671,6 +1723,7 @@
                              "bob:changeme" nil nil nil nil "bobo" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer bury)
+                         (erc--display-context (erc-buffer-display . erc-tls))
                          (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Interactive")
@@ -1681,6 +1734,8 @@
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer window)
+                         (erc--display-context
+                          (erc-interactive-display . erc-tls))
                          (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Custom connect function")
@@ -1691,6 +1746,8 @@
                            nil nil nil nil nil "user" nil)))
           (should (equal (pop env)
                          '((erc-join-buffer bury)
+                           (erc--display-context
+                            (erc-buffer-display . erc-tls))
                            (erc-server-connect-function my-connect-func))))))
 
       (ert-info ("Advised default function overlooked") ; intentional
@@ -1702,6 +1759,7 @@
                          nil nil nil nil nil "user" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer bury)
+                         (erc--display-context (erc-buffer-display . erc-tls))
                          (erc-server-connect-function erc-open-tls-stream))))
         (advice-remove 'erc-server-connect-function 'erc-tests--erc-tls))
 
@@ -1715,6 +1773,8 @@
                            '("irc.libera.chat" 6697 "tester" "unknown" t
                              nil nil nil nil nil "user" nil)))
             (should (equal (pop env) `((erc-join-buffer bury)
+                                       (erc--display-context
+                                        (erc-buffer-display . erc-tls))
                                        (erc-server-connect-function ,f))))
             (advice-remove 'erc-server-connect-function
                            'erc-tests--erc-tls)))))))
@@ -1729,6 +1789,7 @@
               ((symbol-function 'erc-open)
                (lambda (&rest r)
                  (push `((erc-join-buffer ,erc-join-buffer)
+                         (erc--display-context ,@erc--display-context)
                          (erc-server-connect-function
                           ,erc-server-connect-function))
                        env)
@@ -1741,8 +1802,9 @@
                        '("irc.libera.chat" 6697 "tester" "unknown" t nil
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-join-buffer window) (erc-server-connect-function
-                                                   erc-open-tls-stream)))))
+                       '((erc-join-buffer window)
+                         (erc--display-context (erc-interactive-display . erc))
+                         (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Nick supplied, decline TLS upgrade")
         (ert-simulate-keys "\r\rdummy\r\rn\r"
@@ -1752,6 +1814,7 @@
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer window)
+                         (erc--display-context (erc-interactive-display . erc))
                          (erc-server-connect-function
                           erc-open-network-stream))))))))
 
@@ -1762,6 +1825,7 @@
               ((symbol-function 'erc-open)
                (lambda (&rest r)
                  (push `((erc-join-buffer ,erc-join-buffer)
+                         (erc--display-context ,@erc--display-context)
                          (erc-server-connect-function
                           ,erc-server-connect-function))
                        env)
@@ -1776,6 +1840,7 @@
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer window)
+                         (erc--display-context (erc-interactive-display . erc))
                          (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Selects entry that doesn't support TLS")
@@ -1787,6 +1852,7 @@
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
                        '((erc-join-buffer window)
+                         (erc--display-context (erc-interactive-display . erc))
                          (erc-server-connect-function
                           erc-open-network-stream))))))))
 

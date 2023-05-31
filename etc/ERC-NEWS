@@ -37,7 +37,7 @@ decade overdue, this is no longer the case.  Other UX improvements in
 this area aim to make the process of connecting interactively slightly
 more streamlined and less repetitive, even for veteran users.
 
-** Revised buffer-display handling for interactive commands.
+** Revised buffer-display handling.
 A point of friction for new users and one only just introduced with
 ERC 5.5 has been the lack of visual feedback when first connecting via
 M-x erc or when issuing a "/JOIN" command at the prompt.  As explained
@@ -56,7 +56,19 @@ reported as being difficult to discover and remember.  When the latter
 option (now known as 'erc-receive-query-display') is nil, ERC uses
 'erc-join-buffer' in its place, much like it does for
 'erc-interactive-display'.  The old nil behavior can still be gotten
-via the new compatibility flag 'erc-receive-query-display-defer'.
+via the new compatibility flag 'erc-receive-query-display-defer'.  The
+relatively new option 'erc-reconnect-display' has likewise been
+renamed, this time for clarity, to 'erc-auto-reconnect-display'.
+
+This release also introduces a few subtleties affecting the display of
+new or reassociated buffers.  One involves buffers that already occupy
+the selected window.  ERC now treats these as deserving of an implicit
+'bury'.  An escape hatch for this and most other baked-in behaviors is
+now available in the form of a new type variant recognized by all such
+options.  That is, users can now specify their own function to
+exercise full control over nearly all buffer-display related
+decisions.  See the newly expanded doc strings of 'erc-buffer-display'
+and friends, as well as Info node '(erc) display-buffer', for details.
 
 ** Setting a module's mode variable via Customize earns a warning.
 Trying and failing to activate a module via its minor mode's Custom

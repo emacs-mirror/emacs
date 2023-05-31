@@ -1553,9 +1553,26 @@ Defaults to the server buffer."
   "IRC port to use for encrypted connections if it cannot be \
 detected otherwise.")
 
+(defconst erc--buffer-display-choices
+  `(choice (const :tag "Use value of `erc-buffer-display'" nil)
+           (const :tag "Split window and select" window)
+           (const :tag "Split window but don't select" window-noselect)
+           (const :tag "New frame" frame)
+           (const :tag "Don't display" bury)
+           (const :tag "Use current window" buffer)
+           (choice :tag "Defer to a display function"
+                   (function-item display-buffer)
+                   (function-item pop-to-buffer)
+                   (function :tag "User-defined")))
+  "Common choices for buffer-display options.")
+
 (defvaralias 'erc-join-buffer 'erc-buffer-display)
 (defcustom erc-buffer-display 'bury
   "How to display a newly created ERC buffer.
+This determines ERC's baseline, \"catch-all\" buffer-display
+behavior.  It takes a backseat to more specific options, like
+`erc-interactive-display', `erc-auto-reconnect-display', and
+`erc-receive-query-display'.
 
 The available choices are:
 
@@ -1564,17 +1581,34 @@ The available choices are:
   `frame'           - in another frame,
   `bury'            - bury it in a new buffer,
   `buffer'          - in place of the current buffer,
+  DISPLAY-FUNCTION  - a `display-buffer'-like function
 
-See related options `erc-interactive-display',
-`erc-reconnect-display', and `erc-receive-query-display'."
+Here, DISPLAY-FUNCTION should accept a buffer and an ACTION of
+the kind described by the Info node `(elisp) Choosing Window'.
+At times, ERC may add hints about the calling context to the
+ACTION's alist.  Keys are symbols such as user options, like
+`erc-buffer-display', or module minor modes, like
+`erc-autojoin-mode'.  Values are non-nil constants specific to
+each.  For this particular option, possible values include the
+symbols
+
+  `JOIN', `PRIVMSG', `NOTICE', `erc', and `erc-tls'.
+
+The first three signify IRC commands received from the server and
+the rest entry-point commands responsible for the connection.
+When dealing with the latter two, users may prefer to set this
+option to `bury' and instead call DISPLAY-FUNCTION directly
+on (server) buffers returned by these entry points because the
+context leading to their creation is plainly obvious.  For
+additional details, see the Info node `(erc) display-buffer'.
+
+Note that when the selected window already shows the current
+buffer, ERC pretends this option's value is `bury' unless the
+variable `erc-skip-displaying-selected-window-buffer' is nil or
+the value of this option is DISPLAY-FUNCTION."
   :package-version '(ERC . "5.5")
   :group 'erc-buffers
-  :type '(choice (const :tag "Split window and select" window)
-                 (const :tag "Split window, don't select" window-noselect)
-                 (const :tag "New frame" frame)
-                 (const :tag "Bury in new buffer" bury)
-                 (const :tag "Use current buffer" buffer)
-                 (const :tag "Use current buffer" t)))
+  :type (cons 'choice (nthcdr 2 erc--buffer-display-choices)))
 
 (defvaralias 'erc-query-display 'erc-interactive-display)
 (defcustom erc-interactive-display 'window
@@ -1583,36 +1617,56 @@ This affects commands like /QUERY and /JOIN when issued
 interactively at the prompt.  It does not apply when calling a
 handler for such a command, like `erc-cmd-JOIN', from lisp code.
 See `erc-buffer-display' for a full description of available
-values."
+values.
+
+When the value is a user-provided function, ERC may inject a hint
+about the invocation context as an extra item in the \"action
+alist\" included as part of the second argument.  The item's key
+is the symbol `erc-interactive-display' and its value one of
+
+  `/QUERY', `/JOIN', `/RECONNECT', `url', `erc', or `erc-tls'.
+
+All are symbols indicating an inciting user action, such as the
+issuance of a slash command, the clicking of a URL hyperlink, or
+the invocation of an entry-point command.  See Info node `(erc)
+display-buffer' for more."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-buffers
-  :type '(choice (const :tag "Use value of `erc-buffer-display'" nil)
-                 (const :tag "Split window and select" window)
-                 (const :tag "Split window, don't select" window-noselect)
-                 (const :tag "New frame" frame)
-                 (const :tag "Bury new and don't display existing" bury)
-                 (const :tag "Use current buffer" buffer)))
+  :type erc--buffer-display-choices)
 
-(defcustom erc-reconnect-display nil
-  "How and whether to display a channel buffer when auto-reconnecting.
-This only affects automatic reconnections and is ignored, like
-all other buffer-display options, when issuing a /RECONNECT or
-successfully reinvoking `erc-tls' with similar arguments.  See
-`erc-buffer-display' for a description of possible values."
+(defvaralias 'erc-reconnect-display 'erc-auto-reconnect-display)
+(defcustom erc-auto-reconnect-display nil
+  "How to display a channel buffer when automatically reconnecting.
+ERC ignores this option when a user issues a /RECONNECT or
+successfully reinvokes `erc-tls' with similar arguments to those
+from the prior connection.  See `erc-buffer-display' for a
+description of possible values.
+
+When the value is function, ERC may inject a hint about the
+calling context as an extra item in the alist making up the tail
+of the second, \"action\" argument.  The item's key is the symbol
+`erc-auto-reconnect-display' and its value something non-nil."
   :package-version '(ERC . "5.5")
   :group 'erc-buffers
-  :type '(choice (const :tag "Use value of `erc-buffer-display'" nil)
-                 (const :tag "Split window and select" window)
-                 (const :tag "Split window, don't select" window-noselect)
-                 (const :tag "New frame" frame)
-                 (const :tag "Bury in new buffer" bury)
-                 (const :tag "Use current buffer" buffer)))
+  :type erc--buffer-display-choices)
 
-(defcustom erc-reconnect-display-timeout 10
-  "Duration `erc-reconnect-display' remains active.
+(defcustom erc-auto-reconnect-display-timeout 10
+  "Duration `erc-auto-reconnect-display' remains active.
 The countdown starts on MOTD and is canceled early by any
 \"slash\" command."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :type 'integer
+  :group 'erc-buffers)
+
+(defcustom erc-reconnect-display-server-buffers nil
+  "Apply buffer-display options to server buffers when reconnecting.
+By default, ERC does not consider `erc-auto-reconnect-display'
+for server buffers when automatically reconnecting, nor does it
+consider `erc-interactive-display' when users issue a /RECONNECT.
+Enabling this tells ERC to always display server buffers
+according to those options."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type 'boolean
   :group 'erc-buffers)
 
 (defcustom erc-frame-alist nil
@@ -1824,9 +1878,8 @@ server connection, or nil which means all open connections."
 
 (defalias 'erc-buffer-do 'erc-buffer-filter
   "Call FUNCTION in all ERC buffers or only those for PROC.
-Expect users to prefer this alias to `erc-buffer-filter' in cases
-where the latter would only be called for effect and its return
-value thrown away.
+Expect to be preferred over `erc-buffer-filter' in cases where
+the return value goes unused.
 
 \(fn FUNCTION &optional PROC)")
 
@@ -2094,12 +2147,43 @@ anything about the dependency's implementation.")
 (defvar erc--setup-buffer-hook nil
   "Internal hook for module setup involving windows and frames.")
 
+(defvar erc--display-context nil
+  "Extra action alist items passed to `display-buffer'.
+Non-nil when a user specifies a custom display action for certain
+buffer-display options, like `erc-auto-reconnect-display'.  ERC
+pairs the option's symbol with a context-dependent value and adds
+the entry to the user-provided alist when calling `pop-to-buffer'
+or `display-buffer'.")
+
+(defvar erc-skip-displaying-selected-window-buffer t
+  "Whether to forgo showing a buffer that's already being displayed.
+But only in the selected window.  This is intended as a crutch
+for non-user third-party code that might be slow to adopt the
+`display-buffer' function variant available to all buffer-display
+options starting in ERC 5.6.  Users with rare requirements, like
+wanting to change the window buffer to something other than the
+one being processed, should see the Info node `(erc)
+display-buffer'.")
+(make-obsolete 'erc-show-already-displayed-buffer
+               "non-nil behavior to be made permanent" "30.1")
+
+(defvar-local erc--display-buffer-overriding-action nil
+  "The value of `display-buffer-overriding-action' when non-nil.
+Influences the displaying of new or reassociated ERC buffers.
+Reserved for use by built-in modules.")
+
 (defun erc-setup-buffer (buffer)
   "Consults `erc-join-buffer' to find out how to display `BUFFER'."
   (pcase (if (zerop (erc-with-server-buffer
                       erc--server-last-reconnect-count))
              erc-join-buffer
-           (or erc-reconnect-display erc-join-buffer))
+           (or erc-auto-reconnect-display erc-join-buffer))
+    ((and (pred functionp) disp-fn (let context erc--display-context))
+     (unless (zerop erc--server-last-reconnect-count)
+       (push '(erc-auto-reconnect-display . t) context))
+     (funcall disp-fn buffer (cons nil context)))
+    ((guard (and erc-skip-displaying-selected-window-buffer
+                 (eq (window-buffer) buffer))))
     ('window
      (if (active-minibuffer-window)
          (display-buffer buffer)
@@ -2292,13 +2376,18 @@ Returns the buffer for the given server or channel."
       (erc-update-mode-line))
 
     ;; Now display the buffer in a window as per user wishes.
-    (unless (eq buffer old-buffer)
+    (when (eq buffer old-buffer) (cl-assert (and connect (not target))))
+    (unless (and (not erc-reconnect-display-server-buffers)
+                 (eq buffer old-buffer))
       (when erc-log-p
         ;; we can't log to debug buffer, it may not exist yet
         (message "erc: old buffer %s, switching to %s"
                  old-buffer buffer))
-      (erc-setup-buffer buffer)
-      (run-hooks 'erc--setup-buffer-hook))
+      (let ((display-buffer-overriding-action
+             (or erc--display-buffer-overriding-action
+                 display-buffer-overriding-action)))
+        (erc-setup-buffer buffer)
+        (run-hooks 'erc--setup-buffer-hook)))
 
     buffer))
 
@@ -2410,6 +2499,8 @@ With prefix arg, also prompt for user and full name."
          env)
     (when erc-interactive-display
       (push `(erc-join-buffer . ,erc-interactive-display) env))
+    (when erc--display-context
+      (push `(erc--display-context . ,erc--display-context) env))
     (when opener
       (push `(erc-server-connect-function . ,opener) env))
     (when (and passwd (string= "" passwd))
@@ -2471,7 +2562,12 @@ for the values of the other parameters.
 See `erc-tls' for the meaning of ID.
 
 \(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)"
-  (interactive (erc-select-read-args))
+  (interactive (let ((erc--display-context `((erc-interactive-display . erc)
+                                             ,@erc--display-context)))
+                 (erc-select-read-args)))
+  (unless (assq 'erc--display-context --interactive-env--)
+    (push '(erc--display-context . ((erc-buffer-display . erc)))
+          --interactive-env--))
   (erc--with-entrypoint-environment --interactive-env--
     (erc-open server port nick full-name t password nil nil nil nil user id)))
 
@@ -2536,8 +2632,11 @@ CLIENT-CERTIFICATE, this parameter cannot be specified
 interactively.
 
 \(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)"
-  (interactive (let ((erc-default-port erc-default-port-tls))
-		 (erc-select-read-args)))
+  (interactive
+   (let ((erc-default-port erc-default-port-tls)
+         (erc--display-context `((erc-interactive-display . erc-tls)
+                                 ,@erc--display-context)))
+     (erc-select-read-args)))
   ;; Bind `erc-server-connect-function' to `erc-open-tls-stream'
   ;; around `erc-open' when a non-default value hasn't been specified
   ;; by the user or the interactive form.  And don't bother checking
@@ -2545,6 +2644,9 @@ interactively.
   (unless (or (assq 'erc-server-connect-function --interactive-env--)
               (not (eq erc-server-connect-function #'erc-open-network-stream)))
     (push '(erc-server-connect-function . erc-open-tls-stream)
+          --interactive-env--))
+  (unless (assq 'erc--display-context --interactive-env--)
+    (push '(erc--display-context . ((erc-buffer-display . erc-tls)))
           --interactive-env--))
   (erc--with-entrypoint-environment --interactive-env--
     (erc-open server port nick full-name t password
@@ -3769,7 +3871,10 @@ were most recently invited.  See also `invitation'."
                         (sn (erc-extract-nick (erc-response.sender parsed)))
                         ((erc-nick-equal-p sn (erc-current-nick)))
                         (erc-join-buffer (or erc-interactive-display
-                                             erc-join-buffer)))
+                                             erc-join-buffer))
+                        (erc--display-context `((erc-interactive-display
+                                                 . /JOIN)
+                                                ,@erc--display-context)))
                      (run-hook-with-args-until-success
                       'erc-server-JOIN-functions proc parsed)
                      t))))
@@ -4153,7 +4258,9 @@ on the value of `erc-interactive-display'."
       ;; currently broken, evil hack to display help anyway
                                         ;(erc-delete-query))))
     (signal 'wrong-number-of-arguments '(erc-cmd-QUERY 0)))
-  (let ((erc-join-buffer erc-interactive-display))
+  (let ((erc-join-buffer erc-interactive-display)
+        (erc--display-context `((erc-interactive-display . /QUERY)
+                                ,@erc--display-context)))
     (erc-with-server-buffer
      (erc--open-target user))))
 
@@ -4273,6 +4380,9 @@ the message given by REASON."
 
 (defun erc--cmd-reconnect ()
   (let ((buffer (erc-server-buffer))
+        (erc-join-buffer erc-interactive-display)
+        (erc--display-context `((erc-interactive-display . /RECONNECT)
+                                ,@erc--display-context))
         (process nil))
     (unless (buffer-live-p buffer)
       (setq buffer (current-buffer)))
@@ -4937,13 +5047,7 @@ compatibility flag `erc-receive-query-display-defer' to nil.  Use
   :package-version '(ERC . "5.6")
   :group 'erc-buffers
   :group 'erc-query
-  :type '(choice (const :tag "Defer to value of `erc-buffer-display'" nil)
-                 (const :tag "Split window and select" window)
-                 (const :tag "Split window, don't select" window-noselect)
-                 (const :tag "New frame" frame)
-                 (const :tag "Bury in new buffer" bury)
-                 (const :tag "Use current buffer" buffer)
-                 (const :tag "Use current buffer" t)))
+  :type erc--buffer-display-choices)
 
 (defvar erc-receive-query-display-defer t
   "How to interpret a null `erc-receive-query-display'.
@@ -5389,7 +5493,7 @@ Set user modes and run `erc-after-connect' hook."
         (setq erc--server-last-reconnect-count erc-server-reconnect-count
               erc-server-reconnect-count 0)
         (setq erc--server-reconnect-display-timer
-              (run-at-time erc-reconnect-display-timeout nil
+              (run-at-time erc-auto-reconnect-display-timeout nil
                            #'erc--server-last-reconnect-display-reset
                            (current-buffer)))
         (add-hook 'erc-disconnected-hook
@@ -7769,6 +7873,8 @@ All windows are opened in the current frame."
    (s463   . "Your host isn't among the privileged")
    (s464   . "Password incorrect")
    (s465   . "You are banned from this server")
+   (s471   . "Max occupancy for channel %c exceeded: %s")
+   (s473   . "Channel %c is invitation only")
    (s474   . "You can't join %c because you're banned (+b)")
    (s475   . "You must specify the correct channel key (+k) to join %c")
    (s481   . "Permission Denied - You're not an IRC operator")
@@ -7970,6 +8076,8 @@ Beginning with ERC 5.5, new connections require human intervention.
 Customize `erc-url-connect-function' to override this."
   (when (eql port 0) (setq port nil))
   (let* ((net (erc-networks--determine host))
+         (erc--display-context `((erc-interactive-display . url)
+                                 ,@erc--display-context))
          (server-buffer
           ;; Viable matches may slip through the cracks for unknown
           ;; networks.  Additional passes could likely improve things.
