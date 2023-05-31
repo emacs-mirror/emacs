@@ -5,14 +5,14 @@
 @appendix Emacs and unconventional input devices
 @cindex other input devices
 
-  Emacs was originally developed with the assumption that users will
-be sitting in front of a desktop computer, with a keyboard and perhaps
-a suitable pointing device such as a mouse.
+  Emacs was originally developed with the assumption that its users
+have access to a desktop computer or computer terminal, with a
+keyboard and perhaps a suitable pointing device such as a mouse.
 
-  However, recent developments in the X Window System, and in other
-operating systems such as Android, mean that this assumption no longer
-holds true.  As a result, Emacs now has support for other kinds of
-input devices, which is detailed here.
+  However, recent developments in the X Window System and operating
+systems such as Android mean that this assumption no longer holds
+true.  Emacs supports input from various other kinds of input devices,
+which is detailed here.
 
 @menu
 * Touchscreens::                Using Emacs on touchscreens.
@@ -23,21 +23,21 @@ input devices, which is detailed here.
 @section Using Emacs on touchscreens
 @cindex touchscreens
 
-  Touchscreen input works by having the user press tools onto the
-screen, which can be his own fingers, or a pointing device such as a
-stylus, in order to manipulate the contents there in.
+  Touchscreen input works by pressing and moving tools (which include
+fingers and some pointing devices--styluses, for example) onto a frame
+in order to manipulate its contents.
 
   When running under the X Window System or Android, Emacs
-automatically detects and maps the following touchscreen gestures to
-common actions:
+automatically detects and maps the following sequences of movements
+(``gestures'') to common actions:
 
 @itemize @bullet
 @item
 @cindex tapping, touchscreens
-  ``Tapping'', meaning to briefly place and lift a tool from the
-display, will result in Emacs selecting the window that was tapped,
-and executing any command bound to @code{mouse-1} at that location in
-the window.  If the tap happened on top of a link (@pxref{Mouse
+  ``Tapping'', briefly placing and lifting a tool from the display,
+will result in Emacs selecting the window that was tapped, and
+executing any command bound to @code{mouse-1} at that location in the
+window.  If the tap happened on top of a link (@pxref{Mouse
 References}), then Emacs will follow the link instead.
 
 @item
@@ -52,12 +52,11 @@ window horizontally to follow (@pxref{Horizontal Scrolling}.)
 @item
 @cindex dragging, touchscreens
 @cindex long-press, touchscreens
-  ``Dragging'', meaning to perform a @dfn{long-press} (placing a tool
-on the display and leaving it there for a while) before moving the
-tool around, will make Emacs set the point to where the tool was and
-begin selecting text under the tool as it moves around, much like what
-would happen if @code{mouse-1} were to be held down.  @xref{Mouse
-Commands}.
+  ``Dragging'', which is performing a @dfn{long-press} by placing a
+tool on the display and leaving it there for a while prior to moving
+the tool around will make Emacs set the point to where the tool was
+and begin selecting text under the tool as it moves around, as if
+@code{mouse-1} were to be held down.  @xref{Mouse Commands}.
 @end itemize
 
 @vindex touch-screen-delay
@@ -99,9 +98,9 @@ that the user is about to enter text in to the current buffer.
 
 @vindex touch-screen-display-keyboard
   The user option @code{touch-screen-display-keyboard} forces Emacs to
-always display the on screen keyboard; it may also be bound buffer
-locally, meaning to always display the keyboard when the buffer is
-selected.
+always display the on screen keyboard; it may also be set buffer
+locally, which means that Emacs should always display the keyboard
+when the buffer is selected.
 
   Emacs also provides a set of functions to show or hide the on-screen
 keyboard.  For more details, @pxref{On-Screen Keyboards,,, elisp, The
@@ -109,15 +108,15 @@ Emacs Lisp Reference Manual}.
 
 @cindex quitting, without a keyboard
   Since it may not be possible for Emacs to display the on screen
-keyboard when it is executing a command, Emacs implements a feature on
-devices with only an on-screen keyboard, by which two rapid clicks of
-a hardware button that is always present on the device results in
+keyboard while it is executing a command, Emacs implements a feature
+on devices with only an on-screen keyboard, by which two rapid clicks
+of a hardware button that is always present on the device results in
 Emacs quitting.  @xref{Quitting}.
 
 @vindex x-quit-keysym
-  The exact button is used to do this varies by system: on X, it is
-defined in the variable @code{x-quit-keysym}, and on Android, it is
-always the volume down button.
+  Which button is used to do this depends on the window system in use:
+on X, it is defined in the variable @code{x-quit-keysym}, and on
+Android, it is always the volume down button.
 
 @cindex text conversion, keyboards
   Most input methods designed to work with on-screen keyboards perform

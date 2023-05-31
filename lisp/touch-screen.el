@@ -108,9 +108,17 @@ horizontal scrolling according to the movement in DX."
   ;; Show a message instead.
   (condition-case nil
       (if touch-screen-precision-scroll
-          (if (> dy 0)
-              (pixel-scroll-precision-scroll-down-page dy)
-            (pixel-scroll-precision-scroll-up-page (- dy)))
+          (progn
+            (if (> dy 0)
+                (pixel-scroll-precision-scroll-down-page dy)
+              (pixel-scroll-precision-scroll-up-page (- dy)))
+            ;; Now set `lines-vscrolled' to an value that will result
+            ;; in hscroll being disabled if dy looks as if a
+            ;; significant amount of scrolling is about to take
+            ;; Otherwise, horizontal scrolling may then interfere with
+            ;; precision scrolling.
+            (when (> (abs dy) 10)
+              (setcar (nthcdr 7 touch-screen-current-tool) 10)))
         ;; Start conventional scrolling.  First, determine the
         ;; direction in which the scrolling is taking place.  Load the
         ;; accumulator value.

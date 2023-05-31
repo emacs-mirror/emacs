@@ -5989,20 +5989,6 @@ android_toggle_on_screen_keyboard (android_window window, bool show)
 
 
 
-/* When calling the system's faccessat, make sure to clear the flag
-   AT_EACCESS.
-
-   Android's faccessat simply fails upon using AT_EACCESS, so replace
-   it with zero here.  This isn't caught during configuration as Emacs
-   is being cross compiled.
-
-   This replacement is only done when building for Android 16 or
-   later, because earlier versions use the gnulib replacement that
-   lacks these issues.
-
-   This is unnecessary on earlier API versions, as gnulib's
-   rpl_faccessat will be used instead, which lacks these problems.  */
-
 /* Like faccessat, except it also understands DIRFD opened using
    android_dirfd.  */
 
@@ -6046,10 +6032,20 @@ android_faccessat (int dirfd, const char *pathname, int mode, int flags)
     }
 
 #if __ANDROID_API__ >= 16
+  /* When calling `faccessat', make sure to clear the flag AT_EACCESS.
+
+     Android's faccessat simply fails if FLAGS contains AT_EACCESS, so
+     replace it with zero here.  This isn't caught at configuration-time
+     as Emacs is being cross compiled.
+
+     This takes place only when building for Android 16 and later,
+     because earlier versions use a Gnulib replacement that lacks these
+     issues.  */
+
   return faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
-#else
+#else /* __ANDROID_API__ < 16 */
   return faccessat (dirfd, pathname, mode, flags);
-#endif
+#endif /* __ANDROID_API__ >= 16 */
 }
 
 

@@ -2212,13 +2212,11 @@ This kind of event is sent @strong{after} a system-wide input method
 performs an edit to one or more buffers.
 
 @vindex text-conversion-edits
-Once the event is sent, the input method may already have made
-changes to multiple buffers inside many different frames.  To
-determine which buffers have been changed, and what edits have
-been made to them, use the variable
-@code{text-conversion-edits}, which is set prior to each
-@code{text-conversion} event being sent; it is a list of the
-form:
+Once the event is sent, the input method may already have made changes
+to multiple buffers inside many different frames.  To determine which
+buffers have been changed, and what edits have been made to them, use
+the variable @code{text-conversion-edits}, which is set prior to each
+@code{text-conversion} event being sent; it is a list of the form:
 
 @example
 @w{@code{((@var{buffer} @var{beg} @var{end} @var{ephemeral}) ...)}}
@@ -2227,10 +2225,9 @@ form:
 Where @var{ephemeral} is the buffer which was modified, @var{beg} and
 @var{end} are markers set to the positions of the edit at the time it
 was completed, and @var{ephemeral} is either a string, containing any
-text which was inserted, or any text before point which was deleted,
+text which was inserted (or any text before point which was deleted),
 @code{t}, meaning that the edit is a temporary edit made by the input
-method, and @code{nil}, meaning that some text was deleted after
-point.
+method, or @code{nil}, meaning that some text was deleted after point.
 
 @vindex text-conversion-style
 Whether or not this event is sent depends on the value of the
@@ -2247,26 +2244,25 @@ events will be sent instead of text conversion events.
 
 @item action
 This means that the input method will be enabled, but @key{RET} will
-be sent wherever the input method wanted to insert a new line.
+be sent whenever the input method wants to insert a new line.
 
 @item t
 This, or any other value, means that the input method will be enabled
-and make edits terminated by @code{text-conversion} events.
+and make edits followed by @code{text-conversion} events.
 @end table
 
 @findex disable-text-conversion
-Changes to the value of this variable will only take effect upon
-the next redisplay after the buffer becomes the selected buffer
-of a frame.  If you need to disable text conversion in a way
-that takes immediate effect, call the function
-@code{set-text-conversion-style} instead.  This can potentially
-lock up the input method for a significant amount of time, so do
-not do this lightly!
+Changes to the value of this variable will only take effect upon the
+next redisplay after the buffer becomes the selected buffer of a
+frame.  If you need to disable text conversion in a way that takes
+immediate effect, call the function @code{set-text-conversion-style}
+instead.  This has the potential to lock up the input method for a
+significant amount of time, and should be used with care.
 
 @vindex disable-inhibit-text-conversion
 In addition, text conversion is automatically disabled after a prefix
-key is read by the command loop, or through @code{read-key-sequence}.
-This can be disabled by setting or binding the variable
+key is read by the command loop or @code{read-key-sequence}.  This can
+be disabled by setting or binding the variable
 @code{disable-inhibit-text-conversion} to a non-@code{nil} value.
 
 @cindex @code{delete-frame} event
