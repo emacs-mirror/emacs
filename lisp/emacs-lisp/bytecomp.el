@@ -3568,9 +3568,9 @@ lambda-expression."
 
          match-data
 
-         ;; Adding these functions causes many warnings;
-         ;; evaluate how many of them are false first.
-         delq delete
+         ;; Warning about these functions causes some false positives that are
+         ;; laborious to eliminate; see bug#61730.
+         ;;delq delete
          ;;nconc plist-put
          )))
   (dolist (fn important-return-value-fns)
