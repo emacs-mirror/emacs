@@ -740,16 +740,18 @@ process_program_header (const char *name, int fd,
 }
 
 /* Prepend one or two extra arguments ARG1 and ARG2 to a pending
-   execve system call.  TRACEE is the tracee performing the system
-   call, and REGS are its current user registers.  Value is 1 upon
-   failure, else 0.  */
+   execve system call.  Replace the argument immediately after
+   with ARG3.
+
+   TRACEE is the tracee performing the system call, and REGS are its
+   current user registers.  Value is 1 upon failure, else 0.  */
 
 static int
 insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
-	     const char *arg1, const char *arg2)
+	     const char *arg1, const char *arg2, const char *arg3)
 {
   USER_WORD argv, argc, word, new;
-  USER_WORD new1, new2;
+  USER_WORD new1, new2, new3, i;
   size_t text_size, effective_size;
   USER_REGS_STRUCT original;
 
@@ -783,15 +785,17 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
      text.  */
 
   text_size = (strlen (arg1) + 1
-	       + (arg2 ? strlen (arg2) + 1 : 0));
+	       + (arg2 ? strlen (arg2) + 1 : 0)
+	       + strlen (arg3) + 1);
 
   /* Round it up to the user word size.  */
   text_size += sizeof (USER_WORD) - 1;
   text_size &= ~(sizeof (USER_WORD) - 1);
 
-  /* Now allocate the new argv.  */
+  /* Now allocate the new argv.  Make sure argc is at least 1; it
+     needs to hold ARG3.  */
 
-  effective_size = sizeof word * (argc + 2) + text_size;
+  effective_size = sizeof word * (MAX (1, argc) + 2) + text_size;
 
   if (arg2)
     effective_size += sizeof word;
@@ -808,11 +812,13 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
 
   /* Figure out where argv starts.  */
 
-  new2 = new + text_size;
+  new3 = new + text_size;
 
-  /* Now write the two strings.  */
+  /* Now write the first two strings.  */
 
   new1 = new + strlen (arg1) + 1;
+  new2 = new1 + (arg2 ? strlen (arg2) + 1 : 0);
+
   if (user_copy (tracee, (const unsigned char *) arg1,
 		 new, new1 - new))
     goto fail;
@@ -821,50 +827,77 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
 			 new1, new2 - new1))
     goto fail;
 
+  /* Write the replacement arg3, the file name of the executable.  */
+
+  if (user_copy (tracee, (const unsigned char *) arg3,
+		 new2, new3 - new2))
+    goto fail;
+
   /* Start copying argv back to new2.  First, write the one or two new
      arguments.  */
 
   if (ptrace (PTRACE_POKETEXT, tracee->pid,
-	      (void *) new2, (void *) new))
+	      (void *) new3, (void *) new))
     goto fail;
 
-  new2 += sizeof new2;
+  new3 += sizeof new3;
 
   if (arg2 && ptrace (PTRACE_POKETEXT, tracee->pid,
-		      (void *) new2, (void *) new1))
+		      (void *) new3, (void *) new1))
     goto fail;
   else if (arg2)
-    new2 += sizeof new2;
+    new3 += sizeof new3;
+
+  /* Next, write the third argument.  */
+
+  if (ptrace (PTRACE_POKETEXT, tracee->pid, (void *) new3,
+	      (void *) new2))
+    goto fail;
+
+  new3 += sizeof new3;
 
   /* Copy the remaining arguments back.  */
 
   argv = regs->SYSCALL_ARG1_REG;
 
-  /* Make sure the trailing NULL is included.  */
-  argc += 1;
-
-  while (argc)
+  if (argc)
     {
-      /* Read one argument.  */
-      word = ptrace (PTRACE_PEEKDATA, tracee->pid,
-		     (void *) argv, NULL);
-      argv += sizeof argv;
-      argc--;
+      /* Make sure the trailing NULL is included.  */
+      argc += 1;
 
-      /* Write one argument, then increment new2.  */
+      /* Now copy each argument in argv, starting from argv[1].  */
+
+      for (i = 1; i < argc; ++i)
+	{
+	  /* Read one argument.  */
+	  word = ptrace (PTRACE_PEEKDATA, tracee->pid,
+			 (void *) (argv + i * sizeof argv), NULL);
+
+	  /* Write one argument, then increment new3.  */
+
+	  if (ptrace (PTRACE_POKETEXT, tracee->pid,
+		      (void *) new3, (void *) word))
+	    goto fail;
+
+	  new3 += sizeof new3;
+	}
+    }
+  else
+    {
+      /* Just write the trailing NULL.  */
 
       if (ptrace (PTRACE_POKETEXT, tracee->pid,
-		  (void *) new2, (void *) word))
+		  (void *) new3, (void *) 0))
 	goto fail;
 
-      new2 += sizeof new2;
+      new3 += sizeof new3;
     }
 
-  /* Assert that new2 is not out of bounds.  */
-  assert (new2 == new + effective_size);
+  /* Assert that new3 is not out of bounds.  */
+  assert (new3 == new + effective_size);
 
   /* And that it is properly aligned.  */
-  assert (!(new2 & (sizeof new2 - 2)));
+  assert (!(new3 & (sizeof new3 - 2)));
 
   /* Now modify the system call argument to point to new +
      text_size.  */
@@ -1046,7 +1079,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	 and perhaps `extra'.  */
 
       if (insert_args (tracee, regs, interpreter_name,
-		       extra))
+		       extra, name))
 	goto fail1;
     }
 
