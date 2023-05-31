@@ -155,7 +155,7 @@
      ,(rx bol (zero-or-more space)
           "(define-module"
           (one-or-more space)
-          (group "(" (one-or-more any) ")"))
+          (group "(" (one-or-more nonl) ")"))
      1)
     ("Macros"
      ,(rx bol (zero-or-more space) "("

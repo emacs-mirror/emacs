@@ -1619,21 +1619,20 @@ extra args."
 (dolist (elt '(format message format-message error))
   (put elt 'byte-compile-format-like t))
 
-(defun byte-compile--suspicious-defcustom-choice (type)
-  "Say whether defcustom TYPE looks odd."
-  ;; Check whether there's anything like (choice (const :tag "foo" ;; 'bar)).
+(defun byte-compile--defcustom-type-quoted (type)
+  "Whether defcustom TYPE contains an accidentally quoted value."
+  ;; Detect mistakes such as (const 'abc).
   ;; We don't actually follow the syntax for defcustom types, but this
   ;; should be good enough.
-  (catch 'found
-    (if (and (consp type)
-             (proper-list-p type))
-        (if (memq (car type) '(const other))
-            (when (assq 'quote type)
-              (throw 'found t))
-          (when (memq t (mapcar #'byte-compile--suspicious-defcustom-choice
-                                type))
-            (throw 'found t)))
-      nil)))
+  (and (consp type)
+       (proper-list-p type)
+       (if (memq (car type) '(const other))
+           (assq 'quote type)
+         (let ((elts (cdr type)))
+           (while (and elts (not (byte-compile--defcustom-type-quoted
+                                  (car elts))))
+             (setq elts (cdr elts)))
+           elts))))
 
 ;; Warn if a custom definition fails to specify :group, or :type.
 (defun byte-compile-nogroup-warn (form)
@@ -1647,10 +1646,10 @@ extra args."
 	    (byte-compile-warn-x (cadr name)
 	                         "defcustom for `%s' fails to specify type"
                                  (cadr name)))
-           ((byte-compile--suspicious-defcustom-choice type)
+           ((byte-compile--defcustom-type-quoted type)
 	    (byte-compile-warn-x
              (cadr name)
-	     "defcustom for `%s' has syntactically odd type `%s'"
+	     "defcustom for `%s' may have accidentally quoted value in type `%s'"
              (cadr name) type)))))
       (if (and (memq (car form) '(custom-declare-face custom-declare-variable))
 	       byte-compile-current-group)
@@ -3566,6 +3565,8 @@ lambda-expression."
          ;; It's safe to ignore the value of `sort' and `nreverse'
          ;; when used on arrays, but most calls pass lists.
          nreverse sort
+
+         match-data
 
          ;; Adding these functions causes many warnings;
          ;; evaluate how many of them are false first.

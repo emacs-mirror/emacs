@@ -205,6 +205,7 @@ buffer-local wherever it is set."
 (defun buffer-local-boundp (symbol buffer)
   "Return non-nil if SYMBOL is bound in BUFFER.
 Also see `local-variable-p'."
+  (declare (side-effect-free t))
   (condition-case nil
       (buffer-local-value symbol buffer)
     (:success t)
@@ -298,6 +299,7 @@ value of last one, or nil if there are none."
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive function."
+  (declare (side-effect-free error-free))
   (and (subrp object)
        (not (subr-native-elisp-p object))))
 
@@ -415,6 +417,7 @@ The CONDITION argument is not evaluated.  Do not quote it."
   "Return a new uninterned symbol.
 The name is made by appending `gensym-counter' to PREFIX.
 PREFIX is a string, and defaults to \"g\"."
+  (declare (important-return-value t))
   (let ((num (prog1 gensym-counter
                (setq gensym-counter (1+ gensym-counter)))))
     (make-symbol (format "%s%d" (or prefix "g") num))))
@@ -497,6 +500,7 @@ Defaults to `error'."
   "Return non-nil if OBJECT seems to be a frame configuration.
 Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
+  (declare (pure t) (side-effect-free error-free))
   (and (consp object)
        (eq (car object) 'frame-configuration)))
 
@@ -506,6 +510,7 @@ ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
 was called."
+  (declare (side-effect-free error-free))
   (lambda (&rest args2)
     (apply fun (append args args2))))
 
@@ -1076,6 +1081,7 @@ any corresponding binding in PARENT, but it does not override corresponding
 bindings in other keymaps of MAPS.
 MAPS can be a list of keymaps or a single keymap.
 PARENT if non-nil should be a keymap."
+  (declare (side-effect-free t))
   `(keymap
     ,@(if (keymapp maps) (list maps) maps)
     ,@parent))
@@ -1216,6 +1222,7 @@ This resolves inheritance and redefinitions.  The returned keymap
 should behave identically to a copy of KEYMAP w.r.t `lookup-key'
 and use in active keymaps and menus.
 Subkeymaps may be modified but are not canonicalized."
+  (declare (important-return-value t))
   ;; FIXME: Problem with the difference between a nil binding
   ;; that hides a binding in an inherited map and a nil binding that's ignored
   ;; to let some further binding visible.  Currently a nil binding hides all.
@@ -1538,6 +1545,7 @@ See also `current-global-map'.")
 
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
+  (declare (side-effect-free t))
   (if (vectorp key)
       (append key nil)
     (mapcar (lambda (c)
@@ -1565,6 +1573,7 @@ EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
 in the current Emacs session, then this function may fail to include
 the `click' modifier."
+  (declare (side-effect-free t))
   (unless (stringp event)
     (let ((type event))
       (if (listp type)
@@ -1598,6 +1607,7 @@ The value is a printing character (not upper case) or a symbol.
 EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
 in the current Emacs session, then this function may return nil."
+  (declare (side-effect-free t))
   (unless (stringp event)
     (if (consp event)
         (setq event (car event)))
@@ -1618,6 +1628,7 @@ in the current Emacs session, then this function may return nil."
 
 (defun mouse-event-p (object)
   "Return non-nil if OBJECT is a mouse click event."
+  (declare (side-effect-free t))
   ;; is this really correct? maybe remove mouse-movement?
   (memq (event-basic-type object) '(mouse-1 mouse-2 mouse-3 mouse-movement)))
 
@@ -1663,6 +1674,7 @@ nil or (STRING . POSITION)'.
 `posn-timestamp': The time the event occurred, in milliseconds.
 
 For more information, see Info node `(elisp)Click Events'."
+  (declare (side-effect-free t))
   (or (and (consp event)
            ;; Ignore touchscreen events.  They store the posn in a
            ;; different format, and can have multiple posns.
@@ -1677,6 +1689,7 @@ For more information, see Info node `(elisp)Click Events'."
 EVENT should be a click, drag, or key press event.
 
 See `event-start' for a description of the value returned."
+  (declare (side-effect-free t))
   (or (and (consp event)
            (not (memq (car event) '(touchscreen-begin
                                     touchscreen-update
@@ -1687,11 +1700,13 @@ See `event-start' for a description of the value returned."
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
 The return value is a positive integer."
+  (declare (side-effect-free t))
   (if (and (consp event) (integerp (nth 2 event))) (nth 2 event) 1))
 
 (defsubst event-line-count (event)
   "Return the line count of EVENT, a mousewheel event.
 The return value is a positive integer."
+  (declare (side-effect-free t))
   (if (and (consp event) (integerp (nth 3 event))) (nth 3 event) 1))
 
 ;;;; Extracting fields of the positions in an event.
@@ -1701,6 +1716,7 @@ The return value is a positive integer."
 A `posn' object is returned from functions such as `event-start'.
 If OBJ is a valid `posn' object, but specifies a frame rather
 than a window, return nil."
+  (declare (side-effect-free error-free))
   ;; FIXME: Correct the behavior of this function so that all valid
   ;; `posn' objects are recognized, after updating other code that
   ;; depends on its present behavior.
@@ -1714,12 +1730,14 @@ than a window, return nil."
 If POSITION is outside the frame where the event was initiated,
 return that frame instead.  POSITION should be a list of the form
 returned by the `event-start' and `event-end' functions."
+  (declare (side-effect-free t))
   (nth 0 position))
 
 (defsubst posn-area (position)
   "Return the window area recorded in POSITION, or nil for the text area.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (let ((area (if (consp (nth 1 position))
 		  (car (nth 1 position))
 		(nth 1 position))))
@@ -1731,6 +1749,7 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions.
 Returns nil if POSITION does not correspond to any buffer location (e.g.
 a click on a scroll bar)."
+  (declare (side-effect-free t))
   (or (nth 5 position)
       (let ((pt (nth 1 position)))
         (or (car-safe pt)
@@ -1756,6 +1775,7 @@ Select the corresponding window as well."
 The return value has the form (X . Y), where X and Y are given in
 pixels.  POSITION should be a list of the form returned by
 `event-start' and `event-end'."
+  (declare (side-effect-free t))
   (nth 2 position))
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
@@ -1775,6 +1795,7 @@ corresponds to the vertical position of the click in the scroll bar.
 
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (let* ((pair            (posn-x-y position))
          (frame-or-window (posn-window position))
          (frame           (if (framep frame-or-window)
@@ -1820,12 +1841,14 @@ This function does not account for the width on display, like the
 number of visual columns taken by a TAB or image.  If you need
 the coordinates of POSITION in character units, you should use
 `posn-col-row', not this function."
+  (declare (side-effect-free t))
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (nth 3 position))
 
 (defun posn-string (position)
@@ -1833,6 +1856,7 @@ and `event-end' functions."
 Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (let ((x (nth 4 position)))
     ;; Apparently this can also be `handle' or `below-handle' (bug#13979).
     (when (consp x) x)))
@@ -1842,6 +1866,7 @@ and `event-end' functions."
 Value is a list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (nth 7 position))
 
 (defsubst posn-object (position)
@@ -1850,6 +1875,7 @@ Value is a list (image ...) for an image object, a cons cell
 \(STRING . STRING-POS) for a string object, and nil for a buffer position.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
@@ -1858,12 +1884,14 @@ The return value has the form (DX . DY), where DX and DY are
 given in pixels, and they are relative to the top-left corner of
 the clicked glyph of object at POSITION.  POSITION should be a
 list of the form returned by `event-start' and `event-end'."
+  (declare (side-effect-free t))
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
   "Return the pixel width and height of the object of POSITION.
 The return value has the form (WIDTH . HEIGHT).  POSITION should
 be a list of the form returned by `event-start' and `event-end'."
+  (declare (side-effect-free t))
   (nth 9 position))
 
 (defun values--store-value (value)
@@ -2624,6 +2652,7 @@ The variable list SPEC is the same as in `if-let*'."
 Uses the `derived-mode-parent' property of the symbol to trace backwards.
 If you just want to check `major-mode', use `derived-mode-p'."
   ;; If MODE is an alias, then look up the real mode function first.
+  (declare (side-effect-free t))
   (when-let ((alias (symbol-function mode)))
     (when (symbolp alias)
       (setq mode alias)))
@@ -2638,6 +2667,7 @@ If you just want to check `major-mode', use `derived-mode-p'."
 (defun derived-mode-p (&rest modes)
   "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  (declare (side-effect-free t))
   (apply #'provided-mode-derived-p major-mode modes))
 
 (defvar-local major-mode--suspended nil)
@@ -2761,6 +2791,7 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 (defsubst autoloadp (object)
   "Non-nil if OBJECT is an autoload."
+  (declare (side-effect-free error-free))
   (eq 'autoload (car-safe object)))
 
 ;; (defun autoload-type (object)
@@ -2805,6 +2836,7 @@ This is to `put' what `defalias' is to `fset'."
 (defun locate-eln-file (eln-file)
   "Locate a natively-compiled ELN-FILE by searching its load path.
 This function looks in directories named by `native-comp-eln-load-path'."
+  (declare (important-return-value t))
   (or (locate-file-internal (concat comp-native-version-dir "/" eln-file)
 		   native-comp-eln-load-path)
       (locate-file-internal
@@ -2836,6 +2868,7 @@ instead.
 This function only works for symbols defined in Lisp files.  For
 symbols that are defined in C files, use `help-C-file-name'
 instead."
+  (declare (important-return-value t))
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
@@ -2962,6 +2995,7 @@ argument, which will be called with the exit status of the
 program before the output is collected.  If STATUS-HANDLER is
 nil, an error is signaled if the program returns with a non-zero
 exit status."
+  (declare (important-return-value t))
   (with-temp-buffer
     (let ((status (apply #'call-process program nil (current-buffer) nil args)))
       (if status-handler
@@ -2982,12 +3016,14 @@ exit status."
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 Signal an error if the program returns with a non-zero exit status.
 Also see `process-lines-ignore-status'."
+  (declare (important-return-value t))
   (apply #'process-lines-handling-status program nil args))
 
 (defun process-lines-ignore-status (program &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 The exit status of the program is ignored.
 Also see `process-lines'."
+  (declare (important-return-value t))
   (apply #'process-lines-handling-status program #'ignore args))
 
 (defun process-live-p (process)
@@ -3016,6 +3052,7 @@ process."
 (defun process-get (process propname)
   "Return the value of PROCESS' PROPNAME property.
 This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
+  (declare (side-effect-free t))
   (plist-get (process-plist process) propname))
 
 (defun process-put (process propname value)
@@ -3962,6 +3999,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 
 (defun copy-overlay (o)
   "Return a copy of overlay O."
+  (declare (important-return-value t))
   (let ((o1 (if (overlay-buffer o)
                 (make-overlay (overlay-start o) (overlay-end o)
                               ;; FIXME: there's no easy way to find the
@@ -4171,6 +4209,7 @@ See Info node `(elisp)Security Considerations'.
 If the optional POSIX argument is non-nil, ARGUMENT is quoted
 according to POSIX shell quoting rules, regardless of the
 system's shell."
+  (declare (important-return-value t))
   (cond
    ((and (not posix) (eq system-type 'ms-dos))
     ;; Quote using double quotes, but escape any existing quotes in
@@ -4288,6 +4327,7 @@ or byte-code."
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
+  (declare (important-return-value t))
   (let ((raw-field (get-char-property (field-beginning pos) 'field)))
     (if (eq raw-field 'boundary)
 	(get-char-property (1- (field-end pos)) 'field)
