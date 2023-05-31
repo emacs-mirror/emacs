@@ -37,7 +37,8 @@ See the file 'java/INSTALL' for more details.
 * Changes in Emacs 30.1
 
 ** Help
-** 'describe-function' shows function inferred type when available.
+
+*** 'describe-function' shows function inferred type when available.
 For native compiled Lisp functions 'describe-function' prints (after
 the signature) the automatically inferred function type as well.
 
@@ -320,7 +321,7 @@ project, that you can quickly select using 'project-switch-project'
 ---
 *** New user option 'package-vc-allow-side-effects'.
 When non-nil, package specifications with side-effects for building
-software will used when building a package.
+software will be used when building a package.
 
 ** Flymake
 
@@ -362,7 +363,7 @@ This keyword enables the user to install packages using 'package-vc'.
 *** New commands for reading mailing lists.
 The new Rmail commands 'rmail-mailing-list-post',
 'rmail-mailing-list-unsubscribe', 'rmail-mailing-list-help', and
-'rmail-mailing-list-archive allow to, respectively, post to,
+'rmail-mailing-list-archive' allow to, respectively, post to,
 unsubscribe from, request help about, and browse the archives, of the
 mailing list from which the current email message was delivered.
 
@@ -372,8 +373,8 @@ mailing list from which the current email message was delivered.
 *** New user option 'dictionary-search-interface'.
 Controls how the 'dictionary-search' command prompts for and displays
 dictionary definitions.  Customize this user option to 'help' to have
-'dictionary-search' display definitions in a *Help* buffer and provide
-dictionary-based minibuffer completion for word selection.
+'dictionary-search' display definitions in a "*Help*" buffer and
+provide dictionary-based minibuffer completion for word selection.
 
 ---
 *** New user option 'dictionary-read-word-prompt'.
@@ -388,8 +389,8 @@ displays word definitions.  If non-nil, this user option should be set
 to a function that displays a word definition obtained from a
 dictionary server.  The new function
 'dictionary-display-definition-in-help-buffer' can be used to display
-the definition in a *Help* buffer, instead of the default *Dictionary*
-buffer.
+the definition in a "*Help*" buffer, instead of the default
+"*Dictionary*" buffer.
 
 ---
 *** New user option 'dictionary-read-word-function'.
@@ -408,7 +409,6 @@ to a function that lets the user select a dictionary and returns its
 name as a string.  The new function
 'dictionary-completing-read-dictionary' can be used to prompt with
 completion based on dictionaries that the server supports.
-
 
 
 * New Modes and Packages in Emacs 30.1
@@ -491,8 +491,8 @@ The new functions 'touch-screen-track-tap' and
 'touch-screen-track-drag' handle tracking common touch screen gestures
 from within a command.
 
-** New variable 'safe-local-variable-directories'.
-This variable names directories in which Emacs will treat all
+** New user option 'safe-local-variable-directories'.
+This user option names directories in which Emacs will treat all
 directory-local variables as safe.
 
 ** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
@@ -628,7 +628,7 @@ some obvious cases.  Examples:
     (aset [3 4] 0 8)
     (aset "abc" 1 ?d)
 
-Such code may have unpredictable behaviour because the constants are
+Such code may have unpredictable behavior because the constants are
 part of the program, not data structures generated afresh during
 execution, and the compiler does not expect them to change.
 
