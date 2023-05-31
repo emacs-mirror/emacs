@@ -6569,7 +6569,7 @@ make_lispy_event (struct input_event *event)
 	       menu bar event.  */
 	    menu_bar_touch_id = Qnil;
 
-	    if (f->menu_bar_window)
+	    if (!NILP (f->menu_bar_window))
 	      {
 		x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), XFIXNUM (x),
 				  XFIXNUM (y), &column, &row, NULL, NULL,
@@ -13465,12 +13465,12 @@ This usually happens as a result of `select-active-regions'.  The hook
 is called with one argument, the string that was selected.  */);
   Vpost_select_region_hook = Qnil;
 
-  DEFVAR_LISP ("disable-inhibit-text-conversion",
+  DEFVAR_BOOL ("disable-inhibit-text-conversion",
 	       disable_inhibit_text_conversion,
     doc: /* Don't disable text conversion inside `read-key-sequence'.
 If non-nil, text conversion will continue to happen after a prefix
 key has been read inside `read-key-sequence'.  */);
-    disable_inhibit_text_conversion = false;
+  disable_inhibit_text_conversion = false;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }

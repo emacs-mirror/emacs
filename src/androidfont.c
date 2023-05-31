@@ -636,7 +636,7 @@ androidfont_match (struct frame *f, Lisp_Object font_spec)
   androidfont_from_java (result, entity);
   info->object = (*android_java_env)->NewGlobalRef (android_java_env,
 						    (jobject) result);
-  android_exception_check_2 (entity, result);
+  android_exception_check_1 (result);
   ANDROID_DELETE_LOCAL_REF (result);
 
   return entity;
@@ -712,10 +712,6 @@ androidfont_open_font (struct frame *f, Lisp_Object font_entity,
       else
 	pixel_size = 12;
     }
-
-  __android_log_print (ANDROID_LOG_DEBUG, __func__,
-		       "opening font entity %"pI"x:%d",
-		       (EMACS_INT) font_entity, pixel_size);
 
   entity = (struct androidfont_entity *) XFONT_ENTITY (font_entity);
 

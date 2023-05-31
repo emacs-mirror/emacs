@@ -1022,7 +1022,8 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
     /* Set the point.  */
     Fgoto_char (make_fixnum (point));
 
-  if (mark == point && BVAR (current_buffer, mark_active))
+  if (mark == point
+      && !NILP (BVAR (current_buffer, mark_active)))
     call0 (Qdeactivate_mark);
   else
     call1 (Qpush_mark, make_fixnum (mark));

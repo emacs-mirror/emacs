@@ -991,7 +991,7 @@ sfnt_enum_font_1 (int fd, const char *file,
 	  style1 = sfnt_decode_instance_name (&fvar->instance[i],
 					      name);
 
-	  if (!style1)
+	  if (NILP (style1))
 	    continue;
 
 	  /* Now parse the style.  */
@@ -1520,8 +1520,8 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec,
 
 	  if (STRINGP (XCAR (XCAR (tail)))
 	      && STRINGP (XCDR (XCAR (tail)))
-	      && Fstring_equal (SYMBOL_NAME (tem),
-			        XCAR (XCAR (tail))))
+	      && !NILP (Fstring_equal (SYMBOL_NAME (tem),
+				       XCAR (XCAR (tail)))))
 	    {
 	      /* Special family found.  */
 	      tem = Fintern (XCDR (XCAR (tail)), Qnil);

@@ -2885,7 +2885,7 @@ android_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
   if (!EQ (new_value, old_value))
     {
       android_set_dont_focus_on_map (FRAME_ANDROID_WINDOW (f),
-				     new_value);
+				     !NILP (new_value));
       FRAME_NO_FOCUS_ON_MAP (f) = !NILP (new_value);
     }
 }
@@ -2897,7 +2897,7 @@ android_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
   if (!EQ (new_value, old_value))
     {
       android_set_dont_accept_focus (FRAME_ANDROID_WINDOW (f),
-				     new_value);
+				     !NILP (new_value));
       FRAME_NO_ACCEPT_FOCUS (f) = !NILP (new_value);
     }
 }

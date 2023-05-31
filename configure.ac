@@ -1216,6 +1216,10 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-pop=$with_pop"
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
 
+  # Now pass through some checking options.
+  emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
+  passthrough="$passthrough $emacs_val"
+
   AS_IF([test "x$with_mailutils" = "xyes"], [emacs_use_mailutils=yes])
   AC_SUBST([emacs_use_mailutils])
 

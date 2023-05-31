@@ -6495,8 +6495,8 @@ android_exception_check_1 (jobject object)
     }
 }
 
-/* Like android_exception_check_one, except it takes more than one
-   local reference argument.  */
+/* Like android_exception_check_1, except it takes more than one local
+   reference argument.  */
 
 void
 android_exception_check_2 (jobject object, jobject object1)

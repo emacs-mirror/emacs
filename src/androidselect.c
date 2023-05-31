@@ -208,7 +208,7 @@ Alternatively, return nil if the clipboard is empty.  */)
   ANDROID_DELETE_LOCAL_REF (bytes);
 
   /* Now decode the resulting string.  */
-  return code_convert_string_norecord (string, Qutf_8, Qnil);
+  return code_convert_string_norecord (string, Qutf_8, false);
 }
 
 DEFUN ("android-clipboard-exists-p", Fandroid_clipboard_exists_p,
@@ -304,7 +304,7 @@ data type available from the clipboard.  */)
 
       /* Decode the string.  */
       tem = make_unibyte_string ((char *) data, length1);
-      tem = code_convert_string_norecord (tem, Qutf_8, Qnil);
+      tem = code_convert_string_norecord (tem, Qutf_8, false);
       targets = Fcons (tem, targets);
 
       /* Delete the retrieved data.  */

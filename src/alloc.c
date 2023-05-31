@@ -6195,14 +6195,15 @@ static Lisp_Object
 android_make_lisp_symbol (struct Lisp_Symbol *sym)
 {
   intptr_t symoffset;
-  Lisp_Object a;
 
   symoffset = (intptr_t) sym;
   INT_SUBTRACT_WRAPV (symoffset, (intptr_t) &lispsym,
 		      &symoffset);
 
-  a = TAG_PTR (Lisp_Symbol, symoffset);
-  return a;
+  {
+    Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
+    return a;
+  }
 }
 
 #endif
