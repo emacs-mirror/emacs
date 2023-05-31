@@ -167,8 +167,9 @@ is an upper-case character."
 
 ;;;###autoload
 (defun forward-to-word (&optional arg)
-  "Move forward until encountering the beginning of a word.
-With argument, do this that many times."
+  "Move forward until encountering the beginning of the ARGth word.
+ARG defaults to 1.  When called interactively, ARG is the prefix
+numeric argument."
   (interactive "^p")
   (unless arg (setq arg 1))
   (or (re-search-forward (if (> arg 0) "\\W\\b" "\\b\\W") nil t arg)
@@ -176,8 +177,9 @@ With argument, do this that many times."
 
 ;;;###autoload
 (defun backward-to-word (&optional arg)
-  "Move backward until encountering the end of a word.
-With argument, do this that many times."
+  "Move backward until encountering the end of the ARGth word.
+ARG defaults to 1.  When called interactively, ARG is the prefix
+numeric argument."
   (interactive "^p")
   (unless arg (setq arg 1))
   (forward-to-word (- arg)))
