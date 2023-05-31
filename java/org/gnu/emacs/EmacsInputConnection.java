@@ -286,6 +286,14 @@ public final class EmacsInputConnection extends BaseInputConnection
       text = EmacsNative.getExtractedText (windowHandle, request,
 					   flags);
 
+    if (text == null)
+      {
+	if (EmacsService.DEBUG_IC)
+	  Log.d (TAG, "getExtractedText: text is NULL");
+
+	return null;
+      }
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getExtractedText: " + text.text + " @"
 	     + text.startOffset + ":" + text.selectionStart

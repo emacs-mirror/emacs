@@ -6959,8 +6959,11 @@ android_display_toast (const char *text)
 
 
 
-/* Whether or not a query is currently being made.  */
-static bool android_servicing_query;
+/* The thread from which a query against a thread is currently being
+   made, if any.  Value is 0 if no query is in progress, 1 if a query
+   is being made from the UI thread to the main thread, and 2 if a
+   query is being made the other way around.  */
+static char android_servicing_query;
 
 /* Function that is waiting to be run in the Emacs thread.  */
 static void (*android_query_function) (void *);
@@ -7010,7 +7013,37 @@ android_check_query (void)
   /* Finish the query.  */
   __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
   __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
-  __atomic_clear (&android_servicing_query, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
+
+  /* Signal completion.  */
+  sem_post (&android_query_sem);
+}
+
+/* Run the function that the UI thread has asked to run, and then
+   signal its completion.  Do not change `android_servicing_query'
+   after it completes.  */
+
+static void
+android_answer_query (void)
+{
+  void (*proc) (void *);
+  void *closure;
+
+  eassert (__atomic_load_n (&android_servicing_query, __ATOMIC_SEQ_CST)
+	   == 1);
+
+  /* First, load the procedure and closure.  */
+  __atomic_load (&android_query_context, &closure, __ATOMIC_SEQ_CST);
+  __atomic_load (&android_query_function, &proc, __ATOMIC_SEQ_CST);
+
+  if (!proc)
+    return;
+
+  proc (closure);
+
+  /* Finish the query.  */
+  __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
 
   /* Signal completion.  */
   sem_post (&android_query_sem);
@@ -7025,18 +7058,23 @@ android_check_query (void)
 static void
 android_begin_query (void)
 {
-  if (__atomic_test_and_set (&android_servicing_query,
-			     __ATOMIC_SEQ_CST))
+  char old;
+
+  /* Load the previous value of `android_servicing_query' and upgrade
+     it to 2.  */
+
+  old = __atomic_exchange_n (&android_servicing_query,
+			     2, __ATOMIC_SEQ_CST);
+
+  /* See if a query was previously in progress.  */
+  if (old == 1)
     {
       /* Answer the query that is currently being made.  */
       assert (android_query_function != NULL);
-      android_check_query ();
-
-      /* Wait for that query to complete.  */
-      while (__atomic_load_n (&android_servicing_query,
-			      __ATOMIC_SEQ_CST))
-	;;
+      android_answer_query ();
     }
+
+  /* `android_servicing_query' is now 2.  */
 }
 
 /* Notice that a query has stopped.  This function may be called from
@@ -7045,7 +7083,7 @@ android_begin_query (void)
 static void
 android_end_query (void)
 {
-  __atomic_clear (&android_servicing_query, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
 }
 
 /* Synchronously ask the Emacs thread to run the specified PROC with
@@ -7063,6 +7101,7 @@ int
 android_run_in_emacs_thread (void (*proc) (void *), void *closure)
 {
   union android_event event;
+  char old;
 
   event.xaction.type = ANDROID_WINDOW_ACTION;
   event.xaction.serial = ++event_serial;
@@ -7074,10 +7113,13 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
   __atomic_store_n (&android_query_function, proc, __ATOMIC_SEQ_CST);
 
   /* Don't allow deadlocks to happen; make sure the Emacs thread is
-     not waiting for something to be done.  */
+     not waiting for something to be done (in that case,
+     `android_query_context' is 2.)  */
 
-  if (__atomic_test_and_set (&android_servicing_query,
-			     __ATOMIC_SEQ_CST))
+  old = 0;
+  if (!__atomic_compare_exchange_n (&android_servicing_query, &old,
+				    1, false, __ATOMIC_SEQ_CST,
+				    __ATOMIC_SEQ_CST))
     {
       __atomic_store_n (&android_query_context, NULL,
 			__ATOMIC_SEQ_CST);
@@ -7097,6 +7139,15 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
   /* Start waiting for the function to be executed.  */
   while (sem_wait (&android_query_sem) < 0)
     ;;
+
+  /* At this point, `android_servicing_query' should either be zero if
+     the query was answered or two if the main thread has started a
+     query.  */
+
+  eassert (!__atomic_load_n (&android_servicing_query,
+			    __ATOMIC_SEQ_CST)
+	   || (__atomic_load_n (&android_servicing_query,
+				__ATOMIC_SEQ_CST) == 2));
 
   return 0;
 }

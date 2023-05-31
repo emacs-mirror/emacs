@@ -19,6 +19,7 @@
 ## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 set -m
+set -x
 oldpwd=`pwd`
 cd `dirname $0`
 
@@ -310,21 +311,25 @@ rm -f /tmp/file-descriptor-stamp
 
 if [ -z "$gdbserver" ]; then
     if [ "$is_root" = "yes" ]; then
-	adb -s $device shell $gdbserver_bin --once \
+	adb -s $device shell $gdbserver_bin --multi \
 	    "+/data/local/tmp/debug.$package.socket" --attach $pid >&5 &
 	gdb_socket="localfilesystem:/data/local/tmp/debug.$package.socket"
-    else	
-	adb -s $device shell run-as $package $gdbserver_bin --once \
+    else
+	adb -s $device shell run-as $package $gdbserver_bin --multi \
 	    "+debug.$package.socket" --attach $pid >&5 &
 	gdb_socket="localfilesystem:$app_data_dir/debug.$package.socket"
     fi
 else
     # Normally the program cannot access $gdbserver_bin when it is
     # placed in /data/local/tmp.
-    adb -s $device shell run-as $package $gdbserver_cmd --once \
-	"0.0.0.0:7654" --attach $pid >&5 &
-    gdb_socket="tcp:7654"
+    adb -s $device shell run-as $package $gdbserver_cmd --multi \
+	"+debug.$package.socket" --attach $pid >&5 &
+    gdb_socket="localfilesystem:$app_data_dir/debug.$package.socket"
 fi
+
+# In order to allow adb to forward to the gdbserver socket, make the
+# app data directory a+x.
+adb -s $device shell run-as $package chmod a+x $app_data_dir
 
 # Wait until gdbserver successfully runs.
 line=

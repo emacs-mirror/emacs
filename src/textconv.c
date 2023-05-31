@@ -792,6 +792,12 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
   /* Move the composition overlay.  */
   sync_overlay (f);
 
+  /* If TEXT is empty, remove the composing region.  This goes against
+     the documentation, but is ultimately what programs expect.  */
+
+  if (!SCHARS (text))
+    really_finish_composing_text (f);
+
   /* If PT hasn't changed, the conversion region definitely has.
      Otherwise, redisplay will update the input method instead.  */
 

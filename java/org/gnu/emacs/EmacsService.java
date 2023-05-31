@@ -104,6 +104,9 @@ public final class EmacsService extends Service
      performing drawing calls.  */
   private static final boolean DEBUG_THREADS = false;
 
+  /* Whether or not onCreateInputMethod is calling getSelection.  */
+  public static volatile boolean imSyncInProgress;
+
   /* Return the directory leading to the directory in which native
      library files are stored on behalf of CONTEXT.  */
 
@@ -636,16 +639,41 @@ public final class EmacsService extends Service
 	    int newSelectionEnd, int composingRegionStart,
 	    int composingRegionEnd)
   {
+    boolean wasSynchronous;
+
     if (DEBUG_IC)
       Log.d (TAG, ("updateIC: " + window + " " + newSelectionStart
 		   + " " + newSelectionEnd + " "
 		   + composingRegionStart + " "
 		   + composingRegionEnd));
+
+    /* `updateSelection' holds an internal lock that is also taken
+       before `onCreateInputConnection' (in EmacsView.java) is called;
+       when that then asks the UI thread for the current selection, a
+       dead lock results.  To remedy this, reply to any synchronous
+       queries now -- and prohibit more queries for the duration of
+       `updateSelection' -- if EmacsView may have been asking for the
+       value of the region.  */
+
+    wasSynchronous = false;
+    if (EmacsService.imSyncInProgress)
+      {
+	/* `beginSynchronous' will answer any outstanding queries and
+	   signal that one is now in progress, thereby preventing
+	   `getSelection' from blocking.  */
+
+	EmacsNative.beginSynchronous ();
+	wasSynchronous = true;
+      }
+
     window.view.imManager.updateSelection (window.view,
 					   newSelectionStart,
 					   newSelectionEnd,
 					   composingRegionStart,
 					   composingRegionEnd);
+
+    if (wasSynchronous)
+      EmacsNative.endSynchronous ();
   }
 
   public void

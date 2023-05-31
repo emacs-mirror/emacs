@@ -628,8 +628,14 @@ public final class EmacsView extends ViewGroup
       }
 
     /* Obtain the current position of point and set it as the
-       selection.  */
+       selection.  Don't do this under one specific situation: if
+       `android_update_ic' is being called in the main thread, trying
+       to synchronize with it can cause a dead lock in the IM
+       manager.  */
+
+    EmacsService.imSyncInProgress = true;
     selection = EmacsNative.getSelection (window.handle);
+    EmacsService.imSyncInProgress = false;
 
     if (selection != null)
       Log.d (TAG, "onCreateInputConnection: current selection is: "
