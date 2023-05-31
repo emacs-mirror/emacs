@@ -184,6 +184,7 @@ default:
         - "**.in"
         - lisp/progmodes/*-ts-mode.el
         - test/infra/*
+        - test/lisp/progmodes/*-ts-mode-resources/**
         - test/lisp/progmodes/*-ts-mode-tests.el
 
 .native-comp-template:
@@ -274,22 +275,14 @@ build-image-tree-sitter:
 
 test-tree-sitter:
   stage: platforms
-  extends: [.job-template, .test-template, .tree-sitter-template]
+  extends: [.job-template, .test-template, .tree-sitter-template, .tree-sitter-files-template]
   needs:
     - job: build-image-tree-sitter
       optional: true
   variables:
     target: emacs-tree-sitter
     # This is needed in order to get a JUnit test report.
-    files: >-
-      lisp/progmodes/c-ts-mode-tests.log
-      lisp/progmodes/elixir-ts-mode-tests.log
-      lisp/progmodes/go-ts-mode-tests.log
-      lisp/progmodes/heex-ts-mode-tests.log
-      lisp/progmodes/java-ts-mode-tests.log
-      lisp/progmodes/ruby-ts-mode-tests.log
-      lisp/progmodes/typescript-ts-mode-tests.log
-    make_params: '-k -C test check-expensive LD_LIBRARY_PATH=/usr/local/lib/tree-sitter LOGFILES="$files"'
+    make_params: '-k -C test check-expensive LD_LIBRARY_PATH=/usr/local/lib/tree-sitter LOGFILES="$tree-sitter-files"'
 
 build-image-gnustep:
   stage: platform-images

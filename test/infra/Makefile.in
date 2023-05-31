@@ -53,6 +53,17 @@ define subdir_template
     define changes
 	@echo '        - lisp/emacs-lisp/faceup*.el' >>$(FILE)
     endef
+    else ifeq ($(findstring progmodes, $(1)), progmodes)
+    define changes
+	@echo '        - $(1)/eglot.el' >>$(FILE)
+	@echo '        - $(1)/*-ts-mode.el' >>$(FILE)
+	@echo '        - test/$(1)/eglot-tests.el' >>$(FILE)
+	@echo '        - test/$(1)/*-ts-mode-resources/**' >>$(FILE)
+	@echo '        - test/$(1)/*-ts-mode-tests.el' >>$(FILE)
+	@echo '      when: never' >>$(FILE)
+	@echo '    - changes:' >>$(FILE)
+	@echo '        - $(1)/*.el' >>$(FILE)
+    endef
     else ifeq ($(findstring so-long, $(1)), so-long)
     define changes
 	@echo '        - lisp/so-long*.el' >>$(FILE)
@@ -80,8 +91,8 @@ define subdir_template
 	@echo '      when: never' >>$(FILE)
 	@echo '    - changes:' >>$(FILE)
 	$(changes)
-	@echo '        - test/$(1)/*.el' >>$(FILE)
 	@echo '        - test/$(1)/*resources/**' >>$(FILE)
+	@echo '        - test/$(1)/*.el' >>$(FILE)
 	@echo '  variables:' >>$(FILE)
 	@echo '    target: emacs-inotify' >>$(FILE)
 	@echo '    make_params: "-k -C test $(target)"' >>$(FILE)
@@ -89,11 +100,20 @@ endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
+TREE-SITTER-FILES ?= $(shell cd .. ; find lisp -name "*-ts-*.el" | sort | sed s/\\.el/.log/)
+
 all: generate-test-jobs
 
-.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS)
+.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
 
-generate-test-jobs: $(FILE) $(SUBDIR_TARGETS)
+generate-test-jobs: $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
+
+tree-sitter-files-template:
+	@echo >>$(FILE)
+	@echo '.tree-sitter-files-template:' >>$(FILE)
+	@echo '  variables:' >>$(FILE)
+	@echo '    tree-sitter-files: >-' >>$(FILE)
+	@for name in $(TREE-SITTER-FILES) ; do echo "      $${name}" >>$(FILE) ; done
 
 $(FILE):
 	$(AM_V_GEN)
