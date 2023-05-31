@@ -4799,6 +4799,9 @@ android_copy_area (android_drawable src, android_drawable dest,
     case ANDROID_GC_XOR:
       do_blit = android_blit_xor;
       break;
+
+    default:
+      emacs_abort ();
     }
 
   /* Load the bounds of the destination rectangle.  */
