@@ -818,7 +818,7 @@ prepending a space before it."
 	      (setq glyph (lgstring-glyph gstring i))
 	      (lglyph-set-char glyph 32)
 	      (lglyph-set-width glyph 1)
-	      (setq i (+ 2)))
+	      (setq i (+ i 2)))
 	  (let ((from (lglyph-from glyph))
 		(to (lglyph-to glyph))
 		(j (1+ i)))
