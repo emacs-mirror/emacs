@@ -59,21 +59,20 @@ hope this taste of freedom will inspire users to escape from them.
 @node Android Startup
 @section Starting up Emacs on Android
 
-  Emacs is not installed on Android devices from source code, or by a
-package manager.  Instead, Emacs is compiled for Android on a
-different operating system, with the resulting binaries packaged into
-an archive, that is then transferred to the device and unpacked.
+  Emacs is not installed on Android devices from source code or
+through a package manager.  Instead, Emacs is compiled for Android on
+a different operating system, with the resulting binaries packaged
+into an archive, that is then transferred to the system and installed.
 
-  After being unpacked, Emacs instructs the system to display an
-application icon on the desktop.  Emacs then starts up once the
+  After being installed, the system places an application icon on the
+desktop (a.k.a@: ``home screen''.)  Emacs then starts up once the
 application icon is clicked.
 
 @cindex ``adb logcat''
 
   During startup, Emacs will display messages in the system log
-buffer; reading that buffer requires the Android Debug Bridge
-(@command{adb}) utility to be installed on another computer; it cannot
-be read on the computer running Android itself.
+buffer; reading that buffer during start-up requires the Android Debug
+Bridge (@command{adb}) utility to be installed on another computer.
 
   After enabling the ``USB Debugging'' feature on the Android system,
 and connecting it via USB to another system with the @command{adb}
@@ -120,6 +119,10 @@ documentation at
 @url{https://developer.android.com/studio/command-line/adb} for more
 details.
 
+  Once Emacs starts up, simply running the command @command{logcat} as
+an asynchronous shell command (@pxref{Running Shell Commands From
+Emacs}) will display the log buffer.
+
 @cindex emacsclient wrapper, android
   Since there is no other way to start the @command{emacsclient}
 program (@pxref{Emacs Server}) from another Android program, Emacs
@@ -139,14 +142,15 @@ that if that Emacs in turn does not start the Emacs server, subsequent
 attempts to open the file with the wrapper will fail.
 
 @cindex /content directory, android
-  Some files are given to Emacs as ``content identifiers'', which the
+  Some files are given to Emacs as ``content identifiers'' that the
 system provides access to outside the normal filesystem APIs.  Emacs
-internally supports a temporary @file{/content} directory which is
-used to access those files.  Do not make any assumptions about the
-contents of this directory, or try to open files in it yourself.
+uses a pseudo-directory named @file{/content} to access those files.
+Do not make any assumptions about the contents of this directory, or
+try to open files in it yourself.
 
   This feature is not provided on Android 4.3 and earlier, in which
-case the file is copied to a temporary directory instead.
+case such files are copied to a temporary directory before being
+opened.
 
 @node Android File System
 @section What files Emacs can access under Android
@@ -160,8 +164,8 @@ Android systems, the Lisp emulation of @command{ls} (@pxref{ls in
 Lisp}) is also enabled by default, as the @command{ls} binary which
 comes with the system varies by manufacturer and usually does not
 support all of the features required by Emacs.  One copy of
-@command{ls} shipped with some Android devices is even known to lack
-support for the @code{-l} flag.
+@command{ls} distributed with some Android systems is even known to
+lack support for the @code{-l} flag.
 
 @cindex limitations of the /assets directory
 
@@ -183,8 +187,8 @@ There are no @file{.} and @file{..} directories inside the
 @file{/assets} directory.
 
 @item
-Files in the @file{/assets} directory are always read only, and have
-to be completely read in to memory each time they are opened.
+Files in the @file{/assets} directory are always read only, and may be
+read in to memory more than once each time they are opened.
 @end itemize
 
   Aside from the @file{/assets} directory, Android programs normally
@@ -197,7 +201,8 @@ for Emacs, and is always accessible read-write.
 
 @item
 The @dfn{app library} directory.  This is automatically appended to
-@code{exec-path} upon startup.
+@code{exec-path} and made @code{exec-directory} upon startup, and
+contains utility executables alongside Emacs itself.
 
 @item
 The @dfn{external storage} directory.  This is accessible to Emacs
@@ -248,11 +253,11 @@ Android.
 operating system; however, from the perspective of applications and
 Emacs, the system has an overwhelming number of users.
 
-  Each application runs in its own user, with his own home directory,
-which is the app data directory (@pxref{Android File System}.)
+  Each application runs in its own user, with its home directory set
+to its app data directory (@pxref{Android File System}.)
 
-  Each application is also prohibited from accessing system
-directories, and the app data directories of other applications.
+  Each application is also prohibited from accessing many system
+directories and the app data directories of other applications.
 
   Emacs comes with several binaries.  While being executable files,
 they are packaged as libraries in the library directory, because
@@ -260,7 +265,12 @@ otherwise the system will not unpack them while Emacs is being
 installed.  This means, instead of specifying @code{ctags} or
 @code{emacsclient} in a subprocess, Lisp code must specify
 @code{libctags.so} or @code{libemacsclient.so} on the command line
-instead when starting either of those programs in a subprocess.
+instead when starting either of those programs in a subprocess; to
+determine which names to use, consult the values of the variables
+@code{ctags-program-name}, @code{etags-program-name},
+@code{hexl-program-name}, @code{emacsclient-program-name},
+@code{movemail-program-name}, and @code{ebrowse-program-name}.
+@xref{Subprocess Creation,,, elisp, the Emacs Lisp Reference Manual}.
 
   The @file{/assets} directory containing Emacs start-up files is
 supposed to be inaccessible to processes not directly created by
@@ -269,7 +279,7 @@ applications.  Since required Lisp is found in the @file{/assets}
 directory, it would thus follow that it is not possible for Emacs to
 start itself as a subprocess.  A special binary named
 @command{libandroid-emacs.so} is provided with Emacs, and does its
-best to start Emacs, for the purpose of running Lisp in batch mode.
+best to start Emacs for the purpose of running Lisp in batch mode.
 However, the approach it takes was devised by reading Android source
 code, and is not sanctioned by the Android compatibility definition
 documents, so your mileage may vary.
@@ -317,13 +327,13 @@ $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 @cindex emacs in the background, android
 
   Application processes are treated as disposable entities by the
-system.  When all Emacs frames move to the background, Emacs is liable
-to be killed by the system at any time, for the purpose of saving
-system resources.
+system.  When all Emacs frames move to the background, Emacs might be
+terminated by the system at any time, for the purpose of saving system
+resources.
 
   On Android 7.1 and earlier, Emacs tells the system to treat it as a
 ``background service''.  The system will try to avoid killing Emacs
-unless the device is under memory stress.
+unless the system is stressed for memory.
 
   Android 8.0 removed the ability for background services to receive
 such special treatment.  However, Emacs applies a workaround: the
@@ -334,12 +344,12 @@ long as it is running.  Once the notification is displayed, it can be
 safely hidden through the system settings without resulting in Emacs
 being killed.
 
-  However, it is not guaranteed that the system will not kill Emacs,
-even if the notification is being displayed.  While the Open Handset
+  However, it is not guaranteed that the system will not kill Emacs
+even if a notification is being displayed.  While the Open Handset
 Alliance's sample implementation of Android behaves correctly, many
 manufacturers place additional restrictions on program execution in
 the background in their proprietary versions of Android.  There is a
-list of such troublesome manufacturers and sometimes workarounds, at
+list of such troublesome manufacturers and sometimes workarounds at
 @url{https://dontkillmyapp.com/}.
 
 @section Android permissions
@@ -445,12 +455,12 @@ time.  On larger devices, the system allows up to four windows to be
 tiled on the screen at any time.
 
   Windows on Android do not continue to exist indefinitely after they
-are created.  Instead, the system may choose to terminate windows that
-are not on screen in order to save memory, with the assumption that
-the program will save its contents to disk and restore them later,
-when the user asks for it to be opened again.  As this is obviously
-not possible with Emacs, Emacs separates the resources associated with
-a frame from its system window.
+are created.  Instead, the system may choose to close windows that are
+not on screen in order to save memory, with the assumption that the
+program will save its contents to disk and restore them later, when
+the user asks for it to be opened again.  As this is obviously not
+possible with Emacs, Emacs separates the resources associated with a
+frame from its system window.
 
   Each system window created (including the initial window created
 during Emacs startup) is appended to a list of windows that do not
@@ -617,7 +627,7 @@ prevents other programs from accessing Emacs's home directory.
 @xref{Initial Options}.
 
   However, Emacs can be started with the equivalent of either the
-option @code{--quick}, or @code{--debug-init}, through a special
+option @code{--quick}, or @code{--debug-init} through a special
 preferences screen.  Under Android 7.0 and later, this can be accessed
 through the Emacs ``app info'' page in the system settings program; on
 older systems, this is displayed as a separate icon on the desktop
@@ -630,15 +640,16 @@ do this varies by device.
   The first time any given copy of Emacs starts on a device, it spends
 a while loading the preloaded Lisp files which normally come with
 Emacs.  This produces a ``dump file'' (@pxref{Initial Options}) in the
-files directory, containing an identifier unique to this copy of
+files directory, containing an identifier unique to that copy of
 Emacs.
 
   The next time that same copy of Emacs starts up, it simply loads the
-data contained in that dump file, greatly improving start up time.
+data contained in that dump file, greatly reducing start up time.
 
   If by some unforeseen circumstance the dump file is corrupted, Emacs
 can crash.  If that happens, the dump file stored in the Emacs files
-directory can be erased through the same preferences screen.
+directory can be erased through the preferences screen described
+above.
 
 @cindex accessing Emacs directories, Android
   Emacs supports an alternative method of rescuing broken Emacs
