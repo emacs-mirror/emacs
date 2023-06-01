@@ -62,6 +62,8 @@ import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.os.VibrationEffect;
 
+import android.provider.DocumentsContract;
+
 import android.util.Log;
 import android.util.DisplayMetrics;
 
@@ -546,11 +548,33 @@ public final class EmacsService extends Service
   browseUrl (String url)
   {
     Intent intent;
+    Uri uri;
 
     try
       {
-	intent = new Intent (Intent.ACTION_VIEW, Uri.parse (url));
-	intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+	/* Parse the URI.  */
+	uri = Uri.parse (url);
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+	  {
+	    /* On Android 4.4 and later, check if URI is actually a
+	       file name.  If so, rewrite it into a content provider
+	       URI, so that it can be accessed by other programs.  */
+
+	    if (uri.getScheme ().equals ("file")
+		&& uri.getPath () != null)
+	      uri
+		= DocumentsContract.buildDocumentUri ("org.gnu.emacs",
+						      uri.getPath ());
+	  }
+
+	Log.d (TAG, ("browseUri: browsing " + url
+		     + " --> " + uri.getPath ()
+		     + " --> " + uri));
+
+	intent = new Intent (Intent.ACTION_VIEW, uri);
+	intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK
+			 | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 	startActivity (intent);
       }
     catch (Exception e)
