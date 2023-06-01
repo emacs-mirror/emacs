@@ -65,6 +65,13 @@ public final class EmacsInputConnection extends BaseInputConnection
     if (Build.MANUFACTURER.equalsIgnoreCase ("Huawei")
 	|| Build.MANUFACTURER.equalsIgnoreCase ("Honor"))
       extractAbsoluteOffsets = syncAfterCommit = true;
+
+    /* The Samsung keyboard takes `selectionStart' at face value if
+       some text is returned, and also searches for words solely
+       within that text.  However, when no text is returned, it falls
+       back to getTextAfterCursor and getTextBeforeCursor.  */
+    if (Build.MANUFACTURER.equalsIgnoreCase ("Samsung"))
+      extractAbsoluteOffsets = true;
   };
 
   public
