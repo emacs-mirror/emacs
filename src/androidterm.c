@@ -5196,7 +5196,7 @@ struct android_get_extracted_text_context
   ptrdiff_t length, bytes;
 
   /* Offsets into that text.  */
-  ptrdiff_t start, offset;
+  ptrdiff_t start, start_offset, end_offset;
 
   /* The window.  */
   android_window window;
@@ -5222,8 +5222,9 @@ android_get_extracted_text (void *data)
   /* Now get the extracted text.  */
   request->text
     = get_extracted_text (f, min (request->hint_max_chars, 600),
-			  &request->start, &request->offset,
-			  &request->length, &request->bytes);
+			  &request->start, &request->start_offset,
+			  &request->end_offset, &request->length,
+			  &request->bytes);
 
   /* See if request->flags & GET_EXTRACTED_TEXT_MONITOR.  If so, then
      the input method has asked to monitor changes to the extracted
@@ -5268,8 +5269,9 @@ struct android_extracted_text_class text_class;
 
 /* Return an ExtractedText object corresponding to the extracted text
    TEXT.  START is a character position describing the offset of the
-   first character in TEXT.  OFFSET is the offset of point relative to
-   START.
+   first character in TEXT.  START_OFFSET is the offset of the lesser
+   of point or mark relative to START, and END_OFFSET is that of the
+   greater of point or mark relative to START.
 
    Assume that request_class and text_class have already been
    initialized.
@@ -5279,7 +5281,8 @@ struct android_extracted_text_class text_class;
 
 static jobject
 android_build_extracted_text (jstring text, ptrdiff_t start,
-			      ptrdiff_t offset)
+			      ptrdiff_t start_offset,
+			      ptrdiff_t end_offset)
 {
   JNIEnv *env;
   jobject object;
@@ -5299,9 +5302,9 @@ android_build_extracted_text (jstring text, ptrdiff_t start,
   (*env)->SetIntField (env, object, text_class.partial_start_offset, -1);
   (*env)->SetIntField (env, object, text_class.partial_end_offset, -1);
   (*env)->SetIntField (env, object, text_class.selection_start,
-		       min (offset, TYPE_MAXIMUM (jint)));
+		       min (start_offset, TYPE_MAXIMUM (jint)));
   (*env)->SetIntField (env, object, text_class.selection_end,
-		       min (offset, TYPE_MAXIMUM (jint)));
+		       min (end_offset, TYPE_MAXIMUM (jint)));
 
   /* Subtract 1 from start: point indices in Emacs start from 1, but
      Android expects 0.  */
@@ -5404,9 +5407,9 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
   (*env)->SetIntField (env, object, text_class.partial_start_offset, -1);
   (*env)->SetIntField (env, object, text_class.partial_end_offset, -1);
   (*env)->SetIntField (env, object, text_class.selection_start,
-		       min (context.offset, TYPE_MAXIMUM (jint)));
+		       min (context.start_offset, TYPE_MAXIMUM (jint)));
   (*env)->SetIntField (env, object, text_class.selection_end,
-		       min (context.offset, TYPE_MAXIMUM (jint)));
+		       min (context.end_offset, TYPE_MAXIMUM (jint)));
 
   /* Subtract 1 from start: point indices in Emacs start from 1, but
      Android expects 0.  */
@@ -5507,7 +5510,8 @@ NATIVE_NAME (requestCursorUpdates) (JNIEnv *env, jobject object,
 static void
 android_update_selection (struct frame *f, struct window *w)
 {
-  ptrdiff_t start, end, point, mark, offset, length, bytes;
+  ptrdiff_t start, end, point, mark, start_offset, end_offset;
+  ptrdiff_t length, bytes;
   struct buffer *b;
   int hint, token;
   char *text;
@@ -5560,7 +5564,8 @@ android_update_selection (struct frame *f, struct window *w)
       hint = FRAME_ANDROID_OUTPUT (f)->extracted_text_hint;
       token = FRAME_ANDROID_OUTPUT (f)->extracted_text_token;
       text = get_extracted_text (f, min (hint, 600), &start,
-				 &offset, &length, &bytes);
+				 &start_offset, &end_offset,
+				 &length, &bytes);
 
       if (text)
 	{
@@ -5572,7 +5577,8 @@ android_update_selection (struct frame *f, struct window *w)
 
 	  /* Make extracted text out of that string.  */
 	  extracted = android_build_extracted_text (string, start,
-						    offset);
+						    start_offset,
+						    end_offset);
 	  android_exception_check_1 (string);
 	  ANDROID_DELETE_LOCAL_REF (string);
 

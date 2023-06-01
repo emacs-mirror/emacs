@@ -1513,21 +1513,23 @@ request_point_update (struct frame *f, unsigned long counter)
    that the mark is active.
 
    Set *N to the actual number of characters returned, *START_RETURN
-   to the position of the first character returned, *OFFSET to the
-   offset of point within that text, *LENGTH to the actual number of
-   characters returned, and *BYTES to the actual number of bytes
-   returned.
+   to the position of the first character returned, *START_OFFSET to
+   the offset of the lesser of mark and point within that text,
+   *END_OFFSET to the greater of mark and point within that text, and
+   *LENGTH to the actual number of characters returned, and *BYTES to
+   the actual number of bytes returned.
 
    Value is NULL upon failure, and a malloced string upon success.  */
 
 char *
 get_extracted_text (struct frame *f, ptrdiff_t n,
 		    ptrdiff_t *start_return,
-		    ptrdiff_t *offset, ptrdiff_t *length,
+		    ptrdiff_t *start_offset,
+		    ptrdiff_t *end_offset, ptrdiff_t *length,
 		    ptrdiff_t *bytes)
 {
   specpdl_ref count;
-  ptrdiff_t start, end, start_byte, end_byte;
+  ptrdiff_t start, end, start_byte, end_byte, mark;
   char *buffer;
 
   if (!WINDOW_LIVE_P (f->old_selected_window))
@@ -1595,9 +1597,17 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   copy_buffer (start, start_byte, end, end_byte,
 	       buffer);
 
+  /* Get the mark.  If it's not active, use PT.  */
+
+  mark = get_mark ();
+
+  if (mark == -1)
+    mark = PT;
+
   /* Return the offsets.  */
   *start_return = start;
-  *offset = PT - start;
+  *start_offset = min (mark - start, PT - start);
+  *end_offset = max (mark - start, PT - start);
   *length = end - start;
   *bytes = end_byte - start_byte;
 
