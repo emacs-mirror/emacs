@@ -257,6 +257,52 @@ public final class EmacsInputConnection extends BaseInputConnection
   }
 
   @Override
+  public boolean
+  performContextMenuAction (int contextMenuAction)
+  {
+    int action;
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "performContextMenuAction: " + contextMenuAction);
+
+    /* Translate the action in Java code.  That way, a great deal of
+       JNI boilerplate can be avoided.  */
+
+    switch (contextMenuAction)
+      {
+      case android.R.id.selectAll:
+	action = 0;
+	break;
+
+      case android.R.id.startSelectingText:
+	action = 1;
+	break;
+
+      case android.R.id.stopSelectingText:
+	action = 2;
+	break;
+
+      case android.R.id.cut:
+	action = 3;
+	break;
+
+      case android.R.id.copy:
+	action = 4;
+	break;
+
+      case android.R.id.paste:
+	action = 5;
+	break;
+
+      default:
+	return true;
+      }
+
+    EmacsNative.performContextMenuAction (windowHandle, action);
+    return true;
+  }
+
+  @Override
   public ExtractedText
   getExtractedText (ExtractedTextRequest request, int flags)
   {

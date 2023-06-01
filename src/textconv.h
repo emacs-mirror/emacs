@@ -128,7 +128,8 @@ extern void start_batch_edit (struct frame *, unsigned long);
 extern void end_batch_edit (struct frame *, unsigned long);
 extern void commit_text (struct frame *, Lisp_Object, ptrdiff_t,
 			 unsigned long);
-extern void finish_composing_text (struct frame *, unsigned long);
+extern void finish_composing_text (struct frame *, unsigned long,
+				   bool);
 extern void set_composing_text (struct frame *, Lisp_Object,
 				ptrdiff_t, unsigned long);
 extern void set_composing_region (struct frame *, ptrdiff_t, ptrdiff_t,

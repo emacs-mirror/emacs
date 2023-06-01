@@ -676,10 +676,11 @@ really_commit_text (struct frame *f, EMACS_INT position,
 }
 
 /* Remove the composition region on the frame F, while leaving its
-   contents intact.  */
+   contents intact.  If UPDATE, also notify the input method of the
+   change.  */
 
 static void
-really_finish_composing_text (struct frame *f)
+really_finish_composing_text (struct frame *f, bool update)
 {
   if (!NILP (f->conversion.compose_region_start))
     {
@@ -687,6 +688,10 @@ really_finish_composing_text (struct frame *f)
       Fset_marker (f->conversion.compose_region_end, Qnil, Qnil);
       f->conversion.compose_region_start = Qnil;
       f->conversion.compose_region_end = Qnil;
+
+      if (update && text_interface
+	  && text_interface->compose_region_changed)
+	(*text_interface->compose_region_changed) (f);
     }
 
   /* Delete the composition region overlay.  */
@@ -796,7 +801,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
      the documentation, but is ultimately what programs expect.  */
 
   if (!SCHARS (text))
-    really_finish_composing_text (f);
+    really_finish_composing_text (f, false);
 
   /* If PT hasn't changed, the conversion region definitely has.
      Otherwise, redisplay will update the input method instead.  */
@@ -838,7 +843,7 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
 
   if (max (0, start) == max (0, end))
     {
-      really_finish_composing_text (f);
+      really_finish_composing_text (f, false);
       return;
     }
 
@@ -1167,7 +1172,7 @@ handle_pending_conversion_events_1 (struct frame *f,
       break;
 
     case TEXTCONV_FINISH_COMPOSING_TEXT:
-      really_finish_composing_text (f);
+      really_finish_composing_text (f, !NILP (data));
       break;
 
     case TEXTCONV_SET_COMPOSING_TEXT:
@@ -1360,16 +1365,20 @@ commit_text (struct frame *f, Lisp_Object string,
 /* Remove the composition region and its overlay from F's current
    buffer.  Leave the text being composed intact.
 
+   If UPDATE, call `compose_region_changed' after the region is
+   removed.
+
    COUNTER means the same as in `start_batch_edit'.  */
 
 void
-finish_composing_text (struct frame *f, unsigned long counter)
+finish_composing_text (struct frame *f, unsigned long counter,
+		       bool update)
 {
   struct text_conversion_action *action, **last;
 
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_FINISH_COMPOSING_TEXT;
-  action->data = Qnil;
+  action->data = update ? Qt : Qnil;
   action->next = NULL;
   action->counter = counter;
   for (last = &f->conversion.actions; *last; last = &(*last)->next)

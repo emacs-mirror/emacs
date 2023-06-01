@@ -681,7 +681,6 @@ android_handle_ime_event (union android_event *event, struct frame *f)
   switch (event->ime.operation)
     {
     case ANDROID_IME_COMMIT_TEXT:
-    case ANDROID_IME_FINISH_COMPOSING_TEXT:
     case ANDROID_IME_SET_COMPOSING_TEXT:
       text = android_decode_utf16 (event->ime.text,
 				   event->ime.length);
@@ -708,7 +707,8 @@ android_handle_ime_event (union android_event *event, struct frame *f)
       break;
 
     case ANDROID_IME_FINISH_COMPOSING_TEXT:
-      finish_composing_text (f, event->ime.counter);
+      finish_composing_text (f, event->ime.counter,
+			     event->ime.length);
       break;
 
     case ANDROID_IME_SET_COMPOSING_TEXT:
@@ -5161,7 +5161,71 @@ NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
   /* Undocumented behavior: performEditorAction is apparently expected
      to finish composing any text.  */
 
-  NATIVE_NAME (finishComposingText) (env, object, window);
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_FINISH_COMPOSING_TEXT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+
+  /* This value of `length' means that the input method should receive
+     an update containing the new conversion region.  */
+
+  event.ime.length = 1;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+
+  /* Finally, send the return key press.  */
+
+  event.xkey.type = ANDROID_KEY_PRESS;
+  event.xkey.serial = ++event_serial;
+  event.xkey.window = window;
+  event.xkey.time = 0;
+  event.xkey.state = 0;
+  event.xkey.keycode = 66;
+  event.xkey.unicode_char = 0;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (performContextMenuAction) (JNIEnv *env, jobject object,
+					jshort window, int action)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  int key;
+
+  /* Note that ACTION is determined in EmacsInputConnection, and as
+     such they are not actual resource IDs.  */
+
+  switch (action)
+    {
+    case 0: /* android.R.id.selectAll */
+    case 1: /* android.R.id.startSelectingText */
+    case 2: /* android.R.id.stopSelectingText */
+      /* These actions are not implemented.  */
+      return;
+
+    case 3: /* android.R.id.cut */
+      key = 277;
+      break;
+
+    case 4: /* android.R.id.copy */
+      key = 278;
+      break;
+
+    case 5: /* android.R.id.paste */
+      key = 279;
+      break;
+
+    default:
+      emacs_abort ();
+    }
 
   event.xkey.type = ANDROID_KEY_PRESS;
   event.xkey.serial = ++event_serial;

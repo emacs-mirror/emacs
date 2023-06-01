@@ -3863,22 +3863,13 @@ android_get_gc_values (struct android_gc *gc,
     values->clip_y_origin = gc->clip_y_origin;
 
   if (mask & ANDROID_GC_FILL_STYLE)
-    values->fill_style
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_fill_style);
+    values->fill_style = gc->fill_style;
 
   if (mask & ANDROID_GC_TILE_STIP_X_ORIGIN)
-    values->ts_x_origin
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_ts_origin_x);
+    values->ts_x_origin = gc->ts_x_origin;
 
   if (mask & ANDROID_GC_TILE_STIP_Y_ORIGIN)
-    values->ts_y_origin
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_ts_origin_y);
+    values->ts_y_origin = gc->ts_y_origin;
 
   /* Fields involving handles are not used by Emacs, and thus not
      implemented */

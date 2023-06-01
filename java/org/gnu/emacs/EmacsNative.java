@@ -208,6 +208,8 @@ public final class EmacsNative
   public static native void setSelection (short window, int start, int end);
   public static native void performEditorAction (short window,
 						 int editorAction);
+  public static native void performContextMenuAction (short window,
+						      int contextMenuAction);
   public static native ExtractedText getExtractedText (short window,
 						       ExtractedTextRequest req,
 						       int flags);
