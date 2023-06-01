@@ -1723,17 +1723,11 @@ Return value is the fall-through block name."
   ;; (byte-constant #s(hash-table size 3 test eq rehash-size 1.5 rehash-threshold 0.8125 purecopy t data (created 126 deleted 126 changed 126)) . 24)
   ;; (byte-switch)
   ;; (TAG 126 . 10)
-  (cl-loop
-   with labels = (cl-loop for target-label being each hash-value of jmp-table
-                          collect target-label)
-   with x = (car labels)
-   for l in (cdr-safe labels)
-   unless (= l x)
-     return nil
-   finally return (pcase (nth (1+ (comp-limplify-pc comp-pass))
-                              (comp-func-lap comp-func))
-                    (`(TAG ,label . ,_label-sp)
-                     (= label l)))))
+  (let ((targets (hash-table-values jmp-table)))
+    (when (apply #'= targets)
+      (pcase (nth (1+ (comp-limplify-pc comp-pass)) (comp-func-lap comp-func))
+        (`(TAG ,target . ,_label-sp)
+         (= target (car targets)))))))
 
 (defun comp-emit-switch (var last-insn)
   "Emit a Limple for a lap jump table given VAR and LAST-INSN."
