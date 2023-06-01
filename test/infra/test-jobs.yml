@@ -571,10 +571,10 @@ test-src-inotify:
 .tree-sitter-files-template:
   variables:
     tree-sitter-files: >-
-      lisp/progmodes/c-ts-mode-tests.log
+      "lisp/progmodes/c-ts-mode-tests.log
       lisp/progmodes/elixir-ts-mode-tests.log
       lisp/progmodes/go-ts-mode-tests.log
       lisp/progmodes/heex-ts-mode-tests.log
       lisp/progmodes/java-ts-mode-tests.log
       lisp/progmodes/ruby-ts-mode-tests.log
-      lisp/progmodes/typescript-ts-mode-tests.log
+      lisp/progmodes/typescript-ts-mode-tests.log"
