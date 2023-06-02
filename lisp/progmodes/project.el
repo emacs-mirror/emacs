@@ -805,8 +805,8 @@ DIRS must contain directory names."
         (push buf bufs)))
     (nreverse bufs)))
 
-(cl-defmethod project-name ((_project (head vc)))
-  (or project-vc-name
+(cl-defmethod project-name ((project (head vc)))
+  (or (project--value-in-dir 'project-vc-name (project-root project))
       (cl-call-next-method)))
 
 
