@@ -52,13 +52,15 @@
 ;;;###autoload(autoload 'erc-button-mode "erc-button" nil t)
 (define-erc-module button nil
   "This mode buttonizes all messages according to `erc-button-alist'."
-  ((erc-button--check-nicknames-entry)
-   (add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
+  ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
+   (add-hook 'erc-mode-hook #'erc-button-setup 91)
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-button-setup))
    (add-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map t "<backtab>" #'erc-button-previous))
   ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
+   (remove-hook 'erc-mode-hook #'erc-button-setup)
    (remove-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map nil "<backtab>" #'erc-button-previous)))
 
@@ -103,7 +105,10 @@ longer than `erc-fill-column'."
   :type '(choice integer boolean))
 
 (defcustom erc-button-buttonize-nicks t
-  "Flag indicating whether nicks should be buttonized or not."
+  "Flag indicating whether nicks should be buttonized.
+Note that beginning in ERC 5.6, some functionality provided by
+other modules, such as `fill-wrap', may depend on this option
+being non-nil."
   :type 'boolean)
 
 (defcustom erc-button-rfc-url "https://tools.ietf.org/html/rfc%s"
@@ -126,8 +131,7 @@ longer than `erc-fill-column'."
   ;; a button, it makes no sense to optimize performance by
   ;; bytecompiling lambdas in this alist.  On the other hand, it makes
   ;; things hard to maintain.
-  '((nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
-    (erc-button-url-regexp 0 t browse-url-button-open-url 0)
+  '((erc-button-url-regexp 0 t browse-url-button-open-url 0)
     ;; ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
@@ -159,41 +163,45 @@ REGEXP is the string matching text around the button or a symbol
   strings, or an alist with the strings in the car.  Note that
   entries in lists or alists are considered to be nicks or other
   complete words.  Therefore they are enclosed in \\< and \\>
-  while searching.  REGEXP can also be the symbol
-  `nicknames', which matches the nickname of any user on the
-  current server.
+  while searching.  Also, use of the special symbol `nicknames'
+  for this slot was deprecated in ERC 5.6, but users can still
+  use `erc-button-buttonize-nicks' to control whether nicks get
+  buttonized.  And because customizing a corresponding CALLBACK
+  is no longer possible, an escape hatch has been provided via
+  the variable `erc-button-nickname-callback-function'.
 
 BUTTON is the number of the regexp grouping actually matching the
-  button.  This is ignored if REGEXP is `nicknames'.
+  button.
 
 FORM is either a boolean or a special variable whose value must
-  be non-nil for the button to be added.  When REGEXP is the
-  special symbol `nicknames', FORM must be the symbol
-  `erc-button-buttonize-nicks'.  Anything else is deprecated.
-  For all other entries, FORM can also be a function to call in
-  place of `erc-button-add-button' with the exact same arguments.
-  When FORM is also a special variable, ERC disregards the
-  variable and calls the function.
+  be non-nil for the button to be added.  It can also be a
+  function to call in place of `erc-button-add-button' with the
+  exact same arguments.  When FORM is also a special variable,
+  ERC disregards the variable and calls the function.  Note that
+  arbitrary s-expressions were deprecated in ERC 5.6 and may not
+  be respected in the future.  If necessary, users can instead
+  supply a function that calls `erc-button-add-button' when such
+  an expression is non-nil.
 
 CALLBACK is the function to call when the user push this button.
   CALLBACK can also be a symbol.  Its variable value will be used
   as the callback function.
 
 PAR is a number of a regexp grouping whose text will be passed to
-  CALLBACK.  There can be several PAR arguments.  If REGEXP is
-  `nicknames', these are ignored, and CALLBACK will be called with
-  the nickname matched as the argument."
+  CALLBACK.  There can be several PAR arguments."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"
                         regexp
                         (variable :tag "Variable containing regexp")
-                        (const :tag "Nicknames" nicknames))
+                        (repeat :tag "List of words" string)
+                        (alist :key-type string :value-type sexp))
                 (integer :tag "Number of the regexp section that matches")
                 (choice :tag "When to buttonize"
                         (const :tag "Always" t)
-                        (sexp :tag "Only when this evaluates to non-nil"))
+                        (function :tag "Alternative buttonizing function")
+                        (variable :tag "Var with value treated as boolean"))
                 (function :tag "Function to call when button is pressed")
                 (repeat :tag "Sections of regexp to send to the function"
                         :inline t
@@ -239,15 +247,40 @@ constituents.")
 (defvar erc-button-keys-added nil
   "Internal variable used to keep track of whether we've added the
 global-level ERC button keys yet.")
+(make-obsolete-variable 'erc-button-keys-added "no longer relevant" "30.1")
 
-;; Maybe deprecate this function and `erc-button-keys-added' if they
-;; continue to go unused for a another version (currently 5.6).
+(defvar-local erc-button--has-nickname-entry nil
+  "Whether `erc-button-alist' contains a legacy `nicknames' entry.")
+
 (defun erc-button-setup ()
-  "Add ERC mode-level button movement keys.  This is only done once."
-  ;; Add keys.
-  (unless erc-button-keys-added
-    (define-key erc-mode-map (kbd "<backtab>") #'erc-button-previous)
-    (setq erc-button-keys-added t)))
+  "Perform major-mode setup for ERC's button module.
+Note that prior to ERC 5.6, this function used to modify
+`erc-mode-map', but that's now handled by the mode toggles
+themselves."
+  (setq erc-button-keys-added t)
+  (cl-assert (derived-mode-p 'erc-mode))
+  ;; It would probably suffice to run this in server buffers alone,
+  ;; even though buttonizing happens in all ERC buffers and users have
+  ;; been known to set `erc-button-alist' locally.
+  (dolist (entry erc-button-alist)
+    (pcase entry
+      ((or `(nicknames ,_ ,sym . ,_) `('nicknames ,_ ,sym . ,_))
+       (setq erc-button--has-nickname-entry t)
+       (unless (eq sym 'erc-button-buttonize-nicks)
+         (erc--warn-once-before-connect 'erc-button-mode
+           "The legacy `nicknames' entry in `erc-button-alist'"
+           " is deprecated.  See doc string for details.")))
+      ((and `(,_ ,_ ,form . ,_)
+            (guard (not (or (and (symbolp form)
+                                 (special-variable-p form))
+                            (functionp form)))))
+       (erc--warn-once-before-connect 'erc-button-mode
+         "Arbitrary sexps for the third, FORM slot of `erc-button-alist'"
+         " entries are deprecated. Either use a variable or a function"
+         " that conditionally calls `erc-button-add-button'.")))))
+
+(defvar erc-button-nickname-callback-function #'erc-nick-popup
+  "Escape hatch for those needing a different nickname callback.")
 
 (defun erc-button-add-buttons ()
   "Find external references in the current buffer and make buttons of them.
@@ -261,6 +294,11 @@ specified by `erc-button-alist'."
             (alist erc-button-alist)
             regexp)
         (erc-button-remove-old-buttons)
+        (unless (or erc-button--has-nickname-entry
+                    (not erc-button-buttonize-nicks))
+          (erc-button-add-nickname-buttons
+           `(_ _ erc-button--modify-nick-function
+               ,erc-button-nickname-callback-function)))
         (dolist (entry alist)
           (if (or (eq (car entry) 'nicknames)
                   ;; Old form retained for backward compatibility.
@@ -284,28 +322,18 @@ specified by `erc-button-alist'."
                         (concat "\\<" (regexp-quote (car elem)) "\\>")
                         entry)))))))))))
 
-(defun erc-button--maybe-warn-arbitrary-sexp (form)
-  (cl-assert (not (booleanp form))) ; covered by caller
+(defun erc-button--extract-form (form)
   ;; If a special-variable is also a function, favor the function.
-  (cond ((functionp form) form)
-        ((and (symbolp form) (special-variable-p form)) (symbol-value form))
-        (t (unless (get 'erc-button--maybe-warn-arbitrary-sexp
-                        'warned-arbitrary-sexp)
-             (put 'erc-button--maybe-warn-arbitrary-sexp
-                  'warned-arbitrary-sexp t)
-             (lwarn 'erc :warning (concat "Arbitrary sexps for the third FORM"
-                                          " slot of `erc-button-alist' entries"
-                                          " have been deprecated.")))
-           (eval form t))))
-
-(defun erc-button--check-nicknames-entry ()
-  ;; This helper exists because the module is defined after its options.
-  (when (eq major-mode 'erc-mode)
-    (unless (eq (nth 1 (alist-get 'nicknames erc-button-alist))
-                'erc-button-buttonize-nicks)
-      (erc-button--display-error-notice-with-keys-and-warn
-       "Values other than `erc-button-buttonize-nicks' in the third slot of "
-       "the `nicknames' entry of `erc-button-alist' are deprecated."))))
+  (cond ((eq t form) t)
+        ((functionp form) form)
+        ((and (symbolp form) (special-variable-p form))
+         (while (let ((val (symbol-value form)))
+                  (prog1 (and (not (eq val form))
+                              (symbolp val)
+                              (special-variable-p val))
+                    (setq form val))))
+         form)
+        (t (eval form t))))
 
 (cl-defstruct erc-button--nick
   ( bounds nil :type cons
@@ -405,12 +433,10 @@ retrieve it during buttonizing via
   "Search through the buffer for nicknames, and add buttons."
   (let ((form (nth 2 entry))
         (fun (nth 3 entry))
+        (erc-button-buttonize-nicks (and erc-button-buttonize-nicks
+                                         erc-button--modify-nick-function))
         bounds word)
-    (when (eq form 'erc-button-buttonize-nicks)
-      (setq form (and (symbol-value form) erc-button--modify-nick-function)))
-    (when (or (functionp form)
-              (eq t form)
-              (and form (erc-button--maybe-warn-arbitrary-sexp form)))
+    (when (and form (setq form (erc-button--extract-form form)))
       (goto-char (point-min))
       (while (erc-forward-word)
         (when (setq bounds (erc-bounds-of-word-at-point))
@@ -456,8 +482,7 @@ retrieve it during buttonizing via
                        (and-let*
                            ((raw-form (nth 2 entry))
                             (res (or (eq t raw-form)
-                                     (erc-button--maybe-warn-arbitrary-sexp
-                                      raw-form))))
+                                     (erc-button--extract-form raw-form))))
                          (if (functionp res) res #'erc-button-add-button)))))
       (let ((start (match-beginning (nth 1 entry)))
             (end (match-end (nth 1 entry)))
