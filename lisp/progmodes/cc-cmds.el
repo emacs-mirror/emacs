@@ -5145,6 +5145,41 @@ details."
       (delete-char 1))))
 
 
+
+;; Text conversion support.
+
+(defun c-post-text-conversion ()
+  "Notice that the character `last-command-event' has been inserted.
+If said character is an electric character such as `*' or `{', delete
+it, then call the appropriate CC Mode function to electrically insert
+it again."
+  (cond ((eq last-command-event ?#)
+	 (delete-char -1)
+	 (c-electric-pound nil) t)
+	((memq last-command-event '(?{ ?}))
+	 (delete-char -1)
+	 (c-electric-brace nil) t)
+	((memq last-command-event '(?\( ?\)))
+	 (delete-char -1)
+	 (c-electric-paren nil) t)
+	((eq last-command-event ?*)
+	 (delete-char -1)
+	 (c-electric-star nil) t)
+	((eq last-command-event ?/)
+	 (delete-char -1)
+	 (c-electric-slash nil) t)
+	((memq last-command-event '(?\; ?,))
+	 (delete-char -1)
+	 (c-electric-semi&comma nil) t)
+	((eq last-command-event ?:)
+	 (delete-char -1)
+	 (c-electric-colon nil) t)
+	((memq last-command-event '(?> ?<))
+	 (delete-char -1)
+	 (c-electric-lt-gt nil) t)))
+
+
+
 (cc-provide 'cc-cmds)
 
 ;; Local Variables:

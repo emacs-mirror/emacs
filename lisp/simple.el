@@ -10980,13 +10980,18 @@ If the buffer doesn't exist, create it first."
 ;; Text conversion support.  See textconv.c for more details about
 ;; what this is.
 
-
 ;; Actually in textconv.c.
 (defvar text-conversion-edits)
 
 ;; Actually in elec-pair.el.
 (defvar electric-pair-preserve-balance)
 (declare-function electric-pair-analyze-conversion "elec-pair.el")
+
+(defvar-local post-text-conversion-hook nil
+  "Hook run after text is inserted by an input method.
+Each function in this list is run until one returns non-nil.
+When run, `last-command-event' is bound to the last character
+that was inserted by the input method.")
 
 (defun analyze-text-conversion ()
   "Analyze the results of the previous text conversion event.
@@ -11007,7 +11012,10 @@ For each insertion:
 
   - Run `post-self-insert-functions' for the last character of
     any inserted text so that modes such as `electric-pair-mode'
-    can work."
+    can work.
+
+  - Run `post-text-conversion-hook' with `last-command-event' set
+    to the last character of any inserted text to finish up."
   (interactive)
   ;; The list must be processed in reverse.
   (dolist (edit (reverse text-conversion-edits))
@@ -11041,7 +11049,9 @@ For each insertion:
                            (funcall auto-fill-function)))))
               (goto-char (nth 2 edit))
               (let ((last-command-event end))
-                (run-hooks 'post-self-insert-hook)))
+                (unless (run-hook-with-args-until-success
+                         'post-text-conversion-hook)
+                  (run-hooks 'post-self-insert-hook))))
           ;; Process this deletion before point.  (nth 2 edit) is the
           ;; text which was deleted.  Input methods typically prefer
           ;; to edit words instead of deleting characters off their
