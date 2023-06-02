@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "syntax.h"
 #include "blockinput.h"
+#include "keyboard.h"
 
 
 
@@ -522,7 +523,11 @@ detect_conversion_events (void)
 
   FOR_EACH_FRAME (tail, frame)
     {
-      if (XFRAME (frame)->conversion.actions)
+      /* See if there's a pending edit on this frame.  */
+      if (XFRAME (frame)->conversion.actions
+	  && ((XFRAME (frame)->conversion.actions->operation
+	       != TEXTCONV_BARRIER)
+	      || (kbd_fetch_ptr == kbd_store_ptr)))
 	return true;
     }
 
@@ -740,7 +745,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
       Fset_marker_insertion_type (f->conversion.compose_region_end,
 				  Qt);
 
-      start = position;
+      start = PT;
     }
   else
     {
@@ -762,7 +767,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
     record_buffer_change (start, PT, Qnil);
 
   /* Now move point to an appropriate location.  */
-  if (position < 0)
+  if (position <= 0)
     {
       wanted = start;
 
@@ -1198,6 +1203,19 @@ handle_pending_conversion_events_1 (struct frame *f,
     case TEXTCONV_REQUEST_POINT_UPDATE:
       really_request_point_update (f);
       break;
+
+    case TEXTCONV_BARRIER:
+      if (kbd_fetch_ptr != kbd_store_ptr)
+	emacs_abort ();
+
+      /* Once a barrier is hit, synchronize F's selected window's
+	 `ephemeral_last_point' with its current point.  The reason
+	 for this is because otherwise a previous keyboard event may
+	 have taken place without redisplay happening in between.  */
+
+      if (w)
+	w->ephemeral_last_point = window_point (w);
+      break;
     }
 
   /* Signal success.  */
@@ -1231,7 +1249,7 @@ handle_pending_conversion_events (void)
   static int inside;
   specpdl_ref count;
   ptrdiff_t last_point;
-  struct window *w;
+  struct window *w, *w1;
 
   handled = false;
 
@@ -1242,8 +1260,6 @@ handle_pending_conversion_events (void)
     Vtext_conversion_edits = Qnil;
 
   inside++;
-  last_point = -1;
-  w = NULL;
 
   count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (decrement_inside, &inside);
@@ -1251,6 +1267,8 @@ handle_pending_conversion_events (void)
   FOR_EACH_FRAME (tail, frame)
     {
       f = XFRAME (frame);
+      last_point = -1;
+      w = NULL;
 
       /* Test if F has any outstanding conversion events.  Then
 	 process them in bottom to up order.  */
@@ -1281,6 +1299,13 @@ handle_pending_conversion_events (void)
 	  /* If there are no more actions, break.  */
 
 	  if (!action)
+	    break;
+
+	  /* If action is a barrier event and the keyboard buffer is
+	     not yet empty, break out of the loop.  */
+
+	  if (action->operation == TEXTCONV_BARRIER
+	      && kbd_store_ptr != kbd_fetch_ptr)
 	    break;
 
 	  /* Unlink this action.  */
@@ -1506,6 +1531,29 @@ request_point_update (struct frame *f, unsigned long counter)
 
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_REQUEST_POINT_UPDATE;
+  action->data = Qnil;
+  action->next = NULL;
+  action->counter = counter;
+  for (last = &f->conversion.actions; *last; last = &(*last)->next)
+    ;;
+  *last = action;
+  input_pending = true;
+}
+
+/* Request that text conversion on F pause until the keyboard buffer
+   becomes empty.
+
+   Use this function to ensure that edits associated with a keyboard
+   event complete before the text conversion edits after the barrier
+   take place.  */
+
+void
+textconv_barrier (struct frame *f, unsigned long counter)
+{
+  struct text_conversion_action *action, **last;
+
+  action = xmalloc (sizeof *action);
+  action->operation = TEXTCONV_BARRIER;
   action->data = Qnil;
   action->next = NULL;
   action->counter = counter;

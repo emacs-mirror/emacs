@@ -139,6 +139,7 @@ extern void textconv_set_point_and_mark (struct frame *, ptrdiff_t,
 extern void delete_surrounding_text (struct frame *, ptrdiff_t,
 				     ptrdiff_t, unsigned long);
 extern void request_point_update (struct frame *, unsigned long);
+extern void textconv_barrier (struct frame *, unsigned long);
 extern char *get_extracted_text (struct frame *, ptrdiff_t, ptrdiff_t *,
 				 ptrdiff_t *, ptrdiff_t *, ptrdiff_t *,
 				 ptrdiff_t *);

@@ -277,6 +277,10 @@ struct android_key_event
   /* If this field is -1, then android_lookup_string should be called
      to retrieve the associated individual characters.  */
   unsigned int unicode_char;
+
+  /* If this field is non-zero, a text conversion barrier should be
+     generated with its value as the counter.  */
+  unsigned long counter;
 };
 
 typedef struct android_key_event android_key_pressed_event;

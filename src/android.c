@@ -2543,6 +2543,7 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
   event.xkey.state = state;
   event.xkey.keycode = keycode;
   event.xkey.unicode_char = unicode_char;
+  event.xkey.counter = 0;
 
   android_write_event (&event);
   return event_serial;
@@ -2565,6 +2566,7 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
   event.xkey.state = state;
   event.xkey.keycode = keycode;
   event.xkey.unicode_char = unicode_char;
+  event.xkey.counter = 0;
 
   android_write_event (&event);
   return event_serial;

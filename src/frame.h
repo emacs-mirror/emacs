@@ -89,6 +89,7 @@ enum text_conversion_operation
     TEXTCONV_SET_POINT_AND_MARK,
     TEXTCONV_DELETE_SURROUNDING_TEXT,
     TEXTCONV_REQUEST_POINT_UPDATE,
+    TEXTCONV_BARRIER,
   };
 
 /* Structure describing a single edit being performed by the input
