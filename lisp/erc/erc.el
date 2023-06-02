@@ -7458,8 +7458,9 @@ With ARG, download and display the latest revision, which may
 contain more up-to-date information, even for older versions."
   (interactive "P")
   (find-file
-   (or (and arg erc--news-temp-file
+   (or (and erc--news-temp-file
             (time-less-p (current-time) (car erc--news-temp-file))
+            (not (and arg (y-or-n-p (format "Re-fetch? "))))
             (cdr erc--news-temp-file))
        (and arg
             (with-current-buffer (url-retrieve-synchronously erc--news-url)
@@ -7467,7 +7468,10 @@ contain more up-to-date information, even for older versions."
               (search-forward "200 OK" (pos-eol))
               (search-forward "\n\n")
               (delete-region (point-min) (point))
-              (let ((tempfile (make-temp-file "erc-news.")))
+              ;; May warn about file having changed on disk (unless
+              ;; `query-about-changed-file' is nil on 28+).
+              (let ((tempfile (or (cdr erc--news-temp-file)
+                                  (make-temp-file "erc-news."))))
                 (write-region (point-min) (point-max) tempfile)
                 (kill-buffer)
                 (cdr (setq erc--news-temp-file
@@ -7482,13 +7486,12 @@ contain more up-to-date information, even for older versions."
        (expand-file-name "ERC-NEWS" data-directory)))
   (when (fboundp 'emacs-news-view-mode)
     (emacs-news-view-mode))
+  (goto-char (point-min))
   (let ((v (mapcar #'number-to-string
                    (seq-take-while #'natnump (version-to-list erc-version)))))
-    (while (and v
-                (goto-char (point-min))
-                (not (search-forward (concat "\014\n* Changes in ERC "
-                                             (string-join v "."))
-                                     nil t)))
+    (while (and v (not (search-forward (concat "\014\n* Changes in ERC "
+                                               (string-join v "."))
+                                       nil t)))
       (setq v (butlast v))))
   (beginning-of-line))
 

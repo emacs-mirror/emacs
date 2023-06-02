@@ -1,4 +1,4 @@
-ERC NEWS                                                       -*- outline -*-
+ERC NEWS
 
 Copyright (C) 2006-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
@@ -1926,5 +1926,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 Local variables:
 coding: utf-8
 mode: outline
+mode: emacs-news
 paragraph-separate: "[ 	]*$"
 end:
