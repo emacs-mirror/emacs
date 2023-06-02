@@ -139,7 +139,7 @@ Don't rely on this function, read it first!"
 (define-erc-module imenu nil
   "Simple Imenu integration for ERC."
   ((add-hook 'erc-mode-hook #'erc-imenu-setup)
-   (unless erc--updating-modules-p (erc-buffer-filter #'erc-imenu-setup)))
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-imenu-setup)))
   ((remove-hook 'erc-mode-hook #'erc-imenu-setup)
    (erc-with-all-buffers-of-server nil nil
      (when erc-imenu--create-index-function

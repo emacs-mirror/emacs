@@ -55,7 +55,7 @@ highlighted."
   ((add-hook 'erc-insert-modify-hook #'erc-match-message 'append)
    (add-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
    (unless erc--updating-modules-p
-     (erc-buffer-filter #'erc-match--modify-invisibility-spec))
+     (erc-buffer-do #'erc-match--modify-invisibility-spec))
    (erc--modify-local-map t "C-c C-k" #'erc-go-to-log-matches-buffer))
   ((remove-hook 'erc-insert-modify-hook #'erc-match-message)
    (remove-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
