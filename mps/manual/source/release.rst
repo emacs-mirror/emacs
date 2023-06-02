@@ -47,6 +47,12 @@ New features
    :ref:`topic-scanning-protocol`. This allows the client program to
    safely update references in the visited objects.
 
+#. An :term:`allocation point` for a pool belonging to the class
+   :ref:`pool-amc` can now be  configured so that allocations do not
+   provoke garbage collections, reducing the amount of re-hashing for
+   address-based hash tables using :term:`location dependency`. See
+   :ref:`pool-amc-hash-arrays`.
+
 
 Interface changes
 .................

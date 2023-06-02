@@ -246,6 +246,9 @@ extern const struct mps_key_s _mps_key_FMT_PAD;
 extern const struct mps_key_s _mps_key_FMT_CLASS;
 #define MPS_KEY_FMT_CLASS   (&_mps_key_FMT_CLASS)
 #define MPS_KEY_FMT_CLASS_FIELD fmt_class
+extern const struct mps_key_s _mps_key_ap_hash_arrays;
+#define MPS_KEY_AP_HASH_ARRAYS (&_mps_key_ap_hash_arrays)
+#define MPS_KEY_AP_HASH_ARRAYS_FIELD b
 
 /* Maximum length of a keyword argument list. */
 #define MPS_ARGS_MAX          32
