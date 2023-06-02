@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.4.0
+@subtitle for version 0.4.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -74,7 +74,7 @@ that hurdle is Psionic K's interactive tutorial, available at
 @end quotation
 
 @noindent
-This manual is for Transient version 0.4.0.
+This manual is for Transient version 0.4.1.
 
 @insertcopying
 @end ifnottex
@@ -2150,7 +2150,7 @@ default value of a prefix using the same format as returned by
 
 @item
 @code{always-read} For options, whether to read a value on every invocation.
-If this is nil, then options that have a value are simply unset and
+If this is @code{nil}, then options that have a value are simply unset and
 have to be invoked a second time to set a new value.
 
 @item
