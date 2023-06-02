@@ -991,7 +991,8 @@ the docstrings eventually produced, using
  "mark-paragraph" "mouse-set-point" "move-" "move-beginning-of-"
  "move-end-of-" "newline" "next-" "other-window" "pop-global-mark"
  "previous-" "recenter" "right-" "scroll-" "self-insert-command"
- "split-window-" "up-list")
+ "split-window-" "up-list" "touch-screen-handle-touch"
+ "analyze-text-conversion")
 
 (provide 'eldoc)
 
