@@ -1520,7 +1520,8 @@ the actual saved text might be different from what was killed."
                        (let ((from (car cmp))
                              (to (cadr cmp)))
                          (cond
-                          ((= (length cmp) 2) ; static composition
+                          ((and (= (length cmp) 3) ; static composition
+                                (booleanp (nth 2 cmp)))
                            to)
                           ;; TO can be at POS, in which case we want
                           ;; to make sure we advance at least by 1
