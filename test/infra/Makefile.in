@@ -100,7 +100,7 @@ endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
-TREE-SITTER-FILES ?= $(shell cd .. ; find lisp -name "*-ts-*.el" | sort | sed s/\\.el/.log/)
+TREE-SITTER-FILES ?= '"'$(shell cd .. ; find lisp -name "*-ts-*.el" | sort | sed s/\\.el/.log/)'"'
 
 all: generate-test-jobs
 

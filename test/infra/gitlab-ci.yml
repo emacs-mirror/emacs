@@ -58,7 +58,7 @@ variables:
   # across multiple builds.
   BUILD_TAG: ${CI_COMMIT_REF_SLUG}
   # Disable if you don't need it, it can be a security risk.
-  # CI_DEBUG_TRACE: "true"
+  CI_DEBUG_TRACE: "true"
 
 default:
   image: docker:19.03.12
