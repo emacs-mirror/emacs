@@ -173,8 +173,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :feature 'declaration
    `((function
       name: (identifier) @font-lock-function-name-face)
-
      (function_declaration
+      name: (identifier) @font-lock-function-name-face)
+     (function_signature
       name: (identifier) @font-lock-function-name-face)
 
      (method_definition
