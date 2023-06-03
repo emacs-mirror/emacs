@@ -4498,8 +4498,9 @@ insert the selected completion to the minibuffer."
                (base-suffix
                 (if (eq (alist-get 'category (cdr md)) 'file)
                     (with-current-buffer buf
-                      (buffer-substring (save-excursion (search-forward "/" nil t) (point))
-                                        (point-max)))
+                      (buffer-substring
+                       (save-excursion (or (search-forward "/" nil t) (point-max)))
+                       (point-max)))
                   ""))
               (completion-base-affixes (list (car completion-base-affixes) base-suffix)))
           (choose-completion nil t t))))))
@@ -4524,8 +4525,9 @@ minibuffer, but don't quit the completions window."
   (let* ((md (completion--field-metadata (minibuffer--completion-prompt-end)))
          (base-suffix
           (if (eq (alist-get 'category (cdr md)) 'file)
-              (buffer-substring (save-excursion (search-forward "/" nil t) (point))
-                                (point-max))
+              (buffer-substring
+               (save-excursion (or (search-forward "/" nil t) (point-max)))
+               (point-max))
             "")))
     (with-minibuffer-completions-window
       (let ((completion-use-base-affixes t)
