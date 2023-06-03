@@ -100,11 +100,20 @@ endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
+TREE-SITTER-FILES ?= $(shell cd .. ; find lisp -name "*-ts-mode-tests.el" | sort | sed s/\\.el/.log/)
+
 all: generate-test-jobs
 
-.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS)
+.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
 
-generate-test-jobs: $(FILE) $(SUBDIR_TARGETS)
+generate-test-jobs: $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
+
+tree-sitter-files-template:
+	@echo >>$(FILE)
+	@echo '.tree-sitter-files-template:' >>$(FILE)
+	@echo '  variables:' >>$(FILE)
+	@echo '    tree_sitter_files: >-' >>$(FILE)
+	@for name in $(TREE-SITTER-FILES) ; do echo "      $${name}" >>$(FILE) ; done
 
 $(FILE):
 	$(AM_V_GEN)

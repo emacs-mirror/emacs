@@ -68,7 +68,7 @@ FROM debian:sid as emacs-eglot
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libdbus-1-dev libacl1-dev acl git texinfo gawk gdb \
     && rm -rf /var/lib/apt/lists/*
 
 # Install clangd.
@@ -91,7 +91,7 @@ FROM debian:sid as emacs-tree-sitter
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libdbus-1-dev libacl1-dev acl git texinfo gawk gdb \
     && rm -rf /var/lib/apt/lists/*
 
 # Install tree-sitter library.

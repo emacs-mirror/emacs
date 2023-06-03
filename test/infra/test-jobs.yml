@@ -567,3 +567,14 @@ test-src-inotify:
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-src"
+
+.tree-sitter-files-template:
+  variables:
+    tree_sitter_files: >-
+      lisp/progmodes/c-ts-mode-tests.log
+      lisp/progmodes/elixir-ts-mode-tests.log
+      lisp/progmodes/go-ts-mode-tests.log
+      lisp/progmodes/heex-ts-mode-tests.log
+      lisp/progmodes/java-ts-mode-tests.log
+      lisp/progmodes/ruby-ts-mode-tests.log
+      lisp/progmodes/typescript-ts-mode-tests.log
