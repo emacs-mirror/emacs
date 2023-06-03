@@ -6094,7 +6094,8 @@ Optional argument REGEXP selects variables to clone and defaults
 to \"^python-\"."
   (mapc
    (lambda (pair)
-     (and (symbolp (car pair))
+     (and (consp pair)
+          (symbolp (car pair))
           (string-match (or regexp "^python-")
                         (symbol-name (car pair)))
           (set (make-local-variable (car pair))
