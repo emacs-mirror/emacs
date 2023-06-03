@@ -545,7 +545,10 @@ restore_selected_window (Lisp_Object window)
 
 /* Commit the given text in the composing region.  If there is no
    composing region, then insert the text after F's selected window's
-   last point instead.  Finally, remove the composing region.
+   last point instead, unless the mark is active.  Finally, remove the
+   composing region.
+
+   If the mark is active, delete the text between mark and point.
 
    Then, move point to POSITION relative to TEXT.  If POSITION is
    greater than zero, it is relative to the character at the end of
@@ -556,7 +559,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 		    Lisp_Object text)
 {
   specpdl_ref count;
-  ptrdiff_t wanted, start, end;
+  ptrdiff_t wanted, start, end, mark;
   struct window *w;
 
   /* If F's old selected window is no longer live, fail.  */
@@ -572,28 +575,48 @@ really_commit_text (struct frame *f, EMACS_INT position,
      redisplay.  */
   select_window (f->old_selected_window, Qt);
 
-  /* Now detect whether or not there is a composing region.
+  /* Now detect whether or not there is a composing or active region.
      If there is, then replace it with TEXT.  Don't do that
      otherwise.  */
 
-  if (MARKERP (f->conversion.compose_region_start))
+  mark = get_mark ();
+  if (MARKERP (f->conversion.compose_region_start) || mark != -1)
     {
-      /* Replace its contents.  */
-      start = marker_position (f->conversion.compose_region_start);
-      end = marker_position (f->conversion.compose_region_end);
+      /* Replace its contents.  Set START and END to the start and end
+	 of the composing region if it exists.  */
+
+      if (MARKERP (f->conversion.compose_region_start))
+	{
+	  start = marker_position (f->conversion.compose_region_start);
+	  end = marker_position (f->conversion.compose_region_end);
+	}
+      else
+	{
+	  /* Otherwise, set it to the start and end of the region.  */
+	  start = min (mark, PT);
+	  end = max (mark, PT);
+	}
+
+      /* Now delete whatever needs to go.  */
+
       del_range (start, end);
       record_buffer_change (start, start, Qnil);
-      Finsert (1, &text);
-      record_buffer_change (start, PT, text);
 
-      /* Move to a the position specified in POSITION.  If POSITION is
-         less than zero, it is relative to the start of the text that
-         was inserted.  */
+      /* Don't record changes if TEXT is empty.  */
+
+      if (SCHARS (text))
+	{
+	  Finsert (1, &text);
+	  record_buffer_change (start, PT, text);
+	}
+
+      /* Move to a the position specified in POSITION.  */
 
       if (position <= 0)
 	{
-	  wanted
-	    = marker_position (f->conversion.compose_region_start);
+	  /* If POSITION is less than zero, it is relative to the
+	     start of the text that was inserted.  */
+	  wanted = start;
 
 	  if (INT_ADD_WRAPV (wanted, position, &wanted)
 	      || wanted < BEGV)
@@ -608,9 +631,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	{
 	  /* Otherwise, it is relative to the last character in
 	     TEXT.  */
-
-	  wanted
-	    = marker_position (f->conversion.compose_region_end);
+	  wanted = PT;
 
 	  if (INT_ADD_WRAPV (wanted, position - 1, &wanted)
 	      || wanted > ZV)
@@ -642,8 +663,14 @@ really_commit_text (struct frame *f, EMACS_INT position,
       /* Otherwise, move the text and point to an appropriate
 	 location.  */
       wanted = PT;
-      Finsert (1, &text);
-      record_buffer_change (wanted, PT, text);
+
+      /* Don't record changes if TEXT is empty.  */
+
+      if (SCHARS (text))
+	{
+	  Finsert (1, &text);
+	  record_buffer_change (start, PT, text);
+	}
 
       if (position <= 0)
 	{
@@ -737,6 +764,32 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 
   if (!MARKERP (f->conversion.compose_region_start))
     {
+      /* Set START and END.  */
+      start = PT;
+      wanted = end = get_mark ();
+
+      /* If END is -1, set it to start.  */
+
+      if (end == -1)
+	end = start;
+      else
+	{
+	  /* Now sort start and end.  */
+	  start = min (start, end);
+	  end  = max (PT, wanted);
+	}
+
+      /* If END is not the same as start, delete the text in
+	 between.  */
+
+      if (end != start)
+	{
+	  del_range (start, end);
+	  set_point (start);
+	  record_buffer_change (start, start, Qnil);
+	}
+
+      /* Now set the markers which denote the composition region.  */
       f->conversion.compose_region_start
 	= build_marker (current_buffer, PT, PT_BYTE);
       f->conversion.compose_region_end
@@ -744,8 +797,6 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 
       Fset_marker_insertion_type (f->conversion.compose_region_end,
 				  Qt);
-
-      start = PT;
     }
   else
     {
@@ -1368,6 +1419,9 @@ end_batch_edit (struct frame *f, unsigned long counter)
 /* Insert the specified STRING into F's current buffer's composition
    region, and set point to POSITION relative to STRING.
 
+   If there is no composition region, use the active region instead.
+   If that doesn't exist either, insert STRING after point.
+
    COUNTER means the same as in `start_batch_edit'.  */
 
 void
@@ -1415,11 +1469,11 @@ finish_composing_text (struct frame *f, unsigned long counter,
 /* Insert the given STRING and make it the currently active
    composition.
 
-   If there is currently no composing region, then the new value of
-   point is used as the composing region.
+   If there is currently no composing or active region, then the new
+   value of point is used as the composing region.
 
-   Then, the composing region is replaced with the text in the
-   specified string.
+   Then, the composing or active region is replaced with the text in
+   the specified string.
 
    Finally, move point to new_point, which is relative to either the
    start or the end of OBJECT depending on whether or not it is less
