@@ -350,10 +350,12 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name") t))))
 
 (defun rust-ts-mode--syntax-propertize (beg end)
-  "Apply syntax properties to various special characters with
+  "Apply syntax properties to special characters between BEG and END.
+
+Apply syntax properties to various special characters with
 contextual meaning between BEG and END.
 
-' should be treated as string when used for char literals.
+The apostrophe \\=' should be treated as string when used for char literals.
 
 < and > are usually punctuation, e.g., as greater/less-than.  But
 when used for types, they should be considered pairs.
