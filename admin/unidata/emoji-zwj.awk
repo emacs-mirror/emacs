@@ -106,7 +106,8 @@ END {
 
      for (elt in ch)
     {
-        printf("(#x%s .\n,(eval-when-compile (regexp-opt\n'(\n%s\n))))\n", elt, vec[elt])
+        entries = sprintf("%s\n\"\\N{U+%s}\\N{U+FE0E}\"\n\"\\N{U+%s}\\N{U+FE0F}\"", vec[elt], elt, elt)
+        printf("(#x%s .\n,(eval-when-compile (regexp-opt\n'(\n%s\n))))\n", elt, entries)
     }
      print "))"
      print "  (set-char-table-range composition-function-table"

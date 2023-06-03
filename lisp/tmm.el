@@ -170,9 +170,11 @@ instead of executing it."
 	(error "Empty menu reached"))
       (and tmm-km-list
 	   (let ((index-of-default 0))
-	     (if tmm-mid-prompt
-		 (setq tmm-km-list (tmm-add-shortcuts tmm-km-list))
-	       t)
+             (setq tmm-km-list
+	           (if tmm-mid-prompt
+                       (tmm-add-shortcuts tmm-km-list)
+                     ;; tmm-add-shortcuts reverses tmm-km-list internally.
+                     (reverse tmm-km-list)))
 	     ;; Find the default item's index within the menu bar.
 	     ;; We use this to decide the initial minibuffer contents
 	     ;; and initial history position.
@@ -327,7 +329,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (with-current-buffer standard-output
     (goto-char (point-min))
     (let* (;; First candidate: first string with mouse-face
-           (menu-start-1 (next-single-char-property-change (point) 'mouse-face))
+           (menu-start-1 (or (and (get-text-property (point) 'mouse-face) (point))
+                             (next-single-char-property-change (point) 'mouse-face)))
            ;; Second candidate: an inactive menu item with tmm-inactive face
            (tps-result (save-excursion
                          (text-property-search-forward 'face 'tmm-inactive t)))

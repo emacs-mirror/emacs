@@ -3317,6 +3317,18 @@ Values can be interactively added to this list by typing
   :version "25.1"
   :type '(repeat (regexp :tag "Hide packages with name matching")))
 
+(defcustom package-menu-use-current-if-no-marks t
+  "Whether \\<package-menu-mode-map>\\[package-menu-execute] in package menu operates on current package if none are marked.
+
+If non-nil, and no packages are marked for installation or
+deletion, \\<package-menu-mode-map>\\[package-menu-execute] will operate on the current package at point,
+see `package-menu-execute' for details.
+The default is t.  Set to nil to get back the original behavior
+of having `package-menu-execute' signal an error when no packages
+are marked for installation or deletion."
+  :version "29.1"
+  :type 'boolean)
+
 (defun package-menu--refresh (&optional packages keywords)
   "Re-populate the `tabulated-list-entries'.
 PACKAGES should be nil or t, which means to display all known packages.
@@ -3760,8 +3772,8 @@ object corresponding to the newer version."
         (and avail-pkg
              (version-list-< (package-desc-priority-version pkg-desc)
                              (package-desc-priority-version avail-pkg))
-             (xor (not package-install-upgrade-built-in)
-                  (package--active-built-in-p pkg-desc))
+             (or (not (package--active-built-in-p pkg-desc))
+                 package-install-upgrade-built-in)
              (push (cons name avail-pkg) upgrades))))
     upgrades))
 
@@ -3946,7 +3958,8 @@ invocations."
     ;; Nothing marked.
     (unless (or delete-list install-list)
       ;; Not on a package line.
-      (unless (tabulated-list-get-id)
+      (unless (and (tabulated-list-get-id)
+                   package-menu-use-current-if-no-marks)
         (user-error "No operations specified"))
       (let* ((id (tabulated-list-get-id))
              (status (package-menu-get-status)))

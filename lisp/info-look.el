@@ -733,7 +733,11 @@ Return nil if there is nothing appropriate in the buffer near point."
                 (let ((str (string-join str-list " ")))
                   (when (assoc str completions)
                     (throw 'result str))
-                  (nbutlast str-list)))))))
+                  ;; 'nbutlast' will not destructively set its argument
+                  ;; to nil when the argument is a list of 1 element.
+                  (if (= (length str-list) 1)
+                      (setq str-list nil)
+                    (nbutlast str-list))))))))
     (error nil)))
 
 ;;;###autoload

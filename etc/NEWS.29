@@ -1693,6 +1693,13 @@ the following to your Init file:
 This command visits the file on the current line with EWW.
 
 ---
+*** 'browse-url-of-dired-file' can now call the secondary browser.
+When invoked with a prefix arg, this will now call
+'browse-url-secondary-browser-function' instead of the default
+browser.  'browse-url-of-dired-file' is bound to 'W' by default in
+dired mode.
+
+---
 *** New user option 'dired-omit-lines'.
 This is used by 'dired-omit-mode', and now allows you to hide based on
 other things than just the file names.
@@ -1769,7 +1776,7 @@ or can take a long time to render.
 +++
 *** New command 'enriched-toggle-markup'.
 This allows you to see the markup in 'enriched-mode' buffers (e.g.,
-the "HELLO" file).
+the "HELLO" file).  Bound to 'M-o m' by default.
 
 ** Shell Script Mode
 
@@ -1879,7 +1886,9 @@ These commands can be useful if the ".elc" files are out of date
 +++
 *** New DWIM action on 'x' in "*Packages*" buffer.
 If no packages are marked, 'x' will install the package under point if
-it isn't already, and remove it if it is installed.
+it isn't already, and remove it if it is installed.  Customize the new
+option 'package-menu-use-current-if-no-marks' to the nil value to get
+back the old behavior of signaling an error in that case.
 
 +++
 *** New command 'package-vc-install'.
