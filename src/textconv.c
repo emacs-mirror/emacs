@@ -1573,8 +1573,9 @@ textconv_barrier (struct frame *f, unsigned long counter)
    to the position of the first character returned, *START_OFFSET to
    the offset of the lesser of mark and point within that text,
    *END_OFFSET to the greater of mark and point within that text, and
-   *LENGTH to the actual number of characters returned, and *BYTES to
-   the actual number of bytes returned.
+   *LENGTH to the actual number of characters returned, *BYTES to the
+   actual number of bytes returned, and *MARK_ACTIVE to whether or not
+   the mark is active.
 
    Value is NULL upon failure, and a malloced string upon success.  */
 
@@ -1583,7 +1584,7 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
 		    ptrdiff_t *start_return,
 		    ptrdiff_t *start_offset,
 		    ptrdiff_t *end_offset, ptrdiff_t *length,
-		    ptrdiff_t *bytes)
+		    ptrdiff_t *bytes, bool *mark_active)
 {
   specpdl_ref count;
   ptrdiff_t start, end, start_byte, end_byte, mark;
@@ -1657,9 +1658,13 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   /* Get the mark.  If it's not active, use PT.  */
 
   mark = get_mark ();
+  *mark_active = true;
 
   if (mark == -1)
-    mark = PT;
+    {
+      mark = PT;
+      *mark_active = false;
+    }
 
   /* Return the offsets.  */
   *start_return = start;

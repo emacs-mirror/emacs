@@ -5274,10 +5274,13 @@ struct android_get_extracted_text_context
 
   /* The window.  */
   android_window window;
+
+  /* Whether or not the mark is active.  */
+  bool mark_active;
 };
 
 /* Return the extracted text in the extracted text context specified
-   by DATA.  */
+   by DATA.  Save its flags and token into its frame's state.  */
 
 static void
 android_get_extracted_text (void *data)
@@ -5298,7 +5301,7 @@ android_get_extracted_text (void *data)
     = get_extracted_text (f, min (request->hint_max_chars, 600),
 			  &request->start, &request->start_offset,
 			  &request->end_offset, &request->length,
-			  &request->bytes);
+			  &request->bytes, &request->mark_active);
 
   /* See if request->flags & GET_EXTRACTED_TEXT_MONITOR.  If so, then
      the input method has asked to monitor changes to the extracted
@@ -5326,6 +5329,7 @@ struct android_extracted_text_class
 {
   jclass class;
   jmethodID constructor;
+  jfieldID flags;
   jfieldID partial_start_offset;
   jfieldID partial_end_offset;
   jfieldID selection_start;
@@ -5345,7 +5349,8 @@ struct android_extracted_text_class text_class;
    TEXT.  START is a character position describing the offset of the
    first character in TEXT.  START_OFFSET is the offset of the lesser
    of point or mark relative to START, and END_OFFSET is that of the
-   greater of point or mark relative to START.
+   greater of point or mark relative to START.  MARK_ACTIVE specifies
+   whether or not the mark is currently active.
 
    Assume that request_class and text_class have already been
    initialized.
@@ -5356,7 +5361,7 @@ struct android_extracted_text_class text_class;
 static jobject
 android_build_extracted_text (jstring text, ptrdiff_t start,
 			      ptrdiff_t start_offset,
-			      ptrdiff_t end_offset)
+			      ptrdiff_t end_offset, bool mark_active)
 {
   JNIEnv *env;
   jobject object;
@@ -5373,6 +5378,9 @@ android_build_extracted_text (jstring text, ptrdiff_t start,
   if (!object)
     return NULL;
 
+  (*env)->SetIntField (env, object, text_class.flags,
+		       /* ExtractedText.FLAG_SELECTING */
+		       mark_active ? 2 : 0);
   (*env)->SetIntField (env, object, text_class.partial_start_offset, -1);
   (*env)->SetIntField (env, object, text_class.partial_end_offset, -1);
   (*env)->SetIntField (env, object, text_class.selection_start,
@@ -5432,6 +5440,8 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
 	= (*env)->NewGlobalRef (env, text_class.class);
       assert (text_class.class);
 
+      text_class.flags
+	= (*env)->GetFieldID (env, class, "flags", "I");
       text_class.partial_start_offset
 	= (*env)->GetFieldID (env, class, "partialStartOffset", "I");
       text_class.partial_end_offset
@@ -5478,6 +5488,9 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
   if (!object)
     return NULL;
 
+  (*env)->SetIntField (env, object, text_class.flags,
+		       /* ExtractedText.FLAG_SELECTING */
+		       context.mark_active ? 2 : 0);
   (*env)->SetIntField (env, object, text_class.partial_start_offset, -1);
   (*env)->SetIntField (env, object, text_class.partial_end_offset, -1);
   (*env)->SetIntField (env, object, text_class.selection_start,
@@ -5591,6 +5604,7 @@ android_update_selection (struct frame *f, struct window *w)
   char *text;
   jobject extracted;
   jstring string;
+  bool mark_active;
 
   if (MARKERP (f->conversion.compose_region_start))
     {
@@ -5639,7 +5653,7 @@ android_update_selection (struct frame *f, struct window *w)
       token = FRAME_ANDROID_OUTPUT (f)->extracted_text_token;
       text = get_extracted_text (f, min (hint, 600), &start,
 				 &start_offset, &end_offset,
-				 &length, &bytes);
+				 &length, &bytes, &mark_active);
 
       if (text)
 	{
@@ -5652,7 +5666,8 @@ android_update_selection (struct frame *f, struct window *w)
 	  /* Make extracted text out of that string.  */
 	  extracted = android_build_extracted_text (string, start,
 						    start_offset,
-						    end_offset);
+						    end_offset,
+						    mark_active);
 	  android_exception_check_1 (string);
 	  ANDROID_DELETE_LOCAL_REF (string);
 

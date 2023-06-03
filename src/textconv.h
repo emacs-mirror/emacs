@@ -142,7 +142,7 @@ extern void request_point_update (struct frame *, unsigned long);
 extern void textconv_barrier (struct frame *, unsigned long);
 extern char *get_extracted_text (struct frame *, ptrdiff_t, ptrdiff_t *,
 				 ptrdiff_t *, ptrdiff_t *, ptrdiff_t *,
-				 ptrdiff_t *);
+				 ptrdiff_t *, bool *);
 extern bool conversion_disabled_p (void);
 
 extern void register_textconv_interface (struct textconv_interface *);
