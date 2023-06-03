@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'electric)
+(require 'text-property-search)
 
 (defgroup tmm nil
   "Text mode access to menu-bar."
@@ -192,7 +193,11 @@ instead of executing it."
 				     (or (not visible) (eval visible))))))
 			 (setq index-of-default (1+ index-of-default)))
 		     (setq tail (cdr tail)))))
-             (let ((prompt (concat "^." (regexp-quote tmm-mid-prompt))))
+             (let ((prompt
+                    (concat "^"
+                            (if (stringp tmm-mid-prompt)
+                                (concat "."
+                                        (regexp-quote tmm-mid-prompt))))))
                (setq tmm--history
                      (reverse (delq nil
                                     (mapcar
@@ -320,8 +325,21 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 
 (defun tmm-completion-delete-prompt ()
   (with-current-buffer standard-output
-  (goto-char (point-min))
-    (delete-region (point) (search-forward "Possible completions are:\n"))))
+    (goto-char (point-min))
+    (let* (;; First candidate: first string with mouse-face
+           (menu-start-1 (next-single-char-property-change (point) 'mouse-face))
+           ;; Second candidate: an inactive menu item with tmm-inactive face
+           (tps-result (save-excursion
+                         (text-property-search-forward 'face 'tmm-inactive t)))
+           (menu-start-2 (and tps-result (prop-match-beginning tps-result))))
+      (or (and (null menu-start-1) (null menu-start-2))
+          (delete-region (point)
+                         ;; Use the smallest position of the two candidates.
+                         (or (and menu-start-1 menu-start-2
+                                  (min menu-start-1 menu-start-2))
+                             ;; Otherwise use the one that is non-nil.
+                             menu-start-1
+                             menu-start-2))))))
 
 (defun tmm-remove-inactive-mouse-face ()
   "Remove the mouse-face property from inactive menu items."
