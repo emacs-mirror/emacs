@@ -894,13 +894,12 @@ signals the `treesit-font-lock-error' error if that happens."
     (start end face override &optional bound-start bound-end)
   "Apply FACE to the region between START and END.
 OVERRIDE can be nil, t, `append', `prepend', or `keep'.
-See `treesit-font-lock-rules' for their semantic.
+See `treesit-font-lock-rules' for their semantics.
 
 If BOUND-START and BOUND-END are non-nil, only fontify the region
 in between them."
   (when (or (null bound-start) (null bound-end)
-            (and bound-start bound-end
-                 (<= bound-start end)
+            (and (<= bound-start end)
                  (>= bound-end start)))
     (when (and bound-start bound-end)
       (setq start (max bound-start start)

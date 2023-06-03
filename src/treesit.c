@@ -1649,7 +1649,7 @@ buffer.  */)
       TSRange *treesit_ranges = xmalloc (sizeof (TSRange) * len);
       struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
-      /* We can use XFUXNUM, XCAR, XCDR freely because we have checked
+      /* We can use XFIXNUM, XCAR, XCDR freely because we have checked
 	 the input by treesit_check_range_argument.  */
 
       for (int idx = 0; !NILP (ranges); idx++, ranges = XCDR (ranges))
@@ -2546,10 +2546,10 @@ static bool
 treesit_predicate_equal (Lisp_Object args, struct capture_range captures,
 			 Lisp_Object *signal_data)
 {
-  if (XFIXNUM (Flength (args)) != 2)
+  if (list_length (args) != 2)
     {
       *signal_data = list2 (build_string ("Predicate `equal' requires "
-					  "two arguments but only given"),
+					  "two arguments but got"),
 			    Flength (args));
       return false;
     }
@@ -2581,10 +2581,10 @@ static bool
 treesit_predicate_match (Lisp_Object args, struct capture_range captures,
 			 Lisp_Object *signal_data)
 {
-  if (XFIXNUM (Flength (args)) != 2)
+  if (list_length (args) != 2)
     {
       *signal_data = list2 (build_string ("Predicate `match' requires two "
-					  "arguments but only given"),
+					  "arguments but got"),
 			    Flength (args));
       return false;
     }
@@ -2646,11 +2646,11 @@ static bool
 treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
 			Lisp_Object *signal_data)
 {
-  if (XFIXNUM (Flength (args)) < 2)
+  if (list_length (args) < 2)
     {
       *signal_data = list2 (build_string ("Predicate `pred' requires "
 					  "at least two arguments, "
-					  "but was only given"),
+					  "but only got"),
 			    Flength (args));
       return false;
     }
@@ -2671,7 +2671,7 @@ treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
   return !NILP (CALLN (Fapply, fn, nodes));
 }
 
-/* If all predicates in PREDICATES passes, return true; otherwise
+/* If all predicates in PREDICATES pass, return true; otherwise
    return false.  If everything goes fine, don't touch SIGNAL_DATA; if
    error occurs, set it to a suitable signal data.  */
 static bool
@@ -2696,7 +2696,7 @@ treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates,
 	{
 	  *signal_data = list3 (build_string ("Invalid predicate"),
 				fn, build_string ("Currently Emacs only supports"
-						  " equal, match, and pred"
+						  " `equal', `match', and `pred'"
 						  " predicates"));
 	  pass = false;
 	}
