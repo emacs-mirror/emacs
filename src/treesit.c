@@ -2628,7 +2628,7 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures,
   ZV_BYTE = end_byte;
 
   ptrdiff_t val = search_buffer (regexp, start_pos, start_byte,
-				 end_pos, end_byte, 1, 1, Qnil, Qnil, false);
+				 end_pos, end_byte, 1, true, Qnil, Qnil, false);
 
   BEGV = old_begv;
   BEGV_BYTE = old_begv_byte;
