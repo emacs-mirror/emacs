@@ -180,7 +180,8 @@ negative, find the Nth next match."
                   (text-property-search-forward 'field 'prompt t))
         (setq n (1- n)))
     (let (match this-match)
-      (forward-line 0)           ; Don't count prompt on current line.
+      ;; Don't count the current prompt.
+      (text-property-search-backward 'field 'prompt t)
       (while (and (< n 0)
                   (setq this-match (text-property-search-backward
                                     'field 'prompt t)))
