@@ -5217,6 +5217,7 @@ NATIVE_NAME (performContextMenuAction) (JNIEnv *env, jobject object,
     case 0: /* android.R.id.selectAll */
     case 1: /* android.R.id.startSelectingText */
     case 2: /* android.R.id.stopSelectingText */
+    default:
       /* These actions are not implemented.  */
       return;
 
@@ -5231,9 +5232,6 @@ NATIVE_NAME (performContextMenuAction) (JNIEnv *env, jobject object,
     case 5: /* android.R.id.paste */
       key = 279;
       break;
-
-    default:
-      emacs_abort ();
     }
 
   event.xkey.type = ANDROID_KEY_PRESS;
@@ -5241,7 +5239,7 @@ NATIVE_NAME (performContextMenuAction) (JNIEnv *env, jobject object,
   event.xkey.window = window;
   event.xkey.time = 0;
   event.xkey.state = 0;
-  event.xkey.keycode = 66;
+  event.xkey.keycode = key;
   event.xkey.unicode_char = 0;
   event.xkey.counter = ++edit_counter;
 

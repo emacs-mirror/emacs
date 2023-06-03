@@ -1202,6 +1202,10 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map [insertchar]	'overwrite-mode)
 (define-key global-map [C-insertchar]	'kill-ring-save)
 (define-key global-map [S-insertchar]	'yank)
+;; The next three keys are used on MS Windows and Android.
+(define-key global-map [copy]		'kill-ring-save)
+(define-key global-map [paste]		'yank)
+(define-key global-map [cut]		'kill-region)
 (define-key global-map [undo]		'undo)
 (define-key global-map [redo]		'repeat-complex-command)
 (define-key global-map [again]		'repeat-complex-command) ; Sun keyboard
