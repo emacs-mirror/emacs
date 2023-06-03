@@ -141,7 +141,7 @@ the list at the end of this file.
   all supported versions of Android on all supported machines: arm,
   armv7, arm64, x86, x86_64, and mips.
 
-  See the file INSTALL.android for detailed installation instructions.
+  See the file java/INSTALL for detailed installation instructions.
 
 
 * Obsolete platforms
