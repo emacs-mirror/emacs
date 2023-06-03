@@ -265,7 +265,14 @@ test-eglot:
   variables:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
-    make_params: '-k -C test check-expensive LOGFILES="lisp/progmodes/eglot-tests.log"'
+    make_params: >-
+      '-k -C test check-expensive
+        LOGFILES="lisp/progmodes/eglot-tests.log"
+        TEST_HOME="/tmp"
+        EMACS_EXTRAOPT="--eval \(package-reinstall\ \(quote\ company\)\)
+                        --eval \(package-reinstall\ \(quote\ yasnippet\)\)
+                        --eval \(use-package\ company\)
+                        --eval \(use-package\ yasnippet\)"'
 
 build-image-tree-sitter:
   stage: platform-images
