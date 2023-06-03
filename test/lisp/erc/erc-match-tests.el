@@ -251,8 +251,9 @@
 (defun erc-match-tests--perform (test)
   (erc-tests-common-make-server-buf)
   (setq erc-server-current-nick "tester")
-  (with-current-buffer (erc--open-target "#chan")
-    (funcall test))
+  (let (erc-match--opt-pat-cache)
+    (with-current-buffer (erc--open-target "#chan")
+      (funcall test)))
   (when noninteractive
     (erc-tests-common-kill-buffers)))
 
@@ -346,6 +347,77 @@
   (let ((erc-dangerous-hosts (list "bob")))
     (erc-match-tests--hl-type-nick 'erc-dangerous-host-face)))
 
+(ert-deftest erc-match-message/pal/nick/legacy ()
+  (should (eq erc-pal-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-pals (list "bob")))
+      (erc-match-tests--hl-type-nick 'erc-pal-face))))
+
+(ert-deftest erc-match-message/fool/nick/legacy ()
+  (should (eq erc-fool-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-fools (list "bob")))
+      (erc-match-tests--hl-type-nick/mention 'erc-fool-face))))
+
+(ert-deftest erc-match-message/dangerous-host/nick/legacy ()
+  (should (eq erc-dangerous-host-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-dangerous-hosts (list "bob")))
+      (erc-match-tests--hl-type-nick 'erc-dangerous-host-face))))
+
+;; Mentions are treated as keywords, even in the speaker portion.
+;; Contrast this with `erc-match-tests--hl-type-nick/mention', where the
+;; speakers are highlighted despite "mention" matches occurring in the
+;; message body.
+(defun erc-match-tests--hl-type-nick-or-mention (face)
+  (erc-match-tests--hl-type-nick
+   face
+   (lambda ()
+     (erc-tests-common-simulate-privmsg "alice" "bob: one bob ONE")
+     (erc-tests-common-simulate-privmsg "alice" "bob, two")
+     (erc-tests-common-simulate-privmsg "alice" "three, bob.")
+
+     (search-forward "<alice> bob: one")
+     (goto-char (pos-bol))
+     (erc-match-tests--assert-face-absent face "bob: one")
+     (erc-match-tests--assert-face-present face ": one ")
+     (erc-match-tests--assert-face-absent face "bob ONE")
+     (erc-match-tests--assert-face-present face " ONE")
+     (erc-match-tests--assert-face-absent face (pos-eol))
+
+     (search-forward "<alice> bob, two")
+     (goto-char (pos-bol))
+     (erc-match-tests--assert-face-absent face "bob, two")
+     (erc-match-tests--assert-face-present face ", two")
+     (erc-match-tests--assert-face-absent face (pos-eol))
+
+     (search-forward "<alice> three, bob.")
+     (goto-char (pos-bol))
+     (erc-match-tests--assert-face-absent face "bob.")
+     (erc-match-tests--assert-face-present face ".")
+     (erc-match-tests--assert-face-absent face (pos-eol)))))
+
+(ert-deftest erc-match-message/pal/nick-or-mention ()
+  (should (eq erc-pal-highlight-type 'nick))
+  (let ((erc-pal-highlight-type 'nick-or-mention)
+        (erc-pals (list "bob")))
+    (erc-match-tests--hl-type-nick-or-mention 'erc-pal-face)))
+
+(ert-deftest erc-match-message/fool/nick-or-mention ()
+  (should (eq erc-fool-highlight-type 'nick))
+  (let ((erc-fool-highlight-type 'nick-or-mention)
+        (erc-fools (list "bob")))
+    (erc-match-tests--hl-type-nick-or-mention 'erc-fool-face)))
+
+(ert-deftest erc-match-message/dangerous-host/nick-or-mention ()
+  (should (eq erc-dangerous-host-highlight-type 'nick))
+  (let ((erc-dangerous-host-highlight-type 'nick-or-mention)
+        (erc-dangerous-hosts (list "bob")))
+    (erc-match-tests--hl-type-nick-or-mention 'erc-dangerous-host-face)))
+
 (defun erc-match-tests--hl-type-message (face)
   (should (eq erc-current-nick-highlight-type 'keyword))
   (should (eq erc-keyword-highlight-type 'keyword))
@@ -410,6 +482,30 @@
   (let ((erc-dangerous-hosts (list "bob"))
         (erc-dangerous-host-highlight-type 'message))
     (erc-match-tests--hl-type-message 'erc-dangerous-host-face)))
+
+(ert-deftest erc-match-message/pal/message/legacy ()
+  (should (eq erc-pal-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-pals (list "bob"))
+          (erc-pal-highlight-type 'message))
+      (erc-match-tests--hl-type-message 'erc-pal-face))))
+
+(ert-deftest erc-match-message/fool/message/legacy ()
+  (should (eq erc-fool-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-fools (list "bob"))
+          (erc-fool-highlight-type 'message))
+      (erc-match-tests--hl-type-message 'erc-fool-face))))
+
+(ert-deftest erc-match-message/dangerous-host/message/legacy ()
+  (should (eq erc-dangerous-host-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-dangerous-hosts (list "bob"))
+          (erc-dangerous-host-highlight-type 'message))
+      (erc-match-tests--hl-type-message 'erc-dangerous-host-face))))
 
 (defun erc-match-tests--hl-type-all (face)
   (should (eq erc-current-nick-highlight-type 'keyword))
@@ -476,6 +572,30 @@
         (erc-dangerous-host-highlight-type 'all))
     (erc-match-tests--hl-type-all 'erc-dangerous-host-face)))
 
+(ert-deftest erc-match-message/pal/all/legacy ()
+  (should (eq erc-pal-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-pals (list "bob"))
+          (erc-pal-highlight-type 'all))
+      (erc-match-tests--hl-type-all 'erc-pal-face))))
+
+(ert-deftest erc-match-message/fool/all/legacy ()
+  (should (eq erc-fool-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-fools (list "bob"))
+          (erc-fool-highlight-type 'all))
+      (erc-match-tests--hl-type-all 'erc-fool-face))))
+
+(ert-deftest erc-match-message/dangerous-host/all/legacy ()
+  (should (eq erc-dangerous-host-highlight-type 'nick))
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t)
+          (erc-dangerous-hosts (list "bob"))
+          (erc-dangerous-host-highlight-type 'all))
+      (erc-match-tests--hl-type-all 'erc-dangerous-host-face))))
+
 (defun erc-match-tests--hl-type-nick-or-keyword ()
   (should (eq erc-current-nick-highlight-type 'keyword))
 
@@ -519,6 +639,11 @@
 
 (ert-deftest erc-match-message/current-nick/nick-or-keyword ()
   (erc-match-tests--hl-type-nick-or-keyword))
+
+(ert-deftest erc-match-message/current-nick/nick-or-keyword/legacy ()
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t))
+      (erc-match-tests--hl-type-nick-or-keyword))))
 
 (defun erc-match-tests--hl-type-keyword ()
   (should (eq erc-keyword-highlight-type 'keyword))
@@ -576,6 +701,11 @@
 (ert-deftest erc-match-message/keyword/keyword ()
   (erc-match-tests--hl-type-keyword))
 
+(ert-deftest erc-match-message/keyword/keyword/legacy ()
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t))
+      (erc-match-tests--hl-type-keyword))))
+
 (defun erc-match-tests--log-matches ()
   (let ((erc-log-matches-flag t)
         (erc-timestamp-format "[@@TS@@]")
@@ -598,5 +728,130 @@
 (ert-deftest erc-log-matches ()
   (erc-match-tests--log-matches))
 
+(ert-deftest erc-log-matches/legacy ()
+  (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
+    (let ((erc-match-use-legacy-logic-p t))
+      (erc-match-tests--log-matches))))
+
+(ert-deftest erc-match--opt-pat-cache ()
+  (let ((erc-match--opt-pat-cache ()))
+    (let ((erc-keywords '("foo")))
+      (erc-match--keyword-p (erc-match-opt-keyword :body-beg 1
+                                                   :sender ""
+                                                   :command 'fake)))
+    (let ((erc-keywords '("bar")))
+      (erc-match--keyword-p (erc-match-opt-keyword :body-beg 1
+                                                   :sender ""
+                                                   :command 'fake)))
+    (let ((erc-fools '("baz")))
+      (erc-match--user-nuh-or-mention-p (erc-match-opt-fool :body-beg 1
+                                                            :sender ""
+                                                            :command 'fake)))
+    (should (equal erc-match--opt-pat-cache
+                   '((erc-match--opt-pat-make-addr-end
+                      (("baz") . "\\s. \\(baz\\)\\s."))
+                     (erc-match--opt-pat-make-addr-beg
+                      (("baz") . "\\<\\(baz\\)[:,] "))
+                     (erc-match--opt-pat-make
+                      (("baz") . "baz"))
+                     (erc-match--opt-pat-make-kw
+                      (("bar") . "bar") (("foo") . "foo")))))))
+
+;; This demos bare-bones usage of the `erc-match' API that implicitly
+;; opts out of the traditional options and "parts"-based mechanism.  The
+;; user does not have to provide a `:part' keyword because they've
+;; overridden the `:handler', meaning `erc-match-highlight-by-part'
+;; never runs.  This is somewhat analogous but ultimately orthogonal to
+;; `erc-text-matched-hook' not running because that happens on account
+;; of the user not specifying a `:category' field.
+(ert-deftest erc-match-functions/api/non-parts-based ()
+  (let* ((results ())
+         (erc-text-matched-hook (lambda (&rest r) (push r results)))
+         (erc-match-functions
+          (list
+           (lambda (&rest plist)
+             ;; Doing everything in `:pred' would also work if
+             ;; specifying `ignore' for `:handler'.  And you wouldn't
+             ;; even need to return non-nil on matches.
+             (apply #'erc-match
+                    :predicate (lambda (_) (search-forward "alice" nil t))
+                    :handler (lambda (m)
+                               (should (eq (erc-match-newlinep m)
+                                           (= ?\n (char-before (point-max)))))
+                               (push (match-string 0) results)
+                               (push (erc-match-get-message-body m) results))
+                    :newlinep (zerop (random 2))
+                    plist)))))
+
+    (erc-match-tests--perform
+     (lambda ()
+       (erc-tests-common-add-cmem "bob")
+       (erc-tests-common-add-cmem "Alice")
+       (erc-tests-common-simulate-line
+        ":irc.foonet.org 353 tester = #chan :bob tester Alice")
+       (erc-tests-common-simulate-line
+        ":irc.foonet.org 366 tester #chan :End of NAMES list")
+       (erc-tests-common-simulate-privmsg "bob" "hi ALICE")
+       (goto-char (point-min))
+
+       ;; Trailing newline doesn't affect `erc-match-get-message-body'.
+       (should (equal results '("hi ALICE"
+                                "ALICE"
+                                "Users on #chan: bob tester Alice"
+                                "Alice")))))))
+
+;; This one piggybacks on infrastructure supporting the traditional
+;; `match' interface.
+(ert-deftest erc-match-functions/api/parts-based ()
+  (let* ((results ())
+         (bodies ())
+         (erc-text-matched-hook (lambda (&rest r)
+                                  (push r results)))
+         (erc-match-functions ()))
+
+    (erc-match-tests--perform
+     (lambda ()
+
+       ;; Use local setter for no particular reason.
+       (add-hook 'erc-match-functions
+                 (lambda (&rest plist)
+                   (apply #'erc-match-traditional
+                          :category 'keyword
+                          :part 'keyword
+                          :data '("alice")
+                          :face 'error
+                          :predicate (lambda (_)
+                                       (search-forward "alice" nil t))
+                          ;; Override `erc-match-highlight'.
+                          :handler (lambda (m)
+                                     (push (erc-match-get-message-body m)
+                                           bodies)
+                                     (erc-match-highlight m))
+                          plist))
+                 0 t)
+
+       (erc-tests-common-add-cmem "bob")
+       (erc-tests-common-add-cmem "Alice")
+       (erc-tests-common-simulate-line
+        ":irc.foonet.org 353 tester = #chan :Alice bob tester")
+       (erc-tests-common-simulate-line
+        ":irc.foonet.org 366 tester #chan :End of NAMES list")
+       (erc-tests-common-simulate-privmsg "bob" "hi ALICE")
+       (goto-char (point-min))
+
+       (search-forward "*** Users on #chan:")
+       (erc-match-tests--assert-face-absent 'error "Alice")
+       (erc-match-tests--assert-face-present 'error " bob")
+       (erc-match-tests--assert-face-absent 'error (pos-eol))
+
+       ;; Prefixes detected for notices and spoken messages.
+       (should (equal bodies
+                      '("hi ALICE"
+                        "Users on #chan: Alice bob tester")))
+
+       (should (equal results
+                      '(( keyword "bob!~bob@fsf.org" "hi ALICE\n")
+                        ( keyword "Server:353"
+                          "*** Users on #chan: Alice bob tester\n"))))))))
 
 ;;; erc-match-tests.el ends here

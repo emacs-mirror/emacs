@@ -89,6 +89,7 @@ Advanced Usage
 * SASL::                        Authenticating via SASL.
 * Sample Configuration::        An example configuration file.
 * Integrations::                Integrations available for ERC.
+* Match API::                   Custom matching and highlighting.
 * Options::                     Options that are available for ERC.
 
 @end detailmenu
@@ -1021,6 +1022,7 @@ list or the bug tracker.
 * SASL::                        Authenticating via SASL.
 * Sample Configuration::        An example configuration file.
 * Integrations::                Integrations available for ERC.
+* Match API::                   Custom matching and highlighting.
 * Options::                     Options that are available for ERC.
 
 @detailmenu
@@ -2354,6 +2356,322 @@ All keys are symbols, as are values, unless otherwise noted.
 @end itemize
 @end itemize
 @end table
+
+@node Match API
+@section Match API
+@cindex low-level match
+
+This section describes the low-level @samp{match} @acronym{API}
+introduced in ERC 5.7.  For basic configuration help, please see the doc
+strings for option @code{erc-pal-highlight-type} and friends in the
+@code{erc-match} group.  Unfortunately, those options often prove
+insufficient for more granular filtering and highlighting needs, and
+advanced users may come to outgrow them.  However, under the hood, those
+options all use the same foundational @code{erc-match} API, which
+centers around a @code{cl-defstruct} @dfn{type} of the same name:
+
+@deftp {Struct} erc-match @
+  predicate spkr-beg spkr-end body-beg sender nick command handler newlinep
+
+  This is a @code{cl-struct} type that contains some handy facts about
+  the message being processed.  That formatted message occupies the
+  narrowed buffer when ERC creates and provides access to each
+  @code{erc-match} instance.  To use this interface, you add a
+  @dfn{constructor}-like function to the hook
+  @code{erc-match-functions}:
+
+  @defopt erc-match-functions
+
+  An abnormal hook for which each member function accepts the parameters
+  named above as an @samp{&rest}-style plist and returns a new
+  @code{erc-match} instance.  Conforming to this interface are, of
+  course, traditional constructors automatically provided by a
+  @code{cl-defstruct} definition derived from @code{erc-match}, such as
+  @samp{make-my-match} for some @dfn{subtype} @samp{my-match}.
+
+  @end defopt
+
+  The only slot you definitely need to specify is @samp{predicate}.
+  Both it and @samp{handler} are functions that take a single argument:
+  the instance itself.  As its name implies, @samp{predicate} must
+  return non-@code{nil} if @samp{handler}, whose return value ERC
+  ignores, should run.
+
+  A few slots, like @samp{spkr-beg}, @samp{spkr-end}, and @samp{nick},
+  may surprise you.  The first two are null for non-chat messages, like
+  those displayed for @samp{JOIN} events.  The @samp{nick} slot can
+  likewise be @code{nil} if the sender of the message is a domain-style
+  host name, such as @samp{irc.example.org}, which it often is for
+  informational messages, like @samp{*** #chan was created on 2023-12-26
+  00:36:42}.  This includes, for example, server-sent @samp{NOTICE}s and
+  @samp{221} user-mode changes.
+
+  To locate the start of the just-inserted message, use slot
+  @samp{body-beg}, a marker indicating the beginning of the message
+  proper.  Locating the end depends on whether the narrowed buffer
+  includes a trailing newline, which it does if the slot @samp{newlinep}
+  is non-nil.  If you want to extract just the message body's text, use
+  the function @code{erc-match-get-message-body}:
+
+  @defun erc-match-get-message-body match
+
+  Takes an @code{erc-match} instance and returns a string containing the
+  message body, sans trailing newline and any leading speaker or
+  decorative component, such as @code{erc-notice-prefix}.  The match
+  buffer must be current.
+
+  @end defun
+
+@end deftp
+
+@noindent
+Unless you're writing a module, there's often no need to subclass
+@code{erc-match}.  For everyday tasks or simple customizations in your
+@file{init.el}, you can often just instantiate it directly (it's
+@dfn{concrete}).  To do this, define a function that invokes its
+constructor:
+
+@lisp
+(require 'erc-match)
+
+(defvar my-mentions 0)
+
+(defun my-match (&rest plist)
+  (apply #'erc-match
+         :predicate (lambda (_) (search-forward "my-project" nil t))
+         :handler (lambda (_) (cl-incf my-mentions))
+         plist))
+
+(add-hook 'erc-match-functions #'my-match)
+(setopt erc-prompt (lambda () (format "%d!" my-mentions)))
+@end lisp
+
+@noindent
+Here, the user could just as well shove the incrementer into the
+@samp{predicate} body, since @samp{handler} is set to @code{ignore} by
+default (however, some frown at the notion of a predicate exhibiting
+side effects).  The user could also choose to concentrate only on chat
+content by filtering out non-@samp{PRIVMSG} messages via the slot
+@samp{command}.
+
+In cases where you need a handler to only run when some other match type
+appearing earlier in @code{erc-match-functions} has _not_ yielded a
+match, use:
+
+@defun erc-match-get-match constructor
+
+When called from a @samp{handler} or a @samp{predicate} body, this
+utility returns the @code{erc-match} instance from the last successful
+match by @code{erc-match-functions} member @var{constructor} for the
+current message.  Use this for deduplication and to share data between
+match instances.
+
+@end defun
+
+@noindent
+For a detailed example of matching for non-highlighting purposes, see
+the @samp{jabbycat} demo module, available on ERC's dev-oriented package
+archive: @uref{https://emacs-erc.gitlab.io/bugs/archive/jabbycat.html}.
+If you're in a hurry, check out @file{erc-desktop-notifications.el},
+which ships with ERC.  Just be aware that it's full of potentially
+confusing compatibility-related fuss you'll want to ignore, such as
+adapting the global setup and teardown business to a buffer-local
+context.  (New modules most likely adhere to the modern convention of
+being defined as @code{local} in order to allow things like adding local
+members to @code{erc-match-functions} in their @dfn{enable body}.)
+
+@anchor{highlighting}
+@subsection Highlighting
+@cindex highlighting
+
+Module authors and normal users alike will often want to manage and
+apply faces themselves.  If that's you, feel free to skip to the more
+extensive examples in the subsection below.  However, for the sake of
+completeness, it's worth mentioning that (especially in a pinch) you can
+likely piggyback atop the highlighting functionality already provided by
+@samp{match} to support its traditional high-level options.
+
+@lisp
+(require 'erc-match)
+
+(defvar my-keywords
+  `((foonet ("#chan" ,(rx bow (or "foo" "bar" "baz") eow)))))
+
+(defface my-face
+  '((t (:inherit font-lock-constant-face :weight bold)))
+  "My face.")
+
+(defun my-match (&rest plist)
+  (apply #'erc-match-opt-keyword
+         :data (and-let* ((chans (alist-get (erc-network) my-keywords)))
+                 (cdr (assoc (erc-target) chans)))
+         :face 'my-face
+         plist))
+
+(add-hook 'erc-match-functions #'my-match)
+@end lisp
+
+@noindent
+Here, the user leverages a handy subtype of @code{erc-match}, called
+@code{erc-match-opt-keyword}, which actually descends directly from
+another, intermediate @code{erc-match} type:
+
+@deftp {Struct} erc-match-traditional category face data part
+
+Use this type or one of its descendants (see below) if you want
+@code{erc-text-matched-hook} to run right after the @samp{handler}
+slot's default highlighter, @code{erc-match-highlight}, on every match
+for which the @samp{category} slot's value is non-@code{nil} (it becomes
+the argument provided for the hook's @var{match-type} parameter).
+
+The @samp{part} slot determines what portion of the message is being
+highlighted or otherwise operated on.  It can be any symbol, but the
+ones with predefined methods are @code{nick}, @code{message},
+@code{all}, @code{keyword}, @code{nick-or-keyword}, and
+@code{nick-or-mention}.
+
+Accompanying the @samp{part} slot is @samp{data}, which holds the value
+of the module's option corresponding to the specific type.  For example,
+ERC initializes the @samp{data} slot for the @code{erc-match-opt-pal}
+type with the value of @code{erc-pals}.
+
+The default handler, @code{erc-match-highlight}, does its work by
+deferring to a purpose-built @dfn{method} meant to handle
+@samp{part}-based highlighting:
+
+@defop {Method} erc-match-traditional erc-match-highlight-by-part @
+  instance part
+
+  You can override this method by @dfn{specializing} on any subclassed
+  @code{erc-match-traditional} type and/or non-reserved @var{part}, such
+  as one known only to your @file{init.el} or (informally) associated
+  with your package by its library @dfn{namespace}.
+
+@end defop
+
+Note that when the handler runs, the narrowed buffer contains a trailing
+newline after the inserted message because, unlike with a normal
+@code{erc-match} object, the @samp{newlinep} slot is non-nil.
+
+@end deftp
+
+@noindent
+You likely won't be needing these, but just for the record, other
+options-based types similar to @code{erc-match-opt-keyword} include
+@code{erc-match-opt-current-nick}, @code{erc-match-opt-fool},
+@code{erc-match-opt-pal}, and @code{erc-match-opt-dangerous-host}.  (If
+you're familiar with this module's user options, you'll notice some
+parallels here.)
+
+@anchor{highlighting examples}
+@subsubsection Complete Highlighting Examples
+@cindex highlighting examples
+
+As mentioned, most users needn't bother with the piggybacking approach
+detailed above, which can oftentimes be more complicated than starting
+afresh.  Here's a more elaborate, module-like example demoing some
+highlighting with a custom @code{erc-match}-derived type.  It's a
+superficial rewrite of @file{erc-colorize.el} by Sylvain Rousseau
+@uref{https://github.com/thisirs/erc-colorize.git}.
+
+@lisp
+;;; erc-colorize.el --- Per-user message faces -*- lexical-binding: t; -*-
+
+(require 'ring)
+(require 'erc-match)
+(require 'erc-button) ; for `erc-button-add-face'
+
+(defgroup erc-colorize nil
+  "Highlight messages with per-user faces from a limited pool."
+  :group 'erc)
+
+(defface erc-colorize-1 '((t :inherit font-lock-keyword-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-2 '((t :inherit font-lock-type-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-3 '((t :inherit font-lock-string-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-4 '((t :inherit font-lock-constant-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-5 '((t :inherit font-lock-preprocessor-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-6 '((t :inherit font-lock-variable-name-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-7 '((t :inherit font-lock-warning-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defvar erc-colorize-faces '(erc-colorize-1
+                             erc-colorize-2
+                             erc-colorize-3
+                             erc-colorize-4
+                             erc-colorize-5
+                             erc-colorize-6
+                             erc-colorize-7)
+  "List of faces to apply to chat messages.")
+
+(defvar-local erc-colorize-ring nil
+  "Ring of cons cells of the form (NICK . FACE).")
+
+(define-erc-module colorize nil
+  "Highlight messages from a speaker with the same face in target buffers."
+  ((when (erc-target)
+     (add-hook 'erc-match-functions 'erc-colorize 0 t)
+     (setq erc-colorize-ring (make-ring (length erc-colorize-faces)))))
+  ((remove-hook 'erc-match-functions 'erc-colorize t))
+  localp)
+
+(defun erc-colorize-color (ring nick)
+  "Return a face to use for string NICK.
+Prefer an existing entry in RING.  If there isn't one, pick the first
+unused face in `erc-colorize-faces'.  Otherwise, pick the least used
+face."
+  (or
+   (and-let* ((i (catch 'found
+                   (dotimes (i (ring-length ring))
+                     (when (equal (car (ring-ref ring i)) nick)
+                       (throw 'found i))))))
+     (ring-insert ring (ring-remove ring i))
+     (cdr (ring-ref ring 0)))
+   (let ((used (mapcar #'cdr (ring-elements ring))))
+     (and-let* ((face (catch 'found
+                        (dolist (face erc-colorize-faces)
+                          (unless (member face used)
+                            (throw 'found face))))))
+       (prog1 face
+         (ring-insert ring (cons nick face)))))
+   (let ((older (ring-remove ring)))
+     (ring-insert ring (cons nick (cdr older)))
+     (cdr older))))
+
+(cl-defstruct (erc-colorize ( :include erc-match
+                              (predicate #'erc-colorize-nick)
+                              (handler #'erc-colorize-message))
+                            (:constructor erc-colorize))
+  "An `erc-match' type for the `erc-colorize' module.")
+
+(defun erc-colorize-message (match)
+  "Highlight MATCH's full message with a face from `erc-colorize-faces'."
+  (erc-button-add-face (point-min) (point-max)
+                       (erc-colorize-color erc-colorize-ring
+                                           (erc-colorize-nick match))))
+
+(provide 'erc-colorize)
+
+;;; erc-colorize.el ends here
+@end lisp
+
+@noindent
+Finally, for an even more thorough example in the form of a package,
+check out @uref{https://emacs-erc.gitlab.io/bugs/archive/erc-link.html},
+which demos some good practices for integrating with other modules and
+passing data from predicate to handler.
+
 
 @node Options
 @section Options

@@ -63,14 +63,28 @@ highlighted."
    (erc-buffer-do #'erc-match--setup)
    (erc--modify-local-map nil "C-c C-k" #'erc-go-to-log-matches-buffer)))
 
+;; This caches the result of applying `regexp-opt' analogs to the
+;; regexp-based user options, mainly for history playback bursts.
+(defvar erc-match--opt-pat-cache nil
+  "Alist of (COMPUTE-FN . PAIRS) where PAIRS is an alist of (IN . OUT).")
+
+(defun erc-match--opt-pat-custom-set (sym val &optional _)
+  "Assign VAL to SYM via `set'."
+  (when erc-match--opt-pat-cache
+    (setq erc-match--opt-pat-cache nil))
+  (set sym val))
+
+
 ;; Remaining customizations
 
 (defcustom erc-pals nil
   "List of pals on IRC."
+  :set #'erc-match--opt-pat-custom-set
   :type '(repeat regexp))
 
 (defcustom erc-fools nil
   "List of fools on IRC."
+  :set #'erc-match--opt-pat-custom-set
   :type '(repeat regexp))
 
 (defcustom erc-keywords nil
@@ -78,12 +92,14 @@ highlighted."
 Each entry in the list is either a regexp, or a cons cell with the
 regexp in the car and the face to use in the cdr.  If no face is
 specified, `erc-keyword-face' is used."
+  :set #'erc-match--opt-pat-custom-set
   :type '(repeat (choice regexp
 			 (list regexp face))))
 
 (defcustom erc-dangerous-hosts nil
   "List of regexps for hosts to highlight.
 Useful to mark nicks from dangerous hosts."
+  :set #'erc-match--opt-pat-custom-set
   :type '(repeat regexp))
 
 (defcustom erc-current-nick-highlight-type 'keyword
@@ -122,10 +138,15 @@ The following values are allowed:
     `all'     - highlight the entire message (including the nick)
                 from pal
 
+    `nick-or-mention' - highlight a matching speaker or all matching
+                        mentions as quasi keywords
+
 A value of `nick' only highlights a matching sender's nick in the
 bracketed speaker portion of the message.  A value of \\+`message'
 basically highlights its complement: the message-body alone, after the
-speaker tag.  All values for this option require a matching sender to be
+speaker tag.  A value of `nick-or-mention' works like `nick' but also
+matches \"mentions,\" which `erc-fool-highlight-type' explains in its
+doc string.  All values for this option require a matching sender to be
 an actual user on the network \(or a bot/service) as opposed to a host
 name, such as that of the server itself \(e.g. \"irc.gnu.org\").  When
 patterns from other user-based categories \(namely, \\+`fool' and
@@ -135,6 +156,7 @@ which in turn clobbers `erc-pal-face'.  \(Other effects, such as
 \\+`fool'-related invisibility may not survive such collisions.)"
   :type '(choice (const nil)
 		 (const nick)
+                 (const nick-or-mention)
                  (const message)
 		 (const all)))
 
@@ -148,12 +170,12 @@ IRC-style \"mentions\" in which a speaker addresses a USER directly:
   <speaker> USER: hi.
   <speaker> USER, hi.
 
-However, at present, this option doesn't offer a means of highlighting
-matched mentions alone.  See `erc-pal-highlight-type' for a summary of
-possible values and additional details common to categories like
-\\+`fool' that normally match against a message's sender."
+See `erc-pal-highlight-type' for a summary of possible values and
+additional details common to categories like \\+`fool' that normally
+match against a message's sender."
   :type '(choice (const nil)
 		 (const nick)
+                 (const nick-or-mention)
                  (const message)
 		 (const all)))
 
@@ -182,6 +204,7 @@ additional details common to categories like \\+`dangerous-host' that
 normally match against a message's sender."
   :type '(choice (const nil)
 		 (const nick)
+                 (const nick-or-mention)
                  (const message)
 		 (const all)))
 
@@ -241,12 +264,12 @@ for beeping to work."
 (defcustom erc-text-matched-hook '(erc-log-matches)
   "Abnormal hook for visiting text matching a predefined \"type\".
 ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE), where
-MATCH-TYPE is a symbol among `current-nick', `keyword', `pal',
-`dangerous-host', and `fool'; and NUH is an `erc-response' sender, like
-\"bob!~bob@example.org\" or an IRC command prefixed with the string
-\"Server:\", as in \"Server:353\".  MESSAGE is the current incarnation
-of the just-inserted message minus a leading speaker, like \"<bob> \".
-For traditional reasons, MESSAGE always includes a leading
+MATCH-TYPE is a \"category\" symbol, one of `current-nick', `keyword',
+`pal', `dangerous-host', and `fool'; and NUH is an `erc-response'
+sender, like \"bob!~bob@example.org\" or an IRC command prefixed with
+the string \"Server:\", as in \"Server:353\".  MESSAGE is the current
+incarnation of the just-inserted message minus a leading speaker, like
+\"<bob> \".  For traditional reasons, MESSAGE always includes a leading
 `erc-notice-prefix' and a trailing newline."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
   :type 'hook)
@@ -266,6 +289,22 @@ available via universal argument."
   :type '(choice (const ask)
                  (const t)
                  (const nil)))
+
+(defcustom erc-match-functions '(erc-match-opt-pal
+                                 erc-match-opt-fool
+                                 erc-match-opt-dangerous-host
+                                 erc-match-opt-keyword
+                                 erc-match-opt-current-nick)
+  "Type constructors for \\+`match' processing.
+See the struct `erc-match' as well as Info node `(erc) Match API' for
+details."
+  :package-version '(ERC . "5.7") ; FIXME sync on release
+  :type '(hook :options (erc-match-opt-pal
+                         erc-match-opt-fool
+                         erc-match-opt-dangerous-host
+                         erc-match-opt-keyword
+                         erc-match-opt-current-nick)))
+
 
 ;; Internal variables:
 
@@ -322,6 +361,8 @@ Note that this is the default face to use if
 LIST must be passed as a symbol
 The query happens using PROMPT.
 Completion is performed on the optional alist COMPLETIONS."
+  (when erc-match--opt-pat-cache
+    (setq erc-match--opt-pat-cache nil))
   (let ((entry (completing-read
 		prompt
 		completions
@@ -345,6 +386,8 @@ Completion is performed on the optional alist COMPLETIONS."
 LIST must be passed as a symbol.
 The elements of LIST can be strings, or cons cells where the
 car is the string."
+  (when erc-match--opt-pat-cache
+    (setq erc-match--opt-pat-cache nil))
   (let* ((alist (mapcar (lambda (x)
 			  (if (listp x)
 			      x
@@ -468,7 +511,310 @@ In any of the following situations, MSG is directed at an entry FOOL:
     (or (erc-list-match fools-beg msg)
 	(erc-list-match fools-end msg))))
 
+(cl-defstruct (erc-match (:constructor erc-match))
+  "Base type for text and user matching performed by the \\+`match' module.
+Users wishing to perform custom matching should add a constructor that
+returns an instance of this type to the hook `erc-match-functions'.  If
+the `:predicate' slot's predicate returns non-nil after being called
+with its own instance in the narrowed single-message buffer, ERC calls
+the `:handler' slot's function with the same instance and with the match
+data still intact.  More details in Info node `(erc) Match API'."
+  ( predicate (error "Keyword `:predicate' missing") :type function
+    :documentation "Called in narrowed buffer with own instance.")
+  ( spkr-beg nil :type (or null natnum)
+    :documentation "Position of the beginning of speaker's nick, if known.")
+  ( spkr-end nil :type (or null natnum)
+    :documentation "Position of the end of speaker's nick, if known.")
+  ( body-beg (error "Keyword `:body-beg' missing") :type marker
+    :documentation "Marker residing at the beginning of the message body.")
+  ( sender (error "Keyword `:sender' missing") :type string
+    :documentation "The sender's n!u@h.")
+  ( nick nil :type (or null string)
+    :documentation "The sender's nick if they're a user and not the server.")
+  ( command (error "Keyword `:command' missing") :type (or symbol natnum)
+    :documentation "Protocol command or numeric, like `PRIVMSG' or 353.")
+  ( handler #'ignore :type function
+    :documentation "Called on `:predicate' match with own instance.")
+  ( newlinep nil :type boolean
+    :documentation "Whether narrowed buffer includes trailing newline."))
+
+(cl-defstruct (erc-match-traditional
+               (:constructor erc-match-traditional)
+               (:include erc-match
+                         (handler #'erc-match-highlight)
+                         (newlinep t)))
+  "Match type for user-option based on \"categories\" and \"parts\".
+The `:category' slot exists for the benefit of `erc-text-matched-hook',
+which receives its value as a second parameter (the hook only runs when
+the slot is non-nil).  For compatibility, the narrowed buffer includes a
+trailing newline."
+  ( category (error "Keyword `:category' missing") :type symbol
+    :documentation "Traditional \\+`match' \"category\", like `pal'.")
+  ( face 'erc-default-face :type face
+    :documentation "Face to highlight the matched portion with.")
+  ( part nil :type symbol
+    :documentation "Symbol for the portion of the message to highlight.")
+  ( data nil :type list
+    :documentation "User-specified patterns or other type-specific data."))
+
+(cl-defstruct (erc-match-opt-current-nick
+               (:include erc-match-traditional
+                         (category 'current-nick)
+                         (predicate #'erc-match--current-nick-p)
+                         (part erc-current-nick-highlight-type)
+                         (face 'erc-current-nick-face)
+                         (data (list (concat "\\b"
+                                             (regexp-quote (erc-current-nick))
+                                             "\\b"))))
+               (:constructor erc-match-opt-current-nick))
+  "An options-based type for the `current-nick' category.")
+
+(cl-defstruct (erc-match-opt-keyword
+               (:include erc-match-traditional
+                         (category 'keyword)
+                         (predicate #'erc-match--keyword-p)
+                         (part erc-keyword-highlight-type)
+                         (face 'erc-keyword-face)
+                         (data erc-keywords))
+               (:constructor erc-match-opt-keyword))
+  "An options-based type for the `keyword' category.")
+
+(cl-defstruct (erc-match-user (:include erc-match-traditional)
+                              (:constructor erc-match-user))
+  "An `erc-match' that's only processed when `:nick' is non-nil.")
+
+(cl-defstruct (erc-match-opt-fool
+               (:include erc-match-user
+                         (category 'fool)
+                         (predicate #'erc-match--user-nuh-or-mention-p)
+                         (part erc-fool-highlight-type)
+                         (face 'erc-fool-face)
+                         (data erc-fools))
+               (:constructor erc-match-opt-fool))
+  "An options-based type for the `fool' category.")
+
+(cl-defstruct (erc-match-opt-pal
+               (:include erc-match-user
+                         (category 'pal)
+                         (predicate #'erc-match--user-nuh-or-mention-p)
+                         (part erc-pal-highlight-type)
+                         (face 'erc-pal-face)
+                         (data erc-pals))
+               (:constructor erc-match-opt-pal))
+  "An options-based type for the `pal' category.")
+
+(cl-defstruct (erc-match-opt-dangerous-host
+               (:include erc-match-user
+                         (category 'dangerous-host)
+                         (predicate #'erc-match--user-nuh-or-mention-p)
+                         (part erc-dangerous-host-highlight-type)
+                         (face 'erc-dangerous-host-face)
+                         (data erc-dangerous-hosts))
+               (:constructor erc-match-opt-dangerous-host))
+  "An options-based type for the `dangerous-host' category.")
+
+(defun erc-match--opt-pat-get (compute-fn input)
+  "Retrieve cached results for computing INPUT with COMPUTE-FN."
+  (with-memoization (alist-get input (alist-get compute-fn
+                                                erc-match--opt-pat-cache nil t)
+                               nil t)
+    (funcall compute-fn input)))
+
+(defun erc-match--opt-pat-make (patterns)
+  "Act like `regexp-opt' but for regexp PATTERNS, not fixed strings."
+  (string-join patterns "\\|"))
+
+(defun erc-match--opt-pat-make-kw (patterns)
+  (mapconcat (lambda (w) (or (car-safe w) w)) patterns "\\|"))
+
+(defun erc-match--opt-pat-make-addr-beg (patterns)
+  (concat "\\<\\(" (erc-match--opt-pat-make patterns) "\\)[:,] "))
+
+(defun erc-match--opt-pat-make-addr-end (patterns)
+  (concat "\\s. \\(" (erc-match--opt-pat-make patterns) "\\)\\s."))
+
+(defun erc-match--current-nick-p (match)
+  (re-search-forward (car (erc-match-traditional-data match)) nil t))
+
+(defun erc-match--keyword-p (match)
+  "Return non-nil if the pattern given for MATCH's user option matches."
+  (and-let* ((patterns (erc-match-traditional-data match)))
+    (goto-char (erc-match-body-beg match))
+    (re-search-forward (erc-match--opt-pat-get #'erc-match--opt-pat-make-kw
+                                               patterns)
+                       nil t)))
+
+(defun erc-match--user-nuh-or-mention-p (match)
+  "Return non-nil on matching \"NUH\" for MATCH object.
+Also do so on mentions if the category is `fool' or the corresponding
+\"part\" option is `nick-or-mention'."
+  (and-let* ((patterns (erc-match-traditional-data match)))
+    (or (string-match (erc-match--opt-pat-get #'erc-match--opt-pat-make
+                                              patterns)
+                      (erc-match-sender match))
+        (and (or (eq (erc-match-traditional-category match) 'fool)
+                 (eq (erc-match-traditional-part match) 'nick-or-mention))
+             ;; Mimic `erc-match-directed-at-fool-p', but search
+             ;; the narrowed buffer instead of a string argument.
+             (goto-char (erc-match-body-beg match))
+             (or (looking-at (erc-match--opt-pat-get
+                              #'erc-match--opt-pat-make-addr-beg
+                              patterns))
+                 (search-forward-regexp
+                  (erc-match--opt-pat-get #'erc-match--opt-pat-make-addr-end
+                                          patterns)
+                  nil t))))))
+
+(cl-defgeneric erc-match-highlight-by-part (match part)
+  "Highlight PART of narrowed buffer for `erc-match' object MATCH.")
+
+(cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
+                                           (_ (eql nick)))
+  "Highlight MATCH's nick in the bracketed speaker portion of the message."
+  (when (erc-match-spkr-beg match)
+    (erc-put-text-property (erc-match-spkr-beg match)
+                           (erc-match-spkr-end match)
+                           'font-lock-face
+                           (erc-match-traditional-face match))))
+
+(cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
+                                           (_ (eql message)))
+  "Highlight MATCH's message body, not including the leading speaker tag."
+  (erc-put-text-property (erc-match-body-beg match) (point-max)
+                         'font-lock-face (erc-match-traditional-face match)))
+
+(cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
+                                           (_ (eql all)))
+  "Highlight MATCH's whole message, including the speaker tag."
+  (erc-put-text-property (point-min) (point-max)
+                         'font-lock-face (erc-match-traditional-face match)))
+
+(cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
+                                           (_ (eql keyword)))
+  "Highlight all occurrences of all keyword patterns for MATCH."
+  (dolist (pat (erc-match-traditional-data match))
+    (let ((regex (if (consp pat) (car pat) pat))
+          (face (if (consp pat) (cdr pat) (erc-match-traditional-face match))))
+      (goto-char (erc-match-body-beg match))
+      (while (re-search-forward regex nil t)
+        (erc-put-text-property (match-beginning 0) (match-end 0)
+                               'font-lock-face face)))))
+
+(cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
+                                           (_ (eql nick-or-keyword)))
+  "Highlight MATCH's speaker-tag nick if applicable, otherwise all mentions."
+  (if (erc-match-spkr-end match)
+      (erc-put-text-property (erc-match-spkr-beg match)
+                             (erc-match-spkr-end match)
+                             'font-lock-face
+                             (erc-match-traditional-face match))
+    (erc-match-highlight-by-part match 'keyword)))
+
+(cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
+                                           (_ (eql nick-or-mention)))
+  "Highlight MATCH's speaker tag nick of matching users or all mentions."
+  (cl-letf (((erc-match-body-beg match)
+             (or (erc-match-spkr-beg match) (point-min))))
+    (erc-match-highlight-by-part match 'keyword)))
+
+(defvar erc-match-highlight-matched nil
+  "Matched `erc-match' instance in `erc-text-matched-hook'.")
+
+(defvar erc-match--instances nil
+  "Alist mapping constructors to successful `erc-match' instances.")
+
+(defun erc-match-highlight (match)
+  "Dispatch `erc-match-highlight-by-part' on MATCH's `:part' slot.
+Run `erc-text-matched-hook' when MATCH's `category' slot is non-nil."
+  (unless (erc-match-traditional-p match)
+    (signal 'wrong-type-argument (list 'erc-match-traditional match)))
+  (cl-assert (erc-match-newlinep match))
+  (erc-match-highlight-by-part match (erc-match-traditional-part match))
+  (when (erc-match-traditional-category match)
+    (let ((user-nuh (and (erc-match-nick match) (erc-match-sender match)))
+          (erc-match-highlight-matched match))
+      (run-hook-with-args 'erc-text-matched-hook
+                          (erc-match-traditional-category match)
+                          (or user-nuh (format "Server:%s"
+                                               (erc-match-command match)))
+                          ;; For compatibility, include a leading "*** ".
+                          (buffer-substring (if user-nuh
+                                                (erc-match-body-beg match)
+                                              (point-min))
+                                            (point-max))))))
+
+(defun erc-match-get-message-body (match)
+  "Return the message body for MATCH in the current narrowed buffer."
+  (with-restriction (point-min)
+      (if (erc-match-newlinep match) (point-max) (1+ (point-max)))
+    (buffer-substring (erc-match-body-beg match) (1- (point-max)))))
+
+(defun erc-match-get-match (constructor)
+  "Return successful `erc-match' instance for CONSTRUCTOR, if any.
+Expect to be called only from `erc-match' :predicate and :handler
+functions as well as `erc-text-matched-hook' members."
+  (alist-get constructor erc-match--instances))
+
+(defun erc-match--run-match (constructor spkr-beg spkr-end body-beg
+                                         nick sender command)
+  "Run `erc-match' handler if its predicate returns non-nil.
+Call CONSTRUCTOR with SPKR-BEG, SPKR-END, BODY-BEG, NICK SENDER, and
+COMMAND to create the `erc-match' instance."
+  (when-let* ((instance (funcall constructor
+                                 :spkr-beg spkr-beg
+                                 :spkr-end spkr-end
+                                 :body-beg body-beg
+                                 :nick nick
+                                 :sender sender
+                                 :command command))
+              (_ (or nick (not (erc-match-user-p instance))))
+              (_ (goto-char (point-min)))
+              (_ (funcall (erc-match-predicate instance) instance)))
+    (if (erc-match-newlinep instance)
+        (funcall (erc-match-handler instance) instance)
+      (with-restriction (point-min) (1- (point-max))
+        (funcall (erc-match-handler instance) instance)))
+    (push (cons constructor instance) erc-match--instances)
+    nil))
+
+(defun erc-match--message ()
+  "Run `erc-match-functions' against contents of narrowed buffer."
+  (goto-char (point-min))
+  (let* ((response erc--parsed-response)
+         (user-nuh (and response (erc-get-parsed-vector-nick response)))
+         ;; Nick of sender's NUH if they are not the server itself.
+         (nick (and user-nuh (or (erc--check-msg-prop 'erc--spkr)
+                                 (erc-extract-nick user-nuh))))
+         (unknownp (erc--check-msg-prop 'erc--msg 'unknown))
+         (spkr-end (and (not unknownp) (erc--get-speaker-bounds)))
+         (spkr-beg (and spkr-end (pop spkr-end)))
+         (body-beg (save-excursion
+                     (unless unknownp
+                       (when-let* ((fn (erc--check-msg-prop 'erc--pfx)))
+                         (funcall fn)))
+                     (point-marker)))
+         (command (erc--check-msg-prop 'erc--cmd))
+         (erc-match--instances ()))
+    (with-syntax-table erc-match-syntax-table
+      (run-hook-wrapped 'erc-match-functions #'erc-match--run-match
+                        spkr-beg spkr-end body-beg nick
+                        (erc-response.sender response) command))))
+
+(defvar erc-match-use-legacy-logic-p nil
+  "When non-nil, use the non-`erc-match' variant of `erc-match-message'.")
+(make-obsolete 'erc-match-use-legacy-logic-p
+               "non-nil behavior mostly replicated bug for bug" "32.1")
+
 (defun erc-match-message ()
+  "Run handlers for matched patterns in the narrowed buffer."
+  (if (or erc-match-use-legacy-logic-p (null erc--parsed-response))
+      (erc-match--message-legacy)
+    (unless (or (and erc-match-exclude-server-buffer (erc--server-buffer-p))
+                (null (erc--check-msg-prop 'erc--cmd))
+                (erc--memq-msg-prop 'erc--skip 'match))
+      (erc-match--message))))
+
+(defun erc-match--message-legacy ()
   "Mark certain keywords in a region.
 Use this defun with `erc-insert-modify-hook'."
   ;; This needs some refactoring.
@@ -591,27 +937,25 @@ The behavior of this function is controlled by the variables
 Specify the match types which should be logged in the former,
 and deactivate/activate match logging in the latter.
 See `erc-log-match-format'."
-  (let  ((match-buffer-name (cdr (assq match-type
-				       erc-log-matches-types-alist)))
-	 (nick (nth 0 (erc-parse-user nickuserhost))))
-    (when (and
-	   (or (eq erc-log-matches-flag t)
-	       (and (eq erc-log-matches-flag 'away)
-		    (erc-away-time)))
-	   match-buffer-name)
-      (let ((line (format-spec
-                   erc-log-match-format
-                   `((?n . ,nick)
-                     (?t . ,(format-time-string
-                             (or (bound-and-true-p erc-timestamp-format)
-                                 "[%Y-%m-%d %H:%M] ")))
-                     (?c . ,(or (erc-default-target) ""))
-                     (?m . ,message)
-                     (?u . ,nickuserhost)))))
-	(with-current-buffer (erc-log-matches-make-buffer match-buffer-name)
-	  (let ((inhibit-read-only t))
-	    (goto-char (point-max))
-	    (insert line)))))))
+  (when-let*
+      ((erc-log-matches-flag)
+       (_ (or (eq erc-log-matches-flag t) (erc-away-time)))
+       (match-buffer-name (cdr (assq match-type erc-log-matches-types-alist)))
+       (line (format-spec
+              erc-log-match-format
+              (erc-compat--defer-format-spec-in-buffer
+               (?n . (or (erc--check-msg-prop 'erc--spkr)
+                         (erc-extract-nick nickuserhost)))
+               (?t . (format-time-string
+                      (or (bound-and-true-p erc-timestamp-format)
+                          "[%Y-%m-%d %H:%M] ")))
+               (?c erc-default-target)
+               (?m . message)
+               (?u . nickuserhost)))))
+    (with-current-buffer (erc-log-matches-make-buffer match-buffer-name)
+      (with-silent-modifications
+        (goto-char (point-max))
+        (insert line)))))
 
 (defun erc-log-matches-make-buffer (name)
   "Create or get a log-matches buffer named NAME and return it."

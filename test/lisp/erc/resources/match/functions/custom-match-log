@@ -1,0 +1,39 @@
+001 ?: Welcome to the foonet IRC Network tester
+002 ?: Your host is irc.foonet.org, running version ergo-v2.17.0
+003 ?: This server was created Sat, 25 Apr 2026 06:08:20 UTC
+004 ?: irc.foonet.org ergo-v2.17.0 BERTZios CEIMRUabefhiklmnoqstuv
+005 ?: AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# CHATHISTORY=25 ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX are supported by this server
+005 ?: KICKLEN=390 MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 MSGREFTYPES=msgid,timestamp NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ SAFELIST SAFERATE STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 are supported by this server
+005 ?: TOPICLEN=390 UTF8ONLY WHOX draft/CHATHISTORY=25 are supported by this server
+251 ?: There are 0 users and 4 invisible on 1 server(s)
+252 ?: 0 operator(s) online
+253 ?: 0 unknown connection(s)
+254 ?: 2 channels formed
+255 ?: I have 4 clients and 0 servers
+265 ?: Current local users 4, max 4
+266 ?: Current global users 4, max 4
+422 ?: MOTD File is missing
+221 ?: User modes for tester: +i
+NOTICE ?: This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect.
+221 ?: User modes for tester: +i
+JOIN tester: You have joined channel #chan
+353 ?: Users on #chan: @fsbot alice bob tester
+PRIVMSG alice: tester, welcome!
+PRIVMSG bob: tester, welcome!
+PRIVMSG bob: alice: No tearing, lady; I perceive you know it.
+324 ?: #chan modes: +Cnt
+329 ?: #chan was created on @@DATESTAMP@@
+PRIVMSG alice: There were none principal; they were all like one another as half-pence are; every one fault seeming monstrous till his fellow fault came to match it.
+PRIVMSG bob: As much as ever Coriolanus did.
+NOTICE NickServ: *** NickServ HELP ***
+NOTICE NickServ: Syntax: IDENTIFY <username> [password]
+NOTICE NickServ: IDENTIFY lets you login to the given username using either password auth, or
+NOTICE NickServ: certfp (your client certificate) if a password is not given.
+NOTICE NickServ: *** End of NickServ HELP ***
+PRIVMSG bob: alice: Deceive me not now, Navarre is infected.
+PRIVMSG bob: Bear me to prison, where I am committed.
+PRIVMSG alice: Wisely and slow; they stumble that run fast.
+PRIVMSG alice: bob: Thus men may grow wiser every day: it is the first time that ever I heard breaking of ribs was sport for ladies.
+QUIT tester: tester (~u@ux6rwus5uzr3u.irc) has quit: Quit: ERC 5.6.2-git (IRC client for GNU Emacs 31.0.50)
+QUIT tester: tester (~u@ux6rwus5uzr3u.irc) has quit: Quit: ERC 5.6.2-git (IRC client for GNU Emacs 31.0.50)
+ERROR ?: ERROR from 127.0.0.1: Quit: ERC 5.6.2-git (IRC client for GNU Emacs 31.0.50)
