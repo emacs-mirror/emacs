@@ -65,12 +65,13 @@ cloning its Git repository, compile the files "scanner.c" and
 "parser.c" (sometimes named "scanner.cc" and "parser.cc") in the "src"
 subdirectory of the library's source tree using the C or C++ compiler,
 then link these two files into a shared library named
-"libtree-sitter-LANG.so", where LANG is the name of the language
-supported by the grammar as it is expected by the Emacs major mode
-(for example, "c" for 'c-ts-mode', "cpp" for 'c++-ts-mode', "python"
-for 'python-ts-mode', etc.).  Then place the shared library you've
-built in the same directory where you keep the other shared libraries
-used by Emacs, or in the "tree-sitter" subdirectory of your
+"libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on MS-Windows,
+"libtree-sitter-LANG.dylib" on macOS), where LANG is the name of the
+language supported by the grammar as it is expected by the Emacs major
+mode (for example, "c" for 'c-ts-mode', "cpp" for 'c++-ts-mode',
+"python" for 'python-ts-mode', etc.).  Then place the shared library
+you've built in the same directory where you keep the other shared
+libraries used by Emacs, or in the "tree-sitter" subdirectory of your
 'user-emacs-directory', or in a directory mentioned in the variable
 'treesit-extra-load-path'.
 
@@ -78,6 +79,11 @@ You only need to install language grammar libraries required by the
 Emacs modes you will use, as Emacs loads these libraries only when the
 corresponding mode is turned on in some buffer for the first time in
 an Emacs session.
+
+We generally recommend to use the latest versions of grammar libraries
+available from their sites, as these libraries are in constant
+development and occasionally add features and fix important bugs to
+follow the advances in the programming languages they support.
 
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
