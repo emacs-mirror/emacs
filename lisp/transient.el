@@ -6,7 +6,7 @@
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
 
-;; Package-Version: 0.4.0
+;; Package-Version: 0.4.1
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
@@ -1643,6 +1643,7 @@ of the corresponding object."
   "<transient-history-prev>"      #'transient--do-stay
   "<transient-history-next>"      #'transient--do-stay
   "<universal-argument>"          #'transient--do-stay
+  "<universal-argument-more>"     #'transient--do-stay
   "<negative-argument>"           #'transient--do-minus
   "<digit-argument>"              #'transient--do-stay
   "<top-level>"                   #'transient--do-quit-all
@@ -3043,10 +3044,12 @@ prompt."
         (progn
           (cl-call-next-method obj value)
           (dolist (arg incomp)
-            (when-let ((obj (cl-find-if (lambda (obj)
-                                          (and (slot-boundp obj 'argument)
-                                               (equal (oref obj argument) arg)))
-                                        transient--suffixes)))
+            (when-let ((obj (cl-find-if
+                             (lambda (obj)
+                               (and (slot-exists-p obj 'argument)
+                                    (slot-boundp obj 'argument)
+                                    (equal (oref obj argument) arg)))
+                             transient--suffixes)))
               (let ((transient--unset-incompatible nil))
                 (transient-infix-set obj nil)))))
       (cl-call-next-method obj value))))
@@ -3253,6 +3256,8 @@ have a history of their own.")
     (with-current-buffer buf
       (when transient-enable-popup-navigation
         (setq focus (or (button-get (point) 'command)
+                        (and (not (bobp))
+                             (button-get (1- (point)) 'command))
                         (transient--heading-at-point))))
       (erase-buffer)
       (setq window-size-fixed t)
@@ -3384,7 +3389,9 @@ have a history of their own.")
                     (insert ?\n)
                   (insert (propertize " " 'display
                                       `(space :align-to (,(nth (1+ c) cc)))))))
-            (insert (make-string (max 1 (- (nth c cc) (current-column))) ?\s))
+            (when (> c 0)
+              (insert (make-string (max 1 (- (nth c cc) (current-column)))
+                                   ?\s)))
             (when-let ((cell (nth r (nth c columns))))
               (insert cell))
             (when (= c (1- cs))

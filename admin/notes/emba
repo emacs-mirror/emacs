@@ -107,12 +107,11 @@ via "make bootstrap".  In order to use the image, start a container
 like
 
   docker run --interactive --tty --env EMACS_EMBA_CI=1 --name emacs-inotify \
-    emacs-inotify /bin/sh -i
+    emacs-inotify /bin/bash -i
 
-In this container, change the current directory to "/checkout".  Now
-you can apply all commands known for Emacs, like
+In this container, your working directory is "/checkout".  Now you can
+apply all commands known for Emacs, like
 
-  cd /checkout
   make -C test files-tests.log
 
 While this container runs, you can also access its filesystem from

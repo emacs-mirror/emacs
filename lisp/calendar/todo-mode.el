@@ -1985,7 +1985,13 @@ their associated keys and their effects."
 		  (setq done-only t)
 		  (todo-toggle-view-done-only))
 		(if here
-                    (todo-insert-with-overlays new-item)
+		    (progn
+		      ;; Ensure item is inserted where command was invoked.
+		      (unless (= (point) opoint)
+			(todo-category-number ocat)
+			(todo-category-select)
+			(goto-char opoint))
+                      (todo-insert-with-overlays new-item))
 		  (todo-set-item-priority new-item cat t))
 		(setq item-added t))
 	    ;; If user cancels before setting priority, restore
@@ -2119,6 +2125,9 @@ the item at point."
 	  ((or marked (todo-item-string))
 	   (todo-edit-item--next-key 'todo arg)))))
 
+(defvar todo-edit-item--cat nil)
+(defvar todo-edit-item--pos nil)
+
 (defun todo-edit-item--text (&optional arg)
   "Function providing the text editing facilities of `todo-edit-item'."
   (let ((full-item (todo-item-string)))
@@ -2127,6 +2136,7 @@ the item at point."
     ;; 1+ signals an error, so just make this a noop.
     (when full-item
       (let* ((opoint (point))
+	     (ocat (todo-current-category))
 	     (start (todo-item-start))
 	     (end (save-excursion (todo-item-end)))
 	     (item-beg (progn
@@ -2151,8 +2161,7 @@ the item at point."
 			 (concat " \\[" (regexp-quote todo-comment-string)
 				 ": \\([^]]+\\)\\]")
                          end t)))
-	     (prompt (if comment "Edit comment: " "Enter a comment: "))
-	     (buffer-read-only nil))
+	     (prompt (if comment "Edit comment: " "Enter a comment: ")))
 	;; When there are marked items, user can invoke todo-edit-item
 	;; even if point is not on an item, but text editing only
 	;; applies to the item at point.
@@ -2170,22 +2179,43 @@ the item at point."
                                      end t)
 		  (if comment-delete
 		      (when (todo-y-or-n-p "Delete comment? ")
-			(delete-region (match-beginning 0) (match-end 0)))
-		    (replace-match (save-match-data
-                                     (read-string prompt
-                                                  (cons (match-string 1) 1)))
-				   nil nil nil 1))
+			(let ((buffer-read-only nil))
+			  (delete-region (match-beginning 0) (match-end 0))))
+		    (let ((buffer-read-only nil))
+		      (replace-match (save-match-data
+				       (prog1 (let ((buffer-read-only t))
+						(read-string
+						 prompt
+						 (cons (match-string 1) 1)))
+					 ;; If user moved point while editing
+					 ;; a comment, restore it and ensure
+					 ;; done items section is displayed.
+					 (unless (= (point) opoint)
+					   (todo-category-number ocat)
+					   (let ((todo-show-with-done t))
+					     (todo-category-select)
+					     (goto-char opoint)))))
+				     nil nil nil 1)))
 		(if comment-delete
 		    (user-error "There is no comment to delete")
-		  (insert " [" todo-comment-string ": "
-			  (prog1 (read-string prompt)
-			    ;; If user moved point during editing,
-			    ;; make sure it moves back.
-			    (goto-char opoint)
-			    (todo-item-end))
-			  "]")))))
+		  (let ((buffer-read-only nil))
+		    (insert " [" todo-comment-string ": "
+			    (prog1 (let ((buffer-read-only t))
+				     (read-string prompt))
+			      ;; If user moved point while inserting a
+			      ;; comment, restore it and ensure done items
+			      ;; section is displayed.
+			      (unless (= (point) opoint)
+				(todo-category-number ocat)
+				(let ((todo-show-with-done t))
+				  (todo-category-select)
+				  (goto-char opoint)))
+			      (todo-item-end))
+			    "]"))))))
 	   (multiline
 	    (let ((buf todo-edit-buffer))
+	      (setq todo-edit-item--cat ocat)
+	      (setq todo-edit-item--pos opoint)
 	      (set-window-buffer (selected-window)
 				 (set-buffer (make-indirect-buffer
 					      (buffer-name) buf)))
@@ -2208,10 +2238,14 @@ the item at point."
 	      ;; Ensure lines following hard newlines are indented.
 	      (setq new (replace-regexp-in-string "\\(\n\\)[^[:blank:]]"
 						  "\n\t" new nil nil 1))
-	      ;; If user moved point during editing, make sure it moves back.
-	      (goto-char opoint)
-	      (todo-remove-item)
-	      (todo-insert-with-overlays new)
+	      ;; If user moved point while editing item, restore it.
+	      (unless (= (point) opoint)
+		(todo-category-number ocat)
+		(todo-category-select)
+		(goto-char opoint))
+	      (let ((buffer-read-only nil))
+		(todo-remove-item)
+		(todo-insert-with-overlays new))
 	      (move-to-column item-beg)))))))))
 
 (defun todo-edit-quit ()
@@ -2243,6 +2277,9 @@ made in the number or names of categories."
 	(kill-buffer)
 	(unless (eq (current-buffer) buf)
 	  (set-window-buffer (selected-window) (set-buffer buf)))
+	(todo-category-number todo-edit-item--cat)
+	(todo-category-select)
+	(goto-char todo-edit-item--pos)
         (if transient-mark-mode (deactivate-mark)))
     ;; We got here via `F e'.
     (when (todo-check-format)
@@ -2315,117 +2352,118 @@ made in the number or names of categories."
 	    ;; If there are marked items, use only the first to set
 	    ;; header changes, and apply these to all marked items.
 	    (when first
-	      (cond
-	       ((eq what 'date)
-		(setq ndate (todo-read-date)))
-	       ((eq what 'calendar)
-		(setq ndate (save-match-data (todo-set-date-from-calendar))))
-	       ((eq what 'today)
-		(setq ndate (calendar-date-string (calendar-current-date) t t)))
-	       ((eq what 'dayname)
-		(setq ndate (todo-read-dayname)))
-	       ((eq what 'time)
-		(setq ntime (save-match-data (todo-read-time)))
-		(when (> (length ntime) 0)
-		  (setq ntime (concat " " ntime))))
-	       ;; When date string consists only of a day name,
-	       ;; passing other date components is a noop.
-	       ((and odayname (memq what '(year month day))))
-	       ((eq what 'year)
-		(setq day oday
-		      monthname omonthname
-		      month omonth
-		      year (cond ((not current-prefix-arg)
-				  (todo-read-date 'year))
-				 ((string= oyear "*")
-				  (user-error "Cannot increment *"))
-				 (t
-				  (number-to-string (+ yy inc))))))
-	       ((eq what 'month)
-		(setf day oday
-		      year oyear
-		      (if (memq 'month calendar-date-display-form)
-			  month
-			monthname)
-		      (cond ((not current-prefix-arg)
-			     (todo-read-date 'month))
-			    ((or (string= omonth "*") (= mm 13))
-			     (user-error "Cannot increment *"))
-			    (t
-			     (let* ((mmo mm)
-                                    ;; Change by 12 or more months?
-                                    (bigincp (>= (abs inc) 12))
-                                    ;; Month number is in range 1..12.
-                                    (mminc (+ mm (% inc 12)))
-			            (mm (% (+ mminc 12) 12))
-			            ;; 12n mod 12 = 0, so 0 is December.
-			            (mm (if (= mm 0) 12 mm))
-                                    ;; Does change in month cross year?
-                                    (mmcmp (cond ((< inc 0) (> mm mmo))
-                                                 ((> inc 0) (< mm mmo))))
-                                    (yyadjust (if bigincp
-                                                  (+ (abs (/ inc 12))
-                                                     (if mmcmp 1 0))
-                                                1)))
-			       ;; Adjust year if necessary.
-                               (setq yy (cond ((and (< inc 0)
-                                                    (or mmcmp bigincp))
-                                               (- yy yyadjust))
-                                              ((and (> inc 0)
-                                                    (or mmcmp bigincp))
-                                               (+ yy yyadjust))
-                                              (t yy)))
-                               (setq year (number-to-string yy))
-			       ;; Return the changed numerical month as
-			       ;; a string or the corresponding month name.
-			       (if omonth
-				   (number-to-string mm)
-			         (aref tma-array (1- mm)))))))
-                ;; Since the number corresponding to the arbitrary
-                ;; month name "*" is out of the range of
-                ;; calendar-last-day-of-month, set it to 1
-                ;; (corresponding to January) to allow 31 days.
-                (let ((mm (if (= mm 13) 1 mm)))
-		  (if (> (string-to-number day)
-			 (calendar-last-day-of-month mm yy))
-		      (user-error "%s %s does not have %s days"
-			     (aref tmn-array (1- mm))
-			     (if (= mm 2) yy "") day))))
-	       ((eq what 'day)
-		(setq year oyear
-		      month omonth
-		      monthname omonthname
-		      day (cond
-			   ((not current-prefix-arg)
-			    (todo-read-date 'day mm yy))
-			   ((string= oday "*")
-			    (user-error "Cannot increment *"))
-			   ((or (string= omonth "*") (string= omonthname "*"))
-			    (setq dd (+ dd inc))
-			    (if (> dd 31)
-				(user-error
-				 "A month cannot have more than 31 days")
-			      (number-to-string dd)))
-			   ;; Increment or decrement day by INC,
-			   ;; adjusting month and year if necessary
-			   ;; (if year is "*" assume current year to
-			   ;; calculate adjustment).
-			   (t
-			    (let* ((yy (or yy (calendar-extract-year
-					       (calendar-current-date))))
-				   (date (calendar-gregorian-from-absolute
-					  (+ (calendar-absolute-from-gregorian
-					      (list mm dd yy))
-                                             inc)))
-				   (adjmm (nth 0 date)))
-			      ;; Set year and month(name) to adjusted values.
-			      (unless (string= year "*")
-				(setq year (number-to-string (nth 2 date))))
-			      (if month
-				  (setq month (number-to-string adjmm))
-				(setq monthname (aref tma-array (1- adjmm))))
-			      ;; Return changed numerical day as a string.
-			      (number-to-string (nth 1 date)))))))))
+	      (save-match-data
+		(cond
+		 ((eq what 'date)
+		  (setq ndate (todo-read-date)))
+		 ((eq what 'calendar)
+		  (setq ndate (todo-set-date-from-calendar)))
+		 ((eq what 'today)
+		  (setq ndate (calendar-date-string (calendar-current-date) t t)))
+		 ((eq what 'dayname)
+		  (setq ndate (todo-read-dayname)))
+		 ((eq what 'time)
+		  (setq ntime (todo-read-time))
+		  (when (> (length ntime) 0)
+		    (setq ntime (concat " " ntime))))
+		 ;; When date string consists only of a day name,
+		 ;; passing other date components is a noop.
+		 ((and odayname (memq what '(year month day))))
+		 ((eq what 'year)
+		  (setq day oday
+			monthname omonthname
+			month omonth
+			year (cond ((not current-prefix-arg)
+				    (todo-read-date 'year))
+				   ((string= oyear "*")
+				    (user-error "Cannot increment *"))
+				   (t
+				    (number-to-string (+ yy inc))))))
+		 ((eq what 'month)
+		  (setf day oday
+			year oyear
+			(if (memq 'month calendar-date-display-form)
+			    month
+			  monthname)
+			(cond ((not current-prefix-arg)
+			       (todo-read-date 'month))
+			      ((or (string= omonth "*") (= mm 13))
+			       (user-error "Cannot increment *"))
+			      (t
+			       (let* ((mmo mm)
+                                      ;; Change by 12 or more months?
+                                      (bigincp (>= (abs inc) 12))
+                                      ;; Month number is in range 1..12.
+                                      (mminc (+ mm (% inc 12)))
+			              (mm (% (+ mminc 12) 12))
+			              ;; 12n mod 12 = 0, so 0 is December.
+			              (mm (if (= mm 0) 12 mm))
+                                      ;; Does change in month cross year?
+                                      (mmcmp (cond ((< inc 0) (> mm mmo))
+                                                   ((> inc 0) (< mm mmo))))
+                                      (yyadjust (if bigincp
+                                                    (+ (abs (/ inc 12))
+                                                       (if mmcmp 1 0))
+                                                  1)))
+				 ;; Adjust year if necessary.
+				 (setq yy (cond ((and (< inc 0)
+                                                      (or mmcmp bigincp))
+						 (- yy yyadjust))
+						((and (> inc 0)
+                                                      (or mmcmp bigincp))
+						 (+ yy yyadjust))
+						(t yy)))
+				 (setq year (number-to-string yy))
+				 ;; Return the changed numerical month as
+				 ;; a string or the corresponding month name.
+				 (if omonth
+				     (number-to-string mm)
+			           (aref tma-array (1- mm)))))))
+                  ;; Since the number corresponding to the arbitrary
+                  ;; month name "*" is out of the range of
+                  ;; calendar-last-day-of-month, set it to 1
+                  ;; (corresponding to January) to allow 31 days.
+                  (let ((mm (if (= mm 13) 1 mm)))
+		    (if (> (string-to-number day)
+			   (calendar-last-day-of-month mm yy))
+			(user-error "%s %s does not have %s days"
+				    (aref tmn-array (1- mm))
+				    (if (= mm 2) yy "") day))))
+		 ((eq what 'day)
+		  (setq year oyear
+			month omonth
+			monthname omonthname
+			day (cond
+			     ((not current-prefix-arg)
+			      (todo-read-date 'day mm yy))
+			     ((string= oday "*")
+			      (user-error "Cannot increment *"))
+			     ((or (string= omonth "*") (string= omonthname "*"))
+			      (setq dd (+ dd inc))
+			      (if (> dd 31)
+				  (user-error
+				   "A month cannot have more than 31 days")
+				(number-to-string dd)))
+			     ;; Increment or decrement day by INC,
+			     ;; adjusting month and year if necessary
+			     ;; (if year is "*" assume current year to
+			     ;; calculate adjustment).
+			     (t
+			      (let* ((yy (or yy (calendar-extract-year
+						 (calendar-current-date))))
+				     (date (calendar-gregorian-from-absolute
+					    (+ (calendar-absolute-from-gregorian
+						(list mm dd yy))
+                                               inc)))
+				     (adjmm (nth 0 date)))
+				;; Set year and month(name) to adjusted values.
+				(unless (string= year "*")
+				  (setq year (number-to-string (nth 2 date))))
+				(if month
+				    (setq month (number-to-string adjmm))
+				  (setq monthname (aref tma-array (1- adjmm))))
+				;; Return changed numerical day as a string.
+				(number-to-string (nth 1 date))))))))))
 	    (unless odayname
 	      ;; If year, month or day date string components were
 	      ;; changed, rebuild the date string.

@@ -1991,6 +1991,17 @@
              (use-package-vc-install '(other-name) ,load-path?)
              (require 'foo nil nil)))))
 
+(ert-deftest use-package-test-handler/:vc-6 ()
+  (let ((byte-compile-current-file "use-package-core.el")
+        tried-to-install)
+    (cl-letf (((symbol-function #'use-package-vc-install)
+               (lambda (arg &optional local-path)
+                 (setq tried-to-install arg))))
+      (should (equal
+               (use-package-handler/:vc 'foo nil 'some-pkg '(:init (foo)) nil)
+               '(foo)))
+      (should (eq tried-to-install 'some-pkg)))))
+
 (ert-deftest use-package-test-normalize/:vc ()
   (should (equal '(foo "version-string")
                  (use-package-normalize/:vc 'foo :vc '("version-string"))))
