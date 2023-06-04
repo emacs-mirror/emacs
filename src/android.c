@@ -2997,6 +2997,7 @@ NATIVE_NAME (blitRect) (JNIEnv *env, jobject object,
 
 static void android_begin_query (void);
 static void android_end_query (void);
+static void android_answer_query_spin (void);
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (beginSynchronous) (JNIEnv *env, jobject object)
@@ -3012,6 +3013,14 @@ NATIVE_NAME (endSynchronous) (JNIEnv *env, jobject object)
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
   android_end_query ();
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (answerQuerySpin) (JNIEnv *env, jobject object)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  android_answer_query_spin ();
 }
 
 #ifdef __clang__
@@ -7039,6 +7048,23 @@ android_answer_query (void)
 
   /* Signal completion.  */
   sem_post (&android_query_sem);
+}
+
+/* Like `android_answer_query'.  However, the query may not have
+   begun; spin until it has.  */
+
+static void
+android_answer_query_spin (void)
+{
+  int n;
+
+  while (!(n = __atomic_load_n (&android_servicing_query,
+				__ATOMIC_SEQ_CST)))
+    eassert (!n);
+
+  /* Note that this function is supposed to be called before
+     `android_begin_query' starts, so clear the service flag.  */
+  android_check_query ();
 }
 
 /* Notice that the Emacs thread will start blocking waiting for a

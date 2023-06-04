@@ -19,7 +19,6 @@
 ## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 set -m
-set -x
 oldpwd=`pwd`
 cd `dirname $0`
 
@@ -273,7 +272,7 @@ fi
 gdbserver_cmd=
 is_root=
 if [ -z "$gdbserver" ]; then
-    gdbserver_bin=/system/bin/gdbserver
+    gdbserver_bin=/system/bin/gdbserver64
 else
     gdbserver_bin=/data/local/tmp/gdbserver
     gdbserver_cat="cat $gdbserver_bin | run-as $package sh -c \
@@ -312,12 +311,12 @@ rm -f /tmp/file-descriptor-stamp
 if [ -z "$gdbserver" ]; then
     if [ "$is_root" = "yes" ]; then
 	adb -s $device shell $gdbserver_bin --multi \
-	    "+/data/local/tmp/debug.$package.socket" --attach $pid >&5 &
-	gdb_socket="localfilesystem:/data/local/tmp/debug.$package.socket"
+	    "0.0.0.0:7564" --attach $pid >&5 &
+	gdb_socket="tcp:7564"
     else
-	adb -s $device shell run-as $package $gdbserver_bin --multi \
-	    "+debug.$package.socket" --attach $pid >&5 &
-	gdb_socket="localfilesystem:$app_data_dir/debug.$package.socket"
+	adb -s $device shell $gdbserver_bin --multi \
+	    "0.0.0.0:7564" --attach $pid >&5 &
+	gdb_socket="tcp:7564"
     fi
 else
     # Normally the program cannot access $gdbserver_bin when it is

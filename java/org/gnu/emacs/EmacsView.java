@@ -630,12 +630,11 @@ public final class EmacsView extends ViewGroup
     /* Obtain the current position of point and set it as the
        selection.  Don't do this under one specific situation: if
        `android_update_ic' is being called in the main thread, trying
-       to synchronize with it can cause a dead lock in the IM
-       manager.  */
+       to synchronize with it can cause a dead lock in the IM manager.
+       See icBeginSynchronous in EmacsService.java for more
+       details.  */
 
-    EmacsService.imSyncInProgress = true;
-    selection = EmacsNative.getSelection (window.handle);
-    EmacsService.imSyncInProgress = false;
+    selection = EmacsService.viewGetSelection (window.handle);
 
     if (selection != null)
       Log.d (TAG, "onCreateInputConnection: current selection is: "
@@ -664,6 +663,10 @@ public final class EmacsView extends ViewGroup
 
     if (inputConnection == null)
       inputConnection = new EmacsInputConnection (this);
+    else
+      /* Reset the composing region, in case there is still composing
+	 text.  */
+      inputConnection.finishComposingText ();
 
     /* Return the input connection.  */
     return inputConnection;

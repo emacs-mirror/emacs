@@ -25,6 +25,8 @@ import java.io.UnsupportedEncodingException;
 
 import java.util.List;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import android.graphics.Matrix;
 import android.graphics.Point;
 
@@ -106,8 +108,17 @@ public final class EmacsService extends Service
      performing drawing calls.  */
   private static final boolean DEBUG_THREADS = false;
 
-  /* Whether or not onCreateInputMethod is calling getSelection.  */
-  public static volatile boolean imSyncInProgress;
+  /* Atomic integer used for synchronization between
+     icBeginSynchronous/icEndSynchronous and viewGetSelection.
+
+     Value is 0 if no query is in progress, 1 if viewGetSelection is
+     being called, and 2 if icBeginSynchronous was called.  */
+  public static final AtomicInteger servicingQuery;
+
+  static
+  {
+    servicingQuery = new AtomicInteger ();
+  };
 
   /* Return the directory leading to the directory in which native
      library files are stored on behalf of CONTEXT.  */
@@ -658,46 +669,79 @@ public final class EmacsService extends Service
     EmacsNative.endSynchronous ();
   }
 
+
+
+  /* IMM functions such as `updateSelection' holds an internal lock
+     that is also taken before `onCreateInputConnection' (in
+     EmacsView.java) is called; when that then asks the UI thread for
+     the current selection, a dead lock results.  To remedy this,
+     reply to any synchronous queries now -- and prohibit more queries
+     for the duration of `updateSelection' -- if EmacsView may have
+     been asking for the value of the region.  */
+
+  public static void
+  icBeginSynchronous ()
+  {
+    /* Set servicingQuery to 2, so viewGetSelection knows it shouldn't
+       proceed.  */
+
+    if (servicingQuery.getAndSet (2) == 1)
+      /* But if viewGetSelection is already in progress, answer it
+	 first.  */
+      EmacsNative.answerQuerySpin ();
+  }
+
+  public static void
+  icEndSynchronous ()
+  {
+    if (servicingQuery.getAndSet (0) != 2)
+      throw new RuntimeException ("incorrect value of `servicingQuery': "
+				  + "likely 1");
+  }
+
+  public static int[]
+  viewGetSelection (short window)
+  {
+    int[] selection;
+
+    /* See if a query is already in progress from the other
+       direction.  */
+    if (!servicingQuery.compareAndSet (0, 1))
+      return null;
+
+    /* Now call the regular getSelection.  Note that this can't race
+       with answerQuerySpin, as `android_servicing_query' can never be
+       2 when icBeginSynchronous is called, so a query will always be
+       started.  */
+    selection = EmacsNative.getSelection (window);
+
+    /* Finally, clear servicingQuery if its value is still 1.  If a
+       query has started from the other side, it ought to be 2.  */
+
+    servicingQuery.compareAndSet (1, 0);
+    return selection;
+  }
+
+
+
   public void
   updateIC (EmacsWindow window, int newSelectionStart,
 	    int newSelectionEnd, int composingRegionStart,
 	    int composingRegionEnd)
   {
-    boolean wasSynchronous;
-
     if (DEBUG_IC)
       Log.d (TAG, ("updateIC: " + window + " " + newSelectionStart
 		   + " " + newSelectionEnd + " "
 		   + composingRegionStart + " "
 		   + composingRegionEnd));
 
-    /* `updateSelection' holds an internal lock that is also taken
-       before `onCreateInputConnection' (in EmacsView.java) is called;
-       when that then asks the UI thread for the current selection, a
-       dead lock results.  To remedy this, reply to any synchronous
-       queries now -- and prohibit more queries for the duration of
-       `updateSelection' -- if EmacsView may have been asking for the
-       value of the region.  */
-
-    wasSynchronous = false;
-    if (EmacsService.imSyncInProgress)
-      {
-	/* `beginSynchronous' will answer any outstanding queries and
-	   signal that one is now in progress, thereby preventing
-	   `getSelection' from blocking.  */
-
-	EmacsNative.beginSynchronous ();
-	wasSynchronous = true;
-      }
-
+    icBeginSynchronous ();
     window.view.imManager.updateSelection (window.view,
 					   newSelectionStart,
 					   newSelectionEnd,
 					   composingRegionStart,
 					   composingRegionEnd);
-
-    if (wasSynchronous)
-      EmacsNative.endSynchronous ();
+    icEndSynchronous ();
   }
 
   public void
@@ -707,7 +751,10 @@ public final class EmacsService extends Service
       Log.d (TAG, "resetIC: " + window);
 
     window.view.setICMode (icMode);
+
+    icBeginSynchronous ();
     window.view.imManager.restartInput (window.view);
+    icEndSynchronous ();
   }
 
   public void
@@ -733,11 +780,15 @@ public final class EmacsService extends Service
 					0);
     info = builder.build ();
 
+
+
     if (DEBUG_IC)
       Log.d (TAG, ("updateCursorAnchorInfo: " + x + " " + y
 		   + " " + yBaseline + "-" + yBottom));
 
+    icBeginSynchronous ();
     window.view.imManager.updateCursorAnchorInfo (window.view, info);
+    icEndSynchronous ();
   }
 
   /* Open a content URI described by the bytes BYTES, a non-terminated

@@ -177,6 +177,12 @@ public final class EmacsNative
      main thread's looper to respond.  */
   public static native void endSynchronous ();
 
+  /* Prevent deadlocks while reliably allowing queries from the Emacs
+     thread to the main thread to complete by waiting for a query to
+     start from the main thread, then answer it; assume that a query
+     is certain to start shortly.  */
+  public static native void answerQuerySpin ();
+
   /* Return whether or not KEYCODE_VOLUME_DOWN, KEYCODE_VOLUME_UP and
      KEYCODE_VOLUME_MUTE should be forwarded to Emacs.  */
   public static native boolean shouldForwardMultimediaButtons ();
