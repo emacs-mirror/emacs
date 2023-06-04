@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl-macs)
 
 (defconst comp--typeof-builtin-types (mapcar (lambda (x)
                                                (append x '(t)))
