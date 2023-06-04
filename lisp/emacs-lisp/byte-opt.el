@@ -447,16 +447,10 @@ for speeding up processing.")
           . ,(byte-optimize-body exps for-effect)))
 
       ;; Needed as long as we run byte-optimize-form after cconv.
-      (`(internal-make-closure . ,_)
-       (and (not for-effect)
-            (progn
-       ;; Look up free vars and mark them to be kept, so that they
-       ;; won't be optimized away.
-       (dolist (var (caddr form))
-         (let ((lexvar (assq var byte-optimize--lexvars)))
-           (when lexvar
-             (setcar (cdr lexvar) t))))
-              form)))
+      (`(internal-make-closure ,vars ,env . ,rest)
+       (if for-effect
+           `(progn ,@(byte-optimize-body env t))
+         `(,fn ,vars ,(mapcar #'byte-optimize-form env) . ,rest)))
 
       (`((lambda . ,_) . ,_)
        (let ((newform (macroexp--unfold-lambda form)))
