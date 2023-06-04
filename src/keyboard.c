@@ -5875,6 +5875,8 @@ coords_in_menu_bar_window (struct frame *f, int x, int y)
 
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Return whether or not the coordinates X and Y are inside the
    tab-bar window of the given frame F.  */
 
@@ -5893,6 +5895,8 @@ coords_in_tab_bar_window (struct frame *f, int x, int y)
 	  && y <= WINDOW_BOTTOM_EDGE_Y (window)
 	  && x <= WINDOW_RIGHT_EDGE_X (window));
 }
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
