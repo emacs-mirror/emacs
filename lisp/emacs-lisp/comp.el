@@ -4448,7 +4448,7 @@ of (commands) to run simultaneously."
   (message "Cache cleared"))
 
 ;;;###autoload
-(defun comp-funciton-type-spec (function)
+(defun comp-function-type-spec (function)
   "Given FUNCTION gives its type specifier.
 Return a cons with its car being the function specifier and its
 cdr being a symbol.

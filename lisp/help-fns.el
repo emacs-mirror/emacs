@@ -711,7 +711,7 @@ the C sources, too."
           (unless (and (symbolp function)
                        (get function 'reader-construct))
             (insert high-usage "\n")
-            (when-let* ((res (comp-funciton-type-spec function))
+            (when-let* ((res (comp-function-type-spec function))
                         (type-spec (car res))
                         (kind (cdr res)))
               (insert (format
