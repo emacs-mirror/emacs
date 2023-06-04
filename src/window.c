@@ -5472,6 +5472,48 @@ window_wants_mode_line (struct window *w)
 
 
 /**
+ * null_header_line_format:
+ *
+ * Return non-zero when header line format FMT indicates that the
+ * header line should not be displayed at all.
+ *
+ * This is when FMT is nil, or if FMT is a cons cell and either its
+ * car is a symbol whose value as a variable is nil or void, or its
+ * car is the symbol ':eval' and its cadr evaluates to nil.
+ */
+static bool
+null_header_line_format (Lisp_Object fmt, struct frame * f)
+{
+  Lisp_Object car;
+  Lisp_Object val;
+
+  if (NILP (fmt))
+    return true;
+
+  if (CONSP (fmt))
+    {
+      car = XCAR (fmt);
+      if (SYMBOLP (car))
+	{
+	  if (EQ (car, QCeval))
+	    {
+	      val = safe_eval_inhibit_quit (XCAR (XCDR (fmt)));
+	      if (!FRAME_LIVE_P (f))
+		signal_error (":eval deleted the frame being displayed", fmt);
+	      return NILP (val);
+	    }
+	  val = find_symbol_value (car);
+	  return (SYMBOLP (car)
+		  && (EQ (val, Qunbound)
+		      || NILP (val)));
+	}
+    }
+
+  return false;
+}
+
+
+/**
  * window_wants_header_line:
  *
  * Return 1 if window W wants a header line and is high enough to
@@ -5491,12 +5533,16 @@ window_wants_header_line (struct window *w)
   Lisp_Object window_header_line_format =
     window_parameter (w, Qheader_line_format);
 
+  struct frame * f = WINDOW_XFRAME(w);
+
   return (WINDOW_LEAF_P (w)
 	  && !MINI_WINDOW_P (w)
 	  && !WINDOW_PSEUDO_P (w)
 	  && !EQ (window_header_line_format, Qnone)
-	  && (!NILP (window_header_line_format)
-	      || !NILP (BVAR (XBUFFER (WINDOW_BUFFER (w)), header_line_format)))
+	  && (!null_header_line_format (window_header_line_format, f)
+	      || !null_header_line_format (BVAR (XBUFFER (WINDOW_BUFFER (w)),
+						 header_line_format),
+					   f))
 	  && (WINDOW_PIXEL_HEIGHT (w)
 	      > (window_wants_mode_line (w)
 		 ? 2 * WINDOW_FRAME_LINE_HEIGHT (w)

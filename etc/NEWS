@@ -451,6 +451,14 @@ hooks named after the feature name, like 'esh-mode-unload-hook'.
 +++
 ** 'copy-tree' now copies records when its optional 2nd argument is non-nil.
 
++++
+** Certain values of 'header-line-format' now inhibit empty header line.
+Emacs now avoids displaying a header line, instead of displaying an
+empty one, when 'header-line-format' is a list whose 'car' is a
+symbol, and either that symbol is ':eval' and the second element of
+the list evaluates to 'nil' or the symbol's value as a variable is
+'nil' or void.
+
 
 * Lisp Changes in Emacs 30.1
 
