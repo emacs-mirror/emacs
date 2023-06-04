@@ -6575,7 +6575,26 @@ case $opsys in
     AC_DEFINE([FIRST_PTY_LETTER], ['p'])
     ;;
 
-  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | openbsd | netbsd | darwin | nacl | android )
+  android )
+    AC_DEFINE([PTY_ITERATION], [int i; for (i = 0; i < 1; ++i)])
+    dnl grantpt may be defined in libc but not declared.  The same
+    dnl goes for posix_openpt.  When that is the case, it means that
+    dnl grantpt or posix_openpt cannot actually be used.
+    AC_CHECK_DECLS([grantpt, posix_openpt])
+    AS_IF([test "x$ac_cv_have_decl_grantpt" = xyes],
+      [AC_DEFINE([PTY_TTY_NAME_SPRINTF],
+        [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])],
+      [AC_DEFINE([PTY_TTY_NAME_SPRINTF],
+        [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])])
+    AS_IF([test "x$ac_cv_have_decl_posix_openpt" = xyes],
+      [AC_DEFINE([PTY_OPEN],
+        [do { fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY); if (fd < 0 && errno == EINVAL) fd = posix_openpt (O_RDWR | O_NOCTTY); } while (false)])
+       AC_DEFINE([PTY_NAME_SPRINTF], [])],
+      [AC_DEFINE([PTY_NAME_SPRINTF], [])
+       AC_DEFINE([PTY_OPEN], [fd = getpt ()])])
+    ;;
+
+  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | openbsd | netbsd | darwin | nacl )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE([UNIX98_PTYS], [1], [Define if the system has Unix98 PTYs.])
