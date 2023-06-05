@@ -2782,9 +2782,12 @@ If ARG is non-nil, show the *erc-protocol* buffer."
 (defun erc-send-action (tgt str &optional force)
   "Send CTCP ACTION information described by STR to TGT."
   (erc-send-ctcp-message tgt (format "ACTION %s" str) force)
-  (erc-display-message
-   nil 'input (current-buffer)
-   'ACTION ?n (erc-current-nick) ?a str ?u "" ?h ""))
+  (let ((erc-insert-pre-hook
+         (cons (lambda (s) ; Leave newline be.
+                 (put-text-property 0 (1- (length s)) 'erc-command 'PRIVMSG s))
+               erc-insert-pre-hook)))
+    (erc-display-message nil 'input (current-buffer)
+                         'ACTION ?n (erc-current-nick) ?a str ?u "" ?h "")))
 
 ;; Display interface
 
@@ -6494,6 +6497,7 @@ Return non-nil only if we actually send anything."
         (setq beg (point))
         (insert-before-markers line)
         (erc-put-text-property beg (point) 'font-lock-face 'erc-input-face)
+        (erc-put-text-property insert-position (point) 'erc-command 'PRIVMSG)
         (insert-before-markers "\n")
         (save-restriction
           (narrow-to-region insert-position (point))

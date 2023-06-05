@@ -109,10 +109,12 @@
     (dolist (prefix prefixes)
       (should (search-forward prefix nil t))
       (should (get-text-property (pos-bol) 'line-prefix))
-      (should (get-text-property (pos-eol) 'line-prefix))
+      (should (get-text-property (1- (pos-eol)) 'line-prefix))
+      (should-not (get-text-property (pos-eol) 'line-prefix))
       (should (equal (get-text-property (pos-bol) 'wrap-prefix)
                      '(space :width erc-fill--wrap-value)))
-      (should (equal (get-text-property (pos-eol) 'wrap-prefix)
+      (should-not (get-text-property (pos-eol) 'wrap-prefix))
+      (should (equal (get-text-property (1- (pos-eol)) 'wrap-prefix)
                      '(space :width erc-fill--wrap-value))))))
 
 ;; Set this variable to t to generate new snapshots after carefully
