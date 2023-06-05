@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl-macs)
 
 (defconst comp--typeof-builtin-types (mapcar (lambda (x)
                                                (append x '(t)))
@@ -1181,8 +1182,8 @@ FN non-nil indicates we are parsing a function lambda list."
       :ret (comp-type-spec-to-cstr ret)))
     (_ (error "Invalid type specifier"))))
 
-(defun comp-cstr-to-type-spec (cstr)
-  "Given CSTR return its type specifier."
+(defun comp--simple-cstr-to-type-spec (cstr)
+  "Given a non comp-cstr-f CSTR return its type specifier."
   (let ((valset (comp-cstr-valset cstr))
         (typeset (comp-cstr-typeset cstr))
         (range (comp-cstr-range cstr))
@@ -1235,6 +1236,20 @@ FN non-nil indicates we are parsing a function lambda list."
       (if negated
           `(not ,final)
         final))))
+
+(defun comp-cstr-to-type-spec (cstr)
+  "Given CSTR return its type specifier."
+  (cl-etypecase cstr
+    (comp-cstr-f
+     `(function
+       ,(mapcar (lambda (x)
+                  (cl-etypecase x
+                    (comp-cstr (comp-cstr-to-type-spec x))
+                    (symbol x)))
+                (comp-cstr-f-args cstr))
+       ,(comp--simple-cstr-to-type-spec (comp-cstr-f-ret cstr))))
+    (comp-cstr
+     (comp--simple-cstr-to-type-spec cstr))))
 
 (provide 'comp-cstr)
 
