@@ -178,6 +178,26 @@ impactfully, the value of the 'field' property for ERC's prompt has
 changed from 't' to the more useful 'erc-prompt', although the
 property of the same name has been retained.
 
+*** Members of insert- and send-related hooks have been reordered.
+Built-in and third-party modules rely on certain hooks for adjusting
+incoming and outgoing messages upon insertion.  And some modules only
+want to do so after others have done their damage.  Traditionally,
+this required various hacks and finagling to achieve.  And while this
+release makes an effort to load modules in a more consistent order,
+that alone isn't enough to ensure similar predictability among
+essential members of important hooks.
+
+Luckily, ERC now leverages a feature introduced in Emacs 27, "hook
+depth," to secure the positions of a few key members of
+'erc-insert-modify-hook' and 'erc-send-modify-hook'.  So far, this
+includes the functions 'erc-button-add-buttons', 'erc-fill',
+'erc-add-timestamp', and 'erc-match-message', which now appear in that
+order, when present, at depths beginning at 20 and ending below 80.
+Of most interest to module authors is the new relative positioning of
+the first two, 'erc-button-add-buttons' and 'erc-fill', which have
+been swapped with respect to their previous places in recent ERC
+versions.
+
 *** ERC now manages timestamp-related properties a bit differently.
 For starters, the 'cursor-sensor-functions' property no longer
 contains unique closures and thus no longer proves effective for

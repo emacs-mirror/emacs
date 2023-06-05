@@ -52,8 +52,8 @@
 ;;;###autoload(autoload 'erc-button-mode "erc-button" nil t)
 (define-erc-module button nil
   "This mode buttonizes all messages according to `erc-button-alist'."
-  ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
-   (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
+  ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 30)
+   (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 30)
    (add-hook 'erc-mode-hook #'erc-button-setup 91)
    (unless erc--updating-modules-p (erc-buffer-do #'erc-button-setup))
    (add-hook 'erc--tab-functions #'erc-button-next)

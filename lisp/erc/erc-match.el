@@ -52,7 +52,7 @@ they are hidden or highlighted.  This is controlled via the variables
 `erc-current-nick-highlight-type'.  For all these highlighting types,
 you can decide whether the entire message or only the sending nick is
 highlighted."
-  ((add-hook 'erc-insert-modify-hook #'erc-match-message 'append)
+  ((add-hook 'erc-insert-modify-hook #'erc-match-message 60)
    (add-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
    (unless erc--updating-modules-p
      (erc-buffer-do #'erc-match--modify-invisibility-spec))

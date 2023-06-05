@@ -2085,6 +2085,39 @@
   (should (eq (erc--normalize-module-symbol 'timestamp) 'stamp))
   (should (eq (erc--normalize-module-symbol 'nickserv) 'services)))
 
+(defun erc-tests--assert-printed-in-subprocess (code expected)
+  (let* ((package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
+                            ((string-prefix-p "erc-" found)))
+                      (intern found)
+                    'erc))
+         ;; This is for integrations testing with managed configs
+         ;; ("starter kits") that use a different package manager.
+         (init (and-let* ((found (getenv "ERC_TESTS_INIT"))
+                          (files (split-string found ","))
+                          ((seq-every-p #'file-exists-p files)))
+                 (mapcan (lambda (f) (list "-l" f)) files)))
+         (prog
+          `(progn
+             ,@(and (not init) (featurep 'compat)
+                    `((require 'package)
+                      (let ((package-load-list '((compat t) (,package t))))
+                        (package-initialize))))
+             (require 'erc)
+             (cl-assert (equal erc-version ,erc-version) t)
+             ,code))
+         (proc (apply #'start-process
+                      (symbol-name (ert-test-name (ert-running-test)))
+                      (current-buffer)
+                      (concat invocation-directory invocation-name)
+                      `("-batch" ,@(or init '("-Q"))
+                        "-eval" ,(format "%S" prog)))))
+    (set-process-query-on-exit-flag proc t)
+    (while (accept-process-output proc 10))
+    (goto-char (point-min))
+    (unless (equal (read (current-buffer)) expected)
+      (message "Exepcted: %S\nGot: %s" expected (buffer-string))
+      (ert-fail "Mismatch"))))
+
 ;; Worrying about which library a module comes from is mostly not
 ;; worth the hassle so long as ERC can find its minor mode.  However,
 ;; bugs involving multiple modules living in the same library may slip
@@ -2092,41 +2125,37 @@
 ;; of its place in the default ordering.
 
 (ert-deftest erc--find-mode ()
-  (let* ((package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
-                            ((string-prefix-p "erc-" found)))
-                      (intern found)
-                    'erc))
-         (prog
-          `(,@(and (featurep 'compat)
-                   `((progn
-                       (require 'package)
-                       (let ((package-load-list '((compat t) (,package t))))
-                         (package-initialize)))))
-            (require 'erc)
-            (let ((mods (mapcar #'cadddr
-                                (cdddr (get 'erc-modules 'custom-type))))
-                  moded)
-              (setq mods
-                    (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
-              (dolist (mod mods)
-                (unless (keywordp mod)
-                  (push (if-let ((mode (erc--find-mode mod)))
-                            mod
-                          (list :missing mod))
-                        moded)))
-              (message "%S"
-                       (sort moded
-                             (lambda (a b)
-                               (string< (symbol-name a) (symbol-name b))))))))
-         (proc (start-process "erc--module-mode-autoloads"
-                              (current-buffer)
-                              (concat invocation-directory invocation-name)
-                              "-batch" "-Q"
-                              "-eval" (format "%S" (cons 'progn prog)))))
-    (set-process-query-on-exit-flag proc t)
-    (while (accept-process-output proc 10))
-    (goto-char (point-min))
-    (should (equal (read (current-buffer)) erc-tests--modules))))
+  (erc-tests--assert-printed-in-subprocess
+   `(let ((mods (mapcar #'cadddr (cdddr (get 'erc-modules 'custom-type))))
+          moded)
+      (setq mods (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
+      (dolist (mod mods)
+        (unless (keywordp mod)
+          (push (if-let ((mode (erc--find-mode mod))) mod (list :missing mod))
+                moded)))
+      (message "%S"
+               (sort moded (lambda (a b)
+                             (string< (symbol-name a) (symbol-name b))))))
+   erc-tests--modules))
+
+(ert-deftest erc--essential-hook-ordering ()
+  (erc-tests--assert-printed-in-subprocess
+   '(progn
+      (erc-update-modules)
+      (message "%S"
+               (list :erc-insert-modify-hook erc-insert-modify-hook
+                     :erc-send-modify-hook erc-send-modify-hook)))
+
+   '( :erc-insert-modify-hook (erc-controls-highlight ; 0
+                               erc-button-add-buttons ; 30
+                               erc-fill ; 40
+                               erc-add-timestamp ; 50
+                               erc-match-message) ; 60
+
+      :erc-send-modify-hook ( erc-controls-highlight ; 0
+                              erc-button-add-buttons ; 30
+                              erc-fill ; 40
+                              erc-add-timestamp)))) ; 50
 
 (ert-deftest erc-migrate-modules ()
   (should (equal (erc-migrate-modules '(autojoin timestamp button))

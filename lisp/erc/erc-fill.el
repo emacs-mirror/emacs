@@ -49,8 +49,8 @@ the channel buffers are filled."
   ;; other modules.  Ideally, this module's processing should happen
   ;; after "morphological" modifications to a message's text but
   ;; before superficial decorations.
-  ((add-hook 'erc-insert-modify-hook #'erc-fill)
-   (add-hook 'erc-send-modify-hook #'erc-fill))
+  ((add-hook 'erc-insert-modify-hook #'erc-fill 40)
+   (add-hook 'erc-send-modify-hook #'erc-fill 40))
   ((remove-hook 'erc-insert-modify-hook #'erc-fill)
    (remove-hook 'erc-send-modify-hook #'erc-fill)))
 
