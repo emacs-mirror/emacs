@@ -135,7 +135,7 @@ use this configuration only if you are running a window system other
 than X that's supported by GDK.  Running this configuration on X is
 known to have problems, such as undesirable frame positioning and
 various issues with keyboard input of sequences such as 'C-;' and
-'C-S-u'.
+'C-S-u'.  Running this on WSL is also known to have problems.
 
 Note that, unlike the X build of Emacs, the PGTK build cannot
 automatically switch to text-mode interface (thus emulating '-nw') if
