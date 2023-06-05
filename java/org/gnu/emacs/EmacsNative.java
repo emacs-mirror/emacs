@@ -221,6 +221,7 @@ public final class EmacsNative
 						       int flags);
   public static native void requestSelectionUpdate (short window);
   public static native void requestCursorUpdates (short window, int mode);
+  public static native void clearInputFlags (short window);
 
 
   /* Return the current value of the selection, or -1 upon

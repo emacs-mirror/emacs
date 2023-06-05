@@ -675,6 +675,7 @@ static void
 android_handle_ime_event (union android_event *event, struct frame *f)
 {
   Lisp_Object text UNINIT;
+  struct android_output *output;
 
   /* First, decode the text if necessary.  */
 
@@ -707,8 +708,23 @@ android_handle_ime_event (union android_event *event, struct frame *f)
       break;
 
     case ANDROID_IME_FINISH_COMPOSING_TEXT:
+
+      if (event->ime.length == 2)
+	{
+	  output = FRAME_ANDROID_OUTPUT (f);
+
+	  /* A new input method has connected to Emacs.  Stop
+	     reporting changes that the previous input method has
+	     asked to monitor.  */
+
+	  output->extracted_text_flags = 0;
+	  output->extracted_text_token = 0;
+	  output->extracted_text_hint = 0;
+	  output->need_cursor_updates = false;
+	}
+
       finish_composing_text (f, event->ime.counter,
-			     event->ime.length);
+			     event->ime.length == 1);
       break;
 
     case ANDROID_IME_SET_COMPOSING_TEXT:
@@ -5573,6 +5589,36 @@ NATIVE_NAME (requestCursorUpdates) (JNIEnv *env, jobject object,
   event.ime.start = 0;
   event.ime.end = 0;
   event.ime.length = mode;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+/* Notice that a new input method connection has been initialized and
+   clear cursor update requests, extracted text requests, and the
+   composing region.  */
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (clearInputFlags) (JNIEnv *env, jobject object,
+			       jshort window)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_FINISH_COMPOSING_TEXT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+
+  /* This value of `length' means that updates to the cursor position
+     and extracted text should not be reported anymore.  */
+
+  event.ime.length = 2;
   event.ime.position = 0;
   event.ime.text = NULL;
   event.ime.counter = ++edit_counter;

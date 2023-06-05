@@ -627,6 +627,10 @@ public final class EmacsView extends ViewGroup
 	return null;
       }
 
+    /* Reset flags set by the previous input method.  */
+
+    EmacsNative.clearInputFlags (window.handle);
+
     /* Obtain the current position of point and set it as the
        selection.  Don't do this under one specific situation: if
        `android_update_ic' is being called in the main thread, trying
@@ -663,10 +667,6 @@ public final class EmacsView extends ViewGroup
 
     if (inputConnection == null)
       inputConnection = new EmacsInputConnection (this);
-    else
-      /* Reset the composing region, in case there is still composing
-	 text.  */
-      inputConnection.finishComposingText ();
 
     /* Return the input connection.  */
     return inputConnection;
