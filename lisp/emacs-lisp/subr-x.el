@@ -504,6 +504,13 @@ Used by `emacs-authors-mode' and `emacs-news-mode'."
                           (progn (forward-line -1) (point))
                         (point-max)))))
 
+(defun eval-command-interactive-spec (command)
+  "Evaluate COMMAND's interactive form and return resultant list.
+If COMMAND has no interactive form, return nil."
+  (advice-eval-interactive-spec
+   (cadr (or (and (symbolp command) (get command 'interactive-form))
+             (interactive-form command)))))
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here

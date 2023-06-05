@@ -43,6 +43,10 @@ define subdir_template
   $(eval
     ifeq ($(findstring src, $(1)), src)
     define changes
+	@echo '        - $(1)/treesit.{h,c}' >>$(FILE)
+	@echo '        - test/$(1)/treesit-tests.el' >>$(FILE)
+	@echo '      when: never' >>$(FILE)
+	@echo '    - changes:' >>$(FILE)
 	@echo '        - $(1)/*.{h,c}' >>$(FILE)
     endef
     else ifeq ($(findstring eieio, $(1)), eieio)
@@ -100,7 +104,9 @@ endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
-TREE-SITTER-FILES ?= $(shell cd .. ; find lisp -name "*-ts-mode-tests.el" | sort | sed s/\\.el/.log/)
+TREE-SITTER-FILES ?= $(shell cd .. ; \
+  find lisp src \( -name "*-ts-mode-tests.el" -o -name "treesit-tests.el" \) | \
+  sort | sed s/\\.el/.log/)
 
 all: generate-test-jobs
 

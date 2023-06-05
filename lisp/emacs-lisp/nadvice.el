@@ -165,6 +165,8 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
          (buffer-string))
        usage))))
 
+;; FIXME: How about renaming this to just `eval-interactive-spec'?
+;; It's not specific to the advice system.
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."
   (cond

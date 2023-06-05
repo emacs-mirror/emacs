@@ -684,6 +684,11 @@ Since circular alias chains now cannot occur, 'function-alias-p',
 'indirect-function' and 'indirect-variable' will never signal an error.
 Their 'noerror' arguments have no effect and are therefore obsolete.
 
+---
+** New function 'eval-command-interactive-spec' in the subr-x library.
+This function evaluates a command's interactive form and returns the
+resultant list.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
