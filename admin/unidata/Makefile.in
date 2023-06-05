@@ -105,19 +105,23 @@ ${unidir}/idna-mapping.el: ${srcdir}/unidata-gen.el \
 charscript.el: ${unidir}/charscript.el
 
 blocks = ${srcdir}/blocks.awk
-
+blocks_sources = ${srcdir}/Blocks.txt ${srcdir}/emoji-data.txt
 ${unidir}/charscript.el: ${blocks}
 
-${unidir}/charscript.el: ${srcdir}/Blocks.txt ${srcdir}/emoji-data.txt
-	$(AM_V_GEN)$(AWK) -f ${blocks} $^ > $@
+# Don't use $^, since that includes the awk script.
+${unidir}/charscript.el: ${blocks_sources}
+	$(AM_V_GEN)$(AWK) -f ${blocks} ${blocks_sources} > $@
 
 .PHONY: emoji-zwj.el
 emoji-zwj.el: ${unidir}/emoji-zwj.el
 
 zwj = ${srcdir}/emoji-zwj.awk
+zwj_sources = ${srcdir}/emoji-zwj-sequences.txt $(srcdir)/emoji-sequences.txt
+${unidir}/emoji-zwj.el: ${zwj}
 
-${unidir}/emoji-zwj.el: ${srcdir}/emoji-zwj-sequences.txt $(srcdir)/emoji-sequences.txt ${zwj}
-	$(AM_V_GEN)$(AWK) -f ${zwj} $^ > $@
+# Don't use $^, since that includes the awk script.
+${unidir}/emoji-zwj.el: ${zwj_sources}
+	$(AM_V_GEN)$(AWK) -f ${zwj} ${zwj_sources} > $@
 
 .PHONY: clean bootstrap-clean distclean maintainer-clean gen-clean
 
