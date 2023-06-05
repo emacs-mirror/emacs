@@ -725,6 +725,16 @@ android_handle_ime_event (union android_event *event, struct frame *f)
 
       finish_composing_text (f, event->ime.counter,
 			     event->ime.length == 1);
+
+      if (event->ime.length == 2)
+	{
+	  /* Now cancel outstanding batch edits if a new input method
+	     has connected.  */
+
+	  f->conversion.batch_edit_flags = 0;
+	  f->conversion.batch_edit_count = 0;
+	}
+
       break;
 
     case ANDROID_IME_SET_COMPOSING_TEXT:
