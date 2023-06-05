@@ -107,12 +107,12 @@ RUN ./configure --with-tree-sitter
 RUN make bootstrap
 
 # Install language grammars.
-RUN mkdir /usr/local/lib/tree-sitter
+RUN mkdir -p /root/.emacs.d/tree-sitter
 RUN git config --global http.sslverify "false"
 # See https://github.com/emacs-tree-sitter/tree-sitter-langs/tree/master/repos
 RUN src/emacs -Q --batch \
     --eval '(setq \
-      treesit-extra-load-path (list "/usr/local/lib/tree-sitter") \
+      treesit-extra-load-path (list "/root/.emacs.d/tree-sitter") \
       treesit-language-source-alist \
       (quote ((c "https://github.com/tree-sitter/tree-sitter-c") \
       (cpp "https://github.com/tree-sitter/tree-sitter-cpp") \
@@ -125,7 +125,7 @@ RUN src/emacs -Q --batch \
       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src") \
       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))))' \
     --eval '(dolist (lang (mapcar (quote car) treesit-language-source-alist)) \
-      (treesit-install-language-grammar lang "/usr/local/lib/tree-sitter"))'
+      (treesit-install-language-grammar lang "/root/.emacs.d/tree-sitter"))'
 
 FROM emacs-base as emacs-gnustep
 
