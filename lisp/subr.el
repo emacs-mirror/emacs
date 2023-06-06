@@ -3773,6 +3773,9 @@ This means that if BODY exits abnormally,
 all of its changes to the current buffer are undone.
 This works regardless of whether undo is enabled in the buffer.
 
+Do not call functions which edit the undo list within BODY; see
+`prepare-change-group'.
+
 This mechanism is transparent to ordinary use of undo;
 if undo is enabled in the buffer and BODY succeeds, the
 user can undo the change normally."
@@ -3838,6 +3841,12 @@ to `activate-change-group' should be inside the `unwind-protect'.
 Once you finish the group, don't use the handle again--don't try to
 finish the same group twice.  For a simple example of correct use, see
 the source code of `atomic-change-group'.
+
+As long as this handle is still in use, do not call functions
+which edit the undo list: if it no longer contains its current
+value, Emacs will not be able to cancel the change group.  This
+includes any \"amalgamating\" commands, such as `delete-char',
+which call `undo-auto-amalgamate'.
 
 The handle records only the specified buffer.  To make a multibuffer
 change group, call this function once for each buffer you want to
