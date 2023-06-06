@@ -331,9 +331,9 @@ public final class EmacsContextMenu
 	   final int yPosition, final int serial)
   {
     Runnable runnable;
-    final Holder<Boolean> rc;
+    final EmacsHolder<Boolean> rc;
 
-    rc = new Holder<Boolean> ();
+    rc = new EmacsHolder<Boolean> ();
 
     runnable = new Runnable () {
 	@Override

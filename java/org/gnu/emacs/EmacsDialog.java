@@ -150,7 +150,7 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     AlertDialog dialog;
     int size;
     EmacsButton button;
-    LinearLayout layout;
+    EmacsDialogButtonLayout layout;
     Button buttonView;
     ViewGroup.LayoutParams layoutParams;
 
@@ -192,19 +192,16 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
       }
     else
       {
-	/* There are more than 4 buttons.  Add them all to a
-	   LinearLayout.  */
-	layout = new LinearLayout (context);
-	layoutParams
-	  = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.WRAP_CONTENT,
-					   ViewGroup.LayoutParams.WRAP_CONTENT);
+	/* There are more than 3 buttons.  Add them all to a special
+	   container widget that handles wrapping.  */
+
+	layout = new EmacsDialogButtonLayout (context);
 
 	for (EmacsButton emacsButton : buttons)
 	  {
 	    buttonView = new Button (context);
 	    buttonView.setText (emacsButton.name);
 	    buttonView.setOnClickListener (emacsButton);
-	    buttonView.setLayoutParams (layoutParams);
 	    buttonView.setEnabled (emacsButton.enabled);
 	    layout.addView (buttonView);
 	  }
@@ -336,9 +333,9 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   display ()
   {
     Runnable runnable;
-    final Holder<Boolean> rc;
+    final EmacsHolder<Boolean> rc;
 
-    rc = new Holder<Boolean> ();
+    rc = new EmacsHolder<Boolean> ();
     runnable = new Runnable () {
 	@Override
 	public void

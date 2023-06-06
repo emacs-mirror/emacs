@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import java.lang.Math;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;

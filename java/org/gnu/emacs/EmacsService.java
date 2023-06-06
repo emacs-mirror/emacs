@@ -71,11 +71,6 @@ import android.util.DisplayMetrics;
 
 import android.widget.Toast;
 
-class Holder<T>
-{
-  T thing;
-};
-
 /* EmacsService is the service that starts the thread running Emacs
    and handles requests by that Emacs instance.  */
 
@@ -282,9 +277,9 @@ public final class EmacsService extends Service
 		final boolean isFocusedByDefault)
   {
     Runnable runnable;
-    final Holder<EmacsView> view;
+    final EmacsHolder<EmacsView> view;
 
-    view = new Holder<EmacsView> ();
+    view = new EmacsHolder<EmacsView> ();
 
     runnable = new Runnable () {
 	public void
@@ -604,10 +599,10 @@ public final class EmacsService extends Service
   public ClipboardManager
   getClipboardManager ()
   {
-    final Holder<ClipboardManager> manager;
+    final EmacsHolder<ClipboardManager> manager;
     Runnable runnable;
 
-    manager = new Holder<ClipboardManager> ();
+    manager = new EmacsHolder<ClipboardManager> ();
 
     runnable = new Runnable () {
 	public void
