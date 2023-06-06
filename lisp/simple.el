@@ -4092,10 +4092,11 @@ default values.")
   "Amalgamate undo if necessary.
 This function can be called before an amalgamating command.  It
 removes the previous `undo-boundary' if a series of such calls
-have been made.  By default `self-insert-command' and
-`delete-char' are the only amalgamating commands, although this
-function could be called by any command wishing to have this
-behavior."
+have been made.  `self-insert-command' and `delete-char' are the
+most common amalgamating commands, although this function can be
+called by any command which desires this behavior.
+`analyze-text-conversion' (which see) is also an amalgamating
+command in most circumstances."
   (let ((last-amalgamating-count
          (undo-auto--last-boundary-amalgamating-number)))
     (setq undo-auto--this-command-amalgamating t)
@@ -10988,6 +10989,9 @@ If the buffer doesn't exist, create it first."
 (defvar electric-pair-preserve-balance)
 (declare-function electric-pair-analyze-conversion "elec-pair.el")
 
+;; Actually in emacs-lisp/timer.el.
+(declare-function timer-set-time "emacs-lisp/timer.el")
+
 (defvar-local post-text-conversion-hook nil
   "Hook run after text is inserted by an input method.
 Each function in this list is run until one returns non-nil.
@@ -11016,57 +11020,99 @@ For each insertion:
     can work.
 
   - Run `post-text-conversion-hook' with `last-command-event' set
-    to the last character of any inserted text to finish up."
+    to the last character of any inserted text to finish up.
+
+Finally, amalgamate recent changes to the undo list with previous
+ones, unless a new line has been inserted or auto-fill has taken
+place.  If undo information is being recorded, make sure
+`undo-auto-current-boundary-timer' will run within the next 5
+seconds."
   (interactive)
-  ;; The list must be processed in reverse.
-  (dolist (edit (reverse text-conversion-edits))
-    ;; Filter out ephemeral edits and deletions.
-    (when (and (stringp (nth 3 edit)))
-      (with-current-buffer (car edit)
-        (if (not (eq (nth 1 edit) (nth 2 edit)))
-            ;; Process this insertion.  (nth 3 edit) is the text which
-            ;; was inserted.
-            (let* ((inserted (nth 3 edit))
-                   ;; Get the first and last characters.
-                   (start (aref inserted 0))
-                   (end (aref inserted (1- (length inserted))))
-                   ;; Figure out whether or not to auto-fill.
-                   (auto-fill-p (or (aref auto-fill-chars start)
-                                    (aref auto-fill-chars end)))
-                   ;; Figure out whether or not a newline was inserted.
-                   (newline-p (string-search "\n" inserted))
-                   ;; FIXME: this leads to an error in
-                   ;; `atomic-change-group', seemingly because
-                   ;; buffer-undo-list is being modified or
-                   ;; prematurely truncated.  Turn it off for now.
-                   (electric-pair-preserve-balance nil))
+  (let ((any-nonephemeral nil))
+    ;; The list must be processed in reverse.
+    (dolist (edit (reverse text-conversion-edits))
+      ;; Filter out ephemeral edits and deletions after point.  Here, we
+      ;; are only interested in insertions or deletions whose contents
+      ;; can be identified.
+      (when (stringp (nth 3 edit))
+        (with-current-buffer (car edit)
+          (if (not (eq (nth 1 edit) (nth 2 edit)))
+              ;; Process this insertion.  (nth 3 edit) is the text which
+              ;; was inserted.
+              (let* ((inserted (nth 3 edit))
+                     ;; Get the first and last characters.
+                     (start (aref inserted 0))
+                     (end (aref inserted (1- (length inserted))))
+                     ;; Figure out whether or not to auto-fill.
+                     (auto-fill-p (or (aref auto-fill-chars start)
+                                      (aref auto-fill-chars end)))
+                     ;; Figure out whether or not a newline was inserted.
+                     (newline-p (string-search "\n" inserted))
+                     ;; Save the current undo list to figure out
+                     ;; whether or not auto-fill has actually taken
+                     ;; place.
+                     (old-undo-list buffer-undo-list)
+                     ;; FIXME: this leads to an error in
+                     ;; `atomic-change-group', seemingly because
+                     ;; buffer-undo-list is being modified or
+                     ;; prematurely truncated.  Turn it off for now.
+                     (electric-pair-preserve-balance nil))
+                (save-excursion
+                  (if (and auto-fill-function newline-p)
+                      (progn (goto-char (nth 2 edit))
+                             (previous-logical-line)
+                             (funcall auto-fill-function))
+                    (when (and auto-fill-function auto-fill-p)
+                      (progn (goto-char (nth 2 edit))
+                             (funcall auto-fill-function))))
+                  ;; Record whether or not this edit should result in
+                  ;; an undo boundary being added.
+                  (setq any-nonephemeral
+                        (or any-nonephemeral newline-p
+                            ;; See if auto-fill has taken place by
+                            ;; comparing the current undo list with
+                            ;; the saved head.
+                            (not (eq old-undo-list
+                                     buffer-undo-list)))))
+                (goto-char (nth 2 edit))
+                (let ((last-command-event end))
+                  (unless (run-hook-with-args-until-success
+                           'post-text-conversion-hook)
+                    (run-hooks 'post-self-insert-hook))))
+            ;; Process this deletion before point.  (nth 2 edit) is the
+            ;; text which was deleted.  Input methods typically prefer
+            ;; to edit words instead of deleting characters off their
+            ;; ends, but they seem to always send proper requests for
+            ;; deletion for punctuation.
+            (when (and (boundp 'electric-pair-delete-adjacent-pairs)
+                       (symbol-value 'electric-pair-delete-adjacent-pairs)
+                       ;; Make sure elec-pair is loaded.
+                       (fboundp 'electric-pair-analyze-conversion)
+                       ;; Only do this if only a single edit happened.
+                       text-conversion-edits)
               (save-excursion
-                (if (and auto-fill-function newline-p)
-                    (progn (goto-char (nth 2 edit))
-                           (previous-logical-line)
-                           (funcall auto-fill-function))
-                  (when (and auto-fill-function auto-fill-p)
-                    (progn (goto-char (nth 2 edit))
-                           (funcall auto-fill-function)))))
-              (goto-char (nth 2 edit))
-              (let ((last-command-event end))
-                (unless (run-hook-with-args-until-success
-                         'post-text-conversion-hook)
-                  (run-hooks 'post-self-insert-hook))))
-          ;; Process this deletion before point.  (nth 2 edit) is the
-          ;; text which was deleted.  Input methods typically prefer
-          ;; to edit words instead of deleting characters off their
-          ;; ends, but they seem to always send proper requests for
-          ;; deletion for punctuation.
-          (when (and (boundp 'electric-pair-delete-adjacent-pairs)
-                     (symbol-value 'electric-pair-delete-adjacent-pairs)
-                     ;; Make sure elec-pair is loaded.
-                     (fboundp 'electric-pair-analyze-conversion)
-                     ;; Only do this if only a single edit happened.
-                     text-conversion-edits)
-            (save-excursion
-              (goto-char (nth 2 edit))
-              (electric-pair-analyze-conversion (nth 3 edit)))))))))
+                (goto-char (nth 2 edit))
+                (electric-pair-analyze-conversion (nth 3 edit))))))))
+    ;; If all edits were ephemeral, make this an amalgamating command.
+    ;; Then, make sure that an undo boundary is placed within the next
+    ;; five seconds.
+    (unless any-nonephemeral
+      (undo-auto-amalgamate)
+      (let ((timer undo-auto-current-boundary-timer))
+        (if timer
+            ;; The timer is already running.  See if it's due to expire
+            ;; within the next five seconds.
+            (let ((time (list (aref timer 1) (aref timer 2)
+                              (aref timer 3))))
+              (unless (<= (time-convert (time-subtract time nil)
+                                        'integer)
+                          5)
+                ;; It's not, so make it run in 5 seconds.
+                (timer-set-time undo-auto-current-boundary-timer
+                                (time-add nil 5))))
+          ;; Otherwise, start it for five seconds from now.
+          (setq undo-auto-current-boundary-timer
+                (run-at-time 5 nil #'undo-auto--boundary-timer)))))))
 
 
 

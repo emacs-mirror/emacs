@@ -600,7 +600,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
       /* Now delete whatever needs to go.  */
 
       del_range (start, end);
-      record_buffer_change (start, start, Qnil);
+      record_buffer_change (start, start, Qt);
 
       /* Don't record changes if TEXT is empty.  */
 
@@ -786,7 +786,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 	{
 	  del_range (start, end);
 	  set_point (start);
-	  record_buffer_change (start, start, Qnil);
+	  record_buffer_change (start, start, Qt);
 	}
 
       /* Now set the markers which denote the composition region.  */
@@ -808,14 +808,14 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
       set_point (start);
 
       if (start != end)
-	record_buffer_change (start, start, Qnil);
+	record_buffer_change (start, start, Qt);
     }
 
   /* Insert the new text.  */
   Finsert (1, &text);
 
   if (start != PT)
-    record_buffer_change (start, PT, Qnil);
+    record_buffer_change (start, PT, Qt);
 
   /* Now move point to an appropriate location.  */
   if (position <= 0)
@@ -1927,27 +1927,24 @@ syms_of_textconv (void)
     doc: /* List of buffers that were last edited as a result of text conversion.
 
 This list can be used while handling a `text-conversion' event to
-determine the changes which have taken place.
+determine which changes have taken place.
 
 Each element of the list describes a single edit in a buffer, of the
 form:
 
     (BUFFER BEG END EPHEMERAL)
 
-If an insertion or a change occured, then BEG and END are markers
-which denote the bounds of the text that was changed or inserted.
+If an insertion or an edit to the buffer text is described, then BEG
+and END are markers which denote the bounds of the text that was
+changed or inserted.  If a deletion is described, then BEG and END are
+the same object.
 
-If EPHEMERAL is t, then the input method will shortly make more
-changes to the text, so any actions that would otherwise be taken
-(such as indenting or automatically filling text) should not take
-place; otherwise, it is a string describing the text which was
-inserted.
+If EPHEMERAL is t, then the input method is preparing to make further
+edits to the text, so any actions that would otherwise be taken, such
+as indenting or automatically filling text, should not take place.
 
-If a deletion occured before point, then BEG and END are the same
-object, and EPHEMERAL is the text which was deleted.
-
-If a deletion occured after point, then BEG and END are also the same
-object, but EPHEMERAL is nil.
+Otherwise, it is either a string containing text that was inserted,
+text deleted before point, or nil if text was deleted after point.
 
 The list contents are ordered later edits first, so you must iterate
 through the list in reverse.  */);
