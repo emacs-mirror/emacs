@@ -45,7 +45,8 @@ declaration.  A FILE with an \"ext:\" prefix is an external file.
 `check-declare' will check such files if they are found, and skip
 them without error if they are not.
 
-Optional ARGLIST specifies FN's arguments, or is t to not specify
+Optional ARGLIST specifies FN's arguments, in the same form as
+in `defun' (including the parentheses); or it is t to not specify
 FN's arguments.  An omitted ARGLIST defaults to t, not nil: a nil
 ARGLIST specifies an empty argument list, and an explicit t
 ARGLIST is a placeholder that allows supplying a later arg.
@@ -163,7 +164,7 @@ of previous VARs.
 (defmacro setq-local (&rest pairs)
   "Make each VARIABLE buffer-local and assign to it the corresponding VALUE.
 
-The arguments are variable/value pairs  For each VARIABLE in a pair,
+The arguments are variable/value pairs.  For each VARIABLE in a pair,
 make VARIABLE buffer-local and assign to it the corresponding VALUE
 of the pair.  The VARIABLEs are literal symbols and should not be quoted.
 
@@ -204,6 +205,7 @@ buffer-local wherever it is set."
 (defun buffer-local-boundp (symbol buffer)
   "Return non-nil if SYMBOL is bound in BUFFER.
 Also see `local-variable-p'."
+  (declare (side-effect-free t))
   (condition-case nil
       (buffer-local-value symbol buffer)
     (:success t)
@@ -297,6 +299,7 @@ value of last one, or nil if there are none."
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive function."
+  (declare (side-effect-free error-free))
   (and (subrp object)
        (not (subr-native-elisp-p object))))
 
@@ -414,6 +417,7 @@ The CONDITION argument is not evaluated.  Do not quote it."
   "Return a new uninterned symbol.
 The name is made by appending `gensym-counter' to PREFIX.
 PREFIX is a string, and defaults to \"g\"."
+  (declare (important-return-value t))
   (let ((num (prog1 gensym-counter
                (setq gensym-counter (1+ gensym-counter)))))
     (make-symbol (format "%s%d" (or prefix "g") num))))
@@ -496,6 +500,7 @@ Defaults to `error'."
   "Return non-nil if OBJECT seems to be a frame configuration.
 Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
+  (declare (pure t) (side-effect-free error-free))
   (and (consp object)
        (eq (car object) 'frame-configuration)))
 
@@ -505,6 +510,7 @@ ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
 was called."
+  (declare (side-effect-free error-free))
   (lambda (&rest args2)
     (apply fun (append args args2))))
 
@@ -823,83 +829,33 @@ of course, also replace TO with a slightly larger value
                 next (+ from (* n inc)))))
       (nreverse seq))))
 
-(defun copy-tree (tree &optional vecp)
+(defun copy-tree (tree &optional vectors-and-records)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
-Contrast to `copy-sequence', which copies only along the cdrs.  With second
-argument VECP, this copies vectors as well as conses."
-  (declare (side-effect-free t))
+Contrast to `copy-sequence', which copies only along the cdrs.
+With the second argument VECTORS-AND-RECORDS non-nil, this
+traverses and copies vectors and records as well as conses."
+  (declare (side-effect-free error-free))
   (if (consp tree)
       (let (result)
 	(while (consp tree)
 	  (let ((newcar (car tree)))
-	    (if (or (consp (car tree)) (and vecp (vectorp (car tree))))
-		(setq newcar (copy-tree (car tree) vecp)))
+	    (if (or (consp (car tree))
+                    (and vectors-and-records
+                         (or (vectorp (car tree)) (recordp (car tree)))))
+		(setq newcar (copy-tree (car tree) vectors-and-records)))
 	    (push newcar result))
 	  (setq tree (cdr tree)))
 	(nconc (nreverse result)
-               (if (and vecp (vectorp tree)) (copy-tree tree vecp) tree)))
-    (if (and vecp (vectorp tree))
+               (if (and vectors-and-records (or (vectorp tree) (recordp tree)))
+                   (copy-tree tree vectors-and-records)
+                 tree)))
+    (if (and vectors-and-records (or (vectorp tree) (recordp tree)))
 	(let ((i (length (setq tree (copy-sequence tree)))))
 	  (while (>= (setq i (1- i)) 0)
-	    (aset tree i (copy-tree (aref tree i) vecp)))
+	    (aset tree i (copy-tree (aref tree i) vectors-and-records)))
 	  tree)
       tree)))
-
-(defvar safe-copy-tree--seen nil
-  "A hash table for conses/vectors/records already seen by safe-copy-tree-1.
-Its key is a cons or vector/record seen by the algorithm, and its
-value is the corresponding cons/vector/record in the copy.")
-
-(defun safe-copy-tree--1 (tree &optional vecp)
-  "Make a copy of TREE, taking circular structure into account.
-If TREE is a cons cell, this recursively copies both its car and its cdr.
-Contrast to `copy-sequence', which copies only along the cdrs.  With second
-argument VECP, this copies vectors and records as well as conses."
-  (cond
-   ((gethash tree safe-copy-tree--seen))
-   ((consp tree)
-    (let* ((result (cons (car tree) (cdr tree)))
-	   (newcons result)
-	   hash)
-      (while (and (not hash) (consp tree))
-	(if (setq hash (gethash tree safe-copy-tree--seen))
-            (setq newcons hash)
-	  (puthash tree newcons safe-copy-tree--seen))
-        (setq tree newcons)
-        (unless hash
-	  (if (or (consp (car tree))
-                  (and vecp (or (vectorp (car tree)) (recordp (car tree)))))
-	      (let ((newcar (safe-copy-tree--1 (car tree) vecp)))
-	        (setcar tree newcar)))
-          (setq newcons (if (consp (cdr tree))
-                            (cons (cadr tree) (cddr tree))
-                          (cdr tree)))
-          (setcdr tree newcons)
-          (setq tree (cdr tree))))
-      (nconc result
-             (if (and vecp (or (vectorp tree) (recordp tree)))
-		 (safe-copy-tree--1 tree vecp) tree))))
-   ((and vecp (or (vectorp tree) (recordp tree)))
-    (let* ((newvec (copy-sequence tree))
-           (i (length newvec)))
-      (puthash tree newvec safe-copy-tree--seen)
-      (setq tree newvec)
-      (while (>= (setq i (1- i)) 0)
-	(aset tree i (safe-copy-tree--1 (aref tree i) vecp)))
-      tree))
-   (t tree)))
-
-(defun safe-copy-tree (tree &optional vecp)
-  "Make a copy of TREE, taking circular structure into account.
-If TREE is a cons cell, this recursively copies both its car and its cdr.
-Contrast to `copy-sequence', which copies only along the cdrs.  With second
-argument VECP, this copies vectors and records as well as conses."
-  (setq safe-copy-tree--seen (make-hash-table :test #'eq))
-  (unwind-protect
-      (safe-copy-tree--1 tree vecp)
-    (clrhash safe-copy-tree--seen)
-    (setq safe-copy-tree--seen nil)))
 
 
 ;;;; Various list-search functions.
@@ -916,6 +872,7 @@ If that is non-nil, the element matches; then `assoc-default'
 
 If no element matches, the value is nil.
 If TEST is omitted or nil, `equal' is used."
+  (declare (important-return-value t))
   (let (found (tail alist) value)
     (while (and tail (not found))
       (let ((elt (car tail)))
@@ -941,6 +898,7 @@ Non-strings in LIST are ignored."
 Compare keys with TEST.  Defaults to `equal'.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (unless test (setq test #'equal))
   (while (and (consp (car alist))
 	      (funcall test (caar alist) key))
@@ -957,12 +915,14 @@ Elements of ALIST that are not conses are ignored."
   "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (assoc-delete-all key alist #'eq))
 
 (defun rassq-delete-all (value alist)
   "Delete from ALIST all elements whose cdr is `eq' to VALUE.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (while (and (consp (car alist))
 	      (eq (cdr (car alist)) value))
     (setq alist (cdr alist)))
@@ -1005,6 +965,7 @@ Example:
   (setf (alist-get \\='b foo nil \\='remove) nil)
 
   foo => ((a . 1))"
+  (declare (important-return-value t))
   (ignore remove) ;;Silence byte-compiler.
   (let ((x (if (not testfn)
                (assq key alist)
@@ -1120,6 +1081,7 @@ any corresponding binding in PARENT, but it does not override corresponding
 bindings in other keymaps of MAPS.
 MAPS can be a list of keymaps or a single keymap.
 PARENT if non-nil should be a keymap."
+  (declare (side-effect-free t))
   `(keymap
     ,@(if (keymapp maps) (list maps) maps)
     ,@parent))
@@ -1260,6 +1222,7 @@ This resolves inheritance and redefinitions.  The returned keymap
 should behave identically to a copy of KEYMAP w.r.t `lookup-key'
 and use in active keymaps and menus.
 Subkeymaps may be modified but are not canonicalized."
+  (declare (important-return-value t))
   ;; FIXME: Problem with the difference between a nil binding
   ;; that hides a binding in an inherited map and a nil binding that's ignored
   ;; to let some further binding visible.  Currently a nil binding hides all.
@@ -1582,6 +1545,7 @@ See also `current-global-map'.")
 
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
+  (declare (side-effect-free t))
   (if (vectorp key)
       (append key nil)
     (mapcar (lambda (c)
@@ -1609,31 +1573,33 @@ EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
 in the current Emacs session, then this function may fail to include
 the `click' modifier."
-  (let ((type event))
-    (if (listp type)
-	(setq type (car type)))
-    (if (symbolp type)
-        ;; Don't read event-symbol-elements directly since we're not
-        ;; sure the symbol has already been parsed.
-	(cdr (internal-event-symbol-parse-modifiers type))
-      (let ((list nil)
-	    (char (logand type (lognot (logior ?\M-\0 ?\C-\0 ?\S-\0
-					       ?\H-\0 ?\s-\0 ?\A-\0)))))
-	(if (not (zerop (logand type ?\M-\0)))
-	    (push 'meta list))
-	(if (or (not (zerop (logand type ?\C-\0)))
-		(< char 32))
-	    (push 'control list))
-	(if (or (not (zerop (logand type ?\S-\0)))
-		(/= char (downcase char)))
-	    (push 'shift list))
-	(or (zerop (logand type ?\H-\0))
-	    (push 'hyper list))
-	(or (zerop (logand type ?\s-\0))
-	    (push 'super list))
-	(or (zerop (logand type ?\A-\0))
-	    (push 'alt list))
-	list))))
+  (declare (side-effect-free t))
+  (unless (stringp event)
+    (let ((type event))
+      (if (listp type)
+	  (setq type (car type)))
+      (if (symbolp type)
+          ;; Don't read event-symbol-elements directly since we're not
+          ;; sure the symbol has already been parsed.
+	  (cdr (internal-event-symbol-parse-modifiers type))
+        (let ((list nil)
+	      (char (logand type (lognot (logior ?\M-\0 ?\C-\0 ?\S-\0
+					         ?\H-\0 ?\s-\0 ?\A-\0)))))
+	  (if (not (zerop (logand type ?\M-\0)))
+	      (push 'meta list))
+	  (if (or (not (zerop (logand type ?\C-\0)))
+		  (< char 32))
+	      (push 'control list))
+	  (if (or (not (zerop (logand type ?\S-\0)))
+		  (/= char (downcase char)))
+	      (push 'shift list))
+	  (or (zerop (logand type ?\H-\0))
+	      (push 'hyper list))
+	  (or (zerop (logand type ?\s-\0))
+	      (push 'super list))
+	  (or (zerop (logand type ?\A-\0))
+	      (push 'alt list))
+	  list)))))
 
 (defun event-basic-type (event)
   "Return the basic type of the given event (all modifiers removed).
@@ -1641,17 +1607,19 @@ The value is a printing character (not upper case) or a symbol.
 EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
 in the current Emacs session, then this function may return nil."
-  (if (consp event)
-      (setq event (car event)))
-  (if (symbolp event)
-      (car (get event 'event-symbol-elements))
-    (let* ((base (logand event (1- ?\A-\0)))
-	   (uncontrolled (if (< base 32) (logior base 64) base)))
-      ;; There are some numbers that are invalid characters and
-      ;; cause `downcase' to get an error.
-      (condition-case ()
-	  (downcase uncontrolled)
-	(error uncontrolled)))))
+  (declare (side-effect-free t))
+  (unless (stringp event)
+    (if (consp event)
+        (setq event (car event)))
+    (if (symbolp event)
+        (car (get event 'event-symbol-elements))
+      (let* ((base (logand event (1- ?\A-\0)))
+	     (uncontrolled (if (< base 32) (logior base 64) base)))
+        ;; There are some numbers that are invalid characters and
+        ;; cause `downcase' to get an error.
+        (condition-case ()
+	    (downcase uncontrolled)
+	  (error uncontrolled))))))
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."
@@ -1660,6 +1628,7 @@ in the current Emacs session, then this function may return nil."
 
 (defun mouse-event-p (object)
   "Return non-nil if OBJECT is a mouse click event."
+  (declare (side-effect-free t))
   ;; is this really correct? maybe remove mouse-movement?
   (memq (event-basic-type object) '(mouse-1 mouse-2 mouse-3 mouse-movement)))
 
@@ -1705,6 +1674,7 @@ nil or (STRING . POSITION)'.
 `posn-timestamp': The time the event occurred, in milliseconds.
 
 For more information, see Info node `(elisp)Click Events'."
+  (declare (side-effect-free t))
   (or (and (consp event) (nth 1 event))
       (event--posn-at-point)))
 
@@ -1713,17 +1683,20 @@ For more information, see Info node `(elisp)Click Events'."
 EVENT should be a click, drag, or key press event.
 
 See `event-start' for a description of the value returned."
+  (declare (side-effect-free t))
   (or (and (consp event) (nth (if (consp (nth 2 event)) 2 1) event))
       (event--posn-at-point)))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
 The return value is a positive integer."
+  (declare (side-effect-free t))
   (if (and (consp event) (integerp (nth 2 event))) (nth 2 event) 1))
 
 (defsubst event-line-count (event)
   "Return the line count of EVENT, a mousewheel event.
 The return value is a positive integer."
+  (declare (side-effect-free t))
   (if (and (consp event) (integerp (nth 3 event))) (nth 3 event) 1))
 
 ;;;; Extracting fields of the positions in an event.
@@ -1733,6 +1706,7 @@ The return value is a positive integer."
 A `posn' object is returned from functions such as `event-start'.
 If OBJ is a valid `posn' object, but specifies a frame rather
 than a window, return nil."
+  (declare (side-effect-free error-free))
   ;; FIXME: Correct the behavior of this function so that all valid
   ;; `posn' objects are recognized, after updating other code that
   ;; depends on its present behavior.
@@ -1746,12 +1720,14 @@ than a window, return nil."
 If POSITION is outside the frame where the event was initiated,
 return that frame instead.  POSITION should be a list of the form
 returned by the `event-start' and `event-end' functions."
+  (declare (side-effect-free t))
   (nth 0 position))
 
 (defsubst posn-area (position)
   "Return the window area recorded in POSITION, or nil for the text area.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (let ((area (if (consp (nth 1 position))
 		  (car (nth 1 position))
 		(nth 1 position))))
@@ -1763,6 +1739,7 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions.
 Returns nil if POSITION does not correspond to any buffer location (e.g.
 a click on a scroll bar)."
+  (declare (side-effect-free t))
   (or (nth 5 position)
       (let ((pt (nth 1 position)))
         (or (car-safe pt)
@@ -1788,6 +1765,7 @@ Select the corresponding window as well."
 The return value has the form (X . Y), where X and Y are given in
 pixels.  POSITION should be a list of the form returned by
 `event-start' and `event-end'."
+  (declare (side-effect-free t))
   (nth 2 position))
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
@@ -1807,6 +1785,7 @@ corresponds to the vertical position of the click in the scroll bar.
 
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (let* ((pair            (posn-x-y position))
          (frame-or-window (posn-window position))
          (frame           (if (framep frame-or-window)
@@ -1852,12 +1831,14 @@ This function does not account for the width on display, like the
 number of visual columns taken by a TAB or image.  If you need
 the coordinates of POSITION in character units, you should use
 `posn-col-row', not this function."
+  (declare (side-effect-free t))
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (nth 3 position))
 
 (defun posn-string (position)
@@ -1865,6 +1846,7 @@ and `event-end' functions."
 Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (let ((x (nth 4 position)))
     ;; Apparently this can also be `handle' or `below-handle' (bug#13979).
     (when (consp x) x)))
@@ -1874,6 +1856,7 @@ and `event-end' functions."
 Value is a list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (nth 7 position))
 
 (defsubst posn-object (position)
@@ -1882,6 +1865,7 @@ Value is a list (image ...) for an image object, a cons cell
 \(STRING . STRING-POS) for a string object, and nil for a buffer position.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
+  (declare (side-effect-free t))
   (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
@@ -1890,12 +1874,14 @@ The return value has the form (DX . DY), where DX and DY are
 given in pixels, and they are relative to the top-left corner of
 the clicked glyph of object at POSITION.  POSITION should be a
 list of the form returned by `event-start' and `event-end'."
+  (declare (side-effect-free t))
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
   "Return the pixel width and height of the object of POSITION.
 The return value has the form (WIDTH . HEIGHT).  POSITION should
 be a list of the form returned by `event-start' and `event-end'."
+  (declare (side-effect-free t))
   (nth 9 position))
 
 (defun values--store-value (value)
@@ -1936,8 +1922,8 @@ be a list of the form returned by `event-start' and `event-end'."
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
 (set-advertised-calling-convention 'indirect-function '(object) "25.1")
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
-(set-advertised-calling-convention 'libxml-parse-xml-region '(start end &optional base-url) "27.1")
-(set-advertised-calling-convention 'libxml-parse-html-region '(start end &optional base-url) "27.1")
+(set-advertised-calling-convention 'libxml-parse-xml-region '(&optional start end base-url) "27.1")
+(set-advertised-calling-convention 'libxml-parse-html-region '(&optional start end base-url) "27.1")
 (set-advertised-calling-convention 'time-convert '(time form) "29.1")
 
 ;;;; Obsolescence declarations for variables, and aliases.
@@ -2656,6 +2642,7 @@ The variable list SPEC is the same as in `if-let*'."
 Uses the `derived-mode-parent' property of the symbol to trace backwards.
 If you just want to check `major-mode', use `derived-mode-p'."
   ;; If MODE is an alias, then look up the real mode function first.
+  (declare (side-effect-free t))
   (when-let ((alias (symbol-function mode)))
     (when (symbolp alias)
       (setq mode alias)))
@@ -2670,6 +2657,7 @@ If you just want to check `major-mode', use `derived-mode-p'."
 (defun derived-mode-p (&rest modes)
   "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  (declare (side-effect-free t))
   (apply #'provided-mode-derived-p major-mode modes))
 
 (defvar-local major-mode--suspended nil)
@@ -2793,6 +2781,7 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 (defsubst autoloadp (object)
   "Non-nil if OBJECT is an autoload."
+  (declare (side-effect-free error-free))
   (eq 'autoload (car-safe object)))
 
 ;; (defun autoload-type (object)
@@ -2837,6 +2826,7 @@ This is to `put' what `defalias' is to `fset'."
 (defun locate-eln-file (eln-file)
   "Locate a natively-compiled ELN-FILE by searching its load path.
 This function looks in directories named by `native-comp-eln-load-path'."
+  (declare (important-return-value t))
   (or (locate-file-internal (concat comp-native-version-dir "/" eln-file)
 		   native-comp-eln-load-path)
       (locate-file-internal
@@ -2868,6 +2858,7 @@ instead.
 This function only works for symbols defined in Lisp files.  For
 symbols that are defined in C files, use `help-C-file-name'
 instead."
+  (declare (important-return-value t))
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
@@ -2994,6 +2985,7 @@ argument, which will be called with the exit status of the
 program before the output is collected.  If STATUS-HANDLER is
 nil, an error is signaled if the program returns with a non-zero
 exit status."
+  (declare (important-return-value t))
   (with-temp-buffer
     (let ((status (apply #'call-process program nil (current-buffer) nil args)))
       (if status-handler
@@ -3014,12 +3006,14 @@ exit status."
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 Signal an error if the program returns with a non-zero exit status.
 Also see `process-lines-ignore-status'."
+  (declare (important-return-value t))
   (apply #'process-lines-handling-status program nil args))
 
 (defun process-lines-ignore-status (program &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 The exit status of the program is ignored.
 Also see `process-lines'."
+  (declare (important-return-value t))
   (apply #'process-lines-handling-status program #'ignore args))
 
 (defun process-live-p (process)
@@ -3048,6 +3042,7 @@ process."
 (defun process-get (process propname)
   "Return the value of PROCESS' PROPNAME property.
 This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
+  (declare (side-effect-free t))
   (plist-get (process-plist process) propname))
 
 (defun process-put (process propname value)
@@ -3288,34 +3283,40 @@ This function is used by the `interactive' code letter \"n\"."
     n))
 
 (defvar read-char-choice-use-read-key nil
-  "Prefer `read-key' when reading a character by `read-char-choice'.
-Otherwise, use the minibuffer.
+  "If non-nil, use `read-key' when reading a character by `read-char-choice'.
+Otherwise, use the minibuffer (this is the default).
 
-When using the minibuffer, the user is less constrained, and can
-use the normal commands available in the minibuffer, and can, for
-instance, switch to another buffer, do things there, and then
-switch back again to the minibuffer before entering the
-character.  This is not possible when using `read-key', but using
-`read-key' may be less confusing to some users.")
+When reading via the minibuffer, you can use the normal commands
+available in the minibuffer, and can, for instance, temporarily
+switch to another buffer, do things there, and then switch back
+to the minibuffer before entering the character.  This is not
+possible when using `read-key', but using `read-key' may be less
+confusing to some users.")
 
 (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
-  "Read and return one of CHARS, prompting for PROMPT.
-Any input that is not one of CHARS is ignored.
+  "Read and return one of the characters in CHARS, prompting with PROMPT.
+CHARS should be a list of single characters.
+The function discards any input character that is not one of CHARS,
+and by default shows a message to the effect that it is not one of
+the expected characters.
 
-By default, the minibuffer is used to read the key
-non-modally (see `read-char-from-minibuffer').  If
+By default, this function uses the minibuffer to read the key
+non-modally (see `read-char-from-minibuffer'), and the optional
+argument INHIBIT-KEYBOARD-QUIT is ignored.  However, if
 `read-char-choice-use-read-key' is non-nil, the modal `read-key'
-function is used instead (see `read-char-choice-with-read-key')."
+function is used instead (see `read-char-choice-with-read-key'),
+and INHIBIT-KEYBOARD-QUIT is passed to it."
   (if (not read-char-choice-use-read-key)
       (read-char-from-minibuffer prompt chars)
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
 
 (defun read-char-choice-with-read-key (prompt chars &optional inhibit-keyboard-quit)
-  "Read and return one of CHARS, prompting for PROMPT.
+  "Read and return one of the characters in CHARS, prompting with PROMPT.
+CHARS should be a list of single characters.
 Any input that is not one of CHARS is ignored.
 
 If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
-`keyboard-quit' events while waiting for a valid input.
+`keyboard-quit' events while waiting for valid input.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
@@ -3611,22 +3612,24 @@ Also discard all previous input in the minibuffer."
     (sit-for 2)))
 
 (defvar y-or-n-p-use-read-key nil
-  "Prefer `read-key' when answering a \"y or n\" question by `y-or-n-p'.
-Otherwise, use the minibuffer.
+  "Use `read-key' when reading answers to \"y or n\" questions by `y-or-n-p'.
+Otherwise, use the `read-from-minibuffer' to read the answers.
 
-When using the minibuffer, the user is less constrained, and can
-use the normal commands available in the minibuffer, and can, for
-instance, switch to another buffer, do things there, and then
-switch back again to the minibuffer before entering the
-character.  This is not possible when using `read-key', but using
-`read-key' may be less confusing to some users.")
+When reading via the minibuffer, you can use the normal commands
+available in the minibuffer, and can, for instance, temporarily
+switch to another buffer, do things there, and then switch back
+to the minibuffer before entering the character.  This is not
+possible when using `read-key', but using `read-key' may be less
+confusing to some users.")
 
 (defvar from--tty-menu-p nil
   "Non-nil means the current command was invoked from a TTY menu.")
 (defun use-dialog-box-p ()
-  "Say whether the current command should prompt the user via a dialog box."
+  "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
-       (or (listp last-nonmenu-event)   ; invoked by a mouse event
+       (or (consp last-nonmenu-event)   ; invoked by a mouse event
+           (and (null last-nonmenu-event)
+                (consp last-input-event))
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
@@ -3635,7 +3638,9 @@ character.  This is not possible when using `read-key', but using
 Return t if answer is \"y\" and nil if it is \"n\".
 
 PROMPT is the string to display to ask the question; `y-or-n-p'
-adds \"(y or n) \" to it.
+adds \"(y or n) \" to it.  If PROMPT is a non-empty string, and
+it ends with a non-space character, a space character will be
+appended to it.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
@@ -3657,8 +3662,9 @@ If the user enters `recenter', `scroll-up', or `scroll-down'
 responses, perform the requested window recentering or scrolling
 and ask again.
 
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil.
+If dialog boxes are supported, this function will use a dialog box
+if `use-dialog-box' is non-nil and the last input event was produced
+by a mouse, or by some window-system gesture, or via a menu.
 
 By default, this function uses the minibuffer to read the key.
 If `y-or-n-p-use-read-key' is non-nil, `read-key' is used
@@ -3955,6 +3961,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 
 (defun copy-overlay (o)
   "Return a copy of overlay O."
+  (declare (important-return-value t))
   (let ((o1 (if (overlay-buffer o)
                 (make-overlay (overlay-start o) (overlay-end o)
                               ;; FIXME: there's no easy way to find the
@@ -4037,6 +4044,7 @@ See also `locate-user-emacs-file'.")
 
 (defsubst buffer-narrowed-p ()
   "Return non-nil if the current buffer is narrowed."
+  (declare (side-effect-free t))
   (/= (- (point-max) (point-min)) (buffer-size)))
 
 (defmacro with-restriction (start end &rest rest)
@@ -4051,6 +4059,7 @@ to other portions of the buffer, use `without-restriction' with the
 same LABEL argument.
 
 \(fn START END [:label LABEL] BODY)"
+  (declare (indent 0) (debug t))
   (if (eq (car rest) :label)
       `(internal--with-restriction ,start ,end (lambda () ,@(cddr rest))
                                  ,(cadr rest))
@@ -4060,7 +4069,7 @@ same LABEL argument.
   "Helper function for `with-restriction', which see."
   (save-restriction
     (narrow-to-region start end)
-    (if label (internal--lock-narrowing label))
+    (if label (internal--label-restriction label))
     (funcall body)))
 
 (defmacro without-restriction (&rest rest)
@@ -4073,6 +4082,7 @@ restrictions set by `with-restriction' with the same LABEL argument
 are lifted.
 
 \(fn [:label LABEL] BODY)"
+  (declare (indent 0) (debug t))
   (if (eq (car rest) :label)
       `(internal--without-restriction (lambda () ,@(cddr rest))
                                     ,(cadr rest))
@@ -4081,7 +4091,7 @@ are lifted.
 (defun internal--without-restriction (body &optional label)
   "Helper function for `without-restriction', which see."
   (save-restriction
-    (if label (internal--unlock-narrowing label))
+    (if label (internal--unlabel-restriction label))
     (widen)
     (funcall body)))
 
@@ -4161,7 +4171,8 @@ See Info node `(elisp)Security Considerations'.
 If the optional POSIX argument is non-nil, ARGUMENT is quoted
 according to POSIX shell quoting rules, regardless of the
 system's shell."
-(cond
+  (declare (important-return-value t))
+  (cond
    ((and (not posix) (eq system-type 'ms-dos))
     ;; Quote using double quotes, but escape any existing quotes in
     ;; the argument with backslashes.
@@ -4278,6 +4289,7 @@ or byte-code."
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
+  (declare (important-return-value t))
   (let ((raw-field (get-char-property (field-beginning pos) 'field)))
     (if (eq raw-field 'boundary)
 	(get-char-property (1- (field-end pos)) 'field)
@@ -4293,6 +4305,7 @@ string; otherwise returna 40-character string.
 Note that SHA-1 is not collision resistant and should not be used
 for anything security-related.  See `secure-hash' for
 alternatives."
+  (declare (side-effect-free t))
   (secure-hash 'sha1 object start end binary))
 
 (defun function-get (f prop &optional autoload)
@@ -4300,6 +4313,7 @@ alternatives."
 If AUTOLOAD is non-nil and F is autoloaded, try to load it
 in the hope that it will set PROP.  If AUTOLOAD is `macro', do it only
 if it's an autoloaded macro."
+  (declare (important-return-value t))
   (let ((val nil))
     (while (and (symbolp f)
                 (null (setq val (get f prop)))
@@ -5255,6 +5269,7 @@ In other words, all back-references in the form `\\&' and `\\N'
 are substituted with actual strings matched by the last search.
 Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
+  (declare (side-effect-free t))
   (let ((match (match-string 0 string)))
     (save-match-data
       (match-data--translate (- (match-beginning 0)))
@@ -5316,6 +5331,7 @@ A non-subregexp context is for example within brackets, or within a
 repetition bounds operator `\\=\\{...\\}', or right after a `\\'.
 If START is non-nil, it should be a position in REGEXP, smaller
 than POS, and known to be in a subregexp context."
+  (declare (important-return-value t))
   ;; Here's one possible implementation, with the great benefit that it
   ;; reuses the regexp-matcher's own parser, so it understands all the
   ;; details of the syntax.  A disadvantage is that it needs to match the
@@ -5397,6 +5413,7 @@ case that you wish to retain zero-length substrings when splitting on
 whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
+  (declare (important-return-value t))
   (let* ((keep-nulls (not (if separators omit-nulls t)))
 	 (rexp (or separators split-string-default-separators))
 	 (start 0)
@@ -5454,6 +5471,7 @@ Only some SEPARATORs will work properly.
 
 Note that this is not intended to protect STRINGS from
 interpretation by shells, use `shell-quote-argument' for that."
+  (declare (important-return-value t))
   (let* ((sep (or separator " "))
          (re (concat "[\\\"]" "\\|" (regexp-quote sep))))
     (mapconcat
@@ -5468,6 +5486,7 @@ interpretation by shells, use `shell-quote-argument' for that."
 It understands Emacs Lisp quoting within STRING, such that
   (split-string-and-unquote (combine-and-quote-strings strs)) == strs
 The SEPARATOR regexp defaults to \"\\s-+\"."
+  (declare (important-return-value t))
   (let ((sep (or separator "\\s-+"))
 	(i (string-search "\"" string)))
     (if (null i)
@@ -5535,6 +5554,7 @@ To replace only the first match (if any), make REGEXP match up to \\\\='
 and replace a sub-expression, e.g.
   (replace-regexp-in-string \"\\\\(foo\\\\).*\\\\\\='\" \"bar\" \" foo foo\" nil nil 1)
     => \" bar foo\""
+  (declare (important-return-value t))
 
   ;; To avoid excessive consing from multiple matches in long strings,
   ;; don't just call `replace-match' continually.  Walk down the
@@ -5584,7 +5604,7 @@ See also `string-equal'."
   "Return non-nil if PREFIX is a prefix of STRING.
 If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
-  (declare (pure t) (side-effect-free t))
+  (declare (side-effect-free t))
   (let ((prefix-length (length prefix)))
     (if (> prefix-length (length string)) nil
       (eq t (compare-strings prefix 0 prefix-length string
@@ -5594,7 +5614,7 @@ to case differences."
   "Return non-nil if SUFFIX is a suffix of STRING.
 If IGNORE-CASE is non-nil, the comparison is done without paying
 attention to case differences."
-  (declare (pure t) (side-effect-free t))
+  (declare (side-effect-free t))
   (let ((start-pos (- (length string) (length suffix))))
     (and (>= start-pos 0)
          (eq t (compare-strings suffix nil nil
@@ -5890,6 +5910,7 @@ from `standard-syntax-table' otherwise."
 (defun syntax-after (pos)
   "Return the raw syntax descriptor for the char after POS.
 If POS is outside the buffer's accessible portion, return nil."
+  (declare (important-return-value t))
   (unless (or (< pos (point-min)) (>= pos (point-max)))
     (let ((st (if parse-sexp-lookup-properties
 		  (get-char-property pos 'syntax-table))))
@@ -6704,6 +6725,7 @@ Examples of version conversion:
    \"22.8beta3\"       (22 8 -2 3)
 
 See documentation for `version-separator' and `version-regexp-alist'."
+  (declare (side-effect-free t))
   (unless (stringp ver)
     (error "Version must be a string"))
   ;; Change .x.y to 0.x.y
@@ -6834,6 +6856,7 @@ etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
+  (declare (side-effect-free t))
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 (defun version<= (v1 v2)
@@ -6844,6 +6867,7 @@ etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
+  (declare (side-effect-free t))
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
@@ -6854,6 +6878,7 @@ etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
+  (declare (side-effect-free t))
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 (defvar package--builtin-versions
@@ -6976,7 +7001,11 @@ returned list are in the same order as in TREE.
   "Trim STRING of leading string matching REGEXP.
 
 REGEXP defaults to \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
+  (declare (important-return-value t))
+  (if (string-match (if regexp
+                        (concat "\\`\\(?:" regexp "\\)")
+                      "\\`[ \t\n\r]+")
+                    string)
       (substring string (match-end 0))
     string))
 
@@ -6985,7 +7014,9 @@ REGEXP defaults to \"[ \\t\\n\\r]+\"."
 
 REGEXP defaults to  \"[ \\t\\n\\r]+\"."
   (declare (side-effect-free t))
-  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
+  (let ((i (string-match-p (if regexp
+                               (concat "\\(?:" regexp "\\)\\'")
+                             "[ \t\n\r]+\\'")
                            string)))
     (if i (substring string 0 i) string)))
 
@@ -6993,6 +7024,7 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
   "Trim STRING of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.
 
 TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
+  (declare (important-return-value t))
   (string-trim-left (string-trim-right string trim-right) trim-left))
 
 ;; The initial anchoring is for better performance in searching matches.
@@ -7167,7 +7199,7 @@ CONDITION is either:
 - the symbol t, to always match,
 - the symbol nil, which never matches,
 - a regular expression, to match a buffer name,
-- a predicate function that takes a buffer object and ARG as
+- a predicate function that takes BUFFER-OR-NAME and ARG as
   arguments, and returns non-nil if the buffer matches,
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
@@ -7193,8 +7225,8 @@ CONDITION is either:
                        (string-match-p condition (buffer-name buffer)))
                       ((pred functionp)
                        (if (eq 1 (cdr (func-arity condition)))
-                           (funcall condition buffer)
-                         (funcall condition buffer arg)))
+                           (funcall condition buffer-or-name)
+                         (funcall condition buffer-or-name arg)))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)
@@ -7217,12 +7249,13 @@ CONDITION is either:
     (funcall match (list condition))))
 
 (defun match-buffers (condition &optional buffers arg)
-  "Return a list of buffers that match CONDITION.
-See `buffer-match-p' for details on CONDITION.  By default all
-buffers are checked, this can be restricted by passing an
-optional argument BUFFERS, set to a list of buffers to check.
-ARG is passed to `buffer-match', for predicate conditions in
-CONDITION."
+  "Return a list of buffers that match CONDITION, or nil if none match.
+See `buffer-match-p' for various supported CONDITIONs.
+By default all buffers are checked, but the optional
+argument BUFFERS can restrict that: its value should be
+an explicit list of buffers to check.
+Optional argument ARG is passed to `buffer-match-p', for
+predicate conditions in CONDITION."
   (let (bufs)
     (dolist (buf (or buffers (buffer-list)))
       (when (buffer-match-p condition (get-buffer buf) arg)

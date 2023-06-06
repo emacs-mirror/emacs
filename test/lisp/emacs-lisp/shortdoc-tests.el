@@ -65,6 +65,49 @@
         (when buf
           (kill-buffer buf))))))
 
+(defun shortdoc-tests--to-ascii (x)
+  "Translate Unicode arrows to ASCII for making the test work everywhere."
+  (cond ((consp x)
+         (cons (shortdoc-tests--to-ascii (car x))
+               (shortdoc-tests--to-ascii (cdr x))))
+        ((stringp x)
+         (thread-last x
+                      (string-replace "⇒" "=>")
+                      (string-replace "→" "->")))
+        (t x)))
+
+(ert-deftest shortdoc-function-examples-test ()
+  "Test the extraction of usage examples of some Elisp functions."
+  (should (equal '((list . "(delete 2 (list 1 2 3 4))\n    => (1 3 4)\n  (delete \"a\" (list \"a\" \"b\" \"c\" \"d\"))\n    => (\"b\" \"c\" \"d\")"))
+                 (shortdoc-tests--to-ascii
+                  (shortdoc-function-examples 'delete))))
+  (should (equal '((alist . "(assq 'foo '((foo . bar) (zot . baz)))\n    => (foo . bar)")
+		   (list . "(assq 'b '((a . 1) (b . 2)))\n    => (b . 2)"))
+                 (shortdoc-tests--to-ascii
+                  (shortdoc-function-examples 'assq))))
+  (should (equal '((regexp . "(string-match-p \"^[fo]+\" \"foobar\")\n    => 0"))
+                 (shortdoc-tests--to-ascii
+                  (shortdoc-function-examples 'string-match-p)))))
+
+(ert-deftest shortdoc-help-fns-examples-function-test ()
+  "Test that `shortdoc-help-fns-examples-function' correctly prints ELisp function examples."
+  (with-temp-buffer
+    (shortdoc-help-fns-examples-function 'string-fill)
+    (should (equal "\n  Examples:\n\n  (string-fill \"Three short words\" 12)\n    => \"Three short\\nwords\"\n  (string-fill \"Long-word\" 3)\n    => \"Long-word\"\n\n"
+                   (shortdoc-tests--to-ascii
+                    (buffer-substring-no-properties (point-min) (point-max)))))
+    (erase-buffer)
+    (shortdoc-help-fns-examples-function 'assq)
+    (should (equal "\n  Examples:\n\n  (assq 'foo '((foo . bar) (zot . baz)))\n    => (foo . bar)\n\n  (assq 'b '((a . 1) (b . 2)))\n    => (b . 2)\n\n"
+                   (shortdoc-tests--to-ascii
+                    (buffer-substring-no-properties (point-min) (point-max)))))
+    (erase-buffer)
+    (shortdoc-help-fns-examples-function 'string-trim)
+    (should (equal "\n  Example:\n\n  (string-trim \" foo \")\n    => \"foo\"\n\n"
+                   (shortdoc-tests--to-ascii
+                    (buffer-substring-no-properties (point-min)
+                                                    (point-max)))))))
+
 (provide 'shortdoc-tests)
 
 ;;; shortdoc-tests.el ends here

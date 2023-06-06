@@ -586,7 +586,8 @@ Such a function takes one optional parameter, a buffer position (defaults to
 point), and returns nil or t.  This variable contains nil for languages which
 don't have EOL terminated statements. "
   t nil
-  (c c++ objc) 'c-at-macro-vsemi-p
+  (c objc) 'c-at-macro-vsemi-p
+  c++ 'c-c++-vsemi-p
   awk 'c-awk-at-vsemi-p)
 (c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
 
@@ -2634,9 +2635,12 @@ clause.  An arglist may or may not follow such a keyword."
   c++ '("requires"))
 
 (c-lang-defconst c-fun-name-substitute-key
-  ;; An adorned regular expression which matches any member of
+  ;; An unadorned regular expression which matches any member of
   ;; `c-fun-name-substitute-kwds'.
-  t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
+  t (c-make-keywords-re 'appendable (c-lang-const c-fun-name-substitute-kwds)))
+;; We use 'appendable, so that we get "\\>" on the regexp, but without a further
+;; character, which would mess up backward regexp search from just after the
+;; keyword.  If only XEmacs had \\_>.  ;-(
 (c-lang-defvar c-fun-name-substitute-key
 	       (c-lang-const c-fun-name-substitute-key))
 

@@ -1370,9 +1370,14 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (setq this-command 'yank)
   (mouse-set-point click)
-  (term-send-raw-string (gui-get-primary-selection)))
+  ;; As we have moved point, bind `select-active-regions' to prevent
+  ;; the `deactivate-mark' call in `term-send-raw-string' from
+  ;; changing the primary selection (resulting in consecutive calls to
+  ;; `term-mouse-paste' each sending different text). (bug#58608).
+  ;; FIXME: Why does this command change point at all?
+  (let ((select-active-regions nil))
+    (term-send-raw-string (gui-get-primary-selection))))
 
 (defun term-paste ()
   "Insert the last stretch of killed text at point."

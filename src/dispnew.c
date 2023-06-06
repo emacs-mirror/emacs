@@ -1385,7 +1385,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 	       || matrix_dim.width != pool->ncolumns);
 
   /* Enlarge the glyph pool.  */
-  if (INT_MULTIPLY_WRAPV (matrix_dim.height, matrix_dim.width, &needed))
+  if (ckd_mul (&needed, matrix_dim.height, matrix_dim.width))
     memory_full (SIZE_MAX);
   if (needed > pool->nglyphs)
     {
@@ -2212,10 +2212,16 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     w->pixel_left = 0;
     w->left_col = 0;
-    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f)
-      + (!NILP (Vtab_bar_position) ? FRAME_TOOL_BAR_HEIGHT (f) : 0);
-    w->top_line = FRAME_MENU_BAR_LINES (f)
-      + (!NILP (Vtab_bar_position) ? FRAME_TOOL_BAR_LINES (f) : 0);
+
+    /* Note that tab and tool bar windows appear above the internal
+       border, as enforced by WINDOW_TOP_EDGE_Y.  */
+
+    w->pixel_top = (FRAME_MENU_BAR_HEIGHT (f)
+		    + (!NILP (Vtab_bar_position)
+		       ? FRAME_TOOL_BAR_HEIGHT (f) : 0));
+    w->top_line = (FRAME_MENU_BAR_LINES (f)
+		   + (!NILP (Vtab_bar_position)
+		      ? FRAME_TOOL_BAR_LINES (f) : 0));
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
@@ -3747,6 +3753,14 @@ update_window (struct window *w, bool force_p)
 		invisible_rows_marked = true;
 	      }
 	  }
+
+      /* If the window doesn't display its mode line, make sure the
+         corresponding row of the current glyph matrix is disabled, so
+         that if and when the mode line is displayed again, it will be
+         cleared and completely redrawn.  */
+      if (!window_wants_mode_line (w))
+	SET_MATRIX_ROW_ENABLED_P (w->current_matrix,
+				  w->current_matrix->nrows - 1, false);
 
       /* Was display preempted?  */
       paused_p = row < end;
@@ -6639,8 +6653,8 @@ init_display_interactive (void)
        change.  It's not clear what better we could do.  The rest of
        the code assumes that (width + 2) * height * sizeof (struct glyph)
        does not overflow and does not exceed PTRDIFF_MAX or SIZE_MAX.  */
-    if (INT_ADD_WRAPV (width, 2, &area)
-	|| INT_MULTIPLY_WRAPV (height, area, &area)
+    if (ckd_add (&area, width, 2)
+	|| ckd_mul (&area, area, height)
 	|| min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph) < area)
       fatal ("screen size %dx%d too big", width, height);
   }

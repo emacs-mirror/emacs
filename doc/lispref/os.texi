@@ -182,7 +182,9 @@ is over, and, together with @code{before-init-time}, provides the
 measurement of how long it took.
 
 @item
-It runs the normal hook @code{after-init-hook}.
+It runs the normal hooks @code{after-init-hook} and
+@code{delayed-warnings-hook}.  The latter shows any warnings emitted
+during previous stages of startup, which are automatically delayed.
 
 @item
 If the buffer @file{*scratch*} exists and is still in Fundamental mode
@@ -1288,12 +1290,22 @@ the remote connection has no associated user, it will instead return
 @end defun
 
 @cindex GID
+@defun group-real-gid
+This function returns the real @acronym{GID} of the Emacs process.
+@end defun
+
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
 @end defun
 
-@defun group-real-gid
-This function returns the real @acronym{GID} of the Emacs process.
+@defun file-group-gid
+This function returns the connection-local value for the user's
+effective @acronym{GID}.  Similar to @code{file-user-uid}, if
+@code{default-directory} is local, this is equivalent to
+@code{group-gid}, but for remote files (@pxref{Remote Files, , ,
+emacs, The GNU Emacs Manual}), it will return the @acronym{GID} for
+the user associated with that remote connection; if the remote
+connection has no associated user, it will instead return -1.
 @end defun
 
 @defun system-users

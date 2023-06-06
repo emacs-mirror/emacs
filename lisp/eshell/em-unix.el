@@ -91,14 +91,29 @@ Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
-(defcustom eshell-rm-interactive-query (= (user-uid) 0)
-  "If non-nil, `rm' will query before removing anything."
-  :type 'boolean
+(define-widget 'eshell-interactive-query 'radio
+  "When to interatively query the user about a particular operation.
+If t, always query.  If nil, never query.  If `root', query when
+the user is logged in as root (including when `default-directory'
+is remote with a root user)."
+  :args '((const :tag "Never" nil)
+          (const :tag "Always" t)
+          (const :tag "When root" root)))
+
+(defcustom eshell-rm-interactive-query 'root
+  "When `rm' should query before removing anything.
+If t, always query.  If nil, never query.  If `root', query when
+the user is logged in as root (including when `default-directory'
+is remote with a root user)."
+  :type 'eshell-interactive-query
   :group 'eshell-unix)
 
-(defcustom eshell-mv-interactive-query (= (user-uid) 0)
-  "If non-nil, `mv' will query before overwriting anything."
-  :type 'boolean
+(defcustom eshell-mv-interactive-query 'root
+  "When `mv' should query before overwriting anything.
+If t, always query.  If nil, never query.  If `root', query when
+the user is logged in as root (including when `default-directory'
+is remote with a root user)."
+  :type 'eshell-interactive-query
   :group 'eshell-unix)
 
 (defcustom eshell-mv-overwrite-files t
@@ -106,9 +121,12 @@ Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
-(defcustom eshell-cp-interactive-query (= (user-uid) 0)
-  "If non-nil, `cp' will query before overwriting anything."
-  :type 'boolean
+(defcustom eshell-cp-interactive-query 'root
+  "When `cp' should query before overwriting anything.
+If t, always query.  If nil, never query.  If `root', query when
+the user is logged in as root (including when `default-directory'
+is remote with a root user)."
+  :type 'eshell-interactive-query
   :group 'eshell-unix)
 
 (defcustom eshell-cp-overwrite-files t
@@ -116,9 +134,12 @@ Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
-(defcustom eshell-ln-interactive-query (= (user-uid) 0)
-  "If non-nil, `ln' will query before overwriting anything."
-  :type 'boolean
+(defcustom eshell-ln-interactive-query 'root
+  "When `ln' should query before overwriting anything.
+If t, always query.  If nil, never query.  If `root', query when
+the user is logged in as root (including when `default-directory'
+is remote with a root user)."
+  :type 'eshell-interactive-query
   :group 'eshell-unix)
 
 (defcustom eshell-ln-overwrite-files nil
@@ -145,9 +166,10 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
   (setq-local eshell-complex-commands
-	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
-		  "cat" "time" "cp" "mv" "make" "du" "diff")
-		eshell-complex-commands)))
+	      (append '("grep" "egrep" "fgrep" "agrep" "rgrep"
+                        "glimpse" "locate" "cat" "time" "cp" "mv"
+                        "make" "du" "diff")
+		      eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
 (defalias 'eshell/basename 'file-name-nondirectory)
@@ -157,6 +179,17 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 (defvar em-preview)
 (defvar em-recursive)
 (defvar em-verbose)
+
+(defun eshell-interactive-query-p (value)
+  "Return non-nil if a command should query the user according to VALUE.
+If VALUE is nil, return nil (never query).  If `root', return
+non-nil if the user is logged in as root (including when
+`default-directory' is remote with a root user; see
+`file-user-uid').  If VALUE is any other non-nil value, return
+non-nil (always query)."
+  (if (eq value 'root)
+      (= (file-user-uid) 0)
+    value))
 
 (defun eshell/man (&rest args)
   "Invoke man, flattening the arguments appropriately."
@@ -248,7 +281,8 @@ argument."
      :usage "[OPTION]... FILE...
 Remove (unlink) the FILE(s).")
    (unless em-interactive
-     (setq em-interactive eshell-rm-interactive-query))
+     (setq em-interactive (eshell-interactive-query-p
+                           eshell-rm-interactive-query)))
    (if (and force-removal em-interactive)
        (setq em-interactive nil))
    (while args
@@ -522,7 +556,8 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 [OPTION] DIRECTORY...")
    (let ((no-dereference t))
      (eshell-mvcpln-template "mv" "moving" 'rename-file
-			     eshell-mv-interactive-query
+                             (eshell-interactive-query-p
+                              eshell-mv-interactive-query)
 			     eshell-mv-overwrite-files))))
 
 (put 'eshell/mv 'eshell-no-numeric-conversions t)
@@ -560,7 +595,8 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    (if archive
        (setq preserve t no-dereference t em-recursive t))
    (eshell-mvcpln-template "cp" "copying" 'copy-file
-			   eshell-cp-interactive-query
+                           (eshell-interactive-query-p
+                            eshell-cp-interactive-query)
 			   eshell-cp-overwrite-files preserve)))
 
 (put 'eshell/cp 'eshell-no-numeric-conversions t)
@@ -593,7 +629,8 @@ with `--symbolic'.  When creating hard links, each TARGET must exist.")
 			     (if symbolic
 				 'make-symbolic-link
 			       'add-name-to-file)
-			     eshell-ln-interactive-query
+                             (eshell-interactive-query-p
+                              eshell-ln-interactive-query)
 			     eshell-ln-overwrite-files))))
 
 (put 'eshell/ln 'eshell-no-numeric-conversions t)
@@ -772,6 +809,10 @@ external command."
 (defun eshell/agrep (&rest args)
   "Use Emacs grep facility instead of calling external agrep."
   (eshell-grep "agrep" args))
+
+(defun eshell/rgrep (&rest args)
+  "Use Emacs grep facility instead of calling external rgrep."
+  (eshell-grep "grep" (append '("-rH") args) t))
 
 (defun eshell/glimpse (&rest args)
   "Use Emacs grep facility instead of calling external glimpse."
@@ -955,7 +996,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/whoami (&rest _args)
   "Make \"whoami\" Tramp aware."
-  (or (file-remote-p default-directory 'user) (user-login-name)))
+  (eshell-user-login-name))
 
 (defvar eshell-diff-window-config nil)
 

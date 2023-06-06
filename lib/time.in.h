@@ -20,6 +20,13 @@
 #endif
 @PRAGMA_COLUMNS@
 
+/* This file uses #include_next of a system file that defines time_t.
+   For the 'year2038' module to work right, <config.h> needs to have been
+   included before.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* Don't get in the way of glibc when it includes time.h merely to
    declare a few standard symbols, rather than to declare all the
    symbols.  (However, skip this for MinGW as it treats __need_time_t
@@ -44,6 +51,12 @@
 # endif
 
 # @INCLUDE_NEXT@ @NEXT_TIME_H@
+
+/* This file uses _GL_ATTRIBUTE_DEPRECATED, GNULIB_POSIXCHECK,
+   HAVE_RAW_DECL_*.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
 
 /* NetBSD 5.0 mis-defines NULL.  */
 # include <stddef.h>
@@ -141,6 +154,22 @@ _GL_FUNCDECL_SYS (timespec_getres, int, (struct timespec *ts, int base)
 #  endif
 _GL_CXXALIAS_SYS (timespec_getres, int, (struct timespec *ts, int base));
 _GL_CXXALIASWARN (timespec_getres);
+# endif
+
+/* Return the number of seconds that have elapsed since the Epoch.  */
+# if @GNULIB_TIME@
+#  if @REPLACE_TIME@
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    define time rpl_time
+#   endif
+_GL_FUNCDECL_RPL (time, time_t, (time_t *__tp));
+_GL_CXXALIAS_RPL (time, time_t, (time_t *__tp));
+#  else
+_GL_CXXALIAS_SYS (time, time_t, (time_t *__tp));
+#  endif
+#  if __GLIBC__ >= 2
+_GL_CXXALIASWARN (time);
+#  endif
 # endif
 
 /* Sleep for at least RQTP seconds unless interrupted,  If interrupted,
@@ -327,7 +356,9 @@ _GL_CXXALIASWARN (strptime);
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    define ctime rpl_ctime
 #   endif
+#   ifndef __cplusplus
 _GL_ATTRIBUTE_DEPRECATED
+#   endif
 _GL_FUNCDECL_RPL (ctime, char *, (time_t const *__tp)
                                  _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (ctime, char *, (time_t const *__tp));

@@ -502,6 +502,11 @@ list."
       (sit-for 0)
     (error nil)))
 
+(defun eshell-user-login-name ()
+  "Return the connection-aware value of the user's login name.
+See also `user-login-name'."
+  (or (file-remote-p default-directory 'user) (user-login-name)))
+
 (defun eshell-read-passwd-file (file)
   "Return an alist correlating gids to group names in FILE."
   (let (names)

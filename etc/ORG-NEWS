@@ -332,7 +332,7 @@ When the block type starts from the upper case, structure template
 will now insert =#+BEGIN_TYPE=.  Previously, lower-case =#+begin_type= was inserted unconditionally.
 *** New ox-latex tabbing support for tables.
 
-Latex tables can now be exported to the latex tabbing environment
+LaTeX tables can now be exported to the latex tabbing environment
 tabbing environment]].
 This is done by adding =#+ATTR_LATEX: :mode tabbing= at the top
 of the table.
@@ -4284,7 +4284,7 @@ parameters specific to some pre-defined translators, e.g.,
 ~:environment~ and ~:booktabs~ for ~orgtbl-to-latex~.  See translators
 docstrings (including ~orgtbl-to-generic~) for details.
 
-*** Non-floating minted listings in Latex export
+*** Non-floating minted listings in LaTeX export
 
 It is not possible to specify =#+attr_latex: :float nil= in conjunction
 with source blocks exported by the minted package.
@@ -6540,7 +6540,7 @@ that Calc formulas can operate on them.
 
 *** Hyperlinks
 
-**** Org-Bibtex -- major improvements
+**** Org-BibTeX -- major improvements
 
      Provides support for managing bibtex bibliographical references
      data in headline properties.  Each headline corresponds to a

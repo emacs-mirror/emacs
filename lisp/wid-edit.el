@@ -499,7 +499,7 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
 
 (defmacro widget-specify-insert (&rest form)
   "Execute FORM without inheriting any text properties."
-   (declare (debug body))
+   (declare (debug (body)))
   `(save-restriction
     (let ((inhibit-read-only t)
 	  (inhibit-modification-hooks t))
@@ -4038,6 +4038,7 @@ is inline."
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
   :format "%{%t%}: %[Toggle%]  %v\n"
+  :match (lambda (_widget value) (booleanp value))
   :on "on (non-nil)"
   :off "off (nil)")
 

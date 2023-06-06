@@ -42,9 +42,10 @@
 (declare-function shortdoc-add-function "shortdoc")
 (declare-function tramp-dissect-file-name "tramp")
 (declare-function tramp-file-name-equal-p "tramp")
-(declare-function tramp-tramp-file-p "tramp")
 (declare-function tramp-rename-files "tramp-cmds")
 (declare-function tramp-rename-these-files "tramp-cmds")
+(declare-function tramp-set-connection-local-variables-for-buffer "tramp")
+(declare-function tramp-tramp-file-p "tramp")
 (defvar eshell-path-env)
 (defvar ido-read-file-name-non-ido)
 (defvar info-lookup-alist)
@@ -53,7 +54,7 @@
 (defvar shortdoc--groups)
 (defvar tramp-current-connection)
 (defvar tramp-postfix-host-format)
-(defvar tramp-use-ssh-controlmaster-options)
+(defvar tramp-use-connection-share)
 
 ;;; Fontification of `read-file-name':
 
@@ -302,7 +303,7 @@ NAME must be equal to `tramp-current-connection'."
 ;; Bug#45518.  So we don't use ssh ControlMaster options.
 (defun tramp-compile-disable-ssh-controlmaster-options ()
   "Don't allow ssh ControlMaster while compiling."
-  (setq-local tramp-use-ssh-controlmaster-options nil))
+  (setq-local tramp-use-connection-share 'suppress))
 
 (with-eval-after-load 'compile
   (add-hook 'compilation-mode-hook
@@ -548,6 +549,14 @@ See `tramp-process-attributes-ps-format'.")
   (connection-local-set-profiles
    '(:application tramp :machine "localhost")
    local-profile))
+
+;; Set connection-local variables for buffers visiting a file.
+
+(add-hook 'find-file-hook #'tramp-set-connection-local-variables-for-buffer -50)
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (remove-hook
+             'find-file-hook #'tramp-set-connection-local-variables-for-buffer)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda () (unload-feature 'tramp-integration 'force)))

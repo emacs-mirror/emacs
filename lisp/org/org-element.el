@@ -2462,7 +2462,7 @@ CDR is a plist containing `:key', `:value', `:begin', `:end',
 	  (org-element-property :value keyword)))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 (defconst org-element--latex-begin-environment
   "^[ \t]*\\\\begin{\\([A-Za-z0-9*]+\\)}"
@@ -3412,7 +3412,7 @@ CONTENTS is the contents of the object."
   (format "/%s/" contents))
 
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 (defun org-element-latex-fragment-parser ()
   "Parse LaTeX fragment at point, if any.
@@ -5329,7 +5329,7 @@ seconds.")
   "Duration, as a time value, of the pause between synchronizations.
 See `org-element-cache-sync-duration' for more information.")
 
-(defvar org-element--cache-self-verify t
+(defvar org-element--cache-self-verify nil
   "Activate extra consistency checks for the cache.
 
 This may cause serious performance degradation depending on the value

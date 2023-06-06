@@ -18,6 +18,11 @@
 #ifndef SHA256_H
 # define SHA256_H 1
 
+/* This file uses HAVE_OPENSSL_SHA256.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 # include <stdio.h>
 # include <stdint.h>
 

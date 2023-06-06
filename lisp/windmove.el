@@ -724,6 +724,8 @@ from the opposite side of the frame."
                                            nil windmove-wrap-around 'nomini)))
     (cond ((or (null other-window) (window-minibuffer-p other-window))
            (user-error "No window %s from selected window" dir))
+          ((window-minibuffer-p (selected-window))
+           (user-error "Can't swap window with the minibuffer"))
           (t
            (window-swap-states nil other-window)))))
 

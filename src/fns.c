@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include <vla.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "lisp.h"
 #include "bignum.h"
@@ -439,20 +440,31 @@ If string STR1 is greater, the value is a positive number N;
 }
 
 /* Check whether the platform allows access to unaligned addresses for
-   size_t integers without trapping or undue penalty (a few cycles is OK).
+   size_t integers without trapping or undue penalty (a few cycles is OK),
+   and that a word-sized memcpy can be used to generate such an access.
 
    This whitelist is incomplete but since it is only used to improve
    performance, omitting cases is safe.  */
-#if defined __x86_64__|| defined __amd64__	\
-    || defined __i386__ || defined __i386	\
-    || defined __arm64__ || defined __aarch64__	\
-    || defined __powerpc__ || defined __powerpc	\
-    || defined __ppc__ || defined __ppc		\
-    || defined __s390__ || defined __s390x__
+#if (defined __x86_64__|| defined __amd64__		\
+     || defined __i386__ || defined __i386		\
+     || defined __arm64__ || defined __aarch64__	\
+     || defined __powerpc__ || defined __powerpc	\
+     || defined __ppc__ || defined __ppc		\
+     || defined __s390__ || defined __s390x__)		\
+  && defined __OPTIMIZE__
 #define HAVE_FAST_UNALIGNED_ACCESS 1
 #else
 #define HAVE_FAST_UNALIGNED_ACCESS 0
 #endif
+
+/* Load a word from a possibly unaligned address.  */
+static inline size_t
+load_unaligned_size_t (const void *p)
+{
+  size_t x;
+  memcpy (&x, p, sizeof x);
+  return x;
+}
 
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
@@ -497,17 +509,12 @@ Symbols are also allowed; their print names are used instead.  */)
       if (HAVE_FAST_UNALIGNED_ACCESS)
 	{
 	  /* First compare entire machine words.  */
-	  typedef size_t word_t;
-	  int ws = sizeof (word_t);
-	  const word_t *w1 = (const word_t *) SDATA (string1);
-	  const word_t *w2 = (const word_t *) SDATA (string2);
-	  while (b < nb - ws + 1)
-	    {
-	      if (UNALIGNED_LOAD_SIZE (w1, b / ws)
-		  != UNALIGNED_LOAD_SIZE (w2, b / ws))
-		break;
-	      b += ws;
-	    }
+	  int ws = sizeof (size_t);
+	  const char *w1 = SSDATA (string1);
+	  const char *w2 = SSDATA (string2);
+	  while (b < nb - ws + 1 &&    load_unaligned_size_t (w1 + b)
+		                    == load_unaligned_size_t (w2 + b))
+	    b += ws;
 	}
 
       /* Scan forward to the differing byte.  */
@@ -1960,6 +1967,20 @@ assq_no_quit (Lisp_Object key, Lisp_Object alist)
   return Qnil;
 }
 
+/* Assq but doesn't signal.  Unlike assq_no_quit, this function still
+   detects circular lists; like assq_no_quit, this function does not
+   allow quits and never signals.  If anything goes wrong, it returns
+   Qnil.  */
+Lisp_Object
+assq_no_signal (Lisp_Object key, Lisp_Object alist)
+{
+  Lisp_Object tail = alist;
+  FOR_EACH_TAIL_SAFE (tail)
+    if (CONSP (XCAR (tail)) && EQ (XCAR (XCAR (tail)), key))
+      return XCAR (tail);
+  return Qnil;
+}
+
 DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
        doc: /* Return non-nil if KEY is equal to the car of an element of ALIST.
 The value is actually the first element of ALIST whose car equals KEY.
@@ -2917,8 +2938,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  else
 	    {
 	      ptrdiff_t product;
-	      if (INT_MULTIPLY_WRAPV (size, len, &product)
-		  || product != size_byte)
+	      if (ckd_mul (&product, size, len) || product != size_byte)
 		error ("Attempt to change byte length of a string");
 	      for (idx = 0; idx < size_byte; idx++)
 		*p++ = str[idx % len];
@@ -3182,7 +3202,9 @@ DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
 Return t if answer is yes, and nil if the answer is no.
 
 PROMPT is the string to display to ask the question; `yes-or-no-p'
-appends `yes-or-no-prompt' (default \"(yes or no) \") to it.
+appends `yes-or-no-prompt' (default \"(yes or no) \") to it.  If
+PROMPT is a non-empty string, and it ends with a non-space character,
+a space character will be appended to it.
 
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.
@@ -3191,16 +3213,21 @@ If the `use-short-answers' variable is non-nil, instead of asking for
 \"yes\" or \"no\", this function will ask for \"y\" or \"n\" (and
 ignore the value of `yes-or-no-prompt').
 
-If dialog boxes are supported, a dialog box will be used
-if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
+If dialog boxes are supported, this function will use a dialog box
+if `use-dialog-box' is non-nil and the last input event was produced
+by a mouse, or by some window-system gesture, or via a menu.  */)
   (Lisp_Object prompt)
 {
-  Lisp_Object ans;
+  Lisp_Object ans, val;
 
   CHECK_STRING (prompt);
 
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && use_dialog_box && ! NILP (last_input_event))
+  if (!NILP (last_input_event)
+      && (CONSP (last_nonmenu_event)
+	  || (NILP (last_nonmenu_event) && CONSP (last_input_event))
+	  || (val = find_symbol_value (Qfrom__tty_menu_p),
+	      (!NILP (val) && !EQ (val, Qunbound))))
+      && use_dialog_box)
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);
@@ -3214,6 +3241,12 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   if (use_short_answers)
     return call1 (intern ("y-or-n-p"), prompt);
 
+  {
+    char *s = SSDATA (prompt);
+    ptrdiff_t len = strlen (s);
+    if ((len > 0) && !isspace (s[len - 1]))
+      prompt = CALLN (Fconcat, prompt, build_string (" "));
+  }
   prompt = CALLN (Fconcat, prompt, Vyes_or_no_prompt);
 
   specpdl_ref count = SPECPDL_INDEX ();
@@ -6121,29 +6154,40 @@ second optional argument ABSOLUTE is non-nil, the value counts the lines
 from the absolute start of the buffer, disregarding the narrowing.  */)
   (register Lisp_Object position, Lisp_Object absolute)
 {
-  ptrdiff_t pos, start = BEGV_BYTE;
+  ptrdiff_t pos_byte, start_byte = BEGV_BYTE;
 
   if (MARKERP (position))
-    pos = marker_position (position);
+    {
+      /* We don't trust the byte position if the marker's buffer is
+         not the current buffer.  */
+      if (XMARKER (position)->buffer != current_buffer)
+	pos_byte = CHAR_TO_BYTE (marker_position (position));
+      else
+	pos_byte = marker_byte_position (position);
+    }
   else if (NILP (position))
-    pos = PT;
+    pos_byte = PT_BYTE;
   else
     {
       CHECK_FIXNUM (position);
-      pos = XFIXNUM (position);
+      ptrdiff_t pos = XFIXNUM (position);
+      /* Check that POSITION is valid. */
+      if (pos < BEG || pos > Z)
+	args_out_of_range_3 (position, make_int (BEG), make_int (Z));
+      pos_byte = CHAR_TO_BYTE (pos);
     }
 
   if (!NILP (absolute))
-    start = BEG_BYTE;
+    start_byte = BEG_BYTE;
+  else if (NILP (absolute))
+    pos_byte = clip_to_bounds (BEGV_BYTE, pos_byte, ZV_BYTE);
 
-  /* Check that POSITION is in the accessible range of the buffer, or,
-     if we're reporting absolute positions, in the buffer. */
-  if (NILP (absolute) && (pos < BEGV || pos > ZV))
-    args_out_of_range_3 (make_int (pos), make_int (BEGV), make_int (ZV));
-  else if (!NILP (absolute) && (pos < 1 || pos > Z))
-    args_out_of_range_3 (make_int (pos), make_int (1), make_int (Z));
+  /* Check that POSITION is valid. */
+  if (pos_byte < BEG_BYTE || pos_byte > Z_BYTE)
+    args_out_of_range_3 (make_int (BYTE_TO_CHAR (pos_byte)),
+			 make_int (BEG), make_int (Z));
 
-  return make_int (count_lines (start, CHAR_TO_BYTE (pos)) + 1);
+  return make_int (count_lines (start_byte, pos_byte) + 1);
 }
 
 
@@ -6358,4 +6402,5 @@ For best results this should end in a space.  */);
   defsubr (&Sbuffer_line_statistics);
 
   DEFSYM (Qreal_this_command, "real-this-command");
+  DEFSYM (Qfrom__tty_menu_p, "from--tty-menu-p");
 }

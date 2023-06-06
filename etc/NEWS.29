@@ -91,24 +91,6 @@ available, and includes support for animated WebP images.  To disable
 WebP support, use the '--without-webp' configure flag.  Image
 specifiers can now use ':type webp'.
 
-+++
-** Emacs has been ported to the Haiku operating system.
-The configuration process should automatically detect and build for
-Haiku.  There is also an optional window-system port to Haiku, which
-can be enabled by configuring Emacs with the option '--with-be-app',
-which will require the Haiku Application Kit development headers and a
-C++ compiler to be present on your system.  If Emacs is not built with
-the option '--with-be-app', the resulting Emacs will only run in
-text-mode terminals.
-
-To enable Cairo support, ensure that the Cairo and FreeType
-development files are present on your system, and configure Emacs with
-'--with-be-cairo'.
-
-Unlike X, there is no compile-time option to enable or disable
-double-buffering; it is always enabled.  To disable it, change the
-frame parameter 'inhibit-double-buffering' instead.
-
 ---
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
@@ -126,6 +108,16 @@ option '--without-xinput2' to disable this support.
 '(featurep 'xinput2)' can be used to test for the presence of XInput 2
 support from Lisp programs.
 
+---
+** Emacs can now be optionally built with the Cairo XCB backend.
+Configure Emacs with the '--with-cairo-xcb' option to use the Cairo
+XCB backend; the default is not to use it.  This backend makes Emacs
+moderately faster when running over X connections with high latency,
+but is currently known to crash when Emacs repeatedly closes and opens
+a display connection to the same terminal; this could happen, for
+example, if you repeatedly visit files via emacsclient in a single
+client frame, each time deleting the frame with 'C-x C-c'.
+
 +++
 ** Emacs now supports being built with pure GTK.
 To use this option, make sure the GTK 3 (version 3.22.23 or later) and
@@ -138,6 +130,29 @@ than X that's supported by GDK.  Running this configuration on X is
 known to have problems, such as undesirable frame positioning and
 various issues with keyboard input of sequences such as 'C-;' and
 'C-S-u'.
+
+Note that, unlike the X build of Emacs, the PGTK build cannot
+automatically switch to text-mode interface (thus emulating '-nw') if
+it cannot determine the default display; it will instead complain and
+ask you to invoke it with the explicit '-nw' option.
+
++++
+** Emacs has been ported to the Haiku operating system.
+The configuration process should automatically detect and build for
+Haiku.  There is also an optional window-system port to Haiku, which
+can be enabled by configuring Emacs with the option '--with-be-app',
+which will require the Haiku Application Kit development headers and a
+C++ compiler to be present on your system.  If Emacs is not built with
+the option '--with-be-app', the resulting Emacs will only run in
+text-mode terminals.
+
+To enable Cairo support, ensure that the Cairo and FreeType
+development files are present on your system, and configure Emacs with
+'--with-be-cairo'.
+
+Unlike X, there is no compile-time option to enable or disable
+double-buffering; it is always enabled.  To disable it, change the
+frame parameter 'inhibit-double-buffering' instead.
 
 ---
 ** Emacs no longer reduces the size of the Japanese dictionary.
@@ -218,13 +233,13 @@ of 'user-emacs-directory'.
 
 +++
 ** The image commands have changed key bindings.
-In previous Emacs versions, images have had the '+', '-' and 'r' keys
-bound when point is over an image.  In Emacs 29.1, additional commands
-were added, and this made it more likely that users would trigger the
-image commands by mistake.  To avoid this, all image commands have
-moved to the 'i' keymap, so '+' is now 'i +', '-' is now 'i -', and
-'r' is now 'i r'.  In addition, these commands are now repeating, so
-you can rotate an image twice by saying 'i r r', for instance.
+In previous Emacs versions, the '+', '-' and 'r' keys were bound when
+point was over an image.  In Emacs 29.1, additional commands have been
+added, and this made it more likely that users would trigger the image
+commands by mistake.  To avoid this, all image commands have been
+moved to the 'i' prefix keymap, so '+' is now 'i +', '-' is now 'i -',
+and 'r' is now 'i r'.  In addition, these commands are now repeating,
+so you can rotate an image twice by saying 'i r r', for instance.
 
 +++
 ** Emacs now picks the correct coding-system for X input methods.
@@ -380,7 +395,7 @@ this user option to nil to revert back to the old behavior.
 ---
 ** Support for old EIEIO functions is not autoloaded any more.
 You need an explicit '(require 'eieio-compat)' to use 'defmethod'
-and 'defgeneric' (which have been made obsolete in Emacs 25.1 with
+and 'defgeneric' (which were made obsolete in Emacs 25.1 by
 'cl-defmethod' and 'cl-defgeneric').
 Similarly you might need to '(require 'eieio-compat)' before loading
 files that were compiled with an old EIEIO (Emacs<25).
@@ -497,7 +512,7 @@ the 'nlinum' package from GNU ELPA instead.  The former has better
 performance, but the latter is closer to a drop-in replacement.
 
 1. To use 'display-line-numbers-mode', add something like this to your
-   Init file:
+   init file:
 
     (global-display-line-numbers-mode 1)
     ;; Alternatively, to use it only in programming modes:
@@ -517,7 +532,7 @@ performance, but the latter is closer to a drop-in replacement.
 
 ---
 ** The thumbs.el library is now obsolete.
-We recommend using command 'image-dired' instead.
+We recommend using the 'image-dired' command instead.
 
 ---
 ** The autoarg.el library is now marked obsolete.
@@ -577,7 +592,7 @@ encoding, only for decoding.
 ** New user option 'major-mode-remap-alist' to specify favorite major modes.
 This user option lets you remap the default modes (e.g. 'perl-mode' or
 'latex-mode') to your favorite ones (e.g. 'cperl-mode' or
-'LaTeX-mode') without having to use 'defalias', which can have
+'LaTeX-mode') instead of having to use 'defalias', which can have
 undesirable side effects.
 This applies to all modes specified via 'auto-mode-alist', file-local
 variables, etc.
@@ -587,6 +602,8 @@ variables, etc.
 
 ---
 ** New user option 'electric-quote-replace-consecutive'.
+This allows you to disable the default behavior of consecutive single
+quotes being replaced with a double quote.
 
 ---
 ** Emacs is now capable of editing files with very long lines.
@@ -795,13 +812,14 @@ part of the buffer.
 
 +++
 ** New user option 'set-message-functions'.
-It allows selecting more functions for 'set-message-function'
-in addition to the default function that handles messages
-in the active minibuffer.  The most useful are 'inhibit-message'
-that allows specifying a list of messages to inhibit via
-'inhibit-message-regexps', and 'set-multi-message' that
-accumulates recent messages and displays them stacked
-in the echo area.
+It allows more flexible control of how echo-area messages are displayed
+by adding functions to this list.  The default value is a list of one
+element: 'set-minibuffer-message', which displays echo-area messages
+at the end of the minibuffer text when the minibuffer is active.
+Other useful functions include 'inhibit-message', which allows
+specifying, via 'inhibit-message-regexps', the list of messages whose
+display should be inhibited; and 'set-multi-message' that accumulates
+recent messages and displays them stacked together.
 
 ---
 ** New user option 'find-library-include-other-files'.
@@ -854,17 +872,17 @@ This value stands for the value of the corresponding attribute of the
 inheriting from other faces.
 
 +++
-** New X resource: "borderThickness".
+** New X resource "borderThickness".
 This controls the thickness of the external borders of the menu bars
 and pop-up menus.
 
 +++
-** New X resource: "inputStyle".
+** New X resource "inputStyle".
 This controls the style of the pre-edit and status areas of X input
 methods.
 
 +++
-** New X resources: "highlightForeground" and "highlightBackground".
+** New X resources "highlightForeground" and "highlightBackground".
 Only in the Lucid build, this controls colors used for highlighted
 menu item widgets.
 
@@ -901,7 +919,7 @@ frame's contents will be hidden, leaving only the title bar on display.
 ---
 ** New user option 'x-gtk-use-native-input'.
 This controls whether or not GTK input methods are used by Emacs,
-instead of XIM input methods.
+instead of XIM input methods.  Defaults to nil.
 
 +++
 ** New user option 'use-system-tooltips'.
@@ -998,17 +1016,17 @@ combinations in a graphical menu system.
 
 +++
 *** New command 'emoji-search' (bound to 'C-x 8 e s').
-This command lets you search for Emoji based on names.
+This command lets you search for and insert an Emoji based on names.
 
 +++
 *** New command 'emoji-list' (bound to 'C-x 8 e l').
 This command lists all Emoji (categorized by themes) in a special
-buffer and lets you choose one of them.
+buffer and lets you choose one of them to insert.
 
 ---
 *** New command 'emoji-recent' (bound to 'C-x 8 e r').
 This command lets you choose among the Emoji you have recently
-inserted.
+inserted and insert it.
 
 +++
 *** New command 'emoji-describe' (bound to 'C-x 8 e d').
@@ -1019,6 +1037,11 @@ works for non-Emoji characters.)
 *** New commands 'emoji-zoom-increase' and 'emoji-zoom-decrease'.
 These are bound to 'C-x 8 e +' and 'C-x 8 e -', respectively.  They
 can be used on any character, but are mainly useful for Emoji.
+
+---
+*** New command 'emoji-zoom-reset'.
+This is bound to 'C-x 8 e 0', and undoes any size changes performed by
+'emoji-zoom-increase' and 'emoji-zoom-decrease'.
 
 ---
 *** New input method 'emoji'.
@@ -1037,7 +1060,7 @@ quotes removed.
 
 ---
 *** 'M-x apropos-variable' output now includes values of variables.
-Such apropos buffer is more easily viewed with outlining after
+Such an apropos buffer is more easily viewed with outlining after
 enabling 'outline-minor-mode' in 'apropos-mode'.
 
 +++
@@ -1069,7 +1092,7 @@ This has been changed to:
 +++
 *** The 'C-h .' command now accepts a prefix argument.
 'C-u C-h .' would previously inhibit displaying a warning message if
-there's no local help at point.  This has been changed to call
+there was no local help at point.  This has been changed to call
 'button-describe'/'widget-describe' and display button/widget help
 instead.
 
@@ -1122,7 +1145,7 @@ helpful commands for various tasks.  You can toggle the display using
 'C-h C-q'.
 
 ** Emacs now comes with Org v9.6.
-See the file "ORG-NEWS" for user-visible changes in Org.
+See the file "etc/ORG-NEWS" for user-visible changes in Org.
 
 ** Outline Mode
 
@@ -1185,12 +1208,13 @@ the display of several buffers in a row more amenable.
 
 +++
 *** New buffer display action alist entry 'lru-frames'.
-This allows to specify which frames 'display-buffer' should consider
-when using a window that shows another buffer.
+This allows specifying which frames 'display-buffer' should consider
+when using a window that shows another buffer.  It is interpreted as
+per the ALL-FRAMES argument of 'get-lru-window'.
 
 +++
 *** New buffer display action alist entry 'lru-time'.
-'display-buffer' will ignore windows with a use time higher than that
+'display-buffer' will ignore windows with a use time higher than this
 when using a window that shows another buffer.
 
 +++
@@ -1200,12 +1224,14 @@ making it a less likely candidate for displaying another buffer.
 
 +++
 *** New buffer display action alist entry 'window-min-width'.
-This allows to specify a minimum width of the window used to display a
-buffer.
+This allows specifying a preferred minimum width of the window used to
+display a buffer.
 
 ---
-*** You can customize on which window 'scroll-other-window' operates.
-This is controlled by the new 'other-window-scroll-default' variable.
+*** You can specify on which window 'scroll-other-window' operates.
+This is controlled by the new 'other-window-scroll-default' variable,
+which should be set to a function that returns a window.  When this
+variable is nil, 'next-window' is used.
 
 ** Frames
 
@@ -1268,17 +1294,19 @@ respond within N seconds.  The default is to wait forever.
 +++
 *** 'server-stop-automatically' can be used to automatically stop the server.
 The Emacs server will be automatically stopped when certain conditions
-are met.  The conditions are given by the argument, which can be
-'empty', 'delete-frame' or 'kill-terminal'.
+are met.  The conditions are determined by the argument to
+'server-stop-automatically', which can be 'empty', 'delete-frame' or
+'kill-terminal'.
 
 ** Rcirc
 
 +++
 *** New command 'rcirc-when'.
+This shows the reception time of the message at point (if available).
 
 +++
 *** New user option 'rcirc-cycle-completion-flag'.
-Rcirc will use the default 'completion-at-point' mechanism.  The
+Rcirc now uses the default 'completion-at-point' mechanism.  The
 conventional IRC behavior of completing by cycling through the
 available options can be restored by enabling this option.
 
@@ -1533,6 +1561,10 @@ environments are:
 
  Coptic script and language environment
 
+ Mongolian-traditional script and language environment
+
+ Mongolian-cyrillic language environment
+
 ---
 *** The "Oriya" language environment was renamed to "Odia".
 This is to follow the change in the official name of the script.  The
@@ -1546,7 +1578,10 @@ Type 'C-u C-h t' to select it in case your language setup does not do
 so automatically.
 
 ---
-*** New Ukrainian translation of the Emacs Tutorial.
+*** New Ukrainian translation of the Emacs tutorial.
+
+---
+*** New Farsi/Persian translation of the Emacs tutorial.
 
 ---
 *** New default phonetic input method for the Tamil language environment.
@@ -1570,6 +1605,12 @@ the QWERTY Slovak keyboards.
 This input method is based on the russian-computer input method, and
 is intended for typing in the Chuvash language written in the Cyrillic
 script.
+
+---
+*** New input method 'cyrillic-mongolian'.
+This input method is for typing in the Mongolian language using the
+Cyrillic script.  It is the default input method for the new
+Mongolian-cyrillic language environment, see above.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
@@ -1652,6 +1693,13 @@ the following to your Init file:
 This command visits the file on the current line with EWW.
 
 ---
+*** 'browse-url-of-dired-file' can now call the secondary browser.
+When invoked with a prefix arg, this will now call
+'browse-url-secondary-browser-function' instead of the default
+browser.  'browse-url-of-dired-file' is bound to 'W' by default in
+dired mode.
+
+---
 *** New user option 'dired-omit-lines'.
 This is used by 'dired-omit-mode', and now allows you to hide based on
 other things than just the file names.
@@ -1728,7 +1776,7 @@ or can take a long time to render.
 +++
 *** New command 'enriched-toggle-markup'.
 This allows you to see the markup in 'enriched-mode' buffers (e.g.,
-the "HELLO" file).
+the "HELLO" file).  Bound to 'M-o m' by default.
 
 ** Shell Script Mode
 
@@ -1817,13 +1865,18 @@ this includes "binary" buffers like 'archive-mode' and 'image-mode'.
 ** Package
 
 +++
-*** New command 'package-update'.
-This command allows you to upgrade packages without using 'M-x
-list-packages'.
+*** New command 'package-upgrade'.
+This command allows you to upgrade packages without using 'list-packages'.
+A package that comes with the Emacs distribution can only be upgraded
+after you install, once, a newer version from ELPA via the
+package-menu displayed by 'list-packages'.
 
 +++
-*** New command 'package-update-all'.
-This command allows updating all packages without any queries.
+*** New command 'package-upgrade-all'.
+This command allows upgrading all packages without any queries.
+A package that comes with the Emacs distribution will only be upgraded
+by this command after you install, once, a newer version of that
+package from ELPA via the package-menu displayed by 'list-packages'.
 
 +++
 *** New commands 'package-recompile' and 'package-recompile-all'.
@@ -1833,7 +1886,9 @@ These commands can be useful if the ".elc" files are out of date
 +++
 *** New DWIM action on 'x' in "*Packages*" buffer.
 If no packages are marked, 'x' will install the package under point if
-it isn't already, and remove it if it is installed.
+it isn't already, and remove it if it is installed.  Customize the new
+option 'package-menu-use-current-if-no-marks' to the nil value to get
+back the old behavior of signaling an error in that case.
 
 +++
 *** New command 'package-vc-install'.
@@ -1858,12 +1913,32 @@ packages checked out using 'package-vc-install'.
 +++
 *** New command 'package-report-bug'.
 This command helps you compose an email for sending bug reports to
-package maintainers.
+package maintainers, and is bound to 'b' in the "*Packages*" buffer.
 
 +++
 *** New user option 'package-vc-selected-packages'.
 By customizing this user option you can specify specific packages to
 install.
+
+---
+*** New user option 'package-install-upgrade-built-in'.
+When enabled, 'package-install' will include in the list of
+upgradeable packages those built-in packages (like Eglot and
+use-package, for example) for which a newer version is available in
+package archives, and will allow installing those newer versions.  By
+default, this is disabled; however, if 'package-install' is invoked
+with a prefix argument, it will act as if this new option were
+enabled.
+
+In addition, when this option is non-nil, built-in packages for which
+a new version is available in archives can be upgraded via the package
+menu produced by 'list-packages'.  If you do set this option non-nil,
+we recommend not to use the 'U' command, but instead to use '/ u' to
+show the packages which can be upgraded, and then decide which ones of
+them you actually want to update from the archives.
+
+If you customize this option, we recommend you place its non-default
+setting in your early-init file.
 
 ** Emacs Sessions (Desktop)
 
@@ -1922,8 +1997,8 @@ displayed in a window.
 
 +++
 *** New user option 'compilation-hidden-output'.
-This can be used to make specific parts of compilation output
-invisible.
+This regular expression can be used to make specific parts of
+compilation output invisible.
 
 +++
 *** The 'compilation-auto-jump-to-first-error' user option has been extended.
@@ -2306,7 +2381,7 @@ EUDC inline expansion result formatting defaulted to
     ("%s %s <%s>" firstname name email)
 
 Since email address specifications need to comply with RFC 5322 in
-order to be useful in messages, there was a risk to produce syntax
+order to be useful in messages, there was a risk of producing syntax
 which was standard with RFC 822, but is marked as obsolete syntax by
 its successor RFC 5322.  Also, the first and last name part was never
 enclosed in double quotes, potentially producing invalid address
@@ -2340,8 +2415,8 @@ used to select the entry type in the ecomplete database.
 +++
 *** New back-end for mailabbrev.
 A new back-end for mailabbrev allows information from that database to
-be queried by EUDC, too.  The attributes 'email', 'name', and 'firstname'
-are supported only.
+be queried by EUDC, too.  Only the attributes 'email', 'name', and
+'firstname' are supported.
 
 ** EWW/SHR
 
@@ -2540,8 +2615,16 @@ the project by a VC project based on that VCS.
 
 +++
 *** New command 'xref-go-forward'.
-It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
-('M-,', also known as 'xref-pop-marker-stack') was invoked previously.
+It is bound to 'C-M-,' and jumps to the location where you previously
+invoked 'xref-go-back' ('M-,', also known as 'xref-pop-marker-stack').
+
++++
+*** The depth of the Xref marker stack is now infinite.
+The implementation of the Xref marker stack was changed in a way that
+allows as many places to be saved on the stack as needed, limited only
+by the available memory.  Therefore, the variables
+'find-tag-marker-ring-length' and 'xref-marker-ring-length' are now
+obsolete and unused; setting them has no effect.
 
 +++
 *** 'xref-query-replace-in-results' prompting change.
@@ -2580,14 +2663,14 @@ as opposed to via the command-line.
 +++
 *** New command 'image-transform-fit-to-window'.
 This command fits the image to the current window by scaling down or
-up as necessary.  Unlike 'image-transform-fit-both', this does not
-only scale the image down, but up as well.  It is bound to 's w' in
-Image Mode by default.
+up as necessary.  Unlike 'image-transform-fit-both', this can scale
+the image up as well as down.  It is bound to 's w' in Image Mode by
+default.
 
 ---
 *** New command 'image-mode-wallpaper-set'.
 This command sets the desktop background to the current image.  It is
-bound to 'W' by default.
+bound to 'W' in Image Mode by default.
 
 +++
 *** 'image-transform-fit-to-{height,width}' are now obsolete.
@@ -2605,19 +2688,14 @@ much (in percent).  It is nil by default, which means no limit.
 
 ---
 *** New user option 'image-text-based-formats'.
-This controls whether or not to show a message when opening certain
-image formats saying how to edit it as text.  The default is to show
-this message for SVG and XPM.
-
-+++
-*** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
-These commands horizontally and vertically flip the image under point,
-and are bound to 'i h' and 'i v', respectively.
+This controls whether or not to show a message, when opening certain
+image formats, explaining how to edit it as text.  The default is to
+show this message for SVG and XPM.
 
 +++
 *** New command 'image-transform-set-percent'.
-It allows setting the image size to a percentage of its original size,
-and is bound to 's p' in Image mode.
+It allows resizing the image to a percentage of its original size, and
+is bound to 's p' in Image mode.
 
 +++
 *** 'image-transform-original' renamed to 'image-transform-reset-to-original'.
@@ -2628,6 +2706,19 @@ The old name was confusing, and is now an obsolete function alias.
 The old name was confusing, and is now an obsolete function alias.
 
 ** Images
+
++++
+*** New commands 'image-crop' and 'image-cut'.
+These commands allow interactively cropping/cutting the image at
+point.  The commands are bound to keys 'i c' and 'i x' (respectively)
+in the local keymap over images.  They rely on external programs, by
+default "convert" from ImageMagick, to do the actual cropping/eliding
+of the image file.
+
++++
+*** New commands 'image-flip-horizontally' and 'image-flip-vertically'.
+These commands horizontally and vertically flip the image under point,
+and are bound to 'i h' and 'i v', respectively.
 
 +++
 *** Users can now add special image conversion functions.
@@ -3214,7 +3305,12 @@ Imenu now lists the members directly nested in R6RS Scheme libraries
 Emacs now comes with the Eglot package, which enhances various Emacs
 features, such as completion, documentation, error detection, etc.,
 based on data provided by language servers using the Language Server
-Protocol (LSP).  See the new Info manual "(eglot) Top" for more.
+Protocol (LSP).  See the new Info manual "(eglot) Top" for more.  Also
+see "etc/EGLOT-NEWS".
+
+If you want to be able to use 'package-install' to upgrade Eglot to
+newer versions released on GNU ELPA, customize the new option
+'package-install-upgrade-built-in' to a non-nil value.
 
 +++
 ** use-package: Declarative package configuration.
@@ -3223,13 +3319,9 @@ macro, which allows you to isolate package configuration in your init
 file in a way that is declarative, tidy, and performance-oriented.
 See the new Info manual "(use-package) Top" for more.
 
-+++
-** New commands 'image-crop' and 'image-cut'.
-These commands allow interactively cropping/cutting the image at
-point.  The commands are bound to keys 'i c' and 'i x' (respectively)
-in the local keymap over images.  They rely on external programs, by
-default "convert" from ImageMagick, to do the actual cropping/eliding
-of the image file.
+If you want to be able to use 'package-install' to upgrade use-package
+to newer versions released on GNU ELPA, customize the new option
+'package-install-upgrade-built-in' to a non-nil value.
 
 ---
 ** New package 'wallpaper'.
@@ -3556,11 +3648,13 @@ font spec.  In these cases, replacing ":weight 'normal" with ":weight
 'medium" should fix the issue.
 
 ---
-** Keymap descriptions have changed.
+** Keymap descriptions by Help commands have changed.
 'help--describe-command', 'C-h b' and associated functions that output
 keymap descriptions have changed.  In particular, prefix commands are
-not output at all, and instead of "??" for closures/functions,
-"[closure]"/"[lambda]" is output.
+not output at all, and instead of "??" for closures/functions, these
+functions output "[closure]"/"[lambda]".  You can get back the old
+behavior of including prefix commands by customizing the new option
+'describe-bindings-show-prefix-commands' to a non-nil value.
 
 ---
 ** 'downcase' details have changed slightly.
@@ -3801,6 +3895,19 @@ The following generalized variables have been made obsolete:
 'standard-case-table', 'syntax-table', 'visited-file-modtime',
 'window-height', 'window-width', and 'x-get-secondary-selection'.
 
+---
+** The 'dotimes' loop variable can no longer be manipulated in the loop body.
+Previously, the 'dotimes' loop counter could be modified inside the
+loop body, but only in code using dynamic binding.  Now the behavior
+is the same as when using lexical binding: changes to the loop
+variable have no effect on subsequent iterations.  That is,
+
+    (dotimes (i 10)
+      (print i)
+      (setq i (+ i 6)))
+
+now always prints the numbers 0 .. 9.
+
 
 * Lisp Changes in Emacs 29.1
 
@@ -3893,9 +4000,9 @@ connection-local profile.
 +++
 *** New macro 'with-connection-local-application-variables'.
 This macro works like 'with-connection-local-variables', but it allows
-to use another application but 'tramp'.  This is useful when running
-code in a buffer where Tramp has already set some connection-local
-variables.
+using another application instead of 'tramp'.  This is useful when
+running code in a buffer where Tramp has already set some
+connection-local variables.
 
 +++
 *** New macro 'setq-connection-local'.
@@ -3974,8 +4081,8 @@ This returns a list of sub-sequences of the specified sequence.
 
 +++
 *** New function 'seq-remove-at-position'.
-This function returns a copy of the specified sequence where the
-element at a given (zero-based) index got removed.
+This function returns a copy of the specified sequence with the
+element at a given (zero-based) index removed.
 
 +++
 *** New function 'seq-positions'.
@@ -4043,7 +4150,7 @@ that quote character has to be escaped to avoid Emacs displaying it as
 
     (setq foo '(1 2 3))
 
-invalid.  Emacs will now warn during byte compilation if it seems
+invalid.  Emacs will now warn during byte compilation if it sees
 something like that, and also warn about when using RIGHT/LEFT SINGLE
 QUOTATION MARK directly.  In both these cases, if these characters
 should really be present in the docstring, they should be quoted with
@@ -4103,7 +4210,7 @@ example for benchmarking purposes.
 ** New function 'string-edit'.
 This is meant to be used when the user has to edit a (potentially)
 long string.  It pops up a new buffer where you can edit the string,
-and a callback is called when the user types 'C-c C-c'.
+and the provided callback is called when the user types 'C-c C-c'.
 
 +++
 ** New function 'read-string-from-buffer'.
@@ -4249,7 +4356,7 @@ them towards or away from each other.
 
 +++
 ** New hook 'x-pre-popup-menu-hook'.
-This hook, run before 'x-popup-menu', is about to display a
+This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
 ---
@@ -4311,9 +4418,11 @@ that binding is ignored by 'where-is-internal'.
 
 +++
 *** New functions for defining and manipulating keystrokes.
-These all take the syntax defined by 'key-valid-p'.  None of the older
-functions have been deprecated or altered, but they are now
-de-emphasized in the documentation.
+These all take the syntax defined by 'key-valid-p', which is basically
+the same syntax as the one accepted by the 'kbd' macro.  None of the
+older functions have been deprecated or altered, but they are now
+de-emphasized in the documentation, and we encourage Lisp programs to
+switch to these new functions.
 
 +++
 *** Use 'keymap-set' instead of 'define-key'.
@@ -4348,8 +4457,8 @@ de-emphasized in the documentation.
 +++
 *** 'define-key' now takes an optional REMOVE argument.
 If non-nil, remove the definition from the keymap.  This is subtly
-different from setting a definition to nil (when the keymap has a
-parent).
+different from setting a definition to nil: when the keymap has a
+parent such a definition will shadow the parent's definition.
 
 +++
 *** 'read-multiple-choice' now takes an optional SHOW-HELP argument.
@@ -4883,6 +4992,12 @@ two buttons: "Yes" and "No".
 
 ---
 *** 'process-attributes' is now implemented.
+
+** macOS
+
++++
+*** The 'ns-popup-font-panel' command has been removed.
+Use the general command 'M-x menu-set-font' instead.
 
 
 ----------------------------------------------------------------------

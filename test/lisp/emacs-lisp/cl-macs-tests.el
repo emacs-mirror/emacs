@@ -535,7 +535,7 @@ collection clause."
    (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0))) t))
   ;; Make sure `gv-synthetic-place' isn't macro-expanded before `setf' gets to
   ;; see its `gv-expander'.
-  (should (equal (let ((l '(0)))
+  (should (equal (let ((l (list 0)))
                    (let ((cl (car l)))
                      (cl-symbol-macrolet
                          ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))

@@ -408,6 +408,7 @@ Other non-digit chars are considered junk.
 RADIX is an integer between 2 and 36, the default is 10.  Signal
 an error if the substring between START and END cannot be parsed
 as an integer unless JUNK-ALLOWED is non-nil."
+  (declare (side-effect-free t))
   (cl-check-type string string)
   (let* ((start (or start 0))
 	 (len	(length string))
@@ -566,6 +567,7 @@ too large if positive or too small if negative)."
 ;;;###autoload
 (defun cl-revappend (x y)
   "Equivalent to (append (reverse X) Y)."
+  (declare (side-effect-free t))
   (nconc (reverse x) y))
 
 ;;;###autoload

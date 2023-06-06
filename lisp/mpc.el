@@ -1104,7 +1104,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                                   (interactive)
                                                   (mpc-constraints-push 'noerror)
                                                   (mpc-constraints-restore
-                                                   ',(list (list tag text)))))))))
+                                                   (list (list tag text)))))))))
               (funcall insert
                        (concat (when size
                                  (propertize " " 'display

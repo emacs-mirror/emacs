@@ -1,0 +1,47 @@
+#!/bin/sh
+# Check the file list of GNU Emacs change log entries after committing.
+
+# Copyright 2023 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+# This hook runs after a commit is finalized and checks that the files
+# mentioned in the commit message match the diff.  We perform this in
+# the post-commit phase so that we can be sure we properly detect all
+# the files in the diff (this is difficult during the commit-msg hook,
+# since there's no cross-platform way to detect when a commit is being
+# amended).
+
+# However, since this is a post-commit hook, it's too late to error
+# out and abort the commit: it's already done!  As a result, this hook
+# is purely advisory, and instead we error out when trying to push
+# (see "pre-push" in this directory).
+
+### Code:
+
+HOOKS_DIR=`dirname "$0"`
+
+# Prefer gawk if available, as it handles NUL bytes properly.
+if type gawk >/dev/null 2>&1; then
+  awk="gawk"
+else
+  awk="awk"
+fi
+
+git rev-parse HEAD | $awk -v reason=post-commit \
+                          -f "$HOOKS_DIR"/commit-msg-files.awk

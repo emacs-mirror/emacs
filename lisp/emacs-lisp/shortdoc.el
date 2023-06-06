@@ -137,11 +137,11 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (assoc-string "foo" '(("foo" . "bar") ("zot" "baz"))))
   "Manipulating Alists"
   (assoc-delete-all
-   :eval (assoc-delete-all "foo" '(("foo" . "bar") ("zot" . "baz")) #'equal))
+   :eval (assoc-delete-all "b" (list '("a" . a) '("b" . b) '("b" . c))))
   (assq-delete-all
-   :eval (assq-delete-all 'foo '((foo . bar) (zot . baz))))
+   :eval (assq-delete-all 2 (list '(1 . a) '(2 . b) '(2 . c))))
   (rassq-delete-all
-   :eval (rassq-delete-all 'bar '((foo . bar) (zot . baz))))
+   :eval (rassq-delete-all 'b (list '(1 . a) '(2 . b) '(2 . c))))
   (alist-get
    :eval (let ((foo '((bar . baz))))
            (setf (alist-get 'bar foo) 'zot)
@@ -705,10 +705,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (assoc-default 2 '((1 . a) (2 . b) #'=)))
   (copy-alist
    :eval (copy-alist '((1 . a) (2 . b))))
-  (assq-delete-all
-   :eval (assq-delete-all 2 (list '(1 . a) '(2 . b) '(2 . c))))
   (assoc-delete-all
    :eval (assoc-delete-all "b" (list '("a" . a) '("b" . b) '("b" . c))))
+  (assq-delete-all
+   :eval (assq-delete-all 2 (list '(1 . a) '(2 . b) '(2 . c))))
+  (rassq-delete-all
+   :eval (rassq-delete-all 'b (list '(1 . a) '(2 . b) '(2 . c))))
   "Property Lists"
   (plist-get
    :eval (plist-get '(a 1 b 2 c 3) 'b))
@@ -833,6 +835,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (seq-subseq
    :eval (seq-subseq [1 2 3 4 5] 1 3)
    :eval (seq-subseq [1 2 3 4 5] 1))
+  (copy-tree
+   :eval (copy-tree [1 (2 3) [4 5]] t))
   "Mapping Over Vectors"
   (mapcar
    :eval (mapcar #'identity [1 2 3]))
@@ -1443,44 +1447,51 @@ If SAME-WINDOW, don't pop to a new window."
     (setq group (intern group)))
   (unless (assq group shortdoc--groups)
     (error "No such documentation group %s" group))
-  (funcall (if same-window
-               #'pop-to-buffer-same-window
-             #'pop-to-buffer)
-           (format "*Shortdoc %s*" group))
-  (let ((inhibit-read-only t)
-        (prev nil))
-    (erase-buffer)
-    (shortdoc-mode)
-    (button-mode)
-    (mapc
-     (lambda (data)
-       (cond
-        ((stringp data)
-         (setq prev nil)
-         (unless (bobp)
-           (insert "\n"))
-         (insert (propertize
-                  (substitute-command-keys data)
-                  'face 'shortdoc-heading
-                  'shortdoc-section t
-                  'outline-level 1))
-         (insert (propertize
-                  "\n\n"
-                  'face 'shortdoc-heading
-                  'shortdoc-section t)))
-        ;; There may be functions not yet defined in the data.
-        ((fboundp (car data))
-         (when prev
-           (insert (make-separator-line)
-                   ;; This helps with hidden outlines (bug#53981)
-                   (propertize "\n" 'face '(:height 0))))
-         (setq prev t)
-         (shortdoc--display-function data))))
-     (cdr (assq group shortdoc--groups))))
+  (let ((buf (get-buffer-create (format "*Shortdoc %s*" group))))
+    (shortdoc--insert-group-in-buffer group buf)
+    (funcall (if same-window
+                 #'pop-to-buffer-same-window
+               #'pop-to-buffer)
+             buf))
   (goto-char (point-min))
   (when function
     (text-property-search-forward 'shortdoc-function function t)
     (beginning-of-line)))
+
+(defun shortdoc--insert-group-in-buffer (group &optional buf)
+  "Insert a short documentation summary for functions in GROUP in buffer BUF.
+BUF defaults to the current buffer if nil or omitted."
+  (with-current-buffer (or buf (current-buffer))
+    (let ((inhibit-read-only t)
+          (prev nil))
+      (erase-buffer)
+      (shortdoc-mode)
+      (button-mode)
+      (mapc
+       (lambda (data)
+         (cond
+          ((stringp data)
+           (setq prev nil)
+           (unless (bobp)
+             (insert "\n"))
+           (insert (propertize
+                    (substitute-command-keys data)
+                    'face 'shortdoc-heading
+                    'shortdoc-section t
+                    'outline-level 1))
+           (insert (propertize
+                    "\n\n"
+                    'face 'shortdoc-heading
+                    'shortdoc-section t)))
+          ;; There may be functions not yet defined in the data.
+          ((fboundp (car data))
+           (when prev
+             (insert (make-separator-line)
+                     ;; This helps with hidden outlines (bug#53981)
+                     (propertize "\n" 'face '(:height 0))))
+           (setq prev t)
+           (shortdoc--display-function data))))
+       (cdr (assq group shortdoc--groups))))))
 
 ;;;###autoload
 (defalias 'shortdoc #'shortdoc-display-group)
@@ -1521,7 +1532,8 @@ function's documentation in the Info manual"))
                           "=>"))
           (single-arrow (if (char-displayable-p ?→)
                             "→"
-                          "->")))
+                          "->"))
+          (start-example (point)))
       (cl-loop for (type value) on data by #'cddr
                do
                (cl-case type
@@ -1572,7 +1584,8 @@ function's documentation in the Info manual"))
                  (:eg-result-string
                   (insert "    e.g. " double-arrow " ")
                   (princ value (current-buffer))
-                  (insert "\n")))))
+                  (insert "\n"))))
+      (add-text-properties start-example (point) `(shortdoc-example ,function)))
     ;; Insert the arglist after doing the evals, in case that's pulled
     ;; in the function definition.
     (save-excursion
@@ -1581,6 +1594,73 @@ function's documentation in the Info manual"))
                          (help-function-arglist function t)))
         (insert " " (symbol-name param)))
       (add-face-text-property arglist-start (point) 'shortdoc-section t))))
+
+(defun shortdoc-function-examples (function)
+  "Return all shortdoc examples for FUNCTION.
+The result is an alist with items of the form (GROUP . EXAMPLES),
+where GROUP is a shortdoc group where FUNCTION appears, and
+EXAMPLES is a string with the usage examples of FUNCTION defined
+in GROUP.  Return nil if FUNCTION is not a function or if it
+doesn't has any shortdoc information."
+  (let ((groups (and (symbolp function)
+                     (shortdoc-function-groups function)))
+        (examples nil))
+    (mapc
+     (lambda (group)
+       (with-temp-buffer
+         (shortdoc--insert-group-in-buffer group)
+         (goto-char (point-min))
+         (let ((match (text-property-search-forward
+                       'shortdoc-example function t)))
+           (push `(,group . ,(string-trim
+                              (buffer-substring-no-properties
+                               (prop-match-beginning match)
+                               (prop-match-end match))))
+                 examples))))
+     groups)
+    examples))
+
+(defun shortdoc-help-fns-examples-function (function)
+  "Insert Emacs Lisp examples for FUNCTION into the current buffer.
+You can add this function to the `help-fns-describe-function-functions'
+hook to show examples of using FUNCTION in *Help* buffers produced
+by \\[describe-function]."
+  (let* ((examples (shortdoc-function-examples function))
+         (num-examples (length examples))
+         (times 0))
+    (dolist (example examples)
+      (when (zerop times)
+        (if (> num-examples 1)
+            (insert "\n  Examples:\n\n")
+          ;; Some functions have more than one example per group.
+          ;; Count the number of arrows to know if we need to
+          ;; pluralize "Example".
+          (let* ((text (cdr example))
+                 (count 0)
+                 (pos 0)
+                 (end (length text))
+                 (double-arrow (if (char-displayable-p ?⇒)
+                                   "    ⇒"
+                                 "    =>"))
+                 (double-arrow-example (if (char-displayable-p ?⇒)
+                                           "    e.g. ⇒"
+                                         "    e.g. =>"))
+                 (single-arrow (if (char-displayable-p ?→)
+                                   "    →"
+                                 "    ->")))
+            (while (and (< pos end)
+                        (or (string-match double-arrow text pos)
+                            (string-match double-arrow-example text pos)
+                            (string-match single-arrow text pos)))
+              (setq count (1+ count)
+                    pos (match-end 0)))
+            (if (> count 1)
+                (insert "\n  Examples:\n\n")
+              (insert "\n  Example:\n\n")))))
+      (setq times (1+ times))
+      (insert "  ")
+      (insert (cdr example))
+      (insert "\n\n"))))
 
 (defun shortdoc-function-groups (function)
   "Return all shortdoc groups FUNCTION appears in."

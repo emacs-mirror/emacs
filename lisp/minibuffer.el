@@ -862,7 +862,18 @@ If a function returns a string, the returned string is given to the
 next function in the list, and if the last function returns a string,
 it's displayed in the echo area.
 If a function returns any other non-nil value, no more functions are
-called from the list, and no message will be displayed in the echo area."
+called from the list, and no message will be displayed in the echo area.
+
+Useful functions to add to this list are:
+
+ `inhibit-message'        -- if this function is the first in the list,
+                             messages that match the value of
+                             `inhibit-message-regexps' will be suppressed.
+ `set-multi-message'      -- accumulate multiple messages and display them
+                             together as a single message.
+ `set-minibuffer-message' -- if the minibuffer is active, display the
+                             message at the end of the minibuffer text
+                             (this is the default)."
   :type '(choice (const :tag "No special message handling" nil)
                  (repeat
                   (choice (function-item :tag "Inhibit some messages"
@@ -884,13 +895,18 @@ called from the list, and no message will be displayed in the echo area."
   message)
 
 (defcustom inhibit-message-regexps nil
-  "List of regexps that inhibit messages by the function `inhibit-message'."
+  "List of regexps that inhibit messages by the function `inhibit-message'.
+When the list in `set-message-functions' has `inhibit-message' as its
+first element, echo-area messages which match the value of this variable
+will not be displayed."
   :type '(repeat regexp)
   :version "29.1")
 
 (defun inhibit-message (message)
   "Don't display MESSAGE when it matches the regexp `inhibit-message-regexps'.
-This function is intended to be added to `set-message-functions'."
+This function is intended to be added to `set-message-functions'.
+To suppress display of echo-area messages that match `inhibit-message-regexps',
+make this function be the first element of `set-message-functions'."
   (or (and (consp inhibit-message-regexps)
            (string-match-p (mapconcat #'identity inhibit-message-regexps "\\|")
                            message))
@@ -912,6 +928,10 @@ This function is intended to be added to `set-message-functions'."
 
 (defun set-multi-message (message)
   "Return recent messages as one string to display in the echo area.
+Individual messages will be separated by a newline.
+Up to `multi-message-max' messages can be accumulated, and the
+accumulated messages are discarded when `multi-message-timeout'
+seconds have elapsed since the first message.
 Note that this feature works best only when `resize-mini-windows'
 is at its default value `grow-only'."
   (let ((last-message (car multi-message-list)))
@@ -2001,11 +2021,14 @@ completions."
 
 (defcustom completions-header-format
   (propertize "%s possible completions:\n" 'face 'shadow)
-  "Format of completions header.
-It may contain one %s to show the total count of completions.
-When nil, no header is shown."
-  :type '(choice (const :tag "No header" nil)
-                 (string :tag "Header format string"))
+  "If non-nil, the format string for completions heading line.
+The heading line is inserted before the completions, and is intended
+to summarize the completions.
+The format string may include one %s, which will be replaced with
+the total count of possible completions.
+If this is nil, no heading line will be shown."
+  :type '(choice (const :tag "No heading line" nil)
+                 (string :tag "Format string for heading line"))
   :version "29.1")
 
 (defun completion--insert-strings (strings &optional group-fun)

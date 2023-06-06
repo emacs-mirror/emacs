@@ -48,7 +48,7 @@
     nil))
 
 (defvar url-misc-rlogin-obsolete-warned-once nil)
-(make-obsolete-variable url-misc-rlogin-obsolete-warned-once nil "29.1")
+(make-obsolete-variable 'url-misc-rlogin-obsolete-warned-once nil "29.1")
 
 (defun url-do-terminal-emulator (type server port user)
   (switch-to-buffer

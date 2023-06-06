@@ -475,6 +475,24 @@ g .. h		foo
        "a" #'next-line
        "a" #'previous-line)))
 
+(ert-deftest keymap-unset-test-remove-and-inheritance ()
+  "Check various behaviors of keymap-unset.  (Bug#62207)"
+  (let ((map (make-sparse-keymap))
+        (parent (make-sparse-keymap)))
+    (set-keymap-parent map parent)
+    ;; Removing an unset key should not add a key.
+    (keymap-set parent "u" #'undo)
+    (keymap-unset map "u" t)
+    (should (equal (keymap-lookup map "u") #'undo))
+    ;; Non-removed child bindings should shadow parent
+    (keymap-set map "u" #'identity)
+    (keymap-unset map "u")
+    ;; From the child, but nil.
+    (should-not (keymap-lookup map "u"))
+    (keymap-unset map "u" t)
+    ;; From the parent this time/
+    (should (equal (keymap-lookup map "u") #'undo))))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here

@@ -1372,10 +1372,9 @@ among, with differing advantages and disadvantages.  The variable
 to (as long as @code{idlwave-help-use-assistant} is not set).  This
 function is used to set the variable @code{browse-url-browser-function}
 locally for IDLWAVE help only.  Customize the latter variable to see
-what choices of browsers your system offers.  Certain browsers like
-@code{w3} (bundled with many versions of Emacs) and @code{w3m}
-(@uref{http://emacs-w3m.namazu.org/}) are run within Emacs, and use
-Emacs buffers to display the HTML help.  This can be convenient,
+what choices of browsers your system offers.  Certain browsers like EWW
+(@pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}) are run within Emacs,
+and use Emacs buffers to display the HTML help.  This can be convenient,
 especially on small displays, and images can even be displayed in-line
 on newer Emacs versions.  However, better formatting results are often
 achieved with external browsers, like Mozilla.  IDLWAVE assumes any

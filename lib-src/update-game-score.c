@@ -185,8 +185,6 @@ main (int argc, char **argv)
   ptrdiff_t scorecount, scorealloc;
   ptrdiff_t max_scores = MAX_SCORES;
 
-  srand (time (0));
-
   while ((c = getopt (argc, argv, "hrm:d:")) != -1)
     switch (c)
       {
@@ -485,8 +483,8 @@ lock_file (const char *filename, void **state)
 	    return -1;
 	  attempts = 0;
 	}
-
-      sleep ((rand () & 1) + 1);
+      else
+	sleep (1);
     }
 
   close (fd);

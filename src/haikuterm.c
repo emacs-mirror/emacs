@@ -4420,7 +4420,7 @@ haiku_term_init (void)
     {
       nbytes = sizeof "GNU Emacs" + sizeof " at ";
 
-      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+      if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
 	memory_full (SIZE_MAX);
 
       name_buffer = alloca (nbytes);

@@ -752,7 +752,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
     (if (not key-image)
 	""
       (condition-case nil
-	  (let ((result "  "))
+	  (let ((result (copy-sequence "  ")))
 	    (put-text-property
 	     1 2 'display
 	     (gnus-rescale-image key-image

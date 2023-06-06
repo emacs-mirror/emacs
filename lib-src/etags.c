@@ -109,6 +109,7 @@ University of California, as described above. */
 #include <limits.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdckdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysstdio.h>
@@ -8038,7 +8039,7 @@ xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
   ptrdiff_t nbytes;
   assume (0 <= nitems);
   assume (0 < item_size);
-  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes))
+  if (ckd_mul (&nbytes, nitems, item_size))
     memory_full ();
   return xmalloc (nbytes);
 }
@@ -8049,7 +8050,7 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
   ptrdiff_t nbytes;
   assume (0 <= nitems);
   assume (0 < item_size);
-  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
+  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full ();
   void *result = realloc (pa, nbytes);
   if (!result)

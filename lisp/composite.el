@@ -818,7 +818,7 @@ prepending a space before it."
 	      (setq glyph (lgstring-glyph gstring i))
 	      (lglyph-set-char glyph 32)
 	      (lglyph-set-width glyph 1)
-	      (setq i (+ 2)))
+	      (setq i (+ i 2)))
 	  (let ((from (lglyph-from glyph))
 		(to (lglyph-to glyph))
 		(j (1+ i)))
@@ -861,7 +861,7 @@ and the second is a glyph for a variation selector."
 ;; handled in font_range, we end up choosing the Emoji presentation
 ;; rather than the Text presentation.
 (let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
-  (set-char-table-range composition-function-table '(#xFE00 . #xFE0E) elt)
+  (set-char-table-range composition-function-table '(#xFE00 . #xFE0D) elt)
   (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
 
 (defun auto-compose-chars (func from to font-object string direction)

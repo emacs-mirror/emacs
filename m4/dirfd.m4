@@ -1,4 +1,4 @@
-# serial 26   -*- Autoconf -*-
+# serial 28   -*- Autoconf -*-
 
 dnl Find out how to get the file descriptor associated with an open DIR*.
 
@@ -12,7 +12,7 @@ dnl From Jim Meyering
 AC_DEFUN([gl_FUNC_DIRFD],
 [
   AC_REQUIRE([gl_DIRENT_H_DEFAULTS])
-  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_REQUIRE([AC_CANONICAL_HOST])
 
   dnl Persuade glibc <dirent.h> to declare dirfd().
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
@@ -36,15 +36,20 @@ AC_DEFUN([gl_FUNC_DIRFD],
        [gl_cv_func_dirfd_macro=yes],
        [gl_cv_func_dirfd_macro=no])])
 
-  # Use the replacement if we have no function or macro with that name,
-  # or if OS/2 kLIBC whose dirfd() does not work.
-  # Replace only if the system declares dirfd already.
-  case $ac_cv_func_dirfd,$gl_cv_func_dirfd_macro,$host_os,$ac_cv_have_decl_dirfd in
-    no,no,*,yes | *,*,os2*,yes)
+  if test $ac_cv_func_dirfd = no && test $gl_cv_func_dirfd_macro = no; then
+    HAVE_DIRFD=0
+  else
+    HAVE_DIRFD=1
+    dnl Replace dirfd() on native Windows, to support fdopendir().
+    AC_REQUIRE([gl_DIRENT_DIR])
+    if test $DIR_HAS_FD_MEMBER = 0; then
       REPLACE_DIRFD=1
-      AC_DEFINE([REPLACE_DIRFD], [1],
-        [Define to 1 if gnulib's dirfd() replacement is used.]);;
-  esac
+    fi
+    dnl OS/2 kLIBC dirfd() does not work.
+    case "$host_os" in
+      os2*) REPLACE_DIRFD=1 ;;
+    esac
+  fi
 ])
 
 dnl Prerequisites of lib/dirfd.c.

@@ -1960,8 +1960,8 @@ end-position of a drag event, this position list may represent a
 location outside the boundaries of the initially selected frame, in
 which case the list contains that frame in place of a window.
 
-The special form @code{track-mouse} enables generation of motion
-events within its body.  Outside of @code{track-mouse} forms, Emacs
+The @code{track-mouse} macro enables generation of motion
+events within its body.  Outside of @code{track-mouse} body, Emacs
 does not generate events for mere motion of the mouse, and these
 events do not appear.  @xref{Mouse Tracking}.
 
@@ -2395,6 +2395,17 @@ as @code{set-language-environment}), use the
 ;; Get the full localized name of the language
 (w32-get-locale-info language-id t)
 @end smallexample
+
+@cindex @code{end-session} event
+@item end-session
+This event is generated on MS-Windows when the operating system
+informs Emacs that the user terminated the interactive session, or
+that the system is shutting down.  The standard definition of this
+event is to invoke the @code{kill-emacs} command (@pxref{Killing
+Emacs}) so as to shut down Emacs in an orderly fashion; if there are
+unsaved changes, this will produce auto-save files
+(@pxref{Auto-Saving}) that the user can use after restarting the
+session to restore the unsaved edits.
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
@@ -2443,7 +2454,7 @@ into another window.  That produces a pair of events like these:
 
 The frame with input focus might not take up the entire screen, and
 the user might move the mouse outside the scope of the frame.  Inside
-the @code{track-mouse} special form, that produces an event like this:
+the @code{track-mouse} macro, that produces an event like this:
 
 @smallexample
 (mouse-movement (#<frame *ielm* 0x102849a30> nil (563 . 205) 532301936))
@@ -3215,15 +3226,24 @@ unspecified, the only fallback disabled is downcasing of the last
 event.
 @end defun
 
+@vindex read-char-choice-use-read-key
 @defun read-char-choice prompt chars &optional inhibit-quit
-This function uses @code{read-key} to read and return a single
-character.  It ignores any input that is not a member of @var{chars},
-a list of accepted characters.  Optionally, it will also ignore
-keyboard-quit events while it is waiting for valid input.  If you bind
-@code{help-form} (@pxref{Help Functions}) to a non-@code{nil} value
-while calling @code{read-char-choice}, then pressing @code{help-char}
-causes it to evaluate @code{help-form} and display the result.  It
-then continues to wait for a valid input character, or keyboard-quit.
+This function uses @code{read-from-minibuffer} to read and return a
+single character that is a member of @var{chars}, which should be a
+list of single characters.  It discards any input characters that are
+not members of @var{chars}, and shows a message to that effect.
+
+The optional argument @var{inhibit-quit} is by default ignored, but if
+the variable @code{read-char-choice-use-read-key} is non-@code{nil},
+this function uses @code{read-key} instead of
+@code{read-from-minibuffer}, and in that case @var{inhibit-quit}
+non-@code{nil} means ignore keyboard-quit events while waiting for
+valid input.  In addition, if @code{read-char-choice-use-read-key} is
+non-@code{nil}, binding @code{help-form} (@pxref{Help Functions}) to a
+non-@code{nil} value while calling this function causes it to evaluate
+@code{help-form} and display the result when the user presses
+@code{help-char}; it then continues to wait for a valid input
+character, or for keyboard-quit.
 @end defun
 
 @defun read-multiple-choice prompt choices &optional help-string show-help long-form

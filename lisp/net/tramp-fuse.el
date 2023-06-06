@@ -98,20 +98,21 @@
 (defun tramp-fuse-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-fuse-remove-hidden-files
-   (all-completions
-    filename
-    (delete-dups
-     (append
-      (file-name-all-completions
-       filename (tramp-fuse-local-file-name directory))
-      ;; Some storage systems do not return "." and "..".
-      (let (result)
-	(dolist (item '(".." ".") result)
-	  (when (string-prefix-p filename item)
-	    (catch 'match
-	      (dolist (elt completion-regexp-list)
-		(unless (string-match-p elt item) (throw 'match nil)))
-	      (setq result (cons (concat item "/") result)))))))))))
+   (ignore-error file-missing
+     (all-completions
+      filename
+      (delete-dups
+       (append
+	(file-name-all-completions
+	 filename (tramp-fuse-local-file-name directory))
+	;; Some storage systems do not return "." and "..".
+	(let (result)
+	  (dolist (item '(".." ".") result)
+	    (when (string-prefix-p filename item)
+	      (catch 'match
+		(dolist (elt completion-regexp-list)
+		  (unless (string-match-p elt item) (throw 'match nil)))
+		(setq result (cons (concat item "/") result))))))))))))
 
 ;; This function isn't used.
 (defun tramp-fuse-handle-insert-directory
@@ -140,7 +141,7 @@
 
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
-  (or (tramp-get-connection-property vec "mount-point")
+  (or (tramp-get-file-property vec "/" "mount-point")
       (expand-file-name
        (concat
 	tramp-temp-name-prefix
@@ -148,7 +149,8 @@
 	(when (tramp-file-name-user vec)
 	  (concat (tramp-file-name-user-domain vec) "@"))
 	(tramp-file-name-host-port vec))
-       tramp-compat-temporary-file-directory)))
+       (or small-temporary-file-directory
+	   tramp-compat-temporary-file-directory))))
 
 (defconst tramp-fuse-mount-timeout
   (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)
@@ -172,8 +174,11 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) blank)
+	          (rx bol (group (literal (tramp-fuse-mount-spec vec)))
+		      " on " (group (+ (not blank))) blank)
 	          mount)
+	     (tramp-set-file-property
+	      vec "/" "mount-point" (match-string 2 mount))
              (match-string 1 mount)))))))
 
 (defun tramp-fuse-get-fusermount ()

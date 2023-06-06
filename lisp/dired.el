@@ -927,9 +927,9 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		    (lambda ()
 		      (if ,show-progress (sit-for 0))
 		      (setq results (cons ,body results))))
-		   (if (< ,arg 0)
-		       (nreverse results)
-		     results))
+		   (when (< ,arg 0)
+		     (setq results (nreverse results)))
+		   results)
 	       ;; non-nil, non-integer, non-marked ARG means use current file:
                (list ,body))
 	   (let ((regexp (dired-marker-regexp)) next-position)
@@ -1647,13 +1647,16 @@ If HDR is non-nil, insert a header line with the directory name."
 		 ;; save the answer in `dired-use-ls-dired'.
 		 (or (setq dired-use-ls-dired
 			   (eq 0 (call-process insert-directory-program
-                                               nil nil nil "--dired")))
+                                               nil nil nil "--dired" "-N")))
 		     (progn
-		       (message "ls does not support --dired; \
+		       (message "ls does not support --dired -N; \
 see `dired-use-ls-dired' for more details.")
 		       nil))
 	       dired-use-ls-dired)))
-	(setq switches (concat "--dired " switches)))
+        ;; Use -N with --dired, to countermand possible non-default
+        ;; quoting style, in particular via the environment variable
+        ;; QUOTING_STYLE.
+	(setq switches (concat "--dired -N " switches)))
     ;; Expand directory wildcards and fill file-list.
     (let ((dir-wildcard (insert-directory-wildcard-in-dir-p dir)))
       (cond (dir-wildcard
@@ -1662,7 +1665,7 @@ see `dired-use-ls-dired' for more details.")
              ;; "--dired", so we cannot add it to the `process-file'
              ;; call for wildcards.
              (when (file-remote-p dir)
-               (setq switches (string-replace "--dired" "" switches)))
+               (setq switches (string-replace "--dired -N" "" switches)))
              (let* ((default-directory (car dir-wildcard))
                     (script (format "ls %s %s" switches (cdr dir-wildcard)))
                     (remotep (file-remote-p dir))

@@ -507,55 +507,56 @@ Possible variable references are:
   (cond
    ((eq (char-after) ?{)
     (let ((end (eshell-find-delimiter ?\{ ?\})))
-      (if (not end)
-          (throw 'eshell-incomplete "${")
-        (forward-char)
-        (prog1
-            `(eshell-apply-indices
-              (eshell-convert
-               (eshell-command-to-value
-                (eshell-as-subcommand
-                 ,(let ((subcmd (or (eshell-unescape-inner-double-quote end)
-                                    (cons (point) end)))
-                        (eshell-current-quoted nil))
-                    (eshell-parse-command subcmd))))
-               ;; If this is a simple double-quoted form like
-               ;; "${COMMAND}" (i.e. no indices after the subcommand
-               ;; and no `#' modifier before), ensure we convert to a
-               ;; single string.  This avoids unnecessary work
-               ;; (e.g. splitting the output by lines) when it would
-               ;; just be joined back together afterwards.
-               ,(when (and (not modifier-p) eshell-current-quoted)
-                  '(not indices)))
-              indices ,eshell-current-quoted)
-          (goto-char (1+ end))))))
+      (unless end
+        (throw 'eshell-incomplete "${"))
+      (forward-char)
+      (prog1
+          `(eshell-apply-indices
+            (eshell-convert
+             (eshell-command-to-value
+              (eshell-as-subcommand
+               ,(let ((subcmd (or (eshell-unescape-inner-double-quote end)
+                                  (cons (point) end)))
+                      (eshell-current-quoted nil))
+                  (eshell-parse-command subcmd))))
+             ;; If this is a simple double-quoted form like
+             ;; "${COMMAND}" (i.e. no indices after the subcommand and
+             ;; no `#' modifier before), ensure we convert to a single
+             ;; string.  This avoids unnecessary work (e.g. splitting
+             ;; the output by lines) when it would just be joined back
+             ;; together afterwards.
+             ,(when (and (not modifier-p) eshell-current-quoted)
+                '(not indices)))
+            indices ,eshell-current-quoted)
+        (goto-char (1+ end)))))
    ((eq (char-after) ?\<)
     (let ((end (eshell-find-delimiter ?\< ?\>)))
-      (if (not end)
-          (throw 'eshell-incomplete "$<")
-        (let* ((temp (make-temp-file temporary-file-directory))
-               (cmd (concat (buffer-substring (1+ (point)) end)
-                            " > " temp)))
-          (prog1
-              `(let ((eshell-current-handles
-                      (eshell-create-handles ,temp 'overwrite)))
-                 (progn
-                   (eshell-as-subcommand
-                    ,(let ((eshell-current-quoted nil))
-                       (eshell-parse-command cmd)))
-                   (ignore
-                    (nconc eshell-this-command-hook
-                           ;; Quote this lambda; it will be evaluated
-                           ;; by `eshell-do-eval', which requires very
-                           ;; particular forms in order to work
-                           ;; properly.  See bug#54190.
-                           (list (function
-                                  (lambda ()
-                                    (delete-file ,temp)
-                                    (when-let ((buffer (get-file-buffer ,temp)))
-                                      (kill-buffer buffer)))))))
-                   (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
-            (goto-char (1+ end)))))))
+      (unless end
+        (throw 'eshell-incomplete "$<"))
+      (forward-char)
+      (let* ((temp (make-temp-file temporary-file-directory))
+             (subcmd (or (eshell-unescape-inner-double-quote end)
+                         (cons (point) end))))
+        (prog1
+            `(let ((eshell-current-handles
+                    (eshell-create-handles ,temp 'overwrite)))
+               (progn
+                 (eshell-as-subcommand
+                  ,(let ((eshell-current-quoted nil))
+                     (eshell-parse-command subcmd)))
+                 (ignore
+                  (nconc eshell-this-command-hook
+                         ;; Quote this lambda; it will be evaluated by
+                         ;; `eshell-do-eval', which requires very
+                         ;; particular forms in order to work
+                         ;; properly.  See bug#54190.
+                         (list (function
+                                (lambda ()
+                                  (delete-file ,temp)
+                                  (when-let ((buffer (get-file-buffer ,temp)))
+                                    (kill-buffer buffer)))))))
+                 (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
+          (goto-char (1+ end))))))
    ((eq (char-after) ?\()
     (condition-case nil
         `(eshell-apply-indices

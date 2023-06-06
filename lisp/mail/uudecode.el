@@ -40,7 +40,7 @@ input and write the converted data to its standard output."
   :type '(repeat string))
 
 (defcustom uudecode-use-external
-  (executable-find uudecode-decoder-program)
+  (not (not (executable-find uudecode-decoder-program)))
   "Use external uudecode program."
   :version "22.1"
   :type 'boolean)

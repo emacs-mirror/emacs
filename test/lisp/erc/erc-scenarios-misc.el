@@ -205,4 +205,38 @@
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
         (funcall expect 10 "welcome")))))
 
+;; Ensure that ERC does not attempt to switch to a killed server
+;; buffer via `erc-track-switch-buffer'.
+
+(declare-function erc-track-switch-buffer "erc-track" (arg))
+(defvar erc-track-mode)
+
+(ert-deftest erc-scenarios-base-kill-server-track ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "networks/merge-server")
+       (dumb-server (erc-d-run "localhost" t 'track))
+       (port (process-contact dumb-server :service))
+       (erc-server-flood-penalty 0.1)
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester")
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
+        (should erc-track-mode)
+        (funcall expect 5 "changed mode for tester")
+        (erc-cmd-JOIN "#chan")))
+
+    (ert-info ("Join channel and kill server buffer")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (funcall expect 5 "The hour that fools should ask"))
+      (with-current-buffer "FooNet"
+        (set-process-query-on-exit-flag erc-server-process nil)
+        (kill-buffer))
+      (should-not (eq (current-buffer) (get-buffer "#chan"))) ; *temp*
+      (ert-simulate-command '(erc-track-switch-buffer 1)) ; No longer signals
+      (should (eq (current-buffer) (get-buffer "#chan"))))))
+
 ;;; erc-scenarios-misc.el ends here

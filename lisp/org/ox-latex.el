@@ -1272,7 +1272,7 @@ used.  When nil, no theme is applied."
 (defun org-latex-generate-engraved-preamble (info)
   "Generate the preamble to setup engraved code.
 The result is constructed from the :latex-engraved-preamble and
-:latex-engraved-optionsn export options, the default values of
+:latex-engraved-options export options, the default values of
 which are given by `org-latex-engraved-preamble' and
 `org-latex-engraved-options' respectively."
   (let* ((engraved-options
@@ -1820,9 +1820,11 @@ INFO is a plist used as a communication channel.  See
   "Protect special chars, then wrap TEXT in \"\\texttt{}\"."
   (format "\\texttt{%s}"
           (replace-regexp-in-string
-           "--\\|[\\{}$%&_#~^]"
+           "--\\|<<\\|>>\\|[\\{}$%&_#~^]"
            (lambda (m)
-             (cond ((equal m "--") "-{}-")
+             (cond ((equal m "--") "-{}-{}")
+                   ((equal m "<<") "<{}<{}")
+                   ((equal m ">>") ">{}>{}")
                    ((equal m "\\") "\\textbackslash{}")
                    ((equal m "~") "\\textasciitilde{}")
                    ((equal m "^") "\\textasciicircum{}")
@@ -2600,7 +2602,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 	    (otherwise "\\lstlistoflistings")))))))))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 (defun org-latex--environment-type (latex-environment)
   "Return the TYPE of LATEX-ENVIRONMENT.
@@ -2658,7 +2660,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 	  (insert caption)
 	  (buffer-string))))))
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 (defun org-latex-latex-fragment (latex-fragment _contents _info)
   "Transcode a LATEX-FRAGMENT object from Org to LaTeX.

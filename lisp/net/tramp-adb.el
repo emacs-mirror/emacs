@@ -130,6 +130,7 @@ It is used for TCP/IP devices."
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-adb-handle-file-executable-p)
     (file-exists-p . tramp-adb-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -432,31 +433,32 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (with-parsed-tramp-file-name (expand-file-name directory) nil
-     (with-tramp-file-property v localname "file-name-all-completions"
-       (tramp-adb-send-command
-	v (format "%s -a %s | cat"
-		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname)))
-       (mapcar
-	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
-	      (file-name-as-directory f)
-	    f))
-	(with-current-buffer (tramp-get-buffer v)
-	  (delete-dups
-	   (append
-	    ;; On some file systems like "sdcard", "." and ".." are
-	    ;; not included.  We fix this by `delete-dups'.
-	    '("." "..")
-	    (delq
-	     nil
-	     (mapcar
-	      (lambda (l)
-		(and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	      (split-string (buffer-string) "\n")))))))))))
+  (ignore-error file-missing
+    (all-completions
+     filename
+     (with-parsed-tramp-file-name (expand-file-name directory) nil
+       (with-tramp-file-property v localname "file-name-all-completions"
+	 (tramp-adb-send-command
+	  v (format "%s -a %s | cat"
+		    (tramp-adb-get-ls-command v)
+		    (tramp-shell-quote-argument localname)))
+	 (mapcar
+	  (lambda (f)
+	    (if (file-directory-p (expand-file-name f directory))
+		(file-name-as-directory f)
+	      f))
+	  (with-current-buffer (tramp-get-buffer v)
+	    (delete-dups
+	     (append
+	      ;; On some file systems like "sdcard", "." and ".." are
+	      ;; not included.  We fix this by `delete-dups'.
+	      '("." "..")
+	      (delq
+	       nil
+	       (mapcar
+		(lambda (l)
+		  (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+		(split-string (buffer-string) "\n"))))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
@@ -989,7 +991,7 @@ implementation will be used."
 				  (progn
 				    (goto-char (point-min))
 				    (not (search-forward "\n" nil t)))
-			        (tramp-accept-process-output p 0))
+			        (tramp-accept-process-output p))
 			      (delete-region (point-min) (point)))
 			    ;; Provide error buffer.  This shows only
 			    ;; initial error messages; messages
@@ -999,6 +1001,7 @@ implementation will be used."
 			    ;; deleted.
 			    (when (bufferp stderr)
 			      (ignore-errors
+				(tramp-taint-remote-process-buffer stderr)
 				(with-current-buffer stderr
 			          (insert-file-contents-literally
 			           remote-tmpstderr 'visit)))
@@ -1236,8 +1239,6 @@ connection if a previous connection has died for some reason."
 			     tramp-adb-program args)))
 		 (prompt (md5 (concat (prin1-to-string process-environment)
 				      (current-time-string)))))
-	    (tramp-message
-	     vec 6 "%s" (string-join (process-command p) " "))
 	    ;; Wait for initial prompt.  On some devices, it needs an
 	    ;; initial RET, in order to get it.
             (sleep-for 0.1)
@@ -1246,11 +1247,9 @@ connection if a previous connection has died for some reason."
 	    (unless (process-live-p p)
 	      (tramp-error vec 'file-error "Terminated!"))
 
-	    ;; Set sentinel and query flag.  Initialize variables.
+	    ;; Set sentinel.  Initialize variables.
 	    (set-process-sentinel p #'tramp-process-sentinel)
-	    (process-put p 'vector vec)
-	    (process-put p 'adjust-window-size-function #'ignore)
-	    (set-process-query-on-exit-flag p nil)
+	    (tramp-post-process-creation p vec)
 
 	    ;; Set connection-local variables.
 	    (tramp-set-connection-local-variables vec)
@@ -1310,6 +1309,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-set-connection-property p "connected" t)))))))
 
 ;;; Default connection-local variables for Tramp.
+
 (defconst tramp-adb-connection-local-default-shell-variables
   '((shell-file-name . "/system/bin/sh")
     (shell-command-switch . "-c"))

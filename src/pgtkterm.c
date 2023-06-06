@@ -376,6 +376,13 @@ mark_pgtkterm (void)
   for (i = 0; i < n; i++)
     {
       union buffered_input_event *ev = &evq->q[i];
+
+      /* Selection requests don't have Lisp object members.  */
+
+      if (ev->ie.kind == SELECTION_REQUEST_EVENT
+	  || ev->ie.kind == SELECTION_CLEAR_EVENT)
+	continue;
+
       mark_object (ev->ie.x);
       mark_object (ev->ie.y);
       mark_object (ev->ie.frame_or_window);
@@ -4954,22 +4961,19 @@ pgtk_clear_under_internal_border (struct frame *f)
 
       if (face)
 	{
-#define x_fill_rectangle(f, gc, x, y, w, h) \
-	    fill_background_by_face (f, face, x, y, w, h)
-	  x_fill_rectangle (f, gc, 0, margin, width, border);
-	  x_fill_rectangle (f, gc, 0, 0, border, height);
-	  x_fill_rectangle (f, gc, width - border, 0, border, height);
-	  x_fill_rectangle (f, gc, 0, height - border, width, border);
-#undef x_fill_rectangle
+	  fill_background_by_face (f, face, 0, margin, width, border);
+	  fill_background_by_face (f, face, 0, 0, border, height);
+	  fill_background_by_face (f, face, width - border, 0, border,
+				   height);
+	  fill_background_by_face (f, face, 0, height - border, width,
+				   border);
 	}
       else
 	{
-#define x_clear_area(f, x, y, w, h)  pgtk_clear_area (f, x, y, w, h)
-	  x_clear_area (f, 0, 0, border, height);
-	  x_clear_area (f, 0, margin, width, border);
-	  x_clear_area (f, width - border, 0, border, height);
-	  x_clear_area (f, 0, height - border, width, border);
-#undef x_clear_area
+	  pgtk_clear_area (f, 0, 0, border, height);
+	  pgtk_clear_area (f, 0, margin, width, border);
+	  pgtk_clear_area (f, width - border, 0, border, height);
+	  pgtk_clear_area (f, 0, height - border, width, border);
 	}
 
       unblock_input ();
@@ -6835,8 +6839,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   Lisp_Object system_name = Fsystem_name ();
   ptrdiff_t nbytes;
-  if (INT_ADD_WRAPV (SBYTES (Vinvocation_name), SBYTES (system_name) + 2,
-		     &nbytes))
+  if (ckd_add (&nbytes, SBYTES (Vinvocation_name), SBYTES (system_name) + 2))
     memory_full (SIZE_MAX);
   dpyinfo->x_id = ++x_display_id;
   dpyinfo->x_id_name = xmalloc (nbytes);

@@ -192,6 +192,7 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
     (define-key map "\C-c[" #'set-left-margin)
     (define-key map "\C-c]" #'set-right-margin)
     (define-key map "\M-o" #'facemenu-keymap)
+    (define-key map "\M-om" #'enriched-toggle-markup)
     map)
   "Keymap for Enriched mode.")
 

@@ -52,7 +52,8 @@ Don't rely on this function, read it first!"
 			 (forward-line 1)
 			 (looking-at "    "))
 		  (forward-line 1))
-		(end-of-line) (point)))))
+		(end-of-line) (point))))
+	(inhibit-read-only t))
     (with-temp-buffer
       (insert str)
       (goto-char (point-min))
@@ -123,6 +124,27 @@ Don't rely on this function, read it first!"
     (and topic-change-alist (push (cons "topic-change" topic-change-alist)
 				  index-alist))
     index-alist))
+
+(defvar-local erc-imenu--create-index-function nil
+  "Previous local value of `imenu-create-index-function', if any.")
+
+(defun erc-imenu-setup ()
+  "Wire up support for Imenu in an ERC buffer."
+  (when (and (local-variable-p 'imenu-create-index-function)
+             imenu-create-index-function)
+    (setq erc-imenu--create-index-function imenu-create-index-function))
+  (setq imenu-create-index-function #'erc-create-imenu-index))
+
+;;;###autoload(autoload 'erc-imenu-mode "erc-imenu" nil t)
+(define-erc-module imenu nil
+  "Simple Imenu integration for ERC."
+  ((add-hook 'erc-mode-hook #'erc-imenu-setup)
+   (unless erc--updating-modules-p (erc-buffer-filter #'erc-imenu-setup)))
+  ((remove-hook 'erc-mode-hook #'erc-imenu-setup)
+   (erc-with-all-buffers-of-server nil nil
+     (when erc-imenu--create-index-function
+       (setq imenu-create-index-function erc-imenu--create-index-function)
+       (kill-local-variable 'erc-imenu--create-index-function)))))
 
 (provide 'erc-imenu)
 

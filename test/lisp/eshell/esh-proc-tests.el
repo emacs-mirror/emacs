@@ -192,6 +192,59 @@ pipeline."
        "stdout\nstderr\n"))))
 
 
+;; Synchronous processes
+
+;; These tests check that synchronous subprocesses (only used on
+;; MS-DOS by default) work correctly.  To help them run on MS-DOS as
+;; well, we use the Emacs executable as our subprocess to test
+;; against; that way, users don't need to have GNU coreutils (or
+;; similar) installed.
+
+(defsubst esh-proc-test/emacs-command (command)
+  "Evaluate COMMAND in a new Emacs batch instance."
+  (mapconcat #'shell-quote-argument
+             `(,(expand-file-name invocation-name invocation-directory)
+               "-Q" "--batch" "--eval" ,(prin1-to-string command))
+             " "))
+
+(defvar esh-proc-test/emacs-echo
+  (esh-proc-test/emacs-command '(princ "hello\n"))
+  "A command that prints \"hello\" to stdout using Emacs.")
+
+(defvar esh-proc-test/emacs-upcase
+  (esh-proc-test/emacs-command
+   '(princ (upcase (concat (read-string "") "\n"))))
+  "A command that upcases the text from stdin using Emacs.")
+
+(ert-deftest esh-proc-test/synchronous-proc/simple/interactive ()
+  "Test that synchronous processes work in an interactive shell."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (with-temp-eshell
+     (eshell-match-command-output esh-proc-test/emacs-echo
+                                  "\\`hello\n"))))
+
+(ert-deftest esh-proc-test/synchronous-proc/simple/command-result ()
+  "Test that synchronous processes work via `eshell-command-result'."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (eshell-command-result-equal esh-proc-test/emacs-echo
+                                 "hello\n")))
+
+(ert-deftest esh-proc-test/synchronous-proc/pipeline/interactive ()
+  "Test that synchronous pipelines work in an interactive shell."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (with-temp-eshell
+     (eshell-match-command-output (concat esh-proc-test/emacs-echo " | "
+                                          esh-proc-test/emacs-upcase)
+                                  "\\`HELLO\n"))))
+
+(ert-deftest esh-proc-test/synchronous-proc/pipeline/command-result ()
+  "Test that synchronous pipelines work via `eshell-command-result'."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (eshell-command-result-equal (concat esh-proc-test/emacs-echo " | "
+                                          esh-proc-test/emacs-upcase)
+                                 "HELLO\n")))
+
+
 ;; Killing processes
 
 (ert-deftest esh-proc-test/kill-process/foreground-only ()

@@ -577,13 +577,12 @@ This macro is used to test if macroexpansion in `should' works."
                   (lambda (format-string &rest args)
                     (push (apply #'format format-string args) messages))))
         (save-window-excursion
-          (unwind-protect
-              (let ((case-fold-search nil)
-                    (ert-batch-backtrace-right-margin nil)
-		    (ert-batch-print-level 10)
-		    (ert-batch-print-length 11))
-                (ert-run-tests-batch
-                 `(member ,failing-test-1 ,failing-test-2))))))
+          (let ((case-fold-search nil)
+                (ert-batch-backtrace-right-margin nil)
+		(ert-batch-print-level 10)
+		(ert-batch-print-length 11))
+            (ert-run-tests-batch
+             `(member ,failing-test-1 ,failing-test-2)))))
       (let ((long-text "(different-types[ \t\n]+(1 1 1 1 1 1 1 1 1 1 1)[ \t\n]+1)))[ \t\n]*$")
 	    (complex-text "(different-types[ \t\n]+((:1[ \t\n]+(:2[ \t\n]+(:3[ \t\n]+(:4[ \t\n]+(:5[ \t\n]+(:6[ \t\n]+\"abc\")))))))[ \t\n]+1)))[ \t\n]*$")
             found-long
@@ -609,14 +608,13 @@ This macro is used to test if macroexpansion in `should' works."
                   (lambda (format-string &rest args)
                     (push (apply #'format format-string args) messages))))
         (save-window-excursion
-          (unwind-protect
-              (let ((case-fold-search nil)
-                    (ert-batch-backtrace-right-margin nil)
-                    (ert-batch-backtrace-line-length nil)
-		    (ert-batch-print-level 6)
-		    (ert-batch-print-length 11))
-                (ert-run-tests-batch
-                 `(member ,failing-test-1))))))
+          (let ((case-fold-search nil)
+                (ert-batch-backtrace-right-margin nil)
+                (ert-batch-backtrace-line-length nil)
+		(ert-batch-print-level 6)
+		(ert-batch-print-length 11))
+            (ert-run-tests-batch
+             `(member ,failing-test-1)))))
       (let ((frame "ert-fail(((should (equal complex-list 1)) :form (equal ((:1 (:2 (:3 (:4 (:5 (:6 \"abc\"))))))) 1) :value nil :explanation (different-types ((:1 (:2 (:3 (:4 (:5 (:6 \"abc\"))))))) 1)))")
             found-frame)
 	(cl-loop for msg in (reverse messages)

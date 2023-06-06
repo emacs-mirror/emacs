@@ -124,7 +124,14 @@ test_module_dir := src/emacs-module-resources
 
 all: check
 
-ifeq ($(HAVE_NATIVE_COMP),yes)
+SYSTEM_TYPE = @SYSTEM_TYPE@
+TEST_NATIVE_COMP = $(HAVE_NATIVE_COMP)
+# Avoid fork failures on Cygwin.  See bug#62450 and etc/PROBLEMS
+# ("Fork failures in a build with native compilation").
+ifeq ($(SYSTEM_TYPE),cygwin)
+TEST_NATIVE_COMP = no
+endif
+ifeq ($(TEST_NATIVE_COMP),yes)
 SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
 SELECTOR_EXPENSIVE = (not (tag :unstable))
 SELECTOR_ALL = t

@@ -116,8 +116,27 @@
   (should-error (read "#") :type 'invalid-read-syntax))
 
 (ert-deftest lread-char-modifiers ()
-  (should (eq ?\C-\M-é (+ (- ?\M-a ?a) ?\C-é)))
-  (should (eq (- ?\C-ŗ ?ŗ) (- ?\C-é ?é))))
+  (should (equal ?\C-\M-é (+ (- ?\M-a ?a) ?\C-é)))
+  (should (equal (- ?\C-ŗ ?ŗ) (- ?\C-é ?é)))
+  (should (equal ?\C-\C-c #x4000003))
+  (should (equal ?\C-\M-\C-c #xc000003))
+  (should (equal ?\M-\C-\C-c #xc000003))
+  (should (equal ?\C-\C-\M-c #xc000003))
+  (should (equal ?\M-\S-\H-\A-\C-\s-x #xbc00018))
+
+  (should (equal "\s-x" " -x"))
+  (should (equal "\C-x" "\x18"))
+  (should (equal "\^x" "\x18"))
+  (should (equal "\M-x" "\xf8")))
+
+(ert-deftest lread-many-modifiers ()
+  ;; The string literal "\M-\M-...\M-a" should be equivalent to "\M-a",
+  ;; and we should not run out of stack space parsing it.
+  (let* ((n 500000)
+         (s (concat "\""
+                    (apply #'concat (make-list n "\\M-"))
+                    "a\"")))
+    (should (equal (read-from-string s) (cons "\M-a" (+ (* n 3) 3))))))
 
 (ert-deftest lread-record-1 ()
   (should (equal '(#s(foo) #s(foo))
@@ -340,5 +359,21 @@ literals (Bug#20852)."
       (let ((f (symbol-function 'lazydoc-fun)))
         (should (byte-code-function-p f))
         (should (equal (aref f 4) "My little\ndoc string\nhere"))))))
+
+(ert-deftest lread-skip-to-eof ()
+  ;; Check the special #@00 syntax that, for compatibility, reads as
+  ;; nil while absorbing the remainder of the input.
+  (with-temp-buffer
+    (insert "#@00 and the rest\n"
+            "should be ignored) entirely\n")
+    (goto-char (point-min))
+    (should (equal (read (current-buffer)) nil))
+    (should (eobp))
+    ;; Add an unbalanced bracket to the beginning and try again;
+    ;; we should get an error.
+    (goto-char (point-min))
+    (insert "( ")
+    (goto-char (point-min))
+    (should-error (read (current-buffer)) :type 'end-of-file)))
 
 ;;; lread-tests.el ends here

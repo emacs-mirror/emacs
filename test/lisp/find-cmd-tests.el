@@ -25,7 +25,7 @@
 (ert-deftest find-cmd-test-find-cmd ()
   (should
    (string-match
-    (rx "find " (+ any)
+    (rx "find " (+ nonl)
         " \\( \\( -name .svn -or -name .git -or -name .CVS \\)"
         " -prune -or -true \\)"
         " \\( \\( \\(" " -name \\*.pl -or -name \\*.pm -or -name \\*.t \\)"

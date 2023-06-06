@@ -17,6 +17,12 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef FILEMODE_H_
+# define FILEMODE_H_
+
+/* This file uses HAVE_DECL_STRMODE.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
 
 # include <sys/types.h>
 # include <sys/stat.h>

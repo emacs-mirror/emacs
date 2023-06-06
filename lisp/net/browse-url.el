@@ -825,10 +825,17 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
 		  (&optional localp no-error-if-not-filep))
 
 ;;;###autoload
-(defun browse-url-of-dired-file ()
-  "In Dired, ask a WWW browser to display the file named on this line."
-  (interactive)
+(defun browse-url-of-dired-file (&optional secondary)
+  "In Dired, ask a WWW browser to display the file named on this line.
+With prefix arg, use the secondary browser instead (e.g. EWW if
+`browse-url-secondary-browser-function' is set to
+`eww-browse-url'."
+  (interactive "P")
   (let ((tem (dired-get-filename t t))
+        (browse-url-browser-function
+         (if secondary
+             browse-url-secondary-browser-function
+           browse-url-browser-function))
         ;; Some URL handlers open files in Emacs.  We want to always
         ;; open in a browser, so disable those.
         (browse-url-default-handlers nil))

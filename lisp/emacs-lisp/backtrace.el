@@ -499,7 +499,6 @@ Reprint the frame with the new view plist."
 
 (defun backtrace-expand-ellipsis (button)
   "Expand display of the elided form at BUTTON."
-  (interactive)
   (goto-char (button-start button))
   (unless (get-text-property (point) 'cl-print-ellipsis)
     (if (and (> (point) (point-min))

@@ -246,6 +246,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-handle-file-exists-p)
     (file-exists-p . tramp-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-smb-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -556,13 +557,7 @@ arguments to pass to the OPERATION."
 				     (tramp-get-connection-name v)
 				     (tramp-get-connection-buffer v)
 				     tramp-smb-program args)))
-
-			    (tramp-message
-			     v 6 "%s" (string-join (process-command p) " "))
-			    (process-put p 'vector v)
-			    (process-put
-			     p 'adjust-window-size-function #'ignore)
-			    (set-process-query-on-exit-flag p nil)
+			    (tramp-post-process-creation p v)
 			    (tramp-process-actions
 			     p v nil tramp-smb-actions-with-tar)
 
@@ -642,9 +637,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  ;; We must also flush the cache of the directory, because
-	  ;; `file-attributes' reads the values from there.
-	  (tramp-flush-file-properties v localname)
 	  (unless (tramp-smb-get-share v)
 	    (tramp-error
 	     v 'file-error "Target `%s' must contain a share name" newname))
@@ -653,7 +645,12 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			     (tramp-smb-shell-quote-argument filename)
 			     (tramp-smb-shell-quote-localname v)))
 	    (tramp-error
-	     v 'file-error "Cannot copy `%s' to `%s'" filename newname)))))
+	     v 'file-error "Cannot copy `%s' to `%s'" filename newname))
+
+	  ;; When newname did exist, we have wrong cached values.
+	  (when (tramp-tramp-file-p newname)
+	    (with-parsed-tramp-file-name newname v2
+	      (tramp-flush-file-properties v2 v2-localname))))))
 
     ;; KEEP-DATE handling.
     (when keep-date
@@ -692,7 +689,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
       ;; "rmdir" does not report an error.  So we check ourselves.
       (when (file-exists-p directory)
-	(tramp-error v 'file-error "`%s' not removed." directory)))))
+	(tramp-error v 'file-error "`%s' not removed" directory)))))
 
 (defun tramp-smb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
@@ -757,7 +754,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Read ACL data from connection buffer."
   (unless (process-live-p proc)
     ;; Accept pending output.
-    (while (tramp-accept-process-output proc 0))
+    (while (tramp-accept-process-output proc))
     (with-current-buffer (tramp-get-connection-buffer vec)
       ;; There might be a hidden password prompt.
       (widen)
@@ -800,32 +797,26 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	     (append args (list (tramp-unquote-shell-quote-argument localname)
 				(concat "2>" (tramp-get-remote-null-device v)))))
 
-	    (unwind-protect
-		(with-tramp-saved-connection-properties
-		    v '("process-name" "process-buffer")
-		  (with-temp-buffer
-		    ;; Set the transfer process properties.
-		    (tramp-set-connection-property
-		     v "process-name" (buffer-name (current-buffer)))
-		    (tramp-set-connection-property
-		     v "process-buffer" (current-buffer))
+	    (with-tramp-saved-connection-properties
+		v '("process-name" "process-buffer")
+	      (with-temp-buffer
+		;; Set the transfer process properties.
+		(tramp-set-connection-property
+		 v "process-name" (buffer-name (current-buffer)))
+		(tramp-set-connection-property
+		 v "process-buffer" (current-buffer))
 
-		    ;; Use an asynchronous process.  By this, password
-		    ;; can be handled.
-		    (let ((p (apply
-			      #'start-process
-			      (tramp-get-connection-name v)
-			      (tramp-get-connection-buffer v)
-			      tramp-smb-acl-program args)))
-
-		      (tramp-message
-		       v 6 "%s" (string-join (process-command p) " "))
-		      (process-put p 'vector v)
-		      (process-put p 'adjust-window-size-function #'ignore)
-		      (set-process-query-on-exit-flag p nil)
-		      (tramp-process-actions p v nil tramp-smb-actions-get-acl)
-		      (when (> (point-max) (point-min))
-			(substring-no-properties (buffer-string)))))))))))))
+		;; Use an asynchronous process.  By this, password
+		;; can be handled.
+		(let ((p (apply
+			  #'start-process
+			  (tramp-get-connection-name v)
+			  (tramp-get-connection-buffer v)
+			  tramp-smb-acl-program args)))
+		  (tramp-post-process-creation p v)
+		  (tramp-process-actions p v nil tramp-smb-actions-get-acl)
+		  (when (> (point-max) (point-min))
+		    (substring-no-properties (buffer-string))))))))))))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -976,18 +967,20 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; files.
 (defun tramp-smb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (with-parsed-tramp-file-name (expand-file-name directory) nil
-     (with-tramp-file-property v localname "file-name-all-completions"
-       (delete-dups
-	(mapcar
-	 (lambda (x)
-	   (list
-	    (if (tramp-compat-string-search "d" (nth 1 x))
-		(file-name-as-directory (nth 0 x))
-	      (nth 0 x))))
-	 (tramp-smb-get-file-entries directory)))))))
+  (ignore-error file-missing
+    (all-completions
+     filename
+     (when (file-directory-p directory)
+       (with-parsed-tramp-file-name (expand-file-name directory) nil
+	 (with-tramp-file-property v localname "file-name-all-completions"
+	   (delete-dups
+	    (mapcar
+	     (lambda (x)
+	       (list
+		(if (tramp-compat-string-search "d" (nth 1 x))
+		    (file-name-as-directory (nth 0 x))
+		  (nth 0 x))))
+	     (tramp-smb-get-file-entries directory)))))))))
 
 (defun tramp-smb-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -1361,7 +1354,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Set ACL data."
   (unless (process-live-p proc)
     ;; Accept pending output.
-    (while (tramp-accept-process-output proc 0))
+    (while (tramp-accept-process-output proc))
     (tramp-message
      vec 10 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
     (throw 'tramp-action 'ok)))
@@ -1399,44 +1392,38 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			      "&&" "echo" "tramp_exit_status" "0"
 			      "||" "echo" "tramp_exit_status" "1")))
 
-	  (unwind-protect
-	      (with-tramp-saved-connection-properties
-		  v '("process-name" "process-buffer")
-		(with-temp-buffer
-		  ;; Set the transfer process properties.
-		  (tramp-set-connection-property
-		   v "process-name" (buffer-name (current-buffer)))
-		  (tramp-set-connection-property
-		   v "process-buffer" (current-buffer))
+	  (with-tramp-saved-connection-properties
+	      v '("process-name" "process-buffer")
+	    (with-temp-buffer
+	      ;; Set the transfer process properties.
+	      (tramp-set-connection-property
+	       v "process-name" (buffer-name (current-buffer)))
+	      (tramp-set-connection-property
+	       v "process-buffer" (current-buffer))
 
-		  ;; Use an asynchronous process.  By this, password
-		  ;; can be handled.
-		  (let ((p (apply
-			    #'start-process
-			    (tramp-get-connection-name v)
-			    (tramp-get-connection-buffer v)
-			    tramp-smb-acl-program args)))
-
-		    (tramp-message
-		     v 6 "%s" (string-join (process-command p) " "))
-		    (process-put p 'vector v)
-		    (process-put p 'adjust-window-size-function #'ignore)
-		    (set-process-query-on-exit-flag p nil)
-		    (tramp-process-actions p v nil tramp-smb-actions-set-acl)
-		    ;; This is meant for traces, and returning from
-		    ;; the function.  No error is propagated outside,
-		    ;; due to the `ignore-errors' closure.
-		    (unless
-			(tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
-		      (tramp-error
-		       v 'file-error
-		       "Couldn't find exit status of `%s'"
-		       tramp-smb-acl-program))
-		    (skip-chars-forward "^ ")
-		    (when (zerop (read (current-buffer)))
-		      ;; Success.
-		      (tramp-set-file-property v localname "file-acl" acl-string)
-		      t))))))))))
+	      ;; Use an asynchronous process.  By this, password
+	      ;; can be handled.
+	      (let ((p (apply
+			#'start-process
+			(tramp-get-connection-name v)
+			(tramp-get-connection-buffer v)
+			tramp-smb-acl-program args)))
+		(tramp-post-process-creation p v)
+		(tramp-process-actions p v nil tramp-smb-actions-set-acl)
+		;; This is meant for traces, and returning from
+		;; the function.  No error is propagated outside,
+		;; due to the `ignore-errors' closure.
+		(unless
+		    (tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
+		  (tramp-error
+		   v 'file-error
+		   "Couldn't find exit status of `%s'"
+		   tramp-smb-acl-program))
+		(skip-chars-forward "^ ")
+		(when (zerop (read (current-buffer)))
+		  ;; Success.
+		  (tramp-set-file-property v localname "file-acl" acl-string)
+		  t)))))))))
 
 (defun tramp-smb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -1965,11 +1952,7 @@ If ARGUMENT is non-nil, use it as argument for
 			       (if argument
 				   tramp-smb-winexe-program tramp-smb-program)
 			       args))))
-
-	      (tramp-message vec 6 "%s" (string-join (process-command p) " "))
-	      (process-put p 'vector vec)
-	      (process-put p 'adjust-window-size-function #'ignore)
-	      (set-process-query-on-exit-flag p nil)
+	      (tramp-post-process-creation p vec)
 
 	      ;; Set connection-local variables.
 	      (tramp-set-connection-local-variables vec)
@@ -2021,7 +2004,7 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 
       ;; Read pending output.
       (while (not (re-search-forward tramp-smb-prompt nil t))
-	(while (tramp-accept-process-output p 0))
+	(while (tramp-accept-process-output p))
 	(goto-char (point-min)))
       (tramp-message vec 6 "\n%s" (buffer-string))
 

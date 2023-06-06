@@ -1245,6 +1245,7 @@ Manual}.
 These four keywords are not really variables; setting them in any
 other context has no special meaning.
 
+@cindex fallback modes
   If you're editing a file across Emacs versions, and a new mode has
 been introduced to handle a file in a newer Emacs version, you can use
 several @code{mode} entries to use the new mode (called
@@ -1327,6 +1328,15 @@ pairs in the file, by typing @kbd{i} at the confirmation prompt --
 these pairs will thereafter be ignored in this file and in all other
 files.
 
+  When Emacs asks for confirmation for setting directory-local
+variables (@pxref{Directory Variables}), typing @kbd{+} at the
+confirmation prompt will set all the variables, and also add the
+directory to the list in @code{safe-local-variable-directories}
+(described below), which will cause Emacs to consider this directory
+as safe for loading any directory-local variables in the future.  The
+@kbd{+} response should only be used for directories whose contents
+you trust.
+
 @vindex safe-local-variable-values
 @vindex ignored-local-variable-values
 @cindex risky variable
@@ -1342,6 +1352,16 @@ record safe values for risky variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
 Similarly, if you want to record values of risky variables that should
 be permanently ignored, customize @code{ignored-local-variable-values}.
+
+@vindex safe-local-variable-directories
+  Sometimes it is helpful to always trust directory-variables in
+certain directories, and skip the confirmation prompt when local
+variables are loaded from those directories, even if the variables are
+risky.  The variable @code{safe-local-variable-directories} holds the
+list of such directories.  The names of the directories in this list
+must be full absolute file names.  If the variable
+@code{enable-remote-dir-locals} has a non-@code{nil} value, the list
+can include remote directories as well (@pxref{Remote Files}).
 
 @vindex enable-local-variables
   The variable @code{enable-local-variables} allows you to change the

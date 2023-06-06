@@ -957,7 +957,7 @@ Also see the `dired-confirm-shell-command' variable."
          ;; "&" instead.
          (cmd-sep (if (and (or (not w32-shell) file-remote)
 			   (not parallel-in-background))
-		      ";" "&"))
+		      "; " "& "))
 	 (stuff-it
 	  (if (dired--star-or-qmark-p command nil 'keep)
 	      (lambda (x)
@@ -988,7 +988,7 @@ Also see the `dired-confirm-shell-command' variable."
                ;; Add 'wait' to force those POSIX shells to wait until
                ;; all commands finish.
                (or (and parallel-in-background (not w32-shell)
-                        " &wait")
+                        " & wait")
                    "")))
       (t
        (let ((files (mapconcat #'shell-quote-argument
@@ -1000,9 +1000,9 @@ Also see the `dired-confirm-shell-command' variable."
           ;; Be consistent in how we treat inputs to commands -- do
           ;; the same here as in the `on-each' case.
           (if (and in-background (not w32-shell))
-              " &wait"
+              " & wait"
             "")))))
-     (or (and in-background "&")
+     (or (and in-background "& ")
          ""))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.

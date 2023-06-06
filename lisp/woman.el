@@ -1846,7 +1846,6 @@ Argument EVENT is the invoking mouse event."
 
 (defun woman-reset-emulation (value)
   "Reset `woman-emulation' to VALUE and reformat, for menu use."
-  (interactive)
   (setq woman-emulation value)
   (woman-reformat-last-file))
 

@@ -451,9 +451,70 @@ Here's an example:
 @lisp
 (defvar-keymap eww-textarea-map
   :parent text-mode-map
+  :doc "Keymap for the eww text area."
   "RET" #'forward-line
   "TAB" #'shr-next-link)
 @end lisp
+
+@kindex :repeat
+@kindex repeat-mode
+@cindex repeatable key bindings
+Each command in the keymap can be marked as `repeatable', i.e. usable
+in @code{repeat-mode}, by putting a @code{repeat-map} property on it,
+e.g.
+
+@lisp
+(put 'undo 'repeat-map 'undo-repeat-map)
+@end lisp
+
+where the value of the property is the map to be used by
+@code{repeat-mode}.
+
+To avoid repetitive invocations of @code{put}, @code{defvar-keymap}
+also has a @code{:repeat} keyword, which can be used to specify which
+commands in the keymap are usable by @code{repeat-mode}.  The
+following values are available:
+
+@table @code
+@item t
+This means all the commands in the keymap are repeatable, and is the
+most common usage.
+
+@item (:enter (commands ...) :exit (commands ...))
+This specifies that the commands in the @code{:enter} list enter
+@code{repeat-mode}, and the commands in the @code{:exit} list exit
+repeat mode.
+
+If the @code{:enter} list is empty, then all commands in the map enter
+@code{repeat-mode}.  Specifying one or more commands in this list is
+useful if there is a command which doesn't exist in the map being
+defined, but which should have the @code{repeat-map} property.
+
+If the @code{:exit} list is empty then no commands in the map exit
+@code{repeat-mode}.  Specifying one ore more commands in this list is
+useful if the keymap being defined contains a command that should not
+have the @code{repeat-map} property.
+@end table
+
+In order to make e.g.@: @kbd{u} repeat the @code{undo} command, the
+following two stanzas are equivalent:
+
+@lisp
+(defvar-keymap undo-repeat-map
+  "u" #'undo)
+(put 'undo 'repeat-map 'undo-repeat-map)
+@end lisp
+
+and
+
+@lisp
+(defvar-keymap undo-repeat-map
+  :repeat t
+  "u" #'undo)
+@end lisp
+
+The latter is preferred when there are many commands in the map, all
+of which should be repeatable.
 @end defmac
 
 @defun copy-keymap keymap
@@ -707,8 +768,8 @@ prefix definition, and then by those from the global map.
   In the following example, we make @kbd{C-p} a prefix key in the local
 keymap, in such a way that @kbd{C-p} is identical to @kbd{C-x}.  Then
 the binding for @kbd{C-p C-f} is the function @code{find-file}, just
-like @kbd{C-x C-f}.  The key sequence @kbd{C-p 6} is not found in any
-active keymap.
+like @kbd{C-x C-f}.  By contrast, the key sequence @kbd{C-p 9} is not
+found in any active keymap.
 
 @example
 @group
@@ -717,15 +778,14 @@ active keymap.
 @end group
 @group
 (keymap-local-set "C-p" ctl-x-map)
-    @result{} nil
+    @result{} (keymap #^[nil nil keymap @dots{}
 @end group
 @group
-(keymap-binding "C-p C-f")
+(keymap-lookup nil "C-p C-f")
     @result{} find-file
 @end group
-
 @group
-(keymap-binding "C-p 6")
+(keymap-lookup nil "C-p 9")
     @result{} nil
 @end group
 @end example
@@ -822,7 +882,7 @@ Normally it ignores @code{overriding-local-map} and
 then it pays attention to them.  @var{position} can optionally be either
 an event position as returned by @code{event-start} or a buffer
 position, and may change the keymaps as described for
-@code{keymap-binding}.
+@code{keymap-lookup} (@pxref{Functions for Key Lookup, keymap-lookup}).
 @end defun
 
 @node Searching Keymaps
@@ -1247,7 +1307,11 @@ the second example.
 @end group
 @end example
 
-The @var{keymap} argument can also be a list of keymaps.
+The @var{keymap} argument can be @code{nil}, meaning to look up
+@var{key} in the current keymaps (as returned by
+@code{current-active-maps}, @pxref{Active Keymaps}); or it can be a
+keymap or a list of keymaps, meaning to look up @var{key} only in the
+specified keymaps.
 
 Unlike @code{read-key-sequence}, this function does not modify the
 specified events in ways that discard information (@pxref{Key Sequence
@@ -1439,6 +1503,24 @@ new binding is added at the beginning of @var{keymap}.  The order of
 bindings in a keymap makes no difference for keyboard input, but it
 does matter for menu keymaps (@pxref{Menu Keymaps}).
 @end defun
+
+@findex keymap-unset
+@defun keymap-unset keymap key &optional remove
+This function is the inverse of @code{keymap-set}, it unsets the
+binding for @var{key} in @var{keymap}, which is the same as setting
+the binding to @code{nil}.  In order to instead remove the binding
+completely, specify @var{remove} as non-@code{nil}.  This only makes a
+difference if @var{keymap} has a parent keymap: if you just unset a key
+in a child map, it will still shadow the same key in the parent
+keymap; using @var{remove} instead will allow the key in the parent keymap
+to be used.
+@end defun
+
+Note: using @code{keymap-unset} with @var{remove} non-@code{nil} is
+intended for users to put in their init file; Emacs packages should
+avoid using it if possible, since they have complete control over
+their own keymaps anyway, and they should not be altering other
+packages' keymaps.
 
   This example creates a sparse keymap and makes a number of
 bindings in it:

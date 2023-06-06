@@ -86,7 +86,8 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 	     ((eq (car term) 'email)
 	      (unless (string= (cdr term) mail)
 		(setq matched nil)))
-	     ((eq (car term) 'phone))))
+	     ;; ((eq (car term) 'phone))
+             ))
 
 	  (when matched
 	    (setq result

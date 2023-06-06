@@ -111,104 +111,103 @@ The mail client is taken to be the handler of mailto URLs."
   (let ((case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer)))
-    (unwind-protect
-	(with-temp-buffer
-	  (insert-buffer-substring mailbuf)
-	  ;; Move to header delimiter
-	  (mail-sendmail-undelimit-header)
-	  (setq delimline (point-marker))
-	  (if mail-aliases
-	      (expand-mail-aliases (point-min) delimline))
-	  (goto-char (point-min))
-	  ;; ignore any blank lines in the header
-	  (while (and (re-search-forward "\n\n\n*" delimline t)
-		      (< (point) delimline))
-	    (replace-match "\n"))
-	  (let ((case-fold-search t)
-		(mime-charset-pattern
-		 (concat
-		  "^content-type:[ \t]*text/plain;"
-		  "\\(?:[ \t\n]*\\(?:format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
-		  "[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?"))
-		coding-system
-		character-coding
-		;; Use the external browser function to send the
-		;; message.
-                (browse-url-default-handlers nil))
-	    ;; initialize limiter
-	    (setq mailclient-delim-static "?")
-	    ;; construct and call up mailto URL
-	    (browse-url
+    (with-temp-buffer
+      (insert-buffer-substring mailbuf)
+      ;; Move to header delimiter
+      (mail-sendmail-undelimit-header)
+      (setq delimline (point-marker))
+      (if mail-aliases
+	  (expand-mail-aliases (point-min) delimline))
+      (goto-char (point-min))
+      ;; ignore any blank lines in the header
+      (while (and (re-search-forward "\n\n\n*" delimline t)
+		  (< (point) delimline))
+	(replace-match "\n"))
+      (let ((case-fold-search t)
+	    (mime-charset-pattern
 	     (concat
-	      (save-excursion
-		(narrow-to-region (point-min) delimline)
-                ;; We can't send multipart/* messages (i. e. with
-                ;; attachments or the like) via this method.
-                (when-let ((type (mail-fetch-field "content-type")))
-                  (when (and (string-match "multipart"
-                                           (car (mail-header-parse-content-type
-                                                 type)))
-                             (not (y-or-n-p "Message with attachments can't be sent via mailclient; continue anyway?")))
-                    (error "Choose a different `send-mail-function' to send attachments")))
-		(goto-char (point-min))
-		(setq coding-system
-		      (if (re-search-forward mime-charset-pattern nil t)
-			  (coding-system-from-name (match-string 1))
-			'undecided))
-		(setq character-coding
-		      (mail-fetch-field "content-transfer-encoding"))
-		(when character-coding
-		  (setq character-coding (downcase character-coding)))
-		(concat
-		 "mailto:"
-		 ;; Some of the headers according to RFC 822 (or later).
-		 (mailclient-gather-addresses "To"
-					      'drop-first-name)
-		 (mailclient-gather-addresses "cc"  )
-		 (mailclient-gather-addresses "bcc"  )
-		 (mailclient-gather-addresses "Resent-To"  )
-		 (mailclient-gather-addresses "Resent-cc"  )
-		 (mailclient-gather-addresses "Resent-bcc"  )
-		 (mailclient-gather-addresses "Reply-To"  )
-		 ;; The From field is not honored for now: it's
-		 ;; not necessarily configured. The mail client
-		 ;; knows the user's address(es)
-		 ;; (mailclient-gather-addresses "From"  )
-		 ;; subject line
-		 (let ((subj (mail-fetch-field "Subject" nil t)))
-		   (widen) ;; so we can read the body later on
-		   (if subj ;; if non-blank
-		       ;; the mail client will deal with
-		       ;; warning the user etc.
-		       (concat (mailclient-url-delim) "subject="
-			       (mailclient-encode-string-as-url subj))
-		     ""))))
-	      ;; body
-	      (mailclient-url-delim) "body="
-	      (progn
-		(delete-region (point-min) delimline)
-		(unless (null character-coding)
-		  ;; mailto: and clipboard need UTF-8 and cannot deal with
-		  ;; Content-Transfer-Encoding or Content-Type.
-		  ;; FIXME: There is code duplication here with rmail.el.
-		  (set-buffer-multibyte nil)
-		  (cond
-		   ((string= character-coding "base64")
-		    (base64-decode-region (point-min) (point-max)))
-		   ((string= character-coding "quoted-printable")
-		    (mail-unquote-printable-region (point-min) (point-max)
-						   nil nil t))
-                   (t (error "Unsupported Content-Transfer-Encoding: %s"
-			     character-coding)))
-		  (decode-coding-region (point-min) (point-max) coding-system))
-		(mailclient-encode-string-as-url
-		 (if mailclient-place-body-on-clipboard-flag
-		     (progn
-		       (clipboard-kill-ring-save (point-min) (point-max))
-		       (concat
-			"*** E-Mail body has been placed on clipboard, "
-			"please paste it here! ***"))
-		   (buffer-string)))))))))))
+	      "^content-type:[ \t]*text/plain;"
+	      "\\(?:[ \t\n]*\\(?:format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
+	      "[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?"))
+	    coding-system
+	    character-coding
+	    ;; Use the external browser function to send the
+	    ;; message.
+            (browse-url-default-handlers nil))
+	;; initialize limiter
+	(setq mailclient-delim-static "?")
+	;; construct and call up mailto URL
+	(browse-url
+	 (concat
+	  (save-excursion
+	    (narrow-to-region (point-min) delimline)
+            ;; We can't send multipart/* messages (i. e. with
+            ;; attachments or the like) via this method.
+            (when-let ((type (mail-fetch-field "content-type")))
+              (when (and (string-match "multipart"
+                                       (car (mail-header-parse-content-type
+                                             type)))
+                         (not (y-or-n-p "Message with attachments can't be sent via mailclient; continue anyway?")))
+                (error "Choose a different `send-mail-function' to send attachments")))
+	    (goto-char (point-min))
+	    (setq coding-system
+		  (if (re-search-forward mime-charset-pattern nil t)
+		      (coding-system-from-name (match-string 1))
+		    'undecided))
+	    (setq character-coding
+		  (mail-fetch-field "content-transfer-encoding"))
+	    (when character-coding
+	      (setq character-coding (downcase character-coding)))
+	    (concat
+	     "mailto:"
+	     ;; Some of the headers according to RFC 822 (or later).
+	     (mailclient-gather-addresses "To"
+					  'drop-first-name)
+	     (mailclient-gather-addresses "cc"  )
+	     (mailclient-gather-addresses "bcc"  )
+	     (mailclient-gather-addresses "Resent-To"  )
+	     (mailclient-gather-addresses "Resent-cc"  )
+	     (mailclient-gather-addresses "Resent-bcc"  )
+	     (mailclient-gather-addresses "Reply-To"  )
+	     ;; The From field is not honored for now: it's
+	     ;; not necessarily configured. The mail client
+	     ;; knows the user's address(es)
+	     ;; (mailclient-gather-addresses "From"  )
+	     ;; subject line
+	     (let ((subj (mail-fetch-field "Subject" nil t)))
+	       (widen) ;; so we can read the body later on
+	       (if subj ;; if non-blank
+		   ;; the mail client will deal with
+		   ;; warning the user etc.
+		   (concat (mailclient-url-delim) "subject="
+			   (mailclient-encode-string-as-url subj))
+		 ""))))
+	  ;; body
+	  (mailclient-url-delim) "body="
+	  (progn
+	    (delete-region (point-min) delimline)
+	    (unless (null character-coding)
+	      ;; mailto: and clipboard need UTF-8 and cannot deal with
+	      ;; Content-Transfer-Encoding or Content-Type.
+	      ;; FIXME: There is code duplication here with rmail.el.
+	      (set-buffer-multibyte nil)
+	      (cond
+	       ((string= character-coding "base64")
+		(base64-decode-region (point-min) (point-max)))
+	       ((string= character-coding "quoted-printable")
+		(mail-unquote-printable-region (point-min) (point-max)
+					       nil nil t))
+               (t (error "Unsupported Content-Transfer-Encoding: %s"
+			 character-coding)))
+	      (decode-coding-region (point-min) (point-max) coding-system))
+	    (mailclient-encode-string-as-url
+	     (if mailclient-place-body-on-clipboard-flag
+		 (progn
+		   (clipboard-kill-ring-save (point-min) (point-max))
+		   (concat
+		    "*** E-Mail body has been placed on clipboard, "
+		    "please paste it here! ***"))
+	       (buffer-string))))))))))
 
 (provide 'mailclient)
 

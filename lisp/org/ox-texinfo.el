@@ -2037,10 +2037,13 @@ Once computed, the results remain cached."
                                    "\n")))
               (with-temp-file input-file
                 (insert input-content))
-              (let* ((output-file (org-texinfo-compile input-file))
-                     (output-content (with-temp-buffer
-                                       (insert-file-contents output-file)
-                                       (buffer-string))))
+              (when-let* ((output-file
+                           ;; If compilation fails, consider math to
+                           ;; be not supported.
+                           (ignore-errors (org-texinfo-compile input-file)))
+                          (output-content (with-temp-buffer
+                                            (insert-file-contents output-file)
+                                            (buffer-string))))
                 (let ((result (string-match-p (regexp-quote math-example)
                                               output-content)))
                   (delete-file input-file)

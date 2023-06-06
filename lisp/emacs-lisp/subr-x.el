@@ -81,18 +81,22 @@ Note how the single `-' got converted into a list before
 threading."
   (declare (indent 0) (debug thread-first))
   `(internal--thread-argument nil ,@forms))
+
 (defsubst hash-table-empty-p (hash-table)
   "Check whether HASH-TABLE is empty (has 0 elements)."
+  (declare (side-effect-free t))
   (zerop (hash-table-count hash-table)))
 
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."
+  (declare (side-effect-free t))
   (let ((keys nil))
     (maphash (lambda (k _) (push k keys)) hash-table)
     keys))
 
 (defsubst hash-table-values (hash-table)
   "Return a list of values in HASH-TABLE."
+  (declare (side-effect-free t))
   (let ((values nil))
     (maphash (lambda (_ v) (push v values)) hash-table)
     values))
@@ -149,6 +153,7 @@ carriage return."
 All sequences of whitespaces in STRING are collapsed into a
 single space character, and leading/trailing whitespace is
 removed."
+  (declare (important-return-value t))
   (let ((blank "[[:blank:]\r\n]+"))
     (string-trim (replace-regexp-in-string blank " " string t t)
                  blank blank)))
@@ -158,6 +163,7 @@ removed."
 Wrapping is done where there is whitespace.  If there are
 individual words in STRING that are longer than LENGTH, the
 result will have lines that are longer than LENGTH."
+  (declare (important-return-value t))
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
@@ -189,6 +195,7 @@ coding system that doesn't specify a BOM, like `utf-16le' or `utf-16be'.
 When shortening strings for display purposes,
 `truncate-string-to-width' is almost always a better alternative
 than this function."
+  (declare (important-return-value t))
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (if coding-system
@@ -324,6 +331,7 @@ as the new values of the bound variables in the recursive invocation."
 ;;;###autoload
 (defun string-pixel-width (string)
   "Return the width of STRING in pixels."
+  (declare (important-return-value t))
   (if (zerop (length string))
       0
     ;; Keeping a work buffer around is more efficient than creating a
@@ -344,6 +352,7 @@ This takes into account combining characters and grapheme clusters:
 if compositions are enabled, each sequence of characters composed
 on display into a single grapheme cluster is treated as a single
 indivisible unit."
+  (declare (side-effect-free t))
   (let ((result nil)
         (start 0)
         comp)
@@ -494,6 +503,13 @@ Used by `emacs-authors-mode' and `emacs-news-mode'."
                       (if (re-search-backward "^Local\sVariables:$" nil t)
                           (progn (forward-line -1) (point))
                         (point-max)))))
+
+(defun eval-command-interactive-spec (command)
+  "Evaluate COMMAND's interactive form and return resultant list.
+If COMMAND has no interactive form, return nil."
+  (advice-eval-interactive-spec
+   (cadr (or (and (symbolp command) (get command 'interactive-form))
+             (interactive-form command)))))
 
 (provide 'subr-x)
 

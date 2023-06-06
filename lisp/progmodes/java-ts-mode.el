@@ -36,6 +36,8 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
 
 (defcustom java-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `java-ts-mode'."
@@ -145,6 +147,16 @@
     "|=" "~" ">>" ">>>" "<<" "::" "?" "&=")
   "Java operators for tree-sitter font-locking.")
 
+(defun java-ts-mode--string-highlight-helper ()
+"Returns, for strings, a query based on what is supported by
+the available version of Tree-sitter for java."
+  (condition-case nil
+      (progn (treesit-query-capture 'java '((text_block) @font-lock-string-face))
+	     `((string_literal) @font-lock-string-face
+	       (text_block) @font-lock-string-face))
+    (error
+     `((string_literal) @font-lock-string-face))))
+
 (defvar java-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'java
@@ -182,8 +194,7 @@
    :language 'java
    :override t
    :feature 'string
-   `((string_literal) @font-lock-string-face
-     (text_block) @font-lock-string-face)
+   (java-ts-mode--string-highlight-helper)
    :language 'java
    :override t
    :feature 'literal
@@ -213,6 +224,9 @@
       name: (identifier) @font-lock-type-face)
 
      (constructor_declaration
+      name: (identifier) @font-lock-type-face)
+
+     (compact_constructor_declaration
       name: (identifier) @font-lock-type-face)
 
      (field_access

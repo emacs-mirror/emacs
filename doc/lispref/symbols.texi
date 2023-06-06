@@ -276,9 +276,8 @@ This function returns the string that is @var{symbol}'s name.  For example:
 @end group
 @end example
 
-@strong{Warning:} Changing the string by substituting characters does
-change the name of the symbol, but fails to update the obarray, so don't
-do it!
+@strong{Warning:} Never alter the string returned by that function.
+Doing that might make Emacs dysfunctional, and might even crash Emacs.
 @end defun
 
 @cindex uninterned symbol, and generating Lisp code
@@ -643,6 +642,12 @@ ignore a call whose value is unused.  If the property's value is
 @code{error-free}, the byte compiler may even delete such unused
 calls.  In addition to byte compiler optimizations, this property is
 also used for determining function safety (@pxref{Function Safety}).
+
+@item important-return-value
+@cindex @code{important-return-value} property
+A non-@code{nil} value makes the byte compiler warn about code that
+calls the named function without using its returned value.  This is
+useful for functions where doing so is likely to be a mistake.
 
 @item undo-inhibit-region
 If non-@code{nil}, the named function prevents the @code{undo} operation

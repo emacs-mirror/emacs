@@ -437,7 +437,7 @@ the C sources, too."
       (setq file-name
 	    (locate-file file-name load-path '(".el" ".elc") 'readable)))
      ((and (stringp file-name)
-	   (string-match "[.]*loaddefs.el\\'" file-name))
+	   (string-match "[.]*loaddefs.elc?\\'" file-name))
       ;; An autoloaded variable or face.  Visit loaddefs.el in a buffer
       ;; and try to extract the defining file.  The following form is
       ;; from `describe-function-1' and `describe-variable'.
@@ -592,22 +592,22 @@ the C sources, too."
     ;; First collect all the printed representations of menus.
     (dolist (menu menus)
       (let ((map (lookup-key global-map (seq-take menu 1)))
-            (string nil))
+            (string nil)
+            (sep (if (char-displayable-p ?→) " → " " => ")))
         (seq-do-indexed
          (lambda (entry level)
            (when (symbolp map)
              (setq map (symbol-function map)))
            (when-let ((elem (assq entry (cdr map))))
              (when (> level 0)
-               (push (if (char-displayable-p ?→)
-                         " → "
-                       " => ")
-                     string))
+               (push sep string))
              (if (eq (nth 1 elem) 'menu-item)
                  (progn
-                   (push (nth 2 elem) string)
+                   (push (propertize (nth 2 elem) 'face 'help-key-binding)
+                         string)
                    (setq map (cadddr elem)))
-               (push (nth 1 elem) string)
+               (push (propertize (nth 1 elem) 'face 'help-key-binding)
+                     string)
                (setq map (cddr elem)))))
          (cdr (seq-into menu 'list)))
         (when string
@@ -622,8 +622,7 @@ the C sources, too."
           (cond ((zerop i) "")
                 ((= i (1- (length menus))) " and ")
                 (t ", "))
-          (propertize (string-join (nreverse string))
-                      'face 'help-key-binding)))
+          (string-join (nreverse string))))
        strings))))
 
 (defun help-fns--compiler-macro (function)
@@ -711,7 +710,15 @@ the C sources, too."
               (high-doc (cdr high)))
           (unless (and (symbolp function)
                        (get function 'reader-construct))
-            (insert high-usage "\n"))
+            (insert high-usage "\n")
+            (when-let* ((res (comp-function-type-spec function))
+                        (type-spec (car res))
+                        (kind (cdr res)))
+              (insert (format
+                       (if (eq kind 'inferred)
+                           "\nInferred type: %s\n"
+                         "\nType: %s\n")
+                       type-spec))))
           (fill-region fill-begin (point))
           high-doc)))))
 
@@ -1138,7 +1145,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
     ;; key substitution constructs, load the library.
     (and (autoloadp real-def) doc-raw
          help-enable-autoload
-         (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]" doc-raw)
+         (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]\\|`.*'" doc-raw)
          (autoload-do-load real-def))
 
     (help-fns--key-bindings function)

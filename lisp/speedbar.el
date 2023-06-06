@@ -2591,13 +2591,12 @@ interrupted by the user."
   (if (not speedbar-stealthy-update-recurse)
       (let ((l (speedbar-initial-stealthy-functions))
 	    (speedbar-stealthy-update-recurse t))
-	(unwind-protect
-	    (speedbar-with-writable
-	      (while (and l (funcall (car l)))
-		;;(sit-for 0)
-		(setq l (cdr l))))
-	  ;;(dframe-message "Exit with %S" (car l))
-	  ))))
+	(speedbar-with-writable
+	  (while (and l (funcall (car l)))
+	    ;;(sit-for 0)
+	    (setq l (cdr l))))
+	;;(dframe-message "Exit with %S" (car l))
+	)))
 
 (defun speedbar-reset-scanners ()
   "Reset any variables used by functions in the stealthy list as state.
@@ -3551,9 +3550,7 @@ This variable is ignored if `speedbar-use-imenu-flag' is t."
   "Toggle FLAG in `speedbar-fetch-etags-arguments'.
 FLAG then becomes a member of etags command line arguments.  If flag
 is \"sort\", then toggle the value of `speedbar-sort-tags'.  If its
-value is \"show\" then toggle the value of
-`speedbar-show-unknown-files'."
-  (interactive)
+value is \"show\" then toggle the value of `speedbar-show-unknown-files'."
   (cond
    ((equal flag "sort")
     (setq speedbar-sort-tags (not speedbar-sort-tags)))
@@ -3572,38 +3569,36 @@ value is \"show\" then toggle the value of
   "For FILE, run etags and create a list of symbols extracted.
 Each symbol will be associated with its line position in FILE."
   (let ((newlist nil))
-    (unwind-protect
-	(save-excursion
-	  (if (get-buffer "*etags tmp*")
-	      (kill-buffer "*etags tmp*"))	;kill to clean it up
-	  (if (<= 1 speedbar-verbosity-level)
-	      (dframe-message "Fetching etags..."))
-	  (set-buffer (get-buffer-create "*etags tmp*"))
-	  (apply 'call-process speedbar-fetch-etags-command nil
-		 (current-buffer) nil
-		 (append speedbar-fetch-etags-arguments (list file)))
-	  (goto-char (point-min))
-	  (if (<= 1 speedbar-verbosity-level)
-	      (dframe-message "Fetching etags..."))
-	  (let ((expr
-		 (let ((exprlst speedbar-fetch-etags-parse-list)
-		       (ans nil))
-		   (while (and (not ans) exprlst)
-		     (if (string-match (car (car exprlst)) file)
-			 (setq ans (car exprlst)))
-		     (setq exprlst (cdr exprlst)))
-		   (cdr ans))))
-	    (if expr
-		(let (tnl)
-		  (set-buffer (get-buffer-create "*etags tmp*"))
-		  (while (not (save-excursion (end-of-line) (eobp)))
-		    (save-excursion
-		      (setq tnl (speedbar-extract-one-symbol expr)))
-		    (if tnl (setq newlist (cons tnl newlist)))
-		    (forward-line 1)))
-	      (dframe-message
-	       "Sorry, no support for a file of that extension"))))
-      )
+    (save-excursion
+      (if (get-buffer "*etags tmp*")
+	  (kill-buffer "*etags tmp*"))	;kill to clean it up
+      (if (<= 1 speedbar-verbosity-level)
+	  (dframe-message "Fetching etags..."))
+      (set-buffer (get-buffer-create "*etags tmp*"))
+      (apply 'call-process speedbar-fetch-etags-command nil
+	     (current-buffer) nil
+	     (append speedbar-fetch-etags-arguments (list file)))
+      (goto-char (point-min))
+      (if (<= 1 speedbar-verbosity-level)
+	  (dframe-message "Fetching etags..."))
+      (let ((expr
+	     (let ((exprlst speedbar-fetch-etags-parse-list)
+		   (ans nil))
+	       (while (and (not ans) exprlst)
+		 (if (string-match (car (car exprlst)) file)
+		     (setq ans (car exprlst)))
+		 (setq exprlst (cdr exprlst)))
+	       (cdr ans))))
+	(if expr
+	    (let (tnl)
+	      (set-buffer (get-buffer-create "*etags tmp*"))
+	      (while (not (save-excursion (end-of-line) (eobp)))
+		(save-excursion
+		  (setq tnl (speedbar-extract-one-symbol expr)))
+		(if tnl (setq newlist (cons tnl newlist)))
+		(forward-line 1)))
+	  (dframe-message
+	   "Sorry, no support for a file of that extension"))))
     (if speedbar-sort-tags
 	(sort newlist (lambda (a b) (string< (car a) (car b))))
       (reverse newlist))))

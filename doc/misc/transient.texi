@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.3.7.50
+@subtitle for version 0.4.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -74,7 +74,7 @@ that hurdle is Psionic K's interactive tutorial, available at
 @end quotation
 
 @noindent
-This manual is for Transient version 0.3.7.50.
+This manual is for Transient version 0.4.1.
 
 @insertcopying
 @end ifnottex
@@ -2150,7 +2150,7 @@ default value of a prefix using the same format as returned by
 
 @item
 @code{always-read} For options, whether to read a value on every invocation.
-If this is nil, then options that have a value are simply unset and
+If this is @code{nil}, then options that have a value are simply unset and
 have to be invoked a second time to set a new value.
 
 @item
@@ -2565,6 +2565,20 @@ currently exist.
 @appendixsec Can I control how the popup buffer is displayed?
 
 Yes, see @code{transient-display-buffer-action} in @ref{Configuration}.
+
+@anchor{How can I copy text from the popup buffer?}
+@appendixsec How can I copy text from the popup buffer?
+
+To be able to mark text in any transient popup buffer using the mouse,
+you have to add the following binding.  Note that the region won't be
+visualized, while doing so.  After you have quit the transient popup,
+you will be able to yank it another buffer.
+
+@lisp
+(keymap-set transient-predicate-map
+            "<mouse-set-region>"
+            #'transient--do-stay)
+@end lisp
 
 @anchor{Why did some of the key bindings change?}
 @appendixsec Why did some of the key bindings change?

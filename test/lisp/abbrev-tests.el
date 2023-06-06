@@ -305,6 +305,22 @@
   (should-not (abbrev-table-p translation-table-vector))
   (should (abbrev-table-p (make-abbrev-table))))
 
+(ert-deftest abbrev--possibly-save-test ()
+  "Test that `abbrev--possibly-save' properly resets
+`abbrevs-changed'."
+  (ert-with-temp-file temp-test-file
+    (let ((abbrev-file-name temp-test-file)
+          (save-abbrevs t))
+      ;; Save
+      (let ((abbrevs-changed t))
+        (should-not (abbrev--possibly-save nil t))
+        (should-not abbrevs-changed))
+      ;; Don't save
+      (let ((abbrevs-changed t))
+        (ert-simulate-keys '(?n ?\C-m)
+          (should (abbrev--possibly-save nil)))
+        (should-not abbrevs-changed)))))
+
 (provide 'abbrev-tests)
 
 ;;; abbrev-tests.el ends here

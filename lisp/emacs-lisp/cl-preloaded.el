@@ -113,6 +113,7 @@ supertypes from the most specific to least specific.")
         (record 'cl-slot-descriptor
                 name initform type props)))
 
+;; In use by comp.el
 (defun cl--struct-get-class (name)
   (or (if (not (symbolp name)) name)
       (cl--find-class name)
@@ -176,6 +177,7 @@ supertypes from the most specific to least specific.")
                        (i 0)
                        (offset (if type 0 1)))
                    (dolist (slot slots)
+                     (put (car slot) 'slot-name t)
                      (let* ((props (cl--plist-to-alist (cddr slot)))
                             (typep (assq :type props))
                             (type (if (null typep) t

@@ -17,6 +17,11 @@
 
    Written by Paul Eggert, Andreas Grünbacher, and Bruno Haible.  */
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE, _GL_ATTRIBUTE_PURE.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include "acl.h"
 
 #include <stdlib.h>
@@ -60,9 +65,6 @@ extern int aclsort (int, int, struct acl *);
 # define fchmod(fd, mode) (-1)
 #endif
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef ACL_INTERNAL_INLINE
 # define ACL_INTERNAL_INLINE _GL_INLINE

@@ -849,6 +849,53 @@ Each node in the returned tree looks like
 
 @heading More convenience functions
 
+@defun treesit-node-get node instructions
+This is a convenience function that chains together multiple node
+accessor functions together.  For example, to get @var{node}'s
+parent's next sibling's second child's text:
+
+@example
+@group
+(treesit-node-get node
+   '((parent 1)
+    (sibling 1 nil)
+    (child 1 nil)
+    (text nil)))
+@end group
+@end example
+
+@var{instruction} is a list of INSTRUCTIONs of the form
+@w{@code{(@var{fn} @var{arg}...)}}.  The following @var{fn}'s are
+supported:
+
+@table @code
+@item (child @var{idx} @var{named})
+Get the @var{idx}'th child.
+
+@item (parent @var{n})
+Go to parent @var{n} times.
+
+@item (field-name)
+Get the field name of the current node.
+
+@item (type)
+Get the type of the current node.
+
+@item (text @var{no-property})
+Get the text of the current node.
+
+@item (children @var{named})
+Get a list of children.
+
+@item (sibling @var{step} @var{named})
+Get the nth prev/next sibling, negative @var{step} means prev sibling,
+positive means next sibling.
+@end table
+
+Note that arguments like @var{named} and @var{no-property} can't be
+omitted, unlike in their original functions.
+@end defun
+
 @defun treesit-filter-child node predicate &optional named
 This function finds immediate children of @var{node} that satisfy
 @var{predicate}.
@@ -859,18 +906,24 @@ return non-@code{nil} to indicate that the node should be kept.  If
 nodes.
 @end defun
 
-@defun treesit-parent-until node predicate
+@defun treesit-parent-until node predicate &optional include-node
 This function repeatedly finds the parents of @var{node}, and returns
-the parent that satisfies @var{predicate}, a function that takes a
-node as the argument.  If no parent satisfies @var{predicate}, this
-function returns @code{nil}.
+the parent that satisfies @var{pred}, a function that takes a node as
+the argument and returns a boolean that indicates a match.  If no
+parent satisfies @var{pred}, this function returns @code{nil}.
+
+Normally this function only looks at the parents of @var{node} but not
+@var{node} itself. But if @var{include-node} is non-@var{nil}, this
+function returns @var{node} if @var{node} satisfies @var{pred}.
 @end defun
 
-@defun treesit-parent-while node predicate
-This function repeatedly finds the parent of @var{node}, and keeps
-doing so as long as the nodes satisfy @var{predicate}, a function that
+@defun treesit-parent-while node pred
+This function goes up the tree starting from @var{node}, and keeps
+doing so as long as the nodes satisfy @var{pred}, a function that
 takes a node as the argument.  That is, this function returns the
-farthest parent that still satisfies @var{predicate}.
+highest parent of @var{node} that still satisfies @var{pred}.  Note
+that if @var{node} satisfies @var{pred} but its immediate parent
+doesn't, @var{node} itself is returned.
 @end defun
 
 @defun treesit-node-top-level node &optional type
@@ -1305,7 +1358,8 @@ matches regular expression @var{regexp}.  Matching is case-sensitive.
 
 @deffn Predicate pred fn &rest nodes
 Matches if function @var{fn} returns non-@code{nil} when passed each
-node in @var{nodes} as arguments.
+node in @var{nodes} as arguments.  The function runs with the current
+buffer set to the buffer of node being queried.
 @end deffn
 
 Note that a predicate can only refer to capture names that appear in
@@ -1638,9 +1692,9 @@ directly translate into operations shown above.
 @end example
 
 @defun treesit-range-rules &rest query-specs
-This function is used to set @var{treesit-range-settings}.  It
-takes care of compiling queries and other post-processing, and outputs
-a value that @var{treesit-range-settings} can have.
+This function is used to set @code{treesit-range-settings}.  It takes
+care of compiling queries and other post-processing, and outputs a
+value that @code{treesit-range-settings} can have.
 
 It takes a series of @var{query-spec}s, where each @var{query-spec} is
 a @var{query} preceded by zero or more @var{keyword}/@var{value}

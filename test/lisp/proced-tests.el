@@ -95,7 +95,11 @@
    (proced--move-to-column "PID")
    (let ((pid (word-at-point)))
      (proced-refine)
-     (proced-update t)
+     ;; Don't use (proced-update t) since this will reset `proced-process-alist'
+     ;; and it's possible the process refined on would have exited by that
+     ;; point.  In this case proced will skip the refinement and show all
+     ;; processes again, causing the test to fail.
+     (proced-update)
      (while (not (eobp))
        (proced--move-to-column "PID")
        (should (string= pid (word-at-point)))

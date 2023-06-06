@@ -20,6 +20,11 @@
 #ifndef _MD5_H
 #define _MD5_H 1
 
+/* This file uses HAVE_OPENSSL_MD5.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 

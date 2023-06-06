@@ -1083,8 +1083,8 @@ gnutls_hex_string (unsigned char *buf, ptrdiff_t buf_size, const char *prefix)
 {
   ptrdiff_t prefix_length = strlen (prefix);
   ptrdiff_t retlen;
-  if (INT_MULTIPLY_WRAPV (buf_size, 3, &retlen)
-      || INT_ADD_WRAPV (prefix_length - (buf_size != 0), retlen, &retlen))
+  if (ckd_mul (&retlen, buf_size, 3)
+      || ckd_add (&retlen, retlen, prefix_length - (buf_size != 0)))
     string_overflow ();
   Lisp_Object ret = make_uninit_string (retlen);
   char *string = SSDATA (ret);
@@ -2378,7 +2378,7 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
 
   ptrdiff_t cipher_tag_size = gnutls_cipher_get_tag_size (gca);
   ptrdiff_t tagged_size;
-  if (INT_ADD_WRAPV (isize, cipher_tag_size, &tagged_size)
+  if (ckd_add (&tagged_size, isize, cipher_tag_size)
       || SIZE_MAX < tagged_size)
     memory_full (SIZE_MAX);
   size_t storage_length = tagged_size;

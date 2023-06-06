@@ -10,9 +10,13 @@ test-lib-src-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
+        - lib-src/treesit.{h,c}
+        - test/lib-src/treesit-tests.el
+      when: never
+    - changes:
         - lib-src/*.{h,c}
-        - test/lib-src/*.el
         - test/lib-src/*resources/**
+        - test/lib-src/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lib-src"
@@ -28,8 +32,8 @@ test-lisp-inotify:
       when: never
     - changes:
         - lisp/*.el
-        - test/lisp/*.el
         - test/lisp/*resources/**
+        - test/lisp/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp"
@@ -45,8 +49,8 @@ test-lisp-calc-inotify:
       when: never
     - changes:
         - lisp/calc/*.el
-        - test/lisp/calc/*.el
         - test/lisp/calc/*resources/**
+        - test/lisp/calc/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-calc"
@@ -62,8 +66,8 @@ test-lisp-calendar-inotify:
       when: never
     - changes:
         - lisp/calendar/*.el
-        - test/lisp/calendar/*.el
         - test/lisp/calendar/*resources/**
+        - test/lisp/calendar/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-calendar"
@@ -79,8 +83,8 @@ test-lisp-cedet-inotify:
       when: never
     - changes:
         - lisp/cedet/*.el
-        - test/lisp/cedet/*.el
         - test/lisp/cedet/*resources/**
+        - test/lisp/cedet/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-cedet"
@@ -96,8 +100,8 @@ test-lisp-cedet-semantic-inotify:
       when: never
     - changes:
         - lisp/cedet/semantic/*.el
-        - test/lisp/cedet/semantic/*.el
         - test/lisp/cedet/semantic/*resources/**
+        - test/lisp/cedet/semantic/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-cedet-semantic"
@@ -113,8 +117,8 @@ test-lisp-cedet-semantic-bovine-inotify:
       when: never
     - changes:
         - lisp/cedet/semantic/bovine/*.el
-        - test/lisp/cedet/semantic/bovine/*.el
         - test/lisp/cedet/semantic/bovine/*resources/**
+        - test/lisp/cedet/semantic/bovine/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-cedet-semantic-bovine"
@@ -130,8 +134,8 @@ test-lisp-cedet-srecode-inotify:
       when: never
     - changes:
         - lisp/cedet/srecode/*.el
-        - test/lisp/cedet/srecode/*.el
         - test/lisp/cedet/srecode/*resources/**
+        - test/lisp/cedet/srecode/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-cedet-srecode"
@@ -147,8 +151,8 @@ test-lisp-emacs-lisp-inotify:
       when: never
     - changes:
         - lisp/emacs-lisp/*.el
-        - test/lisp/emacs-lisp/*.el
         - test/lisp/emacs-lisp/*resources/**
+        - test/lisp/emacs-lisp/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-emacs-lisp"
@@ -164,8 +168,8 @@ test-lisp-emacs-lisp-eieio-tests-inotify:
       when: never
     - changes:
         - lisp/emacs-lisp/eieio*.el
-        - test/lisp/emacs-lisp/eieio-tests/*.el
         - test/lisp/emacs-lisp/eieio-tests/*resources/**
+        - test/lisp/emacs-lisp/eieio-tests/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-emacs-lisp-eieio-tests"
@@ -181,8 +185,8 @@ test-lisp-emacs-lisp-faceup-tests-inotify:
       when: never
     - changes:
         - lisp/emacs-lisp/faceup*.el
-        - test/lisp/emacs-lisp/faceup-tests/*.el
         - test/lisp/emacs-lisp/faceup-tests/*resources/**
+        - test/lisp/emacs-lisp/faceup-tests/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-emacs-lisp-faceup-tests"
@@ -198,8 +202,8 @@ test-lisp-emulation-inotify:
       when: never
     - changes:
         - lisp/emulation/*.el
-        - test/lisp/emulation/*.el
         - test/lisp/emulation/*resources/**
+        - test/lisp/emulation/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-emulation"
@@ -215,8 +219,8 @@ test-lisp-erc-inotify:
       when: never
     - changes:
         - lisp/erc/*.el
-        - test/lisp/erc/*.el
         - test/lisp/erc/*resources/**
+        - test/lisp/erc/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-erc"
@@ -232,8 +236,8 @@ test-lisp-eshell-inotify:
       when: never
     - changes:
         - lisp/eshell/*.el
-        - test/lisp/eshell/*.el
         - test/lisp/eshell/*resources/**
+        - test/lisp/eshell/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-eshell"
@@ -249,8 +253,8 @@ test-lisp-gnus-inotify:
       when: never
     - changes:
         - lisp/gnus/*.el
-        - test/lisp/gnus/*.el
         - test/lisp/gnus/*resources/**
+        - test/lisp/gnus/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-gnus"
@@ -266,8 +270,8 @@ test-lisp-image-inotify:
       when: never
     - changes:
         - lisp/image/*.el
-        - test/lisp/image/*.el
         - test/lisp/image/*resources/**
+        - test/lisp/image/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-image"
@@ -283,8 +287,8 @@ test-lisp-international-inotify:
       when: never
     - changes:
         - lisp/international/*.el
-        - test/lisp/international/*.el
         - test/lisp/international/*resources/**
+        - test/lisp/international/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-international"
@@ -300,8 +304,8 @@ test-lisp-mail-inotify:
       when: never
     - changes:
         - lisp/mail/*.el
-        - test/lisp/mail/*.el
         - test/lisp/mail/*resources/**
+        - test/lisp/mail/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-mail"
@@ -317,8 +321,8 @@ test-lisp-mh-e-inotify:
       when: never
     - changes:
         - lisp/mh-e/*.el
-        - test/lisp/mh-e/*.el
         - test/lisp/mh-e/*resources/**
+        - test/lisp/mh-e/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-mh-e"
@@ -334,8 +338,8 @@ test-lisp-net-inotify:
       when: never
     - changes:
         - lisp/net/*.el
-        - test/lisp/net/*.el
         - test/lisp/net/*resources/**
+        - test/lisp/net/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-net"
@@ -351,8 +355,8 @@ test-lisp-nxml-inotify:
       when: never
     - changes:
         - lisp/nxml/*.el
-        - test/lisp/nxml/*.el
         - test/lisp/nxml/*resources/**
+        - test/lisp/nxml/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-nxml"
@@ -368,8 +372,8 @@ test-lisp-obsolete-inotify:
       when: never
     - changes:
         - lisp/obsolete/*.el
-        - test/lisp/obsolete/*.el
         - test/lisp/obsolete/*resources/**
+        - test/lisp/obsolete/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-obsolete"
@@ -385,8 +389,8 @@ test-lisp-org-inotify:
       when: never
     - changes:
         - lisp/org/*.el
-        - test/lisp/org/*.el
         - test/lisp/org/*resources/**
+        - test/lisp/org/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-org"
@@ -402,8 +406,8 @@ test-lisp-play-inotify:
       when: never
     - changes:
         - lisp/play/*.el
-        - test/lisp/play/*.el
         - test/lisp/play/*resources/**
+        - test/lisp/play/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-play"
@@ -418,9 +422,16 @@ test-lisp-progmodes-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
+        - lisp/progmodes/eglot.el
+        - lisp/progmodes/*-ts-mode.el
+        - test/lisp/progmodes/eglot-tests.el
+        - test/lisp/progmodes/*-ts-mode-resources/**
+        - test/lisp/progmodes/*-ts-mode-tests.el
+      when: never
+    - changes:
         - lisp/progmodes/*.el
-        - test/lisp/progmodes/*.el
         - test/lisp/progmodes/*resources/**
+        - test/lisp/progmodes/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-progmodes"
@@ -436,8 +447,8 @@ test-lisp-so-long-tests-inotify:
       when: never
     - changes:
         - lisp/so-long*.el
-        - test/lisp/so-long-tests/*.el
         - test/lisp/so-long-tests/*resources/**
+        - test/lisp/so-long-tests/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-so-long-tests"
@@ -453,8 +464,8 @@ test-lisp-term-inotify:
       when: never
     - changes:
         - lisp/term/*.el
-        - test/lisp/term/*.el
         - test/lisp/term/*resources/**
+        - test/lisp/term/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-term"
@@ -470,8 +481,8 @@ test-lisp-textmodes-inotify:
       when: never
     - changes:
         - lisp/textmodes/*.el
-        - test/lisp/textmodes/*.el
         - test/lisp/textmodes/*resources/**
+        - test/lisp/textmodes/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-textmodes"
@@ -487,8 +498,8 @@ test-lisp-url-inotify:
       when: never
     - changes:
         - lisp/url/*.el
-        - test/lisp/url/*.el
         - test/lisp/url/*resources/**
+        - test/lisp/url/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-url"
@@ -504,8 +515,8 @@ test-lisp-use-package-inotify:
       when: never
     - changes:
         - lisp/use-package/*.el
-        - test/lisp/use-package/*.el
         - test/lisp/use-package/*resources/**
+        - test/lisp/use-package/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-use-package"
@@ -521,8 +532,8 @@ test-lisp-vc-inotify:
       when: never
     - changes:
         - lisp/vc/*.el
-        - test/lisp/vc/*.el
         - test/lisp/vc/*resources/**
+        - test/lisp/vc/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-vc"
@@ -538,8 +549,8 @@ test-misc-inotify:
       when: never
     - changes:
         - admin/*.el
-        - test/misc/*.el
         - test/misc/*resources/**
+        - test/misc/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-misc"
@@ -554,9 +565,25 @@ test-src-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
+        - src/treesit.{h,c}
+        - test/src/treesit-tests.el
+      when: never
+    - changes:
         - src/*.{h,c}
-        - test/src/*.el
         - test/src/*resources/**
+        - test/src/*.el
   variables:
     target: emacs-inotify
     make_params: "-k -C test check-src"
+
+.tree-sitter-files-template:
+  variables:
+    tree_sitter_files: >-
+      lisp/progmodes/c-ts-mode-tests.log
+      lisp/progmodes/elixir-ts-mode-tests.log
+      lisp/progmodes/go-ts-mode-tests.log
+      lisp/progmodes/heex-ts-mode-tests.log
+      lisp/progmodes/java-ts-mode-tests.log
+      lisp/progmodes/ruby-ts-mode-tests.log
+      lisp/progmodes/typescript-ts-mode-tests.log
+      src/treesit-tests.log

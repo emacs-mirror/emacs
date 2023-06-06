@@ -328,7 +328,6 @@
   (advice-add 'open-network-stream :around #'socks--open-network-stream))
 
 (defun socks-open-connection (server-info)
-  (interactive)
   (save-excursion
     (let ((proc
            (let ((socks-override-functions nil))

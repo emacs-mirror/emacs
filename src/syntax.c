@@ -178,14 +178,14 @@ static ptrdiff_t find_start_begv;
 static modiff_count find_start_modiff;
 
 
-static Lisp_Object skip_chars (bool, Lisp_Object, Lisp_Object, bool);
+static Lisp_Object skip_chars (bool, Lisp_Object, Lisp_Object);
 static Lisp_Object skip_syntaxes (bool, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, bool);
 static void scan_sexps_forward (struct lisp_parse_state *,
                                 ptrdiff_t, ptrdiff_t, ptrdiff_t, EMACS_INT,
                                 bool, int);
 static void internalize_parse_state (Lisp_Object, struct lisp_parse_state *);
-static bool in_classes (int, Lisp_Object);
+static bool in_classes (int c, int num_classes, const unsigned char *classes);
 static void parse_sexp_propertize (ptrdiff_t charpos);
 
 /* This setter is used only in this file, so it can be private.  */
@@ -250,7 +250,6 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
   gl_state.b_property = BEGV;
   gl_state.e_property = ZV + 1;
   gl_state.object = Qnil;
-  gl_state.offset = 0;
   if (parse_sexp_lookup_properties)
     {
       if (count > 0)
@@ -266,46 +265,38 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
    If it is t (which is only used in fast_c_string_match_ignore_case),
    ignore properties altogether.
-
-   This is meant for regex-emacs.c to use.  For buffers, regex-emacs.c
-   passes arguments to the UPDATE_SYNTAX_TABLE functions which are
-   relative to BEGV.  So if it is a buffer, we set the offset field to
-   BEGV.  */
+   FROMBYTE is an regexp-byteoffset.  */
 
 void
-SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
-			       ptrdiff_t from, ptrdiff_t count)
+RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
+			          ptrdiff_t frombyte)
 {
   SETUP_BUFFER_SYNTAX_TABLE ();
   gl_state.object = object;
   if (BUFFERP (gl_state.object))
     {
       struct buffer *buf = XBUFFER (gl_state.object);
-      gl_state.b_property = 1;
-      gl_state.e_property = BUF_ZV (buf) - BUF_BEGV (buf) + 1;
-      gl_state.offset = BUF_BEGV (buf) - 1;
+      gl_state.b_property = BEG;
+      gl_state.e_property = BUF_ZV (buf);
     }
   else if (NILP (gl_state.object))
     {
-      gl_state.b_property = 1;
-      gl_state.e_property = ZV - BEGV + 1;
-      gl_state.offset = BEGV - 1;
+      gl_state.b_property = BEG;
+      gl_state.e_property = ZV; /* FIXME: Why not +1 like in SETUP_SYNTAX_TABLE? */
     }
   else if (EQ (gl_state.object, Qt))
     {
       gl_state.b_property = 0;
       gl_state.e_property = PTRDIFF_MAX;
-      gl_state.offset = 0;
     }
   else
     {
       gl_state.b_property = 0;
       gl_state.e_property = 1 + SCHARS (gl_state.object);
-      gl_state.offset = 0;
     }
   if (parse_sexp_lookup_properties)
-    update_syntax_table (from + gl_state.offset - (count <= 0),
-			 count, 1, gl_state.object);
+    update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (frombyte),
+			 1, 1, gl_state.object);
 }
 
 /* Update gl_state to an appropriate interval which contains CHARPOS.  The
@@ -341,8 +332,8 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
       if (!i)
 	return;
       i = gl_state.forward_i;
-      gl_state.b_property = i->position - gl_state.offset;
-      gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+      gl_state.b_property = i->position;
+      gl_state.e_property = INTERVAL_LAST_POS (i);
     }
   else
     {
@@ -362,7 +353,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	    {
 	      invalidate = false;
 	      gl_state.forward_i = i;
-	      gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+	      gl_state.e_property = INTERVAL_LAST_POS (i);
 	    }
         }
       else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
@@ -375,7 +366,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	    {
 	      invalidate = false;
 	      gl_state.backward_i = i;
-	      gl_state.b_property = i->position - gl_state.offset;
+	      gl_state.b_property = i->position;
 	    }
         }
     }
@@ -391,12 +382,12 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
       if (count > 0)
 	{
 	  gl_state.backward_i = i;
-	  gl_state.b_property = i->position - gl_state.offset;
+	  gl_state.b_property = i->position;
 	}
       else
 	{
 	  gl_state.forward_i = i;
-	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+	  gl_state.e_property = INTERVAL_LAST_POS (i);
 	}
     }
 
@@ -426,13 +417,13 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	{
 	  if (count > 0)
 	    {
-	      gl_state.e_property = i->position - gl_state.offset;
+	      gl_state.e_property = i->position;
 	      gl_state.forward_i = i;
 	    }
 	  else
 	    {
 	      gl_state.b_property
-		= i->position + LENGTH (i) - gl_state.offset;
+		= i->position + LENGTH (i);
 	      gl_state.backward_i = i;
 	    }
 	  return;
@@ -442,7 +433,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	  if (count > 0)
 	    {
 	      gl_state.e_property
-		= i->position + LENGTH (i) - gl_state.offset
+		= i->position + LENGTH (i)
 		/* e_property at EOB is not set to ZV but to ZV+1, so that
 		   we can do INC(from);UPDATE_SYNTAX_TABLE_FORWARD without
 		   having to check eob between the two.  */
@@ -451,7 +442,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	    }
 	  else
 	    {
-	      gl_state.b_property = i->position - gl_state.offset;
+	      gl_state.b_property = i->position;
 	      gl_state.backward_i = i;
 	    }
 	  return;
@@ -1616,7 +1607,7 @@ Char classes, e.g. `[:alpha:]', are supported.
 Returns the distance traveled, either zero or positive.  */)
   (Lisp_Object string, Lisp_Object lim)
 {
-  return skip_chars (1, string, lim, 1);
+  return skip_chars (1, string, lim);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
@@ -1625,7 +1616,7 @@ See `skip-chars-forward' for details.
 Returns the distance traveled, either zero or negative.  */)
   (Lisp_Object string, Lisp_Object lim)
 {
-  return skip_chars (0, string, lim, 1);
+  return skip_chars (0, string, lim);
 }
 
 DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
@@ -1652,8 +1643,7 @@ of this is the distance traveled.  */)
 }
 
 static Lisp_Object
-skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
-	    bool handle_iso_classes)
+skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim)
 {
   int c;
   char fastmap[0400];
@@ -1670,11 +1660,9 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
   ptrdiff_t size_byte;
   const unsigned char *str;
   int len;
-  Lisp_Object iso_classes;
   USE_SAFE_ALLOCA;
 
   CHECK_STRING (string);
-  iso_classes = Qnil;
 
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
@@ -1709,6 +1697,8 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
      If STRING contains non-ASCII characters, setup char_ranges for
      them and use fastmap only for their leading codes.  */
 
+  int nclasses = 0;
+  unsigned char classes[RECC_NUM_CLASSES];
   if (! string_multibyte)
     {
       bool string_has_eight_bit = 0;
@@ -1716,18 +1706,16 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
       /* At first setup fastmap.  */
       while (i_byte < size_byte)
 	{
-	  if (handle_iso_classes)
+	  const unsigned char *ch = str + i_byte;
+	  re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
+	  if (cc == 0)
+	    error ("Invalid ISO C character class");
+	  if (cc != -1)
 	    {
-	      const unsigned char *ch = str + i_byte;
-	      re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
-	      if (cc == 0)
-		error ("Invalid ISO C character class");
-	      if (cc != -1)
-		{
-		  iso_classes = Fcons (make_fixnum (cc), iso_classes);
-		  i_byte = ch - str;
-		  continue;
-		}
+	      if (!(nclasses && memchr (classes, cc, nclasses)))
+		classes[nclasses++] = cc;
+	      i_byte = ch - str;
+	      continue;
 	    }
 
 	  c = str[i_byte++];
@@ -1812,18 +1800,16 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 	{
 	  int leading_code = str[i_byte];
 
-	  if (handle_iso_classes)
+	  const unsigned char *ch = str + i_byte;
+	  re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
+	  if (cc == 0)
+	    error ("Invalid ISO C character class");
+	  if (cc != -1)
 	    {
-	      const unsigned char *ch = str + i_byte;
-	      re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
-	      if (cc == 0)
-		error ("Invalid ISO C character class");
-	      if (cc != -1)
-		{
-		  iso_classes = Fcons (make_fixnum (cc), iso_classes);
-		  i_byte = ch - str;
-		  continue;
-		}
+	      if (!(nclasses && memchr (classes, cc, nclasses)))
+		classes[nclasses++] = cc;
+	      i_byte = ch - str;
+	      continue;
 	    }
 
 	  if (leading_code== '\\')
@@ -1969,7 +1955,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 		  stop = endp;
 		}
 	      c = string_char_and_length (p, &nbytes);
-	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
+	      if (nclasses && in_classes (c, nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2010,7 +1996,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 		  stop = endp;
 		}
 
-	      if (!NILP (iso_classes) && in_classes (*p, iso_classes))
+	      if (nclasses && in_classes (*p, nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2044,7 +2030,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 
 	      c = STRING_CHAR (p);
 
-	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
+	      if (nclasses && in_classes (c, nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2078,7 +2064,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 		  stop = endp;
 		}
 
-	      if (! NILP (iso_classes) && in_classes (p[-1], iso_classes))
+	      if (nclasses && in_classes (p[-1], nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2201,8 +2187,7 @@ skip_syntaxes (bool forwardp, Lisp_Object string, Lisp_Object lim)
 	    while (!parse_sexp_lookup_properties
 		   || pos < gl_state.e_property);
 
-	    update_syntax_table_forward (pos + gl_state.offset,
-					 false, gl_state.object);
+	    update_syntax_table_forward (pos, false, gl_state.object);
 	  }
       }
     else
@@ -2263,26 +2248,16 @@ skip_syntaxes (bool forwardp, Lisp_Object string, Lisp_Object lim)
   }
 }
 
-/* Return true if character C belongs to one of the ISO classes
-   in the list ISO_CLASSES.  Each class is represented by an
-   integer which is its type according to re_wctype.  */
+/* Return true if character C belongs to one of the ISO classes in the
+   array.  */
 
 static bool
-in_classes (int c, Lisp_Object iso_classes)
+in_classes (int c, int nclasses, const unsigned char *classes)
 {
-  bool fits_class = 0;
-
-  while (CONSP (iso_classes))
-    {
-      Lisp_Object elt;
-      elt = XCAR (iso_classes);
-      iso_classes = XCDR (iso_classes);
-
-      if (re_iswctype (c, XFIXNAT (elt)))
-	fits_class = 1;
-    }
-
-  return fits_class;
+  for (int i = 0; i < nclasses; i++)
+    if (re_iswctype (c, classes[i]))
+      return true;
+  return false;
 }
 
 /* Jump over a comment, assuming we are at the beginning of one.
@@ -2348,13 +2323,16 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	  return 0;
 	}
       c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+      prev_syntax = syntax;
       syntax = SYNTAX_WITH_FLAGS (c);
       code = syntax & 0xff;
       if (code == Sendcomment
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == style
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ?
 	      (nesting > 0 && --nesting == 0) : nesting < 0)
-          && !(comment_end_can_be_escaped && char_quoted (from, from_byte)))
+          && !(comment_end_can_be_escaped
+	       && ((prev_syntax & 0xff) == Sescape
+		   || (prev_syntax & 0xff) == Scharquote)))
 	/* We have encountered a comment end of the same style
 	   as the comment sequence which began this comment
 	   section.  */
@@ -2378,7 +2356,11 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
           inc_both (&from, &from_byte);
           UPDATE_SYNTAX_TABLE_FORWARD (from);
           if (from == stop) continue; /* Failure */
-        }
+	  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	  prev_syntax = syntax;
+	  syntax = Smax;
+	  code = syntax;
+	}
       inc_both (&from, &from_byte);
       UPDATE_SYNTAX_TABLE_FORWARD (from);
 
@@ -3359,7 +3341,14 @@ do { prev_from = from;				\
 	     are invalid now.  Luckily, the `done' doesn't use them
 	     and the INC_FROM sets them to a sane value without
 	     looking at them. */
-	  if (!found) goto done;
+	  if (!found)
+	    {
+	      if ((prev_from_syntax & 0xff) == Sescape
+		  || (prev_from_syntax & 0xff) == Scharquote)
+		goto endquoted;
+	      else
+		goto done;
+	    }
 	  INC_FROM;
 	  state->incomment = 0;
 	  state->comstyle = 0;	/* reset the comment style */

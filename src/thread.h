@@ -33,6 +33,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "sysselect.h"		/* FIXME */
 #include "systhread.h"
 
+/* Yield an address close enough to the top of the stack that the
+   garbage collector need not scan above it.  Callers should be
+   declared NO_INLINE.  */
+#ifdef HAVE___BUILTIN_FRAME_ADDRESS
+# define NEAR_STACK_TOP(addr) ((void) (addr), __builtin_frame_address (0))
+#else
+# define NEAR_STACK_TOP(addr) (addr)
+#endif
+
 INLINE_HEADER_BEGIN
 
 /* Byte-code interpreter thread state.  */

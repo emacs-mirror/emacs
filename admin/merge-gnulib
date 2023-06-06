@@ -44,11 +44,11 @@ GNULIB_MODULES='
   nanosleep nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
-  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stddef stdio
+  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stdckdint stddef stdio
   stpcpy strnlen strtoimax symlink sys_stat sys_time
-  tempname time time_r time_rz timegm timer-time timespec-add timespec-sub
+  tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   update-copyright unlocked-io utimensat
-  vla warnings
+  vla warnings year2038
 '
 
 AVOIDED_MODULES='
@@ -132,5 +132,7 @@ cp -- "$gnulib_srcdir"/build-aux/config.guess \
 cp -- "$gnulib_srcdir"/lib/af_alg.h \
       "$gnulib_srcdir"/lib/save-cwd.h \
    "$src"lib &&
+cp -- "$gnulib_srcdir"/m4/codeset.m4 \
+   "$src"m4 &&
 { test -z "$src" || cd "$src"; } &&
 ./autogen.sh

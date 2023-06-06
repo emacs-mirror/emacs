@@ -1,4 +1,4 @@
-;;; modus-vivendi-deuteranopia-theme.el --- Elegant, highly legible and customizable dark theme -*- lexical-binding:t -*-
+;;; modus-vivendi-deuteranopia-theme.el --- Deuteranopia-optimized theme with a black background -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
 
@@ -43,7 +43,7 @@
     (require 'modus-themes))
 
   (deftheme modus-vivendi-deuteranopia
-    "Elegant, highly legible and customizable dark theme.
+    "Deuteranopia-optimized theme with a black background.
 This variant is optimized for users with red-green color
 deficiency (deuteranopia).  It conforms with the highest
 legibility standard for color contrast between background and
@@ -76,9 +76,9 @@ standard).")
       (green-cooler    "#00c06f")
       (green-faint     "#88ca9f")
       (green-intense   "#44df44")
-      (yellow          "#d0bc00")
-      (yellow-warmer   "#fec43f")
-      (yellow-cooler   "#dfaf7a")
+      (yellow          "#cabf00")
+      (yellow-warmer   "#ffa00f")
+      (yellow-cooler   "#d8af7a")
       (yellow-faint    "#d2b580")
       (yellow-intense  "#efef00")
       (blue            "#2fafff")
@@ -138,13 +138,13 @@ standard).")
 
 ;;; Graphs
 
-      (bg-graph-red-0     "#705c3c")
-      (bg-graph-red-1     "#504420")
-      (bg-graph-green-0   "#4f666f")
-      (bg-graph-green-1   "#204840")
+      (bg-graph-red-0     "#bf6000")
+      (bg-graph-red-1     "#733500")
+      (bg-graph-green-0   "#6fbf8f")
+      (bg-graph-green-1   "#2f5f4f")
       (bg-graph-yellow-0  "#c1c00a")
-      (bg-graph-yellow-1  "#6f6f00")
-      (bg-graph-blue-0    "#2fafef")
+      (bg-graph-yellow-1  "#7f6640")
+      (bg-graph-blue-0    "#0f90ef")
       (bg-graph-blue-1    "#1f2f8f")
       (bg-graph-magenta-0 "#7f7f8e")
       (bg-graph-magenta-1 "#4f4f5f")
@@ -222,12 +222,19 @@ standard).")
       (identifier yellow-faint)
 
       (err yellow-warmer)
-      (warning yellow-cooler)
+      (warning yellow)
       (info blue)
 
       (underline-err yellow-intense)
       (underline-warning magenta-faint)
       (underline-note cyan)
+
+      (bg-prominent-err bg-yellow-intense)
+      (fg-prominent-err fg-main)
+      (bg-prominent-warning bg-magenta-intense)
+      (fg-prominent-warning fg-main)
+      (bg-prominent-note bg-cyan-intense)
+      (fg-prominent-note fg-main)
 
 ;;;; Code mappings
 
@@ -277,6 +284,7 @@ standard).")
       (date-event fg-alt)
       (date-holiday yellow-warmer)
       (date-now blue-faint)
+      (date-range fg-alt)
       (date-scheduled yellow-cooler)
       (date-weekday cyan)
       (date-weekend yellow-faint)
@@ -306,12 +314,21 @@ standard).")
 
       (mail-cite-0 blue-warmer)
       (mail-cite-1 yellow-cooler)
-      (mail-cite-2 blue-cooler)
+      (mail-cite-2 cyan-faint)
       (mail-cite-3 yellow)
       (mail-part blue)
       (mail-recipient blue)
       (mail-subject yellow-warmer)
       (mail-other cyan-faint)
+
+;;;; Mark mappings
+
+      (bg-mark-delete bg-yellow-subtle)
+      (fg-mark-delete yellow)
+      (bg-mark-select bg-cyan-subtle)
+      (fg-mark-select cyan)
+      (bg-mark-other bg-magenta-subtle)
+      (fg-mark-other magenta-warmer)
 
 ;;;; Prompt mappings
 
@@ -342,6 +359,12 @@ standard).")
       (rainbow-6 yellow-faint)
       (rainbow-7 blue-faint)
       (rainbow-8 magenta-faint)
+
+;;;; Space mappings
+
+      (bg-space unspecified)
+      (fg-space border)
+      (bg-space-err bg-yellow-intense)
 
 ;;;; Heading mappings
 

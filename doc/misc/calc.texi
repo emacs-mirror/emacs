@@ -5394,7 +5394,7 @@ a variable containing a vector of rules.
 1:  [merge, secsqr]          1:  [a/x + b/x := (a + b)/x, ... ]
     .                                 .
 
-    ' [merge,sinsqr] @key{RET}          =
+    ' [merge,secsqr] @key{RET}          =
 
 @end group
 @end smallexample
@@ -6217,7 +6217,7 @@ method when it is able.  @xref{Programming Answer 8, 8}. (@bullet{})
 @cindex Gamma constant, Euler's
 @cindex Euler's gamma constant
 (@bullet{}) @strong{Exercise 9.}  The @dfn{digamma} function
-@texline @math{\psi(z) (``psi'')}
+@texline @math{\psi(z)} (``psi'')
 @infoline @expr{psi(z)}
 is defined as the derivative of
 @texline @math{\ln \Gamma(z)}.

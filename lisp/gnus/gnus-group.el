@@ -4195,7 +4195,8 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	  (let ((info (gnus-get-info group))
 		(active (gnus-active group)))
 	    (when info
-	      (gnus-request-update-info info method))
+              (gnus-request-update-info info method)
+              (setq active (gnus-active group)))
 	    (gnus-get-unread-articles-in-group info active)
 	    (unless (gnus-virtual-group-p group)
 	      (gnus-close-group group))

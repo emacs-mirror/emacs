@@ -30,19 +30,37 @@
 (defvar erc--casemapping-rfc1459-strict)
 (defvar erc-channel-users)
 (defvar erc-dbuf)
+(defvar erc-insert-this)
 (defvar erc-log-p)
+(defvar erc-modules)
+(defvar erc-send-this)
+(defvar erc-server-process)
 (defvar erc-server-users)
 (defvar erc-session-server)
 
 (declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
 (declare-function erc-get-buffer "erc" (target &optional proc))
 (declare-function erc-server-buffer "erc" nil)
+(declare-function widget-apply-action "wid-edit" (widget &optional event))
+(declare-function widget-at "wid-edit" (&optional pos))
+(declare-function widget-create-child-and-convert "wid-edit"
+                  (parent type &rest args))
+(declare-function widget-default-format-handler "wid-edit" (widget escape))
+(declare-function widget-get-sibling "wid-edit" (widget))
+(declare-function widget-move "wid-edit" (arg &optional suppress-echo))
+(declare-function widget-type "wid-edit" (widget))
 
 (cl-defstruct erc-input
-  string insertp sendp)
+  string insertp sendp refoldp)
 
-(cl-defstruct (erc--input-split (:include erc-input))
-  lines cmdp)
+(cl-defstruct (erc--input-split (:include erc-input
+                                          (string :read-only)
+                                          (insertp erc-insert-this)
+                                          (sendp (with-suppressed-warnings
+                                                     ((obsolete erc-send-this))
+                                                   erc-send-this))))
+  (lines nil :type (list-of string))
+  (cmdp nil :type boolean))
 
 (cl-defstruct (erc-server-user (:type vector) :named)
   ;; User data
@@ -85,45 +103,52 @@
   (contents "" :type string)
   (tags '() :type list))
 
-;; TODO move goodies modules here after 29 is released.
-(defconst erc--features-to-modules
-  '((erc-pcomplete completion pcomplete)
-    (erc-capab capab-identify)
-    (erc-join autojoin)
-    (erc-page page ctcp-page)
-    (erc-sound sound ctcp-sound)
-    (erc-stamp stamp timestamp)
-    (erc-services services nickserv))
-  "Migration alist mapping a library feature to module names.
-Keys need not be unique: a library may define more than one
-module.  Sometimes a module's downcased alias will be its
-canonical name.")
-
-(defconst erc--modules-to-features
-  (let (pairs)
-    (pcase-dolist (`(,feature . ,names) erc--features-to-modules)
-      (dolist (name names)
-        (push (cons name feature) pairs)))
-    (nreverse pairs))
-  "Migration alist mapping a module's name to its home library feature.")
-
-(defconst erc--module-name-migrations
-  (let (pairs)
-    (pcase-dolist (`(,_ ,canonical . ,rest) erc--features-to-modules)
-      (dolist (obsolete rest)
-        (push (cons obsolete canonical) pairs)))
-    pairs)
-  "Association list of obsolete module names to canonical names.")
-
+;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
-  "Return preferred SYMBOL for `erc-modules'."
-  (setq symbol (intern (downcase (symbol-name symbol))))
-  (or (cdr (assq symbol erc--module-name-migrations)) symbol))
+  "Return preferred SYMBOL for `erc--modules'."
+  (while-let ((canonical (get symbol 'erc--module))
+              ((not (eq canonical symbol))))
+    (setq symbol canonical))
+  symbol)
+
+(defvar erc--inside-mode-toggle-p nil
+  "Non-nil when a module's mode toggle is updating module membership.
+This serves as a flag to inhibit the mutual recursion that would
+otherwise occur between an ERC-defined minor-mode function, such
+as `erc-services-mode', and the custom-set function for
+`erc-modules'.  For historical reasons, the latter calls
+`erc-update-modules', which, in turn, enables the minor-mode
+functions for all member modules.  Also non-nil when a mode's
+widget runs its set function.")
+
+(defun erc--favor-changed-reverted-modules-state (name op)
+  "Be more nuanced in displaying Custom state of `erc-modules'.
+When `customized-value' differs from `saved-value', allow widget
+to behave normally and show \"SET for current session\", as
+though `customize-set-variable' or similar had been applied.
+However, when `customized-value' and `standard-value' match but
+differ from `saved-value', prefer showing \"CHANGED outside
+Customize\" to prevent the widget from seeing a `standard'
+instead of a `set' state, which precludes any actual saving."
+  ;; Although the button "Apply and save" is fortunately grayed out,
+  ;; `Custom-save' doesn't actually save (users must click the magic
+  ;; state button instead).  The default behavior described in the doc
+  ;; string is intentional and was introduced by bug#12864 "Make state
+  ;; button interaction less confusing".  However, it is unfriendly to
+  ;; rogue libraries (like ours) that insist on mutating user options
+  ;; as a matter of course.
+  (custom-load-symbol 'erc-modules)
+  (funcall (get 'erc-modules 'custom-set) 'erc-modules
+           (funcall op (erc--normalize-module-symbol name) erc-modules))
+  (when (equal (pcase (get 'erc-modules 'saved-value)
+                 (`((quote ,saved) saved)))
+               erc-modules)
+    (customize-mark-as-set 'erc-modules)))
 
 (defun erc--assemble-toggle (localp name ablsym mode val body)
   (let ((arg (make-symbol "arg")))
     `(defun ,ablsym ,(if localp `(&optional ,arg) '())
-       ,(concat
+       ,(erc--fill-module-docstring
          (if val "Enable" "Disable")
          " ERC " (symbol-name name) " mode."
          (when localp
@@ -137,13 +162,132 @@ canonical name.")
                        (,ablsym))
                    (setq ,mode ,val)
                    ,@body)))
-           `(,(if val
-                  `(cl-pushnew ',(erc--normalize-module-symbol name)
-                               erc-modules)
-                `(setq erc-modules (delq ',(erc--normalize-module-symbol name)
-                                         erc-modules)))
+           ;; No need for `default-value', etc. because a buffer-local
+           ;; `erc-modules' only influences the next session and
+           ;; doesn't survive the major-mode reset that soon follows.
+           `((unless
+                 (or erc--inside-mode-toggle-p
+                     ,@(let ((v `(memq ',(erc--normalize-module-symbol name)
+                                       erc-modules)))
+                         `(,(if val v `(not ,v)))))
+               (let ((erc--inside-mode-toggle-p t))
+                 (erc--favor-changed-reverted-modules-state
+                  ',name #',(if val 'cons 'delq))))
              (setq ,mode ,val)
              ,@body)))))
+
+;; This is a migration helper that determines a module's `:group'
+;; keyword argument from its name or alias.  A (global) module's minor
+;; mode variable appears under the group's Custom menu.  Like
+;; `erc--normalize-module-symbol', it must run when the module's
+;; definition (rather than that of `define-erc-module') is expanded.
+;; For corner cases in which this fails or the catch-all of `erc' is
+;; more inappropriate, (global) modules can declare a top-level
+;;
+;;   (put 'foo 'erc-group 'erc-bar)
+;;
+;; where `erc-bar' is the group and `foo' is the normalized module.
+;; Do this *before* the module's definition.  If `define-erc-module'
+;; ever accepts arbitrary keywords, passing an explicit `:group' will
+;; obviously be preferable.
+
+(defun erc--find-group (&rest symbols)
+  (catch 'found
+    (dolist (s symbols)
+      (let* ((downed (downcase (symbol-name s)))
+             (known (intern-soft (concat "erc-" downed))))
+        (when (and known
+                   (or (get known 'group-documentation)
+                       (rassq known custom-current-group-alist)))
+          (throw 'found known))
+        (when (setq known (intern-soft (concat "erc-" downed "-mode")))
+          (when-let ((found (custom-group-of-mode known)))
+            (throw 'found found))))
+      (when-let ((found (get (erc--normalize-module-symbol s) 'erc-group)))
+        (throw 'found found)))
+    'erc))
+
+;; This exists as a separate, top-level function to prevent the byte
+;; compiler from warning about widget-related dependencies not being
+;; loaded at runtime.
+
+(defun erc--tick-module-checkbox (name &rest _) ; `name' must be normalized
+  (customize-variable-other-window 'erc-modules)
+  ;; Move to `erc-modules' section.
+  (while (not (eq (widget-type (widget-at)) 'checkbox))
+    (widget-move 1 t))
+  ;; This search for a checkbox can fail when `name' refers to a
+  ;; third-party module that modifies `erc-modules' (improperly) on
+  ;; load.
+  (let (w)
+    (while (and (eq (widget-type (widget-at)) 'checkbox)
+                (not (and (setq w (widget-get-sibling (widget-at)))
+                          (eq (widget-value w) name))))
+      (setq w nil)
+      (widget-move 1 t)) ; the `suppress-echo' arg exists in 27.2
+    (unless w
+      (error "Failed to find %s in `erc-modules' checklist" name))
+    (widget-apply-action (widget-at))
+    (message "Hit %s to apply or %s to apply and save."
+             (substitute-command-keys "\\[Custom-set]")
+             (substitute-command-keys "\\[Custom-save]"))))
+
+;; This stands apart to avoid needing forward declarations for
+;; `wid-edit' functions in every file requiring `erc-common'.
+(defun erc--make-show-me-widget (widget escape &rest plist)
+  (if (eq escape ?i)
+      (apply #'widget-create-child-and-convert widget 'push-button plist)
+    (widget-default-format-handler widget escape)))
+
+(defun erc--prepare-custom-module-type (name)
+  `(let* ((name (erc--normalize-module-symbol ',name))
+          (fmtd (format " `%s' " name)))
+     `(boolean
+       :format "%{%t%}: %i %[Deprecated Toggle%] %v \n%h\n"
+       :format-handler
+       ,(lambda (widget escape)
+          (erc--make-show-me-widget
+           widget escape
+           :button-face '(custom-variable-obsolete custom-button)
+           :tag "Show Me"
+           :action (apply-partially #'erc--tick-module-checkbox name)
+           :help-echo (lambda (_)
+                        (let ((hasp (memq name erc-modules)))
+                          (concat (if hasp "Remove" "Add") fmtd
+                                  (if hasp "from" "to")
+                                  " `erc-modules'.")))))
+       :action widget-toggle-action
+       :documentation-property
+       ,(lambda (_)
+          (let ((hasp (memq name erc-modules)))
+            (concat
+             "Setting a module's minor-mode variable is "
+             (propertize "ineffective" 'face 'error)
+             ".\nPlease " (if hasp "remove" "add") fmtd
+             (if hasp "from" "to") " `erc-modules' directly instead.\n"
+             "You can do so now by clicking "
+             (propertize "Show Me" 'face 'custom-variable-obsolete)
+             " above."))))))
+
+(defun erc--fill-module-docstring (&rest strings)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(defun foo ()\n"
+            (format "%S" (apply #'concat strings))
+            "\n(ignore))")
+    (goto-char (point-min))
+    (forward-line 2)
+    (let ((emacs-lisp-docstring-fill-column 65)
+          (sentence-end-double-space t))
+      (fill-paragraph))
+    (goto-char (point-min))
+    (nth 3 (read (current-buffer)))))
+
+(defmacro erc--find-feature (name alias)
+  `(pcase (erc--find-group ',name ,(and alias (list 'quote alias)))
+     ('erc (and-let* ((file (or (macroexp-file-name) buffer-file-name)))
+             (intern (file-name-base file))))
+     (v v)))
 
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
@@ -179,21 +323,20 @@ Example:
   (declare (doc-string 3) (indent defun))
   (let* ((sn (symbol-name name))
          (mode (intern (format "erc-%s-mode" (downcase sn))))
-         (group (intern (format "erc-%s" (downcase sn))))
          (enable (intern (format "erc-%s-enable" (downcase sn))))
          (disable (intern (format "erc-%s-disable" (downcase sn)))))
     `(progn
        (define-minor-mode
          ,mode
-         ,(format "Toggle ERC %S mode.
+         ,(erc--fill-module-docstring (format "Toggle ERC %s mode.
 With a prefix argument ARG, enable %s if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
-%s" name name doc)
-         ;; FIXME: We don't know if this group exists, so this `:group' may
-         ;; actually just silence a valid warning about the fact that the var
-         ;; is not associated with any group.
-         :global ,(not local-p) :group (quote ,group)
+\n%s" name name doc))
+         :global ,(not local-p)
+         :group (erc--find-group ',name ,(and alias (list 'quote alias)))
+         ,@(unless local-p `(:require ',(erc--find-feature name alias)))
+         ,@(unless local-p `(:type ,(erc--prepare-custom-module-type name)))
          (if ,mode
              (,enable)
            (,disable)))
@@ -249,11 +392,17 @@ See also `with-current-buffer'.
   "Execute BODY in the current ERC server buffer.
 If no server buffer exists, return nil."
   (declare (indent 0) (debug (body)))
-  (let ((buffer (make-symbol "buffer")))
-    `(let ((,buffer (erc-server-buffer)))
-       (when (buffer-live-p ,buffer)
-         (with-current-buffer ,buffer
-           ,@body)))))
+  (let ((varp (and (symbolp (car body))
+                   (not (cdr body))
+                   (special-variable-p (car body))))
+        (buffer (make-symbol "buffer")))
+    `(when-let* (((processp erc-server-process))
+                 (,buffer (process-buffer erc-server-process))
+                 ((buffer-live-p ,buffer)))
+       ,(if varp
+            `(buffer-local-value ',(car body) ,buffer)
+          `(with-current-buffer ,buffer
+             ,@body)))))
 
 (defmacro erc-with-all-buffers-of-server (process pred &rest forms)
   "Execute FORMS in all buffers which have same process as this server.

@@ -29,7 +29,10 @@
 
 #include "acl-internal.h"
 
-#if USE_ACL && GETXATTR_WITH_POSIX_ACLS
+#include "minmax.h"
+
+#if USE_ACL && HAVE_LINUX_XATTR_H && HAVE_LISTXATTR
+# include <stdckdint.h>
 # include <string.h>
 # include <arpa/inet.h>
 # include <sys/xattr.h>
@@ -43,6 +46,20 @@ enum {
   ACE4_ACCESS_DENIED_ACE_TYPE  = 0x00000001,
   ACE4_IDENTIFIER_GROUP        = 0x00000040
 };
+
+/* Return true if ATTR is in the set represented by the NUL-terminated
+   strings in LISTBUF, which is of size LISTSIZE.  */
+
+static bool
+have_xattr (char const *attr, char const *listbuf, ssize_t listsize)
+{
+  char const *blim = listbuf + listsize;
+  for (char const *b = listbuf; b < blim; b += strlen (b) + 1)
+    for (char const *a = attr; *a == *b; a++, b++)
+      if (!*a)
+        return true;
+  return false;
+}
 
 /* Return 1 if given ACL in XDR format is non-trivial, 0 if it is trivial.
    -1 upon failure to determine it.  Possibly change errno.  Assume that
@@ -137,37 +154,77 @@ file_has_acl (char const *name, struct stat const *sb)
   if (! S_ISLNK (sb->st_mode))
     {
 
-# if GETXATTR_WITH_POSIX_ACLS
-
-      ssize_t ret;
+# if HAVE_LINUX_XATTR_H && HAVE_LISTXATTR
       int initial_errno = errno;
 
-      ret = getxattr (name, XATTR_NAME_POSIX_ACL_ACCESS, NULL, 0);
-      if (ret < 0 && errno == ENODATA)
-        ret = 0;
-      else if (ret > 0)
-        return 1;
+      /* The max length of a trivial NFSv4 ACL is 6 words for owner,
+         6 for group, 7 for everyone, all times 2 because there are
+         both allow and deny ACEs.  There are 6 words for owner
+         because of type, flag, mask, wholen, "OWNER@"+pad and
+         similarly for group; everyone is another word to hold
+         "EVERYONE@".  */
+      typedef uint32_t trivial_NFSv4_xattr_buf[2 * (6 + 6 + 7)];
 
-      if (ret == 0 && S_ISDIR (sb->st_mode))
+      /* A buffer large enough to hold any trivial NFSv4 ACL,
+         and also useful as a small array of char.  */
+      union {
+        trivial_NFSv4_xattr_buf xattr;
+        char ch[sizeof (trivial_NFSv4_xattr_buf)];
+      } stackbuf;
+
+      char *listbuf = stackbuf.ch;
+      ssize_t listbufsize = sizeof stackbuf.ch;
+      char *heapbuf = NULL;
+      ssize_t listsize;
+
+      /* Use listxattr first, as this means just one syscall in the
+         typical case where the file lacks an ACL.  Try stackbuf
+         first, falling back on malloc if stackbuf is too small.  */
+      while ((listsize = listxattr (name, listbuf, listbufsize)) < 0
+             && errno == ERANGE)
         {
-          ret = getxattr (name, XATTR_NAME_POSIX_ACL_DEFAULT, NULL, 0);
-          if (ret < 0 && errno == ENODATA)
-            ret = 0;
-          else if (ret > 0)
-            return 1;
+          free (heapbuf);
+          ssize_t newsize = listxattr (name, NULL, 0);
+          if (newsize <= 0)
+            return newsize;
+
+          /* Grow LISTBUFSIZE to at least NEWSIZE.  Grow it by a
+             nontrivial amount too, to defend against denial of
+             service by an adversary that fiddles with ACLs.  */
+          bool overflow = ckd_add (&listbufsize, listbufsize, listbufsize >> 1);
+          listbufsize = MAX (listbufsize, newsize);
+          if (overflow || SIZE_MAX < listbufsize)
+            {
+              errno = ENOMEM;
+              return -1;
+            }
+
+          listbuf = heapbuf = malloc (listbufsize);
+          if (!listbuf)
+            return -1;
         }
 
-      if (ret < 0)
-        {
-          /* Check for NFSv4 ACLs.  The max length of a trivial
-             ACL is 6 words for owner, 6 for group, 7 for everyone,
-             all times 2 because there are both allow and deny ACEs.
-             There are 6 words for owner because of type, flag, mask,
-             wholen, "OWNER@"+pad and similarly for group; everyone is
-             another word to hold "EVERYONE@".  */
-          uint32_t xattr[2 * (6 + 6 + 7)];
+      /* In Fedora 39, a file can have both NFSv4 and POSIX ACLs,
+         but if it has an NFSv4 ACL that's the one that matters.
+         In earlier Fedora the two types of ACLs were mutually exclusive.
+         Attempt to work correctly on both kinds of systems.  */
+      bool nfsv4_acl
+        = 0 < listsize && have_xattr (XATTR_NAME_NFSV4_ACL, listbuf, listsize);
+      int ret
+        = (listsize <= 0 ? listsize
+           : (nfsv4_acl
+              || have_xattr (XATTR_NAME_POSIX_ACL_ACCESS, listbuf, listsize)
+              || (S_ISDIR (sb->st_mode)
+                  && have_xattr (XATTR_NAME_POSIX_ACL_DEFAULT,
+                                 listbuf, listsize))));
+      free (heapbuf);
 
-          ret = getxattr (name, XATTR_NAME_NFSV4_ACL, xattr, sizeof xattr);
+      /* If there is an NFSv4 ACL, follow up with a getxattr syscall
+         to see whether the NFSv4 ACL is nontrivial.  */
+      if (nfsv4_acl)
+        {
+          ret = getxattr (name, XATTR_NAME_NFSV4_ACL,
+                          stackbuf.xattr, sizeof stackbuf.xattr);
           if (ret < 0)
             switch (errno)
               {
@@ -177,7 +234,7 @@ file_has_acl (char const *name, struct stat const *sb)
           else
             {
               /* It looks like a trivial ACL, but investigate further.  */
-              ret = acl_nfs4_nontrivial (xattr, ret);
+              ret = acl_nfs4_nontrivial (stackbuf.xattr, ret);
               if (ret < 0)
                 {
                   errno = EINVAL;

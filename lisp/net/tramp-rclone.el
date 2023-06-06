@@ -95,6 +95,7 @@
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-fuse-handle-file-executable-p)
     (file-exists-p . tramp-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -371,8 +372,7 @@ connection if a previous connection has died for some reason."
 		  :name (tramp-get-connection-name vec)
 		  :buffer (tramp-get-connection-buffer vec)
 		  :server t :host 'local :service t :noquery t)))
-	  (process-put p 'vector vec)
-	  (set-process-query-on-exit-flag p nil)
+	  (tramp-post-process-creation p vec)
 
 	  ;; Set connection-local variables.
 	  (tramp-set-connection-local-variables vec)))

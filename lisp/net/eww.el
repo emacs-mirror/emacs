@@ -64,16 +64,23 @@ The action to be taken can be further customized via
   :version "28.1"
   :type 'regexp)
 
+(defcustom eww-default-download-directory "~/Downloads/"
+  "Default directory where `eww' saves downloaded files.
+Used by `eww--download-directory', which see."
+  :version "29.1"
+  :group 'eww
+  :type 'directory)
+
 (defun eww--download-directory ()
-  "Return the name of the download directory.
-If ~/Downloads/ exists, that will be used, and if not, the
-DOWNLOAD XDG user directory will be returned.  If that's
-undefined, ~/Downloads/ is returned anyway."
-  (or (and (file-exists-p "~/Downloads/")
-           "~/Downloads/")
+  "Return the name of the EWW download directory.
+The default is specified by `eww-default-download-directory'; however,
+if that directory doesn't exist and the DOWNLOAD XDG user directory
+is defined, use the latter instead."
+  (or (and (file-exists-p eww-default-download-directory)
+           eww-default-download-directory)
       (when-let ((dir (xdg-user-dir "DOWNLOAD")))
         (file-name-as-directory dir))
-      "~/Downloads/"))
+      eww-default-download-directory))
 
 (defcustom eww-download-directory 'eww--download-directory
   "Directory where files will downloaded.
@@ -87,7 +94,8 @@ no parameters) that returns a directory name."
 (defcustom eww-suggest-uris
   '(eww-links-at-point
     thing-at-point-url-at-point
-    eww-current-url)
+    eww-current-url
+    eww-bookmark-urls)
   "List of functions called to form the list of default URIs for `eww'.
 Each of the elements is a function returning either a string or a list
 of strings.  The results will be joined into a single list with
@@ -97,7 +105,8 @@ duplicate entries (if any) removed."
   :type 'hook
   :options '(eww-links-at-point
              thing-at-point-url-at-point
-             eww-current-url))
+             eww-current-url
+             eww-bookmark-urls))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
@@ -319,8 +328,14 @@ parameter, and should return the (possibly) transformed URL."
   "<mouse-2>" #'eww-follow-link)
 
 (defvar-keymap eww-image-link-keymap
-  :parent shr-map
+  :parent shr-image-map
   "RET" #'eww-follow-link)
+
+(defvar-keymap eww-minibuffer-url-keymap
+  :doc "Keymap used in the minibuffer prompt for URLs or keywords."
+  :parent minibuffer-local-completion-map
+  "SPC" #'self-insert-command
+  "?" #'self-insert-command)
 
 (defun eww-suggested-uris nil
   "Return the list of URIs to suggest at the `eww' prompt.
@@ -370,10 +385,12 @@ killed after rendering.
 
 For more information, see Info node `(eww) Top'."
   (interactive
-   (let ((uris (eww-suggested-uris)))
-     (list (read-string (format-prompt "Enter URL or keywords"
-                                       (and uris (car uris)))
-                        nil 'eww-prompt-history uris)
+   (let ((uris (eww-suggested-uris))
+         (minibuffer-local-completion-map eww-minibuffer-url-keymap))
+     (list (completing-read (format-prompt "Enter URL or keywords"
+                                           (and uris (car uris)))
+                            (seq-uniq (append eww-prompt-history uris))
+                            nil nil nil 'eww-prompt-history uris)
            current-prefix-arg)))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
@@ -1008,7 +1025,7 @@ the like."
                       (list 'base (list (cons 'href base))
                             (eww-highest-readability dom))
 		      nil (current-buffer))
-    (dolist (elem '(:source :url :title :next :previous :up))
+    (dolist (elem '(:source :url :title :next :previous :up :peer))
       (plist-put eww-data elem (plist-get old-data elem)))
     (eww--after-page-change)))
 
@@ -2219,6 +2236,12 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
       (setq bookmark (get-text-property (line-beginning-position)
 					'eww-bookmark)))
     (eww-browse-url (plist-get bookmark :url))))
+
+(defun eww-bookmark-urls ()
+  "Get the URLs from the current list of bookmarks."
+  (interactive nil eww-boomark-mode)
+  (eww-read-bookmarks)
+  (mapcar (lambda (x) (plist-get x :url)) eww-bookmarks))
 
 (defvar-keymap eww-bookmark-mode-map
   "C-k" #'eww-bookmark-kill

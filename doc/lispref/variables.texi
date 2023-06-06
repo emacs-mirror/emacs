@@ -1183,13 +1183,16 @@ wants the current value of a variable, it looks first in the lexical
 environment; if the variable is not specified in there, it looks in
 the symbol's value cell, where the dynamic value is stored.
 
-  (Internally, the lexical environment is an alist of symbol-value
-pairs, with the final element in the alist being the symbol @code{t}
-rather than a cons cell.  Such an alist can be passed as the second
-argument to the @code{eval} function, in order to specify a lexical
-environment in which to evaluate a form.  @xref{Eval}.  Most Emacs
-Lisp programs, however, should not interact directly with lexical
-environments in this way; only specialized programs like debuggers.)
+  (Internally, the lexical environment is a list whose members are
+usually cons cells that are symbol-value pairs, but some of its
+members can be symbols rather than cons cells.  A symbol in the list
+means the lexical environment declared that symbol's variable as
+locally considered to be dynamically bound.  This list can be passed
+as the second argument to the @code{eval} function, in order to
+specify a lexical environment in which to evaluate a form.
+@xref{Eval}.  Most Emacs Lisp programs, however, should not interact
+directly with lexical environments in this way; only specialized
+programs like debuggers.)
 
 @cindex closures, example of using
   Lexical bindings have indefinite extent.  Even after a binding
@@ -1974,6 +1977,16 @@ this can be controlled by using this variable, which is a list of
 symbols.
 @end defvar
 
+@defvar safe-local-variable-directories
+This is a list of directories where local variables are always
+enabled.  Directory-local variables loaded from these directories,
+such as the variables in @file{.dir-locals.el}, will be enabled even
+if they are risky.  The directories in this list must be
+fully-expanded absolute file names.  They may also be remote
+directories if the variable @code{enable-remote-dir-locals} is set
+non-@code{nil}.
+@end defvar
+
 @defun hack-local-variables &optional handle-mode
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable
@@ -2558,6 +2571,9 @@ documentation as @var{base-variable} has, if any, unless
 the documentation of the variable at the end of the chain of aliases.
 
 This function returns @var{base-variable}.
+
+If the resulting variable definition chain would be circular, then
+Emacs will signal a @code{cyclic-variable-indirection} error.
 @end defun
 
   Variable aliases are convenient for replacing an old name for a
@@ -2606,9 +2622,6 @@ look like:
 This function returns the variable at the end of the chain of aliases
 of @var{variable}.  If @var{variable} is not a symbol, or if @var{variable} is
 not defined as an alias, the function returns @var{variable}.
-
-This function signals a @code{cyclic-variable-indirection} error if
-there is a loop in the chain of symbols.
 @end defun
 
 @example

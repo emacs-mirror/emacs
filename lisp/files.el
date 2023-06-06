@@ -555,7 +555,7 @@ using a transform that puts the lock files on a local file system."
   :version "28.1")
 
 (defcustom remote-file-name-inhibit-locks nil
-  "Whether to use file locks for remote files."
+  "Whether to create file locks for remote files."
   :group 'files
   :version "28.1"
   :type 'boolean)
@@ -681,7 +681,8 @@ The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
 and ignores this variable.
 
-Also see the `permanently-enabled-local-variables' variable."
+Also see the `permanently-enabled-local-variables' and
+`safe-local-variable-directories' variables."
   :risky t
   :type '(choice (const :tag "Query Unsafe" t)
 		 (const :tag "Safe Only" :safe)
@@ -3696,6 +3697,18 @@ variable to set.")
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
+(defcustom safe-local-variable-directories '()
+  "A list of directories where local variables are always enabled.
+Directory-local variables loaded from these directories, such as the
+variables in .dir-locals.el, will be enabled even if they are risky.
+The names of the directories in the list must be absolute, and must
+end in a slash.  Remote directories can be included if the
+variable `enable-remote-dir-locals' is non-nil."
+  :version "30.1"
+  :type '(repeat string)
+  :risky t
+  :group 'find-file)
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
@@ -3734,7 +3747,11 @@ n  -- to ignore the local variables list.")
 !  -- to apply the local variables list, and permanently mark these
       values (*) as safe (in the future, they will be set automatically.)
 i  -- to ignore the local variables list, and permanently mark these
-      values (*) as ignored\n\n")
+      values (*) as ignored"
+                    (if dir-name "
++  -- to apply the local variables list, and trust all directory-local
+      variables in this directory\n\n"
+                      "\n\n"))
 	  (insert "\n\n"))
 	(dolist (elt all-vars)
 	  (cond ((member elt unsafe-vars)
@@ -3758,7 +3775,11 @@ i  -- to ignore the local variables list, and permanently mark these
 	(pop-to-buffer buf '(display-buffer--maybe-at-bottom))
 	(let* ((exit-chars '(?y ?n ?\s))
 	       (prompt (format "Please type %s%s: "
-			       (if offer-save "y, n, ! or i" "y or n")
+			       (if offer-save
+                                   (if dir-name
+                                       "y, n, !, i, +"
+                                     "y, n, !, i")
+                                 "y or n")
 			       (if (< (line-number-at-pos (point-max))
 				      (window-body-height))
 				   ""
@@ -3766,8 +3787,13 @@ i  -- to ignore the local variables list, and permanently mark these
 	       char)
 	  (when offer-save
             (push ?i exit-chars)
-            (push ?! exit-chars))
+            (push ?! exit-chars)
+            (when dir-name
+              (push ?+ exit-chars)))
 	  (setq char (read-char-choice prompt exit-chars))
+          (when (and offer-save dir-name (= char ?+))
+            (customize-push-and-save 'safe-local-variable-directories
+                                     (list dir-name)))
 	  (when (and offer-save
                      (or (= char ?!) (= char ?i))
                      unsafe-vars)
@@ -3776,7 +3802,7 @@ i  -- to ignore the local variables list, and permanently mark these
                  'safe-local-variable-values
                'ignored-local-variable-values)
              unsafe-vars))
-	  (prog1 (memq char '(?! ?\s ?y))
+	  (prog1 (memq char '(?! ?\s ?y ?+))
 	    (quit-window t)))))))
 
 (defconst hack-local-variable-regexp
@@ -3908,6 +3934,10 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 		  (null unsafe-vars)
 		  (null risky-vars))
 	     (memq enable-local-variables '(:all :safe))
+             (delq nil (mapcar (lambda (dir)
+                                 (and dir-name dir
+                                      (file-equal-p dir dir-name)))
+                               safe-local-variable-directories))
 	     (hack-local-variables-confirm all-vars unsafe-vars
 					   risky-vars dir-name))
 	 (dolist (elt all-vars)

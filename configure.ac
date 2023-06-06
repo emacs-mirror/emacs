@@ -459,6 +459,7 @@ OPTION_DEFAULT_ON([sqlite3],[don't compile with sqlite3 support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
 OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
+OPTION_DEFAULT_OFF([cairo-xcb], [use XCB surfaces for Cairo support])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
@@ -1001,7 +1002,7 @@ AC_ARG_ENABLE([gcc-warnings],
    # however, if there is also a .tarball-version file it is probably
    # just a release imported into Git for patch management.
    gl_gcc_warnings=no
-   if test -e "$srcdir"/.git && test ! -f "$srcdir"/.tarball-version; then
+   if test -d "$srcdir"/.git && test ! -f "$srcdir"/.tarball-version; then
       # Clang typically identifies itself as GCC 4.2 or something similar
       # even if it is recent enough to accept the warnings we enable.
       AS_IF([test "$emacs_cv_clang" = yes],
@@ -1136,6 +1137,8 @@ AS_IF([test $gl_gcc_warnings = no],
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
   gl_WARN_ADD([-Wno-bidi-chars])
+  AS_IF([test $gl_gcc_warnings = yes],
+    [gl_WARN_ADD([-Wno-analyzer-fd-leak])]) # GCC bug 109839
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
@@ -1643,7 +1646,8 @@ case "$opsys" in
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
 
-  haiku) LIBS_SYSTEM="-lnetwork" ;;
+  # Haiku needs -lbsd for cfsetspeed.
+  haiku) LIBS_SYSTEM="-lnetwork -lbsd" ;;
 esac
 
 AC_SUBST([LIBS_SYSTEM])
@@ -2033,37 +2037,29 @@ if test "${with_ns}" != no; then
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=Cocoa/Emacs.base
      ns_fontfile=macfont.o
-  elif flags=$( (gnustep-config --objc-flags) 2>/dev/null); then
+  elif flags=`(gnustep-config --objc-flags) 2>/dev/null`; then
      NS_IMPL_GNUSTEP=yes
      NS_GNUSTEP_CONFIG=yes
      GNU_OBJC_CFLAGS="$flags"
-     LIBS_GNUSTEP=$(gnustep-config --gui-libs) || exit
+     LIBS_GNUSTEP=`gnustep-config --gui-libs || exit`
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      dnl FIXME sourcing this several times in subshells seems inefficient.
-     GNUSTEP_SYSTEM_HEADERS=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_SYSTEM_HEADERS"])
-     )
-     GNUSTEP_SYSTEM_LIBRARIES=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_SYSTEM_LIBRARIES"])
-     )
+     GNUSTEP_SYSTEM_HEADERS=`. $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_SYSTEM_HEADERS"])`
+     GNUSTEP_SYSTEM_LIBRARIES=` . $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_SYSTEM_LIBRARIES"])`
      dnl I seemed to need these as well with GNUstep-startup 0.25.
-     GNUSTEP_LOCAL_HEADERS=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_LOCAL_HEADERS"])
-     )
-     GNUSTEP_LOCAL_LIBRARIES=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_LOCAL_LIBRARIES"])
-     )
+     GNUSTEP_LOCAL_HEADERS=`. $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_LOCAL_HEADERS"])`
+     GNUSTEP_LOCAL_LIBRARIES=`. $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_LOCAL_LIBRARIES"])`
      test "x${GNUSTEP_LOCAL_HEADERS}" != "x" && \
        GNUSTEP_LOCAL_HEADERS="-I${GNUSTEP_LOCAL_HEADERS}"
      test "x${GNUSTEP_LOCAL_LIBRARIES}" != "x" && \
        GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
-     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
-     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     CPPFLAGS="$CPPFLAGS -isystem ${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     CFLAGS="$CFLAGS -isystem ${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIBS_GNUSTEP="-lgnustep-gui -lgnustep-base -lobjc -lpthread"
      dnl GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS to 0 or 1.
@@ -2776,6 +2772,25 @@ if test "${with_webp}" != "no"; then
       WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
+
+      # WebPGetInfo is sometimes not present inside libwebpdemux, so
+      # if it does not link, also check for libwebpdecoder.
+
+      OLD_CFLAGS=$CFLAGS
+      OLD_LIBS=$LIBS
+      CFLAGS="$CFLAGS $WEBP_CFLAGS"
+      LIBS="$LIBS $WEBP_LIBS"
+
+      AC_CHECK_FUNC([WebPGetInfo], [],
+        [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
+	 HAVE_WEBP=no
+	 AS_UNSET([WEBP_LIBS])
+	 AS_UNSET([WEBP_CFLAGS])
+	 EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])])
+
+      CFLAGS=$OLD_CFLAGS
+      LIBS=$OLD_LIBS
+
       AC_SUBST([WEBP_CFLAGS])
       AC_SUBST([WEBP_LIBS])
    fi
@@ -3557,14 +3572,14 @@ if test "${HAVE_X11}" = "yes"; then
     CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
     EMACS_CHECK_MODULES([CAIRO], [$CAIRO_MODULE])
     if test $HAVE_CAIRO = yes; then
-      CAIRO_XCB_MODULE="cairo-xcb >= $CAIRO_REQUIRED"
-      EMACS_CHECK_MODULES([CAIRO_XCB], [$CAIRO_XCB_MODULE])
-      if test $HAVE_CAIRO_XCB = yes; then
-	CAIRO_CFLAGS="$CAIRO_CFLAGS $CAIRO_XCB_CFLAGS"
-	CAIRO_LIBS="$CAIRO_LIBS $CAIRO_XCB_LIBS"
-	AC_DEFINE([USE_CAIRO_XCB], [1],
-	  [Define to 1 if cairo XCB surfaces are available.])
-      fi
+      AS_IF([test "x$with_cairo_xcb" = "xyes"], [
+	CAIRO_XCB_MODULE="cairo-xcb >= $CAIRO_REQUIRED"
+	EMACS_CHECK_MODULES([CAIRO_XCB], [$CAIRO_XCB_MODULE])
+	AS_IF([test "x$HAVE_CAIRO_XCB" = "xyes"], [
+	  CAIRO_CFLAGS="$CAIRO_CFLAGS $CAIRO_XCB_CFLAGS"
+	  CAIRO_LIBS="$CAIRO_LIBS $CAIRO_XCB_LIBS"
+	  AC_DEFINE([USE_CAIRO_XCB], [1],
+	    [Define to 1 if cairo XCB surfaces are available.])])])
       AC_DEFINE([USE_CAIRO], [1], [Define to 1 if using cairo.])
       CFLAGS="$CFLAGS $CAIRO_CFLAGS"
       LIBS="$LIBS $CAIRO_LIBS"
@@ -3761,7 +3776,7 @@ if test "${HAVE_X11}" = "yes"; then
 	  AC_DEFINE([HAVE_OTF_GET_VARIATION_GLYPHS], [1],
 		    [Define to 1 if libotf has OTF_get_variation_glyphs.])
 	fi
-	if ! $PKG_CONFIG --atleast-version=0.9.16 libotf; then
+	if $PKG_CONFIG --atleast-version=0.9.16 libotf; then :; else
 	  AC_DEFINE([HAVE_OTF_KANNADA_BUG], [1],
 [Define to 1 if libotf is affected by https://debbugs.gnu.org/28110.])
 	fi
@@ -3869,7 +3884,7 @@ if test "${HAVE_BE_APP}" = "yes"; then
 	  AC_DEFINE([HAVE_OTF_GET_VARIATION_GLYPHS], [1],
 		    [Define to 1 if libotf has OTF_get_variation_glyphs.])
 	fi
-	if ! $PKG_CONFIG --atleast-version=0.9.16 libotf; then
+	if $PKG_CONFIG --atleast-version=0.9.16 libotf; then :; else
 	  AC_DEFINE([HAVE_OTF_KANNADA_BUG], [1],
 [Define to 1 if libotf is affected by https://debbugs.gnu.org/28110.])
 	fi
@@ -4187,7 +4202,7 @@ module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
 module_env_snippet_30="$srcdir/src/module-env-30.h"
-emacs_major_version="${PACKAGE_VERSION%%.*}"
+emacs_major_version=`AS_ECHO([$PACKAGE_VERSION]) | sed 's/[[.]].*//'`
 AC_SUBST([emacs_major_version])
 
 ### Emacs Lisp native compiler support
@@ -4270,8 +4285,8 @@ If you really want to try it anyway, use the configure option
 fi
 
 if test "${with_native_compilation}" != "no"; then
-    if test "${HAVE_PDUMPER}" = no; then
-       AC_MSG_ERROR(['--with-native-compilation' requires '--with-dumping=pdumper'])
+    if test "$with_unexec" = yes; then
+       AC_MSG_ERROR(['--with-native-compilation' is not compatible with unexec])
     fi
     if test "${HAVE_ZLIB}" = no; then
        AC_MSG_ERROR(['--with-native-compilation' requires zlib])
@@ -4297,14 +4312,16 @@ if test "${with_native_compilation}" != "no"; then
         # available.  (We filter out the gcc4 packages, because they
         # don't support jit, and they have names like "gcc49" that
         # sort later than "gcc11".)
-        PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
+        PORT_PACKAGE=`port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
                             awk '{ print $1; }' | grep -v 'gcc4@<:@0-9@:>@' | \
-                            sort -V | tail -n 1)
+                            sort -V | tail -n 1`
         if test -n "$PORT_PACKAGE"; then
-          MAC_CFLAGS="-I$(dirname $(port contents $PORT_PACKAGE | \
-                                           grep libgccjit.h))"
-          MAC_LIBS="-L$(dirname $(port contents $PORT_PACKAGE | \
-                                              grep libgccjit.dylib))"
+	  emacs_val=`port contents $PORT_PACKAGE | grep libgccjit.h`
+	  emacs_val=`dirname $emacs_val`
+          MAC_CFLAGS="-I$emacs_val"
+	  emacs_val=`port contents $PORT_PACKAGE | grep libgccjit.dylib`
+	  emacs_val=`dirname $emacs_val`
+          MAC_LIBS="-L$emacs_val"
         fi
       fi
 
@@ -5395,29 +5412,21 @@ if test "${emacs_cv_links_glib}" = "yes"; then
 fi
 AC_SUBST([XGSELOBJ])
 
-dnl Adapted from Haible's version.
-AC_CACHE_CHECK([for nl_langinfo and CODESET], [emacs_cv_langinfo_codeset],
-  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
-    [[char *cs = nl_langinfo(CODESET);]])],
-    [emacs_cv_langinfo_codeset=yes],
-    [emacs_cv_langinfo_codeset=no])
-  ])
-if test "$emacs_cv_langinfo_codeset" = yes; then
-  AC_DEFINE([HAVE_LANGINFO_CODESET], [1],
-    [Define if you have <langinfo.h> and nl_langinfo (CODESET).])
-
-  AC_CACHE_CHECK([for nl_langinfo and _NL_PAPER_WIDTH],
-    [emacs_cv_langinfo__nl_paper_width],
-    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
-      [[char *cs = nl_langinfo (_NL_PAPER_WIDTH);]])],
-      [emacs_cv_langinfo__nl_paper_width=yes],
-      [emacs_cv_langinfo__nl_paper_width=no])
-    ])
-  if test "$emacs_cv_langinfo__nl_paper_width" = yes; then
-    AC_DEFINE([HAVE_LANGINFO__NL_PAPER_WIDTH], [1],
-      [Define if you have <langinfo.h> and nl_langinfo (_NL_PAPER_WIDTH).])
-  fi
-fi
+AC_DEFUN([EMACS_PAPER_WIDTH],
+  [AC_REQUIRE([AM_LANGINFO_CODESET])
+   AS_IF([test "$am_cv_langinfo_codeset" = yes],
+     [AC_CACHE_CHECK([for nl_langinfo and _NL_PAPER_WIDTH],
+	[emacs_cv_langinfo__nl_paper_width],
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
+	  [[char *cs = nl_langinfo (_NL_PAPER_WIDTH);]])],
+	  [emacs_cv_langinfo__nl_paper_width=yes],
+	  [emacs_cv_langinfo__nl_paper_width=no])
+	])
+      AS_IF([test "$emacs_cv_langinfo__nl_paper_width" = yes],
+	[AC_DEFINE([HAVE_LANGINFO__NL_PAPER_WIDTH], [1],
+	   [Define if you have <langinfo.h>
+	    and nl_langinfo (_NL_PAPER_WIDTH).])])])])
+EMACS_PAPER_WIDTH
 
 AC_TYPE_MBSTATE_T
 
@@ -5602,7 +5611,7 @@ case $opsys in
 esac
 
 case $opsys in
-  gnu-* | solaris )
+  gnu-* | solaris | cygwin )
     dnl FIXME Can't we test if this exists (eg /proc/$$)?
     AC_DEFINE([HAVE_PROCFS], [1], [Define if you have the /proc filesystem.])
   ;;

@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defvar comp-tests-var1 3)
 
 (defun comp-tests-varref-f ()
@@ -517,6 +519,25 @@
 
 (defun comp-test-48029-nonascii-žžž-f (arg)
   (when arg t))
+
+(defun comp-test-62537-1-f ())
+
+(defun comp-test-62537-2-f ()
+  (when (let ((val (comp-test-62537-1-f)))
+	  (cond
+	   ((eq val 'x)
+	    t)
+	   ((eq val 'y)
+	    'y)))
+    (comp-test-62537-1-f))
+  t)
+
+(cl-defstruct comp-test-struct)
+
+(defun comp-test-63674-1-f (x)
+  (or
+   (if (comp-test-struct-p pkg) x)
+   t))
 
 
 ;;;;;;;;;;;;;;;;;;;;

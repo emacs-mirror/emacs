@@ -967,6 +967,15 @@ face_for_char (struct frame *f, struct face *face, int c,
 #endif
     }
 
+  /* If the parent face has no fontset we could work with, and has no
+     font, just return that same face, so that the caller will
+     consider the character to have no font capable of displaying it,
+     and display it as "glyphless".  That is certainly better than
+     violating the assertion below or crashing when assertions are not
+     compiled in.  */
+  if (face->fontset < 0 && !face->font)
+    return face->id;
+
   eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
   eassert (!BASE_FONTSET_P (fontset));

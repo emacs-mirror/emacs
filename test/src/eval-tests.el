@@ -247,4 +247,39 @@ expressions works for identifiers starting with period."
             (should (equal (string-trim (buffer-string))
                            expected-messages))))))))
 
+(defvar-local eval-test--local-var 'global)
+
+(ert-deftest eval-test--bug62419 ()
+  (with-temp-buffer
+    (setq eval-test--local-var 'first-local)
+    (let ((eval-test--local-var t))
+      (kill-local-variable 'eval-test--local-var)
+      (setq eval-test--local-var 'second-local)
+      (should (eq eval-test--local-var 'second-local)))
+    ;; FIXME: It's not completely clear if exiting the above `let'
+    ;; should restore the buffer-local binding to `first-local'
+    ;; (i.e. reset the value of the second buffer-local binding to the
+    ;; first's initial value) or should do nothing (on the principle that
+    ;; the first buffer-local binding doesn't exists any more so there's
+    ;; nothing to restore).  I think both semantics make sense.
+    ;;(should (eq eval-test--local-var 'first-local))
+    )
+  (should (eq eval-test--local-var 'global)))
+
+(ert-deftest eval-tests-defvaralias ()
+  (defvar eval-tests--my-var 'coo)
+  (defvaralias 'eval-tests--my-var1 'eval-tests--my-var)
+  (defvar eval-tests--my-var1)
+  (should (equal eval-tests--my-var 'coo))
+  (should (equal eval-tests--my-var1 'coo))
+
+  (defvaralias 'eval-tests--my-a 'eval-tests--my-b)
+  (defvaralias 'eval-tests--my-b 'eval-tests--my-c)
+
+  (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-c)
+                :type 'cyclic-variable-indirection)
+  (defvaralias 'eval-tests--my-d 'eval-tests--my-a)
+  (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
+                :type 'cyclic-variable-indirection))
+
 ;;; eval-tests.el ends here

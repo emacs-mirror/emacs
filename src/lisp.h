@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <alloca.h>
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stdckdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <float.h>
@@ -30,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <limits.h>
 
 #include <attribute.h>
+#include <count-leading-zeros.h>
 #include <intprops.h>
 #include <verify.h>
 
@@ -812,24 +814,24 @@ typedef struct { void const *fwdptr; } lispfwd;
 
 enum symbol_interned
 {
-  SYMBOL_UNINTERNED = 0,
-  SYMBOL_INTERNED = 1,
-  SYMBOL_INTERNED_IN_INITIAL_OBARRAY = 2
+  SYMBOL_UNINTERNED,		      /* not interned anywhere */
+  SYMBOL_INTERNED,		      /* interned but not in initial obarray */
+  SYMBOL_INTERNED_IN_INITIAL_OBARRAY  /* interned in initial obarray */
 };
 
 enum symbol_redirect
 {
-  SYMBOL_PLAINVAL  = 4,
-  SYMBOL_VARALIAS  = 1,
-  SYMBOL_LOCALIZED = 2,
-  SYMBOL_FORWARDED = 3
+  SYMBOL_PLAINVAL,   /* plain var, value is in the `value' field */
+  SYMBOL_VARALIAS,   /* var alias, value is really in the `alias' symbol */
+  SYMBOL_LOCALIZED,  /* localized var, value is in the `blv' object */
+  SYMBOL_FORWARDED   /* forwarding var, value is in `forward' */
 };
 
 enum symbol_trapped_write
 {
-  SYMBOL_UNTRAPPED_WRITE = 0,
-  SYMBOL_NOWRITE = 1,
-  SYMBOL_TRAPPED_WRITE = 2
+  SYMBOL_UNTRAPPED_WRITE,  /* normal case, just set the value */
+  SYMBOL_NOWRITE,          /* constant, cannot set, e.g. nil, t, :keyword */
+  SYMBOL_TRAPPED_WRITE     /* trap the write, call watcher functions */
 };
 
 struct Lisp_Symbol
@@ -840,21 +842,13 @@ struct Lisp_Symbol
     {
       bool_bf gcmarkbit : 1;
 
-      /* Indicates where the value can be found:
-	 0 : it's a plain var, the value is in the `value' field.
-	 1 : it's a varalias, the value is really in the `alias' symbol.
-	 2 : it's a localized var, the value is in the `blv' object.
-	 3 : it's a forwarding variable, the value is in `forward'.  */
-      ENUM_BF (symbol_redirect) redirect : 3;
+      /* Indicates where the value can be found.  */
+      ENUM_BF (symbol_redirect) redirect : 2;
 
-      /* 0 : normal case, just set the value
-	 1 : constant, cannot set, e.g. nil, t, :keywords.
-	 2 : trap the write, call watcher functions.  */
       ENUM_BF (symbol_trapped_write) trapped_write : 2;
 
-      /* Interned state of the symbol.  This is an enumerator from
-	 enum symbol_interned.  */
-      unsigned interned : 2;
+      /* Interned state of the symbol.  */
+      ENUM_BF (symbol_interned) interned : 2;
 
       /* True means that this variable has been explicitly declared
 	 special (with `defvar' etc), and shouldn't be lexically bound.  */
@@ -3965,6 +3959,13 @@ integer_to_uintmax (Lisp_Object num, uintmax_t *n)
     }
 }
 
+/* Return floor (log2 (N)) as an int, where 0 < N <= ULLONG_MAX.  */
+INLINE int
+elogb (unsigned long long int n)
+{
+  return ULLONG_WIDTH - 1 - count_leading_zeros_ll (n);
+}
+
 /* A modification count.  These are wide enough, and incremented
    rarely enough, so that they should never overflow a 60-bit counter
    in practice, and the code below assumes this so a compiler can
@@ -3974,12 +3975,13 @@ typedef intmax_t modiff_count;
 INLINE modiff_count
 modiff_incr (modiff_count *a, ptrdiff_t len)
 {
-  modiff_count a0 = *a; int incr = len ? 1 : 0;
+  modiff_count a0 = *a;
   /* Increase the counter more for a large modification and less for a
      small modification.  Increase it logarithmically to avoid
      increasing it too much.  */
-  while (len >>= 1) incr++;
-  bool modiff_overflow = INT_ADD_WRAPV (a0, incr, a);
+  verify (PTRDIFF_MAX <= ULLONG_MAX);
+  int incr = len == 0 ? 1 : elogb (len) + 1;
+  bool modiff_overflow = ckd_add (a, a0, incr);
   eassert (!modiff_overflow && *a >> 30 >> 30 == 0);
   return a0;
 }
@@ -4018,7 +4020,6 @@ extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
 extern intmax_t cons_to_signed (Lisp_Object, intmax_t, intmax_t);
 extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
 
-extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern AVOID args_out_of_range (Lisp_Object, Lisp_Object);
 extern AVOID circular_list (Lisp_Object);
 extern Lisp_Object do_symval_forwarding (lispfwd);
@@ -4093,6 +4094,7 @@ extern Lisp_Object concat3 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern bool equal_no_quit (Lisp_Object, Lisp_Object);
 extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_quit (Lisp_Object, Lisp_Object);
+extern Lisp_Object assq_no_signal (Lisp_Object, Lisp_Object);
 extern Lisp_Object assoc_no_quit (Lisp_Object, Lisp_Object);
 extern void clear_string_char_byte_cache (void);
 extern ptrdiff_t string_char_to_byte (Lisp_Object, ptrdiff_t);
@@ -4762,8 +4764,9 @@ extern void save_restriction_restore (Lisp_Object);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
-extern void narrow_to_region_locked (Lisp_Object, Lisp_Object, Lisp_Object);
-extern void reset_outermost_narrowings (void);
+extern void labeled_narrow_to_region (Lisp_Object, Lisp_Object, Lisp_Object);
+extern void reset_outermost_restrictions (void);
+extern void labeled_restrictions_remove_in_current_buffer (void);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 
@@ -4932,7 +4935,6 @@ extern bool detect_input_pending (void);
 extern bool detect_input_pending_ignore_squeezables (void);
 extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
-extern void safe_run_hooks_maybe_narrowed (Lisp_Object, struct window *);
 extern void safe_run_hooks_2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_2 (Lisp_Object);
@@ -5379,26 +5381,6 @@ __lsan_ignore_object (void const *p)
 }
 #endif
 
-/* If built with USE_SANITIZER_UNALIGNED_LOAD defined, use compiler
-   provided ASan functions to perform unaligned loads, allowing ASan
-   to catch bugs which it might otherwise miss.  */
-#if defined HAVE_SANITIZER_COMMON_INTERFACE_DEFS_H \
-  && defined ADDRESS_SANITIZER                     \
-  && defined USE_SANITIZER_UNALIGNED_LOAD
-# include <sanitizer/common_interface_defs.h>
-# if (SIZE_MAX == UINT64_MAX)
-#  define UNALIGNED_LOAD_SIZE(a, i) \
-   (size_t) __sanitizer_unaligned_load64 ((void *) ((a) + (i)))
-# elif (SIZE_MAX == UINT32_MAX)
-#  define UNALIGNED_LOAD_SIZE(a, i) \
-   (size_t) __sanitizer_unaligned_load32 ((void *) ((a) + (i)))
-# else
-#  define UNALIGNED_LOAD_SIZE(a, i) *((a) + (i))
-# endif
-#else
-# define UNALIGNED_LOAD_SIZE(a, i) *((a) + (i))
-#endif
-
 extern void xputenv (const char *);
 
 extern char *egetenv_internal (const char *, ptrdiff_t);
@@ -5501,14 +5483,22 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
   return unbind_to (count, val);
 }
 
+/* Work around GCC bug 109577
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109577
+   which causes GCC to mistakenly complain about the
+   memory allocation in SAFE_ALLOCA_LISP_EXTRA.  */
+#if GNUC_PREREQ (13, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
+#endif
+
 /* Set BUF to point to an allocated array of NELT Lisp_Objects,
    immediately followed by EXTRA spare bytes.  */
 
 #define SAFE_ALLOCA_LISP_EXTRA(buf, nelt, extra)	       \
   do {							       \
     ptrdiff_t alloca_nbytes;				       \
-    if (INT_MULTIPLY_WRAPV (nelt, word_size, &alloca_nbytes)   \
-	|| INT_ADD_WRAPV (alloca_nbytes, extra, &alloca_nbytes) \
+    if (ckd_mul (&alloca_nbytes, nelt, word_size)	       \
+	|| ckd_add (&alloca_nbytes, alloca_nbytes, extra)      \
 	|| SIZE_MAX < alloca_nbytes)			       \
       memory_full (SIZE_MAX);				       \
     else if (alloca_nbytes <= sa_avail)			       \

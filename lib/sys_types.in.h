@@ -20,6 +20,13 @@
 #endif
 @PRAGMA_COLUMNS@
 
+/* This file uses #include_next of a system file that defines time_t.
+   For the 'year2038' module to work right, <config.h> needs to have been
+   included before.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #if defined _WIN32 && !defined __CYGWIN__ \
     && (defined __need_off_t || defined __need___off64_t \
         || defined __need_ssize_t || defined __need_time_t)

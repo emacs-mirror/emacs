@@ -464,11 +464,23 @@ compilation and evaluation time conflicts."
 
 (defun csharp-guess-basic-syntax (orig-fun &rest args)
   (cond
+   (;; enum
+    (save-excursion
+      (goto-char (c-point 'boi))
+      (and
+       (eq (char-after) ?\{)
+       (save-excursion
+         (goto-char (c-point 'iopl))
+         (looking-at ".*enum.*"))))
+    `((class-open ,(c-point 'iopl))))
    (;; Attributes
     (save-excursion
       (goto-char (c-point 'iopl))
       (and
-       (eq (char-after) ?\[)
+       (eq (save-excursion
+             (skip-chars-forward " \t\n")
+             (char-after))
+           ?\[)
        (save-excursion
          (c-go-list-forward)
          (and (eq (char-before) ?\])
@@ -908,7 +920,6 @@ Return nil if there is no name or if NODE is not a defun node."
          "struct_declaration"
          "enum_declaration"
          "interface_declaration"
-         "class_declaration"
          "class_declaration")
      (treesit-node-text
       (treesit-node-child-by-field-name

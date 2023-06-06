@@ -310,29 +310,29 @@ reformatted, with undesirable results.  Instead, use @code{(message
 "%s" @var{string})}.
 @end defun
 
+The following facilities allow users and Lisp programs to control how
+echo-area messages are displayed.
+
 @defvar set-message-function
 If this variable is non-@code{nil}, it should be a function of one
-argument, the text of a message to display in the echo area.  This
+argument, the text of a message to display in the echo area.  That
 function will be called by @code{message} and related functions.  If
 the function returns @code{nil}, the message is displayed in the echo
-area as usual.  If this function returns a string, that string is
-displayed in the echo area instead of the original one.  If this
-function returns other non-@code{nil} values, that means the message
-was already handled, so @code{message} will not display anything in
-the echo area.  See also @code{clear-message-function} that can be
-used to clear the message displayed by this function.
+area as usual.  If the function returns a string, that string is
+displayed in the echo area @emph{instead} of the original message.  If
+the function returns any other non-@code{nil} value, that means the
+message was already handled, so @code{message} will not display
+anything in the echo area.
 
-The default value is the function that displays the message at the end
-of the minibuffer when the minibuffer is active.  However, if the text
-shown in the active minibuffer has the @code{minibuffer-message} text
-property (@pxref{Special Properties}) on some character, the message
-will be displayed before the first character having that property.
+The default value calls @code{set-minibuffer-message}, described
+below.
 @end defvar
 
 @defvar clear-message-function
-If this variable is non-@code{nil}, @code{message} and related
-functions call it with no arguments when their argument message is
-@code{nil} or the empty string.
+If this variable is non-@code{nil}, it should be a function of no
+arguments; @code{message} and related functions call it when their
+argument message is @code{nil} or the empty string, to clear the echo
+area.
 
 Usually this function is called when the next input event arrives
 after displaying an echo-area message.  The function is expected to
@@ -358,11 +358,51 @@ with the same text; if the last function in the list returns
 function returns a non-@code{nil} value that is not a string, the
 message is considered to be handled, and no further functions in the
 list are called.
+
+The three useful functions to be put in the list that is the value of
+this option are described below.
 @end defopt
+
+@defun set-minibuffer-message message
+This function displays @var{message} in the echo-area when the
+minibuffer is not active, and at the end of the minibuffer when the
+minibuffer is active.  However, if the text shown in the active
+minibuffer has the @code{minibuffer-message} text property
+(@pxref{Special Properties}) on some character, the message will be
+displayed before the first character having that property.
+
+This function is by default the only member of the list in
+@code{set-message-functions}.
+@end defun
+
+@vindex inhibit-message-regexps
+@defun inhibit-message message
+If an echo-area @var{message} matches any regexp in the list that is
+the value of the user option @code{inhibit-message-regexps}, this
+function suppresses the display of that message and returns a
+non-@code{nil} value that is not a string.  Thus, if this function is
+in the list @code{set-message-functions}, the rest of the functions in
+the list will not be called when @var{message} matches the regexps in
+@code{inhibit-message-regexps}.  To ensure a matching @var{message}
+will never be displayed, make this function be the first element of
+the list in @code{set-message-functions}.
+@end defun
+
+@vindex multi-message-max
+@vindex multi-message-timeout
+@defun set-multi-message message
+This function accumulates several echo-area messages emitted one after
+another, and returns them as a single string in which individual
+messages are separated by newlines.  Up to @code{multi-message-max}
+recent messages can be accumulated.  The accumulated messages are
+discarded when more than @code{multi-message-timeout} seconds have
+elapsed since the time the first message was emitted.
+@end defun
 
 @defvar inhibit-message
 When this variable is non-@code{nil}, @code{message} and related functions
-will not use the Echo Area to display messages.
+will not display any messages in the Echo Area.  Echo-area messages
+are still logged in the @file{*Messages*} buffer, though.
 @end defvar
 
 @defmac with-temp-message message &rest body
@@ -712,7 +752,8 @@ echo area (which is really a special use of the minibuffer window;
 @cindex warnings
 
   @dfn{Warnings} are a facility for a program to inform the user of a
-possible problem, but continue running.
+possible problem, but continue running (as opposed to signaling an
+error, @pxref{Errors}).
 
 @menu
 * Warning Basics::      Warnings concepts and functions to report them.
@@ -725,69 +766,74 @@ possible problem, but continue running.
 @subsection Warning Basics
 @cindex severity level
 
-  Every warning has a textual message, which explains the problem for
-the user, and a @dfn{severity level} which is a symbol.  Here are the
-possible severity levels, in order of decreasing severity, and their
-meanings:
+  Every warning is a textual message, which explains the problem for
+the user, with the associated @dfn{severity level} which is a symbol.
+Here are the supported severity levels, in order of decreasing
+severity, and their meanings:
 
 @table @code
 @item :emergency
 A problem that will seriously impair Emacs operation soon
-if you do not attend to it promptly.
+if the user does not attend to it promptly.
 @item :error
-A report of data or circumstances that are inherently wrong.
+A report about data or circumstances that are inherently wrong.
 @item :warning
-A report of data or circumstances that are not inherently wrong, but
-raise suspicion of a possible problem.
+A report about data or circumstances that are not inherently wrong,
+but raise suspicion of a possible problem.
 @item :debug
-A report of information that may be useful if you are debugging.
+A report of information that may be useful if the user is currently
+debugging the Lisp program which issues the warning.
 @end table
 
   When your program encounters invalid input data, it can either
-signal a Lisp error by calling @code{error} or @code{signal} or report
-a warning with severity @code{:error}.  Signaling a Lisp error is the
-easiest thing to do, but it means the program cannot continue
-processing.  If you want to take the trouble to implement a way to
-continue processing despite the bad data, then reporting a warning of
-severity @code{:error} is the right way to inform the user of the
-problem.  For instance, the Emacs Lisp byte compiler can report an
-error that way and continue compiling other functions.  (If the
-program signals a Lisp error and then handles it with
-@code{condition-case}, the user won't see the error message; it could
-show the message to the user by reporting it as a warning.)
+signal a Lisp error by calling @code{error} or @code{signal}
+(@pxref{Signaling Errors}) or report a warning with severity
+@code{:error}.  Signaling a Lisp error is the easiest thing to do, but
+it means the signaling program cannot continue execution.  If you want
+to take the trouble of implementing a way to continue processing
+despite the invalid data, then reporting a warning of severity
+@code{:error} is the right way of informing the user of the problem.
+For instance, the Emacs Lisp byte compiler can report an error that
+way and continue compiling other functions.  (If the program signals a
+Lisp error and then handles it with @code{condition-case}, the user
+won't see the error message; reporting that as a warning instead
+avoids that problem.)
 
-@c FIXME: Why use "(bytecomp)" instead of "'bytecomp" or simply
-@c "bytecomp" here?  The parens are part of warning-type-format but
-@c not part of the warning type. --xfq
 @cindex warning type
-  Each warning has a @dfn{warning type} to classify it.  The type is a
-list of symbols.  The first symbol should be the custom group that you
-use for the program's user options.  For example, byte compiler
-warnings use the warning type @code{(bytecomp)}.  You can also
-subcategorize the warnings, if you wish, by using more symbols in the
-list.
+  In addition to severity level, each warning has a @dfn{warning type}
+to classify it.  The warning type is either a symbol or a list of
+symbols.  If it is a symbol, it should be the custom group that you
+use for the program's user options; if it is a list, the first element
+of the list should be that custom group.  For example, byte compiler
+warnings use the warning type @code{(bytecomp)}.  If the warning type
+is a list, the elements of the list after the first one, which should
+be arbitrary symbols, represent subcategories of the warning: they
+will be displayed to the user to better explain the nature of the
+warning.
 
 @defun display-warning type message &optional level buffer-name
-This function reports a warning, using @var{message} as the message
-and @var{type} as the warning type.  @var{level} should be the
-severity level, with @code{:warning} being the default.
+This function reports a warning, using the string @var{message} as the
+warning text and @var{type} as the warning type.  @var{level} should
+be the severity level, and defaults to @code{:warning} if omitted or
+@code{nil}.
 
 @var{buffer-name}, if non-@code{nil}, specifies the name of the buffer
-for logging the warning.  By default, it is @file{*Warnings*}.
+for logging the warning message.  By default, it is @file{*Warnings*}.
 @end defun
 
 @defun lwarn type level message &rest args
-This function reports a warning using the value of @code{(format-message
-@var{message} @var{args}...)} as the message in the @file{*Warnings*}
-buffer.  In other respects it is equivalent to @code{display-warning}.
+This function reports a warning using the value returned by
+@w{@code{(format-message @var{message} @var{args}@dots{})}} as the
+message text in the @file{*Warnings*} buffer.  In other respects it is
+equivalent to @code{display-warning}.
 @end defun
 
 @defun warn message &rest args
-This function reports a warning using the value of @code{(format-message
-@var{message} @var{args}...)} as the message, @code{(emacs)} as the
-type, and @code{:warning} as the severity level.  It exists for
-compatibility only; we recommend not using it, because you should
-specify a specific warning type.
+This function reports a warning using the value returned by
+@w{@code{(format-message @var{message} @var{args}@dots{})}} as the
+message text, @code{emacs} as the warning type, and @code{:warning} as
+the severity level.  It exists for compatibility only; we recommend
+not using it, because you should specify a specific warning type.
 @end defun
 
 @node Warning Variables
@@ -802,15 +848,16 @@ This list defines the meaning and severity order of the warning
 severity levels.  Each element defines one severity level,
 and they are arranged in order of decreasing severity.
 
-Each element has the form @code{(@var{level} @var{string}
-@var{function})}, where @var{level} is the severity level it defines.
-@var{string} specifies the textual description of this level.
-@var{string} should use @samp{%s} to specify where to put the warning
-type information, or it can omit the @samp{%s} so as not to include
-that information.
+Each element has the form @w{@code{(@var{level} @var{string}
+[@var{function}])}}, where @var{level} is the severity level it
+defines.  @var{string} specifies the textual description of this
+level.  @var{string} should use @samp{%s} to specify where to put the
+warning type information, or it can omit the @samp{%s} so as not to
+include that information.
 
 The optional @var{function}, if non-@code{nil}, is a function to call
-with no arguments, to get the user's attention.
+with no arguments, to get the user's attention.  A notable example is
+@code{ding} (@pxref{Beeping}).
 
 Normally you should not change the value of this variable.
 @end defvar
@@ -819,18 +866,19 @@ Normally you should not change the value of this variable.
 If non-@code{nil}, the value is a function to generate prefix text for
 warnings.  Programs can bind the variable to a suitable function.
 @code{display-warning} calls this function with the warnings buffer
-current, and the function can insert text in it.  That text becomes
-the beginning of the warning message.
+the current buffer, and the function can insert text into it.  That
+text becomes the beginning of the warning message.
 
 The function is called with two arguments, the severity level and its
-entry in @code{warning-levels}.  It should return a list to use as the
-entry (this value need not be an actual member of
-@code{warning-levels}).  By constructing this value, the function can
-change the severity of the warning, or specify different handling for
-a given severity level.
+entry in @code{warning-levels}.  It should return a list to use
+@emph{instead} of that entry (the value need not be an actual member
+of @code{warning-levels}, but it must have the same structure).  By
+constructing this value, the function can change the severity of the
+warning, or specify different handling for a given severity level.
 
-If the variable's value is @code{nil} then there is no function
-to call.
+If the variable's value is @code{nil}, there's no prefix text, before
+the warning is displayed, starting with the @var{string} part of the
+entry in @code{warning-levels} corresponding to the warning's level.
 @end defvar
 
 @defvar warning-series
@@ -838,17 +886,18 @@ Programs can bind this variable to @code{t} to say that the next
 warning should begin a series.  When several warnings form a series,
 that means to leave point on the first warning of the series, rather
 than keep moving it for each warning so that it appears on the last one.
-The series ends when the local binding is unbound and
+The series ends when the local binding of this variable is unbound and
 @code{warning-series} becomes @code{nil} again.
 
 The value can also be a symbol with a function definition.  That is
 equivalent to @code{t}, except that the next warning will also call
-the function with no arguments with the warnings buffer current.  The
-function can insert text which will serve as a header for the series
-of warnings.
+the function with no arguments with the warnings buffer the current
+buffer.  The function can, for example, insert text which will serve
+as a header for the series of warnings.
 
-Once a series has begun, the value is a marker which points to the
-buffer position in the warnings buffer of the start of the series.
+Once a series has begun, the value of this variable is a marker which
+points to the buffer position in the warnings buffer of the start of
+the series.
 
 The variable's normal value is @code{nil}, which means to handle
 each warning separately.
@@ -856,7 +905,7 @@ each warning separately.
 
 @defvar warning-fill-prefix
 When this variable is non-@code{nil}, it specifies a fill prefix to
-use for filling each warning's text.
+use for filling the text of each warning.
 @end defvar
 
 @defvar warning-fill-column
@@ -865,11 +914,11 @@ The column at which to fill warnings.
 
 @defvar warning-type-format
 This variable specifies the format for displaying the warning type
-in the warning message.  The result of formatting the type this way
+in the warning text.  The result of formatting the type this way
 gets included in the message under the control of the string in the
 entry in @code{warning-levels}.  The default value is @code{" (%s)"}.
-If you bind it to @code{""} then the warning type won't appear at
-all.
+If you bind it to the empty string @code{""} then the warning type
+won't appear at all.
 @end defvar
 
 @node Warning Options
@@ -881,38 +930,71 @@ when a Lisp program reports a warning.
 
 @defopt warning-minimum-level
 This user option specifies the minimum severity level that should be
-shown immediately to the user.  The default is @code{:warning}, which
-means to immediately display all warnings except @code{:debug}
-warnings.
+shown immediately to the user, by popping the warnings buffer in some
+window.  The default is @code{:warning}, which means to show the
+warning buffer for any warning severity except @code{:debug}.  The
+warnings of lower severity levels will still be written into the
+warnings buffer, but the buffer will not be forced onto display.
 @end defopt
 
 @defopt warning-minimum-log-level
 This user option specifies the minimum severity level that should be
-logged in the warnings buffer.  The default is @code{:warning}, which
-means to log all warnings except @code{:debug} warnings.
+logged in the warnings buffer.  Warnings of lower severity will be
+completely ignored: not written to the warnings buffer and not
+displayed.  The default is @code{:warning}, which means to log
+warnings of any severity except @code{:debug}.
 @end defopt
 
 @defopt warning-suppress-types
 This list specifies which warning types should not be displayed
-immediately for the user.  Each element of the list should be a list
-of symbols.  If its elements match the first elements in a warning
-type, then that warning is not displayed immediately.
+immediately when they occur.  Each element of the list should be a
+list of symbols.  If an element of this list has the same elements as
+the first elements in a warning type, then the warning of that type
+will not be shown on display by popping the warnings buffer in some
+window (the warning will still be logged in the warnings buffer).
+
+For example, if the value of this variable is a list like this:
+
+@lisp
+((foo) (bar subtype))
+@end lisp
+
+@noindent
+then warnings whose types are @code{foo} or @code{(foo)} or
+@w{@code{(foo something)}} or @w{@code{(bar subtype other)}} will not
+be shown to the user.
 @end defopt
 
 @defopt warning-suppress-log-types
-This list specifies which warning types should not be logged in the
-warnings buffer.  Each element of the list should be a list of
-symbols.  If it matches the first few elements in a warning type, then
-that warning is not logged.
+This list specifies which warning types should be ignored: not logged
+in the warnings buffer and not shown to the user.  The structure and
+the matching of warning types are the same as for
+@code{warning-suppress-types} above.
 @end defopt
+
+@cindex warnings, suppressing during startup
+@cindex prevent warnings in init files
+  During startup, Emacs delays showing any warnings until after it
+loads and processes the site-wide and user's init files
+(@pxref{Startup Summary}).  Let-binding (@pxref{Local Variables}) the
+values of these options around some code in your init files which
+might emit a warning will therefore not work, because it will not be
+in effect by the time the warning is actually processed.  Thus, if you
+want to suppress some warnings during startup, change the values of
+the above options in your init file early enough, or put those
+let-binding forms in your @code{after-init-hook} or
+@code{emacs-startup-hook} functions.  @xref{Init File}.
 
 @node Delayed Warnings
 @subsection Delayed Warnings
 @cindex delayed warnings
+@cindex warnings, delayed
 
 Sometimes, you may wish to avoid showing a warning while a command is
 running, and only show it only after the end of the command.  You can
-use the function @code{delay-warning} for this.
+use the function @code{delay-warning} for this.  Emacs automatically
+delays any warnings emitted during the early stages of startup, and
+shows them only after the init files are processed.
 
 @defun delay-warning type message &optional level buffer-name
 This function is the delayed counterpart to @code{display-warning}
@@ -933,7 +1015,7 @@ with the same form, and the same meanings, as the argument list of
 @code{display-warning}.  Immediately after running
 @code{post-command-hook} (@pxref{Command Overview}), the Emacs
 command loop displays all the warnings specified by this variable,
-then resets it to @code{nil}.
+then resets the variable to @code{nil}.
 @end defvar
 
   Programs which need to further customize the delayed warnings
@@ -942,7 +1024,9 @@ mechanism can change the variable @code{delayed-warnings-hook}:
 @defvar delayed-warnings-hook
 This is a normal hook which is run by the Emacs command loop, after
 @code{post-command-hook}, in order to process and display delayed
-warnings.
+warnings.  Emacs also runs this hook during startup, after loading the
+site-start and user init files (@pxref{Startup Summary}), because
+warnings emitted before that are automatically delayed.
 
 Its default value is a list of two functions:
 
@@ -2345,10 +2429,11 @@ newline.  The property value can be one of several forms:
 @item t
 If the property value is @code{t}, the newline character has no
 effect on the displayed height of the line---the visible contents
-alone determine the height.  The @code{line-spacing} property,
-described below, is also ignored in this case.  This is useful for
-tiling small images (or image slices) without adding blank areas
-between the images.
+alone determine the height.  The @code{line-spacing} property of the
+newline, described below, is also ignored in this case.  This is
+useful for tiling small images (or image slices) without adding blank
+areas between the images.
+
 @item (@var{height} @var{total})
 If the property value is a list of the form shown, that adds extra
 space @emph{below} the display line.  First Emacs uses @var{height} as
@@ -2409,7 +2494,9 @@ overrides line spacings specified for the frame.
 property that can enlarge the default frame line spacing and the
 buffer local @code{line-spacing} variable: if its value is larger than
 the buffer or frame defaults, that larger value is used instead, for
-the display line ending in that newline.
+the display line ending in that newline (unless the newline also has
+the @code{line-height} property whose value is one of the special
+values which cause @code{line-spacing} to be ignored, see above).
 
   One way or another, these mechanisms specify a Lisp value for the
 spacing of each line.  The value is a height spec, and it translates
@@ -6833,7 +6920,7 @@ This function puts image @var{image} in front of @var{pos} in the
 current buffer.  The argument @var{pos} should be an integer or a
 marker.  It specifies the buffer position where the image should appear.
 The argument @var{string} specifies the text that should hold the image
-as an alternative to the default.
+as an alternative to the default @samp{x}.
 
 The argument @var{image} must be an image descriptor, perhaps returned
 by @code{create-image} or stored by @code{defimage}.
@@ -6846,7 +6933,7 @@ buffer's text.
 
 Internally, this function creates an overlay, and gives it a
 @code{before-string} property containing text that has a @code{display}
-property whose value is the image.  (Whew!)
+property whose value is the image.  (Whew! that was a mouthful@dots{})
 @end defun
 
 @defun remove-images start end &optional buffer
@@ -6893,41 +6980,47 @@ This function returns @code{t} if point is on an image, and @code{nil}
 otherwise.
 @end defun
 
+@cindex operations on images
 Images inserted with the insertion functions above also get a local
 keymap installed in the text properties (or overlays) that span the
 displayed image.  This keymap defines the following commands:
 
 @table @kbd
+@findex image-increase-size
 @item i +
-Increase the image size (@code{image-increase-size}).  A prefix value
-of @samp{4} means to increase the size by 40%.  The default is 20%.
+Increase the image size (@code{image-increase-size})
 
+@findex image-decrease-size
 @item i -
-Decrease the image size (@code{image-increase-size}).  A prefix value
-of @samp{4} means to decrease the size by 40%.  The default is 20%.
+Decrease the image size (@code{image-decrease-size}).
 
+@findex image-rotate
 @item i r
-Rotate the image by 90 degrees clockwise (@code{image-rotate}).
-A prefix means to rotate by 90 degrees counter-clockwise instead.
+Rotate the image (@code{image-rotate}).
 
+@findex image-flip-horizontally
 @item i h
 Flip the image horizontally (@code{image-flip-horizontally}).
 
+@findex image-flip-vertically
 @item i v
 Flip the image vertically (@code{image-flip-vertically}).
 
+@findex image-save
 @item i o
 Save the image to a file (@code{image-save}).
 
+@findex image-crop
 @item i c
-Crop the image interactively (@code{image-crop}).
+Interactively crop the image (@code{image-crop}).
 
+@findex image-cut
 @item i x
-Cut a rectangle from the image interactively (@code{image-cut}).
+Interactively cut a rectangle from the image (@code{image-cut}).
 @end table
 
-The size and rotation commands are ``repeating'', which means that you
-can continue adjusting the image without using the @kbd{i} prefix.
+@xref{Image Mode,,, emacs, The GNU Emacs Manual}, for more details
+about these image-specific key bindings.
 
 @node Multi-Frame Images
 @subsection Multi-Frame Images

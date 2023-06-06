@@ -306,9 +306,24 @@ to writing a completion function."
 
 (defun eshell-complete--eval-argument-form (arg)
   "Evaluate a single Eshell argument form ARG for the purposes of completion."
-  (let ((result (eshell-do-eval `(eshell-commands ,arg) t)))
-    (cl-assert (eq (car result) 'quote))
-    (cadr result)))
+  (condition-case err
+      (let* (;; Don't allow running commands; they could have
+             ;; arbitrary side effects, which we don't want when we're
+             ;; just performing completions!
+             (eshell-allow-commands)
+             ;; Handle errors ourselves so that we can properly catch
+             ;; `eshell-commands-forbidden'.
+             (eshell-handle-errors)
+             (result (eshell-do-eval `(eshell-commands ,arg) t)))
+        (cl-assert (eq (car result) 'quote))
+        (cadr result))
+    (eshell-commands-forbidden
+     (propertize "\0" 'eshell-argument-stub
+                 (intern (format "%s-command" (cadr err)))))
+    (error
+     (lwarn 'eshell :error
+            "Failed to evaluate argument form during completion: %S" arg)
+     (propertize "\0" 'eshell-argument-stub 'error))))
 
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
@@ -317,7 +332,7 @@ to writing a completion function."
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (beginning-of-line) (point)))
-	args posns delim)
+	args posns delim incomplete-arg)
     (when (and pcomplete-allow-modifications
 	       (memq this-command '(pcomplete-expand
 			            pcomplete-expand-and-complete)))
@@ -325,22 +340,28 @@ to writing a completion function."
       (if (= begin end)
 	  (end-of-line))
       (setq end (point-marker)))
-    (if (setq delim
-	      (catch 'eshell-incomplete
-		(ignore
-		 (setq args (eshell-parse-arguments begin end)))))
-        (cond ((member (car delim) '("{" "${" "$<"))
-	       (setq begin (1+ (cadr delim))
-		     args (eshell-parse-arguments begin end)))
-              ((member (car delim) '("$'" "$\""))
-               ;; Add the (incomplete) argument to our arguments, and
-               ;; note its position.
-               (setq args (append (nth 2 delim) (list (car delim))))
-               (push (- (nth 1 delim) 2) posns))
-              ((member (car delim) '("(" "$("))
-	       (throw 'pcompleted (elisp-completion-at-point)))
-	      (t
-	       (eshell--pcomplete-insert-tab))))
+    ;; Don't expand globs when parsing arguments; we want to pass any
+    ;; globs to Pcomplete unaltered.
+    (declare-function eshell-parse-glob-chars "em-glob" ())
+    (let ((eshell-parse-argument-hook (remq #'eshell-parse-glob-chars
+                                            eshell-parse-argument-hook)))
+      (if (setq delim
+	        (catch 'eshell-incomplete
+		  (ignore
+		   (setq args (eshell-parse-arguments begin end)))))
+          (cond ((member (car delim) '("{" "${" "$<"))
+	         (setq begin (1+ (cadr delim))
+		       args (eshell-parse-arguments begin end)))
+                ((member (car delim) '("$'" "$\"" "#<"))
+                 ;; Add the (incomplete) argument to our arguments, and
+                 ;; note its position.
+                 (setq args (append (nth 2 delim) (list (car delim)))
+                       incomplete-arg t)
+                 (push (- (nth 1 delim) 2) posns))
+                ((member (car delim) '("(" "$("))
+	         (throw 'pcompleted (elisp-completion-at-point)))
+	        (t
+	         (eshell--pcomplete-insert-tab)))))
     (when (get-text-property (1- end) 'comment)
       (eshell--pcomplete-insert-tab))
     (let ((pos (1- end)))
@@ -362,7 +383,8 @@ to writing a completion function."
 	(setq args (nthcdr (1+ new-start) args)
 	      posns (nthcdr (1+ new-start) posns))))
     (cl-assert (= (length args) (length posns)))
-    (when (and args (eq (char-syntax (char-before end)) ? )
+    (when (and args (not incomplete-arg)
+               (eq (char-syntax (char-before end)) ? )
 	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
       (nconc posns (list (point))))

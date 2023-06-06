@@ -798,13 +798,6 @@ typedef int (*Emacs_XIOErrorHandler) (Display *);
 #define USE_CAIRO_XCB_SURFACE
 #endif
 
-/* Default to using XIM if available.  */
-#ifdef USE_XIM
-bool use_xim = true;
-#else
-bool use_xim = false;  /* configure --without-xim */
-#endif
-
 #if XCB_SHAPE_MAJOR_VERSION > 1	      \
   || (XCB_SHAPE_MAJOR_VERSION == 1 && \
       XCB_SHAPE_MINOR_VERSION >= 1)
@@ -2322,13 +2315,10 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	  target_count = header.target_list_count;
 	  rc = false;
 
-	  if (INT_ADD_WRAPV (header.target_list_count, 1,
-			     &header.target_list_count)
-	      || INT_MULTIPLY_WRAPV (ntargets, 4, &size)
-	      || INT_ADD_WRAPV (header.total_data_size, size,
-				&header.total_data_size)
-	      || INT_ADD_WRAPV (header.total_data_size, 2,
-				&header.total_data_size))
+	  if (ckd_add (&header.target_list_count, header.target_list_count, 1)
+	      || ckd_mul (&size, ntargets, 4)
+	      || ckd_add (&header.total_data_size, header.total_data_size, size)
+	      || ckd_add (&header.total_data_size, header.total_data_size, 2))
 	    {
 	      /* Overflow, remove every entry from the targets table
 		 and add one for our current targets list.  This
@@ -6949,8 +6939,7 @@ x_sync_get_monotonic_time (struct x_display_info *dpyinfo,
     return 0;
 
   uint_fast64_t t;
-  return (INT_SUBTRACT_WRAPV (timestamp, dpyinfo->server_time_offset, &t)
-	  ? 0 : t);
+  return ckd_sub (&t, timestamp, dpyinfo->server_time_offset) ? 0 : t;
 }
 
 # ifndef CLOCK_MONOTONIC
@@ -6968,8 +6957,8 @@ x_sync_current_monotonic_time (void)
   return (((clock_gettime (CLOCK_MONOTONIC, &time) != 0
 	    && (CLOCK_MONOTONIC == CLOCK_REALTIME
 		|| clock_gettime (CLOCK_REALTIME, &time) != 0))
-	   || INT_MULTIPLY_WRAPV (time.tv_sec, 1000000, &t)
-	   || INT_ADD_WRAPV (t, time.tv_nsec / 1000, &t))
+	   || ckd_mul (&t, time.tv_sec, 1000000)
+	   || ckd_add (&t, t, time.tv_nsec / 1000))
 	  ? 0 : t);
 }
 
@@ -6990,8 +6979,7 @@ x_sync_note_frame_times (struct x_display_info *dpyinfo,
   time = x_sync_get_monotonic_time (dpyinfo, low | (high << 32));
 
   if (!time || !output->temp_frame_time
-      || INT_SUBTRACT_WRAPV (time, output->temp_frame_time,
-			     &output->last_frame_time))
+      || ckd_sub (&output->last_frame_time, time, output->temp_frame_time))
     output->last_frame_time = 0;
 
 #ifdef FRAME_DEBUG
@@ -7967,7 +7955,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 
       dpyinfo->server_time_monotonic_p
 	= (monotonic_time != 0
-	   && !INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	   && !ckd_sub (&diff_ms, time, monotonic_ms)
 	   && -500 < diff_ms && diff_ms < 500);
 
       if (!dpyinfo->server_time_monotonic_p)
@@ -7976,10 +7964,9 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	     time to estimate the monotonic time on the X server.  */
 
 	  if (!monotonic_time
-	      || INT_MULTIPLY_WRAPV (time, 1000, &dpyinfo->server_time_offset)
-	      || INT_SUBTRACT_WRAPV (dpyinfo->server_time_offset,
-				     monotonic_time,
-				     &dpyinfo->server_time_offset))
+	      || ckd_mul (&dpyinfo->server_time_offset, time, 1000)
+	      || ckd_sub (&dpyinfo->server_time_offset,
+			  dpyinfo->server_time_offset, monotonic_time))
 	    dpyinfo->server_time_offset = 0;
 
 	  /* If the server time is reasonably close to the monotonic
@@ -7988,18 +7975,18 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	     actual time in ms.  */
 
 	  monotonic_ms = monotonic_ms & 0xffffffff;
-	  if (!INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	  if (!ckd_sub (&diff_ms, time, monotonic_ms)
 	      && -500 < diff_ms && diff_ms < 500)
 	    {
 	      /* The server timestamp overflowed.  Make the time
 		 offset exactly how much it overflowed by.  */
 
-	      if (INT_SUBTRACT_WRAPV (monotonic_time / 1000, monotonic_ms,
-				      &dpyinfo->server_time_offset)
-		  || INT_MULTIPLY_WRAPV (dpyinfo->server_time_offset,
-					 1000, &dpyinfo->server_time_offset)
-		  || INT_SUBTRACT_WRAPV (0, dpyinfo->server_time_offset,
-					 &dpyinfo->server_time_offset))
+	      if (ckd_sub (&dpyinfo->server_time_offset,
+			   monotonic_time / 1000, monotonic_ms)
+		  || ckd_mul (&dpyinfo->server_time_offset,
+			      dpyinfo->server_time_offset, 1000)
+		  || ckd_sub (&dpyinfo->server_time_offset,
+			      0, dpyinfo->server_time_offset))
 		dpyinfo->server_time_offset = 0;
 	    }
 	}
@@ -21178,14 +21165,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	x_cr_update_surface_desired_size (any,
 					  configureEvent.xconfigure.width,
 					  configureEvent.xconfigure.height);
-      if (f || (any && configureEvent.xconfigure.window == FRAME_X_WINDOW (any)))
-	x_update_opaque_region (f ? f : any, &configureEvent);
 #endif
+
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+
+      /* Make the new size of the frame its opaque region.  This is a
+	 region describing areas of the window which are always
+	 guaranteed to be completely opaque and can be treated as such
+	 by the compositor.  It is set to the width and height of the
+	 only window in no-toolkit builds when `alpha_background' is
+	 not set, and is cleared otherwise.  */
+
+      if (f || (any && configureEvent.xconfigure.window
+		== FRAME_OUTER_WINDOW (any)))
+	x_update_opaque_region (f ? f : any, &configureEvent);
+
+#endif /* !defined USE_X_TOOLKIT && !defined USE_GTK */
+
 #ifdef USE_GTK
       if (!f
 	  && (f = any)
 	  && configureEvent.xconfigure.window == FRAME_X_WINDOW (f)
-	  && (FRAME_VISIBLE_P(f)
+	  && (FRAME_VISIBLE_P (f)
 	      || !(configureEvent.xconfigure.width <= 1
 		   && configureEvent.xconfigure.height <= 1)))
         {
@@ -21212,10 +21213,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           f = 0;
 	}
 #endif
-      if (f
-	  && (FRAME_VISIBLE_P(f)
-	      || !(configureEvent.xconfigure.width <= 1
-		   && configureEvent.xconfigure.height <= 1)))
+      if (f && (FRAME_VISIBLE_P (f)
+		|| !(configureEvent.xconfigure.width <= 1
+		     && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
 	  /* For GTK+ don't call x_net_wm_state for the scroll bar
@@ -26659,7 +26659,12 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
 
   /* No need to call XCloseIM.  */
   dpyinfo->xim = NULL;
-  XFree (dpyinfo->xim_styles);
+
+  /* Also free IM values; those are allocated separately upon
+     XGetIMValues.  */
+  if (dpyinfo->xim_styles)
+    XFree (dpyinfo->xim_styles);
+  dpyinfo->xim_styles = NULL;
   unblock_input ();
 }
 
@@ -26677,10 +26682,20 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
   XIM xim;
   const char *locale;
 
-  if (use_xim)
+  if (dpyinfo->use_xim)
     {
       if (dpyinfo->xim)
-	XCloseIM (dpyinfo->xim);
+	{
+	  XCloseIM (dpyinfo->xim);
+
+	  /* Free values left over from the last time the IM
+	     connection was established.  */
+
+	  if (dpyinfo->xim_styles)
+	    XFree (dpyinfo->xim_styles);
+	  dpyinfo->xim_styles = NULL;
+	}
+
       xim = XOpenIM (dpyinfo->display, dpyinfo->rdb, resource_name,
 		     emacs_class);
       dpyinfo->xim = xim;
@@ -26709,7 +26724,6 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
 					    build_string (locale));
 	}
     }
-
   else
 #endif /* HAVE_XIM */
     dpyinfo->xim = NULL;
@@ -26778,7 +26792,7 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
 {
   dpyinfo->xim = NULL;
 #ifdef HAVE_XIM
-  if (use_xim)
+  if (dpyinfo->use_xim)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
@@ -26787,15 +26801,19 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       xim_inst->resource_name = xstrdup (resource_name);
-      ret = XRegisterIMInstantiateCallback
-	(dpyinfo->display, dpyinfo->rdb, xim_inst->resource_name,
-	 emacs_class, xim_instantiate_callback,
-	 /* This is XPointer in XFree86 but (XPointer *) on Tru64, at
-	    least, but the configure test doesn't work because
-	    xim_instantiate_callback can either be XIMProc or
-	    XIDProc, so just cast to void *.  */
-	 (void *) xim_inst);
-      eassert (ret == True);
+
+      /* The last argument is XPointer in XFree86 but (XPointer *) on
+	 Tru64, at least, but the configure test doesn't work because
+	 xim_instantiate_callback can either be XIMProc or XIDProc, so
+	 just cast to void *.  */
+
+      ret = XRegisterIMInstantiateCallback (dpyinfo->display,
+					    dpyinfo->rdb,
+					    xim_inst->resource_name,
+					    emacs_class,
+					    xim_instantiate_callback,
+					    (void *) xim_inst);
+      eassert (ret);
 #else /* not HAVE_X11R6_XIM */
       xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
@@ -26804,32 +26822,56 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
 }
 
 
-/* Close the connection to the XIM server on display DPYINFO. */
+/* Close the connection to the XIM server on display DPYINFO.
+   Unregister any IM instantiation callback previously installed,
+   close the connection to the IM server if possible, and free any
+   retrieved IM values.  */
 
 static void
 xim_close_dpy (struct x_display_info *dpyinfo)
 {
 #ifdef HAVE_XIM
-  if (use_xim)
-    {
 #ifdef HAVE_X11R6_XIM
-      struct xim_inst_t *xim_inst = dpyinfo->xim_callback_data;
+  struct xim_inst_t *xim_inst;
+  Bool rc;
+
+  /* If dpyinfo->xim_callback_data is not set, then IM support wasn't
+     initialized, which can happen if Xlib doesn't understand the C
+     locale being used.  */
+
+  if (dpyinfo->xim_callback_data)
+    {
+      xim_inst = dpyinfo->xim_callback_data;
 
       if (dpyinfo->display)
 	{
-	  Bool ret = XUnregisterIMInstantiateCallback
-	    (dpyinfo->display, dpyinfo->rdb, xim_inst->resource_name,
-	     emacs_class, xim_instantiate_callback, (void *) xim_inst);
-	  eassert (ret == True);
+	  rc = XUnregisterIMInstantiateCallback (dpyinfo->display,
+						 dpyinfo->rdb,
+						 xim_inst->resource_name,
+						 emacs_class,
+						 xim_instantiate_callback,
+						 (void *) xim_inst);
+	  eassert (rc);
 	}
+
       xfree (xim_inst->resource_name);
       xfree (xim_inst);
-#endif /* HAVE_X11R6_XIM */
-      if (dpyinfo->display)
-	XCloseIM (dpyinfo->xim);
-      dpyinfo->xim = NULL;
-      XFree (dpyinfo->xim_styles);
     }
+#endif /* HAVE_X11R6_XIM */
+
+  /* Now close the connection to the input method server.  This may
+     access the display connection, and isn't safe if the display has
+     already been closed.  */
+
+  if (dpyinfo->display && dpyinfo->xim)
+    XCloseIM (dpyinfo->xim);
+  dpyinfo->xim = NULL;
+
+  /* Free the list of XIM styles retrieved.  */
+
+  if (dpyinfo->xim_styles)
+    XFree (dpyinfo->xim_styles);
+  dpyinfo->xim_styles = NULL;
 #endif /* HAVE_XIM */
 }
 
@@ -30186,7 +30228,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     {
       static char const at[] = " at ";
       ptrdiff_t nbytes = sizeof (title) + sizeof (at);
-      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+      if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
 	memory_full (SIZE_MAX);
       dpyinfo->x_id_name = xmalloc (nbytes);
       sprintf (dpyinfo->x_id_name, "%s%s%s", title, at, SDATA (system_name));
@@ -30756,15 +30798,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
 #if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
-  dpyinfo->fixes_pointer_blanking = egetenv ("EMACS_XFIXES");
-#endif
-
-#ifdef HAVE_X_I18N
-  /* Avoid initializing input methods if the X library does not
-     support Emacs's locale.  When the current locale is not
-     supported, decoding input method strings becomes undefined.  */
-  if (XSupportsLocale ())
-    xim_initialize (dpyinfo, resource_name);
+  dpyinfo->fixes_pointer_blanking = (egetenv ("EMACS_XFIXES") != NULL);
 #endif
 
   xsettings_initialize (dpyinfo);
@@ -30825,25 +30859,33 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       XSynchronize (dpyinfo->display, True);
   }
 
+#ifdef HAVE_X_I18N
   {
     AUTO_STRING (useXIM, "useXIM");
     AUTO_STRING (UseXIM, "UseXIM");
     Lisp_Object value = gui_display_get_resource (dpyinfo, useXIM, UseXIM,
                                                   Qnil, Qnil);
+
+    /* `USE_XIM' controls whether Emacs should use X input methods by
+       default, not whether or not XIM is available.  */
+
 #ifdef USE_XIM
+    dpyinfo->use_xim = true;
+
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "false")
 	    || !strcmp (SSDATA (value), "off")))
-      use_xim = false;
-#else
+      dpyinfo->use_xim = false;
+#else /* !USE_XIM */
+    dpyinfo->use_xim = false;
+
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
-      use_xim = true;
-#endif
+      dpyinfo->use_xim = true;
+#endif /* USE_XIM */
   }
 
-#ifdef HAVE_X_I18N
   {
     AUTO_STRING (inputStyle, "inputStyle");
     AUTO_STRING (InputStyle, "InputStyle");
@@ -30865,10 +30907,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef USE_GTK
 	else if (!strcmp (SSDATA (value), "native"))
 	  dpyinfo->prefer_native_input = true;
-#endif
+#endif /* HAVE_GTK */
       }
   }
-#endif
+
+  /* Now that defaults have been set up, initialize input method
+     support.  */
+
+  /* Avoid initializing input methods if the X library does not
+     support Emacs's locale.  When the current locale is not
+     supported, decoding input method strings becomes undefined.  */
+  if (XSupportsLocale ())
+    xim_initialize (dpyinfo, resource_name);
+#endif /* HAVE_X_I18N */
 
 #ifdef HAVE_X_SM
   /* Only do this for the very first display in the Emacs session.
@@ -31261,14 +31312,22 @@ x_delete_terminal (struct terminal *terminal)
 #ifdef HAVE_X_I18N
   /* We must close our connection to the XIM server before closing the
      X display.  */
-  if (dpyinfo->xim)
-    xim_close_dpy (dpyinfo);
+  xim_close_dpy (dpyinfo);
 #endif
+
+  /* Destroy all bitmap images created on the display.  */
+  image_destroy_all_bitmaps (dpyinfo);
+
+  /* Free the storage allocated to hold bitmap records.  */
+  xfree (dpyinfo->bitmaps);
+
+  /* In case someone decides to use `bitmaps' again... */
+  dpyinfo->bitmaps = NULL;
+  dpyinfo->bitmaps_last = 0;
 
   /* Normally, the display is available...  */
   if (dpyinfo->display)
     {
-      image_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
       /* Delete the scratch cursor GC, should it exist.  */

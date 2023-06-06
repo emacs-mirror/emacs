@@ -315,7 +315,7 @@ is 0.")
 
 (defun org-src--construct-edit-buffer-name (org-buffer-name lang)
   "Construct the buffer name for a source editing buffer.
-Format is \"*Org Src ORG-BUFFER-NAME [ LANG ]*\"."
+Format is \"*Org Src ORG-BUFFER-NAME[ LANG ]*\"."
   (concat "*Org Src " org-buffer-name "[ " lang " ]*"))
 
 (defun org-src--edit-buffer (beg end)

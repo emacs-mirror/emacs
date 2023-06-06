@@ -201,13 +201,6 @@ Setting a lower number makes the trackpad more sensitive, and a higher
 number makes the trackpad less sensitive.
 @end table
 
-@subsection Font Panel
-
-@findex ns-popup-font-panel
-The standard Mac / GNUstep font panel is accessible with @kbd{M-x
-ns-popup-font-panel} and will set the default font in the frame most
-recently used or clicked on.
-
 @c  To make the setting permanent, use @samp{Save Options} in the
 @c Options menu, or run @code{menu-bar-options-save}.
 

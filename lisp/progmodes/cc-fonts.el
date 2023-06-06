@@ -1388,7 +1388,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				  (memq type '(c-decl-arg-start
 					       c-decl-type-start))))))))
 		      ((and (zerop (c-backward-token-2))
-			    (looking-at c-fun-name-substitute-key)))))))))
+			    (looking-at c-fun-name-substitute-key)
+			    (not (eq (char-after (match-end 0)) ?_))))))))))
       ;; Cache the result of this test for next time around.
       (c-put-char-property (1- match-pos) 'c-type 'c-decl-arg-start)
       (cons 'decl nil))
@@ -2678,9 +2679,7 @@ need for `c-font-lock-extra-types'.")
 			   'same)
 		       (looking-at c-colon-type-list-re)))
 		;; Inherited protected member: leave unfontified
-		)
-	       (t (goto-char pos)
-		  (c-font-lock-declarators limit nil c-label-face-name nil)))
+		))
 	      (eq (char-after) ?,)))
 	(forward-char)))		; over the comma.
     nil))

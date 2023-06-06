@@ -2406,7 +2406,7 @@ a GDB/MI reply message."
     ("+" . ())
     ("=" . (("thread-created" . (gdb-thread-created . atomic))
             ("thread-selected" . (gdb-thread-selected . atomic))
-            ("thread-existed" . (gdb-ignored-notification . atomic))
+            ("thread-exited" . (gdb-thread-exited . atomic))
             ('default . (gdb-ignored-notification . atomic)))))
   "Alist of alists, mapping the type and class of message to a handler function.
 Handler functions are all flagged as either `progressive' or `atomic'.
@@ -3244,7 +3244,8 @@ Place breakpoint icon in its buffer."
       (if (re-search-forward gdb-source-file-regexp nil t)
           (progn
             (setq source-file (gdb-mi--c-string-from-string (match-string 1)))
-            (delete (cons bptno "File not found") gdb-location-alist)
+            (setq gdb-location-alist
+                  (delete (cons bptno "File not found") gdb-location-alist))
             (push (cons bptno source-file) gdb-location-alist))
         (gdb-resync)
         (unless (assoc bptno gdb-location-alist)

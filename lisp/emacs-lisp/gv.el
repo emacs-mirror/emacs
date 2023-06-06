@@ -271,7 +271,7 @@ instead the assignment is turned into something equivalent to
     (SETTER ARGS... temp)
     temp)
 so as to preserve the semantics of `setf'."
-  (declare (debug (sexp (&or symbolp lambda-expr) &optional sexp)))
+  (declare (debug (sexp [&or symbolp lambda-expr] &optional sexp)))
   (when (eq 'lambda (car-safe setter))
     (message "Use `gv-define-setter' or name %s's setter function" name))
   `(gv-define-setter ,name (val &rest args)
@@ -638,6 +638,13 @@ REF must have been previously obtained with `gv-ref'."
 ;;        ,@body)))
 
 ;;; Generalized variables.
+
+;; You'd think noone would write `(setf (error ...) ..)' but it
+;; appears naturally as the result of macroexpansion of things like
+;; (setf (pcase-exhaustive ...)).
+;; We could generalize this to `throw' and `signal', but it seems
+;; preferable to wait until there's a concrete need.
+(gv-define-expander error (lambda (_do &rest args) `(error . ,args)))
 
 ;; Some Emacs-related place types.
 (gv-define-simple-setter buffer-file-name set-visited-file-name t)

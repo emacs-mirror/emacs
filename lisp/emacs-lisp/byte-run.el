@@ -145,6 +145,11 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
       (list 'function-put (list 'quote f)
             ''side-effect-free (list 'quote val))))
 
+(defalias 'byte-run--set-important-return-value
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''important-return-value (list 'quote val))))
+
 (put 'compiler-macro 'edebug-declaration-spec
      '(&or symbolp ("lambda" &define lambda-list lambda-doc def-body)))
 
@@ -226,6 +231,8 @@ This may shift errors from run-time to compile-time.")
    (list 'side-effect-free #'byte-run--set-side-effect-free
          "If non-nil, calls can be ignored if their value is unused.
 If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
+   (list 'important-return-value #'byte-run--set-important-return-value
+         "If non-nil, warn about calls not using the returned value.")
    (list 'compiler-macro #'byte-run--set-compiler-macro)
    (list 'doc-string #'byte-run--set-doc-string)
    (list 'indent #'byte-run--set-indent)
@@ -650,11 +657,8 @@ in `byte-compile-warning-types'; see the variable
 `byte-compile-warnings' for a fuller explanation of the warning
 types.  The types that can be suppressed with this macro are
 `free-vars', `callargs', `redefine', `obsolete',
-`interactive-only', `lexical', `mapcar', `constants',
-`suspicious' and `empty-body'.
-
-For the `mapcar' case, only the `mapcar' function can be used in
-the symbol list."
+`interactive-only', `lexical', `ignored-return-value', `constants',
+`suspicious', `empty-body' and `mutate-constant'."
   ;; Note: during compilation, this definition is overridden by the one in
   ;; byte-compile-initial-macro-environment.
   (declare (debug (sexp body)) (indent 1))

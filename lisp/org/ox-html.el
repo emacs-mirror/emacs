@@ -2969,7 +2969,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 	 ((string= "listings" value) (org-html-list-of-listings info))
 	 ((string= "tables" value) (org-html-list-of-tables info))))))))
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 (defun org-html-format-latex (latex-frag processing-type info)
   "Format a LaTeX fragment LATEX-FRAG into HTML.
@@ -3086,7 +3086,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 	     info caption label)))))
      (t (org-html--wrap-latex-environment latex-frag info caption label)))))
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 (defun org-html-latex-fragment (latex-fragment _contents info)
   "Transcode a LATEX-FRAGMENT object from Org to HTML.

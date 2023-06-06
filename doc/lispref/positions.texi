@@ -1188,6 +1188,7 @@ saved bounds.  In that case it is equivalent to
 @end example
 
 @cindex labeled narrowing
+@cindex labeled restriction
 When the optional argument @var{label}, a symbol, is present, the
 narrowing is @dfn{labeled}.  A labeled narrowing differs from a
 non-labeled one in several ways:

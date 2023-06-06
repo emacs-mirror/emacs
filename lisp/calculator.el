@@ -1349,8 +1349,9 @@ Optional string argument KEYS will force using it as the keys entered."
   (calculator-update-display t))
 
 (defun calculator-saved-move (n)
-  "Go N elements up the list of saved values."
-  (interactive)
+  "Go N elements up the list of saved values.
+Interactively, N is the prefix numeric argument and defaults to 1."
+  (interactive "p")
   (when (and calculator-saved-list
              (or (null calculator-stack) calculator-display-fragile))
     (setq calculator-saved-ptr

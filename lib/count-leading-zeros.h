@@ -19,12 +19,14 @@
 #ifndef COUNT_LEADING_ZEROS_H
 #define COUNT_LEADING_ZEROS_H 1
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <limits.h>
 #include <stdlib.h>
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef COUNT_LEADING_ZEROS_INLINE
 # define COUNT_LEADING_ZEROS_INLINE _GL_INLINE

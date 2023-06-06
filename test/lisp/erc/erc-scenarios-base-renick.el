@@ -303,4 +303,47 @@
       (should-not (search-forward "now known as frenemy" nil t))
       (erc-d-t-search-for 25 "I have lost"))))
 
+;; The server rejects your nick during registration, so ERC acquires a
+;; placeholder and successfully renicks once the connection is up.
+;; See also `erc-scenarios-base-renick-self-auto'.
+
+(ert-deftest erc-scenarios-base-renick-auto-regain ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-server-flood-penalty 0.1)
+       (erc-scenarios-common-dialog "base/renick/regain")
+       (dumb-server (erc-d-run "localhost" t 'normal 'normal-again))
+       (port (process-contact dumb-server :service))
+       (erc-server-auto-reconnect t)
+       (erc-modules (cons 'sasl erc-modules))
+       (erc-nickname-in-use-functions '(erc-regain-nick-on-connect))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Session succeeds but cut short")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :user "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (funcall expect 10 "Last login from")
+        (erc-cmd-JOIN "#test")))
+
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#test"))
+      (funcall expect 10 "was created on"))
+
+    (ert-info ("Service restored")
+      (with-current-buffer "Libera.Chat"
+        (erc-d-t-wait-for 10 erc--server-reconnect-timer)
+        (funcall expect 10 "Connection failed!")
+        (funcall expect 10 "already in use")
+        (funcall expect 10 "changed mode for tester`")
+        (funcall expect 10 "Last login from")
+        (funcall expect 10 "Your new nickname is tester")))
+
+    (with-current-buffer (get-buffer "#test")
+      (funcall expect 10 "tester ")
+      (funcall expect 10 "was created on"))))
+
+
 ;;; erc-scenarios-base-renick.el ends here

@@ -124,7 +124,7 @@
   "Signals an -32603 JSONRPC error."
   (jsonrpc--with-emacsrpc-fixture (conn)
     (condition-case err
-        (progn
+        (let ((jsonrpc-inhibit-debug-on-error t))
           (jsonrpc-request conn '+ ["a" 2])
           (ert-fail "A `jsonrpc-error' should have been signaled!"))
       (jsonrpc-error

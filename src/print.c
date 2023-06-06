@@ -2202,9 +2202,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
   char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
 		max (sizeof " . #" + INT_STRLEN_BOUND (intmax_t),
 		     max ((sizeof " with data 0x"
-			   + (sizeof (uintmax_t) * CHAR_BIT + 4 - 1) / 4),
+			   + (UINTMAX_WIDTH + 4 - 1) / 4),
 			  40)))];
-  current_thread->stack_top = buf;
+  current_thread->stack_top = NEAR_STACK_TOP (buf);
 
  print_obj:
   maybe_quit ();

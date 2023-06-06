@@ -1116,6 +1116,7 @@ nil t t nil nil nil nil nil nil nil t)
  ("'U" ?Ύ)
 
  ("`R" ?Ῥ)
+ ("(R" ?Ῥ)
 
  ("+`" ?῭) ; #x1fed
  ("+'" ?΅) ; #x1fee

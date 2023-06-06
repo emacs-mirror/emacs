@@ -46,8 +46,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   dnl First, check for some issues that only occur when combining multiple
   dnl gcc warning categories.
   AC_REQUIRE([AC_PROG_CC])
-  if test -n "$GCC"; then
-
+  AS_IF([test -n "$GCC"], [
     dnl Check if -Wextra -Werror -Wno-missing-field-initializers is supported
     dnl with the current $CC $CFLAGS $CPPFLAGS.
     AC_CACHE_CHECK([whether -Wno-missing-field-initializers is supported],
@@ -61,7 +60,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
        CFLAGS="$gl_save_CFLAGS"
       ])
 
-    if test "$gl_cv_cc_nomfi_supported" = yes; then
+    AS_IF([test "$gl_cv_cc_nomfi_supported" = yes], [
       dnl Now check whether -Wno-missing-field-initializers is needed
       dnl for the { 0, } construct.
       AC_CACHE_CHECK([whether -Wno-missing-field-initializers is needed],
@@ -82,7 +81,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
            [gl_cv_cc_nomfi_needed=yes])
          CFLAGS="$gl_save_CFLAGS"
         ])
-    fi
+    ])
 
     dnl Next, check if -Werror -Wuninitialized is useful with the
     dnl user's choice of $CFLAGS; some versions of gcc warn that it
@@ -97,8 +96,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
          [gl_cv_cc_uninitialized_supported=no])
        CFLAGS="$gl_save_CFLAGS"
       ])
-
-  fi
+  ])
 
   # List all gcc warning categories.
   # To compare this list to your installed GCC's, run this Bash command:
@@ -109,7 +107,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   #  <(LC_ALL=C gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort)
 
   $1=
-  for gl_manywarn_item in -fanalyzer -fno-common \
+  for gl_manywarn_item in -fanalyzer -fstrict-flex-arrays \
     -Wall \
     -Warith-conversion \
     -Wbad-function-cast \
@@ -137,6 +135,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
     -Wpointer-arith \
     -Wshadow \
     -Wstack-protector \
+    -Wstrict-flex-arrays \
     -Wstrict-overflow \
     -Wstrict-prototypes \
     -Wsuggest-attribute=cold \
@@ -178,12 +177,17 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   gl_AS_VAR_APPEND([$1], [' -Wvla-larger-than=4031'])
 
   # These are needed for older GCC versions.
-  if test -n "$GCC"; then
-    case `($CC --version) 2>/dev/null` in
+  if test -n "$GCC" && gl_gcc_version=`($CC --version) 2>/dev/null`; then
+    case $gl_gcc_version in
       'gcc (GCC) '[[0-3]].* | \
       'gcc (GCC) '4.[[0-7]].*)
         gl_AS_VAR_APPEND([$1], [' -fdiagnostics-show-option'])
         gl_AS_VAR_APPEND([$1], [' -funit-at-a-time'])
+          ;;
+    esac
+    case $gl_gcc_version in
+      'gcc (GCC) '[[0-9]].*)
+        gl_AS_VAR_APPEND([$1], [' -fno-common'])
           ;;
     esac
   fi

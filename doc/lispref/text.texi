@@ -3765,18 +3765,19 @@ Consecutive characters with the same @code{field} property constitute a
 @item cursor
 @kindex cursor @r{(text property)}
 Normally, the cursor is displayed at the beginning or the end of any
-overlay and text property strings present at the current buffer
-position.  You can instead tell Emacs to place the cursor on any
-desired character of these strings by giving that character a
-non-@code{nil} @code{cursor} text property.  In addition, if the value
-of the @code{cursor} property is an integer, it specifies the number
-of buffer's character positions, starting with the position where the
-overlay or the @code{display} property begins, for which the cursor
-should be displayed on that character.  Specifically, if the value of
-the @code{cursor} property of a character is the number @var{n}, the
-cursor will be displayed on this character for any buffer position in
-the range @code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos}
-is the overlay's starting position given by @code{overlay-start}
+overlay and text property strings that ``hide'' (i.e., are displayed
+instead of) the current buffer position.  You can instead tell Emacs
+to place the cursor on any desired character of these strings by
+giving that character a non-@code{nil} @code{cursor} text property.
+In addition, if the value of the @code{cursor} property is an integer,
+it specifies the number of buffer's character positions, starting with
+the position where the overlay or the @code{display} property begins,
+for which the cursor should be displayed on that character.
+Specifically, if the value of the @code{cursor} property of a
+character is the number @var{n}, the cursor will be displayed on this
+character for any buffer position in the range
+@code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos} is the
+overlay's starting position given by @code{overlay-start}
 (@pxref{Managing Overlays}), or the position where the @code{display}
 text property begins in the buffer.
 
@@ -5509,7 +5510,7 @@ contents of an SQLite database.
 @section Parsing HTML and XML
 @cindex parsing html
 
-  Emacs can be compiled with built-in libxml2 support.
+  Emacs can be compiled with built-in @file{libxml2} support.
 
 @defun libxml-available-p
 This function returns non-@code{nil} if built-in libxml2 support is
@@ -5528,8 +5529,10 @@ mistakes.
 If @var{start} or @var{end} are @code{nil}, they default to the values
 from @code{point-min} and @code{point-max}, respectively.
 
-The optional argument @var{base-url}, if non-@code{nil}, should be a
-string specifying the base URL for relative URLs occurring in links.
+The optional argument @var{base-url}, if non-@code{nil}, should be
+used for warnings and errors reported by the @file{libxml2} library,
+but Emacs currently calls the library with errors and warnings
+disabled, so this argument is not used.
 
 If the optional argument @var{discard-comments} is non-@code{nil},
 any top-level comment is discarded.  (This argument is obsolete and

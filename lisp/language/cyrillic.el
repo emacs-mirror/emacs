@@ -256,6 +256,16 @@ Support for Russian using koi8-r and the russian-computer input method.")
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
  '("Cyrillic"))
 
+;; The Mongolian-traditional language environment is in misc-lang.el.
+(set-language-info-alist
+ "Mongolian-cyrillic" '((coding-system utf-8)
+	                (coding-priority utf-8)
+	                (input-method . "cyrillic-mongolian")
+		        (sample-text . "Mongolian (монгол хэл)	Сайн байна уу?")
+	                (documentation
+		         . "Support for Mongolian language with Cyrillic alphabet."))
+ '("Cyrillic"))
+
 (provide 'cyrillic)
 
 ;;; cyrillic.el ends here

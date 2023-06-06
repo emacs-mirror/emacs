@@ -1,0 +1,602 @@
+Eglot NEWS                                                     -*- outline -*-
+
+Copyright (C) 2018-2023 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Please send Eglot bug reports to 'bug-gnu-emacs@gnu.org', and Cc (or
+X-Debbugs-CC) the maintainer 'joaotavora@gmail.com' as well.  Please
+read the chapter titled "Troubleshooting" in the Eglot manual,
+available https://joaotavora.github.io/eglot/#Troubleshooting-Eglot
+
+This file is about changes in Eglot, the Emacs client for LSP
+(Language Server Protocol) distributed with GNU Emacs since Emacs
+version 29.1 and with GNU ELPA since 2018.
+
+Note: references to some Eglot issues are presented as "github#nnnn".
+This refers to https://github.com/joaotavora/eglot/issues/.  That is,
+to look up issue github#1234, go to
+https://github.com/joaotavora/eglot/issues/1234.
+
+
+* Changes in Eglot 1.15 (29/4/2023)
+
+** Fix LSP "languageId" detection
+
+Many servers today support multiple languages, meaning they can handle
+more than one file type in the same connection.  This relies on the
+client supplying a ':languageId' string.  Previously, Eglot calculated
+this string based on an imperfect heuristic and was often wrong.  See
+github#1206.
+
+** Fix problems with missing signature documentation (bug#62687)
+
+** Reworked 'eglot-imenu'
+
+Eglot's Imenu backend (used for M-x imenu among other extensions), has
+been reworked.  Most newer servers respond to
+'textDocument/documentSymbol' with a vector of 'DocumentSymbol', not
+'SymbolInformation'.  It's not worth it trying to make the two formats
+resemble each other.  This also lays groundwork supporting a
+forthcoming "breadcrumb" feature of bug#58431.
+
+** New command 'eglot-update'
+
+This allows users to easily update to the latest version of Eglot.
+
+
+* Changes in Eglot 1.14 (3/4/2023)
+
+** Faster, more responsive completion
+
+Eglot takes advantage of LSP's "isIncomplete" flag in responses to
+completion requests to drive new completion-caching mechanism for the
+duration of each completion session.  Once a full set of completions
+is obtained for a given position, the server needn't be contacted in
+many scenarios, resulting in significantly less communication
+overhead.  This works with the popular Company package and stock
+completion-at-point interfaces.
+
+A variable 'eglot-cache-session-completions', t by default, controls
+this.  The mechanism was tested with ccls, jdtls, pylsp, golsp and
+clangd.  Notably, the C/C++ language server Clangd version 15 has a
+bug in its "isIcomplete" flag (it is fixed in later versions).  If you
+run into problems, disable this mechanism like so:
+
+(add-hook 'c-common-mode-hook
+   (lambda () (setq-local eglot-cache-session-completions nil)))
+
+** At-point documentation less obtrusive in echo area
+
+Eglot takes advantage of new features of ElDoc to separate short
+documentation strings from large ones, sending the former to be shown in
+the ElDoc's echo area and the latter to be shown in other outlets,
+such as the *eldoc* buffer obtainable with 'C-h .'.
+
+** New variable 'eglot-prefer-plaintext'
+
+Customize this to t to opt-in to docstrings in plain text instead of
+Markdown.
+
+(bug#61373)
+
+** Progress indicators inhabit the mode-line by default
+
+To switch to the echo area, customize 'eglot-report-progress' to
+'messages'.  To switch off progress reporting completely, set to nil.
+
+** Snippet support is easier to enable
+
+The user needn't manually activate 'yas-minor-mode' or
+'yas-global-mode'.  If YASnippet is installed and the server supports
+snippets, it is used automatically, unless the symbol 'yasnippet' has
+been added to 'eglot-stay-out-of'.
+
+
+* Changes in Eglot 1.13 (15/03/2023)
+
+** ELPA installations on Emacs 26.3 are supported again.
+
+
+* Changes in Eglot 1.12.29 (Eglot bundled with Emacs 29.1)
+
+** Eglot has a new command to upgrade to the latest version.
+
+The new command 'eglot-upgrade-eglot' allows easily grabbing the
+latest version of Eglot from ELPA.  This might be more convenient than
+using the more general command 'package-install', which by default
+will not upgrade "built-in" packages, those that come with Emacs.
+
+
+* Changes in Eglot 1.12 (13/03/2023)
+
+** LSP inlay hints are now supported.
+Inlay hints are small text annotations not unlike diagnostics, but
+designed to help readability instead of indicating problems.  For
+example, a C++ LSP server can serve hints about positional parameter
+names in function calls and a variable's automatically deduced type.
+Emacs can display these hints using overlays, helping the user
+remember those types and parameter names.
+
+** Longstanding Tramp instability issues solved.
+The solution involves a Tramp-specific workaround in Eglot.  Future
+Tramp versions will have this problem solved at the origin.  The
+workaround will then be removed.  Emacs bug#61350 has more details.
+
+(github#859, github#1020, github#883)
+
+** LSP's 'positionEncoding' capability is now supported.
+The position-encoding scheme (UTF-8, UTF-16 or UTF-32) can now
+be negotiated with the server.
+
+** More of the user's Eldoc configuration is respected.
+This change addresses the problems reported in many Eglot reports
+dating back to early 2021 at least.
+
+(github#646, github#894, github#920, github#1031, github#1171).
+
+This is unfinished work, as 'eldoc-documentation-strategy' is still
+set by Eglot during its tenure over a buffer.  The default value for
+it cannot work reasonably with Eglot's additions to
+'eldoc-documentation-functions'.
+
+** Completion labels are correctly displayed in servers like clangd.
+
+(github#1141)
+
+** Assorted bugfixes.
+
+(bug#61312, bug#61478, bug#61532, bug#61726, bug#61866, bug#61748)
+
+
+* Changes in Eglot 1.11 (27/1/2023)
+
+** New server vscode-json-languageserver added to 'eglot-server-programs'.
+
+(bug#60198)
+
+** Assorted bugfixes.
+
+(bug#60379, bug#60557, (bug#61048)
+
+
+* Changes in Eglot 1.10 (16/12/2022)
+
+** Emacs progress reporters are used for LSP progress notifications.
+(bug#59149)
+
+** LSP reported URIs other than file:// are passed on to Emacs.
+This change allows other URI handlers, such as a 'jar:' handling
+package, to cooperate with Eglot and find files inside compressed file
+systems (bug#58790).
+
+** Eglot now shows in the menu bar.
+
+** Tree-sitter modes added to 'eglot-server-programs'.
+These modes are usually handled by the same server that handles the
+"classical mode".
+
+** New servers csharp-ls and texlab added to 'eglot-server-programs'.
+
+** Assorted bugfixes.
+(bug#59824, bug#59338)
+
+
+* Changes in Eglot 1.9 (8/10/2022)
+
+This is the last release before integration into Emacs's core.
+
+** New 'M-x eglot-list-connections' command.
+Probably not very useful for now.  More keybindings and clickable
+shortcuts to connection-specific commands to be added later.
+
+** Manual temporarily lives in separate MANUAL.md file.
+The manual has been rewritten mostly from scratch.  It is structured
+hierarchically and is more complete.  After the merge into Emacs, the
+Eglot Texinfo manual bundled with Emacs used this temporary manual as
+a starting point.
+
+** Support for "single server, multiple modes".
+Previously, if an entry such as '((c++-mode c-mode) . ("clangd)")' was
+found in 'eglot-server-programs', it meant that '.cpp' files '.c'
+files would lead to two 'clangd' instances for managing them, even if
+these files were in the same project.  Now only one is created.  It is
+assumed that most, if not all, servers configured in
+'eglot-server-programs' handle this correctly.
+
+(github#681)
+
+** 'eglot-imenu' no longer uses problematic "special elements".
+Though Eglot's 'eglot-imenu' returned a fully compliant 'imenu'
+structure, that object was not understood by many other frontends
+other than 'M-x imenu' itself.  Since the special functionality it
+enabled wasn't being used anyway, it was decided to remove it to fix
+these longstanding problems.
+
+(github#758, github#536, github#535)
+
+** 'eglot-workspace-configuration' has been overhauled.
+This variable and its uses are now more thoroughly documented.  It can
+be set to a function for dynamic calculation of the configuration.
+The preferred format is a plist, though the earlier alist format is
+still supported.
+
+(github#967, github#590, github#790)
+
+** 'C-u M-.' lists and completes arbitrary workspace symbols.
+A very old request, now made possible by a relatively recent change to
+the 'workspace/symbol' RPC method.
+
+(github#131)
+
+** Reworked mode-line menus.
+New menus help discover Eglot's features and show which of them are
+supported by the current server.  Menus can be customized away via
+'eglot-menu-string', making space in mode-line.
+
+(github#792)
+
+** Easier to use LSP 'initialize.initializationOptions'.
+In 'eglot-server-programs' a plist may be appended to the usual list
+of strings passed as command line arguments.  The value of its
+':initializationOptions' key constructs the corresponding LSP JSON
+object.  This may be easier than creating a 'defclass' for a specific
+server and specializing 'eglot-initialization-options' to that class.
+
+(github#901, github#845, github#940)
+
+** LSP on-type formatting is now supported.
+This is the 'documentOnTypeFormattingProvider' LSP capability, which
+may be disabled via 'eglot-ignored-server-capabilities'
+
+(github#899)
+
+** Basic LSP "workspace folders" support added.
+Eglot now advertises 'project-root' and 'project-external-roots' as
+workspace-folders.  (Configuring 'project-vc-external-roots-function'
+via Elisp or 'tags-table-list' via Customize are two ways to set the
+external roots of a simple git project.)
+
+(github#893)
+
+** Eglot can now show project wide diagnostics via Flymake.
+Some LSP servers report diagnostics for all files in the current
+workspace.  Flymake has (as of version 1.2.1) the option to show
+diagnostics from buffers other than the currently visited one.  The
+command 'M-x flymake-show-project-diagnostics' will now show all the
+diagnostics relevant to a workspace.
+
+(github#810)
+
+** Support LSP completion tags.
+An LSP completion tag can be used to tell the editor how to render a
+completion.  Presently, one kind of tag exists, denoting its
+corresponding completion as obsolete.
+
+(github#797)
+
+** Support LSP optional diagnostic tags.
+A diagnostic tag can indicate either "unused or unnecessary code" or
+"deprecated or obsolete code".  Following the rendering suggestions in
+the protocol, we fade out unnecessary code and strike-through
+deprecated code.
+
+(github#794)
+
+** The Rust language server is now rust-analyzer by default.
+Eglot will now prefer starting "rust-analyzer" to "rls" when it is
+available.  The special support code for RLS has been removed.
+
+(github#803)
+
+** New servers have been added to 'eglot-server-programs'.
+- clojure-lsp (github#813)
+- racket-langserver (github#694)
+- futhark lsp (github#922)
+- purescript-language-server (github#905)
+- Perl::LanguageServer (github#952)
+- marksman (github#1013)
+- jedi-language-server ([#994](github#994))
+
+
+* Changes in Eglot 1.8 (12/1/2022)
+
+** Alternate servers supported out-of-box for the same major mode.
+In practice, this removes the need for Eglot to "officially" bless one
+server over another.
+
+Do not confuse this feature with another missing feature which
+consists of supporting multiple servers simultaneously managing a
+major mode within a project.
+
+(github#688)
+
+** TRAMP support added.
+There are no variables to customize: visit a remote file, ensure the
+server also exists in the remote, and type "M-x eglot".
+
+(github#637, github#463, github#84)
+
+** 'eglot-ignored-server-capabilities' is now correctly spelled.
+This user-visible variable used to be spelled
+'eglot-ignored-server-capabilites', which is still a valid but
+obsolete name.
+
+(github#724)
+
+** Eglot can manage cross-referenced files outside project.
+This is activated by a new customization option
+'eglot-extend-to-xref', which defaults to nil.
+
+(github#76, github#686, github#695)
+
+** Code action shortcuts can be added by the user.
+'M-x eglot-code-actions' accepts an optional 'action-kind' argument,
+specified interactively with 'C-u'.  Other shortcuts call specific
+actions directly ('eglot-code-action-inline',
+'eglot-code-action-extract', 'eglot-code-action-rewrite',
+'eglot-code-action-organize-imports' and
+'eglot-code-action-quickfix').  One can create one's own shortcuts for
+code actions with specific a kind by calling 'eglot-code-actions' from
+Lisp.
+
+(github#411)
+
+** New command 'eglot-shutdown-all added.
+This disconnects all the Eglot connections in the user's session.
+
+(github#643)
+
+** New variable 'eglot-withhold-process-id' added.
+If non-nil, Eglot will not send the Emacs process ID to the language
+server.  This can be useful when using docker to run a language
+server.
+
+(github#722)
+
+** Several new servers have been added to 'eglot-server-programs'.
+- cmake-language-server (github#787)
+- css-languageserver (github#204, github#769)
+- fortls (github#603)
+- html-languageserver (github#204, github#769)
+- json-languageserver (github#204, github#769)
+- lua-lsp (github#721)
+- mint ls (github#750)
+- pyright (github#742)
+- vim-language-server (github#787)
+- yaml-language-server (github#751)
+- zls (github#646)
+
+
+* Changes in Eglot 1.7 (16/12/2020)
+
+** Hierarchical symbols are supported in Imenu.
+(github#303).
+
+** Multiple "documentation at point" sources are supported.
+Such sources include as LSP's signature, hover and also the Flymake
+diagnostic messages.  They can all be presented in the echo area
+(space permitting), or via 'C-h .'.  For now, composition of different
+sources can be customized using 'eldoc-documentation-strategy',
+'eldoc-echo-area-use-multiline-p' and 'eldoc-prefer-doc-buffer'.
+
+The variables 'eglot-put-doc-in-help-buffer' and
+'eglot-auto-display-help-buffer' have been removed.
+
+(github#439, github#494, github#481, github#454)
+
+
+* Changes in Eglot 1.6 (16/04/2020)
+
+** Column offset calculation is now LSP-conformant.
+It seems the majority of servers now comply with the language server
+specification when it comes to handling non-ASCII texts.  Therefore
+the default values of 'eglot-move-to-column-function' and
+'eglot-current-column-function' have been changed.  Consult the
+documentation of these variables for how to restore the old behavior.
+
+(github#361)
+
+** LSP workspace/configuration requests are supported.
+Also a new section "Per-project server configuration" in the README.md
+should answer some FAQ's in this regard.
+
+(github#326)
+
+
+* Changes in Eglot 1.5 (20/10/2019)
+
+** Eglot takes over Company configuration.
+Similar to what was already the case with Flymake, Eldoc and Xref, use
+just the backend that can do something useful in Eglot,
+'company-capf'.  See 'eglot-stay-out-of' to opt out of this.
+
+(github#324)
+
+** New option 'eglot-autoshutdown' added.
+This disconnects the server after last managed buffer is killed.
+
+(github#217, github#270)
+
+** Completion support has been fixed.
+Among other things, consider LSP's "filterText" cookies, which enable
+a kind of poor-man's flex-matching for some backends.
+
+(github#235, github#313, github#311, github#279)
+
+** Supports LSP's "goto declaration/implementation/typeDefinition".
+
+(github#302)
+
+** New option 'eglot-send-changes-idle-time' added.
+
+(github#258)
+
+** Eglot's Eldoc no longer flickers when moving around.
+
+(github#198)
+
+** Large docs shown in help buffer instead of echo area by default.
+Also add two new customization variables
+'eglot-put-doc-in-help-buffer' and 'eglot-auto-display-help-buffer'.
+
+(github#198)
+
+** Built-in support for Go, Elixir and Ada added.
+
+(github#304, github#264, github#316)
+
+
+* Changes in Eglot 1.4 (5/1/2019)
+
+** Parameter highlighting in the first line of signature corrected.
+
+** Markdown documentation strings are rendered with faces.
+Eglot uses 'gfm-view-mode' for this.
+
+** Hard dependencies on Flymake have been removed.
+The user can turn Flymake off now in buffers managed by Eglot.
+
+** Connection hooks are run with proper directory local variables.
+This fixes issues with suspiciously empty 'didChangeConfiguration'
+messages that are supposed to communicate parameters from a
+directory-set 'eglot-workspace-configuration'.
+
+(github#196)
+
+** Completion sorting has been fixed.
+If the server returns completions in some sensible order, Eglot will
+keep it.
+
+(github#190)
+
+** Flymake and Eldoc taken over completely while managing buffers.
+No longer try to add Eglot's facilities to existing facilities in
+these two domains.
+
+
+* Changes in Eglot 1.3 (10/12/2018)
+
+** Provide strict checking of incoming LSP messages.
+
+(github#144, github#156)
+
+** Add brief context after 'xref-find-references' when available.
+
+(github#52)
+
+** Support 'completionContext' to help servers like 'ccls'.
+
+** Use Flymake from GNU ELPA.
+
+(github#178)
+
+
+* Changes in Eglot 1.2 (23/11/2018)
+
+** Support snippet completions.
+Eglot uses 'yasnippet.el' for this, if it is installed.
+
+(github#50)
+
+** 'workspace/didChangeConfiguration' implemented.
+
+(github#29)
+
+** Handle experimental/unknown server methods gracefully.
+
+(github#39)
+
+** Accept functions as entries in 'eglot-server-programs'.
+'CONTACT' in the '(MAJOR-MODE . CONTACT)' association in
+'eglot-server-programs' can now be a function of no arguments
+producing any value previously valid for a contact.  Functions can be
+interactive or non-interactive.
+
+(github#63)
+
+** Improve completion to be snappier and don't hinder typing.
+
+(github#61)
+
+** Consider ':triggerCharacters' in company completion.
+
+(github#80)
+
+** Add support for LSP 'TextEdit' objects in completion.
+
+** Prefer ccls over cquery for C/C++
+
+(github#94)
+
+** 'eglot-ignored-server-capabilites' is more user-friendly.
+
+(github#126)
+
+** Supports asynchronous connections.
+If a connection to the server is taking too long, is will continue in
+the background.  A new defcustom 'eglot-sync-connect' controls this
+feature.
+
+(github#68)
+
+** The 'eglot-shutdown' command prompts for the server to shutdown.
+
+(github#73)
+
+** Add support for the Eclipse JDT language server.
+
+(github#63)
+
+** Add out-of-the-box support for Haskell, Kotlin, Go, Ocaml, R.
+
+** Add the ability to move to LSP-precise columns.
+Some servers like 'clangd' follow the UTF-16-based spec very closely
+here.
+
+(github#124)
+
+** Fix a potential security issue fontifying LSP doc.
+
+(github#154)
+
+** Fix many, many bugs
+
+(github#44, github#48, github#54, github#58, github#64, github#74,
+ github#81, github#82, github#86, github#87, github#83, github#93,
+ github#100, github#115, github#120, github#121, github#126,
+ github#138, github#144, github#158, github#160, github#167)
+
+
+* Changes in Eglot 1.1 (9/7/2018)
+
+** Implement TCP autostart/autoconnect (and support Ruby's Solargraph).
+The ':autoport' symbol in the server invocation is replaced
+dynamically by a local port believed to be vacant, so that the ensuing
+TCP connection finds a listening server.
+
+** Eglot now depends on Emacs library 'jsonrpc.el'.
+
+
+----------------------------------------------------------------------
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+Local Variables:
+bug-reference-bug-regexp: "\\(\\(github\\|bug\\)#\\([0-9]+\\)\\)"
+bug-reference-url-format: eglot--debbugs-or-github-bug-uri
+paragraph-separate: "[	 ]"
+End:
+

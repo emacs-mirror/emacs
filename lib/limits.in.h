@@ -99,6 +99,11 @@
 # endif
 #endif
 
+/* Assume no multibyte character is longer than 16 bytes.  */
+#ifndef MB_LEN_MAX
+# define MB_LEN_MAX 16
+#endif
+
 /* Macros specified by C23 and by ISO/IEC TS 18661-1:2014.  */
 
 #if (! defined ULLONG_WIDTH                                             \

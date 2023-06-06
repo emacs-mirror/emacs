@@ -695,6 +695,16 @@ with L, LRE, or LRO Unicode bidi character type.")
     (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
 
+  ;; Traditional Mongolian
+  (setq c #x1800)
+  (while (<= c #x180A)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (setq c #x11660)
+  (while (<= c #x1166C)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+
   ;; Coptic
   ;; There's no Coptic category.  However, Coptic letters that are
   ;; part of the Greek block above get the Greek category, and those

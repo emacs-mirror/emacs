@@ -28,6 +28,9 @@
 ;;; Code:
 
 (require 'esh-util)
+(require 'esh-module)
+
+(require 'pcomplete)
 
 (eval-when-compile
   (require 'cl-lib))
@@ -175,7 +178,11 @@ treated as a literal character."
   "Initialize the argument parsing code."
   (eshell-arg-mode)
   (setq-local eshell-inside-quote-regexp nil)
-  (setq-local eshell-outside-quote-regexp nil))
+  (setq-local eshell-outside-quote-regexp nil)
+
+  (when (eshell-using-module 'eshell-cmpl)
+    (add-hook 'pcomplete-try-first-hook
+              #'eshell-complete-special-reference nil t)))
 
 (defun eshell-insert-buffer-name (buffer-name)
   "Insert BUFFER-NAME into the current buffer at point."
@@ -506,21 +513,28 @@ If the form has no `type', the syntax is parsed as if `type' were
 \"buffer\"."
   (when (and (not eshell-current-argument)
              (not eshell-current-quoted)
-             (looking-at "#<\\(\\(buffer\\|process\\)\\s-\\)?"))
+             (looking-at (rx "#<" (? (group (or "buffer" "process"))
+                                     space))))
     (let ((here (point)))
       (goto-char (match-end 0)) ;; Go to the end of the match.
-      (let ((buffer-p (if (match-string 1)
-                          (string= (match-string 2) "buffer")
-                        t)) ;; buffer-p is non-nil by default.
+      (let ((buffer-p (if (match-beginning 1)
+                          (equal (match-string 1) "buffer")
+                        t)) ; With no type keyword, assume we want a buffer.
             (end (eshell-find-delimiter ?\< ?\>)))
         (when (not end)
+          (when (match-beginning 1)
+            (goto-char (match-beginning 1)))
           (throw 'eshell-incomplete "#<"))
         (if (eshell-arg-delimiter (1+ end))
             (prog1
-                (list (if buffer-p 'get-buffer-create 'get-process)
-                      (replace-regexp-in-string
-                       (rx "\\" (group (or "\\" "<" ">"))) "\\1"
-                       (buffer-substring-no-properties (point) end)))
+                (list (if buffer-p #'get-buffer-create #'get-process)
+                      ;; FIXME: We should probably parse this as a
+                      ;; real Eshell argument so that we get the
+                      ;; benefits of quoting, variable-expansion, etc.
+                      (string-trim-right
+                       (replace-regexp-in-string
+                        (rx "\\" (group anychar)) "\\1"
+                        (buffer-substring-no-properties (point) end))))
               (goto-char (1+ end)))
           (ignore (goto-char here)))))))
 
@@ -573,6 +587,42 @@ If no argument requested a splice, return nil."
                   args)))
     (when splicep
       grouped-args)))
+
+;;;_* Special ref completion
+
+(defun eshell-complete-special-reference ()
+  "If there is a special reference, complete it."
+  (let ((arg (pcomplete-actual-arg)))
+    (when (string-match
+           (rx string-start
+               "#<" (? (group (or "buffer" "process")) space)
+               (group (* anychar))
+               string-end)
+           arg)
+      (let ((all-results (if (equal (match-string 1 arg) "process")
+                             (mapcar #'process-name (process-list))
+                           (mapcar #'buffer-name (buffer-list))))
+            (saw-type (match-beginning 1)))
+        (unless saw-type
+          ;; Include the special reference types as completion options.
+          (setq all-results (append '("buffer" "process") all-results)))
+        (setq pcomplete-stub (replace-regexp-in-string
+                              (rx "\\" (group anychar)) "\\1"
+                              (substring arg (match-beginning 2))))
+        ;; When finished with completion, add a trailing ">" (unless
+        ;; we just completed the initial "buffer" or "process"
+        ;; keyword).
+        (add-function
+         :before (var pcomplete-exit-function)
+         (lambda (value status)
+           (when (and (eq status 'finished)
+                      (or saw-type
+                          (not (member value '("buffer" "process")))))
+             (if (looking-at ">")
+                 (goto-char (match-end 0))
+               (insert ">")))))
+        (throw 'pcomplete-completions
+               (all-completions pcomplete-stub all-results))))))
 
 (provide 'esh-arg)
 ;;; esh-arg.el ends here

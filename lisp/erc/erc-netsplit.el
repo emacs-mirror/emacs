@@ -117,7 +117,9 @@ join from that split has been detected or not.")
 		   parsed 'notice (process-buffer proc)
 		   'netjoin-done ?s (car elt))
 		  (setq erc-netsplit-list (delq elt erc-netsplit-list)))
-	      (delete nick elt))
+              ;; Avoid `ignored-return-value' warning for `delete'.
+              (let ((tail (nthcdr 2 elt))) ; (t n1 ... nN)
+                (setcdr tail (delete nick (cdr tail)))))
 	    (setq no-next-hook t))))
     no-next-hook))
 

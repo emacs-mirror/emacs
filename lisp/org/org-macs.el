@@ -36,6 +36,17 @@
 
 ;;; Org version verification.
 
+(defvar org--inhibit-version-check nil
+  "When non-nil, skip the detection of mixed-versions situations.
+For internal use only.  See Emacs bug #62762.
+This variable is only supposed to be changed by Emacs build scripts.
+When nil, Org tries to detect when Org source files were compiled with
+a different version of Org (which tends to lead to incorrect `.elc' files),
+or when the current Emacs session has loaded a mix of files from different
+Org versions (typically the one bundled with Emacs and another one installed
+from GNU ELPA), which can happen if some parts of Org were loaded before
+`load-path' was changed (e.g. before the GNU-ELPA-installed Org is activated
+by `package-activate-all').")
 (defmacro org-assert-version ()
   "Assert compile time and runtime version match."
   ;; We intentionally use a more permissive `org-release' instead of
@@ -45,7 +56,7 @@
   ;; `org-assert-version' calls would fail using strict
   ;; `org-git-version' check because the generated Org version strings
   ;; will not match.
-  `(unless (equal (org-release) ,(org-release))
+  `(unless (or org--inhibit-version-check (equal (org-release) ,(org-release)))
      (warn "Org version mismatch.  Org loading aborted.
 This warning usually appears when a built-in Org version is loaded
 prior to the more recent Org version.
@@ -1277,7 +1288,7 @@ so values can contain further %-escapes if they are define later in TABLE."
       (setq re (concat "%-?[0-9.]*" (substring (car e) 1)))
       (when (and (cdr e) (string-match re (cdr e)))
         (let ((sref (substring (cdr e) (match-beginning 0) (match-end 0)))
-              (safe "SREF"))
+              (safe (copy-sequence "SREF")))
           (add-text-properties 0 3 (list 'sref sref) safe)
           (setcdr e (replace-match safe t t (cdr e)))))
       (while (string-match re string)

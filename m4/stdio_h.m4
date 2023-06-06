@@ -1,12 +1,22 @@
-# stdio_h.m4 serial 61
+# stdio_h.m4 serial 63
 dnl Copyright (C) 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
-AC_DEFUN_ONCE([gl_STDIO_H],
+AC_DEFUN([gl_STDIO_H_EARLY],
 [
-  AC_REQUIRE([gl_STDIO_H_DEFAULTS])
+  dnl Defining __USE_MINGW_ANSI_STDIO to 1 must be done early, because
+  dnl the results of several configure tests depend on it: The tests
+  dnl   - checking whether snprintf returns a byte count as in C99...
+  dnl   - checking whether snprintf truncates the result as in C99...
+  dnl   - checking whether printf supports the 'F' directive...
+  dnl   - checking whether printf supports the grouping flag...
+  dnl   - checking whether printf supports the zero flag correctly...
+  dnl   - checking whether printf supports infinite 'double' arguments...
+  dnl   - checking whether printf supports large precisions...
+  dnl report 'yes' if __USE_MINGW_ANSI_STDIO is 1 but 'no' if
+  dnl __USE_MINGW_ANSI_STDIO is not set.
   AH_VERBATIM([MINGW_ANSI_STDIO],
 [/* Use GNU style printf and scanf.  */
 #ifndef __USE_MINGW_ANSI_STDIO
@@ -14,6 +24,11 @@ AC_DEFUN_ONCE([gl_STDIO_H],
 #endif
 ])
   AC_DEFINE([__USE_MINGW_ANSI_STDIO])
+])
+
+AC_DEFUN_ONCE([gl_STDIO_H],
+[
+  AC_REQUIRE([gl_STDIO_H_DEFAULTS])
   gl_NEXT_HEADERS([stdio.h])
 
   dnl Determine whether __USE_MINGW_ANSI_STDIO makes printf and
@@ -39,6 +54,9 @@ AC_DEFUN_ONCE([gl_STDIO_H],
       [Define to 1 if printf and friends should be labeled with
        attribute "__gnu_printf__" instead of "__printf__"])
   fi
+
+  dnl For defining _PRINTF_NAN_LEN_MAX.
+  gl_MUSL_LIBC
 
   dnl This ifdef is an optimization, to avoid performing a configure check whose
   dnl result is not used. But it does not make the test of

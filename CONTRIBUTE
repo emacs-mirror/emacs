@@ -110,7 +110,7 @@ admin/notes/bug-triage.
 
 Any change that matters to end-users should have an entry in etc/NEWS.
 Try to start each NEWS entry with a sentence that summarizes the entry
-and takes just one line -- this will allow to read NEWS in Outline
+and takes just one line -- this will allow reading NEWS in Outline
 mode after hiding the body of each entry.
 
 Doc-strings should be updated together with the code.
@@ -123,7 +123,7 @@ Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---".  If you know
 that *all* the necessary documentation updates have been made as part
 of your changes or those by others, mark the entry with "+++".
-Otherwise do not mark it.
+Otherwise, do not mark it.
 
 If your change requires updating the manuals to document new
 functions/commands/variables/faces, then use the proper Texinfo
@@ -321,7 +321,7 @@ them right the first time, so here are guidelines for formatting them:
 ** Committing your changes.
 
 When you commit changes, Git invokes several scripts that test the
-commit for validity, and may abort the commit of some of the tests
+commit for validity, and may abort the commit if some of the tests
 fail.  These scripts live in the '.git/hooks/' subdirectory of the
 top-level directory of the repository, and they perform the following
 tests:
@@ -400,7 +400,7 @@ the commit to master, by starting the commit message with "Backport:".
 The gitmerge function excludes these commits from the merge to the master.
 
 Some changes should not be merged to master at all, for whatever
-reasons.  These should be marked by including something like "Do not
+reason.  These should be marked by including something like "Do not
 merge to master" or anything that matches gitmerge-skip-regexp (see
 admin/gitmerge.el) in the commit message.
 
@@ -449,8 +449,8 @@ files intended for use only with Emacs version 24.5 and later.
 
 *** Useful files in the admin/ directory
 
-See all the files in admin/notes/* .  In particular, see
-admin/notes/newfile, see admin/notes/repo.
+See all the files in 'admin/notes/*'.  In particular, see
+'admin/notes/newfile' and 'admin/notes/repo'.
 
 The file admin/MAINTAINERS records the areas of interest of frequent
 Emacs contributors.  If you are making changes in one of the files

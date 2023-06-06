@@ -254,7 +254,7 @@ init_eval (void)
 static void
 max_ensure_room (intmax_t *m, intmax_t a, intmax_t b)
 {
-  intmax_t sum = INT_ADD_WRAPV (a, b, &sum) ? INTMAX_MAX : sum;
+  intmax_t sum = ckd_add (&sum, a, b) ? INTMAX_MAX : sum;
   *m = max (*m, sum);
 }
 
@@ -571,11 +571,12 @@ omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
 or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
 itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
 then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
-The return value is BASE-VARIABLE.  */)
+The return value is BASE-VARIABLE.
+
+If the resulting chain of variable definitions would contain a loop,
+signal a `cyclic-variable-indirection' error.  */)
   (Lisp_Object new_alias, Lisp_Object base_variable, Lisp_Object docstring)
 {
-  struct Lisp_Symbol *sym;
-
   CHECK_SYMBOL (new_alias);
   CHECK_SYMBOL (base_variable);
 
@@ -584,7 +585,18 @@ The return value is BASE-VARIABLE.  */)
     error ("Cannot make a constant an alias: %s",
 	   SDATA (SYMBOL_NAME (new_alias)));
 
-  sym = XSYMBOL (new_alias);
+  struct Lisp_Symbol *sym = XSYMBOL (new_alias);
+
+  /* Ensure non-circularity.  */
+  struct Lisp_Symbol *s = XSYMBOL (base_variable);
+  for (;;)
+    {
+      if (s == sym)
+	xsignal1 (Qcyclic_variable_indirection, base_variable);
+      if (s->u.s.redirect != SYMBOL_VARALIAS)
+	break;
+      s = SYMBOL_ALIAS (s);
+    }
 
   switch (sym->u.s.redirect)
     {
@@ -2373,8 +2385,7 @@ grow_specpdl_allocation (void)
   union specbinding *pdlvec = specpdl - 1;
   ptrdiff_t size = specpdl_end - specpdl;
   ptrdiff_t pdlvecsize = size + 1;
-  if (max_size <= size)
-    xsignal0 (Qexcessive_variable_binding);  /* Can't happen, essentially.  */
+  eassert (max_size > size);
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
   specpdl = pdlvec + 1;
   specpdl_end = specpdl + pdlvecsize - 1;
@@ -3400,7 +3411,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
   return object;
 }
 
-/* Return true if SYMBOL currently has a let-binding
+/* Return true if SYMBOL's default currently has a let-binding
    which was made in the buffer that is now current.  */
 
 bool
@@ -3415,6 +3426,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (specpdl_symbol (p));
 	eassert (let_bound_symbol->u.s.redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
+	    && p->kind != SPECPDL_LET_LOCAL /* bug#62419 */
 	    && EQ (specpdl_where (p), buf))
 	  return 1;
       }
@@ -3476,7 +3488,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
   switch (sym->u.s.redirect)
     {
     case SYMBOL_VARALIAS:
-      sym = indirect_variable (sym); XSETSYMBOL (symbol, sym); goto start;
+      sym = SYMBOL_ALIAS (sym); XSETSYMBOL (symbol, sym); goto start;
     case SYMBOL_PLAINVAL:
       /* The most common case is that of a non-constant symbol with a
 	 trivial value.  Make that as fast as we can.  */

@@ -105,6 +105,13 @@ static bool single_kboard;
 /* Minimum allowed size of the recent_keys vector.  */
 #define MIN_NUM_RECENT_KEYS (100)
 
+/* Maximum allowed size of the recent_keys vector.  */
+#if INTPTR_MAX <= INT_MAX
+# define MAX_NUM_RECENT_KEYS (INT_MAX / EMACS_INT_WIDTH / 10)
+#else
+# define MAX_NUM_RECENT_KEYS (INT_MAX / EMACS_INT_WIDTH)
+#endif
+
 /* Index for storing next element into recent_keys.  */
 static int recent_keys_index;
 
@@ -310,6 +317,8 @@ static Lisp_Object command_loop (void);
 
 static void echo_now (void);
 static ptrdiff_t echo_length (void);
+
+static void safe_run_hooks_maybe_narrowed (Lisp_Object, struct window *);
 
 /* Incremented whenever a timer is run.  */
 unsigned timers_run;
@@ -1427,6 +1436,7 @@ command_loop_1 (void)
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
+      ptrdiff_t last_pt = PT;
 
       /* By default, we adjust point to a boundary of a region that
          has such a property that should be treated intangible
@@ -1504,6 +1514,9 @@ command_loop_1 (void)
             unbind_to (scount, Qnil);
 #endif
           }
+      /* Restore last PT position value, possibly clobbered by
+         recursive-edit invoked by the command we just executed.  */
+      last_point_position = last_pt;
       kset_last_prefix_arg (current_kboard, Vcurrent_prefix_arg);
 
       safe_run_hooks_maybe_narrowed (Qpost_command_hook,
@@ -1902,7 +1915,7 @@ safe_run_hooks (Lisp_Object hook)
   unbind_to (count, Qnil);
 }
 
-void
+static void
 safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -1912,11 +1925,11 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
   if (current_buffer->long_line_optimizations_p
       && long_line_optimizations_region_size > 0)
     {
-      ptrdiff_t begv = get_locked_narrowing_begv (PT);
-      ptrdiff_t zv = get_locked_narrowing_zv (PT);
+      ptrdiff_t begv = get_large_narrowing_begv (PT);
+      ptrdiff_t zv = get_large_narrowing_zv (PT);
       if (begv != BEG || zv != Z)
-	narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
-				 Qlong_line_optimizations_in_command_hooks);
+	labeled_narrow_to_region (make_fixnum (begv), make_fixnum (zv),
+				  Qlong_line_optimizations_in_command_hooks);
     }
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
@@ -10984,10 +10997,10 @@ The saved keystrokes are shown by `view-lossage'.  */)
 
   if (!FIXNATP (arg))
     user_error ("Value must be a positive integer");
-  int osize = ASIZE (recent_keys);
+  ptrdiff_t osize = ASIZE (recent_keys);
   eassert (lossage_limit == osize);
   int min_size = MIN_NUM_RECENT_KEYS;
-  int new_size = XFIXNAT (arg);
+  EMACS_INT new_size = XFIXNAT (arg);
 
   if (new_size == osize)
     return make_fixnum (lossage_limit);
@@ -10996,6 +11009,12 @@ The saved keystrokes are shown by `view-lossage'.  */)
     {
       AUTO_STRING (fmt, "Value must be >= %d");
       Fsignal (Quser_error, list1 (CALLN (Fformat, fmt, make_fixnum (min_size))));
+    }
+  if (new_size > MAX_NUM_RECENT_KEYS)
+    {
+      AUTO_STRING (fmt, "Value must be <= %d");
+      Fsignal (Quser_error, list1 (CALLN (Fformat, fmt,
+					  make_fixnum (MAX_NUM_RECENT_KEYS))));
     }
 
   int kept_keys = new_size > osize ? total_keys : min (new_size, total_keys);
@@ -11146,7 +11165,7 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   (void)
 {
   EMACS_INT sum;
-  INT_ADD_WRAPV (command_loop_level, minibuf_level, &sum);
+  ckd_add (&sum, command_loop_level, minibuf_level);
   return make_fixnum (sum);
 }
 

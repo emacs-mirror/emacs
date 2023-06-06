@@ -85,8 +85,6 @@ struct gl_state_s
 					   and possibly at the
 					   intervals too, depending
 					   on:  */
-  /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
-  ptrdiff_t offset;
 };
 
 extern struct gl_state_s gl_state;
@@ -147,28 +145,27 @@ extern bool syntax_prefix_flag_p (int c);
 
 extern unsigned char const syntax_spec_code[0400];
 
-/* Convert the byte offset BYTEPOS into a character position,
-   for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.
+/* Convert the regexp's BYTEOFFSET into a character position,
+   for the object recorded in gl_state with RE_SETUP_SYNTAX_TABLE_FOR_OBJECT.
 
    The value is meant for use in code that does nothing when
    parse_sexp_lookup_properties is false, so return 0 in that case,
    for speed.  */
 
 INLINE ptrdiff_t
-SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
+RE_SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
 {
   return (! parse_sexp_lookup_properties
 	  ? 0
 	  : STRINGP (gl_state.object)
-	  ? string_byte_to_char (gl_state.object, bytepos)
+	  ? string_byte_to_char (gl_state.object, byteoffset)
 	  : BUFFERP (gl_state.object)
 	  ? ((buf_bytepos_to_charpos
 	      (XBUFFER (gl_state.object),
-	       (bytepos + BUF_BEGV_BYTE (XBUFFER (gl_state.object)) - 1)))
-	     - BUF_BEGV (XBUFFER (gl_state.object)) + 1)
+	       (byteoffset + BUF_BEGV_BYTE (XBUFFER (gl_state.object))))))
 	  : NILP (gl_state.object)
-	  ? BYTE_TO_CHAR (bytepos + BEGV_BYTE - 1) - BEGV + 1
-	  : bytepos);
+	  ? BYTE_TO_CHAR (byteoffset + BEGV_BYTE)
+	  : byteoffset);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
@@ -178,8 +175,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 { /* Performs just-in-time syntax-propertization.  */
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
-    update_syntax_table_forward (charpos + gl_state.offset,
-				 false, gl_state.object);
+    update_syntax_table_forward (charpos, false, gl_state.object);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
@@ -189,7 +185,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos < gl_state.b_property)
-    update_syntax_table (charpos + gl_state.offset, -1, false, gl_state.object);
+    update_syntax_table (charpos, -1, false, gl_state.object);
 }
 
 /* Make syntax table good for CHARPOS.  */
@@ -212,7 +208,7 @@ SETUP_BUFFER_SYNTAX_TABLE (void)
 }
 
 extern ptrdiff_t scan_words (ptrdiff_t, EMACS_INT);
-extern void SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object, ptrdiff_t, ptrdiff_t);
+extern void RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object, ptrdiff_t);
 
 INLINE_HEADER_END
 

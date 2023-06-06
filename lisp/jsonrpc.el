@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.16
+;; Version: 1.0.17
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -43,7 +43,6 @@
 (eval-when-compile (require 'subr-x))
 (require 'warnings)
 (require 'pcase)
-(require 'ert) ; to escape a `condition-case-unless-debug'
 
 
 ;;; Public API
@@ -154,6 +153,14 @@ immediately."
   "Stop waiting for responses from the current JSONRPC CONNECTION."
   (clrhash (jsonrpc--request-continuations connection)))
 
+(defvar jsonrpc-inhibit-debug-on-error nil
+  "Inhibit `debug-on-error' when answering requests.
+Some extensions, notably ert.el, set `debug-on-error' to non-nil,
+which makes it hard to test the behaviour of catching the Elisp
+error and replying to the endpoint with an JSONRPC-error.  This
+variable can be set around calls like `jsonrpc-request' to
+circumvent that.")
+
 (defun jsonrpc-connection-receive (connection message)
   "Process MESSAGE just received from CONNECTION.
 This function will destructure MESSAGE and call the appropriate
@@ -166,7 +173,8 @@ dispatcher in CONNECTION."
       (cond
        (;; A remote request
         (and method id)
-        (let* ((debug-on-error (and debug-on-error (not (ert-running-test))))
+        (let* ((debug-on-error (and debug-on-error
+                                    (not jsonrpc-inhibit-debug-on-error)))
                (reply
                 (condition-case-unless-debug _ignore
                     (condition-case oops
@@ -566,15 +574,14 @@ With optional CLEANUP, kill any associated buffers."
     (cl-return-from jsonrpc--process-filter))
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      (let* ((inhibit-read-only t)
-             (jsonrpc--in-process-filter t)
+      (let* ((jsonrpc--in-process-filter t)
              (connection (process-get proc 'jsonrpc-connection))
              (expected-bytes (jsonrpc--expected-bytes connection)))
         ;; Insert the text, advancing the process marker.
         ;;
         (save-excursion
           (goto-char (process-mark proc))
-          (insert string)
+          (let ((inhibit-read-only t)) (insert string))
           (set-marker (process-mark proc) (point)))
         ;; Loop (more than one message might have arrived)
         ;;
@@ -623,7 +630,8 @@ With optional CLEANUP, kill any associated buffers."
                                     (jsonrpc-connection-receive connection
                                                                 json-message)))))
                           (goto-char message-end)
-                          (delete-region (point-min) (point))
+                          (let ((inhibit-read-only t))
+                            (delete-region (point-min) (point)))
                           (setq expected-bytes nil))))
                      (t
                       ;; Message is still incomplete

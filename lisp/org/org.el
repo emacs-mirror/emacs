@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6.1
+;; Version: 9.6.6
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -3483,13 +3483,17 @@ Make sure that you only list packages here which:
   :group 'org-export-latex
   :set 'org-set-packages-alist
   :get 'org-get-packages-alist
-  :type '(repeat
-	  (choice
-	   (list :tag "options/package pair"
-		 (string :tag "options")
-		 (string :tag "package")
-		 (boolean :tag "Snippet"))
-	   (string :tag "A line of LaTeX"))))
+  :type
+  '(repeat
+    (choice
+     (list :tag "options/package pair"
+           (string :tag "options")
+           (string :tag "package")
+           (boolean :tag "snippet")
+           (choice
+            (const :tag "All compilers include this package" nil)
+            (repeat :tag "Only include from these compilers" string)))
+     (string :tag "A line of LaTeX"))))
 
 (defgroup org-appearance nil
   "Settings for Org mode appearance."
@@ -3600,13 +3604,13 @@ following symbols:
 	       (const :tag "Entities" entities))))
 
 (defcustom org-hide-emphasis-markers nil
-  "Non-nil mean font-lock should hide the emphasis marker characters."
+  "Non-nil means font-lock should hide the emphasis marker characters."
   :group 'org-appearance
   :type 'boolean
   :safe #'booleanp)
 
 (defcustom org-hide-macro-markers nil
-  "Non-nil mean font-lock should hide the brackets marking macro calls."
+  "Non-nil means font-lock should hide the brackets marking macro calls."
   :group 'org-appearance
   :type 'boolean)
 
@@ -3618,7 +3622,7 @@ When nil, the \\name form remains in the buffer."
   :type 'boolean)
 
 (defcustom org-pretty-entities-include-sub-superscripts t
-  "Non-nil means, pretty entity display includes formatting sub/superscripts."
+  "Non-nil means pretty entity display includes formatting sub/superscripts."
   :group 'org-appearance
   :version "24.1"
   :type 'boolean)
@@ -5370,7 +5374,7 @@ by a #."
 			  (zero-or-more (any " \t"))
 			  (group (group (zero-or-more (not (any " \t\n"))))
 				 (zero-or-more (any " \t"))
-				 (group (zero-or-more any)))))
+				 (group (zero-or-more nonl)))))
 	   limit t)
       (let ((beg (match-beginning 0))
 	    (end-of-beginline (match-end 0))
@@ -5396,7 +5400,7 @@ by a #."
 						    "#+end"
 						    ,(match-string 4)
 						    word-end
-						    (zero-or-more any)))))
+						    (zero-or-more nonl)))))
 		 ;; We look further than LIMIT on purpose.
 		 nil t)
 	    ;; We do have a matching #+end line.
@@ -5469,7 +5473,7 @@ by a #."
 	    (beginning-of-line)
 	    (looking-at (rx (group (zero-or-more (any " \t"))
 				   "#+caption"
-				   (optional "[" (zero-or-more any) "]")
+				   (optional "[" (zero-or-more nonl) "]")
 				   ":")
 			    (zero-or-more (any " \t")))))
 	  (add-text-properties (line-beginning-position) (match-end 1)
@@ -8440,7 +8444,10 @@ a link."
 	       (dolist (link (if (stringp links) (list links) links))
 		 (search-forward link nil links-end)
 		 (goto-char (match-beginning 0))
-		 (org-open-at-point arg)))))))
+                 ;; When opening file link, current buffer may be
+                 ;; altered.
+                 (save-current-buffer
+		   (org-open-at-point arg))))))))
        ;; On a footnote reference or at definition's label.
        ((or (eq type 'footnote-reference)
 	    (and (eq type 'footnote-definition)
@@ -9143,7 +9150,8 @@ nil or a string to be used for the todo mark." )
 	(replace-match "0" t nil nil 1)))))
 
 (defvar org-state)
-(defvar org-blocked-by-checkboxes)
+;; FIXME: We should refactor this and similar dynamically scoped blocker flags.
+(defvar org-blocked-by-checkboxes nil) ; dynamically scoped
 (defun org-todo (&optional arg)
   "Change the TODO state of an item.
 
@@ -10215,7 +10223,7 @@ nil."
 	(replace-match "")
         (if (and (string-match "\\S-" (buffer-substring (line-beginning-position) (point)))
 		 (equal (char-before) ?\ ))
-	    (backward-delete-char 1)
+	    (delete-char -1)
 	  (when (string-match "^[ \t]*$" (buffer-substring
                                           (line-beginning-position) (line-end-position)))
             (delete-region (line-beginning-position)
@@ -12006,18 +12014,17 @@ Returns the new tags string, or nil to not change the current settings."
 		    (setq current nil)
 		    (when exit-after-next (setq exit-after-next 'now)))
 		   ((= c ?\t)
-                    (condition-case nil
-                        (unless tab-tags
-                          (setq tab-tags
-                                (delq nil
-                                      (mapcar (lambda (x)
-                                                (let ((item (car-safe x)))
-                                                  (and (stringp item)
-                                                       (list item))))
-                                              (org--tag-add-to-alist
-                                               (with-current-buffer buf
-                                                 (org-get-buffer-tags))
-                                               table))))))
+                    (unless tab-tags
+                      (setq tab-tags
+                            (delq nil
+                                  (mapcar (lambda (x)
+                                            (let ((item (car-safe x)))
+                                              (and (stringp item)
+                                                   (list item))))
+                                          (org--tag-add-to-alist
+                                           (with-current-buffer buf
+                                             (org-get-buffer-tags))
+                                           table)))))
                     (setq tg (completing-read "Tag: " tab-tags))
 		    (when (string-match "\\S-" tg)
 		      (cl-pushnew (list tg) tab-tags :test #'equal)
@@ -16415,7 +16422,7 @@ buffer boundaries with possible narrowing."
 (defun org-display-inline-remove-overlay (ov after _beg _end &optional _len)
   "Remove inline-display overlay if a corresponding region is modified."
   (when (and ov after)
-    (delete ov org-inline-image-overlays)
+    (setq org-inline-image-overlays (delete ov org-inline-image-overlays))
     ;; Clear image from cache to avoid image not updating upon
     ;; changing on disk.  See Emacs bug#59902.
     (when (overlay-get ov 'org-image-overlay)
@@ -16532,7 +16539,7 @@ because, in this case the deletion might narrow the column."
 	     (looking-at-p ".*?|")
 	     (org-at-table-p))
 	(progn (forward-char -1) (org-delete-char 1))
-      (backward-delete-char N)
+      (funcall-interactively #'backward-delete-char N)
       (org-fix-tags-on-the-fly))))
 
 (defun org-delete-char (N)
@@ -18595,6 +18602,10 @@ block from point."
 	      (throw 'exit n)))))
       nil)))
 
+;; Defined in org-agenda.el
+(defvar org-agenda-restrict)
+(defvar org-agenda-restrict-begin)
+(defvar org-agenda-restrict-end)
 (defun org-occur-in-agenda-files (regexp &optional _nlines)
   "Call `multi-occur' with buffers for all agenda files."
   (interactive "sOrg-files matching: ")

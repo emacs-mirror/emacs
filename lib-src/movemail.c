@@ -62,6 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <timespec.h>
 
 #include <getopt.h>
 #include <unistd.h>
@@ -469,7 +470,7 @@ main (int argc, char **argv)
 	     that were set on the file.  Better to just empty the file.  */
 	  if (unlink (inname) < 0 && errno != ENOENT)
 #endif /* MAIL_UNLINK_SPOOL */
-	    creat (inname, 0600);
+	    close (creat (inname, 0600));
 	}
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
@@ -846,7 +847,7 @@ movemail_strftime (char *s, size_t size, char const *format,
 static bool
 mbx_delimit_begin (FILE *mbf)
 {
-  time_t now = time (NULL);
+  time_t now = current_timespec ().tv_sec;
   struct tm *ltime = localtime (&now);
   if (!ltime)
     return false;

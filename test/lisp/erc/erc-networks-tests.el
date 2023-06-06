@@ -1475,10 +1475,16 @@
         (erc-mode)
         (setq erc-network 'FooNet
               erc-server-current-nick "tester"
-              erc-insert-marker (set-marker (make-marker) (point-max))
+              erc-insert-marker (make-marker)
+              erc-input-marker (make-marker)
               erc-server-process (erc-networks-tests--create-live-proc)
               erc-networks--id (erc-networks--id-create nil))
-        (should-not (erc-networks--rename-server-buffer erc-server-process))
+        (set-process-sentinel erc-server-process #'ignore)
+        (erc-display-prompt nil (point-max))
+        (set-marker erc-insert-marker (pos-bol))
+        (erc-display-message nil 'notice (current-buffer) "notice")
+        (with-silent-modifications
+          (should-not (erc-networks--rename-server-buffer erc-server-process)))
         (should (eq erc-active-buffer old-buf))
         (should-not (erc-server-process-alive))
         (should (string= (buffer-name) "irc.foonet.org"))

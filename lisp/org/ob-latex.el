@@ -141,7 +141,7 @@ exporting the literal LaTeX source."
   (org-trim body))
 
 (defun org-babel-execute:latex (body params)
-  "Execute a block of Latex code with Babel.
+  "Execute a block of LaTeX code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (setq body (org-babel-expand-body:latex body params))
   (if (cdr (assq :file params))
@@ -180,7 +180,7 @@ This function is called by `org-babel-execute-src-block'."
 	                     tmp-pdf
                              (list org-babel-latex-pdf-svg-process)
                              extension err-msg log-buf)))
-              (shell-command (format "mv %s %s" img-out out-file)))))
+              (rename-file img-out out-file t))))
          ((string-suffix-p ".tikz" out-file)
 	  (when (file-exists-p out-file) (delete-file out-file))
 	  (with-temp-file out-file
@@ -218,17 +218,14 @@ This function is called by `org-babel-execute-src-block'."
 	    (if (string-suffix-p ".svg" out-file)
 		(progn
 		  (shell-command "pwd")
-		  (shell-command (format "mv %s %s"
-					 (concat (file-name-sans-extension tex-file) "-1.svg")
-					 out-file)))
+                  (rename-file (concat (file-name-sans-extension tex-file) "-1.svg")
+                               out-file t))
 	      (error "SVG file produced but HTML file requested")))
 	   ((file-exists-p (concat (file-name-sans-extension tex-file) ".html"))
 	    (if (string-suffix-p ".html" out-file)
-		(shell-command "mv %s %s"
-			       (concat (file-name-sans-extension tex-file)
-				       ".html")
-			       out-file)
-	      (error "HTML file produced but SVG file requested")))))
+                (rename-file (concat (file-name-sans-extension tex-file) ".html")
+                             out-file t)
+              (error "HTML file produced but SVG file requested")))))
 	 ((or (string= "pdf" extension) imagemagick)
 	  (with-temp-file tex-file
 	    (require 'ox-latex)

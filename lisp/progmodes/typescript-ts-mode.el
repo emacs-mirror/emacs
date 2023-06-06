@@ -41,6 +41,16 @@
   :safe 'integerp
   :group 'typescript)
 
+(defface typescript-ts-jsx-tag-face
+  '((t . (:inherit font-lock-function-call-face)))
+  "Face for HTML tags like <div> and <p> in JSX."
+  :group 'typescript)
+
+(defface typescript-ts-jsx-attribute-face
+  '((t . (:inherit font-lock-constant-face)))
+  "Face for HTML attributes like name and id in JSX."
+  :group 'typescript)
+
 (defvar typescript-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     ;; Taken from the cc-langs version
@@ -118,7 +128,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "case" "catch" "class" "const" "continue" "debugger"
     "declare" "default" "delete" "do" "else" "enum"
     "export" "extends" "finally" "for" "from" "function"
-    "get" "if" "implements" "import" "in" "instanceof" "interface"
+    "get" "if" "implements" "import" "in" "instanceof" "interface" "is"
     "keyof" "let" "namespace" "new" "of" "private" "protected"
     "public" "readonly" "return" "set" "static" "switch"
     "target" "throw" "try" "type" "typeof" "var" "void"
@@ -284,17 +294,17 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :feature 'jsx
    `((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-call-face)
+      @typescript-ts-jsx-tag-face)
 
      (jsx_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-call-face)
+      @typescript-ts-jsx-tag-face)
 
      (jsx_self_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-call-face)
+      @typescript-ts-jsx-tag-face)
 
-     (jsx_attribute (property_identifier) @font-lock-constant-face))
+     (jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face))
 
    :language language
    :feature 'number
@@ -438,7 +448,15 @@ See `treesit-sexp-type-regexp' for more information.")
 
 ;;;###autoload
 (define-derived-mode tsx-ts-mode typescript-ts-base-mode "TypeScript[TSX]"
-  "Major mode for editing TypeScript."
+  "Major mode for editing TSX and JSX documents.
+
+This major mode defines two additional JSX-specific faces:
+`typescript-ts-jsx-attribute-face' and
+`typescript-ts-jsx-attribute-face' that are used for HTML tags
+and attributes, respectively.
+
+The JSX-specific faces are used when `treesit-font-lock-level' is
+at least 3 (which is the default value)."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 

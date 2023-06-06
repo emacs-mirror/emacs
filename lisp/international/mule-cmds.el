@@ -3269,7 +3269,8 @@ single characters to be treated as standing for themselves."
               "r" #'emoji-recent
               "l" #'emoji-list
               "+" #'emoji-zoom-increase
-              "-" #'emoji-zoom-decrease))
+              "-" #'emoji-zoom-decrease
+              "0" #'emoji-zoom-reset))
 
 (defface confusingly-reordered
   '((((supports :underline (:style wave)))

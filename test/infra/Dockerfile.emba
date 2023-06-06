@@ -24,19 +24,20 @@
 # Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 # URL: https://emba.gnu.org/emacs/emacs
 
-FROM debian:stretch as emacs-base
+FROM debian:bullseye as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libdbus-1-dev libacl1-dev acl git texinfo gawk gdb \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
 
+# We install clangd for Eglot tests.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      inotify-tools \
+      inotify-tools clangd \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
@@ -59,11 +60,84 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make bootstrap
 
+# Debian bullseye doesn't provide proper packages.  So we use Debian
+# sid for this.
+FROM debian:sid as emacs-eglot
+
+# This corresponds to emacs-base.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
+      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install clangd.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      clangd \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /checkout
+WORKDIR /checkout
+RUN ./autogen.sh autoconf
+RUN ./configure
+RUN make bootstrap
+
+# Debian bullseye doesn't provide proper packages.  So we use Debian
+# sid for this.
+FROM debian:sid as emacs-tree-sitter
+
+# This corresponds to emacs-base.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
+      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install tree-sitter library.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      libtree-sitter0 libtree-sitter-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /checkout
+WORKDIR /checkout
+RUN ./autogen.sh autoconf
+RUN ./configure --with-tree-sitter
+RUN make bootstrap
+
+# Install language grammars.
+RUN mkdir -p /root/.emacs.d/tree-sitter
+RUN git config --global http.sslverify "false"
+# See https://github.com/emacs-tree-sitter/tree-sitter-langs/tree/master/repos
+RUN src/emacs -Q --batch \
+    --eval '(setq \
+      treesit-extra-load-path (list "/root/.emacs.d/tree-sitter") \
+      treesit-language-source-alist \
+      (quote ((bash "https://github.com/tree-sitter/tree-sitter-bash") \
+      (c "https://github.com/tree-sitter/tree-sitter-c") \
+      (cpp "https://github.com/tree-sitter/tree-sitter-cpp") \
+      (css "https://github.com/tree-sitter/tree-sitter-css") \
+      (elixir "https://github.com/elixir-lang/tree-sitter-elixir") \
+      (go "https://github.com/tree-sitter/tree-sitter-go") \
+      (gomod "https://github.com/camdencheek/tree-sitter-go-mod") \
+      (heex "https://github.com/phoenixframework/tree-sitter-heex") \
+      (html "https://github.com/tree-sitter/tree-sitter-html") \
+      (java "https://github.com/tree-sitter/tree-sitter-java") \
+      (javascript "https://github.com/tree-sitter/tree-sitter-javascript") \
+      (json "https://github.com/tree-sitter/tree-sitter-json") \
+      (python "https://github.com/tree-sitter/tree-sitter-python") \
+      (ruby "https://github.com/tree-sitter/tree-sitter-ruby") \
+      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src") \
+      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))))' \
+    --eval '(dolist (lang (mapcar (quote car) treesit-language-source-alist)) \
+      (treesit-install-language-grammar lang "/root/.emacs.d/tree-sitter"))'
+
 FROM emacs-base as emacs-gnustep
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      gnustep-devel \
+      gnustep-devel zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
@@ -74,9 +148,10 @@ RUN make bootstrap
 
 FROM emacs-base as emacs-native-comp
 
+# The libgccjit version must correspond to the gcc version.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libgccjit-6-dev \
+      libgccjit-10-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-native-comp as emacs-native-comp-speed0

@@ -90,7 +90,7 @@
 (ert-deftest cl-print-tests-ellipsis-circular ()
   "Ellipsis expansion works with circular objects."
   (let ((wide-obj (list 0 1 2 3 4))
-        (deep-obj `(0 (1 (2 (3 (4))))))
+        (deep-obj (list 0 (list 1 (list 2 (list 3 (list 4))))))
         (print-length 4)
         (print-level 3))
     (setf (nth 4 wide-obj) wide-obj)

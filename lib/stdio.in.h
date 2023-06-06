@@ -36,6 +36,12 @@
 
 #ifndef _@GUARD_PREFIX@_STDIO_H
 
+/* Suppress macOS deprecation warnings for sprintf and vsprintf.  */
+#if (defined __APPLE__ && defined __MACH__) && !defined _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 200809L
+# define _GL_DEFINED__POSIX_C_SOURCE
+#endif
+
 #define _GL_ALREADY_INCLUDING_STDIO_H
 
 /* The include_next requires a split double-inclusion guard.  */
@@ -43,8 +49,19 @@
 
 #undef _GL_ALREADY_INCLUDING_STDIO_H
 
+#ifdef _GL_DEFINED__POSIX_C_SOURCE
+# undef _GL_DEFINED__POSIX_C_SOURCE
+# undef _POSIX_C_SOURCE
+#endif
+
 #ifndef _@GUARD_PREFIX@_STDIO_H
 #define _@GUARD_PREFIX@_STDIO_H
+
+/* This file uses _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_FORMAT,
+   _GL_ATTRIBUTE_MALLOC, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 /* Get va_list.  Needed on many systems, including glibc 2.8.  */
 #include <stdarg.h>
@@ -113,6 +130,16 @@
 #  define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
 # else
 #  define _GL_ATTRIBUTE_FORMAT(spec) /* empty */
+# endif
+#endif
+
+/* _GL_ATTRIBUTE_MALLOC declares that the function returns a pointer to freshly
+   allocated memory.  */
+#ifndef _GL_ATTRIBUTE_MALLOC
+# if __GNUC__ >= 3 || defined __clang__
+#  define _GL_ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
+# else
+#  define _GL_ATTRIBUTE_MALLOC
 # endif
 #endif
 
@@ -192,6 +219,36 @@
      && defined __GNUC__ && defined __STDC__)
 # undef putc_unlocked
 #endif
+
+
+/* Maximum number of characters produced by printing a NaN value.  */
+#ifndef _PRINTF_NAN_LEN_MAX
+# if defined __FreeBSD__ || defined __DragonFly__ \
+     || defined __NetBSD__ \
+     || (defined __APPLE__ && defined __MACH__)
+/* On BSD systems, a NaN value prints as just "nan", without a sign.  */
+#  define _PRINTF_NAN_LEN_MAX 3
+# elif (__GLIBC__ >= 2) || MUSL_LIBC || defined __OpenBSD__ || defined __sun || defined __CYGWIN__
+/* glibc, musl libc, OpenBSD, Solaris libc, and Cygwin produce "[-]nan".  */
+#  define _PRINTF_NAN_LEN_MAX 4
+# elif defined _AIX
+/* AIX produces "[-]NaNQ".  */
+#  define _PRINTF_NAN_LEN_MAX 5
+# elif defined _WIN32 && !defined __CYGWIN__
+/* On native Windows, the output can be:
+   - with MSVC ucrt: "[-]nan" or "[-]nan(ind)" or "[-]nan(snan)",
+   - with mingw: "[-]1.#IND" or "[-]1.#QNAN".  */
+#  define _PRINTF_NAN_LEN_MAX 10
+# elif defined __sgi
+/* On IRIX, the output typically is "[-]nan0xNNNNNNNN" with 8 hexadecimal
+   digits.  */
+#  define _PRINTF_NAN_LEN_MAX 14
+# else
+/* We don't know, but 32 should be a safe maximum.  */
+#  define _PRINTF_NAN_LEN_MAX 32
+# endif
+#endif
+
 
 #if @GNULIB_DPRINTF@
 # if @REPLACE_DPRINTF@
@@ -275,7 +332,8 @@ _GL_CXXALIASWARN (fcloseall);
 #  endif
 _GL_FUNCDECL_RPL (fdopen, FILE *,
                   (int fd, const char *mode)
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 _GL_CXXALIAS_RPL (fdopen, FILE *, (int fd, const char *mode));
 # elif defined _WIN32 && !defined __CYGWIN__
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -288,7 +346,8 @@ _GL_CXXALIAS_MDA (fdopen, FILE *, (int fd, const char *mode));
 /* For -Wmismatched-dealloc: Associate fdopen with fclose or rpl_fclose.  */
 _GL_FUNCDECL_SYS (fdopen, FILE *,
                   (int fd, const char *mode)
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 #  endif
 _GL_CXXALIAS_SYS (fdopen, FILE *, (int fd, const char *mode));
 # endif
@@ -298,7 +357,8 @@ _GL_CXXALIASWARN (fdopen);
 /* For -Wmismatched-dealloc: Associate fdopen with fclose or rpl_fclose.  */
 _GL_FUNCDECL_SYS (fdopen, FILE *,
                   (int fd, const char *mode)
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef fdopen
@@ -409,7 +469,8 @@ _GL_CXXALIASWARN (fileno);
 #  endif
 _GL_FUNCDECL_RPL (fopen, FILE *,
                   (const char *restrict filename, const char *restrict mode)
-                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 _GL_CXXALIAS_RPL (fopen, FILE *,
                   (const char *restrict filename, const char *restrict mode));
 # else
@@ -956,6 +1017,10 @@ _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
 _GL_CXXALIAS_MDA (getw, int, (FILE *restrict stream));
 # else
 #  if @HAVE_DECL_GETW@
+#   if defined __APPLE__ && defined __MACH__
+/* The presence of the declaration depends on _POSIX_C_SOURCE.  */
+_GL_FUNCDECL_SYS (getw, int, (FILE *restrict stream));
+#   endif
 _GL_CXXALIAS_SYS (getw, int, (FILE *restrict stream));
 #  endif
 # endif
@@ -1060,13 +1125,15 @@ _GL_WARN_ON_USE (perror, "perror is not always POSIX compliant - "
 #  endif
 _GL_FUNCDECL_RPL (popen, FILE *,
                   (const char *cmd, const char *mode)
-                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1));
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 _GL_CXXALIAS_RPL (popen, FILE *, (const char *cmd, const char *mode));
 # else
 #  if !@HAVE_POPEN@ || __GNUC__ >= 11
 _GL_FUNCDECL_SYS (popen, FILE *,
                   (const char *cmd, const char *mode)
-                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1));
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 #  endif
 _GL_CXXALIAS_SYS (popen, FILE *, (const char *cmd, const char *mode));
 # endif
@@ -1076,7 +1143,8 @@ _GL_CXXALIASWARN (popen);
 /* For -Wmismatched-dealloc: Associate popen with pclose or rpl_pclose.  */
 _GL_FUNCDECL_SYS (popen, FILE *,
                   (const char *cmd, const char *mode)
-                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1));
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1)
+                  _GL_ATTRIBUTE_MALLOC);
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef popen
@@ -1199,6 +1267,10 @@ _GL_CXXALIASWARN (puts);
 _GL_CXXALIAS_MDA (putw, int, (int w, FILE *restrict stream));
 # else
 #  if @HAVE_DECL_PUTW@
+#   if defined __APPLE__ && defined __MACH__
+/* The presence of the declaration depends on _POSIX_C_SOURCE.  */
+_GL_FUNCDECL_SYS (putw, int, (int w, FILE *restrict stream));
+#   endif
 _GL_CXXALIAS_SYS (putw, int, (int w, FILE *restrict stream));
 #  endif
 # endif
@@ -1410,13 +1482,15 @@ _GL_CXXALIASWARN (tempnam);
 #   define tmpfile rpl_tmpfile
 #  endif
 _GL_FUNCDECL_RPL (tmpfile, FILE *, (void)
-                                   _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                                   _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                                   _GL_ATTRIBUTE_MALLOC);
 _GL_CXXALIAS_RPL (tmpfile, FILE *, (void));
 # else
 #  if __GNUC__ >= 11
 /* For -Wmismatched-dealloc: Associate tmpfile with fclose or rpl_fclose.  */
 _GL_FUNCDECL_SYS (tmpfile, FILE *, (void)
-                                   _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                                   _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                                   _GL_ATTRIBUTE_MALLOC);
 #  endif
 _GL_CXXALIAS_SYS (tmpfile, FILE *, (void));
 # endif
@@ -1427,7 +1501,8 @@ _GL_CXXALIASWARN (tmpfile);
 # if @GNULIB_FCLOSE@ && __GNUC__ >= 11 && !defined tmpfile
 /* For -Wmismatched-dealloc: Associate tmpfile with fclose or rpl_fclose.  */
 _GL_FUNCDECL_SYS (tmpfile, FILE *, (void)
-                                   _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                                   _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                                   _GL_ATTRIBUTE_MALLOC);
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef tmpfile

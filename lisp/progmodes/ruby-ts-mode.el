@@ -469,7 +469,7 @@ non-nil."
   (let* (first-call )
     (while (and parent
                 (setq first-call (treesit-node-parent parent))
-                (string-match-p "call" (treesit-node-type first-call)))
+                (equal "call" (treesit-node-type first-call)))
       (setq parent first-call))
     (treesit-node-start (treesit-search-subtree parent "\\." nil t))))
 
@@ -883,32 +883,24 @@ a statement container is a node that matches
   "Return the fully qualified name of NODE."
   (let* ((name (ruby-ts--get-name node))
          (delimiter "#"))
+    (when (equal (treesit-node-type node) "singleton_method")
+      (setq delimiter "."
+            name (treesit-node-text (treesit-node-child-by-field-name node "name"))))
     (while (setq node (treesit-parent-until node #'ruby-ts--class-or-module-p))
-      (setq name (concat (ruby-ts--get-name node) delimiter name))
+      (if name
+          (setq name (concat (ruby-ts--get-name node) delimiter name))
+        (setq name (ruby-ts--get-name node)))
       (setq delimiter "::"))
     name))
 
-(defun ruby-ts--imenu-helper (node)
-  "Convert a treesit sparse tree NODE in an imenu list.
-Helper for `ruby-ts--imenu' which converts a treesit sparse
-NODE into a list of imenu ( name . pos ) nodes"
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'ruby-ts--imenu-helper (cdr node)))
-         (name (when ts-node
-                 (ruby-ts--full-name ts-node)))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     ;; Don't include the anonymous "class" and "module" nodes
-     ((string-match-p "(\"\\(class\\|module\\)\")"
-                      (treesit-node-string ts-node))
-      nil)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
+(defun ruby-ts--imenu-helper (tree)
+  "Convert a treesit sparse tree NODE in a flat imenu list."
+  (if (cdr tree)
+      ;; We only use the "leaf" values in the tree.  It does include a
+      ;; leaf node for every class or module body.
+      (cl-mapcan #'ruby-ts--imenu-helper (cdr tree))
+    (list (cons (ruby-ts--full-name (car tree))
+                (treesit-node-start (car tree))))))
 
 ;; For now, this is going to work like ruby-mode and return a list of
 ;; class, modules, def (methods), and alias.  It is likely that this
@@ -916,8 +908,14 @@ NODE into a list of imenu ( name . pos ) nodes"
 (defun ruby-ts--imenu ()
   "Return Imenu alist for the current buffer."
   (let* ((root (treesit-buffer-root-node))
-         (nodes (treesit-induce-sparse-tree root "^\\(method\\|alias\\|class\\|module\\)$")))
-    (ruby-ts--imenu-helper nodes)))
+         (tree (treesit-induce-sparse-tree root
+                                           (rx bol (or "singleton_method"
+                                                       "method"
+                                                       "alias"
+                                                       "class"
+                                                       "module")
+                                               eol))))
+    (ruby-ts--imenu-helper tree)))
 
 (defun ruby-ts--arrow-up-start (arg)
   "Move to the start ARG levels up or out."
@@ -1026,7 +1024,7 @@ leading double colon is not added."
                               (:match "\\`?[#\"'`:?]" @char))
                              ;; Symbols like :+, :<=> or :foo=.
                              ((simple_symbol) @symbol
-                              (:match "[[:punct:]]" @symbol))
+                              (:match "\\s." @symbol))
                              ;; Method calls with name ending with ? or !.
                              ((call method: (identifier) @ident)
                               (:match "[?!]\\'" @ident))
@@ -1058,7 +1056,9 @@ leading double colon is not added."
          (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
                             'syntax-table (string-to-syntax "_")))
         ('symbol
-         (put-text-property (1+ (treesit-node-start node)) (treesit-node-end node)
+         (goto-char (treesit-node-end node))
+         (skip-syntax-backward "." (treesit-node-start node))
+         (put-text-property (point) (treesit-node-end node)
                             'syntax-table (string-to-syntax "_")))
         ('heredoc
          (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
@@ -1085,6 +1085,15 @@ leading double colon is not added."
                             (1- (treesit-node-end node))))
            (put-text-property pos (1+ pos) 'syntax-table
                               (string-to-syntax "!"))))))))
+
+(defun ruby-ts--sexp-p (node)
+  ;; Skip parenless calls (implicit parens are both non-obvious to the
+  ;; user, and might take over when we want to just over some physical
+  ;; parens/braces).
+  (or (not (equal (treesit-node-type node)
+                  "argument_list"))
+      (equal (treesit-node-type (treesit-node-child node 0))
+             "(")))
 
 (defvar-keymap ruby-ts-mode-map
   :doc "Keymap used in Ruby mode"
@@ -1114,21 +1123,43 @@ leading double colon is not added."
   (setq-local treesit-defun-type-regexp ruby-ts--method-regex)
 
   (setq-local treesit-sexp-type-regexp
-              (regexp-opt '("class"
-                            "module"
-                            "method"
-                            "argument_list"
-                            "array"
-                            "hash"
-                            "parenthesized_statements"
-                            "if"
-                            "case"
-                            "when"
-                            "block"
-                            "do_block"
-                            "begin"
-                            "binary"
-                            "assignment")))
+              (cons (rx
+                     bol
+                     (or
+                      "class"
+                      "module"
+                      "method"
+                      "array"
+                      "hash"
+                      "parenthesized_statements"
+                      "method_parameters"
+                      "array_pattern"
+                      "hash_pattern"
+                      "if"
+                      "unless"
+                      "case"
+                      "case_match"
+                      "when"
+                      "block"
+                      "do_block"
+                      "begin"
+                      "integer"
+                      "identifier"
+                      "constant"
+                      "simple_symbol"
+                      "hash_key_symbol"
+                      "symbol_array"
+                      "string"
+                      "string_array"
+                      "heredoc_body"
+                      "regex"
+                      "argument_list"
+                      "interpolation"
+                      "instance_variable"
+                      "global_variable"
+                      )
+                     eol)
+                    #'ruby-ts--sexp-p))
 
   ;; AFAIK, Ruby can not nest methods
   (setq-local treesit-defun-prefer-top-level nil)

@@ -1338,7 +1338,7 @@ specified @var{file} and perform the necessary initialization of the
 module.  This is the primitive which makes sure the module exports the
 @code{plugin_is_GPL_compatible} symbol, calls the module's
 @code{emacs_module_init} function, and signals an error if that
-function returns an error indication, or if the use typed @kbd{C-g}
+function returns an error indication, or if the user typed @kbd{C-g}
 during the initialization.  If the initialization succeeds,
 @code{module-load} returns @code{t}.  Note that @var{file} must
 already have the proper file-name extension, as this function doesn't

@@ -166,6 +166,27 @@ form.")
       (hack-local-variables)
       (should (eq lexical-binding nil)))))
 
+(ert-deftest files-tests-safe-local-variable-directories ()
+  ;; safe-local-variable-directories should be risky,
+  ;; so use it as an arbitrary risky variable.
+  (let ((test-alist '((safe-local-variable-directories . "some_val")))
+        (fakedir default-directory)
+        (enable-local-eval t))
+    (with-temp-buffer
+      (setq safe-local-variable-directories (list fakedir))
+      (hack-local-variables-filter test-alist fakedir)
+      (should (equal file-local-variables-alist test-alist)))
+    (with-temp-buffer
+      (setq safe-local-variable-directories (list fakedir))
+      (setq noninteractive t)
+      (hack-local-variables-filter test-alist "wrong")
+      (should-not (equal file-local-variables-alist test-alist)))
+    (with-temp-buffer
+      (setq safe-local-variable-directories '())
+      (setq noninteractive t)
+      (hack-local-variables-filter test-alist fakedir)
+      (should-not (equal file-local-variables-alist test-alist)))))
+
 (defvar files-test-bug-18141-file
   (ert-resource-file "files-bug18141.el.gz")
   "Test file for bug#18141.")

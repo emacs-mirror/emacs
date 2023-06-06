@@ -632,21 +632,35 @@ get_cgcolor_from_nscolor (NSColor *nsColor, struct frame *f)
 
 #define CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND(context, face)           \
   do {                                                                  \
-    CGColorRef refcol_ = get_cgcolor (NS_FACE_FOREGROUND (face));       \
-    CGContextSetFillColorWithColor (context, refcol_) ;                 \
-    CGColorRelease (refcol_);                                           \
+    CGColorRef refcol = get_cgcolor (NS_FACE_FOREGROUND (face));        \
+    CGContextSetFillColorWithColor (context, refcol);                   \
+    CGColorRelease (refcol);                                            \
   } while (0)
 #define CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND(context, face)           \
   do {                                                                  \
-    CGColorRef refcol_ = get_cgcolor (NS_FACE_BACKGROUND (face));       \
-    CGContextSetFillColorWithColor (context, refcol_);                  \
-    CGColorRelease (refcol_);                                           \
+    CGColorRef refcol = get_cgcolor (NS_FACE_BACKGROUND (face));        \
+    CGContextSetFillColorWithColor (context, refcol);                   \
+    CGColorRelease (refcol);                                            \
+  } while (0)
+#define CG_SET_FILL_COLOR_WITH_FRAME_CURSOR(context, frame)             \
+  do {                                                                  \
+    CGColorRef refcol                                                   \
+      = get_cgcolor_from_nscolor (FRAME_CURSOR_COLOR (frame), frame);   \
+    CGContextSetFillColorWithColor (context, refcol);                   \
+    CGColorRelease (refcol);                                            \
+  } while (0)
+#define CG_SET_FILL_COLOR_WITH_FRAME_BACKGROUND(context, frame)         \
+  do {                                                                  \
+    CGColorRef refcol                                                   \
+      = get_cgcolor_from_nscolor (FRAME_BACKGROUND_COLOR (frame), frame); \
+    CGContextSetFillColorWithColor (context, refcol);                   \
+    CGColorRelease (refcol);                                            \
   } while (0)
 #define CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND(context, face)         \
   do {                                                                  \
-    CGColorRef refcol_ = get_cgcolor (NS_FACE_FOREGROUND (face));       \
-    CGContextSetStrokeColorWithColor (context, refcol_);                \
-    CGColorRelease (refcol_);                                           \
+    CGColorRef refcol = get_cgcolor (NS_FACE_FOREGROUND (face));        \
+    CGContextSetStrokeColorWithColor (context, refcol);                 \
+    CGColorRelease (refcol);                                            \
   } while (0)
 
 
@@ -2933,9 +2947,12 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       if (s->hl == DRAW_CURSOR)
         {
-	  CGColorRef colorref = get_cgcolor_from_nscolor (FRAME_CURSOR_COLOR (f), f);
-	  CGContextSetFillColorWithColor (context, colorref);
-	  CGColorRelease (colorref);
+          if (face && (NS_FACE_BACKGROUND (face)
+                       == [(NSColor *) FRAME_CURSOR_COLOR (f)
+                                       unsignedLong]))
+            CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND (context, face);
+          else
+            CG_SET_FILL_COLOR_WITH_FRAME_CURSOR (context, f);
         }
       else
         CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND (context, face);
@@ -2949,9 +2966,12 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGContextScaleCTM (context, 1, -1);
       if (s->hl == DRAW_CURSOR)
         {
-	  CGColorRef colorref = get_cgcolor_from_nscolor (FRAME_BACKGROUND_COLOR (f), f);
-	  CGContextSetFillColorWithColor (context, colorref);
-	  CGColorRelease (colorref);
+          if (face && (NS_FACE_BACKGROUND (face)
+                       == [(NSColor *) FRAME_CURSOR_COLOR (f)
+                                       unsignedLong]))
+            CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND (context, face);
+          else
+            CG_SET_FILL_COLOR_WITH_FRAME_BACKGROUND (context, f);
         }
       else
         CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND (context, face);

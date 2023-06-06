@@ -454,7 +454,7 @@ nil, use FUNCTION instead."
   (let ((temporary-file-directory
          (file-name-as-directory (make-temp-file "esh-vars-tests" t))))
     (unwind-protect
-        (eshell-command-result-equal "cat \"$<echo hi>\"" "hi")
+        (eshell-command-result-equal "cat \"$<echo \\\"hi\\\">\"" "hi")
       (delete-directory temporary-file-directory t))))
 
 (ert-deftest esh-var-test/quoted-interp-concat-cmd ()

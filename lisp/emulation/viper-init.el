@@ -47,7 +47,8 @@
 (defun viper-window-display-p ()
   (and window-system (not (memq window-system '(tty stream pc)))))
 
-(defcustom viper-ms-style-os-p (memq system-type '(ms-dos windows-nt))
+(defcustom viper-ms-style-os-p
+  (not (not (memq system-type '(ms-dos windows-nt))))
   "Non-nil if Emacs is running under an MS-style OS: MS-DOS, or MS-Windows."
   :type 'boolean
   :tag "Is it Microsoft-made OS?"

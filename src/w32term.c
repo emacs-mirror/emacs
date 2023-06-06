@@ -7378,7 +7378,7 @@ w32_initialize_display_info (Lisp_Object display_name)
     {
       static char const at[] = " at ";
       ptrdiff_t nbytes = sizeof (title) + sizeof (at);
-      if (INT_ADD_WRAPV (nbytes, SCHARS (Vsystem_name), &nbytes))
+      if (ckd_add (&nbytes, nbytes, SCHARS (Vsystem_name)))
 	memory_full (SIZE_MAX);
       dpyinfo->w32_id_name = xmalloc (nbytes);
       sprintf (dpyinfo->w32_id_name, "%s%s%s", title, at, SDATA (Vsystem_name));

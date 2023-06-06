@@ -999,6 +999,10 @@ Display the change history for the current fileset
 Display the change history for the current repository
 (@code{vc-print-root-log}).
 
+@item C-x v b l
+Display the change history for another branch
+(@code{vc-print-branch-log}).
+
 @item C-x v I
 Display the changes that a ``pull'' operation will retrieve
 (@code{vc-log-incoming}).
@@ -1062,6 +1066,14 @@ showing only the first line of each log entry.  However, you can type
 @key{RET} (@code{log-view-toggle-entry-display}) in the
 @file{*vc-change-log*} buffer to reveal the entire log entry for the
 revision at point.  A second @key{RET} hides it again.
+
+@kindex C-x v b l
+@findex vc-print-branch-log
+  @kbd{C-x v b l @var{branch-name} @key{RET}} (@code{vc-print-branch-log})
+displays a @file{*vc-change-log*} buffer showing the history of the
+version-controlled directory tree, like @code{vc-print-root-log} does,
+but it shows the history of a branch other than the current one; it
+prompts for the branch whose history to display.
 
 @kindex C-x v I
 @kindex C-x v O
@@ -1523,6 +1535,8 @@ switch to another branch using the @kbd{svn switch} command.  With
 Mercurial, command @kbd{hg update} is used to switch to another
 branch.
 
+@kindex C-x v b s
+@findex vc-switch-branch
   The VC command to switch to another branch in the current directory
 is @kbd{C-x v b s @var{branch-name} @key{RET}} (@code{vc-switch-branch}).
 
@@ -1673,9 +1687,12 @@ branch ID for a branch starting at the current revision.  For example,
 if the current revision is 2.5, the branch ID should be 2.5.1, 2.5.2,
 and so on, depending on the number of existing branches at that point.
 
+@kindex C-x v b c
+@findex vc-create-branch
   This procedure will not work for distributed version control systems
 like git or Mercurial.  For those systems you should use the command
-@code{vc-create-branch} (@kbd{C-x v b c}) instead.
+@code{vc-create-branch} (@w{@kbd{C-x v b c @var{branch-name} @key{RET}}})
+instead.
 
   To create a new branch at an older revision (one that is no longer
 the head of a branch), first select that revision (@pxref{Switching
@@ -2283,16 +2300,25 @@ buffer, but doesn't select any of them.
 
 @kindex M-,
 @findex xref-go-back
-  To go back to places @emph{from where} you've displayed the definition,
-use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
+  To go back to places @emph{from where} you've displayed the
+definition, use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.
+where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace the
+steps you made forward in the history of places, all the way to the
+first place in history, where you first invoked @kbd{M-.}, or to any
+place in-between.
 
 @kindex C-M-,
 @findex xref-go-forward
-  If you previously went back too far with @kbd{M-,}, @kbd{C-M-,}
-(@code{xref-go-forward}) can be used to go forward again.
+  If you previously went back too far with @kbd{M-,}, or want to
+re-examine a place from which you went back, you can use @kbd{C-M-,}
+(@code{xref-go-forward}) to go forward again.  This is similar to
+using @kbd{M-.}, except that you don't need on each step to move point
+to the identifier whose definition you want to look up.  @kbd{C-M-,}
+allows you to retrace all the steps you made back in the history of
+places, all the way to the last place in history, where you invoked
+@kbd{M-,}, or to any place in-between.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might

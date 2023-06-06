@@ -29,12 +29,14 @@
 
 ;;; Code:
 
+(require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
 (require 'ls-lisp) ;; Due to `tramp-handle-insert-directory'.
 (require 'parse-time)
 (require 'shell)
 (require 'subr-x)
+(require 'xdg)
 
 (declare-function tramp-error "tramp")
 (declare-function tramp-tramp-file-p "tramp")
@@ -64,9 +66,16 @@
      (with-no-warnings (funcall ,function ,@arguments))))
 
 ;; We must use a local directory.  If it is remote, we could run into
-;; an infloop.
+;; an infloop.  We try to follow the XDG specification, for security reasons.
 (defconst tramp-compat-temporary-file-directory
-  (eval (car (get 'temporary-file-directory 'standard-value)) t)
+  (file-name-as-directory
+   (if-let ((xdg (xdg-cache-home))
+	    ((file-directory-p xdg))
+	    ((file-writable-p xdg)))
+       ;; We can use `file-name-concat' starting with Emacs 28.1.
+       (prog1 (setq xdg (concat (file-name-as-directory xdg) "emacs"))
+	 (make-directory xdg t))
+     (eval (car (get 'temporary-file-directory 'standard-value)) t)))
   "The default value of `temporary-file-directory'.")
 
 (defsubst tramp-compat-make-temp-name ()
@@ -218,6 +227,16 @@ Add the extension of F, if existing."
       #'length=
     (lambda (sequence length)
       (= (length sequence) length))))
+
+;; `always' is introduced with Emacs 28.1.
+(defalias 'tramp-compat-always
+  (if (fboundp 'always)
+      #'always
+    (lambda (&rest _arguments)
+      "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+      t)))
 
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied

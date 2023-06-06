@@ -69,11 +69,12 @@ When nil, show candidates in full."
   :type 'boolean
   :version "24.4")
 
-(defvar icomplete-tidy-shadowed-file-names nil
+(defcustom icomplete-tidy-shadowed-file-names nil
   "If non-nil, automatically delete superfluous parts of file names.
 For example, if the user types ~/ after a long path name,
 everything preceding the ~/ is discarded so the interactive
-selection process starts again from the user's $HOME.")
+selection process starts again from the user's $HOME."
+  :type 'boolean)
 
 (defcustom icomplete-show-matches-on-no-input nil
   "When non-nil, show completions when first prompting for input.
@@ -426,7 +427,10 @@ if that doesn't produce a completion match."
    for (cat . alist) in completion-category-defaults collect
    `(,cat . ,(cl-loop
               for entry in alist for (prop . val) = entry
-              if (eq prop 'styles)
+              if (and (eq prop 'styles)
+                      ;; Never step in front of 'external', as that
+                      ;; might lose us completions.
+                      (not (memq 'external val)))
               collect `(,prop . (flex ,@(delq 'flex val)))
               else collect entry))))
 

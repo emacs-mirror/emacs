@@ -516,6 +516,13 @@ directory copy is ineffective.
 This is due to an arbitrary limit in certain versions of awk.
 The solution is to use gawk (GNU awk).
 
+*** Saving, via EasyPG, a file encrypted with GnuPG hangs
+
+This is known to happen with GnuPG v2.4.1.  The only known workaround
+is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
+future, upgrade to a newer version which solves the problem, when such
+a fixed version becomes available).
+
 ** Problems with hostname resolution
 
 *** Emacs does not know your host's fully-qualified domain name.
@@ -2313,6 +2320,33 @@ recommended way of turning on Font-lock is by typing "M-x
 global-font-lock-mode RET" or by customizing the variable
 'global-font-lock-mode'.
 
+** Colors are not available or messed up on TTY frames inside 'screen'.
+
+This can happen if you have COLORTERM=truecolor defined in the
+environment when Emacs starts, but your version of 'screen' doesn't
+actually support 24-bit true colors.
+
+The COLORTERM environment variable is supposed to be set to the value
+"truecolor" only if the terminal used by Emacs actually supports true
+color.  Emacs does not have any means of verifying that this support
+is available, it takes the fact that the variable is defined to this
+value as an indication that true color support is, in fact, available,
+and uses color setting commands that COLORTERM=truecolor presumes,
+bypassing the usual Terminfo capabilities related to colors.
+
+Some text-mode terminals, such as GNOME Terminal, are known to set
+this environment variable, supposedly to announce their own support
+for true color; however the setting is then inherited by any other
+terminal emulators started from such a terminal, even though those
+other terminal emulators might not themselves support true color using
+the same commands as Emacs uses when it sees COLORTERM=truecolor.
+
+The solution is to either upgrade to a newer version of 'screen'
+(version 5.x or later reportedly supports true color), or to unset the
+COLORTERM variable before starting 'screen', and let Emacs use the
+color support provided by the terminal emulator as defined in the
+Terminfo database.
+
 ** Unexpected characters inserted into the buffer when you start Emacs.
 See e.g. <URL:https://debbugs.gnu.org/11129>
 
@@ -2680,6 +2714,15 @@ Emacs so that it isn't compiled with '-O5'.
 
 We list bugs in current versions here.  See also the section on legacy
 systems.
+
+*** On Solaris 10, running 'configure' with "/bin/sh" produces errors.
+The "/bin/sh" shell on Solaris is an ancient and non-POSIX shell, so
+we recommend not to use it.  The Emacs 'configure' script should find
+an appropriate shell and re-exec itself with that shell, unless you
+force it to use "/bin/sh" by using "CONFIG_SHELL=/bin/sh" on the
+'configure' command line.  So either don't use CONFIG_SHELL, or, if
+you'd rather pick the shell yourself, choose "/bin/bash" or "/bin/ksh"
+or "/usr/xpg4/bin/sh" instead.
 
 *** On Solaris 10 sparc, Emacs crashes during the build while saving state.
 This was observed for Emacs 28.1 on Solaris 10 32-bit sparc, with

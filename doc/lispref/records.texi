@@ -81,6 +81,10 @@ This function returns a new record with type @var{type} and
 @end example
 @end defun
 
+To copy trees consisting of records, vectors and conses (lists), use
+@code{copy-tree} with its optional second argument non-@code{nil}.
+@xref{Building Lists, copy-tree}.
+
 @node Backward Compatibility
 @section Backward Compatibility
 

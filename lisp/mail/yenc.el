@@ -111,8 +111,8 @@
 		  (message "Warning: Size mismatch while decoding."))
 		(goto-char start)
 		(delete-region start end)
-		(insert-buffer-substring work-buffer))))
-	  (and work-buffer (kill-buffer work-buffer))))))
+		(insert-buffer-substring work-buffer)))))
+      (and work-buffer (kill-buffer work-buffer)))))
 
 ;;;###autoload
 (defun yenc-extract-filename ()

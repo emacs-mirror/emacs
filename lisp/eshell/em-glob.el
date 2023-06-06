@@ -79,7 +79,7 @@ by zsh for filename generation."
   :type 'boolean
   :group 'eshell-glob)
 
-(defcustom eshell-glob-case-insensitive (eshell-under-windows-p)
+(defcustom eshell-glob-case-insensitive (not (not (eshell-under-windows-p)))
   "If non-nil, glob pattern matching will ignore case."
   :type 'boolean
   :group 'eshell-glob)
@@ -145,16 +145,6 @@ This mimics the behavior of zsh if non-nil, but bash if nil."
 
 (defun eshell-add-glob-modifier ()
   "Add `eshell-extended-glob' to the argument modifier list."
-  (when (memq 'expand-file-name eshell-current-modifiers)
-    (setq eshell-current-modifiers
-	  (delq 'expand-file-name eshell-current-modifiers))
-    ;; if this is a glob pattern than needs to be expanded, then it
-    ;; will need to expand each member of the resulting glob list
-    (add-to-list 'eshell-current-modifiers
-		 (lambda (list)
-                   (if (listp list)
-                       (mapcar 'expand-file-name list)
-                     (expand-file-name list)))))
   (add-to-list 'eshell-current-modifiers 'eshell-extended-glob))
 
 (defun eshell-parse-glob-chars ()

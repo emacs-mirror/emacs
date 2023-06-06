@@ -593,8 +593,8 @@ symbol a function definition, its function cell is said to be
   In practice, nearly all functions have names, and are referred to by
 their names.  You can create a named Lisp function by defining a
 lambda expression and putting it in a function cell (@pxref{Function
-Cells}).  However, it is more common to use the @code{defun} special
-form, described in the next section.
+Cells}).  However, it is more common to use the @code{defun} macro,
+described in the next section.
 @ifnottex
 @xref{Defining Functions}.
 @end ifnottex
@@ -1484,7 +1484,7 @@ the symbol as a function, Emacs signals a @code{void-function} error.
   Note that void is not the same as @code{nil} or the symbol
 @code{void}.  The symbols @code{nil} and @code{void} are Lisp objects,
 and can be stored into a function cell just as any other object can be
-(and they can be valid functions if you define them in turn with
+(and @code{void} can be a valid function if you define it with
 @code{defun}).  A void function cell contains no object whatsoever.
 
   You can test the voidness of a symbol's function definition with
@@ -2365,6 +2365,11 @@ this:
 (set-advertised-calling-convention
   'sit-for '(seconds &optional nodisp) "22.1")
 @end example
+
+@noindent
+The alternative to using this function is the
+@code{advertised-calling-convention} @code{declare} spec, see
+@ref{Declare Form}.
 @end defun
 
 @node Inline Functions
@@ -2541,6 +2546,7 @@ Each element in @var{specs} should have the form @code{(@var{property}
 following effects:
 
 @table @code
+@cindex @code{advertised-calling-convention} (@code{declare} spec)
 @item (advertised-calling-convention @var{signature} @var{when})
 This acts like a call to @code{set-advertised-calling-convention}
 (@pxref{Obsolete Functions}); @var{signature} specifies the correct
@@ -2566,6 +2572,7 @@ This is typically used for macros, though it works for functions too.
 Set the function's @code{interactive-only} property to @var{value}.
 @xref{The interactive-only property}.
 
+@cindex @code{obsolete} (@code{declare} spec)
 @item (obsolete @var{current-name} @var{when})
 Mark the function or macro as obsolete, similar to a call to
 @code{make-obsolete} (@pxref{Obsolete Functions}).  @var{current-name}
@@ -2631,6 +2638,12 @@ so the byte compiler can ignore calls whose value is ignored.  This is
 the same as the @code{side-effect-free} property of the function's
 symbol, @pxref{Standard Properties}.
 
+@item (important-return-value @var{val})
+If @var{val} is non-@code{nil}, the byte compiler will warn about
+calls to this function that do not use the returned value.  This is the
+same as the @code{important-return-value} property of the function's
+symbol, @pxref{Standard Properties}.
+
 @item (speed @var{n})
 Specify the value of @code{native-comp-speed} in effect for native
 compilation of this function (@pxref{Native-Compilation Variables}).
@@ -2693,13 +2706,14 @@ byte compiler can check that the calls match the declaration.
 Tell the byte compiler to assume that @var{function} is defined in the
 file @var{file}.  The optional third argument @var{arglist} is either
 @code{t}, meaning the argument list is unspecified, or a list of
-formal parameters in the same style as @code{defun}.  An omitted
-@var{arglist} defaults to @code{t}, not @code{nil}; this is atypical
-behavior for omitted arguments, and it means that to supply a fourth
-but not third argument one must specify @code{t} for the third-argument
-placeholder instead of the usual @code{nil}.  The optional fourth
-argument @var{fileonly} non-@code{nil} means check only that
-@var{file} exists, not that it actually defines @var{function}.
+formal parameters in the same style as @code{defun} (including the
+parentheses).  An omitted @var{arglist} defaults to @code{t}, not
+@code{nil}; this is atypical behavior for omitted arguments, and it
+means that to supply a fourth but not third argument one must specify
+@code{t} for the third-argument placeholder instead of the usual
+@code{nil}.  The optional fourth argument @var{fileonly}
+non-@code{nil} means check only that @var{file} exists, not that it
+actually defines @var{function}.
 @end defmac
 
 @findex check-declare-file

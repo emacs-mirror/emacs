@@ -66,34 +66,29 @@ This fixture temporarily unsets GPG_AGENT_INFO to enable passphrase tests,
 which will neither work with gpgsm nor GnuPG 2.1 any longer, I guess.
 Actually, I'm not sure why people would want to cache passwords in Emacs
 instead of gpg-agent."
-  (unwind-protect
-      (let ((agent-info (getenv "GPG_AGENT_INFO"))
-	    (gpghome (getenv "GNUPGHOME")))
-	(condition-case error
-            (let ((epg-gpg-home-directory (ert-resource-directory))
-		  (mml-smime-use 'epg)
-		  ;; Create debug output in empty epg-debug-buffer.
-		  (epg-debug t)
-		  (epg-debug-buffer (get-buffer-create " *epg-test*"))
-		  (mml-secure-fail-when-key-problem (not interactive)))
-	      (with-current-buffer epg-debug-buffer
-		(erase-buffer))
-	      ;; Unset GPG_AGENT_INFO to enable passphrase caching inside Emacs.
-	      ;; Just for testing.  Jens does not recommend this for daily use.
-	      (setenv "GPG_AGENT_INFO")
-	      ;; Set GNUPGHOME as gpg-agent started by gpgsm does
-	      ;; not look in the proper places otherwise, see:
-	      ;; https://bugs.gnupg.org/gnupg/issue2126
-	      (setenv "GNUPGHOME" epg-gpg-home-directory)
-              (unwind-protect
-	          (funcall body)
-                (mml-sec-test--kill-gpg-agent)))
-	  (error
-	   (setenv "GPG_AGENT_INFO" agent-info)
-	   (setenv "GNUPGHOME" gpghome)
-	   (signal (car error) (cdr error))))
-	(setenv "GPG_AGENT_INFO" agent-info)
-	(setenv "GNUPGHOME" gpghome))))
+  (let ((agent-info (getenv "GPG_AGENT_INFO"))
+	(gpghome (getenv "GNUPGHOME")))
+    (unwind-protect
+        (let ((epg-gpg-home-directory (ert-resource-directory))
+	      (mml-smime-use 'epg)
+	      ;; Create debug output in empty epg-debug-buffer.
+	      (epg-debug t)
+	      (epg-debug-buffer (get-buffer-create " *epg-test*"))
+	      (mml-secure-fail-when-key-problem (not interactive)))
+	  (with-current-buffer epg-debug-buffer
+	    (erase-buffer))
+	  ;; Unset GPG_AGENT_INFO to enable passphrase caching inside Emacs.
+	  ;; Just for testing.  Jens does not recommend this for daily use.
+	  (setenv "GPG_AGENT_INFO")
+	  ;; Set GNUPGHOME as gpg-agent started by gpgsm does
+	  ;; not look in the proper places otherwise, see:
+	  ;; https://bugs.gnupg.org/gnupg/issue2126
+	  (setenv "GNUPGHOME" epg-gpg-home-directory)
+          (unwind-protect
+	      (funcall body)
+            (mml-sec-test--kill-gpg-agent)))
+      (setenv "GPG_AGENT_INFO" agent-info)
+      (setenv "GNUPGHOME" gpghome))))
 
 (defun mml-secure-test-message-setup (method to from &optional text bcc)
   "Setup a buffer with MML METHOD, TO, and FROM headers.

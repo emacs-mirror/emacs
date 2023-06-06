@@ -80,6 +80,8 @@
 (autoload 'nnselect-article-rsv "nnselect" nil nil)
 (autoload 'nnselect-article-group "nnselect" nil nil)
 (autoload 'gnus-nnselect-group-p "nnselect" nil nil)
+(autoload 'gnus-search-thread "gnus-search" nil nil)
+(autoload 'gnus-search-server-to-engine "gnus-search" nil nil)
 
 (defcustom gnus-kill-summary-on-exit t
   "If non-nil, kill the summary buffer when you exit from it.
@@ -141,12 +143,17 @@ If t, fetch all the available old headers."
   'gnus-refer-thread-use-search "28.1")
 
 (defcustom gnus-refer-thread-use-search nil
-  "Search an entire server when referring threads.
-A nil value will only search for thread-related articles in the
-current group."
+  "Specify where to find articles when referring threads.
+A nil value restricts searches for thread-related articles to the
+current group; a value of t searches all groups on the server; a
+list of servers and groups (where each element is a list whose
+car is the server and whose cdr is a list of groups on this
+server or nil to search the entire server) searches these
+server/groups.  This may usefully be set as a group parameter."
   :version "28.1"
   :group 'gnus-thread
-  :type 'boolean)
+  :type '(restricted-sexp :match-alternatives
+                          (listp 't 'nil)))
 
 (defcustom gnus-refer-thread-limit-to-thread nil
   "If non-nil referring a thread will limit the summary buffer to
@@ -1408,6 +1415,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-newsgroup-adaptive-score-file nil)
 (defvar gnus-current-score-file nil)
 (defvar gnus-current-move-group nil)
+(defvar gnus-current-move-article nil)
 (defvar gnus-current-copy-group nil)
 (defvar gnus-current-crosspost-group nil)
 (defvar gnus-newsgroup-display nil)
@@ -8500,7 +8508,15 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 If REVERSE, limit the summary buffer to articles that are marked
 with MARKS.  MARKS can either be a string of marks or a list of marks.
 Returns how many articles were removed."
-  (interactive "sMarks: " gnus-summary-mode)
+  (interactive
+   (list
+    (completing-read "Marks:"
+		     (let ((mark-list '()))
+		       (mapc (lambda (datum)
+			       (cl-pushnew   (gnus-data-mark datum) mark-list))
+			     gnus-newsgroup-data)
+		       (mapcar 'char-to-string  mark-list)))
+    current-prefix-arg) gnus-summary-mode)
   (gnus-summary-limit-to-marks marks t))
 
 (defun gnus-summary-limit-to-marks (marks &optional reverse)
@@ -8509,7 +8525,15 @@ If REVERSE (the prefix), limit the summary buffer to articles that are
 not marked with MARKS.  MARKS can either be a string of marks or a
 list of marks.
 Returns how many articles were removed."
-  (interactive "sMarks: \nP" gnus-summary-mode)
+  (interactive
+   (list
+    (completing-read "Marks:"
+		     (let ((mark-list '()))
+		       (mapc (lambda (datum)
+			       (cl-pushnew   (gnus-data-mark datum) mark-list))
+			     gnus-newsgroup-data)
+		       (mapcar 'char-to-string  mark-list)))
+    current-prefix-arg) gnus-summary-mode)
   (prog1
       (let ((data gnus-newsgroup-data)
 	    (marks (if (listp marks) marks
@@ -8992,65 +9016,73 @@ Return the number of articles fetched."
 
 (defun gnus-summary-refer-thread (&optional limit)
   "Fetch all articles in the current thread.
-For backends that know how to search for threads (currently only
-`nnimap') a non-numeric prefix arg will search the entire server;
-without a prefix arg only the current group is searched.  If the
-variable `gnus-refer-thread-use-search' is non-nil the prefix arg
-has the reverse meaning.  If no backend-specific `request-thread'
-function is available fetch LIMIT (the numerical prefix) old
-headers.  If LIMIT is non-numeric or nil fetch the number
-specified by the `gnus-refer-thread-limit' variable."
+A non-numeric prefix arg will search the entire server; without a
+prefix arg only the current group is searched.  If the variable
+`gnus-refer-thread-use-search' is t the prefix arg has the
+reverse meaning.  If searching is not enabled for the current
+group, fetch LIMIT (the numerical prefix) old headers.  If LIMIT
+is non-numeric or nil fetch the number specified by the
+`gnus-refer-thread-limit' variable."
   (interactive "P" gnus-summary-mode)
-  (let* ((header (gnus-summary-article-header))
-	 (id (mail-header-id header))
-	 (gnus-inhibit-demon t)
-	 (gnus-summary-ignore-duplicates t)
-	 (gnus-read-all-available-headers t)
-	 (gnus-refer-thread-use-search
-	  (if (and (not (null limit)) (listp limit))
-	      (not gnus-refer-thread-use-search) gnus-refer-thread-use-search))
-	 (new-headers
-	  (if (gnus-check-backend-function
-	       'request-thread gnus-newsgroup-name)
-	      (gnus-request-thread header gnus-newsgroup-name)
-	    (let* ((limit (if (numberp limit) (prefix-numeric-value limit)
-			    gnus-refer-thread-limit))
-		   (last (if (numberp limit)
-			     (min (+ (mail-header-number header)
-				     limit)
-				  gnus-newsgroup-highest)
-			   gnus-newsgroup-highest))
-		   (subject (gnus-simplify-subject
-			     (mail-header-subject header)))
-		   (refs (split-string (or (mail-header-references header)
-					   "")))
-		   (gnus-parse-headers-hook
+  (let* ((group gnus-newsgroup-name)
+         (header (gnus-summary-article-header))
+         (id (mail-header-id header))
+         (gnus-inhibit-demon t)
+         (gnus-summary-ignore-duplicates t)
+         (gnus-read-all-available-headers t)
+         (gnus-refer-thread-use-search
+          (if (or (null limit) (numberp limit))
+              gnus-refer-thread-use-search
+            (if (booleanp gnus-refer-thread-use-search)
+                (not gnus-refer-thread-use-search)
+              gnus-refer-thread-use-search)))
+         article-ids new-unreads
+         (new-headers
+          (cond
+           ;; If there is a backend-specific method, use it.
+           ((gnus-check-backend-function
+             'request-thread group)
+            (gnus-request-thread header group))
+           ;; If a search engine is configured, use it.
+           ((ignore-errors
+              (gnus-search-server-to-engine (gnus-group-server group)))
+            (gnus-search-thread header))
+           ;; Otherwise just retrieve some headers.
+           (t
+            (let* ((limit (if (numberp limit)
+                              limit
+                            gnus-refer-thread-limit))
+                   (last (if (numberp limit)
+                             (min (+ (mail-header-number header) limit)
+                                  gnus-newsgroup-highest)
+                           gnus-newsgroup-highest))
+                   (subject (gnus-simplify-subject
+                             (mail-header-subject header)))
+                   (refs (split-string
+                          (or (mail-header-references header) "")))
+                   (gnus-parse-headers-hook
                     (let ((refs (append refs (list id subject))))
-		      (lambda ()
-                        (goto-char (point-min))
-		        (keep-lines (regexp-opt refs))))))
-	      (gnus-fetch-headers (list last) (if (numberp limit)
-						  (* 2 limit) limit)
-                                  t))))
-	 article-ids new-unreads)
+                      (lambda () (goto-char (point-min))
+                        (keep-lines (regexp-opt refs))))))
+              (gnus-fetch-headers
+               (list last) (if (numberp limit) (* 2 limit) limit) t))))))
     (when (listp new-headers)
       (dolist (header new-headers)
-	(push (mail-header-number header) article-ids))
+        (push (mail-header-number header) article-ids))
       (setq article-ids (nreverse article-ids))
       (setq new-unreads
-	    (gnus-sorted-intersection gnus-newsgroup-unselected article-ids))
+            (gnus-sorted-intersection gnus-newsgroup-unselected article-ids))
       (setq gnus-newsgroup-unselected
-	    (gnus-sorted-ndifference gnus-newsgroup-unselected new-unreads))
+            (gnus-sorted-ndifference gnus-newsgroup-unselected new-unreads))
       (setq gnus-newsgroup-unreads
-	    (gnus-sorted-nunion gnus-newsgroup-unreads new-unreads))
+            (gnus-sorted-nunion gnus-newsgroup-unreads new-unreads))
       (setq gnus-newsgroup-headers
             (gnus-delete-duplicate-headers
-             (cl-merge
-              'list gnus-newsgroup-headers new-headers
-              'gnus-article-sort-by-number)))
+             (cl-merge 'list gnus-newsgroup-headers new-headers
+                       'gnus-article-sort-by-number)))
       (setq gnus-newsgroup-articles
-	    (gnus-sorted-nunion gnus-newsgroup-articles article-ids))
-      (gnus-summary-limit-include-thread id gnus-refer-thread-limit-to-thread)))
+            (gnus-sorted-nunion gnus-newsgroup-articles article-ids)))
+    (gnus-summary-limit-include-thread id gnus-refer-thread-limit-to-thread))
   (gnus-summary-show-thread))
 
 (defun gnus-summary-open-group-with-article (message-id)
@@ -10248,6 +10280,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	       article gnus-newsgroup-name (current-buffer) t)))
 
 	  ;; run the move/copy/crosspost/respool hook
+          (setq gnus-current-move-article (cdr art-group))
 	  (run-hook-with-args 'gnus-summary-article-move-hook
 			      action
 			      (gnus-data-header (gnus-data-find article))

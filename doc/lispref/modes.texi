@@ -1775,6 +1775,8 @@ it's used to say which major modes this minor mode is useful in.
 
 Any other keyword arguments are passed directly to the
 @code{defcustom} generated for the variable @var{mode}.
+@xref{Variable Definitions}, for the description of those keywords and
+their values.
 
 The command named @var{mode} first performs the standard actions such as
 setting the variable named @var{mode} and then executes the @var{body}
@@ -1860,9 +1862,10 @@ by visiting files, and buffers that use a major mode other than
 Fundamental mode; but it does not detect the creation of a new buffer
 in Fundamental mode.
 
-This defines the customization option @var{global-mode} (@pxref{Customization}),
-which can be toggled in the Customize interface to turn the minor mode on
-and off.  As with @code{define-minor-mode}, you should ensure that the
+This macro defines the customization option @var{global-mode}
+(@pxref{Customization}), which can be toggled via the Customize
+interface to turn the minor mode on and off.  As with
+@code{define-minor-mode}, you should ensure that the
 @code{define-globalized-minor-mode} form is evaluated each time Emacs
 starts, for example by providing a @code{:require} keyword.
 
@@ -1875,24 +1878,27 @@ Use @code{:variable @var{variable}} if that's not the case--some minor
 modes use a different variable to store this state information.
 
 Generally speaking, when you define a globalized minor mode, you should
-also define a non-globalized version, so that people can use (or
-disable) it in individual buffers.  This also allows them to disable a
+also define a non-globalized version, so that people could use it (or
+disable it) in individual buffers.  This also allows them to disable a
 globally enabled minor mode in a specific major mode, by using that
 mode's hook.
 
-If given a @code{:predicate} keyword, a user option called the same as
-the global mode variable, but with @code{-modes} instead of
-@code{-mode} at the end will be created.  The variable is used as a
-predicate that specifies which major modes the minor mode should be
-activated in.  Valid values include @code{t} (use in all major modes,
-@code{nil} (use in no major modes), or a list of mode names (or
-@code{(not mode-name ...)}) elements (as well as @code{t} and
-@code{nil}).
+If the macro is given a @code{:predicate} keyword, it will create a
+user option called the same as the global mode variable, but with
+@code{-modes} instead of @code{-mode} at the end, i.e.@:
+@code{@var{global-mode}s}.  This variable will be used in a predicate
+function that determines whether the minor mode should be activated in
+a particular major mode.  Valid values of @code{:predicate} include
+@code{t} (use in all major modes), @code{nil} (don't use in any major
+modes), or a list of mode names, optionally preceded with @code{not}
+(as in @w{@code{(not @var{mode-name} @dots{})}}).  These elements can
+be mixed, as shown in the following examples.
 
 @example
 (c-mode (not mail-mode message-mode) text-mode)
 @end example
 
+@noindent
 This means ``use in modes derived from @code{c-mode}, and not in
 modes derived from @code{message-mode} or @code{mail-mode}, but do use
 in modes derived from @code{text-mode}, and otherwise no other
@@ -1902,13 +1908,15 @@ modes''.
 ((not c-mode) t)
 @end example
 
-This means ``don't use modes derived from @code{c-mode}, but use
+@noindent
+This means ``don't use in modes derived from @code{c-mode}, but do use
 everywhere else''.
 
 @example
 (text-mode)
 @end example
 
+@noindent
 This means ``use in modes derived from @code{text-mode}, but nowhere
 else''.  (There's an implicit @code{nil} element at the end.)
 @end defmac
@@ -2349,18 +2357,19 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-function-mode} minor mode if
-set, else after @code{mode-line-modes}.  Elements that are added to
-this construct should normally end in a space (to ensure that
-consecutive @code{global-mode-string} elements display properly).  For
-instance, the command @code{display-time} sets
-@code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time
-and load information.
+the mode line as part of @code{mode-line-misc-info}, just after the
+@code{which-function-mode} information if that minor mode is enabled,
+else after @code{mode-line-modes}.  Elements that are added to this
+construct should normally end in a space (to ensure that consecutive
+@code{global-mode-string} elements display properly).  For instance,
+the command @code{display-time} sets @code{global-mode-string} to
+refer to the variable @code{display-time-string}, which holds a string
+containing the time and load information.
 
 The @samp{%M} construct substitutes the value of
-@code{global-mode-string}, but that is obsolete, since the variable is
-included in the mode line from @code{mode-line-format}.
+@code{global-mode-string}.  This construct is not used by the default
+mode line, as the variable itself is used in
+@code{mode-line-misc-info}.
 @end defvar
 
 Here is a simplified version of the default value of
@@ -2389,6 +2398,7 @@ specifies addition of text properties.
 
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
+@cindex @code{%}-constructs in the mode line
 
   Strings used as mode line constructs can use certain
 @code{%}-constructs to substitute various kinds of data.  The
@@ -2440,6 +2450,10 @@ abbreviate.
 The current line number of point, counting within the accessible portion
 of the buffer.
 
+@item %M
+The value of @code{global-mode-string} (which is part of
+@code{mode-line-misc-info} by default).
+
 @item %n
 @samp{Narrow} when narrowing is in effect; nothing otherwise (see
 @code{narrow-to-region} in @ref{Narrowing}).
@@ -2475,6 +2489,9 @@ The mnemonics of keyboard, terminal, and buffer coding systems.
 @item %Z
 Like @samp{%z}, but including the end-of-line format.
 
+@item %&
+@samp{*} if the buffer is modified, and @samp{-} otherwise.
+
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{*} if the buffer is modified (see @code{buffer-modified-p}); @*
@@ -2485,9 +2502,6 @@ Like @samp{%z}, but including the end-of-line format.
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{-} otherwise.  This differs from @samp{%*} only for a modified
 read-only buffer.  @xref{Buffer Modification}.
-
-@item %&
-@samp{*} if the buffer is modified, and @samp{-} otherwise.
 
 @item %@@
 @samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
@@ -2510,13 +2524,16 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following @code{%}-construct is still supported, but it is
-obsolete, since you can get the same result using the variable
-@code{mode-name}.
+@subsubheading Obsolete @code{%}-Constructs
+
+  The following constructs should no longer be used.
 
 @table @code
 @item %m
-The value of @code{mode-name}.
+Obsolete; use the @code{mode-name} variable instead.  The @code{%m}
+construct is inadequate, as it produces an empty string if the value
+of @code{mode-name} is a non-string mode-line construct (as in
+@code{emacs-lisp-mode}, for example).
 @end table
 
 @node Properties in Mode
@@ -4057,8 +4074,8 @@ replacing syntactic font lock, then the regexp-based font lock.
 
 Although parser-based font lock doesn't share the same customization
 variables with regexp-based font lock, it uses similar customization
-schemes.  The tree-sitter counterpart of @var{font-lock-keywords} is
-@var{treesit-font-lock-settings}.
+schemes.  The tree-sitter counterpart of @code{font-lock-keywords} is
+@code{treesit-font-lock-settings}.
 
 @cindex tree-sitter fontifications, overview
 @cindex fontifications with tree-sitter, overview
@@ -4092,9 +4109,9 @@ To setup tree-sitter fontification, a major mode should first set
 @code{treesit-major-mode-setup}.
 
 @defun treesit-font-lock-rules &rest query-specs
-This function is used to set @var{treesit-font-lock-settings}.  It
+This function is used to set @code{treesit-font-lock-settings}.  It
 takes care of compiling queries and other post-processing, and outputs
-a value that @var{treesit-font-lock-settings} accepts.  Here's an
+a value that @code{treesit-font-lock-settings} accepts.  Here's an
 example:
 
 @example
@@ -4138,7 +4155,7 @@ Other keywords are optional:
 @end multitable
 
 Lisp programs mark patterns in @var{query} with capture names (names
-that starts with @code{@@}), and tree-sitter will return matched nodes
+that start with @code{@@}), and tree-sitter will return matched nodes
 tagged with those same capture names.  For the purpose of
 fontification, capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
@@ -4965,7 +4982,7 @@ below: then the major mode needs only to write some indentation rules
 and the engine takes care of the rest.
 
 To enable the parser-based indentation engine, either set
-@var{treesit-simple-indent-rules} and call
+@code{treesit-simple-indent-rules} and call
 @code{treesit-major-mode-setup}, or equivalently, set the value of
 @code{indent-line-function} to @code{treesit-indent}.
 

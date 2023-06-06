@@ -1549,7 +1549,7 @@ information."
        keyword info)))))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 (defun org-ascii-latex-environment (latex-environment _contents info)
   "Transcode a LATEX-ENVIRONMENT element from Org to ASCII.
@@ -1561,7 +1561,7 @@ information."
      latex-environment info)))
 
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 (defun org-ascii-latex-fragment (latex-fragment _contents info)
   "Transcode a LATEX-FRAGMENT object from Org to ASCII.

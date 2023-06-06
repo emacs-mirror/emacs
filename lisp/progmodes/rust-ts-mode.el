@@ -91,6 +91,7 @@
      ((parent-is "let_declaration") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "macro_definition") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "parameters") parent-bol rust-ts-mode-indent-offset)
+     ((parent-is "struct_pattern") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "token_tree") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "use_list") parent-bol rust-ts-mode-indent-offset)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
@@ -235,6 +236,7 @@
        "^\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)$"
        @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
+     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
      (type_identifier) @font-lock-type-face)
 
    :language 'rust
@@ -348,7 +350,12 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name") t))))
 
 (defun rust-ts-mode--syntax-propertize (beg end)
-  "Apply syntax text property to template delimiters between BEG and END.
+  "Apply syntax properties to special characters between BEG and END.
+
+Apply syntax properties to various special characters with
+contextual meaning between BEG and END.
+
+The apostrophe \\=' should be treated as string when used for char literals.
 
 < and > are usually punctuation, e.g., as greater/less-than.  But
 when used for types, they should be considered pairs.
@@ -357,11 +364,18 @@ This function checks for < and > in the changed RANGES and apply
 appropriate text property to alter the syntax of template
 delimiters < and >'s."
   (goto-char beg)
+  (while (search-forward "'" end t)
+    (when (string-equal "char_literal"
+                        (treesit-node-type
+                         (treesit-node-at (match-beginning 0))))
+      (put-text-property (match-beginning 0) (match-end 0)
+                         'syntax-table (string-to-syntax "\""))))
+  (goto-char beg)
   (while (re-search-forward (rx (or "<" ">")) end t)
     (pcase (treesit-node-type
             (treesit-node-parent
              (treesit-node-at (match-beginning 0))))
-      ("type_arguments"
+      ((or "type_arguments" "type_parameters")
        (put-text-property (match-beginning 0)
                           (match-end 0)
                           'syntax-table

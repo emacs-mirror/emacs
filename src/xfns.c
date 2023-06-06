@@ -4252,9 +4252,9 @@ x_window (struct frame *f, long window_prompting)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-  if (use_xim)
+  if (FRAME_DISPLAY_INFO (f)->use_xim)
     create_frame_xic (f);
-#endif
+#endif /* HAVE_X_I18N */
 
   f->output_data.x->wm_hints.input = True;
   f->output_data.x->wm_hints.flags |= InputHint;
@@ -4355,32 +4355,32 @@ x_window (struct frame *f)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-  if (use_xim)
-  {
-    block_input ();
-    create_frame_xic (f);
-    if (FRAME_XIC (f))
-      {
-	/* XIM server might require some X events. */
-	unsigned long fevent = NoEventMask;
-	XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+  if (FRAME_DISPLAY_INFO (f)->use_xim)
+    {
+      block_input ();
+      create_frame_xic (f);
+      if (FRAME_XIC (f))
+	{
+	  /* XIM server might require some X events. */
+	  unsigned long fevent = NoEventMask;
+	  XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
 
-	if (fevent != NoEventMask)
-	  {
-	    XSetWindowAttributes attributes;
-	    XWindowAttributes wattr;
-	    unsigned long attribute_mask;
+	  if (fevent != NoEventMask)
+	    {
+	      XSetWindowAttributes attributes;
+	      XWindowAttributes wattr;
+	      unsigned long attribute_mask;
 
-	    XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				  &wattr);
-	    attributes.event_mask = wattr.your_event_mask | fevent;
-	    attribute_mask = CWEventMask;
-	    XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				     attribute_mask, &attributes);
-	  }
-      }
-    unblock_input ();
-  }
+	      XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				    &wattr);
+	      attributes.event_mask = wattr.your_event_mask | fevent;
+	      attribute_mask = CWEventMask;
+	      XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				       attribute_mask, &attributes);
+	    }
+	}
+      unblock_input ();
+    }
 #endif
 
   append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
@@ -4427,7 +4427,7 @@ x_window (struct frame *f)
   initial_set_up_x_back_buffer (f);
 
 #ifdef HAVE_X_I18N
-  if (use_xim)
+  if (FRAME_DISPLAY_INFO (f)->use_xim)
     {
       create_frame_xic (f);
       if (FRAME_XIC (f))

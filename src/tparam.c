@@ -173,8 +173,7 @@ tparam1 (const char *string, char *outstring, int len,
 			doup++, append_len_incr = strlen (up);
 		      else
 			doleft++, append_len_incr = strlen (left);
-		      if (INT_ADD_WRAPV (append_len_incr,
-					 append_len, &append_len))
+		      if (ckd_add (&append_len, append_len, append_len_incr))
 			memory_full (SIZE_MAX);
 		    }
 		}

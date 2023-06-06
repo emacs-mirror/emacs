@@ -2704,11 +2704,12 @@ ns_scroll_run (struct window *w, struct run *run)
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
     NSPoint dest = NSMakePoint (x, to_y);
+    NSRect destRect = NSMakeRect (x, from_y, width, height);
     EmacsView *view = FRAME_NS_VIEW (f);
 
     [view copyRect:srcRect to:dest];
 #ifdef NS_IMPL_COCOA
-    [view setNeedsDisplayInRect:srcRect];
+    [view setNeedsDisplayInRect:destRect];
 #endif
   }
 
@@ -3750,14 +3751,18 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 	{
           struct face *face = s->face;
           if (!face->stipple)
-	    {
-	      if (s->hl != DRAW_CURSOR)
-		[(NS_FACE_BACKGROUND (face) != 0
-		  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
-		  : FRAME_BACKGROUND_COLOR (s->f)) set];
-	      else
-		[FRAME_CURSOR_COLOR (s->f) set];
-	    }
+            {
+              if (s->hl != DRAW_CURSOR)
+                [(NS_FACE_BACKGROUND (face) != 0
+                  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
+                  : FRAME_BACKGROUND_COLOR (s->f)) set];
+              else if (face && (NS_FACE_BACKGROUND (face)
+                                == [(NSColor *) FRAME_CURSOR_COLOR (s->f)
+                                                unsignedLong]))
+                [[NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)] set];
+              else
+                [FRAME_CURSOR_COLOR (s->f) set];
+            }
           else
             {
               struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
@@ -4603,7 +4608,7 @@ ns_send_appdefined (int value)
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 static void
-check_native_fs ()
+check_native_fs (void)
 {
   Lisp_Object frame, tail;
 
@@ -7926,6 +7931,10 @@ ns_in_echo_area (void)
   [self setLayerContentsRedrawPolicy:
           NSViewLayerContentsRedrawOnSetNeedsDisplay];
   [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
+
+  /* initWithEmacsFrame can't create the toolbar before the layer is
+     set, so have another go at creating the toolbar here.  */
+  [(EmacsWindow*)[self window] createToolbar:f];
 #endif
 
   if (ns_drag_types)
@@ -8573,6 +8582,10 @@ ns_in_echo_area (void)
   return self;
 }
 
+- (BOOL) validateToolbarItem: (NSToolbarItem *) toolbarItem
+{
+  return [toolbarItem isEnabled];
+}
 
 - (instancetype)toggleToolbar: (id)sender
 {
@@ -9166,10 +9179,17 @@ ns_in_echo_area (void)
 
 - (void)createToolbar: (struct frame *)f
 {
-  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f))
+  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f) || [self toolbar] != nil)
     return;
 
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  /* If the view's layer isn't an EmacsLayer then we can't create the
+     toolbar yet.  */
+  if (! [[view layer] isKindOfClass:[EmacsLayer class]])
+    return;
+#endif
 
   EmacsToolbar *toolbar = [[EmacsToolbar alloc]
                             initForView:view
