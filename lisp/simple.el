@@ -11051,12 +11051,7 @@ seconds."
                      ;; Save the current undo list to figure out
                      ;; whether or not auto-fill has actually taken
                      ;; place.
-                     (old-undo-list buffer-undo-list)
-                     ;; FIXME: this leads to an error in
-                     ;; `atomic-change-group', seemingly because
-                     ;; buffer-undo-list is being modified or
-                     ;; prematurely truncated.  Turn it off for now.
-                     (electric-pair-preserve-balance nil))
+                     (old-undo-list buffer-undo-list))
                 (save-excursion
                   (if (and auto-fill-function newline-p)
                       (progn (goto-char (nth 2 edit))
