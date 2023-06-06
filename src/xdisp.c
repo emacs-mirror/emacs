@@ -3074,6 +3074,12 @@ safe__eval (bool inhibit_quit, Lisp_Object sexpr)
   return safe__call1 (inhibit_quit, Qeval, sexpr);
 }
 
+Lisp_Object
+safe_eval_inhibit_quit (Lisp_Object sexpr)
+{
+  return safe__eval (true, sexpr);
+}
+
 /* Call function FN with two arguments ARG1 and ARG2.
    Return the result, or nil if something went wrong.  */
 

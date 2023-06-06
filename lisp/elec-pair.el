@@ -453,7 +453,9 @@ happened."
        ;; position some markers.  The real fix would be to compute the
        ;; result without having to modify the buffer at all.
        (atomic-change-group
-         (delete-char -1)
+         ;; Don't use `delete-char'; that may modify the head of the
+         ;; undo list.
+         (delete-region (point) (1- (point)))
          (throw
           'done
           (cond ((eq ?\( syntax)

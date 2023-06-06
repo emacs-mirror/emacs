@@ -2597,6 +2597,15 @@ It is normally @code{nil}, so that ordinary buffers have no header
 line.
 @end defvar
 
+Emacs displays the header line for a window unless
+@code{header-line-format} is either @code{nil}, or it's a list whose
+@sc{car} is a symbol, and either that symbol is @code{:eval} and the
+second list element evaluates to @code{nil} or the symbol's value as a
+variable is @code{nil} or void.  Note that there are other possible
+values @code{header-line-format} that result in an empty header line
+(for example, @code{""}), but all other values tell Emacs to display a
+header line, whether or not it is empty.
+
 If @code{display-line-numbers-mode} is turned on in a buffer
 (@pxref{Display Custom, display-line-numbers-mode,, emacs, The GNU
 Emacs Manual}), the buffer text is indented on display by the amount
