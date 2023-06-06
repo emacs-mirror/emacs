@@ -507,9 +507,7 @@ Used by `emacs-authors-mode' and `emacs-news-mode'."
 (defun eval-command-interactive-spec (command)
   "Evaluate COMMAND's interactive form and return resultant list.
 If COMMAND has no interactive form, return nil."
-  (advice-eval-interactive-spec
-   (cadr (or (and (symbolp command) (get command 'interactive-form))
-             (interactive-form command)))))
+  (advice-eval-interactive-spec (cadr (interactive-form command))))
 
 (provide 'subr-x)
 
