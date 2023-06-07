@@ -148,9 +148,7 @@ static void test_main(void)
   /* Do the test */
   res = mps_addr_object(&out, arena, in);
 
-  /* We should insist MPS_RES_UNIMPL here but the Trivial Method for mps_addr_object is only reached for pools that contain objects in Segs.
-     Since mvff does not, and the input address is not inside a Seg, the call is rejected by the Arena with MPS_RES_FAIL */
-  Insist(res == MPS_RES_FAIL);
+  Insist(res == MPS_RES_UNIMPL);
 
   /* Final clean up */
   mps_free(mvff_pool, in, sizeof(mps_word_t));
