@@ -303,16 +303,20 @@ Size PoolFreeSize(Pool pool)
   return Method(Pool, pool, freeSize)(pool);
 }
 
-/* PoolAddrObject -- return base pointer from interior pointer */
-Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+
+/* PoolAddrObject -- return base pointer from interior pointer
+ *
+ * Note: addr is not necessarily inside the pool, even though
+ * mps_addr_object dispatches via the tract table.  This allows this
+ * function to be used more generally internally.  The pool should
+ * check (it has to anyway).
+ */
+
+Res PoolAddrObject(Addr *pReturn, Pool pool, Addr addr)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(pool == SegPool(seg));
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  return Method(Pool, pool, addrObject)(pReturn, pool, seg, addr);
+  return Method(Pool, pool, addrObject)(pReturn, pool, addr);
 }
 
 /* PoolDescribe -- describe a pool */

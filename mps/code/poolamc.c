@@ -1926,24 +1926,24 @@ static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
   return ResFAIL;
 }
 
+
 /* AMCAddrObject -- return base pointer from interior pointer */
 
-static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+static Res AMCAddrObject(Addr *pReturn, Pool pool, Addr addr)
 {
   Res res;
   Arena arena;
   Addr base, limit;
   Buffer buffer;
-
+  Seg seg;
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
 
   arena = PoolArena(pool);
+  if (!SegOfAddr(&seg, arena, addr) || SegPool(seg) != pool)
+    return ResFAIL;
+
   base = SegBase(seg);
   if (SegBuffer(&buffer, seg))
     limit = BufferGetInit(buffer);

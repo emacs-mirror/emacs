@@ -1367,19 +1367,17 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
 /* ArenaAddrObject -- return base pointer of managed object */
 Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
 {
-  Seg seg;
-  Pool pool;
+  Tract tract;
 
   AVER(pReturn != NULL);
   AVERT(Arena, arena);
 
-  /* We currently assume that managed objects are inside Segments
-     and that pools where this feature is needed have Segments */
-  if (!SegOfAddr(&seg, arena, addr))
+  if (!TractOfAddr(&tract, arena, addr)) {
+    /* address does not belong to the arena */
     return ResFAIL;
+  }
 
-  pool = SegPool(seg);
-  return PoolAddrObject(pReturn, pool, seg, addr);
+  return PoolAddrObject(pReturn, TractPool(tract), addr);
 }
 
 
