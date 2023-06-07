@@ -236,7 +236,7 @@ extern Res PoolTraceBegin(Pool pool, Trace trace);
 extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
-extern Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
+extern Res PoolAddrObject(Addr *pReturn, Pool pool, Addr addr);
 
 extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 extern void PoolAbsFinish(Inst inst);
@@ -268,7 +268,7 @@ extern void PoolTrivFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
-extern Res PoolTrivAddr(Addr *pReturn, Pool pool, Seg seg, Addr addr);
+extern Res PoolTrivAddrObject(Addr *pReturn, Pool pool, Addr addr);
 
 /* See .critical.macros. */
 #define PoolFreeMacro(pool, old, size) Method(Pool, pool, free)(pool, old, size)
