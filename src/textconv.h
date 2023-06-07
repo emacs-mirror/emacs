@@ -143,6 +143,10 @@ extern void textconv_barrier (struct frame *, unsigned long);
 extern char *get_extracted_text (struct frame *, ptrdiff_t, ptrdiff_t *,
 				 ptrdiff_t *, ptrdiff_t *, ptrdiff_t *,
 				 ptrdiff_t *, bool *);
+extern char *get_surrounding_text (struct frame *, ptrdiff_t,
+				   ptrdiff_t, ptrdiff_t *,
+				   ptrdiff_t *, ptrdiff_t *,
+				   ptrdiff_t *, ptrdiff_t *);
 extern bool conversion_disabled_p (void);
 
 extern void register_textconv_interface (struct textconv_interface *);

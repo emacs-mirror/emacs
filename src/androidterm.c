@@ -5636,6 +5636,149 @@ NATIVE_NAME (clearInputFlags) (JNIEnv *env, jobject object,
   android_write_event (&event);
 }
 
+
+
+/* Context for a call to `getSurroundingText'.  */
+
+struct android_get_surrounding_text_context
+{
+  /* Number of characters before the region to return.  */
+  int before_length;
+
+  /* Number of characters after the region to return.  */
+  int after_length;
+
+  /* The returned text, or NULL.  */
+  char *text;
+
+  /* The size of that text in characters and bytes.  */
+  ptrdiff_t length, bytes;
+
+  /* Offsets into that text.  */
+  ptrdiff_t offset, start, end;
+
+  /* The window.  */
+  android_window window;
+};
+
+/* Return the surrounding text in the surrounding text context
+   specified by DATA.  */
+
+static void
+android_get_surrounding_text (void *data)
+{
+  struct android_get_surrounding_text_context *request;
+  struct frame *f;
+  ptrdiff_t temp;
+
+  request = data;
+
+  /* Find the frame associated with the window.  */
+  f = android_window_to_frame (NULL, request->window);
+
+  if (!f)
+    return;
+
+  /* Now get the surrounding text.  */
+  request->text
+    = get_surrounding_text (f, request->before_length,
+			    request->after_length, &request->length,
+			    &request->bytes, &request->offset,
+			    &request->start, &request->end);
+
+  /* Sort request->start and request->end for compatibility with some
+     bad input methods.  */
+
+  if (request->end < request->start)
+    {
+      temp = request->start;
+      request->start = request->end;
+      request->end = temp;
+    }
+}
+
+JNIEXPORT jobject JNICALL
+NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject ignored_object,
+				  jshort window, jint before_length,
+				  jint after_length, jint flags)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  static jclass class;
+  static jmethodID constructor;
+
+  struct android_get_surrounding_text_context context;
+  jstring string;
+  jobject object;
+
+  /* Initialize CLASS if it has not yet been initialized.  */
+
+  if (!class)
+    {
+      class
+	= (*env)->FindClass (env, ("android/view/inputmethod"
+				   "/SurroundingText"));
+
+#if __ANDROID_API__ < 31
+      /* If CLASS cannot be found, the version of Android currently
+	 running is too old.  */
+
+      if (!class)
+	{
+	  (*env)->ExceptionClear (env);
+	  return NULL;
+	}
+#else /* __ANDROID_API__ >= 31 */
+      assert (class);
+#endif /* __ANDROID_API__ < 31 */
+
+      class = (*env)->NewGlobalRef (env, class);
+      if (!class)
+	return NULL;
+
+      /* Now look for its constructor.  */
+      constructor = (*env)->GetMethodID (env, class, "<init>",
+					 "(Ljava/lang/CharSequence;III)V");
+      assert (constructor);
+    }
+
+  context.before_length = before_length;
+  context.after_length = after_length;
+  context.window = window;
+  context.text = NULL;
+
+  android_sync_edit ();
+  if (android_run_in_emacs_thread (android_get_surrounding_text,
+				   &context))
+    return NULL;
+
+  if (!context.text)
+    return NULL;
+
+  /* Encode the returned text.  */
+  string = android_text_to_string (env, context.text, context.length,
+				   context.bytes);
+  free (context.text);
+
+  if (!string)
+    return NULL;
+
+  /* Create an SurroundingText object containing this information.  */
+  object = (*env)->NewObject (env, class, constructor, string,
+			      (jint) min (context.start,
+					  TYPE_MAXIMUM (jint)),
+			      (jint) min (context.end,
+					  TYPE_MAXIMUM (jint)),
+			      /* Adjust point offsets to fit into
+				 Android's 0-based indexing. */
+			      (jint) min (context.offset - 1,
+					  TYPE_MAXIMUM (jint)));
+  if (!object)
+    return NULL;
+
+  return object;
+}
+
 #ifdef __clang__
 #pragma clang diagnostic pop
 #else

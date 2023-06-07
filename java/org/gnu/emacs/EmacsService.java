@@ -748,6 +748,7 @@ public final class EmacsService extends Service
     window.view.setICMode (icMode);
 
     icBeginSynchronous ();
+    window.view.icGeneration++;
     window.view.imManager.restartInput (window.view);
     icEndSynchronous ();
   }

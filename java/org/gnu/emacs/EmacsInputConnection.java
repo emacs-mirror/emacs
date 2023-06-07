@@ -23,7 +23,9 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
+import android.view.inputmethod.SurroundingText;
 import android.view.inputmethod.TextSnapshot;
+
 import android.view.KeyEvent;
 
 import android.os.Build;
@@ -88,6 +90,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   beginBatchEdit ()
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "beginBatchEdit");
 
@@ -99,6 +105,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   endBatchEdit ()
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "endBatchEdit");
 
@@ -110,6 +120,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   commitCompletion (CompletionInfo info)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "commitCompletion: " + info);
 
@@ -124,6 +138,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   commitText (CharSequence text, int newCursorPosition)
   {
     int[] selection;
+
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
 
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "commitText: " + text + " " + newCursorPosition);
@@ -156,6 +174,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   deleteSurroundingText (int leftLength, int rightLength)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, ("deleteSurroundingText: "
 		   + leftLength + " " + rightLength));
@@ -169,6 +191,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   finishComposingText ()
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "finishComposingText");
 
@@ -180,6 +206,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public String
   getSelectedText (int flags)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return null;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getSelectedText: " + flags);
 
@@ -191,6 +221,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   getTextAfterCursor (int length, int flags)
   {
     String string;
+
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return null;
 
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getTextAfterCursor: " + length + " " + flags);
@@ -210,6 +244,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   {
     String string;
 
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return null;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getTextBeforeCursor: " + length + " " + flags);
 
@@ -226,6 +264,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   setComposingText (CharSequence text, int newCursorPosition)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, ("setComposingText: "
 		   + text + " ## " + newCursorPosition));
@@ -239,6 +281,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   setComposingRegion (int start, int end)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "setComposingRegion: " + start + " " + end);
 
@@ -250,6 +296,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   performEditorAction (int editorAction)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "performEditorAction: " + editorAction);
 
@@ -262,6 +312,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   performContextMenuAction (int contextMenuAction)
   {
     int action;
+
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
 
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "performContextMenuAction: " + contextMenuAction);
@@ -309,6 +363,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   {
     ExtractedText text;
     int[] selection;
+
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return null;
 
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getExtractedText: " + request.hintMaxChars + ", "
@@ -360,6 +418,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   setSelection (int start, int end)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "setSelection: " + start + " " + end);
 
@@ -371,6 +433,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   sendKeyEvent (KeyEvent key)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "sendKeyEvent: " + key);
 
@@ -381,6 +447,10 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   deleteSurroundingTextInCodePoints (int beforeLength, int afterLength)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     /* This can be implemented the same way as
        deleteSurroundingText.  */
     return this.deleteSurroundingText (beforeLength, afterLength);
@@ -390,11 +460,46 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   requestCursorUpdates (int cursorUpdateMode)
   {
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return false;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "requestCursorUpdates: " + cursorUpdateMode);
 
     EmacsNative.requestCursorUpdates (windowHandle, cursorUpdateMode);
     return true;
+  }
+
+  @Override
+  public SurroundingText
+  getSurroundingText (int beforeLength, int afterLength,
+		      int flags)
+  {
+    SurroundingText text;
+
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return null;
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, ("getSurroundingText: " + beforeLength + ", "
+		   + afterLength));
+
+    text = EmacsNative.getSurroundingText (windowHandle, beforeLength,
+					   afterLength, flags);
+
+    if (text != null)
+      Log.d (TAG, ("getSurroundingText: "
+		   + text.getSelectionStart ()
+		   + ","
+		   + text.getSelectionEnd ()
+		   + "+"
+		   + text.getOffset ()
+		   + ": "
+		   + text.getText ()));
+
+    return text;
   }
 
 

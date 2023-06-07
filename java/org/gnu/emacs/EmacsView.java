@@ -111,6 +111,13 @@ public final class EmacsView extends ViewGroup
      details.  */
   private int icMode;
 
+  /* The number of calls to `resetIC' to have taken place the last
+     time an InputConnection was created.  */
+  public long icSerial;
+
+  /* The number of calls to `recetIC' that have taken place.  */
+  public volatile long icGeneration;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -626,6 +633,12 @@ public final class EmacsView extends ViewGroup
 	info.inputType = InputType.TYPE_NULL;
 	return null;
       }
+
+    /* Set icSerial.  If icSerial < icGeneration, the input connection
+       has been reset, and future input should be ignored until a new
+       connection is created.  */
+
+    icSerial = icGeneration;
 
     /* Reset flags set by the previous input method.  */
 

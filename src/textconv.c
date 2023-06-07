@@ -1732,6 +1732,106 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   return buffer;
 }
 
+/* Return the text between the positions PT - LEFT and PT + RIGHT.  If
+   the mark is active, return the range of text relative to the bounds
+   of the region instead.
+
+   Set *LENGTH to the number of characters returned, *BYTES to the
+   number of bytes returned, *OFFSET to the character position of the
+   returned text, and *START_RETURN and *END_RETURN to the mark and
+   point relative to that position.  */
+
+char *
+get_surrounding_text (struct frame *f, ptrdiff_t left,
+		      ptrdiff_t right, ptrdiff_t *length,
+		      ptrdiff_t *bytes, ptrdiff_t *offset,
+		      ptrdiff_t *start_return,
+		      ptrdiff_t *end_return)
+{
+  specpdl_ref count;
+  ptrdiff_t start, end, start_byte, end_byte, mark, temp;
+  char *buffer;
+
+  if (!WINDOW_LIVE_P (f->old_selected_window))
+    return NULL;
+
+  /* Save the excursion, as there will be extensive changes to the
+     selected window.  */
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_excursion ();
+
+  /* Inhibit quitting.  */
+  specbind (Qinhibit_quit, Qt);
+
+  /* Temporarily switch to F's selected window at the time of the last
+     redisplay.  */
+  select_window (f->old_selected_window, Qt);
+  buffer = NULL;
+
+  /* Figure out the bounds of the text to return.  */
+
+  /* First, obtain start and end.  */
+  end = get_mark ();
+  start = PT;
+
+  /* If the mark is not active, make it start and end.  */
+
+  if (end == -1)
+    end = start;
+
+  /* Now sort start and end.  */
+
+  if (end < start)
+    {
+      temp = start;
+      start = end;
+      end = temp;
+    }
+
+  /* And subtract left and right.  */
+
+  if (INT_SUBTRACT_WRAPV (start, left, &start)
+      || INT_ADD_WRAPV (end, right, &end))
+    goto finish;
+
+  start = max (start, BEGV);
+  end = min (end, ZV);
+
+  /* Detect overflow.  */
+
+  if (!(start <= PT && PT <= end))
+    goto finish;
+
+  /* Convert the character positions to byte positions.  */
+  start_byte = CHAR_TO_BYTE (start);
+  end_byte = CHAR_TO_BYTE (end);
+
+  /* Extract the text from the buffer.  */
+  buffer = xmalloc (end_byte - start_byte);
+  copy_buffer (start, start_byte, end, end_byte,
+	       buffer);
+
+  /* Get the mark.  If it's not active, use PT.  */
+
+  mark = get_mark ();
+
+  if (mark == -1)
+    mark = PT;
+
+  /* Return the offsets.  Unlike `get_extracted_text', this need not
+     sort mark and point.  */
+
+  *offset = start;
+  *start_return = mark - start;
+  *end_return = PT - start;
+  *length = end - start;
+  *bytes = end_byte - start_byte;
+
+ finish:
+  unbind_to (count, Qnil);
+  return buffer;
+}
+
 /* Return whether or not text conversion is temporarily disabled.
    `reset' should always call this to determine whether or not to
    disable the input method.  */
