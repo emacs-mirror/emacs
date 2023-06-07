@@ -43,7 +43,7 @@
    followed by N bytes of other data.  The result is suitable as an
    argument to malloc.  For example:
 
-     struct s { int n; char d[FLEXIBLE_ARRAY_MEMBER]; };
+     struct s { int a; char d[FLEXIBLE_ARRAY_MEMBER]; };
      struct s *p = malloc (FLEXSIZEOF (struct s, d, n * sizeof (char)));
 
    FLEXSIZEOF (TYPE, MEMBER, N) is not simply (sizeof (TYPE) + N),
@@ -63,3 +63,14 @@
 #define FLEXSIZEOF(type, member, n) \
    ((offsetof (type, member) + FLEXALIGNOF (type) - 1 + (n)) \
     & ~ (FLEXALIGNOF (type) - 1))
+
+/* Yield a properly aligned upper bound on the size of a struct of
+   type TYPE with a flexible array member named MEMBER that has N
+   elements.  The result is suitable as an argument to malloc.
+   For example:
+
+     struct s { int a; double d[FLEXIBLE_ARRAY_MEMBER]; };
+     struct s *p = malloc (FLEXNSIZEOF (struct s, d, n));
+ */
+#define FLEXNSIZEOF(type, member, n) \
+  FLEXSIZEOF (type, member, (n) * sizeof (((type *) 0)->member[0]))

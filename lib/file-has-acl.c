@@ -28,7 +28,7 @@
 #include "acl.h"
 
 #include "acl-internal.h"
-
+#include "attribute.h"
 #include "minmax.h"
 
 #if USE_ACL && HAVE_LINUX_XATTR_H && HAVE_LISTXATTR
@@ -40,6 +40,12 @@
 # ifndef XATTR_NAME_NFSV4_ACL
 #  define XATTR_NAME_NFSV4_ACL "system.nfs4_acl"
 # endif
+# ifndef XATTR_NAME_POSIX_ACL_ACCESS
+#  define XATTR_NAME_POSIX_ACL_ACCESS "system.posix_acl_access"
+# endif
+# ifndef XATTR_NAME_POSIX_ACL_DEFAULT
+#  define XATTR_NAME_POSIX_ACL_DEFAULT "system.posix_acl_default"
+# endif
 
 enum {
   /* ACE4_ACCESS_ALLOWED_ACE_TYPE = 0x00000000, */
@@ -50,7 +56,7 @@ enum {
 /* Return true if ATTR is in the set represented by the NUL-terminated
    strings in LISTBUF, which is of size LISTSIZE.  */
 
-static bool
+ATTRIBUTE_PURE static bool
 have_xattr (char const *attr, char const *listbuf, ssize_t listsize)
 {
   char const *blim = listbuf + listsize;

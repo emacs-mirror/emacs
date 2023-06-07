@@ -39,21 +39,9 @@ AC_DEFUN([gl_FUNC_COPY_FILE_RANGE],
 
     case $host_os in
       linux*)
-        AC_CACHE_CHECK([whether copy_file_range is known to work],
-          [gl_cv_copy_file_range_known_to_work],
-          [AC_COMPILE_IFELSE(
-             [AC_LANG_PROGRAM(
-                [[#include <linux/version.h>
-                ]],
-                [[#if LINUX_VERSION_CODE < KERNEL_VERSION (5, 3, 0)
-                   #error "copy_file_range is buggy"
-                  #endif
-                ]])],
-             [gl_cv_copy_file_range_known_to_work=yes],
-             [gl_cv_copy_file_range_known_to_work=no])])
-        if test "$gl_cv_copy_file_range_known_to_work" = no; then
-          REPLACE_COPY_FILE_RANGE=1
-        fi;;
+        # See copy-file-range.c comment re pre-5.3 Linux kernel bugs.
+        # We should be able to remove this hack in 2025.
+        REPLACE_COPY_FILE_RANGE=1;;
     esac
   fi
 ])

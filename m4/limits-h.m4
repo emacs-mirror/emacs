@@ -28,11 +28,22 @@ AC_DEFUN_ONCE([gl_LIMITS_H],
           ]])],
        [gl_cv_header_limits_width=yes],
        [gl_cv_header_limits_width=no])])
-  if test "$gl_cv_header_limits_width" = yes; then
-    GL_GENERATE_LIMITS_H=false
-  else
-    GL_GENERATE_LIMITS_H=true
-  fi
+  GL_GENERATE_LIMITS_H=true
+  AS_IF([test "$gl_cv_header_limits_width" = yes],
+    [AC_CACHE_CHECK([whether limits.h has SSIZE_MAX],
+       [gl_cv_header_limits_ssize_max],
+       [AC_COMPILE_IFELSE(
+          [AC_LANG_SOURCE(
+             [[#include <limits.h>
+               #ifndef SSIZE_MAX
+                 #error "SSIZE_MAX is not defined"
+               #endif
+             ]])],
+          [gl_cv_header_limits_ssize_max=yes],
+          [gl_cv_header_limits_ssize_max=no])])
+     if test "$gl_cv_header_limits_ssize_max" = yes; then
+       GL_GENERATE_LIMITS_H=false
+     fi])
 ])
 
 dnl Unconditionally enables the replacement of <limits.h>.

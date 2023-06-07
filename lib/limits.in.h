@@ -134,6 +134,18 @@
 # endif
 #endif
 
+/* Macro specified by POSIX.  */
+
+/* The maximal size_t value.  Although it might not be of ssize_t type
+   as it should be, it's too much trouble to fix this minor detail.  */
+#ifndef SSIZE_MAX
+# ifdef _WIN64
+#  define SSIZE_MAX LLONG_MAX
+# else
+#  define SSIZE_MAX LONG_MAX
+# endif
+#endif
+
 #endif /* _@GUARD_PREFIX@_LIMITS_H */
 #endif /* _@GUARD_PREFIX@_LIMITS_H */
 #endif
