@@ -120,8 +120,8 @@ documentation at
 details.
 
   Once Emacs starts up, simply running the command @command{logcat} as
-an asynchronous shell command (@pxref{Running Shell Commands From
-Emacs}) will display the log buffer.
+an asynchronous shell command (@pxref{Shell}) will display the log
+buffer.
 
 @cindex emacsclient wrapper, android
   Since there is no other way to start the @command{emacsclient}
