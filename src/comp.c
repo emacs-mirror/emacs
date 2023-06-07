@@ -2664,11 +2664,12 @@ push_float_block (void)
   char *name
     = format_string ("float_block_%ld",
 		     XFIXNUM (Flength (comp.float_block_list)));
+  gcc_jit_type *float_block_type
+    = gcc_jit_type_get_const (comp.float_block_aligned_type);
   gcc_jit_lvalue *var
     = gcc_jit_context_new_global (comp.ctxt, NULL,
 				  GCC_JIT_GLOBAL_INTERNAL,
-				  comp.float_block_aligned_type,
-				  name);
+				  float_block_type, name);
   Lisp_Object entry
     = CALLN (Fvector, make_mint_ptr (var), make_fixnum (-1),
 	     Fmake_vector (make_fixnum (float_block_floats_length),
@@ -2891,12 +2892,17 @@ float_block_new_float (gcc_jit_rvalue *init_val)
   alloc_block_set_last_idx (block, idx);
   alloc_block_put_cons (block, init_val, idx);
 
-  gcc_jit_lvalue *var = alloc_block_var (block);
-  gcc_jit_lvalue *floats
-    = gcc_jit_lvalue_access_field (var, NULL,
+  gcc_jit_rvalue *block_rval = gcc_jit_lvalue_as_rvalue (alloc_block_var (block));
+  block_rval
+    = gcc_jit_context_new_bitcast (comp.ctxt, NULL, block_rval,
+				   gcc_jit_type_unqualified (
+				     gcc_jit_rvalue_get_type (
+				       block_rval)));
+  gcc_jit_rvalue *floats
+    = gcc_jit_rvalue_access_field (block_rval, NULL,
 				   comp.float_block_floats);
   return gcc_jit_context_new_array_access (
-    comp.ctxt, NULL, gcc_jit_lvalue_as_rvalue (floats),
+    comp.ctxt, NULL, floats,
     gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.ptrdiff_type,
 					 idx));
 }
