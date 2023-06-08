@@ -2755,8 +2755,7 @@ one, you could use the following workarounds:
     directory to that new home directory.
   . Move all the *.eln files from ~/.emacs.d/eln-cache to a directory
     out of the C:\Users tree, and customize Emacs to use that
-    directory for *.eln files.  This requires to add that directory to
-    the value of native-comp-eln-load-path, and also call the function
+    directory for *.eln files.  This requires to call the function
     startup-redirect-eln-cache in your init file, to force Emacs to
     write *.eln files compiled at run time to that directory.
   . Delete all *.eln files in your ~/.emacs.d/eln-cache directory, and

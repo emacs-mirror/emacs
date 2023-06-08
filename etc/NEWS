@@ -226,7 +226,7 @@ ones for the current Emacs version).  Note that subdirectories of the
 system directory where the "*.eln" files are installed (usually, the
 last entry in 'native-comp-eln-load-path') are not deleted.
 
----
++++
 *** New function 'startup-redirect-eln-cache'.
 This function can be called in your init files to change the
 user-specific directory where Emacs stores the "*.eln" files produced
