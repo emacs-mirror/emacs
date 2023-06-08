@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2022.12.18.181110314
+;; Version: 2023.06.06.141322628
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2022-12-18-acb862a-vpo-GNU"
+(defconst verilog-mode-version "2023-06-06-86c6984-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -5004,21 +5004,31 @@ More specifically, point @ in the line foo : @ begin"
   "Return non-nil if in a generate region.
 More specifically, after a generate and before an endgenerate."
   (interactive)
-  (let ((pos (point))
-        gen-beg-point gen-end-point)
-    (save-match-data
-      (save-excursion
-        (and (verilog-re-search-backward "\\<\\(generate\\)\\>" nil t)
-             (forward-word)
-             (setq gen-beg-point (point))
-             (verilog-forward-sexp)
-             (backward-word)
-             (setq gen-end-point (point)))))
-    (if (and gen-beg-point gen-end-point
-             (>= pos gen-beg-point)
-             (<= pos gen-end-point))
-        t
-      nil)))
+  (let ((nest 1))
+    (save-excursion
+      (catch 'done
+	(while (and
+		(/= nest 0)
+		(verilog-re-search-backward
+                 "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(endmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\|\\(if\\)\\|\\(case\\)\\|\\(for\\)\\>" nil 'move)
+		(cond
+		 ((match-end 1) ; module - we have crawled out
+		  (throw 'done 1))
+                 ((match-end 2) ; connectmodule - we have crawled out
+                  (throw 'done 1))
+                 ((match-end 3) ; endmodule - we were outside of module block
+                  (throw 'done -1))
+                 ((match-end 4) ; generate
+		  (setq nest (1- nest)))
+                 ((match-end 5) ; endgenerate
+                  (setq nest (1+ nest)))
+                 ((match-end 6) ; if
+                  (setq nest (1- nest)))
+                 ((match-end 7) ; case
+                  (setq nest (1- nest)))
+                 ((match-end 8) ; for
+                  (setq nest (1- nest))))))))
+    (= nest 0) )) ; return nest
 
 (defun verilog-in-fork-region-p ()
   "Return non-nil if between a fork and join."
@@ -6737,7 +6747,8 @@ Optional BOUND limits search."
 (defun verilog-pos-at-end-of-statement ()
   "Return point position at the end of current statement."
   (save-excursion
-    (verilog-end-of-statement)))
+    (verilog-end-of-statement)
+    (point)))
 
 (defun verilog-col-at-end-of-statement ()
   "Return current column at the end of current statement."
@@ -8038,7 +8049,8 @@ Region is defined by B and ENDPOS."
   "Return non-nil if current line should ignore indentation."
   (or (and verilog-indent-ignore-multiline-defines
            ;; Line with multiline define, ends with "\" or "\" plus trailing whitespace
-           (or (looking-at ".*\\\\\\s-*$")
+           (or (save-excursion
+                 (verilog-re-search-forward ".*\\\\\\s-*$" (line-end-position) t))
                (save-excursion  ; Last line after multiline define
                  (verilog-backward-syntactic-ws)
                  (unless (bobp)
@@ -9313,7 +9325,8 @@ Return an array of [outputs inouts inputs wire reg assign const gparam intf]."
 	 ((looking-at "(\\*")
 	  ;; To advance past either "(*)" or "(* ... *)" don't forward past first *
 	  (forward-char 1)
-	  (or (search-forward "*)")
+	  (or (looking-at "\\*\\s-*)")  ; (* )
+              (search-forward "*)")  ; end attribute
 	      (error "%s: Unmatched (* *), at char %d" (verilog-point-text) (point))))
 	 ((eq ?\" (following-char))
           (or (re-search-forward "[^\\]\"" nil t)  ; don't forward-char first, since we look for a non backslash first

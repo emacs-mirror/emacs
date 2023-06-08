@@ -1,4 +1,4 @@
-# strtoll.m4 serial 10
+# strtoll.m4 serial 11
 dnl Copyright (C) 2002, 2004, 2006, 2008-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -19,10 +19,16 @@ AC_DEFUN([gl_FUNC_STRTOLL],
               char *term;
               /* This test fails on Minix and native Windows.  */
               {
-                const char input[] = "0x";
-                (void) strtoll (input, &term, 16);
-                if (term != input + 1)
-                  result |= 1;
+                static char const input[2][3] = {"0x", "0b"};
+                static int const base[] = {0, 2, 10};
+                int i, j;
+                for (i = 0; i < 2; i++)
+                  for (j = 0; j < 3; j++)
+                    {
+                      (void) strtoll (input[i], &term, base[j]);
+                      if (term != input[i] + 1)
+                        result |= 1;
+                    }
               }
               /* This test fails on pre-C23 platforms.  */
               {
