@@ -68,8 +68,8 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   /* The menu serial associated with this dialog box.  */
   private int menuEventSerial;
 
-  private class EmacsButton implements View.OnClickListener,
-			    DialogInterface.OnClickListener
+  private final class EmacsButton implements View.OnClickListener,
+				  DialogInterface.OnClickListener
   {
     /* Name of this button.  */
     public String name;
@@ -244,13 +244,22 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     if (EmacsActivity.focusedActivities.isEmpty ())
       {
 	/* If focusedActivities is empty then this dialog may have
-	   been displayed immediately after a popup dialog is
+	   been displayed immediately after another popup dialog was
 	   dismissed.  Or Emacs might legitimately be in the
-	   background.  Try the service context first if possible.  */
+	   background, possibly displaying this popup in response to
+	   an Emacsclient request.  Try the service context if it will
+	   work, then any focused EmacsOpenActivity, and finally the
+	   last EmacsActivity to be focused.  */
+
+	Log.d (TAG, "display1: no focused activities...");
+	Log.d (TAG, ("display1: EmacsOpenActivity.currentActivity: "
+		     + EmacsOpenActivity.currentActivity));
 
 	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
 	    || Settings.canDrawOverlays (EmacsService.SERVICE))
 	  context = EmacsService.SERVICE;
+	else if (EmacsOpenActivity.currentActivity != null)
+	  context = EmacsOpenActivity.currentActivity;
 	else
 	  context = EmacsActivity.lastFocusedActivity;
 

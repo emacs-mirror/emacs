@@ -72,7 +72,16 @@ public final class EmacsOpenActivity extends Activity
   DialogInterface.OnCancelListener
 {
   private static final String TAG = "EmacsOpenActivity";
+
+  /* The name of any file that should be opened as EmacsThread starts
+     Emacs.  This is never cleared, even if EmacsOpenActivity is
+     started a second time, as EmacsThread only starts once.  */
   public static String fileToOpen;
+
+  /* Any currently focused EmacsOpenActivity.  Used to show pop ups
+     while the activity is active and Emacs doesn't have permission to
+     display over other programs.  */
+  public static EmacsOpenActivity currentActivity;
 
   private class EmacsClientThread extends Thread
   {
@@ -362,6 +371,15 @@ public final class EmacsOpenActivity extends Activity
     thread.start ();
   }
 
+  /* Run emacsclient to open the file specified in the Intent that
+     caused this activity to start.
+
+     Determine the name of the file corresponding to the URI specified
+     in that intent; then, run emacsclient and wait for it to finish.
+
+     Finally, display any error message, transfer the focus to an
+     Emacs frame, and finish the activity.  */
+
   @Override
   public void
   onCreate (Bundle savedInstanceState)
@@ -463,10 +481,60 @@ public final class EmacsOpenActivity extends Activity
 	      }
 	  }
 
-	/* And start emacsclient.  */
+	/* And start emacsclient.  Set `currentActivity' to this now.
+	   Presumably, it will shortly become capable of displaying
+	   dialogs.  */
+	currentActivity = this;
 	startEmacsClient (fileName);
       }
     else
       finish ();
+  }
+
+
+
+  @Override
+  public void
+  onDestroy ()
+  {
+    Log.d (TAG, "onDestroy: " + this);
+
+    /* Clear `currentActivity' if it refers to the activity being
+       destroyed.  */
+
+    if (currentActivity == this)
+      this.currentActivity = null;
+
+    super.onDestroy ();
+  }
+
+  @Override
+  public void
+  onWindowFocusChanged (boolean isFocused)
+  {
+    Log.d (TAG, "onWindowFocusChanged: " + this + ", is now focused: "
+	   + isFocused);
+
+    if (isFocused)
+      currentActivity = this;
+    else if (currentActivity == this)
+      currentActivity = null;
+
+    super.onWindowFocusChanged (isFocused);
+  }
+
+  @Override
+  public void
+  onPause ()
+  {
+    Log.d (TAG, "onPause: " + this);
+
+    /* XXX: clear currentActivity here as well; I don't know whether
+       or not onWindowFocusChanged is always called prior to this.  */
+
+    if (currentActivity == this)
+      currentActivity = null;
+
+    super.onPause ();
   }
 }

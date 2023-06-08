@@ -37,7 +37,7 @@ import android.view.ViewGroup;
 
 
 
-public class EmacsDialogButtonLayout extends ViewGroup
+public final class EmacsDialogButtonLayout extends ViewGroup
 {
   public
   EmacsDialogButtonLayout (Context context)

@@ -58,7 +58,7 @@ public final class EmacsContextMenu
   /* The last group ID used for a menu item.  */
   public int lastGroupId;
 
-  private static class Item implements MenuItem.OnMenuItemClickListener
+  private static final class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
     public String itemName, tooltip;

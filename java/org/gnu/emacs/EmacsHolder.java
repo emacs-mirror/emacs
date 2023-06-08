@@ -24,7 +24,7 @@ package org.gnu.emacs;
 /* This class serves as a simple reference to an object of type T.
    Nothing could be found inside the standard library.  */
 
-public class EmacsHolder<T>
+public final class EmacsHolder<T>
 {
   T thing;
 };
