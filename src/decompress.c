@@ -151,7 +151,7 @@ md5_gz_stream (FILE *source, void *resblock)
 	return -1;
 
       accumulate_and_process_md5 (out, MD5_BLOCKSIZE - stream.avail_out, &ctx);
-    } while (!stream.avail_out);
+    } while (stream.avail_in && !stream.avail_out);
 
   } while (res != Z_STREAM_END);
 
