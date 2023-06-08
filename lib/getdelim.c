@@ -30,10 +30,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#ifndef SSIZE_MAX
-# define SSIZE_MAX ((ssize_t) (SIZE_MAX / 2))
-#endif
-
 #if USE_UNLOCKED_IO
 # include "unlocked-io.h"
 # define getc_maybe_unlocked(fp)        getc(fp)
