@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
-;; Author: Andrea Corallo <akrl@sdf.org>
+;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
 ;; Package: emacs
 
