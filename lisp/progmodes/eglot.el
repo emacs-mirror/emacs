@@ -3543,8 +3543,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                (project-files
                                 (eglot--project server))))))
     (cl-labels
-        ((handle-event
-           (event)
+        ((handle-event (event)
            (pcase-let* ((`(,desc ,action ,file ,file1) event)
                         (action-type (cl-case action
                                        (created 1) (changed 2) (deleted 3)))
@@ -3558,19 +3557,24 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                (jsonrpc-notify
                 server :workspace/didChangeWatchedFiles
                 `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
-                                           :type ,action-type)))))
+                                           :type ,action-type))))
+               (when (and (eq action 'created)
+                          (file-directory-p file))
+                 (watch-dir file)))
               ((eq action 'renamed)
                (handle-event `(,desc 'deleted ,file))
-               (handle-event `(,desc 'created ,file1)))))))
+               (handle-event `(,desc 'created ,file1))))))
+         (watch-dir (dir)
+           (when-let ((probe
+                       (and (file-readable-p dir)
+                            (or (gethash dir (eglot--file-watches server))
+                                (puthash dir (list (file-notify-add-watch
+                                                    dir '(change) #'handle-event))
+                                         (eglot--file-watches server))))))
+             (push id (cdr probe)))))
       (unwind-protect
           (progn
-            (cl-loop for dir in dirs-to-watch
-                     for probe =
-                     (and (file-readable-p dir)
-                          (or (gethash dir (eglot--file-watches server))
-                              (puthash dir (list (file-notify-add-watch dir '(change) #'handle-event))
-                                       (eglot--file-watches server))))
-                     when probe do (push id (cdr probe)))
+            (mapc #'watch-dir dirs-to-watch)
             (setq
              success
              `(:message ,(format "OK, watching %s directories in %s watchers"
