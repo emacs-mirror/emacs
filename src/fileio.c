@@ -56,9 +56,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "region-cache.h"
 #include "frame.h"
 
-#if defined HAVE_ANDROID
+#ifdef HAVE_ANDROID
 #include "android.h"
-#endif
+#endif /* HAVE_ANDROID */
 
 #ifdef HAVE_LINUX_FS_H
 # include <sys/ioctl.h>
@@ -193,9 +193,11 @@ static void
 check_mutable_filename (Lisp_Object encoded, bool write)
 {
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  if (!strcmp (SSDATA (encoded), "/assets")
-      || !strncmp (SSDATA (encoded), "/assets/",
-		   sizeof "/assets/" - 1))
+  const char *name;
+
+  name = SSDATA (encoded);
+
+  if (android_is_special_directory (name, "/assets"))
     xsignal2 (Qfile_error,
 	      build_string ("File lies on read-only directory"),
 	      encoded);
@@ -203,13 +205,11 @@ check_mutable_filename (Lisp_Object encoded, bool write)
   if (write)
     return;
 
-  if (!strcmp (SSDATA (encoded), "/content")
-      || !strncmp (SSDATA (encoded), "/content/",
-		   sizeof "/content/" - 1))
+  if (android_is_special_directory (name, "/content"))
     xsignal2 (Qfile_error,
 	      build_string ("File lies on read-only directory"),
 	      encoded);
-#endif
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 }
 
 

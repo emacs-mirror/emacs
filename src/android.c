@@ -1045,19 +1045,72 @@ android_user_full_name (struct passwd *pw)
 #endif
 }
 
+
+
+/* Determine whether or not the specified file NAME describes a file
+   in the directory DIR, which should be an absolute file name.  NAME
+   must be in canonical form.
+
+   Value is NULL if not.  Otherwise, it is a pointer to the first
+   character in NAME after the part containing DIR and its trailing
+   directory separator.  */
+
+const char *
+android_is_special_directory (const char *name, const char *dir)
+{
+  size_t len;
+
+  /* Compare up to strlen (DIR) bytes of NAME with DIR.  */
+
+  len = strlen (dir);
+  if (strncmp (name, dir, len))
+    return NULL;
+
+  /* Now see if the character of NAME after len is either a directory
+     separator or a terminating NULL.  */
+
+  name += len;
+  switch (*name)
+    {
+    case '\0':
+      /* Return the empty string if this is the end of the file
+	 name.  */
+      return name;
+
+    case '/':
+      /* Return NAME (with the separator removed) if it describes a
+	 file.  */
+      return name + 1;
+
+    default:
+      /* The file name doesn't match.  */
+      return NULL;
+    }
+}
+
 /* Given a real file name, return the part that describes its asset
-   path, or NULL if it is not an asset.  */
+   path, or NULL if it is not an asset.
+
+   If FILENAME contains only `/assets', return `/' to indicate the
+   root of the assets hierarchy.  */
 
 static const char *
 android_get_asset_name (const char *filename)
 {
-  if (!strcmp (filename, "/assets") || !strcmp (filename, "/assets/"))
-    return "/";
+  const char *name;
 
-  if (!strncmp (filename, "/assets/", sizeof "/assets/" - 1))
-    return filename + (sizeof "/assets/" - 1);
+  name = android_is_special_directory (filename, "/assets");
 
-  return NULL;
+  if (!name)
+    return NULL;
+
+  /* If NAME is empty, return /.  Otherwise, return the name relative
+     to /assets/.  */
+
+  if (*name)
+    return name;
+
+  return "/";
 }
 
 /* Return whether or not the specified FILENAME actually resolves to a
@@ -1072,9 +1125,9 @@ android_content_name_p (const char *filename)
   if (android_api_level < 19)
     return false;
 
-  return (!strcmp (filename, "/content")
-	  || !strncmp (filename, "/content/",
-		       sizeof "/content/" - 1));
+  return (android_is_special_directory (filename,
+					"/content")
+	  != NULL);
 }
 
 /* Return the content URI corresponding to a `/content' file name,
@@ -1091,20 +1144,21 @@ android_get_content_name (const char *filename)
 
   n = PATH_MAX;
 
-  /* First handle content ``URIs'' without a provider.  */
+  /* Find the file name described if it starts with `/content'.  If
+     just the directory is described, return content://.  */
 
-  if (!strcmp (filename, "/content")
-      || !strcmp (filename, "/content/"))
-    return "content://";
+  filename = android_is_special_directory (filename, "/content");
 
-  /* Next handle ordinary file names.  */
-
-  if (strncmp (filename, "/content/", sizeof "/content/" - 1))
+  if (!filename)
     return NULL;
 
-  /* Forward past the first directory specifying the schema.  */
+  if (!*filename)
+    return "content://";
 
-  copy = xstrdup (filename + sizeof "/content");
+  /* Now copy FILENAME into a buffer and convert it into a content
+     URI.  */
+
+  copy = xstrdup (filename);
   token = saveptr = NULL;
   head = stpcpy (buffer, "content:/");
 

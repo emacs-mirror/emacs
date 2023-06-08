@@ -40,6 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # define IN_ONLYDIR 0
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h" /* For `android_is_special_directory'.  */
+#endif /* HAVE_ANDROID */
+
 /* File handle for inotify.  */
 static int inotifyfd = -1;
 
@@ -440,14 +444,10 @@ IN_ONESHOT  */)
      instead of letting inotify fail.  These directories cannot
      receive file notifications as they are read only.  */
 
-  if (strcmp (name, "/assets")
-      || strcmp (name, "/assets/")
-      || strcmp (name, "/content")
-      || strcmp (name, "/content/")
-      || strncmp (name, "/assets/", sizeof "/assets")
-      || strncmp (name, "/content/", sizeof "/content"))
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
     return Qnil;
-#endif
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
   wd = inotify_add_watch (inotifyfd, name, mask);
   if (wd < 0)

@@ -48,6 +48,7 @@ extern int android_select (int, fd_set *, fd_set *, fd_set *,
 
 extern int android_open (const char *, int, mode_t);
 extern char *android_user_full_name (struct passwd *);
+extern const char *android_is_special_directory (const char *, const char *);
 extern int android_fstat (int, struct stat *);
 extern int android_fstatat (int, const char *restrict,
 			    struct stat *restrict, int);
@@ -195,7 +196,13 @@ extern unsigned int event_serial;
 /* Process related functions.  */
 extern int android_rewrite_spawn_argv (const char ***);
 
-#endif
+#else /* ANDROID_STUBIFY */
+
+/* Define a substitute for use during Emacs compilation.  */
+
+#define android_is_special_directory(name, dir) ((const char *) NULL)
+
+#endif /* !ANDROID_STUBIFY */
 
 /* JNI functions should not be built when Emacs is stubbed out for the
    build.  These should be documented in EmacsNative.java.  */
@@ -227,5 +234,5 @@ extern void *unused_pointer;
 #define JNI_STACK_ALIGNMENT_PROLOGUE ((void) 0)
 #endif /* __i386__ */
 
-#endif
+#endif /* !ANDROID_STUBIFY */
 #endif /* _ANDROID_H_ */

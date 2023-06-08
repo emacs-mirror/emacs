@@ -75,6 +75,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define WTMP_FILE "/var/log/wtmp"
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h" /* For `android_is_special_directory'.  */
+#endif /* HAVE_ANDROID */
+
 /* Normally use a symbolic link to represent a lock.
    The strategy: to lock a file FN, create a symlink .#FN in FN's
    directory, with link data USER@HOST.PID:BOOT.  This avoids a single
@@ -673,14 +677,10 @@ make_lock_file_name (Lisp_Object fn)
 
   name = SSDATA (fn);
 
-  if (strcmp (name, "/assets")
-      || strcmp (name, "/assets/")
-      || strcmp (name, "/content")
-      || strcmp (name, "/content/")
-      || strncmp (name, "/assets/", sizeof "/assets")
-      || strncmp (name, "/content/", sizeof "/content"))
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
   return Qnil;
-#endif
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
   lock_file_name = call1 (Qmake_lock_file_name, fn);
 
