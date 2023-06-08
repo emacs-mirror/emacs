@@ -3962,6 +3962,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler cons		2)
 (byte-defop-compiler aref		2)
 (byte-defop-compiler set		2)
+(byte-defop-compiler fset		2)
 (byte-defop-compiler (= byte-eqlsign)	2-cmp)
 (byte-defop-compiler (< byte-lss)	2-cmp)
 (byte-defop-compiler (> byte-gtr)	2-cmp)
@@ -4226,7 +4227,6 @@ This function is never called when `lexical-binding' is nil."
 (byte-defop-compiler backward-word)
 (byte-defop-compiler list)
 (byte-defop-compiler concat)
-(byte-defop-compiler fset)
 (byte-defop-compiler (indent-to-column byte-indent-to) byte-compile-indent-to)
 (byte-defop-compiler indent-to)
 (byte-defop-compiler insert)
@@ -4322,26 +4322,6 @@ This function is never called when `lexical-binding' is nil."
 	   (while (setq form (cdr form))
 	     (byte-compile-form (car form))
 	     (byte-compile-out 'byte-nconc 0))))))
-
-(defun byte-compile-fset (form)
-  ;; warn about forms like (fset 'foo '(lambda () ...))
-  ;; (where the lambda expression is non-trivial...)
-  (let ((fn (nth 2 form))
-	body)
-    (if (and (eq (car-safe fn) 'quote)
-	     (eq (car-safe (setq fn (nth 1 fn))) 'lambda))
-	(progn
-	  (setq body (cdr (cdr fn)))
-	  (if (stringp (car body)) (setq body (cdr body)))
-	  (if (eq 'interactive (car-safe (car body))) (setq body (cdr body)))
-	  (if (and (consp (car body))
-		   (not (eq 'byte-code (car (car body)))))
-	      (byte-compile-warn-x
-               (nth 2 form)
-      "A quoted lambda form is the second argument of `fset'.  This is probably
-     not what you want, as that lambda cannot be compiled.  Consider using
-     the syntax #'(lambda (...) ...) instead.")))))
-  (byte-compile-two-args form))
 
 ;; (function foo) must compile like 'foo, not like (symbol-function 'foo).
 ;; Otherwise it will be incompatible with the interpreter,
