@@ -3560,7 +3560,7 @@ lambda-expression."
          ;; These functions are side-effect-free except for the
          ;; behaviour of functions passed as argument.
          mapcar mapcan mapconcat
-         assoc assoc-string plist-get plist-member
+         assoc plist-get plist-member
 
          ;; It's safe to ignore the value of `sort' and `nreverse'
          ;; when used on arrays, but most calls pass lists.
