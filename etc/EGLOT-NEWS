@@ -18,6 +18,16 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes in upcoming Eglot
+
+** Optimized file-watching capability
+
+Some servers, like the Pyright language server, issue too many file
+watching requests.  This change slightly reduces the number of file
+watcher objects requested from the operating system, which can be a
+problem, particularly on Mac OS.  See github#1228 and github#1226.
+
+
 * Changes in Eglot 1.15 (29/4/2023)
 
 ** Fix LSP "languageId" detection
