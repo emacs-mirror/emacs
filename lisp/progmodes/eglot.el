@@ -3586,11 +3586,10 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   (server (_method (eql workspace/didChangeWatchedFiles)) id)
   "Handle dynamic unregistration of workspace/didChangeWatchedFiles."
   (maphash (lambda (dir watch-and-ids)
-             (when (member id (cdr watch-and-ids))
-               (setcdr watch-and-ids (delete id (cdr watch-and-ids)))
-               (when (null (cdr watch-and-ids))
-                 (file-notify-rm-watch (car watch-and-ids))
-                 (remhash dir (eglot--file-watches server)))))
+             (setcdr watch-and-ids (delete id (cdr watch-and-ids)))
+             (when (null (cdr watch-and-ids))
+               (file-notify-rm-watch (car watch-and-ids))
+               (remhash dir (eglot--file-watches server))))
            (eglot--file-watches server))
   (list t "OK"))
 
