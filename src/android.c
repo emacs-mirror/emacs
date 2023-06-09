@@ -3929,11 +3929,6 @@ android_get_gc_values (struct android_gc *gc,
 		       enum android_gc_value_mask mask,
 		       struct android_gc_values *values)
 {
-  jobject gcontext;
-
-  gcontext = android_resolve_handle (gc->gcontext,
-				     ANDROID_HANDLE_GCONTEXT);
-
   if (mask & ANDROID_GC_FOREGROUND)
     /* GCs never have 32 bit colors, so we don't have to worry about
        sign extension here.  */
