@@ -888,7 +888,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
     :documentation "Generalized boolean inhibiting auto-reconnection if true."
     :accessor eglot--inhibit-autoreconnect)
    (file-watches
-    :documentation "Map ID to list of WATCHES for `didChangeWatchedFiles'."
+    :documentation "Map (DIR -> (WATCH ID1 ID2...)) for `didChangeWatchedFiles'."
     :initform (make-hash-table :test #'equal) :accessor eglot--file-watches)
    (managed-buffers
     :documentation "List of buffers managed by server."
@@ -959,8 +959,8 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
           (eglot-autoshutdown nil))
       (eglot--when-live-buffer buffer (eglot--managed-mode-off))))
   ;; Kill any expensive watches
-  (maphash (lambda (_id watches)
-             (mapcar #'file-notify-rm-watch watches))
+  (maphash (lambda (_dir watch-and-ids)
+             (file-notify-rm-watch (car watch-and-ids)))
            (eglot--file-watches server))
   ;; Kill any autostarted inferior processes
   (when-let (proc (eglot--inferior-process server))
@@ -3543,8 +3543,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                (project-files
                                 (eglot--project server))))))
     (cl-labels
-        ((handle-event
-           (event)
+        ((handle-event (event)
            (pcase-let* ((`(,desc ,action ,file ,file1) event)
                         (action-type (cl-case action
                                        (created 1) (changed 2) (deleted 3)))
@@ -3558,16 +3557,24 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                (jsonrpc-notify
                 server :workspace/didChangeWatchedFiles
                 `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
-                                           :type ,action-type)))))
+                                           :type ,action-type))))
+               (when (and (eq action 'created)
+                          (file-directory-p file))
+                 (watch-dir file)))
               ((eq action 'renamed)
                (handle-event `(,desc 'deleted ,file))
-               (handle-event `(,desc 'created ,file1)))))))
+               (handle-event `(,desc 'created ,file1))))))
+         (watch-dir (dir)
+           (when-let ((probe
+                       (and (file-readable-p dir)
+                            (or (gethash dir (eglot--file-watches server))
+                                (puthash dir (list (file-notify-add-watch
+                                                    dir '(change) #'handle-event))
+                                         (eglot--file-watches server))))))
+             (push id (cdr probe)))))
       (unwind-protect
           (progn
-            (dolist (dir dirs-to-watch)
-              (when (file-readable-p dir)
-                (push (file-notify-add-watch dir '(change) #'handle-event)
-                      (gethash id (eglot--file-watches server)))))
+            (mapc #'watch-dir dirs-to-watch)
             (setq
              success
              `(:message ,(format "OK, watching %s directories in %s watchers"
@@ -3578,8 +3585,13 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 (cl-defmethod eglot-unregister-capability
   (server (_method (eql workspace/didChangeWatchedFiles)) id)
   "Handle dynamic unregistration of workspace/didChangeWatchedFiles."
-  (mapc #'file-notify-rm-watch (gethash id (eglot--file-watches server)))
-  (remhash id (eglot--file-watches server))
+  (maphash (lambda (dir watch-and-ids)
+             (when (member id (cdr watch-and-ids))
+               (setcdr watch-and-ids (delete id (cdr watch-and-ids)))
+               (when (null (cdr watch-and-ids))
+                 (file-notify-rm-watch (car watch-and-ids))
+                 (remhash dir (eglot--file-watches server)))))
+           (eglot--file-watches server))
   (list t "OK"))
 
 
