@@ -1,17 +1,21 @@
 /* extcon.c: ARENA EXTENDED AND CONTRACTED CALLBACK TEST
  *
  * $Id$
- * Copyright (c) 2014-2022 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2022-2023 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: This test case allocates a bunch of large objects, of a size 
  * similar to the size of the arena, to force the arena to extend. It then
  * discards the base pointers to those objects, and forces a collection.
  *
- * .limitations: This test checks only that the EXTENDED and CONTRACTED 
- * callbacks were called at least once. It does not check that the 
- * extensions and contractions themselves were performed correctly, nor
- * does it check that an appropriate number of extensions and contractions
- * took place, nor does it check that they took place at sensible times.
+ * .limitations: This test checks that the EXTENDED and CONTRACTED
+ * callbacks were called at least once, and that they are called the
+ * same number of times. It does not check that the extensions and
+ * contractions themselves were performed correctly, nor does it check
+ * that an appropriate number of extensions and contractions took
+ * place, nor does it check that they took place at sensible times.
+ *
+ * .dylan: This test uses Dylan format objects in common with most
+ * other tests for convenience and brevity.
  */
 
 #include "mps.h"
