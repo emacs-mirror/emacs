@@ -29,9 +29,10 @@
 
 /* Number of test objects to allocate */
 #define N_TESTOBJ 100
-/* Number of dylan "slots" in each test object */
+/* The number of slots determines the size of each object */
 #define N_SLOT_TESTOBJ 10000
-/* This is the number of bytes the initial arena is bigger than the test object size */
+/* The initial arena size is requested to be bigger the test object by
+   this many bytes */
 #define SIZEDIFF 10
 
 /* Set alignment to mps_word_ts */
