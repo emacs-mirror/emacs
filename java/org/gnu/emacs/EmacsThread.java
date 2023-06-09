@@ -65,7 +65,7 @@ public final class EmacsThread extends Thread
       }
     else
       {
-	if (extraStartupArgument != null)
+	if (extraStartupArgument == null)
 	  args = new String[] { "libandroid-emacs.so",
 				fileToOpen, };
 	else
