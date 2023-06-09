@@ -4930,6 +4930,10 @@ E.g. \"Read error to Nick [user@some.host]: 110\" would be shortened to
         (match-string 1 reason))
       reason))
 
+(cl-defmethod erc--nickname-in-use-make-request (_nick temp)
+  "Request nickname TEMP in place of rejected NICK."
+  (erc-cmd-NICK temp))
+
 (defun erc-nickname-in-use (nick reason)
   "If NICK is unavailable, tell the user the REASON.
 
@@ -4963,7 +4967,7 @@ See also `erc-display-error-notice'."
                                    ;; established a connection yet
                                    (- 9 (length erc-nick-uniquifier))))
 				erc-nick-uniquifier)))
-      (erc-cmd-NICK newnick)
+      (erc--nickname-in-use-make-request nick newnick)
       (erc-display-error-notice
        nil
        (format "Nickname %s is %s, trying %s"

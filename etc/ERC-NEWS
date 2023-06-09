@@ -78,9 +78,9 @@ appearing in their saved logs.
 ** Smarter reconnect handling for users on the move.
 ERC now offers a new, experimental reconnect strategy in the function
 'erc-server-delayed-check-reconnect', which tests for underlying
-connectivity before attempting to reconnect in earnest.  See options
-'erc-server-reconnect-function' and 'erc-nickname-in-use-functions' to
-get started.
+connectivity before attempting to reconnect in earnest.  See option
+'erc-server-reconnect-function' and new local module 'services-regain'
+(also experimental) to get started.
 
 ** Module 'fill' can add a bit of space between messages.
 On graphical displays, it's now possible to add some breathing room
