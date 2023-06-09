@@ -188,6 +188,10 @@ public final class EmacsNative
      KEYCODE_VOLUME_MUTE should be forwarded to Emacs.  */
   public static native boolean shouldForwardMultimediaButtons ();
 
+  /* Initialize the current thread, by blocking signals that do not
+     interest it.  */
+  public static native void setupSystemThread ();
+
 
 
   /* Input connection functions.  These mostly correspond to their

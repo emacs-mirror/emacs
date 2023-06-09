@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 
 import java.util.List;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import android.graphics.Matrix;
@@ -211,6 +212,7 @@ public final class EmacsService extends Service
     final String filesDir, libDir, cacheDir, classPath;
     final double pixelDensityX;
     final double pixelDensityY;
+    final Semaphore signalSemaphore;
 
     SERVICE = this;
     handler = new Handler (Looper.getMainLooper ());
@@ -220,6 +222,7 @@ public final class EmacsService extends Service
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
     resolver = getContentResolver ();
+    signalSemaphore = new Semaphore (0);
 
     try
       {
@@ -248,11 +251,33 @@ public final class EmacsService extends Service
 					  cacheDir, (float) pixelDensityX,
 					  (float) pixelDensityY,
 					  classPath, EmacsService.this);
+
+	      /* Wait for the signal mask to be set up in the UI
+		 thread.  */
+
+	      while (true)
+		{
+		  try
+		    {
+		      signalSemaphore.acquire ();
+		      break;
+		    }
+		  catch (InterruptedException e)
+		    {
+		      ;;
+		    }
+		}
 	    }
 	  }, extraStartupArgument,
 	  /* If any file needs to be opened, open it now.  */
 	  EmacsOpenActivity.fileToOpen);
 	thread.start ();
+
+	/* Now that the thread has been started, block signals which
+	   don't interest the current thread.  */
+
+	EmacsNative.setupSystemThread ();
+	signalSemaphore.release ();
       }
     catch (IOException exception)
       {

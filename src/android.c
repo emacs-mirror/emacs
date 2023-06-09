@@ -3077,6 +3077,30 @@ NATIVE_NAME (answerQuerySpin) (JNIEnv *env, jobject object)
   android_answer_query_spin ();
 }
 
+
+
+/* System thread setup.  Android doesn't always block signals Emacs is
+   interested in from being received by the UI or render threads,
+   which can lead to problems when those signals then interrupt one of
+   those threads.  */
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (setupSystemThread) (void)
+{
+  sigset_t sigset;
+
+  /* Block everything except for SIGSEGV and SIGBUS; those two are
+     used by the runtime.  */
+
+  sigfillset (&sigset);
+  sigaddset (&sigset, SIGSEGV);
+  sigaddset (&sigset, SIGBUS);
+
+  if (pthread_sigmask (SIG_BLOCK, &sigset, NULL))
+    __android_log_print (ANDROID_LOG_WARN, __func__,
+			 "pthread_sigmask: %s", strerror (errno));
+}
+
 #ifdef __clang__
 #pragma clang diagnostic pop
 #else
