@@ -4518,6 +4518,20 @@ This function used to be called @code{x-color-values},
 and that name is still supported as an alias.
 @end defun
 
+@defun color-name-to-rgb color &optional frame
+This function does the same as @code{color-values}, but it returns
+color values as floating-point numbers between 0.0 and 1.0 inclusive.
+@end defun
+
+@defun color-dark-p rgb
+This function returns non-@code{nil} if the color described by its RGB
+triplet @var{rgb} is more readable against white background than
+against dark background.  The argument @var{rgb} should be a list of
+the form @w{@code{(@var{r} @var{g} @var{b})}}, with each component a
+floating-point number in the range 0.0 to 1.0 inclusive.  You can use
+@code{color-name-to-rgb} to convert a color's name to such a list.
+@end defun
+
 @node Text Terminal Colors
 @section Text Terminal Colors
 @cindex colors on text terminals
