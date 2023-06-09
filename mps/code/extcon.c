@@ -227,9 +227,6 @@ static void test_main(void *cold_stack_end)
 
   print_messages();
 
-  printf("Arena extended %d times\n", n_extend);
-  printf("Arena contracted %d times\n", n_contract);
-
   /* Clean up */
   mps_root_destroy(testobj_root);
   /* mps_root_destroy(stack_root);*/ /*commented out while not using stack root */
@@ -238,6 +235,14 @@ static void test_main(void *cold_stack_end)
   mps_pool_destroy(obj_pool);
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
+
+  /* Destroying the arena should cause contraction callbacks on all
+     remaining chunks, even if they had contents. */
+  Insist(n_extend == n_contract);
+
+  printf("Arena extended %d times\n", n_extend);
+  printf("Arena contracted %d times\n", n_contract);
+
   /* comment out some diagnostics for investigating issue #210 mentioned above */
 #if 0
   printf("&testobj[N_TESTOBJ] = %p\n", (void *)&testobj[N_TESTOBJ]);
