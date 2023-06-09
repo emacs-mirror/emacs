@@ -251,12 +251,13 @@ control).  See \"cc-mode.el\" for more info."
             (when (fboundp 'electric-indent-local-mode)
 	      (add-hook 'electric-indent-mode-hook 'c-electric-indent-mode-hook)
               (add-hook 'electric-indent-local-mode-hook
-                        'c-electric-indent-local-mode-hook))
-	    ;; Set up text conversion, for Emacs >= 30.0
-	    (when (boundp 'post-text-conversion-hook)
-	      (add-hook 'post-text-conversion-hook #'c-post-text-conversion)))
+                        'c-electric-indent-local-mode-hook)))
 	;; Will try initialization hooks again if they failed.
 	(put 'c-initialize-cc-mode initprop c-initialization-ok))))
+
+  ;; Set up text conversion, for Emacs >= 30.0
+  (when (boundp 'post-text-conversion-hook)
+    (add-hook 'post-text-conversion-hook #'c-post-text-conversion))
 
   (unless new-style-init
     (c-init-language-vars-for 'c-mode)))
