@@ -40,6 +40,24 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 
+/* Define debugging macros.  */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#if 0
+#include <android/log.h>
+
+#define TEXTCONV_DEBUG(fmt, ...)					\
+  __android_log_print (ANDROID_LOG_VERBOSE, "EmacsInputConnection",	\
+		       "%s: " fmt, __func__, ## __VA_ARGS__)
+#endif /* 0 */
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+#ifndef TEXTCONV_DEBUG
+#define TEXTCONV_DEBUG(...) ((void) 0)
+#endif /* TEXTCONV_DEBUG */
+
+
+
 /* The window system's text conversion interface.  NULL when the
    window system has not set up text conversion.  */
 
@@ -701,6 +719,10 @@ really_commit_text (struct frame *f, EMACS_INT position,
   /* This should deactivate the mark.  */
   call0 (Qdeactivate_mark);
 
+  /* Print some debugging information.  */
+  TEXTCONV_DEBUG ("text inserted: %s, point now: %zd",
+		  SSDATA (text), PT);
+
   /* Update the ephemeral last point.  */
   w = XWINDOW (selected_window);
   w->ephemeral_last_point = PT;
@@ -730,6 +752,8 @@ really_finish_composing_text (struct frame *f, bool update)
 
   if (!NILP (f->conversion.compose_region_overlay))
     Fdelete_overlay (f->conversion.compose_region_overlay);
+
+  TEXTCONV_DEBUG ("conversion region removed");
 }
 
 /* Set the composing text on F to TEXT.  Then, move point to an
@@ -876,6 +900,13 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
   w = XWINDOW (selected_window);
   w->ephemeral_last_point = PT;
 
+  if (SCHARS (text))
+    TEXTCONV_DEBUG ("conversion region set to: %td %td",
+		    marker_position (f->conversion.compose_region_start),
+		    marker_position (f->conversion.compose_region_end));
+  else
+    TEXTCONV_DEBUG ("conversion region removed; PT is now: %td", PT);
+
   unbind_to (count, Qnil);
 }
 
@@ -926,6 +957,9 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
   Fset_marker (f->conversion.compose_region_end,
 	       make_fixnum (end), Qnil);
   sync_overlay (f);
+
+  TEXTCONV_DEBUG ("composing region set to: %td, %td; point is: %td",
+		  start, end, PT);
 
   /* Update the ephemeral last point.  */
   w = XWINDOW (selected_window);
@@ -1011,6 +1045,9 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
       record_buffer_change (start, start, text);
     }
 
+  TEXTCONV_DEBUG ("deleted surrounding text: %td, %td; PT is now %td",
+		  left, right, PT);
+
   /* if the mark is now equal to start, deactivate it.  */
 
   if (get_mark () == PT)
@@ -1092,6 +1129,9 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
   /* Update the ephemeral last point.  */
   w = XWINDOW (selected_window);
   w->ephemeral_last_point = PT;
+
+  TEXTCONV_DEBUG ("set point and mark: %td %td",
+		  PT, get_mark ());
 
   unbind_to (count, Qnil);
 }
@@ -1726,6 +1766,9 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   *end_offset = max (mark - start, PT - start);
   *length = end - start;
   *bytes = end_byte - start_byte;
+
+  TEXTCONV_DEBUG ("get_extracted_text: PT, mark, start: %td, %td, %td",
+		  PT, mark, start);
 
  finish:
   unbind_to (count, Qnil);

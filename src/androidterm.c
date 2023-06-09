@@ -1053,12 +1053,12 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	 used to make Android run stuff.  */
 
       if (!event->xaction.window && !event->xaction.action)
-	{
-	  /* Check for and run anything the UI thread wants to run on the main
-	     thread.  */
-	  android_check_query ();
-	  goto OTHER;
-	}
+	/* Don't run queries here, as it may run inside editor
+	   commands, which can expose an inconsistent view of buffer
+	   contents to the input method during command execution.
+
+	   Instead, wait for Emacs to return to `android_select'.  */
+	goto OTHER;
 
       f = any;
 
