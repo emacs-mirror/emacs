@@ -687,7 +687,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
       if (SCHARS (text))
 	{
 	  Finsert (1, &text);
-	  record_buffer_change (start, PT, text);
+	  record_buffer_change (wanted, PT, text);
 	}
 
       if (position <= 0)
@@ -1340,7 +1340,7 @@ handle_pending_conversion_events (void)
   static int inside;
   specpdl_ref count;
   ptrdiff_t last_point;
-  struct window *w, *w1;
+  struct window *w;
 
   handled = false;
 
