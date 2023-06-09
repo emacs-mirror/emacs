@@ -1130,16 +1130,14 @@ not access any memory managed by the MPS.
     is created, in other words, the creation of the arena is treated as
     a special example of an extension of the arena.
 
-    Unlike the extension callback, the contraction callback is not called
-    when the arena is destroyed.
+    The contraction callback is called on all remaining chunks when
+    the arena is destroyed.  There will be at least one callback.
 
     Every contraction of the arena will match one-to-one with the arena
     extensions that have already taken place. After creation, any
     contractions performed by the arena will be the same size as the
     extensions that have already taken place. Contractions never occur as
     amalgamations nor as fractions of previous arena extensions.
-    If an arena has never extended beyond its original size, it will never
-    call the contraction callback.
 
     Arena extension callbacks are only supported by :term:`virtual
     memory arenas`.
