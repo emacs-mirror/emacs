@@ -41,6 +41,10 @@
 (require 'erc)
 (require 'imenu)
 
+(defgroup erc-imenu nil
+  "Imenu integration for ERC."
+  :group 'erc)
+
 (defun erc-unfill-notice ()
   "Return text from point to a computed end as a string unfilled.
 Don't rely on this function, read it first!"

@@ -33,6 +33,10 @@
 (require 'erc)
 (require 'flyspell)
 
+(defgroup erc-spelling nil
+  "Flyspell integration for ERC."
+  :group 'erc)
+
 ;;;###autoload(autoload 'erc-spelling-mode "erc-spelling" nil t)
 (define-erc-module spelling nil
   "Enable flyspell mode in ERC buffers."
