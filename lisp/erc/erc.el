@@ -1104,7 +1104,8 @@ subprotocols should probably be handled manually."
   'erc--input-review-functions "30.1")
 (defvar erc--input-review-functions '(erc--split-lines
                                       erc--run-input-validation-checks
-                                      erc--discard-trailing-multiline-nulls)
+                                      erc--discard-trailing-multiline-nulls
+                                      erc--inhibit-slash-cmd-insertion)
   "Special hook for reviewing and modifying prompt input.
 ERC runs this before clearing the prompt and before running any
 send-related hooks, such as `erc-pre-send-functions'.  Thus, it's
@@ -6543,10 +6544,10 @@ a separate message."
 (defvar erc--check-prompt-input-functions
   '(erc--check-prompt-input-for-point-in-bounds
     erc--check-prompt-input-for-something
+    erc--check-prompt-input-for-multiline-command
     erc--check-prompt-input-for-multiline-blanks
     erc--check-prompt-input-for-running-process
-    erc--check-prompt-input-for-excess-lines
-    erc--check-prompt-input-for-multiline-command)
+    erc--check-prompt-input-for-excess-lines)
   "Validators for user input typed at prompt.
 Called with two arguments: the current input submitted by the
 user, as a string, along with the same input as a list of
@@ -6570,6 +6571,11 @@ ERC prints them as a single message joined by newlines.")
           (erc--check-prompt-explanation
            (message "%s" (string-join (nreverse erc--check-prompt-explanation)
                                       "\n"))))))
+
+(defun erc--inhibit-slash-cmd-insertion (state)
+  "Don't insert STATE object's message if it's a \"slash\" command."
+  (when (erc--input-split-cmdp state)
+    (setf (erc--input-split-insertp state) nil)))
 
 (defun erc-send-current-line ()
   "Parse current line and send it to IRC."
@@ -6679,9 +6685,8 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
   "Send lines in `erc--input-split-lines' object LINES-OBJ."
   (when (erc--input-split-sendp lines-obj)
     (dolist (line (erc--input-split-lines lines-obj))
-      (unless (erc--input-split-cmdp lines-obj)
-        (when (erc--input-split-insertp lines-obj)
-          (erc-display-msg line)))
+      (when (erc--input-split-insertp lines-obj)
+        (erc-display-msg line))
       (erc-process-input-line (concat line "\n")
                               (null erc-flood-protect)
                               (not (erc--input-split-cmdp lines-obj))))))

@@ -1316,17 +1316,12 @@
        (should-not (funcall next)))
 
      (ert-info ("Multiline command with trailing blank filtered")
-       (pcase-dolist (`(,p . ,q)
-                      '(("/a b\r" "/a b\n") ("/a b\n" "/a b\n")
-                        ("/a b\n\n" "/a b\n") ("/a b\r\n" "/a b\n")
-                        ("/a b\n\n\n" "/a b\n")))
+       (dolist (p '("/a b" "/a b\n" "/a b\n\n" "/a b\n\n\n"))
          (insert p)
          (erc-send-current-line)
          (erc-bol)
          (should (eq (point) (point-max)))
-         (while q
-           (should (pcase (funcall next)
-                     (`(,cmd ,_ nil) (equal cmd (pop q))))))
+         (should (pcase (funcall next) (`(,cmd ,_ nil) (equal cmd "/a b\n"))))
          (should-not (funcall next))))
 
      (ert-info ("Multiline command with non-blanks errors")
