@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <string.h>
 #include <stdckdint.h>
+#include <timespec.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -693,6 +694,17 @@ android_write_event (union android_event *event)
     }
 }
 
+
+
+/* Whether or not the UI thread has been waiting for a significant
+   amount of time for a function to run in the main thread, and Emacs
+   should answer the query ASAP.  */
+static bool android_urgent_query;
+
+/* Forward declaration.  */
+
+static void android_check_query (void);
+
 int
 android_select (int nfds, fd_set *readfds, fd_set *writefds,
 		fd_set *exceptfds, struct timespec *timeout)
@@ -701,6 +713,11 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 #if __ANDROID_API__ < 16
   static char byte;
 #endif
+
+  /* Since Emacs is reading keyboard input again, signify that queries
+     from input methods are no longer ``urgent''.  */
+
+  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
 
   /* Check for and run anything the UI thread wants to run on the main
      thread.  */
@@ -7066,7 +7083,7 @@ static void *android_query_context;
 /* Run any function that the UI thread has asked to run, and then
    signal its completion.  */
 
-void
+static void
 android_check_query (void)
 {
   void (*proc) (void *);
@@ -7085,6 +7102,49 @@ android_check_query (void)
   proc (closure);
 
   /* Finish the query.  */
+  __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
+  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
+
+  /* Signal completion.  */
+  sem_post (&android_query_sem);
+}
+
+/* Run any function that the UI thread has asked to run, if the UI
+   thread has been waiting for more than two seconds.
+
+   Call this from `process_pending_signals' to ensure that the UI
+   thread always receives an answer within a reasonable amount of
+   time.  */
+
+void
+android_check_query_urgent (void)
+{
+  void (*proc) (void *);
+  void *closure;
+
+  if (!__atomic_load_n (&android_urgent_query, __ATOMIC_SEQ_CST))
+    return;
+
+  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+	       "Responding to urgent query...");
+
+  if (!__atomic_load_n (&android_servicing_query, __ATOMIC_SEQ_CST))
+    return;
+
+  /* First, load the procedure and closure.  */
+  __atomic_load (&android_query_context, &closure, __ATOMIC_SEQ_CST);
+  __atomic_load (&android_query_function, &proc, __ATOMIC_SEQ_CST);
+
+  if (!proc)
+    return;
+
+  proc (closure);
+
+  /* Finish the query.  Don't clear `android_urgent_query'; instead,
+     do that the next time Emacs enters the keyboard loop.  */
+
   __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
   __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
   __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
@@ -7118,6 +7178,7 @@ android_answer_query (void)
   /* Finish the query.  */
   __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
   __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
+  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
 
   /* Signal completion.  */
   sem_post (&android_query_sem);
@@ -7175,6 +7236,7 @@ static void
 android_end_query (void)
 {
   __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
+  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
 }
 
 /* Synchronously ask the Emacs thread to run the specified PROC with
@@ -7193,6 +7255,8 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
 {
   union android_event event;
   char old;
+  int rc;
+  struct timespec timeout;
 
   event.xaction.type = ANDROID_WINDOW_ACTION;
   event.xaction.serial = ++event_serial;
@@ -7227,9 +7291,50 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
      time it is entered.  */
   android_write_event (&event);
 
-  /* Start waiting for the function to be executed.  */
-  while (sem_wait (&android_query_sem) < 0)
-    ;;
+  /* Start waiting for the function to be executed.  First, wait two
+     seconds for the query to execute normally.  */
+
+  timeout.tv_sec = 2;
+  timeout.tv_nsec = 0;
+  timeout = timespec_add (current_timespec (), timeout);
+
+  /* See if an urgent query was recently answered without entering the
+     keyboard loop in between.  When that happens, raise SIGIO to
+     continue processing queries as soon as possible.  */
+
+  if (__atomic_load_n (&android_urgent_query, __ATOMIC_SEQ_CST))
+    raise (SIGIO);
+
+ again:
+  rc = sem_timedwait (&android_query_sem, &timeout);
+
+  if (rc < 0)
+    {
+      if (errno == EINTR)
+	goto again;
+
+      eassert (errno == ETIMEDOUT);
+
+      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			   "Timed out waiting for response"
+			   " from main thread...");
+
+      /* The query timed out.  At this point, set
+	 `android_urgent_query' to true.  */
+      __atomic_store_n (&android_urgent_query, true, __ATOMIC_SEQ_CST);
+
+      /* And raise SIGIO.  Now that the query is considered urgent,
+	 the main thread will reply while reading async input.
+
+	 Normally, the main thread waits for the keyboard loop to be
+	 entered before responding, in order to avoid responding with
+	 inaccurate results taken during command executioon.  */
+      raise (SIGIO);
+
+      /* Wait for the query to complete.  */
+      while (sem_wait (&android_query_sem) < 0)
+	;;
+    }
 
   /* At this point, `android_servicing_query' should either be zero if
      the query was answered or two if the main thread has started a

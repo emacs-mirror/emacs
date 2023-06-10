@@ -185,7 +185,7 @@ extern void android_display_toast (const char *);
 
 /* Event loop functions.  */
 
-extern void android_check_query (void);
+extern void android_check_query_urgent (void);
 extern int android_run_in_emacs_thread (void (*) (void *), void *);
 extern void android_write_event (union android_event *);
 

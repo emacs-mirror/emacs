@@ -47,7 +47,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_TEXT_CONVERSION
 #include "textconv.h"
-#endif
+#endif /* HAVE_TEXT_CONVERSION */
+
+#ifdef HAVE_ANDROID
+#include "android.h"
+#endif /* HAVE_ANDROID */
 
 #include <errno.h>
 
@@ -7906,6 +7910,14 @@ tty_read_avail_input (struct terminal *terminal,
 static void
 handle_async_input (void)
 {
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Check and respond to an ``urgent'' query from the UI thread.
+     A query becomes urgent once the UI thread has been waiting
+     for more than two seconds.  */
+
+  android_check_query_urgent ();
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
+
 #ifndef DOS_NT
   while (1)
     {
