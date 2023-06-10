@@ -900,7 +900,8 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
     ;; state of the `obarray' when we dumped, which we may also be able to
     ;; use in `bytecomp' to provide a clean initial environment?)
     (dolist (x load-history)
-      (when (string-match preloaded-regexp (car x))
+      (when (let ((elt (car x)))
+              (and (stringp elt) (string-match preloaded-regexp elt)))
         (dolist (def (cdr x))
           (cond
            ((symbolp def) (funcall f def))
