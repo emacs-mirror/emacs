@@ -127,8 +127,8 @@ that column number.
 @kindex C-x TAB
 @findex indent-rigidly
 @cindex remove indentation
-This command is used to change the indentation of all lines that begin
-in the region, moving the affected lines as a rigid unit.
+Indent all lines that begin in the region, moving the affected lines
+as a rigid unit (@code{indent-rigidly}).
 
 If called with no argument, the command activates a transient mode for
 adjusting the indentation of the affected lines interactively.  While
