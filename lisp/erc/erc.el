@@ -2948,17 +2948,40 @@ If ARG is non-nil, show the *erc-protocol* buffer."
 
 ;; send interface
 
+(defvar erc--send-action-function #'erc--send-action
+  "Function to display and send an outgoing CTCP ACTION message.
+Called with three arguments: the submitted input, the current
+target, and an `erc-server-send' FORCE flag.")
+
 (defun erc-send-action (tgt str &optional force)
   "Send CTCP ACTION information described by STR to TGT."
-  (erc-send-ctcp-message tgt (format "ACTION %s" str) force)
-  ;; Allow hooks that act on inserted PRIVMSG and NOTICES to process us.
+  (funcall erc--send-action-function tgt str force))
+
+;; Sending and displaying are provided separately to afford modules
+;; more flexibility, e.g., to forgo displaying on the way out when
+;; expecting the server to echo messages back and/or to associate
+;; outgoing messages with IDs generated for `erc-ephemeral'
+;; placeholders.
+(defun erc--send-action-perform-ctcp (target string force)
+  "Send STRING to TARGET, possibly immediately, with FORCE."
+  (erc-send-ctcp-message target (format "ACTION %s" string) force))
+
+(defun erc--send-action-display (string)
+  "Display STRING as an outgoing \"CTCP ACTION\" message."
+  ;; Allow hooks acting on inserted PRIVMSG and NOTICES to process us.
   (let ((erc--msg-prop-overrides `((erc-msg . msg)
                                    (erc-ctcp . ACTION)
                                    ,@erc--msg-prop-overrides))
         (nick (erc-current-nick)))
-    (setq nick (propertize nick 'erc-speaker nick))
+    (setq nick (propertize nick 'erc-speaker nick
+                           'font-lock-face 'erc-my-nick-face))
     (erc-display-message nil '(t action input) (current-buffer)
-                         'ACTION ?n nick ?a str ?u "" ?h "")))
+                         'ACTION ?n nick ?a string ?u "" ?h "")))
+
+(defun erc--send-action (target string force)
+  "Display STRING, then send to TARGET as a \"CTCP ACTION\" message."
+  (erc--send-action-display string)
+  (erc--send-action-perform-ctcp target string force))
 
 ;; Display interface
 
@@ -3655,6 +3678,12 @@ present."
   "Non-nil when a user types a \"/slash\" command.
 Remains bound until `erc-cmd-SLASH' returns.")
 
+(defvar erc--current-line-input-split nil
+  "Current `erc--input-split' instance when processing user input.
+This is for special cases in which a \"slash\" command needs
+details about the input it's handling or needs to detect whether
+it's been dispatched by `erc-send-current-line'.")
+
 (defvar-local erc-send-input-line-function #'erc-send-input-line
   "Function for sending lines lacking a leading \"slash\" command.
 When prompt input starts with a \"slash\" command, like \"/MSG\",
@@ -3791,9 +3820,7 @@ need this when pasting multiple lines of text."
   (if (string-match "^\\s-*$" line)
       nil
     (string-match "^ ?\\(.*\\)" line)
-    (let ((msg (match-string 1 line)))
-      (erc-display-msg msg)
-      (erc-process-input-line msg nil t))))
+    (erc-send-message (match-string 1 line) nil)))
 (put 'erc-cmd-SAY 'do-not-parse-args t)
 
 (defun erc-cmd-SET (line)
@@ -4489,15 +4516,48 @@ the matching is case-sensitive."
 (put 'erc-cmd-LASTLOG 'do-not-parse-args t)
 (put 'erc-cmd-LASTLOG 'process-not-needed t)
 
+(defvar erc--send-message-nested-function #'erc--send-message-nested
+  "Function for inserting and sending slash-command generated text.
+When a command like /SV or /SAY modifies or replaces command-line
+input originally submitted at the prompt, `erc-send-message'
+performs additional processing to ensure said input is fit for
+inserting and sending given this \"nested\" meta context.  This
+interface variable exists because modules extending fundamental
+insertion and sending operations need a say in this processing as
+well.")
+
 (defun erc-send-message (line &optional force)
   "Send LINE to the current channel or user and display it.
 
 See also `erc-message' and `erc-display-line'."
+  (if (erc--input-split-p erc--current-line-input-split)
+      (funcall erc--send-message-nested-function line force)
+    (erc--send-message-external line force)))
+
+(defun erc--send-message-external (line force)
   (erc-message "PRIVMSG" (concat (erc-default-target) " " line) force)
   (erc-display-line
    (concat (erc-format-my-nick) line)
    (current-buffer))
   ;; FIXME - treat multiline, run hooks, or remove me?
+  t)
+
+(defun erc--send-message-nested (input-line force)
+  "Process string INPUT-LINE almost as if it's normal chat input.
+Expect INPUT-LINE to differ from the `string' slot of the calling
+context's `erc--current-line-input-split' object because the
+latter is likely a slash command invocation whose handler
+generated INPUT-LINE.  Before inserting INPUT-LINE, split it and
+run `erc-send-modify-hook' and `erc-send-post-hook' on each
+actual outgoing line.  Forgo input validation because this isn't
+interactive input, and skip `erc-send-completed-hook' because it
+will run just before the outer `erc-send-current-line' call
+returns."
+  (let* ((erc-flood-protect (not force))
+         (lines-obj (erc--make-input-split input-line)))
+    (setf (erc--input-split-refoldp lines-obj) t
+          (erc--input-split-cmdp lines-obj) nil)
+    (erc--send-input-lines (erc--run-send-hooks lines-obj)))
   t)
 
 (defun erc-cmd-MODE (line)
@@ -6873,6 +6933,14 @@ ERC prints them as a single message joined by newlines.")
   (when (erc--input-split-cmdp state)
     (setf (erc--input-split-insertp state) nil)))
 
+(defun erc--make-input-split (string)
+  (make-erc--input-split
+   :string string
+   :insertp erc-insert-this
+   :sendp erc-send-this
+   :lines (split-string string erc--input-line-delim-regexp)
+   :cmdp (string-match erc-command-regexp string)))
+
 (defun erc-send-current-line ()
   "Parse current line and send it to IRC."
   (interactive)
@@ -6887,16 +6955,11 @@ ERC prints them as a single message joined by newlines.")
             (expand-abbrev))
           (widen)
           (let* ((str (erc-user-input))
-                 (state (make-erc--input-split
-                         :string str
-                         :insertp erc-insert-this
-                         :sendp erc-send-this
-                         :lines (split-string
-                                 str erc--input-line-delim-regexp)
-                         :cmdp (string-match erc-command-regexp str))))
+                 (state (erc--make-input-split str)))
             (run-hook-with-args 'erc--input-review-functions state)
             (when-let (((not (erc--input-split-abortp state)))
                        (inhibit-read-only t)
+                       (erc--current-line-input-split state)
                        (old-buf (current-buffer)))
               (let ((erc--msg-prop-overrides `((erc-msg . msg)
                                                ,@erc--msg-prop-overrides)))
@@ -6962,6 +7025,8 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
                       (run-hook-with-args 'erc-send-pre-hook str)
                       (make-erc-input :string str
                                       :insertp erc-insert-this
+                                      :refoldp (erc--input-split-refoldp
+                                                lines-obj)
                                       :sendp erc-send-this))))
         (run-hook-with-args 'erc-pre-send-functions state)
         (setf (erc--input-split-sendp lines-obj) (erc-input-sendp state)
@@ -6978,7 +7043,7 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
     (user-error "Multiline command detected" ))
   lines-obj)
 
-(defun erc--send-input-lines (lines-obj)
+(cl-defmethod erc--send-input-lines (lines-obj)
   "Send lines in `erc--input-split-lines' object LINES-OBJ."
   (when (erc--input-split-sendp lines-obj)
     (dolist (line (erc--input-split-lines lines-obj))
@@ -8103,10 +8168,11 @@ If optional argument HERE is non-nil, insert version number at point."
                     (let (modes (case-fold-search nil))
                       (dolist (var (apropos-internal "^erc-.*mode$"))
                         (when (and (boundp var)
+                                   (get var 'erc-module)
                                    (symbol-value var))
-                          (setq modes (cons (symbol-name var)
+                          (setq modes (cons (concat "`" (symbol-name var) "'")
                                             modes))))
-                      modes)
+                      (sort modes #'string<))
                     ", ")))
     (if here
         (insert string)
