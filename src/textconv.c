@@ -624,7 +624,13 @@ really_commit_text (struct frame *f, EMACS_INT position,
 
       if (SCHARS (text))
 	{
-	  Finsert (1, &text);
+	  /* Insert the new text.  Make sure to inherit text
+	     properties from the surroundings: if this doesn't happen,
+	     CC Mode fontification can get thrown off and become very
+	     slow.  */
+
+	  insert_from_string (text, 0, 0, SCHARS (text),
+			      SBYTES (text), true);
 	  record_buffer_change (start, PT, text);
 	}
 
@@ -686,7 +692,14 @@ really_commit_text (struct frame *f, EMACS_INT position,
 
       if (SCHARS (text))
 	{
-	  Finsert (1, &text);
+	  /* Insert the new text.  Make sure to inherit text
+	     properties from the surroundings: if this doesn't happen,
+	     CC Mode fontification can get thrown off and become very
+	     slow.  */
+
+	  insert_from_string (text, 0, 0, SCHARS (text),
+			      SBYTES (text), true);
+
 	  record_buffer_change (wanted, PT, text);
 	}
 
@@ -835,8 +848,12 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 	record_buffer_change (start, start, Qt);
     }
 
-  /* Insert the new text.  */
-  Finsert (1, &text);
+  /* Insert the new text.  Make sure to inherit text properties from
+     the surroundings: if this doesn't happen, CC Mode fontification
+     can get thrown off and become very slow.  */
+
+  insert_from_string (text, 0, 0, SCHARS (text),
+		      SBYTES (text), true);
 
   if (start != PT)
     record_buffer_change (start, PT, Qt);
