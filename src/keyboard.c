@@ -7990,11 +7990,11 @@ handle_input_available_signal (int sig)
   /* Make all writes from the Android UI thread visible.  If
      `android_urgent_query' has been set, preceding writes to query
      related variables should become observable here on as well.  */
-#if defined __aarch64__ || defined __arm__
+#if defined __aarch64__
   asm ("dmb ishst");
-#else /* defined __aarch64__ || defined __arm__ */
+#else /* !defined __aarch64__ */
   __atomic_thread_fence (__ATOMIC_SEQ_CST);
-#endif /* !defined __aarch64__ && !defined __arm__ */
+#endif /* defined __aarch64__ */
 #endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
   pending_signals = true;
 
