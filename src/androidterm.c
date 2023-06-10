@@ -5128,18 +5128,22 @@ android_get_selection (void *data)
     {
       w = XWINDOW (f->selected_window);
 
-      /* Return W's point at the time of the last redisplay.  This is
-         rather important to keep the input method consistent with the
-         contents of the display.  */
-      context->point = w->ephemeral_last_point;
+      /* Return W's point as it is now.  Then, set
+	 W->ephemeral_last_point to match the current point.  */
+      context->point = window_point (w);
+      w->ephemeral_last_point = context->point;
 
       /* Default context->mark to w->last_point too.  */
       context->mark = context->point;
 
-      /* If the mark is active, then set it properly.  */
+      /* If the mark is active, then set it properly.  Also, adjust
+	 w->last_mark to match.  */
       b = XBUFFER (w->contents);
-      if (!NILP (BVAR (b, mark_active)) && w->last_mark != -1)
-	context->mark = w->last_mark;
+      if (!NILP (BVAR (b, mark_active)))
+	{
+	  context->mark = marker_position (BVAR (b, mark));
+	  w->last_mark = context->mark;
+	}
     }
 }
 

@@ -717,7 +717,7 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   /* Since Emacs is reading keyboard input again, signify that queries
      from input methods are no longer ``urgent''.  */
 
-  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
+  __atomic_clear (&android_urgent_query, __ATOMIC_RELEASE);
 
   /* Check for and run anything the UI thread wants to run on the main
      thread.  */
@@ -7072,13 +7072,22 @@ static void *android_query_context;
    the UI thread, but is not possible the other way around.
 
    To avoid such deadlocks, an atomic counter is provided.  This
-   counter is incremented every time a query starts, and is set to
-   zerp every time one ends.  If the UI thread tries to make a query
-   and sees that the counter is non-zero, it simply returns so that
-   its event loop can proceed to perform and respond to the query.  If
-   the Emacs thread sees the same thing, then it stops to service all
-   queries being made by the input method, then proceeds to make its
-   query.  */
+   counter is set to two every time a query starts from the main
+   thread, and is set to zero every time one ends.  If the UI thread
+   tries to make a query and sees that the counter is two, it simply
+   returns so that its event loop can proceed to perform and respond
+   to the query.  If the Emacs thread sees that the counter is one,
+   then it stops to service all queries being made by the input
+   method, then proceeds to make its query with the counter set to
+   2.
+
+   The memory synchronization is simple: all writes to
+   `android_query_context' and `android_query_function' are depended
+   on by writes to the atomic counter.  Loads of the new value from
+   the counter are then guaranteed to make those writes visible.  The
+   separate flag `android_urgent_query' does not depend on anything
+   itself; however, the input signal handler executes a memory fence
+   to ensure that all query related writes become visible.  */
 
 /* Run any function that the UI thread has asked to run, and then
    signal its completion.  */
@@ -7089,12 +7098,12 @@ android_check_query (void)
   void (*proc) (void *);
   void *closure;
 
-  if (!__atomic_load_n (&android_servicing_query, __ATOMIC_SEQ_CST))
+  if (!__atomic_load_n (&android_servicing_query, __ATOMIC_ACQUIRE))
     return;
 
   /* First, load the procedure and closure.  */
-  __atomic_load (&android_query_context, &closure, __ATOMIC_SEQ_CST);
-  __atomic_load (&android_query_function, &proc, __ATOMIC_SEQ_CST);
+  closure = android_query_context;
+  proc = android_query_function;
 
   if (!proc)
     return;
@@ -7102,10 +7111,10 @@ android_check_query (void)
   proc (closure);
 
   /* Finish the query.  */
-  __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
-  __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
-  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
-  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
+  android_query_context = NULL;
+  android_query_function = NULL;
+  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_RELEASE);
+  __atomic_clear (&android_urgent_query, __ATOMIC_RELEASE);
 
   /* Signal completion.  */
   sem_post (&android_query_sem);
@@ -7124,18 +7133,18 @@ android_check_query_urgent (void)
   void (*proc) (void *);
   void *closure;
 
-  if (!__atomic_load_n (&android_urgent_query, __ATOMIC_SEQ_CST))
+  if (!__atomic_load_n (&android_urgent_query, __ATOMIC_ACQUIRE))
     return;
 
   __android_log_print (ANDROID_LOG_VERBOSE, __func__,
 	       "Responding to urgent query...");
 
-  if (!__atomic_load_n (&android_servicing_query, __ATOMIC_SEQ_CST))
+  if (!__atomic_load_n (&android_servicing_query, __ATOMIC_ACQUIRE))
     return;
 
   /* First, load the procedure and closure.  */
-  __atomic_load (&android_query_context, &closure, __ATOMIC_SEQ_CST);
-  __atomic_load (&android_query_function, &proc, __ATOMIC_SEQ_CST);
+  closure = android_query_context;
+  proc = android_query_function;
 
   if (!proc)
     return;
@@ -7145,9 +7154,9 @@ android_check_query_urgent (void)
   /* Finish the query.  Don't clear `android_urgent_query'; instead,
      do that the next time Emacs enters the keyboard loop.  */
 
-  __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
-  __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
-  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
+  android_query_context = NULL;
+  android_query_function = NULL;
+  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_RELEASE);
 
   /* Signal completion.  */
   sem_post (&android_query_sem);
@@ -7163,12 +7172,13 @@ android_answer_query (void)
   void (*proc) (void *);
   void *closure;
 
-  eassert (__atomic_load_n (&android_servicing_query, __ATOMIC_SEQ_CST)
+  eassert (__atomic_load_n (&android_servicing_query,
+			    __ATOMIC_ACQUIRE)
 	   == 1);
 
   /* First, load the procedure and closure.  */
-  __atomic_load (&android_query_context, &closure, __ATOMIC_SEQ_CST);
-  __atomic_load (&android_query_function, &proc, __ATOMIC_SEQ_CST);
+  closure = android_query_context;
+  proc = android_query_function;
 
   if (!proc)
     return;
@@ -7176,9 +7186,9 @@ android_answer_query (void)
   proc (closure);
 
   /* Finish the query.  */
-  __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
-  __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
-  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
+  android_query_context = NULL;
+  android_query_function = NULL;
+  __atomic_clear (&android_urgent_query, __ATOMIC_RELEASE);
 
   /* Signal completion.  */
   sem_post (&android_query_sem);
@@ -7193,7 +7203,7 @@ android_answer_query_spin (void)
   int n;
 
   while (!(n = __atomic_load_n (&android_servicing_query,
-				__ATOMIC_SEQ_CST)))
+				__ATOMIC_ACQUIRE)))
     eassert (!n);
 
   /* Note that this function is supposed to be called before
@@ -7212,11 +7222,11 @@ android_begin_query (void)
 {
   char old;
 
-  /* Load the previous value of `android_servicing_query' and upgrade
+  /* Load the previous value of `android_servicing_query' and then set
      it to 2.  */
 
   old = __atomic_exchange_n (&android_servicing_query,
-			     2, __ATOMIC_SEQ_CST);
+			     2, __ATOMIC_ACQ_REL);
 
   /* See if a query was previously in progress.  */
   if (old == 1)
@@ -7235,8 +7245,8 @@ android_begin_query (void)
 static void
 android_end_query (void)
 {
-  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_SEQ_CST);
-  __atomic_clear (&android_urgent_query, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_servicing_query, 0, __ATOMIC_RELEASE);
+  __atomic_clear (&android_urgent_query, __ATOMIC_RELEASE);
 }
 
 /* Synchronously ask the Emacs thread to run the specified PROC with
@@ -7264,8 +7274,8 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
   event.xaction.action = 0;
 
   /* Set android_query_function and android_query_context.  */
-  __atomic_store_n (&android_query_context, closure, __ATOMIC_SEQ_CST);
-  __atomic_store_n (&android_query_function, proc, __ATOMIC_SEQ_CST);
+  android_query_context = closure;
+  android_query_function = proc;
 
   /* Don't allow deadlocks to happen; make sure the Emacs thread is
      not waiting for something to be done (in that case,
@@ -7273,13 +7283,15 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
 
   old = 0;
   if (!__atomic_compare_exchange_n (&android_servicing_query, &old,
-				    1, false, __ATOMIC_SEQ_CST,
-				    __ATOMIC_SEQ_CST))
+				    1, false, __ATOMIC_ACQ_REL,
+				    __ATOMIC_ACQUIRE))
     {
-      __atomic_store_n (&android_query_context, NULL,
-			__ATOMIC_SEQ_CST);
-      __atomic_store_n (&android_query_function, NULL,
-			__ATOMIC_SEQ_CST);
+      android_query_context = NULL;
+      android_query_function = NULL;
+
+      /* The two variables above may still be non-NULL from the POV of
+	 the main thread, as no happens-before constraint is placed on
+         those stores wrt a future load from `android_servicing_query'.  */
 
       return 1;
     }
@@ -7302,7 +7314,7 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
      keyboard loop in between.  When that happens, raise SIGIO to
      continue processing queries as soon as possible.  */
 
-  if (__atomic_load_n (&android_urgent_query, __ATOMIC_SEQ_CST))
+  if (__atomic_load_n (&android_urgent_query, __ATOMIC_ACQUIRE))
     raise (SIGIO);
 
  again:
@@ -7321,7 +7333,8 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
 
       /* The query timed out.  At this point, set
 	 `android_urgent_query' to true.  */
-      __atomic_store_n (&android_urgent_query, true, __ATOMIC_SEQ_CST);
+      __atomic_store_n (&android_urgent_query, true,
+			__ATOMIC_RELEASE);
 
       /* And raise SIGIO.  Now that the query is considered urgent,
 	 the main thread will reply while reading async input.
@@ -7331,7 +7344,10 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
 	 inaccurate results taken during command executioon.  */
       raise (SIGIO);
 
-      /* Wait for the query to complete.  */
+      /* Wait for the query to complete.  `android_urgent_query' is
+	 only cleared by either `android_select' or
+	 `android_check_query', so there's no need to worry about the
+	 flag being cleared before the query is processed.  */
       while (sem_wait (&android_query_sem) < 0)
 	;;
     }
@@ -7341,9 +7357,9 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
      query.  */
 
   eassert (!__atomic_load_n (&android_servicing_query,
-			    __ATOMIC_SEQ_CST)
+			    __ATOMIC_ACQUIRE)
 	   || (__atomic_load_n (&android_servicing_query,
-				__ATOMIC_SEQ_CST) == 2));
+				__ATOMIC_ACQUIRE) == 2));
 
   return 0;
 }

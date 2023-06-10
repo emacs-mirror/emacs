@@ -7986,6 +7986,16 @@ totally_unblock_input (void)
 void
 handle_input_available_signal (int sig)
 {
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Make all writes from the Android UI thread visible.  If
+     `android_urgent_query' has been set, preceding writes to query
+     related variables should become observable here on as well.  */
+#if defined __aarch64__ || defined __arm__
+  asm ("dmb ishst");
+#else /* defined __aarch64__ || defined __arm__ */
+  __atomic_thread_fence (__ATOMIC_SEQ_CST);
+#endif /* !defined __aarch64__ && !defined __arm__ */
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
   pending_signals = true;
 
   if (input_available_clear_time)
