@@ -1,7 +1,7 @@
 /* Compile Emacs Lisp into native code.
    Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
-Author: Andrea Corallo <akrl@sdf.org>
+Author: Andrea Corallo <acorallo@gnu.org>
 
 This file is part of GNU Emacs.
 

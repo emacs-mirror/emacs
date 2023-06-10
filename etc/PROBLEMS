@@ -2750,6 +2750,44 @@ C-r C-t, to toggle whether C-x gets through to Emacs.
 
 * Runtime problems specific to MS-Windows
 
+** Emacs with native compilation crashes/signals errors accessing *.eln files
+
+This is known to be caused by some flavors of Windows anti-virus
+software.  The problem could manifest itself in several ways:
+
+  . Emacs crashes when it tries to load certain *.eln files
+  . Emacs signals an error when it tries to load some *.eln files,
+    claiming they are "not GPL compatible"
+  . Emacs crashes during GC when it calls unload_comp_unit
+
+This was specifically reported to happen with *.eln files in
+directories under the C:\Users directory, which is where Emacs on
+Windows places the emulated HOME directory, and thus also the
+~/.emacs.d/eln-cache directory holding the *.eln files compiled during
+Emacs sessions (as opposed to those that came precompiled and were
+installed with the rest of Emacs distribution).
+
+If you cannot disable such anti-virus software or switch to another
+one, you could use the following workarounds:
+
+  . Define the HOME environment variable to point to a directory
+    outside of the C:\Users tree, then copy/move your ~/.emacs.d
+    directory to that new home directory.
+  . Move all the *.eln files from ~/.emacs.d/eln-cache to a directory
+    out of the C:\Users tree, and customize Emacs to use that
+    directory for *.eln files.  This requires to call the function
+    startup-redirect-eln-cache in your init file, to force Emacs to
+    write *.eln files compiled at run time to that directory.
+  . Delete all *.eln files in your ~/.emacs.d/eln-cache directory, and
+    then disable run-time native compilation.  To disable native
+    compilation, set the variables native-comp-jit-compilation and
+    native-comp-enable-subr-trampolines to nil.
+  . Install Emacs built without native compilation.
+
+With any of the above methods, you'd need to restart Emacs (and
+preferably also your Windows system) after making the changes, to have
+them take effect.
+
 ** Emacs on Windows 9X requires UNICOWS.DLL
 
 If that DLL is not available, Emacs will display an error dialog

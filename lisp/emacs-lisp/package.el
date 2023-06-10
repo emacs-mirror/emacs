@@ -737,7 +737,7 @@ description file containing a call to `define-package', which
 updates `package-alist'."
   (dolist (dir (cons package-user-dir package-directory-list))
     (when (file-directory-p dir)
-      (dolist (pkg-dir (directory-files dir t "\\`[^.]" t))
+      (dolist (pkg-dir (directory-files dir t "\\`[^.]"))
         (when (file-directory-p pkg-dir)
           (package-load-descriptor pkg-dir))))))
 
@@ -916,22 +916,14 @@ correspond to previously loaded files."
 
 (defun package--get-activatable-pkg (pkg-name)
   ;; Is "activatable" a word?
-  (let ((pkg-descs (sort (cdr (assq pkg-name package-alist))
-                         (lambda (p1 p2)
-                           (let ((v1 (package-desc-version p1))
-                                 (v2 (package-desc-version p2)))
-                             (or
-                              ;; Prefer VC packages.
-                              (package-vc-p p1)
-                              (package-vc-p p2)
-                              ;; Prefer builtin packages.
-                              (package-disabled-p p1 v1)
-                              (not (package-disabled-p p2 v2))))))))
+  (let ((pkg-descs (cdr (assq pkg-name package-alist))))
     ;; Check if PACKAGE is available in `package-alist'.
     (while
         (when pkg-descs
           (let ((available-version (package-desc-version (car pkg-descs))))
-            (package-disabled-p pkg-name available-version)))
+            (or (package-disabled-p pkg-name available-version)
+                ;; Prefer a builtin package.
+                (package-built-in-p pkg-name available-version))))
       (setq pkg-descs (cdr pkg-descs)))
     (car pkg-descs)))
 
