@@ -3185,13 +3185,16 @@ present."
   "Non-nil when a user types a \"/slash\" command.
 Remains bound until `erc-cmd-SLASH' returns.")
 
-(defvar-local erc-send-input-line-function 'erc-send-input-line
-  "Function for sending lines lacking a leading user command.
-When a line typed into a buffer contains an explicit command, like /msg,
-a corresponding handler (here, erc-cmd-MSG) is called.  But lines typed
-into a channel or query buffer already have an implicit target and
-command (PRIVMSG).  This function is called on such occasions and also
-for special purposes (see erc-dcc.el).")
+(defvar-local erc-send-input-line-function #'erc-send-input-line
+  "Function for sending lines lacking a leading \"slash\" command.
+When prompt input starts with a \"slash\" command, like \"/MSG\",
+ERC calls a corresponding handler, like `erc-cmd-MSG'.  But
+normal \"chat\" input also needs processing, for example, to
+convert it into a proper IRC command.  ERC calls this variable's
+value to perform that task, which, by default, simply involves
+constructing a \"PRIVMSG\" with the current channel or query
+partner as the target.  Some libraries, like `erc-dcc', use this
+for other purposes.")
 
 (defun erc-send-input-line (target line &optional force)
   "Send LINE to TARGET."
