@@ -57,11 +57,8 @@
       (erc-mode)
       (setq erc-server-process
             (start-process "fake" (current-buffer) "sleep" "10")
-            erc-input-marker (make-marker)
-            erc-insert-marker (make-marker)
             erc-server-current-nick "dummy")
-      (erc-display-prompt)
-      (set-marker erc-insert-marker (pos-bol))
+      (erc--initialize-markers (point) nil)
       (set-process-query-on-exit-flag erc-server-process nil)
       (should-not erc-dcc-list)
       (erc-ctcp-query-DCC erc-server-process
@@ -121,17 +118,14 @@
            calls)
       (erc-mode)
       (setq erc-server-process proc
-            erc-input-marker (make-marker)
-            erc-insert-marker (make-marker)
             erc-server-current-nick "dummy")
+      (erc--initialize-markers (point) nil)
       (set-process-query-on-exit-flag proc nil)
       (cl-letf (((symbol-function 'read-file-name)
                  (lambda (&rest _) file))
                 ((symbol-function 'erc-dcc-get-file)
                  (lambda (&rest r) (push r calls))))
         (goto-char (point-max))
-        (set-marker erc-insert-marker (point-max))
-        (erc-display-prompt)
 
         (ert-info ("No turbo")
           (should-not (plist-member elt :turbo))

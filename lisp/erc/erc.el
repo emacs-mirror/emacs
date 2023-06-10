@@ -2214,8 +2214,8 @@ nil."
                     (alist-get 'erc-insert-marker continued-session))
         (set-marker erc-input-marker
                     (alist-get 'erc-input-marker continued-session))
-        (goto-char erc-insert-marker)
-        (cl-assert (= (field-end) erc-input-marker))
+        (set-marker-insertion-type erc-insert-marker t)
+        (cl-assert (= (field-end erc-insert-marker) erc-input-marker))
         (goto-char old-point)
         (erc--unhide-prompt))
     (cl-assert (not (get-text-property (point) 'erc-prompt)))
@@ -2226,6 +2226,7 @@ nil."
     (insert "\n\n")
     (set-marker erc-insert-marker (point))
     (erc-display-prompt)
+    (set-marker-insertion-type erc-insert-marker t)
     (cl-assert (= (point) (point-max)))))
 
 (defun erc-open (&optional server port nick full-name
@@ -2821,10 +2822,12 @@ this option to nil."
   (when (functionp erc-prompt)
     (save-excursion
       (goto-char erc-insert-marker)
+      (set-marker-insertion-type erc-insert-marker nil)
       ;; Avoid `erc-prompt' (the named function), which appends a
       ;; space, and `erc-display-prompt', which propertizes all but
       ;; that space.
       (insert-and-inherit (funcall erc-prompt))
+      (set-marker-insertion-type erc-insert-marker t)
       (delete-region (point) (1- erc-input-marker)))))
 
 (defun erc-display-line-1 (string buffer)
@@ -2860,7 +2863,7 @@ If STRING is nil, the function does nothing."
               (save-restriction
                 (widen)
                 (goto-char insert-position)
-                (insert-before-markers string)
+                (insert string)
                 (erc--assert-input-bounds)
                 ;; run insertion hook, with point at restored location
                 (save-restriction
@@ -6490,15 +6493,14 @@ Return non-nil only if we actually send anything."
   (when erc-insert-this
     (save-excursion
       (erc--assert-input-bounds)
-      (let ((insert-position (marker-position erc-insert-marker))
+      (let ((insert-position (marker-position (goto-char erc-insert-marker)))
             beg)
-        (goto-char insert-position)
-        (insert-before-markers (erc-format-my-nick))
+        (insert (erc-format-my-nick))
         (setq beg (point))
-        (insert-before-markers line)
+        (insert line)
         (erc-put-text-property beg (point) 'font-lock-face 'erc-input-face)
         (erc-put-text-property insert-position (point) 'erc-command 'PRIVMSG)
-        (insert-before-markers "\n")
+        (insert "\n")
         (save-restriction
           (narrow-to-region insert-position (point))
           (run-hooks 'erc-send-modify-hook)

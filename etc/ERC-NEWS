@@ -244,7 +244,14 @@ running hooks during message insertion, and the position of its
 "insert marker" (ERC's per-buffer process mark) was inconsistent
 during these spells.  To make insertion handling more predictable in
 preparation for incorporating various protocol extensions, the prompt
-and its bounding markers have become perennial fixtures.  In rare
+and its bounding markers have become perennial fixtures.  To effect
+this change, small behavioral differences in message insertion have
+been adopted.  Crucially, 'erc-insert-marker' now has an "insertion
+type" of t, and 'erc-display-line-1' now calls 'insert' instead of
+'insert-before-prompt'.  This allows user code to leave its own
+markers via 'erc-insert-modify-hook' and 'erc-insert-post-hook'
+instead of having to resort to workarounds.  Message insertion for
+outgoing messages, in 'erc-display-msg', remains as before.  In rare
 cases, these changes may mean third-party code needs tweaking, for
 example, requiring the use of 'insert-before-markers' instead of
 'insert'.  As always, users feeling unduly inconvenienced by these
