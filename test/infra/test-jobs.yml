@@ -10,10 +10,6 @@ test-lib-src-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
-        - lib-src/treesit.{h,c}
-        - test/lib-src/treesit-tests.el
-      when: never
-    - changes:
         - lib-src/*.{h,c}
         - test/lib-src/*resources/**
         - test/lib-src/*.el
