@@ -854,7 +854,10 @@ that the latter technique might still produce a small number of
 @file{*.eln} files if Emacs needs to generate @dfn{trampolines}, which
 are used if Lisp primitives are advised or redefined in your Lisp code
 that is being natively compiled.  @xref{Native-Compilation Variables,
-trampolines}.
+trampolines}.  Alternatively, you can specify that the @file{*.eln}
+files are written to a non-default directory using the
+@code{startup-redirect-eln-cache} function; @pxref{Native-Compilation
+Functions}.
 
 @menu
 * Native-Compilation Functions::  Functions to natively-compile Lisp.
@@ -977,6 +980,22 @@ the native-compilation support compiled into it.  On systems that load
 @file{libgccjit} dynamically, it also makes sure that library is
 available and can be loaded.  Lisp programs that need to know up front
 whether native-compilation is available should use this predicate.
+@end defun
+
+  By default, asynchronous native compilation writes the @file{*.eln}
+files it produces to a subdirectory of the first writable directory
+specified by the @code{native-comp-eln-load-path} variable
+(@pxref{Native-Compilation Variables}).  You can change this by using
+the following function in your startup files:
+
+@defun startup-redirect-eln-cache cache-directory
+This function arranges for the asynchronous native compilation to
+write the produced @file{*.eln} files to @var{cache-directory}, which
+must be a single directory, a string.  It also destructively modifies
+@code{native-comp-eln-load-path} such that its first element is
+@var{cache-directory}.  If @var{cache-directory} is not an absolute
+file name, it is interpreted relative to @code{user-emacs-directory}
+(@pxref{Init File}).
 @end defun
 
 @node Native-Compilation Variables

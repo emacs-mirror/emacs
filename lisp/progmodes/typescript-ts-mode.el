@@ -128,7 +128,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "case" "catch" "class" "const" "continue" "debugger"
     "declare" "default" "delete" "do" "else" "enum"
     "export" "extends" "finally" "for" "from" "function"
-    "get" "if" "implements" "import" "in" "instanceof" "interface" "is"
+    "get" "if" "implements" "import" "in" "instanceof" "interface" "is" "infer"
     "keyof" "let" "namespace" "new" "of" "private" "protected"
     "public" "readonly" "return" "set" "static" "switch"
     "target" "throw" "try" "type" "typeof" "var" "void"
@@ -173,8 +173,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :feature 'declaration
    `((function
       name: (identifier) @font-lock-function-name-face)
-
      (function_declaration
+      name: (identifier) @font-lock-function-name-face)
+     (function_signature
       name: (identifier) @font-lock-function-name-face)
 
      (method_definition

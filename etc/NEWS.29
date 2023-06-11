@@ -65,12 +65,13 @@ cloning its Git repository, compile the files "scanner.c" and
 "parser.c" (sometimes named "scanner.cc" and "parser.cc") in the "src"
 subdirectory of the library's source tree using the C or C++ compiler,
 then link these two files into a shared library named
-"libtree-sitter-LANG.so", where LANG is the name of the language
-supported by the grammar as it is expected by the Emacs major mode
-(for example, "c" for 'c-ts-mode', "cpp" for 'c++-ts-mode', "python"
-for 'python-ts-mode', etc.).  Then place the shared library you've
-built in the same directory where you keep the other shared libraries
-used by Emacs, or in the "tree-sitter" subdirectory of your
+"libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on MS-Windows,
+"libtree-sitter-LANG.dylib" on macOS), where LANG is the name of the
+language supported by the grammar as it is expected by the Emacs major
+mode (for example, "c" for 'c-ts-mode', "cpp" for 'c++-ts-mode',
+"python" for 'python-ts-mode', etc.).  Then place the shared library
+you've built in the same directory where you keep the other shared
+libraries used by Emacs, or in the "tree-sitter" subdirectory of your
 'user-emacs-directory', or in a directory mentioned in the variable
 'treesit-extra-load-path'.
 
@@ -78,6 +79,11 @@ You only need to install language grammar libraries required by the
 Emacs modes you will use, as Emacs loads these libraries only when the
 corresponding mode is turned on in some buffer for the first time in
 an Emacs session.
+
+We generally recommend to use the latest versions of grammar libraries
+available from their sites, as these libraries are in constant
+development and occasionally add features and fix important bugs to
+follow the advances in the programming languages they support.
 
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
@@ -129,7 +135,7 @@ use this configuration only if you are running a window system other
 than X that's supported by GDK.  Running this configuration on X is
 known to have problems, such as undesirable frame positioning and
 various issues with keyboard input of sequences such as 'C-;' and
-'C-S-u'.
+'C-S-u'.  Running this on WSL is also known to have problems.
 
 Note that, unlike the X build of Emacs, the PGTK build cannot
 automatically switch to text-mode interface (thus emulating '-nw') if
@@ -220,7 +226,7 @@ ones for the current Emacs version).  Note that subdirectories of the
 system directory where the "*.eln" files are installed (usually, the
 last entry in 'native-comp-eln-load-path') are not deleted.
 
----
++++
 *** New function 'startup-redirect-eln-cache'.
 This function can be called in your init files to change the
 user-specific directory where Emacs stores the "*.eln" files produced

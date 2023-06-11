@@ -5473,6 +5473,7 @@ window_wants_mode_line (struct window *w)
 	  && WINDOW_PIXEL_HEIGHT (w) > WINDOW_FRAME_LINE_HEIGHT (w));
 }
 
+static int header_line_eval_called = 0;
 
 /**
  * null_header_line_format:
@@ -5500,9 +5501,18 @@ null_header_line_format (Lisp_Object fmt, struct frame *f)
 	{
 	  if (EQ (car, QCeval))
 	    {
+	      if (header_line_eval_called > 0)
+		return false;
+	      eassert (header_line_eval_called == 0);
+	      header_line_eval_called++;
 	      val = safe_eval_inhibit_quit (XCAR (XCDR (fmt)));
+	      header_line_eval_called--;
+	      eassert (header_line_eval_called == 0);
 	      if (!FRAME_LIVE_P (f))
-		signal_error (":eval deleted the frame being displayed", fmt);
+		{
+		  header_line_eval_called = 0;
+		  signal_error (":eval deleted the frame being displayed", fmt);
+		}
 	      return NILP (val);
 	    }
 	  val = find_symbol_value (car);
