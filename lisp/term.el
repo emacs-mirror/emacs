@@ -1726,7 +1726,12 @@ Nil if unknown.")
       (push (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
             process-environment))
     (apply #'start-process name buffer
-	   "/bin/sh" "-c"
+           ;; On Android, /bin doesn't exist, and the default shell is
+           ;; found as /system/bin/sh.
+	   (if (eq system-type 'android)
+               "/system/bin/sh"
+             "/bin/sh")
+           "-c"
 	   (format "stty -nl echo rows %d columns %d sane 2>%s;\
 if [ $1 = .. ]; then shift; fi; exec \"$@\""
 		   term-height term-width null-device)

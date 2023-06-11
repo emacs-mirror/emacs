@@ -2518,6 +2518,10 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   /* Set TMPDIR to the temporary files directory.  */
   setenv ("TMPDIR", android_cache_dir, 1);
 
+  /* And finally set "SHELL" to /system/bin/sh.  Otherwise, some
+     programs will look for /bin/sh, which is problematic.  */
+  setenv ("SHELL", "/system/bin/sh", 1);
+
   /* Set the cwd to that directory as well.  */
   if (chdir (android_files_dir))
     __android_log_print (ANDROID_LOG_WARN, __func__,
