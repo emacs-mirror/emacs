@@ -38,19 +38,40 @@ import java.lang.ref.WeakReference;
 public final class EmacsSurfaceView extends View
 {
   private static final String TAG = "EmacsSurfaceView";
+
+  /* The EmacsView representing the window that this surface is
+     displaying.  */
   private EmacsView view;
+
+  /* The complete buffer contents at the time of the last draw.  */
   private Bitmap frontBuffer;
+
+  /* Canvas representing the front buffer.  */
   private Canvas bitmapCanvas;
+
+  /* Reference to the last bitmap copied to the front buffer.  */
   private WeakReference<Bitmap> bitmap;
-  private Paint bitmapPaint;
+
+  /* Paint objects used on the main and UI threads, respectively.  */
+  private static final Paint bitmapPaint, uiThreadPaint;
+
+  static
+  {
+    /* Create two different Paint objects; one is used on the main
+       thread for buffer swaps, while the other is used from the UI
+       thread in `onDraw'.  This is necessary because Paint objects
+       are not thread-safe, even if their uses are interlocked.  */
+
+    bitmapPaint = new Paint ();
+    uiThreadPaint = new Paint ();
+  };
 
   public
-  EmacsSurfaceView (final EmacsView view)
+  EmacsSurfaceView (EmacsView view)
   {
     super (view.getContext ());
 
     this.view = view;
-    this.bitmapPaint = new Paint ();
     this.bitmap = new WeakReference<Bitmap> (null);
   }
 
@@ -161,6 +182,6 @@ public final class EmacsSurfaceView extends View
        now.  */
 
     if (frontBuffer != null)
-      canvas.drawBitmap (frontBuffer, 0f, 0f, bitmapPaint);
+      canvas.drawBitmap (frontBuffer, 0f, 0f, uiThreadPaint);
   }
 };

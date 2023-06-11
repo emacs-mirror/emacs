@@ -617,7 +617,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 
       /* Now delete whatever needs to go.  */
 
-      del_range (start, end);
+      del_range_1 (start, end, true, false);
       record_buffer_change (start, start, Qt);
 
       /* Don't record changes if TEXT is empty.  */
@@ -821,7 +821,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 
       if (end != start)
 	{
-	  del_range (start, end);
+	  del_range_1 (start, end, true, false);
 	  set_point (start);
 	  record_buffer_change (start, start, Qt);
 	}
@@ -841,7 +841,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 	 its end.  */
       start = marker_position (f->conversion.compose_region_start);
       end = marker_position (f->conversion.compose_region_end);
-      del_range (start, end);
+      del_range_1 (start, end, true, false);
       set_point (start);
 
       if (start != end)
@@ -1041,7 +1041,7 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
       start = max (BEGV, lstart - left);
       end = min (ZV, rstart + right);
 
-      text = del_range_1 (start, end, false, true);
+      text = del_range_1 (start, end, true, true);
       record_buffer_change (start, start, text);
     }
   else
@@ -1051,14 +1051,14 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
 
       start = rstart;
       end = min (ZV, rstart + right);
-      text = del_range_1 (start, end, false, true);
+      text = del_range_1 (start, end, true, true);
       record_buffer_change (start, start, Qnil);
 
       /* Now delete what must be deleted on the left.  */
 
       start = max (BEGV, lstart - left);
       end = lstart;
-      text = del_range_1 (start, end, false, true);
+      text = del_range_1 (start, end, true, true);
       record_buffer_change (start, start, text);
     }
 
