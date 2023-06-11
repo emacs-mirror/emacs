@@ -1201,19 +1201,16 @@ public final class EmacsWindow extends EmacsHandleObject
   }
 
   public void
-  toggleOnScreenKeyboard (final boolean on)
+  toggleOnScreenKeyboard (boolean on)
   {
-    EmacsService.SERVICE.runOnUiThread (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
-	  if (on)
-	    view.showOnScreenKeyboard ();
-	  else
-	    view.hideOnScreenKeyboard ();
-	}
-      });
+    /* InputMethodManager functions are thread safe.  Call
+       `showOnScreenKeyboard' etc from the Emacs thread in order to
+       keep the calls in sync with updates to the input context.  */
+
+    if (on)
+      view.showOnScreenKeyboard ();
+    else
+      view.hideOnScreenKeyboard ();
   }
 
   public String

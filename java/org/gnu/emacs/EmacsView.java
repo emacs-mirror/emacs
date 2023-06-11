@@ -590,7 +590,7 @@ public final class EmacsView extends ViewGroup
     super.onAttachedToWindow ();
   }
 
-  public void
+  public synchronized void
   showOnScreenKeyboard ()
   {
     /* Specifying no flags at all tells the system the user asked for
@@ -599,7 +599,7 @@ public final class EmacsView extends ViewGroup
     isCurrentlyTextEditor = true;
   }
 
-  public void
+  public synchronized void
   hideOnScreenKeyboard ()
   {
     imManager.hideSoftInputFromWindow (this.getWindowToken (),
@@ -686,7 +686,7 @@ public final class EmacsView extends ViewGroup
   }
 
   @Override
-  public boolean
+  public synchronized boolean
   onCheckIsTextEditor ()
   {
     /* If value is true, then the system will display the on screen
