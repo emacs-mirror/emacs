@@ -64,4 +64,21 @@
              (actual-output (vc-git--program-version)))
     (should (equal actual-output expected-output))))
 
+(ert-deftest vc-git-test-annotate-time ()
+  "Test `vc-git-annotate-time'."
+  (require 'vc-annotate)
+  (with-temp-buffer
+    (insert "\
+00000000 (Foo Bar 2023-06-14  1) a
+00000001 (Foo Bar 2023-06-14 00:00:00 -0130  2) b
+00000002 (Foo Bar 2023-06-14 00:00:00 +0145  3) c
+00000003 (Foo Bar 2023-06-14 00:00:00  4) d
+00000004 (Foo Bar 0-0-0  5) \n")
+    (goto-char (point-min))
+    (should (floatp (vc-git-annotate-time)))
+    (should (> (vc-git-annotate-time)
+               (vc-git-annotate-time)))
+    (should-not (vc-git-annotate-time))
+    (should-not (vc-git-annotate-time))))
+
 ;;; vc-git-tests.el ends here

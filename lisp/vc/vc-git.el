@@ -1723,14 +1723,19 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
+(autoload 'decoded-time-set-defaults "time-date")
+(autoload 'iso8601-parse "iso8601")
+
 (defun vc-git-annotate-time ()
-  (and (re-search-forward "^[0-9a-f^]+[^()]+(.*?\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\(:?\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\)\\)? *[0-9]+) " nil t)
-       (vc-annotate-convert-time
-        (apply #'encode-time (mapcar (lambda (match)
-                                       (if (match-beginning match)
-                                           (string-to-number (match-string match))
-                                         0))
-                                     '(6 5 4 3 2 1 7))))))
+  (and (re-search-forward "^[0-9a-f^]+[^()]+(.*?\\([0-9]+-[0-9]+-[0-9]+\\)\\(?: \\([0-9]+:[0-9]+:[0-9]+\\) \\([-+0-9]+\\)\\)? +[0-9]+) " nil t)
+       (let* ((dt (match-string 1))
+              (dt (if (not (match-beginning 2)) dt
+                    ;; Format as ISO 8601.
+                    (concat dt "T" (match-string 2) (match-string 3))))
+              (decoded (ignore-errors (iso8601-parse dt))))
+         (and decoded
+              (vc-annotate-convert-time
+               (encode-time (decoded-time-set-defaults decoded)))))))
 
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion
