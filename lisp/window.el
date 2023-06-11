@@ -8776,6 +8776,14 @@ another window."
   :group 'windows
   :group 'comint)
 
+(defcustom display-tex-shell-buffer-action 'display-buffer-in-previous-window
+  "`display-buffer' action for displaying TeX shell buffers."
+  :type display-buffer--action-custom-type
+  :risky t
+  :version "29.1"
+  :group 'windows
+  :group 'tex-run)
+
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
 Return the name of the buffer as a string.
