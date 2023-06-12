@@ -225,6 +225,9 @@ $(PFM)\$(VARIETY)\cvmicv.exe: $(PFM)\$(VARIETY)\cvmicv.obj \
 $(PFM)\$(VARIETY)\djbench.exe: $(PFM)\$(VARIETY)\djbench.obj \
 	$(TESTLIBOBJ) $(TESTTHROBJ)
 
+$(PFM)\$(VARIETY)\extcon.exe: $(PFM)\$(VARIETY)\extcon.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
