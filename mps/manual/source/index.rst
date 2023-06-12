@@ -7,7 +7,6 @@ Memory Pool System
     guide/index
     topic/index
     pool/index
-    custom/cet/index
     design/index
     design/old
 
