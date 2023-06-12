@@ -95,6 +95,11 @@
     (with-tramp-file-property v localname "file-executable-p"
       (file-executable-p (tramp-fuse-local-file-name filename)))))
 
+(defun tramp-fuse-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  (tramp-skeleton-file-exists-p filename
+    (file-exists-p (tramp-fuse-local-file-name filename))))
+
 (defun tramp-fuse-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-fuse-remove-hidden-files
@@ -139,23 +144,23 @@
       (format "%s@%s:/" user host)
     (format "%s:/" host)))
 
-(defun tramp-fuse-mount-point (vec)
-  "Return local mount point of VEC."
-  (or (tramp-get-file-property vec "/" "mount-point")
-      (expand-file-name
-       (concat
-	tramp-temp-name-prefix
-	(tramp-file-name-method vec) "."
-	(when (tramp-file-name-user vec)
-	  (concat (tramp-file-name-user-domain vec) "@"))
-	(tramp-file-name-host-port vec))
-       (or small-temporary-file-directory
-	   tramp-compat-temporary-file-directory))))
-
 (defconst tramp-fuse-mount-timeout
   (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)
   "Time period to check whether the mount point still exists.
 It has the same meaning as `remote-file-name-inhibit-cache'.")
+
+(defun tramp-fuse-mount-point (vec)
+  "Return local mount point of VEC."
+  (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
+    (or (tramp-get-file-property vec "/" "mount-point")
+	(expand-file-name
+	 (concat
+	  tramp-temp-name-prefix
+	  (tramp-file-name-method vec) "."
+	  (when (tramp-file-name-user vec)
+	    (concat (tramp-file-name-user-domain vec) "@"))
+	  (tramp-file-name-host-port vec))
+	 tramp-compat-temporary-file-directory))))
 
 (defun tramp-fuse-mounted-p (vec)
   "Check, whether fuse volume determined by VEC is mounted."
@@ -198,6 +203,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
          (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
     (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
     (tramp-flush-file-property vec "/" "mounted")
+    (tramp-flush-file-property vec "/" "mount-point")
     (setq tramp-fuse-mount-points
 	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
     ;; Give the caches a chance to expire.

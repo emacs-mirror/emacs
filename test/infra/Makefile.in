@@ -41,7 +41,11 @@ define subdir_template
   SUBDIR_TARGETS += $(target)
 
   $(eval
-    ifeq ($(findstring src, $(1)), src)
+    ifeq ($(findstring lib-src, $(1)), lib-src)
+    define changes
+	@echo '        - $(1)/*.{h,c}' >>$(FILE)
+    endef
+    else ifeq ($(findstring src, $(1)), src)
     define changes
 	@echo '        - $(1)/treesit.{h,c}' >>$(FILE)
 	@echo '        - test/$(1)/treesit-tests.el' >>$(FILE)
