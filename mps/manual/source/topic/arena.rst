@@ -1044,8 +1044,9 @@ Arena introspection and debugging
 
 .. c:function:: mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr)
 
-    Return the :term:`base pointer` of an :term:`object` from an
-    :term:`interior pointer` to the object, or the object's base pointer.
+    Return the :term:`base pointer` of an :term:`object` if provided with an
+    :term:`interior pointer` to that object, or the object's base pointer,
+    provided the object exists in a pool that supports this feature.
 
     ``p_o`` points to the :term:`address` to which the object's base pointer
     should be returned.
@@ -1054,23 +1055,36 @@ Arena introspection and debugging
 
     ``addr`` is an address that might be an interior or base pointer.
 
+
     Returns MPS_RES_OK if a base pointer to an object into which ``addr``
-    points was successfully returned. Returns MPS_RES_FAIL if ``addr``
-    points to memory not managed by the ``arena`` or if ``addr`` points
-    to the interior of an object which has been moved by a :term:`moving memory manager`.
-    If ``addr`` is found to be managed by a :term:`pool` which does not support this feature,
-    MPS_RES_FAIL or MPS_RES_UNIMPL may be returned, depending on the :term:`pool class`.
+    points was successfully returned.
 
-    :c:func:`mps_addr_object` allows a client program that allocates
-    code on the heap to implement debugging and stack tracing.
+    Returns MPS_RES_FAIL if ``addr`` points to memory not managed by the
+    ``arena`` or if ``addr`` points to the interior of an object which has
+    been moved by a :term:`moving memory manager`.
 
-    This feature is supported by AMC and AMCZ pools only.
+    Returns MPS_RES_UNIMPL if ``addr`` is found to be managed by a :term:`pool`
+    which does not currently implement this feature.
+
+    :c:func:`mps_addr_object` allows client programs that allocate
+    code on the heap to implement debugging and stack tracing, in that it provides
+    a way to unwind a client program's stack by finding the block of code to which the
+    program counter or function return addresses currently point. It can be called
+    multiple times as needed to build a complete trace of the client program's stack.
+
+    This function does not support debugging in situations where the arena
+    itself has encountered a runtime error. For cases where the MPS encounters
+    runtime errors, see :c:func:`mps_arena_postmortem`.
 
     .. note::
 
         This function is intended to assist with debugging fatal
         errors in the :term:`client program`. It is not expected to be
-        needed in normal use. If you find yourself wanting to use this
-        function other than in the use case described, there may
+        needed in normal use, i.e. as part of the regular operation of code in
+        production, since it is not optimized for performance. If you find yourself
+        wanting to use this function other than in the use case described, there may
         be a better way to meet your requirements: please
         :ref:`contact us <contact>`.
+
+        If you would like this function to work in a pool in which it's currently
+        unimplemented, please :ref:`contact us <contact>`.
