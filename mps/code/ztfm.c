@@ -355,12 +355,15 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
         void **newNodes = &myrootExact[first + skip + perset];
         progressf(("Building tree in %"PRIuLONGEST" nodes.\n", count));
         for(j = 1; (2 * j) + 1 < count; j++) {
-          struct node_t *oldNode = oldNodes[j];
-          struct node_t *newNode = newNodes[j];
-          oldNode->left = oldNodes[2 * j];
-          oldNode->right = oldNodes[(2 * j) + 1];
-          newNode->left = newNodes[2 * j];
-          newNode->right = newNodes[(2 * j) + 1];
+          /* You might be tempted to lift some of these gnarly casts
+             into local variables, but if you do you will probably
+             create ambiguous references in stack slots and prevent
+             the transform from succeeding, as observed in Git commit
+             a7ebcbdf0. */
+          ((struct node_t *)oldNodes[j])->left = oldNodes[2 * j];
+          ((struct node_t *)oldNodes[j])->right = oldNodes[(2 * j) + 1];
+          ((struct node_t *)newNodes[j])->left = newNodes[2 * j];
+          ((struct node_t *)newNodes[j])->right = newNodes[(2 * j) + 1];
         }
       }
 
