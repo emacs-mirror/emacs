@@ -235,7 +235,7 @@ Memory Management Glossary: T
 
     transform
 
-        .. mps:specifc::
+        .. mps:specific::
 
            A mapping from old :term:`references` to new references,
            represented by :c:type:`mps_transform_t`, that can be applied
