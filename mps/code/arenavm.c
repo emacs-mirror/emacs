@@ -428,6 +428,10 @@ static Bool vmChunkDestroy(Tree tree, void *closure)
 {
   Chunk chunk;
   VMChunk vmChunk;
+  Arena arena;
+  Addr base;
+  Size size;
+  VMArena vmArena;
 
   AVERT(Tree, tree);
   AVER(closure == UNUSED_POINTER);
@@ -437,8 +441,14 @@ static Bool vmChunkDestroy(Tree tree, void *closure)
   AVERT(Chunk, chunk);
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(VMChunk, vmChunk);
+  arena = ChunkArena(chunk);
+  vmArena = MustBeA(VMArena, arena);
+  base = chunk->base;
+  size = ChunkSize(chunk);
 
-  (void)vmArenaUnmapSpare(ChunkArena(chunk), ChunkSize(chunk), chunk);
+  (*vmArena->contracted)(arena, base, size);
+
+  (void)vmArenaUnmapSpare(arena, size, chunk);
 
   SparseArrayFinish(&vmChunk->pages);
 
@@ -778,6 +788,7 @@ static void VMArenaDestroy(Arena arena)
    * <design/arena#.chunk.delete> */
   arena->primary = NULL;
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy, UNUSED_POINTER);
+  AVER(arena->chunkTree == TreeEMPTY);
 
   /* Must wait until the chunks are destroyed, since vmChunkDestroy
      calls vmArenaUnmapSpare which uses the spare land. */
@@ -1223,7 +1234,6 @@ static Bool vmChunkCompact(Tree tree, void *closure)
 {
   Chunk chunk;
   Arena arena = closure;
-  VMArena vmArena = MustBeA(VMArena, arena);
 
   AVERT(Tree, tree);
 
@@ -1232,11 +1242,6 @@ static Bool vmChunkCompact(Tree tree, void *closure)
   if(chunk != arena->primary
      && BTIsResRange(chunk->allocTable, 0, chunk->pages))
   {
-    Addr base = chunk->base;
-    Size size = ChunkSize(chunk);
-    /* Callback before destroying the chunk, as the arena is (briefly)
-       invalid afterwards. See job003893. */
-    (*vmArena->contracted)(arena, base, size);
     vmChunkDestroy(tree, UNUSED_POINTER);
     return TRUE;
   } else {
