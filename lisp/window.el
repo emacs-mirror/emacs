@@ -8776,7 +8776,7 @@ another window."
   :group 'windows
   :group 'comint)
 
-(defcustom display-tex-shell-buffer-action 'display-buffer-in-previous-window
+(defcustom display-tex-shell-buffer-action '(display-buffer-in-previous-window)
   "`display-buffer' action for displaying TeX shell buffers."
   :type display-buffer--action-custom-type
   :risky t
