@@ -5569,7 +5569,7 @@ non-@code{nil}, this function may redraw the frame, according to the
 value of @code{recenter-redisplay}.  Thus, omitting the second
 argument can be used to countermand the effect of
 @code{recenter-redisplay} being non-@code{nil}.  Interactive calls
-pass non-‘nil’ for @var{redisplay}.
+pass non-@code{nil} for @var{redisplay}.
 
 When @code{recenter} is called interactively, @var{count} is the raw
 prefix argument.  Thus, typing @kbd{C-u} as the prefix sets the

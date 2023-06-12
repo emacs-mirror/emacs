@@ -374,7 +374,7 @@ LDAP:
 Specifying the function @code{ldap-password-read} for @code{passwd}
 will cause Emacs to prompt interactively for the password.  The
 password will then be validated and cached, unless
-@code{password-cache} is nil.  You can customize
+@code{password-cache} is @code{nil}.  You can customize
 @code{password-cache-expiry} to control the duration for which the
 password is cached.  If you want to clear the cache, call
 @code{password-reset}.
@@ -1023,9 +1023,9 @@ current server to the list with the command @kbd{M-x
 eudc-bookmark-current-server}.  The list is contained in the variable
 @code{eudc-server-hotlist} which is stored in and retrieved from the
 file designated by @code{eudc-options-file}, or normal Emacs
-initialization if @code{eudc-ignore-options-file} is non-nil.  EUDC
-also provides a facility to edit the hotlist interactively (@pxref{The
-Hotlist Edit Buffer}).
+initialization if @code{eudc-ignore-options-file} is non-@code{nil}.
+EUDC also provides a facility to edit the hotlist interactively
+(@pxref{The Hotlist Edit Buffer}).
 
 The hotlist is also used to make queries on multiple servers
 successively (@pxref{Multi-server Queries}).  The order in which the
@@ -1041,18 +1041,18 @@ Add the current server to the hotlist of servers
 @end deffn
 
 @defvar eudc-ignore-options-file
-If non-nil, then EUDC ignores @code{eudc-options-file} and warns or
+If non-@code{nil}, EUDC ignores @code{eudc-options-file} and warns or
 issues an error when an attempt is made to use it.  Most users should
 set this, and keep their EUDC configuration in the main Emacs
-initialization file instead.  The separate eudc-options file has
-created confusion for users in the past.
+initialization file instead.  The separate @file{eudc-options} file
+has created confusion for users in the past.
 @end defvar
 
 @defvar eudc-options-file
 The name of a file where EUDC stores its internal variables (the
 hotlist and the current server).  EUDC will try to load that file upon
 initialization so, if you choose a file name different from the
-defaults @file{~/.emacs.d/eudc-options}, be sure to set this variable
+default @file{~/.emacs.d/eudc-options}, be sure to set this variable
 to the appropriate value @emph{before} EUDC is itself loaded.
 @end defvar
 

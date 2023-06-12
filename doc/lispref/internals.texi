@@ -248,7 +248,7 @@ time it took to restore the Emacs state.  The value is an alist
 where @var{file} is the name of the dump file, and @var{time} is the
 time in seconds it took to restore the state from the dump file.
 If the current session was not restored from a dump file, the
-value is nil.
+value is @code{nil}.
 @end defun
 
 @node Pure Storage

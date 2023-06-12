@@ -367,8 +367,8 @@ point positions or the actual Web page contents.
 The latter, however, tend to be overly large to preserve in the
 desktop file, so they get omitted, thus rendering the respective
 entries entirely equivalent.  By default, such duplicate entries are
-not saved.  Setting @code{eww-desktop-remove-duplicates} to nil will
-force EWW to save them anyway.
+not saved.  Setting @code{eww-desktop-remove-duplicates} to @code{nil}
+will force EWW to save them anyway.
 
 @vindex eww-restore-desktop
   Restoring EWW buffers' contents may prove to take too long to

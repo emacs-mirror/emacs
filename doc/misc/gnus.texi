@@ -5014,14 +5014,14 @@ the @code{a} spec.
 @item L
 Number of lines in the article.
 @item Z
-Retrieval Score Value (RSV) of the article; nil if not in an nnselect
-group.
+Retrieval Score Value (RSV) of the article; @code{nil} if not in an
+nnselect group.
 @item G
-Originating group name of the article; nil if not in an nnselect
-group.
+Originating group name of the article; @code{nil} if not in an
+nnselect group.
 @item g
-Short form of the originating group name of the article; nil if not in
-an nnselect group.
+Short form of the originating group name of the article; @code{nil} if
+not in an nnselect group.
 @item c
 Number of characters in the article.  This specifier is not supported
 in some methods (like nnfolder).
@@ -14568,18 +14568,20 @@ requires using the @file{oauth2.el} library.)
 @vindex nnimap-expunge
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles
-are marked with the IMAP @code{\\Delete} flag but not automatically
-expunged. If @code{immediately}, deleted articles are immediately expunged
-(this requires the server to support the UID EXPUNGE command). If
-@code{on-exit}, deleted articles are flagged, and all flagged articles are
-expunged when the group is closed.
+are marked with the @acronym{IMAP} @code{\\Delete} flag but not
+automatically expunged.  If @code{immediately}, deleted articles are
+immediately expunged (this requires the server to support the
+@code{UID EXPUNGE} command).  If @code{on-exit}, deleted articles are
+flagged, and all flagged articles are expunged when the group is
+closed.
 
-For backwards compatibility, this variable may also be set to t
-or nil. If the server supports UID EXPUNGE, both t and nil are
-equivalent to @code{immediately}. If the server does not support UID
-EXPUNGE nil is equivalent to @code{never}, while t will immediately
-expunge ALL articles that are currently flagged as deleted
-(i.e., potentially not only the article that was just deleted).
+For backwards compatibility, this variable may also be set to @code{t}
+or @code{nil}.  If the server supports @code{UID EXPUNGE}, both
+@code{t} and @code{nil} are equivalent to @code{immediately}.  If the
+server does not support @code{UID EXPUNGE}, @code{nil} is equivalent
+to @code{never}, while @code{t} will immediately expunge @emph{all}
+articles that are currently flagged as deleted (i.e., potentially not
+only the article that was just deleted).
 
 @vindex nnimap-streaming
 @item nnimap-streaming
@@ -15296,9 +15298,9 @@ Two example maildir mail sources:
 @end lisp
 
 @item imap
-Get mail from a @acronym{IMAP} server.  If you don't want to use
+Get mail from an @acronym{IMAP} server.  If you don't want to use
 @acronym{IMAP} as intended, as a network mail reading protocol (i.e.,
-with nnimap), for some reason or other, Gnus let you treat it similar
+with nnimap), for some reason or other, Gnus lets you treat it similar
 to a @acronym{POP} server and fetches articles from a given
 @acronym{IMAP} mailbox.  @xref{Using IMAP}, for more information.
 
@@ -19404,7 +19406,7 @@ If you so desire, you can configure the agent (see @code{gnus-agent-cache}
 @pxref{Agent Variables}) to always download headers and articles while
 plugged.  Gnus will almost certainly be slower, but it will be kept
 synchronized with the server.  That last point probably won't make any
-sense if you are using a nntp or nnimap back end.
+sense if you are using an nntp or nnimap back end.
 
 @node Agent Expiry
 @subsection Agent Expiry
@@ -26369,7 +26371,7 @@ If this option is non-@code{nil}, the registry will register all messages, as
 you see them.  This is important to making split-to-parent and
 Message-ID references work correctly, as the registry needs to know
 where all messages are, but it can slow down group opening and the
-saving of Gnus.  If this option is nil, entries must be created
+saving of Gnus.  If this option is @code{nil}, entries must be created
 manually, for instance by storing a custom flag or keyword for the
 message.
 @end defvar
@@ -26391,8 +26393,8 @@ This option specifies how registry entries are sorted during pruning.
 If a function is given, it should sort least valuable entries first,
 as pruning starts from the beginning of the list.  The default value
 is @code{gnus-registry-sort-by-creation-time}, which proposes the
-oldest entries for pruning.  Set to nil to perform no sorting, which
-will speed up the pruning process.
+oldest entries for pruning.  Set to @code{nil} to perform no sorting,
+which will speed up the pruning process.
 @end defvar
 
 @defvar gnus-registry-cache-file
@@ -26465,10 +26467,10 @@ have to put a rule like this:
 
 in your fancy split setup.
 
-If @code{gnus-registry-register-all} is non-@code{nil} (the default), the
-registry will perform splitting for all messages.  If it is nil,
-splitting will only happen for children of messages you've explicitly
-registered.
+If @code{gnus-registry-register-all} is non-@code{nil} (the default),
+the registry will perform splitting for all messages.  If it is
+@code{nil}, splitting will only happen for children of messages you've
+explicitly registered.
 
 In addition, you may want to customize the following variables.
 

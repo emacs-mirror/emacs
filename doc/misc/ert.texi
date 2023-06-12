@@ -409,13 +409,13 @@ emacs -batch -l ert -l my-tests.el \
 @end example
 
 @vindex ert-batch-backtrace-line-length
-Even modest settings for @code{print-level} and @code{print-length} can
-produce extremely long lines in backtraces, however, with attendant
-pauses in execution progress.  Set
-@code{ert-batch-backtrace-line-length} to t to use the value of
-@code{backtrace-line-length}, @code{nil} to stop any limitations on backtrace
-line lengths (that is, to get full backtraces), or a positive integer to
-limit backtrace line length to that number.
+Even modest settings for @code{print-level} and @code{print-length}
+can produce extremely long lines in backtraces, however, with
+attendant pauses in execution progress.  Set
+@code{ert-batch-backtrace-line-length} to @code{t} to use the value of
+@code{backtrace-line-length}, @code{nil} to stop any limitations on
+backtrace line lengths (that is, to get full backtraces), or a
+positive integer to limit backtrace line length to that number.
 
 @vindex ert-quiet
 By default, ERT in batch mode is quite verbose, printing a line with

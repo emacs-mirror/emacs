@@ -2921,13 +2921,13 @@ nodes that belong to @var{category}.  @var{pred} should be either
 return non-@code{nil} if the node is a valid node for @var{category},
 or @code{nil} if not.
 
-@var{category} could also be @code{nil}.  In which case the entries
+@var{category} could also be @code{nil}, in which case the entries
 matched by @var{regexp} and @var{pred} are not grouped under
 @var{category}.
 
-@var{name-fn} should be either @var{nil} or a function that takes a
+@var{name-fn} should be either @code{nil} or a function that takes a
 defun node and returns the name of that defun, e.g., the function name
-for a function definition.  If @var{name-fn} is @var{nil},
+for a function definition.  If @var{name-fn} is @code{nil},
 @code{treesit-defun-name} (@pxref{Tree-sitter Major Modes}) is used
 instead.
 
@@ -3446,7 +3446,7 @@ This condition matches any element of Font Lock keywords for which
 non-@code{nil}.
 
 @item @code{(not @var{condition})}
-This matches if @var{condition} doesn’t.
+This matches if @var{condition} doesn't.
 
 @item @code{(and @var{condition} @dots{})}
 This matches if each of the @var{condition}s matches.
@@ -4145,9 +4145,9 @@ Other keywords are optional:
 
 @multitable @columnfractions .15 .15 .6
 @headitem Keyword @tab Value @tab Description
-@item @code{:override} @tab nil
+@item @code{:override} @tab @code{nil}
 @tab If the region already has a face, discard the new face
-@item @tab t @tab Always apply the new face
+@item @tab @code{t} @tab Always apply the new face
 @item @tab @code{append} @tab Append the new face to existing ones
 @item @tab @code{prepend} @tab Prepend the new face to existing ones
 @item @tab @code{keep} @tab Fill-in regions without an existing face
@@ -5153,10 +5153,10 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}.  It tries to go to the beginning of the
 previous non-empty line, and matches @code{adaptive-fill-regexp}.  If
 there is a match, this function returns the end of the match,
-otherwise it returns nil.  However, if the current line begins with a
-prefix (e.g., ``-''), return the beginning of the prefix of the
-previous line instead, so that the two prefixes aligns.  This anchor
-is useful for a @code{indent-relative}-like indent behavior for block
+otherwise it returns @code{nil}.  However, if the current line begins
+with a prefix (e.g., ``-''), return the beginning of the prefix of the
+previous line instead, so that the two prefixes align.  This anchor is
+useful for an @code{indent-relative}-like indent behavior for block
 comments.
 
 @end ftable

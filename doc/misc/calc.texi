@@ -29875,10 +29875,10 @@ with no argument copies only the number itself into the kill ring, whereas
 @kbd{C-k} with a prefix argument of 1 copies the number with its trailing
 newline.
 
-You can customize @code{calc-kill-line-numbering} to nil to exclude
-line numbering from kills and copies made by @code{calc-kill} and
-@code{calc-copy-as-kill}.  This option does not affect calc kill and
-copy commands which operate on the region, as that would not make
+You can customize @code{calc-kill-line-numbering} to @code{nil} to
+exclude line numbering from kills and copies made by @code{calc-kill}
+and @code{calc-copy-as-kill}.  This option does not affect calc kill
+and copy commands which operate on the region, as that would not make
 sense.
 
 @node Yanking Into Stack
@@ -35590,11 +35590,11 @@ The default value of @code{calc-note-threshold} is 1.
 See @ref{Displaying Selections}.@*
 The variable @code{calc-highlight-selections-with-faces}
 determines how selected sub-formulas are distinguished.
-If @code{calc-highlight-selections-with-faces} is nil, then
+If @code{calc-highlight-selections-with-faces} is @code{nil}, then
 a selected sub-formula is distinguished either by changing every
 character not part of the sub-formula with a dot or by changing every
 character in the sub-formula with a @samp{#} sign.
-If @code{calc-highlight-selections-with-faces} is t,
+If @code{calc-highlight-selections-with-faces} is @code{t},
 then a selected sub-formula is distinguished either by displaying the
 non-selected portion of the formula with @code{calc-nonselected-face}
 or by displaying the selected sub-formula with

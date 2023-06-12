@@ -656,7 +656,7 @@ it, or query for information about this node.
 This function returns the immediate parent of @var{node}.
 
 If @var{node} is more than 1000 levels deep in a parse tree, the
-return value is undefined.  Currently it returns @var{nil}, but that
+return value is undefined.  Currently it returns @code{nil}, but that
 could change in the future.
 @end defun
 
@@ -842,7 +842,7 @@ the number of levels to go down from @var{root}.  If @var{depth} is
 
 Each node in the returned tree looks like
 @w{@code{(@var{tree-sitter-node} . (@var{child} @dots{}))}}.  The
-@var{tree-sitter-node} of the root of this tree will be nil if
+@var{tree-sitter-node} of the root of this tree will be @code{nil} if
 @var{root} doesn't match @var{predicate}.  If no node matches
 @var{predicate}, the function returns @code{nil}.
 @end defun
@@ -866,7 +866,7 @@ the argument and returns a boolean that indicates a match.  If no
 parent satisfies @var{pred}, this function returns @code{nil}.
 
 Normally this function only looks at the parents of @var{node} but not
-@var{node} itself. But if @var{include-node} is non-@var{nil}, this
+@var{node} itself.  But if @var{include-node} is non-@code{nil}, this
 function returns @var{node} if @var{node} satisfies @var{pred}.
 @end defun
 
@@ -1880,7 +1880,7 @@ convenient and idiomatic:
 Instead of using byte positions, the Emacs Lisp API uses character
 positions.
 @item
-Null nodes are converted to nil.
+Null nodes are converted to @code{nil}.
 @end itemize
 
 Below is the correspondence between all C API functions and their

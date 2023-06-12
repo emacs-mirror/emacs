@@ -4764,9 +4764,9 @@ and exceeded, it will fall back to @code{delete-region} and
 the actual costs exceed this limit, heuristics are used to provide a
 faster but suboptimal solution.  The default value is 1000000.
 
-@code{replace-buffer-contents} returns t if a non-destructive
+@code{replace-buffer-contents} returns @code{t} if a non-destructive
 replacement could be performed.  Otherwise, i.e., if @var{max-secs}
-was exceeded, it returns nil.
+was exceeded, it returns @code{nil}.
 @end deffn
 
 @defun replace-region-contents beg end replace-fn &optional max-secs max-costs

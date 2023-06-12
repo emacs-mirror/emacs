@@ -740,7 +740,7 @@ of @code{debug} (@pxref{Invoking the Debugger}).
 @cindex call stack
 This function prints a trace of Lisp function calls currently active.
 The trace is identical to the one that @code{debug} would show in the
-@file{*Backtrace*} buffer.  The return value is always nil.
+@file{*Backtrace*} buffer.  The return value is always @code{nil}.
 
 In the following example, a Lisp expression calls @code{backtrace}
 explicitly.  This prints the backtrace to the stream
