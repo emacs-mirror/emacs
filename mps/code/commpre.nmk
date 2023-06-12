@@ -73,6 +73,7 @@ TEST_TARGETS=\
     btcv.exe \
     bttest.exe \
     djbench.exe \
+    extcon.exe \
     finalcv.exe \
     finaltest.exe \
     fotest.exe \
