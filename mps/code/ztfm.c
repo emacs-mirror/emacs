@@ -351,14 +351,16 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
 
       /* >=10? sometimes build tree */
       if(perset >= 10 && count >= 4 && rnd() % 2 == 0) {
-        struct node_t **oldNodes = (struct node_t **)&myrootExact[first + skip];
-        struct node_t **newNodes = (struct node_t **)&myrootExact[first + skip + perset];
+        void **oldNodes = &myrootExact[first + skip];
+        void **newNodes = &myrootExact[first + skip + perset];
         progressf(("Building tree in %"PRIuLONGEST" nodes.\n", count));
         for(j = 1; (2 * j) + 1 < count; j++) {
-          oldNodes[j]->left = oldNodes[2 * j];
-          oldNodes[j]->right = oldNodes[(2 * j) + 1];
-          if(1){newNodes[j]->left = newNodes[2 * j];
-          newNodes[j]->right = newNodes[(2 * j) + 1];}
+          struct node_t *oldNode = oldNodes[j];
+          struct node_t *newNode = newNodes[j];
+          oldNode->left = oldNodes[2 * j];
+          oldNode->right = oldNodes[(2 * j) + 1];
+          newNode->left = newNodes[2 * j];
+          newNode->right = newNodes[(2 * j) + 1];
         }
       }
 
