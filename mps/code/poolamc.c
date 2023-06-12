@@ -1893,8 +1893,11 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   }
 }
 
-static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
-    Addr searchLimit, Addr addr)
+static Res amcAddrObjectSearch(Addr *pReturn,
+                               Pool pool,
+                               Addr objBase,
+                               Addr searchLimit,
+                               Addr addr)
 {
   Format format;
   Size hdrSize;

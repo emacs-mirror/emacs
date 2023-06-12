@@ -11,8 +11,11 @@
  *
  * .limitations Objects that have been moved should cause the function to
  * fail with MPS_RES_FAIL, however this is not tested. It could be tested if
- * there is a way to reliably force the MPS to move a specific object. This
- * test only examines behaviour in AMCZ and MVFF pools.
+ * a testbench deliberately created a forwarding object, however this might
+ * confuse a pool that does automatic garbage collection such as AMC or AMCZ,
+ * so any such test would need to be designed to handle that.
+ * This test only examines behaviour in AMCZ and MVFF pools, i.e. A pool (AMCZ)
+ * which currently implements mps_addr_object() and one (MVFF) that doesn't.
  */
 
 #include "mps.h"
@@ -24,7 +27,11 @@
 #include "mpscmvff.h"
 #include <stdlib.h>
 
-/* Define an arbitrarily large object size to allocate */
+/* Define an object size to allocate. The size chosen doesn't matter much, except that this testbench assumes
+   that the object is large enough that a pointer could point to the interior of the object, without also
+   pointing to the base pointer of the object at the same time. For char pointers, this is probably 2 bytes.
+   Since we are using the Dylan library, we define the size of the object in terms of Dylan slots. See
+   fmtdytst.c for details of the Dylan object structure.*/
 #define N_SLOT_TESTOBJ 100
 
 static void test_main(void)
@@ -35,6 +42,10 @@ static void test_main(void)
   mps_fmt_t obj_fmt;
   mps_root_t testobj_root;
   mps_res_t res;
+  /* In another testbench (extcon.c) we observed unreliable failures to do with registering the cold end
+     of the stack.  See GitHub issue #210
+     <https://github.com/Ravenbrook/mps/issues/210>.  For now, we
+     declare this as a separate root. */
   static mps_addr_t testobj;
   mps_addr_t out, in;
 
@@ -42,12 +53,23 @@ static void test_main(void)
   die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none), "mps_arena_create_k");
 
 
-  /* TEST 1: Test using an interior pointer in an object in an AMCZ pool */
+  /* INTRO TO TESTS: There are several tests. They test the expected "normal" operation of the
+     function, using an interior pointer, also corner cases where the interior pointer equals the
+     base pointer, where it equals the limit pointer. We also test asking about an address in unmanaged
+     memory, and about an address in a pool which currently does not support mps_addr_object. If you write
+     more tests, describe them here.*/
+
+
+  /* TEST 1: Test using an interior pointer in an object in an AMCZ pool.
+     At the time of writing this test, the AMCZ pool is the only pool where
+     there exists a requirement to provide base addresses from interior pointers.
+     Currently, the AMCZ pool (and by extension, the AMC pool which shares the same
+     module as AMCZ) is the only pool for which mps_addr_object is implemented */
 
   /* Use the dylan format for convenience */
   die(dylan_fmt(&obj_fmt, arena), "dylan_fmt");
 
-  /* Create amcz pool */
+  /* Create the pool */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
     die(mps_pool_create_k(&amcz_pool, arena, mps_class_amcz(), args), "mps_pool_create_k amcz");
@@ -64,7 +86,7 @@ static void test_main(void)
   /* Create the allocation point */
   die(mps_ap_create_k(&obj_ap, amcz_pool, mps_args_none), "mps_ap_create_k");
 
-  /* Make an arbitrary sized object, size = (N_SLOT_TESTOBJ+2) * sizeof(mps_word_t).
+  /* Make a Dylan object, size = (N_SLOT_TESTOBJ+2) * sizeof(mps_word_t).
      (See fmtdytst.c for size calculation) */
   {
     /* Because make_dylan_vector returns its pointer-to-object as an mps_word_t rather than an
@@ -74,6 +96,8 @@ static void test_main(void)
        park the arena to disable garbage collection. Allocate our dylan object on the (unregistered) stack
        storing its address in an mps_word_t. Then store this mps_word_t as an mps_addr_t in our reference
        table, and release the arena since our object is now safely pinned.
+       Another approach would be to create another static registered root for ambiguous references of type
+       mps_word_t and then copy to the mps_addr_t root, which would avoid needing to park the arena.
     */
     mps_word_t p_word;
     mps_arena_park(arena);
@@ -86,7 +110,15 @@ static void test_main(void)
   /* Construct a pointer to roughly halfway inside the object */
   in = (mps_addr_t)((char *)testobj + (N_SLOT_TESTOBJ/2) * sizeof(mps_word_t));
 
-  /* Ensure that this is an interior pointer, and not the base pointer */
+  /* Ensure that this is an interior pointer, and not the base pointer,
+     since we want to make sure we are testing with a true interior pointer and not
+     one that also happens to be the base pointer. This Insist is intended to protect
+     against the testbench losing its ability to test "true" interior pointers (i.e. ones
+     which don't match the base pointer) if the test object sizes were changed to be very
+     small. Note that we don't currently consider the "limit" of the object as a corner case
+     (so we don't Insist(in != limit) ) but we do consider limit+1, i.e. the pointer to the
+     next object to be a corner case. This test could be updated to consider in == limit as a
+     corner case. */
   Insist(in > testobj);
 
   /* Do Test */
@@ -149,6 +181,9 @@ static void test_main(void)
   res = mps_addr_object(&out, arena, in);
 
   Insist(res == MPS_RES_UNIMPL);
+
+
+  /* If more tests are added here, briefly describe them above under "INTRO TO TESTS" comment */
 
   /* Final clean up */
   mps_free(mvff_pool, in, sizeof(mps_word_t));
