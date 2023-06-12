@@ -272,7 +272,7 @@ void *unused_pointer;
 struct android_event_container
 {
   /* The next and last events in this queue.  */
-  struct android_event_container *volatile next, *last;
+  struct android_event_container *next, *last;
 
   /* The event itself.  */
   union android_event event;
@@ -301,11 +301,11 @@ struct android_event_queue
 };
 
 /* Arguments to pselect used by the select thread.  */
-static volatile int android_pselect_nfds;
-static fd_set *volatile android_pselect_readfds;
-static fd_set *volatile android_pselect_writefds;
-static fd_set *volatile android_pselect_exceptfds;
-static struct timespec *volatile android_pselect_timeout;
+static int android_pselect_nfds;
+static fd_set *android_pselect_readfds;
+static fd_set *android_pselect_writefds;
+static fd_set *android_pselect_exceptfds;
+static struct timespec *android_pselect_timeout;
 
 /* Value of pselect.  */
 static int android_pselect_rc;
@@ -569,12 +569,20 @@ android_pending (void)
   return i;
 }
 
+/* Forward declaration.  */
+
+static void android_check_query (void);
+
 /* Wait for events to become available synchronously.  Return once an
-   event arrives.  */
+   event arrives.  Also, reply to the UI thread whenever it requires a
+   response.  */
 
 void
 android_wait_event (void)
 {
+  /* Run queries from the UI thread to the Emacs thread.  */
+  android_check_query ();
+
   pthread_mutex_lock (&event_queue.mutex);
 
   /* Wait for events to appear if there are none available to
@@ -584,6 +592,10 @@ android_wait_event (void)
 		       &event_queue.mutex);
 
   pthread_mutex_unlock (&event_queue.mutex);
+
+  /* Check for queries again.  If a query is sent after the call to
+     `android_check_query' above, `read_var' will be signaled.  */
+  android_check_query ();
 }
 
 void
@@ -700,10 +712,6 @@ android_write_event (union android_event *event)
    amount of time for a function to run in the main thread, and Emacs
    should answer the query ASAP.  */
 static bool android_urgent_query;
-
-/* Forward declaration.  */
-
-static void android_check_query (void);
 
 int
 android_select (int nfds, fd_set *readfds, fd_set *writefds,

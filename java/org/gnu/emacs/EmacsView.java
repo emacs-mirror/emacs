@@ -590,16 +590,17 @@ public final class EmacsView extends ViewGroup
     super.onAttachedToWindow ();
   }
 
-  public synchronized void
+  public void
   showOnScreenKeyboard ()
   {
     /* Specifying no flags at all tells the system the user asked for
        the input method to be displayed.  */
+
     imManager.showSoftInput (this, 0);
     isCurrentlyTextEditor = true;
   }
 
-  public synchronized void
+  public void
   hideOnScreenKeyboard ()
   {
     imManager.hideSoftInputFromWindow (this.getWindowToken (),
