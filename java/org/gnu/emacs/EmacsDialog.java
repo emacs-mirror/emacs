@@ -27,6 +27,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
+import android.content.res.Resources.NotFoundException;
+import android.content.res.Resources.Theme;
+import android.content.res.TypedArray;
+
 import android.os.Build;
 
 import android.provider.Settings;
@@ -148,13 +152,17 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   toAlertDialog (Context context)
   {
     AlertDialog dialog;
-    int size;
+    int size, styleId;
+    int[] attrs;
     EmacsButton button;
     EmacsDialogButtonLayout layout;
     Button buttonView;
     ViewGroup.LayoutParams layoutParams;
+    Theme theme;
+    TypedArray attributes;
 
     size = buttons.size ();
+    styleId = -1;
 
     if (size <= 3)
       {
@@ -193,19 +201,10 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     else
       {
 	/* There are more than 3 buttons.  Add them all to a special
-	   container widget that handles wrapping.  */
+	   container widget that handles wrapping.  First, create the
+	   layout.  */
 
 	layout = new EmacsDialogButtonLayout (context);
-
-	for (EmacsButton emacsButton : buttons)
-	  {
-	    buttonView = new Button (context);
-	    buttonView.setText (emacsButton.name);
-	    buttonView.setOnClickListener (emacsButton);
-	    buttonView.setEnabled (emacsButton.enabled);
-	    layout.addView (buttonView);
-	  }
-
 	layoutParams
 	  = new FrameLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT,
 					  ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -223,6 +222,55 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 
 	if (title != null)
 	  dialog.setTitle (title);
+
+	/* Now that the dialog has been created, set the style of each
+	   custom button to match the usual dialog buttons found on
+	   Android 5 and later.  */
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+	  {
+	    /* Obtain the Theme associated with the dialog.  */
+	    theme = dialog.getContext ().getTheme ();
+
+	    /* Resolve the dialog button style.  */
+	    attrs
+	      = new int [] { android.R.attr.buttonBarNeutralButtonStyle, };
+
+	    try
+	      {
+		attributes = theme.obtainStyledAttributes (attrs);
+
+		/* Look for the style ID.  Default to -1 if it could
+		   not be found.  */
+		styleId = attributes.getResourceId (0, -1);
+
+		/* Now clean up the TypedAttributes object.  */
+		attributes.recycle ();
+	      }
+	    catch (NotFoundException e)
+	      {
+		/* Nothing to do here.  */
+	      }
+	  }
+
+	/* Create each button and add it to the layout.  Set the style
+	   if necessary.  */
+
+	for (EmacsButton emacsButton : buttons)
+	  {
+	    if (styleId == -1)
+	      /* No specific style... */
+	      buttonView = new Button (context);
+	    else
+	      /* Use the given styleId.  */
+	      buttonView = new Button (context, null, 0, styleId);
+
+	    /* Set the text and on click handler.  */
+	    buttonView.setText (emacsButton.name);
+	    buttonView.setOnClickListener (emacsButton);
+	    buttonView.setEnabled (emacsButton.enabled);
+	    layout.addView (buttonView);
+	  }
       }
 
     return dialog;
