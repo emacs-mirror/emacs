@@ -3505,6 +3505,18 @@ lambda-expression."
                                        (if (consp arg) "list" (type-of arg))
                                        idx))))))
 
+        (let ((funargs (function-get (car form) 'funarg-positions)))
+          (dolist (funarg funargs)
+            (let ((arg (if (numberp funarg)
+                           (nth funarg form)
+                         (cadr (memq funarg form)))))
+              (when (and (eq 'quote (car-safe arg))
+                         (eq 'lambda (car-safe (cadr arg))))
+                (byte-compile-warn-x
+                 arg "(lambda %s ...) quoted with %s rather than with #%s"
+                 (or (nth 1 (cadr arg)) "()")
+                 "'" "'")))))           ; avoid styled quotes
+
         (if (eq (car-safe (symbol-function (car form))) 'macro)
             (byte-compile-report-error
              (format-message "`%s' defined after use in %S (missing `require' of a library file?)"
@@ -3613,6 +3625,74 @@ lambda-expression."
          )))
   (dolist (entry mutating-fns)
     (put (car entry) 'mutates-arguments (cdr entry))))
+
+;; Record which arguments expect functions, so we can warn when those
+;; are accidentally quoted with ' rather than with #'
+;; The value of the `funarg-positions' property is a list of function
+;; argument positions, starting with 1, and keywords.
+(dolist (f '( funcall apply mapcar mapatoms mapconcat mapc maphash
+              mapcan map-char-table map-keymap map-keymap-internal
+              functionp
+              seq-do seq-do-indexed seq-sort seq-sort-by seq-group-by
+              seq-find seq-count
+              seq-filter seq-reduce seq-remove seq-keep
+              seq-map seq-map-indexed seq-mapn seq-mapcat
+              seq-drop-while seq-take-while
+              seq-some seq-every-p
+              cl-every cl-some
+              cl-mapcar cl-mapcan cl-mapcon cl-mapc cl-mapl cl-maplist
+              ))
+  (put f 'funarg-positions '(1)))
+(dolist (f '( defalias fset sort
+              replace-regexp-in-string
+              add-hook remove-hook advice-remove advice--remove-function
+              global-set-key local-set-key keymap-global-set keymap-local-set
+              set-process-filter set-process-sentinel
+              ))
+  (put f 'funarg-positions '(2)))
+(dolist (f '( assoc assoc-default assoc-delete-all
+              plist-get plist-member
+              advice-add define-key keymap-set
+              run-at-time run-with-idle-timer run-with-timer
+              seq-contains seq-contains-p seq-set-equal-p
+              seq-position seq-positions seq-uniq
+              seq-union seq-intersection seq-difference))
+  (put f 'funarg-positions '(3)))
+(dolist (f '( cl-find cl-member cl-assoc cl-rassoc cl-position cl-count
+              cl-remove cl-delete
+              cl-subst cl-nsubst
+              cl-substitute cl-nsubstitute
+              cl-remove-duplicates cl-delete-duplicates
+              cl-union cl-nunion cl-intersection cl-nintersection
+              cl-set-difference cl-nset-difference
+              cl-set-exclusive-or cl-nset-exclusive-or
+              cl-nsublis
+              cl-search
+              ))
+  (put f 'funarg-positions '(:test :test-not :key)))
+(dolist (f '( cl-find-if cl-find-if-not cl-member-if cl-member-if-not
+              cl-assoc-if cl-assoc-if-not cl-rassoc-if cl-rassoc-if-not
+              cl-position-if cl-position-if-not cl-count-if cl-count-if-not
+              cl-remove-if cl-remove-if-not cl-delete-if cl-delete-if-not
+              cl-reduce cl-adjoin
+              cl-subsetp
+              ))
+  (put f 'funarg-positions '(1 :key)))
+(dolist (f '( cl-subst-if cl-subst-if-not cl-nsubst-if cl-nsubst-if-not
+              cl-substitute-if cl-substitute-if-not
+              cl-nsubstitute-if cl-nsubstitute-if-not
+              cl-sort cl-stable-sort
+              ))
+  (put f 'funarg-positions '(2 :key)))
+(dolist (fa '((plist-put 4) (alist-get 5) (add-to-list 5)
+              (cl-merge 4 :key)
+              (custom-declare-variable :set :get :initialize :safe)
+              (make-process :filter :sentinel)
+              (make-network-process :filter :sentinel)
+              (all-completions 2 3) (try-completion 2 3) (test-completion 2 3)
+              (completing-read 2 3)
+              ))
+  (put (car fa) 'funarg-positions (cdr fa)))
 
 
 (defun byte-compile-normal-call (form)
