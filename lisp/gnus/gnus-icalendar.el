@@ -642,16 +642,16 @@ is searched."
                   (delete-region (point) entry-end))
 
                 ;; put new event description in the entry body
-                (when description
-                  (save-restriction
-                    (narrow-to-region (point) (point))
-                    (insert "\n"
-                            (gnus-icalendar-event:org-timestamp event)
-                            "\n\n"
-                            (replace-regexp-in-string "[\n]+$" "\n" description)
-                            "\n")
-                    (indent-region (point-min) (point-max) (1+ entry-outline-level))
-                    (fill-region (point-min) (point-max))))
+                (save-restriction
+                  (narrow-to-region (point) (point))
+                  (insert "\n"
+                          (gnus-icalendar-event:org-timestamp event)
+                          "\n\n"
+                          (replace-regexp-in-string "[\n]+$" "\n"
+                                                    (or description "No description"))
+                          "\n")
+                  (indent-region (point-min) (point-max) (1+ entry-outline-level))
+                  (fill-region (point-min) (point-max)))
 
                 ;; update entry properties
                 (cl-labels
