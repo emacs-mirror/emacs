@@ -738,7 +738,7 @@ and VALUE-END, otherwise a STRING giving the value."
 		      ;; avoid slowdowns due to the quadratic
 		      ;; complexity of the regexp.  See bug#61514.
 		      (when (with-restriction
-			      (point) (min (+ (point) 10000) (point-max))
+			        (point) (min (+ (point) 10000) (point-max))
 			      (looking-at (concat "[^<>\n]+?"
 						  (xmltok-attribute regexp))))
 			(unless recovering
