@@ -143,7 +143,7 @@
                               eol))
                       @font-lock-builtin-face)))
      ((identifier) @font-lock-type-face
-      (:match "\\`\\(:?Err\\|Ok\\|None\\|Some\\)\\'" @font-lock-type-face)))
+      (:match "\\`\\(?:Err\\|Ok\\|None\\|Some\\)\\'" @font-lock-type-face)))
 
    :language 'rust
    :feature 'comment
@@ -232,9 +232,12 @@
      (type_identifier) @font-lock-type-face
      ((scoped_identifier name: (identifier) @rust-ts-mode--fontify-tail))
      ((scoped_identifier path: (identifier) @font-lock-type-face)
-      (:match
-       "\\`\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)\\'"
-       @font-lock-type-face))
+      (:match ,(rx bos
+                   (or "u8" "u16" "u32" "u64" "u128" "usize"
+                       "i8" "i16" "i32" "i64" "i128" "isize"
+                       "char" "str")
+                   eos)
+              @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
      ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
      (type_identifier) @font-lock-type-face)
@@ -249,7 +252,7 @@
    :feature 'constant
    `((boolean_literal) @font-lock-constant-face
      ((identifier) @font-lock-constant-face
-      (:match "\\`[A-Z][A-Z\\d_]*\\'" @font-lock-constant-face)))
+      (:match "\\`[A-Z][0-9A-Z_]*\\'" @font-lock-constant-face)))
 
    :language 'rust
    :feature 'variable
