@@ -102,7 +102,6 @@ plus, minus, check-mark, start, etc.
 Many touch screen gestures are now implemented, as is support for
 tapping buttons and opening menus.
 
-
 ---
 ** On X, Emacs now supports input methods which perform "string conversion".
 This means an input method can now ask Emacs to delete text
