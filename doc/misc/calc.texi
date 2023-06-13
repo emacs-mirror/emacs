@@ -28482,7 +28482,7 @@ logarithmic scales, Calc uses the @kbd{l} prefix for functions
 operating on notes.
 
 Scientific pitch notation refers to a note by giving a letter
-A through G, possibly followed by a flat or sharp) with a subscript
+A through G, possibly followed by a flat or sharp, with a subscript
 indicating an octave number.  Each octave starts with C and ends with
 B and
 @c increasing each note by a semitone will result
