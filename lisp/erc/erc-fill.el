@@ -49,8 +49,8 @@ the channel buffers are filled."
   ;; other modules.  Ideally, this module's processing should happen
   ;; after "morphological" modifications to a message's text but
   ;; before superficial decorations.
-  ((add-hook 'erc-insert-modify-hook #'erc-fill)
-   (add-hook 'erc-send-modify-hook #'erc-fill))
+  ((add-hook 'erc-insert-modify-hook #'erc-fill 40)
+   (add-hook 'erc-send-modify-hook #'erc-fill 40))
   ((remove-hook 'erc-insert-modify-hook #'erc-fill)
    (remove-hook 'erc-send-modify-hook #'erc-fill)))
 
@@ -336,7 +336,7 @@ one of the minor-mode toggles if really necessary."
      erc-fill--wrap-value erc-fill-static-center)
    (setq erc-fill--function #'erc-fill-wrap)
    ;; Internal integrations.
-   (add-function :filter-args (local 'erc-stamp--insert-date-function)
+   (add-function :after (local 'erc-stamp--insert-date-function)
                  #'erc-fill--wrap-stamp-insert-prefixed-date)
    (when (or erc-stamp-mode (memq 'stamp erc-modules))
      (erc-stamp--display-margin-mode +1))
@@ -398,14 +398,24 @@ parties.")
               ((erc-nick-equal-p (car props) nick))))
     (set-marker erc-fill--wrap-last-msg (point-min))))
 
-(defun erc-fill--wrap-stamp-insert-prefixed-date (args)
+(defun erc-fill--wrap-stamp-insert-prefixed-date (&rest args)
   "Apply `line-prefix' property to args."
-  (let* ((ts-left (car args)))
-    (put-text-property 0 (length ts-left) 'line-prefix
-                       `(space :width
-                               (- erc-fill--wrap-value
-                                  ,(length (string-trim-left ts-left))))
-                       ts-left))
+  (let* ((ts-left (car args))
+         (start)
+         ;; Insert " " to simulate gap between <speaker> and msg beg.
+         (end (save-excursion (skip-chars-backward "\n")
+                              (setq start (pos-bol))
+                              (insert " ")
+                              (point)))
+         (width (if (and erc-fill-wrap-use-pixels
+                         (fboundp 'buffer-text-pixel-size))
+                    (save-restriction (narrow-to-region start end)
+                                      (list (car (buffer-text-pixel-size))))
+                  (length (string-trim-left ts-left)))))
+    (delete-region (1- end) end)
+    ;; Use `point-min' instead of `start' to cover leading newilnes.
+    (put-text-property (point-min) (point) 'line-prefix
+                       `(space :width (- erc-fill--wrap-value ,width))))
   args)
 
 (defun erc-fill-wrap ()
@@ -434,8 +444,7 @@ See `erc-fill-wrap-mode' for details."
                               (narrow-to-region (point-min) (point))
                               (list (car (buffer-text-pixel-size)))))
                            (t (- (point) (point-min))))))))
-      ;; Leaving out the final newline doesn't seem to affect anything.
-      (erc-put-text-properties (point-min) (point-max)
+      (erc-put-text-properties (point-min) (1- (point-max)) ; exclude "\n"
                                '(line-prefix wrap-prefix) nil
                                `((space :width (- erc-fill--wrap-value ,len))
                                  (space :width erc-fill--wrap-value))))))

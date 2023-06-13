@@ -163,12 +163,12 @@ from entering them and instead jump over them."
 (define-erc-module stamp timestamp
   "This mode timestamps messages in the channel buffers."
   ((add-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
-   (add-hook 'erc-insert-modify-hook #'erc-add-timestamp t)
-   (add-hook 'erc-send-modify-hook #'erc-add-timestamp t)
+   (add-hook 'erc-insert-modify-hook #'erc-add-timestamp 50)
+   (add-hook 'erc-send-modify-hook #'erc-add-timestamp 50)
    (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
    (add-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
    (unless erc--updating-modules-p
-     (erc-buffer-filter #'erc-munge-invisibility-spec)))
+     (erc-buffer-do #'erc-munge-invisibility-spec)))
   ((remove-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
    (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)

@@ -47,6 +47,10 @@
 
 (require 'erc)
 
+(defgroup erc-sound nil
+  "Make ERC play bells and whistles while chatting with people."
+  :group 'erc)
+
 ;;;###autoload(put 'ctcp-sound 'erc--module 'sound)
 ;;;###autoload(autoload 'erc-sound-mode "erc-sound")
 (define-erc-module sound ctcp-sound
@@ -60,10 +64,6 @@ and play sound files as requested."
    (define-key erc-mode-map "\C-c\C-s" #'undefined)))
 
 (erc-define-catalog-entry 'english 'CTCP-SOUND "%n (%u@%h) plays %s:%m")
-
-(defgroup erc-sound nil
-  "Make ERC play bells and whistles while chatting with people."
-  :group 'erc)
 
 (defcustom erc-play-sound t
   "Play sounds when you receive CTCP SOUND requests."

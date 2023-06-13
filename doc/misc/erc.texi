@@ -1281,20 +1281,23 @@ something appropriate, like @code{("tor" "127.0.0.1" 9050 5)}.  For
 some networks, setting @code{erc-server-connect-function} to
 @code{socks-open-network-stream} might be enough.  Others, like
 @samp{Libera.Chat}, involve additional setup.  At the time of writing,
-connecting to @samp{Libera.Chat} requires both @acronym{TLS} and a
-non-@samp{PLAIN} @acronym{SASL} mechanism (@pxref{SASL}).  One way to
-achieve that is by using the @samp{EXTERNAL} mechanism, as shown in
-the following example:
+connecting to that network requires both @acronym{TLS} and a permitted
+@acronym{SASL} mechanism, like @samp{EXTERNAL} (@pxref{SASL}), as
+shown in the following example:
 
 @lisp
 (require 'erc)
 (require 'socks)
 
-(let* ((socks-password "")
-       (socks-server '("tor" "localhost" 9050 5))
-       (erc-modules (cons 'sasl erc-modules))
+(defun my-erc-open-socks-tls-stream (&rest args)
+  (let ((socks-username "")
+        (socks-password "")
+        (socks-server '("tor" "localhost" 9050 5)))
+    (apply #'erc-open-socks-tls-stream args)))
+
+(let* ((erc-modules (cons 'sasl erc-modules))
        (erc-sasl-mechanism 'external)
-       (erc-server-connect-function #'erc-open-socks-tls-stream))
+       (erc-server-connect-function #'my-erc-open-socks-tls-stream))
   (erc-tls
    :server "libera75jm6of4wxpxt4aynol3xjmbtxgfyjpu34ss4d7r7q2v5zrpyd.onion"
    :port 6697
@@ -1303,6 +1306,14 @@ the following example:
    :full-name "J. Random Hacker"
    :client-certificate (list "/home/jrh/key.pem" "/home/jrh/cert.pem")))
 @end lisp
+
+@noindent
+Here, the user-provided @code{my-erc-open-socks-tls-stream} ensures
+that the preferred values for @code{socks-server} and friends will be
+available when reconnecting.  If you plan on using @acronym{SOCKS}
+with ERC exclusively, you can just set those options and variables
+globally and bind @code{erc-server-connect-function} to
+@code{erc-open-socks-tls-stream} instead.
 
 @node auth-source
 @subsection auth-source

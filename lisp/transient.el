@@ -2190,39 +2190,35 @@ value.  Otherwise return CHILDREN as is."
 
 (defun transient--wrap-command ()
   (let* ((prefix transient--prefix)
-         (suffix this-command)
-         (advice nil)
-         (advice-interactive
-          (lambda (spec)
-            (let ((abort t))
-              (unwind-protect
-	          (prog1 (advice-eval-interactive-spec spec)
-	            (setq abort nil))
-	        (when abort
+         (suffix this-command))
+    (letrec ((advice
+              (lambda (fn &rest args)
+                (interactive
+                 (lambda (spec)
+                   (let ((abort t))
+                     (unwind-protect
+	                 (prog1 (advice-eval-interactive-spec spec)
+	                   (setq abort nil))
+	               (when abort
+	                 (when-let ((unwind (oref prefix unwind-suffix)))
+	                   (transient--debug 'unwind-interactive)
+	                   (funcall unwind suffix))
+	                 (if (symbolp suffix)
+	                     (advice-remove suffix advice)
+	                   (remove-function suffix advice))
+	                 (oset prefix unwind-suffix nil))))))
+                (unwind-protect
+                    (apply fn args)
                   (when-let ((unwind (oref prefix unwind-suffix)))
-                    (transient--debug 'unwind-interactive)
+                    (transient--debug 'unwind-command)
                     (funcall unwind suffix))
                   (if (symbolp suffix)
                       (advice-remove suffix advice)
                     (remove-function suffix advice))
-                  (oset prefix unwind-suffix nil))))))
-         (advice-body
-          (lambda (fn &rest args)
-            (unwind-protect
-                (apply fn args)
-              (when-let ((unwind (oref prefix unwind-suffix)))
-                (transient--debug 'unwind-command)
-                (funcall unwind suffix))
-              (if (symbolp suffix)
-                  (advice-remove suffix advice)
-                (remove-function suffix advice))
-              (oset prefix unwind-suffix nil)))))
-    (setq advice `(lambda (fn &rest args)
-                    (interactive ,advice-interactive)
-                    (apply ',advice-body fn args)))
-    (if (symbolp suffix)
-        (advice-add suffix :around advice '((depth . -99)))
-      (add-function :around (var suffix) advice '((depth . -99))))))
+                  (oset prefix unwind-suffix nil)))))
+      (if (symbolp suffix)
+          (advice-add suffix :around advice '((depth . -99)))
+        (add-function :around (var suffix) advice '((depth . -99)))))))
 
 (defun transient--premature-post-command ()
   (and (equal (this-command-keys-vector) [])

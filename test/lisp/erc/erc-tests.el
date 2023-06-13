@@ -294,16 +294,19 @@
         (set-process-query-on-exit-flag erc-server-process nil)
         ;; Incoming message redraws prompt
         (erc-display-message nil 'notice nil "Welcome")
+        (should (looking-at-p (rx "*** Welcome")))
+        (forward-line)
         (should (looking-at-p "ServNet 4>"))
         ;; Say something
-        (save-excursion (goto-char erc-input-marker)
-                        (insert "Howdy")
-                        (erc-send-current-line)
-                        (forward-line -1)
+        (goto-char erc-input-marker)
+        (insert "Howdy")
+        (erc-send-current-line)
+        (save-excursion (forward-line -1)
                         (should (looking-at "No target"))
                         (forward-line -1)
                         (should (looking-at "<tester> Howdy")))
-        (should (looking-at-p "ServNet 6>"))
+        (should (looking-back "ServNet 6> "))
+        (should (= erc-input-marker (point)))
         ;; Space after prompt is unpropertized
         (should (get-text-property (1- erc-input-marker) 'erc-prompt))
         (should-not (get-text-property erc-input-marker 'erc-prompt))
@@ -317,6 +320,7 @@
         (erc-tests--send-prep)
         (goto-char erc-insert-marker)
         (should (looking-at-p "#chan 9>"))
+        (goto-char erc-input-marker)
         (setq erc-server-process (buffer-local-value 'erc-server-process
                                                      (get-buffer "ServNet"))
               erc-networks--id (erc-with-server-buffer erc-networks--id)
@@ -328,18 +332,18 @@
         (erc-update-current-channel-member "tester" "tester")
         (erc-display-message nil nil (current-buffer)
                              (erc-format-privmessage "alice" "Hi" nil t))
-        (should (looking-at-p "#chan@ServNet 10>"))
-        (save-excursion (goto-char erc-input-marker)
-                        (insert "Howdy")
-                        (erc-send-current-line)
-                        (forward-line -1)
+        (should (looking-back "#chan@ServNet 10> "))
+        (goto-char erc-input-marker)
+        (insert "Howdy")
+        (erc-send-current-line)
+        (save-excursion (forward-line -1)
                         (should (looking-at "<tester> Howdy")))
-        (should (looking-at-p "#chan@ServNet 11>"))
-        (save-excursion (goto-char erc-input-marker)
-                        (insert "/query bob")
-                        (erc-send-current-line))
+        (should (looking-back "#chan@ServNet 11> "))
+        (should (= (point) erc-input-marker))
+        (insert "/query bob")
+        (erc-send-current-line)
         ;; Query does not redraw (nor /help, only message input)
-        (should (looking-at-p "#chan@ServNet 11>"))
+        (should (looking-back "#chan@ServNet 11> "))
         ;; No sign of old prompts
         (save-excursion
           (goto-char (point-min))
@@ -349,15 +353,16 @@
       (with-current-buffer (get-buffer "bob")
         (goto-char erc-insert-marker)
         (should (looking-at-p "bob@ServNet 14>"))
+        (goto-char erc-input-marker)
         (erc-display-message nil nil (current-buffer)
                              (erc-format-privmessage "bob" "Hi" nil t))
-        (should (looking-at-p "bob@ServNet 15>"))
-        (save-excursion (goto-char erc-input-marker)
-                        (insert "Howdy")
-                        (erc-send-current-line)
-                        (forward-line -1)
+        (should (looking-back "bob@ServNet 15> "))
+        (goto-char erc-input-marker)
+        (insert "Howdy")
+        (erc-send-current-line)
+        (save-excursion (forward-line -1)
                         (should (looking-at "<tester> Howdy")))
-        (should (looking-at-p "bob@ServNet 16>"))
+        (should (looking-back "bob@ServNet 16> "))
         ;; No sign of old prompts
         (save-excursion
           (goto-char (point-min))
@@ -2085,6 +2090,39 @@
   (should (eq (erc--normalize-module-symbol 'timestamp) 'stamp))
   (should (eq (erc--normalize-module-symbol 'nickserv) 'services)))
 
+(defun erc-tests--assert-printed-in-subprocess (code expected)
+  (let* ((package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
+                            ((string-prefix-p "erc-" found)))
+                      (intern found)
+                    'erc))
+         ;; This is for integrations testing with managed configs
+         ;; ("starter kits") that use a different package manager.
+         (init (and-let* ((found (getenv "ERC_TESTS_INIT"))
+                          (files (split-string found ","))
+                          ((seq-every-p #'file-exists-p files)))
+                 (mapcan (lambda (f) (list "-l" f)) files)))
+         (prog
+          `(progn
+             ,@(and (not init) (featurep 'compat)
+                    `((require 'package)
+                      (let ((package-load-list '((compat t) (,package t))))
+                        (package-initialize))))
+             (require 'erc)
+             (cl-assert (equal erc-version ,erc-version) t)
+             ,code))
+         (proc (apply #'start-process
+                      (symbol-name (ert-test-name (ert-running-test)))
+                      (current-buffer)
+                      (concat invocation-directory invocation-name)
+                      `("-batch" ,@(or init '("-Q"))
+                        "-eval" ,(format "%S" prog)))))
+    (set-process-query-on-exit-flag proc t)
+    (while (accept-process-output proc 10))
+    (goto-char (point-min))
+    (unless (equal (read (current-buffer)) expected)
+      (message "Exepcted: %S\nGot: %s" expected (buffer-string))
+      (ert-fail "Mismatch"))))
+
 ;; Worrying about which library a module comes from is mostly not
 ;; worth the hassle so long as ERC can find its minor mode.  However,
 ;; bugs involving multiple modules living in the same library may slip
@@ -2092,41 +2130,37 @@
 ;; of its place in the default ordering.
 
 (ert-deftest erc--find-mode ()
-  (let* ((package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
-                            ((string-prefix-p "erc-" found)))
-                      (intern found)
-                    'erc))
-         (prog
-          `(,@(and (featurep 'compat)
-                   `((progn
-                       (require 'package)
-                       (let ((package-load-list '((compat t) (,package t))))
-                         (package-initialize)))))
-            (require 'erc)
-            (let ((mods (mapcar #'cadddr
-                                (cdddr (get 'erc-modules 'custom-type))))
-                  moded)
-              (setq mods
-                    (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
-              (dolist (mod mods)
-                (unless (keywordp mod)
-                  (push (if-let ((mode (erc--find-mode mod)))
-                            mod
-                          (list :missing mod))
-                        moded)))
-              (message "%S"
-                       (sort moded
-                             (lambda (a b)
-                               (string< (symbol-name a) (symbol-name b))))))))
-         (proc (start-process "erc--module-mode-autoloads"
-                              (current-buffer)
-                              (concat invocation-directory invocation-name)
-                              "-batch" "-Q"
-                              "-eval" (format "%S" (cons 'progn prog)))))
-    (set-process-query-on-exit-flag proc t)
-    (while (accept-process-output proc 10))
-    (goto-char (point-min))
-    (should (equal (read (current-buffer)) erc-tests--modules))))
+  (erc-tests--assert-printed-in-subprocess
+   `(let ((mods (mapcar #'cadddr (cdddr (get 'erc-modules 'custom-type))))
+          moded)
+      (setq mods (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
+      (dolist (mod mods)
+        (unless (keywordp mod)
+          (push (if-let ((mode (erc--find-mode mod))) mod (list :missing mod))
+                moded)))
+      (message "%S"
+               (sort moded (lambda (a b)
+                             (string< (symbol-name a) (symbol-name b))))))
+   erc-tests--modules))
+
+(ert-deftest erc--essential-hook-ordering ()
+  (erc-tests--assert-printed-in-subprocess
+   '(progn
+      (erc-update-modules)
+      (message "%S"
+               (list :erc-insert-modify-hook erc-insert-modify-hook
+                     :erc-send-modify-hook erc-send-modify-hook)))
+
+   '( :erc-insert-modify-hook (erc-controls-highlight ; 0
+                               erc-button-add-buttons ; 30
+                               erc-fill ; 40
+                               erc-add-timestamp ; 50
+                               erc-match-message) ; 60
+
+      :erc-send-modify-hook ( erc-controls-highlight ; 0
+                              erc-button-add-buttons ; 30
+                              erc-fill ; 40
+                              erc-add-timestamp)))) ; 50
 
 (ert-deftest erc-migrate-modules ()
   (should (equal (erc-migrate-modules '(autojoin timestamp button))

@@ -43,13 +43,10 @@
     (with-current-buffer (get-buffer-create "*erc-stamp-tests--insert-right*")
       (erc-mode)
       (erc-munge-invisibility-spec)
+      (erc--initialize-markers (point) nil)
       (setq erc-server-process (start-process "p" (current-buffer)
-                                              "sleep" "1")
-            erc-input-marker (make-marker)
-            erc-insert-marker (make-marker))
+                                              "sleep" "1"))
       (set-process-query-on-exit-flag erc-server-process nil)
-      (set-marker erc-insert-marker (point-max))
-      (erc-display-prompt)
 
       (funcall test)
 

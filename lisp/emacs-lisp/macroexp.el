@@ -458,7 +458,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                  ((and `#',f
                        (guard (not (or (special-form-p f) (macrop f))))) ;; bug#46636
                   (macroexp--expand-all `(,f . ,eargs)))
-                 (_ `(funcall ,eexp . ,eargs)))))
+                 (_ `(,fn ,eexp . ,eargs)))))
             (`(funcall . ,_) form)      ;bug#53227
             (`(,func . ,_)
              (let ((handler (function-get func 'compiler-macro))
@@ -479,9 +479,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                ;; byte-optimize-form because the output of the compiler-macro can
                ;; use macros.
                (if (null handler)
-                   ;; No compiler macro.  We just expand each argument (for
-                   ;; setq/setq-default this works alright because the variable names
-                   ;; are symbols).
+                   ;; No compiler macro.  We just expand each argument.
                    (macroexp--all-forms form 1)
                  ;; If the handler is not loaded yet, try (auto)loading the
                  ;; function itself, which may in turn load the handler.

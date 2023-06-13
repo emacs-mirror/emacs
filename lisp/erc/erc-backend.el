@@ -427,9 +427,7 @@ This only has an effect if `erc-server-auto-reconnect' is non-nil."
 If this value is too low, servers may reject your initial nick
 request upon reconnecting because they haven't yet noticed that
 your previous connection is dead.  If this happens, try setting
-this value to 120 or greater and/or exploring the option
-`erc-nickname-in-use-functions', which may provide a more
-proactive means of handling this situation on some servers."
+this value to 120 or greater."
   :type 'number)
 
 (defcustom erc-server-reconnect-function 'erc-server-delayed-reconnect
