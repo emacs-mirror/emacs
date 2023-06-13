@@ -3493,7 +3493,7 @@ This function is intended for use in `after-change-functions'."
    :language 'javascript
    :feature 'constant
    '(((identifier) @font-lock-constant-face
-      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
+      (:match "\\`[A-Z_][A-Z_\\d]*\\'" @font-lock-constant-face))
 
      [(true) (false) (null)] @font-lock-constant-face)
 
@@ -3612,7 +3612,7 @@ This function is intended for use in `after-change-functions'."
    :feature 'number
    '((number) @font-lock-number-face
      ((identifier) @font-lock-number-face
-      (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
+      (:match "\\`\\(:?NaN\\|Infinity\\)\\'" @font-lock-number-face)))
 
    :language 'javascript
    :feature 'operator

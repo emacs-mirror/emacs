@@ -3363,7 +3363,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'number
    :language 'bash
    `(((word) @font-lock-number-face
-      (:match "^[0-9]+$" @font-lock-number-face)))
+      (:match "\\`[0-9]+\\'" @font-lock-number-face)))
 
    :feature 'bracket
    :language 'bash

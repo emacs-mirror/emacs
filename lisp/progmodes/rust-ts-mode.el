@@ -143,7 +143,7 @@
                               eol))
                       @font-lock-builtin-face)))
      ((identifier) @font-lock-type-face
-      (:match "^\\(:?Err\\|Ok\\|None\\|Some\\)$" @font-lock-type-face)))
+      (:match "\\`\\(:?Err\\|Ok\\|None\\|Some\\)\\'" @font-lock-type-face)))
 
    :language 'rust
    :feature 'comment
@@ -212,11 +212,11 @@
      (scoped_use_list path: (scoped_identifier
                              name: (identifier) @font-lock-constant-face))
      ((use_as_clause alias: (identifier) @font-lock-type-face)
-      (:match "^[A-Z]" @font-lock-type-face))
+      (:match "\\`[A-Z]" @font-lock-type-face))
      ((use_as_clause path: (identifier) @font-lock-type-face)
-      (:match "^[A-Z]" @font-lock-type-face))
+      (:match "\\`[A-Z]" @font-lock-type-face))
      ((use_list (identifier) @font-lock-type-face)
-      (:match "^[A-Z]" @font-lock-type-face))
+      (:match "\\`[A-Z]" @font-lock-type-face))
      (use_wildcard [(identifier) @rust-ts-mode--fontify-scope
                     (scoped_identifier
                      name: (identifier) @rust-ts-mode--fontify-scope)])
@@ -233,7 +233,7 @@
      ((scoped_identifier name: (identifier) @rust-ts-mode--fontify-tail))
      ((scoped_identifier path: (identifier) @font-lock-type-face)
       (:match
-       "^\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)$"
+       "\\`\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)\\'"
        @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
      ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
@@ -249,7 +249,7 @@
    :feature 'constant
    `((boolean_literal) @font-lock-constant-face
      ((identifier) @font-lock-constant-face
-      (:match "^[A-Z][A-Z\\d_]*$" @font-lock-constant-face)))
+      (:match "\\`[A-Z][A-Z\\d_]*\\'" @font-lock-constant-face)))
 
    :language 'rust
    :feature 'variable

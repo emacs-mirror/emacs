@@ -153,7 +153,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'constant
    `(((identifier) @font-lock-constant-face
-      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
+      (:match "\\`[A-Z_][A-Z_\\d]*\\'" @font-lock-constant-face))
      [(true) (false) (null)] @font-lock-constant-face)
 
    :language language
@@ -311,7 +311,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :feature 'number
    `((number) @font-lock-number-face
      ((identifier) @font-lock-number-face
-      (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
+      (:match "\\`\\(:?NaN\\|Infinity\\)\\'" @font-lock-number-face)))
 
    :language language
    :feature 'operator
