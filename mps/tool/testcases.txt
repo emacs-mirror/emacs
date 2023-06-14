@@ -44,7 +44,7 @@ teletest       =N                interactive
 walkt0
 zcoll          =L
 zmess
-ztfm           =L
+ztfm           =L =W
 =============  ================  ==========================================
 
 Key to flags
