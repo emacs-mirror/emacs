@@ -3286,7 +3286,7 @@ bytecode_from_rev_list (Lisp_Object elems, Lisp_Object readcharfun)
 	     Convert them back to the original unibyte form.  */
 	  vec[COMPILED_BYTECODE] = Fstring_as_unibyte (vec[COMPILED_BYTECODE]);
 	}
-      // Bytecode must be immovable.
+      /* Bytecode must be immovable.  */
       pin_string (vec[COMPILED_BYTECODE]);
     }
 
