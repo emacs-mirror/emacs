@@ -255,7 +255,7 @@ static Res transformFix(Seg seg, ScanState ss, Ref *refIO)
 
 static void transformCondemn(void *closure, Word old, void *value)
 {
-  Seg seg;
+  Seg seg = NULL; /* suppress "may be used uninitialized" from GCC 11.3.0 */
   GenDesc gen;
   Bool b;
   Trace trace = closure;
