@@ -19,26 +19,35 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import android.view.inputmethod.BaseInputConnection;
-import android.view.inputmethod.CompletionInfo;
-import android.view.inputmethod.ExtractedText;
-import android.view.inputmethod.ExtractedTextRequest;
-import android.view.inputmethod.SurroundingText;
-import android.view.inputmethod.TextSnapshot;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 
 import android.view.KeyEvent;
 
-import android.os.Build;
+import android.view.inputmethod.CompletionInfo;
+import android.view.inputmethod.CorrectionInfo;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputContentInfo;
+import android.view.inputmethod.SurroundingText;
+import android.view.inputmethod.TextAttribute;
+import android.view.inputmethod.TextSnapshot;
 
 import android.util.Log;
 
 /* Android input methods, take number six.  See textconv.c for more
    details; this is more-or-less a thin wrapper around that file.  */
 
-public final class EmacsInputConnection extends BaseInputConnection
+public final class EmacsInputConnection implements InputConnection
 {
   private static final String TAG = "EmacsInputConnection";
+
+  /* View associated with this input connection.  */
   private EmacsView view;
+
+  /* The handle ID associated with that view's window.  */
   private short windowHandle;
 
   /* Whether or not to synchronize and call `updateIC' with the
@@ -77,14 +86,17 @@ public final class EmacsInputConnection extends BaseInputConnection
       extractAbsoluteOffsets = true;
   };
 
+
   public
   EmacsInputConnection (EmacsView view)
   {
-    super (view, true);
-
     this.view = view;
     this.windowHandle = view.window.handle;
   }
+
+
+  /* The functions below are called by input methods whenever they
+     need to perform an edit.  */
 
   @Override
   public boolean
@@ -116,7 +128,6 @@ public final class EmacsInputConnection extends BaseInputConnection
     return true;
   }
 
-  @Override
   public boolean
   commitCompletion (CompletionInfo info)
   {
@@ -131,6 +142,19 @@ public final class EmacsInputConnection extends BaseInputConnection
 				  info.getText ().toString (),
 				  info.getPosition ());
     return true;
+  }
+
+  @Override
+  public boolean
+  commitCorrection (CorrectionInfo info)
+  {
+    /* The input method calls this function not to commit text, but to
+       indicate that a subsequent edit will consist of a correction.
+       Emacs has no use for this information.
+
+       Of course this completely contradicts the provided
+       documentation, but this is how Android actually behaves.  */
+    return false;
   }
 
   @Override
@@ -172,6 +196,14 @@ public final class EmacsInputConnection extends BaseInputConnection
 
   @Override
   public boolean
+  commitText (CharSequence text, int newCursorPosition,
+	      TextAttribute textAttribute)
+  {
+    return commitText (text, newCursorPosition);
+  }
+
+  @Override
+  public boolean
   deleteSurroundingText (int leftLength, int rightLength)
   {
     /* Return if the input connection is out of date.  */
@@ -185,6 +217,16 @@ public final class EmacsInputConnection extends BaseInputConnection
     EmacsNative.deleteSurroundingText (windowHandle, leftLength,
 				       rightLength);
     return true;
+  }
+
+  @Override
+  public boolean
+  deleteSurroundingTextInCodePoints (int leftLength, int rightLength)
+  {
+    /* Emacs returns characters which cannot be represented in a Java
+       `char' as NULL characters, so code points always reflect
+       characters themselves.  */
+    return deleteSurroundingText (leftLength, rightLength);
   }
 
   @Override
@@ -279,6 +321,14 @@ public final class EmacsInputConnection extends BaseInputConnection
 
   @Override
   public boolean
+  setComposingText (CharSequence text, int newCursorPosition,
+		    TextAttribute textAttribute)
+  {
+    return setComposingText (text, newCursorPosition);
+  }
+
+  @Override
+  public boolean
   setComposingRegion (int start, int end)
   {
     /* Return if the input connection is out of date.  */
@@ -290,6 +340,13 @@ public final class EmacsInputConnection extends BaseInputConnection
 
     EmacsNative.setComposingRegion (windowHandle, start, end);
     return true;
+  }
+
+  @Override
+  public boolean
+  setComposingRegion (int start, int end, TextAttribute textAttribute)
+  {
+    return setComposingRegion (start, end);
   }
 
   @Override
@@ -430,6 +487,8 @@ public final class EmacsInputConnection extends BaseInputConnection
   }
 
   @Override
+  /* ACTION_MULTIPLE is apparently obsolete.  */
+  @SuppressWarnings ("deprecation")
   public boolean
   sendKeyEvent (KeyEvent key)
   {
@@ -440,20 +499,33 @@ public final class EmacsInputConnection extends BaseInputConnection
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "sendKeyEvent: " + key);
 
-    return super.sendKeyEvent (key);
-  }
+    /* Use the standard API if possible.  */
 
-  @Override
-  public boolean
-  deleteSurroundingTextInCodePoints (int beforeLength, int afterLength)
-  {
-    /* Return if the input connection is out of date.  */
-    if (view.icSerial < view.icGeneration)
-      return false;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+      view.imManager.dispatchKeyEventFromInputMethod (view, key);
+    else
+      {
+	/* Fall back to dispatching the event manually if not.  */
 
-    /* This can be implemented the same way as
-       deleteSurroundingText.  */
-    return this.deleteSurroundingText (beforeLength, afterLength);
+	switch (key.getAction ())
+	  {
+	  case KeyEvent.ACTION_DOWN:
+	    view.onKeyDown (key.getKeyCode (), key);
+	    break;
+
+	  case KeyEvent.ACTION_UP:
+	    view.onKeyUp (key.getKeyCode (), key);
+	    break;
+
+	  case KeyEvent.ACTION_MULTIPLE:
+	    view.onKeyMultiple (key.getKeyCode (),
+				key.getRepeatCount (),
+				key);
+	    break;
+	  }
+      }
+
+    return true;
   }
 
   @Override
@@ -469,6 +541,16 @@ public final class EmacsInputConnection extends BaseInputConnection
 
     EmacsNative.requestCursorUpdates (windowHandle, cursorUpdateMode);
     return true;
+  }
+
+  @Override
+  public boolean
+  requestCursorUpdates (int cursorUpdateMode, int filter)
+  {
+    if (filter != 0)
+      return false;
+
+    return requestCursorUpdates (cursorUpdateMode);
   }
 
   @Override
@@ -506,10 +588,73 @@ public final class EmacsInputConnection extends BaseInputConnection
   /* Override functions which are not implemented.  */
 
   @Override
+  public Handler
+  getHandler ()
+  {
+    return null;
+  }
+
+  @Override
+  public void
+  closeConnection ()
+  {
+
+  }
+
+  @Override
+  public boolean
+  commitContent (InputContentInfo inputContentInfo, int flags,
+		 Bundle opts)
+  {
+    return false;
+  }
+
+  @Override
+  public boolean
+  setImeConsumesInput (boolean imeConsumesInput)
+  {
+    return false;
+  }
+
+  @Override
   public TextSnapshot
   takeSnapshot ()
   {
-    Log.d (TAG, "takeSnapshot");
     return null;
+  }
+
+  @Override
+  public boolean
+  clearMetaKeyStates (int states)
+  {
+    return false;
+  }
+
+  @Override
+  public boolean
+  reportFullscreenMode (boolean enabled)
+  {
+    return false;
+  }
+
+  @Override
+  public boolean
+  performSpellCheck ()
+  {
+    return false;
+  }
+
+  @Override
+  public boolean
+  performPrivateCommand (String action, Bundle data)
+  {
+    return false;
+  }
+
+  @Override
+  public int
+  getCursorCapsMode (int reqModes)
+  {
+    return 0;
   }
 }

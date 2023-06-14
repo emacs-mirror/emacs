@@ -5193,6 +5193,13 @@ NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
 
   union android_event event;
 
+  /* It's a good idea to call `android_sync_edit' before sending the
+     key event.  Otherwise, if RET causes the current window to be
+     changed, any text previously committed might end up in the newly
+     selected window.  */
+
+  android_sync_edit ();
+
   /* Undocumented behavior: performEditorAction is apparently expected
      to finish composing any text.  */
 
