@@ -2765,10 +2765,11 @@ This kills the Dired buffer, then visits the current line's file or directory."
 The optional arguments FIND-FILE-FUNC and FIND-DIR-FUNC specify
 functions to visit the file and directory, respectively.  If
 omitted or nil, these arguments default to `find-file' and `dired',
-respectively."
+respectively.  If `dired-kill-when-opening-new-dired-buffer' is
+non-nil, FIND-DIR-FUNC defaults to `find-alternate-file' instead,
+so that the original Dired buffer is not kept."
   (interactive "e")
   (or find-file-func (setq find-file-func 'find-file))
-  (or find-dir-func (setq find-dir-func 'dired))
   (let (window pos file)
     (save-excursion
       (setq window (posn-window (event-end event))
@@ -2776,6 +2777,12 @@ respectively."
       (if (not (windowp window))
 	  (error "No file chosen"))
       (set-buffer (window-buffer window))
+      (unless find-dir-func
+        (setq find-dir-func
+              (if (and dired-kill-when-opening-new-dired-buffer
+                       (< (length (get-buffer-window-list)) 2))
+                  'find-alternate-file
+                'dired)))
       (goto-char pos)
       (setq file (dired-get-file-for-visit)))
     (if (file-directory-p file)
