@@ -28470,13 +28470,13 @@ B and
 @c flat and @expr{B}.
 the octave numbered 0 was chosen to correspond to the lowest
 audible frequency.  Using this system, middle C (about 261.625 Hz)
-corresponds to the note @expr{C} in octave 4 and is denoted
-@expr{C_4}.  Any frequency can be described by giving a note plus an
+corresponds to the note @slanted{C} in octave 4 and is denoted
+@slanted{C@sub{4}}.  Any frequency can be described by giving a note plus an
 offset in cents (where a cent is a ratio of frequencies so that a
 semitone consists of 100 cents).
 
 The midi note number system assigns numbers to notes so that
-@expr{C_(-1)} corresponds to the midi note number 0 and @expr{G_9}
+@slanted{C@sub{-1}} corresponds to the midi note number 0 and @slanted{G@sub{9}}
 corresponds to the midi note number 127.   A midi controller can have
 up to 128 keys and each midi note number from  0 to 127 corresponds to
 a possible key.
