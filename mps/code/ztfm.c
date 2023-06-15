@@ -1,5 +1,6 @@
 /* ztfm.c: Transforms test
  *
+ * FIXME: Write stuff
  * $Id$
  * Copyright (c) 2011-2022 Ravenbrook Limited.  See end of file for license.
  */
@@ -14,7 +15,7 @@
 
 #include <stdio.h> /* printf */
 
-
+/* FIXME: What's this? */
 #define progressf(args) \
     printf args;
 #define Xprogressf(args) \
@@ -59,7 +60,7 @@ static ulongest_t serial = 0;
  */
 
 struct node_t {
-  mps_word_t     word0;
+  mps_word_t     word0; /* FIXME: what are these fields for? */
   mps_word_t     word1;
   mps_word_t     serial_dyi;  /* unique across every node ever */
   mps_word_t     id_dyi;  /* .id: replacement nodes copy this */
@@ -89,8 +90,11 @@ struct node_t {
  *
  * The tourVerSum, being a simple sum, does not depend on the order of
  * visiting.
+ *
+ * FIXME: Why? What role does this have in the test as a whole?
  */
 
+/* FIXME: What's this? */
 enum {
   cVer = 10
 };
