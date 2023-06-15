@@ -1893,6 +1893,16 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   }
 }
 
+/* AMCAddrObject -- return base pointer from interior pointer
+ *
+ * amcAddrObjectSearch implements the scan for an object containing
+ * the interior pointer by skipping using format methods.
+ *
+ * AMCAddrObject locates the segment containing the interior pointer
+ * and wraps amcAddrObjectSearch in the necessary shield operations to
+ * give it access.
+ */
+
 static Res amcAddrObjectSearch(Addr *pReturn,
                                Pool pool,
                                Addr objBase,
@@ -1928,9 +1938,6 @@ static Res amcAddrObjectSearch(Addr *pReturn,
   }
   return ResFAIL;
 }
-
-
-/* AMCAddrObject -- return base pointer from interior pointer */
 
 static Res AMCAddrObject(Addr *pReturn, Pool pool, Addr addr)
 {
