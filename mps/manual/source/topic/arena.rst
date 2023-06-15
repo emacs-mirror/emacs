@@ -1044,17 +1044,15 @@ Arena introspection and debugging
 
 .. c:function:: mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr)
 
-    Return the :term:`base pointer` of an :term:`object` if provided with an
+    Find the :term:`base pointer` of an :term:`object` if provided with an
     :term:`interior pointer` to that object, or the object's base pointer,
     provided the object exists in a pool that supports this feature.
 
-    ``p_o`` points to the :term:`address` to which the object's base pointer
-    should be returned.
+    ``p_o`` points to a location that will hold the object's base pointer.
 
     ``arena`` is an arena.
 
     ``addr`` is an address that might be an interior or base pointer.
-
 
     Returns MPS_RES_OK if a base pointer to an object into which ``addr``
     points was successfully returned.
