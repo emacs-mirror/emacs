@@ -18613,7 +18613,7 @@ factorial function:  @samp{gamma(n+1) = fact(n)}.  For general complex
 arguments the gamma function can be defined by the following definite
 integral:
 @texline @math{\Gamma(a) = \int_0^\infty t^{a-1} e^{-t} dt}.
-@infoline @samp{gamma(a) = integ(t@sup{a-1} exp@sup{-t}, t, 0, inf)}.
+@infoline @expr{gamma(a) = integ(t^(a-1) exp(-t), t, 0, inf)}.
 (The actual implementation uses far more efficient computational methods.)
 
 @kindex f G
@@ -18647,7 +18647,7 @@ The @kbd{f G} (@code{calc-inc-gamma}) [@code{gammaP}] command computes
 the incomplete gamma function, denoted @samp{P(a,x)}.  This is defined by
 the integral,
 @texline @math{P(a,x) = \left( \int_0^x t^{a-1} e^t dt \right) / \Gamma(a)}.
-@infoline @samp{gammaP(a,x) = integ(t@sup{a-1} e@sup{t}, t, 0, x) / gamma(a)}.
+@infoline @expr{gammaP(a,x) = integ(t^(a-1) exp(t), t, 0, x) / gamma(a)}.
 This implies that @samp{gammaP(a,inf) = 1} for any @expr{a} (see the
 definition of the normal gamma function).
 
@@ -18682,7 +18682,7 @@ Euler beta function, which is defined in terms of the gamma function as
 @infoline @expr{beta(a,b) = gamma(a) gamma(b) / gamma(a+b)},
 or by
 @texline @math{B(a,b) = \int_0^1 t^{a-1} (1-t)^{b-1} dt}.
-@infoline @samp{beta(a,b) = integ(t@sup{a-1} (1-t)@sup{b-1}, t, 0, 1)}.
+@infoline @expr{beta(a,b) = integ(t^(a-1) (1-t)^(b-1), t, 0, 1)}.
 
 @kindex f B
 @kindex H f B
@@ -18692,7 +18692,7 @@ or by
 The @kbd{f B} (@code{calc-inc-beta}) [@code{betaI}] command computes
 the incomplete beta function @expr{I(x,a,b)}.  It is defined by
 @texline @math{I(x,a,b) = \left( \int_0^x t^{a-1} (1-t)^{b-1} dt \right) / B(a,b)}.
-@infoline @samp{betaI(x,a,b) = integ(t@sup{a-1} (1-t)@sup{b-1}, t, 0, x) / beta(a,b)}.
+@infoline @expr{betaI(x,a,b) = integ(t^(a-1) (1-t)^(b-1), t, 0, x) / beta(a,b)}.
 Once again, the @kbd{H} (hyperbolic) prefix gives the corresponding
 un-normalized version [@code{betaB}].
 
@@ -18704,7 +18704,7 @@ un-normalized version [@code{betaB}].
 The @kbd{f e} (@code{calc-erf}) [@code{erf}] command computes the
 error function
 @texline @math{\hbox{erf}(x) = {2 \over \sqrt{\pi}} \int_0^x e^{-t^2} dt}.
-@infoline @samp{erf(x) = 2 integ(exp(-(t@sup{2})), t, 0, x) / sqrt(pi)}.
+@infoline @expr{erf(x) = 2 integ(exp(-(t^(2))), t, 0, x) / sqrt(pi)}.
 The complementary error function @kbd{I f e} (@code{calc-erfc}) [@code{erfc}]
 is the corresponding integral from @samp{x} to infinity; the sum
 @texline @math{\hbox{erf}(x) + \hbox{erfc}(x) = 1}.
