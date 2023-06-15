@@ -1956,6 +1956,17 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Addr addr)
 
   base = SegBase(seg);
   if (SegBuffer(&buffer, seg))
+    /* We use BufferGetInit here (and not BufferScanLimit) because we
+     * want to be able to find objects that have been allocated and
+     * committed since the last flip. These objects lie between the
+     * addresses returned by BufferScanLimit (which returns the value
+     * of init at the last flip) and BufferGetInit.
+     *
+     * Strictly speaking we only need a limit that is at least the
+     * maximum of the objects on the segments. This is because addr
+     * *must* point inside a live object and we stop skipping once we
+     * have found it. The init pointer serves this purpose.
+     */
     limit = BufferGetInit(buffer);
   else
     limit = SegLimit(seg);

@@ -457,11 +457,21 @@ mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr)
 
   AVER(p_o != NULL);
 
+  /* This function cannot be called while walking the heap, unlike
+   * mps_arena_has_addr(). This is because it is designed to be called
+   * with an active mutator, so takes the arena lock. This is in order
+   * that it sees a consistent view of MPS structures and the heap,
+   * and can peek behind the barrier.
+   */
   ArenaEnter(arena);
   AVERT(Arena, arena);
   res = ArenaAddrObject(&p, arena, (Addr)addr);
   ArenaLeave(arena);
-
+  /* We require the object to be ambiguously referenced (hence pinned)
+   * so that p doesn't become invalid before it is written to *p_o.
+   * (We can't simply put this write before the ArenaLeave(), because
+   * p_o could point to MPS-managed memory that is behind a barrier.)
+   */
   if (res == ResOK)
     *p_o = (mps_addr_t)p;
 
