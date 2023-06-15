@@ -703,7 +703,17 @@ an alist of attribute/value pairs."
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
-          (setq dn (buffer-substring (point) (line-end-position)))
+          ;; Ignore first (dn) line if WITHDN equals nil.  If WITHDN
+          ;; is non-nil, check syntax of the line and split it into a
+          ;; pair as expected by `ldap-decode-attribute' (Bug#64089).
+          ;; If the syntax is wrong, better throw an error here, since
+          ;; otherwise `ldap-decode-attribute' would throw a much less
+          ;; comprehensible error later.
+          (cond ((not withdn))
+                ((looking-at "^dn[=:\t ]+\\(.*\\)$")
+                 (setq dn (list "dn" (match-string 1))))
+                (t (error "Incorrect dn line \"%s\" in ldapsearch result"
+                          (buffer-substring (point) (line-end-position)))))
 	  (forward-line 1)
           (while (looking-at "^\\([A-Za-z][-A-Za-z0-9]*\
 \\|[0-9]+\\(?:\\.[0-9]+\\)*\\)\\(;[-A-Za-z0-9]+\\)*[=:\t ]+\
