@@ -18647,7 +18647,7 @@ The @kbd{f G} (@code{calc-inc-gamma}) [@code{gammaP}] command computes
 the incomplete gamma function, denoted @samp{P(a,x)}.  This is defined by
 the integral,
 @texline @math{P(a,x) = \left( \int_0^x t^{a-1} e^t dt \right) / \Gamma(a)}.
-@infoline @samp{gammaP(a,x) = integ(t@sup{a-1} exp@sup{t}, t, 0, x) / gamma(a)}.
+@infoline @samp{gammaP(a,x) = integ(t@sup{a-1} e@sup{t}, t, 0, x) / gamma(a)}.
 This implies that @samp{gammaP(a,inf) = 1} for any @expr{a} (see the
 definition of the normal gamma function).
 
