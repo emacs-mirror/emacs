@@ -2609,14 +2609,18 @@ be passed to @code{gv-define-setter}.
 
 @item (completion @var{completion-predicate})
 Declare @var{completion-predicate} as a function to determine whether
-to include the symbol in the list of functions when asking for
-completions in @kbd{M-x}.  @var{completion-predicate} is called with
-two parameters: The first parameter is the symbol, and the second is
-the current buffer.
+to include a function's symbol in the list of functions when asking
+for completions in @kbd{M-x}.  This predicate function will only be
+called when @code{read-extended-command-predicate} is customized to
+@code{command-completion-default-include-p}; by default the value of
+@code{read-extended-command-predicate} is nil (@pxref{Interactive
+Call, execute-extended-command}).  The predicate
+@var{completion-predicate} is called with two arguments: the
+function's symbol and the current buffer.
 
 @item (modes @var{modes})
-Specify that this command is meant to be applicable for @var{modes}
-only.
+Specify that this command is meant to be applicable only to specified
+@var{modes}.  @xref{Command Modes}.
 
 @item (interactive-args @var{arg} ...)
 Specify the arguments that should be stored for @code{repeat-command}.
