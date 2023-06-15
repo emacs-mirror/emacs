@@ -513,7 +513,6 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   if (ArgPick(&arg, args, amcKeyAPHashArrays))
     forHashArrays = arg.val.b;
 
-  /* call next method */
   res = NextMethod(Buffer, amcBuf, init)(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;

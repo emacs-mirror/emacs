@@ -159,7 +159,7 @@ AMC interface
 Hash arrays
 -----------
 
-the :term:`location dependency` feature of the MPS allows the
+The :term:`location dependency` feature of the MPS allows the
 :term:`client program` to implement address-based hash tables in pools
 like AMC that use a :term:`moving memory manager`, re-hashing the
 tables when the addresses they contain might have moved.
@@ -169,7 +169,7 @@ following sequence of events may take place:
 
 1. The hash table discovers that its location dependency is stale.
 
-2. A new array is allocated to containt the re-hashed keys.
+2. A new array is allocated to contain the re-hashed keys.
 
 3. The new array is large enough to push the *new size* of the
    :term:`nursery space` (that is, the amount of newly allocated
@@ -189,14 +189,12 @@ table.
 In order to avoid this happening, the MPS provides a mechanism for
 specifying that the newly allocated array does not contribute to the
 new size of the nursery space: this cuts off the vicious cycle at step
-3. To use this mechanism, pass true for the
-:c:macro:`MPS_KEY_AP_HASH_ARRAYS` keyword argument to
-:c:func:`mps_ap_create_k`. For example::
+3.
 
-    MPS_ARGS_BEGIN(args) {
-        MPS_ARGS_ADD(args, MPS_KEY_AP_HASH_ARRAYS, TRUE);
-        res = mps_ap_create_k(&ap, pool, args);
-    } MPS_ARGS_END(args);
+To enable this mechanism, use the optional :c:macro:`MPS_KEY_AP_HASH_ARRAYS`
+keyword argument when creating an allocation point with
+:c:func:`mps_ap_create_k`. This interface is documented in the AMC Interface
+section of the :ref:`pool-amc` documentation above.
 
 See :ref:`topic-collection-schedule` for an explanation of the *new
 size* of a generation, and how the MPS uses this to determine when to
