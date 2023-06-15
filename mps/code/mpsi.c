@@ -447,16 +447,9 @@ mps_bool_t mps_addr_pool(mps_pool_t *mps_pool_o,
     return b;
 }
 
-/* mps_addr_object -- find base pointer of a managed object
- *
- * Sets *p_o to the base address of an object given a pointer to the
- * interior of that object.
- *
- * Will return resFAIL if the object is not in managed memory
- * or the object has been moved.
- *
- * Will return resUNIMPL if the pool doesn't support this feature
- */
+
+/* mps_addr_object -- find base pointer of a managed object */
+
 mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr)
 {
   Res res;
