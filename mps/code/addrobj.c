@@ -25,6 +25,7 @@
 #include "mpsavm.h"
 #include "mpscamc.h"
 #include "mpscmvff.h"
+#include "stdio.h"
 #include <stdlib.h>
 
 /* Define an object size to allocate. The size chosen doesn't matter much, except that this testbench assumes
@@ -125,6 +126,7 @@ static void test_main(void)
   res = mps_addr_object(&out, arena, in);
   Insist(out == testobj);
   Insist(res == MPS_RES_OK);
+  printf("Interior pointer input: passed\n");
 
 
   /* TEST 2: Test using the base pointer itself as an input*/
@@ -135,6 +137,8 @@ static void test_main(void)
   res = mps_addr_object(&out, arena, in);
   Insist(out == testobj);
   Insist(res == MPS_RES_OK);
+  printf("Base pointer input: passed\n");
+
 
 
    /* TEST 3: Test using a pointer one-off-the-end of the object*/
@@ -144,6 +148,8 @@ static void test_main(void)
   /* Do Test */
   res = mps_addr_object(&out, arena, in);
   Insist(res == MPS_RES_FAIL);
+  printf("Pointer to next object input: passed\n");
+
 
   /* Clean up from above tests */
   mps_root_destroy(testobj_root);
@@ -163,6 +169,7 @@ static void test_main(void)
 
   /* Expect MPS to fail to find a base pointer for addresses not in managed memory */
   Insist(res == MPS_RES_FAIL);
+  printf("Pointer to unmanaged memory input: passed\n");
 
   /* clean up from this test */
   if (NULL != in)
@@ -181,6 +188,7 @@ static void test_main(void)
   res = mps_addr_object(&out, arena, in);
 
   Insist(res == MPS_RES_UNIMPL);
+  printf("Pointer to object in pool where mps_addr_object not implemented: passed\n");
 
 
   /* If more tests are added here, briefly describe them above under "INTRO TO TESTS" comment */
@@ -196,6 +204,8 @@ int main(int argc, char *argv[])
   testlib_init(argc, argv);
 
   test_main();
+
+  printf("%s: Conculsion, failed to find any defects.\n", argv[0]);
 
   return 0;
 }
