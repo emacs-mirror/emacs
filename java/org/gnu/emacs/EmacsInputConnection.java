@@ -50,6 +50,11 @@ public final class EmacsInputConnection implements InputConnection
   /* The handle ID associated with that view's window.  */
   private short windowHandle;
 
+  /* Number of batch edits currently underway.  Used to avoid
+     synchronizing with the Emacs thread after each
+     `endBatchEdit'.  */
+  private int batchEditCount;
+
   /* Whether or not to synchronize and call `updateIC' with the
      selection position after committing text.
 
@@ -110,6 +115,10 @@ public final class EmacsInputConnection implements InputConnection
       Log.d (TAG, "beginBatchEdit");
 
     EmacsNative.beginBatchEdit (windowHandle);
+
+    /* Keep a record of the number of outstanding batch edits here as
+       well.  */
+    batchEditCount++;
     return true;
   }
 
@@ -125,7 +134,14 @@ public final class EmacsInputConnection implements InputConnection
       Log.d (TAG, "endBatchEdit");
 
     EmacsNative.endBatchEdit (windowHandle);
-    return true;
+
+    /* Subtract one from the UI thread record of the number of batch
+       edits currently under way.  */
+
+    if (batchEditCount > 0)
+      batchEditCount -= 1;
+
+    return batchEditCount > 0;
   }
 
   public boolean
@@ -584,6 +600,42 @@ public final class EmacsInputConnection implements InputConnection
     return text;
   }
 
+  @Override
+  public TextSnapshot
+  takeSnapshot ()
+  {
+    TextSnapshot snapshot;
+
+    /* Return if the input connection is out of date.  */
+    if (view.icSerial < view.icGeneration)
+      return null;
+
+    snapshot = EmacsNative.takeSnapshot (windowHandle);
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, ("takeSnapshot: "
+		   + snapshot.getSurroundingText ().getText ()
+		   + " @ " + snapshot.getCompositionEnd ()
+		   + ", " + snapshot.getCompositionStart ()));
+
+    return snapshot;
+  }
+
+  @Override
+  public void
+  closeConnection ()
+  {
+    batchEditCount = 0;
+  }
+
+
+
+  public void
+  reset ()
+  {
+    batchEditCount = 0;
+  }
+
 
   /* Override functions which are not implemented.  */
 
@@ -592,13 +644,6 @@ public final class EmacsInputConnection implements InputConnection
   getHandler ()
   {
     return null;
-  }
-
-  @Override
-  public void
-  closeConnection ()
-  {
-
   }
 
   @Override
@@ -614,13 +659,6 @@ public final class EmacsInputConnection implements InputConnection
   setImeConsumesInput (boolean imeConsumesInput)
   {
     return false;
-  }
-
-  @Override
-  public TextSnapshot
-  takeSnapshot ()
-  {
-    return null;
   }
 
   @Override

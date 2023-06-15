@@ -5668,6 +5668,10 @@ struct android_get_surrounding_text_context
   /* Offsets into that text.  */
   ptrdiff_t offset, start, end;
 
+  /* The start and end indices of the conversion region.
+     -1 if it does not exist.  */
+  ptrdiff_t conversion_start, conversion_end;
+
   /* The window.  */
   android_window window;
 };
@@ -5706,21 +5710,46 @@ android_get_surrounding_text (void *data)
       request->start = request->end;
       request->end = temp;
     }
+
+  /* Retrieve the conversion region.  */
+
+  request->conversion_start = -1;
+  request->conversion_end = -1;
+
+  if (MARKERP (f->conversion.compose_region_start))
+    {
+      request->conversion_start
+	= marker_position (f->conversion.compose_region_start) - 1;
+      request->conversion_end
+	= marker_position (f->conversion.compose_region_end) - 1;
+    }
 }
 
-JNIEXPORT jobject JNICALL
-NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject ignored_object,
-				  jshort window, jint before_length,
-				  jint after_length, jint flags)
+/* Return a local reference to a `SurroundingText' object describing
+   WINDOW's surrounding text.  ENV should be a valid JNI environment
+   for the current thread.
+
+   BEFORE_LENGTH and AFTER_LENGTH specify the number of characters
+   around point and mark to return.
+
+   Return the conversion region (or -1) in *CONVERSION_START and
+   *CONVERSION_END if non-NULL.
+
+   Value is the object upon success, else NULL.  */
+
+static jobject
+android_get_surrounding_text_internal (JNIEnv *env, jshort window,
+				       jint before_length,
+				       jint after_length,
+				       ptrdiff_t *conversion_start,
+				       ptrdiff_t *conversion_end)
 {
-  JNI_STACK_ALIGNMENT_PROLOGUE;
-
-  static jclass class;
-  static jmethodID constructor;
-
   struct android_get_surrounding_text_context context;
   jstring string;
   jobject object;
+
+  static jclass class;
+  static jmethodID constructor;
 
   /* Initialize CLASS if it has not yet been initialized.  */
 
@@ -5745,7 +5774,9 @@ NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject ignored_object,
 
       class = (*env)->NewGlobalRef (env, class);
       if (!class)
-	return NULL;
+	/* Clear class to prevent a local reference from remaining in
+	   `class'.  */
+	return (class = NULL);
 
       /* Now look for its constructor.  */
       constructor = (*env)->GetMethodID (env, class, "<init>",
@@ -5787,6 +5818,86 @@ NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject ignored_object,
   if (!object)
     return NULL;
 
+  /* Now return the conversion region if that was requested.  */
+
+  if (conversion_start)
+    {
+      *conversion_start = context.conversion_start;
+      *conversion_end = context.conversion_start;
+    }
+
+  return object;
+}
+
+JNIEXPORT jobject JNICALL
+NATIVE_NAME (getSurroundingText) (JNIEnv *env, jobject object,
+				  jshort window, jint before_length,
+				  jint after_length, jint flags)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  return android_get_surrounding_text_internal (env, window, before_length,
+						after_length, NULL, NULL);
+}
+
+JNIEXPORT jobject JNICALL
+NATIVE_NAME (takeSnapshot) (JNIEnv *env, jobject object, jshort window)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  jobject text;
+  ptrdiff_t start, end;
+
+  static jclass class;
+  static jmethodID constructor;
+
+  /* First, obtain the surrounding text and conversion region.  */
+  text = android_get_surrounding_text_internal (env, window, 600, 600,
+						&start, &end);
+
+  /* If that fails, return NULL.  */
+
+  if (!text)
+    return NULL;
+
+  /* Next, initialize the TextSnapshot class.  */
+
+  if (!class)
+    {
+      class
+	= (*env)->FindClass (env, ("android/view/inputmethod"
+				   "/TextSnapshot"));
+#if __ANDROID_API__ < 33
+      /* If CLASS cannot be found, the version of Android currently
+	 running is too old.  */
+
+      if (!class)
+	{
+	  (*env)->ExceptionClear (env);
+	  return NULL;
+	}
+#else /* __ANDROID_API__ >= 33 */
+      assert (class);
+#endif /* __ANDROID_API__ < 33 */
+
+      class = (*env)->NewGlobalRef (env, class);
+      if (!class)
+	/* Clear class to prevent a local reference from remaining in
+	   `class'.  */
+	return (class = NULL);
+
+      constructor = (*env)->GetMethodID (env, class, "<init>",
+					 "(Landroid/view/inputmethod"
+					 "/SurroundingText;III)V");
+      assert (constructor);
+    }
+
+  /* Try to create a TextSnapshot object.  */
+  eassert (start <= end);
+  object = (*env)->NewObject (env, class, constructor, text,
+			      (jint) min (start, TYPE_MAXIMUM (jint)),
+			      (jint) min (end, TYPE_MAXIMUM (jint)),
+			      (jint) 0);
   return object;
 }
 

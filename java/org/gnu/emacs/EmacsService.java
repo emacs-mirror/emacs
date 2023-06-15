@@ -767,8 +767,31 @@ public final class EmacsService extends Service
   public void
   resetIC (EmacsWindow window, int icMode)
   {
+    int oldMode;
+
     if (DEBUG_IC)
-      Log.d (TAG, "resetIC: " + window);
+      Log.d (TAG, "resetIC: " + window + ", " + icMode);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+	&& (oldMode = window.view.getICMode ()) == icMode
+	/* Don't do this if there is currently no input
+	   connection.  */
+	&& oldMode != IC_MODE_NULL)
+      {
+	if (DEBUG_IC)
+	  Log.d (TAG, "resetIC: calling invalidateInput");
+
+	/* Android 33 and later allow the IM reset to be optimized out
+	   and replaced by a call to `invalidateInput', which is much
+	   faster, as it does not involve resetting the input
+	   connection.  */
+
+	icBeginSynchronous ();
+	window.view.imManager.invalidateInput (window.view);
+	icEndSynchronous ();
+
+	return;
+      }
 
     window.view.setICMode (icMode);
 

@@ -26,6 +26,7 @@ import android.graphics.Bitmap;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.SurroundingText;
+import android.view.inputmethod.TextSnapshot;
 
 public final class EmacsNative
 {
@@ -230,6 +231,7 @@ public final class EmacsNative
   public static native SurroundingText getSurroundingText (short window,
 							   int left, int right,
 							   int flags);
+  public static native TextSnapshot takeSnapshot (short window);
 
 
   /* Return the current value of the selection, or -1 upon

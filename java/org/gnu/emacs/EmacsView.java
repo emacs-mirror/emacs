@@ -681,6 +681,9 @@ public final class EmacsView extends ViewGroup
 
     if (inputConnection == null)
       inputConnection = new EmacsInputConnection (this);
+    else
+      /* Clear several pieces of state in the input connection.  */
+      inputConnection.reset ();
 
     /* Return the input connection.  */
     return inputConnection;
