@@ -215,6 +215,8 @@ static Res transformFix(Seg seg, ScanState ss, Ref *refIO)
   transform = ss->fixClosure;
   AVERT_CRITICAL(Transform, transform);
 
+  /* .aborted: If the transform has been aborted, drop through to
+     normal GC fix, making the transform a normal GC. */
   if (!transform->aborted) {
     void *refNew;
 
@@ -259,7 +261,7 @@ static void transformCondemn(void *closure, Word old, void *value)
 
   /* Find segment containing old address. */
   b = SegOfAddr(&seg, trace->arena, (Ref)old);
-  AVER(b); /* old refs must be in managed memory, else client param error */
+  AVER(b); /* should've been enforced by .old-white */
 
   /* Condemn generation containing seg if not already condemned. */
   gen = PoolSegPoolGen(SegPool(seg), seg)->gen;
@@ -320,9 +322,12 @@ Res TransformApply(Bool *appliedReturn, Transform transform)
   AVER(res == ResOK); /* transformFix can't fail */
   
   /* If transformFix during traceFlip found ambiguous references and
-     aborted the transform then the rest of the trace is just a normal GC. 
-     Note that aborting a trace part-way through is pretty much impossible
-     without corrupting the mutator graph.  We could safely
+     aborted the transform then the rest of the trace is just a normal
+     GC (see .aborted).  Note that aborting a trace part-way through
+     is pretty much impossible without corrupting the mutator graph.
+
+     We could optimise this safely at a later date if required, with::
+
          if (transform->aborted) {
            trace->fix = PoolFix;
            trace->fixClosure = NULL;
