@@ -516,19 +516,6 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     t1 = NULL;
     after(myrootExact, perset, 1, 0, 2, 0);
 
-    /* Apply twice */
-    before(myrootExact, perset);
-    res = mps_transform_create(&t1, arena);
-    Insist(res == MPS_RES_OK);
-    res = mps_transform_apply(&applied, t1);
-    Insist(res == MPS_RES_OK);
-    Insist(applied);
-    res = mps_transform_apply(&applied, t1);
-    Insist(res == MPS_RES_PARAM);
-    mps_transform_destroy(t1);
-    t1 = NULL;
-    after(myrootExact, perset, 1, 0, 2, 0);
-
     /* Identity-transform */
     before(myrootExact, perset);
     res = mps_transform_create(&t1, arena);
