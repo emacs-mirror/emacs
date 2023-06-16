@@ -6,7 +6,13 @@
 Transforms
 ==========
 
-In a long-running interactive system, it may be desirable to change the format of live objects. In some programming languages (notably Smalltalk), when the programmer edits a class definition, objects belonging to the class must be updated so that they are valid instances of the redefined class. This may involve adding or removing fields from each instance and so changing the size of the allocated objects.
+In a long-running interactive system, it may be desirable to change
+the format of live objects. In some programming languages (notably
+Smalltalk), when the programmer edits a class definition, objects
+belonging to the class must be updated so that they are valid
+instances of the redefined class. This may involve adding or removing
+fields from each instance and so changing the size of the allocated
+objects.
 
 If the object has grown as a result of the redefinition, this
 redefinition can't be done in-place, so what actually happens is that
@@ -16,7 +22,12 @@ instance of the new version of the class is created, and all
 instance. Discovering "all references" to an object is a task that falls
 to the garbage collector.
 
-*Transforms* are a general mechanism by which the client program requests the MPS to replace references to one set of objects (the *old* objects) with references to another (the *new* objects). The MPS performs this task by carrying out a complete garbage collection, in the course of which all references to old objects are discovered and substituted with references to the corresponding new object.
+*Transforms* are a general mechanism by which the client program
+ requests the MPS to replace references to one set of objects (the
+ *old* objects) with references to another (the *new* objects). The
+ MPS performs this task by carrying out a complete garbage collection,
+ in the course of which all references to old objects are discovered
+ and substituted with references to the corresponding new object.
 
 
 Cautions
@@ -122,11 +133,13 @@ Interface
     If the :term:`arena` is currently incapable of applying the
     transform, then an appropriate :term:`result code` is returned, and
     the location pointed to by ``applied_o`` is not updated. Possible
-    causes include (but are not limited to) the arena not being in the
-    :term:`parked state` (in which case the result code is
-    :c:macro:`MPS_RES_LIMIT`), or a collection having taken place since
-    ``transform`` was created (in which case the result code is
-    :c:macro:`MPS_RES_PARAM`).
+    causes include (but are not limited to):
+
+    - the arena not being in the :term:`parked state` (in which case
+      the result code is :c:macro:`MPS_RES_LIMIT`)
+
+    - a collection having taken place since ``transform`` was created
+      (in which case the result code is :c:macro:`MPS_RES_PARAM`).
 
     If the arena is *capable* of applying the transform, then the MPS
     carries out a :term:`garbage collection`, the arena is left in the
