@@ -92,6 +92,9 @@ Not yet written
 * Why the arena must be parked [When writing this up see
   impl.c.trans.park. RB 2023-06-16].
 
+* Why we can't transform arbitrary references (see
+  impl.c.trans.old-white).
+
 
 References
 ----------
