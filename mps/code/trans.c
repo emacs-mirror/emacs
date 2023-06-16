@@ -1,30 +1,14 @@
 /* trans.c: TRANSFORMS IMPLEMENTATION
  *
  * $Id$
- * Copyright 2011-2022 Ravenbrook Limited.  See end of file for license.
+ * Copyright 2011-2023 Ravenbrook Limited.  See end of file for license.
  *
- * A transform is a special kind of garbage collection that replaces references
- * to a set of objects.  The transform is piggybacked onto a garbage
- * collection by overriding the fix method for a trace.  The mapping used to
- * replace the references is built up in a hash table by the client.
- *
- *
- * Rationale
- *
- * This design was arrived at after some pain.  The MPS isn't really designed
- * for this kind of thing, and the pools generally assume that they're doing
- * a garbage collection when they're asked to condemn, scan, fix, and reclaim
- * stuff.  This makes it very hard to apply the transform without also doing
- * a garbage collection.  Changing this would require a significant reworking
- * of the MPS to generalise its ideas, and would bloat the pool classes.
- *
- *
- * Assumptions:
- *
- *   - Single-threaded mutator.  In fact this code might work if other mutator
- *     threads are running, since the shield ought to operate correctly.
- *     However, in this case there can only be one trace running so that the
- *     correct fix method is chosen by ScanStateInit.
+ * A transform is a special kind of garbage collection that replaces
+ * references to a set of objects.  The transform is piggybacked onto
+ * a garbage collection by overriding the fix method for a trace
+ * (design.mps.trace.fix).  The mapping used to replace the references
+ * is built up in a hash table by the client.  See
+ * design.mps.transform.
  */
 
 #include "trans.h"
@@ -297,6 +281,10 @@ Res TransformApply(Bool *appliedReturn, Transform transform)
   globals = ArenaGlobals(arena);
   AVERT(Globals, globals);
 
+  /* .park: Parking the arena ensures that there is a trace available
+     and that no other traces are running, so that the tracer will
+     dispatch to transformFix correctly.  See
+     impl.c.trace.fix.single. */
   ArenaPark(globals);
   
   res = TraceCreate(&trace, arena, TraceStartWhyEXTENSION);
@@ -349,7 +337,7 @@ done:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2011-2022 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ * Copyright (C) 2011-2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
