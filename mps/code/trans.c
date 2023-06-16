@@ -162,12 +162,12 @@ Res TransformAddOldNew(Transform transform,
   if (res != ResOK)
     return res;
 
-  for(i = 0; i < count; ++i) {
+  for (i = 0; i < count; ++i) {
     /* NOTE: If the mutator isn't adding references while the arena is parked,
        we might need to access the client-provided lists, using ArenaRead. */
-    if(old_list[i] == NULL)
+    if (old_list[i] == NULL)
       continue;  /* permitted, but no transform to do */
-    if(old_list[i] == new_list[i])
+    if (old_list[i] == new_list[i])
       continue;  /* ignore identity-transforms */
 
     /* Old refs must be in managed memory. */
