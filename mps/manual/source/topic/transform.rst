@@ -153,12 +153,12 @@ Interface
     updated. (That is, either *all* of the transform is applied, or
     *none* of it.)
 
-    If the transform was successfully applied, it is destroyed, as if
-    :c:func:`mps_transform_destroy` had been called.
+    The transform can only be applied once, and should be destroyed
+    after use, using :c:func:`mps_transform_destroy`.
 
 
 .. c:function:: void mps_transform_destroy(mps_transform_t transform)
 
-    Destroy a :term:`transform`.
+    Destroy a :term:`transform`, allowing its resources to be recycled.
 
     ``transform`` is the transform to destroy.

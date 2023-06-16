@@ -323,13 +323,7 @@ Res TransformApply(Bool *appliedReturn, Transform transform)
   ArenaPark(globals);
 
 done:
-  if (transform->aborted) {
-    *appliedReturn = FALSE;
-  } else {
-    *appliedReturn = TRUE;
-    /* I'm not sure why the interface is defined this way. RB 2012-08-03 */
-    TransformDestroy(transform);
-  }
+  *appliedReturn = !transform->aborted;
   
   return ResOK;
 }

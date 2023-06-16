@@ -268,12 +268,8 @@ static mps_res_t mps_arena_transform_objects_list(mps_bool_t *transform_done_o,
     if(res == MPS_RES_OK) {
       res = mps_transform_apply(&applied, transform);
     }
-    if(applied) {
-      /* Transform has been destroyed */
-      Insist(res == MPS_RES_OK);
-    } else {
-      mps_transform_destroy(transform);
-    }
+    Insist(!applied || res == MPS_RES_OK);
+    mps_transform_destroy(transform);
   }
 
   /* Always set *transform_done_o (even if there is also a non-ResOK */
@@ -516,6 +512,20 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     res = mps_transform_apply(&applied, t1);
     Insist(res == MPS_RES_OK);
     Insist(applied);
+    mps_transform_destroy(t1);
+    t1 = NULL;
+    after(myrootExact, perset, 1, 0, 2, 0);
+
+    /* Apply twice */
+    before(myrootExact, perset);
+    res = mps_transform_create(&t1, arena);
+    Insist(res == MPS_RES_OK);
+    res = mps_transform_apply(&applied, t1);
+    Insist(res == MPS_RES_OK);
+    Insist(applied);
+    res = mps_transform_apply(&applied, t1);
+    Insist(res == MPS_RES_PARAM);
+    mps_transform_destroy(t1);
     t1 = NULL;
     after(myrootExact, perset, 1, 0, 2, 0);
 
@@ -531,6 +541,7 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     res = mps_transform_apply(&applied, t1);
     Insist(res == MPS_RES_OK);
     Insist(applied);
+    mps_transform_destroy(t1);
     t1 = NULL;
     after(myrootExact, perset, 1, 0, 2, 0);
 
@@ -556,6 +567,7 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     res = mps_transform_apply(&applied, t1);
     Insist(res == MPS_RES_OK);
     Insist(applied);
+    mps_transform_destroy(t1);
     t1 = NULL;
     after(myrootExact, perset, 1, -11, 2, +11);
 
@@ -571,6 +583,7 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     res = mps_transform_apply(&applied, t1);
     Insist(res == MPS_RES_OK);
     Insist(applied);
+    mps_transform_destroy(t1);
     t1 = NULL;
     after(myrootExact, perset, 1, -14, 2, +14);
 
@@ -588,8 +601,10 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     res = mps_transform_apply(&applied, t2);
     Insist(res == MPS_RES_OK);
     Insist(applied);
+    mps_transform_destroy(t2);
     t2 = NULL;
     mps_transform_destroy(t1);
+    t1 = NULL;
     after(myrootExact, perset, 1, -10, 2, +10);
 
     /* Two transforms, both live [-- not supported yet.  RHSK 2010-12-16] */
@@ -606,18 +621,11 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     res = mps_transform_apply(&applied, t2);
     Insist(res == MPS_RES_OK);
     Insist(applied);
+    mps_transform_destroy(t2);
     t2 = NULL;
+    /* TODO: This test block does not destroy t1.  Why is that?  RB 2023-06-16 */
     k = l;
     after(myrootExact, perset, 1, -10, 2, +10);
-
-    /* Attempt to destroy after applied. */
-    before(myrootExact, perset);
-    res = mps_transform_create(&t1, arena);
-    Insist(res == MPS_RES_OK);
-    res = mps_transform_apply(&applied, t1);
-    Insist(res == MPS_RES_OK);
-    Insist(applied);
-    after(myrootExact, perset, 1, 0, 2, 0);
   }
 
   /* Large number of objects */
@@ -663,6 +671,7 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     }
     res = mps_transform_apply(&applied, t);
     Insist(applied);
+    mps_transform_destroy(t);
     Insist(myrootExact[old] == myrootExact[new]);
     after(myrootExact, perset, 1, -(longest_t)count, 2, +(longest_t)count);
   }
