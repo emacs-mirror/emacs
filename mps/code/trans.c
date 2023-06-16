@@ -222,9 +222,9 @@ static Res transformFix(Seg seg, ScanState ss, Ref *refIO)
 
     if (TableLookup(&refNew, transform->oldToNew, (Word)ref)) {
       if (ss->rank == RankAMBIG) {
-        /* We rely on the fact that ambiguous references are fixed
-           first, so that no exact references have been transformed
-           yet. */
+        /* .rank-order: We rely on the fact that ambiguous references
+           are fixed first, so that no exact references have been
+           transformed yet.  See design.mps.trace.rank. */
         transform->aborted = TRUE;
       } else {
         /* NOTE: We could fix refNew in the table before copying it,
