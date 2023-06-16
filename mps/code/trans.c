@@ -152,19 +152,26 @@ Res TransformAddOldNew(Transform transform,
   Res res;
   Index i;
   Count added = 0;
+  Arena arena;
 
   AVERT(Transform, transform);
   AVER(old_list != NULL);
   AVER(new_list != NULL);
   /* count: cannot check */
-  
+
+  /* .assume.parked: If the mutator isn't adding references while the
+     arena is parked, we might need to access the client-provided
+     lists (old_list, new_list), using ArenaRead.  Insisting on
+     parking keeps things simple. */
+  arena = transform->arena;
+  AVER(ArenaGlobals(arena)->clamped);
+  AVER(arena->busyTraces == TraceSetEMPTY);
+
   res = TableGrow(transform->oldToNew, count);
   if (res != ResOK)
     return res;
 
   for (i = 0; i < count; ++i) {
-    /* NOTE: If the mutator isn't adding references while the arena is parked,
-       we might need to access the client-provided lists, using ArenaRead. */
     if (old_list[i] == NULL)
       continue;  /* permitted, but no transform to do */
     if (old_list[i] == new_list[i])
