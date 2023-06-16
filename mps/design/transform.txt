@@ -68,6 +68,14 @@ collection trace in which the fix function is substituted by
 "new" ones, in addition to applying the usual garbage collection fix
 function.
 
+This design was arrived at after some pain.  The MPS isn't really
+designed for generalized transformation of the object graph, and the
+pools generally assume that they're doing a garbage collection when
+they're asked to condemn, scan, fix, and reclaim stuff.  This makes it
+very hard to apply the transform without also doing a garbage
+collection.  Changing this would require a significant reworking of
+the MPS to generalise its ideas, and would bloat the pool classes.
+
 
 Not yet written
 ---------------
@@ -86,8 +94,7 @@ Not yet written
 
 * Nice side-effect is that "old" objects are killed.
 
-* Why the arena must be parked.
-
+* Why the arena must be parked (see impl.c.trans.park).
 
 
 References
@@ -116,6 +123,9 @@ Document History
 
 - 2022-01-23 GDR_ Converted to reStructuredText.
 
+- 2023-06-16 RB_ Updated and improved in order to make Transforms part
+  of the public MPS.
+
 .. _RB: https://www.ravenbrook.com/consultants/rb/
 .. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
@@ -123,7 +133,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2012–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+Copyright © 2012–2023 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
