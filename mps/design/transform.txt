@@ -84,17 +84,13 @@ Not yet written
 
 * How ambiguous references are avoided using ``arena->stackWarm``.
 
-* How the implementation is an add-on to the MPS.
-
-* How the code is kept separate from the mainstream MPS.
-
-* Why it has its own hash table implementation (no good reason).
-
 * Why it does a garbage collection and not just a transforming scan.
+  [This is partly explained in Overview_ above.  RB 2023-06-16]
 
 * Nice side-effect is that "old" objects are killed.
 
-* Why the arena must be parked (see impl.c.trans.park).
+* Why the arena must be parked [When writing this up see
+  impl.c.trans.park. RB 2023-06-16].
 
 
 References
