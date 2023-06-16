@@ -81,7 +81,6 @@
 #include "vm.c"
 #include "policy.c"
 #include "trans.c"
-#include "mpsitr.c"
 
 /* Additional pool classes */
 
