@@ -104,7 +104,9 @@ Interface
 
     ``transform`` is the transform to which the mappings will be added.
 
-    ``old_array`` points to an array of old references.
+    ``old_array`` points to an array of old references, all of which
+    must be to objects in pools whose blocks are automatically managed
+    (see :ref:`pool-properties`).
 
     ``new_array`` points to an array of corresponding new references.
 
