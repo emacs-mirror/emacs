@@ -131,20 +131,18 @@ public final class EmacsContextMenu
   };
 
   public List<Item> menuItems;
-  public String title;
   private EmacsContextMenu parent;
 
   /* Create a context menu with no items inside and the title TITLE,
      which may be NULL.  */
 
   public static EmacsContextMenu
-  createContextMenu (String title)
+  createContextMenu ()
   {
     EmacsContextMenu menu;
 
     menu = new EmacsContextMenu ();
     menu.menuItems = new ArrayList<Item> ();
-    menu.title = title;
 
     return menu;
   }
@@ -197,7 +195,7 @@ public final class EmacsContextMenu
      item name.  */
 
   public EmacsContextMenu
-  addSubmenu (String itemName, String title, String tooltip)
+  addSubmenu (String itemName, String tooltip)
   {
     EmacsContextMenu submenu;
     Item item;
@@ -206,7 +204,7 @@ public final class EmacsContextMenu
     item.itemID = 0;
     item.itemName = itemName;
     item.tooltip = tooltip;
-    item.subMenu = createContextMenu (title);
+    item.subMenu = createContextMenu ();
     item.subMenu.parent = this;
 
     menuItems.add (item);
@@ -334,6 +332,7 @@ public final class EmacsContextMenu
     final EmacsHolder<Boolean> rc;
 
     rc = new EmacsHolder<Boolean> ();
+    rc.thing = false;
 
     runnable = new Runnable () {
 	@Override

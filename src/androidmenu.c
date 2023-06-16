@@ -101,13 +101,12 @@ android_init_emacs_context_menu (void)
   eassert (menu_class.c_name);
 
   FIND_METHOD_STATIC (create_context_menu, "createContextMenu",
-		      "(Ljava/lang/String;)"
-		      "Lorg/gnu/emacs/EmacsContextMenu;");
+		      "()Lorg/gnu/emacs/EmacsContextMenu;");
 
   FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ"
 	       "Ljava/lang/String;Z)V");
   FIND_METHOD (add_submenu, "addSubmenu", "(Ljava/lang/String;"
-	       "Ljava/lang/String;Ljava/lang/String;)"
+	       "Ljava/lang/String;)"
 	       "Lorg/gnu/emacs/EmacsContextMenu;");
   FIND_METHOD (add_pane, "addPane", "(Ljava/lang/String;)V");
   FIND_METHOD (parent, "parent", "()Lorg/gnu/emacs/EmacsContextMenu;");
@@ -271,18 +270,11 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   android_push_local_frame ();
 
   /* Push the first local frame for the context menu.  */
-  title_string = (!NILP (title)
-		  ? (jobject) android_build_string (title)
-		  : NULL);
   method = menu_class.create_context_menu;
   current_context_menu = context_menu
     = (*android_java_env)->CallStaticObjectMethod (android_java_env,
 						   menu_class.class,
-						   method,
-						   title_string);
-
-  if (title_string)
-    ANDROID_DELETE_LOCAL_REF (title_string);
+						   method);
 
   /* Push the second local frame for temporaries.  */
   count1 = SPECPDL_INDEX ();
@@ -391,7 +383,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 		= (*android_java_env)->CallObjectMethod (android_java_env,
 							 current_context_menu,
 							 menu_class.add_submenu,
-							 title_string, NULL,
+							 title_string,
 							 help_string);
 	      android_exception_check ();
 

@@ -60,6 +60,9 @@ public final class EmacsApplication extends Application
 	}
       });
 
+    if (allFiles == null)
+      return;
+
     /* Now try to find the right dump file.  */
     for (i = 0; i < allFiles.length; ++i)
       {

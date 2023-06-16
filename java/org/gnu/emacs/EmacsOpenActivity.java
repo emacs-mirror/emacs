@@ -146,7 +146,7 @@ public final class EmacsOpenActivity extends Activity
     FileReader reader;
     char[] buffer;
     int rc;
-    String what;
+    StringBuilder builder;
 
     /* Because the ProcessBuilder functions necessary to redirect
        process output are not implemented on Android 7 and earlier,
@@ -160,7 +160,8 @@ public final class EmacsOpenActivity extends Activity
 
     cache = getCacheDir ();
     file = new File (cache, "emacsclient.log");
-    what = "";
+    builder = new StringBuilder ();
+    reader = null;
 
     try
       {
@@ -168,13 +169,25 @@ public final class EmacsOpenActivity extends Activity
 	buffer = new char[2048];
 
 	while ((rc = reader.read (buffer, 0, 2048)) != -1)
-	  what += String.valueOf (buffer, 0, 2048);
+	  builder.append (buffer, 0, rc);
 
 	reader.close ();
-	return what;
+	return builder.toString ();
       }
     catch (IOException exception)
       {
+	/* Close the reader if it's already been opened.  */
+
+	try
+	  {
+	    if (reader != null)
+	      reader.close ();
+	  }
+	catch (IOException e)
+	  {
+	    /* Not sure what to do here.  */
+	  }
+
 	return ("Couldn't read emacsclient.log: "
 		+ exception.toString ());
       }
@@ -248,11 +261,16 @@ public final class EmacsOpenActivity extends Activity
     /* inFile is now the file being written to.  */
     inFile = new File (getCacheDir (), inFile.getName ());
     buffer = new byte[4098];
-    outStream = new FileOutputStream (inFile);
-    stream = new FileInputStream (fd.getFileDescriptor ());
+
+    /* Initialize both streams to NULL.  */
+    outStream = null;
+    stream = null;
 
     try
       {
+	outStream = new FileOutputStream (inFile);
+	stream = new FileInputStream (fd.getFileDescriptor ());
+
 	while ((read = stream.read (buffer)) >= 0)
 	  outStream.write (buffer, 0, read);
       }
@@ -263,8 +281,12 @@ public final class EmacsOpenActivity extends Activity
 	   Keep in mind that execution is transferred to ``finally''
 	   even if an exception happens inside the while loop
 	   above.  */
-	stream.close ();
-	outStream.close ();
+
+	if (stream != null)
+	  stream.close ();
+
+	if (outStream != null)
+	  outStream.close ();
       }
 
     return inFile.getCanonicalPath ();

@@ -39,10 +39,6 @@ public final class EmacsSurfaceView extends View
 {
   private static final String TAG = "EmacsSurfaceView";
 
-  /* The EmacsView representing the window that this surface is
-     displaying.  */
-  private EmacsView view;
-
   /* The complete buffer contents at the time of the last draw.  */
   private Bitmap frontBuffer;
 
@@ -71,7 +67,6 @@ public final class EmacsSurfaceView extends View
   {
     super (view.getContext ());
 
-    this.view = view;
     this.bitmap = new WeakReference<Bitmap> (null);
   }
 

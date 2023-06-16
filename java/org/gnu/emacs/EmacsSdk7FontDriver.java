@@ -252,6 +252,10 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     systemFontsDirectory = new File ("/system/fonts");
 
     fontFamilyList = systemFontsDirectory.list ();
+
+    /* If that returned null, replace it with an empty array.  */
+    fontFamilyList = new String[0];
+
     typefaceList = new Sdk7Typeface[fontFamilyList.length + 3];
 
     /* It would be nice to avoid opening each and every font upon

@@ -53,8 +53,10 @@ import android.util.Log;
 
 public final class EmacsWindowAttachmentManager
 {
-  public static EmacsWindowAttachmentManager MANAGER;
   private final static String TAG = "EmacsWindowAttachmentManager";
+
+  /* The single window attachment manager ``object''.  */
+  public static final EmacsWindowAttachmentManager MANAGER;
 
   static
   {
@@ -69,7 +71,10 @@ public final class EmacsWindowAttachmentManager
     public void destroy ();
   };
 
+  /* List of currently attached window consumers.  */
   public List<WindowConsumer> consumers;
+
+  /* List of currently attached windows.  */
   public List<EmacsWindow> windows;
 
   public

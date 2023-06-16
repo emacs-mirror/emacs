@@ -61,6 +61,7 @@ public final class EmacsFillRectangle
 	/* Drawing with a clip mask involves calculating the
 	   intersection of the clip mask with the dst rect, and
 	   extrapolating the corresponding part of the src rect.  */
+
 	clipBitmap = gc.clip_mask.bitmap;
 	dstRect = new Rect (x, y, x + width, y + height);
 	maskRect = new Rect (gc.clip_x_origin,
@@ -69,7 +70,6 @@ public final class EmacsFillRectangle
 			      + clipBitmap.getWidth ()),
 			     (gc.clip_y_origin
 			      + clipBitmap.getHeight ()));
-	clipBitmap = gc.clip_mask.bitmap;
 
 	if (!maskRect.setIntersect (dstRect, maskRect))
 	  /* There is no intersection between the clip mask and the

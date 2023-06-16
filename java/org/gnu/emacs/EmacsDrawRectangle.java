@@ -36,7 +36,6 @@ public final class EmacsDrawRectangle
     Paint maskPaint, paint;
     Canvas maskCanvas;
     Bitmap maskBitmap;
-    Rect rect;
     Rect maskRect, dstRect;
     Canvas canvas;
     Bitmap clipBitmap;
@@ -52,7 +51,6 @@ public final class EmacsDrawRectangle
 
     paint = gc.gcPaint;
     paint.setStyle (Paint.Style.STROKE);
-    rect = new Rect (x, y, x + width, y + height);
 
     if (gc.clip_mask == null)
       /* Use canvas.drawRect with a RectF.  That seems to reliably

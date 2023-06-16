@@ -68,9 +68,6 @@ public final class EmacsView extends ViewGroup
   /* The damage region.  */
   public Region damageRegion;
 
-  /* The paint.  */
-  public Paint paint;
-
   /* The associated surface view.  */
   private EmacsSurfaceView surfaceView;
 
@@ -128,7 +125,6 @@ public final class EmacsView extends ViewGroup
 
     this.window = window;
     this.damageRegion = new Region ();
-    this.paint = new Paint ();
 
     setFocusable (true);
     setFocusableInTouchMode (true);

@@ -131,9 +131,7 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
   getNotificationUri (File file)
   {
     Uri updatedUri;
-    Context context;
 
-    context = getContext ();
     updatedUri
       = buildChildDocumentsUri ("org.gnu.emacs",
 				file.getAbsolutePath ());
@@ -294,6 +292,7 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
   {
     MatrixCursor result;
     File directory;
+    File[] files;
     Context context;
 
     if (projection == null)
@@ -305,9 +304,15 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
        requested.  */
     directory = new File (parentDocumentId);
 
-    /* Now add each child.  */
-    for (File child : directory.listFiles ())
-      queryDocument1 (result, child);
+    /* Look up each child.  */
+    files = directory.listFiles ();
+
+    if (files != null)
+      {
+	/* Now add each child.  */
+	for (File child : files)
+	  queryDocument1 (result, child);
+      }
 
     context = getContext ();
 
@@ -406,12 +411,10 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
   {
     File file, parent;
     File[] children;
-    Context context;
 
     /* Java makes recursively deleting a file hard.  File name
        encoding issues also prevent easily calling into C...  */
 
-    context = getContext ();
     file = new File (documentId);
     parent = file.getParentFile ();
 

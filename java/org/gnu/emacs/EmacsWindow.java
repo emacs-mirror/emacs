@@ -103,11 +103,10 @@ public final class EmacsWindow extends EmacsHandleObject
   public int lastButtonState, lastModifiers;
 
   /* Whether or not the window is mapped.  */
-  private boolean isMapped;
+  private volatile boolean isMapped;
 
-  /* Whether or not to ask for focus upon being mapped, and whether or
-     not the window should be focusable.  */
-  private boolean dontFocusOnMap, dontAcceptFocus;
+  /* Whether or not to ask for focus upon being mapped.  */
+  private boolean dontFocusOnMap;
 
   /* Whether or not the window is override-redirect.  An
      override-redirect window always has its own system window.  */
@@ -464,7 +463,7 @@ public final class EmacsWindow extends EmacsHandleObject
       }
   }
 
-  public void
+  public synchronized void
   unmapWindow ()
   {
     if (!isMapped)
@@ -618,7 +617,7 @@ public final class EmacsWindow extends EmacsHandleObject
   onKeyUp (int keyCode, KeyEvent event)
   {
     int state, state_1;
-    long time, serial;
+    long time;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
       state = event.getModifiers ();
@@ -645,12 +644,11 @@ public final class EmacsWindow extends EmacsHandleObject
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
 
-    serial
-      = EmacsNative.sendKeyRelease (this.handle,
-				    event.getEventTime (),
-				    state, keyCode,
-				    getEventUnicodeChar (event,
-							 state_1));
+    EmacsNative.sendKeyRelease (this.handle,
+				event.getEventTime (),
+				state, keyCode,
+				getEventUnicodeChar (event,
+						     state_1));
     lastModifiers = state;
 
     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
@@ -1155,8 +1153,6 @@ public final class EmacsWindow extends EmacsHandleObject
   public synchronized void
   setDontAcceptFocus (final boolean dontAcceptFocus)
   {
-    this.dontAcceptFocus = dontAcceptFocus;
-
     /* Update the view's focus state.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	@Override
