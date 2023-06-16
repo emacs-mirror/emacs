@@ -236,8 +236,10 @@ references). Or, to put it another way the desired semantics of weak
 and final references impose certain restrictions on the order in which
 the trace can scan things.
 
-The tracer uses a system of *reference ranks* (or just ranks) so that
-it can impose an order on its scanning work. The ranks are ordered.
+.rank: The tracer uses a system of *reference ranks* (or just ranks)
+so that it can impose an order on its scanning work. The ranks are
+ordered.  [TODO: Explain how ordering is also required for transforms.
+See impl.c.trans.rank-order.  RB 2023-06-16]
 
 The tracer proceeds band by band. The first band is all objects it can
 reach by following references of the first rank. The second band is
