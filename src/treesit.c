@@ -2299,6 +2299,47 @@ produced by tree-sitter.  */)
 
 /*** Query functions */
 
+/* Convert a Lisp string to its printed representation in the tree-sitter
+   query syntax.  */
+static Lisp_Object
+treesit_query_string_string (Lisp_Object str)
+{
+  /* Strings in the treesit query syntax only have the escapes
+     \n \r \t \0 and any other escaped char stands for that character.
+     Literal LF, NUL and " are forbidden.  */
+  ptrdiff_t nbytes = SBYTES (str);
+  ptrdiff_t escapes = 0;
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    {
+      unsigned char c = SREF (str, i);
+      escapes += (c == '\0' || c == '\n' || c == '\r' || c == '\t' || c == '"');
+    }
+  ptrdiff_t nchars = SCHARS (str);
+  ptrdiff_t extra = escapes + 2;   /* backslashes + double quotes */
+  Lisp_Object dst = (STRING_MULTIBYTE (str)
+		     ? make_uninit_multibyte_string (nchars + extra,
+						     nbytes + extra)
+		     : make_uninit_string (nbytes + extra));
+  unsigned char *d = SDATA (dst);
+  *d++ = '"';
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    {
+      unsigned char c = SREF (str, i);
+      switch (c)
+	{
+	case '\0': *d++ = '\\'; *d++ = '0'; break;
+	case '\n': *d++ = '\\'; *d++ = 'n'; break;
+	case '\r': *d++ = '\\'; *d++ = 'r'; break;
+	case '\t': *d++ = '\\'; *d++ = 't'; break;
+	case '"':  *d++ = '\\'; *d++ = '"'; break;
+	default: *d++ = c; break;
+	}
+    }
+  *d++ = '"';
+  eassert (d == SDATA (dst) + SBYTES (dst));
+  return dst;
+}
+
 DEFUN ("treesit-pattern-expand",
        Ftreesit_pattern_expand,
        Streesit_pattern_expand, 1, 1, 0,
@@ -2349,6 +2390,9 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
 				pattern,
 				Vtreesit_str_space),
 		    closing_delimiter);
+  if (STRINGP (pattern))
+    return treesit_query_string_string (pattern);
+
   return Fprin1_to_string (pattern, Qnil, Qt);
 }
 

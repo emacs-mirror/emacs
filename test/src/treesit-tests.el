@@ -461,7 +461,12 @@ BODY is the test body."
         "(type field: (_) @capture .) ? * + \"return\""
         (treesit-query-expand
          '((type field: (_) @capture :anchor)
-           :? :* :+ "return")))))))
+           :? :* :+ "return"))))
+
+      ;; Test string conversion in `treesit-pattern-expand'.
+      (should (equal
+               (treesit-pattern-expand "a\nb\rc\td\0e\"f\1g")
+               "\"a\\nb\\rc\\td\\0e\\\"f\1g\"")))))
 
 ;;; Narrow
 
