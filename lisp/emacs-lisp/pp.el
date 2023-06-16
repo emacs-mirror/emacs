@@ -54,7 +54,7 @@ large lists."
   :version "29.1")
 (make-obsolete-variable 'pp-use-max-width 'pp-default-function "30.1")
 
-(defcustom pp-default-function #'pp-29
+(defcustom pp-default-function #'pp-fill
   ;; FIXME: The best pretty printer to use depends on the use-case
   ;; so maybe we should allow callers to specify what they want (maybe with
   ;; options like `fast', `compact', `code', `data', ...) and these
@@ -68,6 +68,7 @@ That function can be called in one of two ways:
 In both cases, the function can presume that the buffer is setup for
 Lisp syntax."
   :type '(choice
+          (const :tag "Fit within `fill-column'" pp-fill)
           (const :tag "Emacs<29 algorithm, fast and good enough" pp-28)
           (const :tag "Work hard for code (slow on large inputs)"
                  pp-emacs-lisp-code)
@@ -142,6 +143,94 @@ Optional argument PP-FUNCTION overrides `pp-default-function'."
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (funcall (or pp-function pp-default-function) object)
     (buffer-string)))
+
+(defun pp--within-fill-column-p ()
+  "Return non-nil if point is within `fill-column'."
+  ;; Try and make it O(fill-column) rather than O(current-column),
+  ;; so as to avoid major slowdowns on long lines.
+  ;; FIXME: This doesn't account for invisible text or `display' properties :-(
+  (and (save-excursion
+         (re-search-backward
+          "^\\|\n" (max (point-min) (- (point) fill-column)) t))
+       (<= (current-column) fill-column)))
+
+(defun pp-fill (beg &optional end)
+  "Break lines in Lisp code between BEG and END so it fits within `fill-column'.
+Presumes the current buffer has syntax and indentation properly
+configured for that.
+Designed under the assumption that the region occupies a single line,
+tho it should also work if that's not the case.
+Can also be called with a single argument, in which case
+it inserts and pretty-prints that arg at point."
+  (interactive "r")
+  (if (null end) (pp--object beg #'pp-fill)
+    (goto-char beg)
+    (let ((end (copy-marker end t))
+          (newline (lambda ()
+                     (skip-chars-forward ")]}")
+                     (unless (save-excursion (skip-chars-forward " \t") (eolp))
+                       (insert "\n")
+                       (indent-according-to-mode)))))
+      (while (progn (forward-comment (point-max))
+                    (< (point) end))
+        (let ((beg (point))
+              ;; Whether we're in front of an element with paired delimiters.
+              ;; Can be something funky like #'(lambda ..) or ,'#s(...).
+              (paired (when (looking-at "['`,#]*[[:alpha:]]*\\([({[\"]\\)")
+                        (match-beginning 1))))
+          ;; Go to the end of the sexp.
+          (goto-char (or (scan-sexps (or paired (point)) 1) end))
+          (unless
+              (and
+               ;; The sexp is all on a single line.
+               (save-excursion (not (search-backward "\n" beg t)))
+               ;; And its end is within `fill-column'.
+               (or (pp--within-fill-column-p)
+                   ;; If the end of the sexp is beyond `fill-column',
+                   ;; try to move the sexp to its own line.
+                   (and
+                    (save-excursion
+                      (goto-char beg)
+                      (if (save-excursion (skip-chars-backward " \t({[',")
+                                          (bolp))
+                          ;; The sexp was already on its own line.
+                          nil
+                        (skip-chars-backward " \t")
+                        (setq beg (copy-marker beg t))
+                        (if paired (setq paired (copy-marker paired t)))
+                        ;; We could try to undo this insertion if it
+                        ;; doesn't reduce the indentation depth, but I'm
+                        ;; not sure it's worth the trouble.
+                        (insert "\n") (indent-according-to-mode)
+                        t))
+                    ;; Check again if we moved the whole exp to a new line.
+                    (pp--within-fill-column-p))))
+            ;; The sexp is spread over several lines, and/or its end is
+            ;; (still) beyond `fill-column'.
+            (when (and paired (not (eq ?\" (char-after paired))))
+              ;; The sexp has sub-parts, so let's try and spread
+              ;; them over several lines.
+              (save-excursion
+                (goto-char beg)
+                (when (looking-at "(\\([^][()\" \t\n;']+\\)")
+                  ;; Inside an expression of the form (SYM ARG1
+                  ;; ARG2 ... ARGn) where SYM has a `lisp-indent-function'
+                  ;; property that's a number, insert a newline after
+                  ;; the corresponding ARGi, because it tends to lead to
+                  ;; more natural and less indented code.
+                  (let* ((sym (intern-soft (match-string 1)))
+                         (lif (and sym (get sym 'lisp-indent-function))))
+                    (if (eq lif 'defun) (setq lif 2))
+                    (when (natnump lif)
+                      (goto-char (match-end 0))
+                      (forward-sexp lif)
+                      (funcall newline)))))
+              (save-excursion
+                (pp-fill (1+ paired) (1- (point)))))
+            ;; Now the sexp either ends beyond `fill-column' or is
+            ;; spread over several lines (or both).  Either way, the
+            ;; rest of the line should be moved to its own line.
+            (funcall newline)))))))
 
 ;;;###autoload
 (defun pp-buffer ()
