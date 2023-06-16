@@ -1,8 +1,21 @@
 /* ztfm.c: Transforms test
  *
- * FIXME: Write stuff
  * $Id$
  * Copyright (c) 2011-2022 Ravenbrook Limited.  See end of file for license.
+ *
+ * .overview: This test creates data structures and then applies MPS
+ * transforms (see design.mps.transform) to them and verifies the
+ * result.  It uses various checksums to verify that the structures
+ * are equivalent before and after the transform.
+ *
+ * .issues: TODO: This test has issues and needs refactoring:
+ *
+ * - GitHub issue #242 <https://github.com/Ravenbrook/mps/issues/242>
+ *   "Testing of transforms is unclear and overengineered"
+ *
+ * - GitHub issue #243 <https://github.com/Ravenbrook/mps/issues/243>
+ *   "ztfm.c fails to meet its requirement to test transforms on all
+ *   platforms"
  */
 
 #include "fmtdy.h"
@@ -15,7 +28,8 @@
 
 #include <stdio.h> /* printf */
 
-/* FIXME: What's this? */
+/* Hacky progress output with switches. */
+/* TODO: Tidy this up by extending testlib if necessary. */
 #define progressf(args) \
     printf args;
 #define Xprogressf(args) \
@@ -43,7 +57,15 @@ static void get(mps_arena_t arena);
 
 static ulongest_t serial = 0;
 
+
 /* Tree nodes
+ *
+ * The node structure is punned with a Dylan vector.  The first two
+ * fields map to the Dylan wrapper and vector length.  The fields with
+ * suffix "dyi" will be tagged as Dylan integers.  TODO: Fix this
+ * somewhat unsafe punning.
+ *
+ * TODO: Is this actually a tree or a graph?
  *
  * To make a node:
  *   - use next unique serial;
@@ -60,8 +82,8 @@ static ulongest_t serial = 0;
  */
 
 struct node_t {
-  mps_word_t     word0; /* FIXME: what are these fields for? */
-  mps_word_t     word1;
+  mps_word_t     word0; /* Dylan wrapper pointer */
+  mps_word_t     word1; /* Dylan vector length */
   mps_word_t     serial_dyi;  /* unique across every node ever */
   mps_word_t     id_dyi;  /* .id: replacement nodes copy this */
   mps_word_t     ver_dyi;  /* .version: distinguish new from old */
@@ -71,7 +93,8 @@ struct node_t {
   mps_word_t     tourIdHash_dyi;  /* hash of node ids, computed last tour */
 };
 
-/* Tour -- a particular journey to visit to every node in the world
+
+/* Tour -- a every node in the world calculating report with hash
  *
  * A tour starts with the node at world[0], tours the graph reachable
  * from it, then any further bits of graph reachable from world[1],
@@ -90,14 +113,13 @@ struct node_t {
  *
  * The tourVerSum, being a simple sum, does not depend on the order of
  * visiting.
- *
- * FIXME: Why? What role does this have in the test as a whole?
  */
 
-/* FIXME: What's this? */
+/* Maximum count of node versions.  TODO: Should not be an enum. */
 enum {
   cVer = 10
 };
+
 typedef struct tourReportStruct {
   ulongest_t  tour;  /* tour serial */
   ulongest_t  tourIdHash;  /* hash of node ids, computed last tour */
