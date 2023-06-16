@@ -47,6 +47,12 @@ New features
    :ref:`topic-scanning-protocol`. This allows the client program to
    safely update references in the visited objects.
 
+#. The new function :c:func:`mps_addr_object` allows clients to
+   discover the base pointer of an object from a pointer to anywhere
+   inside the object. This is intended to support stack tracing and
+   debugging for client programs that allocate their code on the
+   heap.
+
 #. A :term:`virtual memory arena` can now be configured to call
    functions when it acquires a new chunk of :term:`address space`,
    and when it returns a chunk of address space to the operation

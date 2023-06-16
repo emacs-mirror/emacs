@@ -2,6 +2,7 @@
 Test case      Flags             Notes
 =============  ================  ==========================================
 abqtest
+addrobj
 airtest
 amcss          =P
 amcsshe        =P
