@@ -3070,7 +3070,9 @@ nil, the grammar is installed to the standard location, the
                    nil
                    'treesit--install-language-grammar-out-dir-history
                    default-out-dir)
-                out-dir)))
+                ;; When called non-interactively, OUT-DIR should
+                ;; default to DEFAULT-OUT-DIR.
+                (or out-dir default-out-dir))))
     (condition-case err
         (progn
           (apply #'treesit--install-language-grammar-1

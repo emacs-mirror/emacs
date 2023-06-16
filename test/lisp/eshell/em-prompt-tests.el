@@ -80,8 +80,13 @@ This tests the case when `eshell-highlight-prompt' is nil."
                 (apply #'propertize "hello\n"
                        eshell-command-output-properties)))))))
 
-(ert-deftest em-prompt-test/next-previous-prompt ()
-  "Check that navigating forward/backward through old prompts works correctly."
+(defmacro em-prompt-test--with-multiline (&rest body)
+  "Execute BODY with a multiline Eshell prompt."
+  `(let ((eshell-prompt-function (lambda () "multiline prompt\n$ ")))
+     ,@body))
+
+(defun em-prompt-test/next-previous-prompt-with ()
+  "Helper for checking forward/backward navigation of old prompts."
   (with-temp-eshell
    (eshell-insert-command "echo one")
    (eshell-insert-command "echo two")
@@ -98,8 +103,17 @@ This tests the case when `eshell-highlight-prompt' is nil."
    (eshell-next-prompt 3)
    (should (equal (eshell-get-old-input) "echo fou"))))
 
-(ert-deftest em-prompt-test/forward-backward-matching-input ()
-  "Check that navigating forward/backward via regexps works correctly."
+(ert-deftest em-prompt-test/next-previous-prompt ()
+  "Check that navigating forward/backward through old prompts works correctly."
+  (em-prompt-test/next-previous-prompt-with))
+
+(ert-deftest em-prompt-test/next-previous-prompt-multiline ()
+  "Check old prompt forward/backward navigation for multiline prompts."
+  (em-prompt-test--with-multiline
+   (em-prompt-test/next-previous-prompt-with)))
+
+(defun em-prompt-test/forward-backward-matching-input-with ()
+  "Helper for checking forward/backward navigation via regexps."
   (with-temp-eshell
    (eshell-insert-command "echo one")
    (eshell-insert-command "printnl something else")
@@ -116,5 +130,14 @@ This tests the case when `eshell-highlight-prompt' is nil."
    ;; Go forward three prompts.
    (eshell-forward-matching-input "echo" 3)
    (should (equal (eshell-get-old-input) "echo fou"))))
+
+(ert-deftest em-prompt-test/forward-backward-matching-input ()
+  "Check that navigating forward/backward via regexps works correctly."
+  (em-prompt-test/forward-backward-matching-input-with))
+
+(ert-deftest em-prompt-test/forward-backward-matching-input-multiline ()
+  "Check forward/backward regexp navigation for multiline prompts."
+  (em-prompt-test--with-multiline
+   (em-prompt-test/forward-backward-matching-input-with)))
 
 ;;; em-prompt-tests.el ends here

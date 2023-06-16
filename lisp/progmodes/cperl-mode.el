@@ -3394,7 +3394,9 @@ position of the end of the unsafe construct."
         (goto-char (nth 8 state))      ; beginning of this here-doc
         (cperl-backward-to-noncomment  ; skip back over more
          (point-min))                  ;     here-documents (if any)
-        (beginning-of-line))))         ; skip back over here-doc starters
+        (beginning-of-line))           ; skip back over here-doc starters
+       ((nth 4 state)                  ; in a comment (or POD)
+        (goto-char (nth 8 state)))))   ; ...so go to its beginning
     (while (and pos (progn
 		      (beginning-of-line)
 		      (get-text-property (setq pos (point)) 'syntax-type)))
