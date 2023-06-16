@@ -170,7 +170,10 @@ Res TransformAddOldNew(Transform transform,
     if (old_list[i] == new_list[i])
       continue;  /* ignore identity-transforms */
 
-    /* Old refs must be in managed memory. */
+    /* .old-white: Old refs must be in managed memory, because
+       transformFix is only reached when a reference is to something
+       in the condemned set.  Other referenes are eliminated by
+       TraceFix, and we can't (currently) transformation of them. */
     {
       Seg seg;
       AVER(SegOfAddr(&seg, transform->arena, old_list[i]));
