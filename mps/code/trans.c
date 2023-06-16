@@ -90,11 +90,11 @@ Res TransformCreate(Transform *transformReturn, Arena arena)
   AVERT(Transform, transform);
 
   res = TableCreate(&transform->oldToNew,
-                    0, /* don't grow table until TransformAddOldNew */
+                    0, /* no point guessing size before TransformAddOldNew */
                     transformTableAlloc,
                     transformTableFree,
                     transform,
-                    0, 1); /* these can't be old references */
+                    0, 1); /* use invalid refs as special keys */
   if (res != ResOK)
     goto failTable;
 
