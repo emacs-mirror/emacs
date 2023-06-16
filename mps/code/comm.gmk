@@ -191,7 +191,6 @@ MPMCOMMON = \
     meter.c \
     mpm.c \
     mpsi.c \
-    mpsitr.c \
     nailboard.c \
     policy.c \
     pool.c \
