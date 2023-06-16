@@ -698,7 +698,7 @@ android_write_event (union android_event *event)
 	 IME.  */
     case ANDROID_KEY_PRESS:
     case ANDROID_WINDOW_ACTION:
-      raise (SIGIO);
+      kill (getpid (), SIGIO);
       break;
 
     default:
@@ -2580,10 +2580,13 @@ NATIVE_NAME (quit) (JNIEnv *env, jobject object)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
+  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+		       "Sending SIGIO and setting Vquit_flag");
+
   /* Raise sigio to interrupt anything that could be reading
      input.  */
   Vquit_flag = Qt;
-  raise (SIGIO);
+  kill (getpid (), SIGIO);
 }
 
 JNIEXPORT jlong JNICALL
@@ -3122,8 +3125,8 @@ NATIVE_NAME (setupSystemThread) (void)
      used by the runtime.  */
 
   sigfillset (&sigset);
-  sigaddset (&sigset, SIGSEGV);
-  sigaddset (&sigset, SIGBUS);
+  sigdelset (&sigset, SIGSEGV);
+  sigdelset (&sigset, SIGBUS);
 
   if (pthread_sigmask (SIG_BLOCK, &sigset, NULL))
     __android_log_print (ANDROID_LOG_WARN, __func__,
@@ -7327,7 +7330,7 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
      continue processing queries as soon as possible.  */
 
   if (__atomic_load_n (&android_urgent_query, __ATOMIC_ACQUIRE))
-    raise (SIGIO);
+    kill (getpid (), SIGIO);
 
  again:
   rc = sem_timedwait (&android_query_sem, &timeout);
@@ -7354,7 +7357,7 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
 	 Normally, the main thread waits for the keyboard loop to be
 	 entered before responding, in order to avoid responding with
 	 inaccurate results taken during command executioon.  */
-      raise (SIGIO);
+      kill (getpid (), SIGIO);
 
       /* Wait for the query to complete.  `android_urgent_query' is
 	 only cleared by either `android_select' or
