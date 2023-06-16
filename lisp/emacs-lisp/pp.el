@@ -52,53 +52,132 @@ Note that this could slow down `pp' considerably when formatting
 large lists."
   :type 'boolean
   :version "29.1")
+(make-obsolete-variable 'pp-use-max-width 'pp-default-function "30.1")
+
+(defcustom pp-default-function #'pp-29
+  ;; FIXME: The best pretty printer to use depends on the use-case
+  ;; so maybe we should allow callers to specify what they want (maybe with
+  ;; options like `fast', `compact', `code', `data', ...) and these
+  ;; can then be mapped to actual pretty-printing algorithms.
+  ;; Then again, callers can just directly call the corresponding function.
+  "Function that `pp' should dispatch to for pretty printing.
+That function can be called in one of two ways:
+- with a single argument, which it should insert and pretty-print at point.
+- with two arguments which delimit a region containing Lisp sexps
+  which should be pretty-printed.
+In both cases, the function can presume that the buffer is setup for
+Lisp syntax."
+  :type '(choice
+          (const :tag "Emacs<29 algorithm, fast and good enough" pp-28)
+          (const :tag "Work hard for code (slow on large inputs)"
+                 pp-emacs-lisp-code)
+          (const :tag "`pp-emacs-lisp-code' if `pp-use-max-width' else `pp-28'"
+                 pp-29)
+          function)
+  :version "30.1")
 
 (defvar pp--inhibit-function-formatting nil)
 
+;; There are basically two APIs for a pretty-printing function:
+;;
+;; - either the function takes an object (and prints it in addition to
+;;   prettifying it).
+;; - or the function takes a region containing an already printed object
+;;   and prettifies its content.
+;;
+;; `pp--object' and `pp--region' are helper functions to convert one
+;; API to the other.
+
+
+(defun pp--object (object region-function)
+  "Pretty-print OBJECT at point.
+The prettifying is done by REGION-FUNCTION which is
+called with two positions as arguments and should fold lines
+within that region.  Returns the result as a string."
+  (let ((print-escape-newlines pp-escape-newlines)
+        (print-quoted t)
+        (beg (point)))
+    ;; FIXME: In many cases it would be preferable to use `cl-prin1' here.
+    (prin1 object (current-buffer))
+    (funcall region-function beg (point))))
+
+(defun pp--region (beg end object-function)
+  "Pretty-print the object(s) contained within BEG..END.
+OBJECT-FUNCTION is called with a single object as argument
+and should pretty print it at point into the current buffer."
+  (save-excursion
+    (with-restriction beg end
+      (goto-char (point-min))
+      (while
+          (progn
+            ;; We'll throw away all the comments within objects, but let's
+            ;; try at least to preserve the comments between objects.
+            (forward-comment (point-max))
+            (let ((beg (point))
+                  (object (ignore-error end-of-buffer
+                              (list (read (current-buffer))))))
+              (when (consp object)
+                (delete-region beg (point))
+                (funcall object-function (car object))
+                t)))))))
+
+(defun pp-29 (beg-or-sexp &optional end) ;FIXME: Better name?
+  "Prettify the current region with printed representation of a Lisp object.
+Uses the pretty-printing algorithm that was standard in Emacs-29,
+which, depending on `pp-use-max-width', will either use `pp-28'
+or `pp-emacs-lisp-code'."
+  (if pp-use-max-width
+      (let ((pp--inhibit-function-formatting t)) ;FIXME: Why?
+        (pp-emacs-lisp-code beg-or-sexp end))
+    (pp-28 beg-or-sexp end)))
+
 ;;;###autoload
-(defun pp-to-string (object)
+(defun pp-to-string (object &optional pp-function)
   "Return a string containing the pretty-printed representation of OBJECT.
 OBJECT can be any Lisp object.  Quoting characters are used as needed
-to make output that `read' can handle, whenever this is possible."
-  (if pp-use-max-width
-      (let ((pp--inhibit-function-formatting t))
-        (with-temp-buffer
-          (pp-emacs-lisp-code object)
-          (buffer-string)))
-    (with-temp-buffer
-      (lisp-mode-variables nil)
-      (set-syntax-table emacs-lisp-mode-syntax-table)
-      (let ((print-escape-newlines pp-escape-newlines)
-            (print-quoted t))
-        (prin1 object (current-buffer)))
-      (pp-buffer)
-      (buffer-string))))
+to make output that `read' can handle, whenever this is possible.
+Optional argument PP-FUNCTION overrides `pp-default-function'."
+  (with-temp-buffer
+    (lisp-mode-variables nil)
+    (set-syntax-table emacs-lisp-mode-syntax-table)
+    (funcall (or pp-function pp-default-function) object)
+    (buffer-string)))
 
 ;;;###autoload
 (defun pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object."
   (interactive)
-  (goto-char (point-min))
-  (while (not (eobp))
-    (cond
-     ((ignore-errors (down-list 1) t)
-      (save-excursion
-        (backward-char 1)
-        (skip-chars-backward "'`#^")
-        (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+  (funcall pp-default-function (point-min) (point-max)))
+
+(defun pp-28 (beg &optional end)        ;FIXME: Better name?
+  "Prettify the current region with printed representation of a Lisp object.
+Uses the pretty-printing algorithm that was standard before Emacs-30.
+Non-interactively can also be called with a single argument, in which
+case that argument will be inserted pretty-printed at point."
+  (interactive "r")
+  (if (null end) (pp--object beg #'pp-29)
+    (save-restriction beg end
+      (goto-char (point-min))
+      (while (not (eobp))
+        (cond
+         ((ignore-errors (down-list 1) t)
+          (save-excursion
+            (backward-char 1)
+            (skip-chars-backward "'`#^")
+            (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+              (delete-region
+               (point)
+               (progn (skip-chars-backward " \t\n") (point)))
+              (insert "\n"))))
+         ((ignore-errors (up-list 1) t)
+          (skip-syntax-forward ")")
           (delete-region
            (point)
-           (progn (skip-chars-backward " \t\n") (point)))
-          (insert "\n"))))
-     ((ignore-errors (up-list 1) t)
-      (skip-syntax-forward ")")
-      (delete-region
-       (point)
-       (progn (skip-chars-forward " \t\n") (point)))
-      (insert ?\n))
-     (t (goto-char (point-max)))))
-  (goto-char (point-min))
-  (indent-sexp))
+           (progn (skip-chars-forward " \t\n") (point)))
+          (insert ?\n))
+         (t (goto-char (point-max)))))
+      (goto-char (point-min))
+      (indent-sexp))))
 
 ;;;###autoload
 (defun pp (object &optional stream)
@@ -106,14 +185,18 @@ to make output that `read' can handle, whenever this is possible."
 Quoting characters are printed as needed to make output that `read'
 can handle, whenever this is possible.
 
-This function does not apply special formatting rules for Emacs
-Lisp code.  See `pp-emacs-lisp-code' instead.
-
-By default, this function won't limit the line length of lists
-and vectors.  Bind `pp-use-max-width' to a non-nil value to do so.
+Uses the pretty-printing code specified in `pp-default-function'.
 
 Output stream is STREAM, or value of `standard-output' (which see)."
-  (princ (pp-to-string object) (or stream standard-output)))
+  (cond
+   ((and (eq (or stream standard-output) (current-buffer))
+         ;; Make sure the current buffer is setup sanely.
+         (eq (syntax-table) emacs-lisp-mode-syntax-table)
+         (eq indent-line-function #'lisp-indent-line))
+    ;; Skip the buffer->string->buffer middle man.
+    (funcall pp-default-function object))
+   (t
+    (princ (pp-to-string object) (or stream standard-output)))))
 
 ;;;###autoload
 (defun pp-display-expression (expression out-buffer-name &optional lisp)
@@ -220,21 +303,24 @@ Ignores leading comment characters."
     (pp-macroexpand-expression (pp-last-sexp))))
 
 ;;;###autoload
-(defun pp-emacs-lisp-code (sexp)
+(defun pp-emacs-lisp-code (sexp &optional end)
   "Insert SEXP into the current buffer, formatted as Emacs Lisp code.
 Use the `pp-max-width' variable to control the desired line length.
-Note that this could be slow for large SEXPs."
+Note that this could be slow for large SEXPs.
+Can also be called with two arguments, in which case they're taken to be
+the bounds of a region containing Lisp code to pretty-print."
   (require 'edebug)
-  (let ((obuf (current-buffer)))
-    (with-temp-buffer
-      (emacs-lisp-mode)
-      (pp--insert-lisp sexp)
-      (insert "\n")
-      (goto-char (point-min))
-      (indent-sexp)
-      (while (re-search-forward " +$" nil t)
-        (replace-match ""))
-      (insert-into-buffer obuf))))
+  (if end (pp--region sexp end #'pp-emacs-lisp-code)
+    (let ((obuf (current-buffer)))
+      (with-temp-buffer
+        (emacs-lisp-mode)
+        (pp--insert-lisp sexp)
+        (insert "\n")
+        (goto-char (point-min))
+        (indent-sexp)
+        (while (re-search-forward " +$" nil t)
+          (replace-match ""))
+        (insert-into-buffer obuf)))))
 
 (defun pp--insert-lisp (sexp)
   (cl-case (type-of sexp)
