@@ -78,7 +78,15 @@ public final class EmacsApplication extends Application
   public void
   onCreate ()
   {
+    /* Block signals which don't interest the current thread and its
+       descendants created by the system.  The original signal mask
+       will be restored for the Emacs thread in `initEmacs'.  */
+    EmacsNative.setupSystemThread ();
+
+    /* Locate a suitable dump file.  */
     findDumpFile (this);
+
+    /* Start the rest of the application.  */
     super.onCreate ();
   }
 };

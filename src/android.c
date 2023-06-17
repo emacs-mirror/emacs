@@ -261,6 +261,14 @@ void *unused_pointer;
 
 #endif /* __i386__ */
 
+/* Whether or not the default signal mask has been changed.  If so,
+   the signal mask must be restored before calling
+   android_emacs_init.  */
+static bool signal_mask_changed_p;
+
+/* The signal mask at the time Emacs was started.  */
+static sigset_t startup_signal_mask;
+
 
 
 /* Event handling functions.  Events are stored on a (circular) queue
@@ -2562,7 +2570,15 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   ANDROID_DELETE_LOCAL_REF (argv);
   ANDROID_DELETE_LOCAL_REF (dump_file_object);
 
+  /* Restore the signal mask at the time of startup if it was changed
+     to block unwanted signals from reaching system threads.  */
+
+  if (signal_mask_changed_p)
+    pthread_sigmask (SIG_SETMASK, &startup_signal_mask, NULL);
+
+  /* Now start Emacs proper.  */
   android_emacs_init (nelements, c_argv, dump_file);
+
   /* android_emacs_init should never return.  */
   emacs_abort ();
 }
@@ -3128,9 +3144,14 @@ NATIVE_NAME (setupSystemThread) (void)
   sigdelset (&sigset, SIGSEGV);
   sigdelset (&sigset, SIGBUS);
 
-  if (pthread_sigmask (SIG_BLOCK, &sigset, NULL))
+  /* Save the signal mask that was previously used.  It will be
+     restored in `initEmacs'.  */
+
+  if (pthread_sigmask (SIG_BLOCK, &sigset, &startup_signal_mask))
     __android_log_print (ANDROID_LOG_WARN, __func__,
 			 "pthread_sigmask: %s", strerror (errno));
+  else
+    signal_mask_changed_p = true;
 }
 
 #ifdef __clang__
