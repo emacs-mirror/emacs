@@ -135,7 +135,7 @@ Interface
     If the :term:`arena` is currently incapable of applying the
     transform, then an appropriate :term:`result code` is returned, and
     the location pointed to by ``applied_o`` is not updated. Possible
-    causes include (but are not limited to):
+    causes are:
 
     - the arena not being in the :term:`parked state` (in which case
       the result code is :c:macro:`MPS_RES_LIMIT`)
