@@ -739,11 +739,11 @@ When non-nil, this variable should end in \"\\\\\\==\".  Note that
 such a backward search will match a minimal string, so a
 \"context character\" is probably needed at the start of the
 regexp.  The value for csharp-mode would be something like
-\"\\\\(:?\\\\`\\\\|[^\\\"]\\\\)\\\"*\\\\\\==\"."
+\"\\\\(?:\\\\`\\\\|[^\\\"]\\\\)\\\"*\\\\\\==\"."
   t nil
-  pike "\\(:?\\`\\|[^\\\"]\\)\\(:?\\\\.\\)*\\="
+  pike "\\(?:\\`\\|[^\\\"]\\)\\(?:\\\\.\\)*\\="
   ;;pike ;; 2
-  ;;    "\\(:?\\`\\|[^\"]\\)\"*\\="
+  ;;    "\\(?:\\`\\|[^\"]\\)\"*\\="
   )
 (c-lang-defvar c-ml-string-back-closer-re
 	       (c-lang-const c-ml-string-back-closer-re))
