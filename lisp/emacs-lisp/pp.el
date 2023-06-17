@@ -142,6 +142,8 @@ Optional argument PP-FUNCTION overrides `pp-default-function'."
     (lisp-mode-variables nil)
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (funcall (or pp-function pp-default-function) object)
+    ;; Preserve old behavior of (usually) finishing with a newline.
+    (unless (bolp) (insert "\n"))
     (buffer-string)))
 
 (defun pp--within-fill-column-p ()
@@ -236,7 +238,12 @@ it inserts and pretty-prints that arg at point."
 (defun pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object."
   (interactive)
-  (funcall pp-default-function (point-min) (point-max)))
+  (funcall pp-default-function (point-min) (point-max))
+  ;; Preserve old behavior of (usually) finishing with a newline and
+  ;; with point at BOB.
+  (goto-char (point-max))
+  (unless (bolp) (insert "\n"))
+  (goto-char (point-min)))
 
 (defun pp-28 (beg &optional end)        ;FIXME: Better name?
   "Prettify the current region with printed representation of a Lisp object.
@@ -283,7 +290,9 @@ Output stream is STREAM, or value of `standard-output' (which see)."
          (eq (syntax-table) emacs-lisp-mode-syntax-table)
          (eq indent-line-function #'lisp-indent-line))
     ;; Skip the buffer->string->buffer middle man.
-    (funcall pp-default-function object))
+    (funcall pp-default-function object)
+    ;; Preserve old behavior of (usually) finishing with a newline.
+    (unless (bolp) (insert "\n")))
    (t
     (princ (pp-to-string object) (or stream standard-output)))))
 
