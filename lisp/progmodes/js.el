@@ -106,7 +106,7 @@ name.")
 
 (defconst js--plain-method-re
   (concat "^\\s-*?\\(" js--dotted-name-re "\\)\\.prototype"
-          "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(\\(?:async[ \t\n]+\\)function\\)\\_>")
+          "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(\\(:?async[ \t\n]+\\)function\\)\\_>")
   "Regexp matching an explicit JavaScript prototype \"method\" declaration.
 Group 1 is a (possibly-dotted) class name, group 2 is a method name,
 and group 3 is the `function' keyword.")
@@ -3493,7 +3493,7 @@ This function is intended for use in `after-change-functions'."
    :language 'javascript
    :feature 'constant
    '(((identifier) @font-lock-constant-face
-      (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
+      (:match "\\`[A-Z_][A-Z_\\d]*\\'" @font-lock-constant-face))
 
      [(true) (false) (null)] @font-lock-constant-face)
 
@@ -3612,7 +3612,7 @@ This function is intended for use in `after-change-functions'."
    :feature 'number
    '((number) @font-lock-number-face
      ((identifier) @font-lock-number-face
-      (:match "\\`\\(?:NaN\\|Infinity\\)\\'" @font-lock-number-face)))
+      (:match "\\`\\(:?NaN\\|Infinity\\)\\'" @font-lock-number-face)))
 
    :language 'javascript
    :feature 'operator

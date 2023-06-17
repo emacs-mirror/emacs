@@ -168,7 +168,7 @@ the available version of Tree-sitter for java."
    :override t
    :feature 'constant
    `(((identifier) @font-lock-constant-face
-      (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
+      (:match "\\`[A-Z_][A-Z_\\d]*\\'" @font-lock-constant-face))
      [(true) (false)] @font-lock-constant-face)
    :language 'java
    :override t
