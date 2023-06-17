@@ -63,6 +63,7 @@
 (declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
+(defvar ls-lisp-use-insert-directory-program)
 
 ;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU
 ;; ELPA package.
@@ -4181,6 +4182,7 @@ Let-bind it when necessary.")
 (defun tramp-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
+  (require 'ls-lisp)
   (unless switches (setq switches ""))
   ;; Mark trailing "/".
   (when (and (directory-name-p filename)
@@ -4193,7 +4195,6 @@ Let-bind it when necessary.")
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
       (let (ls-lisp-use-insert-directory-program start)
 	;; Silence byte compiler.
-	(ignore ls-lisp-use-insert-directory-program)
 	(tramp-run-real-handler
 	 #'insert-directory
 	 (list filename switches wildcard full-directory-p))
