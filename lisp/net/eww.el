@@ -1086,6 +1086,7 @@ the like."
   "&" #'eww-browse-with-external-browser
   "d" #'eww-download
   "w" #'eww-copy-page-url
+  "A" #'eww-copy-alternate-url
   "C" #'url-cookie-list
   "v" #'eww-view-source
   "R" #'eww-readable
@@ -2575,5 +2576,83 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 (put 'eww-bookmark-jump 'bookmark-handler-type "EWW")
 
 (provide 'eww)
+
+;;; Alternate links (RSS and Atom feeds, etc.)
+
+(defun eww--alternate-urls (dom &optional base)
+  "Return an alist of alternate links in DOM.
+
+Each element is a list of the form (URL TYPE TITLE) where URL is
+the href attribute of the link expanded relative to BASE, TYPE is
+its type attribute, and TITLE is its title attribute.  If any of
+these attributes is absent, the corresponding element is nil."
+  (let ((alternates
+         (seq-filter
+          (lambda (attrs) (string= (alist-get 'rel attrs)
+                                   "alternate"))
+          (mapcar #'dom-attributes (dom-by-tag dom 'link)))))
+    (mapcar (lambda (alternate)
+              (list (url-expand-file-name (alist-get 'href alternate)
+                                          base)
+                    (alist-get 'type  alternate)
+                    (alist-get 'title alternate)))
+            alternates)))
+
+(defun eww-read-alternate-url ()
+  "Get the URL of an alternate link of this page.
+
+If there is just one alternate link, return its URL.  If there
+are multiple alternate links, prompt for one in the minibuffer
+with completion.  If there are none, return nil."
+  (when-let ((alternates (eww--alternate-urls
+                          (plist-get eww-data :dom)
+                          (plist-get eww-data :url))))
+    (let ((url-max-width
+           (seq-max (mapcar #'string-pixel-width
+                            (mapcar #'car alternates))))
+          (title-max-width
+           (seq-max (mapcar #'string-pixel-width
+                            (mapcar #'caddr alternates))))
+          (sep-width (string-pixel-width " ")))
+      (if (cdr alternates)
+          (let ((completion-extra-properties
+                 (list :annotation-function
+                       (lambda (feed)
+                         (let* ((attrs (alist-get feed
+                                                  alternates
+                                                  nil
+                                                  nil
+                                                  #'string=))
+                                (type (car attrs))
+                                (title (cadr attrs)))
+                           (concat
+                            (propertize " " 'display
+                                        `(space :align-to
+                                                (,(+ sep-width
+                                                     url-max-width))))
+                            title
+                            (when type
+                              (concat
+                               (propertize " " 'display
+                                           `(space :align-to
+                                                   (,(+ (* 2 sep-width)
+                                                        url-max-width
+                                                        title-max-width))))
+                               "[" type "]"))))))))
+            (completing-read "Alternate URL: " alternates nil t))
+        (caar alternates)))))
+
+(defun eww-copy-alternate-url ()
+  "Copy an alternate URL of the current page into the kill ring.
+
+Alternate links are references that an HTML page may include to
+point to its alternative representations, such as a translated
+version or an RSS feed."
+  (interactive nil eww-mode)
+  (if-let ((url (eww-read-alternate-url)))
+      (progn
+        (kill-new url)
+        (message "Copied %s to kill ring" url))
+    (user-error "No alternate links found on this page!")))
 
 ;;; eww.el ends here
