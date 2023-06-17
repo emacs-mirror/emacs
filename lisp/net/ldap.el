@@ -710,7 +710,7 @@ an alist of attribute/value pairs."
           ;; otherwise `ldap-decode-attribute' would throw a much less
           ;; comprehensible error later.
           (cond ((not withdn))
-                ((looking-at "^dn[=:\t ]+\\(.*\\)$")
+                ((looking-at "dn[=:\t ]+\\(.*\\)$")
                  (setq dn (list "dn" (match-string 1))))
                 (t (error "Incorrect dn line \"%s\" in ldapsearch result"
                           (buffer-substring (point) (line-end-position)))))
