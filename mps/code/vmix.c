@@ -50,7 +50,7 @@
 #include <signal.h> /* sig_atomic_t */
 #include <sys/mman.h> /* see .feature.li in config.h */
 #include <sys/types.h> /* mmap, munmap */
-#include <unistd.h> /* getpagesize */
+#include <unistd.h> /* sysconf, _SC_PAGESIZE */
 
 SRCID(vmix, "$Id$");
 
@@ -59,10 +59,11 @@ SRCID(vmix, "$Id$");
 
 Size PageSize(void)
 {
-  int pageSize;
+  long pageSize;
 
-  /* Find out the operating system page size */
-  pageSize = getpagesize();
+  /* Find out the operating system page size
+     (see design.mps.vm.impl.ix.page.size) */
+  pageSize = sysconf(_SC_PAGESIZE);
 
   /* Check the page size will fit in a Size. */
   AVER((unsigned long)pageSize <= (unsigned long)(Size)-1);
