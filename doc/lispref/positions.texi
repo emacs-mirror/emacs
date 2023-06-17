@@ -844,18 +844,25 @@ the mode can get navigation-by-defun functionality for free, by using
 @code{treesit-beginning-of-defun} and @code{treesit-end-of-defun}.
 
 @defvar treesit-defun-type-regexp
-The value of this variable is a regexp matching the node type of defun
-nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
+This variable determines which nodes are considered defuns by Emacs.
+It can be a regexp that matches the type of defun nodes.  (For
+``node'' and ``node type'', @pxref{Parsing Program Source}.)
 
 For example, @code{python-mode} sets this variable to a regexp that
-matches either @code{"function_definition"} or @code{"class_definition"}.
+matches either @samp{function_definition} or @samp{class_definition}.
+
+Sometimes not all nodes matched by the regexp are valid defuns.
+Therefore, this variable can also be a cons cell of the form
+@w{(@var{regexp} . @var{pred})}, where @var{pred} should be a function
+that takes a node as its argument, and returns non-@code{nil} if the
+node is a valid defun, or @code{nil} if it is not valid.
 @end defvar
 
 @defvar treesit-defun-tactic
-This variable determines how Emacs treats nested defuns.  If the
-value is @code{top-level}, navigation functions only move across
-top-level defuns, if the value is @code{nested}, navigation functions
-recognize nested defuns.
+This variable determines how Emacs treats nested defuns.  If the value
+is @code{top-level}, navigation functions only move across top-level
+defuns.  If the value is @code{nested}, navigation functions recognize
+nested defuns.
 @end defvar
 
 @defvar treesit-sentence-type-regexp

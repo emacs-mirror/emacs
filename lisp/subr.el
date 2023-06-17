@@ -4068,7 +4068,7 @@ to other portions of the buffer, use `without-restriction' with the
 same LABEL argument.
 
 \(fn START END [:label LABEL] BODY)"
-  (declare (indent 0) (debug t))
+  (declare (indent 2) (debug t))
   (if (eq (car rest) :label)
       `(internal--with-restriction ,start ,end (lambda () ,@(cddr rest))
                                  ,(cadr rest))

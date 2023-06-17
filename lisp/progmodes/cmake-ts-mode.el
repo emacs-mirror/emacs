@@ -134,7 +134,8 @@
    :language 'cmake
    :feature 'number
    '(((unquoted_argument) @font-lock-number-face
-      (:match "^[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+$" @font-lock-number-face)))
+      (:match "\\`[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
+              @font-lock-number-face)))
 
    :language 'cmake
    :feature 'string

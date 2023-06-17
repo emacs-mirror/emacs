@@ -2662,7 +2662,7 @@ naming the certificate key file and certificate file itself, or
 Library}).  Only used for @acronym{TLS} or @acronym{STARTTLS}.  To
 enable automatic queries of @code{auth-source} when
 @code{:client-certificate} is not specified customize
-@code{network-stream-use-client-certificates} to t.
+@code{network-stream-use-client-certificates} to @code{t}.
 
 @item :return-list @var{cons-or-nil}
 The return value of this function.  If omitted or @code{nil}, return a
@@ -3575,7 +3575,7 @@ and @code{#x1c} @code{#x28} to @w{@code{(3 5 10 11 12)}}.
 @item fill @var{len}
 @var{len} bytes used as a mere filler.  In packing, these bytes are
 left unchanged, which normally means they remain zero.
-When unpacking, this just returns nil.
+When unpacking, this just returns @code{nil}.
 
 @item align @var{len}
 Same as @code{fill} except the number of bytes is that needed to skip

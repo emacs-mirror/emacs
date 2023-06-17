@@ -1210,7 +1210,6 @@ See `treesit-simple-indent-presets'.")
                              (save-excursion
                                (goto-char bol)
                                (looking-at-p comment-end-skip))))
-        ;; TODO: Document.
         (cons 'catch-all (lambda (&rest _) t))
 
         (cons 'query (lambda (pattern)
@@ -1224,7 +1223,6 @@ See `treesit-simple-indent-presets'.")
         (cons 'first-sibling (lambda (_n parent &rest _)
                                (treesit-node-start
                                 (treesit-node-child parent 0))))
-        ;; TODO: Document.
         (cons 'nth-sibling (lambda (n &optional named)
                              (lambda (_n parent &rest _)
                                (treesit-node-start
@@ -1266,7 +1264,6 @@ See `treesit-simple-indent-presets'.")
                          (or (and this-line-has-prefix
                                   (match-beginning 1))
                              (match-end 0)))))))
-        ;; TODO: Document.
         (cons 'grand-parent
               (lambda (_n parent &rest _)
                 (treesit-node-start (treesit-node-parent parent))))
@@ -1337,10 +1334,10 @@ See `treesit-simple-indent-presets'.")
                         (mapcar (lambda (fn)
                                   (funcall fn node parent bol))
                                 fns)))))
-  "A list of presets.
-These presets that can be used as MATHER and ANCHOR in
-`treesit-simple-indent-rules'.  MACHTERs and ANCHORs are
-functions that take 3 arguments: NODE, PARENT and BOL.
+  "A list of indent rule presets.
+These presets can be used as MATCHER and ANCHOR values in
+`treesit-simple-indent-rules'.  MATCHERs and ANCHORs are
+functions that take 3 arguments: NODE, PARENT, and BOL.
 
 MATCHER:
 
@@ -1371,6 +1368,10 @@ no-node
 
     Checks that NODE's type matches regexp TYPE.
 
+\(field-is NAME)
+
+    Checks that NODE's field name in PARENT matches regexp NAME.
+
 \(n-p-gp NODE-TYPE PARENT-TYPE GRANDPARENT-TYPE)
 
     Checks for NODE's, its parent's, and its grandparent's type.
@@ -1384,15 +1385,32 @@ comment-end
 
     Matches if text after point matches `treesit-comment-end'.
 
+catch-all
+
+    Always matches.
+
 ANCHOR:
 
 first-sibling
 
     Returns the start of the first child of PARENT.
 
+\(nth-sibling N &optional NAMED)
+
+    Returns the start of the Nth child of PARENT.
+    NAMED non-nil means count only named nodes.
+
 parent
 
     Returns the start of PARENT.
+
+grand-parent
+
+    Returns the start of PARENT's parent.
+
+great-grand-parent
+
+    Returns the start of PARENT's parent's parent.
 
 parent-bol
 
@@ -1401,8 +1419,8 @@ parent-bol
 
 standalone-parent
 
-    Finds the first ancestor node (parent, grandparent, etc) that
-    starts on its own line, and return the start of that node.
+    Finds the first ancestor node (parent, grandparent, etc.) that
+    starts on its own line, and returns the start of that node.
 
 prev-sibling
 
@@ -1433,7 +1451,7 @@ prev-adaptive-prefix
     end of the match, otherwise return nil.  However, if the
     current line begins with a prefix, return the beginning of
     the prefix of the previous line instead, so that the two
-    prefixes aligns.  This is useful for a `indent-relative'-like
+    prefixes aligns.  This is useful for an `indent-relative'-like
     indent behavior for block comments.")
 
 (defun treesit--simple-indent-eval (exp)
@@ -2472,24 +2490,24 @@ instead of emitting a warning."
 (defun treesit-major-mode-setup ()
   "Activate tree-sitter to power major-mode features.
 
-If `treesit-font-lock-settings' is non-nil, setup fontification and
-enable `font-lock-mode'.
+If `treesit-font-lock-settings' is non-nil, set up fontification
+and enable `font-lock-mode'.
 
-If `treesit-simple-indent-rules' is non-nil, setup indentation.
+If `treesit-simple-indent-rules' is non-nil, set up indentation.
 
-If `treesit-defun-type-regexp' is non-nil, setup
-`beginning/end-of-defun' functions.
+If `treesit-defun-type-regexp' is non-nil, set up
+`beginning-of-defun-function' and `end-of-defun-function'.
 
-If `treesit-defun-name-function' is non-nil, setup
+If `treesit-defun-name-function' is non-nil, set up
 `add-log-current-defun'.
 
-If `treesit-simple-imenu-settings' is non-nil, setup Imenu.
+If `treesit-simple-imenu-settings' is non-nil, set up Imenu.
 
 Make sure necessary parsers are created for the current buffer
 before calling this function."
   ;; Font-lock.
   (when treesit-font-lock-settings
-    ;; `font-lock-mode' wouldn't setup properly if
+    ;; `font-lock-mode' wouldn't set up properly if
     ;; `font-lock-defaults' is nil, see `font-lock-specified-p'.
     (setq-local font-lock-defaults
                 '( nil nil nil nil
@@ -2949,7 +2967,7 @@ window."
           (display-buffer treesit--explorer-buffer
                           (cons nil '((inhibit-same-window . t))))
           (treesit--explorer-refresh)
-          ;; Setup variables and hooks.
+          ;; Set up variables and hooks.
           (add-hook 'post-command-hook
                     #'treesit--explorer-post-command 0 t)
           (add-hook 'kill-buffer-hook

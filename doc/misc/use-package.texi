@@ -790,7 +790,7 @@ possible, and put as much as you can get away with into the
 Emacs start as quickly as possible.
 
 @node Best practices
-@subheading When to use @code{:preface}, @code{:config} and @code{:init}?
+@subsection When to use @code{:preface}, @code{:config} and @code{:init}?
 @cindex tips for using @code{:preface}, @code{:config}, @code{:init}
 
 Where possible, it is better to avoid @code{:preface}, @code{:config}

@@ -9,7 +9,7 @@
 Emacs provides various ways to parse program source text and produce a
 @dfn{syntax tree}.  In a syntax tree, text is no longer considered a
 one-dimensional stream of characters, but a structured tree of nodes,
-where each node representing a piece of text.  Thus, a syntax tree can
+where each node represents a piece of text.  Thus, a syntax tree can
 enable interesting features like precise fontification, indentation,
 navigation, structured editing, etc.
 
@@ -19,8 +19,8 @@ generic navigation and indentation (@pxref{SMIE}).
 
 In addition to those, Emacs also provides integration with
 @uref{https://tree-sitter.github.io/tree-sitter, the tree-sitter
-library}) if support for it was compiled in.  The tree-sitter library
-implements an incremental parser and has support from a wide range of
+library} if support for it was compiled in.  The tree-sitter library
+implements an incremental parser and has support for a wide range of
 programming languages.
 
 @defun treesit-available-p
@@ -65,10 +65,10 @@ For example, the C language grammar is represented as the symbol
 
 @vindex treesit-extra-load-path
 @vindex treesit-load-language-error
-Tree-sitter language grammar are distributed as dynamic libraries.
+Tree-sitter language grammars are distributed as dynamic libraries.
 In order to use a language grammar in Emacs, you need to make sure
 that the dynamic library is installed on the system.  Emacs looks for
-language grammar in several places, in the following order:
+language grammars in several places, in the following order:
 
 @itemize @bullet
 @item
@@ -95,8 +95,8 @@ This means that Emacs could not find the language grammar library.
 This means that Emacs could not find in the library the expected function
 that every language grammar library should export.
 @item (version-mismatch @var{error-msg})
-This means that the version of language grammar library is incompatible
-with that of the tree-sitter library.
+This means that the version of the language grammar library is
+incompatible with that of the tree-sitter library.
 @end table
 
 @noindent
@@ -105,7 +105,7 @@ details about the failure.
 
 @defun treesit-language-available-p language &optional detail
 This function returns non-@code{nil} if the language grammar for
-@var{language} exist and can be loaded.
+@var{language} exists and can be loaded.
 
 If @var{detail} is non-@code{nil}, return @code{(t . nil)} when
 @var{language} is available, and @code{(nil . @var{data})} when it's
@@ -126,7 +126,7 @@ doesn't follow this convention, you should add an entry
 @end example
 
 to the list in the variable @code{treesit-load-name-override-list}, where
-@var{library-base-name} is the basename of the dynamic library's file name,
+@var{library-base-name} is the basename of the dynamic library's file name
 (usually, @file{libtree-sitter-@var{language}}), and
 @var{function-name} is the function provided by the library
 (usually, @code{tree_sitter_@var{language}}).  For example,
@@ -146,7 +146,7 @@ Application Binary Interface (@acronym{ABI}) supported by the
 tree-sitter library.  By default, it returns the latest ABI version
 supported by the library, but if @var{min-compatible} is
 non-@code{nil}, it returns the oldest ABI version which the library
-still can support.  language grammar libraries must be built for
+still can support.  Language grammar libraries must be built for
 ABI versions between the oldest and the latest versions supported by
 the tree-sitter library, otherwise the library will be unable to load
 them.
@@ -232,11 +232,11 @@ assign @dfn{field names} to child nodes.  For example, a
 @cindex explore tree-sitter syntax tree
 @cindex inspection of tree-sitter parse tree nodes
 
-To aid in understanding the syntax of a language and in debugging of
-Lisp program that use the syntax tree, Emacs provides an ``explore''
-mode, which displays the syntax tree of the source in the current
-buffer in real time.  Emacs also comes with an ``inspect mode'', which
-displays information of the nodes at point in the mode-line.
+To aid in understanding the syntax of a language and in debugging Lisp
+programs that use the syntax tree, Emacs provides an ``explore'' mode,
+which displays the syntax tree of the source in the current buffer in
+real time.  Emacs also comes with an ``inspect mode'', which displays
+information of the nodes at point in the mode-line.
 
 @deffn Command treesit-explore-mode
 This mode pops up a window displaying the syntax tree of the source in
@@ -271,7 +271,7 @@ parser in @code{(treesit-parser-list)} (@pxref{Using Parser}).
 @heading Reading the grammar definition
 @cindex reading grammar definition, tree-sitter
 
-Authors of language grammar define the @dfn{grammar} of a
+Authors of language grammars define the @dfn{grammar} of a
 programming language, which determines how a parser constructs a
 concrete syntax tree out of the program text.  In order to use the
 syntax tree effectively, you need to consult the @dfn{grammar file}.
@@ -283,7 +283,7 @@ home page can be found on
 homepage}.
 
 The grammar definition is written in JavaScript.  For example, the
-rule matching a @code{function_definition} node looks like
+rule matching a @code{function_definition} node may look like
 
 @example
 @group
@@ -331,13 +331,13 @@ matches each rule one after another.
 @item choice(@var{rule1}, @var{rule2}, @dots{})
 matches one of the rules in its arguments.
 @item repeat(@var{rule})
-matches @var{rule} for @emph{zero or more} times.
+matches @var{rule} @emph{zero or more} times.
 This is like the @samp{*} operator in regular expressions.
 @item repeat1(@var{rule})
-matches @var{rule} for @emph{one or more} times.
+matches @var{rule} @emph{one or more} times.
 This is like the @samp{+} operator in regular expressions.
 @item optional(@var{rule})
-matches @var{rule} for @emph{zero or one} time.
+matches @var{rule} @emph{zero or one} times.
 This is like the @samp{?} operator in regular expressions.
 @item field(@var{name}, @var{rule})
 assigns field name @var{name} to the child node matched by @var{rule}.
@@ -366,7 +366,7 @@ Nodes}.
 @item token.immediate(@var{rule})
 Normally, grammar rules ignore preceding whitespace; this
 changes @var{rule} to match only when there is no preceding
-whitespaces.
+whitespace.
 @item prec(@var{n}, @var{rule})
 gives @var{rule} the level-@var{n} precedence.
 @item prec.left([@var{n},] @var{rule})
@@ -412,7 +412,7 @@ non-@code{nil}, this function always creates a new parser.
 If that buffer is an indirect buffer, its base buffer is used instead.
 That is, indirect buffers use their base buffer's parsers.  If the
 base buffer is narrowed, an indirect buffer might not be able to
-retrieve information of the portion of the buffer text that are
+retrieve information of the portion of the buffer text that is
 invisible in the base buffer.  Lisp programs should widen as necessary
 should they want to use a parser in an indirect buffer.
 @end defun
@@ -441,7 +441,7 @@ change is made in the buffer, a parser doesn't re-parse immediately.
 
 @vindex treesit-buffer-too-large
 When a parser does parse, it checks for the size of the buffer.
-Tree-sitter can only handle buffer no larger than about 4GB.  If the
+Tree-sitter can only handle buffers no larger than about 4GB@.  If the
 size exceeds that, Emacs signals the @code{treesit-buffer-too-large}
 error with signal data being the buffer size.
 
@@ -500,13 +500,12 @@ converts text before that token into a comment.  Even
 though the text is not directly edited, it is deemed to be ``changed''
 nevertheless.
 
-Emacs lets a Lisp program to register callback functions
-(a.k.a.@: @dfn{notifiers}) for this kind of changes.  A notifier
-function takes two arguments: @var{ranges} and @var{parser}.
-@var{ranges} is a list of cons cells of the form @w{@code{(@var{start}
-. @var{end})}}, where @var{start} and @var{end} mark the start and the
-end positions of a range.  @var{parser} is the parser issuing the
-notification.
+Emacs lets a Lisp program register callback functions (a.k.a.@:
+@dfn{notifiers}) for these kinds of changes.  A notifier function
+takes two arguments: @var{ranges} and @var{parser}.  @var{ranges} is a
+list of cons cells of the form @w{@code{(@var{start} . @var{end})}},
+where @var{start} and @var{end} mark the start and the end positions
+of a range.  @var{parser} is the parser issuing the notification.
 
 Every time a parser reparses a buffer, it compares the old and new
 parse-tree, computes the ranges in which nodes have changed, and
@@ -537,7 +536,7 @@ This function returns the list of @var{parser}'s notifier functions.
 @cindex get node, tree-sitter
 
 @cindex terminology, for tree-sitter functions
-Here's some terminology and conventions we use when documenting
+Here are some terms and conventions we use when documenting
 tree-sitter functions.
 
 A node in a syntax tree spans some portion of the program text in the
@@ -571,8 +570,8 @@ This function returns a @dfn{leaf} node at buffer position @var{pos}.
 A leaf node is a node that doesn't have any child nodes.
 
 This function tries to return a node whose span covers @var{pos}: the
-node's beginning position is less or equal to @var{pos}, and the
-node's end position is greater or equal to @var{pos}.
+node's beginning position is less than or equal to @var{pos}, and the
+node's end position is greater than or equal to @var{pos}.
 
 If no leaf node's span covers @var{pos} (e.g., @var{pos} is in the
 whitespace between two leaf nodes), this function returns the first
@@ -612,7 +611,7 @@ start of the node is before or at @var{beg}, and the end of the node
 is at or after @var{end}.
 
 @emph{Beware:} calling this function on an empty line that is not
-inside any top-level construct (function definition, etc.) most
+inside any top-level construct (function definition, etc.@:) most
 probably will give you the root node, because the root node is the
 smallest node that covers that empty line.  Most of the time, you want
 to use @code{treesit-node-at} instead.
@@ -656,7 +655,7 @@ it, or query for information about this node.
 This function returns the immediate parent of @var{node}.
 
 If @var{node} is more than 1000 levels deep in a parse tree, the
-return value is undefined.  Currently it returns @var{nil}, but that
+return value is undefined.  Currently it returns @code{nil}, but that
 could change in the future.
 @end defun
 
@@ -672,7 +671,7 @@ first child is the opening quote @code{"}, and the first named child
 is the string text.
 
 This function returns @code{nil} if there is no @var{n}'th child.
-@var{n} could be negative, e.g., @code{-1} represents the last child.
+@var{n} could be negative, e.g., @minus{}1 represents the last child.
 @end defun
 
 @defun treesit-node-children node &optional named
@@ -694,7 +693,7 @@ This function finds the previous sibling of @var{node}.  If
 @cindex nodes, by field name
 @cindex syntax tree nodes, by field name
 
-To make the syntax tree easier to analyze, many language grammar
+To make the syntax tree easier to analyze, many language grammars
 assign @dfn{field names} to child nodes (@pxref{tree-sitter node field
 name, field name}).  For example, a @code{function_definition} node
 could have a @code{declarator} node and a @code{body} node.
@@ -729,7 +728,7 @@ first named child (@pxref{tree-sitter named node, named node}).
 This function finds the @emph{smallest} descendant node of @var{node}
 that spans the region of text between positions @var{beg} and
 @var{end}.  It is similar to @code{treesit-node-at}.  If @var{named}
-is non-@code{nil}, it looks for smallest named child.
+is non-@code{nil}, it looks for the smallest named child.
 @end defun
 
 @heading Searching for node
@@ -755,8 +754,8 @@ defaults to 1000.
 Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
 @var{start}), where @var{predicate} can be a regexp or a function.
-For a tree like the below where @var{start} is marked S, this function
-traverses as numbered from 1 to 12:
+For a tree like the one below where @var{start} is marked @samp{S},
+this function traverses as numbered from 1 to 12:
 
 @example
 @group
@@ -773,7 +772,7 @@ o  o                +-+-+   +--+--+
 @end example
 
 Note that this function doesn't traverse the subtree of @var{start},
-and it always traverse leaf nodes first, then upwards.
+and it always traverses leaf nodes first, before moving upwards.
 
 Like @code{treesit-search-subtree}, this function only searches for
 named nodes by default, but if @var{all} is non-@code{nil}, it
@@ -786,10 +785,10 @@ that comes after it in the buffer position order, i.e., nodes with
 start positions greater than the end position of @var{start}.
 
 In the tree shown above, @code{treesit-search-subtree} traverses node
-S (@var{start}) and nodes marked with @code{o}, where this function
-traverses the nodes marked with numbers.  This function is useful for
-answering questions like ``what is the first node after @var{start} in
-the buffer that satisfies some condition?''
+@samp{S} (@var{start}) and nodes marked with @code{o}, where this
+function traverses the nodes marked with numbers.  This function is
+useful for answering questions like ``what is the first node after
+@var{start} in the buffer that satisfies some condition?''
 @end defun
 
 @defun treesit-search-forward-goto node predicate &optional start backward all
@@ -801,7 +800,7 @@ This function guarantees that the matched node it returns makes
 progress in terms of buffer position: the start/end position of the
 returned node is always greater than that of @var{node}.
 
-Arguments @var{predicate}, @var{backward} and @var{all} are the same
+Arguments @var{predicate}, @var{backward}, and @var{all} are the same
 as in @code{treesit-search-forward}.
 @end defun
 
@@ -811,12 +810,12 @@ This function creates a sparse tree from @var{root}'s subtree.
 It takes the subtree under @var{root}, and combs it so only the nodes
 that match @var{predicate} are left.  Like previous functions, the
 @var{predicate} can be a regexp string that matches against each
-node's type, or a function that takes a node and return non-@code{nil}
-if it matches.
+node's type, or a function that takes a node and returns
+non-@code{nil} if it matches.
 
-For example, for a subtree on the left that consist of both numbers
-and letters, if @var{predicate} is ``letter only'', the returned tree
-is the one on the right.
+For example, given the subtree on the left that consists of both
+numbers and letters, if @var{predicate} is ``letter only'', the
+returned tree is the one on the right.
 
 @example
 @group
@@ -836,13 +835,13 @@ b   1   2         b   |   |      b   c   d
 
 If @var{process-fn} is non-@code{nil}, instead of returning the
 matched nodes, this function passes each node to @var{process-fn} and
-uses the returned value instead.  If non-@code{nil}, @var{depth} is
-the number of levels to go down from @var{root}.  If @var{depth} is
-@code{nil}, it defaults to 1000.
+uses the returned value instead.  If non-@code{nil}, @var{depth}
+limits the number of levels to go down from @var{root}.  If
+@var{depth} is @code{nil}, it defaults to 1000.
 
 Each node in the returned tree looks like
 @w{@code{(@var{tree-sitter-node} . (@var{child} @dots{}))}}.  The
-@var{tree-sitter-node} of the root of this tree will be nil if
+@var{tree-sitter-node} of the root of this tree will be @code{nil} if
 @var{root} doesn't match @var{predicate}.  If no node matches
 @var{predicate}, the function returns @code{nil}.
 @end defun
@@ -900,30 +899,30 @@ omitted, unlike in their original functions.
 This function finds immediate children of @var{node} that satisfy
 @var{predicate}.
 
-The @var{predicate} function takes a node as the argument and should
+The @var{predicate} function takes a node as argument and should
 return non-@code{nil} to indicate that the node should be kept.  If
-@var{named} is non-@code{nil}, this function only examines the named
+@var{named} is non-@code{nil}, this function only examines named
 nodes.
 @end defun
 
 @defun treesit-parent-until node predicate &optional include-node
 This function repeatedly finds the parents of @var{node}, and returns
 the parent that satisfies @var{pred}, a function that takes a node as
-the argument and returns a boolean that indicates a match.  If no
-parent satisfies @var{pred}, this function returns @code{nil}.
+argument and returns a boolean that indicates a match.  If no parent
+satisfies @var{pred}, this function returns @code{nil}.
 
 Normally this function only looks at the parents of @var{node} but not
-@var{node} itself. But if @var{include-node} is non-@var{nil}, this
+@var{node} itself.  But if @var{include-node} is non-@code{nil}, this
 function returns @var{node} if @var{node} satisfies @var{pred}.
 @end defun
 
 @defun treesit-parent-while node pred
 This function goes up the tree starting from @var{node}, and keeps
 doing so as long as the nodes satisfy @var{pred}, a function that
-takes a node as the argument.  That is, this function returns the
-highest parent of @var{node} that still satisfies @var{pred}.  Note
-that if @var{node} satisfies @var{pred} but its immediate parent
-doesn't, @var{node} itself is returned.
+takes a node as argument.  That is, this function returns the highest
+parent of @var{node} that still satisfies @var{pred}.  Note that if
+@var{node} satisfies @var{pred} but its immediate parent doesn't,
+@var{node} itself is returned.
 @end defun
 
 @defun treesit-node-top-level node &optional type
@@ -1026,7 +1025,7 @@ has an error.
 @cindex tree-sitter, live parsing node
 @cindex live node, tree-sitter
 A node is considered @dfn{live} if its parser is not deleted, and the
-buffer to which it belongs to is a live buffer (@pxref{Killing Buffers}).
+buffer to which it belongs is a live buffer (@pxref{Killing Buffers}).
 
 @defun treesit-node-check node property
 This function returns non-@code{nil} if @var{node} has the specified
@@ -1063,12 +1062,12 @@ This function returns the field name of the @var{n}'th child of
 @var{node}.  It returns @code{nil} if there is no @var{n}'th child, or
 the @var{n}'th child doesn't have a field name.
 
-Note that @var{n} counts both named and anonymous child.  And @var{n}
-could be negative, e.g., @code{-1} represents the last child.
+Note that @var{n} counts both named and anonymous children, and
+@var{n} can be negative, e.g., @minus{}1 represents the last child.
 @end defun
 
 @defun treesit-node-child-count node &optional named
-This function finds the number of children of @var{node}.  If
+This function returns the number of children of @var{node}.  If
 @var{named} is non-@code{nil}, it only counts named children
 (@pxref{tree-sitter named node, named node}).
 @end defun
@@ -1095,7 +1094,7 @@ finally the more advanced pattern syntax.
 @cindex query, tree-sitter
 A @dfn{query} consists of multiple @dfn{patterns}.  Each pattern is an
 s-expression that matches a certain node in the syntax node.  A
-pattern has the form @w{@code{(@var{type} (@var{child}@dots{}))}}
+pattern has the form @w{@code{(@var{type} (@var{child}@dots{}))}}.
 
 For example, a pattern that matches a @code{binary_expression} node that
 contains @code{number_literal} child nodes would look like
@@ -1131,25 +1130,26 @@ example, the capture name @code{biexp}:
 Now we can introduce the @dfn{query functions}.
 
 @defun treesit-query-capture node query &optional beg end node-only
-This function matches patterns in @var{query} within @var{node}.
-The argument @var{query} can be either a string, a s-expression, or a
+This function matches patterns in @var{query} within @var{node}.  The
+argument @var{query} can be either a string, an s-expression, or a
 compiled query object.  For now, we focus on the string syntax;
-s-expression syntax and compiled query are described at the end of the
-section.
+s-expression syntax and compiled queries are described at the end of
+the section.
 
 The argument @var{node} can also be a parser or a language symbol.  A
-parser means using its root node, a language symbol means find or
-create a parser for that language in the current buffer, and use the
-root node.
+parser means use its root node, a language symbol means find or create
+a parser for that language in the current buffer, and use the root
+node.
 
-The function returns all the captured nodes in a list of the form
-@w{@code{(@var{capture_name} . @var{node})}}.  If @var{node-only} is
-non-@code{nil}, it returns the list of nodes instead.  By default the
-entire text of @var{node} is searched, but if @var{beg} and @var{end}
-are both non-@code{nil}, they specify the region of buffer text where
-this function should match nodes.  Any matching node whose span
-overlaps with the region between @var{beg} and @var{end} are captured,
-it doesn't have to be completely in the region.
+The function returns all the captured nodes in an alist with elements
+of the form @w{@code{(@var{capture_name} . @var{node})}}.  If
+@var{node-only} is non-@code{nil}, it returns the list of @var{node}s
+instead.  By default the entire text of @var{node} is searched, but if
+@var{beg} and @var{end} are both non-@code{nil}, they specify the
+region of buffer text where this function should match nodes.  Any
+matching node whose span overlaps with the region between @var{beg}
+and @var{end} is captured; it doesn't have to be completely contained
+in the region.
 
 @vindex treesit-query-error
 @findex treesit-query-validate
@@ -1193,13 +1193,13 @@ For example, it could have two top-level patterns:
 @end example
 
 @defun treesit-query-string string query language
-This function parses @var{string} with @var{language}, matches its
-root node with @var{query}, and returns the result.
+This function parses @var{string} as @var{language}, matches its root
+node with @var{query}, and returns the result.
 @end defun
 
 @heading More query syntax
 
-Besides node type and capture, tree-sitter's pattern syntax can
+Besides node type and capture name, tree-sitter's pattern syntax can
 express anonymous node, field name, wildcard, quantification,
 grouping, alternation, anchor, and predicate.
 
@@ -1215,11 +1215,11 @@ pattern matching (and capturing) keyword @code{return} would be
 @subheading Wild card
 
 In a pattern, @samp{(_)} matches any named node, and @samp{_} matches
-any named and anonymous node.  For example, to capture any named child
+any named or anonymous node.  For example, to capture any named child
 of a @code{binary_expression} node, the pattern would be
 
 @example
-(binary_expression (_) @@in_biexp)
+(binary_expression (_) @@in-biexp)
 @end example
 
 @subheading Field name
@@ -1237,7 +1237,7 @@ names, indicated by the colon following them.
 @end example
 
 It is also possible to capture a node that doesn't have a certain
-field, say, a @code{function_definition} without a @code{body} field.
+field, say, a @code{function_definition} without a @code{body} field:
 
 @example
 (function_definition !body) @@func-no-body
@@ -1246,20 +1246,20 @@ field, say, a @code{function_definition} without a @code{body} field.
 @subheading Quantify node
 
 @cindex quantify node, tree-sitter
-Tree-sitter recognizes quantification operators @samp{*}, @samp{+} and
-@samp{?}.  Their meanings are the same as in regular expressions:
+Tree-sitter recognizes quantification operators @samp{*}, @samp{+},
+and @samp{?}.  Their meanings are the same as in regular expressions:
 @samp{*} matches the preceding pattern zero or more times, @samp{+}
-matches one or more times, and @samp{?} matches zero or one time.
+matches one or more times, and @samp{?} matches zero or one times.
 
 For example, the following pattern matches @code{type_declaration}
-nodes that has @emph{zero or more} @code{long} keyword.
+nodes that have @emph{zero or more} @code{long} keywords.
 
 @example
 (type_declaration "long"*) @@long-type
 @end example
 
-The following pattern matches a type declaration that has zero or one
-@code{long} keyword:
+The following pattern matches a type declaration that may or may not
+have a @code{long} keyword:
 
 @example
 (type_declaration "long"?) @@long-type
@@ -1267,9 +1267,9 @@ The following pattern matches a type declaration that has zero or one
 
 @subheading Grouping
 
-Similar to groups in regular expression, we can bundle patterns into
+Similar to groups in regular expressions, we can bundle patterns into
 groups and apply quantification operators to them.  For example, to
-express a comma separated list of identifiers, one could write
+express a comma-separated list of identifiers, one could write
 
 @example
 (identifier) ("," (identifier))*
@@ -1277,10 +1277,10 @@ express a comma separated list of identifiers, one could write
 
 @subheading Alternation
 
-Again, similar to regular expressions, we can express ``match anyone
-from this group of patterns'' in a pattern.  The syntax is a list of
-patterns enclosed in square brackets.  For example, to capture some
-keywords in C, the pattern would be
+Again, similar to regular expressions, we can express ``match any one
+of these patterns'' in a pattern.  The syntax is a list of patterns
+enclosed in square brackets.  For example, to capture some keywords in
+C, the pattern would be
 
 @example
 @group
@@ -1339,14 +1339,14 @@ example, with the following pattern:
 @end example
 
 @noindent
-tree-sitter only matches arrays where the first element equals to the
-last element.  To attach a predicate to a pattern, we need to group
-them together.  A predicate always starts with a @samp{#}.  Currently
-there are three predicates, @code{#equal}, @code{#match}, and
-@code{#pred}.
+tree-sitter only matches arrays where the first element is equal to
+the last element.  To attach a predicate to a pattern, we need to
+group them together.  A predicate always starts with a @samp{#}.
+Currently there are three predicates: @code{#equal}, @code{#match},
+and @code{#pred}.
 
 @deffn Predicate equal arg1 arg2
-Matches if @var{arg1} equals to @var{arg2}.  Arguments can be either
+Matches if @var{arg1} is equal to @var{arg2}.  Arguments can be either
 strings or capture names.  Capture names represent the text that the
 captured node spans in the buffer.
 @end deffn
@@ -1370,7 +1370,7 @@ names in other patterns.
 
 @cindex tree-sitter patterns as sexps
 @cindex patterns, tree-sitter, in sexp form
-Besides strings, Emacs provides a s-expression based syntax for
+Besides strings, Emacs provides an s-expression based syntax for
 tree-sitter patterns.  It largely resembles the string-based syntax.
 For example, the following query
 
@@ -1402,7 +1402,7 @@ is equivalent to
 @end example
 
 Most patterns can be written directly as strange but nevertheless
-valid s-expressions.  Only a few of them needs modification:
+valid s-expressions.  Only a few of them need modification:
 
 @itemize
 @item
@@ -1430,7 +1430,7 @@ For example,
 @end example
 
 @noindent
-is written in s-expression as
+is written in s-expression syntax as
 
 @example
 @group
@@ -1488,8 +1488,8 @@ example.  In that case, text segments written in different languages
 need to be assigned different parsers.  Traditionally, this is
 achieved by using narrowing.  While tree-sitter works with narrowing
 (@pxref{tree-sitter narrowing, narrowing}), the recommended way is
-instead to set regions of buffer text (i.e., ranges) in which a parser
-will operate.  This section describes functions for setting and
+instead to specify regions of buffer text (i.e., ranges) in which a
+parser will operate.  This section describes functions for setting and
 getting ranges for a parser.
 
 Lisp programs should call @code{treesit-update-ranges} to make sure
@@ -1507,7 +1507,7 @@ end of the section.
 @defun treesit-parser-set-included-ranges parser ranges
 This function sets up @var{parser} to operate on @var{ranges}.  The
 @var{parser} will only read the text of the specified ranges.  Each
-range in @var{ranges} is a list of the form @w{@code{(@var{beg}
+range in @var{ranges} is a pair of the form @w{@code{(@var{beg}
 . @var{end})}}.
 
 The ranges in @var{ranges} must come in order and must not overlap.
@@ -1581,7 +1581,7 @@ Like other query functions, this function raises the
 @heading Supporting multiple languages in Lisp programs
 
 It should suffice for general Lisp programs to call the following two
-functions in order to support program sources that mixes multiple
+functions in order to support program sources that mix multiple
 languages.
 
 @defun treesit-update-ranges &optional beg end
@@ -1617,13 +1617,13 @@ language's parser, retrieves some information, sets ranges for the
 embedded languages with that information, and then parses the embedded
 languages.
 
-Take a buffer containing @acronym{HTML}, @acronym{CSS} and JavaScript
+Take a buffer containing @acronym{HTML}, @acronym{CSS}, and JavaScript
 as an example.  A Lisp program will first parse the whole buffer with
 an @acronym{HTML} parser, then query the parser for
-@code{style_element} and @code{script_element} nodes, which
-correspond to @acronym{CSS} and JavaScript text, respectively.  Then
-it sets the range of the @acronym{CSS} and JavaScript parser to the
-ranges in which their corresponding nodes span.
+@code{style_element} and @code{script_element} nodes, which correspond
+to @acronym{CSS} and JavaScript text, respectively.  Then it sets the
+range of the @acronym{CSS} and JavaScript parsers to the range which
+their corresponding nodes span.
 
 Given a simple @acronym{HTML} document:
 
@@ -1677,17 +1677,17 @@ directly translate into operations shown above.
 
 @example
 @group
-(setq-local treesit-range-settings
-            (treesit-range-rules
-             :embed 'javascript
-             :host 'html
-             '((script_element (raw_text) @@capture))
+(setq treesit-range-settings
+      (treesit-range-rules
+       :embed 'javascript
+       :host 'html
+       '((script_element (raw_text) @@capture))
 @end group
 
 @group
-             :embed 'css
-             :host 'html
-             '((style_element (raw_text) @@capture))))
+       :embed 'css
+       :host 'html
+       '((style_element (raw_text) @@capture))))
 @end group
 @end example
 
@@ -1698,21 +1698,21 @@ value that @code{treesit-range-settings} can have.
 
 It takes a series of @var{query-spec}s, where each @var{query-spec} is
 a @var{query} preceded by zero or more @var{keyword}/@var{value}
-pairs.  Each @var{query} is a tree-sitter query in either the
-string, s-expression or compiled form, or a function.
+pairs.  Each @var{query} is a tree-sitter query in either the string,
+s-expression, or compiled form, or a function.
 
 If @var{query} is a tree-sitter query, it should be preceded by two
-@var{:keyword}/@var{value} pairs, where the @code{:embed} keyword
+@var{keyword}/@var{value} pairs, where the @code{:embed} keyword
 specifies the embedded language, and the @code{:host} keyword
-specified the host language.
+specifies the host language.
 
 @code{treesit-update-ranges} uses @var{query} to figure out how to set
 the ranges for parsers for the embedded language.  It queries
-@var{query} in a host language parser, computes the ranges in which
-the captured nodes span, and applies these ranges to embedded
-language parsers.
+@var{query} in a host language parser, computes the ranges which the
+captured nodes span, and applies these ranges to embedded language
+parsers.
 
-If @var{query} is a function, it doesn't need any @var{:keyword} and
+If @var{query} is a function, it doesn't need any @var{keyword} and
 @var{value} pair.  It should be a function that takes 2 arguments,
 @var{start} and @var{end}, and sets the ranges for parsers in the
 current buffer in the region between @var{start} and @var{end}.  It is
@@ -1765,8 +1765,8 @@ this pattern:
 @code{treesit-ready-p} automatically emits a warning if conditions for
 enabling tree-sitter aren't met.
 
-If a tree-sitter major mode shares setup with their ``native''
-counterpart, they can create a ``base mode'' that contains the common
+If a tree-sitter major mode shares setup with its ``native''
+counterpart, one can create a ``base mode'' that contains the common
 setup, like this:
 
 @example
@@ -1797,9 +1797,9 @@ setup, like this:
 @defun treesit-ready-p language &optional quiet
 This function checks for conditions for activating tree-sitter.  It
 checks whether Emacs was built with tree-sitter, whether the buffer's
-size is not too large for tree-sitter to handle it, and whether the
-language grammar for @var{language} is available on the system
-(@pxref{Language Grammar}).
+size is not too large for tree-sitter to handle, and whether the
+grammar for @var{language} is available on the system (@pxref{Language
+Grammar}).
 
 This function emits a warning if tree-sitter cannot be activated.  If
 @var{quiet} is @code{message}, the warning is turned into a message;
@@ -1837,7 +1837,7 @@ non-@code{nil}, it sets up Imenu.
 @end itemize
 @end defun
 
-For more information of these built-in tree-sitter features,
+For more information on these built-in tree-sitter features,
 @pxref{Parser-based Font Lock}, @pxref{Parser-based Indentation}, and
 @pxref{List Motion}.
 
@@ -1876,28 +1876,17 @@ always returns @code{nil}.
 @defvar treesit-defun-name-function
 If non-@code{nil}, this variable's value should be a function that is
 called with a node as its argument, and returns the defun name of the
-node.  The function should have the same semantic as
+node.  The function should have the same semantics as
 @code{treesit-defun-name}: if the node is not a defun node, or the
 node is a defun node but doesn't have a name, or the node is
 @code{nil}, it should return @code{nil}.
-@end defvar
-
-@defvar treesit-defun-type-regexp
-This variable determines which nodes are considered defuns by Emacs.
-It can be a regexp that matches the type of defun nodes.
-
-Sometimes not all nodes matched by the regexp are valid defuns.
-Therefore, this variable can also be a cons cell of the form
-@w{(@var{regexp} . @var{pred})}, where @var{pred} should be a function
-that takes a node as its argument, and returns @code{t} if the node is
-valid defun, or @code{nil} if it is not valid.
 @end defvar
 
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence
 
 Emacs' tree-sitter integration doesn't expose every feature
-provided by tree-sitter's C API.  Missing features include:
+provided by tree-sitter's C API@.  Missing features include:
 
 @itemize
 @item
@@ -1928,7 +1917,7 @@ convenient and idiomatic:
 Instead of using byte positions, the Emacs Lisp API uses character
 positions.
 @item
-Null nodes are converted to nil.
+Null nodes are converted to @code{nil}.
 @end itemize
 
 Below is the correspondence between all C API functions and their

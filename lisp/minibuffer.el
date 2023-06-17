@@ -4399,9 +4399,9 @@ after the end of the prompt, move to the end of the prompt.
 Otherwise move to the start of the buffer."
   (declare (interactive-only "use `(goto-char (point-min))' instead."))
   (interactive "^P")
-  (when (or (consp arg)
-            (region-active-p))
-    (push-mark))
+  (or (consp arg)
+      (region-active-p)
+      (push-mark))
   (goto-char (cond
               ;; We want to go N/10th of the way from the beginning.
               ((and arg (not (consp arg)))

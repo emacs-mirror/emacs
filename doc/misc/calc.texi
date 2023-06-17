@@ -18617,8 +18617,8 @@ gamma function.  For positive integer arguments, this is related to the
 factorial function:  @samp{gamma(n+1) = fact(n)}.  For general complex
 arguments the gamma function can be defined by the following definite
 integral:
-@texline @math{\Gamma(a) = \int_0^\infty t^{a-1} e^t dt}.
-@infoline @expr{gamma(a) = integ(t^(a-1) exp(t), t, 0, inf)}.
+@texline @math{\Gamma(a) = \int_0^\infty t^{a-1} e^{-t} dt}.
+@infoline @expr{gamma(a) = integ(t^(a-1) exp(-t), t, 0, inf)}.
 (The actual implementation uses far more efficient computational methods.)
 
 @kindex f G
@@ -18709,7 +18709,7 @@ un-normalized version [@code{betaB}].
 The @kbd{f e} (@code{calc-erf}) [@code{erf}] command computes the
 error function
 @texline @math{\hbox{erf}(x) = {2 \over \sqrt{\pi}} \int_0^x e^{-t^2} dt}.
-@infoline @expr{erf(x) = 2 integ(exp(-(t^2)), t, 0, x) / sqrt(pi)}.
+@infoline @expr{erf(x) = 2 integ(exp(-(t^(2))), t, 0, x) / sqrt(pi)}.
 The complementary error function @kbd{I f e} (@code{calc-erfc}) [@code{erfc}]
 is the corresponding integral from @samp{x} to infinity; the sum
 @texline @math{\hbox{erf}(x) + \hbox{erfc}(x) = 1}.
@@ -28475,13 +28475,13 @@ B and
 @c flat and @expr{B}.
 the octave numbered 0 was chosen to correspond to the lowest
 audible frequency.  Using this system, middle C (about 261.625 Hz)
-corresponds to the note @expr{C} in octave 4 and is denoted
-@expr{C_4}.  Any frequency can be described by giving a note plus an
+corresponds to the note @slanted{C} in octave 4 and is denoted
+@slanted{C@sub{4}}.  Any frequency can be described by giving a note plus an
 offset in cents (where a cent is a ratio of frequencies so that a
 semitone consists of 100 cents).
 
 The midi note number system assigns numbers to notes so that
-@expr{C_(-1)} corresponds to the midi note number 0 and @expr{G_9}
+@slanted{C@sub{-1}} corresponds to the midi note number 0 and @slanted{G@sub{9}}
 corresponds to the midi note number 127.   A midi controller can have
 up to 128 keys and each midi note number from  0 to 127 corresponds to
 a possible key.
@@ -29880,10 +29880,10 @@ with no argument copies only the number itself into the kill ring, whereas
 @kbd{C-k} with a prefix argument of 1 copies the number with its trailing
 newline.
 
-You can customize @code{calc-kill-line-numbering} to nil to exclude
-line numbering from kills and copies made by @code{calc-kill} and
-@code{calc-copy-as-kill}.  This option does not affect calc kill and
-copy commands which operate on the region, as that would not make
+You can customize @code{calc-kill-line-numbering} to @code{nil} to
+exclude line numbering from kills and copies made by @code{calc-kill}
+and @code{calc-copy-as-kill}.  This option does not affect calc kill
+and copy commands which operate on the region, as that would not make
 sense.
 
 @node Yanking Into Stack
@@ -35595,11 +35595,11 @@ The default value of @code{calc-note-threshold} is 1.
 See @ref{Displaying Selections}.@*
 The variable @code{calc-highlight-selections-with-faces}
 determines how selected sub-formulas are distinguished.
-If @code{calc-highlight-selections-with-faces} is nil, then
+If @code{calc-highlight-selections-with-faces} is @code{nil}, then
 a selected sub-formula is distinguished either by changing every
 character not part of the sub-formula with a dot or by changing every
 character in the sub-formula with a @samp{#} sign.
-If @code{calc-highlight-selections-with-faces} is t,
+If @code{calc-highlight-selections-with-faces} is @code{t},
 then a selected sub-formula is distinguished either by displaying the
 non-selected portion of the formula with @code{calc-nonselected-face}
 or by displaying the selected sub-formula with

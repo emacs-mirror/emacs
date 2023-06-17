@@ -1568,7 +1568,7 @@ used, a Lisp expression that evaluates to a string.  Example:
 
 @defun rx-to-string rx-expr &optional no-group
 Translate @var{rx-expr} to a string regexp which is returned.
-If @var{no-group} is absent or nil, bracket the result in a
+If @var{no-group} is absent or @code{nil}, bracket the result in a
 non-capturing group, @samp{\(?:@dots{}\)}, if necessary to ensure that
 a postfix operator appended to it will apply to the whole expression.
 Example:
