@@ -738,9 +738,13 @@ The following code needs lexical binding (@pxref{Using Lexical
 Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
 
 @example
+@group
 ;;; ruby-flymake.el --- A ruby Flymake backend  -*- lexical-binding: t; -*-
+(require 'cl-lib)
 (defvar-local ruby--flymake-proc nil)
+@end group
 
+@group
 (defun ruby-flymake (report-fn &rest _args)
   ;; Not having a ruby interpreter is a serious problem which should cause
   ;; the backend to disable itself, so an @code{error} is signaled.
@@ -754,7 +758,9 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
   ;;
   (when (process-live-p ruby--flymake-proc)
     (kill-process ruby--flymake-proc))
+@end group
 
+@group
   ;; Save the current buffer, the narrowing restriction, remove any
   ;; narrowing restriction.
   ;;
@@ -820,11 +826,14 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
       ;;
       (process-send-region ruby--flymake-proc (point-min) (point-max))
       (process-send-eof ruby--flymake-proc))))
+@end group
 
+@group
 (defun ruby-setup-flymake-backend ()
   (add-hook 'flymake-diagnostic-functions 'ruby-flymake nil t))
 
 (add-hook 'ruby-mode-hook 'ruby-setup-flymake-backend)
+@end group
 @end example
 
 @node The legacy Proc backend
