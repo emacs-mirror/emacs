@@ -1364,6 +1364,22 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
   return TractOfAddr(&tract, arena, addr);
 }
 
+/* ArenaAddrObject -- return base pointer of managed object */
+Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
+{
+  Tract tract;
+
+  AVER(pReturn != NULL);
+  AVERT(Arena, arena);
+
+  if (!TractOfAddr(&tract, arena, addr)) {
+    /* address does not belong to the arena */
+    return ResFAIL;
+  }
+
+  return PoolAddrObject(pReturn, TractPool(tract), addr);
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *
