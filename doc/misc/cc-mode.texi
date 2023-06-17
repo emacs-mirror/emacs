@@ -2192,10 +2192,10 @@ foo& bar
 
 @defvar c-asymmetry-fontification-flag
 @vindex asymmetry-fontification-flag @r{(c-)}
-When @code{c-asymmetry-fontification-flag} is non-@code{nil} (which it is by
-default), code like the above, with white space either before or after
-the operator, but not both, is fontified as a declaration.  When the
-variable is nil, such a construct gets the default face.
+When @code{c-asymmetry-fontification-flag} is non-@code{nil} (which it
+is by default), code like the above, with white space either before or
+after the operator, but not both, is fontified as a declaration.  When
+the variable is @code{nil}, such a construct gets the default face.
 @end defvar
 
 When the construct is an expression there will often be white space
@@ -6036,7 +6036,7 @@ three syntactic symbols, @code{arglist-cont-nonempty},
 List Symbols}).
 
 This function is intended for use in a list.  If the construct being
-analyzed isn't like the preceding, the function returns nil.
+analyzed isn't like the preceding, the function returns @code{nil}.
 Otherwise it returns the function
 @code{c-lineup-arglist-intro-after-paren}, which the caller then uses
 to perform indentation.
@@ -6080,8 +6080,8 @@ also has a syntactic element with the symbol @code{brace-list-entry}
 (@pxref{Brace List Symbols}).
 
 This function is intended for use in a list.  If the above structure
-isn't present, the function returns nil, allowing a different offset
-specification to indent the line.
+isn't present, the function returns @code{nil}, allowing a different
+offset specification to indent the line.
 
 @workswith{} @code{brace-list-intro}.
 @end defun
@@ -6123,8 +6123,8 @@ returning the symbol @code{c-lineup-arglist-intro-after-paren}, which
 the caller then uses to perform the indentation.
 
 This function is intended for use in a list.  If the above structure
-isn't present, the function returns nil, allowing a different offset
-specification to indent the line.
+isn't present, the function returns @code{nil}, allowing a different
+offset specification to indent the line.
 
 @workswith{} @code{brace-list-intro}.
 @end defun

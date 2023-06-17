@@ -177,10 +177,10 @@ These variables only apply to macOS 10.7 (Lion) and above.
 @vindex ns-use-mwheel-acceleration
 @item ns-use-mwheel-acceleration
 This variable controls whether Emacs ignores the system mousewheel
-acceleration.  When nil each `click' of the mousewheel will correspond
-exactly with one mousewheel event.  When non-@code{nil}, the default, each
-`click' may correspond with more than one mousewheel event, depending
-on the user's input.
+acceleration.  When @code{nil} each `click' of the mousewheel will
+correspond exactly with one mousewheel event.  When non-@code{nil},
+the default, each `click' may correspond with more than one mousewheel
+event, depending on the user's input.
 
 @vindex ns-use-mwheel-momentum
 @item ns-use-mwheel-momentum
@@ -194,8 +194,8 @@ while after the user has lifted their fingers off the trackpad.
 This variable controls the sensitivity of scrolling with the trackpad.
 Apple trackpads scroll by pixels, not lines, so Emacs converts the
 system's pixel values into lines.  When set to a number, this variable
-sets the number of pixels Emacs will consider as one line.  When nil
-or a non-number the default line height is used.
+sets the number of pixels Emacs will consider as one line.  When
+@code{nil} or a non-number the default line height is used.
 
 Setting a lower number makes the trackpad more sensitive, and a higher
 number makes the trackpad less sensitive.

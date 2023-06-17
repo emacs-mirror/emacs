@@ -701,7 +701,7 @@ MODE is either `c' or `cpp'."
    `(((call_expression
        (call_expression function: (identifier) @fn)
        @c-ts-mode--fontify-DEFUN)
-      (:match "^DEFUN$" @fn))
+      (:match "\\`DEFUN\\'" @fn))
 
      ((function_definition type: (_) @for-each-tail)
       @c-ts-mode--fontify-for-each-tail

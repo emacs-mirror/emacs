@@ -6531,7 +6531,7 @@ specified, draw a polyline.
 @deffn Command horizontal-lineto x-coordinates
 Draw a horizontal line from the current point to the first element in
 @var{x-coordinates}.  Specifying multiple coordinates is possible,
-although usually this doesn’t make sense.
+although this usually doesn't make sense.
 
 @lisp
 (svg-path svg '((moveto ((100 . 200)))
@@ -6555,7 +6555,7 @@ Using the first element in @var{coordinate-sets}, draw a cubic Bézier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x2} @var{y2} @var{x} @var{y})}, where
-@w{(@var{x}, @var{y})} is the curve’s end point.  @w{(@var{x1},
+@w{(@var{x}, @var{y})} is the curve's end point.  @w{(@var{x1},
 @var{y1})} and @w{(@var{x2}, @var{y2})} are control points at the
 beginning and at the end, respectively.
 
@@ -6572,7 +6572,7 @@ Using the first element in @var{coordinate-sets}, draw a cubic Bézier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x2} @var{y2} @var{x} @var{y})}, where @w{(@var{x},
-@var{y})} is the curve’s end point and @w{(@var{x2}, @var{y2})} is the
+@var{y})} is the curve's end point and @w{(@var{x2}, @var{y2})} is the
 corresponding control point.  The first control point is the
 reflection of the second control point of the previous command
 relative to the current point, if that command was @command{curveto}
@@ -6592,7 +6592,7 @@ Using the first element in @var{coordinate-sets}, draw a quadratic
 Bézier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x} @var{y})}, where @w{(@var{x},
-@var{y})} is the curve’s end point and @w{(@var{x1}, @var{y1})} is the
+@var{y})} is the curve's end point and @w{(@var{x1}, @var{y1})} is the
 control point.
 
 @lisp
@@ -6609,7 +6609,7 @@ control point.
 Using the first element in @var{coordinate-sets}, draw a quadratic
 Bézier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
-@code{(@var{x} @var{y})}, where @w{(@var{x}, @var{y})} is the curve’s
+@code{(@var{x} @var{y})}, where @w{(@var{x}, @var{y})} is the curve's
 end point.  The control point is the reflection of the control point
 of the previous command relative to the current point, if that command
 was @command{quadratic-bezier-curveto} or
@@ -7270,7 +7270,7 @@ window.
 @item :width
 This is only valid for @code{image} icons, and can be either a number
 (which specifies the width in pixels), or the symbol @code{font},
-which will use the width in pixels of the current buffer’s default
+which will use the width in pixels of the current buffer's default
 face font.
 @end table
 

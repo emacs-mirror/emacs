@@ -276,7 +276,7 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
 
 #define XD_DBUS_VALIDATE_BUS_ADDRESS(bus)				\
   do {									\
-    char const *session_bus_address = getenv ("DBUS_SESSION_BUS_ADDRESS"); \
+    char const *session_bus_address = egetenv ("DBUS_SESSION_BUS_ADDRESS"); \
     if (STRINGP (bus))							\
       {									\
 	DBusAddressEntry **entries;					\

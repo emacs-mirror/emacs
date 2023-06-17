@@ -1356,10 +1356,15 @@ is passed on to the respective function."
   "Call the comment command you want (Do What I Mean).
 If the region is active and `transient-mark-mode' is on, call
 `comment-region' (unless it only consists of comments, in which
-case it calls `uncomment-region').
+case it calls `uncomment-region'); in this case, prefix numeric
+argument ARG specifies how many characters to remove from each
+comment delimiter (so don't specify a prefix argument whose value
+is greater than the total length of the comment delimiters).
 Else, if the current line is empty, call `comment-insert-comment-function'
 if it is defined, otherwise insert a comment and indent it.
-Else if a prefix ARG is specified, call `comment-kill'.
+Else, if a prefix ARG is specified, call `comment-kill'; in this
+case, prefix numeric argument ARG specifies on how many lines to kill
+the comments.
 Else, call `comment-indent'.
 You can configure `comment-style' to change the way regions are commented."
   (interactive "*P")

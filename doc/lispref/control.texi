@@ -694,7 +694,7 @@ contain the following constructs:
 @item (let @var{ref} @var{rx-expr}@dots{})
 Bind the symbol @var{ref} to a submatch that matches
 @var{rx-expr}@enddots{}.  @var{ref} is bound in @var{body-forms} to
-the string of the submatch or nil, but can also be used in
+the string of the submatch or @code{nil}, but can also be used in
 @code{backref}.
 
 @item (backref @var{ref})

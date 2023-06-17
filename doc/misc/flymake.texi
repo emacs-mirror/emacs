@@ -115,11 +115,11 @@ Syntax checks happen ``on-the-fly''.  Each check is started whenever:
 @itemize @bullet
 @item
 @code{flymake-mode} is started, unless
-@code{flymake-start-on-flymake-mode} is nil;
+@code{flymake-start-on-flymake-mode} is @code{nil};
 
 @item
 the buffer is saved, unless @code{flymake-start-on-save-buffer} is
-nil;
+@code{nil};
 
 @item
 some changes were made to the buffer more than @code{0.5} seconds ago
@@ -771,9 +771,13 @@ The following code needs lexical binding (@pxref{Using Lexical
 Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
 
 @example
+@group
 ;;; ruby-flymake.el --- A ruby Flymake backend  -*- lexical-binding: t; -*-
+(require 'cl-lib)
 (defvar-local ruby--flymake-proc nil)
+@end group
 
+@group
 (defun ruby-flymake (report-fn &rest _args)
   ;; Not having a ruby interpreter is a serious problem which should cause
   ;; the backend to disable itself, so an @code{error} is signaled.
@@ -787,7 +791,9 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
   ;;
   (when (process-live-p ruby--flymake-proc)
     (kill-process ruby--flymake-proc))
+@end group
 
+@group
   ;; Save the current buffer, the narrowing restriction, remove any
   ;; narrowing restriction.
   ;;
@@ -853,11 +859,14 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
       ;;
       (process-send-region ruby--flymake-proc (point-min) (point-max))
       (process-send-eof ruby--flymake-proc))))
+@end group
 
+@group
 (defun ruby-setup-flymake-backend ()
   (add-hook 'flymake-diagnostic-functions 'ruby-flymake nil t))
 
 (add-hook 'ruby-mode-hook 'ruby-setup-flymake-backend)
+@end group
 @end example
 
 @node The legacy Proc backend
@@ -909,13 +918,18 @@ Patterns for error/warning messages in the form @code{(regexp file-idx
 line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
 
 @item flymake-proc-diagnostic-type-pred
-A function to classify a diagnostic text as particular type of error.
-Should be a function taking an error text and returning a diagnostic
-symbol (@pxref{Flymake error types}).  If non-@code{nil} is returned but
-there is no such symbol in that table, a warning is assumed.  If nil
-is returned, an error is assumed.  Can also be a regular expression
-that should match only warnings.  This variable replaces the old
-@code{flymake-warning-re} and @code{flymake-warning-predicate}.
+A function to classify a diagnostic text as a particular type of
+error.  The value of this variable should be a function taking an
+error text and returning a diagnostic symbol (@pxref{Flymake error
+types}).  If it returns a non-@code{nil} value but there is no such
+symbol in that table, the text is interpreted as a warning.  If the
+function returns @code{nil}, the text is assumed to be an error.
+
+The value of this variable can alternatively be a regular expression
+that should match only warnings.
+
+This variable replaces the old @code{flymake-warning-re} and
+@code{flymake-warning-predicate}.
 
 @item flymake-proc-compilation-prevents-syntax-check
 A flag indicating whether compilation and syntax check of the same

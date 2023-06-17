@@ -37289,7 +37289,7 @@ shown in a window.  Absolute line numbers count from the beginning of
 the current narrowing, or from buffer beginning.  The variable
 `display-line-numbers-offset', if non-zero, is a signed offset added
 to each absolute line number; it also forces line numbers to be counted
-from the beginning of the buffer, as if `display-line-numbers-wide'
+from the beginning of the buffer, as if `display-line-numbers-widen'
 were non-nil.  It has no effect when line numbers are not absolute.
 
 If the value is `relative', display for each line not containing the

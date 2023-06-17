@@ -1106,7 +1106,7 @@ fontified."
    :language 'python
    `([,@python--treesit-keywords] @font-lock-keyword-face
      ((identifier) @font-lock-keyword-face
-      (:match "^self$" @font-lock-keyword-face)))
+      (:match "\\`self\\'" @font-lock-keyword-face)))
 
    :feature 'definition
    :language 'python

@@ -3589,7 +3589,7 @@ completion lists.  If you want to suppress this completion because
 there are invalid entries in the persistency file, for example if the
 host configuration changes often, or if you plug your laptop to
 different networks frequently, you can set the user option
-@code{tramp-completion-use-cache} to nil.
+@code{tramp-completion-use-cache} to @code{nil}.
 
 After remote host name completion comes completion of file names on
 the remote host.  It works the same as with local host file completion

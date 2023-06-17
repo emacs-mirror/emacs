@@ -2931,13 +2931,13 @@ nodes that belong to @var{category}.  @var{pred} should be either
 return non-@code{nil} if the node is a valid node for @var{category},
 or @code{nil} if not.
 
-@var{category} could also be @code{nil}.  In which case the entries
+@var{category} could also be @code{nil}, in which case the entries
 matched by @var{regexp} and @var{pred} are not grouped under
 @var{category}.
 
-@var{name-fn} should be either @var{nil} or a function that takes a
+@var{name-fn} should be either @code{nil} or a function that takes a
 defun node and returns the name of that defun, e.g., the function name
-for a function definition.  If @var{name-fn} is @var{nil},
+for a function definition.  If @var{name-fn} is @code{nil},
 @code{treesit-defun-name} (@pxref{Tree-sitter Major Modes}) is used
 instead.
 
@@ -3456,7 +3456,7 @@ This condition matches any element of Font Lock keywords for which
 non-@code{nil}.
 
 @item @code{(not @var{condition})}
-This matches if @var{condition} doesn’t.
+This matches if @var{condition} doesn't.
 
 @item @code{(and @var{condition} @dots{})}
 This matches if each of the @var{condition}s matches.
@@ -4079,7 +4079,7 @@ Source}) for this purpose.
 
 Parser-based font lock and other font lock mechanisms are not mutually
 exclusive.  By default, if enabled, parser-based font lock runs first,
-replacing syntactic font lock, then the regexp-based font lock.
+replacing syntactic font lock, followed by regexp-based font lock.
 
 Although parser-based font lock doesn't share the same customization
 variables with regexp-based font lock, it uses similar customization
@@ -4112,7 +4112,7 @@ would be highlighted in @code{font-lock-keyword} face.
 For more information about queries, patterns, and capture names, see
 @ref{Pattern Matching}.
 
-To setup tree-sitter fontification, a major mode should first set
+To set up tree-sitter fontification, a major mode should first set
 @code{treesit-font-lock-settings} with the output of
 @code{treesit-font-lock-rules}, then call
 @code{treesit-major-mode-setup}.
@@ -4139,15 +4139,15 @@ example:
 
 This function takes a series of @var{query-spec}s, where each
 @var{query-spec} is a @var{query} preceded by one or more
-@var{:keyword}/@var{value} pairs.  Each @var{query} is a
-tree-sitter query in either the string, s-expression or compiled form.
+@var{keyword}/@var{value} pairs.  Each @var{query} is a tree-sitter
+query in either the string, s-expression, or compiled form.
 
 @c FIXME: Cross-ref treesit-font-lock-level to user manual.
-For each @var{query}, the @var{:keyword}/@var{value} pairs that
-precede it add meta information to it.  The @code{:language} keyword
-declares @var{query}'s language.  The @code{:feature} keyword sets the
-feature name of @var{query}.  Users can control which features are
-enabled with @code{treesit-font-lock-level} and
+For each @var{query}, the @var{keyword}/@var{value} pairs that precede
+it add meta information to it.  The @code{:language} keyword declares
+@var{query}'s language.  The @code{:feature} keyword sets the feature
+name of @var{query}.  Users can control which features are enabled
+with @code{treesit-font-lock-level} and
 @code{treesit-font-lock-feature-list} (described below).  These two
 keywords are mandatory.
 
@@ -4155,9 +4155,9 @@ Other keywords are optional:
 
 @multitable @columnfractions .15 .15 .6
 @headitem Keyword @tab Value @tab Description
-@item @code{:override} @tab nil
+@item @code{:override} @tab @code{nil}
 @tab If the region already has a face, discard the new face
-@item @tab t @tab Always apply the new face
+@item @tab @code{t} @tab Always apply the new face
 @item @tab @code{append} @tab Append the new face to existing ones
 @item @tab @code{prepend} @tab Prepend the new face to existing ones
 @item @tab @code{keep} @tab Fill-in regions without an existing face
@@ -4171,11 +4171,11 @@ fontification, capture names in @var{query} should be face names like
 with that face.
 
 @findex treesit-fontify-with-override
-Capture names can also be function names, in which case the function
+A capture name can also be a function name, in which case the function
 is called with 4 arguments: @var{node} and @var{override}, @var{start}
 and @var{end}, where @var{node} is the node itself, @var{override} is
-the override property of the rule which captured this node, and
-@var{start} and @var{end} limits the region in which this function
+the @code{:override} property of the rule which captured this node,
+and @var{start} and @var{end} limit the region which this function
 should fontify.  (If this function wants to respect the @var{override}
 argument, it can use @code{treesit-fontify-with-override}.)
 
@@ -4211,9 +4211,9 @@ Some of these features warrant some explanation: @code{definition}
 highlights whatever is being defined, e.g., the function name in a
 function definition, the struct name in a struct definition, the
 variable name in a variable definition; @code{assignment} highlights
-the whatever is being assigned to, e.g., the variable or field in an
+whatever is being assigned to, e.g., the variable or field in an
 assignment statement; @code{key} highlights keys in key-value pairs,
-e.g., keys in a JSON object, or a Python dictionary; @code{doc}
+e.g., keys in a JSON object or Python dictionary; @code{doc}
 highlights docstrings or doc-comments.
 
 For example, the value of this variable could be:
@@ -4987,7 +4987,7 @@ source indentation commands.  For maximum flexibility, it is possible
 to write a custom indentation function that queries the syntax tree
 and indents accordingly for each language, but that is a lot of work.
 It is more convenient to use the simple indentation engine described
-below: then the major mode needs only to write some indentation rules
+below: then the major mode needs only write some indentation rules,
 and the engine takes care of the rest.
 
 To enable the parser-based indentation engine, either set
@@ -5006,10 +5006,11 @@ more complex indentation engines.
 @cindex indentation rules, for parser-based indentation
 
 @defvar treesit-simple-indent-rules
-This local variable stores indentation rules for every language.  It is
-a list of the form: @w{@code{(@var{language} . @var{rules})}}, where
-@var{language} is a language symbol, and @var{rules} is a list of the
-form @w{@code{(@var{matcher} @var{anchor} @var{offset})}}.
+This local variable stores indentation rules for every language.  It
+is an alist with elements of the form @w{@code{(@var{language}
+. @var{rules})}}, where @var{language} is a language symbol, and
+@var{rules} is a list with elements of the form
+@w{@code{(@var{matcher} @var{anchor} @var{offset})}}.
 
 First, Emacs passes the smallest tree-sitter node at the beginning of
 the current line to @var{matcher}; if it returns non-@code{nil}, this
@@ -5043,14 +5044,14 @@ anchors.
 
 @defvar treesit-simple-indent-presets
 This is a list of defaults for @var{matcher}s and @var{anchor}s in
-@code{treesit-simple-indent-rules}.  Each of them represents a function
-that takes 3 arguments: @var{node}, @var{parent} and @var{bol}.  The
-available default functions are:
+@code{treesit-simple-indent-rules}.  Each of them represents a
+function that takes 3 arguments: @var{node}, @var{parent}, and
+@var{bol}.  The available default functions are:
 
 @ftable @code
 @item no-node
 This matcher is a function that is called with 3 arguments:
-@var{node}, @var{parent}, and @var{bol}, and returns non-@code{nil},
+@var{node}, @var{parent}, and @var{bol}.  It returns non-@code{nil},
 indicating a match, if @var{node} is @code{nil}, i.e., there is no
 node that starts at @var{bol}.  This is the case when @var{bol} is on
 an empty line or inside a multi-line string, etc.
@@ -5066,6 +5067,12 @@ This matcher is a function of one argument, @var{type}; it returns a
 function that is called with 3 arguments: @var{node}, @var{parent},
 and @var{bol}, and returns non-@code{nil} if @var{node}'s type matches
 regexp @var{type}.
+
+@item field-is
+This matcher is a function of one argument, @var{name}; it returns a
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} if @var{node}'s field name
+in @var{parent} matches regexp @var{name}.
 
 @item query
 This matcher is a function of one argument, @var{query}; it returns a
@@ -5107,30 +5114,53 @@ of @var{node-type}, @var{parent-type}, and @var{grandparent-type} is
 @item comment-end
 This matcher is a function that is called with 3 arguments:
 @var{node}, @var{parent}, and @var{bol}, and returns non-@code{nil} if
-point is before a comment ending token.  Comment ending tokens are
-defined by regular expression @code{comment-end-skip}
+point is before a comment-ending token.  Comment-ending tokens are
+defined by regexp @code{comment-end-skip}.
+
+@item catch-all
+This matcher is a function that is called with 3 arguments:
+@var{node}, @var{parent}, and @var{bol}.  It always returns
+non-@code{nil}, indicating a match.
 
 @item first-sibling
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the start of the first child
 of @var{parent}.
 
+@item nth-sibling
+This anchor is a function of two arguments: @var{n}, and an optional
+argument @var{named}.  It returns a function that is called with 3
+arguments: @var{node}, @var{parent}, and @var{bol}, and returns the
+start of the @var{n}th child of @var{parent}.  If @var{named} is
+non-@code{nil}, only named children are counted (@pxref{tree-sitter
+named node, named node}).
+
 @item parent
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the start of @var{parent}.
+
+@item grand-parent
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of @var{parent}'s
+parent.
+
+@item great-grand-parent
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of @var{parent}'s
+parent's parent.
 
 @item parent-bol
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-space character
 on the line which @var{parent}'s start is on.
 
-@item parent-bol
+@item standalone-parent
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}.  It finds the first ancestor node
-(parent, grandparent, etc) of @var{node} that starts on its own line,
-and return the start of that node.  ``Starting on its own line'' means
-there is only whitespace character before the node on the line which
-the node's start is on.
+(parent, grandparent, etc.@:) of @var{node} that starts on its own
+line, and return the start of that node.  ``Starting on its own line''
+means there is only whitespace character before the node on the line
+which the node's start is on.
 
 @item prev-sibling
 This anchor is a function that is called with 3 arguments: @var{node},
@@ -5160,14 +5190,14 @@ expression @code{comment-start-skip}.  This function assumes
 
 @item prev-adaptive-prefix
 This anchor is a function that is called with 3 arguments: @var{node},
-@var{parent}, and @var{bol}.  It tries to go to the beginning of the
-previous non-empty line, and matches @code{adaptive-fill-regexp}.  If
-there is a match, this function returns the end of the match,
-otherwise it returns nil.  However, if the current line begins with a
-prefix (e.g., ``-''), return the beginning of the prefix of the
-previous line instead, so that the two prefixes aligns.  This anchor
-is useful for a @code{indent-relative}-like indent behavior for block
-comments.
+@var{parent}, and @var{bol}.  It tries to match
+@code{adaptive-fill-regexp} to the text at the beginning of the
+previous non-empty line.  If there is a match, this function returns
+the end of the match, otherwise it returns @code{nil}.  However, if
+the current line begins with a prefix (e.g., @samp{-}), return the
+beginning of the prefix of the previous line instead, so that the two
+prefixes align.  This anchor is useful for an
+@code{indent-relative}-like indent behavior for block comments.
 
 @end ftable
 @end defvar
@@ -5178,14 +5208,14 @@ comments.
 Here are some utility functions that can help writing parser-based
 indentation rules.
 
-@defun treesit-check-indent mode
-This function checks the current buffer's indentation against major
+@deffn Command treesit-check-indent mode
+This command checks the current buffer's indentation against major
 mode @var{mode}.  It indents the current buffer according to
 @var{mode} and compares the results with the current indentation.
 Then it pops up a buffer showing the differences.  Correct
 indentation (target) is shown in green color, current indentation is
 shown in red color.  @c Are colors customizable? faces?
-@end defun
+@end deffn
 
 It is also helpful to use @code{treesit-inspect-mode} (@pxref{Language
 Grammar}) when writing indentation rules.

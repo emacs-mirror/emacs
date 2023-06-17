@@ -8115,10 +8115,9 @@ than one error handler.  When an error occurs, the first applicable
 handler is run.
 
 Lastly, the first argument to the @code{condition-case} expression,
-the @var{var} argument, is sometimes bound to a variable that
-contains information about the error.  However, if that argument is
-nil, as is the case in @code{kill-region}, that information is
-discarded.
+the @var{var} argument, is sometimes bound to a variable that contains
+information about the error.  However, if that argument is @code{nil},
+as is the case in @code{kill-region}, that information is discarded.
 
 @need 1200
 In brief, in the @code{kill-region} function, the code
