@@ -57,6 +57,7 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->debugMixin));
   CHECKL(FUNCHECK(klass->totalSize));
   CHECKL(FUNCHECK(klass->freeSize));
+  CHECKL(FUNCHECK(klass->addrObject));
 
   /* Check that pool classes overide sets of related methods. */
   CHECKL((klass->init == PoolAbsInit) ==
@@ -302,6 +303,21 @@ Size PoolFreeSize(Pool pool)
   return Method(Pool, pool, freeSize)(pool);
 }
 
+
+/* PoolAddrObject -- return base pointer from interior pointer
+ *
+ * Note: addr is not necessarily inside the pool, even though
+ * mps_addr_object dispatches via the tract table.  This allows this
+ * function to be used more generally internally.  The pool should
+ * check (it has to anyway).
+ */
+
+Res PoolAddrObject(Addr *pReturn, Pool pool, Addr addr)
+{
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  return Method(Pool, pool, addrObject)(pReturn, pool, addr);
+}
 
 /* PoolDescribe -- describe a pool */
 

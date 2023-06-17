@@ -173,6 +173,7 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->debugMixin = PoolNoDebugMixin;
   klass->totalSize = PoolNoSize;
   klass->freeSize = PoolNoSize;
+  klass->addrObject = PoolTrivAddrObject;
   klass->sig = PoolClassSig;
   AVERT(PoolClass, klass);
 }
@@ -473,6 +474,16 @@ Size PoolNoSize(Pool pool)
   AVERT(Pool, pool);
   NOTREACHED;
   return UNUSED_SIZE;
+}
+
+
+Res PoolTrivAddrObject(Addr *pReturn, Pool pool, Addr addr)
+{
+  AVERT(Pool, pool);
+  AVER(pReturn != NULL);
+  UNUSED(addr);
+
+  return ResUNIMPL;
 }
 
 
