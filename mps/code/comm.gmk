@@ -254,6 +254,7 @@ LIB_TARGETS=mps.a mpsplan.a
 
 TEST_TARGETS=\
     abqtest \
+    addrobj \
     airtest \
     amcss \
     amcsshe \
@@ -447,6 +448,9 @@ ifdef VARIETY
 
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/addrobj: $(PFM)/$(VARIETY)/addrobj.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
 	$(FMTSCMOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
