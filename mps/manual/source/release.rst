@@ -42,10 +42,15 @@ New features
    experimental: the implementation is likely to change in future
    versions of the MPS. See :ref:`design-monitor`.
 
+#. The newly-public **transforms** feature updates references to a set
+   of objects throughout the automatically managed portion of the
+   heap, allowing them to be replaced by new versions. See
+   :ref:`topic-transform`.
+
 #. The new function :c:func:`mps_pool_walk` visits all areas of
    :term:`formatted objects` in a pool using the
-   :ref:`topic-scanning-protocol`. This allows the client program to
-   safely update references in the visited objects.
+   :ref:`topic-scanning-protocol`, support hot reloading and
+   serialization.  See :ref:`design-walk`.
 
 #. An :term:`allocation point` for a pool belonging to the class
    :ref:`pool-amc` can now be configured so that allocations do not

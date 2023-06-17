@@ -851,6 +851,15 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
 /* Misc interface */
 extern mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr);
 
+/* Transforms interface. */
+
+typedef struct mps_transform_s *mps_transform_t;
+extern mps_res_t mps_transform_create(mps_transform_t *, mps_arena_t);
+extern mps_res_t mps_transform_add_oldnew(mps_transform_t, mps_addr_t *, mps_addr_t *, size_t);
+extern mps_res_t mps_transform_apply(mps_bool_t *, mps_transform_t);
+extern void mps_transform_destroy(mps_transform_t);
+
+
 #endif /* mps_h */
 
 
