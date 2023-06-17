@@ -214,6 +214,7 @@ MPMCOMMON = \
     trace.c \
     traceanc.c \
     tract.c \
+    trans.c \
     tree.c \
     version.c \
     vm.c \
@@ -295,7 +296,8 @@ TEST_TARGETS=\
     teletest \
     walkt0 \
     zcoll \
-    zmess
+    zmess \
+    ztfm
 
 # This target records programs that we were once able to build but
 # can't at the moment:
@@ -574,6 +576,9 @@ $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/ztfm: $(PFM)/$(VARIETY)/ztfm.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \

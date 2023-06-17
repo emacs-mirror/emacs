@@ -100,7 +100,8 @@ TEST_TARGETS=\
     teletest.exe \
     walkt0.exe \
     zcoll.exe \
-    zmess.exe
+    zmess.exe \
+    ztfm.exe
 
 # Stand-alone programs go in EXTRA_TARGETS if they should always be
 # built, or in OPTIONAL_TARGETS if they should only be built if
@@ -171,6 +172,7 @@ MPMCOMMON=\
     [trace] \
     [traceanc] \
     [tract] \
+    [trans] \
     [tree] \
     [version] \
     [vm] \

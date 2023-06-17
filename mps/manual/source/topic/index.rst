@@ -26,6 +26,7 @@ Reference
     debugging
     telemetry
     weak
+    transform
     plinth
     platform
     porting

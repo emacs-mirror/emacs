@@ -222,9 +222,6 @@ $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
 $(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\cvmicv.exe: $(PFM)\$(VARIETY)\cvmicv.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
-
 $(PFM)\$(VARIETY)\djbench.exe: $(PFM)\$(VARIETY)\djbench.obj \
 	$(TESTLIBOBJ) $(TESTTHROBJ)
 

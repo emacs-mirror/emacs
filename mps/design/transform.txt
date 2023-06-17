@@ -1,0 +1,158 @@
+.. mode: -*- rst -*-
+
+
+Transforms
+==========
+
+:Tag: design.mps.transform
+:Author: Richard Brooksby
+:Date: 2012-09-04
+:Status: complete
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: transforms; design
+
+
+Introduction
+------------
+
+This document describes the Transform mechanism of the Memory Pool System.
+Transforms allow the client code to replace a set of object references on the
+heap.
+
+The readership of this document is any developer intending to modify the
+Transform implementation.
+
+
+Background
+----------
+
+Göran Rydqvist of Configura originally expressed the requirement for the
+MPS to support the change of layout of objects in CET [GR_2010-02-25]_.
+Ravenbrook proposed several methods [RHSK_2010-09-21]_ including:
+
+    If you need to add fields, then use a special new MPS function (that
+    doesn't exist yet)::
+
+        mps_arena_transform_objects(&my_transform_function);
+
+    This traverses the object graph, lets your transform_function
+    basically ``realloc()`` the field-block, and MPS fixes up all
+    references from other objects to point to the new field-block.
+
+    Unfortunately, this idea is probably killed off by ambiguous
+    references :-(. You could only run the patch if you could
+    *guarantee* there are no ambiguous refs you want. In other words,
+    any object refs on the stack would become instant death (or worse:
+    subtle slow death :-). Therefore we don't really like this idea
+    (unfortunately). There are safer and simpler ways to do it, we
+    think...
+
+which Configura selected [GR_2010-09-22]_.
+
+An initial implementation was made by RHSK and released to Configura as
+"experimental", however Configura put it into production.
+
+During work on adapting the MPS to 64-bit Windows, RB reformed and
+reimplemented transforms based on RHSK's original work.
+
+
+Overview
+--------
+
+The client program builds a table mapping "old" references to "new" ones
+in a ``Transform`` object. This is then "applied", causing a garbage
+collection trace in which the fix function is substituted by
+``transformFix()``, which spots "old" references and replaces them with
+"new" ones, in addition to applying the usual garbage collection fix
+function.
+
+This design was arrived at after some pain.  The MPS isn't really
+designed for generalized transformation of the object graph, and the
+pools generally assume that they're doing a garbage collection when
+they're asked to condemn, scan, fix, and reclaim stuff.  This makes it
+very hard to apply the transform without also doing a garbage
+collection.  Changing this would require a significant reworking of
+the MPS to generalise its ideas, and would bloat the pool classes.
+
+
+Not yet written
+---------------
+
+* Ambiguous references and aborting the transform.
+
+* How ambiguous references are avoided using ``arena->stackWarm``.
+
+* Why it does a garbage collection and not just a transforming scan.
+  [This is partly explained in Overview_ above.  RB 2023-06-16]
+
+* Nice side-effect is that "old" objects are killed.
+
+* Why the arena must be parked [When writing this up see
+  impl.c.trans.park and impl.c.trans.assume.parked. RB 2023-06-16].
+
+* Why we can't transform arbitrary references (see
+  impl.c.trans.old-white).
+
+
+References
+----------
+
+.. [GR_2010-02-25]
+   "Incremental object" (e-mail);
+   Göran Rydqvist; Configura; 2010-02-25;
+   <https://info.ravenbrook.com/mail/2010/02/25/16-35-45/0/>.
+
+.. [RHSK_2010-09-21]
+   "Incremental object ideas" (e-mail);
+   Richard Kistruck; Ravenbrook Limited; 2010-09-21;
+   <https://info.ravenbrook.com/mail/2010/09/21/16-54-59/0/>.
+
+.. [GR_2010-09-22]
+   "Incremental object ideas" (e-mail);
+   Göran Rydqvist; Configura; 2010-09-22;
+   <https://info.ravenbrook.com/mail/2010/09/22/09-27-53/0/>.
+
+
+Document History
+----------------
+
+- 2012-09-04 RB_ First draft.
+
+- 2022-01-23 GDR_ Converted to reStructuredText.
+
+- 2023-06-16 RB_ Updated and improved in order to make Transforms part
+  of the public MPS.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2012–2023 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
