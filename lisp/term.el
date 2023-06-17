@@ -948,6 +948,9 @@ underlying shell."
     (define-key map [next] 'term-send-next)
     (define-key map [xterm-paste] #'term--xterm-paste)
     (define-key map [?\C-/] #'term-send-C-_)
+    (define-key map [?\C- ] #'term-send-C-@)
+    (define-key map [?\C-\M-/] #'term-send-C-M-_)
+    (define-key map [?\C-\M- ] #'term-send-C-M-@)
 
     (when term-bind-function-keys
       (dotimes (key 21)
@@ -1411,6 +1414,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-send-del   () (interactive) (term-send-raw-string "\e[3~"))
 (defun term-send-backspace  () (interactive) (term-send-raw-string "\C-?"))
 (defun term-send-C-_  () (interactive) (term-send-raw-string "\C-_"))
+(defun term-send-C-@  () (interactive) (term-send-raw-string "\C-@"))
+(defun term-send-C-M-_  () (interactive) (term-send-raw-string "\e\C-_"))
+(defun term-send-C-M-@  () (interactive) (term-send-raw-string "\e\C-@"))
 
 (defun term-send-function-key ()
   "If bound to a function key, this will send that key to the underlying shell."
