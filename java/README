@@ -906,3 +906,144 @@ of memory.
 Otherwise, it applies the specified window attributes and returns the
 handle of the new window.
 }
+
+
+
+DRAWABLES, CURSORS AND HANDLES
+
+Each widget created by Emacs corresponds to a single ``window'', which
+has its own backing store.  This arrangement is quite similar to X.
+
+C code does not directly refer to the EmacsView widgets that implement
+the UI logic behind windows.  Instead, its handles refer to
+EmacsWindow structures, which contain the state necessary to interact
+with the widgets in an orderly and synchronized manner.
+
+Like X, both pixmaps and windows are drawable resources, and the same
+graphics operations can be applied to both.  Thus, a separate
+EmacsPixmap structure is used to wrap around Android Bitmap resources,
+and the Java-level graphics operation functions are capable of
+operating on them both.
+
+Finally, graphics contexts are maintained on both the C and Java
+levels; the C state recorded in `struct android_gc' is kept in sync
+with the Java state in the GContext handle's corresponding EmacsGC
+structure, and cursors are used through handles that refer to
+EmacsCursor structures that hold system PointerIcons.
+
+In all cases, the interfaces provided are identical to X.
+
+
+
+EVENT LOOP
+
+In a typical Android application, the event loop is managed by the
+operating system, and callbacks (implemented through overriding
+separate functions in widgets) are run by the event loop wherever
+necessary.  The thread which runs the event loop is also the only
+thread capable of creating and manipulating widgets and activities,
+and is referred to as the ``UI thread''.
+
+These callbacks are used by Emacs to write representations of X-like
+events to a separate event queue, which are then read from Emacs's own
+event loop running in a separate thread.  This is accomplished through
+replacing `select' by a function which waits for the event queue to be
+occupied, in addition to any file descriptors that `select' would
+normally wait for.
+
+Conversely, Emacs's event loop sometimes needs to send events to the
+UI thread.  These events are implemented as tiny fragments of code,
+which are run as they are received by the main thread.
+
+A typical example is `displayToast', which is implemented in
+EmacsService.java:
+
+  public void
+  displayToast (final String string)
+  {
+    runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  Toast toast;
+
+	  toast = Toast.makeText (getApplicationContext (),
+				  string, Toast.LENGTH_SHORT);
+	  toast.show ();
+	}
+      });
+  }
+
+Here, the variable `string' is used by a nested function.  This nested
+function contains a copy of that variable, and is run on the main
+thread using the function `runOnUiThread', in order to display a short
+status message on the display.
+
+When Emacs needs to wait for the nested function to finish, it uses a
+mechanism implemented in `syncRunnable'.  This mechanism first calls a
+deadlock avoidance mechanism, then runs a nested function on the UI
+thread, which is expected to signal itself as a condition variable
+upon completion.  It is typically used to allocate resources that can
+only be allocated from the UI thread, or to obtain non-thread-safe
+information.  The following function is an example; it returns a new
+EmacsView widget corresponding to the provided window:
+
+  public EmacsView
+  getEmacsView (final EmacsWindow window, final int visibility,
+		final boolean isFocusedByDefault)
+  {
+    Runnable runnable;
+    final EmacsHolder<EmacsView> view;
+
+    view = new EmacsHolder<EmacsView> ();
+
+    runnable = new Runnable () {
+	public void
+	run ()
+	{
+	  synchronized (this)
+	    {
+	      view.thing = new EmacsView (window);
+	      view.thing.setVisibility (visibility);
+
+	      /* The following function is only present on Android 26
+		 or later.  */
+	      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+		view.thing.setFocusedByDefault (isFocusedByDefault);
+
+	      notify ();
+	    }
+	}
+      };
+
+    syncRunnable (runnable);
+    return view.thing;
+  }
+
+As no value can be directly returned from the nested function, a
+separate container object is used to hold the result after the
+function finishes execution.  Note the type name inside the angle
+brackets: this type is substituted into the class definition as it is
+used; a definition such as:
+
+public class Foo<T>
+{
+  T bar;
+};
+
+can not be used alone:
+
+  Foo holder; /* Error! */
+
+but must have a type specified:
+
+  Foo<Object> holder;
+
+in which case the effective definition is:
+
+public class Foo
+{
+  Object bar;
+};
+
