@@ -1021,7 +1021,7 @@ leading double colon is not added."
                               (:match "\\`\\$[#\"'`:?]" @global_var))
                              ;; ?' ?" ?` are character literals.
                              ((character) @char
-                              (:match "\\`?[#\"'`:?]" @char))
+                              (:match "\\`\\?[#\"'`:?]" @char))
                              ;; Symbols like :+, :<=> or :foo=.
                              ((simple_symbol) @symbol
                               (:match "\\s." @symbol))
