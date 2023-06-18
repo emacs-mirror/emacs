@@ -1084,9 +1084,9 @@ Now we can introduce the @dfn{query functions}.
 
 @defun treesit-query-capture node query &optional beg end node-only
 This function matches patterns in @var{query} within @var{node}.  The
-argument @var{query} can be either a string, an s-expression, or a
-compiled query object.  For now, we focus on the string syntax;
-s-expression syntax and compiled queries are described at the end of
+argument @var{query} can be either an s-expression, a string, or a
+compiled query object.  For now, we focus on the s-expression syntax;
+string syntax and compiled queries are described at the end of
 the section.
 
 The argument @var{node} can also be a parser or a language symbol.  A
@@ -1118,8 +1118,8 @@ For example, suppose @var{node}'s text is @code{1 + 2}, and
 @example
 @group
 (setq query
-      "(binary_expression
-        (number_literal) @@number-in-exp) @@biexp")
+      '((binary_expression
+         (number_literal) @@number-in-exp) @@biexp)
 @end group
 @end example
 
@@ -1140,8 +1140,8 @@ For example, it could have two top-level patterns:
 @example
 @group
 (setq query
-      "(binary_expression) @@biexp
-       (number_literal)  @@number @@biexp")
+      '((binary_expression) @@biexp
+        (number_literal) @@number @@biexp)
 @end group
 @end example
 
@@ -1199,23 +1199,23 @@ field, say, a @code{function_definition} without a @code{body} field:
 @subheading Quantify node
 
 @cindex quantify node, tree-sitter
-Tree-sitter recognizes quantification operators @samp{*}, @samp{+},
-and @samp{?}.  Their meanings are the same as in regular expressions:
-@samp{*} matches the preceding pattern zero or more times, @samp{+}
-matches one or more times, and @samp{?} matches zero or one times.
+Tree-sitter recognizes quantification operators @samp{:*}, @samp{:+},
+and @samp{:?}.  Their meanings are the same as in regular expressions:
+@samp{:*} matches the preceding pattern zero or more times, @samp{:+}
+matches one or more times, and @samp{:?} matches zero or one times.
 
 For example, the following pattern matches @code{type_declaration}
 nodes that have @emph{zero or more} @code{long} keywords.
 
 @example
-(type_declaration "long"*) @@long-type
+(type_declaration "long" :*) @@long-type
 @end example
 
 The following pattern matches a type declaration that may or may not
 have a @code{long} keyword:
 
 @example
-(type_declaration "long"?) @@long-type
+(type_declaration "long" :?) @@long-type
 @end example
 
 @subheading Grouping
@@ -1225,15 +1225,14 @@ groups and apply quantification operators to them.  For example, to
 express a comma-separated list of identifiers, one could write
 
 @example
-(identifier) ("," (identifier))*
+(identifier) ("," (identifier)) :*
 @end example
 
 @subheading Alternation
 
 Again, similar to regular expressions, we can express ``match any one
-of these patterns'' in a pattern.  The syntax is a list of patterns
-enclosed in square brackets.  For example, to capture some keywords in
-C, the pattern would be
+of these patterns'' in a pattern.  The syntax is a vector of patterns.
+For example, to capture some keywords in C, the pattern would be
 
 @example
 @group
@@ -1248,7 +1247,7 @@ C, the pattern would be
 
 @subheading Anchor
 
-The anchor operator @samp{.} can be used to enforce juxtaposition,
+The anchor operator @code{:anchor} can be used to enforce juxtaposition,
 i.e., to enforce two things to be directly next to each other.  The
 two ``things'' can be two nodes, or a child and the end of its parent.
 For example, to capture the first child, the last child, or two
@@ -1257,19 +1256,19 @@ adjacent children:
 @example
 @group
 ;; Anchor the child with the end of its parent.
-(compound_expression (_) @@last-child .)
+(compound_expression (_) @@last-child :anchor)
 @end group
 
 @group
 ;; Anchor the child with the beginning of its parent.
-(compound_expression . (_) @@first-child)
+(compound_expression :anchor (_) @@first-child)
 @end group
 
 @group
 ;; Anchor two adjacent children.
 (compound_expression
  (_) @@prev-child
- .
+ :anchor
  (_) @@next-child)
 @end group
 @end example
@@ -1285,8 +1284,8 @@ example, with the following pattern:
 @example
 @group
 (
- (array . (_) @@first (_) @@last .)
- (#equal @@first @@last)
+ (array :anchor (_) @@first (_) @@last :anchor)
+ (:equal @@first @@last)
 )
 @end group
 @end example
@@ -1294,22 +1293,22 @@ example, with the following pattern:
 @noindent
 tree-sitter only matches arrays where the first element is equal to
 the last element.  To attach a predicate to a pattern, we need to
-group them together.  A predicate always starts with a @samp{#}.
-Currently there are three predicates: @code{#equal}, @code{#match},
-and @code{#pred}.
+group them together.  Currently there are three predicates:
+@code{:equal}, @code{:match}, and @code{:pred}.
 
-@deffn Predicate equal arg1 arg2
+@deffn Predicate :equal arg1 arg2
 Matches if @var{arg1} is equal to @var{arg2}.  Arguments can be either
 strings or capture names.  Capture names represent the text that the
 captured node spans in the buffer.
 @end deffn
 
-@deffn Predicate match regexp capture-name
+@deffn Predicate :match regexp capture-name
 Matches if the text that @var{capture-name}'s node spans in the buffer
-matches regular expression @var{regexp}.  Matching is case-sensitive.
+matches regular expression @var{regexp}, given as a string literal.
+Matching is case-sensitive.
 @end deffn
 
-@deffn Predicate pred fn &rest nodes
+@deffn Predicate :pred fn &rest nodes
 Matches if function @var{fn} returns non-@code{nil} when passed each
 node in @var{nodes} as arguments.
 @end deffn
@@ -1318,28 +1317,13 @@ Note that a predicate can only refer to capture names that appear in
 the same pattern.  Indeed, it makes little sense to refer to capture
 names in other patterns.
 
-@heading S-expression patterns
+@heading String patterns
 
-@cindex tree-sitter patterns as sexps
-@cindex patterns, tree-sitter, in sexp form
-Besides strings, Emacs provides an s-expression based syntax for
-tree-sitter patterns.  It largely resembles the string-based syntax.
-For example, the following query
-
-@example
-@group
-(treesit-query-capture
- node "(addition_expression
-        left: (_) @@left
-        \"+\" @@plus-sign
-        right: (_) @@right) @@addition
-
-        [\"return\" \"break\"] @@keyword")
-@end group
-@end example
-
-@noindent
-is equivalent to
+@cindex tree-sitter patterns as strings
+@cindex patterns, tree-sitter, in string form
+Besides s-expressions, Emacs allows the tree-sitter's native query
+syntax to be used by writing them as strings.  It largely resembles
+the s-expression syntax.  For example, the following query
 
 @example
 @group
@@ -1353,36 +1337,40 @@ is equivalent to
 @end group
 @end example
 
-Most patterns can be written directly as strange but nevertheless
-valid s-expressions.  Only a few of them need modification:
-
-@itemize
-@item
-Anchor @samp{.} is written as @code{:anchor}.
-@item
-@samp{?} is written as @samp{:?}.
-@item
-@samp{*} is written as @samp{:*}.
-@item
-@samp{+} is written as @samp{:+}.
-@item
-@code{#equal} is written as @code{:equal}.  In general, predicates
-change their @samp{#} to @samp{:}.
-@end itemize
-
-For example,
+@noindent
+is equivalent to
 
 @example
 @group
-"(
-  (compound_expression . (_) @@first (_)* @@rest)
-  (#match \"love\" @@first)
-  )"
+(treesit-query-capture
+ node "(addition_expression
+        left: (_) @@left
+        \"+\" @@plus-sign
+        right: (_) @@right) @@addition
+
+        [\"return\" \"break\"] @@keyword")
 @end group
 @end example
 
-@noindent
-is written in s-expression syntax as
+Most patterns can be written directly as s-expressions inside a string.
+Only a few of them need modification:
+
+@itemize
+@item
+Anchor @code{:anchor} is written as @samp{.}.
+@item
+@samp{:?} is written as @samp{?}.
+@item
+@samp{:*} is written as @samp{*}.
+@item
+@samp{:+} is written as @samp{+}.
+@item
+@code{:equal}, @code{:match} and @code{:pred} are written as
+@code{#equal}, @code{#match} and @code{#pred}, respectively.
+In general, predicates change their @samp{:} to @samp{#}.
+@end itemize
+
+For example,
 
 @example
 @group
@@ -1390,6 +1378,18 @@ is written in s-expression syntax as
    (compound_expression :anchor (_) @@first (_) :* @@rest)
    (:match "love" @@first)
    ))
+@end group
+@end example
+
+@noindent
+is written in string form as
+
+@example
+@group
+"(
+  (compound_expression . (_) @@first (_)* @@rest)
+  (#match \"love\" @@first)
+  )"
 @end group
 @end example
 
@@ -1413,7 +1413,7 @@ validate and debug the query.
 @end defun
 
 @defun treesit-query-language query
-This function return the language of @var{query}.
+This function returns the language of @var{query}.
 @end defun
 
 @defun treesit-query-expand query
@@ -1605,7 +1605,7 @@ ranges for @acronym{CSS} and JavaScript parsers:
 (setq css-range
       (treesit-query-range
        'html
-       "(style_element (raw_text) @@capture)"))
+       '((style_element (raw_text) @@capture))))
 (treesit-parser-set-included-ranges css css-range)
 @end group
 
@@ -1614,7 +1614,7 @@ ranges for @acronym{CSS} and JavaScript parsers:
 (setq js-range
       (treesit-query-range
        'html
-       "(script_element (raw_text) @@capture)"))
+       '((script_element (raw_text) @@capture))))
 (treesit-parser-set-included-ranges js js-range)
 @end group
 @end example
