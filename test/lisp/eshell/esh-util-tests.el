@@ -46,9 +46,15 @@
 
 (ert-deftest esh-util-test/eshell-stringify/list ()
   "Test that `eshell-stringify' correctly stringifies lists."
+  ;; These tests depend on the particulars of how Emacs pretty-prints
+  ;; lists; changes to the pretty-printer could result in different
+  ;; whitespace.  We don't care about that, except to ensure there's
+  ;; no leading/trailing whitespace.
   (should (equal (eshell-stringify '(1 2 3)) "(1 2 3)"))
-  (should (equal (eshell-stringify '((1 2) (3 . 4)))
-                 "((1 2)\n (3 . 4))")))
+  (should (equal (replace-regexp-in-string
+                  (rx (+ (or space "\n"))) " "
+                  (eshell-stringify '((1 2) (3 . 4))))
+                 "((1 2) (3 . 4))")))
 
 (ert-deftest esh-util-test/eshell-stringify/complex ()
   "Test that `eshell-stringify' correctly stringifies complex objects."
