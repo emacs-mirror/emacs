@@ -1624,7 +1624,7 @@ ns_free_frame_resources (struct frame *f)
     [f->output_data.ns->miniimage release];
 
   [[view window] close];
-  [view release];
+  [view removeFromSuperview];
 
   xfree (f->output_data.ns);
   f->output_data.ns = NULL;
