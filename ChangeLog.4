@@ -1,3 +1,1000 @@
+2023-06-18  Mattias Engdegård  <mattiase@acm.org>
+
+	Describe primarily the Emacs s-exp dialect for treesit queries
+
+	* doc/lispref/parsing.texi (Pattern Matching, Multiple Languages):
+	Writing tree-sitter queries as Emacs s-expressions is much more
+	convenient than using the native query notation inside a string,
+	so it makes sense to base the documentation on the former dialect
+	(bug#64017).
+
+2023-06-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix documentation of :predicate in 'define-globalized-minor-mode'
+
+	* doc/lispref/modes.texi (Defining Minor Modes):
+	* lisp/emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Document that :predicate creates a customizable user option.
+	(Bug#64048)
+
+2023-06-17  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Revert "Fix some tree-sitter :match regexps"
+
+	This reverts commit 95091b77f0bbb2ae1aa94ef4a413626e7d434d58
+	of 2023-06-17, mistakenly pushed to emacs-29.
+
+	The patch will be installed on master instead, and backported later,
+	after Emacs 29.1 is released (bug#64019).
+
+	Do not merge to master.
+
+2023-06-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Require ls-lisp in Tramp only when needed
+
+	* lisp/net/tramp-compat.el (ls-lisp): Require only on MS Windows.
+	(Bug#64124)
+
+	* lisp/net/tramp-sh.el (ls-lisp-use-insert-directory-program): Declare.
+	(tramp-sh-handle-insert-directory): Simplify.
+
+	* lisp/net/tramp.el (ls-lisp-use-insert-directory-program): Declare.
+	(tramp-handle-insert-directory): Require ls-lisp.  Simplify.
+
+2023-06-17  Alan Mackenzie  <acm@muc.de>
+
+	After minibuffer action, don't make the minibuffer current
+
+	This fixes bug#63967.
+
+	* src/minibuf.c (minibuffer_unwind): After restoring the next
+	minibuffer outwards to the mini window (when
+	enable-recursive-minibuffers is non-nil), don't call
+	Fset_frame_selected_window, which used to set the current
+	window to be the mini window.
+
+2023-06-17  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Fix some tree-sitter :match regexps
+
+	The shy groups were caught by modified versions of the GNU ELPA
+	packages xr and relint:
+	- https://github.com/mattiase/xr/pull/6
+	- https://github.com/mattiase/relint/pull/14
+
+	* lisp/progmodes/ruby-ts-mode.el (ruby-ts--s-p-query): Quote special
+	character in regexp.
+	* lisp/progmodes/java-ts-mode.el (java-ts-mode--font-lock-settings):
+	* lisp/progmodes/js.el (js--plain-method-re):
+	(js--treesit-font-lock-settings):
+	* lisp/progmodes/rust-ts-mode.el (rust-ts-mode--font-lock-settings):
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--font-lock-settings): Replace character
+	alternative [\\d], which matches '\' or 'd', with the most likely
+	intention [0-9].  Fix shy groups mistyped as optional colons.
+	Remove unneeded numbered :match group in rust-ts-mode (bug#64019).
+
+2023-06-17  João Távora  <joaotavora@gmail.com>
+
+	Eglot: fix relative position of coinciding inlay hint overlays (bug#64101)
+
+	Only seems to happen on certain platforms, like Mac OS.  Reason
+	unknown reason so far, but this defensive fix seems safe.
+
+	* lisp/progmodes/eglot.el (eglot--update-hints-1): Explicitly put
+	priority in inlay hint overalys.
+
+2023-06-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix documentation of comment-dwim (bug#64104)
+
+	* lisp/newcomment.el (comment-dwim): Doc fix.
+
+	* doc/emacs/programs.texi (Comment Commands): More accurate
+	description of what 'M-;' does when there's no active region.
+
+2023-06-17  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Fix parsing of dn line if WITHDN is non-nil
+
+	Function `ldap-search' errors out with `wrong-type-argument listp'
+	when called with WITHDN non-nil.
+	* lisp/net/ldap.el (ldap-search-internal): Parse the dn line
+	correctly so that `ldap-search' can grok it.  (Bug#64089)
+
+2023-06-15  Andreas Schwab  <schwab@suse.de>
+
+	* doc/misc/calc.texi (Advanced Math Functions): Correct calc
+	algebraic syntax.
+
+2023-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Consider 'dired-kill-when-opening-new-dired-buffer' in mouse clicks
+
+	* lisp/dired.el (dired-mouse-find-file): Honor the value of
+	'dired-kill-when-opening-new-dired-buffer'.  (Bug#64079)
+
+2023-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Gamma function definition in calc.texi
+
+	* doc/misc/calc.texi (Advanced Math Functions): Fix definition
+	of Gamma function.  Use @sup in @infoline lines.  (Bug#64077)
+
+2023-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix subscripts in the Calc manual
+
+	* doc/misc/calc.texi (Musical Notes): Use @sub instead of TeX-only
+	'_' notation.  For the details, see the discussion in
+	https://lists.gnu.org/archive/html/emacs-devel/2023-06/msg00096.html.
+
+2023-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'declare' forms
+
+	* lisp/simple.el (read-extended-command-predicate): Mention the
+	'(declare completion ...' form in the doc string.
+
+	* doc/lispref/functions.texi (Declare Form): Clarify
+	'completion-predicate' and 'modes'; add cross-references.
+	(Bug#64045)
+
+2023-06-13  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Improve tree-sitter docs
+
+	* doc/lispref/positions.texi (List Motion): Incorporate more
+	accurate description of treesit-defun-type-regexp from
+	'(elisp) Tree-sitter Major Modes', replacing that duplicate
+	entry (bug#64018).
+
+	* doc/lispref/parsing.texi (Parsing Program Source)
+	(Language Grammar, Using Parser, Retrieving Nodes)
+	(Accessing Node Information, Pattern Matching, Multiple Languages):
+	(Tree-sitter Major Modes):
+	* doc/lispref/modes.texi (Parser-based Font Lock): Improve wording,
+	grammar, punctuation, and markup.  Fix typos.
+	(Parser-based Indentation): Ditto.  Document indent rule presets
+	field-is, catch-all, nth-sibling, grand-parent, and
+	great-grand-parent.
+
+	* lisp/treesit.el (treesit-simple-indent-presets): Mention field-is,
+	catch-all, nth-sibling, grand-parent, great-grand-parent in
+	docstring.
+	(treesit-major-mode-setup, treesit-explore-mode): Improve
+	docstring/commentary grammar.
+
+2023-06-13  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Fix some Texinfo markup in manuals
+
+	* doc/emacs/macos.texi (Mac / GNUstep Customization):
+	* doc/lispintro/emacs-lisp-intro.texi (condition-case):
+	* doc/lispref/control.texi (pcase Macro):
+	* doc/lispref/debugging.texi (Internals of Debugger):
+	* doc/lispref/internals.texi (Building Emacs):
+	* doc/lispref/modes.texi (Imenu):
+	(Parser-based Font Lock, Parser-based Indentation):
+	* doc/lispref/parsing.texi (Retrieving Nodes, Tree-sitter C API):
+	* doc/lispref/processes.texi (Network, Bindat Types):
+	* doc/lispref/searching.texi (Rx Functions):
+	* doc/lispref/text.texi (Replacing):
+	* doc/lispref/windows.texi (Textual Scrolling):
+	* doc/misc/calc.texi (Killing From Stack, Customizing Calc):
+	* doc/misc/cc-mode.texi (Misc Font Locking, List Line-Up):
+	* doc/misc/ede.texi (ede-cpp-root-project)
+	(ede-proj-target-makefile, ede-sourcecode):
+	* doc/misc/ert.texi (Running Tests in Batch Mode):
+	* doc/misc/eudc.texi (Emacs-only Configuration, The Server Hotlist):
+	* doc/misc/eww.texi (Advanced):
+	* doc/misc/flymake.texi (Starting Flymake)
+	(Proc customization variables):
+	* doc/misc/tramp.texi (File name completion):
+	* doc/misc/gnus.texi (Summary Buffer Lines, Gnus Registry Setup)
+	(Fancy splitting to parent, Customizing the IMAP Connection)
+	(Mail Source Specifiers, Agent as Cache): Consistently mark up nil
+	and t as @code.  Also fix the markup and wording of some surrounding
+	text (bug#64016).
+
+	* doc/lispref/display.texi (SVG Images, Icons):
+	* doc/lispref/modes.texi (Customizing Keywords): Prefer ASCII
+	apostrophe over Unicode right single quotation mark.
+
+2023-06-13  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Fix bol/bos anchors in tree-sitter :match regexps
+
+	Further regexp fixes to follow separately (bug#64019#29).
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--font-lock-settings):
+	* lisp/progmodes/cmake-ts-mode.el
+	(cmake-ts-mode--font-lock-settings):
+	* lisp/progmodes/java-ts-mode.el (java-ts-mode--font-lock-settings):
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings):
+	* lisp/progmodes/python.el (python--treesit-settings):
+	* lisp/progmodes/rust-ts-mode.el (rust-ts-mode--font-lock-settings):
+	* lisp/progmodes/sh-script.el (sh-mode--treesit-settings):
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--font-lock-settings):
+	* test/src/treesit-tests.el (treesit-query-api): Anchor :match
+	regexps at beginning/end of string, not line.
+
+2023-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/subr.el (with-restriction): Tweak indent rule
+
+2023-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix setting region in the minibuffer
+
+	* lisp/minibuffer.el (minibuffer-beginning-of-buffer): Fix setting
+	region.  (Bug#64022)
+
+2023-06-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix setting $DBUS_SESSION_BUS_ADDRESS after Emacs has started
+
+	* doc/misc/dbus.texi (Alternative Buses): Explain using
+	$DBUS_SESSION_BUS_ADDRESS after Emacs has started.
+
+	* src/dbusbind.c (XD_DBUS_VALIDATE_BUS_ADDRESS): Use egetenv.
+
+2023-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix tex-mode display-buffer issues
+
+	* lisp/window.el (display-tex-shell-buffer-action): New defcustom.
+	* lisp/textmodes/tex-mode.el (tex-display-shell)
+	(tex-cmd-doc-view, tex-recenter-output-buffer): Use it.
+	(Bug#63956)
+
+2023-06-10  Morgan Smith  <Morgan.J.Smith@outlook.com>
+
+	Add test for when 'completion-auto-help' is 'visible'
+
+	* test/lisp/minibuffer-tests.el (completion-auto-help-test): Add
+	test for when 'completion-auto-help' is 'visible'.  Also test
+	for successful completion message.  (Bug#63913)
+
+2023-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in 'apropos-documentation' after 'eval-buffer'
+
+	* lisp/apropos.el (apropos--map-preloaded-atoms): Support the case
+	where an element of 'load-history' has nil as its car.  (Bug#63881)
+
+2023-06-10  Daniel Martín  <mardani29@yahoo.es>
+
+	Mention indent-rigidly in the Emacs manual
+
+	* doc/emacs/indent.texi (Indentation Commands): Rewrite the first
+	sentence of 'C-x TAB' to mention the command that it executes, and
+	without using passive voice.  (Bug#63997)
+
+2023-06-10  Morgan Smith  <Morgan.J.Smith@outlook.com>
+
+	Don't ding when completion succeeded
+
+	* lisp/minibuffer.el (minibuffer-completion-help): Ensure 'ding'
+	is not called on a successful completion.  Ensure 'ding' is not
+	called on a failure if 'completion-fail-discreetly' is set.
+	Also change "No completions" to "No match" as that is what is
+	used elsewhere.  (Bug#63913)
+
+2023-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of color-related functions
+
+	* doc/lispref/frames.texi (Color Names): Document
+	'color-name-to-rgb' and 'color-dark-p'.
+
+2023-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert "* package.el (package--get-activatable-pkg): Prefer source packages"
+
+	This reverts commit fb87d5008e21d1bc03547c1edf2280fb4cb8311e.
+	It caused problems when new versions of packages are installed
+	without deleting old versions.  (Bug#63757)
+
+2023-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix connection-local user options handling (bug#63300)
+
+	* lisp/files-x.el (connection-local-set-profiles)
+	(connection-local-set-profile-variables): Avoid saving the changed
+	user option to file unless triggered explicitly by user.  (Bug#63300)
+
+2023-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Document 'startup-redirect-eln-cache'
+
+	* doc/lispref/compile.texi (Native Compilation)
+	(Native-Compilation Functions): Document
+	'startup-redirect-eln-cache'.
+
+	* etc/PROBLEMS: Fix last change.
+	* etc/NEWS: Mark 'startup-redirect-eln-cache' as documented.
+
+2023-06-06  Andrea Corallo  <akrl@sdf.org>
+
+	Fix `emacs-lisp-native-compile-and-load' for C-h f (bug#58314)
+
+	* lisp/emacs-lisp/comp.el (comp-write-bytecode-file): New function
+	spilling code from `batch-byte+native-compile'.
+	(batch-byte+native-compile): Make use of.
+	* lisp/progmodes/elisp-mode.el
+	(emacs-lisp-native-compile-and-load): Produce the elc file and ask
+	to have it loaded.
+
+2023-06-06  Theodor Thornhill  <theo@thornhill.no>
+
+	Add 'infer' as a keyword to typescript-ts-mode (bug#63880)
+
+	* lisp/progmodes/typescript-ts-mode.el (typescript-ts-mode--keywords):
+	New keyword.
+
+2023-06-04  Philip Kaludercic  <philipk@posteo.net>
+
+	Revert changes to the order in which package descs are loaded
+
+	* lisp/emacs-lisp/package.el (package-load-all-descriptors):  Remove
+	NOSORT argument to 'directory-files', reverting back to the behaviour
+	as of Emacs 28.  (Bug#63757)
+
+2023-06-04  Spencer Baugh  <sbaugh@janestreet.com>
+
+	Handle point in last file-name component in minibuffer completion
+
+	This is a followup to commit e338a8ac41d4a9fd798dda90275abe75ac071335
+	(Handle point not at EOB in minibuffer-choose-completion).
+	That commit added a heuristic, but the heuristic was insufficient:
+	It still had the original wrong behavior when completing the last
+	file-name component (i.e., the completion category is 'file' and
+	there's no slash after point).  This patch makes the heuristic
+	cover that case as well.
+	* lisp/minibuffer.el (minibuffer-next-completion)
+	(minibuffer-choose-completion): If in file completion and there's no
+	slash after point, clear what's after point when we complete.
+	(Bug#62700)
+
+2023-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid asking redundant question in emacsbug.el
+
+	* lisp/mail/emacsbug.el (report-emacs-bug-hook): Don't ask the
+	question about saving email setup if we cannot save it anyway.
+	(Bug#63816)
+
+2023-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* test/infra/Dockerfile.emba (emacs-base): Don't install gawk.
+
+2023-06-03  Dmitry Gutov  <dmitry@gutov.dev>
+
+	typescript-ts-mode: Add a rule for function_signature
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--font-lock-settings):
+	Add a rule for function_signature (bug#63867)
+
+2023-06-03  Mattias Engdegård  <mattiase@acm.org>
+
+	* admin/unidata/emoji-zwj.awk: Avoid sprint buffer overflow
+
+	Some AWK implementations have a fixed buffer for sprintf; for mawk the
+	default size is 8192 bytes.  Hoist a string concatenation from
+	a sprintf call to avoid running into that limit.  See discussion at
+	https://lists.gnu.org/archive/html/emacs-devel/2023-06/msg00090.html .
+
+	(cherry picked from commit b5f17fe07c6624380ba8d0c7a400a6b89f225209)
+
+2023-06-03  Йордан Миладинов  <yordanm@pm.me>  (tiny change)
+
+	Fix apostrophe handling in rust-ts-mode and go-ts-mode (Bug#63708)
+
+	* lisp/progmodes/rust-ts-mode.el (rust-ts-mode--syntax-propertize):
+	Treat apostrophes as strings if used to define character literals.
+	Treat LT and GT as pairs if used to define type parameters (formerly
+	they were treated as pairs only for type arguments).
+	* lisp/progmodes/go-ts-mode.el (go-ts-mode--syntax-table): Treat
+	apostrophes as strings if used to define rune literals.
+
+2023-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* test/infra/Dockerfile.emba (emacs-base): Install also gawk.
+
+2023-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'python-util-clone-local-variables'
+
+	* lisp/progmodes/python.el (python-util-clone-local-variables):
+	Avoid signaling an error when a local variable is unbound.
+	Patch by Ernesto Alfonso <erjoalgo@gmail.com>.  (Bug#63818)
+
+2023-06-03  kobarity  <kobarity@gmail.com>
+
+	Revert "Enhance Python font-lock to support multilines"
+
+	This reverts commit 4915ca5dd4245a909c046e6691e8d4a1919890c8.
+
+	We have found that there are performance issues when editing a large
+	file.  The issue can be reproduced as follows:
+
+	1. emacs -Q
+	2. Open large Python file (e.g. turtle.py in Python)
+	3. Near the top of the buffer, enter open paren and some characters.
+
+	The above commit extends the region to be font-locked using
+	`python-nav-end-of-statement'.  However, if there are unbalanced
+	parens, it may move point to the end of the buffer.  This causes
+	almost the entire buffer to be font-locked, which is not acceptable
+	for large files.
+
+2023-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix typo in calc.texi
+
+	* doc/misc/calc.texi (Programming Tutorial): Fix a typo.
+	Suggested by Vladimir Nikishkin <lockywolf@gmail.com>.
+
+2023-06-02  Jonas Bernoulli  <jonas@bernoul.li>
+
+	Update to Transient v0.4.1
+
+2023-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in 'delete-forward-char' deleting static compositions
+
+	* lisp/simple.el (delete-forward-char): Fix recognition of static
+	compositions.  (Bug#63837)
+
+2023-06-02  Robert Pluim  <rpluim@gmail.com>
+
+	Make VS-15 and VS-16 compositions work correctly
+
+	There is a conflict between forward matching and backward matching
+	composition rules involving the same codepoint, which can cause the
+	backward matching ones not to be invoked.  Ensure that VS-15 (U+FE0E)
+	and VS-16 (U+FE0F) are composed by forward matching rules instead in
+	order to avoid this issue.
+
+	* admin/unidata/emoji-zwj.awk: Add rules for CHAR+VS-15 and CHAR+VS-16.
+	* lisp/composite.el: remove backward matching rule for VS-15.  (Bug#63731)
+
+2023-06-01  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Fix project-name for vc-aware backend in non-file buffers
+
+	* lisp/progmodes/project.el (project-name): Make sure
+	project-vc-name is picked up from dir-locals in all
+	non-file-visiting buffers too (mentioned in bug#63469).
+
+2023-05-31  Theodor Thornhill  <theo@thornhill.no>
+
+	Add type_predicate 'is' as keyword in typescript-ts-mode (bug#63810)
+
+	* lisp/progmodes/typescript-ts-mode.el (typescript-ts-mode--keywords):
+	New keyword 'is'.
+
+2023-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix infloop in info-look.el
+
+	* lisp/info-look.el (info-lookup-guess-gdb-script-symbol): Fix
+	infloop when there are no completions.  (Bug#63808)
+
+2023-05-31  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix several todo-mode.el item editing bugs (bug#63811)
+
+	* lisp/calendar/todo-mode.el (todo-insert-item--basic): With
+	insertion type 'here', ensure item is inserted on the todo-mode
+	line where the command was invoked.
+	(todo-edit-item--cat, todo-edit-item--pos): New variables.
+	(todo-edit-item--text): Restrict the scope of nil-valued
+	buffer-read-only to the functions that change buffer text.  If
+	user moved point while editing a single-line todo item or a done
+	item comment, or while inserting a done item comment, restore
+	point, and for comments, make sure the done items section is
+	displayed.  For multiline items, set the new variables so
+	todo-edit-quit can use them.
+	(todo-edit-quit): Use the values of the new variables to restore
+	point in the todo-mode buffer if it had been moved while editing.
+	(todo-edit-item--header): Avoid clobbering match data when editing
+	a todo item header.
+
+2023-05-31  Randy Taylor  <dev@rjt.dev>
+
+	dockerfile-ts-mode: Prevent empty categories in imenu (Bug#63759)
+
+	* lisp/progmodes/dockerfile-ts-mode.el (dockerfile-ts-mode--imenu):
+	Don't include empty categories.
+
+2023-05-31  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Brush up doc strings and terminology in plstore.el
+
+	* lisp/plstore.el (plstore-encoded, plstore-passphrase-callback-function)
+	(plstore--init-from-buffer, plstore-revert, plstore-close)
+	(plstore--merge-secret, plstore--decrypt, plstore--match, plstore-find)
+	(plstore-get, plstore-put, plstore-delete, plstore--insert-buffer)
+	(plstore-save, plstore--encode, plstore--decode)
+	(plstore--write-contents-functions, plstore-mode-decoded)
+	(plstore-mode): Brush up doc strings and documentation in general.
+	Fix terminology, in particular spurious occurences of all uppercase
+	"PLSTORE".  (Bug#63627)
+
+2023-05-31  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Add internal documentation on plstore.el
+
+	* lisp/plstore.el: Add internal documentation and some words of
+	warning in the user documentation.  (Bug#63627)
+
+2023-05-30  Theodor Thornhill  <theo@thornhill.no>
+
+	Add compact_constructor_declaration font-locking to java-ts-mode
+
+	* lisp/progmodes/java-ts-mode.el (java-ts-mode--font-lock-settings):
+	New pattern.
+
+2023-05-29  Juri Linkov  <juri@linkov.net>
+
+	* lisp/tmm.el (tmm-completion-delete-prompt): Add more checks (bug#63754).
+
+	In case when 'completions-header-format' is nil, the first 'mouse-face'
+	property is at the beginning of the buffer.  So first use 'get-text-property'
+	at point-min.
+
+2023-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Allow to disable the DWIMish behavior of 'x' in package menu
+
+	* lisp/emacs-lisp/package.el
+	(package-menu-use-current-if-no-marks): New defcustom.
+	(package-menu-execute): Use it.  (Bug#62563)
+
+	* etc/NEWS: Announce the new option.
+
+2023-05-29  Robert Pluim  <rpluim@gmail.com>
+
+	Allow dired to invoke secondary browser
+
+	'browse-url-of-dired-file' always invokes the primary browser, but
+	sometimes it's handy to call a different browser, which is why
+	'browse-url-secondary-browser-function' exists.
+
+	* lisp/net/browse-url.el (browse-url-of-dired-file): Call
+	'browse-url-secondary-browser-function' when invoked with a prefix
+	argument.
+	* etc/NEWS: Announce the change.
+
+2023-05-29  Robert Pluim  <rpluim@gmail.com>
+
+	Add a binding for enriched-toggle-markup
+
+	* lisp/textmodes/enriched.el (enriched-mode-map): Bind
+	'enriched-toggle-markup' to 'M-o m'.
+	* etc/NEWS: Announce the change.
+
+2023-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix order of tmm-menubar when 'tmm-mid-prompt' is nil
+
+	* lisp/tmm.el (tmm-prompt): Reverse 'tmm-km-list' when
+	'tmm-mid-prompt' is nil, to present the menu in the correct order.
+	Suggested by Thiago Melo <tmdmelo@gmail.com>.
+
+2023-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix regression when saving tramp-default-proxies-alist (Do not merge)
+
+	* lisp/net/tramp.el (tramp-add-hops): Suppress `signal-hook-function'.
+	Save `tramp-default-proxies-alist' only when changed.
+
+2023-05-28  Yuan Fu  <casouri@gmail.com>
+
+	Save the tree-sitter grammar recipe when installing a grammar
+
+	Raised in bug#63750, but not the main subject of it.
+
+	* lisp/treesit.el (treesit-install-language-grammar): Save the recipe
+	to treesit-language-source-alist when installation is successful.
+
+2023-05-28  Robert Pluim  <rpluim@gmail.com>
+
+	Add instructions and test file for VS-15/VS-16
+
+	* admin/notes/unicode: Add instructions for emoji-variation-sequences.txt
+	* admin/unidata/emoji-variation-sequences.txt: New file, imported from
+	Unicode 15.
+
+2023-05-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	A better fix for "Fix cancellation of Wdired"
+
+	* lisp/wdired.el (wdired-abort-changes): Call
+	`dired-build-subdir-alist' instead of `dired-revert'.
+	(Bug#63676)
+
+2023-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix tmm-menubar when 'tmm-completion-prompt' is nil
+
+	* lisp/tmm.el (tmm-prompt): Handle nil value of 'tmm-mid-prompt'.
+	(tmm-completion-delete-prompt): Don't rely on the exact text of
+	the completion heading line, as it is now a customizable format
+	string, and can be nil, meaning no heading line is inserted at
+	all.  Instead, search for the first character of the menu based on
+	text properties used for it.  (Bug#63754)
+
+2023-05-26  kobarity  <kobarity@gmail.com>
+
+	Use 'font-lock-extend-region-functions' in python-mode
+
+	* lisp/progmodes/python.el (python-font-lock-extend-region): Change
+	arguments and return value for 'font-lock-extend-region-functions'.
+	(python-mode): Change from
+	'font-lock-extend-after-change-region-function' to
+	'font-lock-extend-region-functions'.  (Bug#63622)
+
+2023-05-26  kobarity  <kobarity@gmail.com>
+
+	Fix python-info-docstring-p
+
+	* lisp/progmodes/python.el (python-info-docstring-p): Stop using
+	python-rx string-delimiter.
+
+	* test/lisp/progmodes/python-tests.el
+	(python-font-lock-escape-sequence-bytes-newline)
+	(python-font-lock-escape-sequence-hex-octal)
+	(python-font-lock-escape-sequence-unicode)
+	(python-font-lock-raw-escape-sequence): Mark as expected failures
+	until another bug in 'python-info-docstring-p' is corrected.
+	(python-info-docstring-p-7): New test.  (Bug#63622)
+
+2023-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix cancellation of Wdired
+
+	* lisp/wdired.el (wdired-abort-changes): Call 'dired-revert'.
+	Patch by Stephen Berman <stephen.berman@gmx.net>.  (Bug#63676)
+
+2023-05-26  Mattias Engdegård  <mattiase@acm.org>
+
+	Handle #@00 in new reader in a compatible way (bug#63722)
+
+	This was a regression from Emacs 28.
+
+	* src/lread.c (skip_lazy_string, read0): Make #@00 read as nil, which
+	is a quirk from the old reader that we preserve for compatibility.
+	* test/src/lread-tests.el (lread-skip-to-eof): Verify it.
+
+	Reported by Richard Newton.
+
+2023-05-25  Po Lu  <luangruo@yahoo.com>
+
+	Don't mark selection request events
+
+	* src/pgtkterm.c (mark_pgtkterm): Prevent crash by not marking
+	selection request events, which don't have Lisp_Object members.
+
+2023-05-25  Po Lu  <luangruo@yahoo.com>
+
+	Disable cairo-xcb support by default
+
+	* INSTALL (--with-cairo-xcb): Document new option.
+	* configure.ac (USE_CAIRO_XCB): Implement new option.
+
+2023-05-25  Juri Linkov  <juri@linkov.net>
+
+	* lisp/progmodes/project.el: Move :safe from defcustom to autoload (bug#63469)
+
+	(project-vc-ignores, project-vc-merge-submodules)
+	(project-vc-include-untracked, project-vc-name)
+	(project-vc-extra-root-markers, project-kill-buffers-display-buffer-list):
+	Autoload the line that puts 'safe-local-variable' property on defcustom symbol
+	instead of using the :safe keyword.
+
+2023-05-25  Juri Linkov  <juri@linkov.net>
+
+	* lisp/vc/vc-annotate.el (vc-annotate-mode-menu): Quote vc-annotate-backend.
+
+	When unquoted it might get the nil value when vc-annotate.el is loaded
+	in non-vc-controlled buffer (bug#63689).
+
+2023-05-25  Juri Linkov  <juri@linkov.net>
+
+	Add vc-create/switch/print-branch to menu and update documentation (bug#63690)
+
+	* doc/emacs/maintaining.texi (VC Change Log):
+	Add 'C-x v b l' (vc-print-branch-log).
+	(Creating Branches): Add @kindex and @findex for vc-create-branch.
+	(Switching Branches): Add @kindex and @findex for vc-switch-branch.
+
+	* lisp/vc/vc-hooks.el (vc-menu-map): Add menu items for new
+	commands vc-create-branch and vc-switch-branch, and also
+	vc-print-branch-log.
+
+	* lisp/vc/vc.el (vc-print-branch-log): Improve docstring.
+
+2023-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix rare crashes in 'try_window_reusing_current_matrix'
+
+	* src/xdisp.c (try_window_reusing_current_matrix): Make sure we
+	never use a mode-line glyph row to start displaying scrolled-in
+	rows.  (Bug#63711)
+
+2023-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Make last Tramp change less invasive
+
+	* lisp/net/tramp.el (tramp-dissect-file-name): Revert last change.
+	(tramp-handle-file-name-as-directory)
+	(tramp-handle-file-name-directory): Let-bind `tramp-default-proxies-alist'.
+
+2023-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'use-dialog-box-p' and friends
+
+	* lisp/subr.el (use-dialog-box-p): Use dialog boxes also when
+	invoked from some window-system gesture.  (Bug#63655)
+	(y-or-n-p): Fix the description in the doc string of conditions
+	under which a dialog box will be used.
+
+	* src/fns.c (Fyes_or_no_p): Use the same condition for dialog
+	boxes as in 'use-dialog-box-p'.  Fix the description in the doc
+	string of conditions under which a dialog box will be used.
+
+	* doc/lispref/minibuf.texi (Multiple Queries, Yes-or-No Queries):
+	Fix the description of conditions under which a dialog box will be
+	used.
+
+2023-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid duplicates when adding package dirs to load-path
+
+	Do not merge to master, we're going to delete this code there.
+
+	* lisp/emacs-lisp/package.el (package-activate-1): Check if the path
+	we're about to add is already in 'load-path', since package autoload
+	files have been updating 'load-path' for a decade.
+
+2023-05-23  Robert Pluim  <rpluim@gmail.com>
+
+	Avoid duplicate load-path entry when generating package autoloads
+
+	'file-name-directory' produces a path ending in '/', so that needs to be
+	run through 'directory-file-name' to avoid duplicate entries in
+	'load-path'.  (Bug#63625)
+
+	* lisp/emacs-lisp/package.el (package-generate-autoloads): Call
+	'directory-file-name' on the directory of 'load-file-name'.
+
+2023-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Disable loading SQLite3 extensions when SQLite3 version is too old
+
+	* src/sqlite.c (HAVE_LOAD_EXTENSION): Define to 1 only if
+	enabling/disabling extension loading is supported as well.
+	(load_dll_functions, Fsqlite_load_extension): Condition on
+	HAVE_LOAD_EXTENSION, not on HAVE_SQLITE3_LOAD_EXTENSION.
+	(Bug#63653)
+
+2023-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix visiting HTML files encoded in iso-2022 variants
+
+	* lisp/international/mule.el (sgml-xml-auto-coding-function)
+	(sgml-html-meta-auto-coding-function): Handle coding-systems whose
+	coding-system-type is iso-2022.  (Bug#63644)
+
+2023-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Support 'isearch-allow-scroll' in 'pixel-scroll-precision-mode'
+
+	* lisp/pixel-scroll.el (pixel-scroll-precision)
+	(pixel-scroll-down, pixel-scroll-up): Put the 'scroll-command'
+	property on these commands.  (Bug#63640)
+
+2023-05-22  Andreas Schwab  <schwab@suse.de>
+
+	shr: allow moving between adjacent anchors
+
+	* lisp/net/shr.el (shr-urlify): Put shr-tab-stop only over first
+	position.
+
+2023-05-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix multihop file name expansion in Tramp
+
+	* lisp/net/tramp.el (tramp-dissect-file-name): Set hop to nil if
+	NODEFAULT.  (Bug#63578)
+
+2023-05-21  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Remove obsolete information from Gnus manual
+
+	The Gnus manual was still referencing long-removed external
+	marks in section "Archiving Mails".  Without external marks,
+	that section is almost pointless, so remove it completely.
+	* doc/misc/gnus.texi (Archiving Mail): Remove section.
+	(Top, Browsing the Web): Remove references to "Archiving
+	Mail".  (Bug#63497)
+
+2023-05-21  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Preserve mark in comint-history-isearch
+
+	This preserves mark in `comint-history-isearch-backward' and
+	friends, which tend to set the mark on completion of the isearch
+	to unexpected positions.
+	* lisp/comint.el (comint-history-isearch-end): Set `isearch-opoint'
+	to point.  (Bug#63616)
+
+2023-05-20  Liu Hui  <liuhui1610@gmail.com>
+
+	Fix systemd unit completion for old versions of systemd
+
+	* lisp/pcmpl-linux.el (pcmpl-linux--systemd-units): Use '--no-legend'
+	for compatibility with older versions of systemctl.  (Bug#63411)
+
+2023-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Skeletons menu-bar menu in Python modes
+
+	* lisp/progmodes/python.el (python-mode, python-ts-mode): Call
+	'python-skeleton-add-menu-items' here, not in 'python-base-mode',
+	since the "Python" menu is not yet set up in the latter.
+	(Bug#63598)
+
+2023-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix loading SQLite extensions
+
+	* src/sqlite.c (sqlite3_db_config) [WINDOWSNT]: Load from the DLL.
+	(Fsqlite_load_extension): Use 'sqlite3_db_config' to enable and
+	disable loading of extensions.  Add a few free extensions to the
+	allow-list.  Fix testing for the ".dll" extension.  (Bug#63590)
+
+	* test/src/sqlite-tests.el (sqlite-load-extension): Fix the test
+	to require successful load if the extension does exist.
+
+2023-05-20  Mattias Engdegård  <mattiase@acm.org>
+
+	* etc/NEWS: Note dotimes loop variable scoping change (bug#63586)
+
+2023-05-20  Yuan Fu  <casouri@gmail.com>
+
+	Fix c-ts-mode--top-level-declarator
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--top-level-declarator): Don't use treesit-node-match-p.
+
+2023-05-19  Yuan Fu  <casouri@gmail.com>
+
+	Improve c-ts-mode font-lock for function names (bug#63390)
+
+	When a function definition has preproc directives in its body, it
+	can't correctly parse into a function_definition.  This fix tries to
+	recognize this case and highlight the function_declarator correctly.
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--font-lock-settings): New rule.
+	(c-ts-mode--top-level-declarator): New function.
+
+2023-05-19  Juri Linkov  <juri@linkov.net>
+
+	* lisp/tab-bar.el: Don't use 'minibuffer-selected-window' (bug#62427).
+
+	(tab-bar-select-tab, tab-bar-new-tab-to):
+	Use 'window-minibuffer-p' instead of 'minibuffer-selected-window'.
+	And switch to 'get-mru-window' instead of 'minibuffer-selected-window'.
+
+2023-05-19  Juri Linkov  <juri@linkov.net>
+
+	Split windows horizontally in places that use split to create a new window.
+
+	* lisp/tab-bar.el (tab-bar-new-tab-to):
+	* lisp/window.el (window-state-put):
+	To create a new window, split horizontally instead of vertically.
+	Use 'window-safe-min-width' for the SIZE arg of 'split-window'.
+	(bug#62592)
+
+2023-05-18  Yuan Fu  <casouri@gmail.com>
+
+	Fix tree-sitter test (bug#63481)
+
+	* test/src/treesit-tests.el (treesit-basic-parsing): Latest json
+	parser doesn't return an error on empty buffer or multiple objects
+	anymore [1].
+
+	https://github.com/tree-sitter/tree-sitter-json/commit/40a81c01a40ac48744e0c8ccabbaba1920441199
+
+2023-05-18  Aaron Jensen  <aaronjensen@gmail.com>
+
+	Attempt to fix redisplay problems on macOS
+
+	* src/nsterm.m (ns_scroll_run): Attempt to fix redisplay
+	artifacts.  (Bug#63187)
+
+2023-05-18  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>  (tiny change)
+
+	Clarify misleading comment in isearch.el
+
+	Clarify a misleading comment in isearch.el as to whether frame events
+	should exit an isearch or not (Bug#62032, Bug#41338 for background
+	information).
+	* lisp/isearch.el (isearch-mode-map): Replace the misleading comment.
+	(Bug#62032)
+
+2023-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of package-menu commands
+
+	* doc/emacs/package.texi (Package Menu): Document that some
+	package-menu filters accept lists of values interactively.
+
+	* lisp/emacs-lisp/package.el (package-menu-execute)
+	(package-menu-hide-package, package-menu-describe-package)
+	(package-menu-mark-delete, package-menu-mark-install)
+	(package-menu-mark-unmark, package-menu-backup-unmark)
+	(package-menu-quick-help, package-menu-get-status)
+	(package-menu--find-upgrades, package-menu-mark-upgrades)
+	(package-menu-filter-by-archive)
+	(package-menu-filter-by-description)
+	(package-menu-filter-by-keyword)
+	(package-menu-filter-by-name-or-description)
+	(package-menu-filter-by-name, package-menu-filter-by-status)
+	(package-menu-filter-by-version, package-menu-filter-marked)
+	(package-menu-describe-package): Doc fixes.
+
+2023-05-17  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Fix M-x completion-predicate under python-ts-mode
+
+	* lisp/progmodes/python.el (python--completion-predicate)
+	(python-shell--completion-predicate): Filter M-x completion based on
+	python-base-mode instead of python-mode.  This allows for
+	python-ts-mode as well (bug#63552).
+
+2023-05-17  Andrea Corallo  <akrl@sdf.org>
+
+	* Account for `byte-compile-warnings' during native compilation (bug#63302).
+
+	* lisp/emacs-lisp/comp.el (comp-final, comp-run-async-workers):
+	Forward `byte-compile-warnings' to child processes.
+
+2023-05-16  Philip Kaludercic  <philipk@posteo.net>
+
+	Avoid duplicate VC packages in 'package-selected-packages'
+
+	* lisp/emacs-lisp/package-vc.el (package-vc--unpack-1): Check if
+	'package-selected-packages' already contains the package name.
+	(bug#63338)
+
+2023-05-15  Juri Linkov  <juri@linkov.net>
+
+	* lisp/tab-bar.el (tab-bar-new-tab-to): Set 'window-side' to nil (bug#62427).
+
+	This is still needed for the case when tab-bar-new-tab-choice is 'window'.
+
+2023-05-14  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.6
+
+2023-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Bump Emacs version for next pretest
+
+	* README:
+	* configure.ac:
+	* nt/README.W32:
+	* msdos/sed2v2.inp: Bump Emacs version to 29.0.91.
+
 2023-05-14  Gabriel do Nascimento Ribeiro  <gabriel376@hotmail.com>
 
 	Ignore current-prefix-arg in async-shell-command
@@ -115654,7 +116651,7 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit ce7d18cbc07886b0d62110a6d26e25271017cd2a (inclusive).
+commit 8f62e7b85f69bb4026e9cf2971668b0d77077792 (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:

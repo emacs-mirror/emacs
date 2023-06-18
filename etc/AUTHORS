@@ -9,7 +9,7 @@ Aaron Ecay: changed ob-R.el ob-core.el org-src.el ox-latex.el nsterm.m
   ob-awk.el ob-exp.el ob-python.el ob-tangle.el org-bibtex.el org-id.el
   org.el org.texi package.el paren.el
 
-Aaron Jensen: changed frameset.el nsterm.m xdisp-tests.el xdisp.c
+Aaron Jensen: changed nsterm.m frameset.el xdisp-tests.el xdisp.c
   Info.plist.in flyspell.el icomplete.el mouse.el server.el systhread.c
   w32term.c xterm.c
 
@@ -297,7 +297,7 @@ Andrea Corallo: wrote comp-cstr-tests.el comp-cstr.el comp-tests.el
   comp.el
 and changed comp.c pdumper.c lread.c bytecomp.el startup.el configure.ac
   comp.h loadup.el lisp.h data.c alloc.c emacs.c .gitlab-ci.yml
-  cl-macs.el nadvice.el comp-test-funcs.el elisp-mode.el lisp/Makefile.in
+  cl-macs.el elisp-mode.el nadvice.el comp-test-funcs.el lisp/Makefile.in
   subr.el Makefile.in advice.el and 70 other files
 
 André A. Gomes: changed ispell.el
@@ -347,7 +347,7 @@ Andreas Rottmann: changed emacsclient.1 emacsclient.c misc.texi server.el
 Andreas Schwab: changed configure.ac lisp.h xdisp.c process.c alloc.c
   coding.c Makefile.in emacs.c files.el fileio.c keyboard.c fns.c lread.c
   xterm.c src/Makefile.in editfns.c print.c eval.c font.c xfns.c sysdep.c
-  and 662 other files
+  and 663 other files
 
 Andreas Seltenreich: changed nnweb.el gnus.texi message.el gnus-sum.el
   gnus.el nnslashdot.el gnus-srvr.el gnus-util.el mm-url.el mm-uu.el
@@ -577,10 +577,9 @@ Bartosz Duszel: changed allout.el bib-mode.el cc-cmds.el hexl.el icon.el
   xscheme.el
 
 Basil L. Contovounesios: changed simple.el subr.el message.el eww.el
-  custom.el bibtex.el text.texi gnus-sum.el modes.texi customize.texi
-  files.texi gnus-group.el gnus-win.el gravatar.el internals.texi json.el
-  map.el shr.el subr-tests.el window.c battery-tests.el
-  and 324 other files
+  modes.texi custom.el text.texi bibtex.el gnus-sum.el internals.texi
+  customize.texi display.texi files.texi gnus-group.el gnus-win.el
+  gnus.texi gravatar.el js.el json.el map.el shr.el and 345 other files
 
 Bastian Beischer: changed semantic/complete.el calc-yank.el include.el
   mru-bookmark.el refs.el senator.el
@@ -1191,7 +1190,7 @@ Daniel Martín: changed c-ts-mode.el nsterm.m shortdoc.el ns-win.el
   simple.el diff-mode-tests.el erc.texi files.el files.texi indent.erts
   msdos-xtra.texi progmodes/python.el search.texi .lldbinit basic.texi
   c-ts-mode-tests.el cmacexp.el compilation.txt compile-tests.el
-  compile.texi configure.ac and 42 other files
+  compile.texi configure.ac and 43 other files
 
 Daniel McClanahan: changed lisp-mode.el
 
@@ -1663,7 +1662,7 @@ and co-wrote help-tests.el
 and changed xdisp.c display.texi w32.c msdos.c simple.el w32fns.c
   files.el fileio.c keyboard.c emacs.c text.texi w32term.c dispnew.c
   configure.ac frames.texi w32proc.c files.texi xfaces.c window.c
-  dispextern.h lisp.h and 1327 other files
+  dispextern.h lisp.h and 1329 other files
 
 Eliza Velasquez: changed server.el
 
@@ -2687,6 +2686,8 @@ and changed mml-sec.el gnus-util.el message.texi mml-smime.el mml1991.el
 Jens Petersen: wrote find-func.el
 and changed mule-cmds.el pcmpl-rpm.el
 
+Jens Schmidt: changed plstore.el comint.el gnus.texi isearch.el ldap.el
+
 Jens Toivo Berger Thielemann: changed word-help.el
 
 Jens-Ulrik Holger Petersen: changed cus-edit.el ffap.el find-func.el
@@ -3121,7 +3122,7 @@ Juri Linkov: wrote compose.el emoji.el files-x.el misearch.el
   repeat-tests.el replace-tests.el tab-bar-tests.el tab-bar.el
   tab-line.el
 and changed isearch.el simple.el info.el replace.el dired.el dired-aux.el
-  minibuffer.el progmodes/grep.el subr.el window.el vc.el mouse.el
+  minibuffer.el progmodes/grep.el window.el subr.el vc.el mouse.el
   outline.el diff-mode.el repeat.el image-mode.el files.el menu-bar.el
   search.texi startup.el progmodes/compile.el and 472 other files
 
@@ -3584,7 +3585,7 @@ Lin Sun: changed calc.el package.el
 
 Lin Zhou: changed w32fns.c w32term.h
 
-Liu Hui: changed eglot.el
+Liu Hui: changed eglot.el pcmpl-linux.el
 
 Lixin Chin: changed bibtex.el
 
@@ -3962,7 +3963,7 @@ Mattias Engdegård: changed byte-opt.el rx.el bytecomp.el
   bytecomp-tests.el rx-tests.el searching.texi fns.c subr.el bytecode.c
   eval.c calc-tests.el lread.c progmodes/compile.el lisp.h files.el
   fns-tests.el print.c autorevert.el gdb-mi.el alloc.c
-  regex-emacs-tests.el and 675 other files
+  regex-emacs-tests.el and 677 other files
 
 Mattias M: changed asm-mode-tests.el asm-mode.el
 
@@ -4006,9 +4007,9 @@ Michael Albinus: wrote autorevert-tests.el dbus-tests.el dbus.el
 and co-wrote tramp-cache.el tramp-sh.el tramp.el
 and changed tramp.texi tramp-adb.el trampver.el trampver.texi dbusbind.c
   files.el ange-ftp.el files.texi file-notify-tests.el dbus.texi
-  gitlab-ci.yml autorevert.el tramp-fish.el kqueue.c os.texi
-  Dockerfile.emba tramp-gw.el test/Makefile.in README shell.el
-  tramp-imap.el and 308 other files
+  gitlab-ci.yml autorevert.el tramp-fish.el kqueue.c Dockerfile.emba
+  os.texi tramp-gw.el test/Makefile.in README shell.el files-x.el
+  and 308 other files
 
 Michael Ben-Gershon: changed acorn.h configure.ac riscix1-1.h riscix1-2.h
   unexec.c
@@ -4254,7 +4255,8 @@ Mon Key: changed animate.el imap.el syntax.el
 
 Morgan J. Smith: changed gnus-group-tests.el
 
-Morgan Smith: changed image-dired.el vc-git.el window.el
+Morgan Smith: changed image-dired.el minibuffer-tests.el minibuffer.el
+  vc-git.el window.el
 
 Morten Welinder: wrote [many MS-DOS files] arc-mode.el desktop.el
   dosfns.c internal.el msdos.h pc-win.el
@@ -4936,8 +4938,8 @@ Randall Smith: changed dired.el
 
 Randal Schwartz: wrote pp.el
 
-Randy Taylor: changed build.sh eglot.el batch.sh rust-ts-mode.el
-  dockerfile-ts-mode.el go-ts-mode.el c-ts-mode.el cmake-ts-mode.el
+Randy Taylor: changed build.sh eglot.el batch.sh dockerfile-ts-mode.el
+  rust-ts-mode.el go-ts-mode.el c-ts-mode.el cmake-ts-mode.el
   cus-theme.el font-lock.el java-ts-mode.el js.el json-ts-mode.el
   modes.texi progmodes/python.el project.el sh-script.el
   typescript-ts-mode.el yaml-ts-mode.el
@@ -5084,10 +5086,10 @@ Robert P. Goldman: changed org.texi ob-exp.el org.el ox-latex.el
 
 Robert Pluim: wrote nsm-tests.el
 and changed configure.ac process.c blocks.awk keymap.el font.c
-  network-stream-tests.el processes.texi custom.texi ftfont.c gtkutil.c
-  process-tests.el vc-git.el emoji-zwj.awk terminal.c unicode
+  network-stream-tests.el processes.texi custom.texi emoji-zwj.awk
+  ftfont.c gtkutil.c process-tests.el unicode vc-git.el terminal.c
   char-fold.el gnutls.el keymaps.texi network-stream.el nsm.el nsterm.m
-  and 188 other files
+  and 191 other files
 
 Robert Thorpe: changed cus-start.el indent.el rmail.texi
 
@@ -5484,8 +5486,8 @@ Skip Collins: changed w32fns.c w32term.c w32term.h
 Sławomir Nowaczyk: changed emacs.py progmodes/python.el TUTORIAL.pl
   flyspell.el ls-lisp.el w32proc.c
 
-Spencer Baugh: changed data-tests.el alloc.c autorevert.el mini.texi
-  minibuffer.el processes.texi
+Spencer Baugh: changed data-tests.el minibuffer.el alloc.c autorevert.el
+  mini.texi processes.texi
 
 Spencer Thomas: changed dabbrev.el emacsclient.c gnus.texi server.el
   unexcoff.c
@@ -5530,7 +5532,7 @@ and co-wrote font-lock.el gitmerge.el pcvs.el
 and changed subr.el simple.el keyboard.c bytecomp.el cl-macs.el files.el
   lisp.h vc.el xdisp.c alloc.c eval.c buffer.c sh-script.el
   progmodes/compile.el tex-mode.el keymap.c window.c help-fns.el lread.c
-  lisp-mode.el newcomment.el and 1660 other files
+  lisp-mode.el package.el and 1660 other files
 
 Stefano Facchini: changed gtkutil.c
 
@@ -6436,7 +6438,7 @@ Zoran Milojevic: changed avoid.el
 
 Дядов Васил Стоянов: changed org-docview.el
 
-Йордан Миладинов: changed cyrillic.el
+Йордан Миладинов: changed cyrillic.el go-ts-mode.el rust-ts-mode.el
 
 समीर सिंह Sameer Singh: wrote indonesian.el misc-lang.el philippine.el
 and changed fontset.el HELLO language/indian.el quail/indian.el loadup.el
