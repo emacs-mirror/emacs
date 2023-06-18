@@ -2312,7 +2312,8 @@ treesit_query_string_string (Lisp_Object str)
   for (ptrdiff_t i = 0; i < nbytes; i++)
     {
       unsigned char c = SREF (str, i);
-      escapes += (c == '\0' || c == '\n' || c == '\r' || c == '\t' || c == '"');
+      escapes += (c == '\0' || c == '\n' || c == '\r' || c == '\t'
+		  || c == '"' || c == '\\');
     }
   ptrdiff_t nchars = SCHARS (str);
   ptrdiff_t extra = escapes + 2;   /* backslashes + double quotes */
@@ -2331,7 +2332,8 @@ treesit_query_string_string (Lisp_Object str)
 	case '\n': *d++ = '\\'; *d++ = 'n'; break;
 	case '\r': *d++ = '\\'; *d++ = 'r'; break;
 	case '\t': *d++ = '\\'; *d++ = 't'; break;
-	case '"':  *d++ = '\\'; *d++ = '"'; break;
+	case '"':
+	case '\\': *d++ = '\\'; *d++ = c; break;
 	default: *d++ = c; break;
 	}
     }

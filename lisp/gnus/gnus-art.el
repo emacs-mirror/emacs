@@ -8331,11 +8331,10 @@ url is put as the `gnus-button-url' overlay property on the button."
       (when (looking-at "\\([A-Za-z]+\\):")
 	(setq scheme (match-string 1))
 	(goto-char (match-end 0)))
-      (when (looking-at "//\\([^:/]+\\)\\(:?\\)\\([0-9]+\\)?/")
+      (when (looking-at "//\\([^:/]+\\):?\\([0-9]+\\)?/")
 	(setq server (match-string 1))
-	(setq port (if (stringp (match-string 3))
-		       (string-to-number (match-string 3))
-		     (match-string 3)))
+        (setq port (and (match-beginning 2)
+                        (string-to-number (match-string 2))))
 	(goto-char (match-end 0)))
 
       (cond

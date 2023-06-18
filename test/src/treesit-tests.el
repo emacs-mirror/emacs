@@ -465,8 +465,8 @@ BODY is the test body."
 
       ;; Test string conversion in `treesit-pattern-expand'.
       (should (equal
-               (treesit-pattern-expand "a\nb\rc\td\0e\"f\1g")
-               "\"a\\nb\\rc\\td\\0e\\\"f\1g\"")))))
+               (treesit-pattern-expand "a\nb\rc\td\0e\"f\1g\\h\fi")
+               "\"a\\nb\\rc\\td\\0e\\\"f\1g\\\\h\fi\"")))))
 
 ;;; Narrow
 

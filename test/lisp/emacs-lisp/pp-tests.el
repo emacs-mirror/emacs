@@ -23,8 +23,8 @@
 (require 'ert-x)
 
 (ert-deftest pp-print-quote ()
-  (should (string= (pp-to-string 'quote) "quote"))
-  (should (string= (pp-to-string ''quote) "'quote"))
+  (should (string= (pp-to-string 'quote) "quote\n"))
+  (should (string= (pp-to-string ''quote) "'quote\n"))
   (should (string= (pp-to-string '('a 'b)) "('a 'b)\n"))
   (should (string= (pp-to-string '(''quote 'quote)) "(''quote 'quote)\n"))
   (should (string= (pp-to-string '(quote)) "(quote)\n"))

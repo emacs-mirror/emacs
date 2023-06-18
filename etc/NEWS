@@ -413,6 +413,13 @@ name as a string.  The new function
 'dictionary-completing-read-dictionary' can be used to prompt with
 completion based on dictionaries that the server supports.
 
+** Pp
+*** New 'pp-default-function' custom variable replaces 'pp-use-max-width'.
+
+*** New default pretty printing function, which tries to obey 'fill-column'.
+
+*** 'pp-to-string' takes an additional 'pp-function' argument.
+This arg specifies the prettifying algorithm to use.
 
 * New Modes and Packages in Emacs 30.1
 
