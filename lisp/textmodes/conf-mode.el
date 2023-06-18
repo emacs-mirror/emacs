@@ -435,6 +435,7 @@ The optional arg FONT-LOCK is the value for FONT-LOCK-KEYWORDS."
   (setq-local comment-start comment)
   (setq-local comment-start-skip
               (concat (regexp-quote comment-start) "+\\s *"))
+  (setq-local text-conversion-style t)
   (if font-lock
       (setq-local font-lock-defaults `(,font-lock nil t nil nil))))
 
