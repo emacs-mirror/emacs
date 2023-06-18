@@ -17468,7 +17468,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
   struct buffer *b = XBUFFER (w->contents);
 #ifdef HAVE_TEXT_CONVERSION
   ptrdiff_t prev_point, prev_mark;
-#endif
+#endif /* HAVE_TEXT_CONVERSION */
 
   w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
   w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF (b) : 0;
@@ -17501,14 +17501,19 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 #ifdef HAVE_TEXT_CONVERSION
       prev_point = w->last_point;
       prev_mark = w->last_mark;
-#endif
+#endif /* HAVE_TEXT_CONVERSION */
 
       if (w == XWINDOW (selected_window))
 	w->last_point = BUF_PT (b);
       else
 	w->last_point = marker_position (w->pointm);
 
-      if (XMARKER (BVAR (b, mark))->buffer == b)
+      /* w->last_mark is recorded for text conversion purposes.
+         Input methods aren't interested in the value of the mark
+         if it is inactive, so set it to -1 if it's not.  */
+
+      if (XMARKER (BVAR (b, mark))->buffer == b
+	  && !NILP (BVAR (b, mark_active)))
 	w->last_mark = marker_position (BVAR (b, mark));
       else
 	w->last_mark = -1;
@@ -17536,7 +17541,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
 	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
 	report_point_change (WINDOW_XFRAME (w), w, b);
-#endif
+#endif /* HAVE_TEXT_CONVERSION */
 
       w->window_end_valid = true;
       w->update_mode_line = false;

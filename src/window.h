@@ -302,7 +302,7 @@ struct window
 #endif
 
     /* Value of mark in the selected window at the time of the last
-       redisplay.  */
+       redisplay.  -1 if the mark is not valid or active.  */
     ptrdiff_t last_mark;
 
     /* Line number and position of a line somewhere above the top of the
