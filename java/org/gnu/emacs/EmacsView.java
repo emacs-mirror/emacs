@@ -88,6 +88,9 @@ public final class EmacsView extends ViewGroup
   /* The last measured width and height.  */
   private int measuredWidth, measuredHeight;
 
+  /* Object acting as a lock for those values.  */
+  private Object dimensionsLock;
+
   /* The serial of the last clip rectangle change.  */
   private long lastClipSerial;
 
@@ -144,12 +147,23 @@ public final class EmacsView extends ViewGroup
 
     /* Add this view as its own global layout listener.  */
     getViewTreeObserver ().addOnGlobalLayoutListener (this);
+
+    /* Create an object used as a lock.  */
+    this.dimensionsLock = new Object ();
   }
 
   private void
   handleDirtyBitmap ()
   {
     Bitmap oldBitmap;
+    int measuredWidth, measuredHeight;
+
+    synchronized (dimensionsLock)
+      {
+	/* Load measuredWidth and measuredHeight.  */
+	measuredWidth = this.measuredWidth;
+	measuredHeight = this.measuredHeight;
+      }
 
     if (measuredWidth == 0 || measuredHeight == 0)
       return;
@@ -171,7 +185,7 @@ public final class EmacsView extends ViewGroup
     /* Save the old bitmap.  */
     oldBitmap = bitmap;
 
-    /* Recreate the front and back buffer bitmaps.  */
+    /* Recreate the back buffer bitmap.  */
     bitmap
       = Bitmap.createBitmap (measuredWidth,
 			     measuredHeight,
@@ -249,8 +263,11 @@ public final class EmacsView extends ViewGroup
   public void
   prepareForLayout (int wantedWidth, int wantedHeight)
   {
-    measuredWidth = wantedWidth;
-    measuredHeight = wantedWidth;
+    synchronized (dimensionsLock)
+      {
+	measuredWidth = wantedWidth;
+	measuredHeight = wantedWidth;
+      }
   }
 
   @Override
@@ -294,19 +311,39 @@ public final class EmacsView extends ViewGroup
   onLayout (boolean changed, int left, int top, int right,
 	    int bottom)
   {
-    int count, i;
+    int count, i, oldMeasuredWidth, oldMeasuredHeight;
     View child;
     Rect windowRect;
+    boolean needExpose;
 
     count = getChildCount ();
+    needExpose = false;
 
-    measuredWidth = right - left;
-    measuredHeight = bottom - top;
+    synchronized (dimensionsLock)
+      {
+	/* Load measuredWidth and measuredHeight.  */
+	oldMeasuredWidth = measuredWidth;
+	oldMeasuredHeight = measuredHeight;
 
-    /* Dirty the back buffer.  */
+	/* Set measuredWidth and measuredHeight.  */
+	measuredWidth = right - left;
+	measuredHeight = bottom - top;
+      }
 
-    if (changed)
-      explicitlyDirtyBitmap ();
+    /* Dirty the back buffer if the layout change resulted in the view
+       being resized.  */
+
+    if (changed && (right - left != oldMeasuredWidth
+		    || bottom - top != oldMeasuredHeight))
+      {
+	explicitlyDirtyBitmap ();
+
+	/* Expose the window upon a change in the view's size.  */
+
+	if (right - left > oldMeasuredWidth
+	    || bottom - top > oldMeasuredHeight)
+	  needExpose = true;
+      }
 
     for (i = 0; i < count; ++i)
       {
@@ -336,6 +373,10 @@ public final class EmacsView extends ViewGroup
 	mustReportLayout = false;
 	window.viewLayout (left, top, right, bottom);
       }
+
+    if (needExpose)
+      EmacsNative.sendExpose (this.window.handle, 0, 0,
+			      right - left, bottom - top);
   }
 
   public void
@@ -579,9 +620,12 @@ public final class EmacsView extends ViewGroup
        was called.  */
     bitmapDirty = true;
 
-    /* Now expose the view contents again.  */
-    EmacsNative.sendExpose (this.window.handle, 0, 0,
-			    measuredWidth, measuredHeight);
+    synchronized (dimensionsLock)
+      {
+	/* Now expose the view contents again.  */
+	EmacsNative.sendExpose (this.window.handle, 0, 0,
+				measuredWidth, measuredHeight);
+      }
 
     super.onAttachedToWindow ();
   }
