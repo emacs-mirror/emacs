@@ -116,7 +116,7 @@ exec1: exec1.o libexec.a
 
 .PHONY: clean distclean maintainer-clean extraclean bootstrap-clean
 clean:
-	rm -f *.o *.a loader test *.s.s
+	rm -f *.o *.a loader test exec1 *.s.s
 ifeq ($(AUTO_DEPEND),yes)
 	rm -rf deps/*.d
 endif
