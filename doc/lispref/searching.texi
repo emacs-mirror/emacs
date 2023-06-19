@@ -18,11 +18,12 @@ portions of it.
 * Searching and Case::    Case-independent or case-significant searching.
 * Regular Expressions::   Describing classes of strings.
 * Regexp Search::         Searching for a match for a regexp.
-* POSIX Regexps::         Searching POSIX-style for the longest match.
+* Longest Match::         Searching for the longest match.
 * Match Data::            Finding out which part of the text matched,
                             after a string or regexp search.
 * Search and Replace::    Commands that loop, searching and replacing.
 * Standard Regexps::      Useful regexps for finding sentences, pages,...
+* POSIX Regexps::         Emacs regexps vs POSIX regexps.
 @end menu
 
   The @samp{skip-chars@dots{}} functions also perform a kind of searching.
@@ -2201,8 +2202,8 @@ constructs, you should bind it temporarily for as small as possible
 a part of the code.
 @end defvar
 
-@node POSIX Regexps
-@section POSIX Regular Expression Searching
+@node Longest Match
+@section Longest-match searching for regular expression matches
 
 @cindex backtracking and POSIX regular expressions
   The usual regular expression functions do backtracking when necessary
@@ -2217,7 +2218,9 @@ possibilities and found all matches, so they can report the longest
 match, as required by POSIX@.  This is much slower, so use these
 functions only when you really need the longest match.
 
-  The POSIX search and match functions do not properly support the
+  Despite their names, the POSIX search and match functions
+use Emacs regular expressions, not POSIX regular expressions.
+@xref{POSIX Regexps}.  Also, they do not properly support the
 non-greedy repetition operators (@pxref{Regexp Special, non-greedy}).
 This is because POSIX backtracking conflicts with the semantics of
 non-greedy repetition.
@@ -2965,3 +2968,97 @@ values of the variables @code{sentence-end-double-space}
 @code{sentence-end-without-period}, and
 @code{sentence-end-without-space}.
 @end defun
+
+@node POSIX Regexps
+@section Emacs versus POSIX Regular Expressions
+@cindex POSIX regular expressions
+
+Regular expression syntax varies signficantly among computer programs.
+When writing Elisp code that generates regular expressions for use by other
+programs, it is helpful to know how syntax variants differ.
+To give a feel for the variation, this section discusses how
+Emacs regular expressions differ from two syntax variants standarded by POSIX:
+basic regular expressions (BREs) and extended regular expressions (EREs).
+Plain @command{grep} uses BREs, and @samp{grep -E} uses EREs.
+
+Emacs regular expressions have a syntax closer to EREs than to BREs,
+with some extensions.  Here is a summary of how POSIX BREs and EREs
+differ from Emacs regular expressions.
+
+@itemize @bullet
+@item
+In POSIX BREs @samp{+} and @samp{?} are not special.
+The only backslash escape sequences are @samp{\(@dots{}\)},
+@samp{\@{@dots{}\@}}, @samp{\1} through @samp{\9}, along with the
+escaped special characters @samp{\$}, @samp{\*}, @samp{\.}, @samp{\[},
+@samp{\\}, and @samp{\^}.
+Therefore @samp{\(?:} acts like @samp{\([?]:}.
+POSIX does not define how other BRE escapes behave;
+for example, GNU @command{grep} treats @samp{\|} like Emacs does,
+but does not support all the Emacs escapes.
+
+@item
+In POSIX EREs @samp{@{}, @samp{(} and @samp{|} are special,
+and @samp{)} is special when matched with a preceding @samp{(}.
+These special characters do not use preceding backslashes;
+@samp{(?} produces undefined results.
+The only backslash escape sequences are the escaped special characters
+@samp{\$}, @samp{\(}, @samp{\)}, @samp{\*}, @samp{\+}, @samp{\.},
+@samp{\?}, @samp{\[}, @samp{\\}, @samp{\^}, @samp{\@{} and @samp{\|}.
+POSIX does not define how other ERE escapes behave;
+for example, GNU @samp{grep -E} treats @samp{\1} like Emacs does,
+but does not support all the Emacs escapes.
+
+@item
+In POSIX BREs, it is an implementation option whether @samp{^} is special
+after @samp{\(}; GNU @command{grep} treats it like Emacs does.
+In POSIX EREs, @samp{^} is always special outside of character alternatives,
+which means the ERE @samp{x^} never matches.
+In Emacs regular expressions, @samp{^} is special only at the
+beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
+or @samp{\|}.
+
+@item
+In POSIX BREs, it is an implementation option whether @samp{$} is special
+before @samp{\)}; GNU @command{grep} treats it like Emacs does.
+In POSIX EREs, @samp{$} is always special outside of character alternatives,
+which means the ERE @samp{$x} never matches.
+In Emacs regular expressions, @samp{$} is special only at the
+end of the regular expression, or before @samp{\)} or @samp{\|}.
+
+@item
+In POSIX BREs and EREs, undefined results are produced by repetition
+operators at the start of a regular expression or subexpression
+(possibly preceded by @samp{^}), except that the repetition operator
+@samp{*} has the same behavior in BREs as in Emacs.
+In Emacs, these operators are treated as ordinary.
+
+@item
+In BREs and EREs, undefined results are produced by two repetition
+operators in sequence.  In Emacs, these have well-defined behavior,
+e.g., @samp{a**} is equivalent to @samp{a*}.
+
+@item
+In BREs and EREs, undefined results are produced by empty regular
+expressions or subexpressions.  In Emacs these have well-defined
+behavior, e.g., @samp{\(\)*} matches the empty string,
+
+@item
+In BREs and EREs, undefined results are produced for the named
+character classes @samp{[:ascii:]}, @samp{[:multibyte:]},
+@samp{[:nonascii:]}, @samp{[:unibyte:]}, and @samp{[:word:]}.
+
+@item
+BRE and ERE alternatives can contain collating symbols and equivalence
+class expressions, e.g., @samp{[[.ch.]d[=a=]]}.
+Emacs regular expressions do not support this.
+
+@item
+BREs, EREs, and the strings they match cannot contain encoding errors
+or NUL bytes.  In Emacs these constructs simply match themselves.
+
+@item
+BRE and ERE searching always finds the longest match.
+Emacs searching by default does not necessarily do so.
+@xref{Longest Match}.
+@end itemize
