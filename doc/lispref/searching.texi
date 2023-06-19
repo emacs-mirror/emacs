@@ -505,9 +505,10 @@ beginning of a line.
 When matching a string instead of a buffer, @samp{^} matches at the
 beginning of the string or after a newline character.
 
-For historical compatibility reasons, @samp{^} can be used only at the
-beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
-or @samp{\|}.
+For historical compatibility, @samp{^} is special only at the beginning
+of the regular expression, or after @samp{\(}, @samp{\(?:} or @samp{\|}.
+Although @samp{^} is an ordinary character in other contexts,
+it is good practice to use @samp{\^} even then.
 
 @item @samp{$}
 @cindex @samp{$} in regexp
@@ -519,8 +520,10 @@ matches a string of one @samp{x} or more at the end of a line.
 When matching a string instead of a buffer, @samp{$} matches at the end
 of the string or before a newline character.
 
-For historical compatibility reasons, @samp{$} can be used only at the
+For historical compatibility, @samp{$} is special only at the
 end of the regular expression, or before @samp{\)} or @samp{\|}.
+Although @samp{$} is an ordinary character in other contexts,
+it is good practice to use @samp{\$} even then.
 
 @item @samp{\}
 @cindex @samp{\} in regexp
@@ -540,12 +543,17 @@ example, the regular expression that matches the @samp{\} character is
 @samp{\} is @code{"\\\\"}.
 @end table
 
-@strong{Please note:} For historical compatibility, special characters
-are treated as ordinary ones if they are in contexts where their special
-meanings make no sense.  For example, @samp{*foo} treats @samp{*} as
-ordinary since there is no preceding expression on which the @samp{*}
-can act.  It is poor practice to depend on this behavior; quote the
-special character anyway, regardless of where it appears.
+For historical compatibility, a repetition operator is treated as ordinary
+if it appears at the start of a regular expression
+or after @samp{^}, @samp{\(}, @samp{\(?:} or @samp{\|}.
+For example, @samp{*foo} is treated as @samp{\*foo}, and
+@samp{two\|^\@{2\@}} is treated as @samp{two\|^@{2@}}.
+It is poor practice to depend on this behavior; use proper backslash
+escaping anyway, regardless of where the repetition operator appears.
+Also, a repetition operator should not immediately follow a backslash escape
+that matches only empty strings, as Emacs has bugs in this area.
+For example, it is unwise to use @samp{\b*}, which can be omitted
+without changing the documented meaning of the regular expression.
 
 As a @samp{\} is not special inside a character alternative, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
