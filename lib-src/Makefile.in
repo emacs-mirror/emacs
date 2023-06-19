@@ -481,7 +481,7 @@ emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 ifeq ($(SECCOMP_FILTER),1)
 seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(LIBSECCOMP_CFLAGS) $< \
-	  $(LIBSECCOMP_LIBS) -o $@
+	  $(LIBSECCOMP_LIBS) $(LOADLIBES) -o $@
 
 seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc: seccomp-filter$(EXEEXT)
 	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \
