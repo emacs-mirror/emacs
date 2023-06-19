@@ -3644,7 +3644,7 @@ If NOERROR, return predicate, else erroring function."
                      (if peg-after-p
                          (make-overlay (point) (1+ (point)) nil t)
                        (make-overlay (1- (point)) (point) nil nil nil)))
-                   (do-it (label lpad rpad i)
+                   (do-it (label lpad rpad i n)
                      (let* ((firstp (zerop i))
                             (tweak-cursor-p (and firstp peg-after-p))
                             (ov (make-ov))
@@ -3657,18 +3657,18 @@ If NOERROR, return predicate, else erroring function."
                                              (1 'eglot-type-hint-face)
                                              (2 'eglot-parameter-hint-face)
                                              (_ 'eglot-inlay-hint-face))))
-                       (overlay-put ov 'priority i)
+                       (overlay-put ov 'priority (if peg-after-p i (- n i)))
                        (overlay-put ov 'eglot--inlay-hint t)
                        (overlay-put ov 'evaporate t)
                        (overlay-put ov 'eglot--overlay t))))
-                (if (stringp label) (do-it label left-pad right-pad 0)
+                (if (stringp label) (do-it label left-pad right-pad 0 1)
                   (cl-loop
                    for i from 0 for ldetail across label
                    do (eglot--dbind ((InlayHintLabelPart) value) ldetail
                         (do-it value
                                (and (zerop i) left-pad)
                                (and (= i (1- (length label))) right-pad)
-                               i)))))))))
+                               i (length label))))))))))
     (jsonrpc-async-request
      (eglot--current-server-or-lose)
      :textDocument/inlayHint
