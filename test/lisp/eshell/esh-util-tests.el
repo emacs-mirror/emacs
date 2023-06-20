@@ -52,7 +52,7 @@
   ;; no leading/trailing whitespace.
   (should (equal (eshell-stringify '(1 2 3)) "(1 2 3)"))
   (should (equal (replace-regexp-in-string
-                  (rx (+ (or space "\n"))) " "
+                  (rx (+ (any space "\n"))) " "
                   (eshell-stringify '((1 2) (3 . 4))))
                  "((1 2) (3 . 4))")))
 

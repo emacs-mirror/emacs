@@ -950,8 +950,8 @@ features used mainly in Lisp programs.
 @dfn{special constructs} and the rest are @dfn{ordinary}.  An ordinary
 character matches that same character and nothing else.  The special
 characters are @samp{$^.*+?[\}.  The character @samp{]} is special if
-it ends a character alternative (see below).  The character @samp{-}
-is special inside a character alternative.  Any other character
+it ends a bracket expression (see below).  The character @samp{-}
+is special inside a bracket expression.  Any other character
 appearing in a regular expression is ordinary, unless a @samp{\}
 precedes it.  (When you use regular expressions in a Lisp program,
 each @samp{\} must be doubled, see the example near the end of this
@@ -1033,11 +1033,11 @@ you search for @samp{a.*?$} against the text @samp{abbab} followed by
 a newline, it matches the whole string.  Since it @emph{can} match
 starting at the first @samp{a}, it does.
 
+@cindex bracket expression
 @cindex set of alternative characters, in regular expressions
 @cindex character set, in regular expressions
 @item @kbd{[ @dots{} ]}
-is a @dfn{set of alternative characters}, or a @dfn{character set},
-beginning with @samp{[} and terminated by @samp{]}.
+is a @dfn{bracket expression}, which matches one of a set of characters.
 
 In the simplest case, the characters between the two brackets are what
 this set can match.  Thus, @samp{[ad]} matches either one @samp{a} or
@@ -1057,7 +1057,7 @@ Greek letters.
 @cindex character classes, in regular expressions
 You can also include certain special @dfn{character classes} in a
 character set.  A @samp{[:} and balancing @samp{:]} enclose a
-character class inside a set of alternative characters.  For instance,
+character class inside a bracket expression.  For instance,
 @samp{[[:alnum:]]} matches any letter or digit.  @xref{Char Classes,,,
 elisp, The Emacs Lisp Reference Manual}, for a list of character
 classes.
@@ -1125,7 +1125,7 @@ no preceding expression on which the @samp{*} can act.  It is poor practice
 to depend on this behavior; it is better to quote the special character anyway,
 regardless of where it appears.
 
-As a @samp{\} is not special inside a set of alternative characters, it can
+As a @samp{\} is not special inside a bracket expression, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
 You should not quote these characters when they have no special
 meaning.  This would not clarify anything, since backslashes

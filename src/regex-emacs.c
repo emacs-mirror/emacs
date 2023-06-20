@@ -2597,7 +2597,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 	      /* If followed by a repetition operator.  */
 	      || (p != pend
-		  && (*p == '*' || *p == '+' || *p == '?' || *p == '^'))
+		  && (*p == '*' || *p == '+' || *p == '?'))
 	      || (p + 1 < pend && p[0] == '\\' && p[1] == '{'))
 	    {
 	      /* Start building a new exactn.  */

@@ -383,7 +383,7 @@ Interactively, ARG is the numeric argument, and defaults to 1."
 The syntax for this variable is like the syntax used inside of `[...]'
 in a regular expression--but without the `[' and the `]'.
 It is NOT a regular expression, and should follow the usual
-rules for the contents of a character alternative.
+rules for the contents of a bracket expression.
 It defines a set of \"interesting characters\" to look for when setting
 \(or searching for) tab stops, initially \"!-~\" (all printing characters).
 For example, suppose that you are editing a table which is formatted thus:
