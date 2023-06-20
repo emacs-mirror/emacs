@@ -407,7 +407,7 @@ The search is done in the source for library LIBRARY."
       (setq library (substring library 0 (match-beginning 1))))
     ;; Strip extension from .emacs.el to make sure symbol is searched in
     ;; .emacs too.
-    (when (string-match "\\.emacs\\(.el\\)" library)
+    (when (string-match "\\.emacs\\(.el\\)\\'" library)
       (setq library (substring library 0 (match-beginning 1))))
     (let* ((filename (find-library-name library))
 	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
