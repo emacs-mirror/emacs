@@ -259,6 +259,22 @@ haiku_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval
 }
 
 static void
+haiku_set_tool_bar_position (struct frame *f,
+			     Lisp_Object new_value,
+			     Lisp_Object old_value)
+{
+  Lisp_Object choice = list4 (Qleft, Qright, Qtop, Qbottom);
+
+  if (!NILP (Fmemq (new_value, choice)))
+    {
+      if (!EQ (new_value, Qtop))
+	error ("The only supported tool bar position is top");
+    }
+  else
+    wrong_choice (choice, new_value);
+}
+
+static void
 haiku_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   if (FRAME_TOOLTIP_P (f))
@@ -3136,7 +3152,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     gui_set_font_backend,
     gui_set_alpha,
     haiku_set_sticky,
-    NULL, /* set tool bar pos */
+    haiku_set_tool_bar_position,
     haiku_set_inhibit_double_buffering,
     haiku_set_undecorated,
     haiku_set_parent_frame,
