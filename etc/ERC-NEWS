@@ -82,14 +82,6 @@ connectivity before attempting to reconnect in earnest.  See options
 'erc-server-reconnect-function' and 'erc-nickname-in-use-functions' to
 get started.
 
-** Easily constrain all ERC-related business to a dedicated frame.
-The option 'erc-reuse-frames' can now be set to 'displayed', which
-tells ERC to show new buffers in frames already occupied by buffers
-from the same connection.  This customization depends on the option
-'erc-buffer-display' (formerly 'erc-join-buffer') being set to
-'frame'.  If you find the name 'displayed' unhelpful, please suggest
-an alternative by writing to the mailing list.
-
 ** Module 'fill' can add a bit of space between messages.
 On graphical displays, it's now possible to add some breathing room
 around certain messages via the new option 'erc-fill-line-spacing'.
