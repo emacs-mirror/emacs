@@ -546,15 +546,11 @@ example, the regular expression that matches the @samp{\} character is
 
 For historical compatibility, a repetition operator is treated as ordinary
 if it appears at the start of a regular expression
-or after @samp{^}, @samp{\(}, @samp{\(?:} or @samp{\|}.
+or after @samp{^}, @samp{\`}, @samp{\(}, @samp{\(?:} or @samp{\|}.
 For example, @samp{*foo} is treated as @samp{\*foo}, and
 @samp{two\|^\@{2\@}} is treated as @samp{two\|^@{2@}}.
 It is poor practice to depend on this behavior; use proper backslash
 escaping anyway, regardless of where the repetition operator appears.
-Also, a repetition operator should not immediately follow a backslash escape
-that matches only empty strings, as Emacs has bugs in this area.
-For example, it is unwise to use @samp{\b*}, which can be omitted
-without changing the documented meaning of the regular expression.
 
 As a @samp{\} is not special inside a bracket expression, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.

@@ -475,6 +475,14 @@ symbol, and either that symbol is ':eval' and the second element of
 the list evaluates to 'nil' or the symbol's value as a variable is
 'nil' or void.
 
++++
+** Regexp zero-width assertions followed by operators are better defined.
+Previously, regexps such as "xy\\B*" would have ill-defined behaviour.
+Now any operator following a zero-width assertion applies to that
+assertion only (which is useless).  For historical compatibility, an
+operator character following '^' or '\`' becomes literal, but we
+advise against relying on this.
+
 
 * Lisp Changes in Emacs 30.1
 
