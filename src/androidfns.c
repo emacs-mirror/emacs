@@ -249,6 +249,22 @@ android_set_tool_bar_lines (struct frame *f, Lisp_Object value,
   android_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
+static void
+android_set_tool_bar_position (struct frame *f,
+			       Lisp_Object new_value,
+			       Lisp_Object old_value)
+{
+  Lisp_Object choice = list4 (Qleft, Qright, Qtop, Qbottom);
+
+  if (!NILP (Fmemq (new_value, choice)))
+    {
+      if (!EQ (new_value, Qtop))
+	error ("The only supported tool bar position is top");
+    }
+  else
+    wrong_choice (choice, new_value);
+}
+
 void
 android_change_tool_bar_height (struct frame *f, int height)
 {
@@ -2931,7 +2947,7 @@ frame_parm_handler android_frame_parm_handlers[] =
   gui_set_visibility,
   android_set_tab_bar_lines,
   android_set_tool_bar_lines,
-  NULL,
+  android_set_tool_bar_position,
   NULL,
   gui_set_screen_gamma,
   gui_set_line_spacing,
