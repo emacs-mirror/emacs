@@ -2805,13 +2805,23 @@ minibuffer window, it returns @code{nil}.
 
 @vindex minibuffer-message-timeout
 @defun minibuffer-message string &rest args
-This function displays @var{string} temporarily at the end of the
-minibuffer text, for a few seconds, or until the next input event
-arrives, whichever comes first.  The variable
-@code{minibuffer-message-timeout} specifies the number of seconds to
-wait in the absence of input.  It defaults to 2.  If @var{args} is
-non-@code{nil}, the actual message is obtained by passing @var{string}
-and @var{args} through @code{format-message}.  @xref{Formatting Strings}.
+This function is like @code{message} (@pxref{Displaying Messages}),
+but it displays the messages specially when the user types in the
+minibuffer, typically because Emacs prompted the user for some input.
+When the minibuffer is the current buffer, this function displays the
+message specified by @var{string} temporarily at the end of the
+minibuffer text, and thus avoids hiding the minibuffer text by the
+echo-area display of the message.  It leaves the message on display
+for a few seconds, or until the next input event arrives, whichever
+comes first.  The variable @code{minibuffer-message-timeout} specifies
+the number of seconds to wait in the absence of input.  It defaults to
+2.  If @var{args} is non-@code{nil}, the actual message is obtained by
+passing @var{string} and @var{args} through @code{format-message}.
+@xref{Formatting Strings}.
+
+If called when the minibuffer is not the current buffer, this function
+just calls @code{message}, and thus @var{string} will be shown in the
+echo-area.
 @end defun
 
 @deffn Command minibuffer-inactive-mode
