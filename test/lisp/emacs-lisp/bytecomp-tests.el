@@ -776,6 +776,10 @@ inner loops respectively."
       (nconc x nil nil))
     (let ((x (cons 1 (cons 2 (cons 3 4)))))
       (nconc nil x nil (list 5 6) nil))
+
+    ;; (+ 0 -0.0) etc
+    (let ((x (bytecomp-test-identity -0.0)))
+      (list x (+ x) (+ 0 x) (+ x 0) (+ 1 2 -3 x) (+ 0 x 0)))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
