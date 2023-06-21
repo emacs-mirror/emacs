@@ -504,8 +504,9 @@ ARG is the number of times to execute the item.")
 
 
 (defun kmacro-call-ring-2nd (arg)
-  "Execute second keyboard macro in macro ring."
-  (interactive "P")
+  "Execute second keyboard macro in macro ring.
+With numeric argument ARG, execute the macro that many times."
+  (interactive "p")
   (unless (kmacro-ring-empty-p)
     (funcall (car kmacro-ring) arg)))
 
@@ -514,7 +515,7 @@ ARG is the number of times to execute the item.")
   "Execute second keyboard macro in macro ring.
 This is like `kmacro-call-ring-2nd', but allows repeating macro commands
 without repeating the prefix."
-  (interactive "P")
+  (interactive "p")
   (let ((keys (kmacro-get-repeat-prefix)))
     (kmacro-call-ring-2nd arg)
     (if (and kmacro-ring keys)
@@ -650,10 +651,10 @@ The macro is now available for use via \\[kmacro-call-macro],
 or it can be given a name with \\[kmacro-name-last-macro] and then invoked
 under that name.
 
-With numeric arg, repeat macro now that many times,
+With numeric ARG, repeat the macro that many times,
 counting the definition just completed as the first repetition.
 An argument of zero means repeat until error."
-  (interactive "P")
+  (interactive "p")
    ;; Isearch may push the kmacro-end-macro key sequence onto the macro.
    ;; Just ignore it when executing the macro.
   (unless executing-kbd-macro
@@ -787,7 +788,7 @@ Zero argument means repeat until there is an error.
 
 To give a macro a name, so you can call it even after defining other
 macros, use \\[kmacro-name-last-macro]."
-  (interactive "P")
+  (interactive "p")
   (if defining-kbd-macro
       (kmacro-end-macro nil))
   (kmacro-call-macro arg no-repeat))
