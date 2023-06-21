@@ -3644,10 +3644,20 @@ Each involved method must be an inline method (@pxref{Inline methods}).
 @code{tramp-default-proxies-alist} and is available for re-use during
 that Emacs session.  Subsequent @value{tramp} connections to the same
 remote host can then use the shortcut form:
-@samp{@trampfn{ssh,you@@remotehost,/path}}.  Ad-hoc definitions are
-removed from @code{tramp-default-proxies-alist} via the command
-@kbd{M-x tramp-cleanup-all-connections @key{RET}} (@pxref{Cleanup
-remote connections}).
+@samp{@trampfn{ssh,you@@remotehost,/path}}.
+
+@defopt tramp-show-ad-hoc-proxies
+If this user option is non-@code{nil}, ad-hoc definitions are kept in
+remote file names instead of showing the shortcuts.
+
+@lisp
+(customize-set-variable 'tramp-show-ad-hoc-proxies t)
+@end lisp
+@end defopt
+
+Ad-hoc definitions are removed from @code{tramp-default-proxies-alist}
+via the command @kbd{M-x tramp-cleanup-all-connections @key{RET}}
+(@pxref{Cleanup remote connections}).
 
 @defopt tramp-save-ad-hoc-proxies
 For ad-hoc definitions to be saved automatically in
