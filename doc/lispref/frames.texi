@@ -523,7 +523,8 @@ Height |  | | Height                           | |  | Height
      | |  | |<--+--- Inner Frame Width ------->| |  | |
      | |  | |   |                              | |  | |
      | |  | |___v______________________________| |  | |
-     | |  |___________ Internal Border __________|  | v
+     | |  |___________ Internal Border __________|  | |
+     | | (4)__________ Bottom Tool Bar __________|  | v
      v |___________ External/Outer Border __________|
            <-------- Native Frame Width -------->
 
@@ -707,6 +708,10 @@ tool bar but not that of the menu bar (Lucid, Motif, MS-Windows) or
 those of the menu bar and the tool bar (non-toolkit and text terminal
 frames).
 
+If the native position would otherwise be (2), but the tool bar is
+placed at the bottom of the frame as depicted in (4), the native
+position of the frame becomes that of the tab bar.
+
 The native position of a frame is the reference position for functions
 that set or return the current position of the mouse (@pxref{Mouse
 Position}) and for functions dealing with the position of windows like
@@ -844,8 +849,11 @@ native frame of @var{frame}).
 
 @item tool-bar-position
 This tells on which side the tool bar on @var{frame} is and can be one
-of @code{left}, @code{top}, @code{right} or @code{bottom}.  The only
-toolkit that currently supports a value other than @code{top} is GTK+.
+of @code{left}, @code{top}, @code{right} or @code{bottom}.
+
+The values @code{left} and @code{bottom} are only supported on builds
+using the GTK+ toolkit; @code{bottom} is supported on all builds other
+than NS, and @code{top} is supported everywhere.
 
 @item tool-bar-size
 A cons of the width and height of the tool bar of @var{frame}.
@@ -1905,9 +1913,11 @@ whenever the tool bar wraps (@pxref{Frame Layout}).
 
 @vindex tool-bar-position@r{, a frame parameter}
 @item tool-bar-position
-The position of the tool bar when Emacs was built with GTK+.  Its value
-can be one of @code{top}, @code{bottom} @code{left}, @code{right}.  The
-default is @code{top}.
+The position of the tool bar.  Its value can be one of @code{top},
+@code{bottom} @code{left}, @code{right}.  The default is @code{top}.
+
+It can be set to @code{bottom} on Emacs built with any toolkit other
+than Nextstep, and @code{left} or @code{right} on builds using GTK+.
 
 @vindex tab-bar-lines@r{, a frame parameter}
 @item tab-bar-lines

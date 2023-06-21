@@ -710,10 +710,10 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 		       ? old_native_height
 		       : max (FRAME_TEXT_TO_PIXEL_HEIGHT (f, new_text_height),
 			      min_inner_height
-			      + FRAME_TOP_MARGIN_HEIGHT (f)
+			      + FRAME_MARGIN_HEIGHT (f)
 			      + 2 * FRAME_INTERNAL_BORDER_WIDTH (f)));
   new_inner_height = (new_native_height
-		      - FRAME_TOP_MARGIN_HEIGHT (f)
+		      - FRAME_MARGIN_HEIGHT (f)
 		      - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
   new_text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, new_native_height);
   new_text_lines = new_text_height / unit_height;
@@ -940,11 +940,9 @@ make_frame (bool mini_p)
   f = allocate_frame ();
   XSETFRAME (frame, f);
 
-#ifdef USE_GTK
   /* Initialize Lisp data.  Note that allocate_frame initializes all
      Lisp data to nil, so do it only for slots which should not be nil.  */
   fset_tool_bar_position (f, Qtop);
-#endif
 
   /* Initialize non-Lisp data.  Note that allocate_frame zeroes out all
      non-Lisp data, so do it only for slots which should not be zero.

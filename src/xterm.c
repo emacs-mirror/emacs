@@ -7574,14 +7574,16 @@ x_clear_under_internal_border (struct frame *f)
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
-      int face_id =
-	(FRAME_PARENT_FRAME (f)
-	 ? (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
-	    : CHILD_FRAME_BORDER_FACE_ID)
-	 : (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	    : INTERNAL_BORDER_FACE_ID));
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
+      int face_id = (FRAME_PARENT_FRAME (f)
+		     ? (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     CHILD_FRAME_BORDER_FACE_ID)
+			: CHILD_FRAME_BORDER_FACE_ID)
+		     : (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     INTERNAL_BORDER_FACE_ID)
+			: INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       if (face)
@@ -7594,7 +7596,8 @@ x_clear_under_internal_border (struct frame *f)
 	  x_fill_rectangle (f, gc, 0, margin, width, border, false);
 	  x_fill_rectangle (f, gc, 0, 0, border, height, false);
 	  x_fill_rectangle (f, gc, width - border, 0, border, height, false);
-	  x_fill_rectangle (f, gc, 0, height - border, width, border, false);
+	  x_fill_rectangle (f, gc, 0, height - bottom_margin - border,
+			    width, border, false);
 	  XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
 	}
       else
@@ -7602,7 +7605,8 @@ x_clear_under_internal_border (struct frame *f)
 	  x_clear_area (f, 0, 0, border, height);
 	  x_clear_area (f, 0, margin, width, border);
 	  x_clear_area (f, width - border, 0, border, height);
-	  x_clear_area (f, 0, height - border, width, border);
+	  x_clear_area (f, 0, height - bottom_margin - border,
+			width, border);
 	}
     }
 }
@@ -11318,7 +11322,8 @@ XTflash (struct frame *f)
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 		      flash_left,
 		      (height - flash_height
-		       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+		       - FRAME_INTERNAL_BORDER_WIDTH (f)
+		       - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 		      width, flash_height);
 
     }
@@ -11372,7 +11377,8 @@ XTflash (struct frame *f)
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 		      flash_left,
 		      (height - flash_height
-		       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+		       - FRAME_INTERNAL_BORDER_WIDTH (f)
+		       - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 		      width, flash_height);
     }
   else

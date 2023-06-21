@@ -1537,14 +1537,16 @@ w32_clear_under_internal_border (struct frame *f)
     {
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
-      int face_id =
-	(FRAME_PARENT_FRAME (f)
-	 ? (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
-	    : CHILD_FRAME_BORDER_FACE_ID)
-	 : (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	    : INTERNAL_BORDER_FACE_ID));
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
+      int face_id = (FRAME_PARENT_FRAME (f)
+		     ? (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     CHILD_FRAME_BORDER_FACE_ID)
+			: CHILD_FRAME_BORDER_FACE_ID)
+		     : (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     INTERNAL_BORDER_FACE_ID)
+			: INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
@@ -1554,17 +1556,21 @@ w32_clear_under_internal_border (struct frame *f)
 	  /* Fill border with internal border face.  */
 	  unsigned long color = face->background;
 
-	  w32_fill_area (f, hdc, color, 0, FRAME_TOP_MARGIN_HEIGHT (f), width, border);
+	  w32_fill_area (f, hdc, color, 0, FRAME_TOP_MARGIN_HEIGHT (f),
+			 width, border);
 	  w32_fill_area (f, hdc, color, 0, 0, border, height);
 	  w32_fill_area (f, hdc, color, width - border, 0, border, height);
-	  w32_fill_area (f, hdc, color, 0, height - border, width, border);
+	  w32_fill_area (f, hdc, color, 0, height - bottom_margin - border,
+			 width, border);
 	}
       else
 	{
-	  w32_clear_area (f, hdc, 0, FRAME_TOP_MARGIN_HEIGHT (f), width, border);
+	  w32_clear_area (f, hdc, 0, FRAME_TOP_MARGIN_HEIGHT (f),
+			  width, border);
 	  w32_clear_area (f, hdc, 0, 0, border, height);
 	  w32_clear_area (f, hdc, width - border, 0, border, height);
-	  w32_clear_area (f, hdc, 0, height - border, width, border);
+	  w32_clear_area (f, hdc, 0, height - bottom_margin - border,
+			  width, border);
 	}
       release_frame_dc (f, hdc);
       unblock_input ();
@@ -1804,6 +1810,33 @@ w32_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   w32_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+}
+
+static void
+w32_set_tool_bar_position (struct frame *f,
+			   Lisp_Object new_value,
+			   Lisp_Object old_value)
+{
+  if (!EQ (new_value, Qtop) && !EQ (new_value, Qbottom))
+    error ("Tool bar position must be either `top' or `bottom'");
+
+  if (EQ (new_value, old_value))
+    return;
+
+  /* Set the tool bar position.  */
+  fset_tool_bar_position (f, new_value);
+
+  /* Now reconfigure frame glyphs to place the tool bar at the
+     bottom.  While the inner height has not changed, call
+     `resize_frame_windows' to place each of the windows at its
+     new position.  */
+
+  adjust_frame_size (f, -1, -1, 3, false, Qtool_bar_position);
+  adjust_frame_glyphs (f);
+  SET_FRAME_GARBAGED (f);
+
+  if (FRAME_W32_WINDOW (f))
+    w32_clear_under_internal_border (f);
 }
 
 /* Enable or disable double buffering on frame F.
@@ -8993,7 +9026,9 @@ and width values are in pixels.
 			       : 0),
 			      make_fixnum (tab_bar_height))),
 		Fcons (Qtool_bar_external, Qnil),
-		Fcons (Qtool_bar_position, tool_bar_height ? Qtop : Qnil),
+		Fcons (Qtool_bar_position, (tool_bar_height
+					    ? FRAME_TOOL_BAR_POSITION (f)
+					    : Qnil)),
 		Fcons (Qtool_bar_size,
 		       Fcons (make_fixnum
 			      (tool_bar_height
@@ -9084,10 +9119,11 @@ menu bar or tool bar of FRAME.  */)
 	  return list4 (make_fixnum (left + internal_border_width),
 			make_fixnum (top
 				     + FRAME_TAB_BAR_HEIGHT (f)
-				     + FRAME_TOOL_BAR_HEIGHT (f)
+				     + FRAME_TOOL_BAR_TOP_HEIGHT (f)
 				     + internal_border_width),
 			make_fixnum (right - internal_border_width),
-			make_fixnum (bottom - internal_border_width));
+			make_fixnum (bottom - internal_border_width
+				     - FRAME_TOOL_BAR_BOTTOM_HEIGHT (f)));
 	}
       else
 	return list4 (make_fixnum (left), make_fixnum (top),
@@ -10556,7 +10592,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   gui_set_font_backend,
   gui_set_alpha,
   0, /* x_set_sticky */
-  0, /* x_set_tool_bar_position */
+  w32_set_tool_bar_position,
   w32_set_inhibit_double_buffering,
   w32_set_undecorated,
   w32_set_parent_frame,

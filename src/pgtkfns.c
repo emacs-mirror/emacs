@@ -3451,7 +3451,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
   tab_bar_width = (tab_bar_height
 		   ? native_width - 2 * internal_border_width : 0);
-  /* inner_top += tab_bar_height; */
+  inner_top += tab_bar_height;
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
@@ -3564,7 +3564,9 @@ menu bar or tool bar of FRAME.  */)
 				 ? type : Qnative_edges));
 }
 
-DEFUN ("pgtk-set-mouse-absolute-pixel-position", Fpgtk_set_mouse_absolute_pixel_position, Spgtk_set_mouse_absolute_pixel_position, 2, 2, 0,
+DEFUN ("pgtk-set-mouse-absolute-pixel-position",
+       Fpgtk_set_mouse_absolute_pixel_position,
+       Spgtk_set_mouse_absolute_pixel_position, 2, 2, 0,
        doc: /* Move mouse pointer to absolute pixel position (X, Y).
 The coordinates X and Y are interpreted in pixels relative to a position
 \(0, 0) of the selected frame's display.  */)
@@ -3583,7 +3585,9 @@ The coordinates X and Y are interpreted in pixels relative to a position
   return Qnil;
 }
 
-DEFUN ("pgtk-mouse-absolute-pixel-position", Fpgtk_mouse_absolute_pixel_position, Spgtk_mouse_absolute_pixel_position, 0, 0, 0,
+DEFUN ("pgtk-mouse-absolute-pixel-position",
+       Fpgtk_mouse_absolute_pixel_position,
+       Spgtk_mouse_absolute_pixel_position, 0, 0, 0,
        doc: /* Return absolute position of mouse cursor in pixels.
 The position is returned as a cons cell (X . Y) of the
 coordinates of the mouse cursor position in pixels relative to a
@@ -3605,7 +3609,8 @@ position (0, 0) of the selected frame's terminal. */)
 }
 
 
-DEFUN ("pgtk-page-setup-dialog", Fpgtk_page_setup_dialog, Spgtk_page_setup_dialog, 0, 0, 0,
+DEFUN ("pgtk-page-setup-dialog", Fpgtk_page_setup_dialog,
+       Spgtk_page_setup_dialog, 0, 0, 0,
        doc: /* Pop up a page setup dialog.
 The current page setup can be obtained using `x-get-page-setup'.  */)
   (void)
@@ -3617,7 +3622,8 @@ The current page setup can be obtained using `x-get-page-setup'.  */)
   return Qnil;
 }
 
-DEFUN ("pgtk-get-page-setup", Fpgtk_get_page_setup, Spgtk_get_page_setup, 0, 0, 0,
+DEFUN ("pgtk-get-page-setup", Fpgtk_get_page_setup,
+       Spgtk_get_page_setup, 0, 0, 0,
        doc: /* Return the value of the current page setup.
 The return value is an alist containing the following keys:
 

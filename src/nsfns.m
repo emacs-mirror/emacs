@@ -706,8 +706,10 @@ ns_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     ns_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
+
 
-/* toolbar support */
+/* Tool bar support.  */
+
 static void
 ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -760,7 +762,16 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 static void
-ns_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+ns_set_tool_bar_position (struct frame *f, Lisp_Object arg,
+			  Lisp_Object oldval)
+{
+  if (!EQ (arg, Qtop))
+    error ("Tool bar position must be `top'");
+}
+
+static void
+ns_set_child_frame_border_width (struct frame *f, Lisp_Object arg,
+				 Lisp_Object oldval)
 {
   int border;
 
@@ -1055,7 +1066,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   gui_set_font_backend, /* generic OK */
   gui_set_alpha,
   0, /* x_set_sticky */
-  0, /* x_set_tool_bar_position */
+  ns_set_tool_bar_position,
   0, /* x_set_inhibit_double_buffering */
   ns_set_undecorated,
   ns_set_parent_frame,
