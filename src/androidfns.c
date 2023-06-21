@@ -254,15 +254,26 @@ android_set_tool_bar_position (struct frame *f,
 			       Lisp_Object new_value,
 			       Lisp_Object old_value)
 {
-  Lisp_Object choice = list4 (Qleft, Qright, Qtop, Qbottom);
+  if (!EQ (new_value, Qtop) && !EQ (new_value, Qbottom))
+    error ("Tool bar position must be either `top' or `bottom'");
 
-  if (!NILP (Fmemq (new_value, choice)))
-    {
-      if (!EQ (new_value, Qtop))
-	error ("The only supported tool bar position is top");
-    }
-  else
-    wrong_choice (choice, new_value);
+  if (EQ (new_value, old_value))
+    return;
+
+  /* Set the tool bar position.  */
+  fset_tool_bar_position (f, new_value);
+
+  /* Now reconfigure frame glyphs to place the tool bar at the
+     bottom.  While the inner height has not changed, call
+     `resize_frame_windows' to place each of the windows at its
+     new position.  */
+
+  adjust_frame_size (f, -1, -1, 3, false, Qtool_bar_position);
+  adjust_frame_glyphs (f);
+  SET_FRAME_GARBAGED (f);
+
+  if (FRAME_ANDROID_WINDOW (f))
+    android_clear_under_internal_border (f);
 }
 
 void
@@ -1470,7 +1481,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
   tab_bar_width = (tab_bar_height
-		    ? native_width - 2 * internal_border_width
+		   ? native_width - 2 * internal_border_width
 		    : 0);
   inner_top += tab_bar_height;
 
@@ -1478,7 +1489,14 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   tool_bar_width = (tool_bar_height
 		    ? native_width - 2 * internal_border_width
 		    : 0);
-  inner_top += tool_bar_height;
+
+  /* Subtract or add to the inner dimensions based on the tool bar
+     position.  */
+
+  if (EQ (FRAME_TOOL_BAR_POSITION (f), Qtop))
+    inner_top += tool_bar_height;
+  else
+    inner_bottom -= tool_bar_height;
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))

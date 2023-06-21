@@ -181,7 +181,8 @@ android_flash (struct frame *f)
       android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
 			      flash_left,
 			      (height - flash_height
-			       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			       - FRAME_INTERNAL_BORDER_WIDTH (f)
+			       - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 			      width, flash_height);
 
     }
@@ -234,7 +235,8 @@ android_flash (struct frame *f)
       android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
 			      flash_left,
 			      (height - flash_height
-			       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			       - FRAME_INTERNAL_BORDER_WIDTH (f)
+			       - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 			      width, flash_height);
     }
   else
@@ -4213,14 +4215,16 @@ android_clear_under_internal_border (struct frame *f)
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
-      int face_id =
-	(FRAME_PARENT_FRAME (f)
-	 ? (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
-	    : CHILD_FRAME_BORDER_FACE_ID)
-	 : (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	    : INTERNAL_BORDER_FACE_ID));
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
+      int face_id = (FRAME_PARENT_FRAME (f)
+		     ? (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     CHILD_FRAME_BORDER_FACE_ID)
+			: CHILD_FRAME_BORDER_FACE_ID)
+		     : (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     INTERNAL_BORDER_FACE_ID)
+			: INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       if (face)
@@ -4236,7 +4240,8 @@ android_clear_under_internal_border (struct frame *f)
 	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, width - border,
 				  0, border, height);
 	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, 0,
-				  height - border, width, border);
+				  height - bottom_margin - border,
+				  width, border);
 	  android_set_foreground (gc, FRAME_FOREGROUND_PIXEL (f));
 	}
       else
@@ -4248,7 +4253,8 @@ android_clear_under_internal_border (struct frame *f)
 	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), width - border,
 			      0, border, height);
 	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), 0,
-			      height - border, width, border);
+			      height - bottom_margin - border,
+			      width, border);
 	}
     }
 }
