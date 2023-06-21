@@ -2659,7 +2659,9 @@ need for `c-font-lock-extra-types'.")
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; fontification".
   (let (pos)
-    (while (c-syntactic-re-search-forward c-using-key limit 'end)
+    (while 
+	(and (< (point) limit)
+	     (c-syntactic-re-search-forward c-using-key limit 'end))
       (while  ; Do one declarator of a comma separated list, each time around.
 	  (progn
 	    (c-forward-syntactic-ws)

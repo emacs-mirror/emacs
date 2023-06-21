@@ -2672,6 +2672,7 @@ comment at the start of cc-engine.el for more info."
 	  (progn (goto-char beg)
 		 (c-skip-ws-forward end+1)
 		 (eq (point) end+1))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; We maintain a sopisticated cache of positions which are in a literal,
@@ -7039,8 +7040,8 @@ comment at the start of cc-engine.el for more info."
   ;; POS (default point) is at a < character.  If it is both marked
   ;; with open/close paren syntax-table property, and has a matching >
   ;; (also marked) which is after LIM, remove the property both from
-  ;; the current > and its partner.  Return t when this happens, nil
-  ;; when it doesn't.
+  ;; the current > and its partner.  Return the position after the >
+  ;; when this happens, nil when it doesn't.
   (save-excursion
     (if pos
 	(goto-char pos)
@@ -7054,15 +7055,15 @@ comment at the start of cc-engine.el for more info."
 			c->-as-paren-syntax)) ; should always be true.
 	(c-unmark-<->-as-paren (1- (point)))
 	(c-unmark-<->-as-paren pos)
-	(c-truncate-lit-pos-cache pos))
-      t)))
+	(c-truncate-lit-pos-cache pos)
+      (point)))))
 
 (defun c-clear->-pair-props-if-match-before (lim &optional pos)
   ;; POS (default point) is at a > character.  If it is both marked
   ;; with open/close paren syntax-table property, and has a matching <
   ;; (also marked) which is before LIM, remove the property both from
-  ;; the current < and its partner.  Return t when this happens, nil
-  ;; when it doesn't.
+  ;; the current < and its partner.  Return the position of the < when
+  ;; this happens, nil when it doesn't.
   (save-excursion
     (if pos
 	(goto-char pos)
@@ -7076,8 +7077,8 @@ comment at the start of cc-engine.el for more info."
 			c-<-as-paren-syntax)) ; should always be true.
 	(c-unmark-<->-as-paren (point))
 	(c-truncate-lit-pos-cache (point))
-	(c-unmark-<->-as-paren pos))
-      t)))
+	(c-unmark-<->-as-paren pos)
+	(point)))))
 
 ;; Set by c-common-init in cc-mode.el.
 (defvar c-new-BEG)
@@ -7085,7 +7086,48 @@ comment at the start of cc-engine.el for more info."
 ;; Set by c-before-change-check-raw-strings.
 (defvar c-old-END-literality)
 
-(defun c-before-change-check-<>-operators (beg end)
+(defun c-end-of-literal (pt-s pt-search)
+  ;; If a literal is open in the `c-semi-pp-to-literal' state PT-S, return the
+  ;; end point of this literal (or point-max) assuming PT-S is valid at
+  ;; PT-SEARCH.  Otherwise, return nil.
+  (when (car (cddr pt-s))		; Literal start
+    (let ((lit-type (cadr pt-s))
+	  (lit-beg (car (cddr pt-s)))
+	  ml-end-re
+	  )
+      (save-excursion
+	(cond
+	 ((eq lit-type 'string)
+	  (if (and c-ml-string-opener-re
+		   (c-ml-string-opener-at-or-around-point lit-beg))
+	      (progn
+		(setq ml-end-re
+		      (funcall c-make-ml-string-closer-re-function
+			       (match-string 1)))
+		(goto-char (max (- pt-search (1- (length ml-end-re)))
+				(point-min)))
+		(re-search-forward ml-end-re nil 'stay))
+	    ;; For an ordinary string, we can't use `parse-partial-sexp' since
+	    ;; not all syntax-table properties have yet been set.
+	    (goto-char pt-search)
+	    (re-search-forward
+	       "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\"\n\\]\\)*[\"\n]" nil 'stay)))
+	 ((memq lit-type '(c c++))
+	  ;; To work around a bug in parse-partial-sexp, where effect is given
+	  ;; to the syntax of a backslash, even the the scan starts with point
+	  ;; just after it.
+	  (if (and (eq (char-before pt-search) ?\\)
+		   (eq (char-after pt-search) ?\n))
+	      (progn
+		(c-put-char-property (1- pt-search) 'syntax-table '(1))
+		(parse-partial-sexp pt-search (point-max) nil nil (car pt-s)
+				    'syntax-table)
+		(c-clear-char-property (1- pt-search) 'syntax-table))
+	  (parse-partial-sexp pt-search (point-max) nil nil (car pt-s)
+			      'syntax-table))))
+	(point)))))
+
+(defun c-unmark-<>-around-region (beg end &optional old-len)
   ;; Unmark certain pairs of "< .... >" which are currently marked as
   ;; template/generic delimiters.  (This marking is via syntax-table text
   ;; properties), and expand the (c-new-BEG c-new-END) region to include all
@@ -7099,66 +7141,201 @@ comment at the start of cc-engine.el for more info."
   ;; enclose a brace or semicolon, so we use these as bounds on the
   ;; region we must work on.
   ;;
+  ;; The buffer is widened, and point is undefined, both at entry and exit.
+  ;;
+  ;; FIXME!!!  This routine ignores the possibility of macros entirely.
+  ;; 2010-01-29.
+
+  (when (> end beg)
+    ;; Extend the region (BEG END) to deal with any complicating literals.
+    (let* ((lit-search-beg (if (memq (char-before beg) '(?/ ?*))
+			       (1- beg) beg))
+	   (lit-search-end (if (memq (char-after end) '(?/ ?*))
+			       (1+ end) end))
+	   ;; Note we can't use c-full-pp-to-literal here, since we haven't
+	   ;; yet applied syntax-table properties to ends of lines, etc.
+	   (lit-search-beg-s (c-semi-pp-to-literal lit-search-beg))
+	   (beg-literal-beg (car (cddr lit-search-beg-s)))
+	   (lit-search-end-s (c-semi-pp-to-literal lit-search-end))
+	   (end-literal-beg (car (cddr lit-search-end-s)))
+	   (beg-literal-end (c-end-of-literal lit-search-beg-s beg))
+	   (end-literal-end (c-end-of-literal lit-search-end-s end))
+	   new-beg new-end search-region)
+
+      ;; Determine any new end of literal resulting from the insertion/deletion.
+      (setq search-region
+	    (if (and (eq beg-literal-beg end-literal-beg)
+		     (eq beg-literal-end end-literal-end))
+		(if beg-literal-beg
+		    nil
+		  (cons beg
+			(max end
+			     (or beg-literal-end (point-min))
+			     (or end-literal-end (point-min)))))
+	      (cons (or beg-literal-beg beg)
+		    (max end
+			 (or beg-literal-end (point-min))
+			 (or end-literal-end (point-min))))))
+
+      (when search-region
+	;; If we've just inserted text, mask its syntaxes temporarily so that
+	;; they won't interfere with the undoing of the properties on the <s
+	;; and >s.
+	(c-save-buffer-state (syn-tab-settings syn-tab-value
+					       swap-open-string-ends)
+	  (unwind-protect
+	      (progn
+		(when old-len
+		  ;; Special case: If a \ has just been inserted into a
+		  ;; string, escaping or unescaping a LF, temporarily swap
+		  ;; the LF's syntax-table text property with that of the
+		  ;; former end of the open string.
+		  (goto-char end)
+		  (when (and (eq (cadr lit-search-beg-s) 'string)
+			     (not (eq beg-literal-end end-literal-end))
+			     (skip-chars-forward "\\\\")
+			     (eq (char-after) ?\n)
+			     (not (zerop (skip-chars-backward "\\\\"))))
+		    (setq swap-open-string-ends t)
+		    (if (c-get-char-property (1- beg-literal-end)
+					     'syntax-table)
+			(progn
+			  (c-clear-char-property (1- beg-literal-end)
+						 'syntax-table)
+			  (c-put-char-property (1- end-literal-end)
+					       'syntax-table '(15)))
+		      (c-put-char-property (1- beg-literal-end)
+					   'syntax-table '(15))
+		      (c-clear-char-property (1- end-literal-end)
+					     'syntax-table)))
+
+		  ;; Save current settings of the 'syntax-table property in
+		  ;; (BEG END), then splat these with the punctuation value.
+		  (goto-char beg)
+		  (while (progn (skip-syntax-forward "" end)
+				(< (point) end))
+		    (setq syn-tab-value
+			  (c-get-char-property (point) 'syntax-table))
+		    (when (not (c-get-char-property (point) 'category))
+		      (push (cons (point) syn-tab-value) syn-tab-settings))
+		    (forward-char))
+
+		  (c-put-char-properties beg end 'syntax-table '(1))
+		  ;; If an open string's opener has just been neutralized,
+		  ;; do the same to the terminating LF.
+		  (when (and end-literal-end
+			     (eq (char-before end-literal-end) ?\n)
+			     (equal (c-get-char-property
+				     (1- end-literal-end) 'syntax-table)
+				    '(15)))
+		    (push (cons (1- end-literal-end) '(15)) syn-tab-settings)
+		    (c-put-char-property (1- end-literal-end) 'syntax-table
+					 '(1))))
+
+		(let
+		    ((beg-lit-start (progn (goto-char beg) (c-literal-start)))
+		     beg-limit end-limit <>-pos)
+		  ;; Locate the earliest < after the barrier before the
+		  ;; changed region, which isn't already marked as a paren.
+		  (goto-char (or beg-lit-start beg))
+		  (setq beg-limit (c-determine-limit 5000))
+
+		  ;; Remove the syntax-table/category properties from each pertinent <...>
+		  ;; pair.  Firstly, the ones with the < before beg and > after beg....
+		  (goto-char (cdr search-region))
+		  (while (progn (c-syntactic-skip-backward "^;{}<" beg-limit)
+				(eq (char-before) ?<))
+		    (c-backward-token-2)
+		    (when (eq (char-after) ?<)
+		      (when (setq <>-pos (c-clear-<-pair-props-if-match-after
+					  (car search-region)))
+			(setq new-end <>-pos))
+		      (setq new-beg (point))))
+
+		  ;; ...Then the ones with < before end and > after end.
+		  (goto-char (car search-region))
+		  (setq end-limit (c-determine-+ve-limit 5000))
+		  (while (and (c-syntactic-re-search-forward "[;{}>]" end-limit 'end)
+			      (eq (char-before) ?>))
+		    (when (eq (char-before) ?>)
+		      (if (and (looking-at c->-op-cont-regexp)
+			       (not (eq (char-after) ?>)))
+			  (goto-char (match-end 0))
+			(when
+			    (and (setq <>-pos
+				       (c-clear->-pair-props-if-match-before
+					(cdr search-region)
+					(1- (point))))
+				 (or (not new-beg)
+				     (< <>-pos new-beg)))
+			  (setq new-beg <>-pos))
+			(when (or (not new-end) (> (point) new-end))
+			  (setq new-end (point))))))))
+
+	    (when old-len
+	      (c-clear-char-properties beg end 'syntax-table)
+	      (dolist (elt syn-tab-settings)
+		(if (cdr elt)
+		    (c-put-char-property (car elt) 'syntax-table (cdr elt)))))
+	    ;; Swap the '(15) syntax-table property on open string LFs back
+	    ;; again.
+	    (when swap-open-string-ends
+	      (if (c-get-char-property (1- beg-literal-end)
+				       'syntax-table)
+		  (progn
+		    (c-clear-char-property (1- beg-literal-end)
+					   'syntax-table)
+		    (c-put-char-property (1- end-literal-end)
+					 'syntax-table '(15)))
+		(c-put-char-property (1- beg-literal-end)
+				     'syntax-table '(15))
+		(c-clear-char-property (1- end-literal-end)
+				       'syntax-table)))))
+	  ;; Extend the fontification region, if needed.
+	  (and new-beg
+	       (< new-beg c-new-BEG)
+	       (setq c-new-BEG new-beg))
+	  (and new-end
+	       (> new-end c-new-END)
+	       (setq c-new-END new-end))))))
+
+(defun c-before-change-check-<>-operators (beg end)
+  ;; When we're deleting text, unmark certain pairs of "< .... >" which are
+  ;; currently marked as template/generic delimiters.  (This marking is via
+  ;; syntax-table text properties), and expand the (c-new-BEG c-new-END)
+  ;; region to include all unmarked < and > operators within the certain
+  ;; bounds (see below).
+  ;;
+  ;; These pairs are those which are in the current "statement" (i.e.,
+  ;; the region between the {, }, or ; before BEG and the one after
+  ;; END), and which enclose any part of the interval (BEG END).
+  ;; Also unmark a < or > which is about to become part of a multi-character
+  ;; operator, e.g. <=.
+  ;;
+  ;; Note that in C++ (?and Java), template/generic parens cannot
+  ;; enclose a brace or semicolon, so we use these as bounds on the
+  ;; region we must work on.
+  ;;
   ;; This function is called from before-change-functions (via
   ;; c-get-state-before-change-functions).  Thus the buffer is widened,
   ;; and point is undefined, both at entry and exit.
   ;;
   ;; FIXME!!!  This routine ignores the possibility of macros entirely.
   ;; 2010-01-29.
-  (when (and (or (> end beg)
-		 (and (> c-<-pseudo-digraph-cont-len 0)
-		      (goto-char beg)
-		      (progn
-			(skip-chars-backward
-			 "^<" (max (- (point) c-<-pseudo-digraph-cont-len)
-				   (point-min)))
-			(eq (char-before) ?<))
-		      (looking-at c-<-pseudo-digraph-cont-regexp)))
-	     (or
-	      (progn
-		(goto-char beg)
-		(search-backward "<" (max (- (point) 1024) (point-min)) t))
-	      (progn
-		(goto-char end)
-		(search-forward ">" (min (+ (point) 1024) (point-max)) t))))
-    (save-excursion
-      (c-save-buffer-state
-	  ((beg-lit-start (progn (goto-char beg) (c-literal-start)))
-	   (end-lit-limits (progn (goto-char end) (c-literal-limits)))
-	   new-beg new-end beg-limit end-limit)
-	;; Locate the earliest < after the barrier before the changed region,
-	;; which isn't already marked as a paren.
-	(goto-char (or beg-lit-start beg))
-	(setq beg-limit (c-determine-limit 512))
-
-	;; Remove the syntax-table/category properties from each pertinent <...>
-	;; pair.  Firstly, the ones with the < before beg and > after beg....
-	(while (progn (c-syntactic-skip-backward "^;{}<" beg-limit)
-		      (eq (char-before) ?<))
-	  (c-backward-token-2)
-	  (when (eq (char-after) ?<)
-	    (c-clear-<-pair-props-if-match-after beg)
-	    (setq new-beg (point))))
-	(c-forward-syntactic-ws)
-
-	;; ...Then the ones with < before end and > after end.
-	(goto-char (if end-lit-limits (cdr end-lit-limits) end))
-	(setq end-limit (c-determine-+ve-limit 512))
-	(while (and (c-syntactic-re-search-forward "[;{}>]" end-limit 'end)
-		    (eq (char-before) ?>))
-	  (c-end-of-current-token)
-	  (when (eq (char-before) ?>)
-	    (c-clear->-pair-props-if-match-before end (1- (point)))
-	    (setq new-end (point))))
-	(c-backward-syntactic-ws)
-
-	;; Extend the fontification region, if needed.
-	(and new-beg
-	     (< new-beg c-new-BEG)
-	     (setq c-new-BEG new-beg))
-	(and new-end
-	     (> new-end c-new-END)
-	     (setq c-new-END new-end))))))
+  (when (> end beg)
+  ;; Cope with removing (beg end) coalescing a < or > with, say, an = sign.
+    (goto-char beg)
+    (let ((ch (char-before)))
+      (if (and (memq ch '(?< ?>))
+	       (c-get-char-property (1- (point)) 'syntax-table)
+	       (progn
+		 (goto-char end)
+		 (looking-at (if (eq ch ?<)
+				 c-<-op-cont-regexp
+			       c->-op-cont-regexp)))
+	       (or (eq ch ?<)
+		   (not (eq (char-after) ?>))))
+	  (c-unmark-<>-around-region (1- beg) beg)))))
 
 (defun c-after-change-check-<>-operators (beg end)
   ;; This is called from `after-change-functions' when
@@ -7198,29 +7375,38 @@ comment at the start of cc-engine.el for more info."
 	    (c-clear-<>-pair-props)
 	    (forward-char)))))))
 
+(defun c-<>-get-restricted ()
+  ;; With point at the < at the start of the purported <>-arglist, determine
+  ;; the value of `c-restricted-<>-arglists' to use for the call of
+  ;; `c-forward-<>-arglist' starting there.
+  (save-excursion
+    (c-backward-token-2)
+    (and (not (looking-at c-opt-<>-sexp-key))
+	 (progn (c-backward-syntactic-ws)		  ; to ( or ,
+		(and (memq (char-before) '(?\( ?,))	  ; what about <?
+		     (not (eq (c-get-char-property (point) 'c-type)
+			      'c-decl-arg-start)))))))
+
 (defun c-restore-<>-properties (_beg _end _old-len)
   ;; This function is called as an after-change function.  It restores the
   ;; category/syntax-table properties on template/generic <..> pairs between
   ;; c-new-BEG and c-new-END.  It may do hidden buffer changes.
-  (c-save-buffer-state ((c-parse-and-markup-<>-arglists t)
-			c-restricted-<>-arglists lit-limits)
+  (c-save-buffer-state ((c-parse-and-markup-<>-arglists t) lit-limits)
     (goto-char c-new-BEG)
     (if (setq lit-limits (c-literal-limits))
 	(goto-char (cdr lit-limits)))
     (while (and (< (point) c-new-END)
-		(c-syntactic-re-search-forward "<" c-new-END 'bound))
-      (backward-char)
-      (save-excursion
-	(c-backward-token-2)
-	(setq c-restricted-<>-arglists
-	     (and (not (looking-at c-opt-<>-sexp-key))
-		  (progn (c-backward-syntactic-ws) ; to ( or ,
-			 (and (memq (char-before) '(?\( ?,)) ; what about <?
-			      (not (eq (c-get-char-property (point) 'c-type)
-				       'c-decl-arg-start)))))))
-      (or (c-forward-<>-arglist nil)
-	  (c-forward-over-token-and-ws)
-	  (goto-char c-new-END)))))
+		(c-syntactic-re-search-forward "[<>]" c-new-END 'bound))
+      (if (eq (char-before) ?<)
+	  (progn
+	    (backward-char)
+	    (let ((c-restricted-<>-arglists (c-<>-get-restricted)))
+	      (or (c-forward-<>-arglist nil)
+		  (c-forward-over-token-and-ws)
+		  (goto-char c-new-END))))
+	(save-excursion
+	  (when (c-backward-<>-arglist nil nil #'c-<>-get-restricted)
+	    (setq c-new-BEG (min c-new-BEG (point)))))))))
 
 
 ;; Handling of CC Mode multi-line strings.
@@ -7372,13 +7558,13 @@ multi-line strings (but not C++, for example)."
 
 (defun c-ml-string-opener-intersects-region (&optional start finish)
   ;; If any part of the region [START FINISH] is inside an ml-string opener,
-  ;; return a dotted list of the start, end and double-quote position of that
-  ;; opener.  That list will not include any "context characters" before or
-  ;; after the opener.  If an opener is found, the match-data will indicate
-  ;; it, with (match-string 1) being the entire delimiter, and (match-string
-  ;; 2) the "main" double-quote.  Otherwise, the match-data is undefined.
-  ;; Both START and FINISH default to point.  FINISH may not be at an earlier
-  ;; buffer position than START.
+  ;; return a dotted list of the start, end and double-quote position of the
+  ;; first such opener.  That list wlll not include any "context characters"
+  ;; before or after the opener.  If an opener is found, the match-data will
+  ;; indicate it, with (match-string 1) being the entire delimiter, and
+  ;; (match-string 2) the "main" double-quote.  Otherwise, the match-data is
+  ;; undefined.  Both START and FINISH default to point.  FINISH may not be at
+  ;; an earlier buffer position than START.
   (let ((here (point)) found)
     (or finish (setq finish (point)))
     (or start (setq start (point)))
@@ -7402,7 +7588,10 @@ multi-line strings (but not C++, for example)."
   ;; If POSITION (default point) is at or inside an ml string opener, return a
   ;; dotted list of the start and end of that opener, and the position of the
   ;; double-quote in it.  That list will not include any "context characters"
-  ;; before or after the opener.
+  ;; before or after the opener.  If an opener is found, the match-data will
+  ;; indicate it, with (match-string 1) being the entire delimiter, and
+  ;; (match-string 2) the "main" double-quote.  Otherwise, the match-data is
+  ;; undefined.
   (let ((here (point))
 	found)
     (or position (setq position (point)))
@@ -7414,7 +7603,7 @@ multi-line strings (but not C++, for example)."
 		c-ml-string-opener-re
 		(min (+ position c-ml-string-max-opener-len) (point-max))
 		'bound))
-	 (<= (match-end 1) position)))
+	 (< (match-end 1) position)))
     (prog1
 	(and found
 	     (<= (match-beginning 1) position)
@@ -8821,7 +9010,7 @@ multi-line strings (but not C++, for example)."
       (if res
 	  (or c-record-found-types t)))))
 
-(defun c-backward-<>-arglist (all-types &optional limit)
+(defun c-backward-<>-arglist (all-types &optional limit restricted-function)
   ;; The point is assumed to be directly after a ">".  Try to treat it
   ;; as the close paren of an angle bracket arglist and move back to
   ;; the corresponding "<".  If successful, the point is left at
@@ -8830,7 +9019,12 @@ multi-line strings (but not C++, for example)."
   ;; `c-forward-<>-arglist'.
   ;;
   ;; If the optional LIMIT is given, it bounds the backward search.
-  ;; It's then assumed to be at a syntactically relevant position.
+  ;; It's then assumed to be at a syntactically relevant position.  If
+  ;; RESTRICTED-FUNCTION is non-nil, it should be a function taking no
+  ;; arguments, called with point at a < at the start of a purported
+  ;; <>-arglist, which will return the value of
+  ;; `c-restricted-<>-arglists' to be used in the `c-forward-<>-arglist'
+  ;; call starting at that <.
   ;;
   ;; This is a wrapper around `c-forward-<>-arglist'.  See that
   ;; function for more details.
@@ -8866,7 +9060,11 @@ multi-line strings (but not C++, for example)."
 		   t
 
 		 (backward-char)
-		 (let ((beg-pos (point)))
+		 (let ((beg-pos (point))
+		       (c-restricted-<>-arglists
+			(if restricted-function
+			    (funcall restricted-function)
+			  c-restricted-<>-arglists)))
 		   (if (c-forward-<>-arglist all-types)
 		       (cond ((= (point) start)
 			      ;; Matched the arglist.  Break the while.
