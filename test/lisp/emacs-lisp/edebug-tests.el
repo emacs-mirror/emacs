@@ -116,6 +116,7 @@ back to the top level.")
               (with-current-buffer (find-file edebug-tests-temp-file)
                 (read-only-mode)
                 (setq lexical-binding t)
+                (syntax-ppss)
                 (eval-buffer)
                 ,@body
                 (when edebug-tests-failure-in-post-command
