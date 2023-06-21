@@ -807,23 +807,45 @@ x_set_tool_bar_position (struct frame *f,
                          Lisp_Object new_value,
                          Lisp_Object old_value)
 {
-  Lisp_Object choice = list4 (Qleft, Qright, Qtop, Qbottom);
+#ifdef USE_GTK
+  Lisp_Object choice;
+
+  choice = list4 (Qleft, Qright, Qtop, Qbottom);
 
   if (!NILP (Fmemq (new_value, choice)))
     {
-#ifdef USE_GTK
       if (!EQ (new_value, old_value))
 	{
 	  xg_change_toolbar_position (f, new_value);
 	  fset_tool_bar_position (f, new_value);
 	}
-#else
-      if (!EQ (new_value, Qtop))
-	error ("The only supported tool bar position is top");
-#endif
+#else /* !USE_GTK */
+      if (!EQ (new_value, Qtop) && !EQ (new_value, Qbottom))
+	error ("Tool bar position must be either `top' or `bottom'");
+
+      if (EQ (new_value, old_value))
+	return;
+
+      /* Set the tool bar position.  */
+      fset_tool_bar_position (f, new_value);
+
+      /* Now reconfigure frame glyphs to place the tool bar at the
+	 bottom.  While the inner height has not changed, call
+	 `resize_frame_windows' to place each of the windows at its
+	 new position.  */
+
+      adjust_frame_size (f, -1, -1, 3, false, Qtool_bar_position);
+      adjust_frame_glyphs (f);
+      SET_FRAME_GARBAGED (f);
+
+      if (FRAME_X_WINDOW (f))
+	x_clear_under_internal_border (f);
+#endif /* USE_GTK */
+#ifdef USE_GTK
     }
   else
     wrong_choice (choice, new_value);
+#endif /* USE_GTK */
 }
 
 #ifdef HAVE_XDBE
@@ -6676,10 +6698,11 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 }
 
 /* Return geometric attributes of FRAME.  According to the value of
-   ATTRIBUTES return the outer edges of FRAME (Qouter_edges), the native
-   edges of FRAME (Qnative_edges), or the inner edges of frame
+   ATTRIBUTES return the outer edges of FRAME (Qouter_edges), the
+   native edges of FRAME (Qnative_edges), or the inner edges of frame
    (Qinner_edges).  Any other value means to return the geometry as
    returned by Fx_frame_geometry.  */
+
 static Lisp_Object
 frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 {
@@ -6768,8 +6791,8 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
   tab_bar_width = (tab_bar_height
-		    ? native_width - 2 * internal_border_width
-		    : 0);
+		   ? native_width - 2 * internal_border_width
+		   : 0);
   inner_top += tab_bar_height;
 
 #ifdef HAVE_EXT_TOOL_BAR
@@ -6809,7 +6832,14 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   tool_bar_width = (tool_bar_height
 		    ? native_width - 2 * internal_border_width
 		    : 0);
-  inner_top += tool_bar_height;
+
+  /* Subtract or add to the inner dimensions based on the tool bar
+     position.  */
+
+  if (EQ (FRAME_TOOL_BAR_POSITION (f), Qtop))
+    inner_top += tool_bar_height;
+  else
+    inner_bottom -= tool_bar_height;
 #endif
 
   /* Construct list.  */

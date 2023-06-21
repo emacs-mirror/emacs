@@ -2224,10 +2224,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     w->pixel_top = (FRAME_MENU_BAR_HEIGHT (f)
 		    + (!NILP (Vtab_bar_position)
-		       ? FRAME_TOOL_BAR_HEIGHT (f) : 0));
+		       ? FRAME_TOOL_BAR_TOP_HEIGHT (f) : 0));
     w->top_line = (FRAME_MENU_BAR_LINES (f)
 		   + (!NILP (Vtab_bar_position)
-		      ? FRAME_TOOL_BAR_LINES (f) : 0));
+		      ? FRAME_TOOL_BAR_TOP_LINES (f) : 0));
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
@@ -2256,10 +2256,29 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     w->pixel_left = 0;
     w->left_col = 0;
-    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f)
-      + (NILP (Vtab_bar_position) ? FRAME_TAB_BAR_HEIGHT (f) : 0);
-    w->top_line = FRAME_MENU_BAR_LINES (f)
-      + (NILP (Vtab_bar_position) ? FRAME_TAB_BAR_LINES (f) : 0);
+
+    /* If the tool bar should be placed at the bottom of the frame,
+       place it there instead, outside the internal border.  */
+
+    if (EQ (FRAME_TOOL_BAR_POSITION (f), Qbottom))
+      {
+	w->pixel_top = (FRAME_PIXEL_HEIGHT (f)
+			- FRAME_TOOL_BAR_HEIGHT (f));
+	w->top_line = (FRAME_LINES (f)
+		       - FRAME_TOOL_BAR_LINES (f));
+      }
+    else
+      {
+	/* Otherwise, place the window at the top of the frame.  */
+
+	w->pixel_top = (FRAME_MENU_BAR_HEIGHT (f)
+			+ (NILP (Vtab_bar_position)
+			   ? FRAME_TAB_BAR_HEIGHT (f) : 0));
+	w->top_line = (FRAME_MENU_BAR_LINES (f)
+		       + (NILP (Vtab_bar_position)
+			  ? FRAME_TAB_BAR_LINES (f) : 0));
+      }
+
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));

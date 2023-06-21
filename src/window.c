@@ -4831,10 +4831,9 @@ values.  */)
   return Qt;
 }
 
+/* Resize frame F's windows when F's inner height (inner width if
+   HORFLAG is true) has been set to SIZE pixels.  */
 
-/**
-Resize frame F's windows when F's inner height (inner width if HORFLAG
-is true) has been set to SIZE pixels.  */
 void
 resize_frame_windows (struct frame *f, int size, bool horflag)
 {

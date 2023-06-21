@@ -2728,6 +2728,7 @@ ns_clear_under_internal_border (struct frame *f)
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
       int face_id =
         (FRAME_PARENT_FRAME (f)
          ? (!NILP (Vface_remapping_alist)
@@ -2753,7 +2754,8 @@ ns_clear_under_internal_border (struct frame *f)
       NSRectFill (NSMakeRect (0, 0, border, height));
       NSRectFill (NSMakeRect (0, margin, width, border));
       NSRectFill (NSMakeRect (width - border, 0, border, height));
-      NSRectFill (NSMakeRect (0, height - border, width, border));
+      NSRectFill (NSMakeRect (0, height - bottom_margin - border,
+			      width, border));
       ns_unfocus (f);
     }
 }

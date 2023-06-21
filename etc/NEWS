@@ -94,6 +94,11 @@ This is used for displaying the time and date components of
 Several symbolic icons are added to "etc/images/symbols", including
 plus, minus, check-mark, start, etc.
 
++++
+** Tool bars can now be placed on the bottom on more systems.
+The 'tool-bar-position' frame parameter can be set to 'bottom' on all
+window systems other than Nextstep.
+
 
 * Editing Changes in Emacs 30.1
 

@@ -264,11 +264,9 @@ struct frame
   Lisp_Object current_tool_bar_string;
 #endif
 
-#ifdef USE_GTK
   /* Where tool bar is, can be left, right, top or bottom.
      Except with GTK, the only supported position is `top'.  */
   Lisp_Object tool_bar_position;
-#endif
 
 #if defined (HAVE_XFT) || defined (HAVE_FREETYPE)
   /* List of data specific to font-driver and frame, but common to faces.  */
@@ -848,14 +846,9 @@ fset_tool_bar_items (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_items = val;
 }
-#ifdef USE_GTK
-INLINE void
-fset_tool_bar_position (struct frame *f, Lisp_Object val)
-{
-  f->tool_bar_position = val;
-}
-#endif /* USE_GTK */
+
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
+
 INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
 {
@@ -871,7 +864,14 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 {
   f->desired_tool_bar_string = val;
 }
-#endif /* HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS */
+
+#endif /* HAVE_WINDOW_SYSTEM && !HAVE_EXT_TOOL_BAR */
+
+INLINE void
+fset_tool_bar_position (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_position = val;
+}
 
 INLINE double
 NUMVAL (Lisp_Object x)
@@ -1064,25 +1064,68 @@ default_pixels_per_inch_y (void)
 #define FRAME_EXTERNAL_TOOL_BAR(f) false
 #endif
 
-/* This is really supported only with GTK.  */
-#ifdef USE_GTK
+/* Position of F's tool bar; one of Qtop, Qleft, Qright, or
+   Qbottom.
+
+   Qleft and Qright are not supported outside GTK+.  */
 #define FRAME_TOOL_BAR_POSITION(f) (f)->tool_bar_position
-#else
-#define FRAME_TOOL_BAR_POSITION(f) ((void) (f), Qtop)
-#endif
 
 /* Size of frame F's internal tool bar in frame lines and pixels.  */
 #define FRAME_TOOL_BAR_LINES(f) (f)->tool_bar_lines
 #define FRAME_TOOL_BAR_HEIGHT(f) (f)->tool_bar_height
 
+/* Size of F's tool bar if it is placed at the top of the
+   frame, else 0.  */
+
+#define FRAME_TOOL_BAR_TOP_HEIGHT(f)			\
+  ((BASE_EQ ((f)->tool_bar_position, Qtop))		\
+   ? (f)->tool_bar_height : 0)
+
+#define FRAME_TOOL_BAR_TOP_LINES(f)			\
+  ((BASE_EQ ((f)->tool_bar_position, Qtop))		\
+   ? (f)->tool_bar_height : 0)
+
+/* Size of F's tool bar if it is placed at the bottom of the
+   frame.  */
+#define FRAME_TOOL_BAR_BOTTOM_HEIGHT(f)			\
+  ((BASE_EQ ((f)->tool_bar_position, Qbottom))		\
+   ? (f)->tool_bar_height : 0)
+
+#define FRAME_TOOL_BAR_BOTTOM_LINES(f)			\
+  ((BASE_EQ ((f)->tool_bar_position, Qbottom))		\
+   ? (f)->tool_bar_lines : 0)
+
 /* Height of frame F's top margin in frame lines.  */
 #define FRAME_TOP_MARGIN(F)			\
   (FRAME_MENU_BAR_LINES (F)			\
    + FRAME_TAB_BAR_LINES (F)			\
-   + FRAME_TOOL_BAR_LINES (F))
+   + FRAME_TOOL_BAR_TOP_LINES (F))
 
 /* Pixel height of frame F's top margin.  */
+
 #define FRAME_TOP_MARGIN_HEIGHT(F)		\
+  (FRAME_MENU_BAR_HEIGHT (F)			\
+   + FRAME_TAB_BAR_HEIGHT (F)			\
+   + FRAME_TOOL_BAR_TOP_HEIGHT (F))
+
+/* Height of F's bottom margin in frame lines.  */
+
+#define FRAME_BOTTOM_MARGIN(f)			\
+  (FRAME_TOOL_BAR_BOTTOM_LINES (f))
+
+/* Pixel height of frame F's bottom margin.  */
+
+#define FRAME_BOTTOM_MARGIN_HEIGHT(f)		\
+  (FRAME_TOOL_BAR_BOTTOM_HEIGHT (f))
+
+/* Size of both vertical margins combined.  */
+
+#define FRAME_MARGINS(F)			\
+  (FRAME_MENU_BAR_LINES (F)			\
+   + FRAME_TAB_BAR_LINES (F)			\
+   + FRAME_TOOL_BAR_LINES (F))
+
+#define FRAME_MARGIN_HEIGHT(F)			\
   (FRAME_MENU_BAR_HEIGHT (F)			\
    + FRAME_TAB_BAR_HEIGHT (F)			\
    + FRAME_TOOL_BAR_HEIGHT (F))
@@ -1705,7 +1748,7 @@ IMAGE_OPT_FROM_ID (struct frame *f, int id)
 
 #define FRAME_PIXEL_HEIGHT_TO_TEXT_LINES(f, height)			\
   (((height)								\
-    - FRAME_TOP_MARGIN_HEIGHT (f)					\
+    - FRAME_MARGIN_HEIGHT (f)						\
     - FRAME_SCROLL_BAR_AREA_HEIGHT (f)					\
     - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))				\
    / FRAME_LINE_HEIGHT (f))
@@ -1720,7 +1763,7 @@ IMAGE_OPT_FROM_ID (struct frame *f, int id)
 
 #define FRAME_TEXT_TO_PIXEL_HEIGHT(f, height)	     \
   ((height)					     \
-   + FRAME_TOP_MARGIN_HEIGHT (f)		     \
+   + FRAME_MARGIN_HEIGHT (f)			     \
    + FRAME_SCROLL_BAR_AREA_HEIGHT (f)		     \
    + 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
 
@@ -1734,7 +1777,7 @@ IMAGE_OPT_FROM_ID (struct frame *f, int id)
 
 #define FRAME_PIXEL_TO_TEXT_HEIGHT(f, height)		\
   ((height)						\
-   - FRAME_TOP_MARGIN_HEIGHT (f)			\
+   - FRAME_MARGIN_HEIGHT (f)				\
    - FRAME_SCROLL_BAR_AREA_HEIGHT (f)			\
    - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
 
@@ -1744,7 +1787,7 @@ IMAGE_OPT_FROM_ID (struct frame *f, int id)
 
 #define FRAME_INNER_HEIGHT(f)			\
   (FRAME_PIXEL_HEIGHT (f)			\
-   - FRAME_TOP_MARGIN_HEIGHT (f)		\
+   - FRAME_MARGIN_HEIGHT (f)			\
    - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
 
 /* Value is the smallest width of any character in any font on frame F.  */
