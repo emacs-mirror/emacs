@@ -1337,6 +1337,16 @@ when using the ':vc' keyword.
 
 ** Gnus
 
++++
+*** New back end 'nnfeed'.
+This allows back end developers to easily create new back ends for web
+feeds, as inheriting back ends of 'nnfeed'.
+
++++
+*** New back end 'nnatom'.
+This allow users to add Atom Syndication Format feeds to Gnus as
+servers.
+
 *** The 'nnweb-type' option 'gmane' has been removed.
 The gmane.org website is, sadly, down since a number of years with no
 prospect of it coming back.  Therefore, it is no longer valid to set
