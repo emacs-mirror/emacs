@@ -375,11 +375,13 @@ permits the whole expression to match is @samp{d}.)
 
 @item @samp{[ @dots{} ]}
 @cindex bracket expression (in regexp)
+@cindex character alternative (in regexp)
 @cindex @samp{[} in regexp
 @cindex @samp{]} in regexp
-is a @dfn{bracket expression}, which begins with @samp{[} and is
-terminated by @samp{]}.  In the simplest case, the characters between
-the two brackets are what this bracket expression can match.
+is a @dfn{bracket expression} (a.k.a.@: @dfn{character alternative}),
+which begins with @samp{[} and is terminated by @samp{]}.  In the
+simplest case, the characters between the two brackets are what this
+bracket expression can match.
 
 Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
 @samp{[ad]*} matches any string composed of just @samp{a}s and @samp{d}s
@@ -478,10 +480,10 @@ style; and although @samp{[*--]} is valid, @samp{[*+,-]} is clearer.
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
-@samp{[^} begins a @dfn{complemented bracket expression}.  This
-matches any character except the ones specified.  Thus,
-@samp{[^a-z0-9A-Z]} matches all characters @emph{except} ASCII letters and
-digits.
+@samp{[^} begins a @dfn{complemented bracket expression}, or
+@dfn{complemented character alternative}.  This matches any character
+except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches all
+characters @emph{except} ASCII letters and digits.
 
 @samp{^} is not special in a bracket expression unless it is the first
 character.  The character following the @samp{^} is treated as if it
@@ -588,13 +590,13 @@ an unquoted @samp{[} is special again and a @samp{]} not.
 @cindex alpha character class, regexp
 @cindex xdigit character class, regexp
 
-  Below is a table of the classes you can use in a bracket
-expression, and what they mean.  Note that the @samp{[} and @samp{]}
-characters that enclose the class name are part of the name, so a
-regular expression using these classes needs one more pair of
-brackets.  For example, a regular expression matching a sequence of
-one or more letters and digits would be @samp{[[:alnum:]]+}, not
-@samp{[:alnum:]+}.
+  Below is a table of the classes you can use in a bracket expression
+(@pxref{Regexp Special, bracket expression}), and what they mean.
+Note that the @samp{[} and @samp{]} characters that enclose the class
+name are part of the name, so a regular expression using these classes
+needs one more pair of brackets.  For example, a regular expression
+matching a sequence of one or more letters and digits would be
+@samp{[[:alnum:]]+}, not @samp{[:alnum:]+}.
 
 @table @samp
 @item [:ascii:]
@@ -2994,6 +2996,24 @@ for example, GNU @command{grep} treats @samp{\|} like Emacs does,
 but does not support all the Emacs escapes.
 
 @item
+In POSIX BREs, it is an implementation option whether @samp{^} is special
+after @samp{\(}; GNU @command{grep} treats it like Emacs does.
+In POSIX EREs, @samp{^} is always special outside of bracket expressions,
+which means the ERE @samp{x^} never matches.
+In Emacs regular expressions, @samp{^} is special only at the
+beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
+or @samp{\|}.
+
+@item
+In POSIX BREs, it is an implementation option whether @samp{$} is
+special before @samp{\)}; GNU @command{grep} treats it like Emacs
+does.  In POSIX EREs, @samp{$} is always special outside of bracket
+expressions (@pxref{Regexp Special, bracket expressions}), which means
+the ERE @samp{$x} never matches.  In Emacs regular expressions,
+@samp{$} is special only at the end of the regular expression, or
+before @samp{\)} or @samp{\|}.
+
+@item
 In POSIX EREs @samp{@{}, @samp{(} and @samp{|} are special,
 and @samp{)} is special when matched with a preceding @samp{(}.
 These special characters do not use preceding backslashes;
@@ -3004,23 +3024,6 @@ The only backslash escape sequences are the escaped special characters
 POSIX does not define how other ERE escapes behave;
 for example, GNU @samp{grep -E} treats @samp{\1} like Emacs does,
 but does not support all the Emacs escapes.
-
-@item
-In POSIX BREs, it is an implementation option whether @samp{^} is special
-after @samp{\(}; GNU @command{grep} treats it like Emacs does.
-In POSIX EREs, @samp{^} is always special outside of bracket expressions,
-which means the ERE @samp{x^} never matches.
-In Emacs regular expressions, @samp{^} is special only at the
-beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
-or @samp{\|}.
-
-@item
-In POSIX BREs, it is an implementation option whether @samp{$} is special
-before @samp{\)}; GNU @command{grep} treats it like Emacs does.
-In POSIX EREs, @samp{$} is always special outside of bracket expressions,
-which means the ERE @samp{$x} never matches.
-In Emacs regular expressions, @samp{$} is special only at the
-end of the regular expression, or before @samp{\)} or @samp{\|}.
 
 @item
 In POSIX BREs and EREs, undefined results are produced by repetition
