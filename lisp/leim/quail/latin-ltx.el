@@ -244,7 +244,8 @@ system, including many technical ones.  Examples:
     ;; (which is \varphi) are reversed in `ucs-names', so we define
     ;; them manually.  Also ignore "GREEK SMALL LETTER EPSILON" and
     ;; add the correct value for \epsilon manually.
-    (unless (string-match-p "\\<\\(?:PHI\\|GREEK SMALL LETTER EPSILON\\)\\>" name)
+    (unless (string-match-p "\\<GREEK SMALL LETTER \\(?:EPSILON\\|PHI\\)\\>"
+                            name)
       (concat "\\" (funcall (if (match-end 1) #' capitalize #'downcase)
                             (match-string 2 name)))))
   "\\`GREEK \\(?:SMALL\\|CAPITA\\(L\\)\\) LETTER \\([^- ]+\\)\\'")
