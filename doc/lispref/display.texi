@@ -8527,7 +8527,7 @@ the effect of setting @code{ctl-arrow} to a non-@code{nil} value
                     (make-glyph-code (+ i 64) 'escape-glyph)))))
 (aset disptab 127
       (vector (make-glyph-code ?^ 'escape-glyph)
-              (make-glyph-code ?? 'escape-glyph)))))
+              (make-glyph-code ?? 'escape-glyph)))
 @end example
 
 @defun display-table-slot display-table slot
