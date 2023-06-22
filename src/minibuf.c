@@ -1266,9 +1266,6 @@ minibuffer_unwind (void)
 	  set_window_buffer (window, Fcar (entry), 0, 0);
 	  Fset_window_start (window, Fcar (Fcdr (entry)), Qnil);
 	  Fset_window_point (window, Fcar (Fcdr (Fcdr (entry))));
-	  /* set-window-configuration may/will have unselected the
-	     mini-window as the selected window.  Restore it. */
-	  Fset_frame_selected_window (exp_MB_frame, window, Qnil);
 	}
       else
 	set_window_buffer (window, nth_minibuffer (0), 0, 0);
