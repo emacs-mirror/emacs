@@ -525,6 +525,11 @@ interpreted as a regular expression which always matches."
   :version "24.3"
   :type 'boolean)
 
+(defcustom tramp-show-ad-hoc-proxies nil
+  "Whether to show ad-hoc proxies in file names."
+  :version "29.2"
+  :type 'boolean)
+
 ;; For some obscure technical reasons, `system-name' on w32 returns
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
@@ -1807,8 +1812,8 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
       (when (cadr args)
 	(setq localname (and (stringp (cadr args)) (cadr args))))
       (when hop
-	;; Keep hop in file name for completion.
-	(unless minibuffer-completing-file-name
+	;; Keep hop in file name for completion or when indicated.
+	(unless (or minibuffer-completing-file-name tramp-show-ad-hoc-proxies)
 	  (setq hop nil))
 	;; Assure that the hops are in `tramp-default-proxies-alist'.
 	;; In tramp-archive.el, the slot `hop' is used for the archive
@@ -1858,7 +1863,7 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
     (replace-regexp-in-string
      (rx (regexp tramp-postfix-host-regexp) eos)
      tramp-postfix-hop-format
-     (tramp-make-tramp-file-name vec 'noloc)))))
+     (tramp-make-tramp-file-name (tramp-file-name-unify vec))))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
   "Construct a Tramp file name from METHOD, USER, HOST and LOCALNAME.

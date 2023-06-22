@@ -6252,6 +6252,16 @@ returned if there's no template argument on the first line.
 
 @comment ------------------------------------------------------------
 
+@defun c-lineup-template-args-indented-from-margin
+@findex lineup-template-args-indented-from-margin (c-)
+Indent a template argument line `c-basic-offset' from the left-hand
+margin of the line with the containing <.
+
+@workswith @code{template-args-cont}.
+@end defun
+
+@comment ------------------------------------------------------------
+
 @defun c-lineup-ObjC-method-call
 @findex lineup-ObjC-method-call @r{(c-)}
 For Objective-C code, line up selector args as Emacs Lisp mode does

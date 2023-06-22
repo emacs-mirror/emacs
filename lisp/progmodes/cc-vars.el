@@ -1219,7 +1219,8 @@ can always override the use of `c-default-style' by making calls to
        (incomposition         . +)
        ;; Anchor pos: At the extern/namespace/etc block open brace if
        ;; it's at boi, otherwise boi at the keyword.
-       (template-args-cont    . (c-lineup-template-args +))
+       (template-args-cont    . (c-lineup-template-args
+				 c-lineup-template-args-indented-from-margin))
        ;; Anchor pos: Boi at the decl start.  This might be changed;
        ;; the logical position is clearly the opening '<'.
        (inlambda              . 0)

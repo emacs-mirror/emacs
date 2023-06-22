@@ -3451,7 +3451,6 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
   tab_bar_width = (tab_bar_height
 		   ? native_width - 2 * internal_border_width : 0);
-  inner_top += tab_bar_height;
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
@@ -3464,10 +3463,12 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   else if (EQ (attribute, Qinner_edges))
     return list4 (make_fixnum (native_left + internal_border_width),
 		  make_fixnum (native_top
-			       + tool_bar_height
+			       + tab_bar_height
+			       + FRAME_TOOL_BAR_TOP_HEIGHT (f)
 			       + internal_border_width),
 		  make_fixnum (native_right - internal_border_width),
-		  make_fixnum (native_bottom - internal_border_width));
+		  make_fixnum (native_bottom - internal_border_width
+			       - FRAME_TOOL_BAR_BOTTOM_HEIGHT (f)));
   else
     return
       list (Fcons (Qouter_position,

@@ -883,4 +883,70 @@ This evaluates the TESTS test cases from glibc."
     (should (looking-at "x*\\(=\\|:\\)*"))
     (should (looking-at "x*=*?"))))
 
+(ert-deftest regexp-tests-zero-width-assertion-repetition ()
+  ;; Check compatibility behaviour with repetition operators after
+  ;; certain zero-width assertions (bug#64128).
+
+  ;; This function is just to hide ugly regexps from relint so that it
+  ;; doesn't complain about them.
+  (cl-flet ((smatch (re str) (string-match re str)))
+    ;; Postfix operators after ^ and \` become literals, for historical
+    ;; compatibility.  Only the first character of a lazy operator (like *?)
+    ;; becomes a literal.
+    (should (equal (smatch "^*a" "x\n*a") 2))
+    (should (equal (smatch "^*?a" "x\n*a") 2))
+    (should (equal (smatch "^*?a" "x\na") 2))
+    (should (equal (smatch "^*?a" "x\n**a") nil))
+
+    (should (equal (smatch "\\`*a" "*a") 0))
+    (should (equal (smatch "\\`*?a" "*a") 0))
+    (should (equal (smatch "\\`*?a" "a") 0))
+    (should (equal (smatch "\\`*?a" "**a") nil))
+
+    ;; Other zero-width assertions are treated as normal elements, so postfix
+    ;; operators apply to them alone (which is pointless but valid).
+    (should (equal (smatch "\\b*!" "*!") 1))
+    (should (equal (smatch "!\\b+;" "!;") nil))
+    (should (equal (smatch "!\\b+a" "!a") 0))
+
+    (should (equal (smatch "\\B*!" "*!") 1))
+    (should (equal (smatch "!\\B+;" "!;") 0))
+    (should (equal (smatch "!\\B+a" "!a") nil))
+
+    (should (equal (smatch "\\<*b" "*b") 1))
+    (should (equal (smatch "a\\<*b" "ab") 0))
+    (should (equal (smatch ";\\<*b" ";b") 0))
+    (should (equal (smatch "a\\<+b" "ab") nil))
+    (should (equal (smatch ";\\<+b" ";b") 0))
+
+    (should (equal (smatch "\\>*;" "*;") 1))
+    (should (equal (smatch "a\\>*b" "ab") 0))
+    (should (equal (smatch "a\\>*;" "a;") 0))
+    (should (equal (smatch "a\\>+b" "ab") nil))
+    (should (equal (smatch "a\\>+;" "a;") 0))
+
+    (should (equal (smatch "a\\'" "ab") nil))
+    (should (equal (smatch "b\\'" "ab") 1))
+    (should (equal (smatch "a\\'*b" "ab") 0))
+    (should (equal (smatch "a\\'+" "ab") nil))
+    (should (equal (smatch "b\\'+" "ab") 1))
+    (should (equal (smatch "\\'+" "+") 1))
+
+    (should (equal (smatch "\\_<*b" "*b") 1))
+    (should (equal (smatch "a\\_<*b" "ab") 0))
+    (should (equal (smatch " \\_<*b" " b") 0))
+    (should (equal (smatch "a\\_<+b" "ab") nil))
+    (should (equal (smatch " \\_<+b" " b") 0))
+
+    (should (equal (smatch "\\_>*;" "*;") 1))
+    (should (equal (smatch "a\\_>*b" "ab") 0))
+    (should (equal (smatch "a\\_>* " "a ") 0))
+    (should (equal (smatch "a\\_>+b" "ab") nil))
+    (should (equal (smatch "a\\_>+ " "a ") 0))
+
+    (should (equal (smatch "\\=*b" "*b") 1))
+    (should (equal (smatch "a\\=*b" "a*b") nil))
+    (should (equal (smatch "a\\=*b" "ab") 0))
+    ))
+
 ;;; regex-emacs-tests.el ends here

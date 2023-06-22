@@ -492,6 +492,14 @@ symbol, and either that symbol is ':eval' and the second element of
 the list evaluates to 'nil' or the symbol's value as a variable is
 'nil' or void.
 
++++
+** Regexp zero-width assertions followed by operators are better defined.
+Previously, regexps such as "xy\\B*" would have ill-defined behaviour.
+Now any operator following a zero-width assertion applies to that
+assertion only (which is useless).  For historical compatibility, an
+operator character following '^' or '\`' becomes literal, but we
+advise against relying on this.
+
 
 * Lisp Changes in Emacs 30.1
 
@@ -706,11 +714,6 @@ to create such a loop results in an error.
 Since circular alias chains now cannot occur, 'function-alias-p',
 'indirect-function' and 'indirect-variable' will never signal an error.
 Their 'noerror' arguments have no effect and are therefore obsolete.
-
----
-** New function 'eval-command-interactive-spec' in the subr-x library.
-This function evaluates a command's interactive form and returns the
-resultant list.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

@@ -1054,11 +1054,17 @@ init-file, or to a default value if loading is not possible."
               ;; `user-init-file'.
               (setq user-init-file t)
 	      (when init-file-name
-		(load (if (equal (file-name-extension init-file-name)
-				 "el")
-			  (file-name-sans-extension init-file-name)
-			init-file-name)
-		      'noerror 'nomessage))
+                ;; If they specified --debug-init, enter the debugger
+                ;; on any error whatsoever.
+                (let ((debug-ignored-errors
+                       (if (and init-file-debug (not noninteractive))
+                           nil
+                         debug-ignored-errors)))
+		  (load (if (equal (file-name-extension init-file-name)
+				   "el")
+			    (file-name-sans-extension init-file-name)
+			  init-file-name)
+		        'noerror 'nomessage)))
 
               (when (and (eq user-init-file t) alternate-filename-function)
                 (let ((alt-file (funcall alternate-filename-function)))
@@ -1066,7 +1072,11 @@ init-file, or to a default value if loading is not possible."
 		    (setq init-file-name alt-file))
                   (and (equal (file-name-extension alt-file) "el")
                        (setq alt-file (file-name-sans-extension alt-file)))
-                  (load alt-file 'noerror 'nomessage)))
+                  (let ((debug-ignored-errors
+                         (if (and init-file-debug (not noninteractive))
+                             nil
+                           debug-ignored-errors)))
+                    (load alt-file 'noerror 'nomessage))))
 
               ;; If we did not find the user's init file, set
               ;; user-init-file conclusively.  Don't let it be
@@ -1105,7 +1115,11 @@ init-file, or to a default value if loading is not possible."
                        (not inhibit-default-init))
               ;; Prevent default.el from changing the value of
               ;; `inhibit-startup-screen'.
-              (let ((inhibit-startup-screen nil))
+              (let ((inhibit-startup-screen nil)
+                    (debug-ignored-errors
+                     (if (and init-file-debug (not noninteractive))
+                         nil
+                       debug-ignored-errors)))
                 (load "default" 'noerror 'nomessage))))
         (error
          (display-warning

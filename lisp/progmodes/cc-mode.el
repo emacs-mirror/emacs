@@ -1371,7 +1371,9 @@ Note that the style variables are always made local to the buffer."
 		      (and		;(< (point) end)
 		       (not (nth 3 s))
 		       (c-get-char-property (1- (point)) 'c-fl-syn-tab))
-		    (c-put-char-property pos 'syntax-table '(1)))
+		    (c-put-char-property pos 'syntax-table '(1))
+		    (c-put-char-properties (1+ pos) (c-point 'eol pos)
+					   'syntax-table '(1)))
 		  (setq pos (point)))
 	      (setq pos (1+ pos)))))))))
 
@@ -1388,6 +1390,9 @@ Note that the style variables are always made local to the buffer."
 	   (setq pos
 		 (c-min-property-position pos c-max-syn-tab-mkr 'c-fl-syn-tab))
 	   (< pos c-max-syn-tab-mkr))
+	(when (and (equal (c-get-char-property pos 'syntax-table) '(1))
+		   (equal (c-get-char-property pos 'c-fl-syn-tab) '(15)))
+	  (c-clear-char-properties (1+ pos) (c-point 'eol pos) 'syntax-table))
 	(c-put-char-property pos 'syntax-table
 			     (c-get-char-property pos 'c-fl-syn-tab))
 	(setq pos (1+ pos))))))

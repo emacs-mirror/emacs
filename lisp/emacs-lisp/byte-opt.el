@@ -873,7 +873,13 @@ for speeding up processing.")
   (cons accum args))
 
 (defun byte-optimize-plus (form)
-  (let ((args (remq 0 (byte-opt--arith-reduce #'+ 0 (cdr form)))))
+  (let* ((not-0 (remq 0 (byte-opt--arith-reduce #'+ 0 (cdr form))))
+         (args (if (and (= (length not-0) 1)
+                        (> (length form) 2))
+                   ;; We removed numbers and only one arg remains: add a 0
+                   ;; so that it isn't turned into (* X 1) later on.
+                   (append not-0 '(0))
+                 not-0)))
     (cond
      ;; (+) -> 0
      ((null args) 0)

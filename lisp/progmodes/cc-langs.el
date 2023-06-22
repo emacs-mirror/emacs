@@ -455,6 +455,7 @@ so that all identifiers are recognized as words.")
   c++ '(c-extend-region-for-CPP
 	c-depropertize-CPP
 	c-before-change-check-ml-strings
+	c-unmark-<>-around-region
 	c-before-change-check-<>-operators
 	c-before-after-change-check-c++-modules
 	c-truncate-bs-cache
@@ -468,6 +469,7 @@ so that all identifiers are recognized as words.")
 	     c-parse-quotes-before-change
 	     c-before-change-fix-comment-escapes)
   java '(c-parse-quotes-before-change
+	 c-unmark-<>-around-region
 	 c-before-change-check-unbalanced-strings
 	 c-before-change-check-<>-operators)
   pike '(c-before-change-check-ml-strings
@@ -516,6 +518,7 @@ parameters \(point-min) and \(point-max).")
 	c-after-change-unmark-ml-strings
 	c-parse-quotes-after-change
 	c-after-change-mark-abnormal-strings
+	c-unmark-<>-around-region
 	c-extend-font-lock-region-for-macros
 	c-before-after-change-check-c++-modules
 	c-neutralize-syntax-in-CPP
@@ -524,6 +527,7 @@ parameters \(point-min) and \(point-max).")
   java '(c-depropertize-new-text
 	 c-after-change-escape-NL-in-string
 	 c-parse-quotes-after-change
+	 c-unmark-<>-around-region
 	 c-after-change-mark-abnormal-strings
 	 c-restore-<>-properties
 	 c-change-expand-fl-region)

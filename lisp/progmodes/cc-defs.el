@@ -1284,6 +1284,29 @@ MODE is either a mode symbol or a list of mode symbols."
        pos)
       (most-positive-fixnum))))
 
+(defmacro c-put-char-properties (from to property value)
+  ;; FIXME!!!  Doc comment here!
+  (declare (debug t))
+  (setq property (eval property))
+  `(let ((-to- ,to) (-from- ,from))
+     ,(if c-use-extents
+	  ;; XEmacs
+	  `(progn
+	     (map-extents (lambda (ext ignored)
+			    (delete-extent ext))
+			  nil -from- -to- nil nil ',property)
+	     (set-extent-properties (make-extent -from- -to-)
+				    (cons property
+					  (cons ,value
+						'(start-open t
+							     end-open t)))))
+	;; Emacs
+	`(progn
+	   ,@(when (and (fboundp 'syntax-ppss)
+			(eq `,property 'syntax-table))
+	       `((setq c-syntax-table-hwm (min c-syntax-table-hwm -from-))))
+	   (put-text-property -from- -to- ',property ,value)))))
+
 (defmacro c-clear-char-properties (from to property)
   ;; Remove all the occurrences of the given property in the given
   ;; region that has been put with `c-put-char-property'.  PROPERTY is
@@ -1379,7 +1402,8 @@ isn't found, return nil; point is then left undefined."
        value)
       (t (let ((place (c-next-single-property-change
 		       (point) ,property nil -limit-)))
-	   (when place
+	   (when (and place
+		      (< place -limit-))
 	     (goto-char (1+ place))
 	     (c-get-char-property place ,property)))))))
 
