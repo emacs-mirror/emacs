@@ -64,6 +64,22 @@
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 (defvar ls-lisp-use-insert-directory-program)
+(defvar tramp-prefix-format)
+(defvar tramp-prefix-regexp)
+(defvar tramp-method-regexp)
+(defvar tramp-postfix-method-format)
+(defvar tramp-postfix-method-regexp)
+(defvar tramp-prefix-ipv6-format)
+(defvar tramp-prefix-ipv6-regexp)
+(defvar tramp-postfix-ipv6-format)
+(defvar tramp-postfix-ipv6-regexp)
+(defvar tramp-postfix-host-format)
+(defvar tramp-postfix-host-regexp)
+(defvar tramp-remote-file-name-spec-regexp)
+(defvar tramp-file-name-structure)
+(defvar tramp-file-name-regexp)
+(defvar tramp-completion-method-regexp)
+(defvar tramp-completion-file-name-regexp)
 
 ;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU
 ;; ELPA package.
@@ -819,23 +835,6 @@ Customize.  See also `tramp-change-syntax'."
   :require 'tramp
   :initialize #'custom-initialize-default
   :set #'tramp-set-syntax)
-
-(defvar tramp-prefix-format)
-(defvar tramp-prefix-regexp)
-(defvar tramp-method-regexp)
-(defvar tramp-postfix-method-format)
-(defvar tramp-postfix-method-regexp)
-(defvar tramp-prefix-ipv6-format)
-(defvar tramp-prefix-ipv6-regexp)
-(defvar tramp-postfix-ipv6-format)
-(defvar tramp-postfix-ipv6-regexp)
-(defvar tramp-postfix-host-format)
-(defvar tramp-postfix-host-regexp)
-(defvar tramp-remote-file-name-spec-regexp)
-(defvar tramp-file-name-structure)
-(defvar tramp-file-name-regexp)
-(defvar tramp-completion-method-regexp)
-(defvar tramp-completion-file-name-regexp)
 
 (defun tramp-set-syntax (symbol value)
   "Set SYMBOL to value VALUE.

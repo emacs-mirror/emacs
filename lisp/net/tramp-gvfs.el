@@ -114,6 +114,7 @@
 (declare-function zeroconf-service-host "zeroconf")
 (declare-function zeroconf-service-port "zeroconf")
 (declare-function zeroconf-service-txt "zeroconf")
+(defvar tramp-gvfs-dbus-event-vector)
 
 ;; We don't call `dbus-ping', because this would load dbus.el.
 (defconst tramp-gvfs-enabled
@@ -881,8 +882,6 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
   (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
     (let ((method (tramp-file-name-method vec)))
       (and (stringp method) (member method tramp-gvfs-methods)))))
-
-(defvar tramp-gvfs-dbus-event-vector)
 
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
