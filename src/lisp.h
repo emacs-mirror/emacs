@@ -4174,7 +4174,6 @@ void set_frame_cursor_types (struct frame *, Lisp_Object);
 extern void syms_of_xdisp (void);
 extern void init_xdisp (void);
 extern Lisp_Object safe_eval (Lisp_Object);
-extern Lisp_Object safe_eval_inhibit_quit (Lisp_Object);
 extern bool pos_visible_p (struct window *, ptrdiff_t, int *,
 			   int *, int *, int *, int *, int *);
 
