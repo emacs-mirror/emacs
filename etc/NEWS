@@ -425,6 +425,15 @@ completion based on dictionaries that the server supports.
 
 *** 'pp-to-string' takes an additional 'pp-function' argument.
 This arg specifies the prettifying algorithm to use.
+
+** Emacs Lisp mode
+
+---
+*** ',@' now has 'prefix' syntax
+Previously, the '@' character, which normally has 'symbol' syntax,
+would combine with a following Lisp symbol and interfere with symbol
+searching.
+
 
 * New Modes and Packages in Emacs 30.1
 

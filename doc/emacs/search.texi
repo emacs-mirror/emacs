@@ -1037,7 +1037,8 @@ starting at the first @samp{a}, it does.
 @cindex set of alternative characters, in regular expressions
 @cindex character set, in regular expressions
 @item @kbd{[ @dots{} ]}
-is a @dfn{bracket expression}, which matches one of a set of characters.
+is a @dfn{bracket expression} (a.k.a.@: @dfn{set of alternative
+characters}), which matches one of a set of characters.
 
 In the simplest case, the characters between the two brackets are what
 this set can match.  Thus, @samp{[ad]} matches either one @samp{a} or

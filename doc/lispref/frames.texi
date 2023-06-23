@@ -853,7 +853,7 @@ native frame of @var{frame}).
 This tells on which side the tool bar on @var{frame} is and can be one
 of @code{left}, @code{top}, @code{right} or @code{bottom}.
 
-The values @code{left} and @code{bottom} are only supported on builds
+The values @code{left} and @code{right} are only supported on builds
 using the GTK+ toolkit; @code{bottom} is supported on all builds other
 than NS, and @code{top} is supported everywhere.
 
