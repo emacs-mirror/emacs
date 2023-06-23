@@ -5474,14 +5474,14 @@ window_wants_mode_line (struct window *w)
  * null_header_line_format:
  *
  * Return non-zero when header line format FMT indicates that the
- * header line should not be displayed at all, for windows on frame F.
+ * header line should not be displayed at all.
  *
  * This is when FMT is nil, or if FMT is a cons cell and either its
  * car is a symbol whose value as a variable is nil or void, or its
  * car is the symbol ':eval' and its cadr evaluates to nil.
  */
 static bool
-null_header_line_format (Lisp_Object fmt, struct frame *f)
+null_header_line_format (Lisp_Object fmt, struct frame * f)
 {
   Lisp_Object car;
   Lisp_Object val;
@@ -5532,7 +5532,7 @@ window_wants_header_line (struct window *w)
   Lisp_Object window_header_line_format =
     window_parameter (w, Qheader_line_format);
 
-  struct frame *f = WINDOW_XFRAME(w);
+  struct frame * f = WINDOW_XFRAME(w);
 
   return (WINDOW_LEAF_P (w)
 	  && !MINI_WINDOW_P (w)
@@ -5540,7 +5540,8 @@ window_wants_header_line (struct window *w)
 	  && !EQ (window_header_line_format, Qnone)
 	  && (!null_header_line_format (window_header_line_format, f)
 	      || !null_header_line_format (BVAR (XBUFFER (WINDOW_BUFFER (w)),
-						 header_line_format), f))
+						 header_line_format),
+					   f))
 	  && (WINDOW_PIXEL_HEIGHT (w)
 	      > (window_wants_mode_line (w)
 		 ? 2 * WINDOW_FRAME_LINE_HEIGHT (w)
