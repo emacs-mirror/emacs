@@ -5533,14 +5533,13 @@ window_wants_header_line (struct window *w)
     = window_parameter (w, Qheader_line_format);
 
   struct frame *f = WINDOW_XFRAME (w);
-  Lisp_Object wbuffer = WINDOW_BUFFER (w);
 
-  return (BUFFERP (wbuffer)
+  return (WINDOW_LEAF_P (w)
 	  && !MINI_WINDOW_P (w)
 	  && !WINDOW_PSEUDO_P (w)
 	  && !EQ (window_header_line_format, Qnone)
 	  && (!null_header_line_format (window_header_line_format, f)
-	      || !null_header_line_format (BVAR (XBUFFER (wbuffer),
+	      || !null_header_line_format (BVAR (XBUFFER (WINDOW_BUFFER (w)),
 						 header_line_format), f))
 	  && (WINDOW_PIXEL_HEIGHT (w)
 	      > (window_wants_mode_line (w)
