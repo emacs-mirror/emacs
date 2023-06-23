@@ -72,7 +72,6 @@ public final class EmacsDrawRectangle
 			      + clipBitmap.getWidth ()),
 			     (gc.clip_y_origin
 			      + clipBitmap.getHeight ()));
-	clipBitmap = gc.clip_mask.bitmap;
 
 	if (!maskRect.setIntersect (dstRect, maskRect))
 	  /* There is no intersection between the clip mask and the

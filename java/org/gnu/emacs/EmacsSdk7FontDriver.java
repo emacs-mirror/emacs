@@ -169,8 +169,6 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     public
     Sdk7FontEntity (Sdk7Typeface typeface)
     {
-      float width;
-
       foundry = "Google";
       family = typeface.familyName;
       adstyle = null;
@@ -363,7 +361,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
   public int
   hasChar (FontSpec font, char charCode)
   {
-    float missingGlyphWidth, emGlyphWidth, width;
+    float missingGlyphWidth, width;
     Rect rect1, rect2;
     Paint paint;
     Sdk7FontObject fontObject;
@@ -382,7 +380,6 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       return 1;
 
     missingGlyphWidth = paint.measureText (TOFU_STRING);
-    emGlyphWidth = paint.measureText (EM_STRING);
     width = paint.measureText ("" + charCode);
 
     if (width == 0f)
