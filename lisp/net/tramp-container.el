@@ -37,19 +37,20 @@
 ;;     C-x C-f /podman:USER@CONTAINER:/path/to/file
 ;;
 ;; Where:
-;;     USER          is the user on the container to connect as (optional)
-;;     CONTAINER     is the container to connect to
+;;     USER          is the user on the container to connect as (optional).
+;;     CONTAINER     is the container to connect to.
 ;;
 ;;
 ;;
 ;; Open file in a Kubernetes container:
 ;;
-;;     C-x C-f /kubernetes:POD:/path/to/file
+;;     C-x C-f /kubernetes:[CONTAINER.]POD:/path/to/file
 ;;
 ;; Where:
-;;     POD	is the pod to connect to.
-;;		By default, the first container in that pod will be
-;;		used.
+;;     POD           is the pod to connect to.
+;;     CONTAINER     is the container to connect to (optional).
+;;		     By default, the first container in that pod will
+;;		     be used.
 ;;
 ;; Completion for POD and accessing it operate in the current
 ;; namespace, use this command to change it:
@@ -63,7 +64,7 @@
 ;;     C-x C-f /toolbox:CONTAINER:/path/to/file
 ;;
 ;; Where:
-;;     CONTAINER     is the container to connect to (optional)
+;;     CONTAINER     is the container to connect to (optional).
 ;;
 ;; If the container is not running, it is started.  If no container is
 ;; specified, the default Toolbox container is used.
@@ -105,6 +106,20 @@
   :version "29.1"
   :type '(choice (const "kubectl")
                  (string)))
+
+(defcustom tramp-kubernetes-context nil
+  "Context of Kubernetes.
+If it is nil, the default context will be used."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const :tag "Use default" nil)
+                 (string)))
+
+(defcustom tramp-kubernetes-namespace "default"
+  "Namespace of Kubernetes."
+  :group 'tramp
+  :version "30.1"
+  :type 'string)
 
 ;;;###tramp-autoload
 (defcustom tramp-toolbox-program "toolbox"
@@ -172,29 +187,83 @@ This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (when-let ((default-directory tramp-compat-temporary-file-directory)
 	     (raw-list (shell-command-to-string
-			(concat tramp-kubernetes-program
-                                " get pods --no-headers "
-                                "-o custom-columns=NAME:.metadata.name")))
-             (names (split-string raw-list "\n" 'omit)))
-    (mapcar (lambda (name) (list nil name)) (delq nil names))))
+			(concat
+			 tramp-kubernetes-program " "
+			 (tramp-kubernetes--context-namespace nil)
+                         " get pods --no-headers"
+			 ;; We separate pods by "|".  Inside a pod,
+			 ;; its name is separated from the containers
+			 ;; by ":".  Containers are separated by ",".
+			 " -o jsonpath='{range .items[*]}{\"|\"}{.metadata.name}"
+			 "{\":\"}{range .spec.containers[*]}{.name}{\",\"}"
+			 "{end}{end}'")))
+             (lines (split-string raw-list "|" 'omit)))
+    (let (names)
+      (dolist (line lines)
+	(setq line (split-string line ":" 'omit))
+	;; Pod name.
+	(push (car line) names)
+	;; Container names.
+	(dolist (elt (split-string (cadr line) "," 'omit))
+	  (push (concat elt "." (car line)) names)))
+      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+
+(defconst tramp-kubernetes--host-name-regexp
+  (rx (? (group (regexp tramp-host-regexp)) ".")
+      (group (regexp tramp-host-regexp)))
+  "The CONTAINER.POD syntax of kubernetes host names in Tramp.")
+
+;;;###tramp-autoload
+(defun tramp-kubernetes--container (vec)
+  "Extract the container name from a kubernetes host name in VEC."
+  (or (let ((host (tramp-file-name-host vec)))
+	(and (string-match tramp-kubernetes--host-name-regexp host)
+	     (match-string 1 host)))
+      ""))
+
+;;;###tramp-autoload
+(defun tramp-kubernetes--pod (vec)
+  "Extract the pod name from a kubernetes host name in VEC."
+  (or (let ((host (tramp-file-name-host vec)))
+	(and (string-match tramp-kubernetes--host-name-regexp host)
+	     (match-string 2 host)))
+      ""))
+
+(defun tramp-kubernetes--current-context (vec)
+  "Return Kubernetes current context.
+Obey `tramp-kubernetes-context'"
+  (or tramp-kubernetes-context
+      (with-tramp-connection-property nil "current-context"
+	(with-temp-buffer
+	  (when (zerop
+		 (tramp-call-process
+		  vec tramp-kubernetes-program nil t nil
+		  "config" "current-context"))
+	    (goto-char (point-min))
+	    (buffer-substring (point) (line-end-position)))))))
 
 (defun tramp-kubernetes--current-context-data (vec)
   "Return Kubernetes current context data as JSON string."
-  (with-temp-buffer
-    (when (zerop
-	   (tramp-call-process
-	    vec tramp-kubernetes-program nil t nil
-	    "config" "current-context"))
-      (goto-char (point-min))
-      (let ((current-context (buffer-substring (point) (line-end-position))))
-	(erase-buffer)
-	(when (zerop
-	       (tramp-call-process
-		vec tramp-kubernetes-program nil t nil
-		"config" "view" "-o"
-		(format
-		 "jsonpath='{.contexts[?(@.name == \"%s\")]}'" current-context)))
-	  (buffer-string))))))
+  (when-let ((current-context (tramp-kubernetes--current-context vec)))
+    (with-temp-buffer
+      (when (zerop
+	     (tramp-call-process
+	      vec tramp-kubernetes-program nil t nil
+	      "config" "view" "-o"
+	      (format
+	       "jsonpath='{.contexts[?(@.name == \"%s\")]}'" current-context)))
+	(buffer-string)))))
+
+;;;###tramp-autoload
+(defun tramp-kubernetes--context-namespace (vec)
+  "The kubectl options for context and namespace."
+  (mapconcat
+   #'identity
+   `(,(when-let ((context (tramp-kubernetes--current-context vec)))
+	(format "--context=%s" context))
+     ,(when tramp-kubernetes-namespace
+	(format "--namespace=%s" tramp-kubernetes-namespace)))
+   " "))
 
 ;;;###tramp-autoload
 (defun tramp-toolbox--completion-function (&rest _args)
@@ -275,12 +344,13 @@ see its function help for a description of the format."
  (add-to-list 'tramp-methods
               `(,tramp-kubernetes-method
                 (tramp-login-program ,tramp-kubernetes-program)
-                (tramp-login-args (("exec")
+                (tramp-login-args (("%x") ; context and namespace.
+				   ("exec")
+                                   ("-c" "%a") ; container.
                                    ("%h")
                                    ("-it")
                                    ("--")
 			           ("%l")))
-		(tramp-config-check tramp-kubernetes--current-context-data)
 		(tramp-direct-async (,tramp-default-remote-shell "-c"))
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
@@ -333,6 +403,23 @@ see its function help for a description of the format."
   '((tramp-flatpak--completion-function "")))
 
  ;; Default connection-local variables for Tramp.
+
+ (defconst tramp-container-connection-local-default-kubernetes-variables
+   '((tramp-config-check . tramp-kubernetes--current-context-data)
+     ;; This variable will be eval'ed in `tramp-expand-args'.
+     (tramp-extra-expand-args
+      . (?a (tramp-kubernetes--container (car tramp-current-connection))
+	 ?h (tramp-kubernetes--pod (car tramp-current-connection))
+	 ?x (tramp-kubernetes--context-namespace (car tramp-current-connection)))))
+   "Default connection-local variables for remote kubernetes connections.")
+
+ (connection-local-set-profile-variables
+  'tramp-container-connection-local-default-kubernetes-profile
+  tramp-container-connection-local-default-kubernetes-variables)
+
+ (connection-local-set-profiles
+  `(:application tramp :protocol ,tramp-kubernetes-method)
+  'tramp-container-connection-local-default-kubernetes-profile)
 
  (defconst tramp-container-connection-local-default-flatpak-variables
    `((tramp-remote-path  . ,(cons "/app/bin" tramp-remote-path)))

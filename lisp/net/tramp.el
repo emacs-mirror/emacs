@@ -300,13 +300,6 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     and container methods do.  If it is a list of strings, they
     are used to construct the remote command.
 
-  * `tramp-config-check'
-    A function to be called with one argument, VEC.  It should
-    return a string which is used to check, whether the
-    configuration of the remote host has been changed (which
-    would require to flush the cache data).  This string is kept
-    as connection property \"config-check-data\".
-
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of scp or the name of
@@ -4954,14 +4947,30 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
     ;; Result.
     target-alist))
 
+(defvar tramp-extra-expand-args nil
+  "Method specific arguments.")
+
 (defun tramp-expand-args (vec parameter &rest spec-list)
   "Expand login arguments as given by PARAMETER in `tramp-methods'.
 PARAMETER is a symbol like `tramp-login-args', denoting a list of
 list of strings from `tramp-methods', containing %-sequences for
-substitution.  SPEC-LIST is a list of char/value pairs used for
-`format-spec-make'."
+substitution.
+SPEC-LIST is a list of char/value pairs used for
+`format-spec-make'.  It is appended by `tramp-extra-expand-args',
+a connection-local variable."
   (let ((args (tramp-get-method-parameter vec parameter))
-	(spec (apply 'format-spec-make spec-list)))
+	(extra-spec-list
+	 (mapcar
+	  #'eval
+	  (buffer-local-value
+	   'tramp-extra-expand-args (tramp-get-connection-buffer vec))))
+	spec)
+    ;; Merge both spec lists.  Remove duplicate entries.
+    (while spec-list
+      (unless (member (car spec-list) extra-spec-list)
+	(setq extra-spec-list (append (take 2 spec-list) extra-spec-list)))
+      (setq spec-list (cddr spec-list)))
+    (setq spec (apply #'format-spec-make extra-spec-list))
     ;; Expand format spec.
     (flatten-tree
      (mapcar

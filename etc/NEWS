@@ -225,6 +225,14 @@ They allow accessing system containers provided by Toolbox or
 sandboxes provided by Flatpak.
 
 +++
+*** Connection method "kubernetes" supports now optional container name.
+The host name for Kubernetes connections can be of kind [CONTAINER.]POD,
+in order to specify a dedicated container.  If there is just the pod
+name, the first container in the pod is taken.  The new user options
+'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow to
+access pods with different context or namespace but the default one.
+
++++
 *** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share'.
 The old name still exists as obsolete variable alias.  This user
 option controls now connection sharing for both ssh-based and
