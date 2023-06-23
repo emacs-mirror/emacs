@@ -187,8 +187,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (format "This number is %d" 4))
   "Manipulating Strings"
   (substring
-   :eval (substring "foobar" 0 3)
-   :eval (substring "foobar" 3))
+   :eval (substring "abcde" 1 3)
+   :eval (substring "abcde" 2)
+   :eval (substring "abcde" 1 -1)
+   :eval (substring "abcde" -4 4))
   (string-limit
    :eval (string-limit "foobar" 3)
    :eval (string-limit "foobar" 3 t)
