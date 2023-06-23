@@ -5529,10 +5529,10 @@ null_header_line_format (Lisp_Object fmt, struct frame *f)
 bool
 window_wants_header_line (struct window *w)
 {
-  Lisp_Object window_header_line_format
-    = window_parameter (w, Qheader_line_format);
+  Lisp_Object window_header_line_format =
+    window_parameter (w, Qheader_line_format);
 
-  struct frame *f = WINDOW_XFRAME (w);
+  struct frame *f = WINDOW_XFRAME(w);
 
   return (WINDOW_LEAF_P (w)
 	  && !MINI_WINDOW_P (w)
