@@ -402,17 +402,18 @@ name as a string.  The new function
 completion based on dictionaries that the server supports.
 
 ** Pp
-*** New 'pp-default-function' custom variable replaces 'pp-use-max-width'.
+
+*** New 'pp-default-function' user option replaces 'pp-use-max-width'.
 
 *** New default pretty printing function, which tries to obey 'fill-column'.
 
-*** 'pp-to-string' takes an additional 'pp-function' argument.
-This arg specifies the prettifying algorithm to use.
+*** 'pp-to-string' takes an additional PP-FUNCTION argument.
+This argument specifies the prettifying algorithm to use.
 
 ** Emacs Lisp mode
 
 ---
-*** ',@' now has 'prefix' syntax
+*** ',@' now has 'prefix' syntax.
 Previously, the '@' character, which normally has 'symbol' syntax,
 would combine with a following Lisp symbol and interfere with symbol
 searching.
@@ -478,7 +479,7 @@ hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 +++
 ** Regexp zero-width assertions followed by operators are better defined.
-Previously, regexps such as "xy\\B*" would have ill-defined behaviour.
+Previously, regexps such as "xy\\B*" would have ill-defined behavior.
 Now any operator following a zero-width assertion applies to that
 assertion only (which is useless).  For historical compatibility, an
 operator character following '^' or '\`' becomes literal, but we
