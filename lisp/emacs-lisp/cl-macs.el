@@ -243,6 +243,18 @@ The name is made by appending a number to PREFIX, default \"T\"."
 (defvar cl--bind-enquote)      ;Non-nil if &cl-quote was in the formal arglist!
 (defvar cl--bind-lets) (defvar cl--bind-forms)
 
+(defun cl--slet* (bindings body)
+  "Like `macroexp-let*' but uses static scoping for all the BINDINGS."
+  (pcase-exhaustive bindings
+    ('() body)
+    (`((,var ,exp) . ,bindings)
+     (let ((rest (cl--slet* bindings body)))
+       (if (macroexp--dynamic-variable-p var)
+           ;; FIXME: We use `identity' to obfuscate the code enough to
+           ;; circumvent the known bug in `macroexp--unfold-lambda' :-(
+           `(funcall (identity (lambda (,var) ,@(macroexp-unprogn rest))) ,exp)
+         (macroexp-let* `((,var ,exp)) rest))))))
+
 (defun cl--transform-lambda (form bind-block)
   "Transform a function form FORM of name BIND-BLOCK.
 BIND-BLOCK is the name of the symbol to which the function will be bound,
@@ -337,10 +349,12 @@ FORM is of the form (ARGS . BODY)."
                 (list '&rest (car (pop cl--bind-lets))))))))
       `((,@(nreverse simple-args) ,@rest-args)
         ,@header
-        ,(macroexp-let* cl--bind-lets
-                        (macroexp-progn
-                         `(,@(nreverse cl--bind-forms)
-                           ,@body)))))))
+        ;; Make sure that function arguments are unconditionally statically
+        ;; scoped (bug#47552).
+        ,(cl--slet* cl--bind-lets
+                    (macroexp-progn
+                     `(,@(nreverse cl--bind-forms)
+                       ,@body)))))))
 
 ;;;###autoload
 (defmacro cl-defun (name args &rest body)

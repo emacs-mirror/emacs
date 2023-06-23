@@ -806,7 +806,15 @@ See Bug#57915."
 (ert-deftest cl-&key-arguments ()
   (cl-flet ((fn (&key x) x))
     (should-error (fn :x))
-    (should (eq (fn :x :a) :a))))
+    (should (eq (fn :x :a) :a)))
+  ;; In ELisp function arguments are always statically scoped (bug#47552).
+  (defvar cl--test-a)
+  (let ((cl--test-a 'dyn)
+        ;; FIXME: How do we silence the "Lexical argument shadows" warning?
+        (f (cl-function (lambda (&key cl--test-a b)
+                          (list cl--test-a (symbol-value 'cl--test-a) b)))))
+    (should (equal (funcall f :cl--test-a 'lex :b 2) '(lex dyn 2)))))
+
 
 
 ;;; cl-macs-tests.el ends here
