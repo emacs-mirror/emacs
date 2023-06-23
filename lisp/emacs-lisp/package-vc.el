@@ -347,7 +347,7 @@ FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
          (default-directory (package-desc-dir pkg-desc))
-         (docs-directory (expand-file-name (file-name-directory file)))
+         (docs-directory (file-name-directory (expand-file-name file)))
          (output (expand-file-name (format "%s.info" pkg-name)))
          clean-up)
     (when (string-match-p "\\.org\\'" file)
