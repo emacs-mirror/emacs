@@ -5827,7 +5827,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	  /* Now return this input method string.  */
 	  characters = (*android_java_env)->GetStringChars (android_java_env,
 							    string, NULL);
-	  android_exception_check_nonnull (characters, string);
+	  android_exception_check_nonnull ((void *) characters, string);
 
 	  /* Figure out how big the string is.  */
 	  size = (*android_java_env)->GetStringLength (android_java_env,
