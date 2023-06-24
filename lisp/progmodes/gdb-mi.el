@@ -453,7 +453,9 @@ valid signal handlers.")
           (const   :tag "Unlimited" nil))
   :version "22.1")
 
-(defcustom gdb-non-stop-setting (not (eq system-type 'windows-nt))
+;; This is disabled by default because we don't really support
+;; asynchronous execution of the debuggee; see bug#63084.  FIXME.
+(defcustom gdb-non-stop-setting nil
   "If non-nil, GDB sessions are expected to support the non-stop mode.
 When in the non-stop mode, stopped threads can be examined while
 other threads continue to execute.
@@ -468,7 +470,7 @@ don't support the non-stop mode.
 GDB session needs to be restarted for this setting to take effect."
   :type 'boolean
   :group 'gdb-non-stop
-  :version "26.1")
+  :version "29.1")
 
 (defcustom gdb-debuginfod-enable-setting
   ;; debuginfod servers are only for ELF executables, and elfutils, of

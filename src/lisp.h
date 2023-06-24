@@ -4881,7 +4881,7 @@ extern void syms_of_indent (void);
 /* Defined in frame.c.  */
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
-extern Lisp_Object do_switch_frame (Lisp_Object, int, Lisp_Object);
+extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);
 extern Lisp_Object get_frame_param (struct frame *, Lisp_Object);
 extern void frames_discard_buffer (Lisp_Object);
 extern void init_frame_once (void);

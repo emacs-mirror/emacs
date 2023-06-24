@@ -26145,7 +26145,7 @@ x_try_restore_frame (void)
 
   FOR_EACH_FRAME (tail, frame)
     {
-      if (!NILP (do_switch_frame (frame, 1, Qnil)))
+      if (!NILP (do_switch_frame (frame, 0, 1, Qnil)))
 	return;
     }
 }
