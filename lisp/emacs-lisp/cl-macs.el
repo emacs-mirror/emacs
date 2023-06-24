@@ -251,10 +251,8 @@ The name is made by appending a number to PREFIX, default \"T\"."
       (if (macroexp--dynamic-variable-p (car binding)) (setq dyn t)))
     (cond
      (dyn
-      ;; FIXME: We use `identity' to obfuscate the code enough to
-      ;; circumvent the known bug in `macroexp--unfold-lambda' :-(
-      `(funcall (identity (lambda (,@(mapcar #'car bindings))
-                            ,@(macroexp-unprogn body)))
+      `(funcall (lambda (,@(mapcar #'car bindings))
+                  ,@(macroexp-unprogn body))
                 ,@(mapcar #'cadr bindings)))
      ((null (cdr bindings))
       (macroexp-let* bindings body))
