@@ -3422,6 +3422,39 @@ See
 
   https://lists.gnu.org/r/emacs-devel/2010-07/msg01266.html
 
+*** Building the MS-Windows port with native compilation fails
+
+This is known to happen when using MinGW64 GCC 13.1, and seems to
+affect byte-compilation: the built Emacs crashes while byte-compiling
+some Lisp files.  (This doesn't happen when building a release
+tarball, because all the Lisp files are already byte-compiled there,
+but then Emacs could crash later when you use it to byte-compile your
+or third-party Lisp packages.)
+
+The reason seems to be specific to MS-Windows or the MinGW64 port of
+GCC 13.1, and is somehow related to optimizations in this GCC version.
+There are several known workarounds:
+
+  . Use non-default optimization flags.  For example, configuring the
+    build like this will avoid the problem:
+
+     CFLAGS='-O1 -gdwarf-4 -g3' ./configure ...
+
+    (replace the ellipsis "..." with the rest of 'configure' options
+    and arguments).
+
+  . Prevent GCC from performing a specific optimization:
+
+     CFLAGS='-O2 -gdwarf-4 -g3 -fno-optimize-sibling-calls' ./configure ...
+
+    This is actually a variant of the previous workaround, except that
+    it allows you to have almost the full set of optimizations used by
+    -O2.
+
+  . Downgrade to GCC 12.x.
+
+  . Build Emacs without native compilation.
+
 *** Building the native MS-Windows port fails due to unresolved externals
 
 The linker error messages look like this:
