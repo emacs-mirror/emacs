@@ -243,6 +243,25 @@ The name is made by appending a number to PREFIX, default \"T\"."
 (defvar cl--bind-enquote)      ;Non-nil if &cl-quote was in the formal arglist!
 (defvar cl--bind-lets) (defvar cl--bind-forms)
 
+(defun cl--slet (bindings body)
+  "Like `cl--slet*' but for \"parallel let\"."
+  (cond
+   ((seq-some (lambda (binding) (macroexp--dynamic-variable-p (car binding)))
+              bindings)
+    ;; FIXME: We use `identity' to obfuscate the code enough to
+    ;; circumvent the known bug in `macroexp--unfold-lambda' :-(
+    `(funcall (identity (lambda (,@(mapcar #'car bindings))
+                          ,@(macroexp-unprogn body)))
+              ,@(mapcar #'cadr bindings)))
+   ((null (cdr bindings))
+    (macroexp-let* bindings body))
+   (t `(let ,bindings ,@(macroexp-unprogn body)))))
+
+(defun cl--slet* (bindings body)
+  "Like `macroexp-let*' but uses static scoping for all the BINDINGS."
+  (if (null bindings) body
+    (cl--slet `(,(car bindings)) (cl--slet* (cdr bindings) body))))
+
 (defun cl--transform-lambda (form bind-block)
   "Transform a function form FORM of name BIND-BLOCK.
 BIND-BLOCK is the name of the symbol to which the function will be bound,
@@ -337,10 +356,11 @@ FORM is of the form (ARGS . BODY)."
                 (list '&rest (car (pop cl--bind-lets))))))))
       `((,@(nreverse simple-args) ,@rest-args)
         ,@header
-        ,(macroexp-let* cl--bind-lets
-                        (macroexp-progn
-                         `(,@(nreverse cl--bind-forms)
-                           ,@body)))))))
+        ;; Function arguments are unconditionally statically scoped (bug#47552).
+        ,(cl--slet* cl--bind-lets
+                    (macroexp-progn
+                     `(,@(nreverse cl--bind-forms)
+                       ,@body)))))))
 
 ;;;###autoload
 (defmacro cl-defun (name args &rest body)
@@ -2896,9 +2916,10 @@ The function's arguments should be treated as immutable.
        (cl-defun ,name ,args ,@body))))
 
 (defun cl--defsubst-expand (argns body _simple whole _unsafe &rest argvs)
-  (if (and whole (not (cl--safe-expr-p (cons 'progn argvs))))
+  (if (and whole (not (cl--safe-expr-p (macroexp-progn argvs))))
       whole
-    `(let ,(cl-mapcar #'list argns argvs) ,body)))
+    ;; Function arguments are unconditionally statically scoped (bug#47552).
+    (cl--slet (cl-mapcar #'list argns argvs) body)))
 
 ;;; Structures.
 

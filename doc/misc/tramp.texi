@@ -922,8 +922,15 @@ if desired.
 @cindex @option{kubernetes} method
 
 Integration for containers in Kubernetes pods.  The host name is a pod
-name returned by @samp{kubectl get pods}.  The first container in a
-pod is used.
+name returned by @samp{kubectl get pods}, or
+@samp{@var{container}.@var{pod}} if an explicit container name shall
+be used.  Otherwise, the first container in a pod is used.
+
+@vindex tramp-kubernetes-context
+@vindex tramp-kubernetes-namespace
+If another Kubernetes context or namespace shall be used, configure
+the user options @code{tramp-kubernetes-context} and
+@code{tramp-kubernetes-namespace}.
 
 This method does not support user names.
 

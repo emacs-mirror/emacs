@@ -242,6 +242,14 @@ They allow accessing system containers provided by Toolbox or
 sandboxes provided by Flatpak.
 
 +++
+*** Connection method "kubernetes" supports now optional container name.
+The host name for Kubernetes connections can be of kind [CONTAINER.]POD,
+in order to specify a dedicated container.  If there is just the pod
+name, the first container in the pod is taken.  The new user options
+'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow to
+access pods with different context or namespace but the default one.
+
++++
 *** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share'.
 The old name still exists as obsolete variable alias.  This user
 option controls now connection sharing for both ssh-based and
@@ -419,17 +427,18 @@ name as a string.  The new function
 completion based on dictionaries that the server supports.
 
 ** Pp
-*** New 'pp-default-function' custom variable replaces 'pp-use-max-width'.
+
+*** New 'pp-default-function' user option replaces 'pp-use-max-width'.
 
 *** New default pretty printing function, which tries to obey 'fill-column'.
 
-*** 'pp-to-string' takes an additional 'pp-function' argument.
-This arg specifies the prettifying algorithm to use.
+*** 'pp-to-string' takes an additional PP-FUNCTION argument.
+This argument specifies the prettifying algorithm to use.
 
 ** Emacs Lisp mode
 
 ---
-*** ',@' now has 'prefix' syntax
+*** ',@' now has 'prefix' syntax.
 Previously, the '@' character, which normally has 'symbol' syntax,
 would combine with a following Lisp symbol and interfere with symbol
 searching.
@@ -494,16 +503,8 @@ hooks named after the feature name, like 'esh-mode-unload-hook'.
 ** 'copy-tree' now copies records when its optional 2nd argument is non-nil.
 
 +++
-** Certain values of 'header-line-format' now inhibit empty header line.
-Emacs now avoids displaying a header line, instead of displaying an
-empty one, when 'header-line-format' is a list whose 'car' is a
-symbol, and either that symbol is ':eval' and the second element of
-the list evaluates to 'nil' or the symbol's value as a variable is
-'nil' or void.
-
-+++
 ** Regexp zero-width assertions followed by operators are better defined.
-Previously, regexps such as "xy\\B*" would have ill-defined behaviour.
+Previously, regexps such as "xy\\B*" would have ill-defined behavior.
 Now any operator following a zero-width assertion applies to that
 assertion only (which is useless).  For historical compatibility, an
 operator character following '^' or '\`' becomes literal, but we
