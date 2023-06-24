@@ -1121,10 +1121,15 @@ possible values of STATE are explained in `vc-state', and MODEL in
 the returned list.
 
 BEWARE: this function may change the current buffer."
-  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-    (vc-deduce-fileset-1 not-state-changing
-                         allow-unregistered
-                         state-model-only-files)))
+  (let (new-buf res)
+    (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+      (setq res
+            (vc-deduce-fileset-1 not-state-changing
+                                 allow-unregistered
+                                 state-model-only-files))
+      (setq new-buf (current-buffer)))
+    (set-buffer new-buf)
+    res))
 
 (defun vc-deduce-fileset-1 (not-state-changing
                             allow-unregistered
