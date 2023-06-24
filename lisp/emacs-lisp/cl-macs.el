@@ -245,17 +245,20 @@ The name is made by appending a number to PREFIX, default \"T\"."
 
 (defun cl--slet (bindings body)
   "Like `cl--slet*' but for \"parallel let\"."
-  (cond
-   ((seq-some (lambda (binding) (macroexp--dynamic-variable-p (car binding)))
-              bindings)
-    ;; FIXME: We use `identity' to obfuscate the code enough to
-    ;; circumvent the known bug in `macroexp--unfold-lambda' :-(
-    `(funcall (identity (lambda (,@(mapcar #'car bindings))
-                          ,@(macroexp-unprogn body)))
-              ,@(mapcar #'cadr bindings)))
-   ((null (cdr bindings))
-    (macroexp-let* bindings body))
-   (t `(let ,bindings ,@(macroexp-unprogn body)))))
+  (let ((dyn nil)) ;Is there a var declared as dynbound among the bindings?
+    ;; `seq-some' lead to bootstrap problems.
+    (dolist (binding bindings)
+      (if (macroexp--dynamic-variable-p (car binding)) (setq dyn t)))
+    (cond
+     (dyn
+      ;; FIXME: We use `identity' to obfuscate the code enough to
+      ;; circumvent the known bug in `macroexp--unfold-lambda' :-(
+      `(funcall (identity (lambda (,@(mapcar #'car bindings))
+                            ,@(macroexp-unprogn body)))
+                ,@(mapcar #'cadr bindings)))
+     ((null (cdr bindings))
+      (macroexp-let* bindings body))
+     (t `(let ,bindings ,@(macroexp-unprogn body))))))
 
 (defun cl--slet* (bindings body)
   "Like `macroexp-let*' but uses static scoping for all the BINDINGS."
