@@ -1888,11 +1888,14 @@ user option called the same as the global mode variable, but with
 @code{-modes} instead of @code{-mode} at the end, i.e.@:
 @code{@var{global-mode}s}.  This variable will be used in a predicate
 function that determines whether the minor mode should be activated in
-a particular major mode.  Valid values of @code{:predicate} include
-@code{t} (use in all major modes), @code{nil} (don't use in any major
-modes), or a list of mode names, optionally preceded with @code{not}
-(as in @w{@code{(not @var{mode-name} @dots{})}}).  These elements can
-be mixed, as shown in the following examples.
+a particular major mode, and users can customize the value of the
+variable to control the modes in which the minor mode will be switched
+on.  Valid values of @code{:predicate} (and thus valid values of the
+user option it creates) include @code{t} (use in all major modes),
+@code{nil} (don't use in any major modes), or a list of mode names,
+optionally preceded with @code{not} (as in @w{@code{(not
+@var{mode-name} @dots{})}}).  These elements can be mixed, as shown in
+the following examples.
 
 @example
 (c-mode (not mail-mode message-mode) text-mode)
