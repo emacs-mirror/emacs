@@ -268,7 +268,7 @@ bookmark URIs.
 
 +++
 *** New command 'eww-copy-alternate-url'.
-It copies an alternate link to the page currently visited in EWW into
+It copies an alternate link on the page currently visited in EWW into
 the kill ring.  Alternate links are optional metadata that HTML pages
 use for linking to their alternative representations, such as
 translated versions or associated RSS feeds.

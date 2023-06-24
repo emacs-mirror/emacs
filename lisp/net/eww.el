@@ -2643,8 +2643,9 @@ with completion.  If there are none, return nil."
         (caar alternates)))))
 
 (defun eww-copy-alternate-url ()
-  "Copy an alternate URL of the current page into the kill ring.
-
+  "Copy the alternate URL of the current page into the kill ring.
+If there are multiple alternate links on the current page, prompt
+for one in the minibuffer, with completion.
 Alternate links are references that an HTML page may include to
 point to its alternative representations, such as a translated
 version or an RSS feed."
