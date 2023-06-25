@@ -1443,6 +1443,49 @@
     (kill-buffer "ExampleNet")
     (kill-buffer "#chan")))
 
+(defmacro erc-tests--equal-including-properties (a b)
+  (list (if (< emacs-major-version 29)
+            'ert-equal-including-properties
+          'equal-including-properties)
+        a b))
+
+(ert-deftest erc-format-privmessage ()
+  ;; Basic PRIVMSG
+  (should (erc-tests--equal-including-properties
+           (erc-format-privmessage (copy-sequence "bob")
+                                   (copy-sequence "oh my")
+                                   nil 'msgp)
+           #("<bob> oh my"
+             0 1 (font-lock-face erc-default-face)
+             1 4 (erc-speaker "bob" font-lock-face erc-nick-default-face)
+             4 11 (font-lock-face erc-default-face))))
+
+  ;; Basic NOTICE
+  (should (erc-tests--equal-including-properties
+           (erc-format-privmessage (copy-sequence "bob")
+                                   (copy-sequence "oh my")
+                                   nil nil)
+           #("-bob- oh my"
+             0 1 (font-lock-face erc-default-face)
+             1 4 (erc-speaker "bob" font-lock-face erc-nick-default-face)
+             4 11 (font-lock-face erc-default-face))))
+
+  ;; Prefixed PRIVMSG
+  (let* ((user (make-erc-server-user :nickname (copy-sequence "Bob")))
+         (cuser (make-erc-channel-user :op t))
+         (erc-channel-users (make-hash-table :test #'equal)))
+    (puthash "bob" (cons user cuser) erc-channel-users)
+
+    (should (erc-tests--equal-including-properties
+             (erc-format-privmessage (erc-format-@nick user cuser)
+                                     (copy-sequence "oh my")
+                                     nil 'msgp)
+             #("<@Bob> oh my"
+               0 1 (font-lock-face erc-default-face)
+               1 2 (font-lock-face erc-nick-prefix-face help-echo "operator")
+               2 5 (erc-speaker "Bob" font-lock-face erc-nick-default-face)
+               5 12 (font-lock-face erc-default-face))))))
+
 (defvar erc-tests--ipv6-examples
   '("1:2:3:4:5:6:7:8"
     "::ffff:10.0.0.1" "::ffff:1.2.3.4" "::ffff:0.0.0.0"

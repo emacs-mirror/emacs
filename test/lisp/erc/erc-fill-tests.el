@@ -153,7 +153,10 @@
         (with-temp-file expect-file
           (insert repr))
       (if (file-exists-p expect-file)
-          ;; Compare set-equal over intervals
+          ;; Compare set-equal over intervals.  This comparison is
+          ;; less useful for messages treated by other modules because
+          ;; it doesn't compare "nested" props belonging to
+          ;; string-valued properties, like timestamps.
           (should (equal-including-properties
                    (read repr)
                    (read (with-temp-buffer

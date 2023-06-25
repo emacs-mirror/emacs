@@ -124,11 +124,9 @@ configured.  Its value should be larger than that of the variable
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const nil) number))
 
-(defcustom erc-fill-spaced-commands '(PRIVMSG NOTICE)
+(defvar erc-fill--spaced-commands '(PRIVMSG NOTICE)
   "Types of messages to add space between on graphical displays.
-Only considered when `erc-fill-line-spacing' is non-nil."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
-  :type '(repeat (choice integer symbol)))
+Only considered when `erc-fill-line-spacing' is non-nil.")
 
 (defvar-local erc-fill--function nil
   "Internal copy of `erc-fill-function'.
@@ -153,12 +151,12 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
                       (p (point-min)))
             (widen)
             (when (or (and-let* ((cmd (get-text-property p 'erc-command)))
-                        (memq cmd erc-fill-spaced-commands))
+                        (memq cmd erc-fill--spaced-commands))
                       (and-let* ((cmd (save-excursion
                                         (forward-line -1)
                                         (get-text-property (point)
                                                            'erc-command))))
-                        (memq cmd erc-fill-spaced-commands)))
+                        (memq cmd erc-fill--spaced-commands)))
               (put-text-property (1- p) p
                                  'line-spacing erc-fill-line-spacing))))))))
 
@@ -384,8 +382,7 @@ parties.")
                        (when (eq 'erc-timestamp (field-at-pos m))
                          (set-marker m (field-end m)))
                        (and (eq 'PRIVMSG (get-text-property m 'erc-command))
-                            (not (eq (get-text-property m 'font-lock-face)
-                                     'erc-action-face))
+                            (not (eq (get-text-property m 'erc-ctcp) 'ACTION))
                             (cons (get-text-property m 'erc-timestamp)
                                   (get-text-property (1+ m) 'erc-data)))))
               (ts (pop props))
@@ -418,6 +415,12 @@ parties.")
                        `(space :width (- erc-fill--wrap-value ,width))))
   args)
 
+;; An escape hatch for third-party code expecting speakers of ACTION
+;; messages to be exempt from `line-prefix'.  This could be converted
+;; into a user option if users feel similarly.
+(defvar erc-fill--wrap-action-dedent-p t
+  "Whether to dedent speakers in CTCP \"ACTION\" lines.")
+
 (defun erc-fill-wrap ()
   "Use text props to mimic the effect of `erc-fill-static'.
 See `erc-fill-wrap-mode' for details."
@@ -428,6 +431,12 @@ See `erc-fill-wrap-mode' for details."
     (let ((len (or (and erc-fill--wrap-length-function
                         (funcall erc-fill--wrap-length-function))
                    (progn
+                     (when-let ((e (erc--get-speaker-bounds))
+                                (b (pop e))
+                                ((or erc-fill--wrap-action-dedent-p
+                                     (not (eq (get-text-property b 'erc-ctcp)
+                                              'ACTION)))))
+                       (goto-char e))
                      (skip-syntax-forward "^-")
                      (forward-char)
                      ;; Using the `invisible' property might make more

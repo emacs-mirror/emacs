@@ -145,6 +145,13 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
+** Subtle changes in two fundamental faces.
+Users of the default theme may notice that 'erc-action-face' and
+'erc-notice-face' now appear slightly less bold on systems supporting
+a weight of 'semi-bold'.  This was done to make buttons detectable and
+to spare users from resorting to tweaking these faces, or options like
+'erc-notice-highlight-type', just to achieve this effect.
+
 ** Improved interplay between buffer truncation and message logging.
 While most of these improvements are subtle, some affect everyday use.
 For example, users of the 'truncate' module may notice that truncation
