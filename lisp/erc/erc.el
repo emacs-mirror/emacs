@@ -2745,7 +2745,7 @@ If ARG is non-nil, show the *erc-protocol* buffer."
                erc-insert-pre-hook))
         (nick (erc-current-nick)))
     (setq nick (propertize nick 'erc-speaker nick))
-    (erc-display-message nil 'input (current-buffer)
+    (erc-display-message nil '(t action input) (current-buffer)
                          'ACTION ?n nick ?a str ?u "" ?h "")))
 
 ;; Display interface
@@ -2899,6 +2899,25 @@ If STRING is nil, the function does nothing."
                                      (process-buffer erc-server-process)
                                    (current-buffer))))))
 
+(defvar erc--compose-text-properties nil
+  "Non-nil when `erc-put-text-property' defers to `erc--merge-prop'.")
+
+(defun erc--merge-prop (from to prop val &optional object)
+  "Compose existing PROP values with VAL between FROM and TO in OBJECT.
+For spans where PROP is non-nil, cons VAL onto the existing
+value, ensuring a proper list.  Otherwise, just set PROP to VAL.
+See also `erc-button-add-face'."
+  (let ((old (get-text-property from prop object))
+        (pos from)
+        (end (next-single-property-change from prop object to))
+        new)
+    (while (< pos to)
+      (setq new (if old (cons val (ensure-list old)) val))
+      (put-text-property pos end prop new object)
+      (setq pos end
+            old (get-text-property pos prop object)
+            end (next-single-property-change pos prop object to)))))
+
 (defun erc-display-message-highlight (type string)
   "Highlight STRING according to TYPE, where erc-TYPE-face is an ERC face.
 
@@ -2910,7 +2929,7 @@ See also `erc-make-notice'."
           0 (length string)
           'font-lock-face (or (intern-soft
 			       (concat "erc-" (symbol-name type) "-face"))
-			      "erc-default-face")
+                              'erc-default-face)
           string)
          string)))
 
@@ -3114,6 +3133,17 @@ returns non-nil."
 
 ARGS, PARSED, and TYPE are used to format MSG sensibly.
 
+When TYPE is a list of symbols, call handlers from left to right
+without influencing how they behave when encountering existing
+faces.  As of ERC 5.6, expect a TYPE of (notice error) to insert
+MSG with `font-lock-face' as `erc-error-face' throughout.
+However, when the list of symbols begins with t, tell compatible
+handlers to compose rather than clobber faces.  For example, as
+of ERC 5.6, expect a TYPE of (t notice error) to result in MSG's
+`font-lock-face' being (erc-error-face erc-notice-face)
+throughout when `erc-notice-highlight-type' is set to its default
+`all'.
+
 See also `erc-format-message' and `erc-display-line'."
   (let ((string (if (symbolp msg)
                     (apply #'erc-format-message msg args)
@@ -3124,10 +3154,10 @@ See also `erc-format-message' and `erc-display-line'."
            ((null type)
             string)
            ((listp type)
-            (mapc (lambda (type)
-                    (setq string
-                          (erc-display-message-highlight type string)))
-                  type)
+            (let ((erc--compose-text-properties
+                   (and (eq (car type) t) (setq type (cdr type)))))
+              (dolist (type type)
+                (setq string (erc-display-message-highlight type string))))
             string)
            ((symbolp type)
             (erc-display-message-highlight type string))))
@@ -6129,7 +6159,7 @@ See also variable `erc-notice-highlight-type'."
   (erc-put-text-property 0 (length s) 'font-lock-face 'erc-error-face s)
   s)
 
-(defalias 'erc-put-text-property 'put-text-property
+(defun erc-put-text-property (start end property value &optional object)
   "Set text-property for an object (usually a string).
 START and END define the characters covered.
 PROPERTY is the text-property set, usually the symbol `face'.
@@ -6139,7 +6169,10 @@ OBJECT is a string which will be modified and returned.
 OBJECT is modified without being copied first.
 
 You can redefine or `defadvice' this function in order to add
-EmacsSpeak support.")
+EmacsSpeak support."
+  (if erc--compose-text-properties
+      (erc--merge-prop start end property value object)
+    (put-text-property start end property value object)))
 
 (defalias 'erc-list 'ensure-list)
 

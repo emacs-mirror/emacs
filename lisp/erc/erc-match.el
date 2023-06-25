@@ -657,21 +657,22 @@ See `erc-log-match-format'."
 
 (defvar-local erc-match--hide-fools-offset-bounds nil)
 
-;; FIXME this should merge with instead of overwrite existing
-;; `invisible' values.
 (defun erc-hide-fools (match-type _nickuserhost _message)
- "Hide foolish comments.
-This function should be called from `erc-text-matched-hook'."
+  "Hide comments from designated fools."
   (when (eq match-type 'fool)
+    (erc-match--hide-message)))
+
+(defun erc-match--hide-message ()
+  (progn ; FIXME raise sexp
     (if erc-match--hide-fools-offset-bounds
         (let ((beg (point-min))
               (end (point-max)))
           (save-restriction
             (widen)
-            (put-text-property (1- beg) (1- end) 'invisible 'erc-match)))
+            (erc--merge-prop (1- beg) (1- end) 'invisible 'erc-match)))
       ;; Before ERC 5.6, this also used to add an `intangible'
       ;; property, but the docs say it's now obsolete.
-      (put-text-property (point-min) (point-max) 'invisible 'erc-match))))
+      (erc--merge-prop (point-min) (point-max) 'invisible 'erc-match))))
 
 (defun erc-beep-on-match (match-type _nickuserhost _message)
   "Beep when text matches.

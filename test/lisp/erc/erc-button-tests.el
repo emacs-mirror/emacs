@@ -265,7 +265,7 @@
       (ert-info ("Symbol-description face preserved") ; mutated by d-e-n-w-k
         (erc-button-next 1)
         (should (equal (get-text-property (point) 'font-lock-face)
-                       '(erc-button erc-error-face)))
+                       '(erc-button erc-error-face erc-notice-face)))
         (should (eq (get-text-property (point) 'mouse-face) 'highlight))
         (should (eq erc-button-face 'erc-button))) ; extent evaporates
 

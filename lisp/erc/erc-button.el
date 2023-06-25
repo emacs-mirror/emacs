@@ -815,7 +815,7 @@ non-strings, concatenate leading string members before applying
              erc-button--display-error-with-buttons
              erc-button-describe-symbol 1)
             ,@erc-button-alist)))
-    (erc-display-message parsed '(notice error) (or buffer 'active) string)
+    (erc-display-message parsed '(t notice error) (or buffer 'active) string)
     string))
 
 ;;;###autoload

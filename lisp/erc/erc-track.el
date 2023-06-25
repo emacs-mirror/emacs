@@ -184,9 +184,13 @@ The faces used are the same as used for text in the buffers.
     erc-prompt-face)
   "A list of faces used to highlight active buffer names in the mode line.
 If a message contains one of the faces in this list, the buffer name will
-be highlighted using that face.  The first matching face is used."
-  :type '(repeat (choice face
-			 (repeat :tag "Combination" face))))
+be highlighted using that face.  The first matching face is used.
+
+Note that ERC prioritizes certain faces reserved for critical
+messages regardless of this option's value."
+  :type (erc--with-dependent-type-match
+         (repeat (choice face (repeat :tag "Combination" face)))
+         erc-button))
 
 (defcustom erc-track-priority-faces-only nil
   "Only track text highlighted with a priority face.
@@ -309,6 +313,8 @@ important."
 		 (const leastactive)
 		 (const mostactive)))
 
+(defconst erc-track--attn-faces '((erc-error-face erc-notice-face))
+  "Faces whose presence always triggers mode-line inclusion.")
 
 (defun erc-track-remove-from-mode-line ()
   "Remove `erc-track-modified-channels' from the mode-line."
@@ -736,6 +742,9 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
   (declare (obsolete erc-track-select-mode-line-face "28.1"))
   (erc-track-select-mode-line-face (car faces) (cdr faces)))
 
+;; Note that unless called by `erc-track-modified-channels',
+;; `erc-track-faces-priority-list' will not begin with
+;; `erc-track--attn-faces'.
 (defun erc-track-select-mode-line-face (cur-face new-faces)
   "Return the face to use in the mode line.
 
@@ -802,7 +811,9 @@ the current buffer is in `erc-mode'."
 	;; (in the car), change its face attribute (in the cddr) if
 	;; necessary.  See `erc-modified-channels-alist' for the
 	;; exact data structure used.
-	(let ((faces (erc-faces-in (buffer-string))))
+        (let ((faces (erc-faces-in (buffer-string)))
+              (erc-track-faces-priority-list
+               `(,@erc-track--attn-faces ,@erc-track-faces-priority-list)))
 	  (unless (and
 		   (or (eq erc-track-priority-faces-only 'all)
 		       (member this-channel erc-track-priority-faces-only))
@@ -873,7 +884,7 @@ If face is not in `erc-track-faces-priority-list', it will have a
 higher number than any other face in that list."
   (let ((count 0))
     (catch 'done
-      (dolist (item erc-track-faces-priority-list)
+      (dolist (item `(,@erc-track--attn-faces ,@erc-track-faces-priority-list))
 	(if (equal item face)
 	    (throw 'done t)
 	  (setq count (1+ count)))))

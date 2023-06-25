@@ -251,6 +251,19 @@ The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
 
+*** 'erc-display-message' optionally combines faces.
+Users may notice that ERC now inserts some important error messages in
+a combination of 'erc-error-face' and 'erc-notice-face'.  This is
+merely a consequence of 'erc-display-message' getting smarter about
+how it treats face properties when its 'type' parameter is a list that
+starts with t.  Originally, ERC's authors intended to display both
+server-originating and ERC-generated errors in this style, but that
+intent was never realized.  Though now possible, the effect has been
+limited to special errors involving usage and internal state.  For
+third-party code, the key takeaway is that more 'font-lock-face'
+properties encountered in the wild may be combinations of faces rather
+than lone ones.
+
 *** Prompt input is split before 'erc-pre-send-functions' has a say.
 Hook members are now treated to input whose lines have already been
 adjusted to fall within the allowed length limit.  For convenience,
