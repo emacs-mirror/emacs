@@ -4602,6 +4602,8 @@ by calling `format-decode', which see.  */)
 
       if (unprocessed > 0)
 	{
+	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
+			   BUF_Z (XBUFFER (conversion_buffer)));
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
 	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
 				  unprocessed, conversion_buffer);

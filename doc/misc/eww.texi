@@ -115,6 +115,21 @@ web page hit @kbd{g} (@code{eww-reload}).
 @kbd{w} calls @code{eww-copy-page-url}, which will copy the current
 page's URL to the kill ring instead.
 
+@findex eww-copy-alternate-url
+@kindex A
+  The @kbd{A} command (@code{eww-copy-alternate-url}) copies the URL
+of an alternate link on the current page into the kill ring.  If the
+page specifies multiple alternate links, this command prompts for one
+of them in the minibuffer, with completion.  Alternate links are
+references that an @acronym{HTML} page may include to point to other
+documents that act as its alternative representations.  Notably,
+@acronym{HTML} pages can use alternate links to point to their
+translated versions and to @acronym{RSS} feeds.  Alternate links
+appear in the @samp{<head>} section of @acronym{HTML} pages as
+@samp{<link>} elements with @samp{rel} attribute equal to
+@samp{``alternate''}; they are part of the page's metadata and are not
+visible in its rendered content.
+
 @findex eww-open-in-new-buffer
 @kindex M-RET
   The @kbd{M-@key{RET}} command (@code{eww-open-in-new-buffer}) opens the

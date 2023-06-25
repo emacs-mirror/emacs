@@ -715,11 +715,21 @@ for use at QPOS."
   "Text properties added to the text shown by `minibuffer-message'.")
 
 (defun minibuffer-message (message &rest args)
-  "Temporarily display MESSAGE at the end of the minibuffer.
-The text is displayed for `minibuffer-message-timeout' seconds,
-or until the next input event arrives, whichever comes first.
-Enclose MESSAGE in [...] if this is not yet the case.
-If ARGS are provided, then pass MESSAGE through `format-message'."
+  "Temporarily display MESSAGE at the end of minibuffer text.
+This function is designed to be called from the minibuffer, i.e.,
+when Emacs prompts the user for some input, and the user types
+into the minibuffer.  If called when the current buffer is not
+the minibuffer, this function just calls `message', and thus
+displays MESSAGE in the echo-area.
+When called from the minibuffer, this function displays MESSAGE
+at the end of minibuffer text for `minibuffer-message-timeout'
+seconds, or until the next input event arrives, whichever comes first.
+It encloses MESSAGE in [...] if it is not yet enclosed.
+The intent is to show the message without hiding what the user typed.
+If ARGS are provided, then the function first passes MESSAGE
+through `format-message'.
+If some of the minibuffer text has the `minibuffer-message' text
+property, MESSAGE is shown at that position instead of EOB."
   (if (not (minibufferp (current-buffer) t))
       (progn
         (if args
@@ -796,7 +806,7 @@ The minibuffer message functions include `minibuffer-message' and
       (next-single-property-change pt 'minibuffer-message nil (point-max)))))
 
 (defun set-minibuffer-message (message)
-  "Temporarily display MESSAGE at the end of the minibuffer.
+  "Temporarily display MESSAGE at the end of the active minibuffer window.
 If some part of the minibuffer text has the `minibuffer-message' property,
 the message will be displayed before the first such character, instead of
 at the end of the minibuffer.
@@ -954,7 +964,7 @@ is at its default value `grow-only'."
                multi-message-separator)))
 
 (defun clear-minibuffer-message ()
-  "Clear minibuffer message.
+  "Clear message temporarily shown in the minibuffer.
 Intended to be called via `clear-message-function'."
   (when (not noninteractive)
     (when (timerp minibuffer-message-timer)

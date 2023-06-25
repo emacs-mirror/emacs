@@ -1406,6 +1406,10 @@ keyword
  - Point is inside a paren from a block start followed by some
    items on the same line.
  - START is the first non space char position *after* the open paren.
+:inside-paren-continuation-line
+ - Point is on a continuation line inside a paren.
+ - START is the position where the previous line (excluding lines
+   for inner parens) starts.
 
 :after-backslash
  - Fallback case when point is after backslash.
@@ -1460,7 +1464,21 @@ keyword
                      (= (line-number-at-pos)
                         (progn
                           (python-util-forward-comment)
-                          (line-number-at-pos))))))))
+                          (line-number-at-pos)))))))
+               (continuation-start
+                (when start
+                  (save-excursion
+                    (forward-line -1)
+                    (back-to-indentation)
+                    ;; Skip inner parens.
+                    (cl-loop with prev-start = (python-syntax-context 'paren)
+                             while (and prev-start (>= prev-start start))
+                             if (= prev-start start)
+                             return (point)
+                             else do (goto-char prev-start)
+                                     (back-to-indentation)
+                                     (setq prev-start
+                                           (python-syntax-context 'paren)))))))
           (when start
             (cond
              ;; Current line only holds the closing paren.
@@ -1476,6 +1494,9 @@ keyword
                 (back-to-indentation)
                 (python-syntax-closing-paren-p))
               (cons :inside-paren-at-closing-nested-paren start))
+             ;; This line is a continuation of the previous line.
+             (continuation-start
+              (cons :inside-paren-continuation-line continuation-start))
              ;; This line starts from an opening block in its own line.
              ((save-excursion
                 (goto-char start)
@@ -1591,7 +1612,8 @@ possibilities can be narrowed to specific indentation points."
         (`(,(or :after-line
                 :after-comment
                 :inside-string
-                :after-backslash) . ,start)
+                :after-backslash
+                :inside-paren-continuation-line) . ,start)
          ;; Copy previous indentation.
          (goto-char start)
          (current-indentation))

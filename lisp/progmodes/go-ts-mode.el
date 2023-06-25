@@ -80,6 +80,7 @@
      ((parent-is "const_declaration") parent-bol go-ts-mode-indent-offset)
      ((parent-is "default_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "expression_case") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "selector_expression") parent-bol go-ts-mode-indent-offset)
      ((parent-is "expression_switch_statement") parent-bol 0)
      ((parent-is "field_declaration_list") parent-bol go-ts-mode-indent-offset)
      ((parent-is "import_spec_list") parent-bol go-ts-mode-indent-offset)
