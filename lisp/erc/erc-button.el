@@ -355,11 +355,11 @@ specified by `erc-button-alist'."
   ( cuser nil :type (or null erc-channel-user)
     ;; The CDR of a value from an `erc-channel-users' table.
     :documentation "A possibly nil `erc-channel-user'.")
-  ( erc-button-face erc-button-face :type symbol
+  ( face erc-button-face :type symbol
     :documentation "Temp `erc-button-face' while buttonizing.")
-  ( erc-button-nickname-face erc-button-nickname-face :type symbol
+  ( nickname-face erc-button-nickname-face :type symbol
     :documentation "Temp `erc-button-nickname-face' while buttonizing.")
-  ( erc-button-mouse-face erc-button-mouse-face :type symbol
+  ( mouse-face erc-button-mouse-face :type symbol
     :documentation "Temp `erc-button-mouse-face' while buttonizing."))
 
 ;; This variable is intended to serve as a "core" to be wrapped by
@@ -463,11 +463,11 @@ retrieve it during buttonizing via
                         (setq bounds (erc-button--nick-bounds obj)
                               data (erc-button--nick-data obj)
                               erc-button-mouse-face
-                              (erc-button--nick-erc-button-mouse-face obj)
+                              (erc-button--nick-mouse-face obj)
                               erc-button-nickname-face
-                              (erc-button--nick-erc-button-nickname-face obj)
+                              (erc-button--nick-nickname-face obj)
                               erc-button-face
-                              (erc-button--nick-erc-button-face obj))))
+                              (erc-button--nick-face obj))))
               (erc-button-add-button (car bounds) (cdr bounds)
                                      fun t data))))))))
 
