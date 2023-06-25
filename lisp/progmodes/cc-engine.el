@@ -7158,8 +7158,8 @@ comment at the start of cc-engine.el for more info."
 	   (beg-literal-beg (car (cddr lit-search-beg-s)))
 	   (lit-search-end-s (c-semi-pp-to-literal lit-search-end))
 	   (end-literal-beg (car (cddr lit-search-end-s)))
-	   (beg-literal-end (c-end-of-literal lit-search-beg-s beg))
-	   (end-literal-end (c-end-of-literal lit-search-end-s end))
+	   (beg-literal-end (c-end-of-literal lit-search-beg-s lit-search-beg))
+	   (end-literal-end (c-end-of-literal lit-search-end-s lit-search-end))
 	   new-beg new-end search-region)
 
       ;; Determine any new end of literal resulting from the insertion/deletion.
@@ -7212,13 +7212,12 @@ comment at the start of cc-engine.el for more info."
 		  ;; Save current settings of the 'syntax-table property in
 		  ;; (BEG END), then splat these with the punctuation value.
 		  (goto-char beg)
-		  (while (progn (skip-syntax-forward "" end)
-				(< (point) end))
-		    (setq syn-tab-value
-			  (c-get-char-property (point) 'syntax-table))
-		    (when (not (c-get-char-property (point) 'category))
-		      (push (cons (point) syn-tab-value) syn-tab-settings))
-		    (forward-char))
+		  (while (setq syn-tab-value
+			       (c-search-forward-non-nil-char-property
+				'syntax-table end))
+		    (when (not (c-get-char-property (1- (point)) 'category))
+		      (push (cons (1- (point)) syn-tab-value)
+			    syn-tab-settings)))
 
 		  (c-put-char-properties beg end 'syntax-table '(1))
 		  ;; If an open string's opener has just been neutralized,
