@@ -6827,7 +6827,7 @@ their code.
 
 However, lists in Lisp are built using a lower-level structure known
 as ``cons cells'' (@pxref{List Implementation}), in which there is no
-such thing as ``first'' or ``rest,''and the @sc{car} and the @sc{cdr}
+such thing as ``first'' or ``rest'', and the @sc{car} and the @sc{cdr}
 are symmetrical.  Lisp does not try to hide the existence of cons
 cells, and programs do use them for things other than lists.  For this
 reason, the names are helpful for reminding programmers that
