@@ -625,7 +625,7 @@ checkout instead of cloning a remote repository.  You can do this by
 using @code{package-vc-install-from-checkout}, which creates a symbolic link
 from the package directory (@pxref{Package Files}) to your checkout
 and initializes the code.  Note that you might have to use
-@code{package-vc-refresh} to repeat the initialization and update the
+@code{package-vc-rebuild} to repeat the initialization and update the
 autoloads.
 
 @subsection Specifying Package Sources
