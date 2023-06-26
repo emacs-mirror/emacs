@@ -1531,7 +1531,9 @@ If you do so, please help keep it up to date.
 
 @item
 You can ask questions about using ERC on the Emacs mailing list,
-@uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
+@uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}, as well
+as on ERC's own low-volume list,
+@uref{https://lists.gnu.org/mailman/listinfo/emacs-erc}.
 
 @item
 You can visit the IRC Libera.Chat channel @samp{#emacs}.  Many of the

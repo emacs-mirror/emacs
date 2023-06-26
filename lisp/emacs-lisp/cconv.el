@@ -682,11 +682,6 @@ FORM is the parent form that binds this var."
     (when lexical-binding
       (dolist (arg args)
         (cond
-         ((cconv--not-lexical-var-p arg cconv--dynbound-variables)
-          (byte-compile-warn-x
-           arg
-           "Lexical argument shadows the dynamic variable %S"
-           arg))
          ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
          (t (let ((varstruct (list arg nil nil nil nil)))
               (cl-pushnew arg byte-compile-lexical-variables)
