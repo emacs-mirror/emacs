@@ -350,6 +350,9 @@ variables.
 A function call is in the tail position if it's the very last thing
 done so that the value returned by the call is the value of @var{body}
 itself, as is the case in the recursive call to @code{sum} above.
+
+@strong{Warning:} @code{named-let} works as expected only when
+lexical-binding is enabled.  @xref{Lexical Binding}.
 @end defspec
 
   Here is a complete list of the other facilities that create local
