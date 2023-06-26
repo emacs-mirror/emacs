@@ -175,13 +175,24 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
     (or (tramp-get-file-property vec "/" "mounted")
         (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
-	       (mount (shell-command-to-string command)))
+	       (mount (shell-command-to-string command))
+	       (mount-spec (split-string (tramp-fuse-mount-spec vec) ":" 'omit)))
           (tramp-message vec 6 "%s\n%s" command mount)
+	  ;; The mount-spec contains a trailing local file name part,
+	  ;; which might not be visible, for example with rclone
+	  ;; mounts of type "memory" or "gdrive".  Make it optional.
+	  (setq mount-spec
+		(if (cdr mount-spec)
+		    (tramp-compat-rx
+		     (literal (car mount-spec))
+		     ":" (? (literal (cadr mount-spec))))
+		  (car mount-spec)))
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
 	          (tramp-compat-rx
-		   bol (group (literal (tramp-fuse-mount-spec vec))) blank)
+		   bol (group (regexp mount-spec))
+		   " on " (group (+ (not blank))) blank)
 	          mount)
              (match-string 1 mount)))))))
 
