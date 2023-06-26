@@ -373,8 +373,11 @@ If point is now on read only text, hide the on screen keyboard.
 Otherwise, cancel any timer that is supposed to hide the keyboard
 in response to the minibuffer being closed."
   (with-selected-frame frame
-    (if (or buffer-read-only
-            (get-text-property (point) 'read-only))
+    (if (and (or buffer-read-only
+                 (get-text-property (point) 'read-only))
+             ;; Don't hide the on-screen keyboard if it's always
+             ;; supposed to be displayed.
+             (not touch-screen-display-keyboard))
         (frame-toggle-on-screen-keyboard (selected-frame) t)
       ;; Prevent hiding the minibuffer from hiding the on screen
       ;; keyboard.

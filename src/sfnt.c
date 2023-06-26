@@ -2672,9 +2672,6 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
   if (recursion_count > 16)
     return 1;
 
-  /* Don't defer offsets.  */
-  defer_offsets = false;
-
   for (j = 0; j < glyph->compound->num_components; ++j)
     {
       /* Look up the associated subglyph.  */
@@ -2684,6 +2681,12 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 
       if (!subglyph)
 	return 1;
+
+      /* Don't defer offsets.  This variable is set if the component
+	 glyph is a compound glyph that is anchored to a previously
+	 decomposed point, and needs its coordinates adjusted after
+	 decomposition completes.  */
+      defer_offsets = false;
 
       /* Record the size of the point array before expansion.  This
 	 will be the base to apply to all points coming from this
@@ -2922,8 +2925,8 @@ static void
 sfnt_lerp_half (struct sfnt_point *control1, struct sfnt_point *control2,
 		struct sfnt_point *result)
 {
-  result->x = control1->x + ((control2->x - control1->x) >> 1);
-  result->y = control1->y + ((control2->y - control1->y) >> 1);
+  result->x = control1->x + ((control2->x - control1->x) / 2);
+  result->y = control1->y + ((control2->y - control1->y) / 2);
 }
 
 /* Decompose contour data inside X, Y and FLAGS, between the indices
@@ -11624,9 +11627,6 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
   if (recursion_count > 16)
     return "Overly deep recursion in compound glyph data";
 
-  /* Don't defer offsets.  */
-  defer_offsets = false;
-
   /* Pacify -Wmaybe-uninitialized.  */
   point = point2 = 0;
 
@@ -11639,6 +11639,12 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 
       if (!subglyph)
 	return "Failed to obtain component glyph";
+
+      /* Don't defer offsets.  This variable is set if the component
+	 glyph is a compound glyph that is anchored to a previously
+	 decomposed point, and needs its coordinates adjusted after
+	 decomposition completes.  */
+      defer_offsets = false;
 
       /* Record the size of the point array before expansion.  This
 	 will be the base to apply to all points coming from this
@@ -13783,7 +13789,7 @@ sfnt_compute_tuple_scale (struct sfnt_blend *blend, bool intermediate_p,
 			  sfnt_f2dot14 *intermediate_end)
 {
   int i;
-  sfnt_fixed coord, start, end;
+  sfnt_fixed coord, start UNINIT, end UNINIT;
   sfnt_fixed scale;
 
   /* scale is initially 1.0.  */
@@ -13793,6 +13799,9 @@ sfnt_compute_tuple_scale (struct sfnt_blend *blend, bool intermediate_p,
     {
       /* Load values for this axis, scaled up to sfnt_fixed.  */
       coord = coords[i] * 4;
+
+      /* GCC warns about start and end being used when uninitialized,
+	 but they are used only if intermediate_p.  */
 
       if (intermediate_p)
 	{
