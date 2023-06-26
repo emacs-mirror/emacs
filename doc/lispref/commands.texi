@@ -2022,7 +2022,7 @@ corresponding @code{touchscreen-begin} events.
 @item (touchscreen-update @var{points})
 This event is sent when a point on the touchscreen has changed
 position.  @var{points} is a list of touch points containing the
-up-to-date positions of each touch point currently on the touchscxcompile/reen.
+up-to-date positions of each touch point currently on the touchscreen.
 
 @cindex @code{touchscreen-end} event
 @item (touchscreen-end @var{point})
