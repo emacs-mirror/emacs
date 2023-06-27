@@ -6565,8 +6565,8 @@ android_build_jstring (const char *text)
 
    Typically, you use these functions by calling them immediately
    after a JNI function which allocates memory, passing it any local
-   references that are already valid but are not used after leaving
-   the current scope.  For example, to allocate foo and then make
+   references that are already valid but should be deleted after
+   leaving the current scope.  For example, to allocate foo, make
    global_foo its global reference, and then release foo, you write:
 
      jobject foo, global_foo;
@@ -6585,22 +6585,28 @@ android_build_jstring (const char *text)
    if global_foo cannot be allocated, and after the global reference
    is created.  */
 
+#if __GNUC__ >= 3
+#define likely(cond)	__builtin_expect ((cond), 1)
+#else /* __GNUC__ < 3 */
+#define likely(cond)	(cond)
+#endif /* __GNUC__ >= 3 */
+
 /* Check for JNI exceptions and call memory_full in that
    situation.  */
 
 void
 android_exception_check (void)
 {
-  if ((*android_java_env)->ExceptionCheck (android_java_env))
-    {
-      __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "Possible out of memory error. "
-			   " The Java exception follows:  ");
-      /* Describe exactly what went wrong.  */
-      (*android_java_env)->ExceptionDescribe (android_java_env);
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  memory_full (0);
 }
 
 /* Check for JNI exceptions.  If there is one such exception, clear
@@ -6610,17 +6616,17 @@ android_exception_check (void)
 void
 android_exception_check_1 (jobject object)
 {
-  if ((*android_java_env)->ExceptionCheck (android_java_env))
-    {
-      __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "Possible out of memory error. "
-			   " The Java exception follows:  ");
-      /* Describe exactly what went wrong.  */
-      (*android_java_env)->ExceptionDescribe (android_java_env);
-      (*android_java_env)->ExceptionClear (android_java_env);
-      ANDROID_DELETE_LOCAL_REF (object);
-      memory_full (0);
-    }
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (object);
+  memory_full (0);
 }
 
 /* Like android_exception_check_1, except it takes more than one local
@@ -6629,18 +6635,18 @@ android_exception_check_1 (jobject object)
 void
 android_exception_check_2 (jobject object, jobject object1)
 {
-  if ((*android_java_env)->ExceptionCheck (android_java_env))
-    {
-      __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "Possible out of memory error. "
-			   " The Java exception follows:  ");
-      /* Describe exactly what went wrong.  */
-      (*android_java_env)->ExceptionDescribe (android_java_env);
-      (*android_java_env)->ExceptionClear (android_java_env);
-      ANDROID_DELETE_LOCAL_REF (object);
-      ANDROID_DELETE_LOCAL_REF (object1);
-      memory_full (0);
-    }
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (object);
+  ANDROID_DELETE_LOCAL_REF (object1);
+  memory_full (0);
 }
 
 /* Check for JNI problems based on the value of OBJECT.
@@ -6655,7 +6661,7 @@ android_exception_check_2 (jobject object, jobject object1)
 void
 android_exception_check_nonnull (void *object, jobject object1)
 {
-  if (object)
+  if (likely (object != NULL))
     return;
 
   if (object1)
@@ -6673,7 +6679,7 @@ void
 android_exception_check_nonnull_1 (void *object, jobject object1,
 				   jobject object2)
 {
-  if (object)
+  if (likely (object != NULL))
     return;
 
   if (object1)
