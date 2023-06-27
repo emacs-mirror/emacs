@@ -305,9 +305,9 @@ functions will work correctly, but using the process ID returned by
 
   One side effect of the mechanism by which process tracing is carried
 out is that job control facilities inside inferior shells
-(@pxref{Interactive Subshell}) will not be able to stop its
-subprocesses, and sending the @code{SIGSTOP} signal to a subprocess
-created by Emacs will appear to have no effect.
+(@pxref{Interactive Shell}) will not be able to stop processes, and
+sending the @code{SIGSTOP} signal to a subprocess created by Emacs
+will appear to have no effect.
 
   In addition, Android 12 also terminates subprocesses which are
 consuming CPU while Emacs itself is in the background.  The system
