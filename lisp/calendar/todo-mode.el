@@ -49,7 +49,8 @@
 
 ;; To get started, type `M-x todo-show'.  For full details of the user
 ;; interface, commands and options, consult the Todo mode user manual,
-;; which is included in the Info documentation.
+;; which is one of the Info manuals included in the standard Emacs
+;; installation.
 
 ;;; Code:
 
@@ -1710,11 +1711,19 @@ insertion provided it doesn't begin with `todo-nondiary-marker'."
   :group 'todo-edit)
 
 (defcustom todo-always-add-time-string nil
-  "Non-nil adds current time to a new item's date header by default.
-When the todo insertion commands have a non-nil \"maybe-notime\"
-argument, this reverses the effect of
-`todo-always-add-time-string': if t, these commands omit the
-current time, if nil, they include it."
+  "Whether to add the time to an item's date header by default.
+
+If non-nil, this automatically adds the current time when adding
+a new item using an insertion command without a time parameter,
+or when tagging an item as done; when adding a new item using a
+time parameter, or when editing the header of an existing todo item
+using a time parameter, typing <return> automatically inserts the
+current time.
+
+When this option is nil (the default), no time string is inserted
+either automatically or when typing <return> at the time
+prompt (and in the latter case, when editing an existing time
+string, typing <return> deletes it)."
   :type 'boolean
   :group 'todo-edit)
 
