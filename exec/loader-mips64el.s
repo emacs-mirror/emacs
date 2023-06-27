@@ -164,7 +164,7 @@ dnl	syscall				# syscall
 .rest_of_exec:
 	move	$s1, $s2		# original SP
 	ld	$t0, ($s1)		# argc
-	dsll	$t0, $t0, 3		# argc *= 3
+	dsll	$t0, $t0, 3		# argc *= 8
 	DADDI2(	$t0, 16)		# argc += 16
 	dadd	$s1, $s1, $t0		# s1 = start of envp
 .skipenv:
