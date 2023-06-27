@@ -12997,11 +12997,19 @@ comment at the start of cc-engine.el for more info."
 (defvar c-laomib-cache nil)
 (make-variable-buffer-local 'c-laomib-cache)
 
-(defun c-laomib-get-cache (containing-sexp)
-  ;; Get an element from `c-laomib-cache' matching CONTAINING-SEXP.
+(defun c-laomib-get-cache (containing-sexp start)
+  ;; Get an element from `c-laomib-cache' matching CONTAINING-SEXP, and which
+  ;; is suitable for start postiion START.
   ;; Return that element or nil if one wasn't found.
-  (let ((elt (assq containing-sexp c-laomib-cache)))
-    (when elt
+  (let ((ptr c-laomib-cache)
+	elt)
+    (while
+	(and ptr
+	     (setq elt (car ptr))
+	     (or (not (eq (car elt) containing-sexp))
+		 (< start (car (cddr elt)))))
+      (setq ptr (cdr ptr)))
+    (when ptr
       ;; Move the fetched `elt' to the front of the cache.
       (setq c-laomib-cache (delq elt c-laomib-cache))
       (push elt c-laomib-cache)
@@ -13013,18 +13021,26 @@ comment at the start of cc-engine.el for more info."
   ;; the components of the new element (see comment for `c-laomib-cache').
   ;; The return value is of no significance.
   (when lim
-    (let ((old-elt (assq lim c-laomib-cache))
-	  ;; (elt (cons containing-sexp (cons start nil)))
+    (let (old-elt
 	  (new-elt (list lim start end result))
 	  big-ptr
 	  (cur-ptr c-laomib-cache)
-	  togo (size 0) cur-size
-	  )
-      (if old-elt (setq c-laomib-cache (delq old-elt c-laomib-cache)))
+	  togo (size 0) cur-size)
+
+      ;; If there is an elt which overlaps with the new element, remove it.
+      (while
+	  (and cur-ptr
+	       (setq old-elt (car cur-ptr))
+	       (or (not (eq (car old-elt) lim))
+		   (not (and (> start (car (cddr old-elt)))
+			     (<= start (cadr old-elt))))))
+	(setq cur-ptr (cdr cur-ptr)))
+      (when (and cur-ptr old-elt)
+	(setq c-laomib-cache (delq old-elt c-laomib-cache)))
 
       (while (>= (length c-laomib-cache) 4)
 	;; We delete the least recently used elt which doesn't enclose START,
-	;; or..
+	;; or ...
 	(dolist (elt c-laomib-cache)
 	  (if (or (<= start (cadr elt))
 		  (> start (car (cddr elt))))
@@ -13032,8 +13048,10 @@ comment at the start of cc-engine.el for more info."
 
 	;; ... delete the least recently used elt which isn't the biggest.
 	(when (not togo)
+	  (setq cur-ptr c-laomib-cache)
 	  (while (cdr cur-ptr)
-	    (setq cur-size (- (nth 2 (cadr cur-ptr)) (car (cadr cur-ptr))))
+	    (setq cur-size (- (cadr (cadr cur-ptr))
+			      (car (cddr (cadr cur-ptr)))))
 	    (when (> cur-size size)
 	      (setq size cur-size
 		    big-ptr cur-ptr))
@@ -13225,7 +13243,7 @@ comment at the start of cc-engine.el for more info."
 	(goto-char pos)
 	(when (eq braceassignp 'dontknow)
 	  (let* ((cache-entry (and containing-sexp
-				   (c-laomib-get-cache containing-sexp)))
+				   (c-laomib-get-cache containing-sexp pos)))
 		 (lim2 (or (cadr cache-entry) lim))
 		 sub-bassign-p)
 	    (if cache-entry
@@ -13247,6 +13265,8 @@ comment at the start of cc-engine.el for more info."
 					    )
 			(setq braceassignp (nth 3 cache-entry))
 			(goto-char (nth 2 cache-entry)))
+		    (c-laomib-put-cache containing-sexp
+					start (point) sub-bassign-p)
 		    (setq braceassignp sub-bassign-p)))
 		 (t))
 
