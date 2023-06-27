@@ -1205,7 +1205,9 @@ visiting the deleted files."
 		(let ((sexp (read (buffer-substring-no-properties
 				   (line-beginning-position)
 				   (line-end-position))))
-		      (buffer-read-only nil))
+		      (buffer-read-only nil)
+		      (print-length nil)
+		      (print-level nil))
 		  (mapc (lambda (x) (aset (cdr x) 3 0)) sexp)
 		  (delete-region (line-beginning-position) (line-end-position))
 		  (prin1 sexp (current-buffer)))))
@@ -1479,7 +1481,9 @@ the archive of the file moved to, creating it if it does not exist."
 				      nfile-short)
 			      (format "the category \"%s\";\n" cat)
 			      "enter a new category name: "))
-		     buffer-read-only)
+		     (buffer-read-only nil)
+		     (print-length nil)
+		     (print-level nil))
 		(widen)
 		(goto-char (point-max))
 		(insert content)
@@ -4877,7 +4881,9 @@ name in `todo-directory'.  See also the documentation string of
 	    (insert-file-contents file)
 	    (let ((sexp (read (buffer-substring-no-properties
 			       (line-beginning-position)
-			       (line-end-position)))))
+			       (line-end-position))))
+		  (print-length nil)
+		  (print-level nil))
 	      (dolist (cat sexp)
 		(let ((archive-cat (assoc (car cat) archive-sexp)))
 		  (if archive-cat
@@ -5058,7 +5064,9 @@ With nil or omitted CATEGORY, default to the current category."
 
 (defun todo-update-categories-sexp ()
   "Update the `todo-categories' sexp at the top of the file."
-  (let (buffer-read-only)
+  (let ((buffer-read-only nil)
+	(print-length nil)
+        (print-level nil))
     (save-excursion
       (save-restriction
 	(widen)
@@ -5167,7 +5175,9 @@ but the categories sexp differs from the current value of
     (save-restriction
       (widen)
       (goto-char (point-min))
-      (let* ((cats (prin1-to-string todo-categories))
+      (let* ((print-length nil)
+             (print-level nil)
+	     (cats (prin1-to-string todo-categories))
 	     (ssexp (buffer-substring-no-properties (line-beginning-position)
 						    (line-end-position)))
 	     (sexp (read ssexp)))
