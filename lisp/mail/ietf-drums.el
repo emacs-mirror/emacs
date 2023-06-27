@@ -272,6 +272,21 @@ a list of address strings."
 	(while (not (eobp))
 	  (setq c (char-after))
 	  (cond
+           ((eq c ?:)
+            (setq beg (1+ (point)))
+            (skip-chars-forward "^;")
+            (when-let ((address
+                  (condition-case nil
+                      (ietf-drums-parse-addresses
+                       (buffer-substring beg (point)) rawp)
+                    (error nil))))
+              (if (listp address)
+                  (setq pairs (append address pairs))
+                (push address pairs)))
+            (condition-case nil
+	        (forward-char 1)
+              (error nil))
+	    (setq beg (point)))
 	   ((memq c '(?\" ?< ?\())
 	    (condition-case nil
 		(forward-sexp 1)
@@ -285,10 +300,12 @@ a list of address strings."
 			(ietf-drums-parse-address
 			 (buffer-substring beg (point)))
 		      (error nil))))
-	    (if address (push address pairs))
+	    (when (or (consp address)
+                      (and (stringp address) (< 0 (length address))))
+              (push address pairs))
 	    (forward-char 1)
 	    (setq beg (point)))
-	   (t
+	   ((not (eobp))
 	    (forward-char 1))))
 	(setq address
 	      (if rawp
@@ -297,7 +314,9 @@ a list of address strings."
 		    (ietf-drums-parse-address
 		     (buffer-substring beg (point)))
 		  (error nil))))
-	(if address (push address pairs))
+        (when (or (consp address)
+                  (and (stringp address) (< 0 (length address))))
+          (push address pairs))
 	(nreverse pairs)))))
 
 (defun ietf-drums-unfold-fws ()
