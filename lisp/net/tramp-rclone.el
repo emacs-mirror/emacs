@@ -300,25 +300,25 @@ file names."
       (setq filename (file-name-directory filename)))
     (with-parsed-tramp-file-name (expand-file-name filename) nil
       (tramp-message v 5 "file system info: %s" localname)
-      (tramp-rclone-send-command v "about" (concat host ":"))
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(let (total used free)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (when (looking-at (rx "Total: " (+ blank) (group (+ digit))))
-	      (setq total (string-to-number (match-string 1))))
-	    (when (looking-at (rx "Used: " (+ blank) (group (+ digit))))
-	      (setq used (string-to-number (match-string 1))))
-	    (when (looking-at (rx "Free: " (+ blank) (group (+ digit))))
-	      (setq free (string-to-number (match-string 1))))
-	    (forward-line))
-	  (when used
-	    ;; The used number of bytes is not part of the result.  As
-	    ;; side effect, we store it as file property.
-	    (tramp-set-file-property v localname "used-bytes" used))
-	  ;; Result.
-	  (when (and total free)
-	    (list total free (- total free))))))))
+      (when (zerop (tramp-rclone-send-command v "about" (concat host ":")))
+        (with-current-buffer (tramp-get-connection-buffer v)
+	  (let (total used free)
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (when (looking-at (rx "Total: " (+ blank) (group (+ digit))))
+	        (setq total (string-to-number (match-string 1))))
+	      (when (looking-at (rx "Used: " (+ blank) (group (+ digit))))
+	        (setq used (string-to-number (match-string 1))))
+	      (when (looking-at (rx "Free: " (+ blank) (group (+ digit))))
+	        (setq free (string-to-number (match-string 1))))
+	      (forward-line))
+	    (when used
+	      ;; The used number of bytes is not part of the result.
+	      ;; As side effect, we store it as file property.
+	      (tramp-set-file-property v localname "used-bytes" used))
+	    ;; Result.
+	    (when (and total free)
+	      (list total free (- total free)))))))))
 
 (defun tramp-rclone-handle-rename-file
   (filename newname &optional ok-if-already-exists)

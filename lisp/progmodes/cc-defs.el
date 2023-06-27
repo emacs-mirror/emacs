@@ -1870,9 +1870,9 @@ with value CHAR in the region [FROM to)."
       '(looking-at
 	"\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\|\\s!\\)")
     '(or (looking-at
-	  "\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\)"
+	  "\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\)")
 	  (let ((prop (c-get-char-property (point) 'syntax-table)))
-	    (equal prop '(14))))))) ; '(14) is generic comment delimiter.
+	    (equal prop '(14)))))) ; '(14) is generic comment delimiter.
 
 
 (defsubst c-intersect-lists (list alist)
