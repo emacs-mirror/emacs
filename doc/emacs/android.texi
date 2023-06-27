@@ -288,7 +288,7 @@ documents, so your mileage may vary.
 @vindex android-use-exec-loader
   Android 10 and later also prohibit Emacs itself from running
 executables inside the app data directory, obstensibly for security
-readers.  On these systems, Emacs normally applies a workaround;
+reasons.  On these systems, Emacs normally applies a workaround;
 however, this workaround requires running all sub-processes through
 another subprocess which implements an executable loader and applies
 process tracing to all its children, which may prove to be problematic
@@ -304,9 +304,10 @@ functions will work correctly, but using the process ID returned by
 @code{process-id} for other purposes will not.
 
   One side effect of the mechanism by which process tracing is carried
-out is that job control facilities will not be able to stop
-subprocesses, and the @code{SIGSTOP} signal will appear to have no
-effect.
+out is that job control facilities inside inferior shells
+(@pxref{Interactive Subshell}) will not be able to stop its
+subprocesses, and sending the @code{SIGSTOP} signal to a subprocess
+created by Emacs will appear to have no effect.
 
   In addition, Android 12 also terminates subprocesses which are
 consuming CPU while Emacs itself is in the background.  The system
