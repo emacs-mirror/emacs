@@ -280,6 +280,14 @@ anchoring position to indent the line in that case."
   :type 'boolean
   :group 'c)
 
+(defcustom c-warn-ids-with-dollar nil
+  "Fontify identifiers with a dollar character in font-lock-warn-face.
+This has effect only for languages in which `c-dollar-in-ids' is
+non-nil, e.g.  C, C++, Objective C.  It covers languages where
+\"$\" is permitted in ids \"informally\", but only by some compilers."
+  :type 'boolean
+  :group 'c)
+
 (defcustom-c-stylevar c-basic-offset 4
   "Amount of basic offset used by + and - symbols in `c-offsets-alist'.
 Also used as the indentation step when `c-syntactic-indentation' is

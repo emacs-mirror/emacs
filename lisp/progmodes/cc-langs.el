@@ -834,8 +834,9 @@ which `c-backward-sexp' needs to be called twice to move backwards over."
 keyword.  It's unspecified how far it matches.  Does not contain a \\|
 operator at the top level."
   t    (concat "[" c-alpha "_]")
+  (c c++) (concat "[" c-alpha "_$]")
   java (concat "[" c-alpha "_@]")
-  objc (concat "[" c-alpha "_@]")
+  objc (concat "[" c-alpha "_@$]")
   pike (concat "[" c-alpha "_`]"))
 (c-lang-defvar c-symbol-start (c-lang-const c-symbol-start))
 
@@ -848,6 +849,10 @@ This is of the form that fits inside [ ] in a regexp."
   objc (concat c-alnum "_$@"))
 (c-lang-defvar c-symbol-chars (c-lang-const c-symbol-chars))
 
+(c-lang-defconst c-dollar-in-ids
+  "Non-nil when a dollar (can be) a non-standard constituent of an identifier."
+  t (string-match (c-lang-const c-symbol-start) "$"))
+
 (c-lang-defconst c-symbol-char-key
   "Regexp matching a sequence of at least one identifier character."
   t (concat "[" (c-lang-const c-symbol-chars) "]+"))
@@ -859,9 +864,9 @@ to match if `c-symbol-start' matches on the same position."
   t    (concat (c-lang-const c-symbol-start)
 	       "[" (c-lang-const c-symbol-chars) "]\\{,1000\\}")
   pike (concat
-	;; Use the value from C here since the operator backquote is
+	;; Use the value from AWK here since the operator backquote is
 	;; covered by the other alternative.
-	(c-lang-const c-symbol-key c)
+	(c-lang-const c-symbol-key awk)
 	"\\|"
 	(c-make-keywords-re nil
 	  (c-lang-const c-overloadable-operators))))
