@@ -246,10 +246,10 @@ The name is made by appending a number to PREFIX, default \"T\"."
 (defun cl--slet (bindings body &optional nowarn)
   "Like `cl--slet*' but for \"parallel let\"."
   (let ((dyns nil)) ;Vars declared as dynbound among the bindings?
-    ;; `seq-some' lead to bootstrap problems.
-    (dolist (binding bindings)
-      (when (macroexp--dynamic-variable-p (car binding))
-        (push (car binding) dyns)))
+    (when lexical-binding
+      (dolist (binding bindings) ;; `seq-some' lead to bootstrap problems.
+        (when (macroexp--dynamic-variable-p (car binding))
+          (push (car binding) dyns))))
     (cond
      (dyns
       (let ((form `(funcall (lambda (,@(mapcar #'car bindings))
