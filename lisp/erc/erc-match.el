@@ -233,10 +233,14 @@ for beeping to work."
 		 (const :tag "Don't beep" nil)))
 
 (defcustom erc-text-matched-hook '(erc-log-matches)
-  "Hook run when text matches a given match-type.
-Functions in this hook are passed as arguments:
-\(match-type nick!user@host message) where MATCH-TYPE is a symbol of:
-current-nick, keyword, pal, dangerous-host, fool."
+  "Abnormal hook for visiting text matching a predefined \"type\".
+ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE),
+where MATCH-TYPE is one of the symbols `current-nick', `keyword',
+`pal', `dangerous-host', `fool', and NUH is an `erc-response'
+sender, like bob!~bob@example.org.  Users should keep in mind
+that MESSAGE may not include decorations, such as white space or
+time stamps, preceding the same text as inserted in the narrowed
+buffer."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
   :type 'hook)
 
@@ -458,8 +462,19 @@ In any of the following situations, MSG is directed at an entry FOOL:
 	(erc-list-match fools-end msg))))
 
 (defun erc-match-message ()
-  "Mark certain keywords in a region.
-Use this defun with `erc-insert-modify-hook'."
+  "Add faces to matching text in inserted message."
+  ;; Exclude leading whitespace, stamps, etc.
+  (let ((omin (point-min))
+        (beg (or (and (not (get-text-property (point-min) 'erc-command))
+                      (next-single-property-change (point-min) 'erc-command))
+                 (point-min))))
+    ;; FIXME when ERC no longer supports 28, use `with-restriction'
+    ;; with `:label' here instead of passing `omin'.
+    (save-restriction
+      (narrow-to-region beg (point-max))
+      (erc-match--message omin))))
+
+(defun erc-match--message (unrestricted-point-min)
   ;; This needs some refactoring.
   (goto-char (point-min))
   (let* ((to-match-nick-dep '("pal" "fool" "dangerous-host"))
@@ -561,12 +576,14 @@ Use this defun with `erc-insert-modify-hook'."
 					'font-lock-face match-face)))
 	      ;; Else twiddle your thumbs.
 	      (t nil))
-	     (run-hook-with-args
-	      'erc-text-matched-hook
-	      (intern match-type)
-	      (or nickuserhost
-		  (concat "Server:" (erc-get-parsed-vector-type vector)))
-	      message))))
+             ;; FIXME use `without-restriction' after dropping 28.
+             (save-restriction
+               (narrow-to-region unrestricted-point-min (point-max))
+               (run-hook-with-args
+                'erc-text-matched-hook (intern match-type)
+                (or nickuserhost
+                    (concat "Server:" (erc-get-parsed-vector-type vector)))
+                message)))))
        (if nickuserhost
 	   (append to-match-nick-dep to-match-nick-indep)
 	 to-match-nick-indep)))))
