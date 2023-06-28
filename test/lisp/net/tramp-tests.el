@@ -6136,8 +6136,7 @@ INPUT, if non-nil, is a string sent to the process."
          (inhibit-message t)
 	 kill-buffer-query-functions
 	 (clpa connection-local-profile-alist)
-	 (clca connection-local-criteria-alist)
-	 connection-local-profile-alist connection-local-criteria-alist)
+	 (clca connection-local-criteria-alist))
     (unwind-protect
 	(progn
 	  (make-directory tmp-name1)
@@ -6219,8 +6218,7 @@ INPUT, if non-nil, is a string sent to the process."
   (let ((default-directory ert-remote-temporary-file-directory)
 	explicit-shell-file-name kill-buffer-query-functions
 	(clpa connection-local-profile-alist)
-	(clca connection-local-criteria-alist)
-	connection-local-profile-alist connection-local-criteria-alist)
+	(clca connection-local-criteria-alist))
     (unwind-protect
 	(progn
 	  (connection-local-set-profile-variables

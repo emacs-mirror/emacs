@@ -142,6 +142,7 @@ on the remote host.
 * Ssh setup::                   Ssh setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
+* Kubernetes setup::            Kubernetes setup hints.
 * Auto-save File Lock and Backup::
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
@@ -700,6 +701,7 @@ on the remote host.
 * Ssh setup::                   Ssh setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
+* Kubernetes setup::            Kubernetes setup hints.
 * Auto-save File Lock and Backup::
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
@@ -921,16 +923,10 @@ if desired.
 @cindex method @option{kubernetes}
 @cindex @option{kubernetes} method
 
-Integration for containers in Kubernetes pods.  The host name is a pod
-name returned by @samp{kubectl get pods}, or
-@samp{@var{container}.@var{pod}} if an explicit container name shall
-be used.  Otherwise, the first container in a pod is used.
-
-@vindex tramp-kubernetes-context
-@vindex tramp-kubernetes-namespace
-If another Kubernetes context or namespace shall be used, configure
-the user options @code{tramp-kubernetes-context} and
-@code{tramp-kubernetes-namespace}.
+Integration for containers in Kubernetes pods.  The host name is
+@samp{@var{pod}}, or @samp{@var{container}.@var{pod}} if an
+explicit container name shall be used.  Otherwise, the first container
+in a pod is used.
 
 This method does not support user names.
 
@@ -3120,6 +3116,29 @@ the previous example, fix the connection properties as follows:
 Open a remote connection with the more concise command @kbd{C-x C-f
 @trampfn{ssh,android,} @key{RET}}.
 @end itemize
+
+
+@node Kubernetes setup
+@section Kubernetes setup hints
+
+With the @option{kubernetes} method, containers in Kubernetes pods can
+be accessed.  The host name is a pod name returned by @samp{kubectl
+get pods}, or @samp{@var{container}.@var{pod}} if an explicit
+container name shall be used.  Otherwise, the first container in a pod
+is used.
+
+Sometimes, asynchronous processes for a host without a dedicated
+container name show a warning like @samp{Defaulted container
+"container1" out of: container1, container2}.  This can be mitigated
+by setting the pod annotation
+@samp{kubectl.kubernetes.io/default-container} to a proper value
+(@samp{container1} in this example).
+
+@vindex tramp-kubernetes-context
+@vindex tramp-kubernetes-namespace
+@value{tramp} uses the default Kubernetes context and namespace.  If
+another context or namespace shall be used, configure the user options
+@code{tramp-kubernetes-context} and @code{tramp-kubernetes-namespace}.
 
 
 @node Auto-save File Lock and Backup

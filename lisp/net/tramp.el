@@ -4968,7 +4968,8 @@ a connection-local variable."
     ;; Merge both spec lists.  Remove duplicate entries.
     (while spec-list
       (unless (member (car spec-list) extra-spec-list)
-	(setq extra-spec-list (append (take 2 spec-list) extra-spec-list)))
+	(setq extra-spec-list
+	      (append (tramp-compat-take 2 spec-list) extra-spec-list)))
       (setq spec-list (cddr spec-list)))
     (setq spec (apply #'format-spec-make extra-spec-list))
     ;; Expand format spec.
