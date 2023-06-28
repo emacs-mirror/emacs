@@ -3473,8 +3473,9 @@ lambda-expression."
                              run-hook-with-args-until-failure))
           (pcase (cdr form)
             (`(',var . ,_)
-             (when (memq var byte-compile-lexical-variables)
-               (byte-compile-report-error
+             (when (and (memq var byte-compile-lexical-variables)
+                        (byte-compile-warning-enabled-p 'lexical var))
+               (byte-compile-warn
                 (format-message "%s cannot use lexical var `%s'" fn var))))))
         ;; Warn about using obsolete hooks.
         (if (memq fn '(add-hook remove-hook))

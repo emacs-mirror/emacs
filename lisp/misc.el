@@ -71,13 +71,15 @@ Also see the `copy-from-above-command' command."
   (interactive "p")
   (unless n
     (setq n 1))
-  (let ((line (buffer-substring (line-beginning-position) (line-end-position))))
+  (let ((line (concat (buffer-substring (line-beginning-position)
+                                        (line-end-position))
+                      "\n")))
     (save-excursion
       (forward-line 1)
       (unless (bolp)
         (insert "\n"))
       (dotimes (_ n)
-        (insert line "\n")))))
+        (insert line)))))
 
 (declare-function rectangle--duplicate-right "rect" (n))
 

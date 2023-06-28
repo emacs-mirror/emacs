@@ -812,8 +812,10 @@ See Bug#57915."
   ;; In ELisp function arguments are always statically scoped (bug#47552).
   (let ((cl--test-a 'dyn)
         ;; FIXME: How do we silence the "Lexical argument shadows" warning?
-        (f (cl-function (lambda (&key cl--test-a b)
-                          (list cl--test-a (symbol-value 'cl--test-a) b)))))
+        (f
+         (with-suppressed-warnings ((lexical cl--test-a))
+           (cl-function (lambda (&key cl--test-a b)
+                          (list cl--test-a (symbol-value 'cl--test-a) b))))))
     (should (equal (funcall f :cl--test-a 'lex :b 2) '(lex dyn 2)))))
 
 (cl-defstruct cl--test-s
