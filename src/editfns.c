@@ -55,6 +55,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 # include "w32common.h"
 #endif
+
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 static Lisp_Object styled_format (ptrdiff_t, Lisp_Object *, bool);
 
@@ -2391,6 +2396,14 @@ Both characters must have the same length of multi-byte form.  */)
 	      if (NILP (noundo))
 		record_change (pos, 1);
 	      for (i = 0; i < len; i++) *p++ = tostr[i];
+
+#ifdef HAVE_TREE_SITTER
+	      /* In the previous branch, replace_range() notifies
+                 changes to tree-sitter, but in this branch, we
+                 modified buffer content manually, so we need to
+                 notify tree-sitter manually.  */
+	      treesit_record_change (pos_byte, pos_byte + len, pos_byte + len);
+#endif
 	    }
 	  last_changed =  pos + 1;
 	}
