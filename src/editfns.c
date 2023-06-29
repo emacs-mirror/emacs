@@ -2603,6 +2603,15 @@ It returns the number of characters changed.  */)
 		    *p++ = *str++;
 		  signal_after_change (pos, 1, 1);
 		  update_compositions (pos, pos + 1, CHECK_BORDER);
+
+#ifdef HAVE_TREE_SITTER
+		  /* In the previous branch, replace_range() notifies
+                     changes to tree-sitter, but in this branch, we
+                     modified buffer content manually, so we need to
+                     notify tree-sitter manually.  */
+		  treesit_record_change (pos_byte, pos_byte + len,
+					 pos_byte + len);
+#endif
 		}
 	      characters_changed++;
 	    }
@@ -4775,6 +4784,13 @@ ring.  */)
 	 make some original byte positions of the markers invalid.  */
       adjust_markers_bytepos (start1, start1_byte, end2, end2_byte, 0);
     }
+
+#ifdef HAVE_TREE_SITTER
+  /* I don't think it's common to transpose two far-apart regions, so
+     amalgamating the edit into one should be fine.  This is what the
+     signal_after_change below does, too.  */
+  treesit_record_change (start1_byte, end2_byte, end2_byte);
+#endif
 
   signal_after_change (start1, end2 - start1, end2 - start1);
   return Qnil;
