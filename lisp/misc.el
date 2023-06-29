@@ -63,6 +63,10 @@ Also see the `duplicate-line' command."
 				 (+ n (point)))))))
     (insert string)))
 
+(defun duplicate--insert-copies (n string)
+  "Insert N copies of STRING at point."
+  (insert (mapconcat #'identity (make-list n string))))
+
 ;;;###autoload
 (defun duplicate-line (&optional n)
   "Duplicate the current line N times.
@@ -78,8 +82,7 @@ Also see the `copy-from-above-command' command."
       (forward-line 1)
       (unless (bolp)
         (insert "\n"))
-      (dotimes (_ n)
-        (insert line)))))
+      (duplicate--insert-copies n line))))
 
 (declare-function rectangle--duplicate-right "rect" (n))
 
@@ -111,8 +114,7 @@ Interactively, N is the prefix numeric argument, and defaults to 1."
            (text (buffer-substring beg end)))
       (save-excursion
         (goto-char end)
-        (dotimes (_ n)
-          (insert text))))
+        (duplicate--insert-copies n text)))
     (setq deactivate-mark nil))
 
    ;; Duplicate line.

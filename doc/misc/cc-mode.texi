@@ -2169,6 +2169,23 @@ which aren't of the default style will be fontified with
 @section Miscellaneous Font Locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+Some compilers, notably GCC, allow the character @samp{$} to be a
+constituent of identifiers in the languages C, C++, and Objective C.
+CC Mode defaults to accepting these @samp{$} characters and fontifying
+the identifiers in which they appear like any others.
+
+However, the compiler you're using, or your project coding standards
+may disallow such use.  In such cases, you can set
+@code{c-warn-ids-with-dollar} to non-@code{nil}.  This causes these
+invalid identifiers to be fontified distinctively.
+
+@defvar c-warn-ids-with-dollar
+@vindex warn-ids-with-dollar (c-)
+When this customization option is non-@code{nil}, identifiers
+containing the @samp{$} character are fontified with
+@code{font-lock-warning-face}.
+@end defvar
+
 In some languages, particularly in C++, there are constructs which are
 syntactically ambiguous---they could be either declarations or
 expressions, and @ccmode{} cannot tell for sure which.  Often such a
