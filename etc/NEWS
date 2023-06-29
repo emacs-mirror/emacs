@@ -696,7 +696,9 @@ between these modes while the user is inputting a command by hitting
 'duplicate-line' duplicates the current line the specified number of times.
 'duplicate-dwim' duplicates the region if it is active.  If not, it
 works like 'duplicate-line'.  An active rectangular region is
-duplicated on its right-hand side.
+duplicated on its right-hand side.  The new user option
+'duplicate-line-final-position' specifies where to move point
+after duplicating the line.
 
 ---
 ** Files with the ".eld" extension are now visited in 'lisp-data-mode'.
