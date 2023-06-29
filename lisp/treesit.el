@@ -3094,8 +3094,7 @@ nil, the grammar is installed to the standard location, the
     (condition-case err
         (progn
           (apply #'treesit--install-language-grammar-1
-                 ;; The nil is OUT-DIR.
-                 (cons nil recipe))
+                 (cons out-dir recipe))
 
           ;; Check that the installed language grammar is loadable.
           (pcase-let ((`(,available . ,err)
