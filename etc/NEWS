@@ -698,7 +698,7 @@ between these modes while the user is inputting a command by hitting
 works like 'duplicate-line'.  An active rectangular region is
 duplicated on its right-hand side.  The new user option
 'duplicate-line-final-position' specifies where to move point
-after duplicating the line.
+after duplicating a line.
 
 ---
 ** Files with the ".eld" extension are now visited in 'lisp-data-mode'.

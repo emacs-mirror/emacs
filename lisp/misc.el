@@ -64,7 +64,8 @@ Also see the `duplicate-line' command."
     (insert string)))
 
 (defcustom duplicate-line-final-position 0
-  "Where to put point after duplicating the line with `duplicate-line'.
+  "Where to put point after duplicating a line with `duplicate-line'
+or `duplicate-dwim'.
 When 0, leave point on the original line.
 When 1, move point to the first new line.
 When -1, move point to the last new line.
