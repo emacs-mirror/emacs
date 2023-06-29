@@ -1703,6 +1703,41 @@
                          (erc-server-connect-function
                           erc-open-network-stream))))))))
 
+(ert-deftest erc-server-select ()
+  (let (calls env)
+    (cl-letf (((symbol-function 'user-login-name)
+               (lambda (&optional _) "tester"))
+              ((symbol-function 'erc-open)
+               (lambda (&rest r)
+                 (push `((erc-join-buffer ,erc-join-buffer)
+                         (erc-server-connect-function
+                          ,erc-server-connect-function))
+                       env)
+                 (push r calls))))
+
+      (ert-info ("Selects Libera.Chat Europe, automatic TSL")
+        (ert-simulate-keys "Libera.Chat\rirc.eu.\t\r\r\r"
+          (with-suppressed-warnings ((obsolete erc-server-select))
+            (call-interactively #'erc-server-select)))
+        (should (equal (pop calls)
+                       '("irc.eu.libera.chat" 6697 "tester" "unknown" t nil
+                         nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '((erc-join-buffer window)
+                         (erc-server-connect-function erc-open-tls-stream)))))
+
+      (ert-info ("Selects entry that doesn't support TLS")
+        (ert-simulate-keys "IRCnet\rirc.fr.\t\rdummy\r\r"
+          (with-suppressed-warnings ((obsolete erc-server-select))
+            (call-interactively #'erc-server-select)))
+        (should (equal (pop calls)
+                       '("irc.fr.ircnet.net" 6667 "dummy" "unknown" t nil
+                         nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '((erc-join-buffer window)
+                         (erc-server-connect-function
+                          erc-open-network-stream))))))))
+
 (defun erc-tests--make-server-buf (name)
   (with-current-buffer (get-buffer-create name)
     (erc-mode)

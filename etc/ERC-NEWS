@@ -75,6 +75,22 @@ the 'log' module may want to customize 'erc-log-filter-function' to
 'erc-stamp-prefix-log-filter' to avoid ragged right-hand stamps
 appearing in their saved logs.
 
+** Awkward entry point 'erc-server-select' improved but deprecated.
+The alternate entry point 'erc-server-select' has mainly served to
+confuse users in more recent years because it requires certain
+options, like 'erc-nick', to be configured ahead of time, and it
+doesn't support TLS.  Its main selling point, historically, has been
+interactive completion based on the option 'erc-server-alist', which
+is a table of networks, servers, and ports.  But most of the option's
+400-odd entries are sadly defunct or otherwise outdated.  And, these
+days, most networks promote a well known load-balancing end point over
+individual servers anyway.  Regardless, the command has now been
+improved to prompt for the same slate of parameters sought by
+'erc-tls'.  Similarly, 'erc-server-alist' entries now support a fifth
+member in TLS ports (though this option too has been deprecated).  If
+you feel these deprecations rash or unwarranted, please file a bug
+report and petition the maintainers for a reprieve.
+
 ** Smarter reconnect handling for users on the move.
 ERC now offers a new, experimental reconnect strategy in the function
 'erc-server-delayed-check-reconnect', which tests for underlying

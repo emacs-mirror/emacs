@@ -2354,13 +2354,17 @@ parameters SERVER and NICK."
     (setq input (concat "irc://" input)))
   input)
 
+(defvar erc--prompt-for-server-function nil)
+
 ;;;###autoload
 (defun erc-select-read-args ()
   "Prompt the user for values of nick, server, port, and password.
 With prefix arg, also prompt for user and full name."
   (let* ((input (let ((d (erc-compute-server)))
-                  (read-string (format "Server or URL (default is %S): " d)
-                               nil 'erc-server-history-list d)))
+                  (if erc--prompt-for-server-function
+                      (funcall erc--prompt-for-server-function)
+                    (read-string (format "Server or URL (default is %S): " d)
+                                 nil 'erc-server-history-list d))))
          ;; For legacy reasons, also accept a URL without a scheme.
          (url (url-generic-parse-url (erc--ensure-url input)))
          (server (url-host url))
@@ -2418,6 +2422,14 @@ With prefix arg, also prompt for user and full name."
        (pcase-dolist (`(,k . ,v) ,env) (push k ,syms) (push v ,vals))
        (cl-progv ,syms ,vals
          ,@body))))
+
+;;;###autoload
+(defun erc-server-select ()
+  "Interactively connect to a server from `erc-server-alist'."
+  (declare (obsolete erc-tls "30.1"))
+  (interactive)
+  (let ((erc--prompt-for-server-function #'erc-networks--server-select))
+    (call-interactively #'erc)))
 
 ;;;###autoload
 (cl-defun erc (&key (server (erc-compute-server))
