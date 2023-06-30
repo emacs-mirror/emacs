@@ -88,6 +88,20 @@
     (duplicate-line 2)
     (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
     (should (equal (point) 7)))
+  ;; Duplicate a line (twice) and move point to the first duplicated line.
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (let ((duplicate-line-final-position 1)) (duplicate-line 2))
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 12)))
+  ;; Duplicate a line (twice) and move point to the last duplicated line.
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (let ((duplicate-line-final-position -1)) (duplicate-line 2))
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 17)))
   ;; Duplicate a non-terminated line.
   (with-temp-buffer
     (insert "abc")
