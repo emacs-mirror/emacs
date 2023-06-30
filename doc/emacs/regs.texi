@@ -22,10 +22,11 @@ because these keys are reserved for quitting (@pxref{Quitting}).
 
 @findex view-register
   A register can store a position, a piece of text, a rectangle, a
-number, a window configuration, or a file name, but only one thing at
-any given time.  Whatever you store in a register remains there until
-you store something else in that register.  To see what register
-@var{r} contains, use @kbd{M-x view-register}:
+number, a window or frame configuration, a buffer name, or a file
+name, but only one thing at any given time.  Whatever you store in a
+register remains there until you store something else in that
+register.  To see what register @var{r} contains, use @kbd{M-x
+view-register}:
 
 @table @kbd
 @item M-x view-register @key{RET} @var{r}
@@ -50,7 +51,7 @@ this chapter.
 * Position Registers::        Saving positions in registers.
 * Text Registers::            Saving text in registers.
 * Rectangle Registers::       Saving rectangles in registers.
-* Configuration Registers::   Saving window configurations in registers.
+* Configuration Registers::   Saving window/frame configurations in registers.
 * Number Registers::          Numbers in registers.
 * File and Buffer Registers:: File and buffer names in registers.
 * Keyboard Macro Registers::  Keyboard macros in registers.
@@ -182,8 +183,10 @@ previously documented in @ref{Text Registers}, inserts a rectangle
 rather than a text string, if the register contains a rectangle.
 
 @node Configuration Registers
-@section Saving Window Configurations in Registers
+@section Saving Window and Frame Configurations in Registers
 @cindex saving window configuration in a register
+@cindex saving frame configuration in a register
+@cindex frameset, saving in a register
 
 @findex window-configuration-to-register
 @findex frameset-to-register
@@ -191,16 +194,17 @@ rather than a text string, if the register contains a rectangle.
 @kindex C-x r f
   You can save the window configuration of the selected frame in a
 register, or even the configuration of all windows in all frames, and
-restore the configuration later.  @xref{Windows}, for information
-about window configurations.
+restore the configuration later.  @xref{Windows Convenience}, for
+information about window configurations.
 
 @table @kbd
 @item C-x r w @var{r}
 Save the state of the selected frame's windows in register @var{r}
 (@code{window-configuration-to-register}).
+@cindex frameset
 @item C-x r f @var{r}
-Save the state of all frames, including all their windows, in register
-@var{r} (@code{frameset-to-register}).
+Save the state of all frames, including all their windows (a.k.a.@:
+@dfn{frameset}), in register @var{r} (@code{frameset-to-register}).
 @end table
 
   Use @kbd{C-x r j @var{r}} to restore a window or frame configuration.
@@ -266,7 +270,7 @@ puts the file name shown in register @samp{z}.
 @var{r}}.  (This is the same command used to jump to a position or
 restore a frame configuration.)
 
-  Similarly, if there's certain buffers you visit frequently, you
+  Similarly, if there are certain buffers you visit frequently, you
 can put their names in registers.  For instance, if you visit the
 @samp{*Messages*} buffer often, you can use the following snippet to
 put that buffer into the @samp{m} register:
@@ -274,6 +278,9 @@ put that buffer into the @samp{m} register:
 @smallexample
 (set-register ?m '(buffer . "*Messages*"))
 @end smallexample
+
+  To switch to the buffer whose name is in register @var{r}, type
+@kbd{C-x r j @var{r}}.
 
 @node Keyboard Macro Registers
 @section Keyboard Macro Registers

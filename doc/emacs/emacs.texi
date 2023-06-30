@@ -349,7 +349,7 @@ Registers
 * Position Registers::        Saving positions in registers.
 * Text Registers::            Saving text in registers.
 * Rectangle Registers::       Saving rectangles in registers.
-* Configuration Registers::   Saving window configurations in registers.
+* Configuration Registers::   Saving window/frame configurations in registers.
 * Number Registers::          Numbers in registers.
 * File and Buffer Registers:: File and buffer names in registers.
 * Keyboard Macro Registers::  Keyboard macros in registers.

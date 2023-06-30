@@ -69,10 +69,12 @@ A list of the form (file . FILE-NAME) represents the file named FILE-NAME.
 A list of the form (file-query FILE-NAME POSITION) represents
  position POSITION in the file named FILE-NAME, but query before
  visiting it.
+A list of the form (buffer . BUFFER-NAME) represents the buffer BUFFER-NAME.
 A list of the form (WINDOW-CONFIGURATION POSITION)
  represents a saved window configuration plus a saved value of point.
 A list of the form (FRAME-CONFIGURATION POSITION)
- represents a saved frame configuration plus a saved value of point.")
+ represents a saved frame configuration (a.k.a. \"frameset\") plus
+ a saved value of point.")
 
 (defgroup register nil
   "Register commands."
@@ -179,7 +181,7 @@ display such a window regardless."
 
 (defun point-to-register (register &optional arg)
   "Store current location of point in register REGISTER.
-With prefix argument, store current frame configuration.
+With prefix argument, store current frame configuration (a.k.a. \"frameset\").
 Use \\[jump-to-register] to go to that location or restore that configuration.
 Argument is a character, naming the register.
 
@@ -214,6 +216,7 @@ Interactively, reads the register using `register-read-with-preview'."
 
 (defun frame-configuration-to-register (register &optional _arg)
   "Store the window configuration of all frames in register REGISTER.
+\(This window configuration is also known as \"frameset\").
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register.
 
@@ -240,9 +243,10 @@ If the register contains a file name, find that file.
 If the register contains a window configuration (one frame) or a frameset
 \(all frames), restore that frame or all frames accordingly.
 First argument is a character, naming the register.
-Optional second arg non-nil (interactively, prefix argument) says to
-delete any existing frames that the frameset doesn't mention.
-\(Otherwise, these frames are iconified.)
+Optional second arg DELETE non-nil (interactively, prefix argument) says
+to delete any existing frames that the frameset doesn't mention.
+\(Otherwise, these frames are iconified.)  This argument is currently
+ignored if the register contains anything but a frameset.
 
 Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Jump to register: ")

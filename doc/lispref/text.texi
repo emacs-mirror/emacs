@@ -4642,20 +4642,25 @@ A rectangle is represented by a list of strings.
 This represents a window configuration to restore in one frame, and a
 position to jump to in the current buffer.
 
-@c FIXME: Mention frameset here.
+@cindex frameset
 @item @code{(@var{frame-configuration} @var{position})}
 This represents a frame configuration to restore, and a position
-to jump to in the current buffer.
+to jump to in the current buffer.  Frame configurations are also
+known as @dfn{framesets}.
 
-@item (file @var{filename})
+@item @code{(file @var{filename})}
 This represents a file to visit; jumping to this value visits file
 @var{filename}.
 
-@item (file-query @var{filename} @var{position})
+@item @code{(file-query @var{filename} @var{position})}
 This represents a file to visit and a position in it; jumping to this
 value visits file @var{filename} and goes to buffer position
 @var{position}.  Restoring this type of position asks the user for
 confirmation first.
+
+@item @code{(buffer @var{buffer-name})}
+This represents a buffer; jumping to this value switches to buffer
+@var{buffer-name}.
 @end table
 
   The functions in this section return unpredictable values unless
