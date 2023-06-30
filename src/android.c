@@ -5631,7 +5631,9 @@ android_query_tree (android_window handle, android_window *root_return,
   android_exception_check_nonnull (shorts, array);
 
   for (i = 1; i < nelements; ++i)
-    children[i] = shorts[i];
+    /* Subtract one from the index into children, since the parent is
+       not included.  */
+    children[i - 1] = shorts[i];
 
   /* Finally, return the parent and other values.  */
   *root_return = 0;
