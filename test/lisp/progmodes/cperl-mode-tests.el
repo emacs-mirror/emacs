@@ -177,14 +177,18 @@ attributes, prototypes and signatures."
             (should (equal (get-text-property (1+ (match-beginning 0)) 'face)
                            'font-lock-string-face)))
           (goto-char start-of-sub)
+          ;; Attributes with their optional parameters
           (when (search-forward-regexp "\\(:[a-z]+\\)\\((.*?)\\)?" end-of-sub t)
             (should (equal (get-text-property (match-beginning 1) 'face)
                            'font-lock-constant-face))
             (when (match-beginning 2)
               (should (equal (get-text-property (match-beginning 2) 'face)
                              'font-lock-string-face))))
-          (goto-char end-of-sub)))
-
+          (goto-char end-of-sub)
+          ;; Subroutine signatures
+          (when (search-forward "$bar" end-of-sub t)
+            (should (equal (get-text-property (match-beginning) 'face)
+                           'font-lock-variable-name-face)))))
       ;; Anonymous subroutines
       (while (search-forward-regexp "= sub" nil t)
         (let ((start-of-sub (match-beginning 0))
@@ -201,7 +205,11 @@ attributes, prototypes and signatures."
             (when (match-beginning 2)
               (should (equal (get-text-property (match-beginning 2) 'face)
                              'font-lock-string-face))))
-          (goto-char end-of-sub))))))
+          (goto-char end-of-sub)
+          ;; Subroutine signatures
+          (when (search-forward "$bar" end-of-sub t)
+            (should (equal (get-text-property (match-beginning) 'face)
+                           'font-lock-variable-name-face))))))))
 
 (ert-deftest cperl-test-fontify-special-variables ()
   "Test fontification of variables like $^T or ${^ENCODING}.
@@ -426,6 +434,62 @@ Also includes valid cases with whitespace in strange places."
            "Foo::bar"                   ; no package qualifiers allowed
            "lots_of_€")))               ; € is not alphabetic
     (cperl-test--validate-regexp (rx (eval cperl--basic-identifier-rx))
+                                 valid invalid)))
+
+(ert-deftest cperl-test-attribute-rx ()
+  "Test attributes and attribute lists"
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((valid
+         '("foo" "bar()" "baz(quux)"))
+        (invalid
+         '("+foo"                       ; not an identifier
+           "foo::bar"                   ; no package qualifiers allowed
+           "(no-identifier)"            ; no attribute name
+           "baz (quux)")))              ; no space allowed before "("
+    (cperl-test--validate-regexp (rx (eval cperl--single-attribute-rx))
+                                 valid invalid)))
+
+(ert-deftest cperl-test-attribute-list-rx ()
+  "Test attributes and attribute lists"
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((valid
+         '(":" ":foo" ": bar()" ":baz(quux):"
+           ":isa(Foo)does(Bar)" ":isa(Foo):does(Bar)" ":isa(Foo):does(Bar):"
+           ":  isa(Foo::Bar) : does(Bar)"))
+        (invalid
+         '(":foo + bar"                ; not an identifier
+           ": foo(bar : : baz"         ; too many colons
+           ": baz (quux)")))             ; no space allowed before "("
+    (cperl-test--validate-regexp (rx (eval cperl--attribute-list-rx))
+                                 valid invalid)))
+
+(ert-deftest cperl-test-prototype-rx ()
+  "Test subroutine prototypes"
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((valid
+         ;; Examples from perldoc perlsub
+         '("($$)" "($$$)" "($$;$)" "($$$;$)" "(@)" "($@)" "(\\@)" "(\\@$$@)"
+           "(\\[%@])" "(*;$)" "(**)" "(&@)" "(;$)" "()"))
+        (invalid
+         '("$"                   ; missing paren
+           "($self)"             ; a variable, -> subroutine signature
+           "(!$)"                ; not all punctuation is permitted
+           "{$$}")))             ; wrong type of paren
+    (cperl-test--validate-regexp (rx (eval cperl--prototype-rx))
+                                 valid invalid)))
+
+(ert-deftest cperl-test-signature-rx ()
+   "Test subroutine signatures."
+   (skip-unless (eq cperl-test-mode #'cperl-mode))
+   (let ((valid
+          '("()" "( )" "($self, %params)" "(@params)"))
+        (invalid
+         '("$self"               ; missing paren
+           "($)"                 ; a subroutine signature
+           "($!)"                ; globals not permitted in a signature
+           "(@par,%options)"     ; two slurpy parameters
+           "{$self}")))          ; wrong type of paren
+    (cperl-test--validate-regexp (rx (eval cperl--signature-rx))
                                  valid invalid)))
 
 ;;; Test unicode identifier in various places
@@ -1144,6 +1208,79 @@ as a regex."
     (insert " ?foo?;")
     (funcall cperl-test-mode)
     (should-not (nth 3 (syntax-ppss 3)))))
+
+(ert-deftest cperl-test-bug-64190 ()
+  "Verify correct fontification of multiline declarations"
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((file (ert-resource-file "cperl-bug-64190.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (cperl-mode)
+      (font-lock-ensure)
+      ;; Example 1
+      (while (search-forward "var" nil t)
+        (should (equal (get-text-property (point) 'face)
+                       'font-lock-variable-name-face)))
+      ;; Example 2
+      (search-forward "package F")
+      (should (equal (get-text-property (point) 'face)
+                     'font-lock-function-name-face))
+
+      ;; Example 3 and 4 can't be directly tested because jit-lock and
+      ;; batch tests don't play together well.  But we can approximate
+      ;; the behavior by calling the the fontification for the same
+      ;; region which would be used by jit-lock.
+      ;; Example 3
+      (search-forward "sub do_stuff")
+      (let ((start-change (point)))
+        (insert "\n{")
+        (cperl-font-lock-fontify-region-function start-change
+                                                 (point-max)
+                                                 nil) ; silent
+        (font-lock-ensure start-change (point-max))
+        (goto-char (1- start-change)) ; between the "ff" in "stuff"
+        (should (equal (get-text-property (point) 'face)
+                       'font-lock-function-name-face))
+        (search-forward "{")
+        (insert "}")) ; make it legal again
+
+      ;; Example 4
+      (search-forward "$param2")
+      (beginning-of-line)
+      (let ((start-change (point)))
+        (insert " ")
+        (cperl-font-lock-fontify-region-function start-change
+                                                 (point-max)
+                                                 nil) ; silent
+        (font-lock-ensure start-change (point-max))
+        (goto-char (1+ start-change))
+        (should (equal (get-text-property (point) 'face)
+                       'font-lock-variable-name-face))
+        (re-search-forward (rx (group "sub") " " (group "oops")))
+        (should (equal (get-text-property (match-beginning 1) 'face)
+                       'font-lock-keyword-face))
+        (should (equal (get-text-property (match-beginning 2) 'face)
+                       'font-lock-function-name-face))))))
+
+(ert-deftest cperl-test-bug-64364 ()
+  "Check that multi-line subroutine declarations indent correctly."
+  (cperl-set-style "PBP") ; make cperl-mode use the same settings as perl-mode
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-64364.pl")
+   (indent-region (point-min) (point-max)))
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-64364.pl")
+   (let ((tab-function
+          (if (equal cperl-test-mode 'perl-mode)
+              #'indent-for-tab-command
+            #'cperl-indent-command)))
+     (goto-char (point-min))
+     (while (null (eobp))
+       (funcall tab-function)
+       (forward-line 1))))
+  (cperl-set-style-back))
+
 
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
