@@ -194,7 +194,7 @@ rather than a text string, if the register contains a rectangle.
 @kindex C-x r f
   You can save the window configuration of the selected frame in a
 register, or even the configuration of all windows in all frames, and
-restore the configuration later.  @xref{Windows Convenience}, for
+restore the configuration later.  @xref{Window Convenience}, for
 information about window configurations.
 
 @table @kbd
