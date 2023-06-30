@@ -433,14 +433,6 @@ Previously, the '@' character, which normally has 'symbol' syntax,
 would combine with a following Lisp symbol and interfere with symbol
 searching.
 
-** CPerl mode
-
----
-*** Subroutine signatures are now supported.
-CPerl mode fontifies subroutine signatures like variable declarations
-which makes them visually distinct from subroutine prototypes.
-
-
 
 * New Modes and Packages in Emacs 30.1
 
