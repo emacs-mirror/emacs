@@ -237,6 +237,7 @@ Only used for files that Emacs can't find.")
 (defvar gdb-source-file-list nil
   "List of source files for the current executable.")
 (defvar gdb-first-done-or-error t)
+(defvar gdb-target-async-checked nil)
 (defvar gdb-source-window-list nil
   "List of windows used for displaying source files.
 Sorted in most-recently-visited-first order.")
@@ -453,9 +454,7 @@ valid signal handlers.")
           (const   :tag "Unlimited" nil))
   :version "22.1")
 
-;; This is disabled by default because we don't really support
-;; asynchronous execution of the debuggee; see bug#63084.  FIXME.
-(defcustom gdb-non-stop-setting nil
+(defcustom gdb-non-stop-setting (not (eq system-type 'windows-nt))
   "If non-nil, GDB sessions are expected to support the non-stop mode.
 When in the non-stop mode, stopped threads can be examined while
 other threads continue to execute.
@@ -470,7 +469,7 @@ don't support the non-stop mode.
 GDB session needs to be restarted for this setting to take effect."
   :type 'boolean
   :group 'gdb-non-stop
-  :version "29.1")
+  :version "30.1")
 
 (defcustom gdb-debuginfod-enable-setting
   ;; debuginfod servers are only for ELF executables, and elfutils, of
@@ -1069,6 +1068,7 @@ detailed description of this mode.
 	gdb-handler-list '()
 	gdb-prompt-name nil
 	gdb-first-done-or-error t
+	gdb-target-async-checked nil
 	gdb-buffer-fringe-width (car (window-fringes))
 	gdb-debug-log nil
 	gdb-source-window-list nil
@@ -1078,7 +1078,8 @@ detailed description of this mode.
         gdb-threads-list '()
         gdb-breakpoints-list '()
         gdb-register-names '()
-        gdb-non-stop gdb-non-stop-setting
+        gdb-supports-non-stop nil
+        gdb-non-stop nil
         gdb-debuginfod-enable gdb-debuginfod-enable-setting)
   ;;
   (gdbmi-bnf-init)
@@ -1110,7 +1111,7 @@ detailed description of this mode.
     (gdb-input "-gdb-set interactive-mode on" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
 
-  (when gdb-non-stop
+  (when gdb-non-stop-setting
     (gdb-input "-gdb-set non-stop 1" 'gdb-non-stop-handler))
 
   (gdb-input "-enable-pretty-printing" 'ignore)
@@ -1145,16 +1146,30 @@ detailed description of this mode.
 	(setq gdb-non-stop nil)
 	(setq gdb-supports-non-stop nil))
     (setq gdb-supports-non-stop t)
-    (gdb-input "-gdb-set target-async 1" 'ignore)
+    ;; Try to use "mi-async" first, needs GDB 7.7 onwards.  Note if
+    ;; "mi-async" is not available, GDB is still running in "sync"
+    ;; mode, "No symbol" for "mi-async" must appear before other
+    ;; commands.
+    (gdb-input "-gdb-set mi-async 1" 'gdb-set-mi-async-handler)))
+
+(defun gdb-set-mi-async-handler()
+  (goto-char (point-min))
+  (if (re-search-forward "No symbol" nil t)
+      (gdb-input "-gdb-set target-async 1" 'ignore)))
+
+(defun gdb-try-check-target-async-support()
+  (when (and gdb-non-stop-setting gdb-supports-non-stop
+             (not gdb-target-async-checked))
     (gdb-input "-list-target-features" 'gdb-check-target-async)))
 
 (defun gdb-check-target-async ()
   (goto-char (point-min))
-  (unless (re-search-forward "async" nil t)
+  (if (re-search-forward "async" nil t)
+      (setq gdb-non-stop t)
     (message
      "Target doesn't support non-stop mode.  Turning it off.")
-    (setq gdb-non-stop nil)
-    (gdb-input "-gdb-set non-stop 0" 'ignore)))
+    (gdb-input "-gdb-set non-stop 0" 'ignore))
+  (setq gdb-target-async-checked t))
 
 (defun gdb-delchar-or-quit (arg)
   "Delete ARG characters or send a quit command to GDB.
@@ -2652,6 +2667,14 @@ Sets `gdb-thread-number' to new id."
 (defun gdb-starting (_output-field _result)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
   (setq gdb-inferior-status "running")
+
+  ;; Set `gdb-non-stop' when `gdb-last-command' is a CLI background
+  ;; running command e.g. "run &", attach &" or a MI command
+  ;; e.g. "-exec-run" or "-exec-attach".
+  (when (or (string-match "&\s*$" gdb-last-command)
+            (string-match "^-" gdb-last-command))
+    (gdb-try-check-target-async-support))
+
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
   (setq gdb-active-process t)
@@ -2722,6 +2745,10 @@ current thread and update GDB buffers."
 
     ;; Print "(gdb)" to GUD console
     (when gdb-first-done-or-error
+      ;; If running target with a non-background CLI command
+      ;; e.g. "run" (no trailing '&'), target async feature can only
+      ;; be checked when when the program stops for the first time
+      (gdb-try-check-target-async-support)
       (setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
 
     ;; In non-stop, we update information as soon as another thread gets
