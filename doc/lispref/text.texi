@@ -3398,37 +3398,43 @@ for @var{object} is the current buffer.
 @end defun
 
 @defun text-property-search-forward prop &optional value predicate not-current
-Search for the next region that has text property @var{prop} set to
-@var{value} according to @var{predicate}.
+Search for the next region of text whose property @var{prop} is a
+match for @var{value} (which defaults to @code{nil}), according to
+@var{predicate}.
 
-This function is modeled after @code{search-forward} and friends in
-that it moves point, but it returns a structure that describes the
-match instead of returning it in @code{match-beginning} and friends.
+This function is modeled after @code{search-forward} (@pxref{String
+Search}) and friends, in that it moves point, but it also returns a
+structure that describes the match instead of returning it in
+@code{match-beginning} and friends.
 
-If the text property can't be found, the function returns @code{nil}.
-If it's found, point is placed at the end of the region that has this
-text property match, and a @code{prop-match} structure is returned.
+If the text property whose value is a match can't be found, the
+function returns @code{nil}.  If it's found, point is placed at the
+end of the region that has this matching text property, and the
+function returns a @code{prop-match} structure with information about
+the match.
 
 @var{predicate} can either be @code{t} (which is a synonym for
 @code{equal}), @code{nil} (which means ``not equal''), or a predicate
-that will be called with two parameters: The first is @var{value}, and
-the second is the value of the text property we're inspecting.
+that will be called with two arguments: @var{value} and the value of
+the text property @var{prop} at the buffer position that is a
+candidate for a match.  The function should return non-@code{nil} if
+there's a match, @code{nil} otherwise.
 
-If @var{not-current}, if point is in a region where we have a match,
-then skip past that and find the next instance instead.
+If @var{not-current} is non-@code{nil}, then if point is already in a
+region where we have a property match, skip past that region and find
+the next region instead.
 
-The @code{prop-match} structure has the following accessors:
+The @code{prop-match} structure has the following accessor functionss:
 @code{prop-match-beginning} (the start of the match),
 @code{prop-match-end} (the end of the match), and
 @code{prop-match-value} (the value of @var{property} at the start of
 the match).
 
-In the examples below, imagine that you're in a buffer that looks like
-this:
+In the examples below, we use a buffer whose contents is:
 
-@example
-This is a bold and here's bolditalic and this is the end.
-@end example
+@display
+This is a @b{bold} and here's @b{@i{bolditalic}} and this is the end.
+@end display
 
 That is, the ``bold'' words are the @code{bold} face, and the
 ``italic'' word is in the @code{italic} face.
@@ -3452,8 +3458,9 @@ This will pick out all the words that use the @code{bold} face.
 @end lisp
 
 This will pick out all the bits that have no face properties, which
-will result in the list @samp{("This is a " "and here's " "and this is
-the end")} (only reversed, since we used @code{push}).
+will result in the list @samp{(@w{"This is a "} @w{"and here's "}
+@w{"and this is the end"})} (only in reverse order, since we used
+@code{push}, @pxref{List Variables}).
 
 @lisp
 (while (setq match (text-property-search-forward 'face nil nil))
@@ -3481,8 +3488,8 @@ This will give you a list of all those URLs.
 
 @defun text-property-search-backward prop &optional value predicate not-current
 This is just like @code{text-property-search-forward}, but searches
-backward instead.  Point is placed at the beginning of the matched
-region instead of the end, though.
+backward instead, and if a match is found, point is placed at the
+beginning of the matched region instead of the end.
 @end defun
 
 
@@ -4642,20 +4649,25 @@ A rectangle is represented by a list of strings.
 This represents a window configuration to restore in one frame, and a
 position to jump to in the current buffer.
 
-@c FIXME: Mention frameset here.
+@cindex frameset
 @item @code{(@var{frame-configuration} @var{position})}
 This represents a frame configuration to restore, and a position
-to jump to in the current buffer.
+to jump to in the current buffer.  Frame configurations are also
+known as @dfn{framesets}.
 
-@item (file @var{filename})
+@item @code{(file @var{filename})}
 This represents a file to visit; jumping to this value visits file
 @var{filename}.
 
-@item (file-query @var{filename} @var{position})
+@item @code{(file-query @var{filename} @var{position})}
 This represents a file to visit and a position in it; jumping to this
 value visits file @var{filename} and goes to buffer position
 @var{position}.  Restoring this type of position asks the user for
 confirmation first.
+
+@item @code{(buffer @var{buffer-name})}
+This represents a buffer; jumping to this value switches to buffer
+@var{buffer-name}.
 @end table
 
   The functions in this section return unpredictable values unless
