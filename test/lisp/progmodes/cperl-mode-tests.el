@@ -855,6 +855,17 @@ under timeout control."
       (should (string-match
                "poop ('foo', \n      'bar')" (buffer-string))))))
 
+(ert-deftest cperl-test-bug-11733 ()
+  "Verify indentation of braces after newline and non-labels."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-11733.pl")
+   (goto-char (point-min))
+   (while (null (eobp))
+     (cperl-indent-command)
+     (forward-line 1))))
+
+
 (ert-deftest cperl-test-bug-11996 ()
   "Verify that we give the right syntax property to a backslash operator."
   (with-temp-buffer

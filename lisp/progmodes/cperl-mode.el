@@ -2866,10 +2866,13 @@ Will not look before LIM."
 		   ;; Back up over label lines, since they don't
 		   ;; affect whether our line is a continuation.
 		   ;; (Had \, too)
-                   (while (and (eq (preceding-char) ?:)
+                   (while (save-excursion
+                            (and (eq (preceding-char) ?:)
                                  (re-search-backward
                                   (rx (sequence (eval cperl--label-rx) point))
-                                  nil t))
+                                  nil t)
+                                 ;; Ignore if in comment or RE
+                                 (not (nth 3 (syntax-ppss)))))
 		     ;; This is always FALSE?
 		     (if (eq (preceding-char) ?\,)
 			 ;; Will go to beginning of line, essentially.
@@ -3129,7 +3132,8 @@ and closing parentheses and brackets."
 	       ;; Now it is a hash reference
 	       (+ cperl-indent-level cperl-close-paren-offset))
 	     ;; Labels do not take :: ...
-	     (if (looking-at "\\(\\w\\|_\\)+[ \t]*:[^:]")
+	     (if (and (looking-at "\\(\\w\\|_\\)+[ \t]*:[^:]")
+                      (not (looking-at (rx (eval cperl--false-label-rx)))))
 		 (if (> (current-indentation) cperl-min-label-indent)
 		     (- (current-indentation) cperl-label-offset)
 		   ;; Do not move `parse-data', this should
