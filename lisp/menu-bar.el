@@ -230,7 +230,7 @@
     (bindings--define-key menu [project-open-file]
       '(menu-item "Open File In Project..." project-find-file
                   :enable (menu-bar-non-minibuffer-window-p)
-                  :help "Read an existing file in the current project into an Emacs buffer"))
+                  :help "Read existing file that belongs to current project into an Emacs buffer"))
     (bindings--define-key menu [open-file]
       '(menu-item "Open File..." menu-find-file-existing
                   :enable (menu-bar-non-minibuffer-window-p)
@@ -357,7 +357,7 @@
                   :help "Search for a regexp in all tagged files"))
     (bindings--define-key menu [project-search]
       '(menu-item "Search in Project Files..." project-find-regexp
-        :help "Search for a regexp in files of the current project"))
+        :help "Search for a regexp in files belonging to current project"))
     (bindings--define-key menu [separator-tag-search] menu-bar-separator)
 
     (bindings--define-key menu [repeat-search-back]
@@ -411,7 +411,7 @@
         :help "Interactively replace a regexp in all tagged files"))
     (bindings--define-key menu [project-replace]
       '(menu-item "Replace in Project Files..." project-query-replace-regexp
-        :help "Interactively replace a regexp in files of the current project"))
+        :help "Interactively replace a regexp in files belonging to current project"))
     (bindings--define-key menu [separator-replace-tags]
       menu-bar-separator)
 
@@ -1785,14 +1785,14 @@ mail status in mode line"))
 
 (defvar menu-bar-project-menu
   (let ((menu (make-sparse-keymap "Project")))
-    (bindings--define-key menu [project-execute-extended-command] '(menu-item "Execute Extended Command..." project-execute-extended-command :help "Execute an extended command in project root"))
-    (bindings--define-key menu [project-query-replace-regexp] '(menu-item "Query Replace Regexp..." project-query-replace-regexp :help "Interactively replace a regexp in files of the current project"))
-    (bindings--define-key menu [project-or-external-find-regexp] '(menu-item "Find Regexp Including External Roots..." project-or-external-find-regexp :help "Search for a regexp in files of the current project or external files"))
-    (bindings--define-key menu [project-find-regexp] '(menu-item "Find Regexp..." project-find-regexp :help "Search for a regexp in files of the current project"))
+    (bindings--define-key menu [project-execute-extended-command] '(menu-item "Execute Extended Command..." project-execute-extended-command :help "Execute an extended command in project root directory"))
+    (bindings--define-key menu [project-query-replace-regexp] '(menu-item "Query Replace Regexp..." project-query-replace-regexp :help "Interactively replace a regexp in files belonging to current project"))
+    (bindings--define-key menu [project-or-external-find-regexp] '(menu-item "Find Regexp Including External Roots..." project-or-external-find-regexp :help "Search for a regexp in files belonging to current project or external files"))
+    (bindings--define-key menu [project-find-regexp] '(menu-item "Find Regexp..." project-find-regexp :help "Search for a regexp in files belonging to current project"))
     (bindings--define-key menu [separator-project-search] menu-bar-separator)
     (bindings--define-key menu [project-kill-buffers] '(menu-item "Kill Buffers..." project-kill-buffers :help "Kill the buffers belonging to the current project"))
-    (bindings--define-key menu [project-list-buffers] '(menu-item "List Buffers..." project-list-buffers :help "Pop up a window listing all Emacs buffers in the current project"))
-    (bindings--define-key menu [project-switch-to-buffer] '(menu-item "Switch To Buffer..." project-switch-to-buffer :help "Prompt for a buffer in the current project, and switch to it"))
+    (bindings--define-key menu [project-list-buffers] '(menu-item "List Buffers..." project-list-buffers :help "Pop up a window listing all Emacs buffers belonging to current project"))
+    (bindings--define-key menu [project-switch-to-buffer] '(menu-item "Switch To Buffer..." project-switch-to-buffer :help "Prompt for a buffer belonging to current project, and switch to it"))
     (bindings--define-key menu [separator-project-buffers] menu-bar-separator)
     (bindings--define-key menu [project-async-shell-command] '(menu-item "Async Shell Command..." project-async-shell-command :help "Invoke a shell command in project root asynchronously in background"))
     (bindings--define-key menu [project-shell-command] '(menu-item "Shell Command..." project-shell-command :help "Invoke a shell command in project root and catch its output"))
@@ -1803,9 +1803,9 @@ mail status in mode line"))
     (bindings--define-key menu [project-switch-project] '(menu-item "Switch Project..." project-switch-project :help "Switch to another project and then run a command"))
     (bindings--define-key menu [project-vc-dir] '(menu-item "VC Dir..." project-vc-dir :help "Show the VC status of the project repository"))
     (bindings--define-key menu [project-dired] '(menu-item "Open Project Root" project-dired :help "Read the root directory of the current project, to operate on its files"))
-    (bindings--define-key menu [project-find-dir] '(menu-item "Open Directory..." project-find-dir :help "Open an existing directory in the current project"))
-    (bindings--define-key menu [project-or-external-find-file] '(menu-item "Open File Including External Roots..." project-or-external-find-file :help "Open an existing file in the current project or its external roots"))
-    (bindings--define-key menu [project-open-file] '(menu-item "Open File..." project-find-file :help "Open an existing file in the current project"))
+    (bindings--define-key menu [project-find-dir] '(menu-item "Open Directory..." project-find-dir :help "Open existing directory that belongs to current project"))
+    (bindings--define-key menu [project-or-external-find-file] '(menu-item "Open File Including External Roots..." project-or-external-find-file :help "Open existing file that belongs to current project or its external roots"))
+    (bindings--define-key menu [project-open-file] '(menu-item "Open File..." project-find-file :help "Open an existing file that belongs to current project"))
     menu))
 
 (defun menu-bar-read-mail ()
@@ -2402,12 +2402,12 @@ Buffers menu is regenerated."
 	      'menu-item
 	      "Select Buffer In Project..."
 	      'project-switch-to-buffer
-	      :help "Prompt for a buffer in the current project, and switch to it")
+	      :help "Prompt for a buffer belonging to current project, and switch to it")
 	(list 'list-buffers-in-project
 	      'menu-item
 	      "List Buffers In Project..."
 	      'project-list-buffers
-	      :help "Pop up a window listing all Emacs buffers in the current project"))
+	      :help "Pop up a window listing all Emacs buffers belonging to current project"))
   "Entries to be included at the end of the \"Buffers\" menu.")
 
 (defvar menu-bar-select-buffer-function 'switch-to-buffer
