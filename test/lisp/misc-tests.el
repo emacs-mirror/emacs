@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'misc)
 
 (defmacro with-misc-test (original result &rest body)
   (declare (indent 2))
