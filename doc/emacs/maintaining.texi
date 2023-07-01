@@ -716,7 +716,7 @@ started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
 (@code{log-edit-generate-changelog-from-diff}), to generate skeleton
 ChangeLog entries, listing all changed file and function names based
 on the diff of the VC fileset.  Consecutive entries left empty will be
-combined by @kbd{C-q} (@code{fill-paragraph}).  By default the
+combined by @kbd{M-q} (@code{fill-paragraph}).  By default the
 skeleton will just include the file name, without any leading
 directories.  If you wish to prepend the leading directories up to the
 VC root, customize @code{diff-add-log-use-relative-names}.
