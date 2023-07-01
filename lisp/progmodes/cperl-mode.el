@@ -1349,10 +1349,21 @@ prototypes from signatures.")
                (optional (sequence ,cperl--ws*-rx) "," )
                ,cperl--ws*-rx
                ")")
-    "A regular expression for a subroutine signature.
+    "A rx sequence subroutine signature without initializers.
 These are a bit more restricted than \"my\" declaration lists
 because they allow only one slurpy variable, and only in the last
 place.")
+
+  (defconst cperl--sloppy-signature-rx
+    `(sequence "("
+               ,cperl--ws*-rx
+               (or ,cperl--basic-scalar-rx
+                   ,cperl--basic-array-rx
+                   ,cperl--basic-hash-rx)
+               ,cperl--ws*-rx
+               (or "," "=" "||=" "//=" ")"))
+    "A rx sequence for the begin of a signature with initializers.
+Initializers can contain almost all Perl constructs and thus can not be covered by regular expressions.  This sequence captures enough to distinguish a signature from a prototype.")
 
   (defconst cperl--package-rx
     `(sequence (group "package")
@@ -5920,40 +5931,46 @@ default function."
             ;; statement ends in a "{" (definition) or ";"
             ;; (declaration without body)
 	    (list (concat "\\<" cperl-sub-regexp
+                          ;; group 1: optional subroutine name
                           (rx
                            (sequence (eval cperl--ws+-rx)
-                                     (group (optional (eval cperl--normal-identifier-rx)))))
-;;			  "\\([^ \n\t{;()]+\\)" ; 2=name (assume non-anonymous)
-                          (rx
-                           (optional
-                            (group (sequence (group (eval cperl--ws*-rx))
-                                             (eval cperl--prototype-rx)))))
-;;			  "\\("
-;;			  cperl-maybe-white-and-comment-rex ;whitespace/comments?
-                          ;;			  "([^()]*)\\)?" ; prototype
+                                     (group (optional
+                                             (eval cperl--normal-identifier-rx)))))
+                          ;; "fontified" elsewhere: Prototype
+                          (rx (optional
+                               (sequence (eval cperl--ws*-rx)
+                                         (eval cperl--prototype-rx))))
+                          ;; fontified elsewhere: Attributes
                           (rx (optional (sequence (eval cperl--ws*-rx)
                                                   (eval cperl--attribute-list-rx))))
-;			  cperl-maybe-white-and-comment-rex ; whitespace/comments?
-                          (rx (group-n 3
-                                (optional (sequence(eval cperl--ws*-rx)
-                                                   (eval cperl--signature-rx)))))
                           (rx (eval cperl--ws*-rx))
-			  "[{;]")
-		  '(1 (if (eq (char-after (cperl-1- (match-end 0))) ?\{ )
-			  'font-lock-function-name-face
-		        'font-lock-variable-name-face)
+                          ;; group 2: Identifies the start of the anchor
+                          (rx (group
+                               (or (group-n 3 ";") ; Either a declaration...
+                                   "{"             ; ... or a code block
+                                   ;; ... or a complete signature
+                                   (sequence (eval cperl--signature-rx)
+                                             (eval cperl--ws*-rx))
+                                   ;; ... or the start of a "sloppy" signature
+                                   (sequence (eval cperl--sloppy-signature-rx)
+                                             ;; arbtrarily continue "a few lines"
+                                             (repeat 0 200 (not (in "{"))))))))
+		  '(1 (if (match-beginning 3)
+			  'font-lock-variable-name-face
+		        'font-lock-function-name-face)
                       t  ;; override
                       t) ;; laxmatch in case of anonymous subroutines
                   ;; -------- anchored: Signature
-                  `(,(rx (or (eval cperl--basic-scalar-rx)
-                             (eval cperl--basic-array-rx)
-                             (eval cperl--basic-hash-rx)))
+                  `(,(rx (sequence (in "(,")
+                                   (eval cperl--ws*-rx)
+                                   (group (or (eval cperl--basic-scalar-rx)
+                                              (eval cperl--basic-array-rx)
+                                              (eval cperl--basic-hash-rx)))))
                     (progn
-                      (goto-char (match-beginning 3)) ; pre-match: Back to sig
-                      (match-end 3))
-
+                      (goto-char (match-beginning 2)) ; pre-match: Back to sig
+                      (match-end 2))
                     nil
-                    (0 font-lock-variable-name-face)))
+                    (1 font-lock-variable-name-face)))
             ;; -------- various stuff calling for a package name
             ;; (matcher subexp facespec)
             `(,(rx (sequence symbol-start

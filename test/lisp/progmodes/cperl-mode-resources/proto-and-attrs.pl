@@ -34,9 +34,17 @@ sub sub_4 :prototype($$$) ($foo,$bar,$baz) { ...; }
 # A signature with a trailing comma (weird, but legal)
 sub sub_5 ($foo,$bar,) { ...; }
 
+# Perl 5.38-style initializer
+sub sub_6
+    ($foo,
+     $bar //= "baz")
+{
+}
+
+
 # Part 2: Same constructs for anonymous subs
 # A plain named subroutine without any optional stuff
-my $subref_0 = sub { ...; }
+my $subref_0 = sub { ...; };
 
 # A prototype and a trivial subroutine attribute
 {
