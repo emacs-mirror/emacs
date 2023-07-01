@@ -4734,7 +4734,7 @@ impose the use of a shell (with its need to quote arguments)."
                                       (when (buffer-live-p buf)
                                         (remove-function (process-filter proc)
                                                          nonce)
-                                        (display-buffer buf))))
+                                        (display-buffer buf '(nil (allow-no-window . t))))))
                                   `((name . ,nonce)))))))
 	  ;; Otherwise, command is executed synchronously.
 	  (shell-command-on-region (point) (point) command
