@@ -129,6 +129,15 @@
 
     (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
 
+(ert-deftest erc--with-dependent-type-match ()
+  (should (equal (macroexpand-1
+                  '(erc--with-dependent-type-match (repeat face) erc-match))
+                 '(backquote
+                   (repeat :match ,(lambda (w v)
+                                     (require 'erc-match)
+                                     (widget-editable-list-match w v))
+                           face)))))
+
 (defun erc-tests--send-prep ()
   ;; Caller should probably shadow `erc-insert-modify-hook' or
   ;; populate user tables for erc-button.

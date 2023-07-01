@@ -5073,6 +5073,16 @@ and as second argument the event parsed as a vector."
   (and (erc-is-message-ctcp-p message)
        (not (string-match "^\C-aACTION.*\C-a$" message))))
 
+(define-inline erc--get-speaker-bounds ()
+  "Return the bounds of `erc-speaker' property when present.
+Assume buffer is narrowed to the confines of an inserted message."
+  (inline-quote
+   (and-let*
+       (((memq (get-text-property (point) 'erc-command) '(PRIVMSG NOTICE)))
+        (beg (or (and (get-text-property (point-min) 'erc-speaker) (point-min))
+                 (next-single-property-change (point-min) 'erc-speaker))))
+     (cons beg (next-single-property-change beg 'erc-speaker)))))
+
 (defvar erc--user-from-nick-function #'erc--examine-nick
   "Function to possibly consider unknown user.
 Must return either nil or a cons of an `erc-server-user' and a
