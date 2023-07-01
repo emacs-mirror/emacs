@@ -1707,7 +1707,7 @@ which can be carried out at the same time:
    forwarded X connection (ssh -XC remotehostname emacs ...).
 
    Keep in mind that this does not help with latency problems, only
-   andwidth ones.
+   bandwidth ones.
 
 5) Use lbxproxy on the remote end of the connection.  This is an
    interface to the low bandwidth X extension in some outdated X
