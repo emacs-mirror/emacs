@@ -794,19 +794,25 @@ around them.  If VALUE is nil, explicitly don't draw boxes.  If
 VALUE is t, draw a box with lines of width 1 in the foreground color
 of the face.  If VALUE is a string, the string must be a color name,
 and the box is drawn in that color with a line width of 1.  Otherwise,
-VALUE must be a property list of the form `(:line-width WIDTH
-:color COLOR :style STYLE)'.  If a keyword/value pair is missing from
-the property list, a default value will be used for the value, as
-specified below.  WIDTH specifies the width of the lines to draw; it
-defaults to 1.  If WIDTH is negative, the absolute value is the width
-of the lines, and draw top/bottom lines inside the characters area,
-not around it.  COLOR is the name of the color to draw in, default is
-the background color of the face for 3D boxes and `flat-button', and
-the foreground color of the face for other boxes.  STYLE specifies
-whether a 3D box should be draw.  If STYLE is `released-button', draw
-a box looking like a released 3D button.  If STYLE is `pressed-button'
-draw a box that appears like a pressed button.  If STYLE is nil,
-`flat-button' or omitted, draw a 2D box.
+VALUE must be a property list of the following form:
+
+ (:line-width WIDTH :color COLOR :style STYLE)
+
+If a keyword/value pair is missing from the property list, a default
+value will be used for the value, as specified below.
+
+WIDTH specifies the width of the lines to draw; it defaults to 1.
+If WIDTH is negative, the absolute value is the width of the lines,
+and draw top/bottom lines inside the characters area, not around it.
+WIDTH can also be a cons (VWIDTH . HWIDTH), which specifies different
+values for the vertical and the horizontal line width.
+COLOR is the name of the color to use for the box lines, default is
+the background color of the face for 3D and `flat-button' boxes, and
+the foreground color of the face for the other boxes.
+STYLE specifies whether a 3D box should be drawn.  If STYLE
+is `released-button', draw a box looking like a released 3D button.
+If STYLE is `pressed-button', draw a box that looks like a pressed
+button.  If STYLE is nil, `flat-button', or omitted, draw a 2D box.
 
 `:inverse-video'
 
