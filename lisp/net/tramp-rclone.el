@@ -226,6 +226,7 @@ file names."
 
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname))
+	  (equal-remote (tramp-equal-remote filename newname))
 	  (rclone-operation (if (eq op 'copy) "copyto" "moveto"))
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
@@ -236,8 +237,12 @@ file names."
 	  (when (and (file-directory-p newname)
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
+	  (when (file-regular-p newname)
+	    (delete-file newname))
 
-	  (if (or (and t1 (not (tramp-rclone-file-name-p filename)))
+	  (if (or (and equal-remote
+		       (tramp-get-connection-property v "direct-copy-failed"))
+		  (and t1 (not (tramp-rclone-file-name-p filename)))
 		  (and t2 (not (tramp-rclone-file-name-p newname))))
 
 	      ;; We cannot copy or rename directly.
@@ -257,9 +262,20 @@ file names."
 			v rclone-operation
 			(tramp-rclone-remote-file-name filename)
 			(tramp-rclone-remote-file-name newname)))
-		(tramp-error
-		 v 'file-error
-		 "Error %s `%s' `%s'" msg-operation filename newname)))
+		(if (or (not equal-remote)
+			(and equal-remote
+			     (tramp-get-connection-property
+			      v "direct-copy-failed")))
+		    (tramp-error
+		     v 'file-error
+		     "Error %s `%s' `%s'" msg-operation filename newname)
+
+		  ;; Some WebDAV server, like the one from QNAP, do
+		  ;; not support direct copy/move.  Try a fallback.
+		  (tramp-set-connection-property v "direct-copy-failed" t)
+		  (tramp-rclone-do-copy-or-rename-file
+		   op filename newname ok-if-already-exists keep-date
+		   preserve-uid-gid preserve-extended-attributes))))
 
 	    (when (and t1 (eq op 'rename))
 	      (while (file-exists-p filename)
