@@ -1330,7 +1330,9 @@ subsequent attributes.  This regexp does not have capture groups.")
     `(sequence "("
                (0+ (any "$@%&*;\\[]"))
                ")")
-    "A regular expression for a subroutine prototype.  Not as strict as the actual prototype syntax, but good enough to distinguish prototypes from signatures.")
+    "A regular expression for a subroutine prototype.  Not as strict
+as the actual prototype syntax, but good enough to distinguish
+prototypes from signatures.")
 
   (defconst cperl--signature-rx
     `(sequence "("
@@ -3539,7 +3541,7 @@ position of the end of the unsafe construct."
 			   (setq end (point)))))
 	  (or end pos)))))
 
-(defun cperl-find-sub-attrs (&optional st-l b-fname e-fname pos)
+(defun cperl-find-sub-attrs (&optional st-l _b-fname _e-fname pos)
   "Syntactically mark (and fontify) attributes of a subroutine.
 Should be called with the point before leading colon of an attribute."
   ;; Works *before* syntax recognition is done
@@ -3608,7 +3610,6 @@ Should be called with the point before leading colon of an attribute."
                          'attrib-group (if (looking-at "{") t 0))
         (and pos
              (progn
-               (< 1 (count-lines (+ 3 pos) (point))) ; end of `sub'
                ;; Apparently, we do not need `multiline': faces added now
                (put-text-property (+ 3 pos) (cperl-1+ (point))
 		                  'syntax-type 'sub-decl))))
