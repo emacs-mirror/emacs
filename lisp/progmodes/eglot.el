@@ -3196,11 +3196,8 @@ for which LSP on-type-formatting should be requested."
                  ((:documentation sigdoc)) parameters activeParameter)
       sig
     (with-temp-buffer
-      (save-excursion (insert siglabel))
-      ;; Ad-hoc attempt to parse label as <name>(<params>)
-        (when (looking-at "\\([^(]*\\)(\\([^)]+\\))")
-          (add-face-text-property (match-beginning 1) (match-end 1)
-                                  'font-lock-function-name-face))
+        (insert siglabel)
+        ;; Ad-hoc attempt to parse label as <name>(<params>)
         ;; Add documentation, indented so we can distinguish multiple signatures
         (when-let (doc (and (not briefp) sigdoc (eglot--format-markup sigdoc)))
           (goto-char (point-max))
@@ -3213,8 +3210,13 @@ for which LSP on-type-formatting should be requested."
                         ((:label parlabel))
                         ((:documentation pardoc)))
              parameter
+           (when (zerop i)
+             (goto-char (elt parlabel 0))
+             (search-backward "(" nil t)
+             (add-face-text-property (point-min) (point)
+                                     'font-lock-function-name-face))
            ;; ...perhaps highlight it in the formals list
-           (when (and (eq i active-param))
+           (when (= i active-param)
              (save-excursion
                (goto-char (point-min))
                (pcase-let
