@@ -1052,6 +1052,12 @@ This is a list of regular expressions.  The completion functions only
 consider a completion acceptable if it matches all regular expressions
 in this list, with @code{case-fold-search} (@pxref{Searching and Case})
 bound to the value of @code{completion-ignore-case}.
+
+Do not set this variable to a non-@code{nil} value globally, as that
+is not safe and will probably cause errors in completion commands.
+This variable should be only let-bound to non-@code{nil} values around
+calls to basic completion functions: @code{try-completion},
+@code{test-completion}, and @code{all-completions}.
 @end defvar
 
 @defmac lazy-completion-table var fun

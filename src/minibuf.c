@@ -2471,7 +2471,12 @@ The basic completion functions only consider a completion acceptable
 if it matches all regular expressions in this list, with
 `case-fold-search' bound to the value of `completion-ignore-case'.
 See Info node `(elisp)Basic Completion', for a description of these
-functions.  */);
+functions.
+
+Do not set this variable to a non-nil value globally, as that is not
+safe and will probably cause errors in completion commands.  This
+variable should be only let-bound to non-nil values around calls to
+basic completion functions like `try-completion' and `all-completions'.  */);
   Vcompletion_regexp_list = Qnil;
 
   DEFVAR_BOOL ("minibuffer-allow-text-properties",
