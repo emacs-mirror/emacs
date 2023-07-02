@@ -3424,7 +3424,7 @@ If @var{not-current} is non-@code{nil}, then if point is already in a
 region where we have a property match, skip past that region and find
 the next region instead.
 
-The @code{prop-match} structure has the following accessor functionss:
+The @code{prop-match} structure has the following accessor functions:
 @code{prop-match-beginning} (the start of the match),
 @code{prop-match-end} (the end of the match), and
 @code{prop-match-value} (the value of @var{property} at the start of

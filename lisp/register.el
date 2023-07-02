@@ -126,7 +126,7 @@ See the documentation of the variable `register-alist' for possible VALUEs."
 (defvar register-preview-function #'register-preview-default
   "Function to format a register for previewing.
 Called with one argument, a cons (NAME . CONTENTS) as found in `register-alist'.
-The function should return a string, the description of teh argument.")
+The function should return a string, the description of the argument.")
 
 (defun register-preview (buffer &optional show-empty)
   "Pop up a window showing the registers preview in BUFFER.
