@@ -1114,7 +1114,8 @@ parser notifying of the change."
       (when treesit--font-lock-verbose
         (message "Notifier received range: %s-%s"
                  (car range) (cdr range)))
-      (put-text-property (car range) (cdr range) 'fontified nil))))
+      (with-silent-modifications
+        (put-text-property (car range) (cdr range) 'fontified nil)))))
 
 ;;; Indent
 

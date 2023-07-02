@@ -184,11 +184,12 @@ attributes, prototypes and signatures."
             (when (match-beginning 2)
               (should (equal (get-text-property (match-beginning 2) 'face)
                              'font-lock-string-face))))
-          (goto-char end-of-sub)
           ;; Subroutine signatures
+          (goto-char start-of-sub)
           (when (search-forward "$bar" end-of-sub t)
-            (should (equal (get-text-property (match-beginning) 'face)
-                           'font-lock-variable-name-face)))))
+            (should (equal (get-text-property (match-beginning 0) 'face)
+                           'font-lock-variable-name-face)))
+          (goto-char end-of-sub)))
       ;; Anonymous subroutines
       (while (search-forward-regexp "= sub" nil t)
         (let ((start-of-sub (match-beginning 0))
@@ -205,11 +206,12 @@ attributes, prototypes and signatures."
             (when (match-beginning 2)
               (should (equal (get-text-property (match-beginning 2) 'face)
                              'font-lock-string-face))))
-          (goto-char end-of-sub)
           ;; Subroutine signatures
+          (goto-char start-of-sub)
           (when (search-forward "$bar" end-of-sub t)
-            (should (equal (get-text-property (match-beginning) 'face)
-                           'font-lock-variable-name-face))))))))
+            (should (equal (get-text-property (match-beginning 0) 'face)
+                           'font-lock-variable-name-face)))
+          (goto-char end-of-sub))))))
 
 (ert-deftest cperl-test-fontify-special-variables ()
   "Test fontification of variables like $^T or ${^ENCODING}.
@@ -314,6 +316,7 @@ issued by CPerl mode."
 
 (defvar perl-continued-statement-offset)
 (defvar perl-indent-level)
+(defvar perl-indent-parens-as-block)
 
 (defconst cperl--tests-heredoc-face
   (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
@@ -851,6 +854,17 @@ under timeout control."
       ;; be rather robust with regard to indentation defaults
       (should (string-match
                "poop ('foo', \n      'bar')" (buffer-string))))))
+
+(ert-deftest cperl-test-bug-11733 ()
+  "Verify indentation of braces after newline and non-labels."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-11733.pl")
+   (goto-char (point-min))
+   (while (null (eobp))
+     (cperl-indent-command)
+     (forward-line 1))))
+
 
 (ert-deftest cperl-test-bug-11996 ()
   "Verify that we give the right syntax property to a backslash operator."

@@ -143,4 +143,109 @@
 
     (erc-services-mode -1)))
 
+;; The server rejects your nick during registration, so ERC acquires a
+;; placeholder and successfully renicks once the connection is up.
+;; See also `erc-scenarios-base-renick-self-auto'.
+
+(ert-deftest erc-scenarios-services-misc--reconnect-retry-nick ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-server-flood-penalty 0.1)
+       (erc-scenarios-common-dialog "services/regain")
+       (dumb-server (erc-d-run "localhost" t 'reconnect-retry
+                               'reconnect-retry-again))
+       (port (process-contact dumb-server :service))
+       (erc-server-auto-reconnect t)
+       (erc-modules `(services-regain sasl ,@erc-modules))
+       (erc-services-regain-alist
+        '((Libera.Chat . erc-services-retry-nick-on-connect)))
+       (expect (erc-d-t-make-expecter)))
+
+    ;; FIXME figure out and explain why this is so.
+    (should (featurep 'erc-services))
+
+    (ert-info ("Session succeeds but cut short")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :user "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (funcall expect 10 "Last login from")
+        (erc-cmd-JOIN "#test")))
+
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#test"))
+      (funcall expect 10 "was created on"))
+
+    (ert-info ("Service restored")
+      (with-current-buffer "Libera.Chat"
+        (erc-d-t-wait-for 10 erc--server-reconnect-timer)
+        (funcall expect 10 "Connection failed!")
+        (funcall expect 10 "already in use")
+        (funcall expect 10 "changed mode for tester`")
+        (funcall expect 10 "Last login from")
+        (funcall expect 10 "Your new nickname is tester")))
+
+    (with-current-buffer (get-buffer "#test")
+      (funcall expect 10 "tester ")
+      (funcall expect 10 "was created on"))))
+
+;; This only asserts that the handler fires and issues the right
+;; NickServ command, but it doesn't accurately recreate a
+;; disconnection, but it probably should.
+(ert-deftest erc-scenarios-services-misc--regain-command ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-server-flood-penalty 0.1)
+       (erc-scenarios-common-dialog "services/regain")
+       (dumb-server (erc-d-run "localhost" t 'taken-regain))
+       (port (process-contact dumb-server :service))
+       (erc-server-auto-reconnect t)
+       (erc-modules `(services-regain sasl ,@erc-modules))
+       (erc-services-regain-alist
+        '((ExampleNet . erc-services-issue-regain)))
+       (expect (erc-d-t-make-expecter)))
+
+    (should (featurep 'erc-services)) ; see note in prior test
+
+    (with-current-buffer (erc :server "127.0.0.1"
+                              :port port
+                              :nick "dummy"
+                              :user "tester"
+                              :password "changeme"
+                              :full-name "tester"
+                              :id 'ExampleNet)
+      (funcall expect 10 "dummy is already in use, trying dummy`")
+      (funcall expect 10 "You are now logged in as tester")
+      (funcall expect 10 "-NickServ- dummy has been regained.")
+      (funcall expect 10 "*** Your new nickname is dummy")
+      ;; Works with "given" `:id'.
+      (should (and (erc-network) (not (eq (erc-network) 'ExampleNet)))))))
+
+(ert-deftest erc-scenarios-services-misc--ghost-and-retry-nick ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-server-flood-penalty 0.1)
+       (erc-scenarios-common-dialog "services/regain")
+       (dumb-server (erc-d-run "localhost" t 'taken-ghost))
+       (port (process-contact dumb-server :service))
+       (erc-server-auto-reconnect t)
+       (erc-modules `(services-regain sasl ,@erc-modules))
+       (erc-services-regain-alist
+        '((FooNet . erc-services-issue-ghost-and-retry-nick)))
+       (expect (erc-d-t-make-expecter)))
+
+    (should (featurep 'erc-services)) ; see note in prior test
+
+    (with-current-buffer (erc :server "127.0.0.1"
+                              :port port
+                              :nick "dummy"
+                              :user "tester"
+                              :password "changeme"
+                              :full-name "tester")
+      (funcall expect 10 "dummy is already in use, trying dummy`")
+      (funcall expect 10 "You are now logged in as tester")
+      (funcall expect 10 "-NickServ- dummy has been ghosted.")
+      (funcall expect 10 "*** Your new nickname is dummy"))))
+
 ;;; erc-scenarios-services-misc.el ends here

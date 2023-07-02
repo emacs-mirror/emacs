@@ -742,13 +742,14 @@ message."
 	  (setq rmail-summary-buffer nil)))
     (save-excursion
       (let ((rbuf (current-buffer))
-	    (total rmail-total-messages))
+	    (total 0))
 	(set-buffer sumbuf)
 	;; Set up the summary buffer's contents.
 	(let ((buffer-read-only nil))
 	  (erase-buffer)
 	  (while summary-msgs
 	    (princ (cdr (car summary-msgs)) sumbuf)
+            (setq total (1+ total))
 	    (setq summary-msgs (cdr summary-msgs)))
 	  (goto-char (point-min)))
 	;; Set up the rest of its state and local variables.

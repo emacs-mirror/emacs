@@ -1707,7 +1707,7 @@ which can be carried out at the same time:
    forwarded X connection (ssh -XC remotehostname emacs ...).
 
    Keep in mind that this does not help with latency problems, only
-   andwidth ones.
+   bandwidth ones.
 
 5) Use lbxproxy on the remote end of the connection.  This is an
    interface to the low bandwidth X extension in some outdated X
@@ -2787,6 +2787,21 @@ one, you could use the following workarounds:
 With any of the above methods, you'd need to restart Emacs (and
 preferably also your Windows system) after making the changes, to have
 them take effect.
+
+*** MinGW64 Emacs built with -D_FORTIFY_SOURCE=2 misbehaves
+
+Using this preprocessor option when building Emacs with MinGW64
+produces an Emacs binary that behaves incorrectly.  In particular,
+running asynchronous shell command, e.g., with 'M-&', causes Emacs to
+use 100% of CPU and start allocating a lot of memory.  For the same
+reason, asynchronous native-compilation will hang Emacs (which could
+wedge Emacs during startup, if your Emacs is configured to download
+and install packages via package.el every startup).  'M-x run-python',
+'M-x shell', and similar commands also hang.  Other commands might
+also cause high CPU and/or memory usage.
+
+The workaround is to rebuild Emacs without the -D_FORTIFY_SOURCE=2
+option.
 
 ** Emacs on Windows 9X requires UNICOWS.DLL
 

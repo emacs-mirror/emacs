@@ -64,7 +64,7 @@ Also see the `duplicate-line' command."
     (insert string)))
 
 (defcustom duplicate-line-final-position 0
-  "Where to put point after duplicating the line with `duplicate-line'.
+  "Where to put point after `duplicate-line' or `duplicate-dwim'.
 When 0, leave point on the original line.
 When 1, move point to the first new line.
 When -1, move point to the last new line.
@@ -105,7 +105,18 @@ Also see the `copy-from-above-command' command."
       (forward-line duplicate-line-final-position)
       (move-to-column col))))
 
-(declare-function rectangle--duplicate-right "rect" (n))
+(defcustom duplicate-region-final-position 0
+  "Where the region ends up after duplicating a region with `duplicate-dwim'.
+When 0, leave the region in place.
+When 1, put the region around the first copy.
+When -1, put the region around the last copy."
+  :type '(choice (const :tag "Leave region in place" 0)
+                 (const :tag "Put region around first copy" 1)
+                 (const :tag "Put region around last copy" -1))
+  :group 'editing
+  :version "29.1")
+
+(declare-function rectangle--duplicate-right "rect" (n displacement))
 
 ;; `duplicate-dwim' preserves an active region and changes the buffer
 ;; outside of it: disregard the region when immediately undoing the
@@ -118,24 +129,40 @@ Also see the `copy-from-above-command' command."
 If the region is inactive, duplicate the current line (like `duplicate-line').
 Otherwise, duplicate the region, which remains active afterwards.
 If the region is rectangular, duplicate on its right-hand side.
-Interactively, N is the prefix numeric argument, and defaults to 1."
+Interactively, N is the prefix numeric argument, and defaults to 1.
+The variables `duplicate-line-final-position' and
+`duplicate-region-final-position' control the position of point
+and the region after the duplication."
   (interactive "p")
   (unless n
     (setq n 1))
   (cond
+   ((<= n 0) nil)
    ;; Duplicate rectangle.
    ((bound-and-true-p rectangle-mark-mode)
-    (rectangle--duplicate-right n)
+    (rectangle--duplicate-right n
+                                (if (< duplicate-region-final-position 0)
+                                    n
+                                  duplicate-region-final-position))
     (setq deactivate-mark nil))
 
    ;; Duplicate (contiguous) region.
    ((use-region-p)
     (let* ((beg (region-beginning))
            (end (region-end))
-           (text (buffer-substring beg end)))
+           (text (buffer-substring beg end))
+           (pt (point))
+           (mk (mark)))
       (save-excursion
         (goto-char end)
-        (duplicate--insert-copies n text)))
+        (duplicate--insert-copies n text))
+      (let* ((displace (if (< duplicate-region-final-position 0)
+                           n
+                         duplicate-region-final-position))
+             (d (* displace (- end beg))))
+        (unless (zerop d)
+          (push-mark (+ mk d))
+          (goto-char (+ pt d)))))
     (setq deactivate-mark nil))
 
    ;; Duplicate line.

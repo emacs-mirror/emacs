@@ -2419,7 +2419,7 @@ confirmation first."
 
 
 (defun bookmark-bmenu-locate ()
-  "Display location of this bookmark.  Displays in the minibuffer."
+  "Display the location of the bookmark for this line."
   (interactive nil bookmark-bmenu-mode)
   (let ((bmrk (bookmark-bmenu-bookmark)))
     (message "%s" (bookmark-location bmrk))))

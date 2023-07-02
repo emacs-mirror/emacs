@@ -746,7 +746,8 @@ See the documentation for `calculator-mode' for more information."
              ;; use 3 lines
              (let* ((bx (face-attribute 'mode-line :box))
                     (lh (plist-get bx :line-width)))
-               (and bx (or (not lh) (> lh 0))))
+               ;; Value of `:line-width' can be either a number or a cons.
+               (and bx (or (not lh) (> (if (consp lh) (cdr lh) lh) 0))))
              ;; if the mode line has an overline, use 3 lines
              (not (memq (face-attribute 'mode-line :overline)
                         '(nil unspecified)))))))

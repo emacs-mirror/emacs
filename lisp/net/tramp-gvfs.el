@@ -1068,6 +1068,8 @@ file names."
 	  (when (and (file-directory-p newname)
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
+	  (when (file-regular-p newname)
+	    (delete-file newname))
 
 	  (cond
 	   ;; We cannot rename volatile files, as used by Google-drive.

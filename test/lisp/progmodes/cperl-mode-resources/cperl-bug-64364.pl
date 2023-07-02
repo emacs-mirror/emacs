@@ -24,3 +24,32 @@ package P {
     }
 }
 # -------- Bug#64364: end -------
+
+# Now do this with multiline initializers
+# -------- signature with init: input -------
+package P {
+sub way { ...; }
+# perl 5.38 or newer
+sub bus
+:lvalue
+($sig,
+$na //= 42,
+@ture)
+{
+...;
+}
+}
+# -------- signature with init: expected output -------
+package P {
+    sub way { ...; }
+    # perl 5.38 or newer
+    sub bus
+	:lvalue
+	($sig,
+	 $na //= 42,
+	 @ture)
+    {
+	...;
+    }
+}
+# -------- signature with init: end -------

@@ -350,6 +350,9 @@ variables.
 A function call is in the tail position if it's the very last thing
 done so that the value returned by the call is the value of @var{body}
 itself, as is the case in the recursive call to @code{sum} above.
+
+@strong{Warning:} @code{named-let} works as expected only when
+lexical-binding is enabled.  @xref{Lexical Binding}.
 @end defspec
 
   Here is a complete list of the other facilities that create local
@@ -2599,7 +2602,7 @@ can be either @code{get} or @code{set}.
   You can make two variables synonyms and declare one obsolete at the
 same time using the macro @code{define-obsolete-variable-alias}.
 
-@defmac define-obsolete-variable-alias obsolete-name current-name &optional when docstring
+@defmac define-obsolete-variable-alias obsolete-name current-name when &optional docstring
 This macro marks the variable @var{obsolete-name} as obsolete and also
 makes it an alias for the variable @var{current-name}.  It is
 equivalent to the following:

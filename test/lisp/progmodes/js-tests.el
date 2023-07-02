@@ -237,6 +237,57 @@ if (!/[ (:,='\"]/.test(value)) {
 (js-deftest-indent "jsx-unclosed-2.jsx")
 (js-deftest-indent "jsx.jsx")
 
+;;;; Navigation tests.
+
+(ert-deftest js-mode-beginning-of-defun ()
+  (with-temp-buffer
+    (insert "function foo() {
+  var value = 1;
+}
+
+/** A comment. */
+function bar() {
+  var value = 1;
+}
+")
+    (js-mode)
+    ;; Move point inside `foo'.
+    (goto-char 18)
+    (beginning-of-defun)
+    (should (bobp))
+    ;; Move point between the two functions.
+    (goto-char 37)
+    (beginning-of-defun)
+    (should (bobp))
+    ;; Move point inside `bar'.
+    (goto-char 73)
+    (beginning-of-defun)
+    ;; Point should move to the beginning of `bar'.
+    (should (equal (point) 56))))
+
+(ert-deftest js-mode-end-of-defun ()
+  (with-temp-buffer
+    (insert "function foo() {
+  var value = 1;
+}
+
+/** A comment. */
+function bar() {
+  var value = 1;
+}
+")
+    (js-mode)
+    (goto-char (point-min))
+    (end-of-defun)
+    ;; end-of-defun from the beginning of the buffer should go to the
+    ;; end of `foo'.
+    (should (equal (point) 37))
+    ;; Move point to the beginning of /** A comment. */
+    (goto-char 38)
+    (end-of-defun)
+    ;; end-of-defun should move point to eob.
+    (should (eobp))))
+
 (provide 'js-tests)
 
 ;;; js-tests.el ends here
