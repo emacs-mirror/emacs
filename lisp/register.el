@@ -380,9 +380,7 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 
 (cl-defgeneric register-val-describe (val verbose)
   "Print description of register value VAL to `standard-output'.
-Second argument VERBOSE is ignored, unless VAL is not one of the
-supported kinds of register contents, in which case it is displayed
-using `prin1'."
+Second argument VERBOSE means produce a more detailed description."
   (princ "Garbage:\n")
   (if verbose (prin1 val)))
 
