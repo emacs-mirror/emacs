@@ -43,7 +43,10 @@ modify this GNU manual.''
 @contents
 
 @node Top
-@top EasyPG Assistant user's manual
+@top EasyPG Assistant User's Manual
+@cindex easypg assistant
+@cindex gnu privacy guard
+@cindex gnupg
 
 EasyPG Assistant is an Emacs user interface to GNU Privacy Guard
 (GnuPG, @pxref{Top, , Top, gnupg, Using the GNU Privacy Guard}).
@@ -56,6 +59,12 @@ called EasyPG Library.
 @insertcopying
 @end ifnottex
 
+@c Unfortunately the node names of this manual are not very consistent
+@c w.r.t. their case.  However, case is significant in node names, so
+@c we probably better should not change these to not break any
+@c external references.  Things are more relaxed for structure titles,
+@c so we consistently updated them to title-case.
+
 @menu
 * Overview::
 * Quick start::
@@ -64,6 +73,7 @@ called EasyPG Library.
 * Caching Passphrases::
 * Bug Reports::
 * GNU Free Documentation License::  The license for this documentation.
+* Concept Index::
 * Key Index::
 * Function Index::
 * Variable Index::
@@ -71,6 +81,7 @@ called EasyPG Library.
 
 @node Overview
 @chapter Overview
+@cindex features of easypg assistant
 
 EasyPG Assistant provides the following features.
 
@@ -84,7 +95,8 @@ EasyPG Assistant provides the following features.
 @end itemize
 
 @node Quick start
-@chapter Quick start
+@chapter Quick Start
+@cindex introduction to easypg assistant
 
 EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
 
@@ -118,7 +130,11 @@ This chapter introduces various commands for typical use cases.
 @end menu
 
 @node Key management
-@section Key management
+@section Key Management
+@cindex key management
+
+@cindex key ring, browsing
+@cindex browse key ring
 Probably the first step of using EasyPG Assistant is to browse your
 keyring.  @kbd{M-x epa-list-keys} is corresponding to @samp{gpg
 --list-keys} from the command line.
@@ -157,6 +173,7 @@ about the key you selected.
         Fingerprint: 9003 D76B 73B7 4A8A E588  10AF 4447 461B 2A9B EA2D
 @end example
 
+@cindex private key ring, browsing
 @noindent
 To browse your private keyring, use @kbd{M-x epa-list-secret-keys}.
 
@@ -172,12 +189,14 @@ to select keys, type @kbd{o}, and then supply the filename.
 Below are other commands related to key management.  Some of them take
 a file as input/output, and others take the current region.
 
+@cindex insert keys
 @deffn Command epa-insert-keys keys
 Insert selected @var{keys} after the point.  It will let you select
 keys before insertion.  By default, it will encode keys in the OpenPGP
 armor format.
 @end deffn
 
+@cindex import keys
 @deffn Command epa-import-keys file
 Import keys from @var{file} to your keyring.
 @end deffn
@@ -195,14 +214,18 @@ Import keys in the OpenPGP armor format in the current region between
 applies @code{epa-import-keys-region} to each of them.
 @end deffn
 
+@cindex delete keys
 @deffn Command epa-delete-keys allow-secret
 Delete selected keys.  If @var{allow-secret} is non-@code{nil}, it
 also delete the secret keys.
 @end deffn
 
 @node Cryptographic operations on regions
-@section Cryptographic operations on regions
+@section Cryptographic Operations on Regions
+@cindex cryptographic operations on regions
+@cindex region operations, cryptographic
 
+@cindex decrypt region
 @deffn Command epa-decrypt-region start end
 Decrypt the current region between @var{start} and @var{end}.  It
 replaces the region with the decrypted text.
@@ -216,6 +239,7 @@ and applies @code{epa-decrypt-region} to each of them.  That is, this
 command does not alter the original text around armors.
 @end deffn
 
+@cindex verify region
 @deffn Command epa-verify-region start end
 Verify the current region between @var{start} and @var{end}.  It sends
 the verification result to the minibuffer or a popup window.  It
@@ -231,6 +255,7 @@ searches OpenPGP cleartext blocks in the region and applies
 not alter the original text around OpenPGP cleartext blocks.
 @end deffn
 
+@cindex sign region
 @deffn Command epa-sign-region start end signers type
 Sign the current region between @var{start} and @var{end}.  By
 default, it creates a cleartext signature.  If a prefix argument is
@@ -238,6 +263,7 @@ given, it will let you select signing keys, and then a signature
 type.
 @end deffn
 
+@cindex encrypt region
 @deffn Command epa-encrypt-region start end recipients sign signers
 Encrypt the current region between @var{start} and @var{end}.  It will
 let you select recipients.  If a prefix argument is given, it will
@@ -246,28 +272,37 @@ you answered yes, it will let you select the signing keys.
 @end deffn
 
 @node Cryptographic operations on files
-@section Cryptographic operations on files
+@section Cryptographic Operations on Files
+@cindex cryptographic operations on files
+@cindex file operations, cryptographic
 
+@cindex decrypt file
 @deffn Command epa-decrypt-file file &optional output
 Decrypt @var{file}.  If you do not specify the name @var{output} to
 use for the decrypted file, this function prompts for the value to use.
 @end deffn
 
+@cindex verify file
 @deffn Command epa-verify-file file
 Verify @var{file}.
 @end deffn
 
+@cindex sign file
 @deffn Command epa-sign-file file signers type
 Sign @var{file}.  If a prefix argument is given, it will let you
 select signing keys, and then a signature type.
 @end deffn
 
+@cindex encrypt file
 @deffn Command epa-encrypt-file file recipients
 Encrypt @var{file}.  It will let you select recipients.
 @end deffn
 
 @node Dired integration
-@section Dired integration
+@section Dired Integration
+@cindex dired integration
+@cindex directory operations
+@cindex multiple file operations
 
 EasyPG Assistant extends Dired Mode for GNU Emacs to allow users to
 easily do cryptographic operations on files.  For example,
@@ -306,7 +341,9 @@ Encrypt marked files.
 @end table
 
 @node Mail-mode integration
-@section Mail-mode integration
+@section Mail-Mode Integration
+@cindex mail-mode integration
+@cindex sending signed/encrypted mails
 
 EasyPG Assistant provides a minor mode @code{epa-mail-mode} to help
 user compose inline OpenPGP messages.  Inline OpenPGP is a traditional
@@ -361,7 +398,12 @@ whether to sign, and which key(s) to sign with.
 @end table
 
 @node Encrypting/decrypting gpg files
-@section Encrypting/decrypting gpg files
+@section Encrypting and Decrypting gpg Files
+@cindex encrypting gpg files
+@cindex decrypting gpg files
+@cindex gpg files, encrypting and decrypting
+@cindex automatic file encryption and decryption
+
 By default, every file whose name ends with @file{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
 decrypted text is inserted in the buffer rather than encrypted one.
@@ -444,7 +486,9 @@ The default value is @code{t}.
 @end defvar
 
 @node Querying a key server
-@section Querying a key server
+@section Querying a Key Server
+@cindex query key server
+@cindex key server, querying
 
 The @code{epa-search-keys} command can be used to query a
 @acronym{GPG} key server.  Emacs will then pop up a buffer that lists
@@ -457,9 +501,11 @@ into your key ring).
 
 The @code{epa-keyserver} variable says which server to query.
 
-
 @node GnuPG version compatibility
-@chapter GnuPG version compatibility
+@chapter GnuPG Version Compatibility
+@cindex gnupg version compatibility
+@cindex version compatibility with gnupg
+@cindex compatibility with gnupg
 
 As of February 2016, there are three active branches of GnuPG: 2.1,
 2.0, and 1.4.  All those branches should work flawlessly with Emacs
@@ -492,6 +538,9 @@ graphical prompt.
 
 @node Caching Passphrases
 @chapter Caching Passphrases
+@cindex caching passphrases
+@cindex entering passphrases
+@cindex passphrases, entering and caching
 
 Typing passphrases is a troublesome task if you frequently open and
 close the same file.  GnuPG and EasyPG Assistant provide mechanisms to
@@ -532,6 +581,8 @@ To set up elisp passphrase cache, set
 
 @node Bug Reports
 @chapter Bug Reports
+@cindex bug reports
+@cindex reporting bugs
 
 Bugs and problems with EasyPG Assistant are actively worked on by the
 Emacs development team.  Feature requests and suggestions are also
@@ -555,6 +606,10 @@ buffer name is a whitespace.
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
 
 @node Key Index
 @unnumbered Key Index
