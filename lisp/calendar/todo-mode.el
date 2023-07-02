@@ -1463,6 +1463,10 @@ the archive of the file moved to, creating it if it does not exist."
 			(point-max)))
 		 (content (buffer-substring-no-properties beg end))
 		 (counts (cdr (assoc cat todo-categories))))
+	    ;; Restore display of selected category, so internal file
+	    ;; structure is not visible if user is prompted to choose a new
+	    ;; category name in target file.
+	    (todo-category-select)
 	    ;; Move the category to the new file.  Also update or create
 	    ;; archive file if necessary.
 	    (with-current-buffer
@@ -1525,7 +1529,8 @@ the archive of the file moved to, creating it if it does not exist."
 	    ;; last category, delete the file.  Also handle archive file
 	    ;; if necessary.
 	    (let ((buffer-read-only nil))
-	      (remove-overlays beg end)
+	      (widen)
+              (remove-overlays beg end)
 	      (delete-region beg end)
 	      (goto-char (point-min))
 	      ;; Put point after todo-categories sexp.
@@ -2856,7 +2861,8 @@ section in the category moved to."
                 (while done-items
                   (let ((buffer-read-only nil))
 		    (todo-insert-with-overlays (pop done-items)))
-                  (todo-forward-item)))
+                  (todo-item-end)
+		  (forward-line)))
               ;; If only done items were moved, move point to the top
               ;; one, otherwise, move point to the top moved todo item.
               (goto-char here)
@@ -5296,21 +5302,7 @@ changes you have made in the order of the categories.
     ;; legitimate place to insert an item.  But skip this space if
     ;; count > 1, since that should only stop on an item.
     (when (and not-done (todo-done-item-p) (not count))
-      ;; (if (or (not count) (= count 1))
-	  (re-search-backward "^$" start t))));)
-    ;; The preceding sexp is insufficient when buffer is not narrowed,
-    ;; since there could be no done items in this category, so the
-    ;; search puts us on first todo item of next category.  Does this
-    ;; ever happen?  If so:
-    ;; (let ((opoint) (point))
-    ;;   (forward-line -1)
-    ;;   (when (or (not count) (= count 1))
-    ;; 	(cond ((looking-at (concat "^" (regexp-quote todo-category-beg)))
-    ;; 	       (forward-line -2))
-    ;; 	      ((looking-at (concat "^" (regexp-quote todo-category-done)))
-    ;; 	       (forward-line -1))
-    ;; 	      (t
-    ;; 	       (goto-char opoint)))))))
+      (re-search-backward "^$" start t))))
 
 (defun todo-backward-item (&optional count)
   "Move point up to start of item with next higher priority.
