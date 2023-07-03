@@ -2646,16 +2646,26 @@ meaning to raise or lower the item's priority by one."
 				 (save-excursion
 				   (re-search-forward regexp1 nil t)
 				   (match-string-no-properties 1)))))))
-	   curnum
+	   (count 1)
+	   (curnum (save-excursion
+		     (let ((curstart
+			    ;; If point is in done items section or not on an
+			    ;; item, use position of first todo item to avoid
+			    ;; the while-loop.
+			    (or (and (not (todo-done-item-section-p))
+				     (todo-item-start))
+				(point-min))))
+		       (goto-char (point-min))
+		       (while (/= (point) curstart)
+			 (setq count (1+ count))
+			 (todo-forward-item))
+		       count)))
 	   (todo (cond ((or (memq arg '(raise lower))
 			    (eq major-mode 'todo-filtered-items-mode))
 			(save-excursion
-			  (let ((curstart (todo-item-start))
-				(count 0))
-			    (goto-char (point-min))
+			  (let ((count curnum))
 			    (while (looking-at todo-item-start)
 			      (setq count (1+ count))
-			      (when (= (point) curstart) (setq curnum count))
 			      (todo-forward-item))
 			    count)))
 		       ((eq major-mode 'todo-mode)
@@ -2667,11 +2677,16 @@ meaning to raise or lower the item's priority by one."
 			   ((and (eq arg 'raise) (>= curnum 1))
 			    (1- curnum))
 			   ((and (eq arg 'lower) (<= curnum maxnum))
-			    (1+ curnum))))
-	   candidate)
+			    (1+ curnum)))))
+      (and (called-interactively-p 'any)
+	   priority  ; Check further only if arg or prefix arg was passed.
+	   (or (< priority 1) (> priority maxnum))
+	   (user-error (format "Priority must be an integer between 1 and %d"
+			       maxnum)))
       (unless (and priority
+		   (/= priority curnum)
 		   (or (and (eq arg 'raise) (zerop priority))
-		       (and (eq arg 'lower) (> priority maxnum))))
+		       (and (eq arg 'lower) (>= priority maxnum))))
 	;; When moving item to another category, show the category before
 	;; prompting for its priority.
 	(unless (or arg (called-interactively-p 'any))
@@ -2687,16 +2702,34 @@ meaning to raise or lower the item's priority by one."
 	      ;; while setting priority.
 	      (save-excursion (todo-category-select)))))
 	;; Prompt for priority only when the category has at least one
-	;; todo item.
-	(when (> maxnum 1)
-	  (while (not priority)
-	    (setq candidate (read-number prompt
-					 (if (eq todo-default-priority 'first)
-					     1 maxnum)))
-	    (setq prompt (when (or (< candidate 1) (> candidate maxnum))
-			   (format "Priority must be an integer between 1 and %d.\n"
-				   maxnum)))
-	    (unless prompt (setq priority candidate))))
+	;; todo item or when passing the current priority as prefix arg.
+	(when (and (or (not priority) (= priority curnum))
+		   (> maxnum 1))
+          (let* ((read-number-history (mapcar #'number-to-string
+                                              (if (eq todo-default-priority
+						      'first)
+                                                  (number-sequence maxnum 1 -1)
+						(number-sequence 1 maxnum))))
+                 (history-add-new-input nil)
+		 (candidate (or priority
+				(read-number prompt
+					     (if (eq todo-default-priority
+						     'first)
+						 1 maxnum))))
+		 (success nil))
+	    (while (not success)
+              (setq prompt
+                    (cond
+		     ((and (= candidate curnum)
+			   ;; Allow same priority in a different category
+			   ;; (only possible when called non-interactively).
+			   (called-interactively-p 'any))
+		      "New priority must be different from current priority: ")
+		     (t (when (or (< candidate 1) (> candidate maxnum))
+			  (format "Priority must be an integer between 1 and %d: "
+				  maxnum)))))
+	      (when prompt (setq candidate (read-number prompt)))
+              (unless prompt (setq priority candidate success t)))))
 	;; In Top Priorities buffer, an item's priority can be changed
 	;; wrt items in another category, but not wrt items in the same
 	;; category.

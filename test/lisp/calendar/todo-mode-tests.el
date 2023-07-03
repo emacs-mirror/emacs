@@ -934,5 +934,70 @@ since all non-initial item lines must begin with whitespace."
      (insert (concat "\n" item1))
      (should-error (todo-edit-quit) :type 'user-error))))
 
+(ert-deftest todo-test-item-insertion-with-priority-1 ()
+  "Test inserting new item when point is not on a todo item.
+When point is on the empty line at the end of the todo items
+section, insertion with priority setting should succeed."
+  (with-todo-test
+   (todo-test--show 1)
+   (goto-char (point-max))
+   ;; Now point should not be on a todo item.
+   (should-not (todo-item-start))
+   (let ((item "Point was on empty line at end of todo items section."))
+     (todo-test--insert-item item 1)
+     ;; Move point to item that was just inserted.
+     (goto-char (point-min))
+     (re-search-forward (concat todo-date-string-start todo-date-pattern
+				(regexp-quote todo-nondiary-end) " ")
+			(pos-eol) t)
+     (should (looking-at (regexp-quote item))))))
+
+(ert-deftest todo-test-item-insertion-with-priority-2 ()
+  "Test inserting new item when point is not on a todo item.
+When point is on the empty line at the end of the done items
+section, insertion with priority setting should succeed."
+  (with-todo-test
+   (todo-test--show 1)
+   (goto-char (point-max))
+   ;; See comment about recentering in todo-test-raise-lower-priority.
+   (set-window-buffer nil (current-buffer))
+   (todo-toggle-view-done-items)
+   (todo-next-item)
+   (goto-char (point-max))
+   ;; Now point should be at end of done items section, so not be on a
+   ;; todo item.
+   (should (todo-done-item-section-p))
+   (should-not (todo-item-start))
+   (let ((item "Point was on empty line at end of done items section."))
+     (todo-test--insert-item item 1)
+     ;; Move point to item that was just inserted.
+     (goto-char (point-min))
+     (re-search-forward (concat todo-date-string-start todo-date-pattern
+				(regexp-quote todo-nondiary-end) " ")
+			(pos-eol) t)
+     (should (looking-at (regexp-quote item))))))
+
+(ert-deftest todo-test-item-insertion-with-priority-3 ()
+  "Test inserting new item when point is not on a todo item.
+When point is on a done item, insertion with priority setting
+should succeed."
+  (with-todo-test
+   (todo-test--show 1)
+   (goto-char (point-max))
+   ;; See comment about recentering in todo-test-raise-lower-priority.
+   (set-window-buffer nil (current-buffer))
+   (todo-toggle-view-done-items)
+   (todo-next-item)
+   ;; Now point should be on first done item.
+   (should (and (todo-item-start) (todo-done-item-section-p)))
+   (let ((item "Point was on a done item."))
+     (todo-test--insert-item item 1)
+     ;; Move point to item that was just inserted.
+     (goto-char (point-min))
+     (re-search-forward (concat todo-date-string-start todo-date-pattern
+				(regexp-quote todo-nondiary-end) " ")
+			(pos-eol) t)
+     (should (looking-at (regexp-quote item))))))
+
 (provide 'todo-mode-tests)
 ;;; todo-mode-tests.el ends here
