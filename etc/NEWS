@@ -102,6 +102,11 @@ mistaken compositions, this will now work as well.
 This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
+---
+** New user option 'duplicate-region-final-position'
+It controls the placement of point and the region after duplicating a
+region with 'duplicate-dwim'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
