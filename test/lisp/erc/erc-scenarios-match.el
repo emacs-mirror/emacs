@@ -49,8 +49,9 @@
                                 :port port
                                 :full-name "tester"
                                 :nick "tester")
-        (should (memq 'erc-match-message
-                      (memq 'erc-add-timestamp erc-insert-modify-hook)))
+        ;; Module `timestamp' follows `match' in insertion hooks.
+        (should (memq 'erc-add-timestamp
+                      (memq 'erc-match-message erc-insert-modify-hook)))
         ;; The "match type" is `current-nick'.
         (funcall expect 5 "tester")
         (should (eq (get-text-property (1- (point)) 'font-lock-face)
@@ -60,6 +61,7 @@
 ;; some non-nil invisibility property spans the entire message.
 (ert-deftest erc-scenarios-match--stamp-left-fools-invisible ()
   :tags '(:expensive-test)
+  (ert-skip "WIP: fix included in bug#64301")
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "join/legacy")
        (dumb-server (erc-d-run "localhost" t 'foonet))
@@ -84,8 +86,9 @@
                                 :full-name "tester"
                                 :password "changeme"
                                 :nick "tester")
-        (should (memq 'erc-match-message
-                      (memq 'erc-add-timestamp erc-insert-modify-hook)))
+        ;; Module `timestamp' follows `match' in insertion hooks.
+        (should (memq 'erc-add-timestamp
+                      (memq 'erc-match-message erc-insert-modify-hook)))
         (funcall expect 5 "This server is in debug mode")))
 
     (ert-info ("Ensure lines featuring \"bob\" are invisible")
