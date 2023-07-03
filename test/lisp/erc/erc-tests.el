@@ -1851,8 +1851,8 @@
    '( :erc-insert-modify-hook (erc-controls-highlight ; 0
                                erc-button-add-buttons ; 30
                                erc-fill ; 40
-                               erc-add-timestamp ; 50
-                               erc-match-message) ; 60
+                               erc-match-message ; 50
+                               erc-add-timestamp) ; 60
 
       :erc-send-modify-hook ( erc-controls-highlight ; 0
                               erc-button-add-buttons ; 30
