@@ -391,7 +391,7 @@ used with the completion list:
 @findex minibuffer-choose-completion
 @item M-@key{DOWN}
 @itemx M-@key{UP}
-While in the minibuffer, @kbd{M-@key{DOWN}}
+While in the minibuffer or in the completion list buffer, @kbd{M-@key{DOWN}}
 (@code{minibuffer-next-completion} and @kbd{M-@key{UP}}
 (@code{minibuffer-previous-completion}) navigate through the
 completions and displayed in the completions buffer.  When
@@ -411,7 +411,7 @@ the minibuffer.
 @itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
-way for using the commands below.  @key{PageUp}, @key{prior} and
+way for also using the commands below.  @key{PageUp}, @key{prior} and
 @kbd{M-g M-c} does the same.  You can also select the window in other
 ways (@pxref{Windows}).
 
