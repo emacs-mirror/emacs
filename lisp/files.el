@@ -482,6 +482,7 @@ non-nil."
   "When nil, `auto-save-visited-mode' will auto-save remote files.
 Any other value means that it will not."
   :group 'auto-save
+  :group 'tramp
   :type 'boolean
   :version "29.1")
 
@@ -557,6 +558,7 @@ using a transform that puts the lock files on a local file system."
 (defcustom remote-file-name-inhibit-locks nil
   "Whether to create file locks for remote files."
   :group 'files
+  :group 'tramp
   :version "28.1"
   :type 'boolean)
 
@@ -1317,6 +1319,7 @@ consecutive checks.  For example:
            (< 0 (file-attribute-size
                  (file-attributes (file-chase-links file)))))))"
   :group 'files
+  :group 'tramp
   :version "24.1"
   :type '(choice
 	  (const   :tag "Do not inhibit file name cache" nil)
@@ -1324,6 +1327,22 @@ consecutive checks.  For example:
 	  (integer :tag "Do not use file name cache"
 		   :format "Do not use file name cache older then %v seconds"
 		   :value 10)))
+
+(defcustom remote-file-name-access-timeout nil
+  "Timeout (in seconds) for `access-file'.
+This timeout limits the time to check, whether a remote file is
+accessible.  `access-file' returns an error after that time.  If
+the value is nil, no timeout is used.
+
+This applies only when there isn't time spent for other actions,
+like reading passwords."
+  :group 'files
+  :group 'tramp
+  :version "30.1"
+  ;;:type '(choice :tag "Timeout (seconds)" natnum (const nil)))
+  :type '(choice
+	  (natnum :tag "Timeout (seconds)")
+          (const  :tag "Do not use timeout" nil)))
 
 (defun file-local-name (file)
   "Return the local name component of FILE.
@@ -6386,6 +6405,8 @@ RECURSIVE if DIRECTORY is nonempty."
   "Whether remote files shall be moved to the Trash.
 This overrules any setting of `delete-by-moving-to-trash'."
   :version "30.1"
+  :group 'files
+  :group 'tramp
   :type 'boolean)
 
 (defun file-equal-p (file1 file2)

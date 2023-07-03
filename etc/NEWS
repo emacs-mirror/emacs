@@ -67,6 +67,11 @@ If this user option is non-nil, 'auto-save-mode' will not auto-save
 remote buffers.  The default is nil.
 
 +++
+** New user option 'remote-file-name-access-timeout'.
+When a natural number, this option limits the call of 'access-file'
+for remote files to this number of seconds.  Default is nil.
+
++++
 ** New user option 'yes-or-no-prompt'.
 This allows the user to customize the prompt that is appended by
 'yes-or-no-p' when asking questions.  The default value is
@@ -103,7 +108,7 @@ This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
 ---
-** New user option 'duplicate-region-final-position'
+** New user option 'duplicate-region-final-position'.
 It controls the placement of point and the region after duplicating a
 region with 'duplicate-dwim'.
 
@@ -444,7 +449,6 @@ searching.
 *** Subroutine signatures are now supported.
 CPerl mode fontifies subroutine signatures like variable declarations
 which makes them visually distinct from subroutine prototypes.
-
 
 
 * New Modes and Packages in Emacs 30.1

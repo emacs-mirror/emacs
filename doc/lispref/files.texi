@@ -969,9 +969,15 @@ guaranteed to be writable.
 @end defmac
 
 @defun access-file filename string
+@vindex remote-file-name-access-timeout
 If you can read @var{filename} this function returns @code{nil};
 otherwise it signals an error
 using @var{string} as the error message text.
+
+If the user option @code{remote-file-name-access-timeout} is a number,
+the function signals an error when it doesn't finish after that time
+(in seconds).  This applies only to remote files, and only when there
+is no additional time spent while reading passwords or alike.
 @end defun
 
 @defun file-ownership-preserved-p filename &optional group
