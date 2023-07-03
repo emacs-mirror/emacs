@@ -450,6 +450,10 @@ searching.
 CPerl mode fontifies subroutine signatures like variable declarations
 which makes them visually distinct from subroutine prototypes.
 
+*** Syntax of Perl up to version 5.38 is supported.
+CPerl mode supports the new keywords for exception handling and the
+object oriented syntax which were added in Perl 5.36 and 5.38.
+
 
 * New Modes and Packages in Emacs 30.1
 
