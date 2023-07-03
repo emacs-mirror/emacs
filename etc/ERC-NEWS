@@ -160,11 +160,12 @@ the same effect by issuing a "/CLEAR" at the prompt.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
 interactive and can be invoked on any message to view its timestamp in
-the echo area.  The command 'erc-button-previous' now moves to the
-beginning instead of the end of buttons.  A new command, 'erc-news',
-can now be invoked to visit this very file.  And the 'irccontrols'
-module now supports additional colors and special handling for
-"spoilers" (hidden text).
+the echo area.  Fool visibility has become togglable with the new
+command 'erc-match-toggle-hidden-fools'.  The 'button' module's
+'erc-button-previous' now moves to the beginning instead of the end of
+buttons.  A new command, 'erc-news', can be invoked to visit this very
+file.  And the 'irccontrols' module now supports additional colors and
+special handling for "spoilers" (hidden text).
 
 ** Changes in the library API.
 
@@ -213,6 +214,9 @@ traversing messages.  To compensate, a new property, 'erc-timestamp',
 now spans message bodies but not the newlines delimiting them.
 Somewhat relatedly, the function 'erc-insert-aligned' has been
 deprecated and removed from the primary client code path.
+Additionally, the 'stamp' module now merges its 'invisible' property
+with existing ones, when present, and it includes all white space
+around stamps when doing so.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library

@@ -669,10 +669,9 @@ This function should be called from `erc-text-matched-hook'."
           (save-restriction
             (widen)
             (put-text-property (1- beg) (1- end) 'invisible 'erc-match)))
-      ;; The docs say `intangible' is deprecated, but this has been
-      ;; like this for ages.  Should verify unneeded and remove if so.
-      (erc-put-text-properties (point-min) (point-max)
-                               '(invisible intangible)))))
+      ;; Before ERC 5.6, this also used to add an `intangible'
+      ;; property, but the docs say it's now obsolete.
+      (put-text-property (point-min) (point-max) 'invisible 'erc-match))))
 
 (defun erc-beep-on-match (match-type _nickuserhost _message)
   "Beep when text matches.
@@ -681,11 +680,20 @@ This function is meant to be called from `erc-text-matched-hook'."
     (beep)))
 
 (defun erc-match--modify-invisibility-spec ()
-  "Add an ellipsis property to the local spec."
+  "Add an `erc-match' property to the local spec."
   (if erc-match-mode
       (add-to-invisibility-spec 'erc-match)
     (erc-with-all-buffers-of-server nil nil
       (remove-from-invisibility-spec 'erc-match))))
+
+(defun erc-match-toggle-hidden-fools ()
+  "Toggle fool visibility.
+Expect `erc-hide-fools' or a function that does something similar
+to be in `erc-text-matched-hook'."
+  (interactive)
+  (if (memq 'erc-match (ensure-list buffer-invisibility-spec))
+      (remove-from-invisibility-spec 'erc-match)
+    (add-to-invisibility-spec 'erc-match)))
 
 (provide 'erc-match)
 
