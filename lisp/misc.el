@@ -114,7 +114,7 @@ When -1, put the region around the last copy."
                  (const :tag "Put region around first copy" 1)
                  (const :tag "Put region around last copy" -1))
   :group 'editing
-  :version "29.1")
+  :version "30.1")
 
 (declare-function rectangle--duplicate-right "rect" (n displacement))
 
