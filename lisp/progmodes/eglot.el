@@ -3212,7 +3212,7 @@ for which LSP on-type-formatting should be requested."
            parameter
          (when (zerop i)
            (goto-char (elt parlabel 0))
-           (search-backward "(" nil t)
+           (skip-syntax-backward "^w")
            (add-face-text-property (point-min) (point)
                                    'font-lock-function-name-face))
          ;; ...perhaps highlight it in the formals list

@@ -1363,7 +1363,9 @@ place.")
                ,cperl--ws*-rx
                (or "," "=" "||=" "//=" ")"))
     "A rx sequence for the begin of a signature with initializers.
-Initializers can contain almost all Perl constructs and thus can not be covered by regular expressions.  This sequence captures enough to distinguish a signature from a prototype.")
+Initializers can contain almost all Perl constructs and thus can
+not be covered by regular expressions.  This sequence captures
+enough to distinguish a signature from a prototype.")
 
   (defconst cperl--package-rx
     `(sequence (group "package")

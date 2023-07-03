@@ -1194,6 +1194,7 @@ static void get_cursor_offset_for_mouse_face (struct window *w,
 #endif /* HAVE_WINDOW_SYSTEM */
 
 static void produce_special_glyphs (struct it *, enum display_element_type);
+static void pad_mode_line (struct it *, bool);
 static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
 static bool coords_in_mouse_face_p (struct window *, int, int);
 static void reset_box_start_end_flags (struct it *);
@@ -28877,7 +28878,11 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	{
 	  /* Add truncation mark, but don't do it if the line is
 	     truncated at a padding space.  */
-	  if (it_charpos < it->string_nchars)
+	  /* Need to do the below for the last string character as
+	     well, since it could be a double-width character, in
+	     which case the previous character ends before
+	     last_visible_x.  Thus, comparison with <=, not <.  */
+	  if (it_charpos <= it->string_nchars)
 	    {
 	      if (!FRAME_WINDOW_P (it->f))
 		{
@@ -28885,6 +28890,18 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
 		  if (it->current_x > it->last_visible_x)
 		    {
+		      /* This flag is true if we are displaying mode
+			 line, false for header-line or tab-line.  */
+		      bool mode_line_p = false;
+
+		      /* ROW->mode_line_p is true if we display mode
+			 line or header-line or tab-line.  */
+		      if (row->mode_line_p)
+			{
+			  struct window *w = it->w;
+			  if (row == MATRIX_MODE_LINE_ROW (w->desired_matrix))
+			    mode_line_p = true;
+			}
 		      if (!row->reversed_p)
 			{
 			  for (ii = row->used[TEXT_AREA] - 1; ii > 0; --ii)
@@ -28902,7 +28919,10 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 		      for (n = row->used[TEXT_AREA]; ii < n; ++ii)
 			{
 			  row->used[TEXT_AREA] = ii;
-			  produce_special_glyphs (it, IT_TRUNCATION);
+			  if (row->mode_line_p)
+			    pad_mode_line (it, mode_line_p);
+			  else
+			    produce_special_glyphs (it, IT_TRUNCATION);
 			}
 		    }
 		  produce_special_glyphs (it, IT_TRUNCATION);
@@ -31716,6 +31736,38 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
 	}
     }
 #endif
+
+  temp_it.dp = NULL;
+  temp_it.what = IT_CHARACTER;
+  temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
+  temp_it.face_id = GLYPH_FACE (glyph);
+  temp_it.len = CHAR_BYTES (temp_it.c);
+
+  PRODUCE_GLYPHS (&temp_it);
+  it->pixel_width = temp_it.pixel_width;
+  it->nglyphs = temp_it.nglyphs;
+}
+
+/* Produce padding glyphs for mode/header/tab-line whose text needs to
+   be truncated.  This is used when the last visible character leaves
+   one or more columns till the window edge, but the next character is
+   wider than that number of columns, and therefore cannot fit on the
+   line.  We then replace these columns with the appropriate padding
+   character: '-' for the mode line and SPC for the other two.  That's
+   because these lines should not show the usual truncation glyphs
+   there.  This function is only used on TTY frames.  */
+static void
+pad_mode_line (struct it *it, bool mode_line_p)
+{
+  struct it temp_it;
+  GLYPH glyph;
+
+  eassert (!FRAME_WINDOW_P (it->f));
+  temp_it = *it;
+  temp_it.object = Qnil;
+  memset (&temp_it.current, 0, sizeof temp_it.current);
+
+  SET_GLYPH (glyph, mode_line_p ? '-' : ' ', it->base_face_id);
 
   temp_it.dp = NULL;
   temp_it.what = IT_CHARACTER;

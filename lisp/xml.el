@@ -265,7 +265,7 @@ See also `xml-get-attribute-or-nil'."
 				      "\\)*\"\\|'\\(?:[^%&']\\|"
 				      xml-pe-reference-re "\\|"
 				      xml-reference-re "\\)*'\\)"))
-) ; End of `eval-when-compile'
+) ; End of `eval-and-compile'
 
 
 ;; [75] ExternalID ::= 'SYSTEM' S SystemLiteral
