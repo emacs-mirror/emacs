@@ -12796,9 +12796,10 @@ See also `pre-command-hook'.  */);
 #ifdef HAVE_WINDOW_SYSTEM
   DEFSYM (Qmove_toolbar, "move-toolbar");
 
-  /* The `tool-bar-position' is supported on GTK and builds using the
-     internal tool bar.  Providing this feature causes menu-bar.el to
-     provide `tool-bar-position' as a user option.  */
+  /* The `tool-bar-position' frame parameter is supported on GTK and
+     builds using the internal tool bar.  Providing this feature
+     causes menu-bar.el to provide `tool-bar-position' as a user
+     option.  */
 
 #if !defined HAVE_EXT_TOOL_BAR || defined USE_GTK
   Fprovide (Qmove_toolbar, Qnil);
