@@ -1338,7 +1338,7 @@ Used in keymaps to undefine keys.  It calls @code{ding}, but does
 not cause an error.
 @end deffn
 
-@defun keymap-local-binding key &optional accept-defaults
+@defun keymap-local-lookup key &optional accept-defaults
 This function returns the binding for @var{key} in the current
 local keymap, or @code{nil} if it is undefined there.
 
@@ -1346,7 +1346,7 @@ The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{keymap-lookup} (above).
 @end defun
 
-@defun keymap-global-binding key &optional accept-defaults
+@defun keymap-global-lookup key &optional accept-defaults
 This function returns the binding for command @var{key} in the
 current global keymap, or @code{nil} if it is undefined there.
 
