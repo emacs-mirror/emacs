@@ -4987,9 +4987,12 @@ even if this catches the signal."
   `(condition-case ,var
        ,bodyform
      ,@(mapcar (lambda (handler)
-                 `((debug ,@(if (listp (car handler)) (car handler)
-                              (list (car handler))))
-                   ,@(cdr handler)))
+                 (let ((condition (car handler)))
+                   (if (eq condition :success)
+                       handler
+                     `((debug ,@(if (listp condition) condition
+                                  (list condition)))
+                       ,@(cdr handler)))))
                handlers)))
 
 (defmacro with-demoted-errors (format &rest body)

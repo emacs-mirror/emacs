@@ -1256,5 +1256,36 @@ final or penultimate step during initialization."))
                              "((a b) (a b) #2# #2# #3# #3#)"
                              "((a b) (a b) [c d] [c d] #s(e f) #s(e f))")))))))
 
+(ert-deftest condition-case-unless-debug ()
+  "Test `condition-case-unless-debug'."
+  (let ((debug-on-error nil))
+    (with-suppressed-warnings ((suspicious condition-case))
+      (should (= 0 (condition-case-unless-debug nil 0))))
+    (should (= 0 (condition-case-unless-debug nil 0 (t 1))))
+    (should (= 0 (condition-case-unless-debug x 0 (t (1+ x)))))
+    (should (= 1 (condition-case-unless-debug nil (error "") (t 1))))
+    (should (equal (condition-case-unless-debug x (error "") (t x))
+                   '(error "")))))
+
+(ert-deftest condition-case-unless-debug-success ()
+  "Test `condition-case-unless-debug' with :success (bug#64404)."
+  (let ((debug-on-error nil))
+    (should (= 1 (condition-case-unless-debug nil 0 (:success 1))))
+    (should (= 1 (condition-case-unless-debug nil 0 (:success 1) (t 2))))
+    (should (= 1 (condition-case-unless-debug nil 0 (t 2) (:success 1))))
+    (should (= 1 (condition-case-unless-debug x 0 (:success (1+ x)))))
+    (should (= 1 (condition-case-unless-debug x 0 (:success (1+ x)) (t x))))
+    (should (= 1 (condition-case-unless-debug x 0 (t x) (:success (1+ x)))))
+    (should (= 2 (condition-case-unless-debug nil (error "")
+                   (:success 1) (t 2))))
+    (should (= 2 (condition-case-unless-debug nil (error "")
+                   (t 2) (:success 1))))
+    (should (equal (condition-case-unless-debug x (error "")
+                     (:success (1+ x)) (t x))
+                   '(error "")))
+    (should (equal (condition-case-unless-debug x (error "")
+                     (t x) (:success (1+ x)))
+                   '(error "")))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
