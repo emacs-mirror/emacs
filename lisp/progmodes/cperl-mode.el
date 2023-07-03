@@ -705,7 +705,7 @@ voice);
         d) Has support for imenu, including:
                 1) Separate unordered list of \"interesting places\";
                 2) Separate TOC of POD sections;
-                3) Separate list of packages;
+                3) Separate list of packages/classes;
                 4) Hierarchical view of methods in (sub)packages;
                 5) and functions (by the full name - with package);
         e) Has an interface to INFO docs for Perl; The interface is
@@ -1311,7 +1311,7 @@ or \"${ foo }\" will not.")
                           ")")))
     "A regular expression for a single attribute, without leading colon.
 It may have parameters in parens, but parens within the
-parameter's value are not supported..  This regexp does not have
+parameter's value are not supported.  This regexp does not have
 capture groups.")
 
   (defconst cperl--attribute-list-rx
@@ -1368,14 +1368,14 @@ not be covered by regular expressions.  This sequence captures
 enough to distinguish a signature from a prototype.")
 
   (defconst cperl--package-rx
-    `(sequence (group "package")
+    `(sequence (group (or "package" "class"))
                ,cperl--ws+-rx
                (group ,cperl--normal-identifier-rx)
                (optional (sequence ,cperl--ws+-rx
                                    (group (regexp ,cperl--version-regexp)))))
-    "A regular expression for package NAME VERSION in Perl.
-Contains three groups for the keyword \"package\", for the
-package name and for the version.")
+    "A regular expression for package|class NAME VERSION in Perl.
+Contains three groups for the initial keyword \"package\" or
+\"class\", for the package name and for the version.")
 
   (defconst cperl--package-for-imenu-rx
     `(sequence symbol-start
@@ -1392,26 +1392,58 @@ NAME BLOCK\" and \"package NAME VERSION BLOCK.\" Contains three
 groups: One for the keyword \"package\", one for the package
 name, and one for the discovery of a following BLOCK.")
 
+  ;; This gets a regexp of its own because classes allow attributes
+  ;; (e.g. ":isa(Parent)") while packages don't.  We skip over it, but
+  ;; like for "package" we capture the following ";" or "{".
+  (defconst cperl--class-for-imenu-rx
+    `(sequence symbol-start
+               (group-n 1 "class")
+               ,cperl--ws*-rx
+               (group-n 2 ,cperl--normal-identifier-rx)
+               (optional (sequence ,cperl--ws+-rx
+                                   (regexp ,cperl--version-regexp)))
+               (optional (sequence ,cperl--ws*-rx
+                                   ,cperl--attribute-list-rx))
+               ,cperl--ws*-rx
+               (group-n 3 (or ";" "{")))
+    "A regular expression to collect package names for `imenu'.
+Catches \"class NAME;\", \"class NAME VERSION;\", \"class NAME
+BLOCK\" and \"class NAME VERSION BLOCK\" and allows for
+attributes like \":isa(Parent)\".  Contains three groups: One for
+the keyword \"package\", one for the package name, and one for
+the discovery of a following BLOCK.")
+
   (defconst cperl--sub-name-for-imenu-rx
     `(sequence symbol-start
                (optional (sequence (group-n 3 (or "my" "state" "our"))
 	                           ,cperl--ws+-rx))
-               (group-n 1 "sub")
+               (group-n 1 (or "method" "sub"))
                ,cperl--ws+-rx
                (group-n 2 ,cperl--normal-identifier-rx))
-    "A regular expression to detect a subroutine start.
-Contains three groups: One to distinguish lexical from
-\"normal\" subroutines, for the keyword \"sub\", and one for the
-subroutine name.")
+    "A regular expression to detect a subroutine or method start.
+Contains three groups: One to distinguish lexical from \"normal\"
+subroutines, for the keyword \"sub\" or \"method\", and one for
+the subroutine name.")
 
 (defconst cperl--block-declaration-rx
   `(sequence
-    (or "package" "sub")  ; "class" and "method" coming soon
+    (or "class" "method" "package" "sub")
     (1+ ,cperl--ws-or-comment-rx)
     ,cperl--normal-identifier-rx)
   "A regular expression to find a declaration for a named block.
 Used for indentation.  These declarations introduce a block which
 does not need a semicolon to terminate the statement.")
+
+;;; Initializer blocks are not (yet) part of the Perl core.
+;; (defconst cperl--field-declaration-rx
+;;   `(sequence
+;;     "field"
+;;     (1+ ,cperl--ws-or-comment-rx)
+;;     ,cperl--basic-variable-rx)
+;;   "A regular expression to find a declaration for a field.
+;; Used for indentation.  These declarations allow an initializer
+;; block which does not need a semicolon to terminate the
+;; statement.")
 
 (defconst cperl--pod-heading-rx
   `(sequence line-start
@@ -1425,10 +1457,11 @@ heading text.")
 
 (defconst cperl--imenu-entries-rx
   `(or ,cperl--package-for-imenu-rx
+       ,cperl--class-for-imenu-rx
        ,cperl--sub-name-for-imenu-rx
        ,cperl--pod-heading-rx)
   "A regular expression to collect stuff that goes into the `imenu' index.
-Covers packages, subroutines, and POD headings.")
+Covers packages and classes, subroutines and methods, and POD headings.")
 
 ;; end of eval-and-compiled stuff
 )
@@ -1534,7 +1567,7 @@ the last)."
 ;; Tired of editing this in 8 places every time I remember that there
 ;; is another method-defining keyword
 (defvar cperl-sub-keywords
-  '("sub"))
+  '("sub" "method"))
 
 (defvar cperl-sub-regexp (regexp-opt cperl-sub-keywords))
 
@@ -1832,7 +1865,8 @@ or as help on variables `cperl-tips', `cperl-problems',
                       (rx (eval cperl--ws*-rx))
                       (rx (optional (eval cperl--signature-rx)))
                       "\\|"			; per toke.c
-                      "\\(BEGIN\\|UNITCHECK\\|CHECK\\|INIT\\|END\\|AUTOLOAD\\|DESTROY\\)"
+                      (rx (or "ADJUST" "AUTOLOAD" "BEGIN" "CHECK" "DESTROY"
+                              "END" "INIT" "UNITCHECK"))
                       "\\)"
                       cperl-maybe-white-and-comment-rex))
   (setq-local comment-indent-function #'cperl-comment-indent)
@@ -4853,7 +4887,7 @@ recursive calls in starting lines of here-documents."
 		      (setq tmpend tb))))
 	       ((match-beginning 14)	; sub with prototype or attribute
 		;; 1+6+2+1+1=11 extra () before this (sub with proto/attr):
-		;; match-string 12: Keyword "sub"
+		;; match-string 12: Keyword "sub" or "method"
 		;; match-string 13: Name of the subroutine (optional)
                 ;; match-string 14: Indicator for proto/attr/signature
                 ;; match-string 15: Prototype
@@ -4862,7 +4896,7 @@ recursive calls in starting lines of here-documents."
                 (setq b1 (match-beginning 13) e1 (match-end 13))
 		(if (memq (char-after (1- b))
 			  '(?\$ ?\@ ?\% ?\& ?\*))
-		    nil ;; we found $sub or @sub etc
+		    nil ;; we found $sub or @method etc
 		  (goto-char b)
 		  (if (match-beginning 15) ; a complete prototype
 		      (progn
@@ -5006,7 +5040,11 @@ statement would start; thus the block in ${func()} does not count."
 		  (save-excursion
 		    (forward-sexp -1)
 		    ;; else {}     but not    else::func {}
-		    (or (and (looking-at "\\(else\\|catch\\|try\\|continue\\|grep\\|map\\|BEGIN\\|END\\|UNITCHECK\\|CHECK\\|INIT\\)\\>")
+		    (or (and (looking-at (rx (or "else" "catch" "try"
+                                                 "finally" "defer"
+                                                 "continue" "grep" "map"
+                                                 "ADJUST" "BEGIN" "CHECK" "END"
+                                                 "INIT" "UNITCHECK")))
 			     (not (looking-at "\\(\\sw\\|_\\)+::")))
 			;; sub f {}
 			(progn
@@ -5168,18 +5206,16 @@ conditional/loop constructs."
 			(if (eq (following-char) ?$ ) ; for my $var (list)
 			    (progn
 			      (forward-sexp -1)
-			      (if (looking-at "\\(state\\|my\\|local\\|our\\)\\>")
+			      (if (looking-at "\\(state\\|my\\|local\\|our\\|field\\)\\>")
 				  (forward-sexp -1))))
 			(if (looking-at
 			     (concat "\\(elsif\\|if\\|unless\\|while\\|until"
+                                     "\\|try\\|catch\\|finally\\|defer"
 				     "\\|for\\(each\\)?\\>\\(\\("
 				     cperl-maybe-white-and-comment-rex
-				     "\\(state\\|my\\|local\\|our\\)\\)?"
+				     "\\(state\\|my\\|local\\|our\\|field\\)\\)?"
 				     cperl-maybe-white-and-comment-rex
-                                     (rx
-                                      (sequence
-                                       "$"
-                                       (eval cperl--basic-identifier-rx)))
+                                     (rx (eval cperl--basic-variable-rx))
 				     "\\)?\\)\\>"))
 			    (progn
 			      (goto-char top)
@@ -5296,6 +5332,7 @@ Returns some position at the last line."
                   (opt (sequence "}" (0+ blank) ))
                   symbol-start
                   (or "else" "elsif" "continue" "if" "unless" "while" "until"
+                      "try" "catch" "finally" "defer"
                       (sequence (or "for" "foreach")
                                 (opt
                                  (opt (sequence (1+ blank)
@@ -5625,6 +5662,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  ;; Previous space could have gone:
 	  (or (memq (preceding-char) '(?\s ?\t)) (insert " "))))))
 
+;; The following lists are used for categorizing the entries found by
+;; `cperl-imenu--create-perl-index'.
 (defvar cperl-imenu-package-keywords '("package" "class" "role"))
 (defvar cperl-imenu-sub-keywords '("sub" "method" "function" "fun"))
 (defvar cperl-imenu-pod-keywords '("=head"))
@@ -5643,16 +5682,16 @@ comment, or POD."
 	(index-pod-alist '())
 	(index-sub-alist '())
 	(index-unsorted-alist '())
-	(package-stack '())                 ; for package NAME BLOCK
-	(current-package "(main)")
-	(current-package-end (point-max)))   ; end of package scope
+	(namespace-stack '())           ; for package NAME BLOCK
+	(current-namespace "(main)")
+	(current-namespace-end (point-max))) ; end of package scope
     ;; collect index entries
     (while (re-search-forward (rx (eval cperl--imenu-entries-rx)) nil t)
       ;; First, check whether we have left the scope of previously
       ;; recorded packages, and if so, eliminate them from the stack.
-      (while (< current-package-end (point))
-	(setq current-package (pop package-stack))
-	(setq current-package-end (pop package-stack)))
+      (while (< current-namespace-end (point))
+	(setq current-namespace (pop namespace-stack))
+	(setq current-namespace-end (pop namespace-stack)))
       (let ((state (syntax-ppss))
             (entry-type (match-string 1))
 	    name marker) ; for the "current" entry
@@ -5663,15 +5702,15 @@ comment, or POD."
 	    (setq name (match-string-no-properties 2)
 		  marker (copy-marker (match-end 2)))
 	    (if  (string= (match-string 3) ";")
-		(setq current-package name)  ; package NAME;
+		(setq current-namespace name)  ; package NAME;
 	      ;; No semicolon, therefore we have: package NAME BLOCK.
 	      ;; Stash the current package, because we need to restore
 	      ;; it after the end of BLOCK.
-	      (push current-package-end package-stack)
-	      (push current-package package-stack)
+	      (push current-namespace-end namespace-stack)
+	      (push current-namespace namespace-stack)
 	      ;; record the current name and its scope
-	      (setq current-package name)
-	      (setq current-package-end (save-excursion
+	      (setq current-namespace name)
+	      (setq current-namespace-end (save-excursion
 					  (goto-char (match-beginning 3))
 					  (forward-sexp)
 					  (point))))
@@ -5682,14 +5721,14 @@ comment, or POD."
 	  (unless (nth 4 state)         ; skip if in a comment
 	    (setq name (match-string-no-properties 2)
 		  marker (copy-marker (match-end 2)))
-	    ;; Qualify the sub name with the package if it doesn't
+	    ;; Qualify the sub name with the namespace if it doesn't
 	    ;; already have one, and if it isn't lexically scoped.
 	    ;; "my" and "state" subs are lexically scoped, but "our"
 	    ;; are just lexical aliases to package subs.
 	    (if (and (null (string-match "::" name))
 		     (or (null (match-string 3))
 			 (string-equal (match-string 3) "our")))
-	      (setq name (concat current-package "::" name)))
+	      (setq name (concat current-namespace "::" name)))
 	    (let ((index (cons name marker)))
 	      (push index index-alist)
 	      (push index index-sub-alist)
@@ -5753,7 +5792,7 @@ comment, or POD."
 		       hier-list)
 		 index-alist)))
     (and index-package-alist
-	 (push (cons "+Packages+..."
+	 (push (cons "+Classes,Packages+..."
 		     (nreverse index-package-alist))
 	       index-alist))
     (and (or index-package-alist index-pod-alist
@@ -5846,13 +5885,17 @@ default function."
                 '("if" "until" "while" "elsif" "else"
                   "given" "when" "default" "break"
                   "unless" "for"
-                  "try" "catch" "finally"
+                  "try" "catch" "defer" "finally"
                   "foreach" "continue" "exit" "die" "last" "goto" "next"
                   "redo" "return" "local" "exec"
                   "do" "dump"
                   "use" "our"
                   "require" "package" "eval" "evalbytes" "my" "state"
-                  "BEGIN" "END" "CHECK" "INIT" "UNITCHECK"))) ; Flow control
+                  "class" "field" "method"
+                  "ADJUST" "BEGIN" "CHECK"
+                  "END" "INIT" "UNITCHECK"
+                  ;; not in core, but per popular request
+                  "async" "await")))    ; Flow control
 	      "\\)\\>") 2)		; was "\\)[ \n\t;():,|&]"
 					; In what follows we use `type' style
 					; for overwritable builtins
@@ -5969,23 +6012,28 @@ default function."
                   ;; -------- anchored: Signature
                   `(,(rx (sequence (in "(,")
                                    (eval cperl--ws*-rx)
-                                   (group (or (eval cperl--basic-scalar-rx)
-                                              (eval cperl--basic-array-rx)
-                                              (eval cperl--basic-hash-rx)))))
+                                   (group (eval cperl--basic-variable-rx))))
                     (progn
                       (goto-char (match-beginning 2)) ; pre-match: Back to sig
                       (match-end 2))
                     nil
                     (1 font-lock-variable-name-face)))
             ;; -------- various stuff calling for a package name
-            ;; (matcher subexp facespec)
-            `(,(rx (sequence symbol-start
-                             (or "package" "require" "use" "import"
-                                 "no" "bootstrap")
-                             (eval cperl--ws+-rx)
-                             (group-n 1 (eval cperl--normal-identifier-rx))
-                             (any " \t\n;"))) ; require A if B;
-	      1 font-lock-function-name-face)
+            ;; (matcher (subexp facespec) (subexp facespec))
+            `(,(rx (sequence
+                    (or (sequence symbol-start
+                                  (or "package" "require" "use" "import"
+                                      "no" "bootstrap" "class")
+                                  (eval cperl--ws+-rx))
+                        (sequence (group-n 2 (sequence ":"
+                                                       (eval cperl--ws*-rx)
+                                                       "isa"))
+                                  "("
+                                  (eval cperl--ws*-rx)))
+                    (group-n 1 (eval cperl--normal-identifier-rx))
+                    (any " \t\n;)"))) ; require A if B;
+	      (1 font-lock-function-name-face)
+              (2 font-lock-constant-face t t))
             ;; -------- formats
             ;; (matcher subexp facespec)
 	    '("^[ \t]*format[ \t]+\\([a-zA-Z_][a-zA-Z_0-9:]*\\)[ \t]*=[ \t]*$"
@@ -6047,7 +6095,7 @@ default function."
 	    ;; 1=my_etc, 2=white? 3=(+white? 4=white? 5=var
             ;; -------- variable declarations
             ;; (matcher (subexp facespec) ...
-	    `(,(rx (sequence (or "state" "my" "local" "our"))
+	    `(,(rx (sequence (or "state" "my" "local" "our" "field"))
                    (eval cperl--ws*-rx)
                    (opt (group (sequence "(" (eval cperl--ws*-rx))))
                    (group
@@ -6959,7 +7007,9 @@ Does not move point."
 			127
 			(if (string-match "^package " (car elt))
 			    (substring (car elt) 8)
-			  (car elt) )
+			  (if (string-match "^class " (car elt))
+			      (substring (car elt) 6)
+			    (car elt)))
 			1
 			(number-to-string (elt elt 2)) ; Line
 			","
@@ -7712,6 +7762,7 @@ __FILE__	Current (source) filename.
 __LINE__	Current line in current source.
 __PACKAGE__	Current package.
 __SUB__	Current sub.
+ADJUST {...}	Callback for object creation
 ARGV	Default multi-file input filehandle.  <ARGV> is a synonym for <>.
 ARGVOUT	Output filehandle with -i flag.
 BEGIN { ... }	Immediately executed (during compilation) piece of code.
@@ -7722,7 +7773,9 @@ INIT { ... }	Pseudo-subroutine executed before the script starts running.
 DATA	Input filehandle for what follows after __END__	or __DATA__.
 accept(NEWSOCKET,GENERICSOCKET)
 alarm(SECONDS)
+async(SUB NAME {}|SUB {})	Mark function as potentially asynchronous
 atan2(X,Y)
+await(ASYNCEXPR)	Yield result of Future
 bind(SOCKET,NAME)
 binmode(FILEHANDLE)
 break	Break out of a given/when statement
@@ -7732,6 +7785,7 @@ chmod(LIST)
 chop[(LIST|VAR)]
 chown(LIST)
 chroot(FILENAME)
+class NAME	Introduce a class.
 close(FILEHANDLE)
 closedir(DIRHANDLE)
 ... cmp ...	String compare.
@@ -7742,6 +7796,7 @@ crypt(PLAINTEXT,SALT)
 dbmclose(%HASH)
 dbmopen(%HASH,DBNAME,MODE)
 default { ... } default case for given/when block
+defer { ... }	run this block after the containing block.
 defined(EXPR)
 delete($HASH{KEY})
 die(LIST)
@@ -7763,6 +7818,7 @@ exec([TRUENAME] ARGV0, ARGVs)     or     exec(SHELL_COMMAND_LINE)
 exit(EXPR)
 exp(EXPR)
 fcntl(FILEHANDLE,FUNCTION,SCALAR)
+field VAR  [:param[(NAME)]] [=EXPR]	declare an object attribute
 fileno(FILEHANDLE)
 flock(FILEHANDLE,OPERATION)
 for (EXPR;EXPR;EXPR) { ... }
@@ -7803,7 +7859,7 @@ hex(EXPR)
 if (EXPR) { ... } [ elsif (EXPR) { ... } ... ] [ else { ... } ] or EXPR if EXPR
 index(STR,SUBSTR[,OFFSET])
 int(EXPR)
-ioctl(FILEHANDLE,FUNCTION,SCALAR)
+ioctl(FILEHANDLE,FUNCTION,SCALA)R
 join(EXPR,LIST)
 keys(%HASH)
 kill(LIST)
@@ -7818,6 +7874,7 @@ log(EXPR)
 lstat(EXPR|FILEHANDLE|VAR)
 ... lt ...	String less than.
 m/PATTERN/iogsmx
+method  [NAME [(signature)]] { BODY }	method NAME;
 mkdir(FILENAME,MODE)
 msgctl(ID,CMD,ARG)
 msgget(KEY,FLAGS)
@@ -7956,7 +8013,7 @@ lc [ EXPR ]	Returns lowercased EXPR.
 lcfirst [ EXPR ]	Returns EXPR with lower-cased first letter.
 grep EXPR,LIST  or grep {BLOCK} LIST	Filters LIST via EXPR/BLOCK.
 map EXPR, LIST	or map {BLOCK} LIST	Applies EXPR/BLOCK to elts of LIST.
-no PACKAGE [SYMBOL1, ...]  Partial reverse for `use'.  Runs `unimport' method.
+no MODULE [SYMBOL1, ...]  Partial reverse for `use'.  Runs `unimport' method.
 not ...		Low-precedence synonym for ! - negation.
 ... or ...		Low-precedence synonym for ||.
 pos STRING    Set/Get end-position of the last match over this string, see \\G.
@@ -7967,12 +8024,12 @@ readline FH	Synonym of <FH>.
 readpipe CMD	Synonym of \\=`CMD\\=`.
 ref [ EXPR ]	Type of EXPR when dereferenced.
 sysopen FH, FILENAME, MODE [, PERM]	(MODE is numeric, see Fcntl.)
-tie VAR, PACKAGE, LIST	Hide an object behind a simple Perl variable.
+tie VAR, CLASS, LIST	Hide an object behind a simple Perl variable.
 tied		Returns internal object for a tied data.
 uc [ EXPR ]	Returns upcased EXPR.
 ucfirst [ EXPR ]	Returns EXPR with upcased first letter.
 untie VAR	Unlink an object from a simple Perl variable.
-use PACKAGE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
+use MODULE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
 ... xor ...		Low-precedence synonym for exclusive or.
 prototype \\&SUB	Returns prototype of the function given a reference.
 =head1		Top-level heading.

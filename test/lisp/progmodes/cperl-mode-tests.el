@@ -213,6 +213,33 @@ attributes, prototypes and signatures."
                            'font-lock-variable-name-face)))
           (goto-char end-of-sub))))))
 
+(ert-deftest cperl-test-fontify-class ()
+  "Test fontification of the various elements in a Perl class."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((file (ert-resource-file "perl-class.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (funcall cperl-test-mode)
+      (font-lock-ensure)
+
+      ;; The class name
+      (while (search-forward-regexp "class " nil t)
+        (should (equal (get-text-property (point) 'face)
+                       'font-lock-function-name-face)))
+      ;; The attributes (class and method)
+      (while (search-forward-regexp " : " nil t)
+        (should (equal (get-text-property (point) 'face)
+                       'font-lock-constant-face)))
+      ;; The signature
+      (goto-char (point-min))
+      (search-forward-regexp "\\(\$top\\),\\(\$down\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-variable-name-face))
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-variable-name-face))
+)))
+
 (ert-deftest cperl-test-fontify-special-variables ()
   "Test fontification of variables like $^T or ${^ENCODING}.
 These can occur as \"local\" aliases."
@@ -408,7 +435,7 @@ the whole string."
 				 valid invalid)))
 
 (ert-deftest cperl-test-package-regexp ()
-  "Tests the regular expression of Perl package names with versions.
+  "Tests the regular expression of Perl package and class names with versions.
 Also includes valid cases with whitespace in strange places."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
@@ -416,13 +443,13 @@ Also includes valid cases with whitespace in strange places."
 	   "package Foo::Bar"
 	   "package Foo::Bar v1.2.3"
 	   "package Foo::Bar::Baz 1.1"
+	   "class O3D::Sphere"          ; since Perl 5.38
 	   "package \nFoo::Bar\n 1.00"))
 	(invalid
 	 '("package Foo;"          ; semicolon must not be included
 	   "package Foo 1.1 {"     ; nor the opening brace
 	   "packageFoo"            ; not a package declaration
-	   "package Foo1.1"        ; invalid package name
-	   "class O3D::Sphere")))  ; class not yet supported
+	   "package Foo1.1")))     ; invalid package name
     (cperl-test--validate-regexp (rx (eval cperl--package-rx))
 				 valid invalid)))
 
@@ -784,7 +811,9 @@ created by CPerl mode, so skip it for Perl mode."
                         "lexical"
                         "Versioned::Block::signatured"
                         "Package::in_package_again"
-                        "Erdős::Number::erdős_number")))
+                        "Erdős::Number::erdős_number"
+                        "Class::Class::init"
+                        "Class::Inner::init_again")))
         (dolist (sub expected)
           (should (assoc-string sub index)))))))
 
