@@ -3993,9 +3993,14 @@ Let-bind it when necessary.")
     (with-parsed-tramp-file-name filename v
       (with-tramp-timeout
 	  (timeout
+	   (unless (when-let ((p (tramp-get-connection-process v)))
+		     (and (process-live-p p)
+			  (tramp-get-connection-property p "connected")))
+	     (tramp-cleanup-connection v 'keep-debug 'keep-password))
 	   (tramp-error
 	    v 'file-error
-	    (format "%s: Timeout %s second(s) accessing %s" string timeout filename)))
+	    (format
+	     "%s: Timeout %s second(s) accessing %s" string timeout filename)))
 	(setq filename (file-truename filename))
 	(if (file-exists-p filename)
 	    (unless

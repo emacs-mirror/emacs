@@ -1499,6 +1499,11 @@ This function is called from `window-configuration-change-hook'."
   (desktop-clear)
   (desktop-read desktop-dirname))
 
+;; ----------------------------------------------------------------------------
+(defun desktop-access-file (filename)
+  "Check whether FILENAME is accessible."
+  (ignore-errors (not (access-file filename "Restoring desktop buffer"))))
+
 (defvar desktop-buffer-major-mode)
 (defvar desktop-buffer-locals)
 (defvar auto-insert)  ; from autoinsert.el
@@ -1508,8 +1513,8 @@ This function is called from `window-configuration-change-hook'."
                                     _buffer-misc)
   "Restore a file buffer."
   (when buffer-filename
-    (if (or (file-exists-p buffer-filename)
-	    (let ((msg (format "Desktop: File \"%s\" no longer exists."
+    (if (or (desktop-access-file buffer-filename)
+	    (let ((msg (format "Desktop: File \"%s\" no longer accessible."
 			       buffer-filename)))
 	      (if desktop-missing-file-warning
 		  (y-or-n-p (concat msg " Re-create buffer? "))

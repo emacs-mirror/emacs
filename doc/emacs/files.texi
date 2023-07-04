@@ -2255,6 +2255,12 @@ to visit one of these files.  @kbd{M-x recentf-save-list} saves the
 current @code{recentf-list} to a file, and @kbd{M-x recentf-edit-list}
 edits it.
 
+@vindex remote-file-name-access-timeout
+  If you use remote files, you might also consider to customize
+@code{remote-file-name-access-timeout} to a proper value (number of
+seconds), after which time a check whether a remote file shall be used
+in Recentf is stopped.  This prevents Emacs to be blocked.
+
 @c FIXME partial-completion-mode (complete.el) is obsolete.
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
 powerful heuristic defaults (@pxref{FFAP}), often based on the text at

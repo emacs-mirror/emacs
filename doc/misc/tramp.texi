@@ -5181,6 +5181,11 @@ If the connection to the remote host isn't established yet, and if
 this requires an interactive password, the timeout check doesn't work
 properly.
 
+@c Since Emacs 30.
+@strong{Note}: In recent versions of Emacs, both packages apply
+already this check.  You just need to customize
+@code{remote-file-name-access-timeout}.
+
 
 @item
 Does @value{tramp} support @acronym{SSH} security keys?
