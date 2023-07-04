@@ -10219,7 +10219,11 @@ point unchanged and return nil."
 			       (prog1
 				   (setq found
 					 (c-syntactic-re-search-forward
-					  "[;:,]\\|\\(=\\|\\s(\\)"
+					  ;; Consider making the next regexp a
+					  ;; c-lang-defvar (2023-07-04).
+					  (if (c-major-mode-is 'objc-mode)
+					      "\\(?:@end\\)\\|[;:,]\\|\\(=\\|[[(]\\)"
+					    "[;:,]\\|\\(=\\|\\s(\\)")
 					  limit 'limit t))
 				 (setq got-init
 				       (and found (match-beginning 1))))
