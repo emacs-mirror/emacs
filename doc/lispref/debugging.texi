@@ -1102,9 +1102,9 @@ functions written in Lisp, it cannot profile Emacs primitives.
 You can measure the time it takes to evaluate individual Emacs Lisp
 forms using the @file{benchmark} library.  See the function
 @code{benchmark-call} as well as the macros @code{benchmark-run},
-@code{benchmark-run-compiled}, @code{benchmark-progn} and
-@code{benchmark-call} in @file{benchmark.el}.  You can also use the
-@code{benchmark} command for timing forms interactively.
+@code{benchmark-run-compiled}, and @code{benchmark-progn} in
+@file{benchmark.el}.  You can also use the @code{benchmark} command
+for timing forms interactively.
 
 @c Not worth putting in the printed manual.
 @ifnottex
