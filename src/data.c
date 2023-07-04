@@ -269,10 +269,11 @@ for example, (type-of 1) returns `integer'.  */)
 	  return Qtreesit_compiled_query;
         case PVEC_SQLITE:
           return Qsqlite;
+        case PVEC_SUB_CHAR_TABLE:
+          return Qsub_char_table;
         /* "Impossible" cases.  */
 	case PVEC_MISC_PTR:
         case PVEC_OTHER:
-        case PVEC_SUB_CHAR_TABLE:
         case PVEC_FREE: ;
         }
       emacs_abort ();
@@ -4215,6 +4216,7 @@ syms_of_data (void)
   DEFSYM (Qvector, "vector");
   DEFSYM (Qrecord, "record");
   DEFSYM (Qchar_table, "char-table");
+  DEFSYM (Qsub_char_table, "sub-char-table");
   DEFSYM (Qbool_vector, "bool-vector");
   DEFSYM (Qhash_table, "hash-table");
   DEFSYM (Qthread, "thread");
