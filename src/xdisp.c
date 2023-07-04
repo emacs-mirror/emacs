@@ -15000,7 +15000,10 @@ update_tool_bar (struct frame *f, bool save_match_data)
 
 /* Set F->desired_tool_bar_string to a Lisp string representing frame
    F's desired tool-bar contents.  F->tool_bar_items must have
-   been set up previously by calling prepare_menu_bars.  */
+   been set up previously by calling prepare_menu_bars.
+
+   Also set F->tool_bar_wraps_p to whether or not the tool bar
+   contains explicit line breaking items.  */
 
 static void
 build_desired_tool_bar_string (struct frame *f)
@@ -15022,15 +15025,19 @@ build_desired_tool_bar_string (struct frame *f)
   size_needed = f->n_tool_bar_items;
 
   /* Reuse f->desired_tool_bar_string, if possible.  */
+
   if (size < size_needed || NILP (f->desired_tool_bar_string))
-    fset_desired_tool_bar_string
-      (f, Fmake_string (make_fixnum (size_needed), make_fixnum (' '), Qnil));
+    /* Don't initialize the contents of this string yet, as they will
+       be set within the loop below.  */
+    fset_desired_tool_bar_string (f, make_uninit_string (size_needed));
   else
     {
       AUTO_LIST4 (props, Qdisplay, Qnil, Qmenu_item, Qnil);
       Fremove_text_properties (make_fixnum (0), make_fixnum (size),
 			       props, f->desired_tool_bar_string);
     }
+
+  f->tool_bar_wraps_p = false;
 
   /* Put a `display' property on the string for the images to display,
      put a `menu_item' property on tool-bar items with a value that
@@ -15043,6 +15050,21 @@ build_desired_tool_bar_string (struct frame *f)
       bool enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       bool selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
+
+      if (!NILP (PROP (TOOL_BAR_ITEM_WRAP)))
+	{
+	  /* This is a line wrap.  Instead of building a tool bar
+	     item, display a new line character instead.  */
+	  SSET (f->desired_tool_bar_string, i, '\n');
+
+	  /* Set F->tool_bar_wraps_p.  This tells redisplay_tool_bar
+	     to allow individual rows to be different heights.  */
+	  f->tool_bar_wraps_p = true;
+	  continue;
+	}
+
+      /* Replace this with a space character.  */
+      SSET (f->desired_tool_bar_string, i, ' ');
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -15155,6 +15177,16 @@ build_desired_tool_bar_string (struct frame *f)
 			    props, f->desired_tool_bar_string);
 #undef PROP
     }
+
+  /* Now replace each character between i and the end of the tool bar
+     string with spaces, to prevent stray newlines from accumulating
+     when the number of tool bar items decreases.  `size' is 0 if the
+     tool bar string is new, but in that case the string will have
+     been completely initialized anyway.  */
+
+  for (; i < size; ++i)
+    /* Replace this with a space character.  */
+    SSET (f->desired_tool_bar_string, i, ' ');
 }
 
 
@@ -15168,7 +15200,10 @@ build_desired_tool_bar_string (struct frame *f)
    If HEIGHT is -1, we are counting needed tool-bar lines, so don't
    count a final empty row in case the tool-bar width exactly matches
    the window width.
-*/
+
+   HEIGHT may also be -1 if there is an explicit line wrapping item
+   inside the tool bar; in that case, allow individual rows of the
+   tool bar to differ in height.  */
 
 static void
 display_tool_bar_line (struct it *it, int height)
@@ -15232,8 +15267,18 @@ display_tool_bar_line (struct it *it, int height)
 	  ++i;
 	}
 
-      /* Stop at line end.  */
+      /* Stop at the end of the iterator, and move to the next line
+         upon a '\n' appearing in the tool bar string.  Tool bar
+         strings may contain multiple new line characters when
+         explicit wrap items are encountered.  */
+
       if (ITERATOR_AT_END_OF_LINE_P (it))
+	{
+	  reseat_at_next_visible_line_start (it, false);
+	  break;
+	}
+
+      if (ITERATOR_AT_END_P (it))
 	break;
 
       set_iterator_to_next (it, true);
@@ -15260,7 +15305,8 @@ display_tool_bar_line (struct it *it, int height)
     last->left_box_line_p = true;
 
   /* Make line the desired height and center it vertically.  */
-  if ((height -= it->max_ascent + it->max_descent) > 0)
+  if (height != -1
+      && (height -= it->max_ascent + it->max_descent) > 0)
     {
       /* Don't add more than one line height.  */
       height %= FRAME_LINE_HEIGHT (it->f);
@@ -15294,6 +15340,7 @@ display_tool_bar_line (struct it *it, int height)
 /* Value is the number of pixels needed to make all tool-bar items of
    frame F visible.  The actual number of glyph rows needed is
    returned in *N_ROWS if non-NULL.  */
+
 static int
 tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
 {
@@ -15371,7 +15418,9 @@ redisplay_tool_bar (struct frame *f)
   struct window *w;
   struct it it;
   struct glyph_row *row;
+  bool change_height_p;
 
+  change_height_p = false;
   f->tool_bar_redisplayed = true;
 
   /* If frame hasn't a tool-bar window or if it is zero-height, don't
@@ -15455,18 +15504,39 @@ redisplay_tool_bar (struct frame *f)
 	border = 0;
 
       rows = f->n_tool_bar_rows;
-      height = max (1, (it.last_visible_y - border) / rows);
-      extra = it.last_visible_y - border - height * rows;
 
-      while (it.current_y < it.last_visible_y)
+      if (f->tool_bar_wraps_p)
 	{
-	  int h = 0;
-	  if (extra > 0 && rows-- > 0)
+	  /* If the tool bar contains explicit line wrapping items,
+	     don't force each row to have a fixed height.  */
+
+	  while (!ITERATOR_AT_END_P (&it))
+	    display_tool_bar_line (&it, -1);
+
+	  /* Because changes to individual tool bar items may now
+	     change the height of the tool bar, adjust the height of
+	     the tool bar window if it is different from the tool bar
+	     height in any way.  */
+
+	  if (it.current_y != it.last_visible_y)
+	    change_height_p = true;
+	}
+      else
+	{
+	  height = max (1, (it.last_visible_y - border) / rows);
+	  extra = it.last_visible_y - border - height * rows;
+
+	  while (it.current_y < it.last_visible_y)
 	    {
-	      h = (extra + rows - 1) / rows;
-	      extra -= h;
+	      int h = 0;
+	      if (extra > 0 && rows-- > 0)
+		{
+		  h = (extra + rows - 1) / rows;
+		  extra -= h;
+		}
+	  
+	      display_tool_bar_line (&it, height + h);
 	    }
-	  display_tool_bar_line (&it, height + h);
 	}
     }
   else
@@ -15482,8 +15552,6 @@ redisplay_tool_bar (struct frame *f)
 
   if (!NILP (Vauto_resize_tool_bars))
     {
-      bool change_height_p = false;
-
       /* If we couldn't display everything, change the tool-bar's
 	 height if there is room for more.  */
       if (IT_STRING_CHARPOS (it) < it.end_charpos)

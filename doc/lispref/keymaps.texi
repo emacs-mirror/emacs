@@ -2578,6 +2578,12 @@ function should return the binding to use instead.
 Emacs can call this function at any time that it does redisplay or
 operates on menu data structures, so you should write it so it can
 safely be called at any time.
+
+@item :wrap @var{wrap-p}
+If @var{wrap-p} is non-nil inside a tool bar, the menu item is not
+displayed, but instead causes subsequent items to be displayed on a
+new line.  This is not supported when Emacs uses the GTK+ or Nextstep
+toolkits.
 @end table
 
 @node Menu Separators
@@ -3083,6 +3089,16 @@ specifies the local map to make the definition in.  The argument
 @var{from-map} is like the @var{map} argument of
 @code{tool-bar-add-item-from-menu}.
 @end defun
+
+@vindex secondary-tool-bar-map
+In addition to the tool bar items defined in @code{tool-bar-map},
+Emacs also supports displaying an additional row of ``secondary'' tool
+bar items specified in the keymap @code{secondary-tool-bar-map}.
+These items are normally displayed below those defined within
+@code{tool-bar-map} if the tool bar is positioned at the top of its
+frame, but are displayed above them if the tool bar is positioned at
+the bottom (@pxref{Layout Parameters}.)  They are not displayed if the
+tool bar is positioned at the left or right of a frame.
 
 @defvar auto-resize-tool-bars
 If this variable is non-@code{nil}, the tool bar automatically resizes to

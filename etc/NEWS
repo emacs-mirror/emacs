@@ -104,6 +104,11 @@ plus, minus, check-mark, start, etc.
 The 'tool-bar-position' frame parameter can be set to 'bottom' on all
 window systems other than Nextstep.
 
++++
+** New global minor mode 'modifier-bar-mode'.
+When this minor mode is enabled, buttons representing modifier keys
+are displayed along the tool bar.
+
 
 * Editing Changes in Emacs 30.1
 
@@ -565,6 +570,11 @@ This user option names directories in which Emacs will treat all
 directory-local variables as safe.
 
 ** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
+
++++
+** New variable 'secondary-tool-bar-map'.
+If non-nil, this variable contains a keymap of menu items that are
+displayed along tool bar items inside 'tool-bar-map'.
 
 ** Functions and variables to transpose sexps
 

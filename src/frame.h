@@ -344,6 +344,10 @@ struct frame
   /* Set to true to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
   bool_bf minimize_tool_bar_window_p : 1;
+
+  /* Whether or not the tool bar contains a ``new line'' item.  If
+     true, tool bar rows will be allowed to differ in height.  */
+  bool_bf tool_bar_wraps_p : 1;
 #endif
 
 #ifdef HAVE_EXT_TOOL_BAR

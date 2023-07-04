@@ -9325,7 +9325,13 @@ set_prop (ptrdiff_t idx, Lisp_Object val)
 
    - `:label LABEL-STRING'.
 
-   A text label to show with the tool bar button if labels are enabled.  */
+   A text label to show with the tool bar button if labels are
+   enabled.
+
+   - `:wrap WRAP'
+
+   WRAP specifies whether to hide this item but display subsequent
+   tool bar items on a new line.  */
 
 static bool
 parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
@@ -9333,7 +9339,15 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
   Lisp_Object filter = Qnil;
   Lisp_Object caption;
   int i;
-  bool have_label = false;
+  bool have_label;
+#ifndef HAVE_EXT_TOOL_BAR
+  bool is_wrap;
+#endif /* HAVE_EXT_TOOL_BAR */
+
+  have_label = false;
+#ifndef HAVE_EXT_TOOL_BAR
+  is_wrap = false;
+#endif /* HAVE_EXT_TOOL_BAR */
 
   /* Definition looks like `(menu-item CAPTION BINDING PROPS...)'.
      Rule out items that aren't lists, don't start with
@@ -9469,6 +9483,20 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       else if (EQ (ikey, QCrtl))
         /* ':rtl STRING' */
 	set_prop (TOOL_BAR_ITEM_RTL_IMAGE, value);
+      else if (EQ (ikey, QCwrap))
+	{
+#ifndef HAVE_EXT_TOOL_BAR
+	  /* This specifies whether the tool bar item should be hidden
+	     but cause subsequent items to be displayed on a new
+	     line.  */
+	  set_prop (TOOL_BAR_ITEM_WRAP, value);
+	  is_wrap = !NILP (value);
+#else /* HAVE_EXT_TOOL_BAR */
+	  /* Line wrapping isn't supported on builds utilizing
+	     external tool bars.  */
+	  return false;
+#endif /* !HAVE_EXT_TOOL_BAR */
+	}
     }
 
 
@@ -9528,6 +9556,15 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
   /* See if the binding is a keymap.  Give up if it is.  */
   if (CONSP (get_keymap (PROP (TOOL_BAR_ITEM_BINDING), 0, 1)))
     return 0;
+
+
+#ifndef HAVE_EXT_TOOL_BAR
+  /* If the menu item is actually a line wrap, make sure it isn't
+     visible or enabled.  */
+
+  if (is_wrap)
+    set_prop (TOOL_BAR_ITEM_ENABLED_P, Qnil);
+#endif /* !HAVE_EXT_TOOL_BAR */
 
   /* If there is a key binding, add it to the help, which will be
      displayed as a tooltip for this entry. */
@@ -12482,6 +12519,7 @@ syms_of_keyboard (void)
   DEFSYM (Qhelp_echo, "help-echo");
   DEFSYM (Qhelp_echo_inhibit_substitution, "help-echo-inhibit-substitution");
   DEFSYM (QCrtl, ":rtl");
+  DEFSYM (QCwrap, ":wrap");
 
   staticpro (&item_properties);
   item_properties = Qnil;

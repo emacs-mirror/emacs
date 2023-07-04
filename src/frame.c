@@ -986,6 +986,7 @@ make_frame (bool mini_p)
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
   f->last_tool_bar_item = -1;
+  f->tool_bar_wraps_p = false;
 #endif
 #ifdef NS_IMPL_COCOA
   f->ns_appearance = ns_appearance_system_default;

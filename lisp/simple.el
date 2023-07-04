@@ -10271,18 +10271,34 @@ SYMBOL is the name of this modifier, as a symbol.
 LSHIFTBY is the numeric value of this modifier, in keyboard events.
 PREFIX is the string that represents this modifier in an event type symbol."
   (if (numberp event)
-      (cond ((eq symbol 'control)
-	     (if (<= 64 (upcase event) 95)
-		 (- (upcase event) 64)
-	       (logior (ash 1 lshiftby) event)))
-	    ((eq symbol 'shift)
-             ;; FIXME: Should we also apply this "upcase" behavior of shift
-             ;; to non-ascii letters?
-	     (if (<= ?a (downcase event) ?z)
-		 (upcase event)
-	       (logior (ash 1 lshiftby) event)))
-	    (t
-	     (logior (ash 1 lshiftby) event)))
+      ;; Use the base event to determine how the control and shift
+      ;; modifiers should be applied.
+      (let* ((base-event (event-basic-type event)))
+        (cond ((eq symbol 'control)
+	       (if (<= 64 (upcase base-event) 95)
+                   ;; Apply the control modifier...
+		   (logior (- (upcase base-event) 64)
+                           ;; ... and any additional modifiers
+                           ;; specified in the original event...
+                           (logand event (logior ?\M-\0 ?\C-\0 ?\S-\0
+					         ?\H-\0 ?\s-\0 ?\A-\0))
+                           ;; ... including any shift modifier that
+                           ;; `event-basic-type' may have removed.
+                           (if (<= ?A event ?Z) ?\S-\0 0))
+	         (logior (ash 1 lshiftby) event)))
+	      ((eq symbol 'shift)
+               ;; FIXME: Should we also apply this "upcase" behavior of shift
+               ;; to non-ascii letters?
+	       (if (<= ?a base-event ?z)
+                   ;; Apply the Shift modifier.
+		   (logior (upcase base-event)
+                           ;; ... and any additional modifiers
+                           ;; specified in the original event.
+                           (logand event (logior ?\M-\0 ?\C-\0 ?\S-\0
+					         ?\H-\0 ?\s-\0 ?\A-\0)))
+	         (logior (ash 1 lshiftby) event)))
+	      (t
+	       (logior (ash 1 lshiftby) event))))
     (if (memq symbol (event-modifiers event))
 	event
       (let ((event-type (if (symbolp event) event (car event))))

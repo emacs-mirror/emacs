@@ -3364,9 +3364,13 @@ enum tool_bar_item_idx
   /* If we shall show the label only below the icon and not beside it.  */
   TOOL_BAR_ITEM_VERT_ONLY,
 
+  /* Whether or not this tool bar item is hidden and should cause
+     subsequent items to be displayed on a new line.  */
+  TOOL_BAR_ITEM_WRAP,
+
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
-  TOOL_BAR_ITEM_NSLOTS
+  TOOL_BAR_ITEM_NSLOTS,
 };
 
 
