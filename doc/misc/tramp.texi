@@ -5158,10 +5158,10 @@ In order to disable those optimizations, set user option
 
 @vindex remote-file-name-access-timeout
 Some packages, like @file{desktop.el} or @file{recentf.el}, access
-remote files when loaded.  If the respective file is not accessible,
+remote files when loaded.  If the requested file is not accessible,
 @value{tramp} could block.  In order to check whether this could
 happen, add a test via @code{access-file} with a proper timeout prior
-loading these packages:
+to loading these packages:
 
 @lisp
 @group
@@ -5182,9 +5182,10 @@ this requires an interactive password, the timeout check doesn't work
 properly.
 
 @c Since Emacs 30.
-@strong{Note}: In recent versions of Emacs, both packages apply
-already this check.  You just need to customize
-@code{remote-file-name-access-timeout}.
+@strong{Note}: In recent versions of Emacs, both packages already
+apply this check.  You just need to customize
+@code{remote-file-name-access-timeout} to the desired timeout (in
+seconds).
 
 
 @item
