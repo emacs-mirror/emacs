@@ -397,7 +397,12 @@ or `desktop-modes-not-to-save'."
 (defcustom desktop-files-not-to-save
   "\\(\\`/[^/:]*:\\|(ftp)\\'\\)"
   "Regexp identifying files whose buffers are to be excluded from saving.
-The default value excludes buffers visiting remote files."
+The default value excludes buffers visiting remote files.
+
+If you modify this such that buffers visiting remote files are not excluded,
+you may wish customizing `remote-file-name-access-timeout' to a non-nil
+value, to avoid hanging the desktop restoration because some remote
+host is off-line."
   :type '(choice (const :tag "None" nil)
 		 regexp)
   :group 'desktop)
