@@ -1305,7 +1305,8 @@ or \"${ foo }\" will not.")
     "A sequence for recommended version number schemes in Perl.")
 
   (defconst cperl--single-attribute-rx
-    `(sequence ,cperl--basic-identifier-rx
+    `(sequence word-start
+               ,cperl--basic-identifier-rx
                (optional (sequence "("
                           (0+ (not (in ")")))
                           ")")))
@@ -1552,7 +1553,7 @@ the last)."
 	(if attr (concat
 		  "\\("
 		     cperl-maybe-white-and-comment-rex ; whitespace-comments
-		     "\\(\\sw\\|_\\)+"	; attr-name
+		     "\\(\\<\\sw\\|_\\)+"	; attr-name
 		     ;; attr-arg (1 level of internal parens allowed!)
 		     "\\((\\(\\\\.\\|[^\\()]\\|([^\\()]*)\\)*)\\)?"
 		     "\\("		; optional : (XXX allows trailing???)
@@ -6003,7 +6004,11 @@ default function."
                                    ;; ... or the start of a "sloppy" signature
                                    (sequence (eval cperl--sloppy-signature-rx)
                                              ;; arbtrarily continue "a few lines"
-                                             (repeat 0 200 (not (in "{"))))))))
+                                             (repeat 0 200 (not (in "{"))))
+                                   ;; make sure we have a reasonably
+                                   ;; short match for an incomplete sub
+                                   (not (in ";{("))
+                                   buffer-end))))
 		  '(1 (if (match-beginning 3)
 			  'font-lock-variable-name-face
 		        'font-lock-function-name-face)
