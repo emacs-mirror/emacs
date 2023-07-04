@@ -169,4 +169,29 @@ sub erdős_number {
     }
 }
 
+=head1 And now, for something completely different
+
+Perl 5.38 supports classes with the same scope weirdness as packages.
+As long as this is experimental, CPAN tools don't play well with this,
+so some weird constructs are recommended to authors of CPAN modules.
+
+=cut
+
+package Class::Class;
+
+our $VERSION = 0.01;
+
+class Class::Class 0.01 {
+    method init ($with,$signature) {
+	...;
+    }
+
+    class Class::Inner :isa(Class::Class);
+    # This class comes without a block, so takes over until the rest
+    # of the containing block.
+    method init_again (@with_parameters) {
+	...;
+    }
+}
+
 1;

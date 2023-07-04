@@ -52,7 +52,7 @@ they are hidden or highlighted.  This is controlled via the variables
 `erc-current-nick-highlight-type'.  For all these highlighting types,
 you can decide whether the entire message or only the sending nick is
 highlighted."
-  ((add-hook 'erc-insert-modify-hook #'erc-match-message 60)
+  ((add-hook 'erc-insert-modify-hook #'erc-match-message 50)
    (add-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
    (unless erc--updating-modules-p
      (erc-buffer-do #'erc-match--modify-invisibility-spec))
@@ -237,10 +237,7 @@ for beeping to work."
 ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE),
 where MATCH-TYPE is one of the symbols `current-nick', `keyword',
 `pal', `dangerous-host', `fool', and NUH is an `erc-response'
-sender, like bob!~bob@example.org.  Users should keep in mind
-that MESSAGE may not include decorations, such as white space or
-time stamps, preceding the same text as inserted in the narrowed
-buffer."
+sender, like bob!~bob@example.org."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
   :type 'hook)
 
@@ -462,19 +459,8 @@ In any of the following situations, MSG is directed at an entry FOOL:
 	(erc-list-match fools-end msg))))
 
 (defun erc-match-message ()
-  "Add faces to matching text in inserted message."
-  ;; Exclude leading whitespace, stamps, etc.
-  (let ((omin (point-min))
-        (beg (or (and (not (get-text-property (point-min) 'erc-command))
-                      (next-single-property-change (point-min) 'erc-command))
-                 (point-min))))
-    ;; FIXME when ERC no longer supports 28, use `with-restriction'
-    ;; with `:label' here instead of passing `omin'.
-    (save-restriction
-      (narrow-to-region beg (point-max))
-      (erc-match--message omin))))
-
-(defun erc-match--message (unrestricted-point-min)
+  "Mark certain keywords in a region.
+Use this defun with `erc-insert-modify-hook'."
   ;; This needs some refactoring.
   (goto-char (point-min))
   (let* ((to-match-nick-dep '("pal" "fool" "dangerous-host"))
@@ -576,14 +562,12 @@ In any of the following situations, MSG is directed at an entry FOOL:
 					'font-lock-face match-face)))
 	      ;; Else twiddle your thumbs.
 	      (t nil))
-             ;; FIXME use `without-restriction' after dropping 28.
-             (save-restriction
-               (narrow-to-region unrestricted-point-min (point-max))
-               (run-hook-with-args
-                'erc-text-matched-hook (intern match-type)
-                (or nickuserhost
-                    (concat "Server:" (erc-get-parsed-vector-type vector)))
-                message)))))
+	     (run-hook-with-args
+	      'erc-text-matched-hook
+	      (intern match-type)
+	      (or nickuserhost
+		  (concat "Server:" (erc-get-parsed-vector-type vector)))
+	      message))))
        (if nickuserhost
 	   (append to-match-nick-dep to-match-nick-indep)
 	 to-match-nick-indep)))))

@@ -5154,6 +5154,35 @@ In order to disable those optimizations, set user option
 
 
 @item
+@value{tramp} blocks Emacs at startup
+
+@vindex remote-file-name-access-timeout
+Some packages, like @file{desktop.el} or @file{recentf.el}, access
+remote files when loaded.  If the respective file is not accessible,
+@value{tramp} could block.  In order to check whether this could
+happen, add a test via @code{access-file} with a proper timeout prior
+loading these packages:
+
+@lisp
+@group
+(let ((remote-file-name-access-timeout 10))
+  (access-file "@file{@trampfn{method,user@@host,/path/to/file}}" "error"))
+@result{} nil
+@end group
+@end lisp
+
+The result @code{nil} means success.  If the file is not accessible,
+or if the underlying operations last too long, @code{access-file}
+returns with an error.
+
+The value of the timeout (10 seconds in the example) depends on your
+preference and on the quality of the connection to the remote host.
+If the connection to the remote host isn't established yet, and if
+this requires an interactive password, the timeout check doesn't work
+properly.
+
+
+@item
 Does @value{tramp} support @acronym{SSH} security keys?
 
 Yes.  @command{OpenSSH} has added support for @acronym{FIDO} hardware

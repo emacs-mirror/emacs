@@ -81,6 +81,7 @@
 (defvar dired-copy-dereference)
 
 ;; Declared in Emacs 30.
+(defvar remote-file-name-access-timeout)
 (defvar remote-file-name-inhibit-delete-by-moving-to-trash)
 
 ;; `ert-resource-file' was introduced in Emacs 28.1.
@@ -3654,6 +3655,18 @@ This tests also `access-file', `file-readable-p',
 	   attr)
       (unwind-protect
 	  (progn
+	    (write-region "foo" nil tmp-name1)
+	    ;; `access-file' returns nil in case of success.
+	    (should-not (access-file tmp-name1 "error"))
+	    ;; `access-file' could use a timeout.
+	    (let ((remote-file-name-access-timeout 1))
+	      (cl-letf (((symbol-function #'file-exists-p)
+			 (lambda (_filename) (sleep-for 5))))
+		(should-error
+		 (access-file tmp-name1 "error")
+		 :type 'file-error)))
+	    (delete-file tmp-name1)
+
 	    ;; A sticky bit could damage the `file-ownership-preserved-p' test.
 	    (when
 		(and test-file-ownership-preserved-p
