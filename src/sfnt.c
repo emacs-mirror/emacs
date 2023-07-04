@@ -2651,7 +2651,7 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
   bool need_free;
   struct sfnt_compound_glyph_component *component;
   sfnt_fixed x, y, xtemp, ytemp;
-  size_t point, point2, index;
+  size_t point UNINIT, point2 UNINIT, index;
   uint16_t last_point, number_of_contours;
   sfnt_fixed *x_base, *y_base;
   size_t *contour_base;
