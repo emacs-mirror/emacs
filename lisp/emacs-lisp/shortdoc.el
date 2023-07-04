@@ -1247,6 +1247,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (>= 3 2 2 1))
   (zerop
    :eval (zerop 0))
+  (natnump
+   :eval (natnump -1)
+   :eval (natnump 0)
+   :eval (natnump 23))
   (cl-plusp
    :eval (cl-plusp 0)
    :eval (cl-plusp 1))
@@ -1257,9 +1261,6 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (cl-oddp 3))
   (cl-evenp
    :eval (cl-evenp 6))
-  (natnump
-   :eval (natnump -1)
-   :eval (natnump 23))
   (bignump
    :eval (bignump 4)
    :eval (bignump (expt 2 90)))
