@@ -457,7 +457,7 @@ object oriented syntax which were added in Perl 5.36 and 5.38.
 ** Emacs Sessions (Desktop)
 
 +++
-*** Restoring buffers visiting remote files should not block.
+*** Restoring buffers visiting remote files can now time out.
 When a buffer is restored which visits a remote file, the restoration
 of the session could hang if the remote host is off-line or slow to
 respond.  Setting the user option 'remote-file-name-access-timeout' to
@@ -468,11 +468,10 @@ desktop restoration to continue.
 ** Recentf
 
 +++
-*** Checking recent remote files should not block.
-When a a remote file is checked in 'recentf-list', the user option
-'remote-file-name-access-timeout' could be set to a positive number.
-This value will be used as timeout (in seconds) for checking, whether
-the remote file is accessible.
+*** Checking recent remote files can now time out.
+Similarly to buffer restoration by "desktop", 'recentf-mode' checking
+of the accessibility of remote files can now time out if
+`remote-file-name-access-timeout' is set to a positive number.
 
 
 * New Modes and Packages in Emacs 30.1
