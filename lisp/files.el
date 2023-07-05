@@ -1332,7 +1332,7 @@ consecutive checks.  For example:
   "Timeout (in seconds) for `access-file'.
 This timeout limits the time to check, whether a remote file is
 accessible.  `access-file' returns an error after that time.  If
-the value is nil, no timeout is used.
+the value is 0 or nil, no timeout is used.
 
 This applies only when there isn't time spent for other actions,
 like reading passwords."

@@ -68,7 +68,7 @@ remote buffers.  The default is nil.
 
 +++
 ** New user option 'remote-file-name-access-timeout'.
-When a natural number, this option limits the call of 'access-file'
+When a positive number, this option limits the call of 'access-file'
 for remote files to this number of seconds.  Default is nil.
 
 +++
@@ -469,9 +469,9 @@ desktop restoration to continue.
 
 +++
 *** Checking recent remote files can now time out.
-Similarly to buffer restoration by "desktop", 'recentf-mode' checking
+Similarly to buffer restoration by Desktop, 'recentf-mode' checking
 of the accessibility of remote files can now time out if
-`remote-file-name-access-timeout' is set to a positive number.
+'remote-file-name-access-timeout' is set to a positive number.
 
 
 * New Modes and Packages in Emacs 30.1

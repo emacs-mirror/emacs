@@ -2439,7 +2439,9 @@ without a visible progress reporter."
   (declare (indent 1) (debug ((form body) body)))
   (let ((seconds (car list))
 	(timeout-forms (cdr list)))
-    `(if-let (((natnump ,seconds)))
+    ;; If non-nil, `seconds' must be a positive number.
+    `(if-let (((natnump ,seconds))
+	      ((not (zerop timeout))))
          (with-timeout (,seconds ,@timeout-forms) ,@body)
        ,@body)))
 
@@ -3985,34 +3987,34 @@ Let-bind it when necessary.")
 (defun tramp-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
   (let ((timeout
-	 (with-connection-local-variables
-	  ;; This variable exists since Emacs 30.1.
-	  (bound-and-true-p remote-file-name-access-timeout)))
+	 ;; This variable exists since Emacs 30.1.
+	 (bound-and-true-p remote-file-name-access-timeout))
+	(v (tramp-dissect-file-name
+	    (if (file-name-absolute-p filename) filename default-directory)))
 	;; We rely on timers, so don't suspend them.
 	(tramp-dont-suspend-timers t))
-    (with-parsed-tramp-file-name filename v
-      (with-tramp-timeout
-	  (timeout
-	   (unless (when-let ((p (tramp-get-connection-process v)))
-		     (and (process-live-p p)
-			  (tramp-get-connection-property p "connected")))
-	     (tramp-cleanup-connection v 'keep-debug 'keep-password))
-	   (tramp-error
-	    v 'file-error
-	    (format
-	     "%s: Timeout %s second(s) accessing %s" string timeout filename)))
-	(setq filename (file-truename filename))
-	(if (file-exists-p filename)
-	    (unless
-		(funcall
-		 (if (file-directory-p filename)
-		     #'file-accessible-directory-p #'file-readable-p)
-		 filename)
-	      (tramp-compat-permission-denied
-	       v (format "%s: Permission denied, %s" string filename)))
-	  (tramp-error
-	   v 'file-missing
-	   (format "%s: No such file or directory, %s" string filename)))))))
+    (with-tramp-timeout
+	(timeout
+	 (unless (when-let ((p (tramp-get-connection-process v)))
+		   (and (process-live-p p)
+			(tramp-get-connection-property p "connected")))
+	   (tramp-cleanup-connection v 'keep-debug 'keep-password))
+	 (tramp-error
+	  v 'file-error
+	  (format
+	   "%s: Timeout %s second(s) accessing %s" string timeout filename)))
+      (setq filename (file-truename filename))
+      (if (file-exists-p filename)
+	  (unless
+	      (funcall
+	       (if (file-directory-p filename)
+		   #'file-accessible-directory-p #'file-readable-p)
+	       filename)
+	    (tramp-compat-permission-denied
+	     v (format "%s: Permission denied, %s" string filename)))
+	(tramp-error
+	 v 'file-missing
+	 (format "%s: No such file or directory, %s" string filename))))))
 
 (defun tramp-handle-add-name-to-file
   (filename newname &optional ok-if-already-exists)
