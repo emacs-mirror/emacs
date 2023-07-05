@@ -8040,6 +8040,7 @@ Since it unloads Tramp, it shall be the last test to run."
 	      (and (functionp x) (null (autoloadp (symbol-function x))))
 	      (macrop x))
 	  (string-prefix-p "tramp" (symbol-name x))
+	  (string-match-p (rx bol "with" (| "tramp" "parsed")) (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
 	  ;; `tramp-register-archive-file-name-handler' is autoloaded
