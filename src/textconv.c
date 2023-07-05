@@ -2020,10 +2020,67 @@ register_textconv_interface (struct textconv_interface *interface)
 
 
 
+/* List of buffers whose text conversion state will be reset after a
+   key sequence is read.  */
+static Lisp_Object postponed_buffers;
+
+/* Reset the text conversion style of each frame whose selected buffer
+   is contained inside `postponed_buffers'.  Set `postponed_buffers'
+   to nil.  */
+
+void
+check_postponed_buffers (void)
+{
+  Lisp_Object buffer, tail, frame;
+  struct buffer *b;
+  struct frame *f;
+
+  buffer = postponed_buffers;
+  postponed_buffers = Qnil;
+
+  if (!text_interface->reset)
+    return;
+
+  FOR_EACH_TAIL (buffer)
+    {
+      b = XBUFFER (XCAR (buffer));
+
+      /* Continue if this is a dead buffer.  */
+
+      if (!BUFFER_LIVE_P (b))
+	continue;
+
+      /* If no windows are displaying B anymore, continue.  */
+
+      if (!buffer_window_count (b))
+	continue;
+
+      /* Look for frames which have B selected.  */
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  f = XFRAME (frame);
+
+	  if (WINDOW_LIVE_P (f->old_selected_window)
+	      && FRAME_WINDOW_P (f)
+	      /* N.B. that the same frame can't be reset twice as long
+		 as the list of buffers remains unique.  */
+	      && EQ (XWINDOW (f->old_selected_window)->contents,
+		     XCAR (buffer)))
+	    {
+	      block_input ();
+	      reset_frame_state (f);
+	      text_interface->reset (f);
+	      unblock_input ();
+	    }
+	}
+    }
+}
+
 /* Lisp interface.  */
 
 DEFUN ("set-text-conversion-style", Fset_text_conversion_style,
-       Sset_text_conversion_style, 1, 1, 0,
+       Sset_text_conversion_style, 1, 2, 0,
        doc: /* Set the text conversion style in the current buffer.
 
 Set `text-conversion-style' to VALUE, then force any input method
@@ -2032,8 +2089,17 @@ editing frame displaying this buffer to stop itself.
 This can lead to a significant amount of time being taken by the input
 method resetting itself, so you should not use this function lightly;
 instead, set `text-conversion-style' before your buffer is displayed,
-and let redisplay manage the input method appropriately.  */)
-  (Lisp_Object value)
+and let redisplay manage the input method appropriately.
+
+If a key sequence is currently being read (either through the command
+loop or by a call to `read-key-sequence') and AFTER-KEY-SEQUENCE is
+non-nil, don't perform changes to the input method until the key
+sequence is read.  This is useful within a function bound to
+`input-decode-map' or `local-function-key-map', as it prevents the
+input method from being redundantly enabled according to VALUE if the
+replacement key sequence returned starts a new key sequence and makes
+`read-key-sequence' disable text conversion again.  */)
+  (Lisp_Object value, Lisp_Object after_key_sequence)
 {
   Lisp_Object tail, frame;
   struct frame *f;
@@ -2050,6 +2116,20 @@ and let redisplay manage the input method appropriately.  */)
   if (buffer_window_count (current_buffer))
     {
       buffer = Fcurrent_buffer ();
+
+      /* Postpone changes to the actual text conversion state if
+	 AFTER_KEY_SEQUENCE is non-nil and a key sequence is being
+	 read.  */
+
+      if (reading_key_sequence && !NILP (after_key_sequence))
+	{
+	  if (NILP (Fmemq (buffer, postponed_buffers)))
+	    /* `check_postponed_buffers' will hopefully be called soon
+	       enough to avoid postponed_buffers growing
+	       indefinitely.  */
+	    postponed_buffers = Fcons (buffer, postponed_buffers);
+	  return Qnil;
+	}
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -2126,4 +2206,7 @@ nil means to display no indication of a temporary edit.  */);
   Vtext_conversion_face = Qunderline;
 
   defsubr (&Sset_text_conversion_style);
+
+  postponed_buffers = Qnil;
+  staticpro (&postponed_buffers);
 }

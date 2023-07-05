@@ -115,6 +115,13 @@ static KBOARD *all_kboards;
 /* True in the single-kboard state, false in the any-kboard state.  */
 static bool single_kboard;
 
+#ifdef HAVE_TEXT_CONVERSION
+
+/* True if a key sequence is currently being read.  */
+bool reading_key_sequence;
+
+#endif /* HAVE_TEXT_CONVERSION */
+
 /* Minimum allowed size of the recent_keys vector.  */
 #define MIN_NUM_RECENT_KEYS (100)
 
@@ -10102,6 +10109,24 @@ void init_raw_keybuf_count (void)
   raw_keybuf_count = 0;
 }
 
+
+
+#ifdef HAVE_TEXT_CONVERSION
+
+static void
+restore_reading_key_sequence (int old_reading_key_sequence)
+{
+  reading_key_sequence = old_reading_key_sequence;
+
+  /* If a key sequence is no longer being read, reset input methods
+     whose state changes were postponed.  */
+
+  if (!old_reading_key_sequence)
+    check_postponed_buffers ();
+}
+
+#endif /* HAVE_TEXT_CONVERSION */
+
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size READ_KEY_ELTS.
    Prompt with PROMPT.
@@ -10260,6 +10285,16 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
     echo_start = echo_length ();
   keys_start = this_command_key_count;
   this_single_command_key_start = keys_start;
+
+#ifdef HAVE_TEXT_CONVERSION
+  /* Set `reading_key_sequence' to true.  This variable is used by
+     Fset_text_conversion_style to determine if it should postpone
+     resetting the input method until this function completes.  */
+
+  record_unwind_protect_int (restore_reading_key_sequence,
+			     reading_key_sequence);
+  reading_key_sequence = true;
+#endif /* HAVE_TEXT_CONVERSION */
 
   /* We jump here when we need to reinitialize fkey and keytran; this
      happens if we switch keyboards between rescans.  */

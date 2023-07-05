@@ -2251,7 +2251,7 @@ This, or any other value, means that the input method will be enabled
 and make edits followed by @code{text-conversion} events.
 @end table
 
-@findex disable-text-conversion
+@findex set-text-conversion-style
 Changes to the value of this variable will only take effect upon the
 next redisplay after the buffer becomes the selected buffer of a
 frame.  If you need to disable text conversion in a way that takes

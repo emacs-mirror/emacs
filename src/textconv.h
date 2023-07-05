@@ -118,6 +118,8 @@ struct textconv_callback_struct
   struct textconv_conversion_text text;
 };
 
+
+
 #define TEXTCONV_SKIP_CONVERSION_REGION (1 << 0)
 
 extern int textconv_query (struct frame *, struct textconv_callback_struct *,
@@ -148,6 +150,7 @@ extern char *get_surrounding_text (struct frame *, ptrdiff_t,
 				   ptrdiff_t *, ptrdiff_t *,
 				   ptrdiff_t *, ptrdiff_t *);
 extern bool conversion_disabled_p (void);
+extern void check_postponed_buffers (void);
 
 extern void register_textconv_interface (struct textconv_interface *);
 

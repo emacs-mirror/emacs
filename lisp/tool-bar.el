@@ -444,7 +444,7 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style)))))
+        (set-text-conversion-style old-text-conversion-style t)))))
 
 (defun tool-bar-event-apply-super-modifier (_ignore-prompt)
   "Like `event-apply-super-modifier'.
@@ -480,7 +480,7 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style)))))
+        (set-text-conversion-style old-text-conversion-style t)))))
 
 (defun tool-bar-event-apply-hyper-modifier (_ignore-prompt)
   "Like `event-apply-hyper-modifier'.
@@ -516,7 +516,7 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style)))))
+        (set-text-conversion-style old-text-conversion-style t)))))
 
 (defun tool-bar-event-apply-shift-modifier (_ignore-prompt)
   "Like `event-apply-shift-modifier'.
@@ -552,7 +552,7 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style)))))
+        (set-text-conversion-style old-text-conversion-style t)))))
 
 (defun tool-bar-event-apply-control-modifier (_ignore-prompt)
   "Like `event-apply-control-modifier'.
@@ -588,7 +588,7 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style)))))
+        (set-text-conversion-style old-text-conversion-style t)))))
 
 (defun tool-bar-event-apply-meta-modifier (_ignore-prompt)
   "Like `event-apply-meta-modifier'.
@@ -624,7 +624,7 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style)))))
+        (set-text-conversion-style old-text-conversion-style t)))))
 
 (define-minor-mode modifier-bar-mode
   "Toggle display of the modifier bar.
