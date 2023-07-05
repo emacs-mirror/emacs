@@ -491,6 +491,8 @@ public final class EmacsService extends Service
     int i;
 
     if (Build.VERSION.SDK_INT
+	/* Android 4.0 and earlier don't support mouse input events at
+	   all.  */
 	< Build.VERSION_CODES.JELLY_BEAN)
       return false;
 
@@ -504,8 +506,20 @@ public final class EmacsService extends Service
 	if (device == null)
 	  continue;
 
-	if (device.supportsSource (InputDevice.SOURCE_MOUSE))
-	  return true;
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+	  {
+	    if (device.supportsSource (InputDevice.SOURCE_MOUSE))
+	      return true;
+	  }
+	else
+	  {
+	    /* `supportsSource' is only present on API level 21 and
+	       later, but earlier versions provide a bit mask
+	       containing each supported source.  */
+
+	    if ((device.getSources () & InputDevice.SOURCE_MOUSE) != 0)
+	      return true;
+	  }
       }
 
     return false;
