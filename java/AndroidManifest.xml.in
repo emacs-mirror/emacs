@@ -38,6 +38,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.SET_WALLPAPER" />
+  <!-- Despite the claim that WRITE_EXTERNAL_STORAGE also covers
+       reading from external storage, specifying READ_EXTERNAL_STORAGE
+       seems to still be necessary on some versions of Android.
+       (bug#64445) -->
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.SEND_SMS" />
   <uses-permission android:name="android.permission.RECEIVE_SMS" />
