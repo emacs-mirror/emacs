@@ -248,12 +248,14 @@ some parts of the text or may be applied several times to other parts.
 
 Note: There may be at most nine back-references in the REGEXPs of
 all RULES in total."
-  (declare (debug (&rest &or symbolp    ;FIXME: edebug this eval step.
-                         (form &rest
-                               (numberp
-                                [&or stringp ;FIXME: Use &wrap
-                                     ("prog1" [&or stringp def-form] def-body)
-                                     def-form])))))
+  (declare
+   (debug (&rest &or symbolp            ;FIXME: edebug this eval step.
+                 (def-form ;; `def-' needed to debug during macroexpansion.
+                  &rest (numberp
+                         [&or stringp   ;FIXME: Use &wrap
+                              ;; `def-' because this is the body of a function.
+                              ("prog1" [&or stringp def-form] def-body)
+                              def-form])))))
   (let ((newrules nil))
     (while rules
       (if (symbolp (car rules))
