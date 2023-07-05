@@ -2812,9 +2812,13 @@ frame parameters you don't want to be restored; they will then be set
 according to your customizations in the init file.
 
 @vindex desktop-files-not-to-save
+@vindex remote-file-name-access-timeout
   Information about buffers visiting remote files is not saved by
 default.  Customize the variable @code{desktop-files-not-to-save} to
-change this.
+change this.  In this case, you might also consider customizing
+@code{remote-file-name-access-timeout}, which is the number of
+seconds after which buffer restoration of a remote file is
+stopped.  This prevents Emacs being blocked.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored in one go.

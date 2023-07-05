@@ -397,7 +397,12 @@ or `desktop-modes-not-to-save'."
 (defcustom desktop-files-not-to-save
   "\\(\\`/[^/:]*:\\|(ftp)\\'\\)"
   "Regexp identifying files whose buffers are to be excluded from saving.
-The default value excludes buffers visiting remote files."
+The default value excludes buffers visiting remote files.
+
+If you modify this such that buffers visiting remote files are not excluded,
+you may wish customizing `remote-file-name-access-timeout' to a non-nil
+value, to avoid hanging the desktop restoration because some remote
+host is off-line."
   :type '(choice (const :tag "None" nil)
 		 regexp)
   :group 'desktop)
@@ -1499,6 +1504,11 @@ This function is called from `window-configuration-change-hook'."
   (desktop-clear)
   (desktop-read desktop-dirname))
 
+;; ----------------------------------------------------------------------------
+(defun desktop-access-file (filename)
+  "Check whether FILENAME is accessible."
+  (ignore-errors (not (access-file filename "Restoring desktop buffer"))))
+
 (defvar desktop-buffer-major-mode)
 (defvar desktop-buffer-locals)
 (defvar auto-insert)  ; from autoinsert.el
@@ -1508,8 +1518,8 @@ This function is called from `window-configuration-change-hook'."
                                     _buffer-misc)
   "Restore a file buffer."
   (when buffer-filename
-    (if (or (file-exists-p buffer-filename)
-	    (let ((msg (format "Desktop: File \"%s\" no longer exists."
+    (if (or (desktop-access-file buffer-filename)
+	    (let ((msg (format "Desktop: File \"%s\" no longer accessible."
 			       buffer-filename)))
 	      (if desktop-missing-file-warning
 		  (y-or-n-p (concat msg " Re-create buffer? "))

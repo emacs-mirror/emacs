@@ -233,7 +233,7 @@ attributes, prototypes and signatures."
                        'font-lock-constant-face)))
       ;; The signature
       (goto-char (point-min))
-      (search-forward-regexp "\\(\$top\\),\\(\$down\\)")
+      (search-forward-regexp "\\(\\$top\\),\\(\\$down\\)")
       (should (equal (get-text-property (match-beginning 1) 'face)
                      'font-lock-variable-name-face))
       (should (equal (get-text-property (match-beginning 1) 'face)

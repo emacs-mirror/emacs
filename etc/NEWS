@@ -476,6 +476,25 @@ which makes them visually distinct from subroutine prototypes.
 CPerl mode supports the new keywords for exception handling and the
 object oriented syntax which were added in Perl 5.36 and 5.38.
 
+** Emacs Sessions (Desktop)
+
++++
+*** Restoring buffers visiting remote files can now time out.
+When a buffer is restored which visits a remote file, the restoration
+of the session could hang if the remote host is off-line or slow to
+respond.  Setting the user option 'remote-file-name-access-timeout' to
+a positive number will abandon the attempt to restore such buffers
+after a timeout of that many seconds, thus allowing the rest of
+desktop restoration to continue.
+
+** Recentf
+
++++
+*** Checking recent remote files can now time out.
+Similarly to buffer restoration by "desktop", 'recentf-mode' checking
+of the accessibility of remote files can now time out if
+`remote-file-name-access-timeout' is set to a positive number.
+
 
 * New Modes and Packages in Emacs 30.1
 

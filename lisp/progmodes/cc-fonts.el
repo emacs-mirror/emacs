@@ -387,7 +387,7 @@
 	      (parse-sexp-lookup-properties
 	       (cc-eval-when-compile
 		 (boundp 'parse-sexp-lookup-properties))))
-	  ,(c-make-font-lock-search-form regexp highlights))
+	  ,(c-make-font-lock-search-form regexp highlights t))
 	nil)))
 
   (defun c-make-font-lock-BO-decl-search-function (regexp &rest highlights)

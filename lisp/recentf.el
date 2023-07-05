@@ -112,11 +112,15 @@ must return non-nil to exclude it."
   :group 'recentf
   :type '(repeat (choice regexp function)))
 
+(defun recentf-access-file (filename)
+  "Check whether FILENAME is accessible."
+  (ignore-errors (not (access-file filename "Checking recentf file"))))
+
 (defun recentf-keep-default-predicate (file)
   "Return non-nil if FILE should be kept in the recent list.
 It handles the case of remote files as well."
   (cond
-   ((file-remote-p file nil t) (file-readable-p file))
+   ((file-remote-p file nil t) (recentf-access-file file))
    ((file-remote-p file))
    ((file-readable-p file))))
 
