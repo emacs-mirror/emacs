@@ -301,25 +301,6 @@
 (defconst lao-transcription-pattern
   (concat
    "\\("
-   (mapconcat 'car lao-transcription-consonant-alist "\\|")
-   "\\)\\("
-   (mapconcat 'car lao-transcription-semi-vowel-alist "\\|")
-   "\\)?\\(\\("
-   (mapconcat 'car lao-transcription-vowel-alist "\\|")
-   "\\)\\("
-   (mapconcat 'car lao-transcription-maa-sakod-alist "\\|")
-   "\\)?\\("
-   (mapconcat (lambda (x) (regexp-quote (car x)))
-	      lao-transcription-tone-alist "\\|")
-   "\\)?\\)?\\|"
-   (mapconcat (lambda (x) (regexp-quote (car x)))
-	      lao-transcription-punctuation-alist "\\|")
-   )
-  "Regexp of Roman transcription pattern for one Lao syllable.")
-
-(defconst lao-transcription-pattern
-  (concat
-   "\\("
    (regexp-opt (mapcar 'car lao-transcription-consonant-alist))
    "\\)\\("
    (regexp-opt (mapcar 'car lao-transcription-semi-vowel-alist))

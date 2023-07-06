@@ -163,6 +163,7 @@ Using @value{tramp}
 
 How file names, directories and localnames are mangled and managed
 
+* Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Breaking a localname into its components.
 * External packages::           Integration with external Lisp packages.
 
@@ -290,11 +291,14 @@ accumulated in the buffer, then decodes that output to produce the
 file's contents.
 
 For external transfers, @value{tramp} sends a command as follows:
+
 @example
-$ rcp user@@host:/path/to/remote/file /tmp/tramp.4711
+$ scp user@@host:/path/to/remote/file <TMP>/tramp.4711
 @end example
-@value{tramp} reads the local temporary file @file{/tmp/tramp.4711}
-into a buffer, and then deletes the temporary file.
+
+@value{tramp} reads the local temporary file @file{<TMP>/tramp.4711}
+into a buffer, and then deletes the temporary
+file.@footnote{@ref{Temporary directory}}
 
 @item
 Edit, modify, change the buffer contents as normal, and then save the
@@ -1398,14 +1402,6 @@ User names are part of the @command{rclone} configuration, and not
 needed in the remote file name.  If a user name is contained in the
 remote file name, it is ignored.
 
-Internally, @value{tramp} mounts the remote system storage at location
-@file{/tmp/tramp.rclone.storage}, with @file{storage} being the name
-of the configured system storage.
-
-The mount point and optional flags to the different @option{rclone}
-operations could be passed as connection properties, @xref{Setup of
-rclone method}.
-
 Access via @option{rclone} is slow.  If you have an alternative method
 for accessing the system storage, you should use it.
 @ref{GVFS-based methods} for example, methods @option{gdrive} and
@@ -2219,6 +2215,7 @@ to a remote home directory, like @option{adb}, @option{rclone} and
 The temporary directory on the remote host.  If not specified, the
 default value is @t{"/data/local/tmp"} for the @option{adb} method,
 @t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
+@ref{Temporary directory}.
 
 @item @t{"direct-async-process"}
 
@@ -2246,8 +2243,8 @@ this property has no effect.
 
 The directory file name an @acronym{FUSE}-based file system is mounted
 on.  The default value of this property is
-@t{"/tmp/tramp.method.user@@host#port"} (not specified in
-@code{tramp-methods}).
+@t{"<TMP>/tramp.method.user@@host#port"} (not specified in
+@code{tramp-methods}).  @ref{Temporary directory}.
 
 @item @t{"mount-args"}@*
 @t{"copyto-args"}@*
@@ -2951,10 +2948,11 @@ The fallback is to start Emacs from a shell.
 @section @acronym{FUSE} setup hints
 
 The @acronym{FUSE} file systems are mounted by default at
-@file{/tmp/tramp.method.user@@host#port}.  The user name and port
-number are optional.  If the file system is already mounted, it will
-be used as it is.  If the mount point does not exist yet,
-@value{tramp} creates this directory.
+@t{"<TMP>/tramp.method.user@@host#port"}.@footnote{@ref{Temporary
+directory}}  Method is either @t{"rclone"} or @t{"sshfs"}.  The user
+name and port number are optional.  If the file system is already
+mounted, it will be used as it is.  If the mount point does not exist
+yet, @value{tramp} creates this directory.
 
 The mount point can be overwritten by the connection property
 @t{"mount-point"}, @ref{Predefined connection information}.
@@ -5383,26 +5381,6 @@ be restored by moving them manually from
 
 
 @item
-How to identify temporary files produced by @value{tramp}?
-
-@vindex tramp-temp-name-prefix
-Temporary files are kept in your @code{temporary-file-directory}
-directory, which is often @file{/tmp/}.  By default, they have the
-file name prefix @t{"tramp."}.  If you want to change this prefix, for
-example because you want to identify temporary files produced by
-@code{file-local-copy} in your package, you can bind the variable
-@code{tramp-temp-name-prefix} temporarily:
-
-@example
-@group
-(let ((tramp-temp-name-prefix "my-prefix."))
-  (file-local-copy "@trampfn{ssh,,.emacs}"))
-@result{} "/tmp/my-prefix.HDfgDZ"
-@end group
-@end example
-
-
-@item
 How to shorten long file names when typing in @value{tramp}?
 
 Adapt several of these approaches to reduce typing.  If the full name
@@ -5919,9 +5897,43 @@ programs.
 @chapter How file names, directories and localnames are mangled and managed
 
 @menu
+* Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Splitting a localname into its component parts.
 * External packages::           Integrating with external Lisp packages.
 @end menu
+
+
+@node Temporary directory
+@section Where temporary files are kept
+
+@vindex temporary-file-directory
+Internally, @value{tramp} uses @t{"~/.cache/emacs"}
+as local temporary directory if it exists.  Otherwise, the value of
+@code{temporary-file-directory} is used, which is often @t{"/tmp"}.
+
+@vindex tramp-compat-temporary-file-directory
+@vindex <TMP>
+This local temporary directory is kept in the constant
+@code{tramp-compat-temporary-file-directory}.  In this manual, we use
+@t{"<TMP>"} for its value.
+
+The temporary directory on a remote host is @t{"/data/local/tmp"} for
+the @option{adb} method, @t{"/C$/Temp"} for the @option{smb} method,
+and @t{"/tmp"} otherwise.  For some methods, this can be customized.
+
+@vindex tramp-temp-name-prefix
+Temporary files have the file name prefix @t{"tramp."}.  If you want
+to change this prefix, for example because you want to identify
+temporary files produced by @code{file-local-copy} in your package,
+you can bind the variable @code{tramp-temp-name-prefix} temporarily:
+
+@example
+@group
+(let ((tramp-temp-name-prefix "my-prefix."))
+  (file-local-copy "@trampfn{ssh,,.emacs}"))
+@result{} "/tmp/my-prefix.HDfgDZ"
+@end group
+@end example
 
 
 @node Localname deconstruction
@@ -6091,10 +6103,9 @@ a file:
 (customize-set-variable 'tramp-debug-to-file t)
 @end lisp
 
-The debug buffer is written as a file in your
-@code{temporary-file-directory}, which is usually @file{/tmp/}.  Use
-this option with care, because it could decrease the performance of
-@value{tramp} actions.
+The debug buffer is written as a file in your @ref{Temporary
+directory}.  Use this option with care, because it could decrease the
+performance of @value{tramp} actions.
 
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
 function call traces are written to the buffer @file{*trace-output*}.
