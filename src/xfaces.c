@@ -1612,7 +1612,7 @@ the face font sort order, see `face-font-selection-order'.  */)
     {
       Lisp_Object font = AREF (vec, i);
       int point = PIXEL_TO_POINT (XFIXNUM (AREF (font, FONT_SIZE_INDEX)) * 10,
-				  FRAME_RES_Y (f));
+				  FRAME_RES (f));
       Lisp_Object spacing = Ffont_get (font, QCspacing);
       Lisp_Object v = CALLN (Fvector,
 			     AREF (font, FONT_FAMILY_INDEX),
@@ -2173,7 +2173,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
     {
-      int pt = PIXEL_TO_POINT (font->pixel_size * 10, FRAME_RES_Y (f));
+      int pt = PIXEL_TO_POINT (font->pixel_size * 10, FRAME_RES (f));
 
       eassert (pt > 0);
       ASET (lface, LFACE_HEIGHT_INDEX, make_fixnum (pt));

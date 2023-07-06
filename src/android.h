@@ -58,6 +58,7 @@ extern int android_fclose (FILE *);
 extern const char *android_get_home_directory (void);
 
 extern double android_pixel_density_x, android_pixel_density_y;
+extern double android_scaled_pixel_density;
 
 enum android_handle_type
   {

@@ -65,6 +65,11 @@ struct android_display_info
   /* DPI of the display.  */
   double resx, resy;
 
+  /* DPI used to convert font point sizes into pixel dimensions.
+     This is resy adjusted by a fixed scaling factor specified by
+     the user.  */
+  double font_resolution;
+
   /* Scratch GC for drawing a cursor in a non-default face. */
   struct android_gc *scratch_cursor_gc;
 

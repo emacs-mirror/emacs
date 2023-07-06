@@ -211,6 +211,7 @@ public final class EmacsService extends Service
     final String filesDir, libDir, cacheDir, classPath;
     final double pixelDensityX;
     final double pixelDensityY;
+    final double scaledDensity;
 
     SERVICE = this;
     handler = new Handler (Looper.getMainLooper ());
@@ -219,6 +220,9 @@ public final class EmacsService extends Service
     metrics = getResources ().getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
+    scaledDensity = ((metrics.scaledDensity
+		      / metrics.density)
+		     * pixelDensityX);
     resolver = getContentResolver ();
 
     try
@@ -247,6 +251,7 @@ public final class EmacsService extends Service
 	      EmacsNative.setEmacsParams (manager, filesDir, libDir,
 					  cacheDir, (float) pixelDensityX,
 					  (float) pixelDensityY,
+					  (float) scaledDensity,
 					  classPath, EmacsService.this);
 	    }
 	  }, extraStartupArgument,

@@ -198,6 +198,10 @@ char *android_class_path;
 /* The display's pixel densities.  */
 double android_pixel_density_x, android_pixel_density_y;
 
+/* The display pixel density used to convert between point and pixel
+   font sizes.  */
+double android_scaled_pixel_density;
+
 /* The Android application data directory.  */
 static char *android_files_dir;
 
@@ -2000,6 +2004,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jobject cache_dir,
 			      jfloat pixel_density_x,
 			      jfloat pixel_density_y,
+			      jfloat scaled_density,
 			      jobject class_path,
 			      jobject emacs_service_object)
 {
@@ -2021,6 +2026,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
   android_pixel_density_x = pixel_density_x;
   android_pixel_density_y = pixel_density_y;
+  android_scaled_pixel_density = scaled_density;
 
   __android_log_print (ANDROID_LOG_INFO, __func__,
 		       "Initializing "PACKAGE_STRING"...\nPlease report bugs to "

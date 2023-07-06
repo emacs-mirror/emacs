@@ -190,7 +190,7 @@ public final class EmacsNoninteractive
 
     EmacsNative.setEmacsParams (assets, filesDir,
 				libDir, cacheDir, 0.0f,
-				0.0f, null, null);
+				0.0f, 0.0f, null, null);
 
     /* Now find the dump file that Emacs should use, if it has already
        been dumped.  */

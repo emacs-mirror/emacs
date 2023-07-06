@@ -6295,11 +6295,10 @@ android_term_init (void)
   dpyinfo->color_map = color_map;
 
 #ifndef ANDROID_STUBIFY
-
   dpyinfo->resx = android_pixel_density_x;
   dpyinfo->resy = android_pixel_density_y;
-
-#endif
+  dpyinfo->font_resolution = android_scaled_pixel_density;
+#endif /* ANDROID_STUBIFY */
 
   /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
   dpyinfo->smallest_font_height = 1;

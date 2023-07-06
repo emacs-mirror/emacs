@@ -60,6 +60,9 @@ public final class EmacsNative
      pixelDensityX and pixelDensityY are the DPI values that will be
      used by Emacs.
 
+     scaledDensity is the DPI value used to translate point sizes to
+     pixel sizes when loading fonts.
+
      classPath must be the classpath of this app_process process, or
      NULL.
 
@@ -70,6 +73,7 @@ public final class EmacsNative
 					    String cacheDir,
 					    float pixelDensityX,
 					    float pixelDensityY,
+					    float scaledDensity,
 					    String classPath,
 					    EmacsService emacsService);
 
