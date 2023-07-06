@@ -2868,8 +2868,7 @@ void
 labeled_narrow_to_region (Lisp_Object begv, Lisp_Object zv,
 			  Lisp_Object label)
 {
-  Fnarrow_to_region (begv, zv);
-  Finternal__label_restriction (label);
+  Finternal__labeled_narrow_to_region (begv, zv, label);
   record_unwind_protect (restore_point_unwind, Fpoint_marker ());
   record_unwind_protect (unwind_labeled_narrow_to_region, label);
 }
@@ -2967,13 +2966,6 @@ argument.  To gain access to other portions of the buffer, use
       if (e > zv_charpos) e = zv_charpos;
     }
 
-  /* Record the accessible range of the buffer when narrow-to-region
-     is called, that is, before applying the narrowing.  That
-     information is used only by internal--label-restriction.  */
-  Fset (Qoutermost_restriction, list3 (Qoutermost_restriction,
-				       Fpoint_min_marker (),
-				       Fpoint_max_marker ()));
-
   if (BEGV != s || ZV != e)
     current_buffer->clip_changed = 1;
 
@@ -3008,6 +3000,24 @@ This is an internal function used by `with-restriction'.  */)
   labeled_restrictions_push (buf, list3 (label,
 					 Fpoint_min_marker (),
 					 Fpoint_max_marker ()));
+  return Qnil;
+}
+
+DEFUN ("internal--labeled-narrow-to-region", Finternal__labeled_narrow_to_region,
+       Sinternal__labeled_narrow_to_region, 3, 3, 0,
+       doc: /* Restrict editing to START-END, and label the restriction with LABEL.
+
+This is an internal function used by `with-restriction'.  */)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object label)
+{
+  /* Record the accessible range of the buffer when narrow-to-region
+     is called, that is, before applying the narrowing.  That
+     information is used only by internal--label-restriction.  */
+  Fset (Qoutermost_restriction, list3 (Qoutermost_restriction,
+				       Fpoint_min_marker (),
+				       Fpoint_max_marker ()));
+  Fnarrow_to_region (start, end);
+  Finternal__label_restriction (label);
   return Qnil;
 }
 
@@ -4964,6 +4974,7 @@ it to be non-nil.  */);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
   defsubr (&Sinternal__label_restriction);
+  defsubr (&Sinternal__labeled_narrow_to_region);
   defsubr (&Sinternal__unlabel_restriction);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
