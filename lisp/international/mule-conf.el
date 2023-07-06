@@ -1600,7 +1600,7 @@ for decoding and encoding files, process I/O, etc."
 (define-coding-system 'utf-7
   "UTF-7 encoding of Unicode (RFC 2152)."
   :coding-type 'utf-8
-  :mnemonic ?U
+  :mnemonic ?u
   :mime-charset 'utf-7
   :charset-list '(unicode)
   :pre-write-conversion 'utf-7-pre-write-conversion
