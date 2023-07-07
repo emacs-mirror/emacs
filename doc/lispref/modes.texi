@@ -2277,6 +2277,16 @@ current buffer is remote.
 This variable is used to identify @code{emacsclient} frames.
 @end defvar
 
+@defvar mode-line-format-right-align
+Anything following this symbol in @code{mode-line-format} will be
+right-aligned.
+@end defvar
+
+@defvar mode-line-right-align-edge
+This variable controls exactly @code{mode-line-format-right-align}
+aligns content to.
+@end defvar
+
   The following three variables are used in @code{mode-line-modes}:
 
 @defvar mode-name

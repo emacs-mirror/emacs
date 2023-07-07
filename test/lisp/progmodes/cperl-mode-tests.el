@@ -484,12 +484,16 @@ Also includes valid cases with whitespace in strange places."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
          '(":" ":foo" ": bar()" ":baz(quux):"
-           ":isa(Foo)does(Bar)" ":isa(Foo):does(Bar)" ":isa(Foo):does(Bar):"
+           ":_" ":_foo"
+           ":isa(Foo) does(Bar)" ":isa(Foo):does(Bar)"
+           ":isa(Foo):does(Bar):"
            ":  isa(Foo::Bar) : does(Bar)"))
         (invalid
          '(":foo + bar"                ; not an identifier
+           "::foo"                     ; not an attribute list
            ": foo(bar : : baz"         ; too many colons
-           ": baz (quux)")))             ; no space allowed before "("
+           ": foo(bar)baz"             ; need a separator
+           ": baz (quux)")))           ; no space allowed before "("
     (cperl-test--validate-regexp (rx (eval cperl--attribute-list-rx))
                                  valid invalid)))
 

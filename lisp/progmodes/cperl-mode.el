@@ -1305,23 +1305,33 @@ or \"${ foo }\" will not.")
     "A sequence for recommended version number schemes in Perl.")
 
   (defconst cperl--single-attribute-rx
-    `(sequence word-start
-               ,cperl--basic-identifier-rx
+    `(sequence ,cperl--basic-identifier-rx
                (optional (sequence "("
-                          (0+ (not (in ")")))
-                          ")")))
+                                   (0+ (or (sequence "\\" not-newline)
+                                           (not (any "()\\"))
+                                           (sequence "("
+		                                     (zero-or-more
+		                                      (not
+		                                       (any "()\\")))
+		                                     ")")))
+                                   ")")))
     "A regular expression for a single attribute, without leading colon.
-It may have parameters in parens, but parens within the
-parameter's value are not supported.  This regexp does not have
+It may have parameters in parens, one level of parens within the
+parameter's value is supported.  This regexp does not have
 capture groups.")
 
   (defconst cperl--attribute-list-rx
     `(sequence ":"
-               (0+ (sequence
-                    ,cperl--ws*-rx
-                    ,cperl--single-attribute-rx
-                    ,cperl--ws*-rx
-                    (optional ":"))))
+               (optional
+                ,cperl--ws*-rx
+                ,cperl--single-attribute-rx
+                (0+ (sequence
+                     (or (sequence ,cperl--ws*-rx
+                                   ":"
+                                   ,cperl--ws*-rx)
+                         ,cperl--ws+-rx)
+                     ,cperl--single-attribute-rx))
+                (optional ":")))
     "A regular expression for an attribute list.
 Attribute lists may only occur in certain declarations.  A colon
 is required before the first attribute but optional between
@@ -3607,7 +3617,7 @@ Should be called with the point before leading colon of an attribute."
 		 "\\)"
 		 (if after-first "?" "")
 		 ;; No space between name and paren allowed...
-		 "\\(\\sw+\\)"		; 3=name
+		 (rx (group (eval cperl--basic-identifier-rx)))	; 3=name
 		 "\\((\\)?"))		; 4=optional paren
 	  (and (match-beginning 1)
 	       (cperl-postpone-fontification

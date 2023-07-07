@@ -109,6 +109,12 @@ window systems other than Nextstep.
 When this minor mode is enabled, buttons representing modifier keys
 are displayed along the tool bar.
 
+** Modeline elements can now be right-aligned.
+Anything following the symbol 'mode-line-format-right-align' in
+'mode-line-format' will be right-aligned.  Exactly where it is
+right-aligned to is controlled by the new user option
+'mode-line-right-align-edge'.
+
 
 * Editing Changes in Emacs 30.1
 
@@ -183,6 +189,16 @@ current diff, regenerating them without whitespace changes.
 This allows changing which type of whitespace changes are ignored when
 regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
 the previously hard-coded "-b".
+
+** Ediff
+
+---
+*** New user option 'ediff-floating-control-frame'.
+If non-nil, try making the control frame be floating rather than tiled.
+
+Many X tiling window managers make the Ediff control frame a tiled
+window equal in size to the main Emacs frame, which works poorly.
+This option is useful to set if you use such a window manager.
 
 ** Buffer Selection
 
