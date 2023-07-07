@@ -1128,7 +1128,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		     ;; we arguably should add it to b-c-noruntime-functions,
                      ;; but it's not clear it's worth the trouble
 		     ;; trying to recognize that case.
-		     (unless (get f 'function-history)
+		     (unless (or (get f 'function-history)
+                                 (assq f byte-compile-function-environment))
                        (push f byte-compile-noruntime-functions)))))))))))))
 
 (defun byte-compile-eval-before-compile (form)
