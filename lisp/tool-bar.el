@@ -378,9 +378,14 @@ Customize `tool-bar-mode' if you want to show or hide the tool bar."
 
 
 
-;; Modifier mode.
+;; Modifier bar mode.
 ;; This displays a small tool bar containing modifier keys
 ;; above or below the main tool bar itself.
+
+(defvar modifier-bar-modifier-list nil
+  "List of modifiers that are currently applied.
+Each symbol in this list represents a modifier button that has
+been pressed as part of decoding this key sequence.")
 
 (declare-function set-text-conversion-style "textconv.c")
 
@@ -410,12 +415,23 @@ Return EVENT with the specified modifiers applied."
 
 (defvar overriding-text-conversion-style)
 
-(defun tool-bar-event-apply-alt-modifier (_ignore-prompt)
-  "Like `event-apply-alt-modifier'.
-However, take additional modifier tool bar items into account;
-apply any extra modifiers bound to subsequent `tool-bar' events."
+(defun modifier-bar-button (init-modifier-list)
+  "Decode the key sequence associated with a modifier bar button.
+INIT-MODIFIER-LIST is a list of one symbol describing the button
+being pressed.
+
+Bind `modifier-bar-modifier-list' to INIT-MODIFIER-LIST.  Read
+events, adding each subsequent modifier bar event's associated
+modifier to that list while updating the tool bar to disable
+buttons that were pressed.  Return any other event read with all
+modifier keys read applied.
+
+Temporarily disable text conversion and display the on screen
+keyboard while doing so."
   ;; Save the previously used text conversion style.
-  (let ((old-text-conversion-style text-conversion-style))
+  (let ((old-text-conversion-style text-conversion-style)
+        ;; Clear the list of modifiers currently pressed.
+        (modifier-bar-modifier-list init-modifier-list))
     ;; Disable text conversion.
     (when (fboundp 'set-text-conversion-style)
       (set-text-conversion-style nil))
@@ -423,7 +439,9 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
         (progn
           ;; Display the on screen keyboard.
           (frame-toggle-on-screen-keyboard nil nil)
-          (let* ((modifiers '(alt)) event1
+          ;; Update the tool bar to disable this modifier key.
+          (force-mode-line-update)
+          (let* ((modifiers init-modifier-list) event1
                  (overriding-text-conversion-style nil)
                  (event (read-event)))
             ;; Combine any more modifier key presses.
@@ -435,7 +453,14 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
               ;; If `event' is the name of a modifier key, apply that
               ;; modifier key as well.
               (unless (memq event1 modifiers)
-                (push event1 modifiers))
+                (push event1 modifiers)
+                ;; This list is used to check which tool bar buttons
+                ;; need to be enabled.
+                (push event1 modifier-bar-modifier-list))
+              ;; Update the tool bar to disable the modifier button
+              ;; that was read.
+              (force-mode-line-update)
+              (redisplay)
               ;; Read another event.
               (setq event (read-event)))
             ;; EVENT is a keyboard event to which the specified list of
@@ -444,187 +469,52 @@ apply any extra modifiers bound to subsequent `tool-bar' events."
       ;; Re-enable text conversion if necessary.
       (unless (or (not (fboundp 'set-text-conversion-style))
                   (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style t)))))
+        (set-text-conversion-style old-text-conversion-style t))
+      ;; Re-enable all modifier bar buttons which may have been
+      ;; disabled.
+      (force-mode-line-update))))
+
+(defun tool-bar-event-apply-alt-modifier (_ignore-prompt)
+  "Like `event-apply-alt-modifier'.
+However, take additional modifier tool bar items into account;
+apply any extra modifiers bound to subsequent `tool-bar' events."
+  (modifier-bar-button '(alt)))
 
 (defun tool-bar-event-apply-super-modifier (_ignore-prompt)
   "Like `event-apply-super-modifier'.
 However, take additional modifier tool bar items into account;
 apply any extra modifiers bound to subsequent `tool-bar' events."
-  ;; Save the previously used text conversion style.
-  (let ((old-text-conversion-style text-conversion-style))
-    ;; Disable text conversion.
-    (when (fboundp 'set-text-conversion-style)
-      (set-text-conversion-style nil))
-    (unwind-protect
-        (progn
-          ;; Display the on screen keyboard.
-          (frame-toggle-on-screen-keyboard nil nil)
-          (let* ((modifiers '(super)) event1
-                 (overriding-text-conversion-style nil)
-                 (event (read-event)))
-            ;; Combine any more modifier key presses.
-            (while (eq event 'tool-bar)
-              (setq event1 (event-basic-type (read-event)))
-              ;; Reject unknown tool bar events.
-              (unless (memq event1 '(alt super hyper shift control meta))
-                (user-error "Unknown tool-bar event %s" event1))
-              ;; If `event' is the name of a modifier key, apply that
-              ;; modifier key as well.
-              (unless (memq event1 modifiers)
-                (push event1 modifiers))
-              ;; Read another event.
-              (setq event (read-event)))
-            ;; EVENT is a keyboard event to which the specified list of
-            ;; modifier keys should be applied.
-            (vector (tool-bar-apply-modifiers event modifiers))))
-      ;; Re-enable text conversion if necessary.
-      (unless (or (not (fboundp 'set-text-conversion-style))
-                  (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style t)))))
+  (modifier-bar-button '(super)))
 
 (defun tool-bar-event-apply-hyper-modifier (_ignore-prompt)
   "Like `event-apply-hyper-modifier'.
 However, take additional modifier tool bar items into account;
 apply any extra modifiers bound to subsequent `tool-bar' events."
-  ;; Save the previously used text conversion style.
-  (let ((old-text-conversion-style text-conversion-style))
-    ;; Disable text conversion.
-    (when (fboundp 'set-text-conversion-style)
-      (set-text-conversion-style nil))
-    (unwind-protect
-        (progn
-          ;; Display the on screen keyboard.
-          (frame-toggle-on-screen-keyboard nil nil)
-          (let* ((modifiers '(hyper)) event1
-                 (overriding-text-conversion-style nil)
-                 (event (read-event)))
-            ;; Combine any more modifier key presses.
-            (while (eq event 'tool-bar)
-              (setq event1 (event-basic-type (read-event)))
-              ;; Reject unknown tool bar events.
-              (unless (memq event1 '(alt super hyper shift control meta))
-                (user-error "Unknown tool-bar event %s" event1))
-              ;; If `event' is the name of a modifier key, apply that
-              ;; modifier key as well.
-              (unless (memq event1 modifiers)
-                (push event1 modifiers))
-              ;; Read another event.
-              (setq event (read-event)))
-            ;; EVENT is a keyboard event to which the specified list of
-            ;; modifier keys should be applied.
-            (vector (tool-bar-apply-modifiers event modifiers))))
-      ;; Re-enable text conversion if necessary.
-      (unless (or (not (fboundp 'set-text-conversion-style))
-                  (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style t)))))
+  (modifier-bar-button '(hyper)))
 
 (defun tool-bar-event-apply-shift-modifier (_ignore-prompt)
   "Like `event-apply-shift-modifier'.
 However, take additional modifier tool bar items into account;
 apply any extra modifiers bound to subsequent `tool-bar' events."
-  ;; Save the previously used text conversion style.
-  (let ((old-text-conversion-style text-conversion-style))
-    ;; Disable text conversion.
-    (when (fboundp 'set-text-conversion-style)
-      (set-text-conversion-style nil))
-    (unwind-protect
-        (progn
-          ;; Display the on screen keyboard.
-          (frame-toggle-on-screen-keyboard nil nil)
-          (let* ((modifiers '(shift)) event1
-                 (overriding-text-conversion-style nil)
-                 (event (read-event)))
-            ;; Combine any more modifier key presses.
-            (while (eq event 'tool-bar)
-              (setq event1 (event-basic-type (read-event)))
-              ;; Reject unknown tool bar events.
-              (unless (memq event1 '(alt super hyper shift control meta))
-                (user-error "Unknown tool-bar event %s" event1))
-              ;; If `event' is the name of a modifier key, apply that
-              ;; modifier key as well.
-              (unless (memq event1 modifiers)
-                (push event1 modifiers))
-              ;; Read another event.
-              (setq event (read-event)))
-            ;; EVENT is a keyboard event to which the specified list of
-            ;; modifier keys should be applied.
-            (vector (tool-bar-apply-modifiers event modifiers))))
-      ;; Re-enable text conversion if necessary.
-      (unless (or (not (fboundp 'set-text-conversion-style))
-                  (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style t)))))
+  (modifier-bar-button '(shift)))
 
 (defun tool-bar-event-apply-control-modifier (_ignore-prompt)
   "Like `event-apply-control-modifier'.
 However, take additional modifier tool bar items into account;
 apply any extra modifiers bound to subsequent `tool-bar' events."
-  ;; Save the previously used text conversion style.
-  (let ((old-text-conversion-style text-conversion-style))
-    ;; Disable text conversion.
-    (when (fboundp 'set-text-conversion-style)
-      (set-text-conversion-style nil))
-    (unwind-protect
-        (progn
-          ;; Display the on screen keyboard.
-          (frame-toggle-on-screen-keyboard nil nil)
-          (let* ((modifiers '(control)) event1
-                 (overriding-text-conversion-style nil)
-                 (event (read-event)))
-            ;; Combine any more modifier key presses.
-            (while (eq event 'tool-bar)
-              (setq event1 (event-basic-type (read-event)))
-              ;; Reject unknown tool bar events.
-              (unless (memq event1 '(alt super hyper shift control meta))
-                (user-error "Unknown tool-bar event %s" event1))
-              ;; If `event' is the name of a modifier key, apply that
-              ;; modifier key as well.
-              (unless (memq event1 modifiers)
-                (push event1 modifiers))
-              ;; Read another event.
-              (setq event (read-event)))
-            ;; EVENT is a keyboard event to which the specified list of
-            ;; modifier keys should be applied.
-            (vector (tool-bar-apply-modifiers event modifiers))))
-      ;; Re-enable text conversion if necessary.
-      (unless (or (not (fboundp 'set-text-conversion-style))
-                  (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style t)))))
+  (modifier-bar-button '(control)))
 
 (defun tool-bar-event-apply-meta-modifier (_ignore-prompt)
   "Like `event-apply-meta-modifier'.
 However, take additional modifier tool bar items into account;
 apply any extra modifiers bound to subsequent `tool-bar' events."
-  ;; Save the previously used text conversion style.
-  (let ((old-text-conversion-style text-conversion-style))
-    ;; Disable text conversion.
-    (when (fboundp 'set-text-conversion-style)
-      (set-text-conversion-style nil))
-    (unwind-protect
-        (progn
-          ;; Display the on screen keyboard.
-          (frame-toggle-on-screen-keyboard nil nil)
-          (let* ((modifiers '(meta)) event1
-                 (overriding-text-conversion-style nil)
-                 (event (read-event)))
-            ;; Combine any more modifier key presses.
-            (while (eq event 'tool-bar)
-              (setq event1 (event-basic-type (read-event)))
-              ;; Reject unknown tool bar events.
-              (unless (memq event1 '(alt super hyper shift control meta))
-                (user-error "Unknown tool-bar event %s" event1))
-              ;; If `event' is the name of a modifier key, apply that
-              ;; modifier key as well.
-              (unless (memq event1 modifiers)
-                (push event1 modifiers))
-              ;; Read another event.
-              (setq event (read-event)))
-            ;; EVENT is a keyboard event to which the specified list of
-            ;; modifier keys should be applied.
-            (vector (tool-bar-apply-modifiers event modifiers))))
-      ;; Re-enable text conversion if necessary.
-      (unless (or (not (fboundp 'set-text-conversion-style))
-                  (eq old-text-conversion-style text-conversion-style))
-        (set-text-conversion-style old-text-conversion-style t)))))
+  (modifier-bar-button '(meta)))
+
+(defun modifier-bar-available-p (modifier)
+  "Return whether the modifier button for MODIFIER should be enabled.
+Return t if MODIFIER has not yet been selected as part of
+decoding the current key sequence, nil otherwise."
+  (not (memq modifier modifier-bar-modifier-list)))
 
 (define-minor-mode modifier-bar-mode
   "Toggle display of the modifier bar.
@@ -645,27 +535,33 @@ which see."
               `(keymap (control menu-item "Control Key"
                                 event-apply-control-modifier
                                 :help "Add Control modifier to the following event"
-                                :image ,(tool-bar--image-expression "ctrl"))
+                                :image ,(tool-bar--image-expression "ctrl")
+                                :enable (modifier-bar-available-p 'control))
                        (shift menu-item "Shift Key"
                               event-apply-shift-modifier
                               :help "Add Shift modifier to the following event"
-                              :image ,(tool-bar--image-expression "shift"))
+                              :image ,(tool-bar--image-expression "shift")
+                              :enable (modifier-bar-available-p 'shift))
                        (meta menu-item "Meta Key"
                              event-apply-meta-modifier
                              :help "Add Meta modifier to the following event"
-                             :image ,(tool-bar--image-expression "meta"))
+                             :image ,(tool-bar--image-expression "meta")
+                             :enable (modifier-bar-available-p 'meta))
                        (alt menu-item "Alt Key"
                             event-apply-alt-modifier
                             :help "Add Alt modifier to the following event"
-                            :image ,(tool-bar--image-expression "alt"))
+                            :image ,(tool-bar--image-expression "alt")
+                            :enable (modifier-bar-available-p 'alt))
                        (super menu-item "Super Key"
                               event-apply-super-modifier
                               :help "Add Super modifier to the following event"
-                              :image ,(tool-bar--image-expression "super"))
+                              :image ,(tool-bar--image-expression "super")
+                              :enable (modifier-bar-available-p 'super))
                        (hyper menu-item "Hyper Key"
                               event-apply-hyper-modifier
                               :help "Add Hyper modifier to the following event"
-                              :image ,(tool-bar--image-expression "hyper"))))
+                              :image ,(tool-bar--image-expression "hyper")
+                              :enable (modifier-bar-available-p 'hyper))))
         (define-key input-decode-map [tool-bar control]
                     #'tool-bar-event-apply-control-modifier)
         (define-key input-decode-map [tool-bar shift]
@@ -679,7 +575,8 @@ which see."
         (define-key input-decode-map [tool-bar hyper]
                     #'tool-bar-event-apply-hyper-modifier))
     (setq secondary-tool-bar-map nil))
-    (force-mode-line-update t))
+  ;; Update the mode line now.
+  (force-mode-line-update t))
 
 (provide 'tool-bar)
 
