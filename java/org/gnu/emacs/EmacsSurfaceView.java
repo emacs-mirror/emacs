@@ -76,7 +76,9 @@ public final class EmacsSurfaceView extends View
     EmacsService.checkEmacsThread ();
 
     if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O
-	&& Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1)
+	&& Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1
+	&& Build.VERSION.SDK_INT != Build.VERSION_CODES.N_MR1
+	&& Build.VERSION.SDK_INT != Build.VERSION_CODES.N)
       {
 	/* If `drawBitmap' can safely be used while a bitmap is locked
 	   by another thread, continue here... */
@@ -89,8 +91,8 @@ public final class EmacsSurfaceView extends View
       }
     else
       {
-	/* But if it can not, as on Android 8.0 and 8.1, then use a
-	   replacement function.  */
+	/* But if it can not, as on Android 7.0 through 8.1, then use
+	   a replacement function.  */
 
 	if (damageRect != null)
 	  EmacsNative.blitRect (bitmap, frontBuffer,
