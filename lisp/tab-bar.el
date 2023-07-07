@@ -618,13 +618,18 @@ from all windows in the window configuration."
 
 (defun tab-bar-tab-name-current ()
   "Generate tab name from the buffer of the selected window."
-  (buffer-name (window-buffer (minibuffer-selected-window))))
+  ;; `minibuffer-selected-window' loses its original window
+  ;; after switching to another tab while the minibuffer was active,
+  ;; so get the most recently used non-minibuffer window.
+  (buffer-name (window-buffer (or (minibuffer-selected-window)
+                                  (and (window-minibuffer-p)
+                                       (get-mru-window))))))
 
 (defun tab-bar-tab-name-current-with-count ()
   "Generate tab name from the buffer of the selected window.
 Also add the number of windows in the window configuration."
   (let ((count (length (window-list-1 nil 'nomini)))
-        (name (window-buffer (minibuffer-selected-window))))
+        (name (tab-bar-tab-name-current)))
     (if (> count 1)
         (format "%s (%d)" name count)
       (format "%s" name))))
@@ -651,7 +656,7 @@ to `tab-bar-tab-name-truncated'."
   "Generate tab name from the buffer of the selected window.
 Truncate it to the length specified by `tab-bar-tab-name-truncated-max'.
 Append ellipsis `tab-bar-tab-name-ellipsis' in this case."
-  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window)))))
+  (let ((tab-name (tab-bar-tab-name-current)))
     (if (< (length tab-name) tab-bar-tab-name-truncated-max)
         tab-name
       (propertize (truncate-string-to-width
