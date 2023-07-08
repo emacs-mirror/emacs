@@ -202,6 +202,11 @@ or get a sublist of elements 2 through 4 with '$my-list[2..5]'.  For
 more information, see the "(eshell) Dollars Expansion" node in the
 Eshell manual.
 
++++
+*** Eshell's '$UID' and '$GID' variables are now connection-aware.
+Now, when expanding '$UID' or '$GID' in a remote directory, the value
+is the user or group ID associated with the remote connection.
+
 ---
 *** Eshell now uses 'field' properties in its output.
 In particular, this means that pressing the '<home>' key moves the

@@ -993,6 +993,13 @@ variable is connection-aware, so when the current directory is remote,
 its value will be @acronym{UID} for the user associated with that
 remote connection.
 
+@vindex $GID
+@item $GID
+This returns the effective @acronym{GID} for the current user.  Like
+@code{$UID}, this variable is connection-aware, so when the current
+directory is remote, its value will be @acronym{GID} for the user
+associated with that remote connection.
+
 @vindex $_
 @item $_
 This refers to the last argument of the last command.  With a
