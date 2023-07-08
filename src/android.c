@@ -4815,8 +4815,8 @@ android_blit_xor (int src_x, int src_y, int width, int height,
 		  temp = MIN (mask_info->width, width);
 		  while (temp--)
 		    *long_dst++ = ((*(long_src++)
-				     & (0u - (*(mask_current++) & 1)))
-				    & 0xffffff);
+				    & (0u - (*(mask_current++) & 1)))
+				   & 0xffffff);
 		}
 
 	      src_current += src_info->stride;
@@ -7187,7 +7187,7 @@ android_check_query_urgent (void)
     return;
 
   __android_log_print (ANDROID_LOG_VERBOSE, __func__,
-	       "Responding to urgent query...");
+		       "Responding to urgent query...");
 
   if (!__atomic_load_n (&android_servicing_query, __ATOMIC_ACQUIRE))
     return;
@@ -7407,7 +7407,7 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
      query.  */
 
   eassert (!__atomic_load_n (&android_servicing_query,
-			    __ATOMIC_ACQUIRE)
+			     __ATOMIC_ACQUIRE)
 	   || (__atomic_load_n (&android_servicing_query,
 				__ATOMIC_ACQUIRE) == 2));
 
@@ -7500,13 +7500,12 @@ android_update_extracted_text (android_window window, void *text,
 						 emacs_service,
 						 service_class.class,
 						 method, object,
-						 /* N.B. that
-						   text is not
-						   jobject,
-						   because that
-						   type is not
-						   available in
-						   androidgui.h.  */
+						 /* N.B. that text is
+						    not jobject,
+						    because that type
+						    is not available
+						    in
+						    androidgui.h.  */
 						 (jobject) text,
 						 (jint) token);
   android_exception_check_1 (text);
