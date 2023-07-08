@@ -556,6 +556,21 @@ assertion only (which is useless).  For historical compatibility, an
 operator character following '^' or '\`' becomes literal, but we
 advise against relying on this.
 
+---
+*** Mode-line mnemonics for some coding-systems have changed.
+The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
+consistent with the other encodings of this family.
+
+The mode-line mnemonic for 'koi8-u' is now 'У', U+0423 CYRILLIC
+CAPITAL LETTER U, to distinguish between this encoding and the
+UTF-8/UTF-16 family.
+
+If your terminal cannot display 'У', or if you want to get the old
+behavior back for any other reason, you can do that using the
+'coding-system-put' function.  For example, the following restores the
+previous behavior of showing 'U' in the mode line for 'koi8-u':
+
+     (coding-system-put 'koi8-u :mnemonic ?U)
 
 * Lisp Changes in Emacs 30.1
 
