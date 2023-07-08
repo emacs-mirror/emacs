@@ -575,6 +575,14 @@ Prints the current environment variables.  Unlike in Bash, this
 command does not yet support running commands with a modified
 environment.
 
+@item eshell-debug
+@cmindex eshell-debug
+Toggle debugging information for Eshell itself.  You can pass this
+command the argument @code{errors} to enable/disable Eshell trapping
+errors when evaluating commands, or the argument @code{commands} to
+show/hide command execution progress in the buffer @code{*eshell last
+cmd*}.
+
 @item exit
 @cmindex exit
 Exit Eshell and save the history.  By default, this command kills the
@@ -2046,10 +2054,26 @@ add @code{eshell-xtra} to @code{eshell-modules-list}.
 
 @table @code
 
+@item count
+@cmindex count
+A wrapper around the function @code{cl-count} (@pxref{Searching
+Sequences,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
+be used for comparing lists of strings.
+
 @item expr
 @cmindex expr
 An implementation of @command{expr} using the Calc package.
 @xref{Top,,, calc, The GNU Emacs Calculator}.
+
+@item ff
+@cmindex ff
+Shorthand for the the function @code{find-name-dired} (@pxref{Dired
+and Find, , , elisp, The Emacs Lisp Reference Manual}).
+
+@item gf
+@cmindex gf
+Shorthand for the the function @code{find-grep-dired} (@pxref{Dired
+and Find, , , elisp, The Emacs Lisp Reference Manual}).
 
 @item intersection
 @cmindex intersection
