@@ -99,10 +99,11 @@
 (ert-deftest erc-dcc-handle-ctcp-send--turbo ()
   (erc-dcc-tests--dcc-handle-ctcp-send t))
 
-(defun erc-dcc-tests--erc-dcc-do-GET-command (file &optional sep)
+(defun erc-dcc-tests--erc-dcc-do-GET-command (file &optional sep nuh)
+  (unless nuh (setq nuh "tester!~tester@fake.irc"))
   (with-temp-buffer
     (let* ((proc (start-process "fake" (current-buffer) "sleep" "10"))
-           (elt (list :nick "tester!~tester@fake.irc"
+           (elt (list :nick nuh
                       :type 'GET
                       :peer nil
                       :parent proc
@@ -110,6 +111,7 @@
                       :port "9899"
                       :file file
                       :size 1405135128))
+           (nic (erc-extract-nick nuh))
            (erc-dcc-list (list elt))
            ;;
            erc-accidental-paste-threshold-seconds
@@ -130,7 +132,7 @@
         (ert-info ("No turbo")
           (should-not (plist-member elt :turbo))
           (goto-char erc-input-marker)
-          (insert "/dcc GET tester " (or sep "") (prin1-to-string file))
+          (insert "/dcc GET " nic " " (or sep "") (prin1-to-string file))
           (erc-send-current-line)
           (should-not (plist-member (car erc-dcc-list) :turbo))
           (should (equal (pop calls) (list elt file proc))))
@@ -138,7 +140,7 @@
         (ert-info ("Arg turbo in pos 2")
           (should-not (plist-member elt :turbo))
           (goto-char erc-input-marker)
-          (insert "/dcc GET -t tester " (or sep "") (prin1-to-string file))
+          (insert "/dcc GET -t " nic " " (or sep "") (prin1-to-string file))
           (erc-send-current-line)
           (should (eq t (plist-get (car erc-dcc-list) :turbo)))
           (should (equal (pop calls) (list elt file proc))))
@@ -147,7 +149,7 @@
           (setq elt (plist-put elt :turbo nil)
                 erc-dcc-list (list elt))
           (goto-char erc-input-marker)
-          (insert "/dcc GET tester -t " (or sep "") (prin1-to-string file))
+          (insert "/dcc GET " nic " -t " (or sep "") (prin1-to-string file))
           (erc-send-current-line)
           (should (eq t (plist-get (car erc-dcc-list) :turbo)))
           (should (equal (pop calls) (list elt file proc))))
@@ -156,7 +158,7 @@
           (setq elt (plist-put elt :turbo nil)
                 erc-dcc-list (list elt))
           (goto-char erc-input-marker)
-          (insert "/dcc GET tester " (prin1-to-string file) " -t" (or sep ""))
+          (insert "/dcc GET " nic " " (prin1-to-string file) " -t" (or sep ""))
           (erc-send-current-line)
           (should (eq (if sep nil t) (plist-get (car erc-dcc-list) :turbo)))
           (should (equal (pop calls) (if sep nil (list elt file proc)))))))))
@@ -165,7 +167,14 @@
   (erc-dcc-tests--erc-dcc-do-GET-command "foo.bin")
   (erc-dcc-tests--erc-dcc-do-GET-command "foo - file.bin")
   (erc-dcc-tests--erc-dcc-do-GET-command "foo -t file.bin")
-  (erc-dcc-tests--erc-dcc-do-GET-command "-t" "-- "))
+  (erc-dcc-tests--erc-dcc-do-GET-command "-t" "-- ")
+
+  ;; Regression involving pipe character in nickname.
+  (let ((nuh "test|r!~test|r@fake.irc"))
+    (erc-dcc-tests--erc-dcc-do-GET-command "foo.bin" nil nuh)
+    (erc-dcc-tests--erc-dcc-do-GET-command "foo - file.bin" nil nuh)
+    (erc-dcc-tests--erc-dcc-do-GET-command "foo -t file.bin" nil nuh)
+    (erc-dcc-tests--erc-dcc-do-GET-command "-t" "-- " nuh)))
 
 (defun erc-dcc-tests--pcomplete-common (test-fn &optional file)
   (with-current-buffer (get-buffer-create "*erc-dcc-do-GET-command*")

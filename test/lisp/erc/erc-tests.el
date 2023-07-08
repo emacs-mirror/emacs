@@ -1218,6 +1218,52 @@
 
           (should-not calls))))))
 
+(ert-deftest erc--split-string-shell-cmd ()
+
+  ;; Leading and trailing space
+  (should (equal (erc--split-string-shell-cmd "1 2 3") '("1" "2" "3")))
+  (should (equal (erc--split-string-shell-cmd " 1  2 3 ") '("1" "2" "3")))
+
+  ;; Empty string
+  (should (equal (erc--split-string-shell-cmd "\"\"") '("")))
+  (should (equal (erc--split-string-shell-cmd " \"\" ") '("")))
+  (should (equal (erc--split-string-shell-cmd "1 \"\"") '("1" "")))
+  (should (equal (erc--split-string-shell-cmd "1 \"\" ") '("1" "")))
+  (should (equal (erc--split-string-shell-cmd "\"\" 1") '("" "1")))
+  (should (equal (erc--split-string-shell-cmd " \"\" 1") '("" "1")))
+
+  (should (equal (erc--split-string-shell-cmd "''") '("")))
+  (should (equal (erc--split-string-shell-cmd " '' ") '("")))
+  (should (equal (erc--split-string-shell-cmd "1 ''") '("1" "")))
+  (should (equal (erc--split-string-shell-cmd "1 '' ") '("1" "")))
+  (should (equal (erc--split-string-shell-cmd "'' 1") '("" "1")))
+  (should (equal (erc--split-string-shell-cmd " '' 1") '("" "1")))
+
+  ;; Backslash
+  (should (equal (erc--split-string-shell-cmd "\\ ") '(" ")))
+  (should (equal (erc--split-string-shell-cmd " \\  ") '(" ")))
+  (should (equal (erc--split-string-shell-cmd "1\\  ") '("1 ")))
+  (should (equal (erc--split-string-shell-cmd "1\\ 2") '("1 2")))
+
+  ;; Embedded
+  (should (equal (erc--split-string-shell-cmd "\"\\\"\"") '("\"")))
+  (should (equal (erc--split-string-shell-cmd "1 \"2 \\\" \\\" 3\"")
+                 '("1" "2 \" \" 3")))
+  (should (equal (erc--split-string-shell-cmd "1 \"2 ' ' 3\"")
+                 '("1" "2 ' ' 3")))
+  (should (equal (erc--split-string-shell-cmd "1 '2 \" \" 3'")
+                 '("1" "2 \" \" 3")))
+  (should (equal (erc--split-string-shell-cmd "1 '2 \\  3'")
+                 '("1" "2 \\  3")))
+  (should (equal (erc--split-string-shell-cmd "1 \"2 \\\\  3\"")
+                 '("1" "2 \\  3"))) ; see comment re ^
+
+  ;; Realistic
+  (should (equal (erc--split-string-shell-cmd "GET bob \"my file.txt\"")
+                 '("GET" "bob" "my file.txt")))
+  (should (equal (erc--split-string-shell-cmd "GET EXAMPLE|bob \"my file.txt\"")
+                 '("GET" "EXAMPLE|bob" "my file.txt")))) ; regression
+
 
 ;; The behavior of `erc-pre-send-functions' differs between versions
 ;; in how hook members see and influence a trailing newline that's

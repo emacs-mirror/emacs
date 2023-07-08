@@ -3213,6 +3213,42 @@ this function from interpreting the line as a command."
           (erc-display-message nil 'error (current-buffer) 'no-target)
           nil)))))
 
+(defconst erc--shell-parse-regexp
+  (rx (or (+ (not (any ?\s ?\t ?\n ?\\ ?\" ?' ?\;)))
+          (: ?' (group (* (not ?'))) (? ?'))
+          (: ?\" (group (* (or (not (any ?\" ?\\)) (: ?\\ nonl)))) (? ?\"))
+          (: ?\\ (group (? (or nonl ?\n)))))))
+
+(defun erc--split-string-shell-cmd (string)
+  "Parse whitespace-separated arguments in STRING."
+  ;; From `shell--parse-pcomplete-arguments' and friends.  Quirk:
+  ;; backslash-escaped characters appearing within spans of double
+  ;; quotes are unescaped.
+  (with-temp-buffer
+    (insert string)
+    (let ((end (point))
+          args)
+      (goto-char (point-min))
+      (while (and (skip-chars-forward " \t") (< (point) end))
+        (let (arg)
+          (while (looking-at erc--shell-parse-regexp)
+            (goto-char (match-end 0))
+            (cond ((match-beginning 3) ; backslash escape
+                   (push (if (= (match-beginning 3) (match-end 3))
+                             "\\"
+                           (match-string 3))
+                         arg))
+                  ((match-beginning 2) ; double quote
+                   (push (replace-regexp-in-string (rx ?\\ (group nonl))
+                                                   "\\1" (match-string 2))
+                         arg))
+                  ((match-beginning 1) ; single quote
+                   (push (match-string 1) arg))
+                  (t (push (match-string 0) arg))))
+          (push (string-join (nreverse arg)) args)))
+      (nreverse args))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                    Input commands handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

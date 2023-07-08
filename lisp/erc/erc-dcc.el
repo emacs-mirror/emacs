@@ -399,7 +399,7 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
     (if compat-args
         (setq cmd line
               args compat-args)
-      (setq args (delete "" (erc-compat--split-string-shell-command line))
+      (setq args (delete "" (erc--split-string-shell-cmd line))
             cmd (pop args)))
     (let ((fn (intern-soft (concat "erc-dcc-do-" (upcase cmd) "-command"))))
       (if fn
