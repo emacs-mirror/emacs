@@ -127,7 +127,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
   "KOI8-U 8-bit encoding for Cyrillic (MIME: KOI8-U)"
   :coding-type 'charset
   ;; This used to be ?U which collided with UTF-8.
-  :mnemonic ?\N{cyrillic capital letter u} ; У
+  :mnemonic ?\u0423                 ; ?\N{cyrillic capital letter u} У
   :charset-list '(koi8-u)
   :mime-charset 'koi8-u)
 
