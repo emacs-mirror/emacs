@@ -557,7 +557,7 @@ operator character following '^' or '\`' becomes literal, but we
 advise against relying on this.
 
 ---
-*** Mode-line mnemonics for some coding-systems have changed.
+** Mode-line mnemonics for some coding-systems have changed.
 The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
 consistent with the other encodings of this family.
 
