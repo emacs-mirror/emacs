@@ -774,6 +774,11 @@ android_handle_ime_event (union android_event *event, struct frame *f)
     }
 }
 
+
+
+/* Forward declaration.  */
+static void android_notify_conversion (unsigned long);
+
 static int
 handle_one_android_event (struct android_display_info *dpyinfo,
 			  union android_event *event, int *finish,
@@ -1659,8 +1664,21 @@ handle_one_android_event (struct android_display_info *dpyinfo,
     case ANDROID_INPUT_METHOD:
 
       if (!any)
-	/* Free any text allocated for this event.  */
-	xfree (event->ime.text);
+	{
+	  /* Free any text allocated for this event.  */
+	  xfree (event->ime.text);
+
+	  /* If edits associated with this event haven't been
+	     processed yet, signal their completion to avoid delays
+	     the next time a call to `android_sync_edit' is made.
+
+	     If events for a deleted frame are interleaved with events
+	     for another frame, the edit counter may be prematurely
+	     incremented before edits associated with the other frames
+	     are processed.  This is not a problem in practice.  */
+
+	  android_notify_conversion (event->ime.counter);
+	}
       else
 	android_handle_ime_event (event, any);
 
@@ -4585,10 +4603,12 @@ static void
 android_sync_edit (void)
 {
   struct timespec start, end, rem;
+  unsigned long counter;
 
-  if (__atomic_load_n (&last_edit_counter,
-		       __ATOMIC_SEQ_CST)
-      == edit_counter)
+  counter = __atomic_load_n (&last_edit_counter,
+			     __ATOMIC_SEQ_CST);
+
+  if (counter == edit_counter)
     return;
 
   start = current_timespec ();
@@ -5618,7 +5638,10 @@ NATIVE_NAME (requestCursorUpdates) (JNIEnv *env, jobject object,
   event.ime.length = mode;
   event.ime.position = 0;
   event.ime.text = NULL;
-  event.ime.counter = ++edit_counter;
+
+  /* Since this does not affect the state of the buffer text, there is
+     no need to apply synchronization to this event.  */
+  event.ime.counter = 0;
 
   android_write_event (&event);
 }

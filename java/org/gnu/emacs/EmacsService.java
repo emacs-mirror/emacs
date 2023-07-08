@@ -96,11 +96,11 @@ public final class EmacsService extends Service
   public DisplayMetrics metrics;
 
   /* Flag that says whether or not to print verbose debugging
-     information.  */
+     information when responding to an input method.  */
   public static final boolean DEBUG_IC = false;
 
-  /* Flag that says whether or not to perform extra checks on threads
-     performing drawing calls.  */
+  /* Flag that says whether or not to stringently check that only the
+     Emacs thread is performing drawing calls.  */
   private static final boolean DEBUG_THREADS = false;
 
   /* Atomic integer used for synchronization between
