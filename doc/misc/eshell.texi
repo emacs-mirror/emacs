@@ -65,10 +65,10 @@ modify this GNU manual.''
 Eshell is a shell-like command interpreter implemented in Emacs Lisp.
 It invokes no external processes except for those requested by the
 user.  It is intended to be an alternative to the IELM (@pxref{Lisp
-Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
-REPL@footnote{Short for ``Read-Eval-Print Loop''.} for Emacs
-@emph{and} with an interface similar to command shells such as
-@command{bash}, @command{zsh}, @command{rc}, or @command{4dos}.
+Interaction, , , emacs, The Emacs Editor}) REPL@footnote{Short for
+``Read-Eval-Print Loop''.} for Emacs @emph{and} with an interface
+similar to command shells such as @command{bash}, @command{zsh},
+@command{rc}, or @command{4dos}.
 @c This manual is updated to release 2.4 of Eshell.
 
 @insertcopying
@@ -217,7 +217,7 @@ that will be invoked, type this as the Eshell prompt:
 @section Invocation
 Eshell is both a command shell and an Emacs Lisp @acronym{REPL}.  As a
 result, you can invoke commands in two different ways: in @dfn{command
-form} or in @dfn{lisp form}.
+form} or in @dfn{Lisp form}.
 
 You can use the semicolon (@code{;}) to separate multiple command
 invocations on a single line, executing each in turn.  You can also
@@ -313,9 +313,9 @@ specify an argument of some other data type, you can use a Lisp form
 (1 2 3)
 @end example
 
-Additionally, many built-in Eshell commands (@pxref{Built-ins, Eshell
-commands}) will flatten the arguments they receive, so passing a list
-as an argument will ``spread'' the elements into multiple arguments:
+Additionally, many built-in Eshell commands (@pxref{Built-ins}) will
+flatten the arguments they receive, so passing a list as an argument
+will ``spread'' the elements into multiple arguments:
 
 @example
 ~ $ printnl (list 1 2) 3
@@ -393,17 +393,20 @@ elisp, The Emacs Lisp Reference Manual}).
 
 @item #<process @var{name}>
 Return the process named @var{name}.  This is equivalent to
-@samp{$(get-process "@var{name}")}  (@pxref{Process Information, , ,
+@samp{$(get-process "@var{name}")} (@pxref{Process Information, , ,
 elisp, The Emacs Lisp Reference Manual}).
 
 @end table
 
 @node Built-ins
 @section Built-in commands
-Several commands are built-in in Eshell.  In order to call the
-external variant of a built-in command @code{foo}, you could call
-@code{*foo}.  Usually, this should not be necessary.  You can check
-what will be applied by the @code{which} command:
+Eshell provides a number of built-in commands, many of them
+implementing common command-line utilities, but enhanced for Eshell.
+(These built-in commands are just ordinary Lisp functions whose names
+begin with @code{eshell/}.)  In order to call the external variant of
+a built-in command @code{foo}, you could call @code{*foo}.  Usually,
+this should not be necessary.  You can check what will be applied by
+the @code{which} command:
 
 @example
 ~ $ which ls
@@ -1015,7 +1018,9 @@ Eshell can consult them to do the right thing.
 @item $INSIDE_EMACS
 This variable indicates to external commands that they are being
 invoked from within Emacs so they can adjust their behavior if
-necessary.  Its value is @code{@var{emacs-version},eshell}.
+necessary.  By default, its value is
+@code{@var{emacs-version},eshell}.  Other parts of Emacs, such as
+Tramp, may add extra information to this value.
 
 @end table
 
@@ -1097,11 +1102,11 @@ be directories @emph{and} files.  Eshell provides predefined completions
 for the built-in functions and some common external commands, and you
 can define your own for any command.
 
-Eshell completion also works for lisp forms and glob patterns. If the point is
-on a lisp form, then @key{TAB} will behave similarly to completion in
-@code{elisp-mode} and @code{lisp-interaction-mode}.  For glob patterns, the
-pattern will be removed from the input line, and replaced by the
-completion.
+Eshell completion also works for Lisp forms and glob patterns. If the
+point is on a Lisp form, then @key{TAB} will behave similarly to
+completion in @code{elisp-mode} and @code{lisp-interaction-mode}.  For
+glob patterns, the pattern will be removed from the input line, and
+replaced by the completion.
 
 If you want to see the entire list of possible completions (e.g. when it's
 below the @code{completion-cycle-threshold}), press @kbd{M-?}.
@@ -1120,7 +1125,7 @@ for a specific major mode.
 
 @node Control Flow
 @section Control Flow
-Because Eshell commands can not (easily) be combined with lisp forms,
+Because Eshell commands can not (easily) be combined with Lisp forms,
 Eshell provides command-oriented control flow statements for
 convenience.
 
@@ -1272,8 +1277,8 @@ index.  The exact behavior depends on the type of @var{expr}'s value:
 
 @item a sequence
 Expands to the element at the (zero-based) index @var{i} of the
-sequence (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The
-Emacs Lisp Reference Manual}).
+sequence (@pxref{Sequences Arrays Vectors, , , elisp, The Emacs Lisp
+Reference Manual}).
 
 @item a string
 Split the string at whitespace, and then expand to the @var{i}th
@@ -1325,8 +1330,8 @@ By default, globs are case sensitive, except on MS-DOS/MS-Windows
 systems.  You can control this behavior via the
 @code{eshell-glob-case-insensitive} option.  You can further customize
 the syntax and behavior of globbing in Eshell via the Customize group
-``eshell-glob'' (@pxref{Easy Customization, , , emacs, The GNU Emacs
-Manual}).
+@code{eshell-glob} (@pxref{Easy Customization, , , emacs, The GNU
+Emacs Manual}).
 
 @table @samp
 
@@ -1424,7 +1429,7 @@ the following pairs of delimiters: @code{"@dots{}"}, @code{'@dots{}'},
 @code{[@dots{}]}, @code{<@dots{}>}, or @code{@{@dots{}@}}.
 
 You can customize the syntax and behavior of predicates and modifiers
-in Eshell via the Customize group ``eshell-pred'' (@pxref{Easy
+in Eshell via the Customize group @code{eshell-pred} (@pxref{Easy
 Customization, , , emacs, The GNU Emacs Manual}).
 
 @menu
@@ -1720,26 +1725,26 @@ output.
 Redirect output to @var{dest}, appending it to the existing contents
 of @var{dest}.
 
-@item >>> @var{buffer}
-@itemx @var{fd}>>> @var{buffer}
+@item >>> @var{dest}
+@itemx @var{fd}>>> @var{dest}
 Redirect output to @var{dest}, inserting it at the current mark if
 @var{dest} is a buffer, at the beginning of the file if @var{dest} is
 a file, or otherwise behaving the same as @code{>>}.
 
-@item &> @var{file}
-@itemx >& @var{file}
+@item &> @var{dest}
+@itemx >& @var{dest}
 Redirect both standard output and standard error to @var{dest},
 overwriting its contents with the new output.
 
-@item &>> @var{file}
-@itemx >>& @var{file}
+@item &>> @var{dest}
+@itemx >>& @var{dest}
 Redirect both standard output and standard error to @var{dest},
 appending it to the existing contents of @var{dest}.
 
-@item &>>> @var{file}
-@itemx >>>& @var{file}
+@item &>>> @var{dest}
+@itemx >>>& @var{dest}
 Redirect both standard output and standard error to @var{dest},
-inserting it like with @code{>>> @var{file}}.
+inserting it like with @code{>>> @var{dest}}.
 
 @item >&@var{other-fd}
 @itemx @var{fd}>&@var{other-fd}
@@ -2364,10 +2369,6 @@ A special associate array, which can take references of the form
 @item Eshell scripts can't execute in the background
 
 @item Support zsh's ``Parameter Expansion'' syntax, i.e., @samp{$@{@var{name}:-@var{val}@}}
-
-@item Write an @command{info} alias that can take arguments
-
-So that the user can enter @samp{info chmod}, for example.
 
 @item Create a mode @code{eshell-browse}
 
