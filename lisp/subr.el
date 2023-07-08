@@ -3980,8 +3980,9 @@ same LABEL argument.
 (defun internal--with-restriction (start end body &optional label)
   "Helper function for `with-restriction', which see."
   (save-restriction
-    (narrow-to-region start end)
-    (if label (internal--label-restriction label))
+    (if label
+        (internal--labeled-narrow-to-region start end label)
+      (narrow-to-region start end))
     (funcall body)))
 
 (defmacro without-restriction (&rest rest)
