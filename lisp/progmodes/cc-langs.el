@@ -2616,6 +2616,7 @@ will be handled."
   ;; {...}").
   t    (append (c-lang-const c-class-decl-kwds)
 	       (c-lang-const c-brace-list-decl-kwds))
+  c nil
   ;; Note: "manages" for CORBA CIDL clashes with its presence on
   ;; `c-type-list-kwds' for IDL.
   idl  (append (c-lang-const c-typeless-decl-kwds)

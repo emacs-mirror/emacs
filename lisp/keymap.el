@@ -40,11 +40,12 @@
 (defun keymap-set (keymap key definition)
   "Set KEY to DEFINITION in KEYMAP.
 KEY is a string that satisfies `key-valid-p'.
+If DEFINITION is a string, it must also satisfy `key-valid-p'.
 
 DEFINITION is anything that can be a key's definition:
  nil (means key is undefined in this keymap),
  a command (a Lisp function suitable for interactive calling),
- a string (treated as a keyboard macro),
+ a string (treated as a keyboard macro or a sequence of input events),
  a keymap (to define a prefix key),
  a symbol (when the key is looked up, the symbol will stand for its
     function definition, which should at that time be one of the above,
@@ -67,10 +68,17 @@ DEFINITION is anything that can be a key's definition:
 
 (defun keymap-global-set (key command &optional interactive)
   "Give KEY a global binding as COMMAND.
-COMMAND is the command definition to use; usually it is
-a symbol naming an interactively-callable function.
+When called interactively, KEY is a key sequence.  When called from
+Lisp, KEY is a string that must satisfy `key-valid-p'.
 
-KEY is a string that satisfies `key-valid-p'.
+COMMAND is the command definition to use.  When called interactively,
+this function prompts for COMMAND and accepts only names of known
+commands, i.e., symbols that satisfy the `commandp' predicate.  When
+called from Lisp, COMMAND can be anything that `keymap-set' accepts
+as its DEFINITION argument.
+
+If COMMAND is a string (which can only happen when this function is
+callled from Lisp), it must satisfy `key-valid-p'.
 
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
@@ -84,12 +92,19 @@ that you make with this function."
 
 (defun keymap-local-set (key command &optional interactive)
   "Give KEY a local binding as COMMAND.
-COMMAND is the command definition to use; usually it is
-a symbol naming an interactively-callable function.
+When called interactively, KEY is a key sequence.  When called from
+Lisp, KEY is a string that must satisfy `key-valid-p'.
 
-KEY is a string that satisfies `key-valid-p'.
+COMMAND is the command definition to use.  When called interactively,
+this function prompts for COMMAND and accepts only names of known
+commands, i.e., symbols that satisfy the `commandp' predicate.  When
+called from Lisp, COMMAND can be anything that `keymap-set' accepts
+as its DEFINITION argument.
 
-The binding goes in the current buffer's local map, which in most
+If COMMAND is a string (which can only happen when this function is
+callled from Lisp), it must satisfy `key-valid-p'.
+
+The binding goes in the current buffer's local keymap, which in most
 cases is shared with all other buffers in the same major mode."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form))
            (advertised-calling-convention (key command) "29.1"))
@@ -103,10 +118,11 @@ cases is shared with all other buffers in the same major mode."
 
 (defun keymap-global-unset (key &optional remove)
   "Remove global binding of KEY (if any).
-KEY is a string that satisfies `key-valid-p'.
+When called interactively, KEY is a key sequence.  When called from
+Lisp, KEY is a string that satisfies `key-valid-p'.
 
-If REMOVE (interactively, the prefix arg), remove the binding
-instead of unsetting it.  See `keymap-unset' for details."
+If REMOVE is non-nil (interactively, the prefix arg), remove the
+binding instead of unsetting it.  See `keymap-unset' for details."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (list (key-description (read-key-sequence "Unset key globally: "))
@@ -115,10 +131,11 @@ instead of unsetting it.  See `keymap-unset' for details."
 
 (defun keymap-local-unset (key &optional remove)
   "Remove local binding of KEY (if any).
-KEY is a string that satisfies `key-valid-p'.
+When called interactively, KEY is a key sequence.  When called from
+Lisp, KEY is a string that satisfies `key-valid-p'.
 
-If REMOVE (interactively, the prefix arg), remove the binding
-instead of unsetting it.  See `keymap-unset' for details."
+If REMOVE is non-nil (interactively, the prefix arg), remove the
+binding instead of unsetting it.  See `keymap-unset' for details."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (list (key-description (read-key-sequence "Unset key locally: "))
@@ -130,11 +147,11 @@ instead of unsetting it.  See `keymap-unset' for details."
   "Remove key sequence KEY from KEYMAP.
 KEY is a string that satisfies `key-valid-p'.
 
-If REMOVE, remove the binding instead of unsetting it.  This only
-makes a difference when there's a parent keymap.  When unsetting
-a key in a child map, it will still shadow the same key in the
-parent keymap.  Removing the binding will allow the key in the
-parent keymap to be used."
+If REMOVE is non-nil, remove the binding instead of unsetting it.
+This only makes a difference when there's a parent keymap.  When
+unsetting a key in a child map, it will still shadow the same key
+in the parent keymap.  Removing the binding will allow the key in
+the parent keymap to be used."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (define-key keymap (key-parse key) nil remove))
@@ -201,7 +218,8 @@ a menu, so this function is not useful for non-menu keymaps."
 
 (defun key-parse (keys)
   "Convert KEYS to the internal Emacs key representation.
-See `kbd' for a descripion of KEYS."
+KEYS should be a string describing a key sequence in the format
+returned by \\[describe-key] (`describe-key')."
   (declare (pure t) (side-effect-free t))
   ;; A pure function is expected to preserve the match data.
   (save-match-data

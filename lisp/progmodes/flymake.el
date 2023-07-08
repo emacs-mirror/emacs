@@ -1592,6 +1592,12 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
          ,(format "%d" count)
          face ,face
          mouse-face mode-line-highlight
+         help-echo ,(format "Number of %s; scroll mouse to view."
+                            (cond
+                             ((eq type :error) "errors")
+                             ((eq type :warning) "warnings")
+                             ((eq type :note) "notes")
+                             (t (format "%s diagnostics" type))))
          keymap
          ,(let ((map (make-sparse-keymap)))
             (define-key map (vector 'mode-line
