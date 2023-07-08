@@ -32,30 +32,45 @@ public final class EmacsDrawLine
     Rect rect;
     Canvas canvas;
     Paint paint;
+    int x0, x1, y0, y1;
 
     /* TODO implement stippling.  */
     if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
       return;
 
+    /* Calculate the leftmost and rightmost points.  */
+
+    x0 = Math.min (x, x2 + 1);
+    x1 = Math.max (x, x2 + 1);
+    y0 = Math.min (y, y2 + 1);
+    y1 = Math.max (y, y2 + 1);
+
+    /* And the clip rectangle.  */
+
     paint = gc.gcPaint;
-    rect = new Rect (Math.min (x, x2 + 1),
-		     Math.min (y, y2 + 1),
-		     Math.max (x2 + 1, x),
-		     Math.max (y2 + 1, y));
+    rect = new Rect (x0, y0, x1, y1);
     canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
       return;
 
-    paint.setStyle (Paint.Style.STROKE);
+    paint.setStyle (Paint.Style.FILL);
 
     /* Since drawLine has PostScript style behavior, adjust the
-       coordinates appropriately.  */
+       coordinates appropriately.
+
+       The left most pixel of a straight line is always partially
+       filled.  Patch it in manually.  */
 
     if (gc.clip_mask == null)
-      canvas.drawLine ((float) x, (float) y + 0.5f,
-		       (float) x2 + 0.5f, (float) y2 + 0.5f,
-		       paint);
+      {
+	canvas.drawLine ((float) x + 0.5f, (float) y + 0.5f,
+			 (float) x2 + 0.5f, (float) y2 + 0.5f,
+			 paint);
+
+	if (x2 > x)
+	  canvas.drawRect (new Rect (x, y, x + 1, y + 1), paint);
+      }
 
     /* DrawLine with clip mask not implemented; it is not used by
        Emacs.  */
