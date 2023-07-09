@@ -1169,7 +1169,8 @@ saved bounds.  In that case it is equivalent to
 
 @cindex labeled narrowing
 @cindex labeled restriction
-When the optional argument @var{label}, a symbol, is present, the
+When the optional argument @var{label}, which is evaluated to get the
+label to use and must yield a non-@code{nil} value, is present, the
 narrowing is @dfn{labeled}.  A labeled narrowing differs from a
 non-labeled one in several ways:
 
