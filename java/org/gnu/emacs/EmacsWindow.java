@@ -99,9 +99,8 @@ public final class EmacsWindow extends EmacsHandleObject
   private EmacsGC scratchGC;
 
   /* The button state and keyboard modifier mask at the time of the
-     last button press or release event.  The modifier mask is reset
-     upon each window focus change.  */
-  public int lastButtonState, lastModifiers;
+     last button press or release event.  */
+  public int lastButtonState;
 
   /* Whether or not the window is mapped.  */
   private volatile boolean isMapped;
@@ -562,15 +561,16 @@ public final class EmacsWindow extends EmacsHandleObject
     eventStrings.put (serial, string);
   }
 
-  /* event.getCharacters is used because older input methods still
-     require it.  */
-  @SuppressWarnings ("deprecation")
-  public void
-  onKeyDown (int keyCode, KeyEvent event)
+
+
+  /* Return the modifier mask associated with the specified keyboard
+     input EVENT.  Replace bits corresponding to Left or Right keys
+     with their corresponding general modifier bits.  */
+
+  private int
+  eventModifiers (KeyEvent event)
   {
-    int state, state_1;
-    long serial;
-    String characters;
+    int state;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
       state = event.getModifiers ();
@@ -591,6 +591,46 @@ public final class EmacsWindow extends EmacsHandleObject
 	    || (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
 	  state |= KeyEvent.META_CTRL_MASK;
       }
+
+    return state;
+  }
+
+  /* Return the modifier mask associated with the specified motion
+     EVENT.  Replace bits corresponding to Left or Right keys with
+     their corresponding general modifier bits.  */
+
+  private int
+  motionEventModifiers (MotionEvent event)
+  {
+    int state;
+
+    state = event.getMetaState ();
+
+    /* Normalize the state by setting the generic modifier bit if
+       either a left or right modifier is pressed.  */
+
+    if ((state & KeyEvent.META_ALT_LEFT_ON) != 0
+	|| (state & KeyEvent.META_ALT_RIGHT_ON) != 0)
+      state |= KeyEvent.META_ALT_MASK;
+
+    if ((state & KeyEvent.META_CTRL_LEFT_ON) != 0
+	|| (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
+      state |= KeyEvent.META_CTRL_MASK;
+
+    return state;
+  }
+
+  /* event.getCharacters is used because older input methods still
+     require it.  */
+  @SuppressWarnings ("deprecation")
+  public void
+  onKeyDown (int keyCode, KeyEvent event)
+  {
+    int state, state_1;
+    long serial;
+    String characters;
+
+    state = eventModifiers (event);
 
     /* Ignore meta-state understood by Emacs for now, or Ctrl+C will
        not be recognized as an ASCII key press event.  */
@@ -605,7 +645,6 @@ public final class EmacsWindow extends EmacsHandleObject
 				      state, keyCode,
 				      getEventUnicodeChar (event,
 							   state_1));
-	lastModifiers = state;
 
 	characters = event.getCharacters ();
 
@@ -620,25 +659,8 @@ public final class EmacsWindow extends EmacsHandleObject
     int state, state_1;
     long time;
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
-      state = event.getModifiers ();
-    else
-      {
-	/* Replace this with getMetaState and manual
-	   normalization.  */
-	state = event.getMetaState ();
-
-	/* Normalize the state by setting the generic modifier bit if
-	   either a left or right modifier is pressed.  */
-
-	if ((state & KeyEvent.META_ALT_LEFT_ON) != 0
-	    || (state & KeyEvent.META_ALT_RIGHT_ON) != 0)
-	  state |= KeyEvent.META_ALT_MASK;
-
-	if ((state & KeyEvent.META_CTRL_LEFT_ON) != 0
-	    || (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
-	  state |= KeyEvent.META_CTRL_MASK;
-      }
+    /* Compute the event's modifier mask.  */
+    state = eventModifiers (event);
 
     /* Ignore meta-state understood by Emacs for now, or Ctrl+C will
        not be recognized as an ASCII key press event.  */
@@ -650,7 +672,6 @@ public final class EmacsWindow extends EmacsHandleObject
 				state, keyCode,
 				getEventUnicodeChar (event,
 						     state_1));
-    lastModifiers = state;
 
     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
       {
@@ -671,12 +692,6 @@ public final class EmacsWindow extends EmacsHandleObject
   onFocusChanged (boolean gainFocus)
   {
     EmacsActivity.invalidateFocus ();
-
-    /* If focus has been lost, reset the keyboard modifier state, as
-       subsequent changes will not be recorded.  */
-
-    if (!gainFocus)
-      lastModifiers = 0;
   }
 
   /* Notice that the activity has been detached or destroyed.
@@ -940,7 +955,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	EmacsNative.sendButtonPress (this.handle, (int) event.getX (),
 				     (int) event.getY (),
 				     event.getEventTime (),
-				     lastModifiers,
+				     motionEventModifiers (event),
 				     whatButtonWasIt (event, true));
 
 	if (Build.VERSION.SDK_INT
@@ -955,7 +970,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	EmacsNative.sendButtonRelease (this.handle, (int) event.getX (),
 				       (int) event.getY (),
 				       event.getEventTime (),
-				       lastModifiers,
+				       motionEventModifiers (event),
 				       whatButtonWasIt (event, false));
 
 	if (Build.VERSION.SDK_INT
@@ -988,7 +1003,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	    EmacsNative.sendButtonRelease (this.handle, (int) event.getX (),
 					   (int) event.getY (),
 					   event.getEventTime (),
-					   lastModifiers,
+					   motionEventModifiers (event),
 					   whatButtonWasIt (event, false));
 	    lastButtonState = event.getButtonState ();
 	  }
@@ -1000,7 +1015,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	EmacsNative.sendWheel (this.handle, (int) event.getX (),
 			       (int) event.getY (),
 			       event.getEventTime (),
-			       lastModifiers,
+			       motionEventModifiers (event),
 			       event.getAxisValue (MotionEvent.AXIS_HSCROLL),
 			       event.getAxisValue (MotionEvent.AXIS_VSCROLL));
 	return true;

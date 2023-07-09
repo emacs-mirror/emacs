@@ -1315,12 +1315,13 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    }
 
 	  if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
-	    {
-	      android_construct_mouse_click (&inev.ie, &event->xbutton, f);
+	    if (! popup_activated ())
+	      {
+		android_construct_mouse_click (&inev.ie, &event->xbutton, f);
 
-	      if (!NILP (tab_bar_arg))
-		inev.ie.arg = tab_bar_arg;
-	    }
+		if (!NILP (tab_bar_arg))
+		  inev.ie.arg = tab_bar_arg;
+	      }
 	}
 
       if (event->type == ANDROID_BUTTON_PRESS)
