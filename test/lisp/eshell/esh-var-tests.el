@@ -829,6 +829,10 @@ it, since the setter is nil."
   "Test that $UID is equivalent to (user-uid) for local directories."
   (eshell-command-result-equal "echo $UID" (user-uid)))
 
+(ert-deftest esh-var-test/gid-var ()
+  "Test that $GID is equivalent to (group-gid) for local directories."
+  (eshell-command-result-equal "echo $GID" (group-gid)))
+
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command."
   (with-temp-eshell

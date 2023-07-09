@@ -1477,30 +1477,30 @@ mail status in mode line"))
                  (word-search-regexp "Whole Words" "Whole word")))
       (bindings--define-key menu (vector (nth 0 x))
         `(menu-item ,(nth 1 x)
-                    (lambda ()
-                      (interactive)
-                      (setq search-default-mode #',(nth 0 x))
-                      (message ,(format "%s search enabled" (nth 2 x))))
+                    ,(lambda ()
+                       (interactive)
+                       (setq search-default-mode (nth 0 x))
+                       (message "%s search enabled" (nth 2 x)))
                     :help ,(format "Enable %s search" (downcase (nth 2 x)))
                     :button (:radio . (eq search-default-mode #',(nth 0 x))))))
 
     (bindings--define-key menu [regexp-search]
-      '(menu-item "Regular Expression"
-                  (lambda ()
-                    (interactive)
-                    (setq search-default-mode t)
-                    (message "Regular-expression search enabled"))
+      `(menu-item "Regular Expression"
+                  ,(lambda ()
+                     (interactive)
+                     (setq search-default-mode t)
+                     (message "Regular-expression search enabled"))
                   :help "Enable regular-expression search"
                   :button (:radio . (eq search-default-mode t))))
 
     (bindings--define-key menu [regular-search]
-      '(menu-item "Literal Search"
-                  (lambda ()
-                    (interactive)
-                    (when search-default-mode
-                      (setq search-default-mode nil)
-                      (when (symbolp search-default-mode)
-                        (message "Literal search enabled"))))
+      `(menu-item "Literal Search"
+                  ,(lambda ()
+                     (interactive)
+                     (when search-default-mode
+                       (setq search-default-mode nil)
+                       (when (symbolp search-default-mode)
+                         (message "Literal search enabled"))))
                   :help "Disable special search modes"
                   :button (:radio . (not search-default-mode))))
 

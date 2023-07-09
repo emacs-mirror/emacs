@@ -6178,7 +6178,14 @@ value can be also stored on disk and read back in a new session."
       (let* ((horizontal (eq type 'hc))
 	     (total (window-size window horizontal pixelwise))
              (first t)
-             (window-combination-limit (cdr (assq 'combination-limit state)))
+	     ;; Make sure to make a new parent window for a horizontal
+	     ;; or vertical combination embedded in one of the same type
+	     ;; (see Bug#50867 and Bug#64405).
+	     (window-combination-limit
+	      (and (or (eq (cdr (assq 'combination-limit state)) t)
+		       (and horizontal (window-combined-p window t))
+		       (and (not horizontal) (window-combined-p window)))
+		   t))
 	     size new)
 	(dolist (item state)
 	  ;; Find the next child window.  WINDOW always points to the
@@ -6418,7 +6425,10 @@ windows can get as small as `window-safe-min-height' and
 			   head)))
 	 (min-width (cdr (assq
 			  (if pixelwise 'min-pixel-width 'min-weight)
-			  head))))
+			  head)))
+	 ;; Bind the following two variables.  `window--state-put-1' has
+	 ;; to fully control them (see Bug#50867 and Bug#64405).
+	 window-combination-limit window-combination-resize)
     (if (and (not totals)
 	     (or (> min-height (window-size window nil pixelwise))
 		 (> min-width (window-size window t pixelwise)))

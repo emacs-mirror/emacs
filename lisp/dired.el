@@ -3892,13 +3892,20 @@ or \"* [3 files]\"."
 	(format "%c [%d files]" dired-marker-char count)))))
 
 (defcustom dired-no-confirm nil
-  "A list of symbols for commands Dired should not confirm, or t.
-Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
-`copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
-`touch' and `uncompress'.
-If t, confirmation is never needed."
+  "Dired commands for which Dired should not popup list of affected files, or t.
+
+If non-nil, Dired will not pop up the list of files to be affected by
+some Dired commands, when asking for confirmation.  (Dired will still
+ask for confirmation, just without showing the affected files.)
+
+If the value is t, the list of affected files is never popped up.
+The value can also be a list of command symbols: then the list of the
+affected files will not be popped up only for the corresponding Dired
+commands.  Recognized command symbols are `byte-compile', `chgrp',
+`chmod', `chown', `compress', `copy', `delete', `hardlink', `load',
+`move', `print', `shell', `symlink', `touch' and `uncompress'."
   :group 'dired
-  :type '(choice (const :tag "Confirmation never needed" t)
+  :type '(choice (const :tag "Affected files never shown" t)
 		 (set (const byte-compile) (const chgrp)
 		      (const chmod) (const chown) (const compress)
 		      (const copy) (const delete) (const hardlink)

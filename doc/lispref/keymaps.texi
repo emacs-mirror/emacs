@@ -1338,7 +1338,7 @@ Used in keymaps to undefine keys.  It calls @code{ding}, but does
 not cause an error.
 @end deffn
 
-@defun keymap-local-binding key &optional accept-defaults
+@defun keymap-local-lookup key &optional accept-defaults
 This function returns the binding for @var{key} in the current
 local keymap, or @code{nil} if it is undefined there.
 
@@ -1346,7 +1346,7 @@ The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{keymap-lookup} (above).
 @end defun
 
-@defun keymap-global-binding key &optional accept-defaults
+@defun keymap-global-lookup key &optional accept-defaults
 This function returns the binding for command @var{key} in the
 current global keymap, or @code{nil} if it is undefined there.
 
@@ -2070,7 +2070,16 @@ problematic suffixes/prefixes are @kbd{@key{ESC}}, @kbd{M-O} (which is really
 @section Commands for Binding Keys
 
   This section describes some convenient interactive interfaces for
-changing key bindings.  They work by calling @code{keymap-set}.
+changing key bindings.  They work by calling @code{keymap-set}
+(@pxref{Changing Key Bindings}).  In interactive use, these commands
+prompt for the argument @var{key} and expect the user to type a valid
+key sequence; they also prompt for the @var{binding} of the key
+sequence, and expect the name of a command (i.e., a symbol that
+satisfies @code{commandp}, @pxref{Interactive Call}).  When called
+from Lisp, these commands expect @var{key} to be a string that
+satisfies @code{key-valid-p} (@pxref{Key Sequences}), and
+@var{binding} to be any Lisp object that is meaningful in a keymap
+(@pxref{Key Lookup}).
 
   People often use @code{keymap-global-set} in their init files
 (@pxref{Init File}) for simple customization.  For example,

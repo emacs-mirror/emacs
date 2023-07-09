@@ -560,16 +560,23 @@ improve the performance of your code.  @xref{Truncation, cache-long-scans}.
 @defun vertical-motion count &optional window cur-col
 This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
-is negative, it moves up instead.
+is negative, it moves up instead.  If @var{count} is zero, point moves
+to the visual start of the current screen line.
 
-The @var{count} argument can be a cons cell, @code{(@var{cols}
-. @var{lines})}, instead of an integer.  Then the function moves by
-@var{lines} screen lines, and puts point @var{cols} columns from the
-visual start of that screen line.  Note that @var{cols} are counted
-from the @emph{visual} start of the line; if the window is scrolled
-horizontally (@pxref{Horizontal Scrolling}), the column on which point
-will end is in addition to the number of columns by which the text is
-scrolled.
+The @var{count} argument can be a cons cell, @w{@code{(@var{cols}
+. @var{lines})}}, instead of an integer.  Then the function moves by
+@var{lines} screen lines, as described for @var{count} above, and puts
+point @var{cols} columns from the visual start of that screen line.
+The value of @var{cols} can be a float, and is interpreted in units of
+the frame's canonical character width (@pxref{Frame Font}); this
+allows specifying accurate horizontal position of point when the
+target screen line uses variable fonts.  Note that @var{cols} are
+counted from the @emph{visual} start of the line; if the window is
+scrolled horizontally (@pxref{Horizontal Scrolling}), the column where
+point will end is in addition to the number of columns by which the
+text is scrolled, and if the target line is a continuation line, its
+leftmost column is considered column zero (unlike column-oriented
+functions, @pxref{Columns}).
 
 The return value is the number of screen lines over which point was
 moved.  The value may be less in absolute value than @var{count} if

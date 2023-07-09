@@ -177,8 +177,9 @@ it inserts and pretty-prints that arg at point."
                     (< (point) end))
         (let ((beg (point))
               ;; Whether we're in front of an element with paired delimiters.
-              ;; Can be something funky like #'(lambda ..) or ,'#s(...).
-              (paired (when (looking-at "['`,#]*[[:alpha:]]*\\([({[\"]\\)")
+              ;; Can be something funky like #'(lambda ..) or ,'#s(...)
+              ;; Or also #^[..].
+              (paired (when (looking-at "['`,#]*[[:alpha:]^]*\\([({[\"]\\)")
                         (match-beginning 1))))
           ;; Go to the end of the sexp.
           (goto-char (or (scan-sexps (or paired (point)) 1) end))
@@ -238,7 +239,15 @@ it inserts and pretty-prints that arg at point."
 (defun pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object."
   (interactive)
-  (funcall pp-default-function (point-min) (point-max))
+  ;; The old code used `indent-sexp' which mostly works "anywhere",
+  ;; so let's make sure we also work right in buffers that aren't
+  ;; setup specifically for Lisp.
+  (if (and (eq (syntax-table) emacs-lisp-mode-syntax-table)
+           (eq indent-line-function #'lisp-indent-line))
+      (funcall pp-default-function (point-min) (point-max))
+    (with-syntax-table emacs-lisp-mode-syntax-table
+        (let ((indent-line-function #'lisp-indent-line))
+          (funcall pp-default-function (point-min) (point-max)))))
   ;; Preserve old behavior of (usually) finishing with a newline and
   ;; with point at BOB.
   (goto-char (point-max))

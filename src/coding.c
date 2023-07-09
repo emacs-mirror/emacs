@@ -11473,7 +11473,18 @@ usage: (define-coding-system-internal ...)  */)
 
 DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
        3, 3, 0,
-       doc: /* Change value in CODING-SYSTEM's property list PROP to VAL.  */)
+       doc: /* Change value of CODING-SYSTEM's property PROP to VAL.
+
+The following properties, if set by this function, override the values
+of the corresponding attributes set by `define-coding-system':
+
+  `:mnemonic', `:default-char', `:ascii-compatible-p'
+  `:decode-translation-table', `:encode-translation-table',
+  `:post-read-conversion', `:pre-write-conversion'
+
+See `define-coding-system' for the description of these properties.
+See `coding-system-get' and `coding-system-plist' for accessing the
+property list of a coding-system.  */)
   (Lisp_Object coding_system, Lisp_Object prop, Lisp_Object val)
 {
   Lisp_Object spec, attrs;

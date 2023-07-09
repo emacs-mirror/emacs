@@ -346,10 +346,10 @@ undefined commands."
   "List of directories saved by pushd in this buffer's shell.
 Thus, this does not include the shell's current directory.")
 
-(defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
-
-(defvar shell-dirtrackp t
-  "Non-nil in a shell buffer means directory tracking is enabled.")
+(defvaralias 'shell-dirtrackp 'shell-dirtrack-mode
+  "Non-nil in a shell buffer means directory tracking is enabled.
+Directory tracking (`shell-dirtrack-mode') is automatically enabled
+when `shell-mode' is activated.")
 
 (defvar shell-last-dir nil
   "Keep track of last directory for ksh `cd -' command.")
@@ -997,6 +997,21 @@ Make the shell buffer the current buffer, and return it.
 ;; replace it with a process filter that watches for and strips out
 ;; these messages.
 
+(define-minor-mode shell-dirtrack-mode
+  "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
+This assigns a buffer-local non-nil value to `shell-dirtrackp'.
+
+The `dirtrack' package provides an alternative implementation of
+this feature; see the function `dirtrack-mode'.  Also see
+`comint-osc-directory-tracker' for an escape-sequence based
+solution."
+  :lighter nil
+  :interactive (shell-mode)
+  (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
+  (if shell-dirtrack-mode
+      (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
+    (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
+
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.
 This function is called on each input passed to the shell.
@@ -1013,7 +1028,7 @@ and  `shell-popd-regexp', while `shell-pushd-tohome', `shell-pushd-dextract',
 and `shell-pushd-dunique' control the behavior of the relevant command.
 
 Environment variables are expanded, see function `substitute-in-file-name'."
-  (if shell-dirtrackp
+  (if shell-dirtrack-mode
       ;; We fail gracefully if we think the command will fail in the shell.
 ;;;      (with-demoted-errors "Directory tracker failure: %s"
       ;; This fails so often that it seems better to just ignore errors (?).
@@ -1167,23 +1182,10 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (and (string-match "^\\+[1-9][0-9]*$" str)
        (string-to-number str)))
 
-(define-minor-mode shell-dirtrack-mode
-  "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
-
-The `dirtrack' package provides an alternative implementation of
-this feature; see the function `dirtrack-mode'.  Also see
-`comint-osc-directory-tracker' for an escape-sequence based
-solution."
-  :lighter nil
-  (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
-  (if shell-dirtrack-mode
-      (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
-    (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
-
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
   (cd dir)
-  (if shell-dirtrackp
+  (if shell-dirtrack-mode
       (setq list-buffers-directory default-directory)))
 
 (defun shell-resync-dirs ()

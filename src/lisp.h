@@ -2016,9 +2016,7 @@ ASCII_CHAR_P (intmax_t c)
    range of characters.  A sub-char-table is like a vector, but with
    two integer fields between the header and Lisp data, which means
    that it has to be marked with some precautions (see mark_char_table
-   in alloc.c).  A sub-char-table appears only in an element of a
-   char-table, and there's no way to access it directly from a Lisp
-   program.  */
+   in alloc.c).  A sub-char-table appears in an element of a char-table.  */
 
 enum CHARTAB_SIZE_BITS
   {
@@ -4815,7 +4813,7 @@ extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t,
 					   ptrdiff_t, ptrdiff_t *);
 extern EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				ptrdiff_t, ptrdiff_t, EMACS_INT,
-				int, Lisp_Object, Lisp_Object, bool);
+				bool, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 

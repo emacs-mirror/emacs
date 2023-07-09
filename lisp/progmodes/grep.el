@@ -1302,9 +1302,10 @@ to specify a command to run.
 If CONFIRM is non-nil, the user will be given an opportunity to edit the
 command before it's run.
 
-Interactively, the user can use the \\`M-c' command while entering
-the regexp to indicate whether the grep should be case sensitive
-or not."
+Interactively, the user can use \
+\\<read-regexp-map>\\[read-regexp-toggle-case-fold] \
+while entering the regexp
+to indicate whether the grep should be case sensitive or not."
   (interactive
    (progn
      (grep-compute-defaults)

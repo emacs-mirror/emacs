@@ -383,18 +383,27 @@ used with the completion list:
 
 @table @kbd
 @vindex minibuffer-completion-auto-choose
+@kindex M-DOWN
+@kindex M-UP
+@kindex M-RET
+@findex minibuffer-next-completion
+@findex minibuffer-previous-completion
+@findex minibuffer-choose-completion
 @item M-@key{DOWN}
 @itemx M-@key{UP}
-While in the minibuffer, these keys navigate through the completions
-displayed in the completions buffer.  When
+While in the minibuffer or in the completion list buffer, @kbd{M-@key{DOWN}}
+(@code{minibuffer-next-completion} and @kbd{M-@key{UP}}
+(@code{minibuffer-previous-completion}) navigate through the
+completions and displayed in the completions buffer.  When
 @code{minibuffer-completion-auto-choose} is non-@code{nil} (which is
 the default), using these commands also inserts the current completion
 candidate into the minibuffer.  If
 @code{minibuffer-completion-auto-choose} is @code{nil}, you can use
-the @kbd{M-@key{RET}} command to insert the completion candidates into
-the minibuffer.  By default, that exits the minibuffer, but with a
-prefix argument, @kbd{C-u M-@key{RET}} inserts the currently active
-candidate without exiting the minibuffer.
+the @kbd{M-@key{RET}} command (@code{minibuffer-choose-completion}) to
+insert the completion candidates into the minibuffer.  By default,
+that exits the minibuffer, but with a prefix argument, @kbd{C-u
+M-@key{RET}} inserts the currently active candidate without exiting
+the minibuffer.
 
 @findex switch-to-completions
 @item M-v
@@ -402,7 +411,7 @@ candidate without exiting the minibuffer.
 @itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
-way for using the commands below.  @key{PageUp}, @key{prior} and
+way for also using the commands below.  @key{PageUp}, @key{prior} and
 @kbd{M-g M-c} does the same.  You can also select the window in other
 ways (@pxref{Windows}).
 

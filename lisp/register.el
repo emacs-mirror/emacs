@@ -126,7 +126,7 @@ See the documentation of the variable `register-alist' for possible VALUEs."
 (defvar register-preview-function #'register-preview-default
   "Function to format a register for previewing.
 Called with one argument, a cons (NAME . CONTENTS) as found in `register-alist'.
-The function should return a string, the description of teh argument.")
+The function should return a string, the description of the argument.")
 
 (defun register-preview (buffer &optional show-empty)
   "Pop up a window showing the registers preview in BUFFER.
@@ -380,9 +380,7 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 
 (cl-defgeneric register-val-describe (val verbose)
   "Print description of register value VAL to `standard-output'.
-Second argument VERBOSE is ignored, unless VAL is not one of the
-supported kinds of register contents, in which case it is displayed
-using `prin1'."
+Second argument VERBOSE means produce a more detailed description."
   (princ "Garbage:\n")
   (if verbose (prin1 val)))
 

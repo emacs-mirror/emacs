@@ -2149,21 +2149,33 @@ If LINES is negative, this means moving up.
 This function is an ordinary cursor motion function
 which calculates the new position based on how text would be displayed.
 The new position may be the start of a line,
-or just the start of a continuation line.
+or the start of a continuation line,
+or the start of the visible portion of a horizontally-scrolled line.
+
 The function returns number of screen lines moved over;
-that usually equals LINES, but may be closer to zero
-if beginning or end of buffer was reached.
+that usually equals LINES, but may be closer to zero if
+beginning or end of buffer was reached.
 
 The optional second argument WINDOW specifies the window to use for
 parameters such as width, horizontal scrolling, and so on.
 The default is to use the selected window's parameters.
 
+If LINES is zero, point will move to the first visible character on
+the current screen line.
+
 LINES can optionally take the form (COLS . LINES), in which case the
-motion will not stop at the start of a screen line but COLS column
-from the visual start of the line (if such exists on that line, that
-is).  If the line is scrolled horizontally, COLS is interpreted
-visually, i.e., as addition to the columns of text beyond the left
-edge of the window.
+motion will stop at the COLSth column from the visual start of the
+line (if such column exists on that line, that is).  If the line is
+scrolled horizontally, COLS is interpreted visually, i.e., as addition
+to the columns of text beyond the left edge of the window.
+If LINES is a cons cell, its car COLS can be a float, which allows
+specifying an accurate position of point on a screen line that mixes
+fonts or uses variable-pitch font: COLS is interpreted in units of the
+canonical character width, and is internally converted to pixel units;
+point will then stop at the position closest to that pixel coordinate.
+The cdr of the cons, LINES, must be an integer; if it is zero, this
+function moves point horizontally in the current screen line, to the
+position specified by COLS.
 
 The optional third argument CUR-COL specifies the horizontal
 window-relative coordinate of point, in units of frame's canonical
@@ -2171,11 +2183,10 @@ character width, where the function is invoked.  If this argument is
 omitted or nil, the function will determine the point coordinate by
 going back to the beginning of the line.
 
-`vertical-motion' always uses the current buffer,
-regardless of which buffer is displayed in WINDOW.
-This is consistent with other cursor motion functions
-and makes it possible to use `vertical-motion' in any buffer,
-whether or not it is currently displayed in some window.  */)
+`vertical-motion' always uses the current buffer, regardless of which
+buffer is displayed in WINDOW.  This is consistent with other cursor
+motion functions and makes it possible to use `vertical-motion' in any
+buffer, whether or not it is currently displayed in some window.  */)
   (Lisp_Object lines, Lisp_Object window, Lisp_Object cur_col)
 {
   struct it it;
