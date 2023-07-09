@@ -1119,6 +1119,18 @@ be careful about specifying absolute file names: @samp{cat
 this behavior annoying, you can enable the optional electric forward
 slash module (@pxref{Electric forward slash}).
 
+@vindex eshell-explicit-remote-commands
+When running commands, you can also make them explicitly remote by
+prefixing the command name with a remote identifier, e.g.@:
+@samp{/ssh:user@@remote:whoami}.  This runs the command @code{whoami}
+over the SSH connection for @code{user@@remote}, no matter your
+current directory.  If you want to explicitly run a @emph{local}
+command even when in a remote directory, you can prefix the command
+name with @kbd{/:}, like @samp{/:whoami}.  In either case, you can
+also specify the absolute path to the program, e.g.@:
+@samp{/ssh:user@@remote:/usr/bin/whoami}.  To disable this syntax, set
+the option @code{eshell-explicit-remote-commands} to @code{nil}.
+
 @node History
 @section History
 @cmindex history

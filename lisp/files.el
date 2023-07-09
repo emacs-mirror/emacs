@@ -1270,7 +1270,9 @@ there is an existing connection.
 
 If CONNECTED is non-nil, return an identification only if FILE is
 located on a remote system and a connection is established to
-that remote system.
+that remote system.  If CONNECTED is `never', never use an
+existing connection to return the identification (this is
+otherwise like a value of nil).
 
 Tip: You can use this expansion of remote identifier components
      to derive a new remote file name from an existing one.  For
