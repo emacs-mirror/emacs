@@ -121,6 +121,7 @@ rm -- "$src"lib/gl_openssl.h \
       "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
+      "$src"m4/locale-fr.m4 \
       "$src"m4/manywarnings-c++.m4 \
       "$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
