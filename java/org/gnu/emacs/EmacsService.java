@@ -147,7 +147,7 @@ public final class EmacsService extends Service
 	manager = (NotificationManager) tem;
 	infoBlurb = ("This notification is displayed to keep Emacs"
 		     + " running while it is in the background.  You"
-		     + " may disable if you want;"
+		     + " may disable it if you want;"
 		     + " see (emacs)Android Environment.");
 	channel
 	  = new NotificationChannel ("emacs", "Emacs persistent notification",

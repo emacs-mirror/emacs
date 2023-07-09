@@ -99,7 +99,8 @@ public final class EmacsWindow extends EmacsHandleObject
   private EmacsGC scratchGC;
 
   /* The button state and keyboard modifier mask at the time of the
-     last button press or release event.  */
+     last button press or release event.  The modifier mask is reset
+     upon each window focus change.  */
   public int lastButtonState, lastModifiers;
 
   /* Whether or not the window is mapped.  */
@@ -670,6 +671,12 @@ public final class EmacsWindow extends EmacsHandleObject
   onFocusChanged (boolean gainFocus)
   {
     EmacsActivity.invalidateFocus ();
+
+    /* If focus has been lost, reset the keyboard modifier state, as
+       subsequent changes will not be recorded.  */
+
+    if (!gainFocus)
+      lastModifiers = 0;
   }
 
   /* Notice that the activity has been detached or destroyed.
