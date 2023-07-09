@@ -89,8 +89,8 @@ activation of Which Function until Imenu is used for the first time."
 (defcustom which-func-display 'mode
   "Where to display the function name.
 
-If 'mode, display in the mode line.  If 'header, display in the
-header line.  If 'mode-and-header, display in both."
+If `mode', display in the mode line.  If `header', display in the
+header line.  If `mode-and-header', display in both."
   :type '(choice (const :tag "Display in mode line" mode)
                  (const :tag "Display in header line" header)
                  (const :tag "Display in both header and mode line"
