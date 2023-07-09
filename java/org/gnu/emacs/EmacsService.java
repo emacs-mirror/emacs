@@ -225,6 +225,17 @@ public final class EmacsService extends Service
 		     * pixelDensityX);
     resolver = getContentResolver ();
 
+    /* If the density used to compute the text size is lesser than
+       160, there's likely a bug with display density computation.
+       Reset it to 160 in that case.
+
+       Note that Android uses 160 ``dpi'' as the density where 1 point
+       corresponds to 1 pixel, not 72 or 96 as used elsewhere.  This
+       difference is codified in PT_PER_INCH defined in font.h.  */
+
+    if (scaledDensity < 160)
+      scaledDensity = 160;
+
     try
       {
 	/* Configure Emacs with the asset manager and other necessary
@@ -240,7 +251,9 @@ public final class EmacsService extends Service
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + ", libDir = " + libDir + ", and classPath = " + classPath
-	       + "; fileToOpen = " + EmacsOpenActivity.fileToOpen);
+	       + "; fileToOpen = " + EmacsOpenActivity.fileToOpen
+	       + "; display density: " + pixelDensityX + " by "
+	       + pixelDensityY + " scaled to " + scaledDensity);
 
 	/* Start the thread that runs Emacs.  */
 	thread = new EmacsThread (this, new Runnable () {

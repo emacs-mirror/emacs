@@ -25,7 +25,10 @@ public final class EmacsDrawPoint
   perform (EmacsDrawable drawable,
 	   EmacsGC immutableGC, int x, int y)
   {
-    EmacsDrawRectangle.perform (drawable, immutableGC,
+    /* Use EmacsFillRectangle instead of EmacsDrawRectangle, as the
+       latter actually draws a rectangle one pixel wider than
+       specified.  */
+    EmacsFillRectangle.perform (drawable, immutableGC,
 				x, y, 1, 1);
   }
 }
