@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2023-03-27.21}
+\def\texinfoversion{2023-07-02.10}
 %
 % Copyright 1985, 1986, 1988, 1990-2023 Free Software Foundation, Inc.
 %
@@ -275,8 +275,7 @@
 % \topmark doesn't work for the very first chapter (after the title
 % page or the contents), so we use \firstmark there -- this gets us
 % the mark with the chapter defs, unless the user sneaks in, e.g.,
-% @setcolor (or @url, or @link, etc.) between @contents and the very
-% first @chapter.
+% @setcolor (or @url etc.) between @contents and the very first @chapter.
 \def\gettopheadingmarks{%
   \ifcase0\the\savedtopmark\fi
   \ifx\thischapter\empty \ifcase0\firstmark\fi \fi
@@ -4950,6 +4949,7 @@ $$%
   \commondummyword\inforef    {}%
   \commondummyword\kbd        {}%
   \commondummyword\key        {}%
+  \commondummyword\link       {}%
   \commondummyword\math       {}%
   \commondummyword\option     {}%
   \commondummyword\pxref      {}%
@@ -5783,7 +5783,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % below is chosen so that the gutter has the same value (well, +-<1pt)
   % as it did when we hard-coded it.
   %
-  % We put the result in a separate register, \doublecolumhsize, so we
+  % We put the result in a separate register, \doublecolumnhsize, so we
   % can restore it in \pagesofar, after \hsize itself has (potentially)
   % been clobbered.
   %
@@ -8180,7 +8180,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Read recursive and nonrecursive macro bodies. (They're different since
 % rec and nonrec macros end differently.)
 %
-% We are in \macrobodyctxt, and the \xdef causes backslashshes in the macro
+% We are in \macrobodyctxt, and the \xdef causes backslashes in the macro
 % body to be transformed.
 % Set \macrobody to the body of the macro, and call \macrodef.
 %
@@ -8808,109 +8808,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\xrefX[#1,#2,#3,#4,#5,#6]{\begingroup
   \unsepspaces
   %
-  % Get args without leading/trailing spaces.
-  \def\printedrefname{\ignorespaces #3}%
-  \setbox\printedrefnamebox = \hbox{\printedrefname\unskip}%
-  %
+  \getprintedrefname{#1}{#3}{#5}%
   \def\infofilename{\ignorespaces #4}%
   \setbox\infofilenamebox = \hbox{\infofilename\unskip}%
   %
-  \def\printedmanual{\ignorespaces #5}%
-  \setbox\printedmanualbox  = \hbox{\printedmanual\unskip}%
-  %
-  % If the printed reference name (arg #3) was not explicitly given in
-  % the @xref, figure out what we want to use.
-  \ifdim \wd\printedrefnamebox = 0pt
-    % No printed node name was explicitly given.
-    \expandafter\ifx\csname SETxref-automatic-section-title\endcsname \relax
-      % Not auto section-title: use node name inside the square brackets.
-      \def\printedrefname{\ignorespaces #1}%
-    \else
-      % Auto section-title: use chapter/section title inside
-      % the square brackets if we have it.
-      \ifdim \wd\printedmanualbox > 0pt
-        % It is in another manual, so we don't have it; use node name.
-        \def\printedrefname{\ignorespaces #1}%
-      \else
-        \ifhavexrefs
-          % We (should) know the real title if we have the xref values.
-          \def\printedrefname{\refx{#1-title}}%
-        \else
-          % Otherwise just copy the Info node name.
-          \def\printedrefname{\ignorespaces #1}%
-        \fi%
-      \fi
-    \fi
-  \fi
-  %
-  % Make link in pdf output.
-  \ifpdf
-    % For pdfTeX and LuaTeX
-    {\indexnofonts
-     \makevalueexpandable
-     \turnoffactive
-     % This expands tokens, so do it after making catcode changes, so _
-     % etc. don't get their TeX definitions.  This ignores all spaces in
-     % #4, including (wrongly) those in the middle of the filename.
-     \getfilename{#4}%
-     %
-     % This (wrongly) does not take account of leading or trailing
-     % spaces in #1, which should be ignored.
-     \setpdfdestname{#1}%
-     %
-     \ifx\pdfdestname\empty
-       \def\pdfdestname{Top}% no empty targets
-     \fi
-     %
-     \leavevmode
-     \startlink attr{/Border [0 0 0]}%
-     \ifnum\filenamelength>0
-       goto file{\the\filename.pdf} name{\pdfdestname}%
-     \else
-       goto name{\pdfmkpgn{\pdfdestname}}%
-     \fi
-    }%
-    \setcolor{\linkcolor}%
-  \else
-    \ifx\XeTeXrevision\thisisundefined
-    \else
-      % For XeTeX
-      {\indexnofonts
-       \makevalueexpandable
-       \turnoffactive
-       % This expands tokens, so do it after making catcode changes, so _
-       % etc. don't get their TeX definitions.  This ignores all spaces in
-       % #4, including (wrongly) those in the middle of the filename.
-       \getfilename{#4}%
-       %
-       % This (wrongly) does not take account of leading or trailing
-       % spaces in #1, which should be ignored.
-       \setpdfdestname{#1}%
-       %
-       \ifx\pdfdestname\empty
-         \def\pdfdestname{Top}% no empty targets
-       \fi
-       %
-       \leavevmode
-       \ifnum\filenamelength>0
-         % With default settings,
-         % XeTeX (xdvipdfmx) replaces link destination names with integers.
-         % In this case, the replaced destination names of
-         % remote PDFs are no longer known.  In order to avoid a replacement,
-         % you can use xdvipdfmx's command line option `-C 0x0010'.
-         % If you use XeTeX 0.99996+ (TeX Live 2016+),
-         % this command line option is no longer necessary
-         % because we can use the `dvipdfmx:config' special.
-         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
-           << /S /GoToR /F (\the\filename.pdf) /D (\pdfdestname) >> >>}%
-       \else
-         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
-           << /S /GoTo /D (\pdfdestname) >> >>}%
-       \fi
-      }%
-      \setcolor{\linkcolor}%
-    \fi
-  \fi
+  \startxreflink{#1}{#4}%
   {%
     % Have to otherify everything special to allow the \csname to
     % include an _ in the xref name, etc.
@@ -8991,6 +8893,93 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \endlink
 \endgroup}
 
+% \getprintedrefname{NODE}{LABEL}{MANUAL}
+% - set \printedrefname and \printedmanual
+%
+\def\getprintedrefname#1#2#3{%
+  % Get args without leading/trailing spaces.
+  \def\printedrefname{\ignorespaces #2}%
+  \setbox\printedrefnamebox = \hbox{\printedrefname\unskip}%
+  %
+  \def\printedmanual{\ignorespaces #3}%
+  \setbox\printedmanualbox  = \hbox{\printedmanual\unskip}%
+  %
+  % If the printed reference name (arg #2) was not explicitly given in
+  % the @xref, figure out what we want to use.
+  \ifdim \wd\printedrefnamebox = 0pt
+    % No printed node name was explicitly given.
+    \expandafter\ifx\csname SETxref-automatic-section-title\endcsname \relax
+      % Not auto section-title: use node name inside the square brackets.
+      \def\printedrefname{\ignorespaces #1}%
+    \else
+      % Auto section-title: use chapter/section title inside
+      % the square brackets if we have it.
+      \ifdim \wd\printedmanualbox > 0pt
+        % It is in another manual, so we don't have it; use node name.
+        \def\printedrefname{\ignorespaces #1}%
+      \else
+        \ifhavexrefs
+          % We (should) know the real title if we have the xref values.
+          \def\printedrefname{\refx{#1-title}}%
+        \else
+          % Otherwise just copy the Info node name.
+          \def\printedrefname{\ignorespaces #1}%
+        \fi%
+      \fi
+    \fi
+  \fi
+}
+
+% \startxreflink{NODE}{FILE} - start link in pdf output.
+\def\startxreflink#1#2{%
+  \ifpdforxetex
+    % For pdfTeX and LuaTeX
+    {\indexnofonts
+     \makevalueexpandable
+     \turnoffactive
+     % This expands tokens, so do it after making catcode changes, so _
+     % etc. don't get their TeX definitions.  This ignores all spaces in
+     % #2, including (wrongly) those in the middle of the filename.
+     \getfilename{#2}%
+     %
+     % This (wrongly) does not take account of leading or trailing
+     % spaces in #1, which should be ignored.
+     \setpdfdestname{#1}%
+     %
+     \ifx\pdfdestname\empty
+       \def\pdfdestname{Top}% no empty targets
+     \fi
+     %
+     \leavevmode
+     \ifpdf
+       \startlink attr{/Border [0 0 0]}%
+       \ifnum\filenamelength>0
+         goto file{\the\filename.pdf} name{\pdfdestname}%
+       \else
+         goto name{\pdfmkpgn{\pdfdestname}}%
+       \fi
+     \else % XeTeX
+       \ifnum\filenamelength>0
+         % With default settings,
+         % XeTeX (xdvipdfmx) replaces link destination names with integers.
+         % In this case, the replaced destination names of
+         % remote PDFs are no longer known.  In order to avoid a replacement,
+         % you can use xdvipdfmx's command line option `-C 0x0010'.
+         % If you use XeTeX 0.99996+ (TeX Live 2016+),
+         % this command line option is no longer necessary
+         % because we can use the `dvipdfmx:config' special.
+         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
+           << /S /GoToR /F (\the\filename.pdf) /D (\pdfdestname) >> >>}%
+       \else
+         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
+           << /S /GoTo /D (\pdfdestname) >> >>}%
+       \fi
+     \fi
+    }%
+    \setcolor{\linkcolor}%
+  \fi
+}
+
 % can be overridden in translation files
 \def\putpageref#1{%
   \space\putwordpage\tie\refx{#1-pg}}
@@ -9027,6 +9016,21 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % one that Bob is working on :).
 %
 \def\xrefprintnodename#1{[#1]}
+
+% @link{NODENAME, LABEL, MANUAL} - create a "plain" link, with no
+% page number.  Not useful if printed on paper.
+%
+\def\link#1{\linkX[#1,,,]}
+\def\linkX[#1,#2,#3,#4]{%
+  \begingroup
+  \unsepspaces
+  \getprintedrefname{#1}{#2}{#3}%
+  \startxreflink{#1}{#3}%
+  \printedrefname
+  \endlink
+  \endgroup
+}
+
 
 % Things referred to by \setref.
 %

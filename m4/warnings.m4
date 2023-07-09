@@ -1,4 +1,4 @@
-# warnings.m4 serial 18
+# warnings.m4 serial 19
 dnl Copyright (C) 2008-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -81,12 +81,14 @@ AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL],
 # gl_WARN_ADD(OPTION, [VARIABLE = WARN_CFLAGS/WARN_CXXFLAGS],
 #             [PROGRAM = AC_LANG_PROGRAM()])
 # -----------------------------------------------------------
-# Adds parameter to WARN_CFLAGS/WARN_CXXFLAGS if the compiler supports it
-# when compiling PROGRAM.  For example, gl_WARN_ADD([-Wparentheses]).
+# Adds OPTION to VARIABLE (which defaults to WARN_CFLAGS or WARN_CXXFLAGS)
+# if the compiler supports it when compiling PROGRAM.
 #
 # If VARIABLE is a variable name, AC_SUBST it.
 #
 # The effects of this macro depend on the current language (_AC_LANG).
+#
+# Example: gl_WARN_ADD([-Wparentheses]).
 AC_DEFUN([gl_WARN_ADD],
 [AC_REQUIRE([gl_UNKNOWN_WARNINGS_ARE_ERRORS(]_AC_LANG[)])
 gl_COMPILER_OPTION_IF([$1],
@@ -123,7 +125,12 @@ AC_DEFUN([gl_CC_INHIBIT_WARNINGS],
     ])
   case "$gl_cv_cc_winhibit" in
     none) GL_CFLAG_INHIBIT_WARNINGS='' ;;
-    *)    GL_CFLAG_INHIBIT_WARNINGS="$gl_cv_cc_winhibit" ;;
+    *)
+      GL_CFLAG_INHIBIT_WARNINGS="$gl_cv_cc_winhibit"
+      dnl If all warnings are inhibited, there's no point in having the GCC
+      dnl analyzer enabled. This saves RAM requirements and CPU consumption.
+      gl_WARN_ADD([-fno-analyzer], [GL_CFLAG_INHIBIT_WARNINGS])
+      ;;
   esac
   AC_SUBST([GL_CFLAG_INHIBIT_WARNINGS])
 ])
@@ -150,7 +157,12 @@ AC_DEFUN([gl_CXX_INHIBIT_WARNINGS],
       ])
     case "$gl_cv_cxx_winhibit" in
       none) GL_CXXFLAG_INHIBIT_WARNINGS='' ;;
-      *)    GL_CXXFLAG_INHIBIT_WARNINGS="$gl_cv_cxx_winhibit" ;;
+      *)
+        GL_CXXFLAG_INHIBIT_WARNINGS="$gl_cv_cxx_winhibit"
+        dnl If all warnings are inhibited, there's no point in having the GCC
+        dnl analyzer enabled. This saves RAM requirements and CPU consumption.
+        gl_WARN_ADD([-fno-analyzer], [GL_CXXFLAG_INHIBIT_WARNINGS])
+        ;;
     esac
   else
     GL_CXXFLAG_INHIBIT_WARNINGS=''

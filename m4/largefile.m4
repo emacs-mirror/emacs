@@ -181,13 +181,16 @@ AS_IF([test "$enable_year2038,$ac_have_year2038" = yes,no],
 # C code used to probe for large file support.
 m4_define([_AC_SYS_LARGEFILE_TEST_CODE],
 [@%:@include <sys/types.h>
- /* Check that off_t can represent 2**63 - 1 correctly.
-    We can't simply define LARGE_OFF_T to be 9223372036854775807,
+@%:@ifndef FTYPE
+@%:@ define FTYPE off_t
+@%:@endif
+ /* Check that FTYPE can represent 2**63 - 1 correctly.
+    We can't simply define LARGE_FTYPE to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-@%:@define LARGE_OFF_T (((off_t) 1 << 31 << 31) - 1 + ((off_t) 1 << 31 << 31))
-  int off_t_is_large[[(LARGE_OFF_T % 2147483629 == 721
-		       && LARGE_OFF_T % 2147483647 == 1)
+@%:@define LARGE_FTYPE (((FTYPE) 1 << 31 << 31) - 1 + ((FTYPE) 1 << 31 << 31))
+  int FTYPE_is_large[[(LARGE_FTYPE % 2147483629 == 721
+		       && LARGE_FTYPE % 2147483647 == 1)
 		      ? 1 : -1]];[]dnl
 ])
 # Defined by Autoconf 2.71 and circa 2022 Gnulib unwisely depended on it.
@@ -227,7 +230,13 @@ AC_DEFUN([_AC_SYS_LARGEFILE_PROBE],
     AS_IF([test x"$ac_opt" != x"none needed"],
       [CC="$ac_save_CC $ac_opt"])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([_AC_SYS_LARGEFILE_TEST_CODE])],
-      [ac_cv_sys_largefile_opts="$ac_opt"
+     [AS_IF([test x"$ac_opt" = x"none needed"],
+	[# GNU/Linux s390x and alpha need _FILE_OFFSET_BITS=64 for wide ino_t.
+	 CC="$CC -DFTYPE=ino_t"
+	 AC_COMPILE_IFELSE([], [],
+	   [CC="$CC -D_FILE_OFFSET_BITS=64"
+	    AC_COMPILE_IFELSE([], [ac_opt='-D_FILE_OFFSET_BITS=64'])])])
+      ac_cv_sys_largefile_opts=$ac_opt
       ac_opt_found=yes])
     test $ac_opt_found = no || break
   done

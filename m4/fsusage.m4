@@ -269,7 +269,7 @@ int check_f_blocks_size[sizeof fsd.f_blocks * CHAR_BIT <= 32 ? -1 : 1];
 
 # Check for SunOS statfs brokenness wrt partitions 2GB and larger.
 # If <sys/vfs.h> exists and struct statfs has a member named f_spare,
-# enable the work-around code in fsusage.c.
+# enable the workaround code in fsusage.c.
 AC_DEFUN([gl_STATFS_TRUNCATES],
 [
   AC_CACHE_CHECK([for statfs that truncates block counts],
