@@ -212,6 +212,7 @@ public final class EmacsService extends Service
     final double pixelDensityX;
     final double pixelDensityY;
     final double scaledDensity;
+    double tempScaledDensity;
 
     SERVICE = this;
     handler = new Handler (Looper.getMainLooper ());
@@ -220,9 +221,9 @@ public final class EmacsService extends Service
     metrics = getResources ().getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
-    scaledDensity = ((metrics.scaledDensity
-		      / metrics.density)
-		     * pixelDensityX);
+    tempScaledDensity = ((metrics.scaledDensity
+			  / metrics.density)
+			 * pixelDensityX);
     resolver = getContentResolver ();
 
     /* If the density used to compute the text size is lesser than
@@ -233,8 +234,12 @@ public final class EmacsService extends Service
        corresponds to 1 pixel, not 72 or 96 as used elsewhere.  This
        difference is codified in PT_PER_INCH defined in font.h.  */
 
-    if (scaledDensity < 160)
-      scaledDensity = 160;
+    if (tempScaledDensity < 160)
+      tempScaledDensity = 160;
+
+    /* scaledDensity is const as required to refer to it from within
+       the nested function below.  */
+    scaledDensity = tempScaledDensity;
 
     try
       {
