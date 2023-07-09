@@ -207,6 +207,7 @@ that will be invoked, type this as the Eshell prompt:
 * Built-ins::
 * Variables::
 * Aliases::
+* Remote Access::
 * History::
 * Completion::
 * Control Flow::
@@ -266,7 +267,10 @@ As an ordinary Lisp function
 @vindex eshell-prefer-lisp-functions
 If you would prefer to use ordinary Lisp functions over external
 programs, set the option @code{eshell-prefer-lisp-functions} to
-@code{t}.  This will swap the lookup order of the last two items.
+@code{t}.  This will swap the lookup order of the last two items. You
+can also force Eshell to look for a command as an external program by
+prefixing its name with @kbd{*}, like @code{*@var{command}}
+(@pxref{Built-ins}).
 
 You can also group command forms together into a subcommand with curly
 braces (@code{@{@}}).  This lets you use the output of a subcommand as
@@ -1089,6 +1093,31 @@ the alias.  This lets you selectively use an alias's arguments, so
 create and switch to a directory called @samp{foo}.
 
 @end table
+
+@node Remote Access
+@section Remote Access
+@cmindex remote access
+
+Since Eshell uses Emacs facilities for most of its functionality, you
+can access remote hosts transparently.  To connect to a remote host,
+simply @code{cd} into it:
+
+@example
+~ $ cd /ssh:user@@remote:
+/ssh:user@@remote:~ $
+@end example
+
+Additionally, built-in Eshell commands (@pxref{Built-ins}) and
+ordinary Lisp functions accept remote file names, so you can access
+them even without explicitly connecting first.  For example, to print
+the contents of a remote file, you could type @samp{cat
+/ssh:user@@remote:~/output.log}.  However, this means that when using
+built-in commands or Lisp functions from a remote directory, you must
+be careful about specifying absolute file names: @samp{cat
+/var/output.log} will always print the contents of your @emph{local}
+@file{/var/output.log}, even from a remote directory.  If you find
+this behavior annoying, you can enable the optional electric forward
+slash module (@pxref{Electric forward slash}).
 
 @node History
 @section History
