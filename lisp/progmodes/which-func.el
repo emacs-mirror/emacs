@@ -86,6 +86,17 @@ long time to send the information, you can use this option to delay
 activation of Which Function until Imenu is used for the first time."
   :type '(repeat (symbol :tag "Major mode")))
 
+(defcustom which-func-display 'mode
+  "Where to display the function name.
+
+If 'mode, display in the mode line.  If 'header, display in the
+header line.  If 'mode-and-header, display in both."
+  :type '(choice (const :tag "Display in mode line" mode)
+                 (const :tag "Display in header line" header)
+                 (const :tag "Display in both header and mode line"
+                        mode-and-header))
+  :version "30.1")
+
 (defcustom which-func-maxout 500000
   "Don't automatically compute the Imenu menu if buffer is this big or bigger.
 Zero means compute the Imenu menu regardless of size.
@@ -184,9 +195,15 @@ and you want to simplify them for the mode line
 ;;;###autoload (put 'which-func-current 'risky-local-variable t)
 
 (defvar-local which-func-mode nil
-  "Non-nil means display current function name in mode line.
+  "Non-nil means display current function name in mode or header line.
 This makes a difference only if variable `which-function-mode' is
 non-nil.")
+
+(defvar-local which-func--use-header-line nil
+  "If non-nil, display the function name in the header line.")
+
+(defvar-local which-func--use-mode-line nil
+  "If non-nil, display the function name in the mode line.")
 
 (add-hook 'after-change-major-mode-hook #'which-func-ff-hook t)
 
@@ -194,7 +211,19 @@ non-nil.")
   (unless (or (not which-function-mode)
               (local-variable-p 'which-func-mode))
     (setq which-func-mode (or (eq which-func-modes t)
-                              (member major-mode which-func-modes)))))
+                              (member major-mode which-func-modes)))
+    (setq which-func--use-mode-line
+          (member which-func-display '(mode mode-and-header)))
+    (setq which-func--use-header-line
+          (member which-func-display '(header mode-and-header)))
+    (when (and which-func-mode which-func--use-header-line)
+      (add-to-list 'header-line-format '("" which-func-format " ")))))
+
+(defun which-func--disable ()
+  (when (and which-func-mode which-func--use-header-line)
+    (setq header-line-format
+          (delete '("" which-func-format " ") header-line-format)))
+  (setq which-func-mode nil))
 
 (defun which-func-ff-hook ()
   "`after-change-major-mode-hook' for Which Function mode.
@@ -210,10 +239,10 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
                 (save-excursion (funcall imenu-create-index-function))))
     (imenu-unavailable
-     (setq which-func-mode nil))
+     (which-func--disable))
     (error
      (message "which-func-ff-hook error: %S" err)
-     (setq which-func-mode nil))))
+     (which-func--disable))))
 
 (defun which-func-update ()
   "Update the Which-Function mode display in the current window."
@@ -231,7 +260,7 @@ It creates the Imenu index for the buffer, if necessary."
 	      (puthash window current which-func-table)
 	      (force-mode-line-update)))
 	(error
-	 (setq which-func-mode nil)
+	 (which-func--disable)
 	 (error "Error in which-func-update: %S" info))))))
 
 (defvar which-func-update-timer nil)
@@ -241,7 +270,8 @@ It creates the Imenu index for the buffer, if necessary."
   (add-to-list 'mode-line-misc-info
                '(which-function-mode    ;Only display if mode is enabled.
                  (which-func-mode       ;Only display if buffer supports it.
-                  ("" which-func-format " ")))))
+                  (which-func--use-mode-line
+                   ("" which-func-format " "))))))
 
 ;; This is the name people would normally expect.
 ;;;###autoload
