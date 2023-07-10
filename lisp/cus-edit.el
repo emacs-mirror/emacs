@@ -3721,7 +3721,8 @@ WIDGET should be a `custom-face' widget."
 	 `((t ,(widget-value child)))
        (widget-value child)))))
 
-(defun custom-face-get-current-spec (face)
+(defun custom-face-get-current-spec-unfiltered (face)
+  "Return the current spec for face FACE, without filtering it."
   (let ((spec (or (get face 'customized-face)
 		  (get face 'saved-face)
 		  (get face 'face-defface-spec)
@@ -3732,7 +3733,11 @@ WIDGET should be a `custom-face' widget."
     ;; edit it as the user has specified it.
     (if (not (face-spec-match-p face spec (selected-frame)))
 	(setq spec `((t ,(face-attr-construct face (selected-frame))))))
-    (custom-pre-filter-face-spec spec)))
+    spec))
+
+(defun custom-face-get-current-spec (face)
+  "Return the current spec for face FACE, filtering it."
+  (custom-pre-filter-face-spec (custom-face-get-current-spec-unfiltered face)))
 
 (defun custom-toggle-hide-face (visibility-widget &rest _ignore)
   "Toggle the visibility of a `custom-face' parent widget.
@@ -3852,8 +3857,8 @@ the present value is saved to its :shown-value property instead."
 	(unless (widget-get widget :custom-form)
 	  (widget-put widget :custom-form custom-face-default-form))
 
-	(let* ((spec (or (widget-get widget :shown-value)
-			 (custom-face-get-current-spec symbol)))
+	(let* ((shown-value (widget-get widget :shown-value))
+               (spec (or shown-value (custom-face-get-current-spec symbol)))
 	       (form (widget-get widget :custom-form))
 	       (indent (widget-get widget :indent))
 	       face-alist face-entry spec-default spec-match editor)
@@ -3894,7 +3899,7 @@ the present value is saved to its :shown-value property instead."
 		   widget 'sexp :value spec))))
           (push editor children)
           (widget-put widget :children children)
-	  (custom-face-state-set widget))))))
+	  (custom-face-state-set widget (not shown-value)))))))
 
 (defun cus--face-link (widget _format)
   (widget-create-child-and-convert
@@ -4014,13 +4019,18 @@ This is one of `set', `saved', `changed', `themed', or `rogue'."
 	'changed
       state)))
 
-(defun custom-face-state-set (widget)
+(defun custom-face-state-set (widget &optional no-filter)
   "Set the state of WIDGET, a custom-face widget.
 If the user edited the widget, set the state to modified.  If not, the new
-state is one of the return values of `custom-face-state'."
+state is one of the return values of `custom-face-state'.
+Optional argument NO-FILTER means to check against an unfiltered spec."
   (let ((face (widget-value widget)))
     (widget-put widget :custom-state
-                (if (face-spec-match-p face (custom-face-widget-to-spec widget))
+                (if (face-spec-match-p
+                     face
+                     (if no-filter
+                         (custom-face-get-current-spec-unfiltered face)
+                       (custom-face-widget-to-spec widget)))
                     (custom-face-state face)
                   'modified))))
 
