@@ -463,7 +463,7 @@ This can be useful when using docker to run a language server.")
 (eval-and-compile
   (defvar eglot--lsp-interface-alist
     `(
-      (CodeAction (:title) (:kind :diagnostics :edit :command :isPreferred))
+      (CodeAction (:title) (:kind :diagnostics :edit :command :isPreferred :data))
       (ConfigurationItem () (:scopeUri :section))
       (Command ((:title . string) (:command . string)) (:arguments))
       (CompletionItem (:label)
@@ -739,9 +739,12 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
    (server action) "Default implementation."
    (eglot--dcase action
      (((Command)) (eglot--request server :workspace/executeCommand action))
-     (((CodeAction) edit command)
-      (when edit (eglot--apply-workspace-edit edit))
-      (when command (eglot--request server :workspace/executeCommand command))))))
+     (((CodeAction) edit command data)
+      (if (and (null edit) (null command) data
+               (eglot--server-capable :codeActionProvider :resolveProvider))
+          (eglot-execute server (eglot--request server :codeAction/resolve action))
+        (when edit (eglot--apply-workspace-edit edit))
+        (when command (eglot--request server :workspace/executeCommand command)))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
@@ -825,6 +828,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
              :documentHighlight  `(:dynamicRegistration :json-false)
              :codeAction         (list
                                   :dynamicRegistration :json-false
+                                  :resolveSupport t :dataSupport t
                                   :codeActionLiteralSupport
                                   '(:codeActionKind
                                     (:valueSet
