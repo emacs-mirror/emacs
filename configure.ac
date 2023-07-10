@@ -902,9 +902,9 @@ AC_DEFUN([gt_TYPE_WINT_T],
   [GNULIBHEADERS_OVERRIDE_WINT_T=0
    AC_SUBST([GNULIBHEADERS_OVERRIDE_WINT_T])])
 # Emacs does not need precise checks for the Solaris 10 MB_CUR_MAX bug.
-AC_DEFUN([gt_LOCALE_FR_UTF8],
-  [LOCALE_FR_UTF8=none
-   AC_SUBST([LOCALE_FR_UTF8])])
+AC_DEFUN_ONCE([gl_STDLIB_H],
+  [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
+   gl_NEXT_HEADERS([stdlib.h])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
@@ -6305,6 +6305,7 @@ if test "$emacs_cv_struct_alignment" = yes; then
      structure to an N-byte boundary.])
 fi
 
+AC_C_RESTRICT
 AC_C_TYPEOF
 
 AC_CACHE_CHECK([for statement expressions],
