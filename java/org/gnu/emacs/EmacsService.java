@@ -583,12 +583,18 @@ public final class EmacsService extends Service
       }
   }
 
-  /* Ask the system to open the specified URL.
+  /* Ask the system to open the specified URL in an application that
+     understands how to open it.
+
+     If SEND, tell the system to also open applications that can
+     ``send'' the URL (through mail, for example), instead of only
+     those that can view the URL.
+
      Value is NULL upon success, or a string describing the error
      upon failure.  */
 
   public String
-  browseUrl (String url)
+  browseUrl (String url, boolean send)
   {
     Intent intent;
     Uri uri;
@@ -596,28 +602,47 @@ public final class EmacsService extends Service
     try
       {
 	/* Parse the URI.  */
-	uri = Uri.parse (url);
-
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+	if (!send)
 	  {
-	    /* On Android 4.4 and later, check if URI is actually a
-	       file name.  If so, rewrite it into a content provider
-	       URI, so that it can be accessed by other programs.  */
+	    uri = Uri.parse (url);
 
-	    if (uri.getScheme ().equals ("file")
-		&& uri.getPath () != null)
-	      uri
-		= DocumentsContract.buildDocumentUri ("org.gnu.emacs",
-						      uri.getPath ());
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+	      {
+		/* On Android 4.4 and later, check if URI is actually
+		   a file name.  If so, rewrite it into a content
+		   provider URI, so that it can be accessed by other
+		   programs.  */
+
+		if (uri.getScheme ().equals ("file")
+		    && uri.getPath () != null)
+		  uri
+		    = DocumentsContract.buildDocumentUri ("org.gnu.emacs",
+							  uri.getPath ());
+	      }
+
+	    Log.d (TAG, ("browseUri: browsing " + url
+			 + " --> " + uri.getPath ()
+			 + " --> " + uri));
+
+	    intent = new Intent (Intent.ACTION_VIEW, uri);
+	    intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK
+			     | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	  }
+	else
+	  {
+	    intent = new Intent (Intent.ACTION_SEND);
+	    intent.setType ("text/plain");
+	    intent.putExtra (Intent.EXTRA_SUBJECT, "Sharing link");
+	    intent.putExtra (Intent.EXTRA_TEXT, url);
+
+	    /* Display a list of programs able to send this URL.  */
+	    intent = Intent.createChooser (intent, "Send");
+
+	    /* Apparently flags need to be set after a choser is
+	       created.  */
+	    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
 	  }
 
-	Log.d (TAG, ("browseUri: browsing " + url
-		     + " --> " + uri.getPath ()
-		     + " --> " + uri));
-
-	intent = new Intent (Intent.ACTION_VIEW, uri);
-	intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK
-			 | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 	startActivity (intent);
       }
     catch (Exception e)

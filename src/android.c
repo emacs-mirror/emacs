@@ -2286,7 +2286,7 @@ android_init_emacs_service (void)
   FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
   FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
-  FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;)"
+  FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;Z)"
 	       "Ljava/lang/String;");
   FIND_METHOD (restart_emacs, "restartEmacs", "()V");
   FIND_METHOD (update_ic, "updateIC",
@@ -6959,12 +6959,15 @@ android_project_image_nearest (struct android_image *image,
 
 /* Other miscellaneous functions.  */
 
-/* Ask the system to start browsing the specified encoded URL.  Upon
-   failure, return a string describing the error.  Else, value is
-   nil.  */
+/* Ask the system to start browsing the specified URL.  Upon failure,
+   return a string describing the error.  Else, value is nil.  URL
+   should be encoded unless SEND.
+
+   If SEND, open the URL with applications that can ``send'' or
+   ``share'' the URL (through mail, for example.)  */
 
 Lisp_Object
-android_browse_url (Lisp_Object url)
+android_browse_url (Lisp_Object url, Lisp_Object send)
 {
   jobject value, string;
   Lisp_Object tem;
@@ -6974,7 +6977,8 @@ android_browse_url (Lisp_Object url)
   value = (*android_java_env)->CallObjectMethod (android_java_env,
 						 emacs_service,
 						 service_class.browse_url,
-						 string);
+						 string,
+						 (jboolean) !NILP (send));
   android_exception_check ();
 
   ANDROID_DELETE_LOCAL_REF (string);

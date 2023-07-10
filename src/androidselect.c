@@ -232,11 +232,15 @@ DEFUN ("android-clipboard-exists-p", Fandroid_clipboard_exists_p,
 }
 
 DEFUN ("android-browse-url", Fandroid_browse_url,
-       Sandroid_browse_url, 1, 1, 0,
-       doc: /* Start the system web browser.
-Then, point the web browser to URL, which should be a URL-encoded
-URL with a scheme specified.  Signal an error upon failure.  */)
-  (Lisp_Object url)
+       Sandroid_browse_url, 1, 2, 0,
+       doc: /* Open URL in an external application.  URL should be a
+URL-encoded URL with a scheme specified unless SEND is non-nil.
+Signal an error upon failure.
+
+If SEND is nil, start a program that is able to display the URL, such
+as a web browser.  Otherwise, try to share URL using programs such as
+email clients.  */)
+  (Lisp_Object url, Lisp_Object send)
 {
   Lisp_Object value;
 
@@ -244,7 +248,7 @@ URL with a scheme specified.  Signal an error upon failure.  */)
     error ("No Android display connection!");
 
   CHECK_STRING (url);
-  value = android_browse_url (url);
+  value = android_browse_url (url, send);
 
   /* Signal an error upon failure.  */
   if (!NILP (value))
