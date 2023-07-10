@@ -5018,7 +5018,7 @@ but that should be robust in the unexpected case that an error is signaled."
       ;; The use without `format' is obsolete, let's warn when we bump
       ;; into any such remaining uses.
       (macroexp-warn-and-return
-       (format-message "Missing format argument in `with-demote-errors'")
+       (format-message "Missing format argument in `with-demoted-errors'")
        exp nil nil
        orig-format))))
 
