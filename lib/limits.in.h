@@ -136,7 +136,7 @@
 
 /* Macro specified by POSIX.  */
 
-/* The maximal size_t value.  Although it might not be of ssize_t type
+/* The maximum ssize_t value.  Although it might not be of ssize_t type
    as it should be, it's too much trouble to fix this minor detail.  */
 #ifndef SSIZE_MAX
 # ifdef _WIN64

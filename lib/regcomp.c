@@ -905,7 +905,7 @@ init_word_char (re_dfa_t *dfa)
       bitset_word_t bits3 = 0x07fffffe;
       if (BITSET_WORD_BITS == 64)
 	{
-	  /* Pacify gcc -Woverflow on 32-bit platformns.  */
+	  /* Pacify gcc -Woverflow on 32-bit platforms.  */
 	  dfa->word_char[0] = bits1 << 31 << 1 | bits0;
 	  dfa->word_char[1] = bits3 << 31 << 1 | bits2;
 	  i = 2;

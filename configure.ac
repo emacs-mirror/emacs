@@ -1544,6 +1544,10 @@ ac_func_list=$funcs
 AC_DEFUN([gt_TYPE_WINT_T],
   [GNULIBHEADERS_OVERRIDE_WINT_T=0
    AC_SUBST([GNULIBHEADERS_OVERRIDE_WINT_T])])
+# Emacs does not need precise checks for the Solaris 10 MB_CUR_MAX bug.
+AC_DEFUN([gt_LOCALE_FR_UTF8],
+  [LOCALE_FR_UTF8=none
+   AC_SUBST([LOCALE_FR_UTF8])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
