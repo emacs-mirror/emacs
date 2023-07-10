@@ -1,4 +1,4 @@
-# printf.m4 serial 82
+# printf.m4 serial 84
 dnl Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -1906,7 +1906,7 @@ AC_DEFUN([gl_SWPRINTF_WORKS],
 int main()
 {
   int result = 0;
-  { /* This test fails on musl, FreeBSD, NetBSD, OpenBSD, macOS, AIX.  */
+  { /* This test fails on musl libc 1.2.3, FreeBSD, NetBSD, OpenBSD, macOS, AIX.  */
     wchar_t buf[5] = { 0xBEEF, 0xBEEF, 0xBEEF, 0xBEEF, 0xBEEF };
     int ret = swprintf (buf, 4, L"%cz", '\0');
     /* Expected result:
@@ -1937,7 +1937,7 @@ int main()
                                # Guess yes on glibc systems.
            *-gnu* | gnu*)      gl_cv_func_swprintf_works="guessing yes";;
                                # Guess no on musl systems.
-           *-musl* | midipix*) gl_cv_func_swprintf_works="guessing yes";;
+           *-musl* | midipix*) gl_cv_func_swprintf_works="guessing no";;
                                # Guess no on FreeBSD, NetBSD, OpenBSD, macOS, AIX.
            freebsd* | midnightbsd* | netbsd* | openbsd* | darwin* | aix*)
                                gl_cv_func_swprintf_works="guessing no";;
@@ -1999,11 +1999,57 @@ int main ()
                                  # Guess yes on musl systems.
            *-musl* | midipix*)   gl_cv_func_swprintf_directive_la="guessing yes";;
                                  # Guess yes on Android.
-           linux*-android*)      gl_cv_func_swprintf_directive_la="guessing no";;
-                                 # Guess yes on native Windows.
+           linux*-android*)      gl_cv_func_swprintf_directive_la="guessing yes";;
+                                 # Guess no on native Windows.
            mingw*)               gl_cv_func_swprintf_directive_la="guessing no";;
                                  # If we don't know, obey --enable-cross-guesses.
            *)                    gl_cv_func_swprintf_directive_la="$gl_cross_guess_normal";;
+         esac
+        ])
+    ])
+])
+
+dnl Test whether the *wprintf family of functions supports the 'lc' conversion
+dnl specifier for all wide characters.
+dnl (ISO C11, POSIX:2001)
+dnl Result is gl_cv_func_swprintf_directive_lc.
+
+AC_DEFUN([gl_SWPRINTF_DIRECTIVE_LC],
+[
+  AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_CACHE_CHECK([whether swprintf supports the 'lc' directive],
+    [gl_cv_func_swprintf_directive_lc],
+    [
+      AC_RUN_IFELSE(
+        [AC_LANG_SOURCE([[
+#include <stdio.h>
+#include <wchar.h>
+static wchar_t buf[100];
+static wint_t L_invalid = (wchar_t) 0x76543210;
+int main ()
+{
+  int result = 0;
+  /* This catches a musl libc 1.2.4, Android bug.
+     Reported at <https://www.openwall.com/lists/musl/2023/06/12/3>. */
+  if (swprintf (buf, sizeof (buf) / sizeof (wchar_t),
+                L"%lc %d", L_invalid, 33, 44, 55) < 0)
+    result |= 1;
+  return result;
+}]])],
+        [gl_cv_func_swprintf_directive_lc=yes],
+        [gl_cv_func_swprintf_directive_lc=no],
+        [case "$host_os" in
+                                 # Guess yes on glibc systems.
+           *-gnu* | gnu*)        gl_cv_func_swprintf_directive_lc="guessing yes";;
+                                 # Guess no on musl systems.
+           *-musl* | midipix*)   gl_cv_func_swprintf_directive_lc="guessing no";;
+                                 # Guess no on Android.
+           linux*-android*)      gl_cv_func_swprintf_directive_lc="guessing no";;
+                                 # Guess yes on native Windows.
+           mingw*)               gl_cv_func_swprintf_directive_lc="guessing yes";;
+                                 # If we don't know, obey --enable-cross-guesses.
+           *)                    gl_cv_func_swprintf_directive_lc="$gl_cross_guess_normal";;
          esac
         ])
     ])
@@ -2037,6 +2083,7 @@ dnl 23 = gl_SNPRINTF_SIZE1
 dnl 24 = gl_VSNPRINTF_ZEROSIZE_C99
 dnl 25 = gl_SWPRINTF_WORKS
 dnl 26 = gl_SWPRINTF_DIRECTIVE_LA
+dnl 27 = gl_SWPRINTF_DIRECTIVE_LC
 dnl
 dnl 1 = checking whether printf supports size specifiers as in C99...
 dnl 2 = checking whether printf supports size specifiers as in C23...
@@ -2064,47 +2111,48 @@ dnl 23 = checking whether snprintf respects a size of 1...
 dnl 24 = checking whether vsnprintf respects a zero size as in C99...
 dnl 25 = checking whether swprintf works...
 dnl 26 = checking whether swprintf supports the 'La' and 'LA' directives...
+dnl 27 = checking whether swprintf supports the 'lc' directive...
 dnl
 dnl . = yes, # = no.
 dnl
-dnl                                  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
-dnl   musl libc 1.2.3                .  #  .  .  .  .  #  #  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  #  .
-dnl   glibc 2.35                     .  #  .  .  .  .  .  .  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  .  .
-dnl   glibc 2.5                      .  #  .  .  .  .  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  .  #
-dnl   glibc 2.3.6                    .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  .  #
-dnl   FreeBSD 13.0                   .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  #  .  .  .  .  .  .  #  .
-dnl   FreeBSD 5.4, 6.1               .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  #  .  #  .  .  .  .  .  .  #  ?
-dnl   Mac OS X 10.13.5               .  #  .  .  #  #  #  #  .  #  .  #  .  .  .  .  .  .  .  .  .  #  .  .  #  ?
-dnl   Mac OS X 10.5.8                .  #  .  .  #  #  #  #  .  .  .  #  .  .  .  #  .  .  .  .  .  .  .  .  #  ?
-dnl   Mac OS X 10.3.9                .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  #  .  #  .  .  .  .  .  .  #  ?
-dnl   OpenBSD 6.0, 6.7               .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  #  .  .  .  .  .  .  #  .
-dnl   OpenBSD 3.9, 4.0               .  #  .  #  #  #  #  #  #  .  #  #  .  #  .  #  .  #  .  .  .  .  .  .  #  ?
-dnl   Cygwin 1.7.0 (2009)            .  #  .  .  #  .  #  #  .  .  ?  ?  .  .  .  .  .  ?  .  .  .  .  .  .  ?  ?
-dnl   Cygwin 1.5.25 (2008)           .  #  .  .  #  #  #  #  .  .  #  ?  .  .  .  .  .  #  .  .  .  .  .  .  ?  ?
-dnl   Cygwin 1.5.19 (2006)           #  #  .  .  #  #  #  #  #  .  #  ?  .  #  .  #  #  #  .  .  .  .  .  .  ?  ?
-dnl   Solaris 11.4                   .  #  .  #  #  #  #  #  .  .  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  ?
-dnl   Solaris 11.3                   .  #  .  .  .  #  #  #  .  .  #  #  .  .  .  .  .  .  .  .  .  .  .  .  .  ?
-dnl   Solaris 11.0                   .  #  .  #  #  #  #  #  .  .  #  #  .  .  .  #  .  .  .  .  .  .  .  .  ?  ?
-dnl   Solaris 10                     .  #  .  #  #  #  #  #  .  .  #  #  .  .  .  #  #  .  .  .  .  .  .  .  ?  ?
-dnl   Solaris 2.6 ... 9              #  #  .  #  #  #  #  #  #  .  #  #  .  .  .  #  #  .  .  .  #  .  .  .  ?  ?
-dnl   Solaris 2.5.1                  #  #  .  #  #  #  #  #  #  .  #  #  .  .  .  #  .  .  #  #  #  #  #  #  ?  ?
-dnl   AIX 7.1                        .  #  .  #  #  #  #  #  .  .  .  #  .  .  .  #  #  .  .  .  .  .  .  .  #  .
-dnl   AIX 5.2                        .  #  .  #  #  #  #  #  .  .  .  #  .  .  .  #  .  .  .  .  .  .  .  .  #  ?
-dnl   AIX 4.3.2, 5.1                 #  #  .  #  #  #  #  #  #  .  .  #  .  .  .  #  .  .  .  .  #  .  .  .  #  ?
-dnl   HP-UX 11.31                    .  #  .  .  .  #  #  #  .  .  .  ?  .  .  .  #  .  .  .  .  #  #  .  .  ?  ?
-dnl   HP-UX 11.{00,11,23}            #  #  .  .  .  #  #  #  #  .  .  ?  .  .  .  #  .  .  .  .  #  #  .  #  ?  ?
-dnl   HP-UX 10.20                    #  #  .  #  .  #  #  #  #  .  ?  ?  .  .  #  #  .  .  .  .  #  #  ?  #  ?  ?
-dnl   IRIX 6.5                       #  #  .  #  #  #  #  #  #  .  #  #  .  .  .  #  .  .  .  .  #  .  .  .  #  ?
-dnl   OSF/1 5.1                      #  #  .  #  #  #  #  #  #  .  .  ?  .  .  .  #  .  .  .  .  #  .  .  #  ?  ?
-dnl   OSF/1 4.0d                     #  #  .  #  #  #  #  #  #  .  .  ?  .  .  .  #  .  .  #  #  #  #  #  #  ?  ?
-dnl   NetBSD 9.0                     .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  #  .
-dnl   NetBSD 5.0                     .  #  .  .  #  #  #  #  .  .  .  #  .  .  .  #  .  #  .  .  .  .  .  .  #  ?
-dnl   NetBSD 4.0                     .  #  ?  ?  ?  ?  #  #  ?  .  ?  #  .  ?  ?  ?  ?  ?  .  .  .  ?  ?  ?  #  ?
-dnl   NetBSD 3.0                     .  #  .  .  .  #  #  #  #  .  ?  #  #  #  ?  #  .  #  .  .  .  .  .  .  #  ?
-dnl   Haiku                          .  #  .  .  #  #  #  #  #  .  #  ?  .  .  .  .  .  ?  .  .  ?  .  .  .  .  #
-dnl   BeOS                           #  #  #  .  #  #  #  #  #  .  ?  ?  #  .  ?  .  #  ?  .  .  ?  .  .  .  ?  ?
-dnl   Android 4.3                    .  #  .  #  #  #  #  #  #  #  #  ?  .  #  .  #  .  #  .  .  .  #  .  .  ?  ?
-dnl   old mingw / msvcrt             #  #  #  #  #  #  #  #  #  .  .  ?  #  #  .  #  #  ?  .  #  #  #  .  .  #  ?
-dnl   MSVC 9                         #  #  #  #  #  #  #  #  #  #  .  ?  #  #  .  #  #  ?  #  #  #  #  .  .  #  ?
-dnl   mingw 2009-2011                .  #  #  .  #  .  #  #  .  .  .  ?  #  #  .  .  .  ?  .  .  .  .  .  .  #  ?
-dnl   mingw-w64 2011                 #  #  #  #  #  #  #  #  #  .  .  ?  #  #  .  #  #  ?  .  #  #  #  .  .  #  ?
+dnl                                  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
+dnl   musl libc 1.2.3                .  #  .  .  .  .  #  #  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  #  .  #
+dnl   glibc 2.35                     .  #  .  .  .  .  .  .  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+dnl   glibc 2.5                      .  #  .  .  .  .  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  .  #  .
+dnl   glibc 2.3.6                    .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  .  #  .
+dnl   FreeBSD 13.0                   .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  #  .  .  .  .  .  .  #  .  #
+dnl   FreeBSD 5.4, 6.1               .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  #  .  #  .  .  .  .  .  .  #  ?  ?
+dnl   Mac OS X 10.13.5               .  #  .  .  #  #  #  #  .  #  .  #  .  .  .  .  .  .  .  .  .  #  .  .  #  ?  ?
+dnl   Mac OS X 10.5.8                .  #  .  .  #  #  #  #  .  .  .  #  .  .  .  #  .  .  .  .  .  .  .  .  #  ?  ?
+dnl   Mac OS X 10.3.9                .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  #  .  #  .  .  .  .  .  .  #  ?  ?
+dnl   OpenBSD 6.0, 6.7               .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  #  .  .  .  .  .  .  #  .  #
+dnl   OpenBSD 3.9, 4.0               .  #  .  #  #  #  #  #  #  .  #  #  .  #  .  #  .  #  .  .  .  .  .  .  #  ?  ?
+dnl   Cygwin 1.7.0 (2009)            .  #  .  .  #  .  #  #  .  .  ?  ?  .  .  .  .  .  ?  .  .  .  .  .  .  ?  ?  ?
+dnl   Cygwin 1.5.25 (2008)           .  #  .  .  #  #  #  #  .  .  #  ?  .  .  .  .  .  #  .  .  .  .  .  .  ?  ?  ?
+dnl   Cygwin 1.5.19 (2006)           #  #  .  .  #  #  #  #  #  .  #  ?  .  #  .  #  #  #  .  .  .  .  .  .  ?  ?  ?
+dnl   Solaris 11.4                   .  #  .  #  #  #  #  #  .  .  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  #  .
+dnl   Solaris 11.3                   .  #  .  .  .  #  #  #  .  .  #  #  .  .  .  .  .  .  .  .  .  .  .  .  .  #  .
+dnl   Solaris 11.0                   .  #  .  #  #  #  #  #  .  .  #  #  .  .  .  #  .  .  .  .  .  .  .  .  ?  ?  ?
+dnl   Solaris 10                     .  #  .  #  #  #  #  #  .  .  #  #  .  .  .  #  #  .  .  .  .  .  .  .  .  #  .
+dnl   Solaris 2.6 ... 9              #  #  .  #  #  #  #  #  #  .  #  #  .  .  .  #  #  .  .  .  #  .  .  .  ?  ?  ?
+dnl   Solaris 2.5.1                  #  #  .  #  #  #  #  #  #  .  #  #  .  .  .  #  .  .  #  #  #  #  #  #  ?  ?  ?
+dnl   AIX 7.1                        .  #  .  #  #  #  #  #  .  .  .  #  .  .  .  #  #  .  .  .  .  .  .  .  #  .  .
+dnl   AIX 5.2                        .  #  .  #  #  #  #  #  .  .  .  #  .  .  .  #  .  .  .  .  .  .  .  .  #  ?  ?
+dnl   AIX 4.3.2, 5.1                 #  #  .  #  #  #  #  #  #  .  .  #  .  .  .  #  .  .  .  .  #  .  .  .  #  ?  ?
+dnl   HP-UX 11.31                    .  #  .  .  .  #  #  #  .  .  .  ?  .  .  .  #  .  .  .  .  #  #  .  .  ?  ?  ?
+dnl   HP-UX 11.{00,11,23}            #  #  .  .  .  #  #  #  #  .  .  ?  .  .  .  #  .  .  .  .  #  #  .  #  ?  ?  ?
+dnl   HP-UX 10.20                    #  #  .  #  .  #  #  #  #  .  ?  ?  .  .  #  #  .  .  .  .  #  #  ?  #  ?  ?  ?
+dnl   IRIX 6.5                       #  #  .  #  #  #  #  #  #  .  #  #  .  .  .  #  .  .  .  .  #  .  .  .  #  ?  ?
+dnl   OSF/1 5.1                      #  #  .  #  #  #  #  #  #  .  .  ?  .  .  .  #  .  .  .  .  #  .  .  #  ?  ?  ?
+dnl   OSF/1 4.0d                     #  #  .  #  #  #  #  #  #  .  .  ?  .  .  .  #  .  .  #  #  #  #  #  #  ?  ?  ?
+dnl   NetBSD 9.0                     .  #  .  .  .  #  #  #  .  .  .  #  .  .  .  .  .  .  .  .  .  .  .  .  #  .  #
+dnl   NetBSD 5.0                     .  #  .  .  #  #  #  #  .  .  .  #  .  .  .  #  .  #  .  .  .  .  .  .  #  ?  ?
+dnl   NetBSD 4.0                     .  #  ?  ?  ?  ?  #  #  ?  .  ?  #  .  ?  ?  ?  ?  ?  .  .  .  ?  ?  ?  #  ?  ?
+dnl   NetBSD 3.0                     .  #  .  .  .  #  #  #  #  .  ?  #  #  #  ?  #  .  #  .  .  .  .  .  .  #  ?  ?
+dnl   Haiku                          .  #  .  .  #  #  #  #  #  .  #  ?  .  .  .  .  .  ?  .  .  ?  .  .  .  .  #  .
+dnl   BeOS                           #  #  #  .  #  #  #  #  #  .  ?  ?  #  .  ?  .  #  ?  .  .  ?  .  .  .  ?  ?  ?
+dnl   Android 4.3                    .  #  .  #  #  #  #  #  #  #  #  ?  .  #  .  #  .  #  .  .  .  #  .  .  ?  ?  ?
+dnl   old mingw / msvcrt             #  #  #  #  #  #  #  #  #  .  .  ?  #  #  .  #  #  ?  .  #  #  #  .  .  #  ?  ?
+dnl   MSVC 9                         #  #  #  #  #  #  #  #  #  #  .  ?  #  #  .  #  #  ?  #  #  #  #  .  .  #  ?  ?
+dnl   mingw 2009-2011                .  #  #  .  #  .  #  #  .  .  .  ?  #  #  .  .  .  ?  .  .  .  .  .  .  #  ?  ?
+dnl   mingw-w64 2011                 #  #  #  #  #  #  #  #  #  .  .  ?  #  #  .  #  #  ?  .  #  #  #  .  .  #  ?  ?
