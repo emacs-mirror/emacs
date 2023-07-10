@@ -3216,7 +3216,7 @@ for which LSP on-type-formatting should be requested."
            (add-face-text-property (point-min) (point)
                                    'font-lock-function-name-face))
          ;; ...perhaps highlight it in the formals list
-         (when (= i active-param)
+         (when (eq i active-param)
            (save-excursion
              (goto-char (point-min))
              (pcase-let
