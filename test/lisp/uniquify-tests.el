@@ -88,6 +88,21 @@
                        '("a/dir/" "b/dir/")))
         (mapc #'kill-buffer bufs)))))
 
+(ert-deftest uniquify-home ()
+  "uniquify works, albeit confusingly, in the presence of directories named \"~\""
+  (let (bufs)
+    (save-excursion
+      (push (find-file-noselect "~") bufs)
+      (push (find-file-noselect "./~") bufs)
+      (should (equal (mapcar #'buffer-name bufs)
+                     '("~<test>" "~<>")))
+      (push (find-file-noselect "~/foo") bufs)
+      (push (find-file-noselect "./~/foo") bufs)
+      (should (equal (mapcar #'buffer-name bufs)
+                     '("foo<~>" "foo</nonexistent>" "~<test>" "~<>")))
+      (while bufs
+        (kill-buffer (pop bufs))))))
+
 (ert-deftest uniquify-rename-to-dir ()
   "Giving a buffer a name which matches a directory doesn't rename the buffer"
   (let ((uniquify-buffer-name-style 'forward)
@@ -124,6 +139,24 @@ uniquify-trailing-separator-p is ignored"
     (find-file " foo")
     (should (equal (buffer-name) "| foo"))
     (kill-buffer)))
+
+(require 'project)
+(ert-deftest uniquify-project-transform ()
+  "`project-uniquify-dirname-transform' works"
+  (let ((uniquify-dirname-transform #'project-uniquify-dirname-transform)
+        (project-vc-name "foo1/bar")
+        bufs)
+    (save-excursion
+      (should (file-exists-p "../README"))
+      (push (find-file-noselect "../README") bufs)
+      (push (find-file-noselect "other/README") bufs)
+      (should (equal (mapcar #'buffer-name bufs)
+                     '("README<other>" "README<bar>")))
+      (push (find-file-noselect "foo2/bar/README") bufs)
+      (should (equal (mapcar #'buffer-name bufs)
+                     '("README<foo2/bar>" "README<other>" "README<foo1/bar>")))
+      (while bufs
+        (kill-buffer (pop bufs))))))
 
 (provide 'uniquify-tests)
 ;;; uniquify-tests.el ends here
