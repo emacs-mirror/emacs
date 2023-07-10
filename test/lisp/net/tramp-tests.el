@@ -6073,7 +6073,9 @@ INPUT, if non-nil, is a string sent to the process."
 	;; Unset the variable.
 	(let ((tramp-remote-process-environment
 	       (cons (concat envvar "=foo") tramp-remote-process-environment)))
-	  ;; Set the initial value, we want to unset below.
+	  ;; Refill the cache; we don't want to run into timeouts.
+	  (file-truename default-directory)
+	  ;; Check the initial value, we want to unset below.
 	  (should
 	   (string-match-p
 	    "foo"
