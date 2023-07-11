@@ -147,6 +147,8 @@
 (require 'filenotify)
 (eval-when-compile (require 'subr-x))
 
+(autoload 'imenu-unavailable-error "imenu")
+
 ;;;; Customization Options
 
 (defgroup doc-view nil
@@ -214,7 +216,7 @@ are available (see Info node `(emacs)Document View')."
   :type 'boolean
   :version "30.1")
 
-(defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
+(defcustom doc-view-imenu-enabled (executable-find "mutool")
   "Whether to generate an imenu outline when \"mutool\" is available."
   :type 'boolean
   :version "29.1")
@@ -1910,9 +1912,10 @@ structure is extracted by `doc-view--imenu-subtree'."
   (let ((fn (or file-name (buffer-file-name))))
     (when fn
       (let ((outline nil)
-            (fn (shell-quote-argument (expand-file-name fn))))
+            (fn (expand-file-name fn)))
         (with-temp-buffer
-          (insert (shell-command-to-string (format "mutool show %s outline" fn)))
+          (unless (= 0 (call-process "mutool" nil (current-buffer) nil "show" fn "outline"))
+            (imenu-unavailable-error "Unable to create imenu index using `mutool'"))
           (goto-char (point-min))
           (while (re-search-forward doc-view--outline-rx nil t)
             (push `((level . ,(length (match-string 1)))
@@ -1961,7 +1964,7 @@ GOTO-PAGE-FN other than `doc-view-goto-page'."
 
 (defun doc-view-imenu-setup ()
   "Set up local state in the current buffer for imenu, if needed."
-  (when (and doc-view-imenu-enabled (executable-find "mutool"))
+  (when doc-view-imenu-enabled
     (setq-local imenu-create-index-function #'doc-view-imenu-index
                 imenu-submenus-on-top nil
                 imenu-sort-function nil
@@ -2236,7 +2239,10 @@ toggle between displaying the document or editing it as text.
     (setq mode-name "DocView"
 	  buffer-read-only t
 	  major-mode 'doc-view-mode)
-    (doc-view-imenu-setup)
+    (condition-case imenu-error
+        (doc-view-imenu-setup)
+      (imenu-unavailable (message "imenu support unavailable: %s"
+                                  (cadr imenu-error))))
     (doc-view-initiate-display)
     ;; Switch off view-mode explicitly, because doc-view-mode is the
     ;; canonical view mode for PDF/PS/DVI files.  This could be
