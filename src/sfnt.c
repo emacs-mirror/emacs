@@ -4250,15 +4250,22 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   sfnt_fixed left, right, end;
   unsigned short w, a;
   int row;
+#ifndef NDEBUG
+  unsigned char *row_end;
+#endif /* NDEBUG */
 
   /* Clip bounds to pixmap.  */
+
   if (x0 < 0)
     x0 = 0;
 
-  if (x1 >= raster->width << 16)
-    x1 = (raster->width - 1) << 16;
+  /* If x1 is greater than the raster width, make sure the last pixel
+     is filled and no more after that.  */
 
-  /* Check for empty bounds.  */
+  if (x1 > raster->width * 65536)
+    x1 = raster->width * 65536;
+
+  /* Check for empty spans.  */
   if (x1 <= x0)
     return;
 
@@ -4276,6 +4283,9 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   left = x0 >> (16 - SFNT_POLY_SHIFT);
   right = x1 >> (16 - SFNT_POLY_SHIFT);
   start = raster->cells + row * raster->stride;
+#ifndef NDEBUG
+  row_end = start + raster->width;
+#endif /* NDEBUG */
   start += left >> SFNT_POLY_SHIFT;
 
   /* If left and right actually lie in the same pixel, just fill with
@@ -4283,6 +4293,9 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
   if ((left & ~SFNT_POLY_MASK) == (right & ~SFNT_POLY_MASK))
     {
+      /* Assert that start does not exceed the end of the row.  */
+      assert (start <= row_end);
+
       w = coverage[right - left];
       a = *start + w;
 
@@ -4296,6 +4309,9 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
   if (left & SFNT_POLY_MASK)
     {
+      /* Assert that start does not exceed the end of the row.  */
+      assert (start <= row_end);
+
       /* Compute the coverage for the first pixel, and move left past
 	 it.  The coverage is a number from 1 to 7 describing how
 	 ``partially'' covered this pixel is.  */
@@ -4320,6 +4336,9 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   /* Fill pixels between left and right.  */
   while (left + SFNT_POLY_MASK < right)
     {
+      /* Assert that start does not exceed the end of the row.  */
+      assert (start <= row_end);
+
       a = *start + w;
       *start++ = sfnt_saturate_short (a);
       left += SFNT_POLY_SAMPLE;
@@ -4329,12 +4348,13 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
   if (right & SFNT_POLY_MASK)
     {
+      /* Assert that start does not exceed the end of the row.  */
+      assert (start <= row_end);
+
       w = coverage[right - left];
       a = *start + w;
       *start = sfnt_saturate_short (a);
     }
-
-  /* All done.  */
 }
 
 /* Poly each span starting from START onto RASTER, at position Y.  Y
@@ -19026,8 +19046,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 19
-#define EASY_PPEM  19
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
