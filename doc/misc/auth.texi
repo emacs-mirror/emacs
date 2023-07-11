@@ -675,43 +675,12 @@ before @file{~/.authinfo}, the auth-source library will try to
 read the GnuPG encrypted @file{.gpg} file first, before
 the unencrypted file.
 
-There is an option @code{auto-encryption-mode} to automatically
-decrypt @file{*.gpg} files.  It is enabled by default.
-
-If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
-or EasyPG Assistant
-(@pxref{Caching Passphrases, , Caching Passphrases, epa}).
-
-To quick start, here are some questions:
-
-@itemize
-@item
-Do you use GnuPG version 2 instead of GnuPG version 1?
-@item
-Do you use symmetric encryption rather than public key encryption?
-@item
-Do you want to use gpg-agent?
-@end itemize
-
-Here are configurations depending on your answers:
-
-@multitable {111} {222} {333} {configuration configuration configuration}
-@item @b{1} @tab @b{2} @tab @b{3} @tab Configuration
-@item Yes @tab Yes @tab Yes @tab Set up gpg-agent.
-@item Yes @tab Yes @tab No @tab You can't, without gpg-agent.
-@item Yes @tab No @tab Yes @tab Set up gpg-agent.
-@item Yes @tab No @tab No @tab You can't, without gpg-agent.
-@item No @tab Yes @tab Yes @tab Set up elisp passphrase cache.
-@item No @tab Yes @tab No @tab Set up elisp passphrase cache.
-@item No @tab No @tab Yes @tab Set up gpg-agent.
-@item No @tab No @tab No @tab You can't, without gpg-agent.
-@end multitable
-
-To set up gpg-agent, follow the instruction in GnuPG manual
-(@pxref{Invoking GPG-AGENT, , Invoking GPG-AGENT, gnupg}).
-
-To set up elisp passphrase cache, set
-@code{epa-file-cache-passphrase-for-symmetric-encryption}.
+The EasyPG Assistant, which comes bundled with Emacs, handles
+decryption of encrypted files automatically, see @ref{Top, , Top, epa,
+EasyPG Assistant User's Manual}.  It is an Emacs user interface to
+@acronym{GnuPG, GNU Privacy Guard}, see @ref{Top, , Top, gnupg, Using
+the GNU Privacy Guard}.  To get started with these quickly, see
+@ref{Quick start, , Quick Start, epa, EasyPG Assistant User's Manual}.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
