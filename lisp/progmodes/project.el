@@ -1679,7 +1679,8 @@ It's also possible to enter an arbitrary directory not in the list."
             ret))
          ;; XXX: Just using this for the category (for the substring
          ;; completion style).
-         (table (project--file-completion-table (cons dir-choice choices)))
+         (table (project--file-completion-table
+                 (reverse (cons dir-choice choices))))
          (pr-name ""))
     (while (equal pr-name "")
       ;; If the user simply pressed RET, do this again until they don't.

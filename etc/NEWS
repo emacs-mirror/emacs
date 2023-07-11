@@ -225,6 +225,15 @@ more information, see the "(eshell) Dollars Expansion" node in the
 Eshell manual.
 
 +++
+*** Eshell commands can now be explicitly-remote (or local).
+By prefixing a command name in Eshell with a remote identifier, like
+"/ssh:user@remote:whoami", you can now runs commands on a particular
+host no matter your current directory.  Likewise, you can run a
+command on your local system no matter your current directory via
+"/:whoami".  For more information, see the "(eshell) Remote Access"
+node in the Eshell manual.
+
++++
 *** Eshell's '$UID' and '$GID' variables are now connection-aware.
 Now, when expanding '$UID' or '$GID' in a remote directory, the value
 is the user or group ID associated with the remote connection.

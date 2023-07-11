@@ -463,7 +463,7 @@ This can be useful when using docker to run a language server.")
 (eval-and-compile
   (defvar eglot--lsp-interface-alist
     `(
-      (CodeAction (:title) (:kind :diagnostics :edit :command :isPreferred))
+      (CodeAction (:title) (:kind :diagnostics :edit :command :isPreferred :data))
       (ConfigurationItem () (:scopeUri :section))
       (Command ((:title . string) (:command . string)) (:arguments))
       (CompletionItem (:label)
@@ -739,9 +739,12 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
    (server action) "Default implementation."
    (eglot--dcase action
      (((Command)) (eglot--request server :workspace/executeCommand action))
-     (((CodeAction) edit command)
-      (when edit (eglot--apply-workspace-edit edit))
-      (when command (eglot--request server :workspace/executeCommand command))))))
+     (((CodeAction) edit command data)
+      (if (and (null edit) (null command) data
+               (eglot--server-capable :codeActionProvider :resolveProvider))
+          (eglot-execute server (eglot--request server :codeAction/resolve action))
+        (when edit (eglot--apply-workspace-edit edit))
+        (when command (eglot--request server :workspace/executeCommand command)))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
@@ -825,6 +828,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
              :documentHighlight  `(:dynamicRegistration :json-false)
              :codeAction         (list
                                   :dynamicRegistration :json-false
+                                  :resolveSupport t :dataSupport t
                                   :codeActionLiteralSupport
                                   '(:codeActionKind
                                     (:valueSet
@@ -3197,11 +3201,25 @@ for which LSP on-type-formatting should be requested."
       sig
     (with-temp-buffer
       (insert siglabel)
-      ;; Ad-hoc attempt to parse label as <name>(<params>)
       ;; Add documentation, indented so we can distinguish multiple signatures
       (when-let (doc (and (not briefp) sigdoc (eglot--format-markup sigdoc)))
         (goto-char (point-max))
         (insert "\n" (replace-regexp-in-string "^" "  " doc)))
+      ;; Try to highlight function name only
+      (let (first-parlabel)
+        (cond ((and (cl-plusp (length parameters))
+                    (vectorp (setq first-parlabel
+                                   (plist-get (aref parameters 0) :label))))
+               (save-excursion
+                (goto-char (elt first-parlabel 0))
+                (skip-syntax-backward "^w")
+                (add-face-text-property (point-min) (point)
+                                        'font-lock-function-name-face)))
+              ((save-excursion
+                 (goto-char (point-min))
+                 (looking-at "\\([^(]*\\)([^)]*)"))
+               (add-face-text-property (match-beginning 1) (match-end 1)
+                                       'font-lock-function-name-face))))
       ;; Now to the parameters
       (cl-loop
        with active-param = (or sig-active activeParameter)
@@ -3210,13 +3228,8 @@ for which LSP on-type-formatting should be requested."
                       ((:label parlabel))
                       ((:documentation pardoc)))
            parameter
-         (when (zerop i)
-           (goto-char (elt parlabel 0))
-           (skip-syntax-backward "^w")
-           (add-face-text-property (point-min) (point)
-                                   'font-lock-function-name-face))
          ;; ...perhaps highlight it in the formals list
-         (when (= i active-param)
+         (when (eq i active-param)
            (save-excursion
              (goto-char (point-min))
              (pcase-let

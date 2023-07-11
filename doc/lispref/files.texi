@@ -3630,7 +3630,11 @@ be @code{root}.
 If @var{connected} is non-@code{nil}, this function returns @code{nil}
 even if @var{filename} is remote, if Emacs has no network connection
 to its host.  This is useful when you want to avoid the delay of
-making connections when they don't exist.
+making connections when they don't exist.  If @var{connected} is
+@code{never}, @emph{never} use an existing connection to return the
+identification, even if one is already present (this is otherwise like
+a value of @code{nil}).  This lets you prevent any connection-specific
+logic, such as expanding the local part of the file name.
 @end defun
 
 @defun unhandled-file-name-directory filename
