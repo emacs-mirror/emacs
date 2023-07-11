@@ -45,7 +45,7 @@ have_working_info = $(filter notintermediate,$(value .FEATURES))
 # since the bug is not annoying elsewhere.
 
 AM_V_AR      = @$(info $   AR       $@)
-AM_V_at = @
+AM_V_at	     = @
 AM_V_CC      = @$(info $   CC       $@)
 AM_V_CXX     = @$(info $   CXX      $@)
 AM_V_CCLD    = @$(info $   CCLD     $@)

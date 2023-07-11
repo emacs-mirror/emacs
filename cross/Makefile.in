@@ -51,7 +51,7 @@ LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
 LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
 		  lib-src/ebrowse lib-src/hexl lib-src/movemail
 
-CLEAN_SUBDIRS=src lib-src lib
+CLEAN_SUBDIRS = src lib-src lib etc
 
 .PHONY: all
 all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)

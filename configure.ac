@@ -7828,6 +7828,12 @@ if test "$XCONFIGURE" != "android"; then
   AS_MKDIR_P([cross/lib/sys])
   AS_MKDIR_P([cross/lib-src])
 
+  dnl Make cross/etc; this directory will hold the documentation file
+  dnl holding doc strings for Android specific C files that aren't
+  dnl built during the initial compilation of Emacs for the build
+  dnl machine.
+  AS_MKDIR_P([cross/etc])
+
   dnl Link gnulib files to cross/lib as well.
   dnl af_alg.h and lib/save-cwd.h are copied manually from
   dnl gnulib, and as such aren't specified in gl_FILE_LIST.

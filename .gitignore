@@ -107,6 +107,7 @@ cross/lib-src/*
 cross/sys/*
 cross/config.status
 cross/*.bak
+cross/etc/DOC
 
 cross/ndk-build/Makefile
 cross/ndk-build/ndk-build.mk

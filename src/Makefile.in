@@ -494,7 +494,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o hbfont.o \
   haikuterm.o haikufns.o haikumenu.o haikufont.o androidterm.o androidfns.o \
-  androidfont.o
+  androidfont.o androidselect.c sfntfont-android.c sfntfont.c
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
@@ -749,11 +749,11 @@ ifeq ($(DUMPING),unexec)
 endif
 
 ifeq ($(XCONFIGURE),android)
-## The Android package internally links to and communicates with a
-## shared library named `libemacs.so' at startup.  This is built
-## almost the same way temacs is.  But it is position independent.  It
-## is not dumped here.  Instead, it dumps itself the first time it
-## starts on the user's device.
+## The Android package internally links to a shared library named
+## `libemacs.so' at startup.  It is built almost the same way temacs
+## is.  But it is position independent, and is not dumped here.
+## Instead, it dumps itself the first time it starts on the user's
+## device.
 
 # Include ndk-build.mk in order to build Emacs dependencies.
 old_top_builddir := $(top_builddir)
@@ -763,7 +763,7 @@ top_builddir := $(old_top_builddir)
 
 libemacs.so: $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
 	     $(MAKE_PDUMPER_FINGERPRINT) $(NDK_BUILD_SHARED) \
-	     $(NDK_BUILD_STATIC)
+	     $(NDK_BUILD_STATIC) $(etc)/DOC
 	$(AM_V_CCLD)$(CC) -o $@ $(ALL_CFLAGS) $(TEMACS_LDFLAGS) \
 	  $(ANDROID_LDFLAGS) $(LDFLAGS) -shared $(ALLOBJS) \
 	  $(LIBEGNU_ARCHIVE) $(LIBES)
