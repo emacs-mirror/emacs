@@ -267,7 +267,7 @@ As an ordinary Lisp function
 @vindex eshell-prefer-lisp-functions
 If you would prefer to use ordinary Lisp functions over external
 programs, set the option @code{eshell-prefer-lisp-functions} to
-@code{t}.  This will swap the lookup order of the last two items. You
+@code{t}.  This will swap the lookup order of the last two items.  You
 can also force Eshell to look for a command as an external program by
 prefixing its name with @kbd{*}, like @code{*@var{command}}
 (@pxref{Built-ins}).
