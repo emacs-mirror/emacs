@@ -66,11 +66,20 @@ public final class EmacsWindow extends EmacsHandleObject
     /* Integral coordinate.  */
     int x, y;
 
+    /* Button associated with the coordinate, or 0 if it is a touch
+       event.  */
+    int button;
+
+    /* Pointer ID associated with the coordinate.  */
+    int id;
+
     public
-    Coordinate (int x, int y)
+    Coordinate (int x, int y, int button, int id)
     {
       this.x = x;
       this.y = y;
+      this.button = button;
+      this.id = id;
     }
   };
 
@@ -595,31 +604,6 @@ public final class EmacsWindow extends EmacsHandleObject
     return state;
   }
 
-  /* Return the modifier mask associated with the specified motion
-     EVENT.  Replace bits corresponding to Left or Right keys with
-     their corresponding general modifier bits.  */
-
-  private int
-  motionEventModifiers (MotionEvent event)
-  {
-    int state;
-
-    state = event.getMetaState ();
-
-    /* Normalize the state by setting the generic modifier bit if
-       either a left or right modifier is pressed.  */
-
-    if ((state & KeyEvent.META_ALT_LEFT_ON) != 0
-	|| (state & KeyEvent.META_ALT_RIGHT_ON) != 0)
-      state |= KeyEvent.META_ALT_MASK;
-
-    if ((state & KeyEvent.META_CTRL_LEFT_ON) != 0
-	|| (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
-      state |= KeyEvent.META_CTRL_MASK;
-
-    return state;
-  }
-
   /* event.getCharacters is used because older input methods still
      require it.  */
   @SuppressWarnings ("deprecation")
@@ -710,6 +694,69 @@ public final class EmacsWindow extends EmacsHandleObject
       EmacsNative.sendWindowAction (this.handle, 0);
   }
 
+
+
+  /* Mouse and touch event handling.
+
+     Android does not conceptually distinguish between mouse events
+     (those coming from a device whose movement affects the on-screen
+     pointer image) and touch screen events.  When a touch, click, or
+     pointer motion takes place, several kinds of event can be sent:
+
+     ACTION_DOWN or ACTION_POINTER_DOWN is sent with a new coordinate
+     and an associated ``pointer ID'' identifying the event when a
+     click or touch takes place.  Emacs is responsible for recording
+     both the position of this click for the purpose of determining
+     future changes to the position of that touch.
+
+     ACTION_UP or ACTION_POINTER_UP is sent with a pointer ID when the
+     click associated with a previous ACTION_DOWN event is released.
+
+     ACTION_CANCEL (or ACTION_POINTER_UP with FLAG_CANCELED) is sent
+     if a similar situation transpires: the window system has chosen
+     to grab of the click, and future movement will no longer be
+     reported to Emacs.
+
+     ACTION_MOVE is sent if a coordinate tied to a click that has not
+     been released changes.  Emacs processes this event by comparing
+     each of the coordinates within the event with its recollection of
+     those contained within prior ACTION_DOWN and ACTION_MOVE events;
+     the pointer ID of the difference is then reported within a touch
+     or pointer motion event along with its new position.
+
+     The events described above are all sent for both touch and mouse
+     click events.  Determining whether an ACTION_DOWN event is
+     associated with a button event is performed by inspecting the
+     mouse button state associated with that event.  If it contains
+     any mouse buttons that were not contained in the button state at
+     the time of the last ACTION_DOWN or ACTION_UP event, the
+     coordinate contained within is assumed to be a mouse click,
+     leading to it and associated motion or ACTION_UP events being
+     reported as mouse button or motion events.  Otherwise, those
+     events are reported as touch screen events, with the touch ID set
+     to the pointer ID.
+
+     In addition to the events illustrated above, Android also sends
+     several other types of event upon select types of activity from a
+     mouse device:
+
+     ACTION_HOVER_MOVE is sent with the coordinate of the mouse
+     pointer if it moves above a frame prior to any click taking
+     place.  Emacs sends a mouse motion event containing the
+     coordinate.
+
+     ACTION_HOVER_ENTER and ACTION_HOVER_LEAVE are respectively sent
+     when the mouse pointer enters and leaves a frame.
+
+     On Android 6.0 and later, ACTION_BUTTON_PRESS is sent with the
+     coordinate of the mouse pointer if a mouse click occurs,
+     alongside a ACTION_DOWN event.  ACTION_BUTTON_RELEASE is sent
+     with the same information upon a mouse click being released, also
+     accompanying an ACTION_UP event.
+
+     However, both types of button events are implemented in a buggy
+     fashion and cannot be used to report button events.  */
+
   /* Look through the button state to determine what button EVENT was
      generated from.  DOWN is true if EVENT is a button press event,
      false otherwise.  Value is the X number of the button.  */
@@ -719,15 +766,19 @@ public final class EmacsWindow extends EmacsHandleObject
   {
     int eventState, notIn;
 
-    if (Build.VERSION.SDK_INT
-	< Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-      /* Earlier versions of Android only support one mouse
-	 button.  */
-      return 1;
-
+    /* Obtain the new button state.  */
     eventState = event.getButtonState ();
+
+    /* Compute which button is now set or no longer set.  */
+
     notIn = (down ? eventState & ~lastButtonState
 	     : lastButtonState & ~eventState);
+
+    if ((notIn & (MotionEvent.BUTTON_PRIMARY
+		  | MotionEvent.BUTTON_SECONDARY
+		  | MotionEvent.BUTTON_TERTIARY)) == 0)
+      /* No buttons have been pressed, so this is a touch event.  */
+      return 0;
 
     if ((notIn & MotionEvent.BUTTON_PRIMARY) != 0)
       return 1;
@@ -742,53 +793,55 @@ public final class EmacsWindow extends EmacsHandleObject
     return 4;
   }
 
-  /* Return the ID of the pointer which changed in EVENT.  Value is -1
-     if it could not be determined, else the pointer that changed, or
-     -2 if -1 would have been returned, but there is also a pointer
-     that is a mouse.  */
+  /* Return the mouse button associated with the specified ACTION_DOWN
+     or ACTION_POINTER_DOWN EVENT.
+
+     Value is 0 if no mouse button was pressed, or the X number of
+     that mouse button.  */
 
   private int
+  buttonForEvent (MotionEvent event)
+  {
+    /* ICS and earlier don't support true mouse button events, so
+       treat all down events as touch screen events.  */
+
+    if (Build.VERSION.SDK_INT
+	< Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+      return 0;
+
+    return whatButtonWasIt (event, true);
+  }
+
+  /* Return the coordinate object associated with the specified
+     EVENT, or null if it is not known.  */
+
+  private Coordinate
   figureChange (MotionEvent event)
   {
-    int pointerID, i, truncatedX, truncatedY, pointerIndex;
+    int i, truncatedX, truncatedY, pointerIndex, pointerID, count;
     Coordinate coordinate;
-    boolean mouseFlag;
 
-    /* pointerID is always initialized but the Java compiler is too
-       dumb to know that.  */
-    pointerID = -1;
-    mouseFlag = false;
+    /* Initialize this variable now.  */
+    coordinate = null;
 
     switch (event.getActionMasked ())
       {
       case MotionEvent.ACTION_DOWN:
 	/* Primary pointer pressed with index 0.  */
 
-	/* Detect mice.  If this is a mouse event, give it to
-	   onSomeKindOfMotionEvent.  */
-	if ((Build.VERSION.SDK_INT
-	     >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	    && event.getToolType (0) == MotionEvent.TOOL_TYPE_MOUSE)
-	  return -2;
-
 	pointerID = event.getPointerId (0);
-	pointerMap.put (pointerID,
-			new Coordinate ((int) event.getX (0),
-					(int) event.getY (0)));
+	coordinate = new Coordinate ((int) event.getX (0),
+				     (int) event.getY (0),
+				     buttonForEvent (event),
+				     pointerID);
+	pointerMap.put (pointerID, coordinate);
 	break;
 
       case MotionEvent.ACTION_UP:
-
-	/* Detect mice.  If this is a mouse event, give it to
-	   onSomeKindOfMotionEvent.  */
-	if ((Build.VERSION.SDK_INT
-	     >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	    && event.getToolType (0) == MotionEvent.TOOL_TYPE_MOUSE)
-	  return -2;
-
+      case MotionEvent.ACTION_CANCEL:
 	/* Primary pointer released with index 0.  */
 	pointerID = event.getPointerId (0);
-	pointerMap.remove (pointerID);
+	coordinate = pointerMap.remove (pointerID);
 	break;
 
       case MotionEvent.ACTION_POINTER_DOWN:
@@ -796,22 +849,26 @@ public final class EmacsWindow extends EmacsHandleObject
 	   it in the map.  */
 	pointerIndex = event.getActionIndex ();
 	pointerID = event.getPointerId (pointerIndex);
-	pointerMap.put (pointerID,
-			new Coordinate ((int) event.getX (pointerIndex),
-					(int) event.getY (pointerIndex)));
+	coordinate = new Coordinate ((int) event.getX (0),
+				     (int) event.getY (0),
+				     buttonForEvent (event),
+				     pointerID);
+	pointerMap.put (pointerID, coordinate);
 	break;
 
       case MotionEvent.ACTION_POINTER_UP:
 	/* Pointer removed.  Remove it from the map.  */
 	pointerIndex = event.getActionIndex ();
 	pointerID = event.getPointerId (pointerIndex);
-	pointerMap.remove (pointerID);
+	coordinate = pointerMap.remove (pointerID);
 	break;
 
       default:
 
 	/* Loop through each pointer in the event.  */
-	for (i = 0; i < event.getPointerCount (); ++i)
+
+	count = event.getPointerCount ();
+	for (i = 0; i < count; ++i)
 	  {
 	    pointerID = event.getPointerId (i);
 
@@ -835,73 +892,152 @@ public final class EmacsWindow extends EmacsHandleObject
 		    break;
 		  }
 	      }
-
-	    /* See if this is a mouse.  If so, set the mouseFlag.  */
-	    if ((Build.VERSION.SDK_INT
-		 >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-		&& event.getToolType (i) == MotionEvent.TOOL_TYPE_MOUSE)
-	      mouseFlag = true;
 	  }
 
-	/* Set the pointer ID to -1 if the loop failed to find any
-	   changed pointer.  If a mouse pointer was found, set it to
-	   -2.  */
-	if (i == event.getPointerCount ())
-	  pointerID = (mouseFlag ? -2 : -1);
+	/* Set coordinate to NULL if the loop failed to find any
+	   matching pointer.  */
+
+	if (i == count)
+	  coordinate = null;
       }
 
     /* Return the pointer ID.  */
-    return pointerID;
+    return coordinate;
+  }
+
+  /* Return the modifier mask associated with the specified motion
+     EVENT.  Replace bits corresponding to Left or Right keys with
+     their corresponding general modifier bits.  */
+
+  private int
+  motionEventModifiers (MotionEvent event)
+  {
+    int state;
+
+    state = event.getMetaState ();
+
+    /* Normalize the state by setting the generic modifier bit if
+       either a left or right modifier is pressed.  */
+
+    if ((state & KeyEvent.META_ALT_LEFT_ON) != 0
+	|| (state & KeyEvent.META_ALT_RIGHT_ON) != 0)
+      state |= KeyEvent.META_ALT_MASK;
+
+    if ((state & KeyEvent.META_CTRL_LEFT_ON) != 0
+	|| (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
+      state |= KeyEvent.META_CTRL_MASK;
+
+    return state;
+  }
+
+  /* Process a single ACTION_DOWN, ACTION_POINTER_DOWN, ACTION_UP,
+     ACTION_POINTER_UP, ACTION_CANCEL, or ACTION_MOVE event.
+
+     Ascertain which coordinate changed and send an appropriate mouse
+     or touch screen event.  */
+
+  private void
+  motionEvent (MotionEvent event)
+  {
+    Coordinate coordinate;
+    int modifiers;
+    long time;
+
+    /* Find data associated with this event's pointer.  Namely, its
+       current location, whether or not a change has taken place, and
+       whether or not it is a button event.  */
+
+    coordinate = figureChange (event);
+
+    if (coordinate == null)
+      return;
+
+    time = event.getEventTime ();
+
+    if (coordinate.button != 0)
+      {
+	/* This event is tied to a mouse click, so report mouse motion
+	   and button events.  */
+
+	modifiers = motionEventModifiers (event);
+
+	switch (event.getAction ())
+	  {
+	  case MotionEvent.ACTION_POINTER_DOWN:
+	  case MotionEvent.ACTION_DOWN:
+	    EmacsNative.sendButtonPress (this.handle, coordinate.x,
+					 coordinate.y, time, modifiers,
+					 coordinate.button);
+	    break;
+
+	  case MotionEvent.ACTION_POINTER_UP:
+	  case MotionEvent.ACTION_UP:
+	  case MotionEvent.ACTION_CANCEL:
+	    EmacsNative.sendButtonRelease (this.handle, coordinate.x,
+					   coordinate.y, time, modifiers,
+					   coordinate.button);
+	    break;
+
+	  case MotionEvent.ACTION_MOVE:
+	    EmacsNative.sendMotionNotify (this.handle, coordinate.x,
+					  coordinate.y, time);
+	    break;
+	  }
+      }
+    else
+      {
+	/* This event is a touch event, and the touch ID is the
+	   pointer ID.  */
+
+	switch (event.getActionMasked ())
+	  {
+	  case MotionEvent.ACTION_DOWN:
+	  case MotionEvent.ACTION_POINTER_DOWN:
+	    /* Touch down event.  */
+	    EmacsNative.sendTouchDown (this.handle, coordinate.x,
+				       coordinate.y, time,
+				       coordinate.id);
+	    break;
+
+	  case MotionEvent.ACTION_UP:
+	  case MotionEvent.ACTION_POINTER_UP:
+	  case MotionEvent.ACTION_CANCEL:
+	    /* Touch up event.  Android documentation says ACTION_CANCEL
+	       should be treated as more or less equivalent to ACTION_UP,
+	       so that is what is done here.  */
+	    EmacsNative.sendTouchUp (this.handle, coordinate.x,
+				     coordinate.y, time, coordinate.id);
+	    break;
+
+	  case MotionEvent.ACTION_MOVE:
+	    /* Pointer motion event.  */
+	    EmacsNative.sendTouchMove (this.handle, coordinate.x,
+				       coordinate.y, time, coordinate.id);
+	    break;
+	  }
+      }
+
+    if (Build.VERSION.SDK_INT
+	< Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+      return;
+
+    /* Now update the button state.  */
+    lastButtonState = event.getButtonState ();
+    return;
   }
 
   public boolean
   onTouchEvent (MotionEvent event)
   {
-    int pointerID, index;
-
-    /* Extract the ``touch ID'' (or in Android, the ``pointer
-       ID''.) */
-    pointerID = figureChange (event);
-
-    if (pointerID < 0)
-      {
-	/* If this is a mouse event, give it to
-	   onSomeKindOfMotionEvent.  */
-	if (pointerID == -2)
-	  return onSomeKindOfMotionEvent (event);
-
-	return false;
-      }
-
-    /* Find the pointer index corresponding to the event.  */
-    index = event.findPointerIndex (pointerID);
-
     switch (event.getActionMasked ())
       {
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_POINTER_DOWN:
-	/* Touch down event.  */
-	EmacsNative.sendTouchDown (this.handle, (int) event.getX (index),
-				   (int) event.getY (index),
-				   event.getEventTime (), pointerID);
-	return true;
-
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
       case MotionEvent.ACTION_CANCEL:
-	/* Touch up event.  Android documentation says ACTION_CANCEL
-	   should be treated as more or less equivalent to ACTION_UP,
-	   so that is what is done here.  */
-	EmacsNative.sendTouchUp (this.handle, (int) event.getX (index),
-				 (int) event.getY (index),
-				 event.getEventTime (), pointerID);
-	return true;
-
       case MotionEvent.ACTION_MOVE:
-	/* Pointer motion event.  */
-	EmacsNative.sendTouchMove (this.handle, (int) event.getX (index),
-				   (int) event.getY (index),
-				   event.getEventTime (), pointerID);
+	motionEvent (event);
 	return true;
       }
 
@@ -909,18 +1045,8 @@ public final class EmacsWindow extends EmacsHandleObject
   }
 
   public boolean
-  onSomeKindOfMotionEvent (MotionEvent event)
+  onGenericMotionEvent (MotionEvent event)
   {
-    /* isFromSource is not available until API level 18.  */
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
-      {
-	if (!event.isFromSource (InputDevice.SOURCE_CLASS_POINTER))
-	  return false;
-      }
-    else if (event.getSource () != InputDevice.SOURCE_CLASS_POINTER)
-      return false;
-
     switch (event.getAction ())
       {
       case MotionEvent.ACTION_HOVER_ENTER:
@@ -929,7 +1055,6 @@ public final class EmacsWindow extends EmacsHandleObject
 				     event.getEventTime ());
 	return true;
 
-      case MotionEvent.ACTION_MOVE:
       case MotionEvent.ACTION_HOVER_MOVE:
 	EmacsNative.sendMotionNotify (this.handle, (int) event.getX (),
 				      (int) event.getY (),
@@ -950,64 +1075,16 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	return true;
 
-      case MotionEvent.ACTION_BUTTON_PRESS:
-	/* Find the button which was pressed.  */
-	EmacsNative.sendButtonPress (this.handle, (int) event.getX (),
-				     (int) event.getY (),
-				     event.getEventTime (),
-				     motionEventModifiers (event),
-				     whatButtonWasIt (event, true));
-
-	if (Build.VERSION.SDK_INT
-	    < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	  return true;
-
-	lastButtonState = event.getButtonState ();
-	return true;
-
-      case MotionEvent.ACTION_BUTTON_RELEASE:
-	/* Find the button which was released.  */
-	EmacsNative.sendButtonRelease (this.handle, (int) event.getX (),
-				       (int) event.getY (),
-				       event.getEventTime (),
-				       motionEventModifiers (event),
-				       whatButtonWasIt (event, false));
-
-	if (Build.VERSION.SDK_INT
-	    < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	  return true;
-
-	lastButtonState = event.getButtonState ();
-	return true;
-
       case MotionEvent.ACTION_DOWN:
-	/* Emacs must return true even though touch events are not
-	   handled here, because the value of this function is used by
-	   the system to decide whether or not Emacs gets ACTION_MOVE
-	   events.  */
-	return true;
-
+      case MotionEvent.ACTION_POINTER_DOWN:
       case MotionEvent.ACTION_UP:
-	/* However, if ACTION_UP reports a different button state from
-	   the last known state, look up which button was released and
-	   send a ButtonRelease event; this is to work around a bug in
-	   the framework where real ACTION_BUTTON_RELEASE events are
-	   not delivered.  */
-
-	if (Build.VERSION.SDK_INT
-	    < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	  return true;
-
-	if (event.getButtonState () == 0 && lastButtonState != 0)
-	  {
-	    EmacsNative.sendButtonRelease (this.handle, (int) event.getX (),
-					   (int) event.getY (),
-					   event.getEventTime (),
-					   motionEventModifiers (event),
-					   whatButtonWasIt (event, false));
-	    lastButtonState = event.getButtonState ();
-	  }
-
+      case MotionEvent.ACTION_POINTER_UP:
+      case MotionEvent.ACTION_CANCEL:
+      case MotionEvent.ACTION_MOVE:
+	/* MotionEvents may either be sent to onGenericMotionEvent or
+	   onTouchEvent depending on if Android thinks it is a mouse
+	   event or not, but we detect them ourselves.  */
+	motionEvent (event);
 	return true;
 
       case MotionEvent.ACTION_SCROLL:
@@ -1023,6 +1100,8 @@ public final class EmacsWindow extends EmacsHandleObject
 
     return false;
   }
+
+
 
   public synchronized void
   reparentTo (final EmacsWindow otherWindow, int x, int y)

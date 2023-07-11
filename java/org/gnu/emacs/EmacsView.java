@@ -475,7 +475,7 @@ public final class EmacsView extends ViewGroup
   public boolean
   onGenericMotionEvent (MotionEvent motion)
   {
-    return window.onSomeKindOfMotionEvent (motion);
+    return window.onGenericMotionEvent (motion);
   }
 
   @Override
