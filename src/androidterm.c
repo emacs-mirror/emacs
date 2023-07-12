@@ -362,20 +362,20 @@ static int
 android_android_to_emacs_modifiers (struct android_display_info *dpyinfo,
 				    int state)
 {
-  return ((state & ANDROID_CONTROL_MASK) ? ctrl_modifier : 0
-	  | (state & ANDROID_SHIFT_MASK) ? shift_modifier : 0
-	  | (state & ANDROID_ALT_MASK) ? meta_modifier : 0
-	  | (state & ANDROID_SUPER_MASK) ? super_modifier : 0);
+  return (((state & ANDROID_CONTROL_MASK) ? ctrl_modifier  : 0)
+	  | ((state & ANDROID_SHIFT_MASK) ? shift_modifier : 0)
+	  | ((state & ANDROID_ALT_MASK)   ? meta_modifier  : 0)
+	  | ((state & ANDROID_SUPER_MASK) ? super_modifier : 0));
 }
 
 static int
 android_emacs_to_android_modifiers (struct android_display_info *dpyinfo,
 				    intmax_t state)
 {
-  return ((state & ctrl_modifier) ? ANDROID_CONTROL_MASK : 0
-	  | (state & shift_modifier) ? ANDROID_SHIFT_MASK : 0
-	  | (state & meta_modifier) ? ANDROID_ALT_MASK : 0
-	  | (state & super_modifier) ? ANDROID_SUPER_MASK : 0);
+  return (((state & ctrl_modifier)    ? ANDROID_CONTROL_MASK : 0)
+	  | ((state & shift_modifier) ? ANDROID_SHIFT_MASK   : 0)
+	  | ((state & meta_modifier)  ? ANDROID_ALT_MASK     : 0)
+	  | ((state & super_modifier) ? ANDROID_SUPER_MASK   : 0));
 }
 
 static void android_frame_rehighlight (struct android_display_info *);
