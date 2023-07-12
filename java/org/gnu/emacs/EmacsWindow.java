@@ -700,29 +700,36 @@ public final class EmacsWindow extends EmacsHandleObject
 
      Android does not conceptually distinguish between mouse events
      (those coming from a device whose movement affects the on-screen
-     pointer image) and touch screen events.  When a touch, click, or
-     pointer motion takes place, several kinds of event can be sent:
+     pointer image) and touch screen events.  Each click or touch
+     starts a single pointer gesture sequence, and subsequent motion
+     of the device will result in updates being reported relative to
+     that sequence until the mouse button or touch is released.
+
+     When a touch, click, or pointer motion takes place, several kinds
+     of event can be sent:
 
      ACTION_DOWN or ACTION_POINTER_DOWN is sent with a new coordinate
-     and an associated ``pointer ID'' identifying the event when a
-     click or touch takes place.  Emacs is responsible for recording
-     both the position of this click for the purpose of determining
-     future changes to the position of that touch.
+     and an associated ``pointer ID'' identifying the event and its
+     gesture sequence when a click or touch takes place.  Emacs is
+     responsible for recording both the position and pointer ID of
+     this click for the purpose of determining future changes to its
+     position.
 
      ACTION_UP or ACTION_POINTER_UP is sent with a pointer ID when the
      click associated with a previous ACTION_DOWN event is released.
 
      ACTION_CANCEL (or ACTION_POINTER_UP with FLAG_CANCELED) is sent
      if a similar situation transpires: the window system has chosen
-     to grab of the click, and future movement will no longer be
-     reported to Emacs.
+     to grab the click, and future changes to its position will no
+     longer be reported to Emacs.
 
      ACTION_MOVE is sent if a coordinate tied to a click that has not
      been released changes.  Emacs processes this event by comparing
      each of the coordinates within the event with its recollection of
      those contained within prior ACTION_DOWN and ACTION_MOVE events;
-     the pointer ID of the difference is then reported within a touch
-     or pointer motion event along with its new position.
+     the pointer ID of the differing coordinate is then reported
+     within a touch or pointer motion event along with its new
+     position.
 
      The events described above are all sent for both touch and mouse
      click events.  Determining whether an ACTION_DOWN event is
@@ -746,7 +753,12 @@ public final class EmacsWindow extends EmacsHandleObject
      coordinate.
 
      ACTION_HOVER_ENTER and ACTION_HOVER_LEAVE are respectively sent
-     when the mouse pointer enters and leaves a frame.
+     when the mouse pointer enters and leaves a frame.  Moreover,
+     ACTION_HOVER_LEAVE events are sent immediately before an
+     ACTION_DOWN event associated with a mouse click.  These
+     extraneous events are distinct in that their button states always
+     contain an additional button compared to the button state
+     recorded at the time of the last ACTION_UP event.
 
      On Android 6.0 and later, ACTION_BUTTON_PRESS is sent with the
      coordinate of the mouse pointer if a mouse click occurs,
@@ -789,8 +801,25 @@ public final class EmacsWindow extends EmacsHandleObject
     if ((notIn & MotionEvent.BUTTON_TERTIARY) != 0)
       return 2;
 
+    /* Buttons 4, 5, 6 and 7 are actually scroll wheels under X.
+       Thus, report additional buttons starting at 8.  */
+
+    if ((notIn & MotionEvent.BUTTON_BACK) != 0)
+      return 8;
+
+    if ((notIn & MotionEvent.BUTTON_FORWARD) != 0)
+      return 9;
+
+    /* Report stylus events as touch screen events.  */
+
+    if ((notIn & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0)
+      return 0;
+
+    if ((notIn & MotionEvent.BUTTON_STYLUS_SECONDARY) != 0)
+      return 0;
+
     /* Not a real value.  */
-    return 4;
+    return 11;
   }
 
   /* Return the mouse button associated with the specified ACTION_DOWN
