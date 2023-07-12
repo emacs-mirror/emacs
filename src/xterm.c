@@ -26439,9 +26439,18 @@ x_error_handler (Display *display, XErrorEvent *event)
 
 	  /* If a selection transfer is the cause of this error,
 	     remove the selection transfer now.  */
+
 	  if (fail->selection_serial)
-	    x_handle_selection_error (fail->selection_serial,
-				      event);
+	    {
+	      x_handle_selection_error (fail->selection_serial,
+					event);
+
+	      /* Clear selection_serial to prevent
+		 x_handle_selection_error from being called again if
+		 any more requests within the protected section cause
+		 errors to be reported.  */
+	      fail->selection_serial = 0;
+	    }
 
 	  return 0;
 	}
