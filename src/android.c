@@ -349,7 +349,7 @@ android_run_select_thread (void *data)
   int rc;
 #if __ANDROID_API__ < 16
   int nfds;
-  fd_set readfds, writefds;
+  fd_set readfds;
   char byte;
 #else
   sigset_t signals, waitset;
@@ -386,18 +386,30 @@ android_run_select_thread (void *data)
 	nfds = select_pipe[0] + 1;
       FD_SET (select_pipe[0], &readfds);
 
-      rc = pselect (nfds, &readfds, &writefds,
+      rc = pselect (nfds, &readfds,
+		    android_pselect_writefds,
 		    android_pselect_exceptfds,
 		    android_pselect_timeout,
 		    NULL);
 
-      /* Subtract 1 from rc if writefds contains the select pipe.  */
-      if (FD_ISSET (select_pipe[0], &writefds))
-	rc -= 1;
+      /* Subtract 1 from rc if readfds contains the select pipe, and
+	 also remove it from that set.  */
 
-      /* Save the writefds back again.  */
-      if (android_pselect_writefds)
-	*android_pselect_writefds = writefds;
+      if (rc != -1 && FD_ISSET (select_pipe[0], &readfds))
+	{
+	  rc -= 1;
+	  FD_CLR (fd, &readfds);
+
+	  /* If no file descriptors aside from the select pipe are
+	     ready, then pretend that an error has occurred.  */
+	  if (!rc)
+	    rc = -1;
+	}
+
+      /* Save the read file descriptor set back again.  */
+
+      if (android_pselect_readfds)
+	*android_pselect_readfds = readfds;
 
       android_pselect_rc = rc;
       pthread_mutex_unlock (&event_queue.select_mutex);
@@ -795,12 +807,32 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
     nfds_return = 1;
   pthread_mutex_unlock (&event_queue.mutex);
 
-  /* Add the return value of pselect.  */
+  /* Add the return value of pselect if it has also found ready file
+     descriptors.  */
+
   if (android_pselect_rc >= 0)
     nfds_return += android_pselect_rc;
-
-  if (!nfds_return && android_pselect_rc < 0)
+  else if (!nfds_return)
+    /* If pselect was interrupted and nfds_return is 0 (meaning that
+       no events have been read), indicate that an error has taken
+       place.  */
     nfds_return = android_pselect_rc;
+
+  if ((android_pselect_rc < 0) && nfds_return >= 0)
+    {
+      /* Clear the file descriptor sets if events will be delivered
+	 but no file descriptors have become ready to prevent the
+	 caller from misinterpreting a non-zero return value.  */
+
+      if (readfds)
+	FD_ZERO (readfds);
+
+      if (writefds)
+	FD_ZERO (writefds);
+
+      if (exceptfds)
+	FD_ZERO (exceptfds);
+    }
 
   /* This is to shut up process.c when pselect gets EINTR.  */
   if (nfds_return < 0)
