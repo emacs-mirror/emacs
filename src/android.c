@@ -398,7 +398,7 @@ android_run_select_thread (void *data)
       if (rc != -1 && FD_ISSET (select_pipe[0], &readfds))
 	{
 	  rc -= 1;
-	  FD_CLR (fd, &readfds);
+	  FD_CLR (select_pipe[0], &readfds);
 
 	  /* If no file descriptors aside from the select pipe are
 	     ready, then pretend that an error has occurred.  */
