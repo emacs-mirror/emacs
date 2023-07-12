@@ -1293,8 +1293,9 @@ The message at the cursor is used for \"cur\"."
     (if new-cur
         (let ((seq-entry (mh-find-seq 'cur)))
           (mh-remove-cur-notation)
-          (setcdr seq-entry
-                  (list new-cur))       ;delete-seq-locally, add-msgs-to-seq
+          (if seq-entry
+              (setcdr seq-entry (list new-cur))
+            (mh-add-msgs-to-seq (list new-cur) 'cur))
           (mh-define-sequence 'cur (list new-cur))
           (beginning-of-line)
           (if (looking-at mh-scan-good-msg-regexp)

@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'mh-e)
+(require 'mh-mime)
 (require 'mh-scan)
 
 ;; Dynamically-created function not found in mh-loaddefs.el.
