@@ -44,7 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define doc_fd		int
 #define doc_fd_p(fd)	((fd) >= 0)
 #define doc_open	emacs_open
-#define doc_close	emacs_close
 #define doc_read_quit	emacs_read_quit
 #define doc_lseek	lseek
 #else /* HAVE_ANDROID && !defined ANDROID_STUBIFY
@@ -64,7 +63,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define doc_fd		struct android_fd_or_asset
 #define doc_fd_p(fd)	((fd).asset != (void *) -1)
 #define doc_open	android_open_asset
-#define doc_close	android_close_asset
 #define doc_read_quit	android_asset_read_quit
 #define doc_lseek	android_asset_lseek
 #define USE_ANDROID_ASSETS
