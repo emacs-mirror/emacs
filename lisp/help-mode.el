@@ -498,6 +498,10 @@ This should be called very early, before the output buffer is cleared,
 because we want to record the \"previous\" position of point so we can
 restore it properly when going back."
   (with-current-buffer (help-buffer)
+    ;; Disable `outline-minor-mode' in a reused Help buffer
+    ;; created by `describe-bindings' that enables this mode.
+    (when (bound-and-true-p outline-minor-mode)
+      (outline-minor-mode -1))
     (when help-xref-stack-item
       (push (cons (point) help-xref-stack-item) help-xref-stack)
       (setq help-xref-forward-stack nil))
