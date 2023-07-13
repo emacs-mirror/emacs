@@ -14,13 +14,12 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.6
 
-** Module 'keep-place' now offers a visual indicator.
+** Module 'keep-place' has gained a more flamboyant cousin.
 Remember your place in ERC buffers a bit more easily while retaining
 the freedom to look around.  Optionally sync the indicator to any
 progress made when you haven't yet caught up to the live stream.  See
-options 'erc-keep-place-indicator-style' and friends and new module
-'keep-place-indicator', which for now must be added manually to
-'erc-modules'.
+options 'erc-keep-place-indicator-style' and friends, and try M-x
+keep-place-indicator-mode to see it in action.
 
 ** Module 'fill' now offers a style based on 'visual-line-mode'.
 This fill style mimics the "hanging indent" look of 'erc-fill-static'
