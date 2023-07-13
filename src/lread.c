@@ -75,6 +75,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # ifndef INFINITY
 #  define INFINITY ((union ieee754_double) {.ieee = {.exponent = -1}}.d)
 # endif
+#else
+# ifndef INFINITY
+#  define INFINITY HUGE_VAL
+# endif
 #endif
 
 /* The objects or placeholders read with the #n=object form.
@@ -4477,10 +4481,17 @@ substitute_in_interval (INTERVAL interval, void *arg)
 }
 
 
+#if !IEEE_FLOATING_POINT
+/* Strings that stand in for +NaN, -NaN, respectively.  */
+static Lisp_Object not_a_number[2];
+#endif
+
 /* Convert the initial prefix of STRING to a number, assuming base BASE.
    If the prefix has floating point syntax and BASE is 10, return a
    nearest float; otherwise, if the prefix has integer syntax, return
-   the integer; otherwise, return nil.  If PLEN, set *PLEN to the
+   the integer; otherwise, return nil.  (On antique platforms that lack
+   support for NaNs, if the prefix has NaN syntax return a Lisp object that
+   will provoke an error if used as a number.)  If PLEN, set *PLEN to the
    length of the numeric prefix if there is one, otherwise *PLEN is
    unspecified.  */
 
@@ -4545,7 +4556,6 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 		cp++;
 	      while ('0' <= *cp && *cp <= '9');
 	    }
-#if IEEE_FLOATING_POINT
 	  else if (cp[-1] == '+'
 		   && cp[0] == 'I' && cp[1] == 'N' && cp[2] == 'F')
 	    {
@@ -4558,12 +4568,17 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 	    {
 	      state |= E_EXP;
 	      cp += 3;
+#if IEEE_FLOATING_POINT
 	      union ieee754_double u
 		= { .ieee_nan = { .exponent = 0x7ff, .quiet_nan = 1,
 				  .mantissa0 = n >> 31 >> 1, .mantissa1 = n }};
 	      value = u.d;
-	    }
+#else
+	      if (plen)
+		*plen = cp - string;
+	      return not_a_number[negative];
 #endif
+	    }
 	  else
 	    cp = ecp;
 	}
@@ -5706,6 +5721,14 @@ that are loaded before your customizations are read!  */);
   DEFSYM (Qbackquote, "`");
   DEFSYM (Qcomma, ",");
   DEFSYM (Qcomma_at, ",@");
+
+#if !IEEE_FLOATING_POINT
+  for (int negative = 0; negative < 2; negative++)
+    {
+      not_a_number[negative] = build_pure_c_string (&"-0.0e+NaN"[!negative]);
+      staticpro (&not_a_number[negative]);
+    }
+#endif
 
   DEFSYM (Qinhibit_file_name_operation, "inhibit-file-name-operation");
   DEFSYM (Qascii_character, "ascii-character");

@@ -3033,7 +3033,8 @@ If the base used is not 10, STRING is always parsed as an integer.  */)
     p++;
 
   Lisp_Object val = string_to_number (p, b, 0);
-  return NILP (val) ? make_fixnum (0) : val;
+  return ((IEEE_FLOATING_POINT ? NILP (val) : !NUMBERP (val))
+	  ? make_fixnum (0) : val);
 }
 
 enum arithop

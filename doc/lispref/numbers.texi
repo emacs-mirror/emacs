@@ -270,10 +270,6 @@ two NaNs as equal when their
 signs and significands agree.  Significands of NaNs are
 machine-dependent, as are the digits in their string representation.
 
-  NaNs are not available on systems which do not use IEEE
-floating-point arithmetic; if the read syntax for a NaN is used on a
-VAX, for example, the reader signals an error.
-
   When NaNs and signed zeros are involved, non-numeric functions like
 @code{eql}, @code{equal}, @code{sxhash-eql}, @code{sxhash-equal} and
 @code{gethash} determine whether values are indistinguishable, not
@@ -282,6 +278,12 @@ whether they are numerically equal.  For example, when @var{x} and
 @code{(= x y)} uses numeric comparison and returns @code{nil};
 conversely, @code{(equal 0.0 -0.0)} returns @code{nil} whereas
 @code{(= 0.0 -0.0)} returns @code{t}.
+
+  Infinities and NaNs are not available on legacy systems that lack
+IEEE floating-point arithmetic.  On a circa 1980 VAX, for example, the
+Lisp reader approximates an infinity with the nearest finite value,
+and a NaN with some other non-numeric Lisp object that provokes an
+error if used numerically.
 
 Here are read syntaxes for these special floating-point values:
 
