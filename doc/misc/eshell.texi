@@ -1019,6 +1019,7 @@ that are currently visible in the Eshell window.  They are both
 copied to the environment, so external commands invoked from
 Eshell can consult them to do the right thing.
 
+@vindex $INSIDE_EMACS
 @item $INSIDE_EMACS
 This variable indicates to external commands that they are being
 invoked from within Emacs so they can adjust their behavior if
