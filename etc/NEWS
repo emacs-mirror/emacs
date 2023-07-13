@@ -360,6 +360,12 @@ this new face when DocView displays documents, customize this face to
 restore the colors you were used to, or to get colors more to your
 liking.
 
+---
+*** DocView buffers now display a new tool bar.
+This tool bar contains options for searching and navigating within the
+document, replacing the incompatible items for incremental search and
+editing within the default tool bar displayed in the past.
+
 ** Shortdoc
 
 +++
