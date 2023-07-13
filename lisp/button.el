@@ -128,7 +128,7 @@ argument).
 
 In addition, the keyword argument :supertype may be used to specify a
 `button-type' from which NAME inherits its default property values
-(however, the inheritance happens only when NAME is defined; subsequent
+\(however, the inheritance happens only when NAME is defined; subsequent
 changes to a supertype are not reflected in its subtypes)."
   (declare (indent defun))
   (let ((catsym (make-symbol (concat (symbol-name name) "-button")))

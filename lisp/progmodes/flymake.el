@@ -1568,6 +1568,36 @@ correctly.")
 (defun flymake--mode-line-counters ()
   (when (flymake-running-backends) flymake-mode-line-counter-format))
 
+(defun flymake--mode-line-counter-scroll-prev (event)
+  (interactive "e")
+  (let* ((event-start (event-start event))
+         (posn-string (posn-string event-start))
+         (type (get-text-property
+                (cdr posn-string) 'flymake--diagnostic-type (car posn-string))))
+    (with-selected-window (posn-window event-start)
+      (flymake-goto-prev-error 1 (list type) t))))
+
+(defun flymake--mode-line-counter-scroll-next (event)
+  (interactive "e")
+  (let* ((event-start (event-start event))
+         (posn-string (posn-string event-start))
+         (type (get-text-property
+                (cdr posn-string) 'flymake--diagnostic-type (car posn-string))))
+    (with-selected-window (posn-window event-start)
+      (flymake-goto-next-error 1 (list type) t))))
+
+(defvar flymake--mode-line-counter-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (vector 'mode-line mouse-wheel-down-event)
+                #'flymake--mode-line-counter-scroll-prev)
+    (define-key map [mode-line wheel-down]
+                #'flymake--mode-line-counter-scroll-prev)
+    (define-key map (vector 'mode-line mouse-wheel-up-event)
+                #'flymake--mode-line-counter-scroll-next)
+    (define-key map [mode-line wheel-up]
+                #'flymake--mode-line-counter-scroll-next)
+    map))
+
 (defun flymake--mode-line-counter (type &optional no-space)
   "Compute number of diagnostics in buffer with TYPE's severity.
 TYPE is usually keyword `:error', `:warning' or `:note'."
@@ -1598,21 +1628,8 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                              ((eq type :warning) "warnings")
                              ((eq type :note) "notes")
                              (t (format "%s diagnostics" type))))
-         keymap
-         ,(let ((map (make-sparse-keymap)))
-            (define-key map (vector 'mode-line
-                                    mouse-wheel-down-event)
-              (lambda (event)
-                (interactive "e")
-                (with-selected-window (posn-window (event-start event))
-                  (flymake-goto-prev-error 1 (list type) t))))
-            (define-key map (vector 'mode-line
-                                    mouse-wheel-up-event)
-              (lambda (event)
-                (interactive "e")
-                (with-selected-window (posn-window (event-start event))
-                  (flymake-goto-next-error 1 (list type) t))))
-            map))))))
+         flymake--diagnostic-type ,type
+         keymap ,flymake--mode-line-counter-map)))))
 
 ;;; Per-buffer diagnostic listing
 

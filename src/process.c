@@ -7147,7 +7147,8 @@ See function `signal-process' for more details on usage.  */)
 	{
 	  ptrdiff_t len;
 	  tem = string_to_number (SSDATA (process), 10, &len);
-	  if (NILP (tem) || len != SBYTES (process))
+	  if ((IEEE_FLOATING_POINT ? NILP (tem) : !NUMBERP (tem))
+	      || len != SBYTES (process))
 	    return Qnil;
 	}
       process = tem;
