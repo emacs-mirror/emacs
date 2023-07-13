@@ -70,7 +70,7 @@ public class EmacsActivity extends Activity
   private boolean isFullscreen;
 
   /* The last context menu to be closed.  */
-  private Menu lastClosedMenu;
+  private static Menu lastClosedMenu;
 
   static
   {

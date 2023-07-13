@@ -176,7 +176,25 @@ public final class EmacsSurfaceView extends View
   onDraw (Canvas canvas)
   {
     /* Paint the view's bitmap; the bitmap might be recycled right
-       now.  */
+       now.
+
+       Hardware acceleration is disabled in AndroidManifest.xml to
+       prevent Android from uploading the front buffer to the GPU from
+       a separate thread.  This is important for two reasons: first,
+       the GPU command queue uses a massive amount of memory (dozens
+       of MiB) to upload bitmaps to the GPU, regardless of how much of
+       the bitmap has actually changed.
+
+       Secondly, asynchronous texturization leads to race conditions
+       when a buffer swap occurs before the front buffer is fully
+       uploaded to the GPU.  Normally, only slight and tolerable
+       tearing should result from this behavior, but Android does not
+       properly interlock the ``generation ID'' used to avoid
+       texturizing unchanged bitmaps with the bitmap contents,
+       consequentially leading to textures in an incomplete state
+       remaining in use to the GPU if a buffer swap happens between
+       the image data being uploaded and the ``generation ID'' being
+       read.  */
 
     if (frontBuffer != null)
       canvas.drawBitmap (frontBuffer, 0f, 0f, uiThreadPaint);

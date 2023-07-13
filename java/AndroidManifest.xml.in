@@ -77,10 +77,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	       @ANDROID_SHARED_USER_ID@
 	       android:extractNativeLibs="true">
 
+    <!-- See EmacsSurfaceView.onDraw for why hardware acceleration is
+         disabled.  -->
+
     <activity android:name="org.gnu.emacs.EmacsActivity"
 	      android:launchMode="singleInstance"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
+	      android:hardwareAccelerated="false"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -173,6 +177,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     <activity android:name="org.gnu.emacs.EmacsMultitaskActivity"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
+	      android:hardwareAccelerated="false"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"/>
 
     <activity android:autoRemoveFromRecents="true"

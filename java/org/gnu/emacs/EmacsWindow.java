@@ -1377,7 +1377,7 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	  if (tem != null)
 	    {
-	      activity = (EmacsActivity) getAttachedConsumer ();
+	      activity = (EmacsActivity) tem;
 	      activity.syncFullscreenWith (EmacsWindow.this);
 	    }
 	}
