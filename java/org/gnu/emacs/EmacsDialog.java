@@ -274,17 +274,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 	  }
       }
 
-    /* Make sure the dialog is hardware accelerated.  Hardware
-       acceleration is disabled for dialogs by default, because they
-       aren't enabled in EmacsActivity either.  */
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      {
-	flag = WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
-	window = dialog.getWindow ();
-	window.addFlags (flag);
-      }
-
     return dialog;
   }
 

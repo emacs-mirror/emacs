@@ -3133,6 +3133,23 @@ NATIVE_NAME (blitRect) (JNIEnv *env, jobject object,
   AndroidBitmap_unlockPixels (env, src);
 }
 
+JNIEXPORT void JNICALL
+NATIVE_NAME (notifyPixelsChanged) (JNIEnv *env, jobject object,
+				   jobject bitmap)
+{
+  void *data;
+
+  /* Lock and unlock the bitmap.  This calls
+     SkBitmap->notifyPixelsChanged.  */
+
+  if (AndroidBitmap_lockPixels (env, bitmap, &data) < 0)
+    /* The return value is less than 0 if an error occurs.
+       Good luck finding this in the documentation.  */
+    return;
+
+  AndroidBitmap_unlockPixels (env, bitmap);
+}
+
 /* Forward declarations of deadlock prevention functions.  */
 
 static void android_begin_query (void);

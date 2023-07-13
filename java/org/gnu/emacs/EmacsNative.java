@@ -249,6 +249,11 @@ public final class EmacsNative
   public static native void blitRect (Bitmap src, Bitmap dest, int x1,
 				      int y1, int x2, int y2);
 
+  /* Increment the generation ID of the specified BITMAP, forcing its
+     texture to be re-uploaded to the GPU.  */
+
+  public static native void notifyPixelsChanged (Bitmap bitmap);
+
   static
   {
     /* Older versions of Android cannot link correctly with shared

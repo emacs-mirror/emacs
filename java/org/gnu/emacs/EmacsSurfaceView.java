@@ -42,6 +42,10 @@ public final class EmacsSurfaceView extends View
   /* The complete buffer contents at the time of the last draw.  */
   private Bitmap frontBuffer;
 
+  /* Whether frontBuffer has been updated since the last call to
+     `onDraw'.  */
+  private boolean bitmapChanged;
+
   /* Canvas representing the front buffer.  */
   private Canvas bitmapCanvas;
 
@@ -105,6 +109,9 @@ public final class EmacsSurfaceView extends View
 				bitmap.getWidth (),
 				bitmap.getHeight ());
       }
+
+    /* See the large comment inside `onDraw'.  */
+    bitmapChanged = true;
   }
 
   private void
@@ -176,27 +183,41 @@ public final class EmacsSurfaceView extends View
   onDraw (Canvas canvas)
   {
     /* Paint the view's bitmap; the bitmap might be recycled right
-       now.
-
-       Hardware acceleration is disabled in AndroidManifest.xml to
-       prevent Android from uploading the front buffer to the GPU from
-       a separate thread.  This is important for two reasons: first,
-       the GPU command queue uses a massive amount of memory (dozens
-       of MiB) to upload bitmaps to the GPU, regardless of how much of
-       the bitmap has actually changed.
-
-       Secondly, asynchronous texturization leads to race conditions
-       when a buffer swap occurs before the front buffer is fully
-       uploaded to the GPU.  Normally, only slight and tolerable
-       tearing should result from this behavior, but Android does not
-       properly interlock the ``generation ID'' used to avoid
-       texturizing unchanged bitmaps with the bitmap contents,
-       consequentially leading to textures in an incomplete state
-       remaining in use to the GPU if a buffer swap happens between
-       the image data being uploaded and the ``generation ID'' being
-       read.  */
+       now.  */
 
     if (frontBuffer != null)
-      canvas.drawBitmap (frontBuffer, 0f, 0f, uiThreadPaint);
+      {
+	/* The first time the bitmap is drawn after a buffer swap,
+	   mark its contents as having changed.  This increments the
+	   ``generation ID'' used by Android to avoid uploading buffer
+	   textures for unchanged bitmaps.
+
+	   When a buffer swap takes place, the bitmap is initially
+	   updated from the Emacs thread, resulting in the generation
+	   ID being increased.  If the render thread is texturizing
+	   the bitmap while the swap takes place, it might record the
+	   generation ID after the update for a texture containing the
+	   contents of the bitmap prior to the swap, leaving the
+	   texture tied to the bitmap partially updated.
+
+	   Android never calls `onDraw' if the render thread is still
+	   processing the bitmap.  Update the generation ID here to
+	   ensure that a new texture will be uploaded if the bitmap
+	   has changed.
+
+	   Uploading the bitmap contents to the GPU uses an excessive
+	   amount of memory, as the entire bitmap is placed into the
+	   graphics command queue, but this memory is actually shared
+	   among all other applications and reclaimed by the system
+	   when necessary.  */
+
+	if (bitmapChanged)
+	  {
+	    EmacsNative.notifyPixelsChanged (frontBuffer);
+	    bitmapChanged = false;
+	  }
+
+	canvas.drawBitmap (frontBuffer, 0f, 0f, uiThreadPaint);
+      }
   }
 };
