@@ -828,7 +828,8 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
              :documentHighlight  `(:dynamicRegistration :json-false)
              :codeAction         (list
                                   :dynamicRegistration :json-false
-                                  :resolveSupport t :dataSupport t
+                                  :resolveSupport `(:properties ["edit" "command"])
+                                  :dataSupport t
                                   :codeActionLiteralSupport
                                   '(:codeActionKind
                                     (:valueSet
