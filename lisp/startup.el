@@ -520,27 +520,6 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
-(defvar comp--compilable)
-(defvar comp--delayed-sources)
-(defun startup--require-comp-safely ()
-  "Require the native compiler avoiding circular dependencies."
-  (when (featurep 'native-compile)
-    ;; Require comp with `comp--compilable' set to nil to break
-    ;; circularity.
-    (let ((comp--compilable nil))
-      (require 'comp))
-    (native--compile-async comp--delayed-sources nil 'late)
-    (setq comp--delayed-sources nil)))
-
-(declare-function native--compile-async "comp.el"
-                  (files &optional recursively load selector))
-(defun startup--honor-delayed-native-compilations ()
-  "Honor pending delayed deferred native compilations."
-  (when (and (native-comp-available-p)
-             comp--delayed-sources)
-    (startup--require-comp-safely))
-  (setq comp--compilable t))
-
 (defvar native-comp-eln-load-path)
 (defvar native-comp-jit-compilation)
 (defvar native-comp-enable-subr-trampolines)
@@ -859,8 +838,7 @@ It is the default value of the variable `top-level'."
                                 nil)))
             (setq env (cdr env)))))
       (when display
-        (setq process-environment (delete display process-environment)))))
-  (startup--honor-delayed-native-compilations))
+        (setq process-environment (delete display process-environment))))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 ;; Command-line options supported by tty's:

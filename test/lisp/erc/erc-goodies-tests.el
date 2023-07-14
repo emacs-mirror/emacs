@@ -245,81 +245,179 @@
 ;; minor-mode toggle is allowed to disable its mode variable as
 ;; needed.
 
-(ert-deftest erc-keep-place-indicator-mode ()
+(defun erc-goodies-tests--assert-kp-indicator-on ()
+  (should erc--keep-place-indicator-overlay)
+  (should (local-variable-p 'window-configuration-change-hook))
+  (should window-configuration-change-hook)
+  (should (memq 'erc-keep-place erc-insert-pre-hook))
+  (should (eq erc-keep-place-mode
+              (not (local-variable-p 'erc-insert-pre-hook)))))
+
+(defun erc-goodies-tests--assert-kp-indicator-off ()
+  (should-not (local-variable-p 'erc-insert-pre-hook))
+  (should-not (local-variable-p 'window-configuration-change-hook))
+  (should-not erc--keep-place-indicator-overlay))
+
+(defun erc-goodies-tests--kp-indicator-populate ()
+  (erc-display-message nil 'notice (current-buffer)
+                       "This buffer is for text that is not saved")
+  (erc-display-message nil 'notice (current-buffer)
+                       "and for lisp evaluation")
+  (should (search-forward "saved" nil t))
+  (erc-keep-place-move nil)
+  (goto-char erc-input-marker))
+
+(defun erc-goodies-tests--keep-place-indicator (test)
   (with-current-buffer (get-buffer-create "*erc-keep-place-indicator-mode*")
     (erc-mode)
     (erc--initialize-markers (point) nil)
     (setq erc-server-process
           (start-process "sleep" (current-buffer) "sleep" "1"))
     (set-process-query-on-exit-flag erc-server-process nil)
-    (let ((assert-off
-           (lambda ()
-             (should-not erc-keep-place-indicator-mode)
-             (should-not (local-variable-p 'window-configuration-change-hook))
-             (should-not erc--keep-place-indicator-overlay)))
-          (assert-on
-           (lambda ()
-             (should erc--keep-place-indicator-overlay)
-             (should (local-variable-p 'window-configuration-change-hook))
-             (should window-configuration-change-hook)
-             (should erc-keep-place-mode)))
-          ;;
-          erc-insert-pre-hook
-          erc-connect-pre-hook
+    (let (erc-connect-pre-hook
           erc-modules)
 
-      (funcall assert-off)
+      (ert-info ("Clean slate")
+        (erc-goodies-tests--assert-kp-indicator-off)
+        (should-not erc-keep-place-mode)
+        (should-not (memq 'keep-place erc-modules)))
 
-      (ert-info ("Value t")
-        (should (eq erc-keep-place-indicator-buffer-type t))
-        (erc-keep-place-indicator-mode +1)
-        (funcall assert-on)
-        (goto-char (point-min))
-        (should (search-forward "Enabling" nil t))
-        (should (memq 'keep-place erc-modules)))
-
-      (erc-keep-place-indicator-mode -1)
-      (funcall assert-off)
-
-      (ert-info ("Value `target'")
-        (let ((erc-keep-place-indicator-buffer-type 'target))
-          (erc-keep-place-indicator-mode +1)
-          (funcall assert-off)
-          (setq erc--target (erc--target-from-string "#chan"))
-          (erc-keep-place-indicator-mode +1)
-          (funcall assert-on)))
-
-      (erc-keep-place-indicator-mode -1)
-      (funcall assert-off)
-
-      (ert-info ("Value `server'")
-        (let ((erc-keep-place-indicator-buffer-type 'server))
-          (erc-keep-place-indicator-mode +1)
-          (funcall assert-off)
-          (setq erc--target nil)
-          (erc-keep-place-indicator-mode +1)
-          (funcall assert-on)))
-
-      ;; Populate buffer
-      (erc-display-message nil 'notice (current-buffer)
-                           "This buffer is for text that is not saved")
-      (erc-display-message nil 'notice (current-buffer)
-                           "and for lisp evaluation")
-      (should (search-forward "saved" nil t))
-      (erc-keep-place-move nil)
-      (goto-char erc-input-marker)
-
-      (ert-info ("Indicator survives reconnect")
-        (let ((erc--server-reconnecting (buffer-local-variables)))
-          (cl-letf (((symbol-function 'erc-server-connect) #'ignore))
-            (erc-open "localhost" 6667 "tester" "Tester" 'connect
-                      nil nil nil nil nil "tester" nil)))
-        (funcall assert-on)
-        (should (= (point) erc-input-marker))
-        (goto-char (overlay-start erc--keep-place-indicator-overlay))
-        (should (looking-at (rx "*** This buffer is for text")))))
+      (funcall test))
 
     (when noninteractive
+      (erc-keep-place-indicator-mode -1)
+      (erc-keep-place-mode -1)
+      (should-not (member 'erc-keep-place
+                          (default-value 'erc-insert-pre-hook)))
+      (should-not (local-variable-p 'erc-insert-pre-hook))
       (kill-buffer))))
+
+(ert-deftest erc-keep-place-indicator-mode--no-global ()
+  (erc-goodies-tests--keep-place-indicator
+   (lambda ()
+
+     (ert-info ("Value t")
+       (should (eq erc-keep-place-indicator-buffer-type t))
+       (erc-keep-place-indicator-mode +1)
+       (erc-goodies-tests--assert-kp-indicator-on)
+       (goto-char (point-min)))
+
+     (erc-keep-place-indicator-mode -1)
+     (erc-goodies-tests--assert-kp-indicator-off)
+
+     (ert-info ("Value `target'")
+       (let ((erc-keep-place-indicator-buffer-type 'target))
+         ;; No-op because server buffer.
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-off)
+         ;; Spoof target buffer (no longer no-op).
+         (setq erc--target (erc--target-from-string "#chan"))
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-on)))
+
+     (erc-keep-place-indicator-mode -1)
+     (erc-goodies-tests--assert-kp-indicator-off)
+
+     (ert-info ("Value `server'")
+       (let ((erc-keep-place-indicator-buffer-type 'server))
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-off)
+         (setq erc--target nil)
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-on)))
+
+     ;; Populate buffer
+     (erc-goodies-tests--kp-indicator-populate)
+
+     (ert-info ("Indicator survives reconnect")
+       (let ((erc--server-reconnecting (buffer-local-variables)))
+         (cl-letf (((symbol-function 'erc-server-connect) #'ignore))
+           (erc-open "localhost" 6667 "tester" "Tester" 'connect
+                     nil nil nil nil nil "tester" nil)))
+       (erc-goodies-tests--assert-kp-indicator-on)
+       (should (= (point) erc-input-marker))
+       (goto-char (overlay-start erc--keep-place-indicator-overlay))
+       (should (looking-at (rx "*** This buffer is for text")))))))
+
+(ert-deftest erc-keep-place-indicator-mode--global ()
+  (erc-goodies-tests--keep-place-indicator
+   (lambda ()
+
+     (push 'keep-place erc-modules)
+
+     (ert-info ("Value t")
+       (should (eq erc-keep-place-indicator-buffer-type t))
+       (erc-keep-place-indicator-mode +1)
+       (erc-goodies-tests--assert-kp-indicator-on)
+       ;; Local module activates global `keep-place'.
+       (should erc-keep-place-mode)
+       ;; Does not register local version of hook (otherwise would run
+       ;; twice).
+       (should-not (local-variable-p 'erc-insert-pre-hook))
+       (goto-char (point-min)))
+
+     (erc-keep-place-indicator-mode -1)
+     (erc-goodies-tests--assert-kp-indicator-off)
+     (should erc-keep-place-mode)
+     (should (member 'erc-keep-place erc-insert-pre-hook))
+
+     (ert-info ("Value `target'")
+       (let ((erc-keep-place-indicator-buffer-type 'target))
+         ;; No-op because server buffer.
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-off)
+         ;; Does not interfere with global activation state.
+         (should erc-keep-place-mode)
+         (should (member 'erc-keep-place erc-insert-pre-hook))
+         ;; Morph into a target buffer (no longer no-op).
+         (setq erc--target (erc--target-from-string "#chan"))
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-on)
+         ;; Does not register local version of hook.
+         (should-not (local-variable-p 'erc-insert-pre-hook))))
+
+     (erc-keep-place-indicator-mode -1)
+     (erc-goodies-tests--assert-kp-indicator-off)
+     (should erc-keep-place-mode)
+     (should (member 'erc-keep-place erc-insert-pre-hook))
+
+     (ert-info ("Value `server'")
+       (let ((erc-keep-place-indicator-buffer-type 'server))
+         ;; No-op because we're now a target buffer.
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-off)
+         (should erc-keep-place-mode)
+         (should (member 'erc-keep-place erc-insert-pre-hook))
+         ;; Back to server.
+         (setq erc--target nil)
+         (erc-keep-place-indicator-mode +1)
+         (erc-goodies-tests--assert-kp-indicator-on)
+         (should-not (local-variable-p 'erc-insert-pre-hook))))
+
+     (ert-info ("Local adapts to global toggle")
+       (erc-keep-place-mode -1)
+       (should-not (member 'erc-keep-place
+                           (default-value 'erc-insert-pre-hook)))
+       (should (member 'erc-keep-place erc-insert-pre-hook))
+       (erc-goodies-tests--assert-kp-indicator-on)
+       (erc-keep-place-mode +1)
+       (should (member 'erc-keep-place (default-value 'erc-insert-pre-hook)))
+       (should-not (local-variable-p 'erc-insert-pre-hook))
+       (erc-goodies-tests--assert-kp-indicator-on))
+
+     ;; Populate buffer
+     (erc-goodies-tests--kp-indicator-populate)
+
+     (ert-info ("Indicator survives reconnect")
+       (let ((erc--server-reconnecting (buffer-local-variables)))
+         (cl-letf (((symbol-function 'erc-server-connect) #'ignore))
+           (erc-open "localhost" 6667 "tester" "Tester" 'connect
+                     nil nil nil nil nil "tester" nil)))
+       (erc-goodies-tests--assert-kp-indicator-on)
+       (should erc-keep-place-mode)
+       (should (member 'erc-keep-place erc-insert-pre-hook))
+       (should (= (point) erc-input-marker))
+       (goto-char (overlay-start erc--keep-place-indicator-overlay))
+       (should (looking-at (rx "*** This buffer is for text")))))))
 
 ;;; erc-goodies-tests.el ends here

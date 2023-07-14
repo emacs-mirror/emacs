@@ -44,11 +44,23 @@
   ((add-hook 'erc-after-connect #'erc-autojoin-channels)
    (add-hook 'erc-nickserv-identified-hook #'erc-autojoin-after-ident)
    (add-hook 'erc-server-JOIN-functions #'erc-autojoin-add)
-   (add-hook 'erc-server-PART-functions #'erc-autojoin-remove))
+   (add-hook 'erc-server-PART-functions #'erc-autojoin-remove)
+   (add-hook 'erc-server-405-functions #'erc-join--remove-requested-channel)
+   (add-hook 'erc-server-471-functions #'erc-join--remove-requested-channel)
+   (add-hook 'erc-server-473-functions #'erc-join--remove-requested-channel)
+   (add-hook 'erc-server-474-functions #'erc-join--remove-requested-channel)
+   (add-hook 'erc-server-475-functions #'erc-join--remove-requested-channel))
   ((remove-hook 'erc-after-connect #'erc-autojoin-channels)
    (remove-hook 'erc-nickserv-identified-hook #'erc-autojoin-after-ident)
    (remove-hook 'erc-server-JOIN-functions #'erc-autojoin-add)
-   (remove-hook 'erc-server-PART-functions #'erc-autojoin-remove)))
+   (remove-hook 'erc-server-PART-functions #'erc-autojoin-remove)
+   (remove-hook 'erc-server-405-functions #'erc-join--remove-requested-channel)
+   (remove-hook 'erc-server-471-functions #'erc-join--remove-requested-channel)
+   (remove-hook 'erc-server-473-functions #'erc-join--remove-requested-channel)
+   (remove-hook 'erc-server-474-functions #'erc-join--remove-requested-channel)
+   (remove-hook 'erc-server-475-functions #'erc-join--remove-requested-channel)
+   (erc-buffer-do (lambda ()
+                    (kill-local-variable 'erc-join--requested-channels)))))
 
 (defcustom erc-autojoin-channels-alist nil
   "Alist of channels to autojoin on IRC networks.
@@ -138,6 +150,28 @@ network or a network ID).  Return nil on failure."
       (string-match-p candidate (or erc-server-announced-name
                                     erc-session-server)))))
 
+(defvar-local erc-join--requested-channels nil
+  "List of channels for which an outgoing JOIN was sent.")
+
+;; Assume users will update their `erc-autojoin-channels-alist' when
+;; encountering errors, like a 475 ERR_BADCHANNELKEY.
+(defun erc-join--remove-requested-channel (_ parsed)
+  "Remove channel from `erc-join--requested-channels'."
+  (when-let ((channel (cadr (erc-response.command-args parsed)))
+             ((member channel erc-join--requested-channels)))
+    (setq erc-join--requested-channels
+          (delete channel erc-join--requested-channels)))
+  nil)
+
+(cl-defmethod erc--server-determine-join-display-context
+  (channel alist &context (erc-autojoin-mode (eql t)))
+  "Add item to `erc-display-context' ALIST if CHANNEL was autojoined."
+  (when (member channel erc-join--requested-channels)
+    (setq erc-join--requested-channels
+          (delete channel erc-join--requested-channels))
+    (push (cons 'erc-autojoin-mode channel) alist))
+  (cl-call-next-method channel alist))
+
 (defun erc-autojoin--join ()
   ;; This is called in the server buffer
   (pcase-dolist (`(,name . ,channels) erc-autojoin-channels-alist)
@@ -146,6 +180,7 @@ network or a network ID).  Return nil on failure."
         (let ((buf (erc-get-buffer chan erc-server-process)))
           (unless (and buf (with-current-buffer buf
                              (erc--current-buffer-joined-p)))
+            (push chan erc-join--requested-channels)
             (erc-server-join-channel nil chan)))))))
 
 (defun erc-autojoin-after-ident (_network _nick)

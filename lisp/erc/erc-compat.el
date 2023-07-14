@@ -445,27 +445,6 @@ If START or END is negative, it counts from the end."
                        existing))))))
 
 
-;;;; Misc 28.1
-
-(defvar comint-file-name-quote-list)
-(defvar shell-file-name-quote-list)
-(declare-function shell--parse-pcomplete-arguments "shell" nil)
-
-(defun erc-compat--28-split-string-shell-command (string)
-  (require 'comint)
-  (require 'shell)
-  (with-temp-buffer
-    (insert string)
-    (let ((comint-file-name-quote-list shell-file-name-quote-list))
-      (car (shell--parse-pcomplete-arguments)))))
-
-(defmacro erc-compat--split-string-shell-command (string)
-  ;; Autoloaded in Emacs 28.
-  (list (if (fboundp 'split-string-shell-command)
-            'split-string-shell-command
-          'erc-compat--28-split-string-shell-command)
-        string))
-
 (provide 'erc-compat)
 
 ;;; erc-compat.el ends here

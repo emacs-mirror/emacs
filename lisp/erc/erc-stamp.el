@@ -179,6 +179,12 @@ from entering them and instead jump over them."
      (kill-local-variable 'erc-timestamp-last-inserted-left)
      (kill-local-variable 'erc-timestamp-last-inserted-right))))
 
+(defvar erc-stamp--invisible-property nil
+  "Existing `invisible' property value and/or symbol `timestamp'.")
+
+(defvar erc-stamp--skip-when-invisible nil
+  "Escape hatch for omitting stamps when first char is invisible.")
+
 (defun erc-stamp--recover-on-reconnect ()
   (when-let ((priors (or erc--server-reconnecting erc--target-priors)))
     (dolist (var '(erc-timestamp-last-inserted
@@ -209,8 +215,11 @@ or `erc-send-modify-hook'."
   (progn ; remove this `progn' on next major refactor
     (let* ((ct (erc-stamp--current-time))
            (invisible (get-text-property (point-min) 'invisible))
+           (erc-stamp--invisible-property
+            ;; FIXME on major version bump, make this `erc-' prefixed.
+            (if invisible `(timestamp ,@(ensure-list invisible)) 'timestamp))
            (erc-stamp--current-time ct))
-      (unless invisible
+      (unless (setq invisible (and erc-stamp--skip-when-invisible invisible))
         (funcall erc-insert-timestamp-function
                  (erc-format-timestamp ct erc-timestamp-format)))
       ;; FIXME this will error when advice has been applied.
@@ -380,7 +389,7 @@ message text so that stamps will be visible when yanked."
 	 (s (if ignore-p (make-string len ? ) string)))
     (unless ignore-p (setq erc-timestamp-last-inserted string))
     (erc-put-text-property 0 len 'field 'erc-timestamp s)
-    (erc-put-text-property 0 len 'invisible 'timestamp s)
+    (erc-put-text-property 0 len 'invisible erc-stamp--invisible-property s)
     (insert s)))
 
 (defun erc-insert-aligned (string pos)
@@ -428,6 +437,7 @@ printed just after each line's text (no alignment)."
     (goto-char (point-max))
     (forward-char -1)                   ; before the last newline
     (let* ((str-width (string-width string))
+           (buffer-invisibility-spec nil) ; `current-column' > 0
            window                  ; used in computation of `pos' only
 	   (pos (cond
 		 (erc-timestamp-right-column erc-timestamp-right-column)
@@ -477,6 +487,8 @@ printed just after each line's text (no alignment)."
           (put-text-property from (point) p v)))
       (erc-put-text-property from (point) 'field 'erc-timestamp)
       (erc-put-text-property from (point) 'rear-nonsticky t)
+      (erc-put-text-property from (point) 'invisible
+                             erc-stamp--invisible-property)
       (when erc-timestamp-intangible
 	(erc-put-text-property from (1+ (point)) 'cursor-intangible t)))))
 
@@ -520,9 +532,8 @@ Return the empty string if FORMAT is nil."
       (let ((ts (format-time-string format time erc-stamp--tz)))
 	(erc-put-text-property 0 (length ts)
 			       'font-lock-face 'erc-timestamp-face ts)
-	(erc-put-text-property 0 (length ts) 'invisible 'timestamp ts)
-	(erc-put-text-property 0 (length ts)
-			       'isearch-open-invisible 'timestamp ts)
+        (erc-put-text-property 0 (length ts) 'invisible
+                               erc-stamp--invisible-property ts)
 	;; N.B. Later use categories instead of this harmless, but
 	;; inelegant, hack. -- BPT
 	(and erc-timestamp-intangible
