@@ -844,6 +844,7 @@ ANDROID_JAR=
 ANDROID_ABI=
 WARN_JAVAFLAGS=
 ANDROID_SHARED_USER_ID=
+ANDROID_SHARED_USER_NAME=
 
 # This is a list of Makefiles that have alternative versions for
 # Android.
@@ -2656,7 +2657,12 @@ for Android, but all API calls need to be stubbed out])
        emacs_val=`AS_ECHO(["$with_shared_user_id"]) \
                   | sed -e 's/"/\\"/'`
        emacs_val="\"$emacs_val\""
-       ANDROID_SHARED_USER_ID="android:sharedUserId=$emacs_val"])],[
+       ANDROID_SHARED_USER_ID="android:sharedUserId=$emacs_val"
+       # `android:sharedUserName' is required for sharedUserID to work
+       # on recent Android releases.  It does not otherwise affect the
+       # behavior of any code.
+       emacs_val="\"@string/shared_user_name\""
+       ANDROID_SHARED_USER_NAME="android:sharedUserLabel=$emacs_val"])],[
     # Emacs will be built as a shared library, and a wrapper around it
     # will also be built for the benefit of applications.  This
     # requires Emacs be built as a position independent executable.
@@ -2698,6 +2704,7 @@ AC_SUBST([ANDROID_LIBS])
 AC_SUBST([ANDROID_LDFLAGS])
 AC_SUBST([ANDROID_BUILD_CFLAGS])
 AC_SUBST([ANDROID_SHARED_USER_ID])
+AC_SUBST([ANDROID_SHARED_USER_NAME])
 
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk

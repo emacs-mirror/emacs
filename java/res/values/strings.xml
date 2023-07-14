@@ -36,4 +36,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <string name="erase_dump_caption">
     Remove the dumped state created when Emacs was installed.
   </string>
+
+  <!-- This resource describes the purpose of any `sharedUserId'
+       specified at configure-time.  -->
+  <string name="shared_user_name">
+    Emacs shared user
+  </string>
 </resources>

@@ -75,6 +75,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	       android:theme="@style/EmacsStyle"
 	       android:debuggable="@ANDROID_DEBUGGABLE@"
 	       @ANDROID_SHARED_USER_ID@
+	       @ANDROID_SHARED_USER_NAME@
 	       android:extractNativeLibs="true">
 
     <activity android:name="org.gnu.emacs.EmacsActivity"
