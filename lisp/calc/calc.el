@@ -1458,7 +1458,7 @@ See `window-dedicated-p' for what that means."
     ;; selected window is read only, and no on screen keyboard should
     ;; be displayed.  Make sure that any active on screen keyboard is
     ;; not hidden by accident.
-    (let ((touch-screen-display-buffer t))
+    (let ((touch-screen-display-keyboard t))
       (when (get-buffer-window "*Calc Keypad*")
         (calc-keypad)
         (set-buffer (window-buffer)))
