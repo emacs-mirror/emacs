@@ -883,6 +883,9 @@ Create a new splittable frame if none is found."
     (not (ediff-frame-has-dedicated-windows (window-frame wind)))
     )))
 
+(defvar x-fast-protocol-requests)
+(declare-function x-change-window-property "xfns.c")
+
 (defun ediff-frame-make-utility (frame)
   (let ((x-fast-protocol-requests t))
     (x-change-window-property
