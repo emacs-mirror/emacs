@@ -1045,13 +1045,25 @@ Conditionally try to reconnect and take appropriate action."
       ;; unexpected disconnect
       (erc-process-sentinel-2 event buffer))))
 
+(cl-defmethod erc--reveal-prompt ()
+  (remove-text-properties erc-insert-marker erc-input-marker
+                          '(display nil)))
+
+(cl-defmethod erc--conceal-prompt ()
+  (add-text-properties erc-insert-marker (1- erc-input-marker)
+                       `(display ,erc-prompt-hidden)))
+
+(defun erc--prompt-hidden-p ()
+  (and (marker-position erc-insert-marker)
+       (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden)))
+
 (defun erc--unhide-prompt ()
   (remove-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert t)
   (when (and (marker-position erc-insert-marker)
              (marker-position erc-input-marker))
     (with-silent-modifications
-      (remove-text-properties erc-insert-marker erc-input-marker
-                              '(display nil)))))
+      (put-text-property erc-insert-marker (1- erc-input-marker) 'erc-prompt t)
+      (erc--reveal-prompt))))
 
 (defun erc--unhide-prompt-on-self-insert ()
   (when (and (eq this-command #'self-insert-command)
@@ -1059,6 +1071,8 @@ Conditionally try to reconnect and take appropriate action."
     (erc--unhide-prompt)))
 
 (defun erc--hide-prompt (proc)
+  "Hide prompt in all buffers of server.
+Change value of property `erc-prompt' from t to `hidden'."
   (erc-with-all-buffers-of-server proc nil
     (when (and erc-hide-prompt
                (or (eq erc-hide-prompt t)
@@ -1072,8 +1086,9 @@ Conditionally try to reconnect and take appropriate action."
                (marker-position erc-input-marker)
                (get-text-property erc-insert-marker 'erc-prompt))
       (with-silent-modifications
-        (add-text-properties erc-insert-marker (1- erc-input-marker)
-                             `(display ,erc-prompt-hidden)))
+        (put-text-property erc-insert-marker (1- erc-input-marker)
+                           'erc-prompt 'hidden)
+        (erc--conceal-prompt))
       (add-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert 91 t))))
 
 (defun erc-process-sentinel (cproc event)

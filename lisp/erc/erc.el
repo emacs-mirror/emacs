@@ -2879,19 +2879,23 @@ this option to nil."
           (cl-assert (< erc-insert-marker erc-input-marker))
           (cl-assert (= (field-end erc-insert-marker) erc-input-marker)))))
 
+(defvar erc--refresh-prompt-hook nil)
+
 (defun erc--refresh-prompt ()
   "Re-render ERC's prompt when the option `erc-prompt' is a function."
   (erc--assert-input-bounds)
-  (when (functionp erc-prompt)
-    (save-excursion
-      (goto-char erc-insert-marker)
-      (set-marker-insertion-type erc-insert-marker nil)
-      ;; Avoid `erc-prompt' (the named function), which appends a
-      ;; space, and `erc-display-prompt', which propertizes all but
-      ;; that space.
-      (insert-and-inherit (funcall erc-prompt))
-      (set-marker-insertion-type erc-insert-marker t)
-      (delete-region (point) (1- erc-input-marker)))))
+  (unless (erc--prompt-hidden-p)
+    (when (functionp erc-prompt)
+      (save-excursion
+        (goto-char erc-insert-marker)
+        (set-marker-insertion-type erc-insert-marker nil)
+        ;; Avoid `erc-prompt' (the named function), which appends a
+        ;; space, and `erc-display-prompt', which propertizes all but
+        ;; that space.
+        (insert-and-inherit (funcall erc-prompt))
+        (set-marker-insertion-type erc-insert-marker t)
+        (delete-region (point) (1- erc-input-marker))))
+    (run-hooks 'erc--refresh-prompt-hook)))
 
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
@@ -4804,7 +4808,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
         ;; shall remain part of the prompt.
         (setq prompt (propertize prompt
                                  'rear-nonsticky t
-                                 'erc-prompt t
+                                 'erc-prompt t ; t or `hidden'
                                  'field 'erc-prompt
                                  'front-sticky t
                                  'read-only t))

@@ -219,6 +219,7 @@
       (setq erc-hide-prompt '(server))
       (with-current-buffer "ServNet"
         (erc--hide-prompt erc-server-process)
+        (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (should (string= ">" (get-text-property erc-insert-marker 'display))))
 
       (with-current-buffer "#chan"
@@ -229,6 +230,7 @@
 
       (with-current-buffer "ServNet"
         (erc--unhide-prompt)
+        (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
         (should-not (get-text-property erc-insert-marker 'display))))
 
     (ert-info ("Value: channel")
@@ -242,7 +244,9 @@
 
       (with-current-buffer "#chan"
         (should (string= ">" (get-text-property erc-insert-marker 'display)))
+        (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (erc--unhide-prompt)
+        (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
         (should-not (get-text-property erc-insert-marker 'display))))
 
     (ert-info ("Value: query")
@@ -253,7 +257,9 @@
 
       (with-current-buffer "bob"
         (should (string= ">" (get-text-property erc-insert-marker 'display)))
+        (should (eq (get-text-property erc-insert-marker 'erc-prompt) 'hidden))
         (erc--unhide-prompt)
+        (should (eq (get-text-property erc-insert-marker 'erc-prompt) t))
         (should-not (get-text-property erc-insert-marker 'display)))
 
       (with-current-buffer "#chan"

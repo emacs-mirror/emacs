@@ -103,11 +103,8 @@ side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
 ** The option 'erc-timestamp-use-align-to' is more versatile.
 While this option has always offered to right-align stamps via the
 'display' text property, it's now more effective at doing so when set
-to a number indicating an offset from the right edge.  And when set to
-the symbol 'margin', it displays stamps in the right margin, although,
-at the moment, this is mostly intended for use by other modules, such
-as 'fill-wrap', described above.  For both these variants, users of
-the 'log' module may want to customize 'erc-log-filter-function' to
+to a number indicating an offset from the right edge.  Users of the
+'log' module may want to customize 'erc-log-filter-function' to
 'erc-stamp-prefix-log-filter' to avoid ragged right-hand stamps
 appearing in their saved logs.
 
@@ -228,7 +225,8 @@ Chiefly, 'rear-sticky' has been replaced by 'erc-command', which
 records the IRC command (or numeric) associated with a message.  Less
 impactfully, the value of the 'field' property for ERC's prompt has
 changed from 't' to the more useful 'erc-prompt', although the
-property of the same name has been retained.
+property of the same name has been retained and now has a value of
+'hidden' when disconnected.
 
 *** Members of insert- and send-related hooks have been reordered.
 Built-in and third-party modules rely on certain hooks for adjusting
@@ -260,6 +258,16 @@ deprecated and removed from the primary client code path.
 Additionally, the 'stamp' module now merges its 'invisible' property
 with existing ones, when present, and it includes all white space
 around stamps when doing so.
+
+Moreover, such "propertizing" of surrounding white space now extends
+to all 'stamp'-applied properties, like 'field', in all intervening
+space between message text and timestamps.  This constitutes a
+breaking change from the perspective of detecting a timestamp's
+bounds.  For example, ERC has always propertized leading space before
+right-sided stamps on the same line as message text but not those
+folded onto the next line.  This inconsistency made stamp detection
+overly complex and produced uneven results when toggling stamp
+visibility.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library

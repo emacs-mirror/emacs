@@ -56,7 +56,7 @@
     (advice-remove 'erc-format-timestamp
                    'ert-deftest--erc-timestamp-use-align-to)))
 
-(ert-deftest erc-timestamp-use-align-to--nil ()
+(defun erc-stamp-tests--use-align-to--nil (compat)
   (erc-stamp-tests--insert-right
    (lambda ()
 
@@ -83,12 +83,20 @@
          (erc-display-message nil 'notice (current-buffer)
                               "twenty characters"))
        (should (search-forward-regexp (rx bol (+ "\t") (* " ") "[") nil t))
-       ;; Field excludes leading whitespace (arguably undesirable).
-       (should (eql ?\[ (char-after (field-beginning (point)))))
+       ;; Field includes leading whitespace.
+       (should (eql (if compat ?\[ ?\n)
+                    (char-after (field-beginning (point)))))
        ;; Timestamp extends to the end of the line.
        (should (eql ?\n (char-after (field-end (point)))))))))
 
-(ert-deftest erc-timestamp-use-align-to--t ()
+(ert-deftest erc-timestamp-use-align-to--nil ()
+  (ert-info ("Field starts on stamp text (compat)")
+    (let ((erc-stamp--omit-properties-on-folded-lines t))
+      (erc-stamp-tests--use-align-to--nil 'compat)))
+  (ert-info ("Field includes leaidng white space")
+    (erc-stamp-tests--use-align-to--nil nil)))
+
+(defun erc-stamp-tests--use-align-to--t (compat)
   (erc-stamp-tests--insert-right
    (lambda ()
 
@@ -110,9 +118,16 @@
            (erc-display-message nil nil (current-buffer) msg)))
        ;; Indented to pos (this is arguably a bug).
        (should (search-forward-regexp (rx bol (+ "\t") (* " ") "[") nil t))
-       ;; Field starts *after* leading space (arguably bad).
-       (should (eql ?\[ (char-after (field-beginning (point)))))
+       ;; Field includes leading space.
+       (should (eql (if compat ?\[ ?\n) (char-after (field-beginning (point)))))
        (should (eql ?\n (char-after (field-end (point)))))))))
+
+(ert-deftest erc-timestamp-use-align-to--t ()
+  (ert-info ("Field starts on stamp text (compat)")
+    (let ((erc-stamp--omit-properties-on-folded-lines t))
+      (erc-stamp-tests--use-align-to--t 'compat)))
+  (ert-info ("Field includes leaidng white space")
+    (erc-stamp-tests--use-align-to--t nil)))
 
 (ert-deftest erc-timestamp-use-align-to--integer ()
   (erc-stamp-tests--insert-right
@@ -140,7 +155,7 @@
        (should (eql ?\s (char-after (field-beginning (point)))))
        (should (eql ?\n (char-after (field-end (point)))))))))
 
-(ert-deftest erc-timestamp-use-align-to--margin ()
+(ert-deftest erc-stamp--display-margin-mode--right ()
   (erc-stamp-tests--insert-right
    (lambda ()
      (erc-stamp--display-margin-mode +1)
