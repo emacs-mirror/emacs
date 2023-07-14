@@ -57,7 +57,7 @@ call other entry points instead, such as `cl-prin1'."
   "Dispatcher to print partial contents of OBJECT on STREAM.
 This is used when replacing an ellipsis with the contents it
 represents.  OBJECT is the object that has been partially printed
-and START represents the place at which the contents where
+and START represents the place at which the contents were
 replaced with an ellipsis.
 Print the contents hidden by the ellipsis to STREAM."
   ;; Every cl-print-object method which can print an ellipsis should
@@ -132,16 +132,29 @@ Print the contents hidden by the ellipsis to STREAM."
   (cl-print--vector-contents object start stream)) ;FIXME: η-redex!
 
 (cl-defmethod cl-print-object ((object hash-table) stream)
-  ;; FIXME: Make it possible to see the contents, like `prin1' does,
-  ;; e.g. using ellipsis.  Make sure `cl-fill' can pretty print the result!
+  ;; Make sure `pp-fill' can pretty print the result!
   (princ "#<hash-table " stream)
   (princ (hash-table-test object) stream)
   (princ " " stream)
   (princ (hash-table-count object) stream)
   (princ "/" stream)
   (princ (hash-table-size object) stream)
-  (princ (format " %#x" (sxhash object)) stream)
+  (princ (format " %#x " (sxhash object)) stream)
+  (cl-print-insert-ellipsis object t stream)
   (princ ">" stream))
+
+(cl-defmethod cl-print-object-contents ((object hash-table) _start stream)
+  ;; If we want to obey `print-length' here, it's not completely obvious
+  ;; what we should use as marker of "where we are" within the hash-table.
+  ;; We could use here a simple number or a set of keys already printed,
+  ;; but it still breaks down if elements get added/removed.
+  ;; Instead here we convert the hash-table to an alist once and for all.
+  (let ((alist nil))
+    (maphash (lambda (k v) (push (cons k v) alist)) object)
+    ;; While the order of elements seen by `maphash' is "arbitrary"
+    ;; it tends to be in the order objects have been added, which is
+    ;; sometimes handy, so it's nice to preserve this order here.
+    (cl-print-object (nreverse alist) stream)))
 
 (define-button-type 'help-byte-code
   'follow-link t
@@ -475,7 +488,6 @@ STREAM should be a buffer.  OBJECT and START are as described in
 `cl-print-insert-ellipsis'."
   (let ((value (list object start cl-print--number-table
                      cl-print--currently-printing)))
-    ;; FIXME: Make it into a button!
     (with-current-buffer stream
       (put-text-property beg end 'cl-print-ellipsis value stream)
       (make-text-button beg end :type 'cl-print-ellipsis))))
