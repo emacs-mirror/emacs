@@ -4382,13 +4382,16 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 	 overlap.  Calculate the coordinate of the last pixel of the
 	 last row in both src and dst.  */
 
-      overflow  = ckd_mul (&start, src_y + height - 1,
-			   src_info->stride);
-      if (mask) /* If a mask is set, put the pointers before the end
-		   of the row.  */
+      overflow = ckd_mul (&start, src_y + height - 1,
+			  src_info->stride);
+
+      if (mask)
+	/* If a mask is set, put the pointers before the end of the
+	   row.  */
 	overflow |= ckd_mul (&end, src_x + width - 1, pixel);
       else
-	overflow |= ckd_mul (&end, src_x, pixel);
+	end = src_x * pixel;
+
       overflow |= ckd_add (&start, start, end);
       overflow |= ckd_add (&start, (uintptr_t) src, start);
 
@@ -4397,13 +4400,16 @@ android_blit_copy (int src_x, int src_y, int width, int height,
 
       src_current = (unsigned char *) start;
 
-      overflow  = ckd_mul (&start, dst_y + height - 1,
-			   dst_info->stride);
-      if (mask) /* If a mask is set, put the pointers before the end
-		   of the row.  */
+      overflow = ckd_mul (&start, dst_y + height - 1,
+			  dst_info->stride);
+
+      if (mask)
+	/* If a mask is set, put the pointers before the end of the
+	   row.  */
 	overflow |= ckd_mul (&end, dst_x + width - 1, pixel);
       else
-	overflow |= ckd_mul (&end, dst_x, pixel);
+	end = dst_x * pixel;
+
       overflow |= ckd_add (&start, start, end);
       overflow |= ckd_add (&start, (uintptr_t) dst, start);
 
