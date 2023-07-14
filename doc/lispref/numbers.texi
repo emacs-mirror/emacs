@@ -279,12 +279,6 @@ whether they are numerically equal.  For example, when @var{x} and
 conversely, @code{(equal 0.0 -0.0)} returns @code{nil} whereas
 @code{(= 0.0 -0.0)} returns @code{t}.
 
-  Infinities and NaNs are not available on legacy systems that lack
-IEEE floating-point arithmetic.  On a circa 1980 VAX, for example,
-Lisp reads @samp{1.0e+INF} as a large but finite floating-point number,
-and @samp{0.0e+NaN} as some other non-numeric Lisp object that provokes an
-error if used numerically.
-
 Here are read syntaxes for these special floating-point values:
 
 @table @asis
@@ -293,6 +287,12 @@ Here are read syntaxes for these special floating-point values:
 @item not-a-number
 @samp{0.0e+NaN} and @samp{-0.0e+NaN}
 @end table
+
+  Infinities and NaNs are not available on legacy systems that lack
+IEEE floating-point arithmetic.  On a circa 1980 VAX, for example,
+Lisp reads @samp{1.0e+INF} as a large but finite floating-point number,
+and @samp{0.0e+NaN} as some other non-numeric Lisp object that provokes an
+error if used numerically.
 
   The following functions are specialized for handling floating-point
 numbers:
