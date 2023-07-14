@@ -4226,6 +4226,7 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                       (string-match-p re file))
                     native-comp-jit-compilation-deny-list))))
 
+;;;###autoload
 (defun native--compile-async (files &optional recursively load selector)
   ;; BEWARE, this function is also called directly from C.
   "Compile FILES asynchronously.
