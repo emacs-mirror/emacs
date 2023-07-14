@@ -587,7 +587,7 @@ public final class EmacsInputConnection implements InputConnection
     text = EmacsNative.getSurroundingText (windowHandle, beforeLength,
 					   afterLength, flags);
 
-    if (text != null)
+    if (EmacsService.DEBUG_IC && text != null)
       Log.d (TAG, ("getSurroundingText: "
 		   + text.getSelectionStart ()
 		   + ","
