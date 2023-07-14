@@ -1053,8 +1053,6 @@ pass all arguments along.  More selective use of arguments via
 @kbd{alias mcd 'mkdir $1 && cd $1'} would cause @kbd{mcd foo} to
 create and switch to a directory called @samp{foo}.
 
-@end table
-
 @node Remote Access
 @section Remote Access
 @cmindex remote access
