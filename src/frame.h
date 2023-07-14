@@ -1003,7 +1003,7 @@ default_pixels_per_inch_y (void)
 
 #define FRAME_TOOL_BAR_TOP_LINES(f)			\
   ((BASE_EQ ((f)->tool_bar_position, Qtop))		\
-   ? (f)->tool_bar_height : 0)
+   ? (f)->tool_bar_lines : 0)
 
 /* Size of F's tool bar if it is placed at the bottom of the
    frame.  */
