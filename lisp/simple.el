@@ -5657,7 +5657,7 @@ argument should still be a \"useful\" string for such uses."
                   ;; interrupt this. If they interrupt it, we want to continue
                   ;; so we become selection owner, so this doesn't stay slow.
                   (if (eq (window-system) 'x)
-                      (ignore-error 'quit (funcall interprogram-paste-function))
+                      (ignore-error quit (funcall interprogram-paste-function))
                     (funcall interprogram-paste-function)))))
         (when interprogram-paste
           (setq interprogram-paste

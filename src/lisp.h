@@ -332,7 +332,14 @@ typedef EMACS_INT Lisp_Word;
    see these functions for commentary.  */
 
 /* Convert among the various Lisp-related types: I for EMACS_INT, L
-   for Lisp_Object, P for void *.  */
+   for Lisp_Object, P for void *.
+
+   These use the following mnemonics:
+
+   XLI: Lisp_Object to Integer;
+   XIL: Integer to Lisp_Object;
+   XLP: Lisp_Object to Pointer.  */
+
 #if !CHECK_LISP_OBJECT_TYPE
 # if LISP_WORDS_ARE_POINTERS
 #  define lisp_h_XLI(o) ((EMACS_INT) (o))
