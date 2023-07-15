@@ -506,7 +506,19 @@ It is the default value of `show-paren-data-function'."
             (when (and show-paren-context-when-offscreen
                        (not (eql show-paren--last-pos (point)))
                        (< there-beg here-beg)
-                       (not (pos-visible-in-window-p openparen)))
+                       ;; Either OPENPAREN position is fully visible...
+                       (not (or (pos-visible-in-window-p openparen)
+                                (let ((dfh4 (* 0.25 (default-font-height)))
+                                      (part
+                                       (pos-visible-in-window-p openparen
+                                                                nil t)))
+                                  ;; ...or partially visible, and the
+                                  ;; invisible part is less than 1/4th
+                                  ;; of the default font height
+                                  (or (< (length part) 4)
+                                      (and
+                                       (< (nth 2 part) dfh4)
+                                       (< (nth 3 part) dfh4)))))))
               (let ((context (blink-paren-open-paren-line-string
                               openparen))
                     (message-log-max nil))

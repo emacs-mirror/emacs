@@ -1,23 +1,23 @@
-#+title:                 Modus themes for GNU Emacs
-#+author:                Protesilaos Stavrou
-#+email:                 info@protesilaos.com
-#+language:              en
-#+options:               ':t toc:nil author:t email:t num:t
-#+startup:               content
-#+macro:                 stable-version 4.2.0
-#+macro:                 release-date 2023-05-30
-#+macro:                 development-version 4.3.0-dev
-#+macro:                 file @@texinfo:@file{@@$1@@texinfo:}@@
-#+macro:                 space @@texinfo:@: @@
-#+macro:                 kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
-#+texinfo_filename:      modus-themes.info
-#+texinfo_dir_category:  Emacs misc features
-#+texinfo_dir_title:     Modus Themes: (modus-themes)
-#+texinfo_dir_desc:      Elegant, highly legible and customizable themes
-#+texinfo_header:        @set MAINTAINERSITE @uref{https://protesilaos.com,maintainer webpage}
-#+texinfo_header:        @set MAINTAINER Protesilaos Stavrou
-#+texinfo_header:        @set MAINTAINEREMAIL @email{info@protesilaos.com}
-#+texinfo_header:        @set MAINTAINERCONTACT @uref{mailto:info@protesilaos.com,contact the maintainer}
+#+title: Modus themes for GNU Emacs
+#+author: Protesilaos Stavrou
+#+email: info@protesilaos.com
+#+language: en
+#+options: ':t toc:nil author:t email:t num:t
+#+startup: content
+#+macro: stable-version 4.2.0
+#+macro: release-date 2023-05-30
+#+macro: development-version 4.3.0-dev
+#+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
+#+macro: space @@texinfo:@: @@
+#+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
+#+texinfo_filename: modus-themes.info
+#+texinfo_dir_category: Emacs misc features
+#+texinfo_dir_title: Modus Themes: (modus-themes)
+#+texinfo_dir_desc: Elegant, highly legible and customizable themes
+#+texinfo_header: @set MAINTAINERSITE @uref{https://protesilaos.com,maintainer webpage}
+#+texinfo_header: @set MAINTAINER Protesilaos Stavrou
+#+texinfo_header: @set MAINTAINEREMAIL @email{info@protesilaos.com}
+#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:info@protesilaos.com,contact the maintainer}
 
 #+texinfo: @insertcopying
 
