@@ -515,10 +515,9 @@ It is the default value of `show-paren-data-function'."
                                   ;; ...or partially visible, and the
                                   ;; invisible part is less than 1/4th
                                   ;; of the default font height
-                                  (or (< (length part) 4)
-                                      (and
+                                  (and (>= (length part) 4)
                                        (< (nth 2 part) dfh4)
-                                       (< (nth 3 part) dfh4)))))))
+                                       (< (nth 3 part) dfh4))))))
               (let ((context (blink-paren-open-paren-line-string
                               openparen))
                     (message-log-max nil))
