@@ -2330,6 +2330,7 @@ and `face'."
 	(from (marker-position (widget-get widget :from)))
 	(to (marker-position (widget-get widget :to))))
     (save-excursion
+      (custom-comment-preserve widget)
       (widget-value-set widget (widget-value widget))
       (custom-redraw-magic widget))
     (when (and (>= pos from) (<= pos to))
@@ -2509,7 +2510,9 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   (let* ((null-comment (equal "" (widget-value widget))))
     (if (or (widget-get (widget-get widget :parent) :comment-shown)
 	    (not null-comment))
-	(widget-default-create widget)
+        (progn
+          (widget-default-create widget)
+          (widget-put (widget-get widget :parent) :comment-shown t))
       ;; `widget-default-delete' expects markers in these slots --
       ;; maybe it shouldn't.
       (widget-put widget :from (point-marker))
@@ -2541,6 +2544,14 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   (let ((val (widget-value (widget-get widget :comment-widget))))
     (and (equal "" val)
 	 (not (widget-get widget :comment-shown)))))
+
+;; This is useful when we want to redraw a widget, but we want to preserve
+;; edits made by the user in the comment widget.  (See Bug#64649)
+(defun custom-comment-preserve (widget)
+  "Preserve the comment that belongs to WIDGET."
+  (when (widget-get widget :comment-shown)
+    (let ((comment-widget (widget-get widget :comment-widget)))
+      (widget-put comment-widget :value (widget-value comment-widget)))))
 
 ;;; The `custom-variable' Widget.
 
@@ -2821,12 +2832,16 @@ try matching its doc string against `custom-guess-doc-alist'."
 
       ;; The comment field
       (unless (eq state 'hidden)
-	(let* ((comment (get symbol 'variable-comment))
-	       (comment-widget
-		(widget-create-child-and-convert
-		 widget 'custom-comment
-		 :parent widget
-		 :value (or comment ""))))
+        (let ((comment-widget
+               (widget-create-child-and-convert
+                widget 'custom-comment
+                :parent widget
+                :value (or
+                        (and
+                         (widget-get widget :comment-shown)
+                         (widget-value (widget-get widget :comment-widget)))
+                        (get symbol 'variable-comment)
+                        ""))))
 	  (widget-put widget :comment-widget comment-widget)
 	  ;; Don't push it !!! Custom assumes that the first child is the
 	  ;; value one.
@@ -3840,12 +3855,16 @@ the present value is saved to its :shown-value property instead."
 	 widget :visibility-widget 'custom-visibility)
 	;; The comment field
 	(unless hiddenp
-	  (let* ((comment (get symbol 'face-comment))
-		 (comment-widget
-		  (widget-create-child-and-convert
-		   widget 'custom-comment
-		   :parent widget
-		   :value (or comment ""))))
+	  (let ((comment-widget
+                 (widget-create-child-and-convert
+                  widget 'custom-comment
+                  :parent widget
+                  :value (or
+                          (and
+                           (widget-get widget :comment-shown)
+                           (widget-value (widget-get widget :comment-widget)))
+                          (get symbol 'face-comment)
+                          ""))))
 	    (widget-put widget :comment-widget comment-widget)
 	    (push comment-widget children))))
 
