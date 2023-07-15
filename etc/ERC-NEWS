@@ -295,6 +295,15 @@ The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
 
+*** Hidden messages contain a preceding rather than trailing newline.
+ERC has traditionally only offered to hide messages involving fools,
+but plans are to make hiding more powerful.  Anyone depending on the
+existing behavior should be aware that hidden messages now start and
+end one character earlier, so that hidden line endings precede rather
+than follow accompanying text.  However, an escape hatch is available
+in the variable 'erc-legacy-invisible-bounds-p'.  It reinstates the
+old behavior, which is unsupported by newer modules and features.
+
 *** 'erc-display-message' optionally combines faces.
 Users may notice that ERC now inserts some important error messages in
 a combination of 'erc-error-face' and 'erc-notice-face'.  This is

@@ -324,11 +324,17 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   ;; Not sure if this is problematic because `erc-bol' takes no args.
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
 
-(defvar erc-match-mode)
 (defvar erc-button-mode)
-(defvar erc-match--hide-fools-offset-bounds)
+(defvar erc-legacy-invisible-bounds-p)
 
 (defun erc-fill--wrap-ensure-dependencies ()
+  (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+    (when erc-legacy-invisible-bounds-p
+      (erc--warn-once-before-connect  'erc-fill-wrap-mode
+        "Module `fill-wrap' is incompatible with the obsolete compatibility"
+        " flag `erc-legacy-invisible-bounds-p'.  Disabling locally in %s."
+        (current-buffer))
+      (setq-local erc-legacy-invisible-bounds-p nil)))
   (let (missing-deps)
     (unless erc-fill-mode
       (push 'fill missing-deps)
@@ -389,9 +395,6 @@ them to every line."
    (setq erc-fill--function #'erc-fill-wrap)
    (add-function :after (local 'erc-stamp--insert-date-function)
                  #'erc-fill--wrap-stamp-insert-prefixed-date)
-   (when (or (bound-and-true-p erc-match-mode) (memq 'match erc-modules))
-     (require 'erc-match)
-     (setq erc-match--hide-fools-offset-bounds t))
    (when erc-fill-wrap-merge
      (add-hook 'erc-button--prev-next-predicate-functions
                #'erc-fill--wrap-merged-button-p nil t))

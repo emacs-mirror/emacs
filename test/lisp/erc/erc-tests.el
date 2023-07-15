@@ -1278,6 +1278,50 @@
 
           (should-not calls))))))
 
+(defmacro erc-tests--equal-including-properties (a b)
+  (list (if (< emacs-major-version 29)
+            'ert-equal-including-properties
+          'equal-including-properties)
+        a b))
+
+(ert-deftest erc--merge-prop ()
+  (with-current-buffer (get-buffer-create "*erc-test*")
+    ;; Baseline.
+    (insert "abc\n")
+    (erc--merge-prop 1 3 'erc-test 'x)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 0 2 (erc-test x))))
+    (erc--merge-prop 1 3 'erc-test 'y)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 0 2 (erc-test (y x)))))
+
+    ;; Multiple intervals.
+    (goto-char (point-min))
+    (insert "def\n")
+    (erc--merge-prop 1 2 'erc-test 'x)
+    (erc--merge-prop 2 3 'erc-test 'y)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4)
+             #("def" 0 1 (erc-test x) 1 2 (erc-test y))))
+    (erc--merge-prop 1 3 'erc-test 'z)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4)
+             #("def" 0 1 (erc-test (z x)) 1 2 (erc-test (z y)))))
+
+    ;; New val as list.
+    (goto-char (point-min))
+    (insert "ghi\n")
+    (erc--merge-prop 2 3 'erc-test '(y z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi" 1 2 (erc-test (y z)))))
+    (erc--merge-prop 1 3 'erc-test '(w x))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4)
+             #("ghi" 0 1 (erc-test (w x)) 1 2 (erc-test (w x y z)))))
+
+    (when noninteractive
+      (kill-buffer))))
+
 (ert-deftest erc--split-string-shell-cmd ()
 
   ;; Leading and trailing space
@@ -1493,12 +1537,6 @@
     (should-not calls)
     (kill-buffer "ExampleNet")
     (kill-buffer "#chan")))
-
-(defmacro erc-tests--equal-including-properties (a b)
-  (list (if (< emacs-major-version 29)
-            'ert-equal-including-properties
-          'equal-including-properties)
-        a b))
 
 (ert-deftest erc-format-privmessage ()
   ;; Basic PRIVMSG
