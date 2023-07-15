@@ -502,9 +502,11 @@ load_gccjit_if_necessary (bool mandatory)
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
 
+#if 0	/* unused for now */
 /* Like call0 but stringify and intern.  */
 #define CALL0I(fun)				\
   CALLN (Ffuncall, intern_c_string (STR (fun)))
+#endif
 
 /* Like call1 but stringify and intern.  */
 #define CALL1I(fun, arg)				\
