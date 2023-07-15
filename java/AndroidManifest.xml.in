@@ -25,6 +25,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	  android:targetSandboxVersion="1"
 	  android:installLocation="auto"
 	  android:requestLegacyExternalStorage="true"
+	  @ANDROID_SHARED_USER_ID@
+	  @ANDROID_SHARED_USER_NAME@
 	  android:versionCode="@emacs_major_version@"
 	  android:versionName="@version@">
 
@@ -74,8 +76,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	       android:supportsRtl="true"
 	       android:theme="@style/EmacsStyle"
 	       android:debuggable="@ANDROID_DEBUGGABLE@"
-	       @ANDROID_SHARED_USER_ID@
-	       @ANDROID_SHARED_USER_NAME@
+	       android:allowBackup="true"
 	       android:extractNativeLibs="true">
 
     <activity android:name="org.gnu.emacs.EmacsActivity"

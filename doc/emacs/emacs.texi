@@ -1271,6 +1271,7 @@ Emacs and Android
 * Android Windowing::           The Android window system.
 * Android Fonts::               Font selection under Android.
 * Android Troubleshooting::     Dealing with problems.
+* Android Software::            Getting extra software.
 
 Emacs and unconventional input devices
 

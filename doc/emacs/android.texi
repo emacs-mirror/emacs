@@ -21,6 +21,7 @@ about using such devices with Emacs, @pxref{Other Input Devices}.
 * Android Windowing::           The Android window system.
 * Android Fonts::               Font selection under Android.
 * Android Troubleshooting::     Dealing with problems.
+* Android Software::            Getting extra software.
 @end menu
 
 @node What is Android?
@@ -254,7 +255,12 @@ operating system; however, from the perspective of applications and
 Emacs, the system has an overwhelming number of users.
 
   Each application runs in its own user, with its home directory set
-to its app data directory (@pxref{Android File System}.)
+to its app data directory (@pxref{Android File
+System}.)@footnote{Except in cases where a ``shared user ID'' is
+specified and other applications signed using the same ``package
+signing key'' are installed, in which case Emacs runs as the same user
+and has access to the same files as each of the aformentioned
+applications.}
 
   Each application is also prohibited from accessing many system
 directories and the app data directories of other applications.
@@ -663,3 +669,40 @@ can then be accessed by any file manager program.
   If you can find out how to open that documents provider in the file
 manager that comes with your device, you can rename, delete, or edit
 your initialization or dump files from there instead.
+
+@node Android Software
+@section Installing extra software on Android
+@cindex installing extra software on Android
+@cindex installing Unix software on Android
+
+  Android includes an extremely limited set of Unix-like command line
+tools in a default installation.  Several projects exist to argument
+this selection, providing options that range from improved
+reproductions of Unix command-line utilities to package repositories
+containing extensive collections of free GNU and Unix software.
+
+  @uref{http://busybox.net, Busybox} provides Unix utilities and
+limited replicas of certain popular GNU programs such as
+@command{wget} in a single statically-linked Linux binary, which is
+capable of running under Android.
+
+  @uref{https://termux.dev, Termux} provides a package manager based
+on the Debian project's @command{dpkg} system and a set of package
+repositories containing substantial amounts of free software for Unix
+systems, including compilers, debuggers, and runtimes for languages
+such as C, C++, Java, Python and Common Lisp.  These packages are
+normally installed from within a purpose-built terminal emulator
+application, but Emacs can access them if it is built with the same
+application signing key as the Termux terminal emulator, and with its
+``shared user ID'' set to the package name of the terminal emulator
+program.  The @file{java/INSTALL} within the Emacs distribution
+explains how to build Emacs in this fashion.
+
+  @uref{https://github.com/termux/termux-packages, termux-packages}
+provides the package definitions that are used by Termux to generate
+their package repositories, which may also be independently compiled
+for installation within Emacs's home directory.
+
+  In addition to the projects mentioned above, statically linked
+binaries for most Linux kernel-based systems can also be run on
+Android.

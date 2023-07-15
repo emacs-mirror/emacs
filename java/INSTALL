@@ -161,14 +161,23 @@ to provide both debug and release versions.
 BUILDING WITH A SHARED USER ID
 
 Sometimes it may be desirable to build Emacs so that it is able to
-access executables from another program.  To achieve this, that other
-program must have a ``shared user ID'', and be signed with the same
-signing key used to sign Emacs (normally `emacs.keystore'.)
+access executables and application data from another program.  To
+achieve this, that other program must have a ``shared user ID'', and
+be signed with the same signing key used to sign Emacs (normally
+`emacs.keystore'.)
 
 Once you have both that signing key and its ``shared user ID'', you
 can give it to configure:
 
     ./configure --with-shared-user-id=MY.SHARED.USER.ID
+
+For instance,
+
+    ./configure --with-shared-user-id=com.termux
+
+will result in Termux (https://termux.dev)'s application data being
+accessible to Emacs, within its own application data directory located
+at `/data/data/com.termux/files'.
 
 Don't do this if you already have Emacs installed with a different
 shared user ID, as the system does not allow programs to change their
