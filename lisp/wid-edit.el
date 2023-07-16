@@ -3988,7 +3988,8 @@ current choice is inline."
 		 nil)
 		((= (length args) 1)
 		 (nth 0 args))
-		((and (= (length args) 2)
+                ((and widget-choice-toggle
+                      (= (length args) 2)
 		      (memq old args))
 		 (if (eq old (nth 0 args))
 		     (nth 1 args)
