@@ -556,8 +556,24 @@ non-nil means return old filename."
                         ;; been modified with their new name keeping
                         ;; the ones that are unmodified at the same place.
                         (cl-loop for f in (cdr dired-directory)
-                                 collect (or (assoc-default f files-renamed)
-                                             f))))))
+                                 collect
+                                 (or (assoc-default f files-renamed)
+                                     ;; F could be relative or
+                                     ;; abbreviated, whereas
+                                     ;; files-renamed always consists
+                                     ;; of absolute file names.
+                                     (let ((relative
+                                            (not (file-name-absolute-p f)))
+                                           (match
+                                            (assoc-default (expand-file-name f)
+                                                           files-renamed)))
+                                       (cond
+                                        ;; If it was relative, convert
+                                        ;; the new name back to relative.
+                                        ((and match relative)
+                                         (file-relative-name match))
+                                        (t match)))
+                                     f))))))
 	  ;; Re-sort the buffer.
 	  (revert-buffer)
 	  (let ((inhibit-read-only t))
