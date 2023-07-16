@@ -1086,26 +1086,6 @@ public final class EmacsService extends Service
 			temp, };
   }
 
-  /* Display the specified STRING in a small dialog box on the main
-     thread.  */
-
-  public void
-  displayToast (final String string)
-  {
-    runOnUiThread (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
-	  Toast toast;
-
-	  toast = Toast.makeText (getApplicationContext (),
-				  string, Toast.LENGTH_SHORT);
-	  toast.show ();
-	}
-      });
-  }
-
   public void
   updateExtractedText (EmacsWindow window, ExtractedText text,
 		       int token)

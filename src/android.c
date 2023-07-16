@@ -2330,8 +2330,6 @@ android_init_emacs_service (void)
   FIND_METHOD (check_content_uri, "checkContentUri",
 	       "([BZZ)Z");
   FIND_METHOD (query_battery, "queryBattery", "()[J");
-  FIND_METHOD (display_toast, "displayToast",
-	       "(Ljava/lang/String;)V");
   FIND_METHOD (update_extracted_text, "updateExtractedText",
 	       "(Lorg/gnu/emacs/EmacsWindow;"
 	       "Landroid/view/inputmethod/ExtractedText;I)V");

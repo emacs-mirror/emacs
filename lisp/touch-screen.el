@@ -25,6 +25,9 @@
 ;; This file provides code to recognize simple touch screen gestures.
 ;; It is used on X and Android, where the platform cannot recognize
 ;; them for us.
+;;
+;; See (elisp)Touchscreen Events for a description of the details of touch
+;; events.
 
 ;;; Code:
 
@@ -468,7 +471,7 @@ is not read-only."
         (posn (cdr point)) window point)
     (cond ((null what)
            (when (windowp (posn-window posn))
-             (setq point (posn-point point)
+             (setq point (posn-point posn)
                    window (posn-window posn))
              ;; Select the window that was tapped.
              (select-window window)
@@ -670,12 +673,18 @@ returned may contain any one of the following events:
 
 where WINDOW specifies a window to scroll, and DX and DY are
 integers describing how many pixels to be scrolled horizontally
-and vertically.
+and vertically,
+
+  (touchscreen-hold POSN)
+  (touchscreen-drag POSN)
+
+where POSN is the position of the long-press or touchpoint
+motion,
 
   (down-mouse-1 POSN)
   (drag-mouse-1 POSN)
 
-where POSN is the position of the mouse button press or click.
+where POSN is the position of the mouse button press or click,
 
   (mouse-1 POSN)
   (mouse-2 POSN)
@@ -742,6 +751,16 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 (define-key function-key-map [mode-line touchscreen-update]
             #'touch-screen-translate-touch)
 (define-key function-key-map [mode-line touchscreen-end]
+            #'touch-screen-translate-touch)
+
+;; These are used to translate events sent from the internal border
+;; or from outside the frame.
+
+(define-key function-key-map [nil touchscreen-begin]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [nil touchscreen-update]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [nil touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [header-line touchscreen-begin]
