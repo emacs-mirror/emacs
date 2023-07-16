@@ -51,6 +51,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #  define HAVE_GNUTLS_ETM_STATUS
 # endif
 
+# if GNUTLS_VERSION_NUMBER >= 0x030401
+#  define HAVE_GNUTLS_KEYID_USE_SHA256
+# endif
+
 # if GNUTLS_VERSION_NUMBER < 0x030600
 #  define HAVE_GNUTLS_COMPRESSION_GET
 # endif
@@ -1277,6 +1281,23 @@ emacs_gnutls_certificate_details (gnutls_x509_crt_t cert)
 				  gnutls_hex_string (buf, buf_size, "sha1:")));
       xfree (buf);
     }
+
+#ifdef HAVE_GNUTLS_KEYID_USE_SHA256
+  /* Public key ID, SHA-256 version. */
+  buf_size = 0;
+  err = gnutls_x509_crt_get_key_id (cert, GNUTLS_KEYID_USE_SHA256, NULL, &buf_size);
+  check_memory_full (err);
+  if (err == GNUTLS_E_SHORT_MEMORY_BUFFER)
+    {
+      void *buf = xmalloc (buf_size);
+      err = gnutls_x509_crt_get_key_id (cert, GNUTLS_KEYID_USE_SHA256, buf, &buf_size);
+      check_memory_full (err);
+      if (err >= GNUTLS_E_SUCCESS)
+	res = nconc2 (res, list2 (intern (":public-key-id-sha256"),
+				  gnutls_hex_string (buf, buf_size, "sha256:")));
+      xfree (buf);
+    }
+#endif
 
   /* Certificate fingerprint. */
   buf_size = 0;

@@ -888,7 +888,7 @@ The option `delete-pair-blink-delay' can disable blinking."
   "Raise N sexps one level higher up the tree.
 
 This function removes the sexp enclosing the form which follows
-point, and then re-inserts N sexps that originally followe point,
+point, and then re-inserts N sexps that originally followed point,
 thus raising those N sexps one level up.
 
 Interactively, N is the numeric prefix argument, and defaults to 1.

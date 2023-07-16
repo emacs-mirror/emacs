@@ -66,7 +66,7 @@ When 2, attribute indentation looks like this:
   </element>"
   :version "25.1"
   :type 'integer
-  :safe 'integerp)
+  :safe #'integerp)
 
 (defcustom sgml-xml-mode nil
   "When non-nil, tag insertion functions will be XML-compliant.
@@ -81,7 +81,7 @@ a DOCTYPE or an XML declaration."
 (defcustom sgml-transformation-function 'identity
   "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          (mapc (lambda (buff)
@@ -120,40 +120,40 @@ This takes effect when first loading the `sgml-mode' library.")
 
 (defvar sgml-mode-map
   (let ((map (make-keymap)))	;`sparse' doesn't allow binding to charsets.
-    (define-key map "\C-c\C-i" 'sgml-tags-invisible)
-    (define-key map "/" 'sgml-slash)
-    (define-key map "\C-c\C-n" 'sgml-name-char)
-    (define-key map "\C-c\C-t" 'sgml-tag)
-    (define-key map "\C-c\C-a" 'sgml-attributes)
-    (define-key map "\C-c\C-b" 'sgml-skip-tag-backward)
-    (define-key map [?\C-c left] 'sgml-skip-tag-backward)
-    (define-key map "\C-c\C-f" 'sgml-skip-tag-forward)
-    (define-key map [?\C-c right] 'sgml-skip-tag-forward)
-    (define-key map "\C-c\C-d" 'sgml-delete-tag)
-    (define-key map "\C-c\^?" 'sgml-delete-tag)
-    (define-key map "\C-c?" 'sgml-tag-help)
-    (define-key map "\C-c]" 'sgml-close-tag)
-    (define-key map "\C-c/" 'sgml-close-tag)
+    (define-key map "\C-c\C-i" #'sgml-tags-invisible)
+    (define-key map "/" #'sgml-slash)
+    (define-key map "\C-c\C-n" #'sgml-name-char)
+    (define-key map "\C-c\C-t" #'sgml-tag)
+    (define-key map "\C-c\C-a" #'sgml-attributes)
+    (define-key map "\C-c\C-b" #'sgml-skip-tag-backward)
+    (define-key map [?\C-c left] #'sgml-skip-tag-backward)
+    (define-key map "\C-c\C-f" #'sgml-skip-tag-forward)
+    (define-key map [?\C-c right] #'sgml-skip-tag-forward)
+    (define-key map "\C-c\C-d" #'sgml-delete-tag)
+    (define-key map "\C-c\^?" #'sgml-delete-tag)
+    (define-key map "\C-c?" #'sgml-tag-help)
+    (define-key map "\C-c]" #'sgml-close-tag)
+    (define-key map "\C-c/" #'sgml-close-tag)
 
     ;; Redundant keybindings, for consistency with TeX mode.
-    (define-key map "\C-c\C-o" 'sgml-tag)
-    (define-key map "\C-c\C-e" 'sgml-close-tag)
+    (define-key map "\C-c\C-o" #'sgml-tag)
+    (define-key map "\C-c\C-e" #'sgml-close-tag)
 
-    (define-key map "\C-c8" 'sgml-name-8bit-mode)
-    (define-key map "\C-c\C-v" 'sgml-validate)
+    (define-key map "\C-c8" #'sgml-name-8bit-mode)
+    (define-key map "\C-c\C-v" #'sgml-validate)
     (when sgml-quick-keys
-      (define-key map "&" 'sgml-name-char)
-      (define-key map "<" 'sgml-tag)
-      (define-key map " " 'sgml-auto-attributes)
-      (define-key map ">" 'sgml-maybe-end-tag)
+      (define-key map "&" #'sgml-name-char)
+      (define-key map "<" #'sgml-tag)
+      (define-key map " " #'sgml-auto-attributes)
+      (define-key map ">" #'sgml-maybe-end-tag)
       (when (memq ?\" sgml-specials)
-        (define-key map "\"" 'sgml-name-self))
+        (define-key map "\"" #'sgml-name-self))
       (when (memq ?' sgml-specials)
-        (define-key map "'" 'sgml-name-self)))
+        (define-key map "'" #'sgml-name-self)))
     (let ((c 127)
 	  (map (nth 1 map)))
       (while (< (setq c (1+ c)) 256)
-	(aset map c 'sgml-maybe-name-self)))
+	(aset map c #'sgml-maybe-name-self)))
     map)
   "Keymap for SGML mode.  See also `sgml-specials'.")
 
@@ -312,28 +312,28 @@ Any terminating `>' or `/' is not matched.")
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
-  `((,(concat "<\\([!?]" sgml-name-re "\\)") 1 font-lock-keyword-face)
+  `((,(concat "<\\([!?]" sgml-name-re "\\)") 1 'font-lock-keyword-face)
     ;; We could use the simpler "\\(" sgml-namespace-re ":\\)?" instead,
     ;; but it would cause a bit more backtracking in the re-matcher.
     (,(concat "</?\\(" sgml-namespace-re "\\)\\(?::\\(" sgml-name-re "\\)\\)?")
-     (1 (if (match-end 2) sgml-namespace-face font-lock-function-name-face))
-     (2 font-lock-function-name-face nil t))
+     (1 (if (match-end 2) 'sgml-namespace 'font-lock-function-name-face))
+     (2 'font-lock-function-name-face nil t))
     ;; FIXME: this doesn't cover the variables using a default value.
     ;; The first shy-group is an important anchor: it prevents an O(n^2)
     ;; pathological case where we otherwise keep retrying a failing match
     ;; against a very long word at every possible position within the word.
     (,(concat "\\(?:^\\|[ \t]\\)\\(" sgml-namespace-re "\\)\\(?::\\("
 	      sgml-name-re "\\)\\)?=[\"']")
-     (1 (if (match-end 2) sgml-namespace-face font-lock-variable-name-face))
+     (1 (if (match-end 2) 'sgml-namespace 'font-lock-variable-name-face))
      (2 font-lock-variable-name-face nil t))
-    (,(concat "[&%]" sgml-name-re ";?") . font-lock-variable-name-face)))
+    (,(concat "[&%]" sgml-name-re ";?") 0 'font-lock-variable-name-face)))
 
 (defconst sgml-font-lock-keywords-2
   (append
    sgml-font-lock-keywords-1
    '((eval
       . (cons (concat "<"
-		      (regexp-opt (mapcar 'car sgml-tag-face-alist) t)
+		      (regexp-opt (mapcar #'car sgml-tag-face-alist) t)
 		      "\\([ \t][^>]*\\)?>\\([^<]+\\)</\\1>")
 	      '(3 (cdr (assoc-string (match-string 1) sgml-tag-face-alist t))
 		prepend))))))
@@ -346,8 +346,8 @@ Any terminating `>' or `/' is not matched.")
 (defun sgml-font-lock-syntactic-face (state)
   "`font-lock-syntactic-face-function' for `sgml-mode'."
   ;; Don't use string face outside of tags.
-  (cond ((and (nth 9 state) (nth 3 state)) font-lock-string-face)
-        ((nth 4 state) font-lock-comment-face)))
+  (cond ((and (nth 9 state) (nth 3 state)) 'font-lock-string-face)
+        ((nth 4 state) 'font-lock-comment-face)))
 
 (defvar-local sgml--syntax-propertize-ppss nil)
 
@@ -511,7 +511,7 @@ an optional alist of possible values."
 	(looking-at "\\s-*<\\?xml")
 	(when (re-search-forward
 	       (eval-when-compile
-		 (mapconcat 'identity
+		 (mapconcat #'identity
 			    '("<!DOCTYPE" "\\(\\w+\\)" "\\(\\w+\\)"
 			      "\"\\([^\"]+\\)\"" "\"\\([^\"]+\\)\"")
 			    "\\s-+"))
@@ -535,8 +535,8 @@ an optional alist of possible values."
     (cond (tag-face
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
            (setq facemenu-end-add-face
-                 (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face) ""))
-           (mapconcat (lambda (f) (concat "<" f ">")) tag-face ""))
+                 (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face)))
+           (mapconcat (lambda (f) (concat "<" f ">")) tag-face))
 	  ((and (consp face)
 		(consp (car face))
 		(null  (cdr face))
@@ -593,7 +593,8 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq-local tildify-space-string
               (if (equal (decode-coding-string
                           (encode-coding-string " " buffer-file-coding-system)
-                          buffer-file-coding-system) " ")
+                          buffer-file-coding-system)
+                         " ")
                   " " "&#160;"))
   ;; FIXME: Use the fact that we're parsing the document already
   ;; rather than using regex-based filtering.
@@ -616,12 +617,12 @@ Do \\[describe-key] on the following bindings to discover what they do.
 \[ \t]*</?\\(" sgml-name-re sgml-attrs-re "\\)?>"))
   (setq-local paragraph-separate (concat paragraph-start "$"))
   (setq-local adaptive-fill-regexp "[ \t]*")
-  (add-hook 'fill-nobreak-predicate 'sgml-fill-nobreak nil t)
-  (setq-local indent-line-function 'sgml-indent-line)
+  (add-hook 'fill-nobreak-predicate #'sgml-fill-nobreak nil t)
+  (setq-local indent-line-function #'sgml-indent-line)
   (setq-local comment-start "<!-- ")
   (setq-local comment-end " -->")
-  (setq-local comment-indent-function 'sgml-comment-indent)
-  (setq-local comment-line-break-function 'sgml-comment-indent-new-line)
+  (setq-local comment-indent-function #'sgml-comment-indent)
+  (setq-local comment-line-break-function #'sgml-comment-indent-new-line)
   (setq-local skeleton-further-elements '((completion-ignore-case t)))
   (setq-local skeleton-end-newline nil)
   (setq-local skeleton-end-hook
@@ -637,7 +638,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
                               . sgml-font-lock-syntactic-face)))
   (setq-local syntax-propertize-function #'sgml-syntax-propertize)
   (setq-local syntax-ppss-table sgml-tag-syntax-table)
-  (setq-local facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
+  (setq-local facemenu-add-face-function #'sgml-mode-facemenu-add-face-function)
   (when (sgml-xml-guess)
     (setq-local sgml-xml-mode t))
   (unless sgml-xml-mode
@@ -997,9 +998,7 @@ Return non-nil if we skipped over matched tags."
                                                 (point))))
                      (or (not endp) (eq (char-after cl-end) ?>)))
             (when clones
-              (message "sgml-electric-tag-pair-before-change-function: deleting old OLs")
-              (mapc 'delete-overlay clones))
-            (message "sgml-electric-tag-pair-before-change-function: new clone")
+              (mapc #'delete-overlay clones))
             (text-clone-create cl-start cl-end 'spread "[[:alnum:]-_.:]+")
             (setq sgml-electric-tag-pair-overlays
                   (append (get-char-property (point) 'text-clones)
@@ -1021,13 +1020,13 @@ an opening markup tag automatically updates the closing tag."
   (if sgml-electric-tag-pair-mode
       (progn
         (add-hook 'before-change-functions
-                  'sgml-electric-tag-pair-before-change-function
+                  #'sgml-electric-tag-pair-before-change-function
                   nil t)
         (unless sgml-electric-tag-pair-timer
           (setq sgml-electric-tag-pair-timer
-                (run-with-idle-timer 5 'repeat 'sgml-electric-tag-pair-flush-overlays))))
+                (run-with-idle-timer 5 'repeat #'sgml-electric-tag-pair-flush-overlays))))
     (remove-hook 'before-change-functions
-                 'sgml-electric-tag-pair-before-change-function
+                 #'sgml-electric-tag-pair-before-change-function
                  t)
     ;; We leave the timer running for other buffers.
     ))
@@ -1781,8 +1780,8 @@ Currently just returns (EMPTY-TAGS UNCLOSED-TAGS)."
 	(push (match-string-no-properties 1) empty))
        ((string= (match-string 2) "O")
 	(push (match-string-no-properties 1) unclosed))))
-    (setq empty (sort (mapcar 'downcase empty) 'string<))
-    (setq unclosed (sort (mapcar 'downcase unclosed) 'string<))
+    (setq empty (sort (mapcar #'downcase empty) #'string<))
+    (setq unclosed (sort (mapcar #'downcase unclosed) #'string<))
     (list empty unclosed)))
 
 ;;; HTML mode
@@ -1801,41 +1800,41 @@ This takes effect when first loading the library.")
 (defvar html-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map  sgml-mode-map)
-    (define-key map "\C-c6" 'html-headline-6)
-    (define-key map "\C-c5" 'html-headline-5)
-    (define-key map "\C-c4" 'html-headline-4)
-    (define-key map "\C-c3" 'html-headline-3)
-    (define-key map "\C-c2" 'html-headline-2)
-    (define-key map "\C-c1" 'html-headline-1)
-    (define-key map "\C-c\r" 'html-paragraph)
-    (define-key map "\C-c\n" 'html-line)
-    (define-key map "\C-c\C-c-" 'html-horizontal-rule)
-    (define-key map "\C-c\C-co" 'html-ordered-list)
-    (define-key map "\C-c\C-cu" 'html-unordered-list)
-    (define-key map "\C-c\C-cr" 'html-radio-buttons)
-    (define-key map "\C-c\C-cc" 'html-checkboxes)
-    (define-key map "\C-c\C-cl" 'html-list-item)
-    (define-key map "\C-c\C-ch" 'html-href-anchor)
-    (define-key map "\C-c\C-cf" 'html-href-anchor-file)
-    (define-key map "\C-c\C-cn" 'html-name-anchor)
-    (define-key map "\C-c\C-c#" 'html-id-anchor)
-    (define-key map "\C-c\C-ci" 'html-image)
+    (define-key map "\C-c6" #'html-headline-6)
+    (define-key map "\C-c5" #'html-headline-5)
+    (define-key map "\C-c4" #'html-headline-4)
+    (define-key map "\C-c3" #'html-headline-3)
+    (define-key map "\C-c2" #'html-headline-2)
+    (define-key map "\C-c1" #'html-headline-1)
+    (define-key map "\C-c\r" #'html-paragraph)
+    (define-key map "\C-c\n" #'html-line)
+    (define-key map "\C-c\C-c-" #'html-horizontal-rule)
+    (define-key map "\C-c\C-co" #'html-ordered-list)
+    (define-key map "\C-c\C-cu" #'html-unordered-list)
+    (define-key map "\C-c\C-cr" #'html-radio-buttons)
+    (define-key map "\C-c\C-cc" #'html-checkboxes)
+    (define-key map "\C-c\C-cl" #'html-list-item)
+    (define-key map "\C-c\C-ch" #'html-href-anchor)
+    (define-key map "\C-c\C-cf" #'html-href-anchor-file)
+    (define-key map "\C-c\C-cn" #'html-name-anchor)
+    (define-key map "\C-c\C-c#" #'html-id-anchor)
+    (define-key map "\C-c\C-ci" #'html-image)
     (when html-quick-keys
-      (define-key map "\C-c-" 'html-horizontal-rule)
-      (define-key map "\C-cd" 'html-div)
-      (define-key map "\C-co" 'html-ordered-list)
-      (define-key map "\C-cu" 'html-unordered-list)
-      (define-key map "\C-cr" 'html-radio-buttons)
-      (define-key map "\C-cc" 'html-checkboxes)
-      (define-key map "\C-cl" 'html-list-item)
-      (define-key map "\C-ch" 'html-href-anchor)
-      (define-key map "\C-cf" 'html-href-anchor-file)
-      (define-key map "\C-cn" 'html-name-anchor)
-      (define-key map "\C-c#" 'html-id-anchor)
-      (define-key map "\C-ci" 'html-image)
-      (define-key map "\C-cs" 'html-span))
-    (define-key map "\C-c\C-s" 'html-autoview-mode)
-    (define-key map "\C-c\C-v" 'browse-url-of-buffer)
+      (define-key map "\C-c-" #'html-horizontal-rule)
+      (define-key map "\C-cd" #'html-div)
+      (define-key map "\C-co" #'html-ordered-list)
+      (define-key map "\C-cu" #'html-unordered-list)
+      (define-key map "\C-cr" #'html-radio-buttons)
+      (define-key map "\C-cc" #'html-checkboxes)
+      (define-key map "\C-cl" #'html-list-item)
+      (define-key map "\C-ch" #'html-href-anchor)
+      (define-key map "\C-cf" #'html-href-anchor-file)
+      (define-key map "\C-cn" #'html-name-anchor)
+      (define-key map "\C-c#" #'html-id-anchor)
+      (define-key map "\C-ci" #'html-image)
+      (define-key map "\C-cs" #'html-span))
+    (define-key map "\C-c\C-s" #'html-autoview-mode)
+    (define-key map "\C-c\C-v" #'browse-url-of-buffer)
     (define-key map "\M-o" 'facemenu-keymap)
     map)
   "Keymap for commands for use in HTML mode.")
@@ -2405,7 +2404,7 @@ To work around that, do:
 	      (lambda () (char-before (match-end 0))))
   (setq-local add-log-current-defun-function #'html-current-defun-name)
   (setq-local sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*")
-  (add-hook 'completion-at-point-functions 'html-mode--complete-at-point nil t)
+  (add-hook 'completion-at-point-functions #'html-mode--complete-at-point nil t)
 
   (when (fboundp 'libxml-parse-html-region)
     (defvar css-class-list-function)
@@ -2413,7 +2412,7 @@ To work around that, do:
     (defvar css-id-list-function)
     (setq-local css-id-list-function #'html-current-buffer-ids))
 
-  (setq imenu-create-index-function 'html-imenu-index)
+  (setq imenu-create-index-function #'html-imenu-index)
   (yank-media-handler 'text/html #'html-mode--html-yank-handler)
   (yank-media-handler "image/.*" #'html-mode--image-yank-handler)
 

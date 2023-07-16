@@ -6045,7 +6045,11 @@ fail;
     ;;
 
   netbsd)
-    if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
+    # NetBSD versions prior to 6.0 lack native terminfo, but have a
+    # tputs() built on top of termcap in these libraries. Use native
+    # termcap instead in this case. NetBSD >= 6.0 has native terminfo
+    # implementation in -lterminfo.
+    if test "x$LIBS_TERMCAP" = "x-ltermcap" -o "x$LIBS_TERMCAP" = "x-lcurses"; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi

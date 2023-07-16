@@ -2690,11 +2690,12 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
    records the restriction bounds that were current when the first
    labeled restriction was entered (which may be a narrowing that was
    set by the user and is visible on display).  This alist is used
-   internally by narrow-to-region, widen, internal--label-restriction,
-   internal--unlabel-restriction and save-restriction.  For efficiency
-   reasons, an alist is used instead of a buffer-local variable:
-   otherwise reset_outermost_restrictions, which is called during each
-   redisplay cycle, would have to loop through all live buffers.  */
+   internally by narrow-to-region, internal--labeled-narrow-to-region,
+   widen, internal--unlabel-restriction and save-restriction.  For
+   efficiency reasons, an alist is used instead of a buffer-local
+   variable: otherwise reset_outermost_restrictions, which is called
+   during each redisplay cycle, would have to loop through all live
+   buffers.  */
 static Lisp_Object labeled_restrictions;
 
 /* Add BUF with its list of labeled RESTRICTIONS in the
@@ -2876,8 +2877,7 @@ void
 labeled_narrow_to_region (Lisp_Object begv, Lisp_Object zv,
 			  Lisp_Object label)
 {
-  Fnarrow_to_region (begv, zv);
-  Finternal__label_restriction (label);
+  Finternal__labeled_narrow_to_region (begv, zv, label);
   record_unwind_protect (restore_point_unwind, Fpoint_marker ());
   record_unwind_protect (unwind_labeled_narrow_to_region, label);
 }
@@ -2893,7 +2893,6 @@ To gain access to other portions of the buffer, use
 `without-restriction' with the same label.  */)
   (void)
 {
-  Fset (Qoutermost_restriction, Qnil);
   Lisp_Object buf = Fcurrent_buffer ();
   Lisp_Object label = labeled_restrictions_peek_label (buf);
 
@@ -2975,13 +2974,6 @@ argument.  To gain access to other portions of the buffer, use
       if (e > zv_charpos) e = zv_charpos;
     }
 
-  /* Record the accessible range of the buffer when narrow-to-region
-     is called, that is, before applying the narrowing.  That
-     information is used only by internal--label-restriction.  */
-  Fset (Qoutermost_restriction, list3 (Qoutermost_restriction,
-				       Fpoint_min_marker (),
-				       Fpoint_max_marker ()));
-
   if (BEGV != s || ZV != e)
     current_buffer->clip_changed = 1;
 
@@ -2997,20 +2989,18 @@ argument.  To gain access to other portions of the buffer, use
   return Qnil;
 }
 
-DEFUN ("internal--label-restriction", Finternal__label_restriction,
-       Sinternal__label_restriction, 1, 1, 0,
-       doc: /* Label the current restriction with LABEL.
+DEFUN ("internal--labeled-narrow-to-region", Finternal__labeled_narrow_to_region,
+       Sinternal__labeled_narrow_to_region, 3, 3, 0,
+       doc: /* Restrict editing in this buffer to START-END, and label the restriction with LABEL.
 
 This is an internal function used by `with-restriction'.  */)
-  (Lisp_Object label)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object label)
 {
   Lisp_Object buf = Fcurrent_buffer ();
-  Lisp_Object outermost_restriction
-    = buffer_local_value (Qoutermost_restriction, buf);
-  /* If internal--label-restriction is ever called without being
-     preceded by narrow-to-region, do nothing.  */
-  if (NILP (outermost_restriction))
-    return Qnil;
+  Lisp_Object outermost_restriction = list3 (Qoutermost_restriction,
+					     Fpoint_min_marker (),
+					     Fpoint_max_marker ());
+  Fnarrow_to_region (start, end);
   if (NILP (labeled_restrictions_peek_label (buf)))
     labeled_restrictions_push (buf, outermost_restriction);
   labeled_restrictions_push (buf, list3 (label,
@@ -4873,10 +4863,6 @@ This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
   binary_as_unsigned = false;
 
-  DEFVAR_LISP ("outermost-restriction", Voutermost_restriction,
-	       doc: /* Outermost narrowing bounds, if any.  Internal use only.  */);
-  Voutermost_restriction = Qnil;
-  Fmake_variable_buffer_local (Qoutermost_restriction);
   DEFSYM (Qoutermost_restriction, "outermost-restriction");
   Funintern (Qoutermost_restriction, Qnil);
 
@@ -4971,7 +4957,7 @@ it to be non-nil.  */);
   defsubr (&Sdelete_and_extract_region);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
-  defsubr (&Sinternal__label_restriction);
+  defsubr (&Sinternal__labeled_narrow_to_region);
   defsubr (&Sinternal__unlabel_restriction);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);

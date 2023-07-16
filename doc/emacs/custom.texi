@@ -1368,9 +1368,11 @@ can include remote directories as well (@pxref{Remote Files}).
 way Emacs processes local variables.  Its default value is @code{t},
 which specifies the behavior described above.  If it is @code{nil},
 Emacs simply ignores all file local variables.  @code{:safe} means use
-only the safe values and ignore the rest.  Any other value says to
-query you about each file that has local variables, without trying to
-determine whether the values are known to be safe.
+only the safe values and ignore the rest.  @code{:all} instructs Emacs
+to set all file local variables regardless of whether their value is
+safe or not (we advise not to use this permanently).  Any other value
+says to query you about each file that has local variables, without
+trying to determine whether the values are known to be safe.
 
 @vindex enable-local-eval
 @vindex safe-local-eval-forms

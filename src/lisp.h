@@ -337,7 +337,14 @@ typedef EMACS_INT Lisp_Word;
    see these functions for commentary.  */
 
 /* Convert among the various Lisp-related types: I for EMACS_INT, L
-   for Lisp_Object, P for void *.  */
+   for Lisp_Object, P for void *.
+
+   These use the following mnemonics:
+
+   XLI: Lisp_Object to Integer;
+   XIL: Integer to Lisp_Object;
+   XLP: Lisp_Object to Pointer.  */
+
 #if !CHECK_LISP_OBJECT_TYPE
 # if LISP_WORDS_ARE_POINTERS
 #  define lisp_h_XLI(o) ((EMACS_INT) (o))
@@ -2590,20 +2597,14 @@ struct Lisp_Marker
   ptrdiff_t bytepos;
 } GCALIGNED_STRUCT;
 
-/* START and END are markers in the overlay's buffer, and
-   PLIST is the overlay's property list.  */
 struct Lisp_Overlay
 /* An overlay's real data content is:
    - plist
-   - buffer (really there are two buffer pointers, one per marker,
-     and both points to the same buffer)
-   - insertion type of both ends (per-marker fields)
-   - start & start byte (of start marker)
-   - end & end byte (of end marker)
-   - next (singly linked list of overlays)
-   - next fields of start and end markers (singly linked list of markers).
-   I.e. 9words plus 2 bits, 3words of which are for external linked lists.
-*/
+   - buffer
+   - itree node
+   - start buffer position (field of the itree node)
+   - end buffer position (field of the itree node)
+   - insertion types of both ends (fields of the itree node).  */
   {
     union vectorlike_header header;
     Lisp_Object plist;

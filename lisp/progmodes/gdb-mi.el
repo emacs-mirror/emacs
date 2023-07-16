@@ -987,7 +987,7 @@ detailed description of this mode.
 	   "\C-u" "Continue to current line or address.")
   (gud-def
    gud-go (progn
-            (when arg
+            (when (and current-prefix-arg arg)
               (gud-call (concat "-exec-arguments "
                                 (read-string "Arguments to exec-run: "))))
             (gud-call

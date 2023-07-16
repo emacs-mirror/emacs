@@ -286,6 +286,13 @@ docstring, or a comment, or (re)indents the surrounding defun if
 point is not in a comment or a string.  It is by default bound to
 'M-q' in 'prog-mode' and all its descendants.
 
++++
+*** Which Function Mode can now display function names on the header line.
+The new user option 'which-func-display' allows choosing where the
+function name is displayed.  The default is 'mode' to display in the
+mode line.  'header' will display in the header line;
+'mode-and-header' displays in both the header line and mode line.
+
 ** Tramp
 
 +++
