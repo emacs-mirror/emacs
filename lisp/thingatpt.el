@@ -360,6 +360,10 @@ E.g.:
     (and (file-exists-p filename)
          filename)))
 
+(put 'existing-filename 'bounds-of-thing-at-point
+     (lambda ()
+       (and (thing-at-point 'existing-filename)
+            (bounds-of-thing-at-point 'filename))))
 (put 'existing-filename 'thing-at-point 'thing-at-point-file-at-point)
 
 ;; Faces
