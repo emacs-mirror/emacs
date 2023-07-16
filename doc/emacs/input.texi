@@ -2,7 +2,7 @@
 @c Copyright (C) 2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Other Input Devices
-@appendix Emacs and unconventional input devices
+@appendix Emacs and Unconventional Input Devices
 @cindex other input devices
 
   Emacs was originally developed with the assumption that its users
@@ -21,7 +21,7 @@ which is detailed here.
 
 @node Touchscreens
 @section Using Emacs on touchscreens
-@cindex touchscreens
+@cindex touchscreen input
 
   Touchscreen input works by pressing and moving tools (which include
 fingers and some pointing devices--styluses, for example) onto a frame
@@ -39,6 +39,9 @@ will result in Emacs selecting the window that was tapped, and
 executing any command bound to @code{mouse-1} at that location in the
 window.  If the tap happened on top of a link (@pxref{Mouse
 References}), then Emacs will follow the link instead.
+
+  If a command bound to @code{down-mouse-1} is bound to the location
+where the tap took place, Emacs will execute that command as well.
 
 @item
 @cindex scrolling, touchscreens

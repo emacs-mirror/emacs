@@ -1193,8 +1193,7 @@ If nothing was called, return non-nil."
 	    ;; up event.
             (cond
              ((eq (car event) 'touchscreen-begin)
-              (setq command (lookup-key widget-global-map
-                                        [touchscreen-begin])))
+              (setq command 'touch-screen-handle-touch))
              (mouse-1 (cond ((setq command	;down event
                                    (lookup-key widget-global-map [down-mouse-1]))
                              (setq up nil))
@@ -1212,6 +1211,11 @@ If nothing was called, return non-nil."
 	    (when command
 	      (call-interactively command)))))
     (message "You clicked somewhere weird.")))
+
+;; Make sure `touch-screen-handle-touch' abstains from emulating
+;; down-mouse-1 events for `widget-button-click'.
+
+(put 'widget-button-click 'ignored-mouse-command t)
 
 (defun widget-button-press (pos &optional event)
   "Invoke button at POS."

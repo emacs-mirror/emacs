@@ -9994,13 +9994,18 @@ typedef struct keyremap
    If the mapping is a function and DO_FUNCALL is true,
    the function is called with PROMPT as parameter and its return
    value is used as the return value of this function (after checking
-   that it is indeed a vector).  */
+   that it is indeed a vector).
+
+   START and END are the indices of the first and last key of the
+   sequence being remapped within the keyboard buffer KEYBUF.  */
 
 static Lisp_Object
 access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
-			bool do_funcall)
+			bool do_funcall, ptrdiff_t start, ptrdiff_t end,
+			Lisp_Object *keybuf)
 {
   Lisp_Object next;
+  specpdl_ref count;
 
   next = access_keymap (map, key, 1, 0, 1);
 
@@ -10016,10 +10021,18 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
      its value instead.  */
   if (do_funcall && FUNCTIONP (next))
     {
-      Lisp_Object tem;
+      Lisp_Object tem, remap;
       tem = next;
 
-      next = call1 (next, prompt);
+      /* Build Vcurrent_key_remap_sequence.  */
+      remap = Fvector (end - start + 1, keybuf + start);
+
+      /* Bind `current-key-remap-sequence' to the key sequence being
+	 remapped.  */
+      count = SPECPDL_INDEX ();
+      specbind (Qcurrent_key_remap_sequence, remap);
+      next = unbind_to (count, call1 (next, prompt));
+
       /* If the function returned something invalid,
 	 barf--don't ignore it.  */
       if (! (NILP (next) || VECTORP (next) || STRINGP (next)))
@@ -10044,11 +10057,17 @@ keyremap_step (Lisp_Object *keybuf, volatile keyremap *fkey,
 	       int input, bool doit, int *diff, Lisp_Object prompt)
 {
   Lisp_Object next, key;
+  ptrdiff_t buf_start, buf_end;
+
+  /* Save the key sequence being translated.  */
+  buf_start = fkey->start;
+  buf_end = fkey->end;
 
   key = keybuf[fkey->end++];
 
   if (KEYMAPP (fkey->parent))
-    next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+    next = access_keymap_keyremap (fkey->map, key, prompt, doit,
+				   buf_start, buf_end, keybuf);
   else
     next = Qnil;
 
@@ -12479,6 +12498,7 @@ static const struct event_head head_table[] = {
   {SYMBOL_INDEX (Qselect_window),       SYMBOL_INDEX (Qswitch_frame)},
   /* Touchscreen events should be prefixed by the posn.  */
   {SYMBOL_INDEX (Qtouchscreen_begin),	SYMBOL_INDEX (Qtouchscreen)},
+  {SYMBOL_INDEX (Qtouchscreen_end),	SYMBOL_INDEX (Qtouchscreen)},
 };
 
 static Lisp_Object
@@ -13574,6 +13594,15 @@ is called with one argument, the string that was selected.  */);
 If non-nil, text conversion will continue to happen after a prefix
 key has been read inside `read-key-sequence'.  */);
   disable_inhibit_text_conversion = false;
+
+  DEFVAR_LISP ("current-key-remap-sequence",
+	       Vcurrent_key_remap_sequence,
+    doc: /* The key sequence currently being remap, or nil.
+Bound to a vector containing the sub-sequence matching a binding
+within `input-decode-map' or `local-function-key-map' when its bound
+function is called to remap that sequence.  */);
+  Vcurrent_key_remap_sequence = Qnil;
+  DEFSYM (Qcurrent_key_remap_sequence, "current-key-remap-sequence");
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }

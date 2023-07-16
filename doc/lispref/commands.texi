@@ -2013,10 +2013,7 @@ finger against the touchscreen.
 
 These events also have imaginary prefixes keys added by
 @code{read-key-sequence} when they originate on top of a special part
-of a frame or window.  @xref{Key Sequence Input}.  The reason the
-other touch screen events do not undergo this treatment is that they
-are rarely useful without being used in tandem from their
-corresponding @code{touchscreen-begin} events.
+of a frame or window.  @xref{Key Sequence Input}.
 
 @cindex @code{touchscreen-update} event
 @item (touchscreen-update @var{points})
@@ -2029,12 +2026,73 @@ up-to-date positions of each touch point currently on the touchscreen.
 This event is sent when @var{point} is no longer present on the
 display, because another program took the grab, or because the user
 raised the finger from the touchscreen.
+
+These events also have imaginary prefixes keys added by
+@code{read-key-sequence} when they originate on top of a special part
+of a frame or window.
 @end table
 
 If a touchpoint is pressed against the menu bar, then Emacs will not
 generate any corresponding @code{touchscreen-begin} or
 @code{touchscreen-end} events; instead, the menu bar may be displayed
-when @code{touchscreen-end} should have been delivered.
+after @code{touchscreen-end} would have been delivered under other
+circumstances.
+
+@cindex mouse emulation from touch screen events
+When no command is bound to @code{touchscreen-begin},
+@code{touchscreen-end} or @code{touchscreen-update}, Emacs calls a
+``key translation function'' (@pxref{Translation Keymaps}) to
+translate key sequences containing touch screen events into ordinary
+mouse events (@pxref{Mouse Events}.)  Since Emacs doesn't support
+distinguishing events originating from separate mouse devices, it
+assumes that only one touchpoint is active while translation takes
+place; breaking this assumption may lead to unexpected behavior.
+
+Emacs applies two different strategies for translating touch events
+into mouse events, contingent on factors such as the commands bound to
+keymaps that are active at the location of the
+@code{touchscreen-begin} event.  If a command is bound to
+@code{down-mouse-1} at that location, the initial translation consists
+of a single @code{down-mouse-1} event, with subsequent
+@code{touchscreen-update} events translated to mouse motion events
+(@pxref{Motion Events}), and a final @code{touchscreen-end} event
+translated to a @code{mouse-1} or @code{drag-mouse-1} event.  This is
+referred to ``simple translation'', and produces a simple
+correspondence between touchpoint motion and mouse motion.
+
+@cindex @code{ignored-mouse-command}, a symbol property
+However, some commands bound to
+@code{down-mouse-1}--@code{mouse-drag-region}, for example--either
+conflict with defined touch screen gestures (such as ``long-press to
+drag''), or with user expectations for touch input, and shouldn't
+subject the touch sequence to simple translation.  If a command whose
+name contains the property @code{ignored-mouse-command} is encountered
+or there is no command bound to @code{down-mouse-1}, a more irregular
+form of translation takes place: here, Emacs processes touch screen
+gestures (@pxref{Touchscreens,,, emacs, The GNU Emacs Manual}) first,
+and finally attempts to translate touch screen events into mouse
+events if no gesture was detected prior to a closing
+@code{touchscreen-end} event and a command is bound to @code{mouse-1}
+at the location of that event.  Before generating the @code{mouse-1}
+event, point is also set to the location of the @code{touchscreen-end}
+event, and the window containing the position of that event is
+selected, as a compromise for packages which assume
+@code{mouse-drag-region} has already set point to the location of any
+mouse click and selected the window where it took place.
+
+@cindex @code{touchscreen-scroll} event
+If a ``scrolling'' gesture is detected during the translation process,
+each subsequent @code{touchscreen-update} event is translated to a
+@code{touchscreen-scroll} event of the form:
+
+@example
+@w{@code{(touchscreen-scroll @var{window} @var{dx} @var{dy})}}
+@end example
+
+where @var{dx} and @var{dy} specify, in pixels, the relative motion of
+the tool from the position of the @code{touchscreen-begin} event that
+started the sequence or the last @code{touchscreen-scroll} event,
+whichever came later.
 
 @cindex handling touch screen events
 @cindex tap and drag, touch screen gestures

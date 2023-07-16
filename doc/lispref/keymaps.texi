@@ -2044,6 +2044,15 @@ to turn the character that follows into a Hyper character:
 @end group
 @end example
 
+@cindex accessing events within a key translation function
+@vindex current-key-remap-sequence
+A key translation function might want to adjust its behavior based on
+parameters to events within a key sequence containing non-key events
+(@pxref{Input Events}.)  This information is available from the
+variable @code{current-key-remap-sequence}, which is bound to the key
+sub-sequence being translated around calls to key translation
+functions.
+
 @subsection Interaction with normal keymaps
 
 The end of a key sequence is detected when that key sequence either is bound
