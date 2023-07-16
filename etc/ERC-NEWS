@@ -15,13 +15,14 @@ GNU Emacs since Emacs version 22.1.
 * Changes in ERC 5.6
 
 ** Module 'keep-place' has gained a more flamboyant cousin.
-Remember your place in ERC buffers a bit more easily while retaining
-the freedom to look around.  Optionally sync the indicator to any
-progress made when you haven't yet caught up to the live stream.  See
-options 'erc-keep-place-indicator-style' and friends, and try M-x
+Remember your place in ERC buffers more easily while retaining the
+freedom to look around, all with the help of a configurable, visible
+indicator.  Optionally sync the indicator to any progress made when
+you haven't yet caught up to the live stream.  See options
+'erc-keep-place-indicator-style' and friends, and try M-x
 keep-place-indicator-mode to see it in action.
 
-** Module 'fill' now offers a style based on 'visual-line-mode'.
+** Module 'fill' offers a style based on 'visual-line-mode'.
 This fill style mimics the "hanging indent" look of 'erc-fill-static'
 and provides some movement and editing commands to optionally tame the
 less familiar aspects of 'visual-line' behavior.  An interactive
@@ -29,7 +30,7 @@ helper called 'erc-fill-wrap-nudge' allows for dynamic "refilling" of
 buffers on the fly.  Set 'erc-fill-function' to 'erc-fill-wrap' to get
 started.
 
-** A new module for nickname highlighting has joined ERC.
+** A module for nickname highlighting has joined ERC.
 Automatic nickname coloring has come to ERC core.  Users familiar with
 'erc-hl-nicks', from which this module directly descends, will already
 be familiar with its suite of handy options.  By default, each
@@ -140,7 +141,7 @@ This is especially handy when using the option 'erc-fill-wrap-merge'
 to omit repeated speaker tags, which can make message boundaries less
 detectable by tired eyes.
 
-** Some keybindings are now set by modules rather than their libraries.
+** Modules rather than their libraries set major-mode keybindings.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during
 module setup.  This should not impact most user configs since ERC
@@ -149,7 +150,7 @@ previously created.  Note that while all affected bindings still
 reside in 'erc-mode-map', future built-in modules will use their own
 minor-mode maps, and new third-party modules should do the same.
 
-** The option 'erc-timestamp-format-right' has been deprecated.
+** Option 'erc-timestamp-format-right' deprecated.
 Having to account for this option prevented other ERC modules from
 easily determining what right-hand stamps would look like before
 insertion, which is knowledge needed for certain UI decisions.  The
@@ -270,7 +271,7 @@ encouraged to keep a module's name aligned with its group's as well as
 the provided feature of its containing library, if only for the usual
 reasons of namespace hygiene and discoverability.
 
-*** ERC now supports arbitrary CHANTYPES.
+*** ERC supports arbitrary CHANTYPES.
 Specifically, channels can be prefixed with any predesignated
 character, mainly to afford more flexibility to specialty services,
 like bridges to other protocols.
@@ -281,7 +282,7 @@ specify a subcommand to actually carry out anything of consequence.
 Built-in modules can now provide more detailed help for a particular
 subcommand by telling ERC to defer to a specialized handler.
 
-*** Longtime quasi modules have been made proper.
+*** Longtime quasi modules made proper.
 The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
@@ -299,7 +300,7 @@ third-party code, the key takeaway is that more 'font-lock-face'
 properties encountered in the wild may be combinations of faces rather
 than lone ones.
 
-*** Prompt input is split before 'erc-pre-send-functions' has a say.
+*** Prompt input split before 'erc-pre-send-functions' gets a say.
 Hook members are now treated to input whose lines have already been
 adjusted to fall within the allowed length limit.  For convenience,
 third-party code can request that the final input be "re-filled" prior
