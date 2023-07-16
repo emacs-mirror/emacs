@@ -493,7 +493,9 @@ appropriate."
   "S-<wheel-down>"  #'tab-bar-move-tab
   "S-<wheel-left>"  #'tab-bar-move-tab-backward
   "S-<wheel-right>" #'tab-bar-move-tab
-  "<touchscreen-begin>" #'tab-bar-touchscreen-begin)
+  "<touchscreen-begin>" #'tab-bar-touchscreen-begin
+  ;; Trying to set this in `touch-screen.el' runs afoul of the filter.
+  "<touchscreen-drag>"  'touchscreen-drag)
 
 (global-set-key [tab-bar]
                 `(menu-item ,(purecopy "tab bar") ,(make-sparse-keymap)

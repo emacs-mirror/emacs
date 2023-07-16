@@ -10001,7 +10001,7 @@ typedef struct keyremap
 
 static Lisp_Object
 access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
-			bool do_funcall, ptrdiff_t start, ptrdiff_t end,
+			bool do_funcall, unsigned int start, unsigned int end,
 			Lisp_Object *keybuf)
 {
   Lisp_Object next;

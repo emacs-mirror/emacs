@@ -2080,25 +2080,42 @@ selected, as a compromise for packages which assume
 @code{mouse-drag-region} has already set point to the location of any
 mouse click and selected the window where it took place.
 
+If touch gestures are detected during translation, one of the
+following input events may be generated:
+
+@table @code
 @cindex @code{touchscreen-scroll} event
+@item (touchscreen-scroll @var{window} @var{dx} @var{dy})
 If a ``scrolling'' gesture is detected during the translation process,
 each subsequent @code{touchscreen-update} event is translated to a
-@code{touchscreen-scroll} event of the form:
+@code{touchscreen-scroll} event, where @var{dx} and @var{dy} specify,
+in pixels, the relative motion of the touchpoint from the position of
+the @code{touchscreen-begin} event that started the sequence or the
+last @code{touchscreen-scroll} event, whichever came later.
 
-@example
-@w{@code{(touchscreen-scroll @var{window} @var{dx} @var{dy})}}
-@end example
+@cindex @code{touchscreen-hold} event
+@item (touchscreen-hold @var{posn})
+If the single active touchpoint remains stationary for more than
+@code{touch-screen-delay} seconds after a @code{touchscreen-begin} is
+generated, a ``long-press'' gesture is detected during the translation
+process, and a @code{touchscreen-hold} event is sent, with @var{posn}
+set to a mouse position list containing the position of the
+@code{touchscreen-begin} event.
 
-where @var{dx} and @var{dy} specify, in pixels, the relative motion of
-the tool from the position of the @code{touchscreen-begin} event that
-started the sequence or the last @code{touchscreen-scroll} event,
-whichever came later.
+@cindex @code{touchscreen-drag} event
+@item (touchscreen-drag @var{posn})
+If a ``long-press'' gesture is detected while translating the current
+touch sequence, a @code{touchscreen-drag} event is sent upon each
+subsequent @code{touchscreen-update} event, with @var{posn} set to the
+new position of the touchpoint.
+@end table
 
 @cindex handling touch screen events
 @cindex tap and drag, touch screen gestures
-Emacs provides two functions to handle touch screen events.  They are
-intended to be used by a command bound to @code{touchscreen-begin} to
-handle common gestures.
+Emacs provides two functions to handle touch screen events independent
+of gesture recognition or mouse event translation.  They are intended
+to be used by commands bound to @code{touchscreen-begin}, to recognize
+and handle common gestures.
 
 @defun touch-screen-track-tap event &optional update data
 This function is used to track a single ``tap'' gesture originating
