@@ -648,6 +648,11 @@ If the fourth element of `touch-screen-current-tool' is
 `drag-mouse-1' event depending on how far the position of POINT
 is from the starting point of the touch.
 
+If the fourth element of `touch-screen-current-tool' is
+`mouse-1-menu', then generate a `down-mouse-1' event at the
+original position of the tool to display its bound keymap as a
+menu.
+
 If the command being executed is listed in
 `touch-screen-set-point-commands' also display the on-screen
 keyboard if the current buffer and the character at the new point
@@ -738,7 +743,13 @@ is not read-only."
                       ;; ... otherwise, generate a drag-mouse-1 event.
                       (list 'drag-mouse-1 (cons old-window
                                                 old-posn)
-                            (cons new-window posn)))))))))
+                            (cons new-window posn))))))
+          ((eq what 'mouse-1-menu)
+           ;; Generate a `down-mouse-1' event at the position the tap
+           ;; took place.
+           (throw 'input-event
+                  (list 'down-mouse-1
+                        (nth 4 touch-screen-current-tool)))))))
 
 (defun touch-screen-handle-touch (event prefix &optional interactive)
   "Handle a single touch EVENT, and perform associated actions.
@@ -757,11 +768,11 @@ the place of EVENT within the key sequence being translated, or
       ;; Called interactively (probably from wid-edit.el.)
       ;; Add any event generated to `unread-command-events'.
       (let ((event (catch 'input-event
-                     (touch-screen-handle-touch event prefix) nil)))
-        (when event
+                     (touch-screen-translate-touch nil) nil)))
+        (when (vectorp event)
           (setq unread-command-events
                 (nconc unread-command-events
-                       (list event)))))
+                       (nreverse (append event nil))))))
     (cond
      ((eq (car event) 'touchscreen-begin)
       ;; A tool was just pressed against the screen.  Figure out the
@@ -770,7 +781,8 @@ the place of EVENT within the key sequence being translated, or
       (let* ((touchpoint (caadr event))
              (position (cdadr event))
              (window (posn-window position))
-             (point (posn-point position)))
+             (point (posn-point position))
+             binding)
         ;; Cancel the touch screen timer, if it is still there by any
         ;; chance.
         (when touch-screen-current-timer
@@ -785,22 +797,37 @@ the place of EVENT within the key sequence being translated, or
                                                    nil nil nil nil)))
         ;; Determine if there is a command bound to `down-mouse-1' at
         ;; the position of the tap and that command is not a command
-        ;; whose functionality is replaced by the long-press mechanism.
-        ;; If so, set the fourth element of `touch-screen-current-tool'
-        ;; to `mouse-drag' and generate an emulated `mouse-1' event.
+        ;; whose functionality is replaced by the long-press
+        ;; mechanism.  If so, set the fourth element of
+        ;; `touch-screen-current-tool' to `mouse-drag' and generate an
+        ;; emulated `mouse-1' event.
+        ;;
+        ;; If the command in question is a keymap, use `mouse-1-menu'
+        ;; instead of `mouse-drag', and don't generate a
+        ;; `down-mouse-1' event immediately.  Instead, wait for the
+        ;; touch point to be released.
         (if (and touch-screen-current-tool
                  (with-selected-window window
-                   (let ((binding (key-binding (if prefix
-                                                   (vector prefix
-                                                           'down-mouse-1)
-                                                 [down-mouse-1])
-                                               t nil position)))
-                     (and binding
-                          (not (and (symbolp binding)
-                                    (get binding 'ignored-mouse-command)))))))
-            (progn (setcar (nthcdr 3 touch-screen-current-tool)
-                           'mouse-drag)
-                   (throw 'input-event (list 'down-mouse-1 position)))
+                   (and (setq binding
+                              (key-binding (if prefix
+                                               (vector prefix
+                                                       'down-mouse-1)
+                                             [down-mouse-1])
+                                           t nil position))
+                        (not (and (symbolp binding)
+                                  (get binding 'ignored-mouse-command))))))
+            (if (keymapp binding)
+                ;; binding is a keymap.  If a `mouse-1' event is
+                ;; generated after the keyboard command loop displays
+                ;; it as a menu, that event could cause unwanted
+                ;; commands to be run.  Set what to `mouse-1-menu'
+                ;; instead and wait for the up event to display the
+                ;; menu.
+                (setcar (nthcdr 3 touch-screen-current-tool)
+                        'mouse-1-menu)
+              (progn (setcar (nthcdr 3 touch-screen-current-tool)
+                             'mouse-drag)
+                     (throw 'input-event (list 'down-mouse-1 position))))
           (and point
                ;; Start the long-press timer.
                (touch-screen-handle-timeout nil)))))

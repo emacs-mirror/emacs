@@ -2080,6 +2080,14 @@ selected, as a compromise for packages which assume
 @code{mouse-drag-region} has already set point to the location of any
 mouse click and selected the window where it took place.
 
+To prevent unwanted @code{mouse-1} events arriving after a mouse menu
+is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple
+translation if @code{down-mouse-1} is bound to a keymap, making it a
+prefix key.  In lieu of simple translation, it translates the closing
+@code{touchscreen-end} to a @code{down-mouse-1} event with the
+starting position of the touch sequence, consequentially displaying
+the mouse menu.
+
 If touch gestures are detected during translation, one of the
 following input events may be generated:
 
