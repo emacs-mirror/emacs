@@ -1,6 +1,6 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -101,7 +101,7 @@ update the dependent variables."
   :group 'ls-lisp)
 
 (defcustom ls-lisp-ignore-case
-  (memq ls-lisp-emulation '(MS-Windows MacOS))
+  (not (not (memq ls-lisp-emulation '(MS-Windows MacOS))))
   "Non-nil causes ls-lisp alphabetic sorting to ignore case."
   :set-after '(ls-lisp-emulation)
   :type 'boolean
@@ -482,8 +482,22 @@ not contain `d', so that a full listing is expected."
       (if (not dir-wildcard)
           (funcall orig-fun dir-or-list switches)
         (let* ((default-directory (car dir-wildcard))
-               (files (file-expand-wildcards (cdr dir-wildcard)))
+               (wildcard (cdr dir-wildcard))
+               (files (file-expand-wildcards wildcard))
                (dir (car dir-wildcard)))
+          ;; When the wildcard ends in a slash, file-expand-wildcards
+          ;; returns nil; fix that by treating the wildcards as
+          ;; specifying only directories whose names match the
+          ;; widlcard.
+          (if (and (null files)
+                   (directory-name-p wildcard))
+              (setq files
+                    (delq nil
+                          (mapcar (lambda (fname)
+		                    (if (file-accessible-directory-p fname)
+                                        fname))
+		                  (file-expand-wildcards
+                                   (directory-file-name wildcard))))))
           (if files
               (let ((inhibit-read-only t)
                     (buf
@@ -494,7 +508,7 @@ not contain `d', so that a full listing is expected."
                     (dired-goto-next-file)
                     (forward-line 0)
                     (insert "  wildcard " (cdr dir-wildcard) "\n"))))
-            (user-error "No files matching regexp")))))))
+            (user-error "No files matching wildcard")))))))
 
 (advice-add 'dired :around #'ls-lisp--dired)
 

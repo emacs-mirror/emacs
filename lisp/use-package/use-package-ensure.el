@@ -1,6 +1,6 @@
 ;;; use-package-ensure.el --- Support for the :ensure and :pin keywords  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -182,7 +182,8 @@ manually updated package."
 
 ;;;###autoload
 (defun use-package-handler/:ensure (name _keyword ensure rest state)
-  (let* ((body (use-package-process-keywords name rest state)))
+  (let* ((body (use-package-process-keywords name rest state))
+         (ensure (and (not (plist-member rest :vc)) ensure)))
     ;; We want to avoid installing packages when the `use-package' macro is
     ;; being macro-expanded by elisp completion (see `lisp--local-variables'),
     ;; but still install packages when byte-compiling, to avoid requiring

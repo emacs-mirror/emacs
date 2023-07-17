@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2022 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -542,8 +542,8 @@ DIRS are relative."
   (setq comp--compilable t))
 
 (defvar native-comp-eln-load-path)
-(defvar inhibit-automatic-native-compilation)
-(defvar comp-enable-subr-trampolines)
+(defvar native-comp-jit-compilation)
+(defvar native-comp-enable-subr-trampolines)
 
 (defvar startup--original-eln-load-path nil
   "Original value of `native-comp-eln-load-path'.")
@@ -579,10 +579,6 @@ the updated value."
 It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
-  ;; Allow disabling automatic .elc->.eln processing.
-  (setq inhibit-automatic-native-compilation
-        (getenv "EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION"))
-
   (if command-line-processed
       (message internal--top-level-message)
     (setq command-line-processed t)
@@ -601,8 +597,8 @@ It is the default value of the variable `top-level'."
         ;; in this session.  This is necessary if libgccjit is not
         ;; available on MS-Windows, but Emacs was built with
         ;; native-compilation support.
-        (setq inhibit-automatic-native-compilation t
-              comp-enable-subr-trampolines nil))
+        (setq native-comp-jit-compilation nil
+              native-comp-enable-subr-trampolines nil))
 
       ;; Form `native-comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
@@ -841,12 +837,16 @@ It is the default value of the variable `top-level'."
     (let ((display (frame-parameter nil 'display)))
       ;; Be careful which DISPLAY to remove from process-environment: follow
       ;; the logic of `callproc.c'.
-      (if (stringp display) (setq display (concat "DISPLAY=" display))
-        (dolist (varval initial-environment)
-          (if (string-match "\\`DISPLAY=" varval)
-              (setq display varval))))
+      (if (stringp display)
+          (setq display (concat "DISPLAY=" display))
+        (let ((env initial-environment))
+          (while (and env (or (not (string-match "\\`DISPLAY=" (car env)))
+                              (progn
+                                (setq display (car env))
+                                nil)))
+            (setq env (cdr env)))))
       (when display
-        (delete display process-environment))))
+        (setq process-environment (delete display process-environment)))))
   (startup--honor-delayed-native-compilations))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
@@ -1025,13 +1025,21 @@ init-file, or to a default value if loading is not possible."
         (debug-on-error-should-be-set nil)
         (debug-on-error-initial
          (if (eq init-file-debug t)
-             'startup
+             'startup--witness  ;Dummy but recognizable non-nil value.
            init-file-debug))
+        (d-i-e-from-init-file nil)
+        (d-i-e-initial
+         ;; Use (startup--witness) instead of nil, so we can detect when the
+         ;; init files set `debug-ignored-errors' to nil.
+         (if init-file-debug '(startup--witness) debug-ignored-errors))
         ;; The init file might contain byte-code with embedded NULs,
         ;; which can cause problems when read back, so disable nul
         ;; byte detection.  (Bug#52554)
         (inhibit-null-byte-detection t))
-    (let ((debug-on-error debug-on-error-initial))
+    (let ((debug-on-error debug-on-error-initial)
+          ;; If they specified --debug-init, enter the debugger
+          ;; on any error whatsoever.
+          (debug-ignored-errors d-i-e-initial))
       (condition-case-unless-debug error
           (when init-file-user
             (let ((init-file-name (funcall filename-function)))
@@ -1112,10 +1120,14 @@ the `--debug-init' option to view a complete error backtrace."
 
       ;; If we can tell that the init file altered debug-on-error,
       ;; arrange to preserve the value that it set up.
+      (or (eq debug-ignored-errors d-i-e-initial)
+          (setq d-i-e-from-init-file (list debug-ignored-errors)))
       (or (eq debug-on-error debug-on-error-initial)
           (setq debug-on-error-should-be-set t
                 debug-on-error-from-init-file debug-on-error)))
 
+    (when d-i-e-from-init-file
+      (setq debug-ignored-errors (car d-i-e-from-init-file)))
     (when debug-on-error-should-be-set
       (setq debug-on-error debug-on-error-from-init-file))))
 
@@ -1596,7 +1608,8 @@ please check its value")
   ;; or EMACSLOADPATH, so we basically always have to check.
   (let (warned)
     (dolist (dir load-path)
-      (and (not warned)
+      (and (not noninteractive)
+           (not warned)
 	   (stringp dir)
 	   (string-equal (file-name-as-directory (expand-file-name dir))
 			 (expand-file-name user-emacs-directory))
@@ -1604,7 +1617,7 @@ please check its value")
 	   (display-warning 'initialization
 			    (format-message "\
 Your `load-path' seems to contain\n\
-your `.emacs.d' directory: %s\n\
+your `user-emacs-directory': %s\n\
 This is likely to cause problems...\n\
 Consider using a subdirectory instead, e.g.: %s"
                                     dir (expand-file-name

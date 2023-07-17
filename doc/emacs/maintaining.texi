@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -93,6 +93,20 @@ is useful when you perform version control commands outside Emacs
 (e.g., from the shell prompt), or if you put the buffer's file under a
 different version control system, or remove it from version control
 entirely.
+
+@cindex VC commands, in Dired buffers
+@cindex filesets, VC, in Dired buffers
+  VC is also enabled automatically in Dired buffers (@pxref{Dired})
+showing directories whose files are controlled by a VCS@.  All VC
+commands described in this section can be invoked from any Dired
+buffer showing a directory with VC-controlled files; any files that
+are marked in a Dired buffer (@pxref{Marks vs Flags}) are considered
+to belong to the current fileset, and VC commands operate on the files
+in this fileset.  This allows you to construct VC filesets including
+any files you want, regardless of their VC state.  (If no files are
+marked when a VC command is invoked from a Dired buffer, the file
+shown on the current line in the buffer is considered the only file in
+the fileset.)
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -471,7 +485,10 @@ collection of one or more files that a VC operation acts on.  When you
 type VC commands in a buffer visiting a version-controlled file, the
 VC fileset is simply that one file.  When you type them in a VC
 Directory buffer, and some files in it are marked, the VC fileset
-consists of the marked files (@pxref{VC Directory Mode}).
+consists of the marked files (@pxref{VC Directory Mode}).  Likewise,
+when you invoke a VC command from a Dired buffer, the VC fileset
+consists of the marked files (@pxref{Marks vs Flags}), defaulting to
+the file shown on the current line if no files are marked.
 
   On modern changeset-based version control systems (@pxref{VCS
 Changesets}), VC commands handle multi-file VC filesets as a group.
@@ -495,7 +512,9 @@ action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer, in a Dired buffer, or in a VC Directory buffer.
+buffer, in a Dired buffer, or in a VC Directory buffer; in the latter
+two cases the command operates on the fileset consisting of the marked
+files.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups
@@ -697,7 +716,7 @@ started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
 (@code{log-edit-generate-changelog-from-diff}), to generate skeleton
 ChangeLog entries, listing all changed file and function names based
 on the diff of the VC fileset.  Consecutive entries left empty will be
-combined by @kbd{C-q} (@code{fill-paragraph}).  By default the
+combined by @kbd{M-q} (@code{fill-paragraph}).  By default the
 skeleton will just include the file name, without any leading
 directories.  If you wish to prepend the leading directories up to the
 VC root, customize @code{diff-add-log-use-relative-names}.
@@ -840,7 +859,7 @@ details.
 
   If you invoke @kbd{C-x v =} or @kbd{C-u C-x v =} from a Dired buffer
 (@pxref{Dired}), the file listed on the current line is treated as the
-current VC fileset.
+current VC fileset.  The VC fileset can also include several marked files.
 
 @ifnottex
 @findex vc-ediff
@@ -980,6 +999,10 @@ Display the change history for the current fileset
 Display the change history for the current repository
 (@code{vc-print-root-log}).
 
+@item C-x v b l
+Display the change history for another branch
+(@code{vc-print-branch-log}).
+
 @item C-x v I
 Display the changes that a ``pull'' operation will retrieve
 (@code{vc-log-incoming}).
@@ -1000,16 +1023,25 @@ Search the change history for a specified pattern.
 @findex vc-print-log
   @kbd{C-x v l} (@code{vc-print-log}) displays a buffer named
 @file{*vc-change-log*}, showing the history of changes made to the
-current file, including who made the changes, the dates, and the log
-entry for each change (these are the same log entries you would enter
-via the @file{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
-centered at the revision of the file currently being visited.  With a
-prefix argument, the command prompts for the revision to center on,
-and the maximum number of revisions to display.
+current fileset in the long form, including who made the changes, the
+dates, and the log entry for each change (these are the same log
+entries you would enter via the @file{*vc-log*} buffer; @pxref{Log
+Buffer}).  When invoked from a buffer visiting a file, the current
+fileset consists of that single file, and point in the displayed
+@file{*vc-change-log*} buffer is centered at the revision of that
+file.  When invoked from a VC Directory buffer (@pxref{VC Directory
+Mode}) or from a Dired buffer (@pxref{Dired}), the fileset consists of
+all the marked files, defaulting to the file shown on the current line
+in the directory buffer if no file is marked.
 
-  If you call @kbd{C-x v l} from a VC Directory buffer (@pxref{VC
-Directory Mode}) or a Dired buffer (@pxref{Dired}), it applies to the
-file listed on the current line.
+  If the fileset includes one or more directories, the resulting
+@file{*vc-change-log*} buffer shows a short log of changes (one line
+for each change), if the VC backend supports that; otherwise it shows
+the log in the long form.
+
+  With a prefix argument, the command prompts for the revision to
+center on in the @file{*vc-change-log*} buffer and for the maximum
+number of revisions to display.
 
 @kindex C-x v L
 @findex vc-print-root-log
@@ -1034,6 +1066,14 @@ showing only the first line of each log entry.  However, you can type
 @key{RET} (@code{log-view-toggle-entry-display}) in the
 @file{*vc-change-log*} buffer to reveal the entire log entry for the
 revision at point.  A second @key{RET} hides it again.
+
+@kindex C-x v b l
+@findex vc-print-branch-log
+  @kbd{C-x v b l @var{branch-name} @key{RET}} (@code{vc-print-branch-log})
+displays a @file{*vc-change-log*} buffer showing the history of the
+version-controlled directory tree, like @code{vc-print-root-log} does,
+but it shows the history of a branch other than the current one; it
+prompts for the branch whose history to display.
 
 @kindex C-x v I
 @kindex C-x v O
@@ -1215,6 +1255,11 @@ called PCL-CVS which is specialized for CVS@.  @xref{Top, , About
 PCL-CVS, pcl-cvs, PCL-CVS---The Emacs Front-End to CVS}.
 @end ifnottex
 
+  You can also invoke VC commands from Dired buffers (@pxref{Dired}).
+In that case, any VC command you invoke considers the marked files as
+the current fileset (@pxref{Basic VC Editing}), defaulting to the file
+on the current line if no files are marked.
+
 @menu
 * Buffer: VC Directory Buffer.      What the buffer looks like and means.
 * Commands: VC Directory Commands.  Commands to use in a VC directory buffer.
@@ -1331,10 +1376,17 @@ point is on a directory entry, mark all files in that directory tree
 listed files and directories.
 
 @findex vc-dir-mark-by-regexp
-@item %
+@item % m
+@itemx * %
 You can use this command to mark files by regexp
 (@code{vc-dir-mark-by-regexp}).  If given a prefix, unmark files
 instead.
+
+@findex vc-dir-mark-registered-files
+@item * r
+You can use this command to mark files that are in one of registered
+states, including edited, added or removed.
+(@code{vc-dir-mark-registered-files}).
 
 @item G
 Add the file under point to the list of files that the VC should
@@ -1483,6 +1535,8 @@ switch to another branch using the @kbd{svn switch} command.  With
 Mercurial, command @kbd{hg update} is used to switch to another
 branch.
 
+@kindex C-x v b s
+@findex vc-switch-branch
   The VC command to switch to another branch in the current directory
 is @kbd{C-x v b s @var{branch-name} @key{RET}} (@code{vc-switch-branch}).
 
@@ -1633,9 +1687,12 @@ branch ID for a branch starting at the current revision.  For example,
 if the current revision is 2.5, the branch ID should be 2.5.1, 2.5.2,
 and so on, depending on the number of existing branches at that point.
 
+@kindex C-x v b c
+@findex vc-create-branch
   This procedure will not work for distributed version control systems
 like git or Mercurial.  For those systems you should use the command
-@code{vc-create-branch} (@kbd{C-x v b c}) instead.
+@code{vc-create-branch} (@w{@kbd{C-x v b c @var{branch-name} @key{RET}}})
+instead.
 
   To create a new branch at an older revision (one that is no longer
 the head of a branch), first select that revision (@pxref{Switching
@@ -2243,16 +2300,25 @@ buffer, but doesn't select any of them.
 
 @kindex M-,
 @findex xref-go-back
-  To go back to places @emph{from where} you've displayed the definition,
-use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
+  To go back to places @emph{from where} you've displayed the
+definition, use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.
+where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace the
+steps you made forward in the history of places, all the way to the
+first place in history, where you first invoked @kbd{M-.}, or to any
+place in-between.
 
 @kindex C-M-,
 @findex xref-go-forward
-  If you previously went back too far with @kbd{M-,}, @kbd{C-M-,}
-(@code{xref-go-forward}) can be used to go forward again.
+  If you previously went back too far with @kbd{M-,}, or want to
+re-examine a place from which you went back, you can use @kbd{C-M-,}
+(@code{xref-go-forward}) to go forward again.  This is similar to
+using @kbd{M-.}, except that you don't need on each step to move point
+to the identifier whose definition you want to look up.  @kbd{C-M-,}
+allows you to retrace all the steps you made back in the history of
+places, all the way to the last place in history, where you invoked
+@kbd{M-,}, or to any place in-between.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might

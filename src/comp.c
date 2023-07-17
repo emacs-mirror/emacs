@@ -1,7 +1,7 @@
 /* Compile Emacs Lisp into native code.
-   Copyright (C) 2019-2022 Free Software Foundation, Inc.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
-Author: Andrea Corallo <akrl@sdf.org>
+Author: Andrea Corallo <acorallo@gnu.org>
 
 This file is part of GNU Emacs.
 
@@ -514,6 +514,10 @@ load_gccjit_if_necessary (bool mandatory)
 #define CALL2I(fun, arg1, arg2)				\
   CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2)
 
+/* Like call4 but stringify and intern.  */
+#define CALL4I(fun, arg1, arg2, arg3, arg4)				\
+  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2, arg3, arg4)
+
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR (name))
@@ -531,7 +535,7 @@ load_gccjit_if_necessary (bool mandatory)
 #define SETJMP_NAME SETJMP
 
 /* Max number function importable by native compiled code.  */
-#define F_RELOC_MAX_SIZE 1500
+#define F_RELOC_MAX_SIZE 1600
 
 typedef struct {
   void *link_table[F_RELOC_MAX_SIZE];
@@ -4991,7 +4995,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       format_string ("%s_libgccjit_repro.c", SSDATA (ebase_name)));
 
   Lisp_Object tmp_file =
-    Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
+    CALL4I (make-temp-file, base_name, Qnil, build_string (".eln.tmp"), Qnil);
+
   Lisp_Object encoded_tmp_file = ENCODE_FILE (tmp_file);
 #ifdef WINDOWSNT
   encoded_tmp_file = ansi_encode_filename (encoded_tmp_file);
@@ -5173,8 +5178,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (!load_gccjit_if_necessary (false))
     return;
 
-  if (!native_comp_deferred_compilation
-      || !NILP (Vinhibit_automatic_native_compilation)
+  if (!native_comp_jit_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
@@ -5671,28 +5675,18 @@ syms_of_comp (void)
 {
 #ifdef HAVE_NATIVE_COMP
   DEFVAR_LISP ("comp--delayed-sources", Vcomp__delayed_sources,
-	       doc: /* List of sources to be native-compiled when startup is finished.
+    doc: /* List of sources to be native-compiled when startup is finished.
 For internal use.  */);
-  DEFVAR_BOOL ("comp--compilable",
-	       comp__compilable,
-	       doc: /* Non-nil when comp.el can be native compiled.
+  DEFVAR_BOOL ("comp--compilable", comp__compilable,
+    doc: /* Non-nil when comp.el can be native compiled.
 For internal use. */);
   /* Compiler control customizes.  */
-  DEFVAR_LISP ("inhibit-automatic-native-compilation",
-	       Vinhibit_automatic_native_compilation,
-	       doc: /* If non-nil, inhibit automatic native compilation of loaded .elc files.
+  DEFVAR_BOOL ("native-comp-jit-compilation", native_comp_jit_compilation,
+    doc: /* If non-nil, compile loaded .elc files asynchronously.
 
-After compilation, each function definition is updated to the native
-compiled one.  */);
-  Vinhibit_automatic_native_compilation = Qnil;
-
-  DEFVAR_BOOL ("native-comp-deferred-compilation",
-	       native_comp_deferred_compilation,
-	       doc: /* If non-nil compile loaded .elc files asynchronously.
-
-After compilation, each function definition is updated to the native
-compiled one.  */);
-  native_comp_deferred_compilation = true;
+After compilation, each function definition is updated to use the
+natively-compiled one.  */);
+  native_comp_jit_compilation = true;
 
   DEFSYM (Qnative_comp_speed, "native-comp-speed");
   DEFSYM (Qnative_comp_debug, "native-comp-debug");
@@ -5836,82 +5830,96 @@ compiled one.  */);
   /* FIXME should be initialized but not here...  Plus this don't have
      to be necessarily exposed to lisp but can easy debug for now.  */
   DEFVAR_LISP ("comp-subr-list", Vcomp_subr_list,
-	       doc: /* List of all defined subrs.  */);
+    doc: /* List of all defined subrs.  */);
   DEFVAR_LISP ("comp-abi-hash", Vcomp_abi_hash,
-	       doc: /* String signing the .eln files ABI.  */);
+    doc: /* String signing the .eln files ABI.  */);
   Vcomp_abi_hash = Qnil;
   DEFVAR_LISP ("comp-native-version-dir", Vcomp_native_version_dir,
-	       doc: /* Directory in use to disambiguate eln compatibility.  */);
+    doc: /* Directory in use to disambiguate eln compatibility.  */);
   Vcomp_native_version_dir = Qnil;
 
   DEFVAR_LISP ("comp-deferred-pending-h", Vcomp_deferred_pending_h,
-	       doc: /* Hash table symbol-name -> function-value.
+    doc: /* Hash table symbol-name -> function-value.
 For internal use.  */);
   Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   DEFVAR_LISP ("comp-eln-to-el-h", Vcomp_eln_to_el_h,
-	       doc: /* Hash table eln-filename -> el-filename.  */);
+    doc: /* Hash table eln-filename -> el-filename.  */);
   Vcomp_eln_to_el_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   DEFVAR_LISP ("native-comp-eln-load-path", Vnative_comp_eln_load_path,
-	       doc: /* List of eln cache directories.
+    doc: /* List of directories to look for natively-compiled *.eln files.
 
-If a directory is non absolute it is assumed to be relative to
-`invocation-directory'.
-`comp-native-version-dir' value is used as a sub-folder name inside
-each eln cache directory.
-The last directory of this list is assumed to be the system one.  */);
+The *.eln files are actually looked for in a version-specific
+subdirectory of each directory in this list.  That subdirectory
+is determined by the value of `comp-native-version-dir'.
+If the name of a directory in this list is not absolute, it is
+assumed to be relative to `invocation-directory'.
+The last directory of this list is assumed to be the one holding
+the system *.eln files, which are the files produced when building
+Emacs.  */);
 
   /* Temporary value in use for bootstrap.  We can't do better as
      `invocation-directory' is still unset, will be fixed up during
      dump reload.  */
   Vnative_comp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
-  DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
-	       doc: /* If non-nil, enable primitive trampoline synthesis.
-This makes Emacs respect redefinition or advises of primitive functions
-when they are called from Lisp code natively-compiled at `native-comp-speed'
-of 2.
+  DEFVAR_LISP ("native-comp-enable-subr-trampolines",
+	       Vnative_comp_enable_subr_trampolines,
+    doc: /* If non-nil, enable generation of trampolines for calling primitives.
+Trampolines are needed so that Emacs respects redefinition or advice of
+primitive functions when they are called from Lisp code natively-compiled
+at `native-comp-speed' of 2.
 
-By default, this is enabled, and when Emacs sees a redefined or advised
+By default, the value is t, and when Emacs sees a redefined or advised
 primitive called from natively-compiled Lisp, it generates a trampoline
 for it on-the-fly.
 
-Disabling this, when a trampoline for a redefined or advised primitive is
-not available from previous compilations, means that such redefinition
-or advise will not have effect on calls from natively-compiled Lisp code.
-That is, calls to primitives without existing trampolines from
-natively-compiled Lisp will behave as if the primitive was called
-directly from C.  */);
+If the value is a file name (a string), it specifies the directory in
+which to deposit the generated trampolines, overriding the directories
+in `native-comp-eln-load-path'.
+
+When this variable is nil, generation of trampolines is disabled.
+
+Disabling the generation of trampolines, when a trampoline for a redefined
+or advised primitive is not already available from previous compilations,
+means that such redefinition or advice will not have effect when calling
+primitives from natively-compiled Lisp code.  That is, calls to primitives
+without existing trampolines from natively-compiled Lisp will behave as if
+the primitive was called directly from C, and will ignore its redefinition
+and advice.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
-	       doc: /* Hash table subr-name -> installed trampoline.
-This is used to prevent double trampoline instantiation but also to
+    doc: /* Hash table subr-name -> installed trampoline.
+This is used to prevent double trampoline instantiation, and also to
 protect the trampolines against GC.  */);
   Vcomp_installed_trampolines_h = CALLN (Fmake_hash_table);
 
   DEFVAR_LISP ("comp-no-native-file-h", V_comp_no_native_file_h,
-	       doc: /* Files for which no deferred compilation has to be performed.
+    doc: /* Files for which no deferred compilation should be performed.
 These files' compilation should not be deferred because the bytecode
 version was explicitly requested by the user during load.
 For internal use.  */);
   V_comp_no_native_file_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   DEFVAR_BOOL ("comp-file-preloaded-p", comp_file_preloaded_p,
-	       doc: /* When non-nil assume the file being compiled to
-be preloaded.  */);
+    doc: /* When non-nil, assume the file being compiled to be preloaded.  */);
 
   DEFVAR_LISP ("comp-loaded-comp-units-h", Vcomp_loaded_comp_units_h,
-	       doc: /* Hash table recording all loaded compilation units.
-file -> CU.  */);
+    doc: /* Hash table recording all loaded compilation units, file -> CU.  */);
   Vcomp_loaded_comp_units_h =
     CALLN (Fmake_hash_table, QCweakness, Qvalue, QCtest, Qequal);
+
+  DEFVAR_LISP ("comp-subr-arities-h", Vcomp_subr_arities_h,
+    doc: /* Hash table recording the arity of Lisp primitives.
+This is in case they are redefined so the compiler still knows how to
+compile calls to them.
+subr-name -> arity
+For internal use.  */);
+  Vcomp_subr_arities_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   Fprovide (intern_c_string ("native-compile"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */
 
   defsubr (&Snative_comp_available_p);
 }
-/* Local Variables: */
-/* c-file-offsets: ((arglist-intro . +)) */
-/* End: */

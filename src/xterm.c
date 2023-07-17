@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2022 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -636,6 +636,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include <X11/cursorfont.h>
 
+#ifdef HAVE_X_I18N
+#include "textconv.h"
+#endif
+
 #ifdef USE_XCB
 #include <xcb/xproto.h>
 #include <xcb/xcb.h>
@@ -792,13 +796,6 @@ typedef int (*Emacs_XIOErrorHandler) (Display *);
 
 #if defined USE_XCB && defined USE_CAIRO_XCB
 #define USE_CAIRO_XCB_SURFACE
-#endif
-
-/* Default to using XIM if available.  */
-#ifdef USE_XIM
-bool use_xim = true;
-#else
-bool use_xim = false;  /* configure --without-xim */
 #endif
 
 #if XCB_SHAPE_MAJOR_VERSION > 1	      \
@@ -2318,13 +2315,10 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	  target_count = header.target_list_count;
 	  rc = false;
 
-	  if (INT_ADD_WRAPV (header.target_list_count, 1,
-			     &header.target_list_count)
-	      || INT_MULTIPLY_WRAPV (ntargets, 4, &size)
-	      || INT_ADD_WRAPV (header.total_data_size, size,
-				&header.total_data_size)
-	      || INT_ADD_WRAPV (header.total_data_size, 2,
-				&header.total_data_size))
+	  if (ckd_add (&header.target_list_count, header.target_list_count, 1)
+	      || ckd_mul (&size, ntargets, 4)
+	      || ckd_add (&header.total_data_size, header.total_data_size, size)
+	      || ckd_add (&header.total_data_size, header.total_data_size, 2))
 	    {
 	      /* Overflow, remove every entry from the targets table
 		 and add one for our current targets list.  This
@@ -5750,7 +5744,8 @@ xi_device_from_id (struct x_display_info *dpyinfo, int deviceid)
 
 static void
 xi_link_touch_point (struct xi_device_t *device,
-		     int detail, double x, double y)
+		     int detail, double x, double y,
+		     struct frame *frame)
 {
   struct xi_touch_point_t *touchpoint;
 
@@ -5759,6 +5754,7 @@ xi_link_touch_point (struct xi_device_t *device,
   touchpoint->x = x;
   touchpoint->y = y;
   touchpoint->number = detail;
+  touchpoint->frame = frame;
 
   device->touchpoints = touchpoint;
 }
@@ -5785,6 +5781,36 @@ xi_unlink_touch_point (int detail,
     }
 
   return false;
+}
+
+/* Unlink all touch points associated with the frame F.
+   This is done upon unmapping or destroying F's window, because
+   touch point delivery after that point is undefined.  */
+
+static void
+xi_unlink_touch_points (struct frame *f)
+{
+  struct xi_device_t *device;
+  struct xi_touch_point_t **next, *last;
+  int i;
+
+  for (i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
+    {
+      device = &FRAME_DISPLAY_INFO (f)->devices[i];
+
+      /* Now unlink all touch points on DEVICE matching F.  */
+
+      for (next = &device->touchpoints; (last = *next);)
+	{
+	  if (last->frame == f)
+	    {
+	      *next = last->next;
+	      xfree (last);
+	    }
+	  else
+	    next = &last->next;
+	}
+    }
 }
 
 static struct xi_touch_point_t *
@@ -5914,8 +5940,10 @@ void
 x_end_cr_clip (struct frame *f)
 {
   cairo_restore (FRAME_CR_CONTEXT (f));
+#ifdef HAVE_XDBE
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     x_mark_frame_dirty (f);
+#endif
 }
 
 void
@@ -6911,8 +6939,7 @@ x_sync_get_monotonic_time (struct x_display_info *dpyinfo,
     return 0;
 
   uint_fast64_t t;
-  return (INT_SUBTRACT_WRAPV (timestamp, dpyinfo->server_time_offset, &t)
-	  ? 0 : t);
+  return ckd_sub (&t, timestamp, dpyinfo->server_time_offset) ? 0 : t;
 }
 
 # ifndef CLOCK_MONOTONIC
@@ -6930,8 +6957,8 @@ x_sync_current_monotonic_time (void)
   return (((clock_gettime (CLOCK_MONOTONIC, &time) != 0
 	    && (CLOCK_MONOTONIC == CLOCK_REALTIME
 		|| clock_gettime (CLOCK_REALTIME, &time) != 0))
-	   || INT_MULTIPLY_WRAPV (time.tv_sec, 1000000, &t)
-	   || INT_ADD_WRAPV (t, time.tv_nsec / 1000, &t))
+	   || ckd_mul (&t, time.tv_sec, 1000000)
+	   || ckd_add (&t, t, time.tv_nsec / 1000))
 	  ? 0 : t);
 }
 
@@ -6952,8 +6979,7 @@ x_sync_note_frame_times (struct x_display_info *dpyinfo,
   time = x_sync_get_monotonic_time (dpyinfo, low | (high << 32));
 
   if (!time || !output->temp_frame_time
-      || INT_SUBTRACT_WRAPV (time, output->temp_frame_time,
-			     &output->last_frame_time))
+      || ckd_sub (&output->last_frame_time, time, output->temp_frame_time))
     output->last_frame_time = 0;
 
 #ifdef FRAME_DEBUG
@@ -7450,8 +7476,10 @@ x_update_end (struct frame *f)
   MOUSE_HL_INFO (f)->mouse_face_defer = false;
 
 #ifdef USE_CAIRO
+# ifdef HAVE_XDBE
   if (!FRAME_X_DOUBLE_BUFFERED_P (f) && FRAME_CR_CONTEXT (f))
     cairo_surface_flush (cairo_get_target (FRAME_CR_CONTEXT (f)));
+# endif
 #endif
 
   /* If double buffering is disabled, finish the update here.
@@ -7546,14 +7574,16 @@ x_clear_under_internal_border (struct frame *f)
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
-      int face_id =
-	(FRAME_PARENT_FRAME (f)
-	 ? (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
-	    : CHILD_FRAME_BORDER_FACE_ID)
-	 : (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	    : INTERNAL_BORDER_FACE_ID));
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
+      int face_id = (FRAME_PARENT_FRAME (f)
+		     ? (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     CHILD_FRAME_BORDER_FACE_ID)
+			: CHILD_FRAME_BORDER_FACE_ID)
+		     : (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     INTERNAL_BORDER_FACE_ID)
+			: INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       if (face)
@@ -7566,7 +7596,8 @@ x_clear_under_internal_border (struct frame *f)
 	  x_fill_rectangle (f, gc, 0, margin, width, border, false);
 	  x_fill_rectangle (f, gc, 0, 0, border, height, false);
 	  x_fill_rectangle (f, gc, width - border, 0, border, height, false);
-	  x_fill_rectangle (f, gc, 0, height - border, width, border, false);
+	  x_fill_rectangle (f, gc, 0, height - bottom_margin - border,
+			    width, border, false);
 	  XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
 	}
       else
@@ -7574,7 +7605,8 @@ x_clear_under_internal_border (struct frame *f)
 	  x_clear_area (f, 0, 0, border, height);
 	  x_clear_area (f, 0, margin, width, border);
 	  x_clear_area (f, width - border, 0, border, height);
-	  x_clear_area (f, 0, height - border, width, border);
+	  x_clear_area (f, 0, height - bottom_margin - border,
+			width, border);
 	}
     }
 }
@@ -7927,7 +7959,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 
       dpyinfo->server_time_monotonic_p
 	= (monotonic_time != 0
-	   && !INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	   && !ckd_sub (&diff_ms, time, monotonic_ms)
 	   && -500 < diff_ms && diff_ms < 500);
 
       if (!dpyinfo->server_time_monotonic_p)
@@ -7936,10 +7968,9 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	     time to estimate the monotonic time on the X server.  */
 
 	  if (!monotonic_time
-	      || INT_MULTIPLY_WRAPV (time, 1000, &dpyinfo->server_time_offset)
-	      || INT_SUBTRACT_WRAPV (dpyinfo->server_time_offset,
-				     monotonic_time,
-				     &dpyinfo->server_time_offset))
+	      || ckd_mul (&dpyinfo->server_time_offset, time, 1000)
+	      || ckd_sub (&dpyinfo->server_time_offset,
+			  dpyinfo->server_time_offset, monotonic_time))
 	    dpyinfo->server_time_offset = 0;
 
 	  /* If the server time is reasonably close to the monotonic
@@ -7948,18 +7979,18 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	     actual time in ms.  */
 
 	  monotonic_ms = monotonic_ms & 0xffffffff;
-	  if (!INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	  if (!ckd_sub (&diff_ms, time, monotonic_ms)
 	      && -500 < diff_ms && diff_ms < 500)
 	    {
 	      /* The server timestamp overflowed.  Make the time
 		 offset exactly how much it overflowed by.  */
 
-	      if (INT_SUBTRACT_WRAPV (monotonic_time / 1000, monotonic_ms,
-				      &dpyinfo->server_time_offset)
-		  || INT_MULTIPLY_WRAPV (dpyinfo->server_time_offset,
-					 1000, &dpyinfo->server_time_offset)
-		  || INT_SUBTRACT_WRAPV (0, dpyinfo->server_time_offset,
-					 &dpyinfo->server_time_offset))
+	      if (ckd_sub (&dpyinfo->server_time_offset,
+			   monotonic_time / 1000, monotonic_ms)
+		  || ckd_mul (&dpyinfo->server_time_offset,
+			      dpyinfo->server_time_offset, 1000)
+		  || ckd_sub (&dpyinfo->server_time_offset,
+			      0, dpyinfo->server_time_offset))
 		dpyinfo->server_time_offset = 0;
 	    }
 	}
@@ -11291,7 +11322,8 @@ XTflash (struct frame *f)
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 		      flash_left,
 		      (height - flash_height
-		       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+		       - FRAME_INTERNAL_BORDER_WIDTH (f)
+		       - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 		      width, flash_height);
 
     }
@@ -11345,7 +11377,8 @@ XTflash (struct frame *f)
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 		      flash_left,
 		      (height - flash_height
-		       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+		       - FRAME_INTERNAL_BORDER_WIDTH (f)
+		       - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 		      width, flash_height);
     }
   else
@@ -13535,6 +13568,10 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 #ifdef HAVE_XINPUT2_2
   struct xi_touch_point_t *tem, *last;
 #endif
+#if defined HAVE_XINPUT2_2 && !defined HAVE_EXT_TOOL_BAR
+  struct x_output *output;
+  Lisp_Object tail, frame;
+#endif
 
   /* Don't pointlessly copy dpyinfo->devices if there are no devices
      to disable.  */
@@ -13577,6 +13614,34 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 		  tem = tem->next;
 		  xfree (last);
 		}
+
+#ifndef HAVE_EXT_TOOL_BAR
+
+	      /* Now look through each frame on DPYINFO.  If it has an
+		 outstanding tool bar press for this device, release
+		 the tool bar.  */
+
+	      FOR_EACH_FRAME (tail, frame)
+		{
+		  if (!FRAME_X_P (XFRAME (frame))
+		      || (FRAME_DISPLAY_INFO (XFRAME (frame))
+			  != dpyinfo))
+		    continue;
+
+		  output = FRAME_OUTPUT_DATA (XFRAME (frame));
+
+		  if (output->tool_bar_touch_device
+		      == dpyinfo->devices[i].device_id)
+		    {
+		      if (XFRAME (frame)->last_tool_bar_item != -1
+			  && WINDOWP (XFRAME (frame)->tool_bar_window))
+			handle_tool_bar_click (XFRAME (frame), 0, 0,
+					       false, 0);
+
+		      output->tool_bar_touch_device = 0;
+		    }
+		}
+#endif
 #endif
 
 	      goto out;
@@ -21073,8 +21138,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  x_flush (WINDOW_XFRAME (XWINDOW (bar->window)));
 		}
 
+#ifdef HAVE_XDBE
 	      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
 		x_drop_xrender_surfaces (f);
+#endif
 
 	      goto OTHER;
 	    }
@@ -21104,14 +21171,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	x_cr_update_surface_desired_size (any,
 					  configureEvent.xconfigure.width,
 					  configureEvent.xconfigure.height);
-      if (f || (any && configureEvent.xconfigure.window == FRAME_X_WINDOW (any)))
-	x_update_opaque_region (f ? f : any, &configureEvent);
 #endif
+
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+
+      /* Make the new size of the frame its opaque region.  This is a
+	 region describing areas of the window which are always
+	 guaranteed to be completely opaque and can be treated as such
+	 by the compositor.  It is set to the width and height of the
+	 only window in no-toolkit builds when `alpha_background' is
+	 not set, and is cleared otherwise.  */
+
+      if (f || (any && configureEvent.xconfigure.window
+		== FRAME_OUTER_WINDOW (any)))
+	x_update_opaque_region (f ? f : any, &configureEvent);
+
+#endif /* !defined USE_X_TOOLKIT && !defined USE_GTK */
+
 #ifdef USE_GTK
       if (!f
 	  && (f = any)
 	  && configureEvent.xconfigure.window == FRAME_X_WINDOW (f)
-	  && (FRAME_VISIBLE_P(f)
+	  && (FRAME_VISIBLE_P (f)
 	      || !(configureEvent.xconfigure.width <= 1
 		   && configureEvent.xconfigure.height <= 1)))
         {
@@ -21138,10 +21219,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           f = 0;
 	}
 #endif
-      if (f
-	  && (FRAME_VISIBLE_P(f)
-	      || !(configureEvent.xconfigure.width <= 1
-		   && configureEvent.xconfigure.height <= 1)))
+      if (f && (FRAME_VISIBLE_P (f)
+		|| !(configureEvent.xconfigure.width <= 1
+		     && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
 	  /* For GTK+ don't call x_net_wm_state for the scroll bar
@@ -24209,6 +24289,73 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
+#ifndef HAVE_EXT_TOOL_BAR
+	      /* Is this a touch from a direct touch device that is in
+		 the tool-bar?  */
+	      if (device->direct_p
+		  && WINDOWP (f->tool_bar_window)
+		  && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
+		{
+		  Lisp_Object window;
+		  int x = xev->event_x;
+		  int y = xev->event_y;
+
+		  window = window_from_coordinates (f, x, y, 0, true, true);
+		  /* Ignore button release events if the mouse
+		     wasn't previously pressed on the tool bar.
+		     We do this because otherwise selecting some
+		     text with the mouse and then releasing it on
+		     the tool bar doesn't stop selecting text,
+		     since the tool bar eats the button up
+		     event.  */
+		  tool_bar_p = EQ (window, f->tool_bar_window);
+
+		  /* If this touch has started in the tool bar, do not
+		     send it to Lisp.  Instead, simulate a tool bar
+		     click, releasing it once it goes away.  */
+
+		  if (tool_bar_p)
+		    {
+		      /* Call note_mouse_highlight on the tool bar
+			 item.  Otherwise, get_tool_bar_item will
+			 return 1.
+
+		         This is not necessary when mouse-highlight is
+		         nil.  */
+
+		      if (!NILP (Vmouse_highlight))
+			{
+			  note_mouse_highlight (f, x, y);
+
+			  /* Always allow future mouse motion to
+			     update the mouse highlight, no matter
+			     where it is.  */
+			  memset (&dpyinfo->last_mouse_glyph, 0,
+				  sizeof dpyinfo->last_mouse_glyph);
+			  dpyinfo->last_mouse_glyph_frame = f;
+			}
+
+		      handle_tool_bar_click_with_device (f, x, y, true, 0,
+							 (source
+							  ? source->name : Qt));
+
+		      /* Flush any changes made by that to the front
+			 buffer.  */
+		      x_flush_dirty_back_buffer_on (f);
+
+		      /* Record the device and the touch ID on the
+			 frame.  That way, Emacs knows when to dismiss
+			 the tool bar click later.  */
+
+		      FRAME_OUTPUT_DATA (f)->tool_bar_touch_device
+			= device->device_id;
+		      FRAME_OUTPUT_DATA (f)->tool_bar_touch_id = xev->detail;
+
+		      goto XI_OTHER;
+		    }
+		}
+#endif
+
 	      if (!menu_bar_p && !tool_bar_p)
 		{
 		  if (f && device->direct_p)
@@ -24218,13 +24365,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      x_catch_errors (dpyinfo->display);
 
 		      if (x_input_grab_touch_events)
-			XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
-					    xev->detail, xev->event, XIAcceptTouch);
+			XIAllowTouchEvents (dpyinfo->display,
+					    xev->deviceid,
+					    xev->detail, xev->event,
+					    XIAcceptTouch);
 
 		      if (!x_had_errors_p (dpyinfo->display))
 			{
-			  xi_link_touch_point (device, xev->detail, xev->event_x,
-					       xev->event_y);
+			  xi_link_touch_point (device, xev->detail,
+					       xev->event_x,
+					       xev->event_y, f);
 
 			  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
 			  inev.ie.timestamp = xev->time;
@@ -24299,10 +24449,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  for (touchpoint = device->touchpoints;
 		       touchpoint; touchpoint = touchpoint->next)
 		    {
-		      arg = Fcons (list3i (lrint (touchpoint->x),
-					   lrint (touchpoint->y),
-					   lrint (touchpoint->number)),
-				   arg);
+		      if (touchpoint->frame == f)
+			arg = Fcons (list3i (lrint (touchpoint->x),
+					     lrint (touchpoint->y),
+					     lrint (touchpoint->number)),
+				     arg);
 		    }
 
 		  if (source)
@@ -24347,6 +24498,33 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			inev.ie.device = source->name;
 		    }
 		}
+
+#ifndef HAVE_EXT_TOOL_BAR
+	      /* Now see if the touchpoint was previously on the tool bar.
+	         If it was, release the tool bar.  */
+
+	      if (!f)
+		f = x_window_to_frame (dpyinfo, xev->event);
+
+	      if (f && (FRAME_OUTPUT_DATA (f)->tool_bar_touch_id
+			== xev->detail))
+		{
+		  if (f->last_tool_bar_item != -1)
+		    handle_tool_bar_click_with_device (f, xev->event_x,
+						       xev->event_y,
+						       false, 0,
+						       (source
+							? source->name
+							: Qnil));
+
+		  /* Cancel any outstanding mouse highlight.  */
+		  note_mouse_highlight (f, -1, -1);
+		  x_flush_dirty_back_buffer_on (f);
+
+		  /* Now clear the tool bar device.  */
+		  FRAME_OUTPUT_DATA (f)->tool_bar_touch_device = 0;
+		}
+#endif
 
 	      goto XI_OTHER;
 	    }
@@ -25670,10 +25848,12 @@ x_clean_failable_requests (struct x_display_info *dpyinfo)
 				    + (last - first));
 }
 
-/* Protect a section of X requests: ignore errors generated by X
-   requests made from now until `x_stop_ignoring_errors'.  Each call
-   must be paired with a call to `x_stop_ignoring_errors', and
-   recursive calls inside the protected section are not allowed.
+/* Protect a section of X requests.
+
+   Ignore errors generated by X requests made from now until
+   `x_stop_ignoring_errors'.  Each call must be paired with a call to
+   `x_stop_ignoring_errors', and recursive calls inside the protected
+   section are not allowed.
 
    The advantage over x_catch_errors followed by
    x_uncatch_errors_after_check is that this function does not sync to
@@ -25681,11 +25861,10 @@ x_clean_failable_requests (struct x_display_info *dpyinfo)
    those two functions for catching errors around requests that do not
    require a reply.
 
-   As a special feature intended to support xselect.c,
-   SELECTION_SERIAL may be an arbitrary number greater than zero: when
-   that is the case, x_select_handle_selection_error is called with
-   the specified number to delete the selection request that
-   encountered the error.  */
+   If SELECTION_SERIAL is an arbitrary number greater than zero,
+   x_select_handle_selection_error is called with the specified number
+   after any errors within the protected section are received to
+   delete the selection request that encountered errors.  */
 
 void
 x_ignore_errors_for_next_request (struct x_display_info *dpyinfo,
@@ -25967,7 +26146,7 @@ x_try_restore_frame (void)
 
   FOR_EACH_FRAME (tail, frame)
     {
-      if (!NILP (do_switch_frame (frame, 1, Qnil)))
+      if (!NILP (do_switch_frame (frame, 0, 1, Qnil)))
 	return;
     }
 }
@@ -26260,9 +26439,18 @@ x_error_handler (Display *display, XErrorEvent *event)
 
 	  /* If a selection transfer is the cause of this error,
 	     remove the selection transfer now.  */
+
 	  if (fail->selection_serial)
-	    x_handle_selection_error (fail->selection_serial,
-				      event);
+	    {
+	      x_handle_selection_error (fail->selection_serial,
+					event);
+
+	      /* Clear selection_serial to prevent
+		 x_handle_selection_error from being called again if
+		 any more requests within the protected section cause
+		 errors to be reported.  */
+	      fail->selection_serial = 0;
+	    }
 
 	  return 0;
 	}
@@ -26487,7 +26675,12 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
 
   /* No need to call XCloseIM.  */
   dpyinfo->xim = NULL;
-  XFree (dpyinfo->xim_styles);
+
+  /* Also free IM values; those are allocated separately upon
+     XGetIMValues.  */
+  if (dpyinfo->xim_styles)
+    XFree (dpyinfo->xim_styles);
+  dpyinfo->xim_styles = NULL;
   unblock_input ();
 }
 
@@ -26505,10 +26698,20 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
   XIM xim;
   const char *locale;
 
-  if (use_xim)
+  if (dpyinfo->use_xim)
     {
       if (dpyinfo->xim)
-	XCloseIM (dpyinfo->xim);
+	{
+	  XCloseIM (dpyinfo->xim);
+
+	  /* Free values left over from the last time the IM
+	     connection was established.  */
+
+	  if (dpyinfo->xim_styles)
+	    XFree (dpyinfo->xim_styles);
+	  dpyinfo->xim_styles = NULL;
+	}
+
       xim = XOpenIM (dpyinfo->display, dpyinfo->rdb, resource_name,
 		     emacs_class);
       dpyinfo->xim = xim;
@@ -26537,7 +26740,6 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
 					    build_string (locale));
 	}
     }
-
   else
 #endif /* HAVE_XIM */
     dpyinfo->xim = NULL;
@@ -26606,7 +26808,7 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
 {
   dpyinfo->xim = NULL;
 #ifdef HAVE_XIM
-  if (use_xim)
+  if (dpyinfo->use_xim)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
@@ -26615,15 +26817,19 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       xim_inst->resource_name = xstrdup (resource_name);
-      ret = XRegisterIMInstantiateCallback
-	(dpyinfo->display, dpyinfo->rdb, xim_inst->resource_name,
-	 emacs_class, xim_instantiate_callback,
-	 /* This is XPointer in XFree86 but (XPointer *) on Tru64, at
-	    least, but the configure test doesn't work because
-	    xim_instantiate_callback can either be XIMProc or
-	    XIDProc, so just cast to void *.  */
-	 (void *) xim_inst);
-      eassert (ret == True);
+
+      /* The last argument is XPointer in XFree86 but (XPointer *) on
+	 Tru64, at least, but the configure test doesn't work because
+	 xim_instantiate_callback can either be XIMProc or XIDProc, so
+	 just cast to void *.  */
+
+      ret = XRegisterIMInstantiateCallback (dpyinfo->display,
+					    dpyinfo->rdb,
+					    xim_inst->resource_name,
+					    emacs_class,
+					    xim_instantiate_callback,
+					    (void *) xim_inst);
+      eassert (ret);
 #else /* not HAVE_X11R6_XIM */
       xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
@@ -26632,32 +26838,56 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
 }
 
 
-/* Close the connection to the XIM server on display DPYINFO. */
+/* Close the connection to the XIM server on display DPYINFO.
+   Unregister any IM instantiation callback previously installed,
+   close the connection to the IM server if possible, and free any
+   retrieved IM values.  */
 
 static void
 xim_close_dpy (struct x_display_info *dpyinfo)
 {
 #ifdef HAVE_XIM
-  if (use_xim)
-    {
 #ifdef HAVE_X11R6_XIM
-      struct xim_inst_t *xim_inst = dpyinfo->xim_callback_data;
+  struct xim_inst_t *xim_inst;
+  Bool rc;
+
+  /* If dpyinfo->xim_callback_data is not set, then IM support wasn't
+     initialized, which can happen if Xlib doesn't understand the C
+     locale being used.  */
+
+  if (dpyinfo->xim_callback_data)
+    {
+      xim_inst = dpyinfo->xim_callback_data;
 
       if (dpyinfo->display)
 	{
-	  Bool ret = XUnregisterIMInstantiateCallback
-	    (dpyinfo->display, dpyinfo->rdb, xim_inst->resource_name,
-	     emacs_class, xim_instantiate_callback, (void *) xim_inst);
-	  eassert (ret == True);
+	  rc = XUnregisterIMInstantiateCallback (dpyinfo->display,
+						 dpyinfo->rdb,
+						 xim_inst->resource_name,
+						 emacs_class,
+						 xim_instantiate_callback,
+						 (void *) xim_inst);
+	  eassert (rc);
 	}
+
       xfree (xim_inst->resource_name);
       xfree (xim_inst);
-#endif /* HAVE_X11R6_XIM */
-      if (dpyinfo->display)
-	XCloseIM (dpyinfo->xim);
-      dpyinfo->xim = NULL;
-      XFree (dpyinfo->xim_styles);
     }
+#endif /* HAVE_X11R6_XIM */
+
+  /* Now close the connection to the input method server.  This may
+     access the display connection, and isn't safe if the display has
+     already been closed.  */
+
+  if (dpyinfo->display && dpyinfo->xim)
+    XCloseIM (dpyinfo->xim);
+  dpyinfo->xim = NULL;
+
+  /* Free the list of XIM styles retrieved.  */
+
+  if (dpyinfo->xim_styles)
+    XFree (dpyinfo->xim_styles);
+  dpyinfo->xim_styles = NULL;
 #endif /* HAVE_XIM */
 }
 
@@ -28453,6 +28683,11 @@ x_make_frame_invisible (struct frame *f)
 
   block_input ();
 
+#ifdef HAVE_XINPUT2_2
+  /* Remove any touch points associated with F.  */
+  xi_unlink_touch_points (f);
+#endif
+
   /* Before unmapping the window, update the WM_SIZE_HINTS property to claim
      that the current position of the window is user-specified, rather than
      program-specified, so that when the window is mapped again, it will be
@@ -28658,6 +28893,11 @@ x_free_frame_resources (struct frame *f)
   xi_handle_delete_frame (dpyinfo, f);
 #endif
 
+#ifdef HAVE_XINPUT2_2
+  /* Remove any touch points associated with F.  */
+  xi_unlink_touch_points (f);
+#endif
+
   /* If a display connection is dead, don't try sending more
      commands to the X server.  */
   if (dpyinfo->display)
@@ -28840,6 +29080,13 @@ x_free_frame_resources (struct frame *f)
     dpyinfo->highlight_frame = 0;
   if (f == hlinfo->mouse_face_mouse_frame)
     reset_mouse_highlight (hlinfo);
+
+  /* These two need to be freed now that they are used to compute the
+     mouse position, I think.  */
+  if (f == dpyinfo->last_mouse_motion_frame)
+    dpyinfo->last_mouse_motion_frame = NULL;
+  if (f == dpyinfo->last_mouse_frame)
+    dpyinfo->last_mouse_frame = NULL;
 
 #ifdef HAVE_XINPUT2
   /* Consider a frame being unfocused with no following FocusIn event
@@ -29997,7 +30244,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     {
       static char const at[] = " at ";
       ptrdiff_t nbytes = sizeof (title) + sizeof (at);
-      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+      if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
 	memory_full (SIZE_MAX);
       dpyinfo->x_id_name = xmalloc (nbytes);
       sprintf (dpyinfo->x_id_name, "%s%s%s", title, at, SDATA (system_name));
@@ -30567,15 +30814,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
 #if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
-  dpyinfo->fixes_pointer_blanking = egetenv ("EMACS_XFIXES");
-#endif
-
-#ifdef HAVE_X_I18N
-  /* Avoid initializing input methods if the X library does not
-     support Emacs's locale.  When the current locale is not
-     supported, decoding input method strings becomes undefined.  */
-  if (XSupportsLocale ())
-    xim_initialize (dpyinfo, resource_name);
+  dpyinfo->fixes_pointer_blanking = (egetenv ("EMACS_XFIXES") != NULL);
 #endif
 
   xsettings_initialize (dpyinfo);
@@ -30636,25 +30875,33 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       XSynchronize (dpyinfo->display, True);
   }
 
+#ifdef HAVE_X_I18N
   {
     AUTO_STRING (useXIM, "useXIM");
     AUTO_STRING (UseXIM, "UseXIM");
     Lisp_Object value = gui_display_get_resource (dpyinfo, useXIM, UseXIM,
                                                   Qnil, Qnil);
+
+    /* `USE_XIM' controls whether Emacs should use X input methods by
+       default, not whether or not XIM is available.  */
+
 #ifdef USE_XIM
+    dpyinfo->use_xim = true;
+
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "false")
 	    || !strcmp (SSDATA (value), "off")))
-      use_xim = false;
-#else
+      dpyinfo->use_xim = false;
+#else /* !USE_XIM */
+    dpyinfo->use_xim = false;
+
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
-      use_xim = true;
-#endif
+      dpyinfo->use_xim = true;
+#endif /* USE_XIM */
   }
 
-#ifdef HAVE_X_I18N
   {
     AUTO_STRING (inputStyle, "inputStyle");
     AUTO_STRING (InputStyle, "InputStyle");
@@ -30676,10 +30923,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef USE_GTK
 	else if (!strcmp (SSDATA (value), "native"))
 	  dpyinfo->prefer_native_input = true;
-#endif
+#endif /* HAVE_GTK */
       }
   }
-#endif
+
+  /* Now that defaults have been set up, initialize input method
+     support.  */
+
+  /* Avoid initializing input methods if the X library does not
+     support Emacs's locale.  When the current locale is not
+     supported, decoding input method strings becomes undefined.  */
+  if (XSupportsLocale ())
+    xim_initialize (dpyinfo, resource_name);
+#endif /* HAVE_X_I18N */
 
 #ifdef HAVE_X_SM
   /* Only do this for the very first display in the Emacs session.
@@ -31072,14 +31328,22 @@ x_delete_terminal (struct terminal *terminal)
 #ifdef HAVE_X_I18N
   /* We must close our connection to the XIM server before closing the
      X display.  */
-  if (dpyinfo->xim)
-    xim_close_dpy (dpyinfo);
+  xim_close_dpy (dpyinfo);
 #endif
+
+  /* Destroy all bitmap images created on the display.  */
+  image_destroy_all_bitmaps (dpyinfo);
+
+  /* Free the storage allocated to hold bitmap records.  */
+  xfree (dpyinfo->bitmaps);
+
+  /* In case someone decides to use `bitmaps' again... */
+  dpyinfo->bitmaps = NULL;
+  dpyinfo->bitmaps_last = 0;
 
   /* Normally, the display is available...  */
   if (dpyinfo->display)
     {
-      image_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
       /* Delete the scratch cursor GC, should it exist.  */
@@ -31327,7 +31591,37 @@ x_initialize (void)
   XSetIOErrorHandler (x_io_error_quitter);
 }
 
-#ifdef USE_GTK
+#ifdef HAVE_X_I18N
+
+/* Notice that a change has occured on F that requires its input
+   method state to be reset.  */
+
+static void
+x_reset_conversion (struct frame *f)
+{
+  char *string;
+
+  if (FRAME_XIC (f))
+    {
+      string = XmbResetIC (FRAME_XIC (f));
+
+      /* string is actually any string that was being composed at the
+	 time of the reset.  */
+
+      if (string)
+	XFree (string);
+    }
+}
+
+/* Interface used to control input method ``text conversion''.  */
+
+static struct textconv_interface text_conversion_interface =
+  {
+    x_reset_conversion,
+  };
+
+#endif
+
 void
 init_xterm (void)
 {
@@ -31341,8 +31635,11 @@ init_xterm (void)
   gdk_disable_multidevice ();
 #endif
 #endif
-}
+
+#ifdef HAVE_X_I18N
+  register_texconv_interface (&text_conversion_interface);
 #endif
+}
 
 void
 mark_xterm (void)

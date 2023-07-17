@@ -1,6 +1,6 @@
 ;;; yenc.el --- elisp native yenc decoder  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Jesper Harder <harder@ifa.au.dk>
 ;; Keywords: yenc news
@@ -111,8 +111,8 @@
 		  (message "Warning: Size mismatch while decoding."))
 		(goto-char start)
 		(delete-region start end)
-		(insert-buffer-substring work-buffer))))
-	  (and work-buffer (kill-buffer work-buffer))))))
+		(insert-buffer-substring work-buffer)))))
+      (and work-buffer (kill-buffer work-buffer)))))
 
 ;;;###autoload
 (defun yenc-extract-filename ()

@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1989-1992, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: emacs-devel@gnu.org

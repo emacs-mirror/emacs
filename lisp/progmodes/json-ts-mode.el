@@ -1,6 +1,6 @@
 ;;; json-ts-mode.el --- tree-sitter support for JSON  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -101,7 +101,7 @@
    :language 'json
    :feature 'pair
    :override t ; Needed for overriding string face on keys.
-   '((pair key: (_) @font-lock-variable-name-face))
+   '((pair key: (_) @font-lock-property-use-face))
    :language 'json
    :feature 'error
    :override t
@@ -147,6 +147,8 @@ Return nil if there is no name or if NODE is not a defun node."
               (rx (or "pair" "object")))
   (setq-local treesit-defun-name-function #'json-ts-mode--defun-name)
 
+  (setq-local treesit-sentence-type-regexp "pair")
+
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
@@ -159,6 +161,10 @@ Return nil if there is no name or if NODE is not a defun node."
               '((nil "\\`pair\\'" nil nil)))
 
   (treesit-major-mode-setup))
+
+(if (treesit-ready-p 'json)
+    (add-to-list 'auto-mode-alist
+                 '("\\.json\\'" . json-ts-mode)))
 
 (provide 'json-ts-mode)
 

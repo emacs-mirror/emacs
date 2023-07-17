@@ -124,7 +124,7 @@ gl_cv_func_pthread_sigmask_return_works=yes
 gl_cv_func_pthread_sigmask_unblock_works="not relevant"
 gl_cv_func_pthread_sigmask_macro=no
 # Implemented in w32proc.c
-emacs_cv_langinfo_codeset=yes
+am_cv_langinfo_codeset=yes
 emacs_cv_langinfo__nl_paper_width=yes
 # Declared in ms-w32.h
 ac_cv_have_decl_alarm=yes
@@ -170,3 +170,6 @@ gl_cv_func_free_preserves_errno=yes
 # Don't build the Gnulib nanosleep module: it requires W2K or later,
 # and MinGW does have nanosleep.
 gl_cv_func_nanosleep=yes
+# Suppress configure-time diagnostic from unnecessary libxattr check,
+# as xattr will not be supported here.
+enable_xattr=no

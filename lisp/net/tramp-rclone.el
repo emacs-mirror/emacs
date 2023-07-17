@@ -1,6 +1,6 @@
 ;;; tramp-rclone.el --- Tramp access functions to cloud storages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -95,6 +95,7 @@
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-fuse-handle-file-executable-p)
     (file-exists-p . tramp-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -118,6 +119,7 @@
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-rclone-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -224,6 +226,7 @@ file names."
 
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname))
+	  (equal-remote (tramp-equal-remote filename newname))
 	  (rclone-operation (if (eq op 'copy) "copyto" "moveto"))
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
@@ -234,8 +237,12 @@ file names."
 	  (when (and (file-directory-p newname)
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
+	  (when (file-regular-p newname)
+	    (delete-file newname))
 
-	  (if (or (and t1 (not (tramp-rclone-file-name-p filename)))
+	  (if (or (and equal-remote
+		       (tramp-get-connection-property v "direct-copy-failed"))
+		  (and t1 (not (tramp-rclone-file-name-p filename)))
 		  (and t2 (not (tramp-rclone-file-name-p newname))))
 
 	      ;; We cannot copy or rename directly.
@@ -255,9 +262,20 @@ file names."
 			v rclone-operation
 			(tramp-rclone-remote-file-name filename)
 			(tramp-rclone-remote-file-name newname)))
-		(tramp-error
-		 v 'file-error
-		 "Error %s `%s' `%s'" msg-operation filename newname)))
+		(if (or (not equal-remote)
+			(and equal-remote
+			     (tramp-get-connection-property
+			      v "direct-copy-failed")))
+		    (tramp-error
+		     v 'file-error
+		     "Error %s `%s' `%s'" msg-operation filename newname)
+
+		  ;; Some WebDAV server, like the one from QNAP, do
+		  ;; not support direct copy/move.  Try a fallback.
+		  (tramp-set-connection-property v "direct-copy-failed" t)
+		  (tramp-rclone-do-copy-or-rename-file
+		   op filename newname ok-if-already-exists keep-date
+		   preserve-uid-gid preserve-extended-attributes))))
 
 	    (when (and t1 (eq op 'rename))
 	      (while (file-exists-p filename)
@@ -298,25 +316,25 @@ file names."
       (setq filename (file-name-directory filename)))
     (with-parsed-tramp-file-name (expand-file-name filename) nil
       (tramp-message v 5 "file system info: %s" localname)
-      (tramp-rclone-send-command v "about" (concat host ":"))
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(let (total used free)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (when (looking-at (rx "Total: " (+ blank) (group (+ digit))))
-	      (setq total (string-to-number (match-string 1))))
-	    (when (looking-at (rx "Used: " (+ blank) (group (+ digit))))
-	      (setq used (string-to-number (match-string 1))))
-	    (when (looking-at (rx "Free: " (+ blank) (group (+ digit))))
-	      (setq free (string-to-number (match-string 1))))
-	    (forward-line))
-	  (when used
-	    ;; The used number of bytes is not part of the result.  As
-	    ;; side effect, we store it as file property.
-	    (tramp-set-file-property v localname "used-bytes" used))
-	  ;; Result.
-	  (when (and total free)
-	    (list total free (- total free))))))))
+      (when (zerop (tramp-rclone-send-command v "about" (concat host ":")))
+        (with-current-buffer (tramp-get-connection-buffer v)
+	  (let (total used free)
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (when (looking-at (rx "Total: " (+ blank) (group (+ digit))))
+	        (setq total (string-to-number (match-string 1))))
+	      (when (looking-at (rx "Used: " (+ blank) (group (+ digit))))
+	        (setq used (string-to-number (match-string 1))))
+	      (when (looking-at (rx "Free: " (+ blank) (group (+ digit))))
+	        (setq free (string-to-number (match-string 1))))
+	      (forward-line))
+	    (when used
+	      ;; The used number of bytes is not part of the result.
+	      ;; As side effect, we store it as file property.
+	      (tramp-set-file-property v localname "used-bytes" used))
+	    ;; Result.
+	    (when (and total free)
+	      (list total free (- total free)))))))))
 
 (defun tramp-rclone-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -337,7 +355,7 @@ file names."
 
 (defun tramp-rclone-remote-file-name (filename)
   "Return FILENAME as used in the `rclone' command."
-  (setq filename (tramp-compat-file-name-unquote (expand-file-name filename)))
+  (setq filename (file-name-unquote (expand-file-name filename)))
   (if (tramp-rclone-file-name-p filename)
       (with-parsed-tramp-file-name filename nil
 	;; As long as we call `tramp-rclone-maybe-open-connection' here,
@@ -361,7 +379,7 @@ connection if a previous connection has died for some reason."
 
   (let ((host (tramp-file-name-host vec)))
     (when (rassoc `(,host) (tramp-rclone-parse-device-names nil))
-      (if (zerop (length host))
+      (if (tramp-string-empty-or-nil-p host)
 	  (tramp-error vec 'file-error "Storage %s not connected" host))
       ;; We need a process bound to the connection buffer.  Therefore,
       ;; we create a dummy process.  Maybe there is a better solution?
@@ -370,8 +388,7 @@ connection if a previous connection has died for some reason."
 		  :name (tramp-get-connection-name vec)
 		  :buffer (tramp-get-connection-buffer vec)
 		  :server t :host 'local :service t :noquery t)))
-	  (process-put p 'vector vec)
-	  (set-process-query-on-exit-flag p nil)
+	  (tramp-post-process-creation p vec)
 
 	  ;; Set connection-local variables.
 	  (tramp-set-connection-local-variables vec)))

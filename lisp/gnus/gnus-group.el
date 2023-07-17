@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -4195,7 +4195,8 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	  (let ((info (gnus-get-info group))
 		(active (gnus-active group)))
 	    (when info
-	      (gnus-request-update-info info method))
+              (gnus-request-update-info info method)
+              (setq active (gnus-active group)))
 	    (gnus-get-unread-articles-in-group info active)
 	    (unless (gnus-virtual-group-p group)
 	      (gnus-close-group group))

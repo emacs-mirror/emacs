@@ -1,6 +1,6 @@
 ;;; gnus-vm.el --- vm interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Persson <pp@gnu.ai.mit.edu>
 ;; Keywords: news, mail

@@ -1,6 +1,6 @@
 ;;; cus-test.el --- tests for custom types and load problems  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998, 2000, 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Markus Rost <rost@math.uni-bielefeld.de>
 ;; Created: 13 Sep 1998
@@ -221,8 +221,6 @@ The detected problematic options are stored in `cus-test-errors'."
 
 	   ;; Check the values
 	   (mapc (lambda (value)
-		   ;; TODO for booleans, check for values that can be
-		   ;; evaluated and are not t or nil.  Usually a bug.
 		   (unless (widget-apply conv :match value)
                      (let ((err (list symbol :type-error value type)))
                        (unless (member err cus-test-errors)

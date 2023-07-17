@@ -1,5 +1,5 @@
-# nproc.m4 serial 5
-dnl Copyright (C) 2009-2022 Free Software Foundation, Inc.
+# nproc.m4 serial 6
+dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -25,8 +25,8 @@ AC_DEFUN([gl_PREREQ_NPROC],
      #endif
     ])
 
-  AC_CHECK_FUNCS([sched_getaffinity sched_getaffinity_np \
-                  pstat_getdynamic sysmp sysctl])
+  AC_CHECK_FUNCS([sched_getaffinity_np pstat_getdynamic sysmp sysctl])
+  gl_CHECK_FUNCS_ANDROID([sched_getaffinity], [[#include <sched.h>]])
 
   dnl Test whether sched_getaffinity has the expected declaration.
   dnl glibc 2.3.[0-2]:

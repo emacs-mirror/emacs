@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2022 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2023 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -926,7 +926,7 @@ Print the contents of $ as an Emacs Lisp cons.
 end
 
 define nextcons
-  p $.u.cdr
+  p $.u.s.u.cdr
   xcons
 end
 document nextcons

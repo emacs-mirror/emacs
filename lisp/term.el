@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2022 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -948,6 +948,9 @@ underlying shell."
     (define-key map [next] 'term-send-next)
     (define-key map [xterm-paste] #'term--xterm-paste)
     (define-key map [?\C-/] #'term-send-C-_)
+    (define-key map [?\C- ] #'term-send-C-@)
+    (define-key map [?\C-\M-/] #'term-send-C-M-_)
+    (define-key map [?\C-\M- ] #'term-send-C-M-@)
 
     (when term-bind-function-keys
       (dotimes (key 21)
@@ -1370,9 +1373,14 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (setq this-command 'yank)
   (mouse-set-point click)
-  (term-send-raw-string (gui-get-primary-selection)))
+  ;; As we have moved point, bind `select-active-regions' to prevent
+  ;; the `deactivate-mark' call in `term-send-raw-string' from
+  ;; changing the primary selection (resulting in consecutive calls to
+  ;; `term-mouse-paste' each sending different text). (bug#58608).
+  ;; FIXME: Why does this command change point at all?
+  (let ((select-active-regions nil))
+    (term-send-raw-string (gui-get-primary-selection))))
 
 (defun term-paste ()
   "Insert the last stretch of killed text at point."
@@ -1406,6 +1414,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-send-del   () (interactive) (term-send-raw-string "\e[3~"))
 (defun term-send-backspace  () (interactive) (term-send-raw-string "\C-?"))
 (defun term-send-C-_  () (interactive) (term-send-raw-string "\C-_"))
+(defun term-send-C-@  () (interactive) (term-send-raw-string "\C-@"))
+(defun term-send-C-M-_  () (interactive) (term-send-raw-string "\e\C-_"))
+(defun term-send-C-M-@  () (interactive) (term-send-raw-string "\e\C-@"))
 
 (defun term-send-function-key ()
   "If bound to a function key, this will send that key to the underlying shell."

@@ -1,6 +1,6 @@
 ;;; ox-texinfo.el --- Texinfo Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 ;; Author: Jonathan Leech-Pepin <jonathan.leechpepin at gmail dot com>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -31,6 +31,8 @@
 
 (require 'cl-lib)
 (require 'ox)
+
+(eval-when-compile (require 'subr-x))
 
 (defvar orgtbl-exp-regexp)
 (defvar org-texinfo-supports-math--cache)
@@ -2025,18 +2027,23 @@ Once computed, the results remain cached."
   (unless (boundp 'org-texinfo-supports-math--cache)
     (setq org-texinfo-supports-math--cache
           (let ((math-example "1 + 1 = 2"))
-            (let* ((input-file
-                    (make-temp-file "test" nil ".info"))
-                   (input-content
-                    (concat (format "@setfilename %s" input-file) "\n"
-                            "@node Top" "\n"
-                            (format "@displaymath{%s}" math-example) "\n")))
+            (let* ((input-file (make-temp-file "test" nil ".info"))
+                   (input-content (string-join
+                                   (list (format "@setfilename %s" input-file)
+                                         "@node Top"
+                                         "@displaymath"
+                                         math-example
+                                         "@end displaymath")
+                                   "\n")))
               (with-temp-file input-file
                 (insert input-content))
-              (let* ((output-file (org-texinfo-compile input-file))
-                     (output-content (with-temp-buffer
-                                       (insert-file-contents output-file)
-                                       (buffer-string))))
+              (when-let* ((output-file
+                           ;; If compilation fails, consider math to
+                           ;; be not supported.
+                           (ignore-errors (org-texinfo-compile input-file)))
+                          (output-content (with-temp-buffer
+                                            (insert-file-contents output-file)
+                                            (buffer-string))))
                 (let ((result (string-match-p (regexp-quote math-example)
                                               output-content)))
                   (delete-file input-file)

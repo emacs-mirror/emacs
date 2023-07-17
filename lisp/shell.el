@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2022 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1997, 2000-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -346,10 +346,10 @@ undefined commands."
   "List of directories saved by pushd in this buffer's shell.
 Thus, this does not include the shell's current directory.")
 
-(defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
-
-(defvar shell-dirtrackp t
-  "Non-nil in a shell buffer means directory tracking is enabled.")
+(defvaralias 'shell-dirtrackp 'shell-dirtrack-mode
+  "Non-nil in a shell buffer means directory tracking is enabled.
+Directory tracking (`shell-dirtrack-mode') is automatically enabled
+when `shell-mode' is activated.")
 
 (defvar shell-last-dir nil
   "Keep track of last directory for ksh `cd -' command.")
@@ -365,6 +365,12 @@ Useful for shells like zsh that has this feature."
   :type 'boolean
   :group 'shell-directories
   :version "28.1")
+
+(defcustom shell-get-old-input-include-continuation-lines nil
+  "Whether `shell-get-old-input' includes \"\\\" lines."
+  :type 'boolean
+  :group 'shell
+  :version "30.1")
 
 (defcustom shell-kill-buffer-on-exit nil
   "Kill a shell buffer after the shell process terminates."
@@ -506,6 +512,39 @@ Useful for shells like zsh that has this feature."
           (push (mapconcat #'identity (nreverse arg) "") args)))
       (cons (nreverse args) (nreverse begins)))))
 
+(defun shell-get-old-input ()
+  "Default for `comint-get-old-input' in `shell-mode'.
+If `comint-use-prompt-regexp' is nil, then either
+return the current input field (if point is on an input field), or the
+current line (if point is on an output field).
+If `comint-use-prompt-regexp' is non-nil, then return
+the current line, with any initial string matching the regexp
+`comint-prompt-regexp' removed.
+In either case, if `shell-get-old-input-include-continuation-lines'
+is non-nil and the current line ends with a backslash, the next
+line is also included and examined for a backslash, ending with a
+final line without a backslash."
+  (let (field-prop bof)
+    (if (and (not comint-use-prompt-regexp)
+             ;; Make sure we're in an input rather than output field.
+             (not (setq field-prop (get-char-property
+                                    (setq bof (field-beginning)) 'field))))
+        (field-string-no-properties bof)
+      (comint-bol)
+      (let ((start (point)))
+        (cond ((or comint-use-prompt-regexp
+                   (eq field-prop 'output))
+               (goto-char (line-end-position))
+               (when shell-get-old-input-include-continuation-lines
+                 ;; Include continuation lines as long as the current
+                 ;; line ends with a backslash.
+                 (while (and (not (eobp))
+                             (= (char-before) ?\\))
+                   (goto-char (line-end-position 2)))))
+              (t
+               (goto-char (field-end))))
+        (buffer-substring-no-properties start (point))))))
+
 ;;;###autoload
 (defun split-string-shell-command (string)
   "Split STRING (a shell command) into a list of strings.
@@ -642,6 +681,7 @@ command."
   (setq-local font-lock-defaults '(shell-font-lock-keywords t))
   (setq-local shell-dirstack nil)
   (setq-local shell-last-dir nil)
+  (setq-local comint-get-old-input #'shell-get-old-input)
   ;; People expect Shell mode to keep the last line of output at
   ;; window bottom.
   (setq-local scroll-conservatively 101)
@@ -957,6 +997,21 @@ Make the shell buffer the current buffer, and return it.
 ;; replace it with a process filter that watches for and strips out
 ;; these messages.
 
+(define-minor-mode shell-dirtrack-mode
+  "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
+This assigns a buffer-local non-nil value to `shell-dirtrackp'.
+
+The `dirtrack' package provides an alternative implementation of
+this feature; see the function `dirtrack-mode'.  Also see
+`comint-osc-directory-tracker' for an escape-sequence based
+solution."
+  :lighter nil
+  :interactive (shell-mode)
+  (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
+  (if shell-dirtrack-mode
+      (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
+    (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
+
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.
 This function is called on each input passed to the shell.
@@ -973,7 +1028,7 @@ and  `shell-popd-regexp', while `shell-pushd-tohome', `shell-pushd-dextract',
 and `shell-pushd-dunique' control the behavior of the relevant command.
 
 Environment variables are expanded, see function `substitute-in-file-name'."
-  (if shell-dirtrackp
+  (if shell-dirtrack-mode
       ;; We fail gracefully if we think the command will fail in the shell.
 ;;;      (with-demoted-errors "Directory tracker failure: %s"
       ;; This fails so often that it seems better to just ignore errors (?).
@@ -1127,23 +1182,10 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (and (string-match "^\\+[1-9][0-9]*$" str)
        (string-to-number str)))
 
-(define-minor-mode shell-dirtrack-mode
-  "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
-
-The `dirtrack' package provides an alternative implementation of
-this feature; see the function `dirtrack-mode'.  Also see
-`comint-osc-directory-tracker' for an escape-sequence based
-solution."
-  :lighter nil
-  (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
-  (if shell-dirtrack-mode
-      (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
-    (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
-
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
   (cd dir)
-  (if shell-dirtrackp
+  (if shell-dirtrack-mode
       (setq list-buffers-directory default-directory)))
 
 (defun shell-resync-dirs ()

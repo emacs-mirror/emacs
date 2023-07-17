@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -1399,9 +1399,8 @@ for determining whether point is within a selector."
 
    :feature 'query
    :language 'css
-   '((keyword_query) @font-lock-property-face
-     (feature_name) @font-lock-property-face)
-
+   '((keyword_query) @font-lock-property-use-face
+     (feature_name) @font-lock-property-use-face)
 
    :feature 'bracket
    :language 'css
@@ -1827,7 +1826,9 @@ can also be used to fill comments.
     (setq-local treesit-simple-imenu-settings
                 `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
                     nil nil)))
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+    (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
 
 ;;;###autoload
 (define-derived-mode css-mode css-base-mode "CSS"

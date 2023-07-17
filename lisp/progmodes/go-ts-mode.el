@@ -1,6 +1,6 @@
 ;;; go-ts-mode.el --- tree-sitter support for Go  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -35,9 +35,11 @@
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
 
-(defcustom go-ts-mode-indent-offset 4
+(defcustom go-ts-mode-indent-offset 8
   "Number of spaces for each indentation step in `go-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -57,6 +59,7 @@
     (modify-syntax-entry ?<   "."      table)
     (modify-syntax-entry ?>   "."      table)
     (modify-syntax-entry ?\\  "\\"     table)
+    (modify-syntax-entry ?\'  "\""     table)
     (modify-syntax-entry ?/   ". 124b" table)
     (modify-syntax-entry ?*   ". 23"   table)
     (modify-syntax-entry ?\n  "> b"    table)
@@ -65,21 +68,30 @@
 
 (defvar go-ts-mode--indent-rules
   `((go
+     ((parent-is "source_file") column-0 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") parent-bol 0)
-     ((node-is "labeled_statement") no-indent)
+     ((node-is "labeled_statement") no-indent 0)
+     ((parent-is "raw_string_literal") no-indent 0)
      ((parent-is "argument_list") parent-bol go-ts-mode-indent-offset)
      ((parent-is "block") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "communication_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "const_declaration") parent-bol go-ts-mode-indent-offset)
      ((parent-is "default_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "expression_case") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "selector_expression") parent-bol go-ts-mode-indent-offset)
      ((parent-is "expression_switch_statement") parent-bol 0)
      ((parent-is "field_declaration_list") parent-bol go-ts-mode-indent-offset)
      ((parent-is "import_spec_list") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "interface_type") parent-bol go-ts-mode-indent-offset)
      ((parent-is "labeled_statement") parent-bol go-ts-mode-indent-offset)
      ((parent-is "literal_value") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "parameter_list") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "select_statement") parent-bol 0)
+     ((parent-is "type_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "type_spec") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "type_switch_statement") parent-bol 0)
      ((parent-is "var_declaration") parent-bol go-ts-mode-indent-offset)
      (no-node parent-bol 0)))
   "Tree-sitter indent rules for `go-ts-mode'.")
@@ -96,6 +108,11 @@
     ">>" "%=" ">>=" "--" "!"  "..."  "&^" "&^=" "~")
   "Go operators for tree-sitter font-locking.")
 
+(defun go-ts-mode--iota-query-supported-p ()
+  "Return t if the iota query is supported by the tree-sitter-go grammar."
+  (ignore-errors
+    (or (treesit-query-string "" '((iota) @font-lock-constant-face) 'go) t)))
+
 (defvar go-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'go
@@ -108,7 +125,9 @@
 
    :language 'go
    :feature 'constant
-   '([(false) (iota) (nil) (true)] @font-lock-constant-face
+   `([(false) (nil) (true)] @font-lock-constant-face
+     ,@(when (go-ts-mode--iota-query-supported-p)
+         '((iota) @font-lock-constant-face))
      (const_declaration
       (const_spec name: (identifier) @font-lock-constant-face)))
 
@@ -117,16 +136,31 @@
    '((["," "." ";" ":"]) @font-lock-delimiter-face)
 
    :language 'go
-   :feature 'function
-   '((call_expression
-      function: (identifier) @font-lock-function-name-face)
-     (call_expression
-      function: (selector_expression
-                 field: (field_identifier) @font-lock-function-name-face))
-     (function_declaration
+   :feature 'definition
+   '((function_declaration
       name: (identifier) @font-lock-function-name-face)
      (method_declaration
-      name: (field_identifier) @font-lock-function-name-face))
+      name: (field_identifier) @font-lock-function-name-face)
+     (method_spec
+      name: (field_identifier) @font-lock-function-name-face)
+     (field_declaration
+      name: (field_identifier) @font-lock-property-name-face)
+     (parameter_declaration
+      name: (identifier) @font-lock-variable-name-face)
+     (short_var_declaration
+      left: (expression_list
+             (identifier) @font-lock-variable-name-face
+             ("," (identifier) @font-lock-variable-name-face)*))
+     (var_spec name: (identifier) @font-lock-variable-name-face
+               ("," name: (identifier) @font-lock-variable-name-face)*))
+
+   :language 'go
+   :feature 'function
+   '((call_expression
+      function: (identifier) @font-lock-function-call-face)
+     (call_expression
+      function: (selector_expression
+                 field: (field_identifier) @font-lock-function-call-face)))
 
    :language 'go
    :feature 'keyword
@@ -153,8 +187,13 @@
    '([(package_identifier) (type_identifier)] @font-lock-type-face)
 
    :language 'go
+   :feature 'property
+   '((selector_expression field: (field_identifier) @font-lock-property-use-face)
+     (keyed_element (_ (identifier) @font-lock-property-use-face)))
+
+   :language 'go
    :feature 'variable
-   '((identifier) @font-lock-variable-name-face)
+   '((identifier) @font-lock-variable-use-face)
 
    :language 'go
    :feature 'escape-sequence
@@ -162,61 +201,21 @@
    '((escape_sequence) @font-lock-escape-face)
 
    :language 'go
-   :feature 'property
-   :override t
-   '((field_identifier) @font-lock-property-face
-     (keyed_element (_ (identifier) @font-lock-property-face)))
-
-   :language 'go
    :feature 'error
    :override t
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `go-ts-mode'.")
 
-(defun go-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (func-tree (treesit-induce-sparse-tree
-                     node "function_declaration" nil 1000))
-         (type-tree (treesit-induce-sparse-tree
-                     node "type_spec" nil 1000))
-         (func-index (go-ts-mode--imenu-1 func-tree))
-         (type-index (go-ts-mode--imenu-1 type-tree)))
-    (append
-     (when func-index `(("Function" . ,func-index)))
-     (when type-index `(("Type" . ,type-index))))))
-
-(defun go-ts-mode--imenu-1 (node)
-  "Helper for `go-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (children (cdr node))
-         (subtrees (mapcan #'go-ts-mode--imenu-1
-                           children))
-         (name (when ts-node
-                 (treesit-node-text
-                  (pcase (treesit-node-type ts-node)
-                    ("function_declaration"
-                     (treesit-node-child-by-field-name ts-node "name"))
-                    ("type_spec"
-                     (treesit-node-child-by-field-name ts-node "name"))))))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+(defvar-keymap go-ts-mode-map
+  :doc "Keymap used in Go mode, powered by tree-sitter"
+  :parent prog-mode-map
+  "C-c C-d" #'go-ts-mode-docstring)
 
 ;;;###autoload
 (define-derived-mode go-ts-mode prog-mode "Go"
-  "Major mode for editing Go, powered by tree-sitter."
+  "Major mode for editing Go, powered by tree-sitter.
+
+\\{go-ts-mode-map}"
   :group 'go
   :syntax-table go-ts-mode--syntax-table
 
@@ -228,24 +227,116 @@ the subtrees."
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "//" (* (syntax whitespace))))
 
+    ;; Navigation.
+    (setq-local treesit-defun-type-regexp
+                (regexp-opt '("method_declaration"
+                              "function_declaration"
+                              "type_declaration")))
+    (setq-local treesit-defun-name-function #'go-ts-mode--defun-name)
+
     ;; Imenu.
-    (setq-local imenu-create-index-function #'go-ts-mode--imenu)
-    (setq-local which-func-functions nil)
+    (setq-local treesit-simple-imenu-settings
+                `(("Function" "\\`function_declaration\\'" nil nil)
+                  ("Method" "\\`method_declaration\\'" nil nil)
+                  ("Struct" "\\`type_declaration\\'" go-ts-mode--struct-node-p nil)
+                  ("Interface" "\\`type_declaration\\'" go-ts-mode--interface-node-p nil)
+                  ("Type" "\\`type_declaration\\'" go-ts-mode--other-type-node-p nil)
+                  ("Alias" "\\`type_declaration\\'" go-ts-mode--alias-node-p nil)))
 
     ;; Indent.
     (setq-local indent-tabs-mode t
                 treesit-simple-indent-rules go-ts-mode--indent-rules)
 
+    ;; Electric
+    (setq-local electric-indent-chars
+                (append "{}()" electric-indent-chars))
+
     ;; Font-lock.
     (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment)
+                '(( comment definition)
                   ( keyword string type)
-                  ( constant escape-sequence function label number
-                    property variable)
-                  ( bracket delimiter error operator)))
+                  ( constant escape-sequence label number)
+                  ( bracket delimiter error function operator property variable)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'go)
+    (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
+
+(defun go-ts-mode--defun-name (node &optional skip-prefix)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node.
+Methods are prefixed with the receiver name, unless SKIP-PREFIX is t."
+  (pcase (treesit-node-type node)
+    ("function_declaration"
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "name")
+      t))
+    ("method_declaration"
+     (let* ((receiver-node (treesit-node-child-by-field-name node "receiver"))
+            (receiver (treesit-node-text (treesit-search-subtree receiver-node "type_identifier")))
+            (method (treesit-node-text (treesit-node-child-by-field-name node "name"))))
+       (if skip-prefix method
+         (concat "(" receiver ")." method))))
+    ("type_declaration"
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       (treesit-node-child node 0 t) "name")
+      t))))
+
+(defun go-ts-mode--interface-node-p (node)
+  "Return t if NODE is an interface."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (treesit-search-subtree node "interface_type" nil nil 2)))
+
+(defun go-ts-mode--struct-node-p (node)
+  "Return t if NODE is a struct."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (treesit-search-subtree node "struct_type" nil nil 2)))
+
+(defun go-ts-mode--alias-node-p (node)
+  "Return t if NODE is a type alias."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (treesit-search-subtree node "type_alias" nil nil 1)))
+
+(defun go-ts-mode--other-type-node-p (node)
+  "Return t if NODE is a type other than interface, struct, or alias."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (not (go-ts-mode--interface-node-p node))
+   (not (go-ts-mode--struct-node-p node))
+   (not (go-ts-mode--alias-node-p node))))
+
+(defun go-ts-mode-docstring ()
+  "Add a docstring comment for the current defun.
+The added docstring is prefilled with the defun's name.  If the
+comment already exists, jump to it."
+  (interactive)
+  (when-let ((defun-node (treesit-defun-at-point)))
+    (goto-char (treesit-node-start defun-node))
+    (if (go-ts-mode--comment-on-previous-line-p)
+        ;; go to top comment line
+        (while (go-ts-mode--comment-on-previous-line-p)
+          (forward-line -1))
+      (insert "// " (go-ts-mode--defun-name defun-node t))
+      (newline)
+      (backward-char))))
+
+(defun go-ts-mode--comment-on-previous-line-p ()
+  "Return t if the previous line is a comment."
+  (when-let ((point (- (pos-bol) 1))
+             ((> point 0))
+             (node (treesit-node-at point)))
+    (and
+     ;; check point is actually inside the found node
+     ;; treesit-node-at can return nodes after point
+     (<= (treesit-node-start node) point (treesit-node-end node))
+     (string-equal "comment" (treesit-node-type node)))))
 
 ;; go.mod support.
 
@@ -269,7 +360,7 @@ the subtrees."
   "Tree-sitter indent rules for `go-mod-ts-mode'.")
 
 (defun go-mod-ts-mode--in-directive-p ()
-  "Return non-nil if inside a directive.
+  "Return non-nil if point is inside a directive.
 When entering an empty directive or adding a new entry to one, no node
 will be present meaning none of the indentation rules will match,
 because there is no parent to match against.  This function determines
@@ -319,9 +410,6 @@ what the parent of the node would be if it were a node."
   "Tree-sitter font-lock settings for `go-mod-ts-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
-
-;;;###autoload
 (define-derived-mode go-mod-ts-mode prog-mode "Go Mod"
   "Major mode for editing go.mod files, powered by tree-sitter."
   :group 'go
@@ -348,6 +436,9 @@ what the parent of the node would be if it were a node."
                   (bracket error operator)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'gomod)
+    (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
 
 (provide 'go-ts-mode)
 

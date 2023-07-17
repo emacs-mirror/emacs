@@ -1,6 +1,6 @@
 ;;; esh-module.el --- Eshell modules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2000, 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -47,6 +47,7 @@ customizing the variable `eshell-modules-list'."
   "A hook run when `eshell-module' is unloaded."
   :type 'hook
   :group 'eshell-module)
+(make-obsolete-variable 'eshell-module-unload-hook nil "30.1")
 
 (defcustom eshell-modules-list
   '(eshell-alias
@@ -85,20 +86,37 @@ Changes will only take effect in future Eshell buffers."
 
 ;;; Code:
 
+(defsubst eshell-module--feature-name (module &optional kind)
+  "Get the feature name for the specified Eshell MODULE."
+  (let ((module-name (symbol-name module))
+        (prefix (cond ((eq kind 'core) "esh-")
+                      ((memq kind '(extension nil)) "em-")
+                      (t (error "unknown module kind %s" kind)))))
+    (if (string-match "^eshell-\\(.*\\)" module-name)
+	(concat prefix (match-string 1 module-name))
+      (error "Invalid Eshell module name: %s" module))))
+
 (defsubst eshell-using-module (module)
   "Return non-nil if a certain Eshell MODULE is in use.
 The MODULE should be a symbol corresponding to that module's
 customization group.  Example: `eshell-cmpl' for that module."
   (memq module eshell-modules-list))
 
+(defun eshell-unload-modules (modules &optional kind)
+  "Try to unload the specified Eshell MODULES."
+  (dolist (module modules)
+    (let ((module-feature (intern (eshell-module--feature-name module kind))))
+      (when (featurep module-feature)
+	(message "Unloading %s..." (symbol-name module))
+        (condition-case-unless-debug _
+            (progn
+              (unload-feature module-feature)
+              (message "Unloading %s...done" (symbol-name module)))
+          (error (message "Unloading %s...failed" (symbol-name module))))))))
+
 (defun eshell-unload-extension-modules ()
-  "Unload any memory resident extension modules."
-  (dolist (module (eshell-subgroups 'eshell-module))
-    (if (featurep module)
-	(ignore-errors
-	  (message "Unloading %s..." (symbol-name module))
-	  (unload-feature module)
-	  (message "Unloading %s...done" (symbol-name module))))))
+  "Try to unload all currently-loaded Eshell extension modules."
+  (eshell-unload-modules (eshell-subgroups 'eshell-module)))
 
 (provide 'esh-module)
 ;;; esh-module.el ends here

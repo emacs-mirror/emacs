@@ -1,6 +1,6 @@
 ;;; unsafep.el --- Determine whether a Lisp form is safe to evaluate  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: safety lisp utility
@@ -237,7 +237,7 @@ Otherwise result is a reason code."
    ((eq (car-safe fun) 'lambda)
     (unsafep fun unsafep-vars))
    ((not (and (symbolp fun)
-	      (or (get fun 'side-effect-free)
+	      (or (function-get fun 'side-effect-free)
 		  (eq (get fun 'safe-function) t)
 		  (eq safe-functions t)
 		  (memq fun safe-functions))))

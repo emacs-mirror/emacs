@@ -1,6 +1,6 @@
 ;;; erc-truncate.el --- Functions for truncating ERC buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -50,9 +50,9 @@ This prevents the query buffer from getting too large, which can
 bring any grown Emacs to its knees after a few days worth of
 tracking heavy-traffic channels."
   ;;enable
-  ((add-hook 'erc-insert-post-hook #'erc-truncate-buffer))
+  ((add-hook 'erc-insert-done-hook #'erc-truncate-buffer))
   ;; disable
-  ((remove-hook 'erc-insert-post-hook #'erc-truncate-buffer)))
+  ((remove-hook 'erc-insert-done-hook #'erc-truncate-buffer)))
 
 ;;;###autoload
 (defun erc-truncate-buffer-to-size (size &optional buffer)
@@ -75,9 +75,11 @@ region is logged if `erc-logging-enabled' returns non-nil."
       (save-restriction
 	(widen)
 	(let ((end (- erc-insert-marker size)))
-	  ;; truncate at line boundaries
+          ;; Truncate at message boundary (formerly line boundary
+          ;; before 5.6).
 	  (goto-char end)
-	  (beginning-of-line)
+          (goto-char (or (previous-single-property-change (point) 'erc-command)
+                         (pos-bol)))
 	  (setq end (point))
 	  ;; try to save the current buffer using
 	  ;; `erc-save-buffer-in-logs'.  We use this, in case the
@@ -91,10 +93,7 @@ region is logged if `erc-logging-enabled' returns non-nil."
 	  ;; (not (memq 'erc-save-buffer-in-logs
 	  ;;             erc-insert-post-hook))
 	  ;; Comments?
-	  (when (and (boundp 'erc-enable-logging)
-		     erc-enable-logging
-		     (erc-logging-enabled buffer))
-	    (erc-save-buffer-in-logs))
+          (run-hook-with-args 'erc--pre-clear-functions end)
 	  ;; disable undoing for the truncating
 	  (buffer-disable-undo)
 	  (let ((inhibit-read-only t))
@@ -103,10 +102,10 @@ region is logged if `erc-logging-enabled' returns non-nil."
 
 ;;;###autoload
 (defun erc-truncate-buffer ()
-  "Truncates the current buffer to `erc-max-buffer-size'.
-Meant to be used in hooks, like `erc-insert-post-hook'."
+  "Truncate current buffer to `erc-max-buffer-size'."
   (interactive)
-  (erc-truncate-buffer-to-size erc-max-buffer-size))
+  (save-excursion
+    (erc-truncate-buffer-to-size erc-max-buffer-size)))
 
 (provide 'erc-truncate)
 ;;; erc-truncate.el ends here

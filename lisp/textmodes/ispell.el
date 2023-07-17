@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Ken Stevens <k.stevens@ieee.org>
 
@@ -214,12 +214,14 @@ Must be greater than 1."
 	((file-readable-p "/usr/share/lib/dict/words")
 	 "/usr/share/lib/dict/words")
 	((file-readable-p "/sys/dict") "/sys/dict"))
-  "Alternate plain word-list dictionary for spelling help."
+  "Alternate plain word-list dictionary for spelling help.
+This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-complete-word-dict nil
   "Plain word-list dictionary used for word completion if
-different from `ispell-alternate-dictionary'."
+different from `ispell-alternate-dictionary'.
+This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-message-dictionary-alist nil
@@ -318,7 +320,9 @@ window system by evaluating the following on startup to set this variable:
 ;;;###autoload
 (defcustom ispell-personal-dictionary nil
   "File name of your personal spelling dictionary, or nil.
-If nil, the default personal dictionary for your spelling checker is used."
+If nil, the default personal dictionary for your spelling checker is used.
+Due to a misfeature of Hunspell, if the value is an absolute file name, the
+file by that name must already exist for Hunspell to be able to use it."
   :type '(choice file
                  (const :tag "default" nil)))
 
@@ -1730,7 +1734,10 @@ If you specify a personal dictionary for the current buffer which is
 different from the current personal dictionary, the effect is similar
 to calling \\[ispell-change-dictionary].  This variable is automatically
 set when defined in the file with either `ispell-pdict-keyword' or the
-local variable syntax.")
+local variable syntax.
+
+Due to a misfeature of Hunspell, if the value is an absolute file name, the
+file by that name must already exist for Hunspell to be able to use it.")
 
 ;;;###autoload(put 'ispell-local-pdict 'safe-local-variable 'stringp)
 
@@ -2505,7 +2512,9 @@ Otherwise the variable `ispell-grep-command' contains the command
 
 Optional second argument contains the dictionary to use; the default is
 `ispell-alternate-dictionary', overridden by `ispell-complete-word-dict'
-if defined."
+if defined.  If none of LOOKUP-DICT, `ispell-alternate-dictionary',
+and `ispell-complete-word-dict' name an existing word-list file,
+this function signals an error."
   ;; We don't use the filter for this function, rather the result is written
   ;; into a buffer.  Hence there is no need to save the filter values.
   (if (null lookup-dict)
@@ -3680,7 +3689,12 @@ If APPEND is non-nil, don't erase previous debugging output."
 If optional INTERIOR-FRAG is non-nil, then the word may be a character
 sequence inside of a word.
 
-Standard ispell choices are then available."
+Standard ispell choices are then available.
+
+This command uses a word-list file specified
+by `ispell-alternate-dictionary' or by `ispell-complete-word-dict';
+if none of those name an existing word-list file, this command
+signals an error."
   ;; FIXME: completion-at-point-function.
   (interactive "P")
   (let ((case-fold-search-val case-fold-search)

@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
@@ -2192,14 +2192,17 @@ to add functions and PL/SQL keywords.")
 
      ;; Postgres Data Types
      (sql-font-lock-keywords-builder 'font-lock-type-face nil
-"bigint" "bigserial" "bit" "bool" "boolean" "box" "bytea" "char"
-"character" "cidr" "circle" "date" "decimal" "double" "float4"
-"float8" "inet" "int" "int2" "int4" "int8" "integer" "interval" "line"
-"lseg" "macaddr" "money" "name" "numeric" "path" "point" "polygon"
-"precision" "real" "serial" "serial4" "serial8" "sequences" "smallint" "text"
-"time" "timestamp" "timestamptz" "timetz" "tsquery" "tsvector"
-"txid_snapshot" "unknown" "uuid" "varbit" "varchar" "varying" "without"
-"xml" "zone"
+ "bigint" "bigserial" "bit" "bool" "boolean" "box" "bytea" "char" "character"
+"cidr" "circle" "date" "daterange" "decimal" "double" "float4" "float8" "inet"
+"int" "int2" "int4" "int4range" "int8" "int8range" "integer" "interval"
+"jsonb" "jsonpath" "line" "lseg" "macaddr" "macaddr8" "money" "name" "numeric"
+"numrange" "oid" "path" "point" "polygon" "precision" "real" "regclass"
+"regcollation" "regconfig" "regdictionary" "regnamespace " "regoper"
+"regoperator" "regproc" "regprocedure" "regrole" "regtype" "sequences"
+"serial" "serial4" "serial8" "smallint" "smallserial" "text" "time"
+"timestamp" "timestamptz" "timetz" "tsquery" "tsrange" "tstzrange" "tsvector"
+"txid_snapshot" "unknown" "uuid" "varbit" "varchar" "varying" "without" "xml"
+"zone"
 )))
 
   "Postgres SQL keywords used by font-lock.

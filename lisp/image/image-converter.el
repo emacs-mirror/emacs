@@ -1,6 +1,6 @@
 ;;; image-converter.el --- Converting images from exotic formats -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: images
@@ -38,9 +38,9 @@ If nil, Emacs will try to find one of the supported converters
 installed on the system.
 
 The actual range of image formats that will be converted depends
-on what image formats the chosen converter reports being able to
-handle.  `auto-mode-alist' is then used to further filter what
-formats that are to be supported: Only the suffixes that map to
+on the image formats which the chosen converter is able to
+handle.  `auto-mode-alist' is then used to further filter the
+formats that are to be supported: only the suffixes that map to
 `image-mode' will be handled."
   :group 'image
   :type 'symbol
@@ -48,16 +48,16 @@ formats that are to be supported: Only the suffixes that map to
 
 (defcustom image-convert-to-format "png"
   "The image format to convert to.
-This should be a string like \"png\" or \"ppm\" or some
+This should be a string like \"png\" or \"ppm\", or some
 other (preferably lossless) format that Emacs understands
-natively.  The converter chosen has to support the format, and if
-not, conversion will fail."
+natively.  The converter chosen has to support this format; if
+not, the conversion will fail."
   :group 'image
   :version "29.1"
   :type 'string)
 
 (defvar image-converter-regexp nil
-  "A regexp that matches the file name suffixes that can be converted.")
+  "A regexp that matches the file name suffixes which can be converted.")
 
 (defvar image-converter-file-name-extensions nil
   "A list of file name suffixes that can be converted.")
@@ -66,7 +66,7 @@ not, conversion will fail."
   '((graphicsmagick :command ("gm" "convert") :probe ("-list" "format"))
     (ffmpeg :command "ffmpeg" :probe "-decoders")
     (imagemagick :command "convert" :probe ("-list" "format")))
-  "List of supported image converters to try.")
+  "List of supported image converters to try and required command-line switches.")
 
 (defvar image-converter--extra-converters (make-hash-table :test #'equal))
 
@@ -80,8 +80,8 @@ This also determines which external formats we can parse."
   "Return `image-convert' if SOURCE is an image that can be converted.
 SOURCE can either be a file name or a string containing image
 data.  In the latter case, DATA-P should be non-nil.  If DATA-P
-is a string, it should be a MIME format string like
-\"image/gif\"."
+is a string, it should be a MIME format string specifying the image type,
+like \"image/gif\"."
   (image-converter-initialize)
   ;; When image-converter was customized
   (when (and image-converter (not image-converter-regexp))
@@ -101,22 +101,21 @@ is a string, it should be a MIME format string like
        'image-convert))
 
 (defun image-convert (image &optional image-format)
-  "Convert IMAGE file to an image format Emacs understands.
-This will usually be \"png\", but this is controlled by the
-`image-convert-to-format' user option.
+  "Convert IMAGE to an image format which Emacs understands.
+This will usually be \"png\", but is controlled by the value
+of the `image-convert-to-format' user option.
 
-IMAGE can either be a file name or image data.
-
-To pass in image data, IMAGE should a string containing the image
-data, and IMAGE-FORMAT should be a symbol with a MIME format name
-like \"image/webp\".  For instance:
+IMAGE can either be a file name, an image object returned
+by `create-image', or a string with image data.  In the latter
+case, IMAGE-FORMAT should be a symbol whose name is a MIME
+specification of image format, such as \"image/webp\".
+For instance:
 
   (image-convert data-string \\='image/bmp)
 
-IMAGE can also be an image object as returned by `create-image'.
-
-This function converts the image the preferred format, and the
-converted image data is returned as a string."
+This function converts the image to the preferred format, per
+the value of `image-convert-to-format', and returns the
+converted image data as a string."
   (image-converter-initialize)
   (unless image-converter
     (error "No external image converters available"))
@@ -152,14 +151,14 @@ converted image data is returned as a string."
       (buffer-string))))
 
 (defun image-converter--value (type elem)
-  "Return the value of ELEM of image converter TYPE."
+  "Return the value of property ELEM for image converter TYPE."
   (let ((value (plist-get (cdr (assq type image-converter--converters)) elem)))
     (if (stringp value)
         (list value)
       value)))
 
 (cl-defmethod image-converter--probe ((type (eql 'graphicsmagick)))
-  "Check whether the system has GraphicsMagick installed."
+  "Check whether the system has GraphicsMagick installed that's usable converter."
   (with-temp-buffer
     (let ((command (image-converter--value type :command))
           formats)
@@ -177,7 +176,7 @@ converted image data is returned as a string."
         (nreverse formats)))))
 
 (cl-defmethod image-converter--probe ((type (eql 'imagemagick)))
-  "Check whether the system has ImageMagick installed."
+  "Check whether the system has ImageMagick installed that's a usable converter."
   (with-temp-buffer
     (let ((command (image-converter--value type :command))
           formats)
@@ -197,7 +196,7 @@ converted image data is returned as a string."
       (nreverse formats))))
 
 (cl-defmethod image-converter--probe ((type (eql 'ffmpeg)))
-  "Check whether the system has ffmpeg installed."
+  "Check whether the system has ffmpeg installed that's a usable converter."
   (with-temp-buffer
     (let ((command (image-converter--value type :command))
           formats)
@@ -215,7 +214,7 @@ converted image data is returned as a string."
         (nreverse formats)))))
 
 (defun image-converter--find-converter ()
-  "Find an installed image converter."
+  "Find an installed image converter Emacs can use."
   (catch 'done
     (dolist (elem image-converter--converters)
       (when-let ((formats (image-converter--filter-formats
@@ -239,12 +238,12 @@ Only suffixes that map to `image-mode' are returned."
 
 (cl-defmethod image-converter--convert ((type (eql 'graphicsmagick)) source
                                         image-format)
-  "Convert using GraphicsMagick."
+  "Convert image in SOURCE using GraphicsMagick."
   (image-converter--convert-magick type source image-format))
 
 (cl-defmethod image-converter--convert ((type (eql 'imagemagick)) source
                                         image-format)
-  "Convert using ImageMagick."
+  "Convert image in SOURCE using ImageMagick."
   (image-converter--convert-magick type source image-format))
 
 (defun image-converter--mime-type (image-format)
@@ -281,7 +280,7 @@ Only suffixes that map to `image-mode' are returned."
 
 (cl-defmethod image-converter--convert ((type (eql 'ffmpeg)) source
                                         image-format)
-  "Convert using ffmpeg."
+  "Convert image in SOURCE using ffmpeg."
   (let ((command (image-converter--value type :command))
         (coding-system-for-read 'no-conversion))
     (unless (zerop (if image-format
@@ -308,12 +307,12 @@ Only suffixes that map to `image-mode' are returned."
 
 ;;;###autoload
 (defun image-converter-add-handler (suffix converter)
-  "Make Emacs use CONVERTER to parse image files that end with SUFFIX.
-CONVERTER is a function with two parameters, where the first is
-the file name or a string with the image data, and the second is
-non-nil if the first parameter is image data.  The converter
-should output the image in the current buffer, converted to
-`image-convert-to-format'."
+  "Make Emacs use CONVERTER to parse image files whose names end with SUFFIX.
+CONVERTER is a function with two arguments, the file name or a string
+with the image data, and a non-nil value if the first argument is image data.
+The converter should produce the image in the current buffer, converted to
+the format given by `image-convert-to-format'.
+SUFFIX should not include the leading dot."
   (cl-pushnew suffix image-converter-file-name-extensions :test #'equal)
   (setq image-converter-file-name-extensions
         (sort image-converter-file-name-extensions #'string<))

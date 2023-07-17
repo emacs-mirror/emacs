@@ -1,6 +1,6 @@
 ;;; esh-io-tests.el --- esh-io test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -320,8 +320,9 @@ stdout originally pointed (the terminal)."
 (ert-deftest esh-io-test/pipeline/subcommands ()
   "Chek that all commands in a subcommand are properly piped."
   (skip-unless (executable-find "rev"))
-  (eshell-command-result-equal "{echo foo; echo bar} | rev"
-                               "raboof"))
+  (with-temp-eshell
+   (eshell-match-command-output "{echo foo; echo bar} | rev"
+                                "\\`raboof\n?")))
 
 
 ;; Virtual targets

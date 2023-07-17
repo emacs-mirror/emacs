@@ -1,6 +1,6 @@
 ;;; ob-perl.el --- Babel Functions for Perl          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Authors: Dan Davison
 ;;	 Eric Schulte

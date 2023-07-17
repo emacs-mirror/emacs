@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for compile.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -382,6 +382,10 @@
     ;; sun-ada
     (sun-ada "/home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: \",\" inserted"
      1 6 361 "/home3/xdhar/rcds_rc/main.a")
+    (typescript-tsc-plain "/home/foo/greeter.ts(30,12): error TS2339: Property 'foo' does not exist."
+     1 12 30 "/home/foo/greeter.ts")
+    (typescript-tsc-pretty "src/resources/document.ts:140:22 - error TS2362: something."
+     1 22 140 "src/resources/document.ts")
     ;; 4bsd
     (edg-1 "/usr/src/foo/foo.c(8): warning: w may be used before set"
      1 nil 8 "/usr/src/foo/foo.c")
@@ -495,7 +499,7 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 98))
+      (should (eq compilation-num-errors-found 100))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))
 

@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -362,6 +362,32 @@ modified to be an empty string, or the desired separation string."
 
 ;;; User Functions:
 
+(defun pcomplete-default-exit-function (_s status)
+  "The default exit function to use in `pcomplete-completions-at-point'.
+This just adds `pcomplete-termination-string' after the
+completion if STATUS is `finished'."
+  (unless (zerop (length pcomplete-termination-string))
+    (when (eq status 'finished)
+      (if (looking-at
+           (regexp-quote pcomplete-termination-string))
+          (goto-char (match-end 0))
+        (insert pcomplete-termination-string)))))
+
+(defvar pcomplete-exit-function #'pcomplete-default-exit-function
+  "The exit function to call in `pcomplete-completions-at-point'.
+
+This variable is let-bound in `pcomplete-completions-at-point',
+so you can modify or advise it in order to adjust the behavior
+for a specific completion.  For example, you might do the
+following in a `pcomplete-try-first-hook' function to insert a
+trailing slash after a completion:
+
+  (add-function
+   :before (var pcomplete-exit-function)
+   (lambda (_ status)
+     (when (eq status \\='finished)
+       (insert \"/\"))))")
+
 ;;; Alternative front-end using the standard completion facilities.
 
 ;; The way pcomplete-parse-arguments and pcomplete-stub work only
@@ -406,6 +432,7 @@ Same as `pcomplete' but using the standard completion UI."
             (if pcomplete-allow-modifications buffer-read-only t))
            pcomplete-seen pcomplete-norm-func
            pcomplete-args pcomplete-last pcomplete-index
+           (pcomplete-exit-function pcomplete-exit-function)
            (pcomplete-autolist pcomplete-autolist)
            (pcomplete-suffix-list pcomplete-suffix-list)
            ;; Apparently the vars above are global vars modified by
@@ -494,16 +521,7 @@ Same as `pcomplete' but using the standard completion UI."
                     (get-text-property 0 'pcomplete-help cand)))
                 :predicate pred
                 :exit-function
-		;; If completion is finished, add a terminating space.
-		;; We used to also do this if STATUS is `sole', but
-		;; that does not work right when completion cycling.
-                (unless (zerop (length pcomplete-termination-string))
-                  (lambda (_s status)
-                    (when (eq status 'finished)
-                      (if (looking-at
-                           (regexp-quote pcomplete-termination-string))
-                          (goto-char (match-end 0))
-                        (insert pcomplete-termination-string)))))))))))
+                pcomplete-exit-function))))))
 
  ;; I don't think such commands are usable before first setting up buffer-local
  ;; variables to parse args, so there's no point autoloading it.
@@ -632,6 +650,13 @@ This will modify the current buffer."
 ;;; Internal Functions:
 
 ;; argument handling
+(defsubst pcomplete-actual-arg (&optional index offset)
+  "Return the actual text representation of the last argument.
+This is different from `pcomplete-arg', which returns the textual value
+that the last argument evaluated to.  This function returns what the
+user actually typed in."
+  (buffer-substring (pcomplete-begin index offset) (point)))
+
 (defun pcomplete-arg (&optional index offset)
   "Return the textual content of the INDEXth argument.
 INDEX is based from the current processing position.  If INDEX is
@@ -659,11 +684,20 @@ the pcomplete-arg-value text property of that string."
 	           (_      (- pcomplete-index (or index 0))))
 	         (or offset 0))
               pcomplete-args)))
-    (if (stringp arg)
+    (if (or (stringp arg)
+            ;; FIXME: 'last' is handled specially in Emacs 29, because
+            ;; 'pcomplete-parse-arguments' accepts a list of strings
+            ;; (which are completion candidates) as return value for
+            ;; (pcomplete-arg 'last).  See below: "it means it's a
+            ;; list of completions computed during parsing,
+            ;; e.g. Eshell uses that to turn globs into lists of
+            ;; completions".  This special case will be dealt with
+            ;; differently in Emacs 30: the pcomplete-arg-value
+            ;; property will be used by 'pcomplete-parse-arguments'.
+            (eq index 'last))
         arg
       (propertize
-       (buffer-substring (pcomplete-begin index offset)
-                         (pcomplete-begin (1- (or index 0)) offset))
+       (car (split-string (pcomplete-actual-arg index offset)))
        'pcomplete-arg-value arg))))
 
 (defun pcomplete-begin (&optional index offset)
@@ -678,13 +712,6 @@ See the documentation for `pcomplete-arg'."
   (if offset
       (setq index (+ index offset)))
   (nth index pcomplete-begins))
-
-(defsubst pcomplete-actual-arg (&optional index offset)
-  "Return the actual text representation of the last argument.
-This is different from `pcomplete-arg', which returns the textual value
-that the last argument evaluated to.  This function returns what the
-user actually typed in."
-  (buffer-substring (pcomplete-begin index offset) (point)))
 
 (defsubst pcomplete-next-arg ()
   "Move the various pointers to the next argument."

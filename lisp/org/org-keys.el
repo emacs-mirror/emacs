@@ -1,6 +1,6 @@
 ;;; org-keys.el --- Key bindings for Org mode        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 

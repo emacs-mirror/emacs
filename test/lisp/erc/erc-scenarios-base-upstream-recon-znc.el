@@ -1,6 +1,6 @@
-;;; erc-scenarios-upstream-recon-znc.el --- Upstream znc -*- lexical-binding: t -*-
+;;; erc-scenarios-base-upstream-recon-znc.el --- Bouncer recon scenario -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,8 @@
 
 ;; Commentary:
 
-;; These concern the loss and recovery of a proxy's IRC-side connection.
+;; These concern the loss and recovery of a proxy's IRC-side
+;; connection (hence "upstream").
 
 ;;; Code:
 
@@ -41,4 +42,4 @@
    'znc-foonet
    'znc-barnet))
 
-;;; erc-scenarios-upstream-recon-znc.el ends here
+;;; erc-scenarios-base-upstream-recon-znc.el ends here

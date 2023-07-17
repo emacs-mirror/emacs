@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Keywords: emacs-lisp, functions, variables
@@ -407,7 +407,7 @@ The search is done in the source for library LIBRARY."
       (setq library (substring library 0 (match-beginning 1))))
     ;; Strip extension from .emacs.el to make sure symbol is searched in
     ;; .emacs too.
-    (when (string-match "\\.emacs\\(.el\\)" library)
+    (when (string-match "\\.emacs\\(.el\\)\\'" library)
       (setq library (substring library 0 (match-beginning 1))))
     (let* ((filename (find-library-name library))
 	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))

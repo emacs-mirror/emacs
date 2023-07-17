@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2022 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -330,19 +330,7 @@ string is passed through `substitute-command-keys'.  */)
     xsignal1 (Qvoid_function, function);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
-#ifdef HAVE_NATIVE_COMP
-  if (!NILP (Fsubr_native_elisp_p (fun)))
-    doc = native_function_doc (fun);
-  else
-#endif
-  if (SUBRP (fun))
-    doc = make_fixnum (XSUBR (fun)->doc);
-#ifdef HAVE_MODULES
-  else if (MODULE_FUNCTIONP (fun))
-    doc = module_function_documentation (XMODULE_FUNCTION (fun));
-#endif
-  else
-    doc = call1 (Qfunction_documentation, fun);
+  doc = call1 (Qfunction_documentation, fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
@@ -369,6 +357,25 @@ string is passed through `substitute-command-keys'.  */)
   if (NILP (raw))
     doc = call1 (Qsubstitute_command_keys, doc);
   return doc;
+}
+
+DEFUN ("internal-subr-documentation", Fsubr_documentation, Ssubr_documentation, 1, 1, 0,
+       doc: /* Return the raw documentation info of a C primitive.  */)
+  (Lisp_Object function)
+{
+#ifdef HAVE_NATIVE_COMP
+  if (!NILP (Fsubr_native_elisp_p (function)))
+    return native_function_doc (function);
+  else
+#endif
+  if (SUBRP (function))
+    return make_fixnum (XSUBR (function)->doc);
+#ifdef HAVE_MODULES
+  else if (MODULE_FUNCTIONP (function))
+    return module_function_documentation (XMODULE_FUNCTION (function));
+#endif
+  else
+    return Qt;
 }
 
 DEFUN ("documentation-property", Fdocumentation_property,
@@ -708,6 +715,7 @@ compute the correct value for the current terminal in the nil case.  */);
   /* Initialized by ‘main’.  */
 
   defsubr (&Sdocumentation);
+  defsubr (&Ssubr_documentation);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
   defsubr (&Stext_quoting_style);

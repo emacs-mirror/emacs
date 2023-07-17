@@ -1,6 +1,6 @@
 ;;; benchmark-tests.el --- Test suite for benchmark.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +23,10 @@
 (require 'ert)
 
 (ert-deftest benchmark-tests ()
+  ;; Avoid fork failures on Cygwin.  See bug#62450 and etc/PROBLEMS
+  ;; ("Fork failures in a build with native compilation").
+  (skip-unless (not (and (eq system-type 'cygwin)
+                         (featurep 'native-compile))))
   (let (str t-long t-short m)
     (should (consp (benchmark-run nil (setq m (1+ 0)))))
     (should (consp (benchmark-run 1 (setq m (1+ 0)))))

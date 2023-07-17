@@ -8,6 +8,7 @@ Maintainer: Ognyan Kulev <ogi@tower.3.bg>
 * TUTORIAL.cn:
 Author:     Sun Yijiang <sunyijiang@gmail.com>
 Maintainer: Xue Fuqiao <xfq.free@gmail.com>
+            Ruijie Yu <ruijie@netyu.xyz>
 
 * TUTORIAL.cs:
 Author:     Milan Zamazal <pdm@zamazal.org>
@@ -29,6 +30,10 @@ Maintainer: Rafael Sepúlveda <drs@gnulinux.org.mx>
 * TUTORIAL.el_GR:
 Author:     Protesilaos Stavrou <info@protesilaos.com>
 Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+
+* TUTORIAL.fa:
+Author:     Mohsen BANAN <emacs@mohsen.1.banan.byname.net>
+Maintainer: Mohsen BANAN <emacs@mohsen.1.banan.byname.net>
 
 * TUTORIAL.fr:
 Author:     Éric Jacoboni <jaco@teaser.fr>

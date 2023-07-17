@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2022 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -689,6 +689,10 @@ To record all your input, use `open-dribble-file'."
       (with-current-buffer standard-output
 	(goto-char (point-min))
 	(let ((comment-start ";; ")
+              ;; Prevent 'comment-indent' from handling a single
+              ;; semicolon as the beginning of a comment.
+              (comment-start-skip ";; ")
+              (comment-use-syntax nil)
               (comment-column 24))
           (while (not (eobp))
             (comment-indent)
@@ -716,6 +720,27 @@ Return nil if KEYS is nil."
   :type 'boolean
   :group 'help
   :version "29.1")
+
+(defcustom describe-bindings-show-prefix-commands nil
+  "Non-nil means show prefix commands in the output of `describe-bindings'."
+  :type 'boolean
+  :group 'help
+  :version "29.1")
+
+(defcustom describe-bindings-outline-rules '((match-regexp . "Key translations"))
+  "Visibility rules for outline sections of `describe-bindings'.
+This is used as the value of `outline-default-rules' in the
+output buffer of `describe-bindings' when
+`describe-bindings-outline' is non-nil, otherwise this option
+doesn't have any effect."
+  :type '(choice (const :tag "Hide unconditionally" nil)
+                 (set :tag "Show section unless"
+                      (cons :tag "Heading matches regexp"
+                            (const match-regexp)  string)
+                      (cons :tag "Custom function to show/hide sections"
+                            (const custom-function) function)))
+  :group 'help
+  :version "30.1")
 
 (declare-function outline-hide-subtree "outline")
 
@@ -746,8 +771,7 @@ or a buffer name."
                       outline-minor-mode-use-buttons 'insert
                       ;; Hide the longest body.
                       outline-default-state 1
-                      outline-default-rules
-                      '((match-regexp . "Key translations")))
+                      outline-default-rules describe-bindings-outline-rules)
           (outline-minor-mode 1)
           (save-excursion
             (goto-char (point-min))
@@ -1699,6 +1723,7 @@ in `describe-map-tree'."
               (setq vect (cdr vect))
               (setq end (caar vect))))
           (when (or (not (eq start end))
+                    describe-bindings-show-prefix-commands
                     ;; Don't output keymap prefixes.
                     (not (keymapp definition)))
             (when first

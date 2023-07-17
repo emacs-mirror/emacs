@@ -1,6 +1,6 @@
 /* Fontset handler.
 
-Copyright (C) 2001-2022 Free Software Foundation, Inc.
+Copyright (C) 2001-2023 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -966,6 +966,15 @@ face_for_char (struct frame *f, struct face *face, int c,
 	}
 #endif
     }
+
+  /* If the parent face has no fontset we could work with, and has no
+     font, just return that same face, so that the caller will
+     consider the character to have no font capable of displaying it,
+     and display it as "glyphless".  That is certainly better than
+     violating the assertion below or crashing when assertions are not
+     compiled in.  */
+  if (face->fontset < 0 && !face->font)
+    return face->id;
 
   eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);

@@ -1,6 +1,6 @@
 ;;; ol-eshell.el --- Links to Working Directories in Eshell  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
 

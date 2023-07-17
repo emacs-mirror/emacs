@@ -1,6 +1,6 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
@@ -141,6 +141,81 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 
 It should match the part after \"def\" and until \"=\".")
 
+(defconst ruby-builtin-methods-with-reqs
+  '( ;; built-in methods on Kernel
+    "at_exit"
+    "autoload"
+    "autoload?"
+    "callcc"
+    "catch"
+    "eval"
+    "exec"
+    "format"
+    "lambda"
+    "load"
+    "loop"
+    "open"
+    "p"
+    "printf"
+    "proc"
+    "putc"
+    "require"
+    "require_relative"
+    "spawn"
+    "sprintf"
+    "syscall"
+    "system"
+    "throw"
+    "trace_var"
+    "trap"
+    "untrace_var"
+    "warn"
+    ;; keyword-like private methods on Module
+    "alias_method"
+    "attr"
+    "attr_accessor"
+    "attr_reader"
+    "attr_writer"
+    "define_method"
+    "extend"
+    "include"
+    "module_function"
+    "prepend"
+    "private_class_method"
+    "private_constant"
+    "public_class_method"
+    "public_constant"
+    "refine"
+    "using")
+  "List of built-in methods that require at least one argument.")
+
+(defconst ruby-builtin-methods-no-reqs
+  '("__callee__"
+    "__dir__"
+    "__method__"
+    "abort"
+    "binding"
+    "block_given?"
+    "caller"
+    "exit"
+    "exit!"
+    "fail"
+    "fork"
+    "global_variables"
+    "local_variables"
+    "print"
+    "private"
+    "protected"
+    "public"
+    "puts"
+    "raise"
+    "rand"
+    "readline"
+    "readlines"
+    "sleep"
+    "srand")
+  "List of built-in methods that only have optional arguments.")
+
 (defvar ruby-use-smie t)
 (make-obsolete-variable 'ruby-use-smie nil "28.1")
 
@@ -261,7 +336,15 @@ Only has effect when `ruby-use-smie' is t."
   "If non-nil, align chained method calls.
 
 Each method call on a separate line will be aligned to the column
-of its parent.
+of its parent. Example:
+
+  my_array.select { |str| str.size > 5 }
+          .map    { |str| str.downcase }
+
+When nil, each method call is indented with the usual offset:
+
+  my_array.select { |str| str.size > 5 }
+    .map    { |str| str.downcase }
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
@@ -271,18 +354,122 @@ Only has effect when `ruby-use-smie' is t."
 (defcustom ruby-method-params-indent t
   "Indentation  of multiline method parameters.
 
-When t, the parameters list is indented to the method name.
+When t, the parameters list is indented to the method name:
+
+  def foo(
+        baz,
+        bar
+      )
+    hello
+  end
 
 When a number, indent the parameters list this many columns
 against the beginning of the method (the \"def\" keyword).
 
-The value nil means the same as 0.
+The value nil means the same as 0:
+
+  def foo(
+    baz,
+    bar
+  )
+    hello
+  end
 
 Only has effect when `ruby-use-smie' is t."
   :type '(choice (const :tag "Indent to the method name" t)
                  (number :tag "Indent specified number of columns against def")
                  (const :tag "Indent to def" nil))
   :safe (lambda (val) (or (memq val '(t nil)) (numberp val)))
+  :version "29.1")
+
+(defcustom ruby-block-indent t
+  "Non-nil to align the body of a block to the statement's start.
+
+The body and the closer will be aligned to the column where the
+statement containing the block starts. Example:
+
+  foo.bar
+    .each do
+    baz
+  end
+
+If nil, it will be aligned instead to the beginning of the line
+containing the block's opener:
+
+  foo.bar
+    .each do
+      baz
+    end
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ruby-after-operator-indent t
+  "Non-nil to use structural indentation after binary operators.
+
+The code will be aligned to the implicit parent expression,
+according to the operator precedence:
+
+  qux = 4 + 5 *
+            6 +
+        7
+
+Set it to nil to align to the beginning of the statement:
+
+  qux = 4 + 5 *
+    6 +
+    7
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ruby-method-call-indent t
+  "Non-nil to use the structural indentation algorithm.
+
+The method call will be aligned to the implicit parent
+expression, according to the operator precedence:
+
+  foo = subject
+          .update(
+            1
+          )
+
+Set it to nil to align to the beginning of the statement:
+
+  foo = subject
+    .update(
+      1
+    )
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ruby-parenless-call-arguments-indent t
+  "Non-nil to align arguments in a parenless call vertically.
+
+Example:
+
+  qux :+,
+      bar,
+      :[]=,
+      bar
+
+Set it to nil to align to the beginning of the statement:
+
+  qux :+,
+    bar,
+    :[]=,
+    bar
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
   :version "29.1")
 
 (defcustom ruby-deep-arglist t
@@ -416,6 +603,7 @@ This only affects the output of the command `ruby-toggle-block'."
      '((right "=")
        (right "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^="
               "<<=" ">>=" "&&=" "||=")
+       (right "?")
        (nonassoc ".." "...")
        (left "&&" "||")
        (nonassoc "<=>")
@@ -608,10 +796,10 @@ This only affects the output of the command `ruby-toggle-block'."
           "def=")
          (t tok)))))))
 
-(defun ruby-smie--indent-to-stmt ()
+(defun ruby-smie--indent-to-stmt (&optional offset)
   (save-excursion
     (smie-backward-sexp ";")
-    (cons 'column (smie-indent-virtual))))
+    (cons 'column (+ (smie-indent-virtual) (or offset 0)))))
 
 (defun ruby-smie--indent-to-stmt-p (keyword)
   (or (eq t ruby-align-to-stmt-keywords)
@@ -642,7 +830,9 @@ This only affects the output of the command `ruby-toggle-block'."
               (forward-comment -1)
               (not (eq (preceding-char) ?:))))
        ;; Curly block opener.
-       (ruby-smie--indent-to-stmt))
+       (if ruby-block-indent
+           (ruby-smie--indent-to-stmt)
+         (cons 'column (current-indentation))))
       ((smie-rule-hanging-p)
        ;; Treat purely syntactic block-constructs as being part of their parent,
        ;; when the opening token is hanging and the parent is not an
@@ -677,13 +867,20 @@ This only affects the output of the command `ruby-toggle-block'."
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
     ('(:before . " @ ")
-     (if (or (eq ruby-method-params-indent t)
-             (not (smie-rule-parent-p "def" "def=")))
-         (save-excursion
-           (skip-chars-forward " \t")
-           (cons 'column (current-column)))
-       (smie-rule-parent (or ruby-method-params-indent 0))))
-    ('(:before . "do") (ruby-smie--indent-to-stmt))
+     (cond
+      ((and (not ruby-parenless-call-arguments-indent)
+            (not (smie-rule-parent-p "def" "def=")))
+       (ruby-smie--indent-to-stmt ruby-indent-level))
+      ((or (eq ruby-method-params-indent t)
+           (not (smie-rule-parent-p "def" "def=")))
+       (save-excursion
+         (skip-chars-forward " \t")
+         (cons 'column (current-column))))
+      (t (smie-rule-parent (or ruby-method-params-indent 0)))))
+    ('(:before . "do")
+     (if ruby-block-indent
+         (ruby-smie--indent-to-stmt)
+       (cons 'column (current-indentation))))
     ('(:before . ".")
      (if (smie-rule-sibling-p)
          (when ruby-align-chained-calls
@@ -696,8 +893,10 @@ This only affects the output of the command `ruby-toggle-block'."
                    (not (smie-rule-bolp)))))
            (cons 'column (current-column)))
        (smie-backward-sexp ".")
-       (cons 'column (+ (current-column)
-                        ruby-indent-level))))
+       (if ruby-method-call-indent
+           (cons 'column (+ (current-column)
+                            ruby-indent-level))
+         (ruby-smie--indent-to-stmt ruby-indent-level))))
     (`(:before . ,(or "else" "then" "elsif" "rescue" "ensure"))
      (smie-rule-parent))
     (`(:before . ,(or "when" "in"))
@@ -708,16 +907,27 @@ This only affects the output of the command `ruby-toggle-block'."
                      "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"
                      "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^=" "|"
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
-     (and (smie-rule-parent-p ";" nil)
-          (smie-indent--hanging-p)
-          ruby-indent-level))
+     (cond
+      ((not ruby-after-operator-indent)
+       (ruby-smie--indent-to-stmt (if (smie-indent--hanging-p)
+                                      ruby-indent-level
+                                    0)))
+      ((and (smie-rule-parent-p ";" nil)
+            (smie-indent--hanging-p))
+       ruby-indent-level)))
     (`(:before . "=")
-     (save-excursion
-      (and (smie-rule-parent-p " @ ")
-           (goto-char (nth 1 (smie-indent--parent)))
-           (smie-rule-prev-p "def=")
-           (cons 'column (+ (current-column) ruby-indent-level -3)))))
-    (`(:after . ,(or "?" ":")) ruby-indent-level)
+     (or
+      (save-excursion
+        (and (smie-rule-parent-p " @ ")
+             (goto-char (nth 1 (smie-indent--parent)))
+             (smie-rule-prev-p "def=")
+             (cons 'column (+ (current-column) ruby-indent-level -3))))
+      (and (smie-rule-parent-p ",")
+           (smie-rule-parent))))
+    (`(:after . ,(or "?" ":"))
+     (if ruby-after-operator-indent
+         ruby-indent-level
+       (ruby-smie--indent-to-stmt ruby-indent-level)))
     (`(:before . ,(guard (memq (intern-soft token) ruby-alignable-keywords)))
      (when (not (ruby--at-indentation-p))
        (if (ruby-smie--indent-to-stmt-p token)
@@ -725,7 +935,10 @@ This only affects the output of the command `ruby-toggle-block'."
          (cons 'column (current-column)))))
     ('(:before . "iuwu-mod")
      (smie-rule-parent ruby-indent-level))
-    ))
+    (`(:before . ",")
+     (and (not ruby-parenless-call-arguments-indent)
+          (smie-rule-parent-p " @ ")
+          (ruby-smie--indent-to-stmt ruby-indent-level)))))
 
 (defun ruby--at-indentation-p (&optional point)
   (save-excursion
@@ -787,24 +1000,6 @@ This only affects the output of the command `ruby-toggle-block'."
           (smie-forward-sexp))
       (while (and (setq state (apply #'ruby-parse-partial end state))
                     (>= (nth 2 state) 0) (< (point) end))))))
-
-(defun ruby-mode-variables ()
-  "Set up initial buffer-local variables for Ruby mode."
-  (setq indent-tabs-mode ruby-indent-tabs-mode)
-  (smie-setup ruby-smie-grammar #'ruby-smie-rules
-              :forward-token  #'ruby-smie--forward-token
-              :backward-token #'ruby-smie--backward-token)
-  (unless ruby-use-smie
-    (setq-local indent-line-function #'ruby-indent-line))
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
-  (setq-local comment-column ruby-comment-column)
-  (setq-local comment-start-skip "#+ *")
-  (setq-local parse-sexp-ignore-comments t)
-  (setq-local parse-sexp-lookup-properties t)
-  (setq-local paragraph-start (concat "$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t))
 
 (defun ruby--insert-coding-comment (encoding)
   "Insert a magic coding comment for ENCODING.
@@ -1655,93 +1850,92 @@ For example:
   File.open
 
 See `add-log-current-defun-function'."
-  (condition-case nil
-      (save-excursion
-        (let* ((indent (ruby--add-log-current-indent))
-               mname mlist
-               (start (point))
-               (make-definition-re
-                (lambda (re &optional method-name?)
-                  (concat "^[ \t]*" re "[ \t]+"
-                          "\\("
-                          ;; \\. and :: for class methods
-                          "\\([A-Za-z_]" ruby-symbol-re "*[?!]?"
-                          "\\|"
-                          (if method-name? ruby-operator-re "\\.")
-                          "\\|::" "\\)"
-                          "+\\)")))
-               (definition-re (funcall make-definition-re ruby-defun-beg-re t))
-               (module-re (funcall make-definition-re "\\(class\\|module\\)")))
-          ;; Get the current method definition (or class/module).
-          (when (catch 'found
-                  (while (and (re-search-backward definition-re nil t)
-                              (if (if (string-equal "def" (match-string 1))
-                                      ;; We're inside a method.
-                                      (if (ruby-block-contains-point (1- start))
-                                          t
-                                        ;; Try to match a method only once.
-                                        (setq definition-re module-re)
-                                        nil)
-                                    ;; Class/module. For performance,
-                                    ;; comparing indentation.
-                                    (or (not (numberp indent))
-                                        (> indent (current-indentation))))
-                                  (throw 'found t)
-                                t))))
-            (goto-char (match-beginning 1))
-            (if (not (string-equal "def" (match-string 1)))
-                (setq mlist (list (match-string 2)))
-              (setq mname (match-string 2)))
-            (setq indent (current-column))
-            (beginning-of-line))
-          ;; Walk up the class/module nesting.
-          (while (and indent
-                      (> indent 0)
-                      (re-search-backward module-re nil t))
-            (goto-char (match-beginning 1))
-            (when (< (current-column) indent)
-              (setq mlist (cons (match-string 2) mlist))
-              (setq indent (current-column))
-              (beginning-of-line)))
-          ;; Process the method name.
-          (when mname
-            (let ((mn (split-string mname "\\.\\|::")))
-              (if (cdr mn)
-                  (progn
-                    (unless (string-equal "self" (car mn)) ; def self.foo
-                      ;; def C.foo
-                      (let ((ml (nreverse mlist)))
-                        ;; If the method name references one of the
-                        ;; containing modules, drop the more nested ones.
-                        (while ml
-                          (if (string-equal (car ml) (car mn))
-                              (setq mlist (nreverse (cdr ml)) ml nil))
-                          (or (setq ml (cdr ml)) (nreverse mlist))))
-                      (if mlist
-                          (setcdr (last mlist) (butlast mn))
-                        (setq mlist (butlast mn))))
-                    (setq mname (concat "." (car (last mn)))))
-                ;; See if the method is in singleton class context.
-                (let ((in-singleton-class
-                       (when (re-search-forward ruby-singleton-class-re start t)
-                         (goto-char (match-beginning 0))
-                         ;; FIXME: Optimize it out, too?
-                         ;; This can be slow in a large file, but
-                         ;; unlike class/module declaration
-                         ;; indentations, method definitions can be
-                         ;; intermixed with these, and may or may not
-                         ;; be additionally indented after visibility
-                         ;; keywords.
-                         (ruby-block-contains-point start))))
-                  (setq mname (concat
-                               (if in-singleton-class "." "#")
-                               mname))))))
-          ;; Generate the string.
-          (if (consp mlist)
-              (setq mlist (mapconcat (function identity) mlist "::")))
-          (if mname
-              (if mlist (concat mlist mname) mname)
-            mlist)))))
+  (save-excursion
+    (let* ((indent (ruby--add-log-current-indent))
+           mname mlist
+           (start (point))
+           (make-definition-re
+            (lambda (re &optional method-name?)
+              (concat "^[ \t]*" re "[ \t]+"
+                      "\\("
+                      ;; \\. and :: for class methods
+                      "\\([A-Za-z_]" ruby-symbol-re "*[?!]?"
+                      "\\|"
+                      (if method-name? ruby-operator-re "\\.")
+                      "\\|::" "\\)"
+                      "+\\)")))
+           (definition-re (funcall make-definition-re ruby-defun-beg-re t))
+           (module-re (funcall make-definition-re "\\(class\\|module\\)")))
+      ;; Get the current method definition (or class/module).
+      (when (catch 'found
+              (while (and (re-search-backward definition-re nil t)
+                          (if (if (string-equal "def" (match-string 1))
+                                  ;; We're inside a method.
+                                  (if (ruby-block-contains-point (1- start))
+                                      t
+                                    ;; Try to match a method only once.
+                                    (setq definition-re module-re)
+                                    nil)
+                                ;; Class/module. For performance,
+                                ;; comparing indentation.
+                                (or (not (numberp indent))
+                                    (> indent (current-indentation))))
+                              (throw 'found t)
+                            t))))
+        (goto-char (match-beginning 1))
+        (if (not (string-equal "def" (match-string 1)))
+            (setq mlist (list (match-string 2)))
+          (setq mname (match-string 2)))
+        (setq indent (current-column))
+        (beginning-of-line))
+      ;; Walk up the class/module nesting.
+      (while (and indent
+                  (> indent 0)
+                  (re-search-backward module-re nil t))
+        (goto-char (match-beginning 1))
+        (when (< (current-column) indent)
+          (setq mlist (cons (match-string 2) mlist))
+          (setq indent (current-column))
+          (beginning-of-line)))
+      ;; Process the method name.
+      (when mname
+        (let ((mn (split-string mname "\\.\\|::")))
+          (if (cdr mn)
+              (progn
+                (unless (string-equal "self" (car mn)) ; def self.foo
+                  ;; def C.foo
+                  (let ((ml (reverse mlist)))
+                    ;; If the method name references one of the
+                    ;; containing modules, drop the more nested ones.
+                    (while ml
+                      (if (string-equal (car ml) (car mn))
+                          (setq mlist (nreverse (cdr ml)) ml nil))
+                      (setq ml (cdr ml))))
+                  (if mlist
+                      (setcdr (last mlist) (butlast mn))
+                    (setq mlist (butlast mn))))
+                (setq mname (concat "." (car (last mn)))))
+            ;; See if the method is in singleton class context.
+            (let ((in-singleton-class
+                   (when (re-search-forward ruby-singleton-class-re start t)
+                     (goto-char (match-beginning 0))
+                     ;; FIXME: Optimize it out, too?
+                     ;; This can be slow in a large file, but
+                     ;; unlike class/module declaration
+                     ;; indentations, method definitions can be
+                     ;; intermixed with these, and may or may not
+                     ;; be additionally indented after visibility
+                     ;; keywords.
+                     (ruby-block-contains-point start))))
+              (setq mname (concat
+                           (if in-singleton-class "." "#")
+                           mname))))))
+      ;; Generate the string.
+      (if (consp mlist)
+          (setq mlist (mapconcat (function identity) mlist "::")))
+      (if mname
+          (if mlist (concat mlist mname) mname)
+        mlist))))
 
 (defun ruby-block-contains-point (pt)
   (save-excursion
@@ -1834,7 +2028,7 @@ If the result is do-end block, it will always be multiline."
     (end-of-line)
     (unless
         (if (and (re-search-backward "\\(?:[^#]\\)\\({\\)\\|\\(\\_<do\\_>\\)")
-                 (progn
+                 (let ((ruby-use-smie (and ruby-use-smie (consp smie-grammar))))
                    (goto-char (or (match-beginning 1) (match-beginning 2)))
                    (setq beg (point))
                    (with-suppressed-warnings ((obsolete ruby-forward-sexp))
@@ -2199,84 +2393,13 @@ It will be properly highlighted even when the call omits parens.")
     ;; Core methods that have required arguments.
     (,(concat
        ruby-font-lock-keyword-beg-re
-       (regexp-opt
-        '( ;; built-in methods on Kernel
-          "at_exit"
-          "autoload"
-          "autoload?"
-          "callcc"
-          "catch"
-          "eval"
-          "exec"
-          "format"
-          "lambda"
-          "load"
-          "loop"
-          "open"
-          "p"
-          "printf"
-          "proc"
-          "putc"
-          "require"
-          "require_relative"
-          "spawn"
-          "sprintf"
-          "syscall"
-          "system"
-          "throw"
-          "trace_var"
-          "trap"
-          "untrace_var"
-          "warn"
-          ;; keyword-like private methods on Module
-          "alias_method"
-          "attr"
-          "attr_accessor"
-          "attr_reader"
-          "attr_writer"
-          "define_method"
-          "extend"
-          "include"
-          "module_function"
-          "prepend"
-          "private_class_method"
-          "private_constant"
-          "public_class_method"
-          "public_constant"
-          "refine"
-          "using")
-        'symbols))
+       (regexp-opt ruby-builtin-methods-with-reqs 'symbols))
      (1 (unless (looking-at " *\\(?:[]|,.)}=]\\|$\\)")
           font-lock-builtin-face)))
     ;; Kernel methods that have no required arguments.
     (,(concat
        ruby-font-lock-keyword-beg-re
-       (regexp-opt
-        '("__callee__"
-          "__dir__"
-          "__method__"
-          "abort"
-          "binding"
-          "block_given?"
-          "caller"
-          "exit"
-          "exit!"
-          "fail"
-          "fork"
-          "global_variables"
-          "local_variables"
-          "print"
-          "private"
-          "protected"
-          "public"
-          "puts"
-          "raise"
-          "rand"
-          "readline"
-          "readlines"
-          "sleep"
-          "srand")
-        'symbols))
+       (regexp-opt ruby-builtin-methods-no-reqs 'symbols))
      (1 font-lock-builtin-face))
     ;; Here-doc beginnings.
     (,ruby-here-doc-beg-re
@@ -2518,29 +2641,54 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   "Value for `prettify-symbols-alist' in `ruby-mode'.")
 
 ;;;###autoload
-(define-derived-mode ruby-mode prog-mode "Ruby"
-  "Major mode for editing Ruby code."
-  (ruby-mode-variables)
+(define-derived-mode ruby-base-mode prog-mode "Ruby"
+  "Generic major mode for editing Ruby.
 
-  (setq-local imenu-create-index-function #'ruby-imenu-create-index)
-  (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
-  (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
-  (setq-local end-of-defun-function #'ruby-end-of-defun)
+This mode is intended to be inherited by concrete major modes.
+Currently there are `ruby-mode' and `ruby-ts-mode'."
+  (setq indent-tabs-mode ruby-indent-tabs-mode)
+
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-column ruby-comment-column)
+  (setq-local comment-start-skip "#+ *")
+
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local parse-sexp-lookup-properties t)
+
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
 
   ;; `outline-regexp' contains the first part of `ruby-indent-beg-re'
   (setq-local outline-regexp (concat "^\\s *"
                                      (regexp-opt '("class" "module" "def"))
                                      "\\_>"))
   (setq-local outline-level (lambda () (1+ (/ (current-indentation)
-                                              ruby-indent-level))))
+                                         ruby-indent-level))))
 
   (add-hook 'after-save-hook #'ruby-mode-set-encoding nil 'local)
   (add-hook 'electric-indent-functions #'ruby--electric-indent-p nil 'local)
   (add-hook 'flymake-diagnostic-functions #'ruby-flymake-auto nil 'local)
 
+  (setq-local prettify-symbols-alist ruby--prettify-symbols-alist))
+
+;;;###autoload
+(define-derived-mode ruby-mode ruby-base-mode "Ruby"
+  "Major mode for editing Ruby code."
+  (smie-setup ruby-smie-grammar #'ruby-smie-rules
+              :forward-token  #'ruby-smie--forward-token
+              :backward-token #'ruby-smie--backward-token)
+  (unless ruby-use-smie
+    (setq-local indent-line-function #'ruby-indent-line))
+
+  (setq-local imenu-create-index-function #'ruby-imenu-create-index)
+  (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
+  (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
+  (setq-local end-of-defun-function #'ruby-end-of-defun)
+
   (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil
                                    ((?_ . "w"))))
-  (setq-local prettify-symbols-alist ruby--prettify-symbols-alist)
 
   (setq-local syntax-propertize-function #'ruby-syntax-propertize))
 

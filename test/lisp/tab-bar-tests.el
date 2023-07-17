@@ -1,6 +1,6 @@
 ;;; tab-bar-tests.el --- Tests for tab-bar.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 

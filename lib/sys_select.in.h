@@ -1,5 +1,5 @@
 /* Substitute for <sys/select.h>.
-   Copyright (C) 2007-2022 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -18,6 +18,13 @@
 @PRAGMA_SYSTEM_HEADER@
 # endif
 @PRAGMA_COLUMNS@
+
+/* This file uses #include_next of a system file that defines time_t.
+   For the 'year2038' module to work right, <config.h> needs to have been
+   included before.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 /* On OSF/1 and Solaris 2.6, <sys/types.h> and <sys/time.h>
    both include <sys/select.h>.
@@ -70,6 +77,11 @@
 #else
 
 #ifndef _@GUARD_PREFIX@_SYS_SELECT_H
+
+/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 /* On many platforms, <sys/select.h> assumes prior inclusion of
    <sys/types.h>.  Also, mingw defines sigset_t there, instead of

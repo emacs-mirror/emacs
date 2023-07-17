@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lisp Data Types
@@ -466,19 +466,20 @@ You can specify characters by their Unicode values.
 @code{?\u@var{xxxx}} and @code{?\U@var{xxxxxxxx}} represent code
 points @var{xxxx} and @var{xxxxxxxx}, respectively, where each @var{x}
 is a single hexadecimal digit.  For example, @code{?\N@{U+E0@}},
-@code{?\u00e0} and @code{?\U000000E0} are all equivalent to @code{?à}
-and to @samp{?\N@{LATIN SMALL LETTER A WITH GRAVE@}}.  The Unicode
-Standard defines code points only up to @samp{U+@var{10ffff}}, so if
-you specify a code point higher than that, Emacs signals an error.
+@code{?\u00e0} and @code{?\U000000E0} are all equivalent to
+@code{?@`a} and to @samp{?\N@{LATIN SMALL LETTER A WITH GRAVE@}}.  The
+Unicode Standard defines code points only up to @samp{U+@var{10ffff}},
+so if you specify a code point higher than that, Emacs signals an
+error.
 
 @item
 You can specify characters by their hexadecimal character
 codes.  A hexadecimal escape sequence consists of a backslash,
 @samp{x}, and the hexadecimal character code.  Thus, @samp{?\x41} is
 the character @kbd{A}, @samp{?\x1} is the character @kbd{C-a}, and
-@code{?\xe0} is the character @kbd{à} (@kbd{a} with grave accent).
-You can use any number of hex digits, so you can represent any
-character code in this way.
+@code{?\xe0} is the character @kbd{@`a} (@kbd{a} with grave accent).
+You can use one or more hex digits after @samp{x}, so you can
+represent any character code in this way.
 
 @item
 @cindex octal character code
@@ -1006,13 +1007,6 @@ It looks like this:
 @end group
 @end example
 @end ifnottex
-
-  As a somewhat peculiar side effect of @code{(a b . c)} and
-@code{(a . (b . c))} being equivalent, for consistency this means
-that if you replace @code{b} here with the empty sequence, then it
-follows that @code{(a . c)} and @code{(a . ( . c))} are equivalent,
-too.  This also means that @code{( .  c)} is equivalent to @code{c},
-but this is seldom used.
 
 @node Association List Type
 @subsubsection Association List Type

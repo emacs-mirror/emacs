@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2023 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -280,7 +280,9 @@ The following keywords are meaningful:
 	when using the Customize user interface.  It takes two arguments,
 	the symbol to set and the value to give it.  The function should
 	not modify its value argument destructively.  The default choice
-	of function is `set-default-toplevel-value'.
+	of function is `set-default-toplevel-value'.  If this keyword is
+	defined, modifying the value of SYMBOL via `setopt' will call the
+	function specified by VALUE to install the new value.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
@@ -665,6 +667,7 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
 A customizable variable is either (i) a variable whose property
 list contains a non-nil `standard-value' or `custom-autoload'
 property, or (ii) an alias for another customizable variable."
+  (declare (side-effect-free t))
   (when (symbolp variable)
     (setq variable (indirect-variable variable))
     (or (get variable 'standard-value)

@@ -1,6 +1,6 @@
 ;;; whitespace-tests.el --- Test suite for whitespace -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -56,6 +56,24 @@ buffer's content."
     (insert string)
     (whitespace-cleanup)
     (buffer-string)))
+
+(ert-deftest whitespace-tests--global ()
+  (let ((backup global-whitespace-mode)
+        (noninteractive nil)
+        (whitespace-enable-predicate (lambda () t)))
+    (unwind-protect
+        (progn
+          (global-whitespace-mode 1)
+          (ert-with-test-buffer-selected ()
+            (normal-mode)
+            (should whitespace-mode)
+            (global-whitespace-mode -1)
+            (should (null whitespace-mode))
+            (whitespace-mode 1)
+            (should whitespace-mode)
+            (global-whitespace-mode 1)
+            (should whitespace-mode)))
+      (global-whitespace-mode (if backup 1 -1)))))
 
 (ert-deftest whitespace-cleanup-eob ()
   (let ((whitespace-style '(empty)))

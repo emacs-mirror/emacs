@@ -1,6 +1,6 @@
 ;;; find-cmd-tests.el --- tests for find-cmd.el.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 (ert-deftest find-cmd-test-find-cmd ()
   (should
    (string-match
-    (rx "find " (+ any)
+    (rx "find " (+ nonl)
         " \\( \\( -name .svn -or -name .git -or -name .CVS \\)"
         " -prune -or -true \\)"
         " \\( \\( \\(" " -name \\*.pl -or -name \\*.pm -or -name \\*.t \\)"

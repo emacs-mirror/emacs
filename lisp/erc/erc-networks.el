@@ -1,6 +1,6 @@
 ;;; erc-networks.el --- IRC networks  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -66,6 +66,9 @@
 (declare-function erc-server-buffer "erc" nil)
 (declare-function erc-server-process-alive "erc-backend" (&optional buffer))
 (declare-function erc-set-active-buffer "erc" (buffer))
+
+(declare-function erc-button--display-error-notice-with-keys
+                  (parsed &rest strings))
 
 ;; Variables
 
@@ -1292,7 +1295,6 @@ shutting down the connection."
                      erc-server-announced-name "\" in `erc-networks-alist'"
                      " or consider calling `erc-tls' with the keyword `:id'."
                      "  See Info:\"(erc) Network Identifier\" for more.")))
-     (require 'info)
      (erc-display-error-notice parsed m)
      (if erc-networks--allow-unknown-network
          (progn
@@ -1311,12 +1313,11 @@ shutting down the connection."
 Copy source (prefix) from MOTD-ish message as a last resort."
   ;; The 004 handler never ran; see 2004-03-10 Diane Murray in change log
   (unless erc-server-announced-name
-    (setq erc-server-announced-name (erc-response.sender parsed))
-    (erc-display-error-notice
-     parsed (concat "Failed to determine server name. Using \""
-                    erc-server-announced-name "\" instead."
-                    "  If this was unexpected, consider reporting it via "
-                    (substitute-command-keys "\\[erc-bug]") ".")))
+    (require 'erc-button)
+    (erc-button--display-error-notice-with-keys
+     parsed "Failed to determine server name.  Using \""
+     (setq erc-server-announced-name (erc-response.sender parsed)) "\" instead"
+     ".  If this was unexpected, consider reporting it via \\[erc-bug]" "."))
   nil)
 
 (defun erc-unset-network-name (_nick _ip _reason)
@@ -1366,6 +1367,11 @@ ANNOUNCED is the server's reported host name."
                erc-server-connected t
                erc-networks--id nid))))))
 
+(defvar erc-networks--copy-server-buffer-functions nil
+  "Abnormal hook run in new server buffers when deduping.
+Passed the existing buffer to be killed, whose contents have
+already been copied over to the current, replacement buffer.")
+
 (defun erc-networks--copy-over-server-buffer-contents (existing name)
   "Kill off existing server buffer after copying its contents.
 Must be called from the replacement buffer."
@@ -1386,6 +1392,7 @@ Must be called from the replacement buffer."
         erc-kill-server-hook
         erc-kill-buffer-hook)
     (erc-networks--insert-transplanted-content text)
+    (run-hook-with-args 'erc-networks--copy-server-buffer-functions existing)
     (kill-buffer name)))
 
 ;; This stands alone for testing purposes
@@ -1488,9 +1495,9 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
                                       (memq (erc--target-symbol erc--target)
                                             erc-networks--bouncer-targets)))
                                proc)
-      (let ((m (concat "Unexpected state detected. Please report via "
-                       (substitute-command-keys "\\[erc-bug]") ".")))
-        (erc-display-error-notice parsed m))))
+      (require 'erc-button)
+      (erc-button--display-error-notice-with-keys
+       parsed "Unexpected state detected.  Please report via \\[erc-bug].")))
 
   ;; For now, retain compatibility with erc-server-NNN-functions.
   (or (erc-networks--ensure-announced proc parsed)
@@ -1508,7 +1515,6 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
   "Emit warning when the `networks' module hasn't been loaded.
 Ideally, do so upon opening the network process."
   (unless (or erc--target erc-networks-mode)
-    (require 'info nil t)
     (let ((m (concat "Required module `networks' not loaded.  If this "
                      " was unexpected, please add it to `erc-modules'.")))
       ;; Assume the server buffer has been marked as active.

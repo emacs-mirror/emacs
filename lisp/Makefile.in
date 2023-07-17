@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2000-2022 Free Software Foundation, Inc.
+# Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -72,9 +72,10 @@ AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
   ${srcdir}/subdirs.el ${srcdir}/eshell/esh-groups.el
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
+# Set org--inhibit-version-check to avoid unnecessarily aborting the build.
 BYTE_COMPILE_FLAGS = \
   --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" \
-	$(BYTE_COMPILE_EXTRA_FLAGS)
+  --eval "(setq org--inhibit-version-check t)" $(BYTE_COMPILE_EXTRA_FLAGS)
 # ... but we must prefer .elc files for those in the early bootstrap.
 compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
 
@@ -436,6 +437,42 @@ ifeq ($(HAVE_NATIVE_COMP),yes)
 	$(emacs) -l comp -f comp-compile-all-trampolines
 endif
 
+.PHONY: compile-eln-targets compile-eln-aot
+
+# ELNDONE is defined by ../src/Makefile, as the list of preloaded
+# *.eln files, which are therefore already compiled by the time
+# compile-eln-aot is called.
+ifeq ($(NATIVE_COMPILATION_AOT),yes)
+%.eln: %.el
+	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l comp -f byte-compile-refresh-preloaded \
+		--eval '(batch-native-compile t)' $<
+
+compile-eln-targets: $(filter-out $(ELNDONE),$(TARGETS))
+else
+compile-eln-targets:
+endif
+
+# This is called from ../src/Makefile when building a release tarball
+# configured --with-native-compilation=aot.
+compile-eln-aot:
+	@(cd $(lisp) && 			     \
+	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
+	for el in $$els; do            \
+	  test -f $$el || continue; 		     \
+	  test -f $${el}c || continue; 		     \
+	  GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-byte-compile: *t' $$el > /dev/null && \
+	      continue; 			     \
+	  GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-native-compile: *t' $$el > /dev/null && \
+	      continue; 			     \
+	  echo "$${el}n";                            \
+	done | xargs $(XARGS_LIMIT) echo) |	     \
+	while read chunk; do			     \
+	  $(MAKE) compile-eln-targets		     \
+	      TARGETS="$$chunk" ELNDONE="$(ELNDONE)"; \
+	done
+
+
 .PHONY: backup-compiled-files compile-after-backup
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -489,8 +526,8 @@ check-declare:
 ## This finds a lot of duplicates between foo.el and obsolete/foo.el.
 check-defun-dups:
 	sed -n -e '/^(defun /s/\(.\)(.*/\1/p' \
-	  $$(find . -name '*.el' ! -name '.*' -print | \
-	  grep -Ev '(loaddefs|ldefs-boot)\.el|obsolete') | sort | uniq -d
+	  `find . -name '*.el' ! -name '.*' -print | \
+	  grep -Ev '(loaddefs|ldefs-boot)\.el|obsolete'` | sort | uniq -d
 
 # Dependencies
 

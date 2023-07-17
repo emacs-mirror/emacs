@@ -1,6 +1,6 @@
 ;;; fns-tests.el --- tests for src/fns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -114,22 +114,24 @@
   (should-error (nreverse 1))
   (should-error (nreverse (make-char-table 'foo)))
   (should (equal (nreverse (copy-sequence "xyzzy")) "yzzyx"))
-  (let ((A (vector)))
-    (nreverse A)
-    (should (equal A [])))
-  (let ((A (vector 0)))
-    (nreverse A)
-    (should (equal A [0])))
-  (let ((A (vector 1 2 3 4)))
-    (nreverse A)
-    (should (equal A [4 3 2 1])))
-  (let ((A (vector 1 2 3 4)))
-    (nreverse A)
-    (nreverse A)
-    (should (equal A [1 2 3 4])))
+  (let* ((A (vector))
+         (B (nreverse A)))
+    (should (equal A []))
+    (should (eq B A)))
+  (let* ((A (vector 0))
+         (B (nreverse A)))
+    (should (equal A [0]))
+    (should (eq B A)))
   (let* ((A (vector 1 2 3 4))
-	 (B (nreverse (nreverse A))))
-    (should (equal A B))))
+         (B (nreverse A)))
+    (should (equal A [4 3 2 1]))
+    (should (eq B A)))
+  (let* ((A (vector 1 2 3 4))
+         (B (nreverse A))
+         (C (nreverse A)))
+    (should (equal A [1 2 3 4]))
+    (should (eq B A))
+    (should (eq C A))))
 
 (ert-deftest fns-tests-reverse-bool-vector ()
   (let ((A (make-bool-vector 10 nil)))
@@ -140,9 +142,10 @@
 (ert-deftest fns-tests-nreverse-bool-vector ()
   (let ((A (make-bool-vector 10 nil)))
     (dotimes (i 5) (aset A i t))
-    (nreverse A)
-    (should (equal [nil nil nil nil nil t t t t t] (vconcat A)))
-    (should (equal [t t t t t nil nil nil nil nil] (vconcat (nreverse A))))))
+    (let ((B (nreverse A)))
+      (should (eq B A))
+      (should (equal [nil nil nil nil nil t t t t t] (vconcat A)))
+      (should (equal [t t t t t nil nil nil nil nil] (vconcat (nreverse A)))))))
 
 (defconst fns-tests--string-lessp-cases
   `(("abc" < "abd")
@@ -254,7 +257,7 @@
   (should (string-collate-equalp "xyzzy" "XYZZY" nil t))
 
   ;; Locale must be valid.
-  (should-error (string-collate-equalp "xyzzy" "xyzzy" "en_DE.UTF-8")))
+  (should-error (string-collate-equalp "xyzzy" "xyzzy" "en_XY.UTF-8")))
 
 ;; There must be a check for valid codepoints.  (Check not implemented yet)
 ;  (should-error
@@ -622,7 +625,7 @@
                    (insert "foo")
                    (goto-char 2)
                    (insert " ")
-                   (backward-delete-char 1)
+                   (delete-char -1)
                    (buffer-hash))
                  (sha1 "foo"))))
 
@@ -1101,7 +1104,7 @@
 
 (ert-deftest test-vector-delete ()
   (let ((v1 (make-vector 1000 1)))
-    (should (equal (delete t [nil t]) [nil]))
+    (should (equal (delete t (vector nil t)) [nil]))
     (should (equal (delete 1 v1) (vector)))
     (should (equal (delete 2 v1) v1))))
 

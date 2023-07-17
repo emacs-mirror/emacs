@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2022 Free Software Foundation, Inc.
+Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -223,7 +223,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->name = xstrdup (SmRestartCommand);
   props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir ... */
-  if (INT_ADD_WRAPV (initial_argc, 3, &i))
+  if (ckd_add (&i, initial_argc, 3))
     memory_full (SIZE_MAX);
   props[props_idx]->num_vals = i;
   vp = xnmalloc (i, sizeof *vp);

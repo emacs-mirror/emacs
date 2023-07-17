@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2015-2022 Free Software Foundation, Inc.
+# Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 # Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -38,7 +38,8 @@
 ## So that eg [A-F] as used by KANJI-DATABASE branch below works as expected.
 ## Otherwise with LANG=en_US.utf8, CNS-6.map was generated with a
 ## bogus entry.  By experiment, LC_COLLATE=C was not enough.
-export LC_ALL=C
+LC_ALL=C
+export LC_ALL
 
 BASE=`expr "$1" : '.*/\(.*\)' '|' "$1"` # basename
 FILE="admin/charsets/mapfiles/$BASE"

@@ -1,6 +1,6 @@
 ;;; eww.el --- Emacs Web Wowser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -64,16 +64,23 @@ The action to be taken can be further customized via
   :version "28.1"
   :type 'regexp)
 
+(defcustom eww-default-download-directory "~/Downloads/"
+  "Default directory where `eww' saves downloaded files.
+Used by `eww--download-directory', which see."
+  :version "29.1"
+  :group 'eww
+  :type 'directory)
+
 (defun eww--download-directory ()
-  "Return the name of the download directory.
-If ~/Downloads/ exists, that will be used, and if not, the
-DOWNLOAD XDG user directory will be returned.  If that's
-undefined, ~/Downloads/ is returned anyway."
-  (or (and (file-exists-p "~/Downloads/")
-           "~/Downloads/")
+  "Return the name of the EWW download directory.
+The default is specified by `eww-default-download-directory'; however,
+if that directory doesn't exist and the DOWNLOAD XDG user directory
+is defined, use the latter instead."
+  (or (and (file-exists-p eww-default-download-directory)
+           eww-default-download-directory)
       (when-let ((dir (xdg-user-dir "DOWNLOAD")))
         (file-name-as-directory dir))
-      "~/Downloads/"))
+      eww-default-download-directory))
 
 (defcustom eww-download-directory 'eww--download-directory
   "Directory where files will downloaded.
@@ -87,7 +94,8 @@ no parameters) that returns a directory name."
 (defcustom eww-suggest-uris
   '(eww-links-at-point
     thing-at-point-url-at-point
-    eww-current-url)
+    eww-current-url
+    eww-bookmark-urls)
   "List of functions called to form the list of default URIs for `eww'.
 Each of the elements is a function returning either a string or a list
 of strings.  The results will be joined into a single list with
@@ -97,7 +105,8 @@ duplicate entries (if any) removed."
   :type 'hook
   :options '(eww-links-at-point
              thing-at-point-url-at-point
-             eww-current-url))
+             eww-current-url
+             eww-bookmark-urls))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
@@ -319,8 +328,14 @@ parameter, and should return the (possibly) transformed URL."
   "<mouse-2>" #'eww-follow-link)
 
 (defvar-keymap eww-image-link-keymap
-  :parent shr-map
+  :parent shr-image-map
   "RET" #'eww-follow-link)
+
+(defvar-keymap eww-minibuffer-url-keymap
+  :doc "Keymap used in the minibuffer prompt for URLs or keywords."
+  :parent minibuffer-local-completion-map
+  "SPC" #'self-insert-command
+  "?" #'self-insert-command)
 
 (defun eww-suggested-uris nil
   "Return the list of URIs to suggest at the `eww' prompt.
@@ -370,10 +385,12 @@ killed after rendering.
 
 For more information, see Info node `(eww) Top'."
   (interactive
-   (let ((uris (eww-suggested-uris)))
-     (list (read-string (format-prompt "Enter URL or keywords"
-                                       (and uris (car uris)))
-                        nil 'eww-prompt-history uris)
+   (let ((uris (eww-suggested-uris))
+         (minibuffer-local-completion-map eww-minibuffer-url-keymap))
+     (list (completing-read (format-prompt "Enter URL or keywords"
+                                           (and uris (car uris)))
+                            (seq-uniq (append eww-prompt-history uris))
+                            nil nil nil 'eww-prompt-history uris)
            current-prefix-arg)))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
@@ -488,14 +505,17 @@ For more information, see Info node `(eww) Top'."
 ;;;###autoload (defalias 'browse-web 'eww)
 
 ;;;###autoload
-(defun eww-open-file (file)
-  "Render FILE using EWW."
-  (interactive "fFile: ")
+(defun eww-open-file (file &optional new-buffer)
+  "Render FILE using EWW.
+If NEW-BUFFER is non-nil (interactively, the prefix arg), use a
+new buffer instead of reusing the default EWW buffer."
+  (interactive "fFile: \nP")
   (let ((url-allow-non-local-files t))
     (eww (concat "file://"
 	         (and (memq system-type '(windows-nt ms-dos))
 		      "/")
-	         (expand-file-name file)))))
+	         (expand-file-name file))
+         new-buffer)))
 
 (defun eww--file-buffer (file)
   (with-current-buffer (generate-new-buffer " *eww file*")
@@ -1005,7 +1025,7 @@ the like."
                       (list 'base (list (cons 'href base))
                             (eww-highest-readability dom))
 		      nil (current-buffer))
-    (dolist (elem '(:source :url :title :next :previous :up))
+    (dolist (elem '(:source :url :title :next :previous :up :peer))
       (plist-put eww-data elem (plist-get old-data elem)))
     (eww--after-page-change)))
 
@@ -1066,6 +1086,7 @@ the like."
   "&" #'eww-browse-with-external-browser
   "d" #'eww-download
   "w" #'eww-copy-page-url
+  "A" #'eww-copy-alternate-url
   "C" #'url-cookie-list
   "v" #'eww-view-source
   "R" #'eww-readable
@@ -2217,6 +2238,12 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 					'eww-bookmark)))
     (eww-browse-url (plist-get bookmark :url))))
 
+(defun eww-bookmark-urls ()
+  "Get the URLs from the current list of bookmarks."
+  (interactive nil eww-boomark-mode)
+  (eww-read-bookmarks)
+  (mapcar (lambda (x) (plist-get x :url)) eww-bookmarks))
+
 (defvar-keymap eww-bookmark-mode-map
   "C-k" #'eww-bookmark-kill
   "C-y" #'eww-bookmark-yank
@@ -2549,5 +2576,84 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 (put 'eww-bookmark-jump 'bookmark-handler-type "EWW")
 
 (provide 'eww)
+
+;;; Alternate links (RSS and Atom feeds, etc.)
+
+(defun eww--alternate-urls (dom &optional base)
+  "Return an alist of alternate links in DOM.
+
+Each element is a list of the form (URL TYPE TITLE) where URL is
+the href attribute of the link expanded relative to BASE, TYPE is
+its type attribute, and TITLE is its title attribute.  If any of
+these attributes is absent, the corresponding element is nil."
+  (let ((alternates
+         (seq-filter
+          (lambda (attrs) (string= (alist-get 'rel attrs)
+                                   "alternate"))
+          (mapcar #'dom-attributes (dom-by-tag dom 'link)))))
+    (mapcar (lambda (alternate)
+              (list (url-expand-file-name (alist-get 'href alternate)
+                                          base)
+                    (alist-get 'type  alternate)
+                    (alist-get 'title alternate)))
+            alternates)))
+
+(defun eww-read-alternate-url ()
+  "Get the URL of an alternate link of this page.
+
+If there is just one alternate link, return its URL.  If there
+are multiple alternate links, prompt for one in the minibuffer
+with completion.  If there are none, return nil."
+  (when-let ((alternates (eww--alternate-urls
+                          (plist-get eww-data :dom)
+                          (plist-get eww-data :url))))
+    (let ((url-max-width
+           (seq-max (mapcar #'string-pixel-width
+                            (mapcar #'car alternates))))
+          (title-max-width
+           (seq-max (mapcar #'string-pixel-width
+                            (mapcar #'caddr alternates))))
+          (sep-width (string-pixel-width " ")))
+      (if (cdr alternates)
+          (let ((completion-extra-properties
+                 (list :annotation-function
+                       (lambda (feed)
+                         (let* ((attrs (alist-get feed
+                                                  alternates
+                                                  nil
+                                                  nil
+                                                  #'string=))
+                                (type (car attrs))
+                                (title (cadr attrs)))
+                           (concat
+                            (propertize " " 'display
+                                        `(space :align-to
+                                                (,(+ sep-width
+                                                     url-max-width))))
+                            title
+                            (when type
+                              (concat
+                               (propertize " " 'display
+                                           `(space :align-to
+                                                   (,(+ (* 2 sep-width)
+                                                        url-max-width
+                                                        title-max-width))))
+                               "[" type "]"))))))))
+            (completing-read "Alternate URL: " alternates nil t))
+        (caar alternates)))))
+
+(defun eww-copy-alternate-url ()
+  "Copy the alternate URL of the current page into the kill ring.
+If there are multiple alternate links on the current page, prompt
+for one in the minibuffer, with completion.
+Alternate links are references that an HTML page may include to
+point to its alternative representations, such as a translated
+version or an RSS feed."
+  (interactive nil eww-mode)
+  (if-let ((url (eww-read-alternate-url)))
+      (progn
+        (kill-new url)
+        (message "Copied %s to kill ring" url))
+    (user-error "No alternate links found on this page!")))
 
 ;;; eww.el ends here

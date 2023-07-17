@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Loading
@@ -75,17 +75,20 @@ file exists, and Emacs was compiled with native-compilation support
 (@pxref{Native Compilation}), @code{load} attempts to find a
 corresponding @samp{.eln} file, and if found, loads it instead of
 @file{@var{filename}.elc}.  Otherwise, it loads
-@file{@var{filename}.elc}.  If there is no file by that name, then
-@code{load} looks for a file named @file{@var{filename}.el}.  If that
-file exists, it is loaded.  If Emacs was compiled with support for
-dynamic modules (@pxref{Dynamic Modules}), @code{load} next looks for
-a file named @file{@var{filename}.@var{ext}}, where @var{ext} is a
-system-dependent file-name extension of shared libraries.  Finally, if
-neither of those names is found, @code{load} looks for a file named
-@var{filename} with nothing appended, and loads it if it exists.  (The
-@code{load} function is not clever about looking at @var{filename}.
-In the perverse case of a file named @file{foo.el.el}, evaluation of
-@code{(load "foo.el")} will indeed find it.)
+@file{@var{filename}.elc} (and starts a background native compilation
+to produce the missing @samp{.eln} file, followed by loading that
+file).  If there is no @file{@var{filename}.elc}, then @code{load}
+looks for a file named @file{@var{filename}.el}.  If that file exists,
+it is loaded.  If Emacs was compiled with support for dynamic modules
+(@pxref{Dynamic Modules}), @code{load} next looks for a file named
+@file{@var{filename}.@var{ext}}, where @var{ext} is a system-dependent
+file-name extension of shared libraries (@samp{.so} on GNU and Unix
+systems).  Finally, if neither of those names is found, @code{load}
+looks for a file named @var{filename} with nothing appended, and loads
+it if it exists.  (The @code{load} function is not clever about
+looking at @var{filename}.  In the perverse case of a file named
+@file{foo.el.el}, evaluation of @code{(load "foo.el")} will indeed
+find it.)
 
 If Auto Compression mode is enabled, as it is by default, then if
 @code{load} can not find a file, it searches for a compressed version
@@ -1026,6 +1029,61 @@ with a call to @code{provide}.  The order of the elements in the
 @code{features} list is not significant.
 @end defvar
 
+@cindex loading and configuring features
+The @code{use-package} macro provides a convenient way of loading a
+feature and configuring it for use.  It provides a means to combine
+requiring a feature, like @code{require} does, with code to be run
+when the feature is actually loaded, similar to load-time hooks
+(@pxref{Hooks for Loading}).  The declarative syntax of
+@code{use-package} makes it exceptionally easy to use in user init
+files.
+
+@defmac use-package feature &rest args
+This macro specifies how to load the named @var{feature} and how to
+configure and customize it for use.  The arguments @var{args} are
+keyword-value pairs.  Some of the important keywords and their values
+are:
+
+@table @code
+@item :init @var{forms}
+Specifies @var{forms} to execute before @var{feature} is loaded.
+
+@item :config @var{forms}
+Specifies @var{forms} to execute after loading @var{feature}.
+
+@item :defer @var{condition}
+If @var{condition} is non-@code{nil}, it specifies to defer loading
+@var{feature} until any of the autoloaded commands or variables of
+@var{feature} are first used.  If @var{condition} is a number @var{n},
+it specifies that @var{feature} should be loaded after @var{n}
+seconds of idle time.
+
+@item :commands @var{commands}@dots{}
+Specifies commands of @var{feature} to be autoloaded.
+
+@item :bind @var{keybindings}@dots{}
+Specifies the @var{keybindings} for @var{feature}s commands.  Each
+binding has the form
+
+@lisp
+(@var{key-sequence} . @var{command})
+@end lisp
+@noindent
+or
+@lisp
+(:map @var{keymap} (@var{key-sequence} . @var{command}))
+@end lisp
+
+@noindent
+where @var{key-sequence} is in the form accepted by the @code{kbd}
+macro (@pxref{Key Sequences}).
+@end table
+
+For more details about @code{use-package}, see @ref{Top,,,
+use-package, use-package User Manual}.
+@end defmac
+
+
 @node Where Defined
 @section Which File Defined a Certain Symbol
 @cindex symbol, where defined
@@ -1280,7 +1338,7 @@ specified @var{file} and perform the necessary initialization of the
 module.  This is the primitive which makes sure the module exports the
 @code{plugin_is_GPL_compatible} symbol, calls the module's
 @code{emacs_module_init} function, and signals an error if that
-function returns an error indication, or if the use typed @kbd{C-g}
+function returns an error indication, or if the user typed @kbd{C-g}
 during the initialization.  If the initialization succeeds,
 @code{module-load} returns @code{t}.  Note that @var{file} must
 already have the proper file-name extension, as this function doesn't

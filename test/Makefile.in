@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2022 Free Software Foundation, Inc.
+# Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -124,7 +124,14 @@ test_module_dir := src/emacs-module-resources
 
 all: check
 
-ifeq ($(HAVE_NATIVE_COMP),yes)
+SYSTEM_TYPE = @SYSTEM_TYPE@
+TEST_NATIVE_COMP = $(HAVE_NATIVE_COMP)
+# Avoid fork failures on Cygwin.  See bug#62450 and etc/PROBLEMS
+# ("Fork failures in a build with native compilation").
+ifeq ($(SYSTEM_TYPE),cygwin)
+TEST_NATIVE_COMP = no
+endif
+ifeq ($(TEST_NATIVE_COMP),yes)
 SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
 SELECTOR_EXPENSIVE = (not (tag :unstable))
 SELECTOR_ALL = t
@@ -264,8 +271,8 @@ endif
 
 GMP_H = @GMP_H@
 LIBGMP = @LIBGMP@
-LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
-LIB_NANOSLEEP = @LIB_NANOSLEEP@
+CLOCK_TIME_LIB = @CLOCK_TIME_LIB@
+NANOSLEEP_LIB = @NANOSLEEP_LIB@
 
 MODULE_CFLAGS = $(and $(GMP_H),-I.) -I../src -I$(srcdir)/../src \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
@@ -286,7 +293,7 @@ $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h \
 	$(AM_V_at)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $< $(LIBGMP) \
 	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp.c) \
-	  $(LIB_CLOCK_GETTIME) $(LIB_NANOSLEEP)
+	  $(CLOCK_TIME_LIB) $(NANOSLEEP_LIB)
 endif
 
 src/emacs-tests.log: ../lib-src/seccomp-filter.c

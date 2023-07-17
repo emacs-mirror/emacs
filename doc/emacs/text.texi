@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -252,6 +252,10 @@ value of @code{sentence-end-double-space}.
   Some languages, such as Thai, do not use periods to indicate the end
 of a sentence.  Set the variable @code{sentence-end-without-period} to
 @code{t} in such cases.
+
+  Even though the above mentioned sentence movement commands are based
+on human languages, other Emacs modes can set these command to get
+similar functionality (@pxref{Moving by Sentences}).
 
 @node Paragraphs
 @section Paragraphs
@@ -619,7 +623,12 @@ variable @code{fill-column}.  The default value (@pxref{Locals}) is
 is to use the command @kbd{C-x f} (@code{set-fill-column}).  With a
 numeric argument, it uses that as the new fill column.  With just
 @kbd{C-u} as argument, it sets @code{fill-column} to the current
-horizontal position of point.
+horizontal position of point.  Note that, by its very nature,
+@code{fill-column} is measured in column units; the actual position of
+that column on a graphical display depends on the font being used.  In
+particular, using variable-pitch fonts will cause the
+@code{fill-column} occupy different horizontal positions on display in
+different lines.
 
 @cindex centering
 @findex center-line
@@ -958,8 +967,6 @@ hooks.
 @cindex invisible lines
 
 @findex outline-mode
-@findex outline-minor-mode
-@vindex outline-minor-mode-prefix
 @vindex outline-mode-hook
   Outline mode is a major mode derived from Text mode, which is
 specialized for editing outlines.  It provides commands to navigate
@@ -982,6 +989,19 @@ previous visible line.  Killing the ellipsis at the end of a visible
 line really kills all the following invisible text associated with the
 ellipsis.
 
+@menu
+* Outline Minor Mode::  Outline mode to use with other major modes.
+* Outline Format::      What the text of an outline looks like.
+* Outline Motion::      Special commands for moving through outlines.
+* Outline Visibility::  Commands to control what is visible.
+* Outline Views::       Outlines and multiple views.
+* Foldout::             Folding means zooming in on outlines.
+@end menu
+
+@node Outline Minor Mode
+@subsection Outline Minor Mode
+
+@findex outline-minor-mode
   Outline minor mode is a buffer-local minor mode which provides the
 same commands as the major mode, Outline mode, but can be used in
 conjunction with other major modes.  You can type @kbd{M-x
@@ -990,6 +1010,7 @@ buffer, or use a file-local variable setting to enable it in a
 specific file (@pxref{File Variables}).
 
 @kindex C-c @@ @r{(Outline minor mode)}
+@vindex outline-minor-mode-prefix
   The major mode, Outline mode, provides special key bindings on the
 @kbd{C-c} prefix.  Outline minor mode provides similar bindings with
 @kbd{C-c @@} as the prefix; this is to reduce the conflicts with the
@@ -1005,22 +1026,16 @@ this variable is @code{insert}, the buttons are inserted directly into
 the buffer text, so @key{RET} on the button will also toggle display
 of the section, like a mouse click does.  If the value is
 @code{in-margins}, Outline minor mode will use the window margins to
-indicate that a section is hidden.
+indicate that a section is hidden.  The buttons are customizable as icons
+(@pxref{Icons}).
 
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is
-non-@code{nil}, the @kbd{TAB} and @kbd{S-@key{TAB}} keys are enabled on the
-outline heading lines.  @kbd{TAB} cycles hiding, showing the
-sub-heading, and showing all for the current section.  @kbd{S-@key{TAB}}
-does the same for the entire buffer.
-
-@menu
-* Outline Format::      What the text of an outline looks like.
-* Outline Motion::      Special commands for moving through outlines.
-* Outline Visibility::  Commands to control what is visible.
-* Outline Views::       Outlines and multiple views.
-* Foldout::             Folding means zooming in on outlines.
-@end menu
+non-@code{nil}, the @kbd{TAB} and @kbd{S-@key{TAB}} keys that cycle
+the visibility are enabled on the outline heading lines
+(@pxref{Outline Visibility, outline-cycle}).  @kbd{TAB} cycles hiding,
+showing the sub-heading, and showing all for the current section.
+@kbd{S-@key{TAB}} does the same for the entire buffer.
 
 @node Outline Format
 @subsection Format of Outlines

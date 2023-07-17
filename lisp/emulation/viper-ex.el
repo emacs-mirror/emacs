@@ -1,6 +1,6 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1998, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -294,7 +294,8 @@
 	   "\\|"
 	   "bash$\\|bash.exe$"
 	   "\\)")
-	  shell-file-name)))
+	  shell-file-name)
+         t))
   "Is the user using a unix-type shell under a non-OS?"
   :type 'boolean)
 

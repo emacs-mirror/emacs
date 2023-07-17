@@ -1,6 +1,6 @@
 ;;; pcvs-parse.el --- the CVS output parser  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -435,7 +435,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; Conflict
 	(and
 	 (cvs-match (concat "C \\(.*" qfile "\\)$") (path 1) (type 'CONFLICT))
-	 ;; C might be followed by a "spurious" U for non-mergable files
+	 ;; C might be followed by a "spurious" U for non-mergeable files
 	 (cvs-or (cvs-match (concat "U \\(.*" qfile "\\)$")) t))
 	;; Successful merge
 	(cvs-match (concat "M \\(.*" qfile "\\)$") (path 1))

@@ -1,6 +1,6 @@
 ;;; backtrace.el --- generic major mode for Elisp backtraces -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 ;; Keywords: lisp, tools, maint
@@ -499,7 +499,6 @@ Reprint the frame with the new view plist."
 
 (defun backtrace-expand-ellipsis (button)
   "Expand display of the elided form at BUTTON."
-  (interactive)
   (goto-char (button-start button))
   (unless (get-text-property (point) 'cl-print-ellipsis)
     (if (and (> (point) (point-min))

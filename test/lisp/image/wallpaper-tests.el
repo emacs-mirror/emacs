@@ -1,6 +1,6 @@
 ;;; wallpaper-tests.el --- tests for wallpaper.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,8 @@
 (require 'wallpaper)
 
 (ert-deftest wallpaper--find-setter ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (let (wallpaper--current-setter
         (wallpaper--default-setters
          (wallpaper--default-methods-create
@@ -32,7 +33,8 @@
     (should (wallpaper--find-setter))))
 
 (ert-deftest wallpaper--find-setter/call-predicate ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (let* ( wallpaper--current-setter called
           (wallpaper--default-setters
            (wallpaper--default-methods-create
@@ -43,7 +45,8 @@
     (should called)))
 
 (ert-deftest wallpaper--find-setter/set-current-setter ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (let (wallpaper--current-setter
         (wallpaper--default-setters
          (wallpaper--default-methods-create
@@ -52,7 +55,8 @@
     (should wallpaper--current-setter)))
 
 (ert-deftest wallpaper-set/runs-command ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (ert-with-temp-file fil-jpg
     :suffix ".jpg"
     (ert-with-temp-file fil
@@ -70,7 +74,8 @@
           (should (file-exists-p fil)))))))
 
 (ert-deftest wallpaper-set/runs-command/detach ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (ert-with-temp-file fil-jpg
     :suffix ".jpg"
     (ert-with-temp-file fil
@@ -89,7 +94,8 @@
         (should (file-exists-p fil))))))
 
 (ert-deftest wallpaper-set/calls-init-action ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (ert-with-temp-file fil-jpg
     :suffix ".jpg"
     (ert-with-temp-file fil
@@ -108,7 +114,8 @@
         (should called)))))
 
 (ert-deftest wallpaper-set/calls-wallpaper-set-function ()
-  (skip-unless (executable-find "touch"))
+  (skip-unless (and (executable-find "touch")
+                    (wallpaper--use-default-set-function-p)))
   (ert-with-temp-file fil-jpg
     :suffix ".jpg"
     (let* ( wallpaper--current-setter called
@@ -122,12 +129,16 @@
       (should (equal called fil-jpg)))))
 
 (ert-deftest wallpaper--find-command/return-string ()
-  (should (or (not (wallpaper--find-command))
-              (stringp (wallpaper--find-command)))))
+  (let ((cmd (wallpaper--find-command)))
+    (should (or (not cmd)
+                (stringp cmd)))))
 
 (ert-deftest wallpaper--find-command-args/return-list ()
-  (should (or (not (wallpaper--find-command-args))
-              (listp (wallpaper--find-command-args)))))
+  (let ((cmdargs (wallpaper--find-command-args)))
+    (if (functionp cmdargs)
+        (setq cmdargs (funcall cmdargs)))
+    (should (or (not cmdargs)
+                (listp cmdargs)))))
 
 (ert-deftest wallpaper--image-file-regexp/return-string ()
   (should (stringp (wallpaper--image-file-regexp))))

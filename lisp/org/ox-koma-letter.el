@@ -1,6 +1,6 @@
 ;;; ox-koma-letter.el --- KOMA Scrlttr2 Back-End for Org Export Engine  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou AT gmail DOT com>
 ;;         Alan Schmitt <alan.schmitt AT polytechnique DOT org>

@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2021-2022 Free Software Foundation, Inc.
+Copyright (C) 2022-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -30,46 +30,121 @@ applies, and please also update docstrings as needed.
 
 * Changes in Emacs 30.1
 
+** Help
+
+*** 'describe-function' shows function inferred type when available.
+For native compiled Lisp functions 'describe-function' prints (after
+the signature) the automatically inferred function type as well.
+
+---
+** New user option 'describe-bindings-outline-rules'.
+This user option controls outline visibility in the output buffer of
+'describe-bindings' when 'describe-bindings-outline' in non-nil.
+
 ** X selection requests are now handled much faster and asynchronously.
 This means it should be less necessary to disable the likes of
-`select-active-regions' when Emacs is running over a slow network
+'select-active-regions' when Emacs is running over a slow network
 connection.
 
 ** Emacs now updates invisible frames that are made visible by a compositor.
 If an invisible or an iconified frame is shown to the user by the
 compositing manager, Emacs will now redisplay such a frame even though
-'frame-visible-' returns nil or 'icon' for it.  This can happen, for
+'frame-visible-p' returns nil or 'icon' for it.  This can happen, for
 example, as part of preview for iconified frames.
+
++++
+** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
+as it has in batch mode since Emacs 24.
+
++++
+** New user option 'remote-file-name-inhibit-delete-by-moving-to-trash'.
+When non-nil, this option suppresses moving remote files to the local
+trash when deleting.  Default is nil.
+
+---
+** New user option 'remote-file-name-inhibit-auto-save'.
+If this user option is non-nil, 'auto-save-mode' will not auto-save
+remote buffers.  The default is nil.
+
++++
+** New user option 'remote-file-name-access-timeout'.
+When a positive number, this option limits the call of 'access-file'
+for remote files to this number of seconds.  Default is nil.
+
++++
+** New user option 'yes-or-no-prompt'.
+This allows the user to customize the prompt that is appended by
+'yes-or-no-p' when asking questions.  The default value is
+"(yes or no) ".
+
+---
+** New face 'display-time-date-and-time'.
+This is used for displaying the time and date components of
+'display-time-mode'.
+
+---
+** New icon images for general use.
+Several symbolic icons are added to "etc/images/symbols", including
+plus, minus, check-mark, start, etc.
+
++++
+** Tool bars can now be placed on the bottom on more systems.
+The 'tool-bar-position' frame parameter can be set to 'bottom' on all
+window systems other than Nextstep.
+
+** Modeline elements can now be right-aligned.
+Anything following the symbol 'mode-line-format-right-align' in
+'mode-line-format' will be right-aligned.  Exactly where it is
+right-aligned to is controlled by the new user option
+'mode-line-right-align-edge'.
 
 
 * Editing Changes in Emacs 30.1
 
-** New helper 'transpose-sexps-function'
-Emacs now can set this defvar to customize the behavior of the
-'transpose-sexps' function.
+---
+** On X, Emacs now supports input methods which perform "string conversion".
+This means an input method can now ask Emacs to delete text
+surrounding point and replace it with something else, as well as query
+Emacs for surrounding text.  If your input method allows you to "undo"
+mistaken compositions, this will now work as well.
 
-** New function 'treesit-transpose-sexps'
-treesit.el now unconditionally sets 'transpose-sexps-function' for all
-Tree-sitter modes.  This functionality utilizes the new
-'transpose-sexps-function'.
+---
+** New command 'kill-matching-buffers-no-ask'.
+This works like 'kill-matching-buffers', but without asking for
+confirmation.
+
+---
+** New user option 'duplicate-region-final-position'.
+It controls the placement of point and the region after duplicating a
+region with 'duplicate-dwim'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
+
 ---
-** Variable order and truncation can now be configured in gdb-many-window mode.
-The new variable 'gdb-locals-table-row-config' allows users to
+** Variable order and truncation can now be configured in 'gdb-many-windows'.
+The new user option 'gdb-locals-table-row-config' allows users to
 configure the order and max length of various properties in the local
 variables buffer when using 'gdb-many-windows'.
 
-By default, this variable is set to write the properties in the order:
+By default, this user option is set to write the properties in the order:
 name, type and value, where the name and type are truncated to 20
 characters, and the value is truncated according to the value of
 'gdb-locals-value-limit'.
 
-If you want to get back the old behavior, set
-'gdb-locals-table-row-config' to  the value
+If you want to get back the old behavior, set the user option to the value
 
-  ((type . 0)(name . 0)(value . ,gdb-locals-value-limit)).
+    (setopt gdb-locals-table-row-config
+            `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
+
+** Grep
+
+*** New user option 'grep-use-headings'.
+When non-nil, the output of Grep is split into sections, one for each
+file, instead of having file names prefixed to each line.  It is
+equivalent to the "--heading" option of some tools such as 'git grep'
+and 'rg'.  The headings are displayed using the new 'grep-heading'
+face.
 
 ** VC
 
@@ -79,7 +154,31 @@ This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
 
-** bs
+** Diff Mode
+
++++
+*** 'diff-ignore-whitespace-hunk' can now be applied to all hunks.
+When called with a non-nil prefix argument,
+'diff-ignore-whitespace-hunk' now iterates over all the hunks in the
+current diff, regenerating them without whitespace changes.
+
++++
+*** New user option 'diff-ignore-whitespace-switches'.
+This allows changing which type of whitespace changes are ignored when
+regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
+the previously hard-coded "-b".
+
+** Ediff
+
+---
+*** New user option 'ediff-floating-control-frame'.
+If non-nil, try making the control frame be floating rather than tiled.
+
+Many X tiling window managers make the Ediff control frame a tiled
+window equal in size to the main Emacs frame, which works poorly.
+This option is useful to set if you use such a window manager.
+
+** Buffer Selection
 
 ---
 *** New user option 'bs-default-action-list'.
@@ -97,25 +196,450 @@ information, see the "(eshell) Dollars Expansion" node in the Eshell
 manual.
 
 +++
+*** Eshell now supports negative numbers and ranges for indices.
+Now, you can retrieve the last element of a list with '$my-list[-1]'
+or get a sublist of elements 2 through 4 with '$my-list[2..5]'.  For
+more information, see the "(eshell) Dollars Expansion" node in the
+Eshell manual.
+
++++
+*** Eshell commands can now be explicitly-remote (or local).
+By prefixing a command name in Eshell with a remote identifier, like
+"/ssh:user@remote:whoami", you can now runs commands on a particular
+host no matter your current directory.  Likewise, you can run a
+command on your local system no matter your current directory via
+"/:whoami".  For more information, see the "(eshell) Remote Access"
+node in the Eshell manual.
+
++++
+*** Eshell's '$UID' and '$GID' variables are now connection-aware.
+Now, when expanding '$UID' or '$GID' in a remote directory, the value
+is the user or group ID associated with the remote connection.
+
+---
+*** Eshell now uses 'field' properties in its output.
+In particular, this means that pressing the '<home>' key moves the
+point to the beginning of your input, not the beginning of the whole
+line.  If you want to go back to the old behavior, add something like
+this to your configuration:
+
+    (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
+
+---
+*** You can now properly unload Eshell.
+Calling '(unload-feature 'eshell)' no longer signals an error, and now
+correctly unloads Eshell and all of its modules.
+
++++
 *** 'eshell-read-aliases-list' is now an interactive command.
-After manually editing 'eshell-aliases-file', you can use
-'M-x eshell-read-aliases-list' to load the edited aliases.
+After manually editing 'eshell-aliases-file', you can use this command
+to load the edited aliases.
+
++++
+*** 'rgrep' is now a builtin command.
+Running 'rgrep' in Eshell now uses the Emacs grep facility instead of
+calling external rgrep.
+
+** Shell Mode
+
++++
+*** New user option 'shell-get-old-input-include-continuation-lines'.
+When this user option is non-nil, 'shell-get-old-input' ('C-RET')
+includes multiple shell "\" continuation lines from command output.
+Default is nil.
 
 ** Prog Mode
+
 +++
-*** New command 'prog-fill-reindent-defun'
+*** New command 'prog-fill-reindent-defun'.
 This command either fills a single paragraph in a defun, such as a
-doc-string, or a comment, or (re)indents the surrounding defun if
+docstring, or a comment, or (re)indents the surrounding defun if
 point is not in a comment or a string.  It is by default bound to
 'M-q' in 'prog-mode' and all its descendants.
+
+** Tramp
+
++++
+*** New connection methods "toolbox" and "flatpak".
+They allow accessing system containers provided by Toolbox or
+sandboxes provided by Flatpak.
+
++++
+*** Connection method "kubernetes" supports now optional container name.
+The host name for Kubernetes connections can be of kind [CONTAINER.]POD,
+in order to specify a dedicated container.  If there is just the pod
+name, the first container in the pod is taken.  The new user options
+'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow to
+access pods with different context or namespace but the default one.
+
++++
+*** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share'.
+The old name still exists as obsolete variable alias.  This user
+option controls now connection sharing for both ssh-based and
+plink-based methods.  It allows the values t, nil, and 'suppress'.
+The latter suppresses also "ControlMaster" settings in the user's
+"~/.ssh/config" file, or connection share configuration in PuTTY
+sessions, respectively.
+
++++
+*** New command 'tramp-cleanup-some-buffers'.
+It allows to kill only selected remote buffers, controlled by user
+option 'tramp-cleanup-some-buffers-hook'.
+
+** EWW
+
++++
+*** 'eww-open-file' can now display the file in a new buffer.
+By default, the command reuses the "*eww*" buffer, but if called with
+the new argument NEW-BUFFER non-nil, it will use a new buffer instead.
+Interactively, invoke 'eww-open-file' with a prefix argument to
+activate this behavior.
+
+---
+*** 'eww' URL or keyword prompt now has tab completion.
+The interactive minibuffer prompt when invoking 'eww' now has support
+for tab completion.
+
++++
+*** 'eww' URL and keyword prompt now completes suggested URIs and bookmarks.
+The interactive minibuffer prompt when invoking 'eww' now provides
+completions from 'eww-suggest-uris'.  'eww-suggest-uris' now includes
+bookmark URIs.
+
++++
+*** New command 'eww-copy-alternate-url'.
+It copies an alternate link on the page currently visited in EWW into
+the kill ring.  Alternate links are optional metadata that HTML pages
+use for linking to their alternative representations, such as
+translated versions or associated RSS feeds.
+
+** go-ts-mode
+
++++
+*** New command 'go-ts-mode-docstring'.
+This command adds a docstring comment to the current defun.  If a
+comment already exists, point is only moved to the comment.  It is
+bound to 'C-c C-d' in 'go-ts-mode'.
+
+** Man-mode
+
++++
+*** New user option 'Man-prefer-synchronous-call'.
+When this is non-nil, call the 'man' program synchronously rather than
+asynchronously (which is the default behavior).
+
+** DocView
+
+---
+*** New face 'doc-view-svg-face'.
+This replaces 'doc-view-svg-foreground' and 'doc-view-svg-background'.
+If you don't like the colors produced by the default definition of
+this new face when DocView displays documents, customize this face to
+restore the colors you were used to, or to get colors more to your
+liking.
+
+** Shortdoc
+
++++
+*** New function 'shortdoc-function-examples'.
+This function returns examples of use of a given Emacs Lisp function
+from the available shortdoc information.
+
++++
+*** New function 'shortdoc-help-fns-examples-function'.
+This function inserts into the current buffer examples of use of a
+given Emacs Lisp function, which it gleans from the shortdoc
+information.  If you want 'describe-function' ('C-h f') to insert
+examples of using the function into regular "*Help*" buffers, add the
+following to your init file:
+
+    (add-hook 'help-fns-describe-function-functions
+              #'shortdoc-help-fns-examples-function)
+
+** Package
+
+---
+*** New user option 'package-vc-register-as-project'.
+When non-nil, it will automatically register every package as a
+project, that you can quickly select using 'project-switch-project'
+('C-x p p').
+
+---
+*** New user option 'package-vc-allow-side-effects'.
+When non-nil, package specifications with side-effects for building
+software will be used when building a package.
+
+** Flymake
+
++++
+*** New user option 'flymake-show-diagnostics-at-end-of-line'.
+When non-nil, Flymake shows summarized descriptions of diagnostics at
+the end of the line.  Depending on your preference, this can either be
+distracting and easily confused with actual code, or a significant
+early aid that relieves you from moving the buffer or reaching for the
+mouse to consult an error message.
+
+** Python Mode
+
+---
+*** New user option 'python-indent-block-paren-deeper'.
+If non-nil, increase the indentation of the lines inside parens in a
+header of a block when they are indented to the same level as the body
+of the block:
+
+    if (some_expression
+            and another_expression):
+        do_something()
+
+instead of:
+
+    if (some_expression
+        and another_expression):
+        do_something()
+
+** use-package
+
++++
+*** New ':vc' keyword.
+This keyword enables the user to install packages using 'package-vc'.
+
+** Rmail
+
+---
+*** New commands for reading mailing lists.
+The new Rmail commands 'rmail-mailing-list-post',
+'rmail-mailing-list-unsubscribe', 'rmail-mailing-list-help', and
+'rmail-mailing-list-archive' allow to, respectively, post to,
+unsubscribe from, request help about, and browse the archives, of the
+mailing list from which the current email message was delivered.
+
+** Dictionary
+
+---
+*** New user option 'dictionary-search-interface'.
+Controls how the 'dictionary-search' command prompts for and displays
+dictionary definitions.  Customize this user option to 'help' to have
+'dictionary-search' display definitions in a "*Help*" buffer and
+provide dictionary-based minibuffer completion for word selection.
+
+---
+*** New user option 'dictionary-read-word-prompt'.
+This allows the user to customize the prompt that is used by
+'dictionary-search' when asking for a word to search in the
+dictionary.
+
+---
+*** New user option 'dictionary-display-definition-function'.
+This allows the user to customize the way in which 'dictionary-search'
+displays word definitions.  If non-nil, this user option should be set
+to a function that displays a word definition obtained from a
+dictionary server.  The new function
+'dictionary-display-definition-in-help-buffer' can be used to display
+the definition in a "*Help*" buffer, instead of the default
+"*Dictionary*" buffer.
+
+---
+*** New user option 'dictionary-read-word-function'.
+This allows the user to customize the way in which 'dictionary-search'
+prompts for a word to search in the dictionary.  This user option
+should be set to a function that lets the user select a word and
+returns it as a string.  The new function
+'dictionary-completing-read-word' can be used to prompt with
+completion based on dictionary matches.
+
+---
+*** New user option 'dictionary-read-dictionary-function'.
+This allows the user to customize the way in which 'dictionary-search'
+prompts for a dictionary to search in.  This user option should be set
+to a function that lets the user select a dictionary and returns its
+name as a string.  The new function
+'dictionary-completing-read-dictionary' can be used to prompt with
+completion based on dictionaries that the server supports.
+
+** Pp
+
+*** New 'pp-default-function' user option replaces 'pp-use-max-width'.
+
+*** New default pretty printing function, which tries to obey 'fill-column'.
+
+*** 'pp-to-string' takes an additional PP-FUNCTION argument.
+This argument specifies the prettifying algorithm to use.
+
+** Emacs Lisp mode
+
+---
+*** ',@' now has 'prefix' syntax.
+Previously, the '@' character, which normally has 'symbol' syntax,
+would combine with a following Lisp symbol and interfere with symbol
+searching.
+
+** CPerl mode
+
+---
+*** Subroutine signatures are now supported.
+CPerl mode fontifies subroutine signatures like variable declarations
+which makes them visually distinct from subroutine prototypes.
+
+*** Syntax of Perl up to version 5.38 is supported.
+CPerl mode supports the new keywords for exception handling and the
+object oriented syntax which were added in Perl 5.36 and 5.38.
+
+** Emacs Sessions (Desktop)
+
++++
+*** Restoring buffers visiting remote files can now time out.
+When a buffer is restored which visits a remote file, the restoration
+of the session could hang if the remote host is off-line or slow to
+respond.  Setting the user option 'remote-file-name-access-timeout' to
+a positive number will abandon the attempt to restore such buffers
+after a timeout of that many seconds, thus allowing the rest of
+desktop restoration to continue.
+
+** Recentf
+
++++
+*** Checking recent remote files can now time out.
+Similarly to buffer restoration by Desktop, 'recentf-mode' checking
+of the accessibility of remote files can now time out if
+'remote-file-name-access-timeout' is set to a positive number.
+
 
 * New Modes and Packages in Emacs 30.1
+
+** New major modes based on the tree-sitter library
+
++++
+*** New major mode 'html-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+HTML files.
+
+---
+*** New major mode 'heex-ts-mode'.
+A major mode based on the tree-sitter library for editing HEEx files.
+
+---
+*** New major mode 'elixir-ts-mode'.
+A major mode based on the tree-sitter library for editing Elixir
+files.
+
+---
+** The highly accessible Modus themes collection has eight items.
+The 'modus-operandi' and 'modus-vivendi' are the main themes that have
+been part of Emacs since version 28.  The former is light, the latter
+dark.  In addition to these, we now have 'modus-operandi-tinted' and
+'modus-vivendi-tinted' for easier legibility, as well as
+'modus-operandi-deuteranopia', 'modus-vivendi-deuteranopia',
+'modus-operandi-tritanopia', and 'modus-vivendi-tritanopia' to cover
+the needs of users with red-green or blue-yellow color deficiency.
+The Info manual "(modus-themes) Top" describes the details and
+showcases all their customization options.
 
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+---
+** The escape sequence '\x' not followed by hex digits is now an error.
+Previously, '\x' without at least one hex digit denoted character code
+zero (NUL) but as this was neither intended nor documented or even
+known by anyone, it is now treated as an error by the Lisp reader.
+
+---
+** Connection-local variables are applied in buffers visiting a remote file.
+This overrides possible directory-local or file-local variables with
+the same name.
+
+---
+** User option 'tramp-completion-reread-directory-timeout' has been removed.
+This user option has been obsoleted in Emacs 27, use
+'remote-file-name-inhibit-cache' instead.
+
+---
+** User options 'eshell-NAME-unload-hook' are now obsolete.
+These hooks were named incorrectly, and so they never actually ran
+when unloading the correspending feature.  Instead, you should use
+hooks named after the feature name, like 'esh-mode-unload-hook'.
+
++++
+** 'copy-tree' now copies records when its optional 2nd argument is non-nil.
+
++++
+** Regexp zero-width assertions followed by operators are better defined.
+Previously, regexps such as "xy\\B*" would have ill-defined behavior.
+Now any operator following a zero-width assertion applies to that
+assertion only (which is useless).  For historical compatibility, an
+operator character following '^' or '\`' becomes literal, but we
+advise against relying on this.
+
+---
+** Mode-line mnemonics for some coding-systems have changed.
+The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
+consistent with the other encodings of this family.
+
+The mode-line mnemonic for 'koi8-u' is now 'У', U+0423 CYRILLIC
+CAPITAL LETTER U, to distinguish between this encoding and the
+UTF-8/UTF-16 family.
+
+If your terminal cannot display 'У', or if you want to get the old
+behavior back for any other reason, you can do that using the
+'coding-system-put' function.  For example, the following restores the
+previous behavior of showing 'U' in the mode line for 'koi8-u':
+
+     (coding-system-put 'koi8-u :mnemonic ?U)
 
 * Lisp Changes in Emacs 30.1
+
++++
+** New user option 'safe-local-variable-directories'.
+This user option names directories in which Emacs will treat all
+directory-local variables as safe.
+
+** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
+
+** Functions and variables to transpose sexps
+
++++
+*** New helper variable 'transpose-sexps-function'.
+Emacs now can set this variable to customize the behavior of the
+'transpose-sexps' function.
+
++++
+*** New function 'transpose-sexps-default-function'.
+The previous implementation is moved into its own function, to be
+bound by 'transpose-sexps-function'.
+
+*** New function 'treesit-transpose-sexps'.
+Tree-sitter now unconditionally sets 'transpose-sexps-function' for all
+tree-sitter enabled modes.  This functionality utilizes the new
+'transpose-sexps-function'.
+
+** Functions and variables to move by program statements
+
+*** New variable 'forward-sentence-function'.
+Major modes can now set this variable to customize the behavior of the
+'forward-sentence' command.
+
+*** New function 'forward-sentence-default-function'.
+The previous implementation of 'forward-sentence' is moved into its
+own function, to be bound by 'forward-sentence-function'.
+
+*** New buffer-local variable 'treesit-sentence-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sentences" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sentence'.
+All tree-sitter enabled modes that define 'treesit-sentence-type-regexp'
+now set 'forward-sentence-function' to call 'treesit-forward-sentence'.
+
+** Functions and variables to move by program sexps
+
+*** New buffer-local variable 'treesit-sexp-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sexps" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sexp'.
+Tree-sitter conditionally sets 'forward-sexp-function' for major modes
+that have defined 'treesit-sexp-type-regexp' to enable sexp-related
+motion commands.
 
 ** New or changed byte-compilation warnings
 
@@ -125,7 +649,7 @@ The compiler now warns about an empty body argument to 'when',
 'unless', 'ignore-error' and 'with-suppressed-warnings' in addition to
 the existing warnings for 'let' and 'let*'.  Example:
 
-  (when (> x 2))
+    (when (> x 2))
 
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'empty-body'.
@@ -135,9 +659,9 @@ the warning name 'empty-body'.
 The compiler now warns about quoted condition (error) names
 in 'condition-case' and 'ignore-error'.  Example:
 
-  (condition-case nil
-      (/ x y)
-    ('arith-error "division by zero"))
+    (condition-case nil
+        (/ x y)
+      ('arith-error "division by zero"))
 
 Quoting them adds the error name 'quote' to those handled or ignored
 respectively, which was probably not intended.
@@ -148,7 +672,7 @@ The compiler now warns about comparisons by identity with a literal
 string, cons, vector, record, function, large integer or float as this
 may not match any value at all.  Example:
 
-  (eq x "hello")
+    (eq x "hello")
 
 Only literals for symbols and small integers (fixnums), including
 characters, are guaranteed to have a consistent (unique) identity.
@@ -163,6 +687,100 @@ compared reliably at all.
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
 
+---
+*** Warn about 'condition-case' without handlers.
+The compiler now warns when the 'condition-case' form is used without
+any actual handlers, as in
+
+    (condition-case nil (read buffer))
+
+because it has no effect other than the execution of the body form.
+In particular, no errors are caught or suppressed.  If the intention
+was to catch all errors, add an explicit handler for 'error', or use
+'ignore-error' or 'ignore-errors'.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+---
+*** Warn about 'unwind-protect' without unwind forms.
+The compiler now warns when the 'unwind-protect' form is used without
+any unwind forms, as in
+
+    (unwind-protect (read buffer))
+
+because the behavior is identical to that of the argument; there is
+no protection of any kind.  Perhaps the intended unwind forms have
+been misplaced or forgotten, or the use of 'unwind-protect' could be
+simplified away.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+---
+*** Warn about mutation of constant values.
+The compiler now warns about code that modifies program constants in
+some obvious cases.  Examples:
+
+    (setcar '(1 2) 7)
+    (aset [3 4] 0 8)
+    (aset "abc" 1 ?d)
+
+Such code may have unpredictable behavior because the constants are
+part of the program, not data structures generated afresh during
+execution, and the compiler does not expect them to change.
+
+To avoid the warning, operate on an object created by the program
+(maybe a copy of the constant), or use a non-destructive operation
+instead.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'mutate-constant'.
+
+---
+*** Warn about more ignored function return values.
+The compiler now warns when the return value from certain functions is
+implicitly ignored.  Example:
+
+    (progn (nreverse my-list) my-list)
+
+will elicit a warning because it is usually pointless to call
+'nreverse' on a list without using the returned value.
+
+To silence the warning, make use of the value in some way, such as
+assigning it to a variable.  You can also wrap the function call in
+'(ignore ...)', or use 'with-suppressed-warnings' with the warning
+name 'ignored-return-value'.
+
+The warning will only be issued for calls to functions declared
+'important-return-value' or 'side-effect-free' (but not 'error-free').
+
++++
+** New function declaration and property 'important-return-value'.
+The declaration '(important-return-value t)' sets the
+'important-return-value' property which indicates that the function
+return value should probably not be thrown away implicitly.
+
++++
+** New functions 'file-user-uid' and 'file-group-gid'.
+These functions are like 'user-uid' and 'group-gid', respectively, but
+are aware of file name handlers, so they will return the remote UID or
+GID for remote files (or -1 if the connection has no associated user).
+
++++
+** 'fset', 'defalias' and 'defvaralias' now signal an error for cyclic aliases.
+Previously, 'fset', 'defalias' and 'defvaralias' could be made to
+build circular function and variable indirection chains as in
+
+    (defalias 'able 'baker)
+    (defalias 'baker 'able)
+
+but trying to use them would sometimes make Emacs hang.  Now, an attempt
+to create such a loop results in an error.
+
+Since circular alias chains now cannot occur, 'function-alias-p',
+'indirect-function' and 'indirect-variable' will never signal an error.
+Their 'noerror' arguments have no effect and are therefore obsolete.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

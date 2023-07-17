@@ -1,6 +1,6 @@
 ;;; biditest.el --- test bidi reordering in GNU Emacs display engine.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org

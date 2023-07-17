@@ -294,7 +294,7 @@ Po Lu
 
 Tramp
 	Maintainer: Michael Albinus
-	Repository: git://git.savannah.gnu.org/tramp.git
+	Repository: https://git.savannah.gnu.org/git/tramp.git
 	Mailing List: tramp-devel@gnu.org
 	Bug Reports: M-x tramp-bug
 	Notes: For backward compatibility requirements, see
@@ -316,7 +316,7 @@ Modus themes
 Org Mode
 	Home Page: https://orgmode.org/
 	Maintainer: Org Mode developers
-	Repository: git://git.sv.gnu.org/emacs/org-mode.git
+	Repository: https://git.savannah.gnu.org/git/emacs/org-mode.git
 	Mailing list: emacs-orgmode@gnu.org
 	Bug Reports: M-x org-submit-bug-report
 	Notes: Org Mode is maintained as a separate project that is

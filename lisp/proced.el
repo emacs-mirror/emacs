@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -792,6 +792,52 @@ Return nil if point is not on a process line."
     (if (looking-at "^. .")
         (get-text-property (match-end 0) 'proced-pid))))
 
+(defun proced--position-info (pos)
+  "Return information of the process at POS.
+
+The returned information will have the form `(PID KEY COLUMN)' where
+PID is the process ID of the process at point, KEY is the value of the
+proced-key text property at point, and COLUMN is the column for which the
+current value of the proced-key text property starts, or 0 if KEY is nil."
+  ;; If point is on a field, we try to return point to that field.
+  ;; Otherwise we try to return to the same column
+  (save-excursion
+    (goto-char pos)
+    (let ((pid (proced-pid-at-point))
+          (key (get-text-property (point) 'proced-key)))
+      (list pid key ; can both be nil
+            (if key
+                (if (get-text-property (1- (point)) 'proced-key)
+                    (- (point) (previous-single-property-change
+                                (point) 'proced-key))
+                  0)
+              (current-column))))))
+
+(defun proced--determine-pos (key column)
+  "Return position of point in the current line using KEY and COLUMN.
+
+Attempt to find the first position on the current line where the
+text property proced-key is equal to KEY.  If this is not possible, return
+the position of point of column COLUMN on the current line."
+  (save-excursion
+    (let (new-pos)
+      (if key
+          (let ((limit (line-end-position)) pos)
+            (while (and (not new-pos)
+                        (setq pos (next-property-change (point) nil limit)))
+              (goto-char pos)
+              (when (eq key (get-text-property (point) 'proced-key))
+                (forward-char (min column (- (next-property-change (point))
+                                             (point))))
+                (setq new-pos (point))))
+            (unless new-pos
+              ;; we found the process, but the field of point
+              ;; is not listed anymore
+              (setq new-pos (proced-move-to-goal-column))))
+        (setq new-pos (min (+ (line-beginning-position) column)
+                           (line-end-position))))
+      new-pos)))
+
 ;; proced mode
 
 (define-derived-mode proced-mode special-mode "Proced"
@@ -847,6 +893,7 @@ normal hook `proced-post-display-hook'.
   (setq-local revert-buffer-function #'proced-revert)
   (setq-local font-lock-defaults
               '(proced-font-lock-keywords t nil nil beginning-of-line))
+  (setq-local switch-to-buffer-preserve-window-point nil)
   (if (and (not proced-auto-update-timer) proced-auto-update-interval)
       (setq proced-auto-update-timer
             (run-at-time t proced-auto-update-interval
@@ -1889,17 +1936,10 @@ After updating a displayed Proced buffer run the normal hook
   (if (consp buffer-undo-list)
       (setq buffer-undo-list nil))
   (let ((buffer-undo-list t)
-        ;; If point is on a field, we try to return point to that field.
-        ;; Otherwise we try to return to the same column
-        (old-pos (let ((pid (proced-pid-at-point))
-                       (key (get-text-property (point) 'proced-key)))
-                   (list pid key ; can both be nil
-                         (if key
-                             (if (get-text-property (1- (point)) 'proced-key)
-                                 (- (point) (previous-single-property-change
-                                             (point) 'proced-key))
-                               0)
-                           (current-column)))))
+        (window-pos-infos
+         (mapcar (lambda (w) `(,w . ,(proced--position-info (window-point w))))
+                 (get-buffer-window-list (current-buffer) nil t)))
+        (old-pos (proced--position-info (point)))
         buffer-read-only mp-list)
     ;; remember marked processes (whatever the mark was)
     (goto-char (point-min))
@@ -1932,7 +1972,8 @@ After updating a displayed Proced buffer run the normal hook
     ;; Sometimes this puts point in the middle of the proced buffer
     ;; where it is not interesting.  Is there a better / more flexible solution?
     (goto-char (point-min))
-    (let (pid mark new-pos)
+
+    (let (pid mark new-pos win-points)
       (if (or mp-list (car old-pos))
           (while (not (eobp))
             (setq pid (proced-pid-at-point))
@@ -1941,28 +1982,25 @@ After updating a displayed Proced buffer run the normal hook
               (delete-char 1)
               (beginning-of-line))
             (when (eq (car old-pos) pid)
-              (if (nth 1 old-pos)
-                  (let ((limit (line-end-position)) pos)
-                    (while (and (not new-pos)
-                                (setq pos (next-property-change (point) nil limit)))
-                      (goto-char pos)
-                      (when (eq (nth 1 old-pos)
-                                (get-text-property (point) 'proced-key))
-                        (forward-char (min (nth 2 old-pos)
-                                           (- (next-property-change (point))
-                                              (point))))
-                        (setq new-pos (point))))
-                    (unless new-pos
-                      ;; we found the process, but the field of point
-                      ;; is not listed anymore
-                      (setq new-pos (proced-move-to-goal-column))))
-                (setq new-pos (min (+ (line-beginning-position) (nth 2 old-pos))
-                                   (line-end-position)))))
+              (setq new-pos (proced--determine-pos (nth 1 old-pos)
+                                                   (nth 2 old-pos))))
+            (mapc (lambda (w-pos)
+                    (when (eq (cadr w-pos) pid)
+                      (push `(,(car w-pos) . ,(proced--determine-pos
+                                               (nth 1 (cdr w-pos))
+                                               (nth 2 (cdr w-pos))))
+                            win-points)))
+                  window-pos-infos)
             (forward-line)))
-      (if new-pos
-          (goto-char new-pos)
-        (goto-char (point-min))
-        (proced-move-to-goal-column)))
+      (let ((fallback (save-excursion (goto-char (point-min))
+                                      (proced-move-to-goal-column)
+                                      (point))))
+        (goto-char (or new-pos fallback))
+        ;; Update window points
+        (mapc (lambda (w-pos)
+                (set-window-point (car w-pos)
+                                  (alist-get (car w-pos) win-points fallback)))
+              window-pos-infos)))
     ;; update mode line
     ;; Does the long `mode-name' clutter the mode line?  It would be nice
     ;; to have some other location for displaying the values of the various

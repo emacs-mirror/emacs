@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1068,52 +1068,51 @@ Returns an error if the server cannot be contacted."
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."
-  (unwind-protect
-      (with-current-buffer smtpmail-address-buffer
-	(erase-buffer)
-	(let ((case-fold-search t)
-              (simple-address-list "")
-              this-line
-              this-line-end
-              addr-regexp)
-	  (insert-buffer-substring smtpmail-text-buffer header-start header-end)
-	  (goto-char (point-min))
-	  ;; RESENT-* fields should stop processing of regular fields.
-	  (save-excursion
-	    (setq addr-regexp
-		  (if (re-search-forward "^Resent-\\(To\\|Cc\\|Bcc\\):"
-					 header-end t)
-		      "^Resent-\\(To\\|Cc\\|Bcc\\):"
-		    "^\\(To:\\|Cc:\\|Bcc:\\)")))
+  (with-current-buffer smtpmail-address-buffer
+    (erase-buffer)
+    (let ((case-fold-search t)
+          (simple-address-list "")
+          this-line
+          this-line-end
+          addr-regexp)
+      (insert-buffer-substring smtpmail-text-buffer header-start header-end)
+      (goto-char (point-min))
+      ;; RESENT-* fields should stop processing of regular fields.
+      (save-excursion
+	(setq addr-regexp
+	      (if (re-search-forward "^Resent-\\(To\\|Cc\\|Bcc\\):"
+				     header-end t)
+		  "^Resent-\\(To\\|Cc\\|Bcc\\):"
+		"^\\(To:\\|Cc:\\|Bcc:\\)")))
 
-	  (while (re-search-forward addr-regexp header-end t)
-	    (replace-match "")
-	    (setq this-line (match-beginning 0))
-	    (forward-line 1)
-	    ;; get any continuation lines
-	    (while (and (looking-at "^[ \t]+") (< (point) header-end))
-	      (forward-line 1))
-	    (setq this-line-end (point-marker))
-	    (setq simple-address-list
-		  (concat simple-address-list " "
-			  (mail-strip-quoted-names (buffer-substring this-line this-line-end)))))
-	  (erase-buffer)
-	  (insert " " simple-address-list "\n")
-	  (subst-char-in-region (point-min) (point-max) 10 ?  t) ; newline --> blank
-	  (subst-char-in-region (point-min) (point-max) ?, ?  t) ; comma   --> blank
-	  (subst-char-in-region (point-min) (point-max)  9 ?  t) ; tab     --> blank
+      (while (re-search-forward addr-regexp header-end t)
+	(replace-match "")
+	(setq this-line (match-beginning 0))
+	(forward-line 1)
+	;; get any continuation lines
+	(while (and (looking-at "^[ \t]+") (< (point) header-end))
+	  (forward-line 1))
+	(setq this-line-end (point-marker))
+	(setq simple-address-list
+	      (concat simple-address-list " "
+		      (mail-strip-quoted-names (buffer-substring this-line this-line-end)))))
+      (erase-buffer)
+      (insert " " simple-address-list "\n")
+      (subst-char-in-region (point-min) (point-max) 10 ?  t) ; newline --> blank
+      (subst-char-in-region (point-min) (point-max) ?, ?  t) ; comma   --> blank
+      (subst-char-in-region (point-min) (point-max)  9 ?  t) ; tab     --> blank
 
-	  (goto-char (point-min))
-	  ;; tidiness in case hook is not robust when it looks at this
-	  (while (re-search-forward "[ \t]+" header-end t) (replace-match " "))
+      (goto-char (point-min))
+      ;; tidiness in case hook is not robust when it looks at this
+      (while (re-search-forward "[ \t]+" header-end t) (replace-match " "))
 
-	  (goto-char (point-min))
-	  (let (recipient-address-list)
-	    (while (re-search-forward " \\([^ ]+\\) " (point-max) t)
-	      (backward-char 1)
-	      (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
-						 recipient-address-list)))
-	    (setq smtpmail-recipient-address-list recipient-address-list))))))
+      (goto-char (point-min))
+      (let (recipient-address-list)
+	(while (re-search-forward " \\([^ ]+\\) " (point-max) t)
+	  (backward-char 1)
+	  (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
+					     recipient-address-list)))
+	(setq smtpmail-recipient-address-list recipient-address-list)))))
 
 (defun smtpmail-do-bcc (header-end)
   "Delete [Resent-]Bcc: and their continuation lines from the header area.

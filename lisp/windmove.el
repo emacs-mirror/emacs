@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Hovav Shacham <hovav@cs.stanford.edu>
 ;; Created: 17 October 1998
@@ -724,6 +724,8 @@ from the opposite side of the frame."
                                            nil windmove-wrap-around 'nomini)))
     (cond ((or (null other-window) (window-minibuffer-p other-window))
            (user-error "No window %s from selected window" dir))
+          ((window-minibuffer-p (selected-window))
+           (user-error "Can't swap window with the minibuffer"))
           (t
            (window-swap-states nil other-window)))))
 

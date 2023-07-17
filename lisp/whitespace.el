@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: data, wp
@@ -1014,34 +1014,11 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 
 
 ;;;###autoload
-(define-minor-mode global-whitespace-mode
-  "Toggle whitespace visualization globally (Global Whitespace mode).
-
-See also `whitespace-style', `whitespace-newline' and
-`whitespace-display-mappings'."
-  :lighter    " WS"
+(define-globalized-minor-mode global-whitespace-mode
+  whitespace-mode
+  whitespace-turn-on-if-enabled
   :init-value nil
-  :global     t
-  :group      'whitespace
-  (cond
-   (noninteractive			; running a batch job
-    (setq global-whitespace-mode nil))
-   (global-whitespace-mode		; global-whitespace-mode on
-    (save-current-buffer
-      (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
-      (add-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
-      (dolist (buffer (buffer-list))	; adjust all local mode
-	(set-buffer buffer)
-	(unless whitespace-mode
-	  (whitespace-turn-on-if-enabled)))))
-   (t					; global-whitespace-mode off
-    (save-current-buffer
-      (remove-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
-      (remove-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
-      (dolist (buffer (buffer-list))	; adjust all local mode
-	(set-buffer buffer)
-	(unless whitespace-mode
-	  (whitespace-turn-off)))))))
+  :group 'whitespace)
 
 (defvar whitespace-enable-predicate
   (lambda ()
@@ -1067,7 +1044,7 @@ This variable is normally modified via `add-function'.")
 
 (defun whitespace-turn-on-if-enabled ()
   (when (funcall whitespace-enable-predicate)
-    (whitespace-turn-on)))
+    (whitespace-mode)))
 
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
@@ -2511,7 +2488,7 @@ purposes)."
 	(setq whitespace-display-table-was-local t)
         ;; Save the old table so we can restore it when
         ;; `whitespace-mode' is switched off again.
-        (when (or whitespace-mode global-whitespace-mode)
+        (when whitespace-mode
 	  (setq whitespace-display-table
 	        (copy-sequence buffer-display-table)))
 	;; Assure `buffer-display-table' is unique

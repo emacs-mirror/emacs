@@ -1,6 +1,6 @@
 ;;; calc-misc.el --- miscellaneous functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -114,8 +114,11 @@ Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C
 		(let (key)
 		  (select-window win)
 		  (while (progn
-			   (message "Calc options: Calc, Keypad, ...  %s"
-				    "press SPC, DEL to scroll, C-g to cancel")
+			   (message
+                            (substitute-command-keys
+                             (concat
+                              "Calc options: \\`c'alc, \\`k'eypad, ...  "
+			      "press \\`SPC', \\`DEL' to scroll, \\`C-g' to cancel")))
 			   (memq (setq key (read-event))
 				 '(?  ?\C-h ?\C-? ?\C-v ?\M-v)))
 		    (condition-case nil
@@ -192,7 +195,6 @@ Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C
 ;;;###autoload
 (defun calc-info-goto-node (node)
   "Go to a node in the Calculator info documentation."
-  (interactive)
   (select-window (get-largest-window))
   (info (concat "(Calc)" node)))
 
@@ -216,27 +218,26 @@ Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C
 (defun calc-help ()
   (interactive)
   (let ((msgs
-         ;; FIXME: Change these to `substitute-command-keys' syntax.
          (mapcar #'substitute-command-keys
           '("Press \\`h' for complete help; press \\`?' repeatedly for a summary"
-            "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
-            "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
-            "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
-            "Letter keys: SHIFT + Floor, Round; Abs, conJ, arG; Pi"
-            "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
-            "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
-            "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
-            "Other keys: \\=' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
-            "Other keys: \\`SPC'/\\`RET' (enter/dup), LFD (over); < > (scroll horiz)"
-            "Other keys: \\`DEL' (drop), \\`M-DEL' (drop-above); { } (scroll vert)"
+            "Letter keys: \\`n'egate; \\`p'recision; \\`y'ank; \\`w'hy; \\`x'tended cmd; \\`q'uit"
+            "Letter keys: \\`U'ndo, re\\`D'o; \\`I'nverse, \\`H'yperbolic, \\`O'ption"
+            "Letter keys: s\\`Q'rt; \\`S'in, \\`C'os, \\`T'an; \\`E'xp, \\`L'n, log\\`B'"
+            "Letter keys: \\`F'loor, \\`R'ound; \\`A'bs, con\\`J', ar\\`G'; \\`P'i"
+            "Letter keys: \\`N'um-eval; \\`M'ore-recn; e\\`X'ec-kbd-macro; \\`K'eep-args"
+            "Other keys: \\`+', \\`-', \\`*', \\`/', \\`^', \\`\\' (int div), \\`:' (frac div)"
+            "Other keys: \\`&' (1/x), \\`|' (concat), \\`%' (modulo), \\`!' (factorial)"
+            "Other keys: \\=' (alg-entry), \\`=' (eval), \\=` (edit); \\`M-RET' (last-args)"
+            "Other keys: \\`SPC'/\\`RET' (enter/dup), \\`LFD' (over); \\`<' \\`>' (scroll horiz)"
+            "Other keys: \\`DEL' (drop), \\`M-DEL' (drop-above); \\`{' \\`}' (scroll vert)"
             "Other keys: \\`TAB' (swap/roll-dn), \\`M-TAB' (roll-up)"
-            "Other keys: [ , ; ] (vector), ( , ) (complex), ( ; ) (polar)"
-            "Prefix keys: Algebra, Binary/business, Convert, Display"
-            "Prefix keys: Functions, Graphics, Help, J (select)"
-            "Prefix keys: Kombinatorics/statistics, Modes, Store/recall"
-            "Prefix keys: Trail/time, Units/statistics, Vector/matrix"
-            "Prefix keys: Z (user), SHIFT + Z (define)"
-            "Prefix keys: prefix + ? gives further help for that prefix"
+            "Other keys: \\`[' \\`,' \\`;' \\`]' (vector), \\`(' \\`,' \\`)' (complex), \\`(' \\`;' \\`)' (polar)"
+            "Prefix keys: \\`a'lgebra, \\`b'inary/business, \\`c'onvert, \\`d'isplay"
+            "Prefix keys: \\`f'unctions, \\`g'raphics, \\`h'elp, \\`j' (select)"
+            "Prefix keys: \\`k'ombinatorics/statistics, \\`m'odes, \\`s'tore/recall"
+            "Prefix keys: \\`t'rail/time, \\`u'nits/statistics, \\`v'ector/matrix"
+            "Prefix keys: \\`z' (user), \\`Z' (define)"
+            "Prefix keys: prefix + \\`?' gives further help for that prefix"
             "  Calc by Dave Gillespie, daveg@synaptics.com"))))
     (if calc-full-help-flag
 	msgs
@@ -260,7 +261,7 @@ Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C
                                                                      msgs))
                                                       (length msg))
 						   ?\ )
-                                      "  [?=MORE]")
+                                      (substitute-command-keys "  [\\`?'=MORE]"))
                             ""))))))))
 
 

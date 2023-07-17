@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm

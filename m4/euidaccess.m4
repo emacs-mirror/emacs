@@ -1,5 +1,5 @@
-# euidaccess.m4 serial 15
-dnl Copyright (C) 2002-2022 Free Software Foundation, Inc.
+# euidaccess.m4 serial 17
+dnl Copyright (C) 2002-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -32,7 +32,7 @@ AC_DEFUN([gl_FUNC_EUIDACCESS],
 # Prerequisites of lib/euidaccess.c.
 AC_DEFUN([gl_PREREQ_EUIDACCESS], [
   dnl Prefer POSIX faccessat over non-standard euidaccess.
-  AC_CHECK_FUNCS_ONCE([faccessat])
+  gl_CHECK_FUNCS_ANDROID([faccessat], [[#include <unistd.h>]])
   dnl Try various other non-standard fallbacks.
   AC_CHECK_HEADERS([libgen.h])
   AC_FUNC_GETGROUPS
@@ -41,12 +41,15 @@ AC_DEFUN([gl_PREREQ_EUIDACCESS], [
   # Save and restore LIBS so -lgen isn't added to it.  Otherwise, *all*
   # programs in the package would end up linked with that potentially-shared
   # library, inducing unnecessary run-time overhead.
-  LIB_EACCESS=
-  AC_SUBST([LIB_EACCESS])
+  EUIDACCESS_LIBGEN=
+  AC_SUBST([EUIDACCESS_LIBGEN])
   gl_saved_libs=$LIBS
     AC_SEARCH_LIBS([eaccess], [gen],
                    [test "$ac_cv_search_eaccess" = "none required" ||
-                    LIB_EACCESS=$ac_cv_search_eaccess])
+                    EUIDACCESS_LIBGEN=$ac_cv_search_eaccess])
     AC_CHECK_FUNCS([eaccess])
   LIBS=$gl_saved_libs
+  # For backward compatibility.
+  LIB_EACCESS="$EUIDACCESS_LIBGEN"
+  AC_SUBST([LIB_EACCESS])
 ])

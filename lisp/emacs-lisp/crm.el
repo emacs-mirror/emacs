@@ -1,6 +1,6 @@
 ;;; crm.el --- read multiple strings with completion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-2023 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements

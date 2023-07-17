@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2022 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1537,14 +1537,16 @@ w32_clear_under_internal_border (struct frame *f)
     {
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
-      int face_id =
-	(FRAME_PARENT_FRAME (f)
-	 ? (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
-	    : CHILD_FRAME_BORDER_FACE_ID)
-	 : (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	    : INTERNAL_BORDER_FACE_ID));
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
+      int face_id = (FRAME_PARENT_FRAME (f)
+		     ? (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     CHILD_FRAME_BORDER_FACE_ID)
+			: CHILD_FRAME_BORDER_FACE_ID)
+		     : (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     INTERNAL_BORDER_FACE_ID)
+			: INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
@@ -1554,17 +1556,21 @@ w32_clear_under_internal_border (struct frame *f)
 	  /* Fill border with internal border face.  */
 	  unsigned long color = face->background;
 
-	  w32_fill_area (f, hdc, color, 0, FRAME_TOP_MARGIN_HEIGHT (f), width, border);
+	  w32_fill_area (f, hdc, color, 0, FRAME_TOP_MARGIN_HEIGHT (f),
+			 width, border);
 	  w32_fill_area (f, hdc, color, 0, 0, border, height);
 	  w32_fill_area (f, hdc, color, width - border, 0, border, height);
-	  w32_fill_area (f, hdc, color, 0, height - border, width, border);
+	  w32_fill_area (f, hdc, color, 0, height - bottom_margin - border,
+			 width, border);
 	}
       else
 	{
-	  w32_clear_area (f, hdc, 0, FRAME_TOP_MARGIN_HEIGHT (f), width, border);
+	  w32_clear_area (f, hdc, 0, FRAME_TOP_MARGIN_HEIGHT (f),
+			  width, border);
 	  w32_clear_area (f, hdc, 0, 0, border, height);
 	  w32_clear_area (f, hdc, width - border, 0, border, height);
-	  w32_clear_area (f, hdc, 0, height - border, width, border);
+	  w32_clear_area (f, hdc, 0, height - bottom_margin - border,
+			  width, border);
 	}
       release_frame_dc (f, hdc);
       unblock_input ();
@@ -1717,19 +1723,17 @@ w32_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 w32_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit, old_height, lines;
-  Lisp_Object fullscreen;
-
-  unit = FRAME_LINE_HEIGHT (f);
-  old_height = FRAME_TAB_BAR_HEIGHT (f);
-  fullscreen = get_frame_param (f, Qfullscreen);
+  int unit = FRAME_LINE_HEIGHT (f);
+  int old_height = FRAME_TAB_BAR_HEIGHT (f);
 
   /* This differs from the tool bar code in that the tab bar height is
      not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
      the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
      leading to the tab bar height being incorrectly set upon the next
      call to x_set_font.  (bug#59285) */
-  lines = height / unit;
+  int lines = height / unit;
+  if (lines == 0 && height != 0)
+    lines = 1;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -1758,6 +1762,8 @@ w32_change_tab_bar_height (struct frame *f, int height)
 
   if (!f->tab_bar_resized)
     {
+      Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+
       /* As long as tab_bar_resized is false, effectively try to change
 	 F's native height.  */
       if (NILP (fullscreen) || EQ (fullscreen, Qfullwidth))
@@ -1804,6 +1810,33 @@ w32_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   w32_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+}
+
+static void
+w32_set_tool_bar_position (struct frame *f,
+			   Lisp_Object new_value,
+			   Lisp_Object old_value)
+{
+  if (!EQ (new_value, Qtop) && !EQ (new_value, Qbottom))
+    error ("Tool bar position must be either `top' or `bottom'");
+
+  if (EQ (new_value, old_value))
+    return;
+
+  /* Set the tool bar position.  */
+  fset_tool_bar_position (f, new_value);
+
+  /* Now reconfigure frame glyphs to place the tool bar at the
+     bottom.  While the inner height has not changed, call
+     `resize_frame_windows' to place each of the windows at its
+     new position.  */
+
+  adjust_frame_size (f, -1, -1, 3, false, Qtool_bar_position);
+  adjust_frame_glyphs (f);
+  SET_FRAME_GARBAGED (f);
+
+  if (FRAME_W32_WINDOW (f))
+    w32_clear_under_internal_border (f);
 }
 
 /* Enable or disable double buffering on frame F.
@@ -8993,7 +9026,9 @@ and width values are in pixels.
 			       : 0),
 			      make_fixnum (tab_bar_height))),
 		Fcons (Qtool_bar_external, Qnil),
-		Fcons (Qtool_bar_position, tool_bar_height ? Qtop : Qnil),
+		Fcons (Qtool_bar_position, (tool_bar_height
+					    ? FRAME_TOOL_BAR_POSITION (f)
+					    : Qnil)),
 		Fcons (Qtool_bar_size,
 		       Fcons (make_fixnum
 			      (tool_bar_height
@@ -9084,10 +9119,11 @@ menu bar or tool bar of FRAME.  */)
 	  return list4 (make_fixnum (left + internal_border_width),
 			make_fixnum (top
 				     + FRAME_TAB_BAR_HEIGHT (f)
-				     + FRAME_TOOL_BAR_HEIGHT (f)
+				     + FRAME_TOOL_BAR_TOP_HEIGHT (f)
 				     + internal_border_width),
 			make_fixnum (right - internal_border_width),
-			make_fixnum (bottom - internal_border_width));
+			make_fixnum (bottom - internal_border_width
+				     - FRAME_TOOL_BAR_BOTTOM_HEIGHT (f)));
 	}
       else
 	return list4 (make_fixnum (left), make_fixnum (top),
@@ -10396,8 +10432,8 @@ to be converted to forward slashes by the caller.  */)
 #endif	/* WINDOWSNT */
 
 /* Query a value from the Windows Registry (under HKCU and HKLM),
-   where `key` is the registry key, `name` is the name, and `lpdwtype`
-   is a pointer to the return value's type. `lpwdtype` can be NULL if
+   where `key' is the registry key, `name' is the name, and `lpdwtype'
+   is a pointer to the return value's type. `lpwdtype' can be NULL if
    you do not care about the type.
 
    Returns: pointer to the value, or null pointer if the key/name does
@@ -10556,7 +10592,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   gui_set_font_backend,
   gui_set_alpha,
   0, /* x_set_sticky */
-  0, /* x_set_tool_bar_position */
+  w32_set_tool_bar_position,
   w32_set_inhibit_double_buffering,
   w32_set_undecorated,
   w32_set_parent_frame,
@@ -10664,7 +10700,7 @@ pops up the Windows Run dialog, <lwindow>-<Pause> pops up the "System
 Properties" dialog, etc.  On Windows 10, no \"Windows\" key
 combinations are normally handed to applications.  To enable Emacs to
 process \"Windows\" key combinations, use the function
-`w32-register-hot-key`.
+`w32-register-hot-key'.
 
 For Windows 98/ME, see the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_lwindow_to_system = Qt;
@@ -10683,7 +10719,7 @@ pops up the Windows Run dialog, <rwindow>-<Pause> pops up the "System
 Properties" dialog, etc.  On Windows 10, no \"Windows\" key
 combinations are normally handed to applications.  To enable Emacs to
 process \"Windows\" key combinations, use the function
-`w32-register-hot-key`.
+`w32-register-hot-key'.
 
 For Windows 98/ME, see the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_rwindow_to_system = Qt;
@@ -10698,7 +10734,7 @@ acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or
 `w32-pass-rwindow-to-system' is nil.
 
 This variable is only used on Windows 98 and ME.  For other Windows
-versions, see the documentation of the `w32-register-hot-key`
+versions, see the documentation of the `w32-register-hot-key'
 function.  */);
   /* Although 255 is technically not a valid key code, it works and
      means that this hack won't interfere with any real key code.  */
@@ -10732,7 +10768,7 @@ The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `lwindow' key.
 Any other value will cause the key to be ignored.
 
-Also see the documentation of the `w32-register-hot-key` function.  */);
+Also see the documentation of the `w32-register-hot-key' function.  */);
   Vw32_lwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-rwindow-modifier",
@@ -10742,7 +10778,7 @@ The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `rwindow' key.
 Any other value will cause the key to be ignored.
 
-Also see the documentation of the `w32-register-hot-key` function.  */);
+Also see the documentation of the `w32-register-hot-key' function.  */);
   Vw32_rwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-apps-modifier",
@@ -11112,20 +11148,24 @@ emacs_abort (void)
     abort ();
 
   int button;
-  button = MessageBox (NULL,
-		       "A fatal error has occurred!\n\n"
-		       "Would you like to attach a debugger?\n\n"
-		       "Select:\n"
-		       "YES -- to debug Emacs, or\n"
-		       "NO  -- to abort Emacs and produce a backtrace\n"
-		       "       (emacs_backtrace.txt in current directory)."
+
+  if (noninteractive)
+    button = IDNO;
+  else
+    button = MessageBox (NULL,
+			 "A fatal error has occurred!\n\n"
+			 "Would you like to attach a debugger?\n\n"
+			 "Select:\n"
+			 "YES -- to debug Emacs, or\n"
+			 "NO  -- to abort Emacs and produce a backtrace\n"
+			 "       (emacs_backtrace.txt in current directory)."
 #if __GNUC__
-		       "\n\n(type \"gdb -p <emacs-PID>\" and\n"
-		       "\"continue\" inside GDB before clicking YES.)"
+			 "\n\n(Before clicking YES, type\n"
+			 "\"gdb -p <emacs-PID>\", then \"continue\" inside GDB.)"
 #endif
-		       , "Emacs Abort Dialog",
-		       MB_ICONEXCLAMATION | MB_TASKMODAL
-		       | MB_SETFOREGROUND | MB_YESNO);
+			 , "Emacs Abort Dialog",
+			 MB_ICONEXCLAMATION | MB_TASKMODAL
+			 | MB_SETFOREGROUND | MB_YESNO);
   switch (button)
     {
     case IDYES:
@@ -11271,7 +11311,7 @@ globals_of_w32fns (void)
     get_proc_addr (hm_kernel32, "SetThreadDescription");
 
   /* Support OS dark mode on Windows 10 version 1809 and higher.
-     See `w32_applytheme` which uses appropriate APIs per version of Windows.
+     See `w32_applytheme' which uses appropriate APIs per version of Windows.
      For future wretches who may need to understand Windows build numbers:
      https://docs.microsoft.com/en-us/windows/release-health/release-information
   */

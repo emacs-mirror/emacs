@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-2022  Free Software Foundation, Inc.
+Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -48,6 +48,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include "w32heap.h"		/* for mmap_* */
+#endif
+
+/* Work around GCC bug 109847
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109847
+   which causes GCC to mistakenly complain about
+   AUTO_STRING with "*scratch*".  */
+#if GNUC_PREREQ (13, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
 #endif
 
 /* This structure holds the default values of the buffer-local variables
@@ -525,14 +533,14 @@ get_truename_buffer (register Lisp_Object filename)
   return Qnil;
 }
 
-/* Run buffer-list-update-hook if Vrun_hooks is non-nil, and BUF is NULL
-   or does not have buffer hooks inhibited.  BUF is NULL when called by
-   make-indirect-buffer, since it does not inhibit buffer hooks.  */
+/* Run buffer-list-update-hook if Vrun_hooks is non-nil and BUF does
+   not have buffer hooks inhibited.  */
 
 static void
 run_buffer_list_update_hook (struct buffer *buf)
 {
-  if (! (NILP (Vrun_hooks) || (buf && buf->inhibit_buffer_hooks)))
+  eassert (buf);
+  if (! (NILP (Vrun_hooks) || buf->inhibit_buffer_hooks))
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
 }
 
@@ -907,7 +915,7 @@ does not run the hooks `kill-buffer-hook',
       set_buffer_internal_1 (old_b);
     }
 
-  run_buffer_list_update_hook (NULL);
+  run_buffer_list_update_hook (b);
 
   return buf;
 }
@@ -1307,7 +1315,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: result = SYMBOL_VAL (sym); break;
     case SYMBOL_LOCALIZED:
       { /* Look in local_var_alist.  */
@@ -2386,6 +2394,7 @@ Any narrowing restriction in effect (see `narrow-to-region') is removed,
 so the buffer is truly empty after this.  */)
   (void)
 {
+  labeled_restrictions_remove_in_current_buffer ();
   Fwiden ();
 
   del_range (BEG, Z);
@@ -3334,7 +3343,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
   else
     nbytes = SBYTES (str);
 
-  if (INT_ADD_WRAPV (ssl->bytes, nbytes, &nbytes))
+  if (ckd_add (&nbytes, nbytes, ssl->bytes))
     memory_full (SIZE_MAX);
   ssl->bytes = nbytes;
 
@@ -3348,7 +3357,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
       else
 	nbytes = SBYTES (str2);
 
-      if (INT_ADD_WRAPV (ssl->bytes, nbytes, &nbytes))
+      if (ckd_add (&nbytes, nbytes, ssl->bytes))
 	memory_full (SIZE_MAX);
       ssl->bytes = nbytes;
     }
@@ -3420,7 +3429,7 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
       unsigned char *p;
       ptrdiff_t total;
 
-      if (INT_ADD_WRAPV (overlay_heads.bytes, overlay_tails.bytes, &total))
+      if (ckd_add (&total, overlay_heads.bytes, overlay_tails.bytes))
 	memory_full (SIZE_MAX);
       if (total > overlay_str_len)
 	overlay_str_buf = xpalloc (overlay_str_buf, &overlay_str_len,
@@ -5081,8 +5090,8 @@ the mode line appears at the bottom.  */);
 The header line appears, optionally, at the top of a window; the mode
 line appears at the bottom.
 
-Also see `header-line-indent-mode' if `display-line-number-mode' is
-used.  */);
+Also see `header-line-indent-mode' if `display-line-numbers-mode' is
+turned on and header-line text should be aligned with buffer text.  */);
 
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,
@@ -5124,33 +5133,38 @@ A list whose car is an integer is processed by processing the cadr of
  negative) to the width specified by that number.
 
 A string is printed verbatim in the mode line except for %-constructs:
-  %b -- print buffer name.      %f -- print visited file name.
-  %F -- print frame name.
-  %* -- print %, * or hyphen.   %+ -- print *, % or hyphen.
-	%& is like %*, but ignore read-only-ness.
-	% means buffer is read-only and * means it is modified.
-	For a modified read-only buffer, %* gives % and %+ gives *.
-  %s -- print process status.   %l -- print the current line number.
+  %b -- print buffer name.
   %c -- print the current column number (this makes editing slower).
         Columns are numbered starting from the left margin, and the
         leftmost column is displayed as zero.
         To make the column number update correctly in all cases,
-	`column-number-mode' must be non-nil.
+        `column-number-mode' must be non-nil.
   %C -- Like %c, but the leftmost column is displayed as one.
+  %e -- print error message about full memory.
+  %f -- print visited file name.
+  %F -- print frame name.
   %i -- print the size of the buffer.
   %I -- like %i, but use k, M, G, etc., to abbreviate.
+  %l -- print the current line number.
+  %n -- print Narrow if appropriate.
+  %o -- print percent of window travel through buffer, or Top, Bot or All.
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
-  %n -- print Narrow if appropriate.
-  %t -- visited file is text or binary (if OS supports this distinction).
+  %q -- print percent of buffer above both the top and the bottom of the
+        window, separated by ‘-’, or ‘All’.
+  %s -- print process status.
   %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
-  %e -- print error message about full memory.
-  %@ -- print @ or hyphen.  @ means that default-directory is on a
-        remote machine.
-  %[ -- print one [ for each recursive editing level.  %] similar.
-  %% -- print %.   %- -- print infinitely many dashes.
+  %& -- print * if the buffer is modified, otherwise hyphen.
+  %+ -- print *, % or hyphen (modified, read-only, neither).
+  %* -- print %, * or hyphen (read-only, modified, neither).
+        For a modified read-only buffer, %+ prints * and %* prints %.
+  %@ -- print @ if default-directory is on a remote machine, else hyphen.
+  %[ -- print one [ for each recursive editing level.
+  %] -- print one ] for each recursive editing level.
+  %- -- print enough dashes to fill the mode line.
+  %% -- print %.
 Decimal digits after the % specify field width to which to pad.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &BVAR (current_buffer, major_mode),
@@ -5916,40 +5930,41 @@ If nil, these display shortcuts will always remain disabled.
 There is no reason to change that value except for debugging purposes.  */);
   XSETFASTINT (Vlong_line_threshold, 50000);
 
-  DEFVAR_INT ("long-line-locked-narrowing-region-size",
-	      long_line_locked_narrowing_region_size,
-	      doc: /* Region size for locked narrowing in buffers with long lines.
+  DEFVAR_INT ("long-line-optimizations-region-size",
+	      long_line_optimizations_region_size,
+	      doc: /* Region size for narrowing in buffers with long lines.
 
-This variable has effect only in buffers which contain one or more
-lines whose length is above `long-line-threshold', which see.  For
-performance reasons, in such buffers, low-level hooks such as
-`fontification-functions' or `post-command-hook' are executed on a
-narrowed buffer, with a narrowing locked with `narrowing-lock'.  This
-variable specifies the size of the narrowed region around point.
+This variable has effect only in buffers in which
+`long-line-optimizations-p' is non-nil.  For performance reasons, in
+such buffers, the `fontification-functions', `pre-command-hook' and
+`post-command-hook' hooks are executed on a narrowed buffer around
+point, as if they were called in a `with-restriction' form with a label.
+This variable specifies the size of the narrowed region around point.
 
 To disable that narrowing, set this variable to 0.
 
-See also `long-line-locked-narrowing-bol-search-limit'.
+See also `long-line-optimizations-bol-search-limit'.
 
 There is no reason to change that value except for debugging purposes.  */);
-  long_line_locked_narrowing_region_size = 500000;
+  long_line_optimizations_region_size = 500000;
 
-  DEFVAR_INT ("long-line-locked-narrowing-bol-search-limit",
-	      long_line_locked_narrowing_bol_search_limit,
+  DEFVAR_INT ("long-line-optimizations-bol-search-limit",
+	      long_line_optimizations_bol_search_limit,
 	      doc: /* Limit for beginning of line search in buffers with long lines.
 
-This variable has effect only in buffers which contain one or more
-lines whose length is above `long-line-threshold', which see.  For
-performance reasons, in such buffers, low-level hooks such as
-`fontification-functions' or `post-command-hook' are executed on a
-narrowed buffer, with a narrowing locked with `narrowing-lock'.  The
-variable `long-line-locked-narrowing-region-size' specifies the size
-of the narrowed region around point.  This variable, which should be a
-small integer, specifies the number of characters by which that region
-can be extended backwards to make it start at the beginning of a line.
+This variable has effect only in buffers in which
+`long-line-optimizations-p' is non-nil.  For performance reasons, in
+such buffers, the `fontification-functions', `pre-command-hook' and
+`post-command-hook' hooks are executed on a narrowed buffer around
+point, as if they were called in a `with-restriction' form with a label.
+The variable `long-line-optimizations-region-size' specifies the
+size of the narrowed region around point.  This variable, which should
+be a small integer, specifies the number of characters by which that
+region can be extended backwards to make it start at the beginning of
+a line.
 
 There is no reason to change that value except for debugging purposes.  */);
-  long_line_locked_narrowing_bol_search_limit = 128;
+  long_line_optimizations_bol_search_limit = 128;
 
   DEFVAR_INT ("large-hscroll-threshold", large_hscroll_threshold,
     doc: /* Horizontal scroll of truncated lines above which to use redisplay shortcuts.

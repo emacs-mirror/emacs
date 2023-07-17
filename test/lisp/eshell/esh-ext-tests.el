@@ -1,6 +1,6 @@
 ;;; esh-ext-tests.el --- esh-ext test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'esh-mode)
 (require 'esh-ext)
@@ -72,5 +73,36 @@
      ;; After the last command, the previous $PATH value should be restored.
      (eshell-match-command-output "echo $PATH"
                                   (concat original-path "\n")))))
+
+(ert-deftest esh-ext-test/explicitly-remote-command ()
+  "Test that an explicitly-remote command is remote no matter the current dir."
+  (skip-unless (and (eshell-tests-remote-accessible-p)
+                    (executable-find "sh")))
+  (dolist (default-directory (list default-directory
+                                   ert-remote-temporary-file-directory))
+    (dolist (cmd (list "sh" (executable-find "sh")))
+      (ert-info ((format "Directory: %s; executable: %s" default-directory cmd))
+        (with-temp-eshell
+         ;; Check the value of $INSIDE_EMACS using `sh' in order to
+         ;; delay variable expansion.
+         (eshell-match-command-output
+          (format "%s%s -c 'echo $INSIDE_EMACS'"
+                  (file-remote-p ert-remote-temporary-file-directory) cmd)
+          "eshell,tramp"))))))
+
+(ert-deftest esh-ext-test/explicitly-local-command ()
+  "Test that an explicitly-local command is local no matter the current dir."
+  (skip-unless (and (eshell-tests-remote-accessible-p)
+                    (executable-find "sh")))
+  (dolist (default-directory (list default-directory
+                                   ert-remote-temporary-file-directory))
+    (dolist (cmd (list "sh" (executable-find "sh")))
+      (ert-info ((format "In directory: %s" default-directory))
+        (with-temp-eshell
+         ;; Check the value of $INSIDE_EMACS using `sh' in order to
+         ;; delay variable expansion.
+         (eshell-match-command-output
+          (format "/:%s -c 'echo $INSIDE_EMACS'" cmd)
+          "eshell\n"))))))
 
 ;; esh-ext-tests.el ends here

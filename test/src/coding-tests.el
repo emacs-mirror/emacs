@@ -1,6 +1,6 @@
 ;;; coding-tests.el --- tests for text encoding and decoding -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Author: Kenichi Handa <handa@gnu.org>
@@ -148,21 +148,21 @@
 
 (defun coding-tests (content-type write-coding read-coding detected-coding
 				   &optional translator)
-  (prefer-coding-system 'utf-8-auto)
-  (let ((filename (coding-tests-filename content-type write-coding)))
-    (with-temp-buffer
-      (let ((coding-system-for-read read-coding)
-	    (contents (coding-tests-file-contents content-type))
-	    (disable-ascii-optimization nil))
-	(if translator
-	    (setq contents (funcall translator contents)))
-	(insert-file-contents filename)
-	(if (and (coding-system-equal buffer-file-coding-system detected-coding)
-		 (string= (buffer-string) contents))
-	    nil
-	  (list buffer-file-coding-system
-		(string-to-list (buffer-string))
-		(string-to-list contents)))))))
+  (with-coding-priority '(utf-8-auto)
+    (let ((filename (coding-tests-filename content-type write-coding)))
+      (with-temp-buffer
+        (let ((coding-system-for-read read-coding)
+	      (contents (coding-tests-file-contents content-type))
+	      (disable-ascii-optimization nil))
+	  (if translator
+	      (setq contents (funcall translator contents)))
+	  (insert-file-contents filename)
+	  (if (and (coding-system-equal buffer-file-coding-system detected-coding)
+		   (string= (buffer-string) contents))
+	      nil
+	    (list buffer-file-coding-system
+		  (string-to-list (buffer-string))
+		  (string-to-list contents))))))))
 
 (ert-deftest ert-test-coding-ascii ()
   (unwind-protect

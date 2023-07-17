@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic
@@ -887,19 +887,40 @@ z z z}.  The first @kbd{C-x z} repeats the command once, and each
 subsequent @kbd{z} repeats it once again.
 
 @findex repeat-mode
+@findex describe-repeat-maps
 @vindex repeat-exit-key
 @vindex repeat-exit-timeout
-  Also you can activate @code{repeat-mode} that temporarily enables a
-transient mode with short keys after a limited number of commands.
-Currently supported shorter key sequences are @kbd{C-x u u} instead of
-@kbd{C-x u C-x u} to undo many changes, @kbd{C-x o o} instead of
-@kbd{C-x o C-x o} to switch several windows, @kbd{C-x @{ @{ @} @} ^ ^
-v v} to resize the selected window interactively, @kbd{M-g n n p p} to
-navigate @code{next-error} matches, and @kbd{C-x ] ] [ [} to navigate
-through pages.  Any other key exits transient mode and then is
-executed normally.  The user option @code{repeat-exit-key} defines an
-additional key to exit this transient mode.  Also it's possible to
-break the repetition chain automatically after some idle time by
-customizing the user option @code{repeat-exit-timeout} to specify the
-idle time in seconds after which this transient mode will be turned
-off.
+  You can also activate @code{repeat-mode} which allows repeating
+commands bound to sequences of two or more keys by typing a single
+character.  For example, after typing @w{@kbd{C-x u}} (@code{undo},
+@pxref{Undo}) to undo the most recent edits, you can undo many more
+edits by typing @w{@kbd{u u u@dots{}}}.  Similarly, type @w{@kbd{C-x o
+o o@dots{}}} instead of @w{@kbd{C-x o C-x o C-x o@dots{}}} to switch
+to the window several windows away.  This works by entering a
+transient repeating mode after you type the full key sequence that
+invokes the command; the single-key shortcuts are shown in the echo
+area.
+
+Only some commands support repetition in @code{repeat-mode}; type
+@w{@kbd{M-x describe-repeat-maps @key{RET}}} to see which ones.
+
+The single-character shortcuts enabled by the transient repeating mode
+do not need to be identical: for example, after typing @w{@kbd{C-x
+@{}}, either @kbd{@{} or @kbd{@}} or @kbd{^} or @kbd{v}, or any series
+that mixes these characters in any order, will resize the selected
+window in respective ways.  Similarly, after @w{@kbd{M-g n}} or
+@kbd{M-g p}, typing any sequence of @kbd{n} and/or @kbd{p} in any mix
+will repeat @code{next-error} and @code{previous-error} to navigate in
+a @file{*compilation*} or @file{*grep*} buffer (@pxref{Compilation
+Mode}).
+
+Typing any key other than those defined to repeat the previous command
+exits the transient repeating mode, and then the key you typed is
+executed normally.  You can also define a key which will exit the
+transient repeating mode @emph{without} executing the key which caused
+the exit.  To this end, customize the user option
+@code{repeat-exit-key} to name a key; one natural value is @key{RET}.
+Finally, it's possible to break the repetition chain automatically
+after some amount of idle time: customize the user option
+@code{repeat-exit-timeout} to specify the idle time in seconds after
+which this transient repetition mode will be turned off automatically.

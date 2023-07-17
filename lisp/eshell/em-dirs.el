@@ -1,6 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -253,11 +253,26 @@ Thus, this does not include the current directory.")
     (throw 'eshell-replace-command
 	   (eshell-parse-command "cd" (flatten-tree args)))))
 
+(defun eshell-expand-user-reference-1 (file)
+  "Expand a user reference in FILE to its real directory name."
+  (replace-regexp-in-string
+   (rx bos (group "~" (*? anychar)) (or "/" eos))
+   #'expand-file-name file))
+
+(defun eshell-expand-user-reference (file)
+  "Expand a user reference in FILE to its real directory name.
+FILE can be either a string or a list of strings to expand."
+  ;; If the argument was a glob pattern, then FILE is a list, so
+  ;; expand each element of the glob's resulting list.
+  (if (listp file)
+      (mapcar #'eshell-expand-user-reference-1 file)
+    (eshell-expand-user-reference-1 file)))
+
 (defun eshell-parse-user-reference ()
   "An argument beginning with ~ is a filename to be expanded."
   (when (and (not eshell-current-argument)
-	     (eq (char-after) ?~))
-    (add-to-list 'eshell-current-modifiers 'expand-file-name)
+             (eq (char-after) ?~))
+    (add-to-list 'eshell-current-modifiers #'eshell-expand-user-reference)
     (forward-char)
     (char-to-string (char-before))))
 
@@ -281,15 +296,32 @@ Thus, this does not include the current directory.")
   (let ((arg (pcomplete-actual-arg)))
     (when (string-match "\\`~[a-z]*\\'" arg)
       (setq pcomplete-stub (substring arg 1)
-	    pcomplete-last-completion-raw t)
-      (throw 'pcomplete-completions
-	     (progn
-	       (eshell-read-user-names)
-	       (pcomplete-uniquify-list
-		(mapcar
-                 (lambda (user)
-                   (file-name-as-directory (cdr user)))
-		 eshell-user-names)))))))
+            pcomplete-last-completion-raw t)
+      (eshell-read-user-names)
+      (let ((names (pcomplete-uniquify-list
+                    (mapcar (lambda (user)
+                              (file-name-as-directory (cdr user)))
+                            eshell-user-names))))
+        (throw 'pcomplete-completions
+               ;; Provide a programmed completion table.  This works
+               ;; just like completing over the list of names, except
+               ;; it always returns the completed string for
+               ;; `try-completion', never `t'.  That's because this is
+               ;; only completing a directory name, and so the
+               ;; completion isn't actually finished yet.
+               (lambda (string pred action)
+                 (pcase action
+                   ('nil                  ; try-completion
+                    (let ((result (try-completion string names pred)))
+                      (if (eq result t) string result)))
+                   ('t                    ; all-completions
+                    (all-completions string names pred))
+                   ('lambda               ; test-completion
+                    (test-completion string names pred))
+                   ('metadata
+                    '(metadata (category . file)))
+                   (`(boundaries . ,suffix)
+                    `(boundaries 0 . ,(string-search "/" suffix))))))))))
 
 (defun eshell/pwd (&rest _args)
   "Change output from `pwd' to be cleaner."

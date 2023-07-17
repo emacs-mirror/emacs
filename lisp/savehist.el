@@ -1,6 +1,6 @@
 ;;; savehist.el --- Save minibuffer history  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -232,8 +232,9 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
       savehist-coding-system))
     (run-hooks 'savehist-save-hook)
     (let ((print-length nil)
-	  (print-level nil)
-	  (print-quoted t))
+          (print-level nil)
+          (print-quoted t)
+          (print-circle t))
       ;; Save the minibuffer histories, along with the value of
       ;; savehist-minibuffer-history-variables itself.
       (when savehist-save-minibuffer-history

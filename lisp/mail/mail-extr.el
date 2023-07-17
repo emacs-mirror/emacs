@@ -1,6 +1,6 @@
 ;;; mail-extr.el --- extract full name and address from email header  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Maintainer: emacs-devel@gnu.org

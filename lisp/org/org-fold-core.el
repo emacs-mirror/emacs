@@ -1,6 +1,6 @@
 ;;; org-fold-core.el --- Folding buffer text -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Ihor Radchenko <yantar92 at gmail dot com>
 ;; Keywords: folding, invisible text
@@ -1003,7 +1003,13 @@ If SPEC-OR-ALIAS is omitted and FLAG is nil, unfold everything in the region."
                    (overlay-put o (org-fold-core--property-symbol-get-create spec) spec)
                    (overlay-put o 'invisible spec)
                    (overlay-put o 'isearch-open-invisible #'org-fold-core--isearch-show)
-                   (overlay-put o 'isearch-open-invisible-temporary #'org-fold-core--isearch-show-temporary))
+                   ;; FIXME: Disabling to work around Emacs bug#60399
+                   ;; and https://orgmode.org/list/87zgb6tk6h.fsf@localhost.
+                   ;; The proper fix will require making sure that
+                   ;; `org-fold-core-isearch-open-function' does not
+                   ;; delete the overlays used by isearch.
+                   ;; (overlay-put o 'isearch-open-invisible-temporary #'org-fold-core--isearch-show-temporary)
+                   )
 	       (put-text-property from to (org-fold-core--property-symbol-get-create spec) spec)
 	       (put-text-property from to 'isearch-open-invisible #'org-fold-core--isearch-show)
 	       (put-text-property from to 'isearch-open-invisible-temporary #'org-fold-core--isearch-show-temporary)
@@ -1131,16 +1137,9 @@ This function is intended to be used as `isearch-filter-predicate'."
   "Clear `org-fold-core--isearch-local-regions'."
   (clrhash org-fold-core--isearch-local-regions))
 
-(defun org-fold-core--isearch-show (region)
-  "Reveal text in REGION found by isearch.
-REGION can also be an overlay in current buffer."
-  (when (overlayp region)
-    (setq region (cons (overlay-start region)
-                       (overlay-end region))))
-  (org-with-point-at (car region)
-    (while (< (point) (cdr region))
-      (funcall org-fold-core-isearch-open-function (car region))
-      (goto-char (org-fold-core-next-visibility-change (point) (cdr region) 'ignore-hidden)))))
+(defun org-fold-core--isearch-show (_)
+  "Reveal text at point found by isearch."
+  (funcall org-fold-core-isearch-open-function (point)))
 
 (defun org-fold-core--isearch-show-temporary (region hide-p)
   "Temporarily reveal text in REGION.

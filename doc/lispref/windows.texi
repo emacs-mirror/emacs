@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Windows
@@ -629,6 +629,12 @@ example, by calling @code{select-window} with argument @var{norecord}
 @code{nil}.  Hence, this macro is the preferred way to temporarily work
 with @var{window} as the selected window without needlessly running
 @code{buffer-list-update-hook}.
+
+Note that this macro temporarily puts the window management code in an
+unstable state.  In particular, the most recently used window (see below)
+will not necessarily match the selected one.  Hence, functions like
+@code{get-lru-window} and @code{get-mru-window} may return unexpected
+results when called from the body of this macro.
 @end defmac
 
 @defmac with-selected-frame frame forms@dots{}
@@ -650,15 +656,17 @@ The @dfn{use time} of a window is not really a time value, but an
 integer that does increase monotonically with each call of
 @code{select-window} with a @code{nil} @var{norecord} argument.  The
 window with the lowest use time is usually called the least recently
-used window while the window with the highest use time is called the
-most recently used one (@pxref{Cyclic Window Ordering}).
+used window.  The window with the highest use time is called the most
+recently used one (@pxref{Cyclic Window Ordering}) and is usually the
+selected window unless @code{with-selected-window} has been used.
 @end defun
 
 @defun window-bump-use-time &optional window
-This function marks @var{window} as being the most recently used
-one.  This can be useful when writing certain @code{pop-to-buffer}
-scenarios (@pxref{Switching Buffers}).  @var{window} must be a live
-window and defaults to the selected one.
+This function marks @var{window} as being the second most recently
+used one (after the selected window).  It does nothing if @var{window}
+is the selected window or the selected window does not have the
+highest use time among all windows which may happen within the scope
+of @code{with-selected-window}.
 @end defun
 
 @anchor{Window Group}Sometimes several windows collectively and
@@ -2755,14 +2763,40 @@ before.
 
 @defun display-buffer-use-some-window buffer alist
 This function tries to display @var{buffer} by choosing an existing
-window and displaying the buffer in that window.  It can fail if all
-windows are dedicated to other buffers (@pxref{Dedicated Windows}).
+window and displaying the buffer in that window.  It first tries to find
+a window that has not been used recently (@pxref{Cyclic Window
+Ordering}) on any frame specified by a @code{lru-frames} @var{alist}
+entry, falling back to the selected frame if no such entry exists.  It
+also prefers windows that satisfy the constraints specified by
+@code{window-min-width} and @code{window-min-height} @var{alist}
+entries; preferring full-width windows if no @code{window-min-width}
+entry is found.  Finally, it will not return a window whose use time is
+higher than that specified by any @code{lru-time} entry provided by
+@var{alist}.
+
+If no less recently used window is found, this function will try to use
+some other window, preferably a large window on some visible frame.  It
+can fail if all windows are dedicated to other buffers (@pxref{Dedicated
+Windows}).
 @end defun
 
 @defun display-buffer-use-least-recent-window buffer alist
-This function is like @code{display-buffer-use-some-window}, but will
-not reuse the current window, and will use the least recently
-switched-to window.
+This function is similar to @code{display-buffer-use-some-window}, but
+will try harder to not use the a recently used window.  In particular,
+it does not use the selected window.  In addition, it will first try to
+reuse a window that shows @var{buffer} already, base the decision
+whether it should use a window showing another buffer on that window's
+use time alone and pop up a new window if no usable window is found.
+
+Finally, this function will bump the use time (@pxref{Selecting
+Windows}) of any window it returns in order to avoid that further
+invocations will use that window for showing another buffer.  An
+application that wants to display several buffers in a row can help this
+function by providing a @code{lru-time} @var{alist} entry it has
+initially set to the value of the selected window's use time.  Each
+invocation of this function will then bump the use time of the window
+returned to a value higher than that and a subsequent invocation will
+inhibit this function to use a window it returned earlier.
 @end defun
 
 @defun display-buffer-in-direction buffer alist
@@ -3032,12 +3066,40 @@ The value specifies an alist of window parameters to give the chosen
 window.  All action functions that choose a window should process this
 entry.
 
+@vindex window-min-width@r{, a buffer display action alist entry}
+@item window-min-width
+The value specifies a minimum width of the window used, in canonical
+frame columns.  The special value @code{full-width} means the chosen
+window should be one that has no other windows on the left or right of
+it in its frame.
+
+This entry is currently honored by @code{display-buffer-use-some-window}
+and @code{display-buffer-use-least-recent-window}, which try hard to avoid
+returning a less recently used window that does not satisfy the entry.
+
+Note that providing such an entry alone does not necessarily make the
+window as wide as specified by its value.  To actually resize an
+existing window or make a new window as wide as specified by this
+entry's value, a @code{window-width} entry specifying that value
+should be provided as well.  Such a @code{window-width} entry can,
+however, specify a completely different value, or ask the window width
+to fit that of its buffer, in which case the
+@code{window-min-width} entry provides the guaranteed minimum width of
+the window.
+
 @vindex window-min-height@r{, a buffer display action alist entry}
 @item window-min-height
-The value specifies a minimum height of the window used, in lines.  If
-a window is not or cannot be made as high as specified by this entry,
-the window is not considered for use.  The only client of this entry
-is presently @code{display-buffer-below-selected}.
+The value specifies a minimum height of the window used, in canonical
+frame lines.  The special value @code{full-height} means the chosen
+window should be a full-height window, one that has no other windows
+above or below it in its frame.
+
+This entry is currently honored by @code{display-buffer-below-selected}
+which does not use a window that is not as high as specified by this
+entry.  It's also honored by @code{display-buffer-use-some-window} and
+@code{display-buffer-use-least-recent-window} which try hard to avoid
+returning a less recently used window if it does not satisfy this
+constraint.
 
 Note that providing such an entry alone does not necessarily make the
 window as tall as specified by its value.  To actually resize an
@@ -3154,7 +3216,7 @@ any window it creates as dedicated to its buffer (@pxref{Dedicated
 Windows}).  It does that by calling @code{set-window-dedicated-p} with
 the chosen window as first argument and the entry's value as second.
 Side windows are by default dedicated with the value @code{side}
-((@pxref{Side Window Options and Functions}).
+(@pxref{Side Window Options and Functions}).
 
 @vindex preserve-size@r{, a buffer display action alist entry}
 @item preserve-size
@@ -3165,6 +3227,40 @@ be either @w{@code{(t . nil)}} to preserve the width of the window,
 preserve both, its width and its height.  This entry should be
 processed only under certain conditions which are specified right
 after this list.
+
+@vindex lru-frames@r{, a buffer display action alist entry}
+@item lru-frames
+The value specifies the set of frames to search for a window that can be
+used to display the buffer.  It is honored by
+@code{display-buffer-use-some-window} and
+@code{display-buffer-use-least-recent-window} when trying to find a less
+recently used window showing some other buffer.  Its values are the same
+as for the @code{reusable-frames} entry described above.
+
+@vindex lru-time@r{, a buffer display action alist entry}
+@item lru-time
+The value is supposed to specify a use time (@pxref{Selecting Windows}).
+This entry is honored by @code{display-buffer-use-some-window} and
+@code{display-buffer-use-least-recent-window} when trying to find a less
+recently used window showing some other buffer.  If a window's use time
+is higher than the value specified by this option, these action
+functions will not consider such a window for displaying the buffer.
+
+@vindex bump-use-time@r{, a buffer display action alist entry}
+@item bump-use-time
+If non-@code{nil}, such an entry will cause @code{display-buffer} to
+bump the use time (@pxref{Selecting Windows}) of the window it uses.
+This should avoid later use of this window by action functions
+like @code{display-buffer-use-some-window} and
+@code{display-buffer-use-least-recent-window} for showing another
+buffer.
+
+There is a fine difference between using this entry and using the action
+function @code{display-buffer-use-least-recent-window}.  Calling the
+latter means to only bump the use times of windows that function uses
+for displaying the buffer.  The entry described here will cause
+@code{display-buffer} to bump the use time of @emph{any} window used for
+displaying a buffer.
 
 @vindex pop-up-frame-parameters@r{, a buffer display action alist entry}
 @item pop-up-frame-parameters
@@ -3319,13 +3415,6 @@ allowed to split the window placing the new window to the right.  If
 the value is an integer, that means to split only if the original
 window has at least that many columns.  If the value is @code{nil},
 that means not to split this way.
-@end defopt
-
-@defopt display-buffer-avoid-small-windows
-If non-@code{nil}, this should be a number.  Windows that have fewer
-lines than that will be avoided when choosing an existing window.  The
-value is interpreted in units of the frame's canonical line height,
-like @code{window-total-height} does (@pxref{Window Sizes}).
 @end defopt
 
 @defopt even-window-sizes
@@ -3992,53 +4081,79 @@ related to the new window.  For non-input related actions
 @code{display-buffer-below-selected} might be preferable because the
 selected window usually already has the user's attention.
 
-@item Handle subsequent invocations of @code{display-buffer}
-@code{display-buffer} is not overly well suited for displaying several
-buffers in sequence and making sure that all these buffers are shown
-orderly in the resulting window configuration.  Again, the standard
-action functions @code{display-buffer-pop-up-window} and
-@code{display-buffer-use-some-window} are not very suited for this
-purpose due to their somewhat chaotic nature in more complex
-configurations.
+@item Take care which window is selected
+Many applications call @code{display-buffer} from within window
+excursions produced by @code{with-selected-window} or
+@code{select-window} calls with a non-@code{nil} @var{norecord}
+argument.  This is almost always a bad idea because the window selected
+within such an excursion is usually not the window selected in the
+configuration presented to the user.
 
-   To produce a window configuration displaying multiple buffers (or
-different views of one and the same buffer) in one and the same
-display cycle, Lisp programmers will unavoidably have to write
-their own action functions.  A few tricks listed below might help in
-this regard.
+If, for example, a user had added an @code{inhibit-same-window} alist
+entry, that entry would have avoided the window selected within the
+scope of the excursion and not the window selected in the resulting
+configuration.  Even if no such entry has been added, the resulting
+behavior might be strange.  While in a frame containing one live
+window, evaluating the following form
 
-@itemize @bullet
-@item
-Making windows atomic (@pxref{Atomic Windows}) avoids breaking an
-existing window composition when popping up a new window.
-The new window will pop up outside the composition instead.
+@example
+@group
+(progn
+  (split-window)
+  (display-buffer "*Messages*"))
+@end group
+@end example
 
-@item
-Temporarily dedicating windows to their buffers (@pxref{Dedicated
-Windows}) avoids using a window for displaying a different
-buffer.  A non-dedicated window will be used instead.
+@noindent
+will display a window showing the @file{*Messages*} buffer at the bottom
+and leave the other window selected.  Evaluating the next form
 
-@item
-Calling @code{window-preserve-size} (@pxref{Preserving Window Sizes})
-will try to keep the size of the argument window unchanged when
-popping up a new window.  You have to make sure that another window in
-the same combination can be shrunk instead, though.
+@example
+@group
+(with-selected-window (split-window)
+  (display-buffer "*Messages*"))
+@end group
+@end example
 
-@item
-Side windows (@pxref{Side Windows}) can be used for displaying
-specific buffers always in a window at the same position of a frame.
-This permits grouping buffers that do not compete for being shown at
-the same time on a frame and showing any such buffer in the same window
-without disrupting the display of other buffers.
+@noindent
+will display @file{*Messages*} in a window on the top and select it
+which is usually not what @code{display-buffer} is supposed to do.
 
-@item
-Child frames (@pxref{Child Frames}) can be used to display a buffer
-within the screen estate of the selected frame without disrupting that
-frame's window configuration and without the overhead associated with
-full-fledged frames as inflicted by @code{display-buffer-pop-up-frame}.
-@end itemize
+On the other hand, while evaluating the following form
+
+@example
+@group
+(progn
+  (split-window)
+  (pop-to-buffer "*Messages*"))
+@end group
+@end example
+
+@noindent
+will correctly select the @file{*Messages*} buffer, the next form
+
+@example
+@group
+(progn
+  (split-window)
+  (with-selected-window (selected-window)
+    (pop-to-buffer "*Messages*")))
+@end group
+@end example
+
+@noindent
+will not.
+
+Also, invocations of action functions like
+@code{display-buffer-use-some-window} and
+@code{display-buffer-use-least-recent-window} that expect the selected
+window to have the highest use time among all windows, may fail to
+produce a window according to their specifications.
+
+Hence, an application that relies on using a window excursion should try
+to postpone the @code{display-buffer} call until after the excursion has
+terminated.
 @end table
-
 
 @node Window History
 @section Window History
@@ -5454,7 +5569,7 @@ non-@code{nil}, this function may redraw the frame, according to the
 value of @code{recenter-redisplay}.  Thus, omitting the second
 argument can be used to countermand the effect of
 @code{recenter-redisplay} being non-@code{nil}.  Interactive calls
-pass non-‘nil’ for @var{redisplay}.
+pass non-@code{nil} for @var{redisplay}.
 
 When @code{recenter} is called interactively, @var{count} is the raw
 prefix argument.  Thus, typing @kbd{C-u} as the prefix sets the

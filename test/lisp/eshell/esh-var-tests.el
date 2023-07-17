@@ -1,6 +1,6 @@
 ;;; esh-var-tests.el --- esh-var test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -72,41 +72,89 @@
     (eshell-command-result-equal "echo a$'eshell-test-value'z"
                                  '("a1" 2 "3z"))))
 
-(ert-deftest esh-var-test/interp-var-indices ()
-  "Interpolate list variable with indices"
-  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
-    (eshell-command-result-equal "echo $eshell-test-value[0]"
-                                 "zero")
-    (eshell-command-result-equal "echo $eshell-test-value[0 2]"
-                                 '("zero" "two"))
-    (eshell-command-result-equal "echo $eshell-test-value[0 2 4]"
-                                 '("zero" "two" "four"))))
+(defun esh-var-test/interp-var-indices (function &optional range-function)
+  "Test interpolation of an indexable value with indices.
+FUNCTION is a function that takes a list of elements and returns
+the object to test.
 
-(ert-deftest esh-var-test/interp-var-split-indices ()
-  "Interpolate string variable with indices"
-  (let ((eshell-test-value "zero one two three four"))
+RANGE-FUNCTION is a function that takes a list of elements and
+returns the expected result of an index range for the object; if
+nil, use FUNCTION instead."
+  (let ((eshell-test-value
+         (funcall function '("zero" "one" "two" "three" "four")))
+        (range-function (or range-function function)))
+    ;; Positive indices
     (eshell-command-result-equal "echo $eshell-test-value[0]"
                                  "zero")
     (eshell-command-result-equal "echo $eshell-test-value[0 2]"
                                  '("zero" "two"))
     (eshell-command-result-equal "echo $eshell-test-value[0 2 4]"
-                                 '("zero" "two" "four"))))
+                                 '("zero" "two" "four"))
+    ;; Negative indices
+    (eshell-command-result-equal "echo $eshell-test-value[-1]"
+                                 "four")
+    (eshell-command-result-equal "echo $eshell-test-value[-1 -3]"
+                                 '("four" "two"))
+    ;; Index ranges
+    (eshell-command-result-equal
+     "echo $eshell-test-value[1..4]"
+     (funcall range-function '("one" "two" "three")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[..2]"
+     (funcall range-function '("zero" "one")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[-2..]"
+     (funcall range-function '("three" "four")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[..]"
+     (funcall range-function '("zero" "one" "two" "three" "four")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[1..4 -2..]"
+     (list (funcall range-function '("one" "two" "three"))
+           (funcall range-function '("three" "four"))))))
+
+(ert-deftest esh-var-test/interp-var-indices/list ()
+  "Interpolate list variable with indices."
+  (esh-var-test/interp-var-indices #'identity))
+
+(ert-deftest esh-var-test/interp-var-indices/vector ()
+  "Interpolate vector variable with indices."
+  (esh-var-test/interp-var-indices #'vconcat))
+
+(ert-deftest esh-var-test/interp-var-indices/ring ()
+  "Interpolate ring variable with indices."
+  (esh-var-test/interp-var-indices #'ring-convert-sequence-to-ring))
+
+(ert-deftest esh-var-test/interp-var-indices/split ()
+  "Interpolate string variable with indices."
+  (esh-var-test/interp-var-indices
+   (lambda (values) (string-join values " "))
+   #'identity))
 
 (ert-deftest esh-var-test/interp-var-string-split-indices ()
-  "Interpolate string variable with string splitter and indices"
+  "Interpolate string variable with string splitter and indices."
+  ;; Test using punctuation as a delimiter.
   (let ((eshell-test-value "zero:one:two:three:four"))
     (eshell-command-result-equal "echo $eshell-test-value[: 0]"
                                  "zero")
     (eshell-command-result-equal "echo $eshell-test-value[: 0 2]"
                                  '("zero" "two")))
+  ;; Test using a letter as a delimiter.
   (let ((eshell-test-value "zeroXoneXtwoXthreeXfour"))
     (eshell-command-result-equal "echo $eshell-test-value[X 0]"
                                  "zero")
     (eshell-command-result-equal "echo $eshell-test-value[X 0 2]"
+                                 '("zero" "two")))
+  ;; Test using a number as a delimiter.
+  (let ((eshell-test-value "zero0one0two0three0four"))
+    (eshell-command-result-equal "echo $eshell-test-value[\"0\" 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[\"0\" 0 2]"
                                  '("zero" "two"))))
 
 (ert-deftest esh-var-test/interp-var-regexp-split-indices ()
-  "Interpolate string variable with regexp splitter and indices"
+  "Interpolate string variable with regexp splitter and indices."
+  ;; Test using a regexp as a delimiter.
   (let ((eshell-test-value "zero:one!two:three!four"))
     (eshell-command-result-equal "echo $eshell-test-value['[:!]' 0]"
                                  "zero")
@@ -115,18 +163,37 @@
     (eshell-command-result-equal "echo $eshell-test-value[\"[:!]\" 0]"
                                  "zero")
     (eshell-command-result-equal "echo $eshell-test-value[\"[:!]\" 0 2]"
+                                 '("zero" "two")))
+  ;; Test using a regexp that looks like range syntax as a delimiter.
+  (let ((eshell-test-value "zero0..0one0..0two0..0three0..0four"))
+    (eshell-command-result-equal "echo $eshell-test-value[\"0..0\" 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[\"0..0\" 0 2]"
                                  '("zero" "two"))))
 
 (ert-deftest esh-var-test/interp-var-assoc ()
-  "Interpolate alist variable with index"
-  (let ((eshell-test-value '(("foo" . 1) (bar . 2))))
+  "Interpolate alist variable with index."
+  (let ((eshell-test-value '(("foo" . 1) (bar . 2) ("3" . "three"))))
     (eshell-command-result-equal "echo $eshell-test-value[foo]"
                                  1)
     (eshell-command-result-equal "echo $eshell-test-value[#'bar]"
-                                 2)))
+                                 2)
+    (eshell-command-result-equal "echo $eshell-test-value[\"3\"]"
+                                 "three")))
+
+(ert-deftest esh-var-test/interp-var-indices-subcommand ()
+  "Interpolate list variable with subcommand expansion for indices."
+  (skip-unless (executable-find "echo"))
+  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[${*echo 0}]"
+     "zero")
+    (eshell-command-result-equal
+     "echo $eshell-test-value[${*echo 0} ${*echo 2}]"
+     '("zero" "two"))))
 
 (ert-deftest esh-var-test/interp-var-length-list ()
-  "Interpolate length of list variable"
+  "Interpolate length of list variable."
   (let ((eshell-test-value '((1 2) (3) (5 (6 7 8 9)))))
     (eshell-command-result-equal "echo $#eshell-test-value" 3)
     (eshell-command-result-equal "echo $#eshell-test-value[1]" 1)
@@ -138,19 +205,19 @@
     (eshell-command-result-equal "echo $#eshell-test-value" 6)))
 
 (ert-deftest esh-var-test/interp-var-length-alist ()
-  "Interpolate length of alist variable"
+  "Interpolate length of alist variable."
   (let ((eshell-test-value '(("foo" . (1 2 3)))))
     (eshell-command-result-equal "echo $#eshell-test-value" 1)
     (eshell-command-result-equal "echo $#eshell-test-value[foo]" 3)))
 
 (ert-deftest esh-var-test/interp-var-splice ()
-  "Splice-interpolate list variable"
+  "Splice-interpolate list variable."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a $@eshell-test-value z"
                                  '("a" 1 2 3 "z"))))
 
 (ert-deftest esh-var-test/interp-var-splice-concat ()
-  "Splice-interpolate and concat list variable"
+  "Splice-interpolate and concat list variable."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo it is a$@'eshell-test-value'z"
                                  '("it" "is" "a1" 2 "3z"))
@@ -164,49 +231,49 @@
      '("it" "is" 1 2 (31 2 3)))))
 
 (ert-deftest esh-var-test/interp-lisp ()
-  "Interpolate Lisp form evaluation"
+  "Interpolate Lisp form evaluation."
   (eshell-command-result-equal "+ $(+ 1 2) 3" 6))
 
 (ert-deftest esh-var-test/interp-lisp-indices ()
-  "Interpolate Lisp form evaluation with index"
+  "Interpolate Lisp form evaluation with index."
   (eshell-command-result-equal "+ $(list 1 2)[1] 3" 5))
 
 (ert-deftest esh-var-test/interp-cmd ()
-  "Interpolate command result"
+  "Interpolate command result."
   (eshell-command-result-equal "+ ${+ 1 2} 3" 6))
 
 (ert-deftest esh-var-test/interp-cmd-indices ()
-  "Interpolate command result with index"
+  "Interpolate command result with index."
   (eshell-command-result-equal "+ ${listify 1 2}[1] 3" 5))
 
 (ert-deftest esh-var-test/interp-cmd-external ()
-  "Interpolate command result from external command"
+  "Interpolate command result from external command."
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
    (eshell-match-command-output "echo ${*echo hi}"
                                 "hi\n")))
 
 (ert-deftest esh-var-test/interp-cmd-external-indices ()
-  "Interpolate command result from external command with index"
+  "Interpolate command result from external command with index."
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
    (eshell-match-command-output "echo ${*echo \"hi\nbye\"}[1]"
                                 "bye\n")))
 
 (ert-deftest esh-var-test/interp-temp-cmd ()
-  "Interpolate command result redirected to temp file"
+  "Interpolate command result redirected to temp file."
   (eshell-command-result-equal "cat $<echo hi>" "hi"))
 
 (ert-deftest esh-var-test/interp-concat-lisp ()
-  "Interpolate and concat Lisp form"
+  "Interpolate and concat Lisp form."
   (eshell-command-result-equal "+ $(+ 1 2)3 3" 36))
 
 (ert-deftest esh-var-test/interp-concat-lisp2 ()
-  "Interpolate and concat two Lisp forms"
+  "Interpolate and concat two Lisp forms."
   (eshell-command-result-equal "+ $(+ 1 2)$(+ 1 2) 3" 36))
 
 (ert-deftest esh-var-test/interp-concat-cmd ()
-  "Interpolate and concat command with literal"
+  "Interpolate and concat command with literal."
   (eshell-command-result-equal "+ ${+ 1 2}3 3" 36)
   (eshell-command-result-equal "echo ${*echo \"foo\nbar\"}-baz"
                                '("foo" "bar-baz"))
@@ -219,11 +286,11 @@
                                '("hi" "23")))
 
 (ert-deftest esh-var-test/interp-concat-cmd2 ()
-  "Interpolate and concat two commands"
+  "Interpolate and concat two commands."
   (eshell-command-result-equal "+ ${+ 1 2}${+ 1 2} 3" 36))
 
 (ert-deftest esh-var-test/interp-concat-cmd-external ()
-  "Interpolate command result from external command with concatenation"
+  "Interpolate command result from external command with concatenation."
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
    (eshell-match-command-output "echo ${echo hi}-${*echo there}"
@@ -233,7 +300,7 @@
 ;; Quoted variable interpolation
 
 (ert-deftest esh-var-test/quoted-interp-var ()
-  "Interpolate variable inside double-quotes"
+  "Interpolate variable inside double-quotes."
   (eshell-command-result-equal "echo \"$user-login-name\""
                                user-login-name))
 
@@ -245,7 +312,7 @@
                                (concat "hi, " user-login-name)))
 
 (ert-deftest esh-var-test/quoted-interp-list-var ()
-  "Interpolate list variable inside double-quotes"
+  "Interpolate list variable inside double-quotes."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo \"$eshell-test-value\""
                                  "(1 2 3)")))
@@ -257,7 +324,7 @@
                                  "a(1 2 3)z")))
 
 (ert-deftest esh-var-test/quoted-interp-var-indices ()
-  "Interpolate string variable with indices inside double-quotes"
+  "Interpolate string variable with indices inside double-quotes."
   (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
     (eshell-command-result-equal "echo \"$eshell-test-value[0]\""
                                  "zero")
@@ -271,8 +338,21 @@
     (eshell-command-result-equal "echo \"$eshell-test-value[1 2 4]\""
                                  "(\"one\" \"two\" \"four\")")))
 
+(ert-deftest esh-var-test/quote-interp-var-indices-subcommand ()
+  "Interpolate list variable with subcommand expansion for indices inside double-quotes."
+  (skip-unless (executable-find "echo"))
+  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+    (eshell-command-result-equal
+     "echo \"$eshell-test-value[${*echo 0}]\""
+     "zero")
+    ;; FIXME: These tests would use the 0th index like the other tests
+    ;; here, but see above.
+    (eshell-command-result-equal
+     "echo \"$eshell-test-value[${*echo 1} ${*echo 2}]\""
+     "(\"one\" \"two\")")))
+
 (ert-deftest esh-var-test/quoted-interp-var-split-indices ()
-  "Interpolate string variable with indices inside double-quotes"
+  "Interpolate string variable with indices inside double-quotes."
   (let ((eshell-test-value "zero one two three four"))
     (eshell-command-result-equal "echo \"$eshell-test-value[0]\""
                                  "zero")
@@ -280,8 +360,7 @@
                                  "(\"zero\" \"two\")")))
 
 (ert-deftest esh-var-test/quoted-interp-var-string-split-indices ()
-  "Interpolate string variable with string splitter and indices
-inside double-quotes"
+  "Interpolate string variable with string splitter and indices inside double-quotes."
   (let ((eshell-test-value "zero:one:two:three:four"))
     (eshell-command-result-equal "echo \"$eshell-test-value[: 0]\""
                                  "zero")
@@ -294,7 +373,7 @@ inside double-quotes"
                                  "(\"zero\" \"two\")")))
 
 (ert-deftest esh-var-test/quoted-interp-var-regexp-split-indices ()
-  "Interpolate string variable with regexp splitter and indices"
+  "Interpolate string variable with regexp splitter and indices."
   (let ((eshell-test-value "zero:one!two:three!four"))
     (eshell-command-result-equal "echo \"$eshell-test-value['[:!]' 0]\""
                                  "zero")
@@ -307,7 +386,7 @@ inside double-quotes"
      "(\"zero\" \"two\")")))
 
 (ert-deftest esh-var-test/quoted-interp-var-assoc ()
-  "Interpolate alist variable with index inside double-quotes"
+  "Interpolate alist variable with index inside double-quotes."
   (let ((eshell-test-value '(("foo" . 1) (bar . 2))))
     (eshell-command-result-equal "echo \"$eshell-test-value[foo]\""
                                  "1")
@@ -315,7 +394,7 @@ inside double-quotes"
                                  "2")))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-list ()
-  "Interpolate length of list variable inside double-quotes"
+  "Interpolate length of list variable inside double-quotes."
   (let ((eshell-test-value '((1 2) (3) (5 (6 7 8 9)))))
     (eshell-command-result-equal "echo \"$#eshell-test-value\""
                                  "3")
@@ -325,13 +404,13 @@ inside double-quotes"
                                  "4")))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-string ()
-  "Interpolate length of string variable inside double-quotes"
+  "Interpolate length of string variable inside double-quotes."
   (let ((eshell-test-value "foobar"))
     (eshell-command-result-equal "echo \"$#eshell-test-value\""
                                  "6")))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-alist ()
-  "Interpolate length of alist variable inside double-quotes"
+  "Interpolate length of alist variable inside double-quotes."
   (let ((eshell-test-value '(("foo" . (1 2 3)))))
     (eshell-command-result-equal "echo \"$#eshell-test-value\""
                                  "1")
@@ -339,7 +418,7 @@ inside double-quotes"
                                  "3")))
 
 (ert-deftest esh-var-test/quoted-interp-var-splice ()
-  "Splice-interpolate list variable inside double-quotes"
+  "Splice-interpolate list variable inside double-quotes."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a \"$@eshell-test-value\" z"
                                  '("a" "1 2 3" "z"))))
@@ -351,35 +430,35 @@ inside double-quotes"
                                  "a1 2 3z")))
 
 (ert-deftest esh-var-test/quoted-interp-lisp ()
-  "Interpolate Lisp form evaluation inside double-quotes"
+  "Interpolate Lisp form evaluation inside double-quotes."
   (eshell-command-result-equal "echo \"hi $(concat \\\"the\\\" \\\"re\\\")\""
                                "hi there"))
 
 (ert-deftest esh-var-test/quoted-interp-lisp-indices ()
-  "Interpolate Lisp form evaluation with index"
+  "Interpolate Lisp form evaluation with index."
   (eshell-command-result-equal "concat \"$(list 1 2)[1]\" cool"
                                "2cool"))
 
 (ert-deftest esh-var-test/quoted-interp-cmd ()
-  "Interpolate command result inside double-quotes"
+  "Interpolate command result inside double-quotes."
   (eshell-command-result-equal "echo \"hi ${echo \\\"there\\\"}\""
                                "hi there"))
 
 (ert-deftest esh-var-test/quoted-interp-cmd-indices ()
-  "Interpolate command result with index inside double-quotes"
+  "Interpolate command result with index inside double-quotes."
   (eshell-command-result-equal "concat \"${listify 1 2}[1]\" cool"
                                "2cool"))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
-  "Interpolate command result redirected to temp file inside double-quotes"
+  "Interpolate command result redirected to temp file inside double-quotes."
   (let ((temporary-file-directory
          (file-name-as-directory (make-temp-file "esh-vars-tests" t))))
     (unwind-protect
-        (eshell-command-result-equal "cat \"$<echo hi>\"" "hi")
+        (eshell-command-result-equal "cat \"$<echo \\\"hi\\\">\"" "hi")
       (delete-directory temporary-file-directory t))))
 
 (ert-deftest esh-var-test/quoted-interp-concat-cmd ()
-  "Interpolate and concat command with literal"
+  "Interpolate and concat command with literal."
   (eshell-command-result-equal "echo \"${echo \\\"foo\nbar\\\"} baz\""
                                "foo\nbar baz"))
 
@@ -387,13 +466,13 @@ inside double-quotes"
 ;; Interpolating commands
 
 (ert-deftest esh-var-test/command-interp ()
-  "Interpolate a variable as a command name"
+  "Interpolate a variable as a command name."
   (let ((eshell-test-value "printnl"))
     (eshell-command-result-equal "$eshell-test-value hello there"
                                  "hello\nthere\n")))
 
 (ert-deftest esh-var-test/command-interp-splice ()
-  "Interpolate a splice variable as a command name with arguments"
+  "Interpolate a splice variable as a command name with arguments."
   (let ((eshell-test-value '("printnl" "hello" "there")))
     (eshell-command-result-equal "$@eshell-test-value"
                                  "hello\nthere\n")))
@@ -402,13 +481,13 @@ inside double-quotes"
 ;; Interpolated variable conversion
 
 (ert-deftest esh-var-test/interp-convert-var-number ()
-  "Interpolate numeric variable"
+  "Interpolate numeric variable."
   (let ((eshell-test-value 123))
     (eshell-command-result-equal "type-of $eshell-test-value"
                                  'integer)))
 
 (ert-deftest esh-var-test/interp-convert-var-split-indices ()
-  "Interpolate and convert string variable with indices"
+  "Interpolate and convert string variable with indices."
   ;; Check that numeric forms are converted to numbers.
   (let ((eshell-test-value "000 010 020 030 040"))
     (eshell-command-result-equal "echo $eshell-test-value[0]"
@@ -423,7 +502,7 @@ inside double-quotes"
                                  "baz\n")))
 
 (ert-deftest esh-var-test/interp-convert-quoted-var-number ()
-  "Interpolate numeric quoted numeric variable"
+  "Interpolate numeric quoted numeric variable."
   (let ((eshell-test-value 123))
     (eshell-command-result-equal "type-of $'eshell-test-value'"
                                  'integer)
@@ -431,7 +510,7 @@ inside double-quotes"
                                  'integer)))
 
 (ert-deftest esh-var-test/interp-convert-quoted-var-split-indices ()
-  "Interpolate and convert quoted string variable with indices"
+  "Interpolate and convert quoted string variable with indices."
   (let ((eshell-test-value "000 010 020 030 040"))
     (eshell-command-result-equal "echo $'eshell-test-value'[0]"
                                  0)
@@ -439,11 +518,11 @@ inside double-quotes"
                                  '(0 20))))
 
 (ert-deftest esh-var-test/interp-convert-cmd-string-newline ()
-  "Interpolate trailing-newline command result"
+  "Interpolate trailing-newline command result."
   (eshell-command-result-equal "echo ${echo \"foo\n\"}" "foo"))
 
 (ert-deftest esh-var-test/interp-convert-cmd-multiline ()
-  "Interpolate multi-line command result"
+  "Interpolate multi-line command result."
   (eshell-command-result-equal "echo ${echo \"foo\nbar\"}"
                                '("foo" "bar"))
   ;; Numeric output should be converted to numbers...
@@ -454,24 +533,24 @@ inside double-quotes"
                                '("01" "02" "hi")))
 
 (ert-deftest esh-var-test/interp-convert-cmd-number ()
-  "Interpolate numeric command result"
+  "Interpolate numeric command result."
   (eshell-command-result-equal "echo ${echo \"1\"}" 1))
 
 (ert-deftest esh-var-test/interp-convert-cmd-split-indices ()
-  "Interpolate command result with indices"
+  "Interpolate command result with indices."
   (eshell-command-result-equal "echo ${echo \"000 010 020\"}[0]"
                                0)
   (eshell-command-result-equal "echo ${echo \"000 010 020\"}[0 2]"
                                '(0 20)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-var-number ()
-  "Interpolate numeric variable inside double-quotes"
+  "Interpolate numeric variable inside double-quotes."
   (let ((eshell-test-value 123))
     (eshell-command-result-equal "type-of \"$eshell-test-value\""
                                  'string)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-var-split-indices ()
-  "Interpolate string variable with indices inside double-quotes"
+  "Interpolate string variable with indices inside double-quotes."
   (let ((eshell-test-value "000 010 020 030 040"))
     (eshell-command-result-equal "echo \"$eshell-test-value[0]\""
                                  "000")
@@ -479,7 +558,7 @@ inside double-quotes"
                                  "(\"000\" \"020\")")))
 
 (ert-deftest esh-var-test/quoted-interp-convert-quoted-var-number ()
-  "Interpolate numeric quoted variable inside double-quotes"
+  "Interpolate numeric quoted variable inside double-quotes."
   (let ((eshell-test-value 123))
     (eshell-command-result-equal "type-of \"$'eshell-test-value'\""
                                  'string)
@@ -487,7 +566,7 @@ inside double-quotes"
                                  'string)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-quoted-var-split-indices ()
-  "Interpolate quoted string variable with indices inside double-quotes"
+  "Interpolate quoted string variable with indices inside double-quotes."
   (let ((eshell-test-value "000 010 020 030 040"))
     (eshell-command-result-equal "echo \"$eshell-test-value[0]\""
                                  "000")
@@ -495,23 +574,23 @@ inside double-quotes"
                                  "(\"000\" \"020\")")))
 
 (ert-deftest esh-var-test/quoted-interp-convert-cmd-string-newline ()
-  "Interpolate trailing-newline command result inside double-quotes"
+  "Interpolate trailing-newline command result inside double-quotes."
   (eshell-command-result-equal "echo \"${echo \\\"foo\n\\\"}\""
                                "foo")
   (eshell-command-result-equal "echo \"${echo \\\"foo\n\n\\\"}\""
                                "foo"))
 
 (ert-deftest esh-var-test/quoted-interp-convert-cmd-multiline ()
-  "Interpolate multi-line command result inside double-quotes"
+  "Interpolate multi-line command result inside double-quotes."
   (eshell-command-result-equal "echo \"${echo \\\"foo\nbar\\\"}\""
                                "foo\nbar"))
 
 (ert-deftest esh-var-test/quoted-interp-convert-cmd-number ()
-  "Interpolate numeric command result inside double-quotes"
+  "Interpolate numeric command result inside double-quotes."
   (eshell-command-result-equal "echo \"${echo \\\"1\\\"}\"" "1"))
 
 (ert-deftest esh-var-test/quoted-interp-convert-cmd-split-indices ()
-  "Interpolate command result with indices inside double-quotes"
+  "Interpolate command result with indices inside double-quotes."
   (eshell-command-result-equal "echo \"${echo \\\"000 010 020\\\"}[0]\""
                                "000"))
 
@@ -670,19 +749,19 @@ it, since the setter is nil."
                                (window-body-height nil 'remap)))
 
 (ert-deftest esh-var-test/columns-var ()
-  "$COLUMNS should equal (window-body-width nil 'remap)"
+  "$COLUMNS should equal (window-body-width nil 'remap)."
   (eshell-command-result-equal "echo $COLUMNS"
                                (window-body-width nil 'remap)))
 
 (ert-deftest esh-var-test/inside-emacs-var ()
-  "Test presence of \"INSIDE_EMACS\" in subprocesses"
+  "Test presence of \"INSIDE_EMACS\" in subprocesses."
   (with-temp-eshell
    (eshell-match-command-output "env"
                                 (format "INSIDE_EMACS=%s,eshell"
                                         emacs-version))))
 
 (ert-deftest esh-var-test/inside-emacs-var-split-indices ()
-  "Test using \"INSIDE_EMACS\" with split indices"
+  "Test using \"INSIDE_EMACS\" with split indices."
   (with-temp-eshell
    (eshell-match-command-output "echo $INSIDE_EMACS[, 1]"
                                 "eshell")))
@@ -746,8 +825,16 @@ it, since the setter is nil."
       (format "cd %s" ert-remote-temporary-file-directory))
      (eshell-match-command-output "echo $PATH" (regexp-quote remote-path)))))
 
+(ert-deftest esh-var-test/uid-var ()
+  "Test that $UID is equivalent to (user-uid) for local directories."
+  (eshell-command-result-equal "echo $UID" (user-uid)))
+
+(ert-deftest esh-var-test/gid-var ()
+  "Test that $GID is equivalent to (group-gid) for local directories."
+  (eshell-command-result-equal "echo $GID" (group-gid)))
+
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
-  "Test using the \"last exit status\" ($?) variable with a Lisp command"
+  "Test using the \"last exit status\" ($?) variable with a Lisp command."
   (with-temp-eshell
    (eshell-match-command-output "zerop 0; echo $?"
                                 "t\n0\n")
@@ -757,7 +844,7 @@ it, since the setter is nil."
                                 "1\n" nil t)))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form ()
-  "Test using the \"last exit status\" ($?) variable with a Lisp form"
+  "Test using the \"last exit status\" ($?) variable with a Lisp form."
   (let ((eshell-lisp-form-nil-is-failure t))
     (with-temp-eshell
      (eshell-match-command-output "(zerop 0); echo $?"
@@ -780,7 +867,7 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                   "1\n" nil t))))
 
 (ert-deftest esh-var-test/last-status-var-ext-cmd ()
-  "Test using the \"last exit status\" ($?) variable with an external command"
+  "Test using the \"last exit status\" ($?) variable with an external command."
   (skip-unless (executable-find "["))
   (with-temp-eshell
    (eshell-match-command-output "[ foo = foo ]; echo $?"
@@ -789,19 +876,19 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                 "1\n")))
 
 (ert-deftest esh-var-test/last-result-var ()
-  "Test using the \"last result\" ($$) variable"
+  "Test using the \"last result\" ($$) variable."
   (with-temp-eshell
    (eshell-match-command-output "+ 1 2; + $$ 2"
                                 "3\n5\n")))
 
 (ert-deftest esh-var-test/last-result-var-twice ()
-  "Test using the \"last result\" ($$) variable twice"
+  "Test using the \"last result\" ($$) variable twice."
   (with-temp-eshell
    (eshell-match-command-output "+ 1 2; + $$ $$"
                                 "3\n6\n")))
 
 (ert-deftest esh-var-test/last-result-var-ext-cmd ()
-  "Test using the \"last result\" ($$) variable with an external command"
+  "Test using the \"last result\" ($$) variable with an external command."
   (skip-unless (executable-find "["))
   (with-temp-eshell
    ;; MS-DOS/MS-Windows have an external command 'format', which we
@@ -813,7 +900,7 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                   "nil\n"))))
 
 (ert-deftest esh-var-test/last-result-var-split-indices ()
-  "Test using the \"last result\" ($$) variable with split indices"
+  "Test using the \"last result\" ($$) variable with split indices."
   (with-temp-eshell
    (eshell-match-command-output
     "string-join (list \"01\" \"02\") :; + $$[: 1] 3"
@@ -823,13 +910,13 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
     "01:02\n02\n")))
 
 (ert-deftest esh-var-test/last-arg-var ()
-  "Test using the \"last arg\" ($_) variable"
+  "Test using the \"last arg\" ($_) variable."
   (with-temp-eshell
    (eshell-match-command-output "+ 1 2; + $_ 4"
                                 "3\n6\n")))
 
 (ert-deftest esh-var-test/last-arg-var-indices ()
-  "Test using the \"last arg\" ($_) variable with indices"
+  "Test using the \"last arg\" ($_) variable with indices."
   (with-temp-eshell
    (eshell-match-command-output "+ 1 2; + $_[0] 4"
                                 "3\n5\n")
@@ -837,7 +924,7 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                 "3\n6\n")))
 
 (ert-deftest esh-var-test/last-arg-var-split-indices ()
-  "Test using the \"last arg\" ($_) variable with split indices"
+  "Test using the \"last arg\" ($_) variable with split indices."
   (with-temp-eshell
    (eshell-match-command-output "concat 01:02 03:04; + $_[0][: 1] 5"
                                 "01:0203:04\n7\n")

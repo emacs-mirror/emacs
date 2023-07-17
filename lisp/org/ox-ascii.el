@@ -1,6 +1,6 @@
 ;;; ox-ascii.el --- ASCII Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
@@ -1549,7 +1549,7 @@ information."
        keyword info)))))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 (defun org-ascii-latex-environment (latex-environment _contents info)
   "Transcode a LATEX-ENVIRONMENT element from Org to ASCII.
@@ -1561,7 +1561,7 @@ information."
      latex-environment info)))
 
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 (defun org-ascii-latex-fragment (latex-fragment _contents info)
   "Transcode a LATEX-FRAGMENT object from Org to ASCII.

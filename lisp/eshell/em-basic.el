@@ -1,6 +1,6 @@
 ;;; em-basic.el --- basic shell builtin commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -53,9 +53,10 @@
 
 ;;; Code:
 
-(require 'esh-util)
-(require 'eshell)
+(require 'esh-cmd)
+(require 'esh-io)
 (require 'esh-opt)
+(require 'esh-util)
 
 ;;;###autoload
 (progn
@@ -132,7 +133,8 @@ or `eshell-printn' for display."
      ;; bug#27361.
      (when (equal output-newline '(nil))
        (display-warning
-        :warning "To terminate with a newline, you should use -N instead."))
+        '(eshell echo)
+        "To terminate with a newline, you should use -N instead."))
      (eshell-echo args output-newline))))
 
 (defun eshell/printnl (&rest args)

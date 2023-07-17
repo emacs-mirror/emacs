@@ -1,6 +1,6 @@
 /* Support for accessing SQLite databases.
 
-Copyright (C) 2021-2022 Free Software Foundation, Inc.
+Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,12 +23,25 @@ YOSHIDA <syohex@gmail.com>, which can be found at:
    https://github.com/syohex/emacs-sqlite3  */
 
 #include <config.h>
+
+#include <c-strcase.h>
 #include "lisp.h"
 #include "coding.h"
 
 #ifdef HAVE_SQLITE3
 
 #include <sqlite3.h>
+
+/* Support for loading SQLite extensions requires the ability to
+   enable and disable loading of extensions (by default this is
+   disabled, and we want to keep it that way).  The required macro is
+   available since SQLite 3.13.  */
+# if defined HAVE_SQLITE3_LOAD_EXTENSION && \
+     defined SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+#  define HAVE_LOAD_EXTENSION 1
+# else
+#  define HAVE_LOAD_EXTENSION 0
+# endif
 
 #ifdef WINDOWSNT
 
@@ -75,11 +88,14 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_exec,
 DEF_DLL_FN (SQLITE_API int, sqlite3_prepare_v2,
 	    (sqlite3*, const char*, int, sqlite3_stmt**, const char**));
 
-# ifdef HAVE_SQLITE3_LOAD_EXTENSION
+# if HAVE_LOAD_EXTENSION
 DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 	    (sqlite3*, const char*, const char*, char**));
 #  undef sqlite3_load_extension
 #  define sqlite3_load_extension fn_sqlite3_load_extension
+DEF_DLL_FN (SQLITE_API int, sqlite3_db_config, (sqlite3*, int, ...));
+#  undef sqlite3_db_config
+#  define sqlite3_db_config fn_sqlite3_db_config
 # endif
 
 # undef sqlite3_finalize
@@ -170,8 +186,9 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_column_text);
   LOAD_DLL_FN (library, sqlite3_column_name);
   LOAD_DLL_FN (library, sqlite3_exec);
-# ifdef HAVE_SQLITE3_LOAD_EXTENSION
+# if HAVE_LOAD_EXTENSION
   LOAD_DLL_FN (library, sqlite3_load_extension);
+  LOAD_DLL_FN (library, sqlite3_db_config);
 # endif
   LOAD_DLL_FN (library, sqlite3_prepare_v2);
   return true;
@@ -399,7 +416,7 @@ row_to_value (sqlite3_stmt *stmt)
   int len = sqlite3_column_count (stmt);
   Lisp_Object values = Qnil;
 
-  for (int i = 0; i < len; ++i)
+  for (int i = len - 1; i >= 0; i--)
     {
       Lisp_Object v = Qnil;
 
@@ -434,7 +451,7 @@ row_to_value (sqlite3_stmt *stmt)
       values = Fcons (v, values);
     }
 
-  return Fnreverse (values);
+  return values;
 }
 
 static Lisp_Object
@@ -669,7 +686,7 @@ DEFUN ("sqlite-pragma", Fsqlite_pragma, Ssqlite_pragma, 2, 2, 0,
 		      SSDATA (concat2 (build_string ("PRAGMA "), pragma)));
 }
 
-#ifdef HAVE_SQLITE3_LOAD_EXTENSION
+#if HAVE_LOAD_EXTENSION
 DEFUN ("sqlite-load-extension", Fsqlite_load_extension,
        Ssqlite_load_extension, 2, 2, 0,
        doc: /* Load an SQlite MODULE into DB.
@@ -684,9 +701,28 @@ Only modules on Emacs' list of allowed modules can be loaded.  */)
   CHECK_STRING (module);
 
   /* Add names of useful and free modules here.  */
-  const char *allowlist[3] = { "pcre", "csvtable", NULL };
+  const char *allowlist[] = {
+    "base64",
+    "cksumvfs",
+    "compress",
+    "csv",
+    "csvtable",
+    "fts3",
+    "icu",
+    "pcre",
+    "percentile",
+    "regexp",
+    "rot13",
+    "rtree",
+    "sha1",
+    "uuid",
+    "vfslog",
+    "zipfile",
+    NULL
+  };
   char *name = SSDATA (Ffile_name_nondirectory (module));
-  /* Possibly skip past a common prefix.  */
+  /* Possibly skip past a common prefix (libsqlite3_mod_ is used by
+     Debian, see https://packages.debian.org/source/sid/sqliteodbc).  */
   const char *prefix = "libsqlite3_mod_";
   if (!strncmp (name, prefix, strlen (prefix)))
     name += strlen (prefix);
@@ -694,10 +730,12 @@ Only modules on Emacs' list of allowed modules can be loaded.  */)
   bool do_allow = false;
   for (const char **allow = allowlist; *allow; allow++)
     {
-      if (strlen (*allow) < strlen (name)
-	  && !strncmp (*allow, name, strlen (*allow))
-	  && (!strcmp (name + strlen (*allow), ".so")
-	      || !strcmp (name + strlen (*allow), ".DLL")))
+      ptrdiff_t allow_len = strlen (*allow);
+      if (allow_len < strlen (name)
+	  && !strncmp (*allow, name, allow_len)
+	  && (!strcmp (name + allow_len, ".so")
+	      ||!strcmp (name + allow_len, ".dylib")
+	      || !strcasecmp (name + allow_len, ".dll")))
 	{
 	  do_allow = true;
 	  break;
@@ -707,21 +745,35 @@ Only modules on Emacs' list of allowed modules can be loaded.  */)
   if (!do_allow)
     xsignal1 (Qsqlite_error, build_string ("Module name not on allowlist"));
 
-  int result = sqlite3_load_extension
-		       (XSQLITE (db)->db,
-			SSDATA (ENCODE_FILE (Fexpand_file_name (module, Qnil))),
-			NULL, NULL);
-  if (result ==  SQLITE_OK)
-    return Qt;
+  /* Expand all Lisp data explicitly, so as to avoid signaling an
+     error while extension loading is enabled -- we don't want to
+     "leak" this outside this function.  */
+  sqlite3 *sdb = XSQLITE (db)->db;
+  char *ext_fn = SSDATA (ENCODE_FILE (Fexpand_file_name (module, Qnil)));
+  /* Temporarily enable loading extensions via the C API.  */
+  int result = sqlite3_db_config (sdb, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1,
+				  NULL);
+  if (result == SQLITE_OK)
+    {
+      result = sqlite3_load_extension (sdb, ext_fn, NULL, NULL);
+      /* Disable loading extensions via C API.  */
+      sqlite3_db_config (sdb, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 0, NULL);
+      if (result == SQLITE_OK)
+	return Qt;
+    }
   return Qnil;
 }
-#endif /* HAVE_SQLITE3_LOAD_EXTENSION */
+#endif /* HAVE_LOAD_EXTENSION */
 
 DEFUN ("sqlite-next", Fsqlite_next, Ssqlite_next, 1, 1, 0,
-       doc: /* Return the next result set from SET.  */)
+       doc: /* Return the next result set from SET.
+Return nil when the statement has finished executing successfully.  */)
   (Lisp_Object set)
 {
   check_sqlite (set, true);
+
+  if (XSQLITE (set)->eof)
+    return Qnil;
 
   int ret = sqlite3_step (XSQLITE (set)->stmt);
   if (ret != SQLITE_ROW && ret != SQLITE_OK && ret != SQLITE_DONE)
@@ -821,7 +873,7 @@ syms_of_sqlite (void)
   defsubr (&Ssqlite_commit);
   defsubr (&Ssqlite_rollback);
   defsubr (&Ssqlite_pragma);
-#ifdef HAVE_SQLITE3_LOAD_EXTENSION
+#if HAVE_LOAD_EXTENSION
   defsubr (&Ssqlite_load_extension);
 #endif
   defsubr (&Ssqlite_next);

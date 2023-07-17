@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -310,8 +310,8 @@ the space that it occupied is given to an adjacent window (but not the
 minibuffer window, even if that is active at the time).  Deleting the
 window has no effect on the buffer it used to display; the buffer
 continues to exist, and you can still switch to it with @kbd{C-x b}.
-The option @code{delete-window-choose-selected} allows to choose which
-window becomes the new selected window instead (@pxref{Deleting
+The option @code{delete-window-choose-selected} controls which
+window is chosen as the new selected window instead (@pxref{Deleting
 Windows,,, elisp, The Emacs Lisp Reference Manual}).
 
 @findex kill-buffer-and-window

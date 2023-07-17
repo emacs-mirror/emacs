@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2022 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -259,8 +259,8 @@ input come from an Emacs buffer, use `call-process-region' instead.
 Third argument DESTINATION specifies how to handle program's output.
 (\"Output\" here means both standard output and standard error
 output.)
-If DESTINATION is a buffer, or t that stands for the current buffer,
- it means insert output in that buffer before point.
+If DESTINATION is a buffer or the name of a buffer, or t (which stands for
+the current buffer), it means insert output in that buffer before point.
 If DESTINATION is nil, it means discard output; 0 means discard
  and don't wait for the program to terminate.
 If DESTINATION is `(:file FILE)', where FILE is a file name string,
@@ -1055,6 +1055,7 @@ Insert output in BUFFER before point; t means current buffer; nil for
  BUFFER means discard it; 0 means discard and don't wait; and `(:file
  FILE)', where FILE is a file name string, means that it should be
  written to that file (if the file already exists it is overwritten).
+BUFFER can be a string which is the name of a buffer.
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.
@@ -1112,6 +1113,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
         {
           /* No need to save restrictions since we delete everything
              anyway.  */
+          labeled_restrictions_remove_in_current_buffer ();
           Fwiden ();
           del_range (BEG, Z);
         }

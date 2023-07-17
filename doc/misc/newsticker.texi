@@ -15,7 +15,7 @@ This manual documents Newsticker, a feed reader for Emacs.  It
 corresponds to Emacs version @value{EMACSVER}.
 
 @noindent
-Copyright @copyright{} 2004--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -307,10 +307,15 @@ news ticker.
 
 @findex newsticker-start-ticker
 @findex newsticker-stop-ticker
+@vindex newsticker-ticker-period
 Headlines can be displayed in the echo area, either scrolling like
 messages in a stock-quote ticker, or just changing.  This can be
 started with the command @code{newsticker-start-ticker}.  It can be
 stopped with @code{newsticker-stop-ticker}.
+
+The ticker by default runs continuously.  To only run it once, at a
+specific time interval, set the @code{newsticker-ticker-period}
+variable.
 
 
 @node Navigation
@@ -542,8 +547,10 @@ are shown in the echo area, i.e., the ``ticker''.
 @itemize
 @item
 @vindex newsticker-display-interval
+@vindex newsticker-ticker-period
 @vindex newsticker-scroll-smoothly
-@code{newsticker-ticker-interval} and
+@code{newsticker-ticker-interval},
+@code{newsticker-ticker-period}, and
 @code{newsticker-scroll-smoothly} define how headlines are shown in
 the echo area.
 @end itemize

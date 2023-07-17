@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -863,7 +863,8 @@ This attribute is meaningful only when `:coding-type' is `utf-16' or
 VALUE must be `big' or `little' specifying big-endian and
 little-endian respectively.  The default value is `big'.
 
-This attribute is meaningful only when `:coding-type' is `utf-16'.
+Changing this attribute is only meaningful when `:coding-type'
+is `utf-16'.
 
 `:ccl-decoder' (required if :coding-type is `ccl')
 
@@ -2483,10 +2484,12 @@ This function is intended to be added to `auto-coding-functions'."
                     ;; called as part of visiting a file, as opposed
                     ;; to when saving a buffer to a file.
                     (if (and enable-multibyte-characters
-                             ;; 'charset' will signal an error in
-                             ;; coding-system-equal, since it isn't a
-                             ;; coding-system.  So test that up front.
+                             ;; 'charset' and 'iso-2022' will signal
+                             ;; an error in coding-system-equal, since
+                             ;; they aren't coding-systems.  So test
+                             ;; that up front.
                              (not (equal sym-type 'charset))
+                             (not (equal sym-type 'iso-2022))
                              (coding-system-equal 'utf-8 sym-type)
                              (coding-system-equal 'utf-8 bfcs-type))
                         buffer-file-coding-system
@@ -2539,6 +2542,13 @@ This function is intended to be added to `auto-coding-functions'."
                   (bfcs-type
                    (coding-system-type buffer-file-coding-system)))
               (if (and enable-multibyte-characters
+                       ;; 'charset' and 'iso-2022' will signal an error
+                       ;; in coding-system-equal, since they aren't
+                       ;; coding-systems.  So test that up front.
+                       (not (equal sym-type 'charset))
+                       (not (equal bfcs-type 'charset))
+                       (not (equal sym-type 'iso-2022))
+                       (not (equal bfcs-type 'iso-2022))
                        (coding-system-equal 'utf-8 sym-type)
                        (coding-system-equal 'utf-8 bfcs-type))
                   buffer-file-coding-system

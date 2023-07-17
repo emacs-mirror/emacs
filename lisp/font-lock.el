@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -1154,6 +1154,8 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   "Fontify the text between BEG and END.
 If LOUDLY is non-nil, print status messages while fontifying.
 This function is the default `font-lock-fontify-region-function'."
+  (or (<= end (point-max))
+      (setq end (point-max)))
   (with-silent-modifications
    ;; Use the fontification syntax table, if any.
    (with-syntax-table (or font-lock-syntax-table (syntax-table))
@@ -1183,7 +1185,7 @@ This function is the default `font-lock-fontify-region-function'."
            (setq font-lock-syntactically-fontified end))
          (font-lock-fontify-syntactic-keywords-region start end)))
      (unless font-lock-keywords-only
-       (funcall font-lock-fontify-syntactically-function beg end loudly))
+       (font-lock-fontify-syntactically-region beg end loudly))
      (font-lock-fontify-keywords-region beg end loudly)
      `(jit-lock-bounds ,beg . ,end))))
 
@@ -1530,6 +1532,12 @@ START should be at the beginning of a line."
 
 (defvar font-lock-comment-end-skip nil
   "If non-nil, Font Lock mode uses this instead of `comment-end-skip'.")
+
+(defun font-lock-fontify-syntactically-region (beg end &optional loudly)
+  "Syntactically fontify the text between BEG and END.
+If LOUDLY is non-nil, print status messages while fontifying.
+This works by calling `font-lock-fontify-syntactically-function'."
+  (funcall font-lock-fontify-syntactically-function beg end loudly))
 
 (defun font-lock-default-fontify-syntactically (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
@@ -2018,6 +2026,12 @@ as the constructs of Haddock, Javadoc and similar systems."
   "Font Lock mode face used to highlight function names."
   :group 'font-lock-faces)
 
+(defface font-lock-function-call-face
+  '((t :inherit font-lock-function-name-face))
+  "Font Lock mode face used to highlight function calls."
+  :group 'font-lock-faces
+  :version "29.1")
+
 (defface font-lock-variable-name-face
   '((((class grayscale) (background light))
      :foreground "Gray90" :weight bold :slant italic)
@@ -2031,6 +2045,12 @@ as the constructs of Haddock, Javadoc and similar systems."
     (t :weight bold :slant italic))
   "Font Lock mode face used to highlight variable names."
   :group 'font-lock-faces)
+
+(defface font-lock-variable-use-face
+  '((t :inherit font-lock-variable-name-face))
+  "Font Lock mode face used to highlight variable references."
+  :group 'font-lock-faces
+  :version "29.1")
 
 (defface font-lock-type-face
   '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
@@ -2073,6 +2093,12 @@ as the constructs of Haddock, Javadoc and similar systems."
   "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-faces)
 
+(defface font-lock-regexp-face
+  '((t :inherit font-lock-string-face))
+  "Font Lock mode face used to highlight regexp literals."
+  :group 'font-lock-faces
+  :version "29.1")
+
 (defface font-lock-regexp-grouping-backslash
   '((t :inherit bold))
   "Font Lock mode face for backslashes in Lisp regexp grouping constructs."
@@ -2101,10 +2127,17 @@ as the constructs of Haddock, Javadoc and similar systems."
   :group 'font-lock-faces
   :version "29.1")
 
-(defface font-lock-property-face
+(defface font-lock-property-name-face
   '((t :inherit font-lock-variable-name-face))
   "Font Lock mode face used to highlight properties of an object.
-For example, the declaration and use of fields in a struct."
+For example, the declaration of fields in a struct."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-property-use-face
+  '((t :inherit font-lock-property-name-face))
+  "Font Lock mode face used to highlight property references.
+For example, property lookup of fields in a struct."
   :group 'font-lock-faces
   :version "29.1")
 
@@ -2363,7 +2396,6 @@ in which C preprocessor directives are used, e.g. `asm-mode' and
 
 (define-obsolete-function-alias 'font-lock-after-fontify-buffer #'ignore "29.1")
 (define-obsolete-function-alias 'font-lock-after-unfontify-buffer #'ignore "29.1")
-(define-obsolete-function-alias 'font-lock-fontify-syntactically-region #'font-lock-default-fontify-syntactically "29.1")
 
 
 (provide 'font-lock)

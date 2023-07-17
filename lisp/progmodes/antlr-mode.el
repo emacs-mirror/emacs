@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Christoph Wedler <Christoph.Wedler@sap.com>
 ;; Keywords: languages, ANTLR, code generator
@@ -2147,7 +2147,7 @@ command `antlr-show-makefile-rules' for detail."
 	    (antlr-makefile-insert-variable i " $(" ")"))
 	  (insert "\n" (car antlr-makefile-specification))))
     (if (string-equal (car antlr-makefile-specification) "\n")
-	(backward-delete-char 1))
+	(delete-char -1))
     (when with-error
       (goto-char (point-min))
       (insert antlr-help-unknown-file-text))

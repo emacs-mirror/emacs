@@ -1,6 +1,6 @@
 ;;; lunar-tests.el --- tests for calendar/lunar.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -41,23 +41,26 @@
    (should (equal (lunar-phase 1)
                   '((1 8 1900) "05:40" 1 "")))))
 
-(ert-deftest lunar-test-eclipse-check ()
+(ert-deftest lunar-test-check-for-eclipse ()
   (with-lunar-test
-   (should (equal (eclipse-check 1 1) "**  Eclipse **"))))
+   (should (equal (lunar-check-for-eclipse 10.0 1) ""))
+   (should (equal (lunar-check-for-eclipse 10.0 2) "** Lunar Eclipse **"))))
 
 (ert-deftest lunar-test-phase-list ()
   (with-lunar-test
-   (should (equal  (lunar-phase-list 3 1871)
-                   '(((3 21 1871) "04:03" 0 "")
-                     ((3 29 1871) "06:46" 1 "**  Eclipse **")
-                     ((4 5 1871) "14:20" 2 "")
-                     ((4 12 1871) "05:57" 3 "**  Eclipse possible **")
-                     ((4 19 1871) "19:06" 0 "")
-                     ((4 27 1871) "23:49" 1 "")
-                     ((5 4 1871) "22:57" 2 "")
-                     ((5 11 1871) "14:29" 3 "")
-                     ((5 19 1871) "10:46" 0 "")
-                     ((5 27 1871) "13:02" 1 ""))))))
+   (should (equal (lunar-phase-list 9 2023)
+                  '(((9 6 2023) "22:27" 3 "")
+                    ((9 15 2023) "01:40" 0 "")
+                    ((9 22 2023) "19:33" 1 "")
+                    ((9 29 2023) "09:54" 2 "** Lunar Eclipse possible **")
+                    ((10 6 2023) "13:53" 3 "")
+                    ((10 14 2023) "17:55" 0 "** Solar Eclipse **")
+                    ((10 22 2023) "03:30" 1 "")
+                    ((10 28 2023) "20:20" 2 "** Lunar Eclipse **")
+                    ((11 5 2023) "08:42" 3 "")
+                    ((11 13 2023) "09:27" 0 "")
+                    ((11 20 2023) "10:51" 1 "")
+                    ((11 27 2023) "09:13" 2 ""))))))
 
 (ert-deftest lunar-test-new-moon-time ()
   (with-lunar-test

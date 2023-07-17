@@ -27,6 +27,7 @@
  (0 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #chan :[07:04:02] alice: Here come the lovers, full of joy and mirth.")
  (0 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #chan :[07:04:07] bob: According to the fool's bolt, sir, and such dulcet diseases.")
  (0 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #chan :[07:04:10] alice: And hang himself. I pray you, do my greeting.")
+ (0 ":someone!~u@abcdefg.irc PRIVMSG #chan :[07:04:10] hi everyone.")
  (0 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #chan :[07:04:18] bob: And you sat smiling at his cruel prey.")
  (0 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #chan :[07:04:21] alice: Or never after look me in the face.")
  (0 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #chan :[07:04:25] bob: If that may be, than all is well. Come, sit down, every mother's son, and rehearse your parts. Pyramus, you begin: when you have spoken your speech, enter into that brake; and so every one according to his cue.")

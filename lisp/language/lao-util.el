@@ -1,6 +1,6 @@
 ;;; lao-util.el --- utilities for Lao -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -297,25 +297,6 @@
     ("\\9" . "໙")
     ("\\\\" . "ໆ")
     ("\\$" . "ຯ")))
-
-(defconst lao-transcription-pattern
-  (concat
-   "\\("
-   (mapconcat 'car lao-transcription-consonant-alist "\\|")
-   "\\)\\("
-   (mapconcat 'car lao-transcription-semi-vowel-alist "\\|")
-   "\\)?\\(\\("
-   (mapconcat 'car lao-transcription-vowel-alist "\\|")
-   "\\)\\("
-   (mapconcat 'car lao-transcription-maa-sakod-alist "\\|")
-   "\\)?\\("
-   (mapconcat (lambda (x) (regexp-quote (car x)))
-	      lao-transcription-tone-alist "\\|")
-   "\\)?\\)?\\|"
-   (mapconcat (lambda (x) (regexp-quote (car x)))
-	      lao-transcription-punctuation-alist "\\|")
-   )
-  "Regexp of Roman transcription pattern for one Lao syllable.")
 
 (defconst lao-transcription-pattern
   (concat

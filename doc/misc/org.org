@@ -1249,11 +1249,12 @@ After the drawer.
 #+findex: org-insert-drawer
 You can interactively insert a drawer at point by calling
 ~org-insert-drawer~, which is bound to {{{kbd(C-c C-x d)}}}.  With an
-active region, this command puts the region inside the drawer.  With
-a prefix argument, this command calls ~org-insert-property-drawer~,
-which creates a =PROPERTIES= drawer right below the current headline.
-Org mode uses this special drawer for storing properties (see
-[[*Properties and Columns]]).  You cannot use it for anything else.
+active region, this command puts the region inside the drawer.  With a
+prefix argument, this command calls non-interactive function
+~org-insert-property-drawer~, which creates a =PROPERTIES= drawer
+right below the current headline.  Org mode uses this special drawer
+for storing properties (see [[*Properties and Columns]]).  You cannot use
+it for anything else.
 
 Completion over drawer keywords is also possible using
 {{{kbd(M-TAB)}}}[fn:6].
@@ -5290,7 +5291,7 @@ The following commands help to work with properties:
   Set a property in the current entry.  Both the property and the
   value can be inserted using completion.
 
-- {{{kbd(S-RIGHT)}}} (~org-property-next-allowed-values~),  {{{kbd(S-LEFT)}}} (~org-property-previous-allowed-value~) ::
+- {{{kbd(S-RIGHT)}}} (~org-property-next-allowed-value~),  {{{kbd(S-LEFT)}}} (~org-property-previous-allowed-value~) ::
 
   #+kindex: S-RIGHT
   #+kindex: S-LEFT
@@ -5957,8 +5958,9 @@ the agenda (see [[*Weekly/daily agenda]]).  We distinguish:
   #+findex: org-block
 
   For more complex date specifications, Org mode supports using the
-  special expression diary entries implemented in the Emacs Calendar
-  package[fn:20].  For example, with optional time:
+  special expression diary entries implemented in the
+  [[info:emacs#Special Diary Entries][Emacs Calendar package]][fn:20].
+  For example, with optional time:
 
   #+begin_example
   ,* 22:00-23:00 The nerd meeting on every 2nd Thursday of the month
@@ -8787,7 +8789,9 @@ a ~day~, ~week~, ~month~ or ~year~.  For weekly agendas, the default
 is to start on the previous Monday (see
 ~org-agenda-start-on-weekday~).  You can also set the start date using
 a date shift: =(setq org-agenda-start-day "+10d")= starts the agenda
-ten days from today in the future.
+ten days from today in the future.  ~org-agenda-start-on-weekday~
+takes precedence over ~org-agenda-start-day~ in weekly and bi-weekly
+agendas.
 
 Remote editing from the agenda buffer means, for example, that you can
 change the dates of deadlines and appointments from the agenda buffer.
@@ -10249,9 +10253,9 @@ the other commands, point needs to be in the desired line.
 
   Unmark entry for bulk action.
 
-- {{{kbd(U)}}} (~org-agenda-bulk-remove-all-marks~) ::
+- {{{kbd(U)}}} (~org-agenda-bulk-unmark-all~) ::
   #+kindex: U
-  #+findex: org-agenda-bulk-remove-all-marks
+  #+findex: org-agenda-bulk-unmark-all
 
   Unmark all marked entries for bulk action.
 
@@ -11689,9 +11693,9 @@ When the variable ~org-export-dispatch-use-expert-ui~ is set to
 a non-~nil~ value, Org prompts in the minibuffer.  To switch back to
 the hierarchical menu, press {{{kbd(?)}}}.
 
-- {{{kbd(C-c C-e)}}} (~org-export~) ::
+- {{{kbd(C-c C-e)}}} (~org-export-dispatch~) ::
   #+kindex: C-c C-e
-  #+findex: org-export
+  #+findex: org-export-dispatch
 
   Invokes the export dispatcher interface.  The options show default
   settings.  The {{{kbd(C-u)}}} prefix argument preserves options from
@@ -12229,7 +12233,7 @@ with the custom ID =theory=, you can use
 
 The following command allows navigating to the included document:
 
-- {{{kbd(C-c ')}}} (~org-edit~special~) ::
+- {{{kbd(C-c ')}}} (~org-edit-special~) ::
   #+kindex: C-c '
   #+findex: org-edit-special
 
@@ -14360,10 +14364,10 @@ executable.  Without it, export cannot finish.
 :DESCRIPTION: Invoking export.
 :END:
 
-- {{{kbd(C-c C-e o o)}}} (~org-export-to-odt~) ::
+- {{{kbd(C-c C-e o o)}}} (~org-odt-export-to-odt~) ::
 
   #+kindex: C-c C-e o o
-  #+findex: org-export-to-odt
+  #+findex: org-odt-export-to-odt
   Export as OpenDocument Text file.
 
   #+cindex: @samp{EXPORT_FILE_NAME}, property
@@ -18093,7 +18097,8 @@ evaluating untrusted code blocks by prompting for a confirmation.
 
 - =yes= ::
 
-  Org always evaluates the source code without asking permission.
+  Org evaluates the source code, possibly asking permission according
+  to ~org-confirm-babel-evaluate~.
 
 - =never= or =no= ::
 
@@ -22305,7 +22310,7 @@ that are mentioned in the manual.  For a more complete list, use
 
 This manual is for Org version {{{version}}}.
 
-Copyright \copy 2004--2022 Free Software Foundation, Inc.
+Copyright \copy 2004--2023 Free Software Foundation, Inc.
 
 #+begin_quote
 Permission is granted to copy, distribute and/or modify this document

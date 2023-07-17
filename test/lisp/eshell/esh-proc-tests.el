@@ -1,6 +1,6 @@
 ;;; esh-proc-tests.el --- esh-proc test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +19,7 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
@@ -84,6 +85,18 @@
       (format "%s &> #<%s>" esh-proc-test--output-cmd bufname)
       "\\`\\'"))
     (should (equal (buffer-string) "stdout\nstderr\n"))))
+
+(ert-deftest esh-var-test/output/remote-redirect ()
+  "Check that redirecting stdout for a remote process works."
+  (skip-unless (and (eshell-tests-remote-accessible-p)
+                    (executable-find "echo")))
+  (let ((default-directory ert-remote-temporary-file-directory))
+    (eshell-with-temp-buffer bufname "old"
+      (with-temp-eshell
+       (eshell-match-command-output
+        (format "*echo hello > #<%s>" bufname)
+        "\\`\\'"))
+      (should (equal (buffer-string) "hello\n")))))
 
 
 ;; Exit status
@@ -177,6 +190,59 @@ pipeline."
      (concat "echo hi | " esh-proc-test--detect-pty-cmd)
      (unless (eq system-type 'windows-nt)
        "stdout\nstderr\n"))))
+
+
+;; Synchronous processes
+
+;; These tests check that synchronous subprocesses (only used on
+;; MS-DOS by default) work correctly.  To help them run on MS-DOS as
+;; well, we use the Emacs executable as our subprocess to test
+;; against; that way, users don't need to have GNU coreutils (or
+;; similar) installed.
+
+(defsubst esh-proc-test/emacs-command (command)
+  "Evaluate COMMAND in a new Emacs batch instance."
+  (mapconcat #'shell-quote-argument
+             `(,(expand-file-name invocation-name invocation-directory)
+               "-Q" "--batch" "--eval" ,(prin1-to-string command))
+             " "))
+
+(defvar esh-proc-test/emacs-echo
+  (esh-proc-test/emacs-command '(princ "hello\n"))
+  "A command that prints \"hello\" to stdout using Emacs.")
+
+(defvar esh-proc-test/emacs-upcase
+  (esh-proc-test/emacs-command
+   '(princ (upcase (concat (read-string "") "\n"))))
+  "A command that upcases the text from stdin using Emacs.")
+
+(ert-deftest esh-proc-test/synchronous-proc/simple/interactive ()
+  "Test that synchronous processes work in an interactive shell."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (with-temp-eshell
+     (eshell-match-command-output esh-proc-test/emacs-echo
+                                  "\\`hello\n"))))
+
+(ert-deftest esh-proc-test/synchronous-proc/simple/command-result ()
+  "Test that synchronous processes work via `eshell-command-result'."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (eshell-command-result-equal esh-proc-test/emacs-echo
+                                 "hello\n")))
+
+(ert-deftest esh-proc-test/synchronous-proc/pipeline/interactive ()
+  "Test that synchronous pipelines work in an interactive shell."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (with-temp-eshell
+     (eshell-match-command-output (concat esh-proc-test/emacs-echo " | "
+                                          esh-proc-test/emacs-upcase)
+                                  "\\`HELLO\n"))))
+
+(ert-deftest esh-proc-test/synchronous-proc/pipeline/command-result ()
+  "Test that synchronous pipelines work via `eshell-command-result'."
+  (let ((eshell-supports-asynchronous-processes nil))
+    (eshell-command-result-equal (concat esh-proc-test/emacs-echo " | "
+                                          esh-proc-test/emacs-upcase)
+                                 "HELLO\n")))
 
 
 ;; Killing processes

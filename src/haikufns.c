@@ -1,5 +1,5 @@
 /* Haiku window system support
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -175,19 +175,17 @@ haiku_change_tool_bar_height (struct frame *f, int height)
 void
 haiku_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit, old_height, lines;
-  Lisp_Object fullscreen;
-
-  unit = FRAME_LINE_HEIGHT (f);
-  old_height = FRAME_TAB_BAR_HEIGHT (f);
-  fullscreen = get_frame_param (f, Qfullscreen);
+  int unit = FRAME_LINE_HEIGHT (f);
+  int old_height = FRAME_TAB_BAR_HEIGHT (f);
 
   /* This differs from the tool bar code in that the tab bar height is
      not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
      the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
      leading to the tab bar height being incorrectly set upon the next
      call to x_set_font.  (bug#59285) */
-  lines = height / unit;
+  int lines = height / unit;
+  if (lines == 0 && height != 0)
+    lines = 1;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -208,6 +206,8 @@ haiku_change_tab_bar_height (struct frame *f, int height)
 
   if (!f->tab_bar_resized)
     {
+      Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+
       /* As long as tab_bar_resized is false, effectively try to change
 	 F's native height.  */
       if (NILP (fullscreen) || EQ (fullscreen, Qfullwidth))
@@ -256,6 +256,33 @@ haiku_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval
     nlines = 0;
 
   haiku_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+}
+
+static void
+haiku_set_tool_bar_position (struct frame *f,
+			     Lisp_Object new_value,
+			     Lisp_Object old_value)
+{
+  if (!EQ (new_value, Qtop) && !EQ (new_value, Qbottom))
+    error ("Tool bar position must be either `top' or `bottom'");
+
+  if (EQ (new_value, old_value))
+    return;
+
+  /* Set the tool bar position.  */
+  fset_tool_bar_position (f, new_value);
+
+  /* Now reconfigure frame glyphs to place the tool bar at the bottom.
+     While the inner height has not changed, call
+     `resize_frame_windows' to place each of the windows at its new
+     position.  */
+
+  adjust_frame_size (f, -1, -1, 3, false, Qtool_bar_position);
+  adjust_frame_glyphs (f);
+  SET_FRAME_GARBAGED (f);
+
+  if (FRAME_HAIKU_WINDOW (f))
+    haiku_clear_under_internal_border (f);
 }
 
 static void
@@ -1420,10 +1447,11 @@ haiku_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval
 }
 
 /* Return geometric attributes of FRAME.  According to the value of
-   ATTRIBUTES return the outer edges of FRAME (Qouter_edges), the inner
-   edges of FRAME, the root window edges of frame (Qroot_edges).  Any
-   other value means to return the geometry as returned by
+   ATTRIBUTES return the outer edges of FRAME (Qouter_edges), the
+   inner edges of FRAME, the root window edges of frame (Qroot_edges).
+   Any other value means to return the geometry as returned by
    Fx_frame_geometry.  */
+
 static Lisp_Object
 frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 {
@@ -1432,6 +1460,9 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   int outer_x, outer_y, outer_width, outer_height;
   int right_off, bottom_off, top_off;
   int native_x, native_y;
+  int inner_left, inner_top, inner_right, inner_bottom;
+  int internal_border_width, tab_bar_height;
+  int tool_bar_height, tab_bar_width;
 
   f = decode_window_system_frame (frame);
   parent = FRAME_PARENT_FRAME (f);
@@ -1457,6 +1488,31 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
       native_y -= FRAME_OUTPUT_DATA (parent)->frame_y;
     }
 
+  internal_border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+  inner_left = native_x + internal_border_width;
+  inner_top = native_y + internal_border_width;
+  inner_right = (native_x + FRAME_PIXEL_WIDTH (f)
+		 - internal_border_width);
+  inner_bottom = (native_y + FRAME_PIXEL_HEIGHT (f)
+		  - internal_border_width);
+
+  tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
+  tab_bar_width = (tab_bar_height
+		   ? (FRAME_PIXEL_WIDTH (f) - 2
+		      * internal_border_width)
+		   : 0);
+  inner_top += tab_bar_height;
+
+  tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
+
+  /* Subtract or add to the inner dimensions based on the tool bar
+     position.  */
+
+  if (EQ (FRAME_TOOL_BAR_POSITION (f), Qtop))
+    inner_top += tool_bar_height;
+  else
+    inner_bottom -= tool_bar_height;
+
   if (EQ (attribute, Qouter_edges))
     return list4i (outer_x, outer_y,
 		   outer_x + outer_width,
@@ -1466,14 +1522,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 		   native_x + FRAME_PIXEL_WIDTH (f),
 		   native_y + FRAME_PIXEL_HEIGHT (f));
   else if (EQ (attribute, Qinner_edges))
-    return list4i (native_x + FRAME_INTERNAL_BORDER_WIDTH (f),
-		   native_y + FRAME_INTERNAL_BORDER_WIDTH (f)
-		   + FRAME_MENU_BAR_HEIGHT (f) + FRAME_TOOL_BAR_HEIGHT (f),
-		   native_x - FRAME_INTERNAL_BORDER_WIDTH (f)
-		   + FRAME_PIXEL_WIDTH (f),
-		   native_y + FRAME_PIXEL_HEIGHT (f)
-		   - FRAME_INTERNAL_BORDER_WIDTH (f));
-
+    return list4i (inner_left, inner_top, inner_right, inner_bottom);
   else
     return list (Fcons (Qouter_position,
 			Fcons (make_fixnum (outer_x),
@@ -1490,13 +1539,18 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 		 Fcons (Qmenu_bar_external, Qnil),
 		 Fcons (Qmenu_bar_size,
 			Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f)
-					    - (FRAME_INTERNAL_BORDER_WIDTH (f) * 2)),
+					    - (FRAME_INTERNAL_BORDER_WIDTH (f)
+					       * 2)),
 			       make_fixnum (FRAME_MENU_BAR_HEIGHT (f)))),
+		 Fcons (Qtab_bar_size,
+			Fcons (make_fixnum (tab_bar_width),
+			       make_fixnum (tab_bar_height))),
 		 Fcons (Qtool_bar_external, Qnil),
-		 Fcons (Qtool_bar_position, Qtop),
+		 Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
 		 Fcons (Qtool_bar_size,
 			Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f)
-					    - (FRAME_INTERNAL_BORDER_WIDTH (f) * 2)),
+					    - (FRAME_INTERNAL_BORDER_WIDTH (f)
+					       * 2)),
 			       make_fixnum (FRAME_TOOL_BAR_HEIGHT (f)))),
 		 Fcons (Qinternal_border_width,
 			make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f))));
@@ -3136,7 +3190,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     gui_set_font_backend,
     gui_set_alpha,
     haiku_set_sticky,
-    NULL, /* set tool bar pos */
+    haiku_set_tool_bar_position,
     haiku_set_inhibit_double_buffering,
     haiku_set_undecorated,
     haiku_set_parent_frame,

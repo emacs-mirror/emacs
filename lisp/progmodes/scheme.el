@@ -1,6 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1986-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -155,7 +155,7 @@
      ,(rx bol (zero-or-more space)
           "(define-module"
           (one-or-more space)
-          (group "(" (one-or-more any) ")"))
+          (group "(" (one-or-more nonl) ")"))
      1)
     ("Macros"
      ,(rx bol (zero-or-more space) "("

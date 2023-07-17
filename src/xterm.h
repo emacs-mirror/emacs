@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2022 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2023 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -257,10 +257,17 @@ struct xi_scroll_valuator_t
 
 struct xi_touch_point_t
 {
+  /* The next touch point in this list.  */
   struct xi_touch_point_t *next;
 
+  /* The touchpoint detail.  */
   int number;
+
+  /* The last known X and Y position of the touchpoint.  */
   double x, y;
+
+  /* The frame associated with this touch point.  */
+  struct frame *frame;
 };
 
 #endif
@@ -642,7 +649,11 @@ struct x_display_info
 
   /* The named coding system to use for this input method.  */
   Lisp_Object xim_coding;
-#endif
+
+  /* Whether or not X input methods should be used on this
+     display.  */
+  bool use_xim;
+#endif /* HAVE_X_I18N */
 
   /* A cache mapping color names to RGB values.  */
   struct color_name_cache_entry **color_names;
@@ -914,11 +925,6 @@ struct x_display_info
   int_fast64_t server_time_offset;
 #endif
 };
-
-#ifdef HAVE_X_I18N
-/* Whether or not to use XIM if we have it.  */
-extern bool use_xim;
-#endif
 
 #ifdef HAVE_XINPUT2
 /* Defined in xmenu.c. */
@@ -1295,6 +1301,16 @@ struct x_output
      VisibilityFullyObscured, but is set to something else in
      handle_one_xevent.  */
   int visibility_state;
+
+#ifdef HAVE_XINPUT2_2
+  /* The touch ID of the last touch point to have touched the tool
+     bar.  */
+  int tool_bar_touch_id;
+
+  /* The device that last touched the tool bar.  0 if no device
+     touched the tool bar.  */
+  int tool_bar_touch_device;
+#endif
 };
 
 enum

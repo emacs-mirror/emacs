@@ -1,11 +1,11 @@
 ;;; use-package.el --- A configuration macro for simplifying your .emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 17 Jun 2012
-;; Version: 2.4.4
+;; Version: 2.4.5
 ;; Package-Requires: ((emacs "24.3") (bind-key "2.4"))
 ;; Keywords: dotemacs startup speed config package extensions
 ;; URL: https://github.com/jwiegley/use-package

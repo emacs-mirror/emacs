@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dancol@dancol.org>
@@ -54,7 +54,7 @@
 (require 'json)
 (require 'prog-mode)
 (require 'treesit)
-(require 'c-ts-mode) ; For comment indent and filling.
+(require 'c-ts-common) ; For comment indent and filling.
 
 (eval-when-compile
   (require 'cl-lib)
@@ -106,7 +106,7 @@ name.")
 
 (defconst js--plain-method-re
   (concat "^\\s-*?\\(" js--dotted-name-re "\\)\\.prototype"
-          "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(\\(:?async[ \t\n]+\\)function\\)\\_>")
+          "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(\\(?:async[ \t\n]+\\)function\\)\\_>")
   "Regexp matching an explicit JavaScript prototype \"method\" declaration.
 Group 1 is a (possibly-dotted) class name, group 2 is a method name,
 and group 3 is the `function' keyword.")
@@ -1024,38 +1024,45 @@ Return the pitem of the function we went to the beginning of."
   "Helper function for `js-beginning-of-defun'."
   (let ((pstate (js--beginning-of-defun-raw)))
     (when pstate
-      (goto-char (js--pitem-h-begin (car pstate))))))
+      (goto-char (js--pitem-h-begin (car pstate)))
+      t)))
 
 (defun js-beginning-of-defun (&optional arg)
   "Value of `beginning-of-defun-function' for `js-mode'."
   (setq arg (or arg 1))
-  (while (and (not (eobp)) (< arg 0))
-    (cl-incf arg)
-    (when (and (not js-flat-functions)
-               (or (eq (js-syntactic-context) 'function)
-                   (js--function-prologue-beginning)))
-      (js-end-of-defun))
+  (let ((found))
+    (while (and (not (eobp)) (< arg 0))
+      (cl-incf arg)
+      (when (and (not js-flat-functions)
+                 (or (eq (js-syntactic-context) 'function)
+                     (js--function-prologue-beginning)))
+        (js-end-of-defun))
 
-    (if (js--re-search-forward
-         "\\_<function\\_>" nil t)
-        (goto-char (js--function-prologue-beginning))
-      (goto-char (point-max))))
+      (if (js--re-search-forward
+           "\\_<function\\_>" nil t)
+          (progn (goto-char (js--function-prologue-beginning))
+                 (setq found t))
+        (goto-char (point-max))
+        (setq found nil)))
 
-  (while (> arg 0)
-    (cl-decf arg)
-    ;; If we're just past the end of a function, the user probably wants
-    ;; to go to the beginning of *that* function
-    (when (eq (char-before) ?})
-      (backward-char))
+    (while (> arg 0)
+      (cl-decf arg)
+      ;; If we're just past the end of a function, the user probably wants
+      ;; to go to the beginning of *that* function
+      (when (eq (char-before) ?})
+        (backward-char))
 
-    (let ((prologue-begin (js--function-prologue-beginning)))
-      (cond ((and prologue-begin (< prologue-begin (point)))
-             (goto-char prologue-begin))
+      (let ((prologue-begin (js--function-prologue-beginning)))
+        (cond ((and prologue-begin (< prologue-begin (point)))
+               (goto-char prologue-begin)
+               (setq found t))
 
-            (js-flat-functions
-             (js--beginning-of-defun-flat))
-            (t
-             (js--beginning-of-defun-nested))))))
+              (js-flat-functions
+               (setq found (js--beginning-of-defun-flat)))
+              (t
+               (when (js--beginning-of-defun-nested)
+                 (setq found t))))))
+    found))
 
 (defun js--flush-caches (&optional beg _ignored)
   "Flush the `js-mode' syntax cache after position BEG.
@@ -3428,8 +3435,8 @@ This function is intended for use in `after-change-functions'."
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
-       ((and (parent-is "comment") c-ts-mode--looking-at-star)
-        c-ts-mode--comment-start-after-first-star -1)
+       ((and (parent-is "comment") c-ts-common-looking-at-star)
+        c-ts-common-comment-start-after-first-star -1)
        ((parent-is "comment") prev-adaptive-prefix 0)
        ((parent-is "ternary_expression") parent-bol js-indent-level)
        ((parent-is "member_expression") parent-bol js-indent-level)
@@ -3442,6 +3449,7 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "arguments") parent-bol js-indent-level)
        ((parent-is "array") parent-bol js-indent-level)
        ((parent-is "formal_parameters") parent-bol js-indent-level)
+       ((parent-is "template_string") no-indent) ; Don't indent the string contents.
        ((parent-is "template_substitution") parent-bol js-indent-level)
        ((parent-is "object_pattern") parent-bol js-indent-level)
        ((parent-is "object") parent-bol js-indent-level)
@@ -3454,13 +3462,18 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "statement_block") parent-bol js-indent-level)
 
        ;; JSX
-       ((node-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
-       ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
-       ((node-is "jsx_expression") parent typescript-ts-mode-indent-offset)
-       ((node-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)
+       ((match "<" "jsx_fragment") parent 0)
+       ((parent-is "jsx_fragment") parent js-indent-level)
        ((node-is "jsx_closing_element") parent 0)
-       ((node-is "/") parent 0)
-       ((node-is ">") parent 0)))))
+       ((match "jsx_element" "statement") parent js-indent-level)
+       ((parent-is "jsx_element") parent js-indent-level)
+       ((parent-is "jsx_text") parent-bol js-indent-level)
+       ((parent-is "jsx_opening_element") parent js-indent-level)
+       ((parent-is "jsx_expression") parent-bol js-indent-level)
+       ((match "/" "jsx_self_closing_element") parent 0)
+       ((parent-is "jsx_self_closing_element") parent js-indent-level)
+       ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
+       (no-node parent-bol 0)))))
 
 (defvar js--treesit-keywords
   '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
@@ -3487,7 +3500,7 @@ This function is intended for use in `after-change-functions'."
    :language 'javascript
    :feature 'constant
    '(((identifier) @font-lock-constant-face
-      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
+      (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
 
      [(true) (false) (null)] @font-lock-constant-face)
 
@@ -3498,14 +3511,14 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'string
-   '((regex pattern: (regex_pattern)) @font-lock-string-face
+   '((regex pattern: (regex_pattern)) @font-lock-regexp-face
      (string) @font-lock-string-face)
 
    :language 'javascript
    :feature 'string-interpolation
    :override t
    '((template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-delimiter-face))
+     (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
    :language 'javascript
    :feature 'definition
@@ -3521,6 +3534,15 @@ This function is intended for use in `after-change-functions'."
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
+     (method_definition
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
+     (arrow_function
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
+     (function_declaration
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
 
@@ -3529,23 +3551,32 @@ This function is intended for use in `after-change-functions'."
       value: [(function) (arrow_function)])
 
      (variable_declarator
-      name: (array_pattern
-             (identifier)
-             (identifier)
-             @font-lock-function-name-face)
-      value: (array (number) (function))))
+      name: [(array_pattern (identifier) @font-lock-variable-name-face)
+             (object_pattern
+              (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
+
+     ;; full module imports
+     (import_clause (identifier) @font-lock-variable-name-face)
+     ;; named imports with aliasing
+     (import_clause (named_imports (import_specifier
+                                    alias: (identifier) @font-lock-variable-name-face)))
+     ;; named imports without aliasing
+     (import_clause (named_imports (import_specifier
+                                    !alias
+                                    name: (identifier) @font-lock-variable-name-face)))
+
+     ;; full namespace import (* as alias)
+     (import_clause (namespace_import (identifier) @font-lock-variable-name-face)))
 
    :language 'javascript
    :feature 'property
-   '(((property_identifier) @font-lock-property-face
+   '(((property_identifier) @font-lock-property-use-face
       (:pred js--treesit-property-not-function-p
-             @font-lock-property-face))
+             @font-lock-property-use-face))
 
-     (pair value: (identifier) @font-lock-variable-name-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
 
-     ((shorthand_property_identifier) @font-lock-property-face)
-
-     ((shorthand_property_identifier_pattern) @font-lock-property-face))
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
    :language 'javascript
    :feature 'assignment
@@ -3555,14 +3586,14 @@ This function is intended for use in `after-change-functions'."
    :language 'javascript
    :feature 'function
    '((call_expression
-      function: [(identifier) @font-lock-function-name-face
+      function: [(identifier) @font-lock-function-call-face
                  (member_expression
                   property:
-                  (property_identifier) @font-lock-function-name-face)])
+                  (property_identifier) @font-lock-function-call-face)])
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
      (function_declaration
-      name: (identifier) @font-lock-function-name-face)
+      name: (identifier) @font-lock-function-call-face)
      (function
       name: (identifier) @font-lock-function-name-face))
 
@@ -3570,15 +3601,15 @@ This function is intended for use in `after-change-functions'."
    :feature 'jsx
    '((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_self_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_attribute
       (property_identifier)
@@ -3588,7 +3619,7 @@ This function is intended for use in `after-change-functions'."
    :feature 'number
    '((number) @font-lock-number-face
      ((identifier) @font-lock-number-face
-      (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
+      (:match "\\`\\(?:NaN\\|Infinity\\)\\'" @font-lock-number-face)))
 
    :language 'javascript
    :feature 'operator
@@ -3657,8 +3688,8 @@ For OVERRIDE, START, END, see `treesit-font-lock-rules'."
     (treesit-fontify-with-override
      (treesit-node-start node) (treesit-node-end node)
      (pcase (treesit-node-type node)
-       ("identifier" 'font-lock-variable-name-face)
-       ("property_identifier" 'font-lock-property-face))
+       ("identifier" 'font-lock-variable-use-face)
+       ("property_identifier" 'font-lock-property-use-face))
      override start end)))
 
 (defun js--treesit-defun-name (node)
@@ -3777,6 +3808,54 @@ Currently there are `js-mode' and `js-ts-mode'."
   ;;(syntax-propertize (point-max))
   )
 
+(defvar js--treesit-sentence-nodes
+  '("import_statement"
+    "debugger_statement"
+    "expression_statement"
+    "if_statement"
+    "switch_statement"
+    "for_statement"
+    "for_in_statement"
+    "while_statement"
+    "do_statement"
+    "try_statement"
+    "with_statement"
+    "break_statement"
+    "continue_statement"
+    "return_statement"
+    "throw_statement"
+    "empty_statement"
+    "labeled_statement"
+    "variable_declaration"
+    "lexical_declaration"
+    "jsx_element"
+    "jsx_self_closing_element")
+  "Nodes that designate sentences in JavaScript.
+See `treesit-sentence-type-regexp' for more information.")
+
+(defvar js--treesit-sexp-nodes
+  '("expression"
+    "pattern"
+    "array"
+    "function"
+    "string"
+    "escape"
+    "template"
+    "regex"
+    "number"
+    "identifier"
+    "this"
+    "super"
+    "true"
+    "false"
+    "null"
+    "undefined"
+    "arguments"
+    "pair"
+    "jsx")
+  "Nodes that designate sexps in JavaScript.
+See `treesit-sexp-type-regexp' for more information.")
+
 ;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript.
@@ -3791,7 +3870,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Which-func.
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
-    (c-ts-mode-comment-setup)
+    (c-ts-common-comment-setup)
     (setq-local comment-multi-line t)
 
     (setq-local treesit-text-type-regexp
@@ -3800,7 +3879,7 @@ Currently there are `js-mode' and `js-ts-mode'."
 
     ;; Electric-indent.
     (setq-local electric-indent-chars
-	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+                (append "{}():;,<>/" electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
     (setq-local electric-layout-rules
 	        '((?\; . after) (?\{ . after) (?\} . before)))
 
@@ -3816,15 +3895,21 @@ Currently there are `js-mode' and `js-ts-mode'."
                         "function_declaration"
                         "lexical_declaration")))
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
+
+    (setq-local treesit-sentence-type-regexp
+                (regexp-opt js--treesit-sentence-nodes))
+
+    (setq-local treesit-sexp-type-regexp
+                (regexp-opt js--treesit-sexp-nodes))
+
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string)
                   ( assignment constant escape-sequence jsx number
-                    pattern)
-                  ( bracket delimiter function operator property
-                    string-interpolation)))
+                    pattern string-interpolation)
+                  ( bracket delimiter function operator property)))
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)
@@ -3834,7 +3919,10 @@ Currently there are `js-mode' and `js-ts-mode'."
                                         "method_definition")
                                 eos)
                    nil nil)))
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.js[mx]\\|\\.har\\)\\'" . js-ts-mode))))
 
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"

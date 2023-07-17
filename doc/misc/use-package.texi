@@ -13,7 +13,7 @@
 @copying
 This manual is for use-package @value{USEP_VER} @value{USEP_DIST}.
 
-Copyright @copyright{} 2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2022--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -132,19 +132,9 @@ do.
 @cindex quick-start instructions
 
 This chapter provides instructions and examples for quickly getting
-started with use-package.  The first thing you need to do is make sure
-that @file{use-package} itself is loaded.  To do that, put this at the
-top of your init file:
-
-@lisp
-(require 'use-package)
-@end lisp
-
-@cindex declaration
-The above makes the @code{use-macro} available for us in the rest of
-your init file.  In this manual, we say that each call to
-@code{use-macro} is a @dfn{declaration}, to highlight the declarative
-nature of its syntax.
+started with use-package.  In this manual, we say that each call to
+the @code{use-package} macro in your init file is a @dfn{declaration},
+to highlight the declarative nature of its syntax.
 
 To unconditionally load a package named @samp{foo}, add the following
 declaration to your init file:
@@ -800,7 +790,7 @@ possible, and put as much as you can get away with into the
 Emacs start as quickly as possible.
 
 @node Best practices
-@subheading When to use @code{:preface}, @code{:config} and @code{:init}?
+@subsection When to use @code{:preface}, @code{:config} and @code{:init}?
 @cindex tips for using @code{:preface}, @code{:config}, @code{:init}
 
 Where possible, it is better to avoid @code{:preface}, @code{:config}
@@ -1564,8 +1554,11 @@ The standard Emacs package manager is documented in the Emacs manual
 (@pxref{Package Installation,,, emacs, GNU Emacs Manual}).  The
 @code{use-package} macro provides the @code{:ensure} and @code{:pin}
 keywords that interface with that package manager to automatically
-install packages.  This is particularly useful if you use your init
-file on more than one system.
+install packages.  The @code{:vc} keyword may be used to control how
+package sources are downloaded; e.g., from remote hosts
+(@pxref{Fetching Package Sources,,, emacs, GNU Emacs Manual}).  This
+is particularly useful if you use your init file on more than one
+system.
 
 @menu
 * Install package::
@@ -1616,6 +1609,49 @@ packages:
 @noindent
 You can override the above setting for a single package by adding
 @w{@code{:ensure nil}} to its declaration.
+
+@findex :vc
+The @code{:vc} keyword can be used to control how packages are
+downloaded and/or installed. More specifically, it allows one to fetch
+and update packages directly from a version control system. This is
+especially convenient when wanting to install a package that is not on
+any package archive.
+
+The keyword accepts the same arguments as specified in
+@pxref{Fetching Package Sources,,, emacs, GNU Emacs Manual}, except
+that a name need not explicitly be given: it is inferred from the
+declaration.  The accepted property list is augmented by a @code{:rev}
+keyword, which has the same shape as the @code{REV} argument to
+@code{package-vc-install}.  Notably -- even when not specified --
+@code{:rev} defaults to checking out the last release of the package.
+You can use @code{:rev :newest} to check out the latest commit.
+
+For example,
+
+@example
+@group
+(use-package bbdb
+  :vc (:url "https://git.savannah.nongnu.org/git/bbdb.git"
+       :rev :newest))
+@end group
+@end example
+
+would try -- by invoking @code{package-vc-install} -- to install the
+latest commit of the package @code{foo} from the specified remote.
+
+This can also be used for local packages, by combining it with the
+@code{:load-path} (@pxref{Load path}) keyword:
+
+@example
+@group
+;; Use a local copy of BBDB instead of the one from GNU ELPA.
+(use-package bbdb
+  :vc t
+  :load-path "/path/to/bbdb/dir/")
+@end group
+@end example
+
+The above dispatches to @code{package-vc-install-from-checkout}.
 
 @node Pinning packages
 @section Pinning packages using @code{:pin}

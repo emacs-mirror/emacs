@@ -1,6 +1,6 @@
-# canonicalize.m4 serial 37
+# canonicalize.m4 serial 38
 
-dnl Copyright (C) 2003-2007, 2009-2022 Free Software Foundation, Inc.
+dnl Copyright (C) 2003-2007, 2009-2023 Free Software Foundation, Inc.
 
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,7 +12,8 @@ AC_DEFUN([gl_FUNC_CANONICALIZE_FILENAME_MODE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
-  AC_CHECK_FUNCS_ONCE([canonicalize_file_name faccessat])
+  AC_CHECK_FUNCS_ONCE([canonicalize_file_name])
+  gl_CHECK_FUNCS_ANDROID([faccessat], [[#include <unistd.h>]])
   AC_REQUIRE([gl_DOUBLE_SLASH_ROOT])
   AC_REQUIRE([gl_FUNC_REALPATH_WORKS])
   if test $ac_cv_func_canonicalize_file_name = no; then
@@ -58,7 +59,8 @@ AC_DEFUN([gl_CANONICALIZE_LGPL_SEPARATE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
-  AC_CHECK_FUNCS_ONCE([canonicalize_file_name faccessat])
+  AC_CHECK_FUNCS_ONCE([canonicalize_file_name])
+  gl_CHECK_FUNCS_ANDROID([faccessat], [[#include <unistd.h>]])
 
   dnl On native Windows, we use _getcwd(), regardless whether getcwd() is
   dnl available through the linker option '-loldnames'.

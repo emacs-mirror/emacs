@@ -1,6 +1,6 @@
 ;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -229,7 +229,7 @@ An end marker of nil means the fold ends after (point-max).")
 	  (error "Can't find outline-minor-mode in minor-mode-alist"))
 
       ;; slip our fold announcement into the list
-      (setcdr outl-entry (nconc foldout-entry (cdr outl-entry)))))
+      (setcdr outl-entry (append foldout-entry (cdr outl-entry)))))
 
 
 

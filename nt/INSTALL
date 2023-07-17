@@ -1,13 +1,13 @@
 		    Building and Installing Emacs on MS-Windows
                           using the MSYS and MinGW tools
 
-  Copyright (C) 2013-2022 Free Software Foundation, Inc.
+  Copyright (C) 2013-2023 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
 Windows starting with Windows XP and newer.  Building on Windows 2000
 and Windows 9X is not supported (but the Emacs binary produced by this
-build will run on Windows 9X and newer systems).
+build should run on Windows 9X and newer systems).
 
   Do not use this recipe with Cygwin.  For building on Cygwin, use the
   normal installation instructions, ../INSTALL.
@@ -87,7 +87,7 @@ build will run on Windows 9X and newer systems).
 
   Git for Windows is available from this download page:
 
-    https://github.com/git-for-windows/git/releases
+    https://gitforwindows.org/
 
   That page offers both 32-bit and 64-bit installations; pick the one
   suitable for your OS.  In general, we recommend to install a 64-bit
@@ -139,7 +139,7 @@ build will run on Windows 9X and newer systems).
   like to mess with manual installations.  You can download it from
   here:
 
-    https://sourceforge.net/projects/mingw/files/Installer/mingw-get/
+    https://osdn.net/projects/mingw/releases
 
   (This installer only supports packages downloaded from the MinGW
   site; for the rest you will still need the manual method.)
@@ -203,13 +203,13 @@ build will run on Windows 9X and newer systems).
   MinGW runtime and Windows API distributions, to compile Emacs.  You
   can find these on the MinGW download/Base page:
 
-    https://sourceforge.net/projects/mingw/files/MinGW/Base/
+    https://osdn.net/projects/mingw/releases
 
   In general, install the latest stable versions of the following
   MinGW packages from that page: gcc, binutils, mingw-rt, w32api.  You
   only need the 'bin' and the 'dll' tarballs of each of the above.
 
-  MinGW packages are distributed as .tar.lzma compressed archives.  To
+  MinGW packages are distributed as .tar.xz compressed archives.  To
   install the packages manually, we recommend to use the Windows port
   of the 'bsdtar' program to unpack the tarballs.  'bsdtar' is
   available as part of the 'libarchive' package from here:
@@ -598,8 +598,7 @@ build will run on Windows 9X and newer systems).
 * Optional image library support
 
   In addition to its "native" image formats (pbm and xbm), Emacs can
-  handle other image types: xpm, tiff, gif, png, jpeg, webp and
-  experimental support for svg.
+  handle other image types: xpm, tiff, gif, png, jpeg, webp and svg.
 
   To build Emacs with support for them, the corresponding headers must
   be in the include path and libraries should be where the linker
@@ -845,6 +844,20 @@ build will run on Windows 9X and newer systems).
   available from the ezwinports site (for 32-bit builds of Emacs) and
   from the MSYS2 project.  If HarfBuzz is not available, Emacs will
   use the Uniscribe shaping engine that is part of MS-Windows.
+
+* Optional support for accessing SQLite databases
+
+  Emacs can support built-in access to SQLite databases, if compiled
+  with the sqlite3 library.  Prebuilt 32-bit binaries of that library
+  are available from the ezwinports site.
+
+* Optional support for tree-sitter
+
+  Emacs can be built with the tree-sitter incremental parsing library,
+  which enables editing of program sources written in various
+  programming languages based on the tree-sitter parsers.  Prebuilt
+  32-bit binaries of the tree-sitter library DLL and of several
+  language grammar libraries are available from the ezwinports site.
 
 
 This file is part of GNU Emacs.

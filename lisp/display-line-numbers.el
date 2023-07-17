@@ -1,6 +1,6 @@
 ;;; display-line-numbers.el --- interface for display-line-numbers -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -112,19 +112,27 @@ the mode is on, set `display-line-numbers' directly."
 
 ;;;###autoload
 (defvar header-line-indent ""
-  "String to indent at the start if the header line.
-This is used in `header-line-indent-mode', and buffers that have
-this switched on should have a `header-line-format' that look like:
+  "String of spaces to indent the beginning of header-line due to line numbers.
+This is intended to be used in `header-line-format', and requires
+the `header-line-indent-mode' to be turned on, in order for the width
+of this string to be kept updated when the line-number width changes
+on display.  An example of a `header-line-format' that uses this
+variable might look like this:
 
   (\"\" header-line-indent THE-REST...)
 
+where THE-REST is the format string which produces the actual text
+of the header-line.
 Also see `header-line-indent-width'.")
 
 ;;;###autoload
 (defvar header-line-indent-width 0
-  "The width of the current line numbers displayed.
-This is updated when `header-line-indent-mode' is switched on.
-
+  "The width of the current line number display in the window.
+This is measured in units of the frame's canonical columns.
+This is updated when `header-line-indent-mode' is switched on,
+and is intended for use in `:align-to' display specifications
+that are part of `header-line-format', when portions of header-line
+text should be aligned to respective parts of buffer text.
 Also see `header-line-indent'.")
 
 (defun header-line-indent--line-number-width ()
@@ -155,21 +163,30 @@ Also see `header-line-indent'.")
 
 ;;;###autoload
 (define-minor-mode header-line-indent-mode
-  "Mode to indent the header line in `display-line-numbers-mode' buffers.
-This means that the header line will be kept indented so that it
-has blank space that's as wide as the displayed line numbers in
-the buffer.
+  "Minor mode to help with alignment of header line when line numbers are shown.
+This minor mode should be turned on in buffers which display header-line
+that needs to be aligned with buffer text when `display-line-numbers-mode'
+is turned on in the buffer.
 
-Buffers that have this switched on should have a
-`header-line-format' that look like:
+Buffers that have this switched on should have a `header-line-format'
+that uses the `header-line-indent' or the `header-line-indent-width'
+variables, which this mode will keep up-to-date with the current
+display of line numbers.  For example, a `header-line-format' that
+looks like this:
 
   (\"\" header-line-indent THE-REST...)
 
-The `header-line-indent-width' variable is also kept updated, and
-has the width of `header-line-format'.  This can be used, for
-instance, in `:align-to' specs, like:
+will make sure the text produced by THE-REST (which should be
+a header-line format string) is always indented to be aligned on
+display with the first column of buffer text.
 
-  (space :align-to (+ header-line-indent-width 10))"
+The `header-line-indent-width' variable is also kept updated,
+and can be used, for instance, in `:align-to' specs as part
+of `header-line-format', like this:
+
+  (space :align-to (+ header-line-indent-width 10))
+
+See also `line-number-display-width'."
   :lighter nil
   (if header-line-indent-mode
       (progn

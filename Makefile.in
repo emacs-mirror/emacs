@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2022 Free Software Foundation, Inc.
+# Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -417,9 +417,9 @@ advice-on-failure:
 
 sanity-check:
 	@[ -f .no-advice-on-failure ] && exit 0; true
-	@v=$$(src/emacs${EXEEXT} --batch --eval \
+	@v=`src/emacs${EXEEXT} --batch --eval \
 	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
-	  2> /dev/null); \
+	  2> /dev/null`; \
 	[ "X$$v" = "X3628800" ] && exit 0; \
 	echo >&2 '***'; \
 	echo >&2 '*** '"\"make ${make-target}\" succeeded, but Emacs is not functional."; \
@@ -841,7 +841,7 @@ install-etc:
 	rm -f $${tmp}
 	tmp=etc/emacsclient.tmpdesktop; rm -f $${tmp}; \
 	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
-	sed -e "/^Exec=emacsclient/ s|emacsclient|${bindir}/$${client_name}|" \
+	sed -e "/^Exec=/ s|emacsclient|${bindir}/$${client_name}|" \
 	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
 	  $(USE_STARTUP_NOTIFICATION_SED_CMD) \
 	  ${srcdir}/etc/emacsclient.desktop > $${tmp}; \
@@ -855,7 +855,7 @@ install-etc:
 	rm -f $${tmp}
 	tmp=etc/emacsclient-mail.tmpdesktop; rm -f $${tmp}; \
 	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
-	sed -e "/^Exec=emacsclient/ s|emacsclient|${bindir}/$${client_name}|" \
+	sed -e "/^Exec=/ s|emacsclient|${bindir}/$${client_name}|" \
 	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
 	  ${srcdir}/etc/emacsclient-mail.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/$${client_name}-mail.desktop"; \
@@ -1030,6 +1030,9 @@ $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)
 
 distclean: $(distclean_dirs:=_distclean) clean-gsettings-schemas
 	${top_distclean}
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	rm -rf native-lisp
+endif
 
 ### 'bootstrap-clean'
 ###      Delete everything that can be reconstructed by 'make' and that
@@ -1284,7 +1287,7 @@ PREFERRED_BRANCH = emacs-28
 preferred-branch-is-current:
 	git branch | grep -q '^\* $(PREFERRED_BRANCH)$$'
 unchanged-history-files:
-	x=$$(git diff-files --name-only $(CHANGELOG_N) $(emacslog)) && \
+	x=`git diff-files --name-only $(CHANGELOG_N) $(emacslog)` && \
 	  test -z "$$x"
 
 # Regular expression that matches the newest commit covered by a ChangeLog.

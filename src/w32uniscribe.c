@@ -1,6 +1,6 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
    Windows-specific parts of the HarfBuzz font backend.
-   Copyright (C) 2008-2022 Free Software Foundation, Inc.
+   Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

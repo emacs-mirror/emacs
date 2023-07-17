@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -142,7 +142,7 @@ The status can be =diff(A), =diff(B), or =diff(A+B).")
 
 ;;; Fine differences
 
-(ediff-defvar-local ediff-auto-refine (if (ediff-has-face-support-p) 'on 'nix)
+(ediff-defvar-local ediff-auto-refine 'on
   "If `on', Ediff auto-highlights fine diffs for the current diff region.
 If `off', auto-highlighting is not used.  If `nix', no fine diffs are shown
 at all, unless the user force-refines the region by hitting `*'.

@@ -1,8 +1,8 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
-@set VERSION 1.2.2
-@set UPDATED November 2021
+@set VERSION 1.3.4
+@set UPDATED April 2023
 @settitle GNU Flymake @value{VERSION}
 @include docstyle.texi
 @syncodeindex pg cp
@@ -13,7 +13,7 @@
 @copying
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}).
 
-Copyright @copyright{} 2004--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -115,11 +115,11 @@ Syntax checks happen ``on-the-fly''.  Each check is started whenever:
 @itemize @bullet
 @item
 @code{flymake-mode} is started, unless
-@code{flymake-start-on-flymake-mode} is nil;
+@code{flymake-start-on-flymake-mode} is @code{nil};
 
 @item
 the buffer is saved, unless @code{flymake-start-on-save-buffer} is
-nil;
+@code{nil};
 
 @item
 some changes were made to the buffer more than @code{0.5} seconds ago
@@ -141,6 +141,12 @@ If Flymake has highlighted the buffer, you may hover the mouse on the
 highlighted regions to learn what the specific problem
 is.  Alternatively, place point on the highlighted regions and use the
 commands @code{eldoc} or @code{display-local-help}.
+
+Another easy way to get instant access to the diagnostic text is to
+set @code{flymake-show-diagnostics-at-end-of-line} to a non-@code{nil}
+value.  This makes the diagnostic messages appear at the end of the
+line where the regular annotation is located (@pxref{Customizable
+variables})
 
 @cindex next and previous diagnostic
 If the diagnostics are outside the visible region of the buffer,
@@ -314,6 +320,22 @@ Which fringe (if any) should show the warning/error bitmaps.
 @item flymake-wrap-around
 If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @code{flymake-goto-prev-error} wraps around buffer boundaries.
+
+@item flymake-show-diagnostics-at-end-of-line
+If non-@code{nil}, show summarized descriptions of diagnostics at the
+end of the line.  Depending on your preference, this can either be
+distracting and easily confused with actual code, or a significant
+early aid that relieves you from moving around or reaching for the
+mouse to consult an error message.
+
+@item flymake-error-eol
+A custom face for summarizing diagnostic error messages.
+
+@item flymake-warning-eol
+A custom face for summarizing diagnostic warning messages.
+
+@item flymake-note-eol
+A custom face for summarizing diagnostic notes.
 @end vtable
 
 @node Extending Flymake
@@ -394,7 +416,7 @@ its @code{flymake-overlay-control} property:
 
 @item
 @cindex severity of diagnostic
-@code{flymake-severity} is a non-negative integer specifying the
+@code{severity} is a non-negative integer specifying the
 diagnostic's severity.  The higher the value, the more serious is the
 error.  If the overlay property @code{priority} is not specified in
 @code{flymake-overlay-control}, @code{flymake-severity} is used to set
@@ -409,6 +431,17 @@ type, in case the name of the symbol associated with it is very long.
 @vindex flymake-category
 @code{flymake-category} is a symbol whose property list is considered
 the default for missing values of any other properties.
+
+@item
+@cindex mode-line appearance of a diagnostic
+@code{mode-line-face} is a face specifier controlling the appearance
+of the indicator of this type of diagnostic in the mode line.
+
+@item
+@cindex summarized appearance of a diagnostic
+@code{echo-face} is a face specifier controlling the appearance of the
+summarized description of this diagnostic when reading diagnostic
+messages (@pxref{Finding diagnostics}).
 @end itemize
 
 @cindex predefined diagnostic types
@@ -738,9 +771,13 @@ The following code needs lexical binding (@pxref{Using Lexical
 Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
 
 @example
+@group
 ;;; ruby-flymake.el --- A ruby Flymake backend  -*- lexical-binding: t; -*-
+(require 'cl-lib)
 (defvar-local ruby--flymake-proc nil)
+@end group
 
+@group
 (defun ruby-flymake (report-fn &rest _args)
   ;; Not having a ruby interpreter is a serious problem which should cause
   ;; the backend to disable itself, so an @code{error} is signaled.
@@ -754,7 +791,9 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
   ;;
   (when (process-live-p ruby--flymake-proc)
     (kill-process ruby--flymake-proc))
+@end group
 
+@group
   ;; Save the current buffer, the narrowing restriction, remove any
   ;; narrowing restriction.
   ;;
@@ -820,11 +859,14 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
       ;;
       (process-send-region ruby--flymake-proc (point-min) (point-max))
       (process-send-eof ruby--flymake-proc))))
+@end group
 
+@group
 (defun ruby-setup-flymake-backend ()
   (add-hook 'flymake-diagnostic-functions 'ruby-flymake nil t))
 
 (add-hook 'ruby-mode-hook 'ruby-setup-flymake-backend)
+@end group
 @end example
 
 @node The legacy Proc backend
@@ -876,13 +918,18 @@ Patterns for error/warning messages in the form @code{(regexp file-idx
 line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
 
 @item flymake-proc-diagnostic-type-pred
-A function to classify a diagnostic text as particular type of error.
-Should be a function taking an error text and returning a diagnostic
-symbol (@pxref{Flymake error types}).  If non-@code{nil} is returned but
-there is no such symbol in that table, a warning is assumed.  If nil
-is returned, an error is assumed.  Can also be a regular expression
-that should match only warnings.  This variable replaces the old
-@code{flymake-warning-re} and @code{flymake-warning-predicate}.
+A function to classify a diagnostic text as a particular type of
+error.  The value of this variable should be a function taking an
+error text and returning a diagnostic symbol (@pxref{Flymake error
+types}).  If it returns a non-@code{nil} value but there is no such
+symbol in that table, the text is interpreted as a warning.  If the
+function returns @code{nil}, the text is assumed to be an error.
+
+The value of this variable can alternatively be a regular expression
+that should match only warnings.
+
+This variable replaces the old @code{flymake-warning-re} and
+@code{flymake-warning-predicate}.
 
 @item flymake-proc-compilation-prevents-syntax-check
 A flag indicating whether compilation and syntax check of the same

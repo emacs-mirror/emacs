@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008, 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;;         Christian Ohler <ohler@gnu.org>
@@ -496,7 +496,7 @@ See also `ert-with-temp-directory'."
              (progn ,@body)
            (ignore-errors
              ,@(when buffer
-                 (list `(with-current-buffer buf
+                 (list `(with-current-buffer ,buffer
                           (set-buffer-modified-p nil))
                        `(kill-buffer ,buffer))))
            (ignore-errors
@@ -563,9 +563,9 @@ The same keyword arguments are supported as in
         ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
         ;; in batch mode only, therefore.
         (when (and noninteractive (not (file-directory-p "~/")))
-          (setenv "HOME" temporary-file-directory))
+          (setenv "HOME" (directory-file-name temporary-file-directory)))
         (format "/mock::%s" temporary-file-directory))))
-    "Temporary directory for remote file tests.")
+  "Temporary directory for remote file tests.")
 
 (provide 'ert-x)
 

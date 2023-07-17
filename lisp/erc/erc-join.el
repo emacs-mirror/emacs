@@ -1,6 +1,6 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -78,10 +78,11 @@ keeps track of what channels you are on, and will join them
 again when you get disconnected.  When you restart Emacs, however,
 those changes are lost, and the customization you saved the last
 time is used again."
-  :type '(repeat (cons :tag "Server"
-		       (regexp :tag "Name")
-		       (repeat :tag "Channels"
-			       (string :tag "Name")))))
+  :type '(alist :options (Libera.Chat)
+                :key-type (choice :tag "Server"
+                                  (symbol :tag "Network")
+                                  (regexp :tag "Host or domain"))
+                :value-type (repeat :tag "Channels" (string :tag "Name"))))
 
 (defcustom erc-autojoin-timing 'connect
   "When ERC should attempt to autojoin a channel.

@@ -1,6 +1,6 @@
 ;;; em-tramp.el --- Eshell features that require Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Aidan Gauland <aidalgol@no8wireless.co.nz>
 
@@ -29,9 +29,9 @@
 (require 'esh-cmd)
 
 (eval-when-compile
-  (require 'esh-mode)
-  (require 'eshell)
-  (require 'tramp))
+  (require 'esh-mode))
+
+(require 'tramp)
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.

@@ -1,6 +1,6 @@
 ;;; grep-tests.el --- Test suite for grep.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -65,5 +65,19 @@
   (let ((system-type 'windows-nt))
     (cl-letf (((symbol-function 'w32-shell-dos-semantics) #'ignore))
       (grep-tests--check-rgrep-abbreviation))))
+
+(ert-deftest grep-tests--grep-heading-regexp-without-null ()
+  (dolist (sep '(?: ?- ?=))
+    (let ((string (format "filename%c123%ctext" sep sep)))
+      (should (string-match grep-heading-regexp string))
+      (should (equal (match-string 1 string) "filename"))
+      (should (equal (match-string 2 string) (format "filename%c" sep))))))
+
+(ert-deftest grep-tests--grep-heading-regexp-with-null ()
+  (dolist (sep '(?: ?- ?=))
+    (let ((string (format "funny:0:filename%c123%ctext" 0 sep)))
+      (should (string-match grep-heading-regexp string))
+      (should (equal (match-string 1 string) "funny:0:filename"))
+      (should (equal (match-string 2 string) "funny:0:filename\0")))))
 
 ;;; grep-tests.el ends here

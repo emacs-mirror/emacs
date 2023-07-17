@@ -1,6 +1,6 @@
 ;;; erc-scenarios-sasl.el --- SASL tests for ERC -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -50,6 +50,70 @@
         (funcall expect 10 "This server is in debug mode")
         ;; Regression "\0\0\0\0 ..." caused by (fillarray passphrase 0)
         (should (string= erc-sasl-password "password123"))))))
+
+;; The user's unreasonably long password is apportioned into chunks on
+;; the way out the door.
+
+(ert-deftest erc-scenarios-sasl--plain-overlong-split ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "sasl")
+       (erc-server-flood-penalty 0.1)
+       (dumb-server (erc-d-run "localhost" t 'plain-overlong-split))
+       (port (process-contact dumb-server :service))
+       (erc-modules (cons 'sasl erc-modules))
+       (erc-sasl-password
+        (concat
+         "Est ut beatae omnis ipsam. "
+         "Quis fugiat deleniti totam qui. "
+         "Ipsum quam a dolorum tempora velit laborum odit. "
+         "Et saepe voluptate sed cumque vel. "
+         "Voluptas sint ab pariatur libero veritatis corrupti. "
+         "Vero iure omnis ullam. "
+         "Vero beatae dolores facere fugiat ipsam. "
+         "Ea est pariatur minima nobis sunt aut ut. "
+         "Dolores ut laudantium maiores temporibus voluptates. "
+         "Reiciendis impedit omnis et unde delectus quas ab. "
+         "Quae eligendi necessitatibus doloribus "
+         "molestias tempora magnam assumenda."))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "emersion"
+                                :user "emersion"
+                                :full-name "emersion")
+        (funcall expect 10 "This server is in debug mode")
+        (erc-cmd-QUIT "")))))
+
+(ert-deftest erc-scenarios-sasl--plain-overlong-aligned ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "sasl")
+       (erc-server-flood-penalty 0.1)
+       (dumb-server (erc-d-run "localhost" t 'plain-overlong-aligned))
+       (port (process-contact dumb-server :service))
+       (erc-modules (cons 'sasl erc-modules))
+       (erc-sasl-password
+        (concat
+         "Est ut beatae omnis ipsam. "
+         "Quis fugiat deleniti totam qui. "
+         "Ipsum quam a dolorum tempora velit laborum odit. "
+         "Et saepe voluptate sed cumque vel. "
+         "Voluptas sint ab pariatur libero veritatis corrupti. "
+         "Vero iure omnis ullam. Vero beatae dolores facere fugiat ipsam. "
+         "Ea est pariatur minima nobis"))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "emersion"
+                                :user "emersion"
+                                :full-name "emersion")
+        (funcall expect 10 "This server is in debug mode")
+        (erc-cmd-QUIT "")))))
 
 (ert-deftest erc-scenarios-sasl--external ()
   :tags '(:expensive-test)

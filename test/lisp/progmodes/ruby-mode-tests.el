@@ -1,6 +1,6 @@
 ;;; ruby-mode-tests.el --- Test suite for ruby-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -537,9 +537,12 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |    def foo
                           |    end
                           |    _
+                          |    def bar
+                          |    end
                           |  end
                           |end")
     (search-backward "_")
+    (delete-char 1)
     (should (string= (ruby-add-log-current-method)"M::C"))))
 
 (ert-deftest ruby-add-log-current-method-in-singleton-class ()
@@ -563,6 +566,22 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |end")
     (search-backward "_")
     (should (string= (ruby-add-log-current-method) "C::D#foo"))))
+
+(ert-deftest ruby-add-log-current-method-singleton-referencing-outer ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  module N
+                          |    module C
+                          |      class D
+                          |        def C.foo
+                          |          _
+                          |        end
+                          |      end
+                          |    end
+                          |  end
+                          |end")
+    (search-backward "_")
+    (should (string= (ruby-add-log-current-method) "M::N::C.foo"))))
 
 (ert-deftest ruby-add-log-current-method-after-inner-class ()
   (ruby-with-temp-buffer (ruby-test-string
@@ -956,7 +975,11 @@ VALUES-PLIST is a list with alternating index and value elements."
          (kill-buffer buf)))))
 
 (ruby-deftest-indent "ruby.rb")
+(ruby-deftest-indent "ruby-after-operator-indent.rb")
+(ruby-deftest-indent "ruby-block-indent.rb")
+(ruby-deftest-indent "ruby-method-call-indent.rb")
 (ruby-deftest-indent "ruby-method-params-indent.rb")
+(ruby-deftest-indent "ruby-parenless-call-arguments-indent.rb")
 
 (ert-deftest ruby--test-chained-indentation ()
   (with-temp-buffer

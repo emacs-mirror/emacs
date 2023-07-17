@@ -1,6 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -658,8 +658,9 @@ any reason to call this function directly."
   (let ((func (if this-buf-only-p
 		  'make-local-variable
 		'make-variable-buffer-local))
-	(varsyms (cons 'c-indentation-style (copy-alist c-style-variables))))
-    (delq 'c-special-indent-hook varsyms)
+	(varsyms (cons 'c-indentation-style
+		       (delq 'c-special-indent-hook
+			     (copy-alist c-style-variables)))))
     (mapc func varsyms)
     ;; Hooks must be handled specially
     (if this-buf-only-p

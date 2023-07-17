@@ -1,0 +1,220 @@
+Name: tag1
+Point-Char: |
+
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+|Before, that binding was only available with 'dired-x'.
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+---
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+|Before, that binding was only available with 'dired-x'.
+=-=-=
+
+Name: tag2
+Point-Char: |
+
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+---
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+|Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
++++
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+|Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag3
+Point-Char: |
+
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
++++
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+|Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+|Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag4-point-at-headline
+Point-Char: |
+
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+---
+|*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag5-point-at-tag
+Point-Char: |
+
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|---
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|+++
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag6-point-at-tag
+Point-Char: |
+
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|+++
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag7-2level
+Point-Char: |
+
+=-=
++++
+** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|+++
+** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag8-2level
+Point-Char: |
+
+=-=
++++
+** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
++++
+|** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+Name: tag9-2level-notag
+Point-Char: |
+
+=-=
++++
+** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+---
+|** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=
+
+
+Name: tag10-4level
+Point-Char: |
+
+=-=
++++
+**** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+|**** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=
++++
+**** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
+---
+|**** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+=-=-=

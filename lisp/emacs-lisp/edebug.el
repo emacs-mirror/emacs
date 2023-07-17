@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2022 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 1999-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -1225,8 +1225,10 @@ purpose by adding an entry to this alist, and setting
 	   ;; But the list will just be reversed.
 	   ,@(nreverse edebug-def-args))
        'nil)
-    (function (lambda () ,@forms))
-    ))
+    ;; Make sure `forms' is not nil so we don't accidentally return
+    ;; the magic keyword.  Mark the closure so we don't throw away
+    ;; unused vars (bug#59213).
+    #'(lambda () :closure-dont-trim-context ,@(or forms '(nil)))))
 
 
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented
@@ -2851,81 +2853,81 @@ See `edebug-behavior-alist' for implementations.")
 	edebug-inside-windows
 	)
 
-    (unwind-protect
-	(let (
-	      ;; Declare global values local but using the same global value.
-	      ;; We could set these to the values for previous edebug call.
-	      (last-command last-command)
-	      (this-command this-command)
-	      (current-prefix-arg nil)
 
-	      (last-input-event nil)
-	      (last-command-event nil)
-	      (last-event-frame nil)
-	      (last-nonmenu-event nil)
-	      (track-mouse nil)
+    (let (
+	  ;; Declare global values local but using the same global value.
+	  ;; We could set these to the values for previous edebug call.
+	  (last-command last-command)
+	  (this-command this-command)
+	  (current-prefix-arg nil)
 
-              (standard-output t)
-              (standard-input t)
+	  (last-input-event nil)
+	  (last-command-event nil)
+	  (last-event-frame nil)
+	  (last-nonmenu-event nil)
+	  (track-mouse nil)
 
-	      ;; Don't keep reading from an executing kbd macro
-              ;; within edebug unless edebug-continue-kbd-macro is
-              ;; non-nil.  Again, local binding may not be best.
-              (executing-kbd-macro
-               (if edebug-continue-kbd-macro executing-kbd-macro))
+          (standard-output t)
+          (standard-input t)
 
-              ;; Don't get confused by the user's keymap changes.
-              (overriding-local-map nil)
-              (overriding-terminal-local-map nil)
-              ;; Override other minor modes that may bind the keys
-              ;; edebug uses.
-              (minor-mode-overriding-map-alist
-               (list (cons 'edebug-mode edebug-mode-map)))
+	  ;; Don't keep reading from an executing kbd macro
+          ;; within edebug unless edebug-continue-kbd-macro is
+          ;; non-nil.  Again, local binding may not be best.
+          (executing-kbd-macro
+           (if edebug-continue-kbd-macro executing-kbd-macro))
 
-              ;; Bind again to outside values.
-	      (debug-on-error edebug-outside-debug-on-error)
-	      (debug-on-quit edebug-outside-debug-on-quit)
+          ;; Don't get confused by the user's keymap changes.
+          (overriding-local-map nil)
+          (overriding-terminal-local-map nil)
+          ;; Override other minor modes that may bind the keys
+          ;; edebug uses.
+          (minor-mode-overriding-map-alist
+           (list (cons 'edebug-mode edebug-mode-map)))
 
-	      ;; Don't keep defining a kbd macro.
-	      (defining-kbd-macro
-		(if edebug-continue-kbd-macro defining-kbd-macro))
+          ;; Bind again to outside values.
+	  (debug-on-error edebug-outside-debug-on-error)
+	  (debug-on-quit edebug-outside-debug-on-quit)
 
-	      ;; others??
-	      )
+	  ;; Don't keep defining a kbd macro.
+	  (defining-kbd-macro
+	    (if edebug-continue-kbd-macro defining-kbd-macro))
 
-	  (if (and (eq edebug-execution-mode 'go)
-		   (not (memq arg-mode '(after error))))
-	      (message "Break"))
+	  ;; others??
+	  )
 
-	  (setq signal-hook-function nil)
+      (if (and (eq edebug-execution-mode 'go)
+	       (not (memq arg-mode '(after error))))
+	  (message "Break"))
 
-	  (edebug-mode 1)
-	  (unwind-protect
-	      (recursive-edit)		;  <<<<<<<<<< Recursive edit
+      (setq signal-hook-function nil)
 
-	    ;; Do the following, even if quit occurs.
-	    (setq signal-hook-function #'edebug-signal)
-	    (if edebug-backtrace-buffer
-		(kill-buffer edebug-backtrace-buffer))
+      (edebug-mode 1)
+      (unwind-protect
+	  (recursive-edit)		;  <<<<<<<<<< Recursive edit
 
-	    ;; Remember selected-window after recursive-edit.
-	    ;;      (setq edebug-inside-window (selected-window))
+	;; Do the following, even if quit occurs.
+	(setq signal-hook-function #'edebug-signal)
+	(if edebug-backtrace-buffer
+	    (kill-buffer edebug-backtrace-buffer))
 
-	    (set-match-data edebug-outside-match-data)
+	;; Remember selected-window after recursive-edit.
+	;;      (setq edebug-inside-window (selected-window))
 
-	    ;; Recursive edit may have changed buffers,
-	    ;; so set it back before exiting let.
-	    (if (buffer-name edebug-buffer) ; if it still exists
-		(progn
-		  (set-buffer edebug-buffer)
-		  (when (memq edebug-execution-mode '(go Go-nonstop))
-		    (edebug-overlay-arrow)
-		    (sit-for 0))
-                  (edebug-mode -1))
-	      ;; gotta have a buffer to let its buffer local variables be set
-	      (get-buffer-create " bogus edebug buffer"))
-	    ));; inner let
-      )))
+	(set-match-data edebug-outside-match-data)
+
+	;; Recursive edit may have changed buffers,
+	;; so set it back before exiting let.
+	(if (buffer-name edebug-buffer) ; if it still exists
+	    (progn
+	      (set-buffer edebug-buffer)
+	      (when (memq edebug-execution-mode '(go Go-nonstop))
+		(edebug-overlay-arrow)
+		(sit-for 0))
+              (edebug-mode -1))
+	  ;; gotta have a buffer to let its buffer local variables be set
+	  (get-buffer-create " bogus edebug buffer"))
+	));; inner let
+      ))
 
 
 ;;; Display related functions

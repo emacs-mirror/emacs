@@ -1,6 +1,6 @@
 ;;; erc-imenu.el --- Imenu support for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -41,6 +41,10 @@
 (require 'erc)
 (require 'imenu)
 
+(defgroup erc-imenu nil
+  "Imenu integration for ERC."
+  :group 'erc)
+
 (defun erc-unfill-notice ()
   "Return text from point to a computed end as a string unfilled.
 Don't rely on this function, read it first!"
@@ -52,7 +56,8 @@ Don't rely on this function, read it first!"
 			 (forward-line 1)
 			 (looking-at "    "))
 		  (forward-line 1))
-		(end-of-line) (point)))))
+		(end-of-line) (point))))
+	(inhibit-read-only t))
     (with-temp-buffer
       (insert str)
       (goto-char (point-min))
@@ -123,6 +128,27 @@ Don't rely on this function, read it first!"
     (and topic-change-alist (push (cons "topic-change" topic-change-alist)
 				  index-alist))
     index-alist))
+
+(defvar-local erc-imenu--create-index-function nil
+  "Previous local value of `imenu-create-index-function', if any.")
+
+(defun erc-imenu-setup ()
+  "Wire up support for Imenu in an ERC buffer."
+  (when (and (local-variable-p 'imenu-create-index-function)
+             imenu-create-index-function)
+    (setq erc-imenu--create-index-function imenu-create-index-function))
+  (setq imenu-create-index-function #'erc-create-imenu-index))
+
+;;;###autoload(autoload 'erc-imenu-mode "erc-imenu" nil t)
+(define-erc-module imenu nil
+  "Simple Imenu integration for ERC."
+  ((add-hook 'erc-mode-hook #'erc-imenu-setup)
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-imenu-setup)))
+  ((remove-hook 'erc-mode-hook #'erc-imenu-setup)
+   (erc-with-all-buffers-of-server nil nil
+     (when erc-imenu--create-index-function
+       (setq imenu-create-index-function erc-imenu--create-index-function)
+       (kill-local-variable 'erc-imenu--create-index-function)))))
 
 (provide 'erc-imenu)
 

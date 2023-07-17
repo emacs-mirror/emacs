@@ -1,6 +1,6 @@
 ;;; image-crop.el --- Image Cropping  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Keywords: multimedia
 
@@ -35,77 +35,78 @@
 (declare-function image-property "image.el" (image property))
 (declare-function image-size "image.c" (spec &optional pixels frame))
 (declare-function imagep "image.c" (spec))
+(declare-function image--get-image "image.el" (&optional position))
 
 (defgroup image-crop ()
   "Image cropping."
   :group 'image)
 
 (defvar image-crop-exif-rotate nil
-  "If non-nil, rotate images by updating exif data.
+  "If non-nil, rotate images by updating Exif data.
 If nil, rotate the images \"physically\".")
 
 (defcustom image-crop-resize-command '("convert" "-resize" "%wx" "-" "%f:-")
-  "Command to resize an image.
-The following `format-spec' elements are allowed:
+  "List of command and command-line arguments to resize an image.
+The following `format-spec' elements are allowed in the value:
 
 %w: Width.
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-cut-command '("convert" "-draw" "rectangle %l,%t %r,%b"
                                     "-fill" "%c"
                                     "-" "%f:-")
-  "Command to cut a rectangle out of an image.
+  "List of command and its command-line arguments to cut a rectangle out of image.
 
-The following `format-spec' elements are allowed:
+The following `format-spec' elements are allowed in the value:
 %l: Left.
 %t: Top.
 %r: Right.
 %b: Bottom.
 %c: Color.
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-crop-command '("convert" "+repage" "-crop" "%wx%h+%l+%t"
 	                             "-" "%f:-")
-  "Command to crop an image.
+  "List of command and its command-line arguments to crop an image.
 
-The following `format-spec' elements are allowed:
+The following `format-spec' elements are allowed in the value:
 %l: Left.
 %t: Top.
 %w: Width.
 %h: Height.
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-rotate-command '("convert" "-rotate" "%r" "-" "%f:-")
-  "Command to rotate an image.
+  "List of command and its command-line arguments to rotate an image.
 
-The following `format-spec' elements are allowed:
+The following `format-spec' elements are allowed in the value:
 %r: Rotation (in degrees).
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defvar image-crop-buffer-text-function #'image-crop--default-buffer-text
-  "Function to return the buffer text for the cropped image.
-After cropping an image, the displayed image will be updated to
-show the cropped image in the buffer.  Different modes will have
-different ways to represent this image data in a buffer.  For
-instance, an HTML-based mode might want to represent the image
-with <img src=\"data:...base64...\">, but that's up to the mode.
+  "Function to return the buffer text corresponding to the cropped image.
+After cropping an image, the displayed image in the buffer will be updated
+to show the cropped image.  Different modes will have different ways to
+represent this image data in a buffer, but that's up to the mode.  For
+instance, an HTML-based mode might want to represent the image with
+<img src=\"data:...base64...\">.
 
-The default action is to not alter the buffer text at all.
+The default action is to not alter the image's text in the buffer, and
+just return it.
 
-The function is called with two arguments: The first is the
-original buffer text, and the second parameter is the cropped
-image data.")
+The function is called with two arguments: the original buffer text,
+and the cropped image data.")
 
 (defcustom image-cut-color "black"
-  "Color to use for the rectangle cut from the image."
+  "Color to use for the rectangle that was cut from the image."
   :type 'string
   :version "29.1")
 
@@ -113,18 +114,14 @@ image data.")
 (defun image-cut (&optional color)
   "Cut a rectangle from the image under point, filling it with COLOR.
 COLOR defaults to the value of `image-cut-color'.
-Interactively, with prefix argument, prompt for COLOR to use."
-  (interactive (list (and current-prefix-arg (read-color "Use color: "))))
-  (image-crop (if (zerop (length color)) image-cut-color color)))
+Interactively, with prefix argument, prompt for COLOR to use.
 
-;;;###autoload
-(defun image-crop (&optional cut)
-  "Crop the image under point.
-If CUT is non-nil, remove a rectangle from the image instead of
-cropping the image.  In that case CUT should be the name of a
-color to fill the rectangle.
+This command presents the image with a rectangular area superimposed
+on it, and allows moving and resizing the area to define which
+part of it to cut.
 
-While cropping the image, the following key bindings are available:
+While moving/resizing the cutting area, the following key bindings
+are available:
 
 `q':   Exit without changing anything.
 `RET': Crop/cut the image.
@@ -132,15 +129,51 @@ While cropping the image, the following key bindings are available:
        rectangle shape.
 `s':   Same as `m', but make the rectangle into a square first.
 
-After cropping an image, you can save it by `M-x image-save' or
+After cutting the image, you can save it by `M-x image-save' or
 \\<image-map>\\[image-save] when point is over the image."
+  (interactive (list (and current-prefix-arg
+                          (read-color "Color to use for filling: "))))
+  (image-crop (if (zerop (length color)) image-cut-color color)))
+
+;;;###autoload
+(defun image-crop (&optional cut)
+  "Crop the image under point.
+This command presents the image with a rectangular area superimposed
+on it, and allows moving and resizing the area to define which
+part of it to crop.
+
+While moving/resizing the cropping area, the following key bindings
+are available:
+
+`q':   Exit without changing anything.
+`RET': Crop/cut the image.
+`m':   Make mouse movements move the rectangle instead of altering the
+       rectangle shape.
+`s':   Same as `m', but make the rectangle into a square first.
+
+After cropping the image, you can save it by `M-x image-save' or
+\\<image-map>\\[image-save] when point is over the image.
+
+When called from Lisp, if CUT is non-nil, remove a rectangle from
+the image instead of cropping the image.  In that case, CUT should
+be the name of a color to fill the rectangle."
   (interactive)
   (unless (image-type-available-p 'svg)
-    (error "SVG support is needed to crop images"))
-  (unless (executable-find (car image-crop-crop-command))
-    (error "Couldn't find %s command to crop the image"
-           (car image-crop-crop-command)))
-  (let ((image (get-text-property (point) 'display)))
+    (error "SVG support is needed to crop and cut images"))
+  (let* ((crop-cmd (car image-crop-crop-command))
+         (found (executable-find crop-cmd)))
+    (unless found
+      (error "Couldn't find `%s' command to crop/cut the image" crop-cmd))
+    (if (and (memq system-type '(windows-nt ms-dos))
+             ;; MS-Windows has an incompatible convert.exe, used to
+             ;; convert filesystems...
+             (string-equal crop-cmd "convert")
+             (= 0 (string-search "Invalid drive specification."
+                                 (shell-command-to-string
+                                  (format "%s %s" crop-cmd null-device)))))
+        (error "The program `%s' is not an image conversion program"
+               found)))
+  (let ((image (image--get-image)))
     (unless (imagep image)
       (user-error "No image under point"))
     (when (overlays-at (point))

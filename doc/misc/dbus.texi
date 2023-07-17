@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1847,8 +1847,24 @@ This function establishes the connection to D-Bus @var{bus}.
 corresponding bus.  For the system and session buses, this function is
 called when loading @file{dbus.el}, there is no need to call it again.
 
-The function returns the number of connections this Emacs session has
-established to the @var{bus} under the same unique name
+If Emacs was invoked when there was no D-Bus session bus available
+yet, you can set the environment variable
+@env{DBUS_SESSION_BUS_ADDRESS} once the session bus daemon is running
+and offering the address.  Calling @code{dbus-init-bus} initializes
+the connection to the session bus.
+
+@lisp
+(setenv "DBUS_SESSION_BUS_ADDRESS" "unix:path=/run/user/1000/bus")
+
+@result{} "unix:path=/run/user/1000/bus"
+
+(dbus-init-bus :session)
+
+@result{} 2
+@end lisp
+
+@code{dbus-init-bus} returns the number of connections this Emacs
+session has established to the @var{bus} under the same unique name
 (@pxref{dbus-get-unique-name}).  It depends on the libraries Emacs is
 linked with, and on the environment Emacs is running.  For example, if
 Emacs is linked with the GTK+ toolkit, and it runs in a GTK+-aware

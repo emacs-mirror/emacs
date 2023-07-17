@@ -1,6 +1,6 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -752,7 +752,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
     (if (not key-image)
 	""
       (condition-case nil
-	  (let ((result "  "))
+	  (let ((result (copy-sequence "  ")))
 	    (put-text-property
 	     1 2 'display
 	     (gnus-rescale-image key-image

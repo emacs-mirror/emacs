@@ -1,6 +1,6 @@
 ;;; filecache.el --- find files using a pre-loaded cache  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
@@ -213,7 +213,7 @@ Defaults to the value of `case-fold-search'."
   :type 'boolean)
 
 (defcustom file-cache-ignore-case
-  (memq system-type '(ms-dos windows-nt cygwin))
+  (not (not (memq system-type '(ms-dos windows-nt cygwin))))
   "Non-nil means ignore case when checking completions in the file cache.
 Defaults to nil on DOS and Windows, and t on other systems."
   :type 'boolean)

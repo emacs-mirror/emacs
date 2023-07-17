@@ -1,6 +1,6 @@
 ;;; uudecode.el --- elisp native uudecode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news
@@ -40,7 +40,7 @@ input and write the converted data to its standard output."
   :type '(repeat string))
 
 (defcustom uudecode-use-external
-  (executable-find uudecode-decoder-program)
+  (not (not (executable-find uudecode-decoder-program)))
   "Use external uudecode program."
   :version "22.1"
   :type 'boolean)

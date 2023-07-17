@@ -1,6 +1,6 @@
 ;;; secrets.el --- Client interface to gnome-keyring and kwallet. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm password passphrase
@@ -687,13 +687,38 @@ ITEM can also be an object path, which is returned if contained in COLLECTION."
                    item (secrets-get-item-property item-path "Label"))
 	         (throw 'item-found item-path)))))))
 
+(defun secrets-lock-item (collection item)
+  "Lock collection item labeled ITEM in COLLECTION.
+If successful, return the object path of the item.  Does not lock
+the collection."
+  (let ((item-path (secrets-item-path collection item)))
+    (unless (secrets-empty-path item-path)
+      (secrets-prompt
+       (cadr
+        (dbus-call-method
+         :session secrets-service secrets-path secrets-interface-service
+         "Lock" `(:array :object-path ,item-path)))))
+    item-path))
+
+(defun secrets-unlock-item (collection item)
+  "Unlock item labeled ITEM from collection labeled COLLECTION.
+If successful, return the object path of the item."
+  (let ((item-path (secrets-item-path collection item)))
+    (unless (secrets-empty-path item-path)
+      (secrets-prompt
+       (cadr
+        (dbus-call-method
+         :session secrets-service secrets-path secrets-interface-service
+         "Unlock" `(:array :object-path ,item-path)))))
+    item-path))
+
 (defun secrets-get-secret (collection item)
   "Return the secret of item labeled ITEM in COLLECTION.
 If there are several items labeled ITEM, it is undefined which
 one is returned.  If there is no such item, return nil.
 
 ITEM can also be an object path, which is used if contained in COLLECTION."
-  (let ((item-path (secrets-item-path collection item)))
+  (let ((item-path (secrets-unlock-item collection item)))
     (unless (secrets-empty-path item-path)
       (dbus-byte-array-to-string
        (nth 2

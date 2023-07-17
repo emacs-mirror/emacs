@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1994, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
@@ -980,6 +980,15 @@ Letter, Number, Punctuation, Symbol and Private-use
 (@pxref{Character Properties}), as well as the control characters
 having their own escape syntax such as newline.
 @end defvar
+
+@defopt pp-default-function
+This user variable specifies the function used by @code{pp} to prettify
+its output.  By default it uses @code{pp-fill} which attempts to
+strike a good balance between speed and generating natural looking output
+that fits within @code{fill-column}.  The previous default was
+@code{pp-28}, which tends to be faster but generate output that looks
+less natural and is less compact.
+@end defopt
 
 @node Output Overrides
 @section Overriding Output Variables

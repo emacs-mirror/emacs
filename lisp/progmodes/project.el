@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.9.3
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Version: 0.9.8
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -202,14 +202,27 @@ CL struct.")
   "Value to use instead of `default-directory' when detecting the project.
 When it is non-nil, `project-current' will always skip prompting too.")
 
+(defcustom project-prompter #'project-prompt-project-dir
+  "Function to call to prompt for a project.
+Called with no arguments and should return a project root dir."
+  :type '(choice (const :tag "Prompt for a project directory"
+                        project-prompt-project-dir)
+                 (const :tag "Prompt for a project name"
+                        project-prompt-project-name)
+                 (function :tag "Custom function" nil))
+  :group 'project
+  :version "30.1")
+
 ;;;###autoload
 (defun project-current (&optional maybe-prompt directory)
   "Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
 When no project is found in that directory, the result depends on
 the value of MAYBE-PROMPT: if it is nil or omitted, return nil,
-else ask the user for a directory in which to look for the
-project, and if no project is found there, return a \"transient\"
+else prompt the user for the project to use.  To prompt for a
+project, call the function specified by `project-prompter', which
+returns the directory in which to look for the project.  If no
+project is found in that directory, return a \"transient\"
 project instance.
 
 The \"transient\" project instance is a special kind of value
@@ -226,7 +239,7 @@ of the project instance object."
      (pr)
      ((unless project-current-directory-override
         maybe-prompt)
-      (setq directory (project-prompt-project-dir)
+      (setq directory (funcall project-prompter)
             pr (project--find-in-directory directory))))
     (when maybe-prompt
       (if pr
@@ -401,8 +414,8 @@ the buffer's value of `default-directory'."
 
 (defcustom project-vc-ignores nil
   "List of patterns to add to `project-ignores'."
-  :type '(repeat string)
-  :safe #'listp)
+  :type '(repeat string))
+;;;###autoload(put 'project-vc-ignores 'safe-local-variable #'listp)
 
 (defcustom project-vc-merge-submodules t
   "Non-nil to consider submodules part of the parent project.
@@ -411,14 +424,14 @@ After changing this variable (using Customize or .dir-locals.el)
 you might have to restart Emacs to see the effect."
   :type 'boolean
   :version "28.1"
-  :package-version '(project . "0.2.0")
-  :safe #'booleanp)
+  :package-version '(project . "0.2.0"))
+;;;###autoload(put 'project-vc-merge-submodules 'safe-local-variable #'booleanp)
 
 (defcustom project-vc-include-untracked t
   "When non-nil, the VC-aware project backend includes untracked files."
   :type 'boolean
-  :version "29.1"
-  :safe #'booleanp)
+  :version "29.1")
+;;;###autoload(put 'project-vc-include-untracked 'safe-local-variable #'booleanp)
 
 (defcustom project-vc-name nil
   "When non-nil, the name of the current VC-aware project.
@@ -428,8 +441,8 @@ its name, is by setting this in .dir-locals.el."
   :type '(choice (const :tag "Default to the base name" nil)
                  (string :tag "Custom name"))
   :version "29.1"
-  :package-version '(project . "0.9.0")
-  :safe #'stringp)
+  :package-version '(project . "0.9.0"))
+;;;###autoload(put 'project-vc-name 'safe-local-variable #'stringp)
 
 ;; Not using regexps because these wouldn't work in Git pathspecs, in
 ;; case we decide we need to be able to list nested projects.
@@ -456,8 +469,8 @@ In either case, their behavior will still obey the relevant
 variables, such as `project-vc-ignores' or `project-vc-name'."
   :type '(repeat string)
   :version "29.1"
-  :package-version '(project . "0.9.0")
-  :safe (lambda (val) (and (listp val) (cl-every #'stringp val))))
+  :package-version '(project . "0.9.0"))
+;;;###autoload(put 'project-vc-extra-root-markers 'safe-local-variable (lambda (val) (and (listp val) (not (memq nil (mapcar #'stringp val))))))
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -494,31 +507,43 @@ files related to the current buffer.
 The directory names should be absolute.  Used in the VC-aware
 project backend implementation of `project-external-roots'.")
 
+(defvar project-vc-backend-markers-alist
+  `((Git . ".git")
+    (Hg . ".hg")
+    (Bzr . ".bzr")
+    ;; See the comment above `vc-svn-admin-directory' for why we're
+    ;; duplicating the definition.
+    (SVN . ,(if (and (memq system-type '(cygwin windows-nt ms-dos))
+                     (getenv "SVN_ASP_DOT_NET_HACK"))
+                "_svn"
+              ".svn"))
+    (DARCS . "_darcs")
+    (Fossil . ".fslckout")
+    (Got . ".got"))
+  "Associative list assigning root markers to VC backend symbols.
+
+See `project-vc-extra-root-markers' for the marker value format.")
+
 (defun project-try-vc (dir)
-  (defvar vc-svn-admin-directory)
-  (require 'vc-svn)
   ;; FIXME: Learn to invalidate when the value of
   ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'
   ;; changes.
   (or (vc-file-getprop dir 'project-vc)
-      (let* ((backend-markers-alist `((Git . ".git")
-                                      (Hg . ".hg")
-                                      (Bzr . ".bzr")
-                                      (SVN . ,vc-svn-admin-directory)
-                                      (DARCS . "_darcs")
-                                      (Fossil . ".fslckout")))
-             (backend-markers
+      (let* ((backend-markers
               (delete
                nil
                (mapcar
-                (lambda (b) (assoc-default b backend-markers-alist))
+                (lambda (b) (assoc-default b project-vc-backend-markers-alist))
                 vc-handled-backends)))
              (marker-re
-              (mapconcat
-               (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
-               (append backend-markers
-                       (project--value-in-dir 'project-vc-extra-root-markers dir))
-               "\\|"))
+              (concat
+               "\\`"
+               (mapconcat
+                (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
+                (append backend-markers
+                        (project--value-in-dir 'project-vc-extra-root-markers dir))
+                "\\|")
+               "\\'"))
              (locate-dominating-stop-dir-regexp
               (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
              last-matches
@@ -527,11 +552,14 @@ project backend implementation of `project-external-roots'.")
                dir
                (lambda (d)
                  ;; Maybe limit count to 100 when we can drop Emacs < 28.
-                 (setq last-matches (directory-files d nil marker-re t)))))
+                 (setq last-matches
+                       (condition-case nil
+                           (directory-files d nil marker-re t)
+                         (file-missing nil))))))
              (backend
               (cl-find-if
                (lambda (b)
-                 (member (assoc-default b backend-markers-alist)
+                 (member (assoc-default b project-vc-backend-markers-alist)
                          last-matches))
                vc-handled-backends))
              project)
@@ -790,8 +818,8 @@ DIRS must contain directory names."
         (push buf bufs)))
     (nreverse bufs)))
 
-(cl-defmethod project-name ((_project (head vc)))
-  (or project-vc-name
+(cl-defmethod project-name ((project (head vc)))
+  (or (project--value-in-dir 'project-vc-name (project-root project))
       (cl-call-next-method)))
 
 
@@ -1201,7 +1229,10 @@ To continue searching for the next match, use the
 command \\[fileloop-continue]."
   (interactive "sSearch (regexp): ")
   (fileloop-initialize-search
-   regexp (project-files (project-current t)) 'default)
+   regexp
+   ;; XXX: See the comment in project-query-replace-regexp.
+   (cl-delete-if-not #'file-regular-p (project-files (project-current t)))
+   'default)
   (fileloop-continue))
 
 ;;;###autoload
@@ -1233,8 +1264,10 @@ If you exit the `query-replace', you can later continue the
 
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
-          (file-name-nondirectory
-           (directory-file-name default-directory))
+          (if-let ((proj (project-current nil)))
+              (project-name proj)
+            (file-name-nondirectory
+             (directory-file-name default-directory)))
           "-"
           (downcase mode)
           "*"))
@@ -1246,7 +1279,7 @@ If non-nil, it overrides `compilation-buffer-name-function' for
   :version "28.1"
   :group 'project
   :type '(choice (const :tag "Default" nil)
-                 (const :tag "Prefixed with root directory name"
+                 (const :tag "Prefixed with project name"
                         project-prefixed-buffer-name)
                  (function :tag "Custom function")))
 
@@ -1296,13 +1329,23 @@ general form of conditions."
             (and (memq (cdr buffer) buffers)
                  (not
                   (project--buffer-check
-                   (cdr buffer) project-ignore-buffer-conditions))))))
-    (read-buffer
-     "Switch to buffer: "
-     (when (funcall predicate (cons other-name other-buffer))
-       other-name)
-     nil
-     predicate)))
+                   (cdr buffer) project-ignore-buffer-conditions)))))
+         (buffer (read-buffer
+                  "Switch to buffer: "
+                  (when (funcall predicate (cons other-name other-buffer))
+                    other-name)
+                  nil
+                  predicate)))
+    ;; XXX: This check hardcodes the default buffer-belonging relation
+    ;; which `project-buffers' is allowed to override.  Straighten
+    ;; this up sometime later.  Or not.  Since we can add a method
+    ;; `project-contains-buffer-p', but a separate method to create a
+    ;; new project buffer seems too much.
+    (if (or (get-buffer buffer)
+            (file-in-directory-p default-directory (project-root pr)))
+        buffer
+      (let ((default-directory (project-root pr)))
+        (get-buffer-create buffer)))))
 
 ;;;###autoload
 (defun project-switch-to-buffer (buffer-or-name)
@@ -1435,8 +1478,8 @@ Used by `project-kill-buffers'."
   :type 'boolean
   :version "29.1"
   :group 'project
-  :package-version '(project . "0.8.2")
-  :safe #'booleanp)
+  :package-version '(project . "0.8.2"))
+;;;###autoload(put 'project-kill-buffers-display-buffer-list 'safe-local-variable #'booleanp)
 
 (defun project--buffer-check (buf conditions)
   "Check if buffer BUF matches any element of the list CONDITIONS.
@@ -1598,7 +1641,7 @@ passed to `message' as its first argument."
   "Remove directory PROJECT-ROOT from the project list.
 PROJECT-ROOT is the root directory of a known project listed in
 the project list."
-  (interactive (list (project-prompt-project-dir)))
+  (interactive (list (funcall project-prompter)))
   (project--remove-from-project-list
    project-root "Project `%s' removed from known projects"))
 
@@ -1621,6 +1664,33 @@ It's also possible to enter an arbitrary directory not in the list."
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
+
+(defun project-prompt-project-name ()
+  "Prompt the user for a project, by name, that is one of the known project roots.
+The project is chosen among projects known from the project list,
+see `project-list-file'.
+It's also possible to enter an arbitrary directory not in the list."
+  (let* ((dir-choice "... (choose a dir)")
+         (choices
+          (let (ret)
+            (dolist (dir (project-known-project-roots))
+              ;; we filter out directories that no longer map to a project,
+              ;; since they don't have a clean project-name.
+              (if-let (proj (project--find-in-directory dir))
+                  (push (cons (project-name proj) proj) ret)))
+            ret))
+         ;; XXX: Just using this for the category (for the substring
+         ;; completion style).
+         (table (project--file-completion-table
+                 (reverse (cons dir-choice choices))))
+         (pr-name ""))
+    (while (equal pr-name "")
+      ;; If the user simply pressed RET, do this again until they don't.
+      (setq pr-name (completing-read "Select project: " table nil t)))
+    (if (equal pr-name dir-choice)
+        (read-directory-name "Select directory: " default-directory nil t)
+      (let ((proj (assoc pr-name choices)))
+        (if (stringp proj) proj (project-root (cdr proj)))))))
 
 ;;;###autoload
 (defun project-known-project-roots ()
@@ -1741,11 +1811,12 @@ invoked immediately without any dispatch menu."
           (symbol :tag "Single command")))
 
 (defcustom project-switch-use-entire-map nil
-  "Make `project-switch-project' use entire `project-prefix-map'.
+  "Whether `project-switch-project' will use the entire `project-prefix-map'.
 If nil, `project-switch-project' will only recognize commands
-listed in `project-switch-commands' and signal an error when
-others are invoked.  Otherwise, all keys in `project-prefix-map'
-are legal even if they aren't listed in the dispatch menu."
+listed in `project-switch-commands', and will signal an error
+when other commands are invoked.  If this is non-nil, all the
+keys in `project-prefix-map' are valid even if they aren't
+listed in the dispatch menu produced from `project-switch-commands'."
   :type 'boolean
   :group 'project
   :version "28.1")
@@ -1809,7 +1880,7 @@ made from `project-switch-commands'.
 
 When called in a program, it will use the project corresponding
 to directory DIR."
-  (interactive (list (project-prompt-project-dir)))
+  (interactive (list (funcall project-prompter)))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command))))

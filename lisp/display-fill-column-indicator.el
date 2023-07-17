@@ -1,6 +1,6 @@
 ;;; display-fill-column-indicator.el --- interface for display-fill-column-indicator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -53,6 +53,9 @@ customize `display-fill-column-indicator-column'.  You can change the
 character for the indicator setting `display-fill-column-indicator-character'.
 The globalized version is `global-display-fill-column-indicator-mode',
 which see.
+This minor mode assumes the buffer uses a fixed-pitch font; if you
+use variable-pitch fonts, the indicators on different lines might
+not appear aligned.
 See Info node `Displaying Boundaries' for details."
   :lighter nil
   (if display-fill-column-indicator-mode

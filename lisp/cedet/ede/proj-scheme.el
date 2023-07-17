@@ -1,6 +1,6 @@
 ;;; ede/proj-scheme.el --- EDE Generic Project scheme (guile) support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2000, 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, scheme

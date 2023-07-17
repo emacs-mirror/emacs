@@ -1,6 +1,6 @@
 ;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 
@@ -89,6 +89,7 @@ character not found in IRC nicknames to avoid confusion."
 ;;; Define module:
 
 ;;;###autoload(autoload 'erc-capab-identify-mode "erc-capab" nil t)
+(put 'capab-identify 'erc-group 'erc-capab)
 (define-erc-module capab-identify nil
   "Handle dancer-ircd's CAPAB IDENTIFY-MSG and IDENTIFY-CTCP."
   ;; append so that `erc-server-parameters' is already set by `erc-server-005'

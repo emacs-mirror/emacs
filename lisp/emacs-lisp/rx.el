@@ -1,6 +1,6 @@
 ;;; rx.el --- S-exp notation for regexps           --*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1144,6 +1144,7 @@ If NO-GROUP is non-nil, don't bracket the result in a non-capturing
 group.
 
 For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
+  (declare (important-return-value t))
   (let* ((item (rx--translate form))
          (exprs (if no-group
                     (car item)

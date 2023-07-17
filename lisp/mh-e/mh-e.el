@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2022 Free
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -764,6 +764,8 @@ This assumes that a temporary buffer is set up."
   ;; Sample '-version' outputs:
   ;; mhparam -- nmh-1.1-RC1 [compiled on chaak at Fri Jun 20 11:03:28 PDT 2003]
   ;; install-mh -- nmh-1.7.1 built October 26, 2019 on build-server-000
+  ;; "libdir" was deprecated in nmh-1.7 in favor of "libexecdir", and
+  ;; removed completely in nmh-1.8.
   (let ((install-mh (expand-file-name "install-mh" dir)))
     (when (mh-file-command-p install-mh)
       (erase-buffer)
@@ -774,7 +776,8 @@ This assumes that a temporary buffer is set up."
               (mh-progs dir))
           `(,version
             (variant        nmh)
-            (mh-lib-progs   ,(mh-profile-component "libdir"))
+            (mh-lib-progs   ,(or (mh-profile-component "libdir")
+                                 (mh-profile-component "libexecdir")))
             (mh-lib         ,(mh-profile-component "etcdir"))
             (mh-progs       ,dir)
             (flists         ,(file-exists-p

@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp

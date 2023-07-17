@@ -1,6 +1,6 @@
 ;;; fortune-tests.el --- Tests for fortune.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- facilities for making and maintaining todo lists  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;;	Stephen Berman <stephen.berman@gmx.net>
@@ -49,7 +49,8 @@
 
 ;; To get started, type `M-x todo-show'.  For full details of the user
 ;; interface, commands and options, consult the Todo mode user manual,
-;; which is included in the Info documentation.
+;; which is one of the Info manuals included in the standard Emacs
+;; installation.
 
 ;;; Code:
 
@@ -1205,7 +1206,9 @@ visiting the deleted files."
 		(let ((sexp (read (buffer-substring-no-properties
 				   (line-beginning-position)
 				   (line-end-position))))
-		      (buffer-read-only nil))
+		      (buffer-read-only nil)
+		      (print-length nil)
+		      (print-level nil))
 		  (mapc (lambda (x) (aset (cdr x) 3 0)) sexp)
 		  (delete-region (line-beginning-position) (line-end-position))
 		  (prin1 sexp (current-buffer)))))
@@ -1294,15 +1297,15 @@ return the new category number."
 		    file)))
     (find-file file0)
     (let ((counts (make-vector 4 0))	; [todo diary done archived]
-	  (num (1+ (length todo-categories)))
-	  (buffer-read-only nil))
+	  (num (1+ (length todo-categories))))
       (setq todo-current-todo-file file0)
       (setq todo-categories (append todo-categories
 				     (list (cons cat counts))))
       (widen)
       (goto-char (point-max))
       (save-excursion			; Save point for todo-category-select.
-	(insert todo-category-beg cat "\n\n" todo-category-done "\n"))
+	(let ((buffer-read-only nil))
+	  (insert todo-category-beg cat "\n\n" todo-category-done "\n")))
       (todo-update-categories-sexp)
       ;; If invoked by user, display the newly added category, if
       ;; called programmatically return the category number to the
@@ -1459,8 +1462,11 @@ the archive of the file moved to, creating it if it does not exist."
 			  (match-beginning 0)
 			(point-max)))
 		 (content (buffer-substring-no-properties beg end))
-		 (counts (cdr (assoc cat todo-categories)))
-		 buffer-read-only)
+		 (counts (cdr (assoc cat todo-categories))))
+	    ;; Restore display of selected category, so internal file
+	    ;; structure is not visible if user is prompted to choose a new
+	    ;; category name in target file.
+	    (todo-category-select)
 	    ;; Move the category to the new file.  Also update or create
 	    ;; archive file if necessary.
 	    (with-current-buffer
@@ -1480,7 +1486,9 @@ the archive of the file moved to, creating it if it does not exist."
 				      nfile-short)
 			      (format "the category \"%s\";\n" cat)
 			      "enter a new category name: "))
-		     buffer-read-only)
+		     (buffer-read-only nil)
+		     (print-length nil)
+		     (print-level nil))
 		(widen)
 		(goto-char (point-max))
 		(insert content)
@@ -1520,25 +1528,27 @@ the archive of the file moved to, creating it if it does not exist."
 	    ;; Delete the category from the old file, and if that was the
 	    ;; last category, delete the file.  Also handle archive file
 	    ;; if necessary.
-	    (remove-overlays beg end)
-	    (delete-region beg end)
-	    (goto-char (point-min))
-	    ;; Put point after todo-categories sexp.
-	    (forward-line)
-	    (if (eobp)		; Aside from sexp, file is empty.
-		(progn
-		  ;; Skip confirming killing the archive buffer.
-		  (set-buffer-modified-p nil)
-		  (delete-file todo-current-todo-file)
-		  (kill-buffer)
-		  (when (member todo-current-todo-file todo-files)
-                    (todo-update-filelist-defcustoms)))
-	      (setq todo-categories (delete (assoc cat todo-categories)
-					     todo-categories))
-	      (todo-update-categories-sexp)
-	      (when (> todo-category-number (length todo-categories))
-		(setq todo-category-number 1))
-	      (todo-category-select)))))
+	    (let ((buffer-read-only nil))
+	      (widen)
+              (remove-overlays beg end)
+	      (delete-region beg end)
+	      (goto-char (point-min))
+	      ;; Put point after todo-categories sexp.
+	      (forward-line)
+	      (if (eobp)		; Aside from sexp, file is empty.
+		  (progn
+		    ;; Skip confirming killing the archive buffer.
+		    (set-buffer-modified-p nil)
+		    (delete-file todo-current-todo-file)
+		    (kill-buffer)
+		    (when (member todo-current-todo-file todo-files)
+                      (todo-update-filelist-defcustoms)))
+		(setq todo-categories (delete (assoc cat todo-categories)
+					      todo-categories))
+		(todo-update-categories-sexp)
+		(when (> todo-category-number (length todo-categories))
+		  (setq todo-category-number 1))
+		(todo-category-select))))))
       (set-window-buffer (selected-window)
 			 (set-buffer (find-file-noselect nfile))))))
 
@@ -1706,11 +1716,19 @@ insertion provided it doesn't begin with `todo-nondiary-marker'."
   :group 'todo-edit)
 
 (defcustom todo-always-add-time-string nil
-  "Non-nil adds current time to a new item's date header by default.
-When the todo insertion commands have a non-nil \"maybe-notime\"
-argument, this reverses the effect of
-`todo-always-add-time-string': if t, these commands omit the
-current time, if nil, they include it."
+  "Whether to add the time to an item's date header by default.
+
+If non-nil, this automatically adds the current time when adding
+a new item using an insertion command without a time parameter,
+or when tagging an item as done; when adding a new item using a
+time parameter, or when editing the header of an existing todo item
+using a time parameter, typing <return> automatically inserts the
+current time.
+
+When this option is nil (the default), no time string is inserted
+either automatically or when typing <return> at the time
+prompt (and in the latter case, when editing an existing time
+string, typing <return> deletes it)."
   :type 'boolean
   :group 'todo-edit)
 
@@ -1985,7 +2003,13 @@ their associated keys and their effects."
 		  (setq done-only t)
 		  (todo-toggle-view-done-only))
 		(if here
-                    (todo-insert-with-overlays new-item)
+		    (progn
+		      ;; Ensure item is inserted where command was invoked.
+		      (unless (= (point) opoint)
+			(todo-category-number ocat)
+			(todo-category-select)
+			(goto-char opoint))
+                      (todo-insert-with-overlays new-item))
 		  (todo-set-item-priority new-item cat t))
 		(setq item-added t))
 	    ;; If user cancels before setting priority, restore
@@ -2119,6 +2143,9 @@ the item at point."
 	  ((or marked (todo-item-string))
 	   (todo-edit-item--next-key 'todo arg)))))
 
+(defvar todo-edit-item--cat nil)
+(defvar todo-edit-item--pos nil)
+
 (defun todo-edit-item--text (&optional arg)
   "Function providing the text editing facilities of `todo-edit-item'."
   (let ((full-item (todo-item-string)))
@@ -2127,6 +2154,7 @@ the item at point."
     ;; 1+ signals an error, so just make this a noop.
     (when full-item
       (let* ((opoint (point))
+	     (ocat (todo-current-category))
 	     (start (todo-item-start))
 	     (end (save-excursion (todo-item-end)))
 	     (item-beg (progn
@@ -2151,8 +2179,7 @@ the item at point."
 			 (concat " \\[" (regexp-quote todo-comment-string)
 				 ": \\([^]]+\\)\\]")
                          end t)))
-	     (prompt (if comment "Edit comment: " "Enter a comment: "))
-	     (buffer-read-only nil))
+	     (prompt (if comment "Edit comment: " "Enter a comment: ")))
 	;; When there are marked items, user can invoke todo-edit-item
 	;; even if point is not on an item, but text editing only
 	;; applies to the item at point.
@@ -2170,22 +2197,43 @@ the item at point."
                                      end t)
 		  (if comment-delete
 		      (when (todo-y-or-n-p "Delete comment? ")
-			(delete-region (match-beginning 0) (match-end 0)))
-		    (replace-match (save-match-data
-                                     (read-string prompt
-                                                  (cons (match-string 1) 1)))
-				   nil nil nil 1))
+			(let ((buffer-read-only nil))
+			  (delete-region (match-beginning 0) (match-end 0))))
+		    (let ((buffer-read-only nil))
+		      (replace-match (save-match-data
+				       (prog1 (let ((buffer-read-only t))
+						(read-string
+						 prompt
+						 (cons (match-string 1) 1)))
+					 ;; If user moved point while editing
+					 ;; a comment, restore it and ensure
+					 ;; done items section is displayed.
+					 (unless (= (point) opoint)
+					   (todo-category-number ocat)
+					   (let ((todo-show-with-done t))
+					     (todo-category-select)
+					     (goto-char opoint)))))
+				     nil nil nil 1)))
 		(if comment-delete
 		    (user-error "There is no comment to delete")
-		  (insert " [" todo-comment-string ": "
-			  (prog1 (read-string prompt)
-			    ;; If user moved point during editing,
-			    ;; make sure it moves back.
-			    (goto-char opoint)
-			    (todo-item-end))
-			  "]")))))
+		  (let ((buffer-read-only nil))
+		    (insert " [" todo-comment-string ": "
+			    (prog1 (let ((buffer-read-only t))
+				     (read-string prompt))
+			      ;; If user moved point while inserting a
+			      ;; comment, restore it and ensure done items
+			      ;; section is displayed.
+			      (unless (= (point) opoint)
+				(todo-category-number ocat)
+				(let ((todo-show-with-done t))
+				  (todo-category-select)
+				  (goto-char opoint)))
+			      (todo-item-end))
+			    "]"))))))
 	   (multiline
 	    (let ((buf todo-edit-buffer))
+	      (setq todo-edit-item--cat ocat)
+	      (setq todo-edit-item--pos opoint)
 	      (set-window-buffer (selected-window)
 				 (set-buffer (make-indirect-buffer
 					      (buffer-name) buf)))
@@ -2208,10 +2256,14 @@ the item at point."
 	      ;; Ensure lines following hard newlines are indented.
 	      (setq new (replace-regexp-in-string "\\(\n\\)[^[:blank:]]"
 						  "\n\t" new nil nil 1))
-	      ;; If user moved point during editing, make sure it moves back.
-	      (goto-char opoint)
-	      (todo-remove-item)
-	      (todo-insert-with-overlays new)
+	      ;; If user moved point while editing item, restore it.
+	      (unless (= (point) opoint)
+		(todo-category-number ocat)
+		(todo-category-select)
+		(goto-char opoint))
+	      (let ((buffer-read-only nil))
+		(todo-remove-item)
+		(todo-insert-with-overlays new))
 	      (move-to-column item-beg)))))))))
 
 (defun todo-edit-quit ()
@@ -2243,6 +2295,9 @@ made in the number or names of categories."
 	(kill-buffer)
 	(unless (eq (current-buffer) buf)
 	  (set-window-buffer (selected-window) (set-buffer buf)))
+	(todo-category-number todo-edit-item--cat)
+	(todo-category-select)
+	(goto-char todo-edit-item--pos)
         (if transient-mark-mode (deactivate-mark)))
     ;; We got here via `F e'.
     (when (todo-check-format)
@@ -2277,7 +2332,6 @@ made in the number or names of categories."
 	;; INC must be an integer, but users could pass it via
 	;; `todo-edit-item' as e.g. `-' or `C-u'.
 	(inc (prefix-numeric-value inc))
-	(buffer-read-only nil)
 	ndate ntime
         year monthname month day) ;; dayname
     (when marked (todo--user-error-if-marked-done-item))
@@ -2315,117 +2369,118 @@ made in the number or names of categories."
 	    ;; If there are marked items, use only the first to set
 	    ;; header changes, and apply these to all marked items.
 	    (when first
-	      (cond
-	       ((eq what 'date)
-		(setq ndate (todo-read-date)))
-	       ((eq what 'calendar)
-		(setq ndate (save-match-data (todo-set-date-from-calendar))))
-	       ((eq what 'today)
-		(setq ndate (calendar-date-string (calendar-current-date) t t)))
-	       ((eq what 'dayname)
-		(setq ndate (todo-read-dayname)))
-	       ((eq what 'time)
-		(setq ntime (save-match-data (todo-read-time)))
-		(when (> (length ntime) 0)
-		  (setq ntime (concat " " ntime))))
-	       ;; When date string consists only of a day name,
-	       ;; passing other date components is a noop.
-	       ((and odayname (memq what '(year month day))))
-	       ((eq what 'year)
-		(setq day oday
-		      monthname omonthname
-		      month omonth
-		      year (cond ((not current-prefix-arg)
-				  (todo-read-date 'year))
-				 ((string= oyear "*")
-				  (user-error "Cannot increment *"))
-				 (t
-				  (number-to-string (+ yy inc))))))
-	       ((eq what 'month)
-		(setf day oday
-		      year oyear
-		      (if (memq 'month calendar-date-display-form)
-			  month
-			monthname)
-		      (cond ((not current-prefix-arg)
-			     (todo-read-date 'month))
-			    ((or (string= omonth "*") (= mm 13))
-			     (user-error "Cannot increment *"))
-			    (t
-			     (let* ((mmo mm)
-                                    ;; Change by 12 or more months?
-                                    (bigincp (>= (abs inc) 12))
-                                    ;; Month number is in range 1..12.
-                                    (mminc (+ mm (% inc 12)))
-			            (mm (% (+ mminc 12) 12))
-			            ;; 12n mod 12 = 0, so 0 is December.
-			            (mm (if (= mm 0) 12 mm))
-                                    ;; Does change in month cross year?
-                                    (mmcmp (cond ((< inc 0) (> mm mmo))
-                                                 ((> inc 0) (< mm mmo))))
-                                    (yyadjust (if bigincp
-                                                  (+ (abs (/ inc 12))
-                                                     (if mmcmp 1 0))
-                                                1)))
-			       ;; Adjust year if necessary.
-                               (setq yy (cond ((and (< inc 0)
-                                                    (or mmcmp bigincp))
-                                               (- yy yyadjust))
-                                              ((and (> inc 0)
-                                                    (or mmcmp bigincp))
-                                               (+ yy yyadjust))
-                                              (t yy)))
-                               (setq year (number-to-string yy))
-			       ;; Return the changed numerical month as
-			       ;; a string or the corresponding month name.
-			       (if omonth
-				   (number-to-string mm)
-			         (aref tma-array (1- mm)))))))
-                ;; Since the number corresponding to the arbitrary
-                ;; month name "*" is out of the range of
-                ;; calendar-last-day-of-month, set it to 1
-                ;; (corresponding to January) to allow 31 days.
-                (let ((mm (if (= mm 13) 1 mm)))
-		  (if (> (string-to-number day)
-			 (calendar-last-day-of-month mm yy))
-		      (user-error "%s %s does not have %s days"
-			     (aref tmn-array (1- mm))
-			     (if (= mm 2) yy "") day))))
-	       ((eq what 'day)
-		(setq year oyear
-		      month omonth
-		      monthname omonthname
-		      day (cond
-			   ((not current-prefix-arg)
-			    (todo-read-date 'day mm yy))
-			   ((string= oday "*")
-			    (user-error "Cannot increment *"))
-			   ((or (string= omonth "*") (string= omonthname "*"))
-			    (setq dd (+ dd inc))
-			    (if (> dd 31)
-				(user-error
-				 "A month cannot have more than 31 days")
-			      (number-to-string dd)))
-			   ;; Increment or decrement day by INC,
-			   ;; adjusting month and year if necessary
-			   ;; (if year is "*" assume current year to
-			   ;; calculate adjustment).
-			   (t
-			    (let* ((yy (or yy (calendar-extract-year
-					       (calendar-current-date))))
-				   (date (calendar-gregorian-from-absolute
-					  (+ (calendar-absolute-from-gregorian
-					      (list mm dd yy))
-                                             inc)))
-				   (adjmm (nth 0 date)))
-			      ;; Set year and month(name) to adjusted values.
-			      (unless (string= year "*")
-				(setq year (number-to-string (nth 2 date))))
-			      (if month
-				  (setq month (number-to-string adjmm))
-				(setq monthname (aref tma-array (1- adjmm))))
-			      ;; Return changed numerical day as a string.
-			      (number-to-string (nth 1 date)))))))))
+	      (save-match-data
+		(cond
+		 ((eq what 'date)
+		  (setq ndate (todo-read-date)))
+		 ((eq what 'calendar)
+		  (setq ndate (todo-set-date-from-calendar)))
+		 ((eq what 'today)
+		  (setq ndate (calendar-date-string (calendar-current-date) t t)))
+		 ((eq what 'dayname)
+		  (setq ndate (todo-read-dayname)))
+		 ((eq what 'time)
+		  (setq ntime (todo-read-time))
+		  (when (> (length ntime) 0)
+		    (setq ntime (concat " " ntime))))
+		 ;; When date string consists only of a day name,
+		 ;; passing other date components is a noop.
+		 ((and odayname (memq what '(year month day))))
+		 ((eq what 'year)
+		  (setq day oday
+			monthname omonthname
+			month omonth
+			year (cond ((not current-prefix-arg)
+				    (todo-read-date 'year))
+				   ((string= oyear "*")
+				    (user-error "Cannot increment *"))
+				   (t
+				    (number-to-string (+ yy inc))))))
+		 ((eq what 'month)
+		  (setf day oday
+			year oyear
+			(if (memq 'month calendar-date-display-form)
+			    month
+			  monthname)
+			(cond ((not current-prefix-arg)
+			       (todo-read-date 'month))
+			      ((or (string= omonth "*") (= mm 13))
+			       (user-error "Cannot increment *"))
+			      (t
+			       (let* ((mmo mm)
+                                      ;; Change by 12 or more months?
+                                      (bigincp (>= (abs inc) 12))
+                                      ;; Month number is in range 1..12.
+                                      (mminc (+ mm (% inc 12)))
+			              (mm (% (+ mminc 12) 12))
+			              ;; 12n mod 12 = 0, so 0 is December.
+			              (mm (if (= mm 0) 12 mm))
+                                      ;; Does change in month cross year?
+                                      (mmcmp (cond ((< inc 0) (> mm mmo))
+                                                   ((> inc 0) (< mm mmo))))
+                                      (yyadjust (if bigincp
+                                                    (+ (abs (/ inc 12))
+                                                       (if mmcmp 1 0))
+                                                  1)))
+				 ;; Adjust year if necessary.
+				 (setq yy (cond ((and (< inc 0)
+                                                      (or mmcmp bigincp))
+						 (- yy yyadjust))
+						((and (> inc 0)
+                                                      (or mmcmp bigincp))
+						 (+ yy yyadjust))
+						(t yy)))
+				 (setq year (number-to-string yy))
+				 ;; Return the changed numerical month as
+				 ;; a string or the corresponding month name.
+				 (if omonth
+				     (number-to-string mm)
+			           (aref tma-array (1- mm)))))))
+                  ;; Since the number corresponding to the arbitrary
+                  ;; month name "*" is out of the range of
+                  ;; calendar-last-day-of-month, set it to 1
+                  ;; (corresponding to January) to allow 31 days.
+                  (let ((mm (if (= mm 13) 1 mm)))
+		    (if (> (string-to-number day)
+			   (calendar-last-day-of-month mm yy))
+			(user-error "%s %s does not have %s days"
+				    (aref tmn-array (1- mm))
+				    (if (= mm 2) yy "") day))))
+		 ((eq what 'day)
+		  (setq year oyear
+			month omonth
+			monthname omonthname
+			day (cond
+			     ((not current-prefix-arg)
+			      (todo-read-date 'day mm yy))
+			     ((string= oday "*")
+			      (user-error "Cannot increment *"))
+			     ((or (string= omonth "*") (string= omonthname "*"))
+			      (setq dd (+ dd inc))
+			      (if (> dd 31)
+				  (user-error
+				   "A month cannot have more than 31 days")
+				(number-to-string dd)))
+			     ;; Increment or decrement day by INC,
+			     ;; adjusting month and year if necessary
+			     ;; (if year is "*" assume current year to
+			     ;; calculate adjustment).
+			     (t
+			      (let* ((yy (or yy (calendar-extract-year
+						 (calendar-current-date))))
+				     (date (calendar-gregorian-from-absolute
+					    (+ (calendar-absolute-from-gregorian
+						(list mm dd yy))
+                                               inc)))
+				     (adjmm (nth 0 date)))
+				;; Set year and month(name) to adjusted values.
+				(unless (string= year "*")
+				  (setq year (number-to-string (nth 2 date))))
+				(if month
+				    (setq month (number-to-string adjmm))
+				  (setq monthname (aref tma-array (1- adjmm))))
+				;; Return changed numerical day as a string.
+				(number-to-string (nth 1 date))))))))))
 	    (unless odayname
 	      ;; If year, month or day date string components were
 	      ;; changed, rebuild the date string.
@@ -2439,13 +2494,14 @@ made in the number or names of categories."
                            (day day)
                            (dayname nil)) ;; dayname
                         (mapconcat #'eval calendar-date-display-form "")))))
-	    (when ndate (replace-match ndate nil nil nil 1))
-	    ;; Add new time string to the header, if it was supplied.
-	    (when ntime
-	      (if otime
-		  (replace-match ntime nil nil nil 2)
-		(goto-char (match-end 1))
-		(insert ntime)))
+	    (let ((buffer-read-only nil))
+	      (when ndate (replace-match ndate nil nil nil 1))
+	      ;; Add new time string to the header, if it was supplied.
+	      (when ntime
+		(if otime
+		    (replace-match ntime nil nil nil 2)
+		  (goto-char (match-end 1))
+		  (insert ntime))))
 	    (setq todo-date-from-calendar nil)
 	    (setq first nil))
 	  ;; Apply the changes to the first marked item header to the
@@ -2590,16 +2646,26 @@ meaning to raise or lower the item's priority by one."
 				 (save-excursion
 				   (re-search-forward regexp1 nil t)
 				   (match-string-no-properties 1)))))))
-	   curnum
+	   (count 1)
+	   (curnum (save-excursion
+		     (let ((curstart
+			    ;; If point is in done items section or not on an
+			    ;; item, use position of first todo item to avoid
+			    ;; the while-loop.
+			    (or (and (not (todo-done-item-section-p))
+				     (todo-item-start))
+				(point-min))))
+		       (goto-char (point-min))
+		       (while (/= (point) curstart)
+			 (setq count (1+ count))
+			 (todo-forward-item))
+		       count)))
 	   (todo (cond ((or (memq arg '(raise lower))
 			    (eq major-mode 'todo-filtered-items-mode))
 			(save-excursion
-			  (let ((curstart (todo-item-start))
-				(count 0))
-			    (goto-char (point-min))
+			  (let ((count curnum))
 			    (while (looking-at todo-item-start)
 			      (setq count (1+ count))
-			      (when (= (point) curstart) (setq curnum count))
 			      (todo-forward-item))
 			    count)))
 		       ((eq major-mode 'todo-mode)
@@ -2611,12 +2677,16 @@ meaning to raise or lower the item's priority by one."
 			   ((and (eq arg 'raise) (>= curnum 1))
 			    (1- curnum))
 			   ((and (eq arg 'lower) (<= curnum maxnum))
-			    (1+ curnum))))
-	   candidate
-	   buffer-read-only)
+			    (1+ curnum)))))
+      (and (called-interactively-p 'any)
+	   priority  ; Check further only if arg or prefix arg was passed.
+	   (or (< priority 1) (> priority maxnum))
+	   (user-error (format "Priority must be an integer between 1 and %d"
+			       maxnum)))
       (unless (and priority
+		   (/= priority curnum)
 		   (or (and (eq arg 'raise) (zerop priority))
-		       (and (eq arg 'lower) (> priority maxnum))))
+		       (and (eq arg 'lower) (>= priority maxnum))))
 	;; When moving item to another category, show the category before
 	;; prompting for its priority.
 	(unless (or arg (called-interactively-p 'any))
@@ -2632,16 +2702,34 @@ meaning to raise or lower the item's priority by one."
 	      ;; while setting priority.
 	      (save-excursion (todo-category-select)))))
 	;; Prompt for priority only when the category has at least one
-	;; todo item.
-	(when (> maxnum 1)
-	  (while (not priority)
-	    (setq candidate (read-number prompt
-					 (if (eq todo-default-priority 'first)
-					     1 maxnum)))
-	    (setq prompt (when (or (< candidate 1) (> candidate maxnum))
-			   (format "Priority must be an integer between 1 and %d.\n"
-				   maxnum)))
-	    (unless prompt (setq priority candidate))))
+	;; todo item or when passing the current priority as prefix arg.
+	(when (and (or (not priority) (= priority curnum))
+		   (> maxnum 1))
+          (let* ((read-number-history (mapcar #'number-to-string
+                                              (if (eq todo-default-priority
+						      'first)
+                                                  (number-sequence maxnum 1 -1)
+						(number-sequence 1 maxnum))))
+                 (history-add-new-input nil)
+		 (candidate (or priority
+				(read-number prompt
+					     (if (eq todo-default-priority
+						     'first)
+						 1 maxnum))))
+		 (success nil))
+	    (while (not success)
+              (setq prompt
+                    (cond
+		     ((and (= candidate curnum)
+			   ;; Allow same priority in a different category
+			   ;; (only possible when called non-interactively).
+			   (called-interactively-p 'any))
+		      "New priority must be different from current priority: ")
+		     (t (when (or (< candidate 1) (> candidate maxnum))
+			  (format "Priority must be an integer between 1 and %d: "
+				  maxnum)))))
+	      (when prompt (setq candidate (read-number prompt)))
+              (unless prompt (setq priority candidate success t)))))
 	;; In Top Priorities buffer, an item's priority can be changed
 	;; wrt items in another category, but not wrt items in the same
 	;; category.
@@ -2665,31 +2753,31 @@ meaning to raise or lower the item's priority by one."
 				   (match-string-no-properties 1)))))))
 	    (when match
 	      (user-error (concat "Cannot reprioritize items from the same "
-			     "category in this mode, only in Todo mode")))))
-	;; Interactively or with non-nil ARG, relocate the item within its
-	;; category.
-	(when (or arg (called-interactively-p 'any))
-	  (todo-remove-item))
-	(goto-char (point-min))
-	(when priority
-	  (unless (= priority 1)
-	    (todo-forward-item (1- priority))
-	    ;; When called from todo-item-undone and the highest priority
-	    ;; is chosen, this advances point to the first done item, so
-	    ;; move it up to the empty line above the done items
-	    ;; separator.
-	    (when (looking-back (concat "^"
-					(regexp-quote todo-category-done)
-					"\n")
-                                (line-beginning-position 0))
-	      (todo-backward-item))))
-	(todo-insert-with-overlays item)
-	;; If item was marked, restore the mark.
-	(and marked
-	     (let* ((ov (todo-get-overlay 'prefix))
-		    (pref (overlay-get ov 'before-string)))
-	       (overlay-put ov 'before-string
-			    (concat todo-item-mark pref))))))))
+				  "category in this mode, only in Todo mode")))))
+	(let ((buffer-read-only nil))
+	  ;; Interactively or with non-nil ARG, relocate the item within its
+	  ;; category.
+	  (when (or arg (called-interactively-p 'any))
+	    (todo-remove-item))
+	  (goto-char (point-min))
+	  (when priority
+	    (unless (= priority 1)
+	      (todo-forward-item (1- priority))
+	      ;; When called from todo-item-undone and the highest priority is
+	      ;; chosen, this advances point to the first done item, so move
+	      ;; it up to the empty line above the done items separator.
+	      (when (looking-back (concat "^"
+					  (regexp-quote todo-category-done)
+					  "\n")
+				  (line-beginning-position 0))
+		(todo-backward-item))))
+	  (todo-insert-with-overlays item)
+	  ;; If item was marked, restore the mark.
+	  (and marked
+	       (let* ((ov (todo-get-overlay 'prefix))
+		      (pref (overlay-get ov 'before-string)))
+		 (overlay-put ov 'before-string
+			      (concat todo-item-mark pref)))))))))
 
 (defun todo-raise-item-priority ()
   "Raise priority of current item by moving it up by one item."
@@ -2730,8 +2818,7 @@ section in the category moved to."
                  (save-excursion (beginning-of-line)
                                  (looking-at todo-category-done)))
              (not marked))
-      (let* ((buffer-read-only)
-	     (file1 todo-current-todo-file)
+      (let* ((file1 todo-current-todo-file)
 	     (item (todo-item-string))
 	     (done-item (and (todo-done-item-p) item))
 	     (omark (save-excursion (todo-item-start) (point-marker)))
@@ -2790,7 +2877,8 @@ section in the category moved to."
                 (setq here (point))
                 (while todo-items
                   (todo-forward-item)
-                  (todo-insert-with-overlays (pop todo-items))))
+                  (let ((buffer-read-only nil))
+		    (todo-insert-with-overlays (pop todo-items)))))
 	      ;; Move done items en bloc to top of done items section.
               (when done-items
 		(todo-category-number cat2)
@@ -2804,8 +2892,10 @@ section in the category moved to."
 		(forward-line)
                 (unless here (setq here (point)))
                 (while done-items
-                  (todo-insert-with-overlays (pop done-items))
-                  (todo-forward-item)))
+                  (let ((buffer-read-only nil))
+		    (todo-insert-with-overlays (pop done-items)))
+                  (todo-item-end)
+		  (forward-line)))
               ;; If only done items were moved, move point to the top
               ;; one, otherwise, move point to the top moved todo item.
               (goto-char here)
@@ -2843,12 +2933,14 @@ section in the category moved to."
 			(goto-char beg)
 			(while (< (point) end)
 			  (if (todo-marked-item-p)
-			      (todo-remove-item)
+			      (let ((buffer-read-only nil))
+				(todo-remove-item))
 			    (todo-forward-item)))
 			(setq todo-categories-with-marks
 			      (assq-delete-all cat1 todo-categories-with-marks)))
 		    (if ov (delete-overlay ov))
-		    (todo-remove-item))))
+		    (let ((buffer-read-only nil))
+		      (todo-remove-item)))))
 	      (when todo (todo-update-count 'todo (- todo) cat1))
 	      (when diary (todo-update-count 'diary (- diary) cat1))
 	      (when done (todo-update-count 'done (- done) cat1))
@@ -2977,8 +3069,7 @@ comments without asking."
 	 (marked (assoc cat todo-categories-with-marks))
 	 (num (if (not marked) 1 (cdr marked))))
     (when (or marked (todo-done-item-p))
-      (let ((buffer-read-only)
-	    (opoint (point))
+      (let ((opoint (point))
 	    (omark (point-marker))
 	    (first 'first)
 	    (item-count 0)
@@ -3040,19 +3131,20 @@ comments without asking."
 	  (when ov (delete-overlay ov))
 	  (if (not undone)
 	      (goto-char opoint)
-	    (if marked
-		(progn
-		  (setq item nil)
-		  (re-search-forward
-		   (concat "^" (regexp-quote todo-category-done)) nil t)
-		  (while (not (eobp))
-		    (if (todo-marked-item-p)
-			(todo-remove-item)
-		      (todo-forward-item)))
-		  (setq todo-categories-with-marks
-			(assq-delete-all cat todo-categories-with-marks)))
-	      (goto-char omark)
-	      (todo-remove-item))
+	    (let ((buffer-read-only nil))
+	      (if marked
+		  (progn
+		    (setq item nil)
+		    (re-search-forward
+		     (concat "^" (regexp-quote todo-category-done)) nil t)
+		    (while (not (eobp))
+		      (if (todo-marked-item-p)
+			  (todo-remove-item)
+			(todo-forward-item)))
+		    (setq todo-categories-with-marks
+			  (assq-delete-all cat todo-categories-with-marks)))
+		(goto-char omark)
+		(todo-remove-item)))
 	    (todo-update-count 'todo item-count)
 	    (todo-update-count 'done (- item-count))
 	    (when diary-count (todo-update-count 'diary diary-count))
@@ -3137,8 +3229,7 @@ this category does not exist in the archive, it is created."
 			  (concat (todo-item-string) "\n")))
 	       (count 0)
 	       (opoint (unless (todo-done-item-p) (point)))
-	       marked-items beg end all-done
-	       buffer-read-only)
+	       marked-items beg end all-done)
 	  (cond
 	   (all
 	    (if (todo-y-or-n-p "Archive all done items in this category? ")
@@ -3208,36 +3299,37 @@ this category does not exist in the archive, it is created."
 		  (todo-archive-mode))
                 (if headers-hidden (todo-toggle-item-header))))
 	    (with-current-buffer tbuf
-	      (cond
-	       (all
-		(save-excursion
-		  (save-restriction
-		    ;; Make sure done items are accessible.
-		    (widen)
-		    (remove-overlays beg end)
-		    (delete-region beg end)
-		    (todo-update-count 'done (- count))
-		    (todo-update-count 'archived count))))
-	       ((or marked
-		    ;; If we're archiving all done items, can't
-		    ;; first archive item point was on, since
-		    ;; that will short-circuit the rest.
-		    (and item (not all)))
-		(and marked (goto-char (point-min)))
-		(catch 'done
-		  (while (not (eobp))
-		    (if (or (and marked (todo-marked-item-p)) item)
-			(progn
-			  (todo-remove-item)
-			  (todo-update-count 'done -1)
-			  (todo-update-count 'archived 1)
-			  ;; Don't leave point below last item.
-			  (and (or marked item) (bolp) (eolp)
-			       (< (point-min) (point-max))
-			       (todo-backward-item))
-			  (when item
-			    (throw 'done (setq item nil))))
-		      (todo-forward-item))))))
+	      (let ((buffer-read-only nil))
+		(cond
+		 (all
+		  (save-excursion
+		    (save-restriction
+		      ;; Make sure done items are accessible.
+		      (widen)
+		      (remove-overlays beg end)
+		      (delete-region beg end)
+		      (todo-update-count 'done (- count))
+		      (todo-update-count 'archived count))))
+		 ((or marked
+		      ;; If we're archiving all done items, can't
+		      ;; first archive item point was on, since
+		      ;; that will short-circuit the rest.
+		      (and item (not all)))
+		  (and marked (goto-char (point-min)))
+		  (catch 'done
+		    (while (not (eobp))
+		      (if (or (and marked (todo-marked-item-p)) item)
+			  (progn
+			    (todo-remove-item)
+			    (todo-update-count 'done -1)
+			    (todo-update-count 'archived 1)
+			    ;; Don't leave point below last item.
+			    (and (or marked item) (bolp) (eolp)
+				 (< (point-min) (point-max))
+				 (todo-backward-item))
+			    (when item
+			      (throw 'done (setq item nil))))
+			(todo-forward-item)))))))
 	      (when marked
 		(setq todo-categories-with-marks
 		      (assq-delete-all cat todo-categories-with-marks)))
@@ -3486,7 +3578,6 @@ decreasing or increasing its number."
       (let* ((maxnum (length todo-categories))
 	     (prompt (format "Set category priority (1-%d): " maxnum))
 	     (col (current-column))
-	     (buffer-read-only nil)
 	     (priority (cond ((and (eq arg 'raise) (> curnum 1))
 			      (1- curnum))
 			     ((and (eq arg 'lower) (< curnum maxnum))
@@ -3511,6 +3602,7 @@ decreasing or increasing its number."
 	       ;; Category's name and items counts list.
 	       (catcons (nth (1- curnum) todo-categories))
 	       (todo-categories (nconc head (list catcons) tail))
+	       (buffer-read-only nil)
 	       newcats)
 	  (when lower (setq todo-categories (nreverse todo-categories)))
 	  (setq todo-categories (delete-dups todo-categories))
@@ -4837,7 +4929,9 @@ name in `todo-directory'.  See also the documentation string of
 	    (insert-file-contents file)
 	    (let ((sexp (read (buffer-substring-no-properties
 			       (line-beginning-position)
-			       (line-end-position)))))
+			       (line-end-position))))
+		  (print-length nil)
+		  (print-level nil))
 	      (dolist (cat sexp)
 		(let ((archive-cat (assoc (car cat) archive-sexp)))
 		  (if archive-cat
@@ -5018,7 +5112,9 @@ With nil or omitted CATEGORY, default to the current category."
 
 (defun todo-update-categories-sexp ()
   "Update the `todo-categories' sexp at the top of the file."
-  (let (buffer-read-only)
+  (let ((buffer-read-only nil)
+	(print-length nil)
+        (print-level nil))
     (save-excursion
       (save-restriction
 	(widen)
@@ -5127,7 +5223,9 @@ but the categories sexp differs from the current value of
     (save-restriction
       (widen)
       (goto-char (point-min))
-      (let* ((cats (prin1-to-string todo-categories))
+      (let* ((print-length nil)
+             (print-level nil)
+	     (cats (prin1-to-string todo-categories))
 	     (ssexp (buffer-substring-no-properties (line-beginning-position)
 						    (line-end-position)))
 	     (sexp (read ssexp)))
@@ -5237,21 +5335,7 @@ changes you have made in the order of the categories.
     ;; legitimate place to insert an item.  But skip this space if
     ;; count > 1, since that should only stop on an item.
     (when (and not-done (todo-done-item-p) (not count))
-      ;; (if (or (not count) (= count 1))
-	  (re-search-backward "^$" start t))));)
-    ;; The preceding sexp is insufficient when buffer is not narrowed,
-    ;; since there could be no done items in this category, so the
-    ;; search puts us on first todo item of next category.  Does this
-    ;; ever happen?  If so:
-    ;; (let ((opoint) (point))
-    ;;   (forward-line -1)
-    ;;   (when (or (not count) (= count 1))
-    ;; 	(cond ((looking-at (concat "^" (regexp-quote todo-category-beg)))
-    ;; 	       (forward-line -2))
-    ;; 	      ((looking-at (concat "^" (regexp-quote todo-category-done)))
-    ;; 	       (forward-line -1))
-    ;; 	      (t
-    ;; 	       (goto-char opoint)))))))
+      (re-search-backward "^$" start t))))
 
 (defun todo-backward-item (&optional count)
   "Move point up to start of item with next higher priority.

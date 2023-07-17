@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for 32-bit Windows  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -331,7 +331,7 @@ names."
                              (vminor
                               (w32-read-registry 'HKLM key
                                                  "CurrentMinorVersionNumber")))
-                         (if (and vmajor vmajor)
+                         (if (and vmajor vminor)
                              (format "%d.%d" vmajor vminor)
                            (w32-read-registry 'HKLM key "CurrentVersion")))))
          (os-csd (w32-read-registry 'HKLM key "CSDVersion"))

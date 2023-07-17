@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2022 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -742,13 +742,14 @@ message."
 	  (setq rmail-summary-buffer nil)))
     (save-excursion
       (let ((rbuf (current-buffer))
-	    (total rmail-total-messages))
+	    (total 0))
 	(set-buffer sumbuf)
 	;; Set up the summary buffer's contents.
 	(let ((buffer-read-only nil))
 	  (erase-buffer)
 	  (while summary-msgs
 	    (princ (cdr (car summary-msgs)) sumbuf)
+            (setq total (1+ total))
 	    (setq summary-msgs (cdr summary-msgs)))
 	  (goto-char (point-min)))
 	;; Set up the rest of its state and local variables.
@@ -1931,7 +1932,7 @@ even if the header display is currently pruned."
    (progn (require 'rmailout)
 	  (list (rmail-output-read-file-name)
 		(prefix-numeric-value current-prefix-arg))))
-  (let ((i 0) prev-msg)
+  (let ((i 0) prev-msg curmsg)
     (while
 	(and (< i n)
 	     (progn (rmail-summary-goto-msg)
@@ -1942,7 +1943,11 @@ even if the header display is currently pruned."
       (setq i (1+ i))
       (with-current-buffer rmail-buffer
 	(let ((rmail-delete-after-output nil))
+          (setq curmsg rmail-current-message)
 	  (rmail-output file-name 1)))
+      ;; rmail-output sometimes moves to the next message; undo that.
+      (or (= curmsg (rmail-summary-msg-number))
+          (rmail-summary-goto-msg curmsg))
       (if rmail-delete-after-output
 	  (rmail-summary-delete-forward nil)
 	(if (< i n)

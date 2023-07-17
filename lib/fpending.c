@@ -1,5 +1,5 @@
 /* fpending.c -- return the number of pending output bytes on a stream
-   Copyright (C) 2000, 2004, 2006-2007, 2009-2022 Free Software Foundation,
+   Copyright (C) 2000, 2004, 2006-2007, 2009-2023 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ __fpending (FILE *fp)
   return fp->_IO_write_ptr - fp->_IO_write_base;
 #elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
   /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin < 1.7.34, Minix 3, Android */
-  return fp->_p - fp->_bf._base;
+  return fp_->_p - fp_->_bf._base;
 #elif defined __EMX__                /* emx+gcc */
   return fp->_ptr - fp->_buffer;
 #elif defined __minix                /* Minix */

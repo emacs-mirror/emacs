@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -31,23 +31,26 @@
 ;;; Code:
 
 (require 'dnd)
+;; For when building a --without-x configuration, where this is not
+;; preloaded.
+(eval-when-compile (require 'mwheel))
 
 ;;; Customizable variables
 (defcustom x-dnd-test-function #'x-dnd-default-test-function
-  "The function drag and drop uses to determine if to accept or reject a drop.
-The function takes three arguments, WINDOW, ACTION and TYPES.
-WINDOW is where the mouse is when the function is called.  WINDOW
-may be a frame if the mouse isn't over a real window (i.e. menu
-bar, tool bar or scroll bar).  ACTION is the suggested action
-from the drag and drop source, one of the symbols move, copy,
-link or ask.  TYPES is a vector of available types for the drop.
-
-Each element of TYPE should either be a string (containing the
+  "Function to be used by drag-and-drop to determine whether to accept a drop.
+The function takes three arguments: WINDOW, ACTION, and TYPES.
+WINDOW is where the window under the mouse is when the function is called.
+WINDOW may be a frame if the mouse isn't over a real window (e.g., menu
+bar, tool bar, scroll bar, etc.).
+ACTION is the suggested action from the drag and drop source, one of the
+symbols `move', `copy', `link' or `ask'.
+TYPES is a vector of available types for the drop.
+Each element of TYPES should either be a string (containing the
 name of the type's X atom), or a symbol, whose name will be used.
 
 The function shall return nil to reject the drop or a cons with
-two values, the wanted action as car and the wanted type as cdr.
-The wanted action can be copy, move, link, ask or private.
+two values, the wanted action as `car' and the wanted type as `cdr'.
+The wanted action can be `copy', `move', `link', `ask' or `private'.
 
 The default value for this variable is `x-dnd-default-test-function'."
   :version "22.1"
@@ -70,14 +73,18 @@ The default value for this variable is `x-dnd-default-test-function'."
     (,(purecopy "DndTypeFile") . x-dnd-handle-offix-file)
     (,(purecopy "DndTypeFiles") . x-dnd-handle-offix-files)
     (,(purecopy "DndTypeText") . dnd-insert-text))
-  "Which function to call to handle a drop of that type.
-If the type for the drop is not present, or the function is nil,
-the drop is rejected.  The function takes three arguments, WINDOW, ACTION
-and DATA.  WINDOW is where the drop occurred, ACTION is the action for
-this drop (copy, move, link, private or ask) as determined by a previous
-call to `x-dnd-test-function'.  DATA is the drop data.
-The function shall return the action used (copy, move, link or private)
-if drop is successful, nil if not."
+  "Functions to call to handle drag-and-drop of known types.
+If the type of the drop is not present in the alist, or the
+function corresponding to the type is nil, the drop of that
+type will be rejected.
+
+Each function takes three arguments: WINDOW, ACTION, and DATA.
+WINDOW is the window where the drop occurred.
+ACTION is the action for this drop (`copy', `move', `link', `private'
+or `ask'), as determined by a previous call to `x-dnd-test-function'.
+DATA is the drop data.
+The function shall return the action it used (one of the above,
+excluding `ask') if drop is successful, nil if not."
   :version "22.1"
   :type 'alist
   :group 'x)
@@ -122,22 +129,27 @@ like xterm) for text."
   :group 'x)
 
 (defcustom x-dnd-direct-save-function #'x-dnd-save-direct
-  "Function called when a file is dropped that Emacs must save.
-It is called with two arguments: the first is either nil or t,
-and the second is a string.
+  "Function called when a file is dropped via XDS protocol.
+The value should be a function of two arguments that supports
+the X Direct Save (XDS) protocol.  The function will be called
+twice during the protocol execution.
 
-If the first argument is t, the second argument is the name the
-dropped file should be saved under.  The function should return a
-complete file name describing where the file should be saved.
+When the function is called with the first argument non-nil,
+it should return an absolute file name whose base name is
+the value of the second argument, a string.  The return value
+is the file name for the dragged file to be saved.  The function
+can also return nil if saving the file should be refused for some
+reason; in that case the drop will be canceled.
 
-It can also return nil, which means to cancel the drop.
-
-If the first argument is nil, the second is the name of the file
-that was dropped."
+When the function is called with the first argument nil, the
+second argument specifies the file name where the file was saved;
+the function should then do whatever is appropriate when such a
+file is saved, like show the file in the Dired buffer or visit
+the file."
   :version "29.1"
-  :type '(choice (const :tag "Prompt for name before saving"
+  :type '(choice (const :tag "Prompt for file name to save"
                         x-dnd-save-direct)
-                 (const :tag "Save and open immediately without prompting"
+                 (const :tag "Save in `default-directory' without prompting"
                         x-dnd-save-direct-immediately)
                  (function :tag "Other function"))
   :group 'x)
@@ -222,14 +234,14 @@ any protocol specific data.")
   (cdr (x-dnd-get-state-cons-for-frame frame-or-window)))
 
 (defun x-dnd-default-test-function (_window _action types)
-  "The default test function for drag and drop.
+  "The default test function for drag-and-drop.
 WINDOW is where the mouse is when this function is called.  It
 may be a frame if the mouse is over the menu bar, scroll bar or
 tool bar.  ACTION is the suggested action from the source, and
 TYPES are the types the drop data can have.  This function only
 accepts drops with types in `x-dnd-known-types'.  It always
 returns the action `private', unless `types' contains a value
-inside `x-dnd-copy-types'."
+inside `x-dnd-copy-types', in which case it may return `copy'."
   (let ((type (x-dnd-choose-type types)))
     (when type (let ((list x-dnd-copy-types))
                  (catch 'out
@@ -600,8 +612,9 @@ message (format 32) that caused EVENT to be generated."
 (defun x-dnd-after-move-frame (frame)
   "Handle FRAME moving to a different position.
 Clear any cached root window position."
-  (set-frame-parameter frame 'dnd-root-window-position
-                       nil))
+  (and (frame-live-p frame)
+       (set-frame-parameter frame 'dnd-root-window-position
+                            nil)))
 
 (add-hook 'move-frame-functions #'x-dnd-after-move-frame)
 
@@ -1564,17 +1577,24 @@ was taken, or the direct save failed."
       (when (not (equal file-name original-file-name))
         (delete-file file-name)))))
 
-(defun x-dnd-save-direct (need-name name)
-  "Handle dropping a file that should be saved immediately.
-NEED-NAME tells whether or not the file was not yet saved.  NAME
-is either the name of the file, or the name the drop source wants
-us to save under.
+(defun x-dnd-save-direct (need-name filename)
+  "Handle dropping a file FILENAME that should be saved first, asking the user.
+NEED-NAME non-nil means the caller requests the full absolute
+file name of FILENAME under which to save it; FILENAME is just
+the base name in that case.  The function then prompts the user
+for where to save to file and returns the result to the caller.
 
-Prompt the user for a file name, then open it."
+NEED-NAME nil means the file was saved as FILENAME (which should
+be the full absolute file name in that case).  The function then
+refreshes the Dired display, if the current buffer is in Dired
+mode, or visits the file otherwise.
+
+This function is intended to be the value of `x-dnd-direct-save-function',
+which see."
   (if need-name
       (let ((file-name (read-file-name "Write file: "
                                        default-directory
-                                       nil nil name)))
+                                       nil nil filename)))
         (when (file-exists-p file-name)
           (unless (y-or-n-p (format-message
                              "File `%s' exists; overwrite? " file-name))
@@ -1584,18 +1604,18 @@ Prompt the user for a file name, then open it."
     ;; interface can be found.
     (if (derived-mode-p 'dired-mode)
         (revert-buffer)
-      (find-file name))))
+      (find-file filename))))
 
-(defun x-dnd-save-direct-immediately (need-name name)
-  "Save and open a dropped file, like `x-dnd-save-direct'.
-NEED-NAME tells whether or not the file was not yet saved.  NAME
-is either the name of the file, or the name the drop source wants
-us to save under.
+(defun x-dnd-save-direct-immediately (need-name filename)
+  "Handle dropping a file FILENAME that should be saved first.
+Like `x-dnd-save-direct', but do not prompt for the file name;
+instead, return its absolute file name for saving in the current
+directory.
 
-Unlike `x-dnd-save-direct', do not prompt for the name by which
-to save the file.  Simply save it in the current directory."
+This function is intended to be the value of `x-dnd-direct-save-function',
+which see."
   (if need-name
-      (let ((file-name (expand-file-name name)))
+      (let ((file-name (expand-file-name filename)))
         (when (file-exists-p file-name)
           (unless (y-or-n-p (format-message
                              "File `%s' exists; overwrite? " file-name))
@@ -1605,7 +1625,7 @@ to save the file.  Simply save it in the current directory."
     ;; interface can be found.
     (if (derived-mode-p 'dired-mode)
         (revert-buffer)
-      (find-file name))))
+      (find-file filename))))
 
 (defun x-dnd-handle-octet-stream-for-drop (save-to)
   "Save the contents of the XDS selection to SAVE-TO.

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
@@ -316,6 +316,16 @@ there's a doc string there.
 by using the @kbd{M-x shortdoc} command.  This will prompt you for an
 area of interest, e.g., @code{string}, and pop you to a buffer where
 many of the functions relevant for handling strings are listed.
+
+You can also request that documentation of functions and commands
+shown in @file{*Help*} buffers popped by @kbd{C-h f} includes examples
+of their use.  To that end, add the following to your initialization
+file (@pxref{Init File}):
+
+@example
+(add-hook 'help-fns-describe-function-functions
+          #'shortdoc-help-fns-examples-function)
+@end example
 
 @kindex C-h v
 @findex describe-variable

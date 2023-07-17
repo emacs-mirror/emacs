@@ -1,6 +1,6 @@
 ;;; emacs-news-mode.el --- major mode to edit and view the NEWS file -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 
@@ -53,12 +53,27 @@
   :parent emacs-news-common-map
   "C-c C-s" #'emacs-news-next-untagged-entry
   "C-c C-r" #'emacs-news-previous-untagged-entry
-  "C-c C-t" #'emacs-news-toggle-tag
+  "C-c C-t" #'emacs-news-cycle-tag
+  "C-c C-d" #'emacs-news-delete-temporary-markers
   "C-c C-g" #'emacs-news-goto-section
   "C-c C-j" #'emacs-news-find-heading
   "C-c C-e" #'emacs-news-count-untagged-entries
   "C-x C-q" #'emacs-news-view-mode
   "<remap> <open-line>" #'emacs-news-open-line)
+
+(easy-menu-define emacs-news-mode-menu emacs-news-mode-map
+  "Menu for `emacs-news-mode'."
+  '("News"
+    ["Next Untagged" emacs-news-next-untagged-entry :help "Go to next untagged entry"]
+    ["Previous Untagged" emacs-news-previous-untagged-entry :help "Go to previous untagged entry"]
+    ["Count Untagged" emacs-news-count-untagged-entries :help "Count the number of untagged entries"]
+    ["Cycle Tag" emacs-news-cycle-tag :help "Cycle documentation tag of current entry"]
+    ["Delete Tags" emacs-news-delete-temporary-markers :help "Delete all documentation tags in buffer"]
+    "--"
+    ["Goto Section" emacs-news-goto-section :help "Prompt for section and go to it"]
+    ["Goto Heading" emacs-news-find-heading :help "Prompt for heading and go to it"]
+    "--"
+    ["Enter View Mode" emacs-news-view-mode :help "Enter view-only mode"]))
 
 (defvar emacs-news-view-mode-map
   ;; This is defined this way instead of inheriting because we're
@@ -173,14 +188,16 @@ untagged NEWS entry."
   (interactive nil emacs-news-mode)
   (emacs-news-next-untagged-entry t))
 
-(defun emacs-news-toggle-tag ()
-  "Toggle documentation tag of current headline in the Emacs NEWS file."
+(defun emacs-news-cycle-tag ()
+  "Cycle documentation tag of current headline in the Emacs NEWS file."
   (interactive nil emacs-news-mode)
   (save-excursion
     (goto-char (line-beginning-position))
     (cond ((or (looking-at (rx bol (or "---" "+++") eol)))
            (forward-line 2))
-          ((or (looking-at (rx bol "*** ")))
+          ((or (looking-at (rx bol "**"
+                               (zero-or-more "*")
+                               " ")))
            (forward-line 1)))
     (outline-previous-visible-heading 1)
     (forward-line -1)
@@ -191,7 +208,7 @@ untagged NEWS entry."
            (insert "+++"))
           ((looking-at (rx bol "+++" eol))
            (delete-char 4))
-          (t (user-error "Invalid headline tag; can't toggle")))))
+          (t (user-error "Invalid headline tag; can't cycle")))))
 
 (defun emacs-news-count-untagged-entries ()
   "Say how many untagged entries there are in the current NEWS buffer."

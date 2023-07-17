@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2023 Free Software Foundation, Inc.
 
 ;; Author: Andy Norman <ange@hplb.hpl.hp.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -3534,7 +3534,8 @@ system TYPE.")
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
     (if parsed
-        (if (and delete-by-moving-to-trash trash)
+        (if (and delete-by-moving-to-trash trash
+	         (not remote-file-name-inhibit-delete-by-moving-to-trash))
 	    (move-file-to-trash file)
 	  (let* ((host (nth 0 parsed))
 	         (user (nth 1 parsed))
@@ -4241,6 +4242,7 @@ directory, so that Emacs will know its current contents."
 	  ((eq identification 'user) user)
 	  ((eq identification 'host) host)
 	  ((eq identification 'localname) localname)
+	  ((eq identification 'hop) nil)
 	  (t (ange-ftp-replace-name-component file ""))))))
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix must-suffix)
@@ -4378,6 +4380,14 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   ;; or return nil meaning don't make a backup.
   (if ange-ftp-make-backup-files
       (ange-ftp-real-find-backup-file-name fn)))
+
+(defun ange-ftp-file-user-uid ()
+  ;; Return "don't know" value.
+  -1)
+
+(defun ange-ftp-file-group-gid ()
+  ;; Return "don't know" value.
+  -1)
 
 ;;; Define the handler for special file names
 ;;; that causes ange-ftp to be invoked.
@@ -4518,6 +4528,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-notify-add-watch 'ange-ftp 'ignore)
 (put 'file-notify-rm-watch 'ange-ftp 'ignore)
 (put 'file-notify-valid-p 'ange-ftp 'ignore)
+
+;; Return the "don't know" value for remote user uid and group gid.
+(put 'file-user-uid 'ange-ftp 'ange-ftp-file-user-uid)
+(put 'file-group-gid 'ange-ftp 'ange-ftp-file-group-gid)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.

@@ -1,6 +1,6 @@
 ;;; paren.el --- highlight matching paren  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993, 1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.org
 ;; Maintainer: emacs-devel@gnu.org
@@ -122,7 +122,8 @@ On non-graphical frames, the context is shown in the echo area."
   "Whether to use `show-paren-mode' in a buffer.
 The default is to enable the mode in all buffers that don't
 derive from `special-mode', which means that it's on (by default)
-in all editing buffers."
+in all editing buffers.
+The predicate is passed as argument to `buffer-match-p', which see."
   :type 'buffer-predicate
   :safe #'booleanp
   :version "29.1")
@@ -160,13 +161,14 @@ use `show-paren-local-mode'."
 ;;;###autoload
 (define-minor-mode show-paren-local-mode
   "Toggle `show-paren-mode' only in this buffer."
-  :variable ( show-paren-mode .
-              (lambda (val) (setq-local show-paren-mode val)))
+  :variable ((show-paren--enabled-p)
+             .
+             (lambda (val) (setq-local show-paren-mode val)))
   (cond
    ((eq show-paren-mode (default-value 'show-paren-mode))
     (unless show-paren-mode
-      (show-paren--delete-overlays))
-    (kill-local-variable 'show-paren-mode))
+      (show-paren--delete-overlays)
+      (kill-local-variable 'show-paren-mode)))
    ((not (default-value 'show-paren-mode))
     ;; Locally enabled, but globally disabled.
     (show-paren-mode 1)                ; Setup the timer.
@@ -427,14 +429,17 @@ It is the default value of `show-paren-data-function'."
 ;; `show-paren-delay'.
 (defvar-local show-paren--last-pos nil)
 
+(defun show-paren--enabled-p ()
+  (and show-paren-mode
+       ;; If we're using `show-paren-local-mode', then
+       ;; always heed the value.
+       (or (local-variable-p 'show-paren-mode)
+           ;; If not, check that the predicate matches.
+           (buffer-match-p show-paren-predicate (current-buffer)))))
+
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
-  (let ((data (and show-paren-mode
-                   ;; If we're using `show-paren-local-mode', then
-                   ;; always heed the value.
-                   (or (local-variable-p 'show-paren-mode)
-                       ;; If not, check that the predicate matches.
-                       (buffer-match-p show-paren-predicate (current-buffer)))
+  (let ((data (and (show-paren--enabled-p)
                    (funcall show-paren-data-function))))
     (if (not data)
         (progn

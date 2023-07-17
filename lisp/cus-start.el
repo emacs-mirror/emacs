@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -310,6 +310,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                       (const :tag "Off" :value nil)
                       (const :tag "On" :value t)
                       (const :tag "Auto-raise" :value auto-raise)) "26.1")
+             (yes-or-no-prompt menu string "30.1")
 	     ;; fontset.c
 	     ;; FIXME nil is the initial value, fontset.el setqs it.
 	     (vertical-centering-font-regexp display

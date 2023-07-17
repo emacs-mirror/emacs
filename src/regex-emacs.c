@@ -1,6 +1,6 @@
 /* Emacs regular expression matching and search
 
-   Copyright (C) 1993-2022 Free Software Foundation, Inc.
+   Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,13 +46,6 @@
 
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX(c) syntax_property (c, 1)
-
-/* Convert the pointer to the char to BEG-based offset from the start.  */
-#define PTR_TO_OFFSET(d) POS_AS_IN_BUFFER (POINTER_TO_OFFSET (d))
-/* Strings are 0-indexed, buffers are 1-indexed; pun on the boolean
-   result to get the right base index.  */
-#define POS_AS_IN_BUFFER(p)                                    \
-  ((p) + (NILP (gl_state.object) || BUFFERP (gl_state.object)))
 
 #define RE_MULTIBYTE_P(bufp) ((bufp)->multibyte)
 #define RE_TARGET_MULTIBYTE_P(bufp) ((bufp)->target_multibyte)
@@ -223,7 +216,7 @@ typedef enum
 	   is followed by a range table:
 	       2 bytes of flags for character sets (low 8 bits, high 8 bits)
 		   See RANGE_TABLE_WORK_BITS below.
-	       2 bytes, the number of pairs that follow (upto 32767)
+	       2 bytes, the number of pairs that follow (up to 32767)
 	       pairs, each 2 multibyte characters,
 		   each multibyte character represented as 3 bytes.  */
   charset,
@@ -1723,7 +1716,8 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
   /* Address of start of the most recently finished expression.
      This tells, e.g., postfix * where to find the start of its
-     operand.  Reset at the beginning of groups and alternatives.  */
+     operand.  Reset at the beginning of groups and alternatives,
+     and after ^ and \` for dusty-deck compatibility.  */
   unsigned char *laststart = 0;
 
   /* Address of beginning of regexp, or inside of last group.  */
@@ -1854,12 +1848,16 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 	case '^':
 	  if (! (p == pattern + 1 || at_begline_loc_p (pattern, p)))
 	    goto normal_char;
+	  /* Special case for compatibility: postfix ops after ^ become
+	     literals.  */
+	  laststart = 0;
 	  BUF_PUSH (begline);
 	  break;
 
 	case '$':
 	  if (! (p == pend || at_endline_loc_p (p, pend)))
 	    goto normal_char;
+	  laststart = b;
 	  BUF_PUSH (endline);
 	  break;
 
@@ -1899,7 +1897,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 	    /* Star, etc. applied to an empty pattern is equivalent
 	       to an empty pattern.  */
-	    if (!laststart || laststart == b)
+	    if (laststart == b)
 	      break;
 
 	    /* Now we know whether or not zero matches is allowed
@@ -2209,9 +2207,8 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 				FALLTHROUGH;
 			      case '1': case '2': case '3': case '4':
 			      case '5': case '6': case '7': case '8': case '9':
-				if (INT_MULTIPLY_WRAPV (regnum, 10, &regnum)
-				    || INT_ADD_WRAPV (regnum, c - '0',
-						      &regnum))
+				if (ckd_mul (&regnum, regnum, 10)
+				    || ckd_add (&regnum, regnum, c - '0'))
 				  FREE_STACK_RETURN (REG_ESIZE);
 				break;
 			      default:
@@ -2552,18 +2549,24 @@ regex_compile (re_char *pattern, ptrdiff_t size,
               break;
 
 	    case 'b':
+	      laststart = b;
 	      BUF_PUSH (wordbound);
 	      break;
 
 	    case 'B':
+	      laststart = b;
 	      BUF_PUSH (notwordbound);
 	      break;
 
 	    case '`':
+	      /* Special case for compatibility: postfix ops after \` become
+		 literals, as for ^ (see above).  */
+	      laststart = 0;
 	      BUF_PUSH (begbuf);
 	      break;
 
 	    case '\'':
+	      laststart = b;
 	      BUF_PUSH (endbuf);
 	      break;
 
@@ -2605,7 +2608,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 	      /* If followed by a repetition operator.  */
 	      || (p != pend
-		  && (*p == '*' || *p == '+' || *p == '?' || *p == '^'))
+		  && (*p == '*' || *p == '+' || *p == '?'))
 	      || (p + 1 < pend && p[0] == '\\' && p[1] == '{'))
 	    {
 	      /* Start building a new exactn.  */
@@ -3258,12 +3261,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, ptrdiff_t size1,
   /* See whether the pattern is anchored.  */
   anchored_start = (bufp->buffer[0] == begline);
 
-  gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
-  {
-    ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (startpos));
-
-    SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
-  }
+  RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, startpos);
 
   /* Loop through the string, looking for a place to start matching.  */
   for (;;)
@@ -3653,6 +3651,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
   re_opcode_t op2;
   bool multibyte = RE_MULTIBYTE_P (bufp);
   unsigned char *pend = bufp->buffer + bufp->used;
+  re_char *p2_orig = p2;
 
   eassert (p1 >= bufp->buffer && p1 < pend
 	   && p2 >= bufp->buffer && p2 <= pend);
@@ -3822,6 +3821,23 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
     case notcategoryspec:
       return ((re_opcode_t) *p1 == categoryspec && p1[1] == p2[1]);
 
+    case on_failure_jump_nastyloop:
+    case on_failure_jump_smart:
+    case on_failure_jump_loop:
+    case on_failure_keep_string_jump:
+    case on_failure_jump:
+      {
+        int mcnt;
+	p2++;
+	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
+	/* Don't just test `mcnt > 0` because non-greedy loops have
+	   their test at the end with an unconditional jump at the start.  */
+	if (p2 + mcnt > p2_orig) /* Ensure forward progress.  */
+	  return (mutually_exclusive_p (bufp, p1, p2)
+		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
+	break;
+      }
+
     default:
       ;
     }
@@ -3853,10 +3869,7 @@ re_match_2 (struct re_pattern_buffer *bufp,
 {
   ptrdiff_t result;
 
-  ptrdiff_t charpos;
-  gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
-  charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (pos));
-  SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
+  RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, pos);
 
   result = re_match_2_internal (bufp, (re_char *) string1, size1,
 				(re_char *) string2, size2,
@@ -4788,8 +4801,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int c1, c2;
 		int s1, s2;
 		int dummy;
-                ptrdiff_t offset = PTR_TO_OFFSET (d);
-                ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
+                ptrdiff_t offset = POINTER_TO_OFFSET (d);
+                ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 		UPDATE_SYNTAX_TABLE (charpos);
 		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 		nchars++;
@@ -4828,8 +4841,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      int c1, c2;
 	      int s1, s2;
 	      int dummy;
-	      ptrdiff_t offset = PTR_TO_OFFSET (d);
-	      ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
+	      ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      GET_CHAR_AFTER (c2, d, dummy);
@@ -4871,8 +4884,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      int c1, c2;
 	      int s1, s2;
 	      int dummy;
-              ptrdiff_t offset = PTR_TO_OFFSET (d);
-              ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
+              ptrdiff_t offset = POINTER_TO_OFFSET (d);
+              ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      nchars++;
@@ -4913,8 +4926,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2;
 	      int s1, s2;
-	      ptrdiff_t offset = PTR_TO_OFFSET (d);
-	      ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
+	      ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, target_multibyte);
@@ -4954,8 +4967,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2;
 	      int s1, s2;
-              ptrdiff_t offset = PTR_TO_OFFSET (d);
-              ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
+              ptrdiff_t offset = POINTER_TO_OFFSET (d);
+              ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      nchars++;
@@ -4990,8 +5003,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 			 mcnt);
 	    PREFETCH ();
 	    {
-	      ptrdiff_t offset = PTR_TO_OFFSET (d);
-	      ptrdiff_t pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
+	      ptrdiff_t pos1 = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (pos1);
 	    }
 	    {

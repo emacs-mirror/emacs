@@ -1517,7 +1517,7 @@ function copy_files (desc, packdir, global_install)
     if (exist (fullfile (desc.dir, getarch ()), "dir") &&
 	! strcmp (fullfile (desc.dir, getarch ()), octfiledir))
       if (! exist (octfiledir, "dir"))
-        ## Can be required to create upto three levels of dirs.
+        ## Can be required to create up to three levels of dirs.
         octm1 = fileparts (octfiledir);
         if (! exist (octm1, "dir"))
           octm2 = fileparts (octm1);

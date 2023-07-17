@@ -3,12 +3,17 @@
 lang=$1
 topdir="$PWD"
 
-if [ $(uname) == "Darwin" ]
-then
-    soext="dylib"
-else
-    soext="so"
-fi
+case $(uname) in
+    "Darwin")
+        soext="dylib"
+        ;;
+    *"MINGW"*)
+        soext="dll"
+        ;;
+    *)
+        soext="so"
+        ;;
+esac
 
 echo "Building ${lang}"
 
@@ -26,10 +31,16 @@ case "${lang}" in
     "cmake")
         org="uyha"
         ;;
+    "elixir")
+        org="elixir-lang"
+        ;;
     "go-mod")
         # The parser is called "gomod".
         lang="gomod"
         org="camdencheek"
+        ;;
+    "heex")
+        org="phoenixframework"
         ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"

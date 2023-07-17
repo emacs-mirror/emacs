@@ -1,6 +1,6 @@
 ;;; wid-edit-tests.el --- tests for wid-edit.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -266,6 +266,22 @@ return nil, even with a non-nil bubblep argument."
       (widget-setup)
       (should child)
       (should (equal (widget-value widget) '(1 "One"))))))
+
+;; Bug#60501
+(ert-deftest widget-test-handle-spurious-inline ()
+  "Test the we can create a menu widget with an unnecessary :inline"
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'menu-choice
+                                  :inline t
+                                  :value "*scratch*"
+                                  '(choice-item "*scratch*")))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (string-equal (widget-value widget) "*scratch*")))))
 
 (ert-deftest widget-test-option-can-handle-choice ()
   "Test that we can create a option widget with a choice correctly."

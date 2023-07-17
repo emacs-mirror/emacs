@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2022 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3907,8 +3907,6 @@ by calling `format-decode', which see.  */)
   struct timespec mtime;
   int fd;
   ptrdiff_t inserted = 0;
-  ptrdiff_t how_much;
-  off_t beg_offset, end_offset;
   int unprocessed;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object handler, val, insval, orig_filename, old_undo;
@@ -3921,7 +3919,8 @@ by calling `format-decode', which see.  */)
   bool replace_handled = false;
   bool set_coding_system = false;
   Lisp_Object coding_system;
-  bool read_quit = false;
+  /* Negative if read error, 0 if OK so far, positive if quit.  */
+  ptrdiff_t read_quit = 0;
   /* If the undo log only contains the insertion, there's no point
      keeping it.  It's typically when we first fill a file-buffer.  */
   bool empty_undo_list_p
@@ -3970,6 +3969,17 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
+  if (!NILP (visit))
+    {
+      if (!NILP (beg) || !NILP (end))
+	error ("Attempt to visit less than an entire file");
+      if (BEG < Z && NILP (replace))
+	error ("Cannot do file visiting in a non-empty buffer");
+    }
+
+  off_t beg_offset = !NILP (beg) ? file_offset (beg) : 0;
+  off_t end_offset = !NILP (end) ? file_offset (end) : -1;
+
   orig_filename = filename;
   filename = ENCODE_FILE (filename);
 
@@ -4012,7 +4022,6 @@ by calling `format-decode', which see.  */)
   if (!S_ISREG (st.st_mode))
     {
       regular = false;
-      seekable = lseek (fd, 0, SEEK_CUR) < 0;
 
       if (! NILP (visit))
         {
@@ -4020,32 +4029,18 @@ by calling `format-decode', which see.  */)
 	  goto notfound;
         }
 
+      if (!NILP (replace))
+	xsignal2 (Qfile_error,
+		  build_string ("not a regular file"), orig_filename);
+
+      seekable = lseek (fd, 0, SEEK_CUR) < 0;
       if (!NILP (beg) && !seekable)
 	xsignal2 (Qfile_error,
 		  build_string ("cannot use a start position in a non-seekable file/device"),
 		  orig_filename);
-
-      if (!NILP (replace))
-	xsignal2 (Qfile_error,
-		  build_string ("not a regular file"), orig_filename);
     }
 
-  if (!NILP (visit))
-    {
-      if (!NILP (beg) || !NILP (end))
-	error ("Attempt to visit less than an entire file");
-      if (BEG < Z && NILP (replace))
-	error ("Cannot do file visiting in a non-empty buffer");
-    }
-
-  if (!NILP (beg))
-    beg_offset = file_offset (beg);
-  else
-    beg_offset = 0;
-
-  if (!NILP (end))
-    end_offset = file_offset (end);
-  else
+  if (end_offset < 0)
     {
       if (!regular)
 	end_offset = TYPE_MAXIMUM (off_t);
@@ -4106,7 +4101,7 @@ by calling `format-decode', which see.  */)
       else
 	{
 	  /* Don't try looking inside a file for a coding system
-	     specification if it is not seekable.  */
+	     specification if it is not a regular file.  */
 	  if (regular && !NILP (Vset_auto_coding_function))
 	    {
 	      /* Find a coding system specified in the heading two
@@ -4124,7 +4119,7 @@ by calling `format-decode', which see.  */)
 		  if (nread == 1024)
 		    {
 		      int ntail;
-		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
+		      if (lseek (fd, st.st_size - 1024 * 3, SEEK_CUR) < 0)
 			report_file_error ("Setting file position",
 					   orig_filename);
 		      ntail = emacs_read_quit (fd, read_buf + nread, 1024 * 3);
@@ -4409,7 +4404,7 @@ by calling `format-decode', which see.  */)
       ptrdiff_t bufpos;
       unsigned char *decoded;
       ptrdiff_t temp;
-      ptrdiff_t this = 0;
+      ptrdiff_t this;
       specpdl_ref this_count = SPECPDL_INDEX ();
       bool multibyte
 	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -4452,6 +4447,8 @@ by calling `format-decode', which see.  */)
 
       if (unprocessed > 0)
 	{
+	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
+			   BUF_Z (XBUFFER (conversion_buffer)));
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
 	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
 				  unprocessed, conversion_buffer);
@@ -4585,20 +4582,18 @@ by calling `format-decode', which see.  */)
     }
 
   move_gap_both (PT, PT_BYTE);
-  if (GAP_SIZE < total)
-    make_gap (total - GAP_SIZE);
+
+  /* Ensure the gap is at least one byte larger than needed for the
+     estimated file size, so that in the usual case we read to EOF
+     without reallocating.  */
+  if (GAP_SIZE <= total)
+    make_gap (total - GAP_SIZE + 1);
 
   if (beg_offset != 0 || !NILP (replace))
     {
       if (lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position", orig_filename);
     }
-
-  /* In the following loop, HOW_MUCH contains the total bytes read so
-     far for a regular file, and not changed for a special file.  But,
-     before exiting the loop, it is set to a negative value if I/O
-     error occurs.  */
-  how_much = 0;
 
   /* Total bytes inserted.  */
   inserted = 0;
@@ -4608,22 +4603,25 @@ by calling `format-decode', which see.  */)
   {
     ptrdiff_t gap_size = GAP_SIZE;
 
-    while (how_much < total)
+    while (NILP (end) || inserted < total)
       {
-	/* `try' is reserved in some compilers (Microsoft C).  */
-	ptrdiff_t trytry = min (total - how_much, READ_BUF_SIZE);
 	ptrdiff_t this;
+
+	if (gap_size == 0)
+	  {
+	    /* The size estimate was wrong.  Make the gap 50% larger.  */
+	    make_gap (GAP_SIZE >> 1);
+	    gap_size = GAP_SIZE - inserted;
+	  }
+
+	/* 'try' is reserved in some compilers (Microsoft C).  */
+	ptrdiff_t trytry = min (gap_size, READ_BUF_SIZE);
+	if (!NILP (end))
+	  trytry = min (trytry, total - inserted);
 
 	if (!seekable && NILP (end))
 	  {
 	    Lisp_Object nbytes;
-
-	    /* Maybe make more room.  */
-	    if (gap_size < trytry)
-	      {
-		make_gap (trytry - gap_size);
-		gap_size = GAP_SIZE - inserted;
-	      }
 
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
@@ -4635,7 +4633,7 @@ by calling `format-decode', which see.  */)
 
 	    if (NILP (nbytes))
 	      {
-		read_quit = true;
+		read_quit = 1;
 		break;
 	      }
 
@@ -4654,19 +4652,11 @@ by calling `format-decode', which see.  */)
 
 	if (this <= 0)
 	  {
-	    how_much = this;
+	    read_quit = this;
 	    break;
 	  }
 
 	gap_size -= this;
-
-	/* For a regular file, where TOTAL is the real size,
-	   count HOW_MUCH to compare with it.
-	   For a special file, where TOTAL is just a buffer size,
-	   so don't bother counting in HOW_MUCH.
-	   (INSERTED is where we count the number of characters inserted.)  */
-	if (seekable || !NILP (end))
-	  how_much += this;
 	inserted += this;
       }
   }
@@ -4687,7 +4677,7 @@ by calling `format-decode', which see.  */)
   emacs_close (fd);
   clear_unwind_protect (fd_index);
 
-  if (how_much < 0)
+  if (read_quit < 0)
     report_file_error ("Read error", orig_filename);
 
  notfound:
@@ -5258,6 +5248,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     }
 
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
+  labeled_restrictions_remove_in_current_buffer ();
 
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
@@ -6287,7 +6278,7 @@ static Lisp_Object
 blocks_to_bytes (uintmax_t blocksize, uintmax_t blocks, bool negate)
 {
   intmax_t n;
-  if (!INT_MULTIPLY_WRAPV (blocksize, blocks, &n))
+  if (!ckd_mul (&n, blocksize, blocks))
     return make_int (negate ? -n : n);
   Lisp_Object bs = make_uint (blocksize);
   if (negate)
@@ -6334,24 +6325,6 @@ init_fileio (void)
   umask (realmask);
 
   valid_timestamp_file_system = 0;
-
-  /* fsync can be a significant performance hit.  Often it doesn't
-     suffice to make the file-save operation survive a crash.  For
-     batch scripts, which are typically part of larger shell commands
-     that don't fsync other files, its effect on performance can be
-     significant so its utility is particularly questionable.
-     Hence, for now by default fsync is used only when interactive.
-
-     For more on why fsync often fails to work on today's hardware, see:
-     Zheng M et al. Understanding the robustness of SSDs under power fault.
-     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
-     https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
-
-     For more on why fsync does not suffice even if it works properly, see:
-     Roche X. Necessary step(s) to synchronize filename operations on disk.
-     Austin Group Defect 672, 2013-03-19
-     https://austingroupbugs.net/view.php?id=672  */
-  write_region_inhibit_fsync = noninteractive;
 }
 
 void
@@ -6609,9 +6582,22 @@ file is usually more useful if it contains the deleted text.  */);
   DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
-Setting this to nil may avoid data loss if the system loses power or
-the operating system crashes.  By default, it is non-nil in batch mode.  */);
-  write_region_inhibit_fsync = 0; /* See also `init_fileio' above.  */
+By default, it is non-nil.
+
+Although setting this to nil may avoid data loss if the system loses power,
+it can be a significant performance hit in the usual case, and it doesn't
+necessarily cause file-save operations to actually survive a crash.  */);
+
+  /* For more on why fsync often fails to work on today's hardware, see:
+     Zheng M et al. Understanding the robustness of SSDs under power fault.
+     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
+     https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
+
+     For more on why fsync does not suffice even if it works properly, see:
+     Roche X. Necessary step(s) to synchronize filename operations on disk.
+     Austin Group Defect 672, 2013-03-19
+     https://austingroupbugs.net/view.php?id=672  */
+  write_region_inhibit_fsync = true;
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.

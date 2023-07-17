@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -103,7 +103,6 @@ verify (sizeof (intptr_t) == sizeof (ptrdiff_t));
 verify (sizeof (void (*) (void)) == sizeof (void *));
 verify (sizeof (ptrdiff_t) <= sizeof (Lisp_Object));
 verify (sizeof (ptrdiff_t) <= sizeof (EMACS_INT));
-verify (CHAR_BIT == 8);
 
 static size_t
 divide_round_up (size_t x, size_t y)
@@ -133,6 +132,7 @@ static int nr_remembered_data = 0;
 typedef int_least32_t dump_off;
 #define DUMP_OFF_MIN INT_LEAST32_MIN
 #define DUMP_OFF_MAX INT_LEAST32_MAX
+#define DUMP_OFF_WIDTH INT_LEAST32_WIDTH
 #define PRIdDUMP_OFF PRIdLEAST32
 
 enum { EMACS_INT_XDIGITS = (EMACS_INT_WIDTH + 3) / 4 };
@@ -222,8 +222,7 @@ enum emacs_reloc_type
 enum
   {
    EMACS_RELOC_TYPE_BITS = 3,
-   EMACS_RELOC_LENGTH_BITS = (sizeof (dump_off) * CHAR_BIT
-			      - EMACS_RELOC_TYPE_BITS)
+   EMACS_RELOC_LENGTH_BITS = DUMP_OFF_WIDTH - EMACS_RELOC_TYPE_BITS
   };
 
 struct emacs_reloc
@@ -273,7 +272,7 @@ enum
       dump.  Always suitable for heap objects; may be more aligned.  */
    DUMP_ALIGNMENT = max (GCALIGNMENT, DUMP_RELOCATION_ALIGNMENT),
 
-   DUMP_RELOC_OFFSET_BITS = sizeof (dump_off) * CHAR_BIT - DUMP_RELOC_TYPE_BITS
+   DUMP_RELOC_OFFSET_BITS = DUMP_OFF_WIDTH - DUMP_RELOC_TYPE_BITS
   };
 
 verify (RELOC_DUMP_TO_EMACS_LV + 8 < (1 << DUMP_RELOC_TYPE_BITS));
@@ -2459,10 +2458,10 @@ dump_symbol (struct dump_context *ctx,
              Lisp_Object object,
              dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_999DC26DEC
+#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_61B174C9F4
 # error "Lisp_Symbol changed. See CHECK_STRUCTS comment in config.h."
 #endif
-#if CHECK_STRUCTS && !defined (HASH_symbol_redirect_ADB4F5B113)
+#if CHECK_STRUCTS && !defined (HASH_symbol_redirect_EA72E4BFF5)
 # error "symbol_redirect changed. See CHECK_STRUCTS comment in config.h."
 #endif
 
@@ -2746,7 +2745,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_DB34E5D09F
+#if CHECK_STRUCTS && !defined HASH_buffer_85D317CE74
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -4996,6 +4995,7 @@ dump_mmap_contiguous (struct dump_memory_map *maps, int nr_maps)
 }
 
 typedef uint_fast32_t dump_bitset_word;
+#define DUMP_BITSET_WORD_WIDTH UINT_FAST32_WIDTH
 
 struct dump_bitset
 {
@@ -5006,9 +5006,9 @@ struct dump_bitset
 static bool
 dump_bitsets_init (struct dump_bitset bitset[2], size_t number_bits)
 {
-  int xword_size = sizeof (bitset[0].bits[0]);
-  int bits_per_word = xword_size * CHAR_BIT;
-  ptrdiff_t words_needed = divide_round_up (number_bits, bits_per_word);
+  int xword_size = sizeof (dump_bitset_word);
+  ptrdiff_t words_needed = divide_round_up (number_bits,
+					    DUMP_BITSET_WORD_WIDTH);
   dump_bitset_word *bits = calloc (words_needed, 2 * xword_size);
   if (!bits)
     return false;
@@ -5023,9 +5023,7 @@ static dump_bitset_word *
 dump_bitset__bit_slot (const struct dump_bitset *bitset,
                        size_t bit_number)
 {
-  int xword_size = sizeof (bitset->bits[0]);
-  int bits_per_word = xword_size * CHAR_BIT;
-  ptrdiff_t word_number = bit_number / bits_per_word;
+  ptrdiff_t word_number = bit_number / DUMP_BITSET_WORD_WIDTH;
   eassert (word_number < bitset->number_words);
   return &bitset->bits[word_number];
 }
@@ -5034,10 +5032,8 @@ static bool
 dump_bitset_bit_set_p (const struct dump_bitset *bitset,
                        size_t bit_number)
 {
-  unsigned xword_size = sizeof (bitset->bits[0]);
-  unsigned bits_per_word = xword_size * CHAR_BIT;
   dump_bitset_word bit = 1;
-  bit <<= bit_number % bits_per_word;
+  bit <<= bit_number % DUMP_BITSET_WORD_WIDTH;
   return *dump_bitset__bit_slot (bitset, bit_number) & bit;
 }
 
@@ -5046,11 +5042,9 @@ dump_bitset__set_bit_value (struct dump_bitset *bitset,
                             size_t bit_number,
                             bool bit_is_set)
 {
-  int xword_size = sizeof (bitset->bits[0]);
-  int bits_per_word = xword_size * CHAR_BIT;
   dump_bitset_word *slot = dump_bitset__bit_slot (bitset, bit_number);
   dump_bitset_word bit = 1;
-  bit <<= bit_number % bits_per_word;
+  bit <<= bit_number % DUMP_BITSET_WORD_WIDTH;
   if (bit_is_set)
     *slot = *slot | bit;
   else

@@ -1,6 +1,6 @@
 ;;; package-tests.el --- Tests for the Emacs package system  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Hackney <dan@haxney.org>
 ;; Version: 1.0
@@ -219,9 +219,14 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-desc-from-buffer ()
   "Parse an elisp buffer to get a `package-desc' object."
-  (with-package-test (:basedir (ert-resource-directory) :file "simple-single-1.3.el")
-    (should (package-test--compatible-p
-             (package-buffer-info) simple-single-desc 'kind)))
+  (with-package-test (:basedir (ert-resource-directory)
+                      :file "simple-single-1.3.el")
+    (let ((pi (package-buffer-info)))
+      (should (package-test--compatible-p pi simple-single-desc 'kind))
+      ;; The terminating line is not mandatory any more.
+      (re-search-forward "^;;; .* ends here")
+      (delete-region (match-beginning 0) (point-max))
+      (should (equal (package-buffer-info) pi))))
   (with-package-test (:basedir (ert-resource-directory) :file "simple-depend-1.0.el")
     (should (package-test--compatible-p
              (package-buffer-info) simple-depend-desc 'kind)))

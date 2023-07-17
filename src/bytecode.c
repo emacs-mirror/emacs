@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2022 Free Software Foundation,
+   Copyright (C) 1985-1988, 1993, 2000-2023 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -789,10 +789,10 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object template;
 	    Lisp_Object bytecode;
 	    if (COMPILEDP (call_fun)
-		// Lexical binding only.
+		/* Lexical binding only.  */
 		&& (template = AREF (call_fun, COMPILED_ARGLIST),
 		    FIXNUMP (template))
-		// No autoloads.
+		/* No autoloads.  */
 		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
 		    !CONSP (bytecode)))
 	      {
@@ -1327,7 +1327,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object v1 = TOP;
 	    intmax_t res;
 	    if (FIXNUMP (v1) && FIXNUMP (v2)
-		&& !INT_MULTIPLY_WRAPV (XFIXNUM (v1), XFIXNUM (v2), &res)
+		&& !ckd_mul (&res, XFIXNUM (v1), XFIXNUM (v2))
 		&& !FIXNUM_OVERFLOW_P (res))
 	      TOP = make_fixnum (res);
 	    else

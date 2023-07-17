@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
@@ -4093,7 +4093,7 @@ move point to the beginning of buffer.  Return the new location of point."
   (interactive)
   (beginning-of-line)
   ;; `bibtex-any-valid-entry-type' would fail if users "disable"
-  ;; an entry by chosing an invalid entry type.
+  ;; an entry by choosing an invalid entry type.
   (or (looking-at bibtex-any-entry-maybe-empty-head)
       (re-search-backward bibtex-any-entry-maybe-empty-head nil 'move))
   (point))

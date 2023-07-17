@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer
@@ -313,18 +313,26 @@ may be defined in your Emacs session.  For example, if a command
 called @code{authorize-me} was defined, Emacs could only complete
 as far as @samp{aut}.)
 
-  If you type @key{TAB} again immediately, it cannot determine the
-next character; it could be @samp{-}, @samp{a}, or @samp{c}.  So it
-does not add any characters; instead, @key{TAB} displays a list of all
-possible completions in another window.
+  If you type @kbd{@key{TAB}} again immediately, it cannot determine
+the next character; it could be @samp{-}, @samp{a}, or @samp{c}.  So
+it does not add any characters; instead, @key{TAB} displays a list of
+all possible completions in another window.
 
   Next, type @kbd{-f}.  The minibuffer now contains @samp{auto-f}, and
 the only command name that starts with this is @code{auto-fill-mode}.
-If you now type @key{TAB}, completion fills in the rest of the
+If you now type @kbd{@key{TAB}}, completion fills in the rest of the
 argument @samp{auto-fill-mode} into the minibuffer.
 
   Hence, typing just @kbd{a u @key{TAB} - f @key{TAB}} allows you to
 enter @samp{auto-fill-mode}.
+
+  @key{TAB} also works while point is not at the end of the
+minibuffer.  In that case, it will fill in text both at point and at
+the end of the minibuffer.  If you type @kbd{M-x autocm}, then press
+@kbd{C-b} to move point before the @samp{m}, you can type
+@kbd{@key{TAB}} to insert the text @samp{onf-} at point and @samp{ode}
+at the end of the minibuffer, so that the minibuffer contains
+@samp{autoconf-mode}.
 
 @node Completion Commands
 @subsection Completion Commands
@@ -375,18 +383,27 @@ used with the completion list:
 
 @table @kbd
 @vindex minibuffer-completion-auto-choose
+@kindex M-DOWN
+@kindex M-UP
+@kindex M-RET
+@findex minibuffer-next-completion
+@findex minibuffer-previous-completion
+@findex minibuffer-choose-completion
 @item M-@key{DOWN}
 @itemx M-@key{UP}
-While in the minibuffer, these keys navigate through the completions
-displayed in the completions buffer.  When
+While in the minibuffer or in the completion list buffer, @kbd{M-@key{DOWN}}
+(@code{minibuffer-next-completion} and @kbd{M-@key{UP}}
+(@code{minibuffer-previous-completion}) navigate through the
+completions and displayed in the completions buffer.  When
 @code{minibuffer-completion-auto-choose} is non-@code{nil} (which is
 the default), using these commands also inserts the current completion
 candidate into the minibuffer.  If
 @code{minibuffer-completion-auto-choose} is @code{nil}, you can use
-the @kbd{M-@key{RET}} command to insert the completion candidates into
-the minibuffer.  By default, that exits the minibuffer, but with a
-prefix argument, @kbd{C-u M-@key{RET}} inserts the currently active
-candidate without exiting the minibuffer.
+the @kbd{M-@key{RET}} command (@code{minibuffer-choose-completion}) to
+insert the completion candidates into the minibuffer.  By default,
+that exits the minibuffer, but with a prefix argument, @kbd{C-u
+M-@key{RET}} inserts the currently active candidate without exiting
+the minibuffer.
 
 @findex switch-to-completions
 @item M-v
@@ -394,7 +411,7 @@ candidate without exiting the minibuffer.
 @itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
-way for using the commands below.  @key{PageUp}, @key{prior} and
+way for also using the commands below.  @key{PageUp}, @key{prior} and
 @kbd{M-g M-c} does the same.  You can also select the window in other
 ways (@pxref{Windows}).
 
@@ -953,12 +970,14 @@ File ‘foo.el’ exists; overwrite? (y or n)
 @end smallexample
 
 @cindex yes or no prompt
+@vindex yes-or-no-prompt
   The second type of yes-or-no query is typically employed if giving
 the wrong answer would have serious consequences; it thus features a
-longer prompt ending with @samp{(yes or no)}.  For example, if you
-invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer with
-unsaved changes, Emacs activates the minibuffer with a prompt like
-this:
+longer prompt ending with @samp{(yes or no)} (or the value of
+@code{yes-or-no-prompt} if you've customized that).  For example, if
+you invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer
+with unsaved changes, Emacs activates the minibuffer with a prompt
+like this:
 
 @smallexample
 Buffer foo.el modified; kill anyway? (yes or no)

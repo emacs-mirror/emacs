@@ -1,6 +1,6 @@
 ;;; tramp-crypt.el --- Tramp crypt utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -146,7 +146,7 @@ They are completed by \"M-x TAB\" only when encryption support is enabled."
 If NAME doesn't belong to an encrypted remote directory, return nil."
   (catch 'crypt-file-name-p
     (and tramp-crypt-enabled (stringp name)
-	 (not (tramp-compat-file-name-quoted-p name))
+	 (not (file-name-quoted-p name))
 	 (not (string-suffix-p tramp-crypt-encfs-config name))
 	 (dolist (dir tramp-crypt-directories)
 	   (and (string-prefix-p
@@ -180,7 +180,8 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-crypt-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-crypt-handle-file-exists-p)
+    ;; `file-group-gid' performed by default-handler.
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-crypt-handle-file-locked-p)
@@ -204,6 +205,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-crypt-handle-file-system-info)
     ;; `file-truename' performed by default handler.
+    ;; `file-user-uid' performed by default-handler.
     (file-writable-p . tramp-crypt-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -315,8 +317,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
-      (set-process-query-on-exit-flag p nil)))
+      (tramp-post-process-creation p vec)))
 
   ;; The following operations must be performed without
   ;; `tramp-crypt-file-name-handler'.
@@ -435,7 +436,7 @@ Otherwise, return NAME."
 		     crypt-vec (if (eq op 'encrypt) "encode" "decode")
 		     tramp-compat-temporary-file-directory localname)
 	      (tramp-error
-	       crypt-vec 'file-error "%s of file name %s failed."
+	       crypt-vec 'file-error "%s of file name %s failed"
 	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
@@ -470,7 +471,7 @@ Raise an error if this fails."
 	       (file-name-directory infile)
 	       (concat "/" (file-name-nondirectory infile)))
 	(tramp-error
-	 crypt-vec 'file-error "%s of file %s failed."
+	 crypt-vec 'file-error "%s of file %s failed"
 	 (if (eq op 'encrypt) "Encrypting" "Decrypting") infile))
       (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	(write-region nil nil outfile)))))
@@ -494,11 +495,11 @@ directory.  File names will be also encrypted."
   ;; (declare (completion tramp-crypt-command-completion-p))
   (interactive "DRemote directory name: ")
   (unless tramp-crypt-enabled
-    (tramp-user-error nil "Feature is not enabled."))
+    (tramp-user-error nil "Feature is not enabled"))
   (unless (and (tramp-tramp-file-p name) (file-directory-p name))
-    (tramp-user-error nil "%s must be an existing remote directory." name))
-  (when (tramp-compat-file-name-quoted-p name)
-    (tramp-user-error nil "%s must not be quoted." name))
+    (tramp-user-error nil "%s must be an existing remote directory" name))
+  (when (file-name-quoted-p name)
+    (tramp-user-error nil "%s must not be quoted" name))
   (setq name (file-name-as-directory (expand-file-name name)))
   (unless (member name tramp-crypt-directories)
     (setq tramp-crypt-directories (cons name tramp-crypt-directories)))
@@ -517,7 +518,7 @@ kept in their encrypted form."
   ;; (declare (completion tramp-crypt-command-completion-p))
   (interactive "DRemote directory name: ")
   (unless tramp-crypt-enabled
-    (tramp-user-error nil "Feature is not enabled."))
+    (tramp-user-error nil "Feature is not enabled"))
   (setq name (file-name-as-directory (expand-file-name name)))
   (when (and (member name tramp-crypt-directories)
 	     (delete
@@ -556,7 +557,7 @@ localname."
 (defun tramp-crypt-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
   (let* ((encrypt-filename (tramp-crypt-encrypt-file-name filename))
-	 (encrypt-regexp (tramp-compat-rx (literal encrypt-filename) eos))
+	 (encrypt-regexp (rx (literal encrypt-filename) eos))
 	 tramp-crypt-enabled)
     (condition-case err
 	(access-file encrypt-filename string)
@@ -689,17 +690,17 @@ absolute file names."
     (directory &optional recursive _trash)
   "Like `delete-directory' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name directory) nil
-    (tramp-flush-directory-properties v localname)
     (let (tramp-crypt-enabled)
-      (delete-directory (tramp-crypt-encrypt-file-name directory) recursive))))
+      (delete-directory (tramp-crypt-encrypt-file-name directory) recursive))
+    (tramp-flush-directory-properties v localname)))
 
 ;; Encrypted files won't be trashed.
 (defun tramp-crypt-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
     (let (tramp-crypt-enabled)
-      (delete-file (tramp-crypt-encrypt-file-name filename)))))
+      (delete-file (tramp-crypt-encrypt-file-name filename)))
+    (tramp-flush-file-properties v localname)))
 
 (defun tramp-crypt-handle-directory-files
     (directory &optional full match nosort count)
@@ -709,8 +710,7 @@ absolute file names."
       (mapcar
        (lambda (x)
 	 (replace-regexp-in-string
-	  (tramp-compat-rx bos (literal directory)) ""
-	  (tramp-crypt-decrypt-file-name x)))
+	  (rx bos (literal directory)) "" (tramp-crypt-decrypt-file-name x)))
        (directory-files (tramp-crypt-encrypt-file-name directory) 'full)))))
 
 (defun tramp-crypt-handle-file-attributes (filename &optional id-format)
@@ -723,6 +723,11 @@ absolute file names."
   (let (tramp-crypt-enabled)
     (file-executable-p (tramp-crypt-encrypt-file-name filename))))
 
+(defun tramp-crypt-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  (let (tramp-crypt-enabled)
+    (file-exists-p (tramp-crypt-encrypt-file-name filename))))
+
 (defun tramp-crypt-handle-file-locked-p (filename)
   "Like `file-locked-p' for Tramp files."
   (let (tramp-crypt-enabled)
@@ -730,18 +735,19 @@ absolute file names."
 
 (defun tramp-crypt-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (let* (completion-regexp-list
-	  tramp-crypt-enabled
-	  (directory (file-name-as-directory directory))
-	  (enc-dir (tramp-crypt-encrypt-file-name directory)))
-     (mapcar
-      (lambda (x)
-	(substring
-	 (tramp-crypt-decrypt-file-name (concat enc-dir x))
-	 (length directory)))
-      (file-name-all-completions "" enc-dir)))))
+  (ignore-error file-missing
+    (all-completions
+     filename
+     (let* (completion-regexp-list
+	    tramp-crypt-enabled
+	    (directory (file-name-as-directory directory))
+	    (enc-dir (tramp-crypt-encrypt-file-name directory)))
+       (mapcar
+	(lambda (x)
+	  (substring
+	   (tramp-crypt-decrypt-file-name (concat enc-dir x))
+	   (length directory)))
+	(file-name-all-completions "" enc-dir))))))
 
 (defun tramp-crypt-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -756,9 +762,7 @@ absolute file names."
 (defun tramp-crypt-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
   (let (tramp-crypt-enabled)
-    ;; `file-system-info' exists since Emacs 27.1.
-    (tramp-compat-funcall
-     'file-system-info (tramp-crypt-encrypt-file-name filename))))
+    (file-system-info (tramp-crypt-encrypt-file-name filename))))
 
 (defun tramp-crypt-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -769,27 +773,26 @@ absolute file names."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files.
 WILDCARD is not supported."
-  ;; This package has been added to Emacs 27.1.
-  (when (load "text-property-search" 'noerror 'nomessage)
-    (let (tramp-crypt-enabled)
-      (tramp-handle-insert-directory
-       (tramp-crypt-encrypt-file-name filename)
-       switches wildcard full-directory-p)
-      (let* ((filename (file-name-as-directory filename))
-	     (enc (tramp-crypt-encrypt-file-name filename))
-	     match string)
-	(goto-char (point-min))
-	(while (setq match (text-property-search-forward 'dired-filename t t))
-	  (setq string
-		(buffer-substring
-		 (prop-match-beginning match) (prop-match-end match))
-		string (if (file-name-absolute-p string)
-			   (tramp-crypt-decrypt-file-name string)
-			 (substring
-			  (tramp-crypt-decrypt-file-name (concat enc string))
-			  (length filename))))
-	  (delete-region (prop-match-beginning match) (prop-match-end match))
-	  (insert (propertize string 'dired-filename t)))))))
+  (require 'text-property-search)
+  (let (tramp-crypt-enabled)
+    (tramp-handle-insert-directory
+     (tramp-crypt-encrypt-file-name filename)
+     switches wildcard full-directory-p)
+    (let* ((filename (file-name-as-directory filename))
+	   (enc (tramp-crypt-encrypt-file-name filename))
+	   match string)
+      (goto-char (point-min))
+      (while (setq match (text-property-search-forward 'dired-filename t t))
+	(setq string
+	      (buffer-substring
+	       (prop-match-beginning match) (prop-match-end match))
+	      string (if (file-name-absolute-p string)
+			 (tramp-crypt-decrypt-file-name string)
+		       (substring
+			(tramp-crypt-decrypt-file-name (concat enc string))
+			(length filename))))
+	(delete-region (prop-match-beginning match) (prop-match-end match))
+	(insert (propertize string 'dired-filename t))))))
 
 (defun tramp-crypt-handle-lock-file (filename)
   "Like `lock-file' for Tramp files."

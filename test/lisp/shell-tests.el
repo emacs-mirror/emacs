@@ -1,6 +1,6 @@
 ;;; shell-tests.el --- Tests for shell.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -63,5 +63,36 @@
   (unless (memq system-type '(windows-nt ms-dos))
     (should (equal (split-string-shell-command "ls /tmp/foo\\ bar")
                    '("ls" "/tmp/foo bar")))))
+
+(ert-deftest shell-dirtrack-on-by-default ()
+  (with-temp-buffer
+    (shell-mode)
+    (should shell-dirtrack-mode)))
+
+(ert-deftest shell-dirtrack-should-not-be-on-in-unrelated-modes ()
+  (with-temp-buffer
+    (should (not shell-dirtrack-mode))))
+
+(ert-deftest shell-dirtrack-sets-list-buffers-directory ()
+  (let ((start-dir default-directory))
+    (with-temp-buffer
+      (should-not list-buffers-directory)
+      (shell-mode)
+      (shell-cd "..")
+      (should list-buffers-directory)
+      (should (not (equal start-dir list-buffers-directory)))
+      (should (string-prefix-p list-buffers-directory start-dir)))))
+
+(ert-deftest shell-directory-tracker-cd ()
+  (let ((start-dir default-directory))
+    (with-temp-buffer
+      (should-not list-buffers-directory)
+      (shell-mode)
+      (cl-letf (((symbol-function 'shell-unquote-argument)
+                 (lambda (x) x)))
+        (shell-directory-tracker "cd .."))
+      (should list-buffers-directory)
+      (should (not (equal start-dir list-buffers-directory)))
+      (should (string-prefix-p list-buffers-directory start-dir)))))
 
 ;;; shell-tests.el ends here

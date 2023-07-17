@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -192,6 +192,7 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
     (define-key map "\C-c[" #'set-left-margin)
     (define-key map "\C-c]" #'set-right-margin)
     (define-key map "\M-o" #'facemenu-keymap)
+    (define-key map "\M-om" #'enriched-toggle-markup)
     map)
   "Keymap for Enriched mode.")
 

@@ -1,6 +1,6 @@
 ;;; mail-source.el --- functions for fetching mail  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -658,50 +658,49 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	;; If getting from mail spool directory, use movemail to move
 	;; rather than just renaming, so as to interlock with the
 	;; mailer.
-	(unwind-protect
-	    (save-excursion
-	      (setq errors (generate-new-buffer " *mail source loss*"))
-	      (let ((default-directory "/"))
-		(setq result
-		      ;; call-process looks in exec-path, which
-		      ;; contains exec-directory, so will find
-		      ;; Mailutils movemail if it exists, else it will
-		      ;; find "our" movemail in exec-directory.
-		      ;; Bug#31737
-		      (apply
-		       #'call-process
-		       (append
-			(list
-			 mail-source-movemail-program
-			 nil errors nil from to)))))
-	      (when (file-exists-p to)
-		(set-file-modes to mail-source-default-file-modes 'nofollow))
-	      (if (and (or (not (buffer-modified-p errors))
-			   (zerop (buffer-size errors)))
-		       (and (numberp result)
-			    (zerop result)))
-		  ;; No output => movemail won.
-		  t
-		(set-buffer errors)
-		;; There may be a warning about older revisions.  We
-		;; ignore that.
-		(goto-char (point-min))
-		(if (search-forward "older revision" nil t)
-		    t
-		  ;; Probably a real error.
-		  (subst-char-in-region (point-min) (point-max) ?\n ?\  )
-		  (goto-char (point-max))
-		  (skip-chars-backward " \t")
-		  (delete-region (point) (point-max))
-		  (goto-char (point-min))
-		  (when (looking-at "movemail: ")
-		    (delete-region (point-min) (match-end 0)))
-		  ;; Result may be a signal description string.
-		  (unless (yes-or-no-p
-			   (format "movemail: %s (%s return).  Continue? "
-				   (buffer-string) result))
-		    (error "%s" (buffer-string)))
-		  (setq to nil)))))))
+	(save-excursion
+	  (setq errors (generate-new-buffer " *mail source loss*"))
+	  (let ((default-directory "/"))
+	    (setq result
+		  ;; call-process looks in exec-path, which
+		  ;; contains exec-directory, so will find
+		  ;; Mailutils movemail if it exists, else it will
+		  ;; find "our" movemail in exec-directory.
+		  ;; Bug#31737
+		  (apply
+		   #'call-process
+		   (append
+		    (list
+		     mail-source-movemail-program
+		     nil errors nil from to)))))
+	  (when (file-exists-p to)
+	    (set-file-modes to mail-source-default-file-modes 'nofollow))
+	  (if (and (or (not (buffer-modified-p errors))
+		       (zerop (buffer-size errors)))
+		   (and (numberp result)
+			(zerop result)))
+	      ;; No output => movemail won.
+	      t
+	    (set-buffer errors)
+	    ;; There may be a warning about older revisions.  We
+	    ;; ignore that.
+	    (goto-char (point-min))
+	    (if (search-forward "older revision" nil t)
+		t
+	      ;; Probably a real error.
+	      (subst-char-in-region (point-min) (point-max) ?\n ?\  )
+	      (goto-char (point-max))
+	      (skip-chars-backward " \t")
+	      (delete-region (point) (point-max))
+	      (goto-char (point-min))
+	      (when (looking-at "movemail: ")
+		(delete-region (point-min) (match-end 0)))
+	      ;; Result may be a signal description string.
+	      (unless (yes-or-no-p
+		       (format "movemail: %s (%s return).  Continue? "
+			       (buffer-string) result))
+		(error "%s" (buffer-string)))
+	      (setq to nil))))))
       (when (buffer-live-p errors)
 	(kill-buffer errors))
       ;; Return whether we moved successfully or not.

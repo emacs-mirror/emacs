@@ -1,6 +1,6 @@
 /* Timsort for sequences.
 
-Copyright (C) 2022 Free Software Foundation, Inc.
+Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    minimal length.  So the number of bits in a ptrdiff_t is plenty large
    enough for all cases.  */
 
-#define MAX_MERGE_PENDING (sizeof (ptrdiff_t)  * 8)
+#define MAX_MERGE_PENDING PTRDIFF_WIDTH
 
 /* Once we get into galloping mode, we stay there as long as both runs
    win at least GALLOP_WIN_MIN consecutive times.  */

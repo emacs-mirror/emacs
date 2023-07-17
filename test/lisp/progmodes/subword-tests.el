@@ -1,6 +1,6 @@
 ;;; subword-tests.el --- Testing the subword rules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:

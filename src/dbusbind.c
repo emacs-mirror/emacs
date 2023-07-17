@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2022 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -276,7 +276,7 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
 
 #define XD_DBUS_VALIDATE_BUS_ADDRESS(bus)				\
   do {									\
-    char const *session_bus_address = getenv ("DBUS_SESSION_BUS_ADDRESS"); \
+    char const *session_bus_address = egetenv ("DBUS_SESSION_BUS_ADDRESS"); \
     if (STRINGP (bus))							\
       {									\
 	DBusAddressEntry **entries;					\

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1993, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -248,7 +248,7 @@ time it took to restore the Emacs state.  The value is an alist
 where @var{file} is the name of the dump file, and @var{time} is the
 time in seconds it took to restore the state from the dump file.
 If the current session was not restored from a dump file, the
-value is nil.
+value is @code{nil}.
 @end defun
 
 @node Pure Storage
@@ -558,12 +558,15 @@ The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
 value is 400,000 for the default 32-bit configuration and 800,000 for
 the 64-bit one.  If you specify a larger value, garbage collection
 will happen less often.  This reduces the amount of time spent garbage
-collecting, but increases total memory use.  You may want to do this
-when running a program that creates lots of Lisp data.  However, we
+collecting (so Lisp programs will run faster between cycles of garbage
+collection that happen more rarely), but increases total memory use.
+You may want to do this when running a program that creates lots of
+Lisp data, especially if you need it to run faster.  However, we
 recommend against increasing the threshold for prolonged periods of
 time, and advise that you never set it higher than needed for the
 program to run in reasonable time.  Using thresholds higher than
-necessary could potentially cause system-wide memory pressure, and
+necessary could potentially cause higher system-wide memory pressure,
+and also make each garbage-collection cycle take much more time, and
 should therefore be avoided.
 
 You can make collections more frequent by specifying a smaller value, down
@@ -732,14 +735,15 @@ Emacs session.
 @section C Dialect
 @cindex C programming language
 
-The C part of Emacs is portable to C99 or later: C11-specific features such
-as @samp{<stdalign.h>} and @samp{_Noreturn} are not used without a check,
+The C part of Emacs is portable to C99 or later: later C features such
+as @samp{<stdckdint.h>} and @samp{[[noreturn]]} are not used without a check,
 typically at configuration time, and the Emacs build procedure
-provides a substitute implementation if necessary.  Some C11 features,
+provides a substitute implementation if necessary.  Some later features,
 such as anonymous structures and unions, are too difficult to emulate,
 so they are avoided entirely.
 
-At some point in the future the base C dialect will no doubt change to C11.
+At some point in the future the base C dialect will no doubt change to
+something later than C99.
 
 @node Writing Emacs Primitives
 @section Writing Emacs Primitives
@@ -894,15 +898,17 @@ Currently, only the following attributes are recognized:
 @table @code
 @item noreturn
 Declares the C function as one that never returns.  This corresponds
-to the C11 keyword @code{_Noreturn} and to @w{@code{__attribute__
-((__noreturn__))}} attribute of GCC (@pxref{Function Attributes,,,
-gcc, Using the GNU Compiler Collection}).
+to C23's @code{[[noreturn]]}, to C11's @code{_Noreturn}, and to GCC's
+@w{@code{__attribute__ ((__noreturn__))}} (@pxref{Function
+Attributes,,, gcc, Using the GNU Compiler Collection}).  (Internally,
+Emacs's own C code uses @code{_Noreturn} as it can be defined as a
+macro on C platforms that do not support it.)
 
 @item const
 Declares that the function does not examine any values except its
 arguments, and has no effects except the return value.  This
-corresponds to @w{@code{__attribute__ ((__const__))}} attribute of
-GCC.
+corresponds to C23's @code{[[unsequenced]]} and to GCC's
+@w{@code{__attribute__ ((__const__))}}.
 
 @item noinline
 This corresponds to @w{@code{__attribute__ ((__noinline__))}}
@@ -2550,7 +2556,7 @@ variable names have underscores replaced with dashes.  For instance,
 @code{mode_line_format} stores the value of @code{mode-line-format}.
 
 @item overlays
-The inveral tree containing this buffer's overlays.
+The interval tree containing this buffer's overlays.
 
 @item last_selected_window
 This is the last window that was selected with this buffer in it, or @code{nil}

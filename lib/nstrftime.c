@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This file is free software: you can redistribute it and/or modify
@@ -62,6 +62,7 @@ extern char *tzname[];
 #endif
 
 #include <limits.h>
+#include <stdckdint.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -226,15 +227,6 @@ extern char *tzname[];
 #  undef __mbsrtowcs_l
 #  define __mbsrtowcs_l(d, s, l, st, loc) __mbsrtowcs (d, s, l, st)
 # endif
-# define widen(os, ws, l) \
-  {                                                                           \
-    mbstate_t __st;                                                           \
-    const char *__s = os;                                                     \
-    memset (&__st, '\0', sizeof (__st));                                      \
-    l = __mbsrtowcs_l (NULL, &__s, 0, &__st, loc);                            \
-    ws = (wchar_t *) alloca ((l + 1) * sizeof (wchar_t));                     \
-    (void) __mbsrtowcs_l (ws, &__s, l, &__st, loc);                           \
-  }
 #endif
 
 
@@ -283,6 +275,14 @@ extern char *tzname[];
    the arabic digits in the ASCII range.  One day there is perhaps a
    more reliable way to accept other sets of digits.  */
 #define ISDIGIT(Ch) ((unsigned int) (Ch) - L_('0') <= 9)
+
+/* Avoid false GCC warning "'memset' specified size 18446744073709551615 exceeds
+   maximum object size 9223372036854775807", caused by insufficient data flow
+   analysis and value propagation of the 'width_add' expansion when GCC is not
+   optimizing.  Cf. <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443>.  */
+#if __GNUC__ >= 7 && !__OPTIMIZE__
+# pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
 
 #if FPRINTFTIME
 static void
@@ -684,8 +684,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           width = 0;
           do
             {
-              if (INT_MULTIPLY_WRAPV (width, 10, &width)
-                  || INT_ADD_WRAPV (width, *f - L_('0'), &width))
+              if (ckd_mul (&width, width, 10)
+                  || ckd_add (&width, width, *f - L_('0')))
                 width = INT_MAX;
               ++f;
             }
@@ -1374,11 +1374,31 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #ifdef COMPILE_WIDE
           {
             /* The zone string is always given in multibyte form.  We have
-               to transform it first.  */
-            wchar_t *wczone;
-            size_t len;
-            widen (zone, wczone, len);
-            cpy (len, wczone);
+               to convert it to wide character.  */
+            size_t w = pad == L_('-') || width < 0 ? 0 : width;
+            char const *z = zone;
+            mbstate_t st = {0};
+            size_t len = __mbsrtowcs_l (p, &z, maxsize - i, &st, loc);
+            if (len == (size_t) -1)
+              return 0;
+            size_t incr = len < w ? w : len;
+            if (incr >= maxsize - i)
+              {
+                errno = ERANGE;
+                return 0;
+              }
+            if (p)
+              {
+                if (len < w)
+                  {
+                    size_t delta = w - len;
+                    __wmemmove (p + delta, p, len);
+                    wchar_t wc = pad == L_('0') || pad == L_('+') ? L'0' : L' ';
+                    wmemset (p, wc, delta);
+                  }
+                p += incr;
+              }
+            i += incr;
           }
 #else
           cpy (strlen (zone), zone);

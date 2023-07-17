@@ -24,3 +24,58 @@ Name: cperl-indents1
     "";
 }
 =-=-=
+
+Name: cperl-try-catch-finally
+
+=-=
+{
+  try {
+    call_a_function();
+  }
+  catch ($e) {
+    warn "Unable to call; $e";
+  }
+  finally {
+    print "Finished\n";
+  }
+}
+=-=-=
+
+Name: cperl-defer
+
+=-=
+use feature 'defer';
+
+{
+  say "This happens first";
+  defer {
+    say "This happens last";
+  }
+
+  say "And this happens inbetween";
+}
+=-=-=
+
+Name: cperl-feature-class
+
+=-=
+use 5.038;
+use feature "class";
+no warnings "experimental";
+
+class A {
+}
+
+class C
+  : isa(A)
+{
+  method with_sig_and_attr
+    : lvalue
+    ($top,$down)
+  {
+    return $top-$down;
+  }
+}
+
+say "done!";
+=-=-=

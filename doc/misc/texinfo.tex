@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2022-12-19.22}
+\def\texinfoversion{2023-07-02.10}
 %
-% Copyright 1985, 1986, 1988, 1990-2022 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2023 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -57,12 +57,6 @@
 
 
 \message{Loading texinfo [version \texinfoversion]:}
-
-% If in a .fmt file, print the version number
-% and turn on active characters that we couldn't do earlier because
-% they might have appeared in the input file name.
-\everyjob{\message{[Texinfo version \texinfoversion]}%
-  \catcode`+=\active \catcode`\_=\active}
 
 % LaTeX's \typeout.  This ensures that the messages it is used for
 % are identical in format to the corresponding ones from latex/pdflatex.
@@ -281,8 +275,7 @@
 % \topmark doesn't work for the very first chapter (after the title
 % page or the contents), so we use \firstmark there -- this gets us
 % the mark with the chapter defs, unless the user sneaks in, e.g.,
-% @setcolor (or @url, or @link, etc.) between @contents and the very
-% first @chapter.
+% @setcolor (or @url etc.) between @contents and the very first @chapter.
 \def\gettopheadingmarks{%
   \ifcase0\the\savedtopmark\fi
   \ifx\thischapter\empty \ifcase0\firstmark\fi \fi
@@ -530,7 +523,7 @@
 
 % ... but they get defined via ``\envdef\foo{...}'':
 \long\def\envdef#1#2{\def#1{\startenvironment#1#2}}
-\def\envparseargdef#1#2{\parseargdef#1{\startenvironment#1#2}}
+\long\def\envparseargdef#1#2{\parseargdef#1{\startenvironment#1#2}}
 
 % Check whether we're in the right environment:
 \def\checkenv#1{%
@@ -1108,27 +1101,33 @@ where each line of input produces a line of output.}
 
 % Output page labels information.
 % See PDF reference v.1.7 p.594, section 8.3.1.
+% Page label ranges must be increasing.
 \ifpdf
 \def\pagelabels{%
   \def\title{0 << /P (T-) /S /D >>}%
-  \edef\roman{\the\romancount << /S /r >>}%
-  \edef\arabic{\the\arabiccount << /S /D >>}%
   %
-  % Page label ranges must be increasing.  Remove any duplicates.
-  % (There is a slight chance of this being wrong if e.g. there is
-  % a @contents but no @titlepage, etc.)
-  %
-  \ifnum\romancount=0 \def\roman{}\fi
-  \ifnum\arabiccount=0 \def\title{}%
+  % support @contents at very end of document
+  \ifnum\contentsendcount=\pagecount
+    \ifnum\arabiccount<\romancount
+      \pdfcatalog{/PageLabels << /Nums
+                  [\title
+                   \the\arabiccount << /S /D >>
+                   \the\romancount << /S /r >>
+                  ] >> }\relax
+    \fi
+  % no contents in document
+  \else\ifnum\contentsendcount=0
+    \pdfcatalog{/PageLabels << /Nums
+                [\title
+                 \the\arabiccount << /S /D >>
+                ] >> }\relax
   \else
-    \ifnum\romancount=\arabiccount \def\roman{}\fi
-  \fi
-  %
-  \ifnum\romancount<\arabiccount
-    \pdfcatalog{/PageLabels << /Nums [\title \roman \arabic ] >> }\relax
-  \else
-    \pdfcatalog{/PageLabels << /Nums [\title \arabic \roman ] >> }\relax
-  \fi
+    \pdfcatalog{/PageLabels << /Nums
+                [\title
+                 \the\romancount << /S /r >>
+                 \the\contentsendcount << /S /D >>
+                ] >> }\relax
+  \fi\fi
 }
 \else
   \let\pagelabels\relax
@@ -1137,6 +1136,8 @@ where each line of input produces a line of output.}
 \newcount\pagecount \pagecount=0
 \newcount\romancount \romancount=0
 \newcount\arabiccount \arabiccount=0
+\newcount\contentsendcount \contentsendcount=0
+
 \ifpdf
   \let\ptxadvancepageno\advancepageno
   \def\advancepageno{%
@@ -1200,13 +1201,17 @@ output) for that.)}
   %
   % Set color, and create a mark which defines \thiscolor accordingly,
   % so that \makeheadline knows which color to restore.
+  \def\curcolor{0 0 0}%
   \def\setcolor#1{%
-    \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
-    \domark
-    \pdfsetcolor{#1}%
+    \ifx#1\curcolor\else
+      \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
+      \domark
+      \pdfsetcolor{#1}%
+      \xdef\curcolor{#1}%
+    \fi
   }
   %
-  \def\maincolor{\rgbBlack}
+  \let\maincolor\rgbBlack
   \pdfsetcolor{\maincolor}
   \edef\thiscolor{\maincolor}
   \def\currentcolordefs{}
@@ -1362,7 +1367,7 @@ output) for that.)}
   %
   % by default, use black for everything.
   \def\urlcolor{\rgbBlack}
-  \def\linkcolor{\rgbBlack}
+  \let\linkcolor\rgbBlack
   \def\endlink{\setcolor{\maincolor}\pdfendlink}
   %
   % Adding outlines to PDF; macros for calculating structure of outlines
@@ -2683,26 +2688,23 @@ end
 \gdef\setcodequotes{\let`\codequoteleft \let'\codequoteright}
 \gdef\setregularquotes{\let`\lq \let'\rq}
 }
+\setregularquotes
 
-% Allow an option to not use regular directed right quote/apostrophe
-% (char 0x27), but instead the undirected quote from cmtt (char 0x0d).
-% The undirected quote is ugly, so don't make it the default, but it
-% works for pasting with more pdf viewers (at least evince), the
-% lilypond developers report.  xpdf does work with the regular 0x27.
+% output for ' in @code
+% in tt font hex 0D (undirected) or 27 (curly right quote)
 %
 \def\codequoteright{%
   \ifusingtt
       {\ifflagclear{txicodequoteundirected}%
           {\ifflagclear{codequoteundirected}%
               {'}%
-              {\char'15 }}%
-          {\char'15 }}%
+              {\char"0D }}%
+          {\char"0D }}%
       {'}%
 }
 
-% and a similar option for the left quote char vs. a grave accent.
-% Modern fonts display ASCII 0x60 as a grave accent, so some people like
-% the code environments to do likewise.
+% output for ` in @code
+% in tt font hex 12 (grave accent) or 60 (curly left quote)
 % \relax disables Spanish ligatures ?` and !` of \tt font.
 %
 \def\codequoteleft{%
@@ -2710,8 +2712,8 @@ end
       {\ifflagclear{txicodequotebacktick}%
           {\ifflagclear{codequotebacktick}%
               {\relax`}%
-              {\char'22 }}%
-          {\char'22 }}%
+              {\char"12 }}%
+          {\char"12 }}%
       {\relax`}%
 }
 
@@ -2730,7 +2732,7 @@ end
     \errmessage{Unknown @codequoteundirected value `\temp', must be on|off}%
   \fi\fi
 }
-%
+
 \parseargdef\codequotebacktick{%
   \def\temp{#1}%
   \ifx\temp\onword
@@ -2744,6 +2746,11 @@ end
     \errmessage{Unknown @codequotebacktick value `\temp', must be on|off}%
   \fi\fi
 }
+
+% Turn them on by default
+\let\SETtxicodequoteundirected = t
+\let\SETtxicodequotebacktick = t
+
 
 % [Knuth] pp. 380,381,391, disable Spanish ligatures ?` and !` of \tt font.
 \def\noligaturesquoteleft{\relax\lq}
@@ -2930,10 +2937,6 @@ end
      \let-\dashnobreak
      \let_\realunder
     \fi
-    % Given -foo (with a single dash), we do not want to allow a break
-    % after the hyphen.
-    \global\let\codedashprev=\codedash
-    %
     \codex
   }
   %
@@ -2943,21 +2946,30 @@ end
     %
     % Now, output a discretionary to allow a line break, unless
     % (a) the next character is a -, or
-    % (b) the preceding character is a -.
+    % (b) the preceding character is a -, or
+    % (c) we are at the start of the string.
+    % In both cases (b) and (c), \codedashnobreak should be set to \codedash.
+    %
     % E.g., given --posix, we do not want to allow a break after either -.
     % Given --foo-bar, we do want to allow a break between the - and the b.
     \ifx\next\codedash \else
-      \ifx\codedashprev\codedash
+      \ifx\codedashnobreak\codedash
       \else \discretionary{}{}{}\fi
     \fi
     % we need the space after the = for the case when \next itself is a
     % space token; it would get swallowed otherwise.  As in @code{- a}.
-    \global\let\codedashprev= \next
+    \global\let\codedashnobreak= \next
   }
 }
 \def\normaldash{-}
 %
-\def\codex #1{\tclose{#1}\endgroup}
+\def\codex #1{\tclose{%
+  % Given -foo (with a single dash), we do not want to allow a break
+  % after the -.  \codedashnobreak is set to the first character in
+  % @code.
+  \futurelet\codedashnobreak\relax
+  #1%
+}\endgroup}
 
 \def\codeunder{%
   % this is all so @math{@code{var_name}+1} can work.  In math mode, _
@@ -3744,8 +3756,8 @@ $$%
               want the contents after the title page.}}%
 
 \parseargdef\shorttitlepage{%
-  \begingroup \hbox{}\vskip 1.5in \chaprm \centerline{#1}%
-  \endgroup\page\hbox{}\page}
+  {\headingsoff \begingroup \hbox{}\vskip 1.5in \chaprm \centerline{#1}%
+  \endgroup\page\hbox{}\page}\pageone}
 
 \envdef\titlepage{%
   % Open one extra group, as we want to close it in the middle of \Etitlepage.
@@ -3951,33 +3963,23 @@ $$%
 
 \def\HEADINGSoff{{\globaldefs=1 \headingsoff}} % global setting
 
-% When we turn headings on, set the page number to 1.
+% Set the page number to 1.
 \def\pageone{
   \global\pageno=1
   \global\arabiccount = \pagecount
 }
 
+\let\contentsalignmacro = \chappager
+
+% \def\HEADINGSon{\HEADINGSdouble} % defined by \CHAPPAGon
+
 % For double-sided printing, put current file name in lower left corner,
 % chapter name on inside top of right hand pages, document
 % title on inside top of left hand pages, and page numbers on outside top
 % edge of all pages.
-\def\HEADINGSdouble{%
-\pageone
-\HEADINGSdoublex
-}
-\let\contentsalignmacro = \chappager
-
-% For single-sided printing, chapter title goes across top left of page,
-% page number on top right.
-\def\HEADINGSsingle{%
-\pageone
-\HEADINGSsinglex
-}
-% \def\HEADINGSon{\HEADINGSdouble} % defined by \CHAPPAGon
-
-\def\HEADINGSafter{\let\HEADINGShook=\HEADINGSdoublex}
+\def\HEADINGSafter{\let\HEADINGShook=\HEADINGSdouble}
 \let\HEADINGSdoubleafter=\HEADINGSafter
-\def\HEADINGSdoublex{%
+\def\HEADINGSdouble{%
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\folio\hfil\thistitle}}
@@ -3987,8 +3989,10 @@ $$%
 \global\let\contentsalignmacro = \chapoddpage
 }
 
-\def\HEADINGSsingleafter{\let\HEADINGShook=\HEADINGSsinglex}
-\def\HEADINGSsinglex{%
+% For single-sided printing, chapter title goes across top left of page,
+% page number on top right.
+\def\HEADINGSsingleafter{\let\HEADINGShook=\HEADINGSsingle}
+\def\HEADINGSsingle{%
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\thischapter\hfil\folio}}
@@ -4000,7 +4004,6 @@ $$%
 
 % for @setchapternewpage off
 \def\HEADINGSsinglechapoff{%
-\pageone
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\thischapter\hfil\folio}}
@@ -4726,13 +4729,11 @@ $$%
 % except not \outer, so it can be used within macros and \if's.
 \edef\newwrite{\makecsname{ptexnewwrite}}
 
-% \newindex {foo} defines an index named IX.
+% \newindex {IX} defines an index named IX.
 % It automatically defines \IXindex such that
 % \IXindex ...rest of line... puts an entry in the index IX.
 % It also defines \IXindfile to be the number of the output channel for
 % the file that accumulates this index.  The file's extension is IX.
-% The name of an index should be no more than 2 characters long
-% for the sake of vms.
 %
 \def\newindex#1{%
   \expandafter\chardef\csname#1indfile\endcsname=0
@@ -4795,21 +4796,6 @@ $$%
 \def\docodeindexxxx #1{\docind{\indexname}{#1}}
 
 
-% Used for the aux, toc and index files to prevent expansion of Texinfo
-% commands.
-%
-\def\atdummies{%
-  \definedummyletter\@%
-  \definedummyletter\ %
-  \definedummyletter\{%
-  \definedummyletter\}%
-  \definedummyletter\&%
-  %
-  % Do the redefinitions.
-  \definedummies
-  \otherbackslash
-}
-
 % \definedummyword defines \#1 as \string\#1\space, thus effectively
 % preventing its expansion.  This is used only for control words,
 % not control letters, because the \space would be incorrect for
@@ -4825,110 +4811,91 @@ $$%
 %
 \def\definedummyword  #1{\def#1{\string#1\space}}%
 \def\definedummyletter#1{\def#1{\string#1}}%
-\let\definedummyaccent\definedummyletter
 
-% Called from \atdummies to prevent the expansion of commands.
+% Used for the aux, toc and index files to prevent expansion of Texinfo
+% commands.  Most of the commands are controlled through the
+% \ifdummies conditional.
 %
-\def\definedummies{%
+\def\atdummies{%
+  \dummiestrue
   %
-  \let\commondummyword\definedummyword
-  \let\commondummyletter\definedummyletter
-  \let\commondummyaccent\definedummyaccent
-  \commondummiesnofonts
+  \definedummyletter\@%
+  \definedummyletter\ %
+  \definedummyletter\{%
+  \definedummyletter\}%
+  \definedummyletter\&%
   %
   \definedummyletter\_%
   \definedummyletter\-%
   %
-  % Non-English letters.
-  \definedummyword\AA
-  \definedummyword\AE
-  \definedummyword\DH
-  \definedummyword\L
-  \definedummyword\O
-  \definedummyword\OE
-  \definedummyword\TH
-  \definedummyword\aa
-  \definedummyword\ae
-  \definedummyword\dh
-  \definedummyword\exclamdown
-  \definedummyword\l
-  \definedummyword\o
-  \definedummyword\oe
-  \definedummyword\ordf
-  \definedummyword\ordm
-  \definedummyword\questiondown
-  \definedummyword\ss
-  \definedummyword\th
-  %
-  % Although these internal commands shouldn't show up, sometimes they do.
-  \definedummyword\bf
-  \definedummyword\gtr
-  \definedummyword\hat
-  \definedummyword\less
-  \definedummyword\sf
-  \definedummyword\sl
-  \definedummyword\tclose
-  \definedummyword\tt
-  %
-  \definedummyword\LaTeX
-  \definedummyword\TeX
-  %
-  % Assorted special characters.
-  \definedummyword\ampchar
-  \definedummyword\atchar
-  \definedummyword\arrow
-  \definedummyword\backslashchar
-  \definedummyword\bullet
-  \definedummyword\comma
-  \definedummyword\copyright
-  \definedummyword\registeredsymbol
-  \definedummyword\dots
-  \definedummyword\enddots
-  \definedummyword\entrybreak
-  \definedummyword\equiv
-  \definedummyword\error
-  \definedummyword\euro
-  \definedummyword\expansion
-  \definedummyword\geq
-  \definedummyword\guillemetleft
-  \definedummyword\guillemetright
-  \definedummyword\guilsinglleft
-  \definedummyword\guilsinglright
-  \definedummyword\lbracechar
-  \definedummyword\leq
-  \definedummyword\mathopsup
-  \definedummyword\minus
-  \definedummyword\ogonek
-  \definedummyword\pounds
-  \definedummyword\point
-  \definedummyword\print
-  \definedummyword\quotedblbase
-  \definedummyword\quotedblleft
-  \definedummyword\quotedblright
-  \definedummyword\quoteleft
-  \definedummyword\quoteright
-  \definedummyword\quotesinglbase
-  \definedummyword\rbracechar
-  \definedummyword\result
-  \definedummyword\sub
-  \definedummyword\sup
-  \definedummyword\textdegree
-  %
   \definedummyword\subentry
   %
   % We want to disable all macros so that they are not expanded by \write.
+  \let\commondummyword\definedummyword
   \macrolist
   \let\value\dummyvalue
   %
-  \normalturnoffactive
+  \turnoffactive
 }
 
-% \commondummiesnofonts: common to \definedummies and \indexnofonts.
-% Define \commondummyletter, \commondummyaccent and \commondummyword before
-% using.  Used for accents, font commands, and various control letters.
-%
-\def\commondummiesnofonts{%
-  % Control letters and accents.
+\newif\ifdummies
+\newif\ifindexnofonts
+
+\def\commondummyletter#1{%
+  \expandafter\let\csname\string#1:impl\endcsname#1%
+  \edef#1{%
+    \noexpand\ifindexnofonts
+      % empty expansion
+    \noexpand\else
+      \noexpand\ifdummies\string#1%
+      \noexpand\else
+        \noexpand\jumptwofi % dispose of the \fi
+        \expandafter\noexpand\csname\string#1:impl\endcsname
+      \noexpand\fi
+    \noexpand\fi}%
+}
+
+\def\commondummyaccent#1{%
+  \expandafter\let\csname\string#1:impl\endcsname#1%
+  \edef#1{%
+    \noexpand\ifindexnofonts
+      \noexpand\expandafter % dispose of \else ... \fi
+      \noexpand\asis
+    \noexpand\else
+      \noexpand\ifdummies\string#1%
+      \noexpand\else
+        \noexpand\jumptwofi % dispose of the \fi
+        \expandafter\noexpand\csname\string#1:impl\endcsname
+      \noexpand\fi
+    \noexpand\fi}%
+}
+
+% Like \commondummyaccent but add a \space at the end of the dummy expansion
+% #2 is the expansion used for \indexnofonts.  #2 is always followed by
+% \asis to remove a pair of following braces.
+\def\commondummyword#1#2{%
+  \expandafter\let\csname\string#1:impl\endcsname#1%
+  \expandafter\def\csname\string#1:ixnf\endcsname{#2\asis}%
+  \edef#1{%
+    \noexpand\ifindexnofonts
+      \noexpand\expandafter % dispose of \else ... \fi
+      \expandafter\noexpand\csname\string#1:ixnf\endcsname
+    \noexpand\else
+      \noexpand\ifdummies\string#1\space
+      \noexpand\else
+        \noexpand\jumptwofi % dispose of the \fi \fi
+        \expandafter\noexpand\csname\string#1:impl\endcsname
+      \noexpand\fi
+    \noexpand\fi}%
+}
+\def\jumptwofi#1\fi\fi{\fi\fi#1}
+
+% For \atdummies and \indexnofonts.  \atdummies sets
+% \dummiestrue and \indexnofonts sets \indexnofontstrue.
+\def\definedummies{
+  % @-sign is always an escape character when reading auxiliary files
+  \escapechar = `\@
+  %
   \commondummyletter\!%
   \commondummyaccent\"%
   \commondummyaccent\'%
@@ -4942,58 +4909,124 @@ $$%
   \commondummyaccent\^%
   \commondummyaccent\`%
   \commondummyaccent\~%
-  \commondummyword\u
-  \commondummyword\v
-  \commondummyword\H
-  \commondummyword\dotaccent
-  \commondummyword\ogonek
-  \commondummyword\ringaccent
-  \commondummyword\tieaccent
-  \commondummyword\ubaraccent
-  \commondummyword\udotaccent
-  \commondummyword\dotless
+  %
+  % Control letters and accents.
+  \commondummyword\u          {}%
+  \commondummyword\v          {}%
+  \commondummyword\H          {}%
+  \commondummyword\dotaccent  {}%
+  \commondummyword\ogonek     {}%
+  \commondummyword\ringaccent {}%
+  \commondummyword\tieaccent  {}%
+  \commondummyword\ubaraccent {}%
+  \commondummyword\udotaccent {}%
+  \commondummyword\dotless    {}%
   %
   % Texinfo font commands.
-  \commondummyword\b
-  \commondummyword\i
-  \commondummyword\r
-  \commondummyword\sansserif
-  \commondummyword\sc
-  \commondummyword\slanted
-  \commondummyword\t
+  \commondummyword\b          {}%
+  \commondummyword\i          {}%
+  \commondummyword\r          {}%
+  \commondummyword\sansserif  {}%
+  \commondummyword\sc         {}%
+  \commondummyword\slanted    {}%
+  \commondummyword\t          {}%
   %
   % Commands that take arguments.
-  \commondummyword\abbr
-  \commondummyword\acronym
-  \commondummyword\anchor
-  \commondummyword\cite
-  \commondummyword\code
-  \commondummyword\command
-  \commondummyword\dfn
-  \commondummyword\dmn
-  \commondummyword\email
-  \commondummyword\emph
-  \commondummyword\env
-  \commondummyword\file
-  \commondummyword\image
-  \commondummyword\indicateurl
-  \commondummyword\inforef
-  \commondummyword\kbd
-  \commondummyword\key
-  \commondummyword\math
-  \commondummyword\option
-  \commondummyword\pxref
-  \commondummyword\ref
-  \commondummyword\samp
-  \commondummyword\strong
-  \commondummyword\tie
-  \commondummyword\U
-  \commondummyword\uref
-  \commondummyword\url
-  \commondummyword\var
-  \commondummyword\verb
-  \commondummyword\w
-  \commondummyword\xref
+  \commondummyword\abbr       {}%
+  \commondummyword\acronym    {}%
+  \commondummyword\anchor     {}%
+  \commondummyword\cite       {}%
+  \commondummyword\code       {}%
+  \commondummyword\command    {}%
+  \commondummyword\dfn        {}%
+  \commondummyword\dmn        {}%
+  \commondummyword\email      {}%
+  \commondummyword\emph       {}%
+  \commondummyword\env        {}%
+  \commondummyword\file       {}%
+  \commondummyword\image      {}%
+  \commondummyword\indicateurl{}%
+  \commondummyword\inforef    {}%
+  \commondummyword\kbd        {}%
+  \commondummyword\key        {}%
+  \commondummyword\link       {}%
+  \commondummyword\math       {}%
+  \commondummyword\option     {}%
+  \commondummyword\pxref      {}%
+  \commondummyword\ref        {}%
+  \commondummyword\samp       {}%
+  \commondummyword\strong     {}%
+  \commondummyword\tie        {}%
+  \commondummyword\U          {}%
+  \commondummyword\uref       {}%
+  \commondummyword\url        {}%
+  \commondummyword\var        {}%
+  \commondummyword\verb       {}%
+  \commondummyword\w          {}%
+  \commondummyword\xref       {}%
+  %
+  \commondummyword\AA               {AA}%
+  \commondummyword\AE               {AE}%
+  \commondummyword\DH               {DZZ}%
+  \commondummyword\L                {L}%
+  \commondummyword\O                {O}%
+  \commondummyword\OE               {OE}%
+  \commondummyword\TH               {TH}%
+  \commondummyword\aa               {aa}%
+  \commondummyword\ae               {ae}%
+  \commondummyword\dh               {dzz}%
+  \commondummyword\exclamdown       {!}%
+  \commondummyword\l                {l}%
+  \commondummyword\o                {o}%
+  \commondummyword\oe               {oe}%
+  \commondummyword\ordf             {a}%
+  \commondummyword\ordm             {o}%
+  \commondummyword\questiondown     {?}%
+  \commondummyword\ss               {ss}%
+  \commondummyword\th               {th}%
+  %
+  \commondummyword\LaTeX            {LaTeX}%
+  \commondummyword\TeX              {TeX}%
+  %
+  % Assorted special characters.
+  \commondummyword\ampchar          {\normalamp}%
+  \commondummyword\atchar           {\@}%
+  \commondummyword\arrow            {->}%
+  \commondummyword\backslashchar    {\realbackslash}%
+  \commondummyword\bullet           {bullet}%
+  \commondummyword\comma            {,}%
+  \commondummyword\copyright        {copyright}%
+  \commondummyword\dots             {...}%
+  \commondummyword\enddots          {...}%
+  \commondummyword\entrybreak       {}%
+  \commondummyword\equiv            {===}%
+  \commondummyword\error            {error}%
+  \commondummyword\euro             {euro}%
+  \commondummyword\expansion        {==>}%
+  \commondummyword\geq              {>=}%
+  \commondummyword\guillemetleft    {<<}%
+  \commondummyword\guillemetright   {>>}%
+  \commondummyword\guilsinglleft    {<}%
+  \commondummyword\guilsinglright   {>}%
+  \commondummyword\lbracechar       {\{}%
+  \commondummyword\leq              {<=}%
+  \commondummyword\mathopsup        {sup}%
+  \commondummyword\minus            {-}%
+  \commondummyword\pounds           {pounds}%
+  \commondummyword\point            {.}%
+  \commondummyword\print            {-|}%
+  \commondummyword\quotedblbase     {"}%
+  \commondummyword\quotedblleft     {"}%
+  \commondummyword\quotedblright    {"}%
+  \commondummyword\quoteleft        {`}%
+  \commondummyword\quoteright       {'}%
+  \commondummyword\quotesinglbase   {,}%
+  \commondummyword\rbracechar       {\}}%
+  \commondummyword\registeredsymbol {R}%
+  \commondummyword\result           {=>}%
+  \commondummyword\sub              {}%
+  \commondummyword\sup              {}%
+  \commondummyword\textdegree       {o}%
 }
 
 \let\indexlbrace\relax
@@ -5044,18 +5077,7 @@ $$%
 % would be for a given command (usually its argument).
 %
 \def\indexnofonts{%
-  % Accent commands should become @asis.
-  \def\commondummyaccent##1{\let##1\asis}%
-  % We can just ignore other control letters.
-  \def\commondummyletter##1{\let##1\empty}%
-  % All control words become @asis by default; overrides below.
-  \let\commondummyword\commondummyaccent
-  \commondummiesnofonts
-  %
-  % Don't no-op \tt, since it isn't a user-level command
-  % and is used in the definitions of the active chars like <, >, |, etc.
-  % Likewise with the other plain tex font commands.
-  %\let\tt=\asis
+  \indexnofontstrue
   %
   \def\ { }%
   \def\@{@}%
@@ -5067,83 +5089,18 @@ $$%
   \let\lbracechar\{%
   \let\rbracechar\}%
   %
-  % Non-English letters.
-  \def\AA{AA}%
-  \def\AE{AE}%
-  \def\DH{DZZ}%
-  \def\L{L}%
-  \def\OE{OE}%
-  \def\O{O}%
-  \def\TH{TH}%
-  \def\aa{aa}%
-  \def\ae{ae}%
-  \def\dh{dzz}%
-  \def\exclamdown{!}%
-  \def\l{l}%
-  \def\oe{oe}%
-  \def\ordf{a}%
-  \def\ordm{o}%
-  \def\o{o}%
-  \def\questiondown{?}%
-  \def\ss{ss}%
-  \def\th{th}%
-  %
-  \let\do\indexnofontsdef
-  %
-  \do\LaTeX{LaTeX}%
-  \do\TeX{TeX}%
-  %
-  % Assorted special characters.
-  \do\atchar{@}%
-  \do\arrow{->}%
-  \do\bullet{bullet}%
-  \do\comma{,}%
-  \do\copyright{copyright}%
-  \do\dots{...}%
-  \do\enddots{...}%
-  \do\equiv{==}%
-  \do\error{error}%
-  \do\euro{euro}%
-  \do\expansion{==>}%
-  \do\geq{>=}%
-  \do\guillemetleft{<<}%
-  \do\guillemetright{>>}%
-  \do\guilsinglleft{<}%
-  \do\guilsinglright{>}%
-  \do\leq{<=}%
-  \do\lbracechar{\{}%
-  \do\minus{-}%
-  \do\point{.}%
-  \do\pounds{pounds}%
-  \do\print{-|}%
-  \do\quotedblbase{"}%
-  \do\quotedblleft{"}%
-  \do\quotedblright{"}%
-  \do\quoteleft{`}%
-  \do\quoteright{'}%
-  \do\quotesinglbase{,}%
-  \do\rbracechar{\}}%
-  \do\registeredsymbol{R}%
-  \do\result{=>}%
-  \do\textdegree{o}%
   %
   % We need to get rid of all macros, leaving only the arguments (if present).
   % Of course this is not nearly correct, but it is the best we can do for now.
-  % makeinfo does not expand macros in the argument to @deffn, which ends up
-  % writing an index entry, and texindex isn't prepared for an index sort entry
-  % that starts with \.
   %
   % Since macro invocations are followed by braces, we can just redefine them
   % to take a single TeX argument.  The case of a macro invocation that
   % goes to end-of-line is not handled.
   %
+  \def\commondummyword##1{\let##1\asis}%
   \macrolist
   \let\value\indexnofontsvalue
 }
-
-% Give the control sequence a definition that removes the {} that follows
-% its use, e.g. @AA{} -> AA
-\def\indexnofontsdef#1#2{\def#1##1{#2}}%
 
 
 
@@ -5826,7 +5783,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % below is chosen so that the gutter has the same value (well, +-<1pt)
   % as it did when we hard-coded it.
   %
-  % We put the result in a separate register, \doublecolumhsize, so we
+  % We put the result in a separate register, \doublecolumnhsize, so we
   % can restore it in \pagesofar, after \hsize itself has (potentially)
   % been clobbered.
   %
@@ -6860,12 +6817,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Get ready to use Arabic numerals again
 \def\contentsendroman{%
   \lastnegativepageno = \pageno
-  \global\pageno = \savepageno
-  %
-  % If \romancount > \arabiccount, the contents are at the end of the
-  % document.  Otherwise, advance where the Arabic numerals start for
-  % the page numbers.
-  \ifnum\romancount>\arabiccount\else\global\arabiccount=\pagecount\fi
+  \global\pageno=1
+  \contentsendcount = \pagecount
 }
 
 % Typeset the label for a chapter or appendix for the short contents.
@@ -7135,8 +7088,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \newdimen\cartouter\newdimen\cartinner
 \newskip\normbskip\newskip\normpskip\newskip\normlskip
 
-
-\envdef\cartouche{%
+\envparseargdef\cartouche{%
   \cartouchefontdefs
   \ifhmode\par\fi  % can't be in the midst of a paragraph.
   \startsavinginserts
@@ -7166,16 +7118,19 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \baselineskip=0pt\parskip=0pt\lineskip=0pt
       \carttop
       \hbox\bgroup
-	  \hskip\lskip
-	  \vrule\kern3pt
-	  \vbox\bgroup
-	      \kern3pt
-	      \hsize=\cartinner
-	      \baselineskip=\normbskip
-	      \lineskip=\normlskip
-	      \parskip=\normpskip
-	      \vskip -\parskip
-	      \comment % For explanation, see the end of def\group.
+          \hskip\lskip
+          \vrule\kern3pt
+          \vbox\bgroup
+              \hsize=\cartinner
+              \baselineskip=\normbskip
+              \lineskip=\normlskip
+              \parskip=\normpskip
+              \def\arg{#1}%
+              \ifx\arg\empty\else
+                \centerV{\hfil \bf #1 \hfil}%
+              \fi
+              \kern3pt
+              \vskip -\parskip
 }
 \def\Ecartouche{%
               \ifhmode\par\fi
@@ -7428,6 +7383,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\setupverb{%
   \tt
   \def\par{\leavevmode\endgraf}%
+  \parindent = 0pt
   \setcodequotes
   \tabeightspaces
   % Respect line breaks,
@@ -7603,11 +7559,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \exdentamount=\defbodyindent
 }
 
-\newtoks\defidx
-\newtoks\deftext
-
-\def\useindex#1{\defidx={#1}\ignorespaces}
-
 % Called as \printdefunline \deffooheader{text}
 %
 \def\printdefunline#1#2{%
@@ -7615,10 +7566,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \plainfrenchspacing
     % call \deffooheader:
     #1#2 \endheader
-    % create the index entry
-    \defcharsdefault
-    \edef\temp{\noexpand\doind{\the\defidx}{\the\deftext}}%
-    \temp
     % common ending:
     \interlinepenalty = 10000
     \advance\rightskip by 0pt plus 1fil\relax
@@ -7632,6 +7579,24 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 
 \def\Edefun{\endgraf\medbreak}
+
+% @defblock, @defline do not automatically create index entries
+\envdef\defblock{%
+  \startdefun
+}
+\let\Edefblock\Edefun
+
+\def\defline{%
+  \doingtypefnfalse
+  \parseargusing\activeparens{\printdefunline\deflineheader}%
+}
+\def\deflineheader#1 #2 #3\endheader{%
+  \printdefname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
+}
+\def\deftypeline{%
+  \doingtypefntrue
+  \parseargusing\activeparens{\printdefunline\deflineheader}%
+}
 
 % \makedefun{deffoo} (\deffooheader parameters) { (\deffooheader expansion) }
 %
@@ -7684,56 +7649,51 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi\fi
 }
 
-\def\defind#1#2{
-  \defidx={#1}%
-  \deftext={#2}%
-}
-
 % Untyped functions:
 
 % @deffn category name args
 \makedefun{deffn}#1 #2 #3\endheader{%
-  \defind{fn}{\code{#2}}%
-  \defname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
+  \doind{fn}{\code{#2}}%
+  \printdefname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
 }
 
 % @defop category class name args
 \makedefun{defop}#1 {\defopheaderx{#1\ \putwordon}}
 \def\defopheaderx#1#2 #3 #4\endheader{%
-  \defind{fn}{\code{#3}\space\putwordon\ \code{#2}}%
-  \defname{#1\ \code{#2}}{}{#3}\magicamp\defunargs{#4\unskip}%
+  \doind{fn}{\code{#3}\space\putwordon\ \code{#2}}%
+  \printdefname{#1\ \code{#2}}{}{#3}\magicamp\defunargs{#4\unskip}%
 }
 
 % Typed functions:
 
 % @deftypefn category type name args
 \makedefun{deftypefn}#1 #2 #3 #4\endheader{%
-  \defind{fn}{\code{#3}}%
+  \doind{fn}{\code{#3}}%
   \doingtypefntrue
-  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+  \printdefname{#1}{#2}{#3}\defunargs{#4\unskip}%
 }
 
 % @deftypeop category class type name args
 \makedefun{deftypeop}#1 {\deftypeopheaderx{#1\ \putwordon}}
 \def\deftypeopheaderx#1#2 #3 #4 #5\endheader{%
-  \defind{fn}{\code{#4}\space\putwordon\ \code{#1\ \code{#2}}}%
+  \doind{fn}{\code{#4}\space\putwordon\ \code{#1\ \code{#2}}}%
   \doingtypefntrue
-  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
+  \printdefname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Typed variables:
 
 % @deftypevr category type var args
 \makedefun{deftypevr}#1 #2 #3 #4\endheader{%
-  \defind{vr}{\code{#3}}%
-  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+  \doind{vr}{\code{#3}}%
+  \printdefname{#1}{#2}{#3}\defunargs{#4\unskip}%
 }
 
 % @deftypecv category class type var args
 \makedefun{deftypecv}#1 {\deftypecvheaderx{#1\ \putwordof}}
 \def\deftypecvheaderx#1#2 #3 #4 #5\endheader{%
-  \defind{vr}{\code{#4}\space\putwordof\ \code{#2}}%
-  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
+  \doind{vr}{\code{#4}\space\putwordof\ \code{#2}}%
+  \printdefname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Untyped variables:
@@ -7749,8 +7709,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % @deftp category name args
 \makedefun{deftp}#1 #2 #3\endheader{%
-  \defind{tp}{\code{#2}}%
-  \defname{#1}{}{#2}\defunargs{#3\unskip}%
+  \doind{tp}{\code{#2}}%
+  \printdefname{#1}{}{#2}\defunargs{#3\unskip}%
 }
 
 % Remaining @defun-like shortcuts:
@@ -7766,14 +7726,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \makedefun{defivar}{\defcvheaderx\putwordInstanceVariableof}
 \makedefun{deftypeivar}{\deftypecvheaderx\putwordInstanceVariableof}
 
-% \defname, which formats the name of the @def (not the args).
+% \printdefname, which formats the name of the @def (not the args).
 % #1 is the category, such as "Function".
 % #2 is the return type, if any.
 % #3 is the function name.
 %
 % We are followed by (but not passed) the arguments, if any.
 %
-\def\defname#1#2#3{%
+\def\printdefname#1#2#3{%
   \par
   % Get the values of \leftskip and \rightskip as they were outside the @def...
   \advance\leftskip by -\defbodyindent
@@ -7858,10 +7818,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % Print arguments.  Use slanted for @def*, typewriter for @deftype*.
 \def\defunargs#1{%
-  \df \ifdoingtypefn \tt \else \sl \fi
-  \ifflagclear{txicodevaristt}{}%
-    {\def\var##1{{\setregularquotes \ttsl ##1}}}%
-  #1%
+  \bgroup
+    \df \ifdoingtypefn \tt \else \sl \fi
+    \ifflagclear{txicodevaristt}{}%
+       {\def\var##1{{\setregularquotes \ttsl ##1}}}%
+    #1%
+  \egroup
 }
 
 % We want ()&[] to print specially on the defun line.
@@ -7896,7 +7858,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % If we encounter &foo, then turn on ()-hacking afterwards
 \newif\ifampseen
-\def\amprm#1 {\ampseentrue{\bf\&#1 }}
+\def\amprm#1 {\ampseentrue{\rm\&#1 }}
 
 \def\parenfont{%
   \ifampseen
@@ -8218,14 +8180,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Read recursive and nonrecursive macro bodies. (They're different since
 % rec and nonrec macros end differently.)
 %
-% We are in \macrobodyctxt, and the \xdef causes backslashshes in the macro
+% We are in \macrobodyctxt, and the \xdef causes backslashes in the macro
 % body to be transformed.
-% Set \macrobody to the body of the macro, and call \defmacro.
+% Set \macrobody to the body of the macro, and call \macrodef.
 %
 {\catcode`\ =\other\long\gdef\parsemacbody#1@end macro{%
-\xdef\macrobody{\eatcr{#1}}\endgroup\defmacro}}%
+\xdef\macrobody{\eatcr{#1}}\endgroup\macrodef}}%
 {\catcode`\ =\other\long\gdef\parsermacbody#1@end rmacro{%
-\xdef\macrobody{\eatcr{#1}}\endgroup\defmacro}}%
+\xdef\macrobody{\eatcr{#1}}\endgroup\macrodef}}%
 
 % Make @ a letter, so that we can make private-to-Texinfo macro names.
 \edef\texiatcatcode{\the\catcode`\@}
@@ -8444,16 +8406,17 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % \xdef is used so that macro definitions will survive the file
 % they're defined in: @include reads the file inside a group.
 %
-\def\defmacro{%
+\def\macrodef{%
   \let\hash=##% convert placeholders to macro parameter chars
   \ifnum\paramno=1
-    \def\xeatspaces##1{##1}%
-    % This removes the pair of braces around the argument.  We don't
-    % use \eatspaces, because this can cause ends of lines to be lost
-    % when the argument to \eatspaces is read, leading to line-based
-    % commands like "@itemize" not being read correctly.
+    \long\def\xeatspaces##1{##1}%
+    % We don't use \xeatspaces for single-argument macros, because we
+    % want to keep ends of lines.  This definition removes \xeatspaces
+    % when \macrobody is expanded below.
   \else
-    \let\xeatspaces\relax % suppress expansion
+    \def\xeatspaces{\string\xeatspaces}%
+    % This expands \xeatspaces as a sequence of character tokens, which
+    % stops \scantokens inserting an extra space after the control sequence.
   \fi
   \ifcase\paramno
   % 0
@@ -8619,6 +8582,75 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi \macnamexxx}
 
 
+% @linemacro
+
+\parseargdef\linemacro{%
+  \getargs{#1}% now \macname is the macname and \argl the arglist
+  \ifx\argl\empty
+    \paramno=0
+    \let\hash\relax
+    \def\paramlist{\hash 1\endlinemacro}%
+  \else
+    \expandafter\linegetparamlist\argl;%
+  \fi
+  \begingroup \macrobodyctxt \usembodybackslash
+  \parselinemacrobody
+}
+
+% Build up \paramlist which will be used as the parameter text for the macro.
+% At the end it will be like "#1 #2 #3\endlinemacro".
+\def\linegetparamlist#1;{%
+  \paramno=0\def\paramlist{}%
+  \let\hash\relax
+  \linegetparamlistxxx#1,;,%
+}
+\def\linegetparamlistxxx#1,{%
+  \if#1;\let\next=\linegetparamlistxxxx
+  \else \let\next=\linegetparamlistxxx
+    \advance\paramno by 1
+    \expandafter\edef\csname macarg.\eatspaces{#1}\endcsname
+        {\hash\the\paramno}%
+    \edef\paramlist{\paramlist\hash\the\paramno\space}%
+  \fi\next}
+\def\linegetparamlistxxxx{%
+  \expandafter\fixparamlist\paramlist\fixparamlist
+}
+% Replace final space token
+\def\fixparamlist#1 \fixparamlist{%
+  \def\paramlist{#1\endlinemacro}%
+}
+
+% Read the body of the macro, replacing backslash-surrounded variables
+%
+{\catcode`\ =\other\long\gdef\parselinemacrobody#1@end linemacro{%
+\xdef\macrobody{#1}%
+\endgroup
+\linemacrodef
+}}
+
+% Make the definition
+\def\linemacrodef{%
+  \let\hash=##%
+  \expandafter\xdef\csname\the\macname\endcsname{%
+    \bgroup
+    \noexpand\parsearg
+    \expandafter\noexpand\csname\the\macname @@\endcsname
+  }
+  \expandafter\xdef\csname\the\macname @@\endcsname##1{%
+    \egroup
+    \expandafter\noexpand
+    \csname\the\macname @@@\endcsname##1\noexpand\endlinemacro
+  }
+  \expandafter\expandafter
+  \expandafter\xdef
+  \expandafter\expandafter\csname\the\macname @@@\endcsname\paramlist{%
+    \newlinechar=13 % split \macrobody into lines
+    \noexpand\scantokens{\macrobody}%
+  }
+}
+
+
+
 % @alias.
 % We need some trickery to remove the optional spaces around the equal
 % sign.  Make them active and then expand them all to nothing.
@@ -8776,109 +8808,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\xrefX[#1,#2,#3,#4,#5,#6]{\begingroup
   \unsepspaces
   %
-  % Get args without leading/trailing spaces.
-  \def\printedrefname{\ignorespaces #3}%
-  \setbox\printedrefnamebox = \hbox{\printedrefname\unskip}%
-  %
+  \getprintedrefname{#1}{#3}{#5}%
   \def\infofilename{\ignorespaces #4}%
   \setbox\infofilenamebox = \hbox{\infofilename\unskip}%
   %
-  \def\printedmanual{\ignorespaces #5}%
-  \setbox\printedmanualbox  = \hbox{\printedmanual\unskip}%
-  %
-  % If the printed reference name (arg #3) was not explicitly given in
-  % the @xref, figure out what we want to use.
-  \ifdim \wd\printedrefnamebox = 0pt
-    % No printed node name was explicitly given.
-    \expandafter\ifx\csname SETxref-automatic-section-title\endcsname \relax
-      % Not auto section-title: use node name inside the square brackets.
-      \def\printedrefname{\ignorespaces #1}%
-    \else
-      % Auto section-title: use chapter/section title inside
-      % the square brackets if we have it.
-      \ifdim \wd\printedmanualbox > 0pt
-        % It is in another manual, so we don't have it; use node name.
-        \def\printedrefname{\ignorespaces #1}%
-      \else
-        \ifhavexrefs
-          % We (should) know the real title if we have the xref values.
-          \def\printedrefname{\refx{#1-title}}%
-        \else
-          % Otherwise just copy the Info node name.
-          \def\printedrefname{\ignorespaces #1}%
-        \fi%
-      \fi
-    \fi
-  \fi
-  %
-  % Make link in pdf output.
-  \ifpdf
-    % For pdfTeX and LuaTeX
-    {\indexnofonts
-     \makevalueexpandable
-     \turnoffactive
-     % This expands tokens, so do it after making catcode changes, so _
-     % etc. don't get their TeX definitions.  This ignores all spaces in
-     % #4, including (wrongly) those in the middle of the filename.
-     \getfilename{#4}%
-     %
-     % This (wrongly) does not take account of leading or trailing
-     % spaces in #1, which should be ignored.
-     \setpdfdestname{#1}%
-     %
-     \ifx\pdfdestname\empty
-       \def\pdfdestname{Top}% no empty targets
-     \fi
-     %
-     \leavevmode
-     \startlink attr{/Border [0 0 0]}%
-     \ifnum\filenamelength>0
-       goto file{\the\filename.pdf} name{\pdfdestname}%
-     \else
-       goto name{\pdfmkpgn{\pdfdestname}}%
-     \fi
-    }%
-    \setcolor{\linkcolor}%
-  \else
-    \ifx\XeTeXrevision\thisisundefined
-    \else
-      % For XeTeX
-      {\indexnofonts
-       \makevalueexpandable
-       \turnoffactive
-       % This expands tokens, so do it after making catcode changes, so _
-       % etc. don't get their TeX definitions.  This ignores all spaces in
-       % #4, including (wrongly) those in the middle of the filename.
-       \getfilename{#4}%
-       %
-       % This (wrongly) does not take account of leading or trailing
-       % spaces in #1, which should be ignored.
-       \setpdfdestname{#1}%
-       %
-       \ifx\pdfdestname\empty
-         \def\pdfdestname{Top}% no empty targets
-       \fi
-       %
-       \leavevmode
-       \ifnum\filenamelength>0
-         % With default settings,
-         % XeTeX (xdvipdfmx) replaces link destination names with integers.
-         % In this case, the replaced destination names of
-         % remote PDFs are no longer known.  In order to avoid a replacement,
-         % you can use xdvipdfmx's command line option `-C 0x0010'.
-         % If you use XeTeX 0.99996+ (TeX Live 2016+),
-         % this command line option is no longer necessary
-         % because we can use the `dvipdfmx:config' special.
-         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
-           << /S /GoToR /F (\the\filename.pdf) /D (\pdfdestname) >> >>}%
-       \else
-         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
-           << /S /GoTo /D (\pdfdestname) >> >>}%
-       \fi
-      }%
-      \setcolor{\linkcolor}%
-    \fi
-  \fi
+  \startxreflink{#1}{#4}%
   {%
     % Have to otherify everything special to allow the \csname to
     % include an _ in the xref name, etc.
@@ -8959,6 +8893,93 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \endlink
 \endgroup}
 
+% \getprintedrefname{NODE}{LABEL}{MANUAL}
+% - set \printedrefname and \printedmanual
+%
+\def\getprintedrefname#1#2#3{%
+  % Get args without leading/trailing spaces.
+  \def\printedrefname{\ignorespaces #2}%
+  \setbox\printedrefnamebox = \hbox{\printedrefname\unskip}%
+  %
+  \def\printedmanual{\ignorespaces #3}%
+  \setbox\printedmanualbox  = \hbox{\printedmanual\unskip}%
+  %
+  % If the printed reference name (arg #2) was not explicitly given in
+  % the @xref, figure out what we want to use.
+  \ifdim \wd\printedrefnamebox = 0pt
+    % No printed node name was explicitly given.
+    \expandafter\ifx\csname SETxref-automatic-section-title\endcsname \relax
+      % Not auto section-title: use node name inside the square brackets.
+      \def\printedrefname{\ignorespaces #1}%
+    \else
+      % Auto section-title: use chapter/section title inside
+      % the square brackets if we have it.
+      \ifdim \wd\printedmanualbox > 0pt
+        % It is in another manual, so we don't have it; use node name.
+        \def\printedrefname{\ignorespaces #1}%
+      \else
+        \ifhavexrefs
+          % We (should) know the real title if we have the xref values.
+          \def\printedrefname{\refx{#1-title}}%
+        \else
+          % Otherwise just copy the Info node name.
+          \def\printedrefname{\ignorespaces #1}%
+        \fi%
+      \fi
+    \fi
+  \fi
+}
+
+% \startxreflink{NODE}{FILE} - start link in pdf output.
+\def\startxreflink#1#2{%
+  \ifpdforxetex
+    % For pdfTeX and LuaTeX
+    {\indexnofonts
+     \makevalueexpandable
+     \turnoffactive
+     % This expands tokens, so do it after making catcode changes, so _
+     % etc. don't get their TeX definitions.  This ignores all spaces in
+     % #2, including (wrongly) those in the middle of the filename.
+     \getfilename{#2}%
+     %
+     % This (wrongly) does not take account of leading or trailing
+     % spaces in #1, which should be ignored.
+     \setpdfdestname{#1}%
+     %
+     \ifx\pdfdestname\empty
+       \def\pdfdestname{Top}% no empty targets
+     \fi
+     %
+     \leavevmode
+     \ifpdf
+       \startlink attr{/Border [0 0 0]}%
+       \ifnum\filenamelength>0
+         goto file{\the\filename.pdf} name{\pdfdestname}%
+       \else
+         goto name{\pdfmkpgn{\pdfdestname}}%
+       \fi
+     \else % XeTeX
+       \ifnum\filenamelength>0
+         % With default settings,
+         % XeTeX (xdvipdfmx) replaces link destination names with integers.
+         % In this case, the replaced destination names of
+         % remote PDFs are no longer known.  In order to avoid a replacement,
+         % you can use xdvipdfmx's command line option `-C 0x0010'.
+         % If you use XeTeX 0.99996+ (TeX Live 2016+),
+         % this command line option is no longer necessary
+         % because we can use the `dvipdfmx:config' special.
+         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
+           << /S /GoToR /F (\the\filename.pdf) /D (\pdfdestname) >> >>}%
+       \else
+         \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
+           << /S /GoTo /D (\pdfdestname) >> >>}%
+       \fi
+     \fi
+    }%
+    \setcolor{\linkcolor}%
+  \fi
+}
+
 % can be overridden in translation files
 \def\putpageref#1{%
   \space\putwordpage\tie\refx{#1-pg}}
@@ -8995,6 +9016,21 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % one that Bob is working on :).
 %
 \def\xrefprintnodename#1{[#1]}
+
+% @link{NODENAME, LABEL, MANUAL} - create a "plain" link, with no
+% page number.  Not useful if printed on paper.
+%
+\def\link#1{\linkX[#1,,,]}
+\def\linkX[#1,#2,#3,#4]{%
+  \begingroup
+  \unsepspaces
+  \getprintedrefname{#1}{#2}{#3}%
+  \startxreflink{#1}{#3}%
+  \printedrefname
+  \endlink
+  \endgroup
+}
+
 
 % Things referred to by \setref.
 %
@@ -9610,8 +9646,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\caption{\docaption\thiscaption}
 \def\shortcaption{\docaption\thisshortcaption}
-\def\docaption{\checkenv\float \bgroup\scanctxt\defcaption}
-\def\defcaption#1#2{\egroup \def#1{#2}}
+\def\docaption{\checkenv\float \bgroup\scanctxt\docaptionz}
+\def\docaptionz#1#2{\egroup \def#1{#2}}
 
 % The parameter is the control sequence identifying the counter we are
 % going to use.  Create it if it doesn't exist and assign it to \floatno.
@@ -9900,12 +9936,10 @@ directory should work if nowhere else does.}
        % For native Unicode handling (XeTeX and LuaTeX)
        \nativeunicodechardefs
      \else
-       % For treating UTF-8 as byte sequences (TeX, eTeX and pdfTeX)
+       % For treating UTF-8 as byte sequences (TeX, eTeX and pdfTeX).
+       % Since we already invoke \utfeightchardefs at the top level,
+       % making non-ascii chars active is sufficient.
        \setnonasciicharscatcode\active
-       % since we already invoked \utfeightchardefs at the top level
-       % (below), do not re-invoke it, otherwise our check for duplicated
-       % definitions gets triggered.  Making non-ascii chars active is
-       % sufficient.
      \fi
   %
   \else
@@ -9930,7 +9964,6 @@ directory should work if nowhere else does.}
   \fi
 }
 
-% emacs-page
 % A message to be logged when using a character that isn't available
 % the default font encoding (OT1).
 %
@@ -9938,12 +9971,6 @@ directory should work if nowhere else does.}
 
 % Take account of \c (plain) vs. \, (Texinfo) difference.
 \def\cedilla#1{\ifx\c\ptexc\c{#1}\else\,{#1}\fi}
-
-% First, make active non-ASCII characters in order for them to be
-% correctly categorized when TeX reads the replacement text of
-% macros containing the character definitions.
-\setnonasciicharscatcode\active
-%
 
 \def\gdefchar#1#2{%
 \gdef#1{%
@@ -9954,8 +9981,14 @@ directory should work if nowhere else does.}
    \fi
 }}
 
+\begingroup
+
+% Make non-ASCII characters active for defining the character definition
+% macros.
+\setnonasciicharscatcode\active
+
 % Latin1 (ISO-8859-1) character definitions.
-\def\latonechardefs{%
+\gdef\latonechardefs{%
   \gdefchar^^a0{\tie}
   \gdefchar^^a1{\exclamdown}
   \gdefchar^^a2{{\tcfont \char162}} % cent
@@ -10060,7 +10093,7 @@ directory should work if nowhere else does.}
 }
 
 % Latin9 (ISO-8859-15) encoding character definitions.
-\def\latninechardefs{%
+\gdef\latninechardefs{%
   % Encoding is almost identical to Latin1.
   \latonechardefs
   %
@@ -10075,7 +10108,7 @@ directory should work if nowhere else does.}
 }
 
 % Latin2 (ISO-8859-2) character definitions.
-\def\lattwochardefs{%
+\gdef\lattwochardefs{%
   \gdefchar^^a0{\tie}
   \gdefchar^^a1{\ogonek{A}}
   \gdefchar^^a2{\u{}}
@@ -10178,6 +10211,8 @@ directory should work if nowhere else does.}
   \gdefchar^^fe{\cedilla t}
   \gdefchar^^ff{\dotaccent{}}
 }
+
+\endgroup % active chars
 
 % UTF-8 character definitions.
 %
@@ -11231,13 +11266,13 @@ directory should work if nowhere else does.}
    \relax
 }
 
-% Define all Unicode characters we know about.  This makes UTF-8 the default
-% input encoding and allows @U to work.
+% Define all Unicode characters we know about
 \iftxinativeunicodecapable
   \nativeunicodechardefsatu
 \else
   \utfeightchardefs
 \fi
+
 
 \message{formatting,}
 
@@ -11566,7 +11601,7 @@ directory should work if nowhere else does.}
   \fi
 }
 
-\microtypeON
+\microtypeOFF
 
 \parseargdef\microtype{%
   \def\txiarg{#1}%
@@ -11582,6 +11617,9 @@ directory should work if nowhere else does.}
 
 
 \message{and turning on texinfo input format.}
+
+% Make UTF-8 the default encoding.
+\documentencodingzzz{UTF-8}
 
 \def^^L{\par} % remove \outer, so ^L can appear in an @comment
 \catcode`\^^K = 10 % treat vertical tab as whitespace
@@ -11645,22 +11683,31 @@ directory should work if nowhere else does.}
 % Used sometimes to turn off (effectively) the active characters even after
 % parsing them.
 \def\turnoffactive{%
-  \normalturnoffactive
+  \passthroughcharstrue
+  \let-=\normaldash
+  \let"=\normaldoublequote
+  \let$=\normaldollar %$ font-lock fix
+  \let+=\normalplus
+  \let<=\normalless
+  \let>=\normalgreater
+  \let^=\normalcaret
+  \let_=\normalunderscore
+  \let|=\normalverticalbar
+  \let~=\normaltilde
   \otherbackslash
+  \setregularquotes
+  \unsepspaces
 }
 
-\catcode`\@=0
+% If a .fmt file is being used, characters that might appear in a file
+% name cannot be active until we have parsed the command line.
+% So turn them off again, and have \loadconf turn them back on.
+\catcode`+=\other \catcode`\_=\other
+
 
 % \backslashcurfont outputs one backslash character in current font,
 % as in \char`\\.
 \global\chardef\backslashcurfont=`\\
-
-% \realbackslash is an actual character `\' with catcode other.
-{\catcode`\\=\other @gdef@realbackslash{\}}
-
-% In Texinfo, backslash is an active character; it prints the backslash
-% in fixed width font.
-\catcode`\\=\active  % @ for escape char from now on.
 
 % Print a typewriter backslash.  For math mode, we can't simply use
 % \backslashcurfont: the story here is that in math mode, the \char
@@ -11671,8 +11718,102 @@ directory should work if nowhere else does.}
 % ignored family value; char position "5C).  We can't use " for the
 % usual hex value because it has already been made active.
 
-@def@ttbackslash{{@tt @ifmmode @mathchar29020 @else @backslashcurfont @fi}}
-@let@backslashchar = @ttbackslash % @backslashchar{} is for user documents.
+\def\ttbackslash{{\tt \ifmmode \mathchar29020 \else \backslashcurfont \fi}}
+\let\backslashchar = \ttbackslash % \backslashchar{} is for user documents.
+
+% These are made active for url-breaking, so need
+% active definitions as the normal characters.
+\def\normaldot{.}
+\def\normalquest{?}
+\def\normalslash{/}
+
+% \newlinesloadsconf - call \loadconf as soon as possible in the
+% file, e.g. at the first newline.
+%
+{\catcode`\^=7
+\catcode`\^^M=13
+\gdef\newlineloadsconf{%
+  \catcode`\^^M=13 %
+  \newlineloadsconfzz%
+}
+\gdef\newlineloadsconfzz#1^^M{%
+  \def\c{\loadconf\c}%
+  % Definition for the first newline read in the file
+  \def ^^M{\loadconf}%
+  % In case the first line has a whole-line command on it
+  \let\originalparsearg\parsearg%
+  \def\parsearg{\loadconf\originalparsearg}%
+}}
+
+
+% Emergency active definition of newline, in case an active newline token
+% appears by mistake.
+{\catcode`\^=7 \catcode13=13%
+\gdef\enableemergencynewline{%
+  \gdef^^M{%
+    \par%
+    %<warning: active newline>\par%
+}}}
+
+
+% \loadconf gets called at the beginning of every Texinfo file.
+% If texinfo.cnf is present on the system, read it.  Useful for site-wide
+% @afourpaper, etc.  Not opening texinfo.cnf directly in texinfo.tex
+% makes it possible to make a format file for Texinfo.
+%
+\gdef\loadconf{%
+  \relax  % Terminate the filename if running as "tex '&texinfo' FILE.texi".
+  %
+  % Turn off the definitions that trigger \loadconf
+  \everyjobreset
+  \catcode13=5 % regular end of line
+  \enableemergencynewline
+  \let\c=\comment
+  \let\parsearg\originalparsearg
+  %
+  % Also turn back on active characters that might appear in the input
+  % file name, in case not using a pre-dumped format.
+  \catcode`+=\active
+  \catcode`\_=\active
+  %
+  \openin 1 texinfo.cnf
+  \ifeof 1 \else \input texinfo.cnf \fi
+  \closein 1
+}
+
+% Redefine some control sequences to be controlled by the \ifdummies
+% and \ifindexnofonts switches.  Do this at the end so that the control
+% sequences are all defined.
+\definedummies
+
+
+
+
+\catcode`\@=0
+
+% \realbackslash is an actual character `\' with catcode other.
+{\catcode`\\=\other @gdef@realbackslash{\}}
+
+% In Texinfo, backslash is an active character; it prints the backslash
+% in fixed width font.
+\catcode`\\=\active  % @ for escape char from now on.
+
+@let\ = @ttbackslash
+
+% If in a .fmt file, print the version number.
+% \eatinput stops the `\input texinfo' from showing up.
+% After that, `\' should revert to printing a backslash.
+% Turn on active characters that we couldn't do earlier because
+% they might have appeared in the input file name.
+%
+@everyjob{@message{[Texinfo version @texinfoversion]}%
+  @global@let\ = @eatinput
+  @catcode`+=@active @catcode`@_=@active}
+
+{@catcode`@^=7 @catcode`@^^M=13%
+@gdef@eatinput input texinfo#1^^M{@loadconf}}
+
+@def@everyjobreset{@ifx\@eatinput @let\ = @ttbackslash @fi}
 
 % \otherbackslash defines an active \ to be a literal `\' character with
 % catcode other.
@@ -11683,96 +11824,13 @@ directory should work if nowhere else does.}
 %
 {@catcode`- = @active
  @gdef@normalturnoffactive{%
-   @passthroughcharstrue
-   @let-=@normaldash
-   @let"=@normaldoublequote
-   @let$=@normaldollar %$ font-lock fix
-   @let+=@normalplus
-   @let<=@normalless
-   @let>=@normalgreater
-   @let^=@normalcaret
-   @let_=@normalunderscore
-   @let|=@normalverticalbar
-   @let~=@normaltilde
+   @turnoffactive
    @let\=@ttbackslash
-   @setregularquotes
-   @unsepspaces
  }
 }
 
-% If a .fmt file is being used, characters that might appear in a file
-% name cannot be active until we have parsed the command line.
-% So turn them off again, and have @fixbackslash turn them back on.
-@catcode`+=@other @catcode`@_=@other
-
-% \enablebackslashhack - allow file to begin `\input texinfo'
-%
-% If a .fmt file is being used, we don't want the `\input texinfo' to show up.
-% That is what \eatinput is for; after that, the `\' should revert to printing
-% a backslash.
-% If the file did not have a `\input texinfo', then it is turned off after
-% the first line; otherwise the first `\' in the file would cause an error.
-% This is used on the very last line of this file, texinfo.tex.
-% We also use @c to call @fixbackslash, in case ends of lines are hidden.
-{
-@catcode`@^=7
-@catcode`@^^M=13@gdef@enablebackslashhack{%
-  @global@let\ = @eatinput%
-  @catcode`@^^M=13%
-  @def@c{@fixbackslash@c}%
-  % Definition for the newline at the end of this file.
-  @def ^^M{@let^^M@secondlinenl}%
-  % Definition for a newline in the main Texinfo file.
-  @gdef @secondlinenl{@fixbackslash}%
-  % In case the first line has a whole-line command on it
-  @let@originalparsearg@parsearg
-  @def@parsearg{@fixbackslash@originalparsearg}
-}}
-
-{@catcode`@^=7 @catcode`@^^M=13%
-@gdef@eatinput input texinfo#1^^M{@fixbackslash}}
-
-% Emergency active definition of newline, in case an active newline token
-% appears by mistake.
-{@catcode`@^=7 @catcode13=13%
-@gdef@enableemergencynewline{%
-  @gdef^^M{%
-    @par%
-    %<warning: active newline>@par%
-}}}
-
-
-@gdef@fixbackslash{%
-  @ifx\@eatinput @let\ = @ttbackslash @fi
-  @catcode13=5 % regular end of line
-  @enableemergencynewline
-  @let@c=@comment
-  @let@parsearg@originalparsearg
-  % Also turn back on active characters that might appear in the input
-  % file name, in case not using a pre-dumped format.
-  @catcode`+=@active
-  @catcode`@_=@active
-  %
-  % If texinfo.cnf is present on the system, read it.
-  % Useful for site-wide @afourpaper, etc.  This macro, @fixbackslash, gets
-  % called at the beginning of every Texinfo file.  Not opening texinfo.cnf
-  % directly in this file, texinfo.tex, makes it possible to make a format
-  % file for Texinfo.
-  %
-  @openin 1 texinfo.cnf
-  @ifeof 1 @else @input texinfo.cnf @fi
-  @closein 1
-}
-
-
 % Say @foo, not \foo, in error messages.
 @escapechar = `@@
-
-% These (along with & and #) are made active for url-breaking, so need
-% active definitions as the normal characters.
-@def@normaldot{.}
-@def@normalquest{?}
-@def@normalslash{/}
 
 % These look ok in all fonts, so just make them not special.
 % @hashchar{} gets its own user-level command, because of #line.
@@ -11788,15 +11846,11 @@ directory should work if nowhere else does.}
 @c Do this last of all since we use ` in the previous @catcode assignments.
 @catcode`@'=@active
 @catcode`@`=@active
-@setregularquotes
 
 @c Local variables:
 @c eval: (add-hook 'before-save-hook 'time-stamp nil t)
 @c time-stamp-pattern: "texinfoversion{%Y-%02m-%02d.%02H}"
-@c page-delimiter: "^\\\\message\\|emacs-page"
+@c page-delimiter: "^\\\\message"
 @c End:
 
-@c vim:sw=2:
-
-@enablebackslashhack
-
+@newlineloadsconf

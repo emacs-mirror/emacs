@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -1755,7 +1755,9 @@ caught automatically, so that it doesn't stop the execution of whatever
 program was running when the filter function was started.  However, if
 @code{debug-on-error} is non-@code{nil}, errors are not caught.
 This makes it possible to use the Lisp debugger to debug filter
-functions.  @xref{Debugger}.
+functions.  @xref{Debugger}.  If an error is caught, Emacs pauses for
+@code{process-error-pause-time} seconds so that the user sees the
+error.  @xref{Asynchronous Processes}
 
   Many filter functions sometimes (or always) insert the output in the
 process's buffer, mimicking the actions of the default filter.
@@ -2159,7 +2161,9 @@ automatically, so that it doesn't stop the execution of whatever
 programs was running when the sentinel was started.  However, if
 @code{debug-on-error} is non-@code{nil},  errors are not caught.
 This makes it possible to use the Lisp debugger to debug the
-sentinel.  @xref{Debugger}.
+sentinel.  @xref{Debugger}.  If an error is caught, Emacs pauses for
+@code{process-error-pause-time} seconds so that the user sees the
+error.  @xref{Asynchronous Processes}
 
   While a sentinel is running, the process sentinel is temporarily
 set to @code{nil} so that the sentinel won't run recursively.
@@ -2658,7 +2662,7 @@ naming the certificate key file and certificate file itself, or
 Library}).  Only used for @acronym{TLS} or @acronym{STARTTLS}.  To
 enable automatic queries of @code{auth-source} when
 @code{:client-certificate} is not specified customize
-@code{network-stream-use-client-certificates} to t.
+@code{network-stream-use-client-certificates} to @code{t}.
 
 @item :return-list @var{cons-or-nil}
 The return value of this function.  If omitted or @code{nil}, return a
@@ -3571,7 +3575,7 @@ and @code{#x1c} @code{#x28} to @w{@code{(3 5 10 11 12)}}.
 @item fill @var{len}
 @var{len} bytes used as a mere filler.  In packing, these bytes are
 left unchanged, which normally means they remain zero.
-When unpacking, this just returns nil.
+When unpacking, this just returns @code{nil}.
 
 @item align @var{len}
 Same as @code{fill} except the number of bytes is that needed to skip

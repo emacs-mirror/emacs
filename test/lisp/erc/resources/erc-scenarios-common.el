@@ -1,6 +1,6 @@
 ;;; erc-scenarios-common.el --- Common helpers for ERC scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; argument, a `let*'-style VAR-LIST.  Relying on such a macro is
 ;; unfortunate because in many ways it actually hampers readability by
 ;; favoring magic over verbosity.  But without it (or something
-;; similar), any failing test would cause all subsequent tests in this
+;; similar), any failing test would cause all subsequent tests in a
 ;; file to fail like dominoes (making all but the first backtrace
 ;; useless).
 ;;
@@ -121,6 +121,7 @@
       (erc-modules (copy-sequence erc-modules))
       (inhibit-interaction t)
       (auth-source-do-cache nil)
+      (timer-list (copy-sequence timer-list))
       (erc-auth-source-parameters-join-function nil)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)

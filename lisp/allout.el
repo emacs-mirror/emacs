@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet
@@ -5390,7 +5390,7 @@ Defaults:
     ;; not specified -- default it:
     (setq tobuf (concat "*" (buffer-name frombuf) " exposed*")))
   (if (listp format)
-      (nreverse format))
+      (setq format (reverse format)))
 
   (let* ((listified
 	  (progn (set-buffer frombuf)
@@ -6307,7 +6307,7 @@ not its value."
           (if (yes-or-no-p (format-message
 			    "%s entry `%s' is unbound -- remove it? "
 			    configvar-name sym))
-              (delq sym (symbol-value configvar-name)))
+              (set configvar-name (delq sym (symbol-value configvar-name))))
         (push (symbol-value sym) got)))
     (reverse got)))
 ;;;_  : Topics:

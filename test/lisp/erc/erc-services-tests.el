@@ -1,6 +1,6 @@
 ;;; erc-services-tests.el --- Tests for erc-services.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -212,105 +212,105 @@
     (advice-remove 'epg-decrypt-string 'erc--auth-source-plstore)
     (advice-remove 'epg-find-configuration 'erc--auth-source-plstore)))
 
-(defvar erc-services-tests--auth-source-plstore-standard-entries
-  '(("ba950d38118a76d71f9f0591bb373d6cb366a512"
-     :secret-secret t
-     :host "irc.gnu.org"
-     :user "#chan"
-     :port "irc")
-    ("7f17ca445d11158065e911a6d0f4cbf52ca250e3"
-     :secret-secret t
-     :host "my.gnu.org"
-     :user "#chan"
-     :port "irc")
-    ("fcd3c8bd6daf4509de0ad6ee98e744ce0fca9377"
-     :secret-secret t
-     :host "GNU.chat"
-     :user "#chan"
-     :port "irc")))
-
-(defvar erc-services-tests--auth-source-plstore-standard-secrets
-  '(("ba950d38118a76d71f9f0591bb373d6cb366a512" :secret "bar")
-    ("7f17ca445d11158065e911a6d0f4cbf52ca250e3" :secret "baz")
-    ("fcd3c8bd6daf4509de0ad6ee98e744ce0fca9377" :secret "foo")))
+(defvar erc-services-tests--auth-source-plstore-standard-announced "\
+;;; public entries -*- mode: plstore -*-
+((\"ba950d38118a76d71f9f0591bb373d6cb366a512\"
+  :secret-secret t
+  :host \"irc.gnu.org\"
+  :user \"#chan\"
+  :port \"irc\")
+ (\"7f17ca445d11158065e911a6d0f4cbf52ca250e3\"
+  :secret-secret t
+  :host \"my.gnu.org\"
+  :user \"#chan\"
+  :port \"irc\")
+ (\"fcd3c8bd6daf4509de0ad6ee98e744ce0fca9377\"
+  :secret-secret t
+  :host \"GNU.chat\"
+  :user \"#chan\"
+  :port \"irc\"))
+;;; secret entries
+((\"ba950d38118a76d71f9f0591bb373d6cb366a512\" :secret \"bar\")
+ (\"7f17ca445d11158065e911a6d0f4cbf52ca250e3\" :secret \"baz\")
+ (\"fcd3c8bd6daf4509de0ad6ee98e744ce0fca9377\" :secret \"foo\"))")
 
 (ert-deftest erc--auth-source-search--plstore-standard ()
   (ert-with-temp-file plstore-file
     :suffix ".plist"
-    :text (concat ";;; public entries -*- mode: plstore -*- \n"
-                  (prin1-to-string
-                   erc-services-tests--auth-source-plstore-standard-entries)
-                  "\n;;; secret entries\n"
-                  (prin1-to-string
-                   erc-services-tests--auth-source-plstore-standard-secrets)
-                  "\n")
-
+    :text erc-services-tests--auth-source-plstore-standard-announced
     (let ((auth-sources (list plstore-file))
           (auth-source-do-cache nil))
       (erc-services-tests--auth-source-standard
-       #'erc-services-test--call-with-plstore))))
+       #'erc-services-test--call-with-plstore))
+    (kill-buffer (get-file-buffer plstore-file))))
 
 (ert-deftest erc--auth-source-search--plstore-announced ()
   (ert-with-temp-file plstore-file
     :suffix ".plist"
-    :text (concat ";;; public entries -*- mode: plstore -*- \n"
-                  (prin1-to-string
-                   erc-services-tests--auth-source-plstore-standard-entries)
-                  "\n;;; secret entries\n"
-                  (prin1-to-string
-                   erc-services-tests--auth-source-plstore-standard-secrets)
-                  "\n")
-
+    :text erc-services-tests--auth-source-plstore-standard-announced
     (let ((auth-sources (list plstore-file))
           (auth-source-do-cache nil))
       (erc-services-tests--auth-source-announced
-       #'erc-services-test--call-with-plstore))))
+       #'erc-services-test--call-with-plstore))
+    (kill-buffer (get-file-buffer plstore-file))))
 
 (ert-deftest erc--auth-source-search--plstore-overrides ()
   (ert-with-temp-file plstore-file
     :suffix ".plist"
-    :text (concat
-           ";;; public entries -*- mode: plstore -*- \n"
-           (prin1-to-string
-            `(,@erc-services-tests--auth-source-plstore-standard-entries
-              ("1b3fab249a8dff77a4d8fe7eb4b0171b25cc711a"
-               :secret-secret t :host "GNU.chat" :user "#chan" :port "6697")
-              ("6cbcdc39476b8cfcca6f3e9a7876f41ec3f708cc"
-               :secret-secret t :host "my.gnu.org" :user "#fsf" :port "irc")
-              ("a33e2b3bd2d6f33995a4b88710a594a100c5e41d"
-               :secret-secret t :host "irc.gnu.org" :port "6667")
-              ("ab2fd349b2b7d6a9215bb35a92d054261b0b1537"
-               :secret-secret t :host "MyHost" :port "irc")
-              ("61a6bd552059494f479ff720e8de33e22574650a"
-               :secret-secret t :host "MyHost" :port "6667")))
-           "\n;;; secret entries\n"
-           (prin1-to-string
-            `(,@erc-services-tests--auth-source-plstore-standard-secrets
-              ("1b3fab249a8dff77a4d8fe7eb4b0171b25cc711a" :secret "spam")
-              ("6cbcdc39476b8cfcca6f3e9a7876f41ec3f708cc" :secret "42")
-              ("a33e2b3bd2d6f33995a4b88710a594a100c5e41d" :secret "sesame")
-              ("ab2fd349b2b7d6a9215bb35a92d054261b0b1537" :secret "456")
-              ("61a6bd552059494f479ff720e8de33e22574650a" :secret "123")))
-           "\n")
+    :text "\
+;;; public entries -*- mode: plstore -*-
+((\"ba950d38118a76d71f9f0591bb373d6cb366a512\"
+  :secret-secret t :host \"irc.gnu.org\" :user \"#chan\" :port \"irc\")
+ (\"7f17ca445d11158065e911a6d0f4cbf52ca250e3\"
+  :secret-secret t :host \"my.gnu.org\" :user \"#chan\" :port \"irc\")
+ (\"fcd3c8bd6daf4509de0ad6ee98e744ce0fca9377\"
+  :secret-secret t :host \"GNU.chat\" :user \"#chan\" :port \"irc\")
+ (\"1b3fab249a8dff77a4d8fe7eb4b0171b25cc711a\"
+  :secret-secret t :host \"GNU.chat\" :user \"#chan\" :port \"6697\")
+ (\"6cbcdc39476b8cfcca6f3e9a7876f41ec3f708cc\"
+  :secret-secret t :host \"my.gnu.org\" :user \"#fsf\" :port \"irc\")
+ (\"a33e2b3bd2d6f33995a4b88710a594a100c5e41d\"
+  :secret-secret t :host \"irc.gnu.org\" :port \"6667\")
+ (\"ab2fd349b2b7d6a9215bb35a92d054261b0b1537\"
+  :secret-secret t :host \"MyHost\" :port \"irc\")
+ (\"61a6bd552059494f479ff720e8de33e22574650a\"
+  :secret-secret t :host \"MyHost\" :port \"6667\"))
+;;; secret entries
+((\"ba950d38118a76d71f9f0591bb373d6cb366a512\" :secret \"bar\")
+ (\"7f17ca445d11158065e911a6d0f4cbf52ca250e3\" :secret \"baz\")
+ (\"fcd3c8bd6daf4509de0ad6ee98e744ce0fca9377\" :secret \"foo\")
+ (\"1b3fab249a8dff77a4d8fe7eb4b0171b25cc711a\" :secret \"spam\")
+ (\"6cbcdc39476b8cfcca6f3e9a7876f41ec3f708cc\" :secret \"42\")
+ (\"a33e2b3bd2d6f33995a4b88710a594a100c5e41d\" :secret \"sesame\")
+ (\"ab2fd349b2b7d6a9215bb35a92d054261b0b1537\" :secret \"456\")
+ (\"61a6bd552059494f479ff720e8de33e22574650a\" :secret \"123\"))"
 
     (let ((auth-sources (list plstore-file))
           (auth-source-do-cache nil))
       (erc-services-tests--auth-source-overrides
-       #'erc-services-test--call-with-plstore))))
+       #'erc-services-test--call-with-plstore))
+    (kill-buffer (get-file-buffer plstore-file))))
 
 ;; auth-source JSON backend
 
-(defvar erc-services-tests--auth-source-json-standard-entries
-  [(:host "irc.gnu.org" :port "irc" :user "#chan" :secret "bar")
-   (:host "my.gnu.org" :port "irc" :user "#chan" :secret "baz")
-   (:host "GNU.chat" :port "irc" :user "#chan" :secret "foo")])
+(defvar erc-services-tests--auth-source-json-standard-announced "\
+[{\"host\": \"irc.gnu.org\",
+  \"port\": \"irc\",
+  \"user\": \"#chan\",
+  \"secret\": \"bar\"},
+ {\"host\": \"my.gnu.org\",
+  \"port\": \"irc\",
+  \"user\": \"#chan\",
+  \"secret\": \"baz\"},
+ {\"host\": \"GNU.chat\",
+  \"port\": \"irc\",
+  \"user\": \"#chan\",
+  \"secret\": \"foo\"}]")
 
 (ert-deftest erc--auth-source-search--json-standard ()
   (ert-with-temp-file json-store
+    :text erc-services-tests--auth-source-json-standard-announced
     :suffix ".json"
-    :text (let ((json-object-type 'plist))
-            (json-encode
-             erc-services-tests--auth-source-json-standard-entries))
     (let ((auth-sources (list json-store))
           (auth-source-do-cache nil))
       (erc-services-tests--auth-source-standard #'erc-auth-source-search))))
@@ -318,10 +318,7 @@
 (ert-deftest erc--auth-source-search--json-announced ()
   (ert-with-temp-file plstore-file
     :suffix ".json"
-    :text (let ((json-object-type 'plist))
-            (json-encode
-             erc-services-tests--auth-source-json-standard-entries))
-
+    :text erc-services-tests--auth-source-json-standard-announced
     (let ((auth-sources (list plstore-file))
           (auth-source-do-cache nil))
       (erc-services-tests--auth-source-announced #'erc-auth-source-search))))
@@ -329,16 +326,36 @@
 (ert-deftest erc--auth-source-search--json-overrides ()
   (ert-with-temp-file json-file
     :suffix ".json"
-    :text (let ((json-object-type 'plist))
-            (json-encode
-             (vconcat
-              erc-services-tests--auth-source-json-standard-entries
-              [(:secret "spam" :host "GNU.chat" :user "#chan" :port "6697")
-               (:secret "42" :host "my.gnu.org" :user "#fsf" :port "irc")
-               (:secret "sesame" :host "irc.gnu.org" :port "6667")
-               (:secret "456" :host "MyHost" :port "irc")
-               (:secret "123" :host "MyHost" :port "6667")])))
-
+    :text "\
+[{\"host\": \"irc.gnu.org\",
+  \"port\": \"irc\",
+  \"user\": \"#chan\",
+  \"secret\": \"bar\"},
+ {\"host\": \"my.gnu.org\",
+  \"port\": \"irc\",
+  \"user\": \"#chan\",
+  \"secret\": \"baz\"},
+ {\"host\": \"GNU.chat\",
+  \"port\": \"irc\",
+  \"user\": \"#chan\",
+  \"secret\": \"foo\"},
+ {\"host\": \"GNU.chat\",
+  \"user\": \"#chan\",
+  \"port\": \"6697\",
+  \"secret\": \"spam\"},
+ {\"host\": \"my.gnu.org\",
+  \"user\": \"#fsf\",
+  \"port\": \"irc\",
+  \"secret\": \"42\"},
+ {\"host\": \"irc.gnu.org\",
+  \"port\": \"6667\",
+  \"secret\": \"sesame\"},
+ {\"host\": \"MyHost\",
+  \"port\": \"irc\",
+  \"secret\": \"456\"},
+ {\"host\": \"MyHost\",
+  \"port\": \"6667\",
+  \"secret\": \"123\"}]"
     (let ((auth-sources (list json-file))
           (auth-source-do-cache nil))
       (erc-services-tests--auth-source-overrides #'erc-auth-source-search))))
@@ -367,6 +384,14 @@
     ("#chan@my.gnu.org:irc" . "baz")
     ("#chan@GNU.chat:irc" . "foo")))
 
+(defun erc-services-tests--secrets-search-items (entries _ &rest r)
+  (mapcan (lambda (s)
+            (and (seq-every-p (pcase-lambda (`(,k . ,v))
+                                (equal v (alist-get k (cdr s))))
+                              (map-pairs r))
+                 (list (car s))))
+          entries))
+
 (ert-deftest erc--auth-source-search--secrets-standard ()
   (skip-unless (bound-and-true-p secrets-enabled))
   (let ((auth-sources '("secrets:Test"))
@@ -375,18 +400,12 @@
         (secrets erc-services-tests--auth-source-secrets-standard-secrets))
 
     (cl-letf (((symbol-function 'secrets-search-items)
-               (lambda (col &rest r)
-                 (should (equal col "Test"))
-                 (should (plist-get r :user))
-                 (map-keys entries)))
+               (apply-partially #'erc-services-tests--secrets-search-items
+                                entries))
               ((symbol-function 'secrets-get-secret)
-               (lambda (col label)
-                 (should (equal col "Test"))
-                 (assoc-default label secrets)))
+               (lambda (_ label) (assoc-default label secrets)))
               ((symbol-function 'secrets-get-attributes)
-               (lambda (col label)
-                 (should (equal col "Test"))
-                 (assoc-default label entries))))
+               (lambda (_ label) (assoc-default label entries))))
 
       (erc-services-tests--auth-source-standard #'erc-auth-source-search))))
 
@@ -398,18 +417,12 @@
         (secrets erc-services-tests--auth-source-secrets-standard-secrets))
 
     (cl-letf (((symbol-function 'secrets-search-items)
-               (lambda (col &rest r)
-                 (should (equal col "Test"))
-                 (should (plist-get r :user))
-                 (map-keys entries)))
+               (apply-partially #'erc-services-tests--secrets-search-items
+                                entries))
               ((symbol-function 'secrets-get-secret)
-               (lambda (col label)
-                 (should (equal col "Test"))
-                 (assoc-default label secrets)))
+               (lambda (_ label) (assoc-default label secrets)))
               ((symbol-function 'secrets-get-attributes)
-               (lambda (col label)
-                 (should (equal col "Test"))
-                 (assoc-default label entries))))
+               (lambda (_ label) (assoc-default label entries))))
 
       (erc-services-tests--auth-source-announced #'erc-auth-source-search))))
 
@@ -441,17 +454,12 @@
                    ("MyHost:6667" . "123"))))
 
     (cl-letf (((symbol-function 'secrets-search-items)
-               (lambda (col &rest _)
-                 (should (equal col "Test"))
-                 (map-keys entries)))
+               (apply-partially #'erc-services-tests--secrets-search-items
+                                entries))
               ((symbol-function 'secrets-get-secret)
-               (lambda (col label)
-                 (should (equal col "Test"))
-                 (assoc-default label secrets)))
+               (lambda (_ label) (assoc-default label secrets)))
               ((symbol-function 'secrets-get-attributes)
-               (lambda (col label)
-                 (should (equal col "Test"))
-                 (assoc-default label entries))))
+               (lambda (_ label) (assoc-default label entries))))
 
       (erc-services-tests--auth-source-overrides #'erc-auth-source-search))))
 

@@ -1,6 +1,6 @@
 ;;; reftex-tests.el --- Test suite for reftex. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 ;; Keywords:       internal
@@ -294,7 +294,8 @@ And this should be % \\cite{ignored}.
       (find-file tex-file)
       (setq keys (reftex-all-used-citation-keys))
       (should (equal (sort keys #'string<)
-                     (sort '(;; Standard commands:
+                     (sort (list
+                             ;; Standard commands:
                              "cite:2022"      "Cite:2022"
                              "parencite:2022" "Parencite:2022"
                              "footcite:2022"  "footcitetext:2022"

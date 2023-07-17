@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -73,6 +73,8 @@
 
 (eval-when-compile
   (require 'cl-lib))
+
+(declare-function eshell-interactive-print "esh-mode" (string))
 
 (defgroup eshell-io nil
   "Eshell's I/O management code provides a scheme for treating many
@@ -597,8 +599,6 @@ after all printing is over with no argument."
   (eshell-print object)
   (eshell-print "\n"))
 
-(autoload 'eshell-output-filter "esh-mode")
-
 (defun eshell-output-object-to-target (object target)
   "Insert OBJECT into TARGET.
 Returns what was actually sent, or nil if nothing was sent."
@@ -608,7 +608,7 @@ Returns what was actually sent, or nil if nothing was sent."
 
    ((symbolp target)
     (if (eq target t)                   ; means "print to display"
-	(eshell-output-filter nil (eshell-stringify object))
+	(eshell-interactive-print (eshell-stringify object))
       (if (not (symbol-value target))
 	  (set target object)
 	(setq object (eshell-stringify object))

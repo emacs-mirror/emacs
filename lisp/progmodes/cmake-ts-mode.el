@@ -1,6 +1,6 @@
 ;;; cmake-ts-mode.el --- tree-sitter support for CMake  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -125,7 +125,7 @@
 
    :language 'cmake
    :feature 'function
-   '((normal_command (identifier) @font-lock-function-name-face))
+   '((normal_command (identifier) @font-lock-function-call-face))
 
    :language 'cmake
    :feature 'keyword
@@ -134,7 +134,8 @@
    :language 'cmake
    :feature 'number
    '(((unquoted_argument) @font-lock-number-face
-      (:match "^[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+$" @font-lock-number-face)))
+      (:match "\\`[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
+              @font-lock-number-face)))
 
    :language 'cmake
    :feature 'string
@@ -154,7 +155,7 @@
    :language 'cmake
    :feature 'variable
    :override t
-   '((variable) @font-lock-variable-name-face)
+   '((variable) @font-lock-variable-use-face)
 
    :language 'cmake
    :feature 'error
@@ -195,10 +196,6 @@ the subtrees."
       `((,name . ,marker))))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist
-             '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode))
-
-;;;###autoload
 (define-derived-mode cmake-ts-mode prog-mode "CMake"
   "Major mode for editing CMake files, powered by tree-sitter."
   :group 'cmake
@@ -224,10 +221,17 @@ the subtrees."
     (setq-local treesit-font-lock-feature-list
                 '((comment)
                   (keyword string)
+                  ;; 'function' and 'variable' here play slightly
+                  ;; different roles than in other ts modes, so we
+                  ;; kept them at level 3.
                   (builtin constant escape-sequence function number variable)
                   (bracket error misc-punctuation)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'cmake)
+    (add-to-list 'auto-mode-alist
+                 '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
 
 (provide 'cmake-ts-mode)
 

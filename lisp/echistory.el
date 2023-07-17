@@ -1,6 +1,6 @@
 ;;; echistory.el --- Electric Command History Mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org

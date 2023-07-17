@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -244,67 +244,64 @@ It should normally be a symbol with position and it defaults to FORM."
       new-form)))
 
 (defun macroexp--unfold-lambda (form &optional name)
-  ;; In lexical-binding mode, let and functions don't bind vars in the same way
-  ;; (let obey special-variable-p, but functions don't).  But luckily, this
-  ;; doesn't matter here, because function's behavior is underspecified so it
-  ;; can safely be turned into a `let', even though the reverse is not true.
   (or name (setq name "anonymous lambda"))
-  (let* ((lambda (car form))
-         (values (cdr form))
-         (arglist (nth 1 lambda))
-         (body (cdr (cdr lambda)))
-         optionalp restp
-         bindings)
-    (if (and (stringp (car body)) (cdr body))
-        (setq body (cdr body)))
-    (if (and (consp (car body)) (eq 'interactive (car (car body))))
-        (setq body (cdr body)))
-    ;; FIXME: The checks below do not belong in an optimization phase.
-    (while arglist
-      (cond ((eq (car arglist) '&optional)
-             ;; ok, I'll let this slide because funcall_lambda() does...
-             ;; (if optionalp (error "Multiple &optional keywords in %s" name))
-             (if restp (error "&optional found after &rest in %s" name))
-             (if (null (cdr arglist))
-                 (error "Nothing after &optional in %s" name))
-             (setq optionalp t))
-            ((eq (car arglist) '&rest)
-             ;; ...but it is by no stretch of the imagination a reasonable
-             ;; thing that funcall_lambda() allows (&rest x y) and
-             ;; (&rest x &optional y) in arglists.
-             (if (null (cdr arglist))
-                 (error "Nothing after &rest in %s" name))
-             (if (cdr (cdr arglist))
-                 (error "Multiple vars after &rest in %s" name))
-             (setq restp t))
-            (restp
-             (setq bindings (cons (list (car arglist)
-                                        (and values (cons 'list values)))
-                                  bindings)
-                   values nil))
-            ((and (not optionalp) (null values))
-             (setq arglist nil values 'too-few))
-            (t
-             (setq bindings (cons (list (car arglist) (car values))
-                                  bindings)
-                   values (cdr values))))
-      (setq arglist (cdr arglist)))
-    (if values
-        (macroexp-warn-and-return
-         (format (if (eq values 'too-few)
-                     "attempt to open-code `%s' with too few arguments"
-                   "attempt to open-code `%s' with too many arguments")
-                 name)
-         form nil nil arglist)
-
-      ;; The following leads to infinite recursion when loading a
-      ;; file containing `(defsubst f () (f))', and then trying to
-      ;; byte-compile that file.
-      ;;(setq body (mapcar 'byte-optimize-form body)))
-
-      (if bindings
-          `(let ,(nreverse bindings) . ,body)
-        (macroexp-progn body)))))
+  (pcase form
+    ((or `(funcall (function ,lambda) . ,actuals) `(,lambda . ,actuals))
+     (let* ((formals (nth 1 lambda))
+            (body (cdr (macroexp-parse-body (cddr lambda))))
+            optionalp restp
+            (dynboundarg nil)
+            bindings)
+       ;; FIXME: The checks below do not belong in an optimization phase.
+       (while formals
+         (if (macroexp--dynamic-variable-p (car formals))
+             (setq dynboundarg t))
+         (cond ((eq (car formals) '&optional)
+                ;; ok, I'll let this slide because funcall_lambda() does...
+                ;; (if optionalp (error "Multiple &optional keywords in %s" name))
+                (if restp (error "&optional found after &rest in %s" name))
+                (if (null (cdr formals))
+                    (error "Nothing after &optional in %s" name))
+                (setq optionalp t))
+               ((eq (car formals) '&rest)
+                ;; ...but it is by no stretch of the imagination a reasonable
+                ;; thing that funcall_lambda() allows (&rest x y) and
+                ;; (&rest x &optional y) in formalss.
+                (if (null (cdr formals))
+                    (error "Nothing after &rest in %s" name))
+                (if (cdr (cdr formals))
+                    (error "Multiple vars after &rest in %s" name))
+                (setq restp t))
+               (restp
+                (setq bindings (cons (list (car formals)
+                                           (and actuals (cons 'list actuals)))
+                                     bindings)
+                      actuals nil))
+               ((and (not optionalp) (null actuals))
+                (setq formals nil actuals 'too-few))
+               (t
+                (setq bindings (cons (list (car formals) (car actuals))
+                                     bindings)
+                      actuals (cdr actuals))))
+         (setq formals (cdr formals)))
+       (cond
+        (actuals
+         (macroexp-warn-and-return
+          (format-message
+           (if (eq actuals 'too-few)
+               "attempt to open-code `%s' with too few arguments"
+             "attempt to open-code `%s' with too many arguments")
+           name)
+          form nil nil formals))
+        ;; In lexical-binding mode, let and functions don't bind vars in
+        ;; the same way (let obey special-variable-p, but functions
+        ;; don't).  So if one of the vars is declared as dynamically scoped, we
+        ;; can't just convert the call to `let'.
+        ;; FIXME: We should α-rename the affected args and then use `let'.
+        (dynboundarg form)
+        (bindings `(let ,(nreverse bindings) . ,body))
+        (t (macroexp-progn body)))))
+    (_ (error "Not an unfoldable form: %S" form))))
 
 (defun macroexp--dynamic-variable-p (var)
   "Whether the variable VAR is dynamically scoped.
@@ -338,14 +335,19 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (`(cond . ,clauses)
              (macroexp--cons fn (macroexp--all-clauses clauses) form))
             (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
-             (macroexp--cons
-              fn
-              (macroexp--cons err
-                              (macroexp--cons (macroexp--expand-all body)
-                                              (macroexp--all-clauses handlers 1)
-                                              (cddr form))
-                              (cdr form))
-              form))
+             (let ((exp-body (macroexp--expand-all body)))
+               (if handlers
+                   (macroexp--cons fn
+                                   (macroexp--cons
+                                    err (macroexp--cons
+                                         exp-body
+                                         (macroexp--all-clauses handlers 1)
+                                         (cddr form))
+                                    (cdr form))
+                                   form)
+                 (macroexp-warn-and-return
+                  (format-message "`condition-case' without handlers")
+                  exp-body (list 'suspicious 'condition-case) t form))))
             (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
              (push name macroexp--dynvars)
              (macroexp--all-forms form 2))
@@ -367,16 +369,21 @@ Assumes the caller has bound `macroexpand-all-environment'."
                  (if (null body)
                      (macroexp-unprogn
                       (macroexp-warn-and-return
-                       (format "`%s' with empty body" fun)
+                       (format-message "`%s' with empty body" fun)
                        nil (list 'empty-body fun) 'compile-only fun))
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))
             (`(while)
              (macroexp-warn-and-return
-              "missing `while' condition"
+              (format-message "missing `while' condition")
               `(signal 'wrong-number-of-arguments '(while 0))
               nil 'compile-only form))
+            (`(unwind-protect ,expr)
+             (macroexp-warn-and-return
+              (format-message "`unwind-protect' without unwind forms")
+              (macroexp--expand-all expr)
+              (list 'suspicious 'unwind-protect) t form))
             (`(setq ,(and var (pred symbolp)
                           (pred (not booleanp)) (pred (not keywordp)))
                     ,expr)
@@ -392,7 +399,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
              (let ((nargs (length args)))
                (if (/= (logand nargs 1) 0)
                    (macroexp-warn-and-return
-                    "odd number of arguments in `setq' form"
+                    (format-message "odd number of arguments in `setq' form")
                     `(signal 'wrong-number-of-arguments '(setq ,nargs))
                     nil 'compile-only fn)
                  (let ((assignments nil))
@@ -426,50 +433,31 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (setq args (cddr args)))
                    (cons 'progn (nreverse assignments))))))
             (`(,(and fun `(lambda . ,_)) . ,args)
-             ;; Embedded lambda in function position.
-             ;; If the byte-optimizer is loaded, try to unfold this,
-             ;; i.e. rewrite it to (let (<args>) <body>).  We'd do it in the optimizer
-             ;; anyway, but doing it here (i.e. earlier) can sometimes avoid the
-             ;; creation of a closure, thus resulting in much better code.
-             (let ((newform (macroexp--unfold-lambda form)))
-	       (if (eq newform form)
-	           ;; Unfolding failed for some reason, avoid infinite recursion.
-	           (macroexp--cons (macroexp--all-forms fun 2)
-                                   (macroexp--all-forms args)
-                                   form)
-	         (macroexp--expand-all newform))))
+	     (macroexp--cons (macroexp--all-forms fun 2)
+                             (macroexp--all-forms args)
+                             form))
             (`(funcall ,exp . ,args)
              (let ((eexp (macroexp--expand-all exp))
                    (eargs (macroexp--all-forms args)))
-               ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
-               ;; has a compiler-macro, or to unfold it.
                (pcase eexp
+                 ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
+                 ;; has a compiler-macro, or to unfold it.
                  ((and `#',f
-                       (guard (not (or (special-form-p f) (macrop f))))) ;; bug#46636
+                       (guard (and (symbolp f)
+                                   ;; bug#46636
+                                   (not (or (special-form-p f) (macrop f))))))
                   (macroexp--expand-all `(,f . ,eargs)))
-                 (_ `(funcall ,eexp . ,eargs)))))
+                 (`#'(lambda . ,_)
+                  (macroexp--unfold-lambda `(,fn ,eexp . ,eargs)))
+                 (_ `(,fn ,eexp . ,eargs)))))
             (`(funcall . ,_) form)      ;bug#53227
             (`(,func . ,_)
-             (let ((handler (function-get func 'compiler-macro))
-                   (funargs (function-get func 'funarg-positions)))
-               ;; Check functions quoted with ' rather than with #'
-               (dolist (funarg funargs)
-                 (let ((arg (nth funarg form)))
-                   (when (and (eq 'quote (car-safe arg))
-                              (eq 'lambda (car-safe (cadr arg))))
-                     (setcar (nthcdr funarg form)
-                             (macroexp-warn-and-return
-                              (format "%S quoted with ' rather than with #'"
-                                      (let ((f (cadr arg)))
-                                        (if (symbolp f) f `(lambda ,(nth 1 f) ...))))
-                              arg nil nil (cadr arg))))))
+             (let ((handler (function-get func 'compiler-macro)))
                ;; Macro expand compiler macros.  This cannot be delayed to
                ;; byte-optimize-form because the output of the compiler-macro can
                ;; use macros.
                (if (null handler)
-                   ;; No compiler macro.  We just expand each argument (for
-                   ;; setq/setq-default this works alright because the variable names
-                   ;; are symbols).
+                   ;; No compiler macro.  We just expand each argument.
                    (macroexp--all-forms form 1)
                  ;; If the handler is not loaded yet, try (auto)loading the
                  ;; function itself, which may in turn load the handler.
@@ -490,19 +478,6 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (macroexp--expand-all newform))))))
             (_ form))))
     (pop byte-compile-form-stack)))
-
-;; Record which arguments expect functions, so we can warn when those
-;; are accidentally quoted with ' rather than with #'
-(dolist (f '( funcall apply mapcar mapatoms mapconcat mapc cl-mapcar maphash
-              map-char-table map-keymap map-keymap-internal))
-  (put f 'funarg-positions '(1)))
-(dolist (f '( add-hook remove-hook advice-remove advice--remove-function
-              defalias fset global-set-key run-after-idle-timeout
-              set-process-filter set-process-sentinel sort))
-  (put f 'funarg-positions '(2)))
-(dolist (f '( advice-add define-key
-              run-at-time run-with-idle-timer run-with-timer ))
-  (put f 'funarg-positions '(3)))
 
 ;;;###autoload
 (defun macroexpand-all (form &optional environment)

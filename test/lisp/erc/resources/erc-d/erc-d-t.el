@@ -1,6 +1,6 @@
 ;;; erc-d-t.el --- ERT helpers for ERC test server -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +32,7 @@
     (dolist (buf (buffer-list))
       (with-current-buffer buf
         (when (or erc-d-u--process-buffer
-                  (derived-mode-p 'erc-mode))
+                  (derived-mode-p 'erc-mode 'erc-dcc-chat-mode))
           (push buf buflist))))
     (dolist (buf buflist)
       (when (and (boundp 'erc-server-flood-timer)

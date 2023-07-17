@@ -1,6 +1,6 @@
 ;;; org-cycle.el --- Visibility cycling of Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 ;;
 ;; Maintainer: Ihor Radchenko <yantar92 at gmail dot com>
 ;; Keywords: folding, visibility cycling, invisible text
@@ -648,6 +648,9 @@ With a numeric prefix, show all headlines up to that level."
 		 (org-fold-show-hidden-entry)
 		 (org-fold-show-children))
 		("content"
+                 ;; Newline before heading will be outside the
+                 ;; narrowing.  Make sure that it is revealed.
+                 (org-fold-heading nil)
 		 (save-excursion
 		   (save-restriction
 		     (org-narrow-to-subtree)

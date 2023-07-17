@@ -1,6 +1,6 @@
 ;;; dframe.el --- dedicate frame support modes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools

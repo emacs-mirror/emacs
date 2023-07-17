@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2022 Free
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -436,6 +436,8 @@ Fourth and fifth arg START and END specify the region to operate on.
 
 Arguments FROM-STRING, TO-STRING, DELIMITED, START, END, BACKWARD, and
 REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see).
+\(TO-STRING is passed to `perform-replace' as REPLACEMENTS and
+DELIMITED is passed as DELIMITED-FLAG.)
 
 To customize possible responses, change the bindings in `query-replace-map'."
   (declare (interactive-args
@@ -533,7 +535,10 @@ text, TO-STRING is actually made a list instead of a string.
 Use \\[repeat-complex-command] after this command for details.
 
 Arguments REGEXP, TO-STRING, DELIMITED, START, END, BACKWARD, and
-REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see)."
+REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see).
+\(REGEXP is passed to `perform-replace' as FROM-STRING,
+TO-STRING is passed as REPLACEMENTS, and DELIMITED is passed
+as DELIMITED-FLAG.)"
   (declare (interactive-args
 	    (start (use-region-beginning))
 	    (end (use-region-end))
@@ -824,11 +829,11 @@ by this function to the end of values available via
 
 (defvar-keymap read-regexp-map
   :parent minibuffer-local-map
-  "M-c" #'read-regexp-toggle-case-folding)
+  "M-s c" #'read-regexp-toggle-case-fold)
 
 (defvar read-regexp--case-fold nil)
 
-(defun read-regexp-toggle-case-folding ()
+(defun read-regexp-toggle-case-fold ()
   (interactive)
   (setq read-regexp--case-fold
         (if (or (eq read-regexp--case-fold 'fold)
@@ -875,7 +880,7 @@ in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 The optional argument HISTORY is a symbol to use for the history list.
 If nil, use `regexp-history'.
 
-If the user has used the \\<read-regexp-map>\\[read-regexp-toggle-case-folding] command to specify case
+If the user has used the \\<read-regexp-map>\\[read-regexp-toggle-case-fold] command to specify case
 sensitivity, the returned string will have a text property named
 `case-fold' that has a value of either `fold' or
 `inhibit-fold'.  (It's up to the caller of `read-regexp' to

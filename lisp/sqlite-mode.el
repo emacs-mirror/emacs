@@ -1,6 +1,6 @@
 ;;; sqlite-mode.el --- Mode for examining sqlite3 database files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -55,10 +55,14 @@
   (interactive "fSQLite file name: ")
   (unless (sqlite-available-p)
     (error "This Emacs doesn't have SQLite support, so it can't view SQLite files"))
+  (if (file-remote-p file)
+      (error "Remote SQLite files are not yet supported"))
   (pop-to-buffer (get-buffer-create
                   (format "*SQLite %s*" (file-name-nondirectory file))))
   (sqlite-mode)
   (setq-local sqlite--db (sqlite-open file))
+  (unless (sqlitep sqlite--db)
+    (error "`sqlite-open' failed to open SQLite file"))
   (sqlite-mode-list-tables))
 
 (defun sqlite-mode-list-tables ()

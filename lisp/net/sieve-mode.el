@@ -1,6 +1,6 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 

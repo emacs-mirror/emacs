@@ -1,6 +1,6 @@
 ;;; exif.el --- parsing Exif data in JPEG images -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: images
@@ -110,7 +110,7 @@ from the return value of this function."
     (exif-parse-buffer)))
 
 (defun exif-parse-buffer (&optional buffer)
-  "Parse BUFFER (which should be a JPEG file) and return the Exif data, if any.
+  "Parse BUFFER (which should visit a JPEG file) and return Exif data, if any.
 The return value is a list of Exif items.
 
 If the data is invalid, an `exif-error' is signaled.
@@ -134,24 +134,24 @@ from the return value of this function."
           (exif--parse-exif-chunk app1))))))
 
 (defun exif-field (field data)
-  "Return raw FIELD from EXIF.
+  "Return raw FIELD from Exif DATA.
 If FIELD is not present in the data, return nil.
 FIELD is a symbol in the cdr of `exif-tag-alist'.
-DATA is the result of calling `exif-parse-file'."
+DATA is the result of calling `exif-parse-file' or `exif-parse-buffer'."
   (plist-get (seq-find (lambda (e)
                          (eq field (plist-get e :tag-name)))
                        data)
              :value))
 
 (defun exif-orientation (exif)
-  "Return the orientation (in degrees) in EXIF.
+  "Return the orientation (in degrees) in EXIF data.
 If the orientation isn't present in the data, return nil."
   (let ((code (exif-field 'orientation exif)))
     (cadr (assq code exif--orientation))))
 
 (defun exif--parse-jpeg ()
   (unless (= (exif--read-number-be 2) #xffd8) ; SOI (start of image)
-    (signal 'exif-error "Not a valid JPEG file"))
+    (signal 'exif-error '("Not a valid JPEG file")))
   (cl-loop for segment = (exif--read-number-be 2)
            for size = (exif--read-number-be 2)
            ;; Stop parsing when we get to SOS (start of stream);
@@ -168,7 +168,7 @@ If the orientation isn't present in the data, return nil."
     ;; The Exif data is in the APP1 JPEG chunk and starts with
     ;; "Exif\0\0".
     (unless (equal (exif--read-chunk 6) (string ?E ?x ?i ?f ?\0 ?\0))
-      (signal 'exif-error "Not a valid Exif chunk"))
+      (signal 'exif-error '("Not a valid Exif chunk")))
     (delete-region (point-min) (point))
     (let* ((endian-marker (exif--read-chunk 2))
            (le (cond
@@ -180,14 +180,15 @@ If the orientation isn't present in the data, return nil."
                  t)
                 (t
                  (signal 'exif-error
-                         (format "Invalid endian-ness %s" endian-marker))))))
+                         (list (format "Invalid endian-ness %s"
+                                       endian-marker)))))))
       ;; Another magical number.
       (unless (= (exif--read-number 2 le) #x002a)
-        (signal 'exif-error "Invalid TIFF header length"))
+        (signal 'exif-error '("Invalid TIFF header length")))
       (let ((offset (exif--read-number 4 le)))
         ;; Jump to where the IFD (directory) starts and parse it.
         (when (> (1+ offset) (point-max))
-          (signal 'exif-error "Invalid IFD (directory) offset"))
+          (signal 'exif-error '("Invalid IFD (directory) offset")))
         (goto-char (1+ offset))
         (exif--parse-directory le)))))
 
@@ -230,7 +231,7 @@ If the orientation isn't present in the data, return nil."
                                          (when (> (+ (1+ value) length)
                                                   (point-max))
                                            (signal 'exif-error
-                                                   "Premature end of file"))
+                                                   '("Premature end of file")))
                                          (buffer-substring
                                           (1+ value)
                                           (+ (1+ value) length)))
@@ -248,27 +249,30 @@ If the orientation isn't present in the data, return nil."
           ;; keep parsing.
           (progn
             (when (> (1+ next) (point-max))
-              (signal 'exif-error "Invalid IFD (directory) next-offset"))
+              (signal 'exif-error '("Invalid IFD (directory) next-offset")))
             (goto-char (1+ next))
             (nconc dir (exif--parse-directory le)))
         ;; We've reached the end of the directories.
         dir))))
 
-(defun exif--direct-ascii-value (value bytes le)
-  "Make VALUE into a zero-terminated string.
-VALUE is an integer representing BYTES characters."
+(defun exif--direct-ascii-value (value nbytes le)
+  "Make a string representing VALUE with NBYTES bytes according to LE endianness.
+VALUE is an integer value of NBYTES bytes.
+The return value is a null-terminated unibyte string whose length is
+NBYTES+1 bytes.  If LE is non-nil, the returned string representation of
+VALUE is little-endian, otherwise it is big-endian."
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (if le
-        (dotimes (i bytes)
+        (dotimes (i nbytes)
           (insert (logand (ash value (* i -8)) 255)))
-      (dotimes (i bytes)
-        (insert (logand (ash value (* (- (1- bytes) i) -8)) 255))))
+      (dotimes (i nbytes)
+        (insert (logand (ash value (* (- (1- nbytes) i) -8)) 255))))
     (insert 0)
     (buffer-string)))
 
 (defun exif--process-value (value type le)
-  "Do type-based post-processing of the value."
+  "Do type-based post-processing of the VALUE whose endianness is per LE."
   (cl-case type
     ;; Chop off trailing zero byte.
     (ascii (substring value 0 (1- (length value))))
@@ -281,18 +285,20 @@ VALUE is an integer representing BYTES characters."
     (otherwise value)))
 
 (defun exif--read-chunk (bytes)
-  "Return BYTES octets from the buffer and advance point that much."
+  "Return BYTES octets from the current buffer and advance point that much.
+This function assumes that the current buffer is unibyte."
   (when (> (+ (point) bytes) (point-max))
-    (signal 'exif-error "Premature end of file"))
+    (signal 'exif-error '("Premature end of file")))
   (prog1
       (buffer-substring (point) (+ (point) bytes))
     (forward-char bytes)))
 
 (defun exif--read-number-be (bytes)
-  "Read BYTES octets from the buffer as a chunk of big-endian bytes.
-Advance point to after the read bytes."
+  "Read BYTES octets from the current buffer as a chunk of big-endian bytes.
+Advance point to after the read bytes.
+This function assumes that the current buffer is unibyte."
   (when (> (+ (point) bytes) (point-max))
-    (signal 'exif-error "Premature end of file"))
+    (signal 'exif-error '("Premature end of file")))
   (let ((sum 0))
     (dotimes (_ bytes)
       (setq sum (+ (* sum 256) (following-char)))
@@ -300,20 +306,22 @@ Advance point to after the read bytes."
     sum))
 
 (defun exif--read-number-le (bytes)
-  "Read BYTES octets from the buffer as a chunk of low-endian bytes.
-Advance point to after the read bytes."
+  "Read BYTES octets from the current buffer as a chunk of little-endian bytes.
+Advance point to after the read bytes.
+This function assumes that the current buffer is unibyte."
   (when (> (+ (point) bytes) (point-max))
-    (signal 'exif-error "Premature end of file"))
+    (signal 'exif-error '("Premature end of file")))
   (let ((sum 0))
     (dotimes (i bytes)
       (setq sum (+ (* (following-char) (expt 256 i)) sum))
       (forward-char 1))
     sum))
 
-(defun exif--read-number (bytes lower-endian)
-  "Read BYTES octets from the buffer with endianness determined by LOWER-ENDIAN.
-Advance point to after the read bytes."
-  (if lower-endian
+(defun exif--read-number (bytes little-endian)
+  "Read BYTES octets from current buffer with endianness given by LITTLE-ENDIAN.
+Advance point to after the read bytes.
+This function assumes that the current buffer is unibyte."
+  (if little-endian
       (exif--read-number-le bytes)
     (exif--read-number-be bytes)))
 

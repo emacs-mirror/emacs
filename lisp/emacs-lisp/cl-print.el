@@ -1,6 +1,6 @@
 ;;; cl-print.el --- CL-style generic printing  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -66,8 +66,7 @@ delimiters."
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
       (cl-print-insert-ellipsis object 0 stream)
-    (let ((car (pop object))
-          (count 1))
+    (let ((car (pop object)))
       (if (and print-quoted
                (memq car '(\, quote function \` \,@ \,.))
                (consp object)
@@ -80,26 +79,12 @@ delimiters."
                    stream)
             (cl-print-object (car object) stream))
         (princ "(" stream)
-        (cl-print-object car stream)
-        (while (and (consp object)
-                    (not (cond
-                          (cl-print--number-table
-                           (numberp (gethash object cl-print--number-table)))
-                          ((memq object cl-print--currently-printing))
-                          (t (push object cl-print--currently-printing)
-                             nil))))
-          (princ " " stream)
-          (if (or (not (natnump print-length)) (> print-length count))
-              (cl-print-object (pop object) stream)
-            (cl-print-insert-ellipsis object print-length stream)
-            (setq object nil))
-          (cl-incf count))
-        (when object
-          (princ " . " stream) (cl-print-object object stream))
+        (cl-print--cons-tail car object stream)
         (princ ")" stream)))))
 
-(cl-defmethod cl-print-object-contents ((object cons) _start stream)
-  (let ((count 0))
+(defun cl-print--cons-tail (car object stream)
+  (let ((count 1))
+    (cl-print-object car stream)
     (while (and (consp object)
                 (not (cond
                       (cl-print--number-table
@@ -107,33 +92,27 @@ delimiters."
                       ((memq object cl-print--currently-printing))
                       (t (push object cl-print--currently-printing)
                          nil))))
-      (unless (zerop count)
-        (princ " " stream))
+      (princ " " stream)
       (if (or (not (natnump print-length)) (> print-length count))
           (cl-print-object (pop object) stream)
-        (cl-print-insert-ellipsis object print-length stream)
+        (cl-print-insert-ellipsis object t stream)
         (setq object nil))
       (cl-incf count))
     (when object
       (princ " . " stream) (cl-print-object object stream))))
+
+(cl-defmethod cl-print-object-contents ((object cons) _start stream)
+  (cl-print--cons-tail (car object) (cdr object) stream))
 
 (cl-defmethod cl-print-object ((object vector) stream)
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
       (cl-print-insert-ellipsis object 0 stream)
     (princ "[" stream)
-    (let* ((len (length object))
-           (limit (if (natnump print-length)
-                      (min print-length len) len)))
-      (dotimes (i limit)
-        (unless (zerop i) (princ " " stream))
-        (cl-print-object (aref object i) stream))
-      (when (< limit len)
-        (princ " " stream)
-        (cl-print-insert-ellipsis object limit stream)))
+    (cl-print--vector-contents object 0 stream)
     (princ "]" stream)))
 
-(cl-defmethod cl-print-object-contents ((object vector) start stream)
+(defun cl-print--vector-contents (object start stream)
   (let* ((len (length object))
          (limit (if (natnump print-length)
                     (min (+ start print-length) len) len))
@@ -145,6 +124,9 @@ delimiters."
     (when (< limit len)
       (princ " " stream)
       (cl-print-insert-ellipsis object limit stream))))
+
+(cl-defmethod cl-print-object-contents ((object vector) start stream)
+  (cl-print--vector-contents object start stream)) ;FIXME: η-redex!
 
 (cl-defmethod cl-print-object ((object hash-table) stream)
   (princ "#<hash-table " stream)
@@ -232,24 +214,11 @@ into a button whose action shows the function's disassembly.")
            (> cl-print--depth print-level))
       (cl-print-insert-ellipsis object 0 stream)
     (princ "#s(" stream)
-    (let* ((class (cl-find-class (type-of object)))
-           (slots (cl--struct-class-slots class))
-           (len (length slots))
-           (limit (if (natnump print-length)
-                      (min print-length len) len)))
-      (princ (cl--struct-class-name class) stream)
-      (dotimes (i limit)
-        (let ((slot (aref slots i)))
-          (princ " :" stream)
-          (princ (cl--slot-descriptor-name slot) stream)
-          (princ " " stream)
-          (cl-print-object (aref object (1+ i)) stream)))
-      (when (< limit len)
-        (princ " " stream)
-        (cl-print-insert-ellipsis object limit stream)))
+    (princ (cl--struct-class-name (cl-find-class (type-of object))) stream)
+    (cl-print--struct-contents object 0 stream)
     (princ ")" stream)))
 
-(cl-defmethod cl-print-object-contents ((object cl-structure-object) start stream)
+(defun cl-print--struct-contents (object start stream)
   (let* ((class (cl-find-class (type-of object)))
          (slots (cl--struct-class-slots class))
          (len (length slots))
@@ -258,7 +227,7 @@ into a button whose action shows the function's disassembly.")
          (i start))
     (while (< i limit)
       (let ((slot (aref slots i)))
-        (unless (= i start) (princ " " stream))
+        (unless (and (= i start) (> i 0)) (princ " " stream))
         (princ ":" stream)
         (princ (cl--slot-descriptor-name slot) stream)
         (princ " " stream)
@@ -267,6 +236,9 @@ into a button whose action shows the function's disassembly.")
     (when (< limit len)
       (princ " " stream)
       (cl-print-insert-ellipsis object limit stream))))
+
+(cl-defmethod cl-print-object-contents ((object cl-structure-object) start stream)
+  (cl-print--struct-contents object start stream)) ;FIXME: η-redex!
 
 (cl-defmethod cl-print-object ((object string) stream)
   (unless stream (setq stream standard-output))
@@ -294,27 +266,35 @@ into a button whose action shows the function's disassembly.")
                                             (- (point) 1) stream)))))
       ;; Print the property list.
       (when has-properties
-        (let* ((interval-limit (and (natnump print-length)
-                                    (max 1 (/ print-length 3))))
-               (interval-count 0)
-               (start-pos (if (text-properties-at 0 object)
-                              0 (next-property-change 0 object)))
-               (end-pos (next-property-change start-pos object len)))
-          (while (and (or (null interval-limit)
-                          (< interval-count interval-limit))
-                      (< start-pos len))
-            (let ((props (text-properties-at start-pos object)))
-              (when props
-                (princ " " stream) (princ start-pos stream)
-                (princ " " stream) (princ end-pos stream)
-                (princ " " stream) (cl-print-object props stream)
-                (cl-incf interval-count))
-              (setq start-pos end-pos
-                    end-pos (next-property-change start-pos object len))))
-          (when (< start-pos len)
-            (princ " " stream)
-            (cl-print-insert-ellipsis object (list start-pos) stream)))
+        (cl-print--string-props object 0 stream)
         (princ ")" stream)))))
+
+(defun cl-print--string-props (object start stream)
+  (let* ((first (not (eq start 0)))
+         (len (length object))
+         (interval-limit (and (natnump print-length)
+                              (max 1 (/ print-length 3))))
+         (interval-count 0)
+         (start-pos (if (text-properties-at start object)
+                        start (next-property-change start object)))
+         (end-pos (next-property-change start-pos object len)))
+    (while (and (or (null interval-limit)
+                    (< interval-count interval-limit))
+                (< start-pos len))
+      (let ((props (text-properties-at start-pos object)))
+        (when props
+          (if first
+              (setq first nil)
+            (princ " " stream))
+          (princ start-pos stream)
+          (princ " " stream) (princ end-pos stream)
+          (princ " " stream) (cl-print-object props stream)
+          (cl-incf interval-count))
+        (setq start-pos end-pos
+              end-pos (next-property-change start-pos object len))))
+    (when (< start-pos len)
+      (princ " " stream)
+      (cl-print-insert-ellipsis object (list start-pos) stream))))
 
 (cl-defmethod cl-print-object-contents ((object string) start stream)
   ;; If START is an integer, it is an index into the string, and the
@@ -328,35 +308,13 @@ into a button whose action shows the function's disassembly.")
                           (min (+ start print-length) len) len))
                (substr (substring-no-properties object start limit))
                (printed (prin1-to-string substr))
-               (trimmed (substring printed 1 (1- (length printed)))))
-          (princ trimmed)
+               (trimmed (substring printed 1 -1)))
+          (princ trimmed stream)
           (when (< limit len)
             (cl-print-insert-ellipsis object limit stream)))
 
       ;; Print part of the property list.
-      (let* ((first t)
-             (interval-limit (and (natnump print-length)
-                                  (max 1 (/ print-length 3))))
-             (interval-count 0)
-             (start-pos (car start))
-             (end-pos (next-property-change start-pos object len)))
-        (while (and (or (null interval-limit)
-                        (< interval-count interval-limit))
-                    (< start-pos len))
-          (let ((props (text-properties-at start-pos object)))
-            (when props
-              (if first
-                  (setq first nil)
-                (princ " " stream))
-              (princ start-pos stream)
-              (princ " " stream) (princ end-pos stream)
-              (princ " " stream) (cl-print-object props stream)
-              (cl-incf interval-count))
-            (setq start-pos end-pos
-                  end-pos (next-property-change start-pos object len))))
-        (when (< start-pos len)
-          (princ " " stream)
-          (cl-print-insert-ellipsis object (list start-pos) stream))))))
+      (cl-print--string-props object (car start) stream))))
 
 ;;; Circularity and sharing.
 

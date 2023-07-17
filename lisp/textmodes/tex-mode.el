@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2022 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2025,7 +2025,7 @@ In the tex shell buffer this command behaves like `comint-send-input'."
 
 (defun tex-display-shell ()
   "Make the TeX shell buffer visible in a window."
-  (display-buffer (tex-shell-buf) display-comint-buffer-action)
+  (display-buffer (tex-shell-buf) display-tex-shell-buffer-action)
   (tex-recenter-output-buffer nil))
 
 (defun tex-shell-sentinel (proc _msg)
@@ -2426,7 +2426,7 @@ Only applies the FSPEC to the args part of FORMAT."
 	(if cmds (tex-format-cmd (caar cmds) fspec))))))
 
 (defun tex-cmd-doc-view (file)
-  (pop-to-buffer (find-file-noselect file) display-comint-buffer-action))
+  (pop-to-buffer (find-file-noselect file)))
 
 (defun tex-compile (dir cmd)
   "Run a command CMD on current TeX buffer's file in DIR."
@@ -2681,7 +2681,7 @@ line LINE of the window, or centered if LINE is nil."
 	(window))
     (if (null tex-shell)
 	(message "No TeX output buffer")
-      (setq window (display-buffer tex-shell display-comint-buffer-action))
+      (setq window (display-buffer tex-shell display-tex-shell-buffer-action))
       (with-selected-window window
 	(bury-buffer tex-shell)
 	(goto-char (point-max))

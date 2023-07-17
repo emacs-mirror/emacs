@@ -1,6 +1,6 @@
 ;;; erc-xdcc.el --- XDCC file-server support for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>

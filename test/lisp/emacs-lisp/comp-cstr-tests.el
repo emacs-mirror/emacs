@@ -1,8 +1,8 @@
 ;;; comp-cstr-tests.el --- unit tests for src/comp.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
-;; Author: Andrea Corallo <akrl@sdf.org>
+;; Author: Andrea Corallo <acorallo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -152,6 +152,17 @@ and hunk-based syntax highlighting otherwise as a fallback."
   :require 'whitespace
   :type (get 'whitespace-style 'custom-type)
   :version "29.1")
+
+(defcustom diff-ignore-whitespace-switches "-b"
+  "Switch or list of diff switches to use when ignoring whitespace.
+The default \"-b\" means to ignore whitespace-only changes,
+\"-w\" means ignore all whitespace changes."
+  :type '(choice
+          (string :tag "Ignore whitespace-only changes" :value "-b")
+          (string :tag "Ignore all whitespace changes" :value "-w")
+          (string :tag "Single switch")
+          (repeat :tag "Multiple switches" (string :tag "Switch")))
+  :version "30.1")
 
 (defvar diff-vc-backend nil
   "The VC backend that created the current Diff buffer, if any.")
@@ -485,17 +496,19 @@ use the face `diff-removed' for removed lines, and the face
 	  ;; if below, use `diff-added'.
 	  (save-match-data
 	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
-	      (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
-		  diff-indicator-added-face
-		diff-indicator-removed-face)))))
+              (when (< limit (point))
+                (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
+		    diff-indicator-added-face
+		  diff-indicator-removed-face))))))
      (2 (if diff-use-changed-face
 	    'diff-changed-unspecified
 	  ;; Otherwise, use the same method as above.
 	  (save-match-data
 	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
-	      (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
-		  'diff-added
-		'diff-removed))))))
+	      (when (< limit (point))
+                (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
+		    'diff-added
+		  'diff-removed)))))))
     ("^\\(?:Index\\|revno\\): \\(.+\\).*\n"
      (0 'diff-header) (1 'diff-index prepend))
     ("^\\(?:index .*\\.\\.\\|diff \\).*\n" . 'diff-header)
@@ -2101,10 +2114,13 @@ For use in `add-log-current-defun-function'."
               (goto-char (+ (car pos) (cdr src)))
               (add-log-current-defun)))))))
 
-(defun diff-ignore-whitespace-hunk ()
-  "Re-diff the current hunk, ignoring whitespace differences."
-  (interactive)
-  (diff-refresh-hunk t))
+(defun diff-ignore-whitespace-hunk (&optional whole-buffer)
+  "Re-diff the current hunk, ignoring whitespace differences.
+With non-nil prefix arg, re-diff all the hunks."
+  (interactive "P")
+  (if whole-buffer
+      (diff--ignore-whitespace-all-hunks)
+    (diff-refresh-hunk t)))
 
 (defun diff-refresh-hunk (&optional ignore-whitespace)
   "Re-diff the current hunk."
@@ -2125,7 +2141,7 @@ For use in `add-log-current-defun-function'."
 	 (coding-system-for-read buffer-file-coding-system)
 	 opts old new)
     (when ignore-whitespace
-      (setq opts '("-b")))
+      (setq opts (ensure-list diff-ignore-whitespace-switches)))
     (when opt-type
       (setq opts (cons opt-type opts)))
 
@@ -2296,6 +2312,16 @@ Call FUN with two args (BEG and END) for each hunk."
                           end
                         (or (ignore-errors (diff-hunk-next) (point))
                             max)))))))))
+
+;; This doesn't use `diff--iterate-hunks', since that assumes that
+;; hunks don't change size.
+(defun diff--ignore-whitespace-all-hunks ()
+  "Re-diff all the hunks, ignoring whitespace-differences."
+  (save-excursion
+    (goto-char (point-min))
+    (diff-hunk-next)
+    (while (looking-at diff-hunk-header-re)
+      (diff-refresh-hunk t))))
 
 (defun diff--font-lock-refined (max)
   "Apply hunk refinement from font-lock."

@@ -1,7 +1,7 @@
 ### @configure_input@
 
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -63,7 +63,7 @@ AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
   DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
-  -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
+  -include $(OBJS:%.o=$(DEPDIR)/%.d)
 else
   DEPFLAGS =
   include $(srcdir)/deps.mk

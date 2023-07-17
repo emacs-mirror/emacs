@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2022 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1125,8 +1125,8 @@ read_minibuf_unwind (void)
  found:
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (exp_MB_frame, 0, Qt); /* This also sets
-					      minibuf_window */
+    do_switch_frame (exp_MB_frame, 0, 0, Qt); /* This also sets
+					     minibuf_window */
 
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  Don't depend on
@@ -1238,7 +1238,7 @@ read_minibuf_unwind (void)
   /* Restore the selected frame. */
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (saved_selected_frame, 0, Qt);
+    do_switch_frame (saved_selected_frame, 0, 0, Qt);
 }
 
 /* Replace the expired minibuffer in frame exp_MB_frame with the next less
@@ -1266,9 +1266,6 @@ minibuffer_unwind (void)
 	  set_window_buffer (window, Fcar (entry), 0, 0);
 	  Fset_window_start (window, Fcar (Fcdr (entry)), Qnil);
 	  Fset_window_point (window, Fcar (Fcdr (Fcdr (entry))));
-	  /* set-window-configuration may/will have unselected the
-	     mini-window as the selected window.  Restore it. */
-	  Fset_frame_selected_window (exp_MB_frame, window, Qnil);
 	}
       else
 	set_window_buffer (window, nth_minibuffer (0), 0, 0);
@@ -2453,7 +2450,12 @@ The basic completion functions only consider a completion acceptable
 if it matches all regular expressions in this list, with
 `case-fold-search' bound to the value of `completion-ignore-case'.
 See Info node `(elisp)Basic Completion', for a description of these
-functions.  */);
+functions.
+
+Do not set this variable to a non-nil value globally, as that is not
+safe and will probably cause errors in completion commands.  This
+variable should be only let-bound to non-nil values around calls to
+basic completion functions like `try-completion' and `all-completions'.  */);
   Vcompletion_regexp_list = Qnil;
 
   DEFVAR_BOOL ("minibuffer-allow-text-properties",

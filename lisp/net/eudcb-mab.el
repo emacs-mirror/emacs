@@ -1,6 +1,6 @@
 ;;; eudcb-mab.el --- Emacs Unified Directory Client - AddressBook backend  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -86,7 +86,8 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 	     ((eq (car term) 'email)
 	      (unless (string= (cdr term) mail)
 		(setq matched nil)))
-	     ((eq (car term) 'phone))))
+	     ;; ((eq (car term) 'phone))
+             ))
 
 	  (when matched
 	    (setq result

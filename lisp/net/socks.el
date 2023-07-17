@@ -1,6 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2000, 2002, 2007-2022 Free Software Foundation,
+;; Copyright (C) 1996-2000, 2002, 2007-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
@@ -328,7 +328,6 @@
   (advice-add 'open-network-stream :around #'socks--open-network-stream))
 
 (defun socks-open-connection (server-info)
-  (interactive)
   (save-excursion
     (let ((proc
            (let ((socks-override-functions nil))

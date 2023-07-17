@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -237,6 +237,7 @@ Only used for files that Emacs can't find.")
 (defvar gdb-source-file-list nil
   "List of source files for the current executable.")
 (defvar gdb-first-done-or-error t)
+(defvar gdb-target-async-checked nil)
 (defvar gdb-source-window-list nil
   "List of windows used for displaying source files.
 Sorted in most-recently-visited-first order.")
@@ -254,6 +255,9 @@ This variable is updated in `gdb-done-or-error' and returned by
 
 It is initialized to `gdb-non-stop-setting' at the beginning of
 every GDB session.")
+
+(defvar gdb-debuginfod-enable nil
+  "Whether the current GDB session can query debuginfod servers.")
 
 (defvar-local gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -465,7 +469,31 @@ don't support the non-stop mode.
 GDB session needs to be restarted for this setting to take effect."
   :type 'boolean
   :group 'gdb-non-stop
-  :version "26.1")
+  :version "30.1")
+
+(defcustom gdb-debuginfod-enable-setting
+  ;; debuginfod servers are only for ELF executables, and elfutils, of
+  ;; which libdebuginfod is a part, is not usually available on
+  ;; MS-Windows.
+  (if (not (eq system-type 'windows-nt)) 'ask)
+  "Whether to enable downloading missing debug info from debuginfod servers.
+The debuginfod servers are HTTP servers for distributing source
+files and debug info files of programs.  If GDB was built with
+debuginfod support, it can query these servers when you debug a
+program for which some of these files are not available locally,
+and download the files if the servers have them.
+
+The value nil means never to download from debuginfod servers.
+The value t means always download from debuginfod servers when
+some source or debug info files are missing.
+The value `ask', the default, means ask at the beginning of each
+debugging session whether to download from debuginfod servers
+during that session."
+  :type '(choice (const :tag "Never download from debuginfod servers" nil)
+                 (const :tag "Download from debuginfod servers when necessary" t)
+                 (const :tag "Ask whether to download for each session" ask))
+  :group 'gdb
+  :version "29.1")
 
 ;; TODO Some commands can't be called with --all (give a notice about
 ;; it in setting doc)
@@ -1021,6 +1049,11 @@ detailed description of this mode.
 
   (run-hooks 'gdb-mode-hook))
 
+(defconst gdb--string-regexp (rx "\""
+                                 (* (or (seq "\\" nonl)
+                                        (not (any "\"\\"))))
+                                 "\""))
+
 (defun gdb-init-1 ()
   ;; (Re-)initialize.
   (setq gdb-selected-frame nil
@@ -1035,6 +1068,7 @@ detailed description of this mode.
 	gdb-handler-list '()
 	gdb-prompt-name nil
 	gdb-first-done-or-error t
+	gdb-target-async-checked nil
 	gdb-buffer-fringe-width (car (window-fringes))
 	gdb-debug-log nil
 	gdb-source-window-list nil
@@ -1044,7 +1078,9 @@ detailed description of this mode.
         gdb-threads-list '()
         gdb-breakpoints-list '()
         gdb-register-names '()
-        gdb-non-stop gdb-non-stop-setting)
+        gdb-supports-non-stop nil
+        gdb-non-stop nil
+        gdb-debuginfod-enable gdb-debuginfod-enable-setting)
   ;;
   (gdbmi-bnf-init)
   ;;
@@ -1052,6 +1088,15 @@ detailed description of this mode.
   ;;
   (gdb-force-mode-line-update
    (propertize "initializing..." 'face font-lock-variable-name-face))
+
+  ;; This needs to be done before we ask GDB for anything that might
+  ;; trigger questions about debuginfod queries.
+  (if (eq gdb-debuginfod-enable 'ask)
+      (setq gdb-debuginfod-enable
+            (y-or-n-p "Enable querying debuginfod servers for this session?")))
+  (gdb-input (format "-gdb-set debuginfod enabled %s"
+                     (if gdb-debuginfod-enable "on" "off"))
+             'gdb-debuginfod-message)
 
   (gdb-get-buffer-create 'gdb-inferior-io)
   (gdb-clear-inferior-io)
@@ -1066,7 +1111,7 @@ detailed description of this mode.
     (gdb-input "-gdb-set interactive-mode on" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
 
-  (when gdb-non-stop
+  (when gdb-non-stop-setting
     (gdb-input "-gdb-set non-stop 1" 'gdb-non-stop-handler))
 
   (gdb-input "-enable-pretty-printing" 'ignore)
@@ -1080,6 +1125,18 @@ detailed description of this mode.
   (gdb-input "-file-list-exec-source-file" 'gdb-get-source-file)
   (gdb-input "-gdb-show prompt" 'gdb-get-prompt))
 
+(defun gdb-debuginfod-message ()
+  "Show in the echo area GDB error response for a debuginfod command, if any."
+  (goto-char (point-min))
+  (cond
+   ((re-search-forward  "msg=\\(\".+\"\\)$" nil t)
+    ;; Supports debuginfod, but cannot perform command.
+    (message "%s" (buffer-substring (1+ (match-beginning 1))
+                                    (1- (line-end-position)))))
+   ((re-search-forward "No symbol" nil t)
+    (message "This version of GDB doesn't support debuginfod commands."))
+   (t (message nil))))
+
 (defun gdb-non-stop-handler ()
   (goto-char (point-min))
   (if (re-search-forward "No symbol" nil t)
@@ -1089,16 +1146,30 @@ detailed description of this mode.
 	(setq gdb-non-stop nil)
 	(setq gdb-supports-non-stop nil))
     (setq gdb-supports-non-stop t)
-    (gdb-input "-gdb-set target-async 1" 'ignore)
+    ;; Try to use "mi-async" first, needs GDB 7.7 onwards.  Note if
+    ;; "mi-async" is not available, GDB is still running in "sync"
+    ;; mode, "No symbol" for "mi-async" must appear before other
+    ;; commands.
+    (gdb-input "-gdb-set mi-async 1" 'gdb-set-mi-async-handler)))
+
+(defun gdb-set-mi-async-handler()
+  (goto-char (point-min))
+  (if (re-search-forward "No symbol" nil t)
+      (gdb-input "-gdb-set target-async 1" 'ignore)))
+
+(defun gdb-try-check-target-async-support()
+  (when (and gdb-non-stop-setting gdb-supports-non-stop
+             (not gdb-target-async-checked))
     (gdb-input "-list-target-features" 'gdb-check-target-async)))
 
 (defun gdb-check-target-async ()
   (goto-char (point-min))
-  (unless (re-search-forward "async" nil t)
+  (if (re-search-forward "async" nil t)
+      (setq gdb-non-stop t)
     (message
      "Target doesn't support non-stop mode.  Turning it off.")
-    (setq gdb-non-stop nil)
-    (gdb-input "-gdb-set non-stop 0" 'ignore)))
+    (gdb-input "-gdb-set non-stop 0" 'ignore))
+  (setq gdb-target-async-checked t))
 
 (defun gdb-delchar-or-quit (arg)
   "Delete ARG characters or send a quit command to GDB.
@@ -1147,11 +1218,6 @@ no input, and GDB is waiting for input."
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area
                                                text-face default-face))
-
-(defconst gdb--string-regexp (rx "\""
-                                 (* (or (seq "\\" nonl)
-                                        (not (any "\"\\"))))
-                                 "\""))
 
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
@@ -2357,7 +2423,7 @@ a GDB/MI reply message."
     ("+" . ())
     ("=" . (("thread-created" . (gdb-thread-created . atomic))
             ("thread-selected" . (gdb-thread-selected . atomic))
-            ("thread-existed" . (gdb-ignored-notification . atomic))
+            ("thread-exited" . (gdb-thread-exited . atomic))
             ('default . (gdb-ignored-notification . atomic)))))
   "Alist of alists, mapping the type and class of message to a handler function.
 Handler functions are all flagged as either `progressive' or `atomic'.
@@ -2601,6 +2667,14 @@ Sets `gdb-thread-number' to new id."
 (defun gdb-starting (_output-field _result)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
   (setq gdb-inferior-status "running")
+
+  ;; Set `gdb-non-stop' when `gdb-last-command' is a CLI background
+  ;; running command e.g. "run &", attach &" or a MI command
+  ;; e.g. "-exec-run" or "-exec-attach".
+  (when (or (string-match "&\s*$" gdb-last-command)
+            (string-match "^-" gdb-last-command))
+    (gdb-try-check-target-async-support))
+
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
   (setq gdb-active-process t)
@@ -2671,6 +2745,10 @@ current thread and update GDB buffers."
 
     ;; Print "(gdb)" to GUD console
     (when gdb-first-done-or-error
+      ;; If running target with a non-background CLI command
+      ;; e.g. "run" (no trailing '&'), target async feature can only
+      ;; be checked when when the program stops for the first time
+      (gdb-try-check-target-async-support)
       (setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
 
     ;; In non-stop, we update information as soon as another thread gets
@@ -3195,7 +3273,8 @@ Place breakpoint icon in its buffer."
       (if (re-search-forward gdb-source-file-regexp nil t)
           (progn
             (setq source-file (gdb-mi--c-string-from-string (match-string 1)))
-            (delete (cons bptno "File not found") gdb-location-alist)
+            (setq gdb-location-alist
+                  (delete (cons bptno "File not found") gdb-location-alist))
             (push (cons bptno source-file) gdb-location-alist))
         (gdb-resync)
         (unless (assoc bptno gdb-location-alist)

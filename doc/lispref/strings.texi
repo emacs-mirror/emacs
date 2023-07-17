@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -911,8 +911,8 @@ This function returns a new string containing one character,
 @end defun
 
 @defun string-to-char string
-  This function returns the first character in @var{string}.  This
-mostly identical to @code{(aref string 0)}, except that it returns 0
+  This function returns the first character in @var{string}.  This is
+mostly identical to @w{@code{(aref string 0)}}, except that it returns 0
 if the string is empty.  (The value is also 0 when the first character
 of @var{string} is the null character, @acronym{ASCII} code 0.)  This
 function may be eliminated in the future if it does not seem useful

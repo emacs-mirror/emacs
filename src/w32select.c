@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 Author: Kevin Gallo
 	Benjamin Riefenstahl

@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -864,10 +864,13 @@ See `sh-feature'.")
 	   ("\\${?\\([[:alpha:]_][[:alnum:]_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face))
     (rpm sh-append rpm2
-	 ("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
+	 ("^\\s-*%\\(\\sw+\\)" 1 font-lock-keyword-face)
+	 ("%{?\\([!?]*[[:alpha:]_][[:alnum:]_]*\\|[0-9]+\\|[%*#]\\*?\\|!?-[[:alpha:]]\\*?\\)"
+	  1 font-lock-variable-name-face))
     (rpm2 sh-append shell
 	  ("^Summary:\\(.*\\)$" (1 font-lock-doc-face t))
-	  ("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
+	  ("^\\(\\sw+\\)\\((\\(\\sw+\\))\\)?:" (1 font-lock-variable-name-face)
+	   (3 font-lock-string-face nil t))))
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-var-1
@@ -1042,7 +1045,9 @@ subshells can nest."
                        ;; Maybe we've bumped into an escaped newline.
                        (sh-is-quoted-p (point)))
                 (backward-char 1))
-              (when (eq (char-before) ?|)
+              (when (and
+                     (eq (char-before) ?|)
+                     (not (eq (char-before (1- (point))) ?\;)))
                 (backward-char 1) t)))
         (and (> (point) (1+ (point-min)))
              (progn (backward-char 2)
@@ -1053,7 +1058,7 @@ subshells can nest."
                     ;; a normal command rather than the real `in' keyword.
                     ;; I.e. we should look back to try and find the
                     ;; corresponding `case'.
-                    (and (looking-at ";[;&]\\|\\_<in")
+                    (and (looking-at ";\\(?:;&?\\|[&|]\\)\\|\\_<in")
                          ;; ";; esac )" is a case that looks
                          ;; like a case-pattern but it's really just a close
                          ;; paren after a case statement.  I.e. if we skipped
@@ -1487,6 +1492,7 @@ Return the name of the shell suitable for `sh-set-shell'."
         ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
         ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
 	((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
+	((equal (file-name-nondirectory buffer-file-name) "PKGBUILD") "bash")
         (t sh-shell-file)))
 
 ;;;###autoload
@@ -1537,13 +1543,7 @@ implementations.  Currently there are two: `sh-mode' and
               (lambda (terminator)
                 (if (eq terminator ?')
                     "'\\'"
-                  "\\")))
-  ;; Parse or insert magic number for exec, and set all variables depending
-  ;; on the shell thus determined.
-  (sh-set-shell (sh--guess-shell) nil nil)
-  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
-  (add-hook 'hack-local-variables-hook
-            #'sh-after-hack-local-variables nil t))
+                  "\\"))))
 
 ;;;###autoload
 (define-derived-mode sh-mode sh-base-mode "Shell-script"
@@ -1603,7 +1603,13 @@ with your script for an edit-interpret-debug cycle."
           nil nil
           ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
           (font-lock-syntactic-face-function
-           . ,#'sh-font-lock-syntactic-face-function))))
+           . ,#'sh-font-lock-syntactic-face-function)))
+  ;; Parse or insert magic number for exec, and set all variables depending
+  ;; on the shell thus determined.
+  (sh-set-shell (sh--guess-shell) nil nil)
+  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
+  (add-hook 'hack-local-variables-hook
+            #'sh-after-hack-local-variables nil t))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -1615,11 +1621,16 @@ This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh."
   :syntax-table sh-mode-syntax-table
   (when (treesit-ready-p 'bash)
+    (sh-set-shell "bash" nil nil)
+    (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
+    (add-hook 'hack-local-variables-hook
+              #'sh-after-hack-local-variables nil t)
     (treesit-parser-create 'bash)
     (setq-local treesit-font-lock-feature-list
                 '(( comment function)
                   ( command declaration-command keyword string)
-                  ( builtin-variable constant heredoc number variable)
+                  ( builtin-variable constant heredoc number
+                    string-interpolation variable)
                   ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
@@ -1784,8 +1795,9 @@ before the newline and in that case point should be just before the token."
       (pattern (rpattern) ("case-(" rpattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
+                (branches ";|" branches) ;zsh.
                 (pattern "case-)" cmd)))
-    '((assoc ";;" ";&" ";;&"))
+    '((assoc ";;" ";&" ";;&" ";|"))
     '((assoc ";" "&") (assoc "&&" "||") (assoc "|" "|&")))))
 
 (defconst sh-smie--sh-operators
@@ -2010,7 +2022,7 @@ May return nil if the line should not be treated as continued."
       (forward-line -1)
       (if (sh-smie--looking-back-at-continuation-p)
           (current-indentation)
-        (+ (current-indentation) sh-basic-offset))))
+        (+ (current-indentation) (sh-var-value 'sh-indent-for-continuation)))))
    (t
     ;; Just make sure a line-continuation is indented deeper.
     (save-excursion
@@ -2031,7 +2043,10 @@ May return nil if the line should not be treated as continued."
                        ;; check the line before that one.
                        (> ci indent))
                       (t ;Previous line is the beginning of the continued line.
-                       (setq indent (min (+ ci sh-basic-offset) max))
+                       (setq
+                        indent
+                        (min
+                         (+ ci (sh-var-value 'sh-indent-for-continuation)) max))
                        nil)))))
           indent))))))
 
@@ -2055,11 +2070,11 @@ May return nil if the line should not be treated as continued."
 	 `(column . ,(smie-indent-virtual))))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
-    (`(:before . ,(or ";;" ";&" ";;&"))
-     (if (and (smie-rule-bolp) (looking-at ";;?&?[ \t]*\\(#\\|$\\)"))
+    (`(:before . ,(or ";;" ";&" ";;&" ";|"))
+     (if (and (smie-rule-bolp) (looking-at ";\\(?:;&?\\|[&|]\\)?[ \t]*\\(#\\|$\\)"))
          (cons 'column (smie-indent-keyword ";"))
        (smie-rule-separator kind)))
-    (`(:after . ,(or ";;" ";&" ";;&"))
+    (`(:after . ,(or ";;" ";&" ";;&" ";|"))
      (with-demoted-errors "SMIE rule error: %S"
        (smie-backward-sexp token)
        (cons 'column
@@ -2148,8 +2163,9 @@ May return nil if the line should not be treated as continued."
       (pattern (pattern "|" pattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
+                (branches ";|" branches) ;zsh.
                 (pattern "case-)" cmd)))
-    '((assoc ";;" ";&" ";;&"))
+    '((assoc ";;" ";&" ";;&" ";|"))
     '((assoc "case") (assoc ";" "&") (assoc "&&" "||") (assoc "|" "|&")))))
 
 (defun sh-smie--rc-after-special-arg-p ()
@@ -3293,6 +3309,12 @@ See `sh-mode--treesit-other-keywords' and
    :language 'bash
    '([(string) (raw_string)] @font-lock-string-face)
 
+   :feature 'string-interpolation
+   :language 'bash
+   :override t
+   '((command_substitution) @sh-quoted-exec
+     (string (expansion (variable_name) @font-lock-variable-use-face)))
+
    :feature 'heredoc
    :language 'bash
    '([(heredoc_start) (heredoc_body)] @sh-heredoc)
@@ -3356,7 +3378,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'number
    :language 'bash
    `(((word) @font-lock-number-face
-      (:match "^[0-9]+$" @font-lock-number-face)))
+      (:match "\\`[0-9]+\\'" @font-lock-number-face)))
 
    :feature 'bracket
    :language 'bash

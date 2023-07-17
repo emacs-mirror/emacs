@@ -1,6 +1,6 @@
 ;;; bug-reference.el --- buttonize bug references  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -174,7 +174,7 @@ subexpression 10."
                   (re-search-forward bug-reference-bug-regexp end-line 'move))
         (when (or (not bug-reference-prog-mode)
                   ;; This tests for both comment and string syntax.
-                  (nth 8 (syntax-ppss)))
+                  (nth 8 (save-match-data (syntax-ppss))))
           (let* ((bounds (bug-reference--overlay-bounds))
                  (overlay (or
                            (let ((ov (pop overlays)))
@@ -599,12 +599,7 @@ and set it if applicable."
      (erc-format-target)
      (erc-network-name))))
 
-(defvar bug-reference-auto-setup-functions
-  (list #'bug-reference-try-setup-from-vc
-        #'bug-reference-try-setup-from-gnus
-        #'bug-reference-try-setup-from-rmail
-        #'bug-reference-try-setup-from-rcirc
-        #'bug-reference-try-setup-from-erc)
+(defvar bug-reference-auto-setup-functions nil
   "Functions trying to auto-setup `bug-reference-mode'.
 These functions are run after `bug-reference-mode' has been
 activated in a buffer and try to guess suitable values for
@@ -616,7 +611,36 @@ guesswork is based on these variables:
 - `bug-reference-setup-from-mail-alist' for guessing based on
   mail group names or mail header values.
 - `bug-reference-setup-from-irc-alist' for guessing based on IRC
-  channel or network names.")
+  channel or network names.
+
+Note: This variable's purpose is to allow packages to provide
+bug-reference auto-setup support in buffers managed by this
+package.  Therefore, such auto-setup function should check if the
+current buffer is \"their\" buffer and only act if that's the
+case, e.g., in terms of `derived-mode-p'.
+
+The variable is not intended for users.  Those are advised to set
+`bug-reference-bug-regexp' and `bug-reference-url-format' using
+other means such as file-local variable sections, a
+`.dir-locals.el' file, or compute and set their values in
+`bug-reference-mode-hook' or `bug-reference-prog-mode-hook'.  If
+the bug regexp and URL format are already set after those hooks
+have been run, the auto-setup is inhibited.")
+
+;; Add the default auto-setup functions.  We don't have them as
+;; init value of bug-reference-auto-setup-functions because then
+;; they wouldn't be added if some package uses
+;;
+;;   (add-hook 'bug-reference-auto-setup-functions
+;;             #'my-pkg--bug-reference-try-setup-from-my-pkg)
+;;
+;; before bug-reference.el is loaded.
+(dolist (fn (list #'bug-reference-try-setup-from-vc
+                  #'bug-reference-try-setup-from-gnus
+                  #'bug-reference-try-setup-from-rmail
+                  #'bug-reference-try-setup-from-rcirc
+                  #'bug-reference-try-setup-from-erc))
+  (add-hook 'bug-reference-auto-setup-functions fn))
 
 (defun bug-reference--run-auto-setup ()
   (when (or bug-reference-mode

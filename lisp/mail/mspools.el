@@ -1,6 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Created: 22 Jan 1997

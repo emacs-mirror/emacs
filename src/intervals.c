@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993-1995, 1997-1998, 2001-2022 Free Software
+   Copyright (C) 1993-1995, 1997-1998, 2001-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2333,6 +2333,9 @@ set_intervals_multibyte_1 (INTERVAL i, bool multi_flag,
 
   if (TOTAL_LENGTH (i) == 0)
     {
+      /* Delete the whole subtree.  */
+      i->left = NULL;
+      i->right = NULL;
       delete_interval (i);
       return;
     }

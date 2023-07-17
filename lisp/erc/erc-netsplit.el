@@ -1,6 +1,6 @@
 ;;; erc-netsplit.el --- Reduce JOIN/QUIT messages on netsplits  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -117,7 +117,9 @@ join from that split has been detected or not.")
 		   parsed 'notice (process-buffer proc)
 		   'netjoin-done ?s (car elt))
 		  (setq erc-netsplit-list (delq elt erc-netsplit-list)))
-	      (delete nick elt))
+              ;; Avoid `ignored-return-value' warning for `delete'.
+              (let ((tail (nthcdr 2 elt))) ; (t n1 ... nN)
+                (setcdr tail (delete nick (cdr tail)))))
 	    (setq no-next-hook t))))
     no-next-hook))
 

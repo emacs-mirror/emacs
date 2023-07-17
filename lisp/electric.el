@@ -1,6 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1995, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1995, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: K. Shane Hartman
@@ -409,9 +409,7 @@ If multiple rules match, only first one is executed.")
                                 (goto-char pos)
                                 (funcall probe last-command-event))))
                          (when res (throw 'done res))))))))))
-    (when (and rule
-               ;; Not in a string or comment.
-               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+    (when rule
       (goto-char pos)
       (when (functionp rule) (setq rule (funcall rule)))
       (dolist (sym (if (symbolp rule) (list rule) rule))

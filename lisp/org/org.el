@@ -1,15 +1,15 @@
 ;;; org.el --- Outline-based notes management and organizer -*- lexical-binding: t; -*-
 
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: Bastien Guerry <bzg@gnu.org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; URL: https://orgmode.org
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6
+;; Version: 9.6.6
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -297,47 +297,49 @@ default, only Emacs Lisp is loaded, since it has no specific
 requirement."
   :group 'org-babel
   :set 'org-babel-do-load-languages
-  :version "24.1"
+  :package-version '(Org . "9.6")
   :type '(alist :tag "Babel Languages"
 		:key-type
 		(choice
 		 (const :tag "Awk" awk)
-		 (const :tag "C" C)
+		 (const :tag "C, D, C++, and cpp" C)
 		 (const :tag "R" R)
                  (const :tag "Calc" calc)
-		 (const :tag "Clojure" clojure)
+		 (const :tag "Clojure and ClojureScript" clojure)
 		 (const :tag "CSS" css)
 		 (const :tag "Ditaa" ditaa)
 		 (const :tag "Dot" dot)
                  (const :tag "Emacs Lisp" emacs-lisp)
+                 (const :tag "Eshell" eshell)
 		 (const :tag "Forth" forth)
 		 (const :tag "Fortran" fortran)
-		 (const :tag "Gnuplot" gnuplot)
+		 (const :tag "GnuPlot" gnuplot)
+		 (const :tag "Groovy" groovy)
 		 (const :tag "Haskell" haskell)
                  (const :tag "Java" java)
-		 (const :tag "Javascript" js)
-		 (const :tag "LaTeX" latex)
-                 (const :tag "Lilypond" lilypond)
+		 (const :tag "JavaScript" js)
+                 (const :tag "Julia" julia)
+                 (const :tag "LaTeX" latex)
+                 (const :tag "LilyPond" lilypond)
 		 (const :tag "Lisp" lisp)
+                 (const :tag "Lua" lua)
 		 (const :tag "Makefile" makefile)
 		 (const :tag "Maxima" maxima)
-		 (const :tag "Matlab" matlab)
-                 (const :tag "Ocaml" ocaml)
-		 (const :tag "Octave" octave)
+                 (const :tag "OCaml" ocaml)
+		 (const :tag "Octave and MatLab" octave)
 		 (const :tag "Org" org)
 		 (const :tag "Perl" perl)
-		 (const :tag "Pico Lisp" picolisp)
+                 (const :tag "Processing" processing)
 		 (const :tag "PlantUML" plantuml)
 		 (const :tag "Python" python)
 		 (const :tag "Ruby" ruby)
 		 (const :tag "Sass" sass)
-		 (const :tag "Scala" scala)
 		 (const :tag "Scheme" scheme)
 		 (const :tag "Screen" screen)
+                 (const :tag "Sed" sed)
 		 (const :tag "Shell Script" shell)
                  (const :tag "Sql" sql)
-		 (const :tag "Sqlite" sqlite)
-		 (const :tag "Stan" stan))
+		 (const :tag "Sqlite" sqlite))
 		:value-type (boolean :tag "Activate" :value t)))
 
 ;;;; Customization variables
@@ -723,6 +725,10 @@ defined in org-duration.el.")
   (set-default-toplevel-value var value)
   (when (featurep 'org)
     (org-load-modules-maybe 'force)
+    ;; FIXME: We can't have all the requires at top-level due to
+    ;; circular dependencies.  Yet, this function might sometimes be
+    ;; called when 'org-element is not loaded.
+    (require 'org-element)
     (org-element-cache-reset 'all)))
 
 (defcustom org-modules '(ol-doi ol-w3m ol-bbdb ol-bibtex ol-docview ol-gnus ol-info ol-irc ol-mhe ol-rmail ol-eww)
@@ -3477,13 +3483,17 @@ Make sure that you only list packages here which:
   :group 'org-export-latex
   :set 'org-set-packages-alist
   :get 'org-get-packages-alist
-  :type '(repeat
-	  (choice
-	   (list :tag "options/package pair"
-		 (string :tag "options")
-		 (string :tag "package")
-		 (boolean :tag "Snippet"))
-	   (string :tag "A line of LaTeX"))))
+  :type
+  '(repeat
+    (choice
+     (list :tag "options/package pair"
+           (string :tag "options")
+           (string :tag "package")
+           (boolean :tag "snippet")
+           (choice
+            (const :tag "All compilers include this package" nil)
+            (repeat :tag "Only include from these compilers" string)))
+     (string :tag "A line of LaTeX"))))
 
 (defgroup org-appearance nil
   "Settings for Org mode appearance."
@@ -3594,13 +3604,13 @@ following symbols:
 	       (const :tag "Entities" entities))))
 
 (defcustom org-hide-emphasis-markers nil
-  "Non-nil mean font-lock should hide the emphasis marker characters."
+  "Non-nil means font-lock should hide the emphasis marker characters."
   :group 'org-appearance
   :type 'boolean
   :safe #'booleanp)
 
 (defcustom org-hide-macro-markers nil
-  "Non-nil mean font-lock should hide the brackets marking macro calls."
+  "Non-nil means font-lock should hide the brackets marking macro calls."
   :group 'org-appearance
   :type 'boolean)
 
@@ -3612,7 +3622,7 @@ When nil, the \\name form remains in the buffer."
   :type 'boolean)
 
 (defcustom org-pretty-entities-include-sub-superscripts t
-  "Non-nil means, pretty entity display includes formatting sub/superscripts."
+  "Non-nil means pretty entity display includes formatting sub/superscripts."
   :group 'org-appearance
   :version "24.1"
   :type 'boolean)
@@ -4555,21 +4565,25 @@ is available.  This option applies only if FILE is a URL."
      (cache)
      (is-url
       (if (org--should-fetch-remote-resource-p file)
-          (with-current-buffer (url-retrieve-synchronously file)
-            (goto-char (point-min))
-            ;; Move point to after the url-retrieve header.
-            (search-forward "\n\n" nil :move)
-            ;; Search for the success code only in the url-retrieve header.
-            (if (save-excursion
-                  (re-search-backward "HTTP.*\\s-+200\\s-OK" nil :noerror))
-                ;; Update the cache `org--file-cache' and return contents.
-                (puthash file
-                         (buffer-substring-no-properties (point) (point-max))
-                         org--file-cache)
-              (funcall (if noerror #'message #'user-error)
-                       "Unable to fetch file from %S"
-                       file)
-              nil))
+          (condition-case error
+              (with-current-buffer (url-retrieve-synchronously file)
+                (goto-char (point-min))
+                ;; Move point to after the url-retrieve header.
+                (search-forward "\n\n" nil :move)
+                ;; Search for the success code only in the url-retrieve header.
+                (if (save-excursion
+                      (re-search-backward "HTTP.*\\s-+200\\s-OK" nil :noerror))
+                    ;; Update the cache `org--file-cache' and return contents.
+                    (puthash file
+                             (buffer-substring-no-properties (point) (point-max))
+                             org--file-cache)
+                  (funcall (if noerror #'message #'user-error)
+                           "Unable to fetch file from %S"
+                           file)
+                  nil))
+            (error (if noerror
+                       (message "Org could't download \"%s\": %s %S" file (car error) (cdr error))
+                     (signal (car error) (cdr error)))))
         (funcall (if noerror #'message #'user-error)
                  "The remote resource %S is considered unsafe, and will not be downloaded."
                  file)))
@@ -4898,16 +4912,20 @@ The following commands are available:
 	     (= (point-min) (point-max)))
     (insert "#    -*- mode: org -*-\n\n"))
   (unless org-inhibit-startup
+    (when (or org-startup-align-all-tables org-startup-shrink-all-tables)
+      (org-table-map-tables
+       (cond ((and org-startup-align-all-tables
+		   org-startup-shrink-all-tables)
+	      (lambda () (org-table-align) (org-table-shrink)))
+	     (org-startup-align-all-tables #'org-table-align)
+	     (t #'org-table-shrink))
+       t))
+    ;; Suppress modification hooks to speed up the startup.
+    ;; However, do it only when text properties/overlays, but not
+    ;; buffer text are actually modified.  We still need to track text
+    ;; modifications to make cache updates work reliably.
     (org-unmodified
      (when org-startup-with-beamer-mode (org-beamer-mode))
-     (when (or org-startup-align-all-tables org-startup-shrink-all-tables)
-       (org-table-map-tables
-	(cond ((and org-startup-align-all-tables
-		    org-startup-shrink-all-tables)
-	       (lambda () (org-table-align) (org-table-shrink)))
-	      (org-startup-align-all-tables #'org-table-align)
-	      (t #'org-table-shrink))
-	t))
      (when org-startup-with-inline-images (org-display-inline-images))
      (when org-startup-with-latex-preview (org-latex-preview '(16)))
      (unless org-inhibit-startup-visibility-stuff (org-cycle-set-startup-visibility))
@@ -5356,7 +5374,7 @@ by a #."
 			  (zero-or-more (any " \t"))
 			  (group (group (zero-or-more (not (any " \t\n"))))
 				 (zero-or-more (any " \t"))
-				 (group (zero-or-more any)))))
+				 (group (zero-or-more nonl)))))
 	   limit t)
       (let ((beg (match-beginning 0))
 	    (end-of-beginline (match-end 0))
@@ -5382,7 +5400,7 @@ by a #."
 						    "#+end"
 						    ,(match-string 4)
 						    word-end
-						    (zero-or-more any)))))
+						    (zero-or-more nonl)))))
 		 ;; We look further than LIMIT on purpose.
 		 nil t)
 	    ;; We do have a matching #+end line.
@@ -5455,7 +5473,7 @@ by a #."
 	    (beginning-of-line)
 	    (looking-at (rx (group (zero-or-more (any " \t"))
 				   "#+caption"
-				   (optional "[" (zero-or-more any) "]")
+				   (optional "[" (zero-or-more nonl) "]")
 				   ":")
 			    (zero-or-more (any " \t")))))
 	  (add-text-properties (line-beginning-position) (match-end 1)
@@ -6552,7 +6570,7 @@ See also `org-promote'."
   (interactive)
   (save-excursion
     (org-back-to-heading t)
-    (combine-change-calls (point) (save-excursion (org-end-of-subtree t))
+    (org-combine-change-calls (point) (save-excursion (org-end-of-subtree t))
       (org-with-limited-levels (org-map-tree 'org-promote))))
   (org-fix-position-after-promote))
 
@@ -6562,7 +6580,7 @@ See `org-demote' and `org-promote'."
   (interactive)
   (save-excursion
     (org-back-to-heading t)
-    (combine-change-calls (point) (save-excursion (org-end-of-subtree t))
+    (org-combine-change-calls (point) (save-excursion (org-end-of-subtree t))
       (org-with-limited-levels (org-map-tree 'org-demote))))
   (org-fix-position-after-promote))
 
@@ -7131,7 +7149,7 @@ When REMOVE is non-nil, remove the subtree from the clipboard."
        (setq beg (point))
        ;; Avoid re-parsing cache elements when i.e. level 1 heading
        ;; is inserted and then promoted.
-       (combine-change-calls beg beg
+       (org-combine-change-calls beg beg
          (when (fboundp 'org-id-paste-tracker) (org-id-paste-tracker txt))
          (insert txt)
          (unless (string-suffix-p "\n" txt) (insert "\n"))
@@ -8426,7 +8444,10 @@ a link."
 	       (dolist (link (if (stringp links) (list links) links))
 		 (search-forward link nil links-end)
 		 (goto-char (match-beginning 0))
-		 (org-open-at-point arg)))))))
+                 ;; When opening file link, current buffer may be
+                 ;; altered.
+                 (save-current-buffer
+		   (org-open-at-point arg))))))))
        ;; On a footnote reference or at definition's label.
        ((or (eq type 'footnote-reference)
 	    (and (eq type 'footnote-definition)
@@ -8604,6 +8625,7 @@ or to another Org file, automatically push the old position onto the ring."
 (defvar org-agenda-buffer-name)
 (defun org-follow-timestamp-link ()
   "Open an agenda view for the time-stamp date/range at point."
+  (require 'org-agenda)
   ;; Avoid changing the global value.
   (let ((org-agenda-buffer-name org-agenda-buffer-name))
     (cond
@@ -8855,7 +8877,7 @@ keywords relative to each registered export back-end."
     "EXCLUDE_TAGS:" "FILETAGS:" "INCLUDE:" "INDEX:" "KEYWORDS:" "LANGUAGE:"
     "MACRO:" "OPTIONS:" "PROPERTY:" "PRINT_BIBLIOGRAPHY" "PRIORITIES:"
     "SELECT_TAGS:" "SEQ_TODO:" "SETUPFILE:" "STARTUP:" "TAGS:" "TITLE:" "TODO:"
-    "TYP_TODO:" "SELECT_TAGS:" "EXCLUDE_TAGS:"))
+    "TYP_TODO:" "SELECT_TAGS:" "EXCLUDE_TAGS:" "EXPORT_FILE_NAME:"))
 
 (defcustom org-structure-template-alist
   '(("a" . "export ascii")
@@ -9128,7 +9150,8 @@ nil or a string to be used for the todo mark." )
 	(replace-match "0" t nil nil 1)))))
 
 (defvar org-state)
-(defvar org-blocked-by-checkboxes)
+;; FIXME: We should refactor this and similar dynamically scoped blocker flags.
+(defvar org-blocked-by-checkboxes nil) ; dynamically scoped
 (defun org-todo (&optional arg)
   "Change the TODO state of an item.
 
@@ -10200,7 +10223,7 @@ nil."
 	(replace-match "")
         (if (and (string-match "\\S-" (buffer-substring (line-beginning-position) (point)))
 		 (equal (char-before) ?\ ))
-	    (backward-delete-char 1)
+	    (delete-char -1)
 	  (when (string-match "^[ \t]*$" (buffer-substring
                                           (line-beginning-position) (line-end-position)))
             (delete-region (line-beginning-position)
@@ -11991,18 +12014,17 @@ Returns the new tags string, or nil to not change the current settings."
 		    (setq current nil)
 		    (when exit-after-next (setq exit-after-next 'now)))
 		   ((= c ?\t)
-                    (condition-case nil
-                        (unless tab-tags
-                          (setq tab-tags
-                                (delq nil
-                                      (mapcar (lambda (x)
-                                                (let ((item (car-safe x)))
-                                                  (and (stringp item)
-                                                       (list item))))
-                                              (org--tag-add-to-alist
-                                               (with-current-buffer buf
-                                                 (org-get-buffer-tags))
-                                               table))))))
+                    (unless tab-tags
+                      (setq tab-tags
+                            (delq nil
+                                  (mapcar (lambda (x)
+                                            (let ((item (car-safe x)))
+                                              (and (stringp item)
+                                                   (list item))))
+                                          (org--tag-add-to-alist
+                                           (with-current-buffer buf
+                                             (org-get-buffer-tags))
+                                           table)))))
                     (setq tg (completing-read "Tag: " tab-tags))
 		    (when (string-match "\\S-" tg)
 		      (cl-pushnew (list tg) tab-tags :test #'equal)
@@ -16400,7 +16422,7 @@ buffer boundaries with possible narrowing."
 (defun org-display-inline-remove-overlay (ov after _beg _end &optional _len)
   "Remove inline-display overlay if a corresponding region is modified."
   (when (and ov after)
-    (delete ov org-inline-image-overlays)
+    (setq org-inline-image-overlays (delete ov org-inline-image-overlays))
     ;; Clear image from cache to avoid image not updating upon
     ;; changing on disk.  See Emacs bug#59902.
     (when (overlay-get ov 'org-image-overlay)
@@ -16517,7 +16539,7 @@ because, in this case the deletion might narrow the column."
 	     (looking-at-p ".*?|")
 	     (org-at-table-p))
 	(progn (forward-char -1) (org-delete-char 1))
-      (backward-delete-char N)
+      (funcall-interactively #'backward-delete-char N)
       (org-fix-tags-on-the-fly))))
 
 (defun org-delete-char (N)
@@ -18580,6 +18602,10 @@ block from point."
 	      (throw 'exit n)))))
       nil)))
 
+;; Defined in org-agenda.el
+(defvar org-agenda-restrict)
+(defvar org-agenda-restrict-begin)
+(defvar org-agenda-restrict-end)
 (defun org-occur-in-agenda-files (regexp &optional _nlines)
   "Call `multi-occur' with buffers for all agenda files."
   (interactive "sOrg-files matching: ")
@@ -18839,7 +18865,7 @@ Alignment is done according to `org-property-format', which see."
   (when (save-excursion
 	  (beginning-of-line)
 	  (looking-at org-property-re))
-    (combine-change-calls (match-beginning 0) (match-end 0)
+    (org-combine-change-calls (match-beginning 0) (match-end 0)
       (let ((newtext (concat (match-string 4)
 	                     (org-trim
 	                      (format org-property-format (match-string 1) (match-string 3))))))

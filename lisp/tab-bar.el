@@ -1,6 +1,6 @@
 ;;; tab-bar.el --- frame-local tabs with named persistent window configurations -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: frames tabs
@@ -618,13 +618,18 @@ from all windows in the window configuration."
 
 (defun tab-bar-tab-name-current ()
   "Generate tab name from the buffer of the selected window."
-  (buffer-name (window-buffer (minibuffer-selected-window))))
+  ;; `minibuffer-selected-window' loses its original window
+  ;; after switching to another tab while the minibuffer was active,
+  ;; so get the most recently used non-minibuffer window.
+  (buffer-name (window-buffer (or (minibuffer-selected-window)
+                                  (and (window-minibuffer-p)
+                                       (get-mru-window))))))
 
 (defun tab-bar-tab-name-current-with-count ()
   "Generate tab name from the buffer of the selected window.
 Also add the number of windows in the window configuration."
   (let ((count (length (window-list-1 nil 'nomini)))
-        (name (window-buffer (minibuffer-selected-window))))
+        (name (tab-bar-tab-name-current)))
     (if (> count 1)
         (format "%s (%d)" name count)
       (format "%s" name))))
@@ -651,7 +656,7 @@ to `tab-bar-tab-name-truncated'."
   "Generate tab name from the buffer of the selected window.
 Truncate it to the length specified by `tab-bar-tab-name-truncated-max'.
 Append ellipsis `tab-bar-tab-name-ellipsis' in this case."
-  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window)))))
+  (let ((tab-name (tab-bar-tab-name-current)))
     (if (< (length tab-name) tab-bar-tab-name-truncated-max)
         tab-name
       (propertize (truncate-string-to-width
@@ -1253,6 +1258,17 @@ inherits the current tab's `explicit-name' parameter."
                              tabs))))
 
 
+(defvar tab-bar-minibuffer-restore-tab nil
+  "Tab number for `tab-bar-minibuffer-restore-tab'.")
+
+(defun tab-bar-minibuffer-restore-tab ()
+  "Switch back to the tab where the minibuffer was activated.
+This is necessary to prepare the same window configuration where
+original windows were saved and will be restored.  This function
+is used only when `read-minibuffer-restore-windows' is non-nil."
+  (when tab-bar-minibuffer-restore-tab
+    (tab-bar-select-tab tab-bar-minibuffer-restore-tab)))
+
 (defun tab-bar-select-tab (&optional tab-number)
   "Switch to the tab by its absolute position TAB-NUMBER in the tab bar.
 When this command is bound to a numeric key (with a key prefix or modifier key
@@ -1277,6 +1293,11 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                           (t tab-number)))
          (to-index (1- (max 1 (min to-number (length tabs)))))
          (minibuffer-was-active (minibuffer-window-active-p (selected-window))))
+
+    (when (and read-minibuffer-restore-windows minibuffer-was-active
+               (not tab-bar-minibuffer-restore-tab))
+      (setq-local tab-bar-minibuffer-restore-tab (1+ from-index))
+      (add-hook 'minibuffer-exit-hook 'tab-bar-minibuffer-restore-tab nil t))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
@@ -1333,8 +1354,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
 
          (ws
           ;; `window-state-put' fails when called in the minibuffer
-          (when (minibuffer-selected-window)
-            (select-window (minibuffer-selected-window)))
+          (when (window-minibuffer-p)
+            (select-window (get-mru-window)))
           (window-state-put ws nil 'safe)))
 
         ;; Select the minibuffer when it was active before switching tabs
@@ -1345,8 +1366,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
         ;; another tab, then after going back to the first tab, it has
         ;; such inconsistent state that the current buffer is the minibuffer,
         ;; but its window is not active.  So try to undo this mess.
-        (when (and (minibufferp) (not (active-minibuffer-window)))
-          (other-window 1))
+        (when (and (window-minibuffer-p) (not (active-minibuffer-window)))
+          (select-window (get-mru-window)))
 
         (when tab-bar-history-mode
           (setq tab-bar-history-omit t))
@@ -1569,24 +1590,26 @@ After the tab is created, the hooks in
 
     (when tab-bar-new-tab-choice
       ;; Handle the case when it's called in the active minibuffer.
-      (when (minibuffer-selected-window)
-        (select-window (minibuffer-selected-window)))
-      ;; Remove window parameters that can cause problems
-      ;; with `delete-other-windows' and `split-window'.
-      (unless (eq tab-bar-new-tab-choice 'clone)
-        (set-window-parameter nil 'window-atom nil)
-        (set-window-parameter nil 'window-side nil))
-      (let ((ignore-window-parameters t))
+      (when (window-minibuffer-p)
+        (select-window (get-mru-window)))
+      (let ((ignore-window-parameters t)
+            (window--sides-inhibit-check t))
         (if (eq tab-bar-new-tab-choice 'clone)
             ;; Create new unique windows with the same layout
             (window-state-put (window-state-get))
+          ;; Remove window parameters that can cause problems
+          ;; with `delete-other-windows' and `split-window'.
+          (set-window-parameter nil 'window-atom nil)
           (delete-other-windows)
           (if (eq tab-bar-new-tab-choice 'window)
               ;; Create new unique window from remaining window
-              (window-state-put (window-state-get))
+              (progn
+                (set-window-parameter nil 'window-side nil)
+                (window-state-put (window-state-get)))
             ;; Create a new window to get rid of old window parameters
             ;; (e.g. prev/next buffers) of old window.
-            (split-window) (delete-window))))
+            (split-window nil window-safe-min-width t)
+            (delete-window))))
 
       (let ((buffer
              (if (and (functionp tab-bar-new-tab-choice)
@@ -2653,14 +2676,14 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (keymap-set tab-prefix-map "t"   #'other-tab-prefix)
 
 (defvar-keymap tab-bar-switch-repeat-map
-  :doc "Keymap to repeat tab switch key sequences \\`C-x t o o O'.
+  :doc "Keymap to repeat tab switch commands `tab-next' and `tab-previous'.
 Used in `repeat-mode'."
   :repeat t
   "o" #'tab-next
   "O" #'tab-previous)
 
 (defvar-keymap tab-bar-move-repeat-map
-  :doc "Keymap to repeat tab move key sequences \\`C-x t m m M'.
+  :doc "Keymap to repeat tab move commands `tab-move' and `tab-bar-move-tab-backward'.
 Used in `repeat-mode'."
   :repeat t
   "m" #'tab-move

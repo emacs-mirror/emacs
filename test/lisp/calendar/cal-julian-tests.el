@@ -1,6 +1,6 @@
 ;;; cal-julian-tests.el --- tests for calendar/cal-julian.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -47,7 +47,7 @@
          (progn
            (calendar)
            ,@body)
-       (kill-buffer "*Calendar*"))))
+       (kill-buffer calendar-buffer))))
 
 (ert-deftest cal-julian-test-goto-date ()
   (with-cal-julian-test

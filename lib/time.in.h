@@ -1,6 +1,6 @@
 /* A more-standard <time.h>.
 
-   Copyright (C) 2007-2022 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -19,6 +19,13 @@
 @PRAGMA_SYSTEM_HEADER@
 #endif
 @PRAGMA_COLUMNS@
+
+/* This file uses #include_next of a system file that defines time_t.
+   For the 'year2038' module to work right, <config.h> needs to have been
+   included before.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 /* Don't get in the way of glibc when it includes time.h merely to
    declare a few standard symbols, rather than to declare all the
@@ -44,6 +51,12 @@
 # endif
 
 # @INCLUDE_NEXT@ @NEXT_TIME_H@
+
+/* This file uses _GL_ATTRIBUTE_DEPRECATED, GNULIB_POSIXCHECK,
+   HAVE_RAW_DECL_*.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
 
 /* NetBSD 5.0 mis-defines NULL.  */
 # include <stddef.h>
@@ -112,12 +125,24 @@ struct __time_t_must_be_integral {
 /* Set *TS to the current time, and return BASE.
    Upon failure, return 0.  */
 # if @GNULIB_TIMESPEC_GET@
-#  if ! @HAVE_TIMESPEC_GET@
+#  if @REPLACE_TIMESPEC_GET@
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef timespec_get
+#    define timespec_get rpl_timespec_get
+#   endif
+_GL_FUNCDECL_RPL (timespec_get, int, (struct timespec *ts, int base)
+                                     _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (timespec_get, int, (struct timespec *ts, int base));
+#  else
+#   if !@HAVE_TIMESPEC_GET@
 _GL_FUNCDECL_SYS (timespec_get, int, (struct timespec *ts, int base)
                                      _GL_ARG_NONNULL ((1)));
-#  endif
+#   endif
 _GL_CXXALIAS_SYS (timespec_get, int, (struct timespec *ts, int base));
+#  endif
+#  if __GLIBC__ >= 2
 _GL_CXXALIASWARN (timespec_get);
+#  endif
 # endif
 
 /* Set *TS to the current time resolution, and return BASE.
@@ -129,6 +154,22 @@ _GL_FUNCDECL_SYS (timespec_getres, int, (struct timespec *ts, int base)
 #  endif
 _GL_CXXALIAS_SYS (timespec_getres, int, (struct timespec *ts, int base));
 _GL_CXXALIASWARN (timespec_getres);
+# endif
+
+/* Return the number of seconds that have elapsed since the Epoch.  */
+# if @GNULIB_TIME@
+#  if @REPLACE_TIME@
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    define time rpl_time
+#   endif
+_GL_FUNCDECL_RPL (time, time_t, (time_t *__tp));
+_GL_CXXALIAS_RPL (time, time_t, (time_t *__tp));
+#  else
+_GL_CXXALIAS_SYS (time, time_t, (time_t *__tp));
+#  endif
+#  if __GLIBC__ >= 2
+_GL_CXXALIASWARN (time);
+#  endif
 # endif
 
 /* Sleep for at least RQTP seconds unless interrupted,  If interrupted,
@@ -315,7 +356,9 @@ _GL_CXXALIASWARN (strptime);
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    define ctime rpl_ctime
 #   endif
+#   ifndef __cplusplus
 _GL_ATTRIBUTE_DEPRECATED
+#   endif
 _GL_FUNCDECL_RPL (ctime, char *, (time_t const *__tp)
                                  _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (ctime, char *, (time_t const *__tp));
@@ -423,7 +466,9 @@ _GL_FUNCDECL_SYS (timegm, time_t, (struct tm *__tm) _GL_ARG_NONNULL ((1)));
 #   endif
 _GL_CXXALIAS_SYS (timegm, time_t, (struct tm *__tm));
 #  endif
+#  if __GLIBC__ >= 2
 _GL_CXXALIASWARN (timegm);
+#  endif
 # endif
 
 /* Encourage applications to avoid unsafe functions that can overrun

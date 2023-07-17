@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2023 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -880,7 +880,10 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                                    (original-date original-date))
                     (run-hooks 'diary-hook))))))
         (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
-      (or d-incp (message "Preparing diary...done"))
+      (or d-incp
+          ;; Don't clobber messages displayed while preparing the diary.
+          (not (equal (current-message) "Preparing diary..."))
+          (message "Preparing diary...done"))
       diary-entries-list)))
 
 (defun diary-unhide-everything ()

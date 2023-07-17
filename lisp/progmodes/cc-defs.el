@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1284,6 +1284,29 @@ MODE is either a mode symbol or a list of mode symbols."
        pos)
       (most-positive-fixnum))))
 
+(defmacro c-put-char-properties (from to property value)
+  ;; FIXME!!!  Doc comment here!
+  (declare (debug t))
+  (setq property (eval property))
+  `(let ((-to- ,to) (-from- ,from))
+     ,(if c-use-extents
+	  ;; XEmacs
+	  `(progn
+	     (map-extents (lambda (ext ignored)
+			    (delete-extent ext))
+			  nil -from- -to- nil nil ',property)
+	     (set-extent-properties (make-extent -from- -to-)
+				    (cons property
+					  (cons ,value
+						'(start-open t
+							     end-open t)))))
+	;; Emacs
+	`(progn
+	   ,@(when (and (fboundp 'syntax-ppss)
+			(eq `,property 'syntax-table))
+	       `((setq c-syntax-table-hwm (min c-syntax-table-hwm -from-))))
+	   (put-text-property -from- -to- ',property ,value)))))
+
 (defmacro c-clear-char-properties (from to property)
   ;; Remove all the occurrences of the given property in the given
   ;; region that has been put with `c-put-char-property'.  PROPERTY is
@@ -1360,6 +1383,29 @@ nil; point is then left undefined."
        (goto-char place)
        (search-forward-regexp "\\(\n\\|.\\)")	; to set the match-data.
        (point))))
+
+(defmacro c-search-forward-non-nil-char-property (property &optional limit)
+  "Search forward for a text-property PROPERTY value non-nil.
+LIMIT bounds the search.
+
+Leave point just after the character.  The match data remain
+unchanged.  Return the value of PROPERTY.  If a non-nil value
+isn't found, return nil; point is then left undefined."
+  (declare (debug t))
+  `(let* ((-limit- (or ,limit (point-max)))
+	  (value (c-get-char-property (point) ,property)))
+     (cond
+      ((>= (point) -limit-)
+       nil)
+      (value
+       (forward-char)
+       value)
+      (t (let ((place (c-next-single-property-change
+		       (point) ,property nil -limit-)))
+	   (when (and place
+		      (< place -limit-))
+	     (goto-char (1+ place))
+	     (c-get-char-property place ,property)))))))
 
 (defmacro c-search-backward-char-property (property value &optional limit)
   "Search backward for a text-property PROPERTY having value VALUE.
@@ -1824,9 +1870,9 @@ with value CHAR in the region [FROM to)."
       '(looking-at
 	"\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\|\\s!\\)")
     '(or (looking-at
-	  "\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\)"
+	  "\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\)")
 	  (let ((prop (c-get-char-property (point) 'syntax-table)))
-	    (equal prop '(14))))))) ; '(14) is generic comment delimiter.
+	    (equal prop '(14)))))) ; '(14) is generic comment delimiter.
 
 
 (defsubst c-intersect-lists (list alist)
@@ -1972,7 +2018,7 @@ when it's needed.  The default is the current language taken from
 	    ;; doesn't occur in any word in LIST.  Append it to all
 	    ;; the alternatives where we want to add \>.  Run through
 	    ;; `regexp-opt' and then replace it with \>.
-	    (let ((unique "") pos)
+	    (let ((unique "") (list1 (copy-tree list)) pos)
 	      (while (let (found)
 		       (setq unique (concat unique "@")
 			     pos list)
@@ -1983,13 +2029,12 @@ when it's needed.  The default is the current language taken from
 				     t))
 			 (setq pos (cdr pos)))
 		       found))
-	      (setq pos (copy-tree list)
-		    )
+	      (setq pos list1)
 	      (while pos
 		(if (string-match "\\w\\'" (car pos))
 		    (setcar pos (concat (car pos) unique)))
 		(setq pos (cdr pos)))
-	      (setq re (regexp-opt list))
+	      (setq re (regexp-opt list1))
 	      (setq pos 0)
 	      (while (string-match unique re pos)
 		(setq pos (+ (match-beginning 0) 2)
@@ -2132,86 +2177,79 @@ non-nil, a caret is prepended to invert the set."
     ;; Record whether the `category' text property works.
     (if c-use-category (setq list (cons 'category-properties list)))
 
-    (let ((buf (generate-new-buffer " test"))
-	  parse-sexp-lookup-properties
-	  parse-sexp-ignore-comments
-	  lookup-syntax-properties)	; XEmacs
+    (let ((buf (generate-new-buffer " test")))
       (with-current-buffer buf
-	(set-syntax-table (make-syntax-table))
+	(let ((parse-sexp-lookup-properties t)
+	      (parse-sexp-ignore-comments t)
+	      (lookup-syntax-properties t))
+	  (set-syntax-table (make-syntax-table))
 
-	;; For some reason we have to set some of these after the
-	;; buffer has been made current.  (Specifically,
-	;; `parse-sexp-ignore-comments' in Emacs 21.)
-	(setq parse-sexp-lookup-properties t
-	      parse-sexp-ignore-comments t
-	      lookup-syntax-properties t)
+	  ;; Find out if the `syntax-table' text property works.
+	  (modify-syntax-entry ?< ".")
+	  (modify-syntax-entry ?> ".")
+	  (insert "<()>")
+	  (c-mark-<-as-paren (point-min))
+	  (c-mark->-as-paren (+ 3 (point-min)))
+	  (goto-char (point-min))
+	  (c-forward-sexp)
+	  (if (= (point) (+ 4 (point-min)))
+	      (setq list (cons 'syntax-properties list))
+	    (error (concat
+		    "CC Mode is incompatible with this version of Emacs - "
+		    "support for the `syntax-table' text property "
+		    "is required.")))
 
-	;; Find out if the `syntax-table' text property works.
-	(modify-syntax-entry ?< ".")
-	(modify-syntax-entry ?> ".")
-	(insert "<()>")
-	(c-mark-<-as-paren (point-min))
-	(c-mark->-as-paren (+ 3 (point-min)))
-	(goto-char (point-min))
-	(c-forward-sexp)
-	(if (= (point) (+ 4 (point-min)))
-	    (setq list (cons 'syntax-properties list))
-	  (error (concat
-		  "CC Mode is incompatible with this version of Emacs - "
-		  "support for the `syntax-table' text property "
-		  "is required.")))
+	  ;; Find out if "\\s!" (generic comment delimiters) work.
+	  (c-safe
+	    (modify-syntax-entry ?x "!")
+	    (if (string-match "\\s!" "x")
+		(setq list (cons 'gen-comment-delim list))))
 
-	;; Find out if "\\s!" (generic comment delimiters) work.
-	(c-safe
-	  (modify-syntax-entry ?x "!")
-	  (if (string-match "\\s!" "x")
-	      (setq list (cons 'gen-comment-delim list))))
+	  ;; Find out if "\\s|" (generic string delimiters) work.
+	  (c-safe
+	    (modify-syntax-entry ?x "|")
+	    (if (string-match "\\s|" "x")
+		(setq list (cons 'gen-string-delim list))))
 
-	;; Find out if "\\s|" (generic string delimiters) work.
-	(c-safe
-	  (modify-syntax-entry ?x "|")
-	  (if (string-match "\\s|" "x")
-	      (setq list (cons 'gen-string-delim list))))
+	  ;; See if POSIX char classes work.
+	  (when (and (string-match "[[:alpha:]]" "a")
+		     ;; All versions of Emacs 21 so far haven't fixed
+		     ;; char classes in `skip-chars-forward' and
+		     ;; `skip-chars-backward'.
+		     (progn
+		       (delete-region (point-min) (point-max))
+		       (insert "foo123")
+		       (skip-chars-backward "[:alnum:]")
+		       (bobp))
+		     (= (skip-chars-forward "[:alpha:]") 3))
+	    (setq list (cons 'posix-char-classes list)))
 
-	;; See if POSIX char classes work.
-	(when (and (string-match "[[:alpha:]]" "a")
-		   ;; All versions of Emacs 21 so far haven't fixed
-		   ;; char classes in `skip-chars-forward' and
-		   ;; `skip-chars-backward'.
-		   (progn
-		     (delete-region (point-min) (point-max))
-		     (insert "foo123")
-		     (skip-chars-backward "[:alnum:]")
-		     (bobp))
-		   (= (skip-chars-forward "[:alpha:]") 3))
-	  (setq list (cons 'posix-char-classes list)))
+	  ;; See if `open-paren-in-column-0-is-defun-start' exists and
+	  ;; isn't buggy (Emacs >= 21.4).
+	  (when (boundp 'open-paren-in-column-0-is-defun-start)
+	    (let ((open-paren-in-column-0-is-defun-start nil)
+		  (parse-sexp-ignore-comments t))
+	      (delete-region (point-min) (point-max))
+	      (set-syntax-table (make-syntax-table))
+	      (modify-syntax-entry ?\' "\"")
+	      (cond
+	       ;; XEmacs.  Afaik this is currently an Emacs-only
+	       ;; feature, but it's good to be prepared.
+	       ((memq '8-bit list)
+		(modify-syntax-entry ?/ ". 1456")
+		(modify-syntax-entry ?* ". 23"))
+	       ;; Emacs
+	       ((memq '1-bit list)
+		(modify-syntax-entry ?/ ". 124b")
+		(modify-syntax-entry ?* ". 23")))
+	      (modify-syntax-entry ?\n "> b")
+	      (insert "/* '\n   () */")
+	      (backward-sexp)
+	      (if (bobp)
+		  (setq list (cons 'col-0-paren list)))))
 
-	;; See if `open-paren-in-column-0-is-defun-start' exists and
-	;; isn't buggy (Emacs >= 21.4).
-	(when (boundp 'open-paren-in-column-0-is-defun-start)
-	  (let ((open-paren-in-column-0-is-defun-start nil)
-		(parse-sexp-ignore-comments t))
-	    (delete-region (point-min) (point-max))
-	    (set-syntax-table (make-syntax-table))
-	    (modify-syntax-entry ?\' "\"")
-	    (cond
-	     ;; XEmacs.  Afaik this is currently an Emacs-only
-	     ;; feature, but it's good to be prepared.
-	     ((memq '8-bit list)
-	      (modify-syntax-entry ?/ ". 1456")
-	      (modify-syntax-entry ?* ". 23"))
-	     ;; Emacs
-	     ((memq '1-bit list)
-	      (modify-syntax-entry ?/ ". 124b")
-	      (modify-syntax-entry ?* ". 23")))
-	    (modify-syntax-entry ?\n "> b")
-	    (insert "/* '\n   () */")
-	    (backward-sexp)
-	    (if (bobp)
-		(setq list (cons 'col-0-paren list)))))
-
-	(set-buffer-modified-p nil))
-      (kill-buffer buf))
+	  (set-buffer-modified-p nil))
+	(kill-buffer buf)))
 
     ;; Check how many elements `parse-partial-sexp' returns.
     (let ((ppss-size (or (c-safe (length

@@ -1,6 +1,6 @@
 ;;; ob-groovy.el --- Babel Functions for Groovy      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Miro Bezjak <bezjak.miro@gmail.com>
 ;; Maintainer: Palak Mathur <palakmathur@gmail.com>

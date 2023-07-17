@@ -1,6 +1,6 @@
 ;;; cconv-tests.el --- Tests for cconv.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -363,6 +363,31 @@
                            (funcall f 51695)
                            (call-interactively f))
                      '((t 51696) (nil 51695) (t 51697)))))))
+
+(ert-deftest cconv-safe-for-space ()
+  (let* ((magic-string "This-is-a-magic-string")
+         (safe-p (lambda (x) (not (string-match magic-string (format "%S" x))))))
+    (should (funcall safe-p (lambda (x) (+ x 1))))
+    (should (funcall safe-p (eval '(lambda (x) (+ x 1))
+                                  `((y . ,magic-string)))))
+    (should (funcall safe-p (eval '(lambda (x) :closure-dont-trim-context)
+                                  `((y . ,magic-string)))))
+    (should-not (funcall safe-p
+                         (eval '(lambda (x) :closure-dont-trim-context (+ x 1))
+                               `((y . ,magic-string)))))))
+
+(ert-deftest cconv-tests-interactive-form-modify-bug60974 ()
+  (let* ((f '(function (lambda (&optional arg)
+		         (interactive
+		          (list (if current-prefix-arg
+				    (prefix-numeric-value current-prefix-arg)
+			          'toggle)))
+                         (ignore arg))))
+         (if (cadr (nth 2 (cadr f))))
+         (if2))
+    (cconv-closure-convert f)
+    (setq if2 (cadr (nth 2 (cadr f))))
+    (should (eq if if2))))
 
 (provide 'cconv-tests)
 ;;; cconv-tests.el ends here

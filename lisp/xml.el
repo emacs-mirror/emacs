@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -265,7 +265,7 @@ See also `xml-get-attribute-or-nil'."
 				      "\\)*\"\\|'\\(?:[^%&']\\|"
 				      xml-pe-reference-re "\\|"
 				      xml-reference-re "\\)*'\\)"))
-) ; End of `eval-when-compile'
+) ; End of `eval-and-compile'
 
 
 ;; [75] ExternalID ::= 'SYSTEM' S SystemLiteral
@@ -669,10 +669,7 @@ Leave point at the first non-blank character after the tag."
       (if (assoc name attlist)
 	  (error "XML: (Not Well-Formed) Each attribute must be unique within an element"))
 
-      ;; Multiple whitespace characters should be replaced with a single one
-      ;; in the attributes
       (let ((string (match-string-no-properties 1)))
-	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
 	  (unless (stringp expansion)
 	    ;; We say this is the constraint.  It is actually that

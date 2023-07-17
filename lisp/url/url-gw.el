@@ -1,6 +1,6 @@
 ;;; url-gw.el --- Gateway munging for URL loading  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -208,7 +208,7 @@ linked Emacs under SunOS 4.x."
       proc)))
 
 (defvar url-gw-rlogin-obsolete-warned-once nil)
-(make-obsolete-variable url-gw-rlogin-obsolete-warned-once nil "29.1")
+(make-obsolete-variable 'url-gw-rlogin-obsolete-warned-once nil "29.1")
 
 ;;;###autoload
 (defun url-open-stream (name buffer host service &optional gateway-method)
@@ -239,35 +239,34 @@ overriding the value of `url-gateway-method'."
       (if url-gateway-broken-resolution
 	  (setq host (url-gateway-nslookup-host host)))
 
-      (condition-case nil
-	  ;; This is a clean way to ensure the new process inherits the
-	  ;; right coding systems in both Emacs and XEmacs.
-	  (let ((coding-system-for-read 'binary)
-		(coding-system-for-write 'binary))
-	    (setq conn (pcase gw-method
-			 ((or 'tls 'ssl 'native)
-			  (if (eq gw-method 'native)
-			      (setq gw-method 'plain))
-			  (open-network-stream
-			   name buffer host service
-			   :type gw-method
-			   ;; Use non-blocking socket if we can.
-			   :nowait (and (featurep 'make-network-process)
-                                        (url-asynchronous url-current-object)
-                                        '(:nowait t))))
-                         ('socks
-			  (socks-open-network-stream name buffer host service))
-			 ('telnet
-			  (url-open-telnet name buffer host service))
-			 ('rlogin
-                          (unless url-gw-rlogin-obsolete-warned-once
-                            (lwarn 'url :error "Setting `url-gateway-method' to `rlogin' is obsolete")
-                            (setq url-gw-rlogin-obsolete-warned-once t))
-                          (with-suppressed-warnings ((obsolete url-open-rlogin))
-                            (url-open-rlogin name buffer host service)))
-			 (_
-			  (error "Bad setting of url-gateway-method: %s"
-				 url-gateway-method))))))
+      ;; This is a clean way to ensure the new process inherits the
+      ;; right coding systems in both Emacs and XEmacs.
+      (let ((coding-system-for-read 'binary)
+	    (coding-system-for-write 'binary))
+	(setq conn (pcase gw-method
+		     ((or 'tls 'ssl 'native)
+		      (if (eq gw-method 'native)
+			  (setq gw-method 'plain))
+		      (open-network-stream
+		       name buffer host service
+		       :type gw-method
+		       ;; Use non-blocking socket if we can.
+		       :nowait (and (featurep 'make-network-process)
+                                    (url-asynchronous url-current-object)
+                                    '(:nowait t))))
+                     ('socks
+		      (socks-open-network-stream name buffer host service))
+		     ('telnet
+		      (url-open-telnet name buffer host service))
+		     ('rlogin
+                      (unless url-gw-rlogin-obsolete-warned-once
+                        (lwarn 'url :error "Setting `url-gateway-method' to `rlogin' is obsolete")
+                        (setq url-gw-rlogin-obsolete-warned-once t))
+                      (with-suppressed-warnings ((obsolete url-open-rlogin))
+                        (url-open-rlogin name buffer host service)))
+		     (_
+		      (error "Bad setting of url-gateway-method: %s"
+			     url-gateway-method)))))
       conn)))
 
 (provide 'url-gw)

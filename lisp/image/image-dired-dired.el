@@ -1,6 +1,6 @@
 ;;; image-dired-dired.el --- Dired specific commands for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -57,11 +57,12 @@ Dired and you might want to turn it off."
 
 ;;;###autoload
 (defun image-dired-dired-toggle-marked-thumbs (&optional arg)
-  "Toggle thumbnails in front of file names in the Dired buffer.
-If no marked file could be found, insert or hide thumbnails on the
-current line.  ARG, if non-nil, specifies the files to use instead
-of the marked files.  If ARG is an integer, use the next ARG (or
-previous -ARG, if ARG<0) files."
+  "Toggle thumbnails in front of marked file names in the Dired buffer.
+If no file is marked, toggle display of thumbnail on the current file's line.
+ARG, if non-nil (interactively, the prefix argument), specifies the files
+whose thumbnail display to toggle instead of the marked files: if ARG is an
+integer, use the next ARG (or previous -ARG, if ARG<0) files; any other
+value of ARG means toggle thumbnail display of the current line's file."
   (interactive "P" dired-mode)
   (setq image-dired--generate-thumbs-start  (current-time))
   (dired-map-over-marks
@@ -91,8 +92,8 @@ previous -ARG, if ARG<0) files."
 
 (defun image-dired-dired-after-readin-hook ()
   "Relocate existing thumbnail overlays in Dired buffer after reverting.
-Move them to their corresponding files if they still exist.
-Otherwise, delete overlays.
+Move each overlay to its corresponding file if it still exists.
+Otherwise, delete the overlay.
 Used by `image-dired-dired-toggle-marked-thumbs'."
   (mapc (lambda (overlay)
           (when (overlay-get overlay 'put-image)
@@ -104,7 +105,7 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
         (overlays-in (point-min) (point-max))))
 
 (defun image-dired-next-line-and-display ()
-  "Move to next Dired line and display thumbnail image."
+  "Move to next Dired line and display its thumbnail image."
   (interactive nil dired-mode)
   (dired-next-line 1)
   (image-dired-display-thumbs t image-dired-dired-append-when-browsing t)
@@ -112,7 +113,7 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
       (image-dired-dired-display-properties)))
 
 (defun image-dired-previous-line-and-display ()
-  "Move to previous Dired line and display thumbnail image."
+  "Move to previous Dired line and display its thumbnail image."
   (interactive nil dired-mode)
   (dired-previous-line 1)
   (image-dired-display-thumbs t image-dired-dired-append-when-browsing t)
@@ -130,7 +131,7 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
              "off")))
 
 (defun image-dired-mark-and-display-next ()
-  "Mark current file in Dired and display next thumbnail image."
+  "Mark current file in Dired and display the next thumbnail image."
   (interactive nil dired-mode)
   (dired-mark 1)
   (image-dired-display-thumbs t image-dired-dired-append-when-browsing t)
@@ -148,7 +149,7 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
              "off")))
 
 (defun image-dired-track-thumbnail ()
-  "Track current Dired file's thumb in `image-dired-thumbnail-buffer'.
+  "Move to thumbnail of the current Dired file in `image-dired-thumbnail-buffer'.
 This is almost the same as what `image-dired-track-original-file' does,
 but the other way around."
   (let ((file (dired-get-filename))
@@ -170,18 +171,18 @@ but the other way around."
           (image-dired--update-header-line))))))
 
 (defun image-dired-dired-next-line (&optional arg)
-  "Call `dired-next-line', then track thumbnail.
+  "Call `dired-next-line', while tracking the file's thumbnail.
 This can safely replace `dired-next-line'.
-With prefix argument, move ARG lines."
+With prefix argument ARG, move that many lines."
   (interactive "P" dired-mode)
   (dired-next-line (or arg 1))
   (if image-dired-track-movement
       (image-dired-track-thumbnail)))
 
 (defun image-dired-dired-previous-line (&optional arg)
-  "Call `dired-previous-line', then track thumbnail.
+  "Call `dired-previous-line', while tracking the file's thumbnail.
 This can safely replace `dired-previous-line'.
-With prefix argument, move ARG lines."
+With prefix argument ARG, move that many lines."
   (interactive "P" dired-mode)
   (dired-previous-line (or arg 1))
   (if image-dired-track-movement
@@ -307,7 +308,8 @@ With prefix argument ARG, create thumbnails even if they already exist
 
 ;;;###autoload
 (defun image-dired-dired-display-external ()
-  "Display file at point using an external viewer."
+  "Display file at point using an external viewer.
+The viewer is specified by the value of `image-dired-external-viewer'."
   (interactive nil dired-mode)
   (let ((file (dired-get-filename)))
     (start-process "image-dired-external" nil
@@ -323,15 +325,15 @@ See documentation for `image-dired-display-image' for more information."
 
 (defun image-dired-copy-with-exif-file-name ()
   "Copy file with unique name to main image directory.
-Copy current or all marked files in Dired to a new file in your
-main image directory, using a file name generated by
+Copy current or all files marked in Dired to new file(s) in your
+main image directory, using file name(s) generated by
 `image-dired-get-exif-file-name'.  A typical usage for this if when
 copying images from a digital camera into the image directory.
 
- Typically, you would open up the folder with the incoming
+Typically, you would open up the folder with the incoming
 digital images, mark the files to be copied, and execute this
-function.  The result is a couple of new files in
-`image-dired-main-image-directory' called
+command.  The result is one or more new files in
+`image-dired-main-image-directory', named like
 2005_05_08_12_52_00_dscn0319.jpg,
 2005_05_08_14_27_45_dscn0320.jpg etc."
   (interactive nil dired-mode)
@@ -350,11 +352,11 @@ function.  The result is a couple of new files in
 
 ;;;###autoload
 (defun image-dired-mark-tagged-files (regexp)
-  "Use REGEXP to mark files with matching tag.
+  "Mark files whose tag matches REGEXP.
 A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
-lets you input a regexp and this will be matched against all tags
-on all image files in the database file.  The files that have a
+prompts for a regexp, and then matches it against all the tags
+of all the image files in the database file.  The files that have a
 matching tag will be marked in the Dired buffer."
   (interactive "sMark tagged files (regexp): " dired-mode)
   (image-dired-sane-db-file)
@@ -386,7 +388,7 @@ matching tag will be marked in the Dired buffer."
     (message "%d files with matching tag marked" hits)))
 
 (defun image-dired-dired-display-properties ()
-  "Display properties for Dired file in the echo area."
+  "Show in the echo area the image-related properties of a file in Dired buffer."
   (interactive nil dired-mode)
   (let* ((file-name (dired-get-filename))
          (dired-buf (buffer-name (current-buffer)))
@@ -404,9 +406,5 @@ matching tag will be marked in the Dired buffer."
                   comment)))))
 
 (provide 'image-dired-dired)
-
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
 
 ;;; image-dired-dired.el ends here

@@ -8,7 +8,7 @@
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2001--2022 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2023 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994--2000 Reuven M. Lerner@*
 Copyright @copyright{} 1992--1993 Steven Byrnes@*
 Copyright @copyright{} 1990--1992 Joseph Brian Wells@*
@@ -847,6 +847,7 @@ in the Emacs development repository (@pxref{Latest version of Emacs}).
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 29::
 * New in Emacs 28::
 * New in Emacs 27::
 * New in Emacs 26::
@@ -918,6 +919,125 @@ few Emacs releases.  For full details of the changes in any version of
 Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
+
+@node New in Emacs 29
+@section What is different about Emacs 29?
+@cindex Differences between Emacs 28 and Emacs 29
+@cindex Emacs 29, new features in
+
+Here's a list of the most important changes in Emacs 29 as compared to
+Emacs 28 (the full list is too long, and can be read in the Emacs
+@file{NEWS} file by typing @kbd{C-h n} inside Emacs).
+
+@itemize
+@item
+Emacs can now be built with the
+@uref{https://tree-sitter.github.io/tree-sitter/, tree-sitter
+library}, which provides incremental parsing capabilities for several
+programming languages.  Emacs comes with several major modes which use
+this library for syntax highlighting (a.k.a. ``fontification''),
+indentation, Imenu support, etc.  These modes have names
+@code{@var{lang}-ts-mode}, where @var{lang} is the programming
+language.  For example, @code{c-ts-mode}, @code{ruby-ts-mode}, etc.
+There are several new font-lock faces, such as
+@code{font-lock-number-face} and @code{font-lock-operator-face},
+intended to be used with these modes.
+
+@item
+Emacs can now be built in the PGTK (``pure GTK'') configuration, which
+supports running Emacs on window systems other than X, such as Wayland
+and Broadway.
+
+@item
+Emacs now has built-in support for accessing SQLite databases.  This
+requires Emacs to be built with the optional @file{sqlite3} library.
+
+@item
+Emacs comes with the popular @code{use-package} package bundled.
+
+@item
+Emacs can now display WebP images, if it was built with the optional
+@file{libwebp} library.
+
+@item
+On X window system, Emacs now supports the XInput2 specification for
+input events.
+
+@item
+Emacs now comes with a client library for using Language Server
+Protocol (@acronym{LSP}) servers.  This library, named @file{eglot.el}
+(the name stands for ``Emacs polyGlot'') provides LSP support for
+various software development and maintenance features, such as
+@code{xref}, Imenu, ElDoc, etc.
+
+@item
+Emacs can now cope with files with very long lines much better.  It no
+longer hangs when displaying such long lines, and allows
+reasonably-responsive editing when such lines are present in the
+visible portion of a buffer.
+
+@item
+Emacs now supports the latest version 15.0 of the Unicode Standard.
+
+@item
+The new mode @code{pixel-scroll-precision-mode} allows precise and
+smooth scrolling of the display at pixel resolution, if your mouse
+supports this.
+
+@item
+Emacs now supports 24-bit true colors on more terminals.
+
+@item
+On capable X terminal emulators, Emacs now supports setting the X
+primary selection on TTY frames.
+
+@item
+New convenient commands are now available for inserting, searching,
+listing, and describing Emoji.  These commands are on the @w{@kbd{C-x
+8 e}} prefix key.  The commands @kbd{C-u C-x =}
+(@code{what-cursor-position}) and @kbd{M-x describe-char} now show the
+names of Emoji sequences at point.
+
+@item
+The Help commands were enhanced:
+
+@itemize @minus
+@item
+@kbd{M-x apropos-variable} shows the values of the matching variables.
+@item
+@kbd{C-h b} activates @code{outline-minor-mode} in the buffer, which
+makes it easier to browse long lists of key bindings.
+@item
+@kbd{I} in the @file{*Help*} buffer displays the corresponding
+documentation in the Emacs Lisp Reference manual.
+@item
+New command @code{help-quick} displays a buffer with overview of
+common Help commands.
+@end itemize
+
+@item
+Outline Minor mode uses buttons to hide and show outlines.
+
+@item
+Deleted frames can now be undeleted using @kbd{C-x 5 u}, if the
+optional @code{undelete-frame-mode} is enabled.
+
+@item
+You can now delete the entire composed sequence of characters with
+@key{Delete} and edits the composed sequence by turning on the
+@code{composition-break-at-point} option.
+
+@item
+Support is added for many old scripts and writing systems, such as Tai
+Tham, Brahmi, Tirhuta, Modi, Lepcha, and many others.
+
+@item
+New translations of the Emacs tutorial: Ukrainian and Greek.
+
+@item
+New major modes for Typescript, Csharp, CMake, Go, Rust, and Yaml.
+@end itemize
+
 
 @node New in Emacs 28
 @section What is different about Emacs 28?
@@ -3013,12 +3133,22 @@ example, you can put the following in your init file:
 
 To avoid the slightly distracting visual effect of Emacs starting with
 its default frame size and then growing to fullscreen, you can add an
-@samp{Emacs.Geometry} entry to the Windows registry settings.
-@xref{X Resources,,, emacs, The GNU Emacs Manual}.
-
-To compute the correct values for width and height, first maximize the
-Emacs frame and then evaluate @code{(frame-height)} and
+@samp{Emacs.Geometry} entry to the Windows Registry settings.  @xref{X
+Resources,,, emacs, The GNU Emacs Manual}.  To compute the correct
+values for width and height you use in the Registry settings, first
+maximize the Emacs frame and then evaluate @code{(frame-height)} and
 @code{(frame-width)} with @kbd{M-:}.
+
+Alternatively, you can avoid the visual effect of Emacs changing its
+frame size entirely in your init file (i.e., without using the
+Registry), like this:
+
+@lisp
+(setq frame-resize-pixelwise t)
+(set-frame-position nil 0 0)
+(set-frame-size nil (display-pixel-width) (display-pixel-height) t)
+@end lisp
+
 
 @node Emacs in a Linux console
 @section How can I alleviate the limitations of the Linux console?

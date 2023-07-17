@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -744,13 +744,13 @@ selection_data_size (struct selection_data *data)
       return (size_t) data->size;
 
     case 16:
-      if (INT_MULTIPLY_WRAPV (data->size, 2, &scratch))
+      if (ckd_mul (&scratch, data->size, 2))
 	return SIZE_MAX;
 
       return scratch;
 
     case 32:
-      if (INT_MULTIPLY_WRAPV (data->size, 4, &scratch))
+      if (ckd_mul (&scratch, data->size, 4))
 	return SIZE_MAX;
 
       return scratch;
@@ -1989,9 +1989,22 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
 }
 
 
+
+/* Free the selection data allocated inside *DATA, which is actually a
+   pointer to unsigned char *.  */
+
+static void
+x_free_selection_data (void *data)
+{
+  unsigned char **ptr;
+
+  ptr = data;
+  xfree (*ptr);
+}
+
 /* Fetch a value from property PROPERTY of X window WINDOW on display
-   DISPLAY.  TARGET_TYPE and SELECTION_ATOM are used in error message
-   if this fails.  */
+   DISPLAY.  TARGET_TYPE and SELECTION_ATOM are used in the error
+   message signaled if this fails.  */
 
 static Lisp_Object
 x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
@@ -2007,6 +2020,7 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
   ptrdiff_t bytes = 0, array_bytes;
   Lisp_Object val;
   Display *display = dpyinfo->display;
+  specpdl_ref count;
 
   /* array_bytes is only used as an argument to xpalloc.  The actual
      size of the data inside the buffer is inside bytes.  */
@@ -2042,6 +2056,13 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	}
     }
 
+  /* Make sure DATA is freed even if `receive_incremental_connection'
+     quits. Use xfree, not XFree, because x_get_window_property calls
+     xmalloc itself.  */
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (x_free_selection_data, &data);
+
   if (!for_multiple && actual_type == dpyinfo->Xatom_INCR)
     {
       /* That wasn't really the data, just the beginning.  */
@@ -2051,6 +2072,9 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
       /* Use xfree, not XFree, because x_get_window_property
 	 calls xmalloc itself.  */
       xfree (data);
+
+      /* In case quitting happens below.  */
+      data = NULL;
       unblock_input ();
 
       /* Clear bytes again.  Previously, receive_incremental_selection
@@ -2077,10 +2101,8 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
   val = selection_data_to_lisp_data (dpyinfo, data, bytes,
 				     actual_type, actual_format);
 
-  /* Use xfree, not XFree, because x_get_window_property
-     calls xmalloc itself.  */
-  xfree (data);
-  return val;
+  /* This will also free `data'.  */
+  return unbind_to (count, val);
 }
 
 /* These functions convert from the selection data read from the server into
@@ -3027,7 +3049,7 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
 {
   ptrdiff_t format_bytes = format >> 3;
   ptrdiff_t data_bytes;
-  if (INT_MULTIPLY_WRAPV (size, format_bytes, &data_bytes))
+  if (ckd_mul (&data_bytes, size, format_bytes))
     memory_full (SIZE_MAX);
   return selection_data_to_lisp_data (FRAME_DISPLAY_INFO (f), data,
 				      data_bytes, type, format);

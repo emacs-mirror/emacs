@@ -1,6 +1,6 @@
 ;;; tramp-sshfs.el --- Tramp access functions via sshfs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -100,7 +100,8 @@
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-fuse-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-fuse-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -124,6 +125,7 @@
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sshfs-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-sshfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -228,8 +230,7 @@ arguments to pass to the OPERATION."
 
 (defun tramp-sshfs-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
-  ;;`file-system-info' exists since Emacs 27.1.
-  (tramp-compat-funcall 'file-system-info (tramp-fuse-local-file-name filename)))
+  (file-system-info (tramp-fuse-local-file-name filename)))
 
 (defun tramp-sshfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -244,8 +245,8 @@ arguments to pass to the OPERATION."
         (setq result
 	      (insert-file-contents
 	       (tramp-fuse-local-file-name filename) visit beg end replace))
-      (when visit (setq buffer-file-name filename))
-      (cons filename (cdr result)))))
+      (when visit (setq buffer-file-name filename)))
+    (cons filename (cdr result))))
 
 (defun tramp-sshfs-handle-process-file
   (program &optional infile destination display &rest args)
@@ -266,7 +267,7 @@ arguments to pass to the OPERATION."
       ;; Determine input.
       (if (null infile)
 	  (setq input (tramp-get-remote-null-device v))
-	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
+	(setq infile (file-name-unquote (expand-file-name infile)))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
 	    (setq input (tramp-unquote-file-local-name infile))
@@ -399,8 +400,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
-      (set-process-query-on-exit-flag p nil)
+      (tramp-post-process-creation p vec)
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)))

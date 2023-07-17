@@ -1,6 +1,6 @@
 ;;; filenotify-tests.el --- Tests of file notifications  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -939,10 +939,13 @@ delivered."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
-  ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
-  ;; file has been reverted.
-  (let ((timeout (if (file-remote-p temporary-file-directory) 60 10))
-        buf)
+  ;; Run with shortened `auto-revert-interval' for a faster test.
+  (let* ((auto-revert-interval 1)
+         (timeout (if (file-remote-p temporary-file-directory)
+                      60   ; FIXME: can this be shortened?
+                    (* auto-revert-interval 2.5)))
+         buf)
+    (auto-revert-set-timer)
     (unwind-protect
 	(progn
           ;; In the remote case, `vc-refresh-state' returns undesired
@@ -960,10 +963,9 @@ delivered."
             (sleep-for 1)
 	    (auto-revert-mode 1)
 
-	    ;; `auto-revert-buffers' runs every 5".
 	    (with-timeout (timeout (ignore))
 	      (while (null auto-revert-notify-watch-descriptor)
-		(sleep-for 1)))
+		(sleep-for 0.2)))
 
             ;; `file-notify--test-monitor' needs to know
             ;; `file-notify--test-desc' in order to compute proper
@@ -1032,7 +1034,7 @@ delivered."
       (file-notify--test-cleanup))))
 
 (file-notify--deftest-remote file-notify-test04-autorevert
-  "Check autorevert via file notification for remote files.")
+  "Check autorevert via file notification for remote files." t)
 
 (ert-deftest file-notify-test05-file-validity ()
   "Check `file-notify-valid-p' for files."

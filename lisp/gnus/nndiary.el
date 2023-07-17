@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Fri Jul 16 18:55:42 1999
@@ -1373,10 +1373,10 @@ all.  This may very well take some time.")
 		       (setq day (+ 7 day))))
 		   ;; Finally, if we have some days, they are valid
 		   (when days
-		     (sort days #'>)
 		     (throw 'found
 			    (encode-time 0 minute hour
-					 (car days) month year time-zone)))
+					 (apply #'max days)
+                                         month year time-zone)))
 		   )))))
 	 ;; There's an upper limit, but we didn't find any last occurrence.
 	 ;; This means that the schedule is undecidable. This can happen if

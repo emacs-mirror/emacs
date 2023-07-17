@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2022 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1958,7 +1958,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* Do less garbage collection in batch mode (since these tend to be
      more short-lived, and the memory is returned to the OS on exit
      anyway).  */
-  Vgc_cons_percentage = make_float (noninteractive? 1.0: 0.1);
+  Vgc_cons_percentage = make_float (noninteractive && initialized ? 1.0 : 0.1);
 
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
@@ -2455,7 +2455,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_DBUS
   init_dbusbind ();
 #endif
-#if defined(USE_GTK) && !defined(HAVE_PGTK)
+
+#ifdef HAVE_X_WINDOWS
   init_xterm ();
 #endif
 

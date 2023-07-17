@@ -1,6 +1,6 @@
 ;;; appt.el --- appointment notification functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1994, 1998, 2001-2022 Free Software
+;; Copyright (C) 1989-1990, 1994, 1998, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
@@ -409,7 +409,7 @@ displayed in a window:
                          'face 'mode-line-emphasis)
                         " ")))
         ;; Reset count to 0 in case we display another appt on the next cycle.
-        (setq appt-display-count (if (eq '(0) min-list) 0
+        (setq appt-display-count (if (equal '(0) min-list) 0
                                    (1+ prev-appt-display-count))))
       ;; If we have changed the mode line string, redisplay all mode lines.
       (and appt-display-mode-line
@@ -707,7 +707,7 @@ ARG is positive, otherwise off."
                         (not appt-active)))
     (remove-hook 'write-file-functions #'appt-update-list)
     (or global-mode-string (setq global-mode-string '("")))
-    (delq 'appt-mode-string global-mode-string)
+    (setq global-mode-string (delq 'appt-mode-string global-mode-string))
     (when appt-timer
       (cancel-timer appt-timer)
       (setq appt-timer nil))

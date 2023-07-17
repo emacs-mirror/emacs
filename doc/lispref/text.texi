@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -3398,37 +3398,43 @@ for @var{object} is the current buffer.
 @end defun
 
 @defun text-property-search-forward prop &optional value predicate not-current
-Search for the next region that has text property @var{prop} set to
-@var{value} according to @var{predicate}.
+Search for the next region of text whose property @var{prop} is a
+match for @var{value} (which defaults to @code{nil}), according to
+@var{predicate}.
 
-This function is modeled after @code{search-forward} and friends in
-that it moves point, but it returns a structure that describes the
-match instead of returning it in @code{match-beginning} and friends.
+This function is modeled after @code{search-forward} (@pxref{String
+Search}) and friends, in that it moves point, but it also returns a
+structure that describes the match instead of returning it in
+@code{match-beginning} and friends.
 
-If the text property can't be found, the function returns @code{nil}.
-If it's found, point is placed at the end of the region that has this
-text property match, and a @code{prop-match} structure is returned.
+If the text property whose value is a match can't be found, the
+function returns @code{nil}.  If it's found, point is placed at the
+end of the region that has this matching text property, and the
+function returns a @code{prop-match} structure with information about
+the match.
 
 @var{predicate} can either be @code{t} (which is a synonym for
 @code{equal}), @code{nil} (which means ``not equal''), or a predicate
-that will be called with two parameters: The first is @var{value}, and
-the second is the value of the text property we're inspecting.
+that will be called with two arguments: @var{value} and the value of
+the text property @var{prop} at the buffer position that is a
+candidate for a match.  The function should return non-@code{nil} if
+there's a match, @code{nil} otherwise.
 
-If @var{not-current}, if point is in a region where we have a match,
-then skip past that and find the next instance instead.
+If @var{not-current} is non-@code{nil}, then if point is already in a
+region where we have a property match, skip past that region and find
+the next region instead.
 
-The @code{prop-match} structure has the following accessors:
+The @code{prop-match} structure has the following accessor functions:
 @code{prop-match-beginning} (the start of the match),
 @code{prop-match-end} (the end of the match), and
 @code{prop-match-value} (the value of @var{property} at the start of
 the match).
 
-In the examples below, imagine that you're in a buffer that looks like
-this:
+In the examples below, we use a buffer whose contents is:
 
-@example
-This is a bold and here's bolditalic and this is the end.
-@end example
+@display
+This is a @b{bold} and here's @b{@i{bolditalic}} and this is the end.
+@end display
 
 That is, the ``bold'' words are the @code{bold} face, and the
 ``italic'' word is in the @code{italic} face.
@@ -3452,8 +3458,9 @@ This will pick out all the words that use the @code{bold} face.
 @end lisp
 
 This will pick out all the bits that have no face properties, which
-will result in the list @samp{("This is a " "and here's " "and this is
-the end")} (only reversed, since we used @code{push}).
+will result in the list @samp{(@w{"This is a "} @w{"and here's "}
+@w{"and this is the end"})} (only in reverse order, since we used
+@code{push}, @pxref{List Variables}).
 
 @lisp
 (while (setq match (text-property-search-forward 'face nil nil))
@@ -3481,8 +3488,8 @@ This will give you a list of all those URLs.
 
 @defun text-property-search-backward prop &optional value predicate not-current
 This is just like @code{text-property-search-forward}, but searches
-backward instead.  Point is placed at the beginning of the matched
-region instead of the end, though.
+backward instead, and if a match is found, point is placed at the
+beginning of the matched region instead of the end.
 @end defun
 
 
@@ -3765,18 +3772,19 @@ Consecutive characters with the same @code{field} property constitute a
 @item cursor
 @kindex cursor @r{(text property)}
 Normally, the cursor is displayed at the beginning or the end of any
-overlay and text property strings present at the current buffer
-position.  You can instead tell Emacs to place the cursor on any
-desired character of these strings by giving that character a
-non-@code{nil} @code{cursor} text property.  In addition, if the value
-of the @code{cursor} property is an integer, it specifies the number
-of buffer's character positions, starting with the position where the
-overlay or the @code{display} property begins, for which the cursor
-should be displayed on that character.  Specifically, if the value of
-the @code{cursor} property of a character is the number @var{n}, the
-cursor will be displayed on this character for any buffer position in
-the range @code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos}
-is the overlay's starting position given by @code{overlay-start}
+overlay and text property strings that ``hide'' (i.e., are displayed
+instead of) the current buffer position.  You can instead tell Emacs
+to place the cursor on any desired character of these strings by
+giving that character a non-@code{nil} @code{cursor} text property.
+In addition, if the value of the @code{cursor} property is an integer,
+it specifies the number of buffer's character positions, starting with
+the position where the overlay or the @code{display} property begins,
+for which the cursor should be displayed on that character.
+Specifically, if the value of the @code{cursor} property of a
+character is the number @var{n}, the cursor will be displayed on this
+character for any buffer position in the range
+@code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos} is the
+overlay's starting position given by @code{overlay-start}
 (@pxref{Managing Overlays}), or the position where the @code{display}
 text property begins in the buffer.
 
@@ -4641,20 +4649,25 @@ A rectangle is represented by a list of strings.
 This represents a window configuration to restore in one frame, and a
 position to jump to in the current buffer.
 
-@c FIXME: Mention frameset here.
+@cindex frameset
 @item @code{(@var{frame-configuration} @var{position})}
 This represents a frame configuration to restore, and a position
-to jump to in the current buffer.
+to jump to in the current buffer.  Frame configurations are also
+known as @dfn{framesets}.
 
-@item (file @var{filename})
+@item @code{(file @var{filename})}
 This represents a file to visit; jumping to this value visits file
 @var{filename}.
 
-@item (file-query @var{filename} @var{position})
+@item @code{(file-query @var{filename} @var{position})}
 This represents a file to visit and a position in it; jumping to this
 value visits file @var{filename} and goes to buffer position
 @var{position}.  Restoring this type of position asks the user for
 confirmation first.
+
+@item @code{(buffer @var{buffer-name})}
+This represents a buffer; jumping to this value switches to buffer
+@var{buffer-name}.
 @end table
 
   The functions in this section return unpredictable values unless
@@ -4763,9 +4776,9 @@ and exceeded, it will fall back to @code{delete-region} and
 the actual costs exceed this limit, heuristics are used to provide a
 faster but suboptimal solution.  The default value is 1000000.
 
-@code{replace-buffer-contents} returns t if a non-destructive
+@code{replace-buffer-contents} returns @code{t} if a non-destructive
 replacement could be performed.  Otherwise, i.e., if @var{max-secs}
-was exceeded, it returns nil.
+was exceeded, it returns @code{nil}.
 @end deffn
 
 @defun replace-region-contents beg end replace-fn &optional max-secs max-costs
@@ -4947,16 +4960,38 @@ computed for the whole of @var{object}.
 If the argument @var{binary} is omitted or @code{nil}, the function
 returns the @dfn{text form} of the hash, as an ordinary Lisp string.
 If @var{binary} is non-@code{nil}, it returns the hash in @dfn{binary
-form}, as a sequence of bytes stored in a unibyte string.
+form}, as a sequence of bytes stored in a unibyte string.  The length
+of the returned string depends on @var{algorithm}:
+
+@itemize
+@item
+For @code{md5}: 32 characters (32 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha1}: 40 characters (40 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha224}: 56 characters (56 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha256}: 64 characters (64 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha384}: 96 characters (96 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha512}: 128 characters (128 bytes if @var{binary} is
+non-@code{nil}).
+@end itemize
 
 This function does not compute the hash directly from the internal
 representation of @var{object}'s text (@pxref{Text Representations}).
 Instead, it encodes the text using a coding system (@pxref{Coding
 Systems}), and computes the hash from that encoded text.  If
 @var{object} is a buffer, the coding system used is the one which
-would be chosen by default for writing the text into a file.  If
-@var{object} is a string, the user's preferred coding system is used
-(@pxref{Recognize Coding,,, emacs, GNU Emacs Manual}).
+would be chosen by default for writing the text of that buffer into a
+file.  If @var{object} is a string, the user's preferred coding system
+is used (@pxref{Recognize Coding,,, emacs, GNU Emacs Manual}).
 @end defun
 
 @defun md5 object &optional start end coding-system noerror
@@ -4964,7 +4999,7 @@ This function returns an MD5 hash.  It is semi-obsolete, since for
 most purposes it is equivalent to calling @code{secure-hash} with
 @code{md5} as the @var{algorithm} argument.  The @var{object},
 @var{start} and @var{end} arguments have the same meanings as in
-@code{secure-hash}.
+@code{secure-hash}.  The function returns a 32-character string.
 
 If @var{coding-system} is non-@code{nil}, it specifies a coding system
 to use to encode the text; if omitted or @code{nil}, the default
@@ -4987,7 +5022,20 @@ It should be somewhat more efficient on larger buffers than
 @code{secure-hash} is, and should not allocate more memory.
 @c Note that we do not document what hashing function we're using, or
 @c even whether it's a cryptographic hash, since that may change
-@c according to what we find useful.
+@c according to what we find useful.  We also don't document the
+@c length of the hash string it returns, since that can be used to
+@c guess the hashing function being used.
+@end defun
+
+@defun sha1 object &optional start end binary
+This function is equivalent to calling @code{secure-hash} like this:
+
+@lisp
+(secure-hash 'sha1 object start end binary)
+@end lisp
+
+It returns a 40-character string if @var{binary} is @code{nil}, or a
+40-byte unibyte string otherwise.
 @end defun
 
 @node Suspicious Text
@@ -5474,7 +5522,7 @@ contents of an SQLite database.
 @section Parsing HTML and XML
 @cindex parsing html
 
-  Emacs can be compiled with built-in libxml2 support.
+  Emacs can be compiled with built-in @file{libxml2} support.
 
 @defun libxml-available-p
 This function returns non-@code{nil} if built-in libxml2 support is
@@ -5493,8 +5541,10 @@ mistakes.
 If @var{start} or @var{end} are @code{nil}, they default to the values
 from @code{point-min} and @code{point-max}, respectively.
 
-The optional argument @var{base-url}, if non-@code{nil}, should be a
-string specifying the base URL for relative URLs occurring in links.
+The optional argument @var{base-url}, if non-@code{nil}, should be
+used for warnings and errors reported by the @file{libxml2} library,
+but Emacs currently calls the library with errors and warnings
+disabled, so this argument is not used.
 
 If the optional argument @var{discard-comments} is non-@code{nil},
 any top-level comment is discarded.  (This argument is obsolete and
@@ -6142,6 +6192,17 @@ to @code{activate-change-group}, and finish it with a single call to
 would expect.  Non-nested use of change groups for the same buffer
 will get Emacs confused, so don't let it happen; the first change
 group you start for any given buffer should be the last one finished.
+
+  Emacs keeps track of change groups by assuming that by following
+each cdr in @code{buffer-undo-list}, it will eventually arrive at the
+cons it was set to at the time @code{prepare-change-group} was called.
+
+  If @code{buffer-undo-list} no longer contains that cons, Emacs will
+lose track of any change groups, resulting in an error when the change
+group is cancelled.  To avoid this, do not call any functions which
+may edit the undo list in such a manner, when a change group is
+active: notably, ``amalgamating'' commands such as @code{delete-char},
+which call @code{undo-auto-amalgamate}.
 
 @node Change Hooks
 @section Change Hooks

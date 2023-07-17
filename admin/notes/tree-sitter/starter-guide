@@ -17,6 +17,7 @@ TOC:
 - More features?
 - Common tasks (code snippets)
 - Manual
+- Appendix 1
 
 * Building Emacs with tree-sitter
 
@@ -42,11 +43,9 @@ You can use this script that I put together here:
 
     https://github.com/casouri/tree-sitter-module
 
-You can also find them under this directory in /build-modules.
-
 This script automatically pulls and builds language definitions for C,
-C++, Rust, JSON, Go, HTML, Javascript, CSS, Python, Typescript,
-and C#. Better yet, I pre-built these language definitions for
+C++, Rust, JSON, Go, HTML, JavaScript, CSS, Python, Typescript,
+C#, etc. Better yet, I pre-built these language definitions for
 GNU/Linux and macOS, they can be downloaded here:
 
     https://github.com/casouri/tree-sitter-module/releases/tag/v2.1
@@ -68,6 +67,10 @@ organization has all the "official" language definitions:
 
    https://github.com/tree-sitter
 
+Alternatively, you can use treesit-install-language-grammar command
+and follow its instructions. If everything goes right, it should
+automatically download and compile the language grammar for you.
+
 * Setting up for adding major mode features
 
 Start Emacs and load tree-sitter with
@@ -77,6 +80,10 @@ Start Emacs and load tree-sitter with
 Now check if Emacs is built with tree-sitter library
 
     (treesit-available-p)
+
+Make sure Emacs can find the language grammar you want to use
+
+    (treesit-language-available-p 'lang)
 
 * Tree-sitter major modes
 
@@ -89,11 +96,14 @@ modes.
 
 If the tree-sitter variant and the "native" variant could share some
 setup, you can create a "base mode", which only contains the common
-setup.  For example, there is python-base-mode (shared), python-mode
-(native), and python-ts-mode (tree-sitter).
+setup.  For example, python.el defines python-base-mode (shared),
+python-mode (native), and python-ts-mode (tree-sitter).
 
 In the tree-sitter mode, check if we can use tree-sitter with
 treesit-ready-p, it will error out if tree-sitter is not ready.
+
+In Emacs 30 we'll introduce some mechanism to more gracefully inherit
+modes and fallback to other modes.
 
 * Naming convention
 
@@ -180,18 +190,17 @@ mark the offending part in red.
 To enable tree-sitter font-lock, set ‘treesit-font-lock-settings’ and
 ‘treesit-font-lock-feature-list’ buffer-locally and call
 ‘treesit-major-mode-setup’. For example, see
-‘python--treesit-settings’ in python.el. Below I paste a snippet of
-it.
+‘python--treesit-settings’ in python.el. Below is a snippet of it.
 
-Note that like the current font-lock, if the to-be-fontified region
-already has a face (ie, an earlier match fontified part/all of the
-region), the new face is discarded rather than applied. If you want
-later matches always override earlier matches, use the :override
-keyword.
+Just like the current font-lock, if the to-be-fontified region already
+has a face (ie, an earlier match fontified part/all of the region),
+the new face is discarded rather than applied. If you want later
+matches always override earlier matches, use the :override keyword.
 
 Each rule should have a :feature, like function-name,
 string-interpolation, builtin, etc. Users can then enable/disable each
-feature individually.
+feature individually. See Appendix 1 at the bottom for a set of common
+features names.
 
 #+begin_src elisp
 (defvar python--treesit-settings
@@ -238,7 +247,7 @@ Concretely, something like this:
   ...
   (cond
    ;; Tree-sitter.
-   ((treesit-ready-p 'python-mode 'python)
+   ((treesit-ready-p 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local treesit-font-lock-feature-list
@@ -247,8 +256,7 @@ Concretely, something like this:
                   (string-interpolation decorator)))
     (treesit-major-mode-setup))
    (t
-    ;; No tree-sitter
-    (setq-local font-lock-defaults ...)
+    ;; No tree-sitter, do nothing or fallback to another mode.
     ...)))
 #+end_src
 
@@ -271,7 +279,7 @@ Matchers and anchors are functions that takes (NODE PARENT BOL &rest
 _). Matches return nil/non-nil for no match/match, and anchors return
 the anchor point. Below are some convenient builtin matchers and anchors.
 
-For MATHCER we have
+For MATCHER we have
 
     (parent-is TYPE) => matches if PARENT’s type matches TYPE as regexp
     (node-is TYPE) => matches NODE’s type
@@ -289,6 +297,7 @@ For ANCHOR we have
     first-sibling => start of the first sibling
     parent => start of parent
     parent-bol => BOL of the line parent is on.
+    standalone-parent => Like parent-bol but handles more edge cases
     prev-sibling => start of previous sibling
     no-indent => current position (don’t indent)
     prev-line => start of previous line
@@ -329,7 +338,8 @@ tells you which rule is applied in the echo area.
        ...))))
 #+end_src
 
-Then you set ‘treesit-simple-indent-rules’ to your rules, and call
+To setup indentation for your major mode, set
+‘treesit-simple-indent-rules’ to your rules, and call
 ‘treesit-major-mode-setup’:
 
 #+begin_src elisp
@@ -339,36 +349,14 @@ Then you set ‘treesit-simple-indent-rules’ to your rules, and call
 
 * Imenu
 
-Not much to say except for utilizing ‘treesit-induce-sparse-tree’ (and
-explicitly pass a LIMIT argument: most of the time you don't need more
-than 10).  See ‘js--treesit-imenu-1’ in js.el for an example.
-
-Once you have the index builder, set ‘imenu-create-index-function’ to
-it.
+Set ‘treesit-simple-imenu-settings’ and call
+‘treesit-major-mode-setup’.
 
 * Navigation
 
-Mainly ‘beginning-of-defun-function’ and ‘end-of-defun-function’.
-You can find the end of a defun with something like
-
-(treesit-search-forward-goto "function_definition" 'end)
-
-where "function_definition" matches the node type of a function
-definition node, and ’end means we want to go to the end of that node.
-
-Tree-sitter has default implementations for
-‘beginning-of-defun-function’ and ‘end-of-defun-function’.  So for
-ordinary languages, it is enough to set ‘treesit-defun-type-regexp’
-to something that matches all the defun struct types in the language,
-and call ‘treesit-major-mode-setup’.  For example,
-
-#+begin_src emacs-lisp
-(setq-local treesit-defun-type-regexp (rx bol
-                                          (or "function" "class")
-                                          "_definition"
-                                          eol))
-(treesit-major-mode-setup)
-#+end_src>
+Set ‘treesit-defun-type-regexp’ and call
+‘treesit-major-mode-setup’. You can additionally set
+‘treesit-defun-name-function’.
 
 * Which-func
 
@@ -376,36 +364,7 @@ If you have an imenu implementation, set ‘which-func-functions’ to
 nil, and which-func will automatically use imenu’s data.
 
 If you want an independent implementation for which-func, you can
-find the current function by going up the tree and looking for the
-function_definition node. See the function below for an example.
-Since Python allows nested function definitions, that function keeps
-going until it reaches the root node, and records all the function
-names along the way.
-
-#+begin_src elisp
-(defun python-info-treesit-current-defun (&optional include-type)
-  "Identical to `python-info-current-defun' but use tree-sitter.
-For INCLUDE-TYPE see `python-info-current-defun'."
-  (let ((node (treesit-node-at (point)))
-        (name-list ())
-        (type nil))
-    (cl-loop while node
-             if (pcase (treesit-node-type node)
-                  ("function_definition"
-                   (setq type 'def))
-                  ("class_definition"
-                   (setq type 'class))
-                  (_ nil))
-             do (push (treesit-node-text
-                       (treesit-node-child-by-field-name node "name")
-                       t)
-                      name-list)
-             do (setq node (treesit-node-parent node))
-             finally return (concat (if include-type
-                                        (format "%s " type)
-                                      "")
-                                    (string-join name-list ".")))))
-#+end_src
+find the current function by ‘treesit-defun-at-point’.
 
 * More features?
 
@@ -449,7 +408,51 @@ section is Parsing Program Source. Typing
 
     C-h i d m elisp RET g Parsing Program Source RET
 
-will bring you to that section. You can also read the HTML version
-under /html-manual in this directory. I find the HTML version easier
-to read. You don’t need to read through every sentence, just read the
-text paragraphs and glance over function names.
+will bring you to that section. You don’t need to read through every
+sentence, just read the text paragraphs and glance over function
+names.
+
+* Appendix 1
+
+Below is a set of common features used by built-in major mode.
+
+Basic tokens:
+
+delimiter               ,.;      (delimit things)
+operator                == != || (produces a value)
+bracket                 []{}()
+misc-punctuation        (other punctuation that you want to highlight)
+
+constant                true, false, null
+number
+keyword
+comment                 (includes doc-comments)
+string                  (includes chars and docstrings)
+string-interpolation    f"text {variable}"
+escape-sequence         "\n\t\\"
+function                every function identifier
+variable                every variable identifier
+type                    every type identifier
+property                a.b  <--- highlight b
+key                     { a: b, c: d } <--- highlight a, c
+error                   highlight parse error
+
+Abstract features:
+
+assignment: the LHS of an assignment (thing being assigned to), eg:
+
+a = b    <--- highlight a
+a.b = c  <--- highlight b
+a[1] = d <--- highlight a
+
+definition: the thing being defined, eg:
+
+int a(int b) { <--- highlight a
+ return 0
+}
+
+int a;  <-- highlight a
+
+struct a { <--- highlight a
+ int b;   <--- highlight b
+}

@@ -1,6 +1,6 @@
 ;;; cl-lib-tests.el --- tests for emacs-lisp/cl-lib.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -431,7 +431,7 @@
     (should (eq nums (cdr (cl-adjoin 3 nums))))
     ;; add only when not already there
     (should (eq nums (cl-adjoin 2 nums)))
-    (with-suppressed-warnings ((suspicious eq))
+    (with-suppressed-warnings ((suspicious memql))
       (should (equal '(2 1 (2)) (cl-adjoin 2 '(1 (2))))))
     ;; default test function is eql
     (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums)))
@@ -530,7 +530,7 @@
 
 (ert-deftest old-struct ()
   (cl-defstruct foo x)
-  (let ((x [cl-struct-foo])
+  (let ((x (vector 'cl-struct-foo))
         (saved cl-old-struct-compat-mode))
     (cl-old-struct-compat-mode -1)
     (should (eq (type-of x) 'vector))
@@ -540,7 +540,7 @@
     (let ((cl-struct-foo (cl--struct-get-class 'foo)))
       (setf (symbol-function 'cl-struct-foo) :quick-object-witness-check)
       (should (eq (type-of x) 'foo))
-      (should (eq (type-of [foo]) 'vector)))
+      (should (eq (type-of (vector 'foo)) 'vector)))
 
     (cl-old-struct-compat-mode (if saved 1 -1))))
 

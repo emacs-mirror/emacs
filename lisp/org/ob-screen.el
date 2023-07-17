@@ -1,6 +1,6 @@
 ;;; ob-screen.el --- Babel Support for Interactive Terminal -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
 ;; Maintainer: Ken Mankoff <mankoff@gmail.com>

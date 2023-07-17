@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2022 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2779,8 +2779,7 @@ merge_face_ref (struct window *w,
 	      else if (EQ (keyword, QCstipple))
 		{
 #if defined (HAVE_WINDOW_SYSTEM)
-		  Lisp_Object pixmap_p = Fbitmap_spec_p (value);
-		  if (!NILP (pixmap_p))
+		  if (NILP (value) || !NILP (Fbitmap_spec_p (value)))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
 		    err = true;
@@ -4186,7 +4185,9 @@ Default face attributes override any local face attributes.  */)
   if (EQ (face, Qdefault))
     {
       struct face_cache *c = FRAME_FACE_CACHE (f);
-      struct face *newface, *oldface = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
+      struct face *newface;
+      struct face *oldface =
+	c ? FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID) : NULL;
       Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
       /* This can be NULL (e.g., in batch mode).  */
@@ -6011,7 +6012,6 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
 
   return face;
 }
-#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Remove the attribute at INDEX from the font object if SYMBOL
    appears in `font-fallback-ignored-attributes'.  */
@@ -6030,6 +6030,7 @@ font_maybe_unset_attribute (Lisp_Object font_object,
 	ASET (font_object, index, Qnil);
     }
 }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Realize the fully-specified face with attributes ATTRS in face
    cache CACHE for ASCII characters.  Do it for GUI frame CACHE->f.

@@ -1,6 +1,6 @@
 ;;; latin-ltx.el --- Quail package for TeX-style input -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 ;;   2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -244,7 +244,8 @@ system, including many technical ones.  Examples:
     ;; (which is \varphi) are reversed in `ucs-names', so we define
     ;; them manually.  Also ignore "GREEK SMALL LETTER EPSILON" and
     ;; add the correct value for \epsilon manually.
-    (unless (string-match-p "\\<\\(?:PHI\\|GREEK SMALL LETTER EPSILON\\)\\>" name)
+    (unless (string-match-p "\\<GREEK SMALL LETTER \\(?:EPSILON\\|PHI\\)\\>"
+                            name)
       (concat "\\" (funcall (if (match-end 1) #' capitalize #'downcase)
                             (match-string 2 name)))))
   "\\`GREEK \\(?:SMALL\\|CAPITA\\(L\\)\\) LETTER \\([^- ]+\\)\\'")

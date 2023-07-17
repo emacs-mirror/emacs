@@ -1,5 +1,5 @@
 /* Provide a more complete sys/stat.h header file.
-   Copyright (C) 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -25,6 +25,13 @@
 #endif
 @PRAGMA_COLUMNS@
 
+/* This file uses #include_next of a system file that defines time_t.
+   For the 'year2038' module to work right, <config.h> needs to have been
+   included before.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #if defined __need_system_sys_stat_h
 /* Special invocation convention.  */
 
@@ -47,6 +54,11 @@
 
 #ifndef _@GUARD_PREFIX@_SYS_STAT_H
 #define _@GUARD_PREFIX@_SYS_STAT_H
+
+/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 
@@ -549,7 +561,7 @@ _GL_FUNCDECL_SYS (futimens, int, (int fd, struct timespec const times[2]));
 #  endif
 _GL_CXXALIAS_SYS (futimens, int, (int fd, struct timespec const times[2]));
 # endif
-# if @HAVE_FUTIMENS@
+# if __GLIBC__ >= 2 && @HAVE_FUTIMENS@
 _GL_CXXALIASWARN (futimens);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -716,7 +728,9 @@ _GL_FUNCDECL_SYS (mkfifoat, int, (int fd, char const *file, mode_t mode)
 #  endif
 _GL_CXXALIAS_SYS (mkfifoat, int, (int fd, char const *file, mode_t mode));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (mkfifoat);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef mkfifoat
 # if HAVE_RAW_DECL_MKFIFOAT
@@ -773,7 +787,9 @@ _GL_FUNCDECL_SYS (mknodat, int,
 _GL_CXXALIAS_SYS (mknodat, int,
                   (int fd, char const *file, mode_t mode, dev_t dev));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (mknodat);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef mknodat
 # if HAVE_RAW_DECL_MKNODAT
@@ -937,7 +953,7 @@ _GL_FUNCDECL_SYS (utimensat, int, (int fd, char const *name,
 _GL_CXXALIAS_SYS (utimensat, int, (int fd, char const *name,
                                    struct timespec const times[2], int flag));
 # endif
-# if @HAVE_UTIMENSAT@
+# if __GLIBC__ >= 2 && @HAVE_UTIMENSAT@
 _GL_CXXALIASWARN (utimensat);
 # endif
 #elif defined GNULIB_POSIXCHECK

@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org

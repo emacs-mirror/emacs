@@ -1,7 +1,7 @@
 	  Building and Installing Emacs on 64-bit MS-Windows
 		      using MSYS2 and MinGW-w64
 
-  Copyright (c) 2015-2022 Free Software Foundation, Inc.
+  Copyright (c) 2015-2023 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2
@@ -115,7 +115,7 @@ put the Emacs source into C:\emacs\emacs-master:
 
   mkdir /c/emacs
   cd /c/emacs
-  git clone git://git.sv.gnu.org/emacs.git emacs-master
+  git clone https://git.savannah.gnu.org/git/emacs.git emacs-master
 
 This will produce the development sources, i.e. the master branch of
 the Emacs Git repository, in the directory C:\emacs\emacs-master.

@@ -2,7 +2,7 @@
 # Configuration script for lib/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 2011-2022 Free Software Foundation, Inc.
+# Copyright (C) 2011-2023 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -270,7 +270,6 @@ s/@PACKAGE@/emacs/
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIB_PTHREAD *=/s/@[^@\n]*@//
-/^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^MAKEINFO *=/s/@MAKEINFO@/makeinfo/
 # MKDIR_P lines are edited further below
@@ -323,7 +322,7 @@ s/@PACKAGE@/emacs/
 /^REPLACE_MKTIME *=/s/@[^@\n]*@/1/
 # We don't want any other gnulib replacement functions
 /^REPLACE_[^ =]* *= *@/s/@[^@\n]*@/0/
-/^LIB_GETRANDOM[^ =]* *= *@/s/@[^@\n]*@//
+/^GETRANDOM_LIB[^ =]* *= *@/s/@[^@\n]*@//
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
 /^ASSERT_H *=/s/@[^@\n]*@/assert.h/
@@ -429,6 +428,8 @@ s/= @GL_GENERATE_STDINT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_LIMITS_H_CONDITION@/= 1/
 s/= @GL_GENERATE_ERRNO_H_CONDITION@/= /
 s/= @GL_GENERATE_LIMITS_H_CONDITION@/= /
+s/= @GL_GENERATE_GETOPT_CDEFS_H_CONDITION@/= 1/
+s/= @GL_GENERATE_GETOPT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
 s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/

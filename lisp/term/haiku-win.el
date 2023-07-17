@@ -1,6 +1,6 @@
 ;;; haiku-win.el --- set up windowing on Haiku -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -36,6 +36,9 @@
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
+;; For when building a --without-x configuration, where this is not
+;; preloaded.
+(eval-when-compile (require 'mwheel))
 
 (add-to-list 'display-format-alist '(".*" . haiku))
 

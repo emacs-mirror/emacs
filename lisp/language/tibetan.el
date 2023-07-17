@@ -1,6 +1,6 @@
 ;;; tibetan.el --- support for Tibetan language -*- coding: utf-8-emacs; lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -558,48 +558,31 @@
     ("à½¦à¾¨" . "ö†°")))
 
 (defconst tibetan-regexp
-  (let (pattern)
-    (dolist (alist (list tibetan-precomposed-transcription-alist
-			 tibetan-consonant-transcription-alist
-			 tibetan-vowel-transcription-alist
-			 tibetan-modifier-transcription-alist
-			 tibetan-subjoined-transcription-alist)
-		   (apply #'concat (nreverse (cdr pattern))))
-      (dolist (key-val alist)
-	(setq pattern (cons "\\|" (cons (regexp-quote (car key-val))
-					pattern))))))
+  (mapconcat (lambda (x) (regexp-quote (car x)))
+             (append tibetan-precomposed-transcription-alist
+		     tibetan-consonant-transcription-alist
+		     tibetan-vowel-transcription-alist
+		     tibetan-modifier-transcription-alist
+		     tibetan-subjoined-transcription-alist)
+             "\\|")
   "Regexp matching a Tibetan transcription of a composable Tibetan sequence.
 The result of matching is to be used for indexing alists at conversion
 from a roman transcription to the corresponding Tibetan character.")
 
 (defvar tibetan-precomposed-regexp
   (purecopy
-  (let ((l tibetan-precomposed-transcription-alist)
-	temp)
-    (setq temp "^\\(")
-    (setq temp
-	  (concat temp (car (car l))))
-    (setq l (cdr l))
-    (while l
-      (setq temp
-	    (concat temp "\\|" (car (car l))))
-      (setq l (cdr l)))
-    (concat temp "\\)")))
+   (concat "^\\("
+           (mapconcat #'car tibetan-precomposed-transcription-alist "\\|")
+           "\\)"))
   "Regexp string to match a romanized Tibetan complex consonant.
 The result of matching is to be used for indexing alists when the input key
 from an input method is converted to the corresponding precomposed glyph.")
 
 (defvar tibetan-precomposition-rule-regexp
   (purecopy
-  (let ((l tibetan-precomposition-rule-alist)
-	temp)
-    (setq temp "\\(")
-    (setq temp (concat temp (car (car l))))
-    (setq l (cdr l))
-    (while l
-      (setq temp (concat temp "\\|" (car (car l))))
-      (setq l (cdr l)))
-    (concat temp "\\)")))
+   (concat "\\("
+           (mapconcat #'car tibetan-precomposition-rule-alist "\\|")
+           "\\)"))
   "Regexp string to match a sequence of Tibetan consonantic components.
 That is, one base consonant and one or more subjoined consonants.
 The result of matching is to be used for indexing alist when the component

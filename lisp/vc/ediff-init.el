@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -1527,7 +1527,10 @@ This default should work without changes."
 (define-obsolete-function-alias 'ediff-convert-standard-filename #'convert-standard-filename "28.1")
 (define-obsolete-function-alias 'ediff-hide-face #'ignore "28.1")
 (define-obsolete-function-alias 'ediff-file-remote-p #'file-remote-p "29.1")
-(define-obsolete-function-alias 'ediff-window-display-p #'display-graphic-p "29.1")
+(define-obsolete-function-alias 'ediff-window-display-p #'display-graphic-p "29.1"
+  "To prevent Ediff from creating frames, see `ediff-window-setup-function'.
+Set it to `ediff-setup-windows-plain' to do everything in a single frame,
+even on GUI terminal.")
 (define-obsolete-function-alias 'ediff-mouse-event-p #'mouse-event-p "29.1")
 
 (provide 'ediff-init)

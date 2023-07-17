@@ -1,6 +1,6 @@
 ;;; ol-bibtex.el --- Links to BibTeX entries        -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>
@@ -86,8 +86,8 @@
 ;;   the active region, then call `org-bibtex-write' in a .org file to
 ;;   insert a heading for the read bibtex entry
 ;;
-;; - All Bibtex information is taken from the document compiled by
-;;   Andrew Roberts from the Bibtex manual, available at
+;; - All BibTeX information is taken from the document compiled by
+;;   Andrew Roberts from the BibTeX manual, available at
 ;;   https://www.andy-roberts.net/res/writing/latex/bibentries.pdf
 ;;
 ;;; History:
@@ -99,7 +99,7 @@
 ;; and then implemented by Bastien Guerry.
 ;;
 ;; Eric Schulte eventually added the functions for translating between
-;; Org headlines and Bibtex entries, and for fleshing out the Bibtex
+;; Org headlines and BibTeX entries, and for fleshing out the BibTeX
 ;; fields of existing Org headlines.
 ;;
 ;; Org mode loads this module by default - if this is not what you want,
@@ -144,7 +144,7 @@
 (declare-function org-search-view "org-agenda" (&optional todo-only string edit-at))
 
 
-;;; Bibtex data
+;;; BibTeX data
 (defvar org-bibtex-types
   '((:article
      (:description . "An article from a journal or magazine")
@@ -202,7 +202,7 @@
      (:description . "A document having an author and title, but not formally published.")
      (:required :author :title :note)
      (:optional :month :year :doi :url)))
-  "Bibtex entry types with required and optional parameters.")
+  "BibTeX entry types with required and optional parameters.")
 
 (defvar org-bibtex-fields
   '((:address      . "Usually the address of the publisher or other type of institution.  For major publishing houses, van Leunen recommends omitting the information entirely.  For small publishers, on the other hand, you can help the reader by giving the complete address.")
@@ -231,7 +231,7 @@
     (:url          . "Uniform resource locator.")
     (:volume       . "The volume of a journal or multi-volume book.")
     (:year         . "The year of publication or, for an unpublished work, the year it was written.  Generally it should consist of four numerals, such as 1984, although the standard styles can handle any year whose last four nonpunctuation characters are numerals, such as '(about 1984)'"))
-  "Bibtex fields with descriptions.")
+  "BibTeX fields with descriptions.")
 
 (defvar org-bibtex-entries nil
   "List to hold parsed bibtex entries.")
@@ -439,7 +439,7 @@ at point."
     (error "Field:%s is not known" field))
   (save-window-excursion
     (let* ((name (substring (symbol-name field) 1))
-	   (buf-name (format "*Bibtex Help %s*" name)))
+	   (buf-name (format "*BibTeX Help %s*" name)))
       (with-output-to-temp-buffer buf-name
 	(princ (cdr (assoc field org-bibtex-fields))))
       (with-current-buffer buf-name (visual-line-mode 1))
@@ -496,7 +496,7 @@ With optional argument OPTIONAL, also prompt for optional fields."
     (org-bibtex-autokey)))
 
 
-;;; Bibtex link functions
+;;; BibTeX link functions
 (org-link-set-parameters "bibtex"
 			 :follow #'org-bibtex-open
 			 :store #'org-bibtex-store-link)
@@ -593,13 +593,13 @@ ARG, when non-nil, is a universal prefix argument.  See
 (add-hook 'org-execute-file-search-functions 'org-execute-file-search-in-bibtex)
 
 
-;;; Bibtex <-> Org headline translation functions
+;;; BibTeX <-> Org headline translation functions
 (defun org-bibtex (filename)
   "Export each headline in the current file to a bibtex entry.
 Headlines are exported using `org-bibtex-headline'."
   (interactive
    (list (read-file-name
-	  "Bibtex file: " nil nil nil
+	  "BibTeX file: " nil nil nil
 	  (let ((file (buffer-file-name (buffer-base-buffer))))
 	    (and file
 		 (file-name-nondirectory
@@ -619,7 +619,7 @@ Headlines are exported using `org-bibtex-headline'."
 	     nil))))
     (when error-point
       (goto-char error-point)
-      (message "Bibtex error at %S" (nth 4 (org-heading-components))))))
+      (message "BibTeX error at %S" (nth 4 (org-heading-components))))))
 
 (defun org-bibtex-check (&optional optional)
   "Check the current headline for required fields.

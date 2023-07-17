@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2022 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -2445,6 +2445,7 @@ are always t.")
 
 ;; Save window configuration.
 (defvar gnus-prev-winconf nil)
+(defvar gnus-prev-cwc nil)
 
 (defvar gnus-reffed-article-number nil)
 

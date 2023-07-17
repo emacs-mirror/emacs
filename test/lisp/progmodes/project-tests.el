@@ -1,6 +1,6 @@
 ;;; project-tests.el --- tests for project.el -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Keywords:
 
@@ -151,5 +151,15 @@ When `project-ignores' includes a name matching project dir."
     (should (member "etc" (project-ignores project dir)))
     (should (equal '(".dir-locals.el" "foo")
                    (mapcar #'file-name-nondirectory (project-files project))))))
+
+(ert-deftest project-vc-nonexistent-directory-no-error ()
+  "Check that is doesn't error out when the current dir does not exist."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((dir (expand-file-name "foo-456/bar/" (ert-resource-directory)))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers '(".dir-locals.el"))
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))))
 
 ;;; project-tests.el ends here

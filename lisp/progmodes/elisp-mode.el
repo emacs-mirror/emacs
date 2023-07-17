@@ -1,6 +1,6 @@
 ;;; elisp-mode.el --- Emacs Lisp mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -191,7 +191,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   menu)
 
 (defun emacs-lisp-byte-compile ()
-  "Byte compile the file containing the current buffer."
+  "Byte-compile the current buffer's file."
   (interactive nil emacs-lisp-mode)
   (if buffer-file-name
       (byte-compile-file buffer-file-name)
@@ -215,16 +215,21 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   (load (byte-compile-dest-file buffer-file-name)))
 
 (declare-function native-compile "comp")
+(declare-function comp-write-bytecode-file "comp")
+
 (defun emacs-lisp-native-compile-and-load ()
   "Native-compile synchronously the current file (if it has changed).
 Load the compiled code when finished.
 
 Use `emacs-lisp-byte-compile-and-load' in combination with
-`inhibit-automatic-native-compilation' set to nil to achieve
-asynchronous native compilation."
+`native-comp-jit-compilation' set to t to achieve asynchronous
+native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
-  (load (native-compile buffer-file-name)))
+  (let ((byte+native-compile t)
+        (byte-to-native-output-buffer-file nil))
+    (when-let ((eln (native-compile buffer-file-name)))
+      (load (file-name-sans-extension (comp-write-bytecode-file eln))))))
 
 (defun emacs-lisp-macroexpand ()
   "Macroexpand the form after point.
@@ -249,6 +254,9 @@ Comments in the form will be lost."
       ;; Empty symbol.
       ("##" (0 (unless (nth 8 (syntax-ppss))
                  (string-to-syntax "_"))))
+      ;; Prevent the @ from becoming part of a following symbol.
+      (",@" (0 (unless (nth 8 (syntax-ppss))
+                 (string-to-syntax "'"))))
       ;; Unicode character names.  (The longest name is 88 characters
       ;; long.)
       ("\\?\\\\N{[-A-Za-z0-9 ]\\{,100\\}}"
@@ -943,6 +951,10 @@ namespace but with lower confidence."
                                  cl-defmethod cl-defgeneric)))
             ;; (defun FUNC (... IDENT
             'variable)
+           ((and (eql j 2)
+                 (eq j-head 'defclass))
+            ;; (defclass CLASS (... IDENT
+            'function)
            ((eq j-head 'cond)
             ;; (cond ... (... IDENT
             'variable)

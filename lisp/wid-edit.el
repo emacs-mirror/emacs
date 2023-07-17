@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -281,71 +281,79 @@ The user is asked to choose between each NAME from ITEMS.
 If ITEMS has simple item definitions, then this function returns the VALUE of
 the chosen element.  If ITEMS is a keymap, then the return value is the symbol
 in the key vector, as in the argument of `define-key'."
-  (cond ((and (< (length items) widget-menu-max-size)
-	      event (display-popup-menus-p))
-	 ;; Mouse click.
-         (if (keymapp items)
-             ;; Modify the keymap prompt, and then restore the old one, if any.
-             (let ((prompt (keymap-prompt items)))
-               (unwind-protect
-                   (progn
-                     (setq items (delete prompt items))
-                     (push title (cdr items))
-                     ;; Return just the first element of the list of events.
-                     (car (x-popup-menu event items)))
-                 (setq items (delete title items))
-                 (when prompt
-                   (push prompt (cdr items)))))
-	   (x-popup-menu event (list title (cons "" items)))))
-	((or widget-menu-minibuffer-flag
-	     (> (length items) widget-menu-max-shortcuts))
-         (when (keymapp items)
-           (setq items (widget--simplify-menu items)))
-	 ;; Read the choice of name from the minibuffer.
-	 (setq items (cl-remove-if 'stringp items))
-	 (let ((val (completing-read (concat title ": ") items nil t)))
-	   (if (stringp val)
-	       (let ((try (try-completion val items)))
-		 (when (stringp try)
-		   (setq val try))
-		 (cdr (assoc val items))))))
-	(t
-         (when (keymapp items)
-           (setq items (widget--simplify-menu items)))
-	 ;; Construct a menu of the choices
-	 ;; and then use it for prompting for a single character.
-	 (let* ((next-digit ?0)
-		alist choice some-choice-enabled value)
-	   (with-current-buffer (get-buffer-create " widget-choose")
-	     (erase-buffer)
-	     (insert "Available choices:\n\n")
-	     (while items
-	       (setq choice (pop items))
-	       (when (consp choice)
-                 (let* ((name (substitute-command-keys (car choice)))
-                        (function (cdr choice)))
-                   (insert (format "%c = %s\n" next-digit name))
-                   (push (cons next-digit function) alist)
-                   (setq some-choice-enabled t)))
-	       ;; Allocate digits to disabled alternatives
-	       ;; so that the digit of a given alternative never varies.
-	       (setq next-digit (1+ next-digit)))
-	     (insert "\nC-g = Quit")
-	     (goto-char (point-min))
-	     (forward-line))
-	   (or some-choice-enabled
-	       (error "None of the choices is currently meaningful"))
-	   (save-window-excursion
-             ;; Select window to be able to scroll it from minibuffer
-             (with-selected-window
-                 (display-buffer (get-buffer " widget-choose")
-                                 '(display-buffer-in-direction
-                                   (direction . bottom)
-                                   (window-height . fit-window-to-buffer)))
-               (setq value (read-char-choice
-                            (format "%s: " title)
-                            (mapcar #'car alist)))))
-	   (cdr (assoc value alist))))))
+  ;; Apply quote substitution to customize choice menu item text,
+  ;; whether it occurs in a widget buffer or in a popup menu.
+  (let ((items (mapc (lambda (x)
+                       (when (consp x)
+                         (dotimes (i (1- (length x)))
+                           (when (char-or-string-p (nth i x))
+                             (setcar (nthcdr i x)
+                                     (substitute-command-keys
+                                      (car (nthcdr i x))))))))
+		     items)))
+    (cond ((and (< (length items) widget-menu-max-size)
+	        event (display-popup-menus-p))
+	   ;; Mouse click.
+           (if (keymapp items)
+               ;; Modify the keymap prompt, and then restore the old one, if any.
+               (let ((prompt (keymap-prompt items)))
+                 (unwind-protect
+                     (progn
+                       (setq items (delete prompt items))
+                       (push title (cdr items))
+                       ;; Return just the first element of the list of events.
+                       (car (x-popup-menu event items)))
+                   (setq items (delete title items))
+                   (when prompt
+                     (push prompt (cdr items)))))
+	     (x-popup-menu event (list title (cons "" items)))))
+	  ((or widget-menu-minibuffer-flag
+	       (> (length items) widget-menu-max-shortcuts))
+           (when (keymapp items)
+             (setq items (widget--simplify-menu items)))
+	   ;; Read the choice of name from the minibuffer.
+	   (setq items (cl-remove-if 'stringp items))
+	   (let ((val (completing-read (concat title ": ") items nil t)))
+	     (if (stringp val)
+	         (let ((try (try-completion val items)))
+		   (when (stringp try)
+		     (setq val try))
+		   (cdr (assoc val items))))))
+	  (t
+           (when (keymapp items)
+             (setq items (widget--simplify-menu items)))
+	   ;; Construct a menu of the choices
+	   ;; and then use it for prompting for a single character.
+	   (let ((next-digit ?0)
+		 alist choice some-choice-enabled value)
+	     (with-current-buffer (get-buffer-create " widget-choose")
+	       (erase-buffer)
+	       (insert "Available choices:\n\n")
+	       (while items
+	         (setq choice (pop items))
+	         (when (consp choice)
+                   (insert (format "%c = %s\n" next-digit (car choice)))
+                   (push (cons next-digit (cdr choice)) alist)
+                   (setq some-choice-enabled t))
+	         ;; Allocate digits to disabled alternatives
+	         ;; so that the digit of a given alternative never varies.
+	         (setq next-digit (1+ next-digit)))
+	       (insert "\nC-g = Quit")
+	       (goto-char (point-min))
+	       (forward-line))
+	     (or some-choice-enabled
+	         (error "None of the choices is currently meaningful"))
+	     (save-window-excursion
+               ;; Select window to be able to scroll it from minibuffer
+               (with-selected-window
+                   (display-buffer (get-buffer " widget-choose")
+                                   '(display-buffer-in-direction
+                                     (direction . bottom)
+                                     (window-height . fit-window-to-buffer)))
+                 (setq value (read-char-choice
+                              (format "%s: " title)
+                              (mapcar #'car alist)))))
+	     (cdr (assoc value alist)))))))
 
 ;;; Widget text specifications.
 ;;
@@ -499,7 +507,7 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
 
 (defmacro widget-specify-insert (&rest form)
   "Execute FORM without inheriting any text properties."
-   (declare (debug body))
+   (declare (debug (body)))
   `(save-restriction
     (let ((inhibit-read-only t)
 	  (inhibit-modification-hooks t))
@@ -2220,7 +2228,9 @@ But if NO-TRUNCATE is non-nil, include them."
             (if (widget-get current :inline)
                 (setq val value
                       fun :match-inline)
-              (setq val (car value)
+              (setq val (if (consp value)
+                            (car value)
+                          value)
                     fun :match))
           (setq val value
                 fun :match))
@@ -4036,6 +4046,7 @@ is inline."
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
   :format "%{%t%}: %[Toggle%]  %v\n"
+  :match (lambda (_widget value) (booleanp value))
   :on "on (non-nil)"
   :off "off (nil)")
 

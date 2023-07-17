@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -34,6 +34,8 @@
 ;; `save-place-version-control' stuff in it.
 
 ;;; Code:
+
+(require 'cl-lib)
 
 ;; this is what I was using during testing:
 ;; (define-key ctl-x-map "p" 'toggle-save-place-globally)
@@ -87,11 +89,77 @@ this happens automatically before saving `save-place-alist' to
 `save-place-file'."
   :type 'boolean)
 
+(defun save-place-load-alist-from-file ()
+  (if (not save-place-loaded)
+      (progn
+        (setq save-place-loaded t)
+        (let ((file (expand-file-name save-place-file)))
+          ;; make sure that the alist does not get overwritten, and then
+          ;; load it if it exists:
+          (if (file-readable-p file)
+              ;; don't want to use find-file because we have been
+              ;; adding hooks to it.
+              (with-current-buffer (get-buffer-create " *Saved Places*")
+                (delete-region (point-min) (point-max))
+                ;; Make sure our 'coding:' cookie in the save-place
+                ;; file will take effect, in case the caller binds
+                ;; coding-system-for-read.
+                (let (coding-system-for-read)
+                  (insert-file-contents file))
+                (goto-char (point-min))
+                (setq save-place-alist
+                      (with-demoted-errors "Error reading save-place-file: %S"
+                        (car (read-from-string
+                              (buffer-substring (point-min) (point-max))))))
+
+                ;; If there is a limit, and we're over it, then we'll
+                ;; have to truncate the end of the list:
+                (if save-place-limit
+                    (if (<= save-place-limit 0)
+                        ;; Zero gets special cased.  I'm not thrilled
+                        ;; with this, but the loop for >= 1 is tight.
+                        (setq save-place-alist nil)
+                      ;; Else the limit is >= 1, so enforce it by
+                      ;; counting and then `setcdr'ing.
+                      (let ((s save-place-alist)
+                            (count 1))
+                        (while s
+                          (if (>= count save-place-limit)
+                              (setcdr s nil)
+                            (setq count (1+ count)))
+                          (setq s (cdr s))))))
+
+                (kill-buffer (current-buffer))))
+          nil))))
+
 (defcustom save-place-abbreviate-file-names nil
   "If non-nil, abbreviate file names before saving them.
 This can simplify sharing the `save-place-file' file across
-different hosts."
+different hosts.
+
+Changing this option requires rewriting `save-place-alist' with
+corresponding file name format, therefore setting this option
+just using `setq' may cause out-of-sync problems.  You should use
+either `setopt' or M-x customize-variable to set this option."
   :type 'boolean
+  :set (lambda (sym val)
+         (set-default sym val)
+         (or save-place-loaded (save-place-load-alist-from-file))
+         (let ((fun (if val #'abbreviate-file-name #'expand-file-name)))
+           (setq save-place-alist
+                 (cl-delete-duplicates
+                  (cl-loop for (k . v) in save-place-alist
+                           collect
+                           (cons (funcall fun k)
+                                 (if (listp v)
+                                     (cl-loop for (k1 . v1) in v
+                                              collect
+                                              (cons k1 (funcall fun v1)))
+                                   v)))
+                  :key #'car
+                  :from-end t
+                  :test #'equal)))
+         val)
   :version "28.1")
 
 (defcustom save-place-save-skipped t
@@ -214,7 +282,11 @@ file names."
 			    ((and (derived-mode-p 'dired-mode) directory)
 			     (let ((filename (dired-get-filename nil t)))
 			       (if filename
-				   `((dired-filename . ,filename))
+                                   (list
+                                    (cons 'dired-filename
+                                          (if save-place-abbreviate-file-names
+                                              (abbreviate-file-name filename)
+                                            filename)))
 				 (point))))
 			    (t (point)))))
         (if cell
@@ -278,49 +350,6 @@ may have changed) back to `save-place-alist'."
 	  (file-error (message "Saving places: can't write %s" file)))
         (kill-buffer (current-buffer))))))
 
-(defun save-place-load-alist-from-file ()
-  (if (not save-place-loaded)
-      (progn
-        (setq save-place-loaded t)
-        (let ((file (expand-file-name save-place-file)))
-          ;; make sure that the alist does not get overwritten, and then
-          ;; load it if it exists:
-          (if (file-readable-p file)
-              ;; don't want to use find-file because we have been
-              ;; adding hooks to it.
-              (with-current-buffer (get-buffer-create " *Saved Places*")
-                (delete-region (point-min) (point-max))
-                ;; Make sure our 'coding:' cookie in the save-place
-                ;; file will take effect, in case the caller binds
-                ;; coding-system-for-read.
-                (let (coding-system-for-read)
-                  (insert-file-contents file))
-                (goto-char (point-min))
-                (setq save-place-alist
-                      (with-demoted-errors "Error reading save-place-file: %S"
-                        (car (read-from-string
-                              (buffer-substring (point-min) (point-max))))))
-
-                ;; If there is a limit, and we're over it, then we'll
-                ;; have to truncate the end of the list:
-                (if save-place-limit
-                    (if (<= save-place-limit 0)
-                        ;; Zero gets special cased.  I'm not thrilled
-                        ;; with this, but the loop for >= 1 is tight.
-                        (setq save-place-alist nil)
-                      ;; Else the limit is >= 1, so enforce it by
-                      ;; counting and then `setcdr'ing.
-                      (let ((s save-place-alist)
-                            (count 1))
-                        (while s
-                          (if (>= count save-place-limit)
-                              (setcdr s nil)
-                            (setq count (1+ count)))
-                          (setq s (cdr s))))))
-
-                (kill-buffer (current-buffer))))
-          nil))))
-
 (defun save-places-to-alist ()
   ;; go through buffer-list, saving places to alist if save-place-mode
   ;; is non-nil, deleting them from alist if it is nil.
@@ -353,7 +382,11 @@ may have changed) back to `save-place-alist'."
   "Function added to `find-file-hook' by `save-place-mode'.
 It runs the hook `save-place-after-find-file-hook'."
   (or save-place-loaded (save-place-load-alist-from-file))
-  (let ((cell (assoc buffer-file-name save-place-alist)))
+  (let ((cell (and (stringp buffer-file-name)
+                   (assoc (if save-place-abbreviate-file-names
+                              (abbreviate-file-name buffer-file-name)
+                            buffer-file-name)
+                          save-place-alist))))
     (if cell
 	(progn
 	  (or revert-buffer-in-progress-p
@@ -368,25 +401,25 @@ It runs the hook `save-place-after-find-file-hook'."
 (defun save-place-dired-hook ()
   "Position the point in a Dired buffer."
   (or save-place-loaded (save-place-load-alist-from-file))
-  (let* ((directory (and (derived-mode-p 'dired-mode)
-                         (boundp 'dired-subdir-alist)
-			 dired-subdir-alist
-			 (dired-current-directory)))
-	 (cell (assoc (and directory
-			   (expand-file-name (if (consp directory)
-						 (car directory)
-					       directory)))
-		      save-place-alist)))
-    (if cell
-        (progn
-          (or revert-buffer-in-progress-p
-              (cond
-	       ((integerp (cdr cell))
-		(goto-char (cdr cell)))
-	       ((and (listp (cdr cell)) (assq 'dired-filename (cdr cell)))
-		(dired-goto-file (cdr (assq 'dired-filename (cdr cell)))))))
-          ;; and make sure it will be saved again for later
-          (setq save-place-mode t)))))
+  (when-let ((directory (and (derived-mode-p 'dired-mode)
+                             (boundp 'dired-subdir-alist)
+			     dired-subdir-alist
+			     (dired-current-directory)))
+             (item (expand-file-name (if (consp directory)
+					 (car directory)
+				       directory)))
+	     (cell (assoc (if save-place-abbreviate-file-names
+                              (abbreviate-file-name item) item)
+		          save-place-alist)))
+    (or revert-buffer-in-progress-p
+        (cond
+	 ((integerp (cdr cell))
+	  (goto-char (cdr cell)))
+	 ((listp (cdr cell))
+          (when-let ((elt (assq 'dired-filename (cdr cell))))
+            (dired-goto-file (expand-file-name (cdr elt)))))))
+    ;; and make sure it will be saved again for later
+    (setq save-place-mode t)))
 
 (defun save-place-kill-emacs-hook ()
   ;; First update the alist.  This loads the old save-place-file if nec.

@@ -68,16 +68,26 @@ General steps (for each step, check for possible errors):
       PREFERRED_BRANCH = emacs-NN
 
     where NN is the version on the release branch from which you are
-    producing the tarball.  If NN is incorrect, update Makefile.in and
-    re-run 'configure' to update Makefile.
+    producing the tarball.  If NN is incorrect (which it usually is
+    when starting a pretest of a new major release), update
+    Makefile.in and re-run 'configure' to update Makefile.
 
-    If the versioned ChangeLog.N file is too large, start a new one
-    by bumping N, and also update the line in top-level Makefile.in
-    which says
+    For the first pretest of a new major release, consider starting a
+    new top-level ChangeLog.N file if the last versioned ChangeLog.N
+    file is too large.  A good point to start a new ChangeLog.N file
+    is when the last one gets larger than 5 MiB, or when you make the
+    first pretest of a new major release, whichever happens later.  If
+    so, start a new ChangeLog.N file by bumping N, and also update the
+    line in top-level Makefile.in which says
 
       CHANGELOG_HISTORY_INDEX_MAX = N
 
     by incrementing the value of N by 1; then regenerate Makefile.
+    After bumping N, you need to actually create and commit
+    ChangeLog.N with the updated N, otherwise "M-x authors" below will
+    fail.  The easiest way of creating the new ChangeLog.N is to
+    rename the file ChangeLog (without the .N suffix) left over from
+    the last major release (it is usually unversioned) and commit it.
 
     Now:
 
@@ -99,11 +109,12 @@ General steps (for each step, check for possible errors):
     the relevant entry.  If a file was deleted or renamed, consider
     adding an appropriate entry to variables authors-ignored-files,
     authors-valid-file-names, or authors-renamed-files-alist in
-    authors.el.
+    authors.el.  If some authors are "ignored", consider adding
+    entries to the author-aliases variable.
 
     If necessary, repeat 'C-u M-x authors' after making those changes.
     Save the "*Authors*" buffer as etc/AUTHORS.
-    Check the diff looks reasonable.  Maybe add entries to
+    Check the diff looks reasonable.  Maybe add more entries to
     authors-ambiguous-files or authors-aliases, and repeat.
     Commit any fixes to authors.el.
 
@@ -150,10 +161,11 @@ General steps (for each step, check for possible errors):
 4.    autoreconf -i -I m4 --force
       make bootstrap
 
+    The below script checks for any mistakes in the source text of
+    manual pages.  Fix any errors and re-run the script to verify.
+
       ./admin/check-man-pages
 
-    The above script checks for any mistakes in the source text of
-    manual pages.  Fix any errors and re-run the script to verify.
     Then do this:
 
       make -C etc/refcards
@@ -168,7 +180,13 @@ General steps (for each step, check for possible errors):
     messages from TeX, but those seem to be harmless, as the result
     looks just fine.)
 
-5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
+5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.  After copying, edit
+    ldefs-boot.el to add
+
+    ;; no-byte-compile: t
+
+    to its file-local variables section, otherwise make-dist will
+    complain.
 
     Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the files
     changed by M-x set-version.  Note that the set-version changes

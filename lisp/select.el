@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -807,19 +807,24 @@ This function returns the string \"emacs\"."
 (defun xselect-convert-to-username (_selection _type _value)
   (user-real-login-name))
 
-(defun xselect-convert-to-text-uri-list (_selection _type value)
-  (let ((string
-         (if (stringp value)
-             (xselect--encode-string 'TEXT
-                                     (concat (url-encode-url value) "\n"))
-           (when (vectorp value)
-             (with-temp-buffer
-               (cl-loop for tem across value
-                        do (progn
-                             (insert (url-encode-url tem))
-                             (insert "\n")))
-               (xselect--encode-string 'TEXT (buffer-string)))))))
-    (cons 'text/uri-list (cdr string))))
+(defun xselect-convert-to-text-uri-list (selection _type value)
+  ;; While `xselect-uri-list-available-p' ensures that this target
+  ;; will not be reported in the TARGETS of non-drag-and-drop
+  ;; selections, Firefox stupidly converts to it anyway.  Check that
+  ;; the conversion request is being made for the correct selection.
+  (and (eq selection 'XdndSelection)
+       (let ((string
+              (if (stringp value)
+                  (xselect--encode-string 'TEXT
+                                          (concat (url-encode-url value) "\n"))
+                (when (vectorp value)
+                  (with-temp-buffer
+                    (cl-loop for tem across value
+                             do (progn
+                                  (insert (url-encode-url tem))
+                                  (insert "\n")))
+                    (xselect--encode-string 'TEXT (buffer-string)))))))
+         (cons 'text/uri-list (cdr string)))))
 
 (defun xselect-convert-to-xm-file (selection _type value)
   (when (and (stringp value)

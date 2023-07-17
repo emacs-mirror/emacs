@@ -1,6 +1,6 @@
 /* emacs-module.c - Module loading and runtime implementation
 
-Copyright (C) 2015-2022 Free Software Foundation, Inc.
+Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -416,7 +416,7 @@ module_global_reference_p (emacs_value v, ptrdiff_t *n)
     }
   /* Only used for debugging, so we don't care about overflow, just
      make sure the operation is defined.  */
-  INT_ADD_WRAPV (*n, h->count, n);
+  ckd_add (n, *n, h->count);
   return false;
 }
 
@@ -435,7 +435,7 @@ module_make_global_ref (emacs_env *env, emacs_value value)
     {
       Lisp_Object value = HASH_VALUE (h, i);
       struct module_global_reference *ref = XMODULE_GLOBAL_REFERENCE (value);
-      bool overflow = INT_ADD_WRAPV (ref->refcount, 1, &ref->refcount);
+      bool overflow = ckd_add (&ref->refcount, ref->refcount, 1);
       if (overflow)
 	overflow_error ();
       return &ref->value;
@@ -662,7 +662,7 @@ module_funcall (emacs_env *env, emacs_value func, ptrdiff_t nargs,
   Lisp_Object *newargs;
   USE_SAFE_ALLOCA;
   ptrdiff_t nargs1;
-  if (INT_ADD_WRAPV (nargs, 1, &nargs1))
+  if (ckd_add (&nargs1, nargs, 1))
     overflow_error ();
   SAFE_ALLOCA_LISP (newargs, nargs1);
   newargs[0] = value_to_lisp (func);

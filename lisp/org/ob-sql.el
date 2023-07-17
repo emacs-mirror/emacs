@@ -1,6 +1,6 @@
 ;;; ob-sql.el --- Babel Functions for SQL            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Daniel Kraus <daniel@kraus.my>
@@ -234,7 +234,7 @@ database connections."
                                   (:database . sql-database)))
                   (mapped-name (cdr (assq name name-mapping))))
              (cadr (assq mapped-name
-                         (cdr (assoc dbconnection sql-connection-alist))))))))
+                         (cdr (assoc-string dbconnection sql-connection-alist t))))))))
 
 (defun org-babel-execute:sql (body params)
   "Execute a block of Sql code with Babel.

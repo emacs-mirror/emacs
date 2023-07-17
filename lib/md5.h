@@ -1,6 +1,6 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2022 Free Software
+   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2023 Free Software
    Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -19,6 +19,11 @@
 
 #ifndef _MD5_H
 #define _MD5_H 1
+
+/* This file uses HAVE_OPENSSL_MD5.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 #include <stdio.h>
 #include <stdint.h>

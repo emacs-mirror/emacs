@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -204,8 +204,12 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     some-match))
 
 (define-icon warnings-suppress button
-  '((emoji "⛔")
-    (symbol " ■ ")
+  `((emoji "⛔")
+    ;; Many MS-Windows console fonts don't have good glyphs for U+25A0.
+    (symbol ,(if (and (eq system-type 'windows-nt)
+                      (null window-system))
+                 " » "
+               " ■ "))
     (text " stop "))
   "Suppress warnings."
   :version "29.1"

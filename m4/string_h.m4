@@ -1,11 +1,11 @@
 # Configure a GNU-like replacement for <string.h>.
 
-# Copyright (C) 2007-2022 Free Software Foundation, Inc.
+# Copyright (C) 2007-2023 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 35
+# serial 37
 
 # Written by Paul Eggert.
 
@@ -131,6 +131,8 @@ AC_DEFUN([gl_STRING_H_DEFAULTS],
   REPLACE_FFSLL=0;              AC_SUBST([REPLACE_FFSLL])
   REPLACE_MEMCHR=0;             AC_SUBST([REPLACE_MEMCHR])
   REPLACE_MEMMEM=0;             AC_SUBST([REPLACE_MEMMEM])
+  REPLACE_MEMPCPY=0;            AC_SUBST([REPLACE_MEMPCPY])
+  REPLACE_STPCPY=0;             AC_SUBST([REPLACE_STPCPY])
   REPLACE_STPNCPY=0;            AC_SUBST([REPLACE_STPNCPY])
   REPLACE_STRCHRNUL=0;          AC_SUBST([REPLACE_STRCHRNUL])
   REPLACE_STRDUP=0;             AC_SUBST([REPLACE_STRDUP])

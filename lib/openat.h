@@ -1,5 +1,5 @@
 /* provide a replacement openat function
-   Copyright (C) 2004-2006, 2008-2022 Free Software Foundation, Inc.
+   Copyright (C) 2004-2006, 2008-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,15 +19,18 @@
 #ifndef _GL_HEADER_OPENAT
 #define _GL_HEADER_OPENAT
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE, _Noreturn,
+   _GL_ATTRIBUTE_DEPRECATED, HAVE_OPENAT.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <fcntl.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 
 #if !HAVE_OPENAT

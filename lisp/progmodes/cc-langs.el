@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -455,19 +455,29 @@ so that all identifiers are recognized as words.")
   c++ '(c-extend-region-for-CPP
 	c-depropertize-CPP
 	c-before-change-check-ml-strings
+	c-unmark-<>-around-region
 	c-before-change-check-<>-operators
 	c-before-after-change-check-c++-modules
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
 	c-parse-quotes-before-change
 	c-before-change-fix-comment-escapes)
-  (c objc) '(c-extend-region-for-CPP
-	     c-depropertize-CPP
-	     c-truncate-bs-cache
-	     c-before-change-check-unbalanced-strings
-	     c-parse-quotes-before-change
-	     c-before-change-fix-comment-escapes)
+  c '(c-extend-region-for-CPP
+      c-depropertize-CPP
+      c-truncate-bs-cache
+      c-before-change-check-unbalanced-strings
+      c-parse-quotes-before-change
+      c-before-change-fix-comment-escapes)
+  objc '(c-extend-region-for-CPP
+	 c-depropertize-CPP
+	 c-truncate-bs-cache
+	 c-before-change-check-unbalanced-strings
+	 c-unmark-<>-around-region
+	 c-before-change-check-<>-operators
+	 c-parse-quotes-before-change
+	 c-before-change-fix-comment-escapes)
   java '(c-parse-quotes-before-change
+	 c-unmark-<>-around-region
 	 c-before-change-check-unbalanced-strings
 	 c-before-change-check-<>-operators)
   pike '(c-before-change-check-ml-strings
@@ -502,20 +512,31 @@ parameters \(point-min) and \(point-max).")
       c-after-change-escape-NL-in-string
       c-after-change-mark-abnormal-strings
       c-change-expand-fl-region)
-  (c objc) '(c-depropertize-new-text
-	     c-after-change-fix-comment-escapes
-	     c-after-change-escape-NL-in-string
-	     c-parse-quotes-after-change
-	     c-after-change-mark-abnormal-strings
-	     c-extend-font-lock-region-for-macros
-	     c-neutralize-syntax-in-CPP
-	     c-change-expand-fl-region)
+  c '(c-depropertize-new-text
+      c-after-change-fix-comment-escapes
+      c-after-change-escape-NL-in-string
+      c-parse-quotes-after-change
+      c-after-change-mark-abnormal-strings
+      c-extend-font-lock-region-for-macros
+      c-neutralize-syntax-in-CPP
+      c-change-expand-fl-region)
+  objc '(c-depropertize-new-text
+	 c-after-change-fix-comment-escapes
+	 c-after-change-escape-NL-in-string
+	 c-parse-quotes-after-change
+	 c-after-change-mark-abnormal-strings
+	 c-unmark-<>-around-region
+	 c-extend-font-lock-region-for-macros
+	 c-neutralize-syntax-in-CPP
+	 c-restore-<>-properties
+	 c-change-expand-fl-region)
   c++ '(c-depropertize-new-text
 	c-after-change-fix-comment-escapes
 	c-after-change-escape-NL-in-string
 	c-after-change-unmark-ml-strings
 	c-parse-quotes-after-change
 	c-after-change-mark-abnormal-strings
+	c-unmark-<>-around-region
 	c-extend-font-lock-region-for-macros
 	c-before-after-change-check-c++-modules
 	c-neutralize-syntax-in-CPP
@@ -524,6 +545,7 @@ parameters \(point-min) and \(point-max).")
   java '(c-depropertize-new-text
 	 c-after-change-escape-NL-in-string
 	 c-parse-quotes-after-change
+	 c-unmark-<>-around-region
 	 c-after-change-mark-abnormal-strings
 	 c-restore-<>-properties
 	 c-change-expand-fl-region)
@@ -586,7 +608,8 @@ Such a function takes one optional parameter, a buffer position (defaults to
 point), and returns nil or t.  This variable contains nil for languages which
 don't have EOL terminated statements. "
   t nil
-  (c c++ objc) 'c-at-macro-vsemi-p
+  (c objc) 'c-at-macro-vsemi-p
+  c++ 'c-c++-vsemi-p
   awk 'c-awk-at-vsemi-p)
 (c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
 
@@ -738,11 +761,11 @@ When non-nil, this variable should end in \"\\\\\\==\".  Note that
 such a backward search will match a minimal string, so a
 \"context character\" is probably needed at the start of the
 regexp.  The value for csharp-mode would be something like
-\"\\\\(:?\\\\`\\\\|[^\\\"]\\\\)\\\"*\\\\\\==\"."
+\"\\\\(?:\\\\`\\\\|[^\\\"]\\\\)\\\"*\\\\\\==\"."
   t nil
-  pike "\\(:?\\`\\|[^\\\"]\\)\\(:?\\\\.\\)*\\="
+  pike "\\(?:\\`\\|[^\\\"]\\)\\(?:\\\\.\\)*\\="
   ;;pike ;; 2
-  ;;    "\\(:?\\`\\|[^\"]\\)\"*\\="
+  ;;    "\\(?:\\`\\|[^\"]\\)\"*\\="
   )
 (c-lang-defvar c-ml-string-back-closer-re
 	       (c-lang-const c-ml-string-back-closer-re))
@@ -829,8 +852,9 @@ which `c-backward-sexp' needs to be called twice to move backwards over."
 keyword.  It's unspecified how far it matches.  Does not contain a \\|
 operator at the top level."
   t    (concat "[" c-alpha "_]")
+  (c c++) (concat "[" c-alpha "_$]")
   java (concat "[" c-alpha "_@]")
-  objc (concat "[" c-alpha "_@]")
+  objc (concat "[" c-alpha "_@$]")
   pike (concat "[" c-alpha "_`]"))
 (c-lang-defvar c-symbol-start (c-lang-const c-symbol-start))
 
@@ -843,6 +867,10 @@ This is of the form that fits inside [ ] in a regexp."
   objc (concat c-alnum "_$@"))
 (c-lang-defvar c-symbol-chars (c-lang-const c-symbol-chars))
 
+(c-lang-defconst c-dollar-in-ids
+  "Non-nil when a dollar (can be) a non-standard constituent of an identifier."
+  t (string-match (c-lang-const c-symbol-start) "$"))
+
 (c-lang-defconst c-symbol-char-key
   "Regexp matching a sequence of at least one identifier character."
   t (concat "[" (c-lang-const c-symbol-chars) "]+"))
@@ -854,9 +882,9 @@ to match if `c-symbol-start' matches on the same position."
   t    (concat (c-lang-const c-symbol-start)
 	       "[" (c-lang-const c-symbol-chars) "]\\{,1000\\}")
   pike (concat
-	;; Use the value from C here since the operator backquote is
+	;; Use the value from AWK here since the operator backquote is
 	;; covered by the other alternative.
-	(c-lang-const c-symbol-key c)
+	(c-lang-const c-symbol-key awk)
 	"\\|"
 	(c-make-keywords-re nil
 	  (c-lang-const c-overloadable-operators))))
@@ -2588,6 +2616,7 @@ will be handled."
   ;; {...}").
   t    (append (c-lang-const c-class-decl-kwds)
 	       (c-lang-const c-brace-list-decl-kwds))
+  c nil
   ;; Note: "manages" for CORBA CIDL clashes with its presence on
   ;; `c-type-list-kwds' for IDL.
   idl  (append (c-lang-const c-typeless-decl-kwds)
@@ -2634,9 +2663,12 @@ clause.  An arglist may or may not follow such a keyword."
   c++ '("requires"))
 
 (c-lang-defconst c-fun-name-substitute-key
-  ;; An adorned regular expression which matches any member of
+  ;; An unadorned regular expression which matches any member of
   ;; `c-fun-name-substitute-kwds'.
-  t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
+  t (c-make-keywords-re 'appendable (c-lang-const c-fun-name-substitute-kwds)))
+;; We use 'appendable, so that we get "\\>" on the regexp, but without a further
+;; character, which would mess up backward regexp search from just after the
+;; keyword.  If only XEmacs had \\_>.  ;-(
 (c-lang-defvar c-fun-name-substitute-key
 	       (c-lang-const c-fun-name-substitute-key))
 
@@ -3084,6 +3116,17 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
   ;; and then by a substatement.
   t (c-make-keywords-re t (c-lang-const c-block-stmt-2-kwds)))
 (c-lang-defvar c-block-stmt-2-key (c-lang-const c-block-stmt-2-key))
+
+(c-lang-defconst c-generic-kwds
+  "The keyword \"_Generic\" which introduces a C11 generic statement."
+  t nil
+  c '("_Generic"))
+
+(c-lang-defconst c-generic-key
+  ;; Regexp matching the keyword(s) in `c-generic-kwds'.
+  t (if (c-lang-const c-generic-kwds)
+	(c-make-keywords-re t (c-lang-const c-generic-kwds))))
+(c-lang-defvar c-generic-key (c-lang-const c-generic-key))
 
 (c-lang-defconst c-block-stmt-kwds
   ;; Union of `c-block-stmt-1-kwds' and `c-block-stmt-2-kwds'.
@@ -3964,7 +4007,7 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     ;; "throw" in `c-type-modifier-kwds' is followed
 		     ;; by a parenthesis list, but no extra measures
 		     ;; are necessary to handle that.
-		     (regexp-opt 
+		     (regexp-opt
 		      (append (c-lang-const c-fun-name-substitute-kwds)
 			      (c-lang-const c-type-modifier-kwds))
 		      t)

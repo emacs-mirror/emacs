@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org

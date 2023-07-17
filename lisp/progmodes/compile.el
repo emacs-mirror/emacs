@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2022 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -649,6 +649,36 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
     ;; we do not know what lines will follow.
     (guile-file "^In \\(.+\\..+\\):\n" 1 nil nil 0)
     (guile-line "^ *\\([0-9]+\\): *\\([0-9]+\\)" nil 1 2)
+
+    ;; Typescript compilation prior to tsc version 2.7, "plain" format:
+    ;; greeter.ts(30,12): error TS2339: Property 'foo' does not exist.
+    (typescript-tsc-plain
+     ,(rx bol
+          (group (not (in " \t\n()"))   ; 1: file
+                 (* (not (in "\n()"))))
+          "("
+          (group (+ (in "0-9")))        ; 2: line
+          ","
+          (group (+ (in "0-9")))        ; 3: column
+          "): error "
+          (+ (in "0-9A-Z"))             ; error code
+          ": ")
+     1 2 3 2)
+
+    ;; Typescript compilation after tsc version 2.7, "pretty" format:
+    ;; src/resources/document.ts:140:22 - error TS2362: something.
+    (typescript-tsc-pretty
+     ,(rx bol
+          (group (not (in " \t\n()"))   ; 1: file
+                 (* (not (in "\n()"))))
+          ":"
+          (group (+ (in "0-9")))        ; 2: line
+          ":"
+          (group (+ (in "0-9")))        ; 3: column
+          " - error "
+          (+ (in "0-9A-Z"))             ; error code
+          ": ")
+     1 2 3 2)
     ))
   "Alist of values for `compilation-error-regexp-alist'.")
 
@@ -1676,7 +1706,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
             (set-marker (make-marker)
                         (save-excursion
                           (goto-char (point-min))
-                          (text-property-search-forward 'compilation-header-end)
+                          (text-property-search-forward 'compilation-annotation)
                           ;; If we have no end marker, this will be
                           ;; `point-min' still.
                           (point)))))
@@ -1824,6 +1854,14 @@ If nil, don't hide anything."
   ;; buffers when it changes from nil to non-nil or vice-versa.
   (unless compilation-in-progress (force-mode-line-update t)))
 
+(defun compilation-insert-annotation (&rest args)
+  "Insert ARGS at point, adding the `compilation-annotation' text property.
+This property is used to distinguish output of the compilation
+process from additional information inserted by Emacs."
+  (let ((start (point)))
+    (apply #'insert args)
+    (put-text-property start (point) 'compilation-annotation t)))
+
 ;;;###autoload
 (defun compilation-start (command &optional mode name-function highlight-regexp
                                   continue)
@@ -1945,17 +1983,16 @@ Returns the compilation buffer created."
             (setq-local compilation-auto-jump-to-next t))
         (when (zerop (buffer-size))
 	  ;; Output a mode setter, for saving and later reloading this buffer.
-	  (insert "-*- mode: " name-of-mode
-		  "; default-directory: "
-                  (prin1-to-string (abbreviate-file-name default-directory))
-		  " -*-\n"))
-        (insert (format "%s started at %s\n\n"
-			mode-name
-			(substring (current-time-string) 0 19))
-		command "\n")
-        ;; Mark the end of the header so that we don't interpret
-        ;; anything in it as an error.
-        (put-text-property (1- (point)) (point) 'compilation-header-end t)
+	  (compilation-insert-annotation
+           "-*- mode: " name-of-mode
+           "; default-directory: "
+           (prin1-to-string (abbreviate-file-name default-directory))
+	   " -*-\n"))
+        (compilation-insert-annotation
+         (format "%s started at %s\n\n"
+                 mode-name
+		 (substring (current-time-string) 0 19))
+	 command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.
@@ -2437,13 +2474,13 @@ commands of Compilation major mode are available.  See
 	(cur-buffer (current-buffer)))
     ;; Record where we put the message, so we can ignore it later on.
     (goto-char omax)
-    (insert ?\n mode-name " " (car status))
+    (compilation-insert-annotation ?\n mode-name " " (car status))
     (if (and (numberp compilation-window-height)
 	     (zerop compilation-window-height))
 	(message "%s" (cdr status)))
     (if (bolp)
 	(forward-char -1))
-    (insert " at " (substring (current-time-string) 0 19))
+    (compilation-insert-annotation " at " (substring (current-time-string) 0 19))
     (goto-char (point-max))
     ;; Prevent that message from being recognized as a compilation error.
     (add-text-properties omax (point)

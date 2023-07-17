@@ -1,5 +1,5 @@
 /* Merge parameters into a termcap entry string.
-   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2022 Free
+   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2023 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
@@ -173,8 +173,7 @@ tparam1 (const char *string, char *outstring, int len,
 			doup++, append_len_incr = strlen (up);
 		      else
 			doleft++, append_len_incr = strlen (left);
-		      if (INT_ADD_WRAPV (append_len_incr,
-					 append_len, &append_len))
+		      if (ckd_add (&append_len, append_len, append_len_incr))
 			memory_full (SIZE_MAX);
 		    }
 		}

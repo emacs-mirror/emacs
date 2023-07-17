@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2022 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2023 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -516,6 +516,13 @@ directory copy is ineffective.
 This is due to an arbitrary limit in certain versions of awk.
 The solution is to use gawk (GNU awk).
 
+*** Saving, via EasyPG, a file encrypted with GnuPG hangs
+
+This is known to happen with GnuPG v2.4.1.  The only known workaround
+is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
+future, upgrade to a newer version which solves the problem, when such
+a fixed version becomes available).
+
 ** Problems with hostname resolution
 
 *** Emacs does not know your host's fully-qualified domain name.
@@ -627,6 +634,18 @@ screen size changed.
 To work around the problem, customize the option
 'window-adjust-process-window-size-function' to "Do not adjust process
 window sizes" (Lisp value 'ignore').
+
+*** Displaying PDF files in DocView produces an empty buffer.
+
+This can happen if your Emacs is configured to convert PDF to SVG for
+display, and the version of the MuPDF package you have installed has a
+a known bug, whereby it sometimes produces invalid SVG images.
+Version 1.21 of MuPDF is known to be affected.
+
+The solution is either to upgrade or downgrade to a version of MuPDF
+that doesn't have this bug, or to disable conversion of PDF files to
+SVG images by customizing the user option 'doc-view-mupdf-use-svg'.
+Emacs will then convert PDF to PNG images instead.
 
 *** In Inferior Python mode, input is echoed and native completion doesn't work.
 <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=25753>
@@ -1688,7 +1707,7 @@ which can be carried out at the same time:
    forwarded X connection (ssh -XC remotehostname emacs ...).
 
    Keep in mind that this does not help with latency problems, only
-   andwidth ones.
+   bandwidth ones.
 
 5) Use lbxproxy on the remote end of the connection.  This is an
    interface to the low bandwidth X extension in some outdated X
@@ -2301,6 +2320,33 @@ recommended way of turning on Font-lock is by typing "M-x
 global-font-lock-mode RET" or by customizing the variable
 'global-font-lock-mode'.
 
+** Colors are not available or messed up on TTY frames inside 'screen'.
+
+This can happen if you have COLORTERM=truecolor defined in the
+environment when Emacs starts, but your version of 'screen' doesn't
+actually support 24-bit true colors.
+
+The COLORTERM environment variable is supposed to be set to the value
+"truecolor" only if the terminal used by Emacs actually supports true
+color.  Emacs does not have any means of verifying that this support
+is available, it takes the fact that the variable is defined to this
+value as an indication that true color support is, in fact, available,
+and uses color setting commands that COLORTERM=truecolor presumes,
+bypassing the usual Terminfo capabilities related to colors.
+
+Some text-mode terminals, such as GNOME Terminal, are known to set
+this environment variable, supposedly to announce their own support
+for true color; however the setting is then inherited by any other
+terminal emulators started from such a terminal, even though those
+other terminal emulators might not themselves support true color using
+the same commands as Emacs uses when it sees COLORTERM=truecolor.
+
+The solution is to either upgrade to a newer version of 'screen'
+(version 5.x or later reportedly supports true color), or to unset the
+COLORTERM variable before starting 'screen', and let Emacs use the
+color support provided by the terminal emulator as defined in the
+Terminfo database.
+
 ** Unexpected characters inserted into the buffer when you start Emacs.
 See e.g. <URL:https://debbugs.gnu.org/11129>
 
@@ -2669,6 +2715,15 @@ Emacs so that it isn't compiled with '-O5'.
 We list bugs in current versions here.  See also the section on legacy
 systems.
 
+*** On Solaris 10, running 'configure' with "/bin/sh" produces errors.
+The "/bin/sh" shell on Solaris is an ancient and non-POSIX shell, so
+we recommend not to use it.  The Emacs 'configure' script should find
+an appropriate shell and re-exec itself with that shell, unless you
+force it to use "/bin/sh" by using "CONFIG_SHELL=/bin/sh" on the
+'configure' command line.  So either don't use CONFIG_SHELL, or, if
+you'd rather pick the shell yourself, choose "/bin/bash" or "/bin/ksh"
+or "/usr/xpg4/bin/sh" instead.
+
 *** On Solaris 10 sparc, Emacs crashes during the build while saving state.
 This was observed for Emacs 28.1 on Solaris 10 32-bit sparc, with
 Oracle Developer Studio 12.6 (Sun C 5.15).  The failure was intermittent,
@@ -2694,6 +2749,59 @@ This is a Solaris feature (at least on Intel x86 cpus).  Type C-r
 C-r C-t, to toggle whether C-x gets through to Emacs.
 
 * Runtime problems specific to MS-Windows
+
+** Emacs with native compilation crashes/signals errors accessing *.eln files
+
+This is known to be caused by some flavors of Windows anti-virus
+software.  The problem could manifest itself in several ways:
+
+  . Emacs crashes when it tries to load certain *.eln files
+  . Emacs signals an error when it tries to load some *.eln files,
+    claiming they are "not GPL compatible"
+  . Emacs crashes during GC when it calls unload_comp_unit
+
+This was specifically reported to happen with *.eln files in
+directories under the C:\Users directory, which is where Emacs on
+Windows places the emulated HOME directory, and thus also the
+~/.emacs.d/eln-cache directory holding the *.eln files compiled during
+Emacs sessions (as opposed to those that came precompiled and were
+installed with the rest of Emacs distribution).
+
+If you cannot disable such anti-virus software or switch to another
+one, you could use the following workarounds:
+
+  . Define the HOME environment variable to point to a directory
+    outside of the C:\Users tree, then copy/move your ~/.emacs.d
+    directory to that new home directory.
+  . Move all the *.eln files from ~/.emacs.d/eln-cache to a directory
+    out of the C:\Users tree, and customize Emacs to use that
+    directory for *.eln files.  This requires to call the function
+    startup-redirect-eln-cache in your init file, to force Emacs to
+    write *.eln files compiled at run time to that directory.
+  . Delete all *.eln files in your ~/.emacs.d/eln-cache directory, and
+    then disable run-time native compilation.  To disable native
+    compilation, set the variables native-comp-jit-compilation and
+    native-comp-enable-subr-trampolines to nil.
+  . Install Emacs built without native compilation.
+
+With any of the above methods, you'd need to restart Emacs (and
+preferably also your Windows system) after making the changes, to have
+them take effect.
+
+*** MinGW64 Emacs built with -D_FORTIFY_SOURCE=2 misbehaves
+
+Using this preprocessor option when building Emacs with MinGW64
+produces an Emacs binary that behaves incorrectly.  In particular,
+running asynchronous shell command, e.g., with 'M-&', causes Emacs to
+use 100% of CPU and start allocating a lot of memory.  For the same
+reason, asynchronous native-compilation will hang Emacs (which could
+wedge Emacs during startup, if your Emacs is configured to download
+and install packages via package.el every startup).  'M-x run-python',
+'M-x shell', and similar commands also hang.  Other commands might
+also cause high CPU and/or memory usage.
+
+The workaround is to rebuild Emacs without the -D_FORTIFY_SOURCE=2
+option.
 
 ** Emacs on Windows 9X requires UNICOWS.DLL
 
@@ -3348,6 +3456,39 @@ issue is that Cygwin 1.5.19 did not have d_ino in 'struct dirent'.
 See
 
   https://lists.gnu.org/r/emacs-devel/2010-07/msg01266.html
+
+*** Building the MS-Windows port with native compilation fails
+
+This is known to happen when using MinGW64 GCC 13.1, and seems to
+affect byte-compilation: the built Emacs crashes while byte-compiling
+some Lisp files.  (This doesn't happen when building a release
+tarball, because all the Lisp files are already byte-compiled there,
+but then Emacs could crash later when you use it to byte-compile your
+or third-party Lisp packages.)
+
+The reason seems to be specific to MS-Windows or the MinGW64 port of
+GCC 13.1, and is somehow related to optimizations in this GCC version.
+There are several known workarounds:
+
+  . Use non-default optimization flags.  For example, configuring the
+    build like this will avoid the problem:
+
+     CFLAGS='-O1 -gdwarf-4 -g3' ./configure ...
+
+    (replace the ellipsis "..." with the rest of 'configure' options
+    and arguments).
+
+  . Prevent GCC from performing a specific optimization:
+
+     CFLAGS='-O2 -gdwarf-4 -g3 -fno-optimize-sibling-calls' ./configure ...
+
+    This is actually a variant of the previous workaround, except that
+    it allows you to have almost the full set of optimizations used by
+    -O2.
+
+  . Downgrade to GCC 12.x.
+
+  . Build Emacs without native compilation.
 
 *** Building the native MS-Windows port fails due to unresolved externals
 

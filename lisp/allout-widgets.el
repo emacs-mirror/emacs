@@ -1,6 +1,6 @@
 ;;; allout-widgets.el --- Visually highlight allout outline structure.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Version: 1.0
@@ -613,7 +613,8 @@ outline hot-spot navigation (see `allout-mode')."
                    #'allout-widgets-post-command-business 'local)
       (remove-hook 'pre-command-hook
                    #'allout-widgets-pre-command-business 'local)
-      (assq-delete-all 'allout-widgets-mode-inhibit minor-mode-alist)
+      (setq minor-mode-alist
+            (assq-delete-all 'allout-widgets-mode-inhibit minor-mode-alist))
       (set-buffer-modified-p was-modified))))
 ;;;_   > allout-widgets-mode-off
 (defun allout-widgets-mode-off ()

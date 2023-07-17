@@ -1,6 +1,6 @@
 ;;; disass.el --- disassembler for compiled Emacs Lisp code  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1986, 1991, 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1991, 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Doug Cutting <doug@csli.stanford.edu>
 ;;	Jamie Zawinski <jwz@lucid.com>
@@ -63,16 +63,19 @@ redefine OBJECT if it is a symbol."
      (list (intern (completing-read (format-prompt "Disassemble function" fn)
                                     obarray 'fboundp t nil nil def))
            nil 0 t)))
-  (if (and (consp object) (not (functionp object)))
-      (setq object `(lambda () ,object)))
-  (or indent (setq indent 0))		;Default indent to zero
-  (save-excursion
-    (if (or interactive-p (null buffer))
-	(with-output-to-temp-buffer "*Disassemble*"
-	  (set-buffer "*Disassemble*")
-	  (disassemble-internal object indent (not interactive-p)))
-      (set-buffer buffer)
-      (disassemble-internal object indent nil)))
+  (let ((lb lexical-binding))
+    (if (and (consp object) (not (functionp object)))
+        (setq object `(lambda () ,object)))
+    (or indent (setq indent 0))		;Default indent to zero
+    (save-excursion
+      (if (or interactive-p (null buffer))
+	  (with-output-to-temp-buffer "*Disassemble*"
+	    (set-buffer "*Disassemble*")
+            (let ((lexical-binding lb))
+	      (disassemble-internal object indent (not interactive-p))))
+        (set-buffer buffer)
+        (let ((lexical-binding lb))
+          (disassemble-internal object indent nil)))))
   nil)
 
 (declare-function native-comp-unit-file "data.c")

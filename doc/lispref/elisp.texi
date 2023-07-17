@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifclear
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2022 Free Software Foundation,
+Copyright @copyright{} 1990--1996, 1998--2023 Free Software Foundation,
 Inc.
 
 @quotation
@@ -235,7 +235,7 @@ To view this manual in other formats, click
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 27.
+* Antinews::                Info for users downgrading to Emacs 28.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -569,6 +569,7 @@ Functions
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
 * Closures::                Functions that enclose a lexical environment.
+* OClosures::               Function objects with meta-data.
 * Advising Functions::      Adding to the definition of a function.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
@@ -1364,13 +1365,13 @@ Syntax Tables
 
 Parsing Program Source
 
-* Language Definitions::     Loading tree-sitter language definitions.
+* Language Grammar::         Loading tree-sitter language grammar.
 * Using Parser::             Introduction to parsers.
 * Retrieving Nodes::         Retrieving nodes from a syntax tree.
 * Accessing Node Information:: Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
 * Multiple Languages::       Parse text written in multiple languages.
-* Tree-sitter major modes::  Develop major modes using tree-sitter.
+* Tree-sitter Major Modes::  Develop major modes using tree-sitter.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
 
 Syntax Descriptors

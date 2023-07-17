@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2022 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -104,6 +104,13 @@ static bool single_kboard;
 
 /* Minimum allowed size of the recent_keys vector.  */
 #define MIN_NUM_RECENT_KEYS (100)
+
+/* Maximum allowed size of the recent_keys vector.  */
+#if INTPTR_MAX <= INT_MAX
+# define MAX_NUM_RECENT_KEYS (INT_MAX / EMACS_INT_WIDTH / 10)
+#else
+# define MAX_NUM_RECENT_KEYS (INT_MAX / EMACS_INT_WIDTH)
+#endif
 
 /* Index for storing next element into recent_keys.  */
 static int recent_keys_index;
@@ -310,6 +317,8 @@ static Lisp_Object command_loop (void);
 
 static void echo_now (void);
 static ptrdiff_t echo_length (void);
+
+static void safe_run_hooks_maybe_narrowed (Lisp_Object, struct window *);
 
 /* Incremented whenever a timer is run.  */
 unsigned timers_run;
@@ -1427,6 +1436,7 @@ command_loop_1 (void)
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
+      ptrdiff_t last_pt = PT;
 
       /* By default, we adjust point to a boundary of a region that
          has such a property that should be treated intangible
@@ -1504,6 +1514,9 @@ command_loop_1 (void)
             unbind_to (scount, Qnil);
 #endif
           }
+      /* Restore last PT position value, possibly clobbered by
+         recursive-edit invoked by the command we just executed.  */
+      last_point_position = last_pt;
       kset_last_prefix_arg (current_kboard, Vcurrent_prefix_arg);
 
       safe_run_hooks_maybe_narrowed (Qpost_command_hook,
@@ -1902,7 +1915,7 @@ safe_run_hooks (Lisp_Object hook)
   unbind_to (count, Qnil);
 }
 
-void
+static void
 safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -1910,12 +1923,13 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
   specbind (Qinhibit_quit, Qt);
 
   if (current_buffer->long_line_optimizations_p
-      && long_line_locked_narrowing_region_size > 0)
+      && long_line_optimizations_region_size > 0)
     {
-      ptrdiff_t begv = get_locked_narrowing_begv (PT);
-      ptrdiff_t zv = get_locked_narrowing_zv (PT);
+      ptrdiff_t begv = get_large_narrowing_begv (PT);
+      ptrdiff_t zv = get_large_narrowing_zv (PT);
       if (begv != BEG || zv != Z)
-	narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv), hook);
+	labeled_narrow_to_region (make_fixnum (begv), make_fixnum (zv),
+				  Qlong_line_optimizations_in_command_hooks);
     }
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
@@ -10010,7 +10024,7 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 
       if (/* first_unbound < indec.start && first_unbound < fkey.start && */
 	  first_unbound < keytran.start)
-	{ /* The prefix upto first_unbound has no binding and has
+	{ /* The prefix up to first_unbound has no binding and has
 	     no translation left to do either, so we know it's unbound.
 	     If we don't stop now, we risk staying here indefinitely
 	     (if the user keeps entering fkey or keytran prefixes
@@ -10983,10 +10997,10 @@ The saved keystrokes are shown by `view-lossage'.  */)
 
   if (!FIXNATP (arg))
     user_error ("Value must be a positive integer");
-  int osize = ASIZE (recent_keys);
+  ptrdiff_t osize = ASIZE (recent_keys);
   eassert (lossage_limit == osize);
   int min_size = MIN_NUM_RECENT_KEYS;
-  int new_size = XFIXNAT (arg);
+  EMACS_INT new_size = XFIXNAT (arg);
 
   if (new_size == osize)
     return make_fixnum (lossage_limit);
@@ -10995,6 +11009,12 @@ The saved keystrokes are shown by `view-lossage'.  */)
     {
       AUTO_STRING (fmt, "Value must be >= %d");
       Fsignal (Quser_error, list1 (CALLN (Fformat, fmt, make_fixnum (min_size))));
+    }
+  if (new_size > MAX_NUM_RECENT_KEYS)
+    {
+      AUTO_STRING (fmt, "Value must be <= %d");
+      Fsignal (Quser_error, list1 (CALLN (Fformat, fmt,
+					  make_fixnum (MAX_NUM_RECENT_KEYS))));
     }
 
   int kept_keys = new_size > osize ? total_keys : min (new_size, total_keys);
@@ -11145,7 +11165,7 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   (void)
 {
   EMACS_INT sum;
-  INT_ADD_WRAPV (command_loop_level, minibuf_level, &sum);
+  ckd_add (&sum, command_loop_level, minibuf_level);
   return make_fixnum (sum);
 }
 
@@ -11545,7 +11565,7 @@ quit_throw_to_read_char (bool from_signal)
   if (FRAMEP (internal_last_event_frame)
       && !EQ (internal_last_event_frame, selected_frame))
     do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
-		     0, Qnil);
+		     0, 0, Qnil);
 
   sys_longjmp (getcjmp, 1);
 }
@@ -12168,6 +12188,8 @@ syms_of_keyboard (void)
   /* Hooks to run before and after each command.  */
   DEFSYM (Qpre_command_hook, "pre-command-hook");
   DEFSYM (Qpost_command_hook, "post-command-hook");
+  DEFSYM (Qlong_line_optimizations_in_command_hooks,
+	  "long-line-optimizations-in-command-hooks");
 
   /* Hook run after the region is selected.  */
   DEFSYM (Qpost_select_region_hook, "post-select-region-hook");
@@ -12728,13 +12750,11 @@ If an unhandled error happens in running this hook, the function in
 which the error occurred is unconditionally removed, since otherwise
 the error might happen repeatedly and make Emacs nonfunctional.
 
-Note that, when the current buffer contains one or more lines whose
-length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point (whose size
-is specified by `long-line-locked-narrowing-region-size'), and the
-narrowing is locked (see `narrowing-lock'), so that these hook
-functions cannot use `widen' to gain access to other portions of
-buffer text.
+Note that, when `long-line-optimizations-p' is non-nil in the buffer,
+these functions are called as if they were in a `with-restriction' form,
+with a `long-line-optimizations-in-command-hooks' label and with the
+buffer narrowed to a portion around point whose size is specified by
+`long-line-optimizations-region-size'.
 
 See also `post-command-hook'.  */);
   Vpre_command_hook = Qnil;
@@ -12750,13 +12770,11 @@ It is a bad idea to use this hook for expensive processing.  If
 unavoidable, wrap your code in `(while-no-input (redisplay) CODE)' to
 avoid making Emacs unresponsive while the user types.
 
-Note that, when the current buffer contains one or more lines whose
-length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point (whose size
-is specified by `long-line-locked-narrowing-region-size'), and the
-narrowing is locked (see `narrowing-lock'), so that these hook
-functions cannot use `widen' to gain access to other portions of
-buffer text.
+Note that, when `long-line-optimizations-p' is non-nil in the buffer,
+these functions are called as if they were in a `with-restriction' form,
+with a `long-line-optimizations-in-command-hooks' label and with the
+buffer narrowed to a portion around point whose size is specified by
+`long-line-optimizations-region-size'.
 
 See also `pre-command-hook'.  */);
   Vpost_command_hook = Qnil;

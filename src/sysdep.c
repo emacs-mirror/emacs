@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2022 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2005,7 +2005,9 @@ init_signals (void)
     signal (SIGPIPE, SIG_IGN);
 
   sigaction (SIGQUIT, &process_fatal_action, 0);
+#ifndef __vax__
   sigaction (SIGILL, &thread_fatal_action, 0);
+#endif /* __vax__ */
   sigaction (SIGTRAP, &thread_fatal_action, 0);
 
   /* Typically SIGFPE is thread-specific and is fatal, like SIGILL.
@@ -2018,6 +2020,11 @@ init_signals (void)
     {
       emacs_sigaction_init (&action, deliver_arith_signal);
       sigaction (SIGFPE, &action, 0);
+#ifdef __vax__
+      /* NetBSD/vax generates SIGILL upon some floating point errors,
+	 such as taking the log of 0.0.  */
+      sigaction (SIGILL, &action, 0);
+#endif /* __vax__ */
     }
 
 #ifdef SIGUSR1

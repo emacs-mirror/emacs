@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -1326,14 +1326,12 @@ Fill comments, backslashed lines, and variable definitions specially."
   (let ((inhibit-read-only t))
     (goto-char (point-min))
     (erase-buffer)
-    (mapconcat
+    (mapc
      (lambda (item) (insert (makefile-browser-format-target-line (car item) nil) "\n"))
-     targets
-     "")
-    (mapconcat
+     targets)
+    (mapc
      (lambda (item) (insert (makefile-browser-format-macro-line (car item) nil) "\n"))
-     macros
-     "")
+     macros)
     (sort-lines nil (point-min) (point-max))
     (goto-char (1- (point-max)))
     (delete-char 1)			; remove unnecessary newline at eob

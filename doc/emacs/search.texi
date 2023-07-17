@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -587,26 +587,30 @@ i.e., they don't terminate the search, even if
 @item Scrolling Commands
 @cindex scrolling commands, during incremental search
 @vindex isearch-allow-scroll
-  Normally, scrolling commands exit incremental search.  If you change
-the variable @code{isearch-allow-scroll} to a non-@code{nil} value,
-that enables the use of the scroll-bar, as well as keyboard scrolling
-commands like @kbd{C-v}, @kbd{M-v}, and @kbd{C-l} (@pxref{Scrolling}).
-This applies only to calling these commands via their bound key
-sequences---typing @kbd{M-x} will still exit the search.  You can give
-prefix arguments to these commands in the usual way.  This feature
-normally won't let you scroll the current match out of visibility; but
-if you customize @code{isearch-allow-scroll} to the special value
-@code{unlimited}, that restriction is lifted.
+@cindex @code{scroll-command} property, and incremental search
+  Normally, scrolling commands exit incremental search.  But if you
+change the variable @code{isearch-allow-scroll} to a non-@code{nil}
+value, that enables the use of the scroll-bar, as well as keyboard
+scrolling commands like @kbd{C-v}, @kbd{M-v}, and @kbd{C-l}
+(@pxref{Scrolling}), which have a non-@code{nil} @code{scroll-command}
+property, without exiting the search.  This applies only to calling
+these commands via their bound key sequences---typing @kbd{M-x} will
+still exit the search.  You can give prefix arguments to these
+commands in the usual way.  This feature normally won't let you scroll
+the current match out of visibility; but if you customize
+@code{isearch-allow-scroll} to the special value @code{unlimited},
+that restriction is lifted.
 
+@cindex @code{isearch-scroll} property
+@cindex prevent commands from exiting incremental search
   The @code{isearch-allow-scroll} feature also affects some other
 commands, such as @kbd{C-x 2} (@code{split-window-below}) and
 @kbd{C-x ^} (@code{enlarge-window}), which don't exactly scroll but do
-affect where the text appears on the screen.  It applies to any
-command whose name has a non-@code{nil} @code{isearch-scroll}
-property.  So you can control which commands are affected by changing
-these properties.
+affect where the text appears on the screen.  In fact, it affects
+any command that has a non-@code{nil} @code{isearch-scroll} property.
+So you can control which commands are affected by changing these
+properties.
 
-@cindex prevent commands from exiting incremental search
   For example, to make @kbd{C-h l} usable within an incremental search
 in all future Emacs sessions, use @kbd{C-h c} to find what command it
 runs (@pxref{Key Help}), which is @code{view-lossage}.  Then you can
@@ -643,6 +647,7 @@ you can extend the search string by holding down the shift key while
 typing cursor motion commands.  It will yank text that ends at the new
 position after moving point in the current buffer.
 
+@cindex @code{isearch-move} property
 When @code{isearch-yank-on-move} is @code{t}, you can extend the
 search string without using the shift key for cursor motion commands,
 but it applies only for certain motion command that have the
@@ -945,8 +950,8 @@ features used mainly in Lisp programs.
 @dfn{special constructs} and the rest are @dfn{ordinary}.  An ordinary
 character matches that same character and nothing else.  The special
 characters are @samp{$^.*+?[\}.  The character @samp{]} is special if
-it ends a character alternative (see below).  The character @samp{-}
-is special inside a character alternative.  Any other character
+it ends a bracket expression (see below).  The character @samp{-}
+is special inside a bracket expression.  Any other character
 appearing in a regular expression is ordinary, unless a @samp{\}
 precedes it.  (When you use regular expressions in a Lisp program,
 each @samp{\} must be doubled, see the example near the end of this
@@ -1028,11 +1033,12 @@ you search for @samp{a.*?$} against the text @samp{abbab} followed by
 a newline, it matches the whole string.  Since it @emph{can} match
 starting at the first @samp{a}, it does.
 
+@cindex bracket expression
 @cindex set of alternative characters, in regular expressions
 @cindex character set, in regular expressions
 @item @kbd{[ @dots{} ]}
-is a @dfn{set of alternative characters}, or a @dfn{character set},
-beginning with @samp{[} and terminated by @samp{]}.
+is a @dfn{bracket expression} (a.k.a.@: @dfn{set of alternative
+characters}), which matches one of a set of characters.
 
 In the simplest case, the characters between the two brackets are what
 this set can match.  Thus, @samp{[ad]} matches either one @samp{a} or
@@ -1052,7 +1058,7 @@ Greek letters.
 @cindex character classes, in regular expressions
 You can also include certain special @dfn{character classes} in a
 character set.  A @samp{[:} and balancing @samp{:]} enclose a
-character class inside a set of alternative characters.  For instance,
+character class inside a bracket expression.  For instance,
 @samp{[[:alnum:]]} matches any letter or digit.  @xref{Char Classes,,,
 elisp, The Emacs Lisp Reference Manual}, for a list of character
 classes.
@@ -1120,7 +1126,7 @@ no preceding expression on which the @samp{*} can act.  It is poor practice
 to depend on this behavior; it is better to quote the special character anyway,
 regardless of where it appears.
 
-As a @samp{\} is not special inside a set of alternative characters, it can
+As a @samp{\} is not special inside a bracket expression, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
 You should not quote these characters when they have no special
 meaning.  This would not clarify anything, since backslashes
@@ -1653,9 +1659,9 @@ command's first argument.  If @code{case-fold-search} is set to
 @code{nil}, case is always significant in all searches.
 
 @vindex case-replace
-  In addition, when the @var{newstring} argument is all or partly lower
-case, replacement commands try to preserve the case pattern of each
-occurrence.  Thus, the command
+  In addition, when the second argument of a replace command is all or
+partly lower case, replacement commands try to preserve the case
+pattern of each occurrence.  Thus, the command
 
 @example
 M-x replace-string @key{RET} foo @key{RET} bar @key{RET}

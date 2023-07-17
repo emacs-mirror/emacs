@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Package: vc
@@ -26,6 +26,7 @@
 
 (require 'vc-rcs)
 (eval-when-compile (require 'vc))
+(eval-when-compile (require 'cl-lib))
 (require 'log-view)
 
 (declare-function vc-checkout "vc" (file &optional rev))
@@ -813,7 +814,10 @@ individually should stay local."
                             'yes 'no))))))))))))
 
 (defun vc-cvs-repository-hostname (dirname)
-  "Hostname of the CVS server associated to workarea DIRNAME."
+  "Hostname of the CVS server associated to workarea DIRNAME.
+
+Return nil if there is no hostname, or the hostname could not be
+determined because the CVS/Root specification is invalid."
   (let ((rootname (expand-file-name "CVS/Root" dirname)))
     (when (file-readable-p rootname)
       (with-temp-buffer
@@ -822,73 +826,146 @@ individually should stay local."
 		   default-file-name-coding-system)))
 	  (vc-insert-file rootname))
 	(goto-char (point-min))
-	(nth 2 (vc-cvs-parse-root
-		(buffer-substring (point)
-				  (line-end-position))))))))
+        (let ((hostname
+	       (nth 2 (vc-cvs-parse-root
+		       (buffer-substring (point)
+				         (line-end-position))))))
+          (unless (string= hostname "")
+            hostname))))))
 
-(defun vc-cvs-parse-uhp (path)
-  "Parse user@host/path into (user@host /path)."
-  (if (string-match "\\([^/]+\\)\\(/.*\\)" path)
-      (list (match-string 1 path) (match-string 2 path))
-      (list nil path)))
+(cl-defun vc-cvs-parse-root (root)
+  "Split CVS Root specification string into a list of fields.
 
-(defun vc-cvs-parse-root (root)
-  "Split CVS ROOT specification string into a list of fields.
-A CVS root specification of the form
-  [:METHOD:][[USER@]HOSTNAME]:?/path/to/repository
-is converted to a normalized record with the following structure:
-  \(METHOD USER HOSTNAME CVS-ROOT).
-The default METHOD for a CVS root of the form
-  /path/to/repository
-is `local'.
-The default METHOD for a CVS root of the form
-  [USER@]HOSTNAME:/path/to/repository
-is `ext'.
-For an empty string, nil is returned (invalid CVS root)."
-  ;; Split CVS root into colon separated fields (0-4).
-  ;; The `x:' makes sure, that leading colons are not lost;
-  ;; `HOST:/PATH' is then different from `:METHOD:/PATH'.
-  (let* ((root-list (cdr (split-string (concat "x:" root) ":")))
-         (len (length root-list))
-         ;; All syntactic varieties will get a proper METHOD.
-         (root-list
-          (cond
-           ((= len 0)
-            ;; Invalid CVS root
-            nil)
-           ((= len 1)
-            (let ((uhp (vc-cvs-parse-uhp (car root-list))))
-              (cons (if (car uhp) "ext" "local") uhp)))
-           ((= len 2)
-            ;; [USER@]HOST:PATH => method `ext'
-            (and (not (equal (car root-list) ""))
-                 (cons "ext" root-list)))
-           ((= len 3)
-            ;; :METHOD:PATH or :METHOD:USER@HOSTNAME/PATH
-            (cons (cadr root-list)
-                  (vc-cvs-parse-uhp (nth 2 root-list))))
-           (t
-            ;; :METHOD:[USER@]HOST:PATH
-            (cdr root-list)))))
-    (if root-list
-        (let ((method (car root-list))
-              (uhost (or (cadr root-list) ""))
-              (root (nth 2 root-list))
-              user host)
-          ;; Split USER@HOST
-          (if (string-match "\\(.*\\)@\\(.*\\)" uhost)
-              (setq user (match-string 1 uhost)
-                    host (match-string 2 uhost))
-            (setq host uhost))
-          ;; Remove empty HOST
-          (and (equal host "")
-               (setq host nil))
-          ;; Fix windows style CVS root `:local:C:\\project\\cvs\\some\\dir'
-          (and host
-               (equal method "local")
-               (setq root (concat host ":" root) host nil))
-          ;; Normalize CVS root record
-          (list method user host root)))))
+Convert a CVS Root specification of the form
+
+  [:METHOD:][[[USER][:PASSWORD]@]HOSTNAME][:[PORT]]/path/to/repository
+
+to a normalized record with the following structure:
+
+  \(METHOD USER HOSTNAME FILENAME).
+
+The default METHOD for a CVS root of the form /path/to/repository
+is \"local\".  The default METHOD for a CVS root of the
+form  [USER@]HOSTNAME:/path/to/repository is \"ext\".
+
+If METHOD is explicitly \"local\" or \"fork\", then the repository's
+file name starts immediately after the [:METHOD:] part.  This must be
+used on MS-Windows platforms where absolute file names start with a
+drive letter.
+
+Note that, except for METHOD, which is defaulted if not present,
+other optional parts will default to nil if not syntactically
+present, or to an empty string if present and delimited, but empty.
+
+Return nil in case of an unparsable CVS Root (including the
+empty string), and issue a warning in that case.
+
+This function doesn't check that an explicit method is valid, or
+that some fields which should not be empty for a given method,
+are empty or nil."
+  (let (method user password hostname port filename
+               ;; IDX set by `next-delim' as a side-effect
+               idx)
+    (cl-labels
+        ((invalid (reason &rest args)
+           (apply #'lwarn '(vc-cvs) :warning
+                  (concat "vc-cvs-parse-root: Can't parse '%s': " reason)
+                  root args)
+           (cl-return-from vc-cvs-parse-root))
+         (no-filename ()
+           (invalid "No repository file name"))
+         (next-delim (start)
+           ;; Search for a :, @ or /.  If none is found, there can be
+           ;; no file name at the end, which is an error.
+           (setq idx (string-match-p "[:@/]" root start))
+           (if idx (aref root idx) (no-filename)))
+         (grab-user (start end)
+           (setq user (substring root start end)))
+         (at-hostname-block (start)
+           (let ((cand (next-delim start)))
+             (cl-ecase cand
+               (?:
+                ;; Could be : before PORT and /path/to/repository, or
+                ;; before PASSWORD.  We search for a @ to disambiguate.
+                (let ((colon-idx idx)
+                      (cand (next-delim (1+ idx))))
+                  (cl-ecase cand
+                    (?:
+                     (invalid
+                      (eval-when-compile
+                        (concat "Hostname block: Superfluous : at %s "
+                                "or missing @ before"))
+                      idx))
+                    (?@
+                     ;; USER:PASSWORD case
+                     (grab-user start colon-idx)
+                     (delimited-password (1+ colon-idx) idx))
+                    (?/
+                     ;; HOSTNAME[:[PORT]] case
+                     (grab-hostname start colon-idx)
+                     (delimited-port (1+ colon-idx) idx)))))
+               (?@
+                (grab-user start idx)
+                (at-hostname (1+ idx)))
+               (?/
+                (if (/= idx start)
+                    (grab-hostname start idx))
+                (at-filename idx)))))
+         (delimited-password (start end)
+           (setq password (substring root start end))
+           (at-hostname (1+ end)))
+         (grab-hostname (start end)
+           (setq hostname (substring root start end)))
+         (at-hostname (start)
+           (let ((cand (next-delim start)))
+             (cl-ecase cand
+               (?:
+                (grab-hostname start idx)
+                (at-port (1+ idx)))
+               (?@
+                (invalid "Hostname: Unexpected @ after index %s" start))
+               (?/
+                (grab-hostname start idx)
+                (at-filename idx)))))
+         (delimited-port (start end)
+           (setq port (substring root start end))
+           (at-filename end))
+         (at-port (start)
+           (let ((end (string-match-p "/" root start)))
+             (if end (delimited-port start end) (no-filename))))
+         (at-filename (start)
+           (setq filename (substring root start))))
+      (when (string= root "")
+        (invalid "Empty Root string"))
+      ;; Check for a starting ":"
+      (if (= (aref root 0) ?:)
+          ;; 3 possible cases:
+          ;; - :METHOD: at start.  METHOD doesn't have any @.
+          ;; - :PASSWORD@ at start.  Must be followed by HOSTNAME.
+          ;; - :[PORT] at start.  Must be followed immediately by a "/".
+          ;; So, find the next character equal to ":", "@" or "/".
+          (let ((cand (next-delim 1)))
+            (cl-ecase cand
+              (?:
+               ;; :METHOD: case
+               (setq method (substring root 1 idx))
+               ;; Continue
+               (if (member method '("local" "fork"))
+                   (at-filename (1+ idx))
+                 (at-hostname-block (1+ idx))))
+              (?@
+               ;; :PASSWORD@HOSTNAME case
+               (delimited-password 1 idx))
+              (?/
+               ;; :[PORT] case.
+               (at-port 1 idx))))
+        ;; No starting ":", there can't be any METHOD.
+        (at-hostname-block 0)))
+    (unless method
+      ;; Default the method if not specified
+      (setq method
+            (if (or user password hostname port) "ext" "local")))
+    (list method user hostname filename)))
 
 ;; XXX: This does not work correctly for subdirectories.  "cvs status"
 ;; information is context sensitive, it contains lines like:
@@ -899,7 +976,7 @@ For an empty string, nil is returned (invalid CVS root)."
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
-essential information. Note that this can never set the `ignored'
+essential information.  Note that this can never set the `ignored'
 state."
   (let (file status missing)
     (goto-char (point-min))
@@ -955,13 +1032,16 @@ state."
                       (cdr (assoc (char-after) translation)))
                 result)
         (cond
-         ((looking-at "cvs update: warning: \\(.*\\) was lost")
+         ((looking-at "cvs update: warning: .* was lost")
           ;; Format is:
           ;; cvs update: warning: FILENAME was lost
           ;; U FILENAME
-          (push (list (match-string 1) 'missing) result)
-          ;; Skip the "U" line
-          (forward-line 1))
+          ;; with FILENAME in the first line possibly enclosed in
+          ;; quotes (since CVS 1.12.3).  To avoid problems, use the U
+          ;; line where name is never quoted.
+          (forward-line 1)
+          (when (looking-at "^U \\(.*\\)$")
+            (push (list (match-string 1) 'missing) result)))
          ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
           (push (list (match-string 1) 'unregistered) result))))
       (forward-line 1))

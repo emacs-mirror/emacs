@@ -1,6 +1,6 @@
 ;;; ruler-mode.el --- display a ruler in the header line  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001

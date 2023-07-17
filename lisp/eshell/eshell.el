@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -199,10 +199,11 @@ shells such as bash, zsh, rc, 4dos."
   :type 'hook
   :group 'eshell)
 
-(defcustom eshell-unload-hook '(eshell-unload-all-modules)
+(defcustom eshell-unload-hook nil
   "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
+(make-obsolete-variable 'eshell-unload-hook nil "30.1")
 
 (defcustom eshell-buffer-name "*eshell*"
   "The basename used for Eshell buffers.
@@ -267,50 +268,42 @@ information on Eshell, see Info node `(eshell)Top'."
 (define-obsolete-function-alias 'eshell-return-exits-minibuffer
   #'eshell-command-mode "28.1")
 
-(defvar eshell-non-interactive-p nil
-  "A variable which is non-nil when Eshell is not running interactively.
-Modules should use this variable so that they don't clutter
-non-interactive sessions, such as when using `eshell-command'.")
+(defvar eshell-non-interactive-p)       ; Defined in esh-mode.el.
 
 (declare-function eshell-add-input-to-history "em-hist" (input))
 
-;;;###autoload
-(defun eshell-command (&optional command arg)
-  "Execute the Eshell command string COMMAND.
-With prefix ARG, insert output into the current buffer at point."
-  (interactive)
-  (unless arg
-    (setq arg current-prefix-arg))
-  (let ((eshell-non-interactive-p t))
+(defun eshell-read-command (&optional prompt)
+  "Read an Eshell command from the minibuffer, prompting with PROMPT."
+  (let ((prompt (or prompt "Emacs shell command: "))
+        (eshell-non-interactive-p t))
     ;; Enable `eshell-mode' only in this minibuffer.
     (minibuffer-with-setup-hook (lambda ()
                                   (eshell-mode)
                                   (eshell-command-mode +1))
-      (unless command
-        (setq command (read-from-minibuffer "Emacs shell command: "))
-	(if (eshell-using-module 'eshell-hist)
-	    (eshell-add-input-to-history command)))))
-  (unless command
-    (error "No command specified!"))
-  ;; redirection into the current buffer is achieved by adding an
-  ;; output redirection to the end of the command, of the form
-  ;; 'COMMAND >>> #<buffer BUFFER>'.  This will not interfere with
-  ;; other redirections, since multiple redirections merely cause the
-  ;; output to be copied to multiple target locations
-  (if arg
-      (setq command
-	    (concat command
-		    (format " >>> #<buffer %s>"
-			    (buffer-name (current-buffer))))))
+      (let ((command (read-from-minibuffer prompt)))
+        (when (eshell-using-module 'eshell-hist)
+          (eshell-add-input-to-history command))
+        command))))
+
+;;;###autoload
+(defun eshell-command (command &optional to-current-buffer)
+  "Execute the Eshell command string COMMAND.
+If TO-CURRENT-BUFFER is non-nil (interactively, with the prefix
+argument), then insert output into the current buffer at point."
+  (interactive (list (eshell-read-command)
+                     current-prefix-arg))
   (save-excursion
-    (let ((buf (set-buffer (generate-new-buffer " *eshell cmd*")))
+    (let ((stdout (if to-current-buffer (current-buffer) t))
+          (buf (set-buffer (generate-new-buffer " *eshell cmd*")))
 	  (eshell-non-interactive-p t))
       (eshell-mode)
       (let* ((proc (eshell-eval-command
-		    (list 'eshell-commands
-			  (eshell-parse-command command))))
+                    `(let ((eshell-current-handles
+                            (eshell-create-handles ,stdout 'insert))
+                           (eshell-current-subjob-p))
+		       ,(eshell-parse-command command))))
 	     intr
-	     (bufname (if (and proc (listp proc))
+	     (bufname (if (eq (car-safe proc) :eshell-background)
 			  "*Eshell Async Command Output*"
 			(setq intr t)
 			"*Eshell Command Output*")))
@@ -328,7 +321,7 @@ With prefix ARG, insert output into the current buffer at point."
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
 	(cl-assert (and buf (buffer-live-p buf)))
-	(unless arg
+	(unless to-current-buffer
 	  (let ((len (if (not intr) 2
 		       (count-lines (point-min) (point-max)))))
 	    (cond
@@ -373,28 +366,14 @@ corresponding to a successful execution."
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))
 
-;;; Code:
-
-(defun eshell-unload-all-modules ()
-  "Unload all modules that were loaded by Eshell, if possible.
-If the user has require'd in any of the modules, or customized a
-variable with a :require tag (such as `eshell-prefer-to-shell'), it
-will be impossible to unload Eshell completely without restarting
-Emacs."
-  ;; if the user set `eshell-prefer-to-shell' to t, but never loaded
-  ;; Eshell, then `eshell-subgroups' will be unbound
-  (when (fboundp 'eshell-subgroups)
-    (dolist (module (eshell-subgroups 'eshell))
-      ;; this really only unloads as many modules as possible,
-      ;; since other `require' references (such as by customizing
-      ;; `eshell-prefer-to-shell' to a non-nil value) might make it
-      ;; impossible to unload Eshell completely
-      (if (featurep module)
-	  (ignore-errors
-	    (message "Unloading %s..." (symbol-name module))
-	    (unload-feature module)
-	    (message "Unloading %s...done" (symbol-name module)))))
-    (message "Unloading eshell...done")))
+(defun eshell-unload-function ()
+  (eshell-unload-extension-modules)
+  ;; Wait to unload core modules until after `eshell' has finished
+  ;; unloading.  `eshell' depends on several of them, so they can't be
+  ;; unloaded immediately.
+  (run-at-time 0 nil #'eshell-unload-modules
+               (reverse (eshell-subgroups 'eshell)) 'core)
+  nil)
 
 (run-hooks 'eshell-load-hook)
 

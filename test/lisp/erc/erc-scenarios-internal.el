@@ -1,6 +1,6 @@
 ;;; erc-scenarios-internal.el --- Proxy file for erc-d tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,9 @@
 
 (require 'ert-x)
 (eval-and-compile
+  (when (and (getenv "EMACS_TEST_DIRECTORY")
+             (getenv "EMACS_TEST_JUNIT_REPORT"))
+    (setq ert-load-file-name (or (macroexp-file-name) buffer-file-name)))
   (let ((load-path (cons (expand-file-name "erc-d" (ert-resource-directory))
                          load-path)))
     (load "erc-d-tests" nil 'silent)))

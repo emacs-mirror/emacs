@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1367,7 +1367,9 @@ Note that the style variables are always made local to the buffer."
 		      (and		;(< (point) end)
 		       (not (nth 3 s))
 		       (c-get-char-property (1- (point)) 'c-fl-syn-tab))
-		    (c-put-char-property pos 'syntax-table '(1)))
+		    (c-put-char-property pos 'syntax-table '(1))
+		    (c-put-char-properties (1+ pos) (c-point 'eol pos)
+					   'syntax-table '(1)))
 		  (setq pos (point)))
 	      (setq pos (1+ pos)))))))))
 
@@ -1384,6 +1386,9 @@ Note that the style variables are always made local to the buffer."
 	   (setq pos
 		 (c-min-property-position pos c-max-syn-tab-mkr 'c-fl-syn-tab))
 	   (< pos c-max-syn-tab-mkr))
+	(when (and (equal (c-get-char-property pos 'syntax-table) '(1))
+		   (equal (c-get-char-property pos 'c-fl-syn-tab) '(15)))
+	  (c-clear-char-properties (1+ pos) (c-point 'eol pos) 'syntax-table))
 	(c-put-char-property pos 'syntax-table
 			     (c-get-char-property pos 'c-fl-syn-tab))
 	(setq pos (1+ pos))))))
@@ -2077,6 +2082,37 @@ with // and /*, not more generic line and block comments."
 		 (not (eobp))))
 	(forward-char))))))
 
+(defun c-before-change-de-typedef (beg end)
+  ;; For each "typedef" starting in (BEG END), remove the defined types from
+  ;; c-found-types
+  (let (prop)
+    (save-excursion
+      (goto-char beg)
+      (while (and (< (point) end)
+		  (setq prop (c-search-forward-non-nil-char-property
+			      'c-typedef)))
+	(dolist (type prop)
+	  (c-unfind-type type))))))
+
+(defun c-after-change-de-typedef (beg end _old-len)
+  ;; For each former "typedef" in (BEG END), remove the defined types from
+  ;; those which are no longer typedefs.
+  (let (prop)
+    (save-excursion
+      (goto-char beg)
+      (c-backward-token-2
+       1 nil (- (point) 20))
+      (while (and (< (point) end)
+		  (setq prop (c-search-forward-non-nil-char-property
+			      'c-typedef end)))
+	(backward-char)
+	(when (or (not (looking-at c-typedef-key))
+		  (<= (match-end 1) beg))
+	  (dolist (type prop)
+	    (c-unfind-type type))
+	  (c-clear-char-property (point) 'c-typedef))
+	(forward-char)))))
+
 (defun c-update-new-id (end)
   ;; Note the bounds of any identifier that END is in or just after, in
   ;; `c-new-id-start' and `c-new-id-end'.  Otherwise set these variables to
@@ -2086,7 +2122,9 @@ with // and /*, not more generic line and block comments."
     (let ((id-beg (c-on-identifier)))
       (setq c-new-id-start id-beg
 	    c-new-id-end (and id-beg
-			      (progn (c-end-of-current-token) (point)))
+			      (progn (goto-char id-beg)
+				     (c-forward-token-2)
+				     (point)))
 	    c-new-id-is-type nil))))
 
 (defun c-post-command ()
@@ -2215,6 +2253,10 @@ with // and /*, not more generic line and block comments."
 							       term-pos)
 			       (buffer-substring-no-properties beg end)))))))
 
+	   ;; If we're about to delete "typedef"s, clear the identifiers from
+	   ;; `c-found-types'.
+	   (c-before-change-de-typedef beg end)
+
 	   (if c-get-state-before-change-functions
 	       (mapc (lambda (fn)
 		       (funcall fn beg end))
@@ -2306,6 +2348,7 @@ with // and /*, not more generic line and block comments."
 	   (c-update-new-id end)
 	   (c-trim-found-types beg end old-len) ; maybe we don't
 					; need all of these.
+	   (c-after-change-de-typedef beg end old-len)
 	   (c-invalidate-sws-region-after beg end old-len)
 	   ;; (c-invalidate-state-cache beg) ; moved to
 	   ;; `c-before-change'.
@@ -2406,8 +2449,6 @@ with // and /*, not more generic line and block comments."
 			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
 	     t)
-	   (or (> (point) bod-lim)
-	       (eq bod-lim (point-min)))
 	   ;; Move forward to the start of the next declaration.
 	   (progn (c-forward-syntactic-ws)
 		  ;; Have we got stuck in a comment at EOB?
@@ -2823,7 +2864,7 @@ Key bindings:
                                      "\\|" id "::"
                                      "\\|" id ws-maybe "=\\)"
               "\\|" "\\(?:inline" ws "\\)?namespace"
-                    "\\(:?" ws "\\(?:" id "::\\)*" id "\\)?" ws-maybe "{"
+                    "\\(?:" ws "\\(?:" id "::\\)*" id "\\)?" ws-maybe "{"
               "\\|" "class"     ws id
                     "\\(?:" ws "final" "\\)?" ws-maybe "[:{;\n]"
               "\\|" "struct"     ws id "\\(?:" ws "final" ws-maybe "[:{\n]"

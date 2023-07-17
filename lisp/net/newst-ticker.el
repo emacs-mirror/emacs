@@ -1,6 +1,6 @@
 ;;; newst-ticker.el --- mode line ticker for newsticker.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-ticker.el
@@ -44,8 +44,10 @@
   "Last message that the newsticker displayed.")
 (defvar newsticker--scrollable-text ""
   "The text which is scrolled smoothly in the echo area.")
+(defvar newsticker--ticker-period-timer nil
+  "Timer for newsticker ticker display.")
 (defvar newsticker--ticker-timer nil
-  "Timer for newsticker ticker.")
+  "Timer for newsticker ticker scrolling.")
 
 ;;;###autoload
 (defun newsticker-ticker-running-p ()
@@ -77,11 +79,22 @@ value effective."
 
 (defcustom newsticker-ticker-interval
   0.3
-  "Time interval for displaying news items in the echo area (seconds).
+  "Time interval for scrolling news items in the echo area (seconds).
 If equal or less than 0 no messages are shown in the echo area.  For
 smooth display (see `newsticker-scroll-smoothly') a value of 0.3 seems
 reasonable.  For non-smooth display a value of 10 is a good starting
 point."
+  :type 'number
+  :set #'newsticker--set-customvar-ticker
+  :group 'newsticker-ticker)
+
+(defcustom newsticker-ticker-period
+  0
+  "Time interval for displaying news items in the echo area (seconds).
+If equal or less than 0 messages are shown continuously.  In order not
+to miss new items, a value of equal or less than the shortest feed
+retrieval interval (or the global `newsticker-retrieval-interval`) is
+recommended."
   :type 'number
   :set #'newsticker--set-customvar-ticker
   :group 'newsticker-ticker)
@@ -129,9 +142,16 @@ If t the echo area will not show obsolete items.  See also
   "Called from the display timer.
 This function calls a display function, according to the variable
 `newsticker-scroll-smoothly'."
-  (if newsticker-scroll-smoothly
-      (newsticker--display-scroll)
-    (newsticker--display-jump)))
+  (when (not newsticker--ticker-timer)
+      (if newsticker-scroll-smoothly
+       (setq newsticker--ticker-timer
+             (run-at-time 1
+                          newsticker-ticker-interval
+                          #'newsticker--display-scroll))
+     (setq newsticker--ticker-timer
+           (run-at-time nil
+                        newsticker-ticker-interval
+                        #'newsticker--display-jump)))))
 
 (defsubst newsticker--echo-area-clean-p ()
   "Check whether somebody is using the echo area / minibuffer.
@@ -149,7 +169,12 @@ there is another message displayed or the minibuffer is active."
     (when (newsticker--echo-area-clean-p)
       (setq newsticker--item-position (1+ newsticker--item-position))
       (when (>= newsticker--item-position (length newsticker--item-list))
-        (setq newsticker--item-position 0))
+        (setq newsticker--item-position 0)
+        (when (> newsticker-ticker-period 0)
+          (cancel-timer newsticker--ticker-timer)
+          (setq newsticker--ticker-timer nil)
+          (run-at-time newsticker-ticker-interval nil
+                       (lambda () (message "")))))
       (setq newsticker--prev-message
             (nth newsticker--item-position newsticker--item-list))
       (message "%s" newsticker--prev-message))))
@@ -192,7 +217,12 @@ there is another message displayed or the minibuffer is active."
         (setq newsticker--prev-message subtext)
         (setq newsticker--item-position (1+ i))
         (when (>= newsticker--item-position l)
-          (setq newsticker--item-position 0))))))
+          (setq newsticker--item-position 0)
+          (when (> newsticker-ticker-period 0)
+            (cancel-timer newsticker--ticker-timer)
+            (setq newsticker--ticker-timer nil)
+            (run-at-time newsticker-ticker-interval nil
+                         (lambda () (message "")))))))))
 
 ;;;###autoload
 (defun newsticker-start-ticker ()
@@ -200,19 +230,26 @@ there is another message displayed or the minibuffer is active."
 Start display timer for the actual ticker if wanted and not
 running already."
   (interactive)
-  (if (and (> newsticker-ticker-interval 0)
-           (not newsticker--ticker-timer))
-      (setq newsticker--ticker-timer
-            (run-at-time newsticker-ticker-interval
-                         newsticker-ticker-interval
-                         #'newsticker--display-tick))))
+  (when (and (> newsticker-ticker-interval 0)
+             (not newsticker--ticker-period-timer)
+             (not newsticker--ticker-timer))
+      (if (> newsticker-ticker-period 0)
+          (setq newsticker--ticker-period-timer
+                (run-at-time nil
+                             newsticker-ticker-period
+                             #'newsticker--display-tick))
+        (newsticker--display-tick))))
 
 (defun newsticker-stop-ticker ()
   "Stop newsticker's ticker (but not the news retrieval)."
   (interactive)
-  (when newsticker--ticker-timer
-    (cancel-timer newsticker--ticker-timer)
-    (setq newsticker--ticker-timer nil)))
+  (progn
+    (when newsticker--ticker-timer
+      (cancel-timer newsticker--ticker-timer)
+      (setq newsticker--ticker-timer nil))
+    (when newsticker--ticker-period-timer
+      (cancel-timer newsticker--ticker-period-timer)
+      (setq newsticker--ticker-period-timer nil))))
 
 ;; ======================================================================
 ;;; Manipulation of ticker text

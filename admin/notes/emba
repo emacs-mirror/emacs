@@ -1,6 +1,6 @@
 -*- mode: outline; coding: utf-8 -*-
 
-Copyright (C) 2019-2022 Free Software Foundation, Inc.
+Copyright (C) 2019-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 NOTES FOR EMACS CONTINUOUS BUILD ON EMBA
@@ -82,6 +82,46 @@ The emba configuration files are hosted on
 Lisp packages, Makefiles, scripts, and other software could determine
 whether they run on emba by checking for the environment variable
 EMACS_EMBA_CI.
+
+* Running Emba tests locally
+
+As usual in GitLab, the tests run in containers, which could be
+applied also locally.  Unfortunately, the Emba container registry,
+emba.gnu.org:5050, is not accessible publicly.  Instead, the container
+images must be build locally.  Change the current directory to a
+recent Emacs branch, and apply the command
+
+  docker build --target emacs-inotify --tag emacs-inotify \
+    -f test/infra/Dockerfile.emba .
+
+This creates the Debian-based image emacs-inotify, based on the
+instructions in the file Dockerfile.emba.  This image is good for the
+majority of tests.  However, there are also other image build
+instructions like emacs-filenotify-gio, emacs-eglot,
+emacs-tree-sitter, emacs-gnustep and emacs-native-comp-speed{0,1,2}.
+Use the appropriate one.
+
+The image contains a directory "/checkout", which is a copy of your
+local Emacs git repository.  Emacs has been built in this directory
+via "make bootstrap".  In order to use the image, start a container
+like
+
+  docker run --interactive --tty --env EMACS_EMBA_CI=1 --name emacs-inotify \
+    emacs-inotify /bin/bash -i
+
+In this container, your working directory is "/checkout".  Now you can
+apply all commands known for Emacs, like
+
+  make -C test files-tests.log
+
+While this container runs, you can also access its filesystem from
+your local Emacs via Tramp.  For example, in order to see the result
+of the above test run, open the log file in your local Emacs with
+
+  C-x C-f /docker:emacs-inotify:/checkout/test/lisp/files-tests.log
+
+Note: On local Red Hat-based systems, use "podman" instead of "docker"
+in the shell commands and Tramp file names.
 
 
 This file is part of GNU Emacs.

@@ -1,6 +1,6 @@
 ;;; thingatpt-tests.el --- tests for thing-at-point.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -72,7 +72,38 @@
     ("<url:ftp.example.net/abc/>" 1 url "ftp://ftp.example.net/abc/")
     ;; UUID, only hex is allowed
     ("01234567-89ab-cdef-ABCD-EF0123456789" 1 uuid "01234567-89ab-cdef-ABCD-EF0123456789")
-    ("01234567-89ab-cdef-ABCD-EF012345678G" 1 uuid nil))
+    ("01234567-89ab-cdef-ABCD-EF012345678G" 1 uuid nil)
+    ;; email addresses
+    ("foo@example.com" 1 email "foo@example.com")
+    ("f@example.com" 1 email "f@example.com")
+    ("foo@example.com" 4 email "foo@example.com")
+    ("foo@example.com" 5 email "foo@example.com")
+    ("foo@example.com" 15 email "foo@example.com")
+    ("foo@example.com" 16 email "foo@example.com")
+    ("<foo@example.com>" 1 email "<foo@example.com>")
+    ("<foo@example.com>" 4 email "<foo@example.com>")
+    ("<foo@example.com>" 5 email "<foo@example.com>")
+    ("<foo@example.com>" 16 email "<foo@example.com>")
+    ("<foo@example.com>" 17 email "<foo@example.com>")
+    ;; email adresses containing numbers
+    ("foo1@example.com" 1 email "foo1@example.com")
+    ("1foo@example.com" 1 email "1foo@example.com")
+    ("11@example.com" 1 email "11@example.com")
+    ("1@example.com" 1 email "1@example.com")
+    ;; email adresses user portion containing dots
+    ("foo.bar@example.com" 1 email "foo.bar@example.com")
+    (".foobar@example.com" 1 email nil)
+    (".foobar@example.com" 2 email "foobar@example.com")
+    ;; email adresses domain portion containing dots and dashes
+    ("foobar@.example.com" 1 email nil)
+    ("foobar@-example.com" 1 email "foobar@-example.com")
+    ;; These are illegal, but thingatpt doesn't yet handle them
+    ;;    ("foo..bar@example.com" 1 email nil)
+    ;;    ("foobar@.example.com" 1 email nil)
+    ;;    ("foobar@example..com" 1 email nil)
+    ;;    ("foobar.@example.com" 1 email nil)
+
+    )
   "List of `thing-at-point' tests.
 Each list element should have the form
 

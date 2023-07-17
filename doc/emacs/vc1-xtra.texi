@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004--2022 Free Software Foundation, Inc.
+@c Copyright (C) 2004--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in vc-xtra.texi (when producing the
@@ -288,16 +288,16 @@ is about to run.
 
 @findex vc-prepare-patch
 When collaborating on projects it is common to send patches via email,
-to share changes.  If you wish to do this using VC, you can use the
+to share changes.  You can do this using VC with the
 @code{vc-prepare-patch} command.  This will prompt you for the
 revisions you wish to share, and which destination email address(es)
-to use.  The revisions are separated using commas (or whatever was
-configured by @var{crm-separator}).  The command will then prepare
+to use.  Separate the revisions using the value of
+@var{crm-separator}, commas by default.  The command will then prepare
 those revisions using your @abbr{MUA, Mail User Agent} for you to
 review and send.
 
 When invoked interactively in a Log View buffer with marked revisions,
-these revisions will be used.
+those marked revisions will be used.
 
 @vindex vc-prepare-patches-separately
 Depending on the value of the user option

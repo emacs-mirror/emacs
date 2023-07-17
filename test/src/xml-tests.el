@@ -1,6 +1,6 @@
 ;;; xml-tests.el --- Test suite for libxml parsing. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Ulf Jasper <ulf.jasper@web.de>
 ;; Keywords:       internal

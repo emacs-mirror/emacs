@@ -1,6 +1,6 @@
-;;; erc-scenarios-compat-rename-bouncer.el --- compat-rename scenarios -*- lexical-binding: t -*-
+;;; erc-scenarios-base-compat-rename-bouncer.el --- Compat-rename scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -169,4 +169,4 @@
         (erc-scenarios-common--base-compat-no-rename-bouncer dialogs
                                                              'auto after)))))
 
-;;; erc-scenarios-compat-rename-bouncer.el ends here
+;;; erc-scenarios-base-compat-rename-bouncer.el ends here

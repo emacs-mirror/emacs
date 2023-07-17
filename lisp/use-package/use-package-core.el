@@ -1,6 +1,6 @@
 ;;; use-package-core.el --- A configuration macro for simplifying your .emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -65,7 +65,7 @@
   :link '(custom-manual "(use-package) Top")
   :version "29.1")
 
-(defconst use-package-version "2.4.4"
+(defconst use-package-version "2.4.5"
   "This version of `use-package'.")
 
 (defcustom use-package-keywords
@@ -76,6 +76,7 @@
     :functions
     :preface
     :if :when :unless
+    :vc
     :no-require
     :catch
     :after
@@ -1151,7 +1152,8 @@ meaning:
     #'use-package-normalize-paths))
 
 (defun use-package-handler/:load-path (name _keyword arg rest state)
-  (let ((body (use-package-process-keywords name rest state)))
+  (let ((body (use-package-process-keywords name rest
+                (plist-put state :load-path arg))))
     (use-package-concat
      (mapcar #'(lambda (path)
                  `(eval-and-compile (add-to-list 'load-path ,path)))
@@ -1577,6 +1579,110 @@ no keyword implies `:all'."
      (when use-package-compute-statistics
        `((use-package-statistics-gather :config ',name t))))))
 
+;;;; :vc
+
+(defun use-package-vc-install (arg &optional local-path)
+  "Install a package with `package-vc.el'.
+ARG is a list of the form (NAME OPTIONS REVISION), as returned by
+`use-package-normalize--vc-arg'.  If LOCAL-PATH is non-nil, call
+`package-vc-install-from-checkout'; otherwise, indicating a
+remote host, call `package-vc-install' instead."
+  (pcase-let* ((`(,name ,opts ,rev) arg)
+               (spec (if opts (cons name opts) name)))
+    (unless (package-installed-p name)
+      (if local-path
+          (package-vc-install-from-checkout local-path (symbol-name name))
+        (package-vc-install spec rev)))))
+
+(defun use-package-handler/:vc (name _keyword arg rest state)
+  "Generate code to install package NAME, or do so directly.
+When the use-package declaration is part of a byte-compiled file,
+install the package during compilation; otherwise, add it to the
+macro expansion and wait until runtime.  The remaining arguments
+are as follows:
+
+_KEYWORD is ignored.
+
+ARG is the normalized input to the `:vc' keyword, as returned by
+the `use-package-normalize/:vc' function.
+
+REST is a plist of other (following) keywords and their
+arguments, each having already been normalised by the respective
+function.
+
+STATE is a plist of any state that keywords processed before
+`:vc' (see `use-package-keywords') may have accumulated.
+
+Also see the Info node `(use-package) Creating an extension'."
+  (let ((body (use-package-process-keywords name rest state))
+        (local-path (car (plist-get state :load-path))))
+    ;; See `use-package-handler/:ensure' for an explanation.
+    (if (bound-and-true-p byte-compile-current-file)
+        (funcall #'use-package-vc-install arg local-path)        ; compile time
+      (push `(use-package-vc-install ',arg ,local-path) body))   ; runtime
+    body))
+
+(defun use-package-normalize--vc-arg (arg)
+  "Normalize possible arguments to the `:vc' keyword.
+ARG is a cons-cell of approximately the form that
+`package-vc-selected-packages' accepts, plus an additional `:rev'
+keyword.  If `:rev' is not given, it defaults to `:last-release'.
+
+Returns a list (NAME SPEC REV), where (NAME . SPEC) is compliant
+with `package-vc-selected-packages' and REV is a (possibly nil,
+indicating the latest commit) revision."
+  (cl-flet* ((ensure-string (s)
+               (if (and s (stringp s)) s (symbol-name s)))
+             (ensure-symbol (s)
+               (if (and s (stringp s)) (intern s) s))
+             (normalize (k v)
+               (pcase k
+                 (:rev (cond ((or (eq v :last-release) (not v)) :last-release)
+                             ((eq v :newest) nil)
+                             (t (ensure-string v))))
+                 (:vc-backend (ensure-symbol v))
+                 (_ (ensure-string v)))))
+    (pcase-let ((valid-kws '(:url :branch :lisp-dir :main-file :vc-backend :rev))
+                (`(,name . ,opts) arg))
+      (if (stringp opts)                ; (NAME . VERSION-STRING) ?
+          (list name opts)
+        ;; Error handling
+        (cl-loop for (k _) on opts by #'cddr
+                 if (not (member k valid-kws))
+                 do (use-package-error
+                     (format "Keyword :vc received unknown argument: %s. Supported keywords are: %s"
+                             k valid-kws)))
+        ;; Actual normalization
+        (list name
+              (cl-loop for (k v) on opts by #'cddr
+                       if (not (eq k :rev))
+                       nconc (list k (normalize k v)))
+              (normalize :rev (plist-get opts :rev)))))))
+
+(defun use-package-normalize/:vc (name _keyword args)
+  "Normalize possible arguments to the `:vc' keyword.
+NAME is the name of the `use-package' declaration, _KEYWORD is
+ignored, and ARGS it a list of arguments given to the `:vc'
+keyword, the cdr of which is ignored.
+
+See `use-package-normalize--vc-arg' for most of the actual
+normalization work.  Also see the Info
+node `(use-package) Creating an extension'."
+  (let ((arg (car args)))
+    (pcase arg
+      ((or 'nil 't) (list name))                 ; guess name
+      ((pred symbolp) (list arg))                ; use this name
+      ((pred stringp) (list name arg))           ; version string + guess name
+      ((pred plistp)                             ; plist + guess name
+       (use-package-normalize--vc-arg (cons name arg)))
+      (`(,(pred symbolp) . ,(or (pred plistp)    ; plist/version string + name
+                                (pred stringp)))
+       (use-package-normalize--vc-arg arg))
+      (_ (use-package-error "Unrecognised argument to :vc.\
+ The keyword wants an argument of nil, t, a name of a package,\
+ or a cons-cell as accepted by `package-vc-selected-packages', where \
+ the accepted plist is augmented by a `:rev' keyword.")))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; The main macro
@@ -1666,7 +1772,9 @@ Usage:
                  (compare with `custom-set-variables').
 :custom-face     Call `custom-set-faces' with each face definition.
 :ensure          Loads the package using package.el if necessary.
-:pin             Pin the package to an archive."
+:pin             Pin the package to an archive.
+:vc              Install the package directly from a version control system
+                 (using `package-vc.el')."
   (declare (indent defun))
   (unless (memq :disabled args)
     (macroexp-progn

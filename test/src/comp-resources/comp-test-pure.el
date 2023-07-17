@@ -1,8 +1,8 @@
 ;;; comp-test-pure.el --- compilation unit tested by comp-tests.el -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
-;; Author: Andrea Corallo <akrl@sdf.org>
+;; Author: Andrea Corallo <acorallo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

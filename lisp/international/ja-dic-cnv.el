@@ -1,6 +1,6 @@
 ;;; ja-dic-cnv.el --- convert a Japanese dictionary (SKK-JISYO.L) to Emacs Lisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -484,7 +484,7 @@ To get complete usage, invoke:
 (defmacro skkdic-set-postfix (&rest entries)
   `(defconst skkdic-postfix
      ',(let ((l entries)
-	     (map '(nil))
+	     (map (list nil))
 	     (longest 1)
 	     len entry)
 	 (while l
@@ -507,7 +507,7 @@ To get complete usage, invoke:
 (defmacro skkdic-set-prefix (&rest entries)
   `(defconst skkdic-prefix
      ',(let ((l entries)
-	     (map '(nil))
+	     (map (list nil))
 	     (longest 1)
 	     len entry)
 	 (while l

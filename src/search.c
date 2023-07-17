@@ -1,6 +1,6 @@
 /* String search routines for GNU Emacs.
 
-Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2022 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -68,9 +68,6 @@ static EMACS_INT simple_search (EMACS_INT, unsigned char *, ptrdiff_t,
 static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, ptrdiff_t,
                               Lisp_Object, Lisp_Object, ptrdiff_t,
                               ptrdiff_t, int);
-static EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
-                                ptrdiff_t, ptrdiff_t, EMACS_INT, int,
-                                Lisp_Object, Lisp_Object, bool);
 
 Lisp_Object re_match_object;
 
@@ -1030,7 +1027,7 @@ find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
 
 static Lisp_Object
 search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
-		Lisp_Object count, int direction, int RE, bool posix)
+		Lisp_Object count, int direction, bool RE, bool posix)
 {
   EMACS_INT np;
   EMACS_INT lim;
@@ -1132,21 +1129,6 @@ trivial_regexp_p (Lisp_Object regexp)
     }
   return 1;
 }
-
-/* Search for the n'th occurrence of STRING in the current buffer,
-   starting at position POS and stopping at position LIM,
-   treating STRING as a literal string if RE is false or as
-   a regular expression if RE is true.
-
-   If N is positive, searching is forward and LIM must be greater than POS.
-   If N is negative, searching is backward and LIM must be less than POS.
-
-   Returns -x if x occurrences remain to be found (x > 0),
-   or else the position at the beginning of the Nth occurrence
-   (if searching backward) or the end (if searching forward).
-
-   POSIX is nonzero if we want full backtracking (POSIX style)
-   for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 #define TRANSLATE(out, trt, d)			\
 do						\
@@ -1311,7 +1293,7 @@ search_buffer_re (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 static EMACS_INT
 search_buffer_non_re (Lisp_Object string, ptrdiff_t pos,
                       ptrdiff_t pos_byte, ptrdiff_t lim, ptrdiff_t lim_byte,
-                      EMACS_INT n, int RE, Lisp_Object trt, Lisp_Object inverse_trt,
+                      EMACS_INT n, bool RE, Lisp_Object trt, Lisp_Object inverse_trt,
                       bool posix)
 {
   unsigned char *raw_pattern, *pat;
@@ -1510,10 +1492,28 @@ search_buffer_non_re (Lisp_Object string, ptrdiff_t pos,
   return result;
 }
 
-static EMACS_INT
+/* Search for the Nth occurrence of STRING in the current buffer,
+   from buffer position POS/POS_BYTE until LIM/LIM_BYTE.
+
+   If RE, look for matches against the regular expression STRING instead;
+   if POSIX, enable POSIX style backtracking within that regular
+   expression.
+
+   If N is positive, search forward; in this case, LIM must be greater
+   than POS.
+
+   If N is negative, search backward; LIM must be less than POS.
+
+   Return -X if there are X remaining occurrences or matches,
+   or else the position at the beginning (if N is negative) or the end
+   (if N is positive) of the Nth occurrence or match against STRING.
+
+   Use TRT and INVERSE_TRT as character translation tables.  */
+
+EMACS_INT
 search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	       ptrdiff_t lim, ptrdiff_t lim_byte, EMACS_INT n,
-	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, bool posix)
+	       bool RE, Lisp_Object trt, Lisp_Object inverse_trt, bool posix)
 {
   if (running_asynch_code)
     save_search_regs ();
@@ -2222,7 +2222,7 @@ Search case-sensitivity is determined by the value of the variable
 See also the functions `match-beginning', `match-end' and `replace-match'.  */)
   (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (string, bound, noerror, count, -1, 0, 0);
+  return search_command (string, bound, noerror, count, -1, false, false);
 }
 
 DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "MSearch: ",
@@ -2247,7 +2247,7 @@ Search case-sensitivity is determined by the value of the variable
 See also the functions `match-beginning', `match-end' and `replace-match'.  */)
   (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (string, bound, noerror, count, 1, 0, 0);
+  return search_command (string, bound, noerror, count, 1, false, false);
 }
 
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
@@ -2263,7 +2263,7 @@ because REGEXP is still matched in the forward direction.  See Info
 anchor `(elisp) re-search-backward' for details.  */)
   (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (regexp, bound, noerror, count, -1, 1, 0);
+  return search_command (regexp, bound, noerror, count, -1, true, false);
 }
 
 DEFUN ("re-search-forward", Fre_search_forward, Sre_search_forward, 1, 4,
@@ -2294,7 +2294,7 @@ See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
   (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (regexp, bound, noerror, count, 1, 1, 0);
+  return search_command (regexp, bound, noerror, count, 1, true, false);
 }
 
 DEFUN ("posix-search-backward", Fposix_search_backward, Sposix_search_backward, 1, 4,
@@ -2322,7 +2322,7 @@ See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
   (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (regexp, bound, noerror, count, -1, 1, 1);
+  return search_command (regexp, bound, noerror, count, -1, true, true);
 }
 
 DEFUN ("posix-search-forward", Fposix_search_forward, Sposix_search_forward, 1, 4,
@@ -2350,7 +2350,7 @@ See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
   (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (regexp, bound, noerror, count, 1, 1, 1);
+  return search_command (regexp, bound, noerror, count, 1, true, true);
 }
 
 DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 5, 0,

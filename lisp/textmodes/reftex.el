@@ -1,6 +1,6 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2000, 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -477,9 +477,9 @@ will deactivate it."
 		     changed t)
 	       (setq list (delete style list))))
 	    (t
-	     (if (member style list)
-		 (delete style list)
-	       (setq list (append list (list style))))
+             (setq list (if (member style list)
+		            (delete style list)
+                          (append list (list style))))
 	     (setq reftex-tables-dirty t
 		   changed t)))
       (when changed

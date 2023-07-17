@@ -1,6 +1,6 @@
 ;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Tom Houlder <thoulder@icor.fr>
 ;; Created: 10 Dec 1996
@@ -152,7 +152,7 @@ the lines."
     (while (re-search-forward "^.+" nil t)
       (progn
 	(beginning-of-line)
-	(if (looking-at "struct[\\t ]+\\|class[\\t ]+")
+	(if (looking-at "struct[\t ]+\\|class[\t ]+")
 	    (insert "template ")
 	  (insert "template class "))))
     (goto-char (point-min))

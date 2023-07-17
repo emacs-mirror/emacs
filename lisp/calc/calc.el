@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Keywords: convenience, extensions
@@ -1188,8 +1188,12 @@ Used by `calc-user-invocation'.")
   "Start the Calculator."
   (let ((key (calc-read-key-sequence
 	      (if calc-dispatch-help
-		  "Calc options: Calc, Keypad, Quick, Embed; eXit; Info, Tutorial; Grab; ?=more"
-		(format "%s  (Type ? for a list of Calc options)"
+		  (substitute-command-keys
+                   (concat
+                    "Calc options: \\`c'alc, \\`k'eypad, \\`q'uick, \\`e'mbed; "
+                    "e\\`x'it; \\`i'nfo, \\`t'utorial; \\`g'rab; \\`?'=more"))
+		(format (substitute-command-keys
+                         "%s  (Type \\`?' for a list of Calc options)")
 			(key-description (this-command-keys))))
 	      calc-dispatch-map)))
     (setq key (lookup-key calc-dispatch-map key))
@@ -1282,16 +1286,17 @@ the trail buffer."
 (defun calc-mode ()
   "Calculator major mode.
 
-This is an RPN calculator featuring arbitrary-precision integer, rational,
-floating-point, complex, matrix, and symbolic arithmetic.
+This is a Reverse Polish notation (RPN) calculator featuring
+arbitrary-precision integer, rational, floating-point, complex,
+matrix, and symbolic arithmetic.
 
 RPN calculation:  2 RET 3 +    produces 5.
 Algebraic style:  \\=' 2+3 RET    produces 5.
 
 Basic operators are +, -, *, /, ^, & (reciprocal), % (modulo), n (change-sign).
 
-Press ? repeatedly for more complete help.  Press `h i' to read the
-Calc manual on-line, `h s' to read the summary, or `h t' for the tutorial.
+Press \\`?' repeatedly for more complete help.  Press \\`h i' to read the
+Calc manual, \\`h s' to read the summary, or \\`h t' for the tutorial.
 
 Notations:  3.14e6     3.14 * 10^6
             _23        negative number -23 (or type `23 n')
@@ -2477,7 +2482,8 @@ the United States."
   (interactive)
   (cond ((eq last-command 'calcDigit-start)
 	 (erase-buffer))
-	(t (backward-delete-char 1)))
+	(t (with-suppressed-warnings ((interactive-only backward-delete-char))
+             (backward-delete-char 1))))
   (if (= (calc-minibuffer-size) 0)
       (progn
 	(setq last-command-event 13)

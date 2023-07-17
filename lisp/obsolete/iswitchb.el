@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Keywords: completion convenience

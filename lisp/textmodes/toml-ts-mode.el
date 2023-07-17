@@ -1,6 +1,6 @@
 ;;; toml-ts-mode.el --- tree-sitter support for TOML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Jostein Kjønigsen <jostein@kjonigsen.net>
 ;; Maintainer : Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -92,8 +92,8 @@
    :language 'toml
    :feature 'pair
    :override t            ; Needed for overriding string face on keys.
-   '((bare_key) @font-lock-property-face
-     (quoted_key) @font-lock-property-face
+   '((bare_key) @font-lock-property-use-face
+     (quoted_key) @font-lock-property-use-face
      (table ("[" @font-lock-bracket-face
              (_) @font-lock-type-face
              "]" @font-lock-bracket-face))
@@ -116,9 +116,6 @@ Return nil if there is no name or if NODE is not a defun node."
     ((or "table" "table_array_element")
      (or (treesit-node-text (treesit-node-child node 1) t)
          "Root table"))))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
 
 ;;;###autoload
 (define-derived-mode toml-ts-mode text-mode "TOML"
@@ -155,6 +152,9 @@ Return nil if there is no name or if NODE is not a defun node."
                   ("Array" "\\`table_array_element\\'" nil nil)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'toml)
+    (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode)))
 
 (provide 'toml-ts-mode)
 

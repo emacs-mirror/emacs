@@ -1,6 +1,6 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1988-2023 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org

@@ -6,7 +6,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998--2001, 2004--2005, 2008--2022 Free Software
+Copyright @copyright{} 1998--2001, 2004--2005, 2008--2023 Free Software
 Foundation, Inc.
 
 @quotation
@@ -1896,19 +1896,19 @@ Make sure the @code{:file} is fully expanded.
 @end deffn
 
 @deffn Method ede-preprocessor-map :AFTER this
-Get the pre-processor map for project @var{THIS}.
+Get the pre-processor map for project @var{this}.
 @end deffn
 
 @deffn Method ede-cpp-root-header-file-p :AFTER proj name
-Non @code{nil} if in @var{PROJ} the filename @var{NAME} is a header.
+Non-@code{nil} if in @var{proj} the filename @var{name} is a header.
 @end deffn
 
 @deffn Method ede-system-include-path :AFTER this
-Get the system include path used by project @var{THIS}.
+Get the system include path used by project @var{this}.
 @end deffn
 
 @deffn Method ede-expand-filename-impl :AFTER proj name
-Within this project @var{PROJ}, find the file @var{NAME}.
+Within this project @var{proj}, find the file @var{name}.
 This knows details about or source tree.
 @end deffn
 
@@ -2796,7 +2796,7 @@ File name of generated Makefile.
 Type: @code{boolean} @*
 Default Value: @code{t}
 
-Non @code{nil} means the rule created is part of the all target.
+Non-@code{nil} means the rule created is part of the all target.
 Setting this to @code{nil} creates the rule to build this item, but does not
 include it in the @code{all:} rule.
 
@@ -3888,10 +3888,10 @@ themselves.
 Type: @code{boolean} @*
 Default Value: @code{nil}
 
-Non @code{nil} if this sourcecode type uses subdirectores.
-If sourcecode always lives near the target creating it, this should be nil.
-If sourcecode can, or typically lives in a subdirectory of the owning
-target, set this to t.
+Non-@code{nil} if this sourcecode type uses subdirectores.  If
+sourcecode always lives near the target creating it, this should be
+@code{nil}.  If sourcecode can, or typically lives in a subdirectory
+of the owning target, set this to @code{t}.
 
 @item :garbagepattern
 Type: @code{list} @*

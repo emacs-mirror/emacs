@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -334,6 +334,7 @@ In this way, you can use the mouse to move point over a button without
 activating it.  Dragging the mouse over or onto a button has its usual
 behavior of setting the region, and does not activate the button.
 
+@vindex mouse-1-click-follows-link
   You can change how @kbd{mouse-1} applies to buttons by customizing
 the variable @code{mouse-1-click-follows-link}.  If the value is a
 positive integer, that determines how long you need to hold the mouse

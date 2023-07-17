@@ -1,6 +1,6 @@
 ;;; calc-help.el --- help display functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -39,8 +39,11 @@
   (or calc-dispatch-help (sit-for echo-keystrokes))
   (let ((key (calc-read-key-sequence
 	      (if calc-dispatch-help
-		  "Calc Help options: Help, Info, Tutorial, Summary; Key, Function; ?=more"
-		(format "%s  (Type ? for a list of Calc Help options)"
+                  (substitute-command-keys
+		   (concat "Calc Help options: \\`h'elp, \\`i'nfo, \\`t'utorial, "
+                           "\\`s'ummary; \\`k'ey, \\`f'unction; \\`?'=more"))
+                (format (substitute-command-keys
+                         "%s  (Type \\`?' for a list of Calc Help options)")
 			(key-description (this-command-keys))))
 	      calc-help-map)))
     (setq key (lookup-key calc-help-map key))
@@ -76,7 +79,10 @@
 	  (describe-function 'calc-help-for-help)
 	  (select-window (get-buffer-window "*Help*"))
 	  (while (progn
-		   (message "Calc Help options: Help, Info, ...  press SPC, DEL to scroll, C-g to cancel")
+		   (message (substitute-command-keys
+                             (concat
+                              "Calc Help options: \\`h'elp, \\`i'nfo, ...  press "
+                              "\\`SPC', \\`DEL' to scroll, \\`C-g' to cancel")))
 		   (memq (setq key (read-event))
 			 '(?  ?\C-h ?\C-? ?\C-v ?\M-v)))
 	    (condition-case nil
@@ -453,47 +459,47 @@
 (defun calc-h-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Help; Bindings; Info, Tutorial, Summary; News"
-     "describe: Key, C (briefly), Function, Variable")
+   '("\\`h'elp; \\`b'indings; \\`i'nfo, \\`t'utorial, \\`s'ummary; \\`n'ews"
+     "describe: \\`k'ey, \\`c' (briefly), \\`f'unction, \\`v'ariable")
    "help" ?h))
 
 (defun calc-inverse-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("I + S (arcsin), C (arccos), T (arctan); Q (square)"
-     "I + E (ln), L (exp), B (alog: B^X); f E (lnp1), f L (expm1)"
-     "I + F (ceiling), R (truncate); a S (invert func)"
-     "I + a m (match-not); c h (from-hms); k n (prev prime)"
-     "I + f G (gamma-Q); f e (erfc); k B (etc., lower-tail dists)"
-     "I + V S (reverse sort); V G (reverse grade)"
-     "I + v s (remove subvec); v h (tail)"
-     "I + t + (alt sum), t M (mean with error)"
-     "I + t S (pop std dev), t C (pop covar)")
+   '("\\`I' + \\`S' (arcsin), \\`C' (arccos), \\`T' (arctan); \\`Q' (square)"
+     "\\`I' + \\`E' (ln), \\`L' (exp), \\`B' (alog: B^X); \\`f E' (lnp1), \\`f L' (expm1)"
+     "\\`I' + \\`F' (ceiling), \\`R' (truncate); \\`a S' (invert func)"
+     "\\`I' + \\`a m' (match-not); \\`c h' (from-hms); \\`k n' (prev prime)"
+     "\\`I' + \\`f G' (gamma-Q); \\`f e' (erfc); \\`k B' (etc., lower-tail dists)"
+     "\\`I' + \\`V S' (reverse sort); \\`V G' (reverse grade)"
+     "\\`I' + \\`v s' (remove subvec); \\`v h' (tail)"
+     "\\`I' + \\`t' + (alt sum), \\`t M' (mean with error)"
+     "\\`I' + \\`t S' (pop std dev), \\`t C' (pop covar)")
    "inverse" nil))
 
 (defun calc-hyperbolic-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("H + S (sinh), C (cosh), T (tanh); E (exp10), L (log10)"
-     "H + F (float floor), R (float round); P (constant \"e\")"
-     "H + a d (total derivative); k c (permutations)"
-     "H + k b (bern-poly), k e (euler-poly); k s (stirling-2)"
-     "H + f G (gamma-g), f B (beta-B); v h (rhead), v k (rcons)"
-     "H + v e (expand w/filler); V H (weighted histogram)"
-     "H + a S (general solve eqn), j I (general isolate)"
-     "H + a R (widen/root), a N (widen/min), a X (widen/max)"
-     "H + t M (median), t S (variance), t C (correlation coef)"
-     "H + c f/F/c (pervasive float/frac/clean)")
+   '("\\`H' + \\`S' (sinh), \\`C' (cosh), \\`T' (tanh); \\`E' (exp10), \\`L' (log10)"
+     "\\`H' + \\`F' (float floor), \\`R' (float round); \\`P' (constant \"e\")"
+     "\\`H' + \\`a d' (total derivative); \\`k c' (permutations)"
+     "\\`H' + \\`k b' (bern-poly), \\`k e' (euler-poly); \\`k s' (stirling-2)"
+     "\\`H' + \\`f G' (gamma-g), \\`f B' (beta-B); \\`v h' (rhead), \\`v k' (rcons)"
+     "\\`H' + \\`v e' (expand w/filler); \\`V H' (weighted histogram)"
+     "\\`H' + \\`a S' (general solve eqn), \\`j I' (general isolate)"
+     "\\`H' + \\`a R' (widen/root), \\`a N' (widen/min), \\`a X' (widen/max)"
+     "\\`H' + \\`t M' (median), \\`t S' (variance), \\`t C' (correlation coef)"
+     "\\`H' + \\`c' \\`f'/\\`F'/\\`c' (pervasive float/frac/clean)")
    "hyperbolic" nil))
 
 (defun calc-inv-hyp-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("I H + S (arcsinh), C (arccosh), T (arctanh)"
-     "I H + E (log10), L (exp10); f G (gamma-G)"
-     "I H + F (float ceiling), R (float truncate)"
-     "I H + t S (pop variance)"
-     "I H + a S (general invert func); v h (rtail)")
+   '("\\`I H' + \\`S' (arcsinh), \\`C' (arccosh), \\`T' (arctanh)"
+     "\\`I H' + \\`E' (log10), \\`L' (exp10); \\`f G' (gamma-G)"
+     "\\`I H' + \\`F' (float ceiling), \\`R' (float truncate)"
+     "\\`I H' + \\`t S' (pop variance)"
+     "\\`I H' + \\`a S' (general invert func); \\`v h' (rtail)")
    "inverse-hyperbolic" nil))
 
 (defun calc-option-prefix-help ()
@@ -505,10 +511,10 @@
 (defun calc-f-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("miN, maX; Hypot; Im, Re; Sign; [, ] (incr/decr)"
-     "Gamma, Beta, Erf, besselJ, besselY"
-     "SHIFT + int-sQrt; Int-log, Exp(x)-1, Ln(x+1); arcTan2"
-     "SHIFT + Abssqr; Mantissa, eXponent, Scale"
+   '("mi\\`n', ma\\`x'; \\`h'ypot; \\`i'm, \\`r'e; \\`s'ign; \\`[', \\`]' (incr/decr)"
+     "\\`g'amma, \\`b'eta, \\`e'rf, bessel\\`j', bessel\\`y'"
+     "int-s\\`Q'rt; \\`I'nt-log, \\`E'xp(x)-1, \\`L'n(x+1); arc\\`T'an2"
+     "\\`A'bssqr; \\`M'antissa, e\\`X'ponent, \\`S'cale"
      "SHIFT + incomplete: Gamma-P, Beta-I")
    "functions" ?f))
 
@@ -516,165 +522,165 @@
 (defun calc-s-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Store, inTo, Xchg, Unstore; Recall, 0-9; : (:=); = (=>)"
-     "Let; Copy, K=copy constant; Declare; Insert, Perm; Edit"
-     "Negate, +, -, *, /, ^, &, |, [, ]; Map"
-     "SHIFT + Decls, GenCount, TimeZone, Holidays; IntegLimit"
-     "SHIFT + LineStyles, PointStyles, plotRejects; Units"
-     "SHIFT + Eval-, AlgSimp-, ExtSimp-, FitRules")
+   '("\\`s'tore, in\\`t'o, \\`x'chg, \\`u'nstore; \\`r'ecall, \\`0'-\\`9'; \\`:' (:=); \\`=' (=>)"
+     "\\`l'et; \\`c'opy, \\`k'=copy constant; \\`d'eclare; \\`i'nsert, \\`p'erm; \\`e'dit"
+     "\\`n'egate, \\`+', \\`-', \\`*', \\`/', \\`^', \\`&', \\`|', \\`[', \\`]'; Map"
+     "\\`D'ecls, \\`G'enCount, \\`T'imeZone, \\`H'olidays; \\`I'ntegLimit"
+     "\\`L'ineStyles, \\`P'ointStyles, plot\\`R'ejects; \\`U'nits"
+     "\\`E'val-, \\`A'lgSimp-, e\\`X'tSimp-, \\`F'itRules")
    "store" ?s))
 
 (defun calc-r-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("digits 0-9: recall, same as `s r 0-9'"
-     "Save to register, Insert from register")
+   '("digits \\`0'-\\`9': recall, same as \\`s r' \\`0'-\\`9'"
+     "\\`s'ave to register, \\`i'nsert from register")
    "recall/register" ?r))
 
 
 (defun calc-j-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Select, Additional, Once; eVal, Formula; Rewrite"
-     "More, Less, 1-9, Next, Previous"
-     "Unselect, Clear; Display; Enable; Breakable"
-     "\\=' (replace), \\=` (edit), +, -, *, /, RET (grab), DEL"
-     "SHIFT + swap: Left, Right; maybe: Select, Once"
-     "SHIFT + Commute, Merge, Distrib, jump-Eqn, Isolate"
-     "SHIFT + Negate, & (invert); Unpack")
+   '("\\`s'elect, \\`a'dditional, \\`o'nce; e\\`v'al, \\`f'ormula; \\`r'ewrite"
+     "\\`m'ore, \\`l'ess, \\`1'-\\`9', \\`n'ext, \\`p'revious"
+     "\\`u'nselect, \\`c'lear; \\`d'isplay; \\`e'nable; \\`b'reakable"
+     "\\=' (replace), \\=` (edit), \\`+', \\`-', \\`*', \\`/', \\`RET' (grab), \\`DEL'"
+     "swap: \\`L'eft, \\`R'ight; maybe: \\`S'elect, \\`O'nce"
+     "\\`C'ommute, \\`M'erge, \\`D'istrib, jump-\\`E'qn, \\`I'solate"
+     "\\`N'egate, \\`&' (invert); \\`U'npack")
    "select" ?j))
 
 
 (defun calc-a-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Simplify, Extended-simplify, eVal; \" (exp-formula)"
-     "eXpand, Collect, Factor, Apart, Norm-rat"
-     "GCD, /, \\, % (polys); Polint"
-     "Derivative, Integral, Taylor; _ (subscr)"
-     "suBstitute; Rewrite, Match"
-     "SHIFT + Solve; Root, miN, maX; Poly-roots; Fit"
-     "SHIFT + Map; Tabulate, + (sum), * (prod); num-Integ"
-     "relations: =, # (not =), <, >, [ (< or =), ] (> or =)"
-     "logical: & (and), | (or), ! (not); : (if)"
-     "misc: { (in-set); . (rmeq)")
+   '("\\`s'implify, \\`e'xtended-simplify, e\\`v'al; \\`\"' (exp-formula)"
+     "e\\`x'pand, \\`c'ollect, \\`f'actor, \\`a'part, \\`n'orm-rat"
+     "\\`g' (GCD), \\`/', \\`\\', \\`%' (polys); \\`p'olint"
+     "\\`d'erivative, \\`i'ntegral, \\`t'aylor; \\`_' (subscr)"
+     "su\\`b'stitute; \\`r'ewrite, \\`m'atch"
+     "\\`S'olve; \\`R'oot, mi\\`N', ma\\`X'; \\`P'oly-roots; \\`F'it"
+     "\\`M'ap; \\`T'abulate, \\`+' (sum), \\`*' (prod); num-\\`I'nteg"
+     "relations: \\`=', \\`#' (not =), \\`<', \\`>', \\`[' (< or =), \\`]' (> or =)"
+     "logical: \\`&' (and), \\`|' (or), \\`!' (not); \\`:' (if)"
+     "misc: \\`{' (in-set); \\`.' (rmeq)")
    "algebra" ?a))
 
 
 (defun calc-b-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("And, Or, Xor, Diff, Not; Wordsize, Clip"
-     "Lshift, Rshift, roTate; SHIFT + signed Lshift, Rshift"
-     "SHIFT + business: Pv, Npv, Fv, pMt, #pmts, raTe, Irr"
-     "SHIFT + business: Sln, sYd, Ddb; %ch")
+   '("\\`a'nd, \\`o'r, \\`x'or, \\`d'iff, \\`n'ot; \\`w'ordsize, \\`c'lip"
+     "\\`l'shift, \\`r'shift, ro\\`t'ate; signed \\`L'shift, \\`R'shift"
+     "business: \\`P'v, \\`N'pv, \\`F'v, p\\`M't, \\`#'pmts, ra\\`T'e, \\`I'rr"
+     "business: \\`S'ln, s\\`Y'd, \\`D'db; \\`%'ch")
    "binary/bus" ?b))
 
 
 (defun calc-c-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Deg, Rad, HMS; Float; Polar/rect; Clean, 0-9; %"
-     "SHIFT + Fraction")
+   '("\\`d'eg, \\`r'ad, \\`h'ms; \\`f'loat; \\`p'olar/rect; \\`c'lean, \\`0'-\\`9'; \\`%'"
+     "\\`F'raction")
    "convert" ?c))
 
 
 (defun calc-d-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Group, \",\"; Normal, Fix, Sci, Eng, \".\"; Over"
-     "Radix, Zeros, 2, 8, 0, 6; Hms; Date; Complex, I, J"
-     "Why; Line-nums, line-Breaks; <, =, > (justify); Plain"
-     "\" (strings); Truncate, [, ]; SPC (refresh), RET, @"
-     "SHIFT + language: Normal, One-line, Big, Unformatted"
-     "SHIFT + language: C, Pascal, Fortran; TeX, LaTeX, Eqn"
-     "SHIFT + language: Yacas, X=Maxima, A=Giac"
-     "SHIFT + language: Mathematica, W=Maple")
+   '("\\`g'roup, \\`,'; \\`n'ormal, \\`f'ix, \\`s'ci, \\`e'ng, \\`.'; \\`o'ver"
+     "\\`r'adix, \\`z'eros, \\`2', \\`8', \\`0', \\`6'; \\`h'ms; \\`d'ate; \\`c'omplex, \\`i', \\`j'"
+     "\\`w'hy; \\`l'ine-nums, line-\\`b'reaks; \\`<', \\`=', \\`>' (justify); \\`p'lain"
+     "\\`\"' (strings); \\`t'runcate, \\`[', \\`]'; \\`SPC' (refresh), \\`RET', \\`@'"
+     "language: \\`N'ormal, \\`O'ne-line, \\`B'ig, \\`U'nformatted"
+     "language: \\`C', \\`P'ascal, \\`F'ortran; \\`T'eX, \\`L'aTeX, \\`E'qn"
+     "language: \\`Y'acas, \\`X'=Maxima, \\`A'=Giac"
+     "language: \\`M'athematica, \\`W'=Maple")
    "display" ?d))
 
 
 (defun calc-g-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Fast; Add, Delete, Juggle; Plot, Clear; Quit"
-     "Header, Name, Grid, Border, Key; View-commands, X-display"
-     "x-axis: Range, Title, Log, Zero; lineStyle"
-     "SHIFT + y-axis: Range, Title, Log, Zero; pointStyle"
-     "SHIFT + Print; Device, Output-file; X-geometry"
-     "SHIFT + Num-pts; Command, Kill, View-trail"
-     "SHIFT + 3d: Fast, Add; CTRL + z-axis: Range, Title, Log")
+   '("\\`f'ast; \\`a'dd, \\`d'elete, \\`j'uggle; \\`p'lot, \\`c'lear; \\`q'uit"
+     "\\`h'eader, \\`n'ame, \\`g'rid, \\`b'order, \\`k'ey; \\`v'iew-commands, \\`x'-display"
+     "x-axis: \\`r'ange, \\`t'itle, \\`l'og, \\`z'ero; line\\`s'tyle"
+     "y-axis: \\`R'ange, \\`T'itle, \\`L'og, \\`Z'ero; point\\`S'tyle"
+     "\\`P'rint; \\`D'evice, \\`O'utput-file; \\`X'-geometry"
+     "\\`N'um-pts; \\`C'ommand, \\`K'ill, \\`V'iew-trail"
+     "3d: \\`F'ast, \\`A'dd; z-axis: \\`C-r' (range), \\`C-t' (title), \\`C-l' (log)")
    "graph" ?g))
 
 
 (defun calc-k-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("GCD, LCM; Choose (binomial), Double-factorial"
-     "Random, random-Again, sHuffle"
-     "Factors, Prime-test, Next-prime, Totient, Moebius"
-     "Bernoulli, Euler, Stirling"
-     "SHIFT + Extended-gcd"
-     "SHIFT + dists: Binomial, Chi-square, F, Normal"
-     "SHIFT + dists: Poisson, student's-T")
+   '("\\`g' (GCD), \\`l' (LCM); \\`c'hoose (binomial), \\`d'ouble-factorial"
+     "\\`r'andom, random-\\`a'gain, s\\`h'uffle"
+     "\\`f'actors, \\`p'rime-test, \\`n'ext-prime, \\`t'otient, \\`m'oebius"
+     "\\`b'ernoulli, \\`e'uler, \\`s'tirling"
+     "\\`E'xtended-gcd"
+     "dists: \\`B'inomial, \\`C'hi-square, \\`F', \\`N'ormal"
+     "dists: \\`P'oisson, student\\='s-\\`T'")
    "combinatorics" ?k))
 
 
 (defun calc-m-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Deg, Rad, HMS; Frac; Polar; Inf; Alg, Total; Symb; Vec/mat"
-     "Working; Xtensions; Mode-save; preserve Embedded modes"
-     "SHIFT + Shifted-prefixes, mode-Filename; Record; reCompute"
-     "SHIFT + simplify: Off, Num, basIc, Algebraic, Bin, Ext, Units")
+   '("\\`d'eg, \\`r'ad, \\`h' (HMS); \\`f'rac; \\`p'olar; \\`i'nf; \\`a'lg, \\`t'otal; \\`s'ymb; \\`v'ec/mat"
+     "\\`w'orking; \\`x'tensions; \\`m'ode-save; preserve \\`e'mbedded modes"
+     "\\`S'hifted-prefixes, mode-\\`F'ilename; \\`R'ecord; re\\`C'ompute"
+     "simplify: \\`O'ff, \\`N'um, bas\\`I'c, \\`A'lgebraic, \\`B'in, \\`E'xt, \\`U'nits")
    "mode" ?m))
 
 
 (defun calc-t-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Display; Fwd, Back; Next, Prev, Here, [, ]; Yank"
-     "Search, Rev; In, Out; <, >; Kill; Marker; . (abbrev)"
-     "SHIFT + time: Now; Part; Date, Julian, Unix, Czone"
-     "SHIFT + time: newWeek, newMonth, newYear; Incmonth"
-     "SHIFT + time: +, - (business days)"
-     "digits 0-9: store-to, same as `s t 0-9'")
+   '("\\`d'isplay; \\`f'wd, \\`b'ack; \\`n'ext, \\`p'rev, \\`h'ere, \\`[', \\`]'; \\`y'ank"
+     "\\`s'earch, \\`r'ev; \\`i'n, \\`o'ut; \\`<', \\`>'; \\`k'ill; \\`m'arker; \\`.' (abbrev)"
+     "time: \\`N'ow; \\`P'art; \\`D'ate, \\`J'ulian, \\`U'nix, \\`C'zone"
+     "time: new\\`W'eek, new\\`M'onth, new\\`Y'ear; \\`I'ncmonth"
+     "time: \\`+', \\`-' (business days)"
+     "digits \\`0'-\\`9': store-to, same as \\`s t' \\`0'-\\`9'")
    "trail/time" ?t))
 
 
 (defun calc-u-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Simplify, Convert, coNvert exact, Temperature-convert, Base-units"
-     "Autorange; Remove, eXtract; Explain; View-table; 0-9"
-     "Define, Undefine, Get-defn, Permanent"
-     "SHIFT + View-table-other-window"
-     "SHIFT + stat: Mean, G-mean, Std-dev, Covar, maX, miN"
-     "SHIFT + stat: + (sum), - (asum), * (prod), # (count)")
+   '("\\`s'implify, \\`c'onvert, co\\`n'vert exact, \\`t'emperature-convert, \\`b'ase-units"
+     "\\`a'utorange; \\`r'emove, e\\`x'tract; \\`e'xplain; \\`v'iew-table; \\`0'-\\`9'"
+     "\\`d'efine, \\`u'ndefine, \\`g'et-defn, \\`p'ermanent"
+     "\\`V'iew-table-other-window"
+     "stat: \\`M'ean, \\`G'-mean, \\`S'td-dev, \\`C'ovar, ma\\`X', mi\\`N'"
+     "stat: \\`+' (sum), \\`-' (asum), \\`*' (prod), \\`#' (count)")
    "units/stat" ?u))
 
 (defun calc-l-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Quantity, DB level, Np level"
-     "+, -, *, /"
-     "Scientific pitch notation, Midi number, Frequency"
+   '("\\`q'uantity, \\`d' (DB level), \\`n' (NP level)"
+     "\\`+', \\`-', \\`*', \\`/'"
+     "\\`s'cientific pitch notation, \\`m'idi number, \\`f'requency"
      )
    "log units" ?l))
 
 (defun calc-v-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("Pack, Unpack, Identity, Diagonal, indeX, Build"
-     "Row, Column, Subvector; Length; Find; Mask, Expand"
-     "Transpose, Arrange, reVerse; Head, Kons; rNorm"
-     "SHIFT + Det, & (inverse), LUD, Trace, conJtrn, Cross"
-     "SHIFT + Sort, Grade, Histogram; cNorm"
-     "SHIFT + Apply, Map, Reduce, accUm, Inner-, Outer-prod"
-     "SHIFT + sets: V (union), ^ (intersection), - (diff)"
-     "SHIFT + sets: Xor, ~ (complement), Floor, Enum"
-     "SHIFT + sets: : (span), # (card), + (rdup)"
-     "<, =, > (justification); , (commas); [, {, ( (brackets)"
-     "} (matrix brackets); . (abbreviate); / (multi-lines)")
+   '("\\`p'ack, \\`u'npack, \\`i'dentity, \\`d'iagonal, inde\\`x', \\`b'uild"
+     "\\`r'ow, \\`c'olumn, \\`s'ubvector; \\`l'ength; \\`f'ind; \\`m'ask, \\`e'xpand"
+     "\\`t'ranspose, \\`a'rrange, re\\`v'erse; \\`h'ead, \\`k'ons; r\\`n'orm"
+     "\\`D'et, \\`&' (inverse), \\`L'UD, \\`T'race, con\\`J'trn, \\`C'ross"
+     "\\`S'ort, \\`G'rade, \\`H'istogram; c\\`N'orm"
+     "\\`A'pply, \\`M'ap, \\`R'educe, acc\\`U'm, \\`I'nner-, \\`O'uter-prod"
+     "sets: \\`V' (union), \\`^' (intersection), \\`-' (diff)"
+     "sets: \\`X'or, \\`~' (complement), \\`F'loor, \\`E'num"
+     "sets: \\`:' (span), \\`#' (card), \\`+' (rdup)"
+     "\\`<', \\`=', \\`>' (justification); \\`,' (commas); \\`[', \\`{', \\`(' (brackets)"
+     "\\`}' (matrix brackets); \\`.' (abbreviate); \\`/' (multi-lines)")
    "vec/mat" ?v))
 
 (provide 'calc-help)

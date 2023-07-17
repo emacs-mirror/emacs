@@ -1,6 +1,6 @@
 ;;; erc-networks-tests.el --- Tests for erc-networks.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -1233,10 +1233,7 @@
                    :contents "MOTD File is missing")))
 
       (erc-mode) ; boilerplate displayable start (needs `erc-server-process')
-      (insert "\n\n")
-      (setq erc-input-marker (make-marker) erc-insert-marker (make-marker))
-      (set-marker erc-insert-marker (point-max))
-      (erc-display-prompt) ; boilerplate displayable end
+      (erc--initialize-markers (point) nil)
 
       (erc-networks--ensure-announced erc-server-process parsed)
       (goto-char (point-min))
@@ -1277,9 +1274,9 @@
     (with-current-buffer old-buf
       (erc-mode)
       (insert "*** Old buf")
+      (erc--initialize-markers (point) nil)
       (setq erc-network 'FooNet
             erc-server-current-nick "tester"
-            erc-insert-marker (set-marker (make-marker) (point-max))
             erc-server-process old-proc
             erc-networks--id (erc-networks--id-create nil)))
 
@@ -1328,10 +1325,10 @@
            erc-reuse-buffers)
       (with-current-buffer old-buf
         (erc-mode)
+        (erc--initialize-markers (point) nil)
         (insert "*** Old buf")
         (setq erc-network 'FooNet
               erc-server-current-nick "tester"
-              erc-insert-marker (set-marker (make-marker) (point-max))
               erc-server-process old-proc
               erc-networks--id (erc-networks--id-create nil)))
       (with-current-buffer (get-buffer-create "#chan")
@@ -1377,10 +1374,10 @@
 
     (with-current-buffer old-buf
       (erc-mode)
+      (erc--initialize-markers (point) nil)
       (insert "*** Old buf")
       (setq erc-network 'FooNet
             erc-server-current-nick "tester"
-            erc-insert-marker (set-marker (make-marker) (point-max))
             erc-server-process old-proc
             erc-networks--id (erc-networks--id-create nil)))
 
@@ -1415,10 +1412,10 @@
 
     (with-current-buffer old-buf
       (erc-mode)
+      (erc--initialize-markers (point) nil)
       (insert "*** Old buf")
       (setq erc-network 'FooNet
             erc-networks--id (erc-networks--id-create 'MySession)
-            erc-insert-marker (set-marker (make-marker) (point-max))
             erc-server-process old-proc))
 
     (with-current-buffer (get-buffer-create "#chan")
@@ -1454,10 +1451,10 @@
 
     (with-current-buffer old-buf
       (erc-mode)
+      (erc--initialize-markers (point) nil)
       (insert "*** Old buf")
       (setq erc-network 'FooNet
             erc-server-current-nick "tester"
-            erc-insert-marker (set-marker (make-marker) (point-max))
             erc-server-process old-proc
             erc-networks--id (erc-networks--id-create nil))
       (should (erc-server-process-alive)))
@@ -1473,12 +1470,15 @@
     (ert-info ("New buffer rejected, abandoned, not killed")
       (with-current-buffer (get-buffer-create "irc.foonet.org")
         (erc-mode)
+        (erc--initialize-markers (point) nil)
         (setq erc-network 'FooNet
               erc-server-current-nick "tester"
-              erc-insert-marker (set-marker (make-marker) (point-max))
               erc-server-process (erc-networks-tests--create-live-proc)
               erc-networks--id (erc-networks--id-create nil))
-        (should-not (erc-networks--rename-server-buffer erc-server-process))
+        (set-process-sentinel erc-server-process #'ignore)
+        (erc-display-message nil 'notice (current-buffer) "notice")
+        (with-silent-modifications
+          (should-not (erc-networks--rename-server-buffer erc-server-process)))
         (should (eq erc-active-buffer old-buf))
         (should-not (erc-server-process-alive))
         (should (string= (buffer-name) "irc.foonet.org"))
@@ -1508,10 +1508,10 @@
     (with-current-buffer old-buf
       (erc-mode)
       (insert "*** Old buf")
+      (erc--initialize-markers (point) nil)
       (setq erc-network 'FooNet
             erc-server-current-nick "tester"
             erc-server-announced-name "us-east.foonet.org"
-            erc-insert-marker (set-marker (make-marker) (point-max))
             erc-server-process old-proc
             erc--isupport-params (make-hash-table)
             erc-networks--id (erc-networks--id-create nil))
@@ -1560,10 +1560,10 @@
     (with-current-buffer old-buf
       (erc-mode)
       (insert "*** Old buf")
+      (erc--initialize-markers (point) nil)
       (setq erc-network 'FooNet
             erc-server-current-nick "tester"
             erc-server-announced-name "us-west.foonet.org"
-            erc-insert-marker (set-marker (make-marker) (point-max))
             erc-server-process old-proc
             erc--isupport-params (make-hash-table)
             erc-networks--id (erc-networks--id-create nil))

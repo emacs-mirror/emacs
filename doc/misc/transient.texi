@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2018-2022 Free Software Foundation, Inc.
+Copyright (C) 2018--2023 Free Software Foundation, Inc.
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.3.7.50
+@subtitle for version 0.4.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -64,8 +64,17 @@ reading a new value in the minibuffer.
 Calling a suffix command usually causes the transient to be exited
 but suffix commands can also be configured to not exit the transient.
 
+@quotation
+The second part of this manual, which describes how to modify existing
+transients and create new transients from scratch, can be hard to
+digest if you are just getting started.  A useful resource to get over
+that hurdle is Psionic K's interactive tutorial, available at
+@uref{https://github.com/positron-solutions/transient-showcase}.
+
+@end quotation
+
 @noindent
-This manual is for Transient version 0.3.7.50.
+This manual is for Transient version 0.4.1.
 
 @insertcopying
 @end ifnottex
@@ -893,7 +902,16 @@ same customization.
 
 To an extent, transients can be customized interactively, see
 @ref{Enabling and Disabling Suffixes}.  This section explains how existing
-transients can be further modified non-interactively.
+transients can be further modified non-interactively.  Let's begin
+with an example:
+
+@lisp
+(transient-append-suffix 'magit-patch-apply "-3"
+  '("-R" "Apply in reverse" "--reverse"))
+@end lisp
+
+This inserts a new infix argument to toggle the @code{--reverse} argument
+after the infix argument that toggles @code{-3} in @code{magit-patch-apply}.
 
 The following functions share a few arguments:
 
@@ -1043,18 +1061,6 @@ For example, the scope of the @code{magit-branch-configure} transient is
 the branch whose variables are being configured.
 @end defmac
 
-It is possible to define one or more groups independently of a prefix
-definition, which is useful when those groups are to be used by more
-than just one prefix command.
-
-@defmac transient-define-groups name group...
-This macro defines one or more groups of infix and suffix commands
-and stores them in a property of the symbol @var{NAME}.  @var{GROUP} has the
-same form as for @code{transient-define-prefix}.  Subsequently @var{NAME} can
-be used in a @var{GROUP} of @code{transient-define-prefix}, as described in the
-next section.
-@end defmac
-
 @node Binding Suffix and Infix Commands
 @section Binding Suffix and Infix Commands
 
@@ -1181,22 +1187,8 @@ a table.
 
 Inside group specifications, including inside contained suffix
 specifications, nothing has to be quoted and quoting anyway is
-invalid.
-
-How symbols are treated, depends on context.  Inside suffix
-specifications they often name functions.  However if they appear in
-a place where a group is expected, then they are treated as indirect
-group specifications. Such a symbol must have an associated group
-specification, created using @code{transient-define-groups}.
-
-Likewise a symbol can appear in a place where a suffix specification
-is expected.  The value of the @code{transient--layout} property of that
-symbol must be a single suffix specification or a list of such
-specifications.  Currently no macro exist that would create such a
-symbol, and this feature should usually not be used.
-
-The value following a keyword, can be explicitly unquoted using @code{,}.
-This feature is experimental and should be avoided as well.
+invalid.  The value following a keyword, can be explicitly unquoted
+using @code{,}.  This feature is experimental and should be avoided.
 
 The form of suffix specifications is documented in the next node.
 
@@ -1222,7 +1214,7 @@ Suffix specifications have this form:
 
 @lisp
 ([@var{LEVEL}]
- [@var{KEY}] [@var{DESCRIPTION}]
+ [@var{KEY} [@var{DESCRIPTION}]]
  @var{COMMAND}|@var{ARGUMENT} [@var{KEYWORD} @var{VALUE}]...)
 @end lisp
 
@@ -1261,8 +1253,7 @@ Any command will do; it does not need to have an object associated
 with it (as would be the case if @code{transient-define-suffix} or
 @code{transient-define-infix} were used to define it).
 
-Anonymous, dynamically defined suffix commands are also supported.
-See information about the @code{:setup-children} function in @ref{Group Specifications}.
+COMMAND can also be a @code{lambda} expression.
 
 As mentioned above, the object that is associated with a command can
 be used to set the default for certain values that otherwise have to
@@ -2159,7 +2150,7 @@ default value of a prefix using the same format as returned by
 
 @item
 @code{always-read} For options, whether to read a value on every invocation.
-If this is nil, then options that have a value are simply unset and
+If this is @code{nil}, then options that have a value are simply unset and
 have to be invoked a second time to set a new value.
 
 @item
@@ -2574,6 +2565,20 @@ currently exist.
 @appendixsec Can I control how the popup buffer is displayed?
 
 Yes, see @code{transient-display-buffer-action} in @ref{Configuration}.
+
+@anchor{How can I copy text from the popup buffer?}
+@appendixsec How can I copy text from the popup buffer?
+
+To be able to mark text in any transient popup buffer using the mouse,
+you have to add the following binding.  Note that the region won't be
+visualized, while doing so.  After you have quit the transient popup,
+you will be able to yank it another buffer.
+
+@lisp
+(keymap-set transient-predicate-map
+            "<mouse-set-region>"
+            #'transient--do-stay)
+@end lisp
 
 @anchor{Why did some of the key bindings change?}
 @appendixsec Why did some of the key bindings change?

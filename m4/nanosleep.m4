@@ -1,11 +1,11 @@
-# serial 42
+# serial 43
 
 dnl From Jim Meyering.
 dnl Check for the nanosleep function.
 dnl If not found, use the supplied replacement.
 dnl
 
-# Copyright (C) 1999-2001, 2003-2022 Free Software Foundation, Inc.
+# Copyright (C) 1999-2001, 2003-2023 Free Software Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -25,11 +25,11 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
 
  # Solaris 2.5.1 needs -lposix4 to get the nanosleep function.
  # Solaris 7 prefers the library name -lrt to the obsolescent name -lposix4.
- LIB_NANOSLEEP=
- AC_SUBST([LIB_NANOSLEEP])
+ NANOSLEEP_LIB=
+ AC_SUBST([NANOSLEEP_LIB])
  AC_SEARCH_LIBS([nanosleep], [rt posix4],
                 [test "$ac_cv_search_nanosleep" = "none required" ||
-                 LIB_NANOSLEEP=$ac_cv_search_nanosleep])
+                 NANOSLEEP_LIB=$ac_cv_search_nanosleep])
  if test "x$ac_cv_search_nanosleep" != xno; then
    dnl The system has a nanosleep function.
 
@@ -143,4 +143,8 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
    HAVE_NANOSLEEP=0
  fi
  LIBS=$nanosleep_save_libs
+
+ # For backward compatibility.
+ LIB_NANOSLEEP="$NANOSLEEP_LIB"
+ AC_SUBST([LIB_NANOSLEEP])
 ])

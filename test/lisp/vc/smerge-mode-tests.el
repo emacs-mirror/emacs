@@ -1,6 +1,6 @@
 ;;; smerge-mode-tests.el --- Tests for smerge-mode.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 

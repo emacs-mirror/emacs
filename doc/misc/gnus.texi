@@ -8,7 +8,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -713,7 +713,6 @@ Choosing a Mail Back End
 
 Browsing the Web
 
-* Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
 
@@ -3853,15 +3852,6 @@ The dribble file will be saved, though (@pxref{Auto Save}).
 @code{gnus-after-exiting-gnus-hook} is called as the final item when
 exiting Gnus.
 
-Note:
-
-@quotation
-Miss Lisa Cannifax, while sitting in English class, felt her feet go
-numbly heavy and herself fall into a hazy trance as the boy sitting
-behind her drew repeated lines with his pencil across the back of her
-plastic chair.
-@end quotation
-
 
 @node Group Topics
 @section Group Topics
@@ -5024,14 +5014,14 @@ the @code{a} spec.
 @item L
 Number of lines in the article.
 @item Z
-Retrieval Score Value (RSV) of the article; nil if not in an nnselect
-group.
+Retrieval Score Value (RSV) of the article; @code{nil} if not in an
+nnselect group.
 @item G
-Originating group name of the article; nil if not in an nnselect
-group.
+Originating group name of the article; @code{nil} if not in an
+nnselect group.
 @item g
-Short form of the originating group name of the article; nil if not in
-an nnselect group.
+Short form of the originating group name of the article; @code{nil} if
+not in an nnselect group.
 @item c
 Number of characters in the article.  This specifier is not supported
 in some methods (like nnfolder).
@@ -10537,9 +10527,9 @@ article (@code{gnus-summary-refer-references}).
 @kindex A T @r{(Summary)}
 Display the full thread where the current article appears
 (@code{gnus-summary-refer-thread}).  By default this command looks for
-articles only in the current group.  Some backends (currently only
-@code{nnimap}) know how to find articles in the thread directly.  In
-other cases each header in the current group must be fetched and
+articles only in the current group.  If the group belongs to a backend
+that has an associated search engine, articles are found by searching.
+In other cases each header in the current group must be fetched and
 examined, so it usually takes a while.  If you do it often, you may
 consider setting @code{gnus-fetch-old-headers} to @code{invisible}
 (@pxref{Filling In Threads}).  This won't have any visible effects
@@ -10547,19 +10537,22 @@ normally, but it'll make this command work a whole lot faster.  Of
 course, it'll make group entry somewhat slow.
 
 @vindex gnus-refer-thread-use-search
-If @code{gnus-refer-thread-use-search} is non-@code{nil} then those backends
-that know how to find threads directly will search not just in the
-current group but all groups on the same server.
+If @code{gnus-refer-thread-use-search} is @code{nil} (the default)
+then thread-referral only looks for articles in the current group. If
+this variable is @code{t} the server to which the current group
+belongs is searched (provided that searching is available for the
+server's backend).  If this variable is a list of servers, each server
+in the list is searched.
 
 @vindex gnus-refer-thread-limit
 The @code{gnus-refer-thread-limit} variable says how many old (i.e.,
 articles before the first displayed in the current group) headers to
-fetch when doing this command.  The default is 200.  If @code{t}, all
-the available headers will be fetched.  This variable can be overridden
-by giving the @kbd{A T} command a numerical prefix.
+fetch when referring a thread.  The default is 500.  If @code{t}, all
+the available headers will be fetched.  This variable can be
+overridden by giving the @kbd{A T} command a numerical prefix.
 
 @vindex gnus-refer-thread-limit-to-thread
-In most cases @code{gnus-refer-thread} adds any articles it finds to
+@code{gnus-summary-refer-thread} tries to add any articles it finds to
 the current summary buffer.  (When @code{gnus-refer-thread-use-search}
 is true and the initial referral starts from a summary buffer for a
 non-virtual group this may not be possible.  In this case a new
@@ -12105,17 +12098,6 @@ if they were public groups, you can add the name of that group to the
 @code{gnus-global-groups} list.
 
 Also @pxref{Misc Article} for @code{gnus-inhibit-images}.
-
-@item gnus-html-cache-directory
-@vindex gnus-html-cache-directory
-Gnus will download and cache images according to how
-@code{gnus-blocked-images} is set.  These images will be stored in
-this directory.
-
-@item gnus-html-cache-size
-@vindex gnus-html-cache-size
-When @code{gnus-html-cache-size} bytes have been used in that
-directory, the oldest files will be deleted.  The default is 500MB.
 
 @item gnus-html-frame-width
 @vindex gnus-html-frame-width
@@ -14529,13 +14511,23 @@ Here's an example method that's more complex:
 @end example
 
 @table @code
+@vindex nnimap-address
 @item nnimap-address
 The address of the server, like @samp{imap.gmail.com}.
 
+@vindex nnimap-user
+@item nnimap-user
+Username to use for authentication to the @acronym{IMAP} server.  This
+corresponds to the value of the @samp{login} token in your
+@file{~/.authinfo} file.  Set this variable if you want to access
+multiple accounts from the same @acronym{IMAP} server.
+
+@vindex nnimap-server-port
 @item nnimap-server-port
 If the server uses a non-standard port, that can be specified here.  A
 typical port would be @code{"imap"} or @code{"imaps"}.
 
+@vindex nnimap-stream
 @item nnimap-stream
 How @code{nnimap} should connect to the server.  Possible values are:
 
@@ -14566,6 +14558,7 @@ Non-encrypted and unsafe straight socket connection.
 
 @end table
 
+@vindex nnimap-authenticator
 @item nnimap-authenticator
 Some @acronym{IMAP} servers allow anonymous logins.  In that case,
 this should be set to @code{anonymous}.  If this variable isn't set,
@@ -14575,42 +14568,50 @@ specific login method to be used, you can set this variable to either
 @code{plain}, @code{cram-md5} or @code{xoauth2}.  (The latter method
 requires using the @file{oauth2.el} library.)
 
+@vindex nnimap-expunge
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles
-are marked with the IMAP @code{\\Delete} flag but not automatically
-expunged. If @code{immediately}, deleted articles are immediately expunged
-(this requires the server to support the UID EXPUNGE command). If
-@code{on-exit}, deleted articles are flagged, and all flagged articles are
-expunged when the group is closed.
+are marked with the @acronym{IMAP} @code{\\Delete} flag but not
+automatically expunged.  If @code{immediately}, deleted articles are
+immediately expunged (this requires the server to support the
+@code{UID EXPUNGE} command).  If @code{on-exit}, deleted articles are
+flagged, and all flagged articles are expunged when the group is
+closed.
 
-For backwards compatibility, this variable may also be set to t
-or nil. If the server supports UID EXPUNGE, both t and nil are
-equivalent to @code{immediately}. If the server does not support UID
-EXPUNGE nil is equivalent to @code{never}, while t will immediately
-expunge ALL articles that are currently flagged as deleted
-(i.e., potentially not only the article that was just deleted).
+For backwards compatibility, this variable may also be set to @code{t}
+or @code{nil}.  If the server supports @code{UID EXPUNGE}, both
+@code{t} and @code{nil} are equivalent to @code{immediately}.  If the
+server does not support @code{UID EXPUNGE}, @code{nil} is equivalent
+to @code{never}, while @code{t} will immediately expunge @emph{all}
+articles that are currently flagged as deleted (i.e., potentially not
+only the article that was just deleted).
 
+@vindex nnimap-streaming
 @item nnimap-streaming
 Virtually all @acronym{IMAP} server support fast streaming of data.
 If you have problems connecting to the server, try setting this to
 @code{nil}.
 
+@vindex nnimap-fetch-partial-articles
 @item nnimap-fetch-partial-articles
 If non-@code{nil}, fetch partial articles from the server.  If set to
 a string, then it's interpreted as a regexp, and parts that have
 matching types will be fetched.  For instance, @samp{"text/"} will
 fetch all textual parts, while leaving the rest on the server.
 
+@vindex nnimap-record-commands
 @item nnimap-record-commands
 If non-@code{nil}, record all @acronym{IMAP} commands in the
 @samp{"*imap log*"} buffer.
 
+@vindex nnimap-use-namespaces
 @item nnimap-use-namespaces
 If non-@code{nil}, omit the IMAP namespace prefix in nnimap group
 names.  If your IMAP mailboxes are called something like @samp{INBOX}
 and @samp{INBOX.Lists.emacs}, but you'd like the nnimap group names to
 be @samp{INBOX} and @samp{Lists.emacs}, you should enable this option.
 
+@vindex nnimap-keepalive-intervals
 @item nnimap-keepalive-intervals
 By default, nnimap will send occasional @samp{NOOP} (keepalive)
 commands to the server, to keep the connection alive.  This option
@@ -15300,9 +15301,9 @@ Two example maildir mail sources:
 @end lisp
 
 @item imap
-Get mail from a @acronym{IMAP} server.  If you don't want to use
+Get mail from an @acronym{IMAP} server.  If you don't want to use
 @acronym{IMAP} as intended, as a network mail reading protocol (i.e.,
-with nnimap), for some reason or other, Gnus let you treat it similar
+with nnimap), for some reason or other, Gnus lets you treat it similar
 to a @acronym{POP} server and fetches articles from a given
 @acronym{IMAP} mailbox.  @xref{Using IMAP}, for more information.
 
@@ -17247,7 +17248,6 @@ Gnus has been getting a bit of a collection of back ends for providing
 interfaces to these sources.
 
 @menu
-* Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
 @end menu
@@ -17263,29 +17263,6 @@ are often down, unavailable or just plain too slow to be fun.  In those
 cases, it makes a lot of sense to let the Gnus Agent (@pxref{Gnus
 Unplugged}) handle downloading articles, and then you can read them at
 leisure from your local disk.  No more World Wide Wait for you.
-
-@node Archiving Mail
-@subsection Archiving Mail
-@cindex archiving mail
-@cindex backup of mail
-
-Some of the back ends, notably @code{nnml}, @code{nnfolder}, and
-@code{nnmaildir}, now actually store the article marks with each group.
-For these servers, archiving and restoring a group while preserving
-marks is fairly simple.
-
-(Preserving the group level and group parameters as well still
-requires ritual dancing and sacrifices to the @file{.newsrc.eld} deity
-though.)
-
-To archive an entire @code{nnml}, @code{nnfolder}, or @code{nnmaildir}
-server, take a recursive copy of the server directory.  There is no need
-to shut down Gnus, so archiving may be invoked by @code{cron} or
-similar.  You restore the data by restoring the directory tree, and
-adding a server definition pointing to that directory in Gnus.  The
-@ref{Article Backlog}, @ref{Asynchronous Fetching} and other things
-might interfere with overwriting data, so you may want to shut down Gnus
-before you restore the data.
 
 @node Web Searches
 @subsection Web Searches
@@ -19432,7 +19409,7 @@ If you so desire, you can configure the agent (see @code{gnus-agent-cache}
 @pxref{Agent Variables}) to always download headers and articles while
 plugged.  Gnus will almost certainly be slower, but it will be kept
 synchronized with the server.  That last point probably won't make any
-sense if you are using a nntp or nnimap back end.
+sense if you are using an nntp or nnimap back end.
 
 @node Agent Expiry
 @subsection Agent Expiry
@@ -19828,10 +19805,11 @@ locally stored articles.
 @chapter Scoring
 @cindex scoring
 
-Other people use @dfn{kill files}, but we here at Gnus Towers like
-scoring better than killing, so we'd rather switch than fight.  They do
-something completely different as well, so sit up straight and pay
-attention!
+Other people use @dfn{kill files} (@pxref{Kill Files}, but we here at
+Gnus Towers like scoring better than killing, so we'd rather switch
+than fight.  Scoring and score files processing are more powerful and
+faster than processing of kill files.  Scoring also does something
+completely different as well, so sit up straight and pay attention!
 
 @vindex gnus-summary-mark-below
 All articles have a default score (@code{gnus-summary-default-score}),
@@ -26396,7 +26374,7 @@ If this option is non-@code{nil}, the registry will register all messages, as
 you see them.  This is important to making split-to-parent and
 Message-ID references work correctly, as the registry needs to know
 where all messages are, but it can slow down group opening and the
-saving of Gnus.  If this option is nil, entries must be created
+saving of Gnus.  If this option is @code{nil}, entries must be created
 manually, for instance by storing a custom flag or keyword for the
 message.
 @end defvar
@@ -26418,8 +26396,8 @@ This option specifies how registry entries are sorted during pruning.
 If a function is given, it should sort least valuable entries first,
 as pruning starts from the beginning of the list.  The default value
 is @code{gnus-registry-sort-by-creation-time}, which proposes the
-oldest entries for pruning.  Set to nil to perform no sorting, which
-will speed up the pruning process.
+oldest entries for pruning.  Set to @code{nil} to perform no sorting,
+which will speed up the pruning process.
 @end defvar
 
 @defvar gnus-registry-cache-file
@@ -26492,10 +26470,10 @@ have to put a rule like this:
 
 in your fancy split setup.
 
-If @code{gnus-registry-register-all} is non-@code{nil} (the default), the
-registry will perform splitting for all messages.  If it is nil,
-splitting will only happen for children of messages you've explicitly
-registered.
+If @code{gnus-registry-register-all} is non-@code{nil} (the default),
+the registry will perform splitting for all messages.  If it is
+@code{nil}, splitting will only happen for children of messages you've
+explicitly registered.
 
 In addition, you may want to customize the following variables.
 

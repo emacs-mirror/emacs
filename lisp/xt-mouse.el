@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -151,16 +151,22 @@ If `xterm-mouse-utf-8' was non-nil when
 `turn-on-xterm-mouse-tracking-on-terminal' was called, reads the
 coordinate as an UTF-8 code unit sequence; otherwise, reads a
 single byte."
-  (let ((previous-keyboard-coding-system (keyboard-coding-system)))
+  (let ((previous-keyboard-coding-system (keyboard-coding-system))
+        (utf-8-p (terminal-parameter nil 'xterm-mouse-utf-8))
+        ;; Prevent conversions inside 'read-char' due to input method,
+        ;; when we call 'read-char' below with 2nd argument non-nil.
+        (input-method-function nil))
     (unwind-protect
         (progn
-          (set-keyboard-coding-system
-           (if (terminal-parameter nil 'xterm-mouse-utf-8)
-               'utf-8-unix
-             'no-conversion))
-          ;; Wait only a little; we assume that the entire escape sequence
-          ;; has already been sent when this function is called.
-          (read-char nil nil 0.1))
+          (set-keyboard-coding-system (if utf-8-p 'utf-8-unix 'no-conversion))
+          (read-char nil
+                     ;; Force 'read-char' to decode UTF-8 sequences if
+                     ;; 'xterm-mouse-utf-8' is non-nil.
+                     utf-8-p
+                     ;; Wait only a little; we assume that the entire
+                     ;; escape sequence has already been sent when
+                     ;; this function is called.
+                     0.1))
       (set-keyboard-coding-system previous-keyboard-coding-system))))
 
 ;; In default mode, each numeric parameter of XTerm's mouse report is

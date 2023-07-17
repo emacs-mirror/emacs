@@ -1,6 +1,6 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -100,7 +100,10 @@ instead of the filename inheritance method."
 			     (setq retval
 				   (base64-encode-string
 				    (format "%s:%s" user
-					    (encode-coding-string pass 'utf-8))
+                                            (if pass
+					        (encode-coding-string pass
+                                                                      'utf-8)
+                                              ""))
                                     t))))
 		 (symbol-value url-basic-auth-storage))))
      (byserv

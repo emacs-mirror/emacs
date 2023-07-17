@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2022 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -1143,8 +1143,18 @@ The following commands are accepted by the client:
 	  (process-put proc :authenticated t)
 	  (server-log "Authentication successful" proc))
       (server-log "Authentication failed" proc)
+      ;; Display the error as a message and give the user time to see
+      ;; it, in case the error written by emacsclient to stderr is not
+      ;; visible for some reason.
+      (message "Authentication failed")
+      (sit-for 2)
       (server-send-string
        proc (concat "-error " (server-quote-arg "Authentication failed")))
+      (unless (eq system-type 'windows-nt)
+        (let ((terminal (process-get proc 'terminal)))
+          ;; Only delete the terminal if it is non-nil.
+          (when (and terminal (eq (terminal-live-p terminal) t))
+	    (delete-terminal terminal))))
       ;; Before calling `delete-process', give emacsclient time to
       ;; receive the error string and shut down on its own.
       (sit-for 1)
@@ -1462,10 +1472,20 @@ The following commands are accepted by the client:
 
 (defun server-return-error (proc err)
   (ignore-errors
+    ;; Display the error as a message and give the user time to see
+    ;; it, in case the error written by emacsclient to stderr is not
+    ;; visible for some reason.
+    (message (error-message-string err))
+    (sit-for 2)
     (server-send-string
      proc (concat "-error " (server-quote-arg
                              (error-message-string err))))
     (server-log (error-message-string err) proc)
+    (unless (eq system-type 'windows-nt)
+      (let ((terminal (process-get proc 'terminal)))
+        ;; Only delete the terminal if it is non-nil.
+        (when (and terminal (eq (terminal-live-p terminal) t))
+	  (delete-terminal terminal))))
     ;; Before calling `delete-process', give emacsclient time to
     ;; receive the error string and shut down on its own.
     (sit-for 5)
@@ -1929,12 +1949,22 @@ This sets the variable `server-stop-automatically' (which see)."
   ;; continue standard unloading
   nil)
 
+(define-error 'server-return-invalid-read-syntax
+              "Emacs server returned unreadable result of evaluation"
+              'invalid-read-syntax)
+
 (defun server-eval-at (server form)
   "Contact the Emacs server named SERVER and evaluate FORM there.
-Returns the result of the evaluation, or signals an error if it
-cannot contact the specified server.  For example:
+Returns the result of the evaluation.  For example:
   (server-eval-at \"server\" \\='(emacs-pid))
-returns the process ID of the Emacs instance running \"server\"."
+returns the process ID of the Emacs instance running \"server\".
+
+This function signals `error' if it could not contact the server.
+
+This function signals `server-return-invalid-read-syntax' if
+`read' fails on the result returned by the server.
+This will occur whenever the result of evaluating FORM is
+something that cannot be printed readably."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
          (server-file (expand-file-name server server-dir))
          (coding-system-for-read 'binary)
@@ -1980,8 +2010,14 @@ returns the process ID of the Emacs instance running \"server\"."
 					  (progn (skip-chars-forward "^\n")
 						 (point))))))
 	(if (not (equal answer ""))
-	    (read (decode-coding-string (server-unquote-arg answer)
-					'emacs-internal)))))))
+            (condition-case err
+	        (read
+                 (decode-coding-string (server-unquote-arg answer)
+				       'emacs-internal))
+              ;; Re-signal with a more specific condition.
+              (invalid-read-syntax
+               (signal 'server-return-invalid-read-syntax
+                       (cdr err)))))))))
 
 
 (provide 'server)

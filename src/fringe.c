@@ -1,5 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2022 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1997-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -211,14 +211,14 @@ static unsigned short right_curly_arrow_bits[] = {
 
 /* Large circle bitmap.  */
 /*
-  ........
   ..xxxx..
   .xxxxxx.
   xxxxxxxx
   xxxxxxxx
+  xxxxxxxx
+  xxxxxxxx
   .xxxxxx.
   ..xxxx..
-  ........
 */
 static unsigned short large_circle_bits[] = {
   0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c};

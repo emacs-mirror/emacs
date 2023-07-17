@@ -639,6 +639,20 @@ symbol: weblint
 index.html (13:1) Unknown element <fdjsk>
 
 
+* Typescript prior to tsc version 2.7, "plain" format
+
+symbol: typescript-tsc-plain
+
+greeter.ts(30,12): error TS2339: Property 'foo' does not exist.
+
+
+* Typescript after tsc version 2.7, "pretty" format
+
+symbol: typescript-tsc-pretty
+
+src/resources/document.ts:140:22 - error TS2362: something.
+
+
 * Directory tracking
 
 Directories are matched via 'compilation-directory-matcher'.  Files which are
@@ -688,7 +702,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004-2022 Free Software Foundation, Inc.
+Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

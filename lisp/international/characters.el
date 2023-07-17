@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -693,6 +693,16 @@ with L, LRE, or LRO Unicode bidi character type.")
   (setq c #x2B00)
   (while (<= c #x2BFF)
     (set-case-syntax c "_" tbl)
+    (setq c (1+ c)))
+
+  ;; Traditional Mongolian
+  (setq c #x1800)
+  (while (<= c #x180A)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (setq c #x11660)
+  (while (<= c #x1166C)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
   ;; Coptic

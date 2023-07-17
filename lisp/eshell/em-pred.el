@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -87,11 +87,11 @@ ordinary strings."
     (?U . (lambda (file)                   ; owned by effective uid
             (if (file-exists-p file)
                 (= (file-attribute-user-id (file-attributes file))
-                   (user-uid)))))
+                   (file-user-uid)))))
     (?G . (lambda (file)               ; owned by effective gid
             (if (file-exists-p file)
                 (= (file-attribute-group-id (file-attributes file))
-                   (group-gid)))))
+                   (file-group-gid)))))
     (?* . (lambda (file)
             (and (file-regular-p file)
                  (not (file-symlink-p file))
@@ -293,7 +293,7 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
     (forward-char)
     (let ((end (eshell-find-delimiter ?\( ?\))))
       (if (not end)
-	  (throw 'eshell-incomplete ?\()
+          (throw 'eshell-incomplete "(")
 	(when (eshell-arg-delimiter (1+ end))
 	  (save-restriction
 	    (narrow-to-region (point) end)

@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -163,6 +163,7 @@ Emacs we use it for all languages.
 * Left Margin Paren::   An open-paren or similar opening delimiter
                           starts a defun if it is at the left margin.
 * Moving by Defuns::    Commands to move over or mark a major definition.
+* Moving by Sentences:: Commands to move over certain code units.
 * Imenu::               Making buffer indexes as menus.
 * Which Function::      Which Function mode shows which function you are in.
 @end menu
@@ -253,6 +254,77 @@ an example of how major modes adjust the standard key bindings so that
 they do their standard jobs in a way better fitting a particular
 language.  Other major modes may replace any or all of these key
 bindings for that purpose.
+
+@cindex nested defuns
+@vindex treesit-defun-tactic
+  Some programming languages supported @dfn{nested defuns}, whereby a
+defun (such as a function or a method or a class) can be defined
+inside (i.e., as part of the body) of another defun.  The commands
+described above by default find the beginning and the end of the
+@emph{innermost} defun around point.  Major modes based on the
+tree-sitter library provide control of this behavior: if the variable
+@code{treesit-defun-tactic} is set to the value @code{top-level}, the
+defun commands will find the @emph{outermost} defuns instead.
+
+@node Moving by Sentences
+@subsection Moving by Sentences
+@cindex sentences, in programming languages
+
+  These commands move point or set up the region based on units of
+code, also called @dfn{sentences}.  Even though sentences are usually
+considered when writing human languages, Emacs can use the same
+commands to move over certain constructs in programming languages
+(@pxref{Sentences}, @pxref{Moving by Defuns}).  In a programming
+language a sentence is usually a complete language construct smaller
+than defuns, but larger than sexps (@pxref{List Motion,,, elisp, The
+Emacs Lisp Reference Manual}).  What exactly is a sentence in this
+case depends on the programming language, but usually it is a complete
+statement, such as a variable definition and initialization, or a
+conditional statement.  An example of a sentence in the C language
+could be
+
+@example
+int x = 5;
+@end example
+
+@noindent
+or in the JavaScript language it could look like
+
+@example
+@group
+const thing = () => console.log("Hi");
+@end group
+@group
+const foo = [1] == '1'
+  ? "No way"
+  : "...";
+@end group
+
+@end example
+
+@table @kbd
+@item M-a
+Move to beginning of current or preceding sentence
+(@code{backward-sentence}).
+@item M-e
+Move to end of current or following sentence (@code{forward-sentence}).
+@end table
+
+@cindex move to beginning or end of sentence
+@cindex sentence, move to beginning or end
+@kindex M-a @r{(programming modes)}
+@kindex M-e @r{(programming modes)}
+@findex backward-sentence @r{(programming modes)}
+@findex forward-sentence @r{(programming modes)}
+  The commands to move to the beginning and end of the current
+sentence are @kbd{M-a} (@code{backward-sentence}) and @kbd{M-e}
+(@code{forward-sentence}).  If you repeat one of these commands, or
+use a positive numeric argument, each repetition moves to the next
+sentence in the direction of motion.
+
+  @kbd{M-a} with a negative argument @minus{}@var{n} moves forward
+@var{n} times to the next end of a sentence.  Likewise, @kbd{M-e} with
+a negative argument moves back to the start of a sentence.
 
 @node Imenu
 @subsection Imenu
@@ -538,20 +610,27 @@ then indent it like this:
 @item C-c C-q
 @kindex C-c C-q @r{(C mode)}
 @findex c-indent-defun
+@findex c-ts-mode-indent-defun
 Reindent the current top-level function definition or aggregate type
-declaration (@code{c-indent-defun}).
+declaration (@code{c-indent-defun} in CC mode,
+@code{c-ts-mode-indent-defun} in @code{c-ts-mode} based on tree-sitter).
 
 @item C-M-q
 @kindex C-M-q @r{(C mode)}
 @findex c-indent-exp
-Reindent each line in the balanced expression that follows point
-(@code{c-indent-exp}).  A prefix argument inhibits warning messages
-about invalid syntax.
+@findex prog-indent-sexp
+Reindent each line in the balanced expression (@pxref{Expressions}),
+also known as ``sexp'', that follows point.  In CC mode, this invokes
+@code{c-indent-exp}; in tree-sitter based @code{c-ts-mode} this
+invokes a more general @code{prog-indent-sexp}.  A prefix argument
+inhibits warning messages about invalid syntax.
 
 @item @key{TAB}
 @findex c-indent-line-or-region
 Reindent the current line, active region, or block starting on this
-line (@code{c-indent-line-or-region}).
+line (@code{c-indent-line-or-region}).  With prefix argument, rigidly
+reindent the balanced expression which starts on the current line, if
+the current line needs reindentation.
 
 @vindex c-tab-always-indent
 If @code{c-tab-always-indent} is @code{t}, this command always reindents
@@ -586,7 +665,8 @@ onto the indentation of the @dfn{anchor statement}.
 
 @table @kbd
 @item C-c . @var{style} @key{RET}
-Select a predefined style @var{style} (@code{c-set-style}).
+Select a predefined style @var{style} (@code{c-set-style} in CC mode,
+@code{c-ts-mode-set-style} in @code{c-ts-mode} based on tree-sitter).
 @end table
 
   A @dfn{style} is a named collection of customizations that can be
@@ -602,6 +682,7 @@ typing @kbd{C-M-q} at the start of a function definition.
 
 @kindex C-c . @r{(C mode)}
 @findex c-set-style
+@findex c-ts-mode-set-style
   To choose a style for the current buffer, use the command @w{@kbd{C-c
 .}}.  Specify a style name as an argument (case is not significant).
 This command affects the current buffer only, and it affects only
@@ -610,11 +691,11 @@ the code already in the buffer.  To reindent the whole buffer in the
 new style, you can type @kbd{C-x h C-M-\}.
 
 @vindex c-default-style
-  You can also set the variable @code{c-default-style} to specify the
-default style for various major modes.  Its value should be either the
-style's name (a string) or an alist, in which each element specifies
-one major mode and which indentation style to use for it.  For
-example,
+  When using CC mode, you can also set the variable
+@code{c-default-style} to specify the default style for various major
+modes.  Its value should be either the style's name (a string) or an
+alist, in which each element specifies one major mode and which
+indentation style to use for it.  For example,
 
 @example
 (setq c-default-style
@@ -630,6 +711,11 @@ actually the defaults.)  This variable takes effect when you select
 one of the C-like major modes; thus, if you specify a new default
 style for Java mode, you can make it take effect in an existing Java
 mode buffer by typing @kbd{M-x java-mode} there.
+
+@vindex c-ts-mode-indent-style
+  When using the tree-sitter based @code{c-ts-mode}, you can set the
+default indentation style by customizing the variable
+@code{c-ts-mode-indent-style}.
 
   The @code{gnu} style specifies the formatting recommended by the GNU
 Project for C; it is the default, so as to encourage use of our
@@ -1088,14 +1174,17 @@ were negated.
 
 @findex comment-kill
 @kindex C-u M-;
-  @kbd{C-u M-;} (@code{comment-dwim} with a prefix argument) kills any
-comment on the current line, along with the whitespace before it.
-Since the comment is saved to the kill ring, you can reinsert it on
-another line by moving to the end of that line, doing @kbd{C-y}, and
-then @kbd{M-;} to realign the comment.  You can achieve the same
-effect as @kbd{C-u M-;} by typing @kbd{M-x comment-kill}
-(@code{comment-dwim} actually calls @code{comment-kill} as a
-subroutine when it is given a prefix argument).
+  @kbd{C-u M-;} (@code{comment-dwim} with a prefix argument) when the
+region is not active kills any comment on the current line, along with
+the whitespace before it.  Since the comment is saved to the kill
+ring, you can reinsert it on another line by moving to the end of that
+line, doing @kbd{C-y}, and then @kbd{M-;} to realign the comment.  You
+can achieve the same effect as @kbd{C-u M-;} by typing @kbd{M-x
+comment-kill} (@code{comment-dwim} actually calls @code{comment-kill}
+as a subroutine when it is given a prefix argument).  Invoking
+@code{comment-dwim} with a prefix numeric argument, as in @w{@kbd{C-u
+@var{n} M-;}}, when there's no active region, tells
+@code{comment-kill} to kill comments on @var{n} lines.
 
 @kindex C-c C-c @r{(C mode)}
 @findex comment-region
@@ -1300,6 +1389,12 @@ this, change the value of the variable @code{Man-switches} to
 @samp{"-a"}.  Then, in the Man mode buffer, you can type @kbd{M-n} and
 @kbd{M-p} to switch between man pages in different sections.  The mode
 line shows how many manual pages are available.
+
+@vindex Man-prefer-synchronous-call
+  By default, @kbd{M-x man} calls the @code{man} program
+asynchronously.  You can force the invocation to be synchronous by
+customizing @code{Man-prefer-synchronous-calls} to a non-@code{nil}
+value.
 
 @findex woman
 @cindex manual pages, on MS-DOS/MS-Windows

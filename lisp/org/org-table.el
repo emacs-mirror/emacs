@@ -1,6 +1,6 @@
 ;;; org-table.el --- The Table Editor for Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1229,7 +1229,7 @@ Return t when the line exists, nil if it does not exist."
     (if (looking-at "|[^|\n]+")
 	(let* ((pos (match-beginning 0))
 	       (match (match-string 0))
-	       (len (org-string-width match)))
+	       (len (save-match-data (org-string-width match))))
 	  (replace-match (concat "|" (make-string (1- len) ?\ )))
 	  (goto-char (+ 2 pos))
 	  (substring match 1)))))
@@ -1725,8 +1725,12 @@ In particular, this does handle wide and invisible characters."
       (setq s (mapconcat (lambda (x) (if (member x '(?| ?+)) "|" " ")) s ""))
     (while (string-match "|\\([ \t]*?[^ \t\r\n|][^\r\n|]*\\)|" s)
       (setq s (replace-match
-	       (concat "|" (make-string (org-string-width (match-string 1 s))
-					?\ ) "|")
+	       (concat "|"
+                       (make-string
+                        (save-match-data
+                          (org-string-width (match-string 1 s)))
+			?\ )
+                       "|")
 	       t t s)))
     s))
 
@@ -2614,6 +2618,7 @@ location of point."
 
 	(if lispp
 	    (setq ev (condition-case nil
+                         ;; FIXME: Arbitrary code evaluation.
 			 (eval (eval (read form)))
 		       (error "#ERROR"))
 		  ev (if (numberp ev) (number-to-string ev) ev)
@@ -2856,7 +2861,7 @@ list, `literal' is for the format specifier L."
       (if lispp
 	  (if (eq lispp 'literal)
 	      elements
-	    (if (and (eq elements "") (not keep-empty))
+	    (if (and (equal elements "") (not keep-empty))
 		""
 	      (prin1-to-string
 	       (if numbers (string-to-number elements) elements))))
@@ -5409,12 +5414,10 @@ overwritten, and the table is not marked as requiring realignment."
 	(self-insert-command N))
     (setq org-table-may-need-update t)
     (let* (orgtbl-mode
-	   a
 	   (cmd (or (key-binding
 		     (or (and (listp function-key-map)
-			      (setq a (assoc last-input-event function-key-map))
-			      (cdr a))
-			 (vector last-input-event)))
+			      (cdr (assoc last-command-event function-key-map)))
+			 (vector last-command-event)))
 		    'self-insert-command)))
       (call-interactively cmd)
       (if (and org-self-insert-cluster-for-undo
@@ -6129,9 +6132,13 @@ supported."
   (with-temp-buffer
     (insert (orgtbl-to-orgtbl table params))
     (org-table-align)
-    (replace-regexp-in-string
-     "-|" "-+"
-     (replace-regexp-in-string "|-" "+-" (buffer-substring 1 (buffer-size))))))
+    (goto-char (point-min))
+    (while (search-forward "-|" nil t)
+      (replace-match "-+"))
+    (goto-char (point-min))
+    (while (search-forward "|-" nil t)
+      (replace-match "+-"))
+    (buffer-string)))
 
 (defun orgtbl-to-unicode (table params)
   "Convert the `orgtbl-mode' TABLE into a table with unicode characters.

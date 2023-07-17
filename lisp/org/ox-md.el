@@ -1,6 +1,6 @@
 ;;; ox-md.el --- Markdown Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
@@ -486,7 +486,7 @@ channel."
     (_ (org-export-with-backend 'html keyword contents info))))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 (defun org-md-latex-environment (latex-environment _contents info)
   "Transcode a LATEX-ENVIRONMENT object from Org to Markdown.
@@ -501,7 +501,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
                                     latex-frag)
         latex-frag))))
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 (defun org-md-latex-fragment (latex-fragment _contents info)
   "Transcode a LATEX-FRAGMENT object from Org to Markdown.

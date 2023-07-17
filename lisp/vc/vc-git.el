@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -314,6 +314,23 @@ Good example of file name that needs this: \"test[56].xx\".")
                                      version-string))
                   (string-trim-right (match-string 1 version-string) "\\.")
                 "0")))))
+
+(defun vc-git--git-path (&optional path)
+  "Resolve .git/PATH for the current working tree.
+In particular, handle the case where this is a linked working
+tree, such that .git is a plain file.
+
+See the --git-dir and --git-path options to git-rev-parse(1)."
+  (if (and path (not (string-empty-p path)))
+      ;; Canonicalize in this branch because --git-dir always returns
+      ;; an absolute file name.
+      (expand-file-name
+       (string-trim-right
+        (vc-git--run-command-string nil "rev-parse"
+                                    "--git-path" path)))
+    (concat (string-trim-right
+             (vc-git--run-command-string nil "rev-parse" "--git-dir"))
+            "/")))
 
 (defun vc-git--git-status-to-vc-state (code-list)
   "Convert CODE-LIST to a VC status.
@@ -759,12 +776,32 @@ or an empty string if none."
 		  :help "Show the contents of the current stash"))
     map))
 
+(defun vc-git--cmds-in-progress ()
+  "Return a list of Git commands in progress in this worktree."
+  (let ((gitdir (vc-git--git-path))
+        cmds)
+    ;; See contrib/completion/git-prompt.sh in git.git.
+    (when (or (file-directory-p
+	       (expand-file-name "rebase-merge" gitdir))
+	      (file-exists-p
+	       (expand-file-name "rebase-apply/rebasing" gitdir)))
+      (push 'rebase cmds))
+    (when (file-exists-p
+	   (expand-file-name "rebase-apply/applying" gitdir))
+      (push 'am cmds))
+    (when (file-exists-p (expand-file-name "MERGE_HEAD" gitdir))
+      (push 'merge cmds))
+    (when (file-exists-p (expand-file-name "BISECT_START" gitdir))
+      (push 'bisect cmds))
+    cmds))
+
 (defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
 	(stash-list (vc-git-stash-list))
         (default-directory dir)
+        (in-progress (vc-git--cmds-in-progress))
 
 	branch remote remote-url stash-button stash-string)
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
@@ -839,9 +876,9 @@ or an empty string if none."
 	(propertize remote-url
 		    'face 'vc-dir-header-value)))
      ;; For now just a heading, key bindings can be added later for various bisect actions
-     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root dir)))
+     (when (memq 'bisect in-progress)
        (propertize  "\nBisect     : in progress" 'face 'vc-dir-status-warning))
-     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root dir)))
+     (when (memq 'rebase in-progress)
        (propertize  "\nRebase     : in progress" 'face 'vc-dir-status-warning))
      (if stash-list
          (concat
@@ -999,6 +1036,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
   (let ((vc-git-patch-string patch-string))
     (vc-git-checkin nil comment)))
 
+(autoload 'vc-switches "vc")
+
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
@@ -1041,7 +1080,14 @@ It is based on `log-edit-mode', and has Git-specific extensions."
         ;;    want to commit any changes to that file, we need to
         ;;    stash those changes before committing.
         (with-temp-buffer
-          (vc-git-command (current-buffer) t nil "diff" "--cached")
+          ;; If the user has switches like -D, -M etc. in their
+          ;; `vc-git-diff-switches', we must pass them here too, or
+          ;; our string matches will fail.
+          (if vc-git-diff-switches
+              (apply #'vc-git-command (current-buffer) t nil
+                     "diff" "--cached" (vc-switches 'git 'diff))
+            ;; Following code doesn't understand plain diff(1) output.
+            (user-error "Cannot commit patch with nil `vc-git-diff-switches'"))
           (goto-char (point-min))
           (let ((pos (point)) file-name file-header file-diff file-beg)
             (while (not (eobp))
@@ -1243,6 +1289,7 @@ If PROMPT is non-nil, prompt for the Git command to run."
                           (lambda (_name-of-mode) buffer)
                           nil))))
     (vc-set-async-update buffer)
+    ;; Return the process for `vc-pull-and-push'
     proc))
 
 (defun vc-git-pull (prompt)
@@ -1257,25 +1304,6 @@ Normally, this runs \"git push\".  If PROMPT is non-nil, prompt
 for the Git command to run."
   (vc-git--pushpull "push" prompt nil))
 
-(defun vc-git-pull-and-push (prompt)
-  "Pull changes into the current Git branch, and then push.
-The push will only be performed if the pull was successful.
-
-Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
-for the Git command to run."
-  (let ((proc (vc-git--pushpull "pull" prompt '("--stat"))))
-    (when (process-buffer proc)
-      (with-current-buffer (process-buffer proc)
-        (if (and (eq (process-status proc) 'exit)
-                 (zerop (process-exit-status proc)))
-            (let ((vc--inhibit-async-window t))
-              (vc-git-push nil))
-          (vc-exec-after
-           (lambda ()
-             (let ((vc--inhibit-async-window t))
-               (vc-git-push nil)))
-           proc))))))
-
 (defun vc-git-merge-branch ()
   "Merge changes into the current Git branch.
 This prompts for a branch to merge from."
@@ -1286,8 +1314,7 @@ This prompts for a branch to merge from."
 	  (completing-read "Merge from branch: "
 			   (if (or (member "FETCH_HEAD" branches)
 				   (not (file-readable-p
-					 (expand-file-name ".git/FETCH_HEAD"
-							   root))))
+                                         (vc-git--git-path "FETCH_HEAD"))))
 			       branches
 			     (cons "FETCH_HEAD" branches))
 			   nil t)))
@@ -1332,8 +1359,7 @@ This prompts for a branch to merge from."
       (unless (or
                (not (eq vc-git-resolve-conflicts 'unstage-maybe))
                ;; Doing a merge, so bug#20292 doesn't apply.
-               (file-exists-p (expand-file-name ".git/MERGE_HEAD"
-                                                (vc-git-root buffer-file-name)))
+               (file-exists-p (vc-git--git-path "MERGE_HEAD"))
                (vc-git-conflicted-files (vc-git-root buffer-file-name)))
         (vc-git-command nil 0 nil "reset"))
       (vc-resynch-buffer buffer-file-name t t)
@@ -1374,8 +1400,6 @@ This prompts for a branch to merge from."
   "If true, follow renames in Git logs for a single file."
   :type 'boolean
   :version "26.1")
-
-(autoload 'vc-switches "vc")
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -1699,14 +1723,19 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
+(autoload 'decoded-time-set-defaults "time-date")
+(autoload 'iso8601-parse "iso8601")
+
 (defun vc-git-annotate-time ()
-  (and (re-search-forward "^[0-9a-f^]+[^()]+(.*?\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\(:?\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\)\\)? *[0-9]+) " nil t)
-       (vc-annotate-convert-time
-        (apply #'encode-time (mapcar (lambda (match)
-                                       (if (match-beginning match)
-                                           (string-to-number (match-string match))
-                                         0))
-                                     '(6 5 4 3 2 1 7))))))
+  (and (re-search-forward "^[0-9a-f^]+[^()]+(.*?\\([0-9]+-[0-9]+-[0-9]+\\)\\(?: \\([0-9]+:[0-9]+:[0-9]+\\) \\([-+0-9]+\\)\\)? +[0-9]+) " nil t)
+       (let* ((dt (match-string 1))
+              (dt (if (not (match-beginning 2)) dt
+                    ;; Format as ISO 8601.
+                    (concat dt "T" (match-string 2) (match-string 3))))
+              (decoded (ignore-errors (iso8601-parse dt))))
+         (and decoded
+              (vc-annotate-convert-time
+               (encode-time (decoded-time-set-defaults decoded)))))))
 
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion

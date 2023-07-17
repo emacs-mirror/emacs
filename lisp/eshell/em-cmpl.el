@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -74,9 +74,7 @@
 (require 'esh-util)
 (require 'em-dirs)
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'eshell))
+(eval-when-compile (require 'cl-lib))
 
 ;;;###autoload
 (progn
@@ -306,15 +304,35 @@ to writing a completion function."
     (insert-and-inherit "\t")
     (throw 'pcompleted t)))
 
+(defun eshell-complete--eval-argument-form (arg)
+  "Evaluate a single Eshell argument form ARG for the purposes of completion."
+  (condition-case err
+      (let* (;; Don't allow running commands; they could have
+             ;; arbitrary side effects, which we don't want when we're
+             ;; just performing completions!
+             (eshell-allow-commands)
+             ;; Handle errors ourselves so that we can properly catch
+             ;; `eshell-commands-forbidden'.
+             (eshell-handle-errors)
+             (result (eshell-do-eval `(eshell-commands ,arg) t)))
+        (cl-assert (eq (car result) 'quote))
+        (cadr result))
+    (eshell-commands-forbidden
+     (propertize "\0" 'eshell-argument-stub
+                 (intern (format "%s-command" (cadr err)))))
+    (error
+     (lwarn 'eshell :error
+            "Failed to evaluate argument form during completion: %S" arg)
+     (propertize "\0" 'eshell-argument-stub 'error))))
+
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
 	     (eshell-interactive-process-p))
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
-	(begin (save-excursion (eshell-bol) (point)))
-	(posns (list t))
-	args delim)
+	(begin (save-excursion (beginning-of-line) (point)))
+	args posns delim incomplete-arg)
     (when (and pcomplete-allow-modifications
 	       (memq this-command '(pcomplete-expand
 			            pcomplete-expand-and-complete)))
@@ -322,33 +340,38 @@ to writing a completion function."
       (if (= begin end)
 	  (end-of-line))
       (setq end (point-marker)))
-    (if (setq delim
-	      (catch 'eshell-incomplete
-		(ignore
-		 (setq args (eshell-parse-arguments begin end)))))
-	(cond ((memq (car delim) '(?\{ ?\<))
-	       (setq begin (1+ (cadr delim))
-		     args (eshell-parse-arguments begin end)))
-	      ((eq (car delim) ?\()
-	       (throw 'pcompleted (elisp-completion-at-point)))
-	      (t
-	       (eshell--pcomplete-insert-tab))))
+    ;; Don't expand globs when parsing arguments; we want to pass any
+    ;; globs to Pcomplete unaltered.
+    (declare-function eshell-parse-glob-chars "em-glob" ())
+    (let ((eshell-parse-argument-hook (remq #'eshell-parse-glob-chars
+                                            eshell-parse-argument-hook)))
+      (if (setq delim
+	        (catch 'eshell-incomplete
+		  (ignore
+		   (setq args (eshell-parse-arguments begin end)))))
+          (cond ((member (car delim) '("{" "${" "$<"))
+	         (setq begin (1+ (cadr delim))
+		       args (eshell-parse-arguments begin end)))
+                ((member (car delim) '("$'" "$\"" "#<"))
+                 ;; Add the (incomplete) argument to our arguments, and
+                 ;; note its position.
+                 (setq args (append (nth 2 delim) (list (car delim)))
+                       incomplete-arg t)
+                 (push (- (nth 1 delim) 2) posns))
+                ((member (car delim) '("(" "$("))
+	         (throw 'pcompleted (elisp-completion-at-point)))
+	        (t
+	         (eshell--pcomplete-insert-tab)))))
     (when (get-text-property (1- end) 'comment)
       (eshell--pcomplete-insert-tab))
-    (let ((pos begin))
-      (while (< pos end)
-	(if (get-text-property pos 'arg-begin)
-	    (nconc posns (list pos)))
-	(setq pos (1+ pos))))
-    (setq posns (cdr posns))
+    (let ((pos (1- end)))
+      (while (>= pos begin)
+        (when (get-text-property pos 'arg-begin)
+          (push pos posns))
+        (setq pos (1- pos))))
     (cl-assert (= (length args) (length posns)))
     (let ((a args) (i 0) new-start)
       (while a
-        ;; Remove any top-level `eshell-splice-args' sigils.  These
-        ;; are meant to be rewritten and can't actually be called.
-        (when (and (consp (car a))
-                   (eq (caar a) 'eshell-splice-args))
-          (setcar a (cadar a)))
         ;; If there's an unreplaced `eshell-operator' sigil, consider
         ;; the token after it the new start of our arguments.
         (when (and (consp (car a))
@@ -360,54 +383,47 @@ to writing a completion function."
 	(setq args (nthcdr (1+ new-start) args)
 	      posns (nthcdr (1+ new-start) posns))))
     (cl-assert (= (length args) (length posns)))
-    (when (and args (eq (char-syntax (char-before end)) ? )
+    (when (and args (not incomplete-arg)
+               (eq (char-syntax (char-before end)) ? )
 	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
       (nconc posns (list (point))))
+    ;; Evaluate and expand Eshell forms.
+    (let (evaled-args evaled-posns)
+      (cl-mapc
+       (lambda (arg posn)
+         (pcase arg
+           (`(eshell-splice-args ,val)
+            (dolist (subarg (eshell-complete--eval-argument-form val))
+              (push subarg evaled-args)
+              (push posn evaled-posns)))
+           ((pred listp)
+            (push (eshell-complete--eval-argument-form arg) evaled-args)
+            (push posn evaled-posns))
+           (_
+            (push arg evaled-args)
+            (push posn evaled-posns))))
+       args posns)
+      (setq args (nreverse evaled-args)
+            posns (nreverse evaled-posns)))
+    ;; Convert arguments to forms that Pcomplete can understand.
     (cons (mapcar
            (lambda (arg)
-             (let ((val
-                    (if (listp arg)
-                        (let ((result
-                               (eshell-do-eval
-                                (list 'eshell-commands arg) t)))
-                          (cl-assert (eq (car result) 'quote))
-                          (cadr result))
-                      arg)))
-               (cond ((numberp val)
-                      (setq val (number-to-string val)))
-                     ;; expand .../ etc that only eshell understands to
-                     ;; standard ../../
-                     ((and (stringp val)) (string-match "\\.\\.\\.+/" val)
-                      (setq val (eshell-expand-multiple-dots val))))
-               (or val "")))
+             (pcase arg
+               ;; Expand ".../" etc that only Eshell understands to
+               ;; the standard "../../".
+               ((rx ".." (+ ".") "/")
+                (propertize (eshell-expand-multiple-dots arg)
+                            'pcomplete-arg-value arg))
+               ((pred stringp)
+                arg)
+               ('nil
+                (propertize "" 'pcomplete-arg-value arg))
+               (_
+                (propertize (eshell-stringify arg)
+                            'pcomplete-arg-value arg))))
 	   args)
 	  posns)))
-
-(defun eshell--pcomplete-executables ()
-  "Complete amongst a list of directories and executables.
-
-Wrapper for `pcomplete-executables' or `pcomplete-dirs-or-entries',
-depending on the value of `eshell-force-execution'.
-
-Adds path prefix to candidates independent of `action' value."
-  ;; `pcomplete-entries' returns filenames without path on `action' to
-  ;; use current string directory as done in `completion-file-name-table'
-  ;; when `action' is nil to construct executable candidates.
-  (let ((table (if eshell-force-execution
-                   (pcomplete-dirs-or-entries nil #'file-readable-p)
-                 (pcomplete-executables))))
-    (lambda (string pred action)
-      (let ((cands (funcall table string pred action)))
-        (if (eq action t)
-            (let ((specdir (file-name-directory string)))
-              (mapcar
-               (lambda (cand)
-                 (if (stringp cand)
-                     (file-name-concat specdir cand)
-                   cand))
-               cands))
-          cands)))))
 
 (defun eshell--complete-commands-list ()
   "Generate list of applicable, visible commands."
@@ -419,11 +435,19 @@ Adds path prefix to candidates independent of `action' value."
          ;; we complete.  Adjust `pcomplete-stub' accordingly!
 	 (if (and (> (length pcomplete-stub) 0)
 	          (eq (aref pcomplete-stub 0) eshell-explicit-command-char))
-	     (setq pcomplete-stub (substring pcomplete-stub 1)))))
-    (completion-table-dynamic
-     (lambda (filename)
-       (if (file-name-directory filename)
-           (eshell--pcomplete-executables)
+             (setq pcomplete-stub (substring pcomplete-stub 1))))
+        (filename (pcomplete-arg)))
+    ;; Do not use `completion-table-dynamic' when completing a command file
+    ;; name since it doesn't know about boundaries and would end up doing silly
+    ;; things like adding a SPC char when completing to "/usr/sbin/".
+    ;;
+    ;; If you work on this function, be careful not to reintroduce bug#48995.
+    (if (file-name-directory filename)
+        (if eshell-force-execution
+            (pcomplete-dirs-or-entries nil #'file-readable-p)
+          (pcomplete-executables))
+      (completion-table-dynamic
+       (lambda (filename)
 	 (let* ((paths (eshell-get-path))
 		(cwd (file-name-as-directory
 		      (expand-file-name default-directory)))

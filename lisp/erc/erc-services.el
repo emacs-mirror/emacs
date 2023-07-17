@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcNickserv
@@ -102,6 +102,7 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
 	 (when (featurep 'erc-services)
 	   (erc-nickserv-identify-mode val))))
 
+;;;###autoload(put 'nickserv 'erc--module 'services)
 ;;;###autoload(autoload 'erc-services-mode "erc-services" nil t)
 (define-erc-module services nickserv
   "This mode automates communication with services."
@@ -180,9 +181,9 @@ Called with a subset of keyword parameters known to
 `auth-source-search' and relevant to authenticating to nickname
 services.  In return, ERC expects a string to send as the
 password, or nil, to fall through to the next method, such as
-prompting.  See info node `(erc) auth-source' for details."
-  :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
-  :type '(choice (const erc-auth-source-search)
+prompting.  See Info node `(erc) auth-source' for details."
+  :package-version '(ERC . "5.5")
+  :type '(choice (function-item erc-auth-source-search)
                  (const nil)
                  function))
 
@@ -511,6 +512,127 @@ Returns t if the identify message could be sent, nil otherwise."
     (erc-error "Cannot find a password for nickname %s"
                nick)
     nil))
+
+
+;;;; Regaining nicknames
+
+(defcustom erc-services-regain-alist nil
+  "Alist mapping networks to nickname-regaining functions.
+This option depends on the `services-regain' module being loaded.
+Keys can also be symbols for user-provided \"context IDs\" (see
+Info node `Network Identifier').  Functions run once, when first
+establishing a logical IRC connection.  Although ERC currently
+calls them with one argument, the desired but rejected nickname,
+robust user implementations should leave room for later additions
+by defining an &rest _ parameter, as well.
+
+The simplest value is `erc-services-retry-nick-on-connect', which
+attempts to kill off stale connections without engaging services
+at all.  Others, like `erc-services-issue-regain', and
+`erc-services-issue-ghost-and-retry-nick', only speak a
+particular flavor of NickServ.  See their respective doc strings
+for details and use cases."
+  :package-version '(ERC . "5.6")
+  :group 'erc-hooks
+  :type '(alist :key-type (symbol :tag "Network")
+                :value-type
+                (choice :tag "Strategy function"
+                        (function-item erc-services-retry-nick-on-connect)
+                        (function-item erc-services-issue-regain)
+                        (function-item erc-services-issue-ghost-and-retry-nick)
+                        function)))
+
+(defun erc-services-retry-nick-on-connect (want)
+  "Try at most once to grab nickname WANT after reconnecting.
+Expect to be used when automatically reconnecting to servers
+that are slow to abandon the previous connection.
+
+Note that this strategy may only work under certain conditions,
+such as when a user's account name matches their nick."
+  (erc-cmd-NICK want))
+
+(defun erc-services-issue-regain (want)
+  "Ask NickServ to regain nickname WANT.
+Assume WANT belongs to the user and that the services suite
+offers a \"REGAIN\" sub-command."
+  (erc-cmd-MSG (concat "NickServ REGAIN " want)))
+
+(defun erc-services-issue-ghost-and-retry-nick (want)
+  "Ask NickServ to \"GHOST\" nickname WANT.
+After which, attempt to grab WANT before the contending party
+reconnects.  Assume the ERC user owns WANT and that the server's
+services suite lacks a \"REGAIN\" command.
+
+Note that this function will only work for a specific services
+implementation and is meant primarily as an example for adapting
+as needed."
+  ;; While heuristics based on error text may seem brittle, consider
+  ;; the fact that \"is not online\" has been present in Atheme's
+  ;; \"GHOST\" responses since at least 2005.
+  (letrec ((attempts 3)
+           (on-notice
+            (lambda (_proc parsed)
+              (when-let ((nick (erc-extract-nick
+                                (erc-response.sender parsed)))
+                         ((erc-nick-equal-p nick "nickserv"))
+                         (contents (erc-response.contents parsed))
+                         (case-fold-search t)
+                         ((string-match (rx (or "ghost" "is not online"))
+                                        contents)))
+                (setq attempts 1)
+                (erc-server-send (concat "NICK " want) 'force))
+              (when (zerop (cl-decf attempts))
+                (remove-hook 'erc-server-NOTICE-functions on-notice t))
+              nil)))
+    (add-hook 'erc-server-NOTICE-functions on-notice nil t)
+    (erc-message "PRIVMSG" (concat "NickServ GHOST " want))))
+
+;;;###autoload(put 'services-regain 'erc--feature 'erc-services)
+(define-erc-module services-regain nil
+  "Reacquire a nickname from your past self or some interloper.
+This module only concerns itself with initial nick rejections
+that occur during connection registration in response to an
+opening \"NICK\" command.  More specifically, the following
+conditions must be met for ERC to activate this mechanism and
+consider its main option, `erc-services-regain-alist':
+
+  - the server must reject the opening \"NICK\" request
+  - ERC must request a temporary nickname
+  - the user must successfully authenticate
+
+In practical terms, this means that this module, which is still
+somewhat experimental, is likely only useful in conjunction with
+SASL authentication rather than the traditional approach provided
+by the `services' module it shares a library with (see Info
+node `(erc) SASL' for more)."
+  nil nil 'local)
+
+(cl-defmethod erc--nickname-in-use-make-request
+  ((want string) temp &context (erc-server-connected null)
+   (erc-services-regain-mode (eql t))
+   (erc-services-regain-alist cons))
+  "Schedule possible regain attempt upon establishing connection.
+Expect WANT to be the desired nickname and TEMP to be the current
+one."
+  (letrec
+      ((after-connect
+        (lambda (_ nick)
+          (remove-hook 'erc-after-connect after-connect t)
+          (when-let*
+              (((equal temp nick))
+               (conn (or (erc-networks--id-given erc-networks--id)
+                         (erc-network)))
+               (found (alist-get conn erc-services-regain-alist)))
+            (funcall found want))))
+       (on-900
+        (lambda (_ parsed)
+          (remove-hook 'erc-server-900-functions on-900 t)
+          (unless erc-server-connected
+            (when (equal (car (erc-response.command-args parsed)) temp)
+              (add-hook 'erc-after-connect after-connect nil t)))
+          nil)))
+    (add-hook 'erc-server-900-functions on-900 nil t))
+  (cl-call-next-method))
 
 (provide 'erc-services)
 

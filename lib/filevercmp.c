@@ -2,7 +2,7 @@
 
    Copyright (C) 1995 Ian Jackson <iwj10@cus.cam.ac.uk>
    Copyright (C) 2001 Anthony Towns <aj@azure.humbug.org.au>
-   Copyright (C) 2008-2022 Free Software Foundation, Inc.
+   Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as

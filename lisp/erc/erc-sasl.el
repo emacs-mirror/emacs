@@ -1,6 +1,6 @@
 ;;; erc-sasl.el --- SASL for ERC -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -24,13 +24,13 @@
 ;;
 ;; https://lists.gnu.org/archive/html/erc-discuss/2012-02/msg00001.html
 ;;
-;; See options and Info manual for usage.
+;; See M-x customize-group RET erc-sasl RET and (info "(erc) SASL")
+;; for usage.
 ;;
 ;; TODO:
 ;;
-;; - Find a way to obfuscate the password in memory (via something
-;;   like `auth-source--obfuscate'); it's currently visible in
-;;   backtraces.
+;; - Obfuscate non-auth-source passwords in memory.  They're currently
+;;   visible in backtraces.
 ;;
 ;; - Implement a proxy mechanism that chooses the strongest available
 ;;   mechanism for you.  Requires CAP 3.2 (see bug#49860).
@@ -52,7 +52,7 @@
 (defgroup erc-sasl nil
   "SASL for ERC."
   :group 'erc
-  :package-version '(ERC . "5.4.1")) ; FIXME increment on next release
+  :package-version '(ERC . "5.5"))
 
 (defcustom erc-sasl-mechanism 'plain
   "SASL mechanism to connect with.
@@ -67,29 +67,28 @@ Note that any value other than nil or `external' likely requires
 
 (defcustom erc-sasl-user :user
   "Account username to send when authenticating.
-This is also referred to as the authentication identity or
+This option specifies the SASL authentication identity, or
 \"authcid\".  A value of `:user' or `:nick' indicates that the
-corresponding connection parameter on file should be used.  These
-are most often derived from arguments provided to the `erc' and
-`erc-tls' entry points.  In the case of `:nick', a downcased
-version is used."
+corresponding connection parameter on file should be used.  ERC
+typically obtains these from arguments given to its entry-point
+commands, `erc' and `erc-tls'."
   :type '(choice string (const :user) (const :nick)))
 
 (defcustom erc-sasl-password :password
   "Optional account password to send when authenticating.
-When `erc-sasl-auth-source-function' is a function, ERC will
-attempt an auth-source query and prompt for input if it fails.
-Otherwise, when the value is a nonempty string, ERC will use it
-unconditionally for most mechanisms.  Likewise with `:password',
-except ERC will instead use the \"session password\" on file, if
-any, which often originates from the entry-point commands `erc'
-or `erc-tls'.  As with auth-source, ERC will prompt for input as
-a fallback.
+When `erc-sasl-auth-source-function' is a function, ERC attempts
+an auth-source query and prompts for input if it fails.
+Otherwise, when the value of this option is a nonempty string,
+ERC uses it unconditionally for most mechanisms.  Likewise with a
+value of `:password', except ERC instead uses the \"session
+password\" on file, if any, which often originates from the
+entry-point commands `erc' or `erc-tls'.  As with auth-source,
+ERC prompts for input as a fallback.
 
-Note that, with `:password', ERC will forgo sending a traditional
+Note that, with `:password', ERC forgoes sending a traditional
 server password via the IRC \"PASS\" command.  Also, when
-`erc-sasl-mechanism' is set to `ecdsa-nist256p-challenge', this
-option should hold the file name of the key."
+`erc-sasl-mechanism' is set to `ecdsa-nist256p-challenge', ERC
+expects this option to hold the file name of the key."
   :type '(choice (const nil) (const :password) string symbol))
 
 (defcustom erc-sasl-auth-source-function nil
@@ -101,9 +100,8 @@ though ERC itself only specifies `:user' paired with a
 ERC binds all options defined in this library, such as
 `erc-sasl-password', to their values from entry-point invocation.
 In return, ERC expects a string to send as the SASL password, or
-nil, in which case, ERC will prompt the for input.  See info
-node `(erc) auth-source' for details on ERC's auth-source
-integration."
+nil, in which case, ERC prompts for input.  See Info node `(erc)
+auth-source' for details on ERC's auth-source integration."
   :type '(choice (function-item erc-sasl-auth-source-password-as-host)
                  (function-item erc-auth-source-search)
                  (const nil)
@@ -129,7 +127,7 @@ integration."
 (defun erc-sasl--get-user ()
   (pcase (alist-get 'user erc-sasl--options)
     (:user erc-session-username)
-    (:nick (erc-downcase (erc-current-nick)))
+    (:nick (erc-current-nick))
     (v v)))
 
 (defun erc-sasl-auth-source-password-as-host (&rest plist)
@@ -139,12 +137,12 @@ that symbol is `:password', in which case, use a non-nil
 `erc-session-password' instead.  Otherwise, just defer to
 `erc-auth-source-search' to pick a suitable `:host'.  Expect
 PLIST to contain keyword params known to `auth-source-search'."
-  (when erc-sasl-password
-    (when-let ((host (if (eq :password erc-sasl-password)
-                         (and (not (functionp erc-session-password))
-                              erc-session-password)
-                       erc-sasl-password)))
-      (setq plist `(,@plist :host ,(format "%s" host)))))
+  (when-let* ((erc-sasl-password)
+              (host (if (eq :password erc-sasl-password)
+                        (and (not (functionp erc-session-password))
+                             erc-session-password)
+                      erc-sasl-password)))
+    (setq plist `(,@plist :host ,(format "%s" host))))
   (apply #'erc-auth-source-search plist))
 
 (defun erc-sasl--read-password (prompt)
@@ -299,21 +297,6 @@ If necessary, pass PROMPT to `read-passwd'."
              (sasl-client-set-property client 'ecdsa-keyfile keyfile)
              client)))))
 
-;; This stands alone because it's also used by bug#49860.
-(defun erc-sasl--init ()
-  (setq erc-sasl--state (make-erc-sasl--state))
-  ;; If the previous attempt failed during registration, this may be
-  ;; non-nil and contain erroneous values, but how can we detect that?
-  ;; What if the server dropped the connection for some other reason?
-  (setq erc-sasl--options
-        (or (and erc--server-reconnecting
-                 (alist-get 'erc-sasl--options erc--server-reconnecting))
-            `((user . ,erc-sasl-user)
-              (password . ,erc-sasl-password)
-              (mechanism . ,erc-sasl-mechanism)
-              (authfn . ,erc-sasl-auth-source-function)
-              (authzid . ,erc-sasl-authzid)))))
-
 (defun erc-sasl--mechanism-offered-p (offered)
   "Return non-nil when OFFERED appears among a list of mechanisms."
   (string-match-p (rx-to-string
@@ -336,7 +319,16 @@ If necessary, pass PROMPT to `read-passwd'."
 This doesn't solicit or validate a suite of supported mechanisms."
   ;; See bug#49860 for a CAP 3.2-aware WIP implementation.
   ((unless erc--target
-     (erc-sasl--init)
+     (setq erc-sasl--state (make-erc-sasl--state))
+     ;; If the previous attempt failed during registration, this may be
+     ;; non-nil and contain erroneous values, but how can we detect that?
+     ;; What if the server dropped the connection for some other reason?
+     (erc--restore-initialize-priors erc-sasl-mode
+       erc-sasl--options `((user . ,erc-sasl-user)
+                           (password . ,erc-sasl-password)
+                           (mechanism . ,erc-sasl-mechanism)
+                           (authfn . ,erc-sasl-auth-source-function)
+                           (authzid . ,erc-sasl-authzid)))
      (let* ((mech (alist-get 'mechanism erc-sasl--options))
             (client (erc-sasl--create-client mech)))
        (unless client
@@ -371,9 +363,12 @@ This doesn't solicit or validate a suite of supported mechanisms."
             data (sasl-step-data step))
       (when (string= data "")
         (setq data nil))
-      (when data
-        (setq data (erc--unfun (base64-encode-string data t))))
-      (erc-server-send (concat "AUTHENTICATE " (or data "+"))))))
+      (setq data (if data (erc--unfun (base64-encode-string data t)) "+"))
+      (while (not (string-empty-p data))
+        (let ((end (min 400 (length data))))
+          ;; For now, assume this is unlikely to block
+          (erc-server-send (concat "AUTHENTICATE " (substring data 0 end)))
+          (setq data (concat (substring data end) (and (= end 400) "+"))))))))
 
 (defun erc-sasl--destroy (proc)
   (run-hook-with-args 'erc-quit-hook proc)
@@ -407,7 +402,7 @@ This doesn't solicit or validate a suite of supported mechanisms."
   (erc-sasl--destroy proc))
 
 (define-erc-response-handler (908)
-  "Handle a RPL_SASLALREADY response." nil
+  "Handle a RPL_SASLMECHS response." nil
   (erc-display-message parsed '(notice error) 'active 's908
                        ?m (alist-get 'mechanism erc-sasl--options)
                        ?s (string-join (cdr (erc-response.command-args parsed))
@@ -428,7 +423,8 @@ Otherwise, expect it to disappear in subsequent versions.")
         (erc-server-send (if erc-sasl--send-cap-ls "CAP LS" "CAP REQ :sasl"))
         (let ((erc-session-password
                (and erc-session-password
-                    (not (eq :password (alist-get 'password erc-sasl--options)))
+                    (not (eq :password
+                             (alist-get 'password erc-sasl--options)))
                     erc-session-password))
               (erc-session-username
                ;; The username may contain a colon or a space

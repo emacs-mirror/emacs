@@ -1,0 +1,99 @@
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (newline)
+    (indent-for-tab-command))
+
+Point-Char: |
+
+Name: Indents inside #if preproc
+
+=-=
+static void
+free_glyph_pool (struct glyph_pool *pool)
+{
+  if (pool)
+    {
+#if defined GLYPH_DEBUG|
+#endif
+    }
+}
+=-=
+static void
+free_glyph_pool (struct glyph_pool *pool)
+{
+  if (pool)
+    {
+#if defined GLYPH_DEBUG
+      |
+#endif
+    }
+}
+=-=-=
+
+Name: Indents to 0 if #if preproc at root
+
+=-=
+#if 0|
+/* */
+static void
+=-=
+#if 0
+|
+/* */
+static void
+=-=-=
+
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (c-ts-mode-set-style 'gnu)
+    (indent-region (point-min) (point-max)))
+
+Name: Prev-Sibling When Prev-Sibling is Preproc
+
+=-=
+static void
+free_glyph_pool (struct glyph_pool *pool)
+{
+  if (pool)
+    {
+#if defined GLYPH_DEBUG
+      int c = 1;
+#endif
+      int check_this = 3;
+
+#ifdef stuff
+      int c = 1;
+#elif defined stuff
+      int e = 5;
+#else
+      int d = 11;
+      int f = 11;
+#endif
+      int check_this = 3;
+    }
+}
+=-=-=
+
+Name: Prev-Sibling Plus Preproc
+
+=-=-=
+int main() {
+#ifdef MSDOS
+  f->output_data.tty = &the_only_tty_output;
+  f->output_data.tty->display_info = &the_only_display_info;
+#else
+  if (f->output_method == output_termcap)
+    create_tty_output (f);
+#elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
+  if (FRAME_WINDOW_P (f))
+    {}
+#endif
+  t->display_info.tty->top_frame = selected_frame;
+  change_frame_size ();
+}
+=-=-=

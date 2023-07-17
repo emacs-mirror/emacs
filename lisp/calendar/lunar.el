@@ -1,6 +1,6 @@
 ;;; lunar.el --- calendar functions for phases of the moon  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2022 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -85,13 +85,16 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                            (* 0.0107306 time time)
                            (* 0.00001236 time time time))
                         360.0))
+         ;; moon-lat is the argument of latitude, which is the angle
+         ;; of the moon measured from the ascending node of its orbit
+         ;; (i.e. argument of perigee + true anomaly).
          (moon-lat (mod
                     (+ 21.2964
                        (* 390.67050646 index)
                        (* -0.0016528 time time)
                        (* -0.00000239 time time time))
                     360.0))
-	 (eclipse (eclipse-check moon-lat phase))
+         (eclipse (lunar-check-for-eclipse moon-lat phase))
          (adjustment
           (if (memq phase '(0 2))
               (+ (* (- 0.1734 (* 0.000393 time))
@@ -151,22 +154,22 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 
 ;; from "Astronomy with your Personal Computer", Subroutine Eclipse
 ;; Line 7000 Peter Duffett-Smith Cambridge University Press 1990
-(defun eclipse-check (moon-lat phase)
-  (let* ((moon-lat (* (/ float-pi 180) moon-lat))
-         (moon-lat (abs (- moon-lat (* (floor (/ moon-lat float-pi))
-                                       float-pi))))
-         (moon-lat (if (> moon-lat 0.37)
-                       (- float-pi moon-lat)
-                     moon-lat))
-         (phase-name (cond ((= phase 0) "Solar")
-                           ((= phase 2) "Lunar")
-                           (t ""))))
-    (cond ((< moon-lat 2.42600766e-1)
-	   (concat "** " phase-name " Eclipse **"))
-	  ((< moon-lat 0.37)
-	   (concat "** " phase-name " Eclipse possible **"))
-	  (t
-	   ""))))
+(defun lunar-check-for-eclipse (moon-lat phase)
+  "Check if a solar or lunar eclipse can occur for MOON-LAT and PHASE.
+MOON-LAT is the argument of latitude.  PHASE is the lunar phase:
+0 new moon, 1 first quarter, 2 full moon, 3 last quarter.
+Return a string describing the eclipse (empty if no eclipse)."
+  (let* ((node-dist (mod moon-lat 180))
+         ;; Absolute angular distance from the ascending or descending
+         ;; node, whichever is nearer.
+         (node-dist (min node-dist (- 180 node-dist)))
+         (type (cond ((= phase 0) "Solar")
+                     ((= phase 2) "Lunar"))))
+    (cond ((not type) "")
+          ;; Limits 13.9° and 21.0° from Meeus (1991), page 350.
+          ((< node-dist 13.9) (concat "** " type " Eclipse **"))
+          ((< node-dist 21.0) (concat "** " type " Eclipse possible **"))
+          (t ""))))
 
 (defconst lunar-cycles-per-year 12.3685 ; 365.25/29.530588853
   "Mean number of lunar cycles per 365.25 day year.")
@@ -242,10 +245,11 @@ use instead of point."
         (insert
          (mapconcat
           (lambda (x)
-            (format "%s: %s %s %s" (calendar-date-string (car x))
-                    (lunar-phase-name (nth 2 x))
-                    (cadr x)
-		    (car (last x))))
+            (let ((eclipse (nth 3 x)))
+              (concat (calendar-date-string (car x)) ": "
+                      (lunar-phase-name (nth 2 x)) " "
+                      (cadr x) (unless (string-empty-p eclipse) " ")
+                      eclipse)))
           (lunar-phase-list m1 y1) "\n")))
       (message "Computing phases of the moon...done"))))
 
@@ -280,9 +284,13 @@ use when highlighting the day in the calendar."
     (while (calendar-date-compare phase (list date))
       (setq index (1+ index)
             phase (lunar-phase index)))
-    (if (calendar-date-equal (car phase) date)
-        (cons mark (concat (lunar-phase-name (nth 2 phase)) " "
-                           (cadr phase))))))
+    (and (calendar-date-equal (car phase) date)
+         (cons mark
+               (let ((eclipse (nth 3 phase)))
+                 (concat (lunar-phase-name (nth 2 phase)) " "
+                         (cadr phase)
+                         (unless (string-empty-p eclipse) " ")
+                         eclipse))))))
 
 ;; For the Chinese calendar the calculations for the new moon need to be more
 ;; accurate than those above, so we use more terms in the approximation.

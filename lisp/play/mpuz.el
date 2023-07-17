@@ -1,6 +1,6 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1990, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>

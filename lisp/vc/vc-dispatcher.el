@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el --- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Keywords: vc tools
@@ -608,7 +608,10 @@ reverting.  NOQUERY should be t *only* if it is known the only
 difference between the buffer and the file is due to
 modifications by the dispatcher client code, rather than user
 editing!"
-  (and (string= buffer-file-name file)
+  (and (string= buffer-file-name
+                (if (file-name-absolute-p file)
+                    file
+                  (expand-file-name file (vc-root-dir))))
        (if keep
 	   (when (file-exists-p file)
 	     (when reset-vc-info
@@ -643,7 +646,10 @@ editing!"
 
 (defun vc-resynch-buffer (file &optional keep noquery reset-vc-info)
   "If FILE is currently visited, resynch its buffer."
-  (if (string= buffer-file-name file)
+  (if (string= buffer-file-name
+               (if (file-name-absolute-p file)
+                   file
+                 (expand-file-name file (vc-root-dir))))
       (vc-resynch-window file keep noquery reset-vc-info)
     (if (file-directory-p file)
 	(vc-resynch-buffers-in-directory file keep noquery reset-vc-info)

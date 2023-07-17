@@ -3,7 +3,7 @@
 
 # Update an FSF copyright year list to include the current year.
 
-# Copyright (C) 2009-2022 Free Software Foundation, Inc.
+# Copyright (C) 2009-2023 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -98,7 +98,8 @@
 #   6. Blank lines, even if preceded by the prefix, do not appear
 #      within the FSF copyright statement.
 #   7. Each copyright year is 2 or 4 digits, and years are separated by
-#      commas, "-", or "--".  Whitespace may appear after commas.
+#      commas, "-", "--", or "\(en" (for troff).  Whitespace may appear
+#      after commas.
 #
 # Environment variables:
 #
@@ -137,7 +138,7 @@
 eval 'exec perl -wSx -0777 -pi "$0" "$@"'
      if 0;
 
-my $VERSION = '2020-04-04.15:07'; # UTC
+my $VERSION = '2023-06-18.01:14'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -148,6 +149,7 @@ use warnings;
 
 my $copyright_re = 'Copyright';
 my $circle_c_re = '(?:\([cC]\)|@copyright\{}|\\\\\(co|&copy;|©)';
+my $ndash_re = '(?:--?|\\\\\(en)';
 my $holder = $ENV{UPDATE_COPYRIGHT_HOLDER};
 $holder ||= 'Free Software Foundation, Inc.';
 my $prefix_max = 5;
@@ -192,7 +194,7 @@ while (/(^|\n)(.{0,$prefix_max})$copyright_re/g)
     $holder_re =~ s/\s/$ws_re/g;
     my $stmt_remainder_re =
       "(?:$ws_re$circle_c_re)?"
-      . "$ws_re(?:(?:\\d\\d)?\\d\\d(?:,$ws_re?|--?))*"
+      . "$ws_re(?:(?:\\d\\d)?\\d\\d(?:,$ws_re?|$ndash_re))*"
       . "((?:\\d\\d)?\\d\\d)$ws_re$holder_re";
     if (/\G$stmt_remainder_re/)
       {
@@ -215,7 +217,7 @@ if (defined $stmt_re)
     if ($final_year != $this_year)
       {
         # Update the year.
-        $stmt =~ s/\b$final_year_orig\b/$final_year, $this_year/;
+        $stmt =~ s/(^|[^\d])$final_year_orig\b/$1$final_year, $this_year/;
       }
     if ($final_year != $this_year || $ENV{'UPDATE_COPYRIGHT_FORCE'})
       {
@@ -231,17 +233,19 @@ if (defined $stmt_re)
         # Make the use of intervals consistent.
         if (!$ENV{UPDATE_COPYRIGHT_USE_INTERVALS})
           {
-            $stmt =~ s/(\d{4})--?(\d{4})/join(', ', $1..$2)/eg;
+            $stmt =~ s/(\d{4})$ndash_re(\d{4})/join(', ', $1..$2)/eg;
           }
         else
           {
-            my $ndash = $ARGV =~ /\.tex(i(nfo)?)?$/ ? "--" : "-";
+            my $ndash = ($ARGV =~ /\.tex(i(nfo)?)?$/ ? "--"
+                         : $ARGV =~ /\.(\d[a-z]*|man)$/ ? "\\(en"
+                         : "-");
 
             $stmt =~
               s/
                 (\d{4})
                 (?:
-                  (,\ |--?)
+                  (,\ |$ndash_re)
                   ((??{
                     if   ($2 ne ', ') { '\d{4}'; }
                     elsif (!$3)       { $1 + 1;  }
@@ -252,7 +256,7 @@ if (defined $stmt_re)
 
             # When it's 2, emit a single range encompassing all year numbers.
             $ENV{UPDATE_COPYRIGHT_USE_INTERVALS} == 2
-              and $stmt =~ s/\b(\d{4})\b.*\b(\d{4})\b/$1$ndash$2/;
+              and $stmt =~ s/(^|[^\d])(\d{4})\b.*(?:[^\d])(\d{4})\b/$1$2$ndash$3/;
           }
 
         # Format within margin.
@@ -280,7 +284,7 @@ if (defined $stmt_re)
           }
 
         # Replace the old copyright statement.
-        s/$stmt_re/$stmt_wrapped/;
+        s/$stmt_re/$stmt_wrapped/g;
       }
   }
 else

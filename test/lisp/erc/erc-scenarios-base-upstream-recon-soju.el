@@ -1,6 +1,6 @@
-;;; erc-scenarios-upstream-recon-soju.el --- Upstream soju -*- lexical-binding: t -*-
+;;; erc-scenarios-base-upstream-recon-soju.el --- Bouncer recon scenario -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,8 @@
 
 ;; Commentary:
 
-;; These concern the loss and recovery of a proxy's IRC-side connection.
+;; These concern the loss and recovery of a proxy's IRC-side
+;; connection (hence "upstream").
 
 ;;; Code:
 
@@ -41,4 +42,4 @@
    'soju-foonet
    'soju-barnet))
 
-;;; erc-scenarios-upstream-recon-soju.el ends here
+;;; erc-scenarios-base-upstream-recon-soju.el ends here

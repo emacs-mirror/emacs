@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -515,9 +515,9 @@ one of them selects that alternative.  The keys @kbd{C-f}, @kbd{C-b},
 do the highlighting in the buffer showing the possible characters,
 rather than in the echo area.
 
-  To enter characters according to the @dfn{pīnyīn} transliteration
+  To enter characters according to the @dfn{p@=iny@=in} transliteration
 method instead, use the @code{chinese-sisheng} input method.  This is
-a composition based method, where e.g. @kbd{pi1} results in @samp{pī}.
+a composition based method, where e.g. @kbd{pi1} results in @samp{p@=i}.
 
   In Japanese input methods, first you input a whole word using
 phonetic spelling; then, after the word is in the buffer, Emacs

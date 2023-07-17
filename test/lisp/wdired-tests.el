@@ -1,6 +1,6 @@
 ;;; wdired-tests.el --- tests for wdired.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,10 @@
   "Test using non-nil wdired-use-interactive-rename.
 Partially modifying a file name should succeed."
   (ert-with-temp-directory test-dir
+    ;; The call to file-truename is for MS-Windows, where numeric
+    ;; tails or some other feature (like SUBST) could cause file names
+    ;; to fail to compare 'equal'.
+    (setq test-dir (file-truename test-dir))
     (let* ((test-file (concat (file-name-as-directory test-dir) "foo.c"))
            (replace "bar")
            (new-file (string-replace "foo" replace test-file))
@@ -56,6 +60,7 @@ Partially modifying a file name should succeed."
   "Test using non-nil wdired-use-interactive-rename.
 Aborting an edit should leaving original file name unchanged."
   (ert-with-temp-directory test-dir
+    (setq test-dir (file-truename test-dir))
     (let* ((test-file (concat (file-name-as-directory test-dir) "foo.c"))
            (wdired-use-interactive-rename t))
       (write-region "" nil test-file nil 'silent)
@@ -106,6 +111,7 @@ only the name before the link arrow."
 Finding the new name should be possible while still in
 wdired-mode."
   (ert-with-temp-directory test-dir
+    (setq test-dir (file-truename test-dir))
     (let* ((test-file (concat (file-name-as-directory test-dir) "foo.c"))
            (replace "bar")
            (new-file (string-replace "foo" replace test-file)))
@@ -143,7 +149,11 @@ wdired-get-filename before and after editing."
             (with-current-buffer buf
               (dired-create-empty-file "foo")
               (set-file-modes "foo" (file-modes-symbolic-to-number "+x"))
-              (make-symbolic-link "foo" "bar")
+              (skip-unless
+               ;; This check is for wdired, not symbolic links, so skip
+               ;; it when make-symbolic-link fails for any reason (like
+               ;; insufficient privileges).
+               (ignore-errors (make-symbolic-link "foo" "bar") t))
               (make-directory "foodir")
               (dired-smart-shell-command "mkfifo foopipe")
               (when (featurep 'make-network-process '(:family local))
@@ -176,6 +186,7 @@ wdired-get-filename before and after editing."
 (ert-deftest wdired-test-bug39280 ()
   "Test for https://debbugs.gnu.org/39280."
   (ert-with-temp-directory test-dir
+    (setq test-dir (file-truename test-dir))
     (let* ((fname "foo")
            (full-fname (expand-file-name fname test-dir)))
       (make-empty-file full-fname)
@@ -188,6 +199,33 @@ wdired-get-filename before and after editing."
                 (should (equal full-fname (wdired-get-filename nil old))))
               (wdired-finish-edit))
           (if buf (kill-buffer buf)))))))
+
+(ert-deftest wdired-test-bug61510 ()
+  "Test visibility of symlink target on leaving wdired-mode.
+When dired-hide-details-mode is enabled and
+dired-hide-details-hide-symlink-targets is non-nil (the default),
+the link target becomes invisible.  When wdired-mode is enabled
+the target becomes visible, but on returning to dired-mode, it
+should be invisible again."
+  (ert-with-temp-directory test-dir
+    (let ((buf (find-file-noselect test-dir))
+          ;; Default value is t, but set it anyway, to be sure.
+          (dired-hide-details-hide-symlink-targets t))
+      (unwind-protect
+          (with-current-buffer buf
+            (skip-unless
+             ;; This check is for wdired, not symbolic links, so skip
+             ;; it when make-symbolic-link fails for any reason (like
+             ;; insufficient privileges).
+             (ignore-errors (make-symbolic-link "bar" "foo") t))
+            (dired-hide-details-mode)
+            (should (memq 'dired-hide-details-link buffer-invisibility-spec))
+            (dired-toggle-read-only)
+            (should-not (memq 'dired-hide-details-link
+                              buffer-invisibility-spec))
+            (wdired-finish-edit)
+            (should (memq 'dired-hide-details-link buffer-invisibility-spec)))
+        (if buf (kill-buffer buf))))))
 
 (provide 'wdired-tests)
 ;;; wdired-tests.el ends here

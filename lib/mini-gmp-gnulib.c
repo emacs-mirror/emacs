@@ -1,6 +1,6 @@
 /* Tailor mini-gmp.c for Gnulib-using applications.
 
-   Copyright 2018-2022 Free Software Foundation, Inc.
+   Copyright 2018-2023 Free Software Foundation, Inc.
 
    This file is free software.
    It is dual-licensed under "the GNU LGPLv3+ or the GNU GPLv2+".

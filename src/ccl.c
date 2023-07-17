@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -605,6 +605,14 @@ do							\
   }							\
 while (0)
 
+/* Work around GCC bug 109579
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109579
+   which causes GCC to mistakenly complain about
+   popping the mapping stack.  */
+#if GNUC_PREREQ (13, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
+#endif
+
 #define POP_MAPPING_STACK(restlen, orig)		\
 do							\
   {							\
@@ -1148,9 +1156,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_expr_self:
 	  switch (op)
 	    {
-	    case CCL_PLUS: INT_ADD_WRAPV (reg[rrr], i, &reg[rrr]); break;
-	    case CCL_MINUS: INT_SUBTRACT_WRAPV (reg[rrr], i, &reg[rrr]); break;
-	    case CCL_MUL: INT_MULTIPLY_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_PLUS: ckd_add (&reg[rrr], reg[rrr], i); break;
+	    case CCL_MINUS: ckd_sub (&reg[rrr], reg[rrr], i); break;
+	    case CCL_MUL: ckd_mul (&reg[rrr], reg[rrr], i); break;
 	    case CCL_DIV:
 	      if (!i)
 		CCL_INVALID_CMD;
@@ -1186,7 +1194,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      if (i == -1)
 		{
 		  reg[7] = 0;
-		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		  ckd_sub (&reg[rrr], 0, reg[rrr]);
 		}
 	      else
 		{
@@ -1243,9 +1251,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_set_expr:
 	  switch (op)
 	    {
-	    case CCL_PLUS: INT_ADD_WRAPV (i, j, &reg[rrr]); break;
-	    case CCL_MINUS: INT_SUBTRACT_WRAPV (i, j, &reg[rrr]); break;
-	    case CCL_MUL: INT_MULTIPLY_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_PLUS: ckd_add (&reg[rrr], i, j); break;
+	    case CCL_MINUS: ckd_sub (&reg[rrr], i, j); break;
+	    case CCL_MUL: ckd_mul (&reg[rrr], i, j); break;
 	    case CCL_DIV:
 	      if (!j)
 		CCL_INVALID_CMD;
@@ -1280,7 +1288,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		CCL_INVALID_CMD;
 	      if (j == -1)
 		{
-		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		  ckd_sub (&reg[rrr], 0, reg[rrr]);
 		  reg[7] = 0;
 		}
 	      else
@@ -1987,7 +1995,7 @@ ccl_get_compiled_code (Lisp_Object ccl_prog, ptrdiff_t *idx)
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of CCL program CCL_PROG.  CCL_PROG is the name (symbol)
    of the CCL program or the already compiled code (vector).
-   Return true iff successful.
+   Return true if successful.
 
    If CCL_PROG is nil, just reset the structure pointed by CCL.  */
 bool
@@ -2161,8 +2169,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 
   buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
   outbufsize = str_bytes;
-  if (INT_MULTIPLY_WRAPV (buf_magnification, outbufsize, &outbufsize)
-      || INT_ADD_WRAPV (256, outbufsize, &outbufsize))
+  if (ckd_mul (&outbufsize, outbufsize, buf_magnification)
+      || ckd_add (&outbufsize, outbufsize, 256))
     memory_full (SIZE_MAX);
   outp = outbuf = xmalloc (outbufsize);
 

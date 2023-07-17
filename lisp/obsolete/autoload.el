@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -723,7 +723,7 @@ autoloads into the specified file instead."
 
 ;;;###autoload
 (defun make-directory-autoloads (dir output-file)
-  "Update autoload definitions for Lisp files in the directories DIRS.
+  "Update autoload definitions for Lisp files in the directories DIR.
 DIR can be either a single directory or a list of
 directories.  (The latter usage is discouraged.)
 

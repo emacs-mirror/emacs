@@ -1,6 +1,6 @@
 ;;; webjump.el --- programmable Web hotlist  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author:     Neil W. Van Dyke <nwv@acm.org>
 ;; Maintainer: emacs-devel@gnu.org

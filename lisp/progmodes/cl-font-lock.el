@@ -1,5 +1,5 @@
 ;;; cl-font-lock.el --- Pretty Common Lisp font locking -*- lexical-binding: t; -*-
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Yue Daian <sheepduke@gmail.com>
 ;; Maintainer: Spenser Truex <web@spensertruex.com>

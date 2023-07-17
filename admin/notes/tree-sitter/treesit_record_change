@@ -1,0 +1,218 @@
+NOTES ON TREESIT_RECORD_CHANGE
+
+It is vital that Emacs informs tree-sitter of every change made to the
+buffer, lest tree-sitter's parse tree would be corrupted/out of sync.
+
+Almost all buffer changes in Emacs are made through functions in
+insdel.c (see below for exceptions), I augmented functions in insdel.c
+with calls to treesit_record_change.  Below is a manifest of all the
+relevant functions in insdel.c as of Emacs 29:
+
+Function                          Calls
+----------------------------------------------------------------------
+copy_text                         (*1)
+insert                            insert_1_both
+insert_and_inherit                insert_1_both
+insert_char                       insert
+insert_string                     insert
+insert_before_markers             insert_1_both
+insert_before_markers_and_inherit insert_1_both
+insert_1_both                     treesit_record_change
+insert_from_string                insert_from_string_1
+insert_from_string_before_markers insert_from_string_1
+insert_from_string_1              treesit_record_change
+insert_from_gap_1                 treesit_record_change
+insert_from_gap                   insert_from_gap_1
+insert_from_buffer                treesit_record_change
+insert_from_buffer_1              (used by insert_from_buffer) (*2)
+replace_range                     treesit_record_change
+replace_range_2                   (caller needs to call treesit_r_c)
+del_range                         del_range_1
+del_range_1                       del_range_2
+del_range_byte                    del_range_2
+del_range_both                    del_range_2
+del_range_2                       treesit_record_change
+
+(*1) This functions is used only to copy from string to string when
+used outside of insdel.c, and when used inside insdel.c, the caller
+calls treesit_record_change.
+
+(*2) This function is a static function, and insert_from_buffer is its
+only caller.  So it should be fine to call treesit_record_change in
+insert_from_buffer but not insert_from_buffer_1.  I also left a
+reminder comment.
+
+
+EXCEPTIONS
+
+
+There are a couple of functions that replaces characters in-place
+rather than insert/delete. They are in casefiddle.c and editfns.c.
+
+In casefiddle.c, do_casify_unibyte_region and
+do_casify_multibyte_region modifies buffer, but they are static
+functions and are called by casify_region, which calls
+treesit_record_change.  Other higher-level functions calls
+casify_region to do the work.
+
+In editfns.c, subst-char-in-region and translate-region-internal might
+replace characters in-place, I made them to call
+treesit_record_change.  transpose-regions uses memcpy to move text
+around, it calls treesit_record_change too.
+
+I found these exceptions by grepping for signal_after_change and
+checking each caller manually.  Below is all the result as of Emacs 29
+and some comment for each one.  Readers can use
+
+(highlight-regexp "^[^[:space:]]+?\\.c:[[:digit:]]+:[^z-a]+?$" 'highlight)
+
+to make things easier to read.
+
+grep [...] --color=auto -i --directories=skip -nH --null -e signal_after_change *.c
+
+callproc.c:789:             calling prepare_to_modify_buffer and signal_after_change.
+callproc.c:793:             is one call to signal_after_change in each of the
+callproc.c:800:             signal_after_change hasn't.  A continue statement
+callproc.c:804:             again, and this time signal_after_change gets called,
+
+Not code.
+
+callproc.c:820:              signal_after_change (PT - nread, 0, nread);
+callproc.c:863:              signal_after_change (PT - process_coding.produced_char,
+
+Both are called in call-process.  I don’t think we’ll ever use
+tree-sitter in call-process’s stdio buffer, right?  I didn’t check
+line-by-line, but it seems to only use insert_1_both and del_range_2.
+
+casefiddle.c:558:      signal_after_change (start, end - start - added, end - start);
+
+Called in casify-region, calls treesit_record_change.
+
+decompress.c:195:      signal_after_change (data->orig, data->start - data->orig,
+
+Called in unwind_decompress, uses del_range_2, insdel function.
+
+decompress.c:334:  signal_after_change (istart, iend - istart, unwind_data.nbytes);
+
+Called in zlib-decompress-region, uses del_range_2, insdel function.
+
+editfns.c:2139:      signal_after_change (BEGV, size_a, ZV - BEGV);
+
+Called in replace-buffer-contents, which calls del_range and
+Finsert_buffer_substring, both are ok.
+
+editfns.c:2416:      signal_after_change (changed,
+
+Called in subst-char-in-region, which either calls replace_range (a
+insdel function) or modifies buffer content by itself (need to call
+treesit_record_change).
+
+editfns.c:2544:	      /* Reload as signal_after_change in last iteration may GC.  */
+
+Not code.
+
+editfns.c:2604:		  signal_after_change (pos, 1, 1);
+
+Called in translate-region-internal, which has three cases:
+
+if (nc != oc && nc >= 0) {
+  if (len != str_len) {
+	replace_range()
+  } else {
+	while (str_len-- > 0)
+	  *p++ = *str++;
+  }
+}
+else if (nc < 0) {
+  replace_range()
+}
+
+replace_range is ok, but in the case where it manually modifies buffer
+content, it needs to call treesit_record_change.
+
+editfns.c:4779:  signal_after_change (start1, end2 - start1, end2 - start1);
+
+Called in transpose-regions.  It just uses memcpy’s and doesn’t use
+insdel functions; needs to call treesit_record_change.
+
+fileio.c:4825:      signal_after_change (PT, 0, inserted);
+
+Called in insert_file_contents.  Uses insert_1_both (very first in the
+function); del_range_1 and del_range_byte (the optimized way to
+implement replace when decoding isn’t needed); del_range_byte and
+insert_from_buffer (the optimized way used when decoding is needed);
+decode_coding_gap or insert_from_gap_1 (I’m not sure the condition for
+this, but anyway it’s safe).  The function also calls memcpy and
+memmove, but they are irrelevant: memcpy is used for decoding, and
+memmove is moving stuff inside the gap for decode_coding_gap.
+
+I’d love someone to verify this function, since it’s so complicated
+and large, but from what I can tell it’s safe.
+
+fns.c:3998:  signal_after_change (XFIXNAT (beg), 0, inserted_chars);
+
+Called in base64-decode-region, uses insert_1_both and del_range_both,
+safe.
+
+insdel.c:681:      signal_after_change (opoint, 0, len);
+insdel.c:696:      signal_after_change (opoint, 0, len);
+insdel.c:741:      signal_after_change (opoint, 0, len);
+insdel.c:757:      signal_after_change (opoint, 0, len);
+insdel.c:976:  signal_after_change (opoint, 0, PT - opoint);
+insdel.c:996:  signal_after_change (opoint, 0, PT - opoint);
+insdel.c:1187:  signal_after_change (opoint, 0, PT - opoint);
+insdel.c:1412:   signal_after_change.  */
+insdel.c:1585:      signal_after_change (from, nchars_del, GPT - from);
+insdel.c:1600:   prepare_to_modify_buffer and never call signal_after_change.
+insdel.c:1603:   region once.  Apart from signal_after_change, any caller of this
+insdel.c:1747:  signal_after_change (from, to - from, 0);
+insdel.c:1789:  signal_after_change (from, to - from, 0);
+insdel.c:1833:  signal_after_change (from, to - from, 0);
+insdel.c:2223:signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
+insdel.c:2396:  signal_after_change (begpos, endpos - begpos - change, endpos - begpos);
+
+I’ve checked all insdel functions.  We can assume insdel functions are
+all safe.
+
+json.c:790:  signal_after_change (PT, 0, inserted);
+
+Called in json-insert, calls either decode_coding_gap or
+insert_from_gap_1, both are safe. Calls memmove but it’s for
+decode_coding_gap.
+
+keymap.c:2873:	    /* Insert calls signal_after_change which may GC.  */
+
+Not code.
+
+print.c:219:      signal_after_change (PT - print_buffer.pos, 0, print_buffer.pos);
+
+Called in print_finish, calls copy_text and insert_1_both, safe.
+
+process.c:6365:	 process buffer is changed in the signal_after_change above.
+search.c:2763:     (see signal_before_change and signal_after_change).  Try to error
+
+Not code.
+
+search.c:2777:  signal_after_change (sub_start, sub_end - sub_start, SCHARS (newtext));
+
+Called in replace_match.  Calls replace_range, upcase-region,
+upcase-initials-region (both calls casify_region in the end), safe.
+Calls memcpy but it’s for string manipulation.
+
+textprop.c:1261:		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1272:		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1283:	    signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1458:    signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1652:		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1661:		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1672:	    signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1750:     before changes are made and signal_after_change when we are done.
+textprop.c:1752:     and call signal_after_change before returning if MODIFIED. */
+textprop.c:1764:		    signal_after_change (XFIXNUM (start),
+textprop.c:1778:		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1791:		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
+textprop.c:1810:                signal_after_change (XFIXNUM (start),
+
+We don’t care about text property changes.
+
+Grep finished with 51 matches found at Wed Jun 28 15:12:23

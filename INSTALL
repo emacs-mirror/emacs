@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2022 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2023 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -393,6 +393,12 @@ even on hosts where a narrower type would do.  With this option, on a
 typical 32-bit host, Emacs integers have 62 bits instead of 30.
 
 Use --with-cairo to compile Emacs with Cairo drawing.
+
+Use --with-cairo-xcb to also utilize the Cairo XCB backend on systems
+where it is available.  While such a configuration is moderately
+faster when running over X connections with high latency, it is likely
+to crash when a new frame is created on a display connection opened
+after a display connection is closed.
 
 Use --with-modules to build Emacs with support for dynamic modules.
 This needs a C compiler that supports '__attribute__ ((cleanup (...)))',

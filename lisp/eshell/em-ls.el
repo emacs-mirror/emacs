@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -62,24 +62,27 @@ This is useful for enabling human-readable format (-h), for example."
 This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string))
 
+(defun eshell-ls-enable-in-dired ()
+  "Use `eshell-ls' to read directories in Dired."
+  (require 'dired)
+  (advice-add 'insert-directory :around #'eshell-ls--insert-directory)
+  (advice-add 'dired :around #'eshell-ls--dired))
+
+(defun eshell-ls-disable-in-dired ()
+  "Stop using `eshell-ls' to read directories in Dired."
+  (advice-remove 'insert-directory #'eshell-ls--insert-directory)
+  (advice-remove 'dired #'eshell-ls--dired))
+
 (defcustom eshell-ls-use-in-dired nil
   "If non-nil, use `eshell-ls' to read directories in Dired.
 Changing this without using customize has no effect."
   :set (lambda (symbol value)
-	 (cond (value
-                (require 'dired)
-                (advice-add 'insert-directory :around
-                            #'eshell-ls--insert-directory)
-                (advice-add 'dired :around #'eshell-ls--dired))
-               (t
-                (advice-remove 'insert-directory
-                               #'eshell-ls--insert-directory)
-                (advice-remove 'dired #'eshell-ls--dired)))
+         (if value
+             (eshell-ls-enable-in-dired)
+           (eshell-ls-disable-in-dired))
          (set symbol value))
   :type 'boolean
   :require 'em-ls)
-(add-hook 'eshell-ls-unload-hook #'eshell-ls-unload-function)
-
 
 (defcustom eshell-ls-default-blocksize 1024
   "The default blocksize to use when display file sizes with -s."
@@ -196,9 +199,9 @@ calling FUNC with FILE as an argument."
   `(let ((owner (file-attribute-user-id ,attrs))
 	 (modes (file-attribute-modes ,attrs)))
      (cond ((cond ((numberp owner)
-		   (= owner (user-uid)))
+                   (= owner (file-user-uid)))
 		  ((stringp owner)
-		   (or (string-equal owner (user-login-name))
+                   (or (string-equal owner (eshell-user-login-name))
 		       (member owner (eshell-current-ange-uids)))))
 	    ;; The user owns this file.
 	    (not (eq (aref modes ,index) ?-)))
@@ -916,7 +919,7 @@ to use, and each member of which is the width of that column
 	      ((not (eshell-ls-filetype-p (cdr file) ?-))
 	       'eshell-ls-special)
 
-	      ((and (/= (user-uid) 0) ; root can execute anything
+              ((and (/= (file-user-uid) 0) ; root can execute anything
 		    (eshell-ls-applicable (cdr file) 3
 					  'file-executable-p (car file)))
 	       'eshell-ls-executable)
@@ -954,10 +957,8 @@ to use, and each member of which is the width of that column
 				 (car file)))))
   (car file))
 
-(defun eshell-ls-unload-function ()
-  (advice-remove 'insert-directory #'eshell-ls--insert-directory)
-  (advice-remove 'dired #'eshell-ls--dired)
-  nil)
+(defun em-ls-unload-function ()
+  (eshell-ls-disable-in-dired))
 
 (provide 'em-ls)
 

@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2022 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -441,13 +441,12 @@ the current paragraph with the one containing the mark."
 	  (if (< (point) (point-max))
 	      (end-of-paragraph-text))))))
 
-(defun forward-sentence (&optional arg)
+(defun forward-sentence-default-function (&optional arg)
   "Move forward to next end of sentence.  With argument, repeat.
 When ARG is negative, move backward repeatedly to start of sentence.
 
 The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
-  (interactive "^p")
   (or arg (setq arg 1))
   (let ((opoint (point))
         (sentence-end (sentence-end)))
@@ -477,8 +476,19 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 	    (skip-chars-backward " \t\n")
 	  (goto-char par-end)))
       (setq arg (1- arg)))
-    (let ((npoint (constrain-to-field nil opoint t)))
-      (not (= npoint opoint)))))
+    (constrain-to-field nil opoint t)))
+
+(defvar forward-sentence-function #'forward-sentence-default-function
+  "Function to be used to calculate sentence movements.
+See `forward-sentence' for a description of its behavior.")
+
+(defun forward-sentence (&optional arg)
+  "Move forward to next end of sentence.  With argument ARG, repeat.
+If ARG is negative, move backward repeatedly to start of
+sentence.  Delegates its work to `forward-sentence-function'."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (funcall forward-sentence-function arg))
 
 (defun count-sentences (start end)
   "Count sentences in current buffer from START to END."
@@ -488,8 +498,13 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
       (save-restriction
         (narrow-to-region start end)
         (goto-char (point-min))
-	(while (ignore-errors (forward-sentence))
-	  (setq sentences (1+ sentences)))
+        (let* ((prev (point))
+               (next (forward-sentence)))
+          (while (and (not (null next))
+                      (not (= prev next)))
+            (setq prev next
+                  next (ignore-errors (forward-sentence))
+                  sentences (1+ sentences))))
         ;; Remove last possibly empty sentence
         (when (/= (skip-chars-backward " \t\n") 0)
           (setq sentences (1- sentences)))

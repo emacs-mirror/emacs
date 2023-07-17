@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -127,7 +127,10 @@ command leaves point in the window.  This variable affects all the
 scroll commands documented in this section, as well as scrolling with
 the mouse wheel (@pxref{Mouse Commands}); in general, it affects any
 command that has a non-@code{nil} @code{scroll-command} property.
-@xref{Property Lists,,, elisp, The Emacs Lisp Reference Manual}.
+@xref{Property Lists,,, elisp, The Emacs Lisp Reference Manual}.  The
+same property also causes Emacs not to exit incremental search when
+one of these commands is invoked and @code{isearch-allow-scroll} is
+non-@code{nil} (@pxref{Not Exiting Isearch}).
 
 @vindex fast-but-imprecise-scrolling
   Sometimes, particularly when you hold down keys such as @kbd{C-v}
@@ -154,7 +157,7 @@ the buffer will be momentarily unfontified.
 @vindex redisplay-skip-fontification-on-input
 Finally, a third alternative to these variables is
 @code{redisplay-skip-fontification-on-input}.  If this variable is
-non-@code{nil}, skip some fontifications is there's input pending.
+non-@code{nil}, skip some fontifications if there's input pending.
 This usually does not affect the display because redisplay is
 completely skipped anyway if input was pending, but it can make
 scrolling smoother by avoiding unnecessary fontification.
@@ -1024,17 +1027,65 @@ customize-group @key{RET} font-lock-faces @key{RET}}.  You can then
 use that customization buffer to customize the appearance of these
 faces.  @xref{Face Customization}.
 
+@cindex just-in-time (JIT) font-lock
+@cindex background syntax highlighting
+  Fontifying very large buffers can take a long time.  To avoid large
+delays when a file is visited, Emacs initially fontifies only the
+visible portion of a buffer.  As you scroll through the buffer, each
+portion that becomes visible is fontified as soon as it is displayed;
+this type of Font Lock is called @dfn{Just-In-Time} (or @dfn{JIT})
+Lock.  You can control how JIT Lock behaves, including telling it to
+perform fontification while idle, by customizing variables in the
+customization group @samp{jit-lock}.  @xref{Specific Customization}.
+
+  The information that major modes use for determining which parts of
+buffer text to fontify and what faces to use can be based on several
+different ways of analyzing the text:
+
+@itemize @bullet
+@item
+Search for keywords and other textual patterns based on regular
+expressions (@pxref{Regexp Search,, Regular Expression Search}).
+
+@item
+Find syntactically distinct parts of text based on built-in syntax
+tables (@pxref{Syntax Tables,,, elisp, The Emacs Lisp Reference
+Manual}).
+
+@item
+Use syntax tree produced by a full-blown parser, via a special-purpose
+library, such as the tree-sitter library (@pxref{Parsing Program
+Source,,, elisp, The Emacs Lisp Reference Manual}), or an external
+program.
+@end itemize
+
+@menu
+* Traditional Font Lock::  Font Lock based on regexps and syntax tables.
+* Parser-based Font Lock:: Font Lock based on external parser.
+@end menu
+
+@node Traditional Font Lock
+@subsection Traditional Font Lock
+@cindex traditional font-lock
+
+  ``Traditional'' methods of providing font-lock information are based
+on regular-expression search and on syntactic analysis using syntax
+tables built into Emacs.  This subsection describes the use and
+customization of font-lock for major modes which use these traditional
+methods.
+
 @vindex font-lock-maximum-decoration
-  You can customize the variable @code{font-lock-maximum-decoration}
-to alter the amount of fontification applied by Font Lock mode, for
-major modes that support this feature.  The value should be a number
-(with 1 representing a minimal amount of fontification; some modes
-support levels as high as 3); or @code{t}, meaning ``as high as
-possible'' (the default).  To be effective for a given file buffer,
-the customization of @code{font-lock-maximum-decoration} should be
-done @emph{before} the file is visited; if you already have the file
-visited in a buffer when you customize this variable, kill the buffer
-and visit the file again after the customization.
+  You can control the amount of fontification applied by Font Lock
+mode by customizing the variable @code{font-lock-maximum-decoration},
+for major modes that support this feature.  The value of this variable
+should be a number (with 1 representing a minimal amount of
+fontification; some modes support levels as high as 3); or @code{t},
+meaning ``as high as possible'' (the default).  To be effective for a
+given file buffer, the customization of
+@code{font-lock-maximum-decoration} should be done @emph{before} the
+file is visited; if you already have the file visited in a buffer when
+you customize this variable, kill the buffer and visit the file again
+after the customization.
 
 You can also specify different numbers for particular major modes; for
 example, to use level 1 for C/C++ modes, and the default level
@@ -1082,16 +1133,59 @@ keywords by customizing the @code{font-lock-ignore} option,
 @pxref{Customizing Keywords,,, elisp, The Emacs Lisp Reference
 Manual}.
 
-@cindex just-in-time (JIT) font-lock
-@cindex background syntax highlighting
-  Fontifying large buffers can take a long time.  To avoid large
-delays when a file is visited, Emacs initially fontifies only the
-visible portion of a buffer.  As you scroll through the buffer, each
-portion that becomes visible is fontified as soon as it is displayed;
-this type of Font Lock is called @dfn{Just-In-Time} (or @dfn{JIT})
-Lock.  You can control how JIT Lock behaves, including telling it to
-perform fontification while idle, by customizing variables in the
-customization group @samp{jit-lock}.  @xref{Specific Customization}.
+@node Parser-based Font Lock
+@subsection Parser-based Font Lock
+@cindex font-lock via tree-sitter
+@cindex parser-based font-lock
+  If your Emacs was built with the tree-sitter library, it can use the
+results of parsing the buffer text by that library for the purposes of
+fontification.  This is usually faster and more accurate than the
+``traditional'' methods described in the previous subsection, since
+the tree-sitter library provides full-blown parsers for programming
+languages and other kinds of formatted text which it supports.  Major
+modes which utilize the tree-sitter library are named
+@code{@var{foo}-ts-mode}, with the @samp{-ts-} part indicating the use
+of the library.  This subsection documents the Font Lock support based
+on the tree-sitter library.
+
+@vindex treesit-font-lock-level
+  You can control the amount of fontification applied by Font Lock
+mode of major modes based on tree-sitter by customizing the variable
+@code{treesit-font-lock-level}.  Its value is a number between 1 and
+4:
+
+@table @asis
+@item Level 1
+This level usually fontifies only comments and function names in
+function definitions.
+@item Level 2
+This level adds fontification of keywords, strings, and data types.
+@item Level 3
+This is the default level; it adds fontification of assignments,
+numbers, etc.
+@item Level 4
+This level adds everything else that can be fontified: operators,
+delimiters, brackets, other punctuation, function names in function
+calls, property look ups, variables, etc.
+@end table
+
+@vindex treesit-font-lock-feature-list
+@noindent
+What exactly constitutes each of the syntactical categories mentioned
+above depends on the major mode and the parser grammar used by
+tree-sitter for the major-mode's language.  However, in general the
+categories follow the conventions of the programming language or the
+file format supported by the major mode.  The buffer-local value of
+the variable @code{treesit-font-lock-feature-list} holds the
+fontification features supported by a tree-sitter based major mode,
+where each sub-list shows the features provided by the corresponding
+fontification level.
+
+  Once you change the value of @code{treesit-font-lock-level} via
+@w{@kbd{M-x customize-variable}} (@pxref{Specific Customization}), it
+takes effect immediately in all the existing buffers and for files you
+visit in the future in the same session.
+
 
 @node Highlight Interactively
 @section Interactive Highlighting
@@ -1311,7 +1405,11 @@ right-to-left paragraphs.
 functionality especially in @code{prog-mode} and its descendants
 (@pxref{Major Modes}) to indicate the position of a specific column
 that has some special meaning for formatting the source code of a
-program.
+program.  This assumes the buffer uses a fixed-pitch font, where all
+the characters (with the possible exception of double-width
+characters) have the same width on display.  If the buffer uses
+variable-pitch fonts, the fill-column indicators on different lines
+might appear unaligned.
 
   To activate the fill-column indication display, use the minor modes
 @code{display-fill-@-column-indicator-mode} and

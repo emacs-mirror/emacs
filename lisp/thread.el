@@ -1,6 +1,6 @@
 ;;; thread.el --- Thread support in Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 ;; Maintainer: emacs-devel@gnu.org

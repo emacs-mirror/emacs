@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands

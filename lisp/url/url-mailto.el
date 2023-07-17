@@ -1,6 +1,6 @@
 ;;; url-mailto.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -120,11 +120,11 @@
 	      (url-mail-goto-field nil)
 	    (url-mail-goto-field "subject")))
       (if url-request-extra-headers
-	  (mapconcat
+	  (mapc
 	   (lambda (x)
 	     (url-mail-goto-field (car x))
 	     (insert (cdr x)))
-	   url-request-extra-headers ""))
+	   url-request-extra-headers))
       (goto-char (point-max))
       (insert url-request-data)
       ;; It seems Microsoft-ish to send without warning.

@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -243,6 +243,29 @@ The name is made by appending a number to PREFIX, default \"T\"."
 (defvar cl--bind-enquote)      ;Non-nil if &cl-quote was in the formal arglist!
 (defvar cl--bind-lets) (defvar cl--bind-forms)
 
+(defun cl--slet (bindings body &optional nowarn)
+  "Like `cl--slet*' but for \"parallel let\"."
+  (let ((dyns nil)) ;Vars declared as dynbound among the bindings?
+    (when lexical-binding
+      (dolist (binding bindings) ;; `seq-some' lead to bootstrap problems.
+        (when (macroexp--dynamic-variable-p (car binding))
+          (push (car binding) dyns))))
+    (cond
+     (dyns
+      (let ((form `(funcall (lambda (,@(mapcar #'car bindings))
+                              ,@(macroexp-unprogn body))
+                            ,@(mapcar #'cadr bindings))))
+        (if (not nowarn) form
+          `(with-suppressed-warnings ((lexical ,@dyns)) ,form))))
+     ((null (cdr bindings))
+      (macroexp-let* bindings body))
+     (t `(let ,bindings ,@(macroexp-unprogn body))))))
+
+(defun cl--slet* (bindings body)
+  "Like `macroexp-let*' but uses static scoping for all the BINDINGS."
+  (if (null bindings) body
+    (cl--slet `(,(car bindings)) (cl--slet* (cdr bindings) body))))
+
 (defun cl--transform-lambda (form bind-block)
   "Transform a function form FORM of name BIND-BLOCK.
 BIND-BLOCK is the name of the symbol to which the function will be bound,
@@ -337,10 +360,11 @@ FORM is of the form (ARGS . BODY)."
                 (list '&rest (car (pop cl--bind-lets))))))))
       `((,@(nreverse simple-args) ,@rest-args)
         ,@header
-        ,(macroexp-let* cl--bind-lets
-                        (macroexp-progn
-                         `(,@(nreverse cl--bind-forms)
-                           ,@body)))))))
+        ;; Function arguments are unconditionally statically scoped (bug#47552).
+        ,(cl--slet* cl--bind-lets
+                    (macroexp-progn
+                     `(,@(nreverse cl--bind-forms)
+                       ,@body)))))))
 
 ;;;###autoload
 (defmacro cl-defun (name args &rest body)
@@ -2758,26 +2782,29 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
   ;; Common-Lisp's `psetf' does the first, so we'll do the same.
   (if (null bindings)
       (if (and (null binds) (null simplebinds)) (macroexp-progn body)
+        (let ((body-form
+               (macroexp-progn
+                (append
+                 (delq nil
+                       (mapcar (lambda (x)
+                                 (pcase x
+                                   ;; If there's no vnew, do nothing.
+                                   (`(,_vold ,_getter ,setter ,vnew)
+                                    (funcall setter vnew))))
+                               binds))
+                 body))))
         `(let* (,@(mapcar (lambda (x)
                             (pcase-let ((`(,vold ,getter ,_setter ,_vnew) x))
                               (list vold getter)))
                           binds)
                 ,@simplebinds)
-           (unwind-protect
-               ,(macroexp-progn
-                 (append
-                  (delq nil
-                        (mapcar (lambda (x)
-                                  (pcase x
-                                    ;; If there's no vnew, do nothing.
-                                    (`(,_vold ,_getter ,setter ,vnew)
-                                     (funcall setter vnew))))
-                                binds))
-                  body))
-             ,@(mapcar (lambda (x)
-                         (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
-                           (funcall setter vold)))
-                       binds))))
+           ,(if binds
+                `(unwind-protect ,body-form
+                   ,@(mapcar (lambda (x)
+                               (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
+                                 (funcall setter vold)))
+                             binds))
+              body-form))))
     (let* ((binding (car bindings))
            (place (car binding)))
       (gv-letplace (getter setter) place
@@ -2811,7 +2838,7 @@ values.  Note that this macro is *not* available in Common Lisp.
 As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
 the PLACE is not modified before executing BODY.
 
-See info node `(cl) Function Bindings' for details.
+See info node `(cl) Modify Macros' for details.
 
 \(fn ((PLACE VALUE) ...) BODY...)"
   (declare (indent 1) (debug ((&rest [&or (symbolp form)
@@ -2888,45 +2915,15 @@ The function's arguments should be treated as immutable.
              ,(format "compiler-macro for inlining `%s'." name)
              (cl--defsubst-expand
               ',argns '(cl-block ,name ,@(cdr (macroexp-parse-body body)))
-              ;; We used to pass `simple' as
-              ;; (not (or unsafe (cl-expr-access-order pbody argns)))
-              ;; But this is much too simplistic since it
-              ;; does not pay attention to the argvs (and
-              ;; cl-expr-access-order itself is also too naive).
               nil
               ,(and (memq '&key args) 'cl-whole) nil ,@argns)))
        (cl-defun ,name ,args ,@body))))
 
-(defun cl--defsubst-expand (argns body simple whole _unsafe &rest argvs)
-  (if (and whole (not (cl--safe-expr-p (cons 'progn argvs)))) whole
-    (if (cl--simple-exprs-p argvs) (setq simple t))
-    (let* ((substs ())
-           (lets (delq nil
-                       (cl-mapcar (lambda (argn argv)
-                                    (if (or simple (macroexp-const-p argv))
-                                        (progn (push (cons argn argv) substs)
-                                               nil)
-                                      (list argn argv)))
-                                  argns argvs))))
-      ;; FIXME: `sublis/subst' will happily substitute the symbol
-      ;; `argn' in places where it's not used as a reference
-      ;; to a variable.
-      ;; FIXME: `sublis/subst' will happily copy `argv' to a different
-      ;; scope, leading to name capture.
-      (setq body (cond ((null substs) body)
-                       ((null (cdr substs))
-                        (cl-subst (cdar substs) (caar substs) body))
-                       (t (cl--sublis substs body))))
-      (if lets `(let ,lets ,body) body))))
-
-(defun cl--sublis (alist tree)
-  "Perform substitutions indicated by ALIST in TREE (non-destructively)."
-  (let ((x (assq tree alist)))
-    (cond
-     (x (cdr x))
-     ((consp tree)
-      (cons (cl--sublis alist (car tree)) (cl--sublis alist (cdr tree))))
-     (t tree))))
+(defun cl--defsubst-expand (argns body _simple whole _unsafe &rest argvs)
+  (if (and whole (not (cl--safe-expr-p (macroexp-progn argvs))))
+      whole
+    ;; Function arguments are unconditionally statically scoped (bug#47552).
+    (cl--slet (cl-mapcar #'list argns argvs) body 'nowarn)))
 
 ;;; Structures.
 
@@ -3018,6 +3015,7 @@ To see the documentation for a defined struct type, use
          (defsym (if cl--struct-inline 'cl-defsubst 'defun))
 	 (forms nil)
          (docstring (if (stringp (car descs)) (pop descs)))
+         (dynbound-slotnames '())
 	 pred-form pred-check)
     ;; Can't use `cl-check-type' yet.
     (unless (cl--struct-name-p name)
@@ -3121,19 +3119,24 @@ To see the documentation for a defined struct type, use
                               (cons 'and (cdddr pred-form))
                             `(,predicate cl-x))))
     (when pred-form
-      (push `(,defsym ,predicate (cl-x)
+      (push `(eval-and-compile
+               ;; Define the predicate to be effective at compile time
+               ;; as native comp relies on `cl-typep' that relies on
+               ;; predicates to be defined as they are registered in
+               ;; cl-deftype-satisfies.
+               (,defsym ,predicate (cl-x)
                (declare (side-effect-free error-free) (pure t))
                ,(if (eq (car pred-form) 'and)
                     (append pred-form '(t))
                   `(and ,pred-form t)))
-            forms)
-      (push `(eval-and-compile
                (define-symbol-prop ',name 'cl-deftype-satisfies ',predicate))
             forms))
     (let ((pos 0) (descp descs))
       (while descp
 	(let* ((desc (pop descp))
 	       (slot (pop desc)))
+	  (when (macroexp--dynamic-variable-p slot)
+	    (push slot dynbound-slotnames))
 	  (if (memq slot '(cl-tag-slot cl-skip-slot))
 	      (progn
 		(push nil slots)
@@ -3176,8 +3179,9 @@ To see the documentation for a defined struct type, use
               (when (cl-oddp (length desc))
                 (push
                  (macroexp-warn-and-return
-                  (format "Missing value for option `%S' of slot `%s' in struct %s!"
-                          (car (last desc)) slot name)
+                  (format-message
+                   "Missing value for option `%S' of slot `%s' in struct %s!"
+                   (car (last desc)) slot name)
                   nil nil nil (car (last desc)))
                  forms)
                 (when (and (keywordp (car defaults))
@@ -3185,8 +3189,9 @@ To see the documentation for a defined struct type, use
                   (let ((kw (car defaults)))
                     (push
                      (macroexp-warn-and-return
-                      (format "  I'll take `%s' to be an option rather than a default value."
-                              kw)
+                      (format-message
+                       "  I'll take `%s' to be an option rather than a default value."
+                       kw)
                       nil nil nil kw)
                      forms)
                     (push kw desc)
@@ -3239,19 +3244,8 @@ To see the documentation for a defined struct type, use
       (let* ((anames (cl--arglist-args args))
              (make (cl-mapcar (lambda (s d) (if (memq s anames) s d))
 			      slots defaults))
-	     ;; `cl-defsubst' is fundamentally broken: it substitutes
-             ;; its arguments into the body's `sexp' much too naively
-             ;; when inlinling, which results in various problems.
-             ;; For example it generates broken code if your
-             ;; argument's name happens to be the same as some
-             ;; function used within the body.
-             ;; E.g. (cl-defsubst sm-foo (list) (list list))
-             ;; will expand `(sm-foo 1)' to `(1 1)' rather than to `(list t)'!
-             ;; Try to catch this known case!
-	     (con-fun (or type #'record))
-	     (unsafe-cl-defsubst
-	      (or (memq con-fun args) (assq con-fun args))))
-	(push `(,(if unsafe-cl-defsubst 'cl-defun cldefsym) ,cname
+	     (con-fun (or type #'record)))
+	(push `(,cldefsym ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
                     (format "Constructor for objects of type `%s'." name))
@@ -3273,7 +3267,10 @@ To see the documentation for a defined struct type, use
     ;;          forms))
     `(progn
        (defvar ,tag-symbol)
-       ,@(nreverse forms)
+       ,@(if (null dynbound-slotnames)
+             (nreverse forms)
+           `((with-suppressed-warnings ((lexical . ,dynbound-slotnames))
+               ,@(nreverse forms))))
        :autoload-end
        ;; Call cl-struct-define during compilation as well, so that
        ;; a subsequent cl-defstruct in the same file can correctly include this
@@ -3286,6 +3283,7 @@ To see the documentation for a defined struct type, use
 
 ;;; Add cl-struct support to pcase
 
+;;In use by comp.el
 (defun cl--struct-all-parents (class)
   (when (cl--struct-class-p class)
     (let ((res ())
@@ -3685,14 +3683,53 @@ macro that returns its `&whole' argument."
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (function-put x 'side-effect-free t))
-      '(cl-oddp cl-evenp cl-signum last butlast cl-ldiff cl-pairlis cl-gcd
+      '(cl-oddp cl-evenp cl-signum cl-ldiff cl-pairlis cl-gcd
         cl-lcm cl-isqrt cl-floor cl-ceiling cl-truncate cl-round cl-mod cl-rem
         cl-subseq cl-list-length cl-get cl-getf))
 
 ;;; Things that are side-effect-and-error-free.
 (mapc (lambda (x) (function-put x 'side-effect-free 'error-free))
-      '(eql cl-list* cl-subst cl-acons cl-equalp
-        cl-random-state-p copy-tree cl-sublis))
+      '(cl-list* cl-acons cl-equalp
+        cl-random-state-p copy-tree))
+
+;;; Things whose return value should probably be used.
+(mapc (lambda (x) (function-put x 'important-return-value t))
+       '(
+         ;; Functions that are side-effect-free except for the
+         ;; behaviour of functions passed as argument.
+         cl-mapcar cl-mapcan cl-maplist cl-map cl-mapcon
+         cl-reduce
+         cl-assoc cl-assoc-if cl-assoc-if-not
+         cl-rassoc cl-rassoc-if cl-rassoc-if-not
+         cl-member cl-member-if cl-member-if-not
+         cl-adjoin
+         cl-mismatch cl-search
+         cl-find cl-find-if cl-find-if-not
+         cl-position cl-position-if cl-position-if-not
+         cl-count cl-count-if cl-count-if-not
+         cl-remove cl-remove-if cl-remove-if-not
+         cl-remove-duplicates
+         cl-subst cl-subst-if cl-subst-if-not
+         cl-substitute cl-substitute-if cl-substitute-if-not
+         cl-sublis
+         cl-union cl-intersection cl-set-difference cl-set-exclusive-or
+         cl-subsetp
+         cl-every cl-some cl-notevery cl-notany
+         cl-tree-equal
+
+         ;; Functions that mutate and return a list.
+         cl-delete cl-delete-if cl-delete-if-not
+         cl-delete-duplicates
+         cl-nsubst cl-nsubst-if cl-nsubst-if-not
+         cl-nsubstitute cl-nsubstitute-if cl-nsubstitute-if-not
+         cl-nunion cl-nintersection cl-nset-difference cl-nset-exclusive-or
+         cl-nreconc cl-nsublis
+         cl-merge
+         ;; It's safe to ignore the value of `cl-sort' and `cl-stable-sort'
+         ;; when used on arrays, but most calls pass lists.
+         cl-sort cl-stable-sort
+         ))
+
 
 ;;; Types and assertions.
 

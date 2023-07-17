@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: emacs-devel@gnu.org
@@ -957,7 +957,7 @@ Also see the `dired-confirm-shell-command' variable."
          ;; "&" instead.
          (cmd-sep (if (and (or (not w32-shell) file-remote)
 			   (not parallel-in-background))
-		      ";" "&"))
+		      "; " "& "))
 	 (stuff-it
 	  (if (dired--star-or-qmark-p command nil 'keep)
 	      (lambda (x)
@@ -988,7 +988,7 @@ Also see the `dired-confirm-shell-command' variable."
                ;; Add 'wait' to force those POSIX shells to wait until
                ;; all commands finish.
                (or (and parallel-in-background (not w32-shell)
-                        " &wait")
+                        " & wait")
                    "")))
       (t
        (let ((files (mapconcat #'shell-quote-argument
@@ -1000,9 +1000,9 @@ Also see the `dired-confirm-shell-command' variable."
           ;; Be consistent in how we treat inputs to commands -- do
           ;; the same here as in the `on-each' case.
           (if (and in-background (not w32-shell))
-              " &wait"
+              " & wait"
             "")))))
-     (or (and in-background "&")
+     (or (and in-background "& ")
          ""))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
@@ -3730,7 +3730,7 @@ of the target of the link instead."
 	  (process-file "file" nil t t "-L" "--" file)
 	(process-file "file" nil t t "--" file))
       (when (bolp)
-	(backward-delete-char 1))
+	(delete-char -1))
       (message "%s" (buffer-string)))))
 
 
@@ -3741,12 +3741,21 @@ of the target of the link instead."
 
 ;;;###autoload
 (defun dired-vc-next-action (verbose)
-  "Do the next version control operation on marked files/directories.
-When only files are marked then call `vc-next-action' with the
-same value of the VERBOSE argument.
-When also directories are marked then call `vc-dir' and mark
-the same files/directories in the VC-Dir buffer that were marked
-in the Dired buffer."
+  "Do the next logical version control operation on marked files/directories.
+The VC control operation will operate on a fileset which includes
+the marked files/directories.  If no files/directories are marked, the
+fileset will include the single file/directory shown on the current line.
+
+If only regular files are in the fileset, call `vc-next-action' with
+the same value of the VERBOSE argument (interactively, the prefix
+argument).
+
+If one or more directories are in the fileset, start `vc-dir' in the root
+directory of the repository that includes the current directory, with
+the same files/directories marked in the VC-Directory buffer that were
+marked in the original Dired buffer.  If the current directory doesn't
+belong to a VCS repository, prompt for a repository directory.  In this
+case, the VERBOSE argument is ignored."
   (interactive "P")
   (let* ((marked-files
           (dired-get-marked-files nil nil nil nil t))

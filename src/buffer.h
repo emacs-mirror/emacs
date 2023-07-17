@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-2022  Free Software Foundation, Inc.
+Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -690,7 +690,7 @@ struct buffer
      display optimizations must be used.  */
   bool_bf long_line_optimizations_p : 1;
 
-  /* The inveral tree containing this buffer's overlays. */
+  /* The interval tree containing this buffer's overlays. */
   struct itree_tree *overlays;
 
   /* Changes in the buffer are recorded here for undo, and t means

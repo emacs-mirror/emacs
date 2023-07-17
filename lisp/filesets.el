@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1807,7 +1807,6 @@ If no fileset name is provided, prompt for NAME."
 
 (defun filesets-convert-patterns (name)
   "Change fileset NAME's mode from :pattern to :files."
-  (interactive)
   (let ((entry (assoc name filesets-data)))
     (if entry
 	(let ((pattern  (filesets-entry-get-pattern entry))

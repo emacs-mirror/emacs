@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2022 Free Software Foundation,
+Copyright (C) 1985, 1994, 1997-1999, 2001-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -283,8 +283,8 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
 
   ptrdiff_t size = SCHARS (obj), n;
   USE_SAFE_ALLOCA;
-  if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n)
-      || INT_ADD_WRAPV (n, sizeof (struct casing_str_buf), &n))
+  if (ckd_mul (&n, size, MAX_MULTIBYTE_LENGTH)
+      || ckd_add (&n, n, sizeof (struct casing_str_buf)))
     n = PTRDIFF_MAX;
   unsigned char *dst = SAFE_ALLOCA (n);
   unsigned char *dst_end = dst + n;

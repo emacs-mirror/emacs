@@ -1,6 +1,6 @@
 ;;; srecode/fields.el --- Handling type-in fields in a buffer.  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-netid-bouncer-id.el --- net-id bouncer ID scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

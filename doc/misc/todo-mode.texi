@@ -9,7 +9,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2013--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2013--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -580,7 +580,14 @@ on every invocation of @code{todo-insert-item}.
 the highest or lowest priority in the category, if you do not
 explicitly assign it a priority on invoking @code{todo-insert-item}.
 By default, such new items are given highest priority, i.e., inserted
-at the top of the list.
+at the top of the list.  In addition, when setting an item's priority
+you can use the minibuffer history to quickly call up the lowest or
+highest priority number in the minibuffer by typing @kbd{M-p} or
+@kbd{M-n}, and you can scroll through all priority numbers for the
+current category with these keys.  For example, with the default
+setting of @code{todo-default-priority}, you can insert a new item as
+second to last in the category by typing @kbd{M-p M-p} at the prompt
+for setting the priority.
 
 @item
 @code{todo-always-add-time-string} is for including or omitting the
@@ -983,7 +990,10 @@ category, i.e., gives it third highest priority; all lower priority
 items are pushed down by one.  You can also pass the desired priority
 as a numeric prefix argument, e.g., @kbd{3 #} gives the item third
 highest priority without prompting.  (Prefix arguments have no effect
-with @kbd{r} or @kbd{l}.)
+with @kbd{r} or @kbd{l}.)  And you can type @kbd{M-p} and @kbd{M-n} in
+the minibuffer to scroll through all priority numbers for the current
+category.  If you mistakenly choose the item's current priority, you
+will be prompted to choose a different priority.
 @end table
 
 @node Moving and Deleting Items

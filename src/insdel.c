@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
-   Copyright (C) 1985-1986, 1993-1995, 1997-2022 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1101,6 +1101,10 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   eassert (NILP (BVAR (current_buffer, enable_multibyte_characters))
            ? nchars == nbytes : nchars <= nbytes);
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t ins_bytepos = GPT_BYTE;
+#endif
+
   GAP_SIZE -= nbytes;
   if (! text_at_gap_tail)
     {
@@ -1115,6 +1119,12 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   /* Put an anchor to ensure multi-byte form ends at gap.  */
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0;
   eassert (GPT <= GPT_BYTE);
+
+#ifdef HAVE_TREE_SITTER
+  eassert (nbytes >= 0);
+  eassert (ins_bytepos >= 0);
+  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes);
+#endif
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
@@ -1150,12 +1160,6 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 				   current_buffer, 0);
     }
 
-#ifdef HAVE_TREE_SITTER
-  eassert (nbytes >= 0);
-  eassert (ins_bytepos >= 0);
-  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes);
-#endif
-
   if (ins_charpos < PT)
     adjust_point (nchars, nbytes);
 
@@ -1175,10 +1179,24 @@ insert_from_buffer (struct buffer *buf,
 {
   ptrdiff_t opoint = PT;
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t obyte = PT_BYTE;
+#endif
+
   insert_from_buffer_1 (buf, charpos, nchars, inherit);
   signal_after_change (opoint, 0, PT - opoint);
   update_compositions (opoint, PT, CHECK_BORDER);
+
+#ifdef HAVE_TREE_SITTER
+  eassert (PT_BYTE >= BEG_BYTE);
+  eassert (obyte >= BEG_BYTE);
+  eassert (PT_BYTE >= obyte);
+  treesit_record_change (obyte, obyte, PT_BYTE);
+#endif
 }
+
+/* NOTE: If we ever make insert_from_buffer_1 public, make sure to
+   move the call to treesit_record_change into it.  */
 
 static void
 insert_from_buffer_1 (struct buffer *buf,
@@ -1304,12 +1322,6 @@ insert_from_buffer_1 (struct buffer *buf,
 
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars, current_buffer, inherit);
-
-#ifdef HAVE_TREE_SITTER
-  eassert (outgoing_nbytes >= 0);
-  eassert (PT_BYTE >= 0);
-  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + outgoing_nbytes);
-#endif
 
   adjust_point (nchars, outgoing_nbytes);
 }
@@ -1701,6 +1713,44 @@ void
 del_range (ptrdiff_t from, ptrdiff_t to)
 {
   del_range_1 (from, to, 1, 0);
+}
+
+struct safe_del_range_context
+{
+  /* From and to positions.  */
+  ptrdiff_t from, to;
+};
+
+static Lisp_Object
+safe_del_range_1 (void *ptr)
+{
+  struct safe_del_range_context *context;
+
+  context = ptr;
+  del_range (context->from, context->to);
+  return Qnil;
+}
+
+static Lisp_Object
+safe_del_range_2 (enum nonlocal_exit type, Lisp_Object value)
+{
+  return Qt;
+}
+
+/* Like del_range; however, catch all non-local exits.  Value is 0 if
+   the buffer contents were really deleted.  Otherwise, it is 1.  */
+
+int
+safe_del_range (ptrdiff_t from, ptrdiff_t to)
+{
+  struct safe_del_range_context context;
+
+  context.from = from;
+  context.to = to;
+
+  return !NILP (internal_catch_all (safe_del_range_1,
+				    &context,
+				    safe_del_range_2));
 }
 
 /* Like del_range; PREPARE says whether to call prepare_to_modify_buffer.

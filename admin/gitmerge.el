@@ -1,6 +1,6 @@
 ;;; gitmerge.el --- help merge one Emacs branch into another  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Authors: David Engster <deng@randomsample.de>
 ;;          Stefan Monnier <monnier@iro.umontreal.ca>

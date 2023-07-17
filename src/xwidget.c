@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2022 Free Software Foundation, Inc.
+Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3063,6 +3063,36 @@ DEFUN ("xwidget-webkit-title",
 #endif
 }
 
+DEFUN ("xwidget-webkit-estimated-load-progress",
+       Fxwidget_webkit_estimated_load_progress, Sxwidget_webkit_estimated_load_progress,
+       1, 1, 0, doc: /* Get the estimated load progress of XWIDGET, a WebKit widget.
+Return a value ranging from 0.0 to 1.0, based on how close XWIDGET
+is to completely loading its page.  */)
+  (Lisp_Object xwidget)
+{
+  struct xwidget *xw;
+#ifdef USE_GTK
+  WebKitWebView *webview;
+#endif
+  double value;
+
+  CHECK_LIVE_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
+
+  block_input ();
+#ifdef USE_GTK
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  value = webkit_web_view_get_estimated_load_progress (webview);
+#elif defined NS_IMPL_COCOA
+  value = nsxwidget_webkit_estimated_load_progress (xw);
+#endif
+
+  unblock_input ();
+
+  return make_float (value);
+}
+
 DEFUN ("xwidget-webkit-goto-uri",
        Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto_uri,
        2, 2, 0,
@@ -3810,28 +3840,6 @@ LIMIT is not specified or nil, it is treated as `50'.  */)
   return list3 (back, here, forward);
 }
 
-DEFUN ("xwidget-webkit-estimated-load-progress",
-       Fxwidget_webkit_estimated_load_progress, Sxwidget_webkit_estimated_load_progress,
-       1, 1, 0, doc: /* Get the estimated load progress of XWIDGET, a WebKit widget.
-Return a value ranging from 0.0 to 1.0, based on how close XWIDGET
-is to completely loading its page.  */)
-  (Lisp_Object xwidget)
-{
-  struct xwidget *xw;
-  WebKitWebView *webview;
-  double value;
-
-  CHECK_LIVE_XWIDGET (xwidget);
-  xw = XXWIDGET (xwidget);
-  CHECK_WEBKIT_WIDGET (xw);
-
-  block_input ();
-  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
-  value = webkit_web_view_get_estimated_load_progress (webview);
-  unblock_input ();
-
-  return make_float (value);
-}
 #endif
 
 DEFUN ("xwidget-webkit-set-cookie-storage-file",
@@ -3874,19 +3882,23 @@ This will stop any data transfer that may still be in progress inside
 XWIDGET as part of loading a page.  */)
   (Lisp_Object xwidget)
 {
-#ifdef USE_GTK
   struct xwidget *xw;
+#ifdef USE_GTK
   WebKitWebView *webview;
+#endif
 
   CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
   CHECK_WEBKIT_WIDGET (xw);
 
   block_input ();
+#ifdef USE_GTK
   webview = WEBKIT_WEB_VIEW (xw->widget_osr);
   webkit_web_view_stop_loading (webview);
-  unblock_input ();
+#elif defined NS_IMPL_COCOA
+  nsxwidget_webkit_stop_loading (xw);
 #endif
+  unblock_input ();
 
   return Qnil;
 }
@@ -3936,8 +3948,9 @@ syms_of_xwidget (void)
 #ifdef USE_GTK
   defsubr (&Sxwidget_webkit_load_html);
   defsubr (&Sxwidget_webkit_back_forward_list);
-  defsubr (&Sxwidget_webkit_estimated_load_progress);
 #endif
+
+  defsubr (&Sxwidget_webkit_estimated_load_progress);
   defsubr (&Skill_xwidget);
 
   DEFSYM (QCxwidget, ":xwidget");

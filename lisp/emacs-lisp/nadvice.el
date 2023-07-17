@@ -1,6 +1,6 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
@@ -165,6 +165,8 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
          (buffer-string))
        usage))))
 
+;; FIXME: How about renaming this to just `eval-interactive-spec'?
+;; It's not specific to the advice system.
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."
   (cond
@@ -174,24 +176,44 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
     ;; FIXME: Despite appearances, this is not faithful: SPEC and
     ;; (advice-eval-interactive-spec SPEC) will behave subtly differently w.r.t
     ;; command-history (and maybe a few other details).
-    (call-interactively `(lambda (&rest args) (interactive ,spec) args)))
+    (call-interactively
+     ;; Sadly (lambda (&rest args) (interactive spec) args) doesn't work :-(
+     (cconv--interactive-helper (lambda (&rest args) args) spec)))
    ;; ((functionp spec) (funcall spec))
    (t (eval spec))))
+
+(defun advice--interactive-form-1 (function)
+  "Like `interactive-form' but preserves the static context if needed."
+  (let ((if (interactive-form function)))
+    (if (or (null if) (not (eq 'closure (car-safe function))))
+        if
+      (cl-assert (eq 'interactive (car if)))
+      (let ((form (cadr if)))
+        (if (macroexp-const-p form)
+            if
+          ;; The interactive is expected to be run in the static context
+          ;; that the function captured.
+          (let ((ctx (nth 1 function)))
+            `(interactive
+              ,(let* ((f (if (eq 'function (car-safe form)) (cadr form) form)))
+                 ;; If the form jut returns a function, preserve the fact that
+                 ;; it just returns a function, which is an info we use in
+                 ;; `advice--make-interactive-form'.
+                 (if (eq 'lambda (car-safe f))
+                     `',(eval form ctx)
+                   `(eval ',form ',ctx))))))))))
 
 (defun advice--interactive-form (function)
   "Like `interactive-form' but tries to avoid autoloading functions."
   (if (not (and (symbolp function) (autoloadp (indirect-function function))))
-      (interactive-form function)
+      (advice--interactive-form-1 function)
     (when (commandp function)
       `(interactive (advice-eval-interactive-spec
-                     (cadr (interactive-form ',function)))))))
+                     (cadr (advice--interactive-form-1 ',function)))))))
 
 (defun advice--make-interactive-form (iff ifm)
-  ;; TODO: make it so that interactive spec can be a constant which
-  ;; dynamically checks the advice--car/cdr to do its job.
-  ;; For that, advice-eval-interactive-spec needs to be more faithful.
   (let* ((fspec (cadr iff)))
-    (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
+    (when (memq (car-safe fspec) '(function quote)) ;; Macroexpanded lambda?
       (setq fspec (eval fspec t)))
     (if (functionp fspec)
         `(funcall ',fspec ',(cadr ifm))

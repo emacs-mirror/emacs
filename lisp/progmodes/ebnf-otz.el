@@ -1,6 +1,6 @@
 ;;; ebnf-otz.el --- syntactic chart OpTimiZer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
@@ -566,7 +566,7 @@
     ;; determine suffix length
     (while (and (> isuf 0) (setq tail (cdr tail)))
       (let* ((cur head)
-	     (tlis (nreverse
+	     (tlis (reverse
 		    (if (eq (ebnf-node-kind (car tail)) 'ebnf-generate-sequence)
 			(ebnf-node-list (car tail))
 		      (list (car tail)))))
@@ -577,7 +577,6 @@
 	  (setq cur  (cdr cur)
 		this (cdr this)
 		i    (1+ i)))
-	(nreverse tlis)
 	(setq isuf (min isuf i))))
     (setq head (nreverse head))
     (if (or (zerop isuf) (> isuf len))

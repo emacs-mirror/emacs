@@ -1,6 +1,6 @@
 ;;; abbrev-tests.el --- Test suite for abbrevs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Keywords: abbrevs
@@ -304,6 +304,22 @@
 (ert-deftest test-abbrev-table-p ()
   (should-not (abbrev-table-p translation-table-vector))
   (should (abbrev-table-p (make-abbrev-table))))
+
+(ert-deftest abbrev--possibly-save-test ()
+  "Test that `abbrev--possibly-save' properly resets
+`abbrevs-changed'."
+  (ert-with-temp-file temp-test-file
+    (let ((abbrev-file-name temp-test-file)
+          (save-abbrevs t))
+      ;; Save
+      (let ((abbrevs-changed t))
+        (should-not (abbrev--possibly-save nil t))
+        (should-not abbrevs-changed))
+      ;; Don't save
+      (let ((abbrevs-changed t))
+        (ert-simulate-keys '(?n ?\C-m)
+          (should (abbrev--possibly-save nil)))
+        (should-not abbrevs-changed)))))
 
 (provide 'abbrev-tests)
 

@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -897,6 +897,15 @@ In the latter case, VC mode is deactivated for this buffer."
     (bindings--define-key map [vc-create-tag]
       '(menu-item "Create Tag" vc-create-tag
 		  :help "Create version tag"))
+    (bindings--define-key map [vc-print-branch-log]
+      '(menu-item "Show Branch History..." vc-print-branch-log
+		  :help "List the change log for another branch"))
+    (bindings--define-key map [vc-switch-branch]
+      '(menu-item "Switch Branch..." vc-switch-branch
+		  :help "Switch to another branch"))
+    (bindings--define-key map [vc-create-branch]
+      '(menu-item "Create Branch..." vc-create-branch
+		  :help "Make a new branch"))
     (bindings--define-key map [separator1] menu-bar-separator)
     (bindings--define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate

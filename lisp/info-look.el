@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995-1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
 ;; Keywords: help languages
@@ -733,7 +733,11 @@ Return nil if there is nothing appropriate in the buffer near point."
                 (let ((str (string-join str-list " ")))
                   (when (assoc str completions)
                     (throw 'result str))
-                  (nbutlast str-list)))))))
+                  ;; 'nbutlast' will not destructively set its argument
+                  ;; to nil when the argument is a list of 1 element.
+                  (if (= (length str-list) 1)
+                      (setq str-list nil)
+                    (nbutlast str-list))))))))
     (error nil)))
 
 ;;;###autoload

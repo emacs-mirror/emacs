@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2022 Free Software Foundation, Inc.
+# Copyright (C) 2017-2023 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -86,7 +86,7 @@ default:
     # TODO: with make -j4 several of the tests were failing, for
     # example shadowfile-tests, but passed without it.
     - 'export PWD=$(pwd)'
-    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -xvc "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
   after_script:
     # - docker ps -a
     # - printenv
@@ -166,6 +166,27 @@ default:
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
 
+.eglot-template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      changes:
+        - "**.in"
+        - lisp/progmodes/eglot.el
+        - test/infra/*
+        - test/lisp/progmodes/eglot-tests.el
+
+.tree-sitter-template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      changes:
+        - "**.in"
+        - lisp/progmodes/*-ts-mode.el
+        - test/infra/*
+        - test/lisp/progmodes/*-ts-mode-resources/**
+        - test/lisp/progmodes/*-ts-mode-tests.el
+
 .native-comp-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
@@ -229,6 +250,40 @@ test-filenotify-gio:
     # This is needed in order to get a JUnit test report.
     make_params: '-k -C test check-expensive LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
 
+build-image-eglot:
+  stage: platform-images
+  extends: [.job-template, .build-template, .eglot-template]
+  variables:
+    target: emacs-eglot
+
+test-eglot:
+  stage: platforms
+  extends: [.job-template, .test-template, .eglot-template]
+  needs:
+    - job: build-image-eglot
+      optional: true
+  variables:
+    target: emacs-eglot
+    # This is needed in order to get a JUnit test report.
+    make_params: '-k -C test check-expensive LOGFILES="lisp/progmodes/eglot-tests.log"'
+
+build-image-tree-sitter:
+  stage: platform-images
+  extends: [.job-template, .build-template, .tree-sitter-template]
+  variables:
+    target: emacs-tree-sitter
+
+test-tree-sitter:
+  stage: platforms
+  extends: [.job-template, .test-template, .tree-sitter-template, .tree-sitter-files-template]
+  needs:
+    - job: build-image-tree-sitter
+      optional: true
+  variables:
+    target: emacs-tree-sitter
+    # This is needed in order to get a JUnit test report.
+    make_params: '-k -C test check-expensive TEST_HOME=/root LOGFILES="$tree_sitter_files"'
+
 build-image-gnustep:
   stage: platform-images
   extends: [.job-template, .build-template, .gnustep-template]
@@ -245,6 +300,9 @@ test-gnustep:
   variables:
     target: emacs-gnustep
     make_params: install
+
+# The next two jobs are commented out due to high workload on
+# emba.gnu.org.
 
 # build-native-comp-speed0:
 #   stage: native-comp-images

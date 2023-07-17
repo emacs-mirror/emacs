@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 2001--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1994, 2001--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -849,7 +849,15 @@ from writing its results, the @file{*.eln} files, into a subdirectory
 of @code{user-emacs-directory} (@pxref{Init File}).  You can do that
 by either changing the value of @code{native-comp-eln-load-path}
 (@pxref{Native-Compilation Variables}) or by temporarily pointing the
-@env{HOME} environment variable to a non-existing directory.
+@env{HOME} environment variable to a non-existing directory.  Note
+that the latter technique might still produce a small number of
+@file{*.eln} files if Emacs needs to generate @dfn{trampolines}, which
+are used if Lisp primitives are advised or redefined in your Lisp code
+that is being natively compiled.  @xref{Native-Compilation Variables,
+trampolines}.  Alternatively, you can specify that the @file{*.eln}
+files are written to a non-default directory using the
+@code{startup-redirect-eln-cache} function; @pxref{Native-Compilation
+Functions}.
 
 @menu
 * Native-Compilation Functions::  Functions to natively-compile Lisp.
@@ -974,30 +982,28 @@ available and can be loaded.  Lisp programs that need to know up front
 whether native-compilation is available should use this predicate.
 @end defun
 
+  By default, asynchronous native compilation writes the @file{*.eln}
+files it produces to a subdirectory of the first writable directory
+specified by the @code{native-comp-eln-load-path} variable
+(@pxref{Native-Compilation Variables}).  You can change this by using
+the following function in your startup files:
+
+@defun startup-redirect-eln-cache cache-directory
+This function arranges for the asynchronous native compilation to
+write the produced @file{*.eln} files to @var{cache-directory}, which
+must be a single directory, a string.  It also destructively modifies
+@code{native-comp-eln-load-path} such that its first element is
+@var{cache-directory}.  If @var{cache-directory} is not an absolute
+file name, it is interpreted relative to @code{user-emacs-directory}
+(@pxref{Init File}).
+@end defun
+
 @node Native-Compilation Variables
 @section Native-Compilation Variables
 @cindex native-compilation variables
 
   This section documents the variables that control
 native-compilation.
-
-@defvar inhibit-automatic-native-compilation
-If your Emacs has support for native compilation, Emacs will (by
-default) compile the Lisp files you're loading in the background, and
-then install the native-compiled versions of the functions.  If you
-wish to disable this, you can set this variable to non-@code{nil}.  If
-you want to set it permanently, this should probably be done from the
-early init file, since setting it in the normal init file is probably
-too late.
-
-While setting this variable disables automatic compilation of Lisp
-files, the compiler may still be invoked to install @dfn{trampolines}
-if any built-in functions are redefined.  However, these trampolines
-will not get written to your cache directory.
-
-You can also use the @samp{EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION}
-environment variable to disable native compilation.
-@end defvar
 
 @defopt native-comp-speed
 This variable specifies the optimization level for native compilation.
@@ -1093,3 +1099,66 @@ The directories in this list are also used for writing the
 specifically, Emacs will write these files into the first writable
 directory in the list.  Thus, you can control where native-compilation
 stores the results by changing the value of this variable.
+
+@cindex disable asynchronous native compilation
+@cindex inhibit asynchronous native compilation
+@cindex asynchronous native compilation, disable
+@defvar native-comp-jit-compilation
+This variable, if non-@code{nil}, enables asynchronous (a.k.a.@:
+@dfn{just-in-time}, or @acronym{JIT}) native compilation of the
+@file{*.elc} files loaded by Emacs for which the corresponding
+@file{*.eln} files do not already exist.  This JIT compilation uses
+separate Emacs sub-processes running in batch mode, according to the
+value of @code{native-comp-async-jobs-number}.  When the JIT
+compilation of a Lisp file finishes successfully, the resulting
+@file{.eln} file is loaded and its code replaces the definition of
+functions provided by the @file{.elc} file.
+@end defvar
+
+@cindex trampolines, in native compilation
+  Setting the value of @code{native-comp-jit-compilation} to@code{nil}
+disables JIT native compilation.  However, even when JIT native
+compilation is disabled, Emacs might still need to start asynchronous
+native compilation subprocesses to produce @dfn{trampolines}.  To
+control this, use a separate variable, described below.
+
+@defvar native-comp-enable-subr-trampolines
+This variable controls generation of trampolines.  A trampoline is a
+small piece of native code required to allow calling Lisp primitives,
+which were advised or redefined, from Lisp code that was
+natively-compiled with @code{native-comp-speed} set to 2 or greater.
+Emacs stores the generated trampolines on separate @file{*.eln} files.
+By default, this variable's value is @code{t}, which enables the
+generation of trampoline files; setting it to @code{nil} disables the
+generation of trampolines.  Note that if a trampoline needed for
+advising or redefining a primitive is not available and cannot be
+generated, calls to that primitive from natively-compiled Lisp will
+ignore redefinitions and advices, and will behave as if the primitive
+was called directly from C.  Therefore, we don't recommend disabling
+the trampoline generation, unless you know that all the trampolines
+needed by your Lisp programs are already compiled and accessible to
+Emacs.
+
+The value of this variable can also be a string, in which case it
+specifies the name of a directory in which to store the generated
+trampoline @file{*.eln} files, overriding the directories in
+@code{native-comp-eln-load-path}.  This is useful if you want the
+trampolines to be generated as needed, but don't want to store them
+under the user's @env{HOME} directory or in the other public
+directories where @file{*.eln} files are kept.  However, unlike with
+directories in @code{native-comp-eln-load-path}, the trampolines will
+be stored in the directory given by the value of this variable, not in
+its version-specific subdirectory.  If the name of this directory is
+not absolute, it is interpreted relative to
+@code{invocation-directory} (@pxref{System Environment})
+
+If this variable is non-@code{nil}, and Emacs needs to produce a
+trampoline, but it cannot find any writable directory to store the
+trampoline, it will store it inside @code{temporary-file-directory}
+(@pxref{Unique File Names}).
+
+Trampolines produced when no writable directory is found to store
+them, or when this variable is a string, will only be available for
+the duration of the current Emacs session, because Emacs doesn't look
+for trampolines in either of these places.
+@end defvar

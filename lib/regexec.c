@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -324,7 +324,7 @@ re_search_2_stub (struct re_pattern_buffer *bufp, const char *string1,
   char *s = NULL;
 
   if (__glibc_unlikely ((length1 < 0 || length2 < 0 || stop < 0
-			 || INT_ADD_WRAPV (length1, length2, &len))))
+			 || ckd_add (&len, length1, length2))))
     return -2;
 
   /* Concatenate the strings.  */

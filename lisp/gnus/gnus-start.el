@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1490,7 +1490,8 @@ backend check whether the group actually exists."
 	       (gnus-request-update-info
 		info (inline (gnus-find-method-for-group
 			      (gnus-info-group info)))))
-      (gnus-activate-group (gnus-info-group info) nil t))
+      (gnus-activate-group (gnus-info-group info) nil t)
+      (setq active (gnus-active (gnus-info-group info))))
 
     (let* ((range (gnus-info-read info))
 	   (num 0))

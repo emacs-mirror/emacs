@@ -1,6 +1,6 @@
 ;;; advice.el --- An overloading mechanism for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1850,7 +1850,7 @@ function at point for which PREDICATE returns non-nil)."
 	   ad-advised-functions
 	   (if predicate
                (lambda (function)
-                 (funcall predicate (intern (car function)))))
+                 (funcall predicate (intern function))))
 	   t)))
     (if (equal function "")
 	(if (ad-is-advised default)

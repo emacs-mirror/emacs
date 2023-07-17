@@ -1,6 +1,6 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1130,7 +1130,7 @@ If given a numeric N-TIMES argument, mark that many classes."
 
 (defun ebrowse-redraw-marks (start end)
   "Display class marker signs in the tree between START and END."
-  (interactive)
+  (interactive "r")
   (save-excursion
     (with-silent-modifications
       (catch 'end
@@ -1494,9 +1494,9 @@ and possibly kill the viewed buffer."
 
 
 (defun ebrowse-view-file-other-frame (file)
-  "View a file FILE in another frame.
+  "View FILE in another frame.
 The new frame is deleted when you quit viewing the file in that frame."
-  (interactive)
+  (interactive "fIn other frame view file: ")
   (let ((old-frame-configuration (current-frame-configuration))
 	(had-a-buf (get-file-buffer file))
 	(buf-to-view (find-file-noselect file)))

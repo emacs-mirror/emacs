@@ -1,6 +1,6 @@
 ;;; em-hist.el --- history list management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -59,8 +59,6 @@
 (require 'ring)
 (require 'esh-opt)
 (require 'esh-mode)
-(require 'em-pred)
-(require 'eshell)
 
 ;;;###autoload
 (progn
@@ -82,6 +80,7 @@
      (remove-hook 'kill-emacs-hook 'eshell-save-some-history)))
   "A hook that gets run when `eshell-hist' is unloaded."
   :type 'hook)
+(make-obsolete-variable 'eshell-hist-unload-hook nil "30.1")
 
 (defcustom eshell-history-file-name
   (expand-file-name "history" eshell-directory-name)
@@ -555,7 +554,7 @@ See also `eshell-read-history'."
 (defun eshell-hist-parse-arguments (&optional b e)
   "Parse current command arguments in a history-code-friendly way."
   (let ((end (or e (point)))
-	(begin (or b (save-excursion (eshell-bol) (point))))
+	(begin (or b (save-excursion (beginning-of-line) (point))))
 	(posb (list t))
 	(pose (list t))
 	(textargs (list t))
@@ -769,6 +768,8 @@ matched."
 
 (defun eshell-hist-parse-modifier (hist reference)
   "Parse a history modifier beginning for HIST in REFERENCE."
+  (cl-assert (eshell-using-module 'em-pred))
+  (declare-function eshell-parse-modifiers "em-pred" ())
   (let ((here (point)))
     (insert reference)
     (prog1
@@ -913,7 +914,7 @@ If N is negative, search forwards for the -Nth following match."
 				eshell-next-matching-input-from-input)))
       ;; Starting a new search
       (setq eshell-matching-input-from-input-string
-	    (buffer-substring (save-excursion (eshell-bol) (point))
+	    (buffer-substring (save-excursion (beginning-of-line) (point))
 			      (point))
 	    eshell-history-index nil))
   (eshell-previous-matching-input
@@ -933,7 +934,7 @@ If N is negative, search backwards for the -Nth previous match."
   (if (get-text-property (point) 'history)
       (progn (beginning-of-line) t)
     (let ((before (point)))
-      (eshell-bol)
+      (beginning-of-line)
       (if (and (not (bolp))
 	       (<= (point) before))
 	  t
@@ -1036,6 +1037,9 @@ If N is negative, search backwards for the -Nth previous match."
   (interactive)
   (isearch-done)
   (eshell-send-input))
+
+(defun em-hist-unload-function ()
+  (remove-hook 'kill-emacs-hook 'eshell-save-some-history))
 
 (provide 'em-hist)
 

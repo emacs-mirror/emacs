@@ -1,6 +1,6 @@
 ;;; minibuffer-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -353,12 +353,23 @@
             '("a" "ab" "ac")
           (execute-kbd-macro (kbd "a TAB TAB"))
           (should (equal (car messages) "Complete, but not unique"))
-          (should-not (get-buffer-window "*Completions*" 0))))
+          (should-not (get-buffer-window "*Completions*" 0))
+          (execute-kbd-macro (kbd "b TAB"))
+          (should (equal (car messages) "Sole completion"))))
       (let ((completion-auto-help t))
         (completing-read-with-minibuffer-setup
             '("a" "ab" "ac")
           (execute-kbd-macro (kbd "a TAB TAB"))
-          (should (get-buffer-window "*Completions*" 0)))))))
+          (should (get-buffer-window "*Completions*" 0))
+          (execute-kbd-macro (kbd "b TAB"))
+          (should (equal (car messages) "Sole completion"))))
+      (let ((completion-auto-help 'visible))
+        (completing-read-with-minibuffer-setup
+         '("a" "ab" "ac" "achoo")
+         (execute-kbd-macro (kbd "a TAB TAB"))
+         (should (get-buffer-window "*Completions*" 0))
+         (execute-kbd-macro (kbd "ch TAB"))
+         (should (equal (car messages) "Sole completion")))))))
 
 (ert-deftest completion-auto-select-test ()
   (let ((completion-auto-select t))

@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -933,7 +933,7 @@ WHAT is a value of nil, `never', or `always'."
 			     (end-of-line)
 			     (if (eobp) (point) (1+ (point)))))
     (when (eobp)
-      (backward-delete-char 1)
+      (delete-char -1)
       (beginning-of-line)
       (recenter -1))
     (bs--set-window-height)))

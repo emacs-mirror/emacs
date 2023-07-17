@@ -4,7 +4,7 @@ The Emacs repository is hosted on Savannah.  The following Git command
 will clone the repository to the 'emacs' subdirectory of the current
 directory on your local machine:
 
-    git clone git://git.sv.gnu.org/emacs.git
+    git clone https://git.savannah.gnu.org/git/emacs.git
 
 To build the repository code, simply run 'make' in the 'emacs'
 directory.  This should work if your files are freshly checked out
@@ -98,7 +98,7 @@ never platform-specific.
 
 
 
-Copyright (C) 2002-2022 Free Software Foundation, Inc.
+Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

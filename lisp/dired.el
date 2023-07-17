@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2022 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -490,6 +490,11 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
                  (string :tag "Switches"))
   :version "29.1")
 
+(defcustom dired-hide-details-preserved-columns nil
+  "List of columns which are not hidden in `dired-hide-details-mode'."
+  :type '(repeat integer)
+  :version "30.1")
+
 
 ;;; Internal variables
 
@@ -530,7 +535,7 @@ The directory name must be absolute, but need not be fully expanded.")
 
 (put 'dired-actual-switches 'safe-local-variable 'dired-safe-switches-p)
 
-(defvar dired-re-inode-size "[0-9 \t]*[.,0-9]*[BkKMGTPEZY]?[ \t]*"
+(defvar dired-re-inode-size "[0-9 \t]*[.,0-9]*[BkKMGTPEZYRQ]?[ \t]*"
   "Regexp for optional initial inode and file size as made by `ls -i -s'.")
 
 ;; These regexps must be tested at beginning-of-line, but are also
@@ -789,7 +794,7 @@ Subexpression 2 must end right before the \\n.")
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
-               '(2 '(face dired-directory-face dired-symlink-filename t))))
+               '(2 `(face ,dired-directory-face dired-symlink-filename t))))
    ;;
    ;; Symbolic link to a non-directory.
    (list dired-re-sym
@@ -922,9 +927,9 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		    (lambda ()
 		      (if ,show-progress (sit-for 0))
 		      (setq results (cons ,body results))))
-		   (if (< ,arg 0)
-		       (nreverse results)
-		     results))
+		   (when (< ,arg 0)
+		     (setq results (nreverse results)))
+		   results)
 	       ;; non-nil, non-integer, non-marked ARG means use current file:
                (list ,body))
 	   (let ((regexp (dired-marker-regexp)) next-position)
@@ -1627,6 +1632,7 @@ In other cases, DIR should be a directory name or a directory filename.
 If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
+        (remotep (file-remote-p dir))
 	end)
     (if (and
 	 ;; Don't try to invoke `ls' if we are on DOS/Windows where
@@ -1636,31 +1642,29 @@ If HDR is non-nil, insert a header line with the directory name."
 		   (null ls-lisp-use-insert-directory-program)))
          ;; FIXME: Big ugly hack for Eshell's eshell-ls-use-in-dired.
          (not (bound-and-true-p eshell-ls-use-in-dired))
-	 (or (file-remote-p dir)
+	 (or remotep
              (if (eq dired-use-ls-dired 'unspecified)
 		 ;; Check whether "ls --dired" gives exit code 0, and
 		 ;; save the answer in `dired-use-ls-dired'.
 		 (or (setq dired-use-ls-dired
 			   (eq 0 (call-process insert-directory-program
-                                               nil nil nil "--dired")))
+                                               nil nil nil "--dired" "-N")))
 		     (progn
-		       (message "ls does not support --dired; \
+		       (message "ls does not support --dired -N; \
 see `dired-use-ls-dired' for more details.")
 		       nil))
 	       dired-use-ls-dired)))
-	(setq switches (concat "--dired " switches)))
+        ;; Use -N with --dired, to countermand possible non-default
+        ;; quoting style, in particular via the environment variable
+        ;; QUOTING_STYLE.
+        (unless remotep
+	  (setq switches (concat "--dired -N " switches))))
     ;; Expand directory wildcards and fill file-list.
     (let ((dir-wildcard (insert-directory-wildcard-in-dir-p dir)))
       (cond (dir-wildcard
              (setq switches (concat "-d " switches))
-             ;; We don't know whether the remote ls supports
-             ;; "--dired", so we cannot add it to the `process-file'
-             ;; call for wildcards.
-             (when (file-remote-p dir)
-               (setq switches (string-replace "--dired" "" switches)))
              (let* ((default-directory (car dir-wildcard))
                     (script (format "ls %s %s" switches (cdr dir-wildcard)))
-                    (remotep (file-remote-p dir))
                     (sh (or (and remotep "/bin/sh")
                             (executable-find shell-file-name)
                             (executable-find "sh")))
@@ -1880,8 +1884,15 @@ other marked file as well.  Otherwise, unmark all files."
 	      (put-text-property (line-beginning-position)
 				 (1+ (line-end-position))
 				 'invisible 'dired-hide-details-information))
-	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
-			     'invisible 'dired-hide-details-detail)
+	  (save-excursion
+            (let ((end (1- (point)))
+                  (opoint (goto-char (1+ (pos-bol))))
+                  (i 0))
+              (put-text-property opoint end 'invisible 'dired-hide-details-detail)
+              (while (re-search-forward "[^ ]+" end t)
+                (when (member (cl-incf i) dired-hide-details-preserved-columns)
+                  (put-text-property opoint (point) 'invisible nil))
+                (setq opoint (point)))))
           (when (and dired-mouse-drag-files (fboundp 'x-begin-drag))
             (put-text-property (point)
 	                       (save-excursion
@@ -2728,7 +2739,8 @@ directory in another window."
 (defun dired--find-possibly-alternative-file (file)
   "Find FILE, but respect `dired-kill-when-opening-new-dired-buffer'."
   (if (and dired-kill-when-opening-new-dired-buffer
-           (file-directory-p file))
+           (file-directory-p file)
+           (< (length (get-buffer-window-list)) 2))
       (progn
         (set-buffer-modified-p nil)
         (dired--find-file #'find-alternate-file file))
@@ -2764,10 +2776,11 @@ This kills the Dired buffer, then visits the current line's file or directory."
 The optional arguments FIND-FILE-FUNC and FIND-DIR-FUNC specify
 functions to visit the file and directory, respectively.  If
 omitted or nil, these arguments default to `find-file' and `dired',
-respectively."
+respectively.  If `dired-kill-when-opening-new-dired-buffer' is
+non-nil, FIND-DIR-FUNC defaults to `find-alternate-file' instead,
+so that the original Dired buffer is not kept."
   (interactive "e")
   (or find-file-func (setq find-file-func 'find-file))
-  (or find-dir-func (setq find-dir-func 'dired))
   (let (window pos file)
     (save-excursion
       (setq window (posn-window (event-end event))
@@ -2775,6 +2788,12 @@ respectively."
       (if (not (windowp window))
 	  (error "No file chosen"))
       (set-buffer (window-buffer window))
+      (unless find-dir-func
+        (setq find-dir-func
+              (if (and dired-kill-when-opening-new-dired-buffer
+                       (< (length (get-buffer-window-list)) 2))
+                  'find-alternate-file
+                'dired)))
       (goto-char pos)
       (setq file (dired-get-file-for-visit)))
     (if (file-directory-p file)
@@ -3873,13 +3892,20 @@ or \"* [3 files]\"."
 	(format "%c [%d files]" dired-marker-char count)))))
 
 (defcustom dired-no-confirm nil
-  "A list of symbols for commands Dired should not confirm, or t.
-Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
-`copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
-`touch' and `uncompress'.
-If t, confirmation is never needed."
+  "Dired commands for which Dired should not popup list of affected files, or t.
+
+If non-nil, Dired will not pop up the list of files to be affected by
+some Dired commands, when asking for confirmation.  (Dired will still
+ask for confirmation, just without showing the affected files.)
+
+If the value is t, the list of affected files is never popped up.
+The value can also be a list of command symbols: then the list of the
+affected files will not be popped up only for the corresponding Dired
+commands.  Recognized command symbols are `byte-compile', `chgrp',
+`chmod', `chown', `compress', `copy', `delete', `hardlink', `load',
+`move', `print', `shell', `symlink', `touch' and `uncompress'."
   :group 'dired
-  :type '(choice (const :tag "Confirmation never needed" t)
+  :type '(choice (const :tag "Affected files never shown" t)
 		 (set (const byte-compile) (const chgrp)
 		      (const chmod) (const chown) (const compress)
 		      (const copy) (const delete) (const hardlink)

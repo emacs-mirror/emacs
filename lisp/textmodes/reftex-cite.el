@@ -1,6 +1,6 @@
 ;;; reftex-cite.el --- creating citations with RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -636,7 +636,7 @@ command, it will add another key, ignoring the value of
 
 The regular expression uses an expanded syntax: && is interpreted as `and'.
 Thus, `aaaa&&bbb' matches entries which contain both `aaaa' and `bbb'.
-While entering the regexp, completion on knows citation keys is possible.
+While entering the regexp, completion on known citation keys is possible.
 `=' is a good regular expression to match all entries in all files."
   (interactive)
 

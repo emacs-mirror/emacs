@@ -1,6 +1,6 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: emacs-devel@gnu.org

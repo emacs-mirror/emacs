@@ -1,6 +1,6 @@
 ;;; charset-tests.el --- Tests for charset.c -*- lexical-binding: t -*-
 
-;; Copyright 2017-2022 Free Software Foundation, Inc.
+;; Copyright 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

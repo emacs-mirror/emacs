@@ -1,6 +1,6 @@
 ;;; cconv.el --- Closure conversion for statically scoped Emacs Lisp. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Igor Kuzmin <kzuminig@iro.umontreal.ca>
 ;; Maintainer: emacs-devel@gnu.org
@@ -236,9 +236,9 @@ Returns a form where all lambdas don't have any free variables."
               (not (intern-soft var))
               (eq ?_ (aref (symbol-name var) 0)))
        (let ((suggestions (help-uni-confusable-suggestions (symbol-name var))))
-         (format "Unused lexical %s `%S'%s"
-                 varkind (bare-symbol var)
-                 (if suggestions (concat "\n  " suggestions) "")))))
+         (format-message "Unused lexical %s `%S'%s"
+                         varkind (bare-symbol var)
+                         (if suggestions (concat "\n  " suggestions) "")))))
 
 (define-inline cconv--var-classification (binder form)
   (inline-quote
@@ -463,7 +463,7 @@ places where they originally did not directly appear."
                                   ; first element is lambda expression
     (`(,(and `(lambda . ,_) fun) . ,args)
      ;; FIXME: it's silly to create a closure just to call it.
-     ;; Running byte-optimize-form earlier will resolve this.
+     ;; Running byte-optimize-form earlier would resolve this.
      `(funcall
        ,(cconv-convert `(function ,fun) env extend)
        ,@(mapcar (lambda (form)
@@ -477,24 +477,45 @@ places where they originally did not directly appear."
                                         branch))
                               cond-forms)))
 
-    (`(function (lambda ,args . ,body) . ,_)
+    (`(function (lambda ,args . ,body) . ,rest)
      (let* ((docstring (if (eq :documentation (car-safe (car body)))
                            (cconv-convert (cadr (pop body)) env extend)))
             (bf (if (stringp (car body)) (cdr body) body))
             (if (when (eq 'interactive (car-safe (car bf)))
                   (gethash form cconv--interactive-form-funs)))
+            (wrapped (pcase if (`#'(lambda (&rest _cconv--dummy) .,_) t) (_ nil)))
             (cif (when if (cconv-convert if env extend)))
-            (_ (pcase cif
-                 (`#'(lambda () ,form) (setf (cadr (car bf)) form) (setq cif nil))
-                 ('nil nil)
-                 ;; The interactive form needs special treatment, so the form
-                 ;; inside the `interactive' won't be used any further.
-                 (_ (setf (cadr (car bf)) nil))))
-            (cf (cconv--convert-function args body env form docstring)))
+            (cf nil))
+       ;; TODO: Because we need to non-destructively modify body, this code
+       ;; is particularly ugly.  This should ideally be moved to
+       ;; cconv--convert-function.
+       (pcase cif
+         ('nil (setq bf nil))
+         (`#',f
+          (pcase-let ((`((,f1 . (,_ . ,f2)) . ,f3) bf))
+            (setq bf `((,f1 . (,(if wrapped (nth 2 f) cif) . ,f2)) . ,f3)))
+          (setq cif nil))
+         ;; The interactive form needs special treatment, so the form
+         ;; inside the `interactive' won't be used any further.
+         (_ (pcase-let ((`((,f1 . (,_ . ,f2)) . ,f3) bf))
+              (setq bf `((,f1 . (nil . ,f2)) . ,f3)))))
+       (when bf
+         ;; If we modified bf, re-build body and form as
+         ;; copies with the modified bits.
+         (setq body (if (stringp (car body))
+                        (cons (car body) bf)
+                      bf)
+               form `(function (lambda ,args . ,body) . ,rest))
+         ;; Also, remove the current old entry on the alist, replacing
+         ;; it with the new one.
+         (let ((entry (pop cconv-freevars-alist)))
+           (push (cons body (cdr entry)) cconv-freevars-alist)))
+       (setq cf (cconv--convert-function args body env form docstring))
        (if (not cif)
            ;; Normal case, the interactive form needs no special treatment.
            cf
-         `(cconv--interactive-helper ,cf ,cif))))
+         `(cconv--interactive-helper
+           ,cf ,(if wrapped cif `(list 'quote ,cif))))))
 
     (`(internal-make-closure . ,_)
      (byte-compile-report-error
@@ -661,11 +682,6 @@ FORM is the parent form that binds this var."
     (when lexical-binding
       (dolist (arg args)
         (cond
-         ((cconv--not-lexical-var-p arg cconv--dynbound-variables)
-          (byte-compile-warn-x
-           arg
-           "Lexical argument shadows the dynamic variable %S"
-           arg))
          ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
          (t (let ((varstruct (list arg nil nil nil nil)))
               (cl-pushnew arg byte-compile-lexical-variables)
@@ -742,7 +758,8 @@ This function does not return anything but instead fills the
        (when (eq 'interactive (car-safe (car bf)))
          (let ((if (cadr (car bf))))
            (unless (macroexp-const-p if) ;Optimize this common case.
-             (let ((f `#'(lambda () ,if)))
+             (let ((f (if (eq 'function (car-safe if)) if
+                        `#'(lambda (&rest _cconv--dummy) ,if))))
                (setf (gethash form cconv--interactive-form-funs) f)
                (cconv-analyze-form f env))))))
      (cconv--analyze-function vrs body-forms env form))
@@ -829,10 +846,13 @@ This function does not return anything but instead fills the
 (define-obsolete-function-alias 'cconv-analyse-form #'cconv-analyze-form "25.1")
 
 (defun cconv-fv (form lexvars dynvars)
-  "Return the list of free variables in FORM.
-LEXVARS is the list of statically scoped vars in the context
-and DYNVARS is the list of dynamically scoped vars in the context.
-Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
+  "Return the free variables used in FORM.
+FORM is usually a function #\\='(lambda ...), but may be any valid
+form.  LEXVARS is a list of symbols, each of which is lexically
+bound in FORM's context.  DYNVARS is a list of symbols, each of
+which is dynamically bound in FORM's context.
+Returns a cons (LEXV . DYNV), the car and cdr being lists of the
+lexically and dynamically bound symbols actually used by FORM."
   (let* ((fun
           ;; Wrap FORM into a function because the analysis code we
           ;; have only computes freevars for functions.
@@ -870,11 +890,26 @@ Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
         (cons fvs dyns)))))
 
 (defun cconv-make-interpreted-closure (fun env)
+  "Make a closure for the interpreter.
+This is intended to be called at runtime by the ELisp interpreter (when
+the code has not been compiled).
+FUN is the closure's source code, must be a lambda form.
+ENV is the runtime representation of the lexical environment,
+i.e. a list whose elements can be either plain symbols (which indicate
+that this symbol should use dynamic scoping) or pairs (SYMBOL . VALUE)
+for the lexical bindings."
   (cl-assert (eq (car-safe fun) 'lambda))
   (let ((lexvars (delq nil (mapcar #'car-safe env))))
-    (if (null lexvars)
-        ;; The lexical environment is empty, so there's no need to
-        ;; look for free variables.
+    (if (or (null lexvars)
+            ;; Functions with a `:closure-dont-trim-context' marker
+            ;; should keep their whole context untrimmed (bug#59213).
+            (and (eq :closure-dont-trim-context (nth 2 fun))
+                 ;; Check the function doesn't just return the magic keyword.
+                 (nthcdr 3 fun)))
+        ;; The lexical environment is empty, or needs to be preserved,
+        ;; so there's no need to look for free variables.
+        ;; Attempting to replace ,(cdr fun) by a macroexpanded version
+        ;; causes bootstrap to fail.
         `(closure ,env . ,(cdr fun))
       ;; We could try and cache the result of the macroexpansion and
       ;; `cconv-fv' analysis.  Not sure it's worth the trouble.
@@ -891,7 +926,7 @@ Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
               (pcase expanded-form
                 (`#'(lambda . ,cdr) cdr)
                 (_ (cdr fun))))
-         
+
              (dynvars (delq nil (mapcar (lambda (b) (if (symbolp b) b)) env)))
              (fvs (cconv-fv expanded-form lexvars dynvars))
              (newenv (nconc (mapcar (lambda (fv) (assq fv env)) (car fvs))

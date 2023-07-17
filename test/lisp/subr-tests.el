@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -579,7 +579,8 @@
           (cons (mapcar (pcase-lambda (`(,evald ,func ,args ,_))
                           `(,evald ,func ,@args))
                         (backtrace-frames base))
-                (subr-test--backtrace-frames-with-backtrace-frame base))))))
+                (subr-test--backtrace-frames-with-backtrace-frame base))
+        (sit-for 0)))))                 ; dummy unwind form
 
 (defun subr-test--frames-1 (base)
   (subr-test--frames-2 base))
@@ -1058,10 +1059,12 @@ final or penultimate step during initialization."))
                  '(subr-tests--b subr-tests--c)))
 
   (defalias 'subr-tests--d 'subr-tests--e)
-  (defalias 'subr-tests--e 'subr-tests--d)
-  (should-error (function-alias-p 'subr-tests--d))
-  (should (equal (function-alias-p 'subr-tests--d t)
-                 '(subr-tests--e))))
+  (should (equal (function-alias-p 'subr-tests--d)
+                 '(subr-tests--e)))
+
+  (fset 'subr-tests--f 'subr-tests--a)
+  (should (equal (function-alias-p 'subr-tests--f)
+                 '(subr-tests--a subr-tests--b subr-tests--c))))
 
 (ert-deftest test-readablep ()
   (should (readablep "foo"))
@@ -1168,6 +1171,121 @@ final or penultimate step during initialization."))
   (should-not (list-of-strings-p ["a" "b"]))
   (should-not (list-of-strings-p '("a" nil "b")))
   (should-not (list-of-strings-p '("a" "b" . "c"))))
+
+(ert-deftest subr--delete-dups ()
+  (should (equal (delete-dups nil) nil))
+  (let* ((a (list "a" "b" "c"))
+         (a-dedup (delete-dups a)))
+    (should (equal a-dedup '("a" "b" "c")))
+    (should (eq a a-dedup)))
+  (let* ((a (list "a" "a" "b" "b" "a" "c" "b" "c" "a"))
+         (a-b (cddr a))   ; link of first "b"
+         (a-dedup (delete-dups a)))
+    (should (equal a-dedup '("a" "b" "c")))
+    (should (eq a a-dedup))
+    (should (eq (cdr a-dedup) a-b))))
+
+(ert-deftest subr--delete-consecutive-dups ()
+  (should (equal (delete-consecutive-dups nil) nil))
+  (let* ((a (list "a" "b" "c"))
+         (a-dedup (delete-consecutive-dups a)))
+    (should (equal a-dedup '("a" "b" "c")))
+    (should (eq a a-dedup)))
+  (let* ((a (list "a" "a" "b" "a" "a" "b" "b" "b" "c" "c" "a" "a"))
+         (a-b (nthcdr 3 a))   ; link of third "a"
+         (a-dedup (delete-consecutive-dups a)))
+    (should (equal a-dedup '("a" "b" "a" "b" "c" "a")))
+    (should (eq a a-dedup))
+    (should (equal (nthcdr 2 a-dedup) a-b)))
+  (let* ((a (list "a" "b" "a"))
+         (a-dedup (delete-consecutive-dups a t)))
+    (should (equal a-dedup '("a" "b")))
+    (should (eq a a-dedup)))
+  (let* ((a (list "a" "a" "b" "a" "a" "b" "b" "b" "c" "c" "a" "a"))
+         (a-dedup (delete-consecutive-dups a t)))
+    (should (equal a-dedup '("a" "b" "a" "b" "c")))
+    (should (eq a a-dedup))))
+
+(ert-deftest subr--copy-tree ()
+  ;; Check that values other than conses, vectors and records are
+  ;; neither copied nor traversed.
+  (let ((s (propertize "abc" 'prop (list 11 12)))
+        (h (make-hash-table :test #'equal)))
+    (puthash (list 1 2) (list 3 4) h)
+    (dolist (x (list nil 'a "abc" s h))
+      (should (eq (copy-tree x) x))
+      (should (eq (copy-tree x t) x))))
+
+  ;; Use the printer to detect common parts of Lisp values.
+  (let ((print-circle t))
+    (cl-labels ((prn3 (x y z) (prin1-to-string (list x y z)))
+                (cat3 (x y z) (concat "(" x " " y " " z ")")))
+      (let ((x '(a (b ((c) . d) e) (f))))
+        (should (equal (prn3 x (copy-tree x) (copy-tree x t))
+                       (cat3 "(a (b ((c) . d) e) (f))"
+                             "(a (b ((c) . d) e) (f))"
+                             "(a (b ((c) . d) e) (f))"))))
+      (let ((x '(a [b (c d)] #s(e (f [g])))))
+        (should (equal (prn3 x (copy-tree x) (copy-tree x t))
+                       (cat3 "(a #1=[b (c d)] #2=#s(e (f [g])))"
+                             "(a #1# #2#)"
+                             "(a [b (c d)] #s(e (f [g])))"))))
+      (let ((x [a (b #s(c d))]))
+        (should (equal (prn3 x (copy-tree x) (copy-tree x t))
+                       (cat3 "#1=[a (b #s(c d))]"
+                             "#1#"
+                             "[a (b #s(c d))]"))))
+      (let ((x #s(a (b [c d]))))
+        (should (equal (prn3 x (copy-tree x) (copy-tree x t))
+                       (cat3 "#1=#s(a (b [c d]))"
+                             "#1#"
+                             "#s(a (b [c d]))"))))
+      ;; Check cdr recursion.
+      (let ((x '(a b . [(c . #s(d))])))
+        (should (equal (prn3 x (copy-tree x) (copy-tree x t))
+                       (cat3 "(a b . #1=[(c . #s(d))])"
+                             "(a b . #1#)"
+                             "(a b . [(c . #s(d))])"))))
+      ;; Check that we can copy DAGs (the result is a tree).
+      (let ((x (list '(a b) nil [c d] nil #s(e f) nil)))
+        (setf (nth 1 x) (nth 0 x))
+        (setf (nth 3 x) (nth 2 x))
+        (setf (nth 5 x) (nth 4 x))
+        (should (equal (prn3 x (copy-tree x) (copy-tree x t))
+                       (cat3 "(#1=(a b) #1# #2=[c d] #2# #3=#s(e f) #3#)"
+                             "((a b) (a b) #2# #2# #3# #3#)"
+                             "((a b) (a b) [c d] [c d] #s(e f) #s(e f))")))))))
+
+(ert-deftest condition-case-unless-debug ()
+  "Test `condition-case-unless-debug'."
+  (let ((debug-on-error nil))
+    (with-suppressed-warnings ((suspicious condition-case))
+      (should (= 0 (condition-case-unless-debug nil 0))))
+    (should (= 0 (condition-case-unless-debug nil 0 (t 1))))
+    (should (= 0 (condition-case-unless-debug x 0 (t (1+ x)))))
+    (should (= 1 (condition-case-unless-debug nil (error "") (t 1))))
+    (should (equal (condition-case-unless-debug x (error "") (t x))
+                   '(error "")))))
+
+(ert-deftest condition-case-unless-debug-success ()
+  "Test `condition-case-unless-debug' with :success (bug#64404)."
+  (let ((debug-on-error nil))
+    (should (= 1 (condition-case-unless-debug nil 0 (:success 1))))
+    (should (= 1 (condition-case-unless-debug nil 0 (:success 1) (t 2))))
+    (should (= 1 (condition-case-unless-debug nil 0 (t 2) (:success 1))))
+    (should (= 1 (condition-case-unless-debug x 0 (:success (1+ x)))))
+    (should (= 1 (condition-case-unless-debug x 0 (:success (1+ x)) (t x))))
+    (should (= 1 (condition-case-unless-debug x 0 (t x) (:success (1+ x)))))
+    (should (= 2 (condition-case-unless-debug nil (error "")
+                   (:success 1) (t 2))))
+    (should (= 2 (condition-case-unless-debug nil (error "")
+                   (t 2) (:success 1))))
+    (should (equal (condition-case-unless-debug x (error "")
+                     (:success (1+ x)) (t x))
+                   '(error "")))
+    (should (equal (condition-case-unless-debug x (error "")
+                     (t x) (:success (1+ x)))
+                   '(error "")))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

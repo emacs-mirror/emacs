@@ -1,6 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org
@@ -25,16 +25,16 @@
 
 ;; The hashcash binary is at http://www.hashcash.org/.
 ;;
-;; Call mail-add-payment to add a hashcash payment to a mail message
+;; Call `mail-add-payment' to add a hashcash payment to a mail message
 ;; in the current buffer.
 ;;
-;; Call mail-add-payment-async after writing the addresses but before
-;; writing the mail to start calculating the hashcash payment
+;; Call `mail-add-payment-async' after writing the addresses but
+;; before writing the mail to start calculating the hashcash payment
 ;; asynchronously.
 ;;
-;; The easiest way to do this automatically for all outgoing mail
-;; is to set `message-generate-hashcash' to t.  If you want more
-;; control, try the following hooks.
+;; The easiest way to do this automatically for all outgoing mail is
+;; to set `message-generate-hashcash' to `opportunistic' or t.  If you
+;; want more control, try the following hooks.
 ;;
 ;; To automatically add payments to all outgoing mail when sending:
 ;;    (add-hook 'message-send-hook 'mail-add-payment)
@@ -44,6 +44,8 @@
 ;;
 ;; To check whether calculations are done before sending:
 ;;    (add-hook 'message-send-hook 'hashcash-wait-or-cancel)
+;;
+;; For more information, see Info node `(gnus) Hashcash'.
 
 ;;; Code:
 
@@ -87,7 +89,9 @@ is used instead."
 (define-obsolete-variable-alias 'hashcash-path 'hashcash-program "24.4")
 (defcustom hashcash-program "hashcash"
   "The name of the hashcash executable.
-If this is not in your PATH, specify an absolute file name."
+If this is not in your PATH, specify an absolute file name.
+
+See also `message-generate-hashcash'."
   :type '(choice (const nil) file))
 
 (defcustom hashcash-extra-generate-parameters '("-Z2")

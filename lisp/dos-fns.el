@@ -1,6 +1,6 @@
 ;;; dos-fns.el --- MS-Dos specific functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991, 1993, 1995-1996, 2001-2022 Free Software
+;; Copyright (C) 1991, 1993, 1995-1996, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

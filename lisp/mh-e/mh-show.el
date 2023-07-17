@@ -1,6 +1,6 @@
 ;;; mh-show.el --- MH-Show mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2022 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'mh-e)
+(require 'mh-mime)
 (require 'mh-scan)
 
 ;; Dynamically-created function not found in mh-loaddefs.el.

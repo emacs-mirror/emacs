@@ -1,6 +1,6 @@
 ;;; soap-inspect.el --- Interactive WSDL inspector    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: October 2010

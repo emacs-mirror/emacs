@@ -1,6 +1,6 @@
 ;;; eshell-tests.el --- Eshell test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -33,6 +33,8 @@
          (expand-file-name "eshell-tests-helpers"
                            (file-name-directory (or load-file-name
                                                     default-directory))))
+
+(defvar eshell-test-value nil)
 
 ;;; Tests:
 
@@ -105,6 +107,50 @@
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
 
+(ert-deftest eshell-test/eshell-command/simple ()
+  "Test that the `eshell-command' function writes to the current buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi" t)
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/pipeline ()
+  "Test that the `eshell-command' function writes to the current buffer.
+This test uses a pipeline for the command."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi | *cat" t)
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/background ()
+  "Test that `eshell-command' works for background commands."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (process-list))
+          (eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi &" t)
+        (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/background-pipeline ()
+  "Test that `eshell-command' works for background commands.
+This test uses a pipeline for the command."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (copy-tree (process-list)))
+          (eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi | *cat &" t)
+        (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+        (should (equal (buffer-string) "hi\n"))))))
+
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
   (with-temp-eshell
@@ -117,14 +163,14 @@
   (with-temp-eshell
    (eshell-insert-command "echo $(+ 1 (- 4 3)) \"alpha beta\" file" 'ignore)
    (let ((here (point)) begin valid)
-     (eshell-bol)
+     (beginning-of-line)
      (setq begin (point))
      (eshell-forward-argument 4)
      (setq valid (= here (point)))
      (eshell-backward-argument 4)
      (prog1
          (and valid (= begin (point)))
-       (eshell-bol)
+       (beginning-of-line)
        (delete-region (point) (point-max))))))
 
 (ert-deftest eshell-test/queue-input ()
@@ -148,12 +194,43 @@ insert the queued one at the next prompt, and finally run it."
    (should (eshell-match-output
             (concat "^" (regexp-quote "*** output flushed ***\n") "$")))))
 
-(ert-deftest eshell-test/run-old-command ()
-  "Re-run an old command"
+(ert-deftest eshell-test/get-old-input ()
+  "Test that we can get the input of a previous command."
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
    (goto-char eshell-last-input-start)
-   (string= (eshell-get-old-input) "echo alpha")))
+   (should (string= (eshell-get-old-input) "echo alpha"))
+   ;; Make sure that `eshell-get-old-input' works even if the point is
+   ;; inside the prompt.
+   (let ((inhibit-field-text-motion t))
+     (beginning-of-line))
+   (should (string= (eshell-get-old-input) "echo alpha"))))
+
+(ert-deftest eshell-test/get-old-input/rerun-command ()
+  "Test that we can rerun an old command when point is on it."
+  (with-temp-eshell
+   (let ((eshell-test-value "first"))
+     (eshell-match-command-output "echo $eshell-test-value" "first"))
+   ;; Go to the previous prompt.
+   (forward-line -2)
+   (let ((inhibit-field-text-motion t))
+     (end-of-line))
+   ;; Rerun the command, but with a different variable value.
+   (let ((eshell-test-value "second"))
+     (eshell-send-input))
+   (eshell-match-output "second")))
+
+(ert-deftest eshell-test/get-old-input/run-output ()
+  "Test that we can run a line of output as a command when point is on it."
+  (with-temp-eshell
+   (eshell-match-command-output "echo \"echo there\"" "echo there")
+   ;; Go to the output, and insert "hello" after "echo".
+   (forward-line -1)
+   (forward-word)
+   (insert " hello")
+   ;; Run the line as a command.
+   (eshell-send-input)
+   (eshell-match-output "(\"hello\" \"there\")")))
 
 (provide 'eshell-tests)
 

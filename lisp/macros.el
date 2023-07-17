@@ -1,6 +1,6 @@
 ;;; macros.el --- non-primitive commands for keyboard macros -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2022 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -46,16 +46,6 @@
                      " ")
           ?\]))
 
-(defun macro--string-to-vector (str)
-  "Convert an old-style string key sequence to the vector form."
-  (let ((vec (string-to-vector str)))
-    (unless (multibyte-string-p str)
-      (dotimes (i (length vec))
-	(let ((k (aref vec i)))
-	  (when (> k 127)
-	    (setf (aref vec i) (+ k ?\M-\C-@ -128))))))
-    vec))
-
 ;;;###autoload
 (defun insert-kbd-macro (macroname &optional keys)
   "Insert in buffer the definition of kbd macro MACRONAME, as Lisp code.
@@ -88,10 +78,8 @@ use this command, and then save the file."
       (insert "(defalias '"))
     (prin1 macroname (current-buffer))
     (insert "\n   ")
-    (when (stringp definition)
-      (setq definition (macro--string-to-vector definition)))
-    (if (vectorp definition)
-        (setq definition (kmacro definition)))
+    (when (or (stringp definition) (vectorp definition))
+      (setq definition (kmacro (kmacro--to-vector definition))))
     (if (kmacro-p definition)
         (let ((vecdef  (kmacro--keys     definition))
               (counter (kmacro--counter definition))

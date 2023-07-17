@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -267,8 +267,7 @@ Return VALUE."
 (defun tramp-flush-directory-properties (key directory)
   "Remove all properties of DIRECTORY in the cache context of KEY.
 Remove also properties of all files in subdirectories."
-  (let* ((directory
-	  (directory-file-name (tramp-compat-file-name-unquote directory)))
+  (let* ((directory (directory-file-name (file-name-unquote directory)))
 	 (truename (tramp-get-file-property key directory "file-truename")))
     (tramp-message key 8 "%s" directory)
     (dolist (key (hash-table-keys tramp-cache-data))
@@ -497,12 +496,12 @@ PROPERTIES is a list of file properties (strings)."
 		(cons property (gethash property hash tramp-cache-undefined)))
 	      ,properties)))
        (unwind-protect (progn ,@body)
-       ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
-       (setq hash (tramp-get-hash-table ,key))
-       (dolist (value values)
-	 (if (not (eq (cdr value) tramp-cache-undefined))
-	     (puthash (car value) (cdr value) hash)
-	   (remhash (car value) hash)))))))
+	 ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
+	 (setq hash (tramp-get-hash-table ,key))
+	 (dolist (value values)
+	   (if (not (eq (cdr value) tramp-cache-undefined))
+	       (puthash (car value) (cdr value) hash)
+	     (remhash (car value) hash)))))))
 
 ;;;###tramp-autoload
 (defun tramp-cache-print (table)
@@ -676,5 +675,9 @@ for all methods.  Resulting data are derived from connection history."
 	    (unload-feature 'tramp-cache 'force)))
 
 (provide 'tramp-cache)
+
+;;; TODO:
+;;
+;; * Use multisession.el, starting with Emacs 29.1.
 
 ;;; tramp-cache.el ends here

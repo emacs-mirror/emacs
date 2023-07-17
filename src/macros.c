@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2022 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -128,9 +128,9 @@ end_kbd_macro (void)
   update_mode_lines = 20;
   kset_last_kbd_macro
     (current_kboard,
-     make_event_array ((current_kboard->kbd_macro_end
-			- current_kboard->kbd_macro_buffer),
-		       current_kboard->kbd_macro_buffer));
+     Fvector ((current_kboard->kbd_macro_end
+	       - current_kboard->kbd_macro_buffer),
+	      current_kboard->kbd_macro_buffer));
 }
 
 DEFUN ("end-kbd-macro", Fend_kbd_macro, Send_kbd_macro, 0, 2, "p",

@@ -1,6 +1,6 @@
 ;;; org-capture.el --- Fast note taking in Org       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1700,7 +1700,7 @@ Expansion occurs in a temporary Org mode buffer."
 	      (condition-case error
 		  (insert-file-contents filename)
 		(error
-		 (insert (format "%%![couldn not insert %s: %s]"
+		 (insert (format "%%![could not insert %s: %s]"
 				 filename
 				 error))))))))
       ;; Mark %() embedded elisp for later evaluation.

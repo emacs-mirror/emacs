@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998, 2001--2022 Free Software Foundation,
+@c Copyright (C) 1990--1994, 1998, 2001--2023 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -252,11 +252,8 @@ the original symbol.  If the contents are another symbol, this
 process, called @dfn{symbol function indirection}, is repeated until
 it obtains a non-symbol.  @xref{Function Names}, for more information
 about symbol function indirection.
-
-  One possible consequence of this process is an infinite loop, in the
-event that a symbol's function cell refers to the same symbol.
-Otherwise, we eventually obtain a non-symbol, which ought to be a
-function or other suitable object.
+We eventually obtain a non-symbol, which ought to be a function or
+other suitable object.
 
 @kindex invalid-function
   More precisely, we should now have a Lisp function (a lambda
@@ -332,19 +329,17 @@ or just
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
 
-@defun indirect-function function &optional noerror
+@defun indirect-function function
 @anchor{Definition of indirect-function}
 This function returns the meaning of @var{function} as a function.  If
 @var{function} is a symbol, then it finds @var{function}'s function
 definition and starts over with that value.  If @var{function} is not a
 symbol, then it returns @var{function} itself.
 
-This function returns @code{nil} if the final symbol is unbound.  It
-signals a @code{cyclic-function-indirection} error if there is a loop
-in the chain of symbols.
+This function returns @code{nil} if the final symbol is unbound.
 
-The optional argument @var{noerror} is obsolete, kept for backward
-compatibility, and has no effect.
+There is also a second, optional argument that is obsolete and has no
+effect.
 
 Here is how you could define @code{indirect-function} in Lisp:
 

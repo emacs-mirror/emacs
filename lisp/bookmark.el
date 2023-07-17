@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
@@ -2419,7 +2419,7 @@ confirmation first."
 
 
 (defun bookmark-bmenu-locate ()
-  "Display location of this bookmark.  Displays in the minibuffer."
+  "Display the location of the bookmark for this line."
   (interactive nil bookmark-bmenu-mode)
   (let ((bmrk (bookmark-bmenu-bookmark)))
     (message "%s" (bookmark-location bmrk))))

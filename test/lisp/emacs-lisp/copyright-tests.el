@@ -1,6 +1,6 @@
 ;;; copyright-tests.el --- tests for copyright.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -59,7 +59,8 @@
                 "\nCopyright 2006, 2007, 2008 Foo Bar\n\n")
         (copyright-update)
         (buffer-substring (- (point-max) 42) (point-max))))
-    "Copyright 2006, 2007, 2008, 2022 Foo Bar\n\n")))
+    (format "Copyright 2006, 2007, 2008, %s Foo Bar\n\n"
+            (format-time-string "%Y")))))
 
 (ert-deftest test-correct-notice ()
   (should (equal
@@ -70,7 +71,8 @@
                    (copyright-query nil))
                (copyright-update))
              (buffer-string))
-           "Copyright 2021 FSF\nCopyright 2021, 2022 FSF\n")))
+           (format "Copyright 2021 FSF\nCopyright 2021, %s FSF\n"
+                   (format-time-string "%Y")))))
 
 (defmacro with-copyright-fix-years-test (orig result)
   `(let ((copyright-year-ranges t))

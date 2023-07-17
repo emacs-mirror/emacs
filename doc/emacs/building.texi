@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -961,9 +961,7 @@ the fringe of a source buffer to set a breakpoint there.
 @vindex gud-gdb-command-name
   To run GDB using just the GUD interaction buffer interface, without
 these additional features, use @kbd{M-x gud-gdb} (@pxref{Starting
-GUD}).  You must use this if you want to debug multiple programs
-within one Emacs session, as that is currently unsupported by @kbd{M-x
-gdb}.
+GUD}).
 
   Internally, @kbd{M-x gdb} informs GDB that its screen size is
 unlimited; for correct operation, you must not change GDB's screen
@@ -1051,9 +1049,9 @@ to restore only when @code{gdb-show-main} is non-@code{nil}.
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
 want by typing @kbd{M-x gdb-display-@var{buffertype}-buffer} or
-@kbd{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype}
-is the relevant buffer type, such as @samp{breakpoints}.  You can do
-the same with the menu bar, with the @samp{GDB-Windows} and
+@kbd{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype} is
+the relevant buffer type, such as @samp{breakpoints} or @samp{io}.
+You can do the same from the menu bar, with the @samp{GDB-Windows} and
 @samp{GDB-Frames} sub-menus of the @samp{GUD} menu.
 
 @vindex gdb-max-source-window-count
@@ -1273,10 +1271,14 @@ non-@code{nil} value.
 @node Other GDB Buffers
 @subsubsection Other GDB Buffers
 
+Other buffers provided by @kbd{M-x gdb} whose display you can
+optionally request include:
+
 @table @asis
+@findex gdb-display-locals-buffer
 @item Locals Buffer
 This buffer displays the values of local variables of the current
-frame for simple data types (@pxref{Frame Info, Frame Info,
+stack frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).  Press @key{RET} or
 click @kbd{mouse-2} on the value if you want to edit it.
 
@@ -1286,20 +1288,35 @@ you can examine the value of the local variable at point by typing
 GDB, use @key{RET} or @kbd{mouse-2} on the type description
 (@samp{[struct/union]} or @samp{[array]}).  @xref{Watch Expressions}.
 
-@item Registers Buffer
-@findex toggle-gdb-all-registers
-This buffer displays the values held by the registers
-(@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
-click @kbd{mouse-2} on a register if you want to edit its value.  With
-GDB 6.4 or later, recently changed register values display with
-@code{font-lock-warning-face}.
+To display the Locals buffer, type @kbd{M-x gdb-display-locals-buffer}.
 
+@findex gdb-display-io-buffer
+@item I/O Buffer
+If the program you are debugging uses standard input and output
+streams for interaction with the user, or emits a significant amount
+of output to its standard output, you may wish to separate its I/O
+from interaction with GDB.  Use the command @w{@kbd{M-x
+gdb-display-io-buffer}} to show a window with a buffer to which Emacs
+redirects the input and output from the program you are debugging.
+
+@findex gdb-display-registers-buffer
+@item Registers Buffer
+This buffer displays the values held by the registers
+(@pxref{Registers,,, gdb, The GNU debugger}).  Request the display of
+this buffer with the command @kbd{M-x gdb-display-registers-buffer}.
+Press @key{RET} or click @kbd{mouse-2} on a register if you want to
+edit its value.  With GDB 6.4 or later, recently changed register
+values display with @code{font-lock-warning-face}.
+
+@findex gdb-display-disassembly-buffer
 @item Assembler Buffer
 The assembler buffer displays the current frame as machine code.  An
 arrow points to the current instruction, and you can set and remove
 breakpoints as in a source buffer.  Breakpoint icons also appear in
-the fringe or margin.
+the fringe or margin.  To request the display of this buffer, use
+@kbd{M-x gdb-display-disassembly-buffer}.
 
+@findex gdb-display-memory-buffer
 @item Memory Buffer
 The memory buffer lets you examine sections of program memory
 (@pxref{Memory, Memory, Examining memory, gdb, The GNU debugger}).
@@ -1307,7 +1324,8 @@ Click @kbd{mouse-1} on the appropriate part of the header line to
 change the starting address or number of data items that the buffer
 displays.  Alternatively, use @kbd{S} or @kbd{N} respectively.  Click
 @kbd{mouse-3} on the header line to select the display format or unit
-size for these data items.
+size for these data items.  Use @w{@kbd{M-x
+gdb-display-memory-buffer}} to request display of this buffer.
 @end table
 
 When @code{gdb-many-windows} is non-@code{nil}, the locals buffer
@@ -1538,18 +1556,26 @@ command prompts for a @dfn{library name} rather than a file name; it
 searches through each directory in the Emacs Lisp load path, trying to
 find a file matching that library name.  If the library name is
 @samp{@var{foo}}, it tries looking for files named
-@file{@var{foo}.elc}, @file{@var{foo}.el}, and @file{@var{foo}}.  The
-default behavior is to load the first file found.  This command
-prefers @file{.elc} files over @file{.el} files because compiled files
-load and run faster.  If it finds that @file{@var{lib}.el} is newer
-than @file{@var{lib}.elc}, it issues a warning, in case someone made
-changes to the @file{.el} file and forgot to recompile it, but loads
-the @file{.elc} file anyway.  (Due to this behavior, you can save
-unfinished edits to Emacs Lisp source files, and not recompile until
-your changes are ready for use.)  If you set the option
-@code{load-prefer-newer} to a non-@code{nil} value, however, then
-rather than the procedure described above, Emacs loads whichever
-version of the file is newest.
+@file{@var{foo}.elc}, @file{@var{foo}.el}, and @file{@var{foo}}.  (If
+Emacs was built with native compilation enabled, @code{load-library}
+looks for a @samp{.eln} file that corresponds to @file{@var{foo}.el}
+and loads it instead of @file{@var{foo}.elc}.)  The default behavior
+is to load the first file found.  This command prefers @file{.eln}
+files over @file{.elc} files, and prefers @file{.elc} files over
+@file{.el} files, because compiled files load and run faster.  If it
+finds that @file{@var{lib}.el} is newer than @file{@var{lib}.elc}, it
+issues a warning, in case someone made changes to the @file{.el} file
+and forgot to recompile it, but loads the @file{.elc} file anyway.
+(Due to this behavior, you can save unfinished edits to Emacs Lisp
+source files, and not recompile until your changes are ready for use.)
+If you set the option @code{load-prefer-newer} to a non-@code{nil}
+value, however, then rather than the procedure described above, Emacs
+loads whichever version of the file is newest.  If Emacs was built
+with native compilation, and it cannot find the @samp{.eln} file
+corresponding to @file{@var{lib}.el}, it will load a
+@file{@var{lib}.elc} and start native compilation of
+@file{@var{lib}.el} in the background, then load the @samp{.eln} file
+when it finishes compilation.
 
   Emacs Lisp programs usually load Emacs Lisp files using the
 @code{load} function.  This is similar to @code{load-library}, but is
@@ -1585,6 +1611,11 @@ It is customary to put locally installed libraries in the
 @file{site-lisp} directory that is already in the default value of
 @code{load-path}, or in some subdirectory of @file{site-lisp}.  This
 way, you don't need to modify the default value of @code{load-path}.
+
+@vindex native-comp-eln-load-path
+  Similarly to @code{load-path}, the list of directories where Emacs
+looks for @file{*.eln} files with natively-compiled Lisp code is
+specified by the variable @code{native-comp-eln-load-path}.
 
 @cindex autoload
   Some commands are @dfn{autoloaded}; when you run them, Emacs

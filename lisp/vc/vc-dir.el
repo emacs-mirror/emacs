@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -325,7 +325,6 @@ See `run-hooks'."
     (define-key map "U" #'vc-dir-unmark-all-files)
     (define-key map "\C-?" #'vc-dir-unmark-file-up)
     (define-key map "\M-\C-?" #'vc-dir-unmark-all-files)
-    (define-key map "%" #'vc-dir-mark-by-regexp)
     ;; Movement.
     (define-key map "n" #'vc-dir-next-line)
     (define-key map " " #'vc-dir-next-line)
@@ -361,8 +360,13 @@ See `run-hooks'."
       (define-key branch-map "l" #'vc-print-branch-log)
       (define-key branch-map "s" #'vc-switch-branch))
 
+    (let ((regexp-map (make-sparse-keymap)))
+      (define-key map "%" regexp-map)
+      (define-key regexp-map "m" #'vc-dir-mark-by-regexp))
+
     (let ((mark-map (make-sparse-keymap)))
       (define-key map "*" mark-map)
+      (define-key mark-map "%" #'vc-dir-mark-by-regexp)
       (define-key mark-map "r" #'vc-dir-mark-registered-files))
 
     ;; Hook up the menu.
@@ -791,7 +795,7 @@ MARK-FILES should be a list of absolute filenames."
    vc-ewoc))
 
 (defun vc-dir-mark-registered-files ()
-  "Mark files that are in one of registered state: edited, added or removed."
+  "Mark files that are in one of registered states: edited, added or removed."
   (interactive)
   (vc-dir-mark-state-files '(edited added removed)))
 

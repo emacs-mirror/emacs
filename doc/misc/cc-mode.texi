@@ -167,7 +167,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -330,6 +330,7 @@ Syntactic Symbols
 * Multiline Macro Symbols::
 * Objective-C Method Symbols::
 * Java Symbols::
+* Constraint Symbols::
 * Statement Block Symbols::
 * K&R Symbols::
 
@@ -2168,6 +2169,23 @@ which aren't of the default style will be fontified with
 @section Miscellaneous Font Locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+Some compilers, notably GCC, allow the character @samp{$} to be a
+constituent of identifiers in the languages C, C++, and Objective C.
+CC Mode defaults to accepting these @samp{$} characters and fontifying
+the identifiers in which they appear like any others.
+
+However, the compiler you're using, or your project coding standards
+may disallow such use.  In such cases, you can set
+@code{c-warn-ids-with-dollar} to non-@code{nil}.  This causes these
+invalid identifiers to be fontified distinctively.
+
+@defvar c-warn-ids-with-dollar
+@vindex warn-ids-with-dollar (c-)
+When this customization option is non-@code{nil}, identifiers
+containing the @samp{$} character are fontified with
+@code{font-lock-warning-face}.
+@end defvar
+
 In some languages, particularly in C++, there are constructs which are
 syntactically ambiguous---they could be either declarations or
 expressions, and @ccmode{} cannot tell for sure which.  Often such a
@@ -2191,10 +2209,10 @@ foo& bar
 
 @defvar c-asymmetry-fontification-flag
 @vindex asymmetry-fontification-flag @r{(c-)}
-When @code{c-asymmetry-fontification-flag} is non-@code{nil} (which it is by
-default), code like the above, with white space either before or after
-the operator, but not both, is fontified as a declaration.  When the
-variable is nil, such a construct gets the default face.
+When @code{c-asymmetry-fontification-flag} is non-@code{nil} (which it
+is by default), code like the above, with white space either before or
+after the operator, but not both, is fontified as a declaration.  When
+the variable is @code{nil}, such a construct gets the default face.
 @end defvar
 
 When the construct is an expression there will often be white space
@@ -4234,6 +4252,9 @@ The first line in a ``topmost'' definition.  @ref{Function Symbols}.
 Topmost definition continuation lines.  This is only used in the parts
 that aren't covered by other symbols such as @code{func-decl-cont} and
 @code{knr-argdecl}.  @ref{Function Symbols}.
+@item constraint-cont
+Continuation line of a topmost C++20 concept or requires clause.
+@ref{Constraint Symbols}.
 @item annotation-top-cont
 Topmost definition continuation lines where all previous items are
 annotations.  @ref{Java Symbols}.
@@ -4397,6 +4418,7 @@ Java.  @ref{Java Symbols}.
 * Multiline Macro Symbols::
 * Objective-C Method Symbols::
 * Java Symbols::
+* Constraint Symbols::
 * Statement Block Symbols::
 * K&R Symbols::
 @end menu
@@ -5069,6 +5091,39 @@ continuation of a topmost introduction with an annotation symbol preceding
 the current line.  Similarly, line 4 is assigned the @code{annotation-var-cont}
 syntax due to it being a continuation of a variable declaration where preceding
 the declaration is an annotation.
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Constraint Symbols
+@subsection C++ Constraint Symbols
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+The C++20 standard introduced the notion of @dfn{concepts} and
+@dfn{requirements}, a typical instance of which looks something like
+this:
+
+@example
+ 1: template <typename T>
+ 2: requires
+ 3:   requires (T t) @{
+ 4:     @{ ++t; @}
+ 5:   @}
+ 6:   && std::is_integral<T>
+ 7:   int foo();
+@end example
+
+@ssindex constraint-cont
+Line 1 is assigned the familiar @code{topmost-intro}.  Line 2 gets
+@code{topmost-intro-cont}, being the keyword which introduces a
+@dfn{requires clause}.  Lines 3, 6, and 7 are assigned the syntax
+@code{constraint-cont}, being continuations of the requires clause
+started on line 2.  Lines 4 and 5 get the syntaxes
+@code{defun-block-intro} and @code{defun-close}, being analyzed as
+though part of a function.
+
+Note that the @code{requires} on Line 3 begins a @dfn{requires
+expression}, not a a requires clause, hence its components are not
+assigned @code{constraint-cont}.  See
+@url{https://en.cppreference.com/w/cpp/language/requires}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Statement Block Symbols
@@ -5998,7 +6053,7 @@ three syntactic symbols, @code{arglist-cont-nonempty},
 List Symbols}).
 
 This function is intended for use in a list.  If the construct being
-analyzed isn't like the preceding, the function returns nil.
+analyzed isn't like the preceding, the function returns @code{nil}.
 Otherwise it returns the function
 @code{c-lineup-arglist-intro-after-paren}, which the caller then uses
 to perform indentation.
@@ -6042,8 +6097,8 @@ also has a syntactic element with the symbol @code{brace-list-entry}
 (@pxref{Brace List Symbols}).
 
 This function is intended for use in a list.  If the above structure
-isn't present, the function returns nil, allowing a different offset
-specification to indent the line.
+isn't present, the function returns @code{nil}, allowing a different
+offset specification to indent the line.
 
 @workswith{} @code{brace-list-intro}.
 @end defun
@@ -6085,8 +6140,8 @@ returning the symbol @code{c-lineup-arglist-intro-after-paren}, which
 the caller then uses to perform the indentation.
 
 This function is intended for use in a list.  If the above structure
-isn't present, the function returns nil, allowing a different offset
-specification to indent the line.
+isn't present, the function returns @code{nil}, allowing a different
+offset specification to indent the line.
 
 @workswith{} @code{brace-list-intro}.
 @end defun
@@ -6208,6 +6263,16 @@ opening @samp{<}.
 
 To allow this function to be used in a list expression, @code{nil} is
 returned if there's no template argument on the first line.
+
+@workswith @code{template-args-cont}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-template-args-indented-from-margin
+@findex lineup-template-args-indented-from-margin (c-)
+Indent a template argument line `c-basic-offset' from the left-hand
+margin of the line with the containing <.
 
 @workswith @code{template-args-cont}.
 @end defun

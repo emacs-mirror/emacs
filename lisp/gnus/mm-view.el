@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -98,7 +98,7 @@ This is only used if `mm-inline-large-images' is set to
 		    (truncate (* mm-inline-large-images-proportion
 				 (- (nth 3 edges) (nth 1 edges)))))))
          image))
-     " ")
+     "x")
     (insert "\n")
     (mm-handle-set-undisplayer
      handle

@@ -1,5 +1,5 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -348,7 +348,7 @@ extern bool find_automatic_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 
 extern void composition_compute_stop_pos (struct composition_it *,
                                           ptrdiff_t, ptrdiff_t, ptrdiff_t,
-                                          Lisp_Object);
+                                          Lisp_Object, bool);
 extern bool composition_reseat_it (struct composition_it *, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t, struct window *,
 				   signed char, struct face *, Lisp_Object);

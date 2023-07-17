@@ -1,6 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -510,7 +510,7 @@ If SOURCE, mark the entry with this as the source."
 	  (skip-chars-forward "^;\n")
 	  ;; skip \;
 	  (while (eq (char-before) ?\\)
-	    (backward-delete-char 1)
+	    (delete-char -1)
 	    (forward-char)
 	    (skip-chars-forward "^;\n"))
 	  (if (eq (or (char-after save-pos) 0) ?')
@@ -979,7 +979,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".vox"   . "audio/basic")
     (".vrml"  . "x-world/x-vrml")
     (".wav"   . "audio/x-wav")
-    (".xls"   . "application/vnd\\.ms-excel")
+    (".xls"   . "application/vnd.ms-excel")
     (".wrl"   . "x-world/x-vrml")
     (".xbm"   . "image/xbm")
     (".xpm"   . "image/xpm")
@@ -1051,8 +1051,7 @@ If FORCE, re-parse even if already parsed."
 	(setq save-pos (point))
 	(skip-chars-forward "^ \t\n")
 	(downcase-region save-pos (point))
-	(setq type (mailcap--regexp-quote-type
-                    (buffer-substring save-pos (point))))
+	(setq type (buffer-substring save-pos (point)))
 	(while (not (eolp))
 	  (skip-chars-forward " \t")
 	  (setq save-pos (point))
@@ -1064,12 +1063,6 @@ If FORCE, re-parse even if already parsed."
                 extns))
         (setq mailcap-mime-extensions (append extns mailcap-mime-extensions)
               extns nil)))))
-
-(defun mailcap--regexp-quote-type (type)
-  (if (not (string-search "/" type))
-      type
-    (pcase-let ((`(,major ,minor) (split-string type "/")))
-      (concat major "/" (regexp-quote minor)))))
 
 (defun mailcap-extension-to-mime (extn)
   "Return the MIME content type of the file extensions EXTN."
@@ -1107,7 +1100,7 @@ For instance, `image/png' will result in `png'."
         (dolist (info (cdr data))
           (setq type (cdr (assq 'type (cdr info))))
           (unless (string-search "*" type)
-            (push type res))))
+            (push (string-replace "\\" "" type) res))))
       (nreverse res)))))
 
 ;;;

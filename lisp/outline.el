@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1986-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: outlines
@@ -209,8 +209,14 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   :version "28.1")
 
 (defvar outline-minor-mode-cycle)
+(defvar outline-minor-mode-cycle-map)
 (defun outline-minor-mode-cycle--bind (map key binding &optional filter)
-  (define-key map key
+  "Define KEY as BINDING in MAP using FILTER.
+The key takes effect only on the following conditions:
+`outline-minor-mode-cycle' is non-nil, point is located on the heading line,
+FILTER or `outline-minor-mode-cycle-filter' is nil or returns non-nil.
+The argument MAP is optional and defaults to `outline-minor-mode-cycle-map'."
+  (define-key (or map outline-minor-mode-cycle-map) key
     `(menu-item
       "" ,binding
       ;; Filter out specific positions on the heading.
@@ -227,8 +233,16 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   (let ((map (make-sparse-keymap)))
     (outline-minor-mode-cycle--bind map (kbd "TAB") #'outline-cycle)
     (outline-minor-mode-cycle--bind map (kbd "<backtab>") #'outline-cycle-buffer)
+    (keymap-set map "<left-margin> <mouse-1>" 'outline-cycle)
+    (keymap-set map "<right-margin> <mouse-1>" 'outline-cycle)
+    (keymap-set map "<left-margin> S-<mouse-1>" 'outline-cycle-buffer)
+    (keymap-set map "<right-margin> S-<mouse-1>" 'outline-cycle-buffer)
     map)
-  "Keymap used by `outline-minor-mode-cycle'.")
+  "Keymap used as a parent of the `outline-minor-mode' keymap.
+It contains key bindings that can be used to cycle visibility.
+The recommended way to bind keys is with `outline-minor-mode-cycle--bind'
+when the key should be enabled only when `outline-minor-mode-cycle' is
+non-nil and point is located on the heading line.")
 
 (defvar outline-mode-map
   (let ((map (make-sparse-keymap)))
@@ -518,10 +532,6 @@ See the command `outline-mode' for more information on this mode."
   :keymap (define-keymap
             :parent outline-minor-mode-cycle-map
             "<menu-bar>" outline-minor-mode-menu-bar-map
-            "<left-margin> <mouse-1>" 'outline-cycle
-            "<right-margin> <mouse-1>" 'outline-cycle
-            "<left-margin> S-<mouse-1>" 'outline-cycle-buffer
-            "<right-margin> S-<mouse-1>" 'outline-cycle-buffer
             (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
   (if outline-minor-mode
       (progn
@@ -1490,8 +1500,10 @@ corresponding level.  See `outline-default-rules' to customize
 visibility of the subtree at that level.
 
 If equal to a lambda function or function name, this function is
-expected to toggle headings visibility, and will be
-called without arguments after the mode is enabled."
+expected to toggle headings visibility, and will be called
+without arguments after the mode is enabled.  Heading visibility
+can be changed with functions such as `outline-show-subtree',
+`outline-show-entry', `outline-hide-entry' etc."
   :version "29.1"
   :type '(choice (const :tag "Disabled" nil)
                  (const :tag "Show all" outline-show-all)
@@ -1766,6 +1778,20 @@ With a prefix argument, show headings up to that LEVEL."
 
 ;;; Button/margin indicators
 
+(defvar-keymap outline-button-icon-map
+  "<mouse-2>" #'outline-cycle
+  ;; Need to override the global binding
+  ;; `mouse-appearance-menu' with <down->:
+  "S-<down-mouse-1>" #'ignore
+  "S-<mouse-1>" #'outline-cycle-buffer)
+
+(defvar-keymap outline-overlay-button-map
+  "RET" #'outline-cycle)
+
+(defvar-keymap outline-inserted-button-map
+  :parent (make-composed-keymap outline-button-icon-map
+                                outline-overlay-button-map))
+
 (defun outline--create-button-icons ()
   (pcase outline-minor-mode-use-buttons
     ('in-margins
@@ -1798,12 +1824,7 @@ With a prefix argument, show headings up to that LEVEL."
         (propertize (icon-string icon-name)
                     'mouse-face 'default
                     'follow-link 'mouse-face
-                    'keymap (define-keymap
-                              "<mouse-2>" #'outline-cycle
-                              ;; Need to override the global binding
-                              ;; `mouse-appearance-menu' with <down->:
-                              "S-<down-mouse-1>" #'ignore
-                              "S-<mouse-1>" #'outline-cycle-buffer)))
+                    'keymap outline-button-icon-map))
       (list 'outline-open
             (if outline--use-rtl 'outline-close-rtl 'outline-close))))))
 
@@ -1829,19 +1850,13 @@ With a prefix argument, show headings up to that LEVEL."
            (overlay-put o 'face (plist-get icon 'face))
            (overlay-put o 'follow-link 'mouse-face)
            (overlay-put o 'mouse-face 'highlight)
-           (overlay-put o 'keymap (define-keymap
-                                    "RET" #'outline-cycle
-                                    "<mouse-2>" #'outline-cycle
-                                    ;; Need to override the global binding
-                                    ;; `mouse-appearance-menu' with <down->:
-                                    "S-<down-mouse-1>" #'ignore
-                                    "S-<mouse-1>" #'outline-cycle-buffer)))
+           (overlay-put o 'keymap outline-inserted-button-map))
           ('in-margins
            (overlay-put o 'before-string icon)
-           (overlay-put o 'keymap (define-keymap "RET" #'outline-cycle)))
+           (overlay-put o 'keymap outline-overlay-button-map))
           (_
            (overlay-put o 'before-string icon)
-           (overlay-put o 'keymap (define-keymap "RET" #'outline-cycle))))))))
+           (overlay-put o 'keymap outline-overlay-button-map)))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when outline-minor-mode-use-buttons
@@ -1864,7 +1879,7 @@ With a prefix argument, show headings up to that LEVEL."
   (save-excursion (goto-char beg) (setq beg (pos-bol)))
   (save-excursion (goto-char end) (setq end (pos-eol)))
   (remove-overlays beg end 'outline-button t)
-  (outline--fix-up-all-buttons beg end))
+  (save-match-data (outline--fix-up-all-buttons beg end)))
 
 
 (defvar-keymap outline-navigation-repeat-map

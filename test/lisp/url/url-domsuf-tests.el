@@ -1,6 +1,6 @@
 ;;; url-domsuf-tests.el --- Tests for url-domsuf.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +23,10 @@
 
 (require 'url-domsuf)
 (require 'ert)
+
+(ert-deftest url-domsuf--public-suffix-file ()
+  ;; We should always have a file, since it ships with Emacs.
+  (should (file-readable-p (url-domsuf--public-suffix-file))))
 
 (defun url-domsuf-tests--run ()
   (should-not (url-domsuf-cookie-allowed-p "com"))

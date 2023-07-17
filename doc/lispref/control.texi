@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -694,7 +694,7 @@ contain the following constructs:
 @item (let @var{ref} @var{rx-expr}@dots{})
 Bind the symbol @var{ref} to a submatch that matches
 @var{rx-expr}@enddots{}.  @var{ref} is bound in @var{body-forms} to
-the string of the submatch or nil, but can also be used in
+the string of the submatch or @code{nil}, but can also be used in
 @code{backref}.
 
 @item (backref @var{ref})
@@ -1808,6 +1808,9 @@ evaluated in case of error.  (@xref{Cleanups}.)  Occasionally, you may
 wish the program to continue execution despite an error in a subroutine.
 In these cases, you would use @code{condition-case} to establish
 @dfn{error handlers} to recover control in case of error.
+
+  For reporting problems without terminating the execution of the
+current command, consider issuing a warning instead.  @xref{Warnings}.
 
   Resist the temptation to use error handling to transfer control from
 one part of the program to another; use @code{catch} and @code{throw}

@@ -1,6 +1,6 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Joakim Verona <joakim@verona.se>
 
@@ -925,7 +925,8 @@ Return the buffer."
   "Display the current xwidget webkit URL and place it on the `kill-ring'."
   (interactive nil xwidget-webkit-mode)
   (let ((url (xwidget-webkit-uri (xwidget-webkit-current-session))))
-    (message "URL: %s" (kill-new (or url "")))))
+    (when url (kill-new url))
+    (message "URL: %s" url)))
 
 (defun xwidget-webkit-browse-history ()
   "Display a buffer containing the history of page loads."

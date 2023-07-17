@@ -1,10 +1,10 @@
-# timer_time.m4 serial 5
-dnl Copyright (C) 2011-2022 Free Software Foundation, Inc.
+# timer_time.m4 serial 6
+dnl Copyright (C) 2011-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
-# Check for timer_settime, and set LIB_TIMER_TIME.
+# Check for timer_settime, and set TIMER_TIME_LIB.
 
 AC_DEFUN([gl_TIMER_TIME],
 [
@@ -21,13 +21,13 @@ AC_DEFUN([gl_TIMER_TIME],
   AC_CHECK_DECL([timer_settime], [], [],
                 [[#include <time.h>
                 ]])
-  LIB_TIMER_TIME=
-  AC_SUBST([LIB_TIMER_TIME])
+  TIMER_TIME_LIB=
+  AC_SUBST([TIMER_TIME_LIB])
   AS_IF([test "$ac_cv_have_decl_timer_settime" = yes], [
     gl_saved_libs=$LIBS
     AC_SEARCH_LIBS([timer_settime], [rt posix4],
                    [test "$ac_cv_search_timer_settime" = "none required" ||
-                    LIB_TIMER_TIME=$ac_cv_search_timer_settime])
+                    TIMER_TIME_LIB=$ac_cv_search_timer_settime])
     m4_ifdef([gl_][PTHREADLIB],
       [dnl GLIBC uses threads to emulate posix timers when kernel support
        dnl is not available (like Linux < 2.6 or when used with kFreeBSD)
@@ -42,8 +42,11 @@ AC_DEFUN([gl_TIMER_TIME],
            #endif
           #endif
          ],
-         [LIB_TIMER_TIME="$LIB_TIMER_TIME $LIBPMULTITHREAD"])])
+         [TIMER_TIME_LIB="$TIMER_TIME_LIB $LIBPMULTITHREAD"])])
     AC_CHECK_FUNCS([timer_settime])
     LIBS=$gl_saved_libs
   ])
+  dnl For backward compatibility.
+  LIB_TIMER_TIME="$TIMER_TIME_LIB"
+  AC_SUBST([LIB_TIMER_TIME])
 ])

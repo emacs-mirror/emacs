@@ -1,6 +1,6 @@
 ;;; mouse-copy.el --- one-click text copy and move  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse

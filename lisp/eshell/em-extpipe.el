@@ -1,6 +1,6 @@
 ;;; em-extpipe.el --- external shell pipelines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
@@ -35,6 +35,21 @@
 (require 'esh-util)
 
 (eval-when-compile (require 'files-x))
+
+;;;###autoload
+(progn
+(defgroup eshell-extpipe nil
+  "Native shell pipelines.
+
+This module lets you construct pipelines that use your operating
+system's shell instead of Eshell's own pipelining support.  This
+is especially relevant when executing commands on a remote
+machine using Eshell's Tramp integration: using the remote
+shell's pipelining avoids copying the data which will flow
+through the pipeline to local Emacs buffers and then right back
+again."
+  :tag "External pipelines"
+  :group 'eshell-module))
 
 ;;; Functions:
 

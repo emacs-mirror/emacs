@@ -1,6 +1,6 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2022 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -103,7 +103,7 @@
       ;; During bootstrapping the byte-compiler is run interpreted
       ;; when compiling itself, which uses a lot more stack
       ;; than usual.
-      (setq max-lisp-eval-depth 2200)))
+      (setq max-lisp-eval-depth (max max-lisp-eval-depth 3400))))
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
@@ -476,7 +476,13 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(defvar comp-subr-arities-h)
 (when (featurep 'native-compile)
+  ;; Save the arity for all primitives so the compiler can always
+  ;; retrive it even in case of redefinition.
+  (mapatoms (lambda (f)
+              (when (subr-primitive-p (symbol-function f))
+                (puthash f (func-arity f) comp-subr-arities-h))))
   ;; Fix the compilation unit filename to have it working when
   ;; installed or if the source directory got moved.  This is set to be
   ;; a pair in the form of:
@@ -550,7 +556,7 @@ lost after dumping")))
                  (equal dump-mode "pdump"))
         ;; Don't enable this before bootstrap is completed, as the
         ;; compiler infrastructure may not be usable yet.
-        (setq comp-enable-subr-trampolines t))
+        (setq native-comp-enable-subr-trampolines t))
       (message "Dumping under the name %s" output)
       (condition-case ()
           (delete-file output)

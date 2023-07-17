@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -160,7 +160,13 @@ current line by an @kbd{i} or @kbd{d} command
 Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
-installed versions (marked with status @samp{obsolete}).
+installed versions (marked with status @samp{obsolete}).  By default,
+this won't mark built-in packages for which a newer version is
+available, but customizing @code{package-install-upgrade-built-in} can
+change that.  @xref{Package Installation}.  If you customize
+@code{package-install-upgrade-built-in} to a non-@code{nil} value, be
+sure to review all the built-in packages the @kbd{U} command marks, to
+avoid updating built-in packages you don't want to overwrite.
 
 @item x
 @kindex x @r{(Package Menu)}
@@ -201,7 +207,8 @@ from lower-priority archives (@code{package-menu-toggle-hiding}).
 @findex package-menu-filter-by-archive
 Filter package list by archive (@code{package-menu-filter-by-archive}).
 This prompts for a package archive (e.g., @samp{gnu}), then shows only
-packages from that archive.
+packages from that archive.  You can specify several archives by
+typing their names separated by commas.
 
 @item / d
 @kindex / d @r{(Package Menu)}
@@ -216,7 +223,8 @@ matching that regexp.
 @findex package-menu-filter-by-keyword
 Filter package list by keyword (@code{package-menu-filter-by-keyword}).
 This prompts for a keyword (e.g., @samp{games}), then shows only
-packages with that keyword.
+packages with that keyword.  You can specify several keywords by
+typing them separated by commas.
 
 @item / N
 @kindex / N @r{(Package Menu)}
@@ -237,16 +245,19 @@ with names matching that regexp.
 @kindex / s @r{(Package Menu)}
 @findex package-menu-filter-by-status
 Filter package list by status (@code{package-menu-filter-by-status}).
-This prompts for one or more statuses (e.g., @samp{available}), then
-shows only packages with matching status.
+This prompts for one or more statuses (e.g., @samp{available},
+@pxref{Package Statuses}), then shows only packages with matching
+status.  You can specify several status values by typing them
+separated by commas.
 
 @item / v
 @kindex / v @r{(Package Menu)}
 @findex package-menu-filter-by-version
 Filter package list by version (@code{package-menu-filter-by-version}).
-This prompts first for one of the qualifiers @samp{<}, @samp{>} or
-@samp{=}, and then a package version, and shows packages that has a
-lower, equal or higher version than the one specified.
+This prompts first for one of the comparison symbols @samp{<},
+@samp{>} or @samp{=} and for a version string, and then shows packages
+whose versions are correspondingly lower, equal or higher than the
+version you typed.
 
 @item / m
 @kindex / m @r{(Package Menu)}
@@ -258,7 +269,11 @@ This shows only the packages that have been marked to be installed or deleted.
 @kindex / u @r{(Package Menu)}
 @findex package-menu-filter-upgradable
 Filter package list to show only packages for which there are
-available upgrades (@code{package-menu-filter-upgradable}).
+available upgrades (@code{package-menu-filter-upgradable}).  By
+default, this filter excludes the built-in packages for which a newer
+version is available, but customizing
+@code{package-install-upgrade-built-in} can change that.
+@xref{Package Installation}.
 
 @item / /
 @kindex / / @r{(Package Menu)}
@@ -286,9 +301,12 @@ the package archive.
 The package is available for installation, but a newer version is also
 available.  Packages with this status are hidden by default.
 
+@cindex built-in package
 @item built-in
 The package is included in Emacs by default.  It cannot be deleted
-through the package menu, and is not considered for upgrading.
+through the package menu, and by default is not considered for
+upgrading (but you can change that by customizing
+@code{package-install-upgrade-built-in}, @pxref{Package Installation}).
 
 @item dependency
 The package was installed automatically to satisfy a dependency of
@@ -329,15 +347,46 @@ version of the package, a newer version is also installed.
 @section Package Installation
 
 @findex package-install
-@findex package-update
-@findex package-update-all
+@findex package-upgrade
+@findex package-upgrade-all
   Packages are most conveniently installed using the package menu
 (@pxref{Package Menu}), but you can also use the command @kbd{M-x
 package-install}.  This prompts for the name of a package with the
 @samp{available} status, then downloads and installs it.  Similarly,
-if you want to update a package, you can use the @kbd{M-x
-package-update} command, and if you just want to update all the
-packages, you can use the @kbd{M-x package-update-all} command.
+if you want to upgrade a package, you can use the @kbd{M-x
+package-upgrade} command, and if you want to upgrade all the packages,
+you can use the @kbd{M-x package-upgrade-all} command.
+
+@vindex package-install-upgrade-built-in
+  By default, @code{package-install} doesn't consider built-in
+packages for which new versions are available from the archives.  (A
+package is built-in if it is included in the Emacs distribution.)  In
+particular, it will not show built-in packages in the list of
+completion candidates when you type at its prompt.  But if you invoke
+@code{package-install} with a prefix argument, it will also consider
+built-in packages that can be upgraded.  You can make this behavior
+the default by customizing the variable
+@code{package-install-upgrade-built-in}: if its value is
+non-@code{nil}, @code{package-install} will consider built-in packages
+even when invoked without a prefix argument.  Note that the
+package-menu commands (@pxref{Package Menu}) are also affected by
+@code{package-install-upgrade-built-in}.
+
+  By contrast, @code{package-upgrade} and @code{package-upgrade-all}
+never consider built-in packages.  If you want to use these commands
+for upgrading some built-in packages, you need to upgrade each of
+those packages, once, either via @kbd{C-u M-x package-install
+@key{RET}}, or by customizing @code{package-install-upgrade-built-in}
+to a non-@code{nil} value, and then upgrading the package once via the
+package menu or by @code{package-install}.
+
+  If you customize @code{package-install-upgrade-built-in} to a
+non-@code{nil} value, be very careful when using commands that update
+many packages at once, like @code{package-upgrade-all} and @kbd{U} in
+the package menu: those might overwrite built-in packages that you
+didn't intent to replace with newer versions from the archives.  Don't
+use these bulk commands if you want to update only a small number of
+built-in packages.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,
@@ -551,35 +600,12 @@ bugs.
 source code for a package directly from source.  The command will also
 automatically ensure that all files are byte-compiled and auto-loaded,
 just like with a regular package.  Packages installed this way behave
-just like any other package.  You can update them using
-@code{package-update} or @code{package-update-all} and delete them
+just like any other package.  You can upgrade them using
+@code{package-upgrade} or @code{package-upgrade-all} and delete them
 again using @code{package-delete}.  They are even displayed in the
 regular package listing.  If you just wish to clone the source of a
 package, without adding it to the package list, use
 @code{package-vc-checkout}.
-
-@vindex package-vc-selected-packages
-@findex package-vc-install-selected-packages
-  An alternative way to use @code{package-vc-install} is via the
-@code{package-vc-selected-packages} user option.  This is an alist of
-packages to install, where each key is a package name and the value is
-@code{nil}, indicating that any revision is to install, a string,
-indicating a specific revision or a package specification plist.  The
-side effect of setting the user option is to install the package, but
-the process can also be manually triggered using the function
-@code{package-vc-install-selected-packages}.  Here is an example of
-how the user option:
-
-@example
-@group
-(setopt package-vc-selected-packages
-        '((modus-themes . "0f39eb3fd9") ;specific revision
-          (auctex . nil)                ;any revision
-          (foo                          ;a package specification
-           :url "https://git.sv.gnu.org/r/foo-mode.git"
-           :branch "trunk")))
-@end group
-@end example
 
 @findex package-report-bug
 @findex package-vc-prepare-patch
@@ -599,5 +625,93 @@ checkout instead of cloning a remote repository.  You can do this by
 using @code{package-vc-install-from-checkout}, which creates a symbolic link
 from the package directory (@pxref{Package Files}) to your checkout
 and initializes the code.  Note that you might have to use
-@code{package-vc-refresh} to repeat the initialization and update the
+@code{package-vc-rebuild} to repeat the initialization and update the
 autoloads.
+
+@subsection Specifying Package Sources
+@cindex package specification
+@cindex specification, for source packages
+
+  To install a package from source, Emacs must know where to get the
+package's source code (such as a code repository) and basic
+information about the structure of the code (such as the main file in
+a multi-file package).  A @dfn{package specification} describes these
+properties.
+
+  When supported by a package archive (@pxref{Package
+Archives,,,elisp, The Emacs Lisp Reference Manual}), Emacs can
+automatically download a package's specification from said archive.
+If the first argument passed to @code{package-vc-install} is a symbol
+naming a package, then Emacs will use the specification provided by
+the archive for that package.
+
+@example
+@group
+;; Emacs will download BBDB's specification from GNU ELPA:
+(package-vc-install 'bbdb)
+@end group
+@end example
+
+  The first argument to @code{package-vc-install} may also be a
+package specification.  This allows you to install source packages
+from locations other than the known archives listed in the user option
+@code{package-archives}.  A package specification is a list of the
+form @code{(@var{name} . @var{spec})}, in which @var{spec} should be a
+property list using any of the keys in the table below.
+
+For definitions of basic terms for working with code repositories and
+version control systems, see @ref{VCS Concepts,,,emacs, The GNU Emacs
+Manual}.
+
+@table @code
+@item :url
+A string providing the URL that specifies the repository from which to
+fetch the package's source code.
+
+@item :branch
+A string providing the revision of the code to install.  Do not
+confuse this with a package's version number.
+
+@item :lisp-dir
+A string providing the repository-relative name of the directory to
+use for loading the Lisp sources, which defaults to the root directory
+of the repository.
+
+@item :main-file
+A string providing the main file of the project, from which to gather
+package metadata.  If not given, the default is the package name with
+".el" appended to it.
+
+@item :doc
+A string providing the repository-relative name of the documentation
+file from which to build an Info file.  This can be a Texinfo file or
+an Org file.
+
+@item :make
+A string or list of strings providing the target or targets defined in
+the repository Makefile which should run before building the Info
+file.  Only takes effect when @code{package-vc-allow-side-effects} is
+non-nil.
+
+@item :shell-command
+A string providing the shell command to run before building the Info
+file.  Only takes effect when @code{package-vc-allow-side-effects} is
+non-@code{nil}.
+
+@item :vc-backend
+A symbol naming the VC backend to use for downloading a copy of the
+package's repository (@pxref{Version Control Systems,,,emacs, The GNU
+Emacs Manual}).  If omitted, Emacs will attempt to make a guess based
+on the provided URL, or, failing that, the process will fall back onto
+the value of @code{package-vc-default-backend}.
+@end table
+
+@example
+@group
+;; Specifying information manually:
+(package-vc-install
+  '(bbdb :url "https://git.savannah.nongnu.org/git/bbdb.git"
+         :lisp-dir "lisp"
+         :doc "doc/bbdb.texi"))
+@end group
+@end example

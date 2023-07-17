@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.    -*- coding: utf-8 -*-
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
-   Copyright (C) 1985, 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -134,8 +134,8 @@ parse_format_integer (char const *fmt, int *value)
   bool overflow = false;
   for (; '0' <= *fmt && *fmt <= '9'; fmt++)
     {
-      overflow |= INT_MULTIPLY_WRAPV (n, 10, &n);
-      overflow |= INT_ADD_WRAPV (n, *fmt - '0', &n);
+      overflow |= ckd_mul (&n, n, 10);
+      overflow |= ckd_add (&n, n, *fmt - '0');
     }
   if (overflow || min (PTRDIFF_MAX, SIZE_MAX) - SIZE_BOUND_EXTRA < n)
     error ("Format width or precision too large");

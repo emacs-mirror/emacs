@@ -20,7 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2022 Free Software Foundation,
+Copyright @copyright{} 1985--1987, 1993--2023 Free Software Foundation,
 Inc.
 
 @quotation
@@ -220,7 +220,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 27.
+* Antinews::            Information about Emacs version 28.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Haiku::               Using Emacs on Haiku.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
@@ -349,7 +349,7 @@ Registers
 * Position Registers::        Saving positions in registers.
 * Text Registers::            Saving text in registers.
 * Rectangle Registers::       Saving rectangles in registers.
-* Configuration Registers::   Saving window configurations in registers.
+* Configuration Registers::   Saving window/frame configurations in registers.
 * Number Registers::          Numbers in registers.
 * File and Buffer Registers:: File and buffer names in registers.
 * Keyboard Macro Registers::  Keyboard macros in registers.
@@ -382,6 +382,10 @@ Controlling the Display
                              of continuing them to multiple screen lines.
 * Visual Line Mode::       Word wrap and screen line-based editing.
 * Display Custom::         Information on variables for customizing display.
+
+Font Lock
+* Traditional Font Lock::  Font Lock based on regexps and syntax tables.
+* Parser-based Font Lock:: Font Lock based on external parser.
 
 Searching and Replacement
 

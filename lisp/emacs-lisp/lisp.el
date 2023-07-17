@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2022 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -92,12 +92,22 @@ report errors as appropriate for this kind of usage."
   (forward-sexp (- arg) interactive))
 
 (defun mark-sexp (&optional arg allow-extend)
-  "Set mark ARG sexps from point.
-The place mark goes is the same place \\[forward-sexp] would
-move to with the same argument.
-Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active,
-it marks the next ARG sexps after the ones already marked.
+  "Set mark ARG sexps from point or move mark one sexp.
+When called from Lisp with ALLOW-EXTEND ommitted or nil, mark is
+set ARG sexps from point.
+With ARG and ALLOW-EXTEND both non-nil (interactively, with prefix
+argument), the place to which mark goes is the same place \\[forward-sexp]
+would move to with the same argument; if the mark is active, it moves
+ARG sexps from its current position, otherwise it is set ARG sexps
+from point.
+When invoked interactively without a prefix argument and no active
+region, mark moves one sexp forward.
+When invoked interactively without a prefix argument, and region
+is active, mark moves one sexp away of point (i.e., forward
+if mark is at or after point, back if mark is before point), thus
+extending the region by one sexp.  Since the direction of region
+extension depends on the relative position of mark and point, you
+can change the direction by \\[exchange-point-and-mark].
 This command assumes point is not in a string or comment."
   (interactive "P\np")
   (cond ((and allow-extend
@@ -519,6 +529,7 @@ major mode's decisions about context.")
   "Return the \"far end\" position of the buffer, in direction ARG.
 If ARG is positive, that's the end of the buffer.
 Otherwise, that's the beginning of the buffer."
+  (declare (side-effect-free error-free))
   (if (> arg 0) (point-max) (point-min)))
 
 (defun end-of-defun (&optional arg interactive)

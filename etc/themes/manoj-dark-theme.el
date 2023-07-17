@@ -1,6 +1,6 @@
 ;;; manoj-dark-theme.el --- A dark theme from Manoj  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Manoj Srivastava <srivasta@ieee.org>
 ;; Keywords: lisp, faces

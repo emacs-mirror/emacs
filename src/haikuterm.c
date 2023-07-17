@@ -1,5 +1,5 @@
 /* Haiku window system support
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4165,7 +4165,8 @@ haiku_flash (struct frame *f)
 
       BView_InvertRect (view, flash_left,
 			(height - flash_height
-			 - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			 - FRAME_INTERNAL_BORDER_WIDTH (f)
+			 - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 			width, flash_height);
     }
   else
@@ -4210,7 +4211,8 @@ haiku_flash (struct frame *f)
 
       BView_InvertRect (view, flash_left,
 			(height - flash_height
-			 - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			 - FRAME_INTERNAL_BORDER_WIDTH (f)
+			 - FRAME_BOTTOM_MARGIN_HEIGHT (f)),
 			width, flash_height);
     }
   else
@@ -4420,7 +4422,7 @@ haiku_term_init (void)
     {
       nbytes = sizeof "GNU Emacs" + sizeof " at ";
 
-      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+      if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
 	memory_full (SIZE_MAX);
 
       name_buffer = alloca (nbytes);
@@ -4465,14 +4467,16 @@ haiku_clear_under_internal_border (struct frame *f)
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
-      int face_id =
-	(FRAME_PARENT_FRAME (f)
-	 ? (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
-	    : CHILD_FRAME_BORDER_FACE_ID)
-	 : (!NILP (Vface_remapping_alist)
-	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	    : INTERNAL_BORDER_FACE_ID));
+      int bottom_margin = FRAME_BOTTOM_MARGIN_HEIGHT (f);
+      int face_id = (FRAME_PARENT_FRAME (f)
+		     ? (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     CHILD_FRAME_BORDER_FACE_ID)
+			: CHILD_FRAME_BORDER_FACE_ID)
+		     : (!NILP (Vface_remapping_alist)
+			? lookup_basic_face (NULL, f,
+					     INTERNAL_BORDER_FACE_ID)
+			: INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
       void *view = FRAME_HAIKU_DRAWABLE (f);
 
@@ -4492,7 +4496,8 @@ haiku_clear_under_internal_border (struct frame *f)
       BView_FillRectangle (view, 0, 0, border, height);
       BView_FillRectangle (view, 0, margin, width, border);
       BView_FillRectangle (view, width - border, 0, border, height);
-      BView_FillRectangle (view, 0, height - border, width, border);
+      BView_FillRectangle (view, 0, height - bottom_margin - border,
+			   width, border);
       BView_EndClip (view);
       BView_draw_unlock (view);
       unblock_input ();

@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -47,7 +47,8 @@
 (defun viper-window-display-p ()
   (and window-system (not (memq window-system '(tty stream pc)))))
 
-(defcustom viper-ms-style-os-p (memq system-type '(ms-dos windows-nt))
+(defcustom viper-ms-style-os-p
+  (not (not (memq system-type '(ms-dos windows-nt))))
   "Non-nil if Emacs is running under an MS-style OS: MS-DOS, or MS-Windows."
   :type 'boolean
   :tag "Is it Microsoft-made OS?"

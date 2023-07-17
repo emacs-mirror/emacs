@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1998, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -1121,10 +1121,15 @@ possible values of STATE are explained in `vc-state', and MODEL in
 the returned list.
 
 BEWARE: this function may change the current buffer."
-  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-    (vc-deduce-fileset-1 not-state-changing
-                         allow-unregistered
-                         state-model-only-files)))
+  (let (new-buf res)
+    (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+      (setq res
+            (vc-deduce-fileset-1 not-state-changing
+                                 allow-unregistered
+                                 state-model-only-files))
+      (setq new-buf (current-buffer)))
+    (set-buffer new-buf)
+    res))
 
 (defun vc-deduce-fileset-1 (not-state-changing
                             allow-unregistered
@@ -1239,7 +1244,11 @@ For old-style locking-based version control systems, like RCS:
 
 When using this command to register a new file (or files), it
 will automatically deduce which VC repository to register it
-with, using the most specific one."
+with, using the most specific one.
+
+If VERBOSE is non-nil (interactively, the prefix argument),
+you can specify a VC backend or (for centralized VCS only)
+the revision ID or branch ID."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
@@ -1590,7 +1599,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
        (vc-call make-version-backups-p file)
        (vc-up-to-date-p file)
        (vc-make-version-backup file))
-  (let ((backend (vc-backend file)))
+  (let ((backend (or (bound-and-true-p vc-dir-backend) (vc-backend file))))
     (with-vc-properties (list file)
       (condition-case err
           (vc-call-backend backend 'checkout file rev)
@@ -2342,8 +2351,8 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                       (ignore-errors (delay-mode-hooks (set-auto-mode))))
                   (normal-mode))
 	        (set-buffer-modified-p nil)
-                (setq buffer-read-only t))
-		(setq failed nil)
+                (setq buffer-read-only t)
+                (setq failed nil))
 	    (when (and failed (unless buffer (get-file-buffer filename)))
 	      (with-current-buffer (get-file-buffer filename)
 		(set-buffer-modified-p nil))
@@ -2500,9 +2509,13 @@ Otherwise, return nil."
 (defun vc-create-tag (dir name branchp)
   "Descending recursively from DIR, make a tag called NAME.
 For each registered file, the working revision becomes part of
-the named configuration.  If the prefix argument BRANCHP is
-given, the tag is made as a new branch and the files are
-checked out in that new branch."
+the configuration identified by the tag.
+If BRANCHP is non-nil (interactively, the prefix argument), the
+tag NAME is a new branch, and the files are checked out and
+updated to reflect their revisions on that branch.
+In interactive use, DIR is `default-directory' for repository-granular
+VCSes (all the modern decentralized VCSes belong to this group),
+otherwise the command will prompt for DIR."
   (interactive
    (let ((granularity
 	  (vc-call-backend (vc-responsible-backend default-directory)
@@ -2525,9 +2538,23 @@ checked out in that new branch."
 
 ;;;###autoload
 (defun vc-create-branch (dir name)
-  "Descending recursively from DIR, make a branch called NAME.
-After a new branch is made, the files are checked out in that new branch.
-Uses `vc-create-tag' with the non-nil arg `branchp'."
+  "Make a branch called NAME in directory DIR.
+After making the new branch, check out the branch, i.e. update the
+files in the tree to their revisions on the branch.
+
+Interactively, prompt for the NAME of the branch.
+
+With VCSes that maintain version information per file, this command also
+prompts for the directory DIR whose files, recursively, will be tagged
+with the NAME of new branch.  For VCSes that maintain version
+information for the entire repository (all the modern decentralized
+VCSes belong to this group), DIR is always the `default-directory'.
+
+Finally, this command might prompt for the branch or tag from which to
+start (\"fork\") the new branch, with completion candidates including
+all the known branches and tags in the repository.
+
+This command invokes `vc-create-tag' with the non-nil BRANCHP argument."
   (interactive
    (let ((granularity
           (vc-call-backend (vc-responsible-backend default-directory)
@@ -2541,17 +2568,17 @@ Uses `vc-create-tag' with the non-nil arg `branchp'."
 
 ;;;###autoload
 (defun vc-retrieve-tag (dir name &optional branchp)
-  "For each file in or below DIR, retrieve their tagged version NAME.
+  "For each file in or below DIR, retrieve their version identified by tag NAME.
 NAME can name a branch, in which case this command will switch to the
 named branch in the directory DIR.
 Interactively, prompt for DIR only for VCS that works at file level;
-otherwise use the repository root of the current buffer.
+otherwise use the root directory of the current buffer's VC tree.
 If NAME is empty, it refers to the latest revisions of the current branch.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped).
-If the prefix argument BRANCHP is given, switch the branch
-and check out the files in that branch.
+If BRANCHP is non-nil (interactively, the prefix argument), switch to the
+branch and check out and update the files to their version on that branch.
 This function runs the hook `vc-retrieve-tag-hook' when finished."
   (interactive
    (let* ((granularity
@@ -2592,7 +2619,12 @@ This function runs the hook `vc-retrieve-tag-hook' when finished."
 ;;;###autoload
 (defun vc-switch-branch (dir name)
   "Switch to the branch NAME in the directory DIR.
-If NAME is empty, it refers to the latest revisions of the current branch.
+If NAME is empty, it refers to the latest revision of the current branch.
+Interactively, prompt for DIR only for VCS that works at file level;
+otherwise use the root directory of the current buffer's VC tree.
+Interactively, prompt for the NAME of the branch.
+After switching to the branch, check out and update the files to their
+version on that branch.
 Uses `vc-retrieve-tag' with the non-nil arg `branchp'."
   (interactive
    (let* ((granularity
@@ -2696,7 +2728,16 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
                               is-start-revision limit type)))))
 
 (defvar vc-log-view-type nil
-  "Set this to differentiate the different types of logs.")
+  "Set this to record the type of VC log shown in the current buffer.
+Supported values are:
+
+  `short'        -- short log form, one line for each commit
+  `long'         -- long log form, including full log message and author
+  `with-diff'    -- log including diffs
+  `log-outgoing' -- log of changes to be pushed to upstream
+  `log-incoming' -- log of changes to be brought by pulling from upstream
+  `log-search'   -- log entries matching a pattern; shown in long format
+  `mergebase'    -- log created by `vc-log-mergebase'.")
 (put 'vc-log-view-type 'permanent-local t)
 (defvar vc-sentinel-movepoint)
 
@@ -2753,13 +2794,20 @@ Each function runs in the log output buffer without args.")
 
 ;;;###autoload
 (defun vc-print-log (&optional working-revision limit)
-  "List the change log of the current fileset in a window.
-If WORKING-REVISION is non-nil, leave point at that revision.
+  "Show in another window the VC change history of the current fileset.
+If WORKING-REVISION is non-nil, it should be a revision ID; position
+point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
 number of revisions to show; the default is `vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
-WORKING-REVISION and LIMIT."
+WORKING-REVISION and LIMIT.
+
+This shows a short log (one line for each commit) if the current
+fileset includes directories and the VC backend supports that;
+otherwise it shows the detailed log of each commit, which includes
+the full log message and the author.  Additional control of the
+shown log style is available via `vc-log-short-style'."
   (interactive
    (cond
     (current-prefix-arg
@@ -2784,14 +2832,14 @@ WORKING-REVISION and LIMIT."
 
 ;;;###autoload
 (defun vc-print-root-log (&optional limit revision)
-  "List the revision history for the current VC controlled tree in a window.
+  "Show in another window VC change history of the current VC controlled tree.
 If LIMIT is non-nil, it should be a number specifying the maximum
 number of revisions to show; the default is `vc-log-show-limit'.
-When called interactively with a prefix argument, prompt for LIMIT.
-When the prefix argument is a number, use it as LIMIT.
+When called interactively with a prefix argument, prompt for LIMIT, but
+if the prefix argument is a number, use it as LIMIT.
 A special case is when the prefix argument is 1: in this case
-the command asks for the ID of a revision, and shows that revision
-with its diffs (if the underlying VCS supports that)."
+the command prompts for the ID of a revision, and shows that revision
+with its diffs (if the underlying VCS backend supports that)."
   (interactive
    (cond
     ((eq current-prefix-arg 1)
@@ -2831,7 +2879,8 @@ with its diffs (if the underlying VCS supports that)."
 
 ;;;###autoload
 (defun vc-print-branch-log (branch)
-  "Show the change log for BRANCH root in a window."
+  "Show the change log for BRANCH in another window.
+The command prompts for the branch whose change log to show."
   (interactive
    (let* ((backend (vc-responsible-backend default-directory))
           (rootdir (vc-call-backend backend 'root default-directory)))
@@ -2875,15 +2924,17 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
 
 ;;;###autoload
 (defun vc-log-search (pattern)
-  "Search the log of changes for PATTERN.
+  "Search the VC log of changes for PATTERN and show log of matching changes.
 
 PATTERN is usually interpreted as a regular expression.  However, its
 exact semantics is up to the backend's log search command; some can
 only match fixed strings.
 
-Display all entries that match log messages in long format.
-With a prefix argument, ask for a command to run that will output
-log entries."
+This command displays in long format all the changes whose log messages
+match PATTERN.
+
+With a prefix argument, the command asks for a shell command to run that
+will output log entries, and displays those log entries instead."
   (interactive (list (unless current-prefix-arg
                        (read-regexp "Search log with pattern: "))))
   (let ((backend (vc-deduce-backend)))
@@ -2894,8 +2945,8 @@ log entries."
 
 ;;;###autoload
 (defun vc-log-mergebase (_files rev1 rev2)
-  "Show a log of changes between the merge base of REV1 and REV2 revisions.
-The merge base is a common ancestor between REV1 and REV2 revisions."
+  "Show a log of changes between the merge base of revisions REV1 and REV2.
+The merge base is a common ancestor of revisions REV1 and REV2."
   (interactive
    (vc-diff-build-argument-list-internal
     (or (ignore-errors (vc-deduce-fileset t))
@@ -3064,16 +3115,28 @@ On a distributed version control system, this runs a \"pull\"
 operation on the current branch, prompting for the precise
 command if required.  Optional prefix ARG non-nil forces a prompt
 for the VCS command to run.  If this is successful, a \"push\"
-operation will then be done.
+operation will then be done.  This is supported only in backends
+where the pull operation returns a process.
 
 On a non-distributed version control system, this signals an error.
 It also signals an error in a Bazaar bound branch."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset)))
-    (if (vc-find-backend-function backend 'pull-and-push)
-        (vc-call-backend backend 'pull-and-push arg)
-      (user-error "VC pull-and-push is unsupported for `%s'" backend))))
+    (if (vc-find-backend-function backend 'pull)
+        (let ((proc (vc-call-backend backend 'pull arg)))
+          (when (and (processp proc) (process-buffer proc))
+            (with-current-buffer (process-buffer proc)
+              (if (and (eq (process-status proc) 'exit)
+                       (zerop (process-exit-status proc)))
+                  (let ((vc--inhibit-async-window t))
+                    (vc-push arg))
+                (vc-exec-after
+                 (lambda ()
+                   (let ((vc--inhibit-async-window t))
+                     (vc-push arg)))
+                 proc)))))
+      (user-error "VC pull is unsupported for `%s'" backend))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -3570,7 +3633,8 @@ to provide the `find-revision' operation instead."
           (file-buffer (or (get-file-buffer file) (current-buffer))))
       (message "Checking out %s..." file)
       (let ((failed t)
-            (backup-name (car (find-backup-file-name file))))
+            (backup-name (when (file-exists-p file)
+                           (car (find-backup-file-name file)))))
         (when backup-name
           (copy-file file backup-name 'ok-if-already-exists 'keep-date)
           (unless (file-writable-p file)
@@ -3630,7 +3694,7 @@ it indicates a specific revision to check out."
   "Default `last-change' implementation.
 It returns the last revision that changed LINE number in FILE."
   (unless (file-exists-p file)
-    (signal 'file-error "File doesn't exist"))
+    (signal 'file-error '("File doesn't exist")))
   (with-temp-buffer
     (vc-call-backend (vc-backend file) 'annotate-command
                      file (current-buffer))

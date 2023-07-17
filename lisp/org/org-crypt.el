@@ -1,6 +1,6 @@
 ;;; org-crypt.el --- Public Key Encryption for Org Entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 

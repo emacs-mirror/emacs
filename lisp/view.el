@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; textsec.el --- Functions for handling homoglyphs and the like  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -320,7 +320,8 @@ affected by bidi controls in STRING."
     ;; state at end of STRING which could then affect the following
     ;; text.
     (insert string "a1א:!")
-    (let ((pos (bidi-find-overridden-directionality 1 (point-max) nil)))
+    (let ((pos (bidi-find-overridden-directionality
+                (point-min) (point-max) nil)))
       (and (fixnump pos)
            (1- pos)))))
 

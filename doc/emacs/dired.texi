@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -714,6 +714,10 @@ Otherwise, the command operates on the current file only.
 @noindent
 Certain other Dired commands, such as @kbd{!} and the @samp{%}
 commands, use the same conventions to decide which files to work on.
+
+  In addition to Dired commands described here, you can also invoke
+Version Control (VC) commands on one or more files shown in a Dired
+buffer.  @xref{Version Control}.
 
 @vindex dired-dwim-target
 @cindex two directories (in Dired)
@@ -1655,11 +1659,11 @@ become available.
 @findex image-dired-display-previous
   With point in the thumbnail buffer, you can type @key{RET}
 (@code{image-dired-display-this}) to display the image in another
-window.  Use the arrow keys to move around in the thumbnail buffer.
-For easy browsing, use @key{SPC} (@code{image-dired-display-next}) to
-advance and display the next image.  Typing @key{DEL}
-(@code{image-dired-display-previous}) backs up to the previous
-thumbnail and displays that instead.
+window.  Use the standard Emacs movement key bindings or the arrow
+keys to move around in the thumbnail buffer.  For easy browsing, use
+@key{SPC} (@code{image-dired-display-next}) to advance and display the
+next image.  Typing @key{DEL} (@code{image-dired-display-previous})
+backs up to the previous thumbnail and displays that instead.
 
 @vindex image-dired-external-viewer
   Type @kbd{C-@key{RET}}
@@ -1669,9 +1673,19 @@ in an external viewer.  You must first configure
 
   You can delete images through Image-Dired also.  Type @kbd{d}
 (@code{image-dired-flag-thumb-original-file}) to flag the image file
-for deletion in the Dired buffer.  You can also delete the thumbnail
-image from the thumbnail buffer with @kbd{C-d}
-(@code{image-dired-delete-char}).
+for deletion in the Dired buffer.  Alternatively, you can remove an
+image's thumbnail from the thumbnail buffer without flagging the image
+for deletion, by typing @kbd{C-d} (@code{image-dired-delete-char}).
+
+@findex image-dired-dired-toggle-marked-thumbs
+@findex image-dired-dired-display-external
+@findex image-dired-dired-display-image
+  You could also use Image-Dired for ``inline'' operations (i.e.,
+right into the Dired buffer).  Type @kbd{C-t C-t}, and the thumbnails
+of the selected images in Dired will appear in front of their names
+(@code{image-dired-dired-toggle-marked-thumbs}).  @kbd{C-t i} and
+@kbd{C-t x} will display the image under the point in Emacs or with
+the external viewer, respectively.
 
   More advanced features include @dfn{image tags}, which are metadata
 used to categorize image files.  The tags are stored in a plain text
@@ -1684,14 +1698,18 @@ in the minibuffer.  To mark files having a certain tag, type @kbd{C-t f}
 (@code{image-dired-mark-tagged-files}).  After marking image files
 with a certain tag, you can use @kbd{C-t d} to view them.
 
+@findex image-dired-dired-comment-files
+@findex image-dired-dired-edit-comment-and-tags
   You can also tag a file directly from the thumbnail buffer by typing
-@kbd{t t} and you can remove a tag by typing @kbd{t r}.  There is also
-a special tag called ``comment'' for each file (it is not a tag in
-the exact same sense as the other tags, it is handled slightly
-differently).  That is used to enter a comment or description about the
-image.  You comment a file from the thumbnail buffer by typing
+@kbd{t t}, and you can remove a tag by typing @kbd{t r}.  There is
+also a special tag called ``comment'' for each file (it is not a tag
+in the exact same sense as the other tags, it is handled slightly
+differently).  That is used to enter a comment or description about
+the image.  You comment a file from the thumbnail buffer by typing
 @kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
 a comment from Dired (@code{image-dired-dired-comment-files}).
+@kbd{C-t e} will bring a buffer to edit comment and tags
+(@code{image-dired-dired-edit-comment-and-tags}).
 
 @vindex image-dired-thumb-visible-marks
   Files that are marked in Dired will also be marked in Image-Dired if

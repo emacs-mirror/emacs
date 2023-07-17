@@ -1,6 +1,6 @@
 ;;; image-dired-util.el --- util functions for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -110,11 +110,11 @@ See also `image-dired-thumbnail-storage'."
     (abbreviate-file-name f)))
 
 (defun image-dired-associated-dired-buffer ()
-  "Get associated Dired buffer at point."
+  "Get associated Dired buffer for thumbnail at point."
   (get-text-property (point) 'associated-dired-buffer))
 
 (defmacro image-dired--with-dired-buffer (&rest body)
-  "Run BODY in associated Dired buffer.
+  "Run BODY in the Dired buffer associated with thumbnail at point.
 Should be used by commands in `image-dired-thumbnail-mode'."
   (declare (indent defun) (debug t))
   (let ((file (make-symbol "file"))
@@ -178,9 +178,5 @@ Should be used by commands in `image-dired-thumbnail-mode'."
   (* (window-width window) (frame-char-width)))
 
 (provide 'image-dired-util)
-
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
 
 ;;; image-dired-util.el ends here

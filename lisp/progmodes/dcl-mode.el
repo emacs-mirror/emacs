@@ -1,6 +1,6 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1396,7 +1396,7 @@ regexps in `dcl-electric-reindent-regexps'."
 ;;;-------------------------------------------------------------------------
 (defun dcl-indent-to (col &optional minimum)
   "Like `indent-to', but only indents if indentation would change."
-  (interactive)
+  (interactive "NIndent to column: ")
   (let (cur-indent collapsed indent)
     (save-excursion
       (skip-chars-forward " \t")

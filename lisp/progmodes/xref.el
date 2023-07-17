@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
-;; Version: 1.6.0
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Version: 1.6.3
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -355,8 +355,10 @@ backward."
           (t (goto-char start) nil))))
 
 
-;; Dummy variable retained for compatibility.
-(defvar xref-marker-ring-length 16)
+(defvar xref-marker-ring-length 16
+  "Xref marker ring length.
+This is a dummy variable retained for backward compatibility, and
+otherwise unused.")
 (make-obsolete-variable 'xref-marker-ring-length nil "29.1")
 
 (defcustom xref-prompt-for-identifier '(not xref-find-definitions
@@ -453,7 +455,9 @@ are predefined:
 (make-obsolete-variable 'xref--marker-ring 'xref--history "29.1")
 
 (defun xref-set-marker-ring-length (_var _val)
-  (declare (obsolete nil "29.1"))
+  (declare (obsolete
+            "this function has no effect: Xref marker ring is now unlimited in size"
+            "29.1"))
   nil)
 
 (defun xref--make-xref-history ()
@@ -499,7 +503,7 @@ Override existing value with NEW-VALUE if NEW-VALUE is set."
 
 (defun xref-push-marker-stack (&optional m)
   "Add point M (defaults to `point-marker') to the marker stack.
-The future stack is erased."
+Erase the stack slots following this one."
   (xref--push-backward (or m (point-marker)))
   (let ((history (xref--get-history)))
     (dolist (mk (cdr history))
@@ -527,7 +531,7 @@ To undo, use \\[xref-go-forward]."
 
 ;;;###autoload
 (defun xref-go-forward ()
-  "Got to the point where a previous \\[xref-go-back] was invoked."
+  "Go to the point where a previous \\[xref-go-back] was invoked."
   (interactive)
   (let ((history (xref--get-history)))
     (if (null (cdr history))
@@ -568,7 +572,8 @@ This can be used from `xref-after-jump-hook', for instance.")
     (dolist (l (list (car history) (cdr history)))
       (dolist (m l)
         (set-marker m nil nil)))
-    (setq history (cons nil nil)))
+    (setcar history nil)
+    (setcdr history nil))
   nil)
 
 ;;;###autoload
@@ -631,7 +636,7 @@ If SELECT is non-nil, select the target window."
 
 (defface xref-match '((t :inherit match))
   "Face used to highlight matches in the xref buffer."
-  :version "27.1")
+  :version "28.1")
 
 (defmacro xref--with-dedicated-window (&rest body)
   `(let* ((xref-w (get-buffer-window xref-buffer-name))
@@ -980,7 +985,7 @@ point."
     map))
 
 (declare-function outline-search-text-property "outline"
-		  (property &optional value bound move backward looking-at))
+                  (property &optional value bound move backward looking-at))
 
 (define-derived-mode xref--xref-buffer-mode special-mode "XREF"
   "Mode for displaying cross-references."
@@ -992,14 +997,14 @@ point."
   (setq imenu-extract-index-name-function
         #'xref--imenu-extract-index-name)
   (setq-local add-log-current-defun-function
-	      #'xref--add-log-current-defun)
-  (setq-local outline-minor-mode-cycle t
-              outline-minor-mode-use-buttons 'insert
-              outline-search-function
+              #'xref--add-log-current-defun)
+  (setq-local outline-minor-mode-cycle t)
+  (setq-local outline-minor-mode-use-buttons 'insert)
+  (setq-local outline-search-function
               (lambda (&optional bound move backward looking-at)
                 (outline-search-text-property
-                 'xref-group nil bound move backward looking-at))
-              outline-level (lambda () 1)))
+                 'xref-group nil bound move backward looking-at)))
+  (setq-local outline-level (lambda () 1)))
 
 (defvar xref--transient-buffer-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1125,7 +1130,9 @@ GROUP is a string for decoration purposes and XREF is an
                                    maximize (xref-location-line
                                              (xref-item-location xref)))
            for line-format = (and max-line
-                                  (format "%%%dd: " (1+ (floor (log max-line 10)))))
+                                  (format
+                                   #("%%%dd:" 0 4 (face xref-line-number) 5 6 (face shadow))
+                                   (1+ (floor (log max-line 10)))))
            with item-text-props = (list 'mouse-face 'highlight
                                         'keymap xref--button-map
                                         'help-echo
@@ -1145,8 +1152,7 @@ GROUP is a string for decoration purposes and XREF is an
                         ((and (equal line prev-line)
                               (equal prev-group group))
                          "")
-                        (t (propertize (format line-format line)
-                                       'face 'xref-line-number)))))
+                        (t (format line-format line)))))
                  ;; Render multiple matches on the same line, together.
                  (when (and (equal prev-group group)
                             (or (null line)
@@ -1519,7 +1525,7 @@ The meanings of both arguments are the same as documented in
                        prompt))
                    (xref-backend-identifier-completion-table backend)
                    nil nil nil
-                   'xref--read-identifier-history def)))
+                   'xref--read-identifier-history def t)))
              (if (equal id "")
                  (or def (user-error "There is no default identifier"))
                id)))
@@ -1814,16 +1820,22 @@ IGNORES is a list of glob patterns for files to ignore."
 ;; Ripgrep gets jumbled output, though, even with --line-buffered.
 ;; But Grep seems to be stable. Even without --line-buffered.
 (defcustom xref-search-program-alist
-  '((grep
-     .
-     ;; '-s' because 'git ls-files' can output broken symlinks.
-     "xargs -0 grep <C> --null -snHE -e <R>")
-    (ripgrep
-     .
-     ;; '!*/' is there to filter out dirs (e.g. submodules).
-     "xargs -0 rg <C> --null -nH --no-heading --no-messages -g '!*/' -e <R>"
-     )
-    (ugrep . "xargs -0 ugrep <C> --null -ns -e <R>"))
+  (let ((xargs-max-chars
+         (and (memq system-type '(windows-nt ms-dos))
+              "-s 10000 ")))
+    `((grep
+       .
+       ;; '-s' because 'git ls-files' can output broken symlinks.
+       ,(concat "xargs -0 " xargs-max-chars "grep <C> --null -snHE -e <R>"))
+      (ripgrep
+       .
+       ;; '!*/' is there to filter out dirs (e.g. submodules).
+       ,(concat "xargs -0 "
+                xargs-max-chars
+                "rg <C> --null -nH --no-heading --no-messages -g '!*/' -e <R>"))
+      (ugrep
+       .
+       ,(concat "xargs -0 " xargs-max-chars "ugrep <C> --null -ns -e <R>"))))
   "Association list mapping program identifiers to command templates.
 
 Program identifier should be a symbol, named after the search program.
@@ -1838,7 +1850,7 @@ The template should have the following fields:
   :type '(repeat
           (cons (symbol :tag "Program identifier")
                 (string :tag "Command template")))
-  :version "28.1"
+  :version "29.1"
   :package-version '(xref . "1.0.4"))
 
 (defcustom xref-search-program 'grep

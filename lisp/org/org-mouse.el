@@ -1,6 +1,6 @@
 ;;; org-mouse.el --- Better mouse support for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten.dominik@gmail.com>
@@ -241,7 +241,7 @@ return `:middle'."
    (t :middle)))
 
 (defun org-mouse-empty-line ()
-  "Return non-nil iff the line contains only white space."
+  "Return non-nil if the line contains only white space."
   (save-excursion (beginning-of-line) (looking-at "[ \t]*$")))
 
 (defun org-mouse-next-heading ()
@@ -283,7 +283,7 @@ keyword as the only argument.
 
 If SELECTED is nil, then all items are normal menu items.  If
 SELECTED is a function, then each item is a checkbox, which is
-enabled for a given keyword iff (funcall SELECTED keyword) return
+enabled for a given keyword if (funcall SELECTED keyword) return
 non-nil.  If SELECTED is neither nil nor a function, then the
 items are radio buttons.  A radio button is enabled for the
 keyword `equal' to SELECTED.

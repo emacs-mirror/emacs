@@ -1,6 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org

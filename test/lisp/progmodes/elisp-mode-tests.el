@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -1002,6 +1002,11 @@ evaluation of BODY."
     (should (equal (elisp--xref-infer-namespace p4) 'variable))
     (should (equal (elisp--xref-infer-namespace p5) 'variable))
     (should (equal (elisp--xref-infer-namespace p6) 'function)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(defclass child-class ({p1}parent-1 {p2}parent-2))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'function))
+    (should (equal (elisp--xref-infer-namespace p2) 'function)))
 
   (elisp-mode-test--with-buffer
       (concat "(require '{p1}alpha)\n"

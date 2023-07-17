@@ -1,6 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2022 Free Software Foundation,
+Copyright (C) 1988, 1993-1994, 1999, 2001-2023 Free Software Foundation,
 Inc.
 
 Author: Wolfgang Rupprecht (according to ack.texi)
@@ -27,18 +27,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    frexp, ldexp, log, log10 [via (log X 10)], *modf, pow, sin, *sinh,
    sqrt, tan, *tanh.
 
-   C99 and C11 require the following math.h functions in addition to
+   C99, C11 and C17 require the following math.h functions in addition to
    the C89 functions.  Of these, Emacs currently exports only the
    starred ones to Lisp, since we haven't found a use for the others.
    Also, it uses the ones marked "+" internally:
    acosh, atanh, cbrt, copysign (implemented by signbit), erf, erfc,
    exp2, expm1, fdim, fma, fmax, fmin, fpclassify, hypot, +ilogb,
-   isfinite, isgreater, isgreaterequal, isinf, isless, islessequal,
+   +isfinite, isgreater, isgreaterequal, +isinf, isless, islessequal,
    islessgreater, *isnan, isnormal, isunordered, lgamma, log1p, *log2
    [via (log X 2)], logb (approximately; implemented by frexp),
    +lrint/llrint, +lround/llround, nan, nearbyint, nextafter,
    nexttoward, remainder, remquo, *rint, round, scalbln, +scalbn,
    +signbit, tgamma, *trunc.
+
+   C23 requires many more math.h functions.  Emacs does not yet export
+   or use them.
 
    The C standard also requires functions for float and long double
    that are not listed above.  Of these functions, Emacs uses only the
@@ -51,8 +54,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "bignum.h"
 
 #include <math.h>
-
-#include <count-leading-zeros.h>
 
 /* Emacs needs proper handling of +/-inf; correct printing as well as
    important packages depend on it.  Make sure the user didn't specify
@@ -301,14 +302,6 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
   return FLOATP (arg) ? arg : make_float (XFLOATINT (arg));
 }
 
-static int
-ecount_leading_zeros (EMACS_UINT x)
-{
-  return (EMACS_UINT_WIDTH == UINT_WIDTH ? count_leading_zeros (x)
-	  : EMACS_UINT_WIDTH == ULONG_WIDTH ? count_leading_zeros_l (x)
-	  : count_leading_zeros_ll (x));
-}
-
 DEFUN ("logb", Flogb, Slogb, 1, 1, 0,
        doc: /* Returns largest integer <= the base 2 log of the magnitude of ARG.
 This is the same as the exponent of a float.  */)
@@ -335,7 +328,7 @@ This is the same as the exponent of a float.  */)
       EMACS_INT i = XFIXNUM (arg);
       if (i == 0)
 	return make_float (-HUGE_VAL);
-      value = EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (eabs (i));
+      value = elogb (eabs (i));
     }
 
   return make_fixnum (value);

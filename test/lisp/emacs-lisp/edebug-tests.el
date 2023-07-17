@@ -1,6 +1,6 @@
 ;;; edebug-tests.el --- Edebug test suite   -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
@@ -116,6 +116,7 @@ back to the top level.")
               (with-current-buffer (find-file edebug-tests-temp-file)
                 (read-only-mode)
                 (setq lexical-binding t)
+                (syntax-ppss)
                 (eval-buffer)
                 ,@body
                 (when edebug-tests-failure-in-post-command

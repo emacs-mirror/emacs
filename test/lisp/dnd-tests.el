@@ -1,6 +1,6 @@
 ;;; dnd-tests.el --- Tests for window system independent DND support -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -172,7 +172,7 @@ This function only tries to handle strings."
            (extracted-1 (dnd-tests-extract-selection-data string-data-1 t))
            (extracted (dnd-tests-extract-selection-data string-data t)))
       (should (and (stringp extracted) (stringp extracted-1)))
-      (should (equal extracted extracted)))
+      (should (equal extracted extracted-1)))
     ;; Now check text/plain.
     (let ((string-data (dnd-tests-verify-selection-data
                         'text/plain)))

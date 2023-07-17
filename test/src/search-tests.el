@@ -1,6 +1,6 @@
 ;;; search-tests.el --- tests for search.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016, 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016, 2018-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

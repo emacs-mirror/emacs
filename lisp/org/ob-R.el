@@ -1,6 +1,6 @@
 ;;; ob-R.el --- Babel Functions for R                -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
@@ -36,7 +36,7 @@
 (require 'ob)
 
 (declare-function orgtbl-to-tsv "org-table" (table params))
-(declare-function R "ext:essd-r" (&optional start-args))
+(declare-function run-ess-r "ext:ess-r-mode" (&optional start-args))
 (declare-function inferior-ess-send-input "ext:ess-inf" ())
 (declare-function ess-make-buffer-current "ext:ess-inf" ())
 (declare-function ess-eval-buffer "ext:ess-inf" (vis))
@@ -276,7 +276,8 @@ This function is called by `org-babel-execute-src-block'."
 	  (when (get-buffer session)
 	    ;; Session buffer exists, but with dead process
 	    (set-buffer session))
-	  (require 'ess) (R)
+          (require 'ess-r-mode)
+          (set-buffer (run-ess-r))
 	  (let ((R-proc (get-process (or ess-local-process-name
 					 ess-current-process-name))))
 	    (while (process-get R-proc 'callbacks)

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -523,7 +523,8 @@ Height |  | | Height                           | |  | Height
      | |  | |<--+--- Inner Frame Width ------->| |  | |
      | |  | |   |                              | |  | |
      | |  | |___v______________________________| |  | |
-     | |  |___________ Internal Border __________|  | v
+     | |  |___________ Internal Border __________|  | |
+     | | (4)__________ Bottom Tool Bar __________|  | v
      v |___________ External/Outer Border __________|
            <-------- Native Frame Width -------->
 
@@ -707,6 +708,10 @@ tool bar but not that of the menu bar (Lucid, Motif, MS-Windows) or
 those of the menu bar and the tool bar (non-toolkit and text terminal
 frames).
 
+If the native position would otherwise be (2), but the tool bar is
+placed at the bottom of the frame as depicted in (4), the native
+position of the frame becomes that of the tab bar.
+
 The native position of a frame is the reference position for functions
 that set or return the current position of the mouse (@pxref{Mouse
 Position}) and for functions dealing with the position of windows like
@@ -844,8 +849,11 @@ native frame of @var{frame}).
 
 @item tool-bar-position
 This tells on which side the tool bar on @var{frame} is and can be one
-of @code{left}, @code{top}, @code{right} or @code{bottom}.  The only
-toolkit that currently supports a value other than @code{top} is GTK+.
+of @code{left}, @code{top}, @code{right} or @code{bottom}.
+
+The values @code{left} and @code{right} are only supported on builds
+using the GTK+ toolkit; @code{bottom} is supported on all builds other
+than NS, and @code{top} is supported everywhere.
 
 @item tool-bar-size
 A cons of the width and height of the tool bar of @var{frame}.
@@ -1474,19 +1482,24 @@ in this frame.  Its value is @code{color}, @code{grayscale} or
 
 @vindex title@r{, a frame parameter}
 @item title
-If a frame has a non-@code{nil} title, it appears in the window
+If a frame has a non-@code{nil} title, that title appears in the window
 system's title bar at the top of the frame, and also in the mode line
 of windows in that frame if @code{mode-line-frame-identification} uses
 @samp{%F} (@pxref{%-Constructs}).  This is normally the case when
 Emacs is not using a window system, and can only display one frame at
-a time.  @xref{Frame Titles}.
+a time.  When Emacs is using a window system, this parameter, if
+non-@code{nil}, overrides the title determined by the @code{name}
+parameter and the implicit title calculated according to
+@code{frame-title-format}.  It also overrides the title determined by
+@code{icon-title-format} for iconified frames.  @xref{Frame Titles}.
 
 @vindex name@r{, a frame parameter}
 @item name
-The name of the frame.  The frame name serves as a default for the frame
-title, if the @code{title} parameter is unspecified or @code{nil}.  If
-you don't specify a name, Emacs sets the frame name automatically
-(@pxref{Frame Titles}).
+The name of the frame.  If you don't specify a name via this
+parameter, Emacs sets the frame name automatically, as specified by
+@code{frame-title-format} and @code{icon-title-format}, and that is
+the frame's title that will appear on display when Emacs uses a window
+system (unless the @code{title} parameter overrides it).
 
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
@@ -1900,9 +1913,11 @@ whenever the tool bar wraps (@pxref{Frame Layout}).
 
 @vindex tool-bar-position@r{, a frame parameter}
 @item tool-bar-position
-The position of the tool bar when Emacs was built with GTK+.  Its value
-can be one of @code{top}, @code{bottom} @code{left}, @code{right}.  The
-default is @code{top}.
+The position of the tool bar.  Its value can be one of @code{top},
+@code{bottom} @code{left}, @code{right}.  The default is @code{top}.
+
+It can be set to @code{bottom} on Emacs built with any toolkit other
+than Nextstep, and @code{left} or @code{right} on builds using GTK+.
 
 @vindex tab-bar-lines@r{, a frame parameter}
 @item tab-bar-lines
@@ -2630,17 +2645,27 @@ frame name automatically based on a template stored in the variable
 frame is redisplayed.
 
 @defvar frame-title-format
-This variable specifies how to compute a name for a frame when you have
-not explicitly specified one.  The variable's value is actually a mode
+This variable specifies how to compute a name for a frame when you
+have not explicitly specified one (via the frame's parameters;
+@pxref{Basic Parameters}).  The variable's value is actually a mode
 line construct, just like @code{mode-line-format}, except that the
-@samp{%c}, @samp{%C}, and @samp{%l} constructs are ignored.  @xref{Mode Line
-Data}.
+@samp{%c}, @samp{%C}, and @samp{%l} constructs are ignored.
+@xref{Mode Line Data}.
 @end defvar
 
 @defvar icon-title-format
-This variable specifies how to compute the name for an iconified frame,
-when you have not explicitly specified the frame title.  This title
-appears in the icon itself.
+This variable specifies how to compute the name for an iconified frame
+when you have not explicitly specified the frame's name via the
+frame's parameters.  The resulting title appears in the frame's icon
+itself.  If the value is a string, is should be a mode line construct
+like that of @code{frame-title-format}.  The value can also be
+@code{t}, which means to use @code{frame-title-format} instead; this
+avoids problems with some window managers and desktop environments,
+where a change in a frame's title (when a frame is iconified) is
+interpreted as a request to raise the frame and/or give it input
+focus.  It is also useful if you want the frame's title to be the same
+no matter if the frame is iconified or not.  The default value is a
+string identical to the default value of @code{frame-title-format}.
 @end defvar
 
 @defvar multiple-frames
@@ -3562,7 +3587,7 @@ the mouse position list will be @code{nil} if the value is
 @code{drag-source}.  This is useful to determine if a frame is not
 directly visible underneath the mouse pointer.
 
-The @code{track-mouse} form causes Emacs to generate mouse motion
+The @code{track-mouse} macro causes Emacs to generate mouse motion
 events by binding the variable @code{track-mouse} to a
 non-@code{nil} value.  If that variable has the special value
 @code{dragging}, it additionally instructs the display engine to
@@ -4097,7 +4122,7 @@ has the same meaning as the @var{action} argument to
   Emacs implements receiving text and URLs individually for each
 window system, and does not by default support receiving other kinds
 of data as drops.  To support receiving other kinds of data, use the
-X-specific interface described below:
+X-specific interface described below.
 
 @vindex x-dnd-test-function
 @vindex x-dnd-known-types
@@ -4126,29 +4151,71 @@ depending on the specific drag-and-drop protocol being used.  For
 example, the data type used for plain text may be either
 @code{"STRING"} or @code{"text/plain"}.
 
+@cindex XDS
+@cindex direct save protocol
 @vindex x-dnd-direct-save-function
-@c FIXME: This description is overly-complicated and confusing.  In
-@c particular, the two calls to the function basically sound
-@c identical, so it is unclear how should the function distinguish
-@c between the first and the second one.  The description of who asks
-@c whom to do what is also very hard to understand.  Needs rewording,
-@c and needs shorter sentences.  Perhaps examples could help.
-  However, @code{x-dnd-types-alist} does not handle a special kind of
-drop sent by a program that wants Emacs to tell it where to save a
-file in a specific location determined by the user.  These drops are
-instead handled by a function that is the value of the variable
-@code{x-dnd-direct-save-function}.  This function should accept two arguments.
-If the first argument is non-@code{nil}, then the second argument is a
-file name to save (with leading directories) that the other
-program recommends, and the
-function should return the full file name under which it should be
-saved.  After the function completes, Emacs will ask the other program
-to save the file under the name that was returned, and if the file was
-successfully saved, call the function again with the first argument
-set to a non-@code{nil} value and the second argument set to the file
-name that was returned.  The function should then perform whatever
-action is appropriate (i.e., opening the file or refreshing a
-directory listing.)
+  When Emacs runs on X window system, it supports the X Direct Save
+(@acronym{XDS}) protocol, which allows users to save a file by
+dragging and dropping it onto an Emacs window, such as a Dired window.
+To comply with the unique requirements of @acronym{XDS}, these
+drag-and-drop requests are processed specially: instead of being
+handled according to @code{x-dnd-types-alist}, they are handled by the
+@dfn{direct-save function} that is the value of the variable
+@code{x-dnd-direct-save-function}.  The value should be a function of
+two arguments, @var{need-name} and @var{filename}.  The @acronym{XDS}
+protocol uses a two-step procedure for dragging files:
+
+@enumerate 1
+@item
+The application from which the file is dragged asks Emacs to provide
+the full file name under which to save the file.  For this purpose,
+the direct-save function is called with its first argument
+@var{need-name} non-@code{nil}, and the second argument @var{filename}
+set to the basename of the file to be saved.  It should return the
+fully-expanded absolute file name under which to save the file.  For
+example, if a file is dragged to a Dired window, the natural directory
+for the file is the directory of the file shown at location of the
+drop.  If saving the file is not possible for some reason, the
+function should return @code{nil}, which will cancel the drag-and-drop
+operation.
+
+@item
+The application from which the file is dragged saves the file under
+the name returned by the first call to the direct-save function.  If
+it succeeds in saving the file, the direct-save function is called
+again, this time with the first argument @var{need-name} set to
+@code{nil} and the second argument @var{filename} set to the full
+absolute name of the saved file.  The function is then expected to do
+whatever is needed given the fact that file was saved.  For example,
+Dired should update the directory on display by showing the new file
+there.
+@end enumerate
+
+The default value of @code{x-dnd-direct-save-function} is
+@code{x-dnd-save-direct}.
+
+@defun x-dnd-save-direct need-name filename
+When called with the @var{need-name} argument non-@code{nil}, this
+function prompts the user for the absolute file name under which it
+should be saved.  If the specified file already exists, it
+additionally asks the user whether to overwrite it, and returns the
+absolute file name only if the user confirms the overwriting.
+
+When called with the @var{need-name} argument @code{nil}, it reverts
+the Dired listing if the current buffer is in Dired mode or one of its
+descendants, and otherwise visits the file by calling @code{find-file}
+(@pxref{Visiting Functions}).
+@end defun
+
+@defun x-dnd-save-direct-immediately need-name filename
+This function works like @code{x-dnd-save-direct}, but when called
+with its @var{need-name} argument non-@code{nil}, it doesn't prompt
+the user for the full name of the file to be saved; instead, it
+returns its argument @var{filename} expanded against the current
+buffer's default directory (@pxref{File Name Expansion}).  (It still
+asks for confirmation if a file by that name already exists in the
+default directory.)
+@end defun
 
 @cindex initiating drag-and-drop
   On capable window systems, Emacs also supports dragging contents
@@ -4459,6 +4526,20 @@ value is @code{nil}.
 @findex x-color-values
 This function used to be called @code{x-color-values},
 and that name is still supported as an alias.
+@end defun
+
+@defun color-name-to-rgb color &optional frame
+This function does the same as @code{color-values}, but it returns
+color values as floating-point numbers between 0.0 and 1.0 inclusive.
+@end defun
+
+@defun color-dark-p rgb
+This function returns non-@code{nil} if the color described by its RGB
+triplet @var{rgb} is more readable against white background than
+against dark background.  The argument @var{rgb} should be a list of
+the form @w{@code{(@var{r} @var{g} @var{b})}}, with each component a
+floating-point number in the range 0.0 to 1.0 inclusive.  You can use
+@code{color-name-to-rgb} to convert a color's name to such a list.
 @end defun
 
 @node Text Terminal Colors

@@ -1,5 +1,5 @@
 /* Substitute for <sys/random.h>.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -44,6 +44,11 @@
 
 #ifndef _@GUARD_PREFIX@_SYS_RANDOM_H
 #define _@GUARD_PREFIX@_SYS_RANDOM_H
+
+/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 #include <sys/types.h>
 

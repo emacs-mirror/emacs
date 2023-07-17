@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1985--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -470,11 +470,7 @@ documents.  It provides features such as slicing, zooming, and
 searching inside documents.  It works by converting the document to a
 set of images using the @command{gs} (GhostScript) or
 @command{pdfdraw}/@command{mutool draw} (MuPDF) commands and other
-external tools @footnote{PostScript files require GhostScript, DVI
-files require @code{dvipdf} or @code{dvipdfm}, OpenDocument and
-Microsoft Office documents require the @code{unoconv} tool, and EPUB,
-CBZ, FB2, XPS and OXPS files require @code{mutool} to be available.},
-and displaying those images.
+external tools, and then displays those converted images.
 
 @findex doc-view-toggle-display
 @findex doc-view-minor-mode
@@ -751,6 +747,8 @@ Command Output*"} (@code{shell-command-buffer-name}) buffer (if the
 output is long).  The variables @code{resize-mini-windows} and
 @code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
 Emacs should consider the output to be too long for the echo area.
+Note that customizing @code{shell-command-dont-erase-buffer},
+described below, can affect what is displayed in the echo area.
 
   For instance, one way to decompress a file named @file{foo.gz} is to
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
@@ -866,6 +864,10 @@ end of the output buffer.
 Restores the position of point as it was before inserting the
 shell-command output.
 @end table
+
+Note that if this option is non-@code{nil}, the output shown in the
+echo area could be from more than just the last command, since the
+echo area just displays a portion of the output buffer.
 
 In case the output buffer is not the current buffer, shell command
 output is appended at the end of this buffer.
@@ -2702,40 +2704,16 @@ when point is on the first byte of a multibyte sequence in the file.
 @cindex restore session
 @cindex remember editing session
 @cindex reload files
-@cindex desktop
 
-@vindex desktop-restore-frames
-   Use the desktop library to save the state of Emacs from one session
-to another.  Once you save the Emacs @dfn{desktop}---the buffers,
-their file names, major modes, buffer positions, and so on---then
-subsequent Emacs sessions reload the saved desktop.  By default,
-the desktop also tries to save the frame and window configuration.
-To disable this, set @code{desktop-restore-frames} to @code{nil}.
-(See that variable's documentation for some related options
-that you can customize to fine-tune this behavior.)
+@cindex desktop configuration
+  You can use the desktop library to save the state of Emacs from one
+session to another.  The saved Emacs @dfn{desktop configuration}
+includes the buffers, their file names, major modes, buffer positions,
+window and frame configuration, and some important global variables.
 
-@vindex desktop-files-not-to-save
-Information about buffers visiting remote files is not saved by
-default.  Customize the variable @code{desktop-files-not-to-save} to
-change this.
-
-@vindex frameset-filter-alist
-   When the desktop restores the frame and window configuration, it
-uses the recorded values of frame parameters, disregarding any
-settings for those parameters you have in your init file (@pxref{Init
-File}).  This means that frame parameters such as fonts and faces for
-the restored frames will come from the desktop file, where they were
-saved when you exited your previous Emacs session; any settings for
-those parameters in your init file will be ignored.  To disable this,
-customize the value of @code{frameset-filter-alist} to filter out the
-frame parameters you don't want to be restored.
-
-@findex desktop-save
 @vindex desktop-save-mode
-  You can save the desktop manually with the command @kbd{M-x
-desktop-save}.  You can also enable automatic saving of the desktop
-when you exit Emacs, and automatic restoration of the last saved
-desktop when Emacs starts: use the Customization buffer (@pxref{Easy
+@findex desktop-save-mode
+  To enable this feature, use the Customization buffer (@pxref{Easy
 Customization}) to set @code{desktop-save-mode} to @code{t} for future
 sessions, or add this line in your init file (@pxref{Init File}):
 
@@ -2743,25 +2721,104 @@ sessions, or add this line in your init file (@pxref{Init File}):
 (desktop-save-mode 1)
 @end example
 
+@vindex desktop-path
+@vindex desktop-auto-save-timeout
+  If you turn on @code{desktop-save-mode} in your init file, then when
+Emacs starts, it looks for a saved desktop in @code{desktop-path}
+(which defaults to @code{user-emacs-directory} and then your home
+directory) and uses the first desktop it finds.  While Emacs runs with
+@code{desktop-save-mode} turned on, it by default auto-saves the
+desktop whenever any of the desktop configuration changes.  The
+variable @code{desktop-auto-save-timeout} determines how frequently
+Emacs checks for modifications to your desktop.  The desktop is also
+saved when you exit Emacs.
+
+@cindex disable restoring of desktop configuration
+  Specify the option @samp{--no-desktop} on the Emacs command line
+when you don't want it to reload any saved desktop configurations.
+This turns off @code{desktop-save-mode} for the current session.
+Starting Emacs with the @samp{--no-init-file} option also disables
+desktop reloading, since it bypasses the init file, where
+@code{desktop-save-mode} is usually turned on.
+
 @findex desktop-change-dir
 @findex desktop-revert
-@vindex desktop-path
-  If you turn on @code{desktop-save-mode} in your init file, then when
-Emacs starts, it looks for a saved desktop in the current directory.
-(More precisely, it looks in the directories specified by
-@code{desktop-path}, and uses the first desktop it finds.)
-Thus, you can have separate saved desktops in different directories,
-and the starting directory determines which one Emacs reloads.  You
-can save the current desktop and reload one saved in another directory
-by typing @kbd{M-x desktop-change-dir}.  Typing @kbd{M-x
-desktop-revert} reverts to the desktop previously reloaded.
+  You can have separate saved desktop configurations in different
+directories; starting Emacs from a directory where you have a saved
+desktop configuration will restore that configuration, provided that
+you customize @code{desktop-path} to prepend @file{.} (the current
+directory) to the other directories there.  You can save the current
+desktop and reload the one saved in another directory by typing
+@kbd{M-x desktop-change-dir}.  Typing @kbd{M-x desktop-revert} reverts
+to the previously reloaded desktop.
 
-  Specify the option @samp{--no-desktop} on the command line when you
-don't want it to reload any saved desktop.  This turns off
-@code{desktop-save-mode} for the current session.  Starting Emacs with
-the @samp{--no-init-file} option also disables desktop reloading,
-since it bypasses the init file, where @code{desktop-save-mode} is
-usually turned on.
+@vindex desktop-load-locked-desktop
+  The file in which Emacs saves the desktop is locked while the
+session runs, to avoid inadvertently overwriting it from another Emacs
+session.  That lock is normally removed when Emacs exits, but if Emacs
+or your system crashes, the lock stays, and when you restart Emacs, it
+will by default ask you whether to use the locked desktop file.  You
+can avoid the question by customizing the variable
+@code{desktop-load-locked-desktop} to either @code{nil}, which means
+never load the desktop in this case, or @code{t}, which means load the
+desktop without asking.  You can also customize the variable to the
+special value @code{check-pid}, which means to load the file if the
+Emacs process that has locked the desktop is not running on the local
+machine.  This should not be used in circumstances where the locking
+Emacs might still be running on another machine, which could be the
+case in multi-user environments where your home directory is mounted
+remotely using NFS or similar.
+
+@cindex desktop restore in daemon mode
+  When Emacs starts in daemon mode, it cannot ask you any questions,
+so if it finds the desktop file locked, it will not load it, unless
+@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
+the desktop in daemon mode is somewhat problematic for other reasons:
+e.g., the daemon cannot use GUI features, so parameters such as frame
+position, size, and decorations cannot be restored.  For that reason,
+you may wish to delay restoring the desktop in daemon mode until the
+first client connects, by calling @code{desktop-read} (see below) in a
+hook function that you add to @code{server-after-make-frame-hook}
+(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
+
+@findex desktop-save
+@findex desktop-read
+  Whenever you want, you can use the command @kbd{M-x desktop-save} to
+force immediate saving of the current desktop.  This is useful either
+if you do not want to use the automatic desktop restoration, and thus
+don't turn on @code{desktop-save-mode}, or when you have made
+significant changes to the desktop, and want to make sure the
+configuration doesn't get lost if Emacs or your system crashes.  You
+can use @kbd{M-x desktop-read} to restore a previously-saved desktop
+if the current Emacs session didn't load any desktop yet.
+
+@vindex desktop-restore-frames
+  By default, the desktop tries to save and restore the frame and
+window configuration.  To disable this, set
+@code{desktop-restore-frames} to @code{nil}.  (See that variable's
+documentation for some related options that you can customize to
+fine-tune this behavior.)
+
+@vindex frameset-filter-alist
+  When the desktop restores the frame and window configuration, it
+uses the recorded values of frame parameters, disregarding any
+settings for those parameters you have in your init file (@pxref{Init
+File}).  This means that frame parameters such as fonts and faces for
+the restored frames will come from the desktop file, where they were
+saved when you exited your previous Emacs session; any settings for
+those parameters in your init file will be ignored.  To disable this,
+customize the value of @code{frameset-filter-alist} to filter out the
+frame parameters you don't want to be restored; they will then be set
+according to your customizations in the init file.
+
+@vindex desktop-files-not-to-save
+@vindex remote-file-name-access-timeout
+  Information about buffers visiting remote files is not saved by
+default.  Customize the variable @code{desktop-files-not-to-save} to
+change this.  In this case, you might also consider customizing
+@code{remote-file-name-access-timeout}, which is the number of
+seconds after which buffer restoration of a remote file is
+stopped.  This prevents Emacs being blocked.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored in one go.
@@ -2773,49 +2830,17 @@ remaining buffers are restored lazily, when Emacs is idle.
 @findex desktop-clear
 @vindex desktop-globals-to-clear
 @vindex desktop-clear-preserve-buffers-regexp
-  Type @kbd{M-x desktop-clear} to empty the Emacs desktop.  This kills
-all buffers except for internal ones, and clears the global variables
-listed in @code{desktop-globals-to-clear}.  If you want this to
-preserve certain buffers, customize the variable
+  Type @kbd{M-x desktop-clear} to empty the Emacs desktop; this can be
+useful, for example, if you want to switch to another desktop by
+invoking @kbd{M-x desktop-read} next.  The @code{desktop-clear}
+command kills all buffers except for internal ones, and clears the
+global variables listed in @code{desktop-globals-to-clear}.  If you
+want it to preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
-
-@vindex desktop-auto-save-timeout
-  While Emacs runs with @code{desktop-save-mode} turned on, it by
-default auto-saves the desktop whenever any of it changes.  The
-variable @code{desktop-auto-save-timeout} determines how frequently
-Emacs checks for modifications to your desktop.
-
-@vindex desktop-load-locked-desktop
-  The file in which Emacs saves the desktop is locked while the
-session runs, to avoid inadvertently overwriting it from another Emacs
-session.  That lock is normally removed when Emacs exits, but if Emacs
-or your system crashes, the lock stays, and when you restart Emacs, it
-will by default ask you whether to use the locked desktop file.  You
-can avoid the question by customizing the variable
-@code{desktop-load-locked-desktop} to either @code{nil}, which means
-never load the desktop in this case, or @code{t}, which means load the
-desktop without asking.  Finally, the @code{check-pid} value means to
-load the file if the Emacs process that has locked the desktop is not
-running on the local machine.  This should not be used in
-circumstances where the locking Emacs might still be running on
-another machine.  This could be the case in multi-user environments
-where your home directory is mounted remotely using NFS or similar.
-
-@cindex desktop restore in daemon mode
-  When Emacs starts in daemon mode, it cannot ask you any questions,
-so if it finds the desktop file locked, it will not load it, unless
-@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
-the desktop in daemon mode is somewhat problematic for other reasons:
-e.g., the daemon cannot use GUI features, so parameters such as frame
-position, size, and decorations cannot be restored.  For that reason,
-you may wish to delay restoring the desktop in daemon mode until the
-first client connects, by calling @code{desktop-read} in a hook
-function that you add to @code{server-after-make-frame-hook}
-(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit
 @section Recursive Editing Levels

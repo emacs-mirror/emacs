@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -147,7 +147,7 @@ letters, digits, plus or minus signs or colons."
 ;;;###autoload(put 'parse-time-rules 'risky-local-variable t)
 
 ;;;###autoload
-(defun parse-time-string (string)
+(defun parse-time-string (string &optional form)
   "Parse the time in STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
 STRING should be an ISO 8601 time string, e.g., \"2020-01-15T16:12:21-08:00\",
 or something resembling an RFC 822 (or later) date-time, e.g.,
@@ -156,9 +156,11 @@ somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
 any unknown values other than DST are returned as nil, and an
-unknown DST value is returned as -1."
+unknown DST value is returned as -1.
+
+See `decode-time' for the meaning of FORM."
   (condition-case ()
-      (iso8601-parse string)
+      (iso8601-parse string form)
     (wrong-type-argument
      (let ((time (list nil nil nil nil nil nil nil -1 nil))
 	   (temp (parse-time-tokenize (downcase string))))
@@ -199,12 +201,14 @@ unknown DST value is returned as -1."
 		     (setf (nth (pop slots) time) new-val))))))))
        time))))
 
-(defun parse-iso8601-time-string (date-string)
+(defun parse-iso8601-time-string (date-string &optional form)
   "Parse an ISO 8601 time string, such as \"2020-01-15T16:12:21-08:00\".
 Fall back on parsing something resembling an RFC 822 (or later) date-time.
 This function is like `parse-time-string' except that it returns
-a Lisp timestamp when successful."
-  (when-let ((time (parse-time-string date-string)))
+a Lisp timestamp when successful.
+
+See `decode-time' for the meaning of FORM."
+  (when-let ((time (parse-time-string date-string form)))
     (encode-time time)))
 
 (provide 'parse-time)

@@ -1,6 +1,6 @@
-# serial 73
+# serial 74
 
-# Copyright (C) 1996-2001, 2003-2022 Free Software Foundation, Inc.
+# Copyright (C) 1996-2001, 2003-2023 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -15,7 +15,7 @@ AC_DEFUN([gl_REGEX],
 [
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_ARG_WITH([included-regex],
-    [AS_HELP_STRING([--without-included-regex],
+    [AS_HELP_STRING([[--without-included-regex]],
                     [don't compile regex; this is the default on systems
                      with recent-enough versions of the GNU C Library
                      (use with caution on other systems).])])

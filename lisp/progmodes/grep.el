@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2022 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -457,6 +457,33 @@ buffer `default-directory'."
   :type '(repeat (choice (const :tag "Default" nil)
 			 (string :tag "Directory"))))
 
+(defcustom grep-use-headings nil
+  "If non-nil, subdivide grep output into sections, one per file."
+  :type 'boolean
+  :version "30.1")
+
+(defface grep-heading `((t :inherit ,grep-hit-face))
+  "Face of headings when `grep-use-headings' is non-nil."
+  :version "30.1")
+
+(defvar grep-heading-regexp
+  (rx bol
+      (or
+       (group-n 2
+         (group-n 1 (+ (not (any 0 ?\n))))
+         0)
+       (group-n 2
+        (group-n 1 (+? nonl))
+        (any ?: ?- ?=)))
+      (+ digit)
+      (any ?: ?- ?=))
+  "Regexp used to create headings from grep output lines.
+It should be anchored at beginning of line.  The first capture
+group, if present, should match the heading associated to the
+line.  The buffer range of the second capture, if present, is
+made invisible (presumably because displaying it would be
+redundant).")
+
 (defvar grep-find-abbreviate-properties
   (let ((ellipsis (if (char-displayable-p ?…) "[…]" "[...]"))
         (map (make-sparse-keymap)))
@@ -611,6 +638,40 @@ This function is called from `compilation-filter-hook'."
         (goto-char beg)
         (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
           (replace-match "" t t))))))
+
+(defvar grep--heading-format
+  (eval-when-compile
+    (let ((title (propertize "%s"
+                             'font-lock-face 'grep-heading
+                             'outline-level 1)))
+      (propertize (concat title "\n") 'compilation-annotation t)))
+  "Format string of grep headings.
+This is passed to `format' with one argument, the text of the
+first capture group of `grep-heading-regexp'.")
+
+(defvar-local grep--heading-state nil
+  "Variable to keep track of the `grep--heading-filter' state.")
+
+(defun grep--heading-filter ()
+  "Filter function to add headings to output of a grep process."
+  (unless grep--heading-state
+    (setq grep--heading-state (cons (point-min-marker) nil)))
+  (save-excursion
+    (let ((limit (car grep--heading-state)))
+      ;; Move point to the old limit and update limit marker.
+      (move-marker limit (prog1 (pos-bol) (goto-char limit)))
+      (while (re-search-forward grep-heading-regexp limit t)
+        (unless (get-text-property (point) 'compilation-annotation)
+          (let ((heading (match-string-no-properties 1))
+                (start (match-beginning 2))
+                (end (match-end 2)))
+            (when start
+              (put-text-property start end 'invisible t))
+            (when (and heading (not (equal heading (cdr grep--heading-state))))
+              (save-excursion
+                (goto-char (pos-bol))
+                (insert-before-markers (format grep--heading-format heading)))
+              (setf (cdr grep--heading-state) heading))))))))
 
 (defun grep-probe (command args &optional func result)
   (let (process-file-side-effects)
@@ -906,6 +967,11 @@ The value depends on `grep-command', `grep-template',
   (add-function :filter-return (local 'kill-transform-function)
                 (lambda (string)
                   (string-replace "\0" ":" string)))
+  (when grep-use-headings
+    (add-hook 'compilation-filter-hook #'grep--heading-filter 80 t)
+    (setq-local outline-search-function #'outline-search-level
+                outline-level (lambda () (get-text-property
+                                          (point) 'outline-level))))
   (add-hook 'compilation-filter-hook #'grep-filter nil t))
 
 (defun grep--save-buffers ()
@@ -1236,9 +1302,10 @@ to specify a command to run.
 If CONFIRM is non-nil, the user will be given an opportunity to edit the
 command before it's run.
 
-Interactively, the user can use the \\`M-c' command while entering
-the regexp to indicate whether the grep should be case sensitive
-or not."
+Interactively, the user can use \
+\\<read-regexp-map>\\[read-regexp-toggle-case-fold] \
+while entering the regexp
+to indicate whether the grep should be case sensitive or not."
   (interactive
    (progn
      (grep-compute-defaults)

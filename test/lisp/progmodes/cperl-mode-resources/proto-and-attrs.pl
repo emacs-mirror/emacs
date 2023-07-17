@@ -12,12 +12,10 @@ no warnings 'experimental::signatures';
 # are somewhat frowned upon most of the times, but they are required
 # for some Perl magic
 
-# FIXME: 2022-02-02 CPerl mode does not handle subroutine signatures.
-# In simple cases it mistakes them as prototypes, when attributes are
-# present, it doesn't handle them at all.  Variables in signatures
-# SHOULD be fontified like variable declarations.
-
 # Part 1: Named subroutines
+# A plain named subroutine without any optional stuff
+sub sub_0 { ...; }
+
 # A prototype and a trivial subroutine attribute
 {
     no feature 'signatures'; # that's a prototype, not a signature
@@ -30,10 +28,24 @@ sub sub_2 :prototype($) { ...; }
 # A signature (these will soon-ish leave the experimental state)
 sub sub_3 ($foo,$bar) { ...; }
 
-# Attribute plus signature FIXME: Not yet supported
-sub bad_sub_4 :prototype($$$) ($foo,$bar,$baz) { ...; }
+# Attribute plus signature
+sub sub_4 :prototype($$$) ($foo,$bar,$baz) { ...; }
+
+# A signature with a trailing comma (weird, but legal)
+sub sub_5 ($foo,$bar,) { ...; }
+
+# Perl 5.38-style initializer
+sub sub_6
+    ($foo,
+     $bar //= "baz")
+{
+}
+
 
 # Part 2: Same constructs for anonymous subs
+# A plain named subroutine without any optional stuff
+my $subref_0 = sub { ...; };
+
 # A prototype and a trivial subroutine attribute
 {
     no feature 'signatures'; # that's a prototype, not a signature

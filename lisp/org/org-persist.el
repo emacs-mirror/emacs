@@ -1,6 +1,6 @@
 ;;; org-persist.el --- Persist cached data across Emacs sessions         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Ihor Radchenko <yantar92 at gmail dot com>
 ;; Keywords: cache, storage
@@ -160,8 +160,10 @@
 (declare-function org-next-visible-heading "org" (arg))
 (declare-function org-at-heading-p "org" (&optional invisible-not-ok))
 
+;; Silence byte-compiler (used in `org-persist--write-elisp-file').
+(defvar pp-use-max-width)
 
-(defconst org-persist--storage-version "2.7"
+(defconst org-persist--storage-version "3.1"
   "Persistent storage layout version.")
 
 (defgroup org-persist nil
@@ -335,7 +337,8 @@ FORMAT and ARGS are passed to `message'."
       (make-directory (file-name-directory file) t))
     (with-temp-file file
       (if pp
-          (pp data (current-buffer))
+          (let ((pp-use-max-width nil)) ; Emacs bug#58687
+            (pp data (current-buffer)))
         (prin1 data (current-buffer))))
     (org-persist--display-time
      (- (float-time) start-time)
@@ -431,25 +434,27 @@ Return PLIST."
           (when key (remhash (cons cont (list :key key)) org-persist--index-hash))))
       (setq org-persist--index (delq existing org-persist--index)))))
 
-(defun org-persist--get-collection (container &optional associated &rest misc)
+(defun org-persist--get-collection (container &optional associated misc)
   "Return or create collection used to store CONTAINER for ASSOCIATED.
 When ASSOCIATED is nil, it is a global CONTAINER.
 ASSOCIATED can also be a (:buffer buffer) or buffer, (:file file-path)
 or file-path, (:inode inode), (:hash hash), or or (:key key).
-MISC, if non-nil will be appended to the collection."
+MISC, if non-nil will be appended to the collection.  It must be a plist."
   (unless (and (listp container) (listp (car container)))
     (setq container (list container)))
   (setq associated (org-persist--normalize-associated associated))
-  (unless (equal misc '(nil))
-    (setq associated (append associated misc)))
+  (when (and misc (or (not (listp misc)) (= 1 (% (length misc) 2))))
+    (error "org-persist: Not a plist: %S" misc))
   (or (org-persist--find-index
        `( :container ,(org-persist--normalize-container container)
           :associated ,associated))
       (org-persist--add-to-index
-       (list :container (org-persist--normalize-container container)
-             :persist-file
-             (replace-regexp-in-string "^.." "\\&/" (org-id-uuid))
-             :associated associated))))
+       (nconc
+        (list :container (org-persist--normalize-container container)
+              :persist-file
+              (replace-regexp-in-string "^.." "\\&/" (org-id-uuid))
+              :associated associated)
+        misc))))
 
 ;;;; Reading container data.
 
@@ -535,13 +540,13 @@ COLLECTION is the plist holding data collection."
 
 (defun org-persist-read:file (_ path __)
   "Read file container from PATH."
-  (when (and path (file-exists-p (concat org-persist-directory path)))
-    (concat org-persist-directory path)))
+  (when (and path (file-exists-p (org-file-name-concat org-persist-directory path)))
+    (org-file-name-concat org-persist-directory path)))
 
 (defun org-persist-read:url (_ path __)
   "Read file container from PATH."
-  (when (and path (file-exists-p (concat org-persist-directory path)))
-    (concat org-persist-directory path)))
+  (when (and path (file-exists-p (org-file-name-concat org-persist-directory path)))
+    (org-file-name-concat org-persist-directory path)))
 
 (defun org-persist-read:index (cont index-file _)
   "Read index container CONT from INDEX-FILE."
@@ -650,9 +655,10 @@ COLLECTION is the plist holding data collection."
              (file-copy (org-file-name-concat
                          org-persist-directory
                          (format "%s-%s.%s" persist-file (md5 path) ext))))
-        (unless (file-exists-p (file-name-directory file-copy))
-          (make-directory (file-name-directory file-copy) t))
-        (copy-file path file-copy 'overwrite)
+        (unless (file-exists-p file-copy)
+          (unless (file-exists-p (file-name-directory file-copy))
+            (make-directory (file-name-directory file-copy) t))
+          (copy-file path file-copy 'overwrite))
         (format "%s-%s.%s" persist-file (md5 path) ext)))))
 
 (defun org-persist-write:url (c collection)
@@ -719,7 +725,8 @@ last access, or a function accepting a single argument - collection.
 EXPIRY key has no effect when INHERIT is non-nil.
 Optional key WRITE-IMMEDIATELY controls whether to save the container
 data immediately.
-MISC will be appended to CONTAINER.
+MISC will be appended to the collection.  It must be alternating :KEY
+VALUE pairs.
 When WRITE-IMMEDIATELY is non-nil, the return value will be the same
 with `org-persist-write'."
   (unless org-persist--index (org-persist--load-index))
@@ -749,12 +756,12 @@ with `org-persist-write'."
 When ASSOCIATED is `all', unregister CONTAINER everywhere."
   (unless org-persist--index (org-persist--load-index))
   (setq container (org-persist--normalize-container container))
-  (setq associated (org-persist--normalize-associated associated))
   (if (eq associated 'all)
       (mapc (lambda (collection)
               (when (member container (plist-get collection :container))
                 (org-persist-unregister container (plist-get collection :associated))))
             org-persist--index)
+    (setq associated (org-persist--normalize-associated associated))
     (let ((collection (org-persist--find-index `(:container ,container :associated ,associated))))
       (when collection
         (if (= (length (plist-get collection :container)) 1)

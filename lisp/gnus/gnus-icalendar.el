@@ -1,6 +1,6 @@
 ;;; gnus-icalendar.el --- reply to iCalendar meeting requests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Jan Tatarik <Jan.Tatarik@gmail.com>
 ;; Keywords: mail, icalendar, org
@@ -165,7 +165,7 @@
                        (icalendar--get-event-property-attributes
                         event field) zone-map))
          (dtdate-dec (icalendar--decode-isodatetime dtdate nil dtdate-zone)))
-    (encode-time dtdate-dec)))
+    (when dtdate-dec (encode-time dtdate-dec))))
 
 (defun gnus-icalendar-event--find-attendee (ical name-or-email)
   (let* ((event (car (icalendar--all-events ical)))
@@ -642,16 +642,16 @@ is searched."
                   (delete-region (point) entry-end))
 
                 ;; put new event description in the entry body
-                (when description
-                  (save-restriction
-                    (narrow-to-region (point) (point))
-                    (insert "\n"
-                            (gnus-icalendar-event:org-timestamp event)
-                            "\n\n"
-                            (replace-regexp-in-string "[\n]+$" "\n" description)
-                            "\n")
-                    (indent-region (point-min) (point-max) (1+ entry-outline-level))
-                    (fill-region (point-min) (point-max))))
+                (save-restriction
+                  (narrow-to-region (point) (point))
+                  (insert "\n"
+                          (gnus-icalendar-event:org-timestamp event)
+                          "\n\n"
+                          (replace-regexp-in-string "[\n]+$" "\n"
+                                                    (or description "No description"))
+                          "\n")
+                  (indent-region (point-min) (point-max) (1+ entry-outline-level))
+                  (fill-region (point-min) (point-max)))
 
                 ;; update entry properties
                 (cl-labels

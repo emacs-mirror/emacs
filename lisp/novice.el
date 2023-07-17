@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1994, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1994, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -79,16 +79,22 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 Do you want to use this command anyway?
 
 You can now type:
- \\`y'    to try it and enable it (no questions if you use it again).
- \\`n'    to cancel--don't try the command, and it remains disabled.
+ \\`n'    (also C-g) to cancel--don't try the command; it remains disabled.
+ \\`y'    to enable the command (no questions if you use it again).
  \\`SPC'  to try the command just this once, but leave it disabled.
- \\`!'    to try it, and enable all disabled commands for this session only.")))
+ \\`!'    to enable it and all the disabled commands for this session.")))
          (char
+          ;; Note: the prompt produced from the choices below must not
+          ;; overflow a single screen line, because otherwise it will
+          ;; cause the mini-window to resize, which will in turn hide
+          ;; the last line of the help text above: the code which fits
+          ;; the window to the size of the help text does not expect
+          ;; the mini-window to become taller.
           (car (read-multiple-choice "Use this command?"
-                                     '((?y "yes")
-                                       (?n "no")
-                                       (?! "yes; enable for session")
-                                       (?\s "(space bar) yes; once"))
+                                     '((?n "no")
+                                       (?y "yes")
+                                       (?\s "(space bar) only once")
+                                       (?! "use and enable all"))
                                      help-string
                                      "*Disabled Command*"))))
     (pcase char

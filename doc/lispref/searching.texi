@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -18,11 +18,12 @@ portions of it.
 * Searching and Case::    Case-independent or case-significant searching.
 * Regular Expressions::   Describing classes of strings.
 * Regexp Search::         Searching for a match for a regexp.
-* POSIX Regexps::         Searching POSIX-style for the longest match.
+* Longest Match::         Searching for the longest match.
 * Match Data::            Finding out which part of the text matched,
                             after a string or regexp search.
 * Search and Replace::    Commands that loop, searching and replacing.
 * Standard Regexps::      Useful regexps for finding sentences, pages,...
+* POSIX Regexps::         Emacs regexps vs POSIX regexps.
 @end menu
 
   The @samp{skip-chars@dots{}} functions also perform a kind of searching.
@@ -277,10 +278,10 @@ character is a simple regular expression that matches that character
 and nothing else.  The special characters are @samp{.}, @samp{*},
 @samp{+}, @samp{?}, @samp{[}, @samp{^}, @samp{$}, and @samp{\}; no new
 special characters will be defined in the future.  The character
-@samp{]} is special if it ends a character alternative (see later).
-The character @samp{-} is special inside a character alternative.  A
+@samp{]} is special if it ends a bracket expression (see later).
+The character @samp{-} is special inside a bracket expression.  A
 @samp{[:} and balancing @samp{:]} enclose a character class inside a
-character alternative.  Any other character appearing in a regular
+bracket expression.  Any other character appearing in a regular
 expression is ordinary, unless a @samp{\} precedes it.
 
   For example, @samp{f} is not a special character, so it is ordinary, and
@@ -373,19 +374,21 @@ expression @samp{c[ad]*?a}, applied to that same string, matches just
 permits the whole expression to match is @samp{d}.)
 
 @item @samp{[ @dots{} ]}
+@cindex bracket expression (in regexp)
 @cindex character alternative (in regexp)
 @cindex @samp{[} in regexp
 @cindex @samp{]} in regexp
-is a @dfn{character alternative}, which begins with @samp{[} and is
-terminated by @samp{]}.  In the simplest case, the characters between
-the two brackets are what this character alternative can match.
+is a @dfn{bracket expression} (a.k.a.@: @dfn{character alternative}),
+which begins with @samp{[} and is terminated by @samp{]}.  In the
+simplest case, the characters between the two brackets are what this
+bracket expression can match.
 
 Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
 @samp{[ad]*} matches any string composed of just @samp{a}s and @samp{d}s
 (including the empty string).  It follows that @samp{c[ad]*r}
 matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
-You can also include character ranges in a character alternative, by
+You can also include character ranges in a bracket expression, by
 writing the starting and ending characters with a @samp{-} between them.
 Thus, @samp{[a-z]} matches any lower-case @acronym{ASCII} letter.
 Ranges may be intermixed freely with individual characters, as in
@@ -394,7 +397,7 @@ or @samp{$}, @samp{%} or period.  However, the ending character of one
 range should not be the starting point of another one; for example,
 @samp{[a-m-z]} should be avoided.
 
-A character alternative can also specify named character classes
+A bracket expression can also specify named character classes
 (@pxref{Char Classes}).  For example, @samp{[[:ascii:]]} matches any
 @acronym{ASCII} character.  Using a character class is equivalent to
 mentioning each of the characters in that class; but the latter is not
@@ -403,9 +406,9 @@ different characters.  A character class should not appear as the
 lower or upper bound of a range.
 
 The usual regexp special characters are not special inside a
-character alternative.  A completely different set of characters is
+bracket expression.  A completely different set of characters is
 special: @samp{]}, @samp{-} and @samp{^}.
-To include @samp{]} in a character alternative, put it at the
+To include @samp{]} in a bracket expression, put it at the
 beginning.  To include @samp{^}, put it anywhere but at the beginning.
 To include @samp{-}, put it at the end.  Thus, @samp{[]^-]} matches
 all three of these special characters.  You cannot use @samp{\} to
@@ -443,7 +446,7 @@ characters and raw 8-bit bytes, but not non-ASCII characters.  This
 feature is intended for searching text in unibyte buffers and strings.
 @end enumerate
 
-Some kinds of character alternatives are not the best style even
+Some kinds of bracket expressions are not the best style even
 though they have a well-defined meaning in Emacs.  They include:
 
 @enumerate
@@ -457,7 +460,7 @@ Unicode character escapes can help here; for example, for most programmers
 @samp{[ก-ฺ฿-๛]} is less clear than @samp{[\u0E01-\u0E3A\u0E3F-\u0E5B]}.
 
 @item
-Although a character alternative can include duplicates, it is better
+Although a bracket expression can include duplicates, it is better
 style to avoid them.  For example, @samp{[XYa-yYb-zX]} is less clear
 than @samp{[XYa-z]}.
 
@@ -468,30 +471,30 @@ is simpler to list the characters.  For example,
 than @samp{[ij]}, and @samp{[i-k]} is less clear than @samp{[ijk]}.
 
 @item
-Although a @samp{-} can appear at the beginning of a character
-alternative or as the upper bound of a range, it is better style to
-put @samp{-} by itself at the end of a character alternative.  For
+Although a @samp{-} can appear at the beginning of a bracket
+expression or as the upper bound of a range, it is better style to
+put @samp{-} by itself at the end of a bracket expression.  For
 example, although @samp{[-a-z]} is valid, @samp{[a-z-]} is better
 style; and although @samp{[*--]} is valid, @samp{[*+,-]} is clearer.
 @end enumerate
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
-@samp{[^} begins a @dfn{complemented character alternative}.  This
-matches any character except the ones specified.  Thus,
-@samp{[^a-z0-9A-Z]} matches all characters @emph{except} ASCII letters and
-digits.
+@samp{[^} begins a @dfn{complemented bracket expression}, or
+@dfn{complemented character alternative}.  This matches any character
+except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches all
+characters @emph{except} ASCII letters and digits.
 
-@samp{^} is not special in a character alternative unless it is the first
+@samp{^} is not special in a bracket expression unless it is the first
 character.  The character following the @samp{^} is treated as if it
 were first (in other words, @samp{-} and @samp{]} are not special there).
 
-A complemented character alternative can match a newline, unless newline is
+A complemented bracket expression can match a newline, unless newline is
 mentioned as one of the characters not to match.  This is in contrast to
 the handling of regexps in programs such as @code{grep}.
 
-You can specify named character classes, just like in character
-alternatives.  For instance, @samp{[^[:ascii:]]} matches any
+You can specify named character classes, just like in bracket
+expressions.  For instance, @samp{[^[:ascii:]]} matches any
 non-@acronym{ASCII} character.  @xref{Char Classes}.
 
 @item @samp{^}
@@ -505,9 +508,10 @@ beginning of a line.
 When matching a string instead of a buffer, @samp{^} matches at the
 beginning of the string or after a newline character.
 
-For historical compatibility reasons, @samp{^} can be used only at the
-beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
-or @samp{\|}.
+For historical compatibility, @samp{^} is special only at the beginning
+of the regular expression, or after @samp{\(}, @samp{\(?:} or @samp{\|}.
+Although @samp{^} is an ordinary character in other contexts,
+it is good practice to use @samp{\^} even then.
 
 @item @samp{$}
 @cindex @samp{$} in regexp
@@ -519,8 +523,10 @@ matches a string of one @samp{x} or more at the end of a line.
 When matching a string instead of a buffer, @samp{$} matches at the end
 of the string or before a newline character.
 
-For historical compatibility reasons, @samp{$} can be used only at the
+For historical compatibility, @samp{$} is special only at the
 end of the regular expression, or before @samp{\)} or @samp{\|}.
+Although @samp{$} is an ordinary character in other contexts,
+it is good practice to use @samp{\$} even then.
 
 @item @samp{\}
 @cindex @samp{\} in regexp
@@ -540,14 +546,15 @@ example, the regular expression that matches the @samp{\} character is
 @samp{\} is @code{"\\\\"}.
 @end table
 
-@strong{Please note:} For historical compatibility, special characters
-are treated as ordinary ones if they are in contexts where their special
-meanings make no sense.  For example, @samp{*foo} treats @samp{*} as
-ordinary since there is no preceding expression on which the @samp{*}
-can act.  It is poor practice to depend on this behavior; quote the
-special character anyway, regardless of where it appears.
+For historical compatibility, a repetition operator is treated as ordinary
+if it appears at the start of a regular expression
+or after @samp{^}, @samp{\`}, @samp{\(}, @samp{\(?:} or @samp{\|}.
+For example, @samp{*foo} is treated as @samp{\*foo}, and
+@samp{two\|^\@{2\@}} is treated as @samp{two\|^@{2@}}.
+It is poor practice to depend on this behavior; use proper backslash
+escaping anyway, regardless of where the repetition operator appears.
 
-As a @samp{\} is not special inside a character alternative, it can
+As a @samp{\} is not special inside a bracket expression, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
 You should not quote these characters when they have no special
 meaning.  This would not clarify anything, since backslashes
@@ -556,23 +563,23 @@ special meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string
 syntax), which matches any single character except a backslash.
 
 In practice, most @samp{]} that occur in regular expressions close a
-character alternative and hence are special.  However, occasionally a
+bracket expression and hence are special.  However, occasionally a
 regular expression may try to match a complex pattern of literal
 @samp{[} and @samp{]}.  In such situations, it sometimes may be
 necessary to carefully parse the regexp from the start to determine
-which square brackets enclose a character alternative.  For example,
-@samp{[^][]]} consists of the complemented character alternative
+which square brackets enclose a bracket expression.  For example,
+@samp{[^][]]} consists of the complemented bracket expression
 @samp{[^][]} (which matches any single character that is not a square
 bracket), followed by a literal @samp{]}.
 
 The exact rules are that at the beginning of a regexp, @samp{[} is
 special and @samp{]} not.  This lasts until the first unquoted
-@samp{[}, after which we are in a character alternative; @samp{[} is
+@samp{[}, after which we are in a bracket expression; @samp{[} is
 no longer special (except when it starts a character class) but @samp{]}
 is special, unless it immediately follows the special @samp{[} or that
 @samp{[} followed by a @samp{^}.  This lasts until the next special
-@samp{]} that does not end a character class.  This ends the character
-alternative and restores the ordinary syntax of regular expressions;
+@samp{]} that does not end a character class.  This ends the bracket
+expression and restores the ordinary syntax of regular expressions;
 an unquoted @samp{[} is special again and a @samp{]} not.
 
 @node Char Classes
@@ -583,13 +590,13 @@ an unquoted @samp{[} is special again and a @samp{]} not.
 @cindex alpha character class, regexp
 @cindex xdigit character class, regexp
 
-  Below is a table of the classes you can use in a character
-alternative, and what they mean.  Note that the @samp{[} and @samp{]}
-characters that enclose the class name are part of the name, so a
-regular expression using these classes needs one more pair of
-brackets.  For example, a regular expression matching a sequence of
-one or more letters and digits would be @samp{[[:alnum:]]+}, not
-@samp{[:alnum:]+}.
+  Below is a table of the classes you can use in a bracket expression
+(@pxref{Regexp Special, bracket expression}), and what they mean.
+Note that the @samp{[} and @samp{]} characters that enclose the class
+name are part of the name, so a regular expression using these classes
+needs one more pair of brackets.  For example, a regular expression
+matching a sequence of one or more letters and digits would be
+@samp{[[:alnum:]]+}, not @samp{[:alnum:]+}.
 
 @table @samp
 @item [:ascii:]
@@ -911,7 +918,7 @@ with a symbol-constituent character.
 
 @kindex invalid-regexp
   Not every string is a valid regular expression.  For example, a string
-that ends inside a character alternative without a terminating @samp{]}
+that ends inside a bracket expression without a terminating @samp{]}
 is invalid, and so is a string that ends with a single @samp{\}.  If
 an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
@@ -948,7 +955,7 @@ deciphered as follows:
 
 @table @code
 @item [.?!]
-The first part of the pattern is a character alternative that matches
+The first part of the pattern is a bracket expression that matches
 any one of three characters: period, question mark, and exclamation
 mark.  The match must begin with one of these three characters.  (This
 is one point where the new default regexp used by Emacs differs from
@@ -960,7 +967,7 @@ The second part of the pattern matches any closing braces and quotation
 marks, zero or more of them, that may follow the period, question mark
 or exclamation mark.  The @code{\"} is Lisp syntax for a double-quote in
 a string.  The @samp{*} at the end indicates that the immediately
-preceding regular expression (a character alternative, in this case) may be
+preceding regular expression (a bracket expression, in this case) may be
 repeated zero or more times.
 
 @item \\($\\|@ $\\|\t\\|@ @ \\)
@@ -1568,7 +1575,7 @@ used, a Lisp expression that evaluates to a string.  Example:
 
 @defun rx-to-string rx-expr &optional no-group
 Translate @var{rx-expr} to a string regexp which is returned.
-If @var{no-group} is absent or nil, bracket the result in a
+If @var{no-group} is absent or @code{nil}, bracket the result in a
 non-capturing group, @samp{\(?:@dots{}\)}, if necessary to ensure that
 a postfix operator appended to it will apply to the whole expression.
 Example:
@@ -1911,7 +1918,7 @@ attempts.  Other zero-width assertions may also bring benefits by
 causing a match to fail early.
 
 @item
-Avoid or-patterns in favor of character alternatives: write
+Avoid or-patterns in favor of bracket expressions: write
 @samp{[ab]} instead of @samp{a\|b}.  Recall that @samp{\s-} and @samp{\sw}
 are equivalent to @samp{[[:space:]]} and @samp{[[:word:]]}, respectively.
 
@@ -2193,8 +2200,8 @@ constructs, you should bind it temporarily for as small as possible
 a part of the code.
 @end defvar
 
-@node POSIX Regexps
-@section POSIX Regular Expression Searching
+@node Longest Match
+@section Longest-match searching for regular expression matches
 
 @cindex backtracking and POSIX regular expressions
   The usual regular expression functions do backtracking when necessary
@@ -2209,7 +2216,9 @@ possibilities and found all matches, so they can report the longest
 match, as required by POSIX@.  This is much slower, so use these
 functions only when you really need the longest match.
 
-  The POSIX search and match functions do not properly support the
+  Despite their names, the POSIX search and match functions
+use Emacs regular expressions, not POSIX regular expressions.
+@xref{POSIX Regexps}.  Also, they do not properly support the
 non-greedy repetition operators (@pxref{Regexp Special, non-greedy}).
 This is because POSIX backtracking conflicts with the semantics of
 non-greedy repetition.
@@ -2957,3 +2966,98 @@ values of the variables @code{sentence-end-double-space}
 @code{sentence-end-without-period}, and
 @code{sentence-end-without-space}.
 @end defun
+
+@node POSIX Regexps
+@section Emacs versus POSIX Regular Expressions
+@cindex POSIX regular expressions
+
+Regular expression syntax varies signficantly among computer programs.
+When writing Elisp code that generates regular expressions for use by other
+programs, it is helpful to know how syntax variants differ.
+To give a feel for the variation, this section discusses how
+Emacs regular expressions differ from two syntax variants standarded by POSIX:
+basic regular expressions (BREs) and extended regular expressions (EREs).
+Plain @command{grep} uses BREs, and @samp{grep -E} uses EREs.
+
+Emacs regular expressions have a syntax closer to EREs than to BREs,
+with some extensions.  Here is a summary of how POSIX BREs and EREs
+differ from Emacs regular expressions.
+
+@itemize @bullet
+@item
+In POSIX BREs @samp{+} and @samp{?} are not special.
+The only backslash escape sequences are @samp{\(@dots{}\)},
+@samp{\@{@dots{}\@}}, @samp{\1} through @samp{\9}, along with the
+escaped special characters @samp{\$}, @samp{\*}, @samp{\.}, @samp{\[},
+@samp{\\}, and @samp{\^}.
+Therefore @samp{\(?:} acts like @samp{\([?]:}.
+POSIX does not define how other BRE escapes behave;
+for example, GNU @command{grep} treats @samp{\|} like Emacs does,
+but does not support all the Emacs escapes.
+
+@item
+In POSIX BREs, it is an implementation option whether @samp{^} is special
+after @samp{\(}; GNU @command{grep} treats it like Emacs does.
+In POSIX EREs, @samp{^} is always special outside of bracket expressions,
+which means the ERE @samp{x^} never matches.
+In Emacs regular expressions, @samp{^} is special only at the
+beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
+or @samp{\|}.
+
+@item
+In POSIX BREs, it is an implementation option whether @samp{$} is
+special before @samp{\)}; GNU @command{grep} treats it like Emacs
+does.  In POSIX EREs, @samp{$} is always special outside of bracket
+expressions (@pxref{Regexp Special, bracket expressions}), which means
+the ERE @samp{$x} never matches.  In Emacs regular expressions,
+@samp{$} is special only at the end of the regular expression, or
+before @samp{\)} or @samp{\|}.
+
+@item
+In POSIX EREs @samp{@{}, @samp{(} and @samp{|} are special,
+and @samp{)} is special when matched with a preceding @samp{(}.
+These special characters do not use preceding backslashes;
+@samp{(?} produces undefined results.
+The only backslash escape sequences are the escaped special characters
+@samp{\$}, @samp{\(}, @samp{\)}, @samp{\*}, @samp{\+}, @samp{\.},
+@samp{\?}, @samp{\[}, @samp{\\}, @samp{\^}, @samp{\@{} and @samp{\|}.
+POSIX does not define how other ERE escapes behave;
+for example, GNU @samp{grep -E} treats @samp{\1} like Emacs does,
+but does not support all the Emacs escapes.
+
+@item
+In POSIX BREs and EREs, undefined results are produced by repetition
+operators at the start of a regular expression or subexpression
+(possibly preceded by @samp{^}), except that the repetition operator
+@samp{*} has the same behavior in BREs as in Emacs.
+In Emacs, these operators are treated as ordinary.
+
+@item
+In BREs and EREs, undefined results are produced by two repetition
+operators in sequence.  In Emacs, these have well-defined behavior,
+e.g., @samp{a**} is equivalent to @samp{a*}.
+
+@item
+In BREs and EREs, undefined results are produced by empty regular
+expressions or subexpressions.  In Emacs these have well-defined
+behavior, e.g., @samp{\(\)*} matches the empty string,
+
+@item
+In BREs and EREs, undefined results are produced for the named
+character classes @samp{[:ascii:]}, @samp{[:multibyte:]},
+@samp{[:nonascii:]}, @samp{[:unibyte:]}, and @samp{[:word:]}.
+
+@item
+BREs and EREs can contain collating symbols and equivalence
+class expressions within bracket expressions, e.g., @samp{[[.ch.]d[=a=]]}.
+Emacs regular expressions do not support this.
+
+@item
+BREs, EREs, and the strings they match cannot contain encoding errors
+or NUL bytes.  In Emacs these constructs simply match themselves.
+
+@item
+BRE and ERE searching always finds the longest match.
+Emacs searching by default does not necessarily do so.
+@xref{Longest Match}.
+@end itemize

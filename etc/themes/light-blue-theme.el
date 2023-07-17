@@ -1,6 +1,6 @@
 ;;; light-blue-theme.el --- Custom theme for faces  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Drew Adams <drew.adams@oracle.com>
 ;; Maintainer: emacs-devel@gnu.org

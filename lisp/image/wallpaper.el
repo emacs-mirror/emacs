@@ -1,6 +1,6 @@
 ;;; wallpaper.el --- Change the desktop background  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 ;; Keywords: images
@@ -109,7 +109,7 @@ COMMAND is the executable to run to set the wallpaper.
 ARGS is the default list of command line arguments for COMMAND.
 
 PREDICATE is a function that will be called without any arguments
-and returns non-nil if this setter should be used.
+and should return non-nil if this setter should be used.
 
 INIT-ACTION is a function that will be called without any
 arguments before trying to set the wallpaper.
@@ -304,7 +304,7 @@ order in which they appear.")
                     (throw 'found setter))))))))
 
 (defun wallpaper--find-command ()
-  "Return a valid command to set the wallpaper in this environment."
+  "Return the appropriate command to set the wallpaper."
   (when-let ((setter (wallpaper--find-setter)))
     (wallpaper-setter-command setter)))
 
@@ -437,7 +437,7 @@ See also `wallpaper-default-width'.")
 On a graphical display, try using the same monitor as the current
 frame.
 On a non-graphical display, try to get the name by connecting to
-the display server directly, and run \"xrandr\" if that doesn't
+the display server directly, or run \"xrandr\" if that doesn't
 work.  Prompt for the monitor name if neither method works.
 
 This function is meaningful only on X and is used only there."
@@ -469,7 +469,7 @@ This function is meaningful only on X and is used only there."
       (read-string (format-prompt "Monitor name" nil)))))
 
 (defun wallpaper--format-arg (format file)
-  "Format a `wallpaper-command-args' argument ARG.
+  "Format a `wallpaper-command-args' argument ARG using FORMAT.
 FILE is the image file name."
   (format-spec
    format

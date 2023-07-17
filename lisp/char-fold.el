@@ -1,6 +1,6 @@
 ;;; char-fold.el --- match unicode to similar ASCII -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: matching
@@ -436,7 +436,23 @@ specify the character).  With no input, i.e. when CHAR is nil,
 describe all available character equivalences of `char-fold-to-regexp'.
 Optional argument LAX (interactively, the prefix argument), if
 non-nil, means also include partially matching ligatures and
-non-canonical equivalences."
+non-canonical equivalences.
+
+Each line of the display shows the equivalences in two different
+ways separated by a colon:
+
+    - as the literal character or sequence
+    - using an ASCII-only escape syntax
+
+For example, for the letter \\='r\\=', the first line is
+
+    r: ?\\N{LATIN SMALL LETTER R}
+
+which is for the requested character itself, and a later line has
+
+    ṟ: ?\\N{LATIN SMALL LETTER R}?\\N{COMBINING MACRON BELOW}
+
+which clearly shows what the constituent characters are."
   (interactive (list (ignore-errors
                        (read-char-by-name
                         (format-prompt "Unicode name, single char, or hex"

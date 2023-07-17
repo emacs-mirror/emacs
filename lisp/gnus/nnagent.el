@@ -1,6 +1,6 @@
 ;;; nnagent.el --- offline backend for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -118,17 +118,18 @@
   (gnus-request-accept-article "nndraft:queue" nil t t))
 
 (deffoo nnagent-request-set-mark (group action server)
-  (insert "(gnus-agent-synchronize-group-flags \""
-	  group
-	  "\" '")
-  (gnus-pp action)
-  (insert " \""
-	  (gnus-method-to-server gnus-command-method)
-	  "\"")
-  (insert ")\n")
-  (let ((coding-system-for-write nnheader-file-coding-system))
-    (write-region (point-min) (point-max) (gnus-agent-lib-file "flags")
-		  t 'silent))
+  (with-temp-buffer
+    (insert "(gnus-agent-synchronize-group-flags \""
+	    group
+	    "\" '")
+    (gnus-pp action)
+    (insert " \""
+	    (gnus-method-to-server gnus-command-method)
+	    "\"")
+    (insert ")\n")
+    (let ((coding-system-for-write nnheader-file-coding-system))
+      (write-region (point-min) (point-max) (gnus-agent-lib-file "flags")
+		    t 'silent)))
   ;; Also set the marks for the original back end that keeps marks in
   ;; the local system.
   (let ((gnus-agent nil))

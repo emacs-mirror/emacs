@@ -1,6 +1,6 @@
 /* Add two struct timespec values.
 
-   Copyright (C) 2011-2022 Free Software Foundation, Inc.
+   Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include <config.h>
 #include "timespec.h"
 
+#include <stdckdint.h>
 #include "intprops.h"
 
 struct timespec
@@ -38,7 +39,7 @@ timespec_add (struct timespec a, struct timespec b)
     {
       rns = nsd;
       time_t bs1;
-      if (!INT_ADD_WRAPV (bs, 1, &bs1))
+      if (!ckd_add (&bs1, bs, 1))
         bs = bs1;
       else if (rs < 0)
         rs++;
@@ -46,7 +47,7 @@ timespec_add (struct timespec a, struct timespec b)
         goto high_overflow;
     }
 
-  if (INT_ADD_WRAPV (rs, bs, &rs))
+  if (ckd_add (&rs, rs, bs))
     {
       if (bs < 0)
         {

@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -611,6 +611,7 @@ then remove all hi-lock highlighting."
    (cond
     (current-prefix-arg (list t))
     ((and (display-popup-menus-p)
+          last-nonmenu-event
           (listp last-nonmenu-event)
           use-dialog-box)
      (catch 'snafu

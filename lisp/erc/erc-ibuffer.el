@@ -1,6 +1,6 @@
 ;;; erc-ibuffer.el --- ibuffer integration with ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -32,6 +32,7 @@
 (require 'ibuffer)
 (require 'ibuf-ext)
 (require 'erc)
+(require 'erc-goodies) ; `erc-controls-interpret'
 
 (defgroup erc-ibuffer nil
   "The Ibuffer group for ERC."

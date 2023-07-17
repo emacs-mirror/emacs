@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2022 Free Software
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -750,7 +750,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #endif
 
 /* True if W is a tab bar window.  */
-#if defined (HAVE_WINDOW_SYSTEM) && !defined (HAVE_PGTK)
+#if defined (HAVE_WINDOW_SYSTEM)
 # define WINDOW_TAB_BAR_P(W) \
    (WINDOWP (WINDOW_XFRAME (W)->tab_bar_window) \
     && (W) == XWINDOW (WINDOW_XFRAME (W)->tab_bar_window))

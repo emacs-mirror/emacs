@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -482,6 +482,7 @@ non-nil."
   "When nil, `auto-save-visited-mode' will auto-save remote files.
 Any other value means that it will not."
   :group 'auto-save
+  :group 'tramp
   :type 'boolean
   :version "29.1")
 
@@ -555,8 +556,9 @@ using a transform that puts the lock files on a local file system."
   :version "28.1")
 
 (defcustom remote-file-name-inhibit-locks nil
-  "Whether to use file locks for remote files."
+  "Whether to create file locks for remote files."
   :group 'files
+  :group 'tramp
   :version "28.1"
   :type 'boolean)
 
@@ -681,7 +683,8 @@ The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
 and ignores this variable.
 
-Also see the `permanently-enabled-local-variables' variable."
+Also see the `permanently-enabled-local-variables' and
+`safe-local-variable-directories' variables."
   :risky t
   :type '(choice (const :tag "Query Unsafe" t)
 		 (const :tag "Safe Only" :safe)
@@ -1267,7 +1270,9 @@ there is an existing connection.
 
 If CONNECTED is non-nil, return an identification only if FILE is
 located on a remote system and a connection is established to
-that remote system.
+that remote system.  If CONNECTED is `never', never use an
+existing connection to return the identification (this is
+otherwise like a value of nil).
 
 Tip: You can use this expansion of remote identifier components
      to derive a new remote file name from an existing one.  For
@@ -1316,6 +1321,7 @@ consecutive checks.  For example:
            (< 0 (file-attribute-size
                  (file-attributes (file-chase-links file)))))))"
   :group 'files
+  :group 'tramp
   :version "24.1"
   :type '(choice
 	  (const   :tag "Do not inhibit file name cache" nil)
@@ -1323,6 +1329,22 @@ consecutive checks.  For example:
 	  (integer :tag "Do not use file name cache"
 		   :format "Do not use file name cache older then %v seconds"
 		   :value 10)))
+
+(defcustom remote-file-name-access-timeout nil
+  "Timeout (in seconds) for `access-file'.
+This timeout limits the time to check, whether a remote file is
+accessible.  `access-file' returns an error after that time.  If
+the value is 0 or nil, no timeout is used.
+
+This applies only when there isn't time spent for other actions,
+like reading passwords."
+  :group 'files
+  :group 'tramp
+  :version "30.1"
+  ;;:type '(choice :tag "Timeout (seconds)" natnum (const nil)))
+  :type '(choice
+	  (natnum :tag "Timeout (seconds)")
+          (const  :tag "Do not use timeout" nil)))
 
 (defun file-local-name (file)
   "Return the local name component of FILE.
@@ -2775,7 +2797,11 @@ not set local variables (though we do notice a mode specified with -*-.)
 
 `enable-local-variables' is ignored if you run `normal-mode' interactively,
 or from Lisp without specifying the optional argument FIND-FILE;
-in that case, this function acts as if `enable-local-variables' were t."
+in that case, this function acts as if `enable-local-variables' were t.
+
+If invoked in a buffer that doesn't visit a file, this function
+processes only the major mode specification in the -*- line and
+the local variables spec."
   (interactive)
   (kill-all-local-variables)
   (unless delay-mode-hooks
@@ -3692,6 +3718,18 @@ variable to set.")
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
+(defcustom safe-local-variable-directories '()
+  "A list of directories where local variables are always enabled.
+Directory-local variables loaded from these directories, such as the
+variables in .dir-locals.el, will be enabled even if they are risky.
+The names of the directories in the list must be absolute, and must
+end in a slash.  Remote directories can be included if the
+variable `enable-remote-dir-locals' is non-nil."
+  :version "30.1"
+  :type '(repeat string)
+  :risky t
+  :group 'find-file)
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
@@ -3730,7 +3768,11 @@ n  -- to ignore the local variables list.")
 !  -- to apply the local variables list, and permanently mark these
       values (*) as safe (in the future, they will be set automatically.)
 i  -- to ignore the local variables list, and permanently mark these
-      values (*) as ignored\n\n")
+      values (*) as ignored"
+                    (if dir-name "
++  -- to apply the local variables list, and trust all directory-local
+      variables in this directory\n\n"
+                      "\n\n"))
 	  (insert "\n\n"))
 	(dolist (elt all-vars)
 	  (cond ((member elt unsafe-vars)
@@ -3754,7 +3796,11 @@ i  -- to ignore the local variables list, and permanently mark these
 	(pop-to-buffer buf '(display-buffer--maybe-at-bottom))
 	(let* ((exit-chars '(?y ?n ?\s))
 	       (prompt (format "Please type %s%s: "
-			       (if offer-save "y, n, ! or i" "y or n")
+			       (if offer-save
+                                   (if dir-name
+                                       "y, n, !, i, +"
+                                     "y, n, !, i")
+                                 "y or n")
 			       (if (< (line-number-at-pos (point-max))
 				      (window-body-height))
 				   ""
@@ -3762,8 +3808,13 @@ i  -- to ignore the local variables list, and permanently mark these
 	       char)
 	  (when offer-save
             (push ?i exit-chars)
-            (push ?! exit-chars))
+            (push ?! exit-chars)
+            (when dir-name
+              (push ?+ exit-chars)))
 	  (setq char (read-char-choice prompt exit-chars))
+          (when (and offer-save dir-name (= char ?+))
+            (customize-push-and-save 'safe-local-variable-directories
+                                     (list dir-name)))
 	  (when (and offer-save
                      (or (= char ?!) (= char ?i))
                      unsafe-vars)
@@ -3772,7 +3823,7 @@ i  -- to ignore the local variables list, and permanently mark these
                  'safe-local-variable-values
                'ignored-local-variable-values)
              unsafe-vars))
-	  (prog1 (memq char '(?! ?\s ?y))
+	  (prog1 (memq char '(?! ?\s ?y ?+))
 	    (quit-window t)))))))
 
 (defconst hack-local-variable-regexp
@@ -3904,6 +3955,10 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 		  (null unsafe-vars)
 		  (null risky-vars))
 	     (memq enable-local-variables '(:all :safe))
+             (delq nil (mapcar (lambda (dir)
+                                 (and dir-name dir
+                                      (file-equal-p dir dir-name)))
+                               safe-local-variable-directories))
 	     (hack-local-variables-confirm all-vars unsafe-vars
 					   risky-vars dir-name))
 	 (dolist (elt all-vars)
@@ -3925,9 +3980,6 @@ variables.
 
 Uses `hack-local-variables-apply' to apply the variables.
 
-See `hack-local-variables--find-variables' for the meaning of
-HANDLE-MODE.
-
 If `enable-local-variables' or `local-enable-local-variables' is
 nil, or INHIBIT-LOCALS is non-nil, this function disregards all
 normal local variables.  If `inhibit-local-variables-regexps'
@@ -3937,7 +3989,14 @@ applied.
 
 Variables present in `permanently-enabled-local-variables' will
 still be evaluated, even if local variables are otherwise
-inhibited."
+inhibited.
+
+If HANDLE-MODE is t, the function only checks whether a \"mode:\"
+is specified, and returns the corresponding mode symbol, or nil.
+In this case, try to ignore minor-modes, and return only a major-mode.
+If HANDLE-MODE is nil, the function gathers all the specified local
+variables.  If HANDLE-MODE is neither nil nor t, the function gathers
+all the specified local variables, but ignores any settings of \"mode:\"."
   ;; We don't let inhibit-local-variables-p influence the value of
   ;; enable-local-variables, because then it would affect dir-local
   ;; variables.  We don't want to search eg tar files for file local
@@ -4017,6 +4076,7 @@ major-mode."
 	  (forward-line 1)
 	  (let ((startpos (point))
 	        endpos
+                (selective-p (eq selective-display t))
 	        (thisbuf (current-buffer)))
 	    (save-excursion
 	      (unless (let ((case-fold-search t))
@@ -4033,7 +4093,8 @@ major-mode."
 	    (with-temp-buffer
 	      (insert-buffer-substring thisbuf startpos endpos)
 	      (goto-char (point-min))
-	      (subst-char-in-region (point) (point-max) ?\^m ?\n)
+              (if selective-p
+	          (subst-char-in-region (point) (point-max) ?\r ?\n))
 	      (while (not (eobp))
 	        ;; Discard the prefix.
 	        (if (looking-at prefix)
@@ -5059,7 +5120,8 @@ This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
 we do not remove backup version numbers, only true file version numbers.
-See also `file-name-version-regexp'."
+See `file-name-version-regexp' for what constitutes backup versions
+and version strings."
   (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
@@ -5111,9 +5173,12 @@ the group would be preserved too."
 			       (file-attribute-group-id attributes)))))))))))
 
 (defun file-name-sans-extension (filename)
-  "Return FILENAME sans final \"extension\".
+  "Return FILENAME sans final \"extension\" and any backup version strings.
 The extension, in a file name, is the part that begins with the last `.',
-except that a leading `.' of the file name, if there is one, doesn't count."
+except that a leading `.' of the file name, if there is one, doesn't count.
+Any extensions that indicate backup versions and version strings are
+removed by calling `file-name-sans-versions', which see, before looking
+for the \"real\" file extension."
   (save-match-data
     (let ((file (file-name-sans-versions (file-name-nondirectory filename)))
 	  directory)
@@ -5127,12 +5192,14 @@ except that a leading `.' of the file name, if there is one, doesn't count."
 	filename))))
 
 (defun file-name-extension (filename &optional period)
-  "Return FILENAME's final \"extension\".
+  "Return FILENAME's final \"extension\" sans any backup version strings.
 The extension, in a file name, is the part that begins with the last `.',
-excluding version numbers and backup suffixes, except that a leading `.'
-of the file name, if there is one, doesn't count.
+except that a leading `.' of the file name, if there is one, doesn't count.
+This function calls `file-name-sans-versions', which see, to remove from
+the extension it returns any parts that indicate backup versions and
+version strings.
 Return nil for extensionless file names such as `foo'.
-Return the empty string for file names such as `foo.'.
+Return the empty string for file names such as `foo.' that end in a period.
 
 By default, the returned value excludes the period that starts the
 extension, but if the optional argument PERIOD is non-nil, the period
@@ -6336,6 +6403,14 @@ RECURSIVE if DIRECTORY is nonempty."
 		  directory-exists))
 	(files--force recursive #'delete-directory-internal directory))))))
 
+(defcustom remote-file-name-inhibit-delete-by-moving-to-trash nil
+  "Whether remote files shall be moved to the Trash.
+This overrules any setting of `delete-by-moving-to-trash'."
+  :version "30.1"
+  :group 'files
+  :group 'tramp
+  :type 'boolean)
+
 (defun file-equal-p (file1 file2)
   "Return non-nil if files FILE1 and FILE2 name the same file.
 If FILE1 or FILE2 does not exist, the return value is unspecified."
@@ -6346,7 +6421,18 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
       (let (f1-attr f2-attr)
         (and (setq f1-attr (file-attributes (file-truename file1)))
 	     (setq f2-attr (file-attributes (file-truename file2)))
-	     (equal f1-attr f2-attr))))))
+             (progn
+               ;; Haiku systems change the file's last access timestamp
+               ;; every time `stat' is called.  Make sure to not compare
+               ;; the timestamps in that case.
+               (or (equal f1-attr f2-attr)
+                   (when (and (eq system-type 'haiku)
+                              (consp (nthcdr 4 f1-attr))
+                              (consp (nthcdr 4 f2-attr)))
+                     (ignore-errors
+                       (setcar (nthcdr 4 f1-attr) nil)
+                       (setcar (nthcdr 4 f2-attr) nil))
+	             (equal f1-attr f2-attr)))))))))
 
 (defun file-in-directory-p (file dir)
   "Return non-nil if DIR is a parent directory of FILE.
@@ -7088,10 +7174,11 @@ specifies the list of buffers to kill, asking for approval for each one."
     (setq list (cdr list))))
 
 (defun kill-matching-buffers (regexp &optional internal-too no-ask)
-  "Kill buffers whose name matches the specified REGEXP.
-Ignores buffers whose name starts with a space, unless optional
-prefix argument INTERNAL-TOO is non-nil.  Asks before killing
-each buffer, unless NO-ASK is non-nil."
+  "Kill buffers whose names match the regular expression REGEXP.
+Interactively, prompt for REGEXP.
+Ignores buffers whose names start with a space, unless optional
+prefix argument INTERNAL-TOO(interactively, the prefix argument)
+is non-nil.  Asks before killing each buffer, unless NO-ASK is non-nil."
   (interactive "sKill buffers matching this regular expression: \nP")
   (dolist (buffer (buffer-list))
     (let ((name (buffer-name buffer)))
@@ -7099,6 +7186,17 @@ each buffer, unless NO-ASK is non-nil."
                  (or internal-too (/= (aref name 0) ?\s))
                  (string-match regexp name))
         (funcall (if no-ask 'kill-buffer 'kill-buffer-ask) buffer)))))
+
+(defun kill-matching-buffers-no-ask (regexp &optional internal-too)
+  "Kill buffers whose names match the regular expression REGEXP.
+Interactively, prompt for REGEXP.
+Like `kill-matching-buffers', but doesn't ask for confirmation
+before killing each buffer.
+Ignores buffers whose names start with a space, unless the
+optional argument INTERNAL-TOO (interactively, the prefix argument)
+is non-nil."
+  (interactive "sKill buffers matching this regular expression: \nP")
+  (kill-matching-buffers regexp internal-too t))
 
 
 (defun rename-auto-save-file ()
@@ -7414,9 +7512,9 @@ files, you could say something like:
 
   (\"src/emacs/[^/]+/\\\\(.*\\\\)\\\\\\='\" \"src/emacs/.*/\\\\1\\\\\\='\")
 
-In this example, if you're in src/emacs/emacs-27/lisp/abbrev.el,
-and you an src/emacs/emacs-28/lisp/abbrev.el file exists, it's
-now defined as a sibling."
+In this example, if you're in \"src/emacs/emacs-27/lisp/abbrev.el\",
+and a \"src/emacs/emacs-28/lisp/abbrev.el\" file exists, it's now
+defined as a sibling."
   :type 'sexp
   :version "29.1")
 
@@ -7645,7 +7743,7 @@ If DIR's free space cannot be obtained, this function returns nil."
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
 
-	 ;; The "[BkKMGTPEZY]?" below supports "ls -alh" output.
+	 ;; The "[BkKMGTPEZYRQ]?" below supports "ls -alh" output.
 
 	 ;; For non-iso date formats, we add the ".*" in order to find
 	 ;; the last possible match.  This avoids recognizing
@@ -7657,8 +7755,8 @@ If DIR's free space cannot be obtained, this function returns nil."
          ;; parentheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
-    (purecopy (concat "\\([0-9][BkKMGTPEZY]? " iso
-		      "\\|.*[0-9][BkKMGTPEZY]? "
+    (purecopy (concat "\\([0-9][BkKMGTPEZYRQ]? " iso
+		      "\\|.*[0-9][BkKMGTPEZYRQ]? "
 	              "\\(" western "\\|" western-comma
                       "\\|" DD-MMM-YYYY "\\|" east-asian "\\)"
 		      "\\) +")))
@@ -7669,9 +7767,12 @@ regardless of the language.")
 (defvar insert-directory-ls-version 'unknown)
 
 (defun insert-directory-wildcard-in-dir-p (dir)
-  "Return non-nil if DIR contents a shell wildcard in the directory part.
-The return value is a cons (DIR . WILDCARDS); DIR is the
-`default-directory' in the Dired buffer, and WILDCARDS are the wildcards.
+  "Return non-nil if DIR contains shell wildcards in its parent directory part.
+The return value is a cons (DIRECTORY . WILDCARD), where DIRECTORY is the
+part of DIR up to and excluding the first component that includes
+wildcard characters, and WILDCARD is the rest of DIR's components.  The
+DIRECTORY part of the value includes the trailing slash, to indicate that
+it is a directory.
 
 Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
   (let ((wildcards "[?*"))
@@ -8366,11 +8467,14 @@ as in \"og+rX-w\"."
     num-rights))
 
 (defun file-modes-number-to-symbolic (mode &optional filetype)
-  "Return a string describing a file's MODE.
+  "Return a description of a file's MODE as a string of 10 letters and dashes.
+The returned string is like the mode description produced by \"ls -l\".
 For instance, if MODE is #o700, then it produces `-rwx------'.
-FILETYPE if provided should be a character denoting the type of file,
-such as `?d' for a directory, or `?l' for a symbolic link and will override
-the leading `-' char."
+Note that this is NOT the same as the \"chmod\" style symbolic description
+accepted by `file-modes-symbolic-to-number'.
+FILETYPE, if provided, should be a character denoting the type of file,
+such as `?d' for a directory, or `?l' for a symbolic link, and will override
+the leading `-' character."
   (string
    (or filetype
        (pcase (ash mode -12)

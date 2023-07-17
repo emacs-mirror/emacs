@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -312,7 +312,7 @@ to @code{regexp-history}.
 
 @cindex @code{case-fold}, text property
 @findex read-regexp-case-fold-search
-The user can use the @kbd{M-c} command to indicate whether case
+The user can use the @kbd{M-s c} command to indicate whether case
 folding should be on or off.  If the user has used this command, the
 returned string will have the text property @code{case-fold} set to
 either @code{fold} or @code{inhibit-fold}.  It is up to the caller of
@@ -1052,6 +1052,12 @@ This is a list of regular expressions.  The completion functions only
 consider a completion acceptable if it matches all regular expressions
 in this list, with @code{case-fold-search} (@pxref{Searching and Case})
 bound to the value of @code{completion-ignore-case}.
+
+Do not set this variable to a non-@code{nil} value globally, as that
+is not safe and will probably cause errors in completion commands.
+This variable should be only let-bound to non-@code{nil} values around
+calls to basic completion functions: @code{try-completion},
+@code{test-completion}, and @code{all-completions}.
 @end defvar
 
 @defmac lazy-completion-table var fun
@@ -2174,13 +2180,14 @@ will not have serious consequences.  @code{yes-or-no-p} is suitable for
 more momentous questions, since it requires three or four characters to
 answer.
 
-   If either of these functions is called in a command that was invoked
-using the mouse---more precisely, if @code{last-nonmenu-event}
-(@pxref{Command Loop Info}) is either @code{nil} or a list---then it
-uses a dialog box or pop-up menu to ask the question.  Otherwise, it
-uses keyboard input.  You can force use either of the mouse or of keyboard
-input by binding @code{last-nonmenu-event} to a suitable value around
-the call.
+   If either of these functions is called in a command that was
+invoked using the mouse or some other window-system gesture, or in a
+command invoked via a menu, then they use a dialog box or pop-up menu
+to ask the question if dialog boxes are supported.  Otherwise, they
+use keyboard input.  You can force use either of the mouse or of
+keyboard input by binding @code{last-nonmenu-event} to a suitable
+value around the call---bind it to @code{t} to force keyboard
+interaction, and to a list to force dialog boxes.
 
   Both @code{yes-or-no-p} and @code{y-or-n-p} use the minibuffer.
 
@@ -2199,6 +2206,9 @@ followed by the string @w{@samp{(y or n) }}.  If the input is not one of
 the expected answers (@kbd{y}, @kbd{n}, @kbd{@key{SPC}},
 @kbd{@key{DEL}}, or something that quits), the function responds
 @samp{Please answer y or n.}, and repeats the request.
+
+If @var{prompt} is a non-empty string, and it ends with a non-space
+character, a @samp{SPC} character will be appended to it.
 
 This function actually uses the minibuffer, but does not allow editing
 of the answer.  The cursor moves to the minibuffer while the question
@@ -2233,10 +2243,15 @@ minibuffer.  It returns @code{t} if the user enters @samp{yes},
 @code{nil} if the user types @samp{no}.  The user must type @key{RET} to
 finalize the response.  Upper and lower case are equivalent.
 
-@code{yes-or-no-p} starts by displaying @var{prompt} in the minibuffer,
-followed by @w{@samp{(yes or no) }}.  The user must type one of the
-expected responses; otherwise, the function responds @samp{Please answer
-yes or no.}, waits about two seconds and repeats the request.
+@vindex yes-or-no-prompt
+@code{yes-or-no-p} starts by displaying @var{prompt} in the
+minibuffer, followed by the value of @code{yes-or-no-prompt} @w{(default
+@samp{(yes or no) })}.  The user must type one of the expected
+responses; otherwise, the function responds @w{@samp{Please answer yes or
+no.}}, waits about two seconds and repeats the request.
+
+If @var{prompt} is a non-empty string, and it ends with a non-space
+character, a @samp{SPC} character will be appended to it.
 
 @code{yes-or-no-p} requires more work from the user than
 @code{y-or-n-p} and is appropriate for more crucial decisions.
@@ -2245,7 +2260,7 @@ Here is an example:
 
 @smallexample
 @group
-(yes-or-no-p "Do you really want to remove everything?")
+(yes-or-no-p "Do you really want to remove everything? ")
 
 ;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following prompt appears,}
@@ -2378,13 +2393,14 @@ Normally, @code{map-y-or-n-p} binds @code{cursor-in-echo-area} while
 prompting.  But if @var{no-cursor-in-echo-area} is non-@code{nil}, it
 does not do that.
 
-If @code{map-y-or-n-p} is called in a command that was invoked using the
-mouse---more precisely, if @code{last-nonmenu-event} (@pxref{Command
-Loop Info}) is either @code{nil} or a list---then it uses a dialog box
-or pop-up menu to ask the question.  In this case, it does not use
-keyboard input or the echo area.  You can force use either of the mouse or
-of keyboard input by binding @code{last-nonmenu-event} to a suitable
-value around the call.
+If @code{map-y-or-n-p} is called in a command that was invoked using
+the mouse or some other window-system gesture, or a command invoked
+via a menu, then it uses a dialog box or pop-up menu to ask the
+question if dialog boxes are supported.  In this case, it does not use
+keyboard input or the echo area.  You can force use either of the
+mouse or of keyboard input by binding @code{last-nonmenu-event} to a
+suitable value around the call---bind it to @code{t} to force keyboard
+interaction, and to a list to force dialog boxes.
 
 The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
@@ -2803,13 +2819,23 @@ minibuffer window, it returns @code{nil}.
 
 @vindex minibuffer-message-timeout
 @defun minibuffer-message string &rest args
-This function displays @var{string} temporarily at the end of the
-minibuffer text, for a few seconds, or until the next input event
-arrives, whichever comes first.  The variable
-@code{minibuffer-message-timeout} specifies the number of seconds to
-wait in the absence of input.  It defaults to 2.  If @var{args} is
-non-@code{nil}, the actual message is obtained by passing @var{string}
-and @var{args} through @code{format-message}.  @xref{Formatting Strings}.
+This function is like @code{message} (@pxref{Displaying Messages}),
+but it displays the messages specially when the user types in the
+minibuffer, typically because Emacs prompted the user for some input.
+When the minibuffer is the current buffer, this function displays the
+message specified by @var{string} temporarily at the end of the
+minibuffer text, and thus avoids hiding the minibuffer text by the
+echo-area display of the message.  It leaves the message on display
+for a few seconds, or until the next input event arrives, whichever
+comes first.  The variable @code{minibuffer-message-timeout} specifies
+the number of seconds to wait in the absence of input.  It defaults to
+2.  If @var{args} is non-@code{nil}, the actual message is obtained by
+passing @var{string} and @var{args} through @code{format-message}.
+@xref{Formatting Strings}.
+
+If called when the minibuffer is not the current buffer, this function
+just calls @code{message}, and thus @var{string} will be shown in the
+echo-area.
 @end defun
 
 @deffn Command minibuffer-inactive-mode

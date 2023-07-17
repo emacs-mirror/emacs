@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2017--2022 Free Software Foundation, Inc.
+@c Copyright (C) 2017--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Records
 @chapter Records
@@ -80,6 +80,10 @@ This function returns a new record with type @var{type} and
 @end group
 @end example
 @end defun
+
+To copy trees consisting of records, vectors and conses (lists), use
+@code{copy-tree} with its optional second argument non-@code{nil}.
+@xref{Building Lists, copy-tree}.
 
 @node Backward Compatibility
 @section Backward Compatibility

@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -258,6 +258,35 @@ to set this in a mode hook, rather than customize the default value."
 		 file)
   :group 'comint)
 
+(defcustom comint-pager nil
+  "If non-nil, the program to use for pagination of program output.
+
+Some programs produce large amounts of output, and have provision for
+pagination of their output through a filter program, commonly known as
+a \"pager\".  The pager limits the amount of output produced and
+allows the user to interactively browse the output one page at a time.
+Some programs paginate their output by default, by always starting a
+pager.  The program they use as the pager is specified by the
+environment variable PAGER; if that variable is not defined, they use
+some fixed default, such as \"less\".
+
+The interactive browsing aspects of pagination are not needed, and get
+in the way, when the output of the program is directed to an Emacs
+buffer, so in those cases pagination might need to be disabled.
+Disabling pagination means that some programs will produce large
+amounts of output, but most such programs have other ways to limit
+their output, such as additional arguments or Emacs interfaces.
+To disable pagination, this variable's value should be a string that
+names a program, such as \"cat\", which passes through all of the
+output without any filtering or delays.  Comint will then set the
+PAGER variable to name that program, when it invokes external
+programs."
+  :version "30.1"
+  :type '(choice (const :tag "Use default PAGER" nil)
+                 (const :tag "Don't do paging (PAGER=cat)" "cat")
+                 (string :tag "Program name or absolute path of pager"))
+  :group 'comint)
+
 (defvar comint-input-ring-file-prefix nil
   "The prefix to skip when parsing the input ring file.
 This is useful in Zsh when the extended_history option is on.")
@@ -383,7 +412,8 @@ This variable is buffer-local."
    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'"
+   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*"
+   "[" (apply #'string password-colon-equivalents) "][[:space:]]*\\'"
    ;; The ccrypt encryption dialog doesn't end with a colon, so
    ;; treat it specially.
    "\\|^Enter encryption key: (repeat) *\\'"
@@ -864,6 +894,10 @@ series of processes in the same Comint buffer.  The hook
 	 (nconc
           (comint-term-environment)
 	  (list (format "INSIDE_EMACS=%s,comint" emacs-version))
+          (when comint-pager
+            (if (stringp comint-pager)
+                (list (format "PAGER=%s" comint-pager))
+              (error "comint-pager should be a string: %s" comint-pager)))
 	  process-environment))
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)
@@ -1542,6 +1576,8 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
   (setq isearch-message-function nil)
   (setq isearch-wrap-function nil)
   (setq isearch-push-state-function nil)
+  ;; Force isearch to not change mark.
+  (setq isearch-opoint (point))
   (kill-local-variable 'isearch-lazy-count)
   (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t)
   (unless isearch-suspended

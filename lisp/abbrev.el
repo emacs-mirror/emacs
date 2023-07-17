@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
@@ -1250,17 +1250,17 @@ which see."
     ;; asked to.
     (and save-abbrevs
          abbrevs-changed
-         (progn
-	   (if (or arg
-		   (eq save-abbrevs 'silently)
-		   (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
-	       (progn
-                 (write-abbrev-file nil)
-                 nil)
-	     ;; Don't keep bothering user if they say no.
-	     (setq abbrevs-changed nil)
-             ;; Inhibit message in `save-some-buffers'.
-	     t)))))
+         (prog1
+	     (if (or arg
+		     (eq save-abbrevs 'silently)
+		     (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
+	         (progn
+                   (write-abbrev-file nil)
+                   nil)
+               ;; Inhibit message in `save-some-buffers'.
+	       t)
+           ;; Don't ask again whether saved or user said no.
+           (setq abbrevs-changed nil)))))
 
 (add-hook 'save-some-buffers-functions #'abbrev--possibly-save)
 

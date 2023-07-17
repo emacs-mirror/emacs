@@ -1,6 +1,6 @@
 ;;; files-x-tests.el --- tests for files-x.el.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -66,7 +66,9 @@
   "Test setting connection-local profile variables."
 
   ;; Declare (PROFILE VARIABLES) objects.
-  (let (connection-local-profile-alist connection-local-criteria-alist)
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
+        connection-local-profile-alist connection-local-criteria-alist)
     (connection-local-set-profile-variables
      'remote-bash files-x-test--variables1)
     (should
@@ -94,13 +96,20 @@
     (should
      (equal
       (connection-local-get-profile-variables 'remote-nullfile)
-      files-x-test--variables4))))
+      files-x-test--variables4))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
 
 (ert-deftest files-x-test-connection-local-update-profile-variables ()
   "Test updating connection-local profile variables."
 
   ;; Declare (PROFILE VARIABLES) objects.
-  (let (connection-local-profile-alist connection-local-criteria-alist)
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
+        connection-local-profile-alist connection-local-criteria-alist)
     (connection-local-set-profile-variables
      'remote-bash (copy-alist files-x-test--variables1))
     (should
@@ -116,13 +125,20 @@
      (equal
       (connection-local-get-profile-variables 'remote-bash)
       (cons (car files-x-test--variables2)
-            (cdr files-x-test--variables1))))))
+            (cdr files-x-test--variables1))))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
 
 (ert-deftest files-x-test-connection-local-set-profiles ()
   "Test setting connection-local profiles."
 
   ;; Declare (CRITERIA PROFILES) objects.
-  (let (connection-local-profile-alist connection-local-criteria-alist)
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
+        connection-local-profile-alist connection-local-criteria-alist)
     (connection-local-set-profile-variables
      'remote-bash files-x-test--variables1)
     (connection-local-set-profile-variables
@@ -205,12 +221,19 @@
       '(remote-bash remote-ksh remote-nullfile)))
 
     ;; A criteria other than plist is wrong.
-    (should-error (connection-local-set-profiles 'dummy))))
+    (should-error (connection-local-set-profiles 'dummy))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
 
 (ert-deftest files-x-test-hack-connection-local-variables-apply ()
   "Test setting connection-local variables."
 
-  (let (connection-local-profile-alist connection-local-criteria-alist)
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
+        connection-local-profile-alist connection-local-criteria-alist)
 
     (connection-local-set-profile-variables
      'remote-bash files-x-test--variables1)
@@ -302,13 +325,18 @@
         (hack-connection-local-variables-apply nil)
         (should-not connection-local-variables-alist)
         (should-not (local-variable-p 'remote-shell-file-name))
-        (should-not (boundp 'remote-shell-file-name))))))
+        (should-not (boundp 'remote-shell-file-name))))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
 
 (ert-deftest files-x-test-with-connection-local-variables ()
   "Test setting connection-local variables."
 
-  (let ((connection-local-profile-alist connection-local-profile-alist)
-        (connection-local-criteria-alist connection-local-criteria-alist))
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist))
     (connection-local-set-profile-variables
      'remote-bash files-x-test--variables1)
     (connection-local-set-profile-variables
@@ -385,7 +413,12 @@
 	(should-not (local-variable-p 'remote-null-device))
 	;; The variable values are reset.
 	(should-not (boundp 'remote-shell-file-name))
-	(should (string-equal (symbol-value 'remote-null-device) "null"))))))
+	(should (string-equal (symbol-value 'remote-null-device) "null"))))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
 
 (defun files-x-test--get-lazy-var ()
   "Get the connection-local value of `remote-lazy-var'.
@@ -405,7 +438,9 @@ If it's not initialized yet, initialize it."
 
 (ert-deftest files-x-test-setq-connection-local ()
   "Test dynamically setting connection local variables."
-  (let (connection-local-profile-alist connection-local-criteria-alist)
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
+        connection-local-profile-alist connection-local-criteria-alist)
     (connection-local-set-profile-variables
      'remote-lazy files-x-test--variables5)
     (connection-local-set-profiles
@@ -440,7 +475,12 @@ If it's not initialized yet, initialize it."
       (should (equal (files-x-test--get-lazy-var) "there"))
       (with-connection-local-application-variables
           (cadr files-x-test--application)
-        (should (equal remote-null-device "null"))))))
+        (should (equal remote-null-device "null"))))
+
+    ;; Cleanup.
+    (custom-set-variables
+     `(connection-local-profile-alist ',clpa now)
+     `(connection-local-criteria-alist ',clca now))))
 
 (provide 'files-x-tests)
 ;;; files-x-tests.el ends here

@@ -10,7 +10,7 @@
 This manual documents Htmlfontify, a source code -> crosslinked +
 formatted + syntax colorized html transformer.
 
-Copyright @copyright{} 2002--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2002--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1351,11 +1351,10 @@ Whether or not to split the index @ref{hfy-index-file} alphabetically
 on the first letter of each tag.  Useful when the index would otherwise
 be large and take a long time to render or be difficult to navigate.
 
-@item hfy-find-cmd
-@vindex hfy-find-cmd
-@anchor{hfy-find-cmd}
+@item hfy-exclude-file-rules
+@vindex hfy-exclude-file-rules
 
-The ``find'' command used to harvest a list of files to attempt to fontify.
+Regular expressions to exclude files which shouldn't be fontified.
 
 @item hfy-extn
 @vindex hfy-extn
@@ -1544,12 +1543,6 @@ to autodetect the version you have and customize itself accordingly,
 but you should be able to override this.
 
 See: @ref{Customization}
-
-@item
-A copy of find (e.g., GNU find) that provides the @code{-path} predicate.
-
-You may be able to work around this with a suitable clever shell
-command and the customization entry: @ref{hfy-find-cmd}
 
 @item
 A copy of sed (e.g., GNU sed).

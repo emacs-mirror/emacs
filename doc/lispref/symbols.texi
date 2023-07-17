@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Symbols
@@ -276,9 +276,8 @@ This function returns the string that is @var{symbol}'s name.  For example:
 @end group
 @end example
 
-@strong{Warning:} Changing the string by substituting characters does
-change the name of the symbol, but fails to update the obarray, so don't
-do it!
+@strong{Warning:} Never alter the string returned by that function.
+Doing that might make Emacs dysfunctional, and might even crash Emacs.
 @end defun
 
 @cindex uninterned symbol, and generating Lisp code
@@ -555,6 +554,23 @@ value, saved value, customized-but-unsaved value, and themed values.
 Do not set them directly; they are managed by @code{defcustom} and
 related functions.  @xref{Variable Definitions}.
 
+@item definition-name
+This property is used to find the definition of a symbol in the source
+code, when it might be hard to find the definition by textual search
+of the source file.  For example, a @code{define-derived-mode}
+(@pxref{Derived Modes}) might define a mode-specific function or a
+variable implicitly; or your Lisp program might generate a run-time
+call to @code{defun} to define a function (@pxref{Defining
+Functions}).  In these and similar cases, the @code{definition-name}
+property of the symbol should be another symbol whose definition can
+be found by textual search and whose code defines the original symbol.
+In the example with @code{define-derived-mode}, the value of this
+property of the functions and variables it defines should be the mode
+symbol.  The Emacs Help commands such as @kbd{C-h f} (@pxref{Help,,,
+emacs, The GNU Emacs Manual}) use this property to show the definition
+of a symbol via a button in the @file{*Help*} buffer where the
+symbol's documentation is shown.
+
 @item disabled
 If the value is non-@code{nil}, the named function is disabled as a
 command.  @xref{Disabling Commands}.
@@ -626,6 +642,12 @@ ignore a call whose value is unused.  If the property's value is
 @code{error-free}, the byte compiler may even delete such unused
 calls.  In addition to byte compiler optimizations, this property is
 also used for determining function safety (@pxref{Function Safety}).
+
+@item important-return-value
+@cindex @code{important-return-value} property
+A non-@code{nil} value makes the byte compiler warn about code that
+calls the named function without using its returned value.  This is
+useful for functions where doing so is likely to be a mistake.
 
 @item undo-inhibit-region
 If non-@code{nil}, the named function prevents the @code{undo} operation

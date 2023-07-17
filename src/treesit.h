@@ -1,6 +1,6 @@
 /* Header file for the tree-sitter integration.
 
-Copyright (C) 2021-2022 Free Software Foundation, Inc.
+Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -191,6 +191,7 @@ extern bool treesit_node_uptodate_p (Lisp_Object);
 extern void treesit_delete_parser (struct Lisp_TS_Parser *);
 extern void treesit_delete_query (struct Lisp_TS_Query *);
 extern bool treesit_named_node_p (TSNode);
+extern bool treesit_node_eq (Lisp_Object, Lisp_Object);
 
 #endif	/* HAVE_TREE_SITTER */
 

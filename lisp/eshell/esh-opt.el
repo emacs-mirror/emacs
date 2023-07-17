@@ -1,6 +1,6 @@
 ;;; esh-opt.el --- command options processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -28,6 +28,11 @@
 ;; Macro expansion of eshell-eval-using-options refers to eshell-stringify-list
 ;; defined in esh-util.
 (require 'esh-util)
+
+(defgroup eshell-opt nil
+  "Functions for argument parsing in Eshell commands."
+  :tag "Option parsing"
+  :group 'eshell)
 
 (defmacro eshell-eval-using-options (name macro-args options &rest body-forms)
   "Process NAME's MACRO-ARGS using a set of command line OPTIONS.

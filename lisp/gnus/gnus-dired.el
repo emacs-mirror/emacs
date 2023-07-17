@@ -1,6 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>

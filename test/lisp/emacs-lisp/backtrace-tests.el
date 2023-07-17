@@ -1,6 +1,6 @@
 ;;; backtrace-tests.el --- Tests for backtraces -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
@@ -226,6 +226,9 @@
   "Forms in backtrace frames can be on a single line or on multiple lines."
   (ert-with-test-buffer (:name "single-multi-line")
     (let* ((arg '(lambda (x)  ; Quote this so it isn't made into a closure.
+                   ;; Make the form long enough so `number' should not
+                   ;; appear on the first line once pretty-printed.
+                   (interactive (region-beginning))
                    (let ((number (1+ x)))
                      (+ x number))))
            (header-string "Test header: ")
@@ -280,7 +283,8 @@ line contains the strings \"lambda\" and \"number\"."
   ;; Verify that the form is now back on one line,
   ;; and that point is at the same place.
   (should (string= (backtrace-tests--get-substring
-                    (- (point) 6) (point)) "number"))
+                    (- (point) 6) (point))
+                   "number"))
   (should-not (= (point) (pos-bol)))
   (should (string= (backtrace-tests--get-substring
                     (pos-bol) (1+ (pos-eol)))

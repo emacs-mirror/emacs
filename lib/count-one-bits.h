@@ -1,5 +1,5 @@
 /* count-one-bits.h -- counts the number of 1-bits in a word.
-   Copyright (C) 2007-2022 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -19,12 +19,14 @@
 #ifndef COUNT_ONE_BITS_H
 #define COUNT_ONE_BITS_H 1
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <limits.h>
 #include <stdlib.h>
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef COUNT_ONE_BITS_INLINE
 # define COUNT_ONE_BITS_INLINE _GL_INLINE

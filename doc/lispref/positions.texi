@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
@@ -560,16 +560,23 @@ improve the performance of your code.  @xref{Truncation, cache-long-scans}.
 @defun vertical-motion count &optional window cur-col
 This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
-is negative, it moves up instead.
+is negative, it moves up instead.  If @var{count} is zero, point moves
+to the visual start of the current screen line.
 
-The @var{count} argument can be a cons cell, @code{(@var{cols}
-. @var{lines})}, instead of an integer.  Then the function moves by
-@var{lines} screen lines, and puts point @var{cols} columns from the
-visual start of that screen line.  Note that @var{cols} are counted
-from the @emph{visual} start of the line; if the window is scrolled
-horizontally (@pxref{Horizontal Scrolling}), the column on which point
-will end is in addition to the number of columns by which the text is
-scrolled.
+The @var{count} argument can be a cons cell, @w{@code{(@var{cols}
+. @var{lines})}}, instead of an integer.  Then the function moves by
+@var{lines} screen lines, as described for @var{count} above, and puts
+point @var{cols} columns from the visual start of that screen line.
+The value of @var{cols} can be a float, and is interpreted in units of
+the frame's canonical character width (@pxref{Frame Font}); this
+allows specifying accurate horizontal position of point when the
+target screen line uses variable fonts.  Note that @var{cols} are
+counted from the @emph{visual} start of the line; if the window is
+scrolled horizontally (@pxref{Horizontal Scrolling}), the column where
+point will end is in addition to the number of columns by which the
+text is scrolled, and if the target line is a continuation line, its
+leftmost column is considered column zero (unlike column-oriented
+functions, @pxref{Columns}).
 
 The return value is the number of screen lines over which point was
 moved.  The value may be less in absolute value than @var{count} if
@@ -844,30 +851,60 @@ the mode can get navigation-by-defun functionality for free, by using
 @code{treesit-beginning-of-defun} and @code{treesit-end-of-defun}.
 
 @defvar treesit-defun-type-regexp
-The value of this variable is a regexp matching the node type of defun
-nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
+This variable determines which nodes are considered defuns by Emacs.
+It can be a regexp that matches the type of defun nodes.  (For
+``node'' and ``node type'', @pxref{Parsing Program Source}.)
 
 For example, @code{python-mode} sets this variable to a regexp that
-matches either @code{function_definition} or @code{class_definition}.
+matches either @samp{function_definition} or @samp{class_definition}.
+
+Sometimes not all nodes matched by the regexp are valid defuns.
+Therefore, this variable can also be a cons cell of the form
+@w{(@var{regexp} . @var{pred})}, where @var{pred} should be a function
+that takes a node as its argument, and returns non-@code{nil} if the
+node is a valid defun, or @code{nil} if it is not valid.
 @end defvar
 
-@defvar treesit-defun-prefer-top-level
-If this variable is non-@code{nil}, Emacs skips nested defuns, when it
-looks for beginning and end of a defun, and prefers to go to the
-top-level defun instead.
-
-In some languages, a defun could be nested in another one.  By default,
-Emacs stops at the first defun it encounters.  But if this variable's
-value is @code{t}, whenever Emacs finds a defun node, it tries to go
-up the parse tree until it finds the top-level defun.
-
-This variable can also be a list of cons cells of the form
-@w{@code{(@var{from} . @var{to}))}}, where @var{from} and @var{to} are
-regexps matching tree-sitter node types.  When Emacs finds a defun
-node whose type matches any of the @var{from} regexps in the list, it
-then tries to go up the parse tree until it finds a higher-level node
-matching the corresponding @var{to} regexp.
+@defvar treesit-defun-tactic
+This variable determines how Emacs treats nested defuns.  If the value
+is @code{top-level}, navigation functions only move across top-level
+defuns.  If the value is @code{nested}, navigation functions recognize
+nested defuns.
 @end defvar
+
+@defvar treesit-sentence-type-regexp
+The value of this variable is a regexp matching the node type of sentence
+nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
+@end defvar
+
+@findex treesit-forward-sentence
+@findex forward-sentence
+@findex backward-sentence
+If Emacs is compiled with tree-sitter, it can use the tree-sitter
+parser information to move across syntax constructs.  Since what
+exactly is considered a sentence varies between languages, a major
+mode should set @code{treesit-sentence-type-regexp} to determine that.
+Then the mode can get navigation-by-sentence functionality for free,
+by using @code{forward-sentence} and
+@code{backward-sentence}(@pxref{Moving by Sentences,,, emacs, The
+extensible self-documenting text editor}).
+
+@defvar treesit-sexp-type-regexp
+The value of this variable is a regexp matching the node type of sexp
+nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program
+Source}.)
+@end defvar
+
+@findex treesit-forward-sexp
+@findex forward-sexp@r{, and tree-sitter}
+@findex backward-sexp@r{, and tree-sitter}
+If Emacs is compiled with tree-sitter, it can use the tree-sitter
+parser information to move across syntax constructs.  Since what
+exactly is considered a sexp varies between languages, a major mode
+should set @code{treesit-sexp-type-regexp} to determine that.  Then
+the mode can get navigation-by-sexp functionality for free, by using
+@code{forward-sexp} and @code{backward-sexp}(@pxref{Moving by
+Sentences,,, emacs, The extensible self-documenting text editor}).
 
 @node Skipping Characters
 @subsection Skipping Characters
@@ -1048,11 +1085,13 @@ positions.
 In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
 
-Note that, in rare circumstances, Emacs may decide to leave, for
-performance reasons, the accessible portion of the buffer unchanged
-after a call to @code{narrow-to-region}.  This can happen when a Lisp
-program is called via low-level hooks, such as
-@code{jit-lock-functions}, @code{post-command-hook}, etc.
+However, when the narrowing has been set by @code{with-restriction} with
+a label argument (see below), @code{narrow-to-region} can be used only
+within the limits of that narrowing.  If @var{start} or @var{end} are
+outside these limits, the corresponding limit set by
+@code{with-restriction} is used instead.  To gain access to other
+portions of the buffer, use @code{without-restriction} with the same
+label.
 @end deffn
 
 @deffn Command narrow-to-page &optional move-count
@@ -1076,13 +1115,13 @@ It is equivalent to the following expression:
 @example
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
-@end deffn
 
-Note that, in rare circumstances, Emacs may decide to leave, for
-performance reasons, the accessible portion of the buffer unchanged
-after a call to @code{widen}.  This can happen when a Lisp program is
-called via low-level hooks, such as @code{jit-lock-functions},
-@code{post-command-hook}, etc.
+However, when a narrowing has been set by @code{with-restriction} with a
+label argument (see below), the limits set by @code{with-restriction}
+are restored, instead of canceling the narrowing.  To gain access to
+other portions of the buffer, use @code{without-restriction} with the
+same label.
+@end deffn
 
 @defun buffer-narrowed-p
 This function returns non-@code{nil} if the buffer is narrowed, and
@@ -1096,6 +1135,9 @@ thus restoring the same state of narrowing (or absence thereof) formerly
 in effect.  The state of narrowing is restored even in the event of an
 abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 Therefore, this construct is a clean way to narrow a buffer temporarily.
+
+This construct also saves and restores the narrowings that were set by
+@code{with-restriction} with a label argument (see below).
 
 The value returned by @code{save-restriction} is that returned by the
 last form in @var{body}, or @code{nil} if no body forms were given.
@@ -1145,4 +1187,66 @@ This is the contents of foo@point{}
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defspec
+
+@defspec with-restriction start end [:label label] body
+This special form saves the current bounds of the accessible portion
+of the buffer, sets the accessible portion to start at @var{start} and
+end at @var{end}, evaluates the @var{body} forms, and restores the
+saved bounds.  In that case it is equivalent to
+
+@example
+(save-restriction
+  (narrow-to-region start end)
+  body)
+@end example
+
+@cindex labeled narrowing
+@cindex labeled restriction
+When the optional argument @var{label}, a symbol, is present, the
+narrowing is @dfn{labeled}.  A labeled narrowing differs from a
+non-labeled one in several ways:
+
+@itemize @bullet
+@item
+During the evaluation of the @var{body} form, @code{narrow-to-region}
+and @code{widen} can be used only within the @var{start} and @var{end}
+limits.
+
+@item
+To lift the restriction introduced by @code{with-restriction} and gain
+access to other portions of the buffer, use @code{without-restriction}
+with the same @var{label} argument.  (Another way to gain access to
+other portions of the buffer is to use an indirect buffer
+(@pxref{Indirect Buffers}).)
+
+@item
+Labeled narrowings can be nested.
+
+@item
+Labeled narrowings can only be used in Lisp programs: they are never
+visible on display, and never interfere with narrowings set by the
+user.
+@end itemize
+
+If you use @code{with-restriction} with the optional @var{label}
+argument, we recommend documenting the @var{label} in the doc strings
+of the functions which use it, so that other Lisp programs your code
+calls could lift the labeled narrowing if and when it needs.
+@end defspec
+
+@defspec without-restriction [:label label] body
+This special form saves the current bounds of the accessible portion
+of the buffer, widens the buffer, evaluates the @var{body} forms, and
+restores the saved bounds.  In that case it is equivalent to
+
+@example
+(save-restriction
+  (widen)
+  body)
+@end example
+
+When the optional argument @var{label} is present, the narrowing set
+by @code{with-restriction} with the same @var{label} argument is
+lifted.
 @end defspec

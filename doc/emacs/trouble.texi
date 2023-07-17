@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -314,13 +314,35 @@ sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
 @end example
 
 @noindent
+On MS-Windows, the backtrace looks somewhat differently, for example:
+
+@example
+Backtrace:
+00007ff61166a12e
+00007ff611538be1
+00007ff611559601
+00007ff6116ce84a
+00007ff9b7977ff0
+@dots{}
+@end example
+
+@noindent
+Therefore, the filtering via @command{sed} is not required, and the
+command to show the source-code line number is
+
+@example
+ addr2line -C -f -i -p -e @var{bindir}/@var{emacs-binary} < @var{backtrace}
+@end example
+
+@noindent
 Here, @var{backtrace} is the name of a text file containing a copy of
-the backtrace, @var{bindir} is the name of the directory that
-contains the Emacs executable, and @var{emacs-binary} is the name of
-the Emacs executable file, normally @file{emacs} on GNU and Unix
-systems and @file{emacs.exe} on MS-Windows and MS-DOS@.  Omit the
-@option{-p} option if your version of @command{addr2line} is too old
-to have it.
+the backtrace (on MS-Windows, @file{emacs_backtrace.txt} in the
+directory where Emacs was started), @var{bindir} is the name of the
+directory that contains the Emacs executable, and @var{emacs-binary}
+is the name of the Emacs executable file, normally @file{emacs} on GNU
+and Unix systems and @file{emacs.exe} on MS-Windows and MS-DOS@.  Omit
+the @option{-p} option if your version of @command{addr2line} is too
+old to have it.
 
 @cindex core dump
   Optionally, Emacs can generate a @dfn{core dump} when it crashes, on
@@ -496,8 +518,43 @@ Customization}.
   If you think you have found a bug in Emacs, please report it.  We
 cannot promise to fix it, or always to agree that it is a bug, but we
 certainly want to hear about it.  The same applies for new features
-you would like to see added.  The following sections will help you to
-construct an effective bug report.
+you would like to see added.  This section will help you to determine
+whether you found a bug, and if so, construct an effective bug report.
+
+The general procedure when you find something that could be a bug is
+as follows:
+
+@itemize @bullet
+@item
+See if what you found is a known problem or a bug that was already
+reported and/or fixed.  @xref{Known Problems}, where you will find how
+to look for known problems and bugs.
+
+@item
+If you are unsure whether the behavior you see is a bug, see @ref{Bug
+Criteria}, which tells what we consider as clear bugs in Emacs.
+
+@item
+Once you decide you found a bug, see @ref{Understanding Bug
+Reporting}, which helps you in describing what you see in the most
+efficient manner, making our job of reproducing the issue and
+investigating it easier.
+
+@item
+Next, see @ref{Checklist, Checklist for Bug Reports}, where we
+describe in detail how to submit a bug report and what information to
+include in it.  In a nutshell, you submit a bug report via electronic
+mail using the Emacs command @code{report-emacs-bug}, which assists
+you in doing so.  Submitting a bug report starts the process of
+investigating and fixing the bug, where you will receive copies of
+email messages discussing the bug, in which we might ask you to
+provide more information, test possible fixes, etc.
+
+@item
+Finally, if you want to propose specific changes to Emacs, whether to
+fix a bug, add a new feature, or improve our documentation, please see
+@ref{Sending Patches}, for details about submitting such changes.
+@end itemize
 
 @menu
 * Known Problems::               How to read about known problems and bugs.
@@ -509,9 +566,10 @@ construct an effective bug report.
 
 @node Known Problems
 @subsection Reading Existing Bug Reports and Known Problems
+@cindex known bugs and problems
 
-  Before reporting a bug, if at all possible please check to see if it
-is already known about.  Indeed, it may already have been fixed in a
+  Before reporting a bug, if at all possible, please check to see if
+we already know about it.  Indeed, it may already have been fixed in a
 later release of Emacs, or in the development version.  Here is a list
 of the main places you can read about known issues:
 
@@ -519,20 +577,26 @@ of the main places you can read about known issues:
 @item
 The @file{etc/PROBLEMS} file; type @kbd{C-h C-p} to read it.  This
 file contains a list of particularly well-known issues that have been
-encountered in compiling, installing and running Emacs.  Often, there
-are suggestions for workarounds and solutions.
+encountered in compiling, installing and running Emacs, with special
+emphasis on issues caused by other software that cannot be easily
+solved in Emacs.  Often, you will find there suggestions for
+workarounds and solutions.
 
 @cindex bug tracker
+@cindex issue tracker
+@cindex search known bugs
 @item
-The GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Emacs bugs are
-filed in the tracker under the @samp{emacs} package.  The tracker
-records information about the status of each bug, the initial bug
-report, and the follow-up messages by the bug reporter and Emacs
-developers.  You can search for bugs by subject, severity, and other
-criteria.
+The GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Emacs bugs and
+issues are filed in the tracker under the @samp{emacs} package.  The
+tracker records information about the status of each bug, the initial
+bug report, and the follow-up messages by the bug reporter and Emacs
+developers who participate in discussing and fixing the bug.  You can
+search for bugs by subject, severity, and other criteria.  For more
+complex search criteria, use
+@url{https://debbugs.gnu.org/cgi/search.cgi}.
 
 @cindex debbugs package
-Instead of browsing the bug tracker as a webpage, you can browse it
+Instead of browsing the bug tracker as a web page, you can browse it
 from Emacs using the @code{debbugs} package, which can be downloaded
 via the Package Menu (@pxref{Packages}).  This package provides the
 command @kbd{M-x debbugs-gnu} to list bugs, and @kbd{M-x
@@ -558,14 +622,14 @@ used, and is mainly of historical interest.  At one time, it was used
 for bug reports in development (i.e., not yet released) versions of
 Emacs.  You can read the archives for 2003 to mid 2007 at
 @url{https://lists.gnu.org/r/emacs-pretest-bug/}.  Nowadays,
-it is an alias for @samp{bug-gnu-emacs}.
+email messages sent to this list are redirected to
+@samp{bug-gnu-emacs}.
 
 @item
 The @samp{emacs-devel} mailing list.  Sometimes people report bugs to
 this mailing list.  This is not the main purpose of the list, however,
 and it is much better to send bug reports to the bug list.  You should
 not feel obliged to read this list before reporting a bug.
-
 @end itemize
 
 
@@ -628,20 +692,21 @@ to begin by reporting them to the package developers.
 
 @node Understanding Bug Reporting
 @subsection Understanding Bug Reporting
-@cindex bug reporting
+@cindex bug reporting, principles
 @cindex report an Emacs bug, how to
 
-  When you decide that there is a bug, it is important to report it
+  When you decide that there is a bug, it is important to report it,
 and to report it in a way which is useful.  What is most useful is an
 exact description of what commands you type, starting with the shell
-command to run Emacs, until the problem happens.
+command to run Emacs, until the problem happens, and the effects
+produced by typing those commands.
 
   The most important principle in reporting a bug is to report
 @emph{facts}.  Hypotheses and verbal descriptions are no substitute
 for the detailed raw data.  Reporting the facts is straightforward,
 but many people strain to posit explanations and report them instead
 of the facts.  If the explanations are based on guesses about how
-Emacs is implemented, they will be useless; meanwhile, lacking the
+Emacs is implemented, they night not be useful; meanwhile, lacking the
 facts, we will have no real information about the bug.  If you want to
 actually @emph{debug} the problem, and report explanations that are
 more than guesses, that is useful---but please include the raw facts
@@ -661,19 +726,23 @@ problem.  There is no way we could guess that we should try visiting a
 file with a @samp{z} in its name.
 
   You should not even say ``visit a file'' instead of @kbd{C-x C-f}.
-Similarly, rather than saying ``if I have three characters on the
-line'', say ``after I type @kbd{@key{RET} A B C @key{RET} C-p}'', if
-that is the way you entered the text.
+That's because a file can be visited in more than one way, and there's
+no certainty that all of them reproduce the problem.  Similarly,
+rather than saying ``if I have three characters on the line'', say
+``after I type @kbd{@key{RET} A B C @key{RET} C-p}'', if that is the
+way you entered the text---that is, tell us about the text which in
+your case produced the problem.
 
   If possible, try quickly to reproduce the bug by invoking Emacs with
 @command{emacs -Q} (so that Emacs starts with no initial
 customizations; @pxref{Initial Options}), and repeating the steps that
 you took to trigger the bug.  If you can reproduce the bug this way,
-that rules out bugs in your personal customizations.  Then your bug
-report should begin by stating that you started Emacs with
-@command{emacs -Q}, followed by the exact sequence of steps for
-reproducing the bug.  If possible, inform us of the exact contents of
-any file that is needed to reproduce the bug.
+that rules out bugs in your personal customizations and makes the bug
+much easier to reproduce.  Then your bug report should begin by
+stating that you started Emacs with @command{emacs -Q}, followed by
+the exact sequence of steps for reproducing the bug.  If possible,
+inform us of the exact contents of any file that is needed to
+reproduce the bug.
 
   Some bugs are not reproducible from @command{emacs -Q}; some are not
 easily reproducible at all.  In that case, you should report what you
@@ -687,6 +756,7 @@ separate bug report for each.
 @subsection Checklist for Bug Reports
 @cindex checklist before reporting a bug
 @cindex bug reporting, checklist
+@cindex report bugs in Emacs
 
   Before reporting a bug, first try to see if the problem has already
 been reported (@pxref{Known Problems}).
@@ -706,7 +776,7 @@ information; you should still read and follow the guidelines below, so
 you can enter the other crucial information by hand before you send
 the message.  You may feel that some of the information inserted by
 @kbd{M-x report-emacs-bug} is not relevant, but unless you are
-absolutely sure it is best to leave it, so that the developers can
+absolutely sure, it is best to leave it, so that the developers can
 decide for themselves.
 
 When you have finished writing your report, type @kbd{C-c C-c} and it
@@ -721,24 +791,26 @@ If you cannot send mail from inside Emacs, you can copy the
 text of your report to your normal mail client (if your system
 supports it, you can type @kbd{C-c M-i} to have Emacs do this for you)
 and send it to that address.  Or you can simply send an email to that
-address describing the problem.
+address describing the problem, including the necessary information
+mentioned below.
 
 If you want to submit code to Emacs (to fix a problem or implement a
 new feature), the easiest way to do this is to send a patch to the
-Emacs issue tracker.  This is done with the @kbd{M-x
-submit-emacs-patch} command, and works much the same as when reporting
-bugs.
+Emacs issue tracker.  Use the @kbd{M-x submit-emacs-patch} command for
+that, which works much the same as when reporting bugs; @pxref{Sending
+Patches}.
 
 In any case, your report will be sent to the @samp{bug-gnu-emacs}
 mailing list, and stored in the GNU Bug Tracker at
 @url{https://debbugs.gnu.org}.  Please include a valid reply email
 address, in case we need to ask you for more information about your
 report.  Submissions are moderated, so there may be a delay before
-your report appears.
+your report actually appears on the tracker.
 
 You do not need to know how the GNU Bug Tracker works in order to
-report a bug, but if you want to, you can read the tracker's online
-documentation to see the various features you can use.
+report a bug, but if you want to, you can read the tracker's
+@uref{https://debbugs.gnu.org/Advanced.html, online documentation} to
+see the various features you can use.
 
 All mail sent to the @samp{bug-gnu-emacs} mailing list is also
 gatewayed to the @samp{gnu.emacs.bug} newsgroup.  The reverse is also
@@ -749,55 +821,43 @@ tracker.
 
 If your data is more than 500,000 bytes, please don't include it
 directly in the bug report; instead, offer to send it on request, or
-make it available online and say where.
+make it available online and say where.  Large attachments are best
+sent compressed.
 
 The GNU Bug Tracker will assign a bug number to your report; please
-use it in the following discussions.
+use it in the following discussions, keeping the bug address in the
+list of recipients, so that the bug discussion is recorded by the
+tracker.  The bug address will look like
+@samp{@var{nnnnn}@@debbugs.gnu.org}, where @var{nnnnn} is the bug
+number.
 
   To enable maintainers to investigate a bug, your report
 should include all these things:
 
 @itemize @bullet
 @item
-The version number of Emacs.  Without this, we won't know whether there is any
-point in looking for the bug in the current version of GNU Emacs.
+A description of what behavior you observe that you believe is
+incorrect.  For example, ``The Emacs process gets a fatal signal'', or,
+``The resulting text is as follows, which I think is wrong.''
 
-@findex emacs-version
-@kbd{M-x report-emacs-bug} includes this information automatically,
-but if you are not using that command for your report you can get the
-version number by typing @kbd{M-x emacs-version @key{RET}}.  If that
-command does not work, you probably have something other than GNU
-Emacs, so you will have to report the bug somewhere else.
+Of course, if the bug is that Emacs gets a fatal signal, then one can't
+miss it.  But if the bug is incorrect text, the maintainer might fail to
+notice what is wrong.  Why leave it to chance?
 
-@item
-The type of machine you are using, and the operating system name and
-version number (again, automatically included by @w{@kbd{M-x
-report-emacs-bug}}).  @w{@kbd{M-x emacs-version @key{RET}}} provides
-this information too.  Copy its output from the @file{*Messages*}
-buffer, so that you get it all and get it accurately, or use
-@w{@kbd{C-u M-x emacs-version @key{RET}}} to insert the version
-information into the current buffer.
+Even if the problem you experience is a fatal signal, you should still
+say so explicitly.  Suppose something strange is going on, such as, your
+copy of the source is out of sync, or you have encountered a bug in the
+C library on your system.  (This has happened!)  Your copy might crash
+and the copy here might not.  If you @emph{said} to expect a crash, then
+when Emacs here fails to crash, we would know that the bug was not
+happening.  If you don't say to expect a crash, then we would not know
+whether the bug was happening---we would not be able to draw any
+conclusion from our observations.
 
-@item
-The operands given to the @code{configure} command when Emacs was
-installed (automatically included by @kbd{M-x report-emacs-bug}).
+Usually, description of the behavior and of the way to reproduce the
+problem needs to specify one or more of the following aspects:
 
-@item
-A complete list of any modifications you have made to the Emacs source.
-(We may not have time to investigate the bug unless it happens in an
-unmodified Emacs.  But if you've made modifications and you don't tell
-us, you are sending us on a wild goose chase.)
-
-Be precise about these changes.  A description in English is not
-enough---send a unified context diff for them.
-
-Adding files of your own, or porting to another machine, is a
-modification of the source.
-
-@item
-Details of any other deviations from the standard procedure for installing
-GNU Emacs.
-
+@itemize @minus
 @item
 The complete text of any files needed to reproduce the bug.
 
@@ -818,78 +878,11 @@ customizations.
 @cindex dribble file
 @cindex logging keystrokes
 One way to record the input to Emacs precisely is to write a dribble
-file.  To start the file, use the @kbd{M-x open-dribble-file} command.
+file.  To start the file, use the command @w{@kbd{M-x open-dribble-file}}.
 From then on, Emacs copies all your input to the specified dribble
 file until the Emacs process is killed.  Be aware that sensitive
 information (such as passwords) may end up recorded in the dribble
 file.
-
-@item
-@findex open-termscript
-@cindex termscript file
-@vindex TERM@r{, environment variable, and display bugs}
-For possible display bugs on text-mode terminals, the terminal type
-(the value of environment variable @env{TERM}), the complete termcap
-entry for the terminal from @file{/etc/termcap} (since that file is
-not identical on all machines), and the output that Emacs actually
-sent to the terminal.
-
-The way to collect the terminal output is to execute the Lisp expression
-
-@example
-(open-termscript "~/termscript")
-@end example
-
-@noindent
-using @kbd{M-:} or from the @file{*scratch*} buffer just after
-starting Emacs.  From then on, Emacs copies all terminal output to the
-specified termscript file as well, until the Emacs process is killed.
-If the problem happens when Emacs starts up, put this expression into
-your Emacs initialization file so that the termscript file will be
-open when Emacs displays the screen for the first time.
-
-Be warned: it is often difficult, and sometimes impossible, to fix a
-terminal-dependent bug without access to a terminal of the type that
-stimulates the bug.
-
-@item
-If non-@acronym{ASCII} text or internationalization is relevant, the locale that
-was current when you started Emacs.  On GNU/Linux and Unix systems, or
-if you use a POSIX-style shell such as Bash, you can use this shell
-command to view the relevant values:
-
-@smallexample
-echo LC_ALL=$LC_ALL LC_COLLATE=$LC_COLLATE LC_CTYPE=$LC_CTYPE \
-  LC_MESSAGES=$LC_MESSAGES LC_TIME=$LC_TIME LANG=$LANG
-@end smallexample
-
-Alternatively, use the @command{locale} command, if your system has it,
-to display your locale settings.
-
-You can use the @kbd{M-!} command to execute these commands from
-Emacs, and then copy the output from the @file{*Messages*} buffer into
-the bug report.  Alternatively, @kbd{M-x getenv @key{RET} LC_ALL
-@key{RET}} will display the value of @code{LC_ALL} in the echo area, and
-you can copy its output from the @file{*Messages*} buffer.
-
-@item
-A description of what behavior you observe that you believe is
-incorrect.  For example, ``The Emacs process gets a fatal signal'', or,
-``The resulting text is as follows, which I think is wrong.''
-
-Of course, if the bug is that Emacs gets a fatal signal, then one can't
-miss it.  But if the bug is incorrect text, the maintainer might fail to
-notice what is wrong.  Why leave it to chance?
-
-Even if the problem you experience is a fatal signal, you should still
-say so explicitly.  Suppose something strange is going on, such as, your
-copy of the source is out of sync, or you have encountered a bug in the
-C library on your system.  (This has happened!)  Your copy might crash
-and the copy here might not.  If you @emph{said} to expect a crash, then
-when Emacs here fails to crash, we would know that the bug was not
-happening.  If you don't say to expect a crash, then we would not know
-whether the bug was happening---we would not be able to draw any
-conclusion from our observations.
 
 @item
 If the bug is that the Emacs Manual or the Emacs Lisp Reference Manual
@@ -905,33 +898,6 @@ backtrace showing how the Lisp program in Emacs arrived at the error.
 To get the error message text accurately, copy it from the
 @file{*Messages*} buffer into the bug report.  Copy all of it, not just
 part.
-
-@findex toggle-debug-on-error
-@pindex Edebug
-To make a backtrace for the error, use @kbd{M-x toggle-debug-on-error}
-before the error happens (that is to say, you must give that command
-and then make the bug happen).  This causes the error to start the Lisp
-debugger, which shows you a backtrace.  Copy the text of the
-debugger's backtrace into the bug report.  @xref{Edebug,, Edebug,
-elisp, the Emacs Lisp Reference Manual}, for information on debugging
-Emacs Lisp programs with the Edebug package.
-
-This use of the debugger is possible only if you know how to make the
-bug happen again.  If you can't make it happen again, at least copy
-the whole error message.
-
-@vindex debug-on-quit
-If Emacs appears to be stuck in an infinite loop or in a very long
-operation, typing @kbd{C-g} with the variable @code{debug-on-quit}
-non-@code{nil} will start the Lisp debugger and show a backtrace.
-This backtrace is useful for debugging such long loops, so if you can
-produce it, copy it into the bug report.
-
-@vindex debug-on-event
-If you cannot get Emacs to respond to @kbd{C-g} (e.g., because
-@code{inhibit-quit} is set), then you can try sending the signal
-specified by @code{debug-on-event} (default SIGUSR2) from outside
-Emacs to cause it to enter the debugger.
 
 @item
 Check whether any programs you have loaded into the Lisp world,
@@ -960,65 +926,89 @@ code is in your version at a given line number, and we could not be
 certain.
 
 @item
-Additional information from a C debugger such as GDB might enable
-someone to find a problem on a machine which he does not have available.
-If you don't know how to use GDB, please read the GDB manual---it is not
-very long, and using GDB is easy.  You can find the GDB distribution,
-including the GDB manual in online form, in most of the same places you
-can find the Emacs distribution.  To run Emacs under GDB, you should
-switch to the @file{src} subdirectory in which Emacs was compiled, then
-do @samp{gdb emacs}.  It is important for the directory @file{src} to be
-current so that GDB will read the @file{.gdbinit} file in this
-directory.
+@findex open-termscript
+@cindex termscript file
+@vindex TERM@r{, environment variable, and display bugs}
+For possible display bugs on text-mode terminals, the terminal type
+(the value of environment variable @env{TERM}), the complete termcap
+entry for the terminal from @file{/etc/termcap} (since that file is
+not identical on all machines), and the output that Emacs actually
+sent to the terminal.
 
-However, you need to think when you collect the additional information
-if you want it to show what causes the bug.
+The way to collect the terminal output is to invoke the command
+@kbd{M-x open-termscript} just after starting Emacs; it will prompt
+you for the name of the file where to record all terminal output until
+the Emacs process is killed.  If the problem happens when Emacs starts
+up, put the Lisp expression
 
-@cindex backtrace for bug reports
-For example, many people send just a C-level backtrace, but that is
-not very useful by itself.  A simple backtrace with arguments often
-conveys little about what is happening inside GNU Emacs, because most
-of the arguments listed in the backtrace are pointers to Lisp objects.
-The numeric values of these pointers have no significance whatever;
-all that matters is the contents of the objects they point to (and
-most of the contents are themselves pointers).
+@example
+(open-termscript "~/termscript")
+@end example
 
-@findex debug_print
-To provide useful information, you need to show the values of Lisp
-objects in Lisp notation.  Do this for each variable which is a Lisp
-object, in several stack frames near the bottom of the stack.  Look at
-the source to see which variables are Lisp objects, because the debugger
-thinks of them as integers.
+@noindent
+into your Emacs initialization file so that the termscript file will
+be open when Emacs displays the screen for the first time.
 
-To show a variable's value in Lisp syntax, first print its value, then
-use the user-defined GDB command @code{pr} to print the Lisp object in
-Lisp syntax.  (If you must use another debugger, call the function
-@code{debug_print} with the object as an argument.)  The @code{pr}
-command is defined by the file @file{.gdbinit}, and it works only if you
-are debugging a running process (not with a core dump).
+Be warned: it is often difficult, and sometimes impossible, to fix a
+terminal-dependent bug without access to a terminal of the type that
+stimulates the bug.
+@end itemize
 
-To make Lisp errors stop Emacs and return to GDB, put a breakpoint at
-@code{Fsignal}.
+@item
+The version number of Emacs.  Without this, we won't know whether there is any
+point in looking for the bug in the current version of GNU Emacs.
 
-For a short listing of Lisp functions running, type the GDB
-command @code{xbacktrace}.
+@findex emacs-version
+@kbd{M-x report-emacs-bug} includes this information automatically,
+but if you are not using that command for your report you can get the
+version number by typing @kbd{M-x emacs-version @key{RET}}.  If that
+command does not work, you probably have something other than GNU
+Emacs, so you will have to report the bug somewhere else.
 
-The file @file{.gdbinit} defines several other commands that are useful
-for examining the data types and contents of Lisp objects.  Their names
-begin with @samp{x}.  These commands work at a lower level than
-@code{pr}, and are less convenient, but they may work even when
-@code{pr} does not, such as when debugging a core dump or when Emacs has
-had a fatal signal.
+@item
+The type of machine you are using, and the operating system name and
+version number (again, automatically included by @w{@kbd{M-x
+report-emacs-bug}}).  @w{@kbd{M-x emacs-version @key{RET}}} provides
+this information too.  Copy its output from the @file{*Messages*}
+buffer, so that you get it all and get it accurately, or use
+@w{@kbd{C-u M-x emacs-version @key{RET}}} to insert the version
+information into the current buffer.
 
-@cindex debugging Emacs, tricks and techniques
-More detailed advice and other useful techniques for debugging Emacs
-are available in the file @file{etc/DEBUG} in the Emacs distribution.
-That file also includes instructions for investigating problems
-whereby Emacs stops responding (many people assume that Emacs is
-``hung'', whereas in fact it might be in an infinite loop).
+@item
+The command-line arguments given to the @code{configure} command when
+Emacs was built (automatically included by @kbd{M-x
+report-emacs-bug}).
 
-To find the file @file{etc/DEBUG} in your Emacs installation, use the
-directory name stored in the variable @code{data-directory}.
+@item
+A complete list of any modifications you have made to the Emacs source.
+(We may not have time to investigate the bug unless it happens in an
+unmodified Emacs.  But if you've made modifications and you don't tell
+us, you are sending us on a wild goose chase.)
+
+Be precise about these changes.  A description in English is not
+enough---send a unified context diff for them.
+
+Adding files of your own, or porting to another machine, is a
+modification of the source.
+
+@item
+Details of any other deviations from the standard procedure for installing
+GNU Emacs.
+
+@item
+If non-@acronym{ASCII} text or internationalization is relevant, the locale that
+was current when you started Emacs.   This is automatically included by @kbd{M-x
+report-emacs-bug}; alternatively, on GNU/Linux and Unix systems, or
+if you use a POSIX-style shell such as Bash, you can use this shell
+command to view the relevant values:
+
+@smallexample
+echo LC_ALL=$LC_ALL LC_COLLATE=$LC_COLLATE LC_CTYPE=$LC_CTYPE \
+  LC_MESSAGES=$LC_MESSAGES LC_TIME=$LC_TIME LANG=$LANG
+@end smallexample
+
+You can also use the @command{locale} command, if your system has it,
+to display your locale settings.
 @end itemize
 
 Here are some things that are not necessary in a bug report:
@@ -1075,23 +1065,121 @@ objects with @code{pr} (see above).
 A patch for the bug.
 
 A patch for the bug is useful if it is a good one.  But don't omit the
-other information that a bug report needs, such as the test case, on the
-assumption that a patch is sufficient.  We might see problems with your
-patch and decide to fix the problem another way, or we might not
+other information that a bug report needs, such as the test case, on
+the assumption that a patch is sufficient.  We might see problems with
+your patch and decide to fix the problem another way, or we might not
 understand it at all.  And if we can't understand what bug you are
 trying to fix, or why your patch should be an improvement, we mustn't
-install it.
-
-@ifnottex
-@xref{Sending Patches}, for guidelines on how to make it easy for us to
-understand and install your patches.
-@end ifnottex
+install it.  @xref{Sending Patches}, for guidelines on how to make it
+easy for us to understand and install your patches.
 
 @item
 A guess about what the bug is or what it depends on.
 
 Such guesses are usually wrong.  Even experts can't guess right about
 such things without first using the debugger to find the facts.
+@end itemize
+
+If you are willing to debug Emacs and provide additional information
+about the bug, here is some useful advice:
+
+@findex toggle-debug-on-error
+@pindex Edebug
+@itemize
+@item
+If the bug manifests itself as an error message, try providing a Lisp
+backtrace for the error.  To make a backtrace for the error, use
+@kbd{M-x toggle-debug-on-error} before the error happens (that is to
+say, you must give that command and then make the bug happen).  This
+causes the error to start the Lisp debugger, which shows you a
+backtrace.  Copy the text of the debugger's backtrace into the bug
+report.  (The backtrace is more detailed if you load the relevant Lisp
+@file{*.el} source files before triggering the error, so do that if
+you know how to find and load those files.)
+
+To debug the error, we suggest using Edebug.  @xref{Edebug,, Edebug,
+elisp, the Emacs Lisp Reference Manual}, for information on debugging
+Emacs Lisp programs with the Edebug package.
+
+This use of the debugger is possible only if you know how to make the
+bug happen again.  If you can't make it happen again, at least copy
+the whole error message.
+
+@vindex debug-on-quit
+@item
+If Emacs appears to be stuck in an infinite loop or in a very long
+operation, typing @kbd{C-g} with the variable @code{debug-on-quit}
+non-@code{nil} will start the Lisp debugger and show a backtrace.
+This backtrace is useful for debugging such long loops, so if you can
+produce it, copy it into the bug report.
+
+@vindex debug-on-event
+If you cannot get Emacs to respond to @kbd{C-g} (e.g., because
+@code{inhibit-quit} is set), then you can try sending the signal
+specified by @code{debug-on-event} (default SIGUSR2) from outside
+Emacs to cause it to enter the debugger.
+
+@item
+Additional information from a C debugger such as GDB might enable
+someone to find a problem on a machine which he does not have available.
+If you don't know how to use GDB, please read the GDB manual---it is not
+very long, and using GDB is easy.  You can find the GDB distribution,
+including the GDB manual in online form, in most of the same places you
+can find the Emacs distribution.  To run Emacs under GDB, you should
+switch to the @file{src} subdirectory in which Emacs was compiled, then
+type @kbd{gdb ./emacs}.  It is important for the directory @file{src} to be
+current so that GDB will read the @file{.gdbinit} file in this
+directory.  (You can also tell GDB to read that file from inside GDB,
+by typing @kbd{source ./.gdbinit}.)
+
+However, you need to think when you collect the additional information
+if you want it to show what causes the bug.
+
+@cindex backtrace for bug reports
+For example, many people send just a C-level backtrace, but that is
+not very useful by itself.  A simple backtrace with arguments often
+conveys little about what is happening inside GNU Emacs, because most
+of the arguments listed in the backtrace are pointers to Lisp objects.
+The numeric values of these pointers have no significance whatever;
+all that matters is the contents of the objects they point to (and
+most of the contents are themselves pointers).
+
+@findex debug_print
+To provide useful information, you need to show the values of Lisp
+objects in Lisp notation.  Do this for each variable which is a Lisp
+object, in several stack frames near the bottom of the stack.  Look at
+the source to see which variables are Lisp objects, because the debugger
+thinks of them as integers.
+
+To show a variable's value in Lisp syntax, first print its value, then
+use the user-defined GDB command @code{pr} to print the Lisp object in
+Lisp syntax.  (If you must use another debugger, call the function
+@code{debug_print} with the object as an argument.)  The @code{pr}
+command is defined by the file @file{.gdbinit}, and it works only if you
+are debugging a running process (not with a core dump).
+
+To make Lisp errors stop Emacs and return to GDB, put a breakpoint at
+@code{Fsignal}.
+
+For a backtrace of Lisp functions running, type the GDB command
+@code{xbacktrace}.
+
+The file @file{.gdbinit} defines several other commands that are useful
+for examining the data types and contents of Lisp objects.  Their names
+begin with @samp{x}.  These commands work at a lower level than
+@code{pr}, and are less convenient, but they may work even when
+@code{pr} does not, such as when debugging a core dump or when Emacs has
+had a fatal signal.
+
+@cindex debugging Emacs, tricks and techniques
+More detailed advice and other useful techniques for debugging Emacs
+are available in the file @file{etc/DEBUG} in the Emacs distribution.
+That file also includes instructions for investigating problems
+whereby Emacs stops responding (many people assume that Emacs is
+``hung'', whereas in fact it might be in an infinite loop).
+
+To find the file @file{etc/DEBUG} in your Emacs installation, use the
+directory name stored in the variable @code{data-directory}.
 @end itemize
 
 @node Sending Patches
@@ -1108,26 +1196,29 @@ work in the best of circumstances, and we can't keep up unless you do
 your best to help.
 
 Every patch must have several pieces of information before we
-can properly evaluate it.
+can properly evaluate it.  They are described below.
 
-When you have all these pieces, bundle them up in a mail message and
-send it to the developers.  Sending it to
-@email{bug-gnu-emacs@@gnu.org} (which is the bug/feature list) is
-recommended, because that list is coupled to a tracking system that
-makes it easier to locate patches.  If your patch is not complete and
-you think it needs more discussion, you might want to send it to
-@email{emacs-devel@@gnu.org} instead.  If you revise your patch,
-send it as a followup to the initial topic.
+When you have all these pieces, use the @kbd{M-x submit-emacs-patch}
+command to send the patch.  The command will prompt you for the
+Subject of the patch and a patch file.  It will then create and
+display a Message mode buffer with the patch file as an attachment,
+display the buffer, and let you explain more about the patch and add
+any other information as requested below.  When you are done, type
+@kbd{C-c C-c} to send the patch via email to the developers.  It will
+be sent to the GNU Bug Tracker at @url{https://debbugs.gnu.org}.  The
+tracker will assign a number to your submission, just like it does
+with bug reports.  The developers will usually respond, perhaps asking
+you for more details or any additional information, so be sure to
+include a valid reply email address.
 
-We prefer to get the patches as plain text, either inline (be careful
-your mail client does not change line breaks) or as MIME attachments.
+Here's what we ask you to provide as part of your patch submissions:
 
 @itemize @bullet
 @item
-Include an explanation with your changes of what problem they fix or what
-improvement they bring about.
+An explanation of what problem you are fixing or what improvement will
+the patches bring about:
 
-@itemize
+@itemize @minus
 @item
 For a fix for an existing bug, it is
 best to reply to the relevant discussion on the @samp{bug-gnu-emacs}
@@ -1140,26 +1231,28 @@ implementation.
 
 @item
 For a new bug, include a proper bug report for the problem you think
-you have fixed.  We need to convince ourselves that the change is
-right before installing it.  Even if it is correct, we might have
-trouble understanding it if we don't have a way to reproduce the
-problem.
+you have fixed; @pxref{Checklist, Checklist for Bug Reports}.  We need
+to convince ourselves that the change is right before installing it.
+Even if it is correct, we might have trouble understanding it if we
+don't have a way to reproduce the problem it tries to fix.
 @end itemize
 
 @item
-Include all the comments that are appropriate to help people reading the
-source in the future understand why this change was needed.
+Include in your code changes all the comments that are appropriate to
+help people reading the source in the future understand why this
+change was needed.
 
 @item
 Don't mix together changes made for different reasons.
 Send them @emph{individually}.
 
-If you make two changes for separate reasons, then we might not want to
-install them both.  We might want to install just one.  If you send them
-all jumbled together in a single set of diffs, we have to do extra work
-to disentangle them---to figure out which parts of the change serve
-which purpose.  If we don't have time for this, we might have to ignore
-your changes entirely.
+If you make two changes for separate reasons, then we might not want
+to install them both.  We might want to install just one, or install
+each one in a different versions of Emacs.  If you send them all
+jumbled together in a single set of diffs, we have to do extra work to
+disentangle them---to figure out which parts of the change serve which
+purpose.  If we don't have time for this, we might have to postpone
+inclusion of your patches for a long time.
 
 If you send each change as soon as you have written it, with its own
 explanation, then two changes never get tangled up, and we can consider
@@ -1176,52 +1269,46 @@ right away.  That gives us the option of installing it immediately if it
 is important.
 
 @item
-The patch itself.
+The patch itself.  This can be produced in one of the following ways:
 
-Use @samp{diff -u} to make your diffs.  Diffs without context are hard
-to install reliably.  More than that, they are hard to study; we must
-always study a patch to decide whether we want to install it.  Context
-format is better than contextless diffs, but we prefer the unified
-format.
-
-If you have GNU diff, use @samp{diff -u -F'^[_a-zA-Z0-9$]\+ *('} when
-making diffs of C code.  This shows the name of the function that each
-change occurs in.
-
+@itemize @minus
+@item
 If you are using the Emacs repository, make sure your copy is
 up-to-date (e.g., with @code{git pull}).  You can commit your changes
 to a private branch and generate a patch from the master version by
-using @code{git format-patch master}. Or you can leave your changes
-uncommitted and use @code{git diff}.
+using @code{git format-patch master}.  (This is the preferred method,
+as it makes our job of applying the patch easier.)  Or you can leave
+your changes uncommitted and use @code{git diff}, as described below.
 
 @item
-Avoid any ambiguity as to which is the old version and which is the new.
-Please make the old version the first argument to diff, and the new
-version the second argument.  And please give one version or the other a
-name that indicates whether it is the old version or your new changed
-one.
+Use @kbd{diff -u} to make your diffs.  If you have GNU diff, use
+@w{@kbd{diff -u -F'^[_a-zA-Z0-9$]\+ *('}} when making diffs of C code.
+This shows the name of the function that each change occurs in.
+
+When producing the diffs, avoid any ambiguity as to which is the old
+version and which is the new.  Please make the old version the first
+argument to diff, and the new version the second argument.  And please
+give one version or the other a name that indicates whether it is the
+old version or your new changed one.
+@end itemize
 
 @item
 Write the commit log entries for your changes.  This is both to save us
 the extra work of writing them, and to help explain your changes so we
 can understand them.
 
-The purpose of the commit log is to show people where to find what was
-changed.  So you need to be specific about what functions you changed;
-in large functions, it's often helpful to indicate where within the
-function the change was.
+The purpose of the commit log is to explain the rationale of the
+changes, the way the modified code solves whatever problems your patch
+is trying to fix, and also show people where to find what was changed.
+So you need to be specific about what functions you changed and why.
+For the details about our style and requirements for good commit log
+messages, please see the ``Commit messages'' section of the file
+@file{CONTRIBUTE} in the Emacs source tree.
 
-On the other hand, once you have shown people where to find the change,
-you need not explain its purpose in the change log.  Thus, if you add a
-new function, all you need to say about it is that it is new.  If you
-feel that the purpose needs explaining, it probably does---but put the
-explanation in comments in the code.  It will be more useful there.
-
-Please look at the commit log entries of recent commits to see what
-sorts of information to put in, and to learn the style that we use.
-Note that, unlike some other projects, we do require commit logs for
-documentation, i.e., Texinfo files.
-@xref{Change Log},
+Please also look at the commit log entries of recent commits to see
+what sorts of information to put in, and to learn the style that we
+use.  Note that, unlike some other projects, we do require commit logs
+for documentation, i.e., Texinfo files.  @xref{Change Log},
 @ifset WWW_GNU_ORG
 see
 @url{https://www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html},
@@ -1232,7 +1319,7 @@ Change Log Concepts, standards, GNU Coding Standards}.
 @item
 When you write the fix, keep in mind that we can't install a change that
 would break other systems.  Please think about what effect your change
-will have if compiled on another type of system.
+will have if compiled and/or used on another type of system.
 
 Sometimes people send fixes that @emph{might} be an improvement in
 general---but it is hard to be sure of this.  It's hard to install
@@ -1240,9 +1327,10 @@ such changes because we have to study them very carefully.  Of course,
 a good explanation of the reasoning by which you concluded the change
 was correct can help convince us.
 
-The safest changes are changes to the configuration files for a
-particular machine.  These are safe because they can't create new bugs
-on other machines.
+The safest changes are changes to the files or portions of files that
+are only used for a particular machine or a particular system.  These
+are safe because they can't create new bugs on other machines or
+systems.
 
 Please help us keep up with the workload by designing the patch in a
 form that is clearly safe to install.
@@ -1259,7 +1347,7 @@ There are many ways to contribute to Emacs:
 
 @itemize
 @item
-find and report bugs; @xref{Bugs}.
+find and report bugs; @pxref{Bugs}.
 
 @item
 answer questions on the Emacs user mailing list
@@ -1326,15 +1414,15 @@ before you start; it might be possible to suggest ways to make your
 extension fit in better with the rest of Emacs.
 
 When implementing a feature, please follow the Emacs coding standards;
-@xref{Coding Standards}. In addition, non-trivial contributions
-require a copyright assignment to the FSF; @xref{Copyright Assignment}.
+@pxref{Coding Standards}.  In addition, substantial contributions
+require a copyright assignment to the FSF; @pxref{Copyright Assignment}.
 
 The development version of Emacs can be downloaded from the
 repository where it is actively maintained by a group of developers.
 See the Emacs project page
 @url{https://savannah.gnu.org/projects/emacs/} for access details.
 
-It is important to write your patch based on the current working
+It is important to write your patches based on the current working
 version.  If you start from an older version, your patch may be
 outdated (so that maintainers will have a hard time applying it), or
 changes in Emacs may have made your patch unnecessary.  After you have
@@ -1397,7 +1485,7 @@ the Emacs Lisp Reference Manual
 
 @node Coding Standards
 @subsection Coding Standards
-@cindex coding standards
+@cindex coding standards for Emacs submissions
 
 Contributed code should follow the GNU Coding Standards
 @url{https://www.gnu.org/prep/standards/}. This may also be available
@@ -1433,10 +1521,6 @@ to be included in Emacs.
 Remove all trailing whitespace in all source and text files.
 
 @item
-Emacs has no convention on whether to use tabs in source code; please
-don't change whitespace in the files you edit.
-
-@item
 Use @code{?\s} instead of @code{? } in Lisp code for a space character.
 
 @end itemize
@@ -1455,7 +1539,7 @@ packages stored in GNU ELPA, we require that the copyright be assigned
 to the FSF@.  For the reasons behind this, see
 @url{https://www.gnu.org/licenses/why-assign.html}.
 
-Copyright assignment is a simple process.  Residents of some countries
+Copyright assignment is a simple process.  Residents of many countries
 can do it entirely electronically.  We can help you get started,
 including sending you the forms you should fill, and answer any
 questions you may have (or point you to the people with the answers),

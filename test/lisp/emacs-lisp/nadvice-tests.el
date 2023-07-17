@@ -1,6 +1,6 @@
 ;;; nadvice-tests.el --- Test suite for the new advice thingy.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,6 +29,7 @@
   (advice-add 'sm-test1 :around (lambda (f y) (* (funcall f y) 2)))
   (advice-remove 'sm-test1 (lambda (f y) (* (funcall f y) 5)))
   (defun sm-test1 (x) (+ x 4))
+  (declare-function sm-test1 nil)
   (should (equal (sm-test1 6) 20))
   (advice-remove 'sm-test1 (lambda (f y) (* (funcall f y) 2)))
   (should (equal (sm-test1 6) 10))
@@ -62,6 +63,7 @@
 (ert-deftest advice-tests-advice ()
   "Test advice code."
   (defun sm-test2 (x) (+ x 4))
+  (declare-function sm-test2 nil)
   (should (equal (sm-test2 6) 10))
   (defadvice sm-test2 (around sm-test activate)
     ad-do-it (setq ad-return-value (* ad-return-value 5)))
@@ -94,6 +96,7 @@
 (ert-deftest advice-tests-combination ()
   "Combining old style and new style advices."
   (defun sm-test5 (x) (+ x 4))
+  (declare-function sm-test5 nil)
   (should (equal (sm-test5 6) 10))
   (advice-add 'sm-test5 :around (lambda (f y) (* (funcall f y) 5)))
   (should (equal (sm-test5 6) 50))
@@ -112,22 +115,23 @@
 (ert-deftest advice-test-called-interactively-p ()
   "Check interaction between advice and called-interactively-p."
   (defun sm-test7 (&optional x) (interactive) (+ (or x 7) 4))
+  (declare-function sm-test7 nil)
   (advice-add 'sm-test7 :around
               (lambda (f &rest args)
-                (list (cons 1 (called-interactively-p)) (apply f args))))
+                (list (cons 1 (called-interactively-p 'any)) (apply f args))))
   (should (equal (sm-test7) '((1 . nil) 11)))
   (should (equal (call-interactively 'sm-test7) '((1 . t) 11)))
   (let ((smi 7))
     (advice-add 'sm-test7 :before
-                (lambda (&rest args)
-                  (setq smi (called-interactively-p))))
+                (lambda (&rest _args)
+                  (setq smi (called-interactively-p 'any))))
     (should (equal (list (sm-test7) smi)
                    '(((1 . nil) 11) nil)))
     (should (equal (list (call-interactively 'sm-test7) smi)
                    '(((1 . t) 11) t))))
   (advice-add 'sm-test7 :around
               (lambda (f &rest args)
-                (cons (cons 2 (called-interactively-p)) (apply f args))))
+                (cons (cons 2 (called-interactively-p 'any)) (apply f args))))
   (should (equal (call-interactively 'sm-test7) '((2 . t) (1 . t) 11))))
 
 (ert-deftest advice-test-called-interactively-p-around ()
@@ -136,24 +140,28 @@
 This tests the currently broken case of the innermost advice to a
 function being an around advice."
   :expected-result :failed
-  (defun sm-test7.2 () (interactive) (cons 1 (called-interactively-p)))
+  (defun sm-test7.2 () (interactive) (cons 1 (called-interactively-p 'any)))
+  (declare-function sm-test7.2 nil)
   (advice-add 'sm-test7.2 :around
               (lambda (f &rest args)
-                (list (cons 1 (called-interactively-p)) (apply f args))))
+                (list (cons 1 (called-interactively-p 'any)) (apply f args))))
   (should (equal (sm-test7.2) '((1 . nil) (1 . nil))))
   (should (equal (call-interactively 'sm-test7.2) '((1 . t) (1 . t)))))
 
 (ert-deftest advice-test-called-interactively-p-filter-args ()
   "Check interaction between filter-args advice and called-interactively-p."
   :expected-result :failed
-  (defun sm-test7.3 () (interactive) (cons 1 (called-interactively-p)))
+  (defun sm-test7.3 () (interactive) (cons 1 (called-interactively-p 'any)))
+  (declare-function sm-test7.3 nil)
   (advice-add 'sm-test7.3 :filter-args #'list)
   (should (equal (sm-test7.3) '(1 . nil)))
   (should (equal (call-interactively 'sm-test7.3) '(1 . t))))
 
 (ert-deftest advice-test-call-interactively ()
   "Check interaction between advice on call-interactively and called-interactively-p."
-  (let ((sm-test7.4 (lambda () (interactive) (cons 1 (called-interactively-p))))
+  (let ((sm-test7.4 (lambda ()
+                      (interactive)
+                      (cons 1 (called-interactively-p 'any))))
         (old (symbol-function 'call-interactively)))
     (unwind-protect
         (progn
@@ -213,8 +221,16 @@ function being an around advice."
     (should (equal (cl-prin1-to-string (car x))
                    "#f(advice first :before #f(advice car :after cdr))"))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+(ert-deftest advice-test-bug61179 ()
+  (let* ((magic 42)
+         (ad (lambda (&rest _)
+               (interactive (lambda (is)
+                              (cons magic (advice-eval-interactive-spec is))))
+               nil))
+         (sym (make-symbol "adtest")))
+    (defalias sym (lambda (&rest args) (interactive (list 'main)) args))
+    (should (equal (call-interactively sym) '(main)))
+    (advice-add sym :before ad)
+    (should (equal (call-interactively sym) '(42 main)))))
 
 ;;; nadvice-tests.el ends here

@@ -1,5 +1,5 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
-@setfilename ../info/tramp
+@setfilename ../../info/tramp.info
 @c %**start of header
 @include docstyle.texi
 @c In the Tramp GIT, the version number and the bug report address
@@ -12,7 +12,7 @@
 @footnotestyle end
 
 @copying
-Copyright @copyright{} 1999--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -142,6 +142,7 @@ on the remote host.
 * Ssh setup::                   Ssh setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
+* Kubernetes setup::            Kubernetes setup hints.
 * Auto-save File Lock and Backup::
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
@@ -162,6 +163,7 @@ Using @value{tramp}
 
 How file names, directories and localnames are mangled and managed
 
+* Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Breaking a localname into its components.
 * External packages::           Integration with external Lisp packages.
 
@@ -289,11 +291,14 @@ accumulated in the buffer, then decodes that output to produce the
 file's contents.
 
 For external transfers, @value{tramp} sends a command as follows:
+
 @example
-$ rcp user@@host:/path/to/remote/file /tmp/tramp.4711
+$ scp user@@host:/path/to/remote/file <TMP>/tramp.4711
 @end example
-@value{tramp} reads the local temporary file @file{/tmp/tramp.4711}
-into a buffer, and then deletes the temporary file.
+
+@value{tramp} reads the local temporary file @file{<TMP>/tramp.4711}
+into a buffer, and then deletes the temporary
+file.@footnote{@ref{Temporary directory}}
 
 @item
 Edit, modify, change the buffer contents as normal, and then save the
@@ -361,7 +366,7 @@ Another way is to follow the terminal session below:
 @example
 @group
 $ cd ~/emacs
-$ git clone git://git.savannah.gnu.org/tramp.git
+$ git clone https://git.savannah.gnu.org/git/tramp.git
 @end group
 @end example
 
@@ -700,6 +705,7 @@ on the remote host.
 * Ssh setup::                   Ssh setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
+* Kubernetes setup::            Kubernetes setup hints.
 * Auto-save File Lock and Backup::
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
@@ -921,9 +927,31 @@ if desired.
 @cindex method @option{kubernetes}
 @cindex @option{kubernetes} method
 
-Integration for containers in Kubernetes pods.  The host name is a pod
-name returned by @samp{kubectl get pods}.  The first container in a
-pod is used.
+Integration for containers in Kubernetes pods.  The host name is
+@samp{@var{pod}}, or @samp{@var{container}.@var{pod}} if an
+explicit container name shall be used.  Otherwise, the first container
+in a pod is used.
+
+This method does not support user names.
+
+@item @option{toolbox}
+@cindex method @option{toolbox}
+@cindex @option{toolbox} method
+
+Integration of Toolbox system containers.  The host name may be either
+a container's name or ID, as returned by @samp{toolbox list -c}.
+Without a host name, the default Toolbox container for the host will
+be used.
+
+This method does not support user names.
+
+@item @option{flatpak}
+@cindex method @option{flatpak}
+@cindex @option{flatpak} method
+
+Integration of Flatpak sandboxes.  The host name may be either an
+application ID, a sandbox instance ID, or a PID, as returned by
+@samp{flatpak ps}.
 
 This method does not support user names.
 
@@ -1236,6 +1264,7 @@ syntax requires a leading volume (share) name, for example:
 
 @item @option{dav}
 @item @option{davs}
+@cindex WebDAV
 @cindex method @option{dav}
 @cindex method @option{davs}
 @cindex @option{dav} method
@@ -1373,14 +1402,6 @@ User names are part of the @command{rclone} configuration, and not
 needed in the remote file name.  If a user name is contained in the
 remote file name, it is ignored.
 
-Internally, @value{tramp} mounts the remote system storage at location
-@file{/tmp/tramp.rclone.storage}, with @file{storage} being the name
-of the configured system storage.
-
-The mount point and optional flags to the different @option{rclone}
-operations could be passed as connection properties, @xref{Setup of
-rclone method}.
-
 Access via @option{rclone} is slow.  If you have an alternative method
 for accessing the system storage, you should use it.
 @ref{GVFS-based methods} for example, methods @option{gdrive} and
@@ -1492,8 +1513,10 @@ access and it has the most reasonable security protocols, use
 @end example
 
 If @option{ssh} is unavailable for whatever reason, look for other
-obvious options.  For MS Windows, try the @option{plink} method.  For
-Kerberos, try @option{krlogin}.
+obvious options.  For MS Windows, try the @option{plink}
+method@footnote{This shouldn't be needed with recent @code{OpenSSH}
+versions for MS Windows.  Use method @option{sshx}.}.  For Kerberos,
+try @option{krlogin}.
 
 For editing local files as @option{su} or @option{sudo} methods, try
 the shortened syntax of @samp{root}:
@@ -2192,6 +2215,7 @@ to a remote home directory, like @option{adb}, @option{rclone} and
 The temporary directory on the remote host.  If not specified, the
 default value is @t{"/data/local/tmp"} for the @option{adb} method,
 @t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
+@ref{Temporary directory}.
 
 @item @t{"direct-async-process"}
 
@@ -2219,8 +2243,8 @@ this property has no effect.
 
 The directory file name an @acronym{FUSE}-based file system is mounted
 on.  The default value of this property is
-@t{"/tmp/tramp.method.user@@host#port"} (not specified in
-@code{tramp-methods}).
+@t{"<TMP>/tramp.method.user@@host#port"} (not specified in
+@code{tramp-methods}).  @ref{Temporary directory}.
 
 @item @t{"mount-args"}@*
 @t{"copyto-args"}@*
@@ -2369,10 +2393,11 @@ This uses also the settings in @code{tramp-sh-extra-args}.
 @vindex RemoteCommand@r{, ssh option}
 @strong{Note}: If you use an @option{ssh}-based method for connection,
 do @emph{not} set the @option{RemoteCommand} option in your
-@command{ssh} configuration, for example to @command{screen}.  On the
-other hand, some @option{ssh}-based methods, like @option{sshx} or
-@option{scpx}, silently overwrite a @option{RemoteCommand} option of
-the configuration file.
+@command{ssh} configuration to something like @command{screen}.  If
+used, @option{RemoteCommand} must open an interactive shell on the
+remote host.  On the other hand, some @option{ssh}-based methods, like
+@option{sshx} or @option{scpx}, silently overwrite a
+@option{RemoteCommand} option of the configuration file.
 
 
 @subsection Other remote shell setup hints
@@ -2717,6 +2742,7 @@ entry, @option{Seconds between keepalives} option.  Set this to 5.
 There is no counter which could be set.
 
 
+@anchor{Using ssh connection sharing}
 @subsection Using ssh connection sharing
 
 @vindex ControlPath@r{, ssh option}
@@ -2746,20 +2772,33 @@ allows you to set the @option{ControlPath} provided the variable
 Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
-@vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} file is configured appropriately for the
-above behavior, then any changes to @command{ssh} can be suppressed
-with this @code{nil} setting:
+@vindex tramp-use-connection-share
+Using a predefined string in @code{tramp-ssh-controlmaster-options},
+or puzzling an own string, happens only when user option
+@code{tramp-use-connection-share} is set to @code{t}.  If the
+@file{~/.ssh/config} file is configured appropriately for the above
+behavior, then any changes to @command{ssh} can be suppressed with
+this @code{nil} setting:
 
 @lisp
-(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
+(customize-set-variable 'tramp-use-connection-share nil)
 @end lisp
+
+Sometimes, it is not possible to use OpenSSH's @option{ControlMaster}
+option for remote processes.  This could result in concurrent access
+to the OpenSSH socket when reading data by different processes, which
+could block Emacs.  In this case, setting
+@code{tramp-use-connection-share} to @code{suppress} disables shared
+access.  It is not needed to set this user option permanently to
+@code{suppress}, binding the user option prior calling
+@code{make-process} is sufficient.  @value{tramp} does this for
+esxample for compilation processes on its own.
 
 @vindex ProxyCommand@r{, ssh option}
 @vindex ProxyJump@r{, ssh option}
-This should also be set to @code{nil} if you use the
-@option{ProxyCommand} or @option{ProxyJump} options in your
-@command{ssh} configuration.
+@code{tramp-use-connection-share} should also be set to @code{nil} or
+@code{suppress} if you use the @option{ProxyCommand} or
+@option{ProxyJump} options in your @command{ssh} configuration.
 
 In order to use the @option{ControlMaster} option, @value{tramp} must
 check whether the @command{ssh} client supports this option.  This is
@@ -2781,12 +2820,16 @@ Host *
 Check the @samp{ssh_config(5)} man page whether these options are
 supported on your proxy host.
 
-On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
-@code{nil} by default, because the MS Windows and MSYS2
-implementations of @command{OpenSSH} do not support this option properly.
+On MS Windows, @code{tramp-use-connection-share} is set to @code{nil}
+by default, because the MS Windows and MSYS2 implementations of
+@command{OpenSSH} do not support this option properly.
 
-In PuTTY, you can achieve connection sharing in the @option{Connection/SSH}
-entry, enabling the @option{Share SSH connections if possible} option.
+In PuTTY, you can achieve connection sharing in the
+@option{Connection/SSH} entry, enabling the @option{Share SSH
+connections if possible} option.  @code{tramp-use-connection-share}
+must be set to @code{nil}.  If @code{tramp-use-connection-share} is
+set to @code{t} or @code{suppress}, @command{plink} is called with the
+option @option{-share} or @option{-noshare}, respectively.
 
 
 @subsection Configure direct copying between two remote servers
@@ -2836,10 +2879,18 @@ When @value{tramp} uses direct remote copying, password caches are not
 consulted.
 
 
-@subsection Issues with Cygwin ssh
+@subsection Issues with Cygwin and MS Windows ssh
 @cindex cygwin, issues
+@cindex ms Windows, issues
 
 This section is incomplete.  Please share your solutions.
+
+@cindex ms windows and @command{ssh}
+@cindex ms windows and @command{ssh-agent}
+
+MS Windows' @command{ssh} does not open a remote TTY@.  Use the method
+@option{sshx} or @option{scpx} instead.  Furthermore, it cannot read a
+passphrase for ssh private keys.  Use the MS @code{ssh-agent}.
 
 @cindex method @option{sshx} with cygwin
 @cindex @option{sshx} method with cygwin
@@ -2880,13 +2931,15 @@ Windows file names to Cygwin file names.
 @cindex @env{SSH_AUTH_SOCK} and emacs on ms windows
 @vindex SSH_AUTH_SOCK@r{, environment variable}
 
-When using the @command{ssh-agent} on MS Windows for password-less
-interaction, @option{ssh} methods depend on the environment variable
-@env{SSH_AUTH_SOCK}.  But this variable is not set when Emacs is
-started from a Desktop shortcut and authentication fails.
+When using the cygwin @command{ssh-agent} on MS Windows for
+password-less interaction, @option{ssh} methods depend on the
+environment variable @env{SSH_AUTH_SOCK}.  But this variable is not
+set when Emacs is started from a Desktop shortcut and authentication
+fails.
 
-One workaround is to use an MS Windows based SSH Agent, such as
-@command{Pageant}.  It is part of the PuTTY Suite of tools.
+One workaround is to use an MS Windows based SSH Agent, such as the
+native MS @command{ssh-agent} or @command{Pageant}.  The latter is
+part of the PuTTY Suite of tools.
 
 The fallback is to start Emacs from a shell.
 
@@ -2895,10 +2948,11 @@ The fallback is to start Emacs from a shell.
 @section @acronym{FUSE} setup hints
 
 The @acronym{FUSE} file systems are mounted by default at
-@file{/tmp/tramp.method.user@@host#port}.  The user name and port
-number are optional.  If the file system is already mounted, it will
-be used as it is.  If the mount point does not exist yet,
-@value{tramp} creates this directory.
+@t{"<TMP>/tramp.method.user@@host#port"}.@footnote{@ref{Temporary
+directory}}  Method is either @t{"rclone"} or @t{"sshfs"}.  The user
+name and port number are optional.  If the file system is already
+mounted, it will be used as it is.  If the mount point does not exist
+yet, @value{tramp} creates this directory.
 
 The mount point can be overwritten by the connection property
 @t{"mount-point"}, @ref{Predefined connection information}.
@@ -3062,6 +3116,29 @@ Open a remote connection with the more concise command @kbd{C-x C-f
 @end itemize
 
 
+@node Kubernetes setup
+@section Kubernetes setup hints
+
+With the @option{kubernetes} method, containers in Kubernetes pods can
+be accessed.  The host name is a pod name returned by @samp{kubectl
+get pods}, or @samp{@var{container}.@var{pod}} if an explicit
+container name shall be used.  Otherwise, the first container in a pod
+is used.
+
+Sometimes, asynchronous processes for a host without a dedicated
+container name show a warning like @samp{Defaulted container
+"container1" out of: container1, container2}.  This can be mitigated
+by setting the pod annotation
+@samp{kubectl.kubernetes.io/default-container} to a proper value
+(@samp{container1} in this example).
+
+@vindex tramp-kubernetes-context
+@vindex tramp-kubernetes-namespace
+@value{tramp} uses the default Kubernetes context and namespace.  If
+another context or namespace shall be used, configure the user options
+@code{tramp-kubernetes-context} and @code{tramp-kubernetes-namespace}.
+
+
 @node Auto-save File Lock and Backup
 @section Auto-save, File Lock and Backup configuration
 @cindex auto-save
@@ -3159,6 +3236,11 @@ auto-saved files to the same directory as the original file.
 @vindex tramp-auto-save-directory
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
+
+@c Since Emacs 30.
+@vindex remote-file-name-inhibit-auto-save
+If you want to suppress auto-saving of remote files at all, set user
+option @code{remote-file-name-inhibit-auto-save} to non-@code{nil}.
 
 @c Since Emacs 29.
 @vindex remote-file-name-inhibit-auto-save-visited
@@ -3458,12 +3540,7 @@ much more appropriate.
 
 @value{tramp} can complete the following @value{tramp} file name
 components: method names, user names, host names, and file names
-located on remote hosts.  User name and host name completion is
-activated only, if file name completion has one of the styles
-@code{basic}, @code{emacs21}, or @code{emacs22}.
-@ifinfo
-@xref{Completion Styles, , , emacs}.
-@end ifinfo
+located on remote hosts.
 
 For example, type @kbd{C-x C-f @value{prefixwithspace} s @key{TAB}},
 @value{tramp} completion choices show up as
@@ -3497,10 +3574,7 @@ directory @file{/sbin} on your local host.
 Type @kbd{s h @value{postfixhop}} for the minibuffer completion to
 @samp{@value{prefix}ssh@value{postfixhop}}.  Typing @kbd{@key{TAB}}
 shows host names @value{tramp} extracts from @file{~/.ssh/config}
-@c bug#50387
-file, for example@footnote{Some completion styles, like
-@code{substring} or @code{flex}, require to type at least one
-character after the trailing @samp{@value{postfixhop}}.}.
+file, for example:
 
 @example
 @group
@@ -3539,7 +3613,7 @@ completion lists.  If you want to suppress this completion because
 there are invalid entries in the persistency file, for example if the
 host configuration changes often, or if you plug your laptop to
 different networks frequently, you can set the user option
-@code{tramp-completion-use-cache} to nil.
+@code{tramp-completion-use-cache} to @code{nil}.
 
 After remote host name completion comes completion of file names on
 the remote host.  It works the same as with local host file completion
@@ -3594,10 +3668,20 @@ Each involved method must be an inline method (@pxref{Inline methods}).
 @code{tramp-default-proxies-alist} and is available for re-use during
 that Emacs session.  Subsequent @value{tramp} connections to the same
 remote host can then use the shortcut form:
-@samp{@trampfn{ssh,you@@remotehost,/path}}.  Ad-hoc definitions are
-removed from @code{tramp-default-proxies-alist} via the command
-@kbd{M-x tramp-cleanup-all-connections @key{RET}} (@pxref{Cleanup
-remote connections}).
+@samp{@trampfn{ssh,you@@remotehost,/path}}.
+
+@defopt tramp-show-ad-hoc-proxies
+If this user option is non-@code{nil}, ad-hoc definitions are kept in
+remote file names instead of showing the shortcuts.
+
+@lisp
+(customize-set-variable 'tramp-show-ad-hoc-proxies t)
+@end lisp
+@end defopt
+
+Ad-hoc definitions are removed from @code{tramp-default-proxies-alist}
+via the command @kbd{M-x tramp-cleanup-all-connections @key{RET}}
+(@pxref{Cleanup remote connections}).
 
 @defopt tramp-save-ad-hoc-proxies
 For ad-hoc definitions to be saved automatically in
@@ -3928,12 +4012,12 @@ connection-local variables.
 
 @vindex async-shell-command-width
 @vindex COLUMNS@r{, environment variable}
-If Emacs supports the user option @code{async-shell-command-width}
-(since @w{Emacs 27}), @value{tramp} cares about its value for
-asynchronous shell commands.  It specifies the number of display
-columns for command output.  For synchronous shell commands, a similar
-effect can be achieved by adding the environment variable
-@env{COLUMNS} to @code{tramp-remote-process-environment}.
+@value{tramp} cares about the user option
+@code{async-shell-command-width} for asynchronous shell commands.  It
+specifies the number of display columns for command output.  For
+synchronous shell commands, a similar effect can be achieved by adding
+the environment variable @env{COLUMNS} to
+@code{tramp-remote-process-environment}.
 
 
 @subsection Running @code{eshell} on a remote host
@@ -4283,9 +4367,10 @@ It does not use @code{tramp-remote-path}.
 In order to gain even more performance, it is recommended to bind
 @code{tramp-verbose} to 0 when running @code{make-process} or
 @code{start-file-process}.  Furthermore, you might set
-@code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
-bypass @value{tramp}'s handling of the @option{ControlMaster} options,
-and use your own settings in @file{~/.ssh/config}.
+@code{tramp-use-connection-share} to @code{nil} in order to bypass
+@value{tramp}'s handling of the @option{ControlMaster} options, and
+use your own settings in @file{~/.ssh/config}, @ref{Using ssh
+connection sharing}.
 
 
 @node Cleanup remote connections
@@ -4326,7 +4411,6 @@ Flushes the current buffer's remote connection objects, the same as in
 Flushes all active remote connection objects, the same as in
 @code{tramp-cleanup-connection}.  This command removes also ad-hoc
 proxy definitions (@pxref{Ad-hoc multi-hops}).
-
 @end deffn
 
 @deffn Command tramp-cleanup-all-buffers
@@ -4334,6 +4418,20 @@ Just as for @code{tramp-cleanup-all-connections}, all remote
 connections and ad-hoc proxy definition are cleaned up in addition to
 killing all buffers related to remote connections.
 @end deffn
+
+@deffn Command tramp-cleanup-some-buffers
+Similar to @code{tramp-cleanup-all-buffers}, where all remote
+connections and ad-hoc proxy definition are cleaned up.  However,
+additional buffers are killed only if one of the functions in
+@code{tramp-cleanup-some-buffers-hook} returns @code{t}.
+@end deffn
+
+@defopt tramp-cleanup-some-buffers-hook
+The functions in this hook determine, whether a remote buffer is
+killed when @code{tramp-cleanup-some-buffers} is called.  Per default,
+remote buffers which are linked to a remote file, remote @code{dired}
+buffers, and buffers related to a remote process are cleaned up.
+@end defopt
 
 
 @node Renaming remote files
@@ -4824,8 +4922,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on @w{Emacs 26}, @w{Emacs 27}, @w{Emacs
-28}, and @w{Emacs 29}.
+The package works successfully on @w{Emacs 27}, @w{Emacs 28}, @w{Emacs
+29}, and @w{Emacs 30}.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as
@@ -4882,6 +4980,36 @@ about, for example:
 Disable file locks.  Set @code{remote-file-name-inhibit-locks} to
 @code{t} if you know that different Emacs sessions are not modifying
 the same remote file.
+
+@item
+@vindex remote-file-name-inhibit-auto-save
+Keep auto-save files local.  This is already the default configuration
+in Emacs, don't change it.  If you want to disable auto-saving for
+remote files at all, set @code{remote-file-name-inhibit-auto-save} to
+@code{t}, but think about the consequences!
+
+If you want to disable auto-saving just for selected connections, for
+example due to security considerations, use connection-local variables
+in order to set @code{buffer-auto-save-file-name}.  If you, for
+example, want to disable auto-saving for all @option{sudo}
+connections, apply the following code.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+
+@lisp
+@group
+(connection-local-set-profile-variables
+  'my-auto-save-profile
+  '((buffer-auto-save-file-name . nil)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :protocol "sudo")
+ 'my-auto-save-profile)
+@end group
+@end lisp
 
 @item
 Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
@@ -5021,6 +5149,41 @@ When connecting to a local host, @value{tramp} uses some internal
 optimizations.  They fail when Emacs runs in a chrooted environment.
 In order to disable those optimizations, set user option
 @code{tramp-local-host-regexp} to @code{nil}.
+
+
+@item
+@value{tramp} blocks Emacs at startup
+
+@vindex remote-file-name-access-timeout
+Some packages, like @file{desktop.el} or @file{recentf.el}, access
+remote files when loaded.  If the requested file is not accessible,
+@value{tramp} could block.  In order to check whether this could
+happen, add a test via @code{access-file} with a proper timeout prior
+to loading these packages:
+
+@lisp
+@group
+(let ((remote-file-name-access-timeout 10))
+  (access-file "@file{@trampfn{method,user@@host,/path/to/file}}" "error"))
+@result{} nil
+@end group
+@end lisp
+
+The result @code{nil} means success.  If the file is not accessible,
+or if the underlying operations last too long, @code{access-file}
+returns with an error.
+
+The value of the timeout (10 seconds in the example) depends on your
+preference and on the quality of the connection to the remote host.
+If the connection to the remote host isn't established yet, and if
+this requires an interactive password, the timeout check doesn't work
+properly.
+
+@c Since Emacs 30.
+@strong{Note}: In recent versions of Emacs, both packages already
+apply this check.  You just need to customize
+@code{remote-file-name-access-timeout} to the desired timeout (in
+seconds).
 
 
 @item
@@ -5197,6 +5360,7 @@ HISTFILE=/dev/null
 @item
 Where are remote files trashed to?
 
+@vindex remote-file-name-inhibit-delete-by-moving-to-trash
 Emacs can trash file instead of deleting
 @ifinfo
 them, @ref{Misc File Ops, Trashing , , emacs}.
@@ -5204,35 +5368,16 @@ them, @ref{Misc File Ops, Trashing , , emacs}.
 @ifnotinfo
 them.
 @end ifnotinfo
-Remote files are always trashed to the local trash, except remote
-encrypted files (@pxref{Keeping files encrypted}), which are deleted
-anyway.
+Remote files are always trashed to the local trash, except the user
+option @code{remote-file-name-inhibit-delete-by-moving-to-trash} is
+non-@code{nil}, or it is a remote encrypted file (@pxref{Keeping files
+encrypted}), which are deleted anyway.
 
 If Emacs is configured to use the XDG conventions for the trash
 directory, remote files cannot be restored with the respective tools,
 because those conventions don't specify remote paths.  Such files must
 be restored by moving them manually from
 @file{$@{XDG_DATA_HOME@}/Trash/files/}, if needed.
-
-
-@item
-How to identify temporary files produced by @value{tramp}?
-
-@vindex tramp-temp-name-prefix
-Temporary files are kept in your @code{temporary-file-directory}
-directory, which is often @file{/tmp/}.  By default, they have the
-file name prefix @t{"tramp."}.  If you want to change this prefix, for
-example because you want to identify temporary files produced by
-@code{file-local-copy} in your package, you can bind the variable
-@code{tramp-temp-name-prefix} temporarily:
-
-@example
-@group
-(let ((tramp-temp-name-prefix "my-prefix."))
-  (file-local-copy "@trampfn{ssh,,.emacs}"))
-@result{} "/tmp/my-prefix.HDfgDZ"
-@end group
-@end example
 
 
 @item
@@ -5752,9 +5897,43 @@ programs.
 @chapter How file names, directories and localnames are mangled and managed
 
 @menu
+* Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Splitting a localname into its component parts.
 * External packages::           Integrating with external Lisp packages.
 @end menu
+
+
+@node Temporary directory
+@section Where temporary files are kept
+
+@vindex temporary-file-directory
+Internally, @value{tramp} uses @t{"~/.cache/emacs"}
+as local temporary directory if it exists.  Otherwise, the value of
+@code{temporary-file-directory} is used, which is often @t{"/tmp"}.
+
+@vindex tramp-compat-temporary-file-directory
+@vindex <TMP>
+This local temporary directory is kept in the constant
+@code{tramp-compat-temporary-file-directory}.  In this manual, we use
+@t{"<TMP>"} for its value.
+
+The temporary directory on a remote host is @t{"/data/local/tmp"} for
+the @option{adb} method, @t{"/C$/Temp"} for the @option{smb} method,
+and @t{"/tmp"} otherwise.  For some methods, this can be customized.
+
+@vindex tramp-temp-name-prefix
+Temporary files have the file name prefix @t{"tramp."}.  If you want
+to change this prefix, for example because you want to identify
+temporary files produced by @code{file-local-copy} in your package,
+you can bind the variable @code{tramp-temp-name-prefix} temporarily:
+
+@example
+@group
+(let ((tramp-temp-name-prefix "my-prefix."))
+  (file-local-copy "@trampfn{ssh,,.emacs}"))
+@result{} "/tmp/my-prefix.HDfgDZ"
+@end group
+@end example
 
 
 @node Localname deconstruction
@@ -5924,10 +6103,9 @@ a file:
 (customize-set-variable 'tramp-debug-to-file t)
 @end lisp
 
-The debug buffer is written as a file in your
-@code{temporary-file-directory}, which is usually @file{/tmp/}.  Use
-this option with care, because it could decrease the performance of
-@value{tramp} actions.
+The debug buffer is written as a file in your @ref{Temporary
+directory}.  Use this option with care, because it could decrease the
+performance of @value{tramp} actions.
 
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
 function call traces are written to the buffer @file{*trace-output*}.

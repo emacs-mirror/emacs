@@ -1,6 +1,6 @@
 ;;; cl-macs-tests.el --- tests for emacs-lisp/cl-macs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -535,7 +535,7 @@ collection clause."
    (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0))) t))
   ;; Make sure `gv-synthetic-place' isn't macro-expanded before `setf' gets to
   ;; see its `gv-expander'.
-  (should (equal (let ((l '(0)))
+  (should (equal (let ((l (list 0)))
                    (let ((cl (car l)))
                      (cl-symbol-macrolet
                          ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))
@@ -803,10 +803,30 @@ See Bug#57915."
             (macroexpand form)
             (should (string-empty-p messages))))))))
 
+(defvar cl--test-a)
+
 (ert-deftest cl-&key-arguments ()
   (cl-flet ((fn (&key x) x))
     (should-error (fn :x))
-    (should (eq (fn :x :a) :a))))
+    (should (eq (fn :x :a) :a)))
+  ;; In ELisp function arguments are always statically scoped (bug#47552).
+  (let ((cl--test-a 'dyn)
+        ;; FIXME: How do we silence the "Lexical argument shadows" warning?
+        (f
+         (with-suppressed-warnings ((lexical cl--test-a))
+           (cl-function (lambda (&key cl--test-a b)
+                          (list cl--test-a (symbol-value 'cl--test-a) b))))))
+    (should (equal (funcall f :cl--test-a 'lex :b 2) '(lex dyn 2)))))
 
+(cl-defstruct cl--test-s
+  cl--test-a b)
+
+(ert-deftest cl-defstruct-dynbound-label-47552 ()
+  "Check that labels can have the same name as dynbound vars."
+  (let ((cl--test-a 'dyn))
+    (let ((x (make-cl--test-s :cl--test-a 4 :b cl--test-a)))
+      (should (cl--test-s-p x))
+      (should (equal (cl--test-s-cl--test-a x) 4))
+      (should (equal (cl--test-s-b x) 'dyn)))))
 
 ;;; cl-macs-tests.el ends here

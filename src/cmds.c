@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2022 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -453,7 +453,7 @@ internal_self_insert (int c, EMACS_INT n)
 	}
 
       ptrdiff_t to;
-      if (INT_ADD_WRAPV (PT, chars_to_delete, &to))
+      if (ckd_add (&to, PT, chars_to_delete))
 	to = PTRDIFF_MAX;
       replace_range (PT, to, string, 1, 1, 1, 0, false);
       Fforward_char (make_fixnum (n));

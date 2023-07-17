@@ -1,6 +1,6 @@
 /* A GNU-like <string.h>.
 
-   Copyright (C) 1995-1996, 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-1996, 2001-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -44,6 +44,12 @@
 #ifndef _@GUARD_PREFIX@_STRING_H
 #define _@GUARD_PREFIX@_STRING_H
 
+/* This file uses _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_MALLOC,
+   _GL_ATTRIBUTE_PURE, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* NetBSD 5.0 mis-defines NULL.  */
 #include <stddef.h>
 
@@ -59,10 +65,11 @@
 # include <unistd.h>
 #endif
 
-/* AIX 7.2 declares ffsl and ffsll in <strings.h>, not in <string.h>.  */
+/* AIX 7.2 and Android 13 declare ffsl and ffsll in <strings.h>, not in
+   <string.h>.  */
 /* But in any case avoid namespace pollution on glibc systems.  */
 #if ((@GNULIB_FFSL@ || @GNULIB_FFSLL@ || defined GNULIB_POSIXCHECK) \
-     && defined _AIX) \
+     && (defined _AIX || defined __ANDROID__)) \
     && ! defined __GLIBC__
 # include <strings.h>
 #endif
@@ -82,7 +89,14 @@
    can be freed via 'free'; it can be used only after declaring 'free'.  */
 /* Applies to: functions.  Cannot be used on inline functions.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC_FREE
-# define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (free, 1)
+# if defined __cplusplus && defined __GNUC__ && !defined __clang__
+/* Work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108231> */
+#  define _GL_ATTRIBUTE_DEALLOC_FREE \
+     _GL_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
+# else
+#  define _GL_ATTRIBUTE_DEALLOC_FREE \
+     _GL_ATTRIBUTE_DEALLOC (free, 1)
+# endif
 #endif
 
 /* _GL_ATTRIBUTE_MALLOC declares that the function returns a pointer to freshly
@@ -118,7 +132,11 @@
 # if (@REPLACE_FREE@ && !defined free \
       && !(defined __cplusplus && defined GNULIB_NAMESPACE))
 /* We can't do '#define free rpl_free' here.  */
+#  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
+_GL_EXTERN_C void rpl_free (void *) throw ();
+#  else
 _GL_EXTERN_C void rpl_free (void *);
+#  endif
 #  undef _GL_ATTRIBUTE_DEALLOC_FREE
 #  define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (rpl_free, 1)
 # else
@@ -300,16 +318,32 @@ _GL_WARN_ON_USE (memmem, "memmem is unportable and often quadratic - "
 /* Copy N bytes of SRC to DEST, return pointer to bytes after the
    last written byte.  */
 #if @GNULIB_MEMPCPY@
-# if ! @HAVE_MEMPCPY@
+# if @REPLACE_MEMPCPY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mempcpy
+#   define mempcpy rpl_mempcpy
+#  endif
+_GL_FUNCDECL_RPL (mempcpy, void *,
+                  (void *restrict __dest, void const *restrict __src,
+                   size_t __n)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (mempcpy, void *,
+                  (void *restrict __dest, void const *restrict __src,
+                   size_t __n));
+# else
+#  if !@HAVE_MEMPCPY@
 _GL_FUNCDECL_SYS (mempcpy, void *,
                   (void *restrict __dest, void const *restrict __src,
                    size_t __n)
                   _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (mempcpy, void *,
                   (void *restrict __dest, void const *restrict __src,
                    size_t __n));
+# endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (mempcpy);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef mempcpy
 # if HAVE_RAW_DECL_MEMPCPY
@@ -336,7 +370,7 @@ _GL_CXXALIAS_SYS_CAST2 (memrchr,
          || defined __clang__)
 _GL_CXXALIASWARN1 (memrchr, void *, (void *, int, size_t) throw ());
 _GL_CXXALIASWARN1 (memrchr, void const *, (void const *, int, size_t) throw ());
-# else
+# elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (memrchr);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -398,14 +432,28 @@ _GL_WARN_ON_USE (rawmemchr, "rawmemchr is unportable - "
 
 /* Copy SRC to DST, returning the address of the terminating '\0' in DST.  */
 #if @GNULIB_STPCPY@
-# if ! @HAVE_STPCPY@
+# if @REPLACE_STPCPY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef stpcpy
+#   define stpcpy rpl_stpcpy
+#  endif
+_GL_FUNCDECL_RPL (stpcpy, char *,
+                  (char *restrict __dst, char const *restrict __src)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (stpcpy, char *,
+                  (char *restrict __dst, char const *restrict __src));
+# else
+#  if !@HAVE_STPCPY@
 _GL_FUNCDECL_SYS (stpcpy, char *,
                   (char *restrict __dst, char const *restrict __src)
                   _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (stpcpy, char *,
                   (char *restrict __dst, char const *restrict __src));
+# endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (stpcpy);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef stpcpy
 # if HAVE_RAW_DECL_STPCPY
@@ -440,7 +488,9 @@ _GL_CXXALIAS_SYS (stpncpy, char *,
                   (char *restrict __dst, char const *restrict __src,
                    size_t __n));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (stpncpy);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef stpncpy
 # if HAVE_RAW_DECL_STPNCPY
@@ -491,7 +541,7 @@ _GL_CXXALIAS_SYS_CAST2 (strchrnul,
 _GL_CXXALIASWARN1 (strchrnul, char *, (char *__s, int __c_in) throw ());
 _GL_CXXALIASWARN1 (strchrnul, char const *,
                    (char const *__s, int __c_in) throw ());
-# else
+# elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strchrnul);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -856,7 +906,7 @@ _GL_CXXALIASWARN1 (strcasestr, char *,
                    (char *haystack, const char *needle) throw ());
 _GL_CXXALIASWARN1 (strcasestr, const char *,
                    (const char *haystack, const char *needle) throw ());
-# else
+# elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strcasestr);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -1204,7 +1254,7 @@ _GL_FUNCDECL_SYS (strerror_r, int, (int errnum, char *buf, size_t buflen)
 #  endif
 _GL_CXXALIAS_SYS (strerror_r, int, (int errnum, char *buf, size_t buflen));
 # endif
-# if @HAVE_DECL_STRERROR_R@
+# if __GLIBC__ >= 2 && @HAVE_DECL_STRERROR_R@
 _GL_CXXALIASWARN (strerror_r);
 # endif
 #elif defined GNULIB_POSIXCHECK

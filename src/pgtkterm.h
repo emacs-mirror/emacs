@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with pure Gtk+3.
-   Copyright (C) 1989, 1993, 2005, 2008-2022 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2023 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -553,7 +553,6 @@ extern void pgtk_clear_frame (struct frame *);
 extern char *pgtk_xlfd_to_fontname (const char *);
 
 /* Implemented in pgtkfns.c.  */
-extern void pgtk_set_doc_edited (void);
 extern const char *pgtk_get_defaults_value (const char *);
 extern const char *pgtk_get_string_resource (XrmDatabase, const char *, const char *);
 extern void pgtk_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);

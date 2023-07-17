@@ -1,6 +1,6 @@
 ;;; tramp-fuse.el --- Tramp access functions for FUSE mounts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -34,15 +34,13 @@
 (defun tramp-fuse-handle-delete-directory
     (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name directory) nil
-    (tramp-flush-directory-properties v localname)
+  (tramp-skeleton-delete-directory directory recursive trash
     (delete-directory (tramp-fuse-local-file-name directory) recursive trash)))
 
 (defun tramp-fuse-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (delete-file (tramp-fuse-local-file-name filename) trash)
-    (tramp-flush-file-properties v localname)))
+  (tramp-skeleton-delete-file filename trash
+    (delete-file (tramp-fuse-local-file-name filename) trash)))
 
 (defvar tramp-fuse-remove-hidden-files nil
   "Remove hidden files from directory listings.")
@@ -69,15 +67,15 @@
 	       (tramp-fuse-local-file-name directory))))))))
     (if full
 	;; Massage the result.
-	(let ((local (tramp-compat-rx
+	(let ((local (rx
 		      bol
 		      (literal
 		       (tramp-fuse-mount-point
 			(tramp-dissect-file-name directory)))))
 	      (remote (directory-file-name
 		       (funcall
-			(if (tramp-compat-file-name-quoted-p directory)
-			    #'tramp-compat-file-name-quote #'identity)
+			(if (file-name-quoted-p directory)
+			    #'file-name-quote #'identity)
 			(file-remote-p directory)))))
 	  (mapcar
 	   (lambda (x) (replace-regexp-in-string local remote x))
@@ -97,23 +95,29 @@
     (with-tramp-file-property v localname "file-executable-p"
       (file-executable-p (tramp-fuse-local-file-name filename)))))
 
+(defun tramp-fuse-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  (tramp-skeleton-file-exists-p filename
+    (file-exists-p (tramp-fuse-local-file-name filename))))
+
 (defun tramp-fuse-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-fuse-remove-hidden-files
-   (all-completions
-    filename
-    (delete-dups
-     (append
-      (file-name-all-completions
-       filename (tramp-fuse-local-file-name directory))
-      ;; Some storage systems do not return "." and "..".
-      (let (result)
-	(dolist (item '(".." ".") result)
-	  (when (string-prefix-p filename item)
-	    (catch 'match
-	      (dolist (elt completion-regexp-list)
-		(unless (string-match-p elt item) (throw 'match nil)))
-	      (setq result (cons (concat item "/") result)))))))))))
+   (ignore-error file-missing
+     (all-completions
+      filename
+      (delete-dups
+       (append
+	(file-name-all-completions
+	 filename (tramp-fuse-local-file-name directory))
+	;; Some storage systems do not return "." and "..".
+	(let (result)
+	  (dolist (item '(".." ".") result)
+	    (when (string-prefix-p filename item)
+	      (catch 'match
+		(dolist (elt completion-regexp-list)
+		  (unless (string-match-p elt item) (throw 'match nil)))
+		(setq result (cons (concat item "/") result))))))))))))
 
 ;; This function isn't used.
 (defun tramp-fuse-handle-insert-directory
@@ -140,22 +144,23 @@
       (format "%s@%s:/" user host)
     (format "%s:/" host)))
 
-(defun tramp-fuse-mount-point (vec)
-  "Return local mount point of VEC."
-  (or (tramp-get-connection-property vec "mount-point")
-      (expand-file-name
-       (concat
-	tramp-temp-name-prefix
-	(tramp-file-name-method vec) "."
-	(when (tramp-file-name-user vec)
-	  (concat (tramp-file-name-user-domain vec) "@"))
-	(tramp-file-name-host-port vec))
-       tramp-compat-temporary-file-directory)))
-
 (defconst tramp-fuse-mount-timeout
   (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)
   "Time period to check whether the mount point still exists.
 It has the same meaning as `remote-file-name-inhibit-cache'.")
+
+(defun tramp-fuse-mount-point (vec)
+  "Return local mount point of VEC."
+  (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
+    (or (tramp-get-file-property vec "/" "mount-point")
+	(expand-file-name
+	 (concat
+	  tramp-temp-name-prefix
+	  (tramp-file-name-method vec) "."
+	  (when (tramp-file-name-user vec)
+	    (concat (tramp-file-name-user-domain vec) "@"))
+	  (tramp-file-name-host-port vec))
+	 tramp-compat-temporary-file-directory))))
 
 (defun tramp-fuse-mounted-p (vec)
   "Check, whether fuse volume determined by VEC is mounted."
@@ -169,14 +174,25 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
     (or (tramp-get-file-property vec "/" "mounted")
         (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
-	       (mount (shell-command-to-string command)))
+	       (mount (shell-command-to-string command))
+	       (mount-spec (split-string (tramp-fuse-mount-spec vec) ":" 'omit)))
           (tramp-message vec 6 "%s\n%s" command mount)
+	  ;; The mount-spec contains a trailing local file name part,
+	  ;; which might not be visible, for example with rclone
+	  ;; mounts of type "memory" or "gdrive".  Make it optional.
+	  (setq mount-spec
+		(if (cdr mount-spec)
+		    (rx (literal (car mount-spec))
+			":" (? (literal (cadr mount-spec))))
+		  (car mount-spec)))
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (tramp-compat-rx
-		   bol (group (literal (tramp-fuse-mount-spec vec))) blank)
+	          (rx bol (group (regexp mount-spec))
+		      " on " (group (+ (not blank))) blank)
 	          mount)
+	     (tramp-set-file-property
+	      vec "/" "mount-point" (match-string 2 mount))
              (match-string 1 mount)))))))
 
 (defun tramp-fuse-get-fusermount ()
@@ -196,6 +212,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
          (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
     (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
     (tramp-flush-file-property vec "/" "mounted")
+    (tramp-flush-file-property vec "/" "mount-point")
     (setq tramp-fuse-mount-points
 	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
     ;; Give the caches a chance to expire.
@@ -205,7 +222,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 
 (defun tramp-fuse-local-file-name (filename)
   "Return local mount name of FILENAME."
-  (setq filename (tramp-compat-file-name-unquote (expand-file-name filename)))
+  (setq filename (file-name-unquote (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     ;; As long as we call `tramp-*-maybe-open-connection' here,
     ;; we cache the result.
@@ -214,10 +231,10 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
        (intern
 	(format "tramp-%s-maybe-open-connection" (tramp-file-name-method v)))
        v)
-      (let ((quoted (tramp-compat-file-name-quoted-p localname))
-	    (localname (tramp-compat-file-name-unquote localname)))
+      (let ((quoted (file-name-quoted-p localname))
+	    (localname (file-name-unquote localname)))
 	(funcall
-	 (if quoted #'tramp-compat-file-name-quote #'identity)
+	 (if quoted #'file-name-quote #'identity)
 	 (expand-file-name
 	  (if (file-name-absolute-p localname)
 	      (substring localname 1) localname)

@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -182,7 +182,7 @@ files.")
     ("Philip Kaludercic" "Philip K\\." "Philip K")
     ("Philipp Stephani" "Philipp .*phst@google")
     ("Piotr Zieliński" "Piotr Zielinski")
-    ("Po Lu" "Po Lu Via")               ; looks like a mistake
+    ("Po Lu" "Po Lu Via" "Your Name")   ; looks like a mistake
     ("Przemysław Wojnowski" "Przemyslaw Wojnowski")
     ("R. Bernstein" "rb@dustyfeet.com")
     ("Rainer Schöpf" "Rainer Schoepf")

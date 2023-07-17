@@ -1,7 +1,7 @@
 /* Functions for the pure Gtk+-3.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022 Free Software
-Foundation, Inc.
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2023 Free
+Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -398,13 +398,6 @@ pgtk_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   pgtk_set_name_internal (f, name);
 }
 
-
-void
-pgtk_set_doc_edited (void)
-{
-}
-
-
 static void
 pgtk_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -473,19 +466,17 @@ pgtk_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 pgtk_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit, old_height, lines;
-  Lisp_Object fullscreen;
-
-  unit = FRAME_LINE_HEIGHT (f);
-  old_height = FRAME_TAB_BAR_HEIGHT (f);
-  fullscreen = get_frame_param (f, Qfullscreen);
+  int unit = FRAME_LINE_HEIGHT (f);
+  int old_height = FRAME_TAB_BAR_HEIGHT (f);
 
   /* This differs from the tool bar code in that the tab bar height is
      not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
      the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
      leading to the tab bar height being incorrectly set upon the next
      call to x_set_font.  (bug#59285) */
-  lines = height / unit;
+  int lines = height / unit;
+  if (lines == 0 && height != 0)
+    lines = 1;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -506,6 +497,8 @@ pgtk_change_tab_bar_height (struct frame *f, int height)
 
   if (!f->tab_bar_resized)
     {
+      Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+
       /* As long as tab_bar_resized is false, effectively try to change
         F's native height.  */
       if (NILP (fullscreen) || EQ (fullscreen, Qfullwidth))
@@ -1902,7 +1895,7 @@ parse_resource_key (const char *res_key, char *setting_key)
 
   /* check existence of setting_key */
   GSettingsSchemaSource *ssrc = g_settings_schema_source_get_default ();
-  GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, FALSE);
+  GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, TRUE);
   if (!scm)
     return NULL;	/* *.schema.xml is not installed. */
   if (!g_settings_schema_has_key (scm, setting_key))
@@ -3458,7 +3451,6 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
   tab_bar_width = (tab_bar_height
 		   ? native_width - 2 * internal_border_width : 0);
-  /* inner_top += tab_bar_height; */
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
@@ -3471,10 +3463,12 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   else if (EQ (attribute, Qinner_edges))
     return list4 (make_fixnum (native_left + internal_border_width),
 		  make_fixnum (native_top
-			       + tool_bar_height
+			       + tab_bar_height
+			       + FRAME_TOOL_BAR_TOP_HEIGHT (f)
 			       + internal_border_width),
 		  make_fixnum (native_right - internal_border_width),
-		  make_fixnum (native_bottom - internal_border_width));
+		  make_fixnum (native_bottom - internal_border_width
+			       - FRAME_TOOL_BAR_BOTTOM_HEIGHT (f)));
   else
     return
       list (Fcons (Qouter_position,
@@ -3571,7 +3565,9 @@ menu bar or tool bar of FRAME.  */)
 				 ? type : Qnative_edges));
 }
 
-DEFUN ("pgtk-set-mouse-absolute-pixel-position", Fpgtk_set_mouse_absolute_pixel_position, Spgtk_set_mouse_absolute_pixel_position, 2, 2, 0,
+DEFUN ("pgtk-set-mouse-absolute-pixel-position",
+       Fpgtk_set_mouse_absolute_pixel_position,
+       Spgtk_set_mouse_absolute_pixel_position, 2, 2, 0,
        doc: /* Move mouse pointer to absolute pixel position (X, Y).
 The coordinates X and Y are interpreted in pixels relative to a position
 \(0, 0) of the selected frame's display.  */)
@@ -3590,7 +3586,9 @@ The coordinates X and Y are interpreted in pixels relative to a position
   return Qnil;
 }
 
-DEFUN ("pgtk-mouse-absolute-pixel-position", Fpgtk_mouse_absolute_pixel_position, Spgtk_mouse_absolute_pixel_position, 0, 0, 0,
+DEFUN ("pgtk-mouse-absolute-pixel-position",
+       Fpgtk_mouse_absolute_pixel_position,
+       Spgtk_mouse_absolute_pixel_position, 0, 0, 0,
        doc: /* Return absolute position of mouse cursor in pixels.
 The position is returned as a cons cell (X . Y) of the
 coordinates of the mouse cursor position in pixels relative to a
@@ -3612,7 +3610,8 @@ position (0, 0) of the selected frame's terminal. */)
 }
 
 
-DEFUN ("pgtk-page-setup-dialog", Fpgtk_page_setup_dialog, Spgtk_page_setup_dialog, 0, 0, 0,
+DEFUN ("pgtk-page-setup-dialog", Fpgtk_page_setup_dialog,
+       Spgtk_page_setup_dialog, 0, 0, 0,
        doc: /* Pop up a page setup dialog.
 The current page setup can be obtained using `x-get-page-setup'.  */)
   (void)
@@ -3624,7 +3623,8 @@ The current page setup can be obtained using `x-get-page-setup'.  */)
   return Qnil;
 }
 
-DEFUN ("pgtk-get-page-setup", Fpgtk_get_page_setup, Spgtk_get_page_setup, 0, 0, 0,
+DEFUN ("pgtk-get-page-setup", Fpgtk_get_page_setup,
+       Spgtk_get_page_setup, 0, 0, 0,
        doc: /* Return the value of the current page setup.
 The return value is an alist containing the following keys:
 

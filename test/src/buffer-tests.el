@@ -1,6 +1,6 @@
 ;;; buffer-tests.el --- tests for buffer.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -8315,29 +8315,35 @@ dicta sunt, explicabo.  "))
       (remove-hook 'buffer-list-update-hook bluh))))
 
 (ert-deftest buffer-tests-inhibit-buffer-hooks-indirect ()
-  "Indirect buffers do not call `get-buffer-create'."
-  (dolist (inhibit '(nil t))
-    (let ((base (get-buffer-create "foo" inhibit)))
+  "Test `make-indirect-buffer' argument INHIBIT-BUFFER-HOOKS."
+  (let* ( base run-bluh run-kbh run-kbqf
+          (bluh (lambda () (setq run-bluh t)))
+          (kbh  (lambda () (setq run-kbh  t)))
+          (kbqf (lambda () (setq run-kbqf t))))
+    (dolist (inhibit-base '(nil t))
       (unwind-protect
-          (dotimes (_i 11)
-            (let* (flag*
-                   (flag (lambda () (prog1 t (setq flag* t))))
-                   (indirect (make-indirect-buffer base "foo[indirect]" nil
-                                                   inhibit)))
-              (unwind-protect
-                  (progn
-                    (with-current-buffer indirect
-                      (add-hook 'kill-buffer-query-functions flag nil t))
-                    (kill-buffer indirect)
-                    (if inhibit
-                        (should-not flag*)
-                      (should flag*)))
-                (let (kill-buffer-query-functions)
+          (let (indirect)
+            (setq base (generate-new-buffer " base" inhibit-base))
+            (dolist (inhibit-indirect '(nil t))
+              (dotimes (_ 11)
+                (unwind-protect
+                    (let ((name (generate-new-buffer-name " indirect")))
+                      (setq run-bluh nil run-kbh nil run-kbqf nil)
+                      (add-hook 'buffer-list-update-hook bluh)
+                      (with-current-buffer
+                          (setq indirect (make-indirect-buffer
+                                          base name nil inhibit-indirect))
+                        (add-hook 'kill-buffer-hook kbh nil t)
+                        (add-hook 'kill-buffer-query-functions kbqf nil t)
+                        (kill-buffer))
+                      (should (xor inhibit-indirect run-bluh))
+                      (should (xor inhibit-indirect run-kbh))
+                      (should (xor inhibit-indirect run-kbqf)))
+                  (remove-hook 'buffer-list-update-hook bluh)
                   (when (buffer-live-p indirect)
                     (kill-buffer indirect))))))
-        (let (kill-buffer-query-functions)
-          (when (buffer-live-p base)
-            (kill-buffer base)))))))
+        (when (buffer-live-p base)
+          (kill-buffer base))))))
 
 (ert-deftest zero-length-overlays-and-not ()
   (with-temp-buffer
@@ -8532,5 +8538,111 @@ Finally, kill the buffer and its temporary file."
       (if f1 (delete-file f1))
       (if f2 (delete-file f2))
       )))
+
+(ert-deftest test-labeled-narrowing ()
+  "Test `with-restriction' and `without-restriction'."
+  (with-current-buffer (generate-new-buffer " foo" t)
+    (insert (make-string 5000 ?a))
+    (should (= (point-min) 1))
+    (should (= (point-max) 5001))
+    (with-restriction
+     100 500 :label 'foo
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (widen)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (narrow-to-region 1 5000)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (narrow-to-region 50 150)
+     (should (= (point-min) 100))
+     (should (= (point-max) 150))
+     (widen)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (narrow-to-region 400 1000)
+     (should (= (point-min) 400))
+     (should (= (point-max) 500))
+     (without-restriction
+      :label 'bar
+      (should (= (point-min) 100))
+      (should (= (point-max) 500)))
+     (without-restriction
+      :label 'foo
+      (should (= (point-min) 1))
+      (should (= (point-max) 5001)))
+     (should (= (point-min) 400))
+     (should (= (point-max) 500))
+     (widen)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (with-restriction
+      50 250 :label 'bar
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))
+      (widen)
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))
+      (without-restriction
+       :label 'bar
+       (should (= (point-min) 100))
+       (should (= (point-max) 500))
+       (without-restriction
+        :label 'foo
+        (should (= (point-min) 1))
+        (should (= (point-max) 5001)))
+       (should (= (point-min) 100))
+       (should (= (point-max) 500)))
+      (should (= (point-min) 100))
+      (should (= (point-max) 250)))
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (with-restriction
+      50 250 :label 'bar
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))
+      (with-restriction
+       150 500 :label 'baz
+       (should (= (point-min) 150))
+       (should (= (point-max) 250))
+       (without-restriction
+        :label 'bar
+        (should (= (point-min) 150))
+        (should (= (point-max) 250)))
+       (without-restriction
+        :label 'foo
+        (should (= (point-min) 150))
+        (should (= (point-max) 250)))
+       (without-restriction
+        :label 'baz
+        (should (= (point-min) 100))
+        (should (= (point-max) 250))
+        (without-restriction
+         :label 'foo
+         (should (= (point-min) 100))
+         (should (= (point-max) 250)))
+        (without-restriction
+         :label 'bar
+         (should (= (point-min) 100))
+         (should (= (point-max) 500))
+         (without-restriction
+          :label 'foobar
+          (should (= (point-min) 100))
+          (should (= (point-max) 500)))
+         (without-restriction
+          :label 'foo
+          (should (= (point-min) 1))
+          (should (= (point-max) 5001)))
+         (should (= (point-min) 100))
+         (should (= (point-max) 500)))
+        (should (= (point-min) 100))
+        (should (= (point-max) 250)))
+       (should (= (point-min) 150))
+       (should (= (point-max) 250)))
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))))
+    (should (= (point-min) 1))
+    (should (= (point-max) 5001))))
 
 ;;; buffer-tests.el ends here

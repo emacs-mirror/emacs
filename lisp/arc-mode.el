@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997-1998, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -645,6 +645,49 @@ Does not signal an error if optional argument NOERROR is non-nil."
       (if (not noerror)
           (error "Line does not describe a member of the archive")))))
 ;; -------------------------------------------------------------------------
+;;; Section: Helper functions for requiring filename extensions
+
+(defun archive--act-files (command files)
+  (lambda (archive)
+    (apply #'call-process (car command)
+           nil nil nil (append (cdr command) (cons archive files)))))
+
+(defun archive--need-rename-p (&optional archive)
+  (let ((archive
+         (file-name-nondirectory (or archive buffer-file-name))))
+    (cl-case archive-subtype
+      ((zip) (not (seq-contains-p archive ?. #'eq))))))
+
+(defun archive--ensure-extension (archive ensure-extension)
+  (if ensure-extension
+      (make-temp-name (expand-file-name (concat archive "_tmp.")))
+    archive))
+
+(defun archive--maybe-rename (newname need-rename-p)
+  ;; Operating with archive as current buffer, and protect
+  ;; `default-directory' from being modified in `rename-visited-file'.
+  (when need-rename-p
+    (let ((default-directory default-directory))
+      (rename-visited-file newname))))
+
+(defun archive--with-ensure-extension (archive proc-fn)
+  (let ((saved default-directory))
+    (with-current-buffer (find-buffer-visiting archive)
+      (let ((ensure-extension (archive--need-rename-p))
+            (default-directory saved))
+        (unwind-protect
+            ;; Some archive programs (like zip) expect filenames to
+            ;; have an extension, so if necessary, temporarily rename
+            ;; an extensionless file for write accesses.
+            (let ((archive (archive--ensure-extension
+                            archive ensure-extension)))
+              (archive--maybe-rename archive ensure-extension)
+              (let ((exitcode (funcall proc-fn archive)))
+                (or (zerop exitcode)
+                    (error "Updating was unsuccessful (%S)" exitcode))))
+          (progn (archive--maybe-rename archive ensure-extension)
+                 (revert-buffer nil t)))))))
+;; -------------------------------------------------------------------------
 ;;; Section: the mode definition
 
 ;;;###autoload
@@ -1093,7 +1136,9 @@ NEW-NAME."
               (with-temp-buffer
                 (set-buffer-multibyte nil)
                 (archive--extract-file extractor copy ename)
-                (write-region (point-min) (point-max) write-to))
+                (let ((coding-system-for-write
+                       (or coding-system-for-write 'no-conversion)))
+                  (write-region (point-min) (point-max) write-to)))
             (unless (equal copy archive)
               (delete-file copy))))))))
 
@@ -1376,16 +1421,9 @@ NEW-NAME."
 	  (setq ename
 		(encode-coding-string ename archive-file-name-coding-system))
           (let* ((coding-system-for-write 'no-conversion)
-		 (default-directory (file-name-as-directory archive-tmpdir))
-		 (exitcode (apply #'call-process
-				  (car command)
-				  nil
-				  nil
-				  nil
-				  (append (cdr command)
-					  (list archive ename)))))
-            (or (zerop exitcode)
-		(error "Updating was unsuccessful (%S)" exitcode))))
+                 (default-directory (file-name-as-directory archive-tmpdir)))
+            (archive--with-ensure-extension
+             archive (archive--act-files command (list ename)))))
       (archive-delete-local tmpfile))))
 
 (defun archive-write-file (&optional file)
@@ -1508,9 +1546,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 	  (archive-resummarize))
       (error "Setting group is not supported for this archive type"))))
 
-(defun archive-expunge ()
-  "Do the flagged deletions."
-  (interactive)
+(defun archive--expunge-maybe-force (force)
   (let (files)
     (save-excursion
       (goto-char archive-file-list-start)
@@ -1524,7 +1560,8 @@ as a relative change like \"g+rw\" as for chmod(2)."
     (and files
 	 (or (not archive-read-only)
 	     (error "Archive is read-only"))
-	 (or (yes-or-no-p (format "Really delete %d member%s? "
+         (or force
+             (yes-or-no-p (format "Really delete %d member%s? "
 				  (length files)
 				  (if (null (cdr files)) "" "s")))
 	     (error "Operation aborted"))
@@ -1538,13 +1575,14 @@ as a relative change like \"g+rw\" as for chmod(2)."
 	       (archive-resummarize)
 	     (revert-buffer))))))
 
+(defun archive-expunge ()
+  "Do the flagged deletions."
+  (interactive)
+  (archive--expunge-maybe-force nil))
+
 (defun archive-*-expunge (archive files command)
-  (apply #'call-process
-	 (car command)
-	 nil
-	 nil
-	 nil
-	 (append (cdr command) (cons archive files))))
+  (archive--with-ensure-extension
+   archive (archive--act-files command files)))
 
 (defun archive-rename-entry (newname)
   "Change the name associated with this entry in the archive file."
@@ -1954,10 +1992,21 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; -------------------------------------------------------------------------
 ;;; Section: Zip Archives
 
+(declare-function w32-get-console-codepage "w32proc.c")
 (defun archive-zip-summarize ()
   (goto-char (- (point-max) (- 22 18)))
   (search-backward-regexp "[P]K\005\006")
   (let ((p (archive-l-e (+ (point) 16) 4))
+        (w32-fname-encoding
+         ;; On MS-Windows, both InfoZip's Zip and the system's
+         ;; built-in File Explorer use the console codepage for
+         ;; encoding file names.  Problem: the codepage of the system
+         ;; where the zip file was created cannot be known; we assume
+         ;; it is the same as the one of the current system.  Also,
+         ;; the zip file doesn't tell us the OS where the file was
+         ;; created, it only tells the filesystem.
+         (if (eq system-type 'windows-nt)
+             (intern (format "cp%d" (w32-get-console-codepage)))))
         files)
     (when (or (= p #xffffffff) (= p -1))
       ;; If the offset of end-of-central-directory is 0xFFFFFFFF, this
@@ -1987,7 +2036,15 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              ;; (lheader (archive-l-e (+ p 42) 4))
              (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
 			(decode-coding-string
-			 str archive-file-name-coding-system)))
+			 str
+                         (or (if (and w32-fname-encoding
+                                      (memq creator
+                                            ;; This should be just 10 and
+                                            ;; 14, but InfoZip uses 0 and
+                                            ;; File Explorer uses 11(??).
+                                            '(0 10 11 14)))
+                                 w32-fname-encoding)
+                             archive-file-name-coding-system))))
              (ucsize  (if (and (or (= ucsize #xffffffff) (= ucsize -1))
                                (> exlen 0))
                           ;; APPNOTE.TXT, para 4.5.3: the Extra Field

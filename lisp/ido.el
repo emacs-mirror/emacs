@@ -1,6 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -565,11 +565,12 @@ the `ido-work-directory-list' list."
 
 (defcustom ido-use-filename-at-point nil
   "Non-nil means that Ido shall look for a filename at point.
-May use `ffap-guesser' to guess whether text at point is a filename.
-If found, use that as the starting point for filename selection."
+Value `guess' means use `ffap-guesser' to guess whether text at
+point is a filename.  If found, use that as the starting point
+for filename selection."
   :type '(choice
 	  (const :tag "Disabled" nil)
-	  (const :tag "Guess filename" guess)
+	  (const :tag "Guess filename using ffap-guesser" guess)
 	  (other :tag "Use literal filename" t)))
 
 

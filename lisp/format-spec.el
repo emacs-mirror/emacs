@@ -1,6 +1,6 @@
 ;;; format-spec.el --- format arbitrary formatting strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools

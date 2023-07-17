@@ -115,7 +115,7 @@ Edition @value{edition-number}, @value{update-date}
 @sp 1
 Distributed with Emacs version @value{EMACSVER}.
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2022 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2023 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -6604,10 +6604,11 @@ works.  You will probably need to use @kbd{C-h f}
 (@code{describe-function}).  The newer version uses a conditional to
 determine whether the buffer has been narrowed.
 
-(Also, it uses @code{line-number-at-pos}, which among other simple
-expressions, such as @code{(goto-char (point-min))}, moves point to
-the beginning of the current line with @code{(forward-line 0)} rather
-than @code{beginning-of-line}.)
+Also, the modern version of @code{what-line} uses
+@code{line-number-at-pos}, which among other simple expressions, such
+as @code{(goto-char (point-min))}, moves point to the beginning of the
+current line with @code{(forward-line 0)} rather than
+@code{beginning-of-line}.)
 
 The @code{what-line} function as shown here has a documentation line
 and is interactive, as you would expect.  The next two lines use the
@@ -6760,16 +6761,13 @@ The name of the @code{cons} function is not unreasonable: it is an
 abbreviation of the word ``construct''.  The origins of the names for
 @code{car} and @code{cdr}, on the other hand, are esoteric: @code{car}
 is an acronym from the phrase ``Contents of the Address part of the
-Register''; and @code{cdr} (pronounced ``could-er'') is an acronym from
-the phrase ``Contents of the Decrement part of the Register''.  These
-phrases refer to specific pieces of hardware on the very early
-computer on which the original Lisp was developed.  Besides being
-obsolete, the phrases have been completely irrelevant for more than 25
-years to anyone thinking about Lisp.  Nonetheless, although a few
-brave scholars have begun to use more reasonable names for these
-functions, the old terms are still in use.  In particular, since the
-terms are used in the Emacs Lisp source code, we will use them in this
-introduction.
+Register''; and @code{cdr} (pronounced ``could-er'') is an acronym
+from the phrase ``Contents of the Decrement part of the Register''.
+These phrases refer to the IBM 704 computer on which the original Lisp
+was developed.
+
+The IBM 704 is a footnote in history, but these names are now beloved
+traditions of Lisp.
 
 @node car & cdr
 @section @code{car} and @code{cdr}
@@ -6789,9 +6787,6 @@ evaluating the following:
 @noindent
 After evaluating the expression, @code{rose} will appear in the echo
 area.
-
-Clearly, a more reasonable name for the @code{car} function would be
-@code{first} and this is often suggested.
 
 @code{car} does not remove the first item from the list; it only reports
 what it is.  After @code{car} has been applied to a list, the list is
@@ -6824,6 +6819,22 @@ Incidentally, in the example, the list of flowers is quoted.  If it were
 not, the Lisp interpreter would try to evaluate the list by calling
 @code{rose} as a function.  In this example, we do not want to do that.
 
+For operating on lists, the names @code{first} and @code{rest} would
+make more sense than the names @code{car} and @code{cdr}.  Indeed,
+some programmers define @code{first} and @code{rest} as aliases for
+@code{car} and @code{cdr}, then write @code{first} and @code{rest} in
+their code.
+
+However, lists in Lisp are built using a lower-level structure known
+as ``cons cells'' (@pxref{List Implementation}), in which there is no
+such thing as ``first'' or ``rest'', and the @sc{car} and the @sc{cdr}
+are symmetrical.  Lisp does not try to hide the existence of cons
+cells, and programs do use them for things other than lists.  For this
+reason, the names are helpful for reminding programmers that
+@code{car} and @code{cdr} are in fact symmetrical, despite the
+asymmetrical way they are used in lists.
+
+@ignore
 Clearly, a more reasonable name for @code{cdr} would be @code{rest}.
 
 (There is a lesson here: when you name new functions, consider very
@@ -6833,6 +6844,7 @@ these names is that the Emacs Lisp source code uses them, and if I did
 not use them, you would have a hard time reading the code; but do,
 please, try to avoid using these terms yourself.  The people who come
 after you will be grateful to you.)
+@end ignore
 
 When @code{car} and @code{cdr} are applied to a list made up of symbols,
 such as the list @code{(pine fir oak maple)}, the element of the list
@@ -8114,10 +8126,9 @@ than one error handler.  When an error occurs, the first applicable
 handler is run.
 
 Lastly, the first argument to the @code{condition-case} expression,
-the @var{var} argument, is sometimes bound to a variable that
-contains information about the error.  However, if that argument is
-nil, as is the case in @code{kill-region}, that information is
-discarded.
+the @var{var} argument, is sometimes bound to a variable that contains
+information about the error.  However, if that argument is @code{nil},
+as is the case in @code{kill-region}, that information is discarded.
 
 @need 1200
 In brief, in the @code{kill-region} function, the code
@@ -9429,13 +9440,15 @@ pointed to.  Hence, a list is kept as a series of electronic addresses.
 @unnumberedsec Lists diagrammed
 @end ifnottex
 
-For example, the list @code{(rose violet buttercup)} has three elements,
-@samp{rose}, @samp{violet}, and @samp{buttercup}.  In the computer, the
-electronic address of @samp{rose} is recorded in a segment of computer
-memory along with the address that gives the electronic address of where
-the atom @samp{violet} is located; and that address (the one that tells
-where @samp{violet} is located) is kept along with an address that tells
-where the address for the atom @samp{buttercup} is located.
+For example, the list @code{(rose violet buttercup)} has three
+elements, @samp{rose}, @samp{violet}, and @samp{buttercup}.  In the
+computer, the electronic address of @samp{rose} is recorded in a
+segment of computer memory called a @dfn{cons cell} (because it's what
+the function @code{cons} actually creates).  That cons cell also holds
+the address of a second cons cell, whose @sc{car} is the atom
+@samp{violet}; and that address (the one that tells where to find
+@samp{violet}) is kept along with the address of a third cons cell
+which holds the address for the atom @samp{buttercup}.
 
 @need 1200
 This sounds more complicated than it is and is easier seen in a diagram:
@@ -9652,6 +9665,8 @@ to say, the symbol @code{flowers} holds the address of the pair of
 address-boxes, the first of which holds the address of @code{violet},
 and the second of which holds the address of @code{buttercup}.
 
+@cindex dotted pair
+@cindex cons cell
 A pair of address-boxes is called a @dfn{cons cell} or @dfn{dotted
 pair}.  @xref{Cons Cell Type, , Cons Cell and List Types, elisp, The GNU Emacs Lisp
 Reference Manual}, and @ref{Dotted Pair Notation, , Dotted Pair

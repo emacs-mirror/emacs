@@ -8,7 +8,7 @@
 @copying
 This file documents the GNU Emacs Web Wowser (EWW) package.
 
-Copyright @copyright{} 2014--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2014--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -92,9 +92,10 @@ searched via @code{eww-search-prefix}.  The default search engine is
 either prefix the file name with @code{file://} or use the command
 @kbd{M-x eww-open-file}.
 
-  If you invoke @code{eww} with a prefix argument, as in @w{@kbd{C-u
-M-x eww}}, it will create a new EWW buffer instead of reusing the
-default one, which is normally called @file{*eww*}.
+  If you invoke @code{eww} or @code{eww-open-file} with a prefix
+argument, as in @w{@kbd{C-u M-x eww}}, they will create a new EWW
+buffer instead of reusing the default one, which is normally called
+@file{*eww*}.
 
 @findex eww-quit
 @findex eww-reload
@@ -113,6 +114,21 @@ web page hit @kbd{g} (@code{eww-reload}).
 @acronym{URL} to the kill ring.  If point is not on a link, pressing
 @kbd{w} calls @code{eww-copy-page-url}, which will copy the current
 page's URL to the kill ring instead.
+
+@findex eww-copy-alternate-url
+@kindex A
+  The @kbd{A} command (@code{eww-copy-alternate-url}) copies the URL
+of an alternate link on the current page into the kill ring.  If the
+page specifies multiple alternate links, this command prompts for one
+of them in the minibuffer, with completion.  Alternate links are
+references that an @acronym{HTML} page may include to point to other
+documents that act as its alternative representations.  Notably,
+@acronym{HTML} pages can use alternate links to point to their
+translated versions and to @acronym{RSS} feeds.  Alternate links
+appear in the @samp{<head>} section of @acronym{HTML} pages as
+@samp{<link>} elements with @samp{rel} attribute equal to
+@samp{``alternate''}; they are part of the page's metadata and are not
+visible in its rendered content.
 
 @findex eww-open-in-new-buffer
 @kindex M-RET
@@ -367,8 +383,8 @@ point positions or the actual Web page contents.
 The latter, however, tend to be overly large to preserve in the
 desktop file, so they get omitted, thus rendering the respective
 entries entirely equivalent.  By default, such duplicate entries are
-not saved.  Setting @code{eww-desktop-remove-duplicates} to nil will
-force EWW to save them anyway.
+not saved.  Setting @code{eww-desktop-remove-duplicates} to @code{nil}
+will force EWW to save them anyway.
 
 @vindex eww-restore-desktop
   Restoring EWW buffers' contents may prove to take too long to

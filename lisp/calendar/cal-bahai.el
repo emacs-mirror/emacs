@@ -1,6 +1,6 @@
 ;;; cal-bahai.el --- calendar functions for the Bahá’í calendar.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: calendar

@@ -1,6 +1,6 @@
 ;;; ob-eval.el --- Babel Functions for External Code Evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
@@ -59,7 +59,7 @@ Writes QUERY into a temp-buffer that is processed with
   (let ((error-buffer (get-buffer-create " *Org-Babel Error*")) exit-code)
     (with-current-buffer error-buffer (erase-buffer))
     (with-temp-buffer
-      (insert query)
+      (insert query "\n")
       (setq exit-code
             (org-babel--shell-command-on-region
              command error-buffer))

@@ -1,6 +1,6 @@
 ;;; hl-line-tests.el --- Test suite for hl-line. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -104,10 +104,10 @@
           (run-hooks 'post-command-hook)
           (should (hl-line-tests-verify 257 t))
           (with-current-buffer second-buffer
-            (should (hl-line-tests-verify 999 nil)))))
-    (let (kill-buffer-query-functions)
-      (ignore-errors (kill-buffer first-buffer))
-      (ignore-errors (kill-buffer second-buffer)))))
+            (should (hl-line-tests-verify 999 nil))))
+      (let (kill-buffer-query-functions)
+        (ignore-errors (kill-buffer first-buffer))
+        (ignore-errors (kill-buffer second-buffer))))))
 
 (provide 'hl-line-tests)
 

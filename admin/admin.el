@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1038,8 +1038,7 @@ If optional argument OLD is non-nil, also scan for `defvar's."
 		  (and grp
 		       (setq grp (car (cdr-safe grp))) ; (quote foo) -> foo
 		       (setq ver (assq grp glist))))
-		(setq alist (cons (cons var ver) alist))))
-          (if form (format-message "Malformed defcustom: `%s'" form)))))
+		(setq alist (cons (cons var ver) alist)))))))
     (message "%sdone" m)
     alist))
 

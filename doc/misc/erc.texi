@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/erc.info
 @settitle ERC Manual
-@set ERCVER 5.4.1
+@set ERCVER 5.6
 @set ERCDIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi
 @syncodeindex fn cp
@@ -12,7 +12,7 @@
 @copying
 This manual is for ERC @value{ERCVER} @value{ERCDIST}.
 
-Copyright @copyright{} 2005--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2005--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -90,7 +90,8 @@ Advanced Usage
 @chapter Introduction
 
 ERC is a powerful, modular, and extensible IRC client for Emacs.
-It is distributed with Emacs since version 22.1.
+It has been included in Emacs since 2006 (@pxref{History}) and is also
+available on GNU ELPA.
 
 IRC is short for Internet Relay Chat.  When using IRC, you can
 communicate with other users on the same IRC network.  There are many
@@ -539,36 +540,55 @@ so demands special precautions to avoid degrading the user experience.
 At present, the only such module is @code{networks}, whose library ERC
 always loads anyway.
 
+@anchor{Local Modules}
 @subheading Local Modules
 @cindex local modules
 
 All modules operate as minor modes under the hood, and some newer ones
 may be defined as buffer-local.  These so-called ``local modules'' are
 a work in progress and their behavior and interface are subject to
-change.  As of ERC 5.5, the only practical differences are
+change.  As of ERC 5.5, the only practical differences are as follows:
 
 @enumerate
 @item
-``Control variables,'' like @code{erc-sasl-mode}, are stateful across
-IRC sessions and override @code{erc-module} membership when influencing
-module activation in new sessions.
+``Control variables,'' like @code{erc-sasl-mode}, retain their values
+across IRC sessions and override @code{erc-module} membership when
+influencing module activation.
 @item
 Removing a local module from @code{erc-modules} via Customize not only
 disables its mode but also kills its control variable in all ERC
 buffers.
 @item
-``Mode toggles,'' like @code{erc-sasl-mode} and
-@code{erc-sasl-enable}, behave differently relative to each other and
-to their global counterparts.  (More on this just below.)
+``Mode toggles,'' like @code{erc-sasl-mode} and the complementary
+@code{erc-sasl-enable}/@code{erc-sasl-disable} pairing, behave
+differently than their global counterparts.
 @end enumerate
 
-By default, all local-mode toggles, like @code{erc-sasl-mode}, only
-affect the current buffer, but their ``non-mode'' variants, such as
-@code{erc-sasl-enable}, operate on all buffers belonging to a
-connection when called interactively.  Keep in mind that whether
-enabled or not, a module may effectively be ``inert'' in certain types
-of buffers, such as queries and channels.  Whatever the case, a local
-toggle never mutates @code{erc-modules}.
+In target buffers, a local module's activation state survives
+``reassociation'' by default, but modules themselves always have the
+final say.  For example, a module may reset all instances of itself in
+its network context upon reconnecting.  Moreover, the value of a mode
+variable may be meaningless in buffers that its module has no interest
+in.  For example, the value of @code{erc-sasl-mode} doesn't matter in
+target buffers and may even remain non-@code{nil} after SASL has been
+disabled for the current connection (and vice versa).
+
+When it comes to server buffers, a module's activation state only
+persists for sessions revived via the automatic reconnection mechanism
+or a manual @samp{/reconnect} issued at the prompt.  In other words,
+this doesn't apply to sessions revived by an entry-point command, such
+as @code{erc-tls}, because such commands always ensure a clean slate
+by looking only to @code{erc-modules}.  Although a session revived in
+this manner may indeed harvest other information from a previous
+server buffer, it simply doesn't care which modules might have been
+active during that connection.
+
+Lastly, a local mode's toggle command, like @code{erc-sasl-mode}, only
+affects the current buffer, but its ``non-mode'' cousins, like
+@code{erc-sasl-enable} and @code{erc-sasl-disable}, operate on all
+buffers belonging to their connection (when called interactively).
+And unlike global toggles, none of these ever mutates
+@code{erc-modules}.
 
 
 @c PRE5_4: Document every option of every module in its own subnode
@@ -591,6 +611,7 @@ toggle never mutates @code{erc-modules}.
 Integrations
 
 * URL::                         Opening IRC URLs in ERC.
+* SOCKS::                       Connecting to IRC with a SOCKS proxy.
 * auth-source::                 Retrieving auth-source entries with ERC.
 
 @end detailmenu
@@ -932,7 +953,7 @@ Here, ``password'' refers to your account password, which is usually
 your @samp{NickServ} password.  To make this work, customize
 @code{erc-sasl-user} and @code{erc-sasl-password} or specify the
 @code{:user} and @code{:password} keyword arguments when invoking
-@code{erc-tls}.  Note that @code{:user} cannot be given interactively.
+@code{erc-tls}.
 
 @item @code{external} (via Client TLS Certificate)
 This works in conjunction with the @code{:client-certificate} keyword
@@ -1232,6 +1253,68 @@ need a function as well:
 @noindent
 Users on Emacs 28 and below may need to use @code{browse-url} instead.
 
+@anchor{SOCKS}
+@subsection SOCKS
+@cindex SOCKS
+
+People wanting to connect to IRC through a @acronym{SOCKS} proxy are
+most likely interested in doing so over @acronym{TOR} (The Onion
+Router).  If that's @emph{not} you, please adapt these instructions
+accordingly.  Otherwise, keep in mind that support for Tor is
+experimental and thus insufficient for safeguarding a user's identity
+and location, especially in the case of targeted individuals.
+
+ERC's preferred Tor setup works by accessing a local Tor service
+through the built-in @file{socks.el} library that ships with Emacs.
+Other means of accessing Tor, such as via @command{torsocks}, are not
+supported.  Before getting started, check that your Tor service is up
+and running.  You can do that with the following command:
+
+@example
+curl --proxy socks5h://localhost:9050 https://check.torproject.org | \
+  grep 'Congratulations'
+@end example
+
+Networks and servers differ in how they expose Tor endpoints.  In all
+cases, you'll want to first set the option @code{socks-server} to
+something appropriate, like @code{("tor" "127.0.0.1" 9050 5)}.  For
+some networks, setting @code{erc-server-connect-function} to
+@code{socks-open-network-stream} might be enough.  Others, like
+@samp{Libera.Chat}, involve additional setup.  At the time of writing,
+connecting to that network requires both @acronym{TLS} and a permitted
+@acronym{SASL} mechanism, like @samp{EXTERNAL} (@pxref{SASL}), as
+shown in the following example:
+
+@lisp
+(require 'erc)
+(require 'socks)
+
+(defun my-erc-open-socks-tls-stream (&rest args)
+  (let ((socks-username "")
+        (socks-password "")
+        (socks-server '("tor" "localhost" 9050 5)))
+    (apply #'erc-open-socks-tls-stream args)))
+
+(let* ((erc-modules (cons 'sasl erc-modules))
+       (erc-sasl-mechanism 'external)
+       (erc-server-connect-function #'my-erc-open-socks-tls-stream))
+  (erc-tls
+   :server "libera75jm6of4wxpxt4aynol3xjmbtxgfyjpu34ss4d7r7q2v5zrpyd.onion"
+   :port 6697
+   :nick "jrh"
+   :user "jrandomhacker"
+   :full-name "J. Random Hacker"
+   :client-certificate (list "/home/jrh/key.pem" "/home/jrh/cert.pem")))
+@end lisp
+
+@noindent
+Here, the user-provided @code{my-erc-open-socks-tls-stream} ensures
+that the preferred values for @code{socks-server} and friends will be
+available when reconnecting.  If you plan on using @acronym{SOCKS}
+with ERC exclusively, you can just set those options and variables
+globally and bind @code{erc-server-connect-function} to
+@code{erc-open-socks-tls-stream} instead.
+
 @node auth-source
 @subsection auth-source
 @cindex auth-source
@@ -1444,15 +1527,44 @@ or if you have bugs to report, there are several places you can go.
 @item
 @uref{https://www.emacswiki.org/emacs/ERC} is the
 emacswiki.org page for ERC@.  Anyone may add tips, hints, etc.@: to it.
+If you do so, please help keep it up to date.
 
 @item
 You can ask questions about using ERC on the Emacs mailing list,
-@uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
+@uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}, as well
+as on ERC's own low-volume list,
+@uref{https://lists.gnu.org/mailman/listinfo/emacs-erc}.
 
 @item
 You can visit the IRC Libera.Chat channel @samp{#emacs}.  Many of the
 contributors are frequently around and willing to answer your
-questions.
+questions.  You can also try the relatively quiet @samp{#erc}, on the
+same network, for more involved questions.
+
+@item
+@anchor{Upgrading}
+You can check GNU ELPA between Emacs releases to see if a newer
+version is available that might contain a fix for your issue:
+@uref{https://elpa.gnu.org/packages/erc.html}.
+
+To upgrade, run @kbd{M-x list-packages @key{RET}}.  In the
+@file{*Packages*} (@code{package-menu-mode}) buffer, click the
+@samp{erc} package link for the desired version.  If unsure, or if the
+version column is too narrow to tell, try the bottom-most candidate.
+In the resulting @code{help-mode} buffer, confirm the version and
+click @samp{Install}.  Make sure to restart Emacs before reconnecting
+to IRC, and don't forget that you can roll back to the previous
+version by running @kbd{M-x package-delete @key{RET}}.
+@xref{Packages,,,emacs, the Emacs manual} for more information.
+
+In the rare instance you need an emergency fix or have volunteered to
+test an edge feature between ERC releases, you can try adding
+@samp{("devel" . "https://elpa.gnu.org/devel/")} to
+@code{package-archives} prior to performing the steps above.  For
+this, you'll want to instead select a ``snapshot'' version from the
+menu.  Please be aware that when going this route, the latest changes
+may not yet be available and you run the risk of incurring other bugs
+and encountering unstable features.
 
 @item
 To report a bug in ERC, use @kbd{M-x erc-bug}.

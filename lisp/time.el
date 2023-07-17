@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2022 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -139,6 +139,11 @@ make the mail indicator stand out on a color display."
   :version "22.1"
   :type '(choice (const :tag "None" nil) face))
 
+(defface display-time-date-and-time nil
+  "Face for `display-time-format'."
+  :group 'mode-line-faces
+  :version "30.1")
+
 (defvar display-time-mail-icon
   (find-image '((:type xpm :file "letter.xpm" :ascent center)
 		(:type pbm :file "letter.pbm" :ascent center)))
@@ -179,6 +184,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
      (format-time-string (or display-time-format
 			     (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			 now)
+     'face 'display-time-date-and-time
      'help-echo (format-time-string "%a %b %e, %Y" now))
     load
     (if mail

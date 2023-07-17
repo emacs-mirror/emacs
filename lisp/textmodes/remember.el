@@ -1,6 +1,6 @@
 ;;; remember.el --- a mode for quickly jotting down things to remember  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2001, 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; prolog.el --- major mode for Prolog (and Mercury) -*- lexical-binding:t -*-
 
-;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2022 Free
+;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
@@ -828,7 +828,7 @@ Relevant only when `prolog-imenu-flag' is non-nil."
            ((not (zerop (skip-chars-forward prolog-operator-chars))))
            ((not (zerop (skip-syntax-forward "w_'"))))
            ;; In case of non-ASCII punctuation.
-           ((not (zerop (skip-syntax-forward ".")))))
+           (t (skip-syntax-forward ".")))
           (point))))
 
 (defun prolog-smie-backward-token ()
@@ -842,7 +842,7 @@ Relevant only when `prolog-imenu-flag' is non-nil."
            ((not (zerop (skip-chars-backward prolog-operator-chars))))
            ((not (zerop (skip-syntax-backward "w_'"))))
            ;; In case of non-ASCII punctuation.
-           ((not (zerop (skip-syntax-backward ".")))))
+           (t (skip-syntax-backward ".")))
           (point))))
 
 (defconst prolog-smie-grammar

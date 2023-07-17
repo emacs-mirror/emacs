@@ -1,0 +1,374 @@
+Code:
+  (lambda ()
+    (elixir-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: $
+
+Name: Basic modules
+
+=-=
+  defmodule Foobar do
+def bar() do
+"one"
+      end
+    end
+=-=
+defmodule Foobar do
+  def bar() do
+    "one"
+  end
+end
+=-=-=
+
+Name: Map
+
+=-=
+map = %{
+  "a" => 1,
+  "b" => 2
+}
+=-=-=
+
+Name: Map in function def
+
+=-=
+def foobar() do
+  %{
+    one: "one",
+    two: "two",
+    three: "three",
+    four: "four"
+  }
+end
+=-=-=
+
+Name: Map in tuple
+
+=-=
+def foo() do
+  {:ok,
+   %{
+     state
+     | extra_arguments: extra_arguments,
+       max_children: max_children,
+       max_restarts: max_restarts,
+       max_seconds: max_seconds,
+       strategy: strategy
+   }}
+end
+=-=-=
+
+Name: Nested maps
+
+=-=
+%{
+  foo: "bar",
+  bar: %{
+    foo: "bar"
+  }
+}
+
+def foo() do
+  %{
+    foo: "bar",
+    bar: %{
+      foo: "bar"
+    }
+  }
+end
+=-=-=
+
+Name: Bitstring mulitline
+
+=-=
+<<12, 22,
+22, 32
+    >>
+=-=
+<<12, 22,
+  22, 32
+>>
+=-=-=
+
+Name: Block assignments
+
+=-=
+foo =
+  if true do
+    "yes"
+  else
+    "no"
+  end
+=-=-=
+
+Name: Function rescue
+
+=-=
+def foo do
+  "bar"
+rescue
+  e ->
+    "bar"
+end
+=-=-=
+
+Name: With statement
+=-=
+with one <- one(),
+     two <- two(),
+     {:ok, value} <- get_value(one, two) do
+  {:ok, value}
+else
+  {:error, %{"Message" => message}} ->
+    {:error, message}
+end
+=-=-=
+
+Name: Pipe statements with fn
+
+=-=
+[1, 2]
+|> Enum.map(fn num ->
+  num + 1
+end)
+=-=-=
+
+Name: Pipe statements stab clases
+
+=-=
+[1, 2]
+|> Enum.map(fn
+  x when x < 10 -> x * 2
+  x -> x * 3
+end)
+=-=-=
+
+Name: Pipe statements params
+
+=-=
+[1, 2]
+|> foobar(
+  :one,
+  :two,
+  :three,
+  :four
+)
+=-=-=
+
+Name: Parameter maps
+
+=-=
+def something(%{
+      one: :one,
+      two: :two
+    }) do
+  {:ok, "done"}
+end
+=-=-=
+
+Name: Binary operator in else block
+
+=-=
+defp foobar() do
+  if false do
+    :foo
+  else
+    :bar |> foo
+  end
+end
+=-=-=
+
+Name: Tuple indentation
+
+=-=
+tuple = {
+  :one,
+  :two
+}
+
+{
+  :one,
+  :two
+}
+=-=-=
+
+Name: Call with keywords
+
+=-=
+def foo() do
+  bar(:one,
+      :two,
+      one: 1,
+      two: 2
+  )
+end
+=-=-=
+
+Name: Call with @spec
+
+=-=
+@spec foobar(
+        t,
+        acc,
+        (one, something -> :bar | far),
+        (two -> :bar | far)
+      ) :: any()
+      when chunk: any
+def foobar(enumerable, acc, chunk_fun, after_fun) do
+  {_, {res, acc}} =
+    case after_fun.(acc) do
+      {:one, "one"} ->
+        "one"
+
+      {:two, "two"} ->
+        "two"
+    end
+end
+=-=-=
+
+Name: Spec with multi-line result
+
+=-=
+@type result ::
+        {:done, term}
+        | {:two}
+        | {:one}
+
+@type result ::
+        {
+          :done,
+          term
+        }
+        | {:two}
+        | {:one}
+
+@type boo_bar ::
+        (foo :: pos_integer, bar :: pos_integer -> any())
+
+@spec foo_bar(
+        t,
+        (foo -> any),
+        (() -> any) | (foo, foo -> boolean) | module()
+      ) :: any
+      when foo: any
+def foo(one, fun, other)
+=-=-=
+
+Name: String concatenation in call
+
+=-=
+IO.warn(
+  "one" <>
+    "two" <>
+    "bar"
+)
+
+IO.warn(
+  "foo" <>
+    "bar"
+)
+=-=-=
+
+Name: Incomplete tuple
+
+=-=
+map = {
+:foo
+
+=-=
+map = {
+  :foo
+
+=-=-=
+
+Name: Incomplete map
+
+=-=
+map = %{
+  "a" => "a",
+=-=-=
+
+Name: Incomplete list
+
+=-=
+map = [
+:foo
+
+=-=
+map = [
+  :foo
+
+=-=-=
+
+Name: String concatenation
+
+=-=
+"one" <>
+  "two" <>
+  "three" <>
+  "four"
+=-=-=
+
+Name: Tuple with same line first node
+
+=-=
+{:one,
+ :two}
+
+{:ok,
+ fn one ->
+   one
+   |> String.upcase(one)
+ end}
+=-=-=
+
+Name: Long tuple
+
+=-=
+{"January", "February", "March", "April", "May", "June", "July", "August", "September",
+ "October", "November", "December"}
+=-=-=
+
+Name: Embedded HEEx
+
+=-=
+ defmodule Foo do
+ def foo(assigns) do
+~H"""
+<span>
+text
+</span>
+"""
+ end
+ end
+=-=
+defmodule Foo do
+  def foo(assigns) do
+    ~H"""
+    <span>
+      text
+    </span>
+    """
+  end
+end
+=-=-=
+
+Code:
+  (lambda ()
+    (elixir-ts-mode)
+    (newline)
+    (indent-for-tab-command))
+
+Name: New list item
+
+=-=
+[
+  :foo,$
+]
+=-=
+[
+  :foo,
+  $
+]
+=-=-=

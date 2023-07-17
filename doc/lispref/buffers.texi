@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -959,9 +959,9 @@ infinite recursion.
 
 @defun buffer-match-p condition buffer-or-name &optional arg
 This function checks if a buffer designated by @code{buffer-or-name}
-satisfies a @code{condition}.  Optional third argument @var{arg} is
-passed to the predicate function in @var{condition}.  A condition can
-be one of the following:
+satisfies the specified @code{condition}.  Optional third argument
+@var{arg} is passed to the predicate function in @var{condition}.  A
+valid @var{condition} can be one of the following:
 @itemize @bullet{}
 @item
 A string, interpreted as a regular expression.  The buffer
@@ -977,36 +977,36 @@ first argument is @var{buffer-or-name} and the second is @var{arg}
 A cons-cell @code{(@var{oper} . @var{expr})} where @var{oper} is one
 of
 @table @code
-@item not
-Satisfied if @var{expr} doesn't satisfy @code{buffer-match-p} with
+@item (not @var{cond})
+Satisfied if @var{cond} doesn't satisfy @code{buffer-match-p} with
 the same buffer and @code{arg}.
-@item or
-Satisfied if @var{expr} is a list and @emph{any} condition in
-@var{expr} satisfies @code{buffer-match-p}, with the same buffer and
-@code{arg}.
-@item and
-Satisfied if @var{expr} is a list and @emph{all} conditions in
-@var{expr} satisfy @code{buffer-match-p}, with the same buffer and
-@code{arg}.
+@item (or @var{conds}@dots{})
+Satisfied if @emph{any} condition in @var{conds} satisfies
+@code{buffer-match-p}, with the same buffer and @code{arg}.
+@item (and @var{conds}@dots{})
+Satisfied if @emph{all} the conditions in @var{conds} satisfy
+@code{buffer-match-p}, with the same buffer and @code{arg}.
 @item derived-mode
 Satisfied if the buffer's major mode derives from @var{expr}.
 @item major-mode
 Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
-using @code{derived-mode} instead when both can work.
+using @code{derived-mode} instead, when both can work.
 @end table
 @item t
 Satisfied by any buffer.  A convenient alternative to @code{""} (empty
-string), @code{(and)} (empty conjunction) or @code{always}.
+string) or @code{(and)} (empty conjunction).
 @end itemize
 @end defun
 
 @defun match-buffers condition &optional buffer-list arg
-This function returns a list of all buffers that satisfy a
-@code{condition}, as defined for @code{buffer-match-p}.  By default
-all buffers are considered, but this can be restricted via the second
-optional @code{buffer-list} argument.  Optional third argument
-@var{arg} will be used by @var{condition} in the same way as
-@code{buffer-match-p} does.
+This function returns a list of all buffers that satisfy the
+@code{condition}.  If no buffers match, the function returns
+@code{nil}.  The argument @var{condition} is as defined in
+@code{buffer-match-p} above.  By default, all the buffers are
+considered, but this can be restricted via the optional argument
+@code{buffer-list}, which should be a list of buffers to consider.
+Optional third argument @var{arg} will be passed to @var{condition} in
+the same way as @code{buffer-match-p} does.
 @end defun
 
 @node Creating Buffers

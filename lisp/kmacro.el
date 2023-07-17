@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -376,11 +376,23 @@ and `kmacro-counter-format'.")
 (defvar kmacro-view-last-item nil)
 (defvar kmacro-view-item-no 0)
 
+(defun kmacro--to-vector (object)
+  "Normalize an old-style key sequence to the vector form."
+  (if (not (stringp object))
+      object
+    (let ((vec (string-to-vector object)))
+      (unless (multibyte-string-p object)
+	(dotimes (i (length vec))
+	  (let ((k (aref vec i)))
+	    (when (> k 127)
+	      (setf (aref vec i) (+ k ?\M-\C-@ -128))))))
+      vec)))
 
 (defun kmacro-ring-head ()
   "Return pseudo head element in macro ring."
   (and last-kbd-macro
-       (kmacro last-kbd-macro kmacro-counter kmacro-counter-format-start)))
+       (kmacro (kmacro--to-vector last-kbd-macro)
+               kmacro-counter kmacro-counter-format-start)))
 
 
 (defun kmacro-push-ring (&optional elt)
@@ -492,8 +504,9 @@ ARG is the number of times to execute the item.")
 
 
 (defun kmacro-call-ring-2nd (arg)
-  "Execute second keyboard macro in macro ring."
-  (interactive "P")
+  "Execute second keyboard macro in macro ring.
+With numeric argument ARG, execute the macro that many times."
+  (interactive "p")
   (unless (kmacro-ring-empty-p)
     (funcall (car kmacro-ring) arg)))
 
@@ -502,7 +515,7 @@ ARG is the number of times to execute the item.")
   "Execute second keyboard macro in macro ring.
 This is like `kmacro-call-ring-2nd', but allows repeating macro commands
 without repeating the prefix."
-  (interactive "P")
+  (interactive "p")
   (let ((keys (kmacro-get-repeat-prefix)))
     (kmacro-call-ring-2nd arg)
     (if (and kmacro-ring keys)
@@ -638,10 +651,10 @@ The macro is now available for use via \\[kmacro-call-macro],
 or it can be given a name with \\[kmacro-name-last-macro] and then invoked
 under that name.
 
-With numeric arg, repeat macro now that many times,
+With numeric ARG, repeat the macro that many times,
 counting the definition just completed as the first repetition.
 An argument of zero means repeat until error."
-  (interactive "P")
+  (interactive "p")
    ;; Isearch may push the kmacro-end-macro key sequence onto the macro.
    ;; Just ignore it when executing the macro.
   (unless executing-kbd-macro
@@ -775,7 +788,7 @@ Zero argument means repeat until there is an error.
 
 To give a macro a name, so you can call it even after defining other
 macros, use \\[kmacro-name-last-macro]."
-  (interactive "P")
+  (interactive "p")
   (if defining-kbd-macro
       (kmacro-end-macro nil))
   (kmacro-call-macro arg no-repeat))
@@ -839,12 +852,8 @@ KEYS should be a vector or a string that obeys `key-valid-p'."
       (setq format  (nth 2 mac))
       (setq counter (nth 1 mac))
       (setq mac     (nth 0 mac)))
-    (when (stringp mac)
-      ;; `kmacro' interprets a string according to `key-parse'.
-      (require 'macros)
-      (declare-function macro--string-to-vector "macros")
-      (setq mac (macro--string-to-vector mac)))
-    (kmacro mac counter format)))
+    ;; `kmacro' interprets a string according to `key-parse'.
+    (kmacro (kmacro--to-vector mac) counter format)))
 
 (defun kmacro-extract-lambda (mac)
   "Extract kmacro from a kmacro lambda form."
@@ -860,8 +869,6 @@ KEYS should be a vector or a string that obeys `key-valid-p'."
 
 (cl-defmethod cl-print-object ((object kmacro) stream)
   (princ "#f(kmacro " stream)
-  (require 'macros)
-  (declare-function macros--insert-vector-macro "macros" (definition))
   (let ((vecdef  (kmacro--keys     object))
         (counter (kmacro--counter object))
         (format  (kmacro--format  object)))
@@ -943,20 +950,15 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
   (put symbol 'kmacro t))
 
 
-(cl-defstruct (kmacro-register
-               (:constructor nil)
-               (:constructor kmacro-make-register (macro)))
-  macro)
+(cl-defmethod register-val-jump-to ((km kmacro) arg)
+  (funcall km arg))                     ;FIXME: η-reduce?
 
-(cl-defmethod register-val-jump-to ((data kmacro-register) _arg)
-  (kmacro-call-macro current-prefix-arg nil nil (kmacro-register-macro data)))
+(cl-defmethod register-val-describe ((km kmacro) _verbose)
+  (princ (format "a keyboard macro:\n    %s"
+                 (key-description (kmacro--keys km)))))
 
-(cl-defmethod register-val-describe ((data kmacro-register) _verbose)
-  (princ (format "a keyboard macro:\n   %s"
-		 (key-description (kmacro-register-macro data)))))
-
-(cl-defmethod register-val-insert ((data kmacro-register))
-  (insert (format-kbd-macro (kmacro-register-macro data))))
+(cl-defmethod register-val-insert ((km kmacro))
+  (insert (key-description (kmacro--keys km))))
 
 (defun kmacro-to-register (r)
   "Store the last keyboard macro in register R.
@@ -966,7 +968,7 @@ Interactively, reads the register using `register-read-with-preview'."
    (progn
      (or last-kbd-macro (error "No keyboard macro defined"))
      (list (register-read-with-preview "Save to register: "))))
-  (set-register r (kmacro-make-register last-kbd-macro)))
+  (set-register r (kmacro-ring-head)))
 
 
 (defun kmacro-view-macro (&optional _arg)

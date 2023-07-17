@@ -4,7 +4,7 @@ Emacs commands generally involve the CONTROL key (often labeled CTRL)
 or the META key (usually labeled ALT).  Rather than writing that
 in full each time, we'll use the following abbreviations:
 
- C-<chr>  means hold the CONTROL key while typing the character <chr>
+ C-<chr>  means hold the CONTROL key while typing the character <chr>.
 	  Thus, C-f would be: hold the CONTROL key and type f.
  M-<chr>  means hold the META or ALT key down while typing <chr>.
 	  If there is no META or ALT key, instead press and release the
@@ -1131,7 +1131,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2022 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2023 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.

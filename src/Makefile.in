@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2022 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2023 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -144,9 +144,10 @@ M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
 M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
 LIB_ACL=@LIB_ACL@
-LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
-LIB_EACCESS=@LIB_EACCESS@
-LIB_NANOSLEEP=@LIB_NANOSLEEP@
+CLOCK_TIME_LIB=@CLOCK_TIME_LIB@
+EUIDACCESS_LIBGEN=@EUIDACCESS_LIBGEN@
+NANOSLEEP_LIB=@NANOSLEEP_LIB@
+QCOPY_ACL_LIB=@QCOPY_ACL_LIB@
 LIB_TIMER_TIME=@LIB_TIMER_TIME@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
@@ -559,9 +560,9 @@ lisp = $(addprefix ${lispsource}/,${shortlisp})
 ## Construct full set of libraries to be linked.
 LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
-   $(LIB_NANOSLEEP) $(WEBKIT_LIBS) \
-   $(LIB_EACCESS) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(CLOCK_TIME_LIB) \
+   $(NANOSLEEP_LIB) $(QCOPY_ACL_LIB) $(WEBKIT_LIBS) \
+   $(EUIDACCESS_LIBGEN) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
    $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
    $(XDBE_LIBS) $(XSYNC_LIBS) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
@@ -873,6 +874,11 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 ## native-lisp where the *.eln files will be produced, and the exact
 ## names of those *.eln files, cannot be known in advance; we must ask
 ## Emacs to produce them.
+## If AOT native compilation is requested, we additionally
+## native-compile all the *.el files in ../lisp that need to be
+## compiled and haven't yet been compiled.  ELDONE holds the list
+## of *.el files that were already native-compiled.
+NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
 ../native-lisp: | $(pdmp)
 	@if test ! -d $@; then \
 	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
@@ -883,6 +889,9 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR) \
 	  && cp -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT) \
 	  && cp -f $(pdmp) $(bootstrap_pdmp); \
+	  if test $(NATIVE_COMPILATION_AOT) = yes; then \
+	    $(MAKE) $(AM_V_NO_PD) -C ../lisp compile-eln-aot EMACS="../src/emacs$(EXEEXT)" ELNDONE="$(addprefix %,$(notdir $(elnlisp))))"; \
+	  fi; \
 	fi
 endif
 

@@ -1,6 +1,6 @@
 ;;; esh-util.el --- general utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -94,13 +94,6 @@ a non-nil value, will be passed strings, not numbers, even when an
 argument matches `eshell-number-regexp'."
   :type 'boolean)
 
-(defcustom eshell-number-regexp "-?\\([0-9]*\\.\\)?[0-9]+\\(e[-0-9.]+\\)?"
-  "Regular expression used to match numeric arguments.
-If `eshell-convert-numeric-arguments' is non-nil, and an argument
-matches this regexp, it will be converted to a Lisp number, using the
-function `string-to-number'."
-  :type 'regexp)
-
 (defcustom eshell-ange-ls-uids nil
   "List of user/host/id strings, used to determine remote ownership."
   :type '(repeat (cons :tag "Host for User/UID map"
@@ -110,6 +103,22 @@ function `string-to-number'."
 				     (repeat :tag "UIDs" string))))))
 
 ;;; Internal Variables:
+
+(defvar eshell-number-regexp
+  (rx (? "-")
+      (or (seq (+ digit) (? "." (* digit)))
+          (seq (* digit) "." (+ digit)))
+      ;; Optional exponent
+      (? (or "e" "E")
+         (or "+INF" "+NaN"
+             (seq (? (or "+" "-")) (+ digit)))))
+  "Regular expression used to match numeric arguments.
+If `eshell-convert-numeric-arguments' is non-nil, and an argument
+matches this regexp, it will be converted to a Lisp number, using the
+function `string-to-number'.")
+
+(defvar eshell-integer-regexp (rx (? "-") (+ digit))
+  "Regular expression used to match integer arguments.")
 
 (defvar eshell-group-names nil
   "A cache to hold the names of groups.")
@@ -122,6 +131,19 @@ function `string-to-number'."
 
 (defvar eshell-user-timestamp nil
   "A timestamp of when the user file was read.")
+
+(defvar eshell-command-output-properties
+  `( field command-output
+     front-sticky (field)
+     rear-nonsticky (field)
+     ;; Text inserted by a user in the middle of process output
+     ;; should be marked as output.  This is needed for commands
+     ;; such as `yank' or `just-one-space' which don't use
+     ;; `insert-and-inherit' and thus bypass default text property
+     ;; inheritance.
+     insert-in-front-hooks (,#'eshell--mark-as-output
+                            ,#'eshell--mark-yanked-as-output))
+  "A list of text properties to apply to command output.")
 
 ;;; Obsolete variables:
 
@@ -147,6 +169,27 @@ Otherwise, evaluates FORM with no error handling."
 	   ,form
 	 ,@handlers)
     form))
+
+(defun eshell--mark-as-output (start end &optional object)
+  "Mark the text from START to END as Eshell output.
+OBJECT can be a buffer or string.  If nil, mark the text in the
+current buffer."
+  (with-silent-modifications
+    (add-text-properties start end eshell-command-output-properties
+                         object)))
+
+(defun eshell--mark-yanked-as-output (start end)
+  "Mark yanked text from START to END as Eshell output."
+  ;; `yank' removes the field text property from the text it inserts
+  ;; due to `yank-excluded-properties', so arrange for this text
+  ;; property to be reapplied in the `after-change-functions'.
+  (letrec ((hook
+            (lambda (start1 end1 _len1)
+              (remove-hook 'after-change-functions hook t)
+              (when (and (= start start1)
+                         (= end end1))
+                (eshell--mark-as-output start1 end1)))))
+    (add-hook 'after-change-functions hook nil t)))
 
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
@@ -458,6 +501,11 @@ list."
   (condition-case nil
       (sit-for 0)
     (error nil)))
+
+(defun eshell-user-login-name ()
+  "Return the connection-aware value of the user's login name.
+See also `user-login-name'."
+  (or (file-remote-p default-directory 'user) (user-login-name)))
 
 (defun eshell-read-passwd-file (file)
   "Return an alist correlating gids to group names in FILE."

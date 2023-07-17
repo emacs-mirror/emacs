@@ -1,6 +1,6 @@
 ;;; seq-tests.el --- Tests for seq.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org

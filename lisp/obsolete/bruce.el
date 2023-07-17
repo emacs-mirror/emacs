@@ -1,7 +1,7 @@
 ;;; bruce.el --- bruce phrase utility for overloading the Communications  -*- lexical-binding: t; -*-
 ;;; Decency Act snoops, if any.
 
-;; Copyright (C) 1988, 1993, 1997, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1988, 1993, 1997, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 /* NS Cocoa part implementation of xwidget and webkit widget.
 
-Copyright (C) 2019-2022 Free Software Foundation, Inc.
+Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -57,12 +57,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 @end
 @implementation XwWebView : WKWebView
 
-- (id)initWithFrame:(CGRect)frame
+- (id) initWithFrame:(CGRect)frame
       configuration:(WKWebViewConfiguration *)configuration
             xwidget:(struct xwidget *)xw
 {
   /* Script controller to add script message handler and user script.  */
-  WKUserContentController *scriptor = [[WKUserContentController alloc] init];
+  WKUserContentController *scriptor = [[[WKUserContentController alloc] init]
+                                        autorelease];
   configuration.userContentController = scriptor;
 
   /* Enable inspect element context menu item for debugging.  */
@@ -81,7 +82,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   if (self)
     {
       self.xw = xw;
-      self.urlScriptBlocked = [[NSMutableDictionary alloc] init];
+      self.urlScriptBlocked = [[[NSMutableDictionary alloc] init]
+                                autorelease];
       self.navigationDelegate = self;
       self.UIDelegate = self;
       self.customUserAgent =
@@ -89,23 +91,48 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
         @" AppleWebKit/603.3.8 (KHTML, like Gecko)"
         @" Version/11.0.1 Safari/603.3.8";
       [scriptor addScriptMessageHandler:self name:@"keyDown"];
-      [scriptor addUserScript:[[WKUserScript alloc]
-                                initWithSource:xwScript
-                                 injectionTime:
-                                  WKUserScriptInjectionTimeAtDocumentStart
-                                forMainFrameOnly:NO]];
+      WKUserScript *userScript = [[[WKUserScript alloc]
+                                    initWithSource:xwScript
+                                     injectionTime:
+                                      WKUserScriptInjectionTimeAtDocumentStart
+                                    forMainFrameOnly:NO] autorelease];
+      [scriptor addUserScript:userScript];
     }
   return self;
 }
 
-- (void)webView:(WKWebView *)webView
+/* These 4 functions emulate the behavior of webkit_view_load_changed_cb
+   in the GTK implementation*/
+- (void) webView:(WKWebView *)webView
 didFinishNavigation:(WKNavigation *)navigation
 {
   if (EQ (Fbuffer_live_p (self.xw->buffer), Qt))
-    store_xwidget_event_string (self.xw, "load-changed", "");
+    store_xwidget_event_string (self.xw, "load-changed", "load-finished");
 }
 
-- (void)webView:(WKWebView *)webView
+- (void) webView:(WKWebView *)webView
+didStartProvisionalNavigation:(WKNavigation *)navigation
+{
+  if (EQ (Fbuffer_live_p (self.xw->buffer), Qt))
+    store_xwidget_event_string (self.xw, "load-changed", "load-started");
+}
+
+- (void) webView:(WKWebView *)webView
+didReceiveServerRedirectForProvisionalNavigation:(WKNavigation *)navigation
+{
+  if (EQ (Fbuffer_live_p (self.xw->buffer), Qt))
+    store_xwidget_event_string (self.xw, "load-changed", "load-redirected");
+}
+
+/* Start loading WKWebView */
+- (void) webView:(WKWebView *)webView
+didCommitNavigation:(WKNavigation *)navigation
+{
+  if (EQ (Fbuffer_live_p (self.xw->buffer), Qt))
+    store_xwidget_event_string (self.xw, "load-changed", "load-committed");
+}
+
+- (void) webView:(WKWebView *)webView
 decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
@@ -114,13 +141,13 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
     decisionHandler (WKNavigationActionPolicyAllow);
     break;
   default:
-    // decisionHandler (WKNavigationActionPolicyCancel);
+    /* decisionHandler (WKNavigationActionPolicyCancel); */
     decisionHandler (WKNavigationActionPolicyAllow);
     break;
   }
 }
 
-- (void)webView:(WKWebView *)webView
+- (void) webView:(WKWebView *)webView
 decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse
 decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 {
@@ -166,7 +193,7 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 
 /* No additional new webview or emacs window will be created
    for <a ... target="_blank">.  */
-- (WKWebView *)webView:(WKWebView *)webView
+- (WKWebView *) webView:(WKWebView *)webView
 createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration
    forNavigationAction:(WKNavigationAction *)navigationAction
         windowFeatures:(WKWindowFeatures *)windowFeatures
@@ -177,7 +204,7 @@ createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration
 }
 
 /* Open panel for file upload.  */
-- (void)webView:(WKWebView *)webView
+- (void) webView:(WKWebView *)webView
 runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters
 initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
@@ -197,13 +224,13 @@ completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
    - Correct mouse hand/arrow/I-beam is displayed (TODO: not perfect yet).
 */
 
-- (void)mouseDown:(NSEvent *)event
+- (void) mouseDown:(NSEvent *)event
 {
   [self.xw->xv->emacswindow mouseDown:event];
   [super mouseDown:event];
 }
 
-- (void)mouseUp:(NSEvent *)event
+- (void) mouseUp:(NSEvent *)event
 {
   [self.xw->xv->emacswindow mouseUp:event];
   [super mouseUp:event];
@@ -214,7 +241,7 @@ completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
    emacs as first responder to avoid focus held in an input element
    with matching text.  */
 
-- (void)keyDown:(NSEvent *)event
+- (void) keyDown:(NSEvent *)event
 {
   Lisp_Object var = Fintern (build_string ("isearch-mode"), Qnil);
   Lisp_Object val = buffer_local_value (var, Fcurrent_buffer ());
@@ -250,7 +277,7 @@ completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
     }];
 }
 
-- (void)interpretKeyEvents:(NSArray<NSEvent *> *)eventArray
+- (void) interpretKeyEvents:(NSArray<NSEvent *> *)eventArray
 {
   /* We should do nothing and do not forward (default implementation
      if we not override here) to let emacs collect key events and ask
@@ -258,7 +285,7 @@ completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
 }
 
 static NSString *xwScript;
-+ (void)initialize
++ (void) initialize
 {
   /* Find out if an input element has focus.
      Message to script message handler when 'C-g' key down.  */
@@ -284,7 +311,7 @@ static NSString *xwScript;
 
 /* Confirming to WKScriptMessageHandler, listens concerning keyDown in
    webkit. Currently 'C-g'.  */
-- (void)userContentController:(WKUserContentController *)userContentController
+- (void) userContentController:(WKUserContentController *)userContentController
       didReceiveScriptMessage:(WKScriptMessage *)message
 {
   if ([message.body isEqualToString:@"C-g"])
@@ -341,6 +368,20 @@ nsxwidget_webkit_goto_history (struct xwidget *xw, int rel_pos)
   case 0: [xwWebView reload]; break;
   case 1: [xwWebView goForward]; break;
   }
+}
+
+double
+nsxwidget_webkit_estimated_load_progress (struct xwidget *xw)
+{
+  XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
+  return xwWebView.estimatedProgress;
+}
+
+void
+nsxwidget_webkit_stop_loading (struct xwidget *xw)
+{
+  XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
+  [xwWebView stopLoading];
 }
 
 void
@@ -430,7 +471,7 @@ nsxwidget_webkit_execute_script (struct xwidget *xw, const char *script,
         }
       else if (result && FUNCTIONP (fun))
         {
-          // NSLog (@"result=%@, type=%@", result, [result class]);
+          /* NSLog (@"result=%@, type=%@", result, [result class]); */
           Lisp_Object lisp_value = js_to_lisp (result);
           store_xwidget_js_callback_event (xw, fun, lisp_value);
         }
@@ -440,19 +481,20 @@ nsxwidget_webkit_execute_script (struct xwidget *xw, const char *script,
 /* Window containing an xwidget.  */
 
 @implementation XwWindow
-- (BOOL)isFlipped { return YES; }
+- (BOOL) isFlipped { return YES; }
 @end
 
 /* Xwidget model, macOS Cocoa part.  */
 
 void
-nsxwidget_init(struct xwidget *xw)
+nsxwidget_init (struct xwidget *xw)
 {
   block_input ();
   NSRect rect = NSMakeRect (0, 0, xw->width, xw->height);
   xw->xwWidget = [[XwWebView alloc]
                    initWithFrame:rect
-                   configuration:[[WKWebViewConfiguration alloc] init]
+                   configuration:[[[WKWebViewConfiguration alloc] init]
+                                   autorelease]
                          xwidget:xw];
   xw->xwWindow = [[XwWindow alloc]
                    initWithFrame:rect];
@@ -470,16 +512,18 @@ nsxwidget_kill (struct xwidget *xw)
         ((XwWebView *) xw->xwWidget).configuration.userContentController;
       [scriptor removeAllUserScripts];
       [scriptor removeScriptMessageHandlerForName:@"keyDown"];
-      [scriptor release];
+
       if (xw->xv)
         xw->xv->model = Qnil; /* Make sure related view stale.  */
 
       /* This stops playing audio when a xwidget-webkit buffer is
-         killed.  I could not find other solution.  */
+         killed.  I could not find other solution.
+         TODO: improve this */
       nsxwidget_webkit_goto_uri (xw, "about:blank");
 
       [((XwWebView *) xw->xwWidget).urlScriptBlocked release];
       [xw->xwWidget removeFromSuperviewWithoutNeedingDisplay];
+
       [xw->xwWidget release];
       [xw->xwWindow removeFromSuperviewWithoutNeedingDisplay];
       [xw->xwWindow release];
@@ -507,7 +551,7 @@ nsxwidget_get_size (struct xwidget *xw)
 /* Xwidget view, macOS Cocoa part.  */
 
 @implementation XvWindow : NSView
-- (BOOL)isFlipped { return YES; }
+- (BOOL) isFlipped { return YES; }
 @end
 
 void

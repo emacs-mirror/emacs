@@ -1,6 +1,6 @@
 ;;; ranges.el --- range functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -194,7 +194,7 @@ these ranges."
       (nreverse result)))))
 
 (defun range-add-list (ranges list)
-  "Return a list of ranges that has all articles from both RANGES and LIST.
+  "Return a list of ranges that has all numbers from both RANGES and LIST.
 Note: LIST has to be sorted over `<'."
   (if (not ranges)
       (range-compress-list list)
@@ -249,9 +249,9 @@ Note: LIST has to be sorted over `<'."
       out)))
 
 (defun range-remove (range1 range2)
-  "Return a range that has all articles from RANGE2 removed from RANGE1.
+  "Return a range that has all numbers from RANGE2 removed from RANGE1.
 The returned range is always a list.  RANGE2 can also be a unsorted
-list of articles.  RANGE1 is modified by side effects, RANGE2 is not
+list of numbers.  RANGE1 is modified by side effects, RANGE2 is not
 modified."
   (if (or (null range1) (null range2))
       range1
@@ -345,7 +345,7 @@ modified."
 
 (defun range-list-intersection (list ranges)
   "Return a list of numbers in LIST that are members of RANGES.
-oLIST is a sorted list."
+LIST is a sorted list."
   (setq ranges (range-normalize ranges))
   (let (number result)
     (while (setq number (pop list))

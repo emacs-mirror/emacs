@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -127,10 +127,10 @@ that column number.
 @kindex C-x TAB
 @findex indent-rigidly
 @cindex remove indentation
-This command is used to change the indentation of all lines that begin
-in the region, moving the affected lines as a rigid unit.
+Indent all lines that begin in the region, moving the affected lines
+as a rigid unit (@code{indent-rigidly}).
 
-If called with no argument, the command activates a transient mode for
+If called with no argument, this command activates a transient mode for
 adjusting the indentation of the affected lines interactively.  While
 this transient mode is active, typing @kbd{@key{LEFT}} or
 @kbd{@key{RIGHT}} indents leftward and rightward, respectively, by one

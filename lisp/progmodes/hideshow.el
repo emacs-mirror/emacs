@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@gnu.org>
@@ -256,10 +256,14 @@ This has effect only if `search-invisible' is set to `open'."
 (defvar hs-special-modes-alist
   (mapcar #'purecopy
   '((c-mode "{" "}" "/[*/]" nil nil)
+    (c-ts-mode "{" "}" "/[*/]" nil nil)
     (c++-mode "{" "}" "/[*/]" nil nil)
+    (c++-ts-mode "{" "}" "/[*/]" nil nil)
     (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil nil)
+    (java-ts-mode "{" "}" "/[*/]" nil nil)
     (js-mode "{" "}" "/[*/]" nil)
+    (js-ts-mode "{" "}" "/[*/]" nil)
     (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil)
     ;; Add more support here.
     ))

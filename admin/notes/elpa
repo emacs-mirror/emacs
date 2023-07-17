@@ -3,7 +3,7 @@ NOTES ON THE EMACS PACKAGE ARCHIVE
 The GNU Emacs package archive, at elpa.gnu.org, is managed using a Git
 repository named "elpa", hosted on Savannah.  To check it out:
 
-  git clone git://git.sv.gnu.org/emacs/elpa
+  git clone https://git.savannah.gnu.org/git/emacs/elpa
   cd elpa
   make setup
 

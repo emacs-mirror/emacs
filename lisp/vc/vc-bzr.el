@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -381,7 +381,9 @@ If PROMPT is non-nil, prompt for the Bzr command to run."
           (setq-local compile-command
                       (concat vc-bzr-program " " command " "
                               (if args (mapconcat #'identity args " ") "")))))
-      (vc-set-async-update buf))))
+      (vc-set-async-update buf)
+      ;; Return the process for `vc-pull-and-push'
+      (get-buffer-process buf))))
 
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.

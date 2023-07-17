@@ -1,6 +1,6 @@
 ;;; eieio-test-methodinvoke.el --- eieio tests for method invocation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005, 2008, 2010, 2013-2022 Free Software Foundation,
+;; Copyright (C) 2005, 2008, 2010, 2013-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

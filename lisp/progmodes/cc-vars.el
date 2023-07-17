@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -232,6 +232,7 @@ See `c-offsets-alist'."
 	       (setq offset (cdr offset)))
 	     (null offset)))))
 
+;;;###autoload
 (defun c-string-list-p (val)
   "Return non-nil if VAL is a list of strings."
   (and
@@ -276,6 +277,14 @@ Note however that CC Mode doesn't make any special effort to check for
 syntactic errors; that's the job of the compiler.  The reason it can
 report cases like the one above is that it can't find the correct
 anchoring position to indent the line in that case."
+  :type 'boolean
+  :group 'c)
+
+(defcustom c-warn-ids-with-dollar nil
+  "Fontify identifiers with a dollar character in font-lock-warn-face.
+This has effect only for languages in which `c-dollar-in-ids' is
+non-nil, e.g.  C, C++, Objective C.  It covers languages where
+\"$\" is permitted in ids \"informally\", but only by some compilers."
   :type 'boolean
   :group 'c)
 
@@ -1093,6 +1102,8 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Bol at the last line of previous construct.
        (topmost-intro-cont    . c-lineup-topmost-intro-cont)
        ;;Anchor pos: Bol at the topmost annotation line
+       (constraint-cont  . +)
+       ;; Anchor pos: Boi of the starting requires/concept line
        (annotation-top-cont   .   0)
        ;;Anchor pos: Bol at the topmost annotation line
        (annotation-var-cont   .   +)
@@ -1216,7 +1227,8 @@ can always override the use of `c-default-style' by making calls to
        (incomposition         . +)
        ;; Anchor pos: At the extern/namespace/etc block open brace if
        ;; it's at boi, otherwise boi at the keyword.
-       (template-args-cont    . (c-lineup-template-args +))
+       (template-args-cont    . (c-lineup-template-args
+				 c-lineup-template-args-indented-from-margin))
        ;; Anchor pos: Boi at the decl start.  This might be changed;
        ;; the logical position is clearly the opening '<'.
        (inlambda              . 0)
@@ -1325,6 +1337,9 @@ Here is the current list of valid syntactic element symbols:
  knr-argdecl		-- Subsequent lines in a K&R C argument declaration.
  topmost-intro		-- The first line in a topmost construct definition.
  topmost-intro-cont	-- Topmost definition continuation lines.
+ constraint-cont        -- Continuation line of a C++ requires clause (not
+                           to be confused with a \"requires expression\") or
+                           concept.
  annotation-top-cont    -- Topmost definition continuation line where only
  			   annotations are on previous lines.
  annotation-var-cont    -- A continuation of a C (or like) statement where
@@ -1576,7 +1591,10 @@ also elsewhere in CC Mode to tell types from other identifiers."))
 "For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word \"FILE\"
 and words ending in \"_t\" are treated as type names.")
   :type 'c-extra-types-widget
+  :safe #'c-string-list-p
   :group 'c)
+
+;;;###autoload (put 'c-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom c++-font-lock-extra-types
   '("\\sw+_t"
@@ -1607,17 +1625,22 @@ and words ending in \"_t\" are treated as type names.")
 "For example, a value of (\"string\") means the word \"string\" is treated
 as a type name.")
   :type 'c-extra-types-widget
+  :safe #'c-string-list-p
   :group 'c)
 
-(defcustom objc-font-lock-extra-types
-  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
+;;;###autoload (put 'c++-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
+
+(defcustom objc-font-lock-extra-types nil
   (c-make-font-lock-extra-types-blurb "ObjC" "objc-mode" (concat
 "For example, a value of (\"[" c-upper "]\\\\sw*[" c-lower "]\\\\sw*\") means
 capitalized words are treated as type names (the requirement for a
 lower case char is to avoid recognizing all-caps macro and constant
 names)."))
   :type 'c-extra-types-widget
+  :safe #'c-string-list-p
   :group 'c)
+
+;;;###autoload (put 'objc-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom java-font-lock-extra-types
   (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw"))
@@ -1626,12 +1649,18 @@ names)."))
 capitalized words are treated as type names (the requirement for a
 lower case char is to avoid recognizing all-caps constant names)."))
   :type 'c-extra-types-widget
+  :safe #'c-string-list-p
   :group 'c)
+
+;;;###autoload (put 'java-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom idl-font-lock-extra-types nil
   (c-make-font-lock-extra-types-blurb "IDL" "idl-mode" "")
   :type 'c-extra-types-widget
+  :safe #'c-string-list-p
   :group 'c)
+
+;;;###autoload (put 'idl-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom pike-font-lock-extra-types
   (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
@@ -1641,7 +1670,10 @@ capitalized words are treated as type names (the requirement for a
 lower case char is to avoid recognizing all-caps macro and constant
 names)."))
   :type 'c-extra-types-widget
+  :safe #'c-string-list-p
   :group 'c)
+
+;;;###autoload (put 'pike-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom c-asymmetry-fontification-flag t
   "Whether to fontify certain ambiguous constructs by white space asymmetry.

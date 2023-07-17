@@ -1,6 +1,6 @@
 ;;; debug-early.el --- Dump a Lisp backtrace without frills  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -46,10 +46,10 @@ of the build process."
             (print-escape-control-characters t)
             (print-escape-nonascii t)
             (prin1 (if (and (fboundp 'cl-prin1)
-                            ;; If we're being called while
-                            ;; bootstrapping, we won't be able to load
-                            ;; cl-print.
-                            (require 'cl-print nil t))
+                            (fboundp 'cl-defmethod) ;Used by `cl-print'.
+                            (condition-case nil
+                                (require 'cl-print)
+                              (error nil)))
                        #'cl-prin1
                      #'prin1)))
         (mapbacktrace

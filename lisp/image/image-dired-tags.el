@@ -1,6 +1,6 @@
 ;;; image-dired-tags.el --- Tag support for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -39,7 +39,7 @@
 
 (defmacro image-dired--with-db-file (&rest body)
   "Run BODY in a temp buffer containing `image-dired-tags-db-file'.
-Return the last form in BODY."
+Return the value of last form in BODY."
   (declare (indent 0) (debug t))
   `(with-temp-buffer
      (if (file-exists-p image-dired-tags-db-file)
@@ -91,7 +91,8 @@ FILE-TAGS is an alist in the following form:
       (save-buffer))))
 
 (defun image-dired-remove-tag (files tag)
-  "For all FILES, remove TAG from the image database."
+  "For each file in FILES, remove TAG from the image database.
+FILES can be a name of a single file (a string) or a list of file names."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
     (setq buffer-file-name image-dired-tags-db-file)
@@ -119,7 +120,8 @@ FILE-TAGS is an alist in the following form:
     (save-buffer)))
 
 (defun image-dired-list-tags (file)
-  "Read all tags for image FILE from the image database."
+  "Read all tags for image FILE from the image database.
+Value is a list of all tags for FILE."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
     (let (end (tags ""))
@@ -136,7 +138,8 @@ FILE-TAGS is an alist in the following form:
 
 ;;;###autoload
 (defun image-dired-tag-files (arg)
-  "Tag marked file(s) in Dired.  With prefix ARG, tag file at point."
+  "Tag file(s) which are marked in a Dired buffer.
+With prefix ARG, tag the file at point."
   (interactive "P" dired-mode)
   (let ((tag (completing-read
               "Tags to add (separate tags with a semicolon): "
@@ -187,8 +190,7 @@ With prefix argument ARG, remove tag from file at point."
       'tags (image-dired-list-tags (image-dired-original-file-name))))))
 
 (defun image-dired-write-comments (file-comments)
-  "Write file comments to database.
-Write file comments to one or more files.
+  "Write file comments specified by FILE-COMMENTS comments to database.
 FILE-COMMENTS is an alist on the following form:
  ((FILE . COMMENT) ... )"
   (image-dired-sane-db-file)
@@ -224,7 +226,7 @@ FILE-COMMENTS is an alist on the following form:
       (save-buffer))))
 
 (defun image-dired-update-property (prop value)
-  "Update text property PROP with value VALUE at point."
+  "Set text property PROP of text at point to have the given VALUE."
   (let ((inhibit-read-only t))
     (put-text-property
      (point) (1+ (point))
@@ -377,9 +379,5 @@ tags to their respective image file.  Internal function used by
          (push (cons file tag) lst))))))
 
 (provide 'image-dired-tags)
-
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
 
 ;;; image-dired-tags.el ends here

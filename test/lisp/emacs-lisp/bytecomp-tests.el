@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el --- Tests for bytecomp.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -757,6 +757,29 @@ inner loops respectively."
         (bytecomp-test-identity 3)
       (error 'bad)
       (:success))                       ; empty handler
+
+    ;; `cond' miscompilation bug
+    (let ((fn (lambda (x)
+                (let ((y nil))
+                  (cond ((progn (setq x (1+ x)) (> x 10)) (setq y 'a))
+                        ((eq x 1) (setq y 'b))
+                        ((eq x 2) (setq y 'c)))
+                  (list x y)))))
+      (mapcar fn (bytecomp-test-identity '(0 1 2 3 10 11))))
+
+    ;; `nconc' nil arg elimination
+    (nconc (list 1 2 3 4) nil)
+    (nconc (list 1 2 3 4) nil nil)
+    (let ((x (cons 1 (cons 2 (cons 3 4)))))
+      (nconc x nil))
+    (let ((x (cons 1 (cons 2 (cons 3 4)))))
+      (nconc x nil nil))
+    (let ((x (cons 1 (cons 2 (cons 3 4)))))
+      (nconc nil x nil (list 5 6) nil))
+
+    ;; (+ 0 -0.0) etc
+    (let ((x (bytecomp-test-identity -0.0)))
+      (list x (+ x) (+ 0 x) (+ x 0) (+ 1 2 -3 x) (+ 0 x 0)))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -886,19 +909,28 @@ byte-compiled.  Run with dynamic binding."
     ;; Should not warn that mt--test2 is not known to be defined.
     (should-not (re-search-forward "my--test2" nil t))))
 
-(defmacro bytecomp--with-warning-test (re-warning form)
+(defun bytecomp--with-warning-test (re-warning form)
   (declare (indent 1))
-  `(with-current-buffer (get-buffer-create "*Compile-Log*")
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
      (let ((text-quoting-style 'grave)
-           (macroexp--warned
-            (make-hash-table :test #'equal :weakness 'key))   ; oh dear
-           (form ,form))
+           (macroexp--warned            ; oh dear
+            (make-hash-table :test #'equal :weakness 'key)))
        (ert-info ((prin1-to-string form) :prefix "form: ")
          (byte-compile form)
          (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
            (should (re-search-forward
-                    (string-replace " " "[ \n]+" ,re-warning))))))))
+                    (string-replace " " "[ \n]+" re-warning))))))))
+
+(ert-deftest bytecomp-warn--ignore ()
+  (bytecomp--with-warning-test "unused"
+    '(lambda (y) 6))
+  (bytecomp--with-warning-test "\\`\\'" ;No warning!
+    '(lambda (y) (ignore y) 6))
+  (bytecomp--with-warning-test "assq"
+    '(lambda (x y) (progn (assq x y) 5)))
+  (bytecomp--with-warning-test "\\`\\'" ;No warning!
+    '(lambda (x y) (progn (ignore (assq x y)) 5))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
   (bytecomp--with-warning-test "remq.*3.*2"
@@ -1213,7 +1245,8 @@ byte-compiled.  Run with dynamic binding."
 literals (Bug#20852)."
   (should (boundp 'lread--unescaped-character-literals))
   (let ((byte-compile-error-on-warn t)
-        (byte-compile-debug t))
+        (byte-compile-debug t)
+        (text-quoting-style 'grave))
     (bytecomp-tests--with-temp-file source
       (write-region "(list ?) ?( ?; ?\" ?[ ?])" nil source)
       (bytecomp-tests--with-temp-file destination
@@ -1332,6 +1365,7 @@ literals (Bug#20852)."
 
 (defun test-suppression (form suppress match)
   (let ((lexical-binding t)
+        (text-quoting-style 'grave)
         (byte-compile-log-buffer (generate-new-buffer " *Compile-Log*")))
     ;; Check that we get a warning without suppression.
     (with-current-buffer byte-compile-log-buffer
@@ -1418,8 +1452,8 @@ literals (Bug#20852)."
    '(defun zot ()
       (mapcar #'list '(1 2 3))
       nil)
-   '((mapcar mapcar))
-   "Warning: .mapcar. called for effect")
+   '((ignored-return-value mapcar))
+   "Warning: value from call to `mapcar' is unused; use `mapc' or `dolist' instead")
 
   (test-suppression
    '(defun zot ()
@@ -1434,6 +1468,18 @@ literals (Bug#20852)."
         nil))
    '((suspicious set-buffer))
    "Warning: Use .with-current-buffer. rather than")
+
+  (test-suppression
+   '(defun zot (x)
+      (condition-case nil (list x)))
+   '((suspicious condition-case))
+   "Warning: `condition-case' without handlers")
+
+  (test-suppression
+   '(defun zot (x)
+      (unwind-protect (print x)))
+   '((suspicious unwind-protect))
+   "Warning: `unwind-protect' without unwind forms")
 
   (test-suppression
    '(defun zot ()
@@ -1476,6 +1522,36 @@ literals (Bug#20852)."
         ))
    '((empty-body with-suppressed-warnings))
    "Warning: `with-suppressed-warnings' with empty body")
+
+  (test-suppression
+   '(defun zot ()
+      (setcar '(1 2) 3))
+   '((mutate-constant setcar))
+   "Warning: `setcar' on constant list (arg 1)")
+
+  (test-suppression
+   '(defun zot ()
+      (aset [1 2] 1 3))
+   '((mutate-constant aset))
+   "Warning: `aset' on constant vector (arg 1)")
+
+  (test-suppression
+   '(defun zot ()
+      (aset "abc" 1 ?d))
+   '((mutate-constant aset))
+   "Warning: `aset' on constant string (arg 1)")
+
+  (test-suppression
+   '(defun zot (x y)
+      (nconc x y '(1 2) '(3 4)))
+   '((mutate-constant nconc))
+   "Warning: `nconc' on constant list (arg 3)")
+
+  (test-suppression
+   '(defun zot ()
+      (put-text-property 0 2 'prop 'val "abc"))
+   '((mutate-constant put-text-property))
+   "Warning: `put-text-property' on constant string (arg 5)")
   )
 
 (ert-deftest bytecomp-tests--not-writable-directory ()
@@ -1727,11 +1803,11 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
 (TEST-IN-COMMENTS t) (TEST-IN-STRINGS t) (TEST-IN-CODE t) \
 (FIXTURE-FN \\='#\\='electric-pair-mode))" fill-column)))
 
-(defun test-bytecomp-defgroup-choice ()
-  (should-not (byte-compile--suspicious-defcustom-choice 'integer))
-  (should-not (byte-compile--suspicious-defcustom-choice
+(ert-deftest bytecomp-test-defcustom-type-quoted ()
+  (should-not (byte-compile--defcustom-type-quoted 'integer))
+  (should-not (byte-compile--defcustom-type-quoted
                '(choice (const :tag "foo" bar))))
-  (should (byte-compile--suspicious-defcustom-choice
+  (should (byte-compile--defcustom-type-quoted
            '(choice (const :tag "foo" 'bar)))))
 
 (ert-deftest bytecomp-function-attributes ()
@@ -1824,6 +1900,34 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     (should (eq (byte-compile-file src-file) 'no-byte-compile))
     (should-not (file-exists-p dest-file))))
 
+(ert-deftest bytecomp--copy-tree ()
+  (should (null (bytecomp--copy-tree nil)))
+  (let ((print-circle t))
+    (let* ((x '(1 2 (3 4)))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "((1 2 (3 4)) (1 2 (3 4)))")))
+    (let* ((x '#1=(a #1#))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "(#1=(a #1#) #2=(a #2#))")))
+    (let* ((x '#1=(#1# a))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "(#1=(#1# a) #2=(#2# a))")))
+    (let* ((x '((a . #1=(b)) #1#))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "(((a . #1=(b)) #1#) ((a . #2=(b)) #2#))")))
+    (let* ((x '#1=(a #2=(#1# b . #3=(#2# c . #1#)) (#3# d)))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     (concat
+                      "("
+                      "#1=(a #2=(#1# b . #3=(#2# c . #1#)) (#3# d))"
+                      " "
+                      "#4=(a #5=(#4# b . #6=(#5# c . #4#)) (#6# d))"
+                      ")"))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

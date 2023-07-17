@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -23,22 +23,21 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is Emacs 29.  This
-;; package provides compatibility functions for Emacs 26, Emacs 27 and
-;; Emacs 28.
+;; Tramp's main Emacs version for development is Emacs 30.  This
+;; package provides compatibility functions for Emacs 27, Emacs 28 and
+;; Emacs 29.
 
 ;;; Code:
 
+(require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
-(require 'ls-lisp) ;; Due to `tramp-handle-insert-directory'.
 (require 'parse-time)
 (require 'shell)
 (require 'subr-x)
+(require 'xdg)
 
-(declare-function tramp-compat-rx "tramp")
 (declare-function tramp-error "tramp")
-(declare-function tramp-file-name-handler "tramp")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
@@ -66,9 +65,16 @@
      (with-no-warnings (funcall ,function ,@arguments))))
 
 ;; We must use a local directory.  If it is remote, we could run into
-;; an infloop.
+;; an infloop.  We try to follow the XDG specification, for security reasons.
 (defconst tramp-compat-temporary-file-directory
-  (eval (car (get 'temporary-file-directory 'standard-value)) t)
+  (file-name-as-directory
+   (if-let ((xdg (xdg-cache-home))
+	    ((file-directory-p xdg))
+	    ((file-writable-p xdg)))
+       ;; We can use `file-name-concat' starting with Emacs 28.1.
+       (prog1 (setq xdg (concat (file-name-as-directory xdg) "emacs"))
+	 (make-directory xdg t))
+     (eval (car (get 'temporary-file-directory 'standard-value)) t)))
   "The default value of `temporary-file-directory'.")
 
 (defsubst tramp-compat-make-temp-name ()
@@ -84,153 +90,6 @@ Add the extension of F, if existing."
    (expand-file-name
     tramp-temp-name-prefix tramp-compat-temporary-file-directory)
    dir-flag (file-name-extension f t)))
-
-;; `file-name-quoted-p', `file-name-quote' and `file-name-unquote' got
-;; a second argument in Emacs 27.1.
-;;;###tramp-autoload
-(defalias 'tramp-compat-file-name-quoted-p
-  (if (equal (func-arity #'file-name-quoted-p) '(1 . 2))
-      #'file-name-quoted-p
-    (lambda (name &optional top)
-      "Whether NAME is quoted with prefix \"/:\".
-If NAME is a remote file name and TOP is nil, check the local part of NAME."
-      (let ((file-name-handler-alist (unless top file-name-handler-alist)))
-	(string-prefix-p "/:" (file-local-name name))))))
-
-(defalias 'tramp-compat-file-name-quote
-  (if (equal (func-arity #'file-name-quote) '(1 . 2))
-      #'file-name-quote
-    (lambda (name &optional top)
-      "Add the quotation prefix \"/:\" to file NAME.
-If NAME is a remote file name and TOP is nil, the local part of NAME is quoted."
-      (let ((file-name-handler-alist (unless top file-name-handler-alist)))
-	(if (tramp-compat-file-name-quoted-p name top)
-            name
-	  (concat (file-remote-p name) "/:" (file-local-name name)))))))
-
-(defalias 'tramp-compat-file-name-unquote
-  (if (equal (func-arity #'file-name-unquote) '(1 . 2))
-      #'file-name-unquote
-    (lambda (name &optional top)
-      "Remove quotation prefix \"/:\" from file NAME.
-If NAME is a remote file name and TOP is nil, the local part of
-NAME is unquoted."
-      (let* ((file-name-handler-alist (unless top file-name-handler-alist))
-             (localname (file-local-name name)))
-	(when (tramp-compat-file-name-quoted-p localname top)
-	  (setq
-	   localname (if (= (length localname) 2) "/" (substring localname 2))))
-	(concat (file-remote-p name) localname)))))
-
-;; `tramp-syntax' has changed its meaning in Emacs 26.1.  We still
-;; support old settings.
-(defsubst tramp-compat-tramp-syntax ()
-  "Return proper value of `tramp-syntax'."
-  (defvar tramp-syntax)
-  (cond ((eq tramp-syntax 'ftp) 'default)
-	((eq tramp-syntax 'sep) 'separate)
-	(t tramp-syntax)))
-
-;; The signature of `tramp-make-tramp-file-name' has been changed.
-;; Therefore, we cannot use `url-tramp-convert-url-to-tramp' prior
-;; Emacs 26.1.  We use `temporary-file-directory' as indicator.
-(defconst tramp-compat-use-url-tramp-p (fboundp 'temporary-file-directory)
-  "Whether to use url-tramp.el.")
-
-;; `exec-path' is new in Emacs 27.1.
-(defalias 'tramp-compat-exec-path
-  (if (fboundp 'exec-path)
-      #'exec-path
-    (lambda ()
-      "List of directories to search programs to run in remote subprocesses."
-      (if (tramp-tramp-file-p default-directory)
-	  (tramp-file-name-handler 'exec-path)
-	exec-path))))
-
-;; `time-equal-p' has appeared in Emacs 27.1.
-(defalias 'tramp-compat-time-equal-p
-  (if (fboundp 'time-equal-p)
-      #'time-equal-p
-    (lambda (t1 t2)
-      "Return non-nil if time value T1 is equal to time value T2.
-A nil value for either argument stands for the current time."
-      (equal (or t1 (current-time)) (or t2 (current-time))))))
-
-;; `flatten-tree' has appeared in Emacs 27.1.
-(defalias 'tramp-compat-flatten-tree
-  (if (fboundp 'flatten-tree)
-      #'flatten-tree
-    (lambda (tree)
-      "Take TREE and \"flatten\" it."
-      (let (elems)
-	(setq tree (list tree))
-	(while (let ((elem (pop tree)))
-		 (cond ((consp elem)
-			(setq tree (cons (car elem) (cons (cdr elem) tree))))
-                       (elem
-			(push elem elems)))
-		 tree))
-	(nreverse elems)))))
-
-;; `progress-reporter-update' got argument SUFFIX in Emacs 27.1.
-(defalias 'tramp-compat-progress-reporter-update
-  (if (equal (func-arity #'progress-reporter-update) '(1 . 3))
-      #'progress-reporter-update
-    (lambda (reporter &optional value _suffix)
-      (progress-reporter-update reporter value))))
-
-;; `ignore-error' is new in Emacs 27.1.
-(defmacro tramp-compat-ignore-error (condition &rest body)
-  "Execute BODY; if the error CONDITION occurs, return nil.
-Otherwise, return result of last form in BODY.
-
-CONDITION can also be a list of error conditions."
-  (declare (debug t) (indent 1))
-  `(condition-case nil (progn ,@body) (,condition nil)))
-
-;; `rx' in Emacs 26 doesn't know the `literal', `anychar' and
-;; `multibyte' constructs.  The `not' construct requires an `any'
-;; construct as argument.  The `regexp' construct requires a literal
-;; string.
-(defvar tramp-compat-rx--runtime-params)
-
-(defun tramp-compat-rx--transform-items (items)
-  (mapcar #'tramp-compat-rx--transform-item items))
-
-;; There is an error in Emacs 26.  `(rx "a" (? ""))' => "a?".
-;; We must protect the string in regexp and literal, therefore.
-(defun tramp-compat-rx--transform-item (item)
-  (pcase item
-    ('anychar 'anything)
-    ('multibyte 'nonascii)
-    (`(not ,expr)
-     (if (consp expr) item (list 'not (list 'any expr))))
-    (`(regexp ,expr)
-     (setq tramp-compat-rx--runtime-params t)
-     `(regexp ,(list '\, `(concat "\\(?:" ,expr "\\)"))))
-    (`(literal ,expr)
-     (setq tramp-compat-rx--runtime-params t)
-     `(regexp ,(list '\, `(concat "\\(?:" (regexp-quote ,expr) "\\)"))))
-    (`(eval . ,_) item)
-    (`(,head . ,rest) (cons head (tramp-compat-rx--transform-items rest)))
-    (_ item)))
-
-(defun tramp-compat-rx--transform (items)
-  (let* ((tramp-compat-rx--runtime-params nil)
-         (new-rx (cons ': (tramp-compat-rx--transform-items items))))
-    (if tramp-compat-rx--runtime-params
-        `(rx-to-string ,(list '\` new-rx) t)
-      (rx-to-string new-rx t))))
-
-(if (ignore-errors (rx-to-string '(literal "a"))) ;; Emacs 27+.
-    (defalias 'tramp-compat-rx #'rx)
-  (defmacro tramp-compat-rx (&rest items)
-    (tramp-compat-rx--transform items)))
-
-;; This is needed for compilation in the Emacs source tree.
-;;;###autoload (defalias 'tramp-compat-rx #'rx)
-
-(put #'tramp-compat-rx 'tramp-autoload t)
 
 ;; `file-modes', `set-file-modes' and `set-file-times' got argument
 ;; FLAG in Emacs 28.1.
@@ -326,6 +185,58 @@ CONDITION can also be a list of error conditions."
                          (car components))
 	         (cdr components)))))))
 
+;; Function `replace-regexp-in-region' is new in Emacs 28.1.
+(defalias 'tramp-compat-replace-regexp-in-region
+  (if (fboundp 'replace-regexp-in-region)
+      #'replace-regexp-in-region
+    (lambda (regexp replacement &optional start end)
+      (if start
+	  (when (< start (point-min))
+            (error "Start before start of buffer"))
+	(setq start (point)))
+      (if end
+	  (when (> end (point-max))
+            (error "End after end of buffer"))
+	(setq end (point-max)))
+      (save-excursion
+	(let ((matches 0)
+              (case-fold-search nil))
+	  (goto-char start)
+	  (while (re-search-forward regexp end t)
+            (replace-match replacement t)
+            (setq matches (1+ matches)))
+	  (and (not (zerop matches))
+               matches))))))
+
+;; `length<', `length>' and `length=' are added to Emacs 28.1.
+(defalias 'tramp-compat-length<
+  (if (fboundp 'length<)
+      #'length<
+    (lambda (sequence length)
+      (< (length sequence) length))))
+
+(defalias 'tramp-compat-length>
+  (if (fboundp 'length>)
+      #'length>
+    (lambda (sequence length)
+      (> (length sequence) length))))
+
+(defalias 'tramp-compat-length=
+  (if (fboundp 'length=)
+      #'length=
+    (lambda (sequence length)
+      (= (length sequence) length))))
+
+;; `always' is introduced with Emacs 28.1.
+(defalias 'tramp-compat-always
+  (if (fboundp 'always)
+      #'always
+    (lambda (&rest _arguments)
+      "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+      t)))
+
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied
   (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)
@@ -353,7 +264,7 @@ CONDITION can also be a list of error conditions."
       #'take
     (lambda (n list)
       (when (and (natnump n) (> n 0))
-	(if (>= n (length list))
+	(if (tramp-compat-length< list n)
 	    list (butlast list (- (length list) n)))))))
 
 ;; Function `ntake' is new in Emacs 29.1.
@@ -362,7 +273,7 @@ CONDITION can also be a list of error conditions."
       #'ntake
     (lambda (n list)
       (when (and (natnump n) (> n 0))
-	(if (>= n (length list))
+	(if (tramp-compat-length< list n)
 	    list (nbutlast list (- (length list) n)))))))
 
 ;; Function `string-equal-ignore-case' is new in Emacs 29.1.
@@ -382,28 +293,18 @@ CONDITION can also be a list of error conditions."
       (autoload 'netrc-parse "netrc")
       (netrc-parse file))))
 
-;; Function `replace-regexp-in-region' is new in Emacs 28.1.
-(defalias 'tramp-compat-replace-regexp-in-region
-  (if (fboundp 'replace-regexp-in-region)
-      #'replace-regexp-in-region
-    (lambda (regexp replacement &optional start end)
-      (if start
-	  (when (< start (point-min))
-            (error "Start before start of buffer"))
-	(setq start (point)))
-      (if end
-	  (when (> end (point-max))
-            (error "End after end of buffer"))
-	(setq end (point-max)))
-      (save-excursion
-	(let ((matches 0)
-              (case-fold-search nil))
-	  (goto-char start)
-	  (while (re-search-forward regexp end t)
-            (replace-match replacement t)
-            (setq matches (1+ matches)))
-	  (and (not (zerop matches))
-               matches))))))
+;; User option `password-colon-equivalents' is new in Emacs 30.1.
+(if (boundp 'password-colon-equivalents)
+    (defvaralias
+      'tramp-compat-password-colon-equivalents
+      'password-colon-equivalents)
+  (defvar tramp-compat-password-colon-equivalents
+    '(?\N{COLON}
+      ?\N{FULLWIDTH COLON}
+      ?\N{SMALL COLON}
+      ?\N{PRESENTATION FORM FOR VERTICAL COLON}
+      ?\N{KHMER SIGN CAMNUC PII KUUH})
+    "List of characters equivalent to trailing colon in \"password\" prompts."))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
@@ -419,8 +320,5 @@ CONDITION can also be a list of error conditions."
 ;;
 ;; * Starting with Emacs 27.1, there's no need to escape open
 ;;   parentheses with a backslash in docstrings anymore.
-;;
-;; * Starting with Emacs 27.1, there's `make-empty-file'.  Could be
-;;   used instead of `(write-region "" ...)'.
 
 ;;; tramp-compat.el ends here

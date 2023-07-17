@@ -1,6 +1,6 @@
 ;;; dnd.el --- drag and drop support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -108,11 +108,11 @@ program."
 
 (defcustom dnd-direct-save-remote-files 'x
   "Whether or not to perform a direct save of remote files.
-This is compatible with less programs, but means dropped files
+This is compatible with fewer programs, but means dropped files
 will be saved with their actual file names, and not a temporary
 file name provided by TRAMP.
 
-This defaults to `x', which means only to drop that way on X
+This defaults to `x', which means to save that way only on X
 Windows."
   :type '(choice (const :tag "Only use direct save on X Windows" x)
                  (const :tag "Use direct save everywhere" t)

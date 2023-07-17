@@ -1,6 +1,6 @@
 ;;; dired-aux-tests.el --- Test suite for dired-aux. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -55,12 +55,11 @@
            (setq to-mv
                  (expand-file-name
                   "foo-mv" (file-name-as-directory (expand-file-name "qux" ,foo))))
-           (unwind-protect
-               (if ,yes-or-no
-                   (cl-letf (((symbol-function 'yes-or-no-p)
-                              (lambda (_prompt) (eq ,yes-or-no 'yes))))
-                     ,@body)
-                 ,@body)))))))
+           (if ,yes-or-no
+               (cl-letf (((symbol-function 'yes-or-no-p)
+                          (lambda (_prompt) (eq ,yes-or-no 'yes))))
+                 ,@body)
+             ,@body))))))
 
 (ert-deftest dired-test-bug28834 ()
   "test for https://debbugs.gnu.org/28834 ."

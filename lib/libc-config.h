@@ -1,6 +1,6 @@
 /* System definitions for code taken from the GNU C Library
 
-   Copyright 2017-2022 Free Software Foundation, Inc.
+   Copyright 2017-2023 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -137,8 +137,6 @@
 # undef __attribute_returns_twice__
 # undef __attribute_used__
 # undef __attribute_warn_unused_result__
-# undef __bos
-# undef __bos0
 # undef __errordecl
 # undef __extension__
 # undef __extern_always_inline
@@ -147,21 +145,13 @@
 # undef __fortified_attr_access
 # undef __fortify_function
 # undef __glibc_c99_flexarr_available
-# undef __glibc_fortify
-# undef __glibc_fortify_n
 # undef __glibc_has_attribute
 # undef __glibc_has_builtin
 # undef __glibc_has_extension
 # undef __glibc_likely
 # undef __glibc_macro_warning
 # undef __glibc_macro_warning1
-# undef __glibc_objsize
-# undef __glibc_objsize0
-# undef __glibc_safe_len_cond
-# undef __glibc_safe_or_unknown_len
 # undef __glibc_unlikely
-# undef __glibc_unsafe_len
-# undef __glibc_unsigned_or_positive
 # undef __inline
 # undef __ptr_t
 # undef __restrict
@@ -170,6 +160,18 @@
 # undef __va_arg_pack_len
 # undef __warnattr
 # undef __wur
+# ifndef __GNULIB_CDEFS
+#  undef __bos
+#  undef __bos0
+#  undef __glibc_fortify
+#  undef __glibc_fortify_n
+#  undef __glibc_objsize
+#  undef __glibc_objsize0
+#  undef __glibc_safe_len_cond
+#  undef __glibc_safe_or_unknown_len
+#  undef __glibc_unsafe_len
+#  undef __glibc_unsigned_or_positive
+# endif
 
 /* Include our copy of glibc <sys/cdefs.h>.  */
 # include <cdefs.h>

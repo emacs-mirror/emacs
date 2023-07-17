@@ -1,6 +1,6 @@
 ;;; tramp-sudoedit.el --- Functions for accessing under root permissions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -49,7 +49,7 @@
 		(tramp-password-previous-hop t)))
 
  (add-to-list 'tramp-default-user-alist
-	      `(,(tramp-compat-rx bos (literal tramp-sudoedit-method) eos)
+	      `(,(rx bos (literal tramp-sudoedit-method) eos)
 		nil ,tramp-root-id-string))
 
  (tramp-set-completion-function
@@ -90,6 +90,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-sudoedit-handle-file-executable-p)
     (file-exists-p . tramp-sudoedit-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -114,6 +115,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sudoedit-handle-file-system-info)
     (file-truename . tramp-sudoedit-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-sudoedit-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -212,8 +214,8 @@ arguments to pass to the OPERATION."
 	(unless
 	    (tramp-sudoedit-send-command
 	     v1 "ln"
-	     (tramp-compat-file-name-unquote v1-localname)
-	     (tramp-compat-file-name-unquote v2-localname))
+	     (file-name-unquote v1-localname)
+	     (file-name-unquote v2-localname))
 	  (tramp-error
 	   v1 'file-error
 	   "error with add-name-to-file, see buffer `%s' for details"
@@ -342,22 +344,19 @@ absolute file names."
   (tramp-skeleton-delete-directory directory recursive trash
     (unless (tramp-sudoedit-send-command
 	     v (if recursive '("rm" "-rf") "rmdir")
-	     (tramp-compat-file-name-unquote localname))
+	     (file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't delete %s" directory))))
 
 (defun tramp-sudoedit-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (unless (tramp-sudoedit-send-command
-	       v "rm" "-f" (tramp-compat-file-name-unquote localname))
-	;; Propagate the error.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (tramp-error-with-buffer
-	   nil v 'file-error "Couldn't delete %s" filename))))))
+  (tramp-skeleton-delete-file filename trash
+    (unless (tramp-sudoedit-send-command
+	     v "rm" "-f" (file-name-unquote localname))
+      ;; Propagate the error.
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(tramp-error-with-buffer
+	 nil v 'file-error "Couldn't delete %s" filename)))))
 
 (defun tramp-sudoedit-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.
@@ -366,7 +365,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -377,17 +377,16 @@ the result will be a local, non-Tramp, file name."
       ;; Tilde expansion if necessary.  We cannot accept "~/", because
       ;; under sudo "~/" is expanded to the local user home directory
       ;; but to the root home directory.
-      (when (zerop (length localname))
+      (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
       (when (string-match
-	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
-	     localname)
+	     (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -413,7 +412,7 @@ the result will be a local, non-Tramp, file name."
       (let ((result (and (tramp-sudoedit-remote-acl-p v)
 			 (tramp-sudoedit-send-command-string
 			  v "getfacl" "-acp"
-			  (tramp-compat-file-name-unquote localname)))))
+			  (file-name-unquote localname)))))
 	;; The acl string must have a trailing \n, which is not
 	;; provided by `tramp-sudoedit-send-command-string'.  Add it.
 	(and (stringp result) (concat result "\n"))))))
@@ -440,8 +439,7 @@ the result will be a local, non-Tramp, file name."
     (tramp-convert-file-attributes v localname id-format
       (tramp-sudoedit-send-command-and-read
        v "env" "QUOTING_STYLE=locale" "stat" "-c"
-       tramp-sudoedit-file-attributes
-       (tramp-compat-file-name-unquote localname)))))
+       tramp-sudoedit-file-attributes (file-name-unquote localname)))))
 
 (defun tramp-sudoedit-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
@@ -453,43 +451,37 @@ the result will be a local, non-Tramp, file name."
 	  (or (tramp-check-cached-permissions v ?x)
 	      (tramp-check-cached-permissions v ?s))
 	(tramp-sudoedit-send-command
-	 v "test" "-x" (tramp-compat-file-name-unquote localname))))))
+	 v "test" "-x" (file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(if (tramp-file-property-p v localname "file-attributes")
-	    (not (null (tramp-get-file-property v localname "file-attributes")))
-	  (tramp-sudoedit-send-command
-	   v "test" "-e" (tramp-compat-file-name-unquote localname)))))))
+  (tramp-skeleton-file-exists-p filename
+    (tramp-sudoedit-send-command
+     v "test" "-e" (file-name-unquote localname))))
 
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (with-parsed-tramp-file-name (expand-file-name directory) nil
-     (with-tramp-file-property v localname "file-name-all-completions"
-       (tramp-sudoedit-send-command
-	v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
-	(if (zerop (length localname))
-	    "" (tramp-compat-file-name-unquote localname)))
-       (mapcar
-	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
-	      (file-name-as-directory f)
-	    f))
-	(delq
-	 nil
+  (ignore-error file-missing
+    (all-completions
+     filename
+     (with-parsed-tramp-file-name (expand-file-name directory) nil
+       (with-tramp-file-property v localname "file-name-all-completions"
+	 (tramp-sudoedit-send-command
+	  v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
+	  (if (tramp-string-empty-or-nil-p localname)
+	      "" (file-name-unquote localname)))
 	 (mapcar
-	  (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	  (split-string
-	   (tramp-get-buffer-string (tramp-get-connection-buffer v))
-	   "\n" 'omit))))))))
+	  (lambda (f)
+	    (if (ignore-errors (file-directory-p (expand-file-name f directory)))
+		(file-name-as-directory f)
+	      f))
+	  (delq
+	   nil
+	   (mapcar
+	    (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+	    (split-string
+	     (tramp-get-buffer-string (tramp-get-connection-buffer v))
+	     "\n" 'omit)))))))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -500,7 +492,7 @@ the result will be a local, non-Tramp, file name."
       (if (tramp-file-property-p v localname "file-attributes")
 	  (tramp-handle-file-readable-p filename)
 	(tramp-sudoedit-send-command
-	 v "test" "-r" (tramp-compat-file-name-unquote localname))))))
+	 v "test" "-r" (file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -508,8 +500,7 @@ the result will be a local, non-Tramp, file name."
   (unless (and (eq flag 'nofollow) (file-symlink-p filename))
     (tramp-skeleton-set-file-modes-times-uid-gid filename
       (unless (tramp-sudoedit-send-command
-	       v "chmod" (format "%o" mode)
-	       (tramp-compat-file-name-unquote localname))
+	       v "chmod" (format "%o" mode) (file-name-unquote localname))
 	(tramp-error
 	 v 'file-error "Error while changing file's mode %s" filename)))))
 
@@ -523,15 +514,14 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
-	    (regexp (tramp-compat-rx
+	    (regexp (rx
 		     (group (+ (any "_" alnum))) ":"
 		     (group (+ (any "_" alnum))) ":"
 		     (group (+ (any "_" alnum))) ":"
 		     (group (+ (any "_" alnum))))))
 	(when (and (tramp-sudoedit-remote-selinux-p v)
 		   (tramp-sudoedit-send-command
-		    v "ls" "-d" "-Z"
-		    (tramp-compat-file-name-unquote localname)))
+		    v "ls" "-d" "-Z" (file-name-unquote localname)))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
 	    (when (re-search-forward regexp (line-end-position) t)
@@ -547,7 +537,7 @@ the result will be a local, non-Tramp, file name."
       (tramp-message v 5 "file system info: %s" localname)
       (when (tramp-sudoedit-send-command
 	     v "df" "--block-size=1" "--output=size,used,avail"
-	     (tramp-compat-file-name-unquote localname))
+	     (file-name-unquote localname))
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
 	  (forward-line)
@@ -565,48 +555,17 @@ the result will be a local, non-Tramp, file name."
 (defun tramp-sudoedit-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (tramp-skeleton-set-file-modes-times-uid-gid filename
-    (let ((time
-	   (if (or (null time)
-		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
-		   (tramp-compat-time-equal-p time tramp-time-dont-know))
-	       nil
-	     time)))
-      (tramp-sudoedit-send-command
-       v "env" "TZ=UTC0" "touch" "-t"
-       (format-time-string "%Y%m%d%H%M.%S" time t)
-       (if (eq flag 'nofollow) "-h" "")
-       (tramp-compat-file-name-unquote localname)))))
+    (tramp-sudoedit-send-command
+     v "env" "TZ=UTC0" "touch" "-t"
+     (format-time-string "%Y%m%d%H%M.%S" (tramp-defined-time time) t)
+     (if (eq flag 'nofollow) "-h" "")
+     (file-name-unquote localname))))
 
 (defun tramp-sudoedit-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  ;; Preserve trailing "/".
-  (funcall
-   (if (directory-name-p filename) #'file-name-as-directory #'identity)
-   ;; Quote properly.
-   (funcall
-    (if (tramp-compat-file-name-quoted-p filename)
-	#'tramp-compat-file-name-quote #'identity)
-    (with-parsed-tramp-file-name
-	(tramp-compat-file-name-unquote (expand-file-name filename)) nil
-      (tramp-make-tramp-file-name
-       v
-       (with-tramp-file-property v localname "file-truename"
-	 (let (result)
-	   (tramp-message v 4 "Finding true name for `%s'" filename)
-	   (setq result (tramp-sudoedit-send-command-string
-			 v "readlink" "--canonicalize-missing" localname))
-	   ;; Detect cycle.
-	   (when (and (file-symlink-p filename)
-		      (string-equal result localname))
-	     (tramp-error
-	      v 'file-error
-	      "Apparent cycle of symbolic links for %s" filename))
-	   ;; If the resulting localname looks remote, we must quote it
-	   ;; for security reasons.
-	   (when (file-remote-p result)
-	     (setq result (tramp-compat-file-name-quote result 'top)))
-	   (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	   result)))))))
+  (tramp-skeleton-file-truename filename
+    (tramp-sudoedit-send-command-string
+     v "readlink" "--canonicalize-missing" localname)))
 
 (defun tramp-sudoedit-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -618,7 +577,7 @@ the result will be a local, non-Tramp, file name."
 	      ;; be satisfied without remote operation.
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-sudoedit-send-command
-	     v "test" "-w" (tramp-compat-file-name-unquote localname)))
+	     v "test" "-w" (file-name-unquote localname)))
 	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
@@ -629,47 +588,17 @@ the result will be a local, non-Tramp, file name."
   (tramp-skeleton-make-directory dir parents
     (unless (tramp-sudoedit-send-command
 	     v "mkdir" "-m" (format "%#o" (default-file-modes))
-	     (tramp-compat-file-name-unquote localname))
+	     (file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
 (defun tramp-sudoedit-handle-make-symbolic-link
     (target linkname &optional ok-if-already-exists)
-  "Like `make-symbolic-link' for Tramp files.
-If TARGET is a non-Tramp file, it is used verbatim as the target
-of the symlink.  If TARGET is a Tramp file, only the localname
-component is used as the target of the symlink."
-  (with-parsed-tramp-file-name (expand-file-name linkname) nil
-    ;; If TARGET is a Tramp name, use just the localname component.
-    ;; Don't check for a proper method.
-    (let ((non-essential t))
-      (when (and (tramp-tramp-file-p target)
-		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	(setq target (tramp-file-local-name (expand-file-name target)))))
-
-    ;; If TARGET is still remote, quote it.
-    (if (tramp-tramp-file-p target)
-	(make-symbolic-link
-	 (tramp-compat-file-name-quote target 'top)
-	 linkname ok-if-already-exists)
-
-      ;; Do the 'confirm if exists' thing.
-      (when (file-exists-p linkname)
-	;; What to do?
-	(if (or (null ok-if-already-exists) ; not allowed to exist
-		(and (numberp ok-if-already-exists)
-		     (not
-		      (yes-or-no-p
-		       (format
-			"File %s already exists; make it a link anyway?"
-			localname)))))
-	    (tramp-error v 'file-already-exists localname)
-	  (delete-file linkname)))
-
-      (tramp-flush-file-properties v localname)
-      (tramp-sudoedit-send-command
-       v "ln" "-sf"
-       (tramp-compat-file-name-unquote target)
-       (tramp-compat-file-name-unquote localname)))))
+  "Like `make-symbolic-link' for Tramp files."
+  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+    (tramp-sudoedit-send-command
+     v "ln" "-sf"
+     (file-name-unquote target)
+     (file-name-unquote localname))))
 
 (defun tramp-sudoedit-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -693,8 +622,7 @@ component is used as the target of the symlink."
       (setq acl-string (string-join (split-string acl-string "\n" 'omit) ","))
       (prog1
 	  (tramp-sudoedit-send-command
-	   v "setfacl" "-m"
-	   acl-string (tramp-compat-file-name-unquote localname))
+	   v "setfacl" "-m" acl-string (file-name-unquote localname))
 	(tramp-flush-file-property v localname "file-acl")))))
 
 (defun tramp-sudoedit-handle-set-file-selinux-context (filename context)
@@ -712,7 +640,7 @@ component is used as the target of the symlink."
 	       (when role (format "--role=%s" role))
 	       (when type (format "--type=%s" type))
 	       (when range (format "--range=%s" range))
-	       (tramp-compat-file-name-unquote localname))
+	       (file-name-unquote localname))
 	  (if (and user role type range)
 	      (tramp-set-file-property
 	       v localname "file-selinux-context" context)
@@ -765,7 +693,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Check, whether a sudo process has finished.  Remove unneeded output."
   ;; There might be pending output for the exit status.
   (unless (process-live-p proc)
-    (while (tramp-accept-process-output proc 0))
+    (while (tramp-accept-process-output proc))
     ;; Delete narrowed region, it would be in the way reading a Lisp form.
     (goto-char (point-min))
     (widen)
@@ -793,8 +721,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
-      (set-process-query-on-exit-flag p nil)
+      (tramp-post-process-creation p vec)
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)
@@ -820,7 +747,7 @@ in case of error, t otherwise."
 		       vec 'tramp-sudo-login
 		       ?h (or (tramp-file-name-host vec) "")
 		       ?u (or (tramp-file-name-user vec) ""))
-		      (tramp-compat-flatten-tree args))))
+		      (flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
 	   ;; The password shall be cached also in case of "emacs -Q".
@@ -828,12 +755,9 @@ in case of error, t otherwise."
 	   (tramp-cache-read-persistent-data t)
 	   ;; We do not want to save the password.
 	   auth-source-save-behavior)
-      (tramp-message vec 6 "%s" (string-join (process-command p) " "))
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
-      (process-put p 'vector vec)
-      (process-put p 'adjust-window-size-function #'ignore)
-      (set-process-query-on-exit-flag p nil)
+      (tramp-post-process-creation p vec)
       (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))

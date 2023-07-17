@@ -1,6 +1,6 @@
 ;;; ox-odt.el --- OpenDocument Text Exporter for Org Mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Jambunathan K <kjambunathan at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1986,7 +1986,7 @@ information."
 	  (ignore))))))))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 ;; (eval-after-load 'ox-odt '(ad-deactivate 'org-format-latex-as-mathml))
 ;; (advice-add 'org-format-latex-as-mathml	; FIXME
@@ -2007,7 +2007,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
     (org-odt-do-format-code latex-frag info)))
 
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 ;; (when latex-frag			; FIXME
 ;; 	(setq href (propertize href :title "LaTeX Fragment"
@@ -2923,21 +2923,28 @@ contextual information."
       ;; not be desired in scripts that do not separate words with
       ;; spaces (for example, Han script).  `fill-region' is able to
       ;; handle such situations.
-      ;; FIXME: The unnecessary spaced may still remain when a newline
+      ;; FIXME: The unnecessary spacing may still remain when a newline
       ;; is at a boundary between Org objects (e.g. italics markup
       ;; followed by newline).
-      (setq output
-            (with-temp-buffer
-              (insert output)
-              (save-match-data
-                (let ((leading (and (string-match (rx bos (1+ blank)) output)
-                                    (match-string 0 output)))
-                      (trailing (and (string-match (rx (1+ blank) eos) output)
-                                     (match-string 0 output))))
-                  ;; Unfill, retaining leading/trailing space.
-                  (let ((fill-column (point-max)))
-                    (fill-region (point-min) (point-max)))
-                  (concat leading (buffer-string) trailing))))))
+      (when (org-string-nw-p output) ; blank string needs not to be re-filled
+        (setq output
+              (with-temp-buffer
+                (save-match-data
+                  (let ((leading (and (string-match (rx bos (1+ blank)) output)
+                                      (match-string 0 output)))
+                        (trailing (and (string-match (rx (1+ blank) eos) output)
+                                       (match-string 0 output))))
+                    (insert
+                     (substring
+                      output
+                      (length leading)
+                      (pcase (length trailing)
+                        (0 nil)
+                        (n (- n)))))
+                    ;; Unfill, retaining leading/trailing space.
+                    (let ((fill-column most-positive-fixnum))
+                      (fill-region (point-min) (point-max)))
+                    (concat leading (buffer-string) trailing)))))))
     ;; Return value.
     output))
 

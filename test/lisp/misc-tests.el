@@ -1,6 +1,6 @@
 ;;; misc-tests.el --- Tests for misc.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'misc)
 
 (defmacro with-misc-test (original result &rest body)
   (declare (indent 2))
@@ -88,6 +89,20 @@
     (duplicate-line 2)
     (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
     (should (equal (point) 7)))
+  ;; Duplicate a line (twice) and move point to the first duplicated line.
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (let ((duplicate-line-final-position 1)) (duplicate-line 2))
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 12)))
+  ;; Duplicate a line (twice) and move point to the last duplicated line.
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (let ((duplicate-line-final-position -1)) (duplicate-line 2))
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 17)))
   ;; Duplicate a non-terminated line.
   (with-temp-buffer
     (insert "abc")
@@ -99,40 +114,70 @@
 (require 'rect)
 
 (ert-deftest misc--duplicate-dwim ()
-  ;; Duplicate a line.
-  (with-temp-buffer
-    (insert "abc\ndefg\nh\n")
-    (goto-char 7)
-    (duplicate-dwim 2)
-    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
-    (should (equal (point) 7)))
+  (let ((duplicate-line-final-position 0)
+        (duplicate-region-final-position 0))
+    ;; Duplicate a line.
+    (dolist (final-pos '(0 -1 1))
+      (ert-info ((prin1-to-string final-pos) :prefix "final-pos: ")
+        (with-temp-buffer
+          (insert "abc\ndefg\nh\n")
+          (goto-char 7)
+          (let ((duplicate-line-final-position final-pos))
+            (duplicate-dwim 3))
+          (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\ndefg\nh\n"))
+          (let ((delta (* 5 (if (< final-pos 0) 3 final-pos))))
+            (should (equal (point) (+ 7 delta)))))))
 
-  ;; Duplicate a region.
-  (with-temp-buffer
-    (insert "abc\ndef\n")
-    (set-mark 2)
-    (goto-char 7)
-    (transient-mark-mode)
-    (should (use-region-p))
-    (duplicate-dwim)
-    (should (equal (buffer-string) "abc\ndebc\ndef\n"))
-    (should (equal (point) 7))
-    (should (region-active-p))
-    (should (equal (mark) 2)))
+    ;; Duplicate a region.
+    (dolist (final-pos '(0 -1 1))
+      (ert-info ((prin1-to-string final-pos) :prefix "final-pos: ")
+        (with-temp-buffer
+          (insert "abCDEFghi")
+          (set-mark 3)
+          (goto-char 7)
+          (transient-mark-mode)
+          (should (use-region-p))
+          (let ((duplicate-region-final-position final-pos))
+            (duplicate-dwim 3))
+          (should (equal (buffer-string) "abCDEFCDEFCDEFCDEFghi"))
+          (should (region-active-p))
+          (let ((delta (* 4 (if (< final-pos 0) 3 final-pos))))
+            (should (equal (point) (+ 7 delta)))
+            (should (equal (mark) (+ 3 delta)))))))
 
-  ;; Duplicate a rectangular region.
-  (with-temp-buffer
-    (insert "x\n>a\n>bcde\n>fg\nyz\n")
-    (goto-char 4)
-    (rectangle-mark-mode)
-    (goto-char 15)
-    (rectangle-forward-char 1)
-    (duplicate-dwim)
-    (should (equal (buffer-string) "x\n>a  a  \n>bcdbcde\n>fg fg \nyz\n"))
-    (should (equal (point) 24))
-    (should (region-active-p))
-    (should rectangle-mark-mode)
-    (should (equal (mark) 4))))
+    ;; Duplicate a rectangular region (sparse).
+    (with-temp-buffer
+      (insert "x\n>a\n>bcde\n>fg\nyz\n")
+      (goto-char 4)
+      (rectangle-mark-mode)
+      (goto-char 15)
+      (rectangle-forward-char 1)
+      (duplicate-dwim)
+      (should (equal (buffer-string) "x\n>a  a  \n>bcdbcde\n>fg fg \nyz\n"))
+      (should (equal (point) 24))
+      (should (region-active-p))
+      (should rectangle-mark-mode)
+      (should (equal (mark) 4)))
+
+    ;; Idem (dense).
+    (dolist (final-pos '(0 -1 1))
+      (ert-info ((prin1-to-string final-pos) :prefix "final-pos: ")
+        (with-temp-buffer
+          (insert "aBCd\neFGh\niJKl\n")
+          (goto-char 2)
+          (rectangle-mark-mode)
+          (goto-char 14)
+          (let ((duplicate-region-final-position final-pos))
+            (duplicate-dwim 3))
+          (should (equal (buffer-string)
+                         "aBCBCBCBCd\neFGFGFGFGh\niJKJKJKJKl\n"))
+          (should (region-active-p))
+          (should rectangle-mark-mode)
+          (let ((hdelta (* 2 (if (< final-pos 0) 3 final-pos)))
+                (vdelta 12))
+            (should (equal (point) (+ 14 vdelta hdelta)))
+            (should (equal (mark) (+ 2 hdelta)))))))))
+
 
 (provide 'misc-tests)
 ;;; misc-tests.el ends here

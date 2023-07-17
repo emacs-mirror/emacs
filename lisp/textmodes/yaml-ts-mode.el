@@ -1,6 +1,6 @@
 ;;; yaml-ts-mode.el --- tree-sitter support for YAML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -94,31 +94,28 @@
    :feature 'property
    :override t
    '((block_mapping_pair
-      key: (flow_node (plain_scalar (string_scalar) @font-lock-property-face)))
+      key: (flow_node (plain_scalar (string_scalar) @font-lock-property-use-face)))
      (block_mapping_pair
       key: (flow_node
-            [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-face))
+            [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-use-face))
      (flow_mapping
-      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-face))))
+      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-use-face))))
      (flow_mapping
       (_ key:
          (flow_node
-          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-face)))
+          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-use-face)))
      (flow_sequence
-      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-face))))
+      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-use-face))))
      (flow_sequence
       (_ key:
          (flow_node
-          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-face))))
+          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-use-face))))
 
    :language 'yaml
    :feature 'error
    :override t
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `yaml-ts-mode'.")
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
@@ -145,6 +142,9 @@
                   (bracket delimiter error misc-punctuation)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'yaml)
+    (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode)))
 
 (provide 'yaml-ts-mode)
 

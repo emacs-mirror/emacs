@@ -1,6 +1,6 @@
 ;;; verilog-mode.el --- major mode for editing verilog source in Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara <mac@verilog.com>
 ;;    Wilson Snyder <wsnyder@wsnyder.org>
@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2022.12.18.181110314
+;; Version: 2023.06.06.141322628
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2022-12-18-acb862a-vpo-GNU"
+(defconst verilog-mode-version "2023-06-06-86c6984-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -356,7 +356,9 @@ wherever possible, since it is slow."
 (eval-and-compile
   ;; Both xemacs and emacs
   (condition-case nil
-      (require 'diff)  ; diff-command and diff-switches
+      ;; `diff-command' and `diff-switches',
+      ;; although XEmacs lacks the former.
+      (require 'diff)
     (error nil))
   (condition-case nil
       (require 'compile)  ; compilation-error-regexp-alist-alist
@@ -370,7 +372,8 @@ wherever possible, since it is slow."
       (unless (fboundp 'ignore-errors)
         (defmacro ignore-errors (&rest body)
           (declare (debug t) (indent 0))
-          `(condition-case nil (progn ,@body) (error nil)))))
+          `(condition-case nil (progn ,@body) (error nil))))
+    (error nil))
   ;; Added in Emacs 24.1
   (condition-case nil
       (unless (fboundp 'prog-mode)
@@ -5001,21 +5004,31 @@ More specifically, point @ in the line foo : @ begin"
   "Return non-nil if in a generate region.
 More specifically, after a generate and before an endgenerate."
   (interactive)
-  (let ((pos (point))
-        gen-beg-point gen-end-point)
-    (save-match-data
-      (save-excursion
-        (and (verilog-re-search-backward "\\<\\(generate\\)\\>" nil t)
-             (forward-word)
-             (setq gen-beg-point (point))
-             (verilog-forward-sexp)
-             (backward-word)
-             (setq gen-end-point (point)))))
-    (if (and gen-beg-point gen-end-point
-             (>= pos gen-beg-point)
-             (<= pos gen-end-point))
-        t
-      nil)))
+  (let ((nest 1))
+    (save-excursion
+      (catch 'done
+	(while (and
+		(/= nest 0)
+		(verilog-re-search-backward
+                 "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(endmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\|\\(if\\)\\|\\(case\\)\\|\\(for\\)\\>" nil 'move)
+		(cond
+		 ((match-end 1) ; module - we have crawled out
+		  (throw 'done 1))
+                 ((match-end 2) ; connectmodule - we have crawled out
+                  (throw 'done 1))
+                 ((match-end 3) ; endmodule - we were outside of module block
+                  (throw 'done -1))
+                 ((match-end 4) ; generate
+		  (setq nest (1- nest)))
+                 ((match-end 5) ; endgenerate
+                  (setq nest (1+ nest)))
+                 ((match-end 6) ; if
+                  (setq nest (1- nest)))
+                 ((match-end 7) ; case
+                  (setq nest (1- nest)))
+                 ((match-end 8) ; for
+                  (setq nest (1- nest))))))))
+    (= nest 0) )) ; return nest
 
 (defun verilog-in-fork-region-p ()
   "Return non-nil if between a fork and join."
@@ -6734,7 +6747,8 @@ Optional BOUND limits search."
 (defun verilog-pos-at-end-of-statement ()
   "Return point position at the end of current statement."
   (save-excursion
-    (verilog-end-of-statement)))
+    (verilog-end-of-statement)
+    (point)))
 
 (defun verilog-col-at-end-of-statement ()
   "Return current column at the end of current statement."
@@ -8035,7 +8049,8 @@ Region is defined by B and ENDPOS."
   "Return non-nil if current line should ignore indentation."
   (or (and verilog-indent-ignore-multiline-defines
            ;; Line with multiline define, ends with "\" or "\" plus trailing whitespace
-           (or (looking-at ".*\\\\\\s-*$")
+           (or (save-excursion
+                 (verilog-re-search-forward ".*\\\\\\s-*$" (line-end-position) t))
                (save-excursion  ; Last line after multiline define
                  (verilog-backward-syntactic-ws)
                  (unless (bobp)
@@ -9310,7 +9325,8 @@ Return an array of [outputs inouts inputs wire reg assign const gparam intf]."
 	 ((looking-at "(\\*")
 	  ;; To advance past either "(*)" or "(* ... *)" don't forward past first *
 	  (forward-char 1)
-	  (or (search-forward "*)")
+	  (or (looking-at "\\*\\s-*)")  ; (* )
+              (search-forward "*)")  ; end attribute
 	      (error "%s: Unmatched (* *), at char %d" (verilog-point-text) (point))))
 	 ((eq ?\" (following-char))
           (or (re-search-forward "[^\\]\"" nil t)  ; don't forward-char first, since we look for a non backslash first
@@ -11882,31 +11898,33 @@ If optional REGEXP, ignore differences matching it."
 This requires the external program `diff-command' to be in your `exec-path',
 and uses `diff-switches' in which you may want to have \"-u\" flag.
 Ignores WHITESPACE if t, and writes output to stdout if SHOW."
-  ;; Similar to `diff-buffer-with-file' but works on XEmacs, and doesn't
-  ;; call `diff' as `diff' has different calling semantics on different
-  ;; versions of Emacs.
+  ;; Similar to `diff-buffer-with-file' but works on Emacs 21, and
+  ;; doesn't call `diff' as `diff' has different calling semantics on
+  ;; different versions of Emacs.
   (if (not (file-exists-p f1))
-      (message "Buffer `%s' has no associated file on disk" (buffer-name b2))
-    (with-temp-buffer "*Verilog-Diff*"
-                      (let ((outbuf (current-buffer))
-                            (f2 (make-temp-file "vm-diff-auto-")))
-                        (unwind-protect
-                            (progn
-                              (with-current-buffer b2
-                                (save-restriction
-                                  (widen)
-                                  (write-region (point-min) (point-max) f2 nil 'nomessage)))
-                              (call-process diff-command nil outbuf t
-                                            diff-switches  ; User may want -u in diff-switches
-                                            (if whitespace "-b" "")
-                                            f1 f2)
-                              ;; Print out results.  Alternatively we could have call-processed
-                              ;; ourself, but this way we can reuse diff switches
-                              (when show
-                                (with-current-buffer outbuf (message "%s" (buffer-string))))))
-                        (sit-for 0)
-                        (when (file-exists-p f2)
-                          (delete-file f2))))))
+      (message "Buffer `%s' has no associated file on disk" b2)
+    (let ((outbuf (get-buffer "*Verilog-Diff*"))
+          (f2 (make-temp-file "vm-diff-auto-")))
+      (unwind-protect
+          ;; User may want -u in `diff-switches'.
+          (let ((args `(,@(if (listp diff-switches)
+                              diff-switches
+                            (list diff-switches))
+                        ,@(and whitespace '("-b"))
+                        ,f1 ,f2)))
+            (with-current-buffer b2
+              (save-restriction
+                (widen)
+                (write-region (point-min) (point-max) f2 nil 'nomessage)))
+            (apply #'call-process diff-command nil outbuf t args)
+            ;; Print out results.  Alternatively we could have call-processed
+            ;; ourself, but this way we can reuse diff switches.
+            (when show
+              (with-current-buffer outbuf (message "%s" (buffer-string)))))
+        (sit-for 0)
+        (condition-case nil
+            (delete-file f2)
+          (error nil))))))
 
 (defun verilog-diff-report (b1 b2 diffpt)
   "Report differences detected with `verilog-diff-auto'.

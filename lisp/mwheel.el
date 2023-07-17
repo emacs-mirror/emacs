@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Keywords: mouse
 ;; Package: emacs
@@ -447,13 +447,12 @@ See also `text-scale-adjust'."
 This invokes `global-text-scale-adjust', which see."
   (interactive (list last-input-event))
   (let ((button (mwheel-event-button event)))
-    (unwind-protect
-        (cond ((memq button (list mouse-wheel-down-event
-                                  mouse-wheel-down-alternate-event))
-               (global-text-scale-adjust 1))
-              ((memq button (list mouse-wheel-up-event
-                                  mouse-wheel-up-alternate-event))
-               (global-text-scale-adjust -1))))))
+    (cond ((memq button (list mouse-wheel-down-event
+                              mouse-wheel-down-alternate-event))
+           (global-text-scale-adjust 1))
+          ((memq button (list mouse-wheel-up-event
+                              mouse-wheel-up-alternate-event))
+           (global-text-scale-adjust -1)))))
 
 (defun mouse-wheel--add-binding (key fun)
   "Bind mouse wheel button KEY to function FUN.

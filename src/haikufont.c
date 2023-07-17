@@ -1,6 +1,6 @@
 /* Font support for Haiku windowing
 
-Copyright (C) 2021-2022 Free Software Foundation, Inc.
+Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -754,22 +754,30 @@ haikufont_encode_char (struct font *font, int c)
 }
 
 static Lisp_Object
-haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
+haikufont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   struct haikufont_info *font_info;
   struct haiku_font_pattern ptn;
   struct font *font;
   void *be_font;
-  Lisp_Object font_object, tem, extra, indices, antialias;
+  Lisp_Object font_object, extra, indices, antialias;
   int px_size, min_width, max_width;
   int avg_width, height, space_width, ascent;
   int descent, underline_pos, underline_thickness;
 
-  if (x <= 0)
+  if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
+    pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
+  else if (pixel_size == 0)
     {
-      /* Get pixel size from frame instead.  */
-      tem = get_frame_param (f, Qfontsize);
-      x = NILP (tem) ? 0 : XFIXNAT (tem);
+      /* Try to resolve a suitable size for the font, if the font size
+	 has not already been specified.  First, if FRAME_FONT is set,
+	 use its size.  Otherwise, use 12, which is the default on
+	 Haiku.  */
+
+      if (FRAME_FONT (f))
+	pixel_size = FRAME_FONT (f)->pixel_size;
+      else
+	pixel_size = 12;
     }
 
   extra = AREF (font_entity, FONT_EXTRA_INDEX);
@@ -788,7 +796,8 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
     {
       block_input ();
       be_font = be_open_font_at_index (XFIXNUM (XCAR (indices)),
-				       XFIXNUM (XCDR (indices)), x);
+				       XFIXNUM (XCDR (indices)),
+				       pixel_size);
       unblock_input ();
 
       if (!be_font)
@@ -799,7 +808,7 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
       block_input ();
       haikufont_spec_or_entity_to_pattern (font_entity, 1, &ptn);
 
-      if (BFont_open_pattern (&ptn, &be_font, x))
+      if (BFont_open_pattern (&ptn, &be_font, pixel_size))
 	{
 	  haikufont_done_with_query_pattern (&ptn);
 	  unblock_input ();
@@ -813,7 +822,7 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
   block_input ();
 
   font_object = font_make_object (VECSIZE (struct haikufont_info),
-				  font_entity, x);
+				  font_entity, pixel_size);
 
   ASET (font_object, FONT_TYPE_INDEX, Qhaiku);
   font_info = (struct haikufont_info *) XFONT_OBJECT (font_object);
@@ -1118,7 +1127,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
 
       haiku_draw_background_rect (s, s->face, x, y - ascent,
 				  s->width, height);
-      s->background_filled_p = 1;
     }
 
   BView_SetHighColor (view, foreground);

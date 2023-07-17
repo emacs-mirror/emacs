@@ -1,6 +1,6 @@
 ;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

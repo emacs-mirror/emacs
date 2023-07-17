@@ -1,6 +1,6 @@
 /* group-member.c -- determine whether group id is in calling user's group list
 
-   Copyright (C) 1994, 1997-1998, 2003, 2005-2006, 2009-2022 Free Software
+   Copyright (C) 1994, 1997-1998, 2003, 2005-2006, 2009-2023 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify

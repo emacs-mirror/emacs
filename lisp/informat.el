@@ -1,6 +1,6 @@
 ;;; informat.el --- info support functions package for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
