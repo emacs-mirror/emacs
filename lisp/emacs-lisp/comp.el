@@ -983,7 +983,10 @@ CFG is mutated by a pass.")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
   (type nil :type (or null comp-mvar)
-        :documentation "Mvar holding the derived return type."))
+        :documentation "Mvar holding the derived return type.")
+  (defining-symbol nil :type symbol
+                   :documentation "The symbol (usually of a defun) where the
+function was defined."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexically-scoped function."
@@ -1309,7 +1312,8 @@ clashes."
                                  :command-modes (command-modes f)
                                  :speed (comp-spill-speed function-name)
                                  :pure (comp-spill-decl-spec function-name
-                                                             'pure))))
+                                                             'pure)
+                                 :defining-symbol function-name)))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 '("can't native compile an already byte-compiled function")))
@@ -1342,17 +1346,21 @@ clashes."
           (make-temp-file "comp-lambda-" nil ".eln")))
   (let* ((byte-code (byte-compile form))
          (c-name (comp-c-func-name "anonymous-lambda" "F"))
+         (defsym (and (> (length byte-code) 5)
+                      (aref byte-code 5)))
          (func (if (comp-lex-byte-func-p byte-code)
                    (make-comp-func-l :c-name c-name
                                      :doc (documentation form t)
                                      :int-spec (interactive-form form)
                                      :command-modes (command-modes form)
-                                     :speed (comp-ctxt-speed comp-ctxt))
+                                     :speed (comp-ctxt-speed comp-ctxt)
+                                     :defining-symbol defsym)
                  (make-comp-func-d :c-name c-name
                                    :doc (documentation form t)
                                    :int-spec (interactive-form form)
                                    :command-modes (command-modes form)
-                                   :speed (comp-ctxt-speed comp-ctxt)))))
+                                   :speed (comp-ctxt-speed comp-ctxt)
+                                   :defining-symbol defsym))))
     (let ((lap (byte-to-native-lambda-lap
                 (gethash (aref byte-code 1)
                          byte-to-native-lambdas-h))))
@@ -1361,7 +1369,7 @@ clashes."
       (if (comp-func-l-p func)
           (setf (comp-func-l-args func)
                 (comp-decrypt-arg-list (aref byte-code 0) byte-code))
-        (setf (comp-func-d-lambda-list func) (cadr form)))
+        (setf (comp-func-d-lambda-list func) (lambda-arglist form)))
       (setf (comp-func-lap func) lap
             (comp-func-frame-size func) (comp-byte-frame-size
                                          byte-code))
@@ -1453,6 +1461,7 @@ clashes."
 (defun comp-spill-lap (input)
   "Byte-compile and spill the LAP representation for INPUT.
 If INPUT is a symbol, it is the function-name to be compiled.
+If INPUT is a lambda form, it is compiled as such.
 If INPUT is a string, it is the filename to be compiled."
   (let* ((byte-native-compiling t)
          (byte-to-native-lambdas-h (make-hash-table :test #'eq))
@@ -2161,7 +2170,8 @@ and the annotation emission."
                          (comp-func-command-modes f)))
                        ;; This is the compilation unit it-self passed as
                        ;; parameter.
-                       (make-comp-mvar :slot 0))))))
+                       (make-comp-mvar :slot 0)
+                       (make-comp-mvar :constant name))))))
 
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level)
                                        for-late-load)
@@ -2205,7 +2215,9 @@ These are stored in the reloc data array."
                   (comp-func-command-modes func)))
                 ;; This is the compilation unit it-self passed as
                 ;; parameter.
-                (make-comp-mvar :slot 0)))))
+                (make-comp-mvar :slot 0)
+                (make-comp-mvar :constant
+                                (comp-func-defining-symbol func))))))
 
 (defun comp-limplify-top-level (for-late-load)
   "Create a Limple function to modify the global environment at load.
@@ -2233,7 +2245,10 @@ into the C code forwarding the compilation unit."
                                  ;; the last function being
                                  ;; registered.
                                  :frame-size 2
-                                 :speed (comp-ctxt-speed comp-ctxt)))
+                                 :speed (comp-ctxt-speed comp-ctxt)
+                                 :defining-symbol (if for-late-load
+                                                      'late_top_level_run
+                                                    'top_level_run)))
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block-lap -1 0 'top-level)
@@ -4156,45 +4171,26 @@ the deferred compilation mechanism."
         (comp-log "\n\n" 1)
         (unwind-protect
             (progn
-              (condition-case err
-                  (cl-loop
-                   with report = nil
-                   for t0 = (current-time)
-                   for pass in comp-passes
-                   unless (memq pass comp-disabled-passes)
-                   do
-                   (comp-log (format "(%s) Running pass %s:\n"
-                                     function-or-file pass)
-                             2)
-                   (setf data (funcall pass data))
-                   (push (cons pass (float-time (time-since t0))) report)
-                   (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                            do (funcall f data))
-                   finally
-                   (when comp-log-time-report
-                     (comp-log (format "Done compiling %s" data) 0)
-                     (cl-loop for (pass . time) in (reverse report)
-                              do (comp-log (format "Pass %s took: %fs."
-                                                   pass time) 0))))
-                (native-compiler-skip)
-                (t
-                 (let ((err-val (cdr err)))
-                   ;; If we are doing an async native compilation print the
-                   ;; error in the correct format so is parsable and abort.
-                   (if (and comp-async-compilation
-                            (not (eq (car err) 'native-compiler-error)))
-                       (progn
-                         (message (if err-val
-                                      "%s: Error: %s %s"
-                                    "%s: Error %s")
-                                  function-or-file
-                                  (get (car err) 'error-message)
-                                  (car-safe err-val))
-                         (kill-emacs -1))
-                     ;; Otherwise re-signal it adding the compilation input.
-	             (signal (car err) (if (consp err-val)
-			                   (cons function-or-file err-val)
-			                 (list function-or-file err-val)))))))
+              (cl-loop
+               with report = nil
+               for t0 = (current-time)
+               for pass in comp-passes
+               unless (memq pass comp-disabled-passes)
+               do
+               (comp-log (format "(%s) Running pass %s:\n"
+                                 function-or-file pass)
+                         2)
+               (setf data (funcall pass data))
+               (push (cons pass (float-time (time-since t0))) report)
+               (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                        do (funcall f data))
+               finally
+               (when comp-log-time-report
+                 (comp-log (format "Done compiling %s" data) 0)
+                 (cl-loop for (pass . time) in (reverse report)
+                          do (comp-log (format "Pass %s took: %fs."
+                                               pass time)
+                                       0))))
               (if (stringp function-or-file)
                   data
                 ;; So we return the compiled function.

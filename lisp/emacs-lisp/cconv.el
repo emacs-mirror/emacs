@@ -167,8 +167,9 @@ Returns a form where all lambdas don't have any free variables."
       (unless (memq (car b) s) (push b res)))
     (nreverse res)))
 
-(defun cconv--convert-function (args body env parentform &optional docstring)
-  (cl-assert (equal body (caar cconv-freevars-alist)))
+(defun cconv--convert-function (args body env
+                                     defsym parentform &optional docstring)
+  ;; (cl-assert (equal body (caar cconv-freevars-alist))) ; STOUGH, 2023-02-21.
   (let* ((fvs (cdr (pop cconv-freevars-alist)))
          (body-new '())
          (envector ())
@@ -198,10 +199,12 @@ Returns a form where all lambdas don't have any free variables."
                      args body new-env parentform))
     (cond
      ((not (or envector docstring))     ;If no freevars - do nothing.
-      `(function (lambda ,args . ,body-new)))
+      `(function (lambda ,@(if defsym `(,defsym)) ,args . ,body-new)))
      (t
       `(internal-make-closure
-        ,args ,envector ,docstring . ,body-new)))))
+        ,args ,envector
+        ,@(if defsym `(,defsym))
+        ,docstring . ,body-new)))))
 
 (defun cconv--remap-llv (new-env var closedsym)
   ;; In a case such as:
@@ -362,13 +365,13 @@ places where they originally did not directly appear."
                              (progn
                                (cl-assert (and (eq (car value) 'function)
                                                (eq (car (cadr value)) 'lambda)))
-                               (cl-assert (equal (cddr (cadr value))
+                               (cl-assert (equal (lambda-body (cadr value))
                                                  (caar cconv-freevars-alist)))
                                ;; Peek at the freevars to decide whether
                                ;; to λ-lift.
                                (let* ((fvs (cdr (car cconv-freevars-alist)))
                                       (fun (cadr value))
-                                      (funargs (cadr fun))
+                                      (funargs (lambda-arglist fun))
                                       (funcvars (append fvs funargs)))
 					; lambda lifting condition
                                  (and fvs (>= cconv-liftwhen
@@ -376,9 +379,12 @@ places where they originally did not directly appear."
 					; Lift.
                        (let* ((fvs (cdr (pop cconv-freevars-alist)))
                               (fun (cadr value))
-                              (funargs (cadr fun))
+                              (func-defsym (or (and (symbolp (cadr fun))
+                                                    (cadr fun))
+                                               t))
+                              (funargs (lambda-arglist fun))
                               (funcvars (append fvs funargs))
-                              (funcbody (cddr fun))
+                              (funcbody (lambda-body fun))
                               (funcbody-env ()))
                          (push `(,var . (apply-partially ,var . ,fvs)) new-env)
                          (dolist (fv fvs)
@@ -387,7 +393,7 @@ places where they originally did not directly appear."
                                                    (cdr (assq fv env))))
                                     (not (memq fv funargs)))
                                (push `(,fv . (car-safe ,fv)) funcbody-env)))
-                         `(function (lambda ,funcvars .
+                         `(function (lambda ,func-defsym ,funcvars .
                                       ,(cconv--convert-funcbody
                                         funargs funcbody funcbody-env value)))))
 
@@ -477,7 +483,11 @@ places where they originally did not directly appear."
                                         branch))
                               cond-forms)))
 
-    (`(function (lambda ,args . ,body) . ,rest)
+    (`(function
+       ,(or `(lambda ,(and (pred (lambda (e) (and e (symbolp e)))) def)
+               ,args . ,body)
+            (and `(lambda ,args . ,body) (let def nil)))
+       . ,rest)
      (let* ((docstring (if (eq :documentation (car-safe (car body)))
                            (cconv-convert (cadr (pop body)) env extend)))
             (bf (if (stringp (car body)) (cdr body) body))
@@ -510,7 +520,7 @@ places where they originally did not directly appear."
          ;; it with the new one.
          (let ((entry (pop cconv-freevars-alist)))
            (push (cons body (cdr entry)) cconv-freevars-alist)))
-       (setq cf (cconv--convert-function args body env form docstring))
+       (setq cf (cconv--convert-function args body env def form docstring))
        (if (not cif)
            ;; Normal case, the interactive form needs no special treatment.
            cf
@@ -562,7 +572,9 @@ places where they originally did not directly appear."
 
     (`(unwind-protect ,form1 . ,body)
      `(,(car form) ,(cconv-convert form1 env extend)
-        :fun-body ,(cconv--convert-function () body env form1)))
+        :fun-body ,(cconv--convert-function () body env
+                                            (or defining-symbol t)
+                                            form1)))
 
     (`(setq ,var ,expr)
      (let ((var-new (or (cdr (assq var env)) var))
@@ -751,6 +763,20 @@ This function does not return anything but instead fills the
        (dolist (vardata newvars)
          (cconv--analyze-use vardata form "variable"))))
 
+    (`(function (lambda ,(pred (lambda (e) (and e (symbolp e))))
+                        ,vrs . ,body-forms))
+     (when (eq :documentation (car-safe (car body-forms)))
+       (cconv-analyze-form (cadr (pop body-forms)) env))
+     (let ((bf (if (stringp (car body-forms)) (cdr body-forms) body-forms)))
+       (when (eq 'interactive (car-safe (car bf)))
+         (let ((if (cadr (car bf))))
+           (unless (macroexp-const-p if) ;Optimize this common case.
+             (let ((f (if (eq 'function (car-safe if)) if
+                        `#'(lambda (&rest _cconv--dummy) ,if))))
+               (setf (gethash form cconv--interactive-form-funs) f)
+               (cconv-analyze-form f env))))))
+     (cconv--analyze-function vrs body-forms env form))
+
     (`(function (lambda ,vrs . ,body-forms))
      (when (eq :documentation (car-safe (car body-forms)))
        (cconv-analyze-form (cadr (pop body-forms)) env))
@@ -872,7 +898,7 @@ lexically and dynamically bound symbols actually used by FORM."
          (cconv--dynbindings nil)
          (cconv-freevars-alist '())
 	 (cconv-var-classification '()))
-    (let* ((body (cddr (cadr fun))))
+    (let* ((body (lambda-body (cadr fun))))
       ;; Analyze form - fill these variables with new information.
       (cconv-analyze-form fun analysis-env)
       (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
@@ -899,21 +925,29 @@ i.e. a list whose elements can be either plain symbols (which indicate
 that this symbol should use dynamic scoping) or pairs (SYMBOL . VALUE)
 for the lexical bindings."
   (cl-assert (eq (car-safe fun) 'lambda))
-  (let ((lexvars (delq nil (mapcar #'car-safe env))))
+  (let ((lexvars (delq nil (mapcar #'car-safe env)))
+        (defsym (and (car-safe (cdr-safe fun))
+                     (symbolp (cadr fun))
+                     (cadr fun))))
     (if (or (null lexvars)
             ;; Functions with a `:closure-dont-trim-context' marker
             ;; should keep their whole context untrimmed (bug#59213).
-            (and (eq :closure-dont-trim-context (nth 2 fun))
+            (and (eq :closure-dont-trim-context
+                     (car (lambda-body fun)))
                  ;; Check the function doesn't just return the magic keyword.
-                 (nthcdr 3 fun)))
+                 (cdr (lambda-body fun))))
         ;; The lexical environment is empty, or needs to be preserved,
         ;; so there's no need to look for free variables.
         ;; Attempting to replace ,(cdr fun) by a macroexpanded version
         ;; causes bootstrap to fail.
-        `(closure ,env . ,(cdr fun))
+        `(closure ,env
+             ,(or defsym defining-symbol t)
+           ,(lambda-arglist fun) . ,(lambda-body fun))
       ;; We could try and cache the result of the macroexpansion and
       ;; `cconv-fv' analysis.  Not sure it's worth the trouble.
-      (let* ((form `#',fun)
+      (let* ((form `#'(lambda ,(or defsym defining-symbol t)
+                        ,(lambda-arglist fun)
+                        . ,(lambda-body fun)))
              (expanded-form
               (let ((lexical-binding t) ;; Tell macros which dialect is in use.
 	            ;; Make the macro aware of any defvar declarations in scope.

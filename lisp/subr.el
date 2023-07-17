@@ -132,7 +132,11 @@ BODY should be a list of Lisp expressions.
                            def-body)))
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
-  (list 'function (cons 'lambda cdr)))
+  (if (and (car cdr) (symbolp (car cdr)))
+      (list 'function (cons 'lambda cdr))
+    (list 'function
+          (cons 'lambda
+                (cons (or defining-symbol t) cdr)))))
 
 (defmacro prog2 (form1 form2 &rest body)
   "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.

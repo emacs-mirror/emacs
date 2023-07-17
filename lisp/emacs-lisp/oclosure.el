@@ -442,8 +442,10 @@ This has 2 uses:
     ;; stuff it into the environment part of the closure with a special
     ;; marker so we can distinguish this entry from actual variables.
     (cl-assert (eq 'closure (car-safe oclosure)))
-    (let ((typename (nth 3 oclosure))) ;; The "docstring".
-      (cl-assert (stringp typename))
+    (let ((typename (if (and (nth 2 oclosure) (symbolp (nth 2 oclosure)))
+                        (nth 4 oclosure)
+                      (nth 3 oclosure)))) ;; The "docstring".
+      (cl-assert (stringp typename) t)
       (push (cons :type (intern typename))
             (cadr oclosure))
       oclosure)))

@@ -388,10 +388,15 @@ be used instead.
                        (dolist (binding bindings)
                          (push (or (car-safe binding) binding) vars))
                        (elisp--local-variables-1 vars (car (last body)))))
-                    (`(lambda ,_args)
+                    ((or
+                      `(lambda ,(pred (lambda (e) (and e (symbolp e)))) ,_args)
+                      `(lambda ,_args))
                      ;; FIXME: Look for the witness inside `args'.
                      (setq sexp nil))
-                    (`(lambda ,args . ,body)
+                    ((or
+                      `(lambda ,(pred (lambda (e) (and e (symbolp e))))
+                         ,args . ,body)
+                      `(lambda ,args . ,body))
                      (elisp--local-variables-1
                       (let ((args (if (listp args) args)))
                         ;; FIXME: Exit the loop if witness is in args.
@@ -1614,8 +1619,9 @@ Reinitialize the face according to the `defface' specification."
 	      (cdr-safe (cdr-safe form))
 	      (boundp (cadr form)))
 	 ;; Force variable to be re-set.
-	 `(progn (defvar ,(nth 1 form) nil ,@(nthcdr 3 form))
-		 (setq-default ,(nth 1 form) ,(nth 2 form))))
+         `(let ((defining-symbol ,(nth 1 form)))
+            (defvar ,(nth 1 form) nil ,@(nthcdr 3 form))
+	    (setq-default ,(nth 1 form) ,(nth 2 form))))
 	;; `defcustom' is now macroexpanded to
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)

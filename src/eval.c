@@ -536,6 +536,12 @@ usage: (function ARG)  */)
 	 return an interpreted closure instead of a simple lambda.  */
       Lisp_Object cdr = XCDR (quoted);
       Lisp_Object tmp = cdr;
+      bool with_definer = false;
+      if (!NILP (XCAR (tmp)) && SYMBOLP (XCAR (tmp))) /* Defining symbol */
+	{
+	  tmp = XCDR (tmp);
+	  with_definer = true;
+	}
       if (CONSP (tmp)
 	  && (tmp = XCDR (tmp), CONSP (tmp))
 	  && (tmp = XCAR (tmp), CONSP (tmp))
@@ -548,14 +554,19 @@ usage: (function ARG)  */)
              * (the OClosure's type).  */
 	    docstring = Fsymbol_name (docstring);
 	  CHECK_STRING (docstring);
-	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
+	  if (with_definer)
+	    cdr = Fcons (XCAR (cdr), Fcons (XCAR (XCDR (cdr)),
+					    Fcons (docstring,
+						   XCDR (XCDR (XCDR (cdr))))));
+	  else
+	    cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}
       if (NILP (Vinternal_make_interpreted_closure_function))
         return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
       else
-        return call2 (Vinternal_make_interpreted_closure_function,
+	return call2 (Vinternal_make_interpreted_closure_function,
                       Fcons (Qlambda, cdr),
-                      Vinternal_interpreter_environment);
+		      Vinternal_interpreter_environment);
     }
   else
     /* Simply quote the argument.  */
@@ -764,8 +775,12 @@ static Lisp_Object
 defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval)
 {
   Lisp_Object tem;
+  specpdl_ref count = SPECPDL_INDEX ();
 
   CHECK_SYMBOL (sym);
+
+  /* Bind `defining-symbol' in case `initvalue' defines a lambda function.  */
+  specbind (Qdefining_symbol, sym);
 
   tem = Fdefault_boundp (sym);
 
@@ -784,7 +799,7 @@ defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval
 	                         eval ? eval_sub (initvalue) : initvalue);
 	}
     }
-  return sym;
+  return unbind_to (count, sym);
 }
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
@@ -874,9 +889,11 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   (Lisp_Object args)
 {
   Lisp_Object sym, tem;
+  specpdl_ref count = SPECPDL_INDEX ();
 
   sym = XCAR (args);
   CHECK_SYMBOL (sym);
+  specbind (Qdefining_symbol, sym); /* In case INITVALUE defines a function.  */
   Lisp_Object docstring = Qnil;
   if (!NILP (XCDR (XCDR (args))))
     {
@@ -885,7 +902,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
       docstring = XCAR (XCDR (XCDR (args)));
     }
   tem = eval_sub (XCAR (XCDR (args)));
-  return Fdefconst_1 (sym, tem, docstring);
+  return unbind_to (count, Fdefconst_1 (sym, tem, docstring));
 }
 
 DEFUN ("defconst-1", Fdefconst_1, Sdefconst_1, 2, 3, 0,
@@ -2144,8 +2161,14 @@ then strings and vectors are not accepted.  */)
      where the interactive spec is stored.  */
   else if (COMPILEDP (fun))
     {
+      Lisp_Object obj;
       if (PVSIZE (fun) > COMPILED_INTERACTIVE)
         return Qt;
+      else if (PVSIZE (fun) > COMPILED_DEFINING_SYM
+	       && (NILP (obj = AREF (fun, COMPILED_DEFINING_SYM))
+		   || !SYMBOLP (obj)))
+	/* An old function where the interactive spec is still here.  */
+	return Qt;
       else if (PVSIZE (fun) > COMPILED_DOC_STRING)
         {
           Lisp_Object doc = AREF (fun, COMPILED_DOC_STRING);
@@ -2608,7 +2631,7 @@ eval_sub (Lisp_Object form)
     val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
 
-  return val;
+  return unbind_to (count, val);
 }
 
 DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
@@ -3151,6 +3174,13 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
       else
 	lexenv = Qnil;
       syms_left = XCDR (fun);
+      if (CONSP (syms_left)
+	  && !NILP (XCAR (syms_left))
+	  && SYMBOLP (XCAR (syms_left))) /* Defining symbol. */
+	{
+	  syms_left = XCDR (syms_left);
+	  fun = XCDR (fun);
+	}
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
       else
@@ -3330,6 +3360,9 @@ lambda_arity (Lisp_Object fun)
 	  CHECK_CONS (fun);
 	}
       syms_left = XCDR (fun);
+      if (CONSP (syms_left) && !NILP (XCAR (syms_left))
+	  && SYMBOLP (XCAR (syms_left)))
+	syms_left = XCDR (syms_left);
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
       else
@@ -4259,6 +4292,14 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qautoload, "autoload");
   DEFSYM (Qinhibit_debugger, "inhibit-debugger");
   DEFSYM (Qmacro, "macro");
+  DEFSYM (Qdefining_symbol, "defining-symbol");
+  DEFVAR_LISP ("defining-symbol", Vdefining_symbol,
+	       doc: /* The symbol being defined by `defun' or `defmacro', etc..
+We use this to include in the structure of closures/lambdas defined inside
+the function or macro.  A value of nil means the variable is not in use.
+A value of t means, e.g. the byte compiler is active, but there is not yet
+a current defining symbol.  */);
+  Vdefining_symbol = Qnil;
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */

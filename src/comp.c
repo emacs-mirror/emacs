@@ -5475,7 +5475,8 @@ native_function_doc (Lisp_Object function)
 static Lisp_Object
 make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
 	   Lisp_Object c_name, Lisp_Object type, Lisp_Object doc_idx,
-	   Lisp_Object intspec, Lisp_Object command_modes, Lisp_Object comp_u)
+	   Lisp_Object intspec, Lisp_Object command_modes, Lisp_Object comp_u,
+	   Lisp_Object defining_symbol)
 {
   struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (comp_u);
   dynlib_handle_ptr handle = cu->handle;
@@ -5515,6 +5516,7 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   x->s.native_comp_u = comp_u;
   x->s.native_c_name = xstrdup (SSDATA (c_name));
   x->s.type = type;
+  x->s.defining_symbol = defining_symbol;
 #endif
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
@@ -5523,12 +5525,12 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
 }
 
 DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
-       7, 7, 0,
+       8, 8, 0,
        doc: /* Register anonymous lambda.
 This gets called by top_level_run during the load phase.  */)
   (Lisp_Object reloc_idx, Lisp_Object c_name, Lisp_Object minarg,
    Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
-   Lisp_Object comp_u)
+   Lisp_Object comp_u, Lisp_Object defining_symbol)
 {
   Lisp_Object doc_idx = FIRST (rest);
   Lisp_Object intspec = SECOND (rest);
@@ -5540,7 +5542,7 @@ This gets called by top_level_run during the load phase.  */)
 
   Lisp_Object tem =
     make_subr (c_name, minarg, maxarg, c_name, type, doc_idx, intspec,
-	       command_modes, comp_u);
+	       command_modes, comp_u, defining_symbol);
 
   /* We must protect it against GC because the function is not
      reachable through symbols.  */
@@ -5556,12 +5558,12 @@ This gets called by top_level_run during the load phase.  */)
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
-       7, 7, 0,
+       8, 8, 0,
        doc: /* Register exported subr.
 This gets called by top_level_run during the load phase.  */)
   (Lisp_Object name, Lisp_Object c_name, Lisp_Object minarg,
    Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
-   Lisp_Object comp_u)
+   Lisp_Object comp_u, Lisp_Object defining_symbol)
 {
   Lisp_Object doc_idx = FIRST (rest);
   Lisp_Object intspec = SECOND (rest);
@@ -5569,7 +5571,7 @@ This gets called by top_level_run during the load phase.  */)
 
   Lisp_Object tem =
     make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, type, doc_idx,
-	       intspec, command_modes, comp_u);
+	       intspec, command_modes, comp_u, defining_symbol);
 
   defalias (name, tem);
 
@@ -5577,16 +5579,17 @@ This gets called by top_level_run during the load phase.  */)
 }
 
 DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
-       Scomp__late_register_subr, 7, 7, 0,
+       Scomp__late_register_subr, 8, 8, 0,
        doc: /* Register exported subr.
 This gets called by late_top_level_run during the load phase.  */)
   (Lisp_Object name, Lisp_Object c_name, Lisp_Object minarg,
    Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
-   Lisp_Object comp_u)
+   Lisp_Object comp_u, Lisp_Object defining_symbol)
 {
   if (!NILP (Fequal (Fsymbol_function (name),
 		     Fgethash (name, Vcomp_deferred_pending_h, Qnil))))
-    Fcomp__register_subr (name, c_name, minarg, maxarg, type, rest, comp_u);
+    Fcomp__register_subr (name, c_name, minarg, maxarg, type, rest, comp_u,
+			  defining_symbol);
   Fremhash (name, Vcomp_deferred_pending_h);
   return Qnil;
 }

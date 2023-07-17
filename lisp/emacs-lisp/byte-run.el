@@ -37,7 +37,9 @@ The value is a hash table, the keys being the elements and the values being t.
 The purpose of this is to detect circular structures.")
 
 (defalias 'byte-run--strip-list
-  #'(lambda (arg)
+  #'(lambda
+      byte-run--strip-list
+            (arg)
       "Strip the positions from symbols with position in the list ARG.
 This is done by destructively modifying ARG.  Return ARG."
       (let ((a arg))
@@ -63,7 +65,9 @@ This is done by destructively modifying ARG.  Return ARG."
         arg)))
 
 (defalias 'byte-run--strip-vector/record
-  #'(lambda (arg)
+  #'(lambda
+      byte-run--strip-vector/record
+      (arg)
       "Strip the positions from symbols with position in the vector/record ARG.
 This is done by destructively modifying ARG.  Return ARG."
       (unless (gethash arg byte-run--ssp-seen)
@@ -84,7 +88,9 @@ This is done by destructively modifying ARG.  Return ARG."
       arg))
 
 (defalias 'byte-run-strip-symbol-positions
-  #'(lambda (arg)
+  #'(lambda
+      byte-run-strip-symbol-positions
+      (arg)
       "Strip all positions from symbols in ARG.
 This modifies destructively then returns ARG.
 
@@ -104,7 +110,9 @@ record, containing symbols with position."
   ;; We don't want people to just use `put' because we can't conveniently
   ;; hook into `put' to remap old properties to new ones.  But for now, there's
   ;; no such remapping, so we just call `put'.
-  #'(lambda (function prop value)
+  #'(lambda
+      function-put
+      (function prop value)
       "Set FUNCTION's property PROP to VALUE.
 The namespace for PROP is shared with symbols.
 So far, FUNCTION can only be a symbol, not a lambda expression."
@@ -121,27 +129,37 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
 ;; loaded before backquote.el.
 
 (defalias 'byte-run--set-advertised-calling-convention
-  #'(lambda (f _args arglist when)
+  #'(lambda
+      byte-run--set-advertised-calling-convention
+      (f _args arglist when)
       (list 'set-advertised-calling-convention
             (list 'quote f) (list 'quote arglist) (list 'quote when))))
 
 (defalias 'byte-run--set-obsolete
-  #'(lambda (f _args new-name when)
+  #'(lambda
+      byte-run--set-obsolete
+      (f _args new-name when)
       (list 'make-obsolete
             (list 'quote f) (list 'quote new-name) when)))
 
 (defalias 'byte-run--set-interactive-only
-  #'(lambda (f _args instead)
+  #'(lambda
+      byte-run--set-interactive-only
+      (f _args instead)
       (list 'function-put (list 'quote f)
             ''interactive-only (list 'quote instead))))
 
 (defalias 'byte-run--set-pure
-  #'(lambda (f _args val)
+  #'(lambda
+      byte-run--set-pure
+      (f _args val)
       (list 'function-put (list 'quote f)
             ''pure (list 'quote val))))
 
 (defalias 'byte-run--set-side-effect-free
-  #'(lambda (f _args val)
+  #'(lambda
+      byte-run--set-side-effect-free
+      (f _args val)
       (list 'function-put (list 'quote f)
             ''side-effect-free (list 'quote val))))
 
@@ -154,7 +172,9 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
      '(&or symbolp ("lambda" &define lambda-list lambda-doc def-body)))
 
 (defalias 'byte-run--set-compiler-macro
-  #'(lambda (f args compiler-function)
+  #'(lambda
+      byte-run--set-compiler-macro
+      (f args compiler-function)
       (if (not (eq (car-safe compiler-function) 'lambda))
           `(eval-and-compile
              (function-put ',f 'compiler-macro #',compiler-function))
@@ -175,36 +195,48 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
                  ,@(cdr data))))))))
 
 (defalias 'byte-run--set-doc-string
-  #'(lambda (f _args pos)
+  #'(lambda
+      byte-run--set-doc-string
+      (f _args pos)
       (list 'function-put (list 'quote f)
             ''doc-string-elt (if (numberp pos)
                                  pos
                                (list 'quote pos)))))
 
 (defalias 'byte-run--set-indent
-  #'(lambda (f _args val)
+  #'(lambda
+      byte-run--set-indent
+      (f _args val)
       (list 'function-put (list 'quote f)
             ''lisp-indent-function (if (numberp val)
                                        val
                                      (list 'quote val)))))
 
 (defalias 'byte-run--set-speed
-  #'(lambda (f _args val)
+  #'(lambda
+      byte-run--set-speed
+      (f _args val)
       (list 'function-put (list 'quote f)
             ''speed (list 'quote val))))
 
 (defalias 'byte-run--set-completion
-  #'(lambda (f _args val)
+  #'(lambda
+      byte-run--set-completion
+      (f _args val)
       (list 'function-put (list 'quote f)
             ''completion-predicate (list 'function val))))
 
 (defalias 'byte-run--set-modes
-  #'(lambda (f _args &rest val)
+  #'(lambda
+      byte-run--set-modes
+      (f _args &rest val)
       (list 'function-put (list 'quote f)
             ''command-modes (list 'quote val))))
 
 (defalias 'byte-run--set-interactive-args
-  #'(lambda (f args &rest val)
+  #'(lambda
+      byte-run--set-interactive-args
+      (f args &rest val)
       (setq args (remove '&optional (remove '&rest args)))
       (list 'function-put (list 'quote f)
             ''interactive-args
@@ -250,18 +282,24 @@ to set this property.
 This is used by `declare'.")
 
 (defalias 'byte-run--set-debug
-  #'(lambda (name _args spec)
+  #'(lambda
+      byte-run--set-debug
+      (name _args spec)
       (list 'progn :autoload-end
 	    (list 'put (list 'quote name)
 		  ''edebug-form-spec (list 'quote spec)))))
 
 (defalias 'byte-run--set-no-font-lock-keyword
-  #'(lambda (name _args val)
+  #'(lambda
+      byte-run--set-no-font-lock-keyword
+      (name _args val)
       (list 'function-put (list 'quote name)
 	    ''no-font-lock-keyword (list 'quote val))))
 
 (defalias 'byte-run--parse-body
-  #'(lambda (body allow-interactive)
+  #'(lambda
+      byte-run--parse-body
+      (body allow-interactive)
       "Decompose BODY into (DOCSTRING DECLARE INTERACTIVE BODY-REST WARNINGS)."
       (let* ((top body)
              (docstring nil)
@@ -308,7 +346,9 @@ This is used by `declare'.")
         (list docstring declare-form interactive-form body warnings))))
 
 (defalias 'byte-run--parse-declarations
-  #'(lambda (name arglist clauses construct declarations-alist)
+  #'(lambda
+      byte-run--parse-declarations
+      (name arglist clauses construct declarations-alist)
       (let* ((cl-decls nil)
              (actions
               (mapcar
@@ -318,7 +358,7 @@ This is used by `declare'.")
                       (f (apply (car f) name arglist (cdr x)))
                       ;; Yuck!!
                       ((and (featurep 'cl)
-                            (memq (car x)  ;C.f. cl--do-proclaim.
+                            (memq (car x) ;C.f. cl--do-proclaim.
                                   '(special inline notinline optimize warn)))
                        (push (list 'declare x) cl-decls)
                        nil)
@@ -347,7 +387,9 @@ This is used by `declare'.")
 (defalias 'defmacro
   (cons
    'macro
-   #'(lambda (name arglist &rest body)
+   #'(lambda
+       defmacro
+       (name arglist &rest body)
        "Define NAME as a macro.
 When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
@@ -374,7 +416,10 @@ The return value is undefined.
              (setq body (cons docstring body)))
          (if (null body)
              (setq body '(nil)))
-         (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
+         (let* ((fun (list 'function (cons 'lambda
+                                           (cons
+                                            (bare-symbol name)
+                                            (cons arglist body)))))
 	        (def (list 'defalias
 		           (list 'quote name)
 		           (list 'cons ''macro fun))))
@@ -421,11 +466,37 @@ The return value is undefined.
                      (list 'quote name)
                      (list 'function
                            (cons 'lambda
-                                 (cons arglist body))))))
-      (if declarations
-          (cons 'prog1 (cons def (car declarations)))
-        def))))
+                                 (cons 
+                                  (bare-symbol name)
+                                  (cons arglist body)
+                                  ))))))
+                    (if declarations
+                        (cons 'prog1 (cons def (car declarations)))
+                      def))))
 
+(defmacro lambda-arglist (l)
+  "Given a lambda form L, return its arglist.
+Note that this takes into account the possible presence of a
+defining symbol field."
+  ;; `(if (and (cadr ,l) (symbolp (cadr ,l)))
+  ;;      (caddr ,l)
+  ;;    (cadr ,l))
+  (list 'if (list 'and (list 'car (list 'cdr l))
+                  (list 'symbolp (list 'car (list 'cdr l))))
+        (list 'car (list 'cdr (list 'cdr l)))
+        (list 'car (list 'cdr l))))
+
+(defmacro lambda-body (l)
+  "Given a lambda form L, return its body.
+Note that this takes into account the possible presence of a
+defining symbol field."
+  ;; `(if (and (cadr ,l) (symbolp (cadr ,l)))
+  ;;      (cdddr ,l)
+  ;;    (cddr ,l))
+  (list 'if (list 'and (list 'car (list 'cdr l))
+                  (list 'symbolp (list 'car (list 'cdr l))))
+        (list 'cdr (list 'cdr (list 'cdr l)))
+        (list 'cdr (list 'cdr l))))
 
 ;; Redefined in byte-opt.el.
 ;; This was undocumented and unused for decades.

@@ -60,7 +60,7 @@ EMACS = ../src/emacs${EXEEXT}
 EMACSOPT = -batch --no-site-file --no-site-lisp
 
 # Extra flags to pass to the byte compiler
-BYTE_COMPILE_EXTRA_FLAGS =
+BYTE_COMPILE_EXTRA_FLAGS = --eval "(setq debug-on-some-signals t  cl-print-compiled 'full)"
 # For example to not display the undefined function warnings you can use this:
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.

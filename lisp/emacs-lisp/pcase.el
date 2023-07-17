@@ -438,6 +438,10 @@ how many time this CODEGEN is called."
                  main nil nil (car case)))))
       main)))
 
+(defvar pcase-max-duplicates 1
+  "The max number of pattern uses before pcase creates an internal function for it.
+This can be nil, meaning never create such a function.")
+
 (defun pcase--expand (exp cases)
   ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
   ;;          (emacs-pid) exp (sxhash cases))
@@ -460,7 +464,9 @@ how many time this CODEGEN is called."
                     ;; code explosion, we need to keep track of how many
                     ;; times we've used each leaf and move it
                     ;; to a separate function if that number is too high.
-                    (if (or (< count 2) (pcase--small-branch-p code))
+                    (if (or (null pcase-max-duplicates)
+                            (<= count pcase-max-duplicates)
+                            (pcase--small-branch-p code))
                         `(let ,(mapcar (lambda (vv) (list (car vv) (cadr vv)))
                                        varvals)
                            ;; Try and silence some of the most common
@@ -469,13 +475,13 @@ how many time this CODEGEN is called."
                            ,@code)
                     ;; Several occurrence of this non-small branch in
                     ;; the output.
-                    (unless bsym
-                      (setq bsym (make-symbol
-                                  (format "pcase-%d" (length defs))))
-                      (push `(,bsym (lambda ,(mapcar #'car varvals)
-                                      ,@ignores ,@code))
-                            defs))
-                    `(funcall ,bsym ,@(mapcar #'cadr varvals)))))))))
+                      (unless bsym
+                        (setq bsym (make-symbol
+                                    (format "pcase-%d" (length defs))))
+                        (push `(,bsym (lambda ,(mapcar #'car varvals)
+                                        ,@ignores ,@code))
+                              defs))
+                      `(funcall ,bsym ,@(mapcar #'cadr varvals)))))))))
          (main
           (pcase-compile-patterns
            exp

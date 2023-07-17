@@ -1826,7 +1826,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     (let ((bc (byte-compile fname)))
       (should (byte-code-function-p bc))
       (should (equal (funcall bc 'titi) '(toto titi)))
-      (should (equal (aref bc 5) "P"))
+      (should (equal (aref bc 6) "P"))
       (should (equal (get fname 'pure) t))
       (should (equal (get fname 'lisp-indent-function) 1))
       (should (equal (aref bc 4) "tata\n\n(fn X)")))))

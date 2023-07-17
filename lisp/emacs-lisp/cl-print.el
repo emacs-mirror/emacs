@@ -69,7 +69,17 @@ Print the contents hidden by the ellipsis to STREAM."
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
       (cl-print-insert-ellipsis object nil stream)
-    (let ((car (pop object)))
+    (let ((car (pop object))
+          defsym)
+      (cond
+       ((eq car 'lambda)
+        (setq defsym (car-safe object)))
+       ((eq car 'closure)
+        (setq defsym (car-safe (cdr-safe object)))))
+      (when (and defsym (not (eq defsym t)) (symbolp defsym))
+        (princ "{" stream)
+        (prin1 defsym stream)
+        (princ "} " stream))
       (if (and print-quoted
                (memq car '(\, quote function \` \,@ \,.))
                (consp object)
@@ -165,6 +175,7 @@ Print the contents hidden by the ellipsis to STREAM."
 (defvar cl-print-compiled nil
   "Control how to print byte-compiled functions.
 Acceptable values include:
+- `full' to print out the full contents of the function using `prin1'.
 - `static' to print the vector of constants.
 - `disassemble' to print the disassembly of the code.
 - nil to skip printing any details about the code.")
@@ -181,48 +192,63 @@ into a button whose action shows the function's disassembly.")
 
 (cl-defmethod cl-print-object ((object compiled-function) stream)
   (unless stream (setq stream standard-output))
+  (let ((defsym
+         (cond
+          ((subrp object)
+           (subr-native-defining-symbol object))
+          ((> (length object) 5)
+           (aref object 5)))))
+    (when (and defsym (not (eq defsym t)) (symbolp defsym))
+      (princ "{" stream)
+      (;; cl-
+       prin1 defsym stream)
+      (princ "} " stream)))
   ;; We use "#f(...)" rather than "#<...>" so that pp.el gives better results.
   (princ "#f(compiled-function " stream)
   (let ((args (help-function-arglist object 'preserve-names)))
     (if args
         (prin1 args stream)
       (princ "()" stream)))
-  (pcase (help-split-fundoc (documentation object 'raw) object)
-    ;; Drop args which `help-function-arglist' already printed.
-    (`(,_usage . ,(and doc (guard (stringp doc))))
-     (princ " " stream)
-     (prin1 doc stream)))
-  (let ((inter (interactive-form object)))
-    (when inter
-      (princ " " stream)
-      (cl-print-object
-       (if (eq 'byte-code (car-safe (cadr inter)))
-           `(interactive ,(make-byte-code nil (nth 1 (cadr inter))
-                                          (nth 2 (cadr inter))
-                                          (nth 3 (cadr inter))))
-         inter)
-       stream)))
-  (if (eq cl-print-compiled 'disassemble)
-      (princ
-       (with-temp-buffer
-         (insert "\n")
-         (disassemble-1 object 0)
-         (buffer-string))
-       stream)
-    (princ " " stream)
-    (let ((button-start (and cl-print-compiled-button
-                             (bufferp stream)
-                             (with-current-buffer stream (point)))))
-      (princ (format "#<bytecode %#x>" (sxhash object)) stream)
-      (when (eq cl-print-compiled 'static)
+  (if (eq cl-print-compiled 'full)
+      (progn
         (princ " " stream)
-        (cl-print-object (aref object 2) stream))
-      (when button-start
-        (with-current-buffer stream
-          (make-text-button button-start (point)
-                            :type 'help-byte-code
-                            'byte-code-function object)))))
-  (princ ")" stream))
+        (prin1 object stream))
+    (pcase (help-split-fundoc (documentation object 'raw) object)
+      ;; Drop args which `help-function-arglist' already printed.
+      (`(,_usage . ,(and doc (guard (stringp doc))))
+       (princ " " stream)
+       (prin1 doc stream)))
+    (let ((inter (interactive-form object)))
+      (when inter
+        (princ " " stream)
+        (cl-print-object
+         (if (eq 'byte-code (car-safe (cadr inter)))
+             `(interactive ,(make-byte-code nil (nth 1 (cadr inter))
+                                            (nth 2 (cadr inter))
+                                            (nth 3 (cadr inter))))
+           inter)
+         stream)))
+    (if (eq cl-print-compiled 'disassemble)
+        (princ
+         (with-temp-buffer
+           (insert "\n")
+           (disassemble-1 object 0)
+           (buffer-string))
+         stream)
+      (princ " " stream)
+      (let ((button-start (and cl-print-compiled-button
+                               (bufferp stream)
+                               (with-current-buffer stream (point)))))
+        (princ (format "#<bytecode %#x>" (sxhash object)) stream)
+        (when (eq cl-print-compiled 'static)
+          (princ " " stream)
+          (cl-print-object (aref object 2) stream))
+        (when button-start
+          (with-current-buffer stream
+            (make-text-button button-start (point)
+                              :type 'help-byte-code
+                              'byte-code-function object)))))
+    (princ ")" stream)))
 
 ;; This belongs in oclosure.el, of course, but some load-ordering issues make it
 ;; complicated.

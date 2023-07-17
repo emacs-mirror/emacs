@@ -1800,8 +1800,10 @@ It is too wide if it has any lines longer than the largest of
          (setq docs (nth 3 form)))
         ('lambda
           (setq kind "")          ; can't be "function", unfortunately
-          (setq docs (and (stringp (nth 2 form))
-                          (nth 2 form)))))
+          (let* ((definer (and (cadr form) (symbolp (cadr form))))
+                 (docstring (nth (if definer 3 2) form)))
+            (setq docs (and (stringp docstring)
+                            docstring)))))
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
       (setq name (if name (format " `%s' " name) ""))
@@ -2366,6 +2368,7 @@ With argument ARG, insert value in current buffer after the form."
 	(byte-compile-tag-number 0)
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
+        (defining-symbol t)
 	(byte-compile-output nil)
 	;;	  #### This is bound in b-c-close-variables.
 	;;	  (byte-compile-warnings byte-compile-warnings)
@@ -2429,7 +2432,10 @@ With argument ARG, insert value in current buffer after the form."
                  (form (read-positioning-symbols inbuffer))
                  (warning (byte-run--unescaped-character-literals-warning)))
             (when warning (byte-compile-warn-x form "%s" warning))
-	    (byte-compile-toplevel-file-form form)))
+	    (byte-compile-toplevel-file-form form)
+            (when byte-compile-output
+              (byte-compile-flush-pending))))   ; To ensure pending byte-code's get
+                                        	; the correct `defining-symbol'.
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)
 	(byte-compile-warn-about-unresolved-functions)))
@@ -2721,16 +2727,17 @@ list that represents a doc string reference.
   (let ((sym (nth 1 form)))
     (byte-compile--declare-var sym)
     (if (eq (car form) 'defconst)
-        (push sym byte-compile-const-variables)))
-  (if (and (null (cddr form))		;No `value' provided.
-           (eq (car form) 'defvar))     ;Just a declaration.
-      nil
-    (byte-compile-docstring-style-warn form)
-    (setq form (copy-sequence form))
-    (when (consp (nth 2 form))
-      (setcar (cdr (cdr form))
-              (byte-compile-top-level (nth 2 form) nil 'file)))
-    form))
+        (push sym byte-compile-const-variables))
+    (if (and (null (cddr form))		;No `value' provided.
+             (eq (car form) 'defvar))   ;Just a declaration.
+        nil
+      (byte-compile-docstring-style-warn form)
+      (setq form (copy-sequence form))
+      (when (consp (nth 2 form))
+        (setcar (cdr (cdr form))
+                (let ((defining-symbol sym))
+                  (byte-compile-top-level (nth 2 form) nil 'file))))
+      form)))
 
 (put 'define-abbrev-table 'byte-hunk-handler
      'byte-compile-file-form-defvar-function)
@@ -2812,11 +2819,12 @@ list that represents a doc string reference.
     (apply 'make-obsolete
            (mapcar 'eval (cdr form)))))
 
-(defun byte-compile-file-form-defmumble (name macro arglist body rest)
+(defun byte-compile-file-form-defmumble (name macro arglist body defsym rest)
   "Process a `defalias' for NAME.
 If MACRO is non-nil, the definition is known to be a macro.
 ARGLIST is the list of arguments, if it was recognized or t otherwise.
-BODY of the definition, or t if not recognized.
+BODY of the definition, or t if not recognized.  DEFSYM is the defining
+symbol for the lambda, usually the same as NAME.
 Return non-nil if everything went as planned, or nil to imply that it decided
 not to take responsibility for the actual compilation of the code."
   (let* ((this-kind (if macro 'byte-compile-macro-environment
@@ -2827,7 +2835,7 @@ not to take responsibility for the actual compilation of the code."
          (that-one (assq name (symbol-value that-kind)))
          (bare-name (bare-symbol name))
          (byte-compile-current-form name)) ; For warnings.
-
+    (setq defining-symbol (or defsym t))
     (push bare-name byte-compile-new-defuns)
     ;; When a function or macro is defined, add it to the call tree so that
     ;; we can tell when functions are not used.
@@ -2900,7 +2908,9 @@ not to take responsibility for the actual compilation of the code."
           ;; Tell the caller that we didn't compile it yet.
           nil)
 
-      (let* ((code (byte-compile-lambda (cons arglist body) t)))
+      (let* ((code (byte-compile-lambda (cons defining-symbol
+                                              (cons arglist body))
+                                        t)))
         (if this-one
             ;; A definition in b-c-initial-m-e should always take precedence
             ;; during compilation, so don't let it be redefined.  (Bug#8647)
@@ -2985,8 +2995,18 @@ If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
 (defun byte-compile--reify-function (fun)
   "Return an expression which will evaluate to a function value FUN.
 FUN should be either a `lambda' value or a `closure' value."
-  (pcase-let* (((or (and `(lambda ,args . ,body) (let env nil))
-                    `(closure ,env ,args . ,body))
+  (pcase-let* (((or (and
+                     (or `(lambda ,(and
+                                    (pred (lambda (e) (and e (symbolp e))))
+                                    def)
+                            ,args . ,body)
+                         (and `(lambda ,args . ,body) (let def nil)))
+                     (let env nil))
+                    `(closure ,env ,(and
+                                     (pred (lambda (e) (and e (symbolp e))))
+                                     def)
+                       ,args . ,body)
+                    (and `(closure ,env ,args . ,body) (let def nil)))
                 fun)
                (preamble nil)
                (renv ()))
@@ -3004,8 +3024,11 @@ FUN should be either a `lambda' value or a `closure' value."
        ((eq binding t))
        (t (push `(defvar ,binding) body))))
     (if (null renv)
-        `(lambda ,args ,@preamble ,@body)
-      `(let ,renv (lambda ,args ,@preamble ,@body)))))
+        `(lambda ,@(if def `(,def))
+           ,args ,@preamble ,@body)
+      `(let ,renv (lambda
+                    ,@(if def `(,def))
+                    ,args ,@preamble ,@body)))))
 
 ;;;###autoload
 (defun byte-compile (form)
@@ -3031,7 +3054,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                      (if (symbolp form) form "provided"))
             fun)
            (t
-            (let (final-eval)
+            (let ((defining-symbol t)
+                  final-eval)
               (when (or (symbolp form) (eq (car-safe fun) 'closure))
                 ;; `fun' is a function *value*, so try to recover its corresponding
                 ;; source code.
@@ -3057,7 +3081,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   "Compile and return SEXP."
   (displaying-byte-compile-warnings
    (byte-compile-close-variables
-    (byte-compile-top-level (byte-compile-preprocess sexp)))))
+    (let ((defining-symbol t))
+    (byte-compile-top-level (byte-compile-preprocess sexp))))))
 
 (defun byte-compile-check-lambda-list (list)
   "Check lambda-list LIST for errors."
@@ -3150,15 +3175,20 @@ lambda-expression."
       (setq fun (cons 'lambda fun))
     (unless (eq 'lambda (car-safe fun))
       (error "Not a lambda list: %S" fun)))
-  (byte-compile-docstring-style-warn fun)
-  (byte-compile-check-lambda-list (nth 1 fun))
-  (let* ((arglist (nth 1 fun))
+  (let ((definer (and (car-safe (cdr-safe fun))
+                      (symbolp (cadr fun))
+                      (cadr fun))))
+    (byte-compile-docstring-style-warn fun)
+    (byte-compile-check-lambda-list (nth (if definer 2 1) fun))
+    (let* (
+         (fun1 (if definer (cdr fun) fun))
+         (arglist (nth 1 fun1))
          (arglistvars (byte-run-strip-symbol-positions
                        (byte-compile-arglist-vars arglist)))
 	 (byte-compile-bound-variables
 	  (append (if (not lexical-binding) arglistvars)
                   byte-compile-bound-variables))
-	 (body (cdr (cdr fun)))
+	 (body (cdr (cdr fun1)))
 	 (doc (if (stringp (car body))
                   (prog1 (car body)
                     ;; Discard the doc string
@@ -3167,6 +3197,10 @@ lambda-expression."
                         (setq body (cdr body))))))
 	 (int (assq 'interactive body))
          command-modes)
+      (setq defining-symbol (or (and (not (eq definer t))
+                                     definer)
+                                defining-symbol
+                                t))
     (when lexical-binding
       (dolist (var arglistvars)
         (when (assq var byte-compile--known-dynamic-vars)
@@ -3231,8 +3265,9 @@ lambda-expression."
 			    ;; byte-compile-make-args-desc lost the args's names,
 			    ;; so preserve them in the docstring.
 			    (list (help-add-fundoc-usage doc bare-arglist)))
-			   ((or doc int)
-			    (list doc)))
+			   (t (list doc)))
+                     ;; The defining symbol.
+                     `(,defining-symbol)
 		     ;; optionally, the interactive spec (and the modes the
 		     ;; command applies to).
 		     (cond
@@ -3248,7 +3283,7 @@ lambda-expression."
                  (gethash (cadr compiled)
                           byte-to-native-lambdas-h))
                 out))
-	out))))
+	out)))))
 
 (defvar byte-compile-reserved-constants 0)
 
@@ -3301,6 +3336,7 @@ lambda-expression."
 	(byte-compile-tag-number 0)
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
+        (defining-symbol t)
         (byte-compile--lexical-environment lexenv)
         (byte-compile-reserved-constants (or reserved-csts 0))
 	(byte-compile-output nil)
@@ -3400,9 +3436,16 @@ lambda-expression."
                       (not (delq nil (mapcar 'consp (cdr (car body))))))))
 	      (setq rest (cdr rest)))
 	    rest))
-      (let ((byte-compile-vector (byte-compile-constants-vector)))
-	(list 'byte-code (byte-compile-lapcode byte-compile-output)
-	      byte-compile-vector byte-compile-maxdepth)))
+      (let ((byte-compile-vector (byte-compile-constants-vector))
+            (definer-suffix
+             (and (eq output-type 'file)
+                  defining-symbol
+                  (not (eq defining-symbol t))
+                  (symbolp defining-symbol)
+                  `(',defining-symbol))))
+        (nconc (list 'byte-code (byte-compile-lapcode byte-compile-output)
+	             byte-compile-vector byte-compile-maxdepth)
+               definer-suffix)))
      ;; it's a trivial function
      ((cdr body) (cons 'progn (nreverse body)))
      ((car body)))))
@@ -4212,13 +4255,21 @@ This function is never called when `lexical-binding' is nil."
   (if byte-compile--for-effect (setq byte-compile--for-effect nil)
     (let* ((vars (nth 1 form))
            (env (nth 2 form))
-           (docstring-exp (nth 3 form))
-           (body (nthcdr 4 form))
+           (def (and (symbolp (nth 3 form)) (nth 3 form)))
+           (docstring-exp (nth (if def 4 3) form))
+           (body (nthcdr (if def 5 4) form))
            (fun
-            (byte-compile-lambda `(lambda ,vars . ,body) nil (length env))))
+            (byte-compile-lambda `(lambda
+                                    ,defining-symbol
+                                    ,vars . ,body)
+                                 nil (length env))))
       (cl-assert (or (> (length env) 0)
 		     docstring-exp))	;Otherwise, we don't need a closure.
       (cl-assert (byte-code-function-p fun))
+      (setq defining-symbol (or (and (not (eq def t))
+                                     def)
+                                defining-symbol
+                                t))
       (byte-compile-form
        (if (macroexp-const-p docstring-exp)
            ;; Use symbols V0, V1 ... as placeholders for closure variables:
@@ -4237,15 +4288,22 @@ This function is never called when `lexical-binding' is nil."
                           ;; to get the indices right when disassembling.
                           (vconcat dummy-vars (aref fun 2))
                           (aref fun 3)  ; Stack depth of function
-                          (if docstring-exp
-                              (cons
-                               (eval (byte-run-strip-symbol-positions
-                                      docstring-exp)
-                                     t)
-                               (cdr opt-args)) ; The interactive spec will
-                                               ; have been stripped in
-                                               ; `byte-compile-lambda'.
-                            opt-args))))
+                          (cond
+                           (defining-symbol
+                            (cons (if docstring-exp
+                                      (eval (byte-run-strip-symbol-positions
+                                             docstring-exp)
+                                            t)
+                                    (car opt-args))
+                                  (cons defining-symbol
+                                        (nthcdr 2 opt-args))))
+                           (docstring-exp
+                            (cons
+                             (eval (byte-run-strip-symbol-positions
+                                    docstring-exp)
+                                   t)
+                             (cdr opt-args)))
+                           (t opt-args)))))
              `(make-closure ,proto-fun ,@env))
          ;; Nontrivial doc string expression: create a bytecode object
          ;; from small pieces at run time.
@@ -4254,12 +4312,17 @@ This function is never called when `lexical-binding' is nil."
            ',(aref fun 1)         ; The byte-code.
            (vconcat (vector . ,env) ',(aref fun 2)) ; constant vector.
            ,@(let ((rest (nthcdr 3 (mapcar (lambda (x) `',x) fun))))
-               (if docstring-exp
-                   `(,(car rest)
-                     ,(byte-run-strip-symbol-positions docstring-exp)
-                     ,@(cddr rest))
-                 rest))))
-         ))))
+               (cond
+                (defining-symbol
+                 `(,(car rest)
+                   ,(byte-run-strip-symbol-positions docstring-exp)
+                   ',defining-symbol
+                   ,@(nthcdr 3 rest)))
+                (docstring-exp
+                 `(,(car rest)
+                   ,(byte-run-strip-symbol-positions docstring-exp)
+                   ,@(cddr rest)))
+                (t rest)))))))))
 
 (defun byte-compile-get-closed-var (form)
   "Byte-compile the special `internal-get-closed-var' form."
@@ -5190,6 +5253,7 @@ binding slots have been popped."
     ;; Delegate the actual work to the function version of the
     ;; special form, named with a "-1" suffix.
     (byte-compile-form-do-effect
+     (let ((defining-symbol var))
      (cond
       ((eq fun 'defconst) `(defconst-1 ',var ,@(nthcdr 2 form)))
       ((not (cddr form)) `',var) ; A simple (defvar foo) just returns foo.
@@ -5197,7 +5261,7 @@ binding slots have been popped."
                     ;; Don't eval `value' if `defvar' wouldn't eval it either.
                     ,(if (macroexp-const-p value) value
                        `(if (boundp ',var) nil ,value))
-                    ,@(nthcdr 3 form)))))))
+                    ,@(nthcdr 3 form))))))))
 
 (defun byte-compile-autoload (form)
   (and (macroexp-const-p (nth 1 form))
@@ -5252,13 +5316,18 @@ binding slots have been popped."
              fun)
             ;; `arglist' is the list of arguments (or t if not recognized).
             ;; `body' is the body of `lam' (or t if not recognized).
-            ((or `(lambda ,arglist . ,body)
+            ((or `(lambda ,(and (pred (lambda (e)
+                                        (and e (symbolp e))))
+                                def)
+                    ,arglist . ,body)
+                 (and `(lambda ,arglist . ,body) (let def nil))
                  ;; `(closure ,_ ,arglist . ,body)
-                 (and `(internal-make-closure ,arglist . ,_) (let body t))
-                 (and (let arglist t) (let body t)))
+                 (and `(internal-make-closure ,arglist . ,_) (let body t)
+                      (let def nil))
+                 (and (let arglist t) (let body t) (let def nil)))
              lam))
          (unless (byte-compile-file-form-defmumble
-                  name macro arglist body rest)
+                  name macro arglist body def rest)
            (when macro
              (if (null fun)
                  (message "Macro %s unrecognized, won't work in file" name)

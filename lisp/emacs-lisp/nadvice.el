@@ -257,16 +257,54 @@ HOW is a symbol to select an entry in `advice--how-alist'."
         (advice--copy (cadr proto)
                       function main how props)))))
 
+(defun advice--equal (function adv)
+  "Return non-nil when FUNCTION is essentially the same as ADV.
+FUNCTION and ADV are both functions.  They are considered
+essentially the same when all components apart, possibly, from
+the \"defining-symbol\" are `equal'.
+
+On such sameness, ADV is returned, otherwise nil."
+  (cond
+   ((and (byte-code-function-p function)
+         (byte-code-function-p adv))
+    (and (equal (aref function 0) (aref adv 0))  ;  parameter spec.
+         (equal (aref function 1) (aref adv 1)) ; byte code.
+         (equal (aref function 2) (aref adv 2)) ; constant vector.
+         (equal (aref function 3) (aref adv 3)) ; Stack usage.
+         (equal (aref function 4) (aref adv 4)) ; Doc string.
+         (or (< (length function) 6)
+             (< (length adv) 6)
+             (symbolp (aref function 5)) ; Is element 5 the defining-symbol...
+             (symbolp (aref adv 5))      ; ...(or absent)?
+             (equal (aref function 5) (aref adv 5))) ; It's an interactive spec.
+         (or (< (length function) 7)
+             (< (length adv) 7)
+             (equal (aref function 6) (aref adv 6))) ; Interactive spec (new format).
+         adv))
+   ((and (consp function)
+         (consp adv))                   ; Interpreted functions.
+    (and (equal function adv)           ; FIXME!!!  Flesh this out!
+         adv))
+   ;; Insert an arm for native-compiled functions here.  FIXME!!!
+   (t (and (equal function adv)
+           adv))
+   ))
+
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
+    ;; (message "advice--member-p: function: %S" function)
     (while (and (not found) (advice--p definition))
+      ;; (message "advice--member-p: elt:      %S" (advice--car definition))
       (if (if (eq use-name :use-both)
-	      (or (equal function
-			 (cdr (assq 'name (advice--props definition))))
-		  (equal function (advice--car definition)))
-	    (equal function (if use-name
-				(cdr (assq 'name (advice--props definition)))
-			      (advice--car definition))))
+	      (or (advice--equal
+                   function
+		   (cdr (assq 'name (advice--props definition))))
+		  (advice--equal
+                   function (advice--car definition)))
+	    (advice--equal
+             function (if use-name
+			  (cdr (assq 'name (advice--props definition)))
+			(advice--car definition))))
           (setq found definition)
         (setq definition (advice--cdr definition))))
     found))
@@ -288,7 +326,8 @@ HOW is a symbol to select an entry in `advice--how-alist'."
   (advice--tweak flist
                  (lambda (first rest props)
                    (cond ((not first) rest)
-                         ((or (equal function first)
+                         ((or (advice--equal
+                               function first)
                               (equal function (cdr (assq 'name props))))
                           (list (advice--remove-function rest function)))))))
 

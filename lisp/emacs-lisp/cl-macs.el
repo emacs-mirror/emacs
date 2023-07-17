@@ -2255,7 +2255,9 @@ details.
                  (lambda (bind)
                    (pcase-let*
                        ((`(,var ,sargs . ,sbody) bind)
-                        (`(function (lambda ,fargs . ,ebody))
+                        (`(function ,(or `(lambda ,(pred (lambda (e) (and e (symbolp e))))
+                                            ,fargs . ,ebody)
+                                         `(lambda ,fargs . ,ebody)))
                          (macroexpand-all `(cl-function (lambda ,sargs . ,sbody))
                                           newenv))
                         (`(,ofargs . ,obody)
@@ -2314,6 +2316,11 @@ This is like `cl-flet', but for macros instead of functions.
   (while (not (eq exp (setq exp (macroexpand-1 exp env)))))
   exp)
 
+;; pcase-n functions must not be created in `cl--sm-macroexpand-1',
+;; because of infinite recursion.
+(eval-when-compile (defvar save-p-m-d pcase-max-duplicates)
+                   (setq save-p-m-d pcase-max-duplicates)
+                   (setq pcase-max-duplicates nil))
 (defun cl--sm-macroexpand-1 (orig-fun exp &optional env)
   "Special macro expander advice used inside `cl-symbol-macrolet'.
 This function extends `macroexpand-1' during macro expansion
@@ -2399,7 +2406,10 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
            exp)))
       ;; Do the same as for `let' but for variables introduced
       ;; via other means, such as `lambda' and `condition-case'.
-      (`(function (lambda ,args . ,body))
+      (`(function
+         ,(or `(lambda ,(and (pred (lambda (e) (and e (symbolp e)))) def)
+                 ,args . ,body)
+              (and `(lambda ,args . ,body) (let def nil))))
        (let ((nargs ()) (found nil))
          (dolist (var args)
            (push (cond
@@ -2414,7 +2424,8 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
                  nargs))
          (if found
              `(function
-               (lambda ,(nreverse nargs)
+               (lambda
+                 ,@(if def `(,def)) ,(nreverse nargs)
                  . ,(mapcar (lambda (exp)
                               (macroexpand-all exp env))
                             body)))
@@ -2433,6 +2444,7 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
                                (cdr clause))))
                 clauses))))
       (_ exp))))
+(eval-when-compile (setq pcase-max-duplicates save-p-m-d))
 
 ;;;###autoload
 (defmacro cl-symbol-macrolet (bindings &rest body)

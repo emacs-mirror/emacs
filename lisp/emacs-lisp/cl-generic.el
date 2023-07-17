@@ -337,7 +337,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
             (setf (cl--generic-dispatches generic)
                   (cons dispatch (delq dispatch dispatches)))))))
     (setf (cl--generic-options generic) options)
-    (cl--generic-make-function generic)))
+    (cl--generic-make-function generic name)))
 
 (defmacro cl-generic-current-method-specializers ()
   "List of (VAR . TYPE) where TYPE is var's specializer.
@@ -387,7 +387,7 @@ the specializer used will be the one returned by BODY."
       (cons (nreverse specializers)
             (nreverse (delq nil plain-args)))))
 
-  (defun cl--generic-lambda (args body)
+  (defun cl--generic-lambda (defsym args body)
     "Make the lambda expression for a method with ARGS and BODY."
     (pcase-let* ((`(,spec-args . ,plain-args)
                   (cl--generic-split-args args))
@@ -402,7 +402,9 @@ the specializer used will be the one returned by BODY."
       ;; First macroexpand away the cl-function stuff (e.g. &key and
       ;; destructuring args, `declare' and whatnot).
       (pcase (macroexpand fun macroenv)
-        (`#'(lambda ,args . ,body)
+        ((or `#'(lambda ,(and (pred (lambda (e) (and e (symbolp e)))) def)
+                  ,args . ,body)
+             (and `#'(lambda ,args . ,body) (let def nil)))
          (let* ((parsed-body (macroexp-parse-body body))
                 (nm (make-symbol "cl--nm"))
                 (arglist (make-symbol "cl--args"))
@@ -423,12 +425,12 @@ the specializer used will be the one returned by BODY."
            (cond
             ((not uses-cnm)
              (cons nil
-                   `#'(lambda (,@args)
+                   `#'(lambda ,defsym (,@args)
                         ,@(car parsed-body)
                         ,nbody)))
             (lexical-binding
              (cons 'curried
-                   `#'(lambda (,nm) ;Called when constructing the effective method.
+                   `#'(lambda ,defsym (,nm) ;Called when constructing the effective method.
                         (let ((,nmp (if (cl--generic-isnot-nnm-p ,nm)
                                         #'always #'ignore)))
                           ;; This `(λ (&rest x) .. (apply (λ (args) ..) x))'
@@ -464,17 +466,16 @@ the specializer used will be the one returned by BODY."
                               (apply (lambda (,@λ-lift ,@args) ,nbody)
                                      ,@λ-lift ,arglist)))))))
             (t
-             (cons t
-                 `#'(lambda (,cnm ,@args)
-                      ,@(car parsed-body)
-                      ,(macroexp-warn-and-return
-                        "cl-defmethod used without lexical-binding"
-                        (if (not (assq nmp uses-cnm))
-                            nbody
-                          `(let ((,nmp (lambda ()
-                                         (cl--generic-isnot-nnm-p ,cnm))))
-                             ,nbody))
-                        'lexical t)))))
+             (cons t `#'(lambda ,defsym (,cnm ,@args)
+                          ,@(car parsed-body)
+                          ,(macroexp-warn-and-return
+                            "cl-defmethod used without lexical-binding"
+                            (if (not (assq nmp uses-cnm))
+                                nbody
+                              `(let ((,nmp (lambda ()
+                                             (cl--generic-isnot-nnm-p ,cnm))))
+                                 ,nbody))
+                            'lexical t)))))
            ))
         (f (error "Unexpected macroexpansion result: %S" f))))))
 
@@ -572,7 +573,9 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (require 'gv)
       (declare-function gv-setter "gv" (name))
       (setq name (gv-setter (cadr name))))
-    (pcase-let* ((`(,call-con . ,fun) (cl--generic-lambda args body)))
+    (pcase-let* ((`(,call-con . ,fun) (cl--generic-lambda
+                                       (bare-symbol name)
+                                       args body)))
       `(progn
          ;; You could argue that `defmethod' modifies rather than defines the
          ;; function, so warnings like "not known to be defined" are fair game.
@@ -643,7 +646,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
     (let ((sym (cl--generic-name generic)) ; Actual name (for aliases).
           ;; FIXME: Try to avoid re-constructing a new function if the old one
           ;; is still valid (e.g. still empty method cache)?
-          (gfun (cl--generic-make-function generic)))
+          (gfun (cl--generic-make-function generic name)))
       (unless (symbol-function sym)
         (defalias sym 'dummy))   ;Record definition into load-history.
       (cl-pushnew `(cl-defmethod . ,(cl--generic-load-hist-format
@@ -681,7 +684,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
     ;; see `cl--generic-prefill-dispatchers'.
     #'byte-compile))
 
-(defun cl--generic-get-dispatcher (dispatch)
+(defun cl--generic-get-dispatcher (dispatch &optional name)
   (with-memoization
       ;; We need `copy-sequence` here because this `dispatch' object might be
       ;; modified by side-effect in `cl-generic-define-method' (bug#46722).
@@ -745,7 +748,9 @@ You might need to add: %S"
        cl--generic-compiler
        `(lambda (generic dispatches-left methods)
           (let ((method-cache (make-hash-table :test #'eql)))
-            (lambda (,@fixedargs &rest args)
+            (lambda
+              ,(or name 'cl--generic-get-dispatcher)
+              (,@fixedargs &rest args)
               (let ,bindings
                 (apply (with-memoization
                            (gethash ,tag-exp method-cache)
@@ -755,12 +760,13 @@ You might need to add: %S"
                                `(append ,@typescodes) (car typescodes))))
                        ,@fixedargs args)))))))))
 
-(defun cl--generic-make-function (generic)
+(defun cl--generic-make-function (generic &optional name)
   (cl--generic-make-next-function generic
                                   (cl--generic-dispatches generic)
-                                  (cl--generic-method-table generic)))
+                                  (cl--generic-method-table generic)
+                                  name))
 
-(defun cl--generic-make-next-function (generic dispatches methods)
+(defun cl--generic-make-next-function (generic dispatches methods &optional name)
   (let* ((dispatch
           (progn
             (while (and dispatches
@@ -774,7 +780,7 @@ You might need to add: %S"
                   ;; further arguments.
                   methods))
         (cl--generic-build-combined-method generic methods)
-      (let ((dispatcher (cl--generic-get-dispatcher dispatch)))
+      (let ((dispatcher (cl--generic-get-dispatcher dispatch name)))
         (funcall dispatcher generic dispatches methods)))))
 
 (defvar cl--generic-combined-method-memoization

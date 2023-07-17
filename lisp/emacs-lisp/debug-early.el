@@ -34,7 +34,7 @@
 ;;; Code:
 
 (defalias 'debug-early-backtrace
-  #'(lambda ()
+  #'(lambda debug-early-backtrace ()
       "Print a trace of Lisp function calls currently active.
 The output stream used is the value of `standard-output'.
 
@@ -71,7 +71,7 @@ of the build process."
 	       (princ ")\n")))))))
 
 (defalias 'debug-early
-  #'(lambda (&rest args)
+  #'(lambda debug-early (&rest args)
   "Print an error message with a backtrace of active Lisp function calls.
 The output stream used is the value of `standard-output'.
 

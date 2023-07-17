@@ -5091,6 +5091,7 @@ defsubr (union Aligned_Lisp_Subr *aname)
 #ifdef HAVE_NATIVE_COMP
   eassert (NILP (Vcomp_abi_hash));
   Vcomp_subr_list = Fpurecopy (Fcons (tem, Vcomp_subr_list));
+  sname->defining_symbol = sym;
 #endif
 }
 

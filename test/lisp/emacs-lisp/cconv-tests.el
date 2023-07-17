@@ -178,7 +178,7 @@
   (should (equal (cconv-closure-convert
                   '#'(lambda (x) (let ((f #'(lambda () (+ x 1))))
                                    (funcall f))))
-                 '#'(lambda (x) (let ((f #'(lambda (x) (+ x 1))))
+                 '#'(lambda (x) (let ((f #'(lambda t (x) (+ x 1))))
                                   (funcall f x)))))
 
   ;; Bug#30872.
@@ -223,23 +223,23 @@
   ;; Basic case:
   (should (equal (cconv-tests--intern-all
                   (cconv-closure-convert
-                   '#'(lambda (x)
-                        (let ((f #'(lambda () x)))
+                   '#'(lambda t (x)
+                        (let ((f #'(lambda t () x)))
                           (let ((x 'b))
                             (list x (funcall f)))))))
-                 '#'(lambda (x)
-                      (let ((f #'(lambda (x) x)))
+                 '#'(lambda t (x)
+                      (let ((f #'(lambda t (x) x)))
                         (let ((x 'b)
                               (closed-x x))
                           (list x (funcall f closed-x)))))))
   (should (equal (cconv-tests--intern-all
                   (cconv-closure-convert
-                   '#'(lambda (x)
+                   '#'(lambda t (x)
                         (let ((f #'(lambda () x)))
                           (let* ((x 'b))
                             (list x (funcall f)))))))
-                 '#'(lambda (x)
-                      (let ((f #'(lambda (x) x)))
+                 '#'(lambda t (x)
+                      (let ((f #'(lambda t (x) x)))
                         (let* ((closed-x x)
                                (x 'b))
                           (list x (funcall f closed-x)))))))
@@ -256,7 +256,7 @@
            '#'(lambda (x)
                 (internal-make-closure
                  nil (x) nil
-                 (let ((f #'(lambda (x) x)))
+                 (let ((f #'(lambda t (x) x)))
                    (let ((x 'a)
                          (closed-x (internal-get-closed-var 0)))
                      (list x (funcall f closed-x))))))))
@@ -271,7 +271,7 @@
            '#'(lambda (x)
                 (internal-make-closure
                  nil (x) nil
-                 (let ((f #'(lambda (x) x)))
+                 (let ((f #'(lambda t (x) x)))
                    (let* ((closed-x (internal-get-closed-var 0))
                           (x 'a))
                      (list x (funcall f closed-x))))))))
@@ -289,7 +289,7 @@
                 (let ((x (list x)))
                   (internal-make-closure
                    nil (x) nil
-                   (let ((f #'(lambda (x) (car-safe x))))
+                   (let ((f #'(lambda t (x) (car-safe x))))
                      (setcar (internal-get-closed-var 0)
                              (car-safe (internal-get-closed-var 0)))
                      (let ((x 'a)
@@ -308,7 +308,7 @@
                 (let ((x (list x)))
                   (internal-make-closure
                    nil (x) nil
-                   (let ((f #'(lambda (x) (car-safe x))))
+                   (let ((f #'(lambda t (x) (car-safe x))))
                      (setcar (internal-get-closed-var 0)
                              (car-safe (internal-get-closed-var 0)))
                      (let* ((closed-x (internal-get-closed-var 0))
@@ -325,8 +325,8 @@
                       (list x (funcall g) (funcall h)))))))
            '#'(lambda (x)
                 (let ((x (list x)))
-                  (let ((g #'(lambda (x) (car-safe x)))
-                        (h #'(lambda (x) (setcar x (car-safe x)))))
+                  (let ((g #'(lambda t (x) (car-safe x)))
+                        (h #'(lambda t (x) (setcar x (car-safe x)))))
                     (let ((x 'b)
                           (closed-x x))
                       (list x (funcall g closed-x) (funcall h closed-x))))))))
@@ -340,8 +340,8 @@
                       (list x (funcall g) (funcall h)))))))
            '#'(lambda (x)
                 (let ((x (list x)))
-                  (let ((g #'(lambda (x) (car-safe x)))
-                        (h #'(lambda (x) (setcar x (car-safe x)))))
+                  (let ((g #'(lambda t (x) (car-safe x)))
+                        (h #'(lambda t (x) (setcar x (car-safe x)))))
                     (let* ((closed-x x)
                            (x 'b))
                       (list x (funcall g closed-x) (funcall h closed-x))))))))

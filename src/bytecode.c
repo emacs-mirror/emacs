@@ -305,13 +305,16 @@ enum byte_code_op
 
 #define TOP (*top)
 
-DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
+DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 4, 0,
        doc: /* Function used internally in byte-compiled code.
 The first argument, BYTESTR, is a string of byte code;
 the second, VECTOR, a vector of constants;
-the third, MAXDEPTH, the maximum stack depth used in this function.
+the third, MAXDEPTH, the maximum stack depth used in this function;
+the fourth DEFSYM, if non-nil, the symbol which defined the byte code -
+this is used in diagnostics.
 If the third argument is incorrect, Emacs may crash.  */)
-  (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth)
+  (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
+   Lisp_Object defsym)
 {
   if (! (STRINGP (bytestr) && VECTORP (vector) && FIXNATP (maxdepth)))
     error ("Invalid byte-code");
@@ -776,7 +779,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		if (max_lisp_eval_depth < 100)
 		  max_lisp_eval_depth = 100;
 		if (lisp_eval_depth > max_lisp_eval_depth)
-		  error ("Lisp nesting exceeds `max-lisp-eval-depth'");
+		  xsignal1 (Qexcessive_lisp_nesting, make_fixnum (max_lisp_eval_depth));
 	      }
 
 	    ptrdiff_t call_nargs = op;

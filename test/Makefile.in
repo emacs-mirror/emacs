@@ -339,7 +339,8 @@ ifeq ($(TEST_INTERACTIVE), yes)
 else
 	-@${MAKE} -k ${LOGFILES}
 	@$(emacs) --batch -l ert --eval \
-	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
+	"(setq ert-batch-backtrace-right-margin 0)" \
+        --eval "(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
 endif
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean

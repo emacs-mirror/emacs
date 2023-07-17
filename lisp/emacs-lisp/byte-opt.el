@@ -558,9 +558,17 @@ for speeding up processing.")
                          (cons (car h)
                                (byte-optimize--rename-var-body var new-var (cdr h))))
                        handlers)))
-      (`(internal-make-closure ,vars ,env . ,rest)
+      ((or `(internal-make-closure ,vars ,env
+                                   ,(and (pred (lambda (e) (and e (symbolp e))))
+                                         def)
+                                   . ,rest)
+           (and
+            `(internal-make-closure ,vars ,env . ,rest)
+            (let def nil)))
        `(,fn
-         ,vars ,(byte-optimize--rename-var-body var new-var env) . ,rest))
+         ,vars ,(byte-optimize--rename-var-body var new-var env) 
+         ,@(if def `(,def))
+         . ,rest))
       (`(defvar ,name . ,rest)
        ;; NAME is not renamed here; we only care about lexical variables.
        `(,fn ,name . ,(byte-optimize--rename-var-body var new-var rest)))

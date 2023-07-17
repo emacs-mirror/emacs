@@ -70,12 +70,12 @@
   :prefix "ert-"
   :group 'lisp)
 
-(defcustom ert-batch-backtrace-right-margin 70
+(defcustom ert-batch-backtrace-right-margin nil ; 70 STOUGH, 2023-06-09
   "Maximum length of lines in ERT backtraces in batch mode.
 Use nil for no limit (caution: backtrace lines can be very long)."
   :type '(choice (const :tag "No truncation" nil) integer))
 
-(defvar ert-batch-print-length 10
+(defvar ert-batch-print-length nil ; 10 STOUGH, 2023-06-09
   "`print-length' setting used in `ert-run-tests-batch'.
 
 When formatting lists in test conditions, `print-length' will be
@@ -83,7 +83,7 @@ temporarily set to this value.  See also
 `ert-batch-backtrace-line-length' for its effect on stack
 traces.")
 
-(defvar ert-batch-print-level 5
+(defvar ert-batch-print-level nil ; 5 STOUGH, 2023-06-09
   "`print-level' setting used in `ert-run-tests-batch'.
 
 When formatting lists in test conditions, `print-level' will be

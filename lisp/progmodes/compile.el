@@ -1214,7 +1214,9 @@ POS and RES.")
   (if leave (setq leave (match-end leave)))
   ;; find previous stack, and push onto it, or if `leave' pop it
   (let ((dir (compilation--previous-directory (match-beginning 0))))
-    (setq dir (if dir (or (get-text-property (1- dir) 'compilation-directory)
+    (setq dir (if dir (or
+                       (and (> dir 1)
+                            (get-text-property (1- dir) 'compilation-directory))
 			  (get-text-property dir 'compilation-directory))))
     `(font-lock-face ,(if leave
                           compilation-leave-directory-face
@@ -1302,8 +1304,10 @@ POS and RES.")
                    (let ((pos (compilation--previous-directory
                                (match-beginning 0))))
                      (when pos
-                       (or (get-text-property (1- pos) 'compilation-directory)
-                           (get-text-property pos 'compilation-directory)))))))
+                       (or
+                        (and (> pos 1)
+                             (get-text-property (1- pos) 'compilation-directory))
+                        (get-text-property pos 'compilation-directory)))))))
 	    (setq file (cons file (car dir)))))
       ;; This message didn't mention one, get it from previous
       (let ((prev-pos

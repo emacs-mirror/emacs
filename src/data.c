@@ -1039,6 +1039,20 @@ function or t otherwise.  */)
   return Qt;
 }
 
+DEFUN ("subr-native-defining-symbol", Fsubr_native_defining_symbol,
+       Ssubr_native_defining_symbol, 1, 1, 0,
+       doc: /* Return the symbol (usually of a defun) where the native compiled
+function was defined, or nil if this information is missing.  */)
+  (Lisp_Object subr)
+{
+  CHECK_SUBR (subr);
+
+#ifdef HAVE_NATIVE_COMP
+  return XSUBR (subr)->defining_symbol;
+#endif
+  return Qnil;
+}
+
 DEFUN ("subr-type", Fsubr_type,
        Ssubr_type, 1, 1, 0,
        doc: /* Return the type of SUBR.  */)
@@ -1121,12 +1135,21 @@ Value, if non-nil, is a list (interactive SPEC).  */)
     }
   else if (COMPILEDP (fun))
     {
+      Lisp_Object form;
       if (PVSIZE (fun) > COMPILED_INTERACTIVE)
 	{
-	  Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
+	  /* Lisp_Object */ form = AREF (fun, COMPILED_INTERACTIVE);
 	  /* The vector form is the new form, where the first
 	     element is the interactive spec, and the second is the
 	     command modes. */
+	  return list2 (Qinteractive, VECTORP (form) ? AREF (form, 0) : form);
+	}
+      else if (PVSIZE (fun) > COMPILED_DEFINING_SYM
+	       && (NILP (form = AREF (fun, COMPILED_DEFINING_SYM))
+		   || !SYMBOLP (form)))
+	{
+	  /* We have a FUN from before the defining symbol was included. */
+	  form = AREF (fun, COMPILED_DEFINING_SYM);
 	  return list2 (Qinteractive, VECTORP (form) ? AREF (form, 0) : form);
 	}
       else if (PVSIZE (fun) > COMPILED_DOC_STRING)
@@ -1203,9 +1226,14 @@ The value, if non-nil, is a list of mode name symbols.  */)
     }
   else if (COMPILEDP (fun))
     {
-      if (PVSIZE (fun) <= COMPILED_INTERACTIVE)
+      Lisp_Object form;
+
+      if (PVSIZE (fun) <= COMPILED_DEFINING_SYM)
 	return Qnil;
-      Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
+      if (PVSIZE (fun) == COMPILED_INTERACTIVE)
+	form = AREF (fun, COMPILED_DEFINING_SYM);
+      else
+	form = AREF (fun, COMPILED_INTERACTIVE);
       if (VECTORP (form))
 	/* New form -- the second element is the command modes. */
 	return AREF (form, 1);
@@ -4347,6 +4375,7 @@ syms_of_data (void)
   defsubr (&Ssubr_name);
   defsubr (&Ssubr_native_elisp_p);
   defsubr (&Ssubr_native_lambda_list);
+  defsubr (&Ssubr_native_defining_symbol);
   defsubr (&Ssubr_type);
 #ifdef HAVE_NATIVE_COMP
   defsubr (&Ssubr_native_comp_unit);

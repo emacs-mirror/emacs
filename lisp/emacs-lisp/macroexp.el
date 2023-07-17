@@ -247,8 +247,8 @@ It should normally be a symbol with position and it defaults to FORM."
   (or name (setq name "anonymous lambda"))
   (pcase form
     ((or `(funcall (function ,lambda) . ,actuals) `(,lambda . ,actuals))
-     (let* ((formals (nth 1 lambda))
-            (body (cdr (macroexp-parse-body (cddr lambda))))
+     (let* ((formals (lambda-arglist lambda))
+            (body (cdr (macroexp-parse-body (lambda-body lambda))))
             optionalp restp
             (dynboundarg nil)
             bindings)
@@ -332,6 +332,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
         ;; I tried it, it broke the bootstrap :-(
         (let ((fn (car-safe form)))
           (pcase form
+            (`(defalias ,(and `(quote ,def)
+                              (pred (lambda (e) (and e (symbolp e)))))
+                . ,_rest)
+             (let ((defining-symbol def))
+               (macroexp--all-forms form 2)))
+            (`(,(or `defvar `defconst)
+               ,(and def (pred (lambda (e) (and e (symbolp e)))))
+               . ,(and _rest (pred (not null))))
+             (let ((defining-symbol def))
+               (macroexp--all-forms form 2)))
             (`(cond . ,clauses)
              (macroexp--cons fn (macroexp--all-clauses clauses) form))
             (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
@@ -351,10 +361,15 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
              (push name macroexp--dynvars)
              (macroexp--all-forms form 2))
-            (`(function ,(and f `(lambda . ,_)))
-             (let ((macroexp--dynvars macroexp--dynvars))
+            (`(function ,(and f (or `(lambda
+                                       ,(and def
+                                             (pred (lambda (e) (and e (symbolp e)))))
+                                       . ,_)
+                                    (and `(lambda . ,_) (let def nil)))))
+             (let ((defining-symbol def)
+                   (macroexp--dynvars macroexp--dynvars))
                (macroexp--cons fn
-                               (macroexp--cons (macroexp--all-forms f 2)
+                               (macroexp--cons (macroexp--all-forms f (if def 3 2))
                                                nil
                                                (cdr form))
                                form)))
@@ -432,8 +447,12 @@ Assumes the caller has bound `macroexpand-all-environment'."
                        (push assignment assignments))
                      (setq args (cddr args)))
                    (cons 'progn (nreverse assignments))))))
-            (`(,(and fun `(lambda . ,_)) . ,args)
-	     (macroexp--cons (macroexp--all-forms fun 2)
+            (`(,(and fun `(lambda . ,_))
+               (or `(lambda ,(and (pred (lambda (e) (and e (symbolp e)))) def)
+                                . ,_)
+                   (and `(lambda . ,_) (let def nil)))
+               . ,args)
+	     (macroexp--cons (macroexp--all-forms fun (if def 3 2))
                              (macroexp--all-forms args)
                              form))
             (`(funcall ,exp . ,args)

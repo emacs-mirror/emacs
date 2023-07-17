@@ -2173,6 +2173,7 @@ struct Lisp_Subr
     char *native_c_name;
     Lisp_Object lambda_list;
     Lisp_Object type;
+    Lisp_Object defining_symbol;
 #endif
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
@@ -2966,7 +2967,8 @@ enum Lisp_Compiled
     COMPILED_CONSTANTS = 2,
     COMPILED_STACK_DEPTH = 3,
     COMPILED_DOC_STRING = 4,
-    COMPILED_INTERACTIVE = 5
+    COMPILED_DEFINING_SYM = 5,
+    COMPILED_INTERACTIVE = 6
   };
 
 /* Flag bits in a character.  These also get used in termhooks.h.

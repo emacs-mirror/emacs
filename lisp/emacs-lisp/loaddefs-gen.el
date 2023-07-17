@@ -162,7 +162,9 @@ expression, in which case we want to handle forms differently."
            (lam (if (memq (car-safe fun) '(quote function)) (cadr fun)))
            ;; `args' is the list of arguments (or t if not recognized).
            ;; `body' is the body of `lam' (or t if not recognized).
-           ((or `(lambda ,args . ,body)
+           ((or `(lambda ,(pred (lambda (e) (and e (symbolp e))))
+                   ,args . ,body)
+                `(lambda ,args . ,body)
                 (and (let args t) (let body t)))
             lam)
            ;; Get the `doc' from `body' or `rest'.
