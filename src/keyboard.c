@@ -10762,7 +10762,15 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	      posn = POSN_POSN (xevent_start (key));
 	      /* Handle menu-bar events:
 		 insert the dummy prefix event `menu-bar'.  */
-	      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtab_bar) || EQ (posn, Qtool_bar))
+	      if ((EQ (posn, Qmenu_bar) || EQ (posn, Qtab_bar)
+		   || EQ (posn, Qtool_bar))
+		  /* Only insert the prefix key if the event comes
+		     directly from the keyboard buffer.  Key
+		     translation functions might return events with a
+		     `posn-area' of tool-bar or tab-bar without
+		     intending for these prefix events to be
+		     generated.  */
+		  && (mock_input <= t))
 		{
 		  if (READ_KEY_ELTS - t <= 1)
 		    error ("Key sequence too long");

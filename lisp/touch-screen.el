@@ -405,22 +405,28 @@ area."
                     ;; BEGV if this word is there.
                     (backward-word-strictly)
                     (setq word-start (point)))
-                  ;; If point is greater than the current point, set
-                  ;; it to word-end.
-                  (if (> point (point))
-                      (goto-char word-end)
-                    ;; Else, go to the start of the word.
-                    (goto-char word-start))
-                  ;; If point is less than mark, which is is less than
-                  ;; the end of the word that was originally selected,
-                  ;; try to keep it selected by moving mark there.
-                  (when (and initial (<= (point) (mark))
-                             (< (mark) (cdr initial)))
-                    (set-mark (cdr initial)))
-                  ;; Do the opposite when the converse is true.
-                  (when (and initial (>= (point) (mark))
-                             (> (mark) (car initial)))
-                    (set-mark (car initial)))
+                  (let ((mark (mark)))
+                    ;; Extend the region to cover either word-end or
+                    ;; word-start; whether to goto word-end or
+                    ;; word-start is subject to the position of the
+                    ;; mark relative to point.
+                    (if (< word-start mark)
+                        ;; The start of the word is behind mark.
+                        ;; Extend the region towards the start.
+                        (goto-char word-start)
+                      ;; Else, go to the end of the word.
+                      (goto-char word-end))
+                    ;; If point is less than mark, which is is less
+                    ;; than the end of the word that was originally
+                    ;; selected, try to keep it selected by moving
+                    ;; mark there.
+                    (when (and initial (<= (point) mark)
+                               (< mark (cdr initial)))
+                      (set-mark (cdr initial)))
+                    ;; Do the opposite when the converse is true.
+                    (when (and initial (>= (point) mark)
+                               (> mark (car initial)))
+                      (set-mark (car initial))))
                   (if bounds
                       (progn (setcar bounds word-start)
                              (setcdr bounds word-end))
@@ -439,32 +445,27 @@ area."
                   (when (and (>= (point) (mark))
                              (> (mark) (car initial)))
                     (set-mark (car initial))))
-                (setq touch-screen-word-select-bounds nil)))
-            (let ((relative-xy
-                   (touch-screen-relative-xy posn window)))
-              (let ((scroll-conservatively 101))
-                (cond
-                 ((< (cdr relative-xy) 0)
-                  (ignore-errors
-                    (goto-char (1- (window-start)))
-                    (setq touch-screen-word-select-bounds nil))
-                  (redisplay))
-                 ((> (cdr relative-xy)
-                     (let ((edges (window-inside-pixel-edges)))
-                       (- (nth 3 edges) (cadr edges))))
-                  (ignore-errors
-                    (goto-char (1+ (window-end nil t)))
-                    (setq touch-screen-word-select-bounds nil))
-                  (redisplay))))))))))
+                (setq touch-screen-word-select-bounds nil))))
+        ;; POSN is outside the window.  Scroll accordingly.
+        (let ((relative-xy
+               (touch-screen-relative-xy posn window)))
+          (let ((scroll-conservatively 101))
+            (cond
+             ((< (cdr relative-xy) 0)
+              (ignore-errors
+                (goto-char (1- (window-start)))
+                (setq touch-screen-word-select-bounds nil))
+              (redisplay))
+             ((> (cdr relative-xy)
+                 (let ((edges (window-inside-pixel-edges)))
+                   (- (nth 3 edges) (cadr edges))))
+              (ignore-errors
+                (goto-char (1+ (window-end nil t)))
+                (setq touch-screen-word-select-bounds nil))
+              (redisplay)))))))))
 
 (global-set-key [touchscreen-hold] #'touch-screen-hold)
 (global-set-key [touchscreen-drag] #'touch-screen-drag)
-
-;; Bind this to most of the virtual prefix keys as well.
-(global-set-key [tool-bar touchscreen-drag] #'touch-screen-drag)
-(global-set-key [header-line touchscreen-drag] #'touch-screen-drag)
-(global-set-key [mode-line touchscreen-drag] #'touch-screen-drag)
-(global-set-key [tab-line touchscreen-drag] #'touch-screen-drag)
 
 
 
@@ -911,6 +912,11 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
         ;; or an empty vector if it is nil, meaning that
         ;; no key events have been translated.
         (if event (or (and prefix (consp event)
+                           ;; Only generate virtual function keys for
+                           ;; mouse events.
+                           (memq (car event)
+                                 '(down-mouse-1 mouse-1
+                                   mouse-2 mouse-movement))
                            ;; If this is a mode line event, then
                            ;; generate the appropriate function key.
                            (vector prefix event))
@@ -932,8 +938,6 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 
 (define-key function-key-map [mode-line touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [mode-line touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [mode-line touchscreen-end]
             #'touch-screen-translate-touch)
 
@@ -942,65 +946,52 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 
 (define-key function-key-map [nil touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [nil touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [nil touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [header-line touchscreen-begin]
-            #'touch-screen-translate-touch)
-(define-key function-key-map [header-line touchscreen-update]
             #'touch-screen-translate-touch)
 (define-key function-key-map [header-line touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [bottom-divider touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [bottom-divider touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [bottom-divider touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [right-divider touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [right-divider touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [right-divider touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [right-divider touchscreen-begin]
-            #'touch-screen-translate-touch)
-(define-key function-key-map [right-divider touchscreen-update]
             #'touch-screen-translate-touch)
 (define-key function-key-map [right-divider touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [left-fringe touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [left-fringe touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [left-fringe touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [right-fringe touchscreen-begin]
-            #'touch-screen-translate-touch)
-(define-key function-key-map [right-fringe touchscreen-update]
             #'touch-screen-translate-touch)
 (define-key function-key-map [right-fringe touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [left-margin touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [left-margin touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [left-margin touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [right-margin touchscreen-begin]
             #'touch-screen-translate-touch)
-(define-key function-key-map [right-margin touchscreen-update]
-            #'touch-screen-translate-touch)
 (define-key function-key-map [right-margin touchscreen-end]
+            #'touch-screen-translate-touch)
+
+(define-key function-key-map [tool-bar touchscreen-begin]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [tool-bar touchscreen-end]
             #'touch-screen-translate-touch)
 
 
