@@ -16490,8 +16490,9 @@ redisplay_internal (void)
   enum {MAX_GARBAGED_FRAME_RETRIES = 2 };
   int garbaged_frame_retries = 0;
 
-  /* True means redisplay has to consider all windows on all
-     frames.  False, only selected_window is considered.  */
+  /* False means that only the selected_window needs to be updated.
+     True means that other windows may need to be updated as well,
+     so we need to consult `needs_no_update` for all windows.  */
   bool consider_all_windows_p;
 
   /* True means redisplay has to redisplay the miniwindow.  */
