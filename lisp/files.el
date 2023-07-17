@@ -2094,6 +2094,8 @@ Emacs treats buffers whose names begin with a space as internal buffers.
 To avoid confusion when visiting a file whose name begins with a space,
 this function prepends a \"|\" to the final result if necessary."
   (let* ((lastname (file-name-nondirectory (directory-file-name filename)))
+         (lastname (if (string= lastname "")
+                       filename lastname))
          (lastname (cond
                     ((not (and uniquify-trailing-separator-p
                                (file-directory-p filename)))
