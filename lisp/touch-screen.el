@@ -78,13 +78,27 @@ See `pixel-scroll-precision-mode' for more details."
   :group 'mouse
   :version "30.1")
 
+(defcustom touch-screen-word-select nil
+  "Whether or not to select whole words while dragging to select.
+If non-nil, long-press events (see `touch-screen-delay') followed
+by dragging will try to select entire words."
+  :type 'boolean
+  :group 'mouse
+  :version "30.1")
+
+(defvar-local touch-screen-word-select-bounds nil
+  "The start and end positions of the word last selected.
+Normally a cons of those two positions or nil if no word was
+selected.")
+
+(defvar-local touch-screen-word-select-initial-word nil
+  "The start and end positions of the first word to be selected.
+Used in an attempt to keep this word selected during later
+dragging.")
+
 
 
-;; Touch screen event translation.  The code here translates raw touch
-;; screen events into `touchscreen-scroll' events and mouse events in
-;; a ``DWIM'' fashion, consulting the keymaps at the position of the
-;; mouse event to determine the best course of action, while also
-;; recognizing drag-to-select and other gestures.
+;;; Scroll gesture.
 
 (defun touch-screen-relative-xy (posn window)
   "Return the coordinates of POSN, a mouse position list.
@@ -237,25 +251,122 @@ the event."
 
 (global-set-key [touchscreen-scroll] #'touch-screen-scroll)
 
+
+
+;;; Drag-to-select gesture.
+
 (defun touch-screen-hold (event)
   "Handle a long press EVENT.
-Beep, select the window at EVENT, set point there, and activate
-the mark."
+Ding and select the window at EVENT, then activate the mark.  If
+`touch-screen-word-select' is enabled, try to select the whole
+word around EVENT; otherwise, set point to the location of EVENT."
   (interactive "e")
   (let* ((posn (cadr event))
          (point (posn-point posn)))
     (when point
       (beep)
       (select-window (posn-window posn))
-      (set-mark point)
-      (goto-char point)
-      (activate-mark))))
+      (if (or (not touch-screen-word-select)
+              (when-let* ((char (char-after point))
+                          (class (char-syntax char)))
+                ;; Don't select words if point isn't inside a word
+                ;; constituent or similar.
+                (not (or (eq class ?w) (eq class ?_)))))
+          (progn
+            ;; Set the mark and activate it.
+            (setq touch-screen-word-select-initial-word nil
+                  touch-screen-word-select-bounds nil)
+            (push-mark point)
+            (goto-char point)
+            (activate-mark))
+        ;; Start word selection by trying to obtain the position
+        ;; around point.
+        (let ((word-start nil)
+              (word-end nil))
+          (unless (posn-object posn)
+            ;; If there's an object under POSN avoid trying to
+            ;; ascertain the bounds of the word surrounding it.
+            (save-excursion
+              (goto-char point)
+              (forward-word-strictly)
+              ;; Set word-end to ZV if there is no word after this
+              ;; one.
+              (setq word-end (point))
+              ;; Now try to move backwards.  Set word-start to BEGV if
+              ;; this word is there.
+              (backward-word-strictly)
+              (setq word-start (point))))
+          ;; Check if word-start and word-end are identical, if there
+          ;; is an object under POSN, or if point is looking at or
+          ;; outside a word.
+          (if (or (eq word-start word-end)
+                  (>= word-start point))
+              (progn
+                ;; If so, clear the bounds and set and activate the
+                ;; mark.
+                (setq touch-screen-word-select-bounds nil)
+                (push-mark point)
+                (goto-char point)
+                (activate-mark))
+            ;; Otherwise, select the word.  Move point to either the
+            ;; end or the start of the word, depending on which is
+            ;; closer to EVENT.
+            (let ((diff-beg (- point word-start))
+                  (diff-end (- word-end point))
+                  use-end)
+              (if (> diff-beg diff-end)
+                  ;; Set the point to the end of the word.
+                  (setq use-end t)
+                (if (< diff-end diff-beg)
+                    (setq use-end nil)
+                  ;; POINT is in the middle of the word.  Use its
+                  ;; window coordinates to establish whether or not it
+                  ;; is closer to the start of the word or to the end
+                  ;; of the word.
+                  (let ((posn-beg (posn-at-point word-start))
+                        (posn-end (posn-at-point word-end)))
+                    ;; Give up if there's an object at either of those
+                    ;; positions, or they're not on the same row.
+                    ;; If one of the positions isn't visible, use the
+                    ;; window end.
+                    (if (and posn-beg posn-end
+                             (not (posn-object posn-beg))
+                             (not (posn-object posn-end))
+                             (eq (cdr (posn-col-row posn-beg))
+                                 (cdr (posn-col-row posn-end))))
+                        (setq use-end nil)
+                      ;; Compare the pixel positions.
+                      (setq point (car (posn-x-y posn))
+                            diff-beg (- point (car (posn-x-y posn-beg)))
+                            diff-end (- (car (posn-x-y posn-end)) point))
+                      ;; Now determine whether or not point should be
+                      ;; moved to the end.
+                      (setq use-end (>= diff-beg diff-end))))))
+              (if use-end
+                  (progn
+                    (push-mark word-start)
+                    (activate-mark)
+                    (goto-char word-end))
+                (progn
+                    (push-mark word-end)
+                    (activate-mark)
+                    (goto-char word-start)))
+              ;; Record the bounds of the selected word.
+              (setq touch-screen-word-select-bounds
+                    (cons word-start word-end)
+                    ;; Save this for the benefit of touch-screen-drag.
+                    touch-screen-word-select-initial-word
+                    (cons word-start word-end)))))))))
 
 (defun touch-screen-drag (event)
   "Handle a drag EVENT by setting the region to its new point.
-Scroll the window if necessary."
+If `touch-screen-word-select' and EVENT lies outside the last
+word that was selected, select the word that now contains POINT.
+Scroll the window if EVENT's coordinates are outside its text
+area."
   (interactive "e")
   (let* ((posn (cadr event)) ; Position of the tool.
+         (point (posn-point posn)) ; Point of the event.
          ; Window where the tap originated.
          (window (nth 1 touch-screen-current-tool)))
     ;; Keep dragging.
@@ -265,22 +376,86 @@ Scroll the window if necessary."
       ;; then go to the line before either window start or
       ;; window end.
       (if (and (eq (posn-window posn) window)
-               (posn-point posn))
-          (goto-char (posn-point posn))
-        (let ((relative-xy
-               (touch-screen-relative-xy posn window)))
-          (let ((scroll-conservatively 101))
-            (cond
-             ((< (cdr relative-xy) 0)
-              (ignore-errors
-                (goto-char (1- (window-start))))
-              (redisplay))
-             ((> (cdr relative-xy)
-                 (let ((edges (window-inside-pixel-edges)))
-                   (- (nth 3 edges) (cadr edges))))
-              (ignore-errors
-                (goto-char (1+ (window-end nil t))))
-              (redisplay)))))))))
+               point (not (eq point (point))))
+          (let* ((bounds touch-screen-word-select-bounds)
+                 (initial touch-screen-word-select-initial-word)
+                 (maybe-select-word (or (not touch-screen-word-select)
+                                        (or (not bounds)
+                                            (> point (cdr bounds))
+                                            (< point (car bounds))))))
+            (if (and touch-screen-word-select
+                     ;; point is now outside the last word selected.
+                     maybe-select-word
+                     (not (posn-object posn))
+                     (when-let* ((char (char-after point))
+                                 (class (char-syntax char)))
+                       ;; Don't select words if point isn't inside a
+                       ;; word constituent or similar.
+                       (or (eq class ?w) (eq class ?_))))
+                ;; Determine the confines of the word containing
+                ;; POINT.
+                (let (word-start word-end)
+                  (save-excursion
+                    (goto-char point)
+                    (forward-word-strictly)
+                    ;; Set word-end to ZV if there is no word after
+                    ;; this one.
+                    (setq word-end (point))
+                    ;; Now try to move backwards.  Set word-start to
+                    ;; BEGV if this word is there.
+                    (backward-word-strictly)
+                    (setq word-start (point)))
+                  ;; If point is greater than the current point, set
+                  ;; it to word-end.
+                  (if (> point (point))
+                      (goto-char word-end)
+                    ;; Else, go to the start of the word.
+                    (goto-char word-start))
+                  ;; If point is less than mark, which is is less than
+                  ;; the end of the word that was originally selected,
+                  ;; try to keep it selected by moving mark there.
+                  (when (and initial (<= (point) (mark))
+                             (< (mark) (cdr initial)))
+                    (set-mark (cdr initial)))
+                  ;; Do the opposite when the converse is true.
+                  (when (and initial (>= (point) (mark))
+                             (> (mark) (car initial)))
+                    (set-mark (car initial)))
+                  (if bounds
+                      (progn (setcar bounds word-start)
+                             (setcdr bounds word-end))
+                    (setq touch-screen-word-select-bounds
+                          (cons word-start word-end))))
+              (when maybe-select-word
+                (goto-char (posn-point posn))
+                (when initial
+                  ;; If point is less than mark, which is is less than
+                  ;; the end of the word that was originally selected,
+                  ;; try to keep it selected by moving mark there.
+                  (when (and (<= (point) (mark))
+                             (< (mark) (cdr initial)))
+                    (set-mark (cdr initial)))
+                  ;; Do the opposite when the converse is true.
+                  (when (and (>= (point) (mark))
+                             (> (mark) (car initial)))
+                    (set-mark (car initial))))
+                (setq touch-screen-word-select-bounds nil)))
+            (let ((relative-xy
+                   (touch-screen-relative-xy posn window)))
+              (let ((scroll-conservatively 101))
+                (cond
+                 ((< (cdr relative-xy) 0)
+                  (ignore-errors
+                    (goto-char (1- (window-start)))
+                    (setq touch-screen-word-select-bounds nil))
+                  (redisplay))
+                 ((> (cdr relative-xy)
+                     (let ((edges (window-inside-pixel-edges)))
+                       (- (nth 3 edges) (cadr edges))))
+                  (ignore-errors
+                    (goto-char (1+ (window-end nil t)))
+                    (setq touch-screen-word-select-bounds nil))
+                  (redisplay))))))))))
 
 (global-set-key [touchscreen-hold] #'touch-screen-hold)
 (global-set-key [touchscreen-drag] #'touch-screen-drag)
@@ -290,6 +465,14 @@ Scroll the window if necessary."
 (global-set-key [header-line touchscreen-drag] #'touch-screen-drag)
 (global-set-key [mode-line touchscreen-drag] #'touch-screen-drag)
 (global-set-key [tab-line touchscreen-drag] #'touch-screen-drag)
+
+
+
+;; Touch screen event translation.  The code here translates raw touch
+;; screen events into `touchscreen-scroll' events and mouse events in
+;; a ``DWIM'' fashion, consulting the keymaps at the position of the
+;; mouse event to determine the best course of action, while also
+;; recognizing drag-to-select and other gestures.
 
 (defun touch-screen-handle-timeout (arg)
   "Start the touch screen timeout or handle it depending on ARG.
@@ -419,8 +602,9 @@ then move point to the position of POINT."
              ;; Now start dragging.
              (setcar (nthcdr 3 touch-screen-current-tool)
                      'drag)
-             ;; Generate a (touchscreen-drag POSN) event.  `touchscreen-hold'
-             ;; was generated when the timeout fired.
+             ;; Generate a (touchscreen-drag POSN) event.
+             ;; `touchscreen-hold' was generated when the timeout
+             ;; fired.
              (throw 'input-event (list 'touchscreen-drag posn))))
           ((eq what 'drag)
            (let* ((posn (cdr point)))
@@ -631,8 +815,8 @@ the place of EVENT within the key sequence being translated, or
       ;; A tool has been removed from the screen.  If it is the tool
       ;; currently being tracked, clear `touch-screen-current-tool'.
       (when (eq (caadr event) (car touch-screen-current-tool))
-        ;; Cancel the touch screen long-press timer, if it is still there
-        ;; by any chance.
+        ;; Cancel the touch screen long-press timer, if it is still
+        ;; there by any chance.
         (when touch-screen-current-timer
           (cancel-timer touch-screen-current-timer)
           (setq touch-screen-current-timer nil))
@@ -714,8 +898,8 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
                                              left-margin right-margin
                                              right-divider bottom-divider))
                               (setq prefix event1)
-                            ;; If event1 is not a touch screen event, return
-                            ;; it.
+                            ;; If event1 is not a touch screen event,
+                            ;; return it.
                             (if (not (memq (car-safe event1)
                                            '(touchscreen-begin
                                              touchscreen-end
@@ -727,8 +911,8 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
         ;; or an empty vector if it is nil, meaning that
         ;; no key events have been translated.
         (if event (or (and prefix (consp event)
-                           ;; If this is a mode line event, then generate
-                           ;; the appropriate function key.
+                           ;; If this is a mode line event, then
+                           ;; generate the appropriate function key.
                            (vector prefix event))
                       (vector event))
           ""))
@@ -753,8 +937,8 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 (define-key function-key-map [mode-line touchscreen-end]
             #'touch-screen-translate-touch)
 
-;; These are used to translate events sent from the internal border
-;; or from outside the frame.
+;; These are used to translate events sent from the internal border or
+;; from outside the frame.
 
 (define-key function-key-map [nil touchscreen-begin]
             #'touch-screen-translate-touch)

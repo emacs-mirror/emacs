@@ -60,6 +60,14 @@ tool on the display and leaving it there for a while prior to moving
 the tool around will make Emacs set the point to where the tool was
 and begin selecting text under the tool as it moves around, as if
 @code{mouse-1} were to be held down.  @xref{Mouse Commands}.
+
+@vindex touch-screen-word-select
+@cindex word selection mode, touchscreens
+  Some people find it difficult to position a tool accurately on a
+touch screen display, to the detriment of text selection.  The user
+option @code{touch-screen-word-select} enables ``word selection
+mode'', causing dragging to select the complete word, not only the
+character containing the position of the tool.
 @end itemize
 
 @vindex touch-screen-delay
