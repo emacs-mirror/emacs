@@ -206,8 +206,11 @@ always return a positive integer or zero."
 
 ;; Provide a mode-specific menu on a mouse button.
 
-(defun minor-mode-menu-from-indicator (indicator)
+(defun minor-mode-menu-from-indicator (indicator &optional event)
   "Show menu for minor mode specified by INDICATOR.
+EVENT may be the mouse event that is causing this menu to be
+displayed.
+
 Interactively, INDICATOR is read using completion.
 If there is no menu defined for the minor mode, then create one with
 items `Turn Off' and `Help'."
@@ -234,14 +237,17 @@ items `Turn Off' and `Help'."
                           ,(lambda () (interactive)
                              (describe-function mm-fun)))))))
       (if menu
-          (popup-menu menu)
+          (popup-menu menu event)
         (message "No menu available")))))
 
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
-    (minor-mode-menu-from-indicator indicator)))
+    (minor-mode-menu-from-indicator indicator event)))
+
+;; See (elisp)Touchscreen Events.
+(put 'mouse-minor-mode-menu 'mouse-1-menu-command t)
 
 (defun mouse-menu-major-mode-map ()
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)

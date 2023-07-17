@@ -767,12 +767,13 @@ the place of EVENT within the key sequence being translated, or
   (if interactive
       ;; Called interactively (probably from wid-edit.el.)
       ;; Add any event generated to `unread-command-events'.
-      (let ((event (catch 'input-event
-                     (touch-screen-translate-touch nil) nil)))
-        (when (vectorp event)
+      (let ((event1
+             (let ((current-key-remap-sequence (vector event)))
+               (touch-screen-translate-touch nil))))
+        (when (vectorp event1)
           (setq unread-command-events
                 (nconc unread-command-events
-                       (nreverse (append event nil))))))
+                       (nreverse (append event1 nil))))))
     (cond
      ((eq (car event) 'touchscreen-begin)
       ;; A tool was just pressed against the screen.  Figure out the
@@ -816,13 +817,15 @@ the place of EVENT within the key sequence being translated, or
                                            t nil position))
                         (not (and (symbolp binding)
                                   (get binding 'ignored-mouse-command))))))
-            (if (keymapp binding)
-                ;; binding is a keymap.  If a `mouse-1' event is
-                ;; generated after the keyboard command loop displays
-                ;; it as a menu, that event could cause unwanted
-                ;; commands to be run.  Set what to `mouse-1-menu'
-                ;; instead and wait for the up event to display the
-                ;; menu.
+            (if (or (keymapp binding)
+                    (and (symbolp binding)
+                         (get binding 'mouse-1-menu-command)))
+                ;; binding is a keymap, or a command that does almost
+                ;; the same thing.  If a `mouse-1' event is generated
+                ;; after the keyboard command loop displays it as a
+                ;; menu, that event could cause unwanted commands to
+                ;; be run.  Set what to `mouse-1-menu' instead and
+                ;; wait for the up event to display the menu.
                 (setcar (nthcdr 3 touch-screen-current-tool)
                         'mouse-1-menu)
               (progn (setcar (nthcdr 3 touch-screen-current-tool)

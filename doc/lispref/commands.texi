@@ -2066,19 +2066,20 @@ However, some commands bound to
 conflict with defined touch screen gestures (such as ``long-press to
 drag''), or with user expectations for touch input, and shouldn't
 subject the touch sequence to simple translation.  If a command whose
-name contains the property @code{ignored-mouse-command} is encountered
-or there is no command bound to @code{down-mouse-1}, a more irregular
-form of translation takes place: here, Emacs processes touch screen
-gestures (@pxref{Touchscreens,,, emacs, The GNU Emacs Manual}) first,
-and finally attempts to translate touch screen events into mouse
-events if no gesture was detected prior to a closing
-@code{touchscreen-end} event and a command is bound to @code{mouse-1}
-at the location of that event.  Before generating the @code{mouse-1}
-event, point is also set to the location of the @code{touchscreen-end}
-event, and the window containing the position of that event is
-selected, as a compromise for packages which assume
-@code{mouse-drag-region} has already set point to the location of any
-mouse click and selected the window where it took place.
+name contains the property (@pxref{Symbol Properties})
+@code{ignored-mouse-command} is encountered or there is no command
+bound to @code{down-mouse-1}, a more irregular form of translation
+takes place: here, Emacs processes touch screen gestures
+(@pxref{Touchscreens,,, emacs, The GNU Emacs Manual}) first, and
+finally attempts to translate touch screen events into mouse events if
+no gesture was detected prior to a closing @code{touchscreen-end}
+event and a command is bound to @code{mouse-1} at the location of that
+event.  Before generating the @code{mouse-1} event, point is also set
+to the location of the @code{touchscreen-end} event, and the window
+containing the position of that event is selected, as a compromise for
+packages which assume @code{mouse-drag-region} has already set point
+to the location of any mouse click and selected the window where it
+took place.
 
 To prevent unwanted @code{mouse-1} events arriving after a mouse menu
 is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple
@@ -2088,6 +2089,13 @@ prefix key.  In lieu of simple translation, it translates the closing
 starting position of the touch sequence, consequentially displaying
 the mouse menu.
 
+@cindex @code{mouse-1-menu-command}, a symbol property
+Since certain commands are also bound to @code{down-mouse-1} for the
+purpose of displaying pop-up menus, Emacs additionally behaves as
+illustrated in the last paragraph if @code{down-mouse-1} is bound to a
+command whose name has the property @code{mouse-1-menu-command}.
+
+@cindex touchscreen gesture events
 If touch gestures are detected during translation, one of the
 following input events may be generated:
 
