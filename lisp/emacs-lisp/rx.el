@@ -484,6 +484,12 @@ classes."
                              (char-to-string (car item)))
                             ((eq (1+ (car item)) (cdr item))
                              (string (car item) (cdr item)))
+                            ;; Ranges that go between normal chars and raw bytes
+                            ;; must be split to avoid being mutilated
+                            ;; by Emacs's regexp parser.
+                            ((<= (car item) #x3fff7f (cdr item))
+                             (string (car item) ?- #x3fff7f
+                                     #x3fff80 ?- (cdr item)))
                             (t
                              (string (car item) ?- (cdr item)))))
                     items nil)
