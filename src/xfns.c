@@ -4036,7 +4036,7 @@ setup_xi_event_mask (struct frame *f)
   selected->mask = ((unsigned char *) selected) + sizeof *selected;
   selected->mask_len = l;
   selected->deviceid = XIAllMasterDevices;
-#endif
+#endif /* !HAVE_XINPUT2_1 */
 
   mask.mask = m = alloca (l);
   memset (m, 0, l);
@@ -4056,7 +4056,19 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_FocusOut);
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
-#endif
+#endif /* !USE_GTK */
+#if defined HAVE_XINPUT2_4
+  if (FRAME_DISPLAY_INFO (f)->xi2_version >= 4)
+    {
+      /* Select for gesture events.  Since this configuration doesn't
+	 use GTK 3, Emacs is the only code that can change the XI
+	 event mask, and can safely select for gesture events on
+	 master pointers only.  */
+      XISetMask (m, XI_GesturePinchBegin);
+      XISetMask (m, XI_GesturePinchUpdate);
+      XISetMask (m, XI_GesturePinchEnd);
+    }
+#endif /* HAVE_XINPUT2_4 */
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
@@ -4065,7 +4077,7 @@ setup_xi_event_mask (struct frame *f)
      to get the event mask from the X server.  */
 #ifndef HAVE_XINPUT2_1
   memcpy (selected->mask, m, l);
-#endif
+#endif /* !HAVE_XINPUT2_1 */
 
   memset (m, 0, l);
 #endif /* !HAVE_GTK3 */
@@ -4080,35 +4092,45 @@ setup_xi_event_mask (struct frame *f)
 		  FRAME_OUTER_WINDOW (f),
 		  &mask, 1);
   memset (m, 0, l);
-#endif
+#endif /* USE_X_TOOLKIT */
 
 #ifdef HAVE_XINPUT2_2
   if (FRAME_DISPLAY_INFO (f)->xi2_version >= 2)
     {
+      /* Select for touch events from all devices.
+
+         Emacs will only process touch events originating
+         from slave devices, as master pointers may also
+         represent dependent touch devices.  */
       mask.deviceid = XIAllDevices;
 
       XISetMask (m, XI_TouchBegin);
       XISetMask (m, XI_TouchUpdate);
       XISetMask (m, XI_TouchEnd);
-#ifdef HAVE_XINPUT2_4
+
+#if defined HAVE_XINPUT2_4 && defined USE_GTK3
       if (FRAME_DISPLAY_INFO (f)->xi2_version >= 4)
 	{
+	  /* Now select for gesture events from all pointer devices.
+	     Emacs will only handle gesture events from the master
+	     pointer, but cannot afford to overwrite the event mask
+	     set by GDK.  */
+
 	  XISetMask (m, XI_GesturePinchBegin);
 	  XISetMask (m, XI_GesturePinchUpdate);
 	  XISetMask (m, XI_GesturePinchEnd);
 	}
-#endif
+#endif /* HAVE_XINPUT2_4 && USE_GTK3 */
 
-      XISelectEvents (FRAME_X_DISPLAY (f),
-		      FRAME_X_WINDOW (f),
+      XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      &mask, 1);
     }
-#endif
+#endif /* HAVE_XINPUT2_2 */
 
 #ifndef HAVE_XINPUT2_1
   FRAME_X_OUTPUT (f)->xi_masks = selected;
   FRAME_X_OUTPUT (f)->num_xi_masks = 1;
-#endif
+#endif /* HAVE_XINPUT2_1 */
 
   unblock_input ();
 }

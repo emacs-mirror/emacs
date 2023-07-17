@@ -1133,9 +1133,11 @@ void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 
 extern Lisp_Object echo_area_window;
 
-/* Non-zero if we should redraw the mode lines on the next redisplay.
+/* Non-zero if we should redraw the mode line*s* on the next redisplay.
    Usually set to a unique small integer so we can track the main causes of
-   full redisplays in `redisplay--mode-lines-cause'.  */
+   full redisplays in `redisplay--mode-lines-cause'.
+   Here "mode lines" includes other elements not coming from the buffer's
+   text, such as header-lines, tab lines, frame names, menu-bars, ....  */
 
 extern int update_mode_lines;
 
@@ -1153,6 +1155,11 @@ extern int windows_or_buffers_changed;
 extern void wset_redisplay (struct window *w);
 extern void fset_redisplay (struct frame *f);
 extern void bset_redisplay (struct buffer *b);
+
+/* Routines to indicate that the mode-lines might need to be redisplayed.
+   Just as for `update_mode_lines`, this includes other elements not coming
+   from the buffer's text, such as header-lines, tab lines, frame names,
+   menu-bars, ....   */
 extern void bset_update_mode_line (struct buffer *b);
 extern void wset_update_mode_line (struct window *w);
 /* Call this to tell redisplay to look for other windows than selected-window
