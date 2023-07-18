@@ -466,16 +466,17 @@ the specializer used will be the one returned by BODY."
                               (apply (lambda (,@λ-lift ,@args) ,nbody)
                                      ,@λ-lift ,arglist)))))))
             (t
-             (cons t `#'(lambda ,defsym (,cnm ,@args)
-                          ,@(car parsed-body)
-                          ,(macroexp-warn-and-return
-                            "cl-defmethod used without lexical-binding"
-                            (if (not (assq nmp uses-cnm))
-                                nbody
-                              `(let ((,nmp (lambda ()
-                                             (cl--generic-isnot-nnm-p ,cnm))))
-                                 ,nbody))
-                            'lexical t)))))
+             (cons t
+                 `#'(lambda ,defsym (,cnm ,@args)
+                      ,@(car parsed-body)
+                      ,(macroexp-warn-and-return
+                        "cl-defmethod used without lexical-binding"
+                        (if (not (assq nmp uses-cnm))
+                            nbody
+                          `(let ((,nmp (lambda ()
+                                         (cl--generic-isnot-nnm-p ,cnm))))
+                             ,nbody))
+                        'lexical t)))))
            ))
         (f (error "Unexpected macroexpansion result: %S" f))))))
 

@@ -470,9 +470,9 @@ The return value is undefined.
                                   (bare-symbol name)
                                   (cons arglist body)
                                   ))))))
-                    (if declarations
-                        (cons 'prog1 (cons def (car declarations)))
-                      def))))
+      (if declarations
+          (cons 'prog1 (cons def (car declarations)))
+        def))))
 
 (defmacro lambda-arglist (l)
   "Given a lambda form L, return its arglist.

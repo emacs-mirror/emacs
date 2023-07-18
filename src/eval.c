@@ -564,9 +564,9 @@ usage: (function ARG)  */)
       if (NILP (Vinternal_make_interpreted_closure_function))
         return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
       else
-	return call2 (Vinternal_make_interpreted_closure_function,
+        return call2 (Vinternal_make_interpreted_closure_function,
                       Fcons (Qlambda, cdr),
-		      Vinternal_interpreter_environment);
+                      Vinternal_interpreter_environment);
     }
   else
     /* Simply quote the argument.  */

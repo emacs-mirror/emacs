@@ -475,13 +475,13 @@ This can be nil, meaning never create such a function.")
                            ,@code)
                     ;; Several occurrence of this non-small branch in
                     ;; the output.
-                      (unless bsym
-                        (setq bsym (make-symbol
-                                    (format "pcase-%d" (length defs))))
-                        (push `(,bsym (lambda ,(mapcar #'car varvals)
-                                        ,@ignores ,@code))
-                              defs))
-                      `(funcall ,bsym ,@(mapcar #'cadr varvals)))))))))
+                    (unless bsym
+                      (setq bsym (make-symbol
+                                  (format "pcase-%d" (length defs))))
+                      (push `(,bsym (lambda ,(mapcar #'car varvals)
+                                      ,@ignores ,@code))
+                            defs))
+                    `(funcall ,bsym ,@(mapcar #'cadr varvals)))))))))
          (main
           (pcase-compile-patterns
            exp

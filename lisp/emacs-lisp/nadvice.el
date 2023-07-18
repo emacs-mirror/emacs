@@ -292,9 +292,7 @@ On such sameness, ADV is returned, otherwise nil."
 
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
-    ;; (message "advice--member-p: function: %S" function)
     (while (and (not found) (advice--p definition))
-      ;; (message "advice--member-p: elt:      %S" (advice--car definition))
       (if (if (eq use-name :use-both)
 	      (or (advice--equal
                    function
