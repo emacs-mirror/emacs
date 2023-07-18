@@ -212,7 +212,7 @@ Eshell manual.
 +++
 *** Eshell commands can now be explicitly-remote (or local).
 By prefixing a command name in Eshell with a remote identifier, like
-"/ssh:user@remote:whoami", you can now runs commands on a particular
+"/ssh:user@remote:whoami", you can now run commands on a particular
 host no matter your current directory.  Likewise, you can run a
 command on your local system no matter your current directory via
 "/:whoami".  For more information, see the "(eshell) Remote Access"
