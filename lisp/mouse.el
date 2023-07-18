@@ -206,8 +206,13 @@ always return a positive integer or zero."
 
 ;; Provide a mode-specific menu on a mouse button.
 
-(defun minor-mode-menu-from-indicator (indicator)
+(defun minor-mode-menu-from-indicator (indicator &optional window)
   "Show menu for minor mode specified by INDICATOR.
+
+INDICATOR is either a string object returned by `posn-object' or
+the car of such an object.  WINDOW may be the window whose mode
+line is being displayed.
+
 Interactively, INDICATOR is read using completion.
 If there is no menu defined for the minor mode, then create one with
 items `Turn Off' and `Help'."
@@ -215,6 +220,21 @@ items `Turn Off' and `Help'."
    (list (completing-read
 	  "Minor mode indicator: "
 	  (describe-minor-mode-completion-table-for-indicator))))
+  ;; If INDICATOR is a string object and `mode-line-compact' might be
+  ;; enabled, look for the word at its position and use that instead.
+  (when (and (consp indicator)
+             window
+             (with-selected-window window
+               mode-line-compact))
+    (with-temp-buffer
+      (insert (car indicator))
+      (goto-char (cdr indicator))
+      (if-let ((thing (thing-at-point 'word)))
+          (setq indicator thing)
+        (setq indicator (car indicator)))))
+  ;; If INDICATOR is still a cons, use its car.
+  (when (consp indicator)
+    (setq indicator (car indicator)))
   (let* ((minor-mode (lookup-minor-mode-from-indicator indicator))
          (mm-fun (or (get minor-mode :minor-mode-function) minor-mode)))
     (unless minor-mode (error "Cannot find minor mode for `%s'" indicator))
@@ -240,8 +260,10 @@ items `Turn Off' and `Help'."
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."
   (interactive "@e")
-  (let ((indicator (car (nth 4 (car (cdr event))))))
-    (minor-mode-menu-from-indicator indicator)))
+  (let* ((posn (event-start event))
+         (indicator (posn-object posn))
+         (window (posn-window posn)))
+    (minor-mode-menu-from-indicator indicator window)))
 
 (defun mouse-menu-major-mode-map ()
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
