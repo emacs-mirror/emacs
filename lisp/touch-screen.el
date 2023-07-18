@@ -573,7 +573,7 @@ then move point to the position of POINT."
                             (> diff-x (frame-char-width)))
                        (< diff-y -10)
                        (and diff-x-eligible
-                            (< diff-x (frame-char-width))))
+                            (< diff-x (- (frame-char-width)))))
                (setcar (nthcdr 3 touch-screen-current-tool)
                        'scroll)
                (setcar (nthcdr 2 touch-screen-current-tool)
@@ -686,8 +686,9 @@ is not read-only."
                    window (posn-window posn))
              ;; Select the window that was tapped given that it isn't
              ;; an inactive minibuffer window.
-             (when (or (not (eq window)
-                            (minibuffer-window (window-frame window)))
+             (when (or (not (eq window
+                                (minibuffer-window
+                                 (window-frame window))))
                        (minibuffer-window-active-p window))
                (select-window window))
              ;; Now simulate a mouse click there.  If there is a link
