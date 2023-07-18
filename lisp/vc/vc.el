@@ -1121,19 +1121,8 @@ possible values of STATE are explained in `vc-state', and MODEL in
 the returned list.
 
 BEWARE: this function may change the current buffer."
-  (let (new-buf res)
-    (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-      (setq res
-            (vc-deduce-fileset-1 not-state-changing
-                                 allow-unregistered
-                                 state-model-only-files))
-      (setq new-buf (current-buffer)))
-    (set-buffer new-buf)
-    res))
-
-(defun vc-deduce-fileset-1 (not-state-changing
-                            allow-unregistered
-                            state-model-only-files)
+  (when (buffer-base-buffer)
+    (set-buffer (buffer-base-buffer)))
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
@@ -1158,7 +1147,7 @@ BEWARE: this function may change the current buffer."
 				      (derived-mode-p 'diff-mode)))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset-1 not-state-changing allow-unregistered state-model-only-files)))
+        (vc-deduce-fileset not-state-changing allow-unregistered state-model-only-files)))
      ((and (not buffer-file-name)
 	   (setq backend (vc-responsible-backend default-directory)))
       (list backend nil))
