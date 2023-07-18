@@ -3829,7 +3829,9 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 /* Make a Lisp string from an NSString.  */
 - (Lisp_Object)lispString
 {
-  return build_string ([self UTF8String]);
+  // make_string behaves predictably and correctly with UTF-8 input.
+  return make_string ([self UTF8String],
+                      [self lengthOfBytesUsingEncoding: NSUTF8StringEncoding]);
 }
 @end
 
