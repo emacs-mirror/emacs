@@ -556,7 +556,7 @@ then move point to the position of POINT."
                   ;; WINDOW.
                   (relative-xy
                    (touch-screen-relative-xy posn window))
-                  (col (and (posn-area original-posn)
+                  (col (and (not (posn-area original-posn))
                             (car (posn-col-row original-posn
                                                (posn-window posn)))))
                   ;; Don't start horizontal scrolling if the touch
@@ -564,8 +564,8 @@ then move point to the position of POINT."
                   ;; edges, as systems like Android use those two
                   ;; columns to implement gesture navigation.
                   (diff-x-eligible
-                   (and col (> (car col) 2)
-                        (< (car col) (- (window-width window) 2))))
+                   (and col (> col 2)
+                        (< col (- (window-width window) 2))))
                   (diff-x (- (car last-posn) (car relative-xy)))
                   (diff-y (- (cdr last-posn) (cdr relative-xy))))
              (when (or (> diff-y 10)
