@@ -615,6 +615,12 @@ provokes an error if used numerically.
 This user option names directories in which Emacs will treat all
 directory-local variables as safe.
 
++++
+** New parameter to 'touchscreen-end' events.
+CANCEL non-nil establishes that the touch sequence has been
+intercepted by programs such as window managers and should be ignored
+with Emacs.
+
 ** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
 
 ** Functions and variables to transpose sexps

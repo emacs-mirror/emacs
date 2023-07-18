@@ -6404,7 +6404,6 @@ make_lispy_event (struct input_event *event)
       }
 
     case TOUCHSCREEN_BEGIN_EVENT:
-    case TOUCHSCREEN_END_EVENT:
       {
 	Lisp_Object x, y, id, position;
 	struct frame *f = XFRAME (event->frame_or_window);
@@ -6420,6 +6419,25 @@ make_lispy_event (struct input_event *event)
 		       ? Qtouchscreen_begin
 		       : Qtouchscreen_end),
 		      Fcons (id, position));
+      }
+
+    case TOUCHSCREEN_END_EVENT:
+      {
+	Lisp_Object x, y, id, position;
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	id = event->arg;
+	x = event->x;
+	y = event->y;
+
+	position = make_lispy_position (f, x, y, event->timestamp);
+
+	return list3 (((event->kind
+			== TOUCHSCREEN_BEGIN_EVENT)
+		       ? Qtouchscreen_begin
+		       : Qtouchscreen_end),
+		      Fcons (id, position),
+		      event->modifiers ? Qt : Qnil);
       }
 
     case PINCH_EVENT:

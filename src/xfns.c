@@ -4107,6 +4107,7 @@ setup_xi_event_mask (struct frame *f)
       XISetMask (m, XI_TouchBegin);
       XISetMask (m, XI_TouchUpdate);
       XISetMask (m, XI_TouchEnd);
+      XISetMask (m, XI_TouchOwnership);
 
 #if defined HAVE_XINPUT2_4 && defined USE_GTK3
       if (FRAME_DISPLAY_INFO (f)->xi2_version >= 4)
