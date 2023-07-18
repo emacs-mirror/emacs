@@ -24467,6 +24467,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      /* As a result, Emacs should complete whatever editing
 		 operations result from this touch sequence.  */
 	      touchpoint->ownership = TOUCH_OWNERSHIP_SELF;
+
+	      goto XI_OTHER;
 	    }
 
 	  case XI_TouchUpdate:
