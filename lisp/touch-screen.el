@@ -262,10 +262,17 @@ Ding and select the window at EVENT, then activate the mark.  If
 word around EVENT; otherwise, set point to the location of EVENT."
   (interactive "e")
   (let* ((posn (cadr event))
-         (point (posn-point posn)))
-    (when point
+         (point (posn-point posn))
+         (window (posn-window posn)))
+    (when (and point
+               ;; Make sure WINDOW is not an inactive minibuffer
+               ;; window.
+               (or (not (eq window
+                            (minibuffer-window
+                             (window-frame window))))
+                   (minibuffer-window-active-p window)))
       (beep)
-      (select-window (posn-window posn))
+      (select-window window)
       (if (or (not touch-screen-word-select)
               (when-let* ((char (char-after point))
                           (class (char-syntax char)))
@@ -544,12 +551,13 @@ then move point to the position of POINT."
     (cond ((null what)
            (let* ((posn (cdr point))
                   (last-posn (nth 2 touch-screen-current-tool))
+                  (original-posn (nth 4 touch-screen-current-tool))
                   ;; Now get the position of X and Y relative to
                   ;; WINDOW.
                   (relative-xy
                    (touch-screen-relative-xy posn window))
-                  (col (and (eq (posn-area posn) 'text-area)
-                            (car (posn-col-row posn
+                  (col (and (posn-area original-posn)
+                            (car (posn-col-row original-posn
                                                (posn-window posn)))))
                   ;; Don't start horizontal scrolling if the touch
                   ;; point originated within two columns of the window
@@ -560,14 +568,12 @@ then move point to the position of POINT."
                         (< (car col) (- (window-width window) 2))))
                   (diff-x (- (car last-posn) (car relative-xy)))
                   (diff-y (- (cdr last-posn) (cdr relative-xy))))
-             ;; Decide whether or not to start scrolling.  Make the
-             ;; hscrolling threshold slightly larger than the vertical
-             ;; scrolling threshold, to compensate better for
-             ;; Android-style gesture navigation.
-             (when (or (> diff-y 10) (and diff-x-eligible
-                                          (> diff-x 20))
-                       (< diff-y -10) (and diff-x-eligible
-                                           (< diff-x -20)))
+             (when (or (> diff-y 10)
+                       (and diff-x-eligible
+                            (> diff-x (frame-char-width)))
+                       (< diff-y -10)
+                       (and diff-x-eligible
+                            (< diff-x (frame-char-width))))
                (setcar (nthcdr 3 touch-screen-current-tool)
                        'scroll)
                (setcar (nthcdr 2 touch-screen-current-tool)
@@ -678,8 +684,12 @@ is not read-only."
            (when (windowp (posn-window posn))
              (setq point (posn-point posn)
                    window (posn-window posn))
-             ;; Select the window that was tapped.
-             (select-window window)
+             ;; Select the window that was tapped given that it isn't
+             ;; an inactive minibuffer window.
+             (when (or (not (eq window)
+                            (minibuffer-window (window-frame window)))
+                       (minibuffer-window-active-p window))
+               (select-window window))
              ;; Now simulate a mouse click there.  If there is a link
              ;; or a button, use mouse-2 to push it.
              (let* ((event (list (if (or (mouse-on-link-p posn)
