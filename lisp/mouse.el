@@ -206,8 +206,13 @@ always return a positive integer or zero."
 
 ;; Provide a mode-specific menu on a mouse button.
 
-(defun minor-mode-menu-from-indicator (indicator &optional event)
+(defun minor-mode-menu-from-indicator (indicator &optional window event)
   "Show menu for minor mode specified by INDICATOR.
+
+INDICATOR is either a string object returned by `posn-object' or
+the car of such an object.  WINDOW may be the window whose mode
+line is being displayed.
+
 EVENT may be the mouse event that is causing this menu to be
 displayed.
 
@@ -218,6 +223,21 @@ items `Turn Off' and `Help'."
    (list (completing-read
 	  "Minor mode indicator: "
 	  (describe-minor-mode-completion-table-for-indicator))))
+  ;; If INDICATOR is a string object and `mode-line-compact' might be
+  ;; enabled, look for the word at its position and use that instead.
+  (when (and (consp indicator)
+             window
+             (with-selected-window window
+               mode-line-compact))
+    (with-temp-buffer
+      (insert (car indicator))
+      (goto-char (cdr indicator))
+      (if-let ((thing (thing-at-point 'word)))
+          (setq indicator thing)
+        (setq indicator (car indicator)))))
+  ;; If INDICATOR is still a cons, use its car.
+  (when (consp indicator)
+    (setq indicator (car indicator)))
   (let* ((minor-mode (lookup-minor-mode-from-indicator indicator))
          (mm-fun (or (get minor-mode :minor-mode-function) minor-mode)))
     (unless minor-mode (error "Cannot find minor mode for `%s'" indicator))
@@ -243,8 +263,10 @@ items `Turn Off' and `Help'."
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."
   (interactive "@e")
-  (let ((indicator (car (nth 4 (car (cdr event))))))
-    (minor-mode-menu-from-indicator indicator event)))
+  (let* ((posn (event-start event))
+         (indicator (posn-object posn))
+         (window (posn-window posn)))
+    (minor-mode-menu-from-indicator indicator window event)))
 
 ;; See (elisp)Touchscreen Events.
 (put 'mouse-minor-mode-menu 'mouse-1-menu-command t)
