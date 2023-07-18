@@ -2506,7 +2506,8 @@ get a non-selectable menu item.  This is mostly useful when creating
 separator lines and the like.
 
 The tail of the list, @var{item-property-list}, has the form of a
-property list which contains other information.
+property list (@pxref{Property Lists}) which contains other
+information.
 
   Here is a table of the properties that are supported:
 
