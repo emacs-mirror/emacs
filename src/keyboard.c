@@ -6222,6 +6222,11 @@ make_lispy_event (struct input_event *event)
 			  }
 		      }
 
+		    /* Don't generate a menu bar event if ITEM is
+		       nil.  */
+		    if (NILP (item))
+		      return Qnil;
+
 		    /* ELisp manual 2.4b says (x y) are window
 		       relative but code says they are
 		       frame-relative.  */
@@ -6566,6 +6571,10 @@ make_lispy_event (struct input_event *event)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 	f = XFRAME (event->frame_or_window);
+
+	if (!FRAME_LIVE_P (f))
+	  return Qnil;
+
 	id = event->arg;
 	x = event->x;
 	y = event->y;
@@ -6641,6 +6650,9 @@ make_lispy_event (struct input_event *event)
 	bool close;
 #endif /* HAVE_WINDOW_SYSTEM */
 
+	if (!FRAME_LIVE_P (f))
+	  return Qnil;
+
 	id = event->arg;
 	x = event->x;
 	y = event->y;
@@ -6679,6 +6691,11 @@ make_lispy_event (struct input_event *event)
 			    break;
 			  }
 		      }
+
+		    /* Don't generate a menu bar event if ITEM is
+		       nil.  */
+		    if (NILP (item))
+		      return Qnil;
 
 		    /* ELisp manual 2.4b says (x y) are window
 		       relative but code says they are
@@ -6769,6 +6786,9 @@ make_lispy_event (struct input_event *event)
 	struct frame *f = XFRAME (event->frame_or_window);
 	evt = Qnil;
 
+	if (!FRAME_LIVE_P (f))
+	  return Qnil;
+
 	for (tem = event->arg; CONSP (tem); tem = XCDR (tem))
 	  {
 	    it = XCAR (tem);
@@ -6777,9 +6797,18 @@ make_lispy_event (struct input_event *event)
 	    y = XCAR (XCDR (it));
 	    id = XCAR (XCDR (XCDR (it)));
 
+	    /* Don't report touches to the menu bar.  */
+	    if (EQ (id, menu_bar_touch_id))
+	      continue;
+
 	    position = make_lispy_position (f, x, y, event->timestamp);
 	    evt = Fcons (Fcons (id, position), evt);
 	  }
+
+	if (NILP (evt))
+	  /* Don't return an event if the touchpoint list is
+	     empty.  */
+	  return Qnil;
 
 	return list2 (Qtouchscreen_update, evt);
       }
