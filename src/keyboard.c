@@ -6696,6 +6696,8 @@ make_lispy_event (struct input_event *event)
 	  }
 #endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
 
+	position = make_lispy_position (f, x, y, event->timestamp);
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 	/* Now check if POSITION lies on the tab bar.  If so, look up
