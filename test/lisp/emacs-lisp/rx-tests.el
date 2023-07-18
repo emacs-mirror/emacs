@@ -98,7 +98,17 @@
                  "[\177Å\211\326-\377]"))
   ;; Split range; \177-\377ÿ should not be optimized to \177-\377.
   (should (equal (rx (any "\177-\377" ?ÿ))
-                 "[\177ÿ\200-\377]")))
+                 "[\177ÿ\200-\377]"))
+  ;; Range between normal chars and raw bytes: must be split to be parsed
+  ;; correctly by the Emacs regexp engine.
+  (should (equal
+           (rx (any (0 . #x3fffff)) (any (?G . #x3fff9a)) (any (?Ü . #x3ffff2)))
+           "[\0-\x3fff7f\x80-\xff][G-\x3fff7f\x80-\x9a][Ü-\x3fff7f\x80-\xf2]"))
+  ;; As above but with ranges in string form. For historical reasons,
+  ;; we special-case ASCII-to-raw ranges to exclude non-ASCII unicode.
+  (should (equal
+           (rx (any "\x00-\xff") (any "G-\x9a") (any "Ü-\xf2"))
+           "[\0-\x7f\x80-\xff][G-\x7f\x80-\x9a][Ü-\x3fff7f\x80-\xf2]")))
 
 (ert-deftest rx-any ()
   (should (equal (rx (any ?A (?C . ?D) "F-H" "J-L" "M" "N-P" "Q" "RS"))

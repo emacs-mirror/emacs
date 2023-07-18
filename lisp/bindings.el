@@ -338,7 +338,10 @@ the symbol `mode-line-format-right-align' is processed by
   (let* ((rest (cdr (memq 'mode-line-format-right-align
 			  mode-line-format)))
 	 (rest-str (format-mode-line `("" ,@rest)))
-	 (rest-width (string-pixel-width rest-str)))
+	 (rest-width (progn
+                       (add-face-text-property
+                        0 (length rest-str) 'mode-line t rest-str)
+                       (string-pixel-width rest-str))))
     (propertize " " 'display
 		;; The `right' spec doesn't work on TTY frames
 		;; when windows are split horizontally (bug#59620)
