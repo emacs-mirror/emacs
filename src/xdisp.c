@@ -11651,6 +11651,8 @@ WINDOW.  */)
 
   set_buffer_internal_1 (b);
 
+  ptrdiff_t base_line_pos = w->base_line_pos;
+  int end_valid = w->window_end_valid;
   if (!EQ (buffer, w->contents))
     {
       wset_buffer (w, buffer);
@@ -11662,6 +11664,11 @@ WINDOW.  */)
 				  Qnil);
 
   unbind_to (count, Qnil);
+
+  /* Restore original values.  This is important if this function is
+     called from some ':eval' form in the middle of redisplay.  */
+  w->base_line_pos = base_line_pos;
+  w->window_end_valid = end_valid;
 
   return value;
 }
