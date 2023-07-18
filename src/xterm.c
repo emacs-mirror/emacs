@@ -5742,6 +5742,10 @@ xi_device_from_id (struct x_display_info *dpyinfo, int deviceid)
 
 #ifdef HAVE_XINPUT2_2
 
+/* Record a touch sequence with the identifier DETAIL from the given
+   FRAME on the specified DEVICE.  Round X and Y and record them as
+   its current position.  */
+
 static void
 xi_link_touch_point (struct xi_device_t *device,
 		     int detail, double x, double y,
@@ -5751,19 +5755,28 @@ xi_link_touch_point (struct xi_device_t *device,
 
   touchpoint = xmalloc (sizeof *touchpoint);
   touchpoint->next = device->touchpoints;
-  touchpoint->x = x;
-  touchpoint->y = y;
+  touchpoint->x = lrint (x);
+  touchpoint->y = lrint (y);
   touchpoint->number = detail;
   touchpoint->frame = frame;
+  touchpoint->ownership = TOUCH_OWNERSHIP_NONE;
 
   device->touchpoints = touchpoint;
 }
 
-static bool
-xi_unlink_touch_point (int detail,
-		       struct xi_device_t *device)
+/* Free and remove the touch sequence with the identifier DETAIL.
+   DEVICE is the device in which the touch sequence should be
+   recorded.
+
+   Value is 0 if no touch sequence by that identifier exists inside
+   DEVICE, 1 if a touch sequence has been found but is not owned by
+   Emacs, and 2 otherwise.  */
+
+static int
+xi_unlink_touch_point (int detail, struct xi_device_t *device)
 {
   struct xi_touch_point_t *last, *tem;
+  enum xi_touch_ownership ownership;
 
   for (last = NULL, tem = device->touchpoints; tem;
        last = tem, tem = tem->next)
@@ -5775,12 +5788,17 @@ xi_unlink_touch_point (int detail,
 	  else
 	    last->next = tem->next;
 
+	  ownership = tem->ownership;
 	  xfree (tem);
-	  return true;
+
+	  if (ownership == TOUCH_OWNERSHIP_SELF)
+	    return 2;
+
+	  return 1;
 	}
     }
 
-  return false;
+  return 0;
 }
 
 /* Unlink all touch points associated with the frame F.
@@ -5812,6 +5830,10 @@ xi_unlink_touch_points (struct frame *f)
 	}
     }
 }
+
+/* Return the data associated with a touch sequence DETAIL recorded by
+   `xi_link_touch_point' from DEVICE, or NULL if it can't be
+   found.  */
 
 static struct xi_touch_point_t *
 xi_find_touch_point (struct xi_device_t *device, int detail)
@@ -24458,11 +24480,47 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      goto XI_OTHER;
 	    }
 
+	  case XI_TouchOwnership:
+	    {
+	      struct xi_device_t *device;
+	      struct xi_touch_point_t *touchpoint;
+	      XITouchOwnershipEvent *event;
+
+	      /* All grabbing clients have decided to reject ownership
+		 of this touch sequence.  */
+
+	      event  = (XITouchOwnershipEvent *) xi_event;
+	      device = xi_device_from_id (dpyinfo, event->deviceid);
+
+	      if (!device || device->use == XIMasterPointer)
+		goto XI_OTHER;
+
+	      touchpoint = xi_find_touch_point (device, event->touchid);
+
+	      if (!touchpoint)
+		goto XI_OTHER;
+
+	      /* As a result, Emacs should complete whatever editing
+		 operations result from this touch sequence.  */
+	      touchpoint->ownership = TOUCH_OWNERSHIP_SELF;
+	    }
+
 	  case XI_TouchUpdate:
 	    {
 	      struct xi_device_t *device, *source;
 	      struct xi_touch_point_t *touchpoint;
 	      Lisp_Object arg = Qnil;
+
+	      /* If flags & TouchPendingEnd, the touch sequence has
+		 already ended, but some grabbing clients remain
+		 undecided as to whether they will obtain ownership of
+		 the touch sequence.
+
+	         Wait for them to make their decision, resulting in
+	         TouchOwnership and TouchEnd events being sent.  */
+
+	      if (xev->flags & XITouchPendingEnd)
+		goto XI_OTHER;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
@@ -24475,7 +24533,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	         detached, and master pointers may also represent
 	         dependent touch devices.  */
 
-	      if (!device)
+	      if (!device || device->use == XIMasterPointer)
 		goto XI_OTHER;
 
 	      touchpoint = xi_find_touch_point (device, xev->detail);
@@ -24483,12 +24541,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!touchpoint
 		  /* Don't send this event if nothing has changed
 		     either.  */
-		  || (touchpoint->x == (int) xev->event_x
-		      && touchpoint->y == (int) xev->event_y))
+		  || (touchpoint->x == lrint (xev->event_x)
+		      && touchpoint->y == lrint (xev->event_y)))
 		goto XI_OTHER;
 
-	      touchpoint->x = xev->event_x;
-	      touchpoint->y = xev->event_y;
+	      touchpoint->x = lrint (xev->event_x);
+	      touchpoint->y = lrint (xev->event_y);
 
 	      f = x_window_to_frame (dpyinfo, xev->event);
 
@@ -24502,8 +24560,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		       touchpoint; touchpoint = touchpoint->next)
 		    {
 		      if (touchpoint->frame == f)
-			arg = Fcons (list3i (lrint (touchpoint->x),
-					     lrint (touchpoint->y),
+			arg = Fcons (list3i (touchpoint->x, touchpoint->y,
 					     lrint (touchpoint->number)),
 				     arg);
 		    }
@@ -24520,7 +24577,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_TouchEnd:
 	    {
 	      struct xi_device_t *device, *source;
-	      bool unlinked_p;
+	      int state;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
@@ -24536,9 +24593,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device || device->use == XIMasterPointer)
 		goto XI_OTHER;
 
-	      unlinked_p = xi_unlink_touch_point (xev->detail, device);
+	      state = xi_unlink_touch_point (xev->detail, device);
 
-	      if (unlinked_p)
+	      if (state)
 		{
 		  f = x_window_to_frame (dpyinfo, xev->event);
 
@@ -24546,6 +24603,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      inev.ie.kind = TOUCHSCREEN_END_EVENT;
 		      inev.ie.timestamp = xev->time;
+		      inev.ie.modifiers = state != 2;
 
 		      XSETFRAME (inev.ie.frame_or_window, f);
 		      XSETINT (inev.ie.x, lrint (xev->event_x));

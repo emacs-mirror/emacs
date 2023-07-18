@@ -308,7 +308,11 @@ enum event_kind
 
      In TOUCHSCREEN_BEGIN_EVENT and TOUCHSCREEN_END_EVENT, ARG is the
      unique ID of the touchpoint, and X and Y are the frame-relative
-     positions of the touchpoint.  */
+     positions of the touchpoint.
+
+     In TOUCHSCREEN_END_EVENT, non-0 modifiers means that the
+     touchpoint has been canceled.  (See (elisp)Touchscreen
+     Events.)  */
 
   , TOUCHSCREEN_UPDATE_EVENT
   , TOUCHSCREEN_BEGIN_EVENT
