@@ -850,6 +850,10 @@ the place of EVENT within the key sequence being translated, or
                ;; Start the long-press timer.
                (touch-screen-handle-timeout nil)))))
      ((eq (car event) 'touchscreen-update)
+      (unless touch-screen-current-tool
+        ;; If a stray touchscreen-update event arrives (most likely
+        ;; from the menu bar), stop translating this sequence.
+        (throw 'input-event nil))
       ;; The positions of tools currently pressed against the screen
       ;; have changed.  If there is a tool being tracked as part of a
       ;; gesture, look it up in the list of tools.
