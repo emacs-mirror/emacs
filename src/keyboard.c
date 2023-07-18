@@ -6560,11 +6560,10 @@ make_lispy_event (struct input_event *event)
       {
 	Lisp_Object x, y, id, position;
 	struct frame *f;
+#ifdef HAVE_WINDOW_SYSTEM
 	int tab_bar_item;
 	bool close;
-#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
-	int column, row, dummy;
-#endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	f = XFRAME (event->frame_or_window);
 	id = event->arg;
@@ -6572,61 +6571,11 @@ make_lispy_event (struct input_event *event)
 	y = event->y;
 
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
-	if (event->kind == TOUCHSCREEN_BEGIN_EVENT
-	    && coords_in_menu_bar_window (f, XFIXNUM (x), XFIXNUM (y)))
+	if (coords_in_menu_bar_window (f, XFIXNUM (x), XFIXNUM (y)))
 	  {
 	    /* If the tap began in the menu bar window, then save the
 	       id.  */
 	    menu_bar_touch_id = id;
-	    return Qnil;
-	  }
-	else if (event->kind == TOUCHSCREEN_END_EVENT
-		 && EQ (menu_bar_touch_id, id))
-	  {
-	    /* This touch should activate the menu bar.  Generate the
-	       menu bar event.  */
-	    menu_bar_touch_id = Qnil;
-
-	    if (!NILP (f->menu_bar_window))
-	      {
-		x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), XFIXNUM (x),
-				  XFIXNUM (y), &column, &row, NULL, NULL,
-				  &dummy);
-
-		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
-		  {
-		    Lisp_Object items, item;
-
-		    /* Find the menu bar item under `column'.  */
-		    item = Qnil;
-		    items = FRAME_MENU_BAR_ITEMS (f);
-		    for (i = 0; i < ASIZE (items); i += 4)
-		      {
-			Lisp_Object pos, string;
-			string = AREF (items, i + 1);
-			pos = AREF (items, i + 3);
-			if (NILP (string))
-			  break;
-			if (column >= XFIXNUM (pos)
-			    && column < XFIXNUM (pos) + SCHARS (string))
-			  {
-			    item = AREF (items, i);
-			    break;
-			  }
-		      }
-
-		    /* ELisp manual 2.4b says (x y) are window
-		       relative but code says they are
-		       frame-relative.  */
-		    position = list4 (event->frame_or_window,
-				      Qmenu_bar,
-				      Fcons (event->x, event->y),
-				      INT_TO_INTEGER (event->timestamp));
-
-		    return list2 (item, position);
-		  }
-	      }
-
 	    return Qnil;
 	  }
 #endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
@@ -6676,10 +6625,7 @@ make_lispy_event (struct input_event *event)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-	return list2 (((event->kind
-			== TOUCHSCREEN_BEGIN_EVENT)
-		       ? Qtouchscreen_begin
-		       : Qtouchscreen_end),
+	return list2 (Qtouchscreen_begin,
 		      Fcons (id, position));
       }
 
@@ -6687,18 +6633,115 @@ make_lispy_event (struct input_event *event)
       {
 	Lisp_Object x, y, id, position;
 	struct frame *f = XFRAME (event->frame_or_window);
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+	int column, row, dummy;
+#endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
+#ifdef HAVE_WINDOW_SYSTEM
+	int tab_bar_item;
+	bool close;
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	id = event->arg;
 	x = event->x;
 	y = event->y;
 
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+	if (EQ (menu_bar_touch_id, id))
+	  {
+	    /* This touch should activate the menu bar.  Generate the
+	       menu bar event.  */
+	    menu_bar_touch_id = Qnil;
+
+	    if (!NILP (f->menu_bar_window))
+	      {
+		x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), XFIXNUM (x),
+				  XFIXNUM (y), &column, &row, NULL, NULL,
+				  &dummy);
+
+		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
+		  {
+		    Lisp_Object items, item;
+
+		    /* Find the menu bar item under `column'.  */
+		    item = Qnil;
+		    items = FRAME_MENU_BAR_ITEMS (f);
+		    for (i = 0; i < ASIZE (items); i += 4)
+		      {
+			Lisp_Object pos, string;
+			string = AREF (items, i + 1);
+			pos = AREF (items, i + 3);
+			if (NILP (string))
+			  break;
+			if (column >= XFIXNUM (pos)
+			    && column < XFIXNUM (pos) + SCHARS (string))
+			  {
+			    item = AREF (items, i);
+			    break;
+			  }
+		      }
+
+		    /* ELisp manual 2.4b says (x y) are window
+		       relative but code says they are
+		       frame-relative.  */
+		    position = list4 (event->frame_or_window,
+				      Qmenu_bar,
+				      Fcons (event->x, event->y),
+				      INT_TO_INTEGER (event->timestamp));
+
+		    return list2 (item, position);
+		  }
+	      }
+
+	    return Qnil;
+	  }
+#endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+	/* Now check if POSITION lies on the tab bar.  If so, look up
+	   the corresponding tab bar item's propertized string as the
+	   OBJECT.  */
+
+	if (coords_in_tab_bar_window (f, XFIXNUM (event->x),
+				      XFIXNUM (event->y))
+	    /* `get_tab_bar_item_kbd' returns 0 if the item was
+	       previously highlighted, 1 otherwise, and -1 if there is
+	       no tab bar item.  */
+	    && get_tab_bar_item_kbd (f, XFIXNUM (event->x),
+				     XFIXNUM (event->y), &tab_bar_item,
+				     &close) >= 0)
+	  {
+	    /* First, obtain the propertized string.  */
+	    x = Fcopy_sequence (AREF (f->tab_bar_items,
+				      (tab_bar_item
+				       + TAB_BAR_ITEM_CAPTION)));
+
+	    /* Next, add the key binding.  */
+	    AUTO_LIST2 (y, Qmenu_item, list3 (AREF (f->tab_bar_items,
+						    (tab_bar_item
+						     + TAB_BAR_ITEM_KEY)),
+					      AREF (f->tab_bar_items,
+						    (tab_bar_item
+						     + TAB_BAR_ITEM_BINDING)),
+					      close ? Qt : Qnil));
+
+	    /* And add the new properties to the propertized string.  */
+	    Fadd_text_properties (make_fixnum (0),
+				  make_fixnum (SCHARS (x)),
+				  y, x);
+
+	    /* Set the position to 0.  */
+	    x = Fcons (x, make_fixnum (0));
+
+	    /* Finally, add the OBJECT.  */
+	    position = nconc2 (position, Fcons (x, Qnil));
+	  }
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 	position = make_lispy_position (f, x, y, event->timestamp);
 
-	return list3 (((event->kind
-			== TOUCHSCREEN_BEGIN_EVENT)
-		       ? Qtouchscreen_begin
-		       : Qtouchscreen_end),
-		      Fcons (id, position),
+	return list3 (Qtouchscreen_end, Fcons (id, position),
 		      event->modifiers ? Qt : Qnil);
       }
 

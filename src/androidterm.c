@@ -1511,6 +1511,11 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      inev.ie.kind = TOUCHSCREEN_END_EVENT;
 	      inev.ie.timestamp = event->touch.time;
 
+	      /* Report whether the sequence has been canceled.  */
+
+	      if (event->touch.flags & ANDROID_TOUCH_SEQUENCE_CANCELED)
+		inev.ie.modifiers = 1;
+
 	      XSETFRAME (inev.ie.frame_or_window, any);
 	      XSETINT (inev.ie.x, event->touch.x);
 	      XSETINT (inev.ie.y, event->touch.y);

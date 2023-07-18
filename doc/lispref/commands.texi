@@ -2061,9 +2061,11 @@ keymaps that are active at the location of the
 of a single @code{down-mouse-1} event, with subsequent
 @code{touchscreen-update} events translated to mouse motion events
 (@pxref{Motion Events}), and a final @code{touchscreen-end} event
-translated to a @code{mouse-1} or @code{drag-mouse-1} event.  This is
-referred to ``simple translation'', and produces a simple
-correspondence between touchpoint motion and mouse motion.
+translated to a @code{mouse-1} or @code{drag-mouse-1} event (unless
+the @code{touchscreen-end} event indicates that the touch sequence has
+been intercepted by another program.)  This is referred to ``simple
+translation'', and produces a simple correspondence between touchpoint
+motion and mouse motion.
 
 @cindex @code{ignored-mouse-command}, a symbol property
 However, some commands bound to
@@ -2078,13 +2080,14 @@ takes place: here, Emacs processes touch screen gestures
 (@pxref{Touchscreens,,, emacs, The GNU Emacs Manual}) first, and
 finally attempts to translate touch screen events into mouse events if
 no gesture was detected prior to a closing @code{touchscreen-end}
-event and a command is bound to @code{mouse-1} at the location of that
-event.  Before generating the @code{mouse-1} event, point is also set
-to the location of the @code{touchscreen-end} event, and the window
-containing the position of that event is selected, as a compromise for
-packages which assume @code{mouse-drag-region} has already set point
-to the location of any mouse click and selected the window where it
-took place.
+event (with its @var{canceled} parameter @code{nil}, as with simple
+translation) and a command is bound to @code{mouse-1} at the location
+of that event.  Before generating the @code{mouse-1} event, point is
+also set to the location of the @code{touchscreen-end} event, and the
+window containing the position of that event is selected, as a
+compromise for packages which assume @code{mouse-drag-region} has
+already set point to the location of any mouse click and selected the
+window where it took place.
 
 To prevent unwanted @code{mouse-1} events arriving after a mouse menu
 is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple

@@ -2870,7 +2870,8 @@ NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
-			     jlong time, jint pointer_id)
+			     jlong time, jint pointer_id,
+			     jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -2883,6 +2884,7 @@ NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
   event.touch.y = y;
   event.touch.time = time;
   event.touch.pointer_id = pointer_id;
+  event.touch.flags = flags;
 
   android_write_event (&event);
   return event_serial;
@@ -2891,7 +2893,8 @@ NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
 			   jshort window, jint x, jint y,
-			   jlong time, jint pointer_id)
+			   jlong time, jint pointer_id,
+			   jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -2904,6 +2907,7 @@ NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
   event.touch.y = y;
   event.touch.time = time;
   event.touch.pointer_id = pointer_id;
+  event.touch.flags = flags;
 
   android_write_event (&event);
   return event_serial;
@@ -2912,7 +2916,8 @@ NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
-			     jlong time, jint pointer_id)
+			     jlong time, jint pointer_id,
+			     jint flags)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -2925,6 +2930,7 @@ NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
   event.touch.y = y;
   event.touch.time = time;
   event.touch.pointer_id = pointer_id;
+  event.touch.flags = flags;
 
   android_write_event (&event);
   return event_serial;

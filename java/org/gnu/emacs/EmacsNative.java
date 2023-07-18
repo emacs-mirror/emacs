@@ -142,15 +142,18 @@ public final class EmacsNative
 
   /* Send an ANDROID_TOUCH_DOWN event.  */
   public static native long sendTouchDown (short window, int x, int y,
-					   long time, int pointerID);
+					   long time, int pointerID,
+					   int flags);
 
   /* Send an ANDROID_TOUCH_UP event.  */
   public static native long sendTouchUp (short window, int x, int y,
-					 long time, int pointerID);
+					 long time, int pointerID,
+					 int flags);
 
   /* Send an ANDROID_TOUCH_MOVE event.  */
   public static native long sendTouchMove (short window, int x, int y,
-					   long time, int pointerID);
+					   long time, int pointerID,
+					   int flags);
 
   /* Send an ANDROID_WHEEL event.  */
   public static native long sendWheel (short window, int x, int y,

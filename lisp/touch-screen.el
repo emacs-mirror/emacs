@@ -548,11 +548,26 @@ then move point to the position of POINT."
                   ;; WINDOW.
                   (relative-xy
                    (touch-screen-relative-xy posn window))
+                  (col (and (eq (posn-area posn) 'text-area)
+                            (car (posn-col-row posn
+                                               (posn-window posn)))))
+                  ;; Don't start horizontal scrolling if the touch
+                  ;; point originated within two columns of the window
+                  ;; edges, as systems like Android use those two
+                  ;; columns to implement gesture navigation.
+                  (diff-x-eligible
+                   (and col (> (car col) 2)
+                        (< (car col) (- (window-width window) 2))))
                   (diff-x (- (car last-posn) (car relative-xy)))
                   (diff-y (- (cdr last-posn) (cdr relative-xy))))
-             ;; Decide whether or not to start scrolling.
-             (when (or (> diff-y 10) (> diff-x 10)
-                       (< diff-y -10) (< diff-x -10))
+             ;; Decide whether or not to start scrolling.  Make the
+             ;; hscrolling threshold slightly larger than the vertical
+             ;; scrolling threshold, to compensate better for
+             ;; Android-style gesture navigation.
+             (when (or (> diff-y 10) (and diff-x-eligible
+                                          (> diff-x 20))
+                       (< diff-y -10) (and diff-x-eligible
+                                           (< diff-x -20)))
                (setcar (nthcdr 3 touch-screen-current-tool)
                        'scroll)
                (setcar (nthcdr 2 touch-screen-current-tool)
@@ -852,7 +867,11 @@ the place of EVENT within the key sequence being translated, or
           (cancel-timer touch-screen-current-timer)
           (setq touch-screen-current-timer nil))
         (unwind-protect
-            (touch-screen-handle-point-up (cadr event) prefix)
+            ;; Don't perform any actions associated with releasing the
+            ;; tool if the touch sequence was intercepted by another
+            ;; program.
+            (unless (caddr event)
+              (touch-screen-handle-point-up (cadr event) prefix))
           ;; Make sure the tool list is cleared even if
           ;; `touch-screen-handle-point-up' throws.
           (setq touch-screen-current-tool nil)))

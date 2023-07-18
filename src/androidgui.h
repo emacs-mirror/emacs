@@ -365,6 +365,13 @@ struct android_expose_event
   int width, height;
 };
 
+enum android_touch_event_flags
+  {
+    /* This touch sequence has been intercepted by the WM (probably
+       for back gesture navigation or some such.)  */
+    ANDROID_TOUCH_SEQUENCE_CANCELED = 1,
+  };
+
 struct android_touch_event
 {
   /* Type of the event.  */
@@ -384,6 +391,9 @@ struct android_touch_event
 
   /* Index of the pointer being tracked.  */
   unsigned int pointer_id;
+
+  /* Flags associated with this event.  */
+  int flags;
 };
 
 struct android_wheel_event

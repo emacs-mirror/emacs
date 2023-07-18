@@ -1025,23 +1025,30 @@ public final class EmacsWindow extends EmacsHandleObject
 	    /* Touch down event.  */
 	    EmacsNative.sendTouchDown (this.handle, coordinate.x,
 				       coordinate.y, time,
-				       coordinate.id);
+				       coordinate.id, 0);
 	    break;
 
 	  case MotionEvent.ACTION_UP:
 	  case MotionEvent.ACTION_POINTER_UP:
-	  case MotionEvent.ACTION_CANCEL:
-	    /* Touch up event.  Android documentation says ACTION_CANCEL
-	       should be treated as more or less equivalent to ACTION_UP,
-	       so that is what is done here.  */
+	    /* Touch up event.  */
 	    EmacsNative.sendTouchUp (this.handle, coordinate.x,
-				     coordinate.y, time, coordinate.id);
+				     coordinate.y, time,
+				     coordinate.id, 0);
+	    break;
+
+	  case MotionEvent.ACTION_CANCEL:
+	    /* Touch sequence cancellation event.  */
+	    EmacsNative.sendTouchUp (this.handle, coordinate.x,
+				     coordinate.y, time,
+				     coordinate.id,
+				     1 /* ANDROID_TOUCH_SEQUENCE_CANCELED */);
 	    break;
 
 	  case MotionEvent.ACTION_MOVE:
 	    /* Pointer motion event.  */
 	    EmacsNative.sendTouchMove (this.handle, coordinate.x,
-				       coordinate.y, time, coordinate.id);
+				       coordinate.y, time,
+				       coordinate.id, 0);
 	    break;
 	  }
       }
