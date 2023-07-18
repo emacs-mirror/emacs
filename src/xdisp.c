@@ -107,31 +107,33 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
     . try_cursor_movement
 
-      This function tries to update the display if the text in the
-      window did not change and did not scroll, only point moved, and
-      it did not move off the displayed portion of the text.
+      This optimization is applicable if the text in the window did
+      not change and did not scroll, only point moved, and it did not
+      move off the displayed portion of the text.  In that case, the
+      window's glyph matrix is still valid, and only the position of
+      the cursor might need to be updated.
 
     . try_window_reusing_current_matrix
 
-      This function reuses the current matrix of a window when text
-      has not changed, but the window start changed (e.g., due to
+      This function reuses the current glyph matrix of a window when
+      text has not changed, but the window start changed (e.g., due to
       scrolling).
 
     . try_window_id
 
-      This function attempts to redisplay a window by reusing parts of
-      its existing display.  It finds and reuses the part that was not
-      changed, and redraws the rest.  (The "id" part in the function's
-      name stands for "insert/delete", not for "identification" or
-      somesuch.)
+      This function attempts to update a window's glyph matrix by
+      reusing parts of its current glyph matrix.  It finds and reuses
+      the part that was not changed, and regenerates the rest.  (The
+      "id" part in the function's name stands for "insert/delete", not
+      for "identification" or somesuch.)
 
     . try_window
 
-      This function performs the full, unoptimized, redisplay of a
-      single window assuming that its fonts were not changed and that
-      the cursor will not end up in the scroll margins.  (Loading
-      fonts requires re-adjustment of dimensions of glyph matrices,
-      which makes this method impossible to use.)
+      This function performs the full, unoptimized, generation of a
+      single window's glyph matrix, assuming that its fonts were not
+      changed and that the cursor will not end up in the scroll
+      margins.  (Loading fonts requires re-adjustment of dimensions of
+      glyph matrices, which makes this method impossible to use.)
 
    The optimizations are tried in sequence (some can be skipped if
    it is known that they are not applicable).  If none of the
