@@ -109,11 +109,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    matrix', or `current matrix', in redisplay terminology.
 
    For buffer parts that have been changed since the last redisplay,
-   `redisplay_window' constructs a second glyph matrix is constructed,
-   the so called `desired glyph matrix' or short `desired matrix'.  It
-   does so in the most optimal way possible, avoiding the examination
-   of text that didn't change, reusing portions of the current matrix
-   if possible, etc.  It could, in particular, decide that a window
+   `redisplay_window' constructs a second glyph matrix, the so called
+   `desired glyph matrix' or short `desired matrix'.  It does so in
+   the most optimal way possible, avoiding the examination of text
+   that didn't change, reusing portions of the current matrix if
+   possible, etc.  It could, in particular, decide that a window
    doesn't need to be redisplayed at all.
 
    This second step of redisplay also updates the parts of the desired
@@ -123,9 +123,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    In the third and last step, the current and desired matrix are then
    compared to find a cheap way to update the display, e.g. by reusing
    part of the display by scrolling lines.  The actual update of the
-   display of each window by comparing the desired and the current
-   matrix is done by `update_window', which calls functions which draw
-   to the glass (those functions are specific to the type of the
+   display of each window, by comparing the desired and the current
+   matrix, is done by `update_window', which calls functions which
+   draw to the glass (those functions are specific to the type of the
    window's frame: X, w32, NS, etc.).
 
    Once the display of a window on the glass has been updated, its
