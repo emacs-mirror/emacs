@@ -14210,8 +14210,9 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 
      - For each point that lies between the first point and the last
        on the axis currently being considered, interpolate its
-       position in that axis so that the ratio between the first
-       point and the last in the original outline still holds.
+       position in that axis so that the ratio formed by its position
+       relative to the first and last points of the pair in the
+       original outline still holds.
 
      - For each point that lies to the left or top of the first point
        on the axis being considered, use the delta of the first point.
@@ -14220,9 +14221,9 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
        the last point on that axis, use the delta of the last
        point.
 
-   X and Y contain the original positions positions of each point.
-   TOUCHED contains whether or not each point has been changed by
-   an explicitly specified delta.
+   X and Y contain the original positions of each point.
+   TOUCHED contains whether or not each point within GLYPH has been
+   changed through variation.
 
    Apply the inferred deltas back to GLYPH.  */
 
