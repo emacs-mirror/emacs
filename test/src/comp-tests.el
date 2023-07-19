@@ -33,7 +33,8 @@
 
 (eval-and-compile
   (defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
-  (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el")))
+  (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
+  (defconst comp-test-dyn-src2 (ert-resource-file "comp-test-funcs-dyn2.el")))
 
 (when (native-comp-available-p)
   (message "Compiling tests...")
@@ -44,6 +45,7 @@
 ;; names used in this file.
 (require 'comp-test-funcs comp-test-src)
 (require 'comp-test-dyn-funcs comp-test-dyn-src) ;Non-standard feature name!
+(require 'comp-test-funcs-dyn2 comp-test-dyn-src2)
 
 (defmacro comp-deftest (name args &rest docstring-and-body)
   "Define a test for the native compiler tagging it as :nativecomp."
@@ -1528,4 +1530,7 @@ folded."
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
 
+(ert-deftest comp-tests-result-lambda ()
+  (native-compile 'comp-tests-result-lambda)
+  (should (eq (funcall (comp-tests-result-lambda) '(a . b)) 'a)))
 ;;; comp-tests.el ends here
