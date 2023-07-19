@@ -250,7 +250,8 @@ Prefer the enclosing string with fallback on sexp at point.
             (goto-char (nth 8 ppss))
             (cons (point) (progn (forward-sexp) (point))))
         ;; At the beginning of the string
-        (if (eq (char-syntax (char-after)) ?\")
+        (if (let ((ca (char-after)))
+              (and ca (eq (char-syntax ca) ?\")))
             (let ((bound (bounds-of-thing-at-point 'sexp)))
 	      (and bound
 	           (<= (car bound) (point)) (< (point) (cdr bound))
