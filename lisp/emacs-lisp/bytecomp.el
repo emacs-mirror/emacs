@@ -2224,7 +2224,8 @@ See also `emacs-lisp-byte-compile-and-load'."
       ;; Don't inherit lexical-binding from caller (bug#12938).
       (unless (local-variable-p 'lexical-binding)
         (setq-local lexical-binding nil))
-      ;; PKG-FIXME: Maybe set package-prefixes?
+      (unless (local-variable-p 'package-prefixes)
+        (setq-local package-prefixes nil))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
     ;; Check if the file's local variables explicitly specify not to
