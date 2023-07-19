@@ -2129,9 +2129,18 @@ set to a mouse position list containing the position of the
 @cindex @code{touchscreen-drag} event
 @item (touchscreen-drag @var{posn})
 If a ``long-press'' gesture is detected while translating the current
-touch sequence, a @code{touchscreen-drag} event is sent upon each
-subsequent @code{touchscreen-update} event, with @var{posn} set to the
-new position of the touchpoint.
+touch sequence or ``drag-to-select'' is being resumed as a result of
+the @code{touch-screen-extend-selection} user option, a
+@code{touchscreen-drag} event is sent upon each subsequent
+@code{touchscreen-update} event with @var{posn} set to the new
+position of the touchpoint.
+
+@cindex @code{touchscreen-restart-drag} event
+@item (touchscreen-restart-drag @var{posn})
+This event is sent upon the start of a touch sequence resulting in the
+continuation of a ``drag-to-select'' gesture (subject to the
+aformentioned user option) with @var{posn} set to the position list of
+the initial @code{touchscreen-begin} event within that touch sequence.
 @end table
 
 @cindex handling touch screen events

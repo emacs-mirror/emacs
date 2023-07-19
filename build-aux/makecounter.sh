@@ -39,5 +39,5 @@ cat > $1 <<EOF
 #ifdef EXPORT
 EXPORT
 #endif /* EXPORT */
-int counter = $curcount;
+int emacs_shortlisp_counter = $curcount;
 EOF

@@ -86,6 +86,15 @@ by dragging will try to select entire words."
   :group 'mouse
   :version "30.1")
 
+(defcustom touch-screen-extend-selection nil
+  "If non-nil, restart drag-to-select upon a tap on point or mark.
+When enabled, tapping on the character containing the point or
+mark will resume dragging where it left off while the region is
+active."
+  :type 'boolean
+  :group 'mouse
+  :version "30.1")
+
 (defvar-local touch-screen-word-select-bounds nil
   "The start and end positions of the word last selected.
 Normally a cons of those two positions or nil if no word was
@@ -471,8 +480,35 @@ area."
                 (setq touch-screen-word-select-bounds nil))
               (redisplay)))))))))
 
+(defun touch-screen-restart-drag (event)
+  "Restart dragging to select text.
+Set point to the location of EVENT within its window while
+keeping the bounds of the region intact, and set up state for
+`touch-screen-drag'."
+  (interactive "e")
+  (let* ((posn (event-start event))
+         (window (posn-window posn))
+         (point (posn-point posn)))
+    (with-selected-window window
+      (let ((current-point (point))
+            (current-mark (mark)))
+        ;; Ensure that mark and point haven't changed since EVENT was
+        ;; generated, and the region is still active.
+        (when (or (eq point current-point)
+                  (eq point current-mark)
+                  (region-active-p))
+          (when (eq point current-mark)
+            ;; Exchange point and mark.
+            (exchange-point-and-mark))
+          ;; Clear the state necessary to set up dragging.  Don't try
+          ;; to select entire words immediately after dragging starts,
+          ;; to allow for fine grained selection inside a word.
+          (setq touch-screen-word-select-bounds nil
+                touch-screen-word-select-initial-word nil))))))
+
 (global-set-key [touchscreen-hold] #'touch-screen-hold)
 (global-set-key [touchscreen-drag] #'touch-screen-drag)
+(global-set-key [touchscreen-restart-drag] #'touch-screen-restart-drag)
 
 
 
@@ -541,8 +577,12 @@ If the fourth element of `touch-screen-current-tool' is
 
 If the fourth element of `touch-screen-current-tool' is `held',
 then the touch has been held down for some time.  If motion
-happens, cancel `touch-screen-current-timer', and set the field
-to `drag'.  Then, generate a `touchscreen-drag' event.
+happens, set the field to `drag'.  Then, generate a
+`touchscreen-drag' event.
+
+If the fourth element of `touch-screen-current-tool' is
+`restart-drag', set the field to `drag' and generate a
+`touchscreen-drag'.
 
 If the fourth element of `touch-screen-current-tool' is `drag',
 then move point to the position of POINT."
@@ -627,6 +667,15 @@ then move point to the position of POINT."
              ;; Generate a (touchscreen-drag POSN) event.
              ;; `touchscreen-hold' was generated when the timeout
              ;; fired.
+             (throw 'input-event (list 'touchscreen-drag posn))))
+          ((eq what 'restart-drag)
+           (let* ((posn (cdr point)))
+             ;; Now start dragging.
+             (setcar (nthcdr 3 touch-screen-current-tool)
+                     'drag)
+             ;; Generate a (touchscreen-drag POSN) event.
+             ;; `touchscreen-restart-drag' was generated when the
+             ;; timeout fired.
              (throw 'input-event (list 'touchscreen-drag posn))))
           ((eq what 'drag)
            (let* ((posn (cdr point)))
@@ -809,7 +858,7 @@ the place of EVENT within the key sequence being translated, or
              (position (cdadr event))
              (window (posn-window position))
              (point (posn-point position))
-             binding)
+             binding tool-list)
         ;; Cancel the touch screen timer, if it is still there by any
         ;; chance.
         (when touch-screen-current-timer
@@ -817,24 +866,46 @@ the place of EVENT within the key sequence being translated, or
           (setq touch-screen-current-timer nil))
         ;; Replace any previously ongoing gesture.  If POSITION has no
         ;; window or position, make it nil instead.
-        (setq touch-screen-current-tool (and (windowp window)
-                                             (list touchpoint window
-                                                   (posn-x-y position)
-                                                   nil position
-                                                   nil nil nil nil)))
-        ;; Determine if there is a command bound to `down-mouse-1' at
-        ;; the position of the tap and that command is not a command
-        ;; whose functionality is replaced by the long-press
-        ;; mechanism.  If so, set the fourth element of
-        ;; `touch-screen-current-tool' to `mouse-drag' and generate an
-        ;; emulated `mouse-1' event.
-        ;;
-        ;; If the command in question is a keymap, use `mouse-1-menu'
-        ;; instead of `mouse-drag', and don't generate a
-        ;; `down-mouse-1' event immediately.  Instead, wait for the
-        ;; touch point to be released.
-        (if (and touch-screen-current-tool
-                 (with-selected-window window
+        (setq tool-list (and (windowp window)
+                             (list touchpoint window
+                                   (posn-x-y position)
+                                   nil position
+                                   nil nil nil nil))
+              touch-screen-current-tool tool-list)
+
+        ;; Select the window underneath the event as the checks below
+        ;; will look up keymaps and markers inside its buffer.
+        (save-selected-window
+          ;; Check if `touch-screen-extend-selection' is enabled, the
+          ;; tap lies on the point or the mark, and the region is
+          ;; active.  If that's the case, set the fourth element of
+          ;; `touch-screen-current-tool' to `restart-drag', then
+          ;; generate a `touchscreen-restart-drag' event.
+          (when tool-list
+            ;; tool-list is always non-nil where the selected window
+            ;; matters.
+            (select-window window)
+            (when (and touch-screen-extend-selection
+                       (or (eq point (point))
+                           (eq point (mark)))
+                       (region-active-p))
+              ;; Indicate that a drag is about to restart.
+              (setcar (nthcdr 3 tool-list) 'restart-drag)
+              ;; Generate the `restart-drag' event.
+              (throw 'input-event (list 'touchscreen-restart-drag
+                                        position))))
+          ;; Determine if there is a command bound to `down-mouse-1'
+          ;; at the position of the tap and that command is not a
+          ;; command whose functionality is replaced by the long-press
+          ;; mechanism.  If so, set the fourth element of
+          ;; `touch-screen-current-tool' to `mouse-drag' and generate
+          ;; an emulated `mouse-1' event.
+          ;;
+          ;; If the command in question is a keymap, set that element
+          ;; to `mouse-1-menu' instead of `mouse-drag', and don't
+          ;; generate a `down-mouse-1' event immediately.  Instead,
+          ;; wait for the touch point to be released.
+          (if (and tool-list
                    (and (setq binding
                               (key-binding (if prefix
                                                (vector prefix
@@ -842,24 +913,23 @@ the place of EVENT within the key sequence being translated, or
                                              [down-mouse-1])
                                            t nil position))
                         (not (and (symbolp binding)
-                                  (get binding 'ignored-mouse-command))))))
-            (if (or (keymapp binding)
-                    (and (symbolp binding)
-                         (get binding 'mouse-1-menu-command)))
-                ;; binding is a keymap, or a command that does almost
-                ;; the same thing.  If a `mouse-1' event is generated
-                ;; after the keyboard command loop displays it as a
-                ;; menu, that event could cause unwanted commands to
-                ;; be run.  Set what to `mouse-1-menu' instead and
-                ;; wait for the up event to display the menu.
-                (setcar (nthcdr 3 touch-screen-current-tool)
-                        'mouse-1-menu)
-              (progn (setcar (nthcdr 3 touch-screen-current-tool)
-                             'mouse-drag)
-                     (throw 'input-event (list 'down-mouse-1 position))))
-          (and point
-               ;; Start the long-press timer.
-               (touch-screen-handle-timeout nil)))))
+                                  (get binding 'ignored-mouse-command)))))
+              (if (or (keymapp binding)
+                      (and (symbolp binding)
+                           (get binding 'mouse-1-menu-command)))
+                  ;; binding is a keymap, or a command that does
+                  ;; almost the same thing.  If a `mouse-1' event is
+                  ;; generated after the keyboard command loop
+                  ;; displays it as a menu, that event could cause
+                  ;; unwanted commands to be run.  Set what to
+                  ;; `mouse-1-menu' instead and wait for the up event
+                  ;; to display the menu.
+                  (setcar (nthcdr 3 tool-list) 'mouse-1-menu)
+                (progn (setcar (nthcdr 3 tool-list) 'mouse-drag)
+                       (throw 'input-event (list 'down-mouse-1 position))))
+            (and point
+                 ;; Start the long-press timer.
+                 (touch-screen-handle-timeout nil))))))
      ((eq (car event) 'touchscreen-update)
       (unless touch-screen-current-tool
         ;; If a stray touchscreen-update event arrives (most likely
@@ -929,6 +999,10 @@ and vertically,
 
 where POSN is the position of the long-press or touchpoint
 motion,
+
+  (touchscreen-restart-drag POSN)
+
+where POSN is the position of the tap,
 
   (down-mouse-1 POSN)
   (drag-mouse-1 POSN)

@@ -68,6 +68,15 @@ touch screen display, to the detriment of text selection.  The user
 option @code{touch-screen-word-select} enables ``word selection
 mode'', causing dragging to select the complete word, not only the
 character containing the position of the tool.
+
+@vindex touch-screen-extend-selection
+@cindex extending the selection, touchscreens
+  Similarly, it may be difficult to select all of the text intended
+within a single gesture.  If the user option
+@code{touch-screen-extend-selection} is enabled, taps on the locations
+of the point or the mark within a window will begin a new ``drag''
+gesture, where the region will be extended in the direction of any
+subsequent movement.
 @end itemize
 
 @vindex touch-screen-delay

@@ -514,22 +514,9 @@ PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
 ## lastfile.o on Cygwin and MinGW, empty elsewhere.
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
-## Builds using libemacs.so (Android) don't dump Emacs within this
-## Makefile, but on device.  Make sure the library hash changes for
-## each change in shortlisp by linking an object that changes
-## accordingly to it.
-BUILD_COUNTER_OBJ =
-ifeq ($(XCONFIGURE),android)
-BUILD_COUNTER_OBJ = build-counter.o
-
-# This file is then compiled into build-counter.so
-build-counter.c: $(abs_top_builddir)/src/lisp.mk $(shortlisp)
-	$(AM_V_GEN) $(top_srcdir)/build-aux/makecounter.sh $@
-endif
-
 ## List of object files that make-docfile should not be told about.
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS) $(BUILD_COUNTER_OBJ)
+  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 ## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
 ## (On MinGW, firstfile.o should be before vm-limit.o.)
@@ -625,9 +612,11 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,
 ## and emacs depends on charprop, in practice this rule was always run
 ## anyway.
+ifneq ($(XCONFIGURE),android)
 $(lispsource)/international/charprop.el: \
   FORCE | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
+endif
 
 ## We require charprop.el to exist before ucs-normalize.el is
 ## byte-compiled, because ucs-normalize.el needs to load 2 uni-*.el files.
@@ -782,12 +771,22 @@ top_builddir := $(old_top_builddir)/..
 include $(old_top_builddir)/ndk-build/ndk-build.mk
 top_builddir := $(old_top_builddir)
 
-libemacs.so: $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
-	     $(MAKE_PDUMPER_FINGERPRINT) $(NDK_BUILD_SHARED) \
-	     $(NDK_BUILD_STATIC) $(etc)/DOC
+## Builds using libemacs.so (Android) don't dump Emacs within this
+## Makefile, but on device.  Make sure the library hash changes for
+## each change in shortlisp by linking an object that changes
+## accordingly to it.
+BUILD_COUNTER_OBJ = build-counter.o
+
+# This file is then compiled into libemacs.so
+build-counter.c: $(abs_top_builddir)/src/lisp.mk $(lisp)
+	$(AM_V_GEN) $(top_srcdir)/build-aux/makecounter.sh $@
+
+libemacs.so: $(ALLOBJS) $(BUILD_COUNTER_OBJ) $(LIBEGNU_ARCHIVE) \
+	     $(EMACSRES) $(MAKE_PDUMPER_FINGERPRINT) \
+	     $(NDK_BUILD_SHARED) $(NDK_BUILD_STATIC) $(etc)/DOC
 	$(AM_V_CCLD)$(CC) -o $@ $(ALL_CFLAGS) $(TEMACS_LDFLAGS) \
 	  $(ANDROID_LDFLAGS) $(LDFLAGS) -shared $(ALLOBJS) \
-	  $(LIBEGNU_ARCHIVE) $(LIBES)
+	  $(BUILD_COUNTER_OBJ) $(LIBEGNU_ARCHIVE) $(LIBES)
 	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@
 
 # There is also a binary named `android-emacs' which simply calls
@@ -918,10 +917,16 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS
 ## To solve the freshness issue, in the past we tried various clever tricks,
 ## but now that we require GNU make, we can simply specify
 ## bootstrap-emacs$(EXEEXT) as an order-only prerequisite.
+##
+## bootstrap-emacs doesn't have to be built when cross-compiling
+## libemacs.so for Android, however, as the Lisp files have already
+## been compiled by the top level `src' Makefile.
 
+ifneq ($(XCONFIGURE),android)
 %.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
 		THEFILE=$< $<c
+endif
 
 ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
 ## The following rules are used only when building a source tarball
@@ -975,8 +980,10 @@ NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
 	fi
 endif
 
+ifneq ($(XCONFIGURE),android)
 $(lispsource)/loaddefs.el: | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
+endif
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
