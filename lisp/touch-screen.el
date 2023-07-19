@@ -707,11 +707,11 @@ POINT should be the point currently tracked as
 PREFIX should be a virtual function key used to look up key
 bindings.
 
-If the fourth element of `touch-screen-current-tool' is nil, move
-point to the position of POINT, selecting the window under POINT
-as well, and deactivate the mark; if there is a button or link at
-POINT, call the command bound to `mouse-2' there.  Otherwise,
-call the command bound to `mouse-1'.
+If the fourth element of `touch-screen-current-tool' is nil or
+`restart-drag', move point to the position of POINT, selecting
+the window under POINT as well, and deactivate the mark; if there
+is a button or link at POINT, call the command bound to `mouse-2'
+there.  Otherwise, call the command bound to `mouse-1'.
 
 If the fourth element of `touch-screen-current-tool' is
 `mouse-drag', then generate either a `mouse-1' or a
@@ -729,7 +729,11 @@ keyboard if the current buffer and the character at the new point
 is not read-only."
   (let ((what (nth 3 touch-screen-current-tool))
         (posn (cdr point)) window point)
-    (cond ((null what)
+    (cond ((or (null what)
+               ;; If dragging has been restarted but the touch point
+               ;; hasn't been moved, translate the sequence into a
+               ;; regular mouse click.
+               (eq what 'restart-drag))
            (when (windowp (posn-window posn))
              (setq point (posn-point posn)
                    window (posn-window posn))
