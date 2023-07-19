@@ -124,4 +124,20 @@
                      (dyn dyn dyn dyn)
                      (dyn dyn dyn lex))))))
 
+(defmacro macroexp--test-macro1 ()
+  (declare (obsolete "new-replacement" nil))
+  1)
+
+(defmacro macroexp--test-macro2 ()
+  '(macroexp--test-macro1))
+
+(ert-deftest macroexp--test-obsolete-macro ()
+  (should
+   (let ((res
+          (cl-letf (((symbol-function 'message) #'user-error))
+            (condition-case err
+                (macroexpand-all '(macroexp--test-macro2))
+              (user-error (error-message-string err))))))
+     (should (and (stringp res) (string-match "new-replacement" res))))))
+
 ;;; macroexp-tests.el ends here
