@@ -3538,6 +3538,10 @@ Pure-GTK interface.")
 					   :sibling-args (:help-echo "\
 Haiku interface.")
 					   haiku)
+                                    (const :format "Android "
+					   :sibling-args (:help-echo "\
+Android interface.")
+					   android)
 				    (const :format "DOS "
 					   :sibling-args (:help-echo "\
 Plain MS-DOS.")
