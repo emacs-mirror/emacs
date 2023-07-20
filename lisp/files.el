@@ -3676,7 +3676,8 @@ asking you for confirmation."
 	   (left-margin             . integerp)	;; C source code
 	   (inhibit-compacting-font-caches . booleanp) ;; C source code
 	   (no-update-autoloads     . booleanp)
-	   (lexical-binding	 . booleanp)	  ;; C source code
+	   (lexical-binding	    . booleanp)	  ;; C source code
+	   (package-prefixes	    . booleanp)	  ;; C source code
 	   (tab-width               . integerp)	  ;; C source code
 	   (truncate-lines          . booleanp)	  ;; C source code
 	   (word-wrap               . booleanp)	  ;; C source code
@@ -3714,7 +3715,8 @@ function is allowed to change the contents of this alist.
 This hook is called only if there is at least one file-local
 variable to set.")
 
-(defvar permanently-enabled-local-variables '(lexical-binding)
+(defvar permanently-enabled-local-variables
+  '(lexical-binding package-prefixes)
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 

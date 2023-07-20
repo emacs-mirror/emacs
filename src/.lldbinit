@@ -32,8 +32,11 @@ command script import emacs_lldb
 
 # b xsignal
 b pkg_break
-b pkg_error
-b Fpkg_read
-
+#b pkg_error
+#b Fpkg_read
+# To find out from where macOS prints stuff to stderr, like
+# 023-07-20 13:41:17.073449+0200 emacs[53072:1205906] [default]
+#    CGSWindowShmemCreateWithPort failed on port 0
+# b libsystem_trace.dylib``_os_log_error_impl
 
 # end.
