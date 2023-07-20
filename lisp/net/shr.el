@@ -217,14 +217,17 @@ temporarily blinks with this face."
   :version "28.1")
 
 (defface shr-h4 nil
+  '((t (:inherit default)))
   "Face for <h4> elements."
   :version "28.1")
 
 (defface shr-h5 nil
+  '((t (:inherit default)))
   "Face for <h5> elements."
   :version "28.1")
 
 (defface shr-h6 nil
+  '((t (:inherit default)))
   "Face for <h6> elements."
   :version "28.1")
 

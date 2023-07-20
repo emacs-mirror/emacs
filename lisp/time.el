@@ -141,6 +141,7 @@ make the mail indicator stand out on a color display."
 
 (defface display-time-date-and-time nil
   "Face for `display-time-format'."
+  '((t (:inherit mode-line)))
   :group 'mode-line-faces
   :version "30.1")
 

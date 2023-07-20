@@ -151,15 +151,15 @@ This is not used directly, but only via inheritance by other faces."
 This is not used directly, but only via inheritance by other faces."
   :group 'nxml-faces)
 
-(defface nxml-delimiter
-  nil
-  "Face used to highlight delimiters.
-This is not used directly, but only via inheritance by other faces."
+(defface nxml-text
+  '((t (:inherit default)))
+  "Face used to highlight text."
   :group 'nxml-faces)
 
-(defface nxml-text
-  nil
-  "Face used to highlight text."
+(defface nxml-delimiter
+  '((t (:inherit nxml-text)))
+  "Face used to highlight delimiters.
+This is not used directly, but only via inheritance by other faces."
   :group 'nxml-faces)
 
 (defface nxml-processing-instruction-delimiter
@@ -230,7 +230,7 @@ This includes the `x' in hex references."
   :group 'nxml-faces)
 
 (defface nxml-element-colon
-  nil
+  '((t (:inherit nxml-delimiter)))
   "Face used for the colon in element names."
   :group 'nxml-faces)
 
