@@ -1071,14 +1071,6 @@ Currently (2022-09) just C++ Mode uses this."
   ;; matched.
   t nil)
 
-(c-lang-defconst c-string-escaped-newlines
-  "Set if the language support backslash escaped newlines inside string
-literals."
-  t nil
-  (c c++ objc pike) t)
-(c-lang-defvar c-string-escaped-newlines
-  (c-lang-const c-string-escaped-newlines))
-
 (c-lang-defconst c-multiline-string-start-char
   "Set if the language supports multiline string literals without escaped
 newlines.  If t, all string literals are multiline.  If a character,
@@ -1095,6 +1087,18 @@ further directions."
 (c-lang-defvar c-multiline-string-start-char
   (c-lang-const c-multiline-string-start-char))
 
+(c-lang-defconst c-escaped-newline-takes-precedence
+  "Set if the language resolves escaped newlines first.
+This makes a difference in a string like \"...\\\\\n\".  When
+this variable is nil, the first backslash escapes the second,
+leaving an unterminated string.  When it's non-nil, the string is
+continued onto the next line, and the first backslash escapes
+whatever begins that next line."
+  t nil
+  (c c++ objc pike) t)
+(c-lang-defvar c-escaped-newline-takes-precedence
+  (c-lang-const c-escaped-newline-takes-precedence))
+
 (c-lang-defconst c-string-innards-re-alist
   ;; An alist of regexps matching the innards of a string, the key being the
   ;; string's delimiter.
@@ -1105,9 +1109,12 @@ further directions."
   t (mapcar (lambda (delim)
 	      (cons
 	       delim
-	       (concat "\\(\\\\\\(.\\|\n\\)\\|[^\\\n\r"
-		       (string delim)
-		       "]\\)*")))
+	       (concat
+		(if (c-lang-const c-escaped-newline-takes-precedence)
+		    "\\(\\\\\\(\\\\?\n\\|.\\)\\|[^\\\n\r"
+		  "\\(\\\\\\(\n\\|.\\)\\|[^\\\n\r")
+		(string delim)
+		"]\\)*")))
 	    (and
 	     (or (null (c-lang-const c-multiline-string-start-char))
 		 (c-characterp (c-lang-const c-multiline-string-start-char)))
