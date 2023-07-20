@@ -43,7 +43,10 @@ modify this GNU manual.''
 @contents
 
 @node Top
-@top EasyPG Assistant user's manual
+@top EasyPG Assistant User's Manual
+@cindex easypg assistant
+@cindex gnu privacy guard
+@cindex gnupg
 
 EasyPG Assistant is an Emacs user interface to GNU Privacy Guard
 (GnuPG, @pxref{Top, , Top, gnupg, Using the GNU Privacy Guard}).
@@ -56,14 +59,22 @@ called EasyPG Library.
 @insertcopying
 @end ifnottex
 
+@c Unfortunately the node names of this manual are not very consistent
+@c w.r.t. their case.  However, case is significant in node names, so
+@c we probably better should not change these to not break any
+@c external references.  Things are more relaxed for structure titles,
+@c so we consistently updated them to title-case.
+
 @menu
 * Overview::
 * Quick start::
 * Commands::
 * GnuPG version compatibility::
+* GnuPG Pinentry::
 * Caching Passphrases::
 * Bug Reports::
 * GNU Free Documentation License::  The license for this documentation.
+* Concept Index::
 * Key Index::
 * Function Index::
 * Variable Index::
@@ -71,8 +82,10 @@ called EasyPG Library.
 
 @node Overview
 @chapter Overview
+@cindex features of easypg assistant
 
-EasyPG Assistant provides the following features.
+EasyPG Assistant is an Emacs frontend application to @acronym{GnuPG,
+GNU Privacy Guard} that provides the following features:
 
 @itemize @bullet
 @item Key management.
@@ -84,7 +97,24 @@ EasyPG Assistant provides the following features.
 @end itemize
 
 @node Quick start
-@chapter Quick start
+@chapter Quick Start
+@cindex introduction to easypg assistant
+@cindex gnupg documentation
+@cindex documentation on gnupg
+@cindex configuration of gnupg
+@cindex introduction to gnupg
+
+You can use EasyPG Assistant without any Emacs or GnuPG configuration
+whatsoever, for example to encrypt and decrypt files automatically
+with symmetric encryption, see @ref{Encrypting/decrypting gpg files}.
+However, to use the full set of EasyPG Assistant's functions you
+should have at least some minimum GnuPG configuration in place.
+
+John Michael Ashley's GNU Privacy Handbook, available online as part
+of @uref{https://gnupg.org/documentation/guides.html, the GnuPG user
+guides}, provides an introduction to GnuPG use and configuration.  In
+contrast to that, the GnuPG manual (@pxref{Top, , Top, gnupg, Using
+the GNU Privacy Guard}) is more of a reference manual.
 
 EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
 
@@ -118,7 +148,11 @@ This chapter introduces various commands for typical use cases.
 @end menu
 
 @node Key management
-@section Key management
+@section Key Management
+@cindex key management
+
+@cindex key ring, browsing
+@cindex browse key ring
 Probably the first step of using EasyPG Assistant is to browse your
 keyring.  @kbd{M-x epa-list-keys} is corresponding to @samp{gpg
 --list-keys} from the command line.
@@ -157,6 +191,7 @@ about the key you selected.
         Fingerprint: 9003 D76B 73B7 4A8A E588  10AF 4447 461B 2A9B EA2D
 @end example
 
+@cindex private key ring, browsing
 @noindent
 To browse your private keyring, use @kbd{M-x epa-list-secret-keys}.
 
@@ -172,12 +207,14 @@ to select keys, type @kbd{o}, and then supply the filename.
 Below are other commands related to key management.  Some of them take
 a file as input/output, and others take the current region.
 
+@cindex insert keys
 @deffn Command epa-insert-keys keys
 Insert selected @var{keys} after the point.  It will let you select
 keys before insertion.  By default, it will encode keys in the OpenPGP
 armor format.
 @end deffn
 
+@cindex import keys
 @deffn Command epa-import-keys file
 Import keys from @var{file} to your keyring.
 @end deffn
@@ -195,14 +232,18 @@ Import keys in the OpenPGP armor format in the current region between
 applies @code{epa-import-keys-region} to each of them.
 @end deffn
 
+@cindex delete keys
 @deffn Command epa-delete-keys allow-secret
 Delete selected keys.  If @var{allow-secret} is non-@code{nil}, it
 also delete the secret keys.
 @end deffn
 
 @node Cryptographic operations on regions
-@section Cryptographic operations on regions
+@section Cryptographic Operations on Regions
+@cindex cryptographic operations on regions
+@cindex region operations, cryptographic
 
+@cindex decrypt region
 @deffn Command epa-decrypt-region start end
 Decrypt the current region between @var{start} and @var{end}.  It
 replaces the region with the decrypted text.
@@ -216,6 +257,7 @@ and applies @code{epa-decrypt-region} to each of them.  That is, this
 command does not alter the original text around armors.
 @end deffn
 
+@cindex verify region
 @deffn Command epa-verify-region start end
 Verify the current region between @var{start} and @var{end}.  It sends
 the verification result to the minibuffer or a popup window.  It
@@ -231,6 +273,7 @@ searches OpenPGP cleartext blocks in the region and applies
 not alter the original text around OpenPGP cleartext blocks.
 @end deffn
 
+@cindex sign region
 @deffn Command epa-sign-region start end signers type
 Sign the current region between @var{start} and @var{end}.  By
 default, it creates a cleartext signature.  If a prefix argument is
@@ -238,6 +281,7 @@ given, it will let you select signing keys, and then a signature
 type.
 @end deffn
 
+@cindex encrypt region
 @deffn Command epa-encrypt-region start end recipients sign signers
 Encrypt the current region between @var{start} and @var{end}.  It will
 let you select recipients.  If a prefix argument is given, it will
@@ -246,28 +290,37 @@ you answered yes, it will let you select the signing keys.
 @end deffn
 
 @node Cryptographic operations on files
-@section Cryptographic operations on files
+@section Cryptographic Operations on Files
+@cindex cryptographic operations on files
+@cindex file operations, cryptographic
 
+@cindex decrypt file
 @deffn Command epa-decrypt-file file &optional output
 Decrypt @var{file}.  If you do not specify the name @var{output} to
 use for the decrypted file, this function prompts for the value to use.
 @end deffn
 
+@cindex verify file
 @deffn Command epa-verify-file file
 Verify @var{file}.
 @end deffn
 
+@cindex sign file
 @deffn Command epa-sign-file file signers type
 Sign @var{file}.  If a prefix argument is given, it will let you
 select signing keys, and then a signature type.
 @end deffn
 
+@cindex encrypt file
 @deffn Command epa-encrypt-file file recipients
 Encrypt @var{file}.  It will let you select recipients.
 @end deffn
 
 @node Dired integration
-@section Dired integration
+@section Dired Integration
+@cindex dired integration
+@cindex directory operations
+@cindex multiple file operations
 
 EasyPG Assistant extends Dired Mode for GNU Emacs to allow users to
 easily do cryptographic operations on files.  For example,
@@ -306,7 +359,9 @@ Encrypt marked files.
 @end table
 
 @node Mail-mode integration
-@section Mail-mode integration
+@section Mail-Mode Integration
+@cindex mail-mode integration
+@cindex sending signed/encrypted mails
 
 EasyPG Assistant provides a minor mode @code{epa-mail-mode} to help
 user compose inline OpenPGP messages.  Inline OpenPGP is a traditional
@@ -361,12 +416,55 @@ whether to sign, and which key(s) to sign with.
 @end table
 
 @node Encrypting/decrypting gpg files
-@section Encrypting/decrypting gpg files
+@section Encrypting and Decrypting gpg Files
+@cindex encrypting gpg files
+@cindex decrypting gpg files
+@cindex gpg files, encrypting and decrypting
+@cindex automatic file encryption and decryption
+
 By default, every file whose name ends with @file{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
 decrypted text is inserted in the buffer rather than encrypted one.
 Similarly, when you save the buffer to a @file{foo.gpg} file,
 encrypted data is written.
+
+When you save a buffer to an encrypted file for the first time, EasyPG
+Assistant presents you a list of keys in a buffer @file{*Keys*} where
+you can select recipients for encryption.  @xref{Key management}, for
+a description of the format of that buffer.  You can streamline this
+recipient selection step by customizing variables
+@code{epa-file-encrypt-to} and @code{epa-file-select-keys} described
+further below in this section.
+
+@cindex symmetric encryption, passphrase entry for
+If you do not select any recipient during this step, EasyPG Assistant
+uses symmetric encryption.  As a consequence, you have to enter the
+passphrase twice for every buffer save and every so often for file
+reads, since the GnuPG Agent caches your passphrase for file reads at
+least for some time, but not for buffer saves.  @xref{Caching
+Passphrases}, for more information.
+
+@cindex public key encryption, passphrase entry for
+If you have created your own keypair@footnote{For encryption and
+decryption of files you do not intend to share, you do not have to use
+an email address as recipient during creation of the keypair.  You can
+also use some free-form string that gives information on the use of
+the keypair, like @code{backup} or @code{account database}.}, you can
+select that as recipient, and EasyPG Assistant will use public key
+encryption for that file.  Since GnuPG performs encryption with your
+public key, it does not prompt for a passphrase for the buffer save,
+but it will prompt for your passphrase for file reads every now and
+then, depending on the GnuPG Agent cache configuration.
+
+@cindex tempory files created by easypg assistant
+To encrypt and decrypt files as described above EasyPG Assistant under
+certain circumstances uses intermediate tempory files that contain the
+plain-text contents of the files it processes.  EasyPG Assistant
+creates them below the directory returned by function
+@code{temporary-file-directory} (@pxref{Unique File Names, ,
+Generating Unique File Names, elisp, GNU Emacs Lisp Reference
+Manual}).  If you want to be sure not to leave any plain-text traces,
+use an encrypted file systems at least for that directory.
 
 The file name pattern for encrypted files can be controlled by
 @code{epa-file-name-regexp}.
@@ -404,11 +502,11 @@ You can also change the default behavior with the variable
 Control whether or not to pop up the key selection dialog.
 @end defvar
 
-For frequently visited files, it might be a good idea to tell Emacs
-which encryption method should be used through @xref{File Variables, ,
-, emacs, the Emacs Manual}.  Use the @code{epa-file-encrypt-to} local
-variable for this.
 @vindex epa-file-encrypt-to
+For frequently visited files, it might be a good idea to tell Emacs
+which encryption method should be used through file variables
+(@pxref{File Variables, , Local Variables in Files, emacs, The Emacs
+Editor}).  Use the @code{epa-file-encrypt-to} local variable for this.
 
 For example, if you want an Elisp file to be encrypted with a
 public key associated with an email address @samp{ueno@@unixuser.org},
@@ -436,6 +534,11 @@ behavior are below.
 @defvar epa-file-cache-passphrase-for-symmetric-encryption
 If non-@code{nil}, cache passphrase for symmetric encryption.  The
 default value is @code{nil}.
+
+For security reasons, this option is turned off by default and not
+recommended to be used.  Instead, consider using the GnuPG Agent, which
+in many cases can do the same job, and does it in a safer way.
+@xref{Caching Passphrases}, for more information.
 @end defvar
 
 @defvar epa-file-inhibit-auto-save
@@ -444,7 +547,9 @@ The default value is @code{t}.
 @end defvar
 
 @node Querying a key server
-@section Querying a key server
+@section Querying a Key Server
+@cindex query key server
+@cindex key server, querying
 
 The @code{epa-search-keys} command can be used to query a
 @acronym{GPG} key server.  Emacs will then pop up a buffer that lists
@@ -457,14 +562,23 @@ into your key ring).
 
 The @code{epa-keyserver} variable says which server to query.
 
-
 @node GnuPG version compatibility
-@chapter GnuPG version compatibility
+@chapter GnuPG Version Compatibility
+@cindex gnupg version compatibility
+@cindex version compatibility with gnupg
+@cindex compatibility with gnupg
 
-As of February 2016, there are three active branches of GnuPG: 2.1,
-2.0, and 1.4.  All those branches should work flawlessly with Emacs
-with basic use-cases.  They have, however, some incompatible
-characteristics, which might be visible when used from Emacs.
+As of June 2023, there are three active branches of GnuPG: 2.4, 2.2,
+and 1.4.  GnuPG versions 2.4.1 and later suffer from
+@uref{https://dev.gnupg.org/T6481, GnuPG bug T6481} and are hardly
+usable with Emacs.  There is a patch for that bug available at least
+for GnuPG version 2.4.1, which your operating system or distribution
+might provide already.  GnuPG 1.4 is considered a legacy version.
+
+Besides that, all of those branches mentioned above should work
+flawlessly with Emacs with basic use-cases.  They have, however, some
+incompatible characteristics, which might be visible when used from
+Emacs.
 
 @itemize
 @item
@@ -473,58 +587,127 @@ means, a key created with GnuPG 2.1 is not visible with 1.4.
 
 @item
 GnuPG 2.1 uses a fixed address for the Unix domain socket used to
-communicate with gpg-agent.  The @code{GPG_AGENT_INFO} environment
-variable, which is used by GnuPG 2.0 and 1.4, is ignored.  That means,
-if your system has both GnuPG 2.1 and 1.4, the gpg command from GnuPG
-1.4 is not able to use gpg-agent provided by 2.1 (at least out of box).
+communicate with @command{gpg-agent}.  The @code{GPG_AGENT_INFO}
+environment variable, which is used by GnuPG 2.0 and 1.4, is ignored.
+That means, if your system has both GnuPG 2.1 and 1.4, the gpg command
+from GnuPG 1.4 is not able to use @command{gpg-agent} provided by 2.1
+(at least out of box).
 
 @item
 GnuPG 2.1 (2.1.5 or later) has a mechanism to direct the Pinentry
-password prompt to the Emacs minibuffer@footnote{To enable this
-feature, add @samp{allow-emacs-pinentry} to
-@file{~/.gnupg/gpg-agent.conf} and let gpg-agent reload the
-configuration, with: @samp{gpgconf --reload gpg-agent}}, which would
-be useful when you use Emacs remotely or from a text-only terminal.
-That feature is not available in other versions, and more
-specifically, with 2.0 (as of 2.0.29), there is no way to avoid the
-graphical prompt.
+password prompt to the Emacs minibuffer.  @xref{GnuPG Pinentry}.
 @end itemize
+
+@node GnuPG Pinentry
+@chapter GnuPG Pinentry
+@cindex gnupg pinentry
+@cindex pinentry provided by gnupg
+
+An important component of the GnuPG suite is the Pinentry, which
+allows for secure entry of passphrases requested by GnuPG.  GnuPG
+delivers various different programs as Pinentry, ranging from bland
+TTY-only @command{pinentry-tty} to fancy graphical dialogs for various
+desktop environments, like @command{pinentry-gnome3}.  Your operating
+system usually determines which of these is used by default.
+
+Note that the selection of a concrete Pinentry program determines only
+@emph{how} GnuPG queries for passphrases and not @emph{how often}.
+For the latter question see @ref{Caching Passphrases}.
+
+@cindex pinentry, emacs as
+With some configuration Emacs can also play the role of a Pinentry.
+The most natural choice, available with GnuPG 2.1.5 and later, is to
+use Emacs itself as Pinentry for requests that are triggered by Emacs.
+For example, if you open a file whose name ends with @file{.gpg} using
+automatic decryption, you most likely also want to enter the
+passphrase for that request in Emacs.
+
+@cindex loopback pinentry
+This so called @dfn{loopback Pinentry} has the added benefit that it
+works also when you use Emacs remotely or from a text-only terminal.
+To enable it:
+
+@enumerate
+@item
+@vindex allow-loopback-pinentry
+Ensure that option @code{allow-loopback-pinentry} is configured for
+@command{gpg-agent}, which should be the default.  @xref{Agent
+Options, , Option Summary, gnupg, Using the GNU Privacy Guard}.
+
+@item
+@vindex epg-pinentry-mode
+Customize variable @code{epg-pinentry-mode} to @code{loopback} in
+Emacs.
+@end enumerate
+
+There are other options available to use Emacs as Pinentry, you might
+come across a Pinentry called @command{pinentry-emacs} or
+@command{gpg-agent} option @code{allow-emacs-pinentry}.  However,
+these are considered insecure or semi-obsolete and might not be
+supported by your operating system or distribution.  For example,
+Debian GNU/Linux supports only the loopback Pinentry described above.
+
+@ignore
+In case somebody requests these:
+
+Use Emacs for all GnuPG requests:
+
+Make @command{pinentry-emacs} the default Pinentry by means of your
+operating system.  Install package @file{pinentry.el} from GNU ELPA
+and execute @kbd{M-x pinentry-start} to start the Emacs Pinentry
+service.  @emph{All} GnuPG passphrase requests should then result in a
+minibuffer prompt in the running Emacs.  If Emacs or the Emacs
+Pinentry service are not running, passphrase requests fail.
+
+Use Emacs for all GnuPG requests with other Pinentry as fallback:
+
+Ensure the other Pinentry supports Emacs; @command{pinentry-curses}
+does, for example.  Configure @command{gpg-agent} option
+@code{allow-emacs-pinentry}.  Set environment variable
+@code{INSIDE_EMACS} for the calling process.  Install package
+@file{pinentry.el}.  Now if Emacs is running and @kbd{M-x
+pinentry-start} has been executed, all GnuPG passphrase requests
+should result in a minibuffer prompt in the running Emacs.  If Emacs
+or the Emacs Pinentry service are not running, GnuPG uses the other
+Pinentry instead.
+@end ignore
 
 @node Caching Passphrases
 @chapter Caching Passphrases
+@cindex caching passphrases
+@cindex entering passphrases
+@cindex passphrases, entering and caching
 
 Typing passphrases is a troublesome task if you frequently open and
 close the same file.  GnuPG and EasyPG Assistant provide mechanisms to
 remember your passphrases for a limited time.  Using these, you only
-need to re-enter the passphrase occasionally.
-However, the configuration is a bit
-confusing since it depends on your GnuPG installation@xref{GnuPG
-version compatibility}, encryption method (symmetric or public key),
-and whether or not you want to use gpg-agent.  Here are some
-questions:
+need to re-enter the passphrase occasionally.  However, the
+configuration is a bit confusing since it depends on your GnuPG
+installation (@pxref{GnuPG version compatibility}), encryption method
+(symmetric or public key), and whether or not you want to use
+GnuPG Agent.  As an additional constraint, use of the GnuPG Agent is
+mandatory for GnuPG 2.0 and later.  Here are some questions:
 
 @enumerate
-@item Do you use GnuPG version 2.1 or 2.0 instead of GnuPG version 1.4?
+@item Do you use GnuPG version 2.0 or later instead of GnuPG version 1.4?
 @item Do you use symmetric encryption rather than public key encryption?
-@item Do you want to use gpg-agent?
+@item Do you want to use GnuPG Agent?
 @end enumerate
 
 Here are configurations depending on your answers:
 
 @multitable {111} {222} {333} {configuration configuration configuration}
 @item @b{1} @tab @b{2} @tab @b{3} @tab Configuration
-@item Yes @tab Yes @tab Yes @tab Set up gpg-agent.
-@item Yes @tab Yes @tab No @tab You can't, without gpg-agent.
-@item Yes @tab No @tab Yes @tab Set up gpg-agent.
-@item Yes @tab No @tab No @tab You can't, without gpg-agent.
-@item No @tab Yes @tab Yes @tab Set up elisp passphrase cache.
-@item No @tab Yes @tab No @tab Set up elisp passphrase cache.
-@item No @tab No @tab Yes @tab Set up gpg-agent.
-@item No @tab No @tab No @tab You can't, without gpg-agent.
+@item Yes   @tab Yes   @tab Must  @tab Set up GnuPG Agent.
+@item Yes   @tab No    @tab Must  @tab Set up GnuPG Agent.
+@item No    @tab Yes   @tab Yes   @tab Set up elisp passphrase cache.
+@item No    @tab Yes   @tab No    @tab Set up elisp passphrase cache.
+@item No    @tab No    @tab Yes   @tab Set up GnuPG Agent.
+@item No    @tab No    @tab No    @tab You can't, without GnuPG Agent.
 @end multitable
 
-To set up gpg-agent, follow the instruction in GnuPG manual.
-@pxref{Invoking GPG-AGENT, , Invoking GPG-AGENT, gnupg}.
+To set up GnuPG Agent, follow the instruction in @ref{Invoking
+GPG-AGENT, , , gnupg, Using the GNU Privacy Guard}.
 
 To set up elisp passphrase cache, set
 @code{epa-file-cache-passphrase-for-symmetric-encryption}.
@@ -532,11 +715,13 @@ To set up elisp passphrase cache, set
 
 @node Bug Reports
 @chapter Bug Reports
+@cindex bug reports
+@cindex reporting bugs
 
 Bugs and problems with EasyPG Assistant are actively worked on by the
 Emacs development team.  Feature requests and suggestions are also
-more than welcome.  Use @kbd{M-x report-emacs-bug}, @pxref{Bugs, ,
-Bugs, emacs, Reporting Bugs}.
+more than welcome.  Use @kbd{M-x report-emacs-bug}, see @ref{Bugs, ,
+Reporting Bugs, emacs, The Emacs Editor}.
 
 When submitting a bug report, please try to describe in excruciating
 detail the steps required to reproduce the problem.  Also try to
@@ -555,6 +740,10 @@ buffer name is a whitespace.
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
 
 @node Key Index
 @unnumbered Key Index

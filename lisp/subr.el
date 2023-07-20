@@ -4061,11 +4061,11 @@ See also `locate-user-emacs-file'.")
 
 The current restrictions, if any, are restored upon return.
 
-When the optional :label LABEL argument is present, in which
-LABEL is a symbol, inside BODY, `narrow-to-region' and `widen'
-can be used only within the START and END limits.  To gain access
-to other portions of the buffer, use `without-restriction' with the
-same LABEL argument.
+When the optional LABEL argument, which is evaluated to get the
+label to use and must yield a non-nil value, is present, inside
+BODY, `narrow-to-region' and `widen' can be used only within the
+START and END limits.  To gain access to other portions of the
+buffer, use `without-restriction' with the same LABEL argument.
 
 \(fn START END [:label LABEL] BODY)"
   (declare (indent 2) (debug t))
@@ -4077,8 +4077,9 @@ same LABEL argument.
 (defun internal--with-restriction (start end body &optional label)
   "Helper function for `with-restriction', which see."
   (save-restriction
-    (narrow-to-region start end)
-    (if label (internal--label-restriction label))
+    (if label
+        (internal--labeled-narrow-to-region start end label)
+      (narrow-to-region start end))
     (funcall body)))
 
 (defmacro without-restriction (&rest rest)
@@ -4086,9 +4087,8 @@ same LABEL argument.
 
 The current restrictions, if any, are restored upon return.
 
-When the optional :label LABEL argument is present, the
-restrictions set by `with-restriction' with the same LABEL argument
-are lifted.
+When the optional LABEL argument is present, the restrictions set
+by `with-restriction' with the same LABEL argument are lifted.
 
 \(fn [:label LABEL] BODY)"
   (declare (indent 0) (debug t))

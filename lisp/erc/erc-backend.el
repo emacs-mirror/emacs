@@ -101,6 +101,8 @@
 (eval-when-compile (require 'cl-lib))
 (require 'erc-common)
 
+(defvar erc--called-as-input-p)
+(defvar erc--display-context)
 (defvar erc--target)
 (defvar erc--user-from-nick-function)
 (defvar erc-channel-list)
@@ -304,7 +306,7 @@ function `erc-server-process-alive' instead.")
   "Timer that resets `erc--server-last-reconnect-count' to zero.
 Becomes non-nil in all server buffers when an IRC connection is
 first \"established\" and carries out its duties
-`erc-reconnect-display-timeout' seconds later.")
+`erc-auto-reconnect-display-timeout' seconds later.")
 
 (defvar-local erc--server-last-reconnect-count 0
   "Snapshot of reconnect count when the connection was established.")
@@ -957,7 +959,7 @@ EVENT is the message received from the closed connection process."
   (erc--server-last-reconnect-display-reset (current-buffer)))
 
 (defun erc--server-last-reconnect-display-reset (buffer)
-  "Deactivate `erc-reconnect-display'."
+  "Deactivate `erc-auto-reconnect-display'."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (when erc--server-reconnect-display-timer
@@ -1684,6 +1686,12 @@ add things to `%s' instead."
          parsed 'notice 'active
          'INVITE ?n nick ?u login ?h host ?c chnl)))))
 
+(cl-defmethod erc--server-determine-join-display-context (_channel alist)
+  "Determine `erc--display-context' for JOINs."
+  (if (assq 'erc-buffer-display alist)
+      alist
+    `((erc-buffer-display . JOIN) ,@alist)))
+
 (define-erc-response-handler (JOIN)
   "Handle join messages."
   nil
@@ -1698,7 +1706,11 @@ add things to `%s' instead."
         (let* ((str (cond
                      ;; If I have joined a channel
                      ((erc-current-nick-p nick)
-                      (when (setq buffer (erc--open-target chnl))
+                      (let ((erc--display-context
+                             (erc--server-determine-join-display-context
+                              chnl erc--display-context)))
+                        (setq buffer (erc--open-target chnl)))
+                      (when buffer
                         (set-buffer buffer)
                         (with-suppressed-warnings
                             ((obsolete erc-add-default-channel))
@@ -1887,6 +1899,8 @@ add things to `%s' instead."
              (noticep (string= cmd "NOTICE"))
              ;; S.B. downcase *both* tgt and current nick
              (privp (erc-current-nick-p tgt))
+             (erc--display-context `((erc-buffer-display . ,(intern cmd))
+                                     ,@erc--display-context))
              s buffer
              fnick)
         (setf (erc-response.contents parsed) msg)
@@ -1901,6 +1915,8 @@ add things to `%s' instead."
                               (and erc-ensure-target-buffer-on-privmsg
                                    (or erc-receive-query-display
                                        erc-join-buffer)))))
+                (push `(erc-receive-query-display . ,(intern cmd))
+                      erc--display-context)
                 (setq buffer (erc--open-target nick)))
             ;; A channel buffer has been killed but is still joined.
             (when erc-ensure-target-buffer-on-privmsg
@@ -2486,6 +2502,17 @@ See `erc-display-server-message'." nil
    parsed
    (erc-response.contents parsed)))
 
+(define-erc-response-handler (471)
+  "ERR_CHANNELISFULL: channel full." nil
+  (erc-display-message parsed '(notice error) nil 's471
+                       ?c (cadr (erc-response.command-args parsed))
+                       ?s (erc-response.contents parsed)))
+
+(define-erc-response-handler (473)
+  "ERR_INVITEONLYCHAN: channel invitation only." nil
+  (erc-display-message parsed '(notice error) nil 's473
+                       ?c (cadr (erc-response.command-args parsed))))
+
 (define-erc-response-handler (474)
   "Banned from channel errors." nil
   (erc-display-message parsed '(notice error) nil
@@ -2499,6 +2526,7 @@ See `erc-display-server-message'." nil
                        ?c (cadr (erc-response.command-args parsed)))
   (when erc-prompt-for-channel-key
     (let ((channel (cadr (erc-response.command-args parsed)))
+          (erc--called-as-input-p t)
           (key (read-from-minibuffer
                 (format "Channel %s is mode +k.  Enter key (RET to cancel): "
                         (cadr (erc-response.command-args parsed))))))
@@ -2567,7 +2595,7 @@ See `erc-display-error-notice'." nil
 ;;                               200 201 202 203 204 205 206 208 209 211 212 213
 ;;                               214 215 216 217 218 219 241 242 243 244 249 261
 ;;                               262 302 342 351 407 409 411 413 414 415
-;;                               423 424 436 441 443 444 467 471 472 473 KILL)
+;;                               423 424 436 441 443 444 467 472 KILL)
 ;;   nil nil
 ;;   (ignore proc parsed))
 

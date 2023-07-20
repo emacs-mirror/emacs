@@ -500,6 +500,11 @@ behavior of the indirect buffer."
   "Run `ielm-indirect-setup-hook'."
   (run-hooks 'ielm-indirect-setup-hook))
 
+(defun ielm--expand-ellipsis (orig-fun beg &rest args)
+  (let ((end (copy-marker (apply orig-fun beg args) t)))
+    (funcall pp-default-function beg end)
+    end))
+
 ;;; Major mode
 
 (define-derived-mode inferior-emacs-lisp-mode comint-mode "IELM"
@@ -582,6 +587,8 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq-local comment-use-syntax t)
   (setq-local lexical-binding t)
 
+  (add-function :around (local 'cl-print-expand-ellipsis-function)
+                #'ielm--expand-ellipsis)
   (setq-local indent-line-function #'ielm-indent-line)
   (setq-local ielm-working-buffer (current-buffer))
   (setq-local fill-paragraph-function #'lisp-fill-paragraph)

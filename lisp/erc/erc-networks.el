@@ -29,8 +29,6 @@
 ;;
 ;; This is the "networks" module.
 ;;
-;; M-x erc-server-select provides an alternative way to connect to servers by
-;; choosing networks.
 ;; You can use (eq (erc-network) 'Network) if you'd like to set variables or do
 ;; certain actions according to which network you're connected to.
 ;; If a network you use is not listed in `erc-networks-alist', you can put
@@ -258,6 +256,7 @@
   ("IRChat: Random server" IRChat "irc.irchat.net" ((6660 6669)))
   ("IrcLordz: Random server" IrcLordz "irc.irclordz.com" 6667)
   ("IrcMalta: Random server" IrcMalta "irc.ircmalta.org" ((6660 6667)))
+  ;; This one is dead but used in testing.  Please retain.
   ("IRCnet: EU, FR, Random" IRCnet "irc.fr.ircnet.net" 6667)
   ("IRCnet: EU, IT, Random" IRCnet "irc.ircd.it" ((6665 6669)))
   ("IRCnet: AS, IL, Haifa" IRCnet "ircnet.netvision.net.il" ((6661 6668)))
@@ -318,13 +317,15 @@
   ("LagNet: Random server" LagNet "irc.lagnet.org.za" 6667)
   ("LagNet: AF, ZA, Cape Town" LagNet "reaper.lagnet.org.za" 6667)
   ("LagNet: AF, ZA, Johannesburg" LagNet "mystery.lagnet.org.za" 6667)
-  ("Libera.Chat: Random server" Libera.Chat "irc.libera.chat" 6667)
-  ("Libera.Chat: Random Europe server" Libera.Chat "irc.eu.libera.chat" 6667)
-  ("Libera.Chat: Random US & Canada server" Libera.Chat "irc.us.libera.chat" 6667)
-  ("Libera.Chat: Random Australia & New Zealand server" Libera.Chat "irc.au.libera.chat" 6667)
-  ("Libera.Chat: Random East Asia server" Libera.Chat "irc.ea.libera.chat" 6667)
-  ("Libera.Chat: IPv4 only server" Libera.Chat "irc.ipv4.libera.chat" 6667)
-  ("Libera.Chat: IPv6 only server" Libera.Chat "irc.ipv6.libera.chat" 6667)
+  ("Libera.Chat: Random server" Libera.Chat "irc.libera.chat"
+   ((6665 6667) (8000 8002)) (6697 7000 7070))
+  ;; If not deprecating this option, use ^ for the rest of these servers.
+  ("Libera.Chat: Random Europe server" Libera.Chat "irc.eu.libera.chat" 6667 6697)
+  ("Libera.Chat: Random US & Canada server" Libera.Chat "irc.us.libera.chat" 6667 6697)
+  ("Libera.Chat: Random Australia & New Zealand server" Libera.Chat "irc.au.libera.chat" 6667 6697)
+  ("Libera.Chat: Random East Asia server" Libera.Chat "irc.ea.libera.chat" 6667 6697)
+  ("Libera.Chat: IPv4 only server" Libera.Chat "irc.ipv4.libera.chat" 6667 6697)
+  ("Libera.Chat: IPv6 only server" Libera.Chat "irc.ipv6.libera.chat" 6667 6697)
   ("Librenet: Random server" Librenet "irc.librenet.net" 6667)
   ("LinkNet: Random server" LinkNet "irc.link-net.org" ((6667 6669)))
   ("LinuxChix: Random server" LinuxChix "irc.linuxchix.org" 6667)
@@ -349,7 +350,7 @@
   ("Novernet: Random server" Novernet "irc.novernet.com" ((6665 6669) 7000 ))
   ("Nullrouted: Random server" Nullrouted "irc.nullrouted.org" ((6666 6669) 7000 ))
   ("NullusNet: Random server" NullusNet "irc.nullus.net" 6667)
-  ("OFTC: Random server" OFTC "irc.oftc.net" ((6667 6670) 7000))
+  ("OFTC: Random server" OFTC "irc.oftc.net" ((6667 6670) 7000) (6697 9999))
   ("OpChat: Random server" OpChat "irc.opchat.org" ((6667 6669)))
   ("Othernet: Random server" Othernet "irc.othernet.org" 6667)
   ("Othernet: US, FL, Miami" Othernet "miami.fl.us.othernet.org" 6667)
@@ -472,12 +473,13 @@
   ("ZUHnet: Random server" ZUHnet "irc.zuh.net" 6667)
   ("Zurna: Random server" Zurna "irc.zurna.net" 6667))
   "Alist of irc servers.
-Each server is a list (NAME NET HOST PORTS) where
+Each server is a list (NAME NET HOST PORTS TLS-PORTS) where
 NAME is a name for that server,
 NET is a symbol indicating to which network from `erc-networks-alist'
   this server corresponds,
-HOST is the servers hostname and
-PORTS is either a number, a list of numbers, or a list of port ranges."
+HOST is the server's hostname, and (TLS-)PORTS is either a
+number, a list of numbers, or a list of port ranges."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(alist :key-type (string :tag "Name")
 		:value-type
 		(group symbol (string :tag "Hostname")
@@ -486,7 +488,15 @@ PORTS is either a number, a list of numbers, or a list of port ranges."
 			       (repeat :tag "List of ports or ranges"
 				       (choice (integer :tag "Port number")
 					       (list :tag "Port range"
-						     integer integer)))))))
+						     integer integer))))
+                       (choice :tag "TLS ports"
+                               (integer :tag "TLS port number")
+                               (repeat :tag "List of TLS ports or ranges"
+                                       (choice (integer :tag "TLS port number")
+                                               (list :tag "TLS port range"
+                                                     integer integer)))))))
+(make-obsolete-variable 'erc-server-alist
+                        "specify `:server' with `erc-tls'." "30.1")
 
 (defcustom erc-networks-alist
   '((4-irc "4-irc.com")
@@ -1459,6 +1469,7 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
          ;; When this ends up being the current buffer, either we have
          ;; a "given" ID or the buffer was reused on reconnecting.
          (existing (get-buffer name)))
+    (process-put new-proc 'erc-networks--id erc-networks--id)
     (cond ((or (not existing)
                (erc-networks--id-given erc-networks--id)
                (eq existing (current-buffer)))
@@ -1535,7 +1546,7 @@ As an example:
   (erc-ports-list \\='((1 5))) => (1 2 3 4 5)
   (erc-ports-list \\='(1 (3 5))) => (1 3 4 5)"
   (let (result)
-    (dolist (p ports)
+    (dolist (p (ensure-list ports))
       (cond ((numberp p)
 	     (push p result))
 	    ((listp p)
@@ -1544,31 +1555,32 @@ As an example:
 				 result)))))
     (nreverse result)))
 
-;;;###autoload
-(defun erc-server-select ()
-  "Interactively select a server to connect to using `erc-server-alist'."
-  (interactive)
+(defun erc-networks--server-select ()
+  "Prompt for a server in `erc-server-alist' and return its irc(s):// URL.
+Choose port at random if multiple candidates exist, but always
+prefer TLS without asking.  When a port can't be determined,
+return the host alone sans URL formatting (for compatibility)."
   (let* ((completion-ignore-case t)
 	 (net (intern
 	       (completing-read "Network: "
 				(delete-dups
 				 (mapcar (lambda (x)
-					   (list (symbol-name (nth 1 x))))
+                                           (list (nth 1 x)))
 					 erc-server-alist)))))
-	 (srv (assoc
-	       (completing-read "Server: "
-				(delq nil
-				      (mapcar (lambda (x)
-						(when (equal (nth 1 x) net)
-						  x))
-					      erc-server-alist)))
-	       erc-server-alist))
+         (s-choose (lambda (entry)
+                     (and (equal (nth 1 entry) net)
+                          (if-let ((b (string-search ": " (car entry))))
+                              (cons (format "%s (%s)" (nth 2 entry)
+                                            (substring (car entry) (+ b 2)))
+                                    (cdr entry))
+                            entry))))
+         (s-entries (delq nil (mapcar s-choose erc-server-alist)))
+         (srv (assoc (completing-read "Server: " s-entries) s-entries))
 	 (host (nth 2 srv))
-	 (ports (if (listp (nth 3 srv))
-		    (erc-ports-list (nth 3 srv))
-		  (list (nth 3 srv))))
-         (port (and ports (seq-random-elt ports))))
-    (erc :server host :port port)))
+         (pspec (nthcdr 3 srv))
+         (ports (erc-ports-list (or (cadr pspec) (car pspec))))
+         (scheme (if (cdr pspec) "ircs" "irc")))
+    (if ports (format "%s://%s:%d" scheme host (seq-random-elt ports)) host)))
 
 ;;; The following experimental
 ;; It does not work yet, help me with it if you
@@ -1605,7 +1617,7 @@ VALUE is the options value.")
 		     items nil)))))
     val))
 
-(erc-get 'pals 'Libera.Chat)
+;; (erc-get 'pals 'Libera.Chat)
 
 (provide 'erc-networks)
 

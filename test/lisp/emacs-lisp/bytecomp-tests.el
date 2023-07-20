@@ -1929,6 +1929,64 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
                       "#4=(a #5=(#4# b . #6=(#5# c . #4#)) (#6# d))"
                       ")"))))))
 
+(require 'backtrace)
+
+(defun bytecomp-tests--error-frame (fun args)
+  "Call FUN with ARGS.  Return result or (ERROR . BACKTRACE-FRAME)."
+  (let* ((debugger
+          (lambda (&rest args)
+            ;; Make sure Emacs doesn't think our debugger is buggy.
+            (cl-incf num-nonmacro-input-events)
+            (throw 'bytecomp-tests--backtrace
+                   (cons args (cadr (backtrace-get-frames debugger))))))
+         (debug-on-error t)
+         (backtrace-on-error-noninteractive nil)
+         (debug-on-quit t)
+         (debug-ignored-errors nil))
+    (catch 'bytecomp-tests--backtrace
+      (apply fun args))))
+
+(defconst bytecomp-tests--byte-op-error-cases
+  '(((car a) (wrong-type-argument listp a))
+    ((cdr 3) (wrong-type-argument listp 3))
+    ((setcar 4 b) (wrong-type-argument consp 4))
+    ((setcdr c 5) (wrong-type-argument consp c))
+    ((nth 2 "abcd") (wrong-type-argument listp "abcd"))
+    ((elt (x y . z) 2) (wrong-type-argument listp z))
+    ;; Many more to add
+    ))
+
+(ert-deftest bytecomp--byte-op-error-backtrace ()
+  "Check that signalling byte ops show up in the backtrace."
+  (dolist (case bytecomp-tests--byte-op-error-cases)
+    (ert-info ((prin1-to-string case) :prefix "case: ")
+      (let* ((call (nth 0 case))
+             (expected-error (nth 1 case))
+             (fun-sym (car call))
+             (actuals (cdr call)))
+        ;; Test both calling the function directly, and calling
+        ;; a byte-compiled η-expansion (lambda (ARGS...) (FUN ARGS...))
+        ;; which should turn the function call into a byte-op.
+        (dolist (byte-op '(nil t))
+          (ert-info ((prin1-to-string byte-op) :prefix "byte-op: ")
+            (let* ((fun
+                    (if byte-op
+                        (let* ((nargs (length (cdr call)))
+                               (formals (mapcar (lambda (i)
+                                                  (intern (format "x%d" i)))
+                                                (number-sequence 1 nargs))))
+                          (byte-compile
+                           `(lambda ,formals (,fun-sym ,@formals))))
+                      fun-sym))
+                   (error-frame (bytecomp-tests--error-frame fun actuals)))
+              (should (consp error-frame))
+              (should (equal (car error-frame) (list 'error expected-error)))
+              (let ((frame (cdr error-frame)))
+                (should (equal (type-of frame) 'backtrace-frame))
+                (should (equal (cons (backtrace-frame-fun frame)
+                                     (backtrace-frame-args frame))
+                               call))))))))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

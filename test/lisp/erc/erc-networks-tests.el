@@ -1750,4 +1750,22 @@
     (should (eq (erc-networks--determine)
                 erc-networks--name-missing-sentinel))))
 
+(ert-deftest erc-ports-list ()
+  (with-suppressed-warnings ((obsolete erc-server-alist))
+    (let* ((srv (assoc "Libera.Chat: Random server" erc-server-alist)))
+      (should (equal (erc-ports-list (nth 3 srv))
+                     '(6665 6666 6667 8000 8001 8002)))
+      (should (equal (erc-ports-list (nth 4 srv))
+                     '(6697 7000 7070))))
+
+    (let* ((srv (assoc "Libera.Chat: Random Europe server" erc-server-alist)))
+      (should (equal (erc-ports-list (nth 3 srv)) '(6667)))
+      (should (equal (erc-ports-list (nth 4 srv)) '(6697))))
+
+    (let* ((srv (assoc "OFTC: Random server" erc-server-alist)))
+      (should (equal (erc-ports-list (nth 3 srv))
+                     '(6667 6668 6669 6670 7000)))
+      (should (equal (erc-ports-list (nth 4 srv))
+                     '(6697 9999))))))
+
 ;;; erc-networks-tests.el ends here

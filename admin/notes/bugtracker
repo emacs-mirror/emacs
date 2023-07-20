@@ -39,7 +39,7 @@ tags 123 moreinfo|unreproducible|wontfix|patch|notabug
 
 For a list of all bugs, see https://debbugs.gnu.org/db/pa/lemacs.html
 This is a static page, updated once a day.  There is also a dynamic
-list, generated on request. This accepts various options, eg to see
+list, generated on request. This accepts various options, e.g., to see
 the most recent bugs:
 
 https://debbugs.gnu.org/cgi/pkgreport.cgi?newest=100
@@ -98,7 +98,7 @@ you might want to have a dialog with the owner address, outside of
 normal bug reporting.)
 
 ** When reporting a new bug, to send a Cc to another address
-(e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
+(e.g., bug-cc-mode@gnu.org), do NOT just use a Cc: header.
 Instead, use "X-Debbugs-Cc:".  This ensures the Cc address(es) will get a
 mail with the bug report number in.  If you do not do this, each reply
 in the subsequent discussion might end up creating a new bug.
@@ -138,7 +138,8 @@ The "maintainer email address" is "bug-gnu-emacs@gnu.org" in most cases.
 
 ** To not get acknowledgment mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
-you can add an element to gnus-posting-styles to do this automatically, eg:
+you can add an element to gnus-posting-styles to do this automatically,
+e.g.:
 
 ("gnu-emacs\\(-pretest\\)?-bug"
    ("X-Debbugs-No-Ack" "yes"))
@@ -222,14 +223,14 @@ Mail-Followup-To: 123@debbugs.gnu.org, person-who-closed
 ** Setting bug parameters.
 There are two ways to set the parameters of bugs in the database
 (tags, severity level, etc).  When you report a new bug, you can
-provide a "pseudo-header" at the start of the report, eg:
+provide a "pseudo-header" at the start of the report, e.g.:
 
 Package: emacs
 Version: 23.0.60
 Severity: minor
 
 This can also include tags, or any X-Debbugs- setting.
-Some things (e.g. submitter) don't seem to work here.
+Some things (e.g., submitter) don't seem to work here.
 
 Otherwise, send mail to the control server, control@debbugs.gnu.org.
 At the start of the message body, supply the desired commands, one per
@@ -258,12 +259,12 @@ where VERSION is XX.YY numerical version number, like 42.1.
 *** To reopen a closed bug:
 reopen 123
 
-*** Bugs can be tagged in various ways (eg wontfix, patch, etc).
+*** Bugs can be tagged in various ways (e.g., wontfix, patch, etc).
 The available tags are:
 patch wontfix moreinfo unreproducible fixed notabug help security confirmed easy
 See https://debbugs.gnu.org/Developer#tags
 The list of tags can be prefixed with +, - or =, meaning to add (the
-default), remove, or reset the tags. E.g.:
+default), remove, or reset the tags.  E.g.:
 
 tags 123 + wontfix
 
@@ -310,7 +311,7 @@ This will add a usertag "any-tag-you-like" to bug#1234.  The tag will
 be associated with the user "emacs".  If you omit the first line,
 the tag will be associated with your email address.
 
-The syntax of the usertags command is the same as that of tags (eg wrt
+The syntax of the usertags command is the same as that of tags (e.g., wrt
 the optional [=+-] argument).
 
 b) In an initial submission, in the pseudo-header:
@@ -340,15 +341,15 @@ than one email address, but it does not seem to work for me.)
 **** To find bugs tagged with a specific usertag:
 
 This works just like a normal tags search, but with the addition of a
-"users" field.  Eg:
+"users" field.  E.g.:
 
 https://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs;tag=calendar
 
 *** To merge bugs:
-Eg when bad replies create a bunch of new bugs for the same report.
-Bugs must all be in the same state (e.g. same package(s) and severity
+e.g., when bad replies create a bunch of new bugs for the same report.
+Bugs must all be in the same state (e.g., same package(s) and severity
 -- see 'reassign' and 'severity' below), but need not have the same
-tags (tags are merged). E.g.:
+tags (tags are merged).  E.g.:
 
 merge 123 124 125 ...
 
@@ -557,7 +558,7 @@ debbugs-submit.  Approved mail is passed on to the tracker.
 tracker, since mail from whitelisted senders goes straight through.)
 
 NOTE: An alternative to this would be to use listhelper AT nongnu.org
-as a moderator address.  Eg the emacs-bug-tracker list uses this.
+as a moderator address.  E.g., the emacs-bug-tracker list uses this.
 It does basic spam processing on the moderator requests and
 automatically rejects the obviously bogus ones.  Someone still has to
 accept the good ones though.  The advantage of this would not be having

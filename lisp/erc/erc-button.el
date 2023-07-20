@@ -355,8 +355,6 @@ specified by `erc-button-alist'."
   ( cuser nil :type (or null erc-channel-user)
     ;; The CDR of a value from an `erc-channel-users' table.
     :documentation "A possibly nil `erc-channel-user'.")
-  ( face erc-button-face :type symbol
-    :documentation "Temp `erc-button-face' while buttonizing.")
   ( nickname-face erc-button-nickname-face :type symbol
     :documentation "Temp `erc-button-nickname-face' while buttonizing.")
   ( mouse-face erc-button-mouse-face :type symbol
@@ -431,45 +429,43 @@ retrieve it during buttonizing via
 
 (defun erc-button-add-nickname-buttons (entry)
   "Search through the buffer for nicknames, and add buttons."
-  (let ((form (nth 2 entry))
-        (fun (nth 3 entry))
-        (erc-button-buttonize-nicks (and erc-button-buttonize-nicks
-                                         erc-button--modify-nick-function))
-        bounds word)
-    (when (and form (setq form (erc-button--extract-form form)))
-      (goto-char (point-min))
-      (while (erc-forward-word)
-        (when (setq bounds (erc-bounds-of-word-at-point))
-          (setq word (buffer-substring-no-properties
-                      (car bounds) (cdr bounds)))
-          (let* ((erc-button-face erc-button-face)
-                 (erc-button-mouse-face erc-button-mouse-face)
-                 (erc-button-nickname-face erc-button-nickname-face)
-                 (down (erc-downcase word))
-                 (cuser (and erc-channel-users
-                             (gethash down erc-channel-users)))
-                 (user (or (and cuser (car cuser))
-                           (and erc-server-users
-                                (gethash down erc-server-users))
-                           (funcall erc-button--fallback-user-function
-                                    down word bounds)))
-                 (data (list word)))
-            (when (or (not (functionp form))
-                      (and-let* ((user)
-                                 (obj (funcall form (make-erc-button--nick
-                                                     :bounds bounds :data data
-                                                     :downcased down :user user
-                                                     :cuser (cdr cuser)))))
-                        (setq bounds (erc-button--nick-bounds obj)
-                              data (erc-button--nick-data obj)
-                              erc-button-mouse-face
-                              (erc-button--nick-mouse-face obj)
-                              erc-button-nickname-face
-                              (erc-button--nick-nickname-face obj)
-                              erc-button-face
-                              (erc-button--nick-face obj))))
-              (erc-button-add-button (car bounds) (cdr bounds)
-                                     fun t data))))))))
+  (when-let ((form (nth 2 entry))
+             ;; Spoof `form' slot of default legacy `nicknames' entry
+             ;; so `erc-button--extract-form' sees a function value.
+             (form (let ((erc-button-buttonize-nicks
+                          (and erc-button-buttonize-nicks
+                               erc-button--modify-nick-function)))
+                     (erc-button--extract-form form)))
+             (seen 0))
+    (goto-char (point-min))
+    (while-let
+        (((erc-forward-word))
+         (bounds (or (and (= 1 (cl-incf seen)) (erc--get-speaker-bounds))
+                     (erc-bounds-of-word-at-point)))
+         (word (buffer-substring-no-properties (car bounds) (cdr bounds)))
+         (down (erc-downcase word)))
+      (let* ((erc-button-mouse-face erc-button-mouse-face)
+             (erc-button-nickname-face erc-button-nickname-face)
+             (cuser (and erc-channel-users (gethash down erc-channel-users)))
+             (user (or (and cuser (car cuser))
+                       (and erc-server-users (gethash down erc-server-users))
+                       (funcall erc-button--fallback-user-function
+                                down word bounds)))
+             (data (list word)))
+        (when (or (not (functionp form))
+                  (and-let* ((user)
+                             (obj (funcall form (make-erc-button--nick
+                                                 :bounds bounds :data data
+                                                 :downcased down :user user
+                                                 :cuser (cdr cuser)))))
+                    (setq erc-button-mouse-face ; might be null
+                          (erc-button--nick-mouse-face obj)
+                          erc-button-nickname-face ; might be null
+                          (erc-button--nick-nickname-face obj)
+                          data (erc-button--nick-data obj)
+                          bounds (erc-button--nick-bounds obj))))
+          (erc-button-add-button (car bounds) (cdr bounds) (nth 3 entry)
+                                 'nickp data))))))
 
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."
@@ -819,7 +815,7 @@ non-strings, concatenate leading string members before applying
              erc-button--display-error-with-buttons
              erc-button-describe-symbol 1)
             ,@erc-button-alist)))
-    (erc-display-message parsed '(notice error) (or buffer 'active) string)
+    (erc-display-message parsed '(t notice error) (or buffer 'active) string)
     string))
 
 ;;;###autoload

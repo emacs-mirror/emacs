@@ -1030,10 +1030,14 @@ protocol."
 	 "  Hostname:"
 	 (nsm-certificate-part (plist-get cert :subject) "CN" t) "\n")
 	(when (and (plist-get cert :public-key-algorithm)
-		   (plist-get cert :signature-algorithm))
+		   (plist-get cert :signature-algorithm)
+		   (or (plist-get cert :public-key-id-sha256)
+		       (plist-get cert :public-key-id)))
 	  (insert
 	   "  Public key:" (plist-get cert :public-key-algorithm)
-	   ", signature: " (plist-get cert :signature-algorithm) "\n"))
+	   ", signature: " (plist-get cert :signature-algorithm) "\n"
+	   "  Public key ID:" (or (plist-get cert :public-key-id-sha256)
+				  (plist-get cert :public-key-id)) "\n"))
         (when (and (plist-get status :key-exchange)
 		   (plist-get status :cipher)
 		   (plist-get status :mac)

@@ -1950,11 +1950,10 @@ version, the function does nothing."
   "Return contents of BUFFER.
 If BUFFER is not a buffer or a buffer name, return the contents
 of `current-buffer'."
-  (or (let ((buf (or buffer (current-buffer))))
-        (when (bufferp buf)
-          (with-current-buffer (or buffer (current-buffer))
-	    (substring-no-properties (buffer-string)))))
-      ""))
+  (with-current-buffer
+      (if (or (bufferp buffer) (and (stringp buffer) (get-buffer buffer)))
+	  buffer (current-buffer))
+    (substring-no-properties (buffer-string))))
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer for VEC."

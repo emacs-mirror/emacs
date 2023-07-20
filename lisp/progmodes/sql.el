@@ -4200,7 +4200,7 @@ must tell Emacs.  Here's how to do that in your init file:
 
 (put 'sql-interactive-mode 'mode-class 'special)
 (put 'sql-interactive-mode 'custom-mode-group 'SQL)
-;; FIXME: Why not use `define-derived-mode'?
+
 (define-derived-mode sql-interactive-mode comint-mode "SQLi[?]"
   "Major mode to use a SQL interpreter interactively.
 

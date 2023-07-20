@@ -1600,9 +1600,7 @@ when the widget is created, and on any value set later with
 @item :value-to-external
 Function to convert the value to the external format.  The function
 takes two arguments, a widget and an internal value, and returns the
-external value.  The function is called on the present @code{:value}
-when the widget is created, and on any value set later with
-@code{widget-value-set}.
+external value.
 
 @vindex create@r{ keyword}
 @item :create

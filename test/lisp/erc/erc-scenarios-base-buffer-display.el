@@ -26,8 +26,8 @@
 
 (eval-when-compile (require 'erc-join))
 
-;; These first couple `erc-reconnect-display' tests used to live in
-;; erc-scenarios-base-reconnect but have since been renamed.
+;; These first couple `erc-auto-reconnect-display' tests used to live
+;; in erc-scenarios-base-reconnect but have since been renamed.
 
 (defun erc-scenarios-base-buffer-display--reconnect-common
     (assert-server assert-chan assert-rest)
@@ -80,11 +80,11 @@
   :tags '(:expensive-test)
   (should (eq erc-buffer-display 'bury))
   (should (eq erc-interactive-display 'window))
-  (should-not erc-reconnect-display)
+  (should-not erc-auto-reconnect-display)
 
   (let ((erc-buffer-display 'window)
         (erc-interactive-display 'buffer)
-        (erc-reconnect-display 'bury))
+        (erc-auto-reconnect-display 'bury))
 
     (erc-scenarios-base-buffer-display--reconnect-common
 
@@ -104,7 +104,7 @@
        ;; A manual /JOIN command tells ERC we're done auto-reconnecting
        (with-current-buffer "FooNet" (erc-scenarios-common-say "/JOIN #spam"))
 
-       (ert-info ("#spam ignores `erc-reconnect-display'")
+       (ert-info ("#spam ignores `erc-auto-reconnect-display'")
          ;; Uses `erc-interactive-display' instead.
          (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
            (should (eq (window-buffer) (get-buffer "#spam")))
@@ -115,10 +115,10 @@
   :tags '(:expensive-test)
   (should (eq erc-buffer-display 'bury))
   (should (eq erc-interactive-display 'window))
-  (should-not erc-reconnect-display)
+  (should-not erc-auto-reconnect-display)
 
   (let ((erc-buffer-display 'window-noselect)
-        (erc-reconnect-display 'bury)
+        (erc-auto-reconnect-display 'bury)
         (erc-interactive-display 'buffer))
     (erc-scenarios-base-buffer-display--reconnect-common
 
@@ -155,7 +155,7 @@
            (should (eq (window-buffer) (get-buffer "bob")))
            (should (frame-root-window-p (selected-window)))))
 
-       (ert-info ("Newly joined chan ignores `erc-reconnect-display'")
+       (ert-info ("Newly joined chan ignores `erc-auto-reconnect-display'")
          (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
            (should (eq (window-buffer) (get-buffer "bob")))
            (should-not (frame-root-window-p (selected-window)))
@@ -165,13 +165,13 @@
   :tags '(:expensive-test)
   (should (eq erc-buffer-display 'bury))
   (should (eq erc-interactive-display 'window))
-  (should (eq erc-reconnect-display-timeout 10))
-  (should-not erc-reconnect-display)
+  (should (eq erc-auto-reconnect-display-timeout 10))
+  (should-not erc-auto-reconnect-display)
 
   (let ((erc-buffer-display 'window-noselect)
-        (erc-reconnect-display 'bury)
+        (erc-auto-reconnect-display 'bury)
         (erc-interactive-display 'buffer)
-        (erc-reconnect-display-timeout 0.5))
+        (erc-auto-reconnect-display-timeout 0.5))
     (erc-scenarios-base-buffer-display--reconnect-common
      #'ignore #'ignore ; These two are identical to the previous test.
 
@@ -188,10 +188,10 @@
            (erc-d-t-wait-for 1 (null erc--server-reconnect-display-timer))
            (erc-cmd-JOIN "#spam")))
 
-       (ert-info ("Newly joined chan ignores `erc-reconnect-display'")
+       (ert-info ("Newly joined chan ignores `erc-auto-reconnect-display'")
          (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
            (should (eq (window-buffer) (messages-buffer)))
-           ;; If `erc-reconnect-display-timeout' were left alone, this
+           ;; If `erc-auto-reconnect-display-timeout' were left alone, this
            ;; would be (frame-root-window-p #<window 1 on *scratch*>).
            (should-not (frame-root-window-p (selected-window)))
            (should (eq (current-buffer) (window-buffer (next-window))))))))))

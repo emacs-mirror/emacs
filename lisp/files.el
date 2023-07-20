@@ -2084,22 +2084,32 @@ killed."
 	  (kill-buffer obuf))))))
 
 ;; FIXME we really need to fold the uniquify stuff in here by default,
-;; not using advice, and add it to the doc string.
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
-otherwise a string <2> or <3> or ... is appended to get an unused name.
+otherwise the buffer is renamed according to
+`uniquify-buffer-name-style' to get an unused name.
 
 Emacs treats buffers whose names begin with a space as internal buffers.
 To avoid confusion when visiting a file whose name begins with a space,
 this function prepends a \"|\" to the final result if necessary."
-  (let* ((lastname (file-name-nondirectory filename))
-	 (lastname (if (string= lastname "")
-	               filename lastname))
-	 (buf (generate-new-buffer (if (string-prefix-p " " lastname)
-			               (concat "|" lastname)
-			             lastname))))
-    (uniquify--create-file-buffer-advice buf filename)
+  (let* ((lastname (file-name-nondirectory (directory-file-name filename)))
+         (lastname (if (string= lastname "") ; FILENAME is a root directory
+                       filename lastname))
+         (lastname (cond
+                    ((not (and uniquify-trailing-separator-p
+                               (file-directory-p filename)))
+                     lastname)
+                    ((eq uniquify-buffer-name-style 'forward)
+	             (file-name-as-directory lastname))
+	            ((eq uniquify-buffer-name-style 'reverse)
+	             (concat (or uniquify-separator "\\") lastname))
+                    (t lastname)))
+         (basename (if (string-prefix-p " " lastname)
+		       (concat "|" lastname)
+		     lastname))
+	 (buf (generate-new-buffer basename)))
+    (uniquify--create-file-buffer-advice buf filename basename)
     buf))
 
 (defvar abbreviated-home-dir nil

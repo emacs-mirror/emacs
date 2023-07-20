@@ -6451,9 +6451,9 @@ from sys import argv, exit, stdin
 try:
     from isort import find_imports_in_stream, find_imports_in_paths
 except ModuleNotFoundError:
-    exit(1)
-except ImportError:
     exit(2)
+except ImportError:
+    exit(3)
 
 query, files, result = argv[1] or None, argv[2:], {}
 
@@ -6484,6 +6484,17 @@ for key in sorted(result):
                   (project-files proj))
     (list default-directory)))
 
+(defun python--list-imports-check-status (status)
+  (unless (eq 0 status)
+    (let* ((details
+            (cond
+             ((eq 2 status) " (maybe isort is missing?)")
+             ((eq 3 status) " (maybe isort version is older than 5.7.0?)")
+             (t "")))
+           (msg
+            (concat "%s exited with status %s" details)))
+      (error msg python-interpreter status))))
+
 (defun python--list-imports (name source)
   "List all Python imports matching NAME in SOURCE.
 If NAME is nil, list all imports.  SOURCE can be a buffer or a
@@ -6507,13 +6518,7 @@ recursively."
                                 (or name "")
                                 (mapcar #'file-local-name source)))))
              lines)
-        (cond
-         ((eq 1 status)
-          (error "%s exited with status %s (maybe isort is missing?)"
-                 python-interpreter status))
-         ((eq 2 status)
-          (error "%s exited with status %s (maybe isort version is <5.7.0?)"
-                 python-interpreter status)))
+        (python--list-imports-check-status status)
         (goto-char (point-min))
         (while (not (eobp))
 	  (push (buffer-substring-no-properties (point) (pos-eol))
@@ -6556,13 +6561,9 @@ Return non-nil if the buffer was actually modified."
                                nil (list temp nil) nil
                                "-m" "isort" "-" args))
                 (tick (buffer-chars-modified-tick)))
-            (cond
-             ((eq 1 status)
+            (unless (eq 0 status)
               (error "%s exited with status %s (maybe isort is missing?)"
                      python-interpreter status))
-             ((eq 2 status)
-              (error "%s exited with status %s (maybe isort version is <5.7.0?)"
-                     python-interpreter status)))
             (replace-buffer-contents temp)
             (not (eq tick (buffer-chars-modified-tick)))))))))
 

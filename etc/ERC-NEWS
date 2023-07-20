@@ -14,20 +14,28 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.6
 
-** Module 'keep-place' now offers a visual indicator.
-Remember your place in ERC buffers a bit more easily while retaining
-the freedom to look around.  Optionally sync the indicator to any
-progress made when you haven't yet caught up to the live stream.  See
-options 'erc-keep-place-indicator-style' and friends and new module
-'keep-place-indicator', which for now must be added manually to
-'erc-modules'.
+** Module 'keep-place' has gained a more flamboyant cousin.
+Remember your place in ERC buffers more easily while retaining the
+freedom to look around, all with the help of a configurable, visible
+indicator.  Optionally sync the indicator to any progress made when
+you haven't yet caught up to the live stream.  See options
+'erc-keep-place-indicator-style' and friends, and try M-x
+keep-place-indicator-mode to see it in action.
 
-** Module 'fill' now offers a style based on 'visual-line-mode'.
+** Module 'fill' offers a style based on 'visual-line-mode'.
 This fill style mimics the "hanging indent" look of 'erc-fill-static'
 and provides some movement and editing commands to optionally tame the
 less familiar aspects of 'visual-line' behavior.  An interactive
 helper called 'erc-fill-wrap-nudge' allows for dynamic "refilling" of
 buffers on the fly.  Set 'erc-fill-function' to 'erc-fill-wrap' to get
+started.
+
+** A module for nickname highlighting has joined ERC.
+Automatic nickname coloring has come to ERC core.  Users familiar with
+'erc-hl-nicks', from which this module directly descends, will already
+be familiar with its suite of handy options.  By default, each
+nickname in an ERC session receives a unique face with a unique (or
+evenly dealt) foreground color.  Add 'nicks' to 'erc-modules' to get
 started.
 
 ** A unified interactive entry point.
@@ -37,7 +45,7 @@ decade overdue, this is no longer the case.  Other UX improvements in
 this area aim to make the process of connecting interactively slightly
 more streamlined and less repetitive, even for veteran users.
 
-** Revised buffer-display handling for interactive commands.
+** Revised buffer-display handling.
 A point of friction for new users and one only just introduced with
 ERC 5.5 has been the lack of visual feedback when first connecting via
 M-x erc or when issuing a "/JOIN" command at the prompt.  As explained
@@ -56,13 +64,41 @@ reported as being difficult to discover and remember.  When the latter
 option (now known as 'erc-receive-query-display') is nil, ERC uses
 'erc-join-buffer' in its place, much like it does for
 'erc-interactive-display'.  The old nil behavior can still be gotten
-via the new compatibility flag 'erc-receive-query-display-defer'.
+via the new compatibility flag 'erc-receive-query-display-defer'.  The
+relatively new option 'erc-reconnect-display' has likewise been
+renamed, this time for clarity, to 'erc-auto-reconnect-display'.
+
+This release also introduces a few subtleties affecting the display of
+new or reassociated buffers.  One involves buffers that already occupy
+the selected window.  ERC now treats these as deserving of an implicit
+'bury'.  An escape hatch for this and most other baked-in behaviors is
+now available in the form of a new type variant recognized by all such
+options.  That is, users can now specify their own function to
+exercise full control over nearly all buffer-display related
+decisions.  See the newly expanded doc strings of 'erc-buffer-display'
+and friends, as well as Info node '(erc) display-buffer', for details.
 
 ** Setting a module's mode variable via Customize earns a warning.
 Trying and failing to activate a module via its minor mode's Custom
 widget has been an age-old annoyance for new users.  Previously
 ineffective, this method now actually works, but it also admonishes
 users to edit the 'erc-modules' widget instead.
+
+** ERC's status-sidebar has gained an accompanying module.
+Users can now add 'bufbar' to 'erc-modules' to achieve the same effect
+as toggling 'erc-status-sidebar-open' manually at the start of an IRC
+session.  The module has also been outfitted to show channels and
+queries under their respective servers by default.  To avoid
+confusion, the major mode used for the sidebar buffer itself,
+'erc-status-sidebar-mode', is no longer available interactively.
+
+** A new spin on a classic integration in erc-speedbar.
+Add 'nickbar' to 'erc-modules' to spawn a dynamically updating side
+window listing all the users in any target buffer.  It's powered by
+the same speedbar.el integration you've always known, except this
+one's optionally accessible from the keyboard, just like any other
+side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
+"Lastlog" (Occur) session.  See 'erc-nickbar-mode' for more.
 
 ** The option 'erc-timestamp-use-align-to' is more versatile.
 While this option has always offered to right-align stamps via the
@@ -74,6 +110,22 @@ as 'fill-wrap', described above.  For both these variants, users of
 the 'log' module may want to customize 'erc-log-filter-function' to
 'erc-stamp-prefix-log-filter' to avoid ragged right-hand stamps
 appearing in their saved logs.
+
+** Awkward entry point 'erc-server-select' improved but deprecated.
+The alternate entry point 'erc-server-select' has mainly served to
+confuse users in more recent years because it requires certain
+options, like 'erc-nick', to be configured ahead of time, and it
+doesn't support TLS.  Its main selling point, historically, has been
+interactive completion based on the option 'erc-server-alist', which
+is a table of networks, servers, and ports.  But most of the option's
+400-odd entries are sadly defunct or otherwise outdated.  And, these
+days, most networks promote a well known load-balancing end point over
+individual servers anyway.  Regardless, the command has now been
+improved to prompt for the same slate of parameters sought by
+'erc-tls'.  Similarly, 'erc-server-alist' entries now support a fifth
+member in TLS ports (though this option too has been deprecated).  If
+you feel these deprecations rash or unwarranted, please file a bug
+report and petition the maintainers for a reprieve.
 
 ** Smarter reconnect handling for users on the move.
 ERC now offers a new, experimental reconnect strategy in the function
@@ -89,7 +141,7 @@ This is especially handy when using the option 'erc-fill-wrap-merge'
 to omit repeated speaker tags, which can make message boundaries less
 detectable by tired eyes.
 
-** Some keybindings are now set by modules rather than their libraries.
+** Modules rather than their libraries set major-mode keybindings.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during
 module setup.  This should not impact most user configs since ERC
@@ -98,7 +150,7 @@ previously created.  Note that while all affected bindings still
 reside in 'erc-mode-map', future built-in modules will use their own
 minor-mode maps, and new third-party modules should do the same.
 
-** The option 'erc-timestamp-format-right' has been deprecated.
+** Option 'erc-timestamp-format-right' deprecated.
 Having to account for this option prevented other ERC modules from
 easily determining what right-hand stamps would look like before
 insertion, which is knowledge needed for certain UI decisions.  The
@@ -129,6 +181,13 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
+** Subtle changes in two fundamental faces.
+Users of the default theme may notice that 'erc-action-face' and
+'erc-notice-face' now appear slightly less bold on systems supporting
+a weight of 'semi-bold'.  This was done to make buttons detectable and
+to spare users from resorting to tweaking these faces, or options like
+'erc-notice-highlight-type', just to achieve this effect.
+
 ** Improved interplay between buffer truncation and message logging.
 While most of these improvements are subtle, some affect everyday use.
 For example, users of the 'truncate' module may notice that truncation
@@ -144,11 +203,12 @@ the same effect by issuing a "/CLEAR" at the prompt.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
 interactive and can be invoked on any message to view its timestamp in
-the echo area.  The command 'erc-button-previous' now moves to the
-beginning instead of the end of buttons.  A new command, 'erc-news',
-can now be invoked to visit this very file.  And the 'irccontrols'
-module now supports additional colors and special handling for
-"spoilers" (hidden text).
+the echo area.  Fool visibility has become togglable with the new
+command 'erc-match-toggle-hidden-fools'.  The 'button' module's
+'erc-button-previous' now moves to the beginning instead of the end of
+buttons.  A new command, 'erc-news', can be invoked to visit this very
+file.  And the 'irccontrols' module now supports additional colors and
+special handling for "spoilers" (hidden text).
 
 ** Changes in the library API.
 
@@ -197,6 +257,9 @@ traversing messages.  To compensate, a new property, 'erc-timestamp',
 now spans message bodies but not the newlines delimiting them.
 Somewhat relatedly, the function 'erc-insert-aligned' has been
 deprecated and removed from the primary client code path.
+Additionally, the 'stamp' module now merges its 'invisible' property
+with existing ones, when present, and it includes all white space
+around stamps when doing so.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library
@@ -208,7 +271,7 @@ encouraged to keep a module's name aligned with its group's as well as
 the provided feature of its containing library, if only for the usual
 reasons of namespace hygiene and discoverability.
 
-*** ERC now supports arbitrary CHANTYPES.
+*** ERC supports arbitrary CHANTYPES.
 Specifically, channels can be prefixed with any predesignated
 character, mainly to afford more flexibility to specialty services,
 like bridges to other protocols.
@@ -219,12 +282,25 @@ specify a subcommand to actually carry out anything of consequence.
 Built-in modules can now provide more detailed help for a particular
 subcommand by telling ERC to defer to a specialized handler.
 
-*** Longtime quasi modules have been made proper.
+*** Longtime quasi modules made proper.
 The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
 
-*** Prompt input is split before 'erc-pre-send-functions' has a say.
+*** 'erc-display-message' optionally combines faces.
+Users may notice that ERC now inserts some important error messages in
+a combination of 'erc-error-face' and 'erc-notice-face'.  This is
+merely a consequence of 'erc-display-message' getting smarter about
+how it treats face properties when its 'type' parameter is a list that
+starts with t.  Originally, ERC's authors intended to display both
+server-originating and ERC-generated errors in this style, but that
+intent was never realized.  Though now possible, the effect has been
+limited to special errors involving usage and internal state.  For
+third-party code, the key takeaway is that more 'font-lock-face'
+properties encountered in the wild may be combinations of faces rather
+than lone ones.
+
+*** Prompt input split before 'erc-pre-send-functions' gets a say.
 Hook members are now treated to input whose lines have already been
 adjusted to fall within the allowed length limit.  For convenience,
 third-party code can request that the final input be "re-filled" prior

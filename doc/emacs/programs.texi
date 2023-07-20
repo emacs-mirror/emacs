@@ -396,8 +396,8 @@ The Speedbar can also use it (@pxref{Speedbar}).
 @cindex current function name in mode line
 
   Which Function mode is a global minor mode (@pxref{Minor Modes})
-which displays the current function name in the mode line, updating it
-as you move around in a buffer.
+which displays the current function name in the mode line or header
+line, updating it as you move around in a buffer.
 
 @findex which-function-mode
 @vindex which-func-modes
@@ -409,6 +409,12 @@ Imenu).  You can restrict it to a specific list of major modes by
 changing the value of the variable @code{which-func-modes} from
 @code{t} (which means to support all available major modes) to a list
 of major mode names.
+
+@vindex which-func-display
+  By default, Which Function mode displays the current function name
+using the mode line.  Customize @code{which-func-display} to
+@code{header}, @code{mode}, or @code{mode-and-header} to use the
+header line, mode line, or both, respectively.
 
 @node Program Indent
 @section Indentation for Programs

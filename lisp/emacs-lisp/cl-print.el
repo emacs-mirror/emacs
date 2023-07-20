@@ -54,9 +54,12 @@ call other entry points instead, such as `cl-prin1'."
   (prin1 object stream))
 
 (cl-defgeneric cl-print-object-contents (_object _start _stream)
-  "Dispatcher to print the contents of OBJECT on STREAM.
-Print the contents starting with the item at START, without
-delimiters."
+  "Dispatcher to print partial contents of OBJECT on STREAM.
+This is used when replacing an ellipsis with the contents it
+represents.  OBJECT is the object that has been partially printed
+and START represents the place at which the contents were
+replaced with an ellipsis.
+Print the contents hidden by the ellipsis to STREAM."
   ;; Every cl-print-object method which can print an ellipsis should
   ;; have a matching cl-print-object-contents method to expand an
   ;; ellipsis.
@@ -65,7 +68,7 @@ delimiters."
 (cl-defmethod cl-print-object ((object cons) stream)
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
-      (cl-print-insert-ellipsis object 0 stream)
+      (cl-print-insert-ellipsis object nil stream)
     (let ((car (pop object)))
       (if (and print-quoted
                (memq car '(\, quote function \` \,@ \,.))
@@ -107,7 +110,7 @@ delimiters."
 (cl-defmethod cl-print-object ((object vector) stream)
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
-      (cl-print-insert-ellipsis object 0 stream)
+      (cl-print-insert-ellipsis object nil stream)
     (princ "[" stream)
     (cl-print--vector-contents object 0 stream)
     (princ "]" stream)))
@@ -129,14 +132,29 @@ delimiters."
   (cl-print--vector-contents object start stream)) ;FIXME: η-redex!
 
 (cl-defmethod cl-print-object ((object hash-table) stream)
+  ;; Make sure `pp-fill' can pretty print the result!
   (princ "#<hash-table " stream)
   (princ (hash-table-test object) stream)
   (princ " " stream)
   (princ (hash-table-count object) stream)
   (princ "/" stream)
   (princ (hash-table-size object) stream)
-  (princ (format " %#x" (sxhash object)) stream)
+  (princ (format " %#x " (sxhash object)) stream)
+  (cl-print-insert-ellipsis object t stream)
   (princ ">" stream))
+
+(cl-defmethod cl-print-object-contents ((object hash-table) _start stream)
+  ;; If we want to obey `print-length' here, it's not completely obvious
+  ;; what we should use as marker of "where we are" within the hash-table.
+  ;; We could use here a simple number or a set of keys already printed,
+  ;; but it still breaks down if elements get added/removed.
+  ;; Instead here we convert the hash-table to an alist once and for all.
+  (let ((alist nil))
+    (maphash (lambda (k v) (push (cons k v) alist)) object)
+    ;; While the order of elements seen by `maphash' is "arbitrary"
+    ;; it tends to be in the order objects have been added, which is
+    ;; sometimes handy, so it's nice to preserve this order here.
+    (cl-print-object (nreverse alist) stream)))
 
 (define-button-type 'help-byte-code
   'follow-link t
@@ -157,6 +175,9 @@ When the stream is a buffer, make the bytecode part of the output
 into a button whose action shows the function's disassembly.")
 
 (autoload 'disassemble-1 "disass")
+
+;; FIXME: Don't degenerate to `prin1' for the contents of char-tables
+;; and records!
 
 (cl-defmethod cl-print-object ((object compiled-function) stream)
   (unless stream (setq stream standard-output))
@@ -212,7 +233,7 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object ((object cl-structure-object) stream)
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
-      (cl-print-insert-ellipsis object 0 stream)
+      (cl-print-insert-ellipsis object nil stream)
     (princ "#s(" stream)
     (princ (cl--struct-class-name (cl-find-class (type-of object))) stream)
     (cl-print--struct-contents object 0 stream)
@@ -250,7 +271,7 @@ into a button whose action shows the function's disassembly.")
              cl-print--depth
              (natnump print-level)
              (> cl-print--depth print-level))
-        (cl-print-insert-ellipsis object 0 stream)
+        (cl-print-insert-ellipsis object nil stream)
       ;; Print all or part of the string
       (when has-properties
         (princ "#(" stream))
@@ -325,6 +346,7 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object :around (object stream)
   ;; FIXME: Only put such an :around method on types where it's relevant.
   (let ((cl-print--depth (if cl-print--depth (1+ cl-print--depth) 1)))
+    ;; FIXME: Handle print-level here once and forall?
     (cond
      (print-circle
       (let ((n (gethash object cl-print--number-table)))
@@ -401,10 +423,53 @@ into a button whose action shows the function's disassembly.")
         (cl-print--find-sharing object print-number-table)))
     print-number-table))
 
+(define-button-type 'cl-print-ellipsis
+  'skip t 'action #'cl-print-expand-ellipsis
+  'help-echo "mouse-2, RET: expand this ellipsis")
+
+(defvar cl-print-expand-ellipsis-function
+  #'cl-print--default-expand-ellipsis
+  "Function to tweak the way ellipses are expanded.
+The function is called with 3 arguments, BEG, END, and FUNC.
+BEG and END delimit the ellipsis that will be replaced.
+FUNC is the function that will do the expansion.
+It should be called with a single argument specifying the desired
+limit of the expansion's length, as used in `cl-print-to-string-with-limit'.
+FUNC will return the position of the end of the newly printed text.")
+
+(defun cl-print--default-expand-ellipsis (begin end value line-length)
+  (delete-region begin end)
+  (insert (cl-print-to-string-with-limit
+           #'cl-print--expand-ellipsis value line-length))
+  (point))
+
+
+(defun cl-print-expand-ellipsis (&optional button)
+  "Expand display of the elided form at BUTTON.
+BUTTON can also be a buffer position or nil (to mean point)."
+  (interactive)
+  (goto-char (cond
+              ((null button) (point))
+              (t (button-start button))))
+  (unless (get-text-property (point) 'cl-print-ellipsis)
+    (if (and (> (point) (point-min))
+             (get-text-property (1- (point)) 'cl-print-ellipsis))
+        (backward-char)
+      (user-error "No ellipsis to expand here")))
+  (let* ((end (next-single-property-change (point) 'cl-print-ellipsis))
+         (begin (previous-single-property-change end 'cl-print-ellipsis))
+         (value (get-text-property begin 'cl-print-ellipsis)))
+    ;; FIXME: Rather than `t' (i.e. reuse the print-length/level unchanged),
+    ;; I think it would make sense to increase the level by 1 and to
+    ;; double the length at each expansion step.
+    (funcall cl-print-expand-ellipsis-function
+             begin end value t)
+    (goto-char begin)))
+
 (defun cl-print-insert-ellipsis (object start stream)
   "Print \"...\" to STREAM with the `cl-print-ellipsis' text property.
 Save state in the text property in order to print the elided part
-of OBJECT later.  START should be 0 if the whole OBJECT is being
+of OBJECT later.  START should be nil if the whole OBJECT is being
 elided, otherwise it should be an index or other pointer into the
 internals of OBJECT which can be passed to
 `cl-print-object-contents' at a future time."
@@ -424,10 +489,10 @@ STREAM should be a buffer.  OBJECT and START are as described in
   (let ((value (list object start cl-print--number-table
                      cl-print--currently-printing)))
     (with-current-buffer stream
-      (put-text-property beg end 'cl-print-ellipsis value stream))))
+      (put-text-property beg end 'cl-print-ellipsis value stream)
+      (make-text-button beg end :type 'cl-print-ellipsis))))
 
-;;;###autoload
-(defun cl-print-expand-ellipsis (value stream)
+(defun cl-print--expand-ellipsis (value stream)
   "Print the expansion of an ellipsis to STREAM.
 VALUE should be the value of the `cl-print-ellipsis' text property
 which was attached to the ellipsis by `cl-prin1'."
@@ -439,7 +504,7 @@ which was attached to the ellipsis by `cl-prin1'."
         (cl-print--currently-printing (nth 3 value)))
     (when (eq object (car cl-print--currently-printing))
       (pop cl-print--currently-printing))
-    (if (equal start 0)
+    (if (memq start '(0 nil))
         (cl-print-object object stream)
       (cl-print-object-contents object start stream))))
 
@@ -474,22 +539,25 @@ characters with appropriate settings of `print-level' and
 the arguments VALUE and STREAM and which should respect
 `print-length' and `print-level'.  LIMIT may be nil or zero in
 which case PRINT-FUNCTION will be called with `print-level' and
-`print-length' bound to nil.
+`print-length' bound to nil, and it can also be t in which case
+PRINT-FUNCTION will be called with the current values of `print-level'
+and `print-length'.
 
 Use this function with `cl-prin1' to print an object,
-abbreviating it with ellipses to fit within a size limit.  Use
-this function with `cl-prin1-expand-ellipsis' to expand an
-ellipsis, abbreviating the expansion to stay within a size
-limit."
-  (setq limit (and (natnump limit)
-                   (not (zerop limit))
-                   limit))
+abbreviating it with ellipses to fit within a size limit."
+  (setq limit (and (not (eq limit 0)) limit))
   ;; Since this is used by the debugger when stack space may be
   ;; limited, if you increase print-level here, add more depth in
   ;; call_debugger (bug#31919).
-  (let* ((print-length (when limit (min limit 50)))
-         (print-level (when limit (min 8 (truncate (log limit)))))
-         (delta-length (when limit
+  (let* ((print-length (cond
+                        ((null limit) nil)
+                        ((eq limit t) print-length)
+                        (t (min limit 50))))
+         (print-level (cond
+                        ((null limit) nil)
+                        ((eq limit t) print-level)
+                        (t (min 8 (truncate (log limit))))))
+         (delta-length (when (natnump limit)
                          (max 1 (truncate (/ print-length print-level))))))
     (with-temp-buffer
       (catch 'done
@@ -499,7 +567,7 @@ limit."
           (let ((result (- (point-max) (point-min))))
             ;; Stop when either print-level is too low or the value is
             ;; successfully printed in the space allowed.
-            (when (or (not limit) (< result limit) (<= print-level 2))
+            (when (or (not (natnump limit)) (< result limit) (<= print-level 2))
               (throw 'done (buffer-string)))
             (let* ((ratio (/ result limit))
                    (delta-level (max 1 (min (- print-level 2) ratio))))

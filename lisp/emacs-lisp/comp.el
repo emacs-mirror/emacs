@@ -1133,7 +1133,8 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
          (log-buffer
              (or (get-buffer comp-log-buffer-name)
                  (with-current-buffer (get-buffer-create comp-log-buffer-name)
-                   (setf buffer-read-only t)
+                   (unless (derived-mode-p 'compilation-mode)
+                     (emacs-lisp-compilation-mode))
                    (current-buffer))))
          (log-window (get-buffer-window log-buffer))
          (inhibit-read-only t)
@@ -1300,33 +1301,45 @@ clashes."
           (make-temp-file (comp-c-func-name function-name "freefn-")
                           nil ".eln")))
   (let* ((f (symbol-function function-name))
+         (byte-code (byte-compile function-name))
          (c-name (comp-c-func-name function-name "F"))
-         (func (make-comp-func-l :name function-name
-                                 :c-name c-name
-                                 :doc (documentation f t)
-                                 :int-spec (interactive-form f)
-                                 :command-modes (command-modes f)
-                                 :speed (comp-spill-speed function-name)
-                                 :pure (comp-spill-decl-spec function-name
-                                                             'pure))))
+         (func
+          (if (comp-lex-byte-func-p byte-code)
+              (make-comp-func-l :name function-name
+                                :c-name c-name
+                                :doc (documentation f t)
+                                :int-spec (interactive-form f)
+                                :command-modes (command-modes f)
+                                :speed (comp-spill-speed function-name)
+                                :pure (comp-spill-decl-spec function-name
+                                                            'pure))
+            (make-comp-func-d :name function-name
+                              :c-name c-name
+                              :doc (documentation f t)
+                              :int-spec (interactive-form f)
+                              :command-modes (command-modes f)
+                              :speed (comp-spill-speed function-name)
+                              :pure (comp-spill-decl-spec function-name
+                                                          'pure)))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 '("can't native compile an already byte-compiled function")))
-      (setf (comp-func-byte-func func)
-            (byte-compile (comp-func-name func)))
+      (setf (comp-func-byte-func func) byte-code)
       (let ((lap (byte-to-native-lambda-lap
                   (gethash (aref (comp-func-byte-func func) 1)
                            byte-to-native-lambdas-h))))
         (cl-assert lap)
         (comp-log lap 2 t)
-        (let ((arg-list (aref (comp-func-byte-func func) 0)))
-          (setf (comp-func-l-args func)
-                (comp-decrypt-arg-list arg-list function-name)
-                (comp-func-lap func)
-                lap
-                (comp-func-frame-size func)
-                (comp-byte-frame-size (comp-func-byte-func func))))
-        (setf (comp-ctxt-top-level-forms comp-ctxt)
+        (if (comp-func-l-p func)
+            (let ((arg-list (aref (comp-func-byte-func func) 0)))
+              (setf (comp-func-l-args func)
+                    (comp-decrypt-arg-list arg-list function-name)))
+          (setf (comp-func-d-lambda-list func) (cadr f)))
+        (setf (comp-func-lap func)
+              lap
+              (comp-func-frame-size func)
+              (comp-byte-frame-size (comp-func-byte-func func))
+              (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-func-def :name function-name
                                                   :c-name c-name)))
         (comp-add-func-to-ctxt func))))
@@ -4085,7 +4098,8 @@ display a message."
                              :buffer (with-current-buffer
                                          (get-buffer-create
                                           comp-async-buffer-name)
-                                       (setf buffer-read-only t)
+                                       (unless (derived-mode-p 'compilation-mode)
+                                         (emacs-lisp-compilation-mode))
 			               (current-buffer))
                              :command (list
                                        (expand-file-name invocation-name
@@ -4119,6 +4133,8 @@ display a message."
     (run-hooks 'native-comp-async-all-done-hook)
     (with-current-buffer (get-buffer-create comp-async-buffer-name)
       (save-excursion
+        (unless (derived-mode-p 'compilation-mode)
+          (emacs-lisp-compilation-mode))
         (let ((inhibit-read-only t))
           (goto-char (point-max))
           (insert "Compilation finished.\n"))))
@@ -4226,6 +4242,7 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                       (string-match-p re file))
                     native-comp-jit-compilation-deny-list))))
 
+;;;###autoload
 (defun native--compile-async (files &optional recursively load selector)
   ;; BEWARE, this function is also called directly from C.
   "Compile FILES asynchronously.
