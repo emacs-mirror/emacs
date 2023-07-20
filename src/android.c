@@ -306,7 +306,7 @@ struct android_event_queue
 
   /* The number of events in the queue.  If this is greater than 1024,
      writing will block.  */
-  volatile int num_events;
+  int num_events;
 
   /* Circular queue of events.  */
   struct android_event_container events;
