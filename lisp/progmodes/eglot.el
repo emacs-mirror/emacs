@@ -2448,15 +2448,17 @@ buffer."
 (defun eglot--post-self-insert-hook ()
   "Set `eglot--last-inserted-char', maybe call on-type-formatting."
   (setq eglot--last-inserted-char last-input-event)
-  (let ((ot-provider (eglot--server-capable :documentOnTypeFormattingProvider)))
+  (let ((ot-provider (eglot--server-capable :documentOnTypeFormattingProvider))
+        ;; transform carriage return into line-feed
+        (adjusted-ie (if (= last-input-event 13) 10 last-input-event)))
     (when (and ot-provider
                (ignore-errors ; github#906, some LS's send empty strings
-                 (or (eq last-input-event
+                 (or (eq adjusted-ie
                          (seq-first (plist-get ot-provider :firstTriggerCharacter)))
-                     (cl-find last-input-event
+                     (cl-find adjusted-ie
                               (plist-get ot-provider :moreTriggerCharacter)
                               :key #'seq-first))))
-      (eglot-format (point) nil last-input-event))))
+      (eglot-format (point) nil adjusted-ie))))
 
 (defvar eglot--workspace-symbols-cache (make-hash-table :test #'equal)
   "Cache of `workspace/Symbol' results  used by `xref-find-definitions'.")
@@ -2973,7 +2975,9 @@ for which LSP on-type-formatting should be requested."
                       :insertSpaces (if indent-tabs-mode :json-false t)
                       :insertFinalNewline (if require-final-newline t :json-false)
                       :trimFinalNewlines (if delete-trailing-lines t :json-false))
-       args)))))
+       args))
+     nil
+     on-type-format)))
 
 (defvar eglot-cache-session-completions t
   "If non-nil Eglot caches data during completion sessions.")
@@ -3380,8 +3384,9 @@ Returns a list as described in docstring of `imenu--index-alist'."
         (((SymbolInformation)) (eglot--imenu-SymbolInformation res))
         (((DocumentSymbol)) (eglot--imenu-DocumentSymbol res))))))
 
-(cl-defun eglot--apply-text-edits (edits &optional version)
-  "Apply EDITS for current buffer if at VERSION, or if it's nil."
+(cl-defun eglot--apply-text-edits (edits &optional version silent)
+  "Apply EDITS for current buffer if at VERSION, or if it's nil.
+If SILENT, don't echo progress in mode-line."
   (unless edits (cl-return-from eglot--apply-text-edits))
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (jsonrpc-error "Edits on `%s' require version %d, you have %d"
@@ -3389,10 +3394,11 @@ Returns a list as described in docstring of `imenu--index-alist'."
   (atomic-change-group
     (let* ((change-group (prepare-change-group))
            (howmany (length edits))
-           (reporter (make-progress-reporter
-                      (format "[eglot] applying %s edits to `%s'..."
-                              howmany (current-buffer))
-                      0 howmany))
+           (reporter (unless silent
+                       (make-progress-reporter
+                        (format "[eglot] applying %s edits to `%s'..."
+                                howmany (current-buffer))
+                        0 howmany)))
            (done 0))
       (mapc (pcase-lambda (`(,newText ,beg . ,end))
               (let ((source (current-buffer)))
@@ -3404,12 +3410,14 @@ Returns a list as described in docstring of `imenu--index-alist'."
                         (save-restriction
                           (narrow-to-region beg end)
                           (replace-buffer-contents temp)))
-                      (eglot--reporter-update reporter (cl-incf done)))))))
+                      (when reporter
+                        (eglot--reporter-update reporter (cl-incf done))))))))
             (mapcar (eglot--lambda ((TextEdit) range newText)
                       (cons newText (eglot--range-region range 'markers)))
                     (reverse edits)))
       (undo-amalgamate-change-group change-group)
-      (progress-reporter-done reporter))))
+      (when reporter
+        (progress-reporter-done reporter)))))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
