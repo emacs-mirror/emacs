@@ -899,10 +899,10 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
    CALLNO is the system call number, and REGS are the current user
    registers of the TRACEE.
 
-   If the first argument of a `readlinkat' system call is AT_FDCWD,
-   and the file name specified in either a `readlink' or `readlinkat'
+   If the file name specified in either a `readlink' or `readlinkat'
    system call is `/proc/self/exe', write the name of the executable
-   being run into the buffer specified in the system call.
+   being run into the buffer specified in the system call.  Do not
+   handle relative file names at the moment.
 
    Return the number of bytes written to the tracee's buffer in
    *RESULT.
