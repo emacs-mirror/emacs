@@ -223,8 +223,8 @@ horizontal scrolling according to the movement in DX."
                          (scroll-right 1)
                          (setq lines-hscrolled (1+ lines-hscrolled))
                          (when (not (zerop accumulator))
-                           ;; If there is still an outstanding amount to
-                           ;; scroll, do this again.
+                           ;; If there is still an outstanding amount
+                           ;; to scroll, do this again.
                            (throw 'again t)))
                      (when (and (> accumulator 0)
                                 (>= accumulator column-width))
@@ -236,7 +236,8 @@ horizontal scrolling according to the movement in DX."
                          ;; scroll, do this again.
                          (throw 'again t)))))
                  ;; Scrolling is done.  Move the accumulator back to
-                 ;; touch-screen-current-tool and break out of the loop.
+                 ;; touch-screen-current-tool and break out of the
+                 ;; loop.
                  (setcar (nthcdr 6 touch-screen-current-tool) accumulator)
                  (setcar (nthcdr 8 touch-screen-current-tool) lines-hscrolled)
                  nil)))))
@@ -321,7 +322,8 @@ word around EVENT; otherwise, set point to the location of EVENT."
               (progn
                 ;; If so, clear the bounds and set and activate the
                 ;; mark.
-                (setq touch-screen-word-select-bounds nil)
+                (setq touch-screen-word-select-bounds nil
+                      touch-screen-word-select-initial-word nil)
                 (push-mark point)
                 (goto-char point)
                 (activate-mark))
@@ -893,7 +895,16 @@ the place of EVENT within the key sequence being translated, or
             (when (and touch-screen-extend-selection
                        (or (eq point (point))
                            (eq point (mark)))
-                       (region-active-p))
+                       (region-active-p)
+                       ;; Only restart drag-to-select if the tap falls
+                       ;; on the same row as the selection.  This
+                       ;; prevents dragging from starting if the tap
+                       ;; is below the last window line with text and
+                       ;; `point' is at ZV, as the user most likely
+                       ;; meant to scroll the window instead.
+                       (when-let* ((posn-point (posn-at-point point))
+                                   (posn-row (cdr (posn-col-row posn-point))))
+                         (eq (cdr (posn-col-row position)) posn-row)))
               ;; Indicate that a drag is about to restart.
               (setcar (nthcdr 3 tool-list) 'restart-drag)
               ;; Generate the `restart-drag' event.
