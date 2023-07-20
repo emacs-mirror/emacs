@@ -101,7 +101,8 @@ android_init_emacs_context_menu (void)
   eassert (menu_class.c_name);
 
   FIND_METHOD_STATIC (create_context_menu, "createContextMenu",
-		      "()Lorg/gnu/emacs/EmacsContextMenu;");
+		      "(Ljava/lang/String;)"
+		      "Lorg/gnu/emacs/EmacsContextMenu;");
 
   FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ"
 	       "Ljava/lang/String;Z)V");
@@ -269,12 +270,26 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   /* Push the first local frame.  */
   android_push_local_frame ();
 
+  /* Set title_string to a Java string containing TITLE if non-nil.
+     If the menu consists of more than one pane, replace the title
+     with the pane header item so that the menu looks consistent.  */
+
+  title_string = NULL;
+  if (STRINGP (title) && menu_items_n_panes < 2)
+    title_string = android_build_string (title);
+
   /* Push the first local frame for the context menu.  */
   method = menu_class.create_context_menu;
   current_context_menu = context_menu
     = (*android_java_env)->CallStaticObjectMethod (android_java_env,
 						   menu_class.class,
-						   method);
+						   method,
+						   title_string);
+
+  /* Delete the unused title reference.  */
+
+  if (title_string)
+    ANDROID_DELETE_LOCAL_REF (title_string);
 
   /* Push the second local frame for temporaries.  */
   count1 = SPECPDL_INDEX ();
@@ -322,6 +337,13 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	i += 1;
       else if (EQ (AREF (menu_items, i), Qt))
 	{
+	  /* If the menu contains a single pane, then the pane is
+	     actually TITLE.  Don't duplicate the text within the
+	     context menu title.  */
+
+	  if (menu_items_n_panes < 2)
+	    goto next_item;
+
 	  /* This is a new pane.  Switch back to the topmost context
 	     menu.  */
 	  if (current_context_menu != context_menu)
@@ -348,6 +370,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  android_exception_check ();
 	  ANDROID_DELETE_LOCAL_REF (temp);
 
+	next_item:
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
       else

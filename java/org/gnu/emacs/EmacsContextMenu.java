@@ -27,6 +27,7 @@ import android.content.Intent;
 
 import android.os.Build;
 
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -130,18 +131,27 @@ public final class EmacsContextMenu
     }
   };
 
+  /* List of menu items contained in this menu.  */
   public List<Item> menuItems;
+
+  /* The parent context menu, or NULL if none.  */
   private EmacsContextMenu parent;
+
+  /* The title of this context menu, or NULL if none.  */
+  private String title;
+
+
 
   /* Create a context menu with no items inside and the title TITLE,
      which may be NULL.  */
 
   public static EmacsContextMenu
-  createContextMenu ()
+  createContextMenu (String title)
   {
     EmacsContextMenu menu;
 
     menu = new EmacsContextMenu ();
+    menu.title = title;
     menu.menuItems = new ArrayList<Item> ();
 
     return menu;
@@ -204,7 +214,7 @@ public final class EmacsContextMenu
     item.itemID = 0;
     item.itemName = itemName;
     item.tooltip = tooltip;
-    item.subMenu = createContextMenu ();
+    item.subMenu = createContextMenu (itemName);
     item.subMenu.parent = this;
 
     menuItems.add (item);
@@ -287,12 +297,22 @@ public final class EmacsContextMenu
 
   /* Enter the items in this context menu to MENU.
      Assume that MENU will be displayed in VIEW; this may lead to
-     popupMenu being called on VIEW if a submenu is selected.  */
+     popupMenu being called on VIEW if a submenu is selected.
+
+     If MENU is a ContextMenu, set its header title to the one
+     contained in this object.  */
 
   public void
   expandTo (Menu menu, EmacsView view)
   {
     inflateMenuItems (menu, view);
+
+    /* See if menu is a ContextMenu and a title is set.  */
+    if (title == null || !(menu instanceof ContextMenu))
+      return;
+
+    /* Set its title to this.title.  */
+    ((ContextMenu) menu).setHeaderTitle (title);
   }
 
   /* Return the parent or NULL.  */
