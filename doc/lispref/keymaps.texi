@@ -2515,7 +2515,8 @@ get a non-selectable menu item.  This is mostly useful when creating
 separator lines and the like.
 
 The tail of the list, @var{item-property-list}, has the form of a
-property list which contains other information.
+property list (@pxref{Property Lists}) which contains other
+information.
 
   Here is a table of the properties that are supported:
 
@@ -3196,14 +3197,15 @@ the menu.  To put it elsewhere in the menu, use @code{keymap-set-after}:
 
 @defun keymap-set-after map key binding &optional after
 Define a binding in @var{map} for @var{key}, with value @var{binding},
-just like @code{define-key}, but position the binding in @var{map} after
-the binding for the event @var{after}.  The argument @var{key} should
-represent a single menu item or key, and @var{after} should be a
-single event type---a symbol or a character, not a sequence.  The new
-binding goes after the binding for @var{after}.  If @var{after} is
-@code{t} or is omitted, then the new binding goes last, at the end of
-the keymap.  However, new bindings are added before any inherited
-keymap.
+just like @code{keymap-set} (@pxref{Changing Key Bindings}), but
+position the binding in @var{map} after the binding for the event
+@var{after}.  The argument @var{key} should represent a single menu
+item or key, and should satisfy @code{key-valid-p} (@pxref{Key
+Sequences}).  @var{after} should be a single event type---a symbol or
+a character, not a sequence.  The new binding goes after the binding
+for @var{after}.  If @var{after} is @code{t} or is omitted, then the
+new binding goes last, at the end of the keymap.  However, new
+bindings are added before any inherited keymap.
 
 Here is an example:
 
