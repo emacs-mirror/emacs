@@ -6350,7 +6350,9 @@ This option mainly prevents text accidentally entered into Emacs
 from being sent to the server.  Offending sources include
 terminal multiplexers, desktop-automation scripts, and anything
 capable of rapidly submitting successive lines of prompt input.
-For example, entering \"one\\ntwo\\nthree\\n\" will send \"one\"
+For example, if you could somehow manage to type \"one \\`RET'
+two \\`RET' three \\`RET'\" at the prompt in less than
+`erc-accidental-paste-threshold-seconds', ERC would send \"one\"
 to the server, leave \"two\" at the prompt, and insert \"three\"
 into an \"overflow\" buffer.  See `erc-inhibit-multiline-input'
 and `erc-warn-about-blank-lines' for suppression involving input

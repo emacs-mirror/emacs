@@ -5497,12 +5497,24 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
      no input.
 
      The device attachment is a device ID whose meaning varies
-     depending on the device use.  If the device is a master device,
-     then the attachment is the device ID of the other device in its
-     seat (the master keyboard for master pointer devices, and vice
-     versa).  Otherwise, it is the ID of the master device the slave
+     depending on the device's use.  If a device is a master device,
+     then its attachment is the device ID of the other device in its
+     seat (the master keyboard for master pointer devices and vice
+     versa.)  Otherwise, it is the ID of the master device the slave
      device is attached to.  For slave devices not attached to any
-     seat, its value is undefined.  */
+     seat, its value is undefined.
+
+     Emacs receives ordinary pointer and keyboard events from the
+     master devices associated with each seat, discarding events from
+     slave devices.  However, multiplexing events from touch devices
+     onto a master device poses problems: if both dependent and direct
+     touch devices are attached to the same master pointer device, the
+     coordinate space of touch events sent from that seat becomes
+     ambiguous.  In addition, the X server does not send TouchEnd
+     events to cancel ongoing touch sequences if the slave device that
+     is their source is detached.  As a result of these ambiguities,
+     touch events are processed from and recorded onto their slave
+     devices instead.  */
 
   xi_device->device_id = device->deviceid;
   xi_device->grab = 0;
@@ -5516,7 +5528,7 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 #ifdef HAVE_XINPUT2_2
   xi_device->touchpoints = NULL;
   xi_device->direct_p = false;
-#endif
+#endif /* HAVE_XINPUT2_1 */
 
 #ifdef HAVE_XINPUT2_1
   if (!dpyinfo->xi2_version)
@@ -5582,9 +5594,34 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 	case XITouchClass:
 	  {
 	    touch_info = (XITouchClassInfo *) device->classes[c];
-	    xi_device->direct_p = touch_info->mode == XIDirectTouch;
+
+	    /* touch_info->mode indicates the coordinate space that
+	       this device reports in its touch events.
+
+	       DirectTouch means that the device uses a coordinate
+	       space that corresponds to locations on the screen.  It
+	       is set by touch screen devices which are overlaid
+	       over the raster itself.
+
+	       The other value (DependentTouch) means that the device
+	       uses a separate abstract coordinate space corresponding
+	       to its own surface.  Emacs ignores events from these
+	       devices because it does not support recognizing touch
+	       gestures from surfaces other than the screen.
+
+	       Master devices may report multiple touch classes for
+	       attached slave devices, leaving the nature of touch
+	       events they send ambiguous.  The problem of
+	       discriminating between these events is bypassed
+	       entirely through only processing touch events from the
+	       slave devices where they originate.  */
+
+	    if (touch_info->mode == XIDirectTouch)
+	      xi_device->direct_p = true;
+	    else
+	      xi_device->direct_p = false;
 	  }
-#endif
+#endif /* HAVE_XINPUT2_2 */
 	default:
 	  break;
 	}
@@ -5611,7 +5648,7 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
     }
 
   SAFE_FREE ();
-#endif
+#endif /* HAVE_XINPUT2_1 */
 }
 
 /* Populate our client-side record of all devices, which includes
@@ -13443,7 +13480,7 @@ xi_handle_new_classes (struct x_display_info *dpyinfo, struct xi_device_t *devic
   device->scroll_valuator_count = 0;
 #ifdef HAVE_XINPUT2_2
   device->direct_p = false;
-#endif
+#endif /* HAVE_XINPUT2_2 */
 
   for (i = 0; i < num_classes; ++i)
     {
@@ -13461,10 +13498,34 @@ xi_handle_new_classes (struct x_display_info *dpyinfo, struct xi_device_t *devic
 	case XITouchClass:
 	  touch = (XITouchClassInfo *) classes[i];
 
+	  /* touch_info->mode indicates the coordinate space that this
+	     device reports in its touch events.
+
+	     DirectTouch means that the device uses a coordinate space
+	     that corresponds to locations on the screen.  It is set
+	     by touch screen devices which are overlaid over the
+	     raster itself.
+
+	     The other value (DependentTouch) means that the device
+	     uses a separate abstract coordinate space corresponding
+	     to its own surface.  Emacs ignores events from these
+	     devices because it does not support recognizing touch
+	     gestures from surfaces other than the screen.
+
+	     Master devices may report multiple touch classes for
+	     attached slave devices, leaving the nature of touch
+	     events they send ambiguous.  The problem of
+	     discriminating between these events is bypassed entirely
+	     through only processing touch events from the slave
+	     devices where they originate.  */
+
 	  if (touch->mode == XIDirectTouch)
 	    device->direct_p = true;
+	  else
+	    device->direct_p = false;
+
 	  break;
-#endif
+#endif /* HAVE_XINPUT2_2 */
 	}
     }
 
@@ -13502,7 +13563,7 @@ xi_handle_new_classes (struct x_display_info *dpyinfo, struct xi_device_t *devic
     }
 }
 
-#endif
+#endif /* HAVE_XINPUT2_1 */
 
 /* Handle EVENT, a DeviceChanged event.  Look up the device that
    changed, and update its information with the data in EVENT.  */
@@ -32250,10 +32311,12 @@ reported as iconified.  */);
 
   DEFVAR_BOOL ("x-input-grab-touch-events", x_input_grab_touch_events,
 	       doc: /* Non-nil means to actively grab touch events.
-This means touch sequences that started on an Emacs frame will
-reliably continue to receive updates even if the finger moves off the
-frame, but may cause crashes with some window managers and/or external
-programs.  */);
+This means touch sequences that are obtained through a passive grab on
+an Emacs frame (or a parent window of such a frame) will reliably
+continue to receive updates, but may cause crashes with some window
+managers and/or external programs.  Changing this option is only
+useful when other programs are making their own X requests pertaining
+to the window hierarchy of an Emacs frame.  */);
   x_input_grab_touch_events = true;
 
   DEFVAR_BOOL ("x-dnd-fix-motif-leave", x_dnd_fix_motif_leave,

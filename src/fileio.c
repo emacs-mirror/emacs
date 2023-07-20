@@ -2644,7 +2644,7 @@ internal_delete_file (Lisp_Object filename)
 #endif
 
 /* Return -1 if FILE is a case-insensitive file name, 0 if not,
-   and a positive errno value if the result cannot be determined.  */
+   and 1 if the result cannot be determined.  */
 
 static int
 file_name_case_insensitive_err (Lisp_Object file)
@@ -2678,7 +2678,7 @@ file_name_case_insensitive_err (Lisp_Object file)
     return - (res == 0);
 # endif
   if (errno != EINVAL)
-    return errno;
+    return 1;
 #endif
 
 #if defined CYGWIN || defined DOS_NT
