@@ -3829,7 +3829,11 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 /* Make a Lisp string from an NSString.  */
 - (Lisp_Object)lispString
 {
-  // make_string behaves predictably and correctly with UTF-8 input.
+  /* `make_string' creates a string with a given length, instead of
+     searching for a trailing NULL byte to determine its end.  This is
+     important because this function is called to convert NSString
+     objects containing clipboard data, which can contain NUL bytes,
+     into Lisp strings.  (bug#64697) */
   return make_string ([self UTF8String],
                       [self lengthOfBytesUsingEncoding: NSUTF8StringEncoding]);
 }
