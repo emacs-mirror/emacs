@@ -21,17 +21,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Redisplay.
 
-   Emacs separates the task of updating the display from code
-   modifying global state, e.g. buffer text.  This way functions
-   operating on buffers don't also have to be concerned with updating
-   the display.
+   Emacs separates the task of updating the display -- which we call
+   "redisplay" -- from the code modifying global state, e.g. buffer
+   text.  This way functions operating on buffers don't also have to
+   be concerned with updating the display as result of their
+   operations.
 
-   Updating the display is triggered by the Lisp interpreter when it
-   decides it's time to do it.  This is done either automatically for
-   you as part of the interpreter's command loop or as the result of
-   calling Lisp functions like `sit-for'.  The C function
-   `redisplay_internal' in xdisp.c is the only entry into the inner
-   redisplay code.
+   Redisplay is triggered by the Lisp interpreter when it decides it's
+   time to do it.  This is done either automatically for you as part
+   of the interpreter's command loop, or as the result of calling Lisp
+   functions like `sit-for'.  The C function `redisplay_internal' in
+   xdisp.c is the only entry into the inner redisplay code.
 
    The following diagram shows how redisplay code is invoked.  As you
    can see, Lisp calls redisplay and vice versa.
@@ -75,63 +75,97 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    and to make these changes visible.  Preferably it would do that in
    a moderately intelligent way, i.e. fast.
 
-   Changes in buffer text can be deduced from window and buffer
-   structures, and from some global variables like `beg_unchanged' and
-   `end_unchanged'.  The contents of the display are additionally
-   recorded in a `glyph matrix', a two-dimensional matrix of glyph
-   structures.  Each row in such a matrix corresponds to a line on the
-   display, and each glyph in a row corresponds to a column displaying
-   a character, an image, or what else.  This matrix is called the
-   `current glyph matrix' or `current matrix' in redisplay
-   terminology.
+   At its highest level, redisplay can be divided into 3 distinct
+   steps, all of which are visible in `redisplay_internal':
 
-   For buffer parts that have been changed since the last update, a
-   second glyph matrix is constructed, the so called `desired glyph
-   matrix' or short `desired matrix'.  Current and desired matrix are
-   then compared to find a cheap way to update the display, e.g. by
-   reusing part of the display by scrolling lines.  The actual update
-   of the display of each window by comparing the desired and the
-   current matrix is done by `update_window', which calls functions
-   which draw to the glass (those functions are specific to the type
-   of the window's frame: X, w32, NS, etc.).
+    . decide which frames need their windows to be considered for redisplay
+    . for each window whose display might need to be updated, compute
+      a structure, called "glyph matrix", which describes how it
+      should look on display
+    . actually update the display of windows on the glass where the
+      newly obtained glyph matrix differs from the one produced by the
+      previous redisplay cycle
+
+   The first of these steps is done by `redisplay_internal' itself, by
+   looping through all the frames and testing their various flags,
+   such as their visibility.  The result of this could be that only
+   the selected window on the selected frame must be redisplayed, or
+   it could conclude that other windows need to be considered as well.
+
+   The second step considers each window that might need to be
+   redisplayed.  This could be only the selected window, or the window
+   trees of one or more frames.  The function which considers a window
+   and decides whether it actually needs redisplay is
+   `redisplay_window'.  It does so by looking at the changes in
+   position of point, in buffer text, in text properties, overlays,
+   etc.  These changes can be deduced from window and buffer
+   structures, and from some global variables like `beg_unchanged' and
+   `end_unchanged'.  The current contents of the display are recorded
+   in a `glyph matrix', a two-dimensional matrix of glyph structures.
+   Each row in such a matrix corresponds to a line on the display, and
+   each glyph in a row corresponds to a column displaying a character,
+   an image, or what else.  This matrix is called the `current glyph
+   matrix', or `current matrix', in redisplay terminology.
+
+   For buffer parts that have been changed since the last redisplay,
+   `redisplay_window' constructs a second glyph matrix, the so called
+   `desired glyph matrix' or short `desired matrix'.  It does so in
+   the most optimal way possible, avoiding the examination of text
+   that didn't change, reusing portions of the current matrix if
+   possible, etc.  It could, in particular, decide that a window
+   doesn't need to be redisplayed at all.
+
+   This second step of redisplay also updates the parts of the desired
+   matrix that correspond to the mode lines, header lines, and
+   tab-lines of the windows which need that; see `display_mode_lines'.
+
+   In the third and last step, the current and desired matrix are then
+   compared to find a cheap way to update the display, e.g. by reusing
+   part of the display by scrolling lines.  The actual update of the
+   display of each window, by comparing the desired and the current
+   matrix, is done by `update_window', which calls functions which
+   draw to the glass (those functions are specific to the type of the
+   window's frame: X, w32, NS, etc.).
 
    Once the display of a window on the glass has been updated, its
    desired matrix is used to update the corresponding rows of the
    current matrix, and then the desired matrix is discarded.
 
    You will find a lot of redisplay optimizations when you start
-   looking at the innards of redisplay.  The overall goal of all these
-   optimizations is to make redisplay fast because it is done
-   frequently.  Some of these optimizations are implemented by the
-   following functions:
+   looking at the innards of `redisplay_window'.  The overall goal of
+   all these optimizations is to make redisplay fast because it is
+   done frequently.  Some of these optimizations are implemented by
+   the following functions:
 
     . try_cursor_movement
 
-      This function tries to update the display if the text in the
-      window did not change and did not scroll, only point moved, and
-      it did not move off the displayed portion of the text.
+      This optimization is applicable if the text in the window did
+      not change and did not scroll, only point moved, and it did not
+      move off the displayed portion of the text.  In that case, the
+      window's glyph matrix is still valid, and only the position of
+      the cursor might need to be updated.
 
     . try_window_reusing_current_matrix
 
-      This function reuses the current matrix of a window when text
-      has not changed, but the window start changed (e.g., due to
+      This function reuses the current glyph matrix of a window when
+      text has not changed, but the window start changed (e.g., due to
       scrolling).
 
     . try_window_id
 
-      This function attempts to redisplay a window by reusing parts of
-      its existing display.  It finds and reuses the part that was not
-      changed, and redraws the rest.  (The "id" part in the function's
-      name stands for "insert/delete", not for "identification" or
-      somesuch.)
+      This function attempts to update a window's glyph matrix by
+      reusing parts of its current glyph matrix.  It finds and reuses
+      the part that was not changed, and regenerates the rest.  (The
+      "id" part in the function's name stands for "insert/delete", not
+      for "identification" or somesuch.)
 
     . try_window
 
-      This function performs the full, unoptimized, redisplay of a
-      single window assuming that its fonts were not changed and that
-      the cursor will not end up in the scroll margins.  (Loading
-      fonts requires re-adjustment of dimensions of glyph matrices,
-      which makes this method impossible to use.)
+      This function performs the full, unoptimized, generation of a
+      single window's glyph matrix, assuming that its fonts were not
+      changed and that the cursor will not end up in the scroll
+      margins.  (Loading fonts requires re-adjustment of dimensions of
+      glyph matrices, which makes this method impossible to use.)
 
    The optimizations are tried in sequence (some can be skipped if
    it is known that they are not applicable).  If none of the
@@ -140,16 +174,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Note that there's one more important optimization up Emacs's
    sleeve, but it is related to actually redrawing the potentially
-   changed portions of the window/frame, not to reproducing the
-   desired matrices of those potentially changed portions.  Namely,
-   the function update_frame and its subroutines, which you will find
-   in dispnew.c, compare the desired matrices with the current
-   matrices, and only redraw the portions that changed.  So it could
-   happen that the functions in this file for some reason decide that
-   the entire desired matrix needs to be regenerated from scratch, and
-   still only parts of the Emacs display, or even nothing at all, will
-   be actually delivered to the glass, because update_frame has found
-   that the new and the old screen contents are similar or identical.
+   changed portions of the window/frame as part of the third step, not
+   to generating the desired matrices of those potentially changed
+   portions.  Namely, the function `update_frame' and its subroutines,
+   which you will find in dispnew.c, compare the desired matrices with
+   the current matrices, and only redraw the portions that changed.
+   So it could happen that the functions in this file for some reason
+   decide that the entire desired matrix needs to be regenerated from
+   scratch, and still only parts of the Emacs display, or even nothing
+   at all, will be actually delivered to the glass, because
+   `update_frame' has found that the new and the old screen contents
+   are similar or identical.
 
    Desired matrices.
 
@@ -159,7 +194,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    redisplay tries to optimize its work, and thus only generates
    glyphs for rows that need to be updated on the screen.  Rows that
    don't need to be updated are left "disabled", and their contents
-   should be ignored.
+   in the desired matrix should be ignored.
 
    The function `display_line' is the central function to look at if
    you are interested in how the rows of the desired matrix are

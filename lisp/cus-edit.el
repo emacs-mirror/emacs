@@ -3533,7 +3533,11 @@ GNUstep or Macintosh OS Cocoa interface.")
 				    (const :format "PGTK "
 					   :sibling-args (:help-echo "\
 Pure-GTK interface.")
-					   ns)
+					   pgtk)
+                                    (const :format "Haiku "
+					   :sibling-args (:help-echo "\
+Haiku interface.")
+					   haiku)
 				    (const :format "DOS "
 					   :sibling-args (:help-echo "\
 Plain MS-DOS.")
