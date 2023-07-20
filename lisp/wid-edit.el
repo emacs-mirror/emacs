@@ -289,7 +289,7 @@ in the key vector, as in the argument of `define-key'."
   (let ((items (mapc (lambda (x)
                        (when (consp x)
                          (dotimes (i (1- (length x)))
-                           (when (char-or-string-p (nth i x))
+                           (when (stringp (nth i x))
                              (setcar (nthcdr i x)
                                      (substitute-command-keys
                                       (car (nthcdr i x))))))))

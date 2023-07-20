@@ -441,6 +441,10 @@ instead of:
         and another_expression):
         do_something()
 
+*** New user option 'python-interpreter-args'.
+This allows the user to specify command line arguments to the non
+interactive Python interpreter specified by 'python-interpreter'.
+
 ** use-package
 
 +++

@@ -425,11 +425,14 @@ to it is returned.  This function does not modify the point or the mark."
 (defvar lookup-syntax-properties)       ;XEmacs.
 
 (defmacro c-is-escaped (pos)
-  ;; Are there an odd number of backslashes before POS?
+  ;; Is the character following POS escaped?
   (declare (debug t))
   `(save-excursion
      (goto-char ,pos)
-     (not (zerop (logand (skip-chars-backward "\\\\") 1)))))
+     (if (and c-escaped-newline-takes-precedence
+	      (memq (char-after) '(?\n ?\r)))
+	 (eq (char-before) ?\\)
+       (not (zerop (logand (skip-chars-backward "\\\\") 1))))))
 
 (defmacro c-will-be-escaped (pos beg end)
   ;; Will the character after POS be escaped after the removal of (BEG END)?
@@ -437,13 +440,23 @@ to it is returned.  This function does not modify the point or the mark."
   (declare (debug t))
   `(save-excursion
      (let ((-end- ,end)
+	   (-pos- ,pos)
 	   count)
-       (goto-char ,pos)
-       (setq count (skip-chars-backward "\\\\" -end-))
-       (when (eq (point) -end-)
-	 (goto-char ,beg)
-	 (setq count (+ count (skip-chars-backward "\\\\"))))
-       (not (zerop (logand count 1))))))
+       (if (and c-escaped-newline-takes-precedence
+		(memq (char-after -pos-) '(?\n ?\r)))
+	   (eq (char-before (if (eq -pos- -end-)
+				,beg
+			      -pos-))
+	       ?\\)
+	 (goto-char -pos-)
+	 (setq count
+	       (if (> -pos- -end-)
+		   (skip-chars-backward "\\\\" -end-)
+		 0))
+	 (when (eq (point) -end-)
+	   (goto-char ,beg)
+	   (setq count (+ count (skip-chars-backward "\\\\"))))
+	 (not (zerop (logand count 1)))))))
 
 (defmacro c-will-be-unescaped (beg)
   ;; Would the character after BEG be unescaped?

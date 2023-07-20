@@ -105,7 +105,7 @@
   :version "22.1")
 
 (defface makefile-shell
-  ()
+  '((t (:inherit default)))
   ;;'((((class color) (min-colors 88) (background light)) (:background  "seashell1"))
   ;;  (((class color) (min-colors 88) (background dark)) (:background  "seashell4")))
   "Face to use for additionally highlighting Shell commands in Font-Lock mode."
