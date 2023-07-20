@@ -23,11 +23,11 @@
 ;;; Commentary:
 
 ;; This file provides code to recognize simple touch screen gestures.
-;; It is used on X and Android, where the platform cannot recognize
-;; them for us.
+;; It is used on X and Android, currently the only systems where Emacs
+;; supports touch input.
 ;;
-;; See (elisp)Touchscreen Events for a description of the details of touch
-;; events.
+;; See (elisp)Touchscreen Events for a description of the details of
+;; touch events.
 
 ;;; Code:
 
@@ -39,8 +39,9 @@ containing the last known position of the touch point, relative
 to that window, a field used to store data while tracking the
 touch point, the initial position of the touchpoint, and another
 four fields to used store data while tracking the touch point.
-See `touch-screen-handle-point-update' for the meanings of the
-fourth element.")
+See `touch-screen-handle-point-update' and
+`touch-screen-handle-point-up' for the meanings of the fifth
+element.")
 
 (defvar touch-screen-set-point-commands '(mouse-set-point)
   "List of commands known to set the point.
@@ -1208,6 +1209,26 @@ touch point in EVENT did not move significantly, and t otherwise."
                    (and (eq (caadr event) (caadr new-event))
                         return-value)))
            (t (throw 'finish nil))))))))
+
+
+
+;;; Event handling exports.  These functions are intended for use by
+;;; Lisp commands bound to touch screen gesture events.
+
+(defun touch-screen-inhibit-drag ()
+  "Inhibit subsequent `touchscreen-drag' events from being sent.
+Prevent `touchscreen-drag' and translated mouse events from being
+sent until the touch sequence currently being translated ends.
+Must be called from a command bound to a `touchscreen-hold' or
+`touchscreen-drag' event."
+  (let* ((tool touch-screen-current-tool)
+         (current-what (nth 4 tool)))
+    ;; Signal an error if no hold or drag is in progress.
+    (when (and (not (eq current-what 'hold)
+                    (eq current-what 'drag)))
+      (error "Calling `touch-screen-inhibit-drag' outside hold or drag"))
+    ;; Now set the fourth element of tool to `command-inhibit'.
+    (setcar (nthcdr 3 tool) 'command-inhibit)))
 
 
 

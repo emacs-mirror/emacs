@@ -2145,10 +2145,11 @@ the initial @code{touchscreen-begin} event within that touch sequence.
 
 @cindex handling touch screen events
 @cindex tap and drag, touch screen gestures
-Emacs provides two functions to handle touch screen events independent
-of gesture recognition or mouse event translation.  They are intended
-to be used by commands bound to @code{touchscreen-begin}, to recognize
-and handle common gestures.
+Several functions are provided for Lisp programs that handle touch
+screen events.  The intended use of the first two functions described
+below is from commands bound directly to @code{touchscreen-begin}
+events; they allow responding to commonly used touch screen gestures
+separately from mouse event translation.
 
 @defun touch-screen-track-tap event &optional update data
 This function is used to track a single ``tap'' gesture originating
@@ -2176,6 +2177,24 @@ It behaves like @code{touch-screen-track-tap}, except that it returns
 touchpoint in @code{event} did not move far enough (by default, 5
 pixels from its position in @code{event}) to qualify as an actual
 drag.
+@end defun
+
+In addition to those two functions, a function is provided for
+commands bound to some types of events generated through mouse event
+translation to prevent unwanted events from being generated after it
+is called.
+
+@defun touch-screen-inhibit-drag
+This function inhibits the generation of @code{touchscreen-drag}
+events during mouse event translation for the duration of the touch
+sequence being translated after it is called.  It must be called from
+a command which is bound to a @code{touchscreen-hold} or
+@code{touchscreen-drag} event, and signals an error otherwise.
+
+Since this function can only be called after a gesture is already
+recognized during mouse event translation, no mouse events will be
+generated from touch events constituting the previously mentioned
+touch sequence after it is called.
 @end defun
 
 @node Focus Events

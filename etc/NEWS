@@ -126,9 +126,11 @@ right-aligned to is controlled by the new user option
 * Editing Changes in Emacs 30.1
 
 +++
-** Emacs now has better support for touchscreen events.
-Many touch screen gestures are now implemented, as is support for
-tapping buttons and opening menus.
+** Emacs now has better support for touchscreen devices.
+Many touch screen gestures are now implemented and translated into
+mouse or gesture events, and support for tapping tool bar buttons and
+opening menus has been written.  Countless packages, such as Dired and
+Custom have been adjusted to better understand touch screen input.
 
 ---
 ** On X, Emacs now supports input methods which perform "string conversion".
