@@ -78,8 +78,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    At its highest level, redisplay can be divided into 3 distinct
    steps, all of which are visible in `redisplay_internal':
 
-    . decide which windows on which frames need their windows
-      considered for redisplay
+    . decide which frames need their windows to be considered for redisplay
     . for each window whose display might need to be updated, compute
       a structure, called "glyph matrix", which describes how it
       should look on display
