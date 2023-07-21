@@ -2011,7 +2011,7 @@ the position of the finger when the event occurred.
 This event is sent when @var{point} is created by the user pressing a
 finger against the touchscreen.
 
-These events also have imaginary prefixes keys added by
+Imaginary prefix keys are also affixed to these events
 @code{read-key-sequence} when they originate on top of a special part
 of a frame or window.  @xref{Key Sequence Input}.
 
@@ -2032,7 +2032,7 @@ intercepted by another program (such as the window manager), and Emacs
 should undo or avoid any editing commands that would otherwise result
 from the touch sequence.
 
-These events also have imaginary prefixes keys added by
+Imaginary prefix keys are also affixed to these events
 @code{read-key-sequence} when they originate on top of a special part
 of a frame or window.
 @end table

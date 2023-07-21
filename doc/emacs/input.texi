@@ -77,6 +77,17 @@ within a single gesture.  If the user option
 of the point or the mark within a window will begin a new ``drag''
 gesture, where the region will be extended in the direction of any
 subsequent movement.
+
+@vindex touch-screen-preview-select
+@cindex previewing the region during selection, touchscreens
+  Difficulties in making accurate adjustments to the region can also
+be alleviated by indicating the position of the point relative to its
+containing line within the echo area, since the window cursor may be
+physically obscured by the tool.  If
+@code{touch-screen-preview-select} is non-@code{nil}, the line
+containing point is displayed in the echo area (@pxref{Echo Area})
+during the motion of the tool, followed by another line indicating the
+position of point within the first line.
 @end itemize
 
 @vindex touch-screen-delay

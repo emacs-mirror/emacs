@@ -40,7 +40,7 @@ to that window, a field used to store data while tracking the
 touch point, the initial position of the touchpoint, and another
 four fields to used store data while tracking the touch point.
 See `touch-screen-handle-point-update' and
-`touch-screen-handle-point-up' for the meanings of the fifth
+`touch-screen-handle-point-up' for the meanings of the fourth
 element.")
 
 (defvar touch-screen-set-point-commands '(mouse-set-point)
@@ -92,6 +92,15 @@ by dragging will try to select entire words."
 When enabled, tapping on the character containing the point or
 mark will resume dragging where it left off while the region is
 active."
+  :type 'boolean
+  :group 'mouse
+  :version "30.1")
+
+(defcustom touch-screen-preview-select nil
+  "If non-nil, display a preview while selecting text.
+When enabled, a preview of the visible line within the window
+will be displayed in the echo area while dragging combined with
+an indication of the position of point within that line."
   :type 'boolean
   :group 'mouse
   :version "30.1")
@@ -377,6 +386,134 @@ word around EVENT; otherwise, set point to the location of EVENT."
                     touch-screen-word-select-initial-word
                     (cons word-start word-end)))))))))
 
+(defun touch-screen-preview-select ()
+  "Display a preview of the line around point in the echo area.
+Unless the minibuffer is an active or the current line is
+excessively tall, display an indication of the position of point
+and the contents of the visible line around it within the echo
+area.
+
+If the selected window is hscrolled or lines may be truncated,
+attempt to find the extents of the text between column 0 and the
+right most column of the window using `posn-at-x-y'."
+  (interactive)
+  ;; First, establish that the minibuffer isn't active and the line
+  ;; isn't taller than two times the frame character height.
+  (unless (or (> (minibuffer-depth) 0)
+              ;; The code below doesn't adapt well to buffers
+              ;; containing long lines.
+              (long-line-optimizations-p)
+              (let ((window-line-height (window-line-height))
+                    (maximum-height (* 2 (frame-char-height))))
+                (or (and window-line-height
+                         (> (car window-line-height)
+                            maximum-height))
+                    ;; `window-line-height' isn't available.
+                    ;; Redisplay first and try to ascertain the height
+                    ;; of the line again.
+                    (prog1 nil (redisplay t))
+                    ;; Likewise if the line height still isn't
+                    ;; available.
+                    (not (setq window-line-height
+                               (window-line-height)))
+                    ;; Actually check the height now.
+                    (> (car window-line-height)
+                       maximum-height))))
+    (if (catch 'hscrolled-away
+          (let ((beg nil) end string y)
+            ;; Detect whether or not the window is hscrolled.  If it
+            ;; is, set beg to the location of the first column
+            ;; instead.
+            (when (> (window-hscroll) 0)
+              (setq y (+ (or (cdr (posn-x-y (posn-at-point)))
+                             (throw 'hscrolled-away t))
+                         (window-header-line-height)
+                         (window-tab-line-height)))
+              (let* ((posn (posn-at-x-y 0 y))
+                     (point (posn-point posn)))
+                (setq beg point)))
+            ;; Check if lines are being truncated; if so, use the
+            ;; character at the end of the window as the end of the
+            ;; text to be displayed, as the visual line may extend
+            ;; past the window.
+            (when (or truncate-lines beg) ; truncate-lines or hscroll.
+              (setq y (or y (+ (or (cdr (posn-x-y (posn-at-point)))
+                                   (throw 'hscrolled-away t))
+                               (window-header-line-height)
+                               (window-tab-line-height))))
+              (let* ((posn (posn-at-x-y (1- (window-width nil t)) y))
+                     (point (posn-point posn)))
+                (setq end point)))
+            ;; Now find the rest of the visual line.
+            (save-excursion
+              (unless beg
+                (beginning-of-visual-line)
+                (setq beg (point)))
+              (unless end
+                (end-of-visual-line)
+                (setq end (point))))
+            ;; Obtain a substring containing the beginning of the
+            ;; visual line and the end.
+            (setq string (buffer-substring beg end))
+            ;; Hack `invisible' properties within the new string.
+            ;; Look for each change of the property that is a variable
+            ;; name and replace it with its actual value according to
+            ;; `buffer-invisibility-spec'.
+            (when (listp buffer-invisibility-spec)
+              (let ((index 0)
+                    (property (get-text-property 0
+                                                 'invisible
+                                                 string))
+                    index1 invisible)
+                (while index
+                  ;; Find the end of this text property.
+                  (setq index1 (next-single-property-change index
+                                                            'invisible
+                                                            string))
+                  ;; Replace the property with whether or not it is
+                  ;; non-nil.
+                  (when property
+                    (setq invisible nil)
+                    (catch 'invisible
+                      (dolist (spec buffer-invisibility-spec)
+                        ;; Process one element of the buffer
+                        ;; invisibility specification.
+                        (if (consp spec)
+                            (when (eq (cdr spec) 't)
+                              ;; (ATOM . t) makes N invisible if N is
+                              ;; equal to ATOM or a list containing
+                              ;; ATOM.
+                              (when (or (eq (car spec) property)
+                                        (and (listp spec)
+                                             (memq (car spec) invisible)))
+                                (throw 'invisible (setq invisible t))))
+                          ;; Otherwise, N is invisible if SPEC is
+                          ;; equal to N.
+                          (when (eq spec property)
+                            (throw 'invisible (setq invisible t))))))
+                    (put-text-property index (or index1
+                                                 (- end beg))
+                                       'invisible invisible string))
+                  ;; Set index to that of the next text property and
+                  ;; continue.
+                  (setq index index1
+                        property (and index1
+                                      (get-text-property index1
+                                                         'invisible
+                                                         string))))))
+            (let ((resize-mini-windows t) difference width
+                  (message-log-max nil))
+              ;; Find the offset of point from beg and display a cursor
+              ;; below.
+              (setq difference (- (point) beg)
+                    width (string-pixel-width
+                           (substring string 0 difference)))
+              (message "%s\n%s^" string
+                       (propertize " "
+                                   'display (list 'space
+                                                  :width (list width)))))
+            nil)))))
+
 (defun touch-screen-drag (event)
   "Handle a drag EVENT by setting the region to its new point.
 If `touch-screen-word-select' and EVENT lies outside the last
@@ -387,15 +524,17 @@ area."
   (let* ((posn (cadr event)) ; Position of the tool.
          (point (posn-point posn)) ; Point of the event.
          ; Window where the tap originated.
-         (window (nth 1 touch-screen-current-tool)))
+         (window (nth 1 touch-screen-current-tool))
+         initial-point)
     ;; Keep dragging.
     (with-selected-window window
       ;; Figure out what character to go to.  If this posn is
       ;; in the window, go to (posn-point posn).  If not,
       ;; then go to the line before either window start or
       ;; window end.
+      (setq initial-point (point))
       (if (and (eq (posn-window posn) window)
-               point (not (eq point (point))))
+               point (not (eq point initial-point)))
           (let* ((bounds touch-screen-word-select-bounds)
                  (initial touch-screen-word-select-initial-word)
                  (maybe-select-word (or (not touch-screen-word-select)
@@ -464,7 +603,12 @@ area."
                   (when (and (>= (point) (mark))
                              (> (mark) (car initial)))
                     (set-mark (car initial))))
-                (setq touch-screen-word-select-bounds nil))))
+                (setq touch-screen-word-select-bounds nil)))
+            ;; Finally, display a preview of the line around point if
+            ;; requested by the user.
+            (when (and touch-screen-preview-select
+                       (not (eq (point) initial-point)))
+              (touch-screen-preview-select)))
         ;; POSN is outside the window.  Scroll accordingly.
         (let ((relative-xy
                (touch-screen-relative-xy posn window)))
@@ -481,7 +625,11 @@ area."
               (ignore-errors
                 (goto-char (1+ (window-end nil t)))
                 (setq touch-screen-word-select-bounds nil))
-              (redisplay)))))))))
+              (redisplay)))
+            ;; Finally, display a preview of the line now around point
+            ;; if requested by the user.
+            (when touch-screen-preview-select
+              (touch-screen-preview-select))))))))
 
 (defun touch-screen-restart-drag (event)
   "Restart dragging to select text.

@@ -973,10 +973,16 @@ Intended to be called via `clear-message-function'."
     (when (overlayp minibuffer-message-overlay)
       (delete-overlay minibuffer-message-overlay)
       (setq minibuffer-message-overlay nil)))
-
-  ;; Return nil telling the caller that the message
-  ;; should be also handled by the caller.
-  nil)
+  ;; Don't clear the message if touch screen drag-to-select is in
+  ;; progress, because a preview message might currently be displayed
+  ;; in the echo area.  FIXME: find some way to place this in
+  ;; touch-screen.el.
+  (if (and touch-screen-preview-select
+           (eq (nth 3 touch-screen-current-tool) 'drag))
+      'dont-clear-message
+    ;; Return nil telling the caller that the message
+    ;; should be also handled by the caller.
+    nil))
 
 (setq clear-message-function 'clear-minibuffer-message)
 

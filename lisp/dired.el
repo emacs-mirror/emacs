@@ -1916,10 +1916,10 @@ other marked file as well.  Otherwise, unmark all files."
                                      (fboundp 'x-begin-drag))
                                 "down-mouse-1: drag this file to another program
 mouse-2: visit this file in other window"
-                              "mouse-2: visit this file in other window")))))
-	  (when (< (+ (point) 4) (line-end-position))
-	    (put-text-property (+ (point) 4) (line-end-position)
-			       'invisible 'dired-hide-details-link))))
+                              "mouse-2: visit this file in other window"))))
+	    (when (< (+ end 5) (line-end-position))
+	      (put-text-property (+ end 5) (line-end-position)
+			         'invisible 'dired-hide-details-link)))))
       (forward-line 1))))
 
 (defun dired--make-directory-clickable ()
