@@ -162,7 +162,7 @@ clear_regexp_cache (void)
     /* It's tempting to compare with the syntax-table we've actually changed,
        but it's not sufficient because char-table inheritance means that
        modifying one syntax-table can change others at the same time.  */
-    if (!searchbufs[i].busy && !EQ (searchbufs[i].syntax_table, Qt))
+    if (!searchbufs[i].busy && !BASE_EQ (searchbufs[i].syntax_table, Qt))
       searchbufs[i].regexp = Qnil;
 }
 
@@ -214,10 +214,11 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
           && !cp->busy
 	  && STRING_MULTIBYTE (cp->regexp) == STRING_MULTIBYTE (pattern)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
-	  && EQ (cp->buf.translate, translate)
+	  && BASE_EQ (cp->buf.translate, translate)
 	  && cp->posix == posix
-	  && (EQ (cp->syntax_table, Qt)
-	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
+	  && (BASE_EQ (cp->syntax_table, Qt)
+	      || BASE_EQ (cp->syntax_table,
+			  BVAR (current_buffer, syntax_table)))
 	  && !NILP (Fequal (cp->f_whitespace_regexp, Vsearch_spaces_regexp))
 	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
@@ -2892,7 +2893,7 @@ Return value is undefined if the last search failed.  */)
       ptrdiff_t start = search_regs.start[i];
       if (start >= 0)
 	{
-	  if (EQ (last_thing_searched, Qt)
+	  if (BASE_EQ (last_thing_searched, Qt)
 	      || ! NILP (integers))
 	    {
 	      XSETFASTINT (data[2 * i], start);

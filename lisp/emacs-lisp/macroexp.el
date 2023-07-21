@@ -227,21 +227,19 @@ It should normally be a symbol with position and it defaults to FORM."
 (defun macroexp-macroexpand (form env)
   "Like `macroexpand' but checking obsolescence."
   (let* ((macroexpand-all-environment env)
-         (new-form
-          (macroexpand form env)))
-    (if (and (not (eq form new-form))   ;It was a macro call.
-             (car-safe form)
-             (symbolp (car form))
-             (get (car form) 'byte-obsolete-info))
-        (let* ((fun (car form))
-               (obsolete (get fun 'byte-obsolete-info)))
-          (macroexp-warn-and-return
-           (macroexp--obsolete-warning
-            fun obsolete
-            (if (symbolp (symbol-function fun))
-                "alias" "macro"))
-           new-form (list 'obsolete fun) nil fun))
-      new-form)))
+         new-form)
+    (while (not (eq form (setq new-form (macroexpand-1 form env))))
+      (let ((fun (car-safe form)))
+        (setq form
+              (if (and fun (symbolp fun)
+                       (get fun 'byte-obsolete-info))
+                  (macroexp-warn-and-return
+                   (macroexp--obsolete-warning
+                    fun (get fun 'byte-obsolete-info)
+                    (if (symbolp (symbol-function fun)) "alias" "macro"))
+                   new-form (list 'obsolete fun) nil fun)
+                new-form))))
+    form))
 
 (defun macroexp--unfold-lambda (form &optional name)
   (or name (setq name "anonymous lambda"))

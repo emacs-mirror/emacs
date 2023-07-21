@@ -554,7 +554,7 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	    fprintf (stderr, "/charset [%s",
 		     (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
-	    if (p + *p >= pend)
+	    if (p + (*p & 0x7f) >= pend)
 	      fputs (" !extends past end of pattern! ", stderr);
 
 	    for (c = 0; c < 256; c++)
