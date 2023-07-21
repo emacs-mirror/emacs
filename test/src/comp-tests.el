@@ -1530,7 +1530,7 @@ folded."
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
 
-(ert-deftest comp-tests-result-lambda ()
+(comp-deftest comp-tests-result-lambda ()
   (native-compile 'comp-tests-result-lambda)
   (should (eq (funcall (comp-tests-result-lambda) '(a . b)) 'a)))
 ;;; comp-tests.el ends here
