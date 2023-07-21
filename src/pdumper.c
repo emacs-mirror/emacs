@@ -2179,7 +2179,7 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
 static dump_off
 dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_EB4C05D8D2)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_5F9D7E02FC)
 # error "Lisp_Overlay changed. See CHECK_STRUCTS comment in config.h."
 #endif
   START_DUMP_PVEC (ctx, &overlay->header, struct Lisp_Overlay, out);
