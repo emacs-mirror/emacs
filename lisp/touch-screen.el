@@ -1271,7 +1271,11 @@ where POSN is the position of the mouse click, either `mouse-2'
 if POSN is on a link or a button, or `mouse-1' otherwise."
   (unwind-protect
       ;; Save the virtual function key if this is a mode line event.
-      (let* ((prefix (and (> (length current-key-remap-sequence) 1)
+      (let* ((prefix-specified
+              ;; Virtual prefix keys can be nil for events that fall
+              ;; outside a frame or within its internal border.
+              (> (length current-key-remap-sequence) 1))
+             (prefix (and prefix-specified
                           (aref current-key-remap-sequence 0)))
              (touch-screen-translate-prompt prompt)
              (event (catch 'input-event
@@ -1279,14 +1283,14 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
                       ;; `current-key-remap-sequence'.
                       (touch-screen-handle-touch
                        (aref current-key-remap-sequence
-                             (if prefix 1 0))
+                             (if prefix-specified 1 0))
                        prefix)
                       ;; Next, continue reading input events.
                       (while t
                         (let ((event1 (read-event)))
                           ;; If event1 is a virtual function key, make
                           ;; it the new prefix.
-                          (if (memq event1 '(mode-line tab-line
+                          (if (memq event1 '(mode-line tab-line nil
                                              header-line tool-bar tab-bar
                                              left-fringe right-fringe
                                              left-margin right-margin
@@ -1385,6 +1389,21 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 (define-key function-key-map [tool-bar touchscreen-begin]
             #'touch-screen-translate-touch)
 (define-key function-key-map [tool-bar touchscreen-end]
+            #'touch-screen-translate-touch)
+
+(define-key function-key-map [tab-bar touchscreen-begin]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [tab-bar touchscreen-end]
+            #'touch-screen-translate-touch)
+
+(define-key function-key-map [tab-line touchscreen-begin]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [tab-line touchscreen-end]
+            #'touch-screen-translate-touch)
+
+(define-key function-key-map [nil touchscreen-begin]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [nil touchscreen-end]
             #'touch-screen-translate-touch)
 
 
