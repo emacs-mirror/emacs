@@ -29093,7 +29093,9 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
       /* 'width': the width of FONT.  */
       if (EQ (prop, Qwidth))
 	return OK_PIXELS (font
-			  ? FONT_WIDTH (font)
+			  ? (font->average_width
+			     ? font->average_width
+			     : font->space_width)
 			  : FRAME_COLUMN_WIDTH (it->f));
 #else
       if (EQ (prop, Qheight) || EQ (prop, Qwidth))

@@ -776,12 +776,12 @@ of the process.  A value of nil indicates that there are no active refinements."
 	(while (string-match "[ \t\n]+" hl pos)
 	  (setq pos (match-end 0))
 	  (put-text-property (match-beginning 0) pos 'display
-			     `(space :align-to ,(+ pos base))
+			     `(space :align-to (,(+ pos base) . width))
 			     hl)))
       (setq hl (replace-regexp-in-string ;; preserve text properties
 		"\\(%\\)" "\\1\\1"
 		hl)))
-    (list (propertize " " 'display `(space :align-to ,base))
+    (list (propertize " " 'display `(space :align-to (,base . width)))
           hl)))
 
 (defun proced-pid-at-point ()
@@ -894,6 +894,8 @@ normal hook `proced-post-display-hook'.
   (setq-local font-lock-defaults
               '(proced-font-lock-keywords t nil nil beginning-of-line))
   (setq-local switch-to-buffer-preserve-window-point nil)
+  ;; So that the heading scales together with the body of the table.
+  (setq-local text-scale-remap-header-line t)
   (if (and (not proced-auto-update-timer) proced-auto-update-interval)
       (setq proced-auto-update-timer
             (run-at-time t proced-auto-update-interval
