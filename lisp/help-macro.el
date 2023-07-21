@@ -166,6 +166,7 @@ and then returns."
                      (error nil))
                    (let ((cursor-in-echo-area t)
                          (overriding-local-map local-map))
+                     (frame-toggle-on-screen-keyboard nil nil)
                      (setq key (read-key-sequence
                                 (format "Type one of listed options%s: "
                                         (if (pos-visible-in-window-p
@@ -179,7 +180,13 @@ and then returns."
                                                    (help--key-description-fontified (kbd "SPC"))
                                                    "/"
                                                    (help--key-description-fontified (kbd "DEL"))
-                                                   " to scroll"))))
+                                                   " to scroll")))
+                                nil nil nil nil
+                                ;; Disable ``text conversion''.  OS
+                                ;; input methods might otherwise chose
+                                ;; to insert user input directly into
+                                ;; a buffer.
+                                t)
                            char (aref key 0)))
 
                    ;; If this is a scroll bar command, just run it.

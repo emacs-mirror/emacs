@@ -926,16 +926,14 @@ then move point to the position of POINT."
 
 (defun touch-screen-window-selection-changed (frame)
   "Notice that FRAME's selected window has changed.
-If point is now on read only text, hide the on screen keyboard.
-Otherwise, cancel any timer that is supposed to hide the keyboard
-in response to the minibuffer being closed."
+Cancel any timer that is supposed to hide the keyboard in
+response to the minibuffer being closed."
   (with-selected-frame frame
-    (if (and (or buffer-read-only
-                 (get-text-property (point) 'read-only))
-             ;; Don't hide the on-screen keyboard if it's always
-             ;; supposed to be displayed.
-             (not touch-screen-display-keyboard))
-        (frame-toggle-on-screen-keyboard (selected-frame) t)
+    (unless (and (or buffer-read-only
+                     (get-text-property (point) 'read-only))
+                 ;; Don't hide the on-screen keyboard if it's always
+                 ;; supposed to be displayed.
+                 (not touch-screen-display-keyboard))
       ;; Prevent hiding the minibuffer from hiding the on screen
       ;; keyboard.
       (when minibuffer-on-screen-keyboard-timer
@@ -1027,10 +1025,8 @@ is not read-only."
                            ;; opened, add
                            ;; `touch-screen-window-selection-changed'
                            ;; as a window selection change function
-                           ;; This allows the on screen keyboard to be
-                           ;; hidden if the selected window's point
-                           ;; becomes read only at some point in the
-                           ;; future.
+                           ;; This then prevents it from being hidden
+                           ;; after exiting the minibuffer.
                            (progn
                              (add-hook 'window-selection-change-functions
                                        #'touch-screen-window-selection-changed)

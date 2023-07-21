@@ -1294,7 +1294,7 @@ some_mouse_moved (void)
 
 enum { READ_KEY_ELTS = 30 };
 static int read_key_sequence (Lisp_Object *, Lisp_Object,
-                              bool, bool, bool, bool);
+                              bool, bool, bool, bool, bool);
 static void adjust_point_for_property (ptrdiff_t, bool);
 
 static Lisp_Object
@@ -1405,7 +1405,8 @@ command_loop_1 (void)
       /* Read next key sequence; i gets its length.  */
       raw_keybuf_count = 0;
       Lisp_Object keybuf[READ_KEY_ELTS];
-      int i = read_key_sequence (keybuf, Qnil, false, true, true, false);
+      int i = read_key_sequence (keybuf, Qnil, false, true, true, false,
+				 false);
 
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
@@ -1680,7 +1681,8 @@ read_menu_command (void)
   specbind (Qecho_keystrokes, make_fixnum (0));
 
   Lisp_Object keybuf[READ_KEY_ELTS];
-  int i = read_key_sequence (keybuf, Qnil, false, true, true, true);
+  int i = read_key_sequence (keybuf, Qnil, false, true, true, true,
+			     false);
 
   unbind_to (count, Qnil);
 
@@ -10276,12 +10278,16 @@ restore_reading_key_sequence (int old_reading_key_sequence)
    read_char will return it.
 
    If FIX_CURRENT_BUFFER, we restore current_buffer
-   from the selected window's buffer.  */
+   from the selected window's buffer.
+
+   If DISABLE_TEXT_CONVERSION_P, disable text conversion so the input
+   method will always send key events.  */
 
 static int
 read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 		   bool dont_downcase_last, bool can_return_switch_frame,
-		   bool fix_current_buffer, bool prevent_redisplay)
+		   bool fix_current_buffer, bool prevent_redisplay,
+		   bool disable_text_conversion_p)
 {
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -10351,7 +10357,7 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 
   /* Whether or not text conversion has already been disabled.  */
   disabled_conversion = false;
-#endif
+#endif /* HAVE_TEXT_CONVERSION */
 
   struct buffer *starting_buffer;
 
@@ -10444,6 +10450,18 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
   this_command_key_count = keys_start;
   if (INTERACTIVE && t < mock_input)
     echo_truncate (echo_start);
+
+  /* If text conversion is supposed to be disabled immediately, do it
+     now.  */
+
+#ifdef HAVE_TEXT_CONVERSION
+  if (disable_text_conversion_p)
+    {
+      disable_text_conversion ();
+      record_unwind_protect_void (resume_text_conversion);
+      disabled_conversion = true;
+    }
+#endif /* HAVE_TEXT_CONVERSION */
 
   /* If the best binding for the current key sequence is a keymap, or
      we may be looking at a function key's escape sequence, keep on
@@ -11279,7 +11297,8 @@ static Lisp_Object
 read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
 		      Lisp_Object dont_downcase_last,
 		      Lisp_Object can_return_switch_frame,
-		      Lisp_Object cmd_loop, bool allow_string)
+		      Lisp_Object cmd_loop, bool allow_string,
+		      bool disable_text_conversion)
 {
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -11306,7 +11325,8 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
   raw_keybuf_count = 0;
   Lisp_Object keybuf[READ_KEY_ELTS];
   int i = read_key_sequence (keybuf, prompt, ! NILP (dont_downcase_last),
-			     ! NILP (can_return_switch_frame), false, false);
+			     ! NILP (can_return_switch_frame), false, false,
+			     disable_text_conversion);
 
 #if 0  /* The following is fine for code reading a key sequence and
 	  then proceeding with a lengthy computation, but it's not good
@@ -11328,7 +11348,7 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
 		     (i, keybuf)));
 }
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 6, 0,
        doc: /* Read a sequence of keystrokes and return as a string or vector.
 The sequence is sufficient to specify a non-prefix command in the
 current local and global maps.
@@ -11374,20 +11394,31 @@ sequences, where they wouldn't conflict with ordinary bindings.  See
 The optional fifth argument CMD-LOOP, if non-nil, means
 that this key sequence is being read by something that will
 read commands one after another.  It should be nil if the caller
-will read just one key sequence.  */)
-  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop)
+will read just one key sequence.
+
+The optional sixth argument DISABLE-TEXT-CONVERSION, if non-nil, means
+disable input method text conversion for the duration of reading this
+key sequence, and that keyboard input will always result in key events
+being sent.  */)
+  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last,
+   Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop,
+   Lisp_Object disable_text_conversion)
 {
   return read_key_sequence_vs (prompt, continue_echo, dont_downcase_last,
-			       can_return_switch_frame, cmd_loop, true);
+			       can_return_switch_frame, cmd_loop, true,
+			       !NILP (disable_text_conversion));
 }
 
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
-       Sread_key_sequence_vector, 1, 5, 0,
+       Sread_key_sequence_vector, 1, 6, 0,
        doc: /* Like `read-key-sequence' but always return a vector.  */)
-  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop)
+  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last,
+   Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop,
+   Lisp_Object disable_text_conversion)
 {
   return read_key_sequence_vs (prompt, continue_echo, dont_downcase_last,
-			       can_return_switch_frame, cmd_loop, false);
+			       can_return_switch_frame, cmd_loop, false,
+			       !NILP (disable_text_conversion));
 }
 
 /* Return true if input events are pending.  */

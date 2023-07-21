@@ -3160,7 +3160,7 @@ debugging terminal input.
 @code{read-key-sequence}.  Lisp programs can also call this function;
 for example, @code{describe-key} uses it to read the key to describe.
 
-@defun read-key-sequence prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
+@defun read-key-sequence prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop disable-text-conversion
 This function reads a key sequence and returns it as a string or
 vector.  It keeps reading events until it has accumulated a complete key
 sequence; that is, enough to specify a non-prefix command using the
@@ -3200,6 +3200,12 @@ key sequence is being read by something that will read commands one
 after another.  It should be @code{nil} if the caller will read just
 one key sequence.
 
+The argument @var{disable-text-conversion}, if non-@code{nil}, means
+that system input methods will not directly perform edits to buffer
+text while this key sequence is being read; user input will always
+generated individual key events instead.  @xref{Misc Events} for more
+about text conversion.
+
 In the following example, Emacs displays the prompt @samp{?} in the
 echo area, and then the user types @kbd{C-x C-f}.
 
@@ -3220,7 +3226,7 @@ typed while reading with this function works like any other character,
 and does not set @code{quit-flag}.  @xref{Quitting}.
 @end defun
 
-@defun read-key-sequence-vector prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
+@defun read-key-sequence-vector prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop disable-text-conversion
 This is like @code{read-key-sequence} except that it always
 returns the key sequence as a vector, never as a string.
 @xref{Strings of Events}.
