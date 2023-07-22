@@ -6823,12 +6823,11 @@ predicates which report frame's specific UI-related capabilities.  */);
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
 
   DEFVAR_BOOL ("mouse-prefer-closest-glyph", mouse_prefer_closest_glyph,
-	       doc: /* Non-nil means mouse position lists are reported relative
-to the glyph closest to their coordinates.
+	       doc: /* Non-nil means mouse click position is taken from glyph closest to click.
 
- When non-nil, mouse position lists will be reported with their
-`posn-point' set to the position of the glyph closest to the mouse
-pointer, instead of the glyph immediately under.  */);
+When non-nil, mouse position lists will report buffer position set to
+the position of the glyph that is the closest to the mouse pointer
+at the time of the click, instead of the glyph immediately under it.  */);
   mouse_prefer_closest_glyph = false;
 
   DEFVAR_LISP ("glyph-table", Vglyph_table,

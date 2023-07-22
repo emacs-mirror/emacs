@@ -37513,10 +37513,10 @@ may be more familiar to users.  */);
   display_raw_bytes_as_hex = false;
 
   DEFVAR_BOOL ("mouse-fine-grained-tracking", mouse_fine_grained_tracking,
-    doc: /* Non-nil for pixel-wise mouse-movement.
+    doc: /* Non-nil for pixelwise mouse-movement.
 When nil, mouse-movement events will not be generated as long as the
 mouse stays within the extent of a single glyph (except for images).
-When nil and mouse-prefer-closest-glyph is non-nil, mouse-movement
+When nil and `mouse-prefer-closest-glyph' is non-nil, mouse-movement
 events will instead not be generated as long as the mouse stays within
 the extent of a single left/right half glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
