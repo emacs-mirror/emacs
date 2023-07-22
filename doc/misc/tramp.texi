@@ -5852,16 +5852,6 @@ If you want to enable Ange FTP's syntax, add the following form:
 @end lisp
 
 @item
-@vindex tramp-mode
-To disable both @value{tramp} (and Ange FTP), set @code{tramp-mode} to
-@code{nil} in @file{.emacs}.  @strong{Note}, that we don't use
-@code{customize-set-variable}, in order to avoid loading @value{tramp}.
-
-@lisp
-(setq tramp-mode nil)
-@end lisp
-
-@item
 @vindex tramp-ignored-file-name-regexp
 To deactivate @value{tramp} for some look-alike remote file names, set
 @code{tramp-ignored-file-name-regexp} to a proper regexp in
@@ -5877,6 +5867,29 @@ This is needed, if you mount for example a virtual file system on your
 local host's root directory as @file{/ssh:example.com:}.
 
 @item
+@findex inhibit-remote-files
+To disable both @value{tramp} (and Ange FTP), type @kbd{M-x
+inhibit-remote-files @key{RET}}.  You can also add this to your
+@file{.emacs}.
+
+@lisp
+(inhibit-remote-files)
+@end lisp
+
+@item
+@findex without-remote-files
+If you write code, which is intended to run only for local files, you
+can use the @code{without-remote-files} macro.
+
+@lisp
+(without-remote-files @dots{})
+@end lisp
+
+This improves performance, because many primitive file name operations
+don't check any longer for Tramp file name regexps then.
+
+@item
+@findex tramp-unload-tramp
 To unload @value{tramp}, type @kbd{M-x tramp-unload-tramp @key{RET}}.
 Unloading @value{tramp} resets Ange FTP plugins also.
 @end itemize
