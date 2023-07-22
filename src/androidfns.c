@@ -916,8 +916,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   gui_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
                          NULL, NULL, RES_TYPE_NUMBER);
 
-  gui_default_parameter (f, parms, Qvertical_scroll_bars,
-                         Qleft,
+  /* `vertical-scroll-bars' defaults to nil on Android as a
+     consequence of scroll bars not being supported at all.  */
+
+  gui_default_parameter (f, parms, Qvertical_scroll_bars, Qnil,
                          "verticalScrollBars", "ScrollBars",
                          RES_TYPE_SYMBOL);
   gui_default_parameter (f, parms, Qhorizontal_scroll_bars, Qnil,
@@ -1034,14 +1036,12 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          "cursorType", "CursorType", RES_TYPE_SYMBOL);
   /* Scroll bars are not supported on Android, as they are near
      useless.  */
-#if 0
   gui_default_parameter (f, parms, Qscroll_bar_width, Qnil,
                          "scrollBarWidth", "ScrollBarWidth",
                          RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qscroll_bar_height, Qnil,
                          "scrollBarHeight", "ScrollBarHeight",
                          RES_TYPE_NUMBER);
-#endif
   gui_default_parameter (f, parms, Qalpha, Qnil,
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
