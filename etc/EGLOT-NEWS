@@ -29,10 +29,9 @@ problem, particularly on Mac OS.  See github#1228 and github#1226.
 
 ** Fixed "onTypeFormatting" feature
 
-This feature wasn't triggered for the 'newline' command because
-language servers often expect 10 (linefeed) to be the trigger
-character, but 'newline' emits 13 (carriage return).  Also made this
-feature less chatty in the mode-line and messages buffer.
+For 'newline' commands, Eglot sometimes sent the wrong character code
+to the server.  Also made this feature less chatty in the mode-line
+and messages buffer.
 
 
 * Changes in Eglot 1.15 (29/4/2023)
