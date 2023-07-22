@@ -24,6 +24,16 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 30.1
 
+---
+** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
+Previously configure used ALSA libraries if installed on the
+system when configured '--with-sound=yes' (which is the default), with
+fallback to libossaudio.  The libossaudio library included with the
+base system is now used even if ALSA is found to avoid relying on
+external packages and to resolve potential incompatibilities between
+Linux and BSD versions of ALSA.  Use '--with-sound=alsa' to build with
+ALSA on these operating systems instead.
+
 
 * Startup Changes in Emacs 30.1
 
