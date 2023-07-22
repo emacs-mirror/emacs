@@ -156,7 +156,11 @@ reads the text and returns the resulting Lisp object, unevaluated.
 The argument @var{default} specifies default values to make available
 through the history commands.  It should be a string, a list of
 strings, or @code{nil}.  The string or strings become the minibuffer's
-``future history'', available to the user with @kbd{M-n}.
+``future history'', available to the user with @kbd{M-n}.  In
+addition, if the call provides completion (e.g., via the @var{keymap}
+argument), the completion candidates are added to the ``future
+history'' when the values in @var{default} are exhausted by @kbd{M-n};
+see @ref{Minibuffer History,, minibuffer-default-add-function}.
 
 If @var{read} is non-@code{nil}, then @var{default} is also used
 as the input to @code{read}, if the user enters empty input.
@@ -648,10 +652,25 @@ buffer local, then each buffer will have its own input history list.
 
   Both @code{read-from-minibuffer} and @code{completing-read} add new
 elements to the history list automatically, and provide commands to
-allow the user to reuse items on the list.  The only thing your program
-needs to do to use a history list is to initialize it and to pass its
-name to the input functions when you wish.  But it is safe to modify the
-list by hand when the minibuffer input functions are not using it.
+allow the user to reuse items on the list (@pxref{Minibuffer
+Commands}).  The only thing your program needs to do to use a history
+list is to initialize it and to pass its name to the input functions
+when you wish.  But it is safe to modify the list by hand when the
+minibuffer input functions are not using it.
+
+@vindex minibuffer-default-add-function
+  By default, when @kbd{M-n} (@code{next-history-element},
+@pxref{Minibuffer Commands,,next-history-element}) reaches the end of
+the list of default values provided by the command which initiated
+reading input from the minibuffer, @kbd{M-n} adds all of the
+completion candidates, as specified by
+@code{minibuffer-completion-table} (@pxref{Completion Commands}), to
+the list of defaults, so that all those candidates are available as
+``future history''.  Your program can control that via the variable
+@code{minibuffer-default-add-function}: if its value is not a
+function, this automatic addition is disabled, and you can also set
+this variable to your own function which adds only some candidates, or
+some other values, to the ``future history''.
 
   Emacs functions that add a new element to a history list can also
 delete old elements if the list gets too long.  The variable
@@ -1161,7 +1180,10 @@ However, empty input is always permitted, regardless of the value of
 first element of @var{default}, if it is a list; @code{""}, if
 @var{default} is @code{nil}; or @var{default}.  The string or strings
 in @var{default} are also available to the user through the history
-commands.
+commands (@pxref{Minibuffer Commands}).  In addition, the completion
+candidates are added to the ``future history'' when the values in
+@var{default} are exhausted by @kbd{M-n}; see @ref{Minibuffer
+History,, minibuffer-default-add-function}.
 
 The function @code{completing-read} uses
 @code{minibuffer-local-completion-map} as the keymap if
@@ -2543,7 +2565,11 @@ minibuffer.  The argument @var{nabs} specifies the absolute history
 position in descending order, where 0 means the current element and a
 positive number @var{n} means the @var{n}th previous element.  NABS
 being a negative number -@var{n} means the @var{n}th entry of ``future
-history.''
+history''.  When this function reaches the end of the default values
+provided by @code{read-from-minibuffer} (@pxref{Text from Minibuffer})
+and @code{completing-read} (@pxref{Minibuffer Completion}), it adds
+the completion candidates to ``future history'', see @ref{Minibuffer
+History,, minibuffer-default-add-function}.
 @end deffn
 
 @node Minibuffer Windows
