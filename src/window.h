@@ -759,14 +759,14 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    + WINDOW_RIGHT_PIXEL_EDGE (W))
 
 /* True if W is a menu bar window.  */
-#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
 #define WINDOW_MENU_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->menu_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->menu_bar_window))
-#else
+#else /* !HAVE_WINDOW_SYSTEM || HAVE_EXT_MENU_BAR */
 /* No menu bar windows if X toolkit is in use.  */
 #define WINDOW_MENU_BAR_P(W) false
-#endif
+#endif /* HAVE_WINDOW_SYSTEM && !HAVE_EXT_MENU_BAR */
 
 /* True if W is a tab bar window.  */
 #if defined (HAVE_WINDOW_SYSTEM)
