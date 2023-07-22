@@ -1089,7 +1089,7 @@ Change value of property `erc-prompt' from t to `hidden'."
         (put-text-property erc-insert-marker (1- erc-input-marker)
                            'erc-prompt 'hidden)
         (erc--conceal-prompt))
-      (add-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert 91 t))))
+      (add-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert 80 t))))
 
 (defun erc-process-sentinel (cproc event)
   "Sentinel function for ERC process."

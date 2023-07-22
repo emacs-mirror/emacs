@@ -178,6 +178,15 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
+** Module 'scrolltobottom' can attempt to be more aggressive.
+Enabling the experimental option 'erc-scrolltobottom-all' tells
+'scrolltobottom' to be more vigilant about staking down the input area
+and to do so in all ERC windows.  The dependent option
+'erc-scrolltobottom-relaxed', also experimental, makes ERC's prompt
+stationary wherever it happens to reside instead of forcing it to the
+bottom of a window.  That is, new input appears above the prompt,
+scrolling existing messages upward to compensate.
+
 ** Subtle changes in two fundamental faces.
 Users of the default theme may notice that 'erc-action-face' and
 'erc-notice-face' now appear slightly less bold on systems supporting
@@ -246,9 +255,9 @@ property of the same name has been retained and now has a value of
 Built-in and third-party modules rely on certain hooks for adjusting
 incoming and outgoing messages upon insertion.  And some modules only
 want to do so after others have done their damage.  Traditionally,
-this required various hacks and finagling to achieve.  And while this
-release makes an effort to load modules in a more consistent order,
-that alone isn't enough to ensure similar predictability among
+this has required various hacks and finagling to achieve.  And while
+this release makes an effort to load modules in a more consistent
+order, that alone isn't enough to ensure similar predictability among
 essential members of important hooks.
 
 Luckily, ERC now leverages a feature introduced in Emacs 27, "hook
@@ -261,6 +270,11 @@ Of most interest to module authors is the new relative positioning of
 the first two, 'erc-button-add-buttons' and 'erc-fill', which have
 been swapped with respect to their previous places in recent ERC
 versions.
+
+ERC also provisionally reserves the same depth interval for
+'erc-insert-pre-hook' and possibly other, similar hooks, but will
+continue to modify non-ERC hooks locally whenever possible, especially
+in new code.
 
 *** ERC now manages timestamp-related properties a bit differently.
 For starters, the 'cursor-sensor-functions' property no longer
