@@ -3427,6 +3427,18 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
+(defun js-jsx--treesit-indent-compatibility-bb1f97b ()
+  "Indent rules helper, to handle different releases of tree-sitter-javascript.
+Check if a node type is available, then return the right indent rules."
+  ;; handle commit bb1f97b
+  (condition-case nil
+      (progn (treesit-query-capture 'javascript '((jsx_fragment) @capture))
+             `(((match "<" "jsx_fragment") parent 0)
+               ((parent-is "jsx_fragment") parent js-indent-level)))
+    (error
+     `(((match "<" "jsx_text") parent 0)
+       ((parent-is "jsx_text") parent js-indent-level)))))
+
 (defvar js--treesit-indent-rules
   (let ((switch-case (rx "switch_" (or "case" "default"))))
     `((javascript
@@ -3462,8 +3474,7 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "statement_block") parent-bol js-indent-level)
 
        ;; JSX
-       ((match "<" "jsx_fragment") parent 0)
-       ((parent-is "jsx_fragment") parent js-indent-level)
+       (js-jsx--treesit-indent-compatibility-bb1f97b)
        ((node-is "jsx_closing_element") parent 0)
        ((match "jsx_element" "statement") parent js-indent-level)
        ((parent-is "jsx_element") parent js-indent-level)
@@ -3489,6 +3500,35 @@ This function is intended for use in `after-change-functions'."
     "-" "*" "/" "%" "++" "--" "**" "&" "|" "^" "~" "<<" ">>" ">>>"
     "&&" "||" "!")
   "JavaScript operators for tree-sitter font-locking.")
+
+(defun js-jsx--treesit-font-lock-compatibility-bb1f97b ()
+  "Font lock rules helper, to handle different releases of tree-sitter-javascript.
+Check if a node type is available, then return the right font lock rules."
+  ;; handle commit bb1f97b
+  (condition-case nil
+      (progn (treesit-query-capture 'javascript '((member_expression) @capture))
+	     '((jsx_opening_element
+		[(member_expression (identifier)) (identifier)]
+		@font-lock-function-call-face)
+
+	       (jsx_closing_element
+		[(member_expression (identifier)) (identifier)]
+		@font-lock-function-call-face)
+
+	       (jsx_self_closing_element
+		[(member_expression (identifier)) (identifier)]
+		@font-lock-function-call-face)))
+    (error '((jsx_opening_element
+	      [(nested_identifier (identifier)) (identifier)]
+	      @font-lock-function-call-face)
+
+	     (jsx_closing_element
+	      [(nested_identifier (identifier)) (identifier)]
+	      @font-lock-function-call-face)
+
+	     (jsx_self_closing_element
+	      [(nested_identifier (identifier)) (identifier)]
+	      @font-lock-function-call-face)))))
 
 (defvar js--treesit-font-lock-settings
   (treesit-font-lock-rules
@@ -3599,21 +3639,8 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'jsx
-   '((jsx_opening_element
-      [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-call-face)
-
-     (jsx_closing_element
-      [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-call-face)
-
-     (jsx_self_closing_element
-      [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-call-face)
-
-     (jsx_attribute
-      (property_identifier)
-      @font-lock-constant-face))
+   (append (js-jsx--treesit-font-lock-compatibility-bb1f97b)
+	   '((jsx_attribute (property_identifier) @font-lock-constant-face)))
 
    :language 'javascript
    :feature 'number
