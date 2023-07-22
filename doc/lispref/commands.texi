@@ -2756,6 +2756,16 @@ If @var{whole} is non-@code{nil}, the @var{x} coordinate is relative
 to the entire window area including scroll bars, margins and fringes.
 @end defun
 
+@defopt mouse-prefer-closest-glyph
+If this variable is non-@code{nil}, the @code{posn-point} of a mouse
+position list will be set to the position of the glyph whose left most
+position is closest to the mouse pointer, as opposed to the position of
+the glyph underneath the mouse pointer itself.  For example, if
+@code{posn-at-x-y} is called with @var{x} set to @code{9}, which is
+contained within a character of width 10 positioned at column 0, the
+point saved within the mouse position list will be after that character.
+@end defopt
+
 @node Accessing Scroll
 @subsection Accessing Scroll Bar Events
 @cindex scroll bar events, data in
