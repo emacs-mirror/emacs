@@ -399,16 +399,16 @@ PREFIX is a string, and defaults to \"g\"."
     (make-symbol (format "%s%d" (or prefix "g") num))))
 
 (defun ignore (&rest _arguments)
-  "Do nothing and return nil.
-This function accepts any number of ARGUMENTS, but ignores them.
+  "Ignore ARGUMENTS, do nothing, and return nil.
+This function accepts any number of arguments in ARGUMENTS.
 Also see `always'."
   (declare (completion ignore))
   (interactive)
   nil)
 
 (defun always (&rest _arguments)
-  "Do nothing and return t.
-This function accepts any number of ARGUMENTS, but ignores them.
+  "Ignore ARGUMENTS, do nothing, and return t.
+This function accepts any number of arguments in ARGUMENTS.
 Also see `ignore'."
   t)
 
