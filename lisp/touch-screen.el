@@ -524,6 +524,11 @@ area."
          ;; The currently selected window.  Used to redisplay within
          ;; the correct window while scrolling.
          (old-window (selected-window))
+         ;; Whether or not text should be selected word-by-word.
+         (word-select touch-screen-word-select)
+         ;; Cons containing the confines of the word initially
+         ;; selected when the touchpoint was first held down.
+         (initial touch-screen-word-select-initial-word)
          initial-point)
     ;; Keep dragging.
     (with-selected-window window
@@ -539,12 +544,11 @@ area."
                  ;; the window must be scrolled.
                  (pos-visible-in-window-p point))
             (let* ((bounds touch-screen-word-select-bounds)
-                   (initial touch-screen-word-select-initial-word)
                    (maybe-select-word (or (not touch-screen-word-select)
                                           (or (not bounds)
                                               (> point (cdr bounds))
                                               (< point (car bounds))))))
-              (if (and touch-screen-word-select
+              (if (and word-select
                        ;; point is now outside the last word selected.
                        maybe-select-word
                        (not (posn-object posn))
@@ -644,6 +648,22 @@ area."
                   ;; If there's no buffer position at that column, go
                   ;; to the window start.
                   (goto-char (window-start)))
+                ;; If word selection is enabled, now try to keep the
+                ;; initially selected word within the active region.
+                (when word-select
+                  (when initial
+                    ;; If point is less than mark, which is is less
+                    ;; than the end of the word that was originally
+                    ;; selected, try to keep it selected by moving
+                    ;; mark there.
+                    (when (and (<= (point) (mark))
+                               (< (mark) (cdr initial)))
+                      (set-mark (cdr initial)))
+                    ;; Do the opposite when the converse is true.
+                    (when (and (>= (point) (mark))
+                               (> (mark) (car initial)))
+                      (set-mark (car initial))))
+                  (setq touch-screen-word-select-bounds nil))
                 ;; Display a preview of the line now around point if
                 ;; requested by the user.
                 (when touch-screen-preview-select
@@ -669,6 +689,23 @@ area."
                         ;; If there's no buffer position at that
                         ;; column, go to the window start.
                         (goto-char (window-start)))
+                      ;; If word selection is enabled, now try to keep
+                      ;; the initially selected word within the active
+                      ;; region.
+                      (when word-select
+                        (when initial
+                          ;; If point is less than mark, which is is
+                          ;; less than the end of the word that was
+                          ;; originally selected, try to keep it
+                          ;; selected by moving mark there.
+                          (when (and (<= (point) (mark))
+                                     (< (mark) (cdr initial)))
+                            (set-mark (cdr initial)))
+                          ;; Do the opposite when the converse is true.
+                          (when (and (>= (point) (mark))
+                                     (> (mark) (car initial)))
+                            (set-mark (car initial))))
+                        (setq touch-screen-word-select-bounds nil))
                       ;; Display a preview of the line now around
                       ;; point if requested by the user.
                       (when touch-screen-preview-select
@@ -692,6 +729,23 @@ area."
                   ;; If there's no buffer position at that column, go
                   ;; to the window start.
                   (goto-char (window-end nil t)))
+                ;; If word selection is enabled, now try to keep
+                ;; the initially selected word within the active
+                ;; region.
+                (when word-select
+                  (when initial
+                    ;; If point is less than mark, which is is less
+                    ;; than the end of the word that was originally
+                    ;; selected, try to keep it selected by moving
+                    ;; mark there.
+                    (when (and (<= (point) (mark))
+                               (< (mark) (cdr initial)))
+                      (set-mark (cdr initial)))
+                    ;; Do the opposite when the converse is true.
+                    (when (and (>= (point) (mark))
+                               (> (mark) (car initial)))
+                      (set-mark (car initial))))
+                  (setq touch-screen-word-select-bounds nil))
                 ;; Display a preview of the line now around point if
                 ;; requested by the user.
                 (when touch-screen-preview-select
@@ -717,6 +771,23 @@ area."
                         ;; If there's no buffer position at that
                         ;; column, go to the window start.
                         (goto-char (window-end nil t)))
+                      ;; If word selection is enabled, now try to keep
+                      ;; the initially selected word within the active
+                      ;; region.
+                      (when word-select
+                        (when initial
+                          ;; If point is less than mark, which is is less
+                          ;; than the end of the word that was originally
+                          ;; selected, try to keep it selected by moving
+                          ;; mark there.
+                          (when (and (<= (point) (mark))
+                                     (< (mark) (cdr initial)))
+                            (set-mark (cdr initial)))
+                          ;; Do the opposite when the converse is true.
+                          (when (and (>= (point) (mark))
+                                     (> (mark) (car initial)))
+                            (set-mark (car initial))))
+                        (setq touch-screen-word-select-bounds nil))
                       ;; Display a preview of the line now around
                       ;; point if requested by the user.
                       (when touch-screen-preview-select
