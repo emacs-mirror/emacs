@@ -645,6 +645,11 @@ provokes an error if used numerically.
 * Lisp Changes in Emacs 30.1
 
 +++
+** New variable 'current-key-remap-sequence'.
+It is bound to the key sequence that caused a call to a function bound
+within `function-key-map' or `input-decode-map' around those calls.
+
++++
 ** New variables describing the names of built in programs.
 The new variables 'ctags-program-name', 'ebrowse-program-name',
 'etags-program-name', 'hexl-program-name', 'emacsclient-program-name'
