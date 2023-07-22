@@ -1287,6 +1287,7 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
                           ;; If event1 is a virtual function key, make
                           ;; it the new prefix.
                           (if (memq event1 '(mode-line tab-line nil
+                                             vertical-line
                                              header-line tool-bar tab-bar
                                              left-fringe right-fringe
                                              left-margin right-margin
@@ -1395,6 +1396,11 @@ if POSN is on a link or a button, or `mouse-1' otherwise."
 (define-key function-key-map [tab-line touchscreen-begin]
             #'touch-screen-translate-touch)
 (define-key function-key-map [tab-line touchscreen-end]
+            #'touch-screen-translate-touch)
+
+(define-key function-key-map [vertical-line touchscreen-begin]
+            #'touch-screen-translate-touch)
+(define-key function-key-map [vertical-line touchscreen-end]
             #'touch-screen-translate-touch)
 
 (define-key function-key-map [nil touchscreen-begin]

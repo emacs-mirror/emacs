@@ -3275,20 +3275,21 @@ with any other events.
 @cindex @code{bottom-divider}, prefix key
 @cindex mouse events, in special parts of window or frame
 @cindex touch screen events, in special parts of window or frame
-When mouse or @code{touch-screen-begin} events occur in special parts
-of a window or frame, such as a mode line or a scroll bar, the event
-type shows nothing special---it is the same symbol that would normally
-represent that combination of mouse button and modifier keys.  The
-information about the window part is kept elsewhere in the event---in
-the coordinates.  But @code{read-key-sequence} translates this
-information into imaginary prefix keys, all of which are symbols:
-@code{tab-line}, @code{header-line}, @code{horizontal-scroll-bar},
-@code{menu-bar}, @code{tab-bar}, @code{mode-line},
-@code{vertical-line}, @code{vertical-scroll-bar}, @code{left-margin},
-@code{right-margin}, @code{left-fringe}, @code{right-fringe},
-@code{right-divider}, and @code{bottom-divider}.  You can define
-meanings for mouse clicks in special window parts by defining key
-sequences using these imaginary prefix keys.
+When mouse or @code{touchscreen-begin} and @code{touchscreen-end}
+events occur in special parts of a window or frame, such as a mode
+line or a scroll bar, the event type shows nothing special---it is the
+same symbol that would normally represent that combination of mouse
+button and modifier keys.  The information about the window part is
+kept elsewhere in the event---in the coordinates.  But
+@code{read-key-sequence} translates this information into imaginary
+prefix keys, all of which are symbols: @code{tab-line},
+@code{header-line}, @code{horizontal-scroll-bar}, @code{menu-bar},
+@code{tab-bar}, @code{mode-line}, @code{vertical-line},
+@code{vertical-scroll-bar}, @code{left-margin}, @code{right-margin},
+@code{left-fringe}, @code{right-fringe}, @code{right-divider}, and
+@code{bottom-divider}.  You can define meanings for mouse clicks in
+special window parts by defining key sequences using these imaginary
+prefix keys.
 
 For example, if you call @code{read-key-sequence} and then click the
 mouse on the window's mode line, you get two events, like this:
