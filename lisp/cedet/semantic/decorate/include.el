@@ -48,7 +48,7 @@
 ;;; Includes that are in a happy state!
 ;;
 (defface semantic-decoration-on-includes
-  nil
+  '((t (:inherit default)))
   "Overlay Face used on includes that are not in some other state.
 Used by the decoration style: `semantic-decoration-on-includes'."
   :group 'semantic-faces)

@@ -2967,6 +2967,25 @@ whether HANDLER is to be called.  Add operations defined in
 (put #'tramp-unload-file-name-handlers 'tramp-autoload t)
 (add-hook 'tramp-unload-hook #'tramp-unload-file-name-handlers)
 
+;;;###autoload
+(progn (defun inhibit-remote-files ()
+  "Deactivate remote file names."
+  (interactive)
+  (when (fboundp 'tramp-cleanup-all-connections)
+    (funcall 'tramp-cleanup-all-connections))
+  (tramp-unload-file-name-handlers)
+  (setq tramp-mode nil)))
+
+;;;###autoload
+(progn (defmacro without-remote-files (&rest body)
+  "Deactivate remote file names temporarily.
+Run BODY."
+  (declare (indent 0) (debug ((form body) body)))
+  `(let ((file-name-handler-alist (copy-tree file-name-handler-alist))
+         tramp-mode)
+     (tramp-unload-file-name-handlers)
+     ,@body)))
+
 ;;; File name handler functions for completion mode:
 
 ;; This function takes action since Emacs 28.1, when

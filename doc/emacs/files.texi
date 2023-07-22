@@ -2093,10 +2093,11 @@ Otherwise, Emacs uses @command{ssh}.
 @end enumerate
 
 @cindex disabling remote files
+@cindex inhibit-remote-files
 @noindent
-You can entirely turn off the remote file name feature by setting the
-variable @code{tramp-mode} to @code{nil}.  You can turn off the
-feature in individual cases by quoting the file name with @samp{/:}
+You can entirely turn off the remote file name feature by running
+@kbd{M-x inhibit-remote-files}.  You can turn off the feature in
+individual cases by quoting the file name with @samp{/:}
 (@pxref{Quoted File Names}).
 
 @cindex @code{ange-ftp}

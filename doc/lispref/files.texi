@@ -3698,6 +3698,17 @@ between consecutive checks.  For example:
 @end example
 @end defopt
 
+@defmac without-remote-files body@dots{}
+The @code{without-remote-files} macro evaluates the @var{body} forms
+with deactivated file name handlers for remote files.  Those file
+names would be handled literally.
+
+The macro should be used only in forms where it is obvious, that
+remote files cannot appear or where it is intended not to handle
+remote file names.  It also reduces checks with
+@code{file-name-handler-alist}, resulting in more performant code.
+@end defmac
+
 @node Format Conversion
 @section File Format Conversion
 
