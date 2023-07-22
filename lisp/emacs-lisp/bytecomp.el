@@ -131,6 +131,20 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
 
+(defun byte-code-expand-for-package-prefixes (form)
+  (let ((cl (if package-prefixes :set-by-compiler :unset-by-compiler)))
+    (pcase form
+      (`(,_ ,_ ,_ ,_) form)
+      (`(,_ ,_ ,_) (append form (list cl)))
+      (`(,_ ,_) (append form (list nil cl)))
+      (_ form))))
+
+(cl-define-compiler-macro intern (&whole form _name &optional _package _cl)
+  (byte-code-expand-for-package-prefixes form))
+
+(cl-define-compiler-macro intern-soft (&whole form _name &optional _package _cl)
+  (byte-code-expand-for-package-prefixes form))
+
 ;; The feature of compiling in a specific target Emacs version
 ;; has been turned off because compile time options are a bad idea.
 (defgroup bytecomp nil
