@@ -212,9 +212,27 @@ system settings.
 @end itemize
 
   The external storage directory is found at @file{/sdcard}.  The
-other directories are not found at any fixed location, although the
-app data directory is typically symlinked to
-@file{/data/data/org.gnu.emacs}.
+other directories are not found at any fixed location (but see below),
+although the app data directory is typically symlinked to
+@file{/data/data/org.gnu.emacs/files}.
+
+@cindex app library directory, android
+@cindex where is emacsclient under android
+  Older versions of Android used to place the app library directory
+under the name @file{lib} in the parent of the app data directory.
+Today, this directory is often placed in a directory with a randomly
+generated name under @file{/data/app}.
+
+  For the convenience of scripts running within applications sharing
+the same user ID as Emacs (which have no access to the
+@code{exec-directory} variable), a fairly considerable effort is made
+at startup to symlink the application library directory to its
+traditional location within the parent of the app data directory.
+
+  If Emacs is reinstalled and the location of the app library
+directory consequentially changes, that symlink will also be updated
+to point to its new location the next time Emacs is started by the
+system.
 
 @cindex temp~unlinked.NNNN files, Android
   On Android devices running very old (2.6.29) versions of the Linux

@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <stdckdint.h>
 #include <timespec.h>
+#include <libgen.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -1995,6 +1996,65 @@ android_proc_name (int fd, char *buffer, size_t size)
   return 0;
 }
 
+/* Try to guarantee the existence of the `lib' directory within the
+   parent directory of the application files directory.
+
+   If `/data/data/org.gnu.emacs/lib' (or
+   `/data/user/N/org.gnu.emacs/lib') does not exist or is a dangling
+   symbolic link, create a symlink from it to the library
+   directory.
+
+   Newer versions of Android don't create this link by default, making
+   it difficult to locate the directory containing Emacs library
+   files, particularly from scripts in other programs sharing the same
+   user ID as Emacs that don't have access to `exec-path'.  */
+
+static void
+android_create_lib_link (void)
+{
+  char *filename;
+  char lib_directory[PATH_MAX];
+  int fd;
+  struct stat statb;
+
+  /* Find the directory containing the files directory.  */
+  filename = dirname (android_files_dir);
+  if (!filename)
+    goto failure;
+
+  /* Now make `lib_directory' the name of the library directory
+     within.  */
+  snprintf (lib_directory, PATH_MAX, "%s/lib", filename);
+
+  /* Try to open this directory.  */
+  fd = open (lib_directory, O_DIRECTORY);
+
+  /* If the directory can be opened normally, close it and return
+     now.  */
+  if (fd >= 0)
+    goto success;
+
+  /* Try to unlink the directory in case it's a dangling symbolic
+     link.  */
+  unlink (lib_directory);
+
+  /* Otherwise, try to symlink lib_directory to the actual library
+     directory.  */
+
+  if (symlink (android_lib_dir, lib_directory))
+    /* Print a warning message if creating the link fails.  */
+    __android_log_print (ANDROID_LOG_WARN, __func__,
+			 "Failed to create symbolic link from"
+			 " application library directory `%s'"
+			 " to its actual location at `%s'",
+			 lib_directory, android_files_dir);
+
+ success:
+  close (fd);
+ failure:
+  return;
+}
+
 
 
 /* JNI functions called by Java.  */
@@ -2229,6 +2289,16 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
       if (!emacs_service)
 	emacs_abort ();
+
+      /* If the service is set this Emacs is being initialized as part
+	 of the Emacs application itself.
+
+         Try to create a symlink from where scripts expect Emacs to
+         place its library files to the directory that actually holds
+         them; earlier versions of Android used to do this
+         automatically, but that feature has been removed.  */
+
+      android_create_lib_link ();
     }
 
   /* Set up events.  */
