@@ -17498,7 +17498,8 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       else
 	w->last_point = marker_position (w->pointm);
 
-      w->window_end_valid = true;
+      if (w->window_end_vpos < w->current_matrix->nrows)
+	w->window_end_valid = true;
       w->update_mode_line = false;
       w->preserve_vscroll_p = false;
     }
