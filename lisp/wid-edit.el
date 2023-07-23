@@ -2157,7 +2157,8 @@ the earlier input."
 	;; `widget-setup' is called.
 	(overlay (cons (make-marker) (make-marker))))
     (widget-put widget :field-overlay overlay)
-    (insert value)
+    (when value
+      (insert value))
     (and size
 	 (< (length value) size)
 	 (insert-char ?\s (- size (length value))))
@@ -3685,7 +3686,9 @@ match-alternatives: %S"
                            value
                            (widget-get widget :match)
                            (widget-get widget :match-alternatives))
-                          :warning))
+                          :warning)
+                         ;; Make sure we will `read' a string.
+                         (setq value (prin1-to-string value)))
                        (read value)))
 
 (defun widget-restricted-sexp-match (widget value)
@@ -4015,7 +4018,8 @@ current choice is inline."
 		 nil)
 		((= (length args) 1)
 		 (nth 0 args))
-		((and (= (length args) 2)
+                ((and widget-choice-toggle
+                      (= (length args) 2)
 		      (memq old args))
 		 (if (eq old (nth 0 args))
 		     (nth 1 args)

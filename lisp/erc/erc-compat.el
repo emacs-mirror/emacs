@@ -418,7 +418,7 @@ If START or END is negative, it counts from the end."
   (require 'url-irc)
   (let* ((url (url-generic-parse-url string))
          (url-irc-function
-          (if (function-equal url-irc-function 'url-irc-erc)
+          (if (eq url-irc-function 'url-irc-erc)
               (lambda (host port chan user pass)
                 (erc-handle-irc-url host port chan user pass (url-type url)))
             url-irc-function)))

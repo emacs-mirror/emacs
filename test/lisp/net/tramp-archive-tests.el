@@ -988,6 +988,20 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
             code tae tramp-archive-test-file-archive
             (concat tramp-archive-test-archive "foo"))))))))))
 
+(ert-deftest tramp-archive-test49-without-remote-files ()
+  "Check that Tramp can be suppressed."
+  (skip-unless tramp-archive-enabled)
+
+  (should (file-exists-p tramp-archive-test-archive))
+  (should-not (without-remote-files (file-exists-p tramp-archive-test-archive)))
+  (should (file-exists-p tramp-archive-test-archive))
+
+  (inhibit-remote-files)
+  (should-not (file-exists-p tramp-archive-test-archive))
+  (tramp-register-file-name-handlers)
+  (setq tramp-mode t)
+  (should (file-exists-p tramp-archive-test-archive)))
+
 (ert-deftest tramp-archive-test99-libarchive-tests ()
   "Run tests of libarchive test files."
   :tags '(:expensive-test :unstable)

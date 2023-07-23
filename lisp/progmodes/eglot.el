@@ -2447,18 +2447,16 @@ buffer."
 
 (defun eglot--post-self-insert-hook ()
   "Set `eglot--last-inserted-char', maybe call on-type-formatting."
-  (setq eglot--last-inserted-char last-input-event)
-  (let ((ot-provider (eglot--server-capable :documentOnTypeFormattingProvider))
-        ;; transform carriage return into line-feed
-        (adjusted-ie (if (= last-input-event 13) 10 last-input-event)))
+  (setq eglot--last-inserted-char last-command-event)
+  (let ((ot-provider (eglot--server-capable :documentOnTypeFormattingProvider)))
     (when (and ot-provider
                (ignore-errors ; github#906, some LS's send empty strings
-                 (or (eq adjusted-ie
+                 (or (eq eglot--last-inserted-char
                          (seq-first (plist-get ot-provider :firstTriggerCharacter)))
-                     (cl-find adjusted-ie
+                     (cl-find eglot--last-inserted-char
                               (plist-get ot-provider :moreTriggerCharacter)
                               :key #'seq-first))))
-      (eglot-format (point) nil adjusted-ie))))
+      (eglot-format (point) nil eglot--last-inserted-char))))
 
 (defvar eglot--workspace-symbols-cache (make-hash-table :test #'equal)
   "Cache of `workspace/Symbol' results  used by `xref-find-definitions'.")

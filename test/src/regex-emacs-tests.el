@@ -949,4 +949,20 @@ This evaluates the TESTS test cases from glibc."
     (should (equal (smatch "a\\=*b" "ab") 0))
     ))
 
+(ert-deftest regex-emacs-syntax-properties ()
+  ;; Verify absence of character class syntax property ghost matching bug.
+  (let ((re "\\s-[[:space:]]")
+        (s (concat "a"
+                (propertize "b" 'syntax-table '(0))  ; whitespace
+                "éz"))
+        (parse-sexp-lookup-properties t))
+    ;; Test matching in a string...
+    (should (equal (string-match re s) nil))
+    ;; ... and in a buffer.
+    (should (equal (with-temp-buffer
+                     (insert s)
+                     (goto-char (point-min))
+                     (re-search-forward re nil t))
+                   nil))))
+
 ;;; regex-emacs-tests.el ends here

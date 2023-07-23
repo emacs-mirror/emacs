@@ -5656,6 +5656,15 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      argument is ZV to prevent move_it_in_display_line from matching
      based on buffer positions.  */
   move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
+  if (mouse_prefer_closest_glyph)
+    {
+      int next_x = it.current_x + it.pixel_width;
+      int before_dx = to_x - it.current_x;
+      int after_dx = next_x - to_x;
+      if (before_dx > after_dx)
+        move_it_in_display_line (&it, ZV, next_x, MOVE_TO_X);
+    }
+
   bidi_unshelve_cache (itdata, 0);
 
   Fset_buffer (old_current_buffer);
@@ -6847,6 +6856,14 @@ predicates which report frame's specific UI-related capabilities.  */);
 
   DEFVAR_BOOL ("cursor-in-echo-area", cursor_in_echo_area,
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
+
+  DEFVAR_BOOL ("mouse-prefer-closest-glyph", mouse_prefer_closest_glyph,
+	       doc: /* Non-nil means mouse click position is taken from glyph closest to click.
+
+When non-nil, mouse position lists will report buffer position set to
+the position of the glyph that is the closest to the mouse pointer
+at the time of the click, instead of the glyph immediately under it.  */);
+  mouse_prefer_closest_glyph = false;
 
   DEFVAR_LISP ("glyph-table", Vglyph_table,
 	       doc: /* Table defining how to output a glyph code to the frame.
