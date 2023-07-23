@@ -17498,7 +17498,13 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       else
 	w->last_point = marker_position (w->pointm);
 
-      if (w->window_end_vpos < w->current_matrix->nrows)
+      struct glyph_row *row;
+      /* These conditions should be consistent with CHECK_WINDOW_END.  */
+      if (w->window_end_vpos < w->current_matrix->nrows
+	  && ((row = MATRIX_ROW (w->current_matrix, w->window_end_vpos),
+	       !row->enabled_p
+	       || MATRIX_ROW_DISPLAYS_TEXT_P (row)
+	       || MATRIX_ROW_VPOS (row, w->current_matrix) == 0)))
 	w->window_end_valid = true;
       w->update_mode_line = false;
       w->preserve_vscroll_p = false;
