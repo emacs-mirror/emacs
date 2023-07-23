@@ -746,9 +746,11 @@ enum ns_return_frame_mode
   CGColorSpaceRef colorSpace;
   IOSurfaceRef currentSurface;
   CGContextRef context;
+  bool doubleBuffered;
 }
-- (id) initWithColorSpace: (CGColorSpaceRef)cs;
+- (id) initWithColorSpace: (CGColorSpaceRef)cs doubleBuffered: (bool)db;
 - (void) setColorSpace: (CGColorSpaceRef)cs;
+- (void) setDoubleBuffered: (bool)db;
 - (CGContextRef) getContext;
 @end
 #endif
@@ -996,6 +998,11 @@ struct ns_output
   /* Non-zero if we are doing an animation, e.g. toggling the tool bar.  */
   int in_animation;
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  /* Is the frame double buffered?  */
+  bool double_buffered;
+#endif
+
 #ifdef NS_IMPL_GNUSTEP
   /* Zero if this is the first time a toolbar has been updated on this
      frame. */
@@ -1029,6 +1036,10 @@ struct x_output
 #define FRAME_POINTER_TYPE(f) ((f)->output_data.ns->current_pointer)
 
 #define FRAME_FONT(f) ((f)->output_data.ns->font)
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+#define FRAME_DOUBLE_BUFFERED(f) ((f)->output_data.ns->double_buffered)
+#endif
 
 #ifdef __OBJC__
 #define XNS_SCROLL_BAR(vec) ((id) xmint_pointer (vec))

@@ -800,6 +800,26 @@ ns_set_child_frame_border_width (struct frame *f, Lisp_Object arg,
 }
 
 static void
+ns_set_inhibit_double_buffering (struct frame *f,
+                                 Lisp_Object new_value,
+                                 Lisp_Object old_value)
+{
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  if (!EQ (new_value, old_value))
+    {
+      FRAME_DOUBLE_BUFFERED (f) = NILP (new_value);
+
+      /* If the view or layer haven't been created yet this will be a
+         noop.  */
+      [(EmacsLayer *)[FRAME_NS_VIEW (f) layer]
+          setDoubleBuffered:FRAME_DOUBLE_BUFFERED (f)];
+
+      SET_FRAME_GARBAGED (f);
+    }
+#endif
+}
+
+static void
 ns_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int old_width = FRAME_INTERNAL_BORDER_WIDTH (f);
@@ -1073,7 +1093,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   gui_set_alpha,
   0, /* x_set_sticky */
   ns_set_tool_bar_position,
-  0, /* x_set_inhibit_double_buffering */
+  ns_set_inhibit_double_buffering,
   ns_set_undecorated,
   ns_set_parent_frame,
   0, /* x_set_skip_taskbar */
@@ -1460,6 +1480,14 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          "BufferPredicate", RES_TYPE_SYMBOL);
   gui_default_parameter (f, parms, Qtitle, Qnil, "title", "Title",
                          RES_TYPE_STRING);
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  tem = gui_display_get_arg (dpyinfo, parms, Qinhibit_double_buffering, NULL, NULL,
+                             RES_TYPE_BOOLEAN);
+  FRAME_DOUBLE_BUFFERED (f) = NILP (tem) || EQ (tem, Qunbound);
+  store_frame_param (f, Qinhibit_double_buffering,
+                     FRAME_DOUBLE_BUFFERED (f) ? Qnil : Qt);
+#endif
 
   parms = get_geometry_from_preferences (dpyinfo, parms);
   window_prompting = gui_figure_window_size (f, parms, false, true);
