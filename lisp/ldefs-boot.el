@@ -14808,9 +14808,8 @@ to specify a command to run.
 If CONFIRM is non-nil, the user will be given an opportunity to edit the
 command before it's run.
 
-Interactively, the user can use the \\`M-c' command while entering
-the regexp to indicate whether the grep should be case sensitive
-or not.
+Interactively, the user can use \\<read-regexp-map>\\[read-regexp-toggle-case-fold] while entering the regexp
+to indicate whether the grep should be case sensitive or not.
 
 (fn REGEXP &optional FILES DIR CONFIRM)" t)
 (autoload 'zrgrep "grep" "\
@@ -20673,6 +20672,8 @@ Also see the `duplicate-line' command.
 (autoload 'duplicate-line "misc" "\
 Duplicate the current line N times.
 Interactively, N is the prefix numeric argument, and defaults to 1.
+The user option `duplicate-line-final-position' specifies where to
+move point after duplicating the line.
 Also see the `copy-from-above-command' command.
 
 (fn &optional N)" t)
@@ -20731,7 +20732,7 @@ Optional argument BUFFER specifies a buffer to use, instead of
 The return value is always nil.
 
 (fn &optional LOADED-ONLY-P BUFFER)" t)
-(register-definition-prefixes "misc" '("list-dynamic-libraries--"))
+(register-definition-prefixes "misc" '("duplicate-line-final-position" "list-dynamic-libraries--"))
 
 
 ;;; Generated autoloads from misearch.el
@@ -33204,7 +33205,7 @@ The JSX-specific faces are used when `treesit-font-lock-level' is
 at least 3 (which is the default value).
 
 (fn)" t)
-(register-definition-prefixes "typescript-ts-mode" '("typescript-ts-mode-"))
+(register-definition-prefixes "typescript-ts-mode" '("tsx-ts-mode--" "typescript-ts-mode-"))
 
 
 ;;; Generated autoloads from international/ucs-normalize.el
