@@ -134,7 +134,7 @@
 	 (purecopy (concat "^\\s-*("
 			   (regexp-opt
 			    '(;; Elisp
-                              "defconst" "defcustom"
+                              "defconst" "defcustom" "defvar-keymap"
                               ;; CL
                               "defconstant"
 			      "defparameter" "define-symbol-macro")
