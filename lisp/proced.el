@@ -152,7 +152,7 @@ the external command (usually \"kill\")."
     (pri     "Pr"      "%d" right proced-< t (pri pid) (nil t t))
     (nice    "Ni"      "%3d" 3 proced-< t (nice pid) (t t nil))
     (thcount "THCount" "%d" right proced-< t (thcount pid) (nil t t))
-    (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid)
+    (start   "Start"   proced-format-start left proced-time-lessp nil (start pid)
                        (t t nil))
     (vsize   "VSize"   proced-format-memory right proced-< t (vsize pid)
                        (nil t t))
@@ -1599,8 +1599,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
            (format "%02d%s%02d" minutes colon seconds)))))
 
 (defun proced-format-start (start)
-  "Format time START.
-The return string is always 6 characters wide."
+  "Format time START."
   (let ((d-start (decode-time start))
         (d-current (decode-time))
         (colon (if proced-enable-color-flag
