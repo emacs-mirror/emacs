@@ -116,6 +116,25 @@ Set to nil to disable."
   "The column at which a filled paragraph is broken."
   :type 'integer)
 
+(defcustom erc-fill-wrap-margin-width nil
+  "Starting width in columns of dedicated stamp margin.
+When nil, ERC normally pretends its value is one column greater
+than the `string-width' of the formatted `erc-timestamp-format'.
+However, when `erc-fill-wrap-margin-side' is `left' or
+\"resolves\" to `left', ERC uses the width of the prompt if it's
+wider on MOTD's end, which really only matters when `erc-prompt'
+is a function."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(choice (const nil) integer))
+
+(defcustom erc-fill-wrap-margin-side nil
+  "Margin side to use with `erc-fill-wrap-mode'.
+A value of nil means ERC should decide based on the value of
+`erc-insert-timestamp-function', which does not work for
+user-defined functions."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(choice (const nil) (const left) (const right)))
+
 (defcustom erc-fill-line-spacing nil
   "Extra space between messages on graphical displays.
 This may need adjusting depending on how your faces are
@@ -253,9 +272,9 @@ messages less than a day apart."
       (goto-char erc-input-marker)
     ;; Mimic what `move-beginning-of-line' does with invisible text.
     (when-let ((erc-fill-wrap-merge)
-               (empty (get-text-property (point) 'display))
-               ((string-empty-p empty)))
-      (goto-char (text-property-not-all (point) (pos-eol) 'display empty)))))
+               (prop (get-text-property (point) 'display))
+               ((or (equal prop "") (eq 'margin (car-safe (car-safe prop))))))
+      (goto-char (text-property-not-all (point) (pos-eol) 'display prop)))))
 
 (defun erc-fill--wrap-end-of-line (arg)
   "Defer to `move-end-of-line' or `end-of-visual-line'."
@@ -278,21 +297,44 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
                                        ('non-input nil))))
   (message "erc-fill-wrap movement: %S" erc-fill--wrap-visual-keys))
 
+(defun erc-fill-wrap-toggle-truncate-lines (arg)
+  "Toggle `truncate-lines' and maybe reinstate `visual-line-mode'."
+  (interactive "P")
+  (let ((wantp (if arg
+                   (natnump (prefix-numeric-value arg))
+                 (not truncate-lines)))
+        (buffer (current-buffer)))
+    (if wantp
+        (setq truncate-lines t)
+      (walk-windows (lambda (window)
+                      (when (eq buffer (window-buffer window))
+                        (set-window-hscroll window 0)))
+                    nil t)
+      (visual-line-mode +1)))
+  (force-mode-line-update))
+
 (defvar-keymap erc-fill-wrap-mode-map ; Compat 29
   :doc "Keymap for ERC's `fill-wrap' module."
   :parent visual-line-mode-map
   "<remap> <kill-line>" #'erc-fill--wrap-kill-line
   "<remap> <move-end-of-line>" #'erc-fill--wrap-end-of-line
   "<remap> <move-beginning-of-line>" #'erc-fill--wrap-beginning-of-line
+  "<remap> <toggle-truncate-lines>" #'erc-fill-wrap-toggle-truncate-lines
   "C-c a" #'erc-fill-wrap-cycle-visual-movement
   ;; Not sure if this is problematic because `erc-bol' takes no args.
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
 
-(defvar erc-match-mode)
 (defvar erc-button-mode)
-(defvar erc-match--hide-fools-offset-bounds)
+(defvar erc-legacy-invisible-bounds-p)
 
 (defun erc-fill--wrap-ensure-dependencies ()
+  (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+    (when erc-legacy-invisible-bounds-p
+      (erc--warn-once-before-connect  'erc-fill-wrap-mode
+        "Module `fill-wrap' is incompatible with the obsolete compatibility"
+        " flag `erc-legacy-invisible-bounds-p'.  Disabling locally in %s."
+        (current-buffer))
+      (setq-local erc-legacy-invisible-bounds-p nil)))
   (let (missing-deps)
     (unless erc-fill-mode
       (push 'fill missing-deps)
@@ -319,42 +361,54 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   "Fill style leveraging `visual-line-mode'.
 This local module displays nicks overhanging leftward to a common
 offset, as determined by the option `erc-fill-static-center'.  It
-depends on the `fill' and `button' modules and assumes the option
-`erc-insert-timestamp-function' is `erc-insert-timestamp-right'
-or the default `erc-insert-timestamp-left-and-right', so that it
-can display right-hand stamps in the right margin.  A value of
-`erc-insert-timestamp-left' is unsupported.  To use it, either
-include `fill-wrap' in `erc-modules' or set `erc-fill-function'
-to `erc-fill-wrap' (recommended).  You can also manually invoke
-one of the minor-mode toggles if really necessary."
+depends on the `fill', `stamp', and `button' modules and assumes
+users who've defined their own `erc-insert-timestamp-function'
+have also customized the option `erc-fill-wrap-margin-side' to an
+explicit side.  To use this module, either include `fill-wrap' in
+`erc-modules' or set `erc-fill-function' to `erc-fill-wrap'.
+Manually invoking one of the minor-mode toggles is not
+recommended.
+
+This module imposes various restrictions on the appearance of
+timestamps.  Most notably, it insists on displaying them in the
+margins.  Users preferring left-sided stamps may notice that ERC
+also displays the prompt in the left margin, possibly truncating
+or padding it to constrain it to the margin's width.  When stamps
+appear in the right margin, which they do by default, users may
+find that ERC actually appends them to copy-as-killed messages
+without an intervening space.  This normally poses at most a
+minor inconvenience, however users of the `log' module may prefer
+a workaround provided by `erc-stamp-prefix-log-filter', which
+strips trailing stamps from logged messages and instead prepends
+them to every line."
   ((erc-fill--wrap-ensure-dependencies)
-   ;; Restore or initialize local state variables.
    (erc--restore-initialize-priors erc-fill-wrap-mode
      erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys
-     erc-fill--wrap-value erc-fill-static-center)
+     erc-fill--wrap-value erc-fill-static-center
+     erc-stamp--margin-width erc-fill-wrap-margin-width
+     left-margin-width left-margin-width
+     right-margin-width right-margin-width)
+   (setq erc-stamp--margin-left-p
+         (or (eq erc-fill-wrap-margin-side 'left)
+             (eq (default-value 'erc-insert-timestamp-function)
+                 #'erc-insert-timestamp-left)))
    (setq erc-fill--function #'erc-fill-wrap)
-   ;; Internal integrations.
    (add-function :after (local 'erc-stamp--insert-date-function)
                  #'erc-fill--wrap-stamp-insert-prefixed-date)
-   (when (or erc-stamp-mode (memq 'stamp erc-modules))
-     (erc-stamp--display-margin-mode +1))
-   (when (or (bound-and-true-p erc-match-mode) (memq 'match erc-modules))
-     (require 'erc-match)
-     (setq erc-match--hide-fools-offset-bounds t))
    (when erc-fill-wrap-merge
      (add-hook 'erc-button--prev-next-predicate-functions
                #'erc-fill--wrap-merged-button-p nil t))
+   (erc-stamp--display-margin-mode +1)
    (visual-line-mode +1))
-  ((when erc-stamp--display-margin-mode
-     (erc-stamp--display-margin-mode -1))
+  ((visual-line-mode -1)
+   (erc-stamp--display-margin-mode -1)
    (kill-local-variable 'erc-fill--wrap-value)
    (kill-local-variable 'erc-fill--function)
    (kill-local-variable 'erc-fill--wrap-visual-keys)
    (remove-hook 'erc-button--prev-next-predicate-functions
                 #'erc-fill--wrap-merged-button-p t)
    (remove-function (local 'erc-stamp--insert-date-function)
-                    #'erc-fill--wrap-stamp-insert-prefixed-date)
-   (visual-line-mode -1))
+                    #'erc-fill--wrap-stamp-insert-prefixed-date))
   'local)
 
 (defvar-local erc-fill--wrap-length-function nil
@@ -381,18 +435,21 @@ parties.")
                        (widen)
                        (when (eq 'erc-timestamp (field-at-pos m))
                          (set-marker m (field-end m)))
-                       (and (eq 'PRIVMSG (get-text-property m 'erc-command))
-                            (not (eq (get-text-property m 'erc-ctcp) 'ACTION))
-                            (cons (get-text-property m 'erc-timestamp)
-                                  (get-text-property (1+ m) 'erc-data)))))
+                       (and-let*
+                           (((eq 'PRIVMSG (get-text-property m 'erc-command)))
+                            ((not (eq (get-text-property m 'erc-ctcp)
+                                      'ACTION)))
+                            (spr (next-single-property-change m 'erc-speaker)))
+                         (cons (get-text-property m 'erc-timestamp)
+                               (get-text-property spr 'erc-speaker)))))
               (ts (pop props))
               ((not (time-less-p (erc-stamp--current-time) ts)))
               ((time-less-p (time-subtract (erc-stamp--current-time) ts)
                             erc-fill--wrap-max-lull))
-              (nick  (buffer-substring-no-properties
-                      (1+ (point-min)) (- (point) 2)))
+              (speaker (next-single-property-change (point-min) 'erc-speaker))
+              (nick (get-text-property speaker 'erc-speaker))
               (props)
-              ((erc-nick-equal-p (car props) nick))))
+              ((erc-nick-equal-p props nick))))
     (set-marker erc-fill--wrap-last-msg (point-min))))
 
 (defun erc-fill--wrap-stamp-insert-prefixed-date (&rest args)
@@ -476,8 +533,8 @@ Offer to repeat command in a manner similar to
    \\`=' Increase indentation by one column
    \\`-' Decrease indentation by one column
    \\`0' Reset indentation to the default
-   \\`+' Shift right margin rightward (shrink) by one column
-   \\`_' Shift right margin leftward (grow) by one column
+   \\`+' Shift margin boundary rightward by one column
+   \\`_' Shift margin boundary leftward by one column
    \\`)' Reset the right margin to the default
 
 Note that misalignment may occur when messages contain
@@ -489,6 +546,7 @@ decorations applied by third-party modules."
   (unless (get-buffer-window)
     (user-error "Command called in an undisplayed buffer"))
   (let* ((total (erc-fill--wrap-nudge arg))
+         (leftp erc-stamp--margin-left-p)
          (win-ratio (/ (float (- (window-point) (window-start)))
                        (- (window-end nil t) (window-start)))))
     (when (zerop arg)
@@ -509,18 +567,20 @@ decorations applied by third-party modules."
        (dolist (key '(?\) ?_ ?+))
          (let ((a (pcase key
                     (?\) 0)
-                    (?_ (- (abs arg)))
-                    (?+ (abs arg)))))
+                    (?_ (if leftp (abs arg) (- (abs arg))))
+                    (?+ (if leftp (- (abs arg)) (abs arg))))))
            (define-key map (vector (list key))
                        (lambda ()
                          (interactive)
-                         (erc-stamp--adjust-right-margin (- a))
+                         (erc-stamp--adjust-margin (- a) (zerop a))
+                         (when leftp (erc-stamp--refresh-left-margin-prompt))
                          (recenter (round (* win-ratio (window-height))))))))
        map)
      t
      (lambda ()
-       (message "Fill prefix: %d (%+d col%s)"
-                erc-fill--wrap-value total (if (> (abs total) 1) "s" "")))
+       (message "Fill prefix: %d (%+d col%s); Margin: %d"
+                erc-fill--wrap-value total (if (> (abs total) 1) "s" "")
+                (if leftp left-margin-width right-margin-width)))
      "Use %k for further adjustment"
      1)
     (recenter (round (* win-ratio (window-height))))))
@@ -536,6 +596,7 @@ decorations applied by third-party modules."
   "Get length of timestamp if inserted left."
   (if (and (boundp 'erc-timestamp-format)
            erc-timestamp-format
+           ;; FIXME use a more robust test than symbol equivalence.
            (eq erc-insert-timestamp-function 'erc-insert-timestamp-left)
            (not erc-hide-timestamps))
       (length (format-time-string erc-timestamp-format))

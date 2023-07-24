@@ -340,4 +340,41 @@
        (should (search-backward "ERC> " nil t))
        (execute-kbd-macro "\C-a")))))
 
+(ert-deftest erc-fill--left-hand-stamps ()
+  :tags '(:unstable)
+  (unless (>= emacs-major-version 29)
+    (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
+
+  (let ((erc-timestamp-only-if-changed-flag nil)
+        (erc-insert-timestamp-function #'erc-insert-timestamp-left))
+    (erc-fill-tests--wrap-populate
+     (lambda ()
+       (should (= 8 left-margin-width))
+       (pcase-let ((`((margin left-margin) ,displayed)
+                    (get-text-property erc-insert-marker 'display)))
+         (should (equal-including-properties
+                  displayed #("    ERC>" 4 8
+                              ( read-only t
+                                front-sticky t
+                                field erc-prompt
+                                erc-prompt t
+                                rear-nonsticky t
+                                font-lock-face erc-prompt-face)))))
+       (erc-fill-tests--compare "stamps-left-01")
+
+       (ert-info ("Shrink left margin by 1 col")
+         (erc-stamp--adjust-margin -1)
+         (with-silent-modifications (erc--refresh-prompt))
+         (should (= 7 left-margin-width))
+         (pcase-let ((`((margin left-margin) ,displayed)
+                      (get-text-property erc-insert-marker 'display)))
+           (should (equal-including-properties
+                    displayed #("   ERC>" 3 7
+                                ( read-only t
+                                  front-sticky t
+                                  field erc-prompt
+                                  erc-prompt t
+                                  rear-nonsticky t
+                                  font-lock-face erc-prompt-face))))))))))
+
 ;;; erc-fill-tests.el ends here

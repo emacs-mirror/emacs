@@ -655,24 +655,10 @@ See `erc-log-match-format'."
 					(get-buffer (car buffer-cons))))))
     (switch-to-buffer buffer-name)))
 
-(defvar-local erc-match--hide-fools-offset-bounds nil)
-
 (defun erc-hide-fools (match-type _nickuserhost _message)
   "Hide comments from designated fools."
   (when (eq match-type 'fool)
-    (erc-match--hide-message)))
-
-(defun erc-match--hide-message ()
-  (progn ; FIXME raise sexp
-    (if erc-match--hide-fools-offset-bounds
-        (let ((beg (point-min))
-              (end (point-max)))
-          (save-restriction
-            (widen)
-            (erc--merge-prop (1- beg) (1- end) 'invisible 'erc-match)))
-      ;; Before ERC 5.6, this also used to add an `intangible'
-      ;; property, but the docs say it's now obsolete.
-      (erc--merge-prop (point-min) (point-max) 'invisible 'erc-match))))
+    (erc--hide-message 'match-fools)))
 
 (defun erc-beep-on-match (match-type _nickuserhost _message)
   "Beep when text matches.
@@ -682,19 +668,31 @@ This function is meant to be called from `erc-text-matched-hook'."
 
 (defun erc-match--modify-invisibility-spec ()
   "Add an `erc-match' property to the local spec."
+  ;; Hopefully, this will be extended to do the same for other
+  ;; invisible properties managed by this module.
   (if erc-match-mode
-      (add-to-invisibility-spec 'erc-match)
+      (erc-match-toggle-hidden-fools +1)
     (erc-with-all-buffers-of-server nil nil
-      (remove-from-invisibility-spec 'erc-match))))
+      (erc-match-toggle-hidden-fools -1))))
 
-(defun erc-match-toggle-hidden-fools ()
+(defun erc-match-toggle-hidden-fools (arg)
   "Toggle fool visibility.
-Expect `erc-hide-fools' or a function that does something similar
-to be in `erc-text-matched-hook'."
-  (interactive)
-  (if (memq 'erc-match (ensure-list buffer-invisibility-spec))
-      (remove-from-invisibility-spec 'erc-match)
-    (add-to-invisibility-spec 'erc-match)))
+Expect the function `erc-hide-fools' or similar to be present in
+`erc-text-matched-hook'."
+  (interactive "P")
+  (erc-match--toggle-hidden 'match-fools arg))
+
+(defun erc-match--toggle-hidden (prop arg)
+  "Toggle invisibility for spec member PROP.
+Treat ARG in a manner similar to mode toggles defined by
+`define-minor-mode'."
+  (when arg
+    (setq arg (prefix-numeric-value arg)))
+  (if (memq prop (ensure-list buffer-invisibility-spec))
+      (unless (natnump arg)
+        (remove-from-invisibility-spec prop))
+    (when (or (not arg) (natnump arg))
+      (add-to-invisibility-spec prop))))
 
 (provide 'erc-match)
 

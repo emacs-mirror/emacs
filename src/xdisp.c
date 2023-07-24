@@ -2759,6 +2759,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
   enum window_part part;
   enum glyph_row_area area;
   int x, y, width, height;
+  int original_gx;
 
   if (mouse_fine_grained_tracking)
     {
@@ -2768,6 +2769,8 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 
   /* Try to determine frame pixel position and size of the glyph under
      frame pixel coordinates X/Y on frame F.  */
+
+  original_gx = gx;
 
   if (window_resize_pixelwise)
     {
@@ -2984,6 +2987,15 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
   gy += WINDOW_TOP_EDGE_Y (w);
 
  store_rect:
+  if (mouse_prefer_closest_glyph)
+    {
+      int half_width = width / 2;
+      width = half_width;
+
+      int bisection = gx + half_width;
+      if (original_gx > bisection)
+        gx = bisection;
+    }
   STORE_NATIVE_RECT (*rect, gx, gy, width, height);
 
   /* Visible feedback for debugging.  */
@@ -17486,7 +17498,14 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       else
 	w->last_point = marker_position (w->pointm);
 
-      w->window_end_valid = true;
+      struct glyph_row *row;
+      /* These conditions should be consistent with CHECK_WINDOW_END.  */
+      if (w->window_end_vpos < w->current_matrix->nrows
+	  && ((row = MATRIX_ROW (w->current_matrix, w->window_end_vpos),
+	       !row->enabled_p
+	       || MATRIX_ROW_DISPLAYS_TEXT_P (row)
+	       || MATRIX_ROW_VPOS (row, w->current_matrix) == 0)))
+	w->window_end_valid = true;
       w->update_mode_line = false;
       w->preserve_vscroll_p = false;
     }
@@ -37501,9 +37520,12 @@ may be more familiar to users.  */);
   display_raw_bytes_as_hex = false;
 
   DEFVAR_BOOL ("mouse-fine-grained-tracking", mouse_fine_grained_tracking,
-    doc: /* Non-nil for pixel-wise mouse-movement.
+    doc: /* Non-nil for pixelwise mouse-movement.
 When nil, mouse-movement events will not be generated as long as the
-mouse stays within the extent of a single glyph (except for images).  */);
+mouse stays within the extent of a single glyph (except for images).
+When nil and `mouse-prefer-closest-glyph' is non-nil, mouse-movement
+events will instead not be generated as long as the mouse stays within
+the extent of a single left/right half glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
 
   DEFVAR_BOOL ("tab-bar--dragging-in-progress", tab_bar__dragging_in_progress,

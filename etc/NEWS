@@ -126,6 +126,17 @@ confirmation.
 It controls the placement of point and the region after duplicating a
 region with 'duplicate-dwim'.
 
++++
+** New user option 'mouse-prefer-closest-glyph'.
+When enabled, clicking or dragging with the mouse will put the point
+or start the drag in front of the buffer position corresponding to the
+glyph with the closest X coordinate to the click or start of the drag.
+In other words, if the mouse pointer is in the right half of a glyph,
+point will be put after the buffer position corresponding to that glyph,
+whereas if the mouse pointer is in the left half of a glyph, point
+will be put in front the buffer position corresponding to that glyph.
+By default this is disabled.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 

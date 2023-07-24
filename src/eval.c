@@ -4203,7 +4203,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 void
 get_backtrace (Lisp_Object array)
 {
-  union specbinding *pdl = backtrace_next (backtrace_top ());
+  union specbinding *pdl = backtrace_top ();
   ptrdiff_t i = 0, asize = ASIZE (array);
 
   /* Copy the backtrace contents into working memory.  */
