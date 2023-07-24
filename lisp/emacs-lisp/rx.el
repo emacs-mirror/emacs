@@ -35,7 +35,42 @@
 ;; Olin Shivers's SRE, with concessions to Emacs regexp peculiarities,
 ;; and the older Emacs package Sregex.
 
+;;; Legacy syntax still accepted by rx:
+;;
+;; These are constructs from earlier rx and sregex implementations
+;; that were mistakes, accidents or just not very good ideas in hindsight.
+
+;; Obsolete: accepted but not documented
+;;
+;; Obsolete                     Preferred
+;; --------------------------------------------------------
+;; (not word-boundary)          not-word-boundary
+;; (not-syntax X)               (not (syntax X))
+;; not-wordchar                 (not wordchar)
+;; (not-char ...)               (not (any ...))
+;; any                          nonl, not-newline
+;; (repeat N FORM)              (= N FORM)
+;; (syntax CHARACTER)           (syntax NAME)
+;; (syntax CHAR-SYM)      [1]   (syntax NAME)
+;; (category chinse-two-byte)   (category chinese-two-byte)
+;; unibyte                      ascii
+;; multibyte                    nonascii
+;; --------------------------------------------------------
+;; [1]  where CHAR-SYM is a symbol with single-character name
+
+;; Obsolescent: accepted and documented but discouraged
+;;
+;; Obsolescent                    Preferred
+;; --------------------------------------------------------
+;; (and ...)                      (seq ...), (: ...), (sequence ...)
+;; anything                       anychar
+;; minimal-match, maximal-match   lazy ops: ??, *?, +?
+
+;; FIXME: Prepare a phase-out by emitting compile-time warnings about
+;; at least some of the legacy constructs above.
+
 ;;; Code:
+
 
 ;; The `rx--translate...' functions below return (REGEXP . PRECEDENCE),
 ;; where REGEXP is a list of string expressions that will be
@@ -167,7 +202,7 @@ Each entry is:
     ('not-word-boundary           (cons (list "\\B") t))
     ('symbol-start                (cons (list "\\_<") t))
     ('symbol-end                  (cons (list "\\_>") t))
-    ('not-wordchar                (cons (list "\\W") t))
+    ('not-wordchar                (rx--translate '(not wordchar)))
     (_
      (cond
       ((let ((class (cdr (assq sym rx--char-classes))))
@@ -817,7 +852,10 @@ Return (REGEXP . PRECEDENCE)."
                 (setq syntax char)))))))
       (unless syntax
         (error "Unknown rx syntax name `%s'" sym)))
-    (cons (list (string ?\\ (if negated ?S ?s) syntax))
+    ;; Produce \w and \W instead of \sw and \Sw, for smaller size.
+    (cons (list (if (eq syntax ?w)
+                    (string ?\\ (if negated ?W ?w))
+                  (string ?\\ (if negated ?S ?s) syntax)))
           t)))
 
 (defconst rx--categories
