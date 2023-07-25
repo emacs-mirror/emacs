@@ -1924,7 +1924,7 @@ See Info node `(elisp) Integer Basics'."
 (let ((pure-fns
        '(
          ;; character.c
-         characterp
+         characterp max-char
          ;; data.c
          % * + - / /= 1+ 1- < <= = > >= aref arrayp ash atom bare-symbol
          bool-vector-count-consecutive bool-vector-count-population
