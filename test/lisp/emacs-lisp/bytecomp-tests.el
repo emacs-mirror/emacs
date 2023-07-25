@@ -1953,6 +1953,15 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     ((setcdr c 5) (wrong-type-argument consp c))
     ((nth 2 "abcd") (wrong-type-argument listp "abcd"))
     ((elt (x y . z) 2) (wrong-type-argument listp z))
+    ((aref [2 3 5] p) (wrong-type-argument fixnump p))
+    ((aref #s(a b c) p) (wrong-type-argument fixnump p))
+    ((aref "abc" p) (wrong-type-argument fixnump p))
+    ((aref [2 3 5] 3) (args-out-of-range [2 3 5] 3))
+    ((aref #s(a b c) 3) (args-out-of-range #s(a b c) 3))
+    ((aset [2 3 5] q 1) (wrong-type-argument fixnump q))
+    ((aset #s(a b c) q 1) (wrong-type-argument fixnump q))
+    ((aset [2 3 5] -1 1) (args-out-of-range [2 3 5] -1))
+    ((aset #s(a b c) -1 1) (args-out-of-range #s(a b c) -1))
     ;; Many more to add
     ))
 

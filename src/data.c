@@ -4116,6 +4116,8 @@ syms_of_data (void)
   DEFSYM (Qelt, "elt");
   DEFSYM (Qsetcar, "setcar");
   DEFSYM (Qsetcdr, "setcdr");
+  DEFSYM (Qaref, "aref");
+  DEFSYM (Qaset, "aset");
 
   error_tail = pure_cons (Qerror, Qnil);
 
