@@ -1967,17 +1967,17 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
         ;; Test both calling the function directly, and calling
         ;; a byte-compiled η-expansion (lambda (ARGS...) (FUN ARGS...))
         ;; which should turn the function call into a byte-op.
-        (dolist (byte-op '(nil t))
-          (ert-info ((prin1-to-string byte-op) :prefix "byte-op: ")
-            (let* ((fun
-                    (if byte-op
-                        (let* ((nargs (length (cdr call)))
-                               (formals (mapcar (lambda (i)
-                                                  (intern (format "x%d" i)))
-                                                (number-sequence 1 nargs))))
-                          (byte-compile
-                           `(lambda ,formals (,fun-sym ,@formals))))
-                      fun-sym))
+        (dolist (mode '(funcall byte-op))
+          (ert-info ((symbol-name mode) :prefix "mode: ")
+            (let* ((fun (pcase-exhaustive mode
+                          ('funcall fun-sym)
+                          ('byte-op
+                           (let* ((nargs (length (cdr call)))
+                                  (formals (mapcar (lambda (i)
+                                                     (intern (format "x%d" i)))
+                                                   (number-sequence 1 nargs))))
+                             (byte-compile
+                              `(lambda ,formals (,fun-sym ,@formals)))))))
                    (error-frame (bytecomp-tests--error-frame fun actuals)))
               (should (consp error-frame))
               (should (equal (car error-frame) (list 'error expected-error)))
