@@ -1889,12 +1889,12 @@ to directory DIR."
 
 ;;;###autoload
 (defun project-uniquify-dirname-transform (dirname)
-  "Include `project-name' in DIRNAME if in a project.
+  "Uniquify name of directory DIRNAME using `project-name', if in a project.
 
 If you set `uniquify-dirname-transform' to this function,
-slash-separated components from `project-name' will be added to
-the buffer's name when buffers from two different projects would
-otherwise have the same name."
+slash-separated components from `project-name' will be appended to
+the buffer's directory name when buffers from two different projects
+would otherwise have the same name."
   (if-let (proj (project-current nil dirname))
       (let ((root (project-root proj)))
         (expand-file-name

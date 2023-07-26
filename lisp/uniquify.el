@@ -169,25 +169,26 @@ That means that when `buffer-file-name' is set to nil, `list-buffers-directory'
 contains the name of the directory which the buffer is visiting.")
 
 (defcustom uniquify-dirname-transform #'identity
-  "Function to transform buffer's directory for uniquifying its name.
+  "Function to transform buffer's directory name when uniquifying buffer's name.
 
-If `uniquify-buffer-name-style' is non-nil and a buffer's name
-would be the same as some other buffer, then components from the
-buffer's directory name are added to the buffer's name until the
-buffer's name is unique.
+When `uniquify-buffer-name-style' is non-nil, Emacs makes buffer
+names unique by adding components of the buffer's directory name
+until the resulting name is unique.  This function is used to
+transform the buffer's directory name during this uniquifying
+process, allowing the unique buffer name to include strings
+from sources other than the buffer's directory.  The default is
+`identity', so the unmodified buffer's directory name is used for
+uniquifying.
 
-This function is used to transform the buffer's directory name
-before the uniquifying process, allowing the unique buffer name
-to include components from other sources.  The default is
-`identity', so only the buffer's directory name is used for
-uniquifying.  This function is called with the buffer's directory
-name and should return a file name (which does not need to
-actually exist in the filesystem) to use components from.
+This function is called with the buffer's directory name and
+should return a string which names a file (that does not need to
+actually exist in the filesystem); the components of this file
+name will then be used to uniquify the buffer's name.
 
-To include components from `project-name', set this variable to
-`project-uniquify-dirname-transform'."
-  :type '(choice (function-item :tag "Don't change the dirname" identity)
-                 (function-item :tag "Include project name in dirname"
+To include components from the `project-name' of the buffer, set
+this variable to `project-uniquify-dirname-transform'."
+  :type '(choice (function-item :tag "Use directory name as-is" identity)
+                 (function-item :tag "Include project name in directory name"
                                 #'project-uniquify-dirname-transform)
                  function)
   :version "30.1"

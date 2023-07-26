@@ -102,6 +102,15 @@ plus, minus, check-mark, start, etc.
 The 'tool-bar-position' frame parameter can be set to 'bottom' on all
 window systems other than Nextstep.
 
+---
+** New user option 'uniquify-dirname-transform'.
+This can be used to customize how buffer names are uniquified, by
+making arbitrary transforms on the buffer's directory name (whose
+components are used to uniquify buffer names when they clash).  You
+can use this to distinguish between buffers visiting files with the
+same base name that belong to different projects by using the provided
+transform function 'project-uniquify-dirname-transform'.
+
 ** cl-print
 
 *** You can expand the "..." truncation everywhere.
