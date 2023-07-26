@@ -315,7 +315,7 @@ If this is nil, `man' will use `locale-coding-system'."
   :type 'hook
   :group 'man)
 
-(defvar Man-name-regexp "[-[:alnum:]_­+][-[:alnum:]_.:­+]*"
+(defvar Man-name-regexp "[-[:alnum:]_­+[@][-[:alnum:]_.:­+]*"
   "Regular expression describing the name of a manpage (without section).")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z0-9+]*\\|[LNln]"
@@ -937,7 +937,16 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
                          "-k" (concat (when (or Man-man-k-use-anchor
                                                 (string-equal prefix ""))
                                         "^")
-                                      prefix))))
+                                      (if (string-equal prefix "")
+                                          prefix
+                                        ;; FIXME: shell-quote-argument
+                                        ;; is not entirely
+                                        ;; appropriate: we actually
+                                        ;; need to quote ERE here.
+                                        ;; But we don't have that, and
+                                        ;; shell-quote-argument does
+                                        ;; the job...
+                                        (shell-quote-argument prefix))))))
               (setq table (Man-parse-man-k)))))
 	;; Cache the table for later reuse.
         (when table
