@@ -11659,8 +11659,8 @@ the command loop or by `read-key-sequence'.
 The value is always a vector.  */)
   (void)
 {
-  return Fvector (this_command_key_count
-		  - this_single_command_key_start,
+  ptrdiff_t nkeys = this_command_key_count - this_single_command_key_start;
+  return Fvector (nkeys < 0 ? 0 : nkeys,
 		  (XVECTOR (this_command_keys)->contents
 		   + this_single_command_key_start));
 }

@@ -136,7 +136,10 @@ Intended to be used in the `interactive' spec of
 	      (eq new-value not-value)
 	      (not (equal old-value new-value)))
       (message "%s" (substitute-command-keys
-		     "For this change to take effect revisit file using \\[revert-buffer]")))))
+                     (if (and (stringp buffer-file-name)
+                              (file-exists-p buffer-file-name))
+		         "For this change to take effect revisit file using \\[revert-buffer]"
+                       "For this change to take effect use \\[normal-mode]"))))))
 
 (defun modify-file-local-variable (variable value op &optional interactive)
   "Modify file-local VARIABLE in Local Variables depending on operation OP.
