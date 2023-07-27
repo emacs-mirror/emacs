@@ -577,6 +577,11 @@ without specifying a file, like this:
   (notifications-notify
     :title "I am playing music" :app-icon 'multimedia-player)
 
+** Image Dired
+
+*** New user option 'image-dired-thumb-naming'.
+You can now configure how a thumbnail is named using this option.
+
 
 * New Modes and Packages in Emacs 30.1
 

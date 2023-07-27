@@ -162,8 +162,27 @@ to use the Thumbnail Managing Standard; they will be saved in
 `image-dired-thumbnail-storage'."
   :type 'directory)
 
+(defcustom image-dired-thumb-naming 'sha1-filename
+  "How `image-dired' names thumbnail files.
+When set to `sha1-filename' the name of thumbnail is built by
+computing the SHA-1 of the full file name of the image.
+
+When set to `sha1-contents' the name of thumbnail is built by
+computing the SHA-1 of first 4KiB of the image contents (See
+`image-dired-contents-sha1').
+
+In both case, a \"jpg\" extension is appended to save as JPEG.
+
+The value of this option is ignored if Image-Dired is customized
+to use the Thumbnail Managing Standard.  See
+`image-dired-thumbnail-storage'."
+  :type '(choice :tag "How to name thumbnail files"
+                 (const :tag "SHA-1 of the image file name" sha1-filename)
+                 (const :tag "SHA-1 of the image contents" sha1-contents))
+  :version "30.1")
+
 (defcustom image-dired-thumbnail-storage 'image-dired
-  "How `image-dired' stores thumbnail files.
+  "Where `image-dired' stores thumbnail files.
 There are three ways that Image-Dired can store and generate
 thumbnails:
 
@@ -189,6 +208,9 @@ thumbnails:
 
     Set this user option to `per-directory'.
 
+To control the naming of thumbnails for alternatives (2) and (3)
+above, customize the value of `image-dired-thumb-naming'.
+
 To control the default size of thumbnails for alternatives (2)
 and (3) above, customize the value of `image-dired-thumb-size'.
 
@@ -197,7 +219,7 @@ format, as mandated by that standard; otherwise save them as JPEG.
 
 For more information on the Thumbnail Managing Standard, see:
 https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html"
-  :type '(choice :tag "How to store thumbnail files"
+  :type '(choice :tag "Where to store thumbnail files"
                  (const :tag "Use image-dired-dir" image-dired)
                  (const :tag "Thumbnail Managing Standard (normal 128x128)"
                         standard)

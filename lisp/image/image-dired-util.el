@@ -30,6 +30,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (defvar image-dired-dir)
+(defvar image-dired-thumb-naming)
 (defvar image-dired-thumbnail-storage)
 
 (defconst image-dired--thumbnail-standard-sizes
@@ -57,42 +58,59 @@ Create the thumbnail directory if it does not exist."
       (message "Thumbnail directory created: %s" image-dired-dir))
     image-dired-dir))
 
+(defun image-dired-contents-sha1 (filename)
+  "Compute the SHA-1 of the first 4KiB of FILENAME's contents."
+  (with-temp-buffer
+    (insert-file-contents-literally filename nil 0 4096)
+    (sha1 (current-buffer))))
+
 (defun image-dired-thumb-name (file)
   "Return absolute file name for thumbnail FILE.
-Depending on the value of `image-dired-thumbnail-storage', the
-file name of the thumbnail will vary:
-- For `use-image-dired-dir', make a SHA1-hash of the image file's
-  directory name and add that to make the thumbnail file name
-  unique.
-- For `per-directory' storage, just add a subdirectory.
-- For `standard' storage, produce the file name according to the
-  Thumbnail Managing Standard.  Among other things, an MD5-hash
-  of the image file's directory name will be added to the
-  filename.
-See also `image-dired-thumbnail-storage'."
+Depending on the value of `image-dired-thumbnail-storage' and
+`image-dired-thumb-naming', the file name of the thumbnail will
+vary:
+
+- If `image-dired-thumbnail-storage' is set to one of the value
+  of `image-dired--thumbnail-standard-sizes', produce the file
+  name according to the Thumbnail Managing Standard.  Among other
+  things, an MD5-hash of the image file's directory name will be
+  added to the file name.
+
+- Otherwise `image-dired-thumbnail-storage' is used to set the
+  directory where to store the thumbnail.  In this latter case
+  the name given to the thumbnail depends on the value of
+  `image-dired-thumb-naming'.
+
+See also `image-dired-thumbnail-storage' and
+`image-dired-thumb-naming'."
   (let ((file (expand-file-name file)))
-    (cond ((memq image-dired-thumbnail-storage
-                 image-dired--thumbnail-standard-sizes)
-           (let ((thumbdir (cl-case image-dired-thumbnail-storage
-                             (standard "thumbnails/normal")
-                             (standard-large "thumbnails/large")
-                             (standard-x-large "thumbnails/x-large")
-                             (standard-xx-large "thumbnails/xx-large"))))
-             (expand-file-name
-              ;; MD5 is mandated by the Thumbnail Managing Standard.
-              (concat (md5 (concat "file://" file)) ".png")
-              (expand-file-name thumbdir (xdg-cache-home)))))
-          ((or (eq 'image-dired image-dired-thumbnail-storage)
-               ;; Maintained for backwards compatibility:
-               (eq 'use-image-dired-dir image-dired-thumbnail-storage))
-           (expand-file-name (format "%s.jpg" (sha1 file))
-                             (image-dired-dir)))
-          ((eq 'per-directory image-dired-thumbnail-storage)
-           (expand-file-name (format "%s.thumb.jpg"
-                                     (file-name-nondirectory file))
-                             (expand-file-name
-                              ".image-dired"
-                              (file-name-directory file)))))))
+    (if (memq image-dired-thumbnail-storage
+              image-dired--thumbnail-standard-sizes)
+        (let ((thumbdir (cl-case image-dired-thumbnail-storage
+                          (standard "thumbnails/normal")
+                          (standard-large "thumbnails/large")
+                          (standard-x-large "thumbnails/x-large")
+                          (standard-xx-large "thumbnails/xx-large"))))
+          (expand-file-name
+           ;; MD5 and PNG is mandated by the Thumbnail Managing
+           ;; Standard.
+           (concat (md5 (concat "file://" file)) ".png")
+           (expand-file-name thumbdir (xdg-cache-home))))
+      (let ((name (if (eq 'sha1-contents image-dired-thumb-naming)
+                      (image-dired-contents-sha1 file)
+                    ;; Defaults to SHA-1 of file name
+                    (if (eq 'per-directory image-dired-thumbnail-storage)
+                        (sha1 (file-name-nondirectory file))
+                      (sha1 file)))))
+        (cond ((or (eq 'image-dired image-dired-thumbnail-storage)
+                   ;; Maintained for backwards compatibility:
+                   (eq 'use-image-dired-dir image-dired-thumbnail-storage))
+               (expand-file-name (format "%s.jpg" name) (image-dired-dir)))
+              ((eq 'per-directory image-dired-thumbnail-storage)
+               (expand-file-name (format "%s.jpg" name)
+                                 (expand-file-name
+                                  ".image-dired"
+                                  (file-name-directory file)))))))))
 
 (defvar image-dired-thumbnail-buffer "*image-dired*"
   "Image-Dired's thumbnail buffer.")
