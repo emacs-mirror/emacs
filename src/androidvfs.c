@@ -5581,7 +5581,7 @@ android_renameat_noreplace (int srcfd, const char *src,
   /* Now try to rename vp to vdst.  */
   rc = (*vp->ops->rename) (vp, vdst, true);
   (*vp->ops->close) (vp);
-  (*vp->ops->close) (vdst);
+  (*vdst->ops->close) (vdst);
   return rc;
 
  error1:
@@ -5613,7 +5613,7 @@ android_rename (const char *src, const char *dst)
   /* Now try to rename vp to vdst.  */
   rc = (*vp->ops->rename) (vp, vdst, false);
   (*vp->ops->close) (vp);
-  (*vp->ops->close) (vdst);
+  (*vdst->ops->close) (vdst);
   return rc;
 
  error1:
