@@ -6385,6 +6385,8 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
       __atomic_store_n (&android_urgent_query, true,
 			__ATOMIC_RELEASE);
 
+    kill_again:
+
       /* And raise SIGIO.  Now that the query is considered urgent,
 	 the main thread will reply while reading async input.
 
@@ -6396,9 +6398,27 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
       /* Wait for the query to complete.  `android_urgent_query' is
 	 only cleared by either `android_select' or
 	 `android_check_query', so there's no need to worry about the
-	 flag being cleared before the query is processed.  */
-      while (sem_wait (&android_query_sem) < 0)
-	;;
+	 flag being cleared before the query is processed.
+
+	 Send SIGIO again periodically until the query is answered, on
+	 the off chance that SIGIO arrived too late to preempt a
+	 system call, but too early for it to return EINTR.  */
+
+      timeout.tv_sec = 4;
+      timeout.tv_nsec = 0;
+      timeout = timespec_add (current_timespec (), timeout);
+
+      while (sem_timedwait (&android_query_sem, &timeout) < 0)
+	{
+	  /* If waiting timed out, send SIGIO to the main thread
+	     again.  */
+
+	  if (errno == ETIMEDOUT)
+	    goto kill_again;
+
+	  /* Otherwise, continue waiting.  */
+	  eassert (errno == EINTR);
+	}
     }
 
   /* At this point, `android_servicing_query' should either be zero if
