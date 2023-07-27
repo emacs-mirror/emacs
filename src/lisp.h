@@ -5086,7 +5086,15 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_open_noquit (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);
+extern FILE *emacs_fdopen (int, const char *);
 extern int emacs_fclose (FILE *);
+extern int emacs_unlink (const char *);
+extern int emacs_symlink (const char *, const char *);
+extern int emacs_rmdir (const char *);
+extern int emacs_mkdir (const char *, mode_t);
+extern int emacs_renameat_noreplace (int, const char *, int,
+				     const char *);
+extern int emacs_rename (const char *, const char *);
 extern ptrdiff_t emacs_read (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_read_quit (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);

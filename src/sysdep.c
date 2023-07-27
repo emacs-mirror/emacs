@@ -260,7 +260,7 @@ init_standard_fds (void)
   /* Set buferr if possible on platforms defining _PC_PIPE_BUF, as
      they support the notion of atomic writes to pipes.  */
   #ifdef _PC_PIPE_BUF
-    buferr = fdopen (STDERR_FILENO, "w");
+    buferr = emacs_fdopen (STDERR_FILENO, "w");
     if (buferr)
       setvbuf (buferr, NULL, _IOLBF, 0);
   #endif
@@ -2545,7 +2545,7 @@ emacs_fopen (char const *file, char const *mode)
       }
 
   fd = emacs_open (file, omode | oflags | bflag, 0666);
-  return fd < 0 ? 0 : fdopen (fd, mode);
+  return fd < 0 ? 0 : emacs_fdopen (fd, mode);
 }
 
 /* Create a pipe for Emacs use.  */
@@ -2627,6 +2627,19 @@ emacs_close (int fd)
     }
 }
 
+/* Wrapper around fdopen.  On Android, this calls `android_fclose' to
+   clear information associated with FD if necessary.  */
+
+FILE *
+emacs_fdopen (int fd, const char *mode)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return fdopen (fd, mode);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_fdopen (fd, mode);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
 /* Wrapper around fclose.  On Android, this calls `android_fclose' to
    clear information associated with the FILE's file descriptor if
    necessary.  */
@@ -2639,6 +2652,71 @@ emacs_fclose (FILE *stream)
 #else
   return android_fclose (stream);
 #endif
+}
+
+/* Wrappers around unlink, symlink, rename, renameat_noreplace, and
+   rmdir.  These operations handle asset and content directories on
+   Android.  */
+
+int
+emacs_unlink (const char *name)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return unlink (name);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_unlink (name);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
+int
+emacs_symlink (const char *target, const char *linkname)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return symlink (target, linkname);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_symlink (target, linkname);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
+int
+emacs_rmdir (const char *dirname)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return rmdir (dirname);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_rmdir (dirname);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
+int
+emacs_mkdir (const char *dirname, mode_t mode)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return mkdir (dirname, mode);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_mkdir (dirname, mode);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
+int
+emacs_renameat_noreplace (int srcfd, const char *src,
+			  int dstfd, const char *dst)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return renameat_noreplace (srcfd, src, dstfd, dst);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_renameat_noreplace (srcfd, src, dstfd, dst);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
+int
+emacs_rename (const char *src, const char *dst)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return rename (src, dst);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_rename (src, dst);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
 }
 
 /* Maximum number of bytes to read or write in a single system call.

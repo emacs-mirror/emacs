@@ -45,7 +45,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    the first file or directory, a NULL byte and an unsigned int
    indicating the offset from the start of the file to the start of
    the next sibling.  Following that is a list of subdirectories or
-   files in the same format.  The long is stored LSB first.  */
+   files in the same format.  The long is stored LSB first.
+
+   Directories can be distinguished from ordinary files through the
+   last bytes of their file names (immediately previous to their
+   terminating NULL bytes), which are set to the directory separator
+   character `/'.  */
 
 
 

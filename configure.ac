@@ -2689,8 +2689,8 @@ for Android, but all API calls need to be stubbed out])
     # sfntfont-android.o.
     ANDROID_OBJ="$ANDROID_OBJ sfnt.o sfntfont.o sfntfont-android.o"
 
-    # Build androidselect.o.
-    ANDROID_OBJ="$ANDROID_OBJ androidselect.o"
+    # Build androidselect.o and androidvfs.o.
+    ANDROID_OBJ="$ANDROID_OBJ androidselect.o androidvfs.o"
 
     # Check for some functions not always present in the NDK.
     AC_CHECK_DECLS([android_get_device_api_level])

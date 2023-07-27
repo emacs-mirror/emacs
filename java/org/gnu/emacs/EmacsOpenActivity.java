@@ -243,18 +243,8 @@ public final class EmacsOpenActivity extends Activity
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
       {
-	content = "/content/" + uri.getEncodedAuthority ();
-
-	for (String segment : uri.getPathSegments ())
-	  content += "/" + Uri.encode (segment);
-
-	/* Append the URI query.  */
-
-	if (uri.getEncodedQuery () != null)
-	  content += "?" + uri.getEncodedQuery ();
-
+	content = EmacsService.buildContentName (uri);
 	Log.d (TAG, "checkReadableOrCopy: " + content);
-
 	return content;
       }
 

@@ -4234,7 +4234,7 @@ static char *
 slurp_file (image_fd fd, ptrdiff_t *size)
 {
 #if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
-  FILE *fp = fdopen (fd, "rb");
+  FILE *fp = emacs_fdopen (fd, "rb");
 
   char *buf = NULL;
   struct stat st;
@@ -8021,7 +8021,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	}
 
       /* Open the image file.  */
-      fp = fdopen (fd, "rb");
+      fp = emacs_fdopen (fd, "rb");
       if (!fp)
 	{
 	  image_error ("Cannot open image file `%s'", file);
@@ -8750,7 +8750,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 	  return 0;
 	}
 
-      fp = fdopen (fd, "rb");
+      fp = emacs_fdopen (fd, "rb");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file);

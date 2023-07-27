@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <string.h>
 #include <stdckdint.h>
+#include <intprops.h>
 #include <timespec.h>
 #include <libgen.h>
 
@@ -56,17 +57,9 @@ bool android_init_gui;
 
 #ifndef ANDROID_STUBIFY
 
-#if __ANDROID_API__ >= 9
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
-#else
-#include "android-asset.h"
-#endif
-
 #include <android/bitmap.h>
 #include <android/log.h>
 
-#include <linux/ashmem.h>
 #include <linux/unistd.h>
 
 #include <sys/syscall.h>
@@ -77,50 +70,6 @@ bool android_init_gui;
 
 #define ANDROID_THROW(env, class, msg)					\
   ((*(env))->ThrowNew ((env), (*(env))->FindClass ((env), class), msg))
-
-#define ANDROID_MAX_ASSET_FD 65535
-
-struct android_fd_table_entry
-{
-  /* Various flags associated with this table.  */
-  short flags;
-
-  /* The stat buffer associated with this entry.  */
-  struct stat statb;
-};
-
-enum android_fd_table_entry_flags
-  {
-    ANDROID_FD_TABLE_ENTRY_IS_VALID = 1,
-  };
-
-struct android_emacs_service
-{
-  jclass class;
-  jmethodID fill_rectangle;
-  jmethodID fill_polygon;
-  jmethodID draw_rectangle;
-  jmethodID draw_line;
-  jmethodID draw_point;
-  jmethodID clear_window;
-  jmethodID clear_area;
-  jmethodID ring_bell;
-  jmethodID query_tree;
-  jmethodID get_screen_width;
-  jmethodID get_screen_height;
-  jmethodID detect_mouse;
-  jmethodID name_keysym;
-  jmethodID browse_url;
-  jmethodID restart_emacs;
-  jmethodID update_ic;
-  jmethodID reset_ic;
-  jmethodID open_content_uri;
-  jmethodID check_content_uri;
-  jmethodID query_battery;
-  jmethodID display_toast;
-  jmethodID update_extracted_text;
-  jmethodID update_cursor_anchor_info;
-};
 
 struct android_emacs_pixmap
 {
@@ -174,12 +123,6 @@ struct android_emacs_cursor
 /* The API level of the current device.  */
 static int android_api_level;
 
-/* The asset manager being used.  */
-static AAssetManager *asset_manager;
-
-/* Whether or not Emacs has been initialized.  */
-static int emacs_initialized;
-
 /* The directory used to store site-lisp.  */
 char *android_site_load_path;
 
@@ -206,11 +149,6 @@ double android_scaled_pixel_density;
 /* The Android application data directory.  */
 static char *android_files_dir;
 
-/* Array of structures used to hold asset information corresponding to
-   a file descriptor.  This assumes Emacs does not do funny things
-   with dup.  It currently does not.  */
-static struct android_fd_table_entry android_table[ANDROID_MAX_ASSET_FD];
-
 /* The Java environment being used for the main thread.  */
 JNIEnv *android_java_env;
 
@@ -235,10 +173,10 @@ static jclass android_rect_class;
 static jmethodID android_rect_constructor;
 
 /* The EmacsService object.  */
-static jobject emacs_service;
+jobject emacs_service;
 
 /* Various methods associated with the EmacsService.  */
-static struct android_emacs_service service_class;
+struct android_emacs_service service_class;
 
 /* Various methods associated with the EmacsPixmap class.  */
 static struct android_emacs_pixmap pixmap_class;
@@ -881,224 +819,6 @@ android_run_debug_thread (void *data)
 
 
 
-/* Asset directory handling functions.  ``directory-tree'' is a file in
-   the root of the assets directory describing its contents.
-
-   See lib-src/asset-directory-tool for more details.  */
-
-/* The Android directory tree.  */
-static const char *directory_tree;
-
-/* The size of the directory tree.  */
-static size_t directory_tree_size;
-
-/* Read an unaligned (32-bit) long from the address POINTER.  */
-
-static unsigned int
-android_extract_long (char *pointer)
-{
-  unsigned int number;
-
-  memcpy (&number, pointer, sizeof number);
-  return number;
-}
-
-/* Scan to the file FILE in the asset directory tree.  Return a
-   pointer to the end of that file (immediately before any children)
-   in the directory tree, or NULL if that file does not exist.
-
-   If returning non-NULL, also return the offset to the end of the
-   last subdirectory or file in *LIMIT_RETURN.  LIMIT_RETURN may be
-   NULL.
-
-   FILE must have less than 11 levels of nesting.  If it ends with a
-   trailing slash, then NULL will be returned if it is not actually a
-   directory.  */
-
-static const char *
-android_scan_directory_tree (char *file, size_t *limit_return)
-{
-  char *token, *saveptr, *copy, *copy1, *start, *max, *limit;
-  size_t token_length, ntokens, i;
-  char *tokens[10];
-
-  USE_SAFE_ALLOCA;
-
-  /* Skip past the 5 byte header.  */
-  start = (char *) directory_tree + 5;
-
-  /* Figure out the current limit.  */
-  limit = (char *) directory_tree + directory_tree_size;
-
-  /* Now, split `file' into tokens, with the delimiter being the file
-     name separator.  Look for the file and seek past it.  */
-
-  ntokens = 0;
-  saveptr = NULL;
-  copy = copy1 = xstrdup (file);
-  memset (tokens, 0, sizeof tokens);
-
-  while ((token = strtok_r (copy, "/", &saveptr)))
-    {
-      copy = NULL;
-
-      /* Make sure ntokens is within bounds.  */
-      if (ntokens == ARRAYELTS (tokens))
-	{
-	  xfree (copy1);
-	  goto fail;
-	}
-
-      tokens[ntokens] = SAFE_ALLOCA (strlen (token) + 1);
-      memcpy (tokens[ntokens], token, strlen (token) + 1);
-      ntokens++;
-    }
-
-  /* Free the copy created for strtok_r.  */
-  xfree (copy1);
-
-  /* If there are no tokens, just return the start of the directory
-     tree.  */
-
-  if (!ntokens)
-    {
-      SAFE_FREE ();
-
-      /* Return the size of the directory tree as the limit.
-         Do not subtract the initial header bytes, as the limit
-         is an offset from the start of the file.  */
-
-      if (limit_return)
-	*limit_return = directory_tree_size;
-
-      return start;
-    }
-
-  /* Loop through tokens, indexing the directory tree each time.  */
-
-  for (i = 0; i < ntokens; ++i)
-    {
-      token = tokens[i];
-
-      /* Figure out how many bytes to compare.  */
-      token_length = strlen (token);
-
-    again:
-
-      /* If this would be past the directory, return NULL.  */
-      if (start + token_length > limit)
-	goto fail;
-
-      /* Now compare the file name.  */
-      if (!memcmp (start, token, token_length))
-	{
-	  /* They probably match.  Find the NULL byte.  It must be
-	     either one byte past start + token_length, with the last
-	     byte a trailing slash (indicating that it is a
-	     directory), or just start + token_length.  Return 4 bytes
-	     past the next NULL byte.  */
-
-	  max = memchr (start, 0, limit - start);
-
-	  if (max != start + token_length
-	      && !(max == start + token_length + 1
-		   && *(max - 1) == '/'))
-	    goto false_positive;
-
-	  /* Return it if it exists and is in range, and this is the
-	     last token.  Otherwise, set it as start and the limit as
-	     start + the offset and continue the loop.  */
-
-	  if (max && max + 5 <= limit)
-	    {
-	      if (i < ntokens - 1)
-		{
-		  start = max + 5;
-		  limit = ((char *) directory_tree
-			   + android_extract_long (max + 1));
-
-		  /* Make sure limit is still in range.  */
-		  if (limit > directory_tree + directory_tree_size
-		      || start > directory_tree + directory_tree_size)
-		    goto fail;
-
-		  continue;
-		}
-
-	      /* Now see if max is not a directory and file is.  If
-	         file is a directory, then return NULL.  */
-	      if (*(max - 1) != '/' && file[strlen (file) - 1] == '/')
-		max = NULL;
-	      else
-		{
-		  /* Figure out the limit.  */
-		  if (limit_return)
-		    *limit_return = android_extract_long (max + 1);
-
-		  /* Go to the end of this file.  */
-		  max += 5;
-		}
-
-	      SAFE_FREE ();
-	      return max;
-	    }
-
-	  /* Return NULL otherwise.  */
-	  __android_log_print (ANDROID_LOG_WARN, __func__,
-			       "could not scan to end of directory tree"
-			       ": %s", file);
-	  goto fail;
-	}
-
-    false_positive:
-
-      /* No match was found.  Set start to the next sibling and try
-	 again.  */
-
-      start = memchr (start, 0, limit - start);
-
-      if (!start || start + 5 > limit)
-	goto fail;
-
-      start = ((char *) directory_tree
-	       + android_extract_long (start + 1));
-
-      /* Make sure start is still in bounds.  */
-
-      if (start > limit)
-	goto fail;
-
-      /* Continue the loop.  */
-      goto again;
-    }
-
- fail:
-  SAFE_FREE ();
-  return NULL;
-}
-
-/* Return whether or not the directory tree entry DIR is a
-   directory.
-
-   DIR should be a value returned by
-   `android_scan_directory_tree'.  */
-
-static bool
-android_is_directory (const char *dir)
-{
-  /* If the directory is the directory tree, then it is a
-     directory.  */
-  if (dir == directory_tree + 5)
-    return true;
-
-  /* Otherwise, look 5 bytes behind.  If it is `/', then it is a
-     directory.  */
-  return (dir - 6 >= directory_tree
-	  && *(dir - 6) == '/');
-}
-
-
-
 /* Intercept USER_FULL_NAME and return something that makes sense if
    pw->pw_gecos is NULL.  */
 
@@ -1158,46 +878,106 @@ android_is_special_directory (const char *name, const char *dir)
     }
 }
 
-/* Given a real file name, return the part that describes its asset
-   path, or NULL if it is not an asset.
+#if 0
 
-   If FILENAME contains only `/assets', return `/' to indicate the
-   root of the assets hierarchy.  */
+/* URL-encode N bytes of the specified STRING into at most N bytes of
+   BUFFER; STRING is assumed to be encoded in a `utf-8-emacs'
+   compatible coding system.  Value is the number of bytes encoded
+   (excluding the trailing null byte placed at the end of the encoded
+   text) or -1 upon failure.  */
 
-static const char *
-android_get_asset_name (const char *filename)
+static ssize_t
+android_url_encode (const char *restrict string, size_t length,
+		    char *restrict buffer, size_t n)
 {
-  const char *name;
+  int len, character;
+  size_t num_encoded;
+  char *end;
+  char format[1 + 25];
 
-  name = android_is_special_directory (filename, "/assets");
+  /* For each multibyte character... */
 
-  if (!name)
-    return NULL;
+  end = string + length;
+  num_encoded = 0;
 
-  /* If NAME is empty, return /.  Otherwise, return the name relative
-     to /assets/.  */
+  while (string < end)
+    {
+      /* XXX: Android documentation claims that URIs is encoded
+	 according to the ``Unicode'' scheme, but what this means in
+	 reality is that the URI is encoded in UTF-8, and then
+	 each of its bytes are encoded.  */
+      /* Find the length of the multibyte character at STRING.  */
+      len = /* multibyte_length (string, end, true, true) */ 1;
 
-  if (*name)
-    return name;
+      /* 0 means that STRING is not a valid multibyte string.  */
+      if (!len || string + len > end)
+	goto failure;
 
-  return "/";
-}
+      /* Now fetch the character and increment string.  */
+      /* character = /\* STRING_CHAR ((unsigned char *) string) *\/; */
+      character = *(unsigned char *) string;
+      string += len;
 
-/* Return whether or not the specified FILENAME actually resolves to a
-   content resolver URI.  */
+      /* If CHARACTER is not a letter or an unreserved character,
+	 escape it.  */
 
-static bool
-android_content_name_p (const char *filename)
-{
-  /* Content URIs aren't supported before Android 4.4, so return
-     false.  */
+      if (!((character >= 'A'
+	     && character <= 'Z')
+	    || (character >= 'a'
+		&& character <= 'z')
+	    || (character >= '0'
+		&& character <= '9')
+	    || character == '_'
+	    || character == '-'
+	    || character == '!'
+	    || character == '.'
+	    || character == '~'
+	    || character == '\''
+	    || character == '('
+	    || character == ')'
+	    || character == '*'))
+	{
+	  len = sprintf (format, "%%%X", (unsigned int) character);
+	  if (len < 0)
+	    goto failure;
 
-  if (android_api_level < 19)
-    return false;
+	  /* See if there is enough space left to hold the encoded
+	     string.  */
 
-  return (android_is_special_directory (filename,
-					"/content")
-	  != NULL);
+	  if (n < len)
+	    goto failure;
+
+	  n -= len;
+	  num_encoded += len;
+
+	  /* Copy the encoded string to STRING.  */
+	  memcpy (buffer, format, n);
+	  buffer += len;
+	}
+      else
+	{
+	  /* No more space within BUFFER.  */
+	  if (!n)
+	    goto failure;
+
+	  /* Don't encode this ASCII character; just store it.  */
+	  n--, num_encoded++;
+	  *(buffer++) = character;
+	}
+    }
+
+  /* If there's no space for a trailing null byte or more bytes have
+     been encoded than representable in ssize_t, fail.  */
+
+  if (!n || num_encoded > SSIZE_MAX)
+    goto failure;
+
+  /* Store the terminating NULL byte.  */
+  *buffer = '\0';
+  return num_encoded;
+
+ failure:
+  return -1;
 }
 
 /* Return the content URI corresponding to a `/content' file name,
@@ -1209,10 +989,9 @@ static const char *
 android_get_content_name (const char *filename)
 {
   static char buffer[PATH_MAX + 1];
-  char *head, *token, *saveptr, *copy;
-  size_t n;
-
-  n = PATH_MAX;
+  char *head, *token, *next, *saveptr, *copy, *mark, *mark1;
+  ssize_t rc;
+  size_t n, length;
 
   /* Find the file name described if it starts with `/content'.  If
      just the directory is described, return content://.  */
@@ -1229,28 +1008,109 @@ android_get_content_name (const char *filename)
      URI.  */
 
   copy = xstrdup (filename);
-  token = saveptr = NULL;
+  mark = saveptr = NULL;
   head = stpcpy (buffer, "content:/");
 
   /* Split FILENAME by slashes.  */
 
-  while ((token = strtok_r (!token ? copy : NULL,
-			    "/", &saveptr)))
+  token = strtok_r (copy, "/", &saveptr);
+
+  while (token)
     {
-      head = stpncpy (head, "/", n--);
-      head = stpncpy (head, token, n);
-
-      /* Check that head has not overflown the buffer.  */
-      eassert ((head - buffer) <= PATH_MAX);
-
+      /* Compute the number of bytes remaining in buffer excluding a
+	 trailing null byte.  */
       n = PATH_MAX - (head - buffer);
+
+      /* Write / to the buffer.  Return failure if there is no space
+	 for it.  */
+
+      if (!n)
+	goto failure;
+
+      *head++ = '/';
+      n--;
+
+      /* Find the next token now.  */
+      next = strtok_r (NULL, "/", &saveptr);
+
+      /* Detect and avoid encoding an encoded URL query affixed to the
+	 end of the last component within the content file name.
+
+         Content URIs can include a query describing parameters that
+         must be provided to the content provider.  They are separated
+         from the rest of the URI by a single question mark character,
+         which should not be encoded.
+
+         However, the distinction between the separator and question
+         marks that appear inside file name components is lost when a
+         content URI is decoded into a content path.  To compensate
+         for this loss of information, Emacs assumes that the last
+         question mark is always a URI separator, and suffixes content
+         file names which contain question marks with a trailing
+         question mark.  */
+
+      if (!next)
+	{
+	  /* Find the last question mark character.  */
+
+	  mark1 = strchr (token, '?');
+
+	  while (mark1)
+	    {
+	      mark = mark1;
+	      mark1 = strchr (mark + 1, '?');
+	    }
+	}
+
+      if (mark)
+	{
+	  /* First, encode the part leading to the question mark
+	     character.  */
+
+	  rc = 0;
+	  if (mark > token)
+	    rc = android_url_encode (token, mark - token,
+				     head, n + 1);
+
+	  /* If this fails, bail out.  */
+
+	  if (rc < 0)
+	    goto failure;
+
+	  /* Copy mark to the file name.  */
+
+	  n -= rc, head += rc;
+	  length = strlen (mark);
+
+	  if (n < length)
+	    goto failure;
+
+	  strcpy (head, mark);
+
+	  /* Now break out of the loop, since this is the last
+	     component anyway.  */
+	  break;
+	}
+      else
+	/* Now encode this file name component into the buffer.  */
+	rc = android_url_encode (token, strlen (token),
+				 head, n + 1);
+
+      if (rc < 0)
+	goto failure;
+
+      head += rc;
+      token = next;
     }
 
-  /* Make sure the given buffer ends up NULL terminated.  */
-  buffer[PATH_MAX] = '\0';
+  /* buffer must have been null terminated by
+     `android_url_encode'.  */
   xfree (copy);
-
   return buffer;
+
+ failure:
+  xfree (copy);
+  return NULL;
 }
 
 /* Return whether or not the specified FILENAME is an accessible
@@ -1288,683 +1148,7 @@ android_check_content_access (const char *filename, int mode)
   return rc;
 }
 
-/* Like fstat.  However, look up the asset corresponding to the file
-   descriptor.  If it exists, return the right information.  */
-
-int
-android_fstat (int fd, struct stat *statb)
-{
-  if (fd < ANDROID_MAX_ASSET_FD
-      && (android_table[fd].flags
-	  & ANDROID_FD_TABLE_ENTRY_IS_VALID))
-    {
-      memcpy (statb, &android_table[fd].statb,
-	      sizeof *statb);
-      return 0;
-    }
-
-  return fstat (fd, statb);
-}
-
-static int android_lookup_asset_directory_fd (int,
-					      const char *restrict *,
-					      const char *restrict);
-
-/* Like fstatat.  However, if dirfd is AT_FDCWD and PATHNAME is an
-   asset, find the information for the corresponding asset, and if
-   dirfd is an offset into directory_tree as returned by
-   `android_dirfd', find the information within the corresponding
-   directory tree entry.  */
-
-int
-android_fstatat (int dirfd, const char *restrict pathname,
-		 struct stat *restrict statbuf, int flags)
-{
-  AAsset *asset_desc;
-  const char *asset;
-  const char *asset_dir;
-  int fd, rc;
-
-  /* Look up whether or not DIRFD belongs to an open struct
-     android_dir.  */
-
-  if (dirfd != AT_FDCWD)
-    dirfd
-      = android_lookup_asset_directory_fd (dirfd, &pathname,
-					   pathname);
-
-  if (dirfd == AT_FDCWD
-      && asset_manager
-      && (asset = android_get_asset_name (pathname)))
-    {
-      /* Look up whether or not PATHNAME happens to be a
-	 directory.  */
-      asset_dir = android_scan_directory_tree ((char *) asset,
-					       NULL);
-
-      if (!asset_dir)
-	{
-	  errno = ENOENT;
-	  return -1;
-	}
-
-      if (android_is_directory (asset_dir))
-	{
-	  memset (statbuf, 0, sizeof *statbuf);
-
-	  /* Fill in the stat buffer.  */
-	  statbuf->st_mode = S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH;
-	  return 0;
-	}
-
-      /* AASSET_MODE_STREAMING is fastest here.  */
-      asset_desc = AAssetManager_open (asset_manager, asset,
-				       AASSET_MODE_STREAMING);
-
-      if (!asset_desc)
-	return ENOENT;
-
-      memset (statbuf, 0, sizeof *statbuf);
-
-      /* Fill in the stat buffer.  */
-      statbuf->st_mode = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;
-      statbuf->st_size = AAsset_getLength (asset_desc);
-
-      /* Close the asset.  */
-      AAsset_close (asset_desc);
-      return 0;
-    }
-
-  if (dirfd == AT_FDCWD
-      && android_init_gui
-      && android_content_name_p (pathname))
-    {
-      /* This is actually a content:// URI.  Open that file and call
-	 stat on it.  */
-
-      fd = android_open (pathname, O_RDONLY, 0);
-
-      if (fd < 0)
-	return -1;
-
-      rc = fstat (fd, statbuf);
-      android_close (fd);
-      return rc;
-    }
-
-  return fstatat (dirfd, pathname, statbuf, flags);
-}
-
-/* Return if NAME, a file name relative to the /assets directory, is
-   accessible, as long as !(amode & W_OK).  */
-
-static bool
-android_file_access_p (const char *name, int amode)
-{
-  if (!asset_manager)
-    return false;
-
-  if (!(amode & W_OK))
-    {
-      if (!strcmp (name, "") || !strcmp (name, "/"))
-	/* /assets always exists.  */
-	return true;
-
-      /* Check if the file exists by looking in the ``directory tree''
-	 asset generated during the build process.  This is used
-	 instead of the AAsset functions, because the latter are
-	 buggy and treat directories inconsistently.  */
-      return android_scan_directory_tree ((char *) name, NULL) != NULL;
-    }
-
-  return false;
-}
-
-/* Do the same as android_hack_asset_fd, but use an unlinked temporary
-   file to cater to old Android kernels where ashmem files are not
-   readable.  */
-
-static int
-android_hack_asset_fd_fallback (AAsset *asset)
-{
-  int fd;
-  char filename[PATH_MAX];
-  size_t size;
-  void *mem;
-
-  /* Assets must be small enough to fit in size_t, if off_t is
-     larger.  */
-  size = AAsset_getLength (asset);
-
-  /* Get an unlinked file descriptor from a file in the cache
-     directory, which is guaranteed to only be written to by Emacs.
-     Creating an ashmem file descriptor and reading from it doesn't
-     work on these old Android versions.  */
-
-  snprintf (filename, PATH_MAX, "%s/temp~unlinked.%d",
-	    android_cache_dir, getpid ());
-  fd = open (filename, O_CREAT | O_RDWR | O_TRUNC,
-	     S_IRUSR | S_IWUSR);
-
-  if (fd < 0)
-    return -1;
-
-  if (unlink (filename))
-    goto fail;
-
-  if (ftruncate (fd, size))
-    goto fail;
-
-  mem = mmap (NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
-  if (mem == MAP_FAILED)
-    {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "mmap: %s", strerror (errno));
-      goto fail;
-    }
-
-  if (AAsset_read (asset, mem, size) != size)
-    {
-      /* Too little was read.  Close the file descriptor and
-	 report an error.  */
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "AAsset_read: %s", strerror (errno));
-      goto fail;
-    }
-
-  munmap (mem, size);
-  return fd;
-
- fail:
-  close (fd);
-  return -1;
-}
-
-/* Pointer to the `ASharedMemory_create' function which is loaded
-   dynamically.  */
-static int (*asharedmemory_create) (const char *, size_t);
-
-/* Return whether or not shared memory file descriptors can also be
-   read from, and are thus suitable for creating asset files.
-
-   This does not work on some ancient Android systems running old
-   versions of the kernel.  */
-
-static bool
-android_detect_ashmem (void)
-{
-  int fd, rc;
-  void *mem;
-  char test_buffer[10];
-
-  memcpy (test_buffer, "abcdefghi", 10);
-
-  /* Create the file descriptor to be used for the test.  */
-
-  /* Android 28 and earlier let Emacs access /dev/ashmem directly, so
-     prefer that over using ASharedMemory.  */
-
-  if (android_api_level <= 28)
-    {
-      fd = open ("/dev/ashmem", O_RDWR);
-
-      if (fd < 0)
-	return false;
-
-      /* An empty name means the memory area will exist until the file
-	 descriptor is closed, because no other process can
-	 attach.  */
-      rc = ioctl (fd, ASHMEM_SET_NAME, "");
-
-      if (rc < 0)
-	{
-	  close (fd);
-	  return false;
-	}
-
-      rc = ioctl (fd, ASHMEM_SET_SIZE, sizeof test_buffer);
-
-      if (rc < 0)
-	{
-	  close (fd);
-	  return false;
-	}
-    }
-  else
-    {
-      /* On the other hand, SELinux restrictions on Android 29 and
-	 later require that Emacs use a system service to obtain
-	 shared memory.  Load this dynamically, as this service is not
-	 available on all versions of the NDK.  */
-
-      if (!asharedmemory_create)
-	{
-	  *(void **) (&asharedmemory_create)
-	    = dlsym (RTLD_DEFAULT, "ASharedMemory_create");
-
-	  if (!asharedmemory_create)
-	    {
-	      __android_log_print (ANDROID_LOG_FATAL, __func__,
-				   "dlsym: %s\n",
-				   strerror (errno));
-	      emacs_abort ();
-	    }
-	}
-
-      fd = asharedmemory_create ("", sizeof test_buffer);
-
-      if (fd < 0)
-	return false;
-    }
-
-  /* Now map the resource and write the test contents.  */
-
-  mem = mmap (NULL, sizeof test_buffer, PROT_WRITE,
-	      MAP_SHARED, fd, 0);
-  if (mem == MAP_FAILED)
-    {
-      close (fd);
-      return false;
-    }
-
-  /* Copy over the test contents.  */
-  memcpy (mem, test_buffer, sizeof test_buffer);
-
-  /* Return anyway even if munmap fails.  */
-  munmap (mem, sizeof test_buffer);
-
-  /* Try to read the content back into test_buffer.  If this does not
-     compare equal to the original string, or the read fails, then
-     ashmem descriptors are not readable on this system.  */
-
-  if ((read (fd, test_buffer, sizeof test_buffer)
-       != sizeof test_buffer)
-      || memcmp (test_buffer, "abcdefghi", sizeof test_buffer))
-    {
-      __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "/dev/ashmem does not produce real"
-			   " temporary files on this system, so"
-			   " Emacs will fall back to creating"
-			   " unlinked temporary files.");
-      close (fd);
-      return false;
-    }
-
-  close (fd);
-  return true;
-}
-
-/* Get a file descriptor backed by a temporary in-memory file for the
-   given asset.  */
-
-static int
-android_hack_asset_fd (AAsset *asset)
-{
-  static bool ashmem_readable_p;
-  static bool ashmem_initialized;
-  int fd, rc;
-  unsigned char *mem;
-  size_t size;
-
-  /* The first time this function is called, try to determine whether
-     or not ashmem file descriptors can be read from.  */
-
-  if (!ashmem_initialized)
-    ashmem_readable_p
-      = android_detect_ashmem ();
-  ashmem_initialized = true;
-
-  /* If it isn't, fall back.  */
-
-  if (!ashmem_readable_p)
-    return android_hack_asset_fd_fallback (asset);
-
-  /* Assets must be small enough to fit in size_t, if off_t is
-     larger.  */
-  size = AAsset_getLength (asset);
-
-  /* Android 28 and earlier let Emacs access /dev/ashmem directly, so
-     prefer that over using ASharedMemory.  */
-
-  if (android_api_level <= 28)
-    {
-      fd = open ("/dev/ashmem", O_RDWR);
-
-      if (fd < 0)
-	return -1;
-
-      /* An empty name means the memory area will exist until the file
-	 descriptor is closed, because no other process can
-	 attach.  */
-      rc = ioctl (fd, ASHMEM_SET_NAME, "");
-
-      if (rc < 0)
-	{
-	  __android_log_print (ANDROID_LOG_ERROR, __func__,
-			       "ioctl ASHMEM_SET_NAME: %s",
-			       strerror (errno));
-	  close (fd);
-	  return -1;
-	}
-
-      rc = ioctl (fd, ASHMEM_SET_SIZE, size);
-
-      if (rc < 0)
-	{
-	  __android_log_print (ANDROID_LOG_ERROR, __func__,
-			       "ioctl ASHMEM_SET_SIZE: %s",
-			       strerror (errno));
-	  close (fd);
-	  return -1;
-	}
-
-      if (!size)
-	return fd;
-
-      /* Now map the resource.  */
-      mem = mmap (NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
-      if (mem == MAP_FAILED)
-	{
-	  __android_log_print (ANDROID_LOG_ERROR, __func__,
-			       "mmap: %s", strerror (errno));
-	  close (fd);
-	  return -1;
-	}
-
-      if (AAsset_read (asset, mem, size) != size)
-	{
-	  /* Too little was read.  Close the file descriptor and
-	     report an error.  */
-	  __android_log_print (ANDROID_LOG_ERROR, __func__,
-			       "AAsset_read: %s", strerror (errno));
-	  close (fd);
-	  return -1;
-	}
-
-      /* Return anyway even if munmap fails.  */
-      munmap (mem, size);
-      return fd;
-    }
-
-  /* On the other hand, SELinux restrictions on Android 29 and later
-     require that Emacs use a system service to obtain shared memory.
-     Load this dynamically, as this service is not available on all
-     versions of the NDK.  */
-
-  if (!asharedmemory_create)
-    {
-      *(void **) (&asharedmemory_create)
-	= dlsym (RTLD_DEFAULT, "ASharedMemory_create");
-
-      if (!asharedmemory_create)
-	{
-	  __android_log_print (ANDROID_LOG_FATAL, __func__,
-			       "dlsym: %s\n",
-			       strerror (errno));
-	  emacs_abort ();
-	}
-    }
-
-  fd = asharedmemory_create ("", size);
-
-  if (fd < 0)
-    {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "ASharedMemory_create: %s",
-			   strerror (errno));
-      return -1;
-    }
-
-  /* Now map the resource.  */
-  mem = mmap (NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
-  if (mem == MAP_FAILED)
-    {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "mmap: %s", strerror (errno));
-      close (fd);
-      return -1;
-    }
-
-  if (AAsset_read (asset, mem, size) != size)
-    {
-      /* Too little was read.  Close the file descriptor and
-	 report an error.  */
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "AAsset_read: %s", strerror (errno));
-      close (fd);
-      return -1;
-    }
-
-  /* Return anyway even if munmap fails.  */
-  munmap (mem, size);
-  return fd;
-}
-
-/* Make FD close-on-exec.  If any system call fails, do not abort, but
-   log a warning to the system log.  */
-
-static void
-android_close_on_exec (int fd)
-{
-  int flags, rc;
-
-  flags = fcntl (fd, F_GETFD);
-
-  if (flags < 0)
-    {
-      __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "fcntl: %s", strerror (errno));
-      return;
-    }
-
-  rc = fcntl (fd, F_SETFD, flags | O_CLOEXEC);
-
-  if (rc < 0)
-    {
-      __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "fcntl: %s", strerror (errno));
-      return;
-    }
-}
-
-/* `open' and such are modified even though they exist on Android,
-   because Emacs treats "/assets/" as a special directory that must
-   contain all assets in the application package.  */
-
-int
-android_open (const char *filename, int oflag, mode_t mode)
-{
-  const char *name;
-  AAsset *asset;
-  int fd;
-  size_t length;
-  jobject string;
-
-  if (asset_manager && (name = android_get_asset_name (filename)))
-    {
-      /* If Emacs is trying to write to the file, return NULL.  */
-
-      if (oflag & O_WRONLY || oflag & O_RDWR)
-	{
-	  errno = EROFS;
-	  return -1;
-	}
-
-      if (oflag & O_DIRECTORY)
-	{
-	  errno = ENOTSUP;
-	  return -1;
-	}
-
-      /* If given AASSET_MODE_BUFFER (which is what Emacs probably
-	 does, given that a file descriptor is not always available),
-	 the framework fails to uncompress the data before it returns
-	 a file descriptor.  */
-      asset = AAssetManager_open (asset_manager, name,
-				  AASSET_MODE_STREAMING);
-
-      if (!asset)
-	{
-	  errno = ENOENT;
-	  return -1;
-	}
-
-      /* Create a shared memory file descriptor containing the asset
-	 contents.
-
-         The documentation misleads people into thinking that
-         AAsset_openFileDescriptor does precisely this.  However, it
-         instead returns an offset into any uncompressed assets in the
-         ZIP archive.  This cannot be found in its documentation.  */
-
-      fd = android_hack_asset_fd (asset);
-
-      if (fd == -1)
-	{
-	  AAsset_close (asset);
-	  errno = ENXIO;
-	  return -1;
-	}
-
-      /* If O_CLOEXEC is specified, make the file descriptor close on
-	 exec too.  */
-      if (oflag & O_CLOEXEC)
-	android_close_on_exec (fd);
-
-      if (fd >= ANDROID_MAX_ASSET_FD || fd < 0)
-	{
-	  /* Too bad.  Pretend this is an out of memory error.  */
-	  errno = ENOMEM;
-
-	  if (fd >= 0)
-	    close (fd);
-
-	  fd = -1;
-	}
-      else
-	{
-	  assert (!(android_table[fd].flags
-		    & ANDROID_FD_TABLE_ENTRY_IS_VALID));
-	  android_table[fd].flags = ANDROID_FD_TABLE_ENTRY_IS_VALID;
-	  memset (&android_table[fd].statb, 0,
-		  sizeof android_table[fd].statb);
-
-	  /* Fill in some information that will be reported to
-	     callers of android_fstat, among others.  */
-	  android_table[fd].statb.st_mode
-	    = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;
-
-	  /* Owned by root.  */
-	  android_table[fd].statb.st_uid = 0;
-	  android_table[fd].statb.st_gid = 0;
-
-	  /* Size of the file.  */
-	  android_table[fd].statb.st_size
-	    = AAsset_getLength (asset);
-	}
-
-      AAsset_close (asset);
-      return fd;
-    }
-
-  if (android_init_gui && android_content_name_p (filename))
-    {
-      /* This is a content:// URI.  Ask the system for a descriptor to
-	 that file.  */
-
-      name = android_get_content_name (filename);
-      length = strlen (name);
-
-      /* Check if the mode is valid.  */
-
-      if (oflag & O_DIRECTORY)
-	{
-	  errno = ENOTSUP;
-	  return -1;
-	}
-
-      /* Allocate a buffer to hold the file name.  */
-      string = (*android_java_env)->NewByteArray (android_java_env,
-						  length);
-      if (!string)
-	{
-	  (*android_java_env)->ExceptionClear (android_java_env);
-	  errno = ENOMEM;
-	  return -1;
-	}
-      (*android_java_env)->SetByteArrayRegion (android_java_env,
-					       string, 0, length,
-					       (jbyte *) name);
-
-      /* Try to open the file descriptor.  */
-
-      fd
-	= (*android_java_env)->CallIntMethod (android_java_env,
-					      emacs_service,
-					      service_class.open_content_uri,
-					      string,
-					      (jboolean) ((mode & O_WRONLY
-							   || mode & O_RDWR)
-							  != 0),
-					      (jboolean) !(mode & O_WRONLY),
-					      (jboolean) ((mode & O_TRUNC)
-							  != 0));
-
-      if ((*android_java_env)->ExceptionCheck (android_java_env))
-	{
-	  (*android_java_env)->ExceptionClear (android_java_env);
-	  errno = ENOMEM;
-	  ANDROID_DELETE_LOCAL_REF (string);
-	  return -1;
-	}
-
-      /* If fd is -1, just assume that the file does not exist,
-	 and return -1 with errno set to ENOENT.  */
-
-      if (fd == -1)
-	{
-	  errno = ENOENT;
-	  goto skip;
-	}
-
-      if (mode & O_CLOEXEC)
-	android_close_on_exec (fd);
-
-    skip:
-      ANDROID_DELETE_LOCAL_REF (string);
-      return fd;
-    }
-
-  return open (filename, oflag, mode);
-}
-
-/* Like close.  However, remove the file descriptor from the asset
-   table as well.  */
-
-int
-android_close (int fd)
-{
-  if (fd < ANDROID_MAX_ASSET_FD)
-    android_table[fd].flags = 0;
-
-  return close (fd);
-}
-
-/* Like fclose.  However, remove any information associated with
-   FILE's file descriptor from the asset table as well.  */
-
-int
-android_fclose (FILE *stream)
-{
-  int fd;
-
-  fd = fileno (stream);
-
-  if (fd != -1 && fd < ANDROID_MAX_ASSET_FD)
-    android_table[fd].flags = 0;
-
-  return fclose (stream);
-}
+#endif /* 0 */
 
 /* Return the current user's ``home'' directory, which is actually the
    app data directory on Android.  */
@@ -2015,7 +1199,6 @@ android_create_lib_link (void)
   char *filename;
   char lib_directory[PATH_MAX];
   int fd;
-  struct stat statb;
 
   /* Find the directory containing the files directory.  */
   filename = dirname (android_files_dir);
@@ -2105,16 +1288,8 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   int pipefd[2];
   pthread_t thread;
   const char *java_string;
-  AAsset *asset;
 
-  /* This may be called from multiple threads.  setEmacsParams should
-     only ever be called once.  */
-  if (__atomic_fetch_add (&emacs_initialized, -1, __ATOMIC_SEQ_CST))
-    {
-      ANDROID_THROW (env, "java/lang/IllegalArgumentException",
-		     "Emacs was already initialized!");
-      return;
-    }
+  /* This function should only be called from the main thread.  */
 
   android_pixel_density_x = pixel_density_x;
   android_pixel_density_y = pixel_density_y;
@@ -2123,40 +1298,6 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   __android_log_print (ANDROID_LOG_INFO, __func__,
 		       "Initializing "PACKAGE_STRING"...\nPlease report bugs to "
 		       PACKAGE_BUGREPORT".  Thanks.\n");
-
-  /* Set the asset manager.  */
-  asset_manager = AAssetManager_fromJava (env, local_asset_manager);
-
-  /* Initialize the directory tree.  */
-  asset = AAssetManager_open (asset_manager, "directory-tree",
-			      AASSET_MODE_BUFFER);
-
-  if (!asset)
-    {
-      __android_log_print (ANDROID_LOG_FATAL, __func__,
-			   "Failed to open directory tree");
-      emacs_abort ();
-    }
-
-  directory_tree = AAsset_getBuffer (asset);
-
-  if (!directory_tree)
-    emacs_abort ();
-
-  /* Now figure out how big the directory tree is, and compare the
-     first few bytes.  */
-  directory_tree_size = AAsset_getLength (asset);
-  if (directory_tree_size < 5
-      || memcmp (directory_tree, "EMACS", 5))
-    {
-      __android_log_print (ANDROID_LOG_FATAL, __func__,
-			   "Directory tree has bad magic");
-      emacs_abort ();
-    }
-
-  /* Hold a VM reference to the asset manager to prevent the native
-     object from being deleted.  */
-  (*env)->NewGlobalRef (env, local_asset_manager);
 
   if (emacs_service_object)
     {
@@ -2304,7 +1445,10 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   /* Set up events.  */
   android_init_events ();
 
-  /* OK, setup is now complete.  The caller may start the Emacs thread
+  /* Set up the Android virtual filesystem layer.  */
+  android_vfs_init (env, local_asset_manager);
+
+  /* OK, setup is now complete.  The caller may call initEmacs
      now.  */
 }
 
@@ -2405,6 +1549,33 @@ android_init_emacs_service (void)
 	       "Landroid/view/inputmethod/ExtractedText;I)V");
   FIND_METHOD (update_cursor_anchor_info, "updateCursorAnchorInfo",
 	       "(Lorg/gnu/emacs/EmacsWindow;FFFF)V");
+  FIND_METHOD (get_document_authorities, "getDocumentAuthorities",
+	       "()[Ljava/lang/String;");
+  FIND_METHOD (request_directory_access, "requestDirectoryAccess",
+	       "()I");
+  FIND_METHOD (get_document_trees, "getDocumentTrees",
+	       "([B)[Ljava/lang/String;");
+  FIND_METHOD (document_id_from_name, "documentIdFromName",
+	       "(Ljava/lang/String;[B[Ljava/lang/String;)I");
+  FIND_METHOD (get_tree_uri, "getTreeUri",
+	       "(Ljava/lang/String;Ljava/lang/String;)"
+	       "Ljava/lang/String;");
+  FIND_METHOD (stat_document, "statDocument",
+	       "(Ljava/lang/String;Ljava/lang/String;)[J");
+  FIND_METHOD (access_document, "accessDocument",
+	       "(Ljava/lang/String;Ljava/lang/String;Z)I");
+  FIND_METHOD (open_document_directory, "openDocumentDirectory",
+	       "(Ljava/lang/String;Ljava/lang/String;)"
+	       "Landroid/database/Cursor;");
+  FIND_METHOD (read_directory_entry, "readDirectoryEntry",
+	       "(Landroid/database/Cursor;)Lorg/gnu/emacs/"
+	       "EmacsDirectoryEntry;");
+  FIND_METHOD (open_document, "openDocument",
+	       "(Ljava/lang/String;Ljava/lang/String;ZZ)"
+	       "Landroid/os/ParcelFileDescriptor;");
+  FIND_METHOD (create_document, "createDocument",
+	       "(Ljava/lang/String;Ljava/lang/String;"
+	       "Ljava/lang/String;)Ljava/lang/String;");
 #undef FIND_METHOD
 }
 
@@ -6255,329 +5426,6 @@ android_toggle_on_screen_keyboard (android_window window, bool show)
 
 
 
-/* Like faccessat, except it also understands DIRFD opened using
-   android_dirfd.  */
-
-int
-android_faccessat (int dirfd, const char *pathname, int mode, int flags)
-{
-  const char *asset;
-
-  if (dirfd != AT_FDCWD)
-    dirfd
-      = android_lookup_asset_directory_fd (dirfd, &pathname,
-					   pathname);
-
-  /* Check if pathname is actually an asset.  If that is the case,
-     simply fall back to android_file_access_p.  */
-
-  if (dirfd == AT_FDCWD
-      && asset_manager
-      && (asset = android_get_asset_name (pathname)))
-    {
-      if (android_file_access_p (asset, mode))
-	return 0;
-
-      /* Set errno to an appropriate value.  */
-      errno = ENOENT;
-      return 1;
-    }
-
-  /* Check if pathname is actually a content resolver URI.  */
-
-  if (dirfd == AT_FDCWD
-      && android_init_gui
-      && android_content_name_p (pathname))
-    {
-      if (android_check_content_access (pathname, mode))
-	return 0;
-
-      /* Set errno to an appropriate value.  */
-      errno = ENOENT;
-      return 1;
-    }
-
-#if __ANDROID_API__ >= 16
-  /* When calling `faccessat', make sure to clear the flag AT_EACCESS.
-
-     Android's faccessat simply fails if FLAGS contains AT_EACCESS, so
-     replace it with zero here.  This isn't caught at configuration-time
-     as Emacs is being cross compiled.
-
-     This takes place only when building for Android 16 and later,
-     because earlier versions use a Gnulib replacement that lacks these
-     issues.  */
-
-  return faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
-#else /* __ANDROID_API__ < 16 */
-  return faccessat (dirfd, pathname, mode, flags);
-#endif /* __ANDROID_API__ >= 16 */
-}
-
-
-
-/* Directory listing emulation.  */
-
-struct android_dir
-{
-  /* The real DIR *, if it exists.  */
-  DIR *dir;
-
-  /* Otherwise, the pointer to the directory in directory_tree.  */
-  char *asset_dir;
-
-  /* And the end of the files in asset_dir.  */
-  char *asset_limit;
-
-  /* The next struct android_dir.  */
-  struct android_dir *next;
-
-  /* Path to the directory relative to /.  */
-  char *asset_file;
-
-  /* File descriptor used when asset_dir is set.  */
-  int fd;
-};
-
-/* List of all struct android_dir's corresponding to an asset
-   directory that are currently open.  */
-static struct android_dir *android_dirs;
-
-/* Like opendir.  However, return an asset directory if NAME points to
-   an asset.  */
-
-struct android_dir *
-android_opendir (const char *name)
-{
-  struct android_dir *dir;
-  char *asset_dir;
-  const char *asset_name;
-  size_t limit, length;
-
-  asset_name = android_get_asset_name (name);
-
-  /* If the asset manager exists and NAME is an asset, return an asset
-     directory.  */
-  if (asset_manager && asset_name)
-    {
-      asset_dir
-	= (char *) android_scan_directory_tree ((char *) asset_name,
-						&limit);
-
-      if (!asset_dir)
-	{
-	  errno = ENOENT;
-	  return NULL;
-	}
-
-      length = strlen (name);
-
-      dir = xmalloc (sizeof *dir);
-      dir->dir = NULL;
-      dir->asset_dir = asset_dir;
-      dir->asset_limit = (char *) directory_tree + limit;
-      dir->fd = -1;
-      dir->asset_file = xzalloc (length + 2);
-
-      /* Make sure dir->asset_file is terminated with /.  */
-      strcpy (dir->asset_file, name);
-      if (dir->asset_file[length - 1] != '/')
-	dir->asset_file[length] = '/';
-
-      /* Make sure dir->asset_limit is within bounds.  It is a limit,
-	 and as such can be exactly one byte past directory_tree.  */
-      if (dir->asset_limit > directory_tree + directory_tree_size)
-	{
-	  xfree (dir);
-	  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
-			       "Invalid dir tree, limit %zu, size %zu\n",
-			       limit, directory_tree_size);
-	  dir = NULL;
-	  errno = EACCES;
-	}
-
-      dir->next = android_dirs;
-      android_dirs = dir;
-
-      return dir;
-    }
-
-  /* Otherwise, open the directory normally.  */
-  dir = xmalloc (sizeof *dir);
-  dir->asset_dir = NULL;
-  dir->dir = opendir (name);
-
-  if (!dir->dir)
-    {
-      xfree (dir);
-      return NULL;
-    }
-
-  return dir;
-}
-
-/* Like dirfd.  However, value is not a real directory file descriptor
-   if DIR is an asset directory.  */
-
-int
-android_dirfd (struct android_dir *dirp)
-{
-  int fd;
-
-  if (dirp->dir)
-    return dirfd (dirp->dir);
-  else if (dirp->fd != -1)
-    return dirp->fd;
-
-  fd = open ("/dev/null", O_RDONLY | O_CLOEXEC);
-
-  /* Record this file descriptor in dirp.  */
-  dirp->fd = fd;
-  return fd;
-}
-
-/* Like readdir, except it understands asset directories.  */
-
-struct dirent *
-android_readdir (struct android_dir *dir)
-{
-  static struct dirent dirent;
-  const char *last;
-
-  if (dir->asset_dir)
-    {
-      /* There are no more files to read.  */
-      if (dir->asset_dir >= dir->asset_limit)
-	return NULL;
-
-      /* Otherwise, scan forward looking for the next NULL byte.  */
-      last = memchr (dir->asset_dir, 0,
-		     dir->asset_limit - dir->asset_dir);
-
-      /* No more NULL bytes remain.  */
-      if (!last)
-	return NULL;
-
-      /* Forward last past the NULL byte.  */
-      last++;
-
-      /* Make sure it is still within the directory tree.  */
-      if (last >= directory_tree + directory_tree_size)
-	return NULL;
-
-      /* Now, fill in the dirent with the name.  */
-      memset (&dirent, 0, sizeof dirent);
-      dirent.d_ino = 0;
-      dirent.d_off = 0;
-      dirent.d_reclen = sizeof dirent;
-
-      /* If this is not a directory, return DT_UNKNOWN.  Otherwise,
-	 return DT_DIR.  */
-
-      if (android_is_directory (dir->asset_dir))
-	dirent.d_type = DT_DIR;
-      else
-	dirent.d_type = DT_UNKNOWN;
-
-      /* Note that dir->asset_dir is actually a NULL terminated
-	 string.  */
-      memcpy (dirent.d_name, dir->asset_dir,
-	      MIN (sizeof dirent.d_name,
-		   last - dir->asset_dir));
-      dirent.d_name[sizeof dirent.d_name - 1] = '\0';
-
-      /* Strip off the trailing slash, if any.  */
-      if (dirent.d_name[MIN (sizeof dirent.d_name,
-			     last - dir->asset_dir)
-			- 2] == '/')
-	dirent.d_name[MIN (sizeof dirent.d_name,
-			   last - dir->asset_dir)
-		      - 2] = '\0';
-
-      /* Finally, forward dir->asset_dir to the file past last.  */
-      dir->asset_dir = ((char *) directory_tree
-			+ android_extract_long ((char *) last));
-
-      return &dirent;
-    }
-
-  return readdir (dir->dir);
-}
-
-/* Like closedir, but it also closes asset manager directories.  */
-
-void
-android_closedir (struct android_dir *dir)
-{
-  struct android_dir **next, *tem;
-
-  if (dir->dir)
-    closedir (dir->dir);
-  else
-    {
-      if (dir->fd != -1)
-	close (dir->fd);
-
-      /* Unlink this directory from the list of all asset manager
-	 directories.  */
-
-      for (next = &android_dirs; (tem = *next);)
-	{
-	  if (tem == dir)
-	    *next = dir->next;
-	  else
-	    next = &(*next)->next;
-	}
-
-      /* Free the asset file name.  */
-      xfree (dir->asset_file);
-    }
-
-  /* There is no need to close anything else, as the directory tree
-     lies in statically allocated memory.  */
-
-  xfree (dir);
-}
-
-/* Subroutine used by android_fstatat and android_faccessat.  If DIRFD
-   belongs to an open asset directory and FILE is a relative file
-   name, then return AT_FDCWD and the absolute file name of the
-   directory prepended to FILE in *PATHNAME.  Else, return DIRFD.  */
-
-int
-android_lookup_asset_directory_fd (int dirfd,
-				   const char *restrict *pathname,
-				   const char *restrict file)
-{
-  struct android_dir *dir;
-  static char *name;
-
-  if (file[0] == '/')
-    return dirfd;
-
-  for (dir = android_dirs; dir; dir = dir->next)
-    {
-      if (dir->fd == dirfd && dirfd != -1)
-	{
-	  if (name)
-	    xfree (name);
-
-	  /* dir->asset_file is always separator terminated.  */
-	  name = xzalloc (strlen (dir->asset_file)
-			  + strlen (file) + 1);
-	  strcpy (name, dir->asset_file);
-	  strcpy (name + strlen (dir->asset_file),
-		  file);
-	  *pathname = name;
-	  return AT_FDCWD;
-	}
-    }
-
-  return dirfd;
-}
-
-
-
 /* emacs_abort implementation for Android.  This logs a stack
    trace.  */
 
@@ -6784,6 +5632,28 @@ android_exception_check_2 (jobject object, jobject object1)
   (*android_java_env)->ExceptionClear (android_java_env);
   ANDROID_DELETE_LOCAL_REF (object);
   ANDROID_DELETE_LOCAL_REF (object1);
+  memory_full (0);
+}
+
+/* Like android_exception_check_2, except it takes more than two local
+   reference arguments.  */
+
+void
+android_exception_check_3 (jobject object, jobject object1,
+			   jobject object2)
+{
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (object);
+  ANDROID_DELETE_LOCAL_REF (object1);
+  ANDROID_DELETE_LOCAL_REF (object2);
   memory_full (0);
 }
 
@@ -7160,7 +6030,7 @@ android_restart_emacs (void)
    turn which APIs Emacs can safely use.  */
 
 int
-android_get_current_api_level (void)
+(android_get_current_api_level) (void)
 {
   return android_api_level;
 }
@@ -7206,30 +6076,25 @@ android_query_battery (struct android_battery_state *status)
   return 0;
 }
 
-/* Display a small momentary notification on screen containing
-   TEXT, which must be in the modified UTF encoding used by the
-   JVM.  */
+/* Display a file panel and grant Emacs access to the SAF directory
+   within it.  Value is 1 upon failure and 0 upon success (which only
+   indicates that the panel has been displayed successfully; the panel
+   may still be dismissed without a file being selected.)  */
 
-void
-android_display_toast (const char *text)
+int
+android_request_directory_access (void)
 {
-  jstring string;
+  jint rc;
+  jmethodID method;
 
-  /* Make the string.  */
-  string = (*android_java_env)->NewStringUTF (android_java_env,
-					      text);
+  method = service_class.request_directory_access;
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method);
   android_exception_check ();
 
-  /* Display the toast.  */
-  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
-						 emacs_service,
-						 service_class.class,
-						 service_class.display_toast,
-						 string);
-  android_exception_check_1 (string);
-
-  /* Delete the local reference to the string.  */
-  ANDROID_DELETE_LOCAL_REF (string);
+  return rc;
 }
 
 
@@ -7709,156 +6574,6 @@ android_set_fullscreen (android_window window, bool fullscreen)
 
 
 
-/* External asset management interface.  By using functions here
-   to read and write from files, Emacs can avoid opening a
-   shared memory file descriptor for each ``asset'' file.  */
-
-/* Like android_open.  However, return a structure that can
-   either directly hold an AAsset or a file descriptor.
-
-   Value is the structure upon success.  Upon failure, value
-   consists of an uninitialized file descriptor, but its asset
-   field is set to -1, and errno is set accordingly.  */
-
-struct android_fd_or_asset
-android_open_asset (const char *filename, int oflag, mode_t mode)
-{
-  const char *name;
-  struct android_fd_or_asset fd;
-  AAsset *asset;
-
-  /* Initialize FD by setting its asset to an invalid
-     pointer.  */
-  fd.asset = (void *) -1;
-
-  /* See if this is an asset.  */
-
-  if (asset_manager && (name = android_get_asset_name (filename)))
-    {
-      /* Return failure for unsupported flags.  */
-
-      if (oflag & O_WRONLY || oflag & O_RDWR)
-	{
-	  errno = EROFS;
-	  return fd;
-	}
-
-      if (oflag & O_DIRECTORY)
-	{
-	  errno = ENOTSUP;
-	  return fd;
-	}
-
-      /* Now try to open the asset.  */
-      asset = AAssetManager_open (asset_manager, name,
-				  AASSET_MODE_STREAMING);
-
-      if (!asset)
-	{
-	  errno = ENOENT;
-	  return fd;
-	}
-
-      /* Return the asset.  */
-      fd.asset = asset;
-      return fd;
-    }
-
-  /* If the file is not an asset, fall back to android_open and
-     get a regular file descriptor.  */
-
-  fd.fd = android_open (filename, oflag, mode);
-  if (fd.fd < 0)
-    return fd;
-
-  /* Set fd.asset to NULL, signifying that it is a file
-     descriptor.  */
-  fd.asset = NULL;
-  return fd;
-}
-
-/* Like android_close.  However, it takes a ``file descriptor''
-   opened using android_open_asset.  */
-
-int
-android_close_asset (struct android_fd_or_asset asset)
-{
-  if (!asset.asset)
-    return android_close (asset.fd);
-
-  AAsset_close (asset.asset);
-  return 0;
-}
-
-/* Like `emacs_read_quit'.  However, it handles file descriptors
-   opened using `android_open_asset' as well.  */
-
-ssize_t
-android_asset_read_quit (struct android_fd_or_asset asset,
-			 void *buffer, size_t size)
-{
-  if (!asset.asset)
-    return emacs_read_quit (asset.fd, buffer, size);
-
-  /* It doesn't seem possible to quit from inside AAsset_read,
-     sadly.  */
-  return AAsset_read (asset.asset, buffer, size);
-}
-
-/* Like `read'.  However, it handles file descriptors opened
-   using `android_open_asset' as well.  */
-
-ssize_t
-android_asset_read (struct android_fd_or_asset asset,
-		    void *buffer, size_t size)
-{
-  if (!asset.asset)
-    return read (asset.fd, buffer, size);
-
-  /* It doesn't seem possible to quit from inside AAsset_read,
-     sadly.  */
-  return AAsset_read (asset.asset, buffer, size);
-}
-
-/* Like `lseek', but it handles ``file descriptors'' opened with
-   android_open_asset.  */
-
-off_t
-android_asset_lseek (struct android_fd_or_asset asset, off_t off,
-		     int whence)
-{
-  if (!asset.asset)
-    return lseek (asset.fd, off, whence);
-
-  return AAsset_seek (asset.asset, off, whence);
-}
-
-/* Like `fstat'.  */
-
-int
-android_asset_fstat (struct android_fd_or_asset asset,
-		     struct stat *statb)
-{
-  if (!asset.asset)
-    return fstat (asset.fd, statb);
-
-  /* Clear statb.  */
-  memset (statb, 0, sizeof *statb);
-
-  /* Set the mode.  */
-  statb->st_mode = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;
-
-  /* Owned by root.  */
-  statb->st_uid = 0;
-  statb->st_gid = 0;
-
-  /* Size of the file.  */
-  statb->st_size = AAsset_getLength (asset.asset);
-  return 0;
-}
-
-
-
 /* Window cursor support.  */
 
 android_cursor
@@ -8088,4 +6803,4 @@ android_project_image_nearest (struct android_image *image,
   emacs_abort ();
 }
 
-#endif
+#endif /* !ANDROID_STUBIFY */

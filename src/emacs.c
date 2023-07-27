@@ -3012,7 +3012,7 @@ killed.  */
     {
       Lisp_Object listfile;
       listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
-      unlink (SSDATA (listfile));
+      emacs_unlink (SSDATA (listfile));
     }
 
 #ifdef HAVE_NATIVE_COMP

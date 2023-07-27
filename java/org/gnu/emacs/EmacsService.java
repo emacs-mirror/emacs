@@ -23,12 +23,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import android.database.Cursor;
+
 import android.graphics.Matrix;
 import android.graphics.Point;
+
+import android.webkit.MimeTypeMap;
 
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -45,9 +51,12 @@ import android.content.Context;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.UriPermission;
+
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.ApplicationInfoFlags;
 import android.content.pm.PackageManager;
+
 import android.content.res.AssetManager;
 
 import android.hardware.input.InputManager;
@@ -65,6 +74,7 @@ import android.os.VibratorManager;
 import android.os.VibrationEffect;
 
 import android.provider.DocumentsContract;
+import android.provider.DocumentsContract.Document;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -77,20 +87,34 @@ import android.widget.Toast;
 public final class EmacsService extends Service
 {
   public static final String TAG = "EmacsService";
-  public static volatile EmacsService SERVICE;
+
+  /* The started Emacs service object.  */
+  public static EmacsService SERVICE;
 
   /* If non-NULL, an extra argument to pass to
      `android_emacs_init'.  */
   public static String extraStartupArgument;
 
+  /* The thread running Emacs C code.  */
   private EmacsThread thread;
+
+  /* Handler used to run tasks on the main thread.  */
   private Handler handler;
+
+  /* Content resolver used to access URIs.  */
   private ContentResolver resolver;
 
   /* Keep this in synch with androidgui.h.  */
   public static final int IC_MODE_NULL   = 0;
   public static final int IC_MODE_ACTION = 1;
   public static final int IC_MODE_TEXT   = 2;
+
+  /* File access mode constants.  See `man 7 inode'.  */
+  public static final int S_IRUSR = 0000400;
+  public static final int S_IWUSR = 0000200;
+  public static final int S_IFCHR = 0020000;
+  public static final int S_IFDIR = 0040000;
+  public static final int S_IFREG = 0100000;
 
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
@@ -305,6 +329,7 @@ public final class EmacsService extends Service
     view = new EmacsHolder<EmacsView> ();
 
     runnable = new Runnable () {
+	@Override
 	public void
 	run ()
 	{
@@ -557,7 +582,7 @@ public final class EmacsService extends Service
     return String.valueOf (keysym);
   }
 
-  
+
 
   /* Start the Emacs service if necessary.  On Android 26 and up,
      start Emacs as a foreground service with a notification, to avoid
@@ -872,6 +897,10 @@ public final class EmacsService extends Service
     icEndSynchronous ();
   }
 
+
+
+  /* Content provider functions.  */
+
   /* Open a content URI described by the bytes BYTES, a non-terminated
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
@@ -905,9 +934,8 @@ public final class EmacsService extends Service
       {
 	/* The usual file name encoding question rears its ugly head
 	   again.  */
-	name = new String (bytes, "UTF-8");
-	Log.d (TAG, "openContentUri: " + Uri.parse (name));
 
+	name = new String (bytes, "UTF-8");
 	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
 
 	/* Use detachFd on newer versions of Android or plain old
@@ -947,7 +975,6 @@ public final class EmacsService extends Service
 	/* The usual file name encoding question rears its ugly head
 	   again.  */
 	name = new String (string, "UTF-8");
-	Log.d (TAG, "checkContentUri: " + Uri.parse (name));
       }
     catch (UnsupportedEncodingException exception)
       {
@@ -960,24 +987,57 @@ public final class EmacsService extends Service
     if (writable)
       mode += "w";
 
-    Log.d (TAG, "checkContentUri: checking against mode " + mode);
-
     try
       {
 	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
 	fd.close ();
 
-	Log.d (TAG, "checkContentUri: YES");
-
 	return true;
       }
     catch (Exception exception)
       {
-	Log.d (TAG, "checkContentUri: NO");
-	Log.d (TAG, exception.toString ());
-	return false;
+	/* Fall through.  */
       }
+
+    return false;
   }
+
+  /* Build a content file name for URI.
+
+     Return a file name within the /contents/by-authority
+     pseudo-directory that `android_get_content_name' can then
+     transform back into an encoded URI.
+
+     A content name consists of any number of unencoded path segments
+     separated by `/' characters, possibly followed by a question mark
+     and an encoded query string.  */
+
+  public static String
+  buildContentName (Uri uri)
+  {
+    StringBuilder builder;
+
+    builder = new StringBuilder ("/content/by-authority/");
+    builder.append (uri.getAuthority ());
+
+    /* First, append each path segment.  */
+
+    for (String segment : uri.getPathSegments ())
+      {
+	/* FIXME: what if segment contains a slash character? */
+	builder.append ('/');
+	builder.append (uri.encode (segment));
+      }
+
+    /* Now, append the query string if necessary.  */
+
+    if (uri.getEncodedQuery () != null)
+      builder.append ('?').append (uri.getEncodedQuery ());
+
+    return builder.toString ();
+  }
+
+
 
   private long[]
   queryBattery19 ()
@@ -1095,5 +1155,962 @@ public final class EmacsService extends Service
 
     window.view.imManager.updateExtractedText (window.view,
 					       token, text);
+  }
+
+
+
+  /* Document tree management functions.  These functions shouldn't be
+     called before Android 5.0.
+
+     TODO: a timeout, let alone quitting, has yet to be implemented
+     for any of these functions.  */
+
+  /* Return an array of each document authority providing at least one
+     tree URI that Emacs holds the rights to persistently access.  */
+
+  public String[]
+  getDocumentAuthorities ()
+  {
+    List<UriPermission> permissions;
+    HashSet<String> allProviders;
+    Uri uri;
+
+    permissions = resolver.getPersistedUriPermissions ();
+    allProviders = new HashSet<String> ();
+
+    for (UriPermission permission : permissions)
+      {
+	uri = permission.getUri ();
+
+	if (DocumentsContract.isTreeUri (uri)
+	    && permission.isReadPermission ())
+	  allProviders.add (uri.getAuthority ());
+      }
+
+    return allProviders.toArray (new String[0]);
+  }
+
+  /* Start a file chooser activity to request access to a directory
+     tree.
+
+     Value is 1 if the activity couldn't be started for some reason,
+     and 0 in any other case.  */
+
+  public int
+  requestDirectoryAccess ()
+  {
+    Runnable runnable;
+    final EmacsHolder<Integer> rc;
+
+    /* Return 1 if Android is too old to support this feature.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+      return 1;
+
+    rc = new EmacsHolder<Integer> ();
+    rc.thing = Integer.valueOf (1);
+
+    runnable = new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+	  Intent intent;
+	  int id;
+
+	  synchronized (this)
+	    {
+	      /* Try to obtain an activity that will receive the
+		 response from the file chooser dialog.  */
+
+	      if (EmacsActivity.focusedActivities.isEmpty ())
+		{
+		  /* If focusedActivities is empty then this dialog
+		     may have been displayed immediately after another
+		     popup dialog was dismissed.  Try the
+		     EmacsActivity to be focused.  */
+
+		  activity = EmacsActivity.lastFocusedActivity;
+
+		  if (activity == null)
+		    {
+		      /* Still no luck.  Return failure.  */
+		      notify ();
+		      return;
+		    }
+		}
+	      else
+		activity = EmacsActivity.focusedActivities.get (0);
+
+	      /* Now create the intent.  */
+	      intent = new Intent (Intent.ACTION_OPEN_DOCUMENT_TREE);
+
+	      try
+		{
+		  id = EmacsActivity.ACCEPT_DOCUMENT_TREE;
+		  activity.startActivityForResult (intent, id, null);
+		  rc.thing = Integer.valueOf (0);
+		}
+	      catch (Exception e)
+		{
+		  e.printStackTrace ();
+		}
+
+	      notify ();
+	    }
+	}
+      };
+
+    syncRunnable (runnable);
+    return rc.thing;
+  }
+
+  /* Return an array of each tree provided by the document PROVIDER
+     that Emacs has permission to access.
+
+     Value is an array if the provider really does exist, NULL
+     otherwise.  */
+
+  public String[]
+  getDocumentTrees (byte provider[])
+  {
+    String providerName;
+    List<String> treeList;
+    List<UriPermission> permissions;
+    Uri uri;
+
+    try
+      {
+	providerName = new String (provider, "ASCII");
+      }
+    catch (UnsupportedEncodingException exception)
+      {
+	return null;
+      }
+
+    permissions = resolver.getPersistedUriPermissions ();
+    treeList = new ArrayList<String> ();
+
+    for (UriPermission permission : permissions)
+      {
+	uri = permission.getUri ();
+
+	if (DocumentsContract.isTreeUri (uri)
+	    && uri.getAuthority ().equals (providerName)
+	    && permission.isReadPermission ())
+	  /* Make sure the tree document ID is encoded.  */
+	  treeList.add (Uri.encode (DocumentsContract.getTreeDocumentId (uri)));
+      }
+
+    return treeList.toArray (new String[0]);
+  }
+
+  /* Decode the specified STRING into a String object using the UTF-8
+     format.  If an exception is thrown, return null.  */
+
+  private String
+  decodeFileName (byte[] string)
+  {
+    try
+      {
+	return new String (string, "UTF-8");
+      }
+    catch (Exception e) /* UnsupportedEncodingException, etc.  */
+      {
+	;;
+      }
+
+    return null;
+  }
+
+  /* Find the document ID of the file within TREE_URI designated by
+     NAME.
+
+     NAME is a ``file name'' comprised of the display names of
+     individual files.  Each constituent component prior to the last
+     must name a directory file within TREE_URI.
+
+     Upon success, return 0 or 1 (contingent upon whether or not the
+     last component within NAME is a directory) and place the document
+     ID of the named file in ID_RETURN[0].
+
+     If the designated file can't be located, but each component of
+     NAME up to the last component can and is a directory, return -2
+     and the ID of the last component located in ID_RETURN[0];
+
+     If the designated file can't be located, return -1.  */
+
+  private int
+  documentIdFromName (String tree_uri, byte name[],
+		      String[] id_return)
+  {
+    Uri uri, treeUri;
+    String nameString, id, type;
+    String[] components, projection;
+    Cursor cursor;
+    int column;
+
+    projection = new String[] {
+      Document.COLUMN_DISPLAY_NAME,
+      Document.COLUMN_DOCUMENT_ID,
+      Document.COLUMN_MIME_TYPE,
+    };
+
+    /* Parse the URI identifying the tree first.  */
+    uri = Uri.parse (tree_uri);
+
+    /* Next, decode NAME.  */
+    nameString = decodeFileName (name);
+
+    /* Now, split NAME into its individual components.  */
+    components = nameString.split ("/");
+
+    /* Set id and type to the value at the root of the tree.  */
+    type = id = null;
+
+    /* For each component... */
+
+    for (String component : components)
+      {
+	/* Java split doesn't behave very much like strtok when it
+	   comes to trailing and leading delimiters...  */
+	if (component.isEmpty ())
+	  continue;
+
+	/* Create the tree URI for URI from ID if it exists, or the
+	   root otherwise.  */
+
+	if (id == null)
+	  id = DocumentsContract.getTreeDocumentId (uri);
+
+	treeUri
+	  = DocumentsContract.buildChildDocumentsUriUsingTree (uri, id);
+
+	/* Look for a file in this directory by the name of
+	   component.  */
+
+	try
+	  {
+	    cursor = resolver.query (treeUri, projection,
+				     (Document.COLUMN_DISPLAY_NAME
+				      + " = ?s"),
+				     new String[] { component, }, null);
+	  }
+	catch (SecurityException exception)
+	  {
+	    /* A SecurityException can be thrown if Emacs doesn't have
+	       access to treeUri.  */
+	    return -1;
+	  }
+	catch (Exception exception)
+	  {
+	    exception.printStackTrace ();
+
+	    /* Why is this? */
+	    return -1;
+	  }
+
+	if (cursor == null)
+	  return -1;
+
+	while (true)
+	  {
+	    /* Even though the query selects for a specific display
+	       name, some content providers nevertheless return every
+	       file within the directory.  */
+
+	    if (!cursor.moveToNext ())
+	      {
+		cursor.close ();
+
+		/* If the last component considered is a
+		   directory... */
+		if ((type == null
+		     || type.equals (Document.MIME_TYPE_DIR))
+		    /* ... and type and id currently represent the
+		       penultimate component.  */
+		    && component == components[components.length  - 1])
+		  {
+		    /* The cursor is empty.  In this case, return -2
+		       and the current document ID (belonging to the
+		       previous component) in ID_RETURN.  */
+
+		    id_return[0] = id;
+
+		    /* But return -1 on the off chance that id is
+		       null.  */
+
+		    if (id == null)
+		      return -1;
+
+		    return -2;
+		  }
+
+		/* The last component found is not a directory, so
+		   return -1.  */
+		return -1;
+	      }
+
+	    /* So move CURSOR to a row with the right display
+	       name.  */
+
+	    column = cursor.getColumnIndex (Document.COLUMN_DISPLAY_NAME);
+
+	    if (column < 0)
+	      continue;
+
+	    try
+	      {
+		nameString = cursor.getString (column);
+	      }
+	    catch (Exception exception)
+	      {
+		cursor.close ();
+		return -1;
+	      }
+
+	    /* Break out of the loop only once a matching component is
+	       found.  */
+
+	    if (nameString.equals (component))
+	      break;
+	  }
+
+	/* Look for a column by the name of COLUMN_DOCUMENT_ID.  */
+
+	column = cursor.getColumnIndex (Document.COLUMN_DOCUMENT_ID);
+
+	if (column < 0)
+	  {
+	    cursor.close ();
+	    return -1;
+	  }
+
+	/* Now replace ID with the document ID.  */
+
+	try
+	  {
+	    id = cursor.getString (column);
+	  }
+	catch (Exception exception)
+	  {
+	    cursor.close ();
+	    return -1;
+	  }
+
+	/* If this is the last component, be sure to initialize the
+	   document type.  */
+
+	if (component == components[components.length - 1])
+	  {
+	    column
+	      = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+
+	    if (column < 0)
+	      {
+		cursor.close ();
+		return -1;
+	      }
+
+	    try
+	      {
+		type = cursor.getString (column);
+	      }
+	    catch (Exception exception)
+	      {
+		cursor.close ();
+		return -1;
+	      }
+
+	    /* Type may be NULL depending on how the Cursor returned
+	       is implemented.  */
+
+	    if (type == null)
+	      {
+		cursor.close ();
+		return -1;
+	      }
+	  }
+
+	/* Now close the cursor.  */
+	cursor.close ();
+
+	/* ID may have become NULL if the data is in an invalid
+	   format.  */
+	if (id == null)
+	  return -1;
+      }
+
+    /* Here, id is either NULL (meaning the same as TREE_URI), and
+       type is either NULL (in which case id should also be NULL) or
+       the MIME type of the file.  */
+
+    /* First return the ID.  */
+
+    if (id == null)
+      id_return[0] = DocumentsContract.getTreeDocumentId (uri);
+    else
+      id_return[0] = id;
+
+    /* Next, return whether or not this is a directory.  */
+    if (type == null || type.equals (Document.MIME_TYPE_DIR))
+      return 1;
+
+    return 0;
+  }
+
+  /* Return an encoded document URI representing a tree with the
+     specified IDENTIFIER supplied by the authority AUTHORITY.
+
+     Return null instead if Emacs does not have permanent access
+     to the specified document tree recorded on disk.  */
+
+  public String
+  getTreeUri (String tree, String authority)
+  {
+    Uri uri, grantedUri;
+    List<UriPermission> permissions;
+
+    /* First, build the URI.  */
+    tree = Uri.decode (tree);
+    uri = DocumentsContract.buildTreeDocumentUri (authority, tree);
+
+    /* Now, search for it within the list of persisted URI
+       permissions.  */
+    permissions = resolver.getPersistedUriPermissions ();
+
+    for (UriPermission permission : permissions)
+      {
+	/* If the permission doesn't entitle Emacs to read access,
+	   skip it.  */
+
+	if (!permission.isReadPermission ())
+	  continue;
+
+        grantedUri = permission.getUri ();
+
+	if (grantedUri.equals (uri))
+	  return uri.toString ();
+      }
+
+    /* Emacs doesn't have permission to access this tree URI.  */
+    return null;
+  }
+
+  /* Return file status for the document designated by the given
+     DOCUMENTID and tree URI.  If DOCUMENTID is NULL, use the document
+     ID in URI itself.
+
+     Value is null upon failure, or an array of longs [MODE, SIZE,
+     MTIM] upon success, where MODE contains the file type and access
+     modes of the file as in `struct stat', SIZE is the size of the
+     file in BYTES or -1 if not known, and MTIM is the time of the
+     last modification to this file in milliseconds since 00:00,
+     January 1st, 1970.  */
+
+  public long[]
+  statDocument (String uri, String documentId)
+  {
+    Uri uriObject;
+    String[] projection;
+    long[] stat;
+    int index;
+    long tem;
+    String tem1;
+    Cursor cursor;
+
+    uriObject = Uri.parse (uri);
+
+    if (documentId == null)
+      documentId = DocumentsContract.getTreeDocumentId (uriObject);
+
+    /* Create a document URI representing DOCUMENTID within URI's
+       authority.  */
+
+    uriObject
+      = DocumentsContract.buildDocumentUriUsingTree (uriObject, documentId);
+
+    /* Now stat this document.  */
+
+    projection = new String[] {
+      Document.COLUMN_FLAGS,
+      Document.COLUMN_LAST_MODIFIED,
+      Document.COLUMN_MIME_TYPE,
+      Document.COLUMN_SIZE,
+    };
+
+    try
+      {
+	cursor = resolver.query (uriObject, projection, null,
+				 null, null);
+      }
+    catch (SecurityException exception)
+      {
+	/* A SecurityException can be thrown if Emacs doesn't have
+	   access to uriObject.  */
+	return null;
+      }
+    catch (UnsupportedOperationException exception)
+      {
+	exception.printStackTrace ();
+
+	/* Why is this? */
+	return null;
+      }
+
+    if (cursor == null || !cursor.moveToFirst ())
+      return null;
+
+    /* Create the array of file status.  */
+    stat = new long[3];
+
+    try
+      {
+	index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
+	if (index < 0)
+	  return null;
+
+	tem = cursor.getInt (index);
+
+	stat[0] |= S_IRUSR;
+	if ((tem & Document.FLAG_SUPPORTS_WRITE) != 0)
+	  stat[0] |= S_IWUSR;
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+	    && (tem & Document.FLAG_VIRTUAL_DOCUMENT) != 0)
+	  stat[0] |= S_IFCHR;
+
+	index = cursor.getColumnIndex (Document.COLUMN_SIZE);
+	if (index < 0)
+	  return null;
+
+	if (cursor.isNull (index))
+	  stat[1] = -1; /* The size is unknown.  */
+	else
+	  stat[1] = cursor.getLong (index);
+
+	index = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+	if (index < 0)
+	  return null;
+
+	tem1 = cursor.getString (index);
+
+	/* Check if this is a directory file.  */
+	if (tem1.equals (Document.MIME_TYPE_DIR)
+	    /* Files shouldn't be specials and directories at the same
+	       time, but Android doesn't forbid document providers
+	       from returning this information.  */
+	    && (stat[0] & S_IFCHR) == 0)
+	  /* Since FLAG_SUPPORTS_WRITE doesn't apply to directories,
+	     just assume they're writable.  */
+	  stat[0] |= S_IFDIR | S_IWUSR;
+
+	/* If this file is neither a character special nor a
+	   directory, indicate that it's a regular file.  */
+
+	if ((stat[0] & (S_IFDIR | S_IFCHR)) == 0)
+	  stat[0] |= S_IFREG;
+
+	index = cursor.getColumnIndex (Document.COLUMN_LAST_MODIFIED);
+
+	if (index >= 0 && !cursor.isNull (index))
+	  {
+	    /* Content providers are allowed to not provide mtime.  */
+	    tem = cursor.getLong (index);
+	    stat[2] = tem;
+	  }
+      }
+    catch (Exception exception)
+      {
+	/* Whether or not type errors cause exceptions to be signaled
+	   is defined ``by the implementation of Cursor'', whatever
+	   that means.  */
+	exception.printStackTrace ();
+	return null;
+      }
+
+    return stat;
+  }
+
+  /* Find out whether Emacs has access to the document designated by
+     the specified DOCUMENTID within the tree URI.  If DOCUMENTID is
+     NULL, use the document ID in URI itself.
+
+     If WRITABLE, also check that the file is writable, which is true
+     if it is either a directory or its flags contains
+     FLAG_SUPPORTS_WRITE.
+
+     Value is 0 if the file is accessible, and one of the following if
+     not:
+
+       -1, if the file does not exist.
+       -2, upon a security exception or if WRITABLE the file
+           is not writable.
+       -3, upon any other error.  */
+
+  public int
+  accessDocument (String uri, String documentId, boolean writable)
+  {
+    Uri uriObject;
+    String[] projection;
+    int tem, index;
+    String tem1;
+    Cursor cursor;
+
+    uriObject = Uri.parse (uri);
+
+    if (documentId == null)
+      documentId = DocumentsContract.getTreeDocumentId (uriObject);
+
+    /* Create a document URI representing DOCUMENTID within URI's
+       authority.  */
+
+    uriObject
+      = DocumentsContract.buildDocumentUriUsingTree (uriObject, documentId);
+
+    /* Now stat this document.  */
+
+    projection = new String[] {
+      Document.COLUMN_FLAGS,
+      Document.COLUMN_MIME_TYPE,
+    };
+
+    try
+      {
+	cursor = resolver.query (uriObject, projection, null,
+				 null, null);
+      }
+    catch (SecurityException exception)
+      {
+	/* A SecurityException can be thrown if Emacs doesn't have
+	   access to uriObject.  */
+	return -2;
+      }
+    catch (UnsupportedOperationException exception)
+      {
+	exception.printStackTrace ();
+
+	/* Why is this? */
+	return -3;
+      }
+
+    if (cursor == null || !cursor.moveToFirst ())
+      return -1;
+
+    if (!writable)
+      return 0;
+
+    try
+      {
+	index = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+	if (index < 0)
+	  return -3;
+
+	/* Get the type of this file to check if it's a directory.  */
+	tem1 = cursor.getString (index);
+
+	/* Check if this is a directory file.  */
+	if (tem1.equals (Document.MIME_TYPE_DIR))
+	  {
+	    /* If so, don't check for FLAG_SUPPORTS_WRITE.
+	       Check for FLAG_DIR_SUPPORTS_CREATE instead.  */
+
+	    if (!writable)
+	      return 0;
+
+	    index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
+	    if (index < 0)
+	      return -3;
+
+	    tem = cursor.getInt (index);
+	    if ((tem & Document.FLAG_DIR_SUPPORTS_CREATE) == 0)
+	      return -3;
+
+	    return 0;
+	  }
+
+	index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
+	if (index < 0)
+	  return -3;
+
+	tem = cursor.getInt (index);
+	if (writable && (tem & Document.FLAG_SUPPORTS_WRITE) == 0)
+	  return -3;
+      }
+    catch (Exception exception)
+      {
+	/* Whether or not type errors cause exceptions to be signaled
+	   is defined ``by the implementation of Cursor'', whatever
+	   that means.  */
+	exception.printStackTrace ();
+	return -3;
+      }
+
+    return 0;
+  }
+
+  /* Open a cursor representing each entry within the directory
+     designated by the specified DOCUMENTID within the tree URI.
+
+     If DOCUMENTID is NULL, use the document ID within URI itself.
+     Value is NULL upon failure.  */
+
+  public Cursor
+  openDocumentDirectory (String uri, String documentId)
+  {
+    Uri uriObject;
+    Cursor cursor;
+    String projection[];
+
+    uriObject = Uri.parse (uri);
+
+    /* If documentId is not set, use the document ID of the tree URI
+       itself.  */
+
+    if (documentId == null)
+      documentId = DocumentsContract.getTreeDocumentId (uriObject);
+
+    /* Build a URI representing each directory entry within
+       DOCUMENTID.  */
+
+    uriObject
+      = DocumentsContract.buildChildDocumentsUriUsingTree (uriObject,
+							   documentId);
+
+    projection = new String [] {
+      Document.COLUMN_DISPLAY_NAME,
+      Document.COLUMN_MIME_TYPE,
+    };
+
+    try
+      {
+	cursor = resolver.query (uriObject, projection, null, null,
+				 null);
+      }
+    catch (SecurityException exception)
+      {
+	/* A SecurityException can be thrown if Emacs doesn't have
+	   access to uriObject.  */
+	return null;
+      }
+    catch (UnsupportedOperationException exception)
+      {
+	exception.printStackTrace ();
+
+	/* Why is this? */
+	return null;
+      }
+
+    /* Return the cursor.  */
+    return cursor;
+  }
+
+  /* Read a single directory entry from the specified CURSOR.  Return
+     NULL if at the end of the directory stream, and a directory entry
+     with `d_name' set to NULL if an error occurs.  */
+
+  public EmacsDirectoryEntry
+  readDirectoryEntry (Cursor cursor)
+  {
+    EmacsDirectoryEntry entry;
+    int index;
+    String name, type;
+
+    entry = new EmacsDirectoryEntry ();
+
+    while (true)
+      {
+	if (!cursor.moveToNext ())
+	  return null;
+
+	/* First, retrieve the display name.  */
+	index = cursor.getColumnIndex (Document.COLUMN_DISPLAY_NAME);
+
+	if (index < 0)
+	  /* Return an invalid directory entry upon failure.  */
+	  return entry;
+
+	try
+	  {
+	    name = cursor.getString (index);
+	  }
+	catch (Exception exception)
+	  {
+	    return entry;
+	  }
+
+	/* Skip this entry if its name cannot be represented.  */
+
+	if (name.equals ("..") || name.equals (".") || name.contains ("/"))
+	  continue;
+
+	/* Now, look for its type.  */
+
+	index = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+
+	if (index < 0)
+	  /* Return an invalid directory entry upon failure.  */
+	  return entry;
+
+	try
+	  {
+	    type = cursor.getString (index);
+	  }
+	catch (Exception exception)
+	  {
+	    return entry;
+	  }
+
+	if (type.equals (Document.MIME_TYPE_DIR))
+	  entry.d_type = 1;
+	entry.d_name = name;
+	return entry;
+      }
+
+    /* Not reached.  */
+  }
+
+  /* Open a file descriptor for a file document designated by
+     DOCUMENTID within the document tree identified by URI.  If
+     TRUNCATE and the document already exists, truncate its contents
+     before returning.
+
+     On Android 9.0 and earlier, always open the document in
+     ``read-write'' mode; this instructs the document provider to
+     return a seekable file that is stored on disk and returns correct
+     file status.
+
+     Under newer versions of Android, open the document in a
+     non-writable mode if WRITE is false.  This is possible because
+     these versions allow Emacs to explicitly request a seekable
+     on-disk file.
+
+     Value is NULL upon failure or a parcel file descriptor upon
+     success.  Call `ParcelFileDescriptor.close' on this file
+     descriptor instead of using the `close' system call.  */
+
+  public ParcelFileDescriptor
+  openDocument (String uri, String documentId, boolean write,
+		boolean truncate)
+  {
+    Uri treeUri, documentUri;
+    String mode;
+    ParcelFileDescriptor fileDescriptor;
+
+    treeUri = Uri.parse (uri);
+
+    /* documentId must be set for this request, since it doesn't make
+       sense to ``open'' the root of the directory tree.  */
+
+    documentUri
+      = DocumentsContract.buildDocumentUriUsingTree (treeUri, documentId);
+
+    try
+      {
+	if (write || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+	  {
+	    /* Select the mode used to open the file.  `rw' means open
+	       a stat-able file, while `rwt' means that and to
+	       truncate the file as well.  */
+
+	    if (truncate)
+	      mode = "rwt";
+	    else
+	      mode = "rw";
+
+	    fileDescriptor
+	      = resolver.openFileDescriptor (documentUri, mode,
+					     null);
+	  }
+	else
+	  {
+	    /* Select the mode used to open the file.  `openFile'
+	       below means always open a stat-able file.  */
+
+	    if (truncate)
+	      /* Invalid mode! */
+	      return null;
+	    else
+	      mode = "r";
+
+	    fileDescriptor = resolver.openFile (documentUri, mode, null);
+	  }
+      }
+    catch (Exception exception)
+      {
+	return null;
+      }
+
+    return fileDescriptor;
+  }
+
+  /* Create a new document with the given display NAME within the
+     directory identified by DOCUMENTID inside the document tree
+     designated by URI.
+
+     If DOCUMENTID is NULL, create the document inside the root of
+     that tree.
+
+     Return the document ID of the new file upon success, NULL
+     otherwise.  */
+
+  public String
+  createDocument (String uri, String documentId, String name)
+  {
+    String mimeType, separator, mime, extension;
+    int index;
+    MimeTypeMap singleton;
+    Uri directoryUri, docUri;
+
+    /* Try to get the MIME type for this document.
+       Default to ``application/octet-stream''.  */
+
+    mimeType = "application/octet-stream";
+
+    /* Abuse WebView stuff to get the file's MIME type.  */
+
+    index = name.lastIndexOf ('.');
+
+    if (index > 0)
+      {
+	singleton = MimeTypeMap.getSingleton ();
+	extension = name.substring (index + 1);
+	mime = singleton.getMimeTypeFromExtension (extension);
+
+	if (mime != null)
+	  mimeType = mime;
+      }
+
+    /* Now parse URI.  */
+    directoryUri = Uri.parse (uri);
+
+    if (documentId == null)
+      documentId = DocumentsContract.getTreeDocumentId (directoryUri);
+
+    /* And build a file URI referring to the directory.  */
+
+    directoryUri
+      = DocumentsContract.buildChildDocumentsUriUsingTree (directoryUri,
+							   documentId);
+
+    try
+      {
+	docUri = DocumentsContract.createDocument (resolver,
+						   directoryUri,
+						   mimeType, name);
+
+	if (docUri == null)
+	  return null;
+
+	/* Return the ID of the new document.  */
+	return DocumentsContract.getDocumentId (docUri);
+      }
+    catch (Exception exception)
+      {
+	exception.printStackTrace ();
+      }
+
+    return null;
   }
 };

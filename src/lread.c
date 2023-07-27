@@ -1702,7 +1702,7 @@ Return t if the file exists and loads successfully.  */)
       stream = emacs_fopen (SSDATA (efound), fmode);
 #else
 #if !defined USE_ANDROID_ASSETS
-      stream = fdopen (fd, fmode);
+      stream = emacs_fdopen (fd, fmode);
 #else
       /* Android systems use special file descriptors which can point
 	 into compressed data and double as file streams.  FMODE is

@@ -7472,6 +7472,16 @@ handle_child_signal (int sig)
 	    {
 	      changed = true;
 	      if (STRINGP (XCDR (head)))
+		/* handle_child_signal is called in an async signal
+		   handler but needs to unlink temporary files which
+		   might've been created in an Android content
+		   provider.
+
+		   emacs_unlink is not async signal safe because
+		   deleting files from content providers must proceed
+		   through Java code.  Consequentially, if XCDR (head)
+		   lies on a content provider it will not be removed,
+		   which is a bug.  */
 		unlink (SSDATA (XCDR (head)));
 	      XSETCAR (tail, Qnil);
 	    }

@@ -3036,6 +3036,32 @@ for more details about these values.  */)
 
 
 
+/* Directory access requests.  */
+
+DEFUN ("android-request-directory-access", Fandroid_request_directory_access,
+       Sandroid_request_directory_access, 0, 0, "",
+       doc: /* Request access to a directory within external storage.
+On Android 5.0 and later, prompt for a directory within external or
+application storage, and grant access to it; some of these directories
+cannot be accessed through the regular `/sdcard' filesystem.
+
+If access to the directory is granted, it will eventually appear
+within the directory `/content/storage'.  */)
+  (void)
+{
+  if (android_get_current_api_level () < 21)
+    error ("Emacs can only access application storage on"
+	   " Android 5.0 and later");
+
+  if (!android_init_gui)
+    return Qnil;
+
+  android_request_directory_access ();
+  return Qnil;
+}
+
+
+
 /* Miscellaneous input method related stuff.  */
 
 /* Report X, Y, by the phys cursor width and height as the cursor
@@ -3062,7 +3088,7 @@ android_set_preeditarea (struct window *w, int x, int y)
 				     y + w->phys_cursor_height);
 }
 
-#endif
+#endif /* !ANDROID_STUBIFY */
 
 
 
@@ -3220,6 +3246,7 @@ This option has no effect on Android 9 and earlier.  */);
   defsubr (&Sx_server_version);
 #ifndef ANDROID_STUBIFY
   defsubr (&Sandroid_query_battery);
+  defsubr (&Sandroid_request_directory_access);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);
@@ -3235,5 +3262,5 @@ This option has no effect on Android 9 and earlier.  */);
   staticpro (&tip_dx);
   tip_dy = Qnil;
   staticpro (&tip_dy);
-#endif
+#endif /* !ANDROID_STUBIFY */
 }

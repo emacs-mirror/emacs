@@ -11740,9 +11740,9 @@ This may include sensitive information such as passwords.  */)
       encfile = ENCODE_FILE (file);
       fd = emacs_open (SSDATA (encfile), O_WRONLY | O_CREAT | O_EXCL, 0600);
       if (fd < 0 && errno == EEXIST
-	  && (unlink (SSDATA (encfile)) == 0 || errno == ENOENT))
+	  && (emacs_unlink (SSDATA (encfile)) == 0 || errno == ENOENT))
 	fd = emacs_open (SSDATA (encfile), O_WRONLY | O_CREAT | O_EXCL, 0600);
-      dribble = fd < 0 ? 0 : fdopen (fd, "w");
+      dribble = fd < 0 ? 0 : emacs_fdopen (fd, "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", file);
     }

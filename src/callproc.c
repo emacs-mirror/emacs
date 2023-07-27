@@ -214,7 +214,7 @@ record_kill_process (struct Lisp_Process *p, Lisp_Object tempfile)
 static void
 delete_temp_file (Lisp_Object name)
 {
-  unlink (SSDATA (name));
+  emacs_unlink (SSDATA (name));
 }
 
 static void

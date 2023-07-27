@@ -17,6 +17,7 @@ about using such devices with Emacs, @pxref{Other Input Devices}.
 * What is Android?::            Preamble.
 * Android Startup::             Starting up Emacs on Android.
 * Android File System::         The Android file system.
+* Android Document Providers::  Accessing files from other programs.
 * Android Environment::         Running Emacs under Android.
 * Android Windowing::           The Android window system.
 * Android Fonts::               Font selection under Android.
@@ -142,12 +143,12 @@ it starts Emacs and gives it the file to open as an argument.  Note
 that if that Emacs in turn does not start the Emacs server, subsequent
 attempts to open the file with the wrapper will fail.
 
-@cindex /content directory, android
+@cindex /content/by-authority directory, android
   Some files are given to Emacs as ``content identifiers'' that the
 system provides access to outside the normal filesystem APIs.  Emacs
-uses a pseudo-directory named @file{/content} to access those files.
-Do not make any assumptions about the contents of this directory, or
-try to open files in it yourself.
+uses a pseudo-directory named @file{/content/by-authority} to access
+those files.  Do not make any assumptions about the contents of this
+directory, or try to open files in it yourself.
 
   This feature is not provided on Android 4.3 and earlier, in which
 case such files are copied to a temporary directory before being
@@ -180,12 +181,13 @@ that result from such an implementation:
 @item
 Subprocesses (such as @command{ls}) can not run from the
 @file{/assets} directory; if you try to run a subprocess with
-@code{current-directory} set to @file{/assets} or a subdirectory
-thereof, it will run from the home directory instead.
+@code{current-directory} set to @file{/assets},
+@file{/content/storage} or a subdirectory thereof, it will run from
+the home directory instead.
 
 @item
 There are no @file{.} and @file{..} directories inside the
-@file{/assets} directory.
+@file{/assets} or @file{/content} directory.
 
 @item
 Files in the @file{/assets} directory are always read only, and may be
@@ -193,7 +195,7 @@ read in to memory more than once each time they are opened.
 @end itemize
 
   Aside from the @file{/assets} directory, Android programs normally
-have access to three other directories.  They are:
+have access to four other directories.  They are:
 
 @itemize @bullet
 @item
@@ -209,6 +211,12 @@ contains utility executables alongside Emacs itself.
 The @dfn{external storage} directory.  This is accessible to Emacs
 when the user grants the ``Files and Media'' permission to Emacs via
 system settings.
+
+@item
+Directories provided by @dfn{document providers} on Android 5.0 and
+later.  These directories exist outside the normal Unix filesystem,
+containing files provided by external programs (@pxref{Android
+Document Providers}.)
 @end itemize
 
   The external storage directory is found at @file{/sdcard}.  The
@@ -264,6 +272,46 @@ files under @file{/sdcard} as usual.
 
   These settings are not present on many proprietary versions of
 Android.
+
+@node Android Document Providers
+@section Accessing files from other programs under Android
+@cindex document providers, Android
+@cindex /content/storage directory, Android
+
+  Android 5.0 introduces a new sort of program, the ``document
+provider'': these programs are small programs that provide access to
+their own files outside both the asset manager and the Unix
+filesystem.  Emacs supports accessing files and directories they
+provide, placing their files within the directory
+@file{/content/storage}.
+
+@findex android-request-directory-access
+  Before Emacs is granted access to any of these directories, it must
+first request the right to access it.  This is done by running the
+command (@pxref{M-x}) @code{android-request-directory-access}, which
+displays a file selection dialog.
+
+  If a directory is selected within this dialog, its contents are
+subsequently made available within a new directory named
+@file{/content/storage/@var{authority}/@var{id}}, where
+@var{authority} is the name of the document provider, and @var{id} is
+a unique identifier assigned to the directory by the document
+provider.
+
+  Because these directories do not exist within the Unix file-system,
+sub-processes cannot be created within them, just as with the
+@file{/assets} directory (@pxref{Android File System}.)  In addition,
+although Emacs can normally write and create files inside these
+directories, it cannot create symlinks or hard links.
+
+@c TODO: fix this!
+  Since document providers are allowed to perform expensive network
+operations to obtain file contents, a file access operation within one
+of these directories will possibly take a significant amount of time.
+Emacs presently does not support quitting out of such file system
+operations, and the timeouts applied are fully subject to the
+discretion of the system and the document provider that is responding
+to these operations.
 
 @node Android Environment
 @section Running Emacs under Android

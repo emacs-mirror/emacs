@@ -54,7 +54,7 @@ typedef DIR emacs_dir;
 
 /* The Android emulation of dirent stuff is required to be able to
    list the /assets special directory.  */
-typedef struct android_dir emacs_dir;
+typedef struct android_vdir emacs_dir;
 #define emacs_readdir android_readdir
 #define emacs_closedir android_closedir
 #endif

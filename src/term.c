@@ -2415,7 +2415,7 @@ frame's terminal). */)
 #else  /* !MSDOS */
       fd = emacs_open (t->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
       t->display_info.tty->input = t->display_info.tty->output
-	= fd < 0 ? 0 : fdopen (fd, "w+");
+	= fd < 0 ? 0 : emacs_fdopen (fd, "w+");
 
       if (! t->display_info.tty->input)
 	{
@@ -4128,7 +4128,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
     tty->input = tty->output
       = ((fd < 0 || ! isatty (fd))
 	 ? NULL
-	 : fdopen (fd, "w+"));
+	 : emacs_fdopen (fd, "w+"));
 
     if (! tty->input)
       {

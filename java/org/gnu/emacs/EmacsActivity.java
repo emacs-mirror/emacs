@@ -25,6 +25,7 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 
@@ -32,6 +33,8 @@ import android.os.Build;
 import android.os.Bundle;
 
 import android.util.Log;
+
+import android.net.Uri;
 
 import android.view.Menu;
 import android.view.View;
@@ -47,6 +50,9 @@ public class EmacsActivity extends Activity
   ViewTreeObserver.OnGlobalLayoutListener
 {
   public static final String TAG = "EmacsActivity";
+
+  /* ID for URIs from a granted document tree.  */
+  public static final int ACCEPT_DOCUMENT_TREE = 1;
 
   /* The currently attached EmacsWindow, or null if none.  */
   private EmacsWindow window;
@@ -430,5 +436,37 @@ public class EmacsActivity extends Activity
 
     /* Update the window insets.  */
     syncFullscreenWith (window);
+  }
+
+
+
+  @Override
+  public final void
+  onActivityResult (int requestCode, int resultCode, Intent data)
+  {
+    ContentResolver resolver;
+    Uri uri;
+    int flags;
+
+    switch (requestCode)
+      {
+      case ACCEPT_DOCUMENT_TREE:
+
+	/* A document granted through
+	   EmacsService.requestDirectoryAccess.  */
+
+	if (resultCode == RESULT_OK)
+	  {
+	    resolver = getContentResolver ();
+	    uri = data.getData ();
+	    flags = (Intent.FLAG_GRANT_READ_URI_PERMISSION
+		     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+	    if (uri != null)
+	      resolver.takePersistableUriPermission (uri, flags);
+	  }
+
+	break;
+      }
   }
 };
