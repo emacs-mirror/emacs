@@ -567,6 +567,16 @@ Similarly to buffer restoration by Desktop, 'recentf-mode' checking
 of the accessibility of remote files can now time out if
 'remote-file-name-access-timeout' is set to a positive number.
 
+** Notifications
+
++++
+*** Allow to use Icon Naming Specification for app-icon
+You can use a symbol as the value for ':app-icon' to provide icon name
+without specifying a file, like this:
+
+  (notifications-notify
+    :title "I am playing music" :app-icon 'multimedia-player)
+
 
 * New Modes and Packages in Emacs 30.1
 
