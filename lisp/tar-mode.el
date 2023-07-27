@@ -364,112 +364,112 @@ of the file header.  This is used for \"old GNU\" Tar format."
         (if (and (null link-p) (null disable-slash) (string-match "/\\'" name))
             (setq link-p 5))            ; directory
 
-        (if (member magic-str '("ustar " "ustar\0"))
-            (if (equal name "././@LongLink")
-                ;; Supposedly @LongLink is only used for GNUTAR
-                ;; format (i.e. "ustar ") but some POSIX Tar files
-                ;; (with "ustar\0") have been seen using it as well.
-                ;; This is a GNU Tar long-file-name header.
-                (let* ((size (tar-parse-octal-integer
-                              string tar-size-offset tar-time-offset))
-                       ;; The long name is in the next 512-byte block.
-                       ;; We've already moved POS there, when we
-                       ;; computed STRING above.
-		       (name (decode-coding-string
-                              ;; -1 so as to strip the terminating 0 byte.
-			      (buffer-substring pos (+ pos size -1)) coding))
-                       ;; Tokenize the header of the _real_ file entry,
-                       ;; which is further 512 bytes into the archive.
-                       (descriptor (tar-header-block-tokenize
-                                    (+ pos (tar-roundup-512 size)) coding
-                                    ;; Don't intuit directories from
-                                    ;; the trailing slash, because the
-                                    ;; truncated name might by chance end
-                                    ;; in a slash.
-				    'ignore-trailing-slash)))
-                  ;; Fix the descriptor of the real file entry by using
-                  ;; the information from the long name entry.
-                  (cond
-                   ((eq link-p (- ?L ?0))      ;GNUTYPE_LONGNAME.
-                    (setf (tar-header-name descriptor) name))
-                   ((eq link-p (- ?K ?0))      ;GNUTYPE_LONGLINK.
-                    (setf (tar-header-link-name descriptor) name))
-                   (t
-                    (message "Unrecognized GNU Tar @LongLink format")))
-                  ;; Fix the "link-type" attribute, based on the long name.
-                  (if (and (null (tar-header-link-type descriptor))
-                           (string-match "/\\'" name))
-                      (setf (tar-header-link-type descriptor) 5)) ; directory
-                  (setf (tar-header-header-start descriptor)
-                        (copy-marker (- pos 512) t))
-                  descriptor)
-              ;; Posix pax extended header.  FIXME: support ?g as well.
-              (if (eq link-p (- ?x ?0))
-                  ;;      Get whatever attributes are in the extended header,
-                  (let* ((pax-attrs (tar-parse-pax-extended-header pos))
-                         (gid (pax-header-gid pax-attrs))
-                         (gname (pax-header-gname pax-attrs))
-                         (linkpath (pax-header-linkpath pax-attrs))
-                         (mtime (pax-header-mtime pax-attrs))
-                         (path (pax-header-path pax-attrs))
-                         (size (pax-header-size pax-attrs))
-                         (uid (pax-header-uid pax-attrs))
-                         (uname (pax-header-uname pax-attrs))
-                         ;; Tokenize the header of the _real_ file entry,
-                         ;; which is further 512 bytes into the archive.
-                         (descriptor
-                          (tar-header-block-tokenize (+ pos 512) coding
-                                                     'ignore-trailing-slash)))
-                    ;; Fix the descriptor of the real file entry by
-                    ;; overriding some of the fields with the information
-                    ;; from the extended header.
-                    (if gid
-                        (setf (tar-header-gid descriptor) gid))
-                    (if gname
-                        (setf (tar-header-gname descriptor) gname))
-                    (if linkpath
-                        (setf (tar-header-link-name descriptor) linkpath))
-                    (if mtime
-                        (setf (tar-header-date descriptor) mtime))
-                    (if path
-                        (setf (tar-header-name descriptor) path))
-                    (if size
-                        (setf (tar-header-size descriptor) size))
-                    (if uid
-                        (setf (tar-header-uid descriptor) uid))
-                    (if uname
-                        (setf (tar-header-uname descriptor) uname))
-                    descriptor)
+        (if (and (equal name "././@LongLink")
+                 ;; Supposedly @LongLink is only used for GNUTAR
+                 ;; format (i.e. "ustar ") but some POSIX Tar files
+                 ;; (with "ustar\0") have been seen using it as well.
+                 (member magic-str '("ustar " "ustar\0")))
+            (let* ((size (tar-parse-octal-integer
+                          string tar-size-offset tar-time-offset))
+                   ;; The long name is in the next 512-byte block.
+                   ;; We've already moved POS there, when we
+                   ;; computed STRING above.
+		   (name (decode-coding-string
+                          ;; -1 so as to strip the terminating 0 byte.
+			  (buffer-substring pos (+ pos size -1)) coding))
+                   ;; Tokenize the header of the _real_ file entry,
+                   ;; which is further 512 bytes into the archive.
+                   (descriptor (tar-header-block-tokenize
+                                (+ pos (tar-roundup-512 size)) coding
+                                ;; Don't intuit directories from
+                                ;; the trailing slash, because the
+                                ;; truncated name might by chance end
+                                ;; in a slash.
+				'ignore-trailing-slash)))
+              ;; Fix the descriptor of the real file entry by using
+              ;; the information from the long name entry.
+              (cond
+               ((eq link-p (- ?L ?0))      ;GNUTYPE_LONGNAME.
+                (setf (tar-header-name descriptor) name))
+               ((eq link-p (- ?K ?0))      ;GNUTYPE_LONGLINK.
+                (setf (tar-header-link-name descriptor) name))
+               (t
+                (message "Unrecognized GNU Tar @LongLink format")))
+              ;; Fix the "link-type" attribute, based on the long name.
+              (if (and (null (tar-header-link-type descriptor))
+                       (string-match "/\\'" name))
+                  (setf (tar-header-link-type descriptor) 5)) ; directory
+              (setf (tar-header-header-start descriptor)
+                    (copy-marker (- pos 512) t))
+              descriptor)
+          ;; Posix pax extended header.  FIXME: support ?g as well.
+          (if (and (eq link-p (- ?x ?0))
+                   (member magic-str '("ustar " "ustar\0")))
+              ;;      Get whatever attributes are in the extended header,
+              (let* ((pax-attrs (tar-parse-pax-extended-header pos))
+                     (gid (pax-header-gid pax-attrs))
+                     (gname (pax-header-gname pax-attrs))
+                     (linkpath (pax-header-linkpath pax-attrs))
+                     (mtime (pax-header-mtime pax-attrs))
+                     (path (pax-header-path pax-attrs))
+                     (size (pax-header-size pax-attrs))
+                     (uid (pax-header-uid pax-attrs))
+                     (uname (pax-header-uname pax-attrs))
+                     ;; Tokenize the header of the _real_ file entry,
+                     ;; which is further 512 bytes into the archive.
+                     (descriptor
+                      (tar-header-block-tokenize (+ pos 512) coding
+                                                 'ignore-trailing-slash)))
+                ;; Fix the descriptor of the real file entry by
+                ;; overriding some of the fields with the information
+                ;; from the extended header.
+                (if gid
+                    (setf (tar-header-gid descriptor) gid))
+                (if gname
+                    (setf (tar-header-gname descriptor) gname))
+                (if linkpath
+                    (setf (tar-header-link-name descriptor) linkpath))
+                (if mtime
+                    (setf (tar-header-date descriptor) mtime))
+                (if path
+                    (setf (tar-header-name descriptor) path))
+                (if size
+                    (setf (tar-header-size descriptor) size))
+                (if uid
+                    (setf (tar-header-uid descriptor) uid))
+                (if uname
+                    (setf (tar-header-uname descriptor) uname))
+                descriptor)
 
-                (make-tar-header
-                 (copy-marker pos nil)
-                 name
-                 (tar-parse-octal-integer string tar-mode-offset
-                                          tar-uid-offset)
-                 (tar-parse-octal-integer string tar-uid-offset
-                                          tar-gid-offset)
-                 (tar-parse-octal-integer string tar-gid-offset
-                                          tar-size-offset)
-                 (tar-parse-octal-integer string tar-size-offset
-                                          tar-time-offset)
-                 (tar-parse-octal-integer string tar-time-offset
-                                          tar-chk-offset)
-                 (tar-parse-octal-integer string tar-chk-offset
-                                          tar-linkp-offset)
-                 link-p
-                 linkname
-                 uname-valid-p
-                 (when uname-valid-p
-                   (decode-coding-string
-                    (substring string tar-uname-offset uname-end) coding))
-                 (when uname-valid-p
-                   (decode-coding-string
-                    (substring string tar-gname-offset gname-end) coding))
-                 (tar-parse-octal-integer string tar-dmaj-offset
-                                          tar-dmin-offset)
-                 (tar-parse-octal-integer string tar-dmin-offset
-                                          tar-prefix-offset)
-                 ))))))))
+            (make-tar-header
+             (copy-marker pos nil)
+             name
+             (tar-parse-octal-integer string tar-mode-offset
+                                      tar-uid-offset)
+             (tar-parse-octal-integer string tar-uid-offset
+                                      tar-gid-offset)
+             (tar-parse-octal-integer string tar-gid-offset
+                                      tar-size-offset)
+             (tar-parse-octal-integer string tar-size-offset
+                                      tar-time-offset)
+             (tar-parse-octal-integer string tar-time-offset
+                                      tar-chk-offset)
+             (tar-parse-octal-integer string tar-chk-offset
+                                      tar-linkp-offset)
+             link-p
+             linkname
+             uname-valid-p
+             (when uname-valid-p
+               (decode-coding-string
+                (substring string tar-uname-offset uname-end) coding))
+             (when uname-valid-p
+               (decode-coding-string
+                (substring string tar-gname-offset gname-end) coding))
+             (tar-parse-octal-integer string tar-dmaj-offset
+                                      tar-dmin-offset)
+             (tar-parse-octal-integer string tar-dmin-offset
+                                      tar-prefix-offset)
+             )))))))
 
 ;; Pseudo-field.
 (defun tar-header-data-end (descriptor)
