@@ -2715,7 +2715,8 @@ the result will be a local, non-Tramp, file name."
   ;; there could be the false positive "/:".
   (if (or (and (eq system-type 'windows-nt)
 	       (string-match-p
-		(rx bol (| (: alpha ":") (: (literal null-device) eol))) name))
+		(rx bol (| (: alpha ":") (: (literal (or null-device "")) eol)))
+		name))
 	  (and (not (tramp-tramp-file-p name))
 	       (not (tramp-tramp-file-p dir))))
       (tramp-run-real-handler #'expand-file-name (list name dir))

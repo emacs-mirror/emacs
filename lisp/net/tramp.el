@@ -7049,5 +7049,7 @@ If VEC is `tramp-null-hop', return local null device."
 ;;   "/ssh:user1@host:~user2".
 ;;
 ;; * Implement file name abbreviation for user and host names.
+;;
+;; * Implement user and host name completion for multi-hops.
 
 ;;; tramp.el ends here
