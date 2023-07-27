@@ -1720,7 +1720,7 @@ android_afs_initial (char *name, size_t length)
   temp.vnode.type = ANDROID_VNODE_AFS;
   temp.vnode.flags = 0;
   temp.name_length = 1;
-  temp.name = "/";
+  temp.name = (char *) "/";
 
   /* Try to name this vnode.  If NAME is empty, it will be duplicated
      instead.  */
@@ -2667,7 +2667,7 @@ android_content_get_directory_name (int dirfd)
   for (dir = all_content_vdirs; dir; dir = dir->next)
     {
       if (dir->fd == dirfd && dirfd != -1)
-	return "/content";
+	return (char *) "/content";
     }
 
   return NULL;
@@ -4221,7 +4221,7 @@ android_saf_tree_name (struct android_vnode *vnode, char *name,
   tree.vnode.type = ANDROID_VNODE_SAF_TREE;
   tree.vnode.flags = 0;
   tree.document_id = NULL;
-  tree.name = "/";
+  tree.name = (char *) "/";
   tree.tree_uri = vp->tree_uri;
   tree.tree_id = vp->tree_id;
 
@@ -4668,7 +4668,7 @@ android_saf_tree_from_name (char *name, const char *tree,
   root.tree_uri = uri;
   root.tree_id = (char *) tree;
   root.document_id = NULL;
-  root.name = "/";
+  root.name = (char *) "/";
 
   vp = (*root.vnode.ops->name) (&root.vnode, name, strlen (name));
   (*android_java_env)->ReleaseStringUTFChars (android_java_env,
@@ -5362,7 +5362,7 @@ android_vfs_init (JNIEnv *env, jobject manager)
   root_vnode.vnode.type = ANDROID_VNODE_UNIX;
   root_vnode.vnode.flags = 0;
   root_vnode.name_length = 1;
-  root_vnode.name = "/";
+  root_vnode.name = (char *) "/";
 
   /* Initialize some required classes.  */
   java_string_class = (*env)->FindClass (env, "java/lang/String");
