@@ -3936,12 +3936,75 @@ static struct android_vops saf_new_vfs_ops;
 /* Chain of all open SAF directory streams.  */
 static struct android_saf_tree_vdir *all_saf_tree_vdirs;
 
+/* Verify that the specified NULL-terminated STRING is a valid JNI
+   ``UTF-8'' string.  Return 0 if so, 1 otherwise.
+
+   The native coding system used by the JVM to store strings derives
+   from UTF-8, but deviates from it in two aspects in an attempt to
+   better represent the UCS-16 based Java String format, and to let
+   strings contain NULL characters while remaining valid C strings:
+   NULL bytes are encoded as two-byte sequences, and Unicode surrogate
+   pairs encoded as two-byte sequences are prefered to four-byte
+   sequences when encoding characters above the BMP.  */
+
+static int
+android_verify_jni_string (const char *name)
+{
+  const unsigned char *chars;
+
+  chars = (unsigned char *) name;
+  while (*chars)
+    {
+      /* Switch on the high 4 bits.  */
+
+      switch (*chars++ >> 4)
+	{
+	case 0 ... 7:
+	  /* The 8th bit is clean, so this is a regular C
+	     character.  */
+	  break;
+
+	case 8 ... 0xb:
+	  /* Invalid starting byte! */
+	  return 1;
+
+	case 0xf:
+	  /* The start of a four byte sequence.  These aren't allowed
+	     in Java.  */
+	  return 1;
+
+	case 0xe:
+	  /* The start of a three byte sequence.  Verify that its
+	     continued.  */
+
+	  if ((*chars++ & 0xc0) != 0x80)
+	    return 1;
+
+	  FALLTHROUGH;
+
+	case 0xc ... 0xd:
+	  /* The start of a two byte sequence.  Verify that the
+	     next byte exists and has its high bit set.  */
+
+	  if ((*chars++ & 0xc0) != 0x80)
+	    return 1;
+
+	  break;
+	}
+    }
+
+  return 0;
+}
+
 /* Find the document ID of the file within TREE_URI designated by
    NAME.
 
    NAME is a ``file name'' comprised of the display names of
    individual files.  Each constituent component prior to the last
    must name a directory file within TREE_URI.
+
+   If NAME is not correct for the Java ``modified UTF-8'' coding
+   system, return -1.
 
    Upon success, return 0 or 1 (contingent upon whether or not the
    last component within NAME is a directory) and place the document
@@ -3965,6 +4028,12 @@ android_document_id_from_name (const char *tree_uri, char *name,
   jmethodID method;
   const char *doc_id;
 
+  /* Verify the format of NAME.  Don't allow creating files that
+     contain characters that can't be encoded in Java.  */
+
+  if (android_verify_jni_string (name))
+    return -1;
+
   /* First, create the array that will hold the result.  */
   result = (*android_java_env)->NewObjectArray (android_java_env, 1,
 						java_string_class,
@@ -3972,11 +4041,9 @@ android_document_id_from_name (const char *tree_uri, char *name,
   android_exception_check ();
 
   /* Next, create the string for the tree URI and name.  */
-  length = strlen (name);
-  java_name = (*android_java_env)->NewByteArray (android_java_env, length);
+  java_name = (*android_java_env)->NewStringUTF (android_java_env,
+						 name);
   android_exception_check_1 (result);
-  (*android_java_env)->SetByteArrayRegion (android_java_env, java_name,
-					   0, length, (jbyte *) name);
   uri = (*android_java_env)->NewStringUTF (android_java_env, tree_uri);
   android_exception_check_2 (result, java_name);
 

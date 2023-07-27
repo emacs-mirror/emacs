@@ -1282,7 +1282,7 @@ public final class EmacsService extends Service
 
     try
       {
-	providerName = new String (provider, "ASCII");
+	providerName = new String (provider, "US-ASCII");
       }
     catch (UnsupportedEncodingException exception)
       {
@@ -1306,24 +1306,6 @@ public final class EmacsService extends Service
     return treeList.toArray (new String[0]);
   }
 
-  /* Decode the specified STRING into a String object using the UTF-8
-     format.  If an exception is thrown, return null.  */
-
-  private String
-  decodeFileName (byte[] string)
-  {
-    try
-      {
-	return new String (string, "UTF-8");
-      }
-    catch (Exception e) /* UnsupportedEncodingException, etc.  */
-      {
-	;;
-      }
-
-    return null;
-  }
-
   /* Find the document ID of the file within TREE_URI designated by
      NAME.
 
@@ -1342,11 +1324,10 @@ public final class EmacsService extends Service
      If the designated file can't be located, return -1.  */
 
   private int
-  documentIdFromName (String tree_uri, byte name[],
-		      String[] id_return)
+  documentIdFromName (String tree_uri, String name, String[] id_return)
   {
     Uri uri, treeUri;
-    String nameString, id, type;
+    String id, type;
     String[] components, projection;
     Cursor cursor;
     int column;
@@ -1360,11 +1341,8 @@ public final class EmacsService extends Service
     /* Parse the URI identifying the tree first.  */
     uri = Uri.parse (tree_uri);
 
-    /* Next, decode NAME.  */
-    nameString = decodeFileName (name);
-
     /* Now, split NAME into its individual components.  */
-    components = nameString.split ("/");
+    components = name.split ("/");
 
     /* Set id and type to the value at the root of the tree.  */
     type = id = null;
@@ -1462,7 +1440,7 @@ public final class EmacsService extends Service
 
 	    try
 	      {
-		nameString = cursor.getString (column);
+		name = cursor.getString (column);
 	      }
 	    catch (Exception exception)
 	      {
@@ -1473,7 +1451,7 @@ public final class EmacsService extends Service
 	    /* Break out of the loop only once a matching component is
 	       found.  */
 
-	    if (nameString.equals (component))
+	    if (name.equals (component))
 	      break;
 	  }
 

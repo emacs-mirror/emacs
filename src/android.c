@@ -1556,7 +1556,8 @@ android_init_emacs_service (void)
   FIND_METHOD (get_document_trees, "getDocumentTrees",
 	       "([B)[Ljava/lang/String;");
   FIND_METHOD (document_id_from_name, "documentIdFromName",
-	       "(Ljava/lang/String;[B[Ljava/lang/String;)I");
+	       "(Ljava/lang/String;Ljava/lang/String;"
+	       "[Ljava/lang/String;)I");
   FIND_METHOD (get_tree_uri, "getTreeUri",
 	       "(Ljava/lang/String;Ljava/lang/String;)"
 	       "Ljava/lang/String;");

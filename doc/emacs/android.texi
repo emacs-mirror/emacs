@@ -298,11 +298,12 @@ subsequently made available within a new directory named
 a unique identifier assigned to the directory by the document
 provider.
 
-  Because these directories do not exist within the Unix file-system,
-sub-processes cannot be created within them, just as with the
-@file{/assets} directory (@pxref{Android File System}.)  In addition,
-although Emacs can normally write and create files inside these
-directories, it cannot create symlinks or hard links.
+  The same limitations applied to the @file{/assets} directory
+(@pxref{Android File System}) are applied when creating sub-processes
+within those directories, because they do not exist within the Unix
+file-system.  In addition, although Emacs can normally write and
+create files inside these directories, it cannot create symlinks or
+hard links.
 
 @c TODO: fix this!
   Since document providers are allowed to perform expensive network
