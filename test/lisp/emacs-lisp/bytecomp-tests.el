@@ -780,6 +780,11 @@ inner loops respectively."
     ;; (+ 0 -0.0) etc
     (let ((x (bytecomp-test-identity -0.0)))
       (list x (+ x) (+ 0 x) (+ x 0) (+ 1 2 -3 x) (+ 0 x 0)))
+
+    ;; Unary comparisons: keep side-effect, return t
+    (let ((x 0))
+      (list (= (setq x 1))
+            x))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -1953,6 +1958,15 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     ((setcdr c 5) (wrong-type-argument consp c))
     ((nth 2 "abcd") (wrong-type-argument listp "abcd"))
     ((elt (x y . z) 2) (wrong-type-argument listp z))
+    ((aref [2 3 5] p) (wrong-type-argument fixnump p))
+    ((aref #s(a b c) p) (wrong-type-argument fixnump p))
+    ((aref "abc" p) (wrong-type-argument fixnump p))
+    ((aref [2 3 5] 3) (args-out-of-range [2 3 5] 3))
+    ((aref #s(a b c) 3) (args-out-of-range #s(a b c) 3))
+    ((aset [2 3 5] q 1) (wrong-type-argument fixnump q))
+    ((aset #s(a b c) q 1) (wrong-type-argument fixnump q))
+    ((aset [2 3 5] -1 1) (args-out-of-range [2 3 5] -1))
+    ((aset #s(a b c) -1 1) (args-out-of-range #s(a b c) -1))
     ;; Many more to add
     ))
 
@@ -1967,17 +1981,17 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
         ;; Test both calling the function directly, and calling
         ;; a byte-compiled η-expansion (lambda (ARGS...) (FUN ARGS...))
         ;; which should turn the function call into a byte-op.
-        (dolist (byte-op '(nil t))
-          (ert-info ((prin1-to-string byte-op) :prefix "byte-op: ")
-            (let* ((fun
-                    (if byte-op
-                        (let* ((nargs (length (cdr call)))
-                               (formals (mapcar (lambda (i)
-                                                  (intern (format "x%d" i)))
-                                                (number-sequence 1 nargs))))
-                          (byte-compile
-                           `(lambda ,formals (,fun-sym ,@formals))))
-                      fun-sym))
+        (dolist (mode '(funcall byte-op))
+          (ert-info ((symbol-name mode) :prefix "mode: ")
+            (let* ((fun (pcase-exhaustive mode
+                          ('funcall fun-sym)
+                          ('byte-op
+                           (let* ((nargs (length (cdr call)))
+                                  (formals (mapcar (lambda (i)
+                                                     (intern (format "x%d" i)))
+                                                   (number-sequence 1 nargs))))
+                             (byte-compile
+                              `(lambda ,formals (,fun-sym ,@formals)))))))
                    (error-frame (bytecomp-tests--error-frame fun actuals)))
               (should (consp error-frame))
               (should (equal (car error-frame) (list 'error expected-error)))

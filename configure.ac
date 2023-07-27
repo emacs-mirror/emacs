@@ -2474,12 +2474,15 @@ if test "${with_sound}" != "no"; then
     AC_MSG_ERROR([OSS sound support requested but not found.])
 
   if test "${with_sound}" = "bsd-ossaudio" || test "${with_sound}" = "yes"; then
-    # Emulation library used on NetBSD.
+    # OSS emulation library used on NetBSD and OpenBSD.
     AC_CHECK_LIB([ossaudio], [_oss_ioctl], [LIBSOUND=-lossaudio], [LIBSOUND=])
     test "${with_sound}" = "bsd-ossaudio" && test -z "$LIBSOUND" && \
       AC_MSG_ERROR([bsd-ossaudio sound support requested but not found.])
-    dnl FIXME?  If we did find ossaudio, should we set with_sound=bsd-ossaudio?
-    dnl Traditionally, we go on to check for alsa too.  Does that make sense?
+    # On {Net,Open}BSD use the system audio library instead of
+    # potentially switching to ALSA below, as ALSA on these appears to
+    # just wrap system libraries.
+    test "${with_sound}" = "yes" && test "$LIBSOUND" = "-lossaudio" && \
+      with_sound="bsd-ossaudio"
   fi
   AC_SUBST([LIBSOUND])
 

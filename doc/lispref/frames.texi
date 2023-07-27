@@ -189,9 +189,13 @@ selected frame.
 @end defvar
 
 @defopt server-after-make-frame-hook
-A normal hook run when the Emacs server creates a client frame.  When
-this hook is called, the created frame is the selected one.
-@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+A normal hook run when the Emacs server starts using a client frame.
+When this hook is called, the client frame is the selected one.  Note
+that, depending on how @command{emacsclient} was invoked
+(@pxref{Invoking emacsclient,,, emacs, The GNU Emacs Manual}), this
+client frame could be a new frame created for the client, or it could
+be an existing frame that the server reused for handling the client
+commands.  @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
 @end defopt
 
 

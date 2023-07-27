@@ -134,7 +134,7 @@
 	 (purecopy (concat "^\\s-*("
 			   (regexp-opt
 			    '(;; Elisp
-                              "defconst" "defcustom"
+                              "defconst" "defcustom" "defvar-keymap"
                               ;; CL
                               "defconstant"
 			      "defparameter" "define-symbol-macro")
@@ -361,7 +361,7 @@ This will generate compile-time constants from BINDINGS."
                  "define-globalized-minor-mode" "define-skeleton"
                  "define-widget" "ert-deftest"))
      (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
-                 "defface"))
+                 "defface" "define-error"))
      (el-tdefs '("defgroup" "deftheme"))
      (el-errs '("user-error"))
      ;; Common-Lisp constructs supported by EIEIO.  FIXME: namespace.
