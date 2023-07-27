@@ -462,8 +462,17 @@ public class EmacsActivity extends Activity
 	    flags = (Intent.FLAG_GRANT_READ_URI_PERMISSION
 		     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-	    if (uri != null)
-	      resolver.takePersistableUriPermission (uri, flags);
+	    try
+	      {
+		if (uri != null)
+		  resolver.takePersistableUriPermission (uri, flags);
+	      }
+	    catch (Exception exception)
+	      {
+		/* Permission to access URI might've been revoked in
+		   between selecting the file and this callback being
+		   invoked.  Don't crash in such cases.  */
+	      }
 	  }
 
 	break;
