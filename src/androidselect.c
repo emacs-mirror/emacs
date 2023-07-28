@@ -194,6 +194,9 @@ Alternatively, return nil if the clipboard is empty.  */)
 					     method);
   android_exception_check ();
 
+  if (!bytes)
+    return Qnil;
+
   length = (*android_java_env)->GetArrayLength (android_java_env,
 						bytes);
   data = (*android_java_env)->GetByteArrayElements (android_java_env,
