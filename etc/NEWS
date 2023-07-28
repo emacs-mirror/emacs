@@ -665,6 +665,15 @@ previous behavior of showing 'U' in the mode line for 'koi8-u':
 
     (coding-system-put 'koi8-u :mnemonic ?U)
 
+---
+** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
+VSCII-1 and TCVN-5712 are different names for the same character
+encoding.  Therefore, the duplicate coding system definition has been
+dropped in favor of an alias.
+
+The mode-line mnemonic for 'vietnamese-vscii' and its aliases is the
+lowercase letter 'v'.
+
 +++
 ** Infinities and NaNs no longer act as symbols on non-IEEE platforms.
 On old platforms like the VAX that do not support IEEE floating-point,
