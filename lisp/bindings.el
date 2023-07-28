@@ -226,9 +226,9 @@ mnemonics of the following coding systems:
 (put 'mode-line-mule-info 'risky-local-variable t)
 
 (defvar mode-line-client
-  `(""
-    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
-		 help-echo ,(purecopy "emacsclient frame")))
+  `(:eval
+    (if (frame-parameter nil 'client)
+	,(propertize "@" 'help-echo (purecopy "emacsclient frame"))))
   "Mode line construct for identifying emacsclient frames.")
 ;; Autoload if this file no longer dumped.
 ;;;###autoload
