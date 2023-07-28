@@ -216,7 +216,7 @@ are available (see Info node `(emacs)Document View')."
   :type 'boolean
   :version "30.1")
 
-(defcustom doc-view-imenu-enabled (executable-find "mutool")
+(defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
   "Whether to generate an imenu outline when \"mutool\" is available."
   :type 'boolean
   :version "29.1")
