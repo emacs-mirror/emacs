@@ -335,7 +335,7 @@ public final class EmacsSafThread extends HandlerThread
 
 	    cursor = resolver.query (treeUri, projection,
 				     (Document.COLUMN_DISPLAY_NAME
-				      + " = ?s"),
+				      + " = ?"),
 				     new String[] { component, },
 				     null, signal);
 
