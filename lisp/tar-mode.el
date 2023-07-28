@@ -255,15 +255,14 @@ Only attributes that `tar-mode' can grok are mentioned.")
       (decode-coding-string str coding)
     str))
 
-(defvar tar-attr-vector '[nil nil nil nil nil nil nil nil])
+(defvar tar-attr-vector (make-vector 8 nil))
 (defun tar-parse-pax-extended-header (pos)
   "Parse a pax external header of a Posix-format tar file."
   (let ((end (+ pos 512))
         (result tar-attr-vector)
         (coding 'utf-8-unix)
         attr value record-len value-len)
-    (dotimes (i 8)
-      (aset result i nil))
+    (fillarray result nil)
     (goto-char pos)
     (while (and (< pos end)
                 (re-search-forward pax-extended-attribute-record-regexp
