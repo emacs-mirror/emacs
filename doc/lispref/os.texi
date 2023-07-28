@@ -2888,6 +2888,13 @@ must be the result of a previous @code{notifications-notify} call.
 @item :app-icon @var{icon-file}
 The file name of the notification icon.  If set to @code{nil}, no icon
 is displayed.  The default is @code{notifications-application-icon}.
+If the value is a string, the function interprets it as a file name
+and converts to absolute by using @code{expand-file-name}; if it is a
+symbol, the function will use its name (which is useful when using the
+Icon Naming Specification @footnote{For more information about icon
+naming convention see
+@uref{https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html,
+Icon Naming Specification}}).
 
 @item :actions (@var{key} @var{title} @var{key} @var{title} ...)
 A list of actions to be applied.  @var{key} and @var{title} are both
