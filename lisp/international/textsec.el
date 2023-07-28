@@ -395,7 +395,7 @@ suspicious by, respectively, `textsec-local-address-suspicious-p'
 and `textsec-domain-suspicious-p'."
   (pcase-let ((`(,local ,domain) (split-string address "@")))
     (or
-     (textsec-domain-suspicious-p domain)
+     (if domain (textsec-domain-suspicious-p domain))
      (textsec-local-address-suspicious-p local))))
 
 (defun textsec-email-address-header-suspicious-p (email)
@@ -417,7 +417,7 @@ and `textsec-name-suspicious-p'."
                      (mail-header-parse-address email t)
                    (error (throw 'end "Email address can't be parsed.")))))
       (or
-       (textsec-email-address-suspicious-p  address)
+       (and address (textsec-email-address-suspicious-p address))
        (and name (textsec-name-suspicious-p name))))))
 
 (defun textsec-url-suspicious-p (url)
