@@ -2656,7 +2656,7 @@ emacs_fclose (FILE *stream)
 
 /* Wrappers around unlink, symlink, rename, renameat_noreplace, and
    rmdir.  These operations handle asset and content directories on
-   Android.  */
+   Android, and may return EINTR.  */
 
 int
 emacs_unlink (const char *name)

@@ -257,6 +257,23 @@ public final class EmacsNative
 
   public static native void notifyPixelsChanged (Bitmap bitmap);
 
+
+  /* Functions used to synchronize document provider access with the
+     main thread.  */
+
+  /* Wait for a call to `safPostRequest' while also reading async
+     input.
+
+     If asynchronous input arrives and sets Vquit_flag, return 1.  */
+  public static native int safSyncAndReadInput ();
+
+  /* Wait for a call to `safPostRequest'.  */
+  public static native void safSync ();
+
+  /* Post the semaphore used to await the completion of SAF
+     operations.  */
+  public static native void safPostRequest ();
+
   static
   {
     /* Older versions of Android cannot link correctly with shared

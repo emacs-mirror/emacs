@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <minmax.h>
 #include <string.h>
+#include <semaphore.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -34,6 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "android.h"
 #include "systime.h"
+#include "blockinput.h"
 
 #if __ANDROID_API__ >= 9
 #include <android/asset_manager.h>
@@ -278,6 +280,7 @@ static struct android_parcel_file_descriptor_class fd_class;
 
 /* Global references to several exception classes.  */
 static jclass file_not_found_exception, security_exception;
+static jclass operation_canceled_exception;
 static jclass unsupported_operation_exception, out_of_memory_error;
 
 /* Initialize `cursor_class' using the given JNI environment ENV.
@@ -3692,6 +3695,10 @@ android_saf_root_get_directory (int dirfd)
 
 /* Functions common to both SAF directory and file nodes.  */
 
+/* Whether or not Emacs is within an operation running from the SAF
+   thread.  */
+static bool inside_saf_critical_section;
+
 /* Check for JNI exceptions, clear them, and set errno accordingly.
    Also, free each of the N local references given as arguments if an
    exception takes place.
@@ -3703,6 +3710,9 @@ android_saf_root_get_directory (int dirfd)
 
    If the exception thrown derives from SecurityException, set errno
    to EACCES.
+
+   If the exception thrown derives from OperationCanceledException,
+   set errno to EINTR.
 
    If the exception thrown derives from UnsupportedOperationException,
    set errno to ENOSYS.
@@ -3755,6 +3765,9 @@ android_saf_exception_check (int n, ...)
 				 security_exception))
     errno = EACCES;
   else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 operation_canceled_exception))
+    errno = EINTR;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
 				 unsupported_operation_exception))
     errno = ENOSYS;
   else if ((*env)->IsInstanceOf (env, (jobject) exception,
@@ -3786,6 +3799,15 @@ android_saf_stat (const char *uri_name, const char *id_name,
   jobject status;
   jlong mode, size, mtim, *longs;
 
+  /* Now guarantee that it is safe to call functions which
+     synchronize with the SAF thread.  */
+
+  if (inside_saf_critical_section)
+    {
+      errno = EIO;
+      return -1;
+    }
+
   /* Build strings for both URI and ID.  */
   uri = (*android_java_env)->NewStringUTF (android_java_env, uri_name);
   android_exception_check ();
@@ -3801,10 +3823,12 @@ android_saf_stat (const char *uri_name, const char *id_name,
 
   /* Try to retrieve the file status.  */
   method = service_class.stat_document;
+  inside_saf_critical_section = true;
   status = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
 							    emacs_service,
 							    service_class.class,
 							    method, uri, id);
+  inside_saf_critical_section = false;
 
   /* Check for exceptions and release unneeded local references.  */
 
@@ -3870,6 +3894,15 @@ android_saf_access (const char *uri_name, const char *id_name,
   jstring uri, id;
   jint rc;
 
+  /* Now guarantee that it is safe to call functions which
+     synchronize with the SAF thread.  */
+
+  if (inside_saf_critical_section)
+    {
+      errno = EIO;
+      return -1;
+    }
+
   /* Build strings for both URI and ID.  */
   uri = (*android_java_env)->NewStringUTF (android_java_env, uri_name);
   android_exception_check ();
@@ -3885,11 +3918,13 @@ android_saf_access (const char *uri_name, const char *id_name,
 
   /* Try to retrieve the file status.  */
   method = service_class.access_document;
+  inside_saf_critical_section = true;
   rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
 						     emacs_service,
 						     service_class.class,
 						     method, uri, id,
 						     (jboolean) writable);
+  inside_saf_critical_section = false;
 
   /* Check for exceptions and release unneeded local references.  */
 
@@ -4161,7 +4196,19 @@ android_document_id_from_name (const char *tree_uri, char *name,
      contain characters that can't be encoded in Java.  */
 
   if (android_verify_jni_string (name))
-    return -1;
+    {
+      errno = ENOENT;
+      return -1;
+    }
+
+  /* Now guarantee that it is safe to call
+     `document_id_from_name'.  */
+
+  if (inside_saf_critical_section)
+    {
+      errno = EIO;
+      return -1;
+    }
 
   /* First, create the array that will hold the result.  */
   result = (*android_java_env)->NewObjectArray (android_java_env, 1,
@@ -4176,14 +4223,17 @@ android_document_id_from_name (const char *tree_uri, char *name,
   uri = (*android_java_env)->NewStringUTF (android_java_env, tree_uri);
   android_exception_check_2 (result, java_name);
 
-  /* Now, call documentIdFromName.  */
+  /* Now, call documentIdFromName.  This will synchronize with the SAF
+     thread, so make sure reentrant calls don't happen.  */
   method = service_class.document_id_from_name;
+  inside_saf_critical_section = true;
   rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
 						     emacs_service,
 						     service_class.class,
 						     method,
 						     uri, java_name,
 						     result);
+  inside_saf_critical_section = false;
 
   if (android_saf_exception_check (3, result, uri, java_name))
     goto finish;
@@ -4562,6 +4612,12 @@ android_saf_tree_opendir_1 (struct android_saf_tree_vnode *vp)
   jobject uri, id, cursor;
   jmethodID method;
 
+  if (inside_saf_critical_section)
+    {
+      errno = EIO;
+      return NULL;
+    }
+
   /* Build strings for both URI and ID.  */
   uri = (*android_java_env)->NewStringUTF (android_java_env,
 					   vp->tree_uri);
@@ -4578,11 +4634,13 @@ android_saf_tree_opendir_1 (struct android_saf_tree_vnode *vp)
 
   /* Try to open the cursor.  */
   method = service_class.open_document_directory;
+  inside_saf_critical_section = true;
   cursor
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
 						       emacs_service,
 						       service_class.class,
 						       method, uri, id);
+  inside_saf_critical_section = false;
 
   if (id)
     {
@@ -5001,6 +5059,12 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
   struct android_parcel_fd *info;
   struct stat statb;
 
+  if (inside_saf_critical_section)
+    {
+      errno = EIO;
+      return -1;
+    }
+
   /* Build strings for both the URI and ID.  */
 
   vp = (struct android_saf_file_vnode *) vnode;
@@ -5016,12 +5080,14 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
   method = service_class.open_document;
   trunc  = flags & O_TRUNC;
   write  = ((flags & O_RDWR) == O_RDWR || (flags & O_WRONLY));
+  inside_saf_critical_section = true;
   descriptor
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
 						       emacs_service,
 						       service_class.class,
 						       method, uri, id,
 						       write, trunc);
+  inside_saf_critical_section = false;
 
   if (android_saf_exception_check (2, uri, id))
     return -1;
@@ -5468,6 +5534,48 @@ android_saf_new_opendir (struct android_vnode *vnode)
 
 
 
+/* Synchronization between SAF and Emacs.  Consult EmacsSafThread.java
+   for more details.  */
+
+/* Semaphore posted upon the completion of an SAF operation.  */
+static sem_t saf_completion_sem;
+
+JNIEXPORT jint JNICALL
+NATIVE_NAME (safSyncAndReadInput) (JNIEnv *env, jobject object)
+{
+  while (sem_wait (&saf_completion_sem) < 0)
+    {
+      if (input_blocked_p ())
+	continue;
+
+      process_pending_signals ();
+
+      if (!NILP (Vquit_flag))
+	{
+	  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			       "quitting from IO operation");
+	  return 1;
+	}
+    }
+
+  return 0;
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (safSync) (JNIEnv *env, jobject object)
+{
+  while (sem_wait (&saf_completion_sem) < 0)
+    process_pending_signals ();
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (safPostRequest) (JNIEnv *env, jobject object)
+{
+  sem_post (&saf_completion_sem);
+}
+
+
+
 /* Root vnode.  This vnode represents the root inode, and is a regular
    Unix vnode with modifications to `name' that make it return asset
    vnodes.  */
@@ -5692,6 +5800,11 @@ android_vfs_init (JNIEnv *env, jobject manager)
   (*env)->DeleteLocalRef (env, old);
   eassert (security_exception);
 
+  old = (*env)->FindClass (env, "android/os/OperationCanceledException");
+  operation_canceled_exception = (*env)->NewGlobalRef (env, old);
+  (*env)->DeleteLocalRef (env, old);
+  eassert (operation_canceled_exception);
+
   old = (*env)->FindClass (env, "java/lang/UnsupportedOperationException");
   unsupported_operation_exception = (*env)->NewGlobalRef (env, old);
   (*env)->DeleteLocalRef (env, old);
@@ -5701,6 +5814,12 @@ android_vfs_init (JNIEnv *env, jobject manager)
   out_of_memory_error = (*env)->NewGlobalRef (env, old);
   (*env)->DeleteLocalRef (env, old);
   eassert (out_of_memory_error);
+
+  /* Initialize the semaphore used to wait for SAF operations to
+     complete.  */
+
+  if (sem_init (&saf_completion_sem, 0, 0) < 0)
+    emacs_abort ();
 }
 
 /* The replacement functions that follow have several major
@@ -5753,6 +5872,12 @@ android_vfs_init (JNIEnv *env, jobject manager)
 
    The sixth is that flags and other argument checking is nowhere near
    exhaustive on vnode types other than Unix vnodes.
+
+   The seventh is that certain vnode types may read async input and
+   return EINTR not upon the arrival of a signal itself, but instead
+   if subsequently read input causes Vquit_flag to be set.  These
+   vnodes may not be reentrant, but operating on them from within an
+   async input handler will at worst cause an error to be returned.
 
    And the final drawback is that directories cannot be directly
    opened.  Instead, `dirfd' must be called on a directory stream used
@@ -6409,7 +6534,8 @@ android_asset_fstat (struct android_fd_or_asset asset,
 /* Directory listing emulation.  */
 
 /* Open a directory stream from the VFS node designated by NAME.
-   Value is NULL upon failure with errno set accordingly.
+   Value is NULL upon failure with errno set accordingly.  `errno' may
+   be set to EINTR.
 
    The directory stream returned holds local references to JNI objects
    and shouldn't be used after the current local reference frame is

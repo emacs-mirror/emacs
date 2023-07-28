@@ -115,10 +115,19 @@ open_directory (Lisp_Object dirname, Lisp_Object encoded_dirname, int *fdp)
 #ifndef HAVE_ANDROID
   d = opendir (name);
 #else
+  /* `android_opendir' can return EINTR if DIRNAME designates a file
+     within a slow-to-respond document provider.  */
+
+ again:
   d = android_opendir (name);
 
   if (d)
     fd = android_dirfd (d);
+  else if (errno == EINTR)
+    {
+      maybe_quit ();
+      goto again;
+    }
 #endif
   opendir_errno = errno;
 #else

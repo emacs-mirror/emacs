@@ -305,14 +305,10 @@ file-system.  In addition, although Emacs can normally write and
 create files inside these directories, it cannot create symlinks or
 hard links.
 
-@c TODO: fix this!
   Since document providers are allowed to perform expensive network
 operations to obtain file contents, a file access operation within one
-of these directories will possibly take a significant amount of time.
-Emacs presently does not support quitting out of such file system
-operations, and the timeouts applied are fully subject to the
-discretion of the system and the document provider that is responding
-to these operations.
+of these directories has the potential to take a significant amount of
+time.
 
 @node Android Environment
 @section Running Emacs under Android

@@ -109,13 +109,6 @@ public final class EmacsService extends Service
   public static final int IC_MODE_ACTION = 1;
   public static final int IC_MODE_TEXT   = 2;
 
-  /* File access mode constants.  See `man 7 inode'.  */
-  public static final int S_IRUSR = 0000400;
-  public static final int S_IWUSR = 0000200;
-  public static final int S_IFCHR = 0020000;
-  public static final int S_IFDIR = 0040000;
-  public static final int S_IFREG = 0100000;
-
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
 
@@ -133,6 +126,10 @@ public final class EmacsService extends Service
      Value is 0 if no query is in progress, 1 if viewGetSelection is
      being called, and 2 if icBeginSynchronous was called.  */
   public static final AtomicInteger servicingQuery;
+
+  /* Thread used to query document providers, or null if it hasn't
+     been created yet.  */
+  private EmacsSafThread storageThread;
 
   static
   {
@@ -1160,10 +1157,7 @@ public final class EmacsService extends Service
 
 
   /* Document tree management functions.  These functions shouldn't be
-     called before Android 5.0.
-
-     TODO: a timeout, let alone quitting, has yet to be implemented
-     for any of these functions.  */
+     called before Android 5.0.  */
 
   /* Return an array of each document authority providing at least one
      tree URI that Emacs holds the rights to persistently access.  */
@@ -1319,223 +1313,26 @@ public final class EmacsService extends Service
 
      If the designated file can't be located, but each component of
      NAME up to the last component can and is a directory, return -2
-     and the ID of the last component located in ID_RETURN[0];
+     and the ID of the last component located in ID_RETURN[0].
 
-     If the designated file can't be located, return -1.  */
+     If the designated file can't be located, return -1, or signal one
+     of OperationCanceledException, SecurityException,
+     FileNotFoundException, or UnsupportedOperationException.  */
 
   private int
   documentIdFromName (String tree_uri, String name, String[] id_return)
   {
-    Uri uri, treeUri;
-    String id, type;
-    String[] components, projection;
-    Cursor cursor;
-    int column;
+    /* Start the thread used to run SAF requests if it isn't already
+       running.  */
 
-    projection = new String[] {
-      Document.COLUMN_DISPLAY_NAME,
-      Document.COLUMN_DOCUMENT_ID,
-      Document.COLUMN_MIME_TYPE,
-    };
-
-    /* Parse the URI identifying the tree first.  */
-    uri = Uri.parse (tree_uri);
-
-    /* Now, split NAME into its individual components.  */
-    components = name.split ("/");
-
-    /* Set id and type to the value at the root of the tree.  */
-    type = id = null;
-
-    /* For each component... */
-
-    for (String component : components)
+    if (storageThread == null)
       {
-	/* Java split doesn't behave very much like strtok when it
-	   comes to trailing and leading delimiters...  */
-	if (component.isEmpty ())
-	  continue;
-
-	/* Create the tree URI for URI from ID if it exists, or the
-	   root otherwise.  */
-
-	if (id == null)
-	  id = DocumentsContract.getTreeDocumentId (uri);
-
-	treeUri
-	  = DocumentsContract.buildChildDocumentsUriUsingTree (uri, id);
-
-	/* Look for a file in this directory by the name of
-	   component.  */
-
-	try
-	  {
-	    cursor = resolver.query (treeUri, projection,
-				     (Document.COLUMN_DISPLAY_NAME
-				      + " = ?s"),
-				     new String[] { component, }, null);
-	  }
-	catch (SecurityException exception)
-	  {
-	    /* A SecurityException can be thrown if Emacs doesn't have
-	       access to treeUri.  */
-	    return -1;
-	  }
-	catch (Exception exception)
-	  {
-	    exception.printStackTrace ();
-
-	    /* Why is this? */
-	    return -1;
-	  }
-
-	if (cursor == null)
-	  return -1;
-
-	while (true)
-	  {
-	    /* Even though the query selects for a specific display
-	       name, some content providers nevertheless return every
-	       file within the directory.  */
-
-	    if (!cursor.moveToNext ())
-	      {
-		cursor.close ();
-
-		/* If the last component considered is a
-		   directory... */
-		if ((type == null
-		     || type.equals (Document.MIME_TYPE_DIR))
-		    /* ... and type and id currently represent the
-		       penultimate component.  */
-		    && component == components[components.length  - 1])
-		  {
-		    /* The cursor is empty.  In this case, return -2
-		       and the current document ID (belonging to the
-		       previous component) in ID_RETURN.  */
-
-		    id_return[0] = id;
-
-		    /* But return -1 on the off chance that id is
-		       null.  */
-
-		    if (id == null)
-		      return -1;
-
-		    return -2;
-		  }
-
-		/* The last component found is not a directory, so
-		   return -1.  */
-		return -1;
-	      }
-
-	    /* So move CURSOR to a row with the right display
-	       name.  */
-
-	    column = cursor.getColumnIndex (Document.COLUMN_DISPLAY_NAME);
-
-	    if (column < 0)
-	      continue;
-
-	    try
-	      {
-		name = cursor.getString (column);
-	      }
-	    catch (Exception exception)
-	      {
-		cursor.close ();
-		return -1;
-	      }
-
-	    /* Break out of the loop only once a matching component is
-	       found.  */
-
-	    if (name.equals (component))
-	      break;
-	  }
-
-	/* Look for a column by the name of COLUMN_DOCUMENT_ID.  */
-
-	column = cursor.getColumnIndex (Document.COLUMN_DOCUMENT_ID);
-
-	if (column < 0)
-	  {
-	    cursor.close ();
-	    return -1;
-	  }
-
-	/* Now replace ID with the document ID.  */
-
-	try
-	  {
-	    id = cursor.getString (column);
-	  }
-	catch (Exception exception)
-	  {
-	    cursor.close ();
-	    return -1;
-	  }
-
-	/* If this is the last component, be sure to initialize the
-	   document type.  */
-
-	if (component == components[components.length - 1])
-	  {
-	    column
-	      = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
-
-	    if (column < 0)
-	      {
-		cursor.close ();
-		return -1;
-	      }
-
-	    try
-	      {
-		type = cursor.getString (column);
-	      }
-	    catch (Exception exception)
-	      {
-		cursor.close ();
-		return -1;
-	      }
-
-	    /* Type may be NULL depending on how the Cursor returned
-	       is implemented.  */
-
-	    if (type == null)
-	      {
-		cursor.close ();
-		return -1;
-	      }
-	  }
-
-	/* Now close the cursor.  */
-	cursor.close ();
-
-	/* ID may have become NULL if the data is in an invalid
-	   format.  */
-	if (id == null)
-	  return -1;
+	storageThread = new EmacsSafThread (resolver);
+	storageThread.start ();
       }
 
-    /* Here, id is either NULL (meaning the same as TREE_URI), and
-       type is either NULL (in which case id should also be NULL) or
-       the MIME type of the file.  */
-
-    /* First return the ID.  */
-
-    if (id == null)
-      id_return[0] = DocumentsContract.getTreeDocumentId (uri);
-    else
-      id_return[0] = id;
-
-    /* Next, return whether or not this is a directory.  */
-    if (type == null || type.equals (Document.MIME_TYPE_DIR))
-      return 1;
-
-    return 0;
+    return storageThread.documentIdFromName (tree_uri, name,
+					     id_return);
   }
 
   /* Return an encoded document URI representing a tree with the
@@ -1585,130 +1382,24 @@ public final class EmacsService extends Service
      modes of the file as in `struct stat', SIZE is the size of the
      file in BYTES or -1 if not known, and MTIM is the time of the
      last modification to this file in milliseconds since 00:00,
-     January 1st, 1970.  */
+     January 1st, 1970.
+
+     OperationCanceledException and other typical exceptions may be
+     signaled upon receiving async input or other errors.  */
 
   public long[]
   statDocument (String uri, String documentId)
   {
-    Uri uriObject;
-    String[] projection;
-    long[] stat;
-    int index;
-    long tem;
-    String tem1;
-    Cursor cursor;
+    /* Start the thread used to run SAF requests if it isn't already
+       running.  */
 
-    uriObject = Uri.parse (uri);
-
-    if (documentId == null)
-      documentId = DocumentsContract.getTreeDocumentId (uriObject);
-
-    /* Create a document URI representing DOCUMENTID within URI's
-       authority.  */
-
-    uriObject
-      = DocumentsContract.buildDocumentUriUsingTree (uriObject, documentId);
-
-    /* Now stat this document.  */
-
-    projection = new String[] {
-      Document.COLUMN_FLAGS,
-      Document.COLUMN_LAST_MODIFIED,
-      Document.COLUMN_MIME_TYPE,
-      Document.COLUMN_SIZE,
-    };
-
-    try
+    if (storageThread == null)
       {
-	cursor = resolver.query (uriObject, projection, null,
-				 null, null);
-      }
-    catch (SecurityException exception)
-      {
-	/* A SecurityException can be thrown if Emacs doesn't have
-	   access to uriObject.  */
-	return null;
-      }
-    catch (UnsupportedOperationException exception)
-      {
-	exception.printStackTrace ();
-
-	/* Why is this? */
-	return null;
+	storageThread = new EmacsSafThread (resolver);
+	storageThread.start ();
       }
 
-    if (cursor == null || !cursor.moveToFirst ())
-      return null;
-
-    /* Create the array of file status.  */
-    stat = new long[3];
-
-    try
-      {
-	index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
-	if (index < 0)
-	  return null;
-
-	tem = cursor.getInt (index);
-
-	stat[0] |= S_IRUSR;
-	if ((tem & Document.FLAG_SUPPORTS_WRITE) != 0)
-	  stat[0] |= S_IWUSR;
-
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-	    && (tem & Document.FLAG_VIRTUAL_DOCUMENT) != 0)
-	  stat[0] |= S_IFCHR;
-
-	index = cursor.getColumnIndex (Document.COLUMN_SIZE);
-	if (index < 0)
-	  return null;
-
-	if (cursor.isNull (index))
-	  stat[1] = -1; /* The size is unknown.  */
-	else
-	  stat[1] = cursor.getLong (index);
-
-	index = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
-	if (index < 0)
-	  return null;
-
-	tem1 = cursor.getString (index);
-
-	/* Check if this is a directory file.  */
-	if (tem1.equals (Document.MIME_TYPE_DIR)
-	    /* Files shouldn't be specials and directories at the same
-	       time, but Android doesn't forbid document providers
-	       from returning this information.  */
-	    && (stat[0] & S_IFCHR) == 0)
-	  /* Since FLAG_SUPPORTS_WRITE doesn't apply to directories,
-	     just assume they're writable.  */
-	  stat[0] |= S_IFDIR | S_IWUSR;
-
-	/* If this file is neither a character special nor a
-	   directory, indicate that it's a regular file.  */
-
-	if ((stat[0] & (S_IFDIR | S_IFCHR)) == 0)
-	  stat[0] |= S_IFREG;
-
-	index = cursor.getColumnIndex (Document.COLUMN_LAST_MODIFIED);
-
-	if (index >= 0 && !cursor.isNull (index))
-	  {
-	    /* Content providers are allowed to not provide mtime.  */
-	    tem = cursor.getLong (index);
-	    stat[2] = tem;
-	  }
-      }
-    catch (Exception exception)
-      {
-	/* Whether or not type errors cause exceptions to be signaled
-	   is defined ``by the implementation of Cursor'', whatever
-	   that means.  */
-	exception.printStackTrace ();
-	return null;
-      }
-
-    return stat;
+    return storageThread.statDocument (uri, documentId);
   }
 
   /* Find out whether Emacs has access to the document designated by
@@ -1733,83 +1424,16 @@ public final class EmacsService extends Service
   public int
   accessDocument (String uri, String documentId, boolean writable)
   {
-    Uri uriObject;
-    String[] projection;
-    int tem, index;
-    String tem1;
-    Cursor cursor;
+    /* Start the thread used to run SAF requests if it isn't already
+       running.  */
 
-    uriObject = Uri.parse (uri);
-
-    if (documentId == null)
-      documentId = DocumentsContract.getTreeDocumentId (uriObject);
-
-    /* Create a document URI representing DOCUMENTID within URI's
-       authority.  */
-
-    uriObject
-      = DocumentsContract.buildDocumentUriUsingTree (uriObject, documentId);
-
-    /* Now stat this document.  */
-
-    projection = new String[] {
-      Document.COLUMN_FLAGS,
-      Document.COLUMN_MIME_TYPE,
-    };
-
-    cursor = resolver.query (uriObject, projection, null,
-			     null, null);
-
-    if (cursor == null || !cursor.moveToFirst ())
-      return -1;
-
-    if (!writable)
-      return 0;
-
-    try
+    if (storageThread == null)
       {
-	index = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
-	if (index < 0)
-	  return -3;
-
-	/* Get the type of this file to check if it's a directory.  */
-	tem1 = cursor.getString (index);
-
-	/* Check if this is a directory file.  */
-	if (tem1.equals (Document.MIME_TYPE_DIR))
-	  {
-	    /* If so, don't check for FLAG_SUPPORTS_WRITE.
-	       Check for FLAG_DIR_SUPPORTS_CREATE instead.  */
-
-	    if (!writable)
-	      return 0;
-
-	    index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
-	    if (index < 0)
-	      return -3;
-
-	    tem = cursor.getInt (index);
-	    if ((tem & Document.FLAG_DIR_SUPPORTS_CREATE) == 0)
-	      return -3;
-
-	    return 0;
-	  }
-
-	index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
-	if (index < 0)
-	  return -3;
-
-	tem = cursor.getInt (index);
-	if (writable && (tem & Document.FLAG_SUPPORTS_WRITE) == 0)
-	  return -3;
-      }
-    finally
-      {
-	/* Close the cursor if an exception occurs.  */
-	cursor.close ();
+	storageThread = new EmacsSafThread (resolver);
+	storageThread.start ();
       }
 
-    return 0;
+    return storageThread.accessDocument (uri, documentId, writable);
   }
 
   /* Open a cursor representing each entry within the directory
@@ -1825,34 +1449,16 @@ public final class EmacsService extends Service
   public Cursor
   openDocumentDirectory (String uri, String documentId)
   {
-    Uri uriObject;
-    Cursor cursor;
-    String projection[];
+    /* Start the thread used to run SAF requests if it isn't already
+       running.  */
 
-    uriObject = Uri.parse (uri);
+    if (storageThread == null)
+      {
+	storageThread = new EmacsSafThread (resolver);
+	storageThread.start ();
+      }
 
-    /* If documentId is not set, use the document ID of the tree URI
-       itself.  */
-
-    if (documentId == null)
-      documentId = DocumentsContract.getTreeDocumentId (uriObject);
-
-    /* Build a URI representing each directory entry within
-       DOCUMENTID.  */
-
-    uriObject
-      = DocumentsContract.buildChildDocumentsUriUsingTree (uriObject,
-							   documentId);
-
-    projection = new String [] {
-      Document.COLUMN_DISPLAY_NAME,
-      Document.COLUMN_MIME_TYPE,
-    };
-
-    cursor = resolver.query (uriObject, projection, null, null,
-			     null);
-    /* Return the cursor.  */
-    return cursor;
+    return storageThread.openDocumentDirectory (uri, documentId);
   }
 
   /* Read a single directory entry from the specified CURSOR.  Return
@@ -1945,50 +1551,18 @@ public final class EmacsService extends Service
   public ParcelFileDescriptor
   openDocument (String uri, String documentId, boolean write,
 		boolean truncate)
-    throws FileNotFoundException
   {
-    Uri treeUri, documentUri;
-    String mode;
-    ParcelFileDescriptor fileDescriptor;
+    /* Start the thread used to run SAF requests if it isn't already
+       running.  */
 
-    treeUri = Uri.parse (uri);
-
-    /* documentId must be set for this request, since it doesn't make
-       sense to ``open'' the root of the directory tree.  */
-
-    documentUri
-      = DocumentsContract.buildDocumentUriUsingTree (treeUri, documentId);
-
-    if (write || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+    if (storageThread == null)
       {
-	/* Select the mode used to open the file.  `rw' means open
-	   a stat-able file, while `rwt' means that and to
-	   truncate the file as well.  */
-
-	if (truncate)
-	  mode = "rwt";
-	else
-	  mode = "rw";
-
-	fileDescriptor
-	  = resolver.openFileDescriptor (documentUri, mode,
-					 null);
-      }
-    else
-      {
-	/* Select the mode used to open the file.  `openFile'
-	   below means always open a stat-able file.  */
-
-	if (truncate)
-	  /* Invalid mode! */
-	  return null;
-	else
-	  mode = "r";
-
-	fileDescriptor = resolver.openFile (documentUri, mode, null);
+	storageThread = new EmacsSafThread (resolver);
+	storageThread.start ();
       }
 
-    return fileDescriptor;
+    return storageThread.openDocument (uri, documentId, write,
+				       truncate);
   }
 
   /* Create a new document with the given display NAME within the
