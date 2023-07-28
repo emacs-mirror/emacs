@@ -4179,7 +4179,9 @@ android_verify_jni_string (const char *name)
    document ID of that directory within *ID.
 
    If the designated file can't be located, return -1 and set errno
-   accordingly.  */
+   accordingly.  The reasons for which a file can't be located are not
+   all immediately obvious: quitting, for example, can cause document
+   ID lookup to be canceled.  */
 
 static int
 android_document_id_from_name (const char *tree_uri, char *name,
@@ -4236,7 +4238,10 @@ android_document_id_from_name (const char *tree_uri, char *name,
   inside_saf_critical_section = false;
 
   if (android_saf_exception_check (3, result, uri, java_name))
-    goto finish;
+    {
+      rc = -1;
+      goto finish;
+    }
 
   ANDROID_DELETE_LOCAL_REF (uri);
   ANDROID_DELETE_LOCAL_REF (java_name);
