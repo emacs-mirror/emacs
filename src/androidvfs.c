@@ -276,6 +276,10 @@ static struct emacs_directory_entry_class entry_class;
    class.  */
 static struct android_parcel_file_descriptor_class fd_class;
 
+/* Global references to several exception classes.  */
+static jclass file_not_found_exception, security_exception;
+static jclass unsupported_operation_exception, out_of_memory_error;
+
 /* Initialize `cursor_class' using the given JNI environment ENV.
    Calling this function is not necessary on Android 4.4 and
    earlier.  */
@@ -3688,6 +3692,85 @@ android_saf_root_get_directory (int dirfd)
 
 /* Functions common to both SAF directory and file nodes.  */
 
+/* Check for JNI exceptions, clear them, and set errno accordingly.
+   Also, free each of the N local references given as arguments if an
+   exception takes place.
+
+   Value is 1 if an exception has taken place, 0 otherwise.
+
+   If the exception thrown derives from FileNotFoundException, set
+   errno to ENOENT.
+
+   If the exception thrown derives from SecurityException, set errno
+   to EACCES.
+
+   If the exception thrown derives from UnsupportedOperationException,
+   set errno to ENOSYS.
+
+   If the exception thrown derives from OutOfMemoryException, call
+   `memory_full'.
+
+   If the exception thrown is anything else, set errno to EIO.  */
+
+static int
+android_saf_exception_check (int n, ...)
+{
+  jthrowable exception;
+  JNIEnv *env;
+  va_list ap;
+
+  env = android_java_env;
+  va_start (ap, n);
+
+  /* First, check for an exception.  */
+
+  if (!(*env)->ExceptionCheck (env))
+    /* No exception has taken place.  Return 0.  */
+    return 0;
+
+  exception = (*env)->ExceptionOccurred (env);
+
+  if (!exception)
+    /* JNI couldn't return a local reference to the exception.  */
+    memory_full (0);
+
+  /* Clear the exception, making it safe to subsequently call other
+     JNI functions.  */
+  (*env)->ExceptionClear (env);
+
+  /* Delete each of the N arguments.  */
+
+  while (n > 0)
+    {
+      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
+      n--;
+    }
+
+  /* Now set errno or signal memory_full as required.  */
+
+  if ((*env)->IsInstanceOf (env, (jobject) exception,
+			    file_not_found_exception))
+    errno = ENOENT;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 security_exception))
+    errno = EACCES;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 unsupported_operation_exception))
+    errno = ENOSYS;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 out_of_memory_error))
+    {
+      ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+      memory_full (0);
+    }
+  else
+    errno = EIO;
+
+  /* expression is still a local reference! */
+  ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+  return 1;
+}
+
 /* Return file status for the document designated by ID_NAME within
    the document tree identified by URI_NAME.
 
@@ -3727,11 +3810,13 @@ android_saf_stat (const char *uri_name, const char *id_name,
 
   if (id)
     {
-      android_exception_check_2 (uri, id);
+      if (android_saf_exception_check (2, uri, id))
+	return -1;
+
       ANDROID_DELETE_LOCAL_REF (id);
     }
-  else
-    android_exception_check_1 (uri);
+  else if (android_saf_exception_check (1, uri))
+    return -1;
 
   ANDROID_DELETE_LOCAL_REF (uri);
 
@@ -3810,11 +3895,13 @@ android_saf_access (const char *uri_name, const char *id_name,
 
   if (id)
     {
-      android_exception_check_2 (uri, id);
+      if (android_saf_exception_check (2, uri, id))
+	return -1;
+
       ANDROID_DELETE_LOCAL_REF (id);
     }
-  else
-    android_exception_check_1 (uri);
+  else if (android_saf_exception_check (1, uri))
+    return -1;
 
   ANDROID_DELETE_LOCAL_REF (uri);
 
@@ -3837,6 +3924,46 @@ android_saf_access (const char *uri_name, const char *id_name,
     }
 
   /* Return success.  */
+  return 0;
+}
+
+/* Delete the document designated by DOC_ID within the tree identified
+   through the URI TREE.  Return 0 if the document has been deleted,
+   set errno and return -1 upon failure.  */
+
+static int
+android_saf_delete_document (const char *tree, const char *doc_id)
+{
+  jobject id, uri;
+  jmethodID method;
+  jint rc;
+
+  /* Build the strings holding the ID and URI.  */
+  id = (*android_java_env)->NewStringUTF (android_java_env,
+					  doc_id);
+  android_exception_check ();
+  uri = (*android_java_env)->NewStringUTF (android_java_env,
+					   tree);
+  android_exception_check_1 (id);
+
+  /* Now, try to delete the document.  */
+  method = service_class.delete_document;
+  rc = (*android_java_env)->CallIntMethod (android_java_env,
+					   emacs_service,
+					   method, uri, id);
+
+  if (android_saf_exception_check (2, id, uri))
+    return -1;
+
+  ANDROID_DELETE_LOCAL_REF (id);
+  ANDROID_DELETE_LOCAL_REF (uri);
+
+  if (rc)
+    {
+      errno = EACCES;
+      return -1;
+    }
+
   return 0;
 }
 
@@ -3863,7 +3990,9 @@ struct android_saf_tree_vnode
   char *tree_id;
 
   /* The document ID of the directory represented, or NULL if this is
-     the root directory of the tree.  */
+     the root directory of the tree.  Since file and new vnodes don't
+     represent the root directory, this field is always set in
+     them.  */
   char *document_id;
 
   /* The file name of this tree vnode.  This is a ``path'' to the
@@ -4004,7 +4133,7 @@ android_verify_jni_string (const char *name)
    must name a directory file within TREE_URI.
 
    If NAME is not correct for the Java ``modified UTF-8'' coding
-   system, return -1.
+   system, return -1 and set errno to ENOENT.
 
    Upon success, return 0 or 1 (contingent upon whether or not the
    last component within NAME is a directory) and place the document
@@ -4014,7 +4143,8 @@ android_verify_jni_string (const char *name)
    within NAME does and is also a directory, return -2 and place the
    document ID of that directory within *ID.
 
-   If the designated file can't be located, return -1.  */
+   If the designated file can't be located, return -1 and set errno
+   accordingly.  */
 
 static int
 android_document_id_from_name (const char *tree_uri, char *name,
@@ -4023,7 +4153,6 @@ android_document_id_from_name (const char *tree_uri, char *name,
   jobjectArray result;
   jstring uri;
   jbyteArray java_name;
-  size_t length;
   jint rc;
   jmethodID method;
   const char *doc_id;
@@ -4055,7 +4184,10 @@ android_document_id_from_name (const char *tree_uri, char *name,
 						     method,
 						     uri, java_name,
 						     result);
-  android_exception_check_3 (result, uri, java_name);
+
+  if (android_saf_exception_check (3, result, uri, java_name))
+    goto finish;
+
   ANDROID_DELETE_LOCAL_REF (uri);
   ANDROID_DELETE_LOCAL_REF (java_name);
 
@@ -4178,7 +4310,6 @@ android_saf_tree_name (struct android_vnode *vnode, char *name,
 
       /* The document ID can't be found.  */
       xfree (filename);
-      errno = ENOENT;
       return NULL;
     }
 
@@ -4354,9 +4485,19 @@ android_saf_tree_symlink (const char *target, struct android_vnode *vnode)
 static int
 android_saf_tree_rmdir (struct android_vnode *vnode)
 {
-  /* TODO */
-  errno = ENOSYS;
-  return -1;
+  struct android_saf_tree_vnode *vp;
+
+  vp = (struct android_saf_tree_vnode *) vnode;
+
+  /* Don't allow deleting the root directory.  */
+
+  if (!vp->document_id)
+    {
+      errno = EROFS;
+      return -1;
+    }
+
+  return android_saf_delete_document (vp->tree_uri, vp->document_id);
 }
 
 static int
@@ -4412,8 +4553,8 @@ android_saf_tree_mkdir (struct android_vnode *vnode, mode_t mode)
 /* Open a database Cursor containing each directory entry within the
    supplied SAF tree vnode VP.
 
-   Value is NULL upon failure, a local reference to the Cursor object
-   otherwise.  */
+   Value is NULL upon failure with errno set to a suitable value, a
+   local reference to the Cursor object otherwise.  */
 
 static jobject
 android_saf_tree_opendir_1 (struct android_saf_tree_vnode *vp)
@@ -4445,11 +4586,13 @@ android_saf_tree_opendir_1 (struct android_saf_tree_vnode *vp)
 
   if (id)
     {
-      android_exception_check_2 (id, uri);
+      if (android_saf_exception_check (2, id, uri))
+	return NULL;
+
       ANDROID_DELETE_LOCAL_REF (id);
     }
-  else
-    android_exception_check_1 (uri);
+  else if (android_saf_exception_check (1, uri))
+    return NULL;
 
   ANDROID_DELETE_LOCAL_REF (uri);
 
@@ -4657,7 +4800,6 @@ android_saf_tree_opendir (struct android_vnode *vnode)
     {
       xfree (dir);
       xfree (dir->name);
-      errno = ENOENT;
       return NULL;
     }
 
@@ -4880,7 +5022,10 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
 						       service_class.class,
 						       method, uri, id,
 						       write, trunc);
-  android_exception_check_2 (uri, id);
+
+  if (android_saf_exception_check (2, uri, id))
+    return -1;
+
   ANDROID_DELETE_LOCAL_REF (uri);
   ANDROID_DELETE_LOCAL_REF (id);
 
@@ -4953,9 +5098,10 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
 static int
 android_saf_file_unlink (struct android_vnode *vnode)
 {
-  /* TODO */
-  errno = ENOSYS;
-  return -1;
+  struct android_saf_file_vnode *vp;
+
+  vp = (struct android_saf_file_vnode *) vnode;
+  return android_saf_delete_document (vp->tree_uri, vp->document_id);
 }
 
 static int
@@ -5114,7 +5260,7 @@ android_saf_new_open (struct android_vnode *vnode, int flags,
     {
       errno = ENOENT;
       return -1;
-    }  
+    }
 
   /* Otherwise, try to create a new document.  First, build strings
      for the name, ID and document URI.  */
@@ -5137,7 +5283,9 @@ android_saf_new_open (struct android_vnode *vnode, int flags,
 							    service_class.class,
 							    method, uri, id,
 							    name);
-  android_exception_check_3 (name, id, uri);
+
+  if (android_saf_exception_check (3, name, id, uri))
+    return -1;
 
   /* Delete unused local references.  */
   ANDROID_DELETE_LOCAL_REF (name);
@@ -5225,9 +5373,90 @@ android_saf_new_access (struct android_vnode *vnode, int mode)
 static int
 android_saf_new_mkdir (struct android_vnode *vnode, mode_t mode)
 {
-  /* TODO */
-  errno = ENOSYS;
-  return -1;
+  struct android_saf_new_vnode *vp;
+  jstring name, id, uri, new_id;
+  jmethodID method;
+  const char *new_doc_id;
+  char *end;
+
+  vp = (struct android_saf_tree_vnode *) vnode;
+
+  /* Find the last component of vp->name.  */
+  end = strrchr (vp->name, '/');
+
+  /* VP->name must contain at least one directory separator.  */
+  eassert (end);
+
+  if (end[1] == '\0')
+    {
+      /* There's a trailing directory separator.  Search
+	 backwards.  */
+
+      end--;
+      while (end != vp->name && *end != '/')
+	end--;
+
+      /* vp->name[0] is always a directory separator.  */
+      eassert (*end == '/');
+    }
+
+  /* Otherwise, try to create a new document.  First, build strings
+     for the name, ID and document URI.  */
+
+  name = (*android_java_env)->NewStringUTF (android_java_env,
+					    end + 1);
+  android_exception_check ();
+  id = (*android_java_env)->NewStringUTF (android_java_env,
+					  vp->document_id);
+  android_exception_check_1 (name);
+  uri = (*android_java_env)->NewStringUTF (android_java_env,
+					   vp->tree_uri);
+  android_exception_check_2 (name, id);
+
+  /* Next, try to create a new document and retrieve its ID.  */
+
+  method = service_class.create_directory;
+  new_id = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+							    emacs_service,
+							    service_class.class,
+							    method, uri, id,
+							    name);
+
+  if (android_saf_exception_check (3, name, id, uri))
+    return -1;
+
+  /* Delete unused local references.  */
+  ANDROID_DELETE_LOCAL_REF (name);
+  ANDROID_DELETE_LOCAL_REF (id);
+  ANDROID_DELETE_LOCAL_REF (uri);
+
+  if (!new_id)
+    {
+      /* The file couldn't be created for some reason.  */
+      errno = EIO;
+      return -1;
+    }
+
+  /* Now, free VP->document_id and replace it with the service
+     document ID.  */
+
+  new_doc_id = (*android_java_env)->GetStringUTFChars (android_java_env,
+						       new_id, NULL);
+
+  if (android_saf_exception_check (3, name, id, uri))
+    return -1;
+
+  xfree (vp->document_id);
+  vp->document_id = xstrdup (new_doc_id);
+
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+					      new_id, new_doc_id);
+  ANDROID_DELETE_LOCAL_REF (new_id);
+
+  /* Finally, transform this vnode into a directory vnode.  */
+  vp->vnode.type = ANDROID_VNODE_SAF_TREE;
+  vp->vnode.ops = &saf_tree_vfs_ops;
+  return 0;
 }
 
 static struct android_vdir *
@@ -5449,6 +5678,29 @@ android_vfs_init (JNIEnv *env, jobject manager)
   android_init_cursor_class (env);
   android_init_entry_class (env);
   android_init_fd_class (env);
+
+  /* Initialize each of the exception classes used by
+     `android_saf_exception_check'.  */
+
+  old = (*env)->FindClass (env, "java/io/FileNotFoundException");
+  file_not_found_exception = (*env)->NewGlobalRef (env, old);
+  (*env)->DeleteLocalRef (env, old);
+  eassert (file_not_found_exception);
+
+  old = (*env)->FindClass (env, "java/lang/SecurityException");
+  security_exception = (*env)->NewGlobalRef (env, old);
+  (*env)->DeleteLocalRef (env, old);
+  eassert (security_exception);
+
+  old = (*env)->FindClass (env, "java/lang/UnsupportedOperationException");
+  unsupported_operation_exception = (*env)->NewGlobalRef (env, old);
+  (*env)->DeleteLocalRef (env, old);
+  eassert (unsupported_operation_exception);
+
+  old = (*env)->FindClass (env, "java/lang/OutOfMemoryError");
+  out_of_memory_error = (*env)->NewGlobalRef (env, old);
+  (*env)->DeleteLocalRef (env, old);
+  eassert (out_of_memory_error);
 }
 
 /* The replacement functions that follow have several major
@@ -5606,7 +5858,7 @@ android_mkdir (const char *name, mode_t mode)
 
   rc = (*vp->ops->mkdir) (vp, mode);
   (*vp->ops->close) (vp);
-  return rc; 
+  return rc;
 }
 
 /* Rename the vnode designated by SRC to the vnode designated by DST.
@@ -5724,7 +5976,7 @@ android_fstat (int fd, struct stat *statb)
   for (tem = afs_file_descriptors; tem; tem = tem->next)
     {
       if (tem->fd == fd)
-	{	  
+	{
 	  memcpy (statb, &tem->statb, sizeof *statb);
 	  return 0;
 	}

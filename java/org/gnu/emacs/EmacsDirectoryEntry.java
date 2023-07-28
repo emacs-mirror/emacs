@@ -22,7 +22,7 @@ package org.gnu.emacs;
 /* Structure holding a single ``directory entry'' from a document
    provider.  */
 
-public class EmacsDirectoryEntry
+public final class EmacsDirectoryEntry
 {
   /* The type of this directory entry.  0 means a regular file and 1
      means a directory.  */

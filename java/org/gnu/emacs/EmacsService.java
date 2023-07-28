@@ -1723,9 +1723,12 @@ public final class EmacsService extends Service
      not:
 
        -1, if the file does not exist.
-       -2, upon a security exception or if WRITABLE the file
-           is not writable.
-       -3, upon any other error.  */
+       -2, if WRITABLE and the file is not writable.
+       -3, upon any other error.
+
+     In addition, arbitrary runtime exceptions (such as
+     SecurityException or UnsupportedOperationException) may be
+     thrown.  */
 
   public int
   accessDocument (String uri, String documentId, boolean writable)
@@ -1754,24 +1757,8 @@ public final class EmacsService extends Service
       Document.COLUMN_MIME_TYPE,
     };
 
-    try
-      {
-	cursor = resolver.query (uriObject, projection, null,
-				 null, null);
-      }
-    catch (SecurityException exception)
-      {
-	/* A SecurityException can be thrown if Emacs doesn't have
-	   access to uriObject.  */
-	return -2;
-      }
-    catch (UnsupportedOperationException exception)
-      {
-	exception.printStackTrace ();
-
-	/* Why is this? */
-	return -3;
-      }
+    cursor = resolver.query (uriObject, projection, null,
+			     null, null);
 
     if (cursor == null || !cursor.moveToFirst ())
       return -1;
@@ -1816,13 +1803,10 @@ public final class EmacsService extends Service
 	if (writable && (tem & Document.FLAG_SUPPORTS_WRITE) == 0)
 	  return -3;
       }
-    catch (Exception exception)
+    finally
       {
-	/* Whether or not type errors cause exceptions to be signaled
-	   is defined ``by the implementation of Cursor'', whatever
-	   that means.  */
-	exception.printStackTrace ();
-	return -3;
+	/* Close the cursor if an exception occurs.  */
+	cursor.close ();
       }
 
     return 0;
@@ -1832,7 +1816,11 @@ public final class EmacsService extends Service
      designated by the specified DOCUMENTID within the tree URI.
 
      If DOCUMENTID is NULL, use the document ID within URI itself.
-     Value is NULL upon failure.  */
+     Value is NULL upon failure.
+
+     In addition, arbitrary runtime exceptions (such as
+     SecurityException or UnsupportedOperationException) may be
+     thrown.  */
 
   public Cursor
   openDocumentDirectory (String uri, String documentId)
@@ -1861,25 +1849,8 @@ public final class EmacsService extends Service
       Document.COLUMN_MIME_TYPE,
     };
 
-    try
-      {
-	cursor = resolver.query (uriObject, projection, null, null,
-				 null);
-      }
-    catch (SecurityException exception)
-      {
-	/* A SecurityException can be thrown if Emacs doesn't have
-	   access to uriObject.  */
-	return null;
-      }
-    catch (UnsupportedOperationException exception)
-      {
-	exception.printStackTrace ();
-
-	/* Why is this? */
-	return null;
-      }
-
+    cursor = resolver.query (uriObject, projection, null, null,
+			     null);
     /* Return the cursor.  */
     return cursor;
   }
@@ -1966,11 +1937,15 @@ public final class EmacsService extends Service
 
      Value is NULL upon failure or a parcel file descriptor upon
      success.  Call `ParcelFileDescriptor.close' on this file
-     descriptor instead of using the `close' system call.  */
+     descriptor instead of using the `close' system call.
+
+     FileNotFoundException and/or SecurityException and
+     UnsupportedOperationException may be thrown upon failure.  */
 
   public ParcelFileDescriptor
   openDocument (String uri, String documentId, boolean write,
 		boolean truncate)
+    throws FileNotFoundException
   {
     Uri treeUri, documentUri;
     String mode;
@@ -1984,40 +1959,33 @@ public final class EmacsService extends Service
     documentUri
       = DocumentsContract.buildDocumentUriUsingTree (treeUri, documentId);
 
-    try
+    if (write || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
       {
-	if (write || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-	  {
-	    /* Select the mode used to open the file.  `rw' means open
-	       a stat-able file, while `rwt' means that and to
-	       truncate the file as well.  */
+	/* Select the mode used to open the file.  `rw' means open
+	   a stat-able file, while `rwt' means that and to
+	   truncate the file as well.  */
 
-	    if (truncate)
-	      mode = "rwt";
-	    else
-	      mode = "rw";
-
-	    fileDescriptor
-	      = resolver.openFileDescriptor (documentUri, mode,
-					     null);
-	  }
+	if (truncate)
+	  mode = "rwt";
 	else
-	  {
-	    /* Select the mode used to open the file.  `openFile'
-	       below means always open a stat-able file.  */
+	  mode = "rw";
 
-	    if (truncate)
-	      /* Invalid mode! */
-	      return null;
-	    else
-	      mode = "r";
-
-	    fileDescriptor = resolver.openFile (documentUri, mode, null);
-	  }
+	fileDescriptor
+	  = resolver.openFileDescriptor (documentUri, mode,
+					 null);
       }
-    catch (Exception exception)
+    else
       {
-	return null;
+	/* Select the mode used to open the file.  `openFile'
+	   below means always open a stat-able file.  */
+
+	if (truncate)
+	  /* Invalid mode! */
+	  return null;
+	else
+	  mode = "r";
+
+	fileDescriptor = resolver.openFile (documentUri, mode, null);
       }
 
     return fileDescriptor;
@@ -2030,11 +1998,15 @@ public final class EmacsService extends Service
      If DOCUMENTID is NULL, create the document inside the root of
      that tree.
 
+     Either FileNotFoundException, SecurityException or
+     UnsupportedOperationException may be thrown upon failure.
+
      Return the document ID of the new file upon success, NULL
      otherwise.  */
 
   public String
   createDocument (String uri, String documentId, String name)
+    throws FileNotFoundException
   {
     String mimeType, separator, mime, extension;
     int index;
@@ -2072,23 +2044,77 @@ public final class EmacsService extends Service
       = DocumentsContract.buildChildDocumentsUriUsingTree (directoryUri,
 							   documentId);
 
-    try
-      {
-	docUri = DocumentsContract.createDocument (resolver,
-						   directoryUri,
-						   mimeType, name);
+    docUri = DocumentsContract.createDocument (resolver,
+					       directoryUri,
+					       mimeType, name);
 
-	if (docUri == null)
-	  return null;
+    if (docUri == null)
+      return null;
 
-	/* Return the ID of the new document.  */
-	return DocumentsContract.getDocumentId (docUri);
-      }
-    catch (Exception exception)
-      {
-	exception.printStackTrace ();
-      }
+    /* Return the ID of the new document.  */
+    return DocumentsContract.getDocumentId (docUri);
+  }
 
-    return null;
+  /* Like `createDocument', but create a directory instead of an
+     ordinary document.  */
+
+  public String
+  createDirectory (String uri, String documentId, String name)
+    throws FileNotFoundException
+  {
+    int index;
+    Uri directoryUri, docUri;
+
+    /* Now parse URI.  */
+    directoryUri = Uri.parse (uri);
+
+    if (documentId == null)
+      documentId = DocumentsContract.getTreeDocumentId (directoryUri);
+
+    /* And build a file URI referring to the directory.  */
+
+    directoryUri
+      = DocumentsContract.buildChildDocumentsUriUsingTree (directoryUri,
+							   documentId);
+
+    /* If name ends with a directory separator character, delete
+       it.  */
+
+    if (name.endsWith ("/"))
+      name = name.substring (0, name.length () - 1);
+
+    /* From Android's perspective, directories are just ordinary
+       documents with the `MIME_TYPE_DIR' type.  */
+
+    docUri = DocumentsContract.createDocument (resolver,
+					       directoryUri,
+					       Document.MIME_TYPE_DIR,
+					       name);
+
+    if (docUri == null)
+      return null;
+
+    /* Return the ID of the new document.  */
+    return DocumentsContract.getDocumentId (docUri);
+  }
+
+  /* Delete the document identified by ID from the document tree
+     identified by URI.  Return 0 upon success and -1 upon
+     failure.  */
+
+  public int
+  deleteDocument (String uri, String id)
+    throws FileNotFoundException
+  {
+    Uri uriObject;
+
+    uriObject = Uri.parse (uri);
+    uriObject = DocumentsContract.buildDocumentUriUsingTree (uriObject,
+							     id);
+
+    if (DocumentsContract.deleteDocument (resolver, uriObject))
+      return 0;
+
+    return -1;
   }
 };

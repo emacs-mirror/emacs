@@ -279,6 +279,8 @@ struct android_emacs_service
   jmethodID read_directory_entry;
   jmethodID open_document;
   jmethodID create_document;
+  jmethodID create_directory;
+  jmethodID delete_document;
 };
 
 extern JNIEnv *android_java_env;
