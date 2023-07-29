@@ -3969,34 +3969,45 @@ android_saf_access (const char *uri_name, const char *id_name,
 
 /* Delete the document designated by DOC_ID within the tree identified
    through the URI TREE.  Return 0 if the document has been deleted,
-   set errno and return -1 upon failure.  */
+   set errno and return -1 upon failure.
+
+   DOC_NAME should be the name of the file itself, as a file name
+   whose constituent components lead to a document named DOC_ID.  It
+   isn't used to search for a document ID, but is used to invalidate
+   the file cache.  */
 
 static int
-android_saf_delete_document (const char *tree, const char *doc_id)
+android_saf_delete_document (const char *tree, const char *doc_id,
+			     const char *doc_name)
 {
-  jobject id, uri;
+  jobject id, uri, name;
   jmethodID method;
   jint rc;
 
-  /* Build the strings holding the ID and URI.  */
+  /* Build the strings holding the ID, URI and NAME.  */
   id = (*android_java_env)->NewStringUTF (android_java_env,
 					  doc_id);
   android_exception_check ();
   uri = (*android_java_env)->NewStringUTF (android_java_env,
 					   tree);
   android_exception_check_1 (id);
+  name = (*android_java_env)->NewStringUTF (android_java_env,
+					    doc_name);
+  android_exception_check_2 (id, name);
 
   /* Now, try to delete the document.  */
   method = service_class.delete_document;
   rc = (*android_java_env)->CallIntMethod (android_java_env,
 					   emacs_service,
-					   method, uri, id);
+					   method, uri, id,
+					   name);
 
-  if (android_saf_exception_check (2, id, uri))
+  if (android_saf_exception_check (3, id, uri, name))
     return -1;
 
   ANDROID_DELETE_LOCAL_REF (id);
   ANDROID_DELETE_LOCAL_REF (uri);
+  ANDROID_DELETE_LOCAL_REF (name);
 
   if (rc)
     {
@@ -4553,7 +4564,9 @@ android_saf_tree_rmdir (struct android_vnode *vnode)
       return -1;
     }
 
-  return android_saf_delete_document (vp->tree_uri, vp->document_id);
+  return android_saf_delete_document (vp->tree_uri,
+				      vp->document_id,
+				      vp->name);
 }
 
 static int
@@ -5173,7 +5186,9 @@ android_saf_file_unlink (struct android_vnode *vnode)
   struct android_saf_file_vnode *vp;
 
   vp = (struct android_saf_file_vnode *) vnode;
-  return android_saf_delete_document (vp->tree_uri, vp->document_id);
+  return android_saf_delete_document (vp->tree_uri,
+				      vp->document_id,
+				      vp->name);
 }
 
 static int

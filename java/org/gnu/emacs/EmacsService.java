@@ -1674,10 +1674,13 @@ public final class EmacsService extends Service
 
   /* Delete the document identified by ID from the document tree
      identified by URI.  Return 0 upon success and -1 upon
-     failure.  */
+     failure.
+
+     NAME should be the name of the document being deleted, and is
+     used to invalidate the cache.  */
 
   public int
-  deleteDocument (String uri, String id)
+  deleteDocument (String uri, String id, String name)
     throws FileNotFoundException
   {
     Uri uriObject, tree;
@@ -1688,7 +1691,7 @@ public final class EmacsService extends Service
     if (DocumentsContract.deleteDocument (resolver, uriObject))
       {
 	if (storageThread != null)
-	  storageThread.postInvalidateCache (tree, id);
+	  storageThread.postInvalidateCache (tree, id, name);
 
 	return 0;
       }

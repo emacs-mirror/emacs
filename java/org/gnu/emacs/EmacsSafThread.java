@@ -478,14 +478,12 @@ public final class EmacsSafThread extends HandlerThread
      document tree URI.
      Call this after deleting a document or directory.
 
-     Caveat emptor: this does not remove the component name cache
-     entries linked to the name(s) of the directory being removed, the
-     assumption being that the next time `documentIdFromName1' is
-     called, it will notice that the document is missing and remove
-     the outdated cache entry.  */
+     At the same time, remove the final component within the file name
+     CACHENAME from the cache if it exists.  */
 
   public void
-  postInvalidateCache (final Uri uri, final String documentId)
+  postInvalidateCache (final Uri uri, final String documentId,
+		       final String cacheName)
   {
     handler.post (new Runnable () {
 	@Override
@@ -493,9 +491,55 @@ public final class EmacsSafThread extends HandlerThread
 	run ()
 	{
 	  CacheToplevel toplevel;
+	  HashMap<String, DocIdEntry> children;
+	  String[] components;
+	  CacheEntry entry;
+	  DocIdEntry idEntry;
 
 	  toplevel = getCache (uri);
 	  toplevel.idCache.remove (documentId);
+
+	  /* If the parent of CACHENAME is cached, remove it.  */
+
+	  children = toplevel.children;
+	  components = cacheName.split ("/");
+
+	  for (String component : components)
+	    {
+	      /* Java `split' removes trailing empty matches but not
+		 leading or intermediary ones.  */
+	      if (component.isEmpty ())
+		continue;
+
+	      if (component == components[components.length - 1])
+		{
+		  /* This is the last component, so remove it from
+		     children.  */
+		  children.remove (component);
+		  return;
+		}
+	      else
+		{
+		  /* Search for this component within the last level
+		     of the cache.  */
+
+		  idEntry = children.get (component);
+
+		  if (idEntry == null)
+		    /* Not cached, so return.  */
+		    return;
+
+		  entry = toplevel.idCache.get (idEntry.documentId);
+
+		  if (entry == null)
+		    /* Not cached, so return.  */
+		    return;
+
+		  /* Locate the next component within this
+		     directory.  */
+		  children = entry.children;
+		}
+	    }
 	}
       });
   }
@@ -1109,11 +1153,26 @@ public final class EmacsSafThread extends HandlerThread
     int tem, index;
     String tem1;
     Cursor cursor;
+    CacheToplevel toplevel;
+    CacheEntry entry;
 
     uriObject = Uri.parse (uri);
 
     if (documentId == null)
       documentId = DocumentsContract.getTreeDocumentId (uriObject);
+
+    /* If WRITABLE is false and the document ID is cached, use its
+       cached value instead.  This speeds up
+       `directory-files-with-attributes' a little.  */
+
+    if (!writable)
+      {
+	toplevel = getCache (uriObject);
+	entry = toplevel.idCache.get (documentId);
+
+	if (entry != null)
+	  return 0;
+      }
 
     /* Create a document URI representing DOCUMENTID within URI's
        authority.  */
