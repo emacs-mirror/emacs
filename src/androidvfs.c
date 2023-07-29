@@ -2010,6 +2010,9 @@ android_afs_stat (struct android_vnode *vnode, struct stat *statb)
       /* Fill in the stat buffer.  */
       statb->st_mode = S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH;
 
+      /* Grant search permissions as well.  */
+      statb->st_mode |= S_IXUSR | S_IXGRP | S_IXOTH;
+
       /* Concoct a nonexistent device and an inode number.  */
       statb->st_dev = -1;
       statb->st_ino = 0;
@@ -2534,7 +2537,7 @@ android_content_stat (struct android_vnode *vnode,
   statb->st_gid = getgid ();
   statb->st_ino = 0;
   statb->st_dev = -2;
-  statb->st_mode = S_IFDIR | S_IRUSR;
+  statb->st_mode = S_IFDIR | S_IRUSR | S_IXUSR;
   return 0;
 }
 
@@ -3418,7 +3421,7 @@ android_saf_root_stat (struct android_vnode *vnode,
   statb->st_gid = getgid ();
   statb->st_ino = 0;
   statb->st_dev = -4;
-  statb->st_mode = S_IFDIR | S_IRUSR;
+  statb->st_mode = S_IFDIR | S_IRUSR | S_IXUSR;
   return 0;
 }
 

@@ -97,6 +97,7 @@ public final class EmacsSafThread extends HandlerThread
   /* File access mode constants.  See `man 7 inode'.  */
   public static final int S_IRUSR = 0000400;
   public static final int S_IWUSR = 0000200;
+  public static final int S_IXUSR = 0000100;
   public static final int S_IFCHR = 0020000;
   public static final int S_IFDIR = 0040000;
   public static final int S_IFREG = 0100000;
@@ -1010,7 +1011,8 @@ public final class EmacsSafThread extends HandlerThread
     Uri uriObject;
     String[] projection;
     long[] stat;
-    int index;
+    int flagsIndex, columnIndex, typeIndex;
+    int sizeIndex, mtimeIndex, flags;
     long tem;
     String tem1;
     Cursor cursor;
@@ -1041,7 +1043,16 @@ public final class EmacsSafThread extends HandlerThread
     if (cursor == null)
       return null;
 
-    if (!cursor.moveToFirst ())
+    /* Obtain the indices for columns wanted from this cursor.  */
+    flagsIndex = cursor.getColumnIndex (Document.COLUMN_FLAGS);
+    sizeIndex = cursor.getColumnIndex (Document.COLUMN_SIZE);
+    typeIndex = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+    mtimeIndex = cursor.getColumnIndex (Document.COLUMN_LAST_MODIFIED);
+
+    if (!cursor.moveToFirst ()
+	/* COLUMN_LAST_MODIFIED is allowed to be absent in a
+	   conforming documents provider.  */
+	|| flagsIndex < 0 || sizeIndex < 0 || typeIndex < 0)
       {
 	cursor.close ();
 	return null;
@@ -1052,34 +1063,22 @@ public final class EmacsSafThread extends HandlerThread
 
     try
       {
-	index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
-	if (index < 0)
-	  return null;
-
-	tem = cursor.getInt (index);
+	flags = cursor.getInt (flagsIndex);
 
 	stat[0] |= S_IRUSR;
-	if ((tem & Document.FLAG_SUPPORTS_WRITE) != 0)
+	if ((flags & Document.FLAG_SUPPORTS_WRITE) != 0)
 	  stat[0] |= S_IWUSR;
 
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-	    && (tem & Document.FLAG_VIRTUAL_DOCUMENT) != 0)
+	    && (flags & Document.FLAG_VIRTUAL_DOCUMENT) != 0)
 	  stat[0] |= S_IFCHR;
 
-	index = cursor.getColumnIndex (Document.COLUMN_SIZE);
-	if (index < 0)
-	  return null;
-
-	if (cursor.isNull (index))
+	if (cursor.isNull (sizeIndex))
 	  stat[1] = -1; /* The size is unknown.  */
 	else
-	  stat[1] = cursor.getLong (index);
+	  stat[1] = cursor.getLong (sizeIndex);
 
-	index = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
-	if (index < 0)
-	  return null;
-
-	tem1 = cursor.getString (index);
+	tem1 = cursor.getString (typeIndex);
 
 	/* Check if this is a directory file.  */
 	if (tem1.equals (Document.MIME_TYPE_DIR)
@@ -1087,9 +1086,17 @@ public final class EmacsSafThread extends HandlerThread
 	       time, but Android doesn't forbid document providers
 	       from returning this information.  */
 	    && (stat[0] & S_IFCHR) == 0)
-	  /* Since FLAG_SUPPORTS_WRITE doesn't apply to directories,
-	     just assume they're writable.  */
-	  stat[0] |= S_IFDIR | S_IWUSR;
+	  {
+	    /* Since FLAG_SUPPORTS_WRITE doesn't apply to directories,
+	       just assume they're writable.  */
+	    stat[0] |= S_IFDIR | S_IWUSR | S_IXUSR;
+
+	    /* Directory files cannot be modified if
+	       FLAG_DIR_SUPPORTS_CREATE is not set.  */
+
+	    if ((flags & Document.FLAG_DIR_SUPPORTS_CREATE) == 0)
+	      stat[0] &= ~S_IWUSR;
+	  }
 
 	/* If this file is neither a character special nor a
 	   directory, indicate that it's a regular file.  */
@@ -1097,12 +1104,10 @@ public final class EmacsSafThread extends HandlerThread
 	if ((stat[0] & (S_IFDIR | S_IFCHR)) == 0)
 	  stat[0] |= S_IFREG;
 
-	index = cursor.getColumnIndex (Document.COLUMN_LAST_MODIFIED);
-
-	if (index >= 0 && !cursor.isNull (index))
+	if (mtimeIndex >= 0 && !cursor.isNull (mtimeIndex))
 	  {
 	    /* Content providers are allowed to not provide mtime.  */
-	    tem = cursor.getLong (index);
+	    tem = cursor.getLong (mtimeIndex);
 	    stat[2] = tem;
 	  }
       }
