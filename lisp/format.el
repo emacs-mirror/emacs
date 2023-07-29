@@ -89,7 +89,7 @@
 	   nil
 	   ;; FROM-FN used to call the "diac" command which is not widely
 	   ;; available and apparently not under a free software license:
-	   ;; https://tug.ctan.org/support/umlaut_tex.txt
+	   ;; https://nm.wu-wien.ac.at/nm/download/file/diac4.tar.gz
 	   ;; Reliable round-trip conversion is not possible anyway
 	   ;; and would be by heuristic method, so use nil for now.
 	   nil iso-iso2duden t nil)
