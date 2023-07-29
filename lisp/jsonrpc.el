@@ -223,7 +223,7 @@ object, using the keywords `:code', `:message' and `:data'."
              (apply #'format-message (car args) (cdr args))))
         (signal 'jsonrpc-error
                 `(,msg
-                  (jsonrpc-error-code . ,32603)
+                  (jsonrpc-error-code . ,-32603)
                   (jsonrpc-error-message . ,msg))))
     (cl-destructuring-bind (&key code message data) args
       (signal 'jsonrpc-error
