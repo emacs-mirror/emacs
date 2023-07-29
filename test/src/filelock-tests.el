@@ -38,8 +38,12 @@ Create a test directory and a buffer whose `buffer-file-name' and
 Finally, delete the buffer and the test directory."
   (declare (debug (body)))
   `(ert-with-temp-directory temp-dir
-     (let ((name (concat (file-name-as-directory temp-dir)
-                         "userfile"))
+     (let ((name
+            ;; Use file-truename for when 'temporary-file-directory'
+            ;; is a symlink, to make sure 'buffer-file-name' is set
+            ;; below to a real existing file.
+            (file-truename (concat (file-name-as-directory temp-dir)
+                                   "userfile")))
            (create-lockfiles t))
        (with-temp-buffer
          (setq buffer-file-name name
@@ -184,7 +188,8 @@ the case)."
 
        ;; Just changing the file modification on disk doesn't hurt,
        ;; because file contents in buffer and on disk look equal.
-       (shell-command (format "touch %s" (buffer-file-name)))
+       (shell-command (format "touch %s"
+                              (shell-quote-argument (buffer-file-name))))
        (insert "bar")
        (when cl (filelock-tests--should-be-locked))
 
@@ -198,7 +203,8 @@ the case)."
        ;; Changing the file contents on disk hurts when buffer is
        ;; modified.  There shall be a query, which we answer.
        ;; *Messages* buffer is checked for prompt.
-       (shell-command (format "echo bar >>%s" (buffer-file-name)))
+       (shell-command (format "echo bar >>%s"
+                              (shell-quote-argument (buffer-file-name))))
        (cl-letf (((symbol-function 'read-char-choice)
                   (lambda (prompt &rest _) (message "%s" prompt) ?y)))
          (ert-with-message-capture captured-messages

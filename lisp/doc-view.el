@@ -176,7 +176,7 @@ are available (see Info node `(emacs)Document View')."
      ;; non-MikTeX apps.  Was available under:
      ;; http://blog.miktex.org/post/2005/04/07/Starting-mgsexe-at-the-DOS-Prompt.aspx
      ((and (executable-find "mgs")
-           (= 0 (shell-command "mgs -q -dNODISPLAY -c quit")))
+           (eql 0 (shell-command "mgs -q -dNODISPLAY -c quit")))
       "mgs")))
    (t "gs"))
   "Program to convert PS and PDF files to PNG."
@@ -216,7 +216,7 @@ are available (see Info node `(emacs)Document View')."
   :type 'boolean
   :version "30.1")
 
-(defcustom doc-view-imenu-enabled (executable-find "mutool")
+(defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
   "Whether to generate an imenu outline when \"mutool\" is available."
   :type 'boolean
   :version "29.1")
@@ -577,8 +577,8 @@ Typically \"page-%s.png\".")
         ;; file.  (TODO: We'd like to have something like that also
         ;; for other types, at least PS, but I don't know a good way
         ;; to test if a PS file is complete.)
-        (if (= 0 (call-process "pdfinfo" nil nil nil
-                               doc-view--buffer-file-name))
+        (if (eql 0 (call-process "pdfinfo" nil nil nil
+                                 doc-view--buffer-file-name))
             (revert)
           (when (called-interactively-p 'interactive)
             (message "Can't revert right now because the file is corrupted.")))
@@ -1962,7 +1962,7 @@ structure is extracted by `doc-view--imenu-subtree'."
       (let ((outline nil)
             (fn (expand-file-name fn)))
         (with-temp-buffer
-          (unless (= 0 (call-process "mutool" nil (current-buffer) nil "show" fn "outline"))
+          (unless (eql 0 (call-process "mutool" nil (current-buffer) nil "show" fn "outline"))
             (imenu-unavailable-error "Unable to create imenu index using `mutool'"))
           (goto-char (point-min))
           (while (re-search-forward doc-view--outline-rx nil t)

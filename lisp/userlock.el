@@ -141,8 +141,10 @@ You can <\\`q'>uit; don't modify this file."))
           ;; modtime in that buffer, to cater to use case where the
           ;; file is about to be written to from some buffer that
           ;; doesn't visit any file, like a temporary buffer.
-          (with-current-buffer (get-file-buffer (file-truename filename))
-            (set-visited-file-modtime))
+          (let ((buf (get-file-buffer (file-truename filename))))
+            (when buf  ; If we cannot find the visiting buffer, punt.
+              (with-current-buffer buf
+                (set-visited-file-modtime))))
           'unchanged)))))
 
 ;;;###autoload

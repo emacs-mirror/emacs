@@ -669,6 +669,10 @@ This matches the hexadecimal digits: @samp{0} through @samp{9}, @samp{a}
 through @samp{f} and @samp{A} through @samp{F}.
 @end table
 
+The classes @samp{[:space:]}, @samp{[:word:]} and @samp{[:punct:]} use
+the syntax-table of the current buffer but not any overriding syntax
+text properties (@pxref{Syntax Properties}).
+
 @node Regexp Backslash
 @subsubsection Backslash Constructs in Regular Expressions
 @cindex backslash in regular expressions
@@ -1341,6 +1345,9 @@ Match any @acronym{ASCII} character (codes 0--127).
 Match any non-@acronym{ASCII} character (but not raw bytes).
 @end table
 
+The classes @code{space}, @code{word} and @code{punct} use the
+syntax-table of the current buffer but not any overriding syntax text
+properties (@pxref{Syntax Properties}).@*
 Corresponding string regexp: @samp{[[:@var{class}:]]}
 
 @item @code{(syntax @var{syntax})}
@@ -1920,7 +1927,8 @@ causing a match to fail early.
 @item
 Avoid or-patterns in favor of bracket expressions: write
 @samp{[ab]} instead of @samp{a\|b}.  Recall that @samp{\s-} and @samp{\sw}
-are equivalent to @samp{[[:space:]]} and @samp{[[:word:]]}, respectively.
+are equivalent to @samp{[[:space:]]} and @samp{[[:word:]]}, respectively,
+most of the time.
 
 @item
 Since the last branch of an or-pattern does not add a backtrack point

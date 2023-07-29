@@ -45,8 +45,8 @@
 ;; Use M-x erc-status-sidebar-kill RET to kill the sidebar buffer and
 ;; close the sidebar on all frames.
 
-;; In addition to the commands above, you can also try the all-in-one,
-;; "DWIM" command, `erc-bufbar-mode'.  See its doc string for usage.
+;; In addition to the commands above, you can also try the all-in-one
+;; entry point `erc-bufbar-mode'.  See its doc string for usage.
 
 ;; If you want the status sidebar enabled whenever you use ERC, add
 ;; `bufbar' to `erc-modules'.  Note that this library also has a major
@@ -130,8 +130,11 @@ buffers, using the functions
   `erc-status-sidebar-pad-hierarchy'
 
 for the above-mentioned purposes.  ERC also accepts a list of
-functions to preform these roles a la carte.  See doc strings for
-a description of their expected arguments and return values."
+functions to preform these roles a la carte.  Since the members
+of the above sets aren't really interoperable, we don't offer
+them here as customization choices, but you can still specify
+them manually.  See doc strings for a description of their
+expected arguments and return values."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const channels-only)
                  (const all-mixed)
@@ -158,10 +161,12 @@ ACTION parameter."
                               :key-type symbol
                               :value-type (sexp :tag "Value")))))
 
-(defcustom erc-status-sidebar-singular t
-  "Whether to show the sidebar on all frames or just one (default)."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
-  :type 'boolean)
+(defvar erc-status-sidebar--singular-p t
+  "Whether to restrict the sidebar to a single frame.
+This variable only affects `erc-bufbar-mode'.  Disabling it does
+not arrange for automatically showing the sidebar in all frames.
+Rather, disabling it allows for displaying the sidebar in the
+selected frame even if it's already showing in some other frame.")
 
 (defvar hl-line-mode)
 (declare-function hl-line-highlight "hl-line" nil)
@@ -178,7 +183,7 @@ ACTION parameter."
 
 If NO-CREATION is non-nil, the window is not created."
   (let ((sidebar-window (get-buffer-window erc-status-sidebar-buffer-name
-                                           erc-status-sidebar-singular)))
+                                           erc-status-sidebar--singular-p)))
     (unless (or sidebar-window no-creation)
       (with-current-buffer (erc-status-sidebar-get-buffer)
         (setq-local vertical-scroll-bar nil))
@@ -214,7 +219,7 @@ The erc-status-sidebar buffer is left alone, but the window
 containing it on the current frame is closed.  See
 `erc-status-sidebar-kill'."
   (interactive "P")
-  (mapcar #'delete-window
+  (mapcar #'delete-window ; FIXME use `mapc'.
           (get-buffer-window-list (erc-status-sidebar-get-buffer)
                                   nil (if all-frames t))))
 
@@ -223,10 +228,8 @@ containing it on the current frame is closed.  See
   `(let ((buffer-read-only nil))
      ,@body))
 
-;;;###autoload
-(defun erc-status-sidebar-open ()
-  "Open or create a sidebar."
-  (interactive)
+(defun erc-status-sidebar--open ()
+  "Maybe open the sidebar, respecting `erc-status-sidebar--singular-p'."
   (save-excursion
     (if (erc-status-sidebar-buffer-exists-p)
         (erc-status-sidebar-get-window)
@@ -237,11 +240,15 @@ containing it on the current frame is closed.  See
 ;;;###autoload(autoload 'erc-bufbar-mode "erc-status-sidebar" nil t)
 (define-erc-module bufbar nil
   "Show `erc-track'-like activity in a side window.
-When enabling, show the sidebar immediately if called from a
-connected ERC buffer.  Otherwise, arrange for doing so on connect
-or whenever next displaying a new ERC buffer.  When disabling,
-hide the status window if it's showing.  With a negative prefix
-arg, also shutdown the session."
+When enabling, show the sidebar immediately in the current frame
+if called from a connected ERC buffer.  Otherwise, arrange for
+doing so on connect or whenever next displaying a new ERC buffer.
+When disabling, hide the status window in all frames.  With a
+negative prefix arg, also shutdown the session.  Normally, this
+module only allows one sidebar window in an Emacs session.  To
+override this, use `erc-status-sidebar-open' to force creation
+and `erc-status-sidebar-close' to hide a single instance on the
+current frame only."
   ((unless erc-track-mode
      (unless (memq 'track erc-modules)
        (erc--warn-once-before-connect 'erc-bufbar-mode
@@ -249,30 +256,38 @@ arg, also shutdown the session."
          " This will affect \C-]all\C-] ERC sessions."
          " Add `track' to `erc-modules' to silence this message."))
      (erc-track-mode +1))
-   (add-hook 'erc--setup-buffer-hook #'erc-status-sidebar-open)
+   (add-hook 'erc--setup-buffer-hook #'erc-status-sidebar--open)
    (unless erc--updating-modules-p
      (if (erc-with-server-buffer erc-server-connected)
-         (erc-status-sidebar-open)
-       (setq erc-bufbar-mode nil)
+         (erc-status-sidebar--open)
        (when (derived-mode-p 'erc-mode)
          (erc-error "Not initializing `erc-bufbar-mode' in %s"
                     (current-buffer))))))
-  ((remove-hook 'erc--setup-buffer-hook #'erc-status-sidebar-open)
-   (erc-status-sidebar-close erc-status-sidebar-singular)
+  ((remove-hook 'erc--setup-buffer-hook #'erc-status-sidebar--open)
+   (erc-status-sidebar-close 'all-frames)
    (when-let ((arg erc--module-toggle-prefix-arg)
               ((numberp arg))
               ((< arg 0)))
      (erc-status-sidebar-kill))))
 
 ;;;###autoload
+(defun erc-status-sidebar-open ()
+  "Open or create a sidebar window in the current frame.
+When `erc-bufbar-mode' is active, do this even if one already
+exists in another frame."
+  (interactive)
+  (let ((erc-status-sidebar--singular-p (not erc-bufbar-mode)))
+    (erc-status-sidebar--open)))
+
+;;;###autoload
 (defun erc-status-sidebar-toggle ()
   "Toggle the sidebar open/closed on the current frame.
-Do this regardless of `erc-status-sidebar-singular'."
+When opening, and `erc-bufbar-mode' is active, create a sidebar
+even if one already exists in another frame."
   (interactive)
   (if (get-buffer-window erc-status-sidebar-buffer-name nil)
       (erc-status-sidebar-close)
-    (let (erc-status-sidebar-singular)
-      (erc-status-sidebar-open))))
+    (erc-status-sidebar-open)))
 
 (defun erc-status-sidebar-get-channame (buffer)
   "Return name of BUFFER with all leading \"#\" characters removed."
@@ -413,11 +428,10 @@ name stand out."
                      erc-status-sidebar-pad-hierarchy))
                   (v v)))
                (chanlist (apply sort-fn (funcall list-fn nil) nil))
-               (window nil)
-               (winstart nil))
+               (windows nil))
     (with-current-buffer (erc-status-sidebar-get-buffer)
-      (setq window (get-buffer-window nil erc-status-sidebar-singular)
-            winstart (and window (window-start window)))
+      (dolist (window (get-buffer-window-list nil nil t))
+        (push (cons window (window-start window)) windows))
       (erc-status-sidebar-writable
        (delete-region (point-min) (point-max))
        (goto-char (point-min))
@@ -443,9 +457,8 @@ name stand out."
             0 cnlen 'help-echo
             "mouse-1: switch to buffer in other window" channame)
            (funcall insert-fn channame chanbuf chanlist)))
-       (when winstart
-         (set-window-point window winstart)
-         (with-selected-window window (recenter 0)))
+       (when windows
+         (map-apply #'set-window-start windows))
        (when (and erc-status-sidebar-highlight-active-buffer
                   (marker-buffer erc-status-sidebar--active-marker))
          (goto-char erc-status-sidebar--active-marker)
@@ -519,14 +532,28 @@ highlighted."
     erc-kill-server-hook
     erc-kick-hook
     erc-disconnected-hook
-    erc-quit-hook))
+    erc-quit-hook)
+  "Hooks to refresh the sidebar on.
+This may be set locally in the status-sidebar buffer under
+various conditions, like when the option
+`erc-status-sidebar-highlight-active-buffer' is non-nil.")
+
+(defvar erc-status-sidebar--highlight-refresh-triggers
+  '(window-selection-change-functions)
+  "Triggers enabled with `erc-status-sidebar-highlight-active-buffer'.")
+
+(defun erc-status-sidebar--refresh-unless-input ()
+  "Run `erc-status-sidebar-refresh' unless there are unread commands.
+Also abstain when the user is interacting with the minibuffer."
+  (unless (or (input-pending-p) (minibuffer-window-active-p (selected-window)))
+    (erc-status-sidebar-refresh)))
 
 (defun erc-status-sidebar--post-refresh (&rest _ignore)
   "Schedule sidebar refresh for execution after command stack is cleared.
 
 Ignore arguments in IGNORE, allowing this function to be added to
 hooks that invoke it with arguments."
-  (run-at-time 0 nil #'erc-status-sidebar-refresh))
+  (run-at-time 0 nil #'erc-status-sidebar--refresh-unless-input))
 
 (defun erc-status-sidebar-mode--unhook ()
   "Remove hooks installed by `erc-status-sidebar-mode'."
@@ -541,7 +568,7 @@ hooks that invoke it with arguments."
 Note that preserve status needs to be reset when the window is
 manually resized, so `erc-status-sidebar-mode' adds this function
 to the `window-configuration-change-hook'."
-  (when (and (eq (selected-window) (let (erc-status-sidebar-singular)
+  (when (and (eq (selected-window) (let (erc-status-sidebar--singular-p)
                                      (erc-status-sidebar-get-window)))
              (fboundp 'window-preserve-size))
     (unless (eq (window-total-width) (window-min-size nil t))
@@ -563,6 +590,10 @@ to the `window-configuration-change-hook'."
 
   (add-hook 'window-configuration-change-hook
             #'erc-status-sidebar-set-window-preserve-size nil t)
+  (when erc-status-sidebar-highlight-active-buffer
+    (setq-local erc-status-sidebar-refresh-triggers
+                `(,@erc-status-sidebar--highlight-refresh-triggers
+                  ,@erc-status-sidebar-refresh-triggers)))
   (dolist (hk erc-status-sidebar-refresh-triggers)
     (add-hook hk #'erc-status-sidebar--post-refresh))
 
