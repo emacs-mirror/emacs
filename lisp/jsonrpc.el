@@ -698,7 +698,7 @@ TIMEOUT is nil)."
                              :params params)
     (puthash id
              (list (or success-fn
-                       (jsonrpc-lambda (&rest _ignored)
+                       (lambda (&rest _ignored)
                          (jsonrpc--debug
                           connection (list :message "success ignored"
                                            :id id))))
