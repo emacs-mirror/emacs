@@ -151,7 +151,7 @@ public final class EmacsSafThread extends HandlerThread
     public
     DocIdEntry ()
     {
-      time = System.currentTimeMillis ();
+      time = System.uptimeMillis ();
     }
 
     /* Return a cache entry comprised of the state of the file
@@ -208,10 +208,7 @@ public final class EmacsSafThread extends HandlerThread
 	}
       catch (Throwable e)
 	{
-	  if (e instanceof FileNotFoundException)
-	    return null;
-
-	  throw e;
+	  return null;
 	}
       finally
 	{
@@ -223,7 +220,7 @@ public final class EmacsSafThread extends HandlerThread
     public boolean
     isValid ()
     {
-      return ((System.currentTimeMillis () - time)
+      return ((System.uptimeMillis () - time)
 	      < CACHE_INVALID_TIME);
     }
   };
@@ -243,13 +240,13 @@ public final class EmacsSafThread extends HandlerThread
     CacheEntry ()
     {
       children = new HashMap<String, DocIdEntry> ();
-      time = System.currentTimeMillis ();
+      time = System.uptimeMillis ();
     }
 
     public boolean
     isValid ()
     {
-      return ((System.currentTimeMillis () - time)
+      return ((System.uptimeMillis () - time)
 	      < CACHE_INVALID_TIME);
     }
   };
