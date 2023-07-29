@@ -3739,15 +3739,17 @@ android_saf_exception_check (int n, ...)
     /* No exception has taken place.  Return 0.  */
     return 0;
 
+  /* Print the exception.  */
+  (*env)->ExceptionDescribe (env);
+
   exception = (*env)->ExceptionOccurred (env);
 
   if (!exception)
     /* JNI couldn't return a local reference to the exception.  */
     memory_full (0);
 
-  /* Print and clear the exception, making it safe to subsequently
-     call other JNI functions.  */
-  (*env)->ExceptionDescribe (env);
+  /* Clear the exception, making it safe to subsequently call other
+     JNI functions.  */
   (*env)->ExceptionClear (env);
 
   /* Delete each of the N arguments.  */
