@@ -1680,14 +1680,18 @@ public final class EmacsService extends Service
   deleteDocument (String uri, String id)
     throws FileNotFoundException
   {
-    Uri uriObject;
+    Uri uriObject, tree;
 
-    uriObject = Uri.parse (uri);
-    uriObject = DocumentsContract.buildDocumentUriUsingTree (uriObject,
-							     id);
+    tree = Uri.parse (uri);
+    uriObject = DocumentsContract.buildDocumentUriUsingTree (tree, id);
 
     if (DocumentsContract.deleteDocument (resolver, uriObject))
-      return 0;
+      {
+	if (storageThread != null)
+	  storageThread.postInvalidateCache (tree, id);
+
+	return 0;
+      }
 
     return -1;
   }

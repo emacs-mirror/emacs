@@ -3728,6 +3728,7 @@ android_saf_exception_check (int n, ...)
   jthrowable exception;
   JNIEnv *env;
   va_list ap;
+  int new_errno;
 
   env = android_java_env;
   va_start (ap, n);
@@ -3744,8 +3745,9 @@ android_saf_exception_check (int n, ...)
     /* JNI couldn't return a local reference to the exception.  */
     memory_full (0);
 
-  /* Clear the exception, making it safe to subsequently call other
-     JNI functions.  */
+  /* Print and clear the exception, making it safe to subsequently
+     call other JNI functions.  */
+  (*env)->ExceptionDescribe (env);
   (*env)->ExceptionClear (env);
 
   /* Delete each of the N arguments.  */
@@ -3760,16 +3762,16 @@ android_saf_exception_check (int n, ...)
 
   if ((*env)->IsInstanceOf (env, (jobject) exception,
 			    file_not_found_exception))
-    errno = ENOENT;
+    new_errno = ENOENT;
   else if ((*env)->IsInstanceOf (env, (jobject) exception,
 				 security_exception))
-    errno = EACCES;
+    new_errno = EACCES;
   else if ((*env)->IsInstanceOf (env, (jobject) exception,
 				 operation_canceled_exception))
-    errno = EINTR;
+    new_errno = EINTR;
   else if ((*env)->IsInstanceOf (env, (jobject) exception,
 				 unsupported_operation_exception))
-    errno = ENOSYS;
+    new_errno = ENOSYS;
   else if ((*env)->IsInstanceOf (env, (jobject) exception,
 				 out_of_memory_error))
     {
@@ -3777,10 +3779,11 @@ android_saf_exception_check (int n, ...)
       memory_full (0);
     }
   else
-    errno = EIO;
+    new_errno = EIO;
 
   /* expression is still a local reference! */
   ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+  errno = new_errno;
   return 1;
 }
 
@@ -4238,10 +4241,7 @@ android_document_id_from_name (const char *tree_uri, char *name,
   inside_saf_critical_section = false;
 
   if (android_saf_exception_check (3, result, uri, java_name))
-    {
-      rc = -1;
-      goto finish;
-    }
+    return -1;
 
   ANDROID_DELETE_LOCAL_REF (uri);
   ANDROID_DELETE_LOCAL_REF (java_name);
@@ -4251,7 +4251,8 @@ android_document_id_from_name (const char *tree_uri, char *name,
   if (rc == -1)
     {
       ANDROID_DELETE_LOCAL_REF (result);
-      goto finish;
+      errno = ENOENT;
+      return -1;
     }
 
   eassert (rc == -2 || rc >= 0);
@@ -4274,8 +4275,6 @@ android_document_id_from_name (const char *tree_uri, char *name,
   (*android_java_env)->ReleaseStringUTFChars (android_java_env,
 					      (jstring) uri, doc_id);
   ANDROID_DELETE_LOCAL_REF (uri);
-
- finish:
   return rc;
 }
 

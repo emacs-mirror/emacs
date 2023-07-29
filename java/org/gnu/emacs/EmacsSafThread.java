@@ -1,23 +1,29 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-   Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023 Free Software Foundation, Inc.
 
-   This file is part of GNU Emacs.
+This file is part of GNU Emacs.
 
-   GNU Emacs is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or (at
-   your option) any later version.
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
-   GNU Emacs is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import java.io.FileNotFoundException;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -29,6 +35,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.ParcelFileDescriptor;
 
+import android.util.Log;
+
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
 
@@ -38,7 +46,6 @@ import android.provider.DocumentsContract.Document;
    its own handler.  These operations include opening files and
    maintaining the path to document ID cache.
 
-#if 0
    Because Emacs paths are based on file display names, while Android
    document identifiers have no discernible hierarchy of their own,
    each file name lookup must carry out a repeated search for
@@ -53,13 +60,10 @@ import android.provider.DocumentsContract.Document;
    periodically remove entries that are older than a predetermined
    amount of a time.
 
-   The cache is structured much like the directory trees whose
-   information it records, with each entry in the cache containing a
-   list of entries for their children.  File name lookup consults the
-   cache and populates it with missing information simultaneously.
-
-   This is not yet implemented.
-#endif
+   The cache is split into two levels: the first caches the
+   relationships between display names and document IDs, while the
+   second caches individual document IDs and their contents (children,
+   type, etc.)
 
    Long-running operations are also run on this thread for another
    reason: Android uses special cancellation objects to terminate
@@ -76,8 +80,14 @@ import android.provider.DocumentsContract.Document;
 
 public final class EmacsSafThread extends HandlerThread
 {
+  private static final String TAG = "EmacsSafThread";
+
   /* The content resolver used by this thread.  */
   private final ContentResolver resolver;
+
+  /* Map between tree URIs and the cache entry representing its
+     toplevel directory.  */
+  private final HashMap<Uri, CacheToplevel> cacheToplevels;
 
   /* Handler for this thread's main loop.  */
   private Handler handler;
@@ -89,11 +99,20 @@ public final class EmacsSafThread extends HandlerThread
   public static final int S_IFDIR = 0040000;
   public static final int S_IFREG = 0100000;
 
+  /* Number of seconds in between each attempt to prune the storage
+     cache.  */
+  public static final int CACHE_PRUNE_TIME = 10;
+
+  /* Number of seconds after which an entry in the cache is to be
+     considered invalid.  */
+  public static final int CACHE_INVALID_TIME = 10;
+
   public
   EmacsSafThread (ContentResolver resolver)
   {
     super ("Document provider access thread");
     this.resolver = resolver;
+    this.cacheToplevels = new HashMap<Uri, CacheToplevel> ();
   }
 
 
@@ -106,6 +125,376 @@ public final class EmacsSafThread extends HandlerThread
 
     /* Set up the handler after the thread starts.  */
     handler = new Handler (getLooper ());
+
+    /* And start periodically pruning the cache.  */
+    postPruneMessage ();
+  }
+
+
+  private final class CacheToplevel
+  {
+    /* Map between document names and children.  */
+    HashMap<String, DocIdEntry> children;
+
+    /* Map between document IDs and cache items.  */
+    HashMap<String, CacheEntry> idCache;
+  };
+
+  private final class DocIdEntry
+  {
+    /* The document ID.  */
+    String documentId;
+
+    /* The time this entry was created.  */
+    long time;
+
+    public
+    DocIdEntry ()
+    {
+      time = System.currentTimeMillis ();
+    }
+
+    /* Return a cache entry comprised of the state of the file
+       identified by `documentId'.  TREE is the URI of the tree
+       containing this entry, and TOPLEVEL is the toplevel
+       representing it.  SIGNAL is a cancellation signal.
+
+       Value is NULL if the file cannot be found.  */
+
+    public CacheEntry
+    getCacheEntry (Uri tree, CacheToplevel toplevel,
+		   CancellationSignal signal)
+    {
+      Uri uri;
+      String[] projection;
+      String type;
+      Cursor cursor;
+      int column;
+      CacheEntry entry;
+
+      /* Create a document URI representing DOCUMENTID within URI's
+	 authority.  */
+
+      uri = DocumentsContract.buildDocumentUriUsingTree (tree,
+							 documentId);
+      projection = new String[] {
+	Document.COLUMN_MIME_TYPE,
+      };
+
+      cursor = null;
+
+      try
+	{
+	  cursor = resolver.query (uri, projection, null,
+				   null, null, signal);
+
+	  if (!cursor.moveToFirst ())
+	    return null;
+
+	  column = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+
+	  if (column < 0)
+	    return null;
+
+	  type = cursor.getString (column);
+
+	  if (type == null)
+	    return null;
+
+	  entry = new CacheEntry ();
+	  entry.type = type;
+	  toplevel.idCache.put (documentId, entry);
+	  return entry;
+	}
+      catch (Throwable e)
+	{
+	  if (e instanceof FileNotFoundException)
+	    return null;
+
+	  throw e;
+	}
+      finally
+	{
+	  if (cursor != null)
+	    cursor.close ();
+	}
+    }
+
+    public boolean
+    isValid ()
+    {
+      return ((System.currentTimeMillis () - time)
+	      < CACHE_INVALID_TIME);
+    }
+  };
+
+  private final class CacheEntry
+  {
+    /* The type of this document.  */
+    String type;
+
+    /* Map between document names and children.  */
+    HashMap<String, DocIdEntry> children;
+
+    /* The time this entry was created.  */
+    long time;
+
+    public
+    CacheEntry ()
+    {
+      children = new HashMap<String, DocIdEntry> ();
+      time = System.currentTimeMillis ();
+    }
+
+    public boolean
+    isValid ()
+    {
+      return ((System.currentTimeMillis () - time)
+	      < CACHE_INVALID_TIME);
+    }
+  };
+
+  /* Create or return a toplevel for the given tree URI.  */
+
+  private CacheToplevel
+  getCache (Uri uri)
+  {
+    CacheToplevel toplevel;
+
+    toplevel = cacheToplevels.get (uri);
+
+    if (toplevel != null)
+      return toplevel;
+
+    toplevel = new CacheToplevel ();
+    toplevel.children = new HashMap<String, DocIdEntry> ();
+    toplevel.idCache = new HashMap<String, CacheEntry> ();
+    cacheToplevels.put (uri, toplevel);
+    return toplevel;
+  }
+
+  /* Remove each cache entry within COLLECTION older than
+     CACHE_INVALID_TIME.  */
+
+  private void
+  pruneCache1 (Collection<DocIdEntry> collection)
+  {
+    Iterator<DocIdEntry> iter;
+    DocIdEntry tem;
+
+    iter = collection.iterator ();
+    while (iter.hasNext ())
+      {
+	/* Get the cache entry.  */
+	tem = iter.next ();
+
+	/* If it's not valid anymore, remove it.  Iterating over a
+	   collection whose contents are being removed is undefined
+	   unless the removal is performed using the iterator's own
+	   `remove' function, so tem.remove cannot be used here.  */
+
+	if (tem.isValid ())
+	  continue;
+
+	iter.remove ();
+      }
+  }
+
+  /* Remove every entry older than CACHE_INVALID_TIME from each
+     toplevel inside `cachedToplevels'.  */
+
+  private void
+  pruneCache ()
+  {
+    Iterator<CacheEntry> iter;
+    CacheEntry tem;
+
+    for (CacheToplevel toplevel : cacheToplevels.values ())
+      {
+	/* First, clean up expired cache entries.  */
+	iter = toplevel.idCache.values ().iterator ();
+
+	while (iter.hasNext ())
+	  {
+	    /* Get the cache entry.  */
+	    tem = iter.next ();
+
+	    /* If it's not valid anymore, remove it.  Iterating over a
+	       collection whose contents are being removed is
+	       undefined unless the removal is performed using the
+	       iterator's own `remove' function, so tem.remove cannot
+	       be used here.  */
+
+	    if (tem.isValid ())
+	      {
+		/* Otherwise, clean up expired items in its document
+		   ID cache.  */
+		pruneCache1 (tem.children.values ());
+		continue;
+	      }
+
+	    iter.remove ();
+	  }
+      }
+
+    postPruneMessage ();
+  }
+
+  /* Cache file information within TOPLEVEL, under the list of
+     children CHILDREN.
+
+     NAME, ID, and TYPE should respectively be the display name of the
+     document within its parent document (the CacheEntry whose
+     `children' field is CHILDREN), its document ID, and its MIME
+     type.
+
+     If ID_ENTRY_EXISTS, don't create a new document ID entry within
+     CHILDREN indexed by NAME.
+
+     Value is the cache entry saved for the document ID.  */
+
+  private CacheEntry
+  cacheChild (CacheToplevel toplevel,
+	      HashMap<String, DocIdEntry> children,
+	      String name, String id, String type,
+	      boolean id_entry_exists)
+  {
+    DocIdEntry idEntry;
+    CacheEntry cacheEntry;
+
+    if (!id_entry_exists)
+      {
+	idEntry = new DocIdEntry ();
+	idEntry.documentId = id;
+	children.put (name, idEntry);
+      }
+
+    cacheEntry = new CacheEntry ();
+    cacheEntry.type = type;
+    toplevel.idCache.put (id, cacheEntry);
+    return cacheEntry;
+  }
+
+  /* Cache the type and as many of the children of the directory
+     designated by DOC_ID as possible into TOPLEVEL.
+
+     CURSOR should be a cursor representing an open directory stream,
+     with its projection consisting of at least the display name,
+     document ID and MIME type columns.
+
+     Rewind the position of CURSOR to before its first element after
+     completion.  */
+
+  private void
+  cacheDirectoryFromCursor (CacheToplevel toplevel, String documentId,
+			    Cursor cursor)
+  {
+    CacheEntry entry, constitutent;
+    int nameColumn, idColumn, typeColumn;
+    String id, name, type;
+    DocIdEntry idEntry;
+
+    /* Find the numbers of the columns wanted.  */
+
+    nameColumn
+      = cursor.getColumnIndex (Document.COLUMN_DISPLAY_NAME);
+    idColumn
+      = cursor.getColumnIndex (Document.COLUMN_DOCUMENT_ID);
+    typeColumn
+      = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+
+    if (nameColumn < 0 || idColumn < 0 || typeColumn < 0)
+      return;
+
+    entry = new CacheEntry ();
+
+    /* We know this is a directory already.  */
+    entry.type = Document.MIME_TYPE_DIR;
+    toplevel.idCache.put (documentId, entry);
+
+    /* Now, try to cache each of its constituents.  */
+
+    while (cursor.moveToNext ())
+      {
+	try
+	  {
+	    name = cursor.getString (nameColumn);
+	    id = cursor.getString (idColumn);
+	    type = cursor.getString (typeColumn);
+
+	    if (name == null || id == null || type == null)
+	      continue;
+
+	    /* First, add the name and ID to ENTRY's map of
+	       children.  */
+	    idEntry = new DocIdEntry ();
+	    idEntry.documentId = id;
+	    entry.children.put (id, idEntry);
+
+	    /* If this constituent is a directory, don't cache any
+	       information about it.  It cannot be cached without
+	       knowing its children.  */
+
+	    if (type.equals (Document.MIME_TYPE_DIR))
+	      continue;
+
+	    /* Otherwise, create a new cache entry comprised of its
+	       type.  */
+	    constitutent = new CacheEntry ();
+	    constitutent.type = type;
+	    toplevel.idCache.put (documentId, entry);
+	  }
+	catch (Exception e)
+	  {
+	    e.printStackTrace ();
+	    continue;
+	  }
+      }
+
+    /* Rewind cursor back to the beginning.  */
+    cursor.moveToPosition (-1);
+  }
+
+  /* Post a message to run `pruneCache' every CACHE_PRUNE_TIME
+     seconds.  */
+
+  private void
+  postPruneMessage ()
+  {
+    handler.postDelayed (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  pruneCache ();
+	}
+      }, CACHE_PRUNE_TIME * 1000);
+  }
+
+  /* Invalidate the cache entry denoted by DOCUMENT_ID, within the
+     document tree URI.
+     Call this after deleting a document or directory.
+
+     Caveat emptor: this does not remove the component name cache
+     entries linked to the name(s) of the directory being removed, the
+     assumption being that the next time `documentIdFromName1' is
+     called, it will notice that the document is missing and remove
+     the outdated cache entry.  */
+
+  public void
+  postInvalidateCache (final Uri uri, final String documentId)
+  {
+    handler.post (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  CacheToplevel toplevel;
+
+	  toplevel = getCache (uri);
+	  toplevel.idCache.remove (documentId);
+	}
+      });
   }
 
 
@@ -289,10 +678,14 @@ public final class EmacsSafThread extends HandlerThread
 		       String[] id_return, CancellationSignal signal)
   {
     Uri uri, treeUri;
-    String id, type;
+    String id, type, newId, newType;
     String[] components, projection;
     Cursor cursor;
-    int column;
+    int nameColumn, idColumn, typeColumn;
+    CacheToplevel toplevel;
+    DocIdEntry idEntry;
+    HashMap<String, DocIdEntry> children, next;
+    CacheEntry cache;
 
     projection = new String[] {
       Document.COLUMN_DISPLAY_NAME,
@@ -310,6 +703,12 @@ public final class EmacsSafThread extends HandlerThread
     type = id = null;
     cursor = null;
 
+    /* Obtain the top level of this cache.  */
+    toplevel = getCache (uri);
+
+    /* Set the current map of children to this top level.  */
+    children = toplevel.children;
+
     /* For each component... */
 
     try
@@ -320,6 +719,48 @@ public final class EmacsSafThread extends HandlerThread
 	       comes to trailing and leading delimiters...  */
 	    if (component.isEmpty ())
 	      continue;
+
+	    /* Search for component within the currently cached list
+	       of children.  */
+
+	    idEntry = children.get (component);
+
+	    if (idEntry != null)
+	      {
+		/* The document ID is known.  Now find the
+		   corresponding document ID cache.  */
+
+		cache = toplevel.idCache.get (idEntry.documentId);
+
+		/* Fetch just the information for this document.  */
+
+		if (cache == null)
+		  cache = idEntry.getCacheEntry (uri, toplevel, signal);
+
+		if (cache == null)
+		  {
+		    /* File status matching idEntry could not be
+		       obtained.  Treat this as if the file does not
+		       exist.  */
+
+		    children.remove (idEntry);
+
+		    if ((type == null
+			 || type.equals (Document.MIME_TYPE_DIR))
+			/* ... and type and id currently represent the
+			   penultimate component.  */
+			&& component == components[components.length  - 1])
+		      return -2;
+
+		    return -1;
+		  }
+
+		/* Otherwise, use the cached information.  */
+		id = idEntry.documentId;
+		type = cache.type;
+		children = cache.children;
+		continue;
+	      }
 
 	    /* Create the tree URI for URI from ID if it exists, or
 	       the root otherwise.  */
@@ -342,6 +783,21 @@ public final class EmacsSafThread extends HandlerThread
 	    if (cursor == null)
 	      return -1;
 
+	    /* Find the column numbers for each of the columns that
+	       are wanted.  */
+
+	    nameColumn
+	      = cursor.getColumnIndex (Document.COLUMN_DISPLAY_NAME);
+	    idColumn
+	      = cursor.getColumnIndex (Document.COLUMN_DOCUMENT_ID);
+	    typeColumn
+	      = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+
+	    if (nameColumn < 0 || idColumn < 0 || typeColumn < 0)
+	      return -1;
+
+	    next = null;
+
 	    while (true)
 	      {
 		/* Even though the query selects for a specific
@@ -350,6 +806,12 @@ public final class EmacsSafThread extends HandlerThread
 
 		if (!cursor.moveToNext ())
 		  {
+		    /* If a component has been found, break out of the
+		       loop.  */
+
+		    if (next != null)
+		      break;
+
 		    /* If the last component considered is a
 		       directory... */
 		    if ((type == null
@@ -382,51 +844,37 @@ public final class EmacsSafThread extends HandlerThread
 		/* So move CURSOR to a row with the right display
 		   name.  */
 
-		column = cursor.getColumnIndex (Document.COLUMN_DISPLAY_NAME);
+		name = cursor.getString (nameColumn);
+		newId = cursor.getString (idColumn);
+		newType = cursor.getString (typeColumn);
 
-		if (column < 0)
-		  continue;
+		/* Any of the three variables above may be NULL if the
+		   column data is of the wrong type depending on how
+		   the Cursor returned is implemented.  */
 
-		name = cursor.getString (column);
+		if (name == null || newId == null || newType == null)
+		  return -1;
 
-		/* Break out of the loop only once a matching
-		   component is found.  */
+		/* Cache this name, even if it isn't the document
+		   that's being searched for.  */
+
+		cache = cacheChild (toplevel, children, name,
+				    newId, newType,
+				    idEntry != null);
+
+		/* Record the desired component once it is located,
+		   but continue reading and caching items from the
+		   cursor.  */
 
 		if (name.equals (component))
-		  break;
+		  {
+		    id = newId;
+		    next = cache.children;
+		    type = newType;
+		  }
 	      }
 
-	    /* Look for a column by the name of
-	       COLUMN_DOCUMENT_ID.  */
-
-	    column = cursor.getColumnIndex (Document.COLUMN_DOCUMENT_ID);
-
-	    if (column < 0)
-	      return -1;
-
-	    /* Now replace ID with the document ID.  */
-
-	    id = cursor.getString (column);
-
-	    /* If this is the last component, be sure to initialize
-	       the document type.  */
-
-	    if (component == components[components.length - 1])
-	      {
-		column
-		  = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
-
-		if (column < 0)
-		  return -1;
-
-		type = cursor.getString (column);
-
-		/* Type may be NULL depending on how the Cursor
-		   returned is implemented.  */
-
-		if (type == null)
-		  return -1;
-	      }
+	    children = next;
 
 	    /* Now close the cursor.  */
 	    cursor.close ();
@@ -771,11 +1219,12 @@ public final class EmacsSafThread extends HandlerThread
   openDocumentDirectory1 (String uri, String documentId,
 			  CancellationSignal signal)
   {
-    Uri uriObject;
+    Uri uriObject, tree;
     Cursor cursor;
     String projection[];
+    CacheToplevel toplevel;
 
-    uriObject = Uri.parse (uri);
+    tree = uriObject = Uri.parse (uri);
 
     /* If documentId is not set, use the document ID of the tree URI
        itself.  */
@@ -792,11 +1241,22 @@ public final class EmacsSafThread extends HandlerThread
 
     projection = new String [] {
       Document.COLUMN_DISPLAY_NAME,
+      Document.COLUMN_DOCUMENT_ID,
       Document.COLUMN_MIME_TYPE,
     };
 
     cursor = resolver.query (uriObject, projection, null, null,
 			     null, signal);
+
+    /* Create a new cache entry tied to this document ID.  */
+
+    if (cursor != null)
+      {
+	toplevel = getCache (tree);
+	cacheDirectoryFromCursor (toplevel, documentId,
+				  cursor);
+      }
+
     /* Return the cursor.  */
     return cursor;
   }
