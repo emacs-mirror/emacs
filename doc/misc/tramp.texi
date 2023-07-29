@@ -6054,6 +6054,7 @@ wrapping the timer function body as follows:
 @chapter How to Customize Traces
 @vindex tramp-verbose
 @vindex tramp-debug-to-file
+@vindex tramp-debug-command-messages
 
 @value{tramp} messages are raised with verbosity levels ranging from 0
 to 10.  @value{tramp} does not display all messages; only those with a
@@ -6075,9 +6076,10 @@ The verbosity levels are
 @*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
-also written to a @value{tramp} debug buffer.  Such debug buffers are
-essential to bug and problem analyzes.  For @value{tramp} bug reports,
-set the @code{tramp-verbose} level to 6 (@pxref{Bug Reports}).
+also written to the @value{tramp} debug buffer @file{*debug
+tramp/foo*}.  Such debug buffers are essential to bug and problem
+analyzes.  For @value{tramp} bug reports, set the @code{tramp-verbose}
+level to 6 (@pxref{Bug Reports}).
 
 The debug buffer is in
 @ifinfo
@@ -6121,7 +6123,14 @@ directory}.  Use this option with care, because it could decrease the
 performance of @value{tramp} actions.
 
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
-function call traces are written to the buffer @file{*trace-output*}.
+function call traces are written to the buffer @file{*trace tramp/foo*}.
+
+When @code{tramp-debug-command-messages} is non-@code{nil} and
+@code{tramp-verbose} is greater than or equal to 6, the debug buffer
+contains all messages with verbosity level 6 (sent and received
+strings), and the entry and exit messages for the function
+@code{tramp-file-name-handler}.  This is intended for @value{tramp}
+maintainers, analyzing the remote commands for performance analysis.
 
 
 @node GNU Free Documentation License

@@ -202,7 +202,7 @@ Add the extension of F, if existing."
 	(let ((matches 0)
               (case-fold-search nil))
 	  (goto-char start)
-	  (while (re-search-forward regexp end t)
+	  (while (search-forward-regexp regexp end t)
             (replace-match replacement t)
             (setq matches (1+ matches)))
 	  (and (not (zerop matches))
