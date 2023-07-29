@@ -174,8 +174,8 @@ computing the SHA-1 of first 4KiB of the image contents (See
 In both case, a \"jpg\" extension is appended to save as JPEG.
 
 The value of this option is ignored if Image-Dired is customized
-to use the Thumbnail Managing Standard.  See
-`image-dired-thumbnail-storage'."
+to use the Thumbnail Managing Standard or the per-directory
+thumbnails setting.  See `image-dired-thumbnail-storage'."
   :type '(choice :tag "How to name thumbnail files"
                  (const :tag "SHA-1 of the image file name" sha1-filename)
                  (const :tag "SHA-1 of the image contents" sha1-contents))
@@ -208,8 +208,8 @@ thumbnails:
 
     Set this user option to `per-directory'.
 
-To control the naming of thumbnails for alternatives (2) and (3)
-above, customize the value of `image-dired-thumb-naming'.
+To control the naming of thumbnails for alternative (2) above,
+customize the value of `image-dired-thumb-naming'.
 
 To control the default size of thumbnails for alternatives (2)
 and (3) above, customize the value of `image-dired-thumb-size'.
