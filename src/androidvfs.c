@@ -47,43 +47,57 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <android/log.h>
 
 /* This file implements support for the various special-purpose
-   directories found on Android systems.  Such directories are not
-   mounted in the Unix virtual file-system, instead being accessible
-   through special API calls; Emacs pretends they are mounted at
-   specific folders within the root directory.
+   directories found on Android systems through a series of functions
+   that substitute for Unix system call wrappers.  Such directories
+   are not mounted in the Unix virtual file-system, but instead
+   require the use of special system APIs to access; Emacs pretends
+   they are mounted at specific folders within the root directory.
 
    There are presently two directories: /assets, granting access to
    asset files stored within the APK, and /content, providing direct
    access to content URIs (in Android 4.4 and later) and content
    directory trees (in Android 5.0 and later.)
 
-   This file implements substitutes for the C library `open', `fstat',
-   `close', `fclose', `unlink', `symlink', `rmdir', `rename', `stat'
-   system call wrappers, which process file names through ``VFS
-   nodes'' representing conceptual files, that are really no more than
-   tables of function pointers.
+   Substitutes for the C library `open', `fstat', `close', `fclose',
+   `unlink', `symlink', `rmdir', `rename', `stat' system call wrappers
+   are implemented, which delegate their actions to function tables
+   contained inside ``VFS nodes''.
 
-   The primary function of a node is to `name' children.  This takes a
-   relative file name and returns a second VFS node tied to a child
-   that exists within this node (or a child thereof, ad infinite.)
+   The functions of a VFS node are to provide the implementations of
+   the Unix file system operations that can be carried out on the file
+   designated by its name and to connect useful information (such as
+   internal file handles or identifiers) with those file names.  To
+   those ends, there exist several different types of vnodes, each
+   with a different set of functions and supplementary attributes.
 
-   Other functions are also defined: functions to open file
-   descriptors, and substitutes for each of the C library system call
-   wrappers replaced.  Each of these functions accepts two vnodes, and
-   is expected to otherwise behave like the C library system calls
-   replaced.
+   The key to locating the correct vnode for any given file name is an
+   additional file system operation, defined by each node, which
+   ``names'' children.  This operation takes a relative file name and
+   returns a second node designating a constituent sub-file.
 
-   When the virtual file system needs to locate the vnode associated
-   with a file name, it starts searching at the root vnode.  Its
-   `name' function then creates vnodes as appropriate for the
-   components of the file name, which repeats recursively until the
-   vnode designating the file name is found.
+   When a file system function is called, it invokes the `name'
+   operation of a special root vnode conceptually located at the top
+   of the Unix file system hierarchy, handing it the complete file
+   name given to it.  This vnode's name operation examines the first
+   component of the relative file name it receives and creates either
+   an asset, content, or Unix vnode, and calls the new vnode's `name'
+   operation with the remainder of the file name.
+
+   The vnode(s) created by each `name' operation may in turn create
+   different vnodes based on the components of the names they have
+   been provided that are used to repeat this process until no
+   components remain.  The vnode created for the last component of the
+   file name will provide its file system operations or be passed as
+   an argument to other file system operations to which the file has
+   been passed as an argument.
 
    The substitute functions defined have two caveats, which however
    don't prove problematic in an Emacs context: the first is that the
    treatment of `..' is inconsistent with Unix, and has not really
    been tested, while the second is that errno values do not always
-   conform to what the corresponding Unix system calls may return.  */
+   conform to what the corresponding Unix system calls may return.
+   These caveats are described in more detail inside the last few
+   pages of this file.  */
 
 /* Structure describing an array of VFS operations.  */
 
