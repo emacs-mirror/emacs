@@ -33,7 +33,9 @@ import android.os.Build;
 import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.OperationCanceledException;
 import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
 
 import android.util.Log;
 
@@ -151,7 +153,7 @@ public final class EmacsSafThread extends HandlerThread
     public
     DocIdEntry ()
     {
-      time = System.uptimeMillis ();
+      time = SystemClock.uptimeMillis ();
     }
 
     /* Return a cache entry comprised of the state of the file
@@ -206,6 +208,10 @@ public final class EmacsSafThread extends HandlerThread
 	  toplevel.idCache.put (documentId, entry);
 	  return entry;
 	}
+      catch (OperationCanceledException e)
+	{
+	  throw e;
+	}
       catch (Throwable e)
 	{
 	  return null;
@@ -220,8 +226,8 @@ public final class EmacsSafThread extends HandlerThread
     public boolean
     isValid ()
     {
-      return ((System.uptimeMillis () - time)
-	      < CACHE_INVALID_TIME);
+      return ((SystemClock.uptimeMillis () - time)
+	      < CACHE_INVALID_TIME * 1000);
     }
   };
 
@@ -240,14 +246,14 @@ public final class EmacsSafThread extends HandlerThread
     CacheEntry ()
     {
       children = new HashMap<String, DocIdEntry> ();
-      time = System.uptimeMillis ();
+      time = SystemClock.uptimeMillis ();
     }
 
     public boolean
     isValid ()
     {
-      return ((System.uptimeMillis () - time)
-	      < CACHE_INVALID_TIME);
+      return ((SystemClock.uptimeMillis () - time)
+	      < CACHE_INVALID_TIME * 1000);
     }
   };
 
@@ -740,7 +746,12 @@ public final class EmacsSafThread extends HandlerThread
 		       obtained.  Treat this as if the file does not
 		       exist.  */
 
-		    children.remove (idEntry);
+		    children.remove (component);
+
+		    if (id == null)
+		      id = DocumentsContract.getTreeDocumentId (uri);
+
+		    id_return[0] = id;
 
 		    if ((type == null
 			 || type.equals (Document.MIME_TYPE_DIR))
