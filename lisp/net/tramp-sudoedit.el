@@ -170,8 +170,10 @@ See `tramp-actions-before-shell' for more info.")
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
-      (save-match-data (apply (cdr fn) args))
-    (tramp-run-real-handler operation args)))
+      (prog1 (save-match-data (apply (cdr fn) args))
+	(setq tramp-debug-message-fnh-function (cdr fn)))
+    (prog1 (tramp-run-real-handler operation args)
+      (setq tramp-debug-message-fnh-function operation))))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -524,7 +526,7 @@ the result will be a local, non-Tramp, file name."
 		    v "ls" "-d" "-Z" (file-name-unquote localname)))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (when (re-search-forward regexp (line-end-position) t)
+	    (when (search-forward-regexp regexp (line-end-position) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -714,20 +716,21 @@ connection if a previous connection has died for some reason."
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
-  ;; We need a process bound to the connection buffer.  Therefore, we
-  ;; create a dummy process.  Maybe there is a better solution?
-  (unless (tramp-get-connection-process vec)
-    (let ((p (make-network-process
-	      :name (tramp-get-connection-name vec)
-	      :buffer (tramp-get-connection-buffer vec)
-	      :server t :host 'local :service t :noquery t)))
-      (tramp-post-process-creation p vec)
+  (with-tramp-debug-message vec "Opening connection"
+    ;; We need a process bound to the connection buffer.  Therefore,
+    ;; we create a dummy process.  Maybe there is a better solution?
+    (unless (tramp-get-connection-process vec)
+      (let ((p (make-network-process
+		:name (tramp-get-connection-name vec)
+		:buffer (tramp-get-connection-buffer vec)
+		:server t :host 'local :service t :noquery t)))
+	(tramp-post-process-creation p vec)
 
-      ;; Set connection-local variables.
-      (tramp-set-connection-local-variables vec)
+	;; Set connection-local variables.
+	(tramp-set-connection-local-variables vec)
 
-      ;; Mark it as connected.
-      (tramp-set-connection-property p "connected" t))))
+	;; Mark it as connected.
+	(tramp-set-connection-property p "connected" t)))))
 
 (defun tramp-sudoedit-send-command (vec &rest args)
   "Send commands ARGS to connection VEC.
@@ -785,7 +788,7 @@ In case there is no valid Lisp expression, it raises an error."
       (condition-case nil
 	  (prog1 (read (current-buffer))
 	    ;; Error handling.
-	    (when (re-search-forward (rx (not blank)) (line-end-position) t)
+	    (when (search-forward-regexp (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
 		vec 'file-error

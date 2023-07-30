@@ -1571,7 +1571,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		       (tramp-shell-quote-argument localname))))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (when (re-search-forward regexp (line-end-position) t)
+	    (when (search-forward-regexp regexp (line-end-position) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -2152,7 +2152,7 @@ the uid and gid from FILENAME."
 		(or
 		 (and keep-date
 		      ;; Mask cp -f error.
-		      (re-search-forward
+		      (search-forward-regexp
 		       tramp-operation-not-permitted-regexp nil t))
 		 cmd-result)
 	      (tramp-error-with-buffer
@@ -2612,7 +2612,7 @@ The method used must be an out-of-band method."
 	(save-restriction
 	  (narrow-to-region beg-marker end-marker)
 	  ;; Check for "--dired" output.
-	  (when (re-search-backward
+	  (when (search-backward-regexp
 		 (rx bol "//DIRED//" (+ blank) (group (+ nonl)) eol)
 		 nil 'noerror)
 	    (let ((beg (match-beginning 1))
@@ -2627,7 +2627,7 @@ The method used must be an out-of-band method."
 		      (put-text-property start end 'dired-filename t))))))
 	  ;; Remove trailing lines.
 	  (goto-char (point-max))
-	  (while (re-search-backward (rx bol "//") nil 'noerror)
+	  (while (search-backward-regexp (rx bol "//") nil 'noerror)
 	    (forward-line 1)
 	    (delete-region (match-beginning 0) (point))))
 	;; Reset multibyte if needed.
@@ -2639,7 +2639,7 @@ The method used must be an out-of-band method."
 	  (unless (tramp-compat-string-search
 		   "color" (tramp-get-connection-property v "ls" ""))
 	    (goto-char (point-min))
-	    (while (re-search-forward ansi-color-control-seq-regexp nil t)
+	    (while (search-forward-regexp ansi-color-control-seq-regexp nil t)
 	      (replace-match "")))
 
           ;; Now decode what read if necessary.  Stolen from `insert-directory'.
@@ -2686,7 +2686,8 @@ The method used must be an out-of-band method."
 	  ;; Try to insert the amount of free space.
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
-	  (when (and (re-search-forward (rx bol (group (* blank) "total")) nil t)
+	  (when (and (search-forward-regexp
+		      (rx bol (group (* blank) "total")) nil t)
 		     ;; Emacs 29.1 or later.
 		     (not (fboundp 'dired--insert-disk-space)))
 	    (when-let ((available (get-free-disk-space ".")))
@@ -3639,8 +3640,10 @@ implementation will be used."
   "Invoke remote-shell Tramp file name handler.
 Fall back to normal file name handler if no Tramp handler exists."
   (if-let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
-      (save-match-data (apply (cdr fn) args))
-    (tramp-run-real-handler operation args)))
+      (prog1 (save-match-data (apply (cdr fn) args))
+	(setq tramp-debug-message-fnh-function (cdr fn)))
+    (prog1 (tramp-run-real-handler operation args)
+      (setq tramp-debug-message-fnh-function operation))))
 
 ;;;###tramp-autoload
 (defun tramp-sh-file-name-handler-p (vec)
@@ -5038,235 +5041,240 @@ connection if a previous connection has died for some reason."
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
-  (let ((p (tramp-get-connection-process vec))
-	(process-name (tramp-get-connection-property vec "process-name"))
-	(process-environment (copy-sequence process-environment))
-	(pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
+  (with-tramp-debug-message vec "Opening connection"
+    (let ((p (tramp-get-connection-process vec))
+	  (process-name (tramp-get-connection-property vec "process-name"))
+	  (process-environment (copy-sequence process-environment))
+	  (pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
 
-    ;; If Tramp opens the same connection within a short time frame,
-    ;; there is a problem.  We shall signal this.
-    (unless (or (process-live-p p)
-                (and (processp p) (not non-essential))
-		(not (tramp-file-name-equal-p
-		      vec (car tramp-current-connection)))
-		(time-less-p
-		 (time-since (cdr tramp-current-connection))
-		 (or tramp-connection-min-time-diff 0)))
-      (throw 'suppress 'suppress))
+      ;; If Tramp opens the same connection within a short time frame,
+      ;; there is a problem.  We shall signal this.
+      (unless (or (process-live-p p)
+                  (and (processp p) (not non-essential))
+		  (not (tramp-file-name-equal-p
+			vec (car tramp-current-connection)))
+		  (time-less-p
+		   (time-since (cdr tramp-current-connection))
+		   (or tramp-connection-min-time-diff 0)))
+	(throw 'suppress 'suppress))
 
-    ;; If too much time has passed since last command was sent, look
-    ;; whether process is still alive.  If it isn't, kill it.  When
-    ;; using ssh, it can sometimes happen that the remote end has hung
-    ;; up but the local ssh client doesn't recognize this until it
-    ;; tries to send some data to the remote end.  So that's why we
-    ;; try to send a command from time to time, then look again
-    ;; whether the process is really alive.
-    (condition-case nil
-	(when (and (time-less-p
-		    60 (time-since
-			(tramp-get-connection-property p "last-cmd-time" 0)))
-		   (process-live-p p))
-	  (tramp-send-command vec "echo are you awake" t t)
-	  (unless (and (process-live-p p)
-		       (tramp-wait-for-output p 10))
-	    ;; The error will be caught locally.
-	    (tramp-error vec 'file-error "Awake did fail")))
-      (file-error
-       (tramp-cleanup-connection vec t)
-       (setq p nil)))
+      ;; If too much time has passed since last command was sent, look
+      ;; whether process is still alive.  If it isn't, kill it.  When
+      ;; using ssh, it can sometimes happen that the remote end has
+      ;; hung up but the local ssh client doesn't recognize this until
+      ;; it tries to send some data to the remote end.  So that's why
+      ;; we try to send a command from time to time, then look again
+      ;; whether the process is really alive.
+      (condition-case nil
+	  (when (and (time-less-p
+		      60 (time-since
+			  (tramp-get-connection-property p "last-cmd-time" 0)))
+		     (process-live-p p))
+	    (tramp-send-command vec "echo are you awake" t t)
+	    (unless (and (process-live-p p)
+			 (tramp-wait-for-output p 10))
+	      ;; The error will be caught locally.
+	      (tramp-error vec 'file-error "Awake did fail")))
+	(file-error
+	 (tramp-cleanup-connection vec t)
+	 (setq p nil)))
 
-    ;; New connection must be opened.
-    (condition-case err
-	(unless (process-live-p p)
-	  (with-tramp-progress-reporter
-	      vec 3
-	      (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
-		  (format "Opening connection %s for %s using %s"
+      ;; New connection must be opened.
+      (condition-case err
+	  (unless (process-live-p p)
+	    (with-tramp-progress-reporter
+		vec 3
+		(if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
+		    (format "Opening connection %s for %s using %s"
+			    process-name
+			    (tramp-file-name-host vec)
+			    (tramp-file-name-method vec))
+		  (format "Opening connection %s for %s@%s using %s"
 			  process-name
+			  (tramp-file-name-user vec)
 			  (tramp-file-name-host vec)
-			  (tramp-file-name-method vec))
-		(format "Opening connection %s for %s@%s using %s"
-			process-name
-			(tramp-file-name-user vec)
-			(tramp-file-name-host vec)
-			(tramp-file-name-method vec)))
+			  (tramp-file-name-method vec)))
 
-	    (catch 'uname-changed
-	      ;; Start new process.
-	      (when (and p (processp p))
-		(delete-process p))
-	      (setenv "TERM" tramp-terminal-type)
-	      (setenv "LC_ALL" (tramp-get-local-locale vec))
-	      (if (stringp tramp-histfile-override)
-		  (setenv "HISTFILE" tramp-histfile-override)
-		(if tramp-histfile-override
-		    (progn
-		      (setenv "HISTFILE")
-		      (setenv "HISTFILESIZE" "0")
-		      (setenv "HISTSIZE" "0"))))
-	      (setenv "PROMPT_COMMAND")
-	      (setenv "PS1" tramp-initial-end-of-output)
-              (unless (stringp tramp-encoding-shell)
-                (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
-	      (let* ((current-host tramp-system-name)
-		     (target-alist (tramp-compute-multi-hops vec))
-		     (previous-hop tramp-null-hop)
-		     ;; We will apply `tramp-ssh-controlmaster-options'
-		     ;; only for the first hop.
-		     (options (tramp-ssh-controlmaster-options vec))
-		     (process-connection-type tramp-process-connection-type)
-		     (process-adaptive-read-buffering nil)
-		     ;; There are unfortunate settings for "cmdproxy" on
-		     ;; W32 systems.
-		     (process-coding-system-alist nil)
-		     (coding-system-for-read nil)
-		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
-		     ;; This must be done in order to avoid our file
-		     ;; name handler.
-		     (p (let ((default-directory
-				tramp-compat-temporary-file-directory))
-			  (apply
-			   #'start-process
-			   (tramp-get-connection-name vec)
-			   (tramp-get-connection-buffer vec)
-			   (append
-			    (list tramp-encoding-shell)
-			    (and extra-args (split-string extra-args))
-			    (and tramp-encoding-command-interactive
-				 (list tramp-encoding-command-interactive)))))))
+	      (catch 'uname-changed
+		;; Start new process.
+		(when (and p (processp p))
+		  (delete-process p))
+		(setenv "TERM" tramp-terminal-type)
+		(setenv "LC_ALL" (tramp-get-local-locale vec))
+		(if (stringp tramp-histfile-override)
+		    (setenv "HISTFILE" tramp-histfile-override)
+		  (if tramp-histfile-override
+		      (progn
+			(setenv "HISTFILE")
+			(setenv "HISTFILESIZE" "0")
+			(setenv "HISTSIZE" "0"))))
+		(setenv "PROMPT_COMMAND")
+		(setenv "PS1" tramp-initial-end-of-output)
+		(unless (stringp tramp-encoding-shell)
+                  (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
+		(let* ((current-host tramp-system-name)
+		       (target-alist (tramp-compute-multi-hops vec))
+		       (previous-hop tramp-null-hop)
+		       ;; We will apply `tramp-ssh-controlmaster-options'
+		       ;; only for the first hop.
+		       (options (tramp-ssh-controlmaster-options vec))
+		       (process-connection-type tramp-process-connection-type)
+		       (process-adaptive-read-buffering nil)
+		       ;; There are unfortunate settings for
+		       ;; "cmdproxy" on W32 systems.
+		       (process-coding-system-alist nil)
+		       (coding-system-for-read nil)
+		       (extra-args
+			(tramp-get-sh-extra-args tramp-encoding-shell))
+		       ;; This must be done in order to avoid our file
+		       ;; name handler.
+		       (p (let ((default-directory
+				 tramp-compat-temporary-file-directory))
+			    (apply
+			     #'start-process
+			     (tramp-get-connection-name vec)
+			     (tramp-get-connection-buffer vec)
+			     (append
+			      `(,tramp-encoding-shell)
+			      (and extra-args (split-string extra-args))
+			      (and tramp-encoding-command-interactive
+				   `(,tramp-encoding-command-interactive)))))))
 
-		;; This is neded for ssh or PuTTY based processes, and
-		;; only if the respective options are set.  Perhaps,
-		;; the setting could be more fine-grained.
-		;; (process-put p 'tramp-shared-socket t)
-		;; Set sentinel.  Initialize variables.
-		(set-process-sentinel p #'tramp-process-sentinel)
-		(tramp-post-process-creation p vec)
-		(setq tramp-current-connection (cons vec (current-time)))
+		  ;; This is neded for ssh or PuTTY based processes,
+		  ;; and only if the respective options are set.
+		  ;; Perhaps, the setting could be more fine-grained.
+		  ;; (process-put p 'tramp-shared-socket t)
+		  ;; Set sentinel.  Initialize variables.
+		  (set-process-sentinel p #'tramp-process-sentinel)
+		  (tramp-post-process-creation p vec)
+		  (setq tramp-current-connection (cons vec (current-time)))
 
-		;; Set connection-local variables.
-		(tramp-set-connection-local-variables vec)
+		  ;; Set connection-local variables.
+		  (tramp-set-connection-local-variables vec)
 
-		;; Check whether process is alive.
-		(tramp-barf-if-no-shell-prompt
-		 p 10
-		 "Couldn't find local shell prompt for %s" tramp-encoding-shell)
+		  ;; Check whether process is alive.
+		  (tramp-barf-if-no-shell-prompt
+		   p 10
+		   "Couldn't find local shell prompt for %s"
+		   tramp-encoding-shell)
 
-		;; Now do all the connections as specified.
-		(while target-alist
-		  (let* ((hop (car target-alist))
-			 (l-method (tramp-file-name-method hop))
-			 (l-user (tramp-file-name-user hop))
-			 (l-domain (tramp-file-name-domain hop))
-			 (l-host (tramp-file-name-host hop))
-			 (l-port (tramp-file-name-port hop))
-			 (remote-shell
-			  (tramp-get-method-parameter hop 'tramp-remote-shell))
-			 (extra-args (tramp-get-sh-extra-args remote-shell))
-			 (async-args
-			  (flatten-tree
-			   (tramp-get-method-parameter hop 'tramp-async-args)))
-			 (connection-timeout
-			  (tramp-get-method-parameter
-			   hop 'tramp-connection-timeout))
-			 (command
-			  (tramp-get-method-parameter hop 'tramp-login-program))
-			 ;; We don't create the temporary file.  In
-			 ;; fact, it is just a prefix for the
-			 ;; ControlPath option of ssh; the real
-			 ;; temporary file has another name, and it is
-			 ;; created and protected by ssh.  It is also
-			 ;; removed by ssh when the connection is
-			 ;; closed.  The temporary file name is cached
-			 ;; in the main connection process, therefore
-			 ;; we cannot use `tramp-get-connection-process'.
-			 (tmpfile
-			  (with-tramp-connection-property
-			      (tramp-get-process vec) "temp-file"
-			    (tramp-compat-make-temp-name)))
-			 r-shell)
+		  ;; Now do all the connections as specified.
+		  (while target-alist
+		    (let* ((hop (car target-alist))
+			   (l-method (tramp-file-name-method hop))
+			   (l-user (tramp-file-name-user hop))
+			   (l-domain (tramp-file-name-domain hop))
+			   (l-host (tramp-file-name-host hop))
+			   (l-port (tramp-file-name-port hop))
+			   (remote-shell
+			    (tramp-get-method-parameter hop 'tramp-remote-shell))
+			   (extra-args (tramp-get-sh-extra-args remote-shell))
+			   (async-args
+			    (flatten-tree
+			     (tramp-get-method-parameter hop 'tramp-async-args)))
+			   (connection-timeout
+			    (tramp-get-method-parameter
+			     hop 'tramp-connection-timeout))
+			   (command
+			    (tramp-get-method-parameter
+			     hop 'tramp-login-program))
+			   ;; We don't create the temporary file.  In
+			   ;; fact, it is just a prefix for the
+			   ;; ControlPath option of ssh; the real
+			   ;; temporary file has another name, and it
+			   ;; is created and protected by ssh.  It is
+			   ;; also removed by ssh when the connection
+			   ;; is closed.  The temporary file name is
+			   ;; cached in the main connection process,
+			   ;; therefore we cannot use
+			   ;; `tramp-get-connection-process'.
+			   (tmpfile
+			    (with-tramp-connection-property
+				(tramp-get-process vec) "temp-file"
+			      (tramp-compat-make-temp-name)))
+			   r-shell)
 
-		    ;; Check, whether there is a restricted shell.
-		    (dolist (elt tramp-restricted-shell-hosts-alist)
-		      (when (string-match-p elt current-host)
-			(setq r-shell t)))
-		    (setq current-host l-host)
+		      ;; Check, whether there is a restricted shell.
+		      (dolist (elt tramp-restricted-shell-hosts-alist)
+			(when (string-match-p elt current-host)
+			  (setq r-shell t)))
+		      (setq current-host l-host)
 
-		    ;; Set password prompt vector.
-		    (tramp-set-connection-property
-		     p "password-vector"
-		     (if (tramp-get-method-parameter
-			  hop 'tramp-password-previous-hop)
-			 (let ((pv (copy-tramp-file-name previous-hop)))
-			   (setf (tramp-file-name-method pv) l-method)
-			   pv)
-		       (make-tramp-file-name
-			:method l-method :user l-user :domain l-domain
-			:host l-host :port l-port)))
-
-		    ;; Set session timeout.
-		    (when (tramp-get-method-parameter
-			   hop 'tramp-session-timeout)
+		      ;; Set password prompt vector.
 		      (tramp-set-connection-property
-		       p "session-timeout"
-		       (tramp-get-method-parameter
-			hop 'tramp-session-timeout)))
+		       p "password-vector"
+		       (if (tramp-get-method-parameter
+			    hop 'tramp-password-previous-hop)
+			   (let ((pv (copy-tramp-file-name previous-hop)))
+			     (setf (tramp-file-name-method pv) l-method)
+			     pv)
+			 (make-tramp-file-name
+			  :method l-method :user l-user :domain l-domain
+			  :host l-host :port l-port)))
 
-		    ;; Replace `login-args' place holders.
-		    (setq
-		     command
-		     (string-join
-		      (append
-		       ;; We do not want to see the trailing local
-		       ;; prompt in `start-file-process'.
-		       (unless r-shell '("exec"))
-		       `(,command)
-		       ;; Add arguments for asynchronous processes.
-		       (when process-name async-args)
-		       (tramp-expand-args
-			hop 'tramp-login-args
-			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
-			?c (format-spec options (format-spec-make ?t tmpfile))
-			?n (concat
-			    "2>" (tramp-get-remote-null-device previous-hop))
-			?l (concat remote-shell " " extra-args " -i"))
-		       ;; A restricted shell does not allow "exec".
-		       (when r-shell '("&&" "exit" "||" "exit")))
-		      " "))
+		      ;; Set session timeout.
+		      (when (tramp-get-method-parameter
+			     hop 'tramp-session-timeout)
+			(tramp-set-connection-property
+			 p "session-timeout"
+			 (tramp-get-method-parameter
+			  hop 'tramp-session-timeout)))
 
-		    ;; Send the command.
-		    (tramp-message vec 3 "Sending command `%s'" command)
-		    (tramp-send-command vec command t t)
-		    (tramp-process-actions
-		     p vec
-		     (min
-		      pos (with-current-buffer (process-buffer p) (point-max)))
-		     tramp-actions-before-shell
-		     (or connection-timeout tramp-connection-timeout))
-		    (tramp-message
-		     vec 3 "Found remote shell prompt on `%s'" l-host)
+		      ;; Replace `login-args' place holders.
+		      (setq
+		       command
+		       (string-join
+			(append
+			 ;; We do not want to see the trailing local
+			 ;; prompt in `start-file-process'.
+			 (unless r-shell '("exec"))
+			 `(,command)
+			 ;; Add arguments for asynchronous processes.
+			 (when process-name async-args)
+			 (tramp-expand-args
+			  hop 'tramp-login-args
+			  ?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			  ?c (format-spec options (format-spec-make ?t tmpfile))
+			  ?n (concat
+			      "2>" (tramp-get-remote-null-device previous-hop))
+			  ?l (concat remote-shell " " extra-args " -i"))
+			 ;; A restricted shell does not allow "exec".
+			 (when r-shell '("&&" "exit" "||" "exit")))
+			" "))
 
-		    ;; Next hop.
-		    (setq options ""
-			  target-alist (cdr target-alist)
-			  previous-hop hop)))
+		      ;; Send the command.
+		      (tramp-message vec 3 "Sending command `%s'" command)
+		      (tramp-send-command vec command t t)
+		      (tramp-process-actions
+		       p vec
+		       (min
+			pos (with-current-buffer (process-buffer p) (point-max)))
+		       tramp-actions-before-shell
+		       (or connection-timeout tramp-connection-timeout))
+		      (tramp-message
+		       vec 3 "Found remote shell prompt on `%s'" l-host)
 
-		;; Activate session timeout.
-		(when (tramp-get-connection-property p "session-timeout")
-		  (run-at-time
-		   (tramp-get-connection-property p "session-timeout") nil
-		   #'tramp-timeout-session vec))
+		      ;; Next hop.
+		      (setq options ""
+			    target-alist (cdr target-alist)
+			    previous-hop hop)))
 
-		;; Make initial shell settings.
-		(tramp-open-connection-setup-interactive-shell p vec)
+		  ;; Activate session timeout.
+		  (when (tramp-get-connection-property p "session-timeout")
+		    (run-at-time
+		     (tramp-get-connection-property p "session-timeout") nil
+		     #'tramp-timeout-session vec))
 
-		;; Mark it as connected.
-		(tramp-set-connection-property p "connected" t)))))
+		  ;; Make initial shell settings.
+		  (tramp-open-connection-setup-interactive-shell p vec)
 
-      ;; Cleanup, and propagate the signal.
-      ((error quit)
-       (tramp-cleanup-connection vec t)
-       (signal (car err) (cdr err))))))
+		  ;; Mark it as connected.
+		  (tramp-set-connection-property p "connected" t)))))
+
+	;; Cleanup, and propagate the signal.
+	((error quit)
+	 (tramp-cleanup-connection vec t)
+	 (signal (car err) (cdr err)))))))
 
 (defun tramp-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC.
@@ -5322,7 +5330,7 @@ function waits for output unless NOOUTPUT is set."
 	    ;; A simple-minded busybox has sent " ^H" sequences.
 	    ;; Delete them.
 	    (goto-char (point-min))
-	    (when (re-search-forward
+	    (when (search-forward-regexp
 		   (rx bol (+ nonl "\b") eol) (line-end-position) t)
 	      (forward-line 1)
 	      (delete-region (point-min) (point)))
@@ -5404,7 +5412,7 @@ raises an error."
       ;; Read the marker.
       (when (stringp marker)
 	(condition-case nil
-	    (re-search-forward marker)
+	    (search-forward-regexp marker)
 	  (error (unless noerror
 		   (tramp-error
 		    vec 'file-error
@@ -5417,7 +5425,7 @@ raises an error."
 		     (unless noerror signal-hook-function)))
 		(read (current-buffer)))
 	    ;; Error handling.
-	    (when (re-search-forward (rx (not blank)) (line-end-position) t)
+	    (when (search-forward-regexp (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (unless noerror
 		 (tramp-error

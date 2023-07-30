@@ -738,7 +738,7 @@ buffer in your bug report.
 
   ;; Beautify encoded values.
   (goto-char (point-min))
-  (while (re-search-forward
+  (while (search-forward-regexp
 	  (rx "'" (group "(decode-coding-string")) nil 'noerror)
     (replace-match "\\1"))
   (goto-char (point-max))
@@ -766,7 +766,7 @@ buffer in your bug report.
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (if (re-search-forward tramp-buf-regexp (line-end-position) t)
+	  (if (search-forward-regexp tramp-buf-regexp (line-end-position) t)
 	      (forward-line 1)
 	    (forward-line 0)
 	    (let ((start (point)))

@@ -209,8 +209,10 @@ It is used for TCP/IP devices."
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (if-let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
-      (save-match-data (apply (cdr fn) args))
-    (tramp-run-real-handler operation args)))
+      (prog1 (save-match-data (apply (cdr fn) args))
+	(setq tramp-debug-message-fnh-function (cdr fn)))
+    (prog1 (tramp-run-real-handler operation args)
+      (setq tramp-debug-message-fnh-function operation))))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -273,7 +275,7 @@ arguments to pass to the OPERATION."
   (with-current-buffer (tramp-get-buffer vec)
     (goto-char (point-min))
     (let (file-properties)
-      (while (re-search-forward tramp-adb-ls-toolbox-regexp nil t)
+      (while (search-forward-regexp tramp-adb-ls-toolbox-regexp nil t)
 	(let* ((mod-string (match-string 1))
 	       (is-dir (eq ?d (aref mod-string 0)))
 	       (is-symlink (eq ?l (aref mod-string 0)))
@@ -319,7 +321,7 @@ arguments to pass to the OPERATION."
 		       (tramp-shell-quote-argument localname)))
 	;; We insert also filename/. and filename/.., because "ls"
 	;; doesn't on some file systems, like "sdcard".
-	(unless (re-search-backward (rx "." eol) nil t)
+	(unless (search-backward-regexp (rx "." eol) nil t)
 	  (narrow-to-region (point-max) (point-max))
 	  (tramp-adb-send-command
 	   v (format "%s -d -a -l %s %s | cat"
@@ -1142,7 +1144,7 @@ error and non-nil on success."
 	  ;; There must be a better solution by setting the correct coding
 	  ;; system, but this requires changes in core Tramp.
 	  (goto-char (point-min))
-	  (while (re-search-forward (rx (+ "\r") eol) nil t)
+	  (while (search-forward-regexp (rx (+ "\r") eol) nil t)
 	    (replace-match "" nil nil)))))))
 
 (defun tramp-adb-send-command-and-check (vec command &optional exit-status)
@@ -1186,12 +1188,12 @@ FMT and ARGS are passed to `error'."
 	  (let ((inhibit-read-only t))
 	    (goto-char (point-min))
 	    ;; ADB terminal sends "^H" sequences.
-	    (when (re-search-forward (rx "<" (+ "\b")) (line-end-position) t)
+	    (when (search-forward-regexp (rx "<" (+ "\b")) (line-end-position) t)
 	      (forward-line 1)
 	      (delete-region (point-min) (point)))
 	    ;; Delete the prompt.
             (goto-char (point-min))
-            (when (re-search-forward prompt (line-end-position) t)
+            (when (search-forward-regexp prompt (line-end-position) t)
               (forward-line 1)
               (delete-region (point-min) (point)))
 	    (when (tramp-search-regexp prompt)
@@ -1211,102 +1213,106 @@ connection if a previous connection has died for some reason."
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
-  (let* ((buf (tramp-get-connection-buffer vec))
-	 (p (get-buffer-process buf))
-	 (host (tramp-file-name-host vec))
-	 (user (tramp-file-name-user vec))
-         (device (tramp-adb-get-device vec)))
+  (with-tramp-debug-message vec "Opening connection"
+    (let* ((buf (tramp-get-connection-buffer vec))
+	   (p (get-buffer-process buf))
+	   (host (tramp-file-name-host vec))
+	   (user (tramp-file-name-user vec))
+           (device (tramp-adb-get-device vec)))
 
-    ;; Maybe we know already that "su" is not supported.  We cannot
-    ;; use a connection property, because we have not checked yet
-    ;; whether it is still the same device.
-    (when (and user (not (tramp-get-file-property vec "/" "su-command-p" t)))
-      (tramp-error vec 'file-error "Cannot switch to user `%s'" user))
+      ;; Maybe we know already that "su" is not supported.  We cannot
+      ;; use a connection property, because we have not checked yet
+      ;; whether it is still the same device.
+      (when (and user (not (tramp-get-file-property vec "/" "su-command-p" t)))
+	(tramp-error vec 'file-error "Cannot switch to user `%s'" user))
 
-    (unless (process-live-p p)
-      (save-match-data
-	(when (and p (processp p)) (delete-process p))
-	(if (tramp-string-empty-or-nil-p device)
-	    (tramp-error vec 'file-error "Device %s not connected" host))
-	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
-	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
-		 (process-connection-type tramp-process-connection-type)
-		 (args (tramp-expand-args
-			vec 'tramp-login-args ?d (or device "")))
-		 (p (let ((default-directory
-			    tramp-compat-temporary-file-directory))
-		      (apply #'start-process (tramp-get-connection-name vec) buf
-			     tramp-adb-program args)))
-		 (prompt (md5 (concat (prin1-to-string process-environment)
-				      (current-time-string)))))
-	    ;; Wait for initial prompt.  On some devices, it needs an
-	    ;; initial RET, in order to get it.
-            (sleep-for 0.1)
-	    (tramp-send-string vec tramp-rsh-end-of-line)
-	    (tramp-adb-wait-for-output p 30)
-	    (unless (process-live-p p)
-	      (tramp-error vec 'file-error "Terminated!"))
+      (unless (process-live-p p)
+	(save-match-data
+	  (when (and p (processp p)) (delete-process p))
+	  (if (tramp-string-empty-or-nil-p device)
+	      (tramp-error vec 'file-error "Device %s not connected" host))
+	  (with-tramp-progress-reporter vec 3 "Opening adb shell connection"
+	    (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
+		   (process-connection-type tramp-process-connection-type)
+		   (args (tramp-expand-args
+			  vec 'tramp-login-args ?d (or device "")))
+		   (p (let ((default-directory
+			     tramp-compat-temporary-file-directory))
+			(apply
+			 #'start-process (tramp-get-connection-name vec) buf
+			 tramp-adb-program args)))
+		   (prompt (md5 (concat (prin1-to-string process-environment)
+					(current-time-string)))))
+	      ;; Wait for initial prompt.  On some devices, it needs
+	      ;; an initial RET, in order to get it.
+              (sleep-for 0.1)
+	      (tramp-send-string vec tramp-rsh-end-of-line)
+	      (tramp-adb-wait-for-output p 30)
+	      (unless (process-live-p p)
+		(tramp-error vec 'file-error "Terminated!"))
 
-	    ;; Set sentinel.  Initialize variables.
-	    (set-process-sentinel p #'tramp-process-sentinel)
-	    (tramp-post-process-creation p vec)
+	      ;; Set sentinel.  Initialize variables.
+	      (set-process-sentinel p #'tramp-process-sentinel)
+	      (tramp-post-process-creation p vec)
 
-	    ;; Set connection-local variables.
-	    (tramp-set-connection-local-variables vec)
+	      ;; Set connection-local variables.
+	      (tramp-set-connection-local-variables vec)
 
-	    ;; Change prompt.
-	    (tramp-set-connection-property
-	     p "prompt" (rx "///" (literal prompt) "#$"))
-	    (tramp-adb-send-command
-	     vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
+	      ;; Change prompt.
+	      (tramp-set-connection-property
+	       p "prompt" (rx "///" (literal prompt) "#$"))
+	      (tramp-adb-send-command
+	       vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
 
-	    ;; Disable line editing.
-	    (tramp-adb-send-command
-	     vec "set +o vi +o vi-esccomplete +o vi-tabcomplete +o emacs")
+	      ;; Disable line editing.
+	      (tramp-adb-send-command
+	       vec "set +o vi +o vi-esccomplete +o vi-tabcomplete +o emacs")
 
-	    ;; Dump option settings in the traces.
-	    (when (>= tramp-verbose 9)
-	      (tramp-adb-send-command vec "set -o"))
+	      ;; Dump option settings in the traces.
+	      (when (>= tramp-verbose 9)
+		(tramp-adb-send-command vec "set -o"))
 
-	    ;; Check whether the properties have been changed.  If
-	    ;; yes, this is a strong indication that we must expire all
-	    ;; connection properties.  We start again.
-	    (tramp-message vec 5 "Checking system information")
-	    (tramp-adb-send-command
-	     vec
-	     (concat
-	      "echo \\\"`getprop ro.product.model` "
-	      "`getprop ro.product.version` "
-	      "`getprop ro.build.version.release`\\\""))
-	    (let ((old-getprop (tramp-get-connection-property vec "getprop"))
-		  (new-getprop
-		   (tramp-set-connection-property
-		    vec "getprop"
-		    (with-current-buffer (tramp-get-connection-buffer vec)
-		      ;; Read the expression.
-		      (goto-char (point-min))
-		      (read (current-buffer))))))
-	      (when (and (stringp old-getprop)
-			 (not (string-equal old-getprop new-getprop)))
-		(tramp-message
-		 vec 3
-		 "Connection reset, because remote host changed from `%s' to `%s'"
-		 old-getprop new-getprop)
-		(tramp-cleanup-connection vec t)
-		(tramp-adb-maybe-open-connection vec)))
+	      ;; Check whether the properties have been changed.  If
+	      ;; yes, this is a strong indication that we must expire
+	      ;; all connection properties.  We start again.
+	      (tramp-message vec 5 "Checking system information")
+	      (tramp-adb-send-command
+	       vec
+	       (concat
+		"echo \\\"`getprop ro.product.model` "
+		"`getprop ro.product.version` "
+		"`getprop ro.build.version.release`\\\""))
+	      (let ((old-getprop (tramp-get-connection-property vec "getprop"))
+		    (new-getprop
+		     (tramp-set-connection-property
+		      vec "getprop"
+		      (with-current-buffer (tramp-get-connection-buffer vec)
+			;; Read the expression.
+			(goto-char (point-min))
+			(read (current-buffer))))))
+		(when (and (stringp old-getprop)
+			   (not (string-equal old-getprop new-getprop)))
+		  (tramp-message
+		   vec 3
+		   (concat
+		    "Connection reset, because remote host changed "
+		    "from `%s' to `%s'")
+		   old-getprop new-getprop)
+		  (tramp-cleanup-connection vec t)
+		  (tramp-adb-maybe-open-connection vec)))
 
-	    ;; Change user if indicated.
-	    (when user
-	      (tramp-adb-send-command vec (format "su %s" user))
-	      (unless (tramp-adb-send-command-and-check vec nil)
-		(delete-process p)
-		;; Do not flush, we need the nil value.
-		(tramp-set-file-property vec "/" "su-command-p" nil)
-		(tramp-error
-		 vec 'file-error "Cannot switch to user `%s'" user)))
+	      ;; Change user if indicated.
+	      (when user
+		(tramp-adb-send-command vec (format "su %s" user))
+		(unless (tramp-adb-send-command-and-check vec nil)
+		  (delete-process p)
+		  ;; Do not flush, we need the nil value.
+		  (tramp-set-file-property vec "/" "su-command-p" nil)
+		  (tramp-error
+		   vec 'file-error "Cannot switch to user `%s'" user)))
 
-	    ;; Mark it as connected.
-	    (tramp-set-connection-property p "connected" t)))))))
+	      ;; Mark it as connected.
+	      (tramp-set-connection-property p "connected" t))))))))
 
 ;;; Default connection-local variables for Tramp.
 

@@ -263,7 +263,6 @@ is greater than 10.
 `should-error' is not handled properly.  BODY shall not contain a timeout."
   (declare (indent 1) (debug (natnump body)))
   `(let* ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
-	  (trace-buffer (tramp-trace-buffer-name tramp-test-vec))
 	  (debug-ignored-errors
 	   (append
 	    '("^make-symbolic-link not supported$"
@@ -3502,14 +3501,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 			"tramp-test*" ert-remote-temporary-file-directory)))
 	      (goto-char (point-min))
 	      (should
-	       (re-search-forward
+	       (search-forward-regexp
 		(rx
 		 (literal
 		  (file-relative-name
 		   tmp-name1 ert-remote-temporary-file-directory)))))
 	      (goto-char (point-min))
 	      (should
-	       (re-search-forward
+	       (search-forward-regexp
 		(rx
 		 (literal
 		  (file-relative-name
@@ -3524,14 +3523,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 			"tramp-test*/*" ert-remote-temporary-file-directory)))
 	      (goto-char (point-min))
 	      (should
-	       (re-search-forward
+	       (search-forward-regexp
 		(rx
 		 (literal
 		  (file-relative-name
 		   tmp-name3 ert-remote-temporary-file-directory)))))
 	      (goto-char (point-min))
 	      (should
-	       (re-search-forward
+	       (search-forward-regexp
 		(rx
 		 (literal
 		  (file-relative-name
@@ -3554,14 +3553,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 			"tramp-test*/*" ert-remote-temporary-file-directory)))
 	      (goto-char (point-min))
 	      (should
-	       (re-search-forward
+	       (search-forward-regexp
 		(rx
 		 (literal
 		  (file-relative-name
 		   tmp-name3 ert-remote-temporary-file-directory)))))
 	      (goto-char (point-min))
 	      (should
-	       (re-search-forward
+	       (search-forward-regexp
 		(rx
 		 (literal
 		  (file-relative-name
@@ -4980,10 +4979,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		      ;; We must remove leading `default-directory'.
 		      (goto-char (point-min))
 		      (let ((inhibit-read-only t))
-			(while (re-search-forward "//" nil 'noerror)
+			(while (search-forward-regexp "//" nil 'noerror)
 			  (delete-region (line-beginning-position) (point))))
 		      (goto-char (point-min))
-		      (re-search-forward
+		      (search-forward-regexp
 		       (rx bol (0+ nonl)
 			   (any "Pp") "ossible completions"
 			   (0+ nonl) eol))
@@ -5095,7 +5094,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (if (bufferp destination) destination (current-buffer))
 		  ;; "ls" could produce colorized output.
 		  (goto-char (point-min))
-		  (while (re-search-forward ansi-color-control-seq-regexp nil t)
+		  (while (search-forward-regexp
+			  ansi-color-control-seq-regexp nil t)
 		    (replace-match "" nil nil))
 		  (should
 		   (string-equal (if destination (format "%s\n" fnnd) "")
@@ -5109,7 +5109,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (if (bufferp destination) destination (current-buffer))
 		  ;; "ls" could produce colorized output.
 		  (goto-char (point-min))
-		  (while (re-search-forward ansi-color-control-seq-regexp nil t)
+		  (while (search-forward-regexp
+			  ansi-color-control-seq-regexp nil t)
 		    (replace-match "" nil nil))
 		  (should
 		   (string-equal
@@ -5823,7 +5824,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       (current-buffer))
 	      ;; "ls" could produce colorized output.
 	      (goto-char (point-min))
-	      (while (re-search-forward ansi-color-control-seq-regexp nil t)
+	      (while (search-forward-regexp ansi-color-control-seq-regexp nil t)
 		(replace-match "" nil nil))
 	      (should
 	       (string-equal
@@ -7374,7 +7375,7 @@ This requires restrictions of file name syntax."
 		    (should (zerop (process-file "printenv" nil t nil)))
 		    (goto-char (point-min))
 		    (should
-		     (re-search-forward
+		     (search-forward-regexp
 		      (rx
 		       bol (literal envvar)
 		       "=" (literal (getenv envvar)) eol))))))))
