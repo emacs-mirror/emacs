@@ -2804,7 +2804,12 @@ library.  @xref{Hooks}.
 @subsection How Emacs Finds Your Init File
 
   Emacs normally finds your init file in a location under your home
-directory.  @xref{Init File}.
+directory@footnote{
+On MS-Windows, there's no single directory considered by all programs
+as ``the home directory'' of the user.  Emacs uses one of the
+pertinent directories as the equivalent of your home directory; see
+@ref{Windows HOME}, for the details.
+}.  @xref{Init File}.
 
   Emacs looks for your init file using the filenames @file{~/.emacs.el},
 @file{~/.emacs}, or @file{~/.emacs.d/init.el} in that order; you can

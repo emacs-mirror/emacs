@@ -470,7 +470,7 @@ used for non-Latin and other unusual characters (such as emoji) is
 ignored as well, as are display properties and invisible text.
 For these reasons, the results are not generally reliable;
 for accurate dimensions of text as it will be displayed,
-use `window-text-pixel-size' instead.
+use `string-pixel-width' or `window-text-pixel-size' instead.
 usage: (string-width STRING &optional FROM TO)  */)
   (Lisp_Object str, Lisp_Object from, Lisp_Object to)
 {

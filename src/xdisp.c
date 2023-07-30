@@ -17601,6 +17601,7 @@ redisplay_window_error (Lisp_Object error_data)
   if (max_redisplay_ticks > 0
       && CONSP (error_data)
       && EQ (XCAR (error_data), Qerror)
+      && CONSP (XCDR (error_data))
       && STRINGP (XCAR (XCDR (error_data))))
     Vdelayed_warnings_list = Fcons (list2 (XCAR (error_data),
 					   XCAR (XCDR (error_data))),
@@ -27091,7 +27092,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 
 		    oprops = Fcopy_sequence (oprops);
 		    tem = props;
-		    while (CONSP (tem))
+		    while (CONSP (tem) && CONSP (XCDR (tem)))
 		      {
 			oprops = plist_put (oprops, XCAR (tem),
 					    XCAR (XCDR (tem)));
