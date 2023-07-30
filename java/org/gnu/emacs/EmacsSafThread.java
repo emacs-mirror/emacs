@@ -134,7 +134,7 @@ public final class EmacsSafThread extends HandlerThread
   }
 
 
-  private final class CacheToplevel
+  private static final class CacheToplevel
   {
     /* Map between document names and children.  */
     HashMap<String, DocIdEntry> children;
@@ -232,7 +232,7 @@ public final class EmacsSafThread extends HandlerThread
     }
   };
 
-  private final class CacheEntry
+  private static final class CacheEntry
   {
     /* The type of this document.  */
     String type;
@@ -539,6 +539,80 @@ public final class EmacsSafThread extends HandlerThread
 		  /* Locate the next component within this
 		     directory.  */
 		  children = entry.children;
+		}
+	    }
+	}
+      });
+  }
+
+  /* Invalidate the cache entry denoted by DOCUMENT_ID, within the
+     document tree URI.
+     Call this after deleting a document or directory.
+
+     At the same time, remove the child referring to DOCUMENTID from
+     within CACHENAME's cache entry if it exists.  */
+
+  public void
+  postInvalidateCacheDir (final Uri uri, final String documentId,
+			  final String cacheName)
+  {
+    handler.post (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  CacheToplevel toplevel;
+	  HashMap<String, DocIdEntry> children;
+	  String[] components;
+	  CacheEntry entry;
+	  DocIdEntry idEntry;
+	  Iterator<DocIdEntry> iter;
+
+	  toplevel = getCache (uri);
+	  toplevel.idCache.remove (documentId);
+
+	  /* Now remove DOCUMENTID from CACHENAME's cache entry, if
+	     any.  */
+
+	  children = toplevel.children;
+	  components = cacheName.split ("/");
+
+	  for (String component : components)
+	    {
+	      /* Java `split' removes trailing empty matches but not
+		 leading or intermediary ones.  */
+	      if (component.isEmpty ())
+		continue;
+
+	      /* Search for this component within the last level
+		 of the cache.  */
+
+	      idEntry = children.get (component);
+
+	      if (idEntry == null)
+		/* Not cached, so return.  */
+		return;
+
+	      entry = toplevel.idCache.get (idEntry.documentId);
+
+	      if (entry == null)
+		/* Not cached, so return.  */
+		return;
+
+	      /* Locate the next component within this
+		 directory.  */
+	      children = entry.children;
+	    }
+
+	  iter = children.values ().iterator ();
+	  while (iter.hasNext ())
+	    {
+	      idEntry = iter.next ();
+
+	      if (idEntry.documentId.equals (documentId))
+		{
+		  iter.remove ();
+		  break;
 		}
 	    }
 	}

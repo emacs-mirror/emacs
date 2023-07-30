@@ -1583,6 +1583,9 @@ android_init_emacs_service (void)
   FIND_METHOD (delete_document, "deleteDocument",
 	       "(Ljava/lang/String;Ljava/lang/String;"
 	       "Ljava/lang/String;)I");
+  FIND_METHOD (rename_document, "renameDocument",
+	       "(Ljava/lang/String;Ljava/lang/String;"
+	       "Ljava/lang/String;Ljava/lang/String;)I");
 #undef FIND_METHOD
 }
 

@@ -1698,4 +1698,41 @@ public final class EmacsService extends Service
 
     return -1;
   }
+
+  /* Rename the document designated by DOCID inside the directory tree
+     identified by URI, which should be within the directory
+     designated by DIR, to NAME.  If the file can't be renamed because
+     it doesn't support renaming, return -1, 0 otherwise.  */
+
+  public int
+  renameDocument (String uri, String docId, String dir, String name)
+    throws FileNotFoundException
+  {
+    Uri tree, uriObject;
+
+    tree = Uri.parse (uri);
+    uriObject = DocumentsContract.buildDocumentUriUsingTree (tree, docId);
+
+    try
+      {
+	if (DocumentsContract.renameDocument (resolver, uriObject,
+					      name)
+	    != null)
+	  {
+	    /* Invalidate the cache.  */
+	    if (storageThread != null)
+	      storageThread.postInvalidateCacheDir (tree, docId,
+						    name);
+	    return 0;
+	  }
+      }
+    catch (UnsupportedOperationException e)
+      {
+	;;
+      }
+
+    /* Handle unsupported operation exceptions specially, so
+       `android_rename' can return ENXDEV.  */
+    return -1;
+  }
 };

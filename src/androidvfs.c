@@ -4035,6 +4035,71 @@ android_saf_delete_document (const char *tree, const char *doc_id,
   return 0;
 }
 
+/* Declared further below.  */
+static int android_document_id_from_name (const char *, char *, char **);
+
+/* Rename the document designated by DOC_ID inside the directory tree
+   identified by URI, which should be within the directory by the name
+   of DIR, to NAME.  If the document can't be renamed, return -1 and
+   set errno to a value describing the error.  Return 0 if the rename
+   is successful.
+
+   Android permits the same document to appear in multiple
+   directories, but stores the display name inside the document
+   ``inode'' itself instead of the directory entries that refer to it.
+   Because of this, this operation may cause other directory entries
+   outside DIR to be renamed.  */
+
+static int
+android_saf_rename_document (const char *uri, const char *doc_id,
+			     const char *dir, const char *name)
+{
+  int rc;
+  jstring uri1, doc_id1, dir1, name1;
+  jmethodID method;
+
+  /* Now build the strings for the URI, document ID, directory name
+     and directory ID.  */
+
+  uri1 = (*android_java_env)->NewStringUTF (android_java_env, uri);
+  android_exception_check ();
+  doc_id1 = (*android_java_env)->NewStringUTF (android_java_env, doc_id);
+  android_exception_check_1 (uri1);
+  dir1 = (*android_java_env)->NewStringUTF (android_java_env, dir);
+  android_exception_check_2 (doc_id1, uri1);
+  name1 = (*android_java_env)->NewStringUTF (android_java_env, name);
+  android_exception_check_3 (dir1, doc_id1, uri1);
+
+  method = service_class.rename_document;
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method, uri1, doc_id1,
+						     dir1, name1);
+
+  /* Check for exceptions.  */
+  if (android_saf_exception_check (4, uri1, doc_id1, dir1, name1))
+    return -1;
+
+  /* Delete unused local references.  */
+  ANDROID_DELETE_LOCAL_REF (uri1);
+  ANDROID_DELETE_LOCAL_REF (doc_id1);
+  ANDROID_DELETE_LOCAL_REF (dir1);
+  ANDROID_DELETE_LOCAL_REF (name1);
+
+  /* Then check for errors handled within the Java code.  */
+
+  if (rc == -1)
+    {
+      /* UnsupportedOperationException.  Trick the caller into falling
+	 back on delete-then-copy code.  */
+      errno = EXDEV;
+      return -1;
+    }
+
+  return 0;
+}
+
 
 
 /* SAF directory vnode.  A file within a SAF directory tree is
@@ -4591,9 +4656,117 @@ android_saf_tree_rename (struct android_vnode *src,
 			 struct android_vnode *dst,
 			 bool keep_existing)
 {
-  /* TODO */
-  errno = ENOSYS;
-  return -1;
+  char *last, *dst_last;
+  struct android_saf_tree_vnode *vp, *vdst;
+  char path[PATH_MAX], *fill;
+
+  /* If dst isn't a tree, file or new vnode, return EXDEV.  */
+
+  if (dst->type != ANDROID_VNODE_SAF_TREE
+      && dst->type != ANDROID_VNODE_SAF_FILE
+      && dst->type != ANDROID_VNODE_SAF_NEW)
+    {
+      errno = EXDEV;
+      return -1;
+    }
+
+  vp = (struct android_saf_tree_vnode *) src;
+  vdst = (struct android_saf_tree_vnode *) dst;
+
+  /* if vp and vdst refer to different tree URIs, return EXDEV.  */
+
+  if (strcmp (vp->tree_uri, vdst->tree_uri))
+    {
+      errno = EXDEV;
+      return -1;
+    }
+
+  /* If `keep_existing' and the destination vnode designates an
+     existing file, return EEXIST.  */
+
+  if (keep_existing && dst->type != ANDROID_VNODE_SAF_NEW)
+    {
+      errno = EEXIST;
+      return -1;
+    }
+
+  /* Unix `rename' maps to two Android content provider operations.
+     The first case is a simple rename, where src and dst are both
+     located within the same directory.  Compare the file names of
+     both up to the component before the last.  */
+
+  last = strrchr (vp->name, '/');
+  eassert (last != NULL);
+
+  if (last[1] == '\0')
+    {
+      if (last == vp->name)
+	{
+	  /* This means the caller is trying to rename the root
+	     directory of the tree.  */
+	  errno = EROFS;
+	  return -1;
+	}
+
+      /* The name is terminated by a trailing directory separator.
+         Search backwards for the preceding directory separator.  */
+      last = memrchr (vp->name, '/', last - vp->name);
+      eassert (last != NULL);
+    }
+
+  /* Find the end of the second-to-last component in vdst's name.  */
+
+  dst_last = strrchr (vdst->name, '/');
+  eassert (dst_last != NULL);
+
+  if (dst_last[1] == '\0')
+    {
+      if (dst_last == vdst->name)
+	{
+	  /* Forbid overwriting the root of the tree either.  */
+	  errno = EROFS;
+	  return -1;
+	}
+
+      dst_last = memrchr (vdst->name, '/', dst_last - vdst->name);
+      eassert (dst_last != NULL);
+    }
+
+  if (dst_last - vdst->name != last - vp->name
+      || memcmp (vp->name, vdst->name, last - vp->name))
+    {
+      /* The second case is where the file must be moved from one
+         directory to the other, and possibly then recreated under a
+         new name.  */
+
+      errno = EXDEV; /* TODO */
+      return -1;
+    }
+
+  /* Otherwise, do this simple rename.  The name of the parent
+     directory is required, as it provides the directory whose entries
+     will be modified.  */
+
+  if (last - vp->name >= PATH_MAX)
+    {
+      errno = ENAMETOOLONG;
+      return -1;
+    }
+
+  /* If the destination document exists, delete it.  */
+
+  if (dst->type != ANDROID_VNODE_SAF_NEW
+      && android_saf_delete_document (vdst->tree_uri,
+				      vdst->document_id,
+				      vdst->name))
+    return -1;
+
+  fill = mempcpy (path, vp->name, last - vp->name);
+  *fill = '\0';
+  return android_saf_rename_document (vp->tree_uri,
+				      vp->document_id,
+				      path,
+				      dst_last + 1);
 }
 
 static int
