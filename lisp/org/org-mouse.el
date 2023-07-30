@@ -975,7 +975,7 @@ This means, between the beginning of line and the point."
   (interactive)
   (org-back-to-heading)
   (let ((minlevel 1000)
-	(replace-text (concat (match-string 0) "* ")))
+	(replace-text (concat (make-string (org-current-level) ?*) "* ")))
     (beginning-of-line 2)
     (save-excursion
       (while (not (or (eobp) (looking-at org-outline-regexp)))
