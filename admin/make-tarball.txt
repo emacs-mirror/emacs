@@ -426,6 +426,13 @@ Now change to the 'manual' directory and invoke upload-manuals:
   If upload-manuals fails, resolve the problems and re-invoke it.
   This requires running make-manuals again, since upload-manuals
   destructively modifies the 'manual' directory where you invoke it.
+
+  If new files fail to be "cvs add"ed, they need to be manually
+  removed from under /path/to/webpages/cvs/checkout before retrying
+  upload-manuals, because if they exist, they will not be handled as
+  "new" files, and will not be "cvs add"ed by the next run of the
+  script.
+
   Also, upload-manuals invokes "cvs commit -f", so if you run it
   several times, some files will be committed more than once even
   though they were not changed in-between.  Suck it up.
