@@ -260,8 +260,12 @@ char_width (int c, struct Lisp_Char_Table *dp)
 
 
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
-       doc: /* Return width of CHAR when displayed in the current buffer.
-The width is measured by how many columns it occupies on the screen.
+       doc: /* Return width of CHAR in columns when displayed in the current buffer.
+The width of CHAR is measured by how many columns it will occupy on the screen.
+This is based on data in `char-width-table', and ignores the actual
+metrics of the character's glyph as determined by its font.
+If the display table in effect replaces CHAR on display with
+something else, the function returns the width of the replacement.
 Tab is taken to occupy `tab-width' columns.
 usage: (char-width CHAR)  */)
   (Lisp_Object ch)
@@ -457,20 +461,25 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 }
 
 DEFUN ("string-width", Fstring_width, Sstring_width, 1, 3, 0,
-       doc: /* Return width of STRING when displayed in the current buffer.
-Width is measured by how many columns it occupies on the screen.
+       doc: /* Return width of STRING in columns when displayed in the current buffer.
+Width of STRING is measured by how many columns it will occupy on the screen.
+
 Optional arguments FROM and TO specify the substring of STRING to
 consider, and are interpreted as in `substring'.
 
-When calculating width of a multibyte character in STRING,
-only the base leading-code is considered; the validity of
-the following bytes is not checked.  Tabs in STRING are always
-taken to occupy `tab-width' columns.  The effect of faces and fonts
-used for non-Latin and other unusual characters (such as emoji) is
-ignored as well, as are display properties and invisible text.
-For these reasons, the results are not generally reliable;
-for accurate dimensions of text as it will be displayed,
-use `string-pixel-width' or `window-text-pixel-size' instead.
+Width of each character in STRING is generally taken according to
+`char-width', but character compositions and the display table in
+effect are taken into consideration.
+Tabs in are always taken to occupy `tab-width' columns, although they
+might take fewer columns depending on the column where they begin.
+The effect of faces and fonts, including fonts used for non-Latin and
+other unusual characters, such as emoji, is ignored as well, as are
+display properties and invisible text.
+
+For these reasons, the results are just an approximation, especially
+on GUI frames; for accurate dimensions of text as it will be
+displayed, use `string-pixel-width' or `window-text-pixel-size'
+instead.
 usage: (string-width STRING &optional FROM TO)  */)
   (Lisp_Object str, Lisp_Object from, Lisp_Object to)
 {
