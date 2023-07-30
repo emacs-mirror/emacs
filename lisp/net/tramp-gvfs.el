@@ -951,13 +951,12 @@ Return nil for null BYTE-ARRAY."
 (defun tramp-dbus-function (vec func args)
   "Apply a D-Bus function FUNC from dbus.el.
 The call will be traced by Tramp with trace level 6."
+  (declare (tramp-suppress-trace t))
   (let (result)
     (tramp-message vec 6 "%s" (cons func args))
     (setq result (apply func args))
     (tramp-message vec 6 "%s" (tramp-gvfs-stringify-dbus-message result))
     result))
-
-(put #'tramp-dbus-function 'tramp-suppress-trace t)
 
 (defmacro with-tramp-dbus-call-method
   (vec synchronous bus service path interface method &rest args)
