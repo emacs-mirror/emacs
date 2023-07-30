@@ -470,11 +470,12 @@ consider, and are interpreted as in `substring'.
 Width of each character in STRING is generally taken according to
 `char-width', but character compositions and the display table in
 effect are taken into consideration.
-Tabs in are always taken to occupy `tab-width' columns, although they
-might take fewer columns depending on the column where they begin.
+Tabs in STRING are always assumed to occupy `tab-width' columns,
+although they might take fewer columns depending on the column where
+they begin on display.
 The effect of faces and fonts, including fonts used for non-Latin and
-other unusual characters, such as emoji, is ignored as well, as are
-display properties and invisible text.
+other unusual characters, such as emoji, is ignored, as are display
+properties and invisible text.
 
 For these reasons, the results are just an approximation, especially
 on GUI frames; for accurate dimensions of text as it will be
