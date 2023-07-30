@@ -201,7 +201,6 @@ This is desirable in modes where blank lines are the paragraph delimiters."
   :type 'boolean
   :safe #'booleanp)
 
-;; Silence the compiler.
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
 With argument ARG, do it ARG times;
