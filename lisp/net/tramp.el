@@ -1448,7 +1448,6 @@ calling HANDLER.")
   (make-tramp-file-name :user (user-login-name) :host tramp-system-name)
 "Connection hop which identifies the virtual hop before the first one.")
 
-;;;###tramp-autoload
 (defun tramp-file-name-user-domain (vec)
   "Return user and domain components of VEC."
   (declare (tramp-suppress-trace t))
@@ -1458,7 +1457,6 @@ calling HANDLER.")
 		 tramp-prefix-domain-format)
 	    (tramp-file-name-domain vec))))
 
-;;;###tramp-autoload
 (defun tramp-file-name-host-port (vec)
   "Return host and port components of VEC."
   (declare (tramp-suppress-trace t))
@@ -1482,7 +1480,6 @@ If LOCALNAME is an absolute file name, set it as localname.  If
 LOCALNAME is a relative file name, return `tramp-cache-undefined'.
 Objects returned by this function compare `equal' if they refer to the
 same connection.  Make a copy in order to avoid side effects."
-  (declare (tramp-suppress-trace t))
   (if (and (stringp localname)
 	   (not (file-name-absolute-p localname)))
       (setq vec tramp-cache-undefined)
@@ -1493,6 +1490,9 @@ same connection.  Make a copy in order to avoid side effects."
 		 (file-name-unquote (directory-file-name localname)))
 	    (tramp-file-name-hop vec) nil))
     vec))
+
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-file-name-unify 'tramp-suppress-trace t)
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
@@ -1635,7 +1635,6 @@ localname (file name on remote host), and hop.
 Unless NODEFAULT is non-nil, method, user and host are expanded
 to their default values.  For the other file name parts, no
 default values are used."
-  (declare (tramp-suppress-trace t))
   (save-match-data
     (unless (tramp-tramp-file-p name)
       (tramp-user-error nil "Not a Tramp file name: \"%s\"" name))
@@ -1692,17 +1691,22 @@ default values are used."
 	    (tramp-user-error
 	     v "Method `%s' is not supported for multi-hops" method)))))))
 
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-dissect-file-name 'tramp-suppress-trace t)
+
 ;;;###tramp-autoload
 (defun tramp-ensure-dissected-file-name (vec-or-filename)
   "Return a `tramp-file-name' structure for VEC-OR-FILENAME.
 
 VEC-OR-FILENAME may be either a string or a `tramp-file-name'.
 If it's not a Tramp filename, return nil."
-  (declare (tramp-suppress-trace t))
   (cond
    ((tramp-file-name-p vec-or-filename) vec-or-filename)
    ((tramp-tramp-file-p vec-or-filename)
     (tramp-dissect-file-name vec-or-filename))))
+
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-ensure-dissected-file-name 'tramp-suppress-trace t)
 
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.

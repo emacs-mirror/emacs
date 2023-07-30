@@ -52,6 +52,8 @@
 
 (declare-function tramp-compat-string-replace "tramp-compat")
 (declare-function tramp-file-name-equal-p "tramp")
+(declare-function tramp-file-name-host-port "tramp")
+(declare-function tramp-file-name-user-domain "tramp")
 (declare-function tramp-get-default-directory "tramp")
 (defvar tramp-compat-temporary-file-directory)
 
@@ -304,7 +306,6 @@ is greater than or equal 4.
 Calls functions `message' and `tramp-debug-message' with FMT-STRING as
 control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
-  (declare (tramp-suppress-trace t))
   (ignore-errors
     (when (<= level tramp-verbose)
       ;; Display only when there is a minimum level, and the progress
@@ -344,6 +345,9 @@ applicable)."
 		 vec-or-proc
 		 (concat (format "(%d) # " level) fmt-string)
 		 arguments))))))
+
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-message 'tramp-suppress-trace t)
 
 (defsubst tramp-backtrace (&optional vec-or-proc force)
   "Dump a backtrace into the debug buffer.
