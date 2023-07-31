@@ -5393,6 +5393,17 @@ This function is an internal primitive--use `make-frame' instead.  */)
   gui_default_parameter (f, parms, Qfullscreen, Qnil,
                          "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
+#ifdef USE_CAIRO
+  /* Set the initial size of the Cairo surface to the frame's current
+     width and height.  If the window manager doesn't resize the new
+     frame after it's first mapped, Emacs will create a surface with
+     empty dimensions in response to to the initial exposure event,
+     which will persist until the next time it's resized.
+     (bug#64923) */
+  x_cr_update_surface_desired_size (f, FRAME_PIXEL_WIDTH (f),
+				    FRAME_PIXEL_HEIGHT (f));
+#endif /* USE_CAIRO */
+
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
      cannot control visibility, so don't try.  */
