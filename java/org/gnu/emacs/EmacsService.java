@@ -291,7 +291,8 @@ public final class EmacsService extends Service
 					  cacheDir, (float) pixelDensityX,
 					  (float) pixelDensityY,
 					  (float) scaledDensity,
-					  classPath, EmacsService.this);
+					  classPath, EmacsService.this,
+					  Build.VERSION.SDK_INT);
 	    }
 	  }, extraStartupArgument,
 	  /* If any file needs to be opened, open it now.  */

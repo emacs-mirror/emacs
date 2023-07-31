@@ -22,7 +22,6 @@ package org.gnu.emacs;
 import java.lang.Thread;
 import java.util.Arrays;
 
-import android.os.Build;
 import android.util.Log;
 
 public final class EmacsThread extends Thread
@@ -78,7 +77,6 @@ public final class EmacsThread extends Thread
 
     /* Run the native code now.  */
     Log.d (TAG, "run: " + Arrays.toString (args));
-    EmacsNative.initEmacs (args, EmacsApplication.dumpFileName,
-			   Build.VERSION.SDK_INT);
+    EmacsNative.initEmacs (args, EmacsApplication.dumpFileName);
   }
 };

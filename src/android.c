@@ -1281,13 +1281,18 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jfloat pixel_density_y,
 			      jfloat scaled_density,
 			      jobject class_path,
-			      jobject emacs_service_object)
+			      jobject emacs_service_object,
+			      jint api_level)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
   int pipefd[2];
   pthread_t thread;
   const char *java_string;
+
+  /* Set the Android API level early, as it is used by
+     `android_vfs_init'.  */
+  android_api_level = api_level;
 
   /* This function should only be called from the main thread.  */
 
@@ -1771,7 +1776,7 @@ android_init_emacs_cursor (void)
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
-			 jobject dump_file_object, jint api_level)
+			 jobject dump_file_object)
 {
   /* android_emacs_init is not main, so GCC is not nice enough to add
      the stack alignment prologue.
@@ -1787,9 +1792,6 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   jobject argument;
   const char *c_argument;
   char *dump_file;
-
-  /* Set the Android API level.  */
-  android_api_level = api_level;
 
   android_java_env = env;
 

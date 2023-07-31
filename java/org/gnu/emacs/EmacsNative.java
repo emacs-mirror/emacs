@@ -66,7 +66,9 @@ public final class EmacsNative
      classPath must be the classpath of this app_process process, or
      NULL.
 
-     emacsService must be the EmacsService singleton, or NULL.  */
+     emacsService must be the EmacsService singleton, or NULL.
+
+     apiLevel is the version of Android being run.  */
   public static native void setEmacsParams (AssetManager assetManager,
 					    String filesDir,
 					    String libDir,
@@ -75,18 +77,16 @@ public final class EmacsNative
 					    float pixelDensityY,
 					    float scaledDensity,
 					    String classPath,
-					    EmacsService emacsService);
+					    EmacsService emacsService,
+					    int apiLevel);
 
   /* Initialize Emacs with the argument array ARGV.  Each argument
      must contain a NULL terminated string, or else the behavior is
      undefined.
 
      DUMPFILE is the dump file to use, or NULL if Emacs is to load
-     loadup.el itself.
-
-     APILEVEL is the version of Android being used.  */
-  public static native void initEmacs (String argv[], String dumpFile,
-				       int apiLevel);
+     loadup.el itself.  */
+  public static native void initEmacs (String argv[], String dumpFile);
 
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();

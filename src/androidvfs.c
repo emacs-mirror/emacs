@@ -5976,6 +5976,14 @@ android_saf_new_opendir (struct android_vnode *vnode)
 /* Semaphore posted upon the completion of an SAF operation.  */
 static sem_t saf_completion_sem;
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#else /* GNUC */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+#endif /* __clang__ */
+
 JNIEXPORT jint JNICALL
 NATIVE_NAME (safSyncAndReadInput) (JNIEnv *env, jobject object)
 {
@@ -6009,6 +6017,12 @@ NATIVE_NAME (safPostRequest) (JNIEnv *env, jobject object)
 {
   sem_post (&saf_completion_sem);
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /* GNUC */
+#pragma GCC diagnostic pop
+#endif /* __clang__ */
 
 
 
