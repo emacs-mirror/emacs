@@ -31,6 +31,7 @@
 (eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-start "treesit.c")
@@ -87,6 +88,42 @@
     "VERSION_GREATER_EQUAL" "VERSION_LESS" "VERSION_LESS_EQUAL")
   "CMake if conditions for tree-sitter font-locking.")
 
+(defun cmake-ts-mode--font-lock-compatibility-fe9b5e0 ()
+  "Indent rules helper, to handle different releases of tree-sitter-cmake.
+Check if a node type is available, then return the right indent rules."
+  ;; handle commit fe9b5e0
+  (condition-case nil
+      (progn (treesit-query-capture 'cmake '((argument_list) @capture))
+             `(((foreach_command
+                 ((argument_list) @font-lock-constant-face
+                  (:match ,(rx-to-string
+                            `(seq bol
+                                  (or ,@cmake-ts-mode--foreach-options)
+                                  eol))
+                          @font-lock-constant-face))))
+               ((if_command
+                 ((argument_list) @font-lock-constant-face
+                  (:match ,(rx-to-string
+                            `(seq bol
+                                  (or ,@cmake-ts-mode--if-conditions)
+                                  eol))
+                          @font-lock-constant-face))))))
+    (error
+     `(((foreach_command
+         ((argument) @font-lock-constant-face
+          (:match ,(rx-to-string
+                    `(seq bol
+                          (or ,@cmake-ts-mode--foreach-options)
+                          eol))
+                  @font-lock-constant-face))))
+       ((if_command
+         ((argument) @font-lock-constant-face
+          (:match ,(rx-to-string
+                    `(seq bol
+                          (or ,@cmake-ts-mode--if-conditions)
+                          eol))
+                  @font-lock-constant-face))))))))
+
 (defvar cmake-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'cmake
@@ -95,20 +132,7 @@
 
    :language 'cmake
    :feature 'builtin
-   `(((foreach_command
-       ((argument) @font-lock-constant-face
-        (:match ,(rx-to-string
-                  `(seq bol
-                        (or ,@cmake-ts-mode--foreach-options)
-                        eol))
-                @font-lock-constant-face))))
-     ((if_command
-       ((argument) @font-lock-constant-face
-        (:match ,(rx-to-string
-                  `(seq bol
-                        (or ,@cmake-ts-mode--if-conditions)
-                        eol))
-                @font-lock-constant-face)))))
+   (cmake-ts-mode--font-lock-compatibility-fe9b5e0)
 
    :language 'cmake
    :feature 'comment

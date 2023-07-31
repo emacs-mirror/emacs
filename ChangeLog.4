@@ -1,6 +1,48 @@
-2023-07-29  Eli Zaretskii  <eliz@maintain0p.gnu.org>
+2023-07-30  Eli Zaretskii  <eliz@maintain0p.gnu.org>
 
 	* Version 29.1 released.
+
+2023-07-29  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	Update CMake support due to upstream changes (bug#64922)
+
+	A recent change in tree-sitter-cmake grammar support for CMake (commit
+	fe9b5e0), now put arguments are wrapped in a new argument_list node.
+	To support the old and new version of the grammar, a new function was
+	added on which string syntax highlighting now depends.
+
+	* lisp/progmodes/cmake-ts-mode.el
+	(cmake-ts-mode--font-lock-compatibility-fe9b5e0): Indent helper
+	function to handle different tree-sitter-cmake version.
+	* lisp/progmodes/cmake-ts-mode.el
+	(cmake-ts-mode--font-lock-settings): Use the new function to handle
+	the new argument_list node.
+
+2023-07-24  Theodor Thornhill  <theo@thornhill.no>
+
+	Remove nullptr named node from c++-ts-mode (bug#64818)
+
+	The nullptr node was changed from a named node to an unnamed node
+	upstream[0], which caused font locking to break. As this is a small
+	enough regression, no compat code is required.
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--font-lock-settings): Remove
+	node no longer in use.
+
+	[0]:
+	https://github.com/tree-sitter/tree-sitter-c/commit/c75868f8b508ae32a0c8490da91bb31b2b96430e
+
+2023-07-24  Theodor Thornhill  <theo@thornhill.no>
+
+	Make compat check also check typescript
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(tsx-ts-mode--font-lock-compatibility-bb1f97b):
+	Add argument so that we run the 'treesit-query-capture' when the
+	language is 'typescript', not only 'tsx'.
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--font-lock-settings): Use supplied argument.
 
 2023-07-23  Eli Zaretskii  <eliz@gnu.org>
 
@@ -117338,7 +117380,7 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit 76a142e265df742b2fdd3d220607a46fcbc30e1a (inclusive).
+commit 7d1737071fba1fd83039aac34f34f6b90c9579b8 (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:

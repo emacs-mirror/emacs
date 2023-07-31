@@ -154,15 +154,16 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "&&" "||" "!" "?.")
   "TypeScript operators for tree-sitter font-locking.")
 
-(defun tsx-ts-mode--font-lock-compatibility-bb1f97b ()
+(defun tsx-ts-mode--font-lock-compatibility-bb1f97b (language)
   "Font lock rules helper, to handle different releases of tree-sitter-tsx.
-Check if a node type is available, then return the right font lock rules."
+Check if a node type is available, then return the right font lock rules.
+Argument LANGUAGE is either `typescript' or `tsx'."
   ;; handle commit bb1f97b
   ;; Warning: treesitter-query-capture says both node types are valid,
   ;; but then raises an error if the wrong node type is used. So it is
   ;; important to check with the new node type (member_expression)
   (condition-case nil
-      (progn (treesit-query-capture 'tsx '((member_expression) @capture))
+      (progn (treesit-query-capture language '((member_expression) @capture))
 	     '((jsx_opening_element
 		[(member_expression (identifier)) (identifier)]
 		@typescript-ts-jsx-tag-face)
@@ -337,7 +338,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
    :language language
    :feature 'jsx
-   (append (tsx-ts-mode--font-lock-compatibility-bb1f97b)
+   (append (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
 	   `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
 
    :language language
