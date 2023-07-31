@@ -7019,11 +7019,13 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
   {						\
     uint32_t a0, a1, b0, b1, p;			\
 						\
-    a0 = POP ();				\
-    a1 = POP ();				\
-    b0 = POP ();				\
-    b1 = POP ();				\
-    p = POP ();					\
+    CHECK_STACK_ELEMENTS (5);			\
+						\
+    a0 = POP_UNCHECKED ();			\
+    a1 = POP_UNCHECKED ();			\
+    b0 = POP_UNCHECKED ();			\
+    b1 = POP_UNCHECKED ();			\
+    p = POP_UNCHECKED ();			\
 						\
     sfnt_interpret_isect (interpreter,		\
 			  a0, a1, b0, b1, p);	\
