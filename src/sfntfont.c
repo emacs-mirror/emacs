@@ -460,9 +460,10 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
   desc->slant = 100;
   desc->width = 100;
 
-  /* Split the style into spaces.  As long as no weight, slant, or
-     width is encountered, look in the corresponding descriptions
-     array.  GC must not happen inside this block.  */
+  /* Split the style into tokens delimited by spaces.  Attempt to find
+     a token specifying each of the weight, slant, or width attributes
+     using their respective descriptions arrays as a reference.  GC
+     must not happen inside this block.  */
   style = SSDATA (Fdowncase (style_name));
   saveptr = NULL;
 
