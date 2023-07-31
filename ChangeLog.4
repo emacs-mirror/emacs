@@ -1,3 +1,670 @@
+2023-07-22  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	Update JSX support due to upstream changes (bug#64647)
+
+	A recent change in tree-sitter-javascript grammar support for
+	JSX (commit bb1f97b), changed two things:
+	1. renamed nested_identifier to member_expression
+	2. removed jsx_fragment, jsx_text is used instead
+
+	* lisp/progmodes/js.el (js-jsx--treesit-indent-compatibility-bb1f97b):
+	Indent helper function to handle different tree-sitter-javascript
+	version.
+	* lisp/progmodes/js.el (js--treesit-indent-rules): Use the new
+	function to handle both jsx_fragment and jsx_text.
+	* lisp/progmodes/js.el (js-jsx--treesit-font-lock-compatibility-bb1f97b):
+	Font lock helper function for handle different tree-sitter-javascript
+	version.
+	* lisp/progmodes/js.el (js--treesit-font-lock-settings): Use the new
+	function to handle both nested_identifier and member_expression.
+
+2023-07-22  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	Update TSX support due to upstream changes (bug#64647)
+
+	A recent change in tree-sitter-typescript grammar support for
+	TSX (commit b893426), changed two things:
+	1. renamed nested_identifier to member_expression
+	2. removed jsx_fragment, jsx_text is used instead
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(tsx-ts-mode--indent-compatibility-b893426): Indent helper function
+	to handle different tree-sitter-typescript version.
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--indent-rules): use the new function to handle
+	both jsx_fragment and jsx_text.
+	* lisp/progmodes/typescript-ts-mode.el
+	(tsx-ts-mode--font-lock-compatibility-bb1f97b): Font lock helper
+	function for handle different tree-sitter-typescript version.
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--font-lock-settings): Use the new function to
+	handle both nested_identifier and member_expression.
+
+2023-07-21  Philipp Stephani  <phst@google.com>
+
+	Unbreak build with CHECK_STRUCTS.
+
+	The hash for the Lisp_Overlay structure has changed due to the (comment-only)
+	commit 7ac947f34c745c61f8acc1fe2452a2c720d57a0d.
+
+	* src/pdumper.c (dump_overlay): Update struct hash.
+
+2023-07-21  Mattias Engdegård  <mattiase@acm.org>
+
+	Revert "Improve commentary in nsfns.m"
+
+	This reverts commit 3af27a4b815906c2ee38cbaf3a765289b3df061a,
+	because it missed the point completely.
+	Please talk to the original author next time.
+
+2023-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix NetBSD build --with-sound
+
+	* src/sound.c (alsa_write): Use ESTRPIPE only if defined.
+	(Bug#64698)
+
+2023-07-20  Mauro Aranda  <maurooaranda@gmail.com>
+
+	Fix typo in pre-filter for underline property
+
+	* lisp/cus-face.el (custom-face-attributes): Fix typo (Bug#64347)
+
+2023-07-20  Po Lu  <luangruo@yahoo.com>
+
+	Improve commentary in nsfns.m
+
+	* src/nsfns.m (lispString): Avoid C++ comment and make the
+	commentary actually relevant to the reason `make_string' is
+	used.
+
+2023-07-20  Po Lu  <luangruo@yahoo.com>
+
+	Fix typos and ommissions in cus-edit.el
+
+	* lisp/cus-edit.el (custom-display): Add missing display types.
+
+2023-07-18  Mattias Engdegård  <mattiase@acm.org>
+
+	Convert NUL-containing NSString objects to Lisp strings correctly
+
+	This cures the inability to paste text containing NUL from other
+	applications on macOS, introduced by mistake in 7e3c2b553f
+	(bug#64697).
+
+	* src/nsfns.m ([NSString lispString]): Use make_string instead of
+	build_string which relies on NUL-termination.
+
+2023-07-15  Spencer Baugh  <sbaugh@catern.com>
+
+	Ignore quit while getting interprogram paste in kill-new
+
+	On X, if the current selection owner is not responding to selection
+	requests, the user may want to take ownership of the selection.  The
+	obvious way to do this is to kill some text (which a user might also
+	be doing just as part of normal editing at the time the selection
+	owner becomes nonresponsive).  However, if
+	save-interprogram-paste-before-kill is non-nil, then killing text will
+	hang until the user quits, and this quit will abort the entire
+	kill-new, preventing the user from taking ownership of the selection.
+
+	Now instead if the user quits while we are attempting to retrieve the
+	selection from hanging owner, we will proceed to take ownership of the
+	selection as normal, resolving the problem.
+
+	(One example of a selction owner that might not be responding to
+	selection requests is another instance of Emacs itself; while Emacs is
+	blocked in call-process or Lisp execution, it currently does not
+	respond to selection requests.)
+
+	* lisp/simple.el (kill-new): Ignore quit while getting interprogram
+	paste (bug#64423)
+
+2023-07-15  Wang Diancheng  <dianchengwang@gmail.com>  (tiny change)
+
+	* lisp/progmodes/gdb-mi.el: Fix interactive invocation of 'gud-go'.
+
+	Bug#64590.
+
+2023-07-15  Valtteri Vuorikoski  <vuori@notcom.org>  (tiny change)
+
+	Fix NetBSD build with and without ncurses
+
+	* configure.ac (netbsd): Don't set TERMINFO=no unless the termcap
+	library is either -ltermcap or -lcurses.  This prevents aborts
+	because on recent versions of NetBSD libtermcap is actually a
+	symlink to libterminfo. (Bug#64577)
+
+2023-07-14  YugaEgo  <yet@ego.team>
+
+	Improve documentation of 'enable-local-variables' in Emacs manual
+
+	* doc/emacs/custom.texi (Safe File Variables): Document ':all'.
+	(Bug#64621)
+
+2023-07-13  Jim Porter  <jporterbugs@gmail.com>
+
+	Add documentation about remote access in Eshell
+
+	Do not merge to master.  This is a backport of 438921161ac.
+
+	* doc/misc/eshell.texi
+	(Invocation): Mention the '*' prefix.
+	(Remote Access): New section...
+	(Commands): ... link to it.
+
+2023-07-13  Jim Porter  <jporterbugs@gmail.com>
+
+	Document some missing Eshell commands
+
+	Do not merge to master.  This is a backport of f7a899d7ca0.
+
+	* doc/misc/eshell.texi (Built-ins): Document 'eshell-debug'.
+	(Extra built-in commands): Document 'count', 'ff', and 'gf'.
+
+2023-07-13  Jim Porter  <jporterbugs@gmail.com>
+
+	Document optional Eshell modules
+
+	Do not merge to master.  This is a backport of 77f13edab0f.
+
+	* doc/misc/eshell.texi (Built-ins): Move disabled-by-default commands
+	to...
+	(Tramp extensions, Extra built-in commands): ...here
+	(Optional modules, Key rebinding, Smart scrolling): Add documentation.
+	(Bug and ideas): Documentation is no longer incomplete!
+
+2023-07-13  Jim Porter  <jporterbugs@gmail.com>
+
+	Correct the Eshell documentation about how to write new modules
+
+	* doc/misc/eshell.texi (Writing a module): Fix the documentation.
+	'eshell-defgroup' doesn't exist anymore.
+
+	Do not merge to master.  This is a backport of 77f13edab0f.
+
+2023-07-13  Jim Porter  <jporterbugs@gmail.com>
+
+	Restructure Eshell extension modules documentation
+
+	This adds a section for documenting all the optional modules.
+
+	Do not merge to master.  This is a backport of f2981a1681d.
+
+	* doc/misc/eshell.texi (Extension modules): Move explanation about
+	writing modules to...
+	(Writing a module): ... here.
+	(Module testing): Remove.  Testing an Eshell module doesn't require
+	any special documentation.
+	(Key binding, Smart scrolling, Electric forward slash): Move under...
+	(Optional modules): ... here.
+	(Directory handling, Terminal emulation): Remove.  These modules are
+	enabled by default, and so are documented above.
+	(Tramp extensions, Extra built-in commands): New sections.
+
+2023-07-13  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Replace duplicate text from epa.texi by a reference
+
+	* doc/misc/auth.texi (GnuPG and EasyPG Assistant Configuration):
+	Replace duplicate text from epa.texi by a reference to
+	that. (Bug#64154)
+
+2023-07-13  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Add basic usage information and fix references
+
+	* doc/misc/epa.texi (Top): Add menu entry for new node GnuPG Pinentry.
+	(Quick Start): Add information on and reference to basic GnuPG
+	configuration.
+	(Encrypting/decrypting gpg files): Add usage information.
+	(GnuPG version compatibility): Update version information.
+	(GnuPG Pinentry): Add new node.
+	(Caching Passphrases): Describe mandatory gpg-agent usage for GnuPG
+	2.0 and later.
+	(Overview, Encrypting/decrypting gpg files, GnuPG version compatibility)
+	(Caching Passphrases, Bug Reports): Fix references, terminology,
+	mark-up, and index entries.  (Bug#64154)
+
+2023-07-13  Jens Schmidt  <jschmidt4gnu@vodafonemail.de>
+
+	Add concept index, title-case structure titles
+
+	* doc/misc/epa.texi (Top, Overview, Commands, Key management)
+	(Cryptographic operations on regions, Cryptographic operations on files)
+	(Dired integration, Mail-mode integration)
+	(Encrypting/decrypting gpg files, Querying a key server)
+	(GnuPG version compatibility, Caching Passphrases)
+	(GNU Free Documentation License): Add concept index, title-case
+	structure titles.  (Bug#64154)
+
+2023-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix show-paren-mode when the parentheses is partially visible
+
+	* lisp/paren.el (show-paren-function): Support the case where the
+	open paren is partially visible, but enough so to not consider it
+	"off-screen".  (Bug#64547)
+
+2023-07-08  Gregory Heytings  <gregory@heytings.org>
+
+	Merge branch 'scratch/bug64391' into emacs-29
+
+2023-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/net/tramp.el (tramp-get-buffer-string): Stabilize.
+
+2023-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix stale cache in Tramp (don't merge)
+
+	* lisp/net/tramp-sh.el (tramp-do-copy-or-rename-file-directly):
+	Flush cache in time.
+
+2023-07-07  Mattias Engdegård  <mattiase@acm.org>
+
+	Mark failing icalendar test as unstable (bug#56241)
+
+	* test/lisp/calendar/icalendar-tests.el
+	(icalendar-export-bug-56241-dotted-pair):
+	This test started failing early July 2023 in multiple branches at
+	once without any change to the code and is likely sensitive to the
+	current date.  Tag it to keep it quiet for now.
+
+2023-07-06  Gregory Heytings  <gregory@heytings.org>
+
+	Simplify after adding internal function to enter a labeled restriction
+
+	* src/editfns.c: (Finternal__labeled_narrow_to_region): Merge the
+	code of Finternal__label_restriction into this function.
+	(Finternal__label_restriction): Remove this function.
+	(syms_of_editfns): Remove the 'outermost-restriction' buffer local
+	variable, which is not used anymore, and the symbol of
+	'internal--label-restriction'.
+	(Fwiden): Remove the call to reset the 'outermost-restriction'
+	buffer local variable.
+
+2023-07-06  Gregory Heytings  <gregory@heytings.org>
+
+	Add internal function to enter a labeled restriction
+
+	* src/editfns.c (Finternal__labeled_narrow_to_region): New
+	function.  A specific function is necessary to avoid unnecessary
+	slowdowns when 'narrow-to-region'/'widen' are called in a loop.
+	(Fnarrow_to_region): Remove the call to Fset, which has been moved
+	into Finternal__labeled_narrow_to_region.
+	(labeled_narrow_to_region): Use the new function.
+	(syms_of_editfns): Add the symbol of the new function.
+
+	* lisp/subr.el (internal--with-restriction): Use the new function.
+
+2023-07-04  Robert Pluim  <rpluim@gmail.com>
+
+	Improve natnump shortdoc
+
+	* lisp/emacs-lisp/shortdoc.el (number): Make it clear that zero
+	satisfies 'natnump'.  Move 'natnump' next to 'cl-plusp' to highlight
+	the difference between them.
+
+2023-07-04  Robert Pluim  <rpluim@gmail.com>
+
+	correct info documentation of benchmark-call
+
+	* doc/lispref/debugging.texi (Profiling): 'benchmark-call' is a defun,
+	not a macro.
+
+2023-07-03  Juri Linkov  <juri@linkov.net>
+
+	* lisp/progmodes/grep.el (rgrep): Fix docstring.
+
+	Instead of the incorrect key `M-c' produce the right key
+	with \\<read-regexp-map>\\[read-regexp-toggle-case-fold].
+
+2023-07-03  Spencer Baugh  <sbaugh@catern.com>
+
+	Include a help-echo for flymake's modeline counters
+
+	This helps clarify what each of these numbers mean.  This is inspired
+	by 'compilation-mode-line-errors' which does the same.
+	* lisp/progmodes/flymake.el (flymake--mode-line-counter): Add
+	help-echo to mode line properties.  (Bug#64424)
+
+2023-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in completion due to 'completion-regexp-list'
+
+	* doc/lispref/minibuf.texi (Basic Completion):
+	* src/minibuf.c (syms_of_minibuf) <completion-regexp-list>:
+	Document that global non-nil settings of 'completion-regexp-list'
+	are not safe.
+
+	* lisp/minibuffer.el (completion-pcm--merge-completions): Avoid
+	errors in 'try-completion' when PREFIX is nil.  (Bug#64351)
+
+2023-07-01  Alan Mackenzie  <acm@muc.de>
+
+	C Mode: Don't fontify foo globally as type due to "struct foo"
+
+	This fixes bug#64322.
+
+	* lisp/progmodes/cc-langs.el (c-typeless-decl-kwds): Make the
+	entry for c-mode nil.
+
+2023-07-01  Mattias Engdegård  <mattiase@acm.org>
+
+	* lisp/rect.el (rectangle--duplicate-right): Fix rectangle dup bug.
+
+	This is a necessary adjustment to changes to rect.el in Emacs 29.
+
+2023-07-01  Spencer Baugh  <sbaugh@janestreet.com>
+
+	Add project command entries to the menu-bar
+
+	This will make it easier for new users to learn these increasingly
+	important and useful commands.  (Bug#63469)
+
+	* lisp/menu-bar.el (menu-bar-file-menu): Add project-dired and
+	project-find-file entries.
+	(menu-bar-search-menu): Add project-find-regexp entry.
+	(menu-bar-replace-menu): Add project-query-replace regexp entry.
+	(menu-bar-shell-commands-menu): Add project-shell entry.
+	(menu-bar-buffers-menu-command-entries): Add project-switch-to-buffer
+	and project-list-buffer entries.
+	(menu-bar-project-menu): Add.
+	(menu-bar-tools-menu): Add "Project" submenu, and also project-compile
+	entry and change text for compile entry.
+
+2023-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of registers
+
+	* doc/lispref/text.texi (Registers): Document buffers in
+	registers.  Mention "frameset" as another name for "frame
+	configuration".
+	* doc/emacs/regs.texi (Registers, Configuration Registers)
+	(File and Buffer Registers): Clarify and improve wording.  Add
+	cross-references and indexing.
+	(Configuration Registers): Rename the section to a more accurate
+	name.  (Bug#64354)
+
+	* lisp/register.el (jump-to-register, point-to-register)
+	(register-alist, frame-configuration-to-register): Doc fixes.
+	(Bug#64353)
+
+2023-06-29  Andrew G Cohen  <cohen@andy.bu.edu>
+
+	Use a temporary buffer in nnagent-request-set-mark (bug#64117)
+
+	Commit cb12a84f2c519a48dd87453c925e3bc36d9944db inadvertently removed
+	the use of a temporary buffer in nnagent-request-set-mark.  Bug and
+	fix reported by Jens Schmidt <jschmidt4gnu@vodafonemail.de>
+
+	* lisp/gnus/nnagent.el (nnagent-request-set-mark): Restore the use of
+	a temporary buffer that was inadvertently removed.
+
+	(cherry picked from commit 5075d752773c31d959272a7e2b73b1dc38ba184c)
+
+2023-06-29  john muhl  <jm@pub.pink>  (tiny change)
+
+	Support cons cell as value of ':line-width' box attribute
+
+	* lisp/calculator.el (calculator-need-3-lines): Support
+	values of a face's ':line-width' box attribute that are
+	cons cells.  (Bug#64344)
+
+2023-06-29  Yuan Fu  <casouri@gmail.com>
+
+	Add missing calls to treesit_record_change in editfns.c
+
+	These should be all that are missing.  See the next commit for detail.
+
+	* src/editfns.c (Ftranslate_region_internal):
+	(Ftranspose_regions): Call treesit_record_change.
+
+2023-06-29  Yuan Fu  <casouri@gmail.com>
+
+	Call treesit_record_change in subst-char-in-region (bug#64329)
+
+	* src/editfns.c (Fsubst_char_in_region): Call treesit_record_change in
+	the else branch.
+
+2023-06-29  Juri Linkov  <juri@linkov.net>
+
+	* lisp/misc.el (duplicate-line-final-position): New defcustom (bug#64185).
+
+	* lisp/misc.el (duplicate-line): Use it.
+
+	* test/lisp/misc-tests.el (misc--duplicate-line): Add tests for
+	duplicate-line-final-position.
+
+	Don't merge to master.
+
+2023-06-29  Daniel Martín  <mardani29@yahoo.es>
+
+	Make js-beginning-of-defun return non-nil on success
+
+	The docstring of 'beginning-of-defun-function' says that the
+	function shall return non-nil when it found the beginning
+	of a defun.  This is specially important because the calling
+	code decides when to move point depending on the return value.
+	* lisp/progmodes/js.el (js-beginning-of-defun)
+	(js--beginning-of-defun-flat): Return non-nil when the beginning
+	of a defun is found.  (Bug#64283)
+
+	* test/lisp/progmodes/js-tests.el (js-mode-end-of-defun): Add a unit
+	test.
+
+2023-06-27  Yuan Fu  <casouri@gmail.com>
+
+	Tree-sitter use with-silent-modifications like jit-lock (bug#64321)
+
+	* lisp/treesit.el (treesit--font-lock-notifier): Use
+	with-silent-modifications when marking modified text to be fontified
+	by jit-lock.  This is what jit-lock itself does.
+
+2023-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix todo-mode.el Commentary and a doc string (bug#64298)
+
+	* lisp/calendar/todo-mode.el: Explicitly note in the Commentary
+	that the Todo mode user manual is a separate Info manual in the
+	Emacs installation.
+	(todo-always-add-time-string): Replace doc string, which was
+	mistakenly retained in the initial merge of this version of
+	todo-mode.el, by a correct description of this user option.
+
+2023-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	Prevent truncation of todo-mode categories sexp
+
+	* lisp/calendar/todo-mode.el (todo-delete-file)
+	(todo-move-category, todo-convert-legacy-files)
+	(todo-update-categories-sexp, todo-check-format):
+	Bind print-length and print-level to nil before using prin1
+	and related functions, to avoid truncating the todo categories
+	sexp and possibly corrupting the file format.
+
+2023-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	Avoid making todo-mode buffers manually editable
+
+	* lisp/calendar/todo-mode.el (todo-add-category)
+	(todo-move-category, todo-edit-item--header)
+	(todo-set-item-priority, todo-move-item, todo-item-undone)
+	(todo-archive-done-item, todo-set-category-number): Restrict the
+	scope of nil buffer-read-only to the function calls that change
+	buffer text, thereby preventing todo mode buffers from becoming
+	manually editable and hence possibly corrupted when the minibuffer
+	is in use.
+
+2023-06-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Tramp mount-spec (don't merge)
+
+	* lisp/net/tramp-fuse.el (tramp-fuse-mounted-p): The mount-spec
+	could contain an optional trailing slash.  (Bug#64278)
+
+2023-06-25  Daniel Semyonov  <daniel@dsemy.com>
+
+	Fix VC package build when doc file isn't in a subdir
+
+	* lisp/emacs-lisp/package-vc.el (package-vc--build-documentation):
+	Expand 'file' before attempting to get its directory.  (Bug#64242)
+
+2023-06-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix type check in tramp-get-buffer-string
+
+	* lisp/net/tramp.el (tramp-get-buffer-string): Check, that BUFFER
+	is really a bufferp.
+
+2023-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	Clarify list terminology
+
+	* doc/lispintro/emacs-lisp-intro.texi (Lists diagrammed):
+	Mention "cons cell".  Add index entries.
+	(car & cdr): Simplify etymology of `car' and `cdr'.
+	Explain why for some purposes they are better than `first' and `rest'.
+	Mention cons cells.
+
+	(cherry picked from commit 188c90c7c111dbbdc3edd29c23b59ade26f97bfd)
+
+2023-06-24  Mattias Engdegård  <mattiase@acm.org>
+
+	* lisp/emacs-lisp/shortdoc.el: More and better `substring` examples.
+
+	Suggested by Juri Linkov.
+
+2023-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix "C-x RET r" when the new encoding is UTF
+
+	* src/fileio.c (Finsert_file_contents): Update point of
+	'conversion_buffer' before decoding the last block.  (Bug#64253)
+
+2023-06-23  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Fix "vc-print-log does not erase buffer" and associated problems
+
+	* lisp/vc/vc.el (vc-deduce-fileset): Make sure to retain the
+	buffer switch (if it did), bug#63949.
+
+2023-06-23  Theodor Thornhill  <theo@thornhill.no>
+
+	Add selector_expression indentation rule
+
+	* lisp/progmodes/go-ts-mode.el (go-ts-mode--indent-rules): New rule.
+
+2023-06-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Add "nixd" LSP server to Eglot
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Add "nixd".
+	Patch by Brian Leung <leungbk@posteo.net>.  (Bug#64214)
+
+2023-06-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix building --with-native-compilation=aot from release tarball
+
+	* lisp/Makefile.in (%.eln): Pattern rule for AOT native
+	compilation.
+	(compile-eln-targets, compile-eln-aot): New targets for AOT native
+	compilation.
+
+	* src/Makefile.in (../native-lisp): If NATIVE_COMPILATION_AOT is
+	set, also native-compile all the other Lisp files.
+	(Bug#64167)
+
+2023-06-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix bug#64152 (Minibuffer sometimes goes "modal")
+
+	In particular, when a frame has no minibuffer and is using that
+	of a different "normal" frame, C-x 5 o, etc., and GUI
+	operations fail.
+
+	Fix by partially reverting the commit from 2022-07-07 15:38:09
+	+0000 "Remove obscure, obsolete code from do_switch_frame".  As
+	a consequent change, also revert the commit from 2022-07-08
+	20:19:03 +0000 "Remove now unused parameter TRACK from
+	do_switch_frame".
+
+	* src/frame.c (do_switch_frame): Restore the TRACK parameter.
+	Restore the code which redirects the frame focus when a new
+	frame gets selected.
+
+	* src/frame.c (Fselect_frame, Fhandle_switch_frame)
+	(delete_frame)
+	* src/keyboard.c (quit_throw_to_read_char)
+	* src/lisp.h (do_switch_frame prototype)
+	* src/minibuf.c (read_minibuf_unwind)
+	* src/window.c (Fset_window_configuration): Restore the TRACK
+	argument to do_switch_frame.
+
+	* src/xterm.c (x_try_restore_frame): Add a zero TRACK argument
+	to do_switch_frame.
+
+2023-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Disable target-async by default in gdb-mi.el
+
+	* lisp/progmodes/gdb-mi.el (gdb-non-stop-setting): Disable until
+	bug#63084 is fixed.  (Bug#64186)
+
+2023-06-20  Filipp Gunbin  <fgunbin@fastmail.fm>
+
+	Revert "Fix parsing of dn line if WITHDN is non-nil"
+
+	This reverts commits 71b27779a9a and d2246b26275, because they change
+	the return value of "ldap-search" in an incompatible way.  The fix
+	(a different one) will be done on master instead (bug#64089).
+
+2023-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Don't truncate filenames with "emacs.el" in them
+
+	* lisp/emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Avoid false positives when looking for "emacs.el" matches the
+	likes of "emacs.elpa".  (Bug#64143)
+
+2023-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'minibuffer-message'
+
+	* doc/lispref/minibuf.texi (Minibuffer Misc): Clarify that
+	'minibuffer-message' behaves like 'message' if called from a
+	buffer that is not a minibuffer.
+
+	* lisp/minibuffer.el (minibuffer-message)
+	(set-minibuffer-message, clear-minibuffer-message): Doc fixes.
+	(Bug#64165)
+
+2023-06-19  João Távora  <joaotavora@gmail.com>
+
+	Eglot: again fix positions of coinciding inlay hint overlays (bug#64101)
+
+	This bug originated from the previous fix, and is reproducible on non
+	Mac OS platforms, as long as the very latest version (at time of
+	writing) of the rust-analyzer server is used.
+
+	* lisp/progmodes/eglot.el (eglot--update-hints-1): Reverse
+	priorities when pegging overlays after (i.e. when before-string is
+	used).
+
+2023-06-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/ldefs-boot.el: Regenerate.
+
+2023-06-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Bump Emacs version to 29.0.92
+
+	* README:
+	* configure.ac:
+	* nt/README.W32:
+	* msdos/sed2v2.inp: Bump version to 29.0.92.
+
 2023-06-18  Mattias Engdegård  <mattiase@acm.org>
 
 	Describe primarily the Emacs s-exp dialect for treesit queries
@@ -116651,7 +117318,7 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit 8f62e7b85f69bb4026e9cf2971668b0d77077792 (inclusive).
+commit 76a142e265df742b2fdd3d220607a46fcbc30e1a (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:
