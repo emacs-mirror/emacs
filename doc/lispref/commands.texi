@@ -1132,7 +1132,9 @@ up a menu.  It is also used internally by @code{y-or-n-p}
 This variable is set to the last input event that was read by the
 command loop as part of a command.  The principal use of this variable
 is in @code{self-insert-command}, which uses it to decide which
-character to insert.
+character to insert, and in @code{post-self-insert-hook}
+(@pxref{Commands for Insertion}), which uses it to access the
+character that was just inserted.
 
 @example
 @group
