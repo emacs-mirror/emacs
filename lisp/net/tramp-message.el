@@ -52,8 +52,20 @@
 
 (declare-function tramp-compat-string-replace "tramp-compat")
 (declare-function tramp-file-name-equal-p "tramp")
+(declare-function tramp-file-name-host-port "tramp")
+(declare-function tramp-file-name-user-domain "tramp")
 (declare-function tramp-get-default-directory "tramp")
 (defvar tramp-compat-temporary-file-directory)
+
+(eval-and-compile
+  (defalias 'tramp-byte-run--set-suppress-trace
+    #'(lambda (f _args val)
+	(list 'function-put (list 'quote f)
+              ''tramp-suppress-trace val)))
+
+  (add-to-list
+   'defun-declarations-alist
+   (list 'tramp-suppress-trace #'tramp-byte-run--set-suppress-trace)))
 
 ;;;###tramp-autoload
 (defcustom tramp-verbose 3
@@ -122,8 +134,6 @@ Point must be at the beginning of a header line.
 The outline level is equal to the verbosity of the Tramp message."
   (1+ (string-to-number (match-string 3))))
 
-(put #'tramp-debug-outline-level 'tramp-suppress-trace t)
-
 ;; This function takes action since Emacs 28.1, when
 ;; `read-extended-command-predicate' is set to
 ;; `command-completion-default-include-p'.
@@ -135,11 +145,11 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
      (buffer-substring (point-min) (min (+ (point-min) 10) (point-max)))
      ";; Emacs:")))
 
-(put #'tramp-debug-buffer-command-completion-p 'tramp-suppress-trace t)
-
 (defun tramp-setup-debug-buffer ()
   "Function to setup debug buffers."
-  ;; (declare (completion tramp-debug-buffer-command-completion-p))
+  (declare (tramp-suppress-trace t))
+  ;; (declare (completion tramp-debug-buffer-command-completion-p)
+  ;; 	   (tramp-suppress-trace t))
   (interactive)
   (set-buffer-file-coding-system 'utf-8)
   (setq buffer-undo-list t)
@@ -165,45 +175,39 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
   (local-set-key "\M-n" 'clone-buffer)
   (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
 
-(put #'tramp-setup-debug-buffer 'tramp-suppress-trace t)
-
 (function-put
  #'tramp-setup-debug-buffer 'completion-predicate
  #'tramp-debug-buffer-command-completion-p)
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer of VEC."
+  (declare (tramp-suppress-trace t))
   (let ((method (tramp-file-name-method vec))
 	(user-domain (tramp-file-name-user-domain vec))
 	(host-port (tramp-file-name-host-port vec)))
-    (if (or (null user-domain) (string-empty-p user-domain))
+    (if (tramp-string-empty-or-nil-p user-domain)
 	(format "*debug tramp/%s %s*" method host-port)
       (format "*debug tramp/%s %s@%s*" method user-domain host-port))))
 
-(put #'tramp-debug-buffer-name 'tramp-suppress-trace t)
-
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer of VEC."
+  (declare (tramp-suppress-trace t))
   (with-current-buffer (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
       (tramp-setup-debug-buffer))
     (current-buffer)))
 
-(put #'tramp-get-debug-buffer 'tramp-suppress-trace t)
-
 (defun tramp-get-debug-file-name (vec)
   "Get the debug file name for VEC."
+  (declare (tramp-suppress-trace t))
   (expand-file-name
    (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
    tramp-compat-temporary-file-directory))
 
-(put #'tramp-get-debug-file-name 'tramp-suppress-trace t)
-
 (defun tramp-trace-buffer-name (vec)
   "A name for the trace buffer for VEC."
+  (declare (tramp-suppress-trace t))
    (tramp-compat-string-replace "*debug" "*trace" (tramp-debug-buffer-name vec)))
-
-(put #'tramp-trace-buffer-name 'tramp-suppress-trace t)
 
 (defvar tramp-trace-functions nil
   "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")
@@ -212,6 +216,7 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
   "Append message to debug buffer of VEC.
 Message is formatted with FMT-STRING as control string and the remaining
 ARGUMENTS to actually emit the message (if applicable)."
+  (declare (tramp-suppress-trace t))
   (let ((inhibit-message t)
 	create-lockfiles file-name-handler-alist message-log-max
 	signal-hook-function)
@@ -287,8 +292,6 @@ ARGUMENTS to actually emit the message (if applicable)."
 	      (write-region
 	       point (point-max) (tramp-get-debug-file-name vec) 'append))))))))
 
-(put #'tramp-debug-message 'tramp-suppress-trace t)
-
 ;;;###tramp-autoload
 (defun tramp-message (vec-or-proc level fmt-string &rest arguments)
   "Emit a message depending on verbosity level.
@@ -342,6 +345,9 @@ applicable)."
 		 vec-or-proc
 		 (concat (format "(%d) # " level) fmt-string)
 		 arguments))))))
+
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-message 'tramp-suppress-trace t)
 
 (defsubst tramp-backtrace (&optional vec-or-proc force)
   "Dump a backtrace into the debug buffer.
@@ -453,13 +459,23 @@ the resulting error message."
          (progn ,@body)
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
 
+(defun tramp-test-message (fmt-string &rest arguments)
+  "Emit a Tramp message according `default-directory'."
+  (declare (tramp-suppress-trace t))
+  (cond
+   ((tramp-tramp-file-p default-directory)
+    (apply #'tramp-message
+	   (tramp-dissect-file-name default-directory) 0 fmt-string arguments))
+   ((tramp-file-name-p (car tramp-current-connection))
+    (apply #'tramp-message
+	   (car tramp-current-connection) 0 fmt-string arguments))
+   (t (apply #'message fmt-string arguments))))
+
 (defun tramp-debug-button-action (button)
   "Goto the linked message in debug buffer at place."
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
   (when-let ((point (button-get button 'position)))
     (goto-char point)))
-
-(put #'tramp-debug-button-action 'tramp-suppress-trace t)
 
 (define-button-type 'tramp-debug-button-type
   'follow-link t
@@ -492,8 +508,6 @@ The link buttons are in the verbositiy level substrings."
        'position (set-marker (make-marker) beg1)
        'help-echo "mouse-2, RET: goto entry message"))))
 
-(put #'tramp-debug-link-messages 'tramp-suppress-trace t)
-
 (defvar tramp-debug-nesting ""
   "Indicator for debug messages nested level.
 This shouldn't be changed globally, but let-bind where needed.")
@@ -514,8 +528,6 @@ Bound in `tramp-*-file-name-handler' functions.")
        (match-beginning 2) (match-end 2)
        :type 'help-function-def
        'help-args (list fun (symbol-file fun))))))
-
-(put #'tramp-debug-message-buttonize 'tramp-suppress-trace t)
 
 ;; This is used in `tramp-file-name-handler' and `tramp-*-maybe-open-connection'.
 (defmacro with-tramp-debug-message (vec message &rest body)

@@ -577,6 +577,13 @@ See bug#58531#25 and bug#58563."
     (should (= b 2))
     (should-not c)))
 
+(ert-deftest test-map-let-default ()
+  (map-let (('foo a 3)
+            ('baz b 4))
+      '((foo . 1))
+    (should (equal a 1))
+    (should (equal b 4))))
+
 (ert-deftest test-map-merge ()
   "Test `map-merge'."
   (should (equal (sort (map-merge 'list '(a 1) '((b . 2) (c . 3))
@@ -616,6 +623,58 @@ See bug#58531#25 and bug#58563."
     (should (equal (pcase-let (((map :one (:two two)) plist))
                      (list one two))
                    '(1 2)))))
+
+(ert-deftest test-map-plist-pcase-default ()
+  (let ((plist '(:two 2)))
+    (should (equal (pcase-let (((map (:two two 33)
+                                     (:three three 44))
+                                plist))
+                     (list two three))
+                   '(2 44)))))
+
+(ert-deftest test-map-pcase-matches ()
+  (let ((plist '(:two 2)))
+    (should (equal (pcase plist
+                     ((map (:two two 33)
+                           (:three three))
+                      (list two three))
+                     (_ 'fail))
+                   '(2 nil)))
+
+    (should (equal (pcase plist
+                     ((map (:two two 33)
+                           (:three three 44))
+                      (list two three))
+                     (_ 'fail))
+                   '(2 44)))
+
+    (should (equal (pcase plist
+                     ((map (:two two 33)
+                           (:three `(,a . ,b) '(11 . 22)))
+                      (list two a b))
+                     (_ 'fail))
+                   '(2 11 22)))
+
+    (should (equal 'fail
+                   (pcase plist
+                     ((map (:two two 33)
+                           (:three `(,a . ,b) 44))
+                      (list two a b))
+                     (_ 'fail))))
+
+    (should (equal 'fail
+                   (pcase plist
+                     ((map (:two two 33)
+                           (:three `(,a . ,b) nil))
+                      (list two a b))
+                     (_ 'fail))))
+
+    (should (equal 'fail
+                   (pcase plist
+                     ((map (:two two 33)
+                           (:three `(,a . ,b)))
+                      (list two a b))
+                     (_ 'fail))))))
 
 (ert-deftest test-map-setf-alist-insert-key ()
   (let ((alist))

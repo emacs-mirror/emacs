@@ -34,7 +34,6 @@
 (require 'format-spec)
 (require 'parse-time)
 (require 'shell)
-(require 'subr-x)
 (require 'xdg)
 
 (declare-function tramp-error "tramp")
@@ -307,7 +306,7 @@ Also see `ignore'."
     "List of characters equivalent to trailing colon in \"password\" prompts."))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
-  (put (intern elt) 'tramp-suppress-trace t))
+  (function-put (intern elt) 'tramp-suppress-trace t))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

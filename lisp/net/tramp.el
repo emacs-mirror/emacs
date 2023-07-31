@@ -1440,48 +1440,43 @@ calling HANDLER.")
   (cl-defstruct (tramp-file-name (:type list) :named)
     method user domain host port localname hop))
 
-(put #'tramp-file-name-method 'tramp-suppress-trace t)
-(put #'tramp-file-name-user 'tramp-suppress-trace t)
-(put #'tramp-file-name-domain 'tramp-suppress-trace t)
-(put #'tramp-file-name-host 'tramp-suppress-trace t)
-(put #'tramp-file-name-port 'tramp-suppress-trace t)
-(put #'tramp-file-name-localname 'tramp-suppress-trace t)
-(put #'tramp-file-name-hop 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-method 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-user 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-domain 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-host 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-port 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-localname 'tramp-suppress-trace t)
+(function-put #'tramp-file-name-hop 'tramp-suppress-trace t)
 
 ;; Needed for `tramp-read-passwd' and `tramp-get-remote-null-device'.
 (defconst tramp-null-hop
   (make-tramp-file-name :user (user-login-name) :host tramp-system-name)
 "Connection hop which identifies the virtual hop before the first one.")
 
-;;;###tramp-autoload
 (defun tramp-file-name-user-domain (vec)
   "Return user and domain components of VEC."
+  (declare (tramp-suppress-trace t))
   (when (or (tramp-file-name-user vec) (tramp-file-name-domain vec))
     (concat (tramp-file-name-user vec)
 	    (and (tramp-file-name-domain vec)
 		 tramp-prefix-domain-format)
 	    (tramp-file-name-domain vec))))
 
-(put #'tramp-file-name-user-domain 'tramp-suppress-trace t)
-
-;;;###tramp-autoload
 (defun tramp-file-name-host-port (vec)
   "Return host and port components of VEC."
+  (declare (tramp-suppress-trace t))
   (when (or (tramp-file-name-host vec) (tramp-file-name-port vec))
     (concat (tramp-file-name-host vec)
 	    (and (tramp-file-name-port vec)
 		 tramp-prefix-port-format)
 	    (tramp-file-name-port vec))))
 
-(put #'tramp-file-name-host-port 'tramp-suppress-trace t)
-
 (defun tramp-file-name-port-or-default (vec)
   "Return port component of VEC.
 If nil, return `tramp-default-port'."
+  (declare (tramp-suppress-trace t))
   (or (tramp-file-name-port vec)
       (tramp-get-method-parameter vec 'tramp-default-port)))
-
-(put #'tramp-file-name-port-or-default 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
 (defun tramp-file-name-unify (vec &optional localname)
@@ -1501,7 +1496,8 @@ same connection.  Make a copy in order to avoid side effects."
 	    (tramp-file-name-hop vec) nil))
     vec))
 
-(put #'tramp-file-name-unify 'tramp-suppress-trace t)
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-file-name-unify 'tramp-suppress-trace t)
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
@@ -1543,8 +1539,6 @@ entry does not exist, return nil."
 	   (not (string-match-p tramp-ignored-file-name-regexp name)))
        (string-match-p tramp-file-name-regexp name)
        t))
-
-(put #'tramp-tramp-file-p 'tramp-suppress-trace t)
 
 ;; This function bypasses the file name handler approach.  It is NOT
 ;; recommended to use it in any package if not absolutely necessary.
@@ -1595,8 +1589,6 @@ This is METHOD, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
-(put #'tramp-find-method 'tramp-suppress-trace t)
-
 (defun tramp-find-user (method user host)
   "Return the right user string to use depending on METHOD and HOST.
 This is USER, if non-nil.  Otherwise, do a lookup in
@@ -1618,8 +1610,6 @@ This is USER, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
-(put #'tramp-find-user 'tramp-suppress-trace t)
-
 (defun tramp-find-host (method user host)
   "Return the right host string to use depending on METHOD and USER.
 This is HOST, if non-nil.  Otherwise, do a lookup in
@@ -1640,8 +1630,6 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
     (if (or (tramp-compat-length> host 0) (null result))
 	result
       (propertize result 'tramp-default t))))
-
-(put #'tramp-find-host 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
 (defun tramp-dissect-file-name (name &optional nodefault)
@@ -1708,7 +1696,8 @@ default values are used."
 	    (tramp-user-error
 	     v "Method `%s' is not supported for multi-hops" method)))))))
 
-(put #'tramp-dissect-file-name 'tramp-suppress-trace t)
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-dissect-file-name 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
 (defun tramp-ensure-dissected-file-name (vec-or-filename)
@@ -1721,11 +1710,13 @@ If it's not a Tramp filename, return nil."
    ((tramp-tramp-file-p vec-or-filename)
     (tramp-dissect-file-name vec-or-filename))))
 
-(put #'tramp-ensure-dissected-file-name 'tramp-suppress-trace t)
+;; We cannot declare our private symbols in loaddefs.
+(function-put 'tramp-ensure-dissected-file-name 'tramp-suppress-trace t)
 
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.
 See `tramp-dissect-file-name' for details."
+  (declare (tramp-suppress-trace t))
   (let ((v (tramp-dissect-file-name
 	    (concat tramp-prefix-format
 		    (replace-regexp-in-string
@@ -1740,8 +1731,7 @@ See `tramp-dissect-file-name' for details."
     ;; Return result.
     v))
 
-(put #'tramp-dissect-hop-name 'tramp-suppress-trace t)
-
+;;;###tramp-autoload
 (defsubst tramp-string-empty-or-nil-p (string)
   "Check whether STRING is empty or nil."
   (or (null string) (string= string "")))
@@ -1755,20 +1745,13 @@ See `tramp-dissect-file-name' for details."
 	(format "*tramp/%s %s*" method host-port)
       (format "*tramp/%s %s@%s*" method user-domain host-port))))
 
-(put #'tramp-buffer-name 'tramp-suppress-trace t)
-
 ;;;###tramp-autoload
 (defun tramp-make-tramp-file-name (&rest args)
   "Construct a Tramp file name from ARGS.
-
-ARGS could have two different signatures.  The first one is of
-type (VEC &optional LOCALNAME).
 If LOCALNAME is nil, the value in VEC is used.  If it is a
 symbol, a null localname will be used.  Otherwise, LOCALNAME is
-expected to be a string, which will be used.
-
-The other signature exists for backward compatibility.  It has
-the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
+expected to be a string, which will be used."
+  (declare (advertised-calling-convention (vec &optional localname) "29.1"))
   (let (method user domain host port localname hop)
     (cond
      ((tramp-file-name-p (car args))
@@ -1820,9 +1803,6 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 	      (concat tramp-prefix-port-format port))
 	    tramp-postfix-host-format
 	    localname)))
-
-(set-advertised-calling-convention
- #'tramp-make-tramp-file-name '(vec &optional localname) "29.1")
 
 (defun tramp-make-tramp-hop-name (vec)
   "Construct a Tramp hop name from VEC."
@@ -1953,32 +1933,18 @@ does not exist, otherwise propagate the error."
 	    (tramp-error ,vec 'file-missing ,filename)
 	  (signal (car ,err) (cdr ,err)))))))
 
-(defun tramp-test-message (fmt-string &rest arguments)
-  "Emit a Tramp message according `default-directory'."
-  (cond
-   ((tramp-tramp-file-p default-directory)
-    (apply #'tramp-message
-	   (tramp-dissect-file-name default-directory) 0 fmt-string arguments))
-   ((tramp-file-name-p (car tramp-current-connection))
-    (apply #'tramp-message
-	   (car tramp-current-connection) 0 fmt-string arguments))
-   (t (apply #'message fmt-string arguments))))
-
-(put #'tramp-test-message 'tramp-suppress-trace t)
-
 ;; This function provides traces in case of errors not triggered by
 ;; Tramp functions.
 (defun tramp-signal-hook-function (error-symbol data)
   "Function to be called via `signal-hook-function'."
   ;; `custom-initialize-*' functions provoke `void-variable' errors.
   ;; We don't want to see them in the backtrace.
+  (declare (tramp-suppress-trace t))
   (unless (eq error-symbol 'void-variable)
     (let ((inhibit-message t))
       (tramp-error
        (car tramp-current-connection) error-symbol
        (mapconcat (lambda (x) (format "%s" x)) data " ")))))
-
-(put #'tramp-signal-hook-function 'tramp-suppress-trace t)
 
 (defmacro with-parsed-tramp-file-name (filename var &rest body)
   "Parse a Tramp filename and make components available in the body.
@@ -4669,14 +4635,13 @@ a connection-local variable."
 
 (defun tramp-post-process-creation (proc vec)
   "Apply actions after creation of process PROC."
+  (declare (tramp-suppress-trace t))
   (process-put proc 'tramp-vector vec)
   (process-put proc 'adjust-window-size-function #'ignore)
   (set-process-query-on-exit-flag proc nil)
   (tramp-taint-remote-process-buffer (process-buffer proc))
   (when (process-command proc)
     (tramp-message vec 6 "%s" (string-join (process-command proc) " "))))
-
-(put #'tramp-post-process-creation 'tramp-suppress-trace t)
 
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."
@@ -6397,6 +6362,7 @@ verbosity of 6."
 (defun tramp-read-passwd (proc &optional prompt)
   "Read a password from user (compat function).
 Consults the auth-source package."
+  (declare (tramp-suppress-trace t))
   (let* (;; If `auth-sources' contains "~/.authinfo.gpg", and
 	 ;; `exec-path' contains a relative file name like ".", it
 	 ;; could happen that the "gpg" command is not found.  So we
@@ -6459,11 +6425,10 @@ Consults the auth-source package."
 	(setq tramp-password-save-function nil))
       (tramp-set-connection-property vec "first-password-request" nil))))
 
-(put #'tramp-read-passwd 'tramp-suppress-trace t)
-
 (defun tramp-read-passwd-without-cache (proc &optional prompt)
   "Read a password from user (compat function)."
   ;; We suspend the timers while reading the password.
+  (declare (tramp-suppress-trace t))
   (let (tramp-dont-suspend-timers)
     (with-tramp-suspended-timers
       (password-read
@@ -6472,10 +6437,9 @@ Consults the auth-source package."
 	     (tramp-check-for-regexp proc tramp-password-prompt-regexp)
 	     (match-string 0)))))))
 
-(put #'tramp-read-passwd-without-cache 'tramp-suppress-trace t)
-
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
+  (declare (tramp-suppress-trace t))
   (let ((method (tramp-file-name-method vec))
 	(user-domain (tramp-file-name-user-domain vec))
 	(host-port (tramp-file-name-host-port vec))
@@ -6487,8 +6451,6 @@ Consults the auth-source package."
      `(:max 1 ,(and user-domain :user) ,user-domain
        :host ,host-port :port ,method))
     (password-cache-remove (tramp-make-tramp-file-name vec 'noloc))))
-
-(put #'tramp-clear-passwd 'tramp-suppress-trace t)
 
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.
