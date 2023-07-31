@@ -3796,11 +3796,10 @@ like) while `y-or-n-p' is running)."
              ;; Protect this-command when called from pre-command-hook (bug#45029)
              (this-command this-command)
              (str (progn
-                    (when (active-minibuffer-window)
-                      ;; If the minibuffer is already active, the
-                      ;; selected window might not change.  Disable
-                      ;; text conversion by hand.
-                      (set-text-conversion-style text-conversion-style))
+                    ;; If the minibuffer is already active, the
+                    ;; selected window might not change.  Disable
+                    ;; text conversion by hand.
+                    (set-text-conversion-style text-conversion-style)
                     (read-from-minibuffer
                      prompt nil keymap nil
                      (or y-or-n-p-history-variable t)))))

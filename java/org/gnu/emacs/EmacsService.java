@@ -1713,26 +1713,59 @@ public final class EmacsService extends Service
     tree = Uri.parse (uri);
     uriObject = DocumentsContract.buildDocumentUriUsingTree (tree, docId);
 
-    try
+    if (DocumentsContract.renameDocument (resolver, uriObject,
+					  name)
+	!= null)
       {
-	if (DocumentsContract.renameDocument (resolver, uriObject,
-					      name)
-	    != null)
-	  {
-	    /* Invalidate the cache.  */
-	    if (storageThread != null)
-	      storageThread.postInvalidateCacheDir (tree, docId,
-						    name);
-	    return 0;
-	  }
-      }
-    catch (UnsupportedOperationException e)
-      {
-	;;
+	/* Invalidate the cache.  */
+	if (storageThread != null)
+	  storageThread.postInvalidateCacheDir (tree, docId,
+						name);
+	return 0;
       }
 
-    /* Handle unsupported operation exceptions specially, so
-       `android_rename' can return ENXDEV.  */
+    /* Handle errors specially, so `android_saf_rename_document' can
+       return ENXDEV.  */
     return -1;
+  }
+
+  /* Move the document designated by DOCID from the directory under
+     DIR_NAME designated by SRCID to the directory designated by
+     DSTID.  If the ID of the document being moved changes as a
+     consequence of the movement, return the new ID, else NULL.
+
+     URI is the document tree containing all three documents.  */
+
+  public String
+  moveDocument (String uri, String docId, String dirName,
+		String dstId, String srcId)
+    throws FileNotFoundException
+  {
+    Uri uri1, docId1, dstId1, srcId1;
+    Uri name;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      throw new UnsupportedOperationException ("Documents aren't capable"
+					       + " of being moved on Android"
+					       + " versions before 7.0.");
+
+    uri1 = Uri.parse (uri);
+    docId1 = DocumentsContract.buildDocumentUriUsingTree (uri1, docId);
+    dstId1 = DocumentsContract.buildDocumentUriUsingTree (uri1, dstId);
+    srcId1 = DocumentsContract.buildDocumentUriUsingTree (uri1, srcId);
+
+    /* Move the document; this function returns the new ID of the
+       document should it change.  */
+    name = DocumentsContract.moveDocument (resolver, docId1,
+					   srcId1, dstId1);
+
+    /* Now invalidate the caches for both DIRNAME and DOCID.  */
+
+    if (storageThread != null)
+      storageThread.postInvalidateCacheDir (uri1, docId, dirName);
+
+    return (name != null
+	    ? DocumentsContract.getDocumentId (name)
+	    : null);
   }
 };

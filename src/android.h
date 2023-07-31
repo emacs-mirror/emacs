@@ -110,6 +110,7 @@ extern void android_exception_check (void);
 extern void android_exception_check_1 (jobject);
 extern void android_exception_check_2 (jobject, jobject);
 extern void android_exception_check_3 (jobject, jobject, jobject);
+extern void android_exception_check_4 (jobject, jobject, jobject, jobject);
 extern void android_exception_check_nonnull (void *, jobject);
 extern void android_exception_check_nonnull_1 (void *, jobject, jobject);
 
@@ -282,6 +283,7 @@ struct android_emacs_service
   jmethodID create_directory;
   jmethodID delete_document;
   jmethodID rename_document;
+  jmethodID move_document;
 };
 
 extern JNIEnv *android_java_env;

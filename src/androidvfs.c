@@ -4036,7 +4036,8 @@ android_saf_delete_document (const char *tree, const char *doc_id,
 }
 
 /* Declared further below.  */
-static int android_document_id_from_name (const char *, char *, char **);
+static int android_document_id_from_name (const char *, const char *,
+					  char **);
 
 /* Rename the document designated by DOC_ID inside the directory tree
    identified by URI, which should be within the directory by the name
@@ -4078,8 +4079,17 @@ android_saf_rename_document (const char *uri, const char *doc_id,
 						     dir1, name1);
 
   /* Check for exceptions.  */
+
   if (android_saf_exception_check (4, uri1, doc_id1, dir1, name1))
-    return -1;
+    {
+      /* Substitute EXDEV for ENOSYS, so callers fall back on
+	 delete-then-copy.  */
+
+      if (errno == ENOSYS)
+	errno = EXDEV;
+
+      return -1;
+    }
 
   /* Delete unused local references.  */
   ANDROID_DELETE_LOCAL_REF (uri1);
@@ -4095,6 +4105,109 @@ android_saf_rename_document (const char *uri, const char *doc_id,
 	 back on delete-then-copy code.  */
       errno = EXDEV;
       return -1;
+    }
+
+  return 0;
+}
+
+/* Move the document designated by *DOC_ID from the directory under
+   DIR_NAME to the directory designated by DST_ID.  All three
+   directories are located within the tree identified by the given
+   URI.
+
+   If the document's ID changes as a result of the movement, free
+   *DOC_ID and store the new document ID within.
+
+   Value is 0 upon success, -1 otherwise with errno set.  */
+
+static int
+android_saf_move_document (const char *uri, char **doc_id,
+			   const char *dir_name, const char *dst_id)
+{
+  char *src_id, *id;
+  jobject uri1, doc_id1, dir_name1, dst_id1, src_id1;
+  jstring result;
+  jmethodID method;
+  int rc;
+  const char *new_id;
+
+  /* Obtain the name of the source directory.  */
+  src_id = NULL;
+  rc = android_document_id_from_name (uri, dir_name, &src_id);
+
+  if (rc != 1)
+    {
+      /* This file is either not a directory or nonexistent.  */
+      xfree (src_id);
+
+      switch (rc)
+	{
+	case 0:
+	  errno = ENOTDIR;
+	  return -1;
+
+	case -1:
+	case -2:
+	  errno = ENOENT;
+	  return -1;
+
+	default:
+	  emacs_abort ();
+	}
+    }
+
+  /* Build Java strings for all five arguments.  */
+  id = *doc_id;
+  uri1 = (*android_java_env)->NewStringUTF (android_java_env, uri);
+  android_exception_check ();
+  doc_id1 = (*android_java_env)->NewStringUTF (android_java_env, id);
+  android_exception_check_1 (uri1);
+  dir_name1 = (*android_java_env)->NewStringUTF (android_java_env, dir_name);
+  android_exception_check_2 (doc_id1, uri1);
+  dst_id1 = (*android_java_env)->NewStringUTF (android_java_env, dst_id);
+  android_exception_check_3 (dir_name1, doc_id1, uri1);
+  src_id1 = (*android_java_env)->NewStringUTF (android_java_env, src_id);
+  xfree (src_id);
+  android_exception_check_4 (dst_id1, dir_name1, doc_id1, uri1);
+
+  /* Do the rename.  */
+  method = service_class.move_document;
+  result = (*android_java_env)->CallObjectMethod (android_java_env,
+						  emacs_service,
+						  method, uri1,
+						  doc_id1, dir_name1,
+						  dst_id1, src_id1);
+  if (android_saf_exception_check (5, src_id1, dst_id1, dir_name1,
+				   doc_id1, uri1))
+    {
+      /* Substitute EXDEV for ENOSYS, so callers fall back on
+	 delete-then-copy.  */
+
+      if (errno == ENOSYS)
+	errno = EXDEV;
+
+      return -1;
+    }
+
+  /* Delete unused local references.  */
+  ANDROID_DELETE_LOCAL_REF (src_id1);
+  ANDROID_DELETE_LOCAL_REF (dst_id1);
+  ANDROID_DELETE_LOCAL_REF (dir_name1);
+  ANDROID_DELETE_LOCAL_REF (doc_id1);
+  ANDROID_DELETE_LOCAL_REF (uri1);
+
+  if (result)
+    {
+      /* The document ID changed.  Free id and replace *DOC_ID with
+	 the new ID.  */
+      xfree (id);
+      new_id = (*android_java_env)->GetStringUTFChars (android_java_env,
+						       result, NULL);
+      android_exception_check_nonnull ((void *) new_id, result);
+      *doc_id = xstrdup (new_id);
+      (*android_java_env)->ReleaseStringUTFChars (android_java_env, result,
+						  new_id);
+      ANDROID_DELETE_LOCAL_REF (result);
     }
 
   return 0;
@@ -4282,7 +4395,7 @@ android_verify_jni_string (const char *name)
    ID lookup to be canceled.  */
 
 static int
-android_document_id_from_name (const char *tree_uri, char *name,
+android_document_id_from_name (const char *tree_uri, const char *name,
 			       char **id)
 {
   jobjectArray result;
@@ -4658,7 +4771,9 @@ android_saf_tree_rename (struct android_vnode *src,
 {
   char *last, *dst_last;
   struct android_saf_tree_vnode *vp, *vdst;
-  char path[PATH_MAX], *fill;
+  char path[PATH_MAX], path1[PATH_MAX];
+  char *fill, *dst_id;
+  int rc;
 
   /* If dst isn't a tree, file or new vnode, return EXDEV.  */
 
@@ -4739,8 +4854,118 @@ android_saf_tree_rename (struct android_vnode *src,
          directory to the other, and possibly then recreated under a
          new name.  */
 
-      errno = EXDEV; /* TODO */
-      return -1;
+      /* The names of the source and destination directories will have
+	 to be copied to path.  */
+
+      if (last - vp->name >= PATH_MAX
+	  || dst_last - vdst->name >= PATH_MAX)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+
+      fill = mempcpy (path, vp->name, last - vp->name);
+      *fill = '\0';
+
+      /* If vdst doesn't already exist, its document_id field is
+	 already the name of its parent directory.  */
+
+      if (dst->type == ANDROID_VNODE_SAF_NEW)
+	{
+	  /* First, move the document.  This will update
+	     VP->document_id if it changes.  */
+
+	  if (android_saf_move_document (vp->tree_uri,
+					 &vp->document_id,
+					 path,
+					 vdst->document_id))
+	    return -1;
+
+	  fill = mempcpy (path, vdst->name, dst_last - vdst->name);
+	  *fill = '\0';
+
+	  /* Next, rename the document, if its display name differs
+	     from that of the source.  */
+
+	  if (strcmp (dst_last + 1, last + 1)
+	      /* By now vp->document_id is already in the destination
+		 directory.  */
+	      && android_saf_rename_document (vp->tree_uri,
+					      vp->document_id,
+					      path,
+					      dst_last + 1))
+	    return -1;
+
+	  return 0;
+	}
+
+      /* Retrieve the ID designating the destination document's parent
+	 directory.  */
+
+      fill = mempcpy (path1, vdst->name, dst_last - vdst->name);
+      *fill = '\0';
+
+      rc = android_document_id_from_name (vp->tree_uri,
+					  path1, &dst_id);
+
+      if (rc != 1)
+	{
+	  /* This file is either not a directory or nonexistent.  */
+
+	  switch (rc)
+	    {
+	    case 0:
+	      errno = ENOTDIR;
+	      goto error;
+
+	    case -1:
+	      /* dst_id is not set here, as the penultimate component
+		 also couldn't be located.  */
+	      errno = ENOENT;
+	      return -1;
+
+	    case -2:
+	      errno = ENOENT;
+	      goto error;
+
+	    default:
+	      emacs_abort ();
+	    }
+	}
+
+      /* vdst already exists, so it needs to be deleted first.  */
+
+      if (android_saf_delete_document (vdst->tree_uri,
+				       vdst->document_id,
+				       vdst->name))
+        goto error;
+
+      /* First, move the document.  This will update
+	 VP->document_id if it changes.  */
+
+      if (android_saf_move_document (vp->tree_uri,
+				     &vp->document_id,
+				     path, dst_id))
+        goto error;
+
+      /* Next, rename the document, if its display name differs from
+	 that of the source.  */
+
+      if (strcmp (dst_last + 1, last + 1)
+	  /* By now vp->document_id is already in the destination
+	     directory.  */
+	  && android_saf_rename_document (vp->tree_uri,
+					  vp->document_id,
+					  path1,
+					  dst_last + 1))
+	goto error;
+
+      xfree (dst_id);
+      return 0;
+
+    error:
+      xfree (dst_id);
+      return 1;
     }
 
   /* Otherwise, do this simple rename.  The name of the parent

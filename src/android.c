@@ -1586,6 +1586,10 @@ android_init_emacs_service (void)
   FIND_METHOD (rename_document, "renameDocument",
 	       "(Ljava/lang/String;Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;)I");
+  FIND_METHOD (move_document, "moveDocument",
+	       "(Ljava/lang/String;Ljava/lang/String;"
+	       "Ljava/lang/String;Ljava/lang/String;"
+	       "Ljava/lang/String;)Ljava/lang/String;");
 #undef FIND_METHOD
 }
 
@@ -5664,6 +5668,29 @@ android_exception_check_3 (jobject object, jobject object1,
   ANDROID_DELETE_LOCAL_REF (object);
   ANDROID_DELETE_LOCAL_REF (object1);
   ANDROID_DELETE_LOCAL_REF (object2);
+  memory_full (0);
+}
+
+/* Like android_exception_check_3, except it takes more than three
+   local reference arguments.  */
+
+void
+android_exception_check_4 (jobject object, jobject object1,
+			   jobject object2, jobject object3)
+{
+  if (likely (!(*android_java_env)->ExceptionCheck (android_java_env)))
+    return;
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (object);
+  ANDROID_DELETE_LOCAL_REF (object1);
+  ANDROID_DELETE_LOCAL_REF (object2);
+  ANDROID_DELETE_LOCAL_REF (object3);
   memory_full (0);
 }
 
