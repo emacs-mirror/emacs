@@ -3286,6 +3286,8 @@ BODY is the backend specific code."
        (when (tramp-connectable-p ,filename)
 	 (with-parsed-tramp-file-name (expand-file-name ,filename) nil
 	   (with-tramp-file-property v localname "file-exists-p"
+	     ;; Examine `file-attributes' cache to see if request can
+	     ;; be satisfied without remote operation.
 	     (if (tramp-file-property-p v localname "file-attributes")
 		 (not
 		  (null (tramp-get-file-property v localname "file-attributes")))
@@ -3356,7 +3358,7 @@ BODY is the backend specific code."
 	 ,@body
 	 nil))))
 
-(defmacro tramp-skeleton-handle-make-symbolic-link
+(defmacro tramp-skeleton-make-symbolic-link
   (target linkname &optional ok-if-already-exists &rest body)
   "Skeleton for `tramp-*-handle-make-symbolic-link'.
 BODY is the backend specific code.
@@ -3961,8 +3963,14 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-symlink-p (filename)
   "Like `file-symlink-p' for Tramp files."
-  (let ((x (file-attribute-type (file-attributes filename))))
-    (and (stringp x) x)))
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
+    ;; Some operations, like `file-truename', set the file property
+    ;; "file-symlink-marker".  We can use it as indicator, and avoid a
+    ;; possible call of `file-attributes'.
+    (when (or (tramp-get-file-property v localname "file-symlink-marker")
+	      (not (tramp-file-property-p v localname "file-symlink-marker")))
+      (let ((x (file-attribute-type (file-attributes filename))))
+	(and (stringp x) x)))))
 
 (defun tramp-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."

@@ -511,9 +511,9 @@ Emacs dired can't find files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
+	  ;; Examine `file-attributes' cache to see if request can be
+	  ;; satisfied without remote operation.
 	  (if (tramp-file-property-p v localname "file-attributes")
-	      ;; Examine `file-attributes' cache to see if request can
-	      ;; be satisfied without remote operation.
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-adb-send-command-and-check
 	     v (format "test -w %s" (tramp-shell-quote-argument localname))))
