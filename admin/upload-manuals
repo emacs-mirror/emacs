@@ -305,13 +305,14 @@ done
 ## TODO: check for removed manuals.
 
 [ "$clist" ] && (
-    cd $webdir/manual/html_mono
+    cd $webdir/manual
     [ "$new" ] && {
         echo "Adding new files: $new"
         $cvs add $new || die "add error"
         new_manual $new || die
         echo "Remember to add new entries to manual/index.html"
     }
+    cd html_mono
     $cvs commit -m "$message" $clist || die "commit error"
 )
 
@@ -339,9 +340,13 @@ for d in html_node/*; do
     done
 
     stale=
-    for f in $webdir/manual/$d/*.html; do
-        [ -e ${f#$webdir/manual/} ] || stale="$stale ${f##*/}"
-    done
+    # Newly created directory will have no HTML files, so none can be
+    # "stale".  But 'for' returns the original wildcard, so avoid that.
+    ls $webdir/manual/$d/*.html > /dev/null 2>&1 && {
+	for f in $webdir/manual/$d/*.html; do
+            [ -e ${f#$webdir/manual/} ] || stale="$stale ${f##*/}"
+	done
+    }
 
     mv $d/*.html $webdir/manual/$d/
 

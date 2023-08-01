@@ -574,9 +574,9 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
+	  ;; Examine `file-attributes' cache to see if request can be
+	  ;; satisfied without remote operation.
 	  (if (tramp-file-property-p v localname "file-attributes")
-	      ;; Examine `file-attributes' cache to see if request can
-	      ;; be satisfied without remote operation.
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-sudoedit-send-command
 	     v "test" "-w" (file-name-unquote localname)))
@@ -596,7 +596,7 @@ the result will be a local, non-Tramp, file name."
 (defun tramp-sudoedit-handle-make-symbolic-link
     (target linkname &optional ok-if-already-exists)
   "Like `make-symbolic-link' for Tramp files."
-  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+  (tramp-skeleton-make-symbolic-link target linkname ok-if-already-exists
     (tramp-sudoedit-send-command
      v "ln" "-sf"
      (file-name-unquote target)

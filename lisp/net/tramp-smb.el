@@ -1176,7 +1176,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (unless (tramp-smb-get-cifs-capabilities v)
       (tramp-error v 'file-error "make-symbolic-link not supported")))
 
-  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+  (tramp-skeleton-make-symbolic-link target linkname ok-if-already-exists
     (unless (tramp-smb-send-command
 	     v (format "symlink %s %s"
 		       (tramp-smb-shell-quote-argument target)

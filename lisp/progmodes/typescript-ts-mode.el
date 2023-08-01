@@ -33,6 +33,7 @@
 (require 'c-ts-common) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
 
 (defcustom typescript-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `typescript-ts-mode'."
@@ -75,6 +76,18 @@
     table)
   "Syntax table for `typescript-ts-mode'.")
 
+(defun tsx-ts-mode--indent-compatibility-b893426 ()
+  "Indent rules helper, to handle different releases of tree-sitter-tsx.
+Check if a node type is available, then return the right indent rules."
+  ;; handle commit b893426
+  (condition-case nil
+      (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
+             `(((match "<" "jsx_fragment") parent 0)
+               ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
+    (error
+     `(((match "<" "jsx_text") parent 0)
+       ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
+
 (defun typescript-ts-mode--indent-rules (language)
   "Rules used for indentation.
 Argument LANGUAGE is either `typescript' or `tsx'."
@@ -110,16 +123,15 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ,@(when (eq language 'tsx)
-         `(((match "<" "jsx_fragment") parent 0)
-           ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
-           ((node-is "jsx_closing_element") parent 0)
-           ((match "jsx_element" "statement") parent typescript-ts-mode-indent-offset)
-           ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
-           ((parent-is "jsx_text") parent-bol typescript-ts-mode-indent-offset)
-           ((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
-           ((parent-is "jsx_expression") parent-bol typescript-ts-mode-indent-offset)
-           ((match "/" "jsx_self_closing_element") parent 0)
-           ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)))
+	 (append (tsx-ts-mode--indent-compatibility-b893426)
+		 `(((node-is "jsx_closing_element") parent 0)
+		   ((match "jsx_element" "statement") parent typescript-ts-mode-indent-offset)
+		   ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
+		   ((parent-is "jsx_text") parent-bol typescript-ts-mode-indent-offset)
+		   ((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
+		   ((parent-is "jsx_expression") parent-bol typescript-ts-mode-indent-offset)
+		   ((match "/" "jsx_self_closing_element") parent 0)
+		   ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset))))
      ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
      (no-node parent-bol 0))))
 
@@ -141,6 +153,39 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "-" "*" "/" "%" "++" "--" "**" "&" "|" "^" "~" "<<" ">>" ">>>"
     "&&" "||" "!" "?.")
   "TypeScript operators for tree-sitter font-locking.")
+
+(defun tsx-ts-mode--font-lock-compatibility-bb1f97b (language)
+  "Font lock rules helper, to handle different releases of tree-sitter-tsx.
+Check if a node type is available, then return the right font lock rules.
+Argument LANGUAGE is either `typescript' or `tsx'."
+  ;; handle commit bb1f97b
+  ;; Warning: treesitter-query-capture says both node types are valid,
+  ;; but then raises an error if the wrong node type is used. So it is
+  ;; important to check with the new node type (member_expression)
+  (condition-case nil
+      (progn (treesit-query-capture language '((member_expression) @capture))
+	     '((jsx_opening_element
+		[(member_expression (identifier)) (identifier)]
+		@typescript-ts-jsx-tag-face)
+
+	       (jsx_closing_element
+		[(member_expression (identifier)) (identifier)]
+		@typescript-ts-jsx-tag-face)
+
+	       (jsx_self_closing_element
+		[(member_expression (identifier)) (identifier)]
+		@typescript-ts-jsx-tag-face)))
+    (error '((jsx_opening_element
+	      [(nested_identifier (identifier)) (identifier)]
+	      @typescript-ts-jsx-tag-face)
+
+	     (jsx_closing_element
+	      [(nested_identifier (identifier)) (identifier)]
+	      @typescript-ts-jsx-tag-face)
+
+	     (jsx_self_closing_element
+	      [(nested_identifier (identifier)) (identifier)]
+	      @typescript-ts-jsx-tag-face)))))
 
 (defun typescript-ts-mode--font-lock-settings (language)
   "Tree-sitter font-lock settings.
@@ -293,19 +338,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
    :language language
    :feature 'jsx
-   `((jsx_opening_element
-      [(nested_identifier (identifier)) (identifier)]
-      @typescript-ts-jsx-tag-face)
-
-     (jsx_closing_element
-      [(nested_identifier (identifier)) (identifier)]
-      @typescript-ts-jsx-tag-face)
-
-     (jsx_self_closing_element
-      [(nested_identifier (identifier)) (identifier)]
-      @typescript-ts-jsx-tag-face)
-
-     (jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face))
+   (append (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
+	   `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
 
    :language language
    :feature 'number

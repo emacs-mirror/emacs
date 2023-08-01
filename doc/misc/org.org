@@ -4562,7 +4562,7 @@ all children are done, you can use the following setup:
 #+begin_src emacs-lisp
 (defun org-summary-todo (n-done n-not-done)
   "Switch entry to DONE when all subentries are done, to TODO otherwise."
-  (let (org-log-done org-log-states)   ; turn off logging
+  (let (org-log-done org-todo-log-states)   ; turn off logging
     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 
 (add-hook 'org-after-todo-statistics-hook #'org-summary-todo)
@@ -16034,7 +16034,12 @@ can remove every headline in the buffer during export like this:
   "Remove all headlines in the current buffer.
 BACKEND is the export back-end being used, as a symbol."
   (org-map-entries
-   (lambda () (delete-region (point) (line-beginning-position 2)))))
+   (lambda ()
+     (delete-region (point) (line-beginning-position 2))
+     ;; We need to tell `org-map-entries' to not skip over heading at
+     ;; point. Otherwise, it would continue from _next_ heading. See
+     ;; the docstring of `org-map-entries' for details.
+     (setq org-map-continue-from (point)))))
 
 (add-hook 'org-export-before-parsing-hook #'my-headline-removal)
 #+end_src
