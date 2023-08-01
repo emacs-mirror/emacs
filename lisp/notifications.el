@@ -137,6 +137,12 @@ Various PARAMS can be set:
  :app-icon       The notification icon.
                  Default is `notifications-application-icon'.
                  Set to nil if you do not want any icon displayed.
+                 If the value is a string, the function
+                 interprets it as a file name and converts to
+                 absolute by using `expand-file-name'; if it is a
+                 symbol, the function will use its name (which is
+                 useful when using the Icon Naming
+                 Specification).
  :actions        A list of actions in the form:
                    (KEY TITLE KEY TITLE ...)
                  where KEY and TITLE are both strings.
@@ -304,7 +310,10 @@ of another `notifications-notify' call."
 					  notifications-application-name)
 			      :uint32 (or replaces-id 0)
 			      :string (if app-icon
-					  (expand-file-name app-icon)
+					  (if (stringp app-icon)
+                                              (expand-file-name app-icon)
+                                            ;; Convert symbol to string
+                                            (symbol-name app-icon))
 					;; If app-icon is nil because user
 					;; requested it to be so, send the
 					;; empty string

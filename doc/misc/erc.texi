@@ -1268,6 +1268,9 @@ settings (@pxref{Sample configuration via Customize}).
   (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
   (erc-server-reconnect-timeout 30)
 
+  ;; Show new buffers in the current window instead of a split.
+  (erc-interactive-display 'buffer)
+
   ;; Insert a newline when I hit <RET> at the prompt, and prefer
   ;; something more deliberate for actually sending messages.
   :bind (:map erc-mode-map
@@ -1390,6 +1393,16 @@ group (note the ``breadcrumb'' for group @samp{Erc} atop the buffer).
 Indeed, you can always get back here by running @kbd{M-x
 customize-group @key{RET} erc-server @key{RET}} from almost anywhere
 in Emacs.
+
+To make sure you've got this, try quickly customizing the option
+@code{erc-interactive-display}, which lives in the @samp{Erc Buffers}
+group (@kbd{M-x customize-group @key{RET} erc-buffers @key{RET}}).  As
+its doc string explains, the option controls where new buffers show up
+when you do @kbd{M-x erc-tls @key{RET}} or issue certain ``slash''
+commands, like @kbd{/JOIN #emacs-beginners @key{RET}}, at ERC's
+prompt.  Change its value to the symbol @code{buffer} by choosing
+@samp{Use current window} (item @kbd{5}) from the option's
+@samp{[Value Menu]}.  Don't forget to save.
 
 Now it's time to set some key bindings for @code{erc-mode-map}, a
 major-mode keymap active in all ERC buffers.  In general, it's best to

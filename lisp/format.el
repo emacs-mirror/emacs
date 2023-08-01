@@ -87,11 +87,16 @@
 	   rot13-region rot13-region t nil)
     (duden ,(purecopy "Duden Ersatzdarstellung")
 	   nil
-	   ,(purecopy "diac") iso-iso2duden t nil)
+	   ;; FROM-FN used to call the "diac" command which is not widely
+	   ;; available and apparently not under a free software license:
+	   ;; https://nm.wu-wien.ac.at/nm/download/file/diac4.tar.gz
+	   ;; Reliable round-trip conversion is not possible anyway
+	   ;; and would be by heuristic method, so use nil for now.
+	   nil iso-iso2duden t nil)
     (de646 ,(purecopy "German ASCII (ISO 646)")
 	   nil
-	   ,(purecopy "recode -f iso646-ge:latin1")
-	   ,(purecopy "recode -f latin1:iso646-ge") t nil)
+	   ,(purecopy "iconv -f iso646-de -t utf-8")
+	   ,(purecopy "iconv -f utf-8 -t iso646-de") t nil)
     (denet ,(purecopy "net German")
 	   nil
 	   iso-german iso-cvt-read-only t nil)

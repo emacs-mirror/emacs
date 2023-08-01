@@ -339,7 +339,7 @@ FORMAT can be either a format string or a function which is called with VAL."
 	 (type
 	  (pcase basetype
 	    (`integerp '("int" "%d"))
-	    (`floatp '("double" "%f"))
+	    (`floatp '("double" "%s")) ;; %f rounds, use %s to print the float literally
 	    (`stringp
 	     (list
 	      (if (eq org-babel-c-variant 'd) "string" "const char*")

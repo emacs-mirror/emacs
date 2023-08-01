@@ -551,14 +551,17 @@ character has close parenthesis syntax (@pxref{Blinking}).
 @vindex self-insert-uses-region-functions
 The final thing this command does is to run the hook
 @code{post-self-insert-hook}.  You could use this to automatically
-reindent text as it is typed, for example.  If any function on this
-hook needs to act on the region (@pxref{The Region}), it should make
-sure Delete Selection mode (@pxref{Using Region, Delete Selection, ,
-emacs, The GNU Emacs Manual}) doesn't delete the region before
-@code{post-self-insert-hook} functions are invoked.  The way to do so
-is to add a function that returns @code{nil} to
-@code{self-insert-uses-region-functions}, a special hook that tells
-Delete Selection mode it should not delete the region.
+reindent text as it is typed, for example.  The functions on this hook
+can use @code{last-command-event} (@pxref{Command Loop Info}) to
+access the character just inserted.
+
+If any function on this hook needs to act on the region (@pxref{The
+Region}), it should make sure Delete Selection mode (@pxref{Using
+Region, Delete Selection, , emacs, The GNU Emacs Manual}) doesn't
+delete the region before @code{post-self-insert-hook} functions are
+invoked.  The way to do so is to add a function that returns
+@code{nil} to @code{self-insert-uses-region-functions}, a special hook
+that tells Delete Selection mode it should not delete the region.
 
 Do not try substituting your own definition of
 @code{self-insert-command} for the standard one.  The editor command

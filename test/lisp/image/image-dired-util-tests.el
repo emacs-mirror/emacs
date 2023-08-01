@@ -47,25 +47,33 @@
       (should (equal
                (file-name-directory (image-dired-thumb-name "foo.jpg"))
                (file-name-directory (image-dired-thumb-name "/tmp/foo.jpg"))))
-      (should (equal (file-name-nondirectory
-                      ;; The checksum is based on the file name.
-                      (image-dired-thumb-name "/some/path/foo.jpg"))
-                     "dc4e6f7068157023e7f2e8362d15bdd2e3ca89e4.jpg"))
+      (should
+       (let* ((test-fn "/some/path/foo.jpg")
+              (thumb-fn (image-dired-thumb-name test-fn)))
+         (equal (file-name-nondirectory thumb-fn)
+                (concat (sha1 (expand-file-name test-fn)) ".jpg"))))
       (should (equal (file-name-extension
                       (image-dired-thumb-name "foo.gif"))
                      "jpg")))))
 
 (ert-deftest image-dired-thumb-name/per-directory ()
-  (let ((image-dired-thumbnail-storage 'per-directory))
-    (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
-    (should (file-name-absolute-p (image-dired-thumb-name "/tmp/foo.jpg")))
+  (let ((image-dired-thumbnail-storage 'per-directory)
+        (rel-path "foo.jpg")
+        (abs-path "/tmp/foo.jpg")
+        (hash-name (concat (sha1 "foo.jpg") ".jpg")))
+    (should (file-name-absolute-p (image-dired-thumb-name rel-path)))
+    (should (file-name-absolute-p (image-dired-thumb-name abs-path)))
     (should (equal
-             (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
-             (file-name-nondirectory (image-dired-thumb-name "/tmp/foo.jpg"))))
-    (should (equal (file-name-split (image-dired-thumb-name "/tmp/foo.jpg"))
-                   '("" "tmp" ".image-dired" "foo.jpg.thumb.jpg")))
+             (file-name-nondirectory (image-dired-thumb-name rel-path))
+             (file-name-nondirectory (image-dired-thumb-name abs-path))))
+    ;; The cdr below avoids the system dependency in the car of the
+    ;; list returned by 'file-name-split': it's "" on Posix systems,
+    ;; but the drive letter on MS-Windows.
+    (should (equal (cdr (file-name-split
+                         (image-dired-thumb-name abs-path)))
+                   (list "tmp" ".image-dired" hash-name)))
     (should (equal (file-name-nondirectory
-                    (image-dired-thumb-name "foo.jpg"))
-                   "foo.jpg.thumb.jpg"))))
+                    (image-dired-thumb-name rel-path))
+                   hash-name))))
 
 ;;; image-dired-util-tests.el ends here

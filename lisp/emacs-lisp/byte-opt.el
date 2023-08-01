@@ -786,6 +786,17 @@ for speeding up processing.")
                            make-marker copy-marker point-marker mark-marker
                            set-marker
                            kbd key-description
+                           skip-chars-forward skip-chars-backward
+                           skip-syntax-forward skip-syntax-backward
+                           current-column current-indentation
+                           char-syntax syntax-class-to-char
+                           parse-partial-sexp goto-char forward-line
+                           next-window previous-window minibuffer-window
+                           selected-frame selected-window
+                           standard-case-table standard-syntax-table
+                           syntax-table
+                           frame-first-window frame-root-window
+                           frame-selected-window
                            always))
                   t)
                  ((eq head 'if)
@@ -973,7 +984,7 @@ for speeding up processing.")
   (let ((nargs (length (cdr form))))
     (cond
      ((= nargs 1)
-      `(progn (cadr form) t))
+      `(progn ,(cadr form) t))
      ((>= nargs 3)
       ;; At least 3 arguments: transform to N-1 binary comparisons,
       ;; since those have their own byte-ops which are particularly
@@ -1924,7 +1935,7 @@ See Info node `(elisp) Integer Basics'."
 (let ((pure-fns
        '(
          ;; character.c
-         characterp
+         characterp max-char
          ;; data.c
          % * + - / /= 1+ 1- < <= = > >= aref arrayp ash atom bare-symbol
          bool-vector-count-consecutive bool-vector-count-population

@@ -42,7 +42,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct pgtk_bitmap_record
 {
-  void *img;
   char *file;
   int refcount;
   int height, width, depth;

@@ -89,13 +89,15 @@ To specify the file in which to save them, modify the variable
   :type 'file)
 
 (defcustom bookmark-watch-bookmark-file t
-  "If non-nil watch the default bookmark file.
+  "If non-nil reload the default bookmark file if it was changed.
 If this file has changed on disk since it was last loaded, query the user
 whether to load it again.  If the value is `silent' reload without querying.
 This file defaults to `bookmark-default-file'.  But during an Emacs session,
 `bookmark-load' and `bookmark-save' can redefine the current default file."
   :version "27.1"
-  :type 'boolean
+  :type '(choice (const :tag "Suggest to reload bookmark file if changed" t)
+                 (const :tag "Silently reload bookmark file if changed" silent)
+                 (const :tag "Ignore changes of bookmark file" nil))
   :group 'bookmark)
 
 (defcustom bookmark-version-control 'nospecial

@@ -44,6 +44,17 @@
   "Move to the column under ATTRIBUTE in the current proced buffer."
   (move-to-column (string-match attribute proced-header-line)))
 
+(defun proced--assert-process-valid-pid-refinement (pid)
+  "Fail unless the process at point could be present after a refinment using PID."
+  (proced--move-to-column "PID")
+  (let ((pid-equal (string= pid (word-at-point))))
+    (should
+     (or pid-equal
+         ;; Guard against the unlikely event a platform doesn't support PPID
+         (when (string-match "PPID" proced-header-line)
+           (proced--move-to-column "PPID")
+           (string= pid (word-at-point)))))))
+
 (ert-deftest proced-format-test ()
   (dolist (format '(short medium long verbose))
     (proced--within-buffer
@@ -75,22 +86,21 @@
 (ert-deftest proced-refine-test ()
   ;;(skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (proced--within-buffer
-   'medium
+   'verbose
    'user
    ;; When refining on PID for process A, a process is kept if and only
-   ;; if its PID are the same as process A, which more or less guarentees
-   ;; the refinement will remove some processes.
+   ;; if its PID is the same as process A, or its parent process is
+   ;; process A.
    (proced--move-to-column "PID")
    (let ((pid (word-at-point)))
      (proced-refine)
      (while (not (eobp))
-       (proced--move-to-column "PID")
-       (should (string= pid (word-at-point)))
+       (proced--assert-process-valid-pid-refinement pid)
        (forward-line)))))
 
 (ert-deftest proced-refine-with-update-test ()
   (proced--within-buffer
-   'medium
+   'verbose
    'user
    (proced--move-to-column "PID")
    (let ((pid (word-at-point)))
@@ -101,8 +111,7 @@
      ;; processes again, causing the test to fail.
      (proced-update)
      (while (not (eobp))
-       (proced--move-to-column "PID")
-       (should (string= pid (word-at-point)))
+       (proced--assert-process-valid-pid-refinement pid)
        (forward-line)))))
 
 (ert-deftest proced-update-preserves-pid-at-point-test ()

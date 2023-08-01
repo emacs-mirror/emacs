@@ -445,13 +445,19 @@ classes."
           (setcar dash-l ?.))                  ; Reduce --x to .-x
         (setq items (nconc items '((?- . ?-))))))
 
-    ;; Deal with leading ^ and range ^-x.
-    (when (and (consp (car items))
-               (eq (caar items) ?^)
-               (cdr items))
-      ;; Move ^ and ^-x to second place.
-      (setq items (cons (cadr items)
-                        (cons (car items) (cddr items)))))
+    ;; Deal with leading ^ and range ^-x in non-negated set.
+    (when (and (eq (car-safe (car items)) ?^)
+               (not negated))
+      (if (eq (cdar items) ?^)
+          ;; single leading ^
+          (when (cdr items)
+            ;; Move the ^ to second place.
+            (setq items (cons (cadr items)
+                              (cons (car items) (cddr items)))))
+        ;; Split ^-x to _-x^
+        (setq items (cons (cons ?_ (cdar items))
+                          (cons '(?^ . ?^)
+                                (cdr items))))))
 
     (cond
      ;; Empty set: if negated, any char, otherwise match-nothing.

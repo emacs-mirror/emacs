@@ -182,8 +182,10 @@ space (this means characters from ! to ~; or from code 33 to
   :type 'hook)
 
 (defcustom server-after-make-frame-hook nil
-  "Hook run when the Emacs server creates a client frame.
-The created frame is selected when the hook is called."
+  "Hook run when the Emacs server starts using a client frame.
+The client frame is selected when the hook is called.
+The client frame could be a newly-created frame, or an
+existing frame reused for this purpose."
   :type 'hook
   :version "27.1")
 

@@ -7734,7 +7734,8 @@ the cache."
                               ;; it to real beginning then despite
                               ;; START being larger.
                               (setq start nil)
-                              (move-start-to-next-match nil)
+                              (let ((data nil)) ; data may not be valid. ignore it.
+                                (move-start-to-next-match nil))
                               ;; The new element may now start before
                               ;; or at already processed position.
                               ;; Make sure that we continue from an

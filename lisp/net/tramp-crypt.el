@@ -279,8 +279,10 @@ arguments to pass to the OPERATION."
 	    (apply #'tramp-crypt-file-name-for-operation operation args))
 	   (fn (and (tramp-crypt-file-name-p filename)
 		    (assoc operation tramp-crypt-file-name-handler-alist))))
-      (save-match-data (apply (cdr fn) args))
-    (tramp-crypt-run-real-handler operation args)))
+      (prog1 (save-match-data (apply (cdr fn) args))
+	(setq tramp-debug-message-fnh-function (cdr fn)))
+    (prog1 (tramp-run-real-handler operation args)
+      (setq tramp-debug-message-fnh-function operation))))
 
 ;;;###tramp-autoload
 (progn (defun tramp-register-crypt-file-name-handler ()
@@ -312,73 +314,75 @@ connection if a previous connection has died for some reason."
   ;; For password handling, we need a process bound to the connection
   ;; buffer.  Therefore, we create a dummy process.  Maybe there is a
   ;; better solution?
-  (unless (get-buffer-process (tramp-get-connection-buffer vec))
-    (let ((p (make-network-process
-	      :name (tramp-get-connection-name vec)
-	      :buffer (tramp-get-connection-buffer vec)
-	      :server t :host 'local :service t :noquery t)))
-      (tramp-post-process-creation p vec)))
+  (with-tramp-debug-message vec "Opening connection"
+    (unless (get-buffer-process (tramp-get-connection-buffer vec))
+      (let ((p (make-network-process
+		:name (tramp-get-connection-name vec)
+		:buffer (tramp-get-connection-buffer vec)
+		:server t :host 'local :service t :noquery t)))
+	(tramp-post-process-creation p vec)))
 
-  ;; The following operations must be performed without
-  ;; `tramp-crypt-file-name-handler'.
-  (let* (tramp-crypt-enabled
-	 ;; Don't check for a proper method.
-	 (non-essential t)
-	 (remote-config
-	  (expand-file-name
-	   tramp-crypt-encfs-config (tramp-crypt-get-remote-dir vec)))
-	 (local-config (tramp-crypt-config-file-name vec)))
-    ;; There is no local encfs6 config file.
-    (unless (file-exists-p local-config)
-      (if (and tramp-crypt-save-encfs-config-remote
-	       (file-exists-p remote-config))
-	  ;; Copy remote encfs6 config file if possible.
-	  (copy-file remote-config local-config 'ok 'keep)
+    ;; The following operations must be performed without
+    ;; `tramp-crypt-file-name-handler'.
+    (let* (tramp-crypt-enabled
+	   ;; Don't check for a proper method.
+	   (non-essential t)
+	   (remote-config
+	    (expand-file-name
+	     tramp-crypt-encfs-config (tramp-crypt-get-remote-dir vec)))
+	   (local-config (tramp-crypt-config-file-name vec)))
+      ;; There is no local encfs6 config file.
+      (unless (file-exists-p local-config)
+	(if (and tramp-crypt-save-encfs-config-remote
+		 (file-exists-p remote-config))
+	    ;; Copy remote encfs6 config file if possible.
+	    (copy-file remote-config local-config 'ok 'keep)
 
-	;; Create local encfs6 config file otherwise.
-	(let* ((default-directory tramp-compat-temporary-file-directory)
-	       (tmpdir1 (file-name-as-directory
-			 (tramp-compat-make-temp-file " .crypt" 'dir-flag)))
-	       (tmpdir2 (file-name-as-directory
-			 (tramp-compat-make-temp-file " .nocrypt" 'dir-flag))))
-	  ;; Enable `auth-source', unless "emacs -Q" has been called.
-	  (tramp-set-connection-property
-	   vec "first-password-request" tramp-cache-read-persistent-data)
-	  (with-temp-buffer
-	    (insert
-	     (tramp-read-passwd
-	      (tramp-get-connection-process vec)
-	      (format
-	       "New EncFS Password for %s " (tramp-crypt-get-remote-dir vec))))
-	    (when
-		(zerop
-		 (tramp-call-process-region
-		  vec (point-min) (point-max)
-		  tramp-crypt-encfs-program nil (tramp-get-connection-buffer vec)
-		  nil tramp-crypt-encfs-option "--extpass=cat" tmpdir1 tmpdir2))
-	      ;; Save the password.
-	      (ignore-errors
-		(and (functionp tramp-password-save-function)
-		     (funcall tramp-password-save-function)))))
+	  ;; Create local encfs6 config file otherwise.
+	  (let* ((default-directory tramp-compat-temporary-file-directory)
+		 (tmpdir1 (file-name-as-directory
+			   (tramp-compat-make-temp-file " .crypt" 'dir-flag)))
+		 (tmpdir2 (file-name-as-directory
+			   (tramp-compat-make-temp-file " .nocrypt" 'dir-flag))))
+	    ;; Enable `auth-source', unless "emacs -Q" has been called.
+	    (tramp-set-connection-property
+	     vec "first-password-request" tramp-cache-read-persistent-data)
+	    (with-temp-buffer
+	      (insert
+	       (tramp-read-passwd
+		(tramp-get-connection-process vec)
+		(format
+		 "New EncFS Password for %s " (tramp-crypt-get-remote-dir vec))))
+	      (when
+		  (zerop
+		   (tramp-call-process-region
+		    vec (point-min) (point-max)
+		    tramp-crypt-encfs-program nil
+		    (tramp-get-connection-buffer vec) nil
+		    tramp-crypt-encfs-option "--extpass=cat" tmpdir1 tmpdir2))
+		;; Save the password.
+		(ignore-errors
+		  (and (functionp tramp-password-save-function)
+		       (funcall tramp-password-save-function)))))
 
-	  ;; Write local config file.  Suppress file name IV chaining mode.
-	  (with-temp-file local-config
-	    (insert-file-contents
-	     (expand-file-name tramp-crypt-encfs-config tmpdir1))
-	    (when (search-forward
-		   "<chainedNameIV>1</chainedNameIV>" nil 'noerror)
-	      (replace-match "<chainedNameIV>0</chainedNameIV>")))
+	    ;; Write local config file.  Suppress file name IV chaining mode.
+	    (with-temp-file local-config
+	      (insert-file-contents
+	       (expand-file-name tramp-crypt-encfs-config tmpdir1))
+	      (when (search-forward
+		     "<chainedNameIV>1</chainedNameIV>" nil 'noerror)
+		(replace-match "<chainedNameIV>0</chainedNameIV>")))
 
-	  ;; Unmount encfs.  Delete temporary directories.
-	  (tramp-call-process
-	   vec tramp-crypt-encfs-program nil nil nil
-	   "--unmount" tmpdir1 tmpdir2)
-	  (delete-directory tmpdir1 'recursive)
-	  (delete-directory tmpdir2)
+	    ;; Unmount encfs.  Delete temporary directories.
+	    (tramp-call-process
+	     vec tramp-crypt-encfs-program nil nil nil
+	     "--unmount" tmpdir1 tmpdir2)
+	    (delete-directory tmpdir1 'recursive)
+	    (delete-directory tmpdir2)
 
-	  ;; Copy local encfs6 config file to remote.
-	  (when tramp-crypt-save-encfs-config-remote
-	    (copy-file local-config remote-config 'ok 'keep)))))))
+	    ;; Copy local encfs6 config file to remote.
+	    (when tramp-crypt-save-encfs-config-remote
+	      (copy-file local-config remote-config 'ok 'keep))))))))
 
 (defun tramp-crypt-send-command (vec &rest args)
   "Send encfsctl command to connection VEC.

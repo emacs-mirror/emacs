@@ -423,8 +423,8 @@ PREFIX is a string, and defaults to \"g\"."
     (make-symbol (format "%s%d" (or prefix "g") num))))
 
 (defun ignore (&rest _arguments)
-  "Do nothing and return nil.
-This function accepts any number of ARGUMENTS, but ignores them.
+  "Ignore ARGUMENTS, do nothing, and return nil.
+This function accepts any number of arguments in ARGUMENTS.
 Also see `always'."
   ;; Not declared `side-effect-free' because we don't want calls to it
   ;; elided; see `byte-compile-ignore'.
@@ -433,8 +433,8 @@ Also see `always'."
   nil)
 
 (defun always (&rest _arguments)
-  "Do nothing and return t.
-This function accepts any number of ARGUMENTS, but ignores them.
+  "Ignore ARGUMENTS, do nothing, and return t.
+This function accepts any number of arguments in ARGUMENTS.
 Also see `ignore'."
   (declare (pure t) (side-effect-free error-free))
   t)

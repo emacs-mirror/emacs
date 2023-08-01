@@ -24,6 +24,16 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 30.1
 
+---
+** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
+Previously configure used ALSA libraries if installed on the
+system when configured '--with-sound=yes' (which is the default), with
+fallback to libossaudio.  The libossaudio library included with the
+base system is now used even if ALSA is found to avoid relying on
+external packages and to resolve potential incompatibilities between
+Linux and BSD versions of ALSA.  Use '--with-sound=alsa' to build with
+ALSA on these operating systems instead.
+
 
 * Startup Changes in Emacs 30.1
 
@@ -91,6 +101,15 @@ plus, minus, check-mark, start, etc.
 ** Tool bars can now be placed on the bottom on more systems.
 The 'tool-bar-position' frame parameter can be set to 'bottom' on all
 window systems other than Nextstep.
+
+---
+** New user option 'uniquify-dirname-transform'.
+This can be used to customize how buffer names are uniquified, by
+making arbitrary transforms on the buffer's directory name (whose
+components are used to uniquify buffer names when they clash).  You
+can use this to distinguish between buffers visiting files with the
+same base name that belong to different projects by using the provided
+transform function 'project-uniquify-dirname-transform'.
 
 ** cl-print
 
@@ -548,6 +567,21 @@ Similarly to buffer restoration by Desktop, 'recentf-mode' checking
 of the accessibility of remote files can now time out if
 'remote-file-name-access-timeout' is set to a positive number.
 
+** Notifications
+
++++
+*** Allow to use Icon Naming Specification for app-icon
+You can use a symbol as the value for ':app-icon' to provide icon name
+without specifying a file, like this:
+
+  (notifications-notify
+    :title "I am playing music" :app-icon 'multimedia-player)
+
+** Image Dired
+
+*** New user option 'image-dired-thumb-naming'.
+You can now configure how a thumbnail is named using this option.
+
 
 * New Modes and Packages in Emacs 30.1
 
@@ -630,6 +664,15 @@ behavior back for any other reason, you can do that using the
 previous behavior of showing 'U' in the mode line for 'koi8-u':
 
     (coding-system-put 'koi8-u :mnemonic ?U)
+
+---
+** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
+VSCII-1 and TCVN-5712 are different names for the same character
+encoding.  Therefore, the duplicate coding system definition has been
+dropped in favor of an alias.
+
+The mode-line mnemonic for 'vietnamese-vscii' and its aliases is the
+lowercase letter 'v'.
 
 +++
 ** Infinities and NaNs no longer act as symbols on non-IEEE platforms.

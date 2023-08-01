@@ -241,6 +241,46 @@
         "<bob> " "<alice> " "<alice> " "<bob> " "<bob> " "<Dummy> " "<Dummy> ")
        (erc-fill-tests--compare "merge-02-right")))))
 
+(ert-deftest erc-fill-wrap--merge-action ()
+  :tags '(:unstable)
+  (unless (>= emacs-major-version 29)
+    (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
+
+  (erc-fill-tests--wrap-populate
+
+   (lambda ()
+     ;; Set this here so that the first few messages are from 1970
+     (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
+       (erc-fill-tests--insert-privmsg "bob" "zero.")
+
+       (erc-process-ctcp-query
+        erc-server-process
+        (make-erc-response
+         :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION one\1"
+         :sender "bob!~u@fake" :command "PRIVMSG"
+         :command-args '("#chan" "\1ACTION one\1") :contents "\1ACTION one\1")
+        "bob" "~u" "fake")
+
+       (erc-fill-tests--insert-privmsg "bob" "two.")
+
+       ;; Compat switch to opt out of overhanging speaker.
+       (let (erc-fill--wrap-action-dedent-p)
+         (erc-process-ctcp-query
+          erc-server-process
+          (make-erc-response
+           :unparsed ":bob!~u@fake PRIVMSG #chan :\1ACTION three\1"
+           :sender "bob!~u@fake" :command "PRIVMSG"
+           :command-args '("#chan" "\1ACTION three\1")
+           :contents "\1ACTION three\1")
+          "bob" "~u" "fake"))
+
+       (erc-fill-tests--insert-privmsg "bob" "four."))
+
+     (should (= erc-fill--wrap-value 27))
+     (erc-fill-tests--wrap-check-prefixes
+      "*** " "<alice> " "<bob> " "<bob> " "* bob " "<bob> " "* " "<bob> ")
+     (erc-fill-tests--compare "merge-wrap-01"))))
+
 (ert-deftest erc-fill-line-spacing ()
   :tags '(:unstable)
   (unless (>= emacs-major-version 29)

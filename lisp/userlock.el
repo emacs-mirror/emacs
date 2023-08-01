@@ -110,10 +110,11 @@ You can <\\`q'>uit; don't modify this file."))
 
 (defun userlock--check-content-unchanged (filename)
   (with-demoted-errors "Unchanged content check: %S"
-    ;; Even tho we receive `filename', we know that `filename' refers to the current
-    ;; buffer's file.
-    (cl-assert (equal (expand-file-name filename)
-                      (expand-file-name buffer-file-truename)))
+    ;; Even tho we receive `filename', we know that `filename' refers
+    ;; to the current buffer's file.
+    (cl-assert (or (null buffer-file-truename) ; temporary buffer
+                   (equal (expand-file-name filename)
+                          (expand-file-name buffer-file-truename))))
     ;; Note: rather than read the file and compare to the buffer, we could save
     ;; the buffer and compare to the file, but for encrypted data this
     ;; wouldn't work well (and would risk exposing the data).
@@ -135,7 +136,15 @@ You can <\\`q'>uit; don't modify this file."))
                          (compare-buffer-substrings
                           buf start end
                           (current-buffer) (point-min) (point-max))))))
-          (set-visited-file-modtime)
+          ;; We know that some buffer visits FILENAME, because our
+          ;; caller (see lock_file) verified that.  Thus, we set the
+          ;; modtime in that buffer, to cater to use case where the
+          ;; file is about to be written to from some buffer that
+          ;; doesn't visit any file, like a temporary buffer.
+          (let ((buf (get-file-buffer (file-truename filename))))
+            (when buf  ; If we cannot find the visiting buffer, punt.
+              (with-current-buffer buf
+                (set-visited-file-modtime))))
           'unchanged)))))
 
 ;;;###autoload

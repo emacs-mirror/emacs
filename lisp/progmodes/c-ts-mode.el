@@ -574,9 +574,7 @@ MODE is either `c' or `cpp'."
    :feature 'constant
    `((true) @font-lock-constant-face
      (false) @font-lock-constant-face
-     (null) @font-lock-constant-face
-     ,@(when (eq mode 'cpp)
-         '((nullptr) @font-lock-constant-face)))
+     (null) @font-lock-constant-face)
 
    :language mode
    :feature 'keyword

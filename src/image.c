@@ -441,32 +441,101 @@ image_reference_bitmap (struct frame *f, ptrdiff_t id)
 }
 
 #ifdef HAVE_PGTK
+
+/* Create a Cairo pattern from the bitmap BITS, which should be WIDTH
+   and HEIGHT in size.  BITS's fill order is LSB first, meaning that
+   the value of the left most pixel within a byte is its least
+   significant bit.  */
+
 static cairo_pattern_t *
-image_create_pattern_from_pixbuf (struct frame *f, GdkPixbuf * pixbuf)
+image_bitmap_to_cr_pattern (char *bits, int width, int height)
 {
-  GdkPixbuf *pb = gdk_pixbuf_add_alpha (pixbuf, TRUE, 255, 255, 255);
-  cairo_surface_t *surface =
-    cairo_surface_create_similar_image (cairo_get_target
-					(f->output_data.pgtk->cr_context),
-					CAIRO_FORMAT_A1,
-					gdk_pixbuf_get_width (pb),
-					gdk_pixbuf_get_height (pb));
+  cairo_surface_t *surface;
+  unsigned char *data;
+  int stride;
+  cairo_pattern_t *pattern;
+#ifdef WORDS_BIGENDIAN
+  int x;
+  static const unsigned char table[] = {
+    0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
+    0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
+    0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
+    0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
+    0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
+    0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
+    0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
+    0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
+    0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
+    0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
+    0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
+    0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
+    0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
+    0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
+    0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
+    0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
+    0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
+    0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
+    0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
+    0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
+    0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
+    0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
+    0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
+    0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
+    0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
+    0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
+    0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
+    0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
+    0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
+    0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
+    0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
+  };
+#endif /* WORDS_BIGENDIAN */
 
-  cairo_t *cr = cairo_create (surface);
-  gdk_cairo_set_source_pixbuf (cr, pb, 0, 0);
-  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  cairo_paint (cr);
-  cairo_destroy (cr);
+  surface = cairo_image_surface_create (CAIRO_FORMAT_A1, width,
+					height);
 
-  cairo_pattern_t *pat = cairo_pattern_create_for_surface (surface);
-  cairo_pattern_set_extend (pat, CAIRO_EXTEND_REPEAT);
+  if (cairo_surface_status (surface) != CAIRO_STATUS_SUCCESS)
+    memory_full (0);
 
+  cairo_surface_flush (surface);
+  data = cairo_image_surface_get_data (surface);
+  stride = cairo_image_surface_get_stride (surface);
+
+#ifdef WORDS_BIGENDIAN
+  /* Big endian systems require that individual bytes be inverted to
+     compensate for the different fill order used by Cairo.  */
+  while (height--)
+    {
+      memcpy (data, bits, (width + 7) / 8);
+      for (x = 0; x < (width + 7) / 8; ++x)
+	data[x] = table[data[x]];
+      data += stride;
+      bits += (width + 7) / 8;
+    }
+#else /* !WORDS_BIGENDIAN */
+  /* Cairo uses LSB first fill order for bitmaps on little-endian
+     systems, so copy each row over.  */
+
+  while (height--)
+    {
+      memcpy (data, bits, (width + 7) / 8);
+      data += stride;
+      bits += (width + 7) / 8;
+    }
+#endif /* WORDS_BIGENDIAN */
+
+  cairo_surface_mark_dirty (surface);
+  pattern = cairo_pattern_create_for_surface (surface);
+  if (cairo_pattern_status (pattern) != CAIRO_STATUS_SUCCESS)
+    memory_full (0);
+
+  /* The pattern now holds a reference to the surface.  */
   cairo_surface_destroy (surface);
-  g_object_unref (pb);
-
-  return pat;
+  cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
+  return pattern;
 }
-#endif
+
+#endif /* HAVE_PGTK */
 
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
 
@@ -504,46 +573,9 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-				      FALSE,
-				      8,
-				      width,
-				      height);
-  {
-    char *sp = bits;
-    int mask = 0x01;
-    unsigned char *buf = gdk_pixbuf_get_pixels (pixbuf);
-    int rowstride = gdk_pixbuf_get_rowstride (pixbuf);
-    for (int y = 0; y < height; y++)
-      {
-	unsigned char *dp = buf + rowstride * y;
-	for (int x = 0; x < width; x++)
-	  {
-	    if (*sp & mask)
-	      {
-		*dp++ = 0xff;
-		*dp++ = 0xff;
-		*dp++ = 0xff;
-	      }
-	    else
-	      {
-		*dp++ = 0x00;
-		*dp++ = 0x00;
-		*dp++ = 0x00;
-	      }
-	    if ((mask <<= 1) >= 0x100)
-	      {
-		mask = 0x01;
-		sp++;
-	      }
-	  }
-	if (mask != 0x01)
-	  {
-	    mask = 0x01;
-	    sp++;
-	  }
-      }
-  }
+  cairo_pattern_t *pattern;
+
+  pattern = image_bitmap_to_cr_pattern (bits, width, height);
 #endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
@@ -577,10 +609,8 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  dpyinfo->bitmaps[id - 1].img = pixbuf;
   dpyinfo->bitmaps[id - 1].depth = 1;
-  dpyinfo->bitmaps[id - 1].pattern =
-    image_create_pattern_from_pixbuf (f, pixbuf);
+  dpyinfo->bitmaps[id - 1].pattern = pattern;
 #endif
 
 #ifdef HAVE_HAIKU
@@ -616,7 +646,7 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
-#if defined HAVE_HAIKU || defined HAVE_NS
+#if defined HAVE_HAIKU || defined HAVE_NS || defined HAVE_PGTK
 static char *slurp_file (int, ptrdiff_t *);
 static Lisp_Object image_find_image_fd (Lisp_Object, int *);
 static bool xbm_read_bitmap_data (struct frame *, char *, char *,
@@ -680,25 +710,38 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #endif
 
 #ifdef HAVE_PGTK
-  GError *err = NULL;
-  ptrdiff_t id;
-  void * bitmap = gdk_pixbuf_new_from_file (SSDATA (file), &err);
+  ptrdiff_t id, size;
+  int fd, width, height, rc;
+  char *contents, *data;
+  void *bitmap;
 
-  if (!bitmap)
+  if (!STRINGP (image_find_image_fd (file, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
     {
-      g_error_free (err);
+      xfree (contents);
       return -1;
     }
 
   id = image_allocate_bitmap_record (f);
 
-  dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
-  dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
-  dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
+  dpyinfo->bitmaps[id - 1].height = width;
+  dpyinfo->bitmaps[id - 1].width = height;
   dpyinfo->bitmaps[id - 1].pattern
-    = image_create_pattern_from_pixbuf (f, bitmap);
+    = image_bitmap_to_cr_pattern (data, width, height);
+  xfree (contents);
+  xfree (data);
   return id;
 #endif
 
