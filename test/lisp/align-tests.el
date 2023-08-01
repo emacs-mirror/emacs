@@ -38,6 +38,11 @@
   (ert-test-erts-file (ert-resource-file "java-mode.erts")
                       (test-align-transform-fun #'java-mode)))
 
+(ert-deftest align-toml ()
+  (let ((indent-tabs-mode nil))
+    (ert-test-erts-file (ert-resource-file "conf-toml-mode.erts")
+                        (test-align-transform-fun #'conf-toml-mode))))
+
 (provide 'align-tests)
 
 ;;; align-tests.el ends here
