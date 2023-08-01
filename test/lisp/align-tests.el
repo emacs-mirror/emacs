@@ -34,6 +34,11 @@
   (ert-test-erts-file (ert-resource-file "c-mode.erts")
                       (test-align-transform-fun #'c-mode)))
 
+(ert-deftest align-css ()
+  (let ((indent-tabs-mode nil))
+    (ert-test-erts-file (ert-resource-file "css-mode.erts")
+                        (test-align-transform-fun #'css-mode))))
+
 (ert-deftest align-java ()
   (ert-test-erts-file (ert-resource-file "java-mode.erts")
                       (test-align-transform-fun #'java-mode)))
