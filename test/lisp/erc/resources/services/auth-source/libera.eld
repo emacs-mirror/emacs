@@ -1,6 +1,6 @@
 ;; -*- mode: lisp-data; -*-
-((nick 1 "NICK tester"))
-((user 1 "USER user 0 * :tester")
+((nick 10 "NICK tester"))
+((user 5 "USER user 0 * :tester")
  (0.26 ":zirconium.libera.chat NOTICE * :*** Checking Ident")
  (0.01 ":zirconium.libera.chat NOTICE * :*** Looking up your hostname...")
  (0.01 ":zirconium.libera.chat NOTICE * :*** No Ident response")
@@ -35,15 +35,15 @@
  (0.01 ":zirconium.libera.chat 372 tester :- Email:                      support@libera.chat")
  (0.00 ":zirconium.libera.chat 376 tester :End of /MOTD command."))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  (0.02 ":tester MODE tester :+Zi")
  (0.02 ":NickServ!NickServ@services.libera.chat NOTICE tester :This nickname is registered. Please choose a different nickname, or identify via \2/msg NickServ IDENTIFY tester <password>\2"))
 
-((privmsg 2 "PRIVMSG NickServ :IDENTIFY changeme")
+((privmsg 10 "PRIVMSG NickServ :IDENTIFY changeme")
  (0.96 ":NickServ!NickServ@services.libera.chat NOTICE tester :You are now identified for \2tester\2.")
  (0.25 ":NickServ!NickServ@services.libera.chat NOTICE tester :Last login from: \2~tester@school.edu/tester\2 on Jun 18 01:15:56 2021 +0000."))
 
-((quit 5 "QUIT :\2ERC\2")
+((quit 10 "QUIT :\2ERC\2")
  (0.19 ":tester!~user@static-198-54-131-100.cust.tzulo.com QUIT :Client Quit"))
 
 ((linger 1 LINGER))

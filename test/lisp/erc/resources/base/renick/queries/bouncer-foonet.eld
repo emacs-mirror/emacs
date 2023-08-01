@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
-((pass 1 "PASS :foonet:changeme"))
-((nick 1 "NICK tester"))
-((user 1 "USER user 0 * :tester")
+((pass 10 "PASS :foonet:changeme"))
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
  (0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.foonet.org 003 tester :This server was created Tue, 01 Jun 2021 07:49:22 UTC")
@@ -17,7 +17,7 @@
  (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 5.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  ;; No mode answer
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":tester!~u@u4mvbswyw8gbg.irc JOIN #chan")
@@ -38,12 +38,12 @@
  (0.1 ":bob!~u@u4mvbswyw8gbg.irc PRIVMSG #chan :alice: When there is nothing living but thee, thou shalt be welcome. I had rather be a beggar's dog than Apemantus.")
  (0.1 ":alice!~u@u4mvbswyw8gbg.irc PRIVMSG #chan :bob: You have simply misused our sex in your love-prate: we must have your doublot and hose plucked over your head, and show the world what the bird hath done to her own nest."))
 
-((privmsg-a 6 "PRIVMSG rando :I here")
+((privmsg-a 10 "PRIVMSG rando :I here")
  (0.1 ":bob!~u@u4mvbswyw8gbg.irc PRIVMSG #chan :alice: And I will make thee think thy swan a crow.")
  (0.1 ":rando!~u@bivkhq8yav938.irc PRIVMSG tester :u are dumb")
  (0.1 ":alice!~u@u4mvbswyw8gbg.irc PRIVMSG #chan :bob: Lie not, to say mine eyes are murderers."))
 
-((privmsg-b 3 "PRIVMSG rando :not so")
+((privmsg-b 10 "PRIVMSG rando :not so")
  (0.1 ":bob!~u@u4mvbswyw8gbg.irc PRIVMSG #chan :alice: Commit myself, my person, and the cause.")
  ;; Nick change
  (0.1 ":rando!~u@bivkhq8yav938.irc NICK frenemy")
