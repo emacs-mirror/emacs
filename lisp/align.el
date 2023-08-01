@@ -575,7 +575,7 @@ The possible settings for `align-region-separate' are:
                     "="
                     (group (zero-or-more (syntax whitespace)))))
      (group . (1 2))
-     (modes . '(conf-toml-mode))))
+     (modes . '(conf-toml-mode toml-ts-mode))))
   "A list describing all of the available alignment rules.
 The format is:
 
