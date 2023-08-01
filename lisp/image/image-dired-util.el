@@ -190,6 +190,23 @@ Should be used by commands in `image-dired-thumbnail-mode'."
   "Return non-nil if there is an `image-dired' thumbnail at point."
   (get-text-property (point) 'image-dired-thumbnail))
 
+(defun image-dired-update-thumbnail-at-point ()
+  "Update the thumbnail at point if the original image file has been modified.
+This function uncaches and removes the thumbnail file under the old name."
+  (when (image-dired-image-at-point-p)
+    (let* ((file (image-dired-original-file-name))
+           (thumb (expand-file-name (image-dired-thumb-name file)))
+           (image (get-text-property (point) 'display)))
+      (when image
+        (let ((old-thumb (plist-get (cdr image) :file)))
+          ;; When 'image-dired-thumb-naming' is set to
+          ;; 'sha1-contents', 'thumb' and 'old-thumb' could be
+          ;; different file names.  Update the thumbnail then.
+          (unless (string= thumb old-thumb)
+            (setf (plist-get (cdr image) :file) thumb)
+            (clear-image-cache old-thumb)
+            (delete-file old-thumb)))))))
+
 (defun image-dired-window-width-pixels (window)
   "Calculate WINDOW width in pixels."
   (declare (obsolete window-body-width "29.1"))

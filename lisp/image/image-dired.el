@@ -590,7 +590,7 @@ used or not.  If non-nil, use `display-buffer' instead of
 `image-dired-previous-line-and-display' where we do not want the
 thumbnail buffer to be selected."
   (interactive "P" nil dired-mode)
-  (setq image-dired--generate-thumbs-start  (current-time))
+  (setq image-dired--generate-thumbs-start (current-time))
   (let ((buf (image-dired-create-thumbnail-buffer))
         files dired-buf)
     (if arg
