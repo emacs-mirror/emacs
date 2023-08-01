@@ -5708,6 +5708,17 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
       TRAP ("stack underflow");			\
   }
 
+#define CHECK_STACK_AVAILABLE(n)		\
+  {						\
+    char *stack_end;				\
+						\
+    stack_end					\
+      = (char *) interpreter->twilight_x;	\
+    if (((char *) (interpreter->SP + (n))	\
+	 > stack_end))				\
+      TRAP ("stack overflow");			\
+  }
+
 #define CHECK_PREP()				\
   if (!is_prep)					\
     TRAP ("instruction executed not valid"	\
@@ -5756,7 +5767,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
    ? (TRAP ("stack underflow"), 0)		\
    : *(interpreter->SP - 1))
 
-#ifndef TEST
+#if !defined TEST || !0
 
 #define PUSH(value)				\
   {						\
@@ -5774,7 +5785,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     interpreter->SP++;				\
   }
 
-#else
+#else /* TEST && 0 */
 
 #define PUSH(value)				\
   {						\
@@ -5792,12 +5803,14 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 #define PUSH_UNCHECKED(value) PUSH (value)
 
-#endif
+#endif /* TEST && 0 */
 
-#define PUSH2(high, low)			\
+#define PUSH2_UNCHECKED(high, low)		\
   {						\
-    PUSH ((int16_t) ((int8_t) high) << 8	\
-	  | low);				\
+    int16_t word;				\
+						\
+    word = (((int8_t) high) << 8 | low);	\
+    PUSH_UNCHECKED (word);			\
   }						\
 
 #define SRP0()					\
@@ -6097,6 +6110,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define NPUSHB()				\
   {						\
     int b, nbytes, IP;				\
+    unsigned char *ip;				\
 						\
     if ((IP = interpreter->IP + 1)		\
 	>= interpreter->num_instructions)	\
@@ -6109,8 +6123,10 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	> interpreter->num_instructions)	\
       TRAP ("args to NPUSHB lie outside IS");	\
 						\
+    CHECK_STACK_AVAILABLE (nbytes);		\
+    ip = interpreter->instructions;		\
     for (b = IP + 1; b < IP + 1 + nbytes; ++b)	\
-      PUSH (interpreter->instructions[b]);	\
+      PUSH_UNCHECKED (ip[b]);			\
 						\
     interpreter->IP += nbytes + 1;		\
   }
@@ -6118,6 +6134,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define NPUSHW()				\
   {						\
     int b, nbytes, IP;				\
+    unsigned char *ip;				\
 						\
     if ((IP = interpreter->IP + 1)		\
 	>= interpreter->num_instructions)	\
@@ -6130,10 +6147,11 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	> interpreter->num_instructions)	\
       TRAP ("args to NPUSHW lie outside IS");	\
 						\
+    CHECK_STACK_AVAILABLE (nbytes / 2);		\
+    ip = interpreter->instructions;		\
     for (b = IP + 1; b < IP + 1 + nbytes;	\
 	 b += 2)				\
-      PUSH2 (interpreter->instructions[b],	\
-	     interpreter->instructions[b + 1]);	\
+      PUSH2_UNCHECKED (ip[b], ip[b + 1]);	\
 						\
     interpreter->IP += nbytes + 1;		\
   }
@@ -6634,6 +6652,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define PUSHB()					\
   {						\
     int b, nbytes, IP;				\
+    unsigned char *ip;				\
 						\
     IP = interpreter->IP;			\
     nbytes = opcode - 0xb0 + 1;			\
@@ -6642,8 +6661,10 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	> interpreter->num_instructions)	\
       TRAP ("args to PUSHB lie outside IS");	\
 						\
+    CHECK_STACK_AVAILABLE (nbytes);		\
+    ip = interpreter->instructions;		\
     for (b = IP + 1; b < IP + nbytes + 1; ++b)	\
-      PUSH (interpreter->instructions[b]);	\
+      PUSH_UNCHECKED (ip[b]);			\
 						\
     interpreter->IP += nbytes;			\
   }
@@ -6651,6 +6672,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define PUSHW()					\
   {						\
     int b, nbytes, IP;				\
+    unsigned char *ip;				\
 						\
     IP = interpreter->IP;			\
     nbytes = (opcode - 0xb8 + 1) * 2;		\
@@ -6659,10 +6681,11 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	> interpreter->num_instructions)	\
       TRAP ("args to PUSHW lie outside IS");	\
 						\
+    CHECK_STACK_AVAILABLE (nbytes / 2);		\
+    ip = interpreter->instructions;		\
     for (b = IP + 1; b < IP + nbytes + 1;	\
 	 b += 2)				\
-      PUSH2 (interpreter->instructions[b],	\
-	     interpreter->instructions[b + 1]);	\
+      PUSH2_UNCHECKED (ip[b], ip[b + 1]);	\
 						\
     interpreter->IP += nbytes;			\
   }
@@ -16080,8 +16103,8 @@ static struct sfnt_generic_test_args pushw_test_args =
 
 static struct sfnt_generic_test_args stack_overflow_test_args =
   {
-    (uint32_t[100]) { },
-    100,
+    (uint32_t[]) { },
+    0,
     true,
     0,
   };
