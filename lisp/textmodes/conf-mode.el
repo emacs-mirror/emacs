@@ -245,6 +245,7 @@ This variable is best set in the file local variables, or through
     ("^\\s-*\\(.+?\\)\\(?:\\[\\(.*?\\)\\]\\)?\\s-*="
      (1 'font-lock-variable-name-face)
      (2 'font-lock-constant-face nil t))
+    ;; Must be lower-case according to the TOML spec.
     ("\\_<false\\|true\\_>" 0 'font-lock-keyword-face))
   "Keywords to highlight in Conf TOML mode.")
 
@@ -643,7 +644,10 @@ For details see `conf-mode'.  Example:
 
 \[entry]
 value = \"some string\""
-  (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
+  (conf-mode-initialize "#")
+  ;; Booleans are "always lowercase", so we must *not* use case
+  ;; folding.  Therefore, we can't set it using `conf-mode-initialize´.
+  (setq-local font-lock-defaults `(,conf-toml-font-lock-keywords nil nil nil nil))
   (setq-local conf-assignment-column 0)
   (setq-local conf-assignment-sign ?=))
 

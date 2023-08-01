@@ -158,7 +158,6 @@ image/tiff			tiff tif
     (should-not (face-at-point))))
 
 (ert-deftest conf-test-toml-mode ()
-  ;; From `conf-toml-mode' docstring.
   (with-temp-buffer
     (insert "[entry]
 value = \"some string\"")
@@ -173,6 +172,22 @@ value = \"some string\"")
     (should (equal (face-at-point) 'font-lock-variable-name-face))
     (search-forward "som")
     (should (equal (face-at-point) 'font-lock-string-face))))
+
+(ert-deftest conf-test-toml-mode/boolean ()
+  ;; https://toml.io/en/v1.0.0#boolean
+  (with-temp-buffer
+    (insert "[entry]
+a = true
+b = True")
+    (goto-char (point-min))
+    (conf-toml-mode)
+    (font-lock-mode)
+    (font-lock-ensure)
+    (search-forward "tru")
+    (should (equal (face-at-point) 'font-lock-keyword-face))
+    ;; Do not fontify upper-case "True".
+    (search-forward "Tru")
+    (should (equal (face-at-point) nil))))
 
 (ert-deftest conf-test-desktop-mode ()
   ;; From `conf-desktop-mode' dostring.
