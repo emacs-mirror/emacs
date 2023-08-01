@@ -65,6 +65,7 @@
   "Set up a minibuffer for `file-name-shadow-mode'.
 Adds another overlay hiding filename parts according to Tramp's
 special handling of `substitute-in-file-name'."
+  (declare (tramp-suppress-trace t))
   (when minibuffer-completing-file-name
     (setq tramp-rfn-eshadow-overlay
 	  (make-overlay (minibuffer-prompt-end) (minibuffer-prompt-end)))
@@ -86,6 +87,7 @@ special handling of `substitute-in-file-name'."
 
 (defun tramp-rfn-eshadow-update-overlay-regexp ()
   "An overlay covering the shadowed part of the filename."
+  (declare (tramp-suppress-trace t))
   (rx-to-string
    `(: (* (not (any ,tramp-postfix-host-format "/~"))) (| "/" "~"))))
 
@@ -94,6 +96,7 @@ special handling of `substitute-in-file-name'."
 This is intended to be used as a minibuffer `post-command-hook' for
 `file-name-shadow-mode'; the minibuffer should have already
 been set up by `rfn-eshadow-setup-minibuffer'."
+  (declare (tramp-suppress-trace t))
   ;; In remote files name, there is a shadowing just for the local part.
   (ignore-errors
     (let ((end (or (overlay-end rfn-eshadow-overlay)

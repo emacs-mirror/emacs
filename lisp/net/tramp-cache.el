@@ -80,7 +80,6 @@
 ;;; Code:
 
 (require 'tramp-compat)
-(require 'tramp-loaddefs)
 (require 'time-stamp)
 
 ;;; -- Cache --
@@ -125,6 +124,7 @@ details see the info pages."
 If it doesn't exist yet, it is created and initialized with
 matching entries of `tramp-connection-properties'.
 If KEY is `tramp-cache-undefined', don't create anything, and return nil."
+  (declare (tramp-suppress-trace t))
   (unless (eq key tramp-cache-undefined)
     (or (gethash key tramp-cache-data)
 	(let ((hash
@@ -506,6 +506,7 @@ PROPERTIES is a list of file properties (strings)."
 ;;;###tramp-autoload
 (defun tramp-cache-print (table)
   "Print hash table TABLE."
+  ;; (declare (tramp-suppress-trace t))
   (when (hash-table-p table)
     (let (result)
       (maphash
@@ -538,6 +539,11 @@ PROPERTIES is a list of file properties (strings)."
        table)
       result)))
 
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-cache-print 'tramp-suppress-trace t)
+
 ;;;###tramp-autoload
 (defun tramp-list-connections ()
   "Return all active `tramp-file-name' structs according to `tramp-cache-data'."
@@ -553,6 +559,7 @@ PROPERTIES is a list of file properties (strings)."
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file \
 `tramp-persistency-file-name'."
+  (declare (tramp-suppress-trace t))
   ;; We shouldn't fail, otherwise Emacs might not be able to be closed.
   (ignore-errors
     (when (and (hash-table-p tramp-cache-data)

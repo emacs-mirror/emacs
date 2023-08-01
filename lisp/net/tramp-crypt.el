@@ -281,7 +281,7 @@ arguments to pass to the OPERATION."
 		    (assoc operation tramp-crypt-file-name-handler-alist))))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
-    (prog1 (tramp-run-real-handler operation args)
+    (prog1 (tramp-crypt-run-real-handler operation args)
       (setq tramp-debug-message-fnh-function operation))))
 
 ;;;###tramp-autoload
