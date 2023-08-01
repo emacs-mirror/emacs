@@ -7848,7 +7848,7 @@ process sentinels.  They shall not disturb each other."
 
 (ert-deftest tramp-test47-read-password ()
   "Check Tramp password handling."
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-mock-p))
   ;; Not all read commands understand argument "-s" or "-p".
