@@ -284,6 +284,7 @@ struct android_emacs_service
   jmethodID delete_document;
   jmethodID rename_document;
   jmethodID move_document;
+  jmethodID valid_authority;
 };
 
 extern JNIEnv *android_java_env;

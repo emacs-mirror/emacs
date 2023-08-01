@@ -1769,4 +1769,29 @@ public final class EmacsService extends Service
 	    ? DocumentsContract.getDocumentId (name)
 	    : null);
   }
+
+  /* Return if there is a content provider by the name of AUTHORITY
+     supplying at least one tree URI Emacs retains persistent rights
+     to access.  */
+
+  public boolean
+  validAuthority (String authority)
+  {
+    List<UriPermission> permissions;
+    Uri uri;
+
+    permissions = resolver.getPersistedUriPermissions ();
+
+    for (UriPermission permission : permissions)
+      {
+	uri = permission.getUri ();
+
+	if (DocumentsContract.isTreeUri (uri)
+	    && permission.isReadPermission ()
+	    && uri.getAuthority ().equals (authority))
+	  return true;
+      }
+
+    return false;
+  }
 };

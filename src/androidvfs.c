@@ -3249,6 +3249,43 @@ static struct android_saf_root_vdir *all_saf_root_vdirs;
 static struct android_vnode *android_saf_tree_from_name (char *, const char *,
 							 const char *);
 
+/* Forward declaration.  */
+static int android_verify_jni_string (const char *);
+
+/* Ascertain and return whether or not AUTHORITY designates a content
+   provider offering at least one directory tree accessible to
+   Emacs.  */
+
+static bool
+android_saf_valid_authority_p (const char *authority)
+{
+  jobject string;
+  jboolean valid;
+  jmethodID method;
+
+  /* Make certain AUTHORITY can actually be represented as a Java
+     string.  */
+
+  if (android_verify_jni_string (authority))
+    return false;
+
+  /* Build a string containing AUTHORITY.  */
+
+  string = (*android_java_env)->NewStringUTF (android_java_env,
+					      authority);
+  android_exception_check ();
+
+  method = service_class.valid_authority;
+  valid
+    = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
+							emacs_service,
+							service_class.class,
+							method, string);
+  android_exception_check_1 (string);
+  ANDROID_DELETE_LOCAL_REF (string);
+  return valid;
+}
+
 static struct android_vnode *
 android_saf_root_name (struct android_vnode *vnode, char *name,
 		       size_t length)
@@ -3310,9 +3347,6 @@ android_saf_root_name (struct android_vnode *vnode, char *name,
   if (vp->authority)
     return android_saf_tree_from_name (component_end, component,
 				       vp->authority);
-
-  /* Otherwise, find the first component of NAME and create a vnode
-     representing it as an authority.  */
 
   /* Create the vnode.  */
   vp = xmalloc (sizeof *vp);
@@ -3414,6 +3448,22 @@ static int
 android_saf_root_stat (struct android_vnode *vnode,
 		       struct stat *statb)
 {
+  struct android_saf_root_vnode *vp;
+
+  /* Verify that the authority actually exists and return ENOENT
+     otherwise, lest `locate-dominating-file' & co call an operation
+     that doesn't require listing URIs under this authority, such as
+     access.  */
+
+  vp = (struct android_saf_root_vnode *) vnode;
+
+  if (vp->authority
+      && !android_saf_valid_authority_p (vp->authority))
+    {
+      errno = ENOENT;
+      return -1;
+    }
+
   /* Make up some imaginary statistics for this vnode.  */
 
   memset (statb, 0, sizeof *statb);
@@ -3428,6 +3478,8 @@ android_saf_root_stat (struct android_vnode *vnode,
 static int
 android_saf_root_access (struct android_vnode *vnode, int mode)
 {
+  struct android_saf_root_vnode *vp;
+
   /* Validate MODE.  */
 
   if (mode != F_OK && !(mode & (W_OK | X_OK | R_OK)))
@@ -3441,6 +3493,20 @@ android_saf_root_access (struct android_vnode *vnode, int mode)
   if (mode != F_OK && (mode & (W_OK | X_OK)))
     {
       errno = EROFS;
+      return -1;
+    }
+
+  /* Verify that the authority actually exists and return ENOENT
+     otherwise, lest `locate-dominating-file' & co call an operation
+     that doesn't require listing URIs under this authority, such as
+     access.  */
+
+  vp = (struct android_saf_root_vnode *) vnode;
+
+  if (vp->authority
+      && !android_saf_valid_authority_p (vp->authority))
+    {
+      errno = ENOENT;
       return -1;
     }
 
@@ -5309,9 +5375,9 @@ android_saf_tree_opendir (struct android_vnode *vnode)
    AUTHORITY is the name of the content provider authority that is
    offering TREE.
 
-   Value is NULL if no document tree or provider by those names
-   exists, or some other error takes place (for example, if TREE and
-   AUTHORITY aren't encoded correctly.)  */
+   Value is NULL and errno is set if no document tree or provider by
+   those names exists, or some other error takes place (for example,
+   if TREE and AUTHORITY aren't encoded correctly.)  */
 
 static struct android_vnode *
 android_saf_tree_from_name (char *name, const char *tree,
@@ -5323,7 +5389,18 @@ android_saf_tree_from_name (char *name, const char *tree,
   const char *uri;
   struct android_vnode *vp;
 
-  /* Assume that TREE and NAME are in ``modified UTF-8 format''.  */
+  /* It's not a given that NAME and TREE are actually in the modified
+     UTF-8 format used by the JVM to encode strings, and the JVM
+     aborts when encountering a string that is not.  Make sure they
+     are valid before continuing.  */
+
+  if (android_verify_jni_string (name)
+      || android_verify_jni_string (authority))
+    {
+      errno = ENOENT;
+      return NULL;
+    }
+
   tree_string = (*android_java_env)->NewStringUTF (android_java_env,
 						   tree);
   android_exception_check ();

@@ -219,6 +219,15 @@ containing files provided by external programs (@pxref{Android
 Document Providers}.)
 @end itemize
 
+  Despite ordinary installations of Android not having files within
+the (normally read-only) root directory named @file{content} or
+@file{assets}, you may want to access real files by these names if the
+Android installation in use has been customized.  These files will
+conflict with the aformentioned special directories, but can
+nevertheless be accessed by writing their names relative to the
+``parent'' directory of the root directory, as so illustrated:
+@file{/../content}, @file{/../assets}.
+
   The external storage directory is found at @file{/sdcard}.  The
 other directories are not found at any fixed location (but see below),
 although the app data directory is typically symlinked to
@@ -268,10 +277,8 @@ System -> Apps -> Special App Access -> All files access -> Emacs
 
   After you disable or enable this setting as appropriate and grant
 Emacs the ``Files and Media'' permission, it will be able to access
-files under @file{/sdcard} as usual.
-
-  These settings are not present on many proprietary versions of
-Android.
+files under @file{/sdcard} as usual.  These settings are not present
+on some proprietary versions of Android.
 
 @node Android Document Providers
 @section Accessing files from other programs under Android

@@ -1592,6 +1592,8 @@ android_init_emacs_service (void)
 	       "(Ljava/lang/String;Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;"
 	       "Ljava/lang/String;)Ljava/lang/String;");
+  FIND_METHOD (valid_authority, "validAuthority",
+	       "(Ljava/lang/String;)Z");
 #undef FIND_METHOD
 }
 
