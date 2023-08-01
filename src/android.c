@@ -68,9 +68,6 @@ bool android_init_gui;
 #include <arm_neon.h>
 #endif /* __aarch64__ */
 
-#define ANDROID_THROW(env, class, msg)					\
-  ((*(env))->ThrowNew ((env), (*(env))->FindClass ((env), class), msg))
-
 struct android_emacs_pixmap
 {
   jclass class;
