@@ -7,7 +7,7 @@
 ;; Created: 29 Mar 1999
 ;; Old-Version: 2.0
 ;; Keywords: data memory todo pim
-;; URL: http://gna.org/projects/remember-el/
+;; URL: http://gna.org/projects/remember-el/ [dead link]
 
 ;; This file is part of GNU Emacs.
 

@@ -375,7 +375,7 @@ From behind a proxy:
 
 @example
 @group
-$ git config --global http.proxy http://user:pwd@@proxy.server.com:8080
+$ git config --global http.proxy https://user:pwd@@proxy.server.com:8080
 $ git clone https://git.savannah.gnu.org/r/tramp.git
 @end group
 @end example

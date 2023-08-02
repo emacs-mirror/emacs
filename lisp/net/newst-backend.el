@@ -81,15 +81,15 @@ considered to be running if the newsticker timer list is not empty."
     ("The Register"
      "https://www.theregister.co.uk/headlines.rss")
     ("slashdot"
-     "http://rss.slashdot.org/Slashdot/slashdot"
+     "https://rss.slashdot.org/Slashdot/slashdot"
      nil
      3600)                        ;/. will ban you if under 3600 seconds!
     ("Wired News"
      "https://www.wired.com/feed/rss")
     ("Heise News (german)"
-     "http://www.heise.de/newsticker/heise.rdf")
+     "https://www.heise.de/newsticker/heise.rdf")
     ("Tagesschau (german)"
-     "http://www.tagesschau.de/newsticker.rdf"
+     "https://www.tagesschau.de/newsticker.rdf"
      nil
      1800))
   "Default URL list in raw form.
@@ -1168,7 +1168,7 @@ URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
                       ;; allows for integrating (x)html into the atom
                       ;; structure but we need the raw html string.
                       ;; e.g. https://www.heise.de/open/news/news-atom.xml
-                      ;; http://feeds.feedburner.com/ru_nix_blogs
+                      ;; https://feeds.feedburner.com/ru_nix_blogs
                       (or (newsticker--unxml
                            (car (xml-node-children
                                  (car (xml-get-children node 'content)))))
@@ -1302,7 +1302,7 @@ For the RSS 0.92 specification see URL `http://backend.userland.com/rss092'."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 1.0 specification see URL `http://web.resource.org/rss/1.0/spec'."
+For the RSS 1.0 specification see URL `https://web.resource.org/rss/1.0/spec'."
   (newsticker--debug-msg "Parsing RSS 1.0 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)
@@ -1361,7 +1361,7 @@ For the RSS 1.0 specification see URL `http://web.resource.org/rss/1.0/spec'."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 2.0 specification see URL `http://blogs.law.harvard.edu/tech/rss'."
+For the RSS 2.0 specification see URL `https://cyber.harvard.edu/rss/'."
   (newsticker--debug-msg "Parsing RSS 2.0 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)

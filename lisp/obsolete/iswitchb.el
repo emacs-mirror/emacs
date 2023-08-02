@@ -251,7 +251,7 @@
   :group 'convenience
   :group 'completion
   :link '(emacs-commentary-link :tag "Commentary" "iswitchb.el")
-  :link '(url-link "http://www.anc.ed.ac.uk/~stephen/emacs/")
+  :link '(url-link "https://www.anc.ed.ac.uk/~stephen/emacs/")
   :link '(emacs-library-link :tag "Lisp File" "iswitchb.el"))
 
 (defcustom iswitchb-case case-fold-search
