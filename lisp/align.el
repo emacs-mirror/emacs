@@ -568,7 +568,14 @@ The possible settings for `align-region-separate' are:
     (css-declaration
      (regexp . "^\\s-*\\(?:\\w-?\\)+:\\(\\s-*\\).*;")
      (group . (1))
-     (modes . '(css-mode html-mode))))
+     (modes . '(css-mode html-mode)))
+
+    (toml-assignment
+     (regexp . ,(rx (group (zero-or-more (syntax whitespace)))
+                    "="
+                    (group (zero-or-more (syntax whitespace)))))
+     (group . (1 2))
+     (modes . '(conf-toml-mode toml-ts-mode))))
   "A list describing all of the available alignment rules.
 The format is:
 

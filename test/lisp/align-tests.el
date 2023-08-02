@@ -25,22 +25,28 @@
 (require 'ert-x)
 (require 'align)
 
-(defun test-align-compare (file function)
-  (should (equal
-           (with-temp-buffer
-             (insert-file-contents (ert-resource-file (format file "pre")))
-             (funcall function)
-             (align (point-min) (point-max))
-             (buffer-substring-no-properties (point-min) (point-max)))
-           (with-temp-buffer
-             (insert-file-contents (ert-resource-file (format file "post")))
-             (buffer-string)))))
-
-(ert-deftest align-java ()
-  (test-align-compare "align-%s.java" #'java-mode))
+(defun test-align-transform-fun (function)
+  (lambda ()
+    (funcall function)
+    (align (point-min) (point-max))))
 
 (ert-deftest align-c ()
-  (test-align-compare "align-%s.c" #'c-mode))
+  (ert-test-erts-file (ert-resource-file "c-mode.erts")
+                      (test-align-transform-fun #'c-mode)))
+
+(ert-deftest align-css ()
+  (let ((indent-tabs-mode nil))
+    (ert-test-erts-file (ert-resource-file "css-mode.erts")
+                        (test-align-transform-fun #'css-mode))))
+
+(ert-deftest align-java ()
+  (ert-test-erts-file (ert-resource-file "java-mode.erts")
+                      (test-align-transform-fun #'java-mode)))
+
+(ert-deftest align-toml ()
+  (let ((indent-tabs-mode nil))
+    (ert-test-erts-file (ert-resource-file "conf-toml-mode.erts")
+                        (test-align-transform-fun #'conf-toml-mode))))
 
 (provide 'align-tests)
 

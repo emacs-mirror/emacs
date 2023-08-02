@@ -47,25 +47,13 @@
 
 ;;; Code:
 
-(require 'tramp-loaddefs)
+(require 'tramp-compat)
 (require 'help-mode)
 
-(declare-function tramp-compat-string-replace "tramp-compat")
 (declare-function tramp-file-name-equal-p "tramp")
 (declare-function tramp-file-name-host-port "tramp")
 (declare-function tramp-file-name-user-domain "tramp")
 (declare-function tramp-get-default-directory "tramp")
-(defvar tramp-compat-temporary-file-directory)
-
-(eval-and-compile
-  (defalias 'tramp-byte-run--set-suppress-trace
-    #'(lambda (f _args val)
-	(list 'function-put (list 'quote f)
-              ''tramp-suppress-trace val)))
-
-  (add-to-list
-   'defun-declarations-alist
-   (list 'tramp-suppress-trace #'tramp-byte-run--set-suppress-trace)))
 
 ;;;###tramp-autoload
 (defcustom tramp-verbose 3
@@ -132,6 +120,7 @@ When it is used for regexp matching, the regexp groups are
 Point must be at the beginning of a header line.
 
 The outline level is equal to the verbosity of the Tramp message."
+  (declare (tramp-suppress-trace t))
   (1+ (string-to-number (match-string 3))))
 
 ;; This function takes action since Emacs 28.1, when
@@ -140,6 +129,7 @@ The outline level is equal to the verbosity of the Tramp message."
 (defun tramp-debug-buffer-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
 They are completed by \"M-x TAB\" only in Tramp debug buffers."
+  (declare (tramp-suppress-trace t))
   (with-current-buffer buffer
     (string-equal
      (buffer-substring (point-min) (min (+ (point-min) 10) (point-max)))
@@ -306,6 +296,7 @@ is greater than or equal 4.
 Calls functions `message' and `tramp-debug-message' with FMT-STRING as
 control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
+  ;; (declare (tramp-suppress-trace t))
   (ignore-errors
     (when (<= level tramp-verbose)
       ;; Display only when there is a minimum level, and the progress
@@ -346,8 +337,10 @@ applicable)."
 		 (concat (format "(%d) # " level) fmt-string)
 		 arguments))))))
 
-;; We cannot declare our private symbols in loaddefs.
-(function-put 'tramp-message 'tramp-suppress-trace t)
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-message 'tramp-suppress-trace t)
 
 (defsubst tramp-backtrace (&optional vec-or-proc force)
   "Dump a backtrace into the debug buffer.
@@ -473,6 +466,7 @@ the resulting error message."
 
 (defun tramp-debug-button-action (button)
   "Goto the linked message in debug buffer at place."
+  (declare (tramp-suppress-trace t))
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
   (when-let ((point (button-get button 'position)))
     (goto-char point)))
@@ -485,6 +479,7 @@ the resulting error message."
 (defun tramp-debug-link-messages (pos1 pos2)
   "Set links for two messages in current buffer.
 The link buttons are in the verbositiy level substrings."
+  (declare (tramp-suppress-trace t))
   (save-excursion
     (let (beg1 end1 beg2 end2)
       (goto-char pos1)
@@ -518,6 +513,7 @@ Bound in `tramp-*-file-name-handler' functions.")
 
 (defun tramp-debug-message-buttonize (position)
   "Buttonize function in current buffer, at next line starting after POSTION."
+  (declare (tramp-suppress-trace t))
   (save-excursion
     (goto-char position)
     (while (not (search-forward-regexp

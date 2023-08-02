@@ -1,0 +1,45 @@
+Name: align key-value pairs
+
+=-=
+[foo]
+foo1=10
+foo22=20
+
+[bar]
+bar333="example.org"
+bar4444 = "zzz"
+=-=
+[foo]
+foo1  = 10
+foo22 = 20
+
+[bar]
+bar333  = "example.org"
+bar4444 = "zzz"
+=-=-=
+
+Name: align list values
+
+=-=
+[foo]
+a = 1
+some_list = [
+    true,
+    false,
+]
+some_other_list = [
+    1,
+    2,
+]
+=-=
+[foo]
+a               = 1
+some_list       = [
+    true,
+    false,
+]
+some_other_list = [
+    1,
+    2,
+]
+=-=-=

@@ -263,7 +263,7 @@ It must be supported by libarchive(3).")
     (file-regular-p . tramp-handle-file-regular-p)
     ;; `file-remote-p' performed by default handler.
     (file-selinux-context . tramp-handle-file-selinux-context)
-    (file-symlink-p . tramp-handle-file-symlink-p)
+    (file-symlink-p . tramp-archive-handle-file-symlink-p)
     (file-system-info . tramp-archive-handle-file-system-info)
     (file-truename . tramp-archive-handle-file-truename)
     (file-user-uid . tramp-archive-handle-file-user-uid)
@@ -665,6 +665,10 @@ offered."
 (defun tramp-archive-handle-file-readable-p (filename)
   "Like `file-readable-p' for file archives."
   (file-readable-p (tramp-archive-gvfs-file-name filename)))
+
+(defun tramp-archive-handle-file-symlink-p (filename)
+  "Like `file-symlink-p' for file archives."
+  (file-symlink-p (tramp-archive-gvfs-file-name filename)))
 
 (defun tramp-archive-handle-file-system-info (filename)
   "Like `file-system-info' for file archives."
