@@ -1625,7 +1625,7 @@ Treating the value as a file name, gets the directory name (the
 
 @item t
 Treating the value as a file name, gets the base name (the ``tail'').
-For example, @samp{foo/bar/baz.el(:h)} expands to @samp{baz.el}.
+For example, @samp{foo/bar/baz.el(:t)} expands to @samp{baz.el}.
 
 @item e
 Treating the value as a file name, gets the final extension of the
