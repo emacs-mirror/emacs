@@ -43,6 +43,10 @@
   (ert-test-erts-file (ert-resource-file "java-mode.erts")
                       (test-align-transform-fun #'java-mode)))
 
+(ert-deftest align-python ()
+  (ert-test-erts-file (ert-resource-file "python-mode.erts")
+                      (test-align-transform-fun #'python-mode)))
+
 (ert-deftest align-toml ()
   (let ((indent-tabs-mode nil))
     (ert-test-erts-file (ert-resource-file "conf-toml-mode.erts")
