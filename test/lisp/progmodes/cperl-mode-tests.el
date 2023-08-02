@@ -256,6 +256,39 @@ These can occur as \"local\" aliases."
     (should (equal (get-text-property (point) 'face)
                    'font-lock-variable-name-face))))
 
+(ert-deftest cperl-test-fontify-sub-names ()
+    "Test fontification of subroutines named like builtins.
+On declaration, they should look like other used defined
+functions.  When called, they should not be fontified.  In
+comments and POD they should be fontified as POD."
+  (let ((file (ert-resource-file "sub-names.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (funcall cperl-test-mode)
+      (font-lock-ensure)
+      ;; The declaration
+      (search-forward-regexp "sub \\(m\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-function-name-face))
+      ;; calling as a method
+      (search-forward-regexp "C->new->\\(m\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     (if (equal cperl-test-mode 'perl-mode) nil
+                       'cperl-method-call)))
+      ;; POD
+      (search-forward-regexp "\\(method\\) \\(name\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-comment-face))
+      (should (equal (get-text-property (match-beginning 2) 'face)
+                     'font-lock-comment-face))
+      ;; comment
+      (search-forward-regexp "\\(method\\) \\(name\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-comment-face))
+      (should (equal (get-text-property (match-beginning 2) 'face)
+                     'font-lock-comment-face)))))
+
 (ert-deftest cperl-test-identify-heredoc ()
   "Test whether a construct containing \"<<\" followed by a
   bareword is properly identified for a here-document if
