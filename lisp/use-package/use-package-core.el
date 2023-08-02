@@ -1058,6 +1058,7 @@ meaning:
 (define-derived-mode use-package-statistics-mode tabulated-list-mode
   "use-package statistics"
   "Show current statistics gathered about `use-package' declarations."
+  :interactive nil
   (setq tabulated-list-format
         ;; The sum of column width is 80 characters:
         [("Package" 25 t)
