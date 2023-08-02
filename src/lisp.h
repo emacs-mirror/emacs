@@ -2289,8 +2289,8 @@ extern Lisp_Object pkg_unqualified_symbol (Lisp_Object name);
 extern bool pkg_keywordp (Lisp_Object obj);
 extern Lisp_Object pkg_define_symbol (Lisp_Object sym, Lisp_Object package);
 extern Lisp_Object pkg_intern_symbol (Lisp_Object sym, Lisp_Object package, Lisp_Object *status);
-extern Lisp_Object pkg_emacs_intern (Lisp_Object name, Lisp_Object package, Lisp_Object cl);
-extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package, Lisp_Object cl);
+extern Lisp_Object pkg_emacs_intern (Lisp_Object name, Lisp_Object package);
+extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_unintern (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_mapatoms (Lisp_Object fn, Lisp_Object package);
 extern Lisp_Object pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
@@ -2443,7 +2443,7 @@ INLINE Lisp_Object
 LISP_SYMBOL_NAME (Lisp_Object sym)
 {
   if (SYMBOL_KEYWORD_P (sym))
-    return Fsymbol_name (sym, Qnil);
+    return Fsymbol_name (sym);
   return SYMBOL_NAME (sym);
 }
 

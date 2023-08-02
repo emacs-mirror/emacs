@@ -770,12 +770,12 @@ DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
   return XSYMBOL (symbol)->u.s.plist;
 }
 
-DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 2, 0,
+DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
        doc: /* Return SYMBOL's name, a string.  */)
-  (const Lisp_Object symbol, const Lisp_Object cl)
+  (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  if (SYMBOL_KEYWORD_P (symbol) && NILP (cl))
+  if (SYMBOL_KEYWORD_P (symbol))
     return concat2 (build_string (":"), SYMBOL_NAME (symbol));
   return SYMBOL_NAME (symbol);
 }

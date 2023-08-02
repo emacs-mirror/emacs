@@ -1944,7 +1944,7 @@ resolve_face_name (Lisp_Object face_name, bool signal_p)
   Lisp_Object tortoise, hare;
 
   if (STRINGP (face_name))
-    face_name = Fintern (face_name, Qnil, Qnil);
+    face_name = Fintern (face_name, Qnil);
 
   if (NILP (face_name) || !SYMBOLP (face_name))
     return face_name;
@@ -5657,7 +5657,7 @@ be found.  Value is ALIST.  */)
       entry = Fcopy_sequence (entry);
       XSETCAR (tail, entry);
       for (tail2 = entry; CONSP (tail2); tail2 = XCDR (tail2))
-	XSETCAR (tail2, Fintern (XCAR (tail2), Qnil, Qnil));
+	XSETCAR (tail2, Fintern (XCAR (tail2), Qnil));
     }
 
   Vface_alternative_font_family_alist = alist;

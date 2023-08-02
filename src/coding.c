@@ -8567,7 +8567,7 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
 			      Qt, Qnil, Qcoding_system_history, Qnil, Qnil);
     }
   while (SCHARS (val) == 0);
-  return Fintern (val, Qnil, Qnil);
+  return (Fintern (val, Qnil));
 }
 
 DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
@@ -8587,7 +8587,7 @@ are lower-case).  */)
 			  Qt, Qnil, Qcoding_system_history,
 			  default_coding_system, Qnil);
   val = unbind_to (count, val);
-  return (SCHARS (val) == 0 ? Qnil : Fintern (val, Qnil, Qnil));
+  return (SCHARS (val) == 0 ? Qnil : Fintern (val, Qnil));
 }
 
 DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
@@ -11417,10 +11417,10 @@ usage: (define-coding-system-internal ...)  */)
 	  ASET (this_spec, 2, this_eol_type);
 	  Fputhash (this_name, this_spec, Vcoding_system_hash_table);
 	  Vcoding_system_list = Fcons (this_name, Vcoding_system_list);
-	  val = Fassoc (Fsymbol_name (this_name, Qnil), Vcoding_system_alist, Qnil);
+	  val = Fassoc (Fsymbol_name (this_name), Vcoding_system_alist, Qnil);
 	  if (NILP (val))
 	    Vcoding_system_alist
-	      = Fcons (Fcons (Fsymbol_name (this_name, Qnil), Qnil),
+	      = Fcons (Fcons (Fsymbol_name (this_name), Qnil),
 		       Vcoding_system_alist);
 	}
     }
@@ -11432,9 +11432,9 @@ usage: (define-coding-system-internal ...)  */)
 
   Fputhash (name, spec_vec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (name, Vcoding_system_list);
-  val = Fassoc (Fsymbol_name (name, Qnil), Vcoding_system_alist, Qnil);
+  val = Fassoc (Fsymbol_name (name), Vcoding_system_alist, Qnil);
   if (NILP (val))
-    Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (name, Qnil), Qnil),
+    Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (name), Qnil),
 				  Vcoding_system_alist);
 
   int id = coding_categories[category].id;
@@ -11551,9 +11551,9 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (alias, Vcoding_system_list);
-  val = Fassoc (Fsymbol_name (alias, Qnil), Vcoding_system_alist, Qnil);
+  val = Fassoc (Fsymbol_name (alias), Vcoding_system_alist, Qnil);
   if (NILP (val))
-    Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias, Qnil), Qnil),
+    Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
 				  Vcoding_system_alist);
 
   return Qnil;

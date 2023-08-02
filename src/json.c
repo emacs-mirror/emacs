@@ -896,7 +896,7 @@ json_to_lisp (json_t *json, const struct json_configuration *conf)
               json_object_foreach (json, key_str, value)
                 {
                   Lisp_Object key
-		    = Fintern (build_string_from_utf8 (key_str), Qnil, Qnil);
+		    = Fintern (build_string_from_utf8 (key_str), Qnil);
                   result
                     = Fcons (Fcons (key, json_to_lisp (value, conf)),
                              result);

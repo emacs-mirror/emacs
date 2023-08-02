@@ -1904,7 +1904,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	    /* A frame could be too young and have no name yet;
 	       don't crash.  */
 	    if (SYMBOLP (frame_name))
-	      frame_name = Fsymbol_name (frame_name, Qnil);
+	      frame_name = Fsymbol_name (frame_name);
 	    else	/* can't happen: name should be either nil or string */
 	      frame_name = build_string ("*INVALID*FRAME*NAME*");
 	  }
@@ -2029,7 +2029,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       Lisp_Object language = XTS_PARSER (obj)->language_symbol;
       /* No need to print the buffer because it's not that useful: we
 	 usually know which buffer a parser belongs to.  */
-      print_string (Fsymbol_name (language, Qnil), printcharfun);
+      print_string (Fsymbol_name (language), printcharfun);
       printchar ('>', printcharfun);
       break;
     case PVEC_TS_NODE:

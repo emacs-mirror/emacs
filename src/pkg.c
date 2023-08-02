@@ -521,7 +521,7 @@ pkg_fake_me_an_obarray (Lisp_Object vector)
 /* Implements Emacs' traditional Fintern function.  */
 
 Lisp_Object
-pkg_emacs_intern (Lisp_Object name, Lisp_Object package, Lisp_Object cl)
+pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 {
   CHECK_STRING (name);
 
@@ -547,7 +547,7 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package, Lisp_Object cl)
 /* Implements Emacs' traditional Fintern_soft function.  */
 
 Lisp_Object
-pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package, Lisp_Object cl)
+pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
 {
   /* intern-soft allows symbols.  */
   Lisp_Object orig = name;

@@ -532,11 +532,11 @@ static Lisp_Object
 font_prop_validate_symbol (Lisp_Object prop, Lisp_Object val)
 {
   if (STRINGP (val))
-    val = Fintern (val, Qnil, Qnil);
+    val = Fintern (val, Qnil);
   if (! SYMBOLP (val))
     val = Qerror;
   else if (EQ (prop, QCregistry))
-    val = Fintern (Fdowncase (SYMBOL_NAME (val)), Qnil, Qnil);
+    val = Fintern (Fdowncase (SYMBOL_NAME (val)), Qnil);
   return val;
 }
 
@@ -1009,7 +1009,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
   memclear (field + j, (XLFD_LAST_INDEX - j) * word_size);
   if (FIXNUMP (field[XLFD_ENCODING_INDEX]))
     field[XLFD_ENCODING_INDEX]
-      = Fintern (Fnumber_to_string (field[XLFD_ENCODING_INDEX]), Qnil, Qnil);
+      = Fintern (Fnumber_to_string (field[XLFD_ENCODING_INDEX]), Qnil);
   return 0;
 }
 
@@ -1197,7 +1197,7 @@ font_parse_xlfd_1 (char *name, ptrdiff_t len, Lisp_Object font, int segments)
 			 SYMBOL_NAME (prop[XLFD_ENCODING_INDEX]));
 	}
       if (! NILP (val))
-	ASET (font, FONT_REGISTRY_INDEX, Fintern (val, Qnil, Qnil));
+	ASET (font, FONT_REGISTRY_INDEX, Fintern (val, Qnil));
 
       if (FIXNUMP (prop[XLFD_PIXEL_INDEX]))
 	ASET (font, FONT_SIZE_INDEX, prop[XLFD_PIXEL_INDEX]);
@@ -1811,7 +1811,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
 	  Ffont_put (font_spec, QCfamily, font_intern_prop (p1, len, 1));
 	}
       else
-	ASET (font_spec, FONT_FAMILY_INDEX, Fintern (family, Qnil, Qnil));
+	ASET (font_spec, FONT_FAMILY_INDEX, Fintern (family, Qnil));
     }
   if (! NILP (registry))
     {
@@ -1827,7 +1827,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
 	  registry = concat2 (registry, extra);
 	}
       registry = Fdowncase (registry);
-      ASET (font_spec, FONT_REGISTRY_INDEX, Fintern (registry, Qnil, Qnil));
+      ASET (font_spec, FONT_REGISTRY_INDEX, Fintern (registry, Qnil));
     }
 }
 

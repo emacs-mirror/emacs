@@ -572,7 +572,7 @@ static TSLanguage *
 treesit_load_language (Lisp_Object language_symbol,
 		       Lisp_Object *signal_symbol, Lisp_Object *signal_data)
 {
-  Lisp_Object symbol_name = Fsymbol_name (language_symbol, Qnil);
+  Lisp_Object symbol_name = Fsymbol_name (language_symbol);
 
   CHECK_LIST (Vtreesit_extra_load_path);
 
@@ -2655,7 +2655,7 @@ treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
       return false;
     }
 
-  Lisp_Object fn = Fintern (XCAR (args), Qnil, Qnil);
+  Lisp_Object fn = Fintern (XCAR (args), Qnil);
   Lisp_Object nodes = Qnil;
   Lisp_Object tail = XCDR (args);
   FOR_EACH_TAIL (tail)

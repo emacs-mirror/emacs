@@ -546,7 +546,7 @@ usage: (function ARG)  */)
 	  if (SYMBOLP (docstring) && !NILP (docstring))
 	    /* Hack for OClosures: Allow the docstring to be a symbol
              * (the OClosure's type).  */
-	    docstring = Fsymbol_name (docstring, Qnil);
+	    docstring = Fsymbol_name (docstring);
 	  CHECK_STRING (docstring);
 	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}
