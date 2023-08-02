@@ -46,19 +46,34 @@ The variables may go at some point.  Or not.
 "*package-registry* is a hash-table of registered packages.  The
 variable may go at some point.  Or not.
 
+A file-local variable "package-prefixes" can be used to enable or
+disable reading or printing of symbols with package prefixes.  If
+package-prefixes is nil, a symbol "a:b" will be read as a symbol with
+name "a:b" in the Emacs package.  If package-prefixes is t, "a:b" will
+be read as symbol "b" in package "a".  Default is nil.
+
+Note that there is a small incompatibility here: In "normal" Emacs,
+the symbol 'a:b' is printed as 'a:b'.  In this version of Emacs, it
+prints as 'a\:b".  Both Emacs versions can read the latter form.  This
+can be a problem with Transient which writes symbols containing a
+colon to .emacs.d/transient/level.el.  If an old levels.el gets read
+in this version of Emacs, this can lead to an error "Unknown package
+'transient'".  Solution: add a backslash in front of the colons.
+
 Various functions related to packages are defined.  Depending on the
 time when you read this, this may be in some state of incompleteness,
-and it probably has bugs.  Reports or fixes welcome.
+and it probably has bugs.  Fixes welcome.
 
 ** Implementation notes
 *** Where is it?
-The C part is in src/pkg.c.  I chose that name because package.c
-resulted in conflicts in the tests (with package.el).
+The C part is mainly in src/pkg.c.  I chose that name because
+package.c resulted in conflicts in the tests (conflicts with
+package.el tests).
 
-The Lisp part is in lisp/emacs-lisp/pkg.el.  I've done as much of this
-in Lisp because that's much easier and faster.  If packages are used
-in files loaded in loadup, changes might be necessary to make this
-possible.  I consider this out of scope, ATM.
+The Lisp part is mainly in lisp/emacs-lisp/pkg.el.  I've done as much
+of this in Lisp as possible because that's much easier and faster.  If
+packages are used in files loaded in loadup, changes might be
+necessary to make this possible.  I consider this out of scope, ATM.
 
 *** No pure space support
 The branch contains a patch by Stefan Monnier that makes it no longer
@@ -173,7 +188,7 @@ compiled or eval'd.
 
 We could then
 
-- Bbind package-prefixes around the execution of the function to that
+- Bind package-prefixes around the execution of the function to that
   value.
 
 - Return a name with leading colon from symbol-value if
