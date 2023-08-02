@@ -518,12 +518,7 @@ pkg_fake_me_an_obarray (Lisp_Object vector)
   return package;
 }
 
-/* Implements Emacs' traditional Fintern function.
-
-   CL can be one of
-
-   :set-by-compiler - intern seen by compiler with package-prefixes nil.
-   :set-by-compiler - intern seen by compiler with package-prefixes non-nil. */
+/* Implements Emacs' traditional Fintern function.  */
 
 Lisp_Object
 pkg_emacs_intern (Lisp_Object name, Lisp_Object package, Lisp_Object cl)
@@ -923,8 +918,6 @@ DEFUN ("watch-*package*", Fwatch_earmuffs_package, Swatch_earmuffs_package,
 void
 init_pkg_once (void)
 {
-  DEFSYM (QCset_by_compiler, ":set-by-compiler");
-  DEFSYM (QCunset_by_compiler, ":unset-by-compiler");
   DEFSYM (QCexternal, ":external");
   DEFSYM (QCinherited, ":inherited");
   DEFSYM (QCinternal, ":internal");
