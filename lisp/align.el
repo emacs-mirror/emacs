@@ -164,12 +164,14 @@ values may cause unexpected behavior at times."
   :group 'align)
 
 (defcustom align-highlight-change-face 'highlight
-  "The face to highlight with if changes are necessary."
+  "The face to highlight with if changes are necessary.
+Used by the `align-highlight-rule' command."
   :type 'face
   :group 'align)
 
 (defcustom align-highlight-nochange-face 'secondary-selection
-  "The face to highlight with if no changes are necessary."
+  "The face to highlight with if no changes are necessary.
+Used by the `align-highlight-rule' command."
   :type 'face
   :group 'align)
 
