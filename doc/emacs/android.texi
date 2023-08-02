@@ -26,7 +26,7 @@ about using such devices with Emacs, @pxref{Other Input Devices}.
 @end menu
 
 @node What is Android?
-@section Android history
+@section Android History
 
   Android is an operating system for mobile devices developed by the
 Open Handset Alliance, a group of companies interested in developing
@@ -59,7 +59,7 @@ your freedom's sake.
 hope this taste of freedom will inspire users to escape from them.
 
 @node Android Startup
-@section Starting up Emacs on Android
+@section Starting Emacs on Android
 
   Emacs is not installed on Android devices from source code or
 through a package manager.  Instead, Emacs is compiled for Android on
@@ -155,7 +155,7 @@ case such files are copied to a temporary directory before being
 opened.
 
 @node Android File System
-@section What files Emacs can access under Android
+@section What Files Emacs Can Access on Android
 @cindex /assets directory, android
 
   Emacs exposes a special directory on Android systems: the name of
@@ -281,7 +281,7 @@ files under @file{/sdcard} as usual.  These settings are not present
 on some proprietary versions of Android.
 
 @node Android Document Providers
-@section Accessing files from other programs under Android
+@section Accessing Files from Other Programs on Android
 @cindex document providers, Android
 @cindex /content/storage directory, Android
 
@@ -399,7 +399,7 @@ Startup}) connect the Android system to another computer, and run:
 $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 @end example
 
-@section Running Emacs in the background
+@section Running Emacs in the Background
 @cindex emacs killed, android
 @cindex emacs in the background, android
 
@@ -429,7 +429,7 @@ the background in their proprietary versions of Android.  There is a
 list of such troublesome manufacturers and sometimes workarounds at
 @url{https://dontkillmyapp.com/}.
 
-@section Android permissions
+@section Android Permissions
 @cindex external storage, android
 
   Android also defines a permissions system that determines what
@@ -526,7 +526,7 @@ more details, as how to do this varies by device.
 @end itemize
 
 @node Android Windowing
-@section The Android window system
+@section The Android Window System
 
   Android has an unusual window system; there, all windows are
 maximized or full-screen, and only one window can be displayed at a
@@ -650,8 +650,21 @@ System -> Apps -> Emacs -> More -> Display over other apps
 
 menu in the system settings, but this procedure may vary by device.
 
+@cindex keyboard modifiers, android
+  There is a direct relation between physical modifier keys and Emacs
+modifiers (@pxref{Modifier Keys}) reported within key events, subject
+to a single exception: if @key{Alt} on your keyboard is depressed,
+then the @key{Meta} modifier will be reported by Emacs in its place,
+and vice versa.  This irregularity is since most keyboards posses no
+special @key{Meta} key, and the @key{Alt} modifier is seldom employed
+in Emacs.
+
+  Bear in mind that Android uses a different name for the @key{Super}
+modifier: it is referred to as @key{SYM} on Android keyboards and
+within the Settings keymap menu.
+
 @node Android Fonts
-@section Font backends and selection under Android
+@section Font Backends and Selection under Android
 @cindex fonts, android
 
   Emacs supports two font backends under Android: they are respectively
@@ -693,7 +706,7 @@ removed; distortable fonts with the same family will no longer be used
 to provide that style.
 
 @node Android Troubleshooting
-@section What to do when something goes wrong on Android
+@section Troubleshooting Startup Problems on Android
 @cindex troubleshooting, android
 
 @cindex emacs -Q, android
@@ -741,7 +754,7 @@ manager that comes with your device, you can rename, delete, or edit
 your initialization or dump files from there instead.
 
 @node Android Software
-@section Installing extra software on Android
+@section Installing Extra Software on Android
 @cindex installing extra software on Android
 @cindex installing Unix software on Android
 

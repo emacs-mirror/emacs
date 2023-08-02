@@ -616,10 +616,13 @@ public final class EmacsWindow extends EmacsHandleObject
 
     state = eventModifiers (event);
 
-    /* Ignore meta-state understood by Emacs for now, or Ctrl+C will
-       not be recognized as an ASCII key press event.  */
+    /* Ignore meta-state understood by Emacs for now, or key presses
+       such as Ctrl+C and Meta+C will not be recognized as an ASCII
+       key press event.  */
+
     state_1
-      = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
+      = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
+		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK);
 
     synchronized (eventStrings)
       {
@@ -646,10 +649,13 @@ public final class EmacsWindow extends EmacsHandleObject
     /* Compute the event's modifier mask.  */
     state = eventModifiers (event);
 
-    /* Ignore meta-state understood by Emacs for now, or Ctrl+C will
-       not be recognized as an ASCII key press event.  */
+    /* Ignore meta-state understood by Emacs for now, or key presses
+       such as Ctrl+C and Meta+C will not be recognized as an ASCII
+       key press event.  */
+
     state_1
-      = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
+      = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK
+		  | KeyEvent.META_SYM_ON | KeyEvent.META_META_MASK);
 
     EmacsNative.sendKeyRelease (this.handle,
 				event.getEventTime (),
