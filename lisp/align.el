@@ -570,7 +570,7 @@ The possible settings for `align-region-separate' are:
     (css-declaration
      (regexp . "^\\s-*\\(?:\\w-?\\)+:\\(\\s-*\\).*;")
      (group . (1))
-     (modes . '(css-mode html-mode)))
+     (modes . '(css-base-mode html-mode)))
 
     (toml-assignment
      (regexp . ,(rx (group (zero-or-more (syntax whitespace)))
