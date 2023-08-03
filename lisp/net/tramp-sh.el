@@ -717,6 +717,25 @@ on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
+(defconst tramp-stat-file-attributes-with-selinux
+  (format
+   (concat
+    "(%%s -c"
+    " '((%s%%%%N%s) %%%%h (%s%%%%U%s . %%%%u) (%s%%%%G%s . %%%%g)"
+    " %%%%X %%%%Y %%%%Z %%%%s %s%%%%A%s t %%%%i -1 %s%%%%C%s)'"
+    " \"$1\" %%n || echo nil) |"
+    " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'")
+   tramp-stat-marker tramp-stat-marker ; %%N
+   tramp-stat-marker tramp-stat-marker ; %%U
+   tramp-stat-marker tramp-stat-marker ; %%G
+   tramp-stat-marker tramp-stat-marker ; %%A
+   tramp-stat-marker tramp-stat-marker ; %%C
+   tramp-stat-quoted-marker)
+  "Shell function to produce output suitable for use with `file-attributes'
+on the remote file system, including SELinux context.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
 (defconst tramp-perl-directory-files-and-attributes
   "%p -e '
 chdir($ARGV[0]) or printf(\"\\\"Cannot change to $ARGV[0]: $''!''\\\"\\n\"), exit();
@@ -792,6 +811,33 @@ characters need to be doubled.")
    tramp-stat-quoted-marker)
   "Shell function implementing `directory-files-and-attributes' as Lisp
 `read'able output.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
+(defconst tramp-stat-directory-files-and-attributes-with-selinux
+  (format
+   (concat
+    ;; We must care about file names with spaces, or starting with
+    ;; "-"; this would confuse xargs.  "ls -aQ" might be a solution,
+    ;; but it does not work on all remote systems.  Therefore, we use
+    ;; \000 as file separator.  `tramp-sh--quoting-style-options' do
+    ;; not work for file names with spaces piped to "xargs".
+    ;; Apostrophes in the stat output are masked as
+    ;; `tramp-stat-marker', in order to make a proper shell escape of
+    ;; them in file names.
+    "cd \"$1\" && echo \"(\"; (%%l -a | tr '\\n\\r' '\\000\\000' |"
+    " xargs -0 %%s -c"
+    " '(%s%%%%n%s (%s%%%%N%s) %%%%h (%s%%%%U%s . %%%%u) (%s%%%%G%s . %%%%g) %%%%X %%%%Y %%%%Z %%%%s %s%%%%A%s t %%%%i -1 %s%%%%C%s)'"
+    " -- %%n | sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'); echo \")\"")
+   tramp-stat-marker tramp-stat-marker ; %n
+   tramp-stat-marker tramp-stat-marker ; %N
+   tramp-stat-marker tramp-stat-marker ; %U
+   tramp-stat-marker tramp-stat-marker ; %G
+   tramp-stat-marker tramp-stat-marker ; %A
+   tramp-stat-marker tramp-stat-marker ; %C
+   tramp-stat-quoted-marker)
+  "Shell function implementing `directory-files-and-attributes' as Lisp
+`read'able output, including SELinux context.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
@@ -1255,10 +1301,10 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
   (let (symlinkp dirp
 	res-inode res-filemodes res-numlinks
 	res-uid-string res-gid-string res-uid-integer res-gid-integer
-	res-size res-symlink-target)
+	res-size res-symlink-target res-context)
     (tramp-message vec 5 "file attributes with ls: %s" localname)
-    ;; We cannot send all three commands combined, it could exceed
-    ;; NAME_MAX or PATH_MAX.  Happened on macOS, for example.
+    ;; We cannot send both commands combined, it could exceed NAME_MAX
+    ;; or PATH_MAX.  Happened on macOS, for example.
     (when (tramp-send-command-and-check
            vec
            (format "cd %s && (%s %s || %s -h %s)"
@@ -1277,13 +1323,14 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 		      (file-name-nondirectory localname)))))
       (tramp-send-command
        vec
-       (format "%s -ild %s %s; %s -lnd %s %s"
+       (format "%s -ild %s %s; %s -lnd%s %s %s"
                (tramp-get-ls-command vec)
                ;; On systems which have no quoting style, file names
                ;; with special characters could fail.
                (tramp-sh--quoting-style-options vec)
                (tramp-shell-quote-argument localname)
                (tramp-get-ls-command vec)
+	       (if (tramp-remote-selinux-p vec) "Z" "")
                ;; On systems which have no quoting style, file names
                ;; with special characters could fail.
                (tramp-sh--quoting-style-options vec)
@@ -1333,6 +1380,10 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 	    (setq res-uid-integer tramp-unknown-id-integer))
           (unless (numberp res-gid-integer)
 	    (setq res-gid-integer tramp-unknown-id-integer))
+	  ;; ... SELinux context
+	  (when (tramp-remote-selinux-p vec)
+	    (setq res-context (read (current-buffer))
+		  res-context (symbol-name res-context)))
 
 	  ;; Return data gathered.
           (list
@@ -1359,7 +1410,10 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
            ;; 10. Inode number.
            res-inode
            ;; 11. Device number.  Will be replaced by a virtual device number.
-           -1))))))
+           -1
+	   ;; 12. SELinux context.  Will be extracted in
+	   ;; `tramp-convert-file-attributes'.
+	   res-context))))))
 
 (defun tramp-do-file-attributes-with-perl (vec localname)
   "Implement `file-attributes' for Tramp files using a Perl script."
@@ -1373,11 +1427,20 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 (defun tramp-do-file-attributes-with-stat (vec localname)
   "Implement `file-attributes' for Tramp files using stat(1) command."
   (tramp-message vec 5 "file attributes with stat: %s" localname)
-  (tramp-maybe-send-script
-   vec tramp-stat-file-attributes "tramp_stat_file_attributes")
-  (tramp-send-command-and-read
-   vec (format "tramp_stat_file_attributes %s"
-	       (tramp-shell-quote-argument localname))))
+  (cond
+   ((tramp-remote-selinux-p vec)
+    (tramp-maybe-send-script
+     vec tramp-stat-file-attributes-with-selinux
+     "tramp_stat_file_attributes_with_selinux")
+    (tramp-send-command-and-read
+     vec (format "tramp_stat_file_attributes_with_selinux %s"
+		 (tramp-shell-quote-argument localname))))
+   (t
+    (tramp-maybe-send-script
+     vec tramp-stat-file-attributes "tramp_stat_file_attributes")
+    (tramp-send-command-and-read
+     vec (format "tramp_stat_file_attributes %s"
+		 (tramp-shell-quote-argument localname))))))
 
 (defun tramp-sh-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -1572,7 +1635,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	      (tramp-shell-quote-argument localname))))))))
 
 (defun tramp-remote-selinux-p (vec)
-  "Check, whether SELINUX is enabled on the remote host."
+  "Check, whether SELinux is enabled on the remote host."
   (with-tramp-connection-property (tramp-get-process vec) "selinux-p"
     (tramp-send-command-and-check vec "selinuxenabled")))
 
@@ -1775,12 +1838,21 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-do-directory-files-and-attributes-with-stat (vec localname)
   "Implement `directory-files-and-attributes' for Tramp files with stat(1) command."
   (tramp-message vec 5 "directory-files-and-attributes with stat: %s" localname)
-  (tramp-maybe-send-script
-   vec tramp-stat-directory-files-and-attributes
-   "tramp_stat_directory_files_and_attributes")
-  (tramp-send-command-and-read
-   vec (format "tramp_stat_directory_files_and_attributes %s"
-	       (tramp-shell-quote-argument localname))))
+  (cond
+   ((tramp-remote-selinux-p vec)
+    (tramp-maybe-send-script
+     vec tramp-stat-directory-files-and-attributes-with-selinux
+     "tramp_stat_directory_files_and_attributes_with_selinux")
+    (tramp-send-command-and-read
+     vec (format "tramp_stat_directory_files_and_attributes_with_selinux %s"
+		 (tramp-shell-quote-argument localname))))
+   (t
+    (tramp-maybe-send-script
+     vec tramp-stat-directory-files-and-attributes
+     "tramp_stat_directory_files_and_attributes")
+    (tramp-send-command-and-read
+     vec (format "tramp_stat_directory_files_and_attributes %s"
+		 (tramp-shell-quote-argument localname))))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -1966,7 +2038,7 @@ OK-IF-ALREADY-EXISTS means don't barf if NEWNAME exists already.
 KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid if both files are on the same host.
-PRESERVE-EXTENDED-ATTRIBUTES activates selinux and acl commands.
+PRESERVE-EXTENDED-ATTRIBUTES activates SELinux and ACL commands.
 
 This function is invoked by `tramp-sh-handle-copy-file' and
 `tramp-sh-handle-rename-file'.  It is an error if OP is neither
