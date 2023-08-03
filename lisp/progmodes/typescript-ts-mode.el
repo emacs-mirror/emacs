@@ -142,7 +142,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "export" "extends" "finally" "for" "from" "function"
     "get" "if" "implements" "import" "in" "instanceof" "interface" "is" "infer"
     "keyof" "let" "namespace" "new" "of" "private" "protected"
-    "public" "readonly" "return" "set" "static" "switch"
+    "public" "readonly" "return" "satisfies" "set" "static" "switch"
     "target" "throw" "try" "type" "typeof" "var" "void"
     "while" "with" "yield")
   "TypeScript keywords for tree-sitter font-locking.")
