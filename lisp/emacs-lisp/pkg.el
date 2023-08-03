@@ -1,6 +1,6 @@
 ;;; pkg.el --- Lisp packages -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022, 2023 Free Software Foundation, Inc.
 
 ;; Author: Gerd Möllmann <gerd@gnu.org>
 ;; Keywords: lisp, tools, maint
@@ -25,14 +25,6 @@
 
 ;; This file is part of the implementation of Lisp packages for Emacs.
 ;; Code is partly adapted from CMUCL, which is in the public domain.
-
-;; The implementation strives to do as much as possible in Lisp, not
-;; C.  C functions with names like 'package-%...' are defined which
-;; allow low-level access to the guts of Lisp_Package objects.
-;; Several variables are exposed from C that allow manipulating
-;; internal state.
-
-;; All that is dangerous :-).
 
 ;;; Code:
 
@@ -588,7 +580,7 @@ Value is t."
     (let ((old-shadows (package-%shadowing-symbols package)))
       (shadow shadows package)
       (dolist (sym-name shadows)
-	(setf old-shadows (remove (find-symbol sym-name package) old-shadows)))
+	(setf old-shadows (remove (car (find-symbol sym-name package)) old-shadows)))
       (dolist (simports-from shadowing-imports)
 	(let ((other-package (pkg--package-or-lose (car simports-from))))
 	  (dolist (sym-name (cdr simports-from))
@@ -716,6 +708,26 @@ Value is t."
        (pkg-defpackage ,(pkg--stringify-name package "package") ',nicknames ',size
 		       ',shadows ',shadowing-imports ',(if use-p use :default)
 		       ',imports ',interns ',exports ',doc))))
+
+(defun pkg--%in-package (name)
+  (let ((package (or (find-package name)
+                     (error "The package named '%s' doesn't exist." name))))
+    (setf *package* package)))
+
+(defmacro in-package (package)
+  `(pkg--%in-package ',(pkg--stringify-name package "package")))
+
+(defun find-all-symbols (name)
+  "Return a list of all symbols in the system having the specified name."
+  (let ((name (pkg--stringify-name name "symbol name"))
+	(result ()))
+    (maphash #'(lambda (_package-name package)
+                 (cl-multiple-value-bind (sym _status) (find-symbol name package)
+		   (when sym
+                     (cl-pushnew sym result))))
+	     *package-registry*)
+    result))
+
 
 (provide 'pkg)
 
