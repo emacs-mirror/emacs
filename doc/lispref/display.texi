@@ -5287,10 +5287,18 @@ the ``pixel width'' of a character is usually 1, but it could be more
 for TABs and double-width CJK characters.)
 
 @item :align-to @var{hpos}
-Specifies that the space should be wide enough to reach @var{hpos}.
-If @var{hpos} is a number, it is measured in units of the normal
-character width.  @var{hpos} can also be a @dfn{pixel width}
-specification (@pxref{Pixel Specification}).
+Specifies that the space should be wide enough to reach the column
+@var{hpos}.  If @var{hpos} is a number, it is a column number, and is
+measured in units of the canonical character width (@pxref{Frame
+Font}).  @var{hpos} can also be a @dfn{pixel width} specification
+(@pxref{Pixel Specification}).  When the current line is wider than
+the window, and is either displayed by one or more continuation lines,
+or is truncated and possibly scrolled horizontally (@pxref{Horizontal
+Scrolling}), @var{hpos} is measured from the beginning of the logical
+line, not from the visual beginning of the screen line.  This way,
+alignment produced by @code{:align-to} is consistent with functions
+that count columns, such as @code{current-column} and
+@code{move-to-column} (@pxref{Columns}).
 @end table
 
   You should use one and only one of the above properties.  You can
