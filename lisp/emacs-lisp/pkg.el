@@ -291,7 +291,7 @@ registered in the package registry, that is it will not be found
 under its names by `find-package'.  Use `register-package' to
 register the package.  This deviates from the CLHS specification,
 but is what Common Lisp implementations usually do."
-  (cl-check-type size natnum)
+  (cl-check-type size (or null natnum))
   (let* ((name (pkg--stringify-name name "package name"))
          (nicknames (pkg--stringify-names nicknames "package nickname"))
          (use (pkg--packages-from-names use))
@@ -600,14 +600,15 @@ Value is t."
 	      name old-shadows)))
 
     ;;Use
-    (let ((old-use-list (package-use-list package))
-	  (new-use-list (mapcar #'pkg--package-or-lose use)))
-      (use-package (cl-set-difference new-use-list old-use-list) package)
-      (let ((laterize (cl-set-difference old-use-list new-use-list)))
-	(when laterize
-	  (unuse-package laterize package)
+    (unless (eq use :default)
+      (let ((old-use-list (package-use-list package))
+	    (new-use-list (mapcar #'pkg--package-or-lose use)))
+        (use-package (cl-set-difference new-use-list old-use-list) package)
+        (let ((laterize (cl-set-difference old-use-list new-use-list)))
+	  (when laterize
+	    (unuse-package laterize package)
 	    (warn "%s previously used the following packages: %s"
-		  name laterize))))
+		  name laterize)))))
 
     ;;Import and Intern.
     (dolist (sym-name interns)
@@ -628,8 +629,8 @@ Value is t."
 	(when diff
 	  (warn "%s also exports the following symbols: %s" name diff))))
 
-    ;; Documentation
-    ;(setf (package-doc-string package) doc-string)
+    ;; Documentation (not yet)
+    ;;(setf (package-doc-string package) doc-string)
     package))
 
 (defmacro defpackage (package &rest options)
