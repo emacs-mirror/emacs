@@ -43,6 +43,10 @@
   (ert-test-erts-file (ert-resource-file "java-mode.erts")
                       (test-align-transform-fun #'java-mode)))
 
+(ert-deftest align-latex ()
+  (ert-test-erts-file (ert-resource-file "latex-mode.erts")
+                      (test-align-transform-fun #'latex-mode)))
+
 (ert-deftest align-python ()
   (ert-test-erts-file (ert-resource-file "python-mode.erts")
                       (test-align-transform-fun #'python-mode)))
