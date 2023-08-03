@@ -1880,7 +1880,7 @@ is nil; otherwise use the foreground color)."
 Set the :background or :foreground attribute to COLOR, depending
 on the argument FOREGROUND.
 
-The optional FACE argument controls the values for other
+The optional FACE argument determines the values of other face
 attributes."
   (let* ((defaults (if face (list face) '()))
          (colors (cond (foreground
@@ -2028,10 +2028,12 @@ to enter an empty color name (the empty string).
 Interactively, or with optional arg MSG non-nil, print the
 resulting color name in the echo area.
 
-Interactively, displays a list of colored completions.  If
-optional argument FOREGROUND is non-nil, shows them as
-foregrounds, otherwise as backgrounds.  The optional argument
-FACE controls the default appearance."
+Interactively, provides completion for selecting the color.  If
+the optional argument FOREGROUND is non-nil, shows the completion
+candidates with their foregound color changed to be the color of
+the candidate, otherwise changes the background color of the
+candidates.  The optional argument FACE determines the other
+face attributes of the candidates on display."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
 	 (color-alist

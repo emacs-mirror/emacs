@@ -1559,10 +1559,12 @@ non-@code{nil} and the user enters null input.
 Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
 
-The optional arguments FOREGROUND and FACE control the appearence of
-the completion candidates.  The candidates are displayed like FACE but
-with different colors.  If FOREGROUND is non-@code{nil} the foreground
-varies, otherwise the background.
+The optional arguments @var{foreground} and @var{face} control the
+appearence of the completion candidates in the @file{*Completions*}
+buffer.  The candidates are displayed in the specified @var{face} but
+with different colors: if @var{foreground} is non-@code{nil}, the
+foreground color is changed to be the color of the candidate,
+otherwise the background is changed to the candidate's color.
 @end deffn
 
   See also the functions @code{read-coding-system} and
