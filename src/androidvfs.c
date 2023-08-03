@@ -206,6 +206,12 @@ struct android_vops
   /* Make a directory designated by VNODE, like Unix `mkdir'.  */
   int (*mkdir) (struct android_vnode *, mode_t);
 
+  /* Change the access mode of the provided VNODE to MODE.  Value is
+     the same as with `chmod'.  FLAGS is passed verbatim from the call
+     to the delegating at-func, and is probably
+     AT_SYMLINK_NOFOLLOW.  */
+  int (*chmod) (struct android_vnode *, mode_t, int);
+
   /* Open the specified VNODE as a directory.
      Value is a ``directory handle'', or NULL upon failure.  */
   struct android_vdir *(*opendir) (struct android_vnode *);
@@ -616,6 +622,7 @@ static int android_unix_rename (struct android_vnode *,
 static int android_unix_stat (struct android_vnode *, struct stat *);
 static int android_unix_access (struct android_vnode *, int);
 static int android_unix_mkdir (struct android_vnode *, mode_t);
+static int android_unix_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_unix_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with Unix filesystem VFS
@@ -633,6 +640,7 @@ static struct android_vops unix_vfs_ops =
     android_unix_stat,
     android_unix_access,
     android_unix_mkdir,
+    android_unix_chmod,
     android_unix_opendir,
   };
 
@@ -876,6 +884,16 @@ android_unix_mkdir (struct android_vnode *vnode, mode_t mode)
 
   vp = (struct android_unix_vnode *) vnode;
   return mkdir (vp->name, mode);
+}
+
+static int
+android_unix_chmod (struct android_vnode *vnode, mode_t mode,
+		    int flags)
+{
+  struct android_unix_vnode *vp;
+
+  vp = (struct android_unix_vnode *) vnode;
+  return fchmodat (AT_FDCWD, vp->name, mode, flags);
 }
 
 static struct dirent *
@@ -1585,6 +1603,7 @@ static int android_afs_rename (struct android_vnode *,
 static int android_afs_stat (struct android_vnode *, struct stat *);
 static int android_afs_access (struct android_vnode *, int);
 static int android_afs_mkdir (struct android_vnode *, mode_t);
+static int android_afs_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_afs_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with asset VFS nodes.  */
@@ -1601,6 +1620,7 @@ static struct android_vops afs_vfs_ops =
     android_afs_stat,
     android_afs_access,
     android_afs_mkdir,
+    android_afs_chmod,
     android_afs_opendir,
   };
 
@@ -2109,6 +2129,14 @@ android_afs_mkdir (struct android_vnode *vnode, mode_t mode)
   return -1;
 }
 
+static int
+android_afs_chmod (struct android_vnode *vnode, mode_t mode,
+		   int flags)
+{
+  errno = EROFS;
+  return -1;
+}
+
 static struct dirent *
 android_afs_readdir (struct android_vdir *vdir)
 {
@@ -2348,6 +2376,7 @@ static int android_content_rename (struct android_vnode *,
 static int android_content_stat (struct android_vnode *, struct stat *);
 static int android_content_access (struct android_vnode *, int);
 static int android_content_mkdir (struct android_vnode *, mode_t);
+static int android_content_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_content_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with the content VFS node.  */
@@ -2364,6 +2393,7 @@ static struct android_vops content_vfs_ops =
     android_content_stat,
     android_content_access,
     android_content_mkdir,
+    android_content_chmod,
     android_content_opendir,
   };
 
@@ -2568,6 +2598,14 @@ static int
 android_content_mkdir (struct android_vnode *vnode, mode_t mode)
 {
   errno = EEXIST;
+  return 0;
+}
+
+static int
+android_content_chmod (struct android_vnode *vnode, mode_t mode,
+		       int flags)
+{
+  errno = EACCES;
   return 0;
 }
 
@@ -2823,6 +2861,7 @@ static int android_authority_rename (struct android_vnode *,
 static int android_authority_stat (struct android_vnode *, struct stat *);
 static int android_authority_access (struct android_vnode *, int);
 static int android_authority_mkdir (struct android_vnode *, mode_t);
+static int android_authority_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_authority_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with the content VFS node.  */
@@ -2839,6 +2878,7 @@ static struct android_vops authority_vfs_ops =
     android_authority_stat,
     android_authority_access,
     android_authority_mkdir,
+    android_authority_chmod,
     android_authority_opendir,
   };
 
@@ -3118,6 +3158,14 @@ android_authority_mkdir (struct android_vnode *vnode, mode_t mode)
   return -1;
 }
 
+static int
+android_authority_chmod (struct android_vnode *vnode, mode_t mode,
+			 int flags)
+{
+  errno = EACCES;
+  return -1;
+}
+
 static struct android_vdir *
 android_authority_opendir (struct android_vnode *vnode)
 {
@@ -3223,6 +3271,7 @@ static int android_saf_root_rename (struct android_vnode *,
 static int android_saf_root_stat (struct android_vnode *, struct stat *);
 static int android_saf_root_access (struct android_vnode *, int);
 static int android_saf_root_mkdir (struct android_vnode *, mode_t);
+static int android_saf_root_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_saf_root_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with the SAF root VFS node.  */
@@ -3239,6 +3288,7 @@ static struct android_vops saf_root_vfs_ops =
     android_saf_root_stat,
     android_saf_root_access,
     android_saf_root_mkdir,
+    android_saf_root_chmod,
     android_saf_root_opendir,
   };
 
@@ -3517,6 +3567,14 @@ static int
 android_saf_root_mkdir (struct android_vnode *vnode, mode_t mode)
 {
   errno = EROFS;
+  return -1;
+}
+
+static int
+android_saf_root_chmod (struct android_vnode *vnode, mode_t mode,
+			int flags)
+{
+  errno = EACCES;
   return -1;
 }
 
@@ -4347,6 +4405,7 @@ static int android_saf_tree_rename (struct android_vnode *,
 static int android_saf_tree_stat (struct android_vnode *, struct stat *);
 static int android_saf_tree_access (struct android_vnode *, int);
 static int android_saf_tree_mkdir (struct android_vnode *, mode_t);
+static int android_saf_tree_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_saf_tree_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with SAF tree VFS nodes.  */
@@ -4363,6 +4422,7 @@ static struct android_vops saf_tree_vfs_ops =
     android_saf_tree_stat,
     android_saf_tree_access,
     android_saf_tree_mkdir,
+    android_saf_tree_chmod,
     android_saf_tree_opendir,
   };
 
@@ -5100,6 +5160,24 @@ android_saf_tree_mkdir (struct android_vnode *vnode, mode_t mode)
   return -1;
 }
 
+static int
+android_saf_tree_chmod (struct android_vnode *vnode, mode_t mode,
+			int flags)
+{
+  /* Return EACCESS should MODE contain unusual bits besides S_IFDIR |
+     S_IRUSR | S_IXUSR.  */
+
+  if (mode & ~(S_IFDIR | S_IRUSR | S_IXUSR))
+    {
+      errno = EACCES;
+      return -1;
+    }
+
+  /* Otherwise, no further action is necessary, as SAF nodes already
+     pretend to be S_IFDIR | S_IRUSR | S_IXUSR.  */
+  return 0;
+}
+
 /* Open a database Cursor containing each directory entry within the
    supplied SAF tree vnode VP.
 
@@ -5523,6 +5601,7 @@ static struct android_vops saf_file_vfs_ops =
     android_saf_tree_stat,
     android_saf_tree_access,
     android_saf_tree_mkdir,
+    android_saf_tree_chmod,
     android_saf_file_opendir,
   };
 
@@ -5761,6 +5840,7 @@ static int android_saf_new_rename (struct android_vnode *,
 static int android_saf_new_stat (struct android_vnode *, struct stat *);
 static int android_saf_new_access (struct android_vnode *, int);
 static int android_saf_new_mkdir (struct android_vnode *, mode_t);
+static int android_saf_new_chmod (struct android_vnode *, mode_t, int);
 static struct android_vdir *android_saf_new_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with SAF new VFS nodes.  */
@@ -5777,6 +5857,7 @@ static struct android_vops saf_new_vfs_ops =
     android_saf_new_stat,
     android_saf_new_access,
     android_saf_new_mkdir,
+    android_saf_new_chmod,
     android_saf_new_opendir,
   };
 
@@ -6038,6 +6119,14 @@ android_saf_new_mkdir (struct android_vnode *vnode, mode_t mode)
   return 0;
 }
 
+static int
+android_saf_new_chmod (struct android_vnode *vnode, mode_t mode,
+		       int flags)
+{
+  errno = ENOENT;
+  return -1;
+}
+
 static struct android_vdir *
 android_saf_new_opendir (struct android_vnode *vnode)
 {
@@ -6125,6 +6214,7 @@ static struct android_vops root_vfs_ops =
     android_unix_stat,
     android_unix_access,
     android_unix_mkdir,
+    android_unix_chmod,
     android_unix_opendir,
   };
 
@@ -6806,6 +6896,42 @@ android_faccessat (int dirfd, const char *restrict pathname,
     return -1;
 
   rc = (*vp->ops->access) (vp, mode);
+  (*vp->ops->close) (vp);
+  return rc;
+}
+
+/* Like `android_fstatat', but set file modes instead of
+   checking file status and respect FLAGS.  */
+
+int
+android_fchmodat (int dirfd, const char *pathname, mode_t mode,
+		  int flags)
+{
+  char buffer[PATH_MAX + 1];
+  struct android_vnode *vp;
+  int rc;
+
+  if (dirfd == AT_FDCWD || pathname[0] == '/')
+    goto vfs;
+
+  /* Now establish whether DIRFD is a file descriptor corresponding to
+     an open VFS directory stream.  */
+
+  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+    {
+      pathname = buffer;
+      goto vfs;
+    }
+
+  /* Fall back to fchmodat.  */
+  return fchmodat (dirfd, pathname, mode, flags);
+
+ vfs:
+  vp = android_name_file (pathname);
+  if (!vp)
+    return -1;
+
+  rc = (*vp->ops->chmod) (vp, mode, flags);
   (*vp->ops->close) (vp);
   return rc;
 }

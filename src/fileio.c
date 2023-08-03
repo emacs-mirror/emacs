@@ -3665,17 +3665,9 @@ command from GNU Coreutils.  */)
     return call4 (handler, Qset_file_modes, absname, mode, flag);
 
   encoded = ENCODE_FILE (absname);
-
-  /* Silently ignore attempts to change the access modes of files
-     within /contents on Android, preventing errors within backup file
-     creation.  */
-
-  if (check_vfs_filename (encoded, NULL))
-    return Qnil;
-
   char *fname = SSDATA (encoded);
   mode_t imode = XFIXNUM (mode) & 07777;
-  if (fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
+  if (emacs_fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
     report_file_error ("Doing chmod", absname);
 
   return Qnil;

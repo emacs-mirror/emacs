@@ -2719,6 +2719,16 @@ emacs_rename (const char *src, const char *dst)
 #endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
 }
 
+int
+emacs_fchmodat (int fd, const char *path, mode_t mode, int flags)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return fchmodat (fd, path, mode, flags);
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+  return android_fchmodat (fd, path, mode, flags);
+#endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
+}
+
 /* Maximum number of bytes to read or write in a single system call.
    This works around a serious bug in Linux kernels before 2.6.16; see
    <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>.

@@ -5095,6 +5095,7 @@ extern int emacs_mkdir (const char *, mode_t);
 extern int emacs_renameat_noreplace (int, const char *, int,
 				     const char *);
 extern int emacs_rename (const char *, const char *);
+extern int emacs_fchmodat (int, const char *, mode_t, int);
 extern ptrdiff_t emacs_read (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_read_quit (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);

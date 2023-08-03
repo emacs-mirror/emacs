@@ -74,6 +74,7 @@ extern int android_mkdir (const char *, mode_t);
 extern int android_renameat_noreplace (int, const char *,
 				       int, const char *);
 extern int android_rename (const char *, const char *);
+extern int android_fchmodat (int, const char *, mode_t, int);
 
 
 
