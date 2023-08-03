@@ -35,7 +35,42 @@
 ;; Olin Shivers's SRE, with concessions to Emacs regexp peculiarities,
 ;; and the older Emacs package Sregex.
 
+;;; Legacy syntax still accepted by rx:
+;;
+;; These are constructs from earlier rx and sregex implementations
+;; that were mistakes, accidents or just not very good ideas in hindsight.
+
+;; Obsolete: accepted but not documented
+;;
+;; Obsolete                     Preferred
+;; --------------------------------------------------------
+;; (not word-boundary)          not-word-boundary
+;; (not-syntax X)               (not (syntax X))
+;; not-wordchar                 (not wordchar)
+;; (not-char ...)               (not (any ...))
+;; any                          nonl, not-newline
+;; (repeat N FORM)              (= N FORM)
+;; (syntax CHARACTER)           (syntax NAME)
+;; (syntax CHAR-SYM)      [1]   (syntax NAME)
+;; (category chinse-two-byte)   (category chinese-two-byte)
+;; unibyte                      ascii
+;; multibyte                    nonascii
+;; --------------------------------------------------------
+;; [1]  where CHAR-SYM is a symbol with single-character name
+
+;; Obsolescent: accepted and documented but discouraged
+;;
+;; Obsolescent                    Preferred
+;; --------------------------------------------------------
+;; (and ...)                      (seq ...), (: ...), (sequence ...)
+;; anything                       anychar
+;; minimal-match, maximal-match   lazy ops: ??, *?, +?
+
+;; FIXME: Prepare a phase-out by emitting compile-time warnings about
+;; at least some of the legacy constructs above.
+
 ;;; Code:
+
 
 ;; The `rx--translate...' functions below return (REGEXP . PRECEDENCE),
 ;; where REGEXP is a list of string expressions that will be
@@ -167,7 +202,7 @@ Each entry is:
     ('not-word-boundary           (cons (list "\\B") t))
     ('symbol-start                (cons (list "\\_<") t))
     ('symbol-end                  (cons (list "\\_>") t))
-    ('not-wordchar                (cons (list "\\W") t))
+    ('not-wordchar                (rx--translate '(not wordchar)))
     (_
      (cond
       ((let ((class (cdr (assq sym rx--char-classes))))
@@ -419,86 +454,96 @@ a list of named character classes in the order they occur in BODY."
 If NEGATED is non-nil, negate the result; INTERVALS is a sorted
 list of disjoint intervals and CLASSES a list of named character
 classes."
-  (let ((items (append intervals classes)))
-    ;; Move lone ] and range ]-x to the start.
-    (let ((rbrac-l (assq ?\] items)))
-      (when rbrac-l
-        (setq items (cons rbrac-l (delq rbrac-l items)))))
-
-    ;; Split x-] and move the lone ] to the start.
-    (let ((rbrac-r (rassq ?\] items)))
-      (when (and rbrac-r (not (eq (car rbrac-r) ?\])))
-        (setcdr rbrac-r ?\\)
-        (setq items (cons '(?\] . ?\]) items))))
-
-    ;; Split ,-- (which would end up as ,- otherwise).
-    (let ((dash-r (rassq ?- items)))
-      (when (eq (car dash-r) ?,)
-        (setcdr dash-r ?,)
-        (setq items (nconc items '((?- . ?-))))))
-
-    ;; Remove - (lone or at start of interval)
-    (let ((dash-l (assq ?- items)))
-      (when dash-l
-        (if (eq (cdr dash-l) ?-)
-            (setq items (delq dash-l items))   ; Remove lone -
-          (setcar dash-l ?.))                  ; Reduce --x to .-x
-        (setq items (nconc items '((?- . ?-))))))
-
-    ;; Deal with leading ^ and range ^-x in non-negated set.
-    (when (and (eq (car-safe (car items)) ?^)
-               (not negated))
-      (if (eq (cdar items) ?^)
-          ;; single leading ^
-          (when (cdr items)
-            ;; Move the ^ to second place.
-            (setq items (cons (cadr items)
-                              (cons (car items) (cddr items)))))
-        ;; Split ^-x to _-x^
-        (setq items (cons (cons ?_ (cdar items))
-                          (cons '(?^ . ?^)
-                                (cdr items))))))
-
-    (cond
-     ;; Empty set: if negated, any char, otherwise match-nothing.
-     ((null items)
+  ;; No, this is not pretty code.  You try doing it in a way that is both
+  ;; elegant and efficient.  Or just one of the two.  I dare you.
+  (cond
+   ;; Single character.
+   ((and intervals (eq (caar intervals) (cdar intervals))
+         (null (cdr intervals))
+         (null classes))
+    (let ((ch (caar intervals)))
       (if negated
-          (rx--translate-symbol 'anything)
-        (rx--empty)))
-     ;; Single non-negated character.
-     ((and (null (cdr items))
-           (consp (car items))
-           (eq (caar items) (cdar items))
-           (not negated))
-      (cons (list (regexp-quote (char-to-string (caar items))))
-            t))
-     ;; Negated newline.
-     ((and (equal items '((?\n . ?\n)))
-           negated)
-      (rx--translate-symbol 'nonl))
-     ;; At least one character or class, possibly negated.
-     (t
+          (if (eq ch ?\n)
+              ;; Single negated newline.
+              (rx--translate-symbol 'nonl)
+            ;; Single negated character (other than newline).
+            (cons (list (string ?\[ ?^ ch ?\])) t))
+        ;; Single literal character.
+        (cons (list (regexp-quote (char-to-string ch))) t))))
+
+   ;; Empty set (or any char).
+   ((and (null intervals) (null classes))
+    (if negated
+        (rx--translate-symbol 'anything)
+      (rx--empty)))
+
+   ;; More than one character, or at least one class.
+   (t
+    (let ((dash nil) (caret nil))
+      ;; Move ] and range ]-x to the start.
+      (let ((rbrac-l (assq ?\] intervals)))
+        (when rbrac-l
+          (setq intervals (cons rbrac-l (remq rbrac-l intervals)))))
+
+      ;; Split x-] and move the lone ] to the start.
+      (let ((rbrac-r (rassq ?\] intervals)))
+        (when (and rbrac-r (not (eq (car rbrac-r) ?\])))
+          (setcdr rbrac-r ?\\)
+          (setq intervals (cons '(?\] . ?\]) intervals))))
+
+      ;; Split ,-- (which would end up as ,- otherwise).
+      (let ((dash-r (rassq ?- intervals)))
+        (when (eq (car dash-r) ?,)
+          (setcdr dash-r ?,)
+          (setq dash "-")))
+
+      ;; Remove - (lone or at start of interval)
+      (let ((dash-l (assq ?- intervals)))
+        (when dash-l
+          (if (eq (cdr dash-l) ?-)
+              (setq intervals (remq dash-l intervals))   ; Remove lone -
+            (setcar dash-l ?.))                          ; Reduce --x to .-x
+          (setq dash "-")))
+
+      ;; Deal with leading ^ and range ^-x in non-negated set.
+      (when (and (eq (caar intervals) ?^)
+                 (not negated))
+        (if (eq (cdar intervals) ?^)
+            ;; single leading ^
+            (if (or (cdr intervals) classes)
+                ;; something else to put before the ^
+                (progn
+                  (setq intervals (cdr intervals))   ; remove lone ^
+                  (setq caret "^"))                  ; put ^ (almost) last
+              ;; nothing else but a lone -
+              (setq intervals (cons '(?- . ?-) intervals))  ; move - first
+              (setq dash nil))
+          ;; split ^-x to _-x^
+          (setq intervals `((?_ . ,(cdar intervals)) (?^ . ?^)
+                            . ,(cdr intervals)))))
+
       (cons
        (list
         (concat
          "["
          (and negated "^")
-         (mapconcat (lambda (item)
-                      (cond ((symbolp item)
-                             (format "[:%s:]" item))
-                            ((eq (car item) (cdr item))
-                             (char-to-string (car item)))
-                            ((eq (1+ (car item)) (cdr item))
-                             (string (car item) (cdr item)))
+         (mapconcat (lambda (iv)
+                      (cond ((eq (car iv) (cdr iv))
+                             (char-to-string (car iv)))
+                            ((eq (1+ (car iv)) (cdr iv))
+                             (string (car iv) (cdr iv)))
                             ;; Ranges that go between normal chars and raw bytes
                             ;; must be split to avoid being mutilated
                             ;; by Emacs's regexp parser.
-                            ((<= (car item) #x3fff7f (cdr item))
-                             (string (car item) ?- #x3fff7f
-                                     #x3fff80 ?- (cdr item)))
+                            ((<= (car iv) #x3fff7f (cdr iv))
+                             (string (car iv) ?- #x3fff7f
+                                     #x3fff80 ?- (cdr iv)))
                             (t
-                             (string (car item) ?- (cdr item)))))
-                    items nil)
+                             (string (car iv) ?- (cdr iv)))))
+                    intervals)
+         (mapconcat (lambda (cls) (format "[:%s:]" cls)) classes)
+         caret                          ; ^ or nothing
+         dash                           ; - or nothing
          "]"))
        t)))))
 
@@ -602,10 +647,28 @@ If NEGATED, negate the sense (thus making it positive)."
 
 (defun rx--union-intervals (ivs-a ivs-b)
   "Union of the interval lists IVS-A and IVS-B."
-  (rx--complement-intervals
-   (rx--intersect-intervals
-    (rx--complement-intervals ivs-a)
-    (rx--complement-intervals ivs-b))))
+  (let ((union nil))
+    (while (and ivs-a ivs-b)
+      (let ((a (car ivs-a))
+            (b (car ivs-b)))
+        (cond
+         ((< (1+ (cdr a)) (car b))      ; a before b, not adacent
+          (push a union)
+          (setq ivs-a (cdr ivs-a)))
+         ((< (1+ (cdr b)) (car a))      ; b before a, not adacent
+          (push b union)
+          (setq ivs-b (cdr ivs-b)))
+         (t                             ; a and b adjacent or overlap
+          (setq ivs-a (cdr ivs-a))
+          (setq ivs-b (cdr ivs-b))
+          (if (< (cdr a) (cdr b))
+              (push (cons (min (car a) (car b))
+                          (cdr b))
+                    ivs-b)
+            (push (cons (min (car a) (car b))
+                        (cdr a))
+                  ivs-a))))))
+    (nconc (nreverse union) (or ivs-a ivs-b))))
 
 (defun rx--charset-intervals (charset)
   "Return a sorted list of non-adjacent disjoint intervals from CHARSET.
@@ -789,7 +852,10 @@ Return (REGEXP . PRECEDENCE)."
                 (setq syntax char)))))))
       (unless syntax
         (error "Unknown rx syntax name `%s'" sym)))
-    (cons (list (string ?\\ (if negated ?S ?s) syntax))
+    ;; Produce \w and \W instead of \sw and \Sw, for smaller size.
+    (cons (list (if (eq syntax ?w)
+                    (string ?\\ (if negated ?W ?w))
+                  (string ?\\ (if negated ?S ?s) syntax)))
           t)))
 
 (defconst rx--categories

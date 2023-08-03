@@ -327,12 +327,15 @@ Must be set before loading `use-package'."
       (set-default sym value))
   :group 'use-package)
 
+;; Redundant in Emacs 26 or later, which already highlights macro names.
 (defconst use-package-font-lock-keywords
   '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face nil t))))
-
-(font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
+(make-obsolete-variable 'use-package-font-lock-keywords
+                        'lisp-el-font-lock-keywords "30.1")
+(when (< emacs-major-version 26)
+  (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords))
 
 (defcustom use-package-compute-statistics nil
   "If non-nil, compute statistics concerned `use-package' declarations.
@@ -1055,6 +1058,7 @@ meaning:
 (define-derived-mode use-package-statistics-mode tabulated-list-mode
   "use-package statistics"
   "Show current statistics gathered about `use-package' declarations."
+  :interactive nil
   (setq tabulated-list-format
         ;; The sum of column width is 80 characters:
         [("Package" 25 t)

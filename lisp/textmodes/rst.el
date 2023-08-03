@@ -1473,7 +1473,7 @@ for modes derived from Text mode, like Mail mode."
   :version "21.1")
 
 ;; FIXME: Default must match suggestion in
-;;        http://sphinx-doc.org/rest.html#sections for Python documentation.
+;;        https://sphinx-doc.org/rest.html#sections for Python documentation.
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
 				      (?= simple 0)
 				      (?- simple 0)

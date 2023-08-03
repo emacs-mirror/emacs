@@ -215,7 +215,7 @@ directory by default."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.less\\'" . less-css-mode))
 ;;;###autoload
 (define-derived-mode less-css-mode css-mode "Less"
-  "Major mode for editing Less files (http://lesscss.org/).
+  "Major mode for editing Less files (https://lesscss.org/).
 Special commands:
 \\{less-css-mode-map}"
   (font-lock-add-keywords nil less-css-font-lock-keywords)

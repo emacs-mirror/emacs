@@ -47,9 +47,9 @@
 ;;  * RSS 0.92
 ;;    (see http://backend.userland.com/rss092)
 ;;  * RSS 1.0
-;;    (see http://purl.org/rss/1.0/spec)
+;;    (see https://web.resource.org/rss/1.0/spec)
 ;;  * RSS 2.0
-;;    (see http://blogs.law.harvard.edu/tech/rss)
+;;    (see https://cyber.harvard.edu/rss/)
 ;; as well as the following Atom formats:
 ;;  * Atom 0.3
 ;;  * Atom 1.0

@@ -10665,8 +10665,7 @@
 	* textmodes/rst.el: Add comments.
 	(rst-transition, rst-adornment): New faces.
 	(rst-adornment-faces-alist): Make default safe to reevaluate.
-	Fixes
-	http://sourceforge.net/tracker/?func=detail&atid=422030&aid=3479603&group_id=38414.
+	Fixes https://sourceforge.net/p/docutils/bugs/180/.
 	Improve customization tags.
 	(rst-define-level-faces): Clarify meaning.
 
