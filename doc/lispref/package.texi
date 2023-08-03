@@ -284,6 +284,13 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
   (expand-file-name file superfrobnicator-base))
 @end smallexample
 
+  If your project contains files that you don't wish to distribute to
+users (e.g.@: regression tests), you can add them to an
+@file{.elpaignore} file.  In this file, each line lists a file or
+wildcard matching files to ignore when producing your package's tar
+file on ELPA.  (ELPA will pass this file to @command{tar} with the
+@code{-X} option.)
+
 @node Package Archives
 @section Creating and Maintaining Package Archives
 @cindex package archive
