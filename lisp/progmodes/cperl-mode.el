@@ -5877,7 +5877,8 @@ default function."
 
 (defface cperl-method-call
   '((t (:inherit 'default )))
-  "The face for method calls.  Usually, they are not fontified.
+  "Font Lock mode face for method calls.
+Usually, method calls are not fontified.
 We use this face to prevent calls to methods which look like
 builtin functions to be fontified like, well, builtin
 functions (which they are not).  Inherits from `default'.")
