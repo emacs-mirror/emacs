@@ -184,12 +184,9 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 
 /* Establish that ENCODED is not contained within a special directory
    whose contents are not eligible for Unix VFS operations.  Signal a
-   `file-error' with REASON if it does.
+   `file-error' with REASON if it does.  */
 
-   If REASON is NULL, instead return whether ENCODED is contained
-   within such a directory.  */
-
-static bool
+static void
 check_vfs_filename (Lisp_Object encoded, const char *reason)
 {
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
@@ -199,14 +196,7 @@ check_vfs_filename (Lisp_Object encoded, const char *reason)
 
   if (android_is_special_directory (name, "/assets")
       || android_is_special_directory (name, "/content"))
-    {
-      if (!reason)
-	return true;
-
-      xsignal2 (Qfile_error, build_string (reason), encoded);
-    }
-
-  return false;
+    xsignal2 (Qfile_error, build_string (reason), encoded);
 #endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 }
 
