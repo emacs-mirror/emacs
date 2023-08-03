@@ -1340,10 +1340,11 @@ of a global face.  Value is the new attribute value."
 		       (format "%s" old-value))))
 	     (setq new-value
                    (if (memq attribute '(:foreground :background))
-                       (let ((color
-                              (read-color
-                               (format-prompt "%s for face `%s'"
-                                              default attribute-name face))))
+                       (let* ((prompt (format-prompt
+                                       "%s for face `%s'"
+                                       default attribute-name face))
+                              (fg (eq attribute ':foreground))
+                              (color (read-color prompt nil nil nil fg face)))
                          (if (equal (string-trim color) "")
                              default
                            color))
@@ -1870,15 +1871,26 @@ to `defined-colors' the elements of the returned list are color
 strings with text properties, that make the color names render
 with the color they represent as background color (if FOREGROUND
 is nil; otherwise use the foreground color)."
-  (mapcar
-   (lambda (color-name)
-     (let ((color (copy-sequence color-name)))
-       (propertize color 'face
-		   (if foreground
-		       (list :foreground color)
-		     (list :foreground (readable-foreground-color color-name)
-                           :background color)))))
-   (defined-colors frame)))
+  (mapcar (lambda (color-name)
+            (faces--string-with-color color-name color-name foreground))
+          (defined-colors frame)))
+
+(defun faces--string-with-color (string color &optional foreground face)
+  "Return a copy of STRING with face attributes for COLOR.
+Set the :background or :foreground attribute to COLOR, depending
+on the argument FOREGROUND.
+
+The optional FACE argument determines the values of other face
+attributes."
+  (let* ((defaults (if face (list face) '()))
+         (colors (cond (foreground
+                        (list :foreground color))
+                       (face
+                        (list :background color))
+                       (t
+                        (list :foreground (readable-foreground-color color)
+                              :background color)))))
+    (propertize string 'face (cons colors defaults))))
 
 (defun readable-foreground-color (color)
   "Return a readable foreground color for background COLOR.
@@ -1987,7 +1999,7 @@ If omitted or nil, that stands for the selected frame's display."
     (> (tty-color-gray-shades display) 2)))
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg
-			     foreground)
+			     foreground face)
   "Read a color name or RGB triplet.
 Completion is available for color names, but not for RGB triplets.
 
@@ -2016,17 +2028,25 @@ to enter an empty color name (the empty string).
 Interactively, or with optional arg MSG non-nil, print the
 resulting color name in the echo area.
 
-Interactively, displays a list of colored completions.  If optional
-argument FOREGROUND is non-nil, shows them as foregrounds, otherwise
-as backgrounds."
+Interactively, provides completion for selecting the color.  If
+the optional argument FOREGROUND is non-nil, shows the completion
+candidates with their foregound color changed to be the color of
+the candidate, otherwise changes the background color of the
+candidates.  The optional argument FACE determines the other
+face attributes of the candidates on display."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
-	 (colors (append '("foreground at point" "background at point")
-			 (if allow-empty-name '(""))
-                         (if (display-color-p)
-                             (defined-colors-with-face-attributes
-                               nil foreground)
-                           (defined-colors))))
+	 (color-alist
+          `(("foreground at point" . ,(foreground-color-at-point))
+            ("background at point" . ,(background-color-at-point))
+            ,@(if allow-empty-name '(("" . unspecified)))
+            ,@(mapcar (lambda (c) (cons c c)) (defined-colors))))
+         (colors (mapcar (lambda (pair)
+                           (let* ((name (car pair))
+                                  (color (cdr pair)))
+                             (faces--string-with-color name color
+                                                       foreground face)))
+                         color-alist))
 	 (color (completing-read
 		 (or prompt "Color (name or #RGB triplet): ")
 		 ;; Completing function for reading colors, accepting

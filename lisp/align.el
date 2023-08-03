@@ -211,20 +211,20 @@ If nil, then no messages will ever be printed to the minibuffer."
 
 (defcustom align-dq-string-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
-          '(python-mode vhdl-mode))
+          '(python-base-mode vhdl-mode))
   "A list of modes where double quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-sq-string-modes
-  (append align-perl-modes '(python-mode))
+  (append align-perl-modes '(python-base-mode))
   "A list of modes where single quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-open-comment-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
-          '(python-mode makefile-mode vhdl-mode))
+          '(python-base-mode makefile-mode vhdl-mode))
   "A list of modes with a single-line comment syntax.
 These are comments as in Lisp, which have a beginning, but end with
 the line (i.e., `comment-end' is an empty string)."
@@ -450,7 +450,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . ,(concat "[^=!<> \t\n]\\(\\s-*\\)="
 			  "\\(\\s-*\\)\\([^>= \t\n]\\|$\\)"))
      (group    . (1 2))
-     (modes    . '(python-mode))
+     (modes    . '(python-base-mode))
      (tab-stop . nil))
 
     (make-assignment
@@ -478,7 +478,7 @@ The possible settings for `align-region-separate' are:
     (basic-comma-delimiter
      (regexp   . ",\\(\\s-*\\)[^# \t\n]")
      (repeat   . t)
-     (modes    . (append align-perl-modes '(python-mode)))
+     (modes    . (append align-perl-modes '(python-base-mode)))
      (run-if   . ,(lambda () current-prefix-arg)))
 
     (c++-comment
@@ -508,7 +508,7 @@ The possible settings for `align-region-separate' are:
 
     (python-chain-logic
      (regexp   . "\\(\\s-*\\)\\(\\<and\\>\\|\\<or\\>\\)")
-     (modes    . '(python-mode))
+     (modes    . '(python-base-mode))
      (valid    . ,(lambda ()
                     (save-excursion
                       (goto-char (match-end 2))
@@ -525,7 +525,7 @@ The possible settings for `align-region-separate' are:
 
     (basic-line-continuation
      (regexp   . "\\(\\s-*\\)\\\\$")
-     (modes    . '(python-mode makefile-mode)))
+     (modes    . '(python-base-mode makefile-mode)))
 
     (tex-record-separator
      (regexp . ,(lambda (end reverse)
@@ -570,7 +570,7 @@ The possible settings for `align-region-separate' are:
     (css-declaration
      (regexp . "^\\s-*\\(?:\\w-?\\)+:\\(\\s-*\\).*;")
      (group . (1))
-     (modes . '(css-mode html-mode)))
+     (modes . '(css-base-mode html-mode)))
 
     (toml-assignment
      (regexp . ,(rx (group (zero-or-more (syntax whitespace)))

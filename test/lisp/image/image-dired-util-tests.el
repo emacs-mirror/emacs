@@ -57,23 +57,20 @@
                      "jpg")))))
 
 (ert-deftest image-dired-thumb-name/per-directory ()
-  (let ((image-dired-thumbnail-storage 'per-directory)
-        (rel-path "foo.jpg")
-        (abs-path "/tmp/foo.jpg")
-        (hash-name (concat (sha1 "foo.jpg") ".jpg")))
-    (should (file-name-absolute-p (image-dired-thumb-name rel-path)))
-    (should (file-name-absolute-p (image-dired-thumb-name abs-path)))
+  (let ((image-dired-thumbnail-storage 'per-directory))
+    (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
+    (should (file-name-absolute-p (image-dired-thumb-name "/tmp/foo.jpg")))
     (should (equal
-             (file-name-nondirectory (image-dired-thumb-name rel-path))
-             (file-name-nondirectory (image-dired-thumb-name abs-path))))
+             (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
+             (file-name-nondirectory (image-dired-thumb-name "/tmp/foo.jpg"))))
     ;; The cdr below avoids the system dependency in the car of the
     ;; list returned by 'file-name-split': it's "" on Posix systems,
     ;; but the drive letter on MS-Windows.
     (should (equal (cdr (file-name-split
-                         (image-dired-thumb-name abs-path)))
-                   (list "tmp" ".image-dired" hash-name)))
+                         (image-dired-thumb-name "/tmp/foo.jpg")))
+                   '("tmp" ".image-dired" "foo.jpg.thumb.jpg")))
     (should (equal (file-name-nondirectory
-                    (image-dired-thumb-name rel-path))
-                   hash-name))))
+                    (image-dired-thumb-name "foo.jpg"))
+                   "foo.jpg.thumb.jpg"))))
 
 ;;; image-dired-util-tests.el ends here

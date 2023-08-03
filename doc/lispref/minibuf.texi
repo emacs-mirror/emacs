@@ -1537,7 +1537,8 @@ that it uses the predicate @code{custom-variable-p} instead of
 @code{commandp}.
 @end defun
 
-@deffn Command read-color &optional prompt convert allow-empty display
+@deffn Command read-color &optional prompt convert allow-empty @
+  display foreground face
 This function reads a string that is a color specification, either the
 color's name or an RGB hex value such as @code{#RRRGGGBBB}.  It
 prompts with @var{prompt} (default: @code{"Color (name or #RGB triplet):"})
@@ -1557,6 +1558,13 @@ non-@code{nil} and the user enters null input.
 
 Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
+
+The optional arguments @var{foreground} and @var{face} control the
+appearence of the completion candidates in the @file{*Completions*}
+buffer.  The candidates are displayed in the specified @var{face} but
+with different colors: if @var{foreground} is non-@code{nil}, the
+foreground color is changed to be the color of the candidate,
+otherwise the background is changed to the candidate's color.
 @end deffn
 
   See also the functions @code{read-coding-system} and

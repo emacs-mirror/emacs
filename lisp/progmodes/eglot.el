@@ -421,6 +421,14 @@ This can be useful when using docker to run a language server.")
 
 ;;; Constants
 ;;;
+(defconst eglot--version
+  (eval-when-compile
+    (when byte-compile-current-file
+      (require 'lisp-mnt)
+      (lm-version byte-compile-current-file)))
+  "The version as a string of this version of Eglot.
+It is nil if Eglot is not byte-complied.")
+
 (defconst eglot--symbol-kind-names
   `((1 . "File") (2 . "Module")
     (3 . "Namespace") (4 . "Package") (5 . "Class")
@@ -1352,7 +1360,9 @@ This docstring appeases checkdoc, that's all."
                                         (eq (jsonrpc-process-type server)
                                             'network))
                               (emacs-pid))
-                            :clientInfo '(:name "Eglot")
+                            :clientInfo
+                            `(:name "Eglot" ,@(when eglot--version
+                                                `(:version ,eglot--version)))
                             ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
                             ;; into `/path/to/baz.py', so LSP groks it.
                             :rootPath (file-local-name
