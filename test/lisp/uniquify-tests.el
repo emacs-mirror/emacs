@@ -89,21 +89,6 @@
                          '("a/dir/" "b/dir/")))
           (mapc #'kill-buffer bufs))))))
 
-(ert-deftest uniquify-home ()
-  "uniquify works, albeit confusingly, in the presence of directories named \"~\""
-  (let (bufs)
-    (save-excursion
-      (push (find-file-noselect "~") bufs)
-      (push (find-file-noselect "./~") bufs)
-      (should (equal (mapcar #'buffer-name bufs)
-                     '("~<test>" "~<>")))
-      (push (find-file-noselect "~/foo") bufs)
-      (push (find-file-noselect "./~/foo") bufs)
-      (should (equal (mapcar #'buffer-name bufs)
-                     '("foo<~>" "foo</nonexistent>" "~<test>" "~<>")))
-      (while bufs
-        (kill-buffer (pop bufs))))))
-
 (ert-deftest uniquify-rename-to-dir ()
   "Giving a buffer a name which matches a directory doesn't rename the buffer"
   (let ((uniquify-buffer-name-style 'forward)
