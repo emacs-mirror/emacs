@@ -2697,12 +2697,12 @@ Currently there are `ruby-mode' and `ruby-ts-mode'."
 ;;;###autoload
 (add-to-list 'auto-mode-alist
              (cons (purecopy (concat "\\(?:\\.\\(?:"
-                                     "rbw?\\|ru\\|rake\\|thor"
+                                     "rbw?\\|ru\\|rake\\|thor\\|axlsx"
                                      "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
                                      "\\)"
                                      "\\|/"
                                      "\\(?:Gem\\|Rake\\|Cap\\|Thor"
-                                     "\\|Puppet\\|Berks\\|Brew"
+                                     "\\|Puppet\\|Berks\\|Brew\\|Fast"
                                      "\\|Vagrant\\|Guard\\|Pod\\)file"
                                      "\\)\\'"))
                    'ruby-mode))
