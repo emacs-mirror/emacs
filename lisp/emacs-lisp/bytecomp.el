@@ -5782,6 +5782,67 @@ and corresponding effects."
       form    ; arity error
     `(forward-word (- (or ,arg 1)))))
 
+(defun bytecomp--check-keyword-args (form arglist allowed-keys required-keys)
+  (let ((fun (car form)))
+    (cl-flet ((missing (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called without required keyword argument %S"
+		 fun keyword))
+	      (unrecognized (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called with unknown keyword argument %S"
+		 fun keyword))
+	      (duplicate (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called with repeated keyword argument %S"
+		 fun keyword))
+              (missing-val (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "missing value for keyword argument %S"
+		 keyword)))
+      (let* ((seen '())
+	     (l arglist))
+	(while (consp l)
+	  (let ((key (car l)))
+	    (cond ((and (keywordp key) (memq key allowed-keys))
+		   (cond ((memq key seen)
+			  (duplicate l key))
+			 (t
+			  (push key seen))))
+		  (t (unrecognized l key)))
+            (when (null (cdr l))
+              (missing-val l key)))
+	  (setq l (cddr l)))
+        (dolist (key required-keys)
+	  (unless (memq key seen)
+	    (missing form key))))))
+  form)
+
+(put 'make-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name
+            :buffer :command :coding :noquery :stop :connection-type
+            :filter :sentinel :stderr :file-handler)
+          '(:name :command))))
+
+(put 'make-network-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name
+            :buffer :host :service :type :family :local :remote :coding
+            :nowait :noquery :stop :filter :filter-multibyte :sentinel
+            :log :plist :tls-parameters :server :broadcast :dontroute
+            :keepalive :linger :oobinline :priority :reuseaddr :bindtodevice
+            :use-external-socket)
+          '(:name :service))))
+
 (provide 'byte-compile)
 (provide 'bytecomp)
 

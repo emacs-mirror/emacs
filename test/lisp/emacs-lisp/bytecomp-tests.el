@@ -1204,6 +1204,22 @@ byte-compiled.  Run with dynamic binding."
  "nowarn-inline-after-defvar.el"
  "Lexical argument shadows" 'reverse)
 
+(bytecomp--define-warning-file-test
+ "warn-make-process-missing-keyword-arg.el"
+ "called without required keyword argument :command")
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-unknown-keyword-arg.el"
+ "called with unknown keyword argument :coding-system")
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-repeated-keyword-arg.el"
+ "called with repeated keyword argument :name")
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-missing-keyword-value.el"
+ "missing value for keyword argument :command")
+
 
 ;;;; Macro expansion.
 
