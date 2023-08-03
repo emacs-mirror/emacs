@@ -686,10 +686,10 @@ Do the same for the keys of the same name."
       menu-bar-separator)
     (bindings--define-key menu [customize-browse]
       '(menu-item "Browse Customization Groups" customize-browse
-                  :help "Browse all customization groups"))
+                  :help "Tree-like browser of all the groups of customizable options"))
     (bindings--define-key menu [customize]
-      '(menu-item "Top-level Customization Group" customize
-                  :help "The master group called `Emacs'"))
+      '(menu-item "Top-level Emacs Customization Group" customize
+                  :help "Top-level groups of customizable options, and their descriptions"))
     (bindings--define-key menu [customize-themes]
       '(menu-item "Custom Themes" customize-themes
                   :help "Choose a pre-defined customization theme"))
