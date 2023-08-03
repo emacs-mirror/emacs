@@ -139,11 +139,39 @@ public final class EmacsSafThread extends HandlerThread
     /* Map between document names and children.  */
     HashMap<String, DocIdEntry> children;
 
+    /* Map between document names and file status.  */
+    HashMap<String, StatCacheEntry> statCache;
+
     /* Map between document IDs and cache items.  */
     HashMap<String, CacheEntry> idCache;
   };
 
-  private final class DocIdEntry
+  private static final class StatCacheEntry
+  {
+    /* The time at which this cache entry was created.  */
+    long time;
+
+    /* Flags, size, and modification time of this file.  */
+    long flags, size, mtime;
+
+    /* Whether or not this file is a directory.  */
+    boolean isDirectory;
+
+    public
+    StatCacheEntry ()
+    {
+      time = SystemClock.uptimeMillis ();
+    }
+
+    public boolean
+    isValid ()
+    {
+      return ((SystemClock.uptimeMillis () - time)
+	      < CACHE_INVALID_TIME * 1000);
+    }
+  };
+
+  private static final class DocIdEntry
   {
     /* The document ID.  */
     String documentId;
@@ -162,10 +190,14 @@ public final class EmacsSafThread extends HandlerThread
        containing this entry, and TOPLEVEL is the toplevel
        representing it.  SIGNAL is a cancellation signal.
 
+       RESOLVER is the content provider used to retrieve file
+       information.
+
        Value is NULL if the file cannot be found.  */
 
     public CacheEntry
-    getCacheEntry (Uri tree, CacheToplevel toplevel,
+    getCacheEntry (ContentResolver resolver, Uri tree,
+		   CacheToplevel toplevel,
 		   CancellationSignal signal)
     {
       Uri uri;
@@ -272,6 +304,7 @@ public final class EmacsSafThread extends HandlerThread
 
     toplevel = new CacheToplevel ();
     toplevel.children = new HashMap<String, DocIdEntry> ();
+    toplevel.statCache = new HashMap<String, StatCacheEntry> ();
     toplevel.idCache = new HashMap<String, CacheEntry> ();
     cacheToplevels.put (uri, toplevel);
     return toplevel;
@@ -311,7 +344,9 @@ public final class EmacsSafThread extends HandlerThread
   pruneCache ()
   {
     Iterator<CacheEntry> iter;
+    Iterator<StatCacheEntry> statIter;
     CacheEntry tem;
+    StatCacheEntry stat;
 
     for (CacheToplevel toplevel : cacheToplevels.values ())
       {
@@ -338,6 +373,25 @@ public final class EmacsSafThread extends HandlerThread
 	      }
 
 	    iter.remove ();
+	  }
+
+	statIter = toplevel.statCache.values ().iterator ();
+
+	while (statIter.hasNext ())
+	  {
+	    /* Get the cache entry.  */
+	    stat = statIter.next ();
+
+	    /* If it's not valid anymore, remove it.  Iterating over a
+	       collection whose contents are being removed is
+	       undefined unless the removal is performed using the
+	       iterator's own `remove' function, so tem.remove cannot
+	       be used here.  */
+
+	    if (stat.isValid ())
+	      continue;
+
+	    statIter.remove ();
 	  }
       }
 
@@ -379,8 +433,60 @@ public final class EmacsSafThread extends HandlerThread
     return cacheEntry;
   }
 
+  /* Cache file status for DOCUMENTID within TOPLEVEL.  Value is the
+     new cache entry.  CURSOR is the cursor from where to retrieve the
+     file status, in the form of the columns COLUMN_FLAGS,
+     COLUMN_SIZE, COLUMN_MIME_TYPE and COLUMN_LAST_MODIFIED.  */
+
+  private StatCacheEntry
+  cacheFileStatus (String documentId, CacheToplevel toplevel,
+		   Cursor cursor)
+  {
+    StatCacheEntry entry;
+    int flagsIndex, columnIndex, typeIndex;
+    int sizeIndex, mtimeIndex;
+    String type;
+
+    /* Obtain the indices for columns wanted from this cursor.  */
+    flagsIndex = cursor.getColumnIndex (Document.COLUMN_FLAGS);
+    sizeIndex = cursor.getColumnIndex (Document.COLUMN_SIZE);
+    typeIndex = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
+    mtimeIndex = cursor.getColumnIndex (Document.COLUMN_LAST_MODIFIED);
+
+    /* COLUMN_LAST_MODIFIED is allowed to be absent in a
+       conforming documents provider.  */
+    if (flagsIndex < 0 || sizeIndex < 0 || typeIndex < 0)
+      return null;
+
+    /* Get the file status from CURSOR.  */
+    entry = new StatCacheEntry ();
+    entry.flags = cursor.getInt (flagsIndex);
+    type = cursor.getString (typeIndex);
+
+    if (type == null)
+      return null;
+
+    entry.isDirectory = type.equals (Document.MIME_TYPE_DIR);
+
+    if (cursor.isNull (sizeIndex))
+      /* The size is unknown.  */
+      entry.size = -1;
+    else
+      entry.size = cursor.getLong (sizeIndex);
+
+    /* mtimeIndex is potentially unset, since document providers
+       aren't obligated to provide modification times.  */
+
+    if (mtimeIndex >= 0 && !cursor.isNull (mtimeIndex))
+      entry.mtime = cursor.getLong (mtimeIndex);
+
+    /* Finally, add this entry to the cache and return.  */
+    toplevel.statCache.put (documentId, entry);
+    return entry;
+  }
+
   /* Cache the type and as many of the children of the directory
-     designated by DOC_ID as possible into TOPLEVEL.
+     designated by DOCUMENTID as possible into TOPLEVEL.
 
      CURSOR should be a cursor representing an open directory stream,
      with its projection consisting of at least the display name,
@@ -434,6 +540,12 @@ public final class EmacsSafThread extends HandlerThread
 	    idEntry = new DocIdEntry ();
 	    idEntry.documentId = id;
 	    entry.children.put (id, idEntry);
+
+	    /* Cache the file status for ID within TOPELVEL too; if a
+	       directory listing is being requested, it's very likely
+	       that a series of calls for file status will follow.  */
+
+	    cacheFileStatus (id, toplevel, cursor);
 
 	    /* If this constituent is a directory, don't cache any
 	       information about it.  It cannot be cached without
@@ -499,6 +611,7 @@ public final class EmacsSafThread extends HandlerThread
 
 	  toplevel = getCache (uri);
 	  toplevel.idCache.remove (documentId);
+	  toplevel.statCache.remove (documentId);
 
 	  /* If the parent of CACHENAME is cached, remove it.  */
 
@@ -570,6 +683,7 @@ public final class EmacsSafThread extends HandlerThread
 
 	  toplevel = getCache (uri);
 	  toplevel.idCache.remove (documentId);
+	  toplevel.statCache.remove (documentId);
 
 	  /* Now remove DOCUMENTID from CACHENAME's cache entry, if
 	     any.  */
@@ -615,6 +729,27 @@ public final class EmacsSafThread extends HandlerThread
 		  break;
 		}
 	    }
+	}
+      });
+  }
+
+  /* Invalidate the file status cache entry for DOCUMENTID within URI.
+     Call this when the contents of a file (i.e. the constituents of a
+     directory file) may have changed, but the document's display name
+     has not.  */
+
+  public void
+  postInvalidateStat (final Uri uri, final String documentId)
+  {
+    handler.post (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  CacheToplevel toplevel;
+
+	  toplevel = getCache (uri);
+	  toplevel.statCache.remove (documentId);
 	}
       });
   }
@@ -857,7 +992,8 @@ public final class EmacsSafThread extends HandlerThread
 		/* Fetch just the information for this document.  */
 
 		if (cache == null)
-		  cache = idEntry.getCacheEntry (uri, toplevel, signal);
+		  cache = idEntry.getCacheEntry (resolver, uri, toplevel,
+						 signal);
 
 		if (cache == null)
 		  {
@@ -1082,114 +1218,105 @@ public final class EmacsSafThread extends HandlerThread
   statDocument1 (String uri, String documentId,
 		 CancellationSignal signal)
   {
-    Uri uriObject;
+    Uri uriObject, tree;
     String[] projection;
     long[] stat;
-    int flagsIndex, columnIndex, typeIndex;
-    int sizeIndex, mtimeIndex, flags;
-    long tem;
-    String tem1;
     Cursor cursor;
+    CacheToplevel toplevel;
+    StatCacheEntry cache;
 
-    uriObject = Uri.parse (uri);
+    tree = Uri.parse (uri);
 
     if (documentId == null)
-      documentId = DocumentsContract.getTreeDocumentId (uriObject);
+      documentId = DocumentsContract.getTreeDocumentId (tree);
 
     /* Create a document URI representing DOCUMENTID within URI's
        authority.  */
 
     uriObject
-      = DocumentsContract.buildDocumentUriUsingTree (uriObject, documentId);
+      = DocumentsContract.buildDocumentUriUsingTree (tree, documentId);
 
-    /* Now stat this document.  */
+    /* See if the file status cache currently contains this
+       document.  */
 
-    projection = new String[] {
-      Document.COLUMN_FLAGS,
-      Document.COLUMN_LAST_MODIFIED,
-      Document.COLUMN_MIME_TYPE,
-      Document.COLUMN_SIZE,
-    };
+    toplevel = getCache (tree);
+    cache = toplevel.statCache.get (documentId);
 
-    cursor = resolver.query (uriObject, projection, null,
-			     null, null, signal);
-
-    if (cursor == null)
-      return null;
-
-    /* Obtain the indices for columns wanted from this cursor.  */
-    flagsIndex = cursor.getColumnIndex (Document.COLUMN_FLAGS);
-    sizeIndex = cursor.getColumnIndex (Document.COLUMN_SIZE);
-    typeIndex = cursor.getColumnIndex (Document.COLUMN_MIME_TYPE);
-    mtimeIndex = cursor.getColumnIndex (Document.COLUMN_LAST_MODIFIED);
-
-    if (!cursor.moveToFirst ()
-	/* COLUMN_LAST_MODIFIED is allowed to be absent in a
-	   conforming documents provider.  */
-	|| flagsIndex < 0 || sizeIndex < 0 || typeIndex < 0)
+    if (cache == null || !cache.isValid ())
       {
-	cursor.close ();
-	return null;
+	/* Stat this document and enter its information into the
+	   cache.  */
+
+	projection = new String[] {
+	  Document.COLUMN_FLAGS,
+	  Document.COLUMN_LAST_MODIFIED,
+	  Document.COLUMN_MIME_TYPE,
+	  Document.COLUMN_SIZE,
+	};
+
+	cursor = resolver.query (uriObject, projection, null,
+				 null, null, signal);
+
+	if (cursor == null)
+	  return null;
+
+	try
+	  {
+	    if (!cursor.moveToFirst ())
+	      return null;
+
+	    cache = cacheFileStatus (documentId, toplevel, cursor);
+	  }
+	finally
+	  {
+	    cursor.close ();
+	  }
+
+	/* If cache is still null, return null.  */
+
+	if (cache == null)
+	  return null;
       }
 
-    /* Create the array of file status.  */
+    /* Create the array of file status and populate it with the
+       information within cache.  */
     stat = new long[3];
 
-    try
+    stat[0] |= S_IRUSR;
+    if ((cache.flags & Document.FLAG_SUPPORTS_WRITE) != 0)
+      stat[0] |= S_IWUSR;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+	&& (cache.flags & Document.FLAG_VIRTUAL_DOCUMENT) != 0)
+      stat[0] |= S_IFCHR;
+
+    stat[1] = cache.size;
+
+    /* Check if this is a directory file.  */
+    if (cache.isDirectory
+	/* Files shouldn't be specials and directories at the same
+	   time, but Android doesn't forbid document providers
+	   from returning this information.  */
+	&& (stat[0] & S_IFCHR) == 0)
       {
-	flags = cursor.getInt (flagsIndex);
+	/* Since FLAG_SUPPORTS_WRITE doesn't apply to directories,
+	   just assume they're writable.  */
+	stat[0] |= S_IFDIR | S_IWUSR | S_IXUSR;
 
-	stat[0] |= S_IRUSR;
-	if ((flags & Document.FLAG_SUPPORTS_WRITE) != 0)
-	  stat[0] |= S_IWUSR;
+	/* Directory files cannot be modified if
+	   FLAG_DIR_SUPPORTS_CREATE is not set.  */
 
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-	    && (flags & Document.FLAG_VIRTUAL_DOCUMENT) != 0)
-	  stat[0] |= S_IFCHR;
-
-	if (cursor.isNull (sizeIndex))
-	  stat[1] = -1; /* The size is unknown.  */
-	else
-	  stat[1] = cursor.getLong (sizeIndex);
-
-	tem1 = cursor.getString (typeIndex);
-
-	/* Check if this is a directory file.  */
-	if (tem1.equals (Document.MIME_TYPE_DIR)
-	    /* Files shouldn't be specials and directories at the same
-	       time, but Android doesn't forbid document providers
-	       from returning this information.  */
-	    && (stat[0] & S_IFCHR) == 0)
-	  {
-	    /* Since FLAG_SUPPORTS_WRITE doesn't apply to directories,
-	       just assume they're writable.  */
-	    stat[0] |= S_IFDIR | S_IWUSR | S_IXUSR;
-
-	    /* Directory files cannot be modified if
-	       FLAG_DIR_SUPPORTS_CREATE is not set.  */
-
-	    if ((flags & Document.FLAG_DIR_SUPPORTS_CREATE) == 0)
-	      stat[0] &= ~S_IWUSR;
-	  }
-
-	/* If this file is neither a character special nor a
-	   directory, indicate that it's a regular file.  */
-
-	if ((stat[0] & (S_IFDIR | S_IFCHR)) == 0)
-	  stat[0] |= S_IFREG;
-
-	if (mtimeIndex >= 0 && !cursor.isNull (mtimeIndex))
-	  {
-	    /* Content providers are allowed to not provide mtime.  */
-	    tem = cursor.getLong (mtimeIndex);
-	    stat[2] = tem;
-	  }
-      }
-    finally
-      {
-	cursor.close ();
+	if ((cache.flags & Document.FLAG_DIR_SUPPORTS_CREATE) == 0)
+	  stat[0] &= ~S_IWUSR;
       }
 
+    /* If this file is neither a character special nor a
+       directory, indicate that it's a regular file.  */
+
+    if ((stat[0] & (S_IFDIR | S_IFCHR)) == 0)
+      stat[0] |= S_IFREG;
+
+    stat[2] = cache.mtime;
     return stat;
   }
 
@@ -1389,6 +1516,9 @@ public final class EmacsSafThread extends HandlerThread
       Document.COLUMN_DISPLAY_NAME,
       Document.COLUMN_DOCUMENT_ID,
       Document.COLUMN_MIME_TYPE,
+      Document.COLUMN_FLAGS,
+      Document.COLUMN_LAST_MODIFIED,
+      Document.COLUMN_SIZE,
     };
 
     cursor = resolver.query (uriObject, projection, null, null,
@@ -1441,6 +1571,7 @@ public final class EmacsSafThread extends HandlerThread
     Uri treeUri, documentUri;
     String mode;
     ParcelFileDescriptor fileDescriptor;
+    CacheToplevel toplevel;
 
     treeUri = Uri.parse (uri);
 
@@ -1450,35 +1581,26 @@ public final class EmacsSafThread extends HandlerThread
     documentUri
       = DocumentsContract.buildDocumentUriUsingTree (treeUri, documentId);
 
-    if (write || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-      {
-	/* Select the mode used to open the file.  `rw' means open
-	   a stat-able file, while `rwt' means that and to
-	   truncate the file as well.  */
+    /* Select the mode used to open the file.  */
 
+    if (write)
+      {
 	if (truncate)
 	  mode = "rwt";
 	else
 	  mode = "rw";
-
-	fileDescriptor
-	  = resolver.openFileDescriptor (documentUri, mode,
-					 signal);
       }
     else
-      {
-	/* Select the mode used to open the file.  `openFile'
-	   below means always open a stat-able file.  */
+      mode = "r";
 
-	if (truncate)
-	  /* Invalid mode! */
-	  return null;
-	else
-	  mode = "r";
+    fileDescriptor
+      = resolver.openFileDescriptor (documentUri, mode,
+				     signal);
 
-	fileDescriptor = resolver.openFile (documentUri, mode,
-					    signal);
-      }
+    /* Every time a document is opened, remove it from the file status
+       cache.  */
+    toplevel = getCache (treeUri);
+    toplevel.statCache.remove (documentId);
 
     return fileDescriptor;
   }

@@ -1586,7 +1586,7 @@ public final class EmacsService extends Service
     String mimeType, separator, mime, extension;
     int index;
     MimeTypeMap singleton;
-    Uri directoryUri, docUri;
+    Uri treeUri, directoryUri, docUri;
 
     /* Try to get the MIME type for this document.
        Default to ``application/octet-stream''.  */
@@ -1608,15 +1608,15 @@ public final class EmacsService extends Service
       }
 
     /* Now parse URI.  */
-    directoryUri = Uri.parse (uri);
+    treeUri = Uri.parse (uri);
 
     if (documentId == null)
-      documentId = DocumentsContract.getTreeDocumentId (directoryUri);
+      documentId = DocumentsContract.getTreeDocumentId (treeUri);
 
     /* And build a file URI referring to the directory.  */
 
     directoryUri
-      = DocumentsContract.buildChildDocumentsUriUsingTree (directoryUri,
+      = DocumentsContract.buildChildDocumentsUriUsingTree (treeUri,
 							   documentId);
 
     docUri = DocumentsContract.createDocument (resolver,
@@ -1625,6 +1625,11 @@ public final class EmacsService extends Service
 
     if (docUri == null)
       return null;
+
+    /* Invalidate the file status of the containing directory.  */
+
+    if (storageThread != null)
+      storageThread.postInvalidateStat (treeUri, documentId);
 
     /* Return the ID of the new document.  */
     return DocumentsContract.getDocumentId (docUri);
@@ -1638,18 +1643,18 @@ public final class EmacsService extends Service
     throws FileNotFoundException
   {
     int index;
-    Uri directoryUri, docUri;
+    Uri treeUri, directoryUri, docUri;
 
     /* Now parse URI.  */
-    directoryUri = Uri.parse (uri);
+    treeUri = Uri.parse (uri);
 
     if (documentId == null)
-      documentId = DocumentsContract.getTreeDocumentId (directoryUri);
+      documentId = DocumentsContract.getTreeDocumentId (treeUri);
 
     /* And build a file URI referring to the directory.  */
 
     directoryUri
-      = DocumentsContract.buildChildDocumentsUriUsingTree (directoryUri,
+      = DocumentsContract.buildChildDocumentsUriUsingTree (treeUri,
 							   documentId);
 
     /* If name ends with a directory separator character, delete
@@ -1669,7 +1674,12 @@ public final class EmacsService extends Service
     if (docUri == null)
       return null;
 
-    /* Return the ID of the new document.  */
+    /* Return the ID of the new document, but first invalidate the
+       state of the containing directory.  */
+
+    if (storageThread != null)
+      storageThread.postInvalidateStat (treeUri, documentId);
+
     return DocumentsContract.getDocumentId (docUri);
   }
 
@@ -1763,7 +1773,15 @@ public final class EmacsService extends Service
     /* Now invalidate the caches for both DIRNAME and DOCID.  */
 
     if (storageThread != null)
-      storageThread.postInvalidateCacheDir (uri1, docId, dirName);
+      {
+	storageThread.postInvalidateCacheDir (uri1, docId, dirName);
+
+	/* Invalidate the stat cache entries for both the source and
+	   destination directories, since their contents have
+	   changed.  */
+	storageThread.postInvalidateStat (uri1, dstId);
+	storageThread.postInvalidateStat (uri1, srcId);
+      }
 
     return (name != null
 	    ? DocumentsContract.getDocumentId (name)

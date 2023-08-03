@@ -184,9 +184,12 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 
 /* Establish that ENCODED is not contained within a special directory
    whose contents are not eligible for Unix VFS operations.  Signal a
-   `file-error' with REASON if it does.  */
+   `file-error' with REASON if it does.
 
-static void
+   If REASON is NULL, instead return whether ENCODED is contained
+   within such a directory.  */
+
+static bool
 check_vfs_filename (Lisp_Object encoded, const char *reason)
 {
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
@@ -194,11 +197,16 @@ check_vfs_filename (Lisp_Object encoded, const char *reason)
 
   name = SSDATA (encoded);
 
-  if (android_is_special_directory (name, "/assets"))
-    xsignal2 (Qfile_error, build_string (reason), encoded);
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
+    {
+      if (!reason)
+	return true;
 
-  if (android_is_special_directory (name, "/content"))
-    xsignal2 (Qfile_error, build_string (reason), encoded);
+      xsignal2 (Qfile_error, build_string (reason), encoded);
+    }
+
+  return false;
 #endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 }
 
@@ -3657,8 +3665,14 @@ command from GNU Coreutils.  */)
     return call4 (handler, Qset_file_modes, absname, mode, flag);
 
   encoded = ENCODE_FILE (absname);
-  check_vfs_filename (encoded, "Trying to change access modes of file"
-		      " within special directory");
+
+  /* Silently ignore attempts to change the access modes of files
+     within /contents on Android, preventing errors within backup file
+     creation.  */
+
+  if (check_vfs_filename (encoded, NULL))
+    return Qnil;
+
   char *fname = SSDATA (encoded);
   mode_t imode = XFIXNUM (mode) & 07777;
   if (fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
