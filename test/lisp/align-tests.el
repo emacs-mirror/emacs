@@ -25,6 +25,8 @@
 (require 'ert-x)
 (require 'align)
 
+;;;; align
+
 (defun test-align-transform-fun (function)
   (lambda ()
     (funcall function)
@@ -55,6 +57,15 @@
   (let ((indent-tabs-mode nil))
     (ert-test-erts-file (ert-resource-file "conf-toml-mode.erts")
                         (test-align-transform-fun #'conf-toml-mode))))
+
+;;;; align-regexp
+
+(ert-deftest align-regexp ()
+  (let ((indent-tabs-mode nil))
+    (ert-test-erts-file (ert-resource-file "align-regexp.erts")
+                        (lambda ()
+                          (align-regexp (point-min) (point-max)
+                                        "\\(\\s-*\\)(")))))
 
 (provide 'align-tests)
 

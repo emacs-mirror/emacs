@@ -1,0 +1,13 @@
+Name: align function declaration
+
+=-=
+Fred (123) 456-7890
+Alice (123) 456-7890
+Mary-Anne (123) 456-7890
+Joe (123) 456-7890
+=-=
+Fred      (123) 456-7890
+Alice     (123) 456-7890
+Mary-Anne (123) 456-7890
+Joe       (123) 456-7890
+=-=-=
