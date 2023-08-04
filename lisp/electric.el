@@ -294,7 +294,6 @@ or comment."
 
 ;;;###autoload
 (define-key global-map "\C-j" 'electric-newline-and-maybe-indent)
-
 ;;;###autoload
 (defun electric-newline-and-maybe-indent ()
   "Insert a newline.

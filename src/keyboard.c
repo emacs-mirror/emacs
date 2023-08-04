@@ -3053,9 +3053,6 @@ read_char (int commandflag, Lisp_Object map,
       struct buffer *prev_buffer = current_buffer;
       last_input_event = c;
 
-      /* All a `text-conversion' event does is prevent Emacs from
-	 staying idle.  It is not useful.  */
-
       call4 (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
 
       if (CONSP (c) && !NILP (Fmemq (XCAR (c), Vwhile_no_input_ignore_events))

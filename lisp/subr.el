@@ -3348,7 +3348,7 @@ causes it to evaluate `help-form' and display the result."
 	  (unless (get-text-property 0 'face prompt)
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
           ;; Display the on screen keyboard if it exists.
-          (frame-toggle-on-screen-keyboard nil t)
+          (frame-toggle-on-screen-keyboard (selected-frame) nil)
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
 		       (read-key prompt)))
 	  (and show-help (buffer-live-p (get-buffer helpbuf))

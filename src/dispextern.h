@@ -57,7 +57,6 @@ typedef struct
 /* Accommodate X's usage of None as a null resource ID.  */
 #define No_Cursor (NULL)
 #else
-/* Android doesn't support cursors and also uses handles.  */
 #define No_Cursor 0
 #endif
 

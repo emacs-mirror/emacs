@@ -7252,7 +7252,7 @@ process has been transmitted to the serial port.  */)
 #if !defined WINDOWSNT && defined HAVE_TCDRAIN
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
 	report_file_error ("Failed tcdrain", Qnil);
-#endif /* not WINDOWSNT */
+#endif /* not WINDOWSNT && not TCDRAIN */
       /* Do nothing on Windows because writes are blocking.  */
     }
   else

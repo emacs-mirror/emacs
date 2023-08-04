@@ -4791,9 +4791,7 @@ init_buffer_once (void)
 #ifdef HAVE_TREE_SITTER
   bset_ts_parser_list (&buffer_defaults, Qnil);
 #endif
-#ifdef HAVE_TEXT_CONVERSION
   bset_text_conversion_style (&buffer_defaults, Qnil);
-#endif
   bset_cursor_in_non_selected_windows (&buffer_defaults, Qt);
 
   bset_enable_multibyte_characters (&buffer_defaults, Qt);
