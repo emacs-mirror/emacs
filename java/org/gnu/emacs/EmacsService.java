@@ -1294,8 +1294,12 @@ public final class EmacsService extends Service
 	if (DocumentsContract.isTreeUri (uri)
 	    && uri.getAuthority ().equals (providerName)
 	    && permission.isReadPermission ())
-	  /* Make sure the tree document ID is encoded.  */
-	  treeList.add (Uri.encode (DocumentsContract.getTreeDocumentId (uri)));
+	  /* Make sure the tree document ID is encoded.  Refrain from
+	     encoding characters such as +:&?#, since they don't
+	     conflict with file name separators or other special
+	     characters.  */
+	  treeList.add (Uri.encode (DocumentsContract.getTreeDocumentId (uri),
+				    " +:&?#"));
       }
 
     return treeList.toArray (new String[0]);
