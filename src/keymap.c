@@ -1065,8 +1065,12 @@ possibly_translate_key_sequence (Lisp_Object key, ptrdiff_t *length)
 	xsignal2 (Qerror,
 		  build_string ("`key-valid-p' is not defined, so this syntax can't be used: %s"),
 		  key);
+      /* If key-valid-p is unhappy about KEY, we return it as-is.
+         This happens when menu items define as bindings strings that
+         should be inserted into the buffer, not commands.  See
+         bug#64927, for example.  */
       if (NILP (call1 (Qkey_valid_p, AREF (key, 0))))
-	xsignal2 (Qerror, build_string ("Invalid `key-parse' syntax: %S"), key);
+	return key;
       key = call1 (Qkey_parse, AREF (key, 0));
       *length = CHECK_VECTOR_OR_STRING (key);
       if (*length == 0)
