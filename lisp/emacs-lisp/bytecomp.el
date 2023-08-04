@@ -1975,6 +1975,8 @@ also be compiled."
       (emacs-lisp-compilation-mode))
     (let ((directories (list default-directory))
 	  (default-directory default-directory)
+          (ignore-files-regexp
+           (mapconcat #'identity byte-compile-ignore-files "\\|"))
 	  (skip-count 0)
 	  (fail-count 0)
 	  (file-count 0)
@@ -1995,9 +1997,7 @@ also be compiled."
 		      (or (null arg) (eq 0 arg)
 			  (y-or-n-p (concat "Check " source "? ")))
                       ;; Directory is requested to be ignored
-                      (not (string-match-p
-                            (regexp-opt byte-compile-ignore-files)
-                            source))
+                      (not (string-match-p ignore-files-regexp source))
                       (setq directories (nconc directories (list source))))
                ;; It is an ordinary file.  Decide whether to compile it.
                (if (and (string-match emacs-lisp-file-regexp source)
@@ -2007,9 +2007,7 @@ also be compiled."
                         (not (auto-save-file-name-p source))
                         (not (member source (dir-locals--all-files directory)))
                         ;; File is requested to be ignored
-                        (not (string-match-p
-                              (regexp-opt byte-compile-ignore-files)
-                              source)))
+                        (not (string-match-p ignore-files-regexp source)))
                    (progn (cl-incf
                            (pcase (byte-recompile-file source force arg)
                              ('no-byte-compile skip-count)
