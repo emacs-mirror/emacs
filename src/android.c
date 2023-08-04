@@ -5480,6 +5480,69 @@ android_check_string (Lisp_Object text)
   return true;
 }
 
+/* Verify that the specified NULL-terminated STRING is a valid JNI
+   ``UTF-8'' string.  Return 0 if so, 1 otherwise.
+
+   Do not perform GC, enabling NAME to be a direct reference to string
+   data.
+
+   The native coding system used by the JVM to store strings derives
+   from UTF-8, but deviates from it in two aspects in an attempt to
+   better represent the UCS-16 based Java String format, and to let
+   strings contain NULL characters while remaining valid C strings:
+   NULL bytes are encoded as two-byte sequences, and Unicode surrogate
+   pairs encoded as two-byte sequences are prefered to four-byte
+   sequences when encoding characters above the BMP.  */
+
+int
+android_verify_jni_string (const char *name)
+{
+  const unsigned char *chars;
+
+  chars = (unsigned char *) name;
+  while (*chars)
+    {
+      /* Switch on the high 4 bits.  */
+
+      switch (*chars++ >> 4)
+	{
+	case 0 ... 7:
+	  /* The 8th bit is clean, so this is a regular C
+	     character.  */
+	  break;
+
+	case 8 ... 0xb:
+	  /* Invalid starting byte! */
+	  return 1;
+
+	case 0xf:
+	  /* The start of a four byte sequence.  These aren't allowed
+	     in Java.  */
+	  return 1;
+
+	case 0xe:
+	  /* The start of a three byte sequence.  Verify that its
+	     continued.  */
+
+	  if ((*chars++ & 0xc0) != 0x80)
+	    return 1;
+
+	  FALLTHROUGH;
+
+	case 0xc ... 0xd:
+	  /* The start of a two byte sequence.  Verify that the
+	     next byte exists and has its high bit set.  */
+
+	  if ((*chars++ & 0xc0) != 0x80)
+	    return 1;
+
+	  break;
+	}
+    }
+
+  return 0;
+}
+
 /* Given a Lisp string TEXT, return a local reference to an equivalent
    Java string.  */
 
@@ -5492,12 +5555,18 @@ android_build_string (Lisp_Object text)
   jchar *characters;
   USE_SAFE_ALLOCA;
 
-  /* Directly encode TEXT if it contains no multibyte
-     characters.  This is okay because the Java extended UTF
-     format is compatible with ASCII.  */
+  /* Directly encode TEXT if it contains no non-ASCII characters, or
+     is multibyte and a valid Modified UTF-8 string.  This is okay
+     because the Java extended UTF format is compatible with
+     ASCII.  */
 
-  if (SBYTES (text) == SCHARS (text)
-      && android_check_string (text))
+  if ((SBYTES (text) == SCHARS (text)
+       && android_check_string (text))
+      /* If TEXT is a multibyte string, then it's using Emacs's
+	 internal UTF-8 coding system, a significant subset of which
+	 is compatible with JNI.  */
+      || (STRING_MULTIBYTE (text)
+	  && !android_verify_jni_string (SSDATA (text))))
     {
       string = (*android_java_env)->NewStringUTF (android_java_env,
 						  SSDATA (text));

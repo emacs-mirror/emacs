@@ -105,6 +105,7 @@ extern bool android_detect_mouse (void);
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
 
+extern int android_verify_jni_string (const char *);
 extern jstring android_build_string (Lisp_Object);
 extern jstring android_build_jstring (const char *);
 extern void android_exception_check (void);
