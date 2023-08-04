@@ -685,6 +685,10 @@ provokes an error if used numerically.
 
 * Lisp Changes in Emacs 30.1
 
+** 'defadvice' is marked as obsolete.
+See (info "(elisp)Porting Old Advice") for help converting them
+to use `advice-add` or `define-advice instead.
+
 +++
 ** New user option 'safe-local-variable-directories'.
 This user option names directories in which Emacs will treat all
