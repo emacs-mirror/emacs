@@ -1905,8 +1905,8 @@ when using per-directory thumbnail file storage"))
     (if (file-exists-p image-dired-gallery-dir)
         (if (not (file-directory-p image-dired-gallery-dir))
             (error "Variable image-dired-gallery-dir is not a directory"))
-      ;; FIXME: Should we set umask to 077 here, as we do for thumbnails?
-      (make-directory image-dired-gallery-dir))
+      (with-file-modes #o700
+        (make-directory image-dired-gallery-dir)))
     ;; Open index file
     (with-temp-file index-file
       (if (file-exists-p index-file)
