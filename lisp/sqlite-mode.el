@@ -126,7 +126,7 @@
         (forward-line 1)
         (if (looking-at " ")
             ;; Delete the info.
-            (delete-region (point) (if (re-search-forward "^[^ ]" nil t)
+            (delete-region (point) (if (re-search-forward "^[^ \t]" nil t)
                                        (match-beginning 0)
                                      (point-max)))
           ;; Insert the info.
