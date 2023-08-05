@@ -2065,7 +2065,7 @@ of a single @code{down-mouse-1} event, with subsequent
 (@pxref{Motion Events}), and a final @code{touchscreen-end} event
 translated to a @code{mouse-1} or @code{drag-mouse-1} event (unless
 the @code{touchscreen-end} event indicates that the touch sequence has
-been intercepted by another program.)  This is referred to ``simple
+been intercepted by another program.)  This is dubbed ``simple
 translation'', and produces a simple correspondence between touchpoint
 motion and mouse motion.
 
