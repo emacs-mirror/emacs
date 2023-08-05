@@ -476,16 +476,6 @@ list."
 	(cadr flist)
       (cdr flist))))
 
-(defsubst eshell-redisplay ()
-  "Allow Emacs to redisplay buffers."
-  ;; for some strange reason, Emacs 21 is prone to trigger an
-  ;; "args out of range" error in `sit-for', if this function
-  ;; runs while point is in the minibuffer and the users attempt
-  ;; to use completion.  Don't ask me.
-  (condition-case nil
-      (sit-for 0)
-    (error nil)))
-
 (defun eshell-user-login-name ()
   "Return the connection-aware value of the user's login name.
 See also `user-login-name'."
@@ -794,6 +784,8 @@ where the head and tail may be the same process."
 If N or M is nil, it means the end of the list."
   (declare (obsolete seq-subseq "28.1"))
   (seq-subseq l n (1+ m)))
+
+(define-obsolete-function-alias 'eshell-redisplay #'redisplay "30.1")
 
 (provide 'esh-util)
 
