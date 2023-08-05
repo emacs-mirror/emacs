@@ -3674,7 +3674,9 @@ in the permissions of newly created files will be disabled.
 
 Note that when `write-region' creates a file, it resets the
 execute bit, even if the mask set by this function allows that bit
-by having the corresponding bit in the mask reset.  */)
+by having the corresponding bit in the mask reset.
+
+See also `with-file-modes'.  */)
   (Lisp_Object mode)
 {
   mode_t oldrealmask, oldumask, newumask;

@@ -1117,6 +1117,14 @@ A char-table for width (columns) of each character.  */);
   char_table_set_range (Vchar_width_table, MAX_5_BYTE_CHAR + 1, MAX_CHAR,
 			make_fixnum (4));
 
+  DEFVAR_LISP ("ambiguous-width-chars", Vambiguous_width_chars,
+	       doc: /*
+A char-table for characters whose width (columns) can be 1 or 2.
+
+The actual width depends on the language-environment and on the
+value of `cjk-ambiguous-chars-are-wide'.  */);
+  Vambiguous_width_chars = Fmake_char_table (Qnil, Qnil);
+
   DEFVAR_LISP ("printable-chars", Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);

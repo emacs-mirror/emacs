@@ -214,7 +214,7 @@ The options are `begin', `after' or `end'."
      0 frame)
     (if affected
 	(let (window-scroll-functions) ;;FIXME: Why?
-	  (eshell-redisplay)))))
+          (redisplay)))))
 
 (defun eshell-smart-display-setup ()
   "Set the point to somewhere in the beginning of the last command."
@@ -261,7 +261,7 @@ and the end of the buffer are still visible."
 	(recenter -1)
 	;; trigger the redisplay now, so that we catch any attempted
 	;; point motion; this is to cover for a redisplay bug
-	(eshell-redisplay))
+        (redisplay))
     (let ((top-point (point)))
       (and (memq 'eshell-smart-display-move pre-command-hook)
 	   (>= (point) eshell-last-input-start)

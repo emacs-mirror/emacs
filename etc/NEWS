@@ -180,6 +180,25 @@ whereas if the mouse pointer is in the left half of a glyph, point
 will be put in front the buffer position corresponding to that glyph.
 By default this is disabled.
 
+** Internationalization
+
+---
+*** Users in CJK locales can control width of some non-CJK characters.
+Some characters are considered by Unicode as "ambiguous" with respect
+to their display width: either "full-width" (i.e. taking 2 columns on
+display) or "narrow" (taking 1 column).  The actual width depends on
+the fonts used for these characters by Emacs or (for text-mode frames)
+by the terminal emulator.  Traditionally, font sets in CJK locales
+were set up so as to display these characters as full-width, and thus
+Emacs modified the char-width table in those locales to follow suit.
+Lately, the tendency is to display these characters as narrow.  The
+new user option 'cjk-ambiguous-chars-are-wide' allows users to control
+whether Emacs considers these characters as full-width (the default)
+or narrow (if the variable is customized to the nil value).
+
+This setting affects the results of 'string-width' and similar
+functions in CJK locales.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 

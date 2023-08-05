@@ -68,6 +68,7 @@
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment-internal)
 	    (exit-function . exit-korean-environment)
+            (cjk-locale-symbol . ko_KR)
 	    (iso639-language . ko)
 	    (tutorial . "TUTORIAL.ko")
 	    (charset korean-ksc5601 cp949)

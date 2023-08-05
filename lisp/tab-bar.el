@@ -36,6 +36,8 @@
   (require 'seq)
   (require 'icons))
 
+(autoload 'cl--set-substring "cl-lib")
+
 
 (defgroup tab-bar nil
   "Frame-local tabs."

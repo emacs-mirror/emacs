@@ -125,4 +125,35 @@
     (should (equal (eshell-convert-to-number "123") "123"))
     (should (equal (eshell-convert-to-number "1.23") "1.23"))))
 
+(ert-deftest esh-util-test/eshell-printable-size ()
+  (should (equal (eshell-printable-size (expt 2 16)) "65536"))
+  (should (equal (eshell-printable-size (expt 2 32)) "4294967296")))
+
+(ert-deftest esh-util-test/eshell-printable-size/zero ()
+  (should (equal (eshell-printable-size 0 1000 nil t) "0")))
+
+(ert-deftest esh-util-test/eshell-printable-size/terabyte ()
+  (should (equal (eshell-printable-size (1- (expt 2 40)) 1024 nil t) "1024G"))
+  (should (equal (eshell-printable-size (expt 2 40) 1024 nil t) "1T"))
+  (should (equal (eshell-printable-size (1- (expt 10 12)) 1000 nil t) "1000G"))
+  (should (equal (eshell-printable-size (expt 10 12) 1000 nil t) "1T")))
+
+(ert-deftest esh-util-test/eshell-printable-size/use-colors ()
+  (should (equal-including-properties
+           (eshell-printable-size (1- (expt 2 20)) 1024 nil t)
+           "1024k"))
+  (should (equal-including-properties
+           (eshell-printable-size (1- (expt 2 30)) 1024 nil t)
+           (propertize "1024M" 'face 'bold)))
+  (should (equal-including-properties
+           (eshell-printable-size (1- (expt 2 40)) 1024 nil t)
+           (propertize "1024G" 'face 'bold-italic))))
+
+(ert-deftest esh-util-test/eshell-printable-size/block-size ()
+  (should (equal (eshell-printable-size (1- (expt 2 20)) nil 4096) "256"))
+  (should (equal (eshell-printable-size (1- (expt 2 30)) nil 4096) "262144")))
+
+(ert-deftest esh-util-test/eshell-printable-size/human-readable-arg ()
+  (should-error (eshell-printable-size 0 999 nil t)))
+
 ;;; esh-util-tests.el ends here
