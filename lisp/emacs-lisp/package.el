@@ -3090,6 +3090,8 @@ either a full name or nil, and EMAIL is a valid email address."
      ["Filter by Name or Description" package-menu-filter-by-name-or-description
       :help "Filter packages by name or description"]
      ["Filter by Status" package-menu-filter-by-status :help "Filter packages by status"]
+     ["Filter by Upgrades available" package-menu-filter-upgradable
+      :help "Filter packages by available upgrades"]
      ["Filter by Version" package-menu-filter-by-version :help "Filter packages by version"]
      ["Filter Marked" package-menu-filter-marked :help "Filter packages marked for upgrade"]
      ["Clear Filter" package-menu-clear-filter :help "Clear package list filter"])
