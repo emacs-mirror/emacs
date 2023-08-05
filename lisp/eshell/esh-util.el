@@ -628,8 +628,6 @@ See also `user-login-name'."
 	  (setq host-users (cdr host-users))
 	  (cdr (assoc user host-users))))))
 
-(autoload 'parse-time-string "parse-time")
-
 (eval-when-compile
   (require 'ange-ftp))		; ange-ftp-parse-filename
 
