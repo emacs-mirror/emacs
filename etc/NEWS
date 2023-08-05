@@ -715,6 +715,10 @@ provokes an error if used numerically.
 
 * Lisp Changes in Emacs 30.1
 
+** 'defadvice' is marked as obsolete.
+See (info "(elisp)Porting Old Advice") for help converting them
+to use `advice-add` or `define-advice instead.
+
 +++
 ** New variable 'current-key-remap-sequence'.
 It is bound to the key sequence that caused a call to a function bound

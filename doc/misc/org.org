@@ -3284,7 +3284,7 @@ options:
 
 | Link Type  | Example                                                  |
 |------------+----------------------------------------------------------|
-| http       | =https://staff.science.uva.nl/c.dominik/=                 |
+| http       | =http://staff.science.uva.nl/c.dominik/=                 |
 | https      | =https://orgmode.org/=                                   |
 | doi        | =doi:10.1000/182=                                        |
 | file       | =file:/home/dominik/images/jupiter.jpg=                  |
