@@ -1,3 +1,9 @@
+2023-08-05  Po Lu  <luangruo@yahoo.com>
+
+	* doc/lispref/commands.texi (Touchscreen Events): Fix typo.
+	* lisp/subr.el (y-or-n-p): Don't call set-text-conversion-style
+	when not present.
+
 2023-08-04  Po Lu  <luangruo@yahoo.com>
 
 	* ChangeLog.android: New file.
