@@ -631,7 +631,7 @@ offered."
 (defun tramp-archive-handle-directory-file-name (directory)
   "Like `directory-file-name' for file archives."
   (with-parsed-tramp-archive-file-name directory nil
-    (if (and (not (zerop (length localname)))
+    (if (and (tramp-compat-length> localname 0)
 	     (eq (aref localname (1- (length localname))) ?/)
 	     (not (string= localname "/")))
 	(substring directory 0 -1)
@@ -643,23 +643,22 @@ offered."
 (defun tramp-archive-handle-directory-files
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (setq directory (file-name-as-directory (expand-file-name directory)))
-    (let ((temp (nreverse (file-name-all-completions "" directory)))
-	  result item)
+  (tramp-barf-if-file-missing (tramp-dissect-file-name directory) directory
+    (when (file-directory-p directory)
+      (setq directory (file-name-as-directory (expand-file-name directory)))
+      (let ((temp (nreverse (file-name-all-completions "" directory)))
+	    result item)
 
-      (while temp
-	(setq item (directory-file-name (pop temp)))
-	(when (or (null match) (string-match-p match item))
-	  (push (if full (concat directory item) item)
-		result)))
-      (unless nosort
-        (setq result (sort result #'string<)))
-      (when (and (natnump count) (> count 0))
-	(setq result (tramp-compat-ntake count result)))
-      result)))
+	(while temp
+	  (setq item (directory-file-name (pop temp)))
+	  (when (or (null match) (string-match-p match item))
+	    (push (if full (concat directory item) item)
+		  result)))
+	(unless nosort
+          (setq result (sort result #'string<)))
+	(when (and (natnump count) (> count 0))
+	  (setq result (tramp-compat-ntake count result)))
+	result))))
 
 (defun tramp-archive-handle-dired-uncache (dir)
   "Like `dired-uncache' for file archives."
@@ -683,7 +682,9 @@ offered."
 
 (defun tramp-archive-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for file archives."
-  (file-name-all-completions filename (tramp-archive-gvfs-file-name directory)))
+  (tramp-compat-ignore-error file-missing
+    (file-name-all-completions
+     filename (tramp-archive-gvfs-file-name directory))))
 
 (defun tramp-archive-handle-file-readable-p (filename)
   "Like `file-readable-p' for file archives."

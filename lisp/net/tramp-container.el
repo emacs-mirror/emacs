@@ -96,15 +96,16 @@
   "Tramp method name to use to connect to Kubernetes containers.")
 
 ;;;###tramp-autoload
-(defun tramp-docker--completion-function (&rest _args)
-  "List Docker-like containers available for connection.
+(defun tramp-container--completion-function (program)
+  "List running containers available for connection.
+PROGRAM is the program to be run for \"ps\", either
+`tramp-docker-program' or `tramp-podman-program'.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (when-let ((default-directory tramp-compat-temporary-file-directory)
 	     (raw-list (shell-command-to-string
-			(concat tramp-docker-program
-				" ps --format '{{.ID}}\t{{.Names}}'")))
+			(concat program " ps --format '{{.ID}}\t{{.Names}}'")))
              (lines (split-string raw-list "\n" 'omit))
              (names (mapcar
 		     (lambda (line)
@@ -114,7 +115,7 @@ see its function help for a description of the format."
 			      line)
 			 (or (match-string 2 line) (match-string 1 line))))
                      lines)))
-    (mapcar (lambda (m) (list nil m)) (delq nil names))))
+    (mapcar (lambda (name) (list nil name)) (delq nil names))))
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--completion-function (&rest _args)
@@ -128,9 +129,7 @@ see its function help for a description of the format."
                                 " get pods --no-headers "
                                 "-o custom-columns=NAME:.metadata.name")))
              (names (split-string raw-list "\n" 'omit)))
-    (mapcar (lambda (name)
-              (list nil name))
-            names)))
+    (mapcar (lambda (name) (list nil name)) names)))
 
 (defun tramp-kubernetes--current-context-data (vec)
   "Return Kubernetes current context data as JSON string."
@@ -167,6 +166,7 @@ see its function help for a description of the format."
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
+
  (add-to-list 'tramp-methods
               `(,tramp-podman-method
                 (tramp-login-program ,tramp-podman-program)
@@ -179,6 +179,7 @@ see its function help for a description of the format."
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
+
  (add-to-list 'tramp-methods
               `(,tramp-kubernetes-method
                 (tramp-login-program ,tramp-kubernetes-program)
@@ -195,11 +196,13 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-docker-method
-  '((tramp-docker--completion-function "")))
+  `((tramp-container--completion-function
+     ,(executable-find tramp-docker-program))))
 
  (tramp-set-completion-function
   tramp-podman-method
-  '((tramp-docker--completion-function "")))
+  `((tramp-container--completion-function
+     ,(executable-find tramp-podman-program))))
 
  (tramp-set-completion-function
   tramp-kubernetes-method

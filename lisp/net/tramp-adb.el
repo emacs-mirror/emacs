@@ -55,7 +55,7 @@ It is used for TCP/IP devices."
 (defconst tramp-adb-method "adb"
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
-(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\n\r"))) (any "#$") blank)
+(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\r\n"))) (any "#$") blank)
   "Regexp used as prompt in almquist shell."
   :type 'regexp
   :version "28.1"
@@ -449,31 +449,32 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (with-parsed-tramp-file-name (expand-file-name directory) nil
-     (with-tramp-file-property v localname "file-name-all-completions"
-       (tramp-adb-send-command
-	v (format "%s -a %s | cat"
-		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname)))
-       (mapcar
-	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
-	      (file-name-as-directory f)
-	    f))
-	(with-current-buffer (tramp-get-buffer v)
-	  (delete-dups
-	   (append
-	    ;; On some file systems like "sdcard", "." and ".." are
-	    ;; not included.  We fix this by `delete-dups'.
-	    '("." "..")
-	    (delq
-	     nil
-	     (mapcar
-	      (lambda (l)
-		(and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	      (split-string (buffer-string) "\n")))))))))))
+  (tramp-compat-ignore-error file-missing
+    (all-completions
+     filename
+     (with-parsed-tramp-file-name (expand-file-name directory) nil
+       (with-tramp-file-property v localname "file-name-all-completions"
+	 (tramp-adb-send-command
+	  v (format "%s -a %s | cat"
+		    (tramp-adb-get-ls-command v)
+		    (tramp-shell-quote-argument localname)))
+	 (mapcar
+	  (lambda (f)
+	    (if (file-directory-p (expand-file-name f directory))
+		(file-name-as-directory f)
+	      f))
+	  (with-current-buffer (tramp-get-buffer v)
+	    (delete-dups
+	     (append
+	      ;; On some file systems like "sdcard", "." and ".." are
+	      ;; not included.  We fix this by `delete-dups'.
+	      '("." "..")
+	      (delq
+	       nil
+	       (mapcar
+		(lambda (l)
+		  (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+		(split-string (buffer-string) "\n"))))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
@@ -504,16 +505,9 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(if (tramp-file-property-p v localname "file-attributes")
-	    (not (null (tramp-get-file-property v localname "file-attributes")))
-	  (tramp-adb-send-command-and-check
-	   v (format "test -e %s" (tramp-shell-quote-argument localname))))))))
+  (tramp-skeleton-file-exists-p filename
+    (tramp-adb-send-command-and-check
+     v (format "test -e %s" (tramp-shell-quote-argument localname)))))
 
 (defun tramp-adb-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -1023,7 +1017,7 @@ implementation will be used."
 				  (progn
 				    (goto-char (point-min))
 				    (not (search-forward "\n" nil t)))
-			        (tramp-accept-process-output p 0))
+			        (tramp-accept-process-output p))
 			      (delete-region (point-min) (point)))
 			    ;; Provide error buffer.  This shows only
 			    ;; initial error messages; messages
@@ -1032,17 +1026,19 @@ implementation will be used."
 			    ;; file will exist until the process is
 			    ;; deleted.
 			    (when (bufferp stderr)
-			      (with-current-buffer stderr
-			        (insert-file-contents-literally
-			         remote-tmpstderr 'visit))
+			      (ignore-errors
+				(with-current-buffer stderr
+			          (insert-file-contents-literally
+			           remote-tmpstderr 'visit)))
 			      ;; Delete tmpstderr file.
 			      (add-function
 			       :after (process-sentinel p)
 			       (lambda (_proc _msg)
-			         (with-current-buffer stderr
-				   (insert-file-contents-literally
-				    remote-tmpstderr 'visit nil nil 'replace))
-			         (delete-file remote-tmpstderr))))
+				 (ignore-errors
+			           (with-current-buffer stderr
+				     (insert-file-contents-literally
+				      remote-tmpstderr 'visit nil nil 'replace))
+			           (delete-file remote-tmpstderr)))))
 			    ;; Return process.
 			    p))))
 
@@ -1106,11 +1102,12 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	      (format "%s:%s" host port))
 	     ;; An empty host name shall be mapped as well, when there
 	     ;; is exactly one entry in `devices'.
-	     ((and (zerop (length host)) (= (length devices) 1))
+	     ((and (tramp-string-empty-or-nil-p host)
+		   (tramp-compat-length= devices 1))
 	      (car devices))
 	     ;; Try to connect device.
 	     ((and tramp-adb-connect-if-not-connected
-		   (not (zerop (length host)))
+		   (tramp-compat-length> host 0)
 		   (tramp-adb-execute-adb-command
                     vec "connect"
                     (tramp-compat-string-replace
@@ -1127,7 +1124,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
   "Execute an adb command.
 Insert the result into the connection buffer.  Return nil on
 error and non-nil on success."
-  (when (and (> (length (tramp-file-name-host vec)) 0)
+  (when (and (tramp-compat-length> (tramp-file-name-host vec) 0)
 	     ;; The -s switch is only available for ADB device commands.
 	     (not (member (car args) '("connect" "disconnect"))))
     (setq args (append (list "-s" (tramp-adb-get-device vec)) args)))
@@ -1254,7 +1251,7 @@ connection if a previous connection has died for some reason."
     (unless (process-live-p p)
       (save-match-data
 	(when (and p (processp p)) (delete-process p))
-	(if (zerop (length device))
+	(if (tramp-string-empty-or-nil-p device)
 	    (tramp-error vec 'file-error "Device %s not connected" host))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
@@ -1279,7 +1276,7 @@ connection if a previous connection has died for some reason."
 
 	    ;; Set sentinel and query flag.  Initialize variables.
 	    (set-process-sentinel p #'tramp-process-sentinel)
-	    (process-put p 'vector vec)
+	    (process-put p 'tramp-vector vec)
 	    (process-put p 'adjust-window-size-function #'ignore)
 	    (set-process-query-on-exit-flag p nil)
 

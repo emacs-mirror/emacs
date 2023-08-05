@@ -127,6 +127,12 @@ Some semantics has been changed for there, without new functions or
 variables, so we check the Emacs version directly."
   (>= emacs-major-version 27))
 
+(defun tramp-archive--test-emacs28-p ()
+  "Check for Emacs version >= 28.1.
+Some semantics has been changed for there, without new functions or
+variables, so we check the Emacs version directly."
+  (>= emacs-major-version 28))
+
 (ert-deftest tramp-archive-test00-availability ()
   "Test availability of archive file name functions."
   :expected-result (if tramp-archive-enabled :passed :failed)
@@ -593,11 +599,11 @@ This checks also `file-name-as-directory', `file-name-directory',
 			 (mapcar (lambda (x) (concat tmp-name x)) files)))
 	  (should (equal (directory-files
 			  tmp-name nil directory-files-no-dot-files-regexp)
-			 (delete "." (delete ".." files))))
+			 (remove "." (remove ".." files))))
 	  (should (equal (directory-files
 			  tmp-name 'full directory-files-no-dot-files-regexp)
 			 (mapcar (lambda (x) (concat tmp-name x))
-				 (delete "." (delete ".." files))))))
+				 (remove "." (remove ".." files))))))
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
@@ -888,7 +894,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (let ((fsi (with-no-warnings (file-system-info tramp-archive-test-archive))))
     (skip-unless fsi)
     (should (and (consp fsi)
-		 (= (length fsi) 3)
+		 (tramp-compat-length= fsi 3)
 		 (numberp (nth 0 fsi))
 		 ;; FREE and AVAIL are always 0.
 		 (zerop (nth 1 fsi))
@@ -913,12 +919,15 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
               (featurep 'tramp-archive))))"))
     (dolist (enabled '(t nil))
       (dolist (default-directory
-               `(,temporary-file-directory
+		(append
+		 `(,temporary-file-directory)
 		 ;;  Starting Emacs in a directory which has
 		 ;; `tramp-archive-file-name-regexp' syntax is
 		 ;; supported only with Emacs > 27.2 (sigh!).
 		 ;; (Bug#48476)
-                 ,(file-name-as-directory tramp-archive-test-directory)))
+                 (and (tramp-archive--test-emacs28-p)
+		      `(,(file-name-as-directory
+			  tramp-archive-test-directory)))))
 	(dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
           (should
            (string-match

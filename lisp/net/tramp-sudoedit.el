@@ -366,7 +366,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -377,7 +378,7 @@ the result will be a local, non-Tramp, file name."
       ;; Tilde expansion if necessary.  We cannot accept "~/", because
       ;; under sudo "~/" is expanded to the local user home directory
       ;; but to the root home directory.
-      (when (zerop (length localname))
+      (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
@@ -387,7 +388,7 @@ the result will be a local, non-Tramp, file name."
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -457,39 +458,33 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(if (tramp-file-property-p v localname "file-attributes")
-	    (not (null (tramp-get-file-property v localname "file-attributes")))
-	  (tramp-sudoedit-send-command
-	   v "test" "-e" (tramp-compat-file-name-unquote localname)))))))
+  (tramp-skeleton-file-exists-p filename
+    (tramp-sudoedit-send-command
+     v "test" "-e" (tramp-compat-file-name-unquote localname))))
 
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (with-parsed-tramp-file-name (expand-file-name directory) nil
-     (with-tramp-file-property v localname "file-name-all-completions"
-       (tramp-sudoedit-send-command
-	v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
-	(if (zerop (length localname))
-	    "" (tramp-compat-file-name-unquote localname)))
-       (mapcar
-	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
-	      (file-name-as-directory f)
-	    f))
-	(delq
-	 nil
+  (tramp-compat-ignore-error file-missing
+    (all-completions
+     filename
+     (with-parsed-tramp-file-name (expand-file-name directory) nil
+       (with-tramp-file-property v localname "file-name-all-completions"
+	 (tramp-sudoedit-send-command
+	  v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
+	  (if (tramp-string-empty-or-nil-p localname)
+	      "" (tramp-compat-file-name-unquote localname)))
 	 (mapcar
-	  (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	  (split-string
-	   (tramp-get-buffer-string (tramp-get-connection-buffer v))
-	   "\n" 'omit))))))))
+	  (lambda (f)
+	    (if (ignore-errors (file-directory-p (expand-file-name f directory)))
+		(file-name-as-directory f)
+	      f))
+	  (delq
+	   nil
+	   (mapcar
+	    (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+	    (split-string
+	     (tramp-get-buffer-string (tramp-get-connection-buffer v))
+	     "\n" 'omit)))))))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -653,7 +648,10 @@ component is used as the target of the symlink."
     (let ((non-essential t))
       (when (and (tramp-tramp-file-p target)
 		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	(setq target (tramp-file-local-name (expand-file-name target)))))
+	(setq target (tramp-file-local-name (expand-file-name target))))
+      ;; There could be a cyclic link.
+      (tramp-flush-file-properties
+       v (expand-file-name target (tramp-file-local-name default-directory))))
 
     ;; If TARGET is still remote, quote it.
     (if (tramp-tramp-file-p target)
@@ -774,7 +772,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Check, whether a sudo process has finished.  Remove unneeded output."
   ;; There might be pending output for the exit status.
   (unless (process-live-p proc)
-    (while (tramp-accept-process-output proc 0))
+    (while (tramp-accept-process-output proc))
     ;; Delete narrowed region, it would be in the way reading a Lisp form.
     (goto-char (point-min))
     (widen)
@@ -802,7 +800,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
+      (process-put p 'tramp-vector vec)
       (set-process-query-on-exit-flag p nil)
 
       ;; Set connection-local variables.
@@ -840,7 +838,7 @@ in case of error, t otherwise."
       (tramp-message vec 6 "%s" (string-join (process-command p) " "))
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
-      (process-put p 'vector vec)
+      (process-put p 'tramp-vector vec)
       (process-put p 'adjust-window-size-function #'ignore)
       (set-process-query-on-exit-flag p nil)
       (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)

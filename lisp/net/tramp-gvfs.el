@@ -114,6 +114,7 @@
 (declare-function zeroconf-service-host "zeroconf")
 (declare-function zeroconf-service-port "zeroconf")
 (declare-function zeroconf-service-txt "zeroconf")
+(defvar tramp-gvfs-dbus-event-vector)
 
 ;; We don't call `dbus-ping', because this would load dbus.el.
 (defconst tramp-gvfs-enabled
@@ -848,8 +849,6 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
     (let ((method (tramp-file-name-method vec)))
       (and (stringp method) (member method tramp-gvfs-methods)))))
 
-(defvar tramp-gvfs-dbus-event-vector)
-
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
   "Invoke the GVFS related OPERATION and ARGS.
@@ -870,6 +869,14 @@ arguments to pass to the OPERATION."
   (tramp--with-startup
    (tramp-register-foreign-file-name-handler
     #'tramp-gvfs-file-name-p #'tramp-gvfs-file-name-handler)))
+
+;; Event type `dbus-event' is added to `while-no-input-ignore-events'
+;; in Emacs 29.1.  If it is missing, some packages like Helm report
+;; problems.  So we add it here.
+(when (and (featurep 'dbusbind)
+	   (not (memq 'dbus-event while-no-input-ignore-events)))
+  (setq while-no-input-ignore-events
+	(cons 'dbus-event while-no-input-ignore-events)))
 
 
 ;; D-Bus helper function.
@@ -1027,6 +1034,8 @@ file names."
 	  (when (and (file-directory-p newname)
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
+	  (when (file-regular-p newname)
+	    (delete-file newname))
 
 	  (cond
 	   ;; We cannot rename volatile files, as used by Google-drive.
@@ -1079,7 +1088,7 @@ file names."
 			(goto-char (point-min))
 			(tramp-error-with-buffer
 			 nil v 'file-error
-			 "%s failed, see buffer `%s' for details."
+			 "%s failed, see buffer `%s' for details"
 			 msg-operation (buffer-name)))
 
 		    ;; Some WebDAV server, like the one from QNAP, do
@@ -1157,7 +1166,8 @@ file names."
   ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -1173,7 +1183,7 @@ file names."
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -1422,16 +1432,19 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (unless (tramp-compat-string-search "/" filename)
-    (all-completions
-     filename
-     (with-parsed-tramp-file-name (expand-file-name directory) nil
-       (with-tramp-file-property v localname "file-name-all-completions"
-         (let ((result '("./" "../")))
-           ;; Get a list of directories and files.
-	   (dolist (item (tramp-gvfs-get-directory-attributes directory) result)
-	     (if (string-equal (cdr (assoc "type" item)) "directory")
-		 (push (file-name-as-directory (car item)) result)
-	       (push (car item) result)))))))))
+    (tramp-compat-ignore-error file-missing
+      (all-completions
+       filename
+       (with-parsed-tramp-file-name (expand-file-name directory) nil
+	 (with-tramp-file-property v localname "file-name-all-completions"
+           (let ((result '("./" "../")))
+             ;; Get a list of directories and files.
+	     (dolist (item
+		      (tramp-gvfs-get-directory-attributes directory)
+		      result)
+	       (if (string-equal (cdr (assoc "type" item)) "directory")
+		   (push (file-name-as-directory (car item)) result)
+		 (push (car item) result))))))))))
 
 (defun tramp-gvfs-handle-file-notify-add-watch (file-name flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
@@ -1461,16 +1474,16 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   v 'file-notify-error "Monitoring not supported for `%s'" file-name)
 	(tramp-message
 	 v 6 "Run `%s', %S" (string-join (process-command p) " ") p)
-	(process-put p 'vector v)
-	(process-put p 'events events)
-	(process-put p 'watch-name localname)
+	(process-put p 'tramp-vector v)
+	(process-put p 'tramp-events events)
+	(process-put p 'tramp-watch-name localname)
 	(process-put p 'adjust-window-size-function #'ignore)
 	(set-process-query-on-exit-flag p nil)
 	(set-process-filter p #'tramp-gvfs-monitor-process-filter)
 	(set-process-sentinel p #'tramp-file-notify-process-sentinel)
 	;; There might be an error if the monitor is not supported.
 	;; Give the filter a chance to read the output.
-	(while (tramp-accept-process-output p 0))
+	(while (tramp-accept-process-output p))
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
@@ -1482,8 +1495,8 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 (defun tramp-gvfs-monitor-process-filter (proc string)
   "Read output from \"gvfs-monitor-file\" and add corresponding \
 `file-notify' events."
-  (let* ((events (process-get proc 'events))
-	 (rest-string (process-get proc 'rest-string))
+  (let* ((events (process-get proc 'tramp-events))
+	 (rest-string (process-get proc 'tramp-rest-string))
 	 (dd (tramp-get-default-directory (process-buffer proc)))
 	 (ddu (tramp-compat-rx (literal (tramp-gvfs-url-file-name dd)))))
     (when rest-string
@@ -1526,7 +1539,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	  (setq file1 (url-unhex-string file1)))
 	;; Remove watch when file or directory to be watched is deleted.
 	(when (and (member action '(moved deleted))
-		   (string-equal file (process-get proc 'watch-name)))
+		   (string-equal file (process-get proc 'tramp-watch-name)))
 	  (delete-process proc))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
@@ -1536,9 +1549,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
            'file-notify-callback (list proc action file file1)))))
 
     ;; Save rest of the string.
-    (when (zerop (length string)) (setq string nil))
+    (when (string-empty-p string) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
-    (process-put proc 'rest-string string)))
+    (process-put proc 'tramp-rest-string string)))
 
 (defun tramp-gvfs-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -1636,7 +1649,7 @@ VEC or USER, or if there is no home directory, return nil."
   (let ((localname (tramp-get-connection-property vec "default-location"))
 	result)
     (cond
-     ((zerop (length localname))
+     ((tramp-string-empty-or-nil-p localname)
       (tramp-get-connection-property (tramp-get-process vec) "share"))
      ;; Google-drive.
      ((not (string-prefix-p "/" localname))
@@ -1769,11 +1782,11 @@ a downcased host name only."
 
     (condition-case nil
 	(with-parsed-tramp-file-name filename l
-	  (when (and (zerop (length user))
+	  (when (and (tramp-string-empty-or-nil-p user)
 		     (not
 		      (zerop (logand flags tramp-gvfs-password-need-username))))
 	    (setq user (read-string "User name: ")))
-	  (when (and (zerop (length domain))
+	  (when (and (tramp-string-empty-or-nil-p domain)
 		     (not
 		      (zerop (logand flags tramp-gvfs-password-need-domain))))
 	    (setq domain (read-string "Domain name: ")))
@@ -2175,7 +2188,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
+      (process-put p 'tramp-vector vec)
       (set-process-query-on-exit-flag p nil)
 
       ;; Set connection-local variables.
@@ -2212,7 +2225,7 @@ connection if a previous connection has died for some reason."
 
       (with-tramp-progress-reporter
 	  vec 3
-	  (if (zerop (length user))
+	  (if (tramp-string-empty-or-nil-p user)
 	      (format "Opening connection for %s using %s" host method)
 	    (format "Opening connection for %s@%s using %s" user host method))
 
@@ -2262,7 +2275,7 @@ connection if a previous connection has died for some reason."
 	(with-timeout
 	    ((or (tramp-get-method-parameter vec 'tramp-connection-timeout)
 		 tramp-connection-timeout)
-	     (if (zerop (length (tramp-file-name-user vec)))
+	     (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
 		 (tramp-error
 		  vec 'file-error
 		  "Timeout reached mounting %s using %s" host method)
@@ -2441,7 +2454,7 @@ VEC is used only for traces."
     ;; Adapt default host name, supporting /mtp:: when possible.
     (setq tramp-default-host-alist
 	  (append
-	   `(("mtp" nil ,(if (= (length devices) 1) (car devices) "")))
+	   `(("mtp" nil ,(if (tramp-compat-length= devices 1) (car devices) "")))
 	   (delete
 	    (assoc "mtp" tramp-default-host-alist)
 	    tramp-default-host-alist)))))
@@ -2493,16 +2506,17 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
     (delete-dups
      (mapcar
       (lambda (x)
-	(let* ((list (split-string x ";"))
-	       (host (nth 6 list))
-	       (text (split-string (nth 9 list) "\" \"" 'omit "\""))
-	       user)
-	  ;; A user is marked in a TXT field like "u=guest".
-	  (while text
-	    (when (string-match (rx "u=" (group (+ nonl)) eol) (car text))
-	      (setq user (match-string 1 (car text))))
-	    (setq text (cdr text)))
-	  (list user host)))
+	(ignore-errors
+	  (let* ((list (split-string x ";"))
+		 (host (nth 6 list))
+		 (text (split-string (nth 9 list) "\" \"" 'omit "\""))
+		 user)
+	    ;; A user is marked in a TXT field like "u=guest".
+	    (while text
+	      (when (string-match (rx "u=" (group (+ nonl)) eol) (car text))
+		(setq user (match-string 1 (car text))))
+	      (setq text (cdr text)))
+	    (list user host))))
       result))))
 
 (when tramp-gvfs-enabled
