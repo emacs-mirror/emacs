@@ -1318,10 +1318,10 @@ If specific documentation can't be given, be generic."
 
 ;; general utilities
 
-(defun pcomplete-uniquify-list (l)
-  "Sort and remove multiples in L."
-  (setq l (sort l #'string-lessp))
-  (seq-uniq l))
+(defun pcomplete-uniquify-list (sequence)
+  "Sort and remove multiples in SEQUENCE.
+Sequence should be a vector or list of strings."
+  (sort (seq-uniq sequence) #'string-lessp))
 (define-obsolete-function-alias 'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
 
 (defun pcomplete-process-result (cmd &rest args)
