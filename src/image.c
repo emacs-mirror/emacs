@@ -11740,6 +11740,12 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 {
   double value = length.length;
 
+#if ! LIBRSVG_CHECK_VERSION (2, 48, 0)
+  /* librsvg 2.48 lets us define the font size, but earlier versions
+     default to 12 pixels.  */
+  font_size = 12;
+#endif
+
   switch (length.unit)
     {
     case RSVG_UNIT_PX:
@@ -11764,16 +11770,31 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
     case RSVG_UNIT_IN:
       value *= dpi;
       break;
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-      /* We don't know exactly what font size is used on older librsvg
-	 versions.  */
     case RSVG_UNIT_EM:
       value *= font_size;
       break;
-#endif
+    case RSVG_UNIT_EX:
+      /* librsvg uses an ex height of half the em height, so we match
+	 that here.  */
+      value = value * font_size / 2.0;
+      break;
+    case RSVG_UNIT_PERCENT:
+      /* Percent is a ratio of the containing "viewport".  We don't
+	 have a viewport, as such, as we try to draw the image to it's
+	 'natural' size rather than dictate the size as if we were
+	 drawing icons on a toolbar or similar.  This means that
+	 percent values are useless to us and we are best off just
+	 drawing the image according to whatever other sizes we can
+	 derive.
+
+	 If we do set explicit width and height values in the image
+	 spec, this will work out correctly as librsvg will still
+	 honour the percentage sizes in its final rendering no matter
+	 what size we make the image.  */
+      value = 0;
+      break;
     default:
-      /* Probably ex or %.  We can't know what the pixel value is
-         without more information.  */
+      /* We should never reach this.  */
       value = 0;
     }
 
@@ -11904,7 +11925,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     }
   else
     {
-      RsvgRectangle zero_rect, viewbox, out_logical_rect;
+      RsvgRectangle  viewbox;
+      double explicit_width = 0, explicit_height = 0;
 
       /* Try the intrinsic dimensions first.  */
       gboolean has_width, has_height;
@@ -11916,34 +11938,27 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 					    &has_height, &iheight,
 					    &has_viewbox, &viewbox);
 
-      if (has_width && has_height)
-	{
-	  /* Success!  We can use these values directly.  */
-	  viewbox_width = svg_css_length_to_pixels (iwidth, dpi,
+      if (has_width)
+	explicit_width = svg_css_length_to_pixels (iwidth, dpi,
+						   img->face_font_size);
+      if (has_height)
+	explicit_height = svg_css_length_to_pixels (iheight, dpi,
 						    img->face_font_size);
-	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
-						     img->face_font_size);
 
-	  /* Here one dimension could be zero because in percent unit.
-	     So calculate this dimension with the other.  */
-	  if (! (0 < viewbox_width) && (iwidth.unit == RSVG_UNIT_PERCENT))
-	    viewbox_width = (viewbox_height * viewbox.width / viewbox.height)
-	      * iwidth.length;
-	  else if (! (0 < viewbox_height) && (iheight.unit == RSVG_UNIT_PERCENT))
-	    viewbox_height = (viewbox_width * viewbox.height / viewbox.width)
-	      * iheight.length;
-	}
-      else if (has_width && has_viewbox)
+      if (explicit_width > 0 && explicit_height > 0)
 	{
-	  viewbox_width = svg_css_length_to_pixels (iwidth, dpi,
-						    img->face_font_size);
-	  viewbox_height = viewbox_width * viewbox.height / viewbox.width;
+	  viewbox_width = explicit_width;
+	  viewbox_height = explicit_height;
 	}
-      else if (has_height && has_viewbox)
+      else if (explicit_width > 0 && has_viewbox)
 	{
-	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
-						     img->face_font_size);
-	  viewbox_width = viewbox_height * viewbox.width / viewbox.height;
+	  viewbox_width = explicit_width;
+	  viewbox_height = explicit_width * viewbox.height / viewbox.width;
+	}
+      else if (explicit_height > 0 && has_viewbox)
+	{
+	  viewbox_height = explicit_height;
+	  viewbox_width = explicit_height * viewbox.width / viewbox.height;
 	}
       else if (has_viewbox)
 	{
@@ -11957,8 +11972,15 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 	{
 	  /* We haven't found a usable set of sizes, so try working out
 	     the visible area.  */
+
+	  /* FIXME: I'm not sure exactly how librsvg uses this
+	     viewport input here, so I'm not sure what values I should
+	     set. */
+	  RsvgRectangle max_viewport_rect = {0, 0, UINT_MAX, UINT_MAX};
+	  RsvgRectangle out_logical_rect;
+
 	  rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
-					      &zero_rect, &viewbox,
+					      &max_viewport_rect, &viewbox,
 					      &out_logical_rect, NULL);
 	  viewbox_width = viewbox.x + viewbox.width;
 	  viewbox_height = viewbox.y + viewbox.height;
