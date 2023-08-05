@@ -175,6 +175,7 @@ gl_cv_func_nanosleep=yes
 enable_xattr=no
 # Don't build gnulib printf either.
 gl_cv_func_printf_sizes_c99=yes
+gl_cv_func_printf_sizes_c23=yes
 gl_cv_func_printf_long_double=yes
 gl_cv_func_printf_infinite_long_double=yes
 gl_cv_func_printf_directive_a=yes
