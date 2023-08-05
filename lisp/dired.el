@@ -346,7 +346,7 @@ with the buffer narrowed to the listing."
   :type 'boolean)
 
 (defcustom dired-initial-position-hook nil
-  "This hook is used to position the point.
+  "Hook used to position point in a new Dired listing display.
 It is run by the function `dired-initial-position'."
   :group 'dired
   :type 'hook
@@ -3552,9 +3552,9 @@ as returned by `dired-get-filename'.  LIMIT is the search limit."
 
 ;; FIXME document whatever dired-x is doing.
 (defun dired-initial-position (dirname)
-  "Where point should go in a new listing of DIRNAME.
-Point is assumed to be at the beginning of new subdir line.
-It runs the hook `dired-initial-position-hook'."
+  "Return position of point in a new listing of DIRNAME.
+Point is assumed to be at the beginning of a new subdir line.
+Runs the hook `dired-initial-position-hook'."
   (end-of-line)
   (and (featurep 'dired-x) dired-find-subdir
        (dired-goto-subdir dirname))
