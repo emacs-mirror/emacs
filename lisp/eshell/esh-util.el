@@ -433,6 +433,10 @@ Prepend remote identification of `default-directory', if any."
 (defun eshell-printable-size (filesize &optional human-readable
 				       block-size use-colors)
   "Return a printable FILESIZE."
+  (when (and human-readable
+             (not (= human-readable 1000))
+             (not (= human-readable 1024)))
+    (error "human-readable must be 1000 or 1024"))
   (let ((size (float (or filesize 0))))
     (if human-readable
 	(if (< size human-readable)
@@ -463,7 +467,9 @@ Prepend remote identification of `default-directory', if any."
 		    (if use-colors
 			(put-text-property 0 (length str)
 					   'face 'bold-italic str))
-		    str)))))
+                    str)
+                (let ((flavor (and (= human-readable 1000) 'si)))
+                  (file-size-human-readable filesize flavor))))))
       (if block-size
 	  (setq size (/ size block-size)))
       (format "%.0f" size))))
