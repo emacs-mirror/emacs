@@ -537,5 +537,29 @@ help to verify the correct addition and merging of an entry."
                           ("minor" . ((viewer . "viewer")
                                       (edit . "edit")))))))))
 
+
+
+(ert-deftest mailcap-viewer-passes-test-w/o-test-returns-t ()
+  "A VIEWER-INFO without a test should return t with a valid viewer (Bug#65224)."
+
+  (should (equal t
+                 (let ((mailcap-viewer-test-cache)
+                       (viewer-info
+                        (list (cons 'viewer "viewer-w/o-test"))))
+                   (mailcap-viewer-passes-test viewer-info nil))))
+
+  (should (equal '(t t nil t)
+                 (let ((mailcap-viewer-test-cache)
+                       (viewer-infos
+                        (list
+                         (list (cons 'viewer "viewer-w/o-test"))
+                         (list (cons 'viewer "viewer-w/o-test"))
+                         (list (cons 'viewer "viewer-w/nil-test")
+                               (cons 'test    nil))
+                         (list (cons 'viewer "viewer-w/o-test"))
+                         )))
+                   (mapcar (lambda (vi)
+                             (mailcap-viewer-passes-test vi nil))
+                           viewer-infos)))))
 
 ;;; mailcap-tests.el ends here
