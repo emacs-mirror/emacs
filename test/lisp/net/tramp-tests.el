@@ -2689,7 +2689,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 		(should (null (save-buffer)))
 		(should
                  (eq (coding-system-get buffer-file-coding-system :mime-charset)
-                     (coding-system-get  bfcs :mime-charset))))))
+                     (coding-system-get bfcs :mime-charset))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))
@@ -7478,14 +7478,12 @@ This requires restrictions of file name syntax."
   (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-rclone-p)))
+  (skip-unless (not (or (eq system-type 'darwin) (tramp--test-macos-p))))
 
-  (let* ((utf8 (if (and (eq system-type 'darwin)
-			(memq 'utf-8-hfs (coding-system-list)))
-		   'utf-8-hfs 'utf-8))
-	 (coding-system-for-read utf8)
-	 (coding-system-for-write utf8)
-	 (file-name-coding-system
-	  (coding-system-change-eol-conversion utf8 'unix)))
+  (let ((coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
+	(file-name-coding-system
+	 (coding-system-change-eol-conversion 'utf-8 'unix)))
     (apply
      #'tramp--test-check-files
      (append
