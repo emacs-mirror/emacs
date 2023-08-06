@@ -34,6 +34,7 @@
 (declare-function treesit-parser-buffer "treesit.c")
 (declare-function treesit-parser-language "treesit.c")
 
+(declare-function treesit-pattern-expand "treesit.c")
 (declare-function treesit-query-expand "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
 (declare-function treesit-query-capture "treesit.c")
