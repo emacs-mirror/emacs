@@ -2959,24 +2959,31 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       reset_all_sys_modes ();
       if (sig && sig != SIGTERM)
 	{
-	  static char const fmt[] = "Fatal error %d: %n%s\n";
 #ifdef HAVE_HAIKU
 	  if (haiku_debug_on_fatal_error)
 	    debugger ("Fatal error in Emacs");
 #endif
-	  char buf[max ((sizeof fmt - sizeof "%d%n%s\n"
+	  /* Output a "Fatal error NUM: DESC\n" diagnostic with a single write,
+	     but use multiple writes if the diagnosic is absurdly long
+	     and likely couldn't be written atomically anyway.  */
+	  static char const fmt[] = "Fatal error %d: ";
+	  char buf[max ((sizeof fmt - sizeof "%d"
 			 + INT_STRLEN_BOUND (int) + 1),
 			min (PIPE_BUF, MAX_ALLOCA))];
 	  char const *sig_desc = safe_strsignal (sig);
-	  int nlen;
-	  int buflen = snprintf (buf, sizeof buf, fmt, sig, &nlen, sig_desc);
-	  if (0 <= buflen && buflen < sizeof buf)
-	    emacs_write (STDERR_FILENO, buf, buflen);
+	  size_t sig_desclen = strlen (sig_desc);
+	  int nlen = sprintf (buf, fmt, sig);
+	  if (nlen + sig_desclen < sizeof buf - 1)
+	    {
+	      char *p = mempcpy (buf + nlen, sig_desc, sig_desclen);
+	      *p++ = '\n';
+	      emacs_write (STDERR_FILENO, buf, p - buf);
+	    }
 	  else
 	    {
 	      emacs_write (STDERR_FILENO, buf, nlen);
-	      emacs_write (STDERR_FILENO, sig_desc, strlen (sig_desc));
-	      emacs_write (STDERR_FILENO, fmt + sizeof fmt - 2, 1);
+	      emacs_write (STDERR_FILENO, sig_desc, sig_desclen);
+	      emacs_write (STDERR_FILENO, "\n", 1);
 	    }
 	}
     }
