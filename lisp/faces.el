@@ -1850,7 +1850,6 @@ If there is neither a user setting nor a default for FACE, return nil."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Frame-type independent color support.
-;;; We keep the old x-* names as aliases for back-compatibility.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun defined-colors (&optional frame)
@@ -1862,7 +1861,6 @@ If FRAME is nil, that stands for the selected frame."
   (if (display-graphic-p frame)
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
-(defalias 'x-defined-colors 'defined-colors)
 
 (defun defined-colors-with-face-attributes (&optional frame foreground)
   "Return a list of colors supported for a particular FRAME.
@@ -1946,7 +1944,6 @@ If FRAME is omitted or nil, use the selected frame."
     (if (display-graphic-p frame)
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
-(defalias 'x-color-defined-p 'color-defined-p)
 
 (declare-function xw-color-values "xfns.c" (color &optional frame))
 
@@ -1974,8 +1971,6 @@ return value is nil."
    (t
     (tty-color-values color frame))))
 
-(defalias 'x-color-values 'color-values)
-
 (declare-function xw-display-color-p "xfns.c" (&optional terminal))
 
 (defun display-color-p (&optional display)
@@ -1986,7 +1981,6 @@ If omitted or nil, that stands for the selected frame's display."
   (if (display-graphic-p display)
       (xw-display-color-p display)
     (tty-display-color-p display)))
-(defalias 'x-display-color-p 'display-color-p)
 
 (declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
@@ -3221,6 +3215,10 @@ also the same size as FACE on FRAME, or fail."
 
 (define-obsolete-function-alias 'face-background-pixmap #'face-stipple "29.1")
 (define-obsolete-function-alias 'set-face-background-pixmap #'set-face-stipple "29.1")
+(define-obsolete-function-alias 'x-defined-colors #'defined-colors "30.1")
+(define-obsolete-function-alias 'x-color-defined-p #'color-defined-p "30.1")
+(define-obsolete-function-alias 'x-color-values #'color-values "30.1")
+(define-obsolete-function-alias 'x-display-color-p #'display-color-p "30.1")
 
 (provide 'faces)
 

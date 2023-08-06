@@ -4724,15 +4724,15 @@ Please, specify your level now: "))
 (defun viper-submit-report ()
   "Submit bug report on Viper."
   (interactive)
-  (defvar x-display-color-p)
+  (defvar display-color-p)
   (defvar viper-frame-parameters)
   (defvar viper-minibuffer-emacs-face)
   (defvar viper-minibuffer-vi-face)
   (defvar viper-minibuffer-insert-face)
   (let ((reporter-prompt-for-summary-p t)
-        (x-display-color-p (if (viper-window-display-p)
-                              (x-display-color-p)
-                             'non-x))
+        (display-color-p (if (viper-window-display-p)
+                             (display-color-p)
+                           'non-x))
         (viper-frame-parameters (frame-parameters (selected-frame)))
 	(viper-minibuffer-emacs-face (if (viper-has-face-support-p)
                                          (facep
@@ -4790,7 +4790,7 @@ Please, specify your level now: "))
 		        'viper-expert-level
 		        'major-mode
 		        'window-system
-                        'x-display-color-p
+                        'display-color-p
 			'viper-frame-parameters
 			'viper-minibuffer-vi-face
 			'viper-minibuffer-insert-face
