@@ -2463,12 +2463,14 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
 }
 
 DEFUN ("delete-file-internal", Fdelete_file_internal, Sdelete_file_internal, 1, 1, 0,
-       doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
+       doc: /* Delete file named FILENAME; internal use only.
+If it is a symlink, remove the symlink.
 If file has multiple names, it continues to exist with the other names. */)
   (Lisp_Object filename)
 {
   Lisp_Object encoded_file;
 
+  filename = Fexpand_file_name (filename, Qnil);
   encoded_file = ENCODE_FILE (filename);
 
   if (unlink (SSDATA (encoded_file)) != 0 && errno != ENOENT)
@@ -2492,7 +2494,7 @@ internal_delete_file (Lisp_Object filename)
 {
   Lisp_Object tem;
 
-  tem = internal_condition_case_2 (Fdelete_file, filename, Qnil,
+  tem = internal_condition_case_2 (Fdelete_file_internal, filename,
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }
