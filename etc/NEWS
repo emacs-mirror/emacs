@@ -15,6 +15,12 @@ in older Emacs versions.
 You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
+Temporary note:
++++ indicates that all relevant manuals in doc/ have been updated.
+--- means no change in the manuals is needed.
+When you add a new item, use the appropriate mark if you are sure it
+applies, and please also update docstrings as needed.
+
 
 * Installation Changes in Emacs 29.2
 
@@ -29,6 +35,13 @@ with a prefix argument or by typing 'C-u C-h C-n'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.2
+
+** Tramp
+
++++
+*** New user option 'tramp-show-ad-hoc-proxies'.
+When non-nil, ad-hoc definitions are kept in remote file names instead
+of showing the shortcuts.
 
 
 * New Modes and Packages in Emacs 29.2
