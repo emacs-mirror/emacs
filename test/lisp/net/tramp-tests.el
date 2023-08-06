@@ -7083,6 +7083,12 @@ This does not support external Emacs calls."
   (string-equal
    "mock" (file-remote-p ert-remote-temporary-file-directory 'method)))
 
+(defun tramp--test-openbsd-p ()
+  "Check, whether the remote host runs OpenBSD."
+  ;; We must refill the cache.  `file-truename' does it.
+  (file-truename ert-remote-temporary-file-directory)
+  (ignore-errors (tramp-check-remote-uname tramp-test-vec "OpenBSD")))
+
 (defun tramp--test-out-of-band-p ()
   "Check, whether an out-of-band method is used."
   (tramp-method-out-of-band-p tramp-test-vec 1))
@@ -7408,6 +7414,7 @@ This requires restrictions of file name syntax."
 		     (tramp--test-windows-nt-or-smb-p))
 		 "foo bar baz")
 		((or (tramp--test-adb-p)
+		     (tramp--test-openbsd-p)
 		     (eq system-type 'cygwin))
 		 " foo bar baz ")
 		((tramp--test-sh-no-ls--dired-p)
@@ -7485,7 +7492,8 @@ This requires restrictions of file name syntax."
        "Автостопом по гала́ктике"
        ;; Use codepoints without a name.  See Bug#31272.
        ;; Works on some Android systems only.
-       (unless (tramp--test-adb-p) "bung")
+       (unless (or (tramp--test-adb-p) (tramp--test-openbsd-p))
+	 "bung")
        ;; Use codepoints from Supplementary Multilingual Plane (U+10000
        ;; to U+1FFFF).
        "🌈🍒👋")
