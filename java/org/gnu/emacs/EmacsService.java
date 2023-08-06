@@ -1522,7 +1522,8 @@ public final class EmacsService extends Service
 	    return entry;
 	  }
 
-	if (type.equals (Document.MIME_TYPE_DIR))
+	if (type != null
+	    && type.equals (Document.MIME_TYPE_DIR))
 	  entry.d_type = 1;
 	entry.d_name = name;
 	return entry;
