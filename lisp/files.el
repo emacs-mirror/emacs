@@ -6352,6 +6352,26 @@ non-nil and if FN fails due to a missing file or directory."
       (apply fn args)
     (file-missing (or no-such (signal (car err) (cdr err))))))
 
+(defun delete-file (filename &optional trash)
+  "Delete file named FILENAME.  If it is a symlink, remove the symlink.
+If file has multiple names, it continues to exist with the other names.q
+TRASH non-nil means to trash the file instead of deleting, provided
+`delete-by-moving-to-trash' is non-nil.
+
+When called interactively, TRASH is t if no prefix argument is given.
+With a prefix argument, TRASH is nil."
+  (interactive (list (read-file-name
+                      (if (and delete-by-moving-to-trash (null current-prefix-arg))
+                          "Move file to trash: " "Delete file: ")
+                      nil default-directory (confirm-nonexistent-file-or-buffer))
+                     (null current-prefix-arg)))
+  (if (and (file-directory-p filename) (not (file-symlink-p filename)))
+      (signal 'file-error (list "Removing old name: is a directory" filename)))
+  (let* ((filename (expand-file-name filename)) (handler (find-file-name-handler filename 'delete-file)))
+    (cond (handler (funcall handler 'delete-file filename trash))
+          ((and delete-by-moving-to-trash trash) (move-file-to-trash filename))
+          (t (delete-file-internal filename)))))
+
 (defun delete-directory (directory &optional recursive trash)
   "Delete the directory named DIRECTORY.  Does not follow symlinks.
 If RECURSIVE is non-nil, delete files in DIRECTORY as well, with
