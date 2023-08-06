@@ -2676,7 +2676,18 @@ This checks also `file-name-as-directory', `file-name-directory',
              :type 'file-already-exists)
 	    (should-error
 	     (write-region "foo" nil tmp-name nil nil nil 'excl)
-	     :type 'file-already-exists))
+	     :type 'file-already-exists)
+	    (delete-file tmp-name)
+
+	    ;; Check `buffer-file-coding-system'.  Bug#65022.
+	    (with-temp-buffer
+	      (setq buffer-file-name tmp-name)
+	      (insert "foo")
+	      (set-buffer-file-coding-system 'cp1251)
+	      (let ((bfcs buffer-file-coding-system))
+		(should (buffer-modified-p))
+		(should (null (save-buffer)))
+		(should (eq buffer-file-coding-system bfcs)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))
