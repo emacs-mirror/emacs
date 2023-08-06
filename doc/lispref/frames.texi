@@ -4461,20 +4461,12 @@ really supports that color.  When using X, you can ask for any defined
 color on any kind of display, and you will get some result---typically,
 the closest it can do.  To determine whether a frame can really display
 a certain color, use @code{color-supported-p} (see below).
-
-@findex x-color-defined-p
-This function used to be called @code{x-color-defined-p},
-and that name is still supported as an alias.
 @end defun
 
 @defun defined-colors &optional frame
 This function returns a list of the color names that are defined
 and supported on frame @var{frame} (default, the selected frame).
 If @var{frame} does not support colors, the value is @code{nil}.
-
-@findex x-defined-colors
-This function used to be called @code{x-defined-colors},
-and that name is still supported as an alias.
 @end defun
 
 @defun color-supported-p color &optional frame background-p
@@ -4526,10 +4518,6 @@ The color values are returned for @var{frame}'s display.  If
 @var{frame} is omitted or @code{nil}, the information is returned for
 the selected frame's display.  If the frame cannot display colors, the
 value is @code{nil}.
-
-@findex x-color-values
-This function used to be called @code{x-color-values},
-and that name is still supported as an alias.
 @end defun
 
 @defun color-name-to-rgb color &optional frame
@@ -4714,10 +4702,7 @@ This function returns @code{t} if @var{display} has a mouse available,
 @end defun
 
 @defun display-color-p &optional display
-@findex x-display-color-p
 This function returns @code{t} if the screen is a color screen.
-It used to be called @code{x-display-color-p}, and that name
-is still supported as an alias.
 @end defun
 
 @defun display-grayscale-p &optional display

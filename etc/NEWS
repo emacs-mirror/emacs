@@ -701,6 +701,11 @@ Instead, the Lisp reader approximates an infinity with the nearest
 finite value, and a NaN with some other non-numeric object that
 provokes an error if used numerically.
 
++++
+** X color support compatibility aliases are now marked obsolete.
+The compatibility aliases 'x-defined-colors', 'x-color-defined-p',
+'x-color-values', and 'x-display-color-p' are now obsolete.
+
 
 * Lisp Changes in Emacs 30.1
 
