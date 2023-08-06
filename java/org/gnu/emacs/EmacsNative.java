@@ -274,6 +274,10 @@ public final class EmacsNative
      operations.  */
   public static native void safPostRequest ();
 
+  /* Detect and return FD is writable.  FD may be truncated to 0 bytes
+     in the process.  */
+  public static native boolean ftruncate (int fd);
+
   static
   {
     /* Older versions of Android cannot link correctly with shared

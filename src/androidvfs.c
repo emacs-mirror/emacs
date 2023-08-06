@@ -5605,7 +5605,7 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
   /* Open a parcel file descriptor according to flags.  */
 
   method = service_class.open_document;
-  trunc  = flags & O_TRUNC;
+  trunc  = (flags & O_TRUNC);
   write  = ((flags & O_RDWR) == O_RDWR || (flags & O_WRONLY));
   inside_saf_critical_section = true;
   descriptor
@@ -6119,6 +6119,12 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (safPostRequest) (JNIEnv *env, jobject object)
 {
   sem_post (&saf_completion_sem);
+}
+
+JNIEXPORT jboolean JNICALL
+NATIVE_NAME (ftruncate) (JNIEnv *env, jobject object, jint fd)
+{
+  return ftruncate (fd, 0) != -1;
 }
 
 #ifdef __clang__

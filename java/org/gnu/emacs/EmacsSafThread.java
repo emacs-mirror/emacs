@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -1596,6 +1597,42 @@ public final class EmacsSafThread extends HandlerThread
     fileDescriptor
       = resolver.openFileDescriptor (documentUri, mode,
 				     signal);
+
+    /* If a writable file descriptor is requested and TRUNCATE is set,
+       then probe the file descriptor to detect if it is actually
+       readable.  If not, close this file descriptor and reopen it
+       with MODE set to rw; some document providers granting access to
+       Samba shares don't implement rwt, but these document providers
+       invariably truncate the file opened even when the mode is
+       merely rw.
+
+       This may be ascribed to a mix-up in Android's documentation
+       regardin DocumentsProvider: the `openDocument' function is only
+       documented to accept r or rw, whereas the default
+       implementation of the `openFile' function (which documents rwt)
+       delegates to `openDocument'.  */
+
+    if (write && truncate && fileDescriptor != null
+	&& !EmacsNative.ftruncate (fileDescriptor.getFd ()))
+      {
+	try
+	  {
+	    fileDescriptor.closeWithError ("File descriptor requested"
+					   + " is not writable");
+	  }
+	catch (IOException e)
+	  {
+	    Log.w (TAG, "Leaking unclosed file descriptor " + e);
+	  }
+
+	fileDescriptor
+	  = resolver.openFileDescriptor (documentUri, "rw", signal);
+
+	/* Try to truncate fileDescriptor just to stay on the safe
+	   side.  */
+	if (fileDescriptor != null)
+	  EmacsNative.ftruncate (fileDescriptor.getFd ());
+      }
 
     /* Every time a document is opened, remove it from the file status
        cache.  */
