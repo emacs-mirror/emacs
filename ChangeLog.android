@@ -1,5 +1,8 @@
 2023-08-06  Po Lu  <luangruo@yahoo.com>
 
+	* java/org/gnu/emacs/EmacsService.java (readDirectoryEntry): Fix
+	potential NULL dereference.
+
 	* java/org/gnu/emacs/EmacsSafThread.java (openDocument1): If
 	initially opening with rwt, verify the file descriptor is really
 	writable; if not, resort to rw and truncating the file descriptor
