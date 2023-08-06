@@ -6668,7 +6668,10 @@ This function binds `revert-buffer-in-progress-p' non-nil while it operates.
 This function calls the function that `revert-buffer-function' specifies
 to do the work, with arguments IGNORE-AUTO and NOCONFIRM.
 The default function runs the hooks `before-revert-hook' and
-`after-revert-hook'
+`after-revert-hook'.
+Return value is whatever `revert-buffer-function' returns.  For historical
+reasons, that return value is non-nil when `revert-buffer-function'
+succeeds in its job and returns non-nil.
 
 Reverting a buffer will try to preserve markers in the buffer,
 but it cannot always preserve all of them.  For better results,
@@ -6685,17 +6688,20 @@ preserve markers and overlays, at the price of being slower."
         (revert-buffer-preserve-modes preserve-modes)
         (state (and (boundp 'read-only-mode--state)
                     (list read-only-mode--state))))
-    (funcall (or revert-buffer-function #'revert-buffer--default)
-             ignore-auto noconfirm)
-    (when state
-      (setq buffer-read-only (car state))
-      (setq-local read-only-mode--state (car state)))))
+    ;; Return whatever 'revert-buffer-function' returns.
+    (prog1 (funcall (or revert-buffer-function #'revert-buffer--default)
+                    ignore-auto noconfirm)
+      (when state
+        (setq buffer-read-only (car state))
+        (setq-local read-only-mode--state (car state))))))
 
 (defun revert-buffer--default (ignore-auto noconfirm)
   "Default function for `revert-buffer'.
 The arguments IGNORE-AUTO and NOCONFIRM are as described for `revert-buffer'.
 Runs the hooks `before-revert-hook' and `after-revert-hook' at the
 start and end.
+The function returns non-nil if it reverts the buffer; signals
+an error if the buffer is not associated with a file.
 
 Calls `revert-buffer-insert-file-contents-function' to reread the
 contents of the visited file, with two arguments: the first is the file
