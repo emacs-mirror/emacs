@@ -2565,37 +2565,12 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   return Qnil;
 }
 
-DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2,
-       "(list (read-file-name \
-                (if (and delete-by-moving-to-trash (null current-prefix-arg)) \
-                    \"Move file to trash: \" \"Delete file: \") \
-                nil default-directory (confirm-nonexistent-file-or-buffer)) \
-              (null current-prefix-arg))",
+DEFUN ("delete-file-internal", Fdelete_file_internal, Sdelete_file_internal, 1, 1, 0,
        doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
-If file has multiple names, it continues to exist with the other names.
-TRASH non-nil means to trash the file instead of deleting, provided
-`delete-by-moving-to-trash' is non-nil.
-
-When called interactively, TRASH is t if no prefix argument is given.
-With a prefix argument, TRASH is nil.  */)
-  (Lisp_Object filename, Lisp_Object trash)
+If file has multiple names, it continues to exist with the other names. */)
+  (Lisp_Object filename)
 {
-  Lisp_Object handler;
   Lisp_Object encoded_file;
-
-  if (!NILP (Ffile_directory_p (filename))
-      && NILP (Ffile_symlink_p (filename)))
-    xsignal2 (Qfile_error,
-	      build_string ("Removing old name: is a directory"),
-	      filename);
-  filename = Fexpand_file_name (filename, Qnil);
-
-  handler = Ffind_file_name_handler (filename, Qdelete_file);
-  if (!NILP (handler))
-    return call3 (handler, Qdelete_file, filename, trash);
-
-  if (delete_by_moving_to_trash && !NILP (trash))
-    return call1 (Qmove_file_to_trash, filename);
 
   encoded_file = ENCODE_FILE (filename);
 
@@ -2832,7 +2807,7 @@ This is what happens in interactive use with M-x.  */)
   if (dirp)
     call2 (Qdelete_directory, file, Qt);
   else
-    Fdelete_file (file, Qnil);
+    call2 (Qdelete_file, file, Qnil);
   return unbind_to (count, Qnil);
 }
 
@@ -6493,7 +6468,7 @@ syms_of_fileio (void)
   DEFSYM (Qcopy_file, "copy-file");
   DEFSYM (Qmake_directory_internal, "make-directory-internal");
   DEFSYM (Qmake_directory, "make-directory");
-  DEFSYM (Qdelete_file, "delete-file");
+  DEFSYM (Qdelete_file_internal, "delete-file-internal");
   DEFSYM (Qfile_name_case_insensitive_p, "file-name-case-insensitive-p");
   DEFSYM (Qrename_file, "rename-file");
   DEFSYM (Qadd_name_to_file, "add-name-to-file");
@@ -6757,6 +6732,9 @@ This includes interactive calls to `delete-file' and
   delete_by_moving_to_trash = 0;
   DEFSYM (Qdelete_by_moving_to_trash, "delete-by-moving-to-trash");
 
+  /* Lisp function for interactive file delete with trashing */
+  DEFSYM (Qdelete_file, "delete-file");
+
   /* Lisp function for moving files to trash.  */
   DEFSYM (Qmove_file_to_trash, "move-file-to-trash");
 
@@ -6788,7 +6766,7 @@ This includes interactive calls to `delete-file' and
   defsubr (&Scopy_file);
   defsubr (&Smake_directory_internal);
   defsubr (&Sdelete_directory_internal);
-  defsubr (&Sdelete_file);
+  defsubr (&Sdelete_file_internal);
   defsubr (&Sfile_name_case_insensitive_p);
   defsubr (&Srename_file);
   defsubr (&Sadd_name_to_file);

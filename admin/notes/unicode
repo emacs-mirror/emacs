@@ -72,7 +72,10 @@ characters are those marked with W or F in that file.  Zero-width
 characters are not taken from EastAsianWidth.txt, they are those whose
 Unicode General Category property is one of Mn, Me, or Cf, and also
 Hangul jungseong and jongseong characters (a.k.a. "Jamo medial vowels"
-and "Jamo final consonants").
+and "Jamo final consonants").  The list of "ambiguous-width
+characters" recorded in the ambiguous-width-chars table (around line
+1400 of characters.el) should also be checked against the latest
+Unicode data in EastAsianWidth.txt.
 
 Any new scripts added by UnicodeData.txt will also need updates to
 script-representative-chars defined in fontset.el, and also the list

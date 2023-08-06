@@ -200,7 +200,8 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
   "Create function NAME.
 If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
-  (declare (indent defun))
+  (declare (obsolete nil "30.1")
+           (indent defun))
   (let ((defined-p (fboundp function)))
     (if defined-p
         `(defalias ',name ',function)

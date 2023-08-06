@@ -1976,7 +1976,9 @@ also be compiled."
     (let ((directories (list default-directory))
 	  (default-directory default-directory)
           (ignore-files-regexp
-           (mapconcat #'identity byte-compile-ignore-files "\\|"))
+           (if byte-compile-ignore-files
+               (mapconcat #'identity byte-compile-ignore-files "\\|")
+             regexp-unmatchable))
 	  (skip-count 0)
 	  (fail-count 0)
 	  (file-count 0)
