@@ -6359,7 +6359,7 @@ non-nil and if FN fails due to a missing file or directory."
 
 (defun delete-file (filename &optional trash)
   "Delete file named FILENAME.  If it is a symlink, remove the symlink.
-If file has multiple names, it continues to exist with the other names.q
+If file has multiple names, it continues to exist with the other names.
 TRASH non-nil means to trash the file instead of deleting, provided
 `delete-by-moving-to-trash' is non-nil.
 
@@ -6372,7 +6372,7 @@ With a prefix argument, TRASH is nil."
                      (null current-prefix-arg)))
   (if (and (file-directory-p filename) (not (file-symlink-p filename)))
       (signal 'file-error (list "Removing old name: is a directory" filename)))
-  (let* ((filename (expand-file-name filename)) (handler (find-file-name-handler filename 'delete-file)))
+  (let* ((handler (find-file-name-handler filename 'delete-file)))
     (cond (handler (funcall handler 'delete-file filename trash))
           ((and delete-by-moving-to-trash trash) (move-file-to-trash filename))
           (t (delete-file-internal filename)))))

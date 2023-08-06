@@ -1,7 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2023 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -52,7 +51,7 @@
 ;;
 ;;    * Copyright line, which looks more or less like this:
 ;;
-;;       ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;       ;; Copyright (C) 1999-2001 Free Software Foundation, Inc.
 ;;
 ;;    * A blank line
 ;;
@@ -187,7 +186,6 @@ If the given section does not exist, return nil."
       (goto-char (point-min))
       (if (re-search-forward (lm-get-header-re header 'section) nil t)
           (line-beginning-position (if after 2))))))
-(defalias 'lm-section-mark 'lm-section-start)
 
 (defun lm-section-end (header)
   "Return the buffer location of the end of a given section.
@@ -230,12 +228,10 @@ a section."
 (defun lm-code-start ()
   "Return the buffer location of the `Code' start marker."
   (lm-section-start "Code"))
-(defalias 'lm-code-mark 'lm-code-start)
 
 (defun lm-commentary-start ()
   "Return the buffer location of the `Commentary' start marker."
   (lm-section-start lm-commentary-header))
-(defalias 'lm-commentary-mark 'lm-commentary-start)
 
 (defun lm-commentary-end ()
   "Return the buffer location of the `Commentary' section end."
@@ -244,7 +240,6 @@ a section."
 (defun lm-history-start ()
   "Return the buffer location of the `History' start marker."
   (lm-section-start lm-history-header))
-(defalias 'lm-history-mark 'lm-history-start)
 
 (defun lm-copyright-mark ()
   "Return the buffer location of the `Copyright' line."
@@ -258,7 +253,7 @@ a section."
   "Return the contents of the header named HEADER."
   (goto-char (point-min))
   (let ((case-fold-search t))
-    (when (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
+    (when (and (re-search-forward (lm-get-header-re header) (lm-code-start) t)
 	       ;;   RCS ident likes format "$identifier: data$"
 	       (looking-at
 		(if (save-excursion
@@ -402,7 +397,7 @@ ISO-DATE non-nil means return the date in ISO 8601 format."
     (when (progn (goto-char (point-min))
 		 (re-search-forward
 		  "\\$[I]d: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
-		  (lm-code-mark) t))
+                  (lm-code-start) t))
       (let ((dd (match-string 3))
 	    (mm (match-string 2))
 	    (yyyy (match-string 1)))
@@ -420,7 +415,7 @@ ISO-DATE non-nil means return the date in ISO 8601 format."
 This can be found in an RCS or SCCS header."
   (lm-with-file file
     (or (lm-header "version")
-	(let ((header-max (lm-code-mark)))
+        (let ((header-max (lm-code-start)))
 	  (goto-char (point-min))
 	  (cond
 	   ;; Look for an RCS header
@@ -557,11 +552,11 @@ copyright notice is allowed."
 		"`Keywords:' tag missing")
 	       ((not (lm-keywords-finder-p))
 		"`Keywords:' has no valid finder keywords (see `finder-known-keywords')")
-	       ((not (lm-commentary-mark))
+               ((not (lm-commentary-start))
 		"Can't find a `Commentary' section marker")
-	       ((not (lm-history-mark))
+               ((not (lm-history-start))
 		"Can't find a `History' section marker")
-	       ((not (lm-code-mark))
+               ((not (lm-code-start))
 		"Can't find a `Code' section marker")
 	       ((progn
 		  (goto-char (point-max))
@@ -630,6 +625,11 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
     (newline 2)
     (message "%s"
      (substitute-command-keys "Type \\[mail-send] to send bug report."))))
+
+(define-obsolete-function-alias 'lm-section-mark #'lm-section-start "30.1")
+(define-obsolete-function-alias 'lm-code-mark #'lm-code-start "30.1")
+(define-obsolete-function-alias 'lm-commentary-mark #'lm-commentary-start "30.1")
+(define-obsolete-function-alias 'lm-history-mark #'lm-history-start "30.1")
 
 (provide 'lisp-mnt)
 

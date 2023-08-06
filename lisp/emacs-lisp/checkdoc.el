@@ -2382,7 +2382,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; * Commentary Section
-        (if (and (not (lm-commentary-mark))
+        (if (and (not (lm-commentary-start))
                  ;; No need for a commentary section in test files.
                  (not (string-match
                        (rx (or (seq (or "-test.el" "-tests.el") string-end)
@@ -2419,10 +2419,10 @@ Code:, and others referenced in the style guide."
 	(if (or (not checkdoc-force-history-flag)
 		(file-exists-p "ChangeLog")
 		(file-exists-p "../ChangeLog")
-                (lm-history-mark))
+                (lm-history-start))
 	    nil
 	  (progn
-	    (goto-char (or (lm-commentary-mark) (point-min)))
+            (goto-char (or (lm-commentary-start) (point-min)))
 	    (cond
 	     ((re-search-forward
 	       "write\\s-+to\\s-+the\\s-+Free Software Foundation, Inc."
@@ -2443,7 +2443,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; * Code section
-	(if (not (lm-code-mark))
+        (if (not (lm-code-start))
 	    (let ((cont t)
 		  pos)
 	      (goto-char (point-min))
@@ -2494,7 +2494,7 @@ Code:, and others referenced in the style guide."
       ;; Let's spellcheck the commentary section.  This is the only
       ;; section that is easy to pick out, and it is also the most
       ;; visible section (with the finder).
-      (let ((cm (lm-commentary-mark)))
+      (let ((cm (lm-commentary-start)))
         (when cm
           (save-excursion
             (goto-char cm)
