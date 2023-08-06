@@ -1,3 +1,8 @@
+2023-08-06  Po Lu  <luangruo@yahoo.com>
+
+	* src/androidvfs.c (android_saf_tree_chmod): Repair file access
+	permissions allowed within FLAGS.
+
 2023-08-05  Po Lu  <luangruo@yahoo.com>
 
 	* doc/lispref/commands.texi (Touchscreen Events): Fix typo.

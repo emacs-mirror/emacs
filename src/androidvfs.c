@@ -5101,17 +5101,17 @@ static int
 android_saf_tree_chmod (struct android_vnode *vnode, mode_t mode,
 			int flags)
 {
-  /* Return EACCESS should MODE contain unusual bits besides S_IFDIR |
-     S_IRUSR | S_IXUSR.  */
+  /* Return EACCESS should MODE contain unusual bits besides the
+     standard file access permissions.  */
 
-  if (mode & ~(S_IFDIR | S_IRUSR | S_IXUSR))
+  if (mode & ~0777)
     {
       errno = EACCES;
       return -1;
     }
 
   /* Otherwise, no further action is necessary, as SAF nodes already
-     pretend to be S_IFDIR | S_IRUSR | S_IXUSR.  */
+     pretend to be S_IRUSR | S_IWUSR.  */
   return 0;
 }
 
