@@ -279,8 +279,13 @@ themselves."
          " entries are deprecated. Either use a variable or a function"
          " that conditionally calls `erc-button-add-button'.")))))
 
-(defvar erc-button-nickname-callback-function #'erc-nick-popup
-  "Escape hatch for those needing a different nickname callback.")
+(defvar erc-button-nickname-callback-function #'erc-button--perform-nick-popup
+  "Escape hatch for users needing a non-standard nick-button callback.
+Value should be a function accepting a NICK and any number of
+trailing arguments that are as yet unspecified.  Runs when
+clicking \\`<mouse-1>' or hitting \\`RET' atop a nickname button.")
+(make-obsolete-variable 'erc-button-nickname-callback-function
+                        "default provides essential functionality" "30.1")
 
 (defun erc-button-add-buttons ()
   "Find external references in the current buffer and make buttons of them.
@@ -744,6 +749,10 @@ In server buffers, also prompt for a channel."
       (if (functionp code)
           (funcall code nick)
         (eval code `((nick . ,nick)))))))
+
+(defun erc-button--perform-nick-popup (nick &rest _)
+  "Call `erc-nick-popup' with NICK."
+  (erc-nick-popup nick))
 
 ;;; Callback functions
 (defun erc-button-describe-symbol (symbol-name)
