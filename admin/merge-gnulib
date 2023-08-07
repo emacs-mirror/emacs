@@ -42,7 +42,7 @@ GNULIB_MODULES='
   manywarnings memmem-simple mempcpy memrchr memset_explicit
   minmax mkostemp mktime
   nanosleep nproc nstrftime
-  pathmax pipe2 printf-posix vasprintf-posix pselect pthread_sigmask
+  pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
   sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stdckdint stddef stdio
   stpcpy stpncpy strnlen strnlen strtoimax symlink sys_stat sys_time

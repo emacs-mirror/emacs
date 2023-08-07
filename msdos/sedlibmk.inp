@@ -436,7 +436,6 @@ s/= @GL_GENERATE_STDDEF_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDINT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_LIMITS_H_CONDITION@/= 1/
 s/= @GL_GENERATE_ERRNO_H_CONDITION@/= /
-s/= @GL_GENERATE_FLOAT_H_CONDITION@/= /
 s/= @GL_GENERATE_GETOPT_CDEFS_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GETOPT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
@@ -464,7 +463,6 @@ OMIT_GNULIB_MODULE_euidaccess = true\
 OMIT_GNULIB_MODULE_faccessat = true\
 OMIT_GNULIB_MODULE_fcntl = true\
 OMIT_GNULIB_MODULE_fdopendir = true\
-OMIT_GNULIB_MODULE_float = true\
 OMIT_GNULIB_MODULE_fstatat = true\
 OMIT_GNULIB_MODULE_fsync = true\
 OMIT_GNULIB_MODULE_getline = true\
@@ -480,8 +478,6 @@ OMIT_GNULIB_MODULE_math = true\
 OMIT_GNULIB_MODULE_nanosleep = true\
 OMIT_GNULIB_MODULE_open = true\
 OMIT_GNULIB_MODULE_pipe2 = true\
-OMIT_GNULIB_MODULE_printf-posix = true\
-OMIT_GNULIB_MODULE_printf-frexpl = true\
 OMIT_GNULIB_MODULE_pselect = true\
 OMIT_GNULIB_MODULE_putenv = true\
 OMIT_GNULIB_MODULE_qcopy-acl = true\
@@ -494,7 +490,6 @@ OMIT_GNULIB_MODULE_symlink = true\
 OMIT_GNULIB_MODULE_sys_select = true\
 OMIT_GNULIB_MODULE_sys_time = true\
 OMIT_GNULIB_MODULE_crypto\/md5 = true\
-OMIT_GNULIB_MODULE_vprintf-posix = true
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@
