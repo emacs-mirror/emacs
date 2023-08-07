@@ -213,6 +213,10 @@ s/ *@WEBP_LIBS@//
 /^XCONFIGURE *=/s/@XCONFIGURE@//
 /^[ \t]*MAKE_PDUMPER_FINGERPRINT = *$/c\
 MAKE_PDUMPER_FINGERPRINT =
+# While this variable is named abs_top_builddir, the distinction is
+# only relevant when Emacs is undergoing cross-compilation.
+/^abs_top_builddir =*/s/@abs_top_builddir@/../
+s/\$(abs_top_builddir)\/src\/lisp.mk/lisp.mk/
 /^lisp\.mk:/,/^$/c\
 lisp.mk: $(lispsource)/loadup.el\
 	@rm -f $@\
@@ -295,11 +299,3 @@ s| -I\. -I\$(srcdir)| -I.|
 /\$(CC) -o \$@.tmp/s/\$@.tmp/\$@/
 /mv \$@.tmp \$@/d
 /^top_builddir =*/s/@top_builddir@/../
-# While this variable is named abs_top_builddir, the distinction is
-# only relevant when Emacs is undergoing cross-compilation.
-/^abs_top_builddir =*/s/@abs_top_builddir@/../
-# In fact, this leads to errors where Make protests that the
-# command line is ``too long'', so edit the lisp.mk stuff to
-# not specify an absolute file name.
-s/\$(abs_top_builddir)\/src\/lisp.mk/lisp.mk/
-# But this still doesn't work.
