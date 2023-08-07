@@ -26,6 +26,9 @@ dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
 AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
+AC_MSG_ERROR([The feature/android branch is no longer being updated,\
+ as the Android support has been introduced to `master'.])
+
 if test "$XCONFIGURE" = "android"; then
   # configure is being called recursively to configure Emacs for
   # Android!

@@ -1,3 +1,7 @@
+The feature/android branch is no longer being updated.
+Android support has been integrated into the 'master' branch,
+and will be released in conjunction with Emacs 30.1.
+
 Copyright (C) 2001-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
