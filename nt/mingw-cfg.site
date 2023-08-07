@@ -173,21 +173,3 @@ gl_cv_func_nanosleep=yes
 # Suppress configure-time diagnostic from unnecessary libxattr check,
 # as xattr will not be supported here.
 enable_xattr=no
-# Don't build gnulib printf either.
-gl_cv_func_printf_sizes_c99=yes
-gl_cv_func_printf_sizes_c23=yes
-gl_cv_func_printf_long_double=yes
-gl_cv_func_printf_infinite_long_double=yes
-gl_cv_func_printf_directive_a=yes
-gl_cv_func_printf_directive_b=yes
-gl_cv_func_printf_directive_f=yes
-gl_cv_func_printf_directive_n=yes
-gl_cv_func_printf_directive_ls=yes
-gl_cv_func_printf_directive_lc=yes
-gl_cv_func_printf_positions=yes
-gl_cv_func_printf_flag_grouping=yes
-gl_cv_func_printf_flag_leftadjust=yes
-gl_cv_func_printf_flag_zero=yes
-gl_cv_func_printf_precision=yes
-gl_cv_func_printf_enomem=yes
-ac_cv_func_vasprintf=yes
