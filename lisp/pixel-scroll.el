@@ -504,6 +504,7 @@ Otherwise, redisplay will reset the window's vscroll."
   (set-window-start nil (pixel-point-at-unseen-line) t)
   (set-window-vscroll nil vscroll t))
 
+;;;###autoload
 (defun pixel-scroll-precision-scroll-down-page (delta)
   "Scroll the current window down by DELTA pixels.
 Note that this function doesn't work if DELTA is larger than
@@ -560,6 +561,7 @@ the height of the current window."
       (setq delta (- delta max-height)))
     (pixel-scroll-precision-scroll-down-page delta)))
 
+;;;###autoload
 (defun pixel-scroll-precision-scroll-up-page (delta)
   "Scroll the current window up by DELTA pixels.
 Note that this function doesn't work if DELTA is larger than

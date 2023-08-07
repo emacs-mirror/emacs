@@ -255,6 +255,10 @@ control).  See \"cc-mode.el\" for more info."
 	;; Will try initialization hooks again if they failed.
 	(put 'c-initialize-cc-mode initprop c-initialization-ok))))
 
+  ;; Set up text conversion, for Emacs >= 30.0
+  (when (boundp 'post-text-conversion-hook)
+    (add-hook 'post-text-conversion-hook #'c-post-text-conversion))
+
   (unless new-style-init
     (c-init-language-vars-for 'c-mode)))
 
@@ -2723,18 +2727,18 @@ This function is called from `c-common-init', once per mode initialization."
 ;; Emacs < 22 and XEmacs
 (defmacro c-advise-fl-for-region (function)
   (declare (debug t))
-  `(defadvice ,function (before get-awk-region activate)
-     ;; Make sure that any string/regexp is completely font-locked.
-     (when c-buffer-is-cc-mode
-       (save-excursion
-	 (ad-set-arg 1 c-new-END)   ; end
-	 (ad-set-arg 0 c-new-BEG)))))	; beg
+  (unless (boundp 'font-lock-extend-after-change-region-function)
+    `(defadvice ,function (before get-awk-region activate)
+       ;; Make sure that any string/regexp is completely font-locked.
+       (when c-buffer-is-cc-mode
+	 (save-excursion
+	   (ad-set-arg 1 c-new-END)   ; end
+	   (ad-set-arg 0 c-new-BEG))))))	; beg
 
-(unless (boundp 'font-lock-extend-after-change-region-function)
-  (c-advise-fl-for-region font-lock-after-change-function)
-  (c-advise-fl-for-region jit-lock-after-change)
-  (c-advise-fl-for-region lazy-lock-defer-rest-after-change)
-  (c-advise-fl-for-region lazy-lock-defer-line-after-change))
+(c-advise-fl-for-region font-lock-after-change-function)
+(c-advise-fl-for-region jit-lock-after-change)
+(c-advise-fl-for-region lazy-lock-defer-rest-after-change)
+(c-advise-fl-for-region lazy-lock-defer-line-after-change)
 
 ;; Connect up to `electric-indent-mode' (Emacs 24.4 and later).
 (defun c-electric-indent-mode-hook ()

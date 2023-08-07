@@ -1374,7 +1374,12 @@ Returns t if successful."
     (while path-dirs
       (setq dir (file-name-as-directory (comint-directory (or (car path-dirs) ".")))
 	    comps-in-dir (and (file-accessible-directory-p dir)
-			      (file-name-all-completions filenondir dir)))
+			      (condition-case nil
+                                  (file-name-all-completions filenondir dir)
+                                ;; Systems such as Android sometimes
+                                ;; put inaccessible directories in
+                                ;; PATH.
+                                (permission-denied nil))))
       ;; Go thru each completion found, to see whether it should be used.
       (while comps-in-dir
 	(setq file (car comps-in-dir)

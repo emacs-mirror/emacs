@@ -612,7 +612,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
     ;; Was cat, but on non-Unix platforms that might not exist, so
     ;; use hexl instead, which is part of the Emacs distribution.
     (condition-case nil
-        (start-process "ielm" (current-buffer) "hexl")
+        (start-process "ielm" (current-buffer) hexl-program-name)
       (file-error (start-process "ielm" (current-buffer) "cat")))
     (set-process-query-on-exit-flag (ielm-process) nil)
     (goto-char (point-max))

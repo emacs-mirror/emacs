@@ -642,6 +642,13 @@ to the window-local tab line of buffers, and clicking on the @kbd{x}
 icon of a tab deletes it.  The mouse wheel on the tab line scrolls
 the tabs horizontally.
 
+  Touch screen input (@pxref{Other Input Devices}) can also be used to
+interact with the ``tab line''.  Long-pressing (@pxref{Touchscreens})
+a tab will display a context menu with items that operate on the tab
+that was pressed; tapping a tab itself will result in switching to
+that tab's buffer, and tapping a button on the tab line will behave as
+if it was clicked with @kbd{mouse-1}.
+
 Selecting the previous window-local tab is the same as typing @kbd{C-x
 @key{LEFT}} (@code{previous-buffer}), selecting the next tab is the
 same as @kbd{C-x @key{RIGHT}} (@code{next-buffer}).  Both commands

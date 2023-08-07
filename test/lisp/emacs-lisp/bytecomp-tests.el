@@ -2001,6 +2001,40 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
                                      (backtrace-frame-args frame))
                                call))))))))))
 
+(ert-deftest bytecomp--eq-symbols-with-pos-enabled ()
+  ;; Verify that we don't optimise away a binding of
+  ;; `symbols-with-pos-enabled' around an application of `eq' (bug#65017).
+  (let* ((sym-with-pos1 (read-positioning-symbols "sym"))
+         (sym-with-pos2 (read-positioning-symbols " sym"))  ; <- space!
+         (without-pos-eq (lambda (a b)
+                           (let ((symbols-with-pos-enabled nil))
+                             (eq a b))))
+         (without-pos-eq-compiled (byte-compile without-pos-eq))
+         (with-pos-eq (lambda (a b)
+                        (let ((symbols-with-pos-enabled t))
+                          (eq a b))))
+         (with-pos-eq-compiled (byte-compile with-pos-eq)))
+    (dolist (mode '(interpreted compiled))
+      (ert-info ((symbol-name mode) :prefix "mode: ")
+        (ert-info ("disabled" :prefix "symbol-pos: ")
+          (let ((eq-fn (pcase-exhaustive mode
+                         ('interpreted without-pos-eq)
+                         ('compiled    without-pos-eq-compiled))))
+            (should (equal (funcall eq-fn 'sym 'sym) t))
+            (should (equal (funcall eq-fn sym-with-pos1 'sym) nil))
+            (should (equal (funcall eq-fn 'sym sym-with-pos1) nil))
+            (should (equal (funcall eq-fn sym-with-pos1 sym-with-pos1) t))
+            (should (equal (funcall eq-fn sym-with-pos1 sym-with-pos2) nil))))
+        (ert-info ("enabled" :prefix "symbol-pos: ")
+          (let ((eq-fn (pcase-exhaustive mode
+                         ('interpreted with-pos-eq)
+                         ('compiled    with-pos-eq-compiled))))
+            (should (equal (funcall eq-fn 'sym 'sym) t))
+            (should (equal (funcall eq-fn sym-with-pos1 'sym) t))
+            (should (equal (funcall eq-fn 'sym sym-with-pos1) t))
+            (should (equal (funcall eq-fn sym-with-pos1 sym-with-pos1) t))
+            (should (equal (funcall eq-fn sym-with-pos1 sym-with-pos2) t))))))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

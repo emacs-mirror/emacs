@@ -537,7 +537,8 @@ invoke it (via an `interactive' spec that contains, for instance, an
 				make_fixnum (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence (callint_message,
-					  Qnil, Qnil, Qnil, Qnil);
+					  Qnil, Qnil, Qnil, Qnil,
+					  Qnil);
 	    unbind_to (speccount1, Qnil);
 	    visargs[i] = Fkey_description (args[i], Qnil);
 
@@ -567,7 +568,8 @@ invoke it (via an `interactive' spec that contains, for instance, an
 				make_fixnum (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence_vector (callint_message,
-						 Qnil, Qt, Qnil, Qnil);
+						 Qnil, Qt, Qnil, Qnil,
+						 Qnil);
 	    visargs[i] = Fkey_description (args[i], Qnil);
 	    unbind_to (speccount1, Qnil);
 

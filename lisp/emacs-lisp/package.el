@@ -609,7 +609,7 @@ package."
   (package-archive-priority (package-desc-archive pkg-desc)))
 
 (defun package--parse-elpaignore (pkg-desc)
-  "Return the of regular expression to match files ignored by PKG-DESC."
+  "Return a list of regular expressions to match files ignored by PKG-DESC."
   (let* ((pkg-dir (file-name-as-directory (package-desc-dir pkg-desc)))
          (ignore (expand-file-name ".elpaignore" pkg-dir))
          files)

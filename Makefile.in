@@ -106,14 +106,14 @@ top_builddir = @top_builddir@
 
 FIND_DELETE = @FIND_DELETE@
 
-HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
-
 USE_STARTUP_NOTIFICATION = @USE_STARTUP_NOTIFICATION@
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 HAVE_BE_APP = @HAVE_BE_APP@
-
 HAVE_PGTK = @HAVE_PGTK@
 HAVE_GSETTINGS = @HAVE_GSETTINGS@
+
+ANDROID = @ANDROID@
 
 # ==================== Where To Install Things ====================
 
@@ -339,6 +339,10 @@ EMACS_PDMP = `./src/emacs${EXEEXT} --fingerprint`.pdmp
 # Subdirectories to make recursively.
 SUBDIR = $(NTDIR) lib lib-src src lisp
 
+ifeq ($(ANDROID),yes)
+SUBDIR := $(SUBDIR) java
+endif
+
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
 SUBDIR_MAKEFILES = $(patsubst ${srcdir}/%,%,${SUBDIR_MAKEFILES_IN:.in=})
@@ -467,20 +471,20 @@ epaths-force:
 	  esac; \
 	done
 	@(gamedir='${gamedir}'; \
-	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
-	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "${standardlisppath}";' \
-	  -e 's;\(#.*PATH_REL_LOADSEARCH\).*$$;\1 "${lispdirrel}";' 	\
-	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "${locallisppath}";' \
-	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "${buildlisppath}";' \
-	  -e '/^#define PATH_[^ ]*SEARCH /s/\([":]\):*/\1/g'		\
-	  -e '/^#define PATH_[^ ]*SEARCH /s/:"/"/'			\
-	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
-	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
-	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
-	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
-	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
-	  -e 's;\(#.*PATH_GAME\).*$$;\1 $(PATH_GAME);'			\
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&		\
+	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$					\
+	  -e 's;\(#define.*PATH_LOADSEARCH\).*$$;\1 "${standardlisppath}";'		\
+	  -e 's;\(#define.*PATH_REL_LOADSEARCH\).*$$;\1 "${lispdirrel}";'		\
+	  -e 's;\(#define.*PATH_SITELOADSEARCH\).*$$;\1 "${locallisppath}";'		\
+	  -e 's;\(#define.*PATH_DUMPLOADSEARCH\).*$$;\1 "${buildlisppath}";'		\
+	  -e '/^#define PATH_[^ ]*SEARCH /s/\([":]\):*/\1/g'				\
+	  -e '/^#define PATH_[^ ]*SEARCH /s/:"/"/'					\
+	  -e 's;\(#define.*PATH_EXEC\).*$$;\1 "${archlibdir}";'				\
+	  -e 's;\(#define.*PATH_INFO\).*$$;\1 "${infodir}";'				\
+	  -e 's;\(#define.*PATH_DATA\).*$$;\1 "${etcdir}";'				\
+	  -e 's;\(#define.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'			\
+	  -e 's;\(#define.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";'	\
+	  -e 's;\(#define.*PATH_GAME\).*$$;\1 $(PATH_GAME);'				\
+	  -e 's;\(#define.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&			\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
 # The w32 build needs a slightly different editing, and it uses
@@ -532,6 +536,12 @@ lisp: src
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
 
+java: lisp info
+	$(MAKE) -C $@ all
+
+cross: src
+	$(MAKE) -C $@ all
+
 trampolines: src lisp
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	$(MAKE) -C lisp trampolines
@@ -569,10 +579,13 @@ $(MAKEFILE_NAME): config.status $(srcdir)/configure \
 # Don't erase these files if make is interrupted while refreshing them.
 .PRECIOUS: Makefile config.status
 
+# Note that calling config.status --recheck is insufficient on Android
+# due to the recursive calls to configure.
+
 config.status: ${srcdir}/configure
-	if [ -x ./config.status ]; then	\
+	if [ -x ./config.status ]; then		\
 	    $(CFG) ./config.status --recheck;	\
-	else				\
+	else					\
 	    $(CFG) $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
 
@@ -987,6 +1000,12 @@ endef
 mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
   doc/lispref doc/lispintro test
 
+### Add the libexec directory to mostlyclean_dirs if its Makefile has
+### been created.
+ifneq ($(wildcard exec/Makefile),)
+mostlyclean_dirs := $(mostlyclean_dirs) exec
+endif
+
 $(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
 
 mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
@@ -999,7 +1018,8 @@ mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
 ###      with them.
 ###
 ###      Delete '.dvi' files here if they are not part of the distribution.
-clean_dirs = $(mostlyclean_dirs) nextstep admin/charsets admin/unidata
+clean_dirs = $(mostlyclean_dirs) java cross nextstep admin/charsets \
+  admin/unidata
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
@@ -1081,6 +1101,8 @@ extraclean: maintainer-clean
 	-[ "${srcdir}" = "." ] || \
 	  find ${srcdir} '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
 	-find . '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
+	-rm -f ${srcdir}/exec/config-tmp-* ${srcdir}/exec/aclocal.m4 \
+	  ${srcdir}/src/config.in ${srcdir}/exec/configure
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.

@@ -256,6 +256,12 @@ Please report any problems with this script to bug-gnu-emacs@gnu.org .'
   ## Let autoreconf figure out what, if anything, needs doing.
   ## Use autoreconf's -f option in case autoreconf itself has changed.
   autoreconf -fi -I m4 || exit
+
+  echo "Running 'autoreconf -fi' in exec ..."
+
+  # Now, run autoreconf inside the exec directory to generate its
+  # configure script.
+  autoreconf -fi exec || exit
 fi
 
 

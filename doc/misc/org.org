@@ -3619,7 +3619,7 @@ replacement text.  Here is an example:
 
 #+begin_src emacs-lisp
 (setq org-link-abbrev-alist
-      '(("bugzilla"        . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
+      '(("bugzilla"        . "https://10.1.2.9/bugzilla/show_bug.cgi?id=")
         ("Nu Html Checker" . "https://validator.w3.org/nu/?doc=%h")
         ("duckduckgo"      . "https://duckduckgo.com/?q=%s")
         ("omap"            . "https://nominatim.openstreetmap.org/search?q=%s&polygon=1")
@@ -20693,8 +20693,8 @@ adding ~:rewrites~ rules like this:
 
 #+texinfo: @noindent
 Since =example.com/$= is used as a regular expression, it maps
-=http://example.com/=, =https://example.com=,
-=http://www.example.com/= and similar to
+=https://example.com/=, =https://example.com=,
+=https://www.example.com/= and similar to
 =/home/user/example/index.php=.
 
 The ~:rewrites~ rules are searched as a last resort if and only if no

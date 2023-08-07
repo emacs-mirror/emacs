@@ -1,0 +1,29 @@
+Name: align assignments
+
+=-=
+foo = "bar"
+x = 1
+zzzzz = True
+y        = None
+=-=
+foo   = "bar"
+x     = 1
+zzzzz = True
+y     = None
+=-=-=
+
+Name: python-chain-logic and basic-line-continuation
+
+=-=
+if foo or\
+   b and \
+   bcxxx and \
+   c:
+    pass
+=-=
+if foo   or  \
+   b     and \
+   bcxxx and \
+   c:
+    pass
+=-=-=

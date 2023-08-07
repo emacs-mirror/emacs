@@ -2013,6 +2013,10 @@ the position of the finger when the event occurred.
 This event is sent when @var{point} is created by the user pressing a
 finger against the touchscreen.
 
+Imaginary prefix keys are also affixed to these events
+@code{read-key-sequence} when they originate on top of a special part
+of a frame or window.  @xref{Key Sequence Input}.
+
 @cindex @code{touchscreen-update} event
 @item (touchscreen-update @var{points})
 This event is sent when a point on the touchscreen has changed
@@ -2029,7 +2033,171 @@ raised the finger from the touchscreen.
 intercepted by another program (such as the window manager), and Emacs
 should undo or avoid any editing commands that would otherwise result
 from the touch sequence.
+
+Imaginary prefix keys are also affixed to these events
+@code{read-key-sequence} when they originate on top of a special part
+of a frame or window.
 @end table
+
+If a touchpoint is pressed against the menu bar, then Emacs will not
+generate any corresponding @code{touchscreen-begin} or
+@code{touchscreen-end} events; instead, the menu bar may be displayed
+after @code{touchscreen-end} would have been delivered under other
+circumstances.
+
+@cindex mouse emulation from touch screen events
+When no command is bound to @code{touchscreen-begin},
+@code{touchscreen-end} or @code{touchscreen-update}, Emacs calls a
+``key translation function'' (@pxref{Translation Keymaps}) to
+translate key sequences containing touch screen events into ordinary
+mouse events (@pxref{Mouse Events}.)  Since Emacs doesn't support
+distinguishing events originating from separate mouse devices, it
+assumes that only one touchpoint is active while translation takes
+place; breaking this assumption may lead to unexpected behavior.
+
+Emacs applies two different strategies for translating touch events
+into mouse events, contingent on factors such as the commands bound to
+keymaps that are active at the location of the
+@code{touchscreen-begin} event.  If a command is bound to
+@code{down-mouse-1} at that location, the initial translation consists
+of a single @code{down-mouse-1} event, with subsequent
+@code{touchscreen-update} events translated to mouse motion events
+(@pxref{Motion Events}), and a final @code{touchscreen-end} event
+translated to a @code{mouse-1} or @code{drag-mouse-1} event (unless
+the @code{touchscreen-end} event indicates that the touch sequence has
+been intercepted by another program.)  This is dubbed ``simple
+translation'', and produces a simple correspondence between touchpoint
+motion and mouse motion.
+
+@cindex @code{ignored-mouse-command}, a symbol property
+However, some commands bound to
+@code{down-mouse-1}--@code{mouse-drag-region}, for example--either
+conflict with defined touch screen gestures (such as ``long-press to
+drag''), or with user expectations for touch input, and shouldn't
+subject the touch sequence to simple translation.  If a command whose
+name contains the property (@pxref{Symbol Properties})
+@code{ignored-mouse-command} is encountered or there is no command
+bound to @code{down-mouse-1}, a more irregular form of translation
+takes place: here, Emacs processes touch screen gestures
+(@pxref{Touchscreens,,, emacs, The GNU Emacs Manual}) first, and
+finally attempts to translate touch screen events into mouse events if
+no gesture was detected prior to a closing @code{touchscreen-end}
+event (with its @var{canceled} parameter @code{nil}, as with simple
+translation) and a command is bound to @code{mouse-1} at the location
+of that event.  Before generating the @code{mouse-1} event, point is
+also set to the location of the @code{touchscreen-end} event, and the
+window containing the position of that event is selected, as a
+compromise for packages which assume @code{mouse-drag-region} has
+already set point to the location of any mouse click and selected the
+window where it took place.
+
+To prevent unwanted @code{mouse-1} events arriving after a mouse menu
+is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple
+translation if @code{down-mouse-1} is bound to a keymap, making it a
+prefix key.  In lieu of simple translation, it translates the closing
+@code{touchscreen-end} to a @code{down-mouse-1} event with the
+starting position of the touch sequence, consequentially displaying
+the mouse menu.
+
+@cindex @code{mouse-1-menu-command}, a symbol property
+Since certain commands are also bound to @code{down-mouse-1} for the
+purpose of displaying pop-up menus, Emacs additionally behaves as
+illustrated in the last paragraph if @code{down-mouse-1} is bound to a
+command whose name has the property @code{mouse-1-menu-command}.
+
+@cindex touchscreen gesture events
+If touch gestures are detected during translation, one of the
+following input events may be generated:
+
+@table @code
+@cindex @code{touchscreen-scroll} event
+@item (touchscreen-scroll @var{window} @var{dx} @var{dy})
+If a ``scrolling'' gesture is detected during the translation process,
+each subsequent @code{touchscreen-update} event is translated to a
+@code{touchscreen-scroll} event, where @var{dx} and @var{dy} specify,
+in pixels, the relative motion of the touchpoint from the position of
+the @code{touchscreen-begin} event that started the sequence or the
+last @code{touchscreen-scroll} event, whichever came later.
+
+@cindex @code{touchscreen-hold} event
+@item (touchscreen-hold @var{posn})
+If the single active touchpoint remains stationary for more than
+@code{touch-screen-delay} seconds after a @code{touchscreen-begin} is
+generated, a ``long-press'' gesture is detected during the translation
+process, and a @code{touchscreen-hold} event is sent, with @var{posn}
+set to a mouse position list containing the position of the
+@code{touchscreen-begin} event.
+
+@cindex @code{touchscreen-drag} event
+@item (touchscreen-drag @var{posn})
+If a ``long-press'' gesture is detected while translating the current
+touch sequence or ``drag-to-select'' is being resumed as a result of
+the @code{touch-screen-extend-selection} user option, a
+@code{touchscreen-drag} event is sent upon each subsequent
+@code{touchscreen-update} event with @var{posn} set to the new
+position of the touchpoint.
+
+@cindex @code{touchscreen-restart-drag} event
+@item (touchscreen-restart-drag @var{posn})
+This event is sent upon the start of a touch sequence resulting in the
+continuation of a ``drag-to-select'' gesture (subject to the
+aformentioned user option) with @var{posn} set to the position list of
+the initial @code{touchscreen-begin} event within that touch sequence.
+@end table
+
+@cindex handling touch screen events
+@cindex tap and drag, touch screen gestures
+Several functions are provided for Lisp programs that handle touch
+screen events.  The intended use of the first two functions described
+below is from commands bound directly to @code{touchscreen-begin}
+events; they allow responding to commonly used touch screen gestures
+separately from mouse event translation.
+
+@defun touch-screen-track-tap event &optional update data
+This function is used to track a single ``tap'' gesture originating
+from the @code{touchscreen-begin} event @var{event}, often used to
+set the point or to activate a button.  It waits for a
+@code{touchscreen-end} event with the same touch identifier to arrive,
+at which point it returns @code{t}, signifying the end of the gesture.
+
+If a @code{touchscreen-update} event arrives in the mean time and
+contains at least one touchpoint with the same identifier as in
+@var{event}, the function @var{update} is called with two arguments,
+the list of touchpoints in that @code{touchscreen-update} event, and
+@var{data}.
+
+If any other event arrives in the mean time, @code{nil} is returned.
+The caller should not perform any action in that case.
+@end defun
+
+@defun touch-screen-track-drag event update &optional data
+This function is used to track a single ``drag'' gesture originating
+from the @code{touchscreen-begin} event @code{event}.
+
+It behaves like @code{touch-screen-track-tap}, except that it returns
+@code{no-drag} and refrains from calling @var{update} if the
+touchpoint in @code{event} did not move far enough (by default, 5
+pixels from its position in @code{event}) to qualify as an actual
+drag.
+@end defun
+
+In addition to those two functions, a function is provided for
+commands bound to some types of events generated through mouse event
+translation to prevent unwanted events from being generated after it
+is called.
+
+@defun touch-screen-inhibit-drag
+This function inhibits the generation of @code{touchscreen-drag}
+events during mouse event translation for the duration of the touch
+sequence being translated after it is called.  It must be called from
+a command which is bound to a @code{touchscreen-hold} or
+@code{touchscreen-drag} event, and signals an error otherwise.
+
+Since this function can only be called after a gesture is already
+recognized during mouse event translation, no mouse events will be
+generated from touch events constituting the previously mentioned
+touch sequence after it is called.
+@end defun
 
 @node Focus Events
 @subsection Focus Events
@@ -2167,6 +2335,65 @@ the buffer in which the xwidget will be displayed, using
 A few other event types represent occurrences within the system.
 
 @table @code
+@cindex @code{text-conversion} event
+@item text-conversion
+This kind of event is sent @strong{after} a system-wide input method
+performs an edit to one or more buffers.
+
+@vindex text-conversion-edits
+Once the event is sent, the input method may already have made changes
+to multiple buffers inside many different frames.  To determine which
+buffers have been changed, and what edits have been made to them, use
+the variable @code{text-conversion-edits}, which is set prior to each
+@code{text-conversion} event being sent; it is a list of the form:
+
+@example
+@w{@code{((@var{buffer} @var{beg} @var{end} @var{ephemeral}) ...)}}
+@end example
+
+Where @var{ephemeral} is the buffer which was modified, @var{beg} and
+@var{end} are markers set to the positions of the edit at the time it
+was completed, and @var{ephemeral} is either a string, containing any
+text which was inserted (or any text before point which was deleted),
+@code{t}, meaning that the edit is a temporary edit made by the input
+method, or @code{nil}, meaning that some text was deleted after point.
+
+@vindex text-conversion-style
+Whether or not this event is sent depends on the value of the
+buffer-local variable @code{text-conversion-style}, which determines
+how an input method that wishes to make edits to buffer contents will
+behave.
+
+This variable can have one of three values:
+
+@table @code
+@item nil
+This means that the input method will be disabled entirely, and key
+events will be sent instead of text conversion events.
+
+@item action
+This means that the input method will be enabled, but @key{RET} will
+be sent whenever the input method wants to insert a new line.
+
+@item t
+This, or any other value, means that the input method will be enabled
+and make edits followed by @code{text-conversion} events.
+@end table
+
+@findex set-text-conversion-style
+Changes to the value of this variable will only take effect upon the
+next redisplay after the buffer becomes the selected buffer of a
+frame.  If you need to disable text conversion in a way that takes
+immediate effect, call the function @code{set-text-conversion-style}
+instead.  This has the potential to lock up the input method for a
+significant amount of time, and should be used with care.
+
+@vindex disable-inhibit-text-conversion
+In addition, text conversion is automatically disabled after a prefix
+key is read by the command loop or @code{read-key-sequence}.  This can
+be disabled by setting or binding the variable
+@code{disable-inhibit-text-conversion} to a non-@code{nil} value.
+
 @cindex @code{delete-frame} event
 @item (delete-frame (@var{frame}))
 This kind of event indicates that the user gave the window manager
@@ -2946,7 +3173,7 @@ debugging terminal input.
 @code{read-key-sequence}.  Lisp programs can also call this function;
 for example, @code{describe-key} uses it to read the key to describe.
 
-@defun read-key-sequence prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
+@defun read-key-sequence prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop disable-text-conversion
 This function reads a key sequence and returns it as a string or
 vector.  It keeps reading events until it has accumulated a complete key
 sequence; that is, enough to specify a non-prefix command using the
@@ -2986,6 +3213,12 @@ key sequence is being read by something that will read commands one
 after another.  It should be @code{nil} if the caller will read just
 one key sequence.
 
+The argument @var{disable-text-conversion}, if non-@code{nil}, means
+that system input methods will not directly perform edits to buffer
+text while this key sequence is being read; user input will always
+generated individual key events instead.  @xref{Misc Events} for more
+about text conversion.
+
 In the following example, Emacs displays the prompt @samp{?} in the
 echo area, and then the user types @kbd{C-x C-f}.
 
@@ -3006,7 +3239,7 @@ typed while reading with this function works like any other character,
 and does not set @code{quit-flag}.  @xref{Quitting}.
 @end defun
 
-@defun read-key-sequence-vector prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
+@defun read-key-sequence-vector prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop disable-text-conversion
 This is like @code{read-key-sequence} except that it always
 returns the key sequence as a vector, never as a string.
 @xref{Strings of Events}.
@@ -3054,19 +3287,22 @@ with any other events.
 @cindex @code{right-divider}, prefix key
 @cindex @code{bottom-divider}, prefix key
 @cindex mouse events, in special parts of window or frame
-When mouse events occur in special parts of a window or frame, such as a mode
+@cindex touch screen events, in special parts of window or frame
+When mouse or @code{touchscreen-begin} and @code{touchscreen-end}
+events occur in special parts of a window or frame, such as a mode
 line or a scroll bar, the event type shows nothing special---it is the
 same symbol that would normally represent that combination of mouse
-button and modifier keys.  The information about the window part is kept
-elsewhere in the event---in the coordinates.  But
+button and modifier keys.  The information about the window part is
+kept elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-prefix keys, all of which are symbols: @code{tab-line}, @code{header-line},
-@code{horizontal-scroll-bar}, @code{menu-bar}, @code{tab-bar}, @code{mode-line},
-@code{vertical-line}, @code{vertical-scroll-bar}, @code{left-margin},
-@code{right-margin}, @code{left-fringe}, @code{right-fringe},
-@code{right-divider}, and @code{bottom-divider}.  You can define meanings for
-mouse clicks in special window parts by defining key sequences using these
-imaginary prefix keys.
+prefix keys, all of which are symbols: @code{tab-line},
+@code{header-line}, @code{horizontal-scroll-bar}, @code{menu-bar},
+@code{tab-bar}, @code{mode-line}, @code{vertical-line},
+@code{vertical-scroll-bar}, @code{left-margin}, @code{right-margin},
+@code{left-fringe}, @code{right-fringe}, @code{right-divider}, and
+@code{bottom-divider}.  You can define meanings for mouse clicks in
+special window parts by defining key sequences using these imaginary
+prefix keys.
 
 For example, if you call @code{read-key-sequence} and then click the
 mouse on the window's mode line, you get two events, like this:

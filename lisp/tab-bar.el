@@ -36,6 +36,8 @@
   (require 'seq)
   (require 'icons))
 
+(autoload 'cl--set-substring "cl-lib")
+
 
 (defgroup tab-bar nil
   "Frame-local tabs."
@@ -341,10 +343,12 @@ only when you click on its \"x\" close button."
     (unless (eq tab-number t)
       (tab-bar-close-tab tab-number))))
 
-(defun tab-bar-mouse-context-menu (event)
-  "Pop up the context menu for the tab on which you click."
+(defun tab-bar-mouse-context-menu (event &optional posn)
+  "Pop up the context menu for the tab on which you click.
+EVENT is a mouse or touch screen event.  POSN is nil or the
+position of EVENT."
   (interactive "e")
-  (let* ((item (tab-bar--event-to-item (event-start event)))
+  (let* ((item (tab-bar--event-to-item (or posn (event-start event))))
          (tab-number (tab-bar--key-to-number (nth 0 item)))
          (menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
 
@@ -397,6 +401,78 @@ at the mouse-down event to the position at mouse-up event."
       (tab-bar-move-tab-to
        (if (null to) (1+ (tab-bar--current-tab-index)) to) from))))
 
+
+
+;;; Tab bar touchscreen support.
+
+(declare-function touch-screen-track-tap "touch-screen.el")
+
+(defun tab-bar-handle-timeout ()
+  "Handle a touch-screen timeout on the tab bar.
+Beep, then throw to `context-menu' and return."
+  (beep)
+  (throw 'context-menu 'context-menu))
+
+(defun tab-bar-touchscreen-begin (event)
+  "Handle a touchscreen begin EVENT on the tab bar.
+
+Determine where the touch was made.  If it was made on a tab
+itself, start a timer set to go off after a certain amount of
+time, and wait for the touch point to be released, and either
+display a context menu or select a tab as appropriate.
+
+Otherwise, if it was made on a button, close or create a tab as
+appropriate."
+  (interactive "e")
+  (let* ((posn (cdadr event))
+         (item (tab-bar--event-to-item posn))
+         (number (tab-bar--key-to-number (car item)))
+         timer)
+    (when (eq (catch 'context-menu
+                (cond ((integerp number)
+                       ;; The touch began on a tab.  Start a context
+                       ;; menu timer and start tracking the tap.
+                       (unwind-protect
+                           (progn
+                             (setq timer (run-at-time touch-screen-delay nil
+                                                      #'tab-bar-handle-timeout))
+                             ;; Now wait for the tap to complete.
+                             (when (touch-screen-track-tap event)
+                               ;; And select the tab, or close it,
+                               ;; depending on whether or not the
+                               ;; close button was pressed.
+                               (if (caddr item)
+                                   (tab-bar-close-tab number)
+                                 (tab-bar-select-tab number))))
+                         ;; Cancel the timer.
+                         (cancel-timer timer)))
+                      ((and (memq (car item) '(add-tab history-back
+                                                       history-forward))
+                            (functionp (cadr item)))
+                       ;; This is some kind of button.  Wait for the
+                       ;; tap to complete and press it.
+                       (when (touch-screen-track-tap event)
+                         (call-interactively (cadr item))))
+                      (t
+                       ;; The touch began on the tab bar itself.
+                       ;; Start a context menu timer and start
+                       ;; tracking the tap, but don't do anything
+                       ;; afterwards.
+                       (unwind-protect
+                           (progn
+                             (setq timer (run-at-time touch-screen-delay nil
+                                                      #'tab-bar-handle-timeout))
+                             ;; Now wait for the tap to complete.
+                             (touch-screen-track-tap event))
+                         ;; Cancel the timer.
+                         (cancel-timer timer)))))
+              'context-menu)
+      ;; Display the context menu in response to a time out waiting
+      ;; for the tap to complete.
+      (tab-bar-mouse-context-menu event posn))))
+
+
+
 (defvar-keymap tab-bar-map
   :doc "Keymap for the commands used on the tab bar."
   "<down-mouse-1>"  #'tab-bar-mouse-down-1
@@ -418,7 +494,8 @@ at the mouse-down event to the position at mouse-up event."
   "S-<wheel-up>"    #'tab-bar-move-tab-backward
   "S-<wheel-down>"  #'tab-bar-move-tab
   "S-<wheel-left>"  #'tab-bar-move-tab-backward
-  "S-<wheel-right>" #'tab-bar-move-tab)
+  "S-<wheel-right>" #'tab-bar-move-tab
+  "<touchscreen-begin>" #'tab-bar-touchscreen-begin)
 
 (global-set-key [tab-bar]
                 `(menu-item ,(purecopy "tab bar") ,(make-sparse-keymap)

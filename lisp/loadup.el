@@ -258,6 +258,9 @@
 (load "jit-lock")
 
 (load "mouse")
+;; This loading happens on Android despite scroll bars being
+;; unsupported, because scroll-bar-mode (the variable) must be
+;; defined.
 (if (boundp 'x-toolkit-scroll-bars)
     (load "scroll-bar"))
 (load "select")
@@ -295,6 +298,10 @@
 (if (featurep 'dynamic-setting)
     (load "dynamic-setting"))
 
+;; touch-screen.el is tiny and is used liberally throughout the button
+;; code etc, so it may as well be preloaded everywhere.
+(load "touch-screen")
+
 (if (featurep 'x)
     (progn
       (load "x-dnd")
@@ -305,6 +312,12 @@
     (progn
       (load "term/common-win")
       (load "term/haiku-win")))
+
+(if (featurep 'android)
+    (progn
+      (load "ls-lisp")
+      (load "term/common-win")
+      (load "term/android-win")))
 
 (if (or (eq system-type 'windows-nt)
         (featurep 'w32))
@@ -429,6 +442,13 @@ lost after dumping")))
       (defconst emacs-build-number
 	(if versions (1+ (apply #'max versions)) 1))))
 
+;; Just set the repository branch during initial dumping on Android.
+(if (and (eq system-type 'android)
+         (not (pdumper-stats)))
+    (setq emacs-repository-version
+          (ignore-errors (emacs-repository-get-version))
+          emacs-repository-branch
+          (ignore-errors (emacs-repository-get-branch))))
 
 (message "Finding pointers to doc strings...")
 (if (and (or (and (fboundp 'dump-emacs)
@@ -546,66 +566,97 @@ lost after dumping")))
 
 
 
-(if dump-mode
-    (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
-                        ((equal dump-mode "dump") "emacs")
-                        ((equal dump-mode "bootstrap") "emacs")
-                        ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
-                        (t (error "Unrecognized dump mode %s" dump-mode)))))
-      (when (and (featurep 'native-compile)
-                 (equal dump-mode "pdump"))
-        ;; Don't enable this before bootstrap is completed, as the
-        ;; compiler infrastructure may not be usable yet.
-        (setq native-comp-enable-subr-trampolines t))
-      (message "Dumping under the name %s" output)
-      (condition-case ()
-          (delete-file output)
-        (file-error nil))
-      ;; On MS-Windows, the current directory is not necessarily the
-      ;; same as invocation-directory.
-      (let (success)
-        (unwind-protect
-             (let ((tmp-dump-mode dump-mode)
-                   (dump-mode nil)
-                   (lexical-binding nil))
-               (if (member tmp-dump-mode '("pdump" "pbootstrap"))
-                   (dump-emacs-portable (expand-file-name output invocation-directory))
-                 (dump-emacs output (if (eq system-type 'ms-dos)
-                                        "temacs.exe"
-                                      "temacs"))
-                 (message "%d pure bytes used" pure-bytes-used))
-               (setq success t))
-          (unless success
-            (ignore-errors
-              (delete-file output)))))
-      ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (eq system-type 'ms-dos)
-                   (eq system-type 'haiku) ;; BFS doesn't support hard links
-                   ;; Don't bother adding another name if we're just
-                   ;; building bootstrap-emacs.
-                   (member dump-mode '("pbootstrap" "bootstrap"))))
-          (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
-                (exe (if (eq system-type 'windows-nt) ".exe" "")))
-            (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-              (setq name (concat (downcase (substring name 0 (match-beginning 0)))
-                                 "-"
-                                 (substring name (match-end 0)))))
-            (message "Adding name %s" (concat name exe))
-            ;; When this runs on Windows, invocation-directory is not
-            ;; necessarily the current directory.
-            (add-name-to-file (expand-file-name (concat "emacs" exe)
-                                                invocation-directory)
-                              (expand-file-name (concat name exe)
-                                                invocation-directory)
-                              t)
-            (when (equal dump-mode "pdump")
-              (message "Adding name %s" (concat name ".pdmp"))
-              (add-name-to-file (expand-file-name "emacs.pdmp"
+(if (eq system-type 'android)
+    (progn
+      ;; Dumping Emacs on Android works slightly differently from
+      ;; everywhere else.  The first time Emacs starts, Emacs dumps
+      ;; itself to "emacs-%s.pdump", and then proceeds with loadup,
+      ;; where %s is replaced by the dump fingerprint.
+      ;; EmacsApplication.java removes any pdump files with a
+      ;; different build fingerprint upon being created, which happens
+      ;; the moment the Android system starts Emacs.  Then, it passes
+      ;; the appropriate "--dump-file" to libemacs.so as it starts.
+      (when (not noninteractive)
+        (let ((temp-dir (getenv "TEMP"))
+              (dump-file-name (format "%semacs-%s.pdmp"
+                                      (file-name-as-directory "~")
+                                      pdumper-fingerprint))
+              (dump-temp-file-name (format "%s~emacs-%s.pdmp"
+                                           (file-name-as-directory "~")
+                                           pdumper-fingerprint)))
+          (unless (pdumper-stats)
+            (condition-case ()
+                (progn
+                  (dump-emacs-portable dump-temp-file-name)
+                  ;; Move the dumped file to the actual dump file name.
+                  (rename-file dump-temp-file-name dump-file-name)
+                  ;; Continue with loadup.
+                  nil)
+              (error nil))))))
+  (if dump-mode
+      (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
+                          ((equal dump-mode "dump") "emacs")
+                          ((equal dump-mode "bootstrap") "emacs")
+                          ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
+                          (t (error "Unrecognized dump mode %s" dump-mode)))))
+        (when (and (featurep 'native-compile)
+                   (equal dump-mode "pdump"))
+          ;; Don't enable this before bootstrap is completed, as the
+          ;; compiler infrastructure may not be usable yet.
+          (setq comp-enable-subr-trampolines t))
+        (message "Dumping under the name %s" output)
+        (condition-case ()
+            (delete-file output)
+          (file-error nil))
+        ;; On MS-Windows, the current directory is not necessarily the
+        ;; same as invocation-directory.
+        (let (success)
+          (unwind-protect
+              (let ((tmp-dump-mode dump-mode)
+                    (dump-mode nil)
+                    (lexical-binding nil))
+                (if (member tmp-dump-mode '("pdump" "pbootstrap"))
+                    (dump-emacs-portable (expand-file-name output invocation-directory))
+                  (dump-emacs output (if (eq system-type 'ms-dos)
+                                         "temacs.exe"
+                                       "temacs"))
+                  (message "%d pure bytes used" pure-bytes-used))
+                (setq success t))
+            (unless success
+              (ignore-errors
+                (delete-file output)))))
+        ;; Recompute NAME now, so that it isn't set when we dump.
+        (if (not (or (eq system-type 'ms-dos)
+                     (eq system-type 'haiku) ;; BFS doesn't support hard links
+                     ;; There's no point keeping old dumps around for
+                     ;; the binary used to build Lisp on the build
+                     ;; machine.
+                     (featurep 'android)
+                     ;; Don't bother adding another name if we're just
+                     ;; building bootstrap-emacs.
+                     (member dump-mode '("pbootstrap" "bootstrap"))))
+            (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
+                  (exe (if (eq system-type 'windows-nt) ".exe" "")))
+              (while (string-match "[^-+_.a-zA-Z0-9]+" name)
+                (setq name (concat (downcase (substring name 0 (match-beginning 0)))
+                                   "-"
+                                   (substring name (match-end 0)))))
+              (message "Adding name %s" (concat name exe))
+              ;; When this runs on Windows, invocation-directory is not
+              ;; necessarily the current directory.
+              (add-name-to-file (expand-file-name (concat "emacs" exe)
                                                   invocation-directory)
-                                (expand-file-name (concat name ".pdmp")
+                                (expand-file-name (concat name exe)
                                                   invocation-directory)
-                                t))))
-      (kill-emacs)))
+                                t)
+              (when (equal dump-mode "pdump")
+                (message "Adding name %s" (concat name ".pdmp"))
+                (add-name-to-file (expand-file-name "emacs.pdmp"
+                                                    invocation-directory)
+                                  (expand-file-name (concat name ".pdmp")
+                                                    invocation-directory)
+                                  t))))
+        (kill-emacs))))
 
 ;; This file must be loaded each time Emacs is run from scratch, e.g., temacs.
 ;; So run the startup code now.  First, remove `-l loadup' from args.
@@ -620,6 +671,13 @@ lost after dumping")))
 (setq load-true-file-name nil)
 (setq load-file-name nil)
 (eval top-level t)
+
+;; loadup.el is loaded at startup, but clobbers current-load-list.
+;; Set current-load-list to a list containing no definitions and only
+;; its name, to prevent invalid entries from ending up in
+;; Vload_history when running temacs interactively.
+
+(setq current-load-list (list "loadup.el"))
 
 
 ;; Local Variables:

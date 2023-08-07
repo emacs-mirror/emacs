@@ -3514,7 +3514,10 @@ window-start value is reasonable when this function is called.  */)
 void
 replace_buffer_in_windows (Lisp_Object buffer)
 {
-  call1 (Qreplace_buffer_in_windows, buffer);
+  /* When kill-buffer is called early during loadup, this function is
+     undefined.  */
+  if (!NILP (Ffboundp (Qreplace_buffer_in_windows)))
+    call1 (Qreplace_buffer_in_windows, buffer);
 }
 
 /* If BUFFER is shown in a window, safely replace it with some other

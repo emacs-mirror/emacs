@@ -56,6 +56,9 @@ s/ *@LIBPNG@//
 s/ *@LIBGIF@//
 s/ *@LIBXPM@//
 s/ *@WEBP_LIBS@//
+/^GIF_CFLAGS *=/s/@GIF_CFLAGS@//
+/^JPEG_CFLAGS *=/s/@JPEG_CFLAGS@//
+/^TIFF_CFLAGS *=/s/@TIFF_CFLAGS@//
 /^HAVE_NATIVE_COMP *=/s/@HAVE_NATIVE_COMP@/no/
 /^HAVE_PDUMPER *=/s/@HAVE_PDUMPER@/no/
 /^HAVE_BE_APP *=/s/@HAVE_BE_APP@/no/
@@ -200,6 +203,14 @@ s/ *@WEBP_LIBS@//
 /^PAXCTL_dumped *=/s/=.*$/=/
 /^PAXCTL_notdumped *=/s/=.*$/=/
 /^DUMPING *=/s/@DUMPING@/unexec/
+/^ANDROID_OBJ *=/s/@ANDROID_OBJ@//
+/^ANDROID_LIBS *=/s/@ANDROID_LIBS@//
+/^ANDROID_LDFLAGS *=/s/@ANDROID_LDFLAGS@//
+/^ANDROID_BUILD_CFLAGS *=/s/@ANDROID_BUILD_CFLAGS@//
+/^LIBGMP_CFLAGS *=/s/@LIBGMP_CFLAGS@//
+/^SQLITE3_CFLAGS *=/s/@SQLITE3_CFLAGS@//
+/^LIBSELINUX_CFLAGS *=/s/@LIBSELINUX_CFLAGS@//
+/^XCONFIGURE *=/s/@XCONFIGURE@//
 /^[ \t]*MAKE_PDUMPER_FINGERPRINT = *$/c\
 MAKE_PDUMPER_FINGERPRINT =
 /^lisp\.mk:/,/^$/c\
@@ -283,3 +294,4 @@ s| -I\. -I\$(srcdir)| -I.|
 /^	 *test "X/d
 /\$(CC) -o \$@.tmp/s/\$@.tmp/\$@/
 /mv \$@.tmp \$@/d
+/^top_builddir =*/s/@top_builddir@/../

@@ -566,6 +566,11 @@ struct buffer
   /* A list of tree-sitter parsers for this buffer.  */
   Lisp_Object ts_parser_list_;
 #endif
+
+  /* What type of text conversion the input method should apply to
+     this buffer.  */
+  Lisp_Object text_conversion_style_;
+
   /* Cursor type to display in non-selected windows.
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
@@ -840,6 +845,12 @@ INLINE void
 bset_width_table (struct buffer *b, Lisp_Object val)
 {
   b->width_table_ = val;
+}
+
+INLINE void
+bset_text_conversion_style (struct buffer *b, Lisp_Object val)
+{
+  b->text_conversion_style_ = val;
 }
 
 /* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return

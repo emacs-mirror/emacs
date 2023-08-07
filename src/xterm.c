@@ -20187,6 +20187,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 #endif
 
+	  /* See if keysym should make Emacs quit.  */
+
+	  if (keysym == dpyinfo->quit_keysym
+	      && (xkey.time - dpyinfo->quit_keysym_time
+		  <= 350))
+	    {
+	      Vquit_flag = Qt;
+	      goto done_keysym;
+	    }
+
+	  if (keysym == dpyinfo->quit_keysym)
+	    {
+	      /* Otherwise, set the last time that keysym was
+		 pressed.  */
+	      dpyinfo->quit_keysym_time = xkey.time;
+	      goto done_keysym;
+	    }
+
           /* If not using XIM/XIC, and a compose sequence is in progress,
              we break here.  Otherwise, chars_matched is always 0.  */
           if (compose_status.chars_matched > 0 && nbytes == 0)
@@ -23949,6 +23967,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      goto xi_done_keysym;
 		    }
 #endif
+
+		  /* See if keysym should make Emacs quit.  */
+
+		  if (keysym == dpyinfo->quit_keysym
+		      && (xev->time - dpyinfo->quit_keysym_time
+			  <= 350))
+		    {
+		      Vquit_flag = Qt;
+		      goto xi_done_keysym;
+		    }
+
+		  if (keysym == dpyinfo->quit_keysym)
+		    {
+		      /* Otherwise, set the last time that keysym was
+			 pressed.  */
+		      dpyinfo->quit_keysym_time = xev->time;
+		      goto xi_done_keysym;
+		    }
 
 		  /* First deal with keysyms which have defined
 		     translations to characters.  */
@@ -30066,6 +30102,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   struct terminal *terminal;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
+  Lisp_Object tem, quit_keysym;
 #ifdef USE_XCB
   xcb_connection_t *xcb_conn;
 #endif
@@ -30076,7 +30113,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   GdkScreen *gscr;
 #endif
 #ifdef HAVE_XFIXES
-  Lisp_Object tem, lisp_name;
+  Lisp_Object lisp_name;
   int num_fast_selections;
   Atom selection_name;
 #ifdef USE_XCB
@@ -30352,6 +30389,28 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       }
     terminal->kboard->reference_count++;
   }
+
+  /* Now look through Vx_quit_keysym for the quit keysym associated
+     with this display.  */
+  tem = Vx_quit_keysym;
+  FOR_EACH_TAIL_SAFE (tem)
+    {
+      quit_keysym = XCAR (tem);
+
+      /* Check if its car is a string and its cdr a valid keysym.
+	 Skip if it is not.  */
+
+      if (!CONSP (quit_keysym) || !FIXNUMP (XCDR (quit_keysym))
+	  || !STRINGP (XCAR (quit_keysym)))
+	continue;
+
+      /* Check if this is the keysym to be used.  */
+
+      if (strcmp (SSDATA (XCAR (quit_keysym)), ServerVendor (dpy)))
+	continue;
+
+      dpyinfo->quit_keysym = XFIXNUM (XCDR (quit_keysym));
+    }
 
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;
@@ -31780,7 +31839,7 @@ init_xterm (void)
 #endif
 
 #ifdef HAVE_X_I18N
-  register_texconv_interface (&text_conversion_interface);
+  register_textconv_interface (&text_conversion_interface);
 #endif
 }
 
@@ -32114,7 +32173,9 @@ adjusted if the default value does not work for whatever reason.  */);
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
-With MS Windows, Haiku windowing or Nextstep, the value is t.  */);
+With MS Windows, Haiku windowing or Nextstep, the value is t.
+With Android, the value is nil, but that is because Emacs on
+Android does not support scroll bars at all.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
   Vx_toolkit_scroll_bars = intern_c_string ("motif");
@@ -32463,4 +32524,23 @@ frame placement via frame parameters, `set-frame-position', and
 `set-frame-size', along with the actual state of a frame after
 `x_make_frame_invisible'.  */);
   Vx_lax_frame_positioning = Qnil;
+
+  DEFVAR_LISP ("x-quit-keysym", Vx_quit_keysym,
+    doc: /* Keysyms which will cause Emacs to quit if rapidly pressed twice.
+
+This is used to support quitting on devices that do not have any kind
+of physical keyboard, or where the physical keyboard is incapable of
+entering `C-g'.  It defaults to `XF86XK_AudioLowerVolume' on XFree86
+and X.Org servers, and is unset.
+
+The value is an alist associating between strings, describing X server
+vendor names, and a single number describing the keysym to use.  The
+keysym to use for each display connection is determined upon
+connection setup, and does not reflect further changes to this
+variable.  */);
+  Vx_quit_keysym
+    = list2 (Fcons (build_string ("The X.Org Foundation"),
+		    make_int (269025041)),
+	     Fcons (build_string ("The XFree86 Project, Inc."),
+		    make_int (269025041)));
 }

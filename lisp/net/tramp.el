@@ -87,15 +87,6 @@
 ;;;###autoload (when (featurep 'tramp-compat)
 ;;;###autoload   (load "tramp-compat" 'noerror 'nomessage))
 
-;;; User Customizable Internal Variables:
-
-(defgroup tramp nil
-  "Edit remote files with a combination of ssh, scp, etc."
-  :group 'files
-  :group 'comm
-  :version "22.1"
-  :link '(custom-manual "(tramp)Top"))
-
 ;;;###tramp-autoload
 (progn
   (defvar tramp--startup-hook nil
@@ -105,9 +96,26 @@
 
   (defmacro tramp--with-startup (&rest body)
     "Schedule BODY to be executed at the end of tramp.el."
-    `(add-hook 'tramp--startup-hook (lambda () ,@body))))
+    `(add-hook 'tramp--startup-hook (lambda () ,@body)))
 
-(require 'tramp-loaddefs)
+  (eval-and-compile
+    (defalias 'tramp-byte-run--set-suppress-trace
+      #'(lambda (f _args val)
+	  (list 'function-put (list 'quote f)
+		''tramp-suppress-trace val)))
+
+    (add-to-list
+     'defun-declarations-alist
+     (list 'tramp-suppress-trace #'tramp-byte-run--set-suppress-trace))))
+
+;;; User Customizable Internal Variables:
+
+(defgroup tramp nil
+  "Edit remote files with a combination of ssh, scp, etc."
+  :group 'files
+  :group 'comm
+  :version "22.1"
+  :link '(custom-manual "(tramp)Top"))
 
 ;; Maybe we need once a real Tramp mode, with key bindings etc.
 ;;;###autoload
@@ -140,7 +148,12 @@ This setting has precedence over `auto-save-file-name-transforms'."
 ;; Suppress `shell-file-name' for w32 systems.
 (defcustom tramp-encoding-shell
   (let (shell-file-name)
-    (or (tramp-compat-funcall 'w32-shell-name) "/bin/sh"))
+    (or (tramp-compat-funcall 'w32-shell-name)
+        (if (eq system-type 'android)
+            ;; The shell is located at /system/bin/sh on Android
+            ;; systems.
+            "/system/bin/sh"
+          "/bin/sh")))
   "Use this program for encoding and decoding commands on the local host.
 This shell is used to execute the encoding and decoding command on the
 local host, so if you want to use \"~\" in those commands, you should
@@ -1480,6 +1493,7 @@ If LOCALNAME is an absolute file name, set it as localname.  If
 LOCALNAME is a relative file name, return `tramp-cache-undefined'.
 Objects returned by this function compare `equal' if they refer to the
 same connection.  Make a copy in order to avoid side effects."
+  ;; (declare (tramp-suppress-trace t))
   (if (and (stringp localname)
 	   (not (file-name-absolute-p localname)))
       (setq vec tramp-cache-undefined)
@@ -1491,13 +1505,16 @@ same connection.  Make a copy in order to avoid side effects."
 	    (tramp-file-name-hop vec) nil))
     vec))
 
-;; We cannot declare our private symbols in loaddefs.
-(function-put 'tramp-file-name-unify 'tramp-suppress-trace t)
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-file-name-unify 'tramp-suppress-trace t)
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
   "Check, whether VEC1 and VEC2 denote the same `tramp-file-name'.
 LOCALNAME and HOP do not count."
+  (declare (tramp-suppress-trace t))
   (and (tramp-file-name-p vec1) (tramp-file-name-p vec2)
        (equal (tramp-file-name-unify vec1)
 	      (tramp-file-name-unify vec2))))
@@ -1526,6 +1543,7 @@ entry does not exist, return nil."
 ;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
   "Return t if NAME is a string with Tramp file name syntax."
+  ;; (declare (tramp-suppress-trace t))
   (and tramp-mode (stringp name)
        ;; No "/:" and "/c:".  This is not covered by `tramp-file-name-regexp'.
        (not (string-match-p (rx bos "/" (? alpha) ":") name))
@@ -1534,6 +1552,11 @@ entry does not exist, return nil."
 	   (not (string-match-p tramp-ignored-file-name-regexp name)))
        (string-match-p tramp-file-name-regexp name)
        t))
+
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-tramp-file-p 'tramp-suppress-trace t)
 
 ;; This function bypasses the file name handler approach.  It is NOT
 ;; recommended to use it in any package if not absolutely necessary.
@@ -1563,6 +1586,7 @@ of `process-file', `start-file-process', or `shell-command'."
   "Return the right method string to use depending on USER and HOST.
 This is METHOD, if non-nil.  Otherwise, do a lookup in
 `tramp-default-method-alist' and `tramp-default-method'."
+  (declare (tramp-suppress-trace t))
   (when (and method
 	     (or (string-empty-p method)
 		 (string-equal method tramp-default-method-marker)))
@@ -1588,6 +1612,7 @@ This is METHOD, if non-nil.  Otherwise, do a lookup in
   "Return the right user string to use depending on METHOD and HOST.
 This is USER, if non-nil.  Otherwise, do a lookup in
 `tramp-default-user-alist' and `tramp-default-user'."
+  (declare (tramp-suppress-trace t))
   (let ((result
 	 (or user
 	     (let ((choices tramp-default-user-alist)
@@ -1609,6 +1634,7 @@ This is USER, if non-nil.  Otherwise, do a lookup in
   "Return the right host string to use depending on METHOD and USER.
 This is HOST, if non-nil.  Otherwise, do a lookup in
 `tramp-default-host-alist' and `tramp-default-host'."
+  (declare (tramp-suppress-trace t))
   (let ((result
 	 (or (and (tramp-compat-length> host 0) host)
 	     (let ((choices tramp-default-host-alist)
@@ -1635,6 +1661,7 @@ localname (file name on remote host), and hop.
 Unless NODEFAULT is non-nil, method, user and host are expanded
 to their default values.  For the other file name parts, no
 default values are used."
+  ;; (declare (tramp-suppress-trace t))
   (save-match-data
     (unless (tramp-tramp-file-p name)
       (tramp-user-error nil "Not a Tramp file name: \"%s\"" name))
@@ -1691,8 +1718,10 @@ default values are used."
 	    (tramp-user-error
 	     v "Method `%s' is not supported for multi-hops" method)))))))
 
-;; We cannot declare our private symbols in loaddefs.
-(function-put 'tramp-dissect-file-name 'tramp-suppress-trace t)
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-dissect-file-name 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
 (defun tramp-ensure-dissected-file-name (vec-or-filename)
@@ -1700,13 +1729,16 @@ default values are used."
 
 VEC-OR-FILENAME may be either a string or a `tramp-file-name'.
 If it's not a Tramp filename, return nil."
+  ;; (declare (tramp-suppress-trace t))
   (cond
    ((tramp-file-name-p vec-or-filename) vec-or-filename)
    ((tramp-tramp-file-p vec-or-filename)
     (tramp-dissect-file-name vec-or-filename))))
 
-;; We cannot declare our private symbols in loaddefs.
-(function-put 'tramp-ensure-dissected-file-name 'tramp-suppress-trace t)
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-ensure-dissected-file-name 'tramp-suppress-trace t)
 
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.
@@ -1733,6 +1765,7 @@ See `tramp-dissect-file-name' for details."
 
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
+  (declare (tramp-suppress-trace t))
   (let ((method (tramp-file-name-method vec))
 	(user-domain (tramp-file-name-user-domain vec))
 	(host-port (tramp-file-name-host-port vec)))
@@ -3499,29 +3532,29 @@ BODY is the backend specific code."
 
 	     ;; Set the ownership.
              (when need-chown
-               (tramp-set-file-uid-gid filename uid gid)))
+               (tramp-set-file-uid-gid filename uid gid))
 
-	   ;; Set extended attributes.  We ignore possible errors,
-	   ;; because ACL strings could be incompatible.
-	   (when attributes
-	     (ignore-errors
-	       (set-file-extended-attributes filename attributes)))
+	     ;; Set extended attributes.  We ignore possible errors,
+	     ;; because ACL strings could be incompatible.
+	     (when attributes
+	       (ignore-errors
+		 (set-file-extended-attributes filename attributes)))
 
-	   ;; Unlock file.
-	   (when file-locked
-	     ;; `unlock-file' exists since Emacs 28.1.
-	     (tramp-compat-funcall 'unlock-file lockname))
+	     ;; Unlock file.
+	     (when file-locked
+	       ;; `unlock-file' exists since Emacs 28.1.
+	       (tramp-compat-funcall 'unlock-file lockname))
 
-	   ;; Sanity check.
-	   (unless (equal curbuf (current-buffer))
-	     (tramp-error
-	      v 'file-error
-	      "Buffer has changed from `%s' to `%s'" curbuf (current-buffer)))
+	     ;; Sanity check.
+	     (unless (equal curbuf (current-buffer))
+	       (tramp-error
+		v 'file-error
+		"Buffer has changed from `%s' to `%s'" curbuf (current-buffer)))
 
-	   (when (and (null noninteractive)
-		      (or (eq ,visit t) (string-or-null-p ,visit)))
-	     (tramp-message v 0 "Wrote %s" filename))
-	   (run-hooks 'tramp-handle-write-region-hook))))))
+	     (when (and (null noninteractive)
+			(or (eq ,visit t) (string-or-null-p ,visit)))
+	       (tramp-message v 0 "Wrote %s" filename))
+	     (run-hooks 'tramp-handle-write-region-hook)))))))
 
 ;;; Common file name handler functions for different backends:
 
@@ -6027,6 +6060,13 @@ to cache the result.  Return the modified ATTR."
 		 ;; Set virtual device number.
 		 (setcar (nthcdr 11 attr)
 			 (tramp-get-device ,vec))
+		 ;; Set SELinux context.
+		 (when (stringp (nth 12 attr))
+		   (tramp-set-file-property
+		    ,vec ,localname  "file-selinux-context"
+		    (split-string (nth 12 attr) ":" 'omit)))
+		 ;; Remove optional entries.
+		 (setcdr (nthcdr 11 attr) nil)
 		 attr)))))
 
        ;; Return normalized result.
@@ -6166,6 +6206,7 @@ Return the local name of the temporary file."
 
 (defun tramp-delete-temp-file-function ()
   "Remove temporary files related to current buffer."
+  (declare (tramp-suppress-trace t))
   (when (stringp tramp-temp-buffer-file-name)
     (ignore-errors (delete-file tramp-temp-buffer-file-name))))
 
@@ -6458,6 +6499,7 @@ Consults the auth-source package."
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.
 T1 and T2 are time values (as returned by `current-time' for example)."
+  (declare (tramp-suppress-trace t))
   (float-time (time-subtract t1 t2)))
 
 (defun tramp-unquote-shell-quote-argument (s)

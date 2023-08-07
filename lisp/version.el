@@ -26,6 +26,31 @@
 
 ;;; Code:
 
+
+
+(defun android-read-build-system ()
+  "Obtain the host name of the system on which Emacs was built.
+Use the data stored in the special file `/assets/build_info'.
+Value is the string ``Unknown'' upon failure, else the hostname
+of the build system."
+  (with-temp-buffer
+    (insert-file-contents "/assets/build_info")
+    (let ((string (buffer-substring 1 (line-end-position))))
+      (and (not (equal string "Unknown")) string))))
+
+(defun android-read-build-time ()
+  "Obtain the time at which Emacs was built.
+Use the data stored in the special file `/assets/build_info'.
+Value is nil upon failure, else the time in the same format as
+returned by `current-time'."
+  (with-temp-buffer
+    (insert-file-contents "/assets/build_info")
+    (end-of-line)
+    (let ((number (read (current-buffer))))
+      (time-convert number 'list))))
+
+
+
 (defconst emacs-major-version
   (progn (string-match "^[0-9]+" emacs-version)
          (string-to-number (match-string 0 emacs-version)))
@@ -36,10 +61,15 @@
          (string-to-number (match-string 1 emacs-version)))
   "Minor version number of this version of Emacs.")
 
-(defconst emacs-build-system (system-name)
+(defconst emacs-build-system (or (and (eq system-type 'android)
+                                      (android-read-build-system))
+                                 (system-name))
   "Name of the system on which Emacs was built, or nil if not available.")
 
-(defconst emacs-build-time (if emacs-build-system (current-time))
+(defconst emacs-build-time (if emacs-build-system
+                               (or (and (eq system-type 'android)
+                                        (android-read-build-time))
+                                   (current-time)))
   "Time at which Emacs was dumped out, or nil if not available.")
 
 (defconst emacs-build-number 1          ; loadup.el may increment this
@@ -130,9 +160,22 @@ or if we could not determine the revision.")
 		  (looking-at "[[:xdigit:]]\\{40\\}"))
 	   (match-string 0)))))
 
+(defun emacs-repository-version-android ()
+  "Return the Emacs repository revision Emacs was built from.
+Value is nil if Emacs was not built from a repository checkout.
+Use information from the `/assets/version' special file."
+  (with-temp-buffer
+    (insert-file-contents "/assets/version")
+    (let ((string (buffer-substring 1 (line-end-position))))
+      (and (not (equal string "Unknown")) string))))
+
 (defun emacs-repository-get-version (&optional dir _external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
+
+If Emacs is built for Android, use the version information
+embedded in the Emacs installation package.
+
 Value is nil if the sources do not seem to be under version
 control, or if we could not determine the revision.  Note that
 this reports on the current state of the sources, which may not
@@ -140,12 +183,26 @@ correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'.
 Optional argument EXTERNAL is ignored."
-  (emacs-repository-version-git (or dir source-directory)))
+  (cond ((eq system-type 'android)
+         (emacs-repository-version-android))
+        (t (emacs-repository-version-git
+            (or dir source-directory)))))
 
 (defvar emacs-repository-branch nil
   "String giving the repository branch from which this Emacs was built.
 Value is nil if Emacs was not built from a repository checkout,
 or if we could not determine the branch.")
+
+(defun emacs-repository-branch-android ()
+  "Return the Emacs repository branch Emacs was built from.
+Value is nil if Emacs was not built from a repository checkout.
+Use information from the `/assets/version' special file."
+  (with-temp-buffer
+    (insert-file-contents "/assets/version")
+    (end-of-line)
+    (forward-char)
+    (let ((string (buffer-substring (point) (line-end-position))))
+      (and (not (equal string "Unknown")) string))))
 
 (defun emacs-repository-branch-git (dir)
   "Ask git itself for the branch information for directory DIR."
@@ -162,12 +219,19 @@ or if we could not determine the branch.")
 (defun emacs-repository-get-branch (&optional dir)
   "Try to return as a string the repository branch of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
+
+If Emacs is built for Android, use the version information
+embedded in the Emacs installation package.
+
 Value is nil if the sources do not seem to be under version
 control, or if we could not determine the branch.  Note that
 this reports on the current state of the sources, which may not
 correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'."
-  (emacs-repository-branch-git (or dir source-directory)))
+  (cond ((eq system-type 'android)
+         (emacs-repository-branch-android))
+        (t (emacs-repository-branch-git
+            (or dir source-directory)))))
 
 ;;; version.el ends here

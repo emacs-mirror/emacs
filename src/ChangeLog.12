@@ -7077,7 +7077,7 @@
 
 	* .gdbinit: Use "set $dummy = ..." to avoid warnings from GDB 7.5
 	and later about non-assignments with no effect.  See discussion at
-	http://sourceware.org/ml/gdb-patches/2012-08/msg00518.html for
+	https://sourceware.org/ml/gdb-patches/2012-08/msg00518.html for
 	details.
 
 2012-08-20  Dmitry Antipov  <dmantipov@yandex.ru>

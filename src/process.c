@@ -119,6 +119,11 @@ static struct rlimit nofile_limit;
 #include "gnutls.h"
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h"
+#include "androidterm.h"
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -876,7 +881,8 @@ allocate_pty (char pty_name[PTY_NAME_SIZE])
 
 	    /* Check to make certain that both sides are available.
 	       This avoids a nasty yet stupid bug in rlogins.  */
-	    if (faccessat (AT_FDCWD, pty_name, R_OK | W_OK, AT_EACCESS) != 0)
+	    if (sys_faccessat (AT_FDCWD, pty_name,
+			       R_OK | W_OK, AT_EACCESS) != 0)
 	      {
 		emacs_close (fd);
 		continue;
@@ -2002,7 +2008,7 @@ usage: (make-process &rest ARGS)  */)
 	{
 	  tem = Qnil;
 	  openp (Vexec_path, program, Vexec_suffixes, &tem,
-		 make_fixnum (X_OK), false, false);
+		 make_fixnum (X_OK), false, false, NULL);
 	  if (NILP (tem))
 	    report_file_error ("Searching for program", program);
 	  tem = Fexpand_file_name (tem, Qnil);
@@ -5679,7 +5685,17 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = short_timeout;
 #endif
 
-	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+	  /* Android doesn't support threads and requires using a
+	     replacement for pselect in android.c to poll for
+	     events.  */
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	  nfds = android_select (max_desc + 1,
+				 &Available, (check_write ? &Writeok : 0),
+				 NULL, &timeout);
+#else
+
+	  /* Non-macOS HAVE_GLIB builds call thread_select in
+	     xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
@@ -5695,6 +5711,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 				(check_write ? &Writeok : 0),
 				NULL, &timeout, NULL);
 #endif	/* !HAVE_GLIB */
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
 
 #ifdef HAVE_GNUTLS
 	  /* Merge tls_available into Available. */
@@ -7232,10 +7249,10 @@ process has been transmitted to the serial port.  */)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
     {
-#ifndef WINDOWSNT
+#if !defined WINDOWSNT && defined HAVE_TCDRAIN
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
 	report_file_error ("Failed tcdrain", Qnil);
-#endif /* not WINDOWSNT */
+#endif /* not WINDOWSNT && not TCDRAIN */
       /* Do nothing on Windows because writes are blocking.  */
     }
   else
@@ -7455,6 +7472,16 @@ handle_child_signal (int sig)
 	    {
 	      changed = true;
 	      if (STRINGP (XCDR (head)))
+		/* handle_child_signal is called in an async signal
+		   handler but needs to unlink temporary files which
+		   might've been created in an Android content
+		   provider.
+
+		   emacs_unlink is not async signal safe because
+		   deleting files from content providers must proceed
+		   through Java code.  Consequentially, if XCDR (head)
+		   lies on a content provider it will not be removed,
+		   which is a bug.  */
 		unlink (SSDATA (XCDR (head)));
 	      XSETCAR (tail, Qnil);
 	    }

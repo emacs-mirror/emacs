@@ -62,12 +62,103 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <fcntl.h>
 
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY	\
+  || (__ANDROID_API__ < 9)
+
+#define lread_fd	int
+#define lread_fd_cmp(n) (fd == (n))
+#define lread_fd_p	(fd >= 0)
+#define lread_close	emacs_close
+#define lread_fstat	fstat
+#define lread_read_quit	emacs_read_quit
+#define lread_lseek	lseek
+
+#define file_stream		FILE *
+#define file_seek		fseek
+#define file_stream_valid_p(p)	(p)
+#define file_stream_close	emacs_fclose
+#define file_stream_invalid	NULL
+#define file_get_char		getc
+
 #ifdef HAVE_FSEEKO
 #define file_offset off_t
 #define file_tell ftello
 #else
 #define file_offset long
 #define file_tell ftell
+#endif
+
+#else
+
+#include "android.h"
+
+/* Use an Android file descriptor under Android instead, as this
+   allows loading directly from asset files without loading each asset
+   into memory and creating a separate file descriptor every time.
+
+   Note that `struct android_fd_or_asset' as used here is different
+   from that returned from `android_open_asset'; if fd.asset is NULL,
+   then fd.fd is either a valid file descriptor or -1, meaning that
+   the file descriptor is invalid.
+
+   However, lread requires the ability to seek inside asset files,
+   which is not provided under Android 2.2.  So when building for that
+   particular system, fall back to the usual file descriptor-based
+   code.  */
+
+#define lread_fd	struct android_fd_or_asset
+#define lread_fd_cmp(n)	(!fd.asset && fd.fd == (n))
+#define lread_fd_p	(fd.asset || fd.fd >= 0)
+#define lread_close	android_close_asset
+#define lread_fstat	android_asset_fstat
+#define lread_read_quit	android_asset_read_quit
+#define lread_lseek	android_asset_lseek
+
+/* The invalid file stream.  */
+
+static struct android_fd_or_asset invalid_file_stream =
+  {
+    -1,
+    NULL,
+  };
+
+#define file_stream		struct android_fd_or_asset
+#define file_offset		off_t
+#define file_tell(n)		(android_asset_lseek ((n), 0, SEEK_CUR))
+#define file_seek		android_asset_lseek
+#define file_stream_valid_p(p)	((p).asset || (p).fd >= 0)
+#define file_stream_close	android_close_asset
+#define file_stream_invalid	invalid_file_stream
+
+/* Return a single character from the file input stream STREAM.
+   Value and errors are the same as getc.  */
+
+static int
+file_get_char (file_stream stream)
+{
+  int c;
+  char byte;
+  ssize_t rc;
+
+ retry:
+  rc = android_asset_read (stream, &byte, 1);
+
+  if (rc == 0)
+    c = EOF;
+  else if (rc == -1)
+    {
+      if (errno == EINTR)
+	goto retry;
+      else
+	c = EOF;
+    }
+  else
+    c = (unsigned char) byte;
+
+  return c;
+}
+
+#define USE_ANDROID_ASSETS
 #endif
 
 #if IEEE_FLOATING_POINT
@@ -117,7 +208,7 @@ static Lisp_Object read_objects_completed;
 static struct infile
 {
   /* The input stream.  */
-  FILE *stream;
+  file_stream stream;
 
   /* Lookahead byte count.  */
   signed char lookahead;
@@ -374,7 +465,7 @@ skip_dyn_bytes (Lisp_Object readcharfun, ptrdiff_t n)
   if (FROM_FILE_P (readcharfun))
     {
       block_input ();		/* FIXME: Not sure if it's needed.  */
-      fseek (infile->stream, n - infile->lookahead, SEEK_CUR);
+      file_seek (infile->stream, n - infile->lookahead, SEEK_CUR);
       unblock_input ();
       infile->lookahead = 0;
     }
@@ -398,7 +489,7 @@ skip_dyn_eof (Lisp_Object readcharfun)
   if (FROM_FILE_P (readcharfun))
     {
       block_input ();		/* FIXME: Not sure if it's needed.  */
-      fseek (infile->stream, 0, SEEK_END);
+      file_seek (infile->stream, 0, SEEK_END);
       unblock_input ();
       infile->lookahead = 0;
     }
@@ -479,9 +570,11 @@ readbyte_from_stdio (void)
     return infile->buf[--infile->lookahead];
 
   int c;
-  FILE *instream = infile->stream;
+  file_stream instream = infile->stream;
 
   block_input ();
+
+#if !defined USE_ANDROID_ASSETS
 
   /* Interrupted reads have been observed while reading over the network.  */
   while ((c = getc (instream)) == EOF && errno == EINTR && ferror (instream))
@@ -491,6 +584,35 @@ readbyte_from_stdio (void)
       block_input ();
       clearerr (instream);
     }
+
+#else
+
+  {
+    char byte;
+    ssize_t rc;
+
+  retry:
+    rc = android_asset_read (instream, &byte, 1);
+
+    if (rc == 0)
+      c = EOF;
+    else if (rc == -1)
+      {
+	if (errno == EINTR)
+	  {
+	    unblock_input ();
+	    maybe_quit ();
+	    block_input ();
+	    goto retry;
+	  }
+	else
+	  c = EOF;
+      }
+    else
+      c = (unsigned char) byte;
+  }
+
+#endif
 
   unblock_input ();
 
@@ -671,7 +793,11 @@ static void substitute_in_interval (INTERVAL, void *);
    if the character warrants that.
 
    If SECONDS is a number, wait that many seconds for input, and
-   return Qnil if no input arrives within that time.  */
+   return Qnil if no input arrives within that time.
+
+   If text conversion is enabled and ASCII_REQUIRED && ERROR_NONASCII,
+   temporarily disable any input method which wants to perform
+   edits, unless `disable-inhibit-text-conversion'.  */
 
 static Lisp_Object
 read_filtered_event (bool no_switch_frame, bool ascii_required,
@@ -679,10 +805,27 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 {
   Lisp_Object val, delayed_switch_frame;
   struct timespec end_time;
+#ifdef HAVE_TEXT_CONVERSION
+  specpdl_ref count;
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  count = SPECPDL_INDEX ();
+
+  /* Don't use text conversion when trying to just read a
+     character.  */
+
+  if (ascii_required && error_nonascii
+      && !disable_inhibit_text_conversion)
+    {
+      disable_text_conversion ();
+      record_unwind_protect_void (resume_text_conversion);
+    }
 #endif
 
   delayed_switch_frame = Qnil;
@@ -760,7 +903,11 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 
 #endif
 
+#ifdef HAVE_TEXT_CONVERSION
+  return unbind_to (count, val);
+#else
   return val;
+#endif
 }
 
 DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,
@@ -1039,7 +1186,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun, bool *prefixes)
    safe to load.  Only files compiled with Emacs can be loaded.  */
 
 static int
-safe_to_load_version (Lisp_Object file, int fd)
+safe_to_load_version (Lisp_Object file, lread_fd fd)
 {
   struct stat st;
   char buf[512];
@@ -1048,12 +1195,12 @@ safe_to_load_version (Lisp_Object file, int fd)
 
   /* If the file is not regular, then we cannot safely seek it.
      Assume that it is not safe to load as a compiled file.  */
-  if (fstat (fd, &st) == 0 && !S_ISREG (st.st_mode))
+  if (lread_fstat (fd, &st) == 0 && !S_ISREG (st.st_mode))
     return 0;
 
   /* Read the first few bytes from the file, and look for a line
      specifying the byte compiler version used.  */
-  nbytes = emacs_read_quit (fd, buf, sizeof buf);
+  nbytes = lread_read_quit (fd, buf, sizeof buf);
   if (nbytes > 0)
     {
       /* Skip to the next newline, skipping over the initial `ELC'
@@ -1068,7 +1215,7 @@ safe_to_load_version (Lisp_Object file, int fd)
 	version = 0;
     }
 
-  if (lseek (fd, 0, SEEK_SET) < 0)
+  if (lread_lseek (fd, 0, SEEK_SET) < 0)
     report_file_error ("Seeking to start of file", file);
 
   return version;
@@ -1142,7 +1289,7 @@ close_infile_unwind (void *arg)
 {
   struct infile *prev_infile = arg;
   eassert (infile && infile != prev_infile);
-  fclose (infile->stream);
+  file_stream_close (infile->stream);
   infile = prev_infile;
 }
 
@@ -1170,6 +1317,22 @@ loadhist_initialize (Lisp_Object filename)
   eassert (STRINGP (filename) || NILP (filename));
   specbind (Qcurrent_load_list, Fcons (filename, Qnil));
 }
+
+#ifdef USE_ANDROID_ASSETS
+
+/* Like `close_file_unwind'.  However, PTR is a pointer to an Android
+   file descriptor instead of a system file descriptor.  */
+
+static void
+close_file_unwind_android_fd (void *ptr)
+{
+  struct android_fd_or_asset *fd;
+
+  fd = ptr;
+  android_close_asset (*fd);
+}
+
+#endif
 
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
@@ -1219,8 +1382,12 @@ Return t if the file exists and loads successfully.  */)
   (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage,
    Lisp_Object nosuffix, Lisp_Object must_suffix)
 {
-  FILE *stream UNINIT;
-  int fd;
+  file_stream stream UNINIT;
+  lread_fd fd;
+#ifdef USE_ANDROID_ASSETS
+  int rc;
+  void *asset;
+#endif
   specpdl_ref fd_index UNINIT;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object found, efound, hist_file_name;
@@ -1261,7 +1428,12 @@ Return t if the file exists and loads successfully.  */)
      since it would try to load a directory as a Lisp file.  */
   if (SCHARS (file) == 0)
     {
+#if !defined USE_ANDROID_ASSETS
       fd = -1;
+#else
+      fd.asset = NULL;
+      fd.fd = -1;
+#endif
       errno = ENOENT;
     }
   else
@@ -1300,12 +1472,22 @@ Return t if the file exists and loads successfully.  */)
 	    suffixes = CALLN (Fappend, suffixes, Vload_file_rep_suffixes);
 	}
 
-      fd =
-	openp (Vload_path, file, suffixes, &found, Qnil, load_prefer_newer,
-	       no_native);
+#if !defined USE_ANDROID_ASSETS
+      fd = openp (Vload_path, file, suffixes, &found, Qnil,
+		  load_prefer_newer, no_native, NULL);
+#else
+      asset = NULL;
+      rc = openp (Vload_path, file, suffixes, &found, Qnil,
+		  load_prefer_newer, no_native, &asset);
+      fd.fd = rc;
+      fd.asset = asset;
+
+      /* fd.asset will be non-NULL if this is actually an asset
+	 file.  */
+#endif
     }
 
-  if (fd == -1)
+  if (lread_fd_cmp (-1))
     {
       if (NILP (noerror))
 	report_file_error ("Cannot open load file", file);
@@ -1317,7 +1499,7 @@ Return t if the file exists and loads successfully.  */)
     Vuser_init_file = found;
 
   /* If FD is -2, that means openp found a magic file.  */
-  if (fd == -2)
+  if (lread_fd_cmp (-2))
     {
       if (NILP (Fequal (found, file)))
 	/* If FOUND is a different file name from FILE,
@@ -1346,11 +1528,21 @@ Return t if the file exists and loads successfully.  */)
 #endif
     }
 
+#if !defined USE_ANDROID_ASSETS
   if (0 <= fd)
     {
       fd_index = SPECPDL_INDEX ();
       record_unwind_protect_int (close_file_unwind, fd);
     }
+#else
+  if (fd.asset || fd.fd >= 0)
+    {
+      /* Use a different kind of unwind_protect here.  */
+      fd_index = SPECPDL_INDEX ();
+      record_unwind_protect_ptr (close_file_unwind_android_fd,
+				 &fd);
+    }
+#endif
 
 #ifdef HAVE_MODULES
   bool is_module =
@@ -1416,11 +1608,12 @@ Return t if the file exists and loads successfully.  */)
   if (is_elc
       /* version = 1 means the file is empty, in which case we can
 	 treat it as not byte-compiled.  */
-      || (fd >= 0 && (version = safe_to_load_version (file, fd)) > 1))
+      || (lread_fd_p
+	  && (version = safe_to_load_version (file, fd)) > 1))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
     {
-      if (fd != -2)
+      if (!lread_fd_cmp (-2))
 	{
 	  struct stat s1, s2;
 	  int result;
@@ -1477,9 +1670,9 @@ Return t if the file exists and loads successfully.  */)
 	{
 	  Lisp_Object val;
 
-	  if (fd >= 0)
+	  if (lread_fd_p)
 	    {
-	      emacs_close (fd);
+	      lread_close (fd);
 	      clear_unwind_protect (fd_index);
 	    }
 	  val = call4 (Vload_source_file_function, found, hist_file_name,
@@ -1489,12 +1682,12 @@ Return t if the file exists and loads successfully.  */)
 	}
     }
 
-  if (fd < 0)
+  if (!lread_fd_p)
     {
       /* We somehow got here with fd == -2, meaning the file is deemed
 	 to be remote.  Don't even try to reopen the file locally;
 	 just force a failure.  */
-      stream = NULL;
+      stream = file_stream_invalid;
       errno = EINVAL;
     }
   else if (!is_module && !is_native_elisp)
@@ -1505,7 +1698,15 @@ Return t if the file exists and loads successfully.  */)
       efound = ENCODE_FILE (found);
       stream = emacs_fopen (SSDATA (efound), fmode);
 #else
-      stream = fdopen (fd, fmode);
+#if !defined USE_ANDROID_ASSETS
+      stream = emacs_fdopen (fd, fmode);
+#else
+      /* Android systems use special file descriptors which can point
+	 into compressed data and double as file streams.  FMODE is
+	 unused.  */
+      ((void) fmode);
+      stream = fd;
+#endif
 #endif
     }
 
@@ -1517,15 +1718,15 @@ Return t if the file exists and loads successfully.  */)
     {
       /* `module-load' uses the file name, so we can close the stream
          now.  */
-      if (fd >= 0)
+      if (lread_fd_p)
         {
-          emacs_close (fd);
+          lread_close (fd);
           clear_unwind_protect (fd_index);
         }
     }
   else
     {
-      if (! stream)
+      if (!file_stream_valid_p (stream))
         report_file_error ("Opening stdio stream", file);
       set_unwind_protect_ptr (fd_index, close_infile_unwind, infile);
       input.stream = stream;
@@ -1664,7 +1865,8 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
-  int fd = openp (path, filename, suffixes, &file, predicate, false, true);
+  int fd = openp (path, filename, suffixes, &file, predicate, false, true,
+		  NULL);
   if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
@@ -1680,7 +1882,7 @@ maybe_swap_for_eln1 (Lisp_Object src_name, Lisp_Object eln_name,
 
   if (eln_fd > 0)
     {
-      if (fstat (eln_fd, &eln_st) || S_ISDIR (eln_st.st_mode))
+      if (sys_fstat (eln_fd, &eln_st) || S_ISDIR (eln_st.st_mode))
 	emacs_close (eln_fd);
       else
 	{
@@ -1805,14 +2007,20 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 
    If NEWER is true, try all SUFFIXes and return the result for the
    newest file that exists.  Does not apply to remote files,
-   or if a non-nil and non-t PREDICATE is specified.
+   platform-specific files, or if a non-nil and non-t PREDICATE is
+   specified.
 
-   if NO_NATIVE is true do not try to load native code.  */
+   If NO_NATIVE is true do not try to load native code.
+
+   If PLATFORM is non-NULL and the file being loaded lies in a special
+   directory, such as the Android `/assets' directory, return a handle
+   to that directory in *PLATFORM instead of a file descriptor; in
+   that case, value is -3.  */
 
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
        Lisp_Object *storeptr, Lisp_Object predicate, bool newer,
-       bool no_native)
+       bool no_native, void **platform)
 {
   ptrdiff_t fn_size = 100;
   char buf[100];
@@ -1824,6 +2032,9 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   ptrdiff_t max_suffix_len = 0;
   int last_errno = ENOENT;
   int save_fd = -1;
+#ifdef USE_ANDROID_ASSETS
+  struct android_fd_or_asset platform_fd;
+#endif
   USE_SAFE_ALLOCA;
 
   /* The last-modified time of the newest matching file found.
@@ -1968,8 +2179,8 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		fd = -1;
 		if (INT_MAX < XFIXNAT (predicate))
 		  last_errno = EINVAL;
-		else if (faccessat (AT_FDCWD, pfn, XFIXNAT (predicate),
-				    AT_EACCESS)
+		else if (sys_faccessat (AT_FDCWD, pfn, XFIXNAT (predicate),
+					AT_EACCESS)
 			 == 0)
 		  {
 		    if (file_directory_p (encoded_fn))
@@ -1989,11 +2200,34 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                     it.  Only open the file when we are sure that it
                     exists.  */
 #ifdef WINDOWSNT
-                if (faccessat (AT_FDCWD, pfn, R_OK, AT_EACCESS))
+                if (sys_faccessat (AT_FDCWD, pfn, R_OK, AT_EACCESS))
                   fd = -1;
                 else
 #endif
-                  fd = emacs_open (pfn, O_RDONLY, 0);
+		  {
+#if !defined USE_ANDROID_ASSETS
+		    fd = emacs_open (pfn, O_RDONLY, 0);
+#else
+		    if (platform)
+		      {
+			platform_fd = android_open_asset (pfn, O_RDONLY, 0);
+
+			if (platform_fd.asset
+			    && platform_fd.asset != (void *) -1)
+			  {
+			    *storeptr = string;
+			    goto handle_platform_fd;
+			  }
+
+			if (platform_fd.asset == (void *) -1)
+			  fd = -1;
+			else
+			  fd = platform_fd.fd;
+		      }
+		    else
+		      fd = emacs_open (pfn, O_RDONLY, 0);
+#endif
+		  }
 
 		if (fd < 0)
 		  {
@@ -2002,7 +2236,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		  }
 		else
 		  {
-		    int err = (fstat (fd, &st) != 0 ? errno
+		    int err = (sys_fstat (fd, &st) != 0 ? errno
 			       : S_ISDIR (st.st_mode) ? EISDIR : 0);
 		    if (err)
 		      {
@@ -2061,6 +2295,16 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   SAFE_FREE ();
   errno = last_errno;
   return -1;
+
+#ifdef USE_ANDROID_ASSETS
+ handle_platform_fd:
+
+  /* Here, openp found a platform specific file descriptor.  It can't
+     be a directory under Android, so return it in *PLATFORM and then
+     -3 as the file descriptor.  */
+  *platform = platform_fd.asset;
+  return -3;
+#endif
 }
 
 
@@ -2092,7 +2336,7 @@ build_load_history (Lisp_Object filename, bool entire)
 	{
 	  foundit = 1;
 
-	  /*  If we're loading the entire file, remove old data.  */
+	  /* If we're loading the entire file, remove old data.  */
 	  if (entire)
 	    {
 	      if (NILP (prev))
@@ -2100,8 +2344,8 @@ build_load_history (Lisp_Object filename, bool entire)
 	      else
 		Fsetcdr (prev, XCDR (tail));
 	    }
-
-	  /*  Otherwise, cons on new symbols that are not already members.  */
+	  /* Otherwise, cons on new symbols that are not already
+	     members.  */
 	  else
 	    {
 	      tem2 = Vcurrent_load_list;
@@ -3467,7 +3711,7 @@ skip_lazy_string (Lisp_Object readcharfun)
 	  ss->string = xrealloc (ss->string, ss->size);
 	}
 
-      FILE *instream = infile->stream;
+      file_stream instream = infile->stream;
       ss->position = (file_tell (instream) - infile->lookahead);
 
       /* Copy that many bytes into the saved string.  */
@@ -3477,7 +3721,7 @@ skip_lazy_string (Lisp_Object readcharfun)
 	ss->string[i++] = c = infile->buf[--infile->lookahead];
       block_input ();
       for (; i < nskip && c >= 0; i++)
-	ss->string[i] = c = getc (instream);
+	ss->string[i] = c = file_get_char (instream);
       unblock_input ();
 
       ss->length = i;

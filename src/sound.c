@@ -1386,7 +1386,7 @@ Internal use only, use `play-sound' instead.  */)
       /* Open the sound file.  */
       current_sound->fd =
 	openp (list1 (Vdata_directory), attrs[SOUND_FILE], Qnil, &file, Qnil,
-	       false, false);
+	       false, false, NULL);
       if (current_sound->fd < 0)
 	sound_perror ("Could not open sound file");
 

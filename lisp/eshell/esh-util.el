@@ -433,37 +433,21 @@ Prepend remote identification of `default-directory', if any."
 (defun eshell-printable-size (filesize &optional human-readable
 				       block-size use-colors)
   "Return a printable FILESIZE."
+  (when (and human-readable
+             (not (= human-readable 1000))
+             (not (= human-readable 1024)))
+    (error "human-readable must be 1000 or 1024"))
   (let ((size (float (or filesize 0))))
     (if human-readable
-	(if (< size human-readable)
-	    (if (= (round size) 0)
-		"0"
-	      (if block-size
-		  "1.0k"
-		(format "%.0f" size)))
-	  (setq size (/ size human-readable))
-	  (if (< size human-readable)
-	      (if (<= size 9.94)
-		  (format "%.1fk" size)
-		(format "%.0fk" size))
-	    (setq size (/ size human-readable))
-	    (if (< size human-readable)
-		(let ((str (if (<= size 9.94)
-			       (format "%.1fM" size)
-			     (format "%.0fM" size))))
-		  (if use-colors
-		      (put-text-property 0 (length str)
-					 'face 'bold str))
-		  str)
-	      (setq size (/ size human-readable))
-	      (if (< size human-readable)
-		  (let ((str (if (<= size 9.94)
-				 (format "%.1fG" size)
-			       (format "%.0fG" size))))
-		    (if use-colors
-			(put-text-property 0 (length str)
-					   'face 'bold-italic str))
-		    str)))))
+        (let* ((flavor (and (= human-readable 1000) 'si))
+               (str (file-size-human-readable size flavor)))
+          (if (not use-colors)
+              str
+            (cond ((> size (expt human-readable 3))
+                   (propertize str 'face 'bold-italic))
+                  ((> size (expt human-readable 2))
+                   (propertize str 'face 'bold))
+                  (t str))))
       (if block-size
 	  (setq size (/ size block-size)))
       (format "%.0f" size))))
@@ -491,16 +475,6 @@ list."
     (if listified
 	(cadr flist)
       (cdr flist))))
-
-(defsubst eshell-redisplay ()
-  "Allow Emacs to redisplay buffers."
-  ;; for some strange reason, Emacs 21 is prone to trigger an
-  ;; "args out of range" error in `sit-for', if this function
-  ;; runs while point is in the minibuffer and the users attempt
-  ;; to use completion.  Don't ask me.
-  (condition-case nil
-      (sit-for 0)
-    (error nil)))
 
 (defun eshell-user-login-name ()
   "Return the connection-aware value of the user's login name.
@@ -627,8 +601,6 @@ See also `user-login-name'."
 	(when host-users
 	  (setq host-users (cdr host-users))
 	  (cdr (assoc user host-users))))))
-
-(autoload 'parse-time-string "parse-time")
 
 (eval-when-compile
   (require 'ange-ftp))		; ange-ftp-parse-filename
@@ -812,6 +784,8 @@ where the head and tail may be the same process."
 If N or M is nil, it means the end of the list."
   (declare (obsolete seq-subseq "28.1"))
   (seq-subseq l n (1+ m)))
+
+(define-obsolete-function-alias 'eshell-redisplay #'redisplay "30.1")
 
 (provide 'esh-util)
 

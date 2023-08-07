@@ -534,7 +534,7 @@ See also `eshell-read-history'."
 	  (forward-line 3)
 	  (while (search-backward "completion" nil 'move)
 	    (replace-match "history reference")))
-	(eshell-redisplay)
+        (redisplay)
 	(message "Hit space to flush")
 	(let ((ch (read-event)))
 	  (if (eq ch ?\ )

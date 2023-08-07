@@ -286,6 +286,25 @@ struct window
        it should be positive.  */
     ptrdiff_t last_point;
 
+#ifdef HAVE_TEXT_CONVERSION
+    /* ``ephemeral'' last point position.  This is used while
+       processing text conversion events.
+
+       `last_point' is normally used during redisplay to indicate the
+       position of point as seem by the input method.  However, it is
+       not updated if consequtive conversions are processed at the
+       same time.
+
+       This `ephemeral_last_point' field is either the last point as
+       set in redisplay or the last point after a text editing
+       operation.  */
+    ptrdiff_t ephemeral_last_point;
+#endif
+
+    /* Value of mark in the selected window at the time of the last
+       redisplay.  -1 if the mark is not valid or active.  */
+    ptrdiff_t last_mark;
+
     /* Line number and position of a line somewhere above the top of the
        screen.  If this field is zero, it means we don't have a base line.  */
     ptrdiff_t base_line_number;
@@ -740,14 +759,14 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    + WINDOW_RIGHT_PIXEL_EDGE (W))
 
 /* True if W is a menu bar window.  */
-#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
 #define WINDOW_MENU_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->menu_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->menu_bar_window))
-#else
+#else /* !HAVE_WINDOW_SYSTEM || HAVE_EXT_MENU_BAR */
 /* No menu bar windows if X toolkit is in use.  */
 #define WINDOW_MENU_BAR_P(W) false
-#endif
+#endif /* HAVE_WINDOW_SYSTEM && !HAVE_EXT_MENU_BAR */
 
 /* True if W is a tab bar window.  */
 #if defined (HAVE_WINDOW_SYSTEM)

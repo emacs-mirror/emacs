@@ -37,6 +37,39 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "keymap.h"
 
+
+
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY	\
+  || (__ANDROID_API__ < 9)
+#define doc_fd		int
+#define doc_fd_p(fd)	((fd) >= 0)
+#define doc_open	emacs_open
+#define doc_read_quit	emacs_read_quit
+#define doc_lseek	lseek
+#else /* HAVE_ANDROID && !defined ANDROID_STUBIFY
+	 && __ANDROID_API__ >= 9 */
+
+#include "android.h"
+
+/* Use an Android file descriptor under Android instead, as this
+   allows loading directly from asset files without loading each asset
+   into memory and creating a separate file descriptor every time.
+
+   However, lread requires the ability to seek inside asset files,
+   which is not provided under Android 2.2.  So when building for that
+   particular system, fall back to the usual file descriptor-based
+   code.  */
+
+#define doc_fd		struct android_fd_or_asset
+#define doc_fd_p(fd)	((fd).asset != (void *) -1)
+#define doc_open	android_open_asset
+#define doc_read_quit	android_asset_read_quit
+#define doc_lseek	android_asset_lseek
+#define USE_ANDROID_ASSETS
+#endif /* !HAVE_ANDROID || ANDROID_STUBIFY || __ANDROID_API__ < 9 */
+
+
+
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static ptrdiff_t get_doc_string_buffer_size;
@@ -58,6 +91,22 @@ read_bytecode_char (bool unreadflag)
     }
   return *read_bytecode_pointer++;
 }
+
+#ifdef USE_ANDROID_ASSETS
+
+/* Like `close_file_unwind'.  However, PTR is a pointer to an Android
+   file descriptor instead of a system file descriptor.  */
+
+static void
+close_file_unwind_android_fd (void *ptr)
+{
+  struct android_fd_or_asset *fd;
+
+  fd = ptr;
+  android_close_asset (*fd);
+}
+
+#endif /* USE_ANDROID_ASSETS */
 
 /* Extract a doc string from a file.  FILEPOS says where to get it.
    If it is an integer, use that position in the standard DOC file.
@@ -123,8 +172,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   name = SAFE_ALLOCA (docdir_sizemax + SBYTES (file));
   lispstpcpy (lispstpcpy (name, docdir), file);
 
-  int fd = emacs_open (name, O_RDONLY, 0);
-  if (fd < 0)
+  doc_fd fd = doc_open (name, O_RDONLY, 0);
+  if (!doc_fd_p (fd))
     {
       if (will_dump_p ())
 	{
@@ -132,9 +181,9 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	     So check in ../etc.  */
 	  lispstpcpy (stpcpy (name, sibling_etc), file);
 
-	  fd = emacs_open (name, O_RDONLY, 0);
+	  fd = doc_open (name, O_RDONLY, 0);
 	}
-      if (fd < 0)
+      if (!doc_fd_p (fd))
 	{
 	  if (errno != ENOENT && errno != ENOTDIR)
 	    report_file_error ("Read error on documentation file", file);
@@ -145,14 +194,18 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	  return concat3 (cannot_open, file, quote_nl);
 	}
     }
+#ifndef USE_ANDROID_ASSETS
   record_unwind_protect_int (close_file_unwind, fd);
+#else /* USE_ANDROID_ASSETS */
+  record_unwind_protect_ptr (close_file_unwind_android_fd, &fd);
+#endif /* !USE_ANDROID_ASSETS */
 
   /* Seek only to beginning of disk block.  */
   /* Make sure we read at least 1024 bytes before `position'
      so we can check the leading text for consistency.  */
   int offset = min (position, max (1024, position % (8 * 1024)));
   if (TYPE_MAXIMUM (off_t) < position
-      || lseek (fd, position - offset, 0) < 0)
+      || doc_lseek (fd, position - offset, 0) < 0)
     error ("Position %"pI"d out of range in doc string file \"%s\"",
 	   position, name);
 
@@ -181,7 +234,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
          If we read the same block last time, maybe skip this?  */
       if (space_left > 1024 * 8)
 	space_left = 1024 * 8;
-      int nread = emacs_read_quit (fd, p, space_left);
+      int nread = doc_read_quit (fd, p, space_left);
       if (nread < 0)
 	report_file_error ("Read error on documentation file", file);
       p[nread] = 0;
@@ -504,7 +557,7 @@ That file is found in `../etc' now; later, when the dumped Emacs is run,
 the same file name is found in the `doc-directory'.  */)
   (Lisp_Object filename)
 {
-  int fd;
+  doc_fd fd;
   char buf[1024 + 1];
   int filled;
   EMACS_INT pos;
@@ -550,21 +603,25 @@ the same file name is found in the `doc-directory'.  */)
       Vbuild_files = Fpurecopy (Vbuild_files);
     }
 
-  fd = emacs_open (name, O_RDONLY, 0);
-  if (fd < 0)
+  fd = doc_open (name, O_RDONLY, 0);
+  if (!doc_fd_p (fd))
     {
       int open_errno = errno;
       report_file_errno ("Opening doc string file", build_string (name),
 			 open_errno);
     }
+#ifndef USE_ANDROID_ASSETS
   record_unwind_protect_int (close_file_unwind, fd);
+#else /* USE_ANDROID_ASSETS */
+  record_unwind_protect_ptr (close_file_unwind_android_fd, &fd);
+#endif /* !USE_ANDROID_ASSETS */
   Vdoc_file_name = filename;
   filled = 0;
   pos = 0;
   while (true)
     {
       if (filled < 512)
-	filled += emacs_read_quit (fd, &buf[filled], sizeof buf - 1 - filled);
+	filled += doc_read_quit (fd, &buf[filled], sizeof buf - 1 - filled);
       if (!filled)
 	break;
 

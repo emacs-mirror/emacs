@@ -50,6 +50,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "sfntfont.h"
+#endif
+
 #ifdef HAVE_TREE_SITTER
 #include "treesit.h"
 #endif
@@ -3391,6 +3395,15 @@ cleanup_vector (struct Lisp_Vector *vector)
 	      drv->close_font (font);
 	    }
 	}
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+      /* The Android font driver needs the ability to associate extra
+	 information with font entities.  */
+      if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	   == FONT_ENTITY_MAX)
+	  && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
+	android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
+#endif
     }
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_THREAD))
     finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
@@ -5674,6 +5687,88 @@ check_pure_size (void)
 	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
 
+/* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
+   the non-Lisp data pool of the pure storage, and return its start
+   address.  Return NULL if not found.  */
+
+static char *
+find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
+{
+  int i;
+  ptrdiff_t skip, bm_skip[256], last_char_skip, infinity, start, start_max;
+  const unsigned char *p;
+  char *non_lisp_beg;
+
+  if (pure_bytes_used_non_lisp <= nbytes)
+    return NULL;
+
+  /* The Android GCC generates code like:
+
+   0xa539e755 <+52>:	lea    0x430(%esp),%esi
+=> 0xa539e75c <+59>:	movdqa %xmm0,0x0(%ebp)
+   0xa539e761 <+64>:	add    $0x10,%ebp
+
+   but data is not aligned appropriately, so a GP fault results.  */
+
+#if defined __i386__				\
+  && defined HAVE_ANDROID			\
+  && !defined ANDROID_STUBIFY			\
+  && !defined (__clang__)
+  if ((intptr_t) data & 15)
+    return NULL;
+#endif
+
+  /* Set up the Boyer-Moore table.  */
+  skip = nbytes + 1;
+  for (i = 0; i < 256; i++)
+    bm_skip[i] = skip;
+
+  p = (const unsigned char *) data;
+  while (--skip > 0)
+    bm_skip[*p++] = skip;
+
+  last_char_skip = bm_skip['\0'];
+
+  non_lisp_beg = purebeg + pure_size - pure_bytes_used_non_lisp;
+  start_max = pure_bytes_used_non_lisp - (nbytes + 1);
+
+  /* See the comments in the function `boyer_moore' (search.c) for the
+     use of `infinity'.  */
+  infinity = pure_bytes_used_non_lisp + 1;
+  bm_skip['\0'] = infinity;
+
+  p = (const unsigned char *) non_lisp_beg + nbytes;
+  start = 0;
+  do
+    {
+      /* Check the last character (== '\0').  */
+      do
+	{
+	  start += bm_skip[*(p + start)];
+	}
+      while (start <= start_max);
+
+      if (start < infinity)
+	/* Couldn't find the last character.  */
+	return NULL;
+
+      /* No less than `infinity' means we could find the last
+	 character at `p[start - infinity]'.  */
+      start -= infinity;
+
+      /* Check the remaining characters.  */
+      if (memcmp (data, non_lisp_beg + start, nbytes) == 0)
+	/* Found.  */
+	return non_lisp_beg + start;
+
+      start += last_char_skip;
+    }
+  while (start <= start_max);
+
+  return NULL;
+}
+
+
 /* Return a string allocated in pure space.  DATA is a buffer holding
    NCHARS characters, and NBYTES bytes of string data.  MULTIBYTE
    means make the result string multibyte.
@@ -5951,16 +6046,45 @@ mark_pinned_objects (void)
     mark_object (pobj->object);
 }
 
+#if defined HAVE_ANDROID && !defined (__clang__)
+
+/* The Android gcc is broken and needs the following version of
+   make_lisp_symbol.  Otherwise a mysterious ICE pops up.  */
+
+#define make_lisp_symbol android_make_lisp_symbol
+
+static Lisp_Object
+android_make_lisp_symbol (struct Lisp_Symbol *sym)
+{
+  intptr_t symoffset;
+
+  symoffset = (intptr_t) sym;
+  INT_SUBTRACT_WRAPV (symoffset, (intptr_t) &lispsym,
+		      &symoffset);
+
+  {
+    Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
+    return a;
+  }
+}
+
+#endif
+
 static void
 mark_pinned_symbols (void)
 {
   struct symbol_block *sblk;
-  int lim = (symbol_block_pinned == symbol_block
-	     ? symbol_block_index : SYMBOL_BLOCK_SIZE);
+  int lim;
+  struct Lisp_Symbol *sym, *end;
+
+  if (symbol_block_pinned == symbol_block)
+    lim = symbol_block_index;
+  else
+    lim = SYMBOL_BLOCK_SIZE;
 
   for (sblk = symbol_block_pinned; sblk; sblk = sblk->next)
     {
-      struct Lisp_Symbol *sym = sblk->symbols, *end = sym + lim;
+      sym = sblk->symbols, end = sym + lim;
       for (; sym < end; ++sym)
 	if (sym->u.s.pinned)
 	  mark_object (make_lisp_symbol (sym));
@@ -6257,6 +6381,13 @@ garbage_collect (void)
 #ifdef HAVE_X_WINDOWS
   mark_xterm ();
   mark_xselect ();
+#endif
+
+#ifdef HAVE_ANDROID
+  mark_androidterm ();
+#ifndef ANDROID_STUBIFY
+  mark_sfntfont ();
+#endif
 #endif
 
 #ifdef HAVE_NS
@@ -6667,6 +6798,11 @@ static void
 mark_frame (struct Lisp_Vector *ptr)
 {
   struct frame *f = (struct frame *) ptr;
+#ifdef HAVE_TEXT_CONVERSION
+  struct text_conversion_action *tem;
+#endif
+
+
   mark_vectorlike (&ptr->header);
   mark_face_cache (f->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -6677,6 +6813,15 @@ mark_frame (struct Lisp_Vector *ptr)
       if (font && !vectorlike_marked_p (&font->header))
         mark_vectorlike (&font->header);
     }
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  mark_object (f->conversion.compose_region_start);
+  mark_object (f->conversion.compose_region_end);
+  mark_object (f->conversion.compose_region_overlay);
+
+  for (tem = f->conversion.actions; tem; tem = tem->next)
+    mark_object (tem->data);
 #endif
 }
 

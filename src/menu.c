@@ -48,7 +48,7 @@ static bool
 have_boxes (void)
 {
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU)
+  || defined (HAVE_HAIKU) || defined (HAVE_ANDROID)
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame)))
     return 1;
 #endif
@@ -167,7 +167,7 @@ ensure_menu_items (int items)
     }
 }
 
-#ifdef HAVE_EXT_MENU_BAR
+#if defined HAVE_EXT_MENU_BAR || defined HAVE_ANDROID
 
 /* Begin a submenu.  */
 
@@ -191,7 +191,7 @@ push_submenu_end (void)
   menu_items_submenu_depth--;
 }
 
-#endif /* HAVE_EXT_MENU_BAR */
+#endif /* HAVE_EXT_MENU_BAR || HAVE_ANDROID */
 
 /* Indicate boundary between left and right.  */
 
@@ -420,8 +420,9 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		  AREF (item_properties, ITEM_PROPERTY_SELECTED),
 		  AREF (item_properties, ITEM_PROPERTY_HELP));
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) \
-  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU) || defined (HAVE_PGTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)	\
+  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU) || defined (HAVE_PGTK) \
+  || defined (HAVE_ANDROID)
   /* Display a submenu using the toolkit.  */
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame))
       && ! (NILP (map) || NILP (enabled)))
@@ -1151,7 +1152,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	else
 	  {
 	    menuflags |= MENU_FOR_CLICK;
-	    tem = Fcar (XCDR (position));    /* EVENT_START (position) */
+	    tem = EVENT_START (position);    /* EVENT_START (position) */
 	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	    tem2 = Fcar (Fcdr (tem));	     /* POSN_POSN (tem) */
 	    /* The MENU_KBD_NAVIGATION field is set when the menu
@@ -1465,9 +1466,10 @@ cached information about equivalent key sequences.
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing
 keyboard input, then this normally results in a quit and
-`x-popup-menu' does not return.  But if POSITION is a mouse button
-event (indicating that the user invoked the menu with the mouse) then
-no quit occurs and `x-popup-menu' returns nil.  */)
+`x-popup-menu' does not return.  But if POSITION is a mouse button or
+touch screen event (indicating that the user invoked the menu with the
+a pointing device) then no quit occurs and `x-popup-menu' returns
+nil.  */)
   (Lisp_Object position, Lisp_Object menu)
 {
   init_raw_keybuf_count ();

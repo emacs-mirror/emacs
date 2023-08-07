@@ -1,0 +1,42 @@
+dnl  Assembler templates for MIPS computers.
+dnl
+dnl Copyright (C) 2023 Free Software Foundation, Inc.
+dnl
+dnl  This file is part of GNU Emacs.
+dnl
+dnl  GNU Emacs is free software: you can redistribute it and/or modify
+dnl  it under the terms of the GNU General Public License as published by
+dnl  the Free Software Foundation, either version 3 of the License, or
+dnl  (at your option) any later version.
+dnl
+dnl  GNU Emacs is distributed in the hope that it will be useful,
+dnl  but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl  GNU General Public License for more details.
+dnl
+dnl  You should have received a copy of the GNU General Public License
+dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+define(`SYSCALL_open', `ifelse(`@MIPS_N32@',`yes',`6002',`4005')')
+define(`SYSCALL_close', `ifelse(`@MIPS_N32@',`yes',`6003',`4006')')
+define(`SYSCALL_mmap', `ifelse(`@MIPS_N32@',`yes',`6009',`4090')')
+define(`SYSCALL_nanosleep', `ifelse(`@MIPS_N32@',`yes',`6034',`4166')')
+define(`SYSCALL_exit', `ifelse(`@MIPS_N32@',`yes',`6058',`4001')')
+define(`SYSCALL_prctl', `ifelse(`@MIPS_N32@',`yes',`6153',`4192')')
+
+define(`SYSCALL', `ifelse(`@MIPS_N32@',`yes',`	move	$a4, $1
+	move	$a5, $2
+	move	$a6, $3
+	move	$a7, $4',`	addi	$sp, -32
+	sw	$1, 16($sp)
+	sw	$2, 20($sp)
+	sw	$3, 24($sp)
+	sw	$4, 28($sp)')')
+
+define(`RESTORE', `ifelse(`@MIPS_N32@',`yes',`	nop',`	addi	$sp, 32')')
+
+dnl For mips64.  Some assemblers don't want to assemble `daddi'.
+define(`DADDI2', `ifelse(`@DADDI_BROKEN@',`yes',`	li	$at, $2
+dadd		 $1, $1, $at',`	daddi	$1, $2')')
+define(`DADDI3', `ifelse(`@DADDI_BROKEN@',`yes',`	li	$at, $3
+dadd		 $1, $2, $at',`	daddi	$1, $2, $3')')

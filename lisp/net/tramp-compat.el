@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+(require 'tramp-loaddefs)
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
@@ -36,7 +37,7 @@
 (require 'shell)
 (require 'xdg)
 
-(declare-function tramp-error "tramp")
+(declare-function tramp-error "tramp-message")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 

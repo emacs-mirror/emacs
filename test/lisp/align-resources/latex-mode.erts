@@ -1,0 +1,29 @@
+Name: tex-record-separator and basic-line-continuation
+
+=-=
+\documentclass{}
+
+\begin{document}
+
+\begin{tabular}{l|l}
+  \textit{Player name}  &\textit{Career home runs}  \\
+  \hline
+  Hank Aaron  &755 \\
+  Babe Ruth &714
+\end{tabular}
+
+\end{document}
+=-=
+\documentclass{}
+
+\begin{document}
+
+\begin{tabular}{l|l}
+  \textit{Player name} & \textit{Career home runs} \\
+  \hline
+  Hank Aaron           & 755                       \\
+  Babe Ruth            & 714
+\end{tabular}
+
+\end{document}
+=-=-=

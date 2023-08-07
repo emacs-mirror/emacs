@@ -76,6 +76,65 @@ enum ns_appearance_type
 #endif
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#ifdef HAVE_TEXT_CONVERSION
+
+enum text_conversion_operation
+  {
+    TEXTCONV_START_BATCH_EDIT,
+    TEXTCONV_END_BATCH_EDIT,
+    TEXTCONV_COMMIT_TEXT,
+    TEXTCONV_FINISH_COMPOSING_TEXT,
+    TEXTCONV_SET_COMPOSING_TEXT,
+    TEXTCONV_SET_COMPOSING_REGION,
+    TEXTCONV_SET_POINT_AND_MARK,
+    TEXTCONV_DELETE_SURROUNDING_TEXT,
+    TEXTCONV_REQUEST_POINT_UPDATE,
+    TEXTCONV_BARRIER,
+  };
+
+/* Structure describing a single edit being performed by the input
+   method that should be executed in the context of
+   kbd_buffer_get_event.  */
+
+struct text_conversion_action
+{
+  /* The next text conversion action.  */
+  struct text_conversion_action *next;
+
+  /* Any associated data.  */
+  Lisp_Object data;
+
+  /* The operation being performed.  */
+  enum text_conversion_operation operation;
+
+  /* Counter value.  */
+  unsigned long counter;
+};
+
+/* Structure describing the text conversion state associated with a
+   frame.  */
+
+struct text_conversion_state
+{
+  /* List of text conversion actions associated with this frame.  */
+  struct text_conversion_action *actions;
+
+  /* Markers representing the composing region.  */
+  Lisp_Object compose_region_start, compose_region_end;
+
+  /* Overlay representing the composing region.  */
+  Lisp_Object compose_region_overlay;
+
+  /* The number of ongoing ``batch edits'' that are causing point
+     reporting to be delayed.  */
+  int batch_edit_count;
+
+  /* Mask containing what must be updated after batch edits end.  */
+  int batch_edit_flags;
+};
+
+#endif
+
 /* The structure representing a frame.  */
 
 struct frame
@@ -181,7 +240,7 @@ struct frame
      most recently buried buffer is first.  For last-buffer.  */
   Lisp_Object buried_buffer_list;
 
-#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
@@ -285,6 +344,10 @@ struct frame
   /* Set to true to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
   bool_bf minimize_tool_bar_window_p : 1;
+
+  /* Whether or not the tool bar contains a ``new line'' item.  If
+     true, tool bar rows will be allowed to differ in height.  */
+  bool_bf tool_bar_wraps_p : 1;
 #endif
 
 #ifdef HAVE_EXT_TOOL_BAR
@@ -375,7 +438,7 @@ struct frame
   /* The output method says how the contents of this frame are
      displayed.  It could be using termcap, or using an X window.
      This must be the same as the terminal->type. */
-  ENUM_BF (output_method) output_method : 3;
+  ENUM_BF (output_method) output_method : 4;
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* True if this frame is a tooltip frame.  */
@@ -584,20 +647,22 @@ struct frame
      well.  */
   union output_data
   {
-    struct tty_output *tty;     /* From termchar.h.  */
-    struct x_output *x;         /* From xterm.h.  */
-    struct w32_output *w32;     /* From w32term.h.  */
-    struct ns_output *ns;       /* From nsterm.h.  */
-    struct pgtk_output *pgtk; /* From pgtkterm.h. */
-    struct haiku_output *haiku; /* From haikuterm.h. */
+    struct tty_output *tty;		/* From termchar.h.  */
+    struct x_output *x;			/* From xterm.h.  */
+    struct w32_output *w32;		/* From w32term.h.  */
+    struct ns_output *ns;		/* From nsterm.h.  */
+    struct pgtk_output *pgtk;		/* From pgtkterm.h. */
+    struct haiku_output *haiku;		/* From haikuterm.h. */
+    struct android_output *android;	/* From androidterm.h.  */
   }
   output_data;
 
   /* List of font-drivers available on the frame.  */
   struct font_driver_list *font_driver_list;
 
-#if defined (HAVE_X_WINDOWS)
-  /* Used by x_wait_for_event when watching for an X event on this frame.  */
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+  /* Used by x_wait_for_event when watching for an X event on this
+     frame.  */
   int wait_event_type;
 #endif
 
@@ -660,6 +725,11 @@ struct frame
   enum ns_appearance_type ns_appearance;
   bool_bf ns_transparent_titlebar;
 #endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  /* Text conversion state used by certain input methods.  */
+  struct text_conversion_state conversion;
+#endif
 } GCALIGNED_STRUCT;
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
@@ -711,7 +781,7 @@ fset_menu_bar_vector (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_vector = val;
 }
-#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
 INLINE void
 fset_menu_bar_window (struct frame *f, Lisp_Object val)
 {
@@ -872,6 +942,11 @@ default_pixels_per_inch_y (void)
 #else
 #define FRAME_HAIKU_P(f) ((f)->output_method == output_haiku)
 #endif
+#ifndef HAVE_ANDROID
+#define FRAME_ANDROID_P(f) false
+#else
+#define FRAME_ANDROID_P(f) ((f)->output_method == output_android)
+#endif
 
 /* FRAME_WINDOW_P tests whether the frame is a graphical window system
    frame.  */
@@ -890,6 +965,9 @@ default_pixels_per_inch_y (void)
 #ifdef HAVE_HAIKU
 #define FRAME_WINDOW_P(f) FRAME_HAIKU_P (f)
 #endif
+#ifdef HAVE_ANDROID
+#define FRAME_WINDOW_P(f) FRAME_ANDROID_P (f)
+#endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) ((void) (f), false)
 #endif
@@ -903,12 +981,26 @@ default_pixels_per_inch_y (void)
 #define FRAME_RES_Y(f)						\
   (eassert (FRAME_WINDOW_P (f)), FRAME_DISPLAY_INFO (f)->resy)
 
+#ifdef HAVE_ANDROID
+
+/* Android systems use a font scaling factor independent from the
+   display DPI.  */
+
+#define FRAME_RES(f)						\
+  (eassert (FRAME_WINDOW_P (f)),				\
+   FRAME_DISPLAY_INFO (f)->font_resolution)
+
+#else /* !HAVE_ANDROID */
+#define FRAME_RES(f) (FRAME_RES_Y (f))
+#endif /* HAVE_ANDROID */
+
 #else /* !HAVE_WINDOW_SYSTEM */
 
 /* Defaults when no window system available.  */
 
-#define FRAME_RES_X(f) default_pixels_per_inch_x ()
-#define FRAME_RES_Y(f) default_pixels_per_inch_y ()
+#define FRAME_RES_X(f)	default_pixels_per_inch_x ()
+#define FRAME_RES_Y(f)	default_pixels_per_inch_y ()
+#define FRAME_RES(f)	default_pixels_per_inch_y ()
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -917,10 +1009,16 @@ default_pixels_per_inch_y (void)
    frame F.  We need to define two versions because a TTY-only build
    does not have FRAME_DISPLAY_INFO.  */
 #ifdef HAVE_WINDOW_SYSTEM
+#ifndef HAVE_ANDROID
 # define MOUSE_HL_INFO(F)					\
-  (FRAME_WINDOW_P(F)						\
+  (FRAME_WINDOW_P (F)						\
    ? &FRAME_DISPLAY_INFO(F)->mouse_highlight			\
    : &(F)->output_data.tty->display_info->mouse_highlight)
+#else
+/* There is no "struct tty_output" on Android at all.  */
+# define MOUSE_HL_INFO(F)					\
+  (&FRAME_DISPLAY_INFO(F)->mouse_highlight)
+#endif
 #else
 # define MOUSE_HL_INFO(F)					\
   (&(F)->output_data.tty->display_info->mouse_highlight)

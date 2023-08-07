@@ -93,12 +93,13 @@ x.2.y.1.z.2.zz =")
       (should (equal (face-at-point) 'font-lock-variable-name-face))
       (search-forward "val")
       (should-not (face-at-point)))
-    (while (re-search-forward "a-z" nil t)
+    (while (re-search-forward "[xyz]" nil t)
       (backward-char)
       (should (equal (face-at-point) 'font-lock-variable-name-face))
-      (re-search-forward "[0-0]" nil t)
-      (backward-char)
-      (should (equal (face-at-point) 'font-lock-constant-face)))))
+      (forward-char)
+      (when (re-search-forward "[0-9]" nil t)
+        (backward-char)
+        (should (equal (face-at-point) 'font-lock-constant-face))))))
 
 (ert-deftest conf-test-space-mode ()
   ;; From `conf-space-mode' docstring.
@@ -157,7 +158,6 @@ image/tiff			tiff tif
     (should-not (face-at-point))))
 
 (ert-deftest conf-test-toml-mode ()
-  ;; From `conf-toml-mode' docstring.
   (with-temp-buffer
     (insert "[entry]
 value = \"some string\"")
@@ -172,6 +172,22 @@ value = \"some string\"")
     (should (equal (face-at-point) 'font-lock-variable-name-face))
     (search-forward "som")
     (should (equal (face-at-point) 'font-lock-string-face))))
+
+(ert-deftest conf-test-toml-mode/boolean ()
+  ;; https://toml.io/en/v1.0.0#boolean
+  (with-temp-buffer
+    (insert "[entry]
+a = true
+b = True")
+    (goto-char (point-min))
+    (conf-toml-mode)
+    (font-lock-mode)
+    (font-lock-ensure)
+    (search-forward "tru")
+    (should (equal (face-at-point) 'font-lock-keyword-face))
+    ;; Do not fontify upper-case "True".
+    (search-forward "Tru")
+    (should (equal (face-at-point) nil))))
 
 (ert-deftest conf-test-desktop-mode ()
   ;; From `conf-desktop-mode' dostring.

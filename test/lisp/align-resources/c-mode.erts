@@ -1,0 +1,23 @@
+Name: align function declaration
+
+=-=
+int
+main (int argc,
+      char *argv[]);
+=-=
+int
+main (int	 argc,
+      char	*argv[]);
+=-=-=
+
+Name: example from Commentary
+
+=-=
+    int a = 1;
+    short foo = 2;
+    double blah = 4;
+=-=
+    int		a    = 1;
+    short	foo  = 2;
+    double	blah = 4;
+=-=-=

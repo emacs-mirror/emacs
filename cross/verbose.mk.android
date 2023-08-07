@@ -1,0 +1,55 @@
+### verbose.mk --- Makefile fragment for GNU Emacs during
+### cross-compilation.
+
+## Copyright (C) 2023 Free Software Foundation, Inc.
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+# 'make' verbosity.
+V = 0
+ifeq (${V},1)
+AM_V_AR =
+AM_V_at =
+AM_V_CC =
+AM_V_CXX =
+AM_V_CCLD =
+AM_V_CXXLD =
+AM_V_GEN =
+else
+
+# Whether $(info ...) works.  This is to work around a bug in GNU Make
+# 4.3 and earlier, which implements $(info MSG) via two system calls
+# { write (..., "MSG", 3); write (..., "\n", 1); }
+# which looks bad when make -j interleaves two of these at about the same time.
+#
+# Later versions of GNU Make have the 'notintermediate' feature,
+# so assume that $(info ...) works if this feature is present.
+#
+have_working_info = $(filter notintermediate,$(value .FEATURES))
+#
+# The workaround is to use the shell and 'echo' rather than $(info ...).
+# The workaround is done only for AM_V_ELC and AM_V_ELN,
+# since the bug is not annoying elsewhere.
+
+AM_V_AR      = @$(info $   AR       $@)
+AM_V_at	     = @
+AM_V_CC      = @$(info $   CC       $@)
+AM_V_CXX     = @$(info $   CXX      $@)
+AM_V_CCLD    = @$(info $   CCLD     $@)
+AM_V_CXXLD   = @$(info $   CXXLD    $@)
+AM_V_GEN     = @$(info $   GEN      $@)
+AM_V_NO_PD = --no-print-directory
+endif

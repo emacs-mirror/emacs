@@ -347,10 +347,11 @@ Use Unicode characters for footnoting."
     ("ק" "ר" "ש" "ת" "תק" "תר" "תש" "תת" "תתק")))
 
 (defconst footnote-hebrew-numeric-regex
-  (let ((numchars (string-to-list
-		   (apply #'concat (apply #'append footnote-hebrew-numeric)))))
+  (let ((numchars
+         (delete-dups
+          (string-to-list
+           (apply #'concat (apply #'append footnote-hebrew-numeric))))))
     (rx-to-string `(1+ (in ?' ,@numchars)))))
-;; (defconst footnote-hebrew-numeric-regex "\\([אבגדהוזחט]'\\)?\\(ת\\)?\\(ת\\)?\\([קרשת]\\)?\\([טיכלמנסעפצ]\\)?\\([אבגדהוזחט]\\)?")
 
 (defun footnote--hebrew-numeric (n)
   "Supports 9999 footnotes, then rolls over."

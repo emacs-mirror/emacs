@@ -1,0 +1,23 @@
+Name: align attributes
+
+=-=
+div {
+  border: 1px solid black;
+  padding: 25px 50px 75px 100px;
+  background-color: lightblue;
+}
+p.center {
+  text-align: center;
+  color: red;
+}
+=-=
+div {
+  border:           1px solid black;
+  padding:          25px 50px 75px 100px;
+  background-color: lightblue;
+}
+p.center {
+  text-align: center;
+  color:      red;
+}
+=-=-=

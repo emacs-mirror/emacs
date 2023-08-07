@@ -1340,10 +1340,11 @@ of a global face.  Value is the new attribute value."
 		       (format "%s" old-value))))
 	     (setq new-value
                    (if (memq attribute '(:foreground :background))
-                       (let ((color
-                              (read-color
-                               (format-prompt "%s for face `%s'"
-                                              default attribute-name face))))
+                       (let* ((prompt (format-prompt
+                                       "%s for face `%s'"
+                                       default attribute-name face))
+                              (fg (eq attribute ':foreground))
+                              (color (read-color prompt nil nil nil fg face)))
                          (if (equal (string-trim color) "")
                              default
                            color))
@@ -1849,7 +1850,6 @@ If there is neither a user setting nor a default for FACE, return nil."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Frame-type independent color support.
-;;; We keep the old x-* names as aliases for back-compatibility.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun defined-colors (&optional frame)
@@ -1861,7 +1861,6 @@ If FRAME is nil, that stands for the selected frame."
   (if (display-graphic-p frame)
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
-(defalias 'x-defined-colors 'defined-colors)
 
 (defun defined-colors-with-face-attributes (&optional frame foreground)
   "Return a list of colors supported for a particular FRAME.
@@ -1870,15 +1869,26 @@ to `defined-colors' the elements of the returned list are color
 strings with text properties, that make the color names render
 with the color they represent as background color (if FOREGROUND
 is nil; otherwise use the foreground color)."
-  (mapcar
-   (lambda (color-name)
-     (let ((color (copy-sequence color-name)))
-       (propertize color 'face
-		   (if foreground
-		       (list :foreground color)
-		     (list :foreground (readable-foreground-color color-name)
-                           :background color)))))
-   (defined-colors frame)))
+  (mapcar (lambda (color-name)
+            (faces--string-with-color color-name color-name foreground))
+          (defined-colors frame)))
+
+(defun faces--string-with-color (string color &optional foreground face)
+  "Return a copy of STRING with face attributes for COLOR.
+Set the :background or :foreground attribute to COLOR, depending
+on the argument FOREGROUND.
+
+The optional FACE argument determines the values of other face
+attributes."
+  (let* ((defaults (if face (list face) '()))
+         (colors (cond (foreground
+                        (list :foreground color))
+                       (face
+                        (list :background color))
+                       (t
+                        (list :foreground (readable-foreground-color color)
+                              :background color)))))
+    (propertize string 'face (cons colors defaults))))
 
 (defun readable-foreground-color (color)
   "Return a readable foreground color for background COLOR.
@@ -1934,7 +1944,6 @@ If FRAME is omitted or nil, use the selected frame."
     (if (display-graphic-p frame)
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
-(defalias 'x-color-defined-p 'color-defined-p)
 
 (declare-function xw-color-values "xfns.c" (color &optional frame))
 
@@ -1962,8 +1971,6 @@ return value is nil."
    (t
     (tty-color-values color frame))))
 
-(defalias 'x-color-values 'color-values)
-
 (declare-function xw-display-color-p "xfns.c" (&optional terminal))
 
 (defun display-color-p (&optional display)
@@ -1974,7 +1981,6 @@ If omitted or nil, that stands for the selected frame's display."
   (if (display-graphic-p display)
       (xw-display-color-p display)
     (tty-display-color-p display)))
-(defalias 'x-display-color-p 'display-color-p)
 
 (declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
@@ -1987,7 +1993,7 @@ If omitted or nil, that stands for the selected frame's display."
     (> (tty-color-gray-shades display) 2)))
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg
-			     foreground)
+			     foreground face)
   "Read a color name or RGB triplet.
 Completion is available for color names, but not for RGB triplets.
 
@@ -2016,17 +2022,25 @@ to enter an empty color name (the empty string).
 Interactively, or with optional arg MSG non-nil, print the
 resulting color name in the echo area.
 
-Interactively, displays a list of colored completions.  If optional
-argument FOREGROUND is non-nil, shows them as foregrounds, otherwise
-as backgrounds."
+Interactively, provides completion for selecting the color.  If
+the optional argument FOREGROUND is non-nil, shows the completion
+candidates with their foregound color changed to be the color of
+the candidate, otherwise changes the background color of the
+candidates.  The optional argument FACE determines the other
+face attributes of the candidates on display."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
-	 (colors (append '("foreground at point" "background at point")
-			 (if allow-empty-name '(""))
-                         (if (display-color-p)
-                             (defined-colors-with-face-attributes
-                               nil foreground)
-                           (defined-colors))))
+	 (color-alist
+          `(("foreground at point" . ,(foreground-color-at-point))
+            ("background at point" . ,(background-color-at-point))
+            ,@(if allow-empty-name '(("" . unspecified)))
+            ,@(mapcar (lambda (c) (cons c c)) (defined-colors))))
+         (colors (mapcar (lambda (pair)
+                           (let* ((name (car pair))
+                                  (color (cdr pair)))
+                             (faces--string-with-color name color
+                                                       foreground face)))
+                         color-alist))
 	 (color (completing-read
 		 (or prompt "Color (name or #RGB triplet): ")
 		 ;; Completing function for reading colors, accepting
@@ -2926,7 +2940,7 @@ Note: Other faces cannot inherit from the cursor face."
     (((type haiku))
      :foreground "B_MENU_ITEM_TEXT_COLOR"
      :background "B_MENU_BACKGROUND_COLOR")
-    (((type x w32 ns pgtk) (class color))
+    (((type x w32 ns pgtk android) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))
@@ -3201,6 +3215,10 @@ also the same size as FACE on FRAME, or fail."
 
 (define-obsolete-function-alias 'face-background-pixmap #'face-stipple "29.1")
 (define-obsolete-function-alias 'set-face-background-pixmap #'set-face-stipple "29.1")
+(define-obsolete-function-alias 'x-defined-colors #'defined-colors "30.1")
+(define-obsolete-function-alias 'x-color-defined-p #'color-defined-p "30.1")
+(define-obsolete-function-alias 'x-color-values #'color-values "30.1")
+(define-obsolete-function-alias 'x-display-color-p #'display-color-p "30.1")
 
 (provide 'faces)
 

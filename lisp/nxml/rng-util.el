@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defun rng-make-datatypes-uri (uri)
   (if (string-equal uri "")
       ;; The spec doesn't say to do this, but it's perfectly conformant
@@ -39,26 +41,7 @@
 (defun rng-substq (new old list)
   "Replace first member of LIST (if any) that is `eq' to OLD by NEW.
 LIST is not modified."
-  (cond ((null list) nil)
-	((eq (car list) old)
-	 (cons new (cdr list)))
-	(t
-	 (let ((tail (cons (car list)
-			   nil))
-	       (rest (cdr list)))
-	   (setq list tail)
-	   (while rest
-	     (let ((item (car rest)))
-	       (setq rest (cdr rest))
-	       (cond ((eq item old)
-		      (setcdr tail
-			      (cons new rest))
-		      (setq rest nil))
-		     (t
-		      (setq tail
-			    (setcdr tail
-				    (cons item nil))))))))
-	 list)))
+  (cl-substitute new old list :count 1 :test #'eq))
 
 (defun rng-escape-string (s)
   (replace-regexp-in-string "[&\"<>]"

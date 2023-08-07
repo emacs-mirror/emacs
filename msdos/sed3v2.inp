@@ -57,3 +57,4 @@
 /^GETOPT_H *=/s!@GETOPT_H@!getopt.h!
 /^GETOPTOBJS *=/s!@GETOPTOBJS@!getopt.o getopt1.o!
 /^INSTALLABLES/s/emacsclient[^ ]* *//
+/^XCONFIGURE *=/s/@XCONFIGURE@//

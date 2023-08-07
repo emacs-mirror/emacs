@@ -1139,6 +1139,7 @@ Frames
 * Dialog Boxes::            Displaying a box to ask yes or no.
 * Pointer Shape::           Specifying the shape of the mouse pointer.
 * Window System Selections::Transferring text to and from other X clients.
+* Accessing Selections::    The multiple different kinds of selections.
 * Yanking Media::           Yanking things that aren't plain text.
 * Drag and Drop::           Internals of Drag-and-Drop implementation.
 * Color Names::             Getting the definitions of color names.

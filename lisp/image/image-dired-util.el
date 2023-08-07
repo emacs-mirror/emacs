@@ -77,8 +77,9 @@ vary:
   added to the file name.
 
 - Otherwise `image-dired-thumbnail-storage' is used to set the
-  directory where to store the thumbnail.  In this latter case
-  the name given to the thumbnail depends on the value of
+  directory where to store the thumbnail.  In this latter case,
+  if `image-dired-thumbnail-storage' is set to `image-dired' the
+  file name given to the thumbnail depends on the value of
   `image-dired-thumb-naming'.
 
 See also `image-dired-thumbnail-storage' and
@@ -99,15 +100,14 @@ See also `image-dired-thumbnail-storage' and
       (let ((name (if (eq 'sha1-contents image-dired-thumb-naming)
                       (image-dired-contents-sha1 file)
                     ;; Defaults to SHA-1 of file name
-                    (if (eq 'per-directory image-dired-thumbnail-storage)
-                        (sha1 (file-name-nondirectory file))
-                      (sha1 file)))))
+                    (sha1 file))))
         (cond ((or (eq 'image-dired image-dired-thumbnail-storage)
                    ;; Maintained for backwards compatibility:
                    (eq 'use-image-dired-dir image-dired-thumbnail-storage))
                (expand-file-name (format "%s.jpg" name) (image-dired-dir)))
               ((eq 'per-directory image-dired-thumbnail-storage)
-               (expand-file-name (format "%s.jpg" name)
+               (expand-file-name (format "%s.thumb.jpg"
+                                         (file-name-nondirectory file))
                                  (expand-file-name
                                   ".image-dired"
                                   (file-name-directory file)))))))))
@@ -189,6 +189,23 @@ Should be used by commands in `image-dired-thumbnail-mode'."
 (defun image-dired-image-at-point-p ()
   "Return non-nil if there is an `image-dired' thumbnail at point."
   (get-text-property (point) 'image-dired-thumbnail))
+
+(defun image-dired-update-thumbnail-at-point ()
+  "Update the thumbnail at point if the original image file has been modified.
+This function uncaches and removes the thumbnail file under the old name."
+  (when (image-dired-image-at-point-p)
+    (let* ((file (image-dired-original-file-name))
+           (thumb (expand-file-name (image-dired-thumb-name file)))
+           (image (get-text-property (point) 'display)))
+      (when image
+        (let ((old-thumb (plist-get (cdr image) :file)))
+          ;; When 'image-dired-thumb-naming' is set to
+          ;; 'sha1-contents', 'thumb' and 'old-thumb' could be
+          ;; different file names.  Update the thumbnail then.
+          (unless (string= thumb old-thumb)
+            (setf (plist-get (cdr image) :file) thumb)
+            (clear-image-cache old-thumb)
+            (delete-file old-thumb)))))))
 
 (defun image-dired-window-width-pixels (window)
   "Calculate WINDOW width in pixels."

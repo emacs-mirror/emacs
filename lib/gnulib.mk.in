@@ -110,6 +110,7 @@
 #  fsusage \
 #  fsync \
 #  futimens \
+#  getline \
 #  getloadavg \
 #  getopt-gnu \
 #  getrandom \
@@ -151,6 +152,7 @@
 #  stddef \
 #  stdio \
 #  stpcpy \
+#  stpncpy \
 #  strnlen \
 #  strtoimax \
 #  symlink \
@@ -174,11 +176,28 @@
 
 MOSTLYCLEANFILES += core *.stackdump
 # Start of GNU Make output.
+AAPT = @AAPT@
 ALLOCA = @ALLOCA@
 ALLOCA_H = @ALLOCA_H@
 ALSA_CFLAGS = @ALSA_CFLAGS@
 ALSA_LIBS = @ALSA_LIBS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+ANDROID = @ANDROID@
+ANDROID_ABI = @ANDROID_ABI@
+ANDROID_BUILD_CFLAGS = @ANDROID_BUILD_CFLAGS@
+ANDROID_CC = @ANDROID_CC@
+ANDROID_CFLAGS = @ANDROID_CFLAGS@
+ANDROID_DEBUGGABLE = @ANDROID_DEBUGGABLE@
+ANDROID_JAR = @ANDROID_JAR@
+ANDROID_LDFLAGS = @ANDROID_LDFLAGS@
+ANDROID_LIBS = @ANDROID_LIBS@
+ANDROID_MIN_SDK = @ANDROID_MIN_SDK@
+ANDROID_OBJ = @ANDROID_OBJ@
+ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
+ANDROID_SDK_8_OR_EARLIER = @ANDROID_SDK_8_OR_EARLIER@
+ANDROID_SHARED_USER_ID = @ANDROID_SHARED_USER_ID@
+ANDROID_SHARED_USER_NAME = @ANDROID_SHARED_USER_NAME@
+APKSIGNER = @APKSIGNER@
 APPLE_UNIVERSAL_BUILD = @APPLE_UNIVERSAL_BUILD@
 AR = @AR@
 ARFLAGS = @ARFLAGS@
@@ -218,6 +237,7 @@ CYGWIN_OBJ = @CYGWIN_OBJ@
 C_SWITCH_MACHINE = @C_SWITCH_MACHINE@
 C_SWITCH_SYSTEM = @C_SWITCH_SYSTEM@
 C_SWITCH_X_SITE = @C_SWITCH_X_SITE@
+D8 = @D8@
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_OBJ = @DBUS_OBJ@
@@ -262,6 +282,7 @@ GETOPT_H = @GETOPT_H@
 GETRANDOM_LIB = @GETRANDOM_LIB@
 GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
 GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
+GIF_CFLAGS = @GIF_CFLAGS@
 GL_CFLAG_ALLOW_WARNINGS = @GL_CFLAG_ALLOW_WARNINGS@
 GL_CFLAG_GNULIB_WARNINGS = @GL_CFLAG_GNULIB_WARNINGS@
 GL_COND_LIBTOOL_CONDITION = @GL_COND_LIBTOOL_CONDITION@
@@ -281,8 +302,10 @@ GL_COND_OBJ_FSTATAT_CONDITION = @GL_COND_OBJ_FSTATAT_CONDITION@
 GL_COND_OBJ_FSUSAGE_CONDITION = @GL_COND_OBJ_FSUSAGE_CONDITION@
 GL_COND_OBJ_FSYNC_CONDITION = @GL_COND_OBJ_FSYNC_CONDITION@
 GL_COND_OBJ_FUTIMENS_CONDITION = @GL_COND_OBJ_FUTIMENS_CONDITION@
+GL_COND_OBJ_GETDELIM_CONDITION = @GL_COND_OBJ_GETDELIM_CONDITION@
 GL_COND_OBJ_GETDTABLESIZE_CONDITION = @GL_COND_OBJ_GETDTABLESIZE_CONDITION@
 GL_COND_OBJ_GETGROUPS_CONDITION = @GL_COND_OBJ_GETGROUPS_CONDITION@
+GL_COND_OBJ_GETLINE_CONDITION = @GL_COND_OBJ_GETLINE_CONDITION@
 GL_COND_OBJ_GETLOADAVG_CONDITION = @GL_COND_OBJ_GETLOADAVG_CONDITION@
 GL_COND_OBJ_GETOPT_CONDITION = @GL_COND_OBJ_GETOPT_CONDITION@
 GL_COND_OBJ_GETRANDOM_CONDITION = @GL_COND_OBJ_GETRANDOM_CONDITION@
@@ -308,6 +331,7 @@ GL_COND_OBJ_SIGDESCR_NP_CONDITION = @GL_COND_OBJ_SIGDESCR_NP_CONDITION@
 GL_COND_OBJ_STDIO_READ_CONDITION = @GL_COND_OBJ_STDIO_READ_CONDITION@
 GL_COND_OBJ_STDIO_WRITE_CONDITION = @GL_COND_OBJ_STDIO_WRITE_CONDITION@
 GL_COND_OBJ_STPCPY_CONDITION = @GL_COND_OBJ_STPCPY_CONDITION@
+GL_COND_OBJ_STPNCPY_CONDITION = @GL_COND_OBJ_STPNCPY_CONDITION@
 GL_COND_OBJ_STRNLEN_CONDITION = @GL_COND_OBJ_STRNLEN_CONDITION@
 GL_COND_OBJ_STRTOIMAX_CONDITION = @GL_COND_OBJ_STRTOIMAX_CONDITION@
 GL_COND_OBJ_STRTOLL_CONDITION = @GL_COND_OBJ_STRTOLL_CONDITION@
@@ -892,6 +916,9 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INT32_MAX_LT_INTMAX_MAX = @INT32_MAX_LT_INTMAX_MAX@
 INT64_MAX_EQ_LONG_MAX = @INT64_MAX_EQ_LONG_MAX@
+JARSIGNER = @JARSIGNER@
+JAVAC = @JAVAC@
+JPEG_CFLAGS = @JPEG_CFLAGS@
 JSON_CFLAGS = @JSON_CFLAGS@
 JSON_LIBS = @JSON_LIBS@
 JSON_OBJ = @JSON_OBJ@
@@ -910,6 +937,7 @@ LIBGCCJIT_CFLAGS = @LIBGCCJIT_CFLAGS@
 LIBGCCJIT_LIBS = @LIBGCCJIT_LIBS@
 LIBGIF = @LIBGIF@
 LIBGMP = @LIBGMP@
+LIBGMP_CFLAGS = @LIBGMP_CFLAGS@
 LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
 LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
 LIBGNU_LIBDEPS = @LIBGNU_LIBDEPS@
@@ -927,6 +955,7 @@ LIBRESOLV = @LIBRESOLV@
 LIBS = @LIBS@
 LIBSECCOMP_CFLAGS = @LIBSECCOMP_CFLAGS@
 LIBSECCOMP_LIBS = @LIBSECCOMP_LIBS@
+LIBSELINUX_CFLAGS = @LIBSELINUX_CFLAGS@
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 LIBSOUND = @LIBSOUND@
 LIBSYSTEMD_CFLAGS = @LIBSYSTEMD_CFLAGS@
@@ -974,6 +1003,18 @@ MODULES_SECONDARY_SUFFIX = @MODULES_SECONDARY_SUFFIX@
 MODULES_SUFFIX = @MODULES_SUFFIX@
 NANOSLEEP_LIB = @NANOSLEEP_LIB@
 NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
+NDK_BUILD_ABI = @NDK_BUILD_ABI@
+NDK_BUILD_ANDROID_MK = @NDK_BUILD_ANDROID_MK@
+NDK_BUILD_ANY_CXX_MODULE = @NDK_BUILD_ANY_CXX_MODULE@
+NDK_BUILD_AR = @NDK_BUILD_AR@
+NDK_BUILD_ARCH = @NDK_BUILD_ARCH@
+NDK_BUILD_CC = @NDK_BUILD_CC@
+NDK_BUILD_CFLAGS = @NDK_BUILD_CFLAGS@
+NDK_BUILD_CXX = @NDK_BUILD_CXX@
+NDK_BUILD_CXX_SHARED = @NDK_BUILD_CXX_SHARED@
+NDK_BUILD_MODULES = @NDK_BUILD_MODULES@
+NDK_BUILD_NASM = @NDK_BUILD_NASM@
+NDK_BUILD_SDK = @NDK_BUILD_SDK@
 NEXT_ASSERT_H = @NEXT_ASSERT_H@
 NEXT_AS_FIRST_DIRECTIVE_ASSERT_H = @NEXT_AS_FIRST_DIRECTIVE_ASSERT_H@
 NEXT_AS_FIRST_DIRECTIVE_DIRENT_H = @NEXT_AS_FIRST_DIRECTIVE_DIRENT_H@
@@ -1242,6 +1283,7 @@ REPLACE_WRITE = @REPLACE_WRITE@
 REPLACE__EXIT = @REPLACE__EXIT@
 RSVG_CFLAGS = @RSVG_CFLAGS@
 RSVG_LIBS = @RSVG_LIBS@
+SDK_BUILD_TOOLS = @SDK_BUILD_TOOLS@
 SEPCHAR = @SEPCHAR@
 SETFATTR = @SETFATTR@
 SETTINGS_CFLAGS = @SETTINGS_CFLAGS@
@@ -1251,6 +1293,7 @@ SIG_ATOMIC_T_SUFFIX = @SIG_ATOMIC_T_SUFFIX@
 SIZEOF_LONG = @SIZEOF_LONG@
 SIZE_T_SUFFIX = @SIZE_T_SUFFIX@
 SMALL_JA_DIC = @SMALL_JA_DIC@
+SQLITE3_CFLAGS = @SQLITE3_CFLAGS@
 SQLITE3_LIBS = @SQLITE3_LIBS@
 STDCKDINT_H = @STDCKDINT_H@
 STDDEF_H = @STDDEF_H@
@@ -1259,6 +1302,7 @@ SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
 SYSTEM_TYPE = @SYSTEM_TYPE@
 SYS_TIME_H_DEFINES_STRUCT_TIMESPEC = @SYS_TIME_H_DEFINES_STRUCT_TIMESPEC@
 TERMCAP_OBJ = @TERMCAP_OBJ@
+TIFF_CFLAGS = @TIFF_CFLAGS@
 TIMER_TIME_LIB = @TIMER_TIME_LIB@
 TIME_H_DEFINES_STRUCT_TIMESPEC = @TIME_H_DEFINES_STRUCT_TIMESPEC@
 TIME_H_DEFINES_TIME_UTC = @TIME_H_DEFINES_TIME_UTC@
@@ -1280,6 +1324,7 @@ W32_LIBS = @W32_LIBS@
 W32_OBJ = @W32_OBJ@
 W32_RES_LINK = @W32_RES_LINK@
 WARN_CFLAGS = @WARN_CFLAGS@
+WARN_JAVAFLAGS = @WARN_JAVAFLAGS@
 WCHAR_T_SUFFIX = @WCHAR_T_SUFFIX@
 WEBKIT_CFLAGS = @WEBKIT_CFLAGS@
 WEBKIT_LIBS = @WEBKIT_LIBS@
@@ -1298,6 +1343,7 @@ XARGS_LIMIT = @XARGS_LIMIT@
 XCB_LIBS = @XCB_LIBS@
 XCOMPOSITE_CFLAGS = @XCOMPOSITE_CFLAGS@
 XCOMPOSITE_LIBS = @XCOMPOSITE_LIBS@
+XCONFIGURE = @XCONFIGURE@
 XCRUN = @XCRUN@
 XDBE_CFLAGS = @XDBE_CFLAGS@
 XDBE_LIBS = @XDBE_LIBS@
@@ -1322,6 +1368,7 @@ XSYNC_CFLAGS = @XSYNC_CFLAGS@
 XSYNC_LIBS = @XSYNC_LIBS@
 XWIDGETS_OBJ = @XWIDGETS_OBJ@
 X_TOOLKIT_TYPE = @X_TOOLKIT_TYPE@
+ZIPALIGN = @ZIPALIGN@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_OBJC = @ac_ct_OBJC@
@@ -1344,6 +1391,7 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 emacs_major_version = @emacs_major_version@
+emacs_use_mailutils = @emacs_use_mailutils@
 etcdir = @etcdir@
 etcdocdir = @etcdocdir@
 exec_prefix = @exec_prefix@
@@ -1367,6 +1415,7 @@ gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b_CONDITION = @gl_GNULIB_ENABLE
 gl_GNULIB_ENABLED_ef455225c00f5049c808c2eda3e76866_CONDITION = @gl_GNULIB_ENABLED_ef455225c00f5049c808c2eda3e76866_CONDITION@
 gl_GNULIB_ENABLED_euidaccess_CONDITION = @gl_GNULIB_ENABLED_euidaccess_CONDITION@
 gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION = @gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION@
+gl_GNULIB_ENABLED_getdelim_CONDITION = @gl_GNULIB_ENABLED_getdelim_CONDITION@
 gl_GNULIB_ENABLED_getdtablesize_CONDITION = @gl_GNULIB_ENABLED_getdtablesize_CONDITION@
 gl_GNULIB_ENABLED_getgroups_CONDITION = @gl_GNULIB_ENABLED_getgroups_CONDITION@
 gl_GNULIB_ENABLED_lchmod_CONDITION = @gl_GNULIB_ENABLED_lchmod_CONDITION@
@@ -2130,6 +2179,18 @@ gl_V_at = $(AM_V_GEN)
 endif
 ## end   gnulib module gen-header
 
+## begin gnulib module getdelim
+ifeq (,$(OMIT_GNULIB_MODULE_getdelim))
+
+ifneq (,$(gl_GNULIB_ENABLED_getdelim_CONDITION))
+ifneq (,$(GL_COND_OBJ_GETDELIM_CONDITION))
+libgnu_a_SOURCES += getdelim.c
+endif
+
+endif
+endif
+## end   gnulib module getdelim
+
 ## begin gnulib module getdtablesize
 ifeq (,$(OMIT_GNULIB_MODULE_getdtablesize))
 
@@ -2153,6 +2214,16 @@ endif
 endif
 endif
 ## end   gnulib module getgroups
+
+## begin gnulib module getline
+ifeq (,$(OMIT_GNULIB_MODULE_getline))
+
+ifneq (,$(GL_COND_OBJ_GETLINE_CONDITION))
+libgnu_a_SOURCES += getline.c
+endif
+
+endif
+## end   gnulib module getline
 
 ## begin gnulib module getloadavg
 ifeq (,$(OMIT_GNULIB_MODULE_getloadavg))
@@ -3124,8 +3195,9 @@ stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	      -e 's/@''GNULIB_MDA_GETW''@/$(GL_GNULIB_MDA_GETW)/g' \
 	      -e 's/@''GNULIB_MDA_PUTW''@/$(GL_GNULIB_MDA_PUTW)/g' \
 	      -e 's/@''GNULIB_MDA_TEMPNAM''@/$(GL_GNULIB_MDA_TEMPNAM)/g' \
-	      < $(srcdir)/stdio.in.h | \
-	  sed -e 's|@''HAVE_DECL_FCLOSEALL''@|$(HAVE_DECL_FCLOSEALL)|g' \
+	      < $(srcdir)/stdio.in.h > $@-t1
+	$(AM_V_at)sed \
+	      -e 's|@''HAVE_DECL_FCLOSEALL''@|$(HAVE_DECL_FCLOSEALL)|g' \
 	      -e 's|@''HAVE_DECL_FPURGE''@|$(HAVE_DECL_FPURGE)|g' \
 	      -e 's|@''HAVE_DECL_FSEEKO''@|$(HAVE_DECL_FSEEKO)|g' \
 	      -e 's|@''HAVE_DECL_FTELLO''@|$(HAVE_DECL_FTELLO)|g' \
@@ -3144,6 +3216,8 @@ stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	      -e 's|@''HAVE_RENAMEAT''@|$(HAVE_RENAMEAT)|g' \
 	      -e 's|@''HAVE_VASPRINTF''@|$(HAVE_VASPRINTF)|g' \
 	      -e 's|@''HAVE_VDPRINTF''@|$(HAVE_VDPRINTF)|g' \
+	      < $@-t1 > $@-t2
+	$(AM_V_at)sed \
 	      -e 's|@''REPLACE_DPRINTF''@|$(REPLACE_DPRINTF)|g' \
 	      -e 's|@''REPLACE_FCLOSE''@|$(REPLACE_FCLOSE)|g' \
 	      -e 's|@''REPLACE_FDOPEN''@|$(REPLACE_FDOPEN)|g' \
@@ -3181,9 +3255,10 @@ stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
-	      > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += stdio.h stdio.h-t
+	      < $@-t2 > $@-t3
+	$(AM_V_at)rm -f $@-t1 $@-t2
+	$(AM_V_at)mv $@-t3 $@
+MOSTLYCLEANFILES += stdio.h stdio.h-t1 stdio.h-t2 stdio.h-t3
 
 ifneq (,$(GL_COND_OBJ_STDIO_READ_CONDITION))
 libgnu_a_SOURCES += stdio-read.c
@@ -3262,8 +3337,9 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e 's/@''GNULIB_MDA_GCVT''@/$(GL_GNULIB_MDA_GCVT)/g' \
 	      -e 's/@''GNULIB_MDA_MKTEMP''@/$(GL_GNULIB_MDA_MKTEMP)/g' \
 	      -e 's/@''GNULIB_MDA_PUTENV''@/$(GL_GNULIB_MDA_PUTENV)/g' \
-	      < $(srcdir)/stdlib.in.h | \
-	  sed -e 's|@''HAVE__EXIT''@|$(HAVE__EXIT)|g' \
+	      < $(srcdir)/stdlib.in.h > $@-t1
+	$(AM_V_at)sed \
+	      -e 's|@''HAVE__EXIT''@|$(HAVE__EXIT)|g' \
 	      -e 's|@''HAVE_ALIGNED_ALLOC''@|$(HAVE_ALIGNED_ALLOC)|g' \
 	      -e 's|@''HAVE_ATOLL''@|$(HAVE_ATOLL)|g' \
 	      -e 's|@''HAVE_CANONICALIZE_FILE_NAME''@|$(HAVE_CANONICALIZE_FILE_NAME)|g' \
@@ -3308,6 +3384,8 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e 's|@''HAVE_SYS_LOADAVG_H''@|$(HAVE_SYS_LOADAVG_H)|g' \
 	      -e 's|@''HAVE_UNLOCKPT''@|$(HAVE_UNLOCKPT)|g' \
 	      -e 's|@''HAVE_DECL_UNSETENV''@|$(HAVE_DECL_UNSETENV)|g' \
+	      < $@-t1 > $@-t2
+	$(AM_V_at)sed \
 	      -e 's|@''REPLACE__EXIT''@|$(REPLACE__EXIT)|g' \
 	      -e 's|@''REPLACE_ALIGNED_ALLOC''@|$(REPLACE_ALIGNED_ALLOC)|g' \
 	      -e 's|@''REPLACE_CALLOC_FOR_CALLOC_GNU''@|$(REPLACE_CALLOC_FOR_CALLOC_GNU)|g' \
@@ -3352,9 +3430,10 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e '/definition of _Noreturn/r $(_NORETURN_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
-	      > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += stdlib.h stdlib.h-t
+	      < $@-t2 > $@-t3
+	$(AM_V_at)rm -f $@-t1 $@-t2
+	$(AM_V_at)mv $@-t3 $@
+MOSTLYCLEANFILES += stdlib.h stdlib.h-t1 stdlib.h-t2 stdlib.h-t3
 
 EXTRA_DIST += stdlib.in.h
 
@@ -3370,6 +3449,16 @@ endif
 
 endif
 ## end   gnulib module stpcpy
+
+## begin gnulib module stpncpy
+ifeq (,$(OMIT_GNULIB_MODULE_stpncpy))
+
+ifneq (,$(GL_COND_OBJ_STPNCPY_CONDITION))
+libgnu_a_SOURCES += stpncpy.c
+endif
+
+endif
+## end   gnulib module stpncpy
 
 ## begin gnulib module string
 ifeq (,$(OMIT_GNULIB_MODULE_string))
@@ -3430,8 +3519,9 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_MDA_MEMCCPY''@/$(GL_GNULIB_MDA_MEMCCPY)/g' \
 	      -e 's/@''GNULIB_MDA_STRDUP''@/$(GL_GNULIB_MDA_STRDUP)/g' \
 	      -e 's/@''GNULIB_FREE_POSIX''@/$(GL_GNULIB_FREE_POSIX)/g' \
-	      < $(srcdir)/string.in.h | \
-	  sed -e 's|@''HAVE_EXPLICIT_BZERO''@|$(HAVE_EXPLICIT_BZERO)|g' \
+	      < $(srcdir)/string.in.h > $@-t1
+	$(AM_V_at)sed \
+	      -e 's|@''HAVE_EXPLICIT_BZERO''@|$(HAVE_EXPLICIT_BZERO)|g' \
 	      -e 's|@''HAVE_FFSL''@|$(HAVE_FFSL)|g' \
 	      -e 's|@''HAVE_FFSLL''@|$(HAVE_FFSLL)|g' \
 	      -e 's|@''HAVE_MBSLEN''@|$(HAVE_MBSLEN)|g' \
@@ -3479,9 +3569,10 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
-	      > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += string.h string.h-t
+	      < $@-t1 > $@-t2
+	$(AM_V_at)rm -f $@-t1
+	$(AM_V_at)mv $@-t2 $@
+MOSTLYCLEANFILES += string.h string.h-t1 string.h-t2
 
 EXTRA_DIST += string.in.h
 
@@ -3918,6 +4009,8 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_FDATASYNC''@/$(GL_GNULIB_FDATASYNC)/g' \
 	      -e 's/@''GNULIB_FSYNC''@/$(GL_GNULIB_FSYNC)/g' \
 	      -e 's/@''GNULIB_FTRUNCATE''@/$(GL_GNULIB_FTRUNCATE)/g' \
+	      < $(srcdir)/unistd.in.h > $@-t1
+	$(AM_V_at)sed \
 	      -e 's/@''GNULIB_GETCWD''@/$(GL_GNULIB_GETCWD)/g' \
 	      -e 's/@''GNULIB_GETDOMAINNAME''@/$(GL_GNULIB_GETDOMAINNAME)/g' \
 	      -e 's/@''GNULIB_GETDTABLESIZE''@/$(GL_GNULIB_GETDTABLESIZE)/g' \
@@ -3979,8 +4072,9 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_MDA_SWAB''@/$(GL_GNULIB_MDA_SWAB)/g' \
 	      -e 's/@''GNULIB_MDA_UNLINK''@/$(GL_GNULIB_MDA_UNLINK)/g' \
 	      -e 's/@''GNULIB_MDA_WRITE''@/$(GL_GNULIB_MDA_WRITE)/g' \
-	      < $(srcdir)/unistd.in.h | \
-	  sed -e 's|@''HAVE_CHOWN''@|$(HAVE_CHOWN)|g' \
+	      < $@-t1 > $@-t2
+	$(AM_V_at)sed \
+	      -e 's|@''HAVE_CHOWN''@|$(HAVE_CHOWN)|g' \
 	      -e 's|@''HAVE_COPY_FILE_RANGE''@|$(HAVE_COPY_FILE_RANGE)|g' \
 	      -e 's|@''HAVE_DUP3''@|$(HAVE_DUP3)|g' \
 	      -e 's|@''HAVE_EUIDACCESS''@|$(HAVE_EUIDACCESS)|g' \
@@ -4027,8 +4121,9 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_DECL_TTYNAME_R''@|$(HAVE_DECL_TTYNAME_R)|g' \
 	      -e 's|@''HAVE_OS_H''@|$(HAVE_OS_H)|g' \
 	      -e 's|@''HAVE_SYS_PARAM_H''@|$(HAVE_SYS_PARAM_H)|g' \
-	  | \
-	  sed -e 's|@''REPLACE_ACCESS''@|$(REPLACE_ACCESS)|g' \
+	      < $@-t2 > $@-t3
+	$(AM_V_at)sed \
+	      -e 's|@''REPLACE_ACCESS''@|$(REPLACE_ACCESS)|g' \
 	      -e 's|@''REPLACE_CHOWN''@|$(REPLACE_CHOWN)|g' \
 	      -e 's|@''REPLACE_CLOSE''@|$(REPLACE_CLOSE)|g' \
 	      -e 's|@''REPLACE_COPY_FILE_RANGE''@|$(REPLACE_COPY_FILE_RANGE)|g' \
@@ -4083,9 +4178,10 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
-	      > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += unistd.h unistd.h-t
+	      < $@-t3 > $@-t4
+	$(AM_V_at)rm -f $@-t1 $@-t2 $@-t3
+	$(AM_V_at)mv $@-t4 $@
+MOSTLYCLEANFILES += unistd.h unistd.h-t1 unistd.h-t2 unistd.h-t3 unistd.h-t4
 
 EXTRA_DIST += unistd.in.h
 

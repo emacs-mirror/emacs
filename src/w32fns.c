@@ -3852,7 +3852,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 
       /* What follows is just heuristics; the correct treatment requires
 	 non-destructive ToUnicode():
-	   http://search.cpan.org/~ilyaz/UI-KeyboardLayout/lib/UI/KeyboardLayout.pm#Can_an_application_on_Windows_accept_keyboard_events?_Part_IV:_application-specific_modifiers
+	   https://metacpan.org/dist/UI-KeyboardLayout/view/lib/UI/KeyboardLayout.pm#Can-an-application-on-Windows-accept-keyboard-events?-Part-IV:-application-specific-modifiers
 
 	 What one needs to find is:
 	   * which of the present modifiers AFFECT the resulting char(s)
@@ -3914,7 +3914,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 	 character is the same for AltGr-* (=rAlt-*) and Ctrl-Alt-* (in any
 	 combination of handedness).  For description of masks, see
 
-	   http://search.cpan.org/~ilyaz/UI-KeyboardLayout/lib/UI/KeyboardLayout.pm#Keyboard_input_on_Windows,_Part_I:_what_is_the_kernel_doing?
+	   https://metacpan.org/dist/UI-KeyboardLayout/view/lib/UI/KeyboardLayout.pm#Keyboard-input-on-Windows,-Part-I:-what-is-the-kernel-doing?
 
 	 By default, Emacs was using these coincidences via the following
 	 heuristics: it was treating:

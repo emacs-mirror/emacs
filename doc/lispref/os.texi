@@ -972,6 +972,9 @@ Hewlett-Packard HPUX operating system.
 @item nacl
 Google Native Client (@acronym{NaCl}) sandboxing system.
 
+@item android
+The Open Handset Alliance's Android operating system.
+
 @item ms-dos
 Microsoft's DOS@.  Emacs compiled with DJGPP for MS-DOS binds
 @code{system-type} to @code{ms-dos} even when you run it on MS-Windows.

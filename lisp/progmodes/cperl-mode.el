@@ -5875,6 +5875,14 @@ default function."
     cperl-here-face)
    (t (funcall (default-value 'font-lock-syntactic-face-function) state))))
 
+(defface cperl-method-call
+  '((t (:inherit 'default )))
+  "Font Lock mode face for method calls.
+Usually, method calls are not fontified.
+We use this face to prevent calls to methods which look like
+builtin functions to be fontified like, well, builtin
+functions (which they are not).  Inherits from `default'.")
+
 (defun cperl-init-faces ()
   (condition-case errs
       (progn
@@ -5885,8 +5893,59 @@ default function."
             ;; -------- trailing spaces -> use invalid-face as a warning
             ;; (matcher subexp facespec)
 	    `("[ \t]+$" 0 ',cperl-invalid-face t)
+            ;; -------- function definition _and_ declaration
+            ;; (matcher (subexp facespec))
+            ;; facespec is evaluated depending on whether the
+            ;; statement ends in a "{" (definition) or ";"
+            ;; (declaration without body)
+	    (list (concat "\\<" cperl-sub-regexp
+                          ;; group 1: optional subroutine name
+                          (rx
+                           (sequence (eval cperl--ws+-rx)
+                                     (group (optional
+                                             (eval cperl--normal-identifier-rx)))))
+                          ;; "fontified" elsewhere: Prototype
+                          (rx (optional
+                               (sequence (eval cperl--ws*-rx)
+                                         (eval cperl--prototype-rx))))
+                          ;; fontified elsewhere: Attributes
+                          (rx (optional (sequence (eval cperl--ws*-rx)
+                                                  (eval cperl--attribute-list-rx))))
+                          (rx (eval cperl--ws*-rx))
+                          ;; group 2: Identifies the start of the anchor
+                          (rx (group
+                               (or (group-n 3 ";") ; Either a declaration...
+                                   "{"             ; ... or a code block
+                                   ;; ... or a complete signature
+                                   (sequence (eval cperl--signature-rx)
+                                             (eval cperl--ws*-rx))
+                                   ;; ... or the start of a "sloppy" signature
+                                   (sequence (eval cperl--sloppy-signature-rx)
+                                             ;; arbtrarily continue "a few lines"
+                                             (repeat 0 200 (not (in "{"))))
+                                   ;; make sure we have a reasonably
+                                   ;; short match for an incomplete sub
+                                   (not (in ";{("))
+                                   buffer-end))))
+		  '(1 (if (match-beginning 3)
+			  'font-lock-variable-name-face
+		        'font-lock-function-name-face)
+                      nil ; override
+                      t)  ; laxmatch in case of anonymous subroutines
+                  ;; -------- anchored: Signature
+                  `(,(rx (sequence (in "(,")
+                                   (eval cperl--ws*-rx)
+                                   (group (eval cperl--basic-variable-rx))))
+                    (progn
+                      (goto-char (match-beginning 2)) ; pre-match: Back to sig
+                      (match-end 2))
+                    nil
+                    (1 font-lock-variable-name-face)))
             ;; -------- flow control
             ;; (matcher . subexp) font-lock-keyword-face by default
+	    ;; This highlights declarations and definitions differently.
+	    ;; We do not try to highlight in the case of attributes:
+	    ;; it is already done by `cperl-find-pods-heres'
 	    (cons
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
@@ -5910,6 +5969,11 @@ default function."
 	      "\\)\\>") 2)		; was "\\)[ \n\t;():,|&]"
 					; In what follows we use `type' style
 					; for overwritable builtins
+            ;; -------- avoid method calls being fontified as keywords
+            ;; (matcher (subexp facespec))
+            (list
+             (rx "->" (* space) (group-n 1(eval cperl--basic-identifier-rx)))
+             1 ''cperl-method-call)
             ;; -------- builtin functions
             ;; (matcher subexp facespec)
 	    (list
@@ -5982,57 +6046,6 @@ default function."
             ;; (matcher subexp facespec)
 	    '("-[rwxoRWXOezsfdlpSbctugkTBMAC]\\>\\([ \t]+_\\>\\)?" 0
 	      font-lock-function-name-face keep) ; Not very good, triggers at "[a-z]"
-	    ;; This highlights declarations and definitions differently.
-	    ;; We do not try to highlight in the case of attributes:
-	    ;; it is already done by `cperl-find-pods-heres'
-            ;; -------- function definition _and_ declaration
-            ;; (matcher (subexp facespec))
-            ;; facespec is evaluated depending on whether the
-            ;; statement ends in a "{" (definition) or ";"
-            ;; (declaration without body)
-	    (list (concat "\\<" cperl-sub-regexp
-                          ;; group 1: optional subroutine name
-                          (rx
-                           (sequence (eval cperl--ws+-rx)
-                                     (group (optional
-                                             (eval cperl--normal-identifier-rx)))))
-                          ;; "fontified" elsewhere: Prototype
-                          (rx (optional
-                               (sequence (eval cperl--ws*-rx)
-                                         (eval cperl--prototype-rx))))
-                          ;; fontified elsewhere: Attributes
-                          (rx (optional (sequence (eval cperl--ws*-rx)
-                                                  (eval cperl--attribute-list-rx))))
-                          (rx (eval cperl--ws*-rx))
-                          ;; group 2: Identifies the start of the anchor
-                          (rx (group
-                               (or (group-n 3 ";") ; Either a declaration...
-                                   "{"             ; ... or a code block
-                                   ;; ... or a complete signature
-                                   (sequence (eval cperl--signature-rx)
-                                             (eval cperl--ws*-rx))
-                                   ;; ... or the start of a "sloppy" signature
-                                   (sequence (eval cperl--sloppy-signature-rx)
-                                             ;; arbtrarily continue "a few lines"
-                                             (repeat 0 200 (not (in "{"))))
-                                   ;; make sure we have a reasonably
-                                   ;; short match for an incomplete sub
-                                   (not (in ";{("))
-                                   buffer-end))))
-		  '(1 (if (match-beginning 3)
-			  'font-lock-variable-name-face
-		        'font-lock-function-name-face)
-                      t  ;; override
-                      t) ;; laxmatch in case of anonymous subroutines
-                  ;; -------- anchored: Signature
-                  `(,(rx (sequence (in "(,")
-                                   (eval cperl--ws*-rx)
-                                   (group (eval cperl--basic-variable-rx))))
-                    (progn
-                      (goto-char (match-beginning 2)) ; pre-match: Back to sig
-                      (match-end 2))
-                    nil
-                    (1 font-lock-variable-name-face)))
             ;; -------- various stuff calling for a package name
             ;; (matcher (subexp facespec) (subexp facespec))
             `(,(rx (sequence
@@ -6795,7 +6808,7 @@ in subdirectories too."
   ;; of etags has been commented out in the menu since ... well,
   ;; forever.  So, let's just stick to ASCII here. -- haj, 2021-09-14
   (interactive)
-  (let ((cmd "etags")
+  (let ((cmd etags-program-name)
 	(args `("-l" "none" "-r"
 		;;                        1=fullname  2=package?             3=name                       4=proto?             5=attrs? (VERY APPROX!)
 		,(concat
