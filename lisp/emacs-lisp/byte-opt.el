@@ -1052,23 +1052,26 @@ See Info node `(elisp) Integer Basics'."
   (and (integerp o) (<= -536870912 o 536870911)))
 
 (defun byte-optimize-equal (form)
-  ;; Replace `equal' or `eql' with `eq' if at least one arg is a
-  ;; symbol or fixnum.
-  (byte-optimize-binary-predicate
-   (if (= (length (cdr form)) 2)
-       (if (or (byte-optimize--constant-symbol-p (nth 1 form))
-               (byte-optimize--constant-symbol-p (nth 2 form))
-               (byte-optimize--fixnump (nth 1 form))
-               (byte-optimize--fixnump (nth 2 form)))
-           (cons 'eq (cdr form))
-         form)
-     ;; Arity errors reported elsewhere.
-     form)))
+  (cond ((/= (length (cdr form)) 2) form)  ; Arity errors reported elsewhere.
+        ;; Anything is identical to itself.
+        ((and (eq (nth 1 form) (nth 2 form)) (symbolp (nth 1 form))) t)
+        ;; Replace `equal' or `eql' with `eq' if at least one arg is a
+        ;; symbol or fixnum.
+        ((or (byte-optimize--constant-symbol-p (nth 1 form))
+             (byte-optimize--constant-symbol-p (nth 2 form))
+             (byte-optimize--fixnump (nth 1 form))
+             (byte-optimize--fixnump (nth 2 form)))
+         (byte-optimize-binary-predicate (cons 'eq (cdr form))))
+        (t (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-eq (form)
-  (pcase (cdr form)
-    ((or `(,x nil) `(nil ,x)) `(not ,x))
-    (_ (byte-optimize-binary-predicate form))))
+  (cond ((/= (length (cdr form)) 2) form)  ; arity error
+        ;; Anything is identical to itself.
+        ((and (eq (nth 1 form) (nth 2 form)) (symbolp (nth 1 form))) t)
+        ;; Strength-reduce comparison with `nil'.
+        ((null (nth 1 form)) `(not ,(nth 2 form)))
+        ((null (nth 2 form)) `(not ,(nth 1 form)))
+        (t (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-member (form)
   (cond

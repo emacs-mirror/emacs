@@ -785,6 +785,9 @@ inner loops respectively."
     (let ((x 0))
       (list (= (setq x 1))
             x))
+    ;; Aristotelian identity optimisation
+    (let ((x (bytecomp-test-identity 1)))
+      (list (eq x x) (eql x x) (equal x x)))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
