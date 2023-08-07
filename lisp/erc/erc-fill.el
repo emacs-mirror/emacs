@@ -137,9 +137,8 @@ user-defined functions."
 
 (defcustom erc-fill-line-spacing nil
   "Extra space between messages on graphical displays.
-This may need adjusting depending on how your faces are
-configured.  Its value should be larger than that of the variable
-`line-spacing', if set.  If unsure, try 0.5."
+Its value should be larger than that of the variable
+`line-spacing', if set.  When unsure, start with 0.5."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const nil) number))
 
@@ -262,6 +261,14 @@ messages less than a day apart."
   ;; `kill-line' anyway so that users can see the error.
   (erc-fill--wrap-move #'kill-line #'kill-visual-line arg))
 
+(defun erc-fill--wrap-escape-hidden-speaker ()
+  "Move to start of message text when left of speaker.
+Basically mimic what `move-beginning-of-line' does with invisible text."
+  (when-let ((erc-fill-wrap-merge)
+             (prop (get-text-property (point) 'display))
+             ((or (equal prop "") (eq 'margin (car-safe (car-safe prop))))))
+    (goto-char (text-property-not-all (point) (pos-eol) 'display prop))))
+
 (defun erc-fill--wrap-beginning-of-line (arg)
   "Defer to `move-beginning-of-line' or `beginning-of-visual-line'."
   (interactive "^p")
@@ -271,10 +278,22 @@ messages less than a day apart."
   (if (get-text-property (point) 'erc-prompt)
       (goto-char erc-input-marker)
     ;; Mimic what `move-beginning-of-line' does with invisible text.
-    (when-let ((erc-fill-wrap-merge)
-               (prop (get-text-property (point) 'display))
-               ((or (equal prop "") (eq 'margin (car-safe (car-safe prop))))))
-      (goto-char (text-property-not-all (point) (pos-eol) 'display prop)))))
+    (erc-fill--wrap-escape-hidden-speaker)))
+
+(defun erc-fill--wrap-previous-line (&optional arg try-vscroll)
+  "Move to ARGth previous logical or screen line."
+  (interactive "^p\np")
+  (if erc-fill--wrap-visual-keys
+      (with-no-warnings (previous-line arg try-vscroll))
+    (prog1 (previous-logical-line arg try-vscroll)
+      (erc-fill--wrap-escape-hidden-speaker))))
+
+(defun erc-fill--wrap-next-line (&optional arg try-vscroll)
+  "Move to ARGth next logical or screen line."
+  (interactive "^p\np")
+  (if erc-fill--wrap-visual-keys
+      (with-no-warnings (next-line arg try-vscroll))
+    (next-logical-line arg try-vscroll)))
 
 (defun erc-fill--wrap-end-of-line (arg)
   "Defer to `move-end-of-line' or `end-of-visual-line'."
@@ -320,6 +339,8 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   "<remap> <move-end-of-line>" #'erc-fill--wrap-end-of-line
   "<remap> <move-beginning-of-line>" #'erc-fill--wrap-beginning-of-line
   "<remap> <toggle-truncate-lines>" #'erc-fill-wrap-toggle-truncate-lines
+  "<remap> <next-line>" #'erc-fill--wrap-next-line
+  "<remap> <previous-line>" #'erc-fill--wrap-previous-line
   "C-c a" #'erc-fill-wrap-cycle-visual-movement
   ;; Not sure if this is problematic because `erc-bol' takes no args.
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
@@ -359,28 +380,38 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
 ;;;###autoload(put 'fill-wrap 'erc--feature 'erc-fill)
 (define-erc-module fill-wrap nil
   "Fill style leveraging `visual-line-mode'.
-This local module displays nicks overhanging leftward to a common
-offset, as determined by the option `erc-fill-static-center'.  It
-depends on the `fill', `stamp', and `button' modules and assumes
-users who've defined their own `erc-insert-timestamp-function'
-have also customized the option `erc-fill-wrap-margin-side' to an
-explicit side.  To use this module, either include `fill-wrap' in
-`erc-modules' or set `erc-fill-function' to `erc-fill-wrap'.
-Manually invoking one of the minor-mode toggles is not
-recommended.
+This module displays nicks overhanging leftward to a common
+offset, as determined by the option `erc-fill-static-center'.  To
+use it, either include `fill-wrap' in `erc-modules' or set
+`erc-fill-function' to `erc-fill-wrap'.  Most users will want to
+enable the `scrolltobottom' module as well.  Once active, use
+\\[erc-fill-wrap-nudge] to adjust the width of the indent and the
+stamp margin, and use \\[erc-fill-wrap-toggle-truncate-lines] for
+cycling between logical- and screen-line oriented command
+movement.  Also see related options `erc-fill-line-spacing' and
+`erc-fill-wrap-merge'.
 
 This module imposes various restrictions on the appearance of
 timestamps.  Most notably, it insists on displaying them in the
 margins.  Users preferring left-sided stamps may notice that ERC
 also displays the prompt in the left margin, possibly truncating
-or padding it to constrain it to the margin's width.  When stamps
+or padding it to constrain it to the margin's width.
+Additionally, this module assumes that users providing their own
+`erc-insert-timestamp-function' have also customized the option
+`erc-fill-wrap-margin-side' to an explicit side.  When stamps
 appear in the right margin, which they do by default, users may
 find that ERC actually appends them to copy-as-killed messages
 without an intervening space.  This normally poses at most a
 minor inconvenience, however users of the `log' module may prefer
 a workaround provided by `erc-stamp-prefix-log-filter', which
 strips trailing stamps from logged messages and instead prepends
-them to every line."
+them to every line.
+
+As a so-called \"local\" module, `fill-wrap' depends on the
+global modules `fill', `stamp', and `button'; it activates them
+as needed when initializing.  Please note that enabling and
+disabling this module by invoking one of its minor-mode toggles
+is not recommended."
   ((erc-fill--wrap-ensure-dependencies)
    (erc--restore-initialize-priors erc-fill-wrap-mode
      erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys
@@ -548,8 +579,8 @@ decorations applied by third-party modules."
     (user-error "Command called in an undisplayed buffer"))
   (let* ((total (erc-fill--wrap-nudge arg))
          (leftp erc-stamp--margin-left-p)
-         (win-ratio (/ (float (- (window-point) (window-start)))
-                       (- (window-end nil t) (window-start)))))
+         ;; Anchor current line vertically.
+         (line (count-screen-lines (window-start) (window-point))))
     (when (zerop arg)
       (setq arg 1))
     (erc-compat-call
@@ -564,7 +595,7 @@ decorations applied by third-party modules."
                        (lambda ()
                          (interactive)
                          (cl-incf total (erc-fill--wrap-nudge a))
-                         (recenter (round (* win-ratio (window-height))))))))
+                         (recenter line)))))
        (dolist (key '(?\) ?_ ?+))
          (let ((a (pcase key
                     (?\) 0)
@@ -575,7 +606,7 @@ decorations applied by third-party modules."
                          (interactive)
                          (erc-stamp--adjust-margin (- a) (zerop a))
                          (when leftp (erc-stamp--refresh-left-margin-prompt))
-                         (recenter (round (* win-ratio (window-height))))))))
+                         (recenter line)))))
        map)
      t
      (lambda ()
@@ -584,7 +615,7 @@ decorations applied by third-party modules."
                 (if leftp left-margin-width right-margin-width)))
      "Use %k for further adjustment"
      1)
-    (recenter (round (* win-ratio (window-height))))))
+    (recenter line)))
 
 (defun erc-fill-regarding-timestamp ()
   "Fills a text such that messages start at column `erc-fill-static-center'."
