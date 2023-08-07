@@ -381,6 +381,7 @@ exec/exec1
 exec/deps/*
 exec/autom4te.cache
 exec/config.h
+exec/config.h.in
 exec/config-mips.m4
 exec/configure
 exec/*.s.s
