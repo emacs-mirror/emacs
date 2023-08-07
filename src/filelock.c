@@ -143,10 +143,6 @@ static void get_boot_time_1 (const char *, bool);
 static time_t
 get_boot_time (void)
 {
-#if defined (BOOT_TIME)
-  int counter;
-#endif
-
   if (boot_time_initialized)
     return boot_time;
   boot_time_initialized = 1;
@@ -196,8 +192,9 @@ get_boot_time (void)
   /* Try to get boot time from the current wtmp file.  */
   get_boot_time_1 (WTMP_FILE, 1);
 
-  /* If we did not find a boot time in wtmp, look at wtmp, and so on.  */
-  for (counter = 0; counter < 20 && ! boot_time; counter++)
+  /* If we did not find a boot time in wtmp, look at wtmp.1,
+     wtmp.1.gz, wtmp.2, wtmp.2.gz, and so on.  */
+  for (int counter = 0; counter < 20 && ! boot_time; counter++)
     {
       Lisp_Object filename = Qnil;
       bool delete_flag = false;
@@ -442,18 +439,12 @@ lock_file_1 (Lisp_Object lfname, bool force)
   char lock_info_str[MAX_LFINFO + 1];
   intmax_t pid = getpid ();
 
-  if (boot)
-    {
-      if (sizeof lock_info_str
-          <= snprintf (lock_info_str, sizeof lock_info_str,
-		       "%s@%s.%"PRIdMAX":%"PRIdMAX,
-                       user_name, host_name, pid, boot))
-        return ENAMETOOLONG;
-    }
-  else if (sizeof lock_info_str
-           <= snprintf (lock_info_str, sizeof lock_info_str,
-			"%s@%s.%"PRIdMAX,
-                        user_name, host_name, pid))
+  char const *lock_info_fmt = (boot
+			       ? "%s@%s.%"PRIdMAX":%"PRIdMAX
+			       : "%s@%s.%"PRIdMAX);
+  int len = snprintf (lock_info_str, sizeof lock_info_str,
+		      lock_info_fmt, user_name, host_name, pid, boot);
+  if (! (0 <= len && len < sizeof lock_info_str))
     return ENAMETOOLONG;
 
   return create_lock_file (SSDATA (lfname), lock_info_str, force);
