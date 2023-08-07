@@ -1,5 +1,7 @@
 2023-08-07  Po Lu  <luangruo@yahoo.com>
 
+	* nt/mingw-cfg.site: Remove additions for Gnulib printf.
+
 	* m4, lib: Update from Gnulib.
 
 	* msdos/sedlibmk.inp: Remove variables deleted as part of previous
