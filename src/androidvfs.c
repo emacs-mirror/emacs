@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+#include <stat-time.h>
+
 #include <linux/ashmem.h>
 
 #include "android.h"
@@ -4011,8 +4013,15 @@ android_saf_stat (const char *uri_name, const char *id_name,
   memset (statb, 0, sizeof *statb);
   statb->st_size = MAX (0, MIN (TYPE_MAXIMUM (off_t), size));
   statb->st_mode = mode;
-  statb->st_mtim.tv_sec = mtim / 1000;
-  statb->st_mtim.tv_nsec = (mtim % 1000) * 1000000;
+#ifdef STAT_TIMESPEC
+  STAT_TIMESPEC (statb, st_mtim).tv_sec = mtim / 1000;
+  STAT_TIMESPEC (statb, st_mtim).tv_nsec = (mtim % 1000) * 1000000;
+#else /* !STAT_TIMESPEC */
+  /* Headers supplied by the NDK r10b contain a `struct stat' without
+     POSIX fields for nano-second timestamps.  */
+  statb->st_mtime = mtim / 1000;
+  statb->st_mtime_nsec = (mtim % 1000) * 1000000;
+#endif /* STAT_TIMESPEC */
   statb->st_uid = getuid ();
   statb->st_gid = getgid ();
   return 0;
@@ -5674,7 +5683,7 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
 
   if (!android_saf_stat (vp->tree_uri, vp->document_id,
 			 &statb))
-    info->mtime = statb.st_mtim;
+    info->mtime = get_stat_mtime (&statb);
   else
     info->mtime = invalid_timespec ();
 
@@ -6678,7 +6687,12 @@ android_fstat (int fd, struct stat *statb)
       if (parcel_fd->fd == fd
 	  && timespec_valid_p (parcel_fd->mtime))
 	{
-	  statb->st_mtim = parcel_fd->mtime;
+#ifdef STAT_TIMESPEC
+	  STAT_TIMESPEC (statb, st_mtim) = parcel_fd->mtime;
+#else /* !STAT_TIMESPEC */
+	  statb->st_mtime = parcel_fd->mtime.tv_sec;
+	  statb->st_mtime_nsec = parcel_fd->mtime.tv_nsec;
+#endif /* STAT_TIMESPEC */
 	  break;
 	}
     }
