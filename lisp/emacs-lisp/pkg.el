@@ -571,8 +571,8 @@ Value is t."
   (let ((package (or (find-package name)
                      (make-package name :use nil :size size
                                    :nicknames nicknames))))
-    ;; PKG-FIXME: What of the existing stuff does survive?  Nicknames,
-    ;; use-list, and so on.
+
+    ;; Removed old nicknames from the registry, and adds new ones.
     (unregister-package package)
     (register-package package)
 
