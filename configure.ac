@@ -723,7 +723,7 @@ AS_IF([test "x$XCONFIGURE" = "xandroid" \
 
 # There is little point in enabling checking in the build machine if
 # cross-compiling for Android.
-AS_IF([test -z "$with_android" || test -n "$XCONFIGURE"],[
+AS_IF([test "$with_android" = no || test -n "$XCONFIGURE"],[
   if test x$ac_enable_checking != x ; then
     AC_DEFINE([ENABLE_CHECKING], [1],
   [Define to 1 if expensive run-time data type and consistency checks are enabled.])
