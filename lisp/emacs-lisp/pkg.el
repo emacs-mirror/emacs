@@ -526,7 +526,7 @@ Value is the renamed package object."
   (error "not yet implemented"))
 
 ;;;###autoload
-(defun use-package (use &optional package)
+(defun cl-use-package (use &optional package)
   "Add package(s) USE the the use-list of PACKAGE.
 USE may be a package or list of packages or package designators.
 Optional PACKAGE specifies the PACKAGE whose use-list is
@@ -580,23 +580,23 @@ Value is t."
     (let ((old-shadows (package-%shadowing-symbols package)))
       (shadow shadows package)
       (dolist (sym-name shadows)
-	(setf old-shadows (remove (car (find-symbol sym-name package)) old-shadows)))
+        (setf old-shadows (remove (car (find-symbol sym-name package)) old-shadows)))
       (dolist (simports-from shadowing-imports)
-	(let ((other-package (pkg--package-or-lose (car simports-from))))
-	  (dolist (sym-name (cdr simports-from))
-	    (let ((sym (pkg--ensure-symbol sym-name other-package)))
-	      (shadowing-import sym package)
-	      (setf old-shadows (remove sym old-shadows))))))
+        (let ((other-package (pkg--package-or-lose (car simports-from))))
+          (dolist (sym-name (cdr simports-from))
+            (let ((sym (pkg--ensure-symbol sym-name other-package)))
+              (shadowing-import sym package)
+              (setf old-shadows (remove sym old-shadows))))))
       (when old-shadows
-	(warn "%s also shadows the following symbols: %s"
-	      name old-shadows)))
+        (warn "%s also shadows the following symbols: %s"
+              name old-shadows)))
 
     ;;Use
     (unless (eq use :default)
       (let ((old-use-list (package-use-list package))
 	    (new-use-list (mapcar #'pkg--package-or-lose use)))
-        (use-package (cl-set-difference new-use-list old-use-list) package)
-        (let ((laterize (cl-set-difference old-use-list new-use-list)))
+        (cl-use-package (cl-set-difference new-use-list old-use-list) package)
+        '(let ((laterize (cl-set-difference old-use-list new-use-list)))
 	  (when laterize
 	    (unuse-package laterize package)
 	    (warn "%s previously used the following packages: %s"
@@ -607,19 +607,19 @@ Value is t."
       (intern sym-name package))
     (dolist (imports-from imports)
       (let ((other-package (pkg--package-or-lose (car imports-from))))
-	(dolist (sym-name (cdr imports-from))
-	  (import (list (pkg--ensure-symbol sym-name other-package))
-		  package))))
+        (dolist (sym-name (cdr imports-from))
+          (import (list (pkg--ensure-symbol sym-name other-package))
+                  gpackage))))
 
     ;; Exports.
     (let ((old-exports nil)
-	  (exports (mapcar (lambda (sym-name) (intern sym-name package)) exports)))
+          (exports (mapcar (lambda (sym-name) (intern sym-name package)) exports)))
       (do-external-symbols (sym package)
-	 (push sym old-exports))
+         (push sym old-exports))
       (export exports package)
       (let ((diff (cl-set-difference old-exports exports)))
-	(when diff
-	  (warn "%s also exports the following symbols: %s" name diff))))
+        (when diff
+          (warn "%s also exports the following symbols: %s" name diff))))
 
     ;; Documentation (not yet)
     ;;(setf (package-doc-string package) doc-string)
@@ -638,8 +638,10 @@ Value is t."
      (:EXPORT {symbol-name}*)
      (:DOCUMENTATION doc-string)
    All options except :SIZE and :DOCUMENTATION can be used multiple times."
+  (declare (indent defun))
   (let ((nicknames nil)
-	(size nil)
+	(size 10)
+        (size-p nil)
 	(shadows nil)
 	(shadowing-imports nil)
 	(use nil)
@@ -655,11 +657,12 @@ Value is t."
 	(:nicknames
 	 (setf nicknames (pkg--stringify-names (cdr option) "package")))
 	(:size
-	 (cond (size
+	 (cond (size-p
 		(error "Can't specify :SIZE twice."))
 	       ((and (consp (cdr option))
 		     (cl-typep (cl-second option) 'natnum))
-		(setf size (cl-second option)))
+		(setf size (cl-second option))
+                (setf size-p t))
 	       (t
 		(error "Bogus :SIZE, must be a positive integer: %s"
                        (cl-second option)))))
@@ -698,7 +701,8 @@ Value is t."
 	 (setf doc (cl-coerce (cl-second option) 'string)))
 	(t
 	 (error "Bogus DEFPACKAGE option: %s" option))))
-    (pkg--check-disjoint `(:intern ,@interns) `(:export  ,@exports))
+
+    (pkg--check-disjoint `(:intern ,@interns) `(:export ,@exports))
     (pkg--check-disjoint `(:intern ,@interns)
 		         `(:import-from ,@(apply 'append (mapcar 'cl-rest imports)))
 		         `(:shadow ,@shadows)
