@@ -156,6 +156,7 @@ s/@PACKAGE@/emacs/
 /^HYBRID_MALLOC *=/s/@HYBRID_MALLOC@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
+/^ANDROID_BUILD_CFLAGS *=/s/@ANDROID_BUILD_CFLAGS@//
 /^DEFS *=/s/@[^@\n]*@//
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^ECHO_N *=/s/@[^@\n]*@/-n/
@@ -199,6 +200,9 @@ s/@PACKAGE@/emacs/
 /^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
 /^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//
+# Miscellaneous variables.
+/^DIR_HAS_FD_MEMBER *=/s/@DIR_HAS_FD_MEMBER@/0/
+/^LOCALE_FR_UTF8 *=/s/@LOCALE_FR_UTF8@/none/
 #
 # Edit the HAVE_foo variables
 /^HAVE_ATOLL *=/s/@HAVE_ATOLL@/0/
@@ -299,8 +303,10 @@ s/@PACKAGE@/emacs/
 /^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
+/^NEXT_FLOAT_H *=/s/@[^@\n]*@//
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
+/^NEXT_MATH_H *=/s/@[^@\n]*@//
 /^NEXT_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
 /^NEXT_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
@@ -309,9 +315,11 @@ s/@PACKAGE@/emacs/
 /^NEXT_STRING_H *=/s/@[^@\n]*@/<string.h>/
 /^NEXT_SYS_SELECT_H *=/s/@[^@\n]*@//
 /^NEXT_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
+/^NEXT_SYS_RANDOM_H *=/s/@[^@\n]*@//
 /^NEXT_SYS_TIME_H *=/s/@[^@\n]*@//
 /^NEXT_SYS_TYPES_H *=/s!@[^@\n]*@!<sys/types.h>!
 /^NEXT_TIME_H *=/s/@[^@\n]*@/<time.h>/
+/^NEXT_INTTYPES_H *=/s/@[^@\n]*@//
 /^NEXT_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^OBJEXT *=/s/@[^@\n]*@/o/
 /^PRAGMA_COLUMNS *=/s/@[^@\n]*@//
@@ -331,6 +339,7 @@ s/@PACKAGE@/emacs/
 /^DIRENT_H *=/s/@[^@\n]*@//
 /^ERRNO_H *=/s/@[^@\n]*@//
 /^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
+/^FLOAT_H *=/s/@[^@\n]*@//
 /^GETOPT_CDEFS_H *=/s/@[^@\n]*@/getopt-cdefs.h/
 /^GMP_H *=/s/@[^@\n]*@/gmp.h/
 /^LIMITS_H *=/s/@[^@\n]*@/limits.h/
@@ -427,7 +436,6 @@ s/= @GL_GENERATE_STDDEF_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDINT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_LIMITS_H_CONDITION@/= 1/
 s/= @GL_GENERATE_ERRNO_H_CONDITION@/= /
-s/= @GL_GENERATE_LIMITS_H_CONDITION@/= /
 s/= @GL_GENERATE_GETOPT_CDEFS_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GETOPT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
@@ -436,6 +444,8 @@ s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDCKDINT_H_CONDITION@/= 1/
 s/= @GL_COND_OBJ_STDIO_READ_CONDITION@/= /
 s/= @GL_COND_OBJ_STDIO_WRITE_CONDITION@/= /
+s/= @GL_COND_OBJ_STPNCPY_CONDITION@/= /
+s/= @GL_COND_OBJ_.*@/= 1/
 s/\$\(MKDIR_P\) malloc//
 #
 # Determine which modules to build and which to omit
@@ -455,6 +465,8 @@ OMIT_GNULIB_MODULE_fcntl = true\
 OMIT_GNULIB_MODULE_fdopendir = true\
 OMIT_GNULIB_MODULE_fstatat = true\
 OMIT_GNULIB_MODULE_fsync = true\
+OMIT_GNULIB_MODULE_getline = true\
+OMIT_GNULIB_MODULE_getdelim = true\
 OMIT_GNULIB_MODULE_getdtablesize = true\
 OMIT_GNULIB_MODULE_getgroups = true\
 OMIT_GNULIB_MODULE_gettimeofday = true\
@@ -462,6 +474,7 @@ OMIT_GNULIB_MODULE_group-member = true\
 OMIT_GNULIB_MODULE_inttypes-incomplete = true\
 OMIT_GNULIB_MODULE_localtime-buffer = true\
 OMIT_GNULIB_MODULE_lstat = true\
+OMIT_GNULIB_MODULE_math = true\
 OMIT_GNULIB_MODULE_nanosleep = true\
 OMIT_GNULIB_MODULE_open = true\
 OMIT_GNULIB_MODULE_pipe2 = true\
@@ -470,12 +483,13 @@ OMIT_GNULIB_MODULE_putenv = true\
 OMIT_GNULIB_MODULE_qcopy-acl = true\
 OMIT_GNULIB_MODULE_readlink = true\
 OMIT_GNULIB_MODULE_readlinkat = true\
+OMIT_GNULIB_MODULE_stpcpy = true\
 OMIT_GNULIB_MODULE_strtoimax = true\
 OMIT_GNULIB_MODULE_strtoll = true\
 OMIT_GNULIB_MODULE_symlink = true\
 OMIT_GNULIB_MODULE_sys_select = true\
 OMIT_GNULIB_MODULE_sys_time = true\
-OMIT_GNULIB_MODULE_crypto\/md5 = true
+OMIT_GNULIB_MODULE_crypto\/md5 = true\
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@

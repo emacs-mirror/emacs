@@ -29,9 +29,11 @@
 ;; - The `/sys/class/power_supply/' files of Linux >= 2.6.39.
 ;; - The `/proc/acpi/' directory structure of Linux 2.4.20 and 2.6.
 ;; - The `/proc/apm' file format of Linux version 1.3.58 or newer.
+;; - The Haiku ACPI battery driver.
 ;; - BSD by using the `apm' program.
 ;; - Darwin (macOS) by using the `pmset' program.
 ;; - Windows via the GetSystemPowerStatus API call.
+;; - Android 5 or later via the BatteryManager APIs.
 
 ;;; Code:
 
@@ -106,6 +108,12 @@ Value does not include \".\" or \"..\"."
               (file-readable-p "/proc/")
               (file-readable-p "/proc/apm"))
          #'battery-linux-proc-apm)
+        ;; Now try the Android battery status function.
+        ;; Note that even though the Linux kernel APIs are sometimes
+        ;; available on Android, they are badly implemented by Android
+        ;; kernels, so avoid using those.
+        ((eq system-type 'android)
+         #'battery-android)
 	((and (eq system-type 'berkeley-unix)
 	      (file-executable-p "/usr/sbin/apm"))
 	 #'battery-bsd-apm)
@@ -1070,6 +1078,78 @@ The following %-sequences are provided:
 	  (cons ?h (or hours "N/A"))
 	  (cons ?m (or minutes "N/A"))
 	  (cons ?t (or remaining-time "N/A")))))
+
+
+;;; `BatteryManager' interface for Android.
+
+(declare-function android-query-battery "androidfns.c")
+
+(defun battery-android ()
+  "Get battery status information using Android.
+
+The following %-sequences are provided:
+%c Current capacity (mAh)
+%r Current rate of charge or discharge (mA)
+%L AC line status (verbose).
+%B Battery status (verbose)
+%b Battery status, empty means high, `-' means low,
+  `+' means charging and `?' means unknown.
+%d Temperature (in degrees Celsius)
+%p Battery load percentage.
+%m Remaining time (to charge) in minutes.
+%h Remaining time (to charge) in hours.
+%t Remaining time (to charge) in the form `h:min'."
+  (when-let* ((status (android-query-battery)))
+    (let* ((percentage nil)
+           (capacity nil)
+           (sym-status nil)
+           (symbol nil)
+           (rate nil)
+           (remaining nil)
+           (hours nil)
+           (minutes nil))
+      ;; Figure out the percentage.
+      (setq percentage (number-to-string (car status)))
+      ;; Figure out the capacity
+      (setq capacity (number-to-string (/ (cadr status) 1000)))
+      ;; Figure out the battery status.
+      (let ((percentage (car status)))
+        (cl-ecase (nth 4 status)
+          (2 (setq sym-status "charging" symbol "+"))
+          (3 (setq sym-status "discharging"
+                   symbol (if (< percentage 15) "-" " ")))
+          (5 (setq sym-status "full" symbol " "))
+          (4 (setq sym-status "not charging"
+                   symbol (if (< percentage 15) "-" " ")))
+          (1 (setq sym-status "unknown" symbol "?"))))
+      ;; Figure out the rate of charge.
+      (setq rate (/ (nth 3 status) 1000))
+      ;; Figure out the remaining time.
+      (let* ((time (nth 5 status))
+             (mins (/ time (* 1000 60)))
+             (hours-left (/ mins 60))
+             (mins (mod mins 60)))
+        (unless (eq time -1)
+          (setq remaining (format "%d:%d" hours-left mins)
+                hours (number-to-string hours-left)
+                minutes (number-to-string mins))))
+      ;; Return results.
+      (list (cons ?c capacity)
+            (cons ?p percentage)
+            (cons ?r rate)
+            (cons ?B sym-status)
+            (cons ?b symbol)
+            (cons ?m (or minutes "N/A"))
+            (cons ?h (or hours "N/A"))
+            (cons ?t (or remaining "N/A"))
+            (cons ?L (cl-case (nth 6 status)
+                       (0 "off-line")
+                       (1 "on-line")
+                       (2 "on-line (dock)")
+                       (3 "on-line (USB)")
+                       (4 "on-line (wireless)")
+                       (t "unknown")))
+            (cons ?t (/ (or (nth 7 status) 0) 10.0))))))
 
 
 ;;; Private functions.

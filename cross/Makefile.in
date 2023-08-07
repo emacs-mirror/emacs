@@ -1,0 +1,190 @@
+### @configure_input@
+
+# Copyright (C) 2023 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+top_srcdir = @top_srcdir@
+srcdir = @srcdir@
+top_builddir = @top_builddir@
+builddir = @builddir@
+
+-include $(top_builddir)/src/verbose.mk
+
+# Cross-compiling Emacs for Android.
+
+# The cross compiled binaries are built by having ``variant''
+# Makefiles generated at configure-time.  First,
+# $(top_builddir)/src/Makefile.android,
+# $(top_builddir)/lib/Makefile.android,
+# $(top_builddir)/lib/gnulib.mk.android and
+# $(top_builddir)/lib-src/Makefile.android are copied to their usual
+# locations in this directory.
+
+# N.B. that LIB_SRCDIR is actually relative to builddir, because that
+# is where the gnulib files get linked.
+
+LIB_SRCDIR = $(realpath $(builddir)/lib)
+LIB_TOP_SRCDIR = $(realpath $(top_srcdir))
+
+SRC_SRCDIR = $(realpath $(top_srcdir)/src)
+SRC_TOP_SRCDIR = $(realpath $(top_srcdir))
+
+LIB_SRC_SRCDIR = $(realpath $(top_srcdir)/lib-src)
+LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
+
+# This is a list of binaries to build and install in lib-src.
+
+LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
+		  lib-src/ebrowse lib-src/hexl lib-src/movemail
+
+CLEAN_SUBDIRS = src lib-src lib etc
+
+.PHONY: all
+all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
+
+# This Makefile relies on builddir and top_builddir being relative
+# paths in *.android.
+
+# This file is used to tell lib/gnulib.mk when
+# $(top_builddir)/config.status changes.
+config.status: $(top_builddir)/config.status
+	$(AM_V_GEN) touch config.status
+
+src/verbose.mk: $(srcdir)/verbose.mk.android
+	$(AM_V_SILENT) cp -f $(srcdir)/verbose.mk.android \
+	  src/verbose.mk
+
+# Gnulib, make-fingerprint and make-docfile must be built before
+# entering any of the rules below, or they will get the Android
+# versions of many headers.
+
+.PHONY: $(top_builddir)/lib/libgnu.a
+$(top_builddir)/lib/libgnu.a:
+	$(MAKE) -C $(top_builddir)/lib libgnu.a
+
+.PHONY: $(top_builddir)/lib-src/make-fingerprint
+$(top_builddir)/lib-src/make-fingerprint: $(top_builddir)/lib/libgnu.a
+	$(MAKE) -C $(top_builddir)/lib-src make-fingerprint
+
+.PHONY: $(top_builddir)/lib-src/make-docfile
+$(top_builddir)/lib-src/make-docfile: $(top_builddir)/lib/libgnu.a
+	$(MAKE) -C $(top_builddir)/lib-src make-docfile
+
+PRE_BUILD_DEPS=$(top_builddir)/lib/libgnu.a		\
+	       $(top_builddir)/lib-src/make-fingerprint	\
+	       $(top_builddir)/lib-src/make-docfile
+
+lib/config.h: $(top_builddir)/src/config.h.android
+	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android	\
+	  lib/config.h
+
+lib-src/config.h: $(top_builddir)/src/config.h.android
+	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android	\
+	  lib-src/config.h
+
+# Figure out where build-aux is.
+# Then, replace the build-aux directory with its actual location,
+# in case MKDIR_P points there.
+
+relative_buildaux_dir := $(subst /,\/,$(top_srcdir)/build-aux)
+
+lib/gnulib.mk: $(top_builddir)/lib/gnulib.mk.android
+	$(AM_V_GEN) \
+	  sed -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	      -e 's/$(relative_buildaux_dir)/$(subst /,\/,../$(top_builddir))\/build-aux/g' \
+	    < $(top_builddir)/lib/gnulib.mk.android > $@
+
+lib/Makefile: $(top_builddir)/lib/Makefile.android
+	$(AM_V_GEN) \
+	  sed -e 's/^top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	      -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	      -e 's/^VPATH =.*$$/VPATH = $(subst /,\/,$(LIB_SRCDIR))/g' \
+		< $(top_builddir)/lib/Makefile.android > $@
+
+# What is needed to build gnulib.
+LIB_DEPS = lib/config.h lib/gnulib.mk lib/Makefile
+
+.PHONY: lib/libgnu.a
+lib/libgnu.a: src/verbose.mk config.status $(LIB_DEPS) $(PRE_BUILD_DEPS)
+	$(MAKE) -C lib libgnu.a
+
+# Edit srcdir and top_srcdir to the right locations.
+# Edit references to ../admin/unidata to read ../../admin/unidata.
+# Next, edit libsrc to the location at top_srcdir! It is important
+# that src/Makefile uses the binaries there, instead of any
+# cross-compiled binaries at ./lib-src.
+# Edit out anything saying -I($(top_srcdir)/lib) into
+# -I$../(srcdir)/lib; that should be covered by -I$(lib)
+
+src/Makefile: $(top_builddir)/src/Makefile.android
+	$(AM_V_GEN) \
+	sed -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(SRC_SRCDIR))/g' \
+	    -e 's/^top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	    -e 's/\.\.\/admin\/unidata/..\/..\/admin\/unidata/g' \
+	    -e 's/\.\.\/admin\/charsets/..\/..\/admin\/charsets/g' \
+	    -e 's/^libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' \
+	    -e 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' \
+	    -e 's/-I\$$(top_srcdir)\/lib/-I..\/$(subst /,\/,$(srcdir))\/lib/g' \
+	    < $(top_builddir)/src/Makefile.android > $@
+
+src/config.h: $(top_builddir)/src/config.h.android
+	$(AM_V_GEN) cp -f -p $< $@
+
+.PHONY: src/android-emacs src/libemacs.so
+
+src/libemacs.so: src/Makefile src/config.h src/verbose.mk \
+  lib/libgnu.a $(PRE_BUILD_DEPS)
+	$(MAKE) -C src libemacs.so
+
+src/android-emacs: src/Makefile src/config.h lib/libgnu.a \
+  $(PRE_BUILD_DEPS)
+	$(MAKE) -C src android-emacs
+
+# Edit out SCRIPTS, it interferes with the build.
+# Make BASE_CFLAGS also include cross/lib as well as ../lib.
+
+lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
+	$(AM_V_GEN) \
+	sed -e 's/-I\$${srcdir}\/\.\.\/lib//g' \
+	    -e 's/^srcdir=.*$$/srcdir = $(subst /,\/,$(LIB_SRC_SRCDIR))/g' \
+	    -e 's/^top_srcdir=.*$$/top_srcdir = $(subst /,\/,$(LIB_SRC_TOP_SRCDIR))/g' \
+	    -e 's/^SCRIPTS=.*$$/SCRIPTS=/g' \
+	    -e 's/-I\.\.\/lib/-I..\/lib -I..\/$(subst /,\/,$(srcdir))\/lib/g' \
+	  < $(top_builddir)/lib-src/Makefile.android > $@
+
+.PHONY: $(LIBSRC_BINARIES)
+$(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a \
+  lib-src/config.h lib-src/Makefile $(PRE_BUILD_DEPS)
+# Finally, go into lib-src and make everything being built
+	$(MAKE) -C lib-src $(foreach bin,$(LIBSRC_BINARIES),$(notdir $(bin)))
+
+.PHONY: clean maintainer-clean distclean
+clean:
+	for dir in $(CLEAN_SUBDIRS); do \
+	  find $$dir -type f -delete;   \
+	done
+	rm -rf lib/config.h lib-src/config.h
+# ndk-build won't have been generated in a non-Android build.
+	-make -C ndk-build clean
+
+maintainer-clean distclean bootstrap-clean: clean
+# Remove links created by configure.
+	for dir in $(CLEAN_SUBDIRS); do \
+	  find $$dir -type l -delete;   \
+	done
+	rm -rf lib/Makefile lib/gnulib.mk ndk-build/Makefile
+	rm -rf ndk-build/ndk-build.mk Makefile

@@ -1,0 +1,5 @@
+This directory holds Makefiles and other required assets to build an
+Emacs binary independently for another toolchain.
+
+The directory ndk-build also contains an implementation of the Android
+`ndk-build' build system.

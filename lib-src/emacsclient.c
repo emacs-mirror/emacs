@@ -626,6 +626,8 @@ decode_options (int argc, char **argv)
       alt_display = "w32";
 #elif defined (HAVE_HAIKU)
       alt_display = "be";
+#elif defined (HAVE_ANDROID)
+      alt_display = "android";
 #endif
 
 #ifdef HAVE_PGTK

@@ -553,11 +553,24 @@ the updated value."
     (setq startup--original-eln-load-path
           (copy-sequence native-comp-eln-load-path))))
 
+(defvar android-fonts-enumerated nil
+  "Whether or not fonts have been enumerated already.
+On Android, Emacs uses this variable internally at startup.")
+
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
+  ;; Initialize the Android font driver late.
+  ;; This is done here because it needs the `mac-roman' coding system
+  ;; to be loaded.
+  (when (and (featurep 'android)
+             (fboundp 'android-enumerate-fonts)
+             (not android-fonts-enumerated))
+    (funcall 'android-enumerate-fonts)
+    (setq android-fonts-enumerated t))
+
   (if command-line-processed
       (message internal--top-level-message)
     (setq command-line-processed t)

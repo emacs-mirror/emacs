@@ -162,6 +162,20 @@ Before attempting a skip, if `electric-pair-skip-whitespace' is
 non-nil, this function is called.  It move point to a new buffer
 position, presumably skipping only whitespace in between.")
 
+(defun electric-pair-analyze-conversion (string)
+  "Notice that STRING has been deleted by an input method.
+If the last character of STRING is an electric pair character,
+and the character after point is too, then delete that other
+character."
+  (let* ((prev (aref string (1- (length string))))
+         (next (char-after))
+         (syntax-info (electric-pair-syntax-info prev))
+         (syntax (car syntax-info))
+         (pair (cadr syntax-info)))
+    (when (and next pair (memq syntax '(?\( ?\" ?\$))
+               (eq pair next))
+      (delete-char 1))))
+
 (defun electric-pair--skip-whitespace ()
   "Skip whitespace forward, not crossing comment or string boundaries."
   (let ((saved (point))

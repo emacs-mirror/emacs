@@ -976,6 +976,13 @@ struct x_display_info
      server_time_monotonic_p will be true).  */
   int_fast64_t server_time_offset;
 #endif
+
+  /* Keysym that will cause Emacs to quit if pressed twice within 150
+     ms.  */
+  KeySym quit_keysym;
+
+  /* The last time that keysym was pressed.  */
+  Time quit_keysym_time;
 };
 
 #ifdef HAVE_XINPUT2

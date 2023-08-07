@@ -33,6 +33,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/utsname.h>
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h"
+#endif
+
 #include "lisp.h"
 
 #include <float.h>
@@ -1269,7 +1273,11 @@ is in general a comma-separated list.  */)
   if (!pw)
     return Qnil;
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  p = android_user_full_name (pw);
+#else
   p = USER_FULL_NAME;
+#endif
   /* Chop off everything after the first comma, since 'pw_gecos' is a
      comma-separated list. */
   q = strchr (p, ',');

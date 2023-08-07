@@ -645,7 +645,7 @@ Typically \"page-%s.png\".")
       :help                     "Reset the current slice"
       :enabled                  (image-mode-window-get 'slice)])
     "---"
-    ["New Search"               (doc-view-search t)
+    ["New Search"               doc-view-new-search
      :help                      "Initiate a new search"]
     ["Search Forward"           doc-view-search
      :help                      "Jump to the next match or initiate a new search"]
@@ -667,6 +667,45 @@ Typically \"page-%s.png\".")
      ["Display document"        doc-view-toggle-display
       :style radio :selected    (eq major-mode 'doc-view-mode)])
     ["Exit DocView Mode" doc-view-minor-mode]))
+
+(defvar doc-view-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    ;; Most of these items are the same as in the default tool bar
+    ;; map, but with extraneous items removed, and with extra search
+    ;; and navigation items.
+    (tool-bar-local-item-from-menu 'find-file "new" map
+                                   nil :label "New File"
+			           :vert-only t)
+    (tool-bar-local-item-from-menu 'menu-find-file-existing "open" map
+                                   nil :label "Open" :vert-only t)
+    (tool-bar-local-item-from-menu 'dired "diropen" map nil :vert-only t)
+    (tool-bar-local-item-from-menu 'kill-this-buffer "close" map nil
+                                   :vert-only t)
+    (define-key-after map [separator-1] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'doc-view-new-search "search"
+			           map doc-view-mode-map :vert-only t
+                                   :help "Start a new search query.")
+    (tool-bar-local-item-from-menu 'doc-view-search-backward "left-arrow"
+			           map doc-view-mode-map
+                                   :vert-only t
+                                   :enable 'doc-view--current-search-matches
+                                   :help "Move to the last search result.")
+    (tool-bar-local-item-from-menu 'doc-view-search "right-arrow"
+			           map doc-view-mode-map :vert-only t
+                                   :enable 'doc-view--current-search-matches
+                                   :help "Move to the next search result.")
+    (define-key-after map [separator-2] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'doc-view-previous-page "last-page"
+                                   map doc-view-mode-map :vert-only t
+                                   :enable '(> (doc-view-current-page) 1)
+                                   :help "Move to the next page.")
+    (tool-bar-local-item-from-menu 'doc-view-next-page "next-page"
+                                   map doc-view-mode-map :vert-only t
+                                   :enable '(< (doc-view-current-page)
+                                               (doc-view-last-page-number))
+                                   :help "Move to the next page.")
+    map)
+  "Like the default `tool-bar-map', but with additions for DocView.")
 
 ;;;; Navigation Commands
 
@@ -1865,7 +1904,16 @@ If BACKWARD is non-nil, jump to the previous match."
 	;; We must convert to TXT first!
 	(if doc-view--current-converter-processes
 	    (message "DocView: please wait till conversion finished.")
-	  (doc-view-doc->txt txt (lambda () (doc-view-search nil))))))))
+	  (doc-view-doc->txt txt (lambda () (doc-view-search nil))))))
+    ;; Update the tool bar items.
+    (force-mode-line-update)))
+
+(defun doc-view-new-search ()
+  "Initiate a new search query.
+Prompt for a string, then search for its appearances within
+the document text."
+  (interactive)
+  (doc-view-search t nil))
 
 (defun doc-view-search-next-match (arg)
   "Go to the ARGth next matching page."
@@ -2244,6 +2292,8 @@ toggle between displaying the document or editing it as text.
       (imenu-unavailable (message "imenu support unavailable: %s"
                                   (cadr imenu-error))))
     (doc-view-initiate-display)
+    ;; Replace the tool bar map with `doc-view-tool-bar-map'.
+    (setq-local tool-bar-map doc-view-tool-bar-map)
     ;; Switch off view-mode explicitly, because doc-view-mode is the
     ;; canonical view mode for PDF/PS/DVI files.  This could be
     ;; switched on automatically depending on the value of

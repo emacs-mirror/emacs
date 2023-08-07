@@ -264,7 +264,7 @@ Otherwise, look for `movemail' in the directories in
 	  ;; assuming it would work.
 	  ;; https://lists.gnu.org/r/bug-gnu-emacs/2008-02/msg00087.html
 	  (let ((progname (expand-file-name
-			   (concat "movemail"
+			   (concat movemail-program-name
 				   (if (memq system-type '(ms-dos windows-nt))
 				       ".exe")) dir)))
 	    (when (and (not (file-directory-p progname))
@@ -2016,7 +2016,9 @@ Value is the size of the newly read mail after conversion."
 		 (buffer-disable-undo errors)
 		 (let ((args
 			(append
-			 (list (or rmail-movemail-program "movemail") nil errors nil)
+			 (list (or rmail-movemail-program
+                                   movemail-program-name)
+                               nil errors nil)
 			 (if rmail-preserve-inbox
 			     (list "-p")
 			   nil)

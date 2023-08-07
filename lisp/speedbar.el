@@ -3531,7 +3531,7 @@ to be at the beginning of a line in the etags buffer.
 
 This variable is ignored if `speedbar-use-imenu-flag' is non-nil.")
 
-(defcustom speedbar-fetch-etags-command "etags"
+(defcustom speedbar-fetch-etags-command etags-program-name
   "Command used to create an etags file.
 This variable is ignored if `speedbar-use-imenu-flag' is t."
   :group 'speedbar

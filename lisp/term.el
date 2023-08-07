@@ -1139,6 +1139,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (setq-local term-last-input-end (make-marker))
   (setq-local term-last-input-match "")
 
+  ;; Always display the onscreen keyboard.
+  (setq-local touch-screen-display-keyboard t)
+
   ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
   (make-local-variable 'term-saved-cursor)
@@ -1729,7 +1732,12 @@ Nil if unknown.")
       (push (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
             process-environment))
     (apply #'start-process name buffer
-	   "/bin/sh" "-c"
+           ;; On Android, /bin doesn't exist, and the default shell is
+           ;; found as /system/bin/sh.
+	   (if (eq system-type 'android)
+               "/system/bin/sh"
+             "/bin/sh")
+           "-c"
 	   (format "stty -nl echo rows %d columns %d sane 2>%s;\
 if [ $1 = .. ]; then shift; fi; exec \"$@\""
 		   term-height term-width null-device)

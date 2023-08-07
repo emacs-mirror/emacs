@@ -260,6 +260,11 @@ struct font_entity
 {
   union vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Whether or not this is an Android font entity.  */
+  bool is_android;
+#endif
 };
 
 /* A value which may appear in the member `encoding' of struct font
@@ -547,8 +552,14 @@ CHECK_FONT_GET_OBJECT (Lisp_Object x)
   return XFONT_OBJECT (x);
 }
 
+#ifndef HAVE_ANDROID
 /* Number of pt per inch (from the TeXbook).  */
 #define PT_PER_INCH 72.27
+#else
+/* Android uses this value instead to compensate for different device
+   dimensions.  */
+#define PT_PER_INCH 160.00
+#endif
 
 /* Return a pixel size (integer) corresponding to POINT size (double)
    on resolution DPI.  */
@@ -823,6 +834,9 @@ extern Lisp_Object copy_font_spec (Lisp_Object);
 extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object font_make_entity (void);
+#ifdef HAVE_ANDROID
+extern Lisp_Object font_make_entity_android (int);
+#endif
 extern Lisp_Object font_make_object (int, Lisp_Object, int);
 #if defined (HAVE_XFT) || defined (HAVE_FREETYPE) || defined (HAVE_NS)
 extern Lisp_Object font_build_object (int, Lisp_Object, Lisp_Object, double);

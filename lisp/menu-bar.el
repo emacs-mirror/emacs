@@ -79,6 +79,14 @@
                   :help "Print current buffer with page headings"))
     menu))
 
+(defcustom menu-bar-close-window nil
+  "Whether or not to close the current window from the menu bar.
+If non-nil, selecting Close from the File menu or clicking Close
+in the tool bar will close the current window where possible."
+  :type 'boolean
+  :group 'menu
+  :version "30.1")
+
 (defvar menu-bar-file-menu
   (let ((menu (make-sparse-keymap "File")))
 
@@ -485,6 +493,11 @@
 
 (defvar menu-bar-edit-menu
   (let ((menu (make-sparse-keymap "Edit")))
+
+    (bindings--define-key menu [execute-extended-command]
+      '(menu-item "Execute Command" execute-extended-command
+                  :enable t
+                  :help "Read a command name, its arguments, then call it."))
 
     ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
@@ -2213,12 +2226,19 @@ otherwise it could decide to silently do nothing."
    ;; (Bug#8184).
    ((not (menu-bar-menu-frame-live-and-visible-p)))
    ((menu-bar-non-minibuffer-window-p)
-    (kill-buffer (current-buffer)))
+    (kill-buffer (current-buffer))
+    ;; Also close the current window if `menu-bar-close-windows' is
+    ;; set.
+    (when menu-bar-close-window
+      (ignore-errors (delete-window))))
    (t
     (abort-recursive-edit))))
 
 (defun kill-this-buffer-enabled-p ()
-  "Return non-nil if the `kill-this-buffer' menu item should be enabled."
+  "Return non-nil if the `kill-this-buffer' menu item should be enabled.
+It should be enabled there is at least one non-hidden buffer, or if
+`menu-bar-close-window' is non-nil and there is more than one window on
+this frame."
   (or (not (menu-bar-non-minibuffer-window-p))
       (let (found-1)
 	;; Instead of looping over entire buffer list, stop once we've
@@ -2228,7 +2248,9 @@ otherwise it could decide to silently do nothing."
 	    (unless (string-match-p "^ " (buffer-name buffer))
 	      (if (not found-1)
 		  (setq found-1 t)
-		(throw 'found-2 t))))))))
+		(throw 'found-2 t))))))
+      (and menu-bar-close-window
+           (window-parent (selected-window)))))
 
 (put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
 
@@ -2708,20 +2730,25 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 POSITION can be an event, a posn- value, a value having the
 form ((XOFFSET YOFFSET) WINDOW), or nil.
 If nil, the current mouse position is used, or nil if there is no mouse."
-  (pcase position
+  (cond
     ;; nil -> mouse cursor position
-    ('nil
+    ((eq position nil)
      (let ((mp (mouse-pixel-position)))
        (list (list (cadr mp) (cddr mp)) (car mp))))
     ;; Value returned from `event-end' or `posn-at-point'.
-    ((pred posnp)
+    ((posnp position)
      (let ((xy (posn-x-y position)))
        (list (list (car xy) (cdr xy))
 	     (posn-window position))))
+    ;; `touchscreen-begin' or `touchscreen-end' event.
+    ((or (eq (car-safe position) 'touchscreen-begin)
+         (eq (car-safe position) 'touchscreen-end))
+     position)
     ;; Event.
-    ((pred eventp)
+    ((eventp position)
      (popup-menu-normalize-position (event-end position)))
-    (_ position)))
+    ;; Some other value.
+    (t position)))
 
 (defcustom tty-menu-open-use-tmm nil
   "If non-nil, \\[menu-bar-open] on a TTY will invoke `tmm-menubar'.

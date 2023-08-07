@@ -2942,8 +2942,9 @@ apply to.  Here are the possible values of @var{characteristic}:
 The kind of window system the terminal uses---either @code{graphic}
 (any graphics-capable display), @code{x}, @code{pc} (for the MS-DOS
 console), @code{w32} (for MS Windows 9X/NT/2K/XP), @code{haiku} (for
-Haiku), @code{pgtk} (for pure GTK), or @code{tty} (a non-graphics-capable
-display).  @xref{Window Systems, window-system}.
+Haiku), @code{pgtk} (for pure GTK), @code{android} (for Android), or
+@code{tty} (a non-graphics-capable display).  @xref{Window Systems,
+window-system}.
 
 @item class
 What kinds of colors the terminal supports---either @code{color},
@@ -8874,6 +8875,8 @@ Emacs is displaying the frame using MS-DOS direct screen writes.
 Emacs is displaying the frame using the Application Kit on Haiku.
 @item pgtk
 Emacs is displaying the frame using pure GTK facilities.
+@item android
+Emacs is displaying the frame on Android.
 @item nil
 Emacs is displaying the frame on a character-based terminal.
 @end table

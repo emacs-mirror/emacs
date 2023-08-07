@@ -255,6 +255,10 @@ control).  See \"cc-mode.el\" for more info."
 	;; Will try initialization hooks again if they failed.
 	(put 'c-initialize-cc-mode initprop c-initialization-ok))))
 
+  ;; Set up text conversion, for Emacs >= 30.0
+  (when (boundp 'post-text-conversion-hook)
+    (add-hook 'post-text-conversion-hook #'c-post-text-conversion))
+
   (unless new-style-init
     (c-init-language-vars-for 'c-mode)))
 

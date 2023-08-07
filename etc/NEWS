@@ -24,6 +24,12 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 30.1
 
+** Emacs has been ported to the Android operating system.
+This requires Emacs to be compiled on another computer.  The Android
+NDK, SDK, and a suitable Java compiler must also be installed.
+
+See the file 'java/INSTALL' for more details.
+
 ---
 ** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
 Previously configure used ALSA libraries if installed on the
@@ -61,6 +67,12 @@ If an invisible or an iconified frame is shown to the user by the
 compositing manager, Emacs will now redisplay such a frame even though
 'frame-visible-p' returns nil or 'icon' for it.  This can happen, for
 example, as part of preview for iconified frames.
+
+---
+** New user option 'menu-bar-close-window'.
+When non-nil, selecting Close from the File menu or clicking Close in
+the tool bar will result in the current window being closed, if
+possible.
 
 +++
 ** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
@@ -102,6 +114,11 @@ plus, minus, check-mark, start, etc.
 The 'tool-bar-position' frame parameter can be set to 'bottom' on all
 window systems other than Nextstep.
 
++++
+** New global minor mode 'modifier-bar-mode'.
+When this minor mode is enabled, buttons representing modifier keys
+are displayed along the tool bar.
+
 ---
 ** New user option 'uniquify-dirname-transform'.
 This can be used to customize how buffer names are uniquified, by
@@ -127,6 +144,13 @@ right-aligned to is controlled by the new user option
 
 
 * Editing Changes in Emacs 30.1
+
++++
+** Emacs now has better support for touchscreen devices.
+Many touch screen gestures are now implemented and translated into
+mouse or gesture events, and support for tapping tool bar buttons and
+opening menus has been written.  Countless packages, such as Dired and
+Custom have been adjusted to better understand touch screen input.
 
 ---
 ** On X, Emacs now supports input methods which perform "string conversion".
@@ -416,6 +440,12 @@ If you don't like the colors produced by the default definition of
 this new face when DocView displays documents, customize this face to
 restore the colors you were used to, or to get colors more to your
 liking.
+
+---
+*** DocView buffers now display a new tool bar.
+This tool bar contains options for searching and navigating within the
+document, replacing the incompatible items for incremental search and
+editing within the default tool bar displayed in the past.
 
 ** Shortdoc
 
@@ -714,6 +744,29 @@ See (info "(elisp)Porting Old Advice") for help converting them
 to use `advice-add` or `define-advice instead.
 
 +++
+** New variable 'current-key-remap-sequence'.
+It is bound to the key sequence that caused a call to a function bound
+within `function-key-map' or `input-decode-map' around those calls.
+
++++
+** New variables describing the names of built in programs.
+The new variables 'ctags-program-name', 'ebrowse-program-name',
+'etags-program-name', 'hexl-program-name', 'emacsclient-program-name'
+and 'movemail-program-name' should be used instead of "ctags",
+"ebrowse", "etags", "hexl", and "emacsclient", when starting one of
+these built in programs in a subprocess.
+
++++
+** 'x-popup-menu' now understands touch screen events.
+When a 'touchscreen-begin' or 'touchscreen-end' event is passed as the
+POSITION argument, it will behave as if that event was a mouse event.
+
++++
+** New functions for handling touch screen events.
+The new functions 'touch-screen-track-tap' and
+'touch-screen-track-drag' handle tracking common touch screen gestures
+from within a command.
+
 ** New user option 'safe-local-variable-directories'.
 This user option names directories in which Emacs will treat all
 directory-local variables as safe.
@@ -725,6 +778,11 @@ intercepted by programs such as window managers and should be ignored
 with Emacs.
 
 ** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
+
++++
+** New variable 'secondary-tool-bar-map'.
+If non-nil, this variable contains a keymap of menu items that are
+displayed along tool bar items inside 'tool-bar-map'.
 
 ** Functions and variables to transpose sexps
 

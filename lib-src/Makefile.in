@@ -96,6 +96,14 @@ localstatedir=@localstatedir@
 srcdir=@srcdir@
 VPATH=@srcdir@
 
+# Cross-compilation setup
+
+XCONFIGURE=@XCONFIGURE@
+
+ifneq ($(XCONFIGURE),)
+vpath $(srcdir)
+endif
+
 # The top-level source directory, also set by configure.
 top_srcdir=@top_srcdir@
 # MinGW CPPFLAGS may use this.
@@ -140,6 +148,9 @@ HAVE_BE_APP=@HAVE_BE_APP@
 HAIKU_LIBS=@HAIKU_LIBS@
 HAIKU_CFLAGS=@HAIKU_CFLAGS@
 
+## Android build-time support
+ANDROID=@ANDROID@
+
 # emacsclientw.exe for MinGW, empty otherwise
 CLIENTW = @CLIENTW@
 
@@ -156,7 +167,12 @@ UTILITIES = hexl${EXEEXT} 			 	 \
 ifeq ($(HAVE_BE_APP),yes)
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT} be-resources
 else
+ifeq ($(XCONFIGURE)$(HAVE_ANDROID),yes)
+DONT_INSTALL = make-docfile${EXEEXT} make-fingerprint${EXEEXT} \
+	asset-directory-tool${EXEEXT}
+else
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
+endif
 endif
 
 # Like UTILITIES, but they're not system-dependent, and should not be
@@ -374,7 +390,7 @@ clean: mostlyclean
 	rm -f ${EXE_FILES}
 
 distclean: clean
-	rm -f TAGS Makefile blessmail
+	rm -f TAGS Makefile blessmail Makefile.android
 
 bootstrap-clean maintainer-clean: distclean
 
@@ -405,6 +421,9 @@ etags${EXEEXT}: ${etags_deps}
 ## Can't we use a wrapper that calls 'etags --ctags'?
 ctags${EXEEXT}: ${srcdir}/ctags.c ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
+
+asset-directory-tool${EXEEXT}: ${srcdir}/asset-directory-tool.c $(config_h)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(LOADLIBES) -o $@
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
                    $(config_h)
@@ -462,7 +481,7 @@ emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 ifeq ($(SECCOMP_FILTER),1)
 seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(LIBSECCOMP_CFLAGS) $< \
-	  $(LIBSECCOMP_LIBS) -o $@
+	  $(LIBSECCOMP_LIBS) $(LOADLIBES) -o $@
 
 seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc: seccomp-filter$(EXEEXT)
 	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \

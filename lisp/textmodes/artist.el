@@ -2800,7 +2800,9 @@ EXTRA-ARGS for figlet, for the command line, may be specified."
 (defun artist-figlet-get-font-list ()
   "Read fonts in with the shell command.
 Returns a list of strings."
-  (let* ((cmd-interpreter "/bin/sh")
+  (let* ((cmd-interpreter (if (eq system-type 'android)
+                              "/system/bin/sh"
+                            "/bin/sh"))
 	 (ls-cmd          artist-figlet-list-fonts-command)
 	 (result          (artist-system cmd-interpreter ls-cmd nil))
 	 (exit-code       (elt result 0))

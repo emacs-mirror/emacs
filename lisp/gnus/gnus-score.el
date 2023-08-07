@@ -517,6 +517,35 @@ of the last successful match.")
     "t" #'gnus-score-find-trace
     "w" #'gnus-score-find-favorite-words))
 
+
+
+;; Touch screen ``character reading'' routines for
+;; `gnus-summary-increase-score' and friends.
+
+(defun gnus-read-char (prompt options)
+  "Read a character from the keyboard.
+
+On Android, if `use-dialog-box-p' returns non-nil, display a
+dialog box containing PROMPT, with buttons representing each of
+item in the list of characters OPTIONS instead.
+
+Value is the character read, as with `read-char', or nil upon
+failure."
+  (if (and (display-graphic-p) (featurep 'android)
+           (use-dialog-box-p))
+      ;; Set up the dialog box.
+      (let ((dialog (cons prompt ; Message displayed in dialog box.
+                          (mapcar (lambda (arg)
+                                    (cons (char-to-string arg)
+                                          arg))
+                                  options))))
+        ;; Display the dialog box.
+        (x-popup-dialog t dialog))
+    ;; Fall back to read-char.
+    (read-char)))
+
+
+
 ;; Summary score file commands
 
 ;; Much modification of the kill (ahem, score) code and lots of the
@@ -588,21 +617,23 @@ current score file."
 		     (aref (symbol-name gnus-score-default-type) 0)))
 	 (pchar (and gnus-score-default-duration
 		     (aref (symbol-name gnus-score-default-duration) 0)))
-	 entry temporary type match extra)
+	 entry temporary type match extra header-string)
 
     (unwind-protect
 	(progn
-
+          (setq header-string
+                (format "%s header (%s?): " (if increase "Increase" "Lower")
+		        (mapconcat (lambda (s) (char-to-string (car s)))
+				   char-to-header "")))
 	  ;; First we read the header to score.
 	  (while (not hchar)
 	    (if mimic
 		(progn
 		  (sit-for 1)
 		  (message "%c-" prefix))
-	      (message "%s header (%s?): " (if increase "Increase" "Lower")
-		       (mapconcat (lambda (s) (char-to-string (car s)))
-				  char-to-header "")))
-	    (setq hchar (read-char))
+	      (message header-string))
+	    (setq hchar (gnus-read-char header-string
+                                        (mapcar #'car char-to-header)))
 	    (when (or (= hchar ??) (= hchar ?\C-h))
 	      (setq hchar nil)
 	      (gnus-score-insert-help "Match on header" char-to-header 1)))
@@ -625,17 +656,20 @@ current score file."
 					 (nth 3 s))
 				     s nil))
 			       char-to-type))))
+            (setq header-string
+                  (format "%s header `%s' with match type (%s?): "
+			  (if increase "Increase" "Lower")
+			  (nth 1 entry)
+			  (mapconcat (lambda (s) (char-to-string (car s)))
+				     legal-types "")))
 	    ;; We continue reading - the type.
 	    (while (not tchar)
 	      (if mimic
 		  (progn
 		    (sit-for 1) (message "%c %c-" prefix hchar))
-		(message "%s header `%s' with match type (%s?): "
-			 (if increase "Increase" "Lower")
-			 (nth 1 entry)
-			 (mapconcat (lambda (s) (char-to-string (car s)))
-				    legal-types "")))
-	      (setq tchar (read-char))
+		(message header-string))
+	      (setq tchar (gnus-read-char header-string
+                                          (mapcar #'car legal-types)))
 	      (when (or (= tchar ??) (= tchar ?\C-h))
 		(setq tchar nil)
 		(gnus-score-insert-help "Match type" legal-types 2)))
@@ -651,15 +685,19 @@ current score file."
 	      (message ""))
 	    (setq pchar (or pchar ?t)))
 
+          (setq header-string
+                (format "%s permanence (%s?): " (if increase "Increase" "Lower")
+		        (mapconcat (lambda (s) (char-to-string (car s)))
+				   char-to-perm "")))
+
 	  ;; We continue reading.
 	  (while (not pchar)
 	    (if mimic
 		(progn
 		  (sit-for 1) (message "%c %c %c-" prefix hchar tchar))
-	      (message "%s permanence (%s?): " (if increase "Increase" "Lower")
-		       (mapconcat (lambda (s) (char-to-string (car s)))
-				  char-to-perm "")))
-	    (setq pchar (read-char))
+	      (message header-string))
+	    (setq pchar (gnus-read-char header-string
+                                        (mapcar #'car char-to-perm)))
 	    (when (or (= pchar ??) (= pchar ?\C-h))
 	      (setq pchar nil)
 	      (gnus-score-insert-help "Match permanence" char-to-perm 2)))

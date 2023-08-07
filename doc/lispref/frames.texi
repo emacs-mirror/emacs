@@ -104,9 +104,11 @@ window of another Emacs frame.  @xref{Child Frames}.
 * Mouse Tracking::              Getting events that say when the mouse moves.
 * Mouse Position::              Asking where the mouse is, or moving it.
 * Pop-Up Menus::                Displaying a menu for the user to select from.
+* On-Screen Keyboards::		Displaying the virtual keyboard.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
+* Accessing Selections::        The multiple different kinds of selections.
 * Yanking Media::               Yanking things that aren't plain text.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::                 Getting the definitions of color names.
@@ -700,7 +702,7 @@ The position of the top left corner of the native frame specifies the
 indicate that position for the various builds:
 
 @itemize @w{}
-@item (1) non-toolkit, Haiku, and terminal frames
+@item (1) non-toolkit, Android, Haiku, and terminal frames
 
 @item (2) Lucid, Motif, and MS-Windows frames
 
@@ -2408,6 +2410,7 @@ engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
 HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
 Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
 Haiku, there can be several font drivers (@pxref{Haiku Fonts,,, emacs,
+The GNU Emacs Manual}), as on Android (@pxref{Android Fonts,,, emacs,
 The GNU Emacs Manual}).
 
 On other systems, there is only one available font backend, so it does
@@ -3753,9 +3756,9 @@ This function displays a pop-up menu and returns an indication of
 what selection the user makes.
 
 The argument @var{position} specifies where on the screen to put the
-top left corner of the menu.  It can be either a mouse button event
-(which says to put the menu where the user actuated the button) or a
-list of this form:
+top left corner of the menu.  It can be either a mouse button or
+@code{touchscreen-begin} event (which says to put the menu where the
+user actuated the button) or a list of this form:
 
 @example
 ((@var{xoffset} @var{yoffset}) @var{window})
@@ -3839,6 +3842,30 @@ either directly by calling @code{x-popup-menu}, or through a menu
 keymap.  It won't be called if @code{x-popup-menu} returns for some
 other reason without displaying a pop-up menu.
 @end defvar
+
+@node On-Screen Keyboards
+@section On-Screen Keyboards
+
+  An on-screen keyboard is a special kind of pop up provided by the
+system, with rows of clickable buttons that act as a real keyboard.
+
+  On certain systems (@pxref{On-Screen Keyboards,,,emacs, The Emacs
+Manual}), Emacs is supposed to display and hide the on screen keyboard
+depending on whether or not the user is about to type something.
+
+@defun frame-toggle-on-screen-keyboard frame hide
+This function displays or hides the on-screen keyboard on behalf of
+the frame @var{frame}.  If @var{hide} is non-@code{nil}, then the
+on-screen keyboard is hidden; otherwise, it is displayed.
+
+It returns whether or not the on screen keyboard @strong{may} have
+been displayed, which should be used to determine whether or not to
+hide the on-screen keyboard later.
+
+This has no effect if the system automatically detects when to display
+the on-screen keyboard, or when it does not provide any on-screen
+keyboard.
+@end defun
 
 @node Dialog Boxes
 @section Dialog Boxes
@@ -4046,6 +4073,542 @@ For backward compatibility, there are obsolete aliases
 @code{x-get-selection} and @code{x-set-selection}, which were the
 names of @code{gui-get-selection} and @code{gui-set-selection} before
 Emacs 25.1.
+
+@node Accessing Selections
+@section Accessing Selections
+
+  @code{gui-get-selection} is able to retrieve multiple different
+kinds of selection data from any number of selections.  However, the
+data types and selections that Emacs understands is not precisely
+specified and differs depending on the window system on which Emacs is
+running.
+
+  At the same time, @code{gui-set-selection} hides a great deal of
+complexity behind its back, at least on some systems: its @var{data}
+argument need not be a string, but is actually given verbatim to
+system specific code.
+
+  Emacs's implementation of selections is most complete on the X
+Window System.  This is both an artifact of history (X was the first
+window system supported by Emacs) and one of technical reasons:
+instead of using selections only to transfer text and multimedia
+content between clients, X uses selections as a general inter-client
+communication system, leading to a great proliferation of selection
+data types.
+
+  Even more confusingly, X also supports another inter-client
+communication mechanism: the Inter-Client Exchange.  However, ICE is
+only used by Emacs to communicate with session managers, and is a
+separate topic.
+
+@menu
+* X Selections::        Selection data types (and more) on X.
+* Other Selections::    How they work on other window systems.
+@end menu
+
+@node X Selections
+@subsection X Selections
+
+  X refrains from defining fixed data types for selection data, or a
+fixed number of selections.  Selections are instead identified by X
+``atoms'', which are unique 29-bit identifiers issued by the X server
+for a corresponding name.  In Emacs, you can simply write a symbol
+with the name of the atom, and Emacs will transparently request these
+identifiers where necessary.
+
+  When a program ``sets'' a selection under X, it actually makes
+itself the ``owner'' of the selection---the X server will then deliver
+selection requests to the program, which is obliged to respond to the
+requesting client with the selection data.
+
+  Similarly, a program does not ``get'' selection data from the X
+server.  Instead, its selection requests are sent to the client with
+the window which last took ownership over the selection, which then
+replies with the requested data.
+
+  Each selection request contains three parameters:
+
+@itemize @bullet
+@item
+The window which requested the selection; this is used to identify the
+@c Not a typo: X spells ``requestor'' with an o.
+requesting program, otherwise known as the @dfn{requestor}.
+
+@item
+An atom identifying the ``target'' to which the owner should convert
+the selection.  It is easiest to think of the conversion target as the
+kind of data that the requestor wants: in selection requests made by
+Emacs, the target is determined by the @dfn{type} argument to
+@code{gui-get-selection}.
+
+@item
+A 32-bit timestamp containing the X server time at which the requestor
+last obtained input.
+@end itemize
+
+  The selection owner responds by tranferring to the requestor a
+series of bytes, 16 bit words, or 32 bit words, along with another
+atom identifying the type of those words.  After requesting a
+selection, Emacs then applies its own interpretation of the data
+format and data type to convert the data transferred by the selection
+owner to a Lisp representation, which @code{gui-get-selection}
+returns.
+
+  By default, Emacs converts selection data consisting of any series
+of bytes to a unibyte string containing those bytes, selection data
+consisting of a single 16-bit or 32-bit word as an unsigned number,
+and selection data consisting of multiple such words as a vector of
+unsigned numbers.  However, Emacs applies special treatment for
+several selection data types:
+
+@table @code
+@item INTEGER
+16-bit or 32-bit words of this type are treated as signed integers,
+instead of unsigned ones.  If there are multiple words in the
+selection data, a vector is returned; otherwise, the integer is
+returned by itself.
+
+@item ATOM
+32-bit words of this type are treated as X atoms, and returned (either
+alone or as vectors) as Lisp symbols containing the names they
+identify.  Invalid atoms are returned as @code{nil}.
+
+@item COMPOUND_TEXT
+@item UTF8_STRING
+@item STRING
+Unibyte strings returned for these data types will have a single
+@code{foreign-selection} text property set to a symbol with the type
+of the selection data.
+@end table
+
+  Each selection owner must return at least two selection targets:
+@code{TARGETS}, which returns a number of atoms describing the
+selection targets that the owner supports, and @code{MULTIPLE}, used
+for internal purposes by X clients.  A selection owner may support any
+number of other targets, some of which may be standardized by the X
+Consortium's
+@url{http://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html,
+Inter-Client Communication Conventions Manual}, while others, such as
+@code{UTF8_STRING}, were supposed to be standardized by the XFree86
+Project, which unfortunately did not happen.
+
+  Requests for a given selection target may, by convention, return
+data in a specific type, or it may return data in one of several
+types, whichever is most convenient for the selection owner; the
+latter type of selection target is dubbed a @dfn{polymorphic target}.
+A selection target may also return no data at all: by convention, the
+selection owner performs some action a side effect upon responding to
+a selection request with that target, and as such these targets are
+referred to as @dfn{side-effect targets}.
+
+  Here are some selection targets which behave in a reasonably
+standard manner when used with the @code{CLIPBOARD}, @code{PRIMARY},
+or @code{SECONDARY} selections.
+
+@table @code
+@item ADOBE_PORTABLE_DOCUMENT_FORMAT
+This target returns data in Adobe System's ``Portable Document
+Format'' format, as a string.
+
+@item APPLE_PICT
+This target returns data in the ``PICT'' image format used on
+Macintosh computers, as a string.
+
+@item BACKGROUND
+@item BITMAP
+@item COLORMAP
+@item FOREGROUND
+Together, these four targets return integer data necessary to make use
+of a bitmap image stored on the X server: the pixel value of the
+bitmap's background color, the X identifier of the bitmap, the
+colormap inside which the background and foreground are allocated, and
+the pixel value of the bitmap's foreground color.
+
+@item CHARACTER_POSITION
+This target returns two unsigned 32-bit integers of type @code{SPAN}
+describing the start and end positions of the selection data in the
+text field containing it, in bytes.
+
+@item COMPOUND_TEXT
+This target returns a string of type @code{COMPOUND_TEXT} in the X
+Consortium's multi-byte text encoding system.
+
+@item DELETE
+This target returns nothing, but as a side-effect deletes the
+selection contents from any text field containing them.
+
+@item DRAWABLE
+@item PIXMAP
+This target returns a list of unsigned 32-bit integers, each of which
+corresponds to an X server drawable or pixmap.
+
+@item ENCAPSULATED_POSTSCRIPT
+@item _ADOBE_EPS
+This target returns a string containing encapsulated Postscript code.
+
+@item FILE_NAME
+This target returns a string containing one or more file names,
+separated by NULL characters.
+
+@item HOST_NAME
+This target returns a string containing the fully-qualified domain
+name of the machine on which the selection owner is running.
+
+@item USER
+This target returns a string containing the user name of the machine
+on which the selection owner is running.
+
+@item LENGTH
+This target returns an unsigned 32-bit or 16-bit integer containing
+the length of the selection data.
+
+@item LINE_NUMBER
+This target returns two unsigned 32-bit integers of type @code{SPAN}
+describing the line numbers corresponding to the start and end
+positions of the selection data in the text field containing it.
+
+@item MODULE
+This target returns the name of any function containing the selection
+data.  It is mainly used by text editors.
+
+@item STRING
+This target returns the selection data as a string of type
+@code{STRING}, encoded in ISO Latin-1 format, with Unix newline
+characters.
+
+@item C_STRING
+This target returns the selection data as a ``C string''.  This has
+been interpreted as meaning the raw selection data in whatever
+encoding used by the owner, either terminated with a NULL byte or not
+at all, or an ASCII string which may or may not be terminated.
+
+@item UTF8_STRING
+This returns the selection data as a string of type
+@code{UTF8_STRING}, encoded in UTF-8, with unspecified EOL format.
+
+@item TIMESTAMP
+This target returns the X server time at which the selection owner
+took ownership over the selection as a 16-bit or 32-bit word of type
+@code{CARDINAL}.
+
+@item TEXT
+This polymorphic target returns selection data as a string, either
+@code{COMPOUND_TEXT}, @code{STRING}, @code{C_STRING}, or
+@code{UTF8_STRING}, whichever data type is convenient for the
+selection owner.
+@end table
+
+  When a request for the targets @code{STRING}, @code{COMPOUND_TEXT},
+or @code{UTF8_STRING} is made using the function
+@code{gui-get-selection}, and neither @code{selection-coding-system}
+nor @code{next-selection-coding-system} are set, the returned strings
+are additionally decoded using the appropriate coding system for those
+data types: @code{iso-8859-1}, @code{compound-text-with-extensions}
+and @code{utf-8} respectively.
+
+  In addition to the targets specified above (and the many targets
+used by various programs for their own purposes), several popular
+programs and toolkits have decided to define selection data types of
+their own, without consulting the appropriate X standards bodies.
+These targets are usually named after MIME types, such as
+@code{text/html} or @code{image/jpeg}, and have been known to contain:
+
+@itemize @bullet
+@item
+Unterminated, newline terminated, or NULL character terminated file
+names of an image or text file.
+
+@item
+Image or text data in the appropriate format.
+
+@item
+@code{file://} URIs (or possibly newline or NUL terminated lists of
+URIs) leading to files in the appropriate format.
+@end itemize
+
+  These selection targets were first used by Netscape, but are now
+found in all kinds of programs, especially those based on recent
+versions of the GTK+ or Qt toolkits.
+
+  Emacs is also capable of acting as a selection owner.  When
+@code{gui-set-selection} is called, the selection data specified is
+not transferred to the X server; instead, Emacs records it internally
+and obtains ownership of the selection.
+
+@defvar selection-converter-alist
+  Alist of selection targets to ``selection converter'' functions.
+When a selection request is received, Emacs looks up the selection
+converter associated with the requested selection target.
+
+  The selection converter is called with three arguments: the symbol
+corresponding to the atom identifying the selection being requested,
+the selection target that is being requested, and the value set with
+@code{gui-set-selection}.  The value which it returns is either a cons
+of a symbol specifying the data type and a number, symbol, or a vector
+of numbers or symbols, or its cdr by itself.
+
+  If the value is the special symbol @code{NULL}, the data type is set
+to @code{NULL}, and no data is returned to the requestor.
+
+  If the value is a string, it must be a unibyte string; should no
+data type be explicitly specified, the data is transferred to the
+requestor with the type @code{STRING}.
+
+  If the value is a symbol, its ``atom'' is retrieved, and it is
+transferred to the requestor as a 32-bit value---if no data type was
+specified, its type is @code{ATOM}.
+
+  If the value is a number between @code{-32769} and @code{32768}, it
+is transferred to the requestor as a 16 bit value---if no data type
+was specified, its type is @code{INTEGER}.
+
+  If the value is any other number, it is returned as a 32 bit value.
+Even if the number returned is unsigned, the requestor will treat
+words of type @code{INTEGER} as signed.  To return an unsigned value,
+specify the type @code{CARDINAL} instead.
+
+  If the value is a vector of symbols or numbers, it is returned as a
+list of multiple atoms or numbers.  The data type returned by default
+is determined by that of its first element.
+@end defvar
+
+  By default, Emacs is configured with selection converters for the
+following selection targets:
+
+@table @code
+@item TEXT
+This selection converter returns selection data as:
+
+@itemize @bullet
+@item
+A string of type @code{C_STRING}, if the selection contents contain no
+multibyte characters, or contains 8-bit characters with all 8 bits
+set.
+
+@item
+A string of type @code{STRING}, if the selection contents can be
+represented as ISO-Latin-1 text.
+
+@item
+A string of type @code{COMPOUND_TEXT}, if the selection contents can
+be encoded in the X Consortium's Compound Text Encoding, and
+@code{selection-coding-system} or @code{next-selection-coding-system}
+is set to a coding system whose @code{:mime-charset} property is
+@code{x-ctext}.
+
+@item
+A string of type @code{UTF8_STRING} otherwise.
+@end itemize
+
+@item COMPOUND_TEXT
+This selection converter returns selection data as a string of type
+@code{COMPOUND_TEXT}.
+
+@item STRING
+This selection converter returns selection data as a string of type
+@code{STRING}, encoded in ISO-Latin-1 format.
+
+@item UTF8_STRING
+This selection converter returns selection data in UTF-8 format.
+
+@item text/plain
+@item text/plain;charset=utf-8
+@item text/uri-list
+@item text/x-xdnd-username
+@item XmTRANSFER_SUCCESS
+@item XmTRANSFER_FAILURE
+@item FILE
+@item _DT_NETFILE
+These selection converters are used for internal purposes during
+drag-and-drop operations and are not available for selections other
+than @code{XdndSelection}.
+
+@item TARGETS
+This selection converter returns a list of atoms, one for each
+selection target understood by Emacs.
+
+@item MULTIPLE
+This selection converter is implemented in C code and is used to
+implement efficient transfer of selection requests which specify
+multiple selection targets at the same time.
+
+@item LENGTH
+This selection converter returns the length of the selection data, in
+bytes.
+
+@item DELETE
+This selection converter is used for internal purposes during
+drag-and-drop operations.
+
+@item FILE_NAME
+This selection converter returns the file name of the buffer
+containing the selection data.
+
+@item CHARACTER_POSITION
+This selection converter returns the character positions of each end
+of the selection in the buffer containing the selection data.
+
+@item LINE_NUMBER
+@item COLUMN_NUMBER
+This selection converter returns the line and column numbers of each
+end of the selection in the buffer containing the selection data.
+
+@item OWNER_OS
+This selection converter returns the name of the operating system on
+which Emacs is running.
+
+@item HOST_NAME
+This selection converter returns the fully-qualified domain name of
+the machine on which Emacs is running.
+
+@item USER
+This selection converter returns the username of the user account
+under which Emacs is running.
+
+@item CLASS
+@item NAME
+These selection converters return the resource class and name used by
+Emacs.
+
+@item INTEGER
+This selection converter returns an integer value verbatim.
+
+@item SAVE_TARGETS
+@item _EMACS_INTERNAL
+These selection converters are used for internal purposes.
+@end table
+
+  With the exception of @code{INTEGER}, all selection converters
+expect the value given to @code{gui-set-selection} to be one of the
+following:
+
+@itemize @bullet
+@item
+A string.
+
+@item
+A list of the form @w{@code{(@var{beg} @var{end} @var{buf})}}, where
+@var{beg} and @var{end} are two markers or overlays describing the
+bounds of the selection data in the buffer @var{buf}.
+@end itemize
+
+@node Other Selections
+@subsection Other Selections
+
+  Window systems such as MS-Windows, Nextstep, Haiku and Android do
+not provide selections corresponding to the X semantics.  Each window
+system provides its own ad-hoc emulation of selections, none of which
+make use of the ``selection converter'' mechanism described above.  In
+addition, only the @code{PRIMARY}, @code{CLIPBOARD}, and
+@code{SECONDARY} selections are typically supported, alongside the
+@code{XdndSelection} used for drag-and-drop operations.
+
+  GTK itself exposes emulations of X selections to applications, but
+those emulations are of varying completeness.  While Emacs built with
+PGTK will use the same selection interface as Emacs built with X, many
+selection targets will not be useful.
+
+  On MS-Windows, @code{gui-get-selection} accepts a single target,
+@code{STRING}.  The value returned is the selection data decoded
+using @code{selection-coding-system}.
+
+  @code{gui-set-selection} also only accepts strings, encodes them
+in the selection coding system, and saves them to the clipboard.
+
+  On Nextstep, Emacs only supports saving strings to selections.
+However, requests for the following targets are accepted:
+
+@c FIXME: how is the text coding system determined, and do image/* or
+@c application/* return image data or file names?
+@itemize @bullet
+@item text/plain
+@item image/png
+@item text/html
+@item application/pdf
+@item application/rtf
+@item application/rtfd
+@item STRING
+@item text/plain
+@item image/tiff
+@end itemize
+
+  On Haiku, Emacs supports the same selection values as on X.  In
+addition, Emacs fully implements the primary and secondary selections.
+However, instead of taking ownership over the selection data, Emacs
+transfers the selection data to the window server when
+@code{gui-set-selection} is called.  The Haiku window server expects
+selection data to be provided in the form of a ``message'', containing
+associations between data types and selection data.
+
+@defvar haiku-normal-selection-encoders
+List of functions which act as selection encoders.  When
+@code{gui-set-selection} is called, each function in this list is
+successively called with its @var{selection} and @var{value}
+arguments.  If the function returns non-@code{nil}, it should return a
+list of the form @w{@code{(@var{key} @var{type} @var{value})}}, where
+@var{key} is the name of the data type being transferred, @var{type}
+is either a number identifying a data type (in which case @var{value}
+should be a unibyte string that is directly transferred to the window
+server), or a symbol identifying both a data type and how @var{value}
+should be interpreted.
+@end defvar
+
+  Here are the meaningful values of @var{type}, and what they will
+cause Emacs to interpret @var{value} as:
+
+@table @code
+@item string
+A unibyte string.  The string is NULL-terminated after being placed in
+the message.
+
+@item ref
+A file name.  The file is looked up and file system information
+identifying the file is placed in the message.
+
+@item short
+A 16-bit integer value.
+
+@item long
+A 32-bit integer value.
+
+@item llong
+A 64-bit integer value.
+
+@item byte
+@item char
+An unsigned byte between 0 and 255.
+
+@item size_t
+A number between 0 and 1 minus two to the power of the word size of
+the computer Emacs is running on.
+
+@item ssize_t
+A number which fits in the C type @code{ssize_t}.
+
+@item point
+A cons of two floats, specifying a coordinate on-screen.
+
+@item float
+@item double
+A single or double-precision floating point number in an unspecified
+format.
+
+@item (haiku-numeric-enum MIME)
+A unibyte string containing data in a certain MIME type.
+@end table
+
+  Under Haiku, @code{gui-get-selection} accepts either the targets
+@code{TARGETS} and @code{TIMESTAMP}, where the former returns a vector
+containing supported data types (much like on X), and the latter
+returns the number of times the selection has been set, the targets
+@code{STRING} and @code{UTF8_STRING}, which return text in ISO-Latin-1
+and UTF-8 format, or a MIME type, in which the data is returned
+undecoded as a unibyte string.
+
+  Under Android, @code{gui-get-selection} is restricted to returning
+UTF-8 string data of the type @code{STRING}, or image and application
+data associated with a MIME type.  @code{gui-set-selection} will only
+set string data, as on MS-Windows.
 
 @node Yanking Media
 @section Yanking Media

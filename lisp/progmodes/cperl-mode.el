@@ -6808,7 +6808,7 @@ in subdirectories too."
   ;; of etags has been commented out in the menu since ... well,
   ;; forever.  So, let's just stick to ASCII here. -- haj, 2021-09-14
   (interactive)
-  (let ((cmd "etags")
+  (let ((cmd etags-program-name)
 	(args `("-l" "none" "-r"
 		;;                        1=fullname  2=package?             3=name                       4=proto?             5=attrs? (VERY APPROX!)
 		,(concat

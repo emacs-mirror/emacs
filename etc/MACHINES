@@ -131,6 +131,18 @@ the list at the end of this file.
   The earliest release of Haiku that will successfully compile Emacs
   is R1/Beta2.  For windowing support, R1/Beta3 or later is required.
 
+** Android
+
+  Emacs is known to run on all Android versions from 2.2 onwards, on
+  Linux kernel 2.26.29 or later.
+
+  Android 2.2 has only been tested on ARM.  mips64 has not been
+  tested, but builds.  With these exceptions, Emacs is known to run on
+  all supported versions of Android on all supported machines: arm,
+  armv7, arm64, x86, x86_64, and mips.
+
+  See the file java/INSTALL for detailed installation instructions.
+
 
 * Obsolete platforms
 

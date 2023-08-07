@@ -723,6 +723,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq-local comint-last-input-start (point-min-marker))
   (setq-local comint-last-input-end (point-min-marker))
   (setq-local comint-last-output-start (make-marker))
+  ;; It is ok to let the input method edit prompt text, but RET must
+  ;; be processed by Emacs.
+  (setq text-conversion-style 'action)
   (make-local-variable 'comint-last-prompt)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.

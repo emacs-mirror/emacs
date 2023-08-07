@@ -40,6 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # define IN_ONLYDIR 0
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h" /* For `android_is_special_directory'.  */
+#endif /* HAVE_ANDROID */
+
 /* File handle for inotify.  */
 static int inotifyfd = -1;
 
@@ -419,6 +423,7 @@ IN_ONESHOT  */)
   int wd = -1;
   uint32_t imask = aspect_to_inotifymask (aspect);
   uint32_t mask = imask | IN_MASK_ADD | IN_EXCL_UNLINK;
+  char *name;
 
   CHECK_STRING (filename);
 
@@ -432,7 +437,19 @@ IN_ONESHOT  */)
     }
 
   encoded_file_name = ENCODE_FILE (filename);
-  wd = inotify_add_watch (inotifyfd, SSDATA (encoded_file_name), mask);
+  name = SSDATA (encoded_file_name);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* If FILENAME actually lies in a special directory, return now
+     instead of letting inotify fail.  These directories cannot
+     receive file notifications as they are read only.  */
+
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
+    return Qnil;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+  wd = inotify_add_watch (inotifyfd, name, mask);
   if (wd < 0)
     report_file_notify_error ("Could not add watch for file", filename);
 

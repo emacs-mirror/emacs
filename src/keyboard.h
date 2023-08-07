@@ -246,6 +246,14 @@ extern KBOARD *initial_kboard;
    kboard, but doing so requires throwing to wrong_kboard_jmpbuf.  */
 extern KBOARD *current_kboard;
 
+
+#ifdef HAVE_TEXT_CONVERSION
+
+/* True if a key sequence is currently being read.  */
+extern bool reading_key_sequence;
+
+#endif /* HAVE_TEXT_CONVERSION */
+
 /* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
 extern uintmax_t num_input_events;
 
@@ -395,8 +403,17 @@ extern void unuse_menu_items (void);
 #define EVENT_HEAD(event) \
   (EVENT_HAS_PARAMETERS (event) ? XCAR (event) : (event))
 
-/* Extract the starting and ending positions from a composite event.  */
-#define EVENT_START(event) (CAR_SAFE (CDR_SAFE (event)))
+/* Extract the starting and ending positions from a composite event. */
+
+/* Unlike Lisp `event-start', this also handles touch screen events,
+   which are not actually mouse events in the general sense.  */
+#define EVENT_START(event)				\
+  ((EQ (EVENT_HEAD (event), Qtouchscreen_begin)		\
+    || EQ (EVENT_HEAD (event), Qtouchscreen_end))	\
+   ? CDR_SAFE (CAR_SAFE (CDR_SAFE (event)))		\
+   : CAR_SAFE (CDR_SAFE (event)))
+
+/* This does not handle touchscreen events.  */
 #define EVENT_END(event) (CAR_SAFE (CDR_SAFE (CDR_SAFE (event))))
 
 /* Extract the click count from a multi-click event.  */

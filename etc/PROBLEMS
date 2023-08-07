@@ -3361,6 +3361,56 @@ Compose key to stop working.
 On X Windows, users should not use Emacs configured with PGTK, since
 this and many other problems do not exist on the regular X builds.
 
+* Runtime problems specific to Android
+
+** Text displayed in the default monospace font looks horrible.
+
+Droid Sans Mono (the default Monospace font which comes with Android)
+comes with instruction code designed for Microsoft's proprietary
+TrueType font scaler.  When this code is executed by Emacs to instruct
+a glyph containing more than one component, it tries to address
+"reference points" which are set to the values of two extra "phantom
+points" in the glyph, that are a proprietary extension of the MS font
+scaler.
+
+Emacs does not support these extensions, and as a result characters
+such as
+
+  ĥ
+
+display incorrectly, with the right most edge of the `h' component
+stretched very far out to the right, on some low density displays.
+
+The solution is to replace the MS-specific hinting code in Droid Sans
+Mono with automatically generated code from the FreeType project's
+"ttfautohint" program.  First, extract
+'/system/fonts/DroidSansMono.ttf' from your device:
+
+  $ adb pull /system/fonts/DroidSansMono.ttf
+  /system/fonts/DroidSansMono.ttf: 1 file pulled, 0 skipped.
+  23.1 MB/s (90208 bytes in 0.004s)
+
+install the "ttfautohint" program:
+
+  http://freetype.org/ttfautohint/
+
+generate a font file with new hinting instructions:
+
+  $ ttfautohint DroidSansMono.ttf > DroidSansMono.ttf.rpl
+
+and upload them to your device, either back to /system/fonts (which is
+allowed by free versions of Android, such as Replicant):
+
+  $ adb root
+  $ adb remount
+  $ adb push DroidSansMono.ttf.rpl /system/fonts/DroidSansMono.ttf
+
+or to the user fonts directory described in the "Android Fonts" node
+of the Emacs manual.  You may want to perform this procedure even if
+you are not seeing problems with character display, as the
+automatically generated instructions result in superior display
+results that are easier to read.
+
 * Build-time problems
 
 ** Configuration

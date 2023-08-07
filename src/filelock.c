@@ -65,9 +65,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define BOOT_TIME_FILE "/var/run/random-seed"
 #endif
 
+/* Boot time is not available on Android.  */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#undef BOOT_TIME
+#endif
+
 #if !defined WTMP_FILE && !defined WINDOWSNT && defined BOOT_TIME
 #define WTMP_FILE "/var/log/wtmp"
 #endif
+
+#ifdef HAVE_ANDROID
+#include "android.h" /* For `android_is_special_directory'.  */
+#endif /* HAVE_ANDROID */
 
 /* Normally use a symbolic link to represent a lock.
    The strategy: to lock a file FN, create a symlink .#FN in FN's
@@ -218,7 +228,7 @@ get_boot_time (void)
 	{
 	  get_boot_time_1 (SSDATA (filename), 1);
 	  if (delete_flag)
-	    unlink (SSDATA (filename));
+	    emacs_unlink (SSDATA (filename));
 	}
     }
 
@@ -313,11 +323,12 @@ rename_lock_file (char const *old, char const *new, bool force)
     {
       struct stat st;
 
-      int r = renameat_noreplace (AT_FDCWD, old, AT_FDCWD, new);
+      int r = emacs_renameat_noreplace (AT_FDCWD, old,
+					AT_FDCWD, new);
       if (! (r < 0 && errno == ENOSYS))
 	return r;
       if (link (old, new) == 0)
-	return unlink (old) == 0 || errno == ENOENT ? 0 : -1;
+	return emacs_unlink (old) == 0 || errno == ENOENT ? 0 : -1;
       if (errno != ENOSYS && errno != LINKS_MIGHT_NOT_WORK)
 	return -1;
 
@@ -337,7 +348,7 @@ rename_lock_file (char const *old, char const *new, bool force)
 	return -1;
     }
 
-  return rename (old, new);
+  return emacs_rename (old, new);
 #endif
 }
 
@@ -355,13 +366,13 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
      pretending that 'symlink' does not work.  */
   int err = ENOSYS;
 #else
-  int err = symlink (lock_info_str, lfname) == 0 ? 0 : errno;
+  int err = emacs_symlink (lock_info_str, lfname) == 0 ? 0 : errno;
 #endif
 
   if (err == EEXIST && force)
     {
-      unlink (lfname);
-      err = symlink (lock_info_str, lfname) == 0 ? 0 : errno;
+      emacs_unlink (lfname);
+      err = emacs_symlink (lock_info_str, lfname) == 0 ? 0 : errno;
     }
 
   if (err == ENOSYS || err == LINKS_MIGHT_NOT_WORK || err == ENAMETOOLONG)
@@ -399,7 +410,7 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
 	  if (!err && rename_lock_file (nonce, lfname, force) != 0)
 	    err = errno;
 	  if (err)
-	    unlink (nonce);
+	    emacs_unlink (nonce);
 	}
 
       SAFE_FREE ();
@@ -612,7 +623,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
       /* The owner process is dead or has a strange pid, so try to
          zap the lockfile.  */
       else
-        return unlink (SSDATA (lfname)) < 0 ? errno : 0;
+        return emacs_unlink (SSDATA (lfname)) < 0 ? errno : 0;
     }
   else
     { /* If we wanted to support the check for stale locks on remote machines,
@@ -653,8 +664,27 @@ lock_if_free (lock_info_type *clasher, Lisp_Object lfname)
 static Lisp_Object
 make_lock_file_name (Lisp_Object fn)
 {
-  Lisp_Object lock_file_name = call1 (Qmake_lock_file_name,
-				      Fexpand_file_name (fn, Qnil));
+  Lisp_Object lock_file_name;
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  char *name;
+#endif
+
+  fn = Fexpand_file_name (fn, Qnil);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Files in /assets and /contents can't have lock files on Android
+     as these directories are fabrications of android.c, and backed by
+     read only data.  */
+
+  name = SSDATA (fn);
+
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
+  return Qnil;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+  lock_file_name = call1 (Qmake_lock_file_name, fn);
+
   return !NILP (lock_file_name) ? ENCODE_FILE (lock_file_name) : Qnil;
 }
 
@@ -741,7 +771,8 @@ unlock_file (Lisp_Object fn)
   int err = current_lock_owner (0, lfname);
   if (! (err == 0 || err == ANOTHER_OWNS_IT
 	 || (err == I_OWN_IT
-	     && (unlink (SSDATA (lfname)) == 0 || (err = errno) == ENOENT))))
+	     && (emacs_unlink (SSDATA (lfname)) == 0
+		 || (err = errno) == ENOENT))))
     report_file_errno ("Unlocking file", fn, err);
 
   return Qnil;

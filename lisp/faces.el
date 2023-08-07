@@ -2940,7 +2940,7 @@ Note: Other faces cannot inherit from the cursor face."
     (((type haiku))
      :foreground "B_MENU_ITEM_TEXT_COLOR"
      :background "B_MENU_BACKGROUND_COLOR")
-    (((type x w32 ns pgtk) (class color))
+    (((type x w32 ns pgtk android) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))

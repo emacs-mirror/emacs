@@ -244,6 +244,10 @@ If you use `add-function' to modify this variable, you can use the
 `isearch-message-prefix' advice property to specify the prefix string
 displayed in the search message.")
 
+(defvar isearch-text-conversion-style nil
+  "Value of `text-conversion-style' before Isearch mode
+was enabled in this buffer.")
+
 ;; Search ring.
 
 (defvar search-ring nil
@@ -1221,6 +1225,8 @@ active region is added to the search string."
 ;;			     isearch-forward-regexp isearch-backward-regexp)
 ;;  "List of commands for which isearch-mode does not recursive-edit.")
 
+(declare-function set-text-conversion-style "textconv.c")
+
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit regexp-function)
   "Start Isearch minor mode.
 It is called by the function `isearch-forward' and other related functions.
@@ -1236,6 +1242,8 @@ When the arg RECURSIVE-EDIT is non-nil, this function behaves modally and
 does not return to the calling function until the search is completed.
 To behave this way it enters a recursive edit and exits it when done
 isearching.
+
+Also display the on-screen keyboard if necessary.
 
 The arg REGEXP-FUNCTION, if non-nil, should be a function.  It is
 used to set the value of `isearch-regexp-function'."
@@ -1331,6 +1339,21 @@ used to set the value of `isearch-regexp-function'."
   (add-hook 'post-command-hook 'isearch-post-command-hook)
   (add-hook 'mouse-leave-buffer-hook 'isearch-mouse-leave-buffer)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
+
+  ;; If the keyboard is not up and the last event did not come from
+  ;; a keyboard, bring it up so that the user can type.
+  (when (or (not last-event-frame)
+            (not (eq (device-class last-event-frame
+                                   last-event-device)
+                     'keyboard)))
+    (frame-toggle-on-screen-keyboard (selected-frame) nil))
+
+  ;; Disable text conversion so that isearch can behave correctly.
+
+  (when (fboundp 'set-text-conversion-style)
+    (setq isearch-text-conversion-style
+          text-conversion-style)
+    (set-text-conversion-style nil))
 
   ;; isearch-mode can be made modal (in the sense of not returning to
   ;; the calling function until searching is completed) by entering
@@ -1464,6 +1487,10 @@ NOPUSH is t and EDIT is t."
         (setq-local tool-bar-map isearch-tool-bar-old-map)
         (setq isearch-tool-bar-old-map nil))
     (kill-local-variable 'tool-bar-map))
+
+  ;; Restore the previous text conversion style.
+  (when (fboundp 'set-text-conversion-style)
+    (set-text-conversion-style isearch-text-conversion-style))
 
   (force-mode-line-update)
 

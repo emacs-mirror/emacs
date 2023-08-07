@@ -3883,7 +3883,7 @@ xic_string_conversion_callback (XIC ic, XPointer client_data,
     request.operation = TEXTCONV_RETRIEVAL;
 
   /* Now perform the string conversion.  */
-  rc = textconv_query (f, &request);
+  rc = textconv_query (f, &request, 0);
 
   if (rc)
     {
@@ -5729,6 +5729,8 @@ that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 
 For GNU and Unix systems, this queries the X server software.
+For Android systems, value is the manufacturer who developed the Android
+system that is being used.
 For MS Windows and Nextstep the result is hard-coded.
 
 TERMINAL should be a terminal object, a frame or a display name (a string).
@@ -5752,7 +5754,8 @@ Protocol used on TERMINAL and the 3rd number is the distributor-specific
 release number.  For MS Windows, the 3 numbers report the OS major and
 minor version and build number.  For Nextstep, the first 2 numbers are
 hard-coded and the 3rd represents the OS version.  For Haiku, all 3
-numbers are hard-coded.
+numbers are hard-coded.  For Android, the first number represents the
+Android API level, and the next two numbers are all zero.
 
 See also the function `x-server-vendor'.
 

@@ -52,6 +52,23 @@ src/config.h
 src/epaths.h
 src/emacs-module.h
 
+# Built by recursive call to `configure'.
+*.android
+!INSTALL.android
+!verbose.mk.android
+
+# Built by `javac'.
+java/install_temp/*
+java/*.apk*
+java/*.dex
+java/org/gnu/emacs/*.class
+
+# Built by `aapt'.
+java/org/gnu/emacs/R.java
+
+# Built by `config.status'.
+java/AndroidManifest.xml
+
 # C-level sources built by 'make'.
 lib/alloca.h
 lib/assert.h
@@ -70,8 +87,10 @@ lib/limits.h
 lib/malloc/*.gl.h
 lib/signal.h
 lib/std*.h
+lib/math.h
 !lib/std*.in.h
 !lib/stdio-impl.h
+!lib/_Noreturn.h
 lib/string.h
 lib/sys/
 lib/time.h
@@ -80,6 +99,19 @@ src/buildobj.h
 src/globals.h
 src/lisp.mk
 src/verbose.mk
+
+# Stuff built during cross compilation
+cross/lib/*
+cross/src/*
+cross/lib-src/*
+cross/sys/*
+cross/config.status
+cross/*.bak
+cross/etc/DOC
+
+cross/ndk-build/Makefile
+cross/ndk-build/ndk-build.mk
+cross/ndk-build/*.o
 
 # Lisp-level sources built by 'make'.
 *cus-load.el
@@ -186,6 +218,7 @@ ID
 # Executables.
 *.exe
 a.out
+lib-src/asset-directory-tool
 lib-src/be-resources
 lib-src/blessmail
 lib-src/ctags
@@ -208,6 +241,7 @@ nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
+src/sfnt
 src/Emacs
 src/temacs
 src/dmpstruct.h
@@ -338,3 +372,15 @@ lib-src/seccomp-filter-exec.pfc
 # GDB history
 .gdb_history
 _gdb_history
+
+# Files ignored in exec/.
+exec/config.status
+exec/loader
+exec/test
+exec/exec1
+exec/deps/*
+exec/autom4te.cache
+exec/config.h
+exec/config-mips.m4
+exec/configure
+exec/*.s.s
