@@ -5606,7 +5606,7 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
 
   method = service_class.open_document;
   trunc  = (flags & O_TRUNC);
-  write  = ((flags & O_RDWR) == O_RDWR || (flags & O_WRONLY));
+  write  = (((flags & O_RDWR) == O_RDWR) || (flags & O_WRONLY));
   inside_saf_critical_section = true;
   descriptor
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
@@ -6917,11 +6917,12 @@ android_fdopen (int fd, const char *mode)
 	  if (fd != new_fd)
 	    emacs_abort ();
 
-	  goto open_file;
+	  break;
 	}
+      else
+	next = &(*next)->next;
     }
 
- open_file:
   return fdopen (fd, mode);
 }
 
