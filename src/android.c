@@ -1564,7 +1564,7 @@ android_init_emacs_service (void)
 	       "(Ljava/lang/String;Ljava/lang/String;)"
 	       "Ljava/lang/String;");
   FIND_METHOD (stat_document, "statDocument",
-	       "(Ljava/lang/String;Ljava/lang/String;)[J");
+	       "(Ljava/lang/String;Ljava/lang/String;Z)[J");
   FIND_METHOD (access_document, "accessDocument",
 	       "(Ljava/lang/String;Ljava/lang/String;Z)I");
   FIND_METHOD (open_document_directory, "openDocumentDirectory",

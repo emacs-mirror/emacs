@@ -437,11 +437,14 @@ public final class EmacsSafThread extends HandlerThread
   /* Cache file status for DOCUMENTID within TOPLEVEL.  Value is the
      new cache entry.  CURSOR is the cursor from where to retrieve the
      file status, in the form of the columns COLUMN_FLAGS,
-     COLUMN_SIZE, COLUMN_MIME_TYPE and COLUMN_LAST_MODIFIED.  */
+     COLUMN_SIZE, COLUMN_MIME_TYPE and COLUMN_LAST_MODIFIED.
+
+     If NO_CACHE, don't cache the file status; just return the
+     entry.  */
 
   private StatCacheEntry
   cacheFileStatus (String documentId, CacheToplevel toplevel,
-		   Cursor cursor)
+		   Cursor cursor, boolean no_cache)
   {
     StatCacheEntry entry;
     int flagsIndex, columnIndex, typeIndex;
@@ -482,7 +485,8 @@ public final class EmacsSafThread extends HandlerThread
       entry.mtime = cursor.getLong (mtimeIndex);
 
     /* Finally, add this entry to the cache and return.  */
-    toplevel.statCache.put (documentId, entry);
+    if (!no_cache)
+      toplevel.statCache.put (documentId, entry);
     return entry;
   }
 
@@ -546,7 +550,7 @@ public final class EmacsSafThread extends HandlerThread
 	       directory listing is being requested, it's very likely
 	       that a series of calls for file status will follow.  */
 
-	    cacheFileStatus (id, toplevel, cursor);
+	    cacheFileStatus (id, toplevel, cursor, false);
 
 	    /* If this constituent is a directory, don't cache any
 	       information about it.  It cannot be cached without
@@ -1217,7 +1221,7 @@ public final class EmacsSafThread extends HandlerThread
 
   private long[]
   statDocument1 (String uri, String documentId,
-		 CancellationSignal signal)
+		 CancellationSignal signal, boolean noCache)
   {
     Uri uriObject, tree;
     String[] projection;
@@ -1266,7 +1270,8 @@ public final class EmacsSafThread extends HandlerThread
 	    if (!cursor.moveToFirst ())
 	      return null;
 
-	    cache = cacheFileStatus (documentId, toplevel, cursor);
+	    cache = cacheFileStatus (documentId, toplevel, cursor,
+				     noCache);
 	  }
 	finally
 	  {
@@ -1332,18 +1337,22 @@ public final class EmacsSafThread extends HandlerThread
      last modification to this file in milliseconds since 00:00,
      January 1st, 1970.
 
+     If NOCACHE, refrain from placing the file status within the
+     status cache.
+
      OperationCanceledException and other typical exceptions may be
      signaled upon receiving async input or other errors.  */
 
   public long[]
-  statDocument (final String uri, final String documentId)
+  statDocument (final String uri, final String documentId,
+		final boolean noCache)
   {
     return (long[]) runObjectFunction (new SafObjectFunction () {
 	@Override
 	public Object
 	runObject (CancellationSignal signal)
 	{
-	  return statDocument1 (uri, documentId, signal);
+	  return statDocument1 (uri, documentId, signal, noCache);
 	}
       });
   }

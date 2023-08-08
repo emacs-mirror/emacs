@@ -1389,11 +1389,14 @@ public final class EmacsService extends Service
      last modification to this file in milliseconds since 00:00,
      January 1st, 1970.
 
+     If NOCACHE, refrain from placing the file status within the
+     status cache.
+
      OperationCanceledException and other typical exceptions may be
      signaled upon receiving async input or other errors.  */
 
   public long[]
-  statDocument (String uri, String documentId)
+  statDocument (String uri, String documentId, boolean noCache)
   {
     /* Start the thread used to run SAF requests if it isn't already
        running.  */
@@ -1404,7 +1407,7 @@ public final class EmacsService extends Service
 	storageThread.start ();
       }
 
-    return storageThread.statDocument (uri, documentId);
+    return storageThread.statDocument (uri, documentId, noCache);
   }
 
   /* Find out whether Emacs has access to the document designated by

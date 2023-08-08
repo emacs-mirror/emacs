@@ -3932,12 +3932,15 @@ android_saf_exception_check (int n, ...)
 /* Return file status for the document designated by ID_NAME within
    the document tree identified by URI_NAME.
 
+   If NO_CACHE, don't cache the resulting file status.  Enable this
+   option if the file status is subject to imminent change.
+
    If the file status is available, place it within *STATB and return
    0.  If not, return -1 and set errno to EPERM.  */
 
 static int
 android_saf_stat (const char *uri_name, const char *id_name,
-		  struct stat *statb)
+		  struct stat *statb, bool no_cache)
 {
   jmethodID method;
   jstring uri, id;
@@ -3969,10 +3972,12 @@ android_saf_stat (const char *uri_name, const char *id_name,
   /* Try to retrieve the file status.  */
   method = service_class.stat_document;
   inside_saf_critical_section = true;
-  status = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
-							    emacs_service,
-							    service_class.class,
-							    method, uri, id);
+  status
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, uri, id,
+						       (jboolean) no_cache);
   inside_saf_critical_section = false;
 
   /* Check for exceptions and release unneeded local references.  */
@@ -5076,7 +5081,7 @@ android_saf_tree_stat (struct android_vnode *vnode,
   vp = (struct android_saf_tree_vnode *) vnode;
 
   return android_saf_stat (vp->tree_uri, vp->document_id,
-			   statb);
+			   statb, false);
 }
 
 static int
@@ -5716,10 +5721,15 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
   ANDROID_DELETE_LOCAL_REF (descriptor);
 
   /* Try to retrieve the modification time of this file from the
-     content provider.  */
+     content provider.
+
+     Refrain from introducing the file status into the file status
+     cache if FLAGS & O_RDWR or FLAGS & O_WRONLY: the cached file
+     status will contain a size and modification time inconsistent
+     with the result of any modifications that later transpire.  */
 
   if (!android_saf_stat (vp->tree_uri, vp->document_id,
-			 &statb))
+			 &statb, write))
     info->mtime = get_stat_mtime (&statb);
   else
     info->mtime = invalid_timespec ();
