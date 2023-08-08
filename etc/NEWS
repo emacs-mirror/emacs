@@ -744,6 +744,12 @@ See (info "(elisp)Porting Old Advice") for help converting them
 to use `advice-add` or `define-advice instead.
 
 +++
+** New value 'if-regular' for the REPLACE argument to 'insert-file-contents'.
+It results in 'insert-file-contents' erasing the buffer instead of
+preserving markers if the file being inserted is not a regular file,
+rather than signaling an error.
+
++++
 ** New variable 'current-key-remap-sequence'.
 It is bound to the key sequence that caused a call to a function bound
 within `function-key-map' or `input-decode-map' around those calls.

@@ -5871,8 +5871,10 @@ Before and after saving the buffer, this function runs
 		     buffer-file-name)))
 		  (setq tempsetmodes t)
 		(error "Attempt to save to a file that you aren't allowed to write"))))))
-    (or buffer-backed-up
-	(setq setmodes (backup-buffer)))
+    (with-demoted-errors
+        "Backing up buffer: %s"
+      (or buffer-backed-up
+	  (setq setmodes (backup-buffer))))
     (let* ((dir (file-name-directory buffer-file-name))
            (dir-writable (file-writable-p dir)))
       (if (or (and file-precious-flag dir-writable)
@@ -6894,9 +6896,9 @@ an auto-save file."
       (if revert-buffer-preserve-modes
           (let ((buffer-file-format buffer-file-format))
             (insert-file-contents file-name (not auto-save-p)
-                                  nil nil t))
+                                  nil nil 'if-regular))
         (insert-file-contents file-name (not auto-save-p)
-                              nil nil t))))))
+                              nil nil 'if-regular))))))
 
 (defvar revert-buffer-with-fine-grain-max-seconds 2.0
   "Maximum time that `revert-buffer-with-fine-grain' should use.
