@@ -416,26 +416,19 @@ hooks should be run before and after the command."
 	 (commands
 	  (mapcar
            (lambda (cmd)
-             (setq cmd
-                   (if (or (not (car eshell--sep-terms))
-                           (string= (car eshell--sep-terms) ";"))
-                       (eshell-parse-pipeline cmd)
-                     `(eshell-do-subjob
-                       (cons :eshell-background
-                             ,(eshell-parse-pipeline cmd)))))
-             (setq eshell--sep-terms (cdr eshell--sep-terms))
-             (if eshell-in-pipeline-p
-                 cmd
-               `(eshell-trap-errors ,cmd)))
+             (let ((sep (pop eshell--sep-terms)))
+               (setq cmd (eshell-parse-pipeline cmd))
+               (when (equal sep "&")
+                 (setq cmd `(eshell-do-subjob (cons :eshell-background ,cmd))))
+               (unless eshell-in-pipeline-p
+                 (setq cmd `(eshell-trap-errors ,cmd)))
+               ;; Copy I/O handles so each full statement can manipulate
+               ;; them if they like.  Steal the handles for the last
+               ;; command in the list; we won't use the originals again
+               ;; anyway.
+               (setq cmd `(eshell-with-copied-handles ,cmd ,(not sep)))
+               cmd))
 	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
-    (let ((cmd commands))
-      (while cmd
-        ;; Copy I/O handles so each full statement can manipulate them
-        ;; if they like.  Steal the handles for the last command in
-        ;; the list; we won't use the originals again anyway.
-        (setcar cmd `(eshell-with-copied-handles
-                      ,(car cmd) ,(not (cdr cmd))))
-	(setq cmd (cdr cmd))))
     (if toplevel
 	`(eshell-commands (progn
                             (run-hooks 'eshell-pre-command-hook)
@@ -638,46 +631,37 @@ This means an exit code of 0."
   (let* (eshell--sep-terms
 	 (bigpieces (eshell-separate-commands terms "\\(&&\\|||\\)"
 					      nil 'eshell--sep-terms))
-	 (bp bigpieces)
-	 (results (list t))
-	 final)
-    (while bp
-      (let ((subterms (car bp)))
-	(let* ((pieces (eshell-separate-commands subterms "|"))
-	       (p pieces))
-	  (while p
-	    (let ((cmd (car p)))
-	      (run-hook-with-args 'eshell-pre-rewrite-command-hook cmd)
-	      (setq cmd (run-hook-with-args-until-success
-			 'eshell-rewrite-command-hook cmd))
-	      (let ((eshell--cmd cmd))
-		(run-hook-with-args 'eshell-post-rewrite-command-hook
-				    'eshell--cmd)
-		(setq cmd eshell--cmd))
-	      (setcar p (funcall eshell-post-rewrite-command-function cmd)))
-	    (setq p (cdr p)))
-	  (nconc results
-		 (list
-		  (if (<= (length pieces) 1)
-		      (car pieces)
-		    (cl-assert (not eshell-in-pipeline-p))
-		    `(eshell-execute-pipeline (quote ,pieces))))))
-	(setq bp (cdr bp))))
+         results final)
+    (dolist (subterms bigpieces)
+      (let* ((pieces (eshell-separate-commands subterms "|"))
+             (p pieces))
+        (while p
+          (let ((cmd (car p)))
+            (run-hook-with-args 'eshell-pre-rewrite-command-hook cmd)
+            (setq cmd (run-hook-with-args-until-success
+                       'eshell-rewrite-command-hook cmd))
+            (let ((eshell--cmd cmd))
+              (run-hook-with-args 'eshell-post-rewrite-command-hook
+                                  'eshell--cmd)
+              (setq cmd eshell--cmd))
+            (setcar p (funcall eshell-post-rewrite-command-function cmd)))
+          (setq p (cdr p)))
+        (push (if (<= (length pieces) 1)
+                  (car pieces)
+                (cl-assert (not eshell-in-pipeline-p))
+                `(eshell-execute-pipeline (quote ,pieces)))
+              results)))
     ;; `results' might be empty; this happens in the case of
     ;; multi-line input
-    (setq results (cdr results)
-	  results (nreverse results)
-	  final (car results)
-	  results (cdr results)
-	  eshell--sep-terms (nreverse eshell--sep-terms))
+    (setq final (car results)
+          results (cdr results)
+          eshell--sep-terms (nreverse eshell--sep-terms))
     (while results
       (cl-assert (car eshell--sep-terms))
       (setq final (eshell-structure-basic-command
-		   'if (string= (car eshell--sep-terms) "&&") "if"
-		   `(eshell-protect ,(car results))
-		   `(eshell-protect ,final))
-	    results (cdr results)
-	    eshell--sep-terms (cdr eshell--sep-terms)))
+                   'if (string= (pop eshell--sep-terms) "&&") "if"
+                   `(eshell-protect ,(pop results))
+                   `(eshell-protect ,final))))
     final))
 
 (defun eshell-parse-subcommand-argument ()
