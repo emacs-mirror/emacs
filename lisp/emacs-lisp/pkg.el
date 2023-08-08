@@ -487,7 +487,9 @@ Value is the renamed package object."
 
     ;; And now, three pages later, we export the suckers.
     (dolist (sym syms)
-      (package-%set-status sym package :external))
+      (if (eq (symbol-package sym) package)
+          (package-%set-status sym package :external)
+        (puthash sym :external (package-%symbols package))))
     t))
 
 
@@ -609,7 +611,7 @@ Value is t."
       (let ((other-package (pkg--package-or-lose (car imports-from))))
         (dolist (sym-name (cdr imports-from))
           (import (list (pkg--ensure-symbol sym-name other-package))
-                  gpackage))))
+                  package))))
 
     ;; Exports.
     (let ((old-exports nil)
