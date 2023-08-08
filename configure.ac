@@ -305,7 +305,8 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 ])dnl
 
 dnl OPTION_DEFAULT_IFAVAILABLE(NAME, HELP-STRING)
-dnl Create a new --with option that defaults to 'ifavailable'.
+dnl Create a new --with option that defaults to 'ifavailable',
+dnl unless it is overriden by $with_features being equal to 'no'.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set to either the user's value (if the option is
 dnl   specified; 'yes' for a plain --with-NAME) or to 'ifavailable' (if the
@@ -315,9 +316,11 @@ dnl   characters with "_".
 dnl HELP-STRING is the help text for the option.
 AC_DEFUN([OPTION_DEFAULT_IFAVAILABLE], [dnl
   AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[],[dnl
-    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=ifavailable])dnl
+    AS_IF([test "$with_features" != no],
+      [m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=ifavailable],
+      [m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=no])dnl
+  ])dnl
 ])dnl
-
 
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to $with_features.
