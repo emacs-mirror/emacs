@@ -2480,87 +2480,97 @@ Optional arg HOW-TO determines how to treat the target.
 
    For any other return value, TARGET is treated as a directory."
   (or op1 (setq op1 operation))
-  (let* ((fn-list (dired-get-marked-files nil arg nil nil t))
-	 (rfn-list (mapcar #'dired-make-relative fn-list))
-	 (dired-one-file	; fluid variable inside dired-create-files
-	  (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
-	 (target-dir (dired-dwim-target-directory))
-	 (default (and dired-one-file
-		       (not dired-dwim-target) ; Bug#25609
-		       (expand-file-name (file-name-nondirectory (car fn-list))
-					 target-dir)))
-	 (defaults (dired-dwim-target-defaults fn-list target-dir))
-	 (target (expand-file-name ; fluid variable inside dired-create-files
-		  (minibuffer-with-setup-hook
-		      (lambda ()
-                        (setq-local minibuffer-default-add-function nil)
-			(setq minibuffer-default defaults))
-		    (dired-mark-read-file-name
-                     (format "%s %%s %s: "
-                             (if dired-one-file op1 operation)
-                             (if (memq op-symbol '(symlink hardlink))
-                                 ;; Linking operations create links
-                                 ;; from the prompted file name; the
-                                 ;; other operations copy (etc) to the
-                                 ;; prompted file name.
-                                 "from" "to"))
-		     target-dir op-symbol arg rfn-list default))))
-	 (into-dir
-          (progn
-            (when
-                (or
-                 (not dired-one-file)
-                 (and dired-create-destination-dirs-on-trailing-dirsep
-                      (directory-name-p target)))
-              (dired-maybe-create-dirs target))
-            (cond ((null how-to)
-		   ;; Allow users to change the letter case of
-		   ;; a directory on a case-insensitive
-		   ;; filesystem.  If we don't test these
-		   ;; conditions up front, file-directory-p
-		   ;; below will return t on a case-insensitive
-		   ;; filesystem, and Emacs will try to move
-		   ;; foo -> foo/foo, which fails.
-		   (if (and (file-name-case-insensitive-p (car fn-list))
-			    (eq op-symbol 'move)
-			    dired-one-file
-			    (string= (downcase
-				      (expand-file-name (car fn-list)))
-				     (downcase
-				      (expand-file-name target)))
-			    (not (string=
-				  (file-name-nondirectory (car fn-list))
-				  (file-name-nondirectory target))))
-		       nil
-		     (file-directory-p target)))
-		  ((eq how-to t) nil)
-		  (t (funcall how-to target))))))
-    (if (and (consp into-dir) (functionp (car into-dir)))
-	(apply (car into-dir) operation rfn-list fn-list target (cdr into-dir))
-      (if (not (or dired-one-file into-dir))
-	  (error "Marked %s: target must be a directory: %s" operation target))
-      (if (and (not (file-directory-p (car fn-list)))
-               (not (file-directory-p target))
-               (directory-name-p target))
-          (error "%s: Target directory does not exist: %s" operation target))
-      ;; rename-file bombs when moving directories unless we do this:
-      (or into-dir (setq target (directory-file-name target)))
-      (prog1
-          (dired-create-files
-           file-creator operation fn-list
-           (if into-dir			; target is a directory
-	       ;; This function uses fluid variable target when called
-	       ;; inside dired-create-files:
-	       (lambda (from)
-	         (expand-file-name (file-name-nondirectory from) target))
-	     (lambda (_from) target))
-           marker-char)
-        (when (or (eq dired-do-revert-buffer t)
-                  (and (functionp dired-do-revert-buffer)
-                       (funcall dired-do-revert-buffer target)))
-          (dired-fun-in-all-buffers (file-name-directory target) nil
-                                    #'revert-buffer)))))
-  (dired-post-do-command))
+  (let ((ret nil))
+    (let* ((fn-list (dired-get-marked-files nil arg nil nil t))
+	   (rfn-list (mapcar #'dired-make-relative fn-list))
+	   (dired-one-file	; fluid variable inside dired-create-files
+	    (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
+	   (target-dir (dired-dwim-target-directory))
+	   (default (and dired-one-file
+		         (not dired-dwim-target) ; Bug#25609
+		         (expand-file-name (file-name-nondirectory
+                                            (car fn-list))
+					   target-dir)))
+	   (defaults (dired-dwim-target-defaults fn-list target-dir))
+	   (target (expand-file-name ; fluid variable inside dired-create-files
+		    (minibuffer-with-setup-hook
+		        (lambda ()
+                          (setq-local minibuffer-default-add-function nil)
+			  (setq minibuffer-default defaults))
+		      (dired-mark-read-file-name
+                       (format "%s %%s %s: "
+                               (if dired-one-file op1 operation)
+                               (if (memq op-symbol '(symlink hardlink))
+                                   ;; Linking operations create links
+                                   ;; from the prompted file name; the
+                                   ;; other operations copy (etc) to the
+                                   ;; prompted file name.
+                                   "from" "to"))
+		       target-dir op-symbol arg rfn-list default))))
+	   (into-dir
+            (progn
+              (when
+                  (or
+                   (not dired-one-file)
+                   (and dired-create-destination-dirs-on-trailing-dirsep
+                        (directory-name-p target)))
+                (dired-maybe-create-dirs target))
+              (cond ((null how-to)
+		     ;; Allow users to change the letter case of
+		     ;; a directory on a case-insensitive
+		     ;; filesystem.  If we don't test these
+		     ;; conditions up front, file-directory-p
+		     ;; below will return t on a case-insensitive
+		     ;; filesystem, and Emacs will try to move
+		     ;; foo -> foo/foo, which fails.
+		     (if (and (file-name-case-insensitive-p (car fn-list))
+			      (eq op-symbol 'move)
+			      dired-one-file
+			      (string= (downcase
+				        (expand-file-name (car fn-list)))
+				       (downcase
+				        (expand-file-name target)))
+			      (not (string=
+				    (file-name-nondirectory (car fn-list))
+				    (file-name-nondirectory target))))
+		         nil
+		       (file-directory-p target)))
+		    ((eq how-to t) nil)
+		    (t (funcall how-to target))))))
+      (setq ret
+            (if (and (consp into-dir) (functionp (car into-dir)))
+	        (apply (car into-dir) operation rfn-list fn-list target
+                       (cdr into-dir))
+              (if (not (or dired-one-file into-dir))
+	          (error "Marked %s: target must be a directory: %s"
+                         operation target))
+              (if (and (not (file-directory-p (car fn-list)))
+                       (not (file-directory-p target))
+                       (directory-name-p target))
+                  (error "%s: Target directory does not exist: %s"
+                         operation target))
+              ;; rename-file bombs when moving directories unless we do this:
+              (or into-dir (setq target (directory-file-name target)))
+              (prog1
+                  (dired-create-files
+                   file-creator operation fn-list
+                   (if into-dir			; target is a directory
+	               ;; This function uses fluid variable target when called
+	               ;; inside dired-create-files:
+	               (lambda (from)
+	                 (expand-file-name (file-name-nondirectory from)
+                                           target))
+	             (lambda (_from) target))
+                   marker-char)
+                (when (or (eq dired-do-revert-buffer t)
+                          (and (functionp dired-do-revert-buffer)
+                               (funcall dired-do-revert-buffer target)))
+                  (dired-fun-in-all-buffers (file-name-directory target) nil
+                                            #'revert-buffer))))))
+    (dired-post-do-command)
+    ;; The return value isn't very well defined but is used by
+    ;; `dired-test-bug30624'.
+    ret))
 
 ;; Read arguments for a marked-files command that wants a file name,
 ;; perhaps popping up the list of marked files.
