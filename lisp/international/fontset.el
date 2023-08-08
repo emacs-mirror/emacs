@@ -1207,7 +1207,8 @@ Internal use only.  Should be called at startup time."
       (list (cons (purecopy "-cdac$")  1.3)))
 
 (defvar x-font-name-charset-alist nil
-  "This variable has no meaning now.  Just kept for backward compatibility.")
+  "This variable has no meaning starting with Emacs 22.1.")
+(make-obsolete-variable 'x-font-name-charset-alist nil "30.1")
 
 ;;; XLFD (X Logical Font Description) format handler.
 
