@@ -563,7 +563,7 @@ copyright notice is allowed."
 		  (goto-char (point-max))
 		  (not
 		   (re-search-backward
-                    (rx bol ";;; " (eval name) " ends here")
+                    (rx bol ";;; " (regexp name) " ends here")
                     nil t)))
 		"Can't find the footer line")
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
