@@ -2644,15 +2644,13 @@ emacs_fdopen (int fd, const char *mode)
    clear information associated with the FILE's file descriptor if
    necessary.  */
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
 int
 emacs_fclose (FILE *stream)
 {
-#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
-  return fclose (stream);
-#else
   return android_fclose (stream);
-#endif
 }
+#endif
 
 /* Wrappers around unlink, symlink, rename, renameat_noreplace, and
    rmdir.  These operations handle asset and content directories on
@@ -3492,7 +3490,7 @@ get_up_time (void)
 	  Lisp_Object subsec = Fcons (make_fixnum (upfrac), make_fixnum (hz));
 	  up = Ftime_add (sec, subsec);
 	}
-      fclose (fup);
+      emacs_fclose (fup);
     }
   unblock_input ();
 
@@ -3540,7 +3538,7 @@ procfs_ttyname (int rdev)
 		}
 	    }
 	}
-      fclose (fdev);
+      emacs_fclose (fdev);
     }
   unblock_input ();
   return build_string (name);
@@ -3582,7 +3580,7 @@ procfs_get_total_memory (void)
 	  }
       while (!done);
 
-      fclose (fmem);
+      emacs_fclose (fmem);
     }
   unblock_input ();
   return retval;
