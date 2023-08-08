@@ -4177,11 +4177,18 @@ by calling `format-decode', which see.  */)
 	    replace = Qunbound;
 	}
 
-      seekable = emacs_fd_lseek (fd, 0, SEEK_CUR) != (off_t) -1;
-      if (!NILP (beg) && !seekable)
+      /* Forbid specifying BEG together with a special file, as per
+	 the doc string.  */
+
+      if (!NILP (beg))
 	xsignal2 (Qfile_error,
 		  build_string ("cannot use a start position in a non-seekable file/device"),
 		  orig_filename);
+
+      /* Now ascertain if this file is seekable, by detecting if
+	 seeking leads to -1 being returned.  */
+      seekable
+	= emacs_fd_lseek (fd, 0, SEEK_CUR) != (off_t) -1;
     }
 
   if (end_offset < 0)
