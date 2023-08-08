@@ -1565,8 +1565,9 @@ public final class EmacsSafThread extends HandlerThread
      signal.  */
 
   public ParcelFileDescriptor
-  openDocument1 (String uri, String documentId, boolean write,
-		 boolean truncate, CancellationSignal signal)
+  openDocument1 (String uri, String documentId, boolean read,
+		 boolean write, boolean truncate,
+		 CancellationSignal signal)
     throws Throwable
   {
     Uri treeUri, documentUri;
@@ -1586,10 +1587,19 @@ public final class EmacsSafThread extends HandlerThread
 
     if (write)
       {
-	if (truncate)
-	  mode = "rwt";
+	if (read)
+	  {
+	    if (truncate)
+	      mode = "rwt";
+	    else
+	      mode = "rw";
+	  }
 	else
-	  mode = "rw";
+	  /* Set mode to w when WRITE && !READ, disregarding TRUNCATE.
+	     In contradiction with the ContentResolver documentation,
+	     document providers seem to truncate files whenever w is
+	     specified, at least superficially.  */
+	  mode = "w";
       }
     else
       mode = "r";
@@ -1597,14 +1607,15 @@ public final class EmacsSafThread extends HandlerThread
     fileDescriptor
       = resolver.openFileDescriptor (documentUri, mode,
 				     signal);
+    Log.d (TAG, "openDocument1: " + mode + " " + fileDescriptor);
 
-    /* If a writable file descriptor is requested and TRUNCATE is set,
-       then probe the file descriptor to detect if it is actually
-       readable.  If not, close this file descriptor and reopen it
-       with MODE set to rw; some document providers granting access to
-       Samba shares don't implement rwt, but these document providers
-       invariably truncate the file opened even when the mode is
-       merely rw.
+    /* If a writable on-disk file descriptor is requested and TRUNCATE
+       is set, then probe the file descriptor to detect if it is
+       actually readable.  If not, close this file descriptor and
+       reopen it with MODE set to rw; some document providers granting
+       access to Samba shares don't implement rwt, but these document
+       providers invariably truncate the file opened even when the
+       mode is merely w.
 
        This may be ascribed to a mix-up in Android's documentation
        regardin DocumentsProvider: the `openDocument' function is only
@@ -1612,7 +1623,7 @@ public final class EmacsSafThread extends HandlerThread
        implementation of the `openFile' function (which documents rwt)
        delegates to `openDocument'.  */
 
-    if (write && truncate && fileDescriptor != null
+    if (read && write && truncate && fileDescriptor != null
 	&& !EmacsNative.ftruncate (fileDescriptor.getFd ()))
       {
 	try
@@ -1647,15 +1658,13 @@ public final class EmacsSafThread extends HandlerThread
      TRUNCATE and the document already exists, truncate its contents
      before returning.
 
-     On Android 9.0 and earlier, always open the document in
-     ``read-write'' mode; this instructs the document provider to
-     return a seekable file that is stored on disk and returns correct
-     file status.
+     If READ && WRITE, open the file under either the `rw' or `rwt'
+     access mode, which implies that the value must be a seekable
+     on-disk file.  If WRITE && !READ or TRUNC && WRITE, also truncate
+     the file after it is opened.
 
-     Under newer versions of Android, open the document in a
-     non-writable mode if WRITE is false.  This is possible because
-     these versions allow Emacs to explicitly request a seekable
-     on-disk file.
+     If only READ or WRITE is set, value may be a non-seekable FIFO or
+     one end of a socket pair.
 
      Value is NULL upon failure or a parcel file descriptor upon
      success.  Call `ParcelFileDescriptor.close' on this file
@@ -1667,7 +1676,8 @@ public final class EmacsSafThread extends HandlerThread
 
   public ParcelFileDescriptor
   openDocument (final String uri, final String documentId,
-		final boolean write, final boolean truncate)
+		final boolean read, final boolean write,
+		final boolean truncate)
   {
     Object tem;
 
@@ -1677,8 +1687,8 @@ public final class EmacsSafThread extends HandlerThread
 	runObject (CancellationSignal signal)
 	  throws Throwable
 	{
-	  return openDocument1 (uri, documentId, write, truncate,
-				signal);
+	  return openDocument1 (uri, documentId, read,
+				write, truncate, signal);
 	}
       });
 

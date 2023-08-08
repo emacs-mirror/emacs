@@ -5590,7 +5590,7 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
   struct android_saf_file_vnode *vp;
   jobject uri, id, descriptor;
   jmethodID method;
-  jboolean trunc, write;
+  jboolean read, trunc, write;
   jint fd;
   struct android_parcel_fd *info;
   struct stat statb;
@@ -5598,6 +5598,15 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
   if (inside_saf_critical_section)
     {
       errno = EIO;
+      return -1;
+    }
+
+  /* O_APPEND isn't supported as a consequence of Android content
+     providers defaulting to truncating the file.  */
+
+  if (flags & O_APPEND)
+    {
+      errno = EOPNOTSUPP;
       return -1;
     }
 
@@ -5611,18 +5620,43 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
 					  vp->document_id);
   android_exception_check_1 (uri);
 
-  /* Open a parcel file descriptor according to flags.  */
+  /* Open a parcel file descriptor according to flags.  Documentation
+     for the SAF openDocument operation is scant and seldom helpful.
+     It's clear that their file access modes are inconsistently
+     implemented, and that at least:
+
+       r   = either an FIFO or a real file, without truncation.
+       w   = either an FIFO or a real file, with truncation.
+       wt  = either an FIFO or a real file, with truncation.
+       rw  = a real file, without truncation.
+       rwt = a real file, with truncation.
+
+     This diverges from the self-contradicting documentation, where
+     openDocument says nothing about truncation, and openFile, where
+     w can elect not to truncate.
+
+     Since Emacs is prepared to handle FIFOs within fileio.c, simply
+     use the straightforward relationships possible.  */
 
   method = service_class.open_document;
-  trunc  = (flags & O_TRUNC);
-  write  = (((flags & O_RDWR) == O_RDWR) || (flags & O_WRONLY));
+  read = trunc = write = false;
+
+  if ((flags & O_RDWR) == O_RDWR || (flags & O_WRONLY))
+    write = true;
+
+  if (flags & O_TRUNC)
+    trunc = true;
+
+  if ((flags & O_RDWR) == O_RDWR || !write)
+    read = true;
+
   inside_saf_critical_section = true;
   descriptor
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
 						       emacs_service,
 						       service_class.class,
 						       method, uri, id,
-						       write, trunc);
+						       read, write, trunc);
   inside_saf_critical_section = false;
 
   if (android_saf_exception_check (2, uri, id))
@@ -6447,6 +6481,8 @@ android_vfs_init (JNIEnv *env, jobject manager)
    if subsequently read input causes Vquit_flag to be set.  These
    vnodes may not be reentrant, but operating on them from within an
    async input handler will at worst cause an error to be returned.
+
+   The eight is that some vnode types do not support O_APPEND.
 
    And the final drawback is that directories cannot be directly
    opened.  Instead, `dirfd' must be called on a directory stream used

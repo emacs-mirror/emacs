@@ -1574,7 +1574,7 @@ android_init_emacs_service (void)
 	       "(Landroid/database/Cursor;)Lorg/gnu/emacs/"
 	       "EmacsDirectoryEntry;");
   FIND_METHOD (open_document, "openDocument",
-	       "(Ljava/lang/String;Ljava/lang/String;ZZ)"
+	       "(Ljava/lang/String;Ljava/lang/String;ZZZ)"
 	       "Landroid/os/ParcelFileDescriptor;");
   FIND_METHOD (create_document, "createDocument",
 	       "(Ljava/lang/String;Ljava/lang/String;"

@@ -1537,15 +1537,13 @@ public final class EmacsService extends Service
      TRUNCATE and the document already exists, truncate its contents
      before returning.
 
-     On Android 9.0 and earlier, always open the document in
-     ``read-write'' mode; this instructs the document provider to
-     return a seekable file that is stored on disk and returns correct
-     file status.
+     If READ && WRITE, open the file under either the `rw' or `rwt'
+     access mode, which implies that the value must be a seekable
+     on-disk file.  If TRUNC && WRITE, also truncate the file after it
+     is opened.
 
-     Under newer versions of Android, open the document in a
-     non-writable mode if WRITE is false.  This is possible because
-     these versions allow Emacs to explicitly request a seekable
-     on-disk file.
+     If only READ or WRITE is set, value may be a non-seekable FIFO or
+     one end of a socket pair.
 
      Value is NULL upon failure or a parcel file descriptor upon
      success.  Call `ParcelFileDescriptor.close' on this file
@@ -1555,8 +1553,8 @@ public final class EmacsService extends Service
      UnsupportedOperationException may be thrown upon failure.  */
 
   public ParcelFileDescriptor
-  openDocument (String uri, String documentId, boolean write,
-		boolean truncate)
+  openDocument (String uri, String documentId,
+		boolean read, boolean write, boolean truncate)
   {
     /* Start the thread used to run SAF requests if it isn't already
        running.  */
@@ -1567,7 +1565,7 @@ public final class EmacsService extends Service
 	storageThread.start ();
       }
 
-    return storageThread.openDocument (uri, documentId, write,
+    return storageThread.openDocument (uri, documentId, read, write,
 				       truncate);
   }
 
