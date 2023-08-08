@@ -479,12 +479,16 @@ pkg_set_status (Lisp_Object symbol, Lisp_Object package, Lisp_Object status)
 {
   CHECK_SYMBOL (symbol);
   CHECK_PACKAGE (package);
+
   if (!EQ (status, QCinternal) && !EQ (status, QCexternal))
     pkg_error ("Invalid symbol status %s", status);
 
   struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (package));
-  ptrdiff_t i = hash_lookup (h, SYMBOL_NAME (symbol), NULL);
-  eassert (i >= 0);
+  const ptrdiff_t i = hash_lookup (h, SYMBOL_NAME (symbol), NULL);
+  if (i < 0)
+    pkg_error ("Symbol '%s' is not an internal symbol in package '%s'",
+	       SDATA (SYMBOL_NAME (symbol)),
+	       SDATA (PACKAGE_NAMEX (package)));
   ASET (h->key_and_value, 2 * i + 1, status);
   return Qnil;
 }

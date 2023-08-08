@@ -609,7 +609,7 @@ Value is t."
       (let ((other-package (pkg--package-or-lose (car imports-from))))
         (dolist (sym-name (cdr imports-from))
           (import (list (pkg--ensure-symbol sym-name other-package))
-                  gpackage))))
+                  package))))
 
     ;; Exports.
     (let ((old-exports nil)
