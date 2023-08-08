@@ -4013,6 +4013,7 @@ android_saf_stat (const char *uri_name, const char *id_name,
   memset (statb, 0, sizeof *statb);
   statb->st_size = MAX (0, MIN (TYPE_MAXIMUM (off_t), size));
   statb->st_mode = mode;
+  statb->st_dev = -4;
 #ifdef STAT_TIMESPEC
   STAT_TIMESPEC (statb, st_mtim).tv_sec = mtim / 1000;
   STAT_TIMESPEC (statb, st_mtim).tv_nsec = (mtim % 1000) * 1000000;
@@ -6169,7 +6170,14 @@ NATIVE_NAME (safPostRequest) (JNIEnv *env, jobject object)
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (ftruncate) (JNIEnv *env, jobject object, jint fd)
 {
-  return ftruncate (fd, 0) != -1;
+  if (ftruncate (fd, 0) < 0)
+    return false;
+
+  /* Reset the file pointer.  */
+  if (lseek (fd, 0, SEEK_SET) < 0)
+    return false;
+
+  return true;
 }
 
 #ifdef __clang__
@@ -6722,6 +6730,11 @@ android_fstat (int fd, struct stat *statb)
   parcel_fd = open_parcel_fds;
   for (; parcel_fd; parcel_fd = parcel_fd->next)
     {
+      if (parcel_fd->fd == fd)
+	/* Set STATB->st_dev to a negative device number, signifying
+	   that it's contained within a content provider.  */
+	statb->st_dev = -4;
+
       if (parcel_fd->fd == fd
 	  && timespec_valid_p (parcel_fd->mtime))
 	{

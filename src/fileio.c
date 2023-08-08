@@ -5582,42 +5582,44 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   if (timespec_valid_p (modtime)
       && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
     {
-      int desc1 = emacs_open (fn, O_WRONLY, 0);
-      if (desc1 >= 0)
-	{
-	  struct stat st1;
-	  if (sys_fstat (desc1, &st1) == 0
-	      && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
-	    {
-	      /* Use the heuristic if it appears to be valid.  With neither
-		 O_EXCL nor O_TRUNC, if Emacs happened to write nothing to the
-		 file, the time stamp won't change.  Also, some non-POSIX
-		 systems don't update an empty file's time stamp when
-		 truncating it.  Finally, file systems with 100 ns or worse
-		 resolution sometimes seem to have bugs: on a system with ns
-		 resolution, checking ns % 100 incorrectly avoids the heuristic
-		 1% of the time, but the problem should be temporary as we will
-		 try again on the next time stamp.  */
-	      bool use_heuristic
-		= ((open_flags & (O_EXCL | O_TRUNC)) != 0
-		   && st.st_size != 0
-		   && modtime.tv_nsec % 100 != 0);
+      struct stat st1;
 
-	      struct timespec modtime1 = get_stat_mtime (&st1);
-	      if (use_heuristic
-		  && timespec_cmp (modtime, modtime1) == 0
-		  && st.st_size == st1.st_size)
-		{
-		  timestamp_file_system = st.st_dev;
-		  valid_timestamp_file_system = 1;
-		}
-	      else
-		{
-		  st.st_size = st1.st_size;
-		  modtime = modtime1;
-		}
+      /* The code below previously tried to open FN O_WRONLY,
+         subsequently calling fstat on the opened file descriptor.
+         This proved inefficient and resulted in FN being truncated
+         under several Android filesystems, and as such has been
+         changed to a call to `stat'.  */
+
+      if (emacs_fstatat (AT_FDCWD, fn, &st1, 0) == 0
+	  && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
+	{
+	  /* Use the heuristic if it appears to be valid.  With neither
+	     O_EXCL nor O_TRUNC, if Emacs happened to write nothing to the
+	     file, the time stamp won't change.  Also, some non-POSIX
+	     systems don't update an empty file's time stamp when
+	     truncating it.  Finally, file systems with 100 ns or worse
+	     resolution sometimes seem to have bugs: on a system with ns
+	     resolution, checking ns % 100 incorrectly avoids the heuristic
+	     1% of the time, but the problem should be temporary as we will
+	     try again on the next time stamp.  */
+	  bool use_heuristic
+	    = ((open_flags & (O_EXCL | O_TRUNC)) != 0
+	       && st.st_size != 0
+	       && modtime.tv_nsec % 100 != 0);
+
+	  struct timespec modtime1 = get_stat_mtime (&st1);
+	  if (use_heuristic
+	      && timespec_cmp (modtime, modtime1) == 0
+	      && st.st_size == st1.st_size)
+	    {
+	      timestamp_file_system = st.st_dev;
+	      valid_timestamp_file_system = 1;
 	    }
-	  emacs_close (desc1);
+	  else
+	    {
+	      st.st_size = st1.st_size;
+	      modtime = modtime1;
+	    }
 	}
     }
 
