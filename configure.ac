@@ -7768,7 +7768,7 @@ AC_SUBST([SUBDIR_MAKEFILES_IN])
 SMALL_JA_DIC=$with_small_ja_dic
 AC_SUBST([SMALL_JA_DIC])
 
-dnl The following commands are run on the host system when building
+dnl The following commands are run on the build system when building
 dnl Emacs.
 
 if test "$XCONFIGURE" != "android"; then
