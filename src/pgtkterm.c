@@ -1328,14 +1328,17 @@ fill_background_by_face (struct frame *f, struct face *face, int x, int y,
 			 int width, int height)
 {
   cairo_t *cr = pgtk_begin_cr_clip (f);
+  double r, g, b, a;
 
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
   cairo_rectangle (cr, x, y, width, height);
   cairo_clip (cr);
 
-  double r = ((face->background >> 16) & 0xff) / 255.0;
-  double g = ((face->background >> 8) & 0xff) / 255.0;
-  double b = ((face->background >> 0) & 0xff) / 255.0;
-  cairo_set_source_rgb (cr, r, g, b);
+  r = ((face->background >> 16) & 0xff) / 255.0;
+  g = ((face->background >> 8) & 0xff) / 255.0;
+  b = ((face->background >> 0) & 0xff) / 255.0;
+  a = f->alpha_background;
+  cairo_set_source_rgba (cr, r, g, b, a);
   cairo_paint (cr);
 
   if (face->stipple != 0)
@@ -1343,10 +1346,10 @@ fill_background_by_face (struct frame *f, struct face *face, int x, int y,
       cairo_pattern_t *mask
 	= FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].pattern;
 
-      double r = ((face->foreground >> 16) & 0xff) / 255.0;
-      double g = ((face->foreground >> 8) & 0xff) / 255.0;
-      double b = ((face->foreground >> 0) & 0xff) / 255.0;
-      cairo_set_source_rgb (cr, r, g, b);
+      r = ((face->foreground >> 16) & 0xff) / 255.0;
+      g = ((face->foreground >> 8) & 0xff) / 255.0;
+      b = ((face->foreground >> 0) & 0xff) / 255.0;
+      cairo_set_source_rgba (cr, r, g, b, a);
       cairo_mask (cr, mask);
     }
 
