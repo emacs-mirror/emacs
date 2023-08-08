@@ -143,8 +143,6 @@ it is disabled.")
         (buffer-string)))))
 
 ;;;###autoload
-(defalias 'easy-mmode-define-minor-mode #'define-minor-mode)
-;;;###autoload
 (defmacro define-minor-mode (mode doc &rest body)
   "Define a new minor mode MODE.
 This defines the toggle command MODE and (by default) a control variable
@@ -442,8 +440,6 @@ No problems result if this variable is not bound.
 ;;; make global minor mode
 ;;;
 
-;;;###autoload
-(defalias 'easy-mmode-define-global-mode #'define-globalized-minor-mode)
 ;;;###autoload
 (defalias 'define-global-minor-mode #'define-globalized-minor-mode)
 ;;;###autoload
@@ -840,6 +836,12 @@ Interactively, COUNT is the prefix numeric argument, and defaults to 1."
                 (user-error "No previous %s" ,name)))
            ,@body))
        (put ',prev-sym 'definition-name ',base))))
+
+;; When deleting these two, also delete them from loaddefs-gen.el.
+;;;###autoload
+(define-obsolete-function-alias 'easy-mmode-define-minor-mode #'define-minor-mode "30.1")
+;;;###autoload
+(define-obsolete-function-alias 'easy-mmode-define-global-mode #'define-globalized-minor-mode "30.1")
 
 (provide 'easy-mmode)
 
