@@ -364,8 +364,6 @@ This only returns external (non-Lisp) processes."
 
 ;; Command parsing
 
-(defvar eshell--sep-terms)
-
 (defmacro eshell-with-temp-command (region &rest body)
   "Narrow the buffer to REGION and execute the forms in BODY.
 
@@ -404,31 +402,33 @@ COMMAND can either be a string, or a cons cell demarcating a buffer
 region.  TOPLEVEL, if non-nil, means that the outermost command (the
 user's input command) is being parsed, and that pre and post command
 hooks should be run before and after the command."
-  (let* (eshell--sep-terms
-	 (terms
-	  (append
-	   (if (consp command)
-	       (eshell-parse-arguments (car command) (cdr command))
-             (eshell-with-temp-command command
-               (goto-char (point-max))
-               (eshell-parse-arguments (point-min) (point-max))))
-	   args))
-	 (commands
-	  (mapcar
-           (lambda (cmd)
-             (let ((sep (pop eshell--sep-terms)))
-               (setq cmd (eshell-parse-pipeline cmd))
-               (when (equal sep "&")
-                 (setq cmd `(eshell-do-subjob (cons :eshell-background ,cmd))))
-               (unless eshell-in-pipeline-p
-                 (setq cmd `(eshell-trap-errors ,cmd)))
-               ;; Copy I/O handles so each full statement can manipulate
-               ;; them if they like.  Steal the handles for the last
-               ;; command in the list; we won't use the originals again
-               ;; anyway.
-               (setq cmd `(eshell-with-copied-handles ,cmd ,(not sep)))
-               cmd))
-	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
+  (pcase-let*
+    ((terms
+      (append
+       (if (consp command)
+           (eshell-parse-arguments (car command) (cdr command))
+         (eshell-with-temp-command command
+           (goto-char (point-max))
+           (eshell-parse-arguments (point-min) (point-max))))
+       args))
+     (`(,sub-chains . ,sep-terms)
+      (eshell-split-commands terms "[&;]" nil t))
+     (commands
+      (mapcar
+       (lambda (cmd)
+         (let ((sep (pop sep-terms)))
+           (setq cmd (eshell-parse-pipeline cmd))
+           (when (equal sep "&")
+             (setq cmd `(eshell-do-subjob (cons :eshell-background ,cmd))))
+           (unless eshell-in-pipeline-p
+             (setq cmd `(eshell-trap-errors ,cmd)))
+           ;; Copy I/O handles so each full statement can manipulate
+           ;; them if they like.  Steal the handles for the last
+           ;; command in the list; we won't use the originals again
+           ;; anyway.
+           (setq cmd `(eshell-with-copied-handles ,cmd ,(not sep)))
+           cmd))
+       sub-chains)))
     (if toplevel
 	`(eshell-commands (progn
                             (run-hooks 'eshell-pre-command-hook)
@@ -628,12 +628,12 @@ This means an exit code of 0."
 
 (defun eshell-parse-pipeline (terms)
   "Parse a pipeline from TERMS, return the appropriate Lisp forms."
-  (let* (eshell--sep-terms
-	 (bigpieces (eshell-separate-commands terms "\\(&&\\|||\\)"
-					      nil 'eshell--sep-terms))
-         results final)
+  (pcase-let*
+      ((`(,bigpieces . ,sep-terms)
+        (eshell-split-commands terms "\\(&&\\|||\\)" nil t))
+       (results) (final))
     (dolist (subterms bigpieces)
-      (let* ((pieces (eshell-separate-commands subterms "|"))
+      (let* ((pieces (eshell-split-commands subterms "|"))
              (p pieces))
         (while p
           (let ((cmd (car p)))
@@ -655,11 +655,11 @@ This means an exit code of 0."
     ;; multi-line input
     (setq final (car results)
           results (cdr results)
-          eshell--sep-terms (nreverse eshell--sep-terms))
+          sep-terms (nreverse sep-terms))
     (while results
-      (cl-assert (car eshell--sep-terms))
+      (cl-assert (car sep-terms))
       (setq final (eshell-structure-basic-command
-                   'if (string= (pop eshell--sep-terms) "&&") "if"
+                   'if (string= (pop sep-terms) "&&") "if"
                    `(eshell-protect ,(pop results))
                    `(eshell-protect ,final))))
     final))
@@ -696,6 +696,34 @@ This means an exit code of 0."
               (eshell-lisp-command (quote ,obj)))
 	  (ignore (goto-char here))))))
 
+(defun eshell-split-commands (terms separator &optional
+                                    reversed return-seps)
+  "Split TERMS using SEPARATOR.
+If REVERSED is non-nil, the list of separated term groups will be
+returned in reverse order.
+
+If RETURN-SEPS is nil, return just the separated terms as a list;
+otherwise, return both the separated terms and their separators
+as a pair of lists."
+  (let (sub-chains sub-terms sep-terms)
+    (dolist (term terms)
+      (if (and (eq (car-safe term) 'eshell-operator)
+               (string-match (concat "^" separator "$")
+                             (nth 1 term)))
+          (progn
+            (push (nth 1 term) sep-terms)
+            (push (nreverse sub-terms) sub-chains)
+            (setq sub-terms nil))
+        (push term sub-terms)))
+    (when sub-terms
+      (push (nreverse sub-terms) sub-chains))
+    (unless reversed
+      (setq sub-chains (nreverse sub-chains)
+            sep-terms (nreverse sep-terms)))
+    (if return-seps
+        (cons sub-chains sep-terms)
+      sub-chains)))
+
 (defun eshell-separate-commands (terms separator &optional
 				       reversed last-terms-sym)
   "Separate TERMS using SEPARATOR.
@@ -703,30 +731,14 @@ If REVERSED is non-nil, the list of separated term groups will be
 returned in reverse order.  If LAST-TERMS-SYM is a symbol, its value
 will be set to a list of all the separator operators found (or (nil)
 if none)."
-  (let ((sub-terms (list t))
-	(eshell-sep-terms (list t))
-	subchains)
-    (while terms
-      (if (and (consp (car terms))
-	       (eq (caar terms) 'eshell-operator)
-	       (string-match (concat "^" separator "$")
-			     (nth 1 (car terms))))
-	  (progn
-	    (nconc eshell-sep-terms (list (nth 1 (car terms))))
-	    (setq subchains (cons (cdr sub-terms) subchains)
-		  sub-terms (list t)))
-	(nconc sub-terms (list (car terms))))
-      (setq terms (cdr terms)))
-    (if (> (length sub-terms) 1)
-	(setq subchains (cons (cdr sub-terms) subchains)))
-    (if reversed
-	(progn
-	  (if last-terms-sym
-	      (set last-terms-sym (reverse (cdr eshell-sep-terms))))
-	  subchains)                    ; already reversed
-      (if last-terms-sym
-	  (set last-terms-sym (cdr eshell-sep-terms)))
-      (nreverse subchains))))
+  (declare (obsolete eshell-split-commands "30.1"))
+  (let ((split-terms (eshell-split-commands terms separator reversed
+                                            last-terms-sym)))
+    (if last-terms-sym
+        (progn
+          (set last-terms-sym (cdr split-terms))
+          (car split-terms))
+      split-terms)))
 
 ;;_* Command evaluation macros
 ;;
