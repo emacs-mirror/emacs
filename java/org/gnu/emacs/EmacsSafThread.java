@@ -1598,7 +1598,7 @@ public final class EmacsSafThread extends HandlerThread
 	  /* Set mode to w when WRITE && !READ, disregarding TRUNCATE.
 	     In contradiction with the ContentResolver documentation,
 	     document providers seem to truncate files whenever w is
-	     specified, at least superficially.  */
+	     specified, at least superficially.  (But see below.)  */
 	  mode = "w";
       }
     else
@@ -1607,7 +1607,6 @@ public final class EmacsSafThread extends HandlerThread
     fileDescriptor
       = resolver.openFileDescriptor (documentUri, mode,
 				     signal);
-    Log.d (TAG, "openDocument1: " + mode + " " + fileDescriptor);
 
     /* If a writable on-disk file descriptor is requested and TRUNCATE
        is set, then probe the file descriptor to detect if it is
@@ -1644,6 +1643,12 @@ public final class EmacsSafThread extends HandlerThread
 	if (fileDescriptor != null)
 	  EmacsNative.ftruncate (fileDescriptor.getFd ());
       }
+    else if (!read && write && truncate && fileDescriptor != null)
+      /* Moreover, document providers that return actual seekable
+	 files characteristically neglect to truncate the file
+	 returned when the access mode is merely w, so attempt to
+	 truncate it by hand.  */
+      EmacsNative.ftruncate (fileDescriptor.getFd ());
 
     /* Every time a document is opened, remove it from the file status
        cache.  */
