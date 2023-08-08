@@ -6913,7 +6913,7 @@ implementations: `python-mode' and `python-ts-mode'."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             '('"/\\(?:Pipfile\\|\\.?flake8\\)\\'" . conf-mode))
+             '("/\\(?:Pipfile\\|\\.?flake8\\)\\'" . conf-mode))
 
 (provide 'python)
 
