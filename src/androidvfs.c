@@ -5622,21 +5622,23 @@ android_saf_file_open (struct android_vnode *vnode, int flags,
 
   /* Open a parcel file descriptor according to flags.  Documentation
      for the SAF openDocument operation is scant and seldom helpful.
-     It's clear that their file access modes are inconsistently
-     implemented, and that at least:
+     From observations made, it is clear that their file access modes
+     are inconsistently implemented, and that at least:
 
        r   = either an FIFO or a real file, without truncation.
-       w   = either an FIFO or a real file, with truncation.
+       w   = either an FIFO or a real file, with OR without truncation.
        wt  = either an FIFO or a real file, with truncation.
        rw  = a real file, without truncation.
        rwt = a real file, with truncation.
 
      This diverges from the self-contradicting documentation, where
-     openDocument says nothing about truncation, and openFile, where
-     w can elect not to truncate.
+     openDocument says nothing about truncation, and openFile mentions
+     that w can elect not to truncate and programs which rely on
+     truncation should use wt.
 
      Since Emacs is prepared to handle FIFOs within fileio.c, simply
-     use the straightforward relationships possible.  */
+     specify the straightforward relationship between FLAGS and the
+     file access modes listed above.  */
 
   method = service_class.open_document;
   read = trunc = write = false;
