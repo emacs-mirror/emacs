@@ -5831,6 +5831,13 @@ and corresponding effects."
             :filter :sentinel :stderr :file-handler)
           '(:name :command))))
 
+(put 'make-pipe-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name :buffer :coding :noquery :stop :filter :sentinel)
+          '(:name))))
+
 (put 'make-network-process 'compiler-macro
      #'(lambda (form &rest args)
          (bytecomp--check-keyword-args
