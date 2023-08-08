@@ -1274,9 +1274,8 @@ Return nil if PATTERN doesn't conform to XLFD."
 (defun x-compose-font-name (fields &optional _reduce)
   "Compose X fontname from FIELDS.
 FIELDS is a vector of XLFD fields, of length 12.
-If a field is nil, wild-card letter `*' is embedded.
-Optional argument REDUCE exists just for backward compatibility,
-and is always ignored."
+If a field is nil, wild-card letter `*' is embedded."
+  (declare (advertised-calling-convention (fields) "30.1"))
   (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-")))
 
 
