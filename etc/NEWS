@@ -736,6 +736,10 @@ provokes an error if used numerically.
 The compatibility aliases 'x-defined-colors', 'x-color-defined-p',
 'x-color-values', and 'x-display-color-p' are now obsolete.
 
++++
+** 'easy-mmode-define-{minor-mode,global-mode}' aliases are now obsolete.
+Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
+
 
 * Lisp Changes in Emacs 30.1
 

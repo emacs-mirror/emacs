@@ -1207,7 +1207,8 @@ Internal use only.  Should be called at startup time."
       (list (cons (purecopy "-cdac$")  1.3)))
 
 (defvar x-font-name-charset-alist nil
-  "This variable has no meaning now.  Just kept for backward compatibility.")
+  "This variable has no meaning starting with Emacs 22.1.")
+(make-obsolete-variable 'x-font-name-charset-alist nil "30.1")
 
 ;;; XLFD (X Logical Font Description) format handler.
 
@@ -1273,9 +1274,8 @@ Return nil if PATTERN doesn't conform to XLFD."
 (defun x-compose-font-name (fields &optional _reduce)
   "Compose X fontname from FIELDS.
 FIELDS is a vector of XLFD fields, of length 12.
-If a field is nil, wild-card letter `*' is embedded.
-Optional argument REDUCE exists just for backward compatibility,
-and is always ignored."
+If a field is nil, wild-card letter `*' is embedded."
+  (declare (advertised-calling-convention (fields) "30.1"))
   (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-")))
 
 
