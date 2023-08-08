@@ -516,7 +516,7 @@ directory copy is ineffective.
 This is due to an arbitrary limit in certain versions of awk.
 The solution is to use gawk (GNU awk).
 
-*** Saving, via EasyPG, a file encrypted with GnuPG hangs
+*** Saving a file encrypted with GnuPG via EasyPG hangs
 
 This is known to happen with GnuPG v2.4.1.  The only known workaround
 is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
