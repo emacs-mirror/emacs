@@ -3372,7 +3372,9 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
 {
   Lisp_Object user = Qnil, role = Qnil, type = Qnil, range = Qnil;
   Lisp_Object absname = expand_and_dir_to_file (filename);
+#ifdef HAVE_LIBSELINUX
   const char *file;
+#endif /* HAVE_LIBSELINUX */
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
@@ -3381,9 +3383,9 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_selinux_context, absname);
 
+#ifdef HAVE_LIBSELINUX
   file = SSDATA (ENCODE_FILE (absname));
 
-#if HAVE_LIBSELINUX
   if (selinux_enabled_p (file))
     {
       char *con;
