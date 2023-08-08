@@ -2598,7 +2598,7 @@ internal_delete_file (Lisp_Object filename)
 {
   Lisp_Object tem;
 
-  tem = internal_condition_case_2 (Fdelete_file_internal, filename,
+  tem = internal_condition_case_1 (Fdelete_file_internal, filename,
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }

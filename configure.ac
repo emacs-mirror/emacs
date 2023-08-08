@@ -723,7 +723,7 @@ AS_IF([test "x$XCONFIGURE" = "xandroid" \
 
 # There is little point in enabling checking in the build machine if
 # cross-compiling for Android.
-AS_IF([test -z "$with_android" || test -n "$XCONFIGURE"],[
+AS_IF([test "$with_android" = no || test -n "$XCONFIGURE"],[
   if test x$ac_enable_checking != x ; then
     AC_DEFINE([ENABLE_CHECKING], [1],
   [Define to 1 if expensive run-time data type and consistency checks are enabled.])
@@ -7768,7 +7768,7 @@ AC_SUBST([SUBDIR_MAKEFILES_IN])
 SMALL_JA_DIC=$with_small_ja_dic
 AC_SUBST([SMALL_JA_DIC])
 
-dnl The following commands are run on the host system when building
+dnl The following commands are run on the build system when building
 dnl Emacs.
 
 if test "$XCONFIGURE" != "android"; then
@@ -7848,19 +7848,20 @@ if test "$XCONFIGURE" != "android"; then
   dnl machine.
   AS_MKDIR_P([cross/etc])
 
-  dnl Link gnulib files to cross/lib as well.
-  dnl af_alg.h and lib/save-cwd.h are copied manually from
-  dnl gnulib, and as such aren't specified in gl_FILE_LIST.
-  emacs_files='gl_FILE_LIST lib/af_alg.h lib/save-cwd.h'
-  dnl These files are specific to Emacs.
-  emacs_files="$emacs_files lib/fingerprint.c lib/fingerprint.h \
-                 lib/save-cwd.c lib/openat-die.c lib/save-cwd.c \
-		 lib/min-max.h"
-  for file in $emacs_files; do
-    AS_IF([expr "X${file}J" : "Xlib/.*[[ch]]J" >/dev/null],
-      [AS_IF([test -f "$srcdir/$file"],
-        [AC_CONFIG_LINKS([cross/$file:$file])])])
-  done
+  AS_IF([test "x$with_android" != "xno"], [
+    dnl Link gnulib files to cross/lib as well.  af_alg.h and
+    dnl lib/save-cwd.h are copied manually from gnulib, and as such
+    dnl aren't specified in gl_FILE_LIST.
+    emacs_files='gl_FILE_LIST lib/af_alg.h lib/save-cwd.h'
+    dnl These files are specific to Emacs.
+    emacs_files="$emacs_files lib/fingerprint.c lib/fingerprint.h \
+		   lib/save-cwd.c lib/openat-die.c lib/save-cwd.c \
+		   lib/min-max.h"
+    for file in $emacs_files; do
+      AS_IF([expr "X${file}J" : "Xlib/.*[[ch]]J" >/dev/null],
+	[AS_IF([test -f "$srcdir/$file"],
+	  [AC_CONFIG_LINKS([cross/$file:$file])])])
+    done])
 fi
 
 # Make java/Makefile

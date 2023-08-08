@@ -5189,8 +5189,15 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_open_noquit (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);
-extern FILE *emacs_fdopen (int, const char *);
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+# define emacs_fclose fclose
+#else
 extern int emacs_fclose (FILE *);
+#endif
+extern FILE *emacs_fdopen (int, const char *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (emacs_fclose, 1);
+extern FILE *emacs_fopen (char const *, char const *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (emacs_fclose, 1);
 extern int emacs_unlink (const char *);
 extern int emacs_symlink (const char *, const char *);
 extern int emacs_rmdir (const char *);

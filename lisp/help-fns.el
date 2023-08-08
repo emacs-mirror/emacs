@@ -2071,11 +2071,9 @@ keymap value."
         (if (symbolp keymap)
             (error "Not a keymap variable: %S" keymap)
           (error "Not a keymap")))
-      (let ((sym nil))
-        (unless sym
-          (setq sym (cl-gentemp "KEYMAP OBJECT (no variable) "))
-          (setq used-gentemp t)
-          (set sym keymap))
+      (let ((sym (cl-gentemp "KEYMAP OBJECT (no variable) ")))
+        (setq used-gentemp t)
+        (set sym keymap)
         (setq keymap sym)))
     ;; Follow aliasing.
     (setq keymap (or (ignore-errors (indirect-variable keymap)) keymap))

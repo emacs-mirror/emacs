@@ -489,7 +489,7 @@ OMIT_GNULIB_MODULE_strtoll = true\
 OMIT_GNULIB_MODULE_symlink = true\
 OMIT_GNULIB_MODULE_sys_select = true\
 OMIT_GNULIB_MODULE_sys_time = true\
-OMIT_GNULIB_MODULE_crypto\/md5 = true\
+OMIT_GNULIB_MODULE_crypto\/md5 = true
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@

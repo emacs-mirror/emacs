@@ -132,6 +132,12 @@ Return first line of the output of (describe-function-1 FUNC)."
 
 
 ;;; Tests for describe-keymap
+
+(defvar-keymap help-fns-test-map
+  "a" 'test-cmd-a
+  "b" 'test-cmd-b
+  "c" 'test-cmd-c)
+
 (ert-deftest help-fns-test-find-keymap-name ()
   (should (equal (help-fns-find-keymap-name lisp-mode-map) 'lisp-mode-map))
   ;; Follow aliasing.
@@ -142,27 +148,32 @@ Return first line of the output of (describe-function-1 FUNC)."
     (makunbound 'foo-test-map)))
 
 (ert-deftest help-fns-test-describe-keymap/symbol ()
-  (describe-keymap 'minibuffer-local-must-match-map)
+  (describe-keymap 'help-fns-test-map)
   (with-current-buffer "*Help*"
-    (should (looking-at "^minibuffer-local-must-match-map is"))))
+    (should (looking-at "^help-fns-test-map is"))
+    (should (re-search-forward (rx word-start "a" word-end
+                                   (+ blank)
+                                   word-start "test-cmd-a" word-end)
+                               nil t))))
 
 (ert-deftest help-fns-test-describe-keymap/value ()
-  (describe-keymap minibuffer-local-must-match-map)
+  (describe-keymap help-fns-test-map)
   (with-current-buffer "*Help*"
     (should (looking-at "\nKey"))))
 
 (ert-deftest help-fns-test-describe-keymap/not-keymap ()
   (should-error (describe-keymap nil))
-  (should-error (describe-keymap emacs-version)))
+  (should-error (describe-keymap emacs-version))
+  (should-error (describe-keymap 'some-undefined-variable-foobar)))
 
 (ert-deftest help-fns-test-describe-keymap/let-bound ()
-  (let ((foobar minibuffer-local-must-match-map))
+  (let ((foobar help-fns-test-map))
     (describe-keymap foobar)
     (with-current-buffer "*Help*"
       (should (looking-at "\nKey")))))
 
 (ert-deftest help-fns-test-describe-keymap/dynamically-bound-no-file ()
-  (setq help-fns-test--describe-keymap-foo minibuffer-local-must-match-map)
+  (setq help-fns-test--describe-keymap-foo help-fns-test-map)
   (describe-keymap 'help-fns-test--describe-keymap-foo)
   (with-current-buffer "*Help*"
     (should (looking-at "^help-fns-test--describe-keymap-foo is"))))
