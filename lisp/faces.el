@@ -1540,15 +1540,12 @@ argument, prompt for a regular expression using `read-regexp'."
 ;;; Face specifications (defface).
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Parameter FRAME Is kept for call compatibility to with previous
-;; face implementation.
-
 (defun face-attr-construct (face &optional _frame)
   "Return a `defface'-style attribute list for FACE.
 Value is a property list of pairs ATTRIBUTE VALUE for all specified
 face attributes of FACE where ATTRIBUTE is the attribute name and
-VALUE is the specified value of that attribute.
-Argument FRAME is ignored and retained for compatibility."
+VALUE is the specified value of that attribute."
+  (declare (advertised-calling-convention (face) "30.1"))
   (let (result)
     (dolist (entry face-attribute-name-alist result)
       (let* ((attribute (car entry))

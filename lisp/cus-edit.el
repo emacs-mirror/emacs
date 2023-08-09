@@ -3751,7 +3751,7 @@ WIDGET should be a `custom-face' widget."
     ;; If the user has changed this face in some other way,
     ;; edit it as the user has specified it.
     (if (not (face-spec-match-p face spec (selected-frame)))
-	(setq spec `((t ,(face-attr-construct face (selected-frame))))))
+        (setq spec `((t ,(face-attr-construct face)))))
     spec))
 
 (defun custom-face-get-current-spec (face)
