@@ -1342,10 +1342,14 @@ used to set the value of `isearch-regexp-function'."
 
   ;; If the keyboard is not up and the last event did not come from
   ;; a keyboard, bring it up so that the user can type.
-  (when (or (not last-event-frame)
-            (not (eq (device-class last-event-frame
-                                   last-event-device)
-                     'keyboard)))
+  ;;
+  ;; last-event-frame may be `macro', since people apparently make use
+  ;; of I-search in keyboard macros.  (bug#65175)
+  (when (and (not (eq last-event-frame 'macro))
+             (or (not last-event-frame)
+                 (not (eq (device-class last-event-frame
+                                        last-event-device)
+                          'keyboard))))
     (frame-toggle-on-screen-keyboard (selected-frame) nil))
 
   ;; Disable text conversion so that isearch can behave correctly.
