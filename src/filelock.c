@@ -59,12 +59,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <utmp.h>
 #endif
 
-/* A file whose last-modified time is just after the most recent boot.
-   Define this to be NULL to disable checking for this file.  */
-#ifndef BOOT_TIME_FILE
-#define BOOT_TIME_FILE "/var/run/random-seed"
-#endif
-
 /* Boot time is not available on Android.  */
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY

@@ -121,6 +121,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    the output, but that's gross.  So this should do; if the file is
    not there, the boot time will be returned as zero, and filelock.c
    already handles that.  */
+#undef BOOT_TIME_FILE
 #define BOOT_TIME_FILE "C:/pagefile.sys"
 
 /* ============================================================ */
