@@ -406,9 +406,10 @@ provides:
 At-point documentation: when point is at or near a symbol or an
 identifier, the information about the symbol/identifier, such as the
 signature of a function or class method and server-generated
-diagnostics, is made available via the ElDoc package (@pxref{Lisp
-Doc,,, emacs, GNU Emacs Manual}).  This allows major modes to provide
-extensive help and documentation about the program identifiers.
+diagnostics, is made available via the ElDoc package
+(@pxref{Programming Language Doc,,, emacs, GNU Emacs Manual}).  This
+allows major modes to provide extensive help and documentation about
+the program identifiers.
 
 @item
 On-the-fly diagnostic annotations with server-suggested fixes, via the
