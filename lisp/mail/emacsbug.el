@@ -144,6 +144,10 @@ This requires either the macOS \"open\" command, or the freedesktop
                (goto-char (point-min))
                (buffer-substring (line-beginning-position)
                                  (line-end-position))))))
+        ((eq system-type 'android)
+         ;; This is a short string containing the Android version,
+         ;; build number, and window system distributor.
+         (symbol-value 'android-build-fingerprint))
         ;; TODO Cygwin, Solaris (usg-unix-v).
         (t
          (or (let ((file "/etc/os-release"))
@@ -408,12 +412,6 @@ copy text to your preferred mail program.\n"
                   "', version "
 		  (mapconcat #'number-to-string (x-server-version) ".") "\n")
 	(error t)))
-  (when (and (boundp 'android-build-fingerprint)
-             (symbol-value 'android-build-fingerprint))
-    ;; This is used on Android.
-    (insert "Android version and manufacturer: "
-            (symbol-value 'android-build-fingerprint)
-            "\n"))
   (let ((os (ignore-errors (report-emacs-bug--os-description))))
     (if (stringp os)
         (insert "System Description: " os "\n\n")))
