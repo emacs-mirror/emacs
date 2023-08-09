@@ -2592,6 +2592,7 @@ If file has multiple names, it continues to exist with the other names. */)
 {
   Lisp_Object encoded_file;
 
+  CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
   encoded_file = ENCODE_FILE (filename);
 
