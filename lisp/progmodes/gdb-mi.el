@@ -928,7 +928,7 @@ detailed description of this mode.
           (setq-local comint-input-ring-file-name hfile))
       (comint-read-input-ring t)))
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
-	   "Set temporary breakpoint at current line.")
+	   "Set temporary breakpoint at current line." t)
   (gud-def gud-jump
 	   (progn (gud-call "tbreak %f:%l" arg) (gud-call "jump %f:%l"))
 	   "\C-j" "Set execution address to current line.")
@@ -959,7 +959,7 @@ detailed description of this mode.
 	   "Finish executing current function.")
   (gud-def gud-run    "-exec-run"
            nil
-           "Run the program.")
+           "Run the program." t)
 
   (gud-def gud-break (if (not (string-match "Disassembly" mode-name))
 			 (gud-call "break %f:%l" arg)
@@ -967,7 +967,7 @@ detailed description of this mode.
 			 (beginning-of-line)
 			 (forward-char 2)
 			 (gud-call "break *%a" arg)))
-	   "\C-b" "Set breakpoint at current line or address.")
+	   "\C-b" "Set breakpoint at current line or address." t)
 
   (gud-def gud-remove (if (not (string-match "Disassembly" mode-name))
 			  (gud-call "clear %f:%l" arg)
@@ -975,7 +975,7 @@ detailed description of this mode.
 			  (beginning-of-line)
 			  (forward-char 2)
 			  (gud-call "clear *%a" arg)))
-	   "\C-d" "Remove breakpoint at current line or address.")
+	   "\C-d" "Remove breakpoint at current line or address." t)
 
   ;; -exec-until doesn't support --all yet
   (gud-def gud-until  (if (not (string-match "Disassembly" mode-name))
@@ -1044,6 +1044,7 @@ detailed description of this mode.
 
   (setq gdb-first-prompt t)
   (setq gud-running nil)
+  (setq gud-async-running nil)
 
   (gdb-update)
 
@@ -2671,9 +2672,11 @@ Sets `gdb-thread-number' to new id."
   ;; Set `gdb-non-stop' when `gdb-last-command' is a CLI background
   ;; running command e.g. "run &", attach &" or a MI command
   ;; e.g. "-exec-run" or "-exec-attach".
-  (when (or (string-match "&\s*$" gdb-last-command)
-            (string-match "^-" gdb-last-command))
-    (gdb-try-check-target-async-support))
+  (if (or (string-match "&\s*$" gdb-last-command)
+          (string-match "^-" gdb-last-command))
+      (progn (gdb-try-check-target-async-support)
+             (setq gud-async-running t))
+    (setq gud-async-running nil))
 
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
