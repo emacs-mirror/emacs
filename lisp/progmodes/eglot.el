@@ -219,7 +219,8 @@ chosen (interactively or automatically)."
                                  . ("dart" "language-server"
                                     "--client-id" "emacs.eglot-dart"))
                                 ((elixir-mode elixir-ts-mode heex-ts-mode)
-                                 . ,(if (and (fboundp 'w32-shell-dos-semantics)                                             (w32-shell-dos-semantics))
+                                 . ,(if (and (fboundp 'w32-shell-dos-semantics)
+                                             (w32-shell-dos-semantics))
                                         '("language_server.bat")
                                       '("language_server.sh")))
                                 (ada-mode . ("ada_language_server"))
