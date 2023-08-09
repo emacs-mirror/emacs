@@ -4023,7 +4023,7 @@ by calling `format-decode', which see.  */)
   if (!S_ISREG (st.st_mode))
     {
       regular = false;
-      seekable = lseek (fd, 0, SEEK_CUR) < 0;
+      seekable = lseek (fd, 0, SEEK_CUR) != (off_t) -1;
 
       if (! NILP (visit))
         {
@@ -4581,7 +4581,7 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
-  if ((seekable && regular) || !NILP (end))
+  if (seekable || !NILP (end))
     total = end_offset - beg_offset;
   else
     /* For a special file, all we can do is guess.  */
@@ -4678,7 +4678,7 @@ by calling `format-decode', which see.  */)
 	   For a special file, where TOTAL is just a buffer size,
 	   so don't bother counting in HOW_MUCH.
 	   (INSERTED is where we count the number of characters inserted.)  */
-	if ((seekable && regular) || !NILP (end))
+	if (seekable || !NILP (end))
 	  how_much += this;
 	inserted += this;
       }
