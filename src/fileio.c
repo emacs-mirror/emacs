@@ -6802,9 +6802,6 @@ This includes interactive calls to `delete-file' and
   /* Lisp function for interactive file delete with trashing */
   DEFSYM (Qdelete_file, "delete-file");
 
-  /* Lisp function for moving files to trash.  */
-  DEFSYM (Qmove_file_to_trash, "move-file-to-trash");
-
   /* Lisp function for recursively copying directories.  */
   DEFSYM (Qcopy_directory, "copy-directory");
 
