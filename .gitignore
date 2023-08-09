@@ -380,6 +380,7 @@ exec/loader
 exec/test
 exec/exec1
 exec/deps/*
+exec/aclocal.m4
 exec/autom4te.cache
 exec/config.h
 exec/config.h.in

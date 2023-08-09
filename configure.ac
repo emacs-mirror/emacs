@@ -2762,16 +2762,16 @@ if test x"${x_includes}" = x; then
   bitmapdir=/usr/include/X11/bitmaps
 else
   # accumulate include directories that have X11 bitmap subdirectories
-  bmd_acc=
+  AS_UNSET([bmd_acc])
   for bmd in `AS_ECHO(["$x_includes"]) | sed -e 's/:/ /g'`; do
     if test -d "${bmd}/X11/bitmaps"; then
-      bmd_acc="${bmd_acc}:${bmd}/X11/bitmaps"
+      bmd_acc="${bmd_acc+$bmd_acc:}${bmd}/X11/bitmaps"
     fi
     if test -d "${bmd}/bitmaps"; then
-      bmd_acc="${bmd_acc}:${bmd}/bitmaps"
+      bmd_acc="${bmd_acc+$bmd_acc:}${bmd}/bitmaps"
     fi
   done
-  bitmapdir=${bmd_acc#:}
+  bitmapdir=$bmd_acc
 fi
 
 NATIVE_IMAGE_API=no
