@@ -5,8 +5,9 @@ See the end of the file for license conditions.
 Please read the entirety of this file before attempting to build Emacs
 as an application package which can run on Android devices.
 
-When building from the source repository, make sure to read
-INSTALL.REPO as well.
+When building from the source repository (as opposed to from a release
+tarball), make sure to read INSTALL.REPO in the top-level directory as
+well.
 
 
 
