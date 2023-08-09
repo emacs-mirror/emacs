@@ -107,8 +107,7 @@ each clause."
 
 (defun macroexp--compiler-macro (handler form)
   (condition-case-unless-debug err
-      (let ((symbols-with-pos-enabled t))
-        (apply handler form (cdr form)))
+      (apply handler form (cdr form))
     (error
      (message "Warning: Optimization failure for %S: Handler: %S\n%S"
               (car form) handler err)
@@ -760,40 +759,38 @@ test of free variables in the following ways:
 
 (defun internal-macroexpand-for-load (form full-p)
   ;; Called from the eager-macroexpansion in readevalloop.
-  (let ((symbols-with-pos-enabled t)
-        (print-symbols-bare t))
-    (cond
-     ;; Don't repeat the same warning for every top-level element.
-     ((eq 'skip (car macroexp--pending-eager-loads)) form)
-     ;; If we detect a cycle, skip macro-expansion for now, and output a warning
-     ;; with a trimmed backtrace.
-     ((and load-file-name (member load-file-name macroexp--pending-eager-loads))
-      (let* ((bt (delq nil
-                       (mapcar #'macroexp--trim-backtrace-frame
-                               (macroexp--backtrace))))
-             (elem `(load ,(file-name-nondirectory load-file-name)))
-             (tail (member elem (cdr (member elem bt)))))
-        (if tail (setcdr tail (list '…)))
-        (if (eq (car-safe (car bt)) 'macroexpand-all) (setq bt (cdr bt)))
-        (if macroexp--debug-eager
-            (debug 'eager-macroexp-cycle)
-          (error "Eager macro-expansion skipped due to cycle:\n  %s"
-                 (mapconcat #'prin1-to-string (nreverse bt) " => ")))
-        (push 'skip macroexp--pending-eager-loads)
-        form))
-     (t
-      (condition-case err
-          (let ((macroexp--pending-eager-loads
-                 (cons load-file-name macroexp--pending-eager-loads)))
-            (if full-p
-                (macroexpand--all-toplevel form)
-              (macroexpand form)))
-        (error
-         ;; Hopefully this shouldn't happen thanks to the cycle detection,
-         ;; but in case it does happen, let's catch the error and give the
-         ;; code a chance to macro-expand later.
-         (error "Eager macro-expansion failure: %S" err)
-         form))))))
+  (cond
+   ;; Don't repeat the same warning for every top-level element.
+   ((eq 'skip (car macroexp--pending-eager-loads)) form)
+   ;; If we detect a cycle, skip macro-expansion for now, and output a warning
+   ;; with a trimmed backtrace.
+   ((and load-file-name (member load-file-name macroexp--pending-eager-loads))
+    (let* ((bt (delq nil
+                     (mapcar #'macroexp--trim-backtrace-frame
+                             (macroexp--backtrace))))
+           (elem `(load ,(file-name-nondirectory load-file-name)))
+           (tail (member elem (cdr (member elem bt)))))
+      (if tail (setcdr tail (list '…)))
+      (if (eq (car-safe (car bt)) 'macroexpand-all) (setq bt (cdr bt)))
+      (if macroexp--debug-eager
+          (debug 'eager-macroexp-cycle)
+        (error "Eager macro-expansion skipped due to cycle:\n  %s"
+               (mapconcat #'prin1-to-string (nreverse bt) " => ")))
+      (push 'skip macroexp--pending-eager-loads)
+      form))
+   (t
+    (condition-case err
+        (let ((macroexp--pending-eager-loads
+               (cons load-file-name macroexp--pending-eager-loads)))
+          (if full-p
+              (macroexpand--all-toplevel form)
+            (macroexpand form)))
+      (error
+       ;; Hopefully this shouldn't happen thanks to the cycle detection,
+       ;; but in case it does happen, let's catch the error and give the
+       ;; code a chance to macro-expand later.
+       (error "Eager macro-expansion failure: %S" err)
+       form)))))
 
 ;; ¡¡¡ Big Ugly Hack !!!
 ;; src/bootstrap-emacs is mostly used to compile .el files, so it needs
