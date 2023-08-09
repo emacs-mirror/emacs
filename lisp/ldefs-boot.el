@@ -37363,6 +37363,7 @@ run a specific program.  The program must be a member of
 ;; Local Variables:
 ;; version-control: never
 ;; no-update-autoloads: t
+;; no-byte-compile: t
 ;; no-native-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:
