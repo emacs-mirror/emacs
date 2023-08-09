@@ -1424,6 +1424,12 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   /* Set LD_LIBRARY_PATH to an appropriate value.  */
   setenv ("LD_LIBRARY_PATH", android_lib_dir, 1);
 
+  /* EMACS_LD_LIBRARY_PATH records the location of the app library
+     directory.  android-emacs refers to this, since users have valid
+     reasons for changing LD_LIBRARY_PATH to a value that precludes
+     the possibility of Java locating libemacs later.  */
+  setenv ("EMACS_LD_LIBRARY_PATH", android_lib_dir, 1);
+
   /* Make a reference to the Emacs service.  */
 
   if (emacs_service_object)
