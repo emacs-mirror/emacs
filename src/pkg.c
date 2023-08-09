@@ -967,7 +967,6 @@ init_pkg_once (void)
   Vearmuffs_package = Vemacs_package;
   XSYMBOL (Qearmuffs_package)->u.s.declared_special = true;
 
-  DEFSYM (Qpackage_prefixes, "package-prefixes");
   staticpro (&Vpackage_prefixes);
   Vpackage_prefixes = Qnil;
 
