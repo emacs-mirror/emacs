@@ -1392,11 +1392,8 @@ clashes."
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))
   (unless (comp-ctxt-output comp-ctxt)
-    (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
-                                        filename
-                                        (or native-compile-target-directory
-                                            (when byte+native-compile
-                                              (car (last native-comp-eln-load-path)))))))
+    (setf (comp-ctxt-output comp-ctxt)
+          (comp-el-to-eln-filename filename native-compile-target-directory)))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
@@ -4351,6 +4348,8 @@ variable \"NATIVE_DISABLED\" is set, only byte compile."
       (batch-byte-compile)
     (cl-assert (length= command-line-args-left 1))
     (let* ((byte+native-compile t)
+           (native-compile-target-directory
+            (car (last native-comp-eln-load-path)))
            (byte-to-native-output-buffer-file nil)
            (eln-file (car (batch-native-compile))))
       (comp-write-bytecode-file eln-file)

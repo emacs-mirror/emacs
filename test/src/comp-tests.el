@@ -70,9 +70,11 @@ Check that the resulting binaries do not differ."
     :suffix "-comp-stage1.el"
     (ert-with-temp-file comp2-src
       :suffix "-comp-stage2.el"
-      (let* ((byte+native-compile t)     ; FIXME HACK
+      (let* ((byte+native-compile t)
+             (native-compile-target-directory
+              (car (last native-comp-eln-load-path)))
              (comp-src (expand-file-name "../../../lisp/emacs-lisp/comp.el"
-                                     (ert-resource-directory)))
+                                         (ert-resource-directory)))
              ;; Can't use debug symbols.
              (native-comp-debug 0))
         (copy-file comp-src comp1-src t)
