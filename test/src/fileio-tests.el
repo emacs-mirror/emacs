@@ -194,6 +194,8 @@ Also check that an encoding error can appear in a symlink."
   (should (equal (file-name-concat "" "") "")))
 
 (ert-deftest fileio-tests--non-regular-insert ()
+  ;; Fails in Emacs 29 because /dev/urandom is typically seekable (bug#65156)
+  :tags '(:unstable)
   (skip-unless (file-exists-p "/dev/urandom"))
   (with-temp-buffer
     (set-buffer-multibyte nil)
