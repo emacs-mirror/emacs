@@ -12125,7 +12125,7 @@
 	* vc-dispatcher.el (top-level): Revert previous change: require cl
 	when compiling.
 
-2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-16  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-default-status-printer)
 	(vc-default-prettify-state-info): Enhance the state prettyprinter
@@ -12143,7 +12143,7 @@
 	* net/tramp.el (tramp-handle-write-region): Fix check for short track.
 	Reported by Glenn Morris <rgm@gnu.org>.
 
-2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-16  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el: Remove my analysis of SCCS/RCS concurrency issues from
 	the end of the file, it was good work at one time but has been
@@ -12179,7 +12179,7 @@
 	(ses-mode): Set indent-tabs-mode to nil.
 	(ses-center): Use string-width rather than length.
 
-2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-15  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-cvs.el, vc-git.el, vc-hg.el, vc-hooks.el, vc-mcvs.el,
 	* vc-rcs.el, vc-sccs.el, vc-svn.el, vc.el:
@@ -12204,7 +12204,7 @@
 	* progmodes/cc-mode.el (declare-function): Add compat definition.
 	(awk-mode-syntax-table, c-awk-unstick-NL-prop): Declare for compiler.
 
-2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-14  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-dispatcher.el (vc-dispatcher-selection): Change the returned
 	list to a cons so the caller can get back both expanded and
@@ -12251,7 +12251,7 @@
 	(tramp-echo-mark-marker): New defconst.
 	(tramp-check-for-regexp): Use it.
 
-2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-14  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-deduce-fileset): Do the right thing when visiting a
 	buffer (say, a log buffer or diff buffer) with a vc-dir buffer
@@ -12343,7 +12343,7 @@
 	(dired-toggle-marks, dired-change-marks, dired-unmark-all-files):
 	buffer-read-only -> inhibit-read-only.
 
-2008-05-12  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-12  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-expand-dirs): Stop this function from tossing out
 	explicitly specified files.
@@ -12395,7 +12395,7 @@
 	* emulation/cua-base.el: Put isearch-scroll property
 	on cua-scroll-up and cua-scroll-down.
 
-2008-05-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-hooks.el (vc-recompute-state): Remove (dead code).
 
@@ -12416,7 +12416,7 @@
 
 	* smerge-mode.el (smerge-command-prefix): Fix custom type.
 
-2008-05-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-10  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-dispatcher.el (vc-dir-next-directory, vc-dir-prev-directory):
 	New functions implementing motion to next and previous directory.
@@ -12449,7 +12449,7 @@
 
 	* vc-hooks.el (vc-prefix-map): Remove duplicate binding.
 
-2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-dir):
 	* vc-hooks.el: Tweak the VC directory bindings.  These are now
@@ -12466,7 +12466,7 @@
 
 	* simple.el (start-file-process): Clarify docstring.
 
-2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-sccs.el, vc-svn.el, vc-git.el, vc-hg.el, vc-mtn.el:
 	Remove stub implementations of, and references to, wash-log.
@@ -12515,7 +12515,7 @@
 	* vc.el (vc-version-diff, vc-print-log, vc-revert, vc-rollback)
 	(vc-update): Remove unused let bindings.
 
-2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-deduce-fileset, vc-next-action, vc-version-diff)
 	(vc-diff, vc-revert, vc-rollback, vc-update):
@@ -12609,7 +12609,7 @@
 	(robin-current-package-name): Doc fix.
 	(robin-activate): Don't use `iff' in docstring.
 
-2008-05-07  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-07  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el, vc-dispatcher.el: VC-Dired support removed.
 	The code uses a ewoc-based implementation now.
@@ -12639,7 +12639,7 @@
 	* progmodes/fortran.el (fortran-mode): Fix font-lock-syntactic-keywords
 	oddness.
 
-2008-05-06  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-06  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-hooks.el (vc-find-file-hook):
 	* vc-dispatcher.el (vc-resynch-window): Decouple vc-dispatcher
@@ -12692,7 +12692,7 @@
 
 	* dired.el (dired-read-dir-and-switches): Fix up last change.
 
-2008-05-05  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-05  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-deduce-fileset): Lift all the policy and UI stuff
 	out of this function, move it to vc-dispatcher-selection-set.
@@ -12770,7 +12770,7 @@
 	* ls-lisp.el (ls-lisp-insert-directory): Use `string-width'
 	instead of `length' for comparing length of user and group names.
 
-2008-05-03  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-03  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-dispatcher.el: New file, separates out the UI and command
 	execution machinery from VCS-specific logic left in vc.el.
@@ -12789,7 +12789,7 @@
 	* progmodes/grep.el (grep-mode-map): Bind "g" to recompile (like
 	in dired &c).
 
-2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-02  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-arch.el, vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el,
 	* vc-hooks.el, vc-mcvs.el, vc-mtn.el, vc-rcs.el, vc-sccs.el,
@@ -12846,7 +12846,7 @@
 	function that is no longer there.
 	(hilit-chg-set): Remove running of highlight-changes-enable-hook.
 
-2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-02  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-default-dired-state-info): Change name of primitive
 	to prettify-state-info, in preparation for ripping out dired mode.
@@ -12879,7 +12879,7 @@
 	* progmodes/compile.el (compilation-auto-jump):
 	Set window point to `pos' explicitly.
 
-2008-05-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-05-01  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-bzr.el (vc-bzr-state): Allow this to return 'ignored
 	when appropriate.

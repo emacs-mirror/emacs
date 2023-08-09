@@ -25476,7 +25476,7 @@ There is no specific spam or ham processor for regular expressions.
 
 @defvar spam-use-bogofilter
 
-Set this variable if you want @code{spam-split} to use Eric Raymond's
+Set this variable if you want @code{spam-split} to use Eric S. Raymond's
 speedy Bogofilter.
 
 With a minimum of care for associating the @samp{$} mark for spam
@@ -25508,7 +25508,7 @@ Get the Bogofilter spamicity score (@code{spam-bogofilter-score}).
 
 @defvar spam-use-bogofilter-headers
 
-Set this variable if you want @code{spam-split} to use Eric Raymond's
+Set this variable if you want @code{spam-split} to use Eric S. Raymond's
 speedy Bogofilter, looking only at the message headers.  It works
 similarly to @code{spam-use-bogofilter}, but the @code{X-Bogosity} header
 must be in the message already.  Normally you would do this with a

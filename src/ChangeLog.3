@@ -1250,7 +1250,7 @@
 
 	* data.c (Fdefine_function): New function (same code as Fdefalias).
 
-1993-04-28  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-28  Eric S. Raymond  (esr@thyrsus.com)
 
 	* eval.c (do_autoload): Fixed the bug in the autoload-saving code.
 
@@ -1258,7 +1258,7 @@
 
 	* keyboard.c (Fcurrent_input_mode): New function.
 
-1993-04-27  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-27  Eric S. Raymond  (esr@thyrsus.com)
 
 	* eval.c (un_autoload): Don't try to save old autoload forms when
 	we load something in.  Something about the code now conditioned
@@ -1311,7 +1311,7 @@
 	* dispnew.c (Fsleep_for, Fsit_for): Allow SECONDS to be a
 	floating point value.
 
-1993-04-26  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-26  Eric S. Raymond  (esr@thyrsus.com)
 
 	* sysdep.c (read_pending_input):
 	Fix the garbaged-modifiers bug under System Vs previous
@@ -1330,7 +1330,7 @@
 	beginning or end of the original text to float to the
 	corresponding position in the replacement text.
 
-1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-25  Eric S. Raymond  (esr@thyrsus.com)
 
 	* window.c (Fset-window-buffer):
 	Set horizontal-scrolling on a window to zero when
@@ -1351,7 +1351,7 @@
 	(apply_modifiers): Don't abort if you see extra modifier bits,
 	just remove them.
 
-1993-04-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-23  Eric S. Raymond  (esr@thyrsus.com)
 
 	* data.c (Fdefine_function):
 	Changed name back to Fdefalias, so we get things
@@ -1386,7 +1386,7 @@
 	(eval_region, eval_buffer): Call readevalloop with new arg.
 	(load_history): New variable.
 
-1993-04-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-16  Eric S. Raymond  (esr@thyrsus.com)
 
 	* lread.c (readevalloop): New argument is the source file name (or
 	nil if none).  All calls changed.  Do the two-step
@@ -1928,7 +1928,7 @@
 	* xfns.c (Fx_display_color_p): Renamed from Fx_color_display_p.
 	(syms_of_xfns): Use new name in defsubr.
 
-1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-19  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Makefile.in (unlock, relock): New productions to assist with
 	version control.
@@ -1960,7 +1960,7 @@
 	* xfns.c (x_screen): Make this var file scope.
 	(Fx_server_version): Use Fcons, not list3.
 
-1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* xterm.c (term_get_fkeys): Less klugey version of the last fix.
 
@@ -1976,7 +1976,7 @@
 	* xterm.c (x_display_box_cursor, x_display_bar_cursor): Don't
 	display the cursor on garbaged frames.
 
-1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term.c (term_get_fkeys) Supply second args for all tgetstr calls.
 
@@ -2182,7 +2182,7 @@
 	* cmd.c (internal_self_insert): Check that tab_width does not
 	exceed 20, to be consistent with indent.c and xdisp.c.
 
-1993-03-12  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-12  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term.c (CONDITIONAL_REASSIGN): Fixed reference to tigetstr.
 	This should have been tgetstr, but I typoed and tigetstr happens
@@ -2215,7 +2215,7 @@
 	(make_lispy_event): Handle menu bar events.
 	(read_key_sequence): Make dummy prefix `menu-bar' for menu bar events.
 
-1993-03-11  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-11  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term.c (fkey_table): Added many more keycap cookies to the
 	fkey_table; it now supports the full intersection of the set of X
@@ -2289,7 +2289,7 @@
 	have the data_start symbol defined, so we'll just use the address
 	of environ.
 
-	* s/usg5-4.h: Changes from Eric Raymond:
+	* s/usg5-4.h: Changes from Eric S. Raymond:
 	If we're doing ordinary linking, define LIB_STANDARD appropriately.
 	Give LIBS_DEBUG a null definition; usg5-4 has no -lg.
 	#define LIBS_STANDARD as "-lc"; usg5-4 has no -lPW.
@@ -2297,7 +2297,7 @@
 	#define HAVE_TERMIOS instead of HAVE_TCATTR.
 	Provide our own definition of LIB_X11_LIB.
 
-	* s/usg5-3.h (LIBX11_SYSTEM): Eric Raymond says the libraries here
+	* s/usg5-3.h (LIBX11_SYSTEM): Eric S. Raymond says the libraries here
 	were slightly wrong.
 
 	* m/intel386.h (LIB_STANDARD): If USG5_4 is #defined, there's no
@@ -4335,7 +4335,7 @@
 	* Makefile.in: Rearrange dependencies to make sure that xmakefile
 	is built before we try to use it, even using a parallel make.
 
-	Changes for SYSV from Eric Raymond:
+	Changes for SYSV from Eric S. Raymond:
 	* process.c [SYSV]: Don't include <termios.h>, <termio.h>, or
 	<fcntl.h>.
 	(process_send_signal): Don't try to send SIGTSTP
@@ -6187,7 +6187,7 @@
 
 	* xterm.c: Doc fixes.
 
-	More SYSV portability changes from Eric Raymond:
+	More SYSV portability changes from Eric S. Raymond:
 
 	* xterm.c [USG5]: Don't include <sys/types.h>.
 
@@ -6222,7 +6222,7 @@
 
 1992-08-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	Applied SYSV portability changes from Eric Raymond:
+	Applied SYSV portability changes from Eric S. Raymond:
 
 	* xrdb.c [USG5]: Define SYSV, and then include <unistd.h>.
 	Apparently, Xlib.h include string.h if SYSV is defined, and
@@ -6279,7 +6279,7 @@
 
 	* sysdep.c [USG5]: Don't include fcntl.h.
 
-	* s/usg5-3.h: Eric Raymond writes:
+	* s/usg5-3.h: Eric S. Raymond writes:
 	Define HAVE_SELECT and BSTRINGS only if HAVE_X_WINDOWS is on,
 	because that means we'll be linking in the shared libraries
 	containing the BSD emulations.  Teach the file about the shared
@@ -6333,7 +6333,7 @@
 	wasn't written portably, and it should probably go somewhere else
 	anyway - say, funcall or eval.
 
-	End of changes from Eric Raymond.
+	End of changes from Eric S. Raymond.
 
 	* xfns.c (Fx_create_frame): Make the default for the icon-type
 	parameter nil, not t.  It seems to cause problems with some X

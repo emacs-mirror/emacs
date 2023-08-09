@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992-1996, 1998, 2000-2023 Free Software Foundation,
 ;; Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, tools
 

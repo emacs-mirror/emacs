@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1991, 2001-2023 Free Software Foundation, Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages
 
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This mode was written by Eric S. Raymond <esr@snark.thyrsus.com>,
+;; This mode was written by Eric S. Raymond <esr@thyrsus.com>,
 ;; inspired by an earlier `asm-mode' by Martin Neitzel.
 
 ;; This major mode is based on `prog-mode'.  It defines a private

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Created: 16 Jun 1992
 ;; Keywords: help
 
