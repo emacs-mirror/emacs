@@ -1215,6 +1215,8 @@ static void x_set_input_focus (struct x_display_info *, Window, Time);
 static void x_scroll_bar_redraw (struct scroll_bar *);
 #endif
 
+
+
 /* Global state maintained during a drag-and-drop operation.  */
 
 /* Flag that indicates if a drag-and-drop operation is in progress.  */
@@ -1542,6 +1544,8 @@ static struct x_client_list_window *x_dnd_toplevels;
 /* Whether or not the window manager supports the required features
    for `x_dnd_toplevels' to work.  */
 static bool x_dnd_use_toplevels;
+
+
 
 /* Motif drag-and-drop protocol support.  */
 
@@ -2914,6 +2918,11 @@ x_dnd_send_xm_leave_for_drop (struct x_display_info *dpyinfo,
 				     wdesc, &lmsg);
 }
 
+
+
+/* Drag-and-drop and XDND protocol primitives employed by the event
+   loop.  */
+
 static void
 x_dnd_free_toplevels (bool display_alive)
 {
@@ -3259,9 +3268,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
       if (!xm_property_reply)
 	free (error);
 
-      extent_property_reply = xcb_get_property_reply (dpyinfo->xcb_connection,
-						      extent_property_cookies[i],
-						      &error);
+      extent_property_reply
+	= xcb_get_property_reply (dpyinfo->xcb_connection,
+				  extent_property_cookies[i],
+				  &error);
 
       if (!extent_property_reply)
 	free (error);
@@ -3342,7 +3352,8 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 #else
 	  if (xm_property_reply
 	      && xm_property_reply->format == 8
-	      && xm_property_reply->type == dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO
+	      && (xm_property_reply->type
+		  == dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO)
 	      && xcb_get_property_value_length (xm_property_reply) >= 4)
 	    {
 	      xmdata = xcb_get_property_value (xm_property_reply);
@@ -3391,9 +3402,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 		  XFree (rects);
 		}
 #else
-	      bounding_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
-								    bounding_rect_cookies[i],
-								    &error);
+	      bounding_rect_reply
+		= xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+						  bounding_rect_cookies[i],
+						  &error);
 
 	      if (bounding_rect_reply)
 		{
@@ -3404,7 +3416,8 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 						 * sizeof *tem->bounding_rects);
 		  tem->n_bounding_rects = 0;
 
-		  for (; bounding_rect_iterator.rem; xcb_rectangle_next (&bounding_rect_iterator))
+		  for (; bounding_rect_iterator.rem;
+		       xcb_rectangle_next (&bounding_rect_iterator))
 		    {
 		      tem->bounding_rects[tem->n_bounding_rects].x
 			= bounding_rect_iterator.data->x;
@@ -3429,9 +3442,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 		  || (dpyinfo->xshape_major == 1
 		      && dpyinfo->xshape_minor >= 1))
 		{
-		  input_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
-								     input_rect_cookies[i],
-								     &error);
+		  input_rect_reply
+		    = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+						      input_rect_cookies[i],
+						      &error);
 
 		  if (input_rect_reply)
 		    {
@@ -3442,7 +3456,8 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 						  * sizeof *tem->input_rects);
 		      tem->n_input_rects = 0;
 
-		      for (; input_rect_iterator.rem; xcb_rectangle_next (&input_rect_iterator))
+		      for (; input_rect_iterator.rem;
+			   xcb_rectangle_next (&input_rect_iterator))
 			{
 			  tem->input_rects[tem->n_input_rects].x
 			    = input_rect_iterator.data->x;
@@ -3509,17 +3524,25 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	  if (tem->n_input_rects == -1
 	      && tem->n_bounding_rects == 1
 #ifdef USE_XCB
-	      && tem->bounding_rects[0].width == (geometry_reply->width
-						  + geometry_reply->border_width)
-	      && tem->bounding_rects[0].height == (geometry_reply->height
-						   + geometry_reply->border_width)
-	      && tem->bounding_rects[0].x == -geometry_reply->border_width
-	      && tem->bounding_rects[0].y == -geometry_reply->border_width
+	      && (tem->bounding_rects[0].width
+		  == (geometry_reply->width
+		      + geometry_reply->border_width))
+	      && (tem->bounding_rects[0].height
+		  == (geometry_reply->height
+		      + geometry_reply->border_width))
+	      && (tem->bounding_rects[0].x
+		  == -geometry_reply->border_width)
+	      && (tem->bounding_rects[0].y
+		  == -geometry_reply->border_width)
 #else
-	      && tem->bounding_rects[0].width == attrs.width + attrs.border_width
-	      && tem->bounding_rects[0].height == attrs.height + attrs.border_width
-	      && tem->bounding_rects[0].x == -attrs.border_width
-	      && tem->bounding_rects[0].y == -attrs.border_width
+	      && (tem->bounding_rects[0].width
+		  == attrs.width + attrs.border_width)
+	      && (tem->bounding_rects[0].height
+		  == attrs.height + attrs.border_width)
+	      && (tem->bounding_rects[0].x
+		  == -attrs.border_width)
+	      && (tem->bounding_rects[0].y
+		  == -attrs.border_width)
 #endif
 	      )
 	    {
@@ -3542,9 +3565,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 #ifdef HAVE_XCB_SHAPE
 	  if (dpyinfo->xshape_supported_p)
 	    {
-	      bounding_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
-								    bounding_rect_cookies[i],
-								    &error);
+	      bounding_rect_reply
+		= xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+						  bounding_rect_cookies[i],
+						  &error);
 
 	      if (bounding_rect_reply)
 		free (bounding_rect_reply);
@@ -3559,9 +3583,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 		  || (dpyinfo->xshape_major == 1
 		      && dpyinfo->xshape_minor >= 1)))
 	    {
-	      input_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
-								 input_rect_cookies[i],
-								 &error);
+	      input_rect_reply
+		= xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+						  input_rect_cookies[i],
+						  &error);
 
 	      if (input_rect_reply)
 		free (input_rect_reply);
@@ -3784,8 +3809,10 @@ x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
 	      if (tem->n_input_rects == -1
 		  || x_dnd_get_target_window_2 (tem->input_rects,
 						tem->n_input_rects,
-						tem->border_width + root_x - tem->x,
-						tem->border_width + root_y - tem->y))
+						(tem->border_width
+						 + root_x - tem->x),
+						(tem->border_width
+						 + root_y - tem->y)))
 		{
 		  chosen = tem;
 		  break;
@@ -3872,11 +3899,12 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
 					(xcb_window_t) window,
 					(xcb_atom_t) dpyinfo->Xatom_XdndProxy,
 					XA_WINDOW, 0, 1);
-  xm_style_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
-				      (xcb_window_t) window,
-				      (xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
-				      (xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
-				      0, 4);
+  xm_style_cookie
+    = xcb_get_property (dpyinfo->xcb_connection, 0,
+			(xcb_window_t) window,
+			(xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
+			(xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
+			0, 4);
 
   reply = xcb_get_property_reply (dpyinfo->xcb_connection,
 				  wmstate_cookie, &error);
@@ -4920,6 +4948,11 @@ x_dnd_cleanup_drag_and_drop (void *frame)
   x_restore_events_after_dnd (f, &x_dnd_old_window_attrs);
 }
 
+
+
+/* Primitives for simplified drag-and-drop tracking when items are
+   being dragged between frames comprising the same Emacs session.  */
+
 static void
 x_dnd_note_self_position (struct x_display_info *dpyinfo, Window target,
 			  unsigned short root_x, unsigned short root_y)
@@ -5050,6 +5083,10 @@ x_dnd_note_self_drop (struct x_display_info *dpyinfo, Window target,
   kbd_buffer_store_event (&ie);
 }
 
+
+
+/* Miscellaneous X event and graphics extension functions.  */
+
 /* Flush display of frame F.  */
 
 static void
@@ -5134,28 +5171,9 @@ record_event (char *locus, int type)
 
 #endif
 
-#ifdef HAVE_XINPUT2
-bool
-xi_frame_selected_for (struct frame *f, unsigned long event)
-{
-  XIEventMask *masks;
-  int i;
+
 
-  masks = FRAME_X_OUTPUT (f)->xi_masks;
-
-  if (!masks)
-    return false;
-
-  for (i = 0; i < FRAME_X_OUTPUT (f)->num_xi_masks; ++i)
-    {
-      if (masks[i].mask_len >= XIMaskLen (event)
-	  && XIMaskIsSet (masks[i].mask, event))
-	return true;
-    }
-
-  return false;
-}
-#endif
+/* Miscelaneous event handling functions.  */
 
 static void
 x_toolkit_position (struct frame *f, int x, int y,
@@ -5300,10 +5318,36 @@ x_extension_initialize (struct x_display_info *dpyinfo)
 
 #endif /* HAVE_CAIRO */
 
+
+
+/* X input extension device and event mask management functions.  */
+
 #ifdef HAVE_XINPUT2
+
+bool
+xi_frame_selected_for (struct frame *f, unsigned long event)
+{
+  XIEventMask *masks;
+  int i;
+
+  masks = FRAME_X_OUTPUT (f)->xi_masks;
+
+  if (!masks)
+    return false;
+
+  for (i = 0; i < FRAME_X_OUTPUT (f)->num_xi_masks; ++i)
+    {
+      if (masks[i].mask_len >= XIMaskLen (event)
+	  && XIMaskIsSet (masks[i].mask, event))
+	return true;
+    }
+
+  return false;
+}
 
 /* Convert XI2 button state IN to a standard X button modifier
    mask, and place it in OUT.  */
+
 static void
 xi_convert_button_state (XIButtonState *in, unsigned int *out)
 {
@@ -5325,7 +5369,7 @@ xi_convert_button_state (XIButtonState *in, unsigned int *out)
 
 #ifdef USE_GTK
 static
-#endif
+#endif /* USE_GTK */
 unsigned int
 xi_convert_event_state (XIDeviceEvent *xev)
 {
@@ -5351,12 +5395,13 @@ xi_convert_event_keyboard_state (XIDeviceEvent *xev)
 }
 
 /* Free all XI2 devices on DPYINFO.  */
+
 static void
 x_free_xi_devices (struct x_display_info *dpyinfo)
 {
 #ifdef HAVE_XINPUT2_2
   struct xi_touch_point_t *tem, *last;
-#endif
+#endif /* HAVE_XINPUT2_2 */
 
   block_input ();
 
@@ -5366,7 +5411,7 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
 	{
 #ifdef HAVE_XINPUT2_1
 	  xfree (dpyinfo->devices[i].valuators);
-#endif
+#endif /* HAVE_XINPUT2_1 */
 
 #ifdef HAVE_XINPUT2_2
 	  tem = dpyinfo->devices[i].touchpoints;
@@ -5376,7 +5421,7 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
 	      tem = tem->next;
 	      xfree (last);
 	    }
-#endif
+#endif /* HAVE_XINPUT2_2 */
 	}
 
       xfree (dpyinfo->devices);
@@ -5441,7 +5486,7 @@ xi_populate_scroll_valuator (struct xi_device_t *device,
   valuator->number = info->number;
 }
 
-#endif
+#endif /* HAVE_XINPUT2_1 */
 
 static void
 xi_populate_device_from_info (struct x_display_info *dpyinfo,
@@ -5453,14 +5498,14 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
   int actual_valuator_count, c;
   XIScrollClassInfo *info;
   XIValuatorClassInfo *valuator_info;
-#endif
+#endif /* HAVE_XINPUT2_1 */
 #ifdef HAVE_XINPUT2_2
   XITouchClassInfo *touch_info;
-#endif
+#endif /* HAVE_XINPUT2_2 */
 
 #ifdef HAVE_XINPUT2_1
   USE_SAFE_ALLOCA;
-#endif
+#endif /* HAVE_XINPUT2_1 */
 
   /* Initialize generic information about the device: its ID, which
      buttons are currently pressed and thus presumably actively
@@ -5917,8 +5962,12 @@ xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo,
 }
 
 #endif /* HAVE_XINPUT2_1 */
+#endif /* HAVE_XINPUT2 */
 
-#endif
+
+
+/* Cairo context, X rendering extension, and GC auxiliary data
+   management functions.  */
 
 #ifdef USE_CAIRO
 
@@ -6404,6 +6453,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 #endif	/* USE_CAIRO */
 
 #if defined HAVE_XRENDER
+
 void
 x_xr_apply_ext_clip (struct frame *f, GC gc)
 {
@@ -6427,7 +6477,8 @@ x_xr_reset_ext_clip (struct frame *f)
 			FRAME_X_PICTURE (f),
 			CPClipMask, &attrs);
 }
-#endif
+
+#endif /* HAVE_XRENDER */
 
 static void
 x_set_clip_rectangles (struct frame *f, GC gc, XRectangle *rectangles, int n)
@@ -6631,6 +6682,9 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 #endif
 }
 
+
+
+/* Graphics primitives.  */
 
 static void
 x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
@@ -6922,6 +6976,8 @@ x_set_frame_alpha (struct frame *f)
 		   (unsigned char *) &opac, 1);
   x_stop_ignoring_errors (dpyinfo);
 }
+
+
 
 /***********************************************************************
 		    Starting and ending an update
@@ -7617,6 +7673,8 @@ XTbuffer_flipping_unblocked_hook (struct frame *f)
   unblock_input ();
 }
 #endif
+
+
 
 /**
  * x_clear_under_internal_border:
