@@ -359,7 +359,7 @@ use instead of point."
   (interactive (list last-nonmenu-event))
   ;; If called from a menu, with the calendar window not selected.
   (with-current-buffer
-      (if event (window-buffer (posn-window (event-start event)))
+      (if event (calendar-event-buffer event)
         (current-buffer))
     (message "Looking up holidays...")
     (let ((holiday-list (calendar-holiday-list))
@@ -590,7 +590,7 @@ use instead of point."
   (interactive (list last-nonmenu-event))
   ;; If called from a menu, with the calendar window not selected.
   (with-current-buffer
-      (if event (window-buffer (posn-window (event-start event)))
+      (if event (calendar-event-buffer event)
         (current-buffer))
     (setq calendar-mark-holidays-flag t)
     (message "Marking holidays...")

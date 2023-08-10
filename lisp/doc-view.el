@@ -703,7 +703,7 @@ Typically \"page-%s.png\".")
                                    map doc-view-mode-map :vert-only t
                                    :enable '(< (doc-view-current-page)
                                                (doc-view-last-page-number))
-                                   :help "Move to the next page.")
+                                   :help "Move to the last page.")
     map)
   "Like the default `tool-bar-map', but with additions for DocView.")
 
