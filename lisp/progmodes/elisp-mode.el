@@ -84,6 +84,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
      :help "Byte-compile the current file (if it has changed), then load compiled code"]
     ["Byte-recompile Directory..." byte-recompile-directory
      :help "Recompile every `.el' file in DIRECTORY that needs recompilation"]
+    ["Native-compile This File" emacs-lisp-native-compile
+     :help "Compile the current file containing the current buffer to native code"
+     :active (native-comp-available-p)]
     ["Native-compile and Load" emacs-lisp-native-compile-and-load
      :help "Compile the current file to native code, then load compiled native code"
      :active (native-comp-available-p)]
