@@ -158,9 +158,8 @@ EVENT is an event like `last-nonmenu-event'."
                      last-nonmenu-event))
   (unless arg (setq arg 1))
   (save-current-buffer
-    ;; Nil if called from menu-bar.
-    (when (setq event (event-start event))
-      (select-buffer (calendar-event-buffer event)))
+    (when (event-start event)
+      (set-buffer (calendar-event-buffer event)))
     (calendar-cursor-to-nearest-date)
     (unless (zerop arg)
       (let ((old-date (calendar-cursor-to-date))
