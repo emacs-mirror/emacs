@@ -399,7 +399,7 @@ Startup}) connect the Android system to another computer, and run:
 $ adb shell "settings put global settings_enable_monitor_phantom_procs false"
 @end example
 
-@subsection Running Emacs in the Background
+@cindex running emacs in the background, android
 @cindex emacs killed, android
 @cindex emacs in the background, android
 
@@ -429,7 +429,7 @@ the background in their proprietary versions of Android.  There is a
 list of such troublesome manufacturers and sometimes workarounds at
 @url{https://dontkillmyapp.com/}.
 
-@subsection Android Permissions
+@cindex permissions under android
 @cindex external storage, android
 
   Android also defines a permissions system that determines what
