@@ -2625,11 +2625,11 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
 fi
 AC_SUBST([AUTO_DEPEND])
 
+BOOT_TIME_FILE=
 AC_CACHE_CHECK([for old but post-boot file],
   [emacs_cv_boot_time_file],
   [AS_CASE([$opsys],
-     [*bsd|darwin|dragonfly],
-       [emacs_cv_boot_time_file='not needed'],
+     [gnu-linux],
      [emacs_cv_boot_time_file=unknown
       AS_IF([test $cross_compiling = no],
 	[# systemd puts it in /var/lib/systemd.
@@ -2642,19 +2642,22 @@ AC_CACHE_CHECK([for old but post-boot file],
 	     /var/run/random-seed
 	 do
 	   test -f $file && { emacs_cv_boot_time_file=$file; break; }
-	 done])])])
+	 done])],
+     [*], [emacs_cv_boot_time_file=not-needed])])
+
 AS_CASE([$emacs_cv_boot_time_file],
   [/*|*:*], [BOOT_TIME_FILE=\"$emacs_cv_boot_time_file\"],
-  [NULL|nullptr|0], [BOOT_TIME_FILE=$emacs_cv_boot_time_file],
-  ['not needed'], [BOOT_TIME_FILE=NULL],
+  ['not needed'], [BOOT_TIME_FILE=],
   [# Guess systemd if unknown.
    # If guess is wrong, Emacs falls back on something else.
    BOOT_TIME_FILE=\"/var/lib/systemd/random-seed\"])
-AC_DEFINE_UNQUOTED([BOOT_TIME_FILE], [$BOOT_TIME_FILE],
-  [Name of file that, if it exists, postdates boot and predates
-   the first Emacs invocation; or a null pointer if no such file is known.
-   This file is used only on GNU/Linux and other systems
-   that lack the FreeBSD-style sysctl with KERN_BOOTTIME.])
+
+AS_IF([test -n "$BOOT_TIME_FILE"],
+  [AC_DEFINE_UNQUOTED([BOOT_TIME_FILE], [$BOOT_TIME_FILE],
+    [Name of file that, if it exists, postdates boot and predates
+     the first Emacs invocation; or a null pointer if no such file is known.
+     This file is used only on GNU/Linux and other systems
+     that lack the FreeBSD-style sysctl with KERN_BOOTTIME.])])
 
 #### Choose a window system.
 
