@@ -575,6 +575,20 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 
 ** Miscellaneous problems
 
+*** 'set-mouse-color' and the '-ms' command line argument do not work.
+
+Systems where the default cursors are not simple 1 bit-per-pixel
+bitmaps usually forbid recoloring the cursor, since it is unclear
+which colors should replace those already present within each cursor
+image.  For example, 'set-mouse-color' and '-ms' have no function on X
+systems with GNOME, KDE, and other recent desktop environments
+employing cursor images containing colors and partial transparency.
+
+Changing the cursor color is also impossible on MS-Windows and PGTK
+systems.  In the former case, it is because the prerequisite code has
+yet to be written.  In the latter, it is because GTK does not provide
+for changing the color of cursor images.
+
 *** Display artifacts on GUI frames on X-based systems.
 
 This is known to be caused by using double-buffering (which is enabled
