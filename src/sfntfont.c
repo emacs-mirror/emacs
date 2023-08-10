@@ -1341,9 +1341,22 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
   if (fd < 0)
     return;
 
+  /* Seek to the start of the font itself within its collection.  */
+
+  if (desc->offset
+      && lseek (fd, desc->offset, SEEK_SET) != desc->offset)
+    {
+      emacs_close (fd);
+      return;
+    }
+
   font = sfnt_read_table_directory (fd);
 
-  if (!font)
+  /* Return if FONT is a TrueType collection: the file pointer should
+     already have been moved to the start of the table directory if
+     so.  */
+
+  if (!font || font == (struct sfnt_offset_subtable *) -1)
     {
       emacs_close (fd);
       return;

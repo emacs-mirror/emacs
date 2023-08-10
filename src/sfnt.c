@@ -1006,7 +1006,7 @@ sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
       /* Read the common part of the new subtable.  */
       rc = read (fd, &(*subtables)[i], sizeof (*subtables)[i]);
 
-      if (rc < sizeof (*subtables))
+      if (rc < sizeof (*subtables)[i])
 	{
 	  xfree (cmap);
 	  xfree (*subtables);
