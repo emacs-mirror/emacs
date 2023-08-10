@@ -1617,6 +1617,7 @@ popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 
 
 #ifdef HAVE_XINPUT2
+
 static void
 prepare_for_entry_into_toolkit_menu (struct frame *f)
 {
@@ -1680,6 +1681,19 @@ leave_toolkit_menu (void *data)
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
 
+#ifdef HAVE_XINPUT2_4
+  /* Select for gesture events.  Emacs selects for gesture events from
+     all master devices on non-GTK3 builds, so that event mask is also
+     clobbered by prepare_for_entry_into_toolkit_menu.  (bug#65129) */
+
+  if (dpyinfo->xi2_version >= 4)
+    {
+      XISetMask (m, XI_GesturePinchBegin);
+      XISetMask (m, XI_GesturePinchUpdate);
+      XISetMask (m, XI_GesturePinchEnd);
+    }
+#endif /* HAVE_XINPUT2_4 */
+
   FOR_EACH_FRAME (tail, frame)
     {
       f = XFRAME (frame);
@@ -1691,7 +1705,8 @@ leave_toolkit_menu (void *data)
 			&mask, 1);
     }
 }
-#endif
+
+#endif /* HAVE_XINPUT2 */
 
 /* ID is the LWLIB ID of the dialog box.  */
 
