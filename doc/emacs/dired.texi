@@ -1726,12 +1726,17 @@ rotation is lossless, and uses an external utility called
 @section Other Dired Features
 
 @vindex dired-free-space
-  By default, Dired will display the available space on the disk in
-the first line.  This is the @code{first} value of the
-@code{dired-free-space} variable.  If you set this to
-@code{separate} instead, Dired will display this on a separate line
-(including the space the files in the current directory takes).  If
-you set this to @code{nil}, the free space isn't displayed at all.
+  By default, Dired displays the available space on the directory's
+disk on the first line of that directory listing, following the
+directory name.  You can control this display by customizing the
+variable @code{dired-free-space}.  Its default value is @code{first},
+which produces the available space after the directory name.  If you
+customize it to the value @code{separate} instead, Dired will display
+the disk space information on a separate line, following the line with
+the directory name, and will include in that line the space used by
+the files in the current directory as well as the available disk
+space.  If you set this to @code{nil}, the available disk space
+information will not be displayed at all.
 
 @kindex + @r{(Dired)}
 @findex dired-create-directory
