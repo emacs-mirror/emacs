@@ -2308,11 +2308,6 @@ This happens because the @code{grep} Lisp function returns immediately,
 and then the asynchronous @command{grep} process expects to examine the
 temporary file, which has since been deleted.
 
-@item Problem with C-r repeating text
-
-If the text @emph{before point} reads "./run", and you type @kbd{C-r r u
-n}, it will repeat the line for every character typed.
-
 @item Backspace doesn't scroll back after continuing (in smart mode)
 
 Hitting space during a process invocation, such as @command{make}, will
@@ -2364,8 +2359,6 @@ be Eshell's job?
 
 This would be so that if a Lisp function calls @code{print}, everything
 will happen as it should (albeit slowly).
-
-@item When an extension module fails to load, @samp{cd /} gives a Lisp error
 
 @item If a globbing pattern returns one match, should it be a list?
 
@@ -2669,12 +2662,6 @@ Everywhere in Emacs where @code{shell-mode} is specially noticed, add
 @code{eshell-mode} there.
 
 @item Permit the umask to be selectively set on a @command{cp} target
-
-@item Problem using @kbd{M-x eshell} after using @code{eshell-command}
-
-If the first thing that I do after entering Emacs is to run
-@code{eshell-command} and invoke @command{ls}, and then use @kbd{M-x
-eshell}, it doesn't display anything.
 
 @item @kbd{M-@key{RET}} during a long command (using smart display) doesn't work
 
