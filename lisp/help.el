@@ -1479,7 +1479,7 @@ If PREFIX is non-nil, mention only keys that start with PREFIX.
 If TITLE is non-nil, is a string to insert at the beginning.
 TITLE should not end with a colon or a newline; we supply that.
 
-If NOMENU is non-nil, then omit menu-bar commands.
+If NO-MENU is non-nil, then omit menu-bar commands.
 
 If TRANSL is non-nil, the definitions are actually key
 translations so print strings and vectors differently.
