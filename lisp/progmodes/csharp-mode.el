@@ -816,7 +816,7 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :feature 'definition
    :override t
-   '((qualified_name (identifier) @font-lock-type-face)
+   `((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
      (using_directive (name_equals
                        (identifier) @font-lock-type-face))
@@ -843,8 +843,13 @@ compilation and evaluation time conflicts."
      (class_declaration (identifier) @font-lock-type-face)
 
      (constructor_declaration name: (_) @font-lock-type-face)
-
-     (method_declaration type: [(identifier) (void_keyword)] @font-lock-type-face)
+     ;;; Handle different releases of tree-sitter-c-sharp.
+     ;;; Check if keyword void_keyword is available, then return the correct rule."
+     ,@(condition-case nil
+           (progn (treesit-query-capture 'csharp '((void_keyword) @capture))
+                  `((method_declaration type: [(identifier) (void_keyword)] @font-lock-type-face)))
+         (error
+          `((method_declaration type: [(identifier) (predefined_type)] @font-lock-type-face))))
      (method_declaration type: (generic_name (identifier) @font-lock-type-face))
      (method_declaration name: (_) @font-lock-function-name-face)
 
