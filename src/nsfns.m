@@ -3797,7 +3797,7 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 }
 
 /* Count the number of characters in STR, NBYTES long.
-   The string is valid UTF-8 except that it may contain unpaired surrogates.  */
+   The string must be valid UTF-8.  */
 static ptrdiff_t
 count_utf8_chars (const char *str, ptrdiff_t nbytes)
 {
@@ -3861,6 +3861,8 @@ count_utf8_chars (const char *str, ptrdiff_t nbytes)
 /* Make a Lisp string from an NSString.  */
 - (Lisp_Object)lispString
 {
+  /* If the input string includes unpaired surrogates, then the result
+     will be an empty string.  */
   const char *utf8 = [self UTF8String];
   ptrdiff_t bytes = [self lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
   return make_multibyte_string (utf8, count_utf8_chars (utf8, bytes), bytes);
