@@ -1727,7 +1727,7 @@ rotation is lossless, and uses an external utility called
 
 @vindex dired-free-space
   By default, Dired displays the available space on the directory's
-disk on the first line of that directory listing, following the
+disk on the first line of that directory's listing, following the
 directory name.  You can control this display by customizing the
 variable @code{dired-free-space}.  Its default value is @code{first},
 which produces the available space after the directory name.  If you
