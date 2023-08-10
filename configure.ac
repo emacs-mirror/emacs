@@ -2647,7 +2647,7 @@ AC_CACHE_CHECK([for old but post-boot file],
 
 AS_CASE([$emacs_cv_boot_time_file],
   [/*|*:*], [BOOT_TIME_FILE=\"$emacs_cv_boot_time_file\"],
-  ['not needed'], [BOOT_TIME_FILE=],
+  [not-needed], [BOOT_TIME_FILE=],
   [# Guess systemd if unknown.
    # If guess is wrong, Emacs falls back on something else.
    BOOT_TIME_FILE=\"/var/lib/systemd/random-seed\"])
