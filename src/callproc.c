@@ -170,10 +170,11 @@ get_current_directory (bool encode)
   /* If DIR is an asset directory or a content directory, return
      the home directory instead.  */
 
-  if (encode && (!strcmp (SSDATA (dir), "/assets")
-		 || !strncmp (SSDATA (dir), "/assets/", 8)
-		 || !strcmp (SSDATA (dir), "/content")
-		 || !strncmp (SSDATA (dir), "/content/", 9)))
+  if (encode
+      && (android_is_special_directory (SSDATA (dir),
+					"/assets")
+	  || android_is_special_directory (SSDATA (dir),
+					   "/content")))
     dir = build_string ("~");
 
 #endif /* HAVE_ANDROID && ANDROID_STUBIFY */

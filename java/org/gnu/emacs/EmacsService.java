@@ -1503,9 +1503,13 @@ public final class EmacsService extends Service
 	    return entry;
 	  }
 
-	/* Skip this entry if its name cannot be represented.  */
+	/* Skip this entry if its name cannot be represented.  NAME
+	   can still be null here, since some Cursors are permitted to
+	   return NULL if INDEX is not a string.  */
 
-	if (name.equals ("..") || name.equals (".") || name.contains ("/"))
+	if (name == null || name.equals ("..")
+	    || name.equals (".") || name.contains ("/")
+	    || name.contains ("\0"))
 	  continue;
 
 	/* Now, look for its type.  */
