@@ -345,22 +345,13 @@ AC_ARG_WITH([mailutils],
       options are irrelevant; this is the default if GNU Mailutils is
       installed])],
   [],
-  [with_mailutils=$with_features
-   AS_IF([test "$with_mailutils" = yes],
-     [AS_IF([test "x$XCONFIGURE" != "xandroid" \
-             && test "$with_android" = "no"],
-       [(movemail --version) >/dev/null 2>&1 || with_mailutils=no],
-       [dnl Don't check for movemail if cross-compiling.
-        dnl instead, default to false.
-        with_mailutils=no])])])
-AS_IF([test "$with_mailutils" = no],
-  [with_mailutils=])
-
-AS_IF([test x"$with_mailutils" = xyes],
-  [AC_DEFINE([HAVE_MAILUTILS], [1],
-     [Define to 1 if Emacs was configured with mailutils])])
-
-AC_SUBST([with_mailutils])
+  [AS_IF([test "$with_features" != "no"],
+   [with_mailutils=yes-unless-android
+    AS_IF([test "x$XCONFIGURE" != "xandroid"],
+     [(movemail --version) >/dev/null 2>&1 || with_mailutils=no],
+     [dnl Don't check for movemail if cross-compiling.
+      dnl instead, default to false.
+      with_mailutils=no])])])
 
 AC_ARG_WITH([pop],
   [AS_HELP_STRING([--with-pop],
@@ -596,6 +587,25 @@ OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for in
 OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
 OPTION_DEFAULT_OFF([android],[cross-compile Android application package])
 OPTION_DEFAULT_ON([android-debug],[don't build Emacs as a debug package on Android])
+
+# Find out of Android support is enabled and mailutils has defaulted
+# to `yes-unless-android'.  Disable it if so.
+
+AS_IF([test "x$with_mailutils" = "xyes-unless-android"],
+  [AS_IF([test "x$with_android" != "xno"],
+     [with_mailutils=no],
+     [with_mailutils=yes])])
+
+# Clear with_mailutils if it's set to no.
+
+AS_IF([test "$with_mailutils" = no],
+  [with_mailutils=])
+
+AS_IF([test x"$with_mailutils" = xyes],
+  [AC_DEFINE([HAVE_MAILUTILS], [1],
+     [Define to 1 if Emacs was configured with mailutils])])
+
+AC_SUBST([with_mailutils])
 
 AC_ARG_WITH([shared-user-id],
   [AS_HELP_STRING([--with-shared-user-id=ID],
