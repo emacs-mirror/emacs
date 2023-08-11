@@ -11150,13 +11150,13 @@ seconds."
 Maybe delete it if DELETE is non-nil.
 
 Before saving the text, indent it leftwards by the number of
-columns of indentation at BEG."
+columns at BEG."
   (let ((a beg)
         (b end))
     (setq beg (min a b)
           end (max a b)))
   (let ((indentation (save-excursion (goto-char beg)
-                                     (current-indentation)))
+                                     (current-column)))
         (text (if delete
                   (delete-and-extract-region beg end)
                 (buffer-substring beg end))))
@@ -11170,8 +11170,8 @@ columns of indentation at BEG."
   "Toggle removal of indentation from text saved to the kill ring.
 
 When this minor mode is enabled, text saved into the kill ring is
-indented towards the left by the number of columns the line at
-the start of the text being saved is in turn indented."
+indented towards the left by the column number at the start of
+that text."
   :global 't
   :group 'killing
   (if kill-ring-deindent-mode

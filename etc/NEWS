@@ -148,8 +148,8 @@ right-aligned to is controlled by the new user option
 ---
 ** New global minor mode 'kill-ring-deindent-mode'.
 When enabled, text being saved to the kill ring will be de-indented by
-the number of columns its first line is indented.  For example,
-saving the entire function call within:
+the column number at its start.  For example, saving the entire
+function call within:
 
 foo ()
 {
