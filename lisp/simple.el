@@ -11146,11 +11146,12 @@ seconds."
 ;; killed text to remove leading indentation.
 
 (defun kill-ring-deindent-buffer-substring-function (beg end delete)
-  "Save the text within BEG and END to the kill ring.
-Maybe delete it if DELETE is non-nil.
+  "Save the text within BEG and END to kill-ring, decreasing indentation.
+Delete the saved text if DELETE is non-nil.
 
-Before saving the text, indent it leftwards by the number of
-columns at BEG."
+In the saved copy of the text, remove some of the indentation, such
+that the buffer position at BEG will be at column zero when the text
+is yanked."
   (let ((a beg)
         (b end))
     (setq beg (min a b)
