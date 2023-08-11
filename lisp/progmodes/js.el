@@ -3501,35 +3501,6 @@ Check if a node type is available, then return the right indent rules."
     "&&" "||" "!")
   "JavaScript operators for tree-sitter font-locking.")
 
-(defun js-jsx--treesit-font-lock-compatibility-bb1f97b ()
-  "Font lock rules helper, to handle different releases of tree-sitter-javascript.
-Check if a node type is available, then return the right font lock rules."
-  ;; handle commit bb1f97b
-  (condition-case nil
-      (progn (treesit-query-capture 'javascript '((member_expression) @capture))
-	     '((jsx_opening_element
-		[(member_expression (identifier)) (identifier)]
-		@font-lock-function-call-face)
-
-	       (jsx_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@font-lock-function-call-face)
-
-	       (jsx_self_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@font-lock-function-call-face)))
-    (error '((jsx_opening_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @font-lock-function-call-face)
-
-	     (jsx_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @font-lock-function-call-face)
-
-	     (jsx_self_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @font-lock-function-call-face)))))
-
 (defvar js--treesit-font-lock-settings
   (treesit-font-lock-rules
 
@@ -3639,8 +3610,10 @@ Check if a node type is available, then return the right font lock rules."
 
    :language 'javascript
    :feature 'jsx
-   (append (js-jsx--treesit-font-lock-compatibility-bb1f97b)
-	   '((jsx_attribute (property_identifier) @font-lock-constant-face)))
+   '((jsx_opening_element name: (_) @font-lock-function-call-face)
+     (jsx_closing_element name: (_) @font-lock-function-call-face)
+     (jsx_self_closing_element name: (_) @font-lock-function-call-face)
+     (jsx_attribute (property_identifier) @font-lock-constant-face))
 
    :language 'javascript
    :feature 'number
