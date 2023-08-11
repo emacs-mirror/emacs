@@ -145,6 +145,29 @@ right-aligned to is controlled by the new user option
 
 * Editing Changes in Emacs 30.1
 
+---
+** New global minor mode 'kill-ring-deindent-mode'.
+When enabled, text being saved to the kill ring will be de-indented by
+the number of columns its first line is indented.  For example,
+saving the entire function call within:
+
+foo ()
+{
+  long_function_with_several_arguments (argument_1_compute (),
+					argument_2_compute (),
+					argument_3_compute ());
+}
+
+will save:
+
+long_function_with_several_arguments (argument_1_compute (),
+				      argument_2_compute (),
+				      argument_3_compute ())
+
+to the kill ring, omitting the two columns of extra indentation that
+would otherwise be present in the second and third lines of the
+function call.
+
 +++
 ** Emacs now has better support for touchscreen devices.
 Many touch screen gestures are now implemented and translated into
