@@ -3687,7 +3687,7 @@ asking you for confirmation."
 	   (inhibit-compacting-font-caches . booleanp) ;; C source code
 	   (no-update-autoloads     . booleanp)
 	   (lexical-binding	    . booleanp)	  ;; C source code
-	   (package-prefixes	    . booleanp)	  ;; C source code
+	   (symbol-packages	    . booleanp)	  ;; C source code
 	   (tab-width               . integerp)	  ;; C source code
 	   (truncate-lines          . booleanp)	  ;; C source code
 	   (word-wrap               . booleanp)	  ;; C source code
@@ -3726,7 +3726,7 @@ This hook is called only if there is at least one file-local
 variable to set.")
 
 (defvar permanently-enabled-local-variables
-  '(lexical-binding package-prefixes)
+  '(lexical-binding symbol-packages)
   "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 

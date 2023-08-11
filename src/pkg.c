@@ -933,10 +933,9 @@ init_pkg_once (void)
   DEFSYM (Qkeyword, "keyword");
   DEFSYM (Qkeyword_package, "keyword-package");
   DEFSYM (Qpackage, "package");
-  DEFSYM (Qpackage_prefixes, "package-prefixes");
+  DEFSYM (Qsymbol_packages, "symbol-packages");
   DEFSYM (Qpackage_registry, "package-registry");
   DEFSYM (Qpackagep, "packagep");
-  DEFSYM (Qsymbol_packages, "symbol-packages");
   DEFSYM (Qsymbol_packages, "symbol-packages");
   DEFSYM (Qwatch_earmuffs_package, "watch-*package*");
 
@@ -967,8 +966,8 @@ init_pkg_once (void)
   Vearmuffs_package = Vemacs_package;
   XSYMBOL (Qearmuffs_package)->u.s.declared_special = true;
 
-  staticpro (&Vpackage_prefixes);
-  Vpackage_prefixes = Qnil;
+  staticpro (&Vsymbol_packages);
+  Vsymbol_packages = Qnil;
 
   pkg_define_builtin_symbols ();
 }
@@ -1010,9 +1009,9 @@ syms_of_pkg (void)
 		     doc: /* The current package.  */);
   Fmake_variable_buffer_local (Qearmuffs_package);
   Fadd_variable_watcher (Qearmuffs_package, Fsymbol_function (Qwatch_earmuffs_package));
-  DEFVAR_LISP_NOPRO ("package-prefixes", Vpackage_prefixes,
+  DEFVAR_LISP_NOPRO ("symbol-packages", Vsymbol_packages,
 		     doc: /* */);
-  Fmake_variable_buffer_local (Qpackage_prefixes);
+  Fmake_variable_buffer_local (Qsymbol_packages);
 
   Fprovide (Qsymbol_packages, Qnil);
 }

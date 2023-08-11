@@ -95,7 +95,7 @@
 
 (ert-deftest pkg-tests-read ()
   (with-packages ((x :register t))
-    (let* ((package-prefixes nil)
+    (let* ((symbol-packages nil)
            (sym (read "x::y")))
       (should (symbolp sym))
       (should (equal (symbol-name sym) "x::y"))
@@ -108,7 +108,7 @@
       (should (eq (symbol-package sym) *keyword-package*))))
 
   (with-packages ((x :register t))
-    (let* ((package-prefixes t)
+    (let* ((symbol-packages t)
            (sym (read "x::y")))
       (should (symbolp sym))
       (should (equal (symbol-name sym) "y"))

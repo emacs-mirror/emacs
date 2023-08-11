@@ -1166,8 +1166,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun, bool *prefixes)
 		i--;
 	      val[i] = '\0';
 
-	      /* PKG-FIXME Do this more elegantly?  */
-	      if (strcmp (var, "package-prefixes") == 0)
+	      if (strcmp (var, "symbol-packages") == 0)
 		*prefixes = strcmp (val, "nil") == 0 ? false : true;
 	      else if (strcmp (var, "lexical-binding") == 0)
 		rv = (strcmp (val, "nil") != 0);
@@ -1787,7 +1786,7 @@ Return t if the file exists and loads successfully.  */)
       if (lisp_file_lexically_bound_p (Qget_file_char, &prefixes))
         Fset (Qlexical_binding, Qt);
       if (prefixes)
-        Fset (Qpackage_prefixes, Qt);
+        Fset (Qsymbol_packages, Qt);
 
       if (! version || version >= 22)
         readevalloop (Qget_file_char, &input, hist_file_name,
@@ -2666,7 +2665,7 @@ This function preserves the position of point.  */)
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   bool prefixes;
   specbind (Qlexical_binding, lisp_file_lexically_bound_p (buf, &prefixes) ? Qt : Qnil);
-  specbind (Qpackage_prefixes, prefixes ? Qt : Qnil);
+  specbind (Qsymbol_packages, prefixes ? Qt : Qnil);
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
@@ -4428,9 +4427,6 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	char *end = read_buffer + read_buffer_size;
 	EMACS_INT start_position = readchar_offset - 1;
 
-	/* PKG-FIXME: This is too complicated.  */
-	/* PKG-FIXME: Check package-prefixes binding working.  */
-
 	/* Remember where package prefixes end in COLON, which
 	   will be set to the first colon we find.  NCOLONS is the
 	   number of colons found so far.  */
@@ -4450,7 +4446,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	       should't, or it is escaped by a preceding '\\' or
 	       inside a multi-escape.  Note that we don't land here
 	       for #:.  */
-	    if (c == ':' && !last_was_backslash && !NILP (Vpackage_prefixes))
+	    if (c == ':' && !last_was_backslash && !NILP (Vsymbol_packages))
 	      {
 		/* Remember where the first : is.  */
 		if (colon == NULL)
@@ -4549,7 +4545,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	   If we don't want to recognize ':' as a package indicator,
 	   nevertheless handle keywords.  */
-	if (NILP (Vpackage_prefixes))
+	if (NILP (Vsymbol_packages))
 	  {
 	    if (*symbol_start == ':')
 	      {
@@ -4614,7 +4610,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  result = Fmake_symbol (symbol_name);
 	else if (NILP (package))
 	  result = pkg_unqualified_symbol (symbol_name);
-	else if (NILP (Vpackage_prefixes))
+	else if (NILP (Vsymbol_packages))
 	  {
 	    /* package should be nil unless we found a keyword.  */
 	    eassert (EQ (package, Vkeyword_package));

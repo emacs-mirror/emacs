@@ -46,10 +46,10 @@ The variables may go at some point.  Or not.
 "*package-registry* is a hash-table of registered packages.  The
 variable may go at some point.  Or not.
 
-A file-local variable "package-prefixes" can be used to enable or
+A file-local variable "symbol-packages" can be used to enable or
 disable reading or printing of symbols with package prefixes.  If
-package-prefixes is nil, a symbol "a:b" will be read as a symbol with
-name "a:b" in the Emacs package.  If package-prefixes is t, "a:b" will
+symbol-packages is nil, a symbol "a:b" will be read as a symbol with
+name "a:b" in the Emacs package.  If symbol-packages is t, "a:b" will
 be read as symbol "b" in package "a".  Default is nil.
 
 Note that there is a small incompatibility here: In "normal" Emacs,
@@ -115,7 +115,7 @@ the following
   of obarray-make to create obarrays.
 
 *** Reader
-The variable 'package-prefixes' determines if the reader will
+The variable 'symbol-packages' determines if the reader will
 interpret colons in a symbol name as part of a package name or not.
 Default is nil.
 
@@ -152,7 +152,7 @@ But see under Ideas and Todos.
 *** Fake package qualification
 Existing code contains symbols like GUI:xyz which look like GUI is a
 package qualification.  That's the reason for the variable
-package-prefixes which means to interpret the : as part of the symbol
+symbol-packages which means to interpret the : as part of the symbol
 name.
 
 ** Ideas / Todo
@@ -181,23 +181,23 @@ Just ideas:
   with regexs. Or something.
 - (import sym as another-sym)
 
-*** Package-prefixes in functions
+*** symbol-packages in functions
 I'm wondering if it would be an idea to record the value of
-package-prefixes at the time and in the buffer where functions are
+symbol-packages at the time and in the buffer where functions are
 compiled or eval'd.
 
 We could then
 
-- Bind package-prefixes around the execution of the function to that
+- Bind symbol-packages around the execution of the function to that
   value.
 
 - Return a name with leading colon from symbol-value if
-  package-prefixes is nil, which means the function was compiled or
+  symbol-packages is nil, which means the function was compiled or
   eval'd in a "traditional" setting.  It would return the keyword name
-  without the leading colon if package-prefixes is t.
+  without the leading colon if symbol-packages is t.
 
 - Make intern treat colons differently depending on the value of
-  package-prefixes.  There are some places like transient.el which
+  symbol-packages.  There are some places like transient.el which
   intern names with a leading colon which are a pain in the neck.
 
 - Maybe calls to read could also behave differently.
@@ -209,7 +209,7 @@ This should be doable from that perspective.  One probably just has to
 try it out.
 
 *** Modeline
-A mode-line indicator showing the current package and package-prefixes
+A mode-line indicator showing the current package and symbol-packages
 would be helpful.  Can be done with (:eval ...) in global-mode-string
 now.  Or maybe in a header-line.
 
