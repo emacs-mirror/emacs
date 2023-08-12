@@ -2040,7 +2040,6 @@ a `let' form, except that the list of symbols can be computed at run-time."
    ;; In Common Lisp, we'd use the `&whole' arg instead (see
    ;; "Macro Lambda Lists" in the CLHS).
    ((let ((symbols-with-pos-enabled nil)) ;Don't rewrite #'<X@5> => #'<X@3>
-      ;; FIXME: The above `let' is incorrectly optimized away (bug#65017).
       (eq f (car cl--labels-convert-cache)))
     ;; This value should be `eq' to the `&whole' form.
     ;; If this is not the case, we have a bug.
