@@ -858,6 +858,22 @@ DEFUN ("package-%set-shadowing-symbols", Fpackage_percent_set_shadowing_symbols,
   return XPACKAGE (package)->shadowing_symbols = shadowing_symbols;
 }
 
+DEFUN ("package-%locked", Fpackage_percent_locked,
+       Spackage_percent_locked, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->locked;
+}
+
+DEFUN ("package-%set-locked", Fpackage_percent_set_locked,
+       Spackage_percent_set_locked, 2, 2, 0, doc: /* Internal use only.  */)
+  (Lisp_Object package, Lisp_Object locked)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->locked = locked;
+}
+
 DEFUN ("package-%symbols", Fpackage_percent_symbols,
        Spackage_percent_symbols, 1, 1, 0, doc:  /* Internal use only.  */)
   (Lisp_Object package)
@@ -991,6 +1007,8 @@ syms_of_pkg (void)
   defsubr (&Spackage_percent_set_symbol_package);
   defsubr (&Spackage_percent_set_use_list);
   defsubr (&Spackage_percent_shadowing_symbols);
+  defsubr (&Spackage_percent_locked);
+  defsubr (&Spackage_percent_set_locked);
   defsubr (&Spackage_percent_symbols);
   defsubr (&Spackage_percent_use_list);
   defsubr (&Spackagep);
