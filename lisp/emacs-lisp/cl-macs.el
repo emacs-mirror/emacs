@@ -2037,7 +2037,17 @@ a `let' form, except that the list of symbols can be computed at run-time."
    ;; *after* handling `function', but we want to stop macroexpansion from
    ;; being applied infinitely, so we use a cache to return the exact `form'
    ;; being expanded even though we don't receive it.
-   ((eq f (car cl--labels-convert-cache)) (cdr cl--labels-convert-cache))
+   ;; In Common Lisp, we'd use the `&whole' arg instead (see
+   ;; "Macro Lambda Lists" in the CLHS).
+   ((let ((symbols-with-pos-enabled nil)) ;Don't rewrite #'<X@5> => #'<X@3>
+      ;; FIXME: The above `let' is incorrectly optimized away (bug#65017).
+      (eq f (car cl--labels-convert-cache)))
+    ;; This value should be `eq' to the `&whole' form.
+    ;; If this is not the case, we have a bug.
+    (prog1 (cdr cl--labels-convert-cache)
+      ;; Drop it, so it can't accidentally interfere with some
+      ;; unrelated subsequent use of `function' with the same symbol.
+      (setq cl--labels-convert-cache nil)))
    (t
     (let* ((found (assq f macroexpand-all-environment))
            (replacement (and found
@@ -2045,6 +2055,8 @@ a `let' form, except that the list of symbols can be computed at run-time."
                                (funcall (cdr found) cl--labels-magic)))))
       (if (and replacement (eq cl--labels-magic (car replacement)))
           (nth 1 replacement)
+        ;; FIXME: Here, we'd like to return the `&whole' form, but since ELisp
+        ;; doesn't have that, we approximate it via `cl--labels-convert-cache'.
         (let ((res `(function ,f)))
           (setq cl--labels-convert-cache (cons f res))
           res))))))
