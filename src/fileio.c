@@ -4021,20 +4021,22 @@ characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
 
 When inserting data from a special file (e.g., /dev/urandom), you
 can't specify VISIT or BEG, and END should be specified to avoid
-inserting unlimited data into the buffer.
+inserting unlimited data into the buffer from some special files
+which otherwise could supply infinite amounts of data.
 
-If optional fifth argument REPLACE is non-nil, replace the current
-buffer contents (in the accessible portion) with the file contents.
-This is better than simply deleting and inserting the whole thing
-because (1) it preserves some marker positions (in unchanged portions
-at the start and end of the buffer) and (2) it puts less data in the
-undo list.  When REPLACE is non-nil, the second return value is the
-number of characters that replace previous buffer contents.
+If optional fifth argument REPLACE is non-nil and FILENAME names a
+regular file, replace the current buffer contents (in the accessible
+portion) with the file's contents.  This is better than simply
+deleting and inserting the whole thing because (1) it preserves some
+marker positions (in unchanged portions at the start and end of the
+buffer) and (2) it puts less data in the undo list.  When REPLACE is
+non-nil, the second element of the return value is the number of
+characters that replace the previous buffer contents.
 
-If REPLACE is the symbol `if-regular', then eschew preserving marker
-positions or the undo list if REPLACE is nil if FILENAME is not a
-regular file.  Otherwise, signal an error if REPLACE is non-nil and
-FILENAME is not a regular file.
+If FILENAME is not a regular file and REPLACE is `if-regular', erase
+the accessible portion of the buffer and insert the new contents.  Any
+other non-nil value of REPLACE will signal an error if FILENAME is not
+a regular file.
 
 This function does code conversion according to the value of
 `coding-system-for-read' or `file-coding-system-alist', and sets the
@@ -4737,10 +4739,11 @@ by calling `format-decode', which see.  */)
     }
 
   /* If REPLACE is Qunbound, buffer contents are being replaced with
-     text read from a FIFO.  Erase the entire buffer.  */
+     text read from a FIFO or a device.  Erase the entire accessible
+     portion of the buffer.  */
 
   if (BASE_EQ (replace, Qunbound))
-    del_range (BEG, Z);
+    del_range (BEGV, ZV);
 
   move_gap_both (PT, PT_BYTE);
 
