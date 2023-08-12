@@ -52,12 +52,13 @@ GNULIB_MODULES='
 '
 
 AVOIDED_MODULES='
-  btowc chmod close crypto/af_alg dup fchdir fstat langinfo lock
+  btowc chmod close crypto/af_alg dup fchdir fstat
+  iswblank iswctype iswdigit iswxdigit langinfo lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg
   threadlib tzset unsetenv utime utime-h
-  wchar wcrtomb wctype-h
+  wchar wcrtomb wctype wctype-h
 '
 
 GNULIB_TOOL_FLAGS='
