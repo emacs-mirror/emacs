@@ -39,7 +39,7 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 13 (API level 33.)
+    SDK.  They must correspond to Android version 13 (API level 33).
 
   - the path to the C compiler in the Android NDK, for the kind of CPU
     you are building Emacs to run on.
