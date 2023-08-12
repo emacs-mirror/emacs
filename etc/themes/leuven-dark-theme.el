@@ -95,7 +95,7 @@ CONTROL can be a number, nil, or t.  When t, use DEFAULT-HEIGHT."
 
 ;;;###theme-autoload
 (deftheme leuven-dark
-  "Face colors with a light background.
+  "Face colors with a dark background.
 Basic, Font Lock, Isearch, Gnus, Message, Org mode, Diff, Ediff,
 Flyspell, Semantic, and Ansi-Color faces are included -- and much
 more..."

@@ -84,6 +84,12 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
      :help "Byte-compile the current file (if it has changed), then load compiled code"]
     ["Byte-recompile Directory..." byte-recompile-directory
      :help "Recompile every `.el' file in DIRECTORY that needs recompilation"]
+    ["Native-compile This File" emacs-lisp-native-compile
+     :help "Compile the current file containing the current buffer to native code"
+     :active (native-comp-available-p)]
+    ["Native-compile and Load" emacs-lisp-native-compile-and-load
+     :help "Compile the current file to native code, then load compiled native code"
+     :active (native-comp-available-p)]
     ["Disassemble Byte Compiled Object..." disassemble
      :help "Print disassembled code for OBJECT in a buffer"]
     "---"
@@ -217,6 +223,16 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
 (declare-function native-compile "comp")
 (declare-function comp-write-bytecode-file "comp")
 
+(defun emacs-lisp-native-compile ()
+  "Native-compile synchronously the current file (if it has changed)."
+  (interactive nil emacs-lisp-mode)
+  (emacs-lisp--before-compile-buffer)
+  (let* ((byte+native-compile t)
+         (byte-to-native-output-buffer-file nil)
+         (eln (native-compile buffer-file-name)))
+    (when eln
+      (comp-write-bytecode-file eln))))
+
 (defun emacs-lisp-native-compile-and-load ()
   "Native-compile synchronously the current file (if it has changed).
 Load the compiled code when finished.
@@ -225,11 +241,8 @@ Use `emacs-lisp-byte-compile-and-load' in combination with
 `native-comp-jit-compilation' set to t to achieve asynchronous
 native compilation."
   (interactive nil emacs-lisp-mode)
-  (emacs-lisp--before-compile-buffer)
-  (let ((byte+native-compile t)
-        (byte-to-native-output-buffer-file nil))
-    (when-let ((eln (native-compile buffer-file-name)))
-      (load (file-name-sans-extension (comp-write-bytecode-file eln))))))
+  (when-let ((byte-file (emacs-lisp-native-compile)))
+    (load (file-name-sans-extension byte-file))))
 
 (defun emacs-lisp-macroexpand ()
   "Macroexpand the form after point.

@@ -2077,14 +2077,15 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 #endif /* HAVE_NS */
 
-#ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
      handle this argument entirely in window system dependent code
      because we don't even know which window system dependent code
      to run until we've recognized this argument.  */
   {
-    char *displayname = 0;
     int count_before = skip_args;
+
+#ifdef HAVE_X_WINDOWS
+    char *displayname = 0;
 
     /* Skip any number of -d options, but only use the last one.  */
     while (!only_version)
@@ -2115,12 +2116,15 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  }
 	argv[count_before + 1] = (char *) "-d";
       }
+#endif	/* HAVE_X_WINDOWS */
 
     if (! no_site_lisp)
       {
-        if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
+
+	if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
             || argmatch (argv, argc, "-quick", 0, 2, NULL, &skip_args))
-          no_site_lisp = 1;
+	  no_site_lisp = 1;
+
       }
 
     if (argmatch (argv, argc, "-x", 0, 1, &junk, &skip_args))
@@ -2136,18 +2140,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     /* Don't actually discard this arg.  */
     skip_args = count_before;
   }
-#else  /* !HAVE_X_WINDOWS */
-  if (! no_site_lisp)
-  {
-    int count_before = skip_args;
-
-    if (argmatch (argv, argc, "-Q", "--quick", 3, NULL, &skip_args)
-        || argmatch (argv, argc, "-quick", 0, 2, NULL, &skip_args))
-      no_site_lisp = 1;
-
-    skip_args = count_before;
-  }
-#endif
 
   /* argmatch must not be used after here,
      except when building temacs

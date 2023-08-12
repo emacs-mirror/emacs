@@ -8339,9 +8339,17 @@ get_next_display_element (struct it *it)
       && success_p
       && FRAME_WINDOW_P (it->f))
     {
-      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      struct face *face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
 
-      if (it->what == IT_COMPOSITION && it->cmp_it.ch >= 0)
+      /* It shouldn't happen, ever, that FACE is NULL here, but
+         evidently some faulty fonts/fontsets can sometimes cause it.
+         In that case, we punt and consider the stuff undisplayable.  */
+      if (!face)
+	{
+	  it->what = IT_GLYPHLESS;
+	  it->glyphless_method = GLYPHLESS_DISPLAY_EMPTY_BOX;
+	}
+      else if (it->what == IT_COMPOSITION && it->cmp_it.ch >= 0)
 	{
 	  /* Automatic composition with glyph-string.   */
 	  Lisp_Object gstring = composition_gstring_from_id (it->cmp_it.id);
@@ -27908,6 +27916,8 @@ are the selected window and the WINDOW's buffer).  */)
   if (NILP (buffer))
     buffer = w->contents;
   CHECK_BUFFER (buffer);
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
+    error ("Attempt to format a mode line for a dead buffer");
 
   /* Make formatting the modeline a non-op when noninteractive, otherwise
      there will be problems later caused by a partially initialized frame.  */
@@ -32098,9 +32108,12 @@ produce_glyphless_glyph (struct it *it, bool for_no_font, Lisp_Object acronym)
   int len;
 
   /* Get the metrics of the base font.  We always refer to the current
-     ASCII face.  */
-  face = FACE_FROM_ID (it->f, it->face_id)->ascii_face;
-  font = face->font ? face->font : FRAME_FONT (it->f);
+     ASCII face, but if some faulty setup of fontsets causes that to
+     be NULL, we fall back to the frame's default font.  */
+  face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
+  if (face)
+    face = face->ascii_face;
+  font = (face && face->font) ? face->font : FRAME_FONT (it->f);
   normal_char_ascent_descent (font, -1, &it->ascent, &it->descent);
   it->ascent += font->baseline_offset;
   it->descent -= font->baseline_offset;

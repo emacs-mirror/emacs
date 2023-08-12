@@ -3474,7 +3474,7 @@ Check if a node type is available, then return the right indent rules."
        ((parent-is "statement_block") parent-bol js-indent-level)
 
        ;; JSX
-       (js-jsx--treesit-indent-compatibility-bb1f97b)
+       ,@(js-jsx--treesit-indent-compatibility-bb1f97b)
        ((node-is "jsx_closing_element") parent 0)
        ((match "jsx_element" "statement") parent js-indent-level)
        ((parent-is "jsx_element") parent js-indent-level)
