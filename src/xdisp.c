@@ -33790,6 +33790,7 @@ display_and_set_cursor (struct window *w, bool on,
      completely erased, to avoid the extra work of erasing the cursor
      twice.  In other words, phys_cursor_on_p can be true and the cursor
      still not be visible, or it has only been partly erased.  */
+
   if (on)
     {
       w->phys_cursor_ascent = glyph_row->ascent;
@@ -33803,9 +33804,15 @@ display_and_set_cursor (struct window *w, bool on,
       w->phys_cursor.vpos = vpos;
     }
 
-  FRAME_RIF (f)->draw_window_cursor (w, glyph_row, x, y,
-                                     new_cursor_type, new_cursor_width,
-                                     on, active_cursor);
+  /* If make_cursor_line_fully_visible is nil and the row is in fact
+     vscrolled out of the window, then glyph_row->y +
+     glyph_row->height will be less than or equal to 0.  Eschew
+     displaying the cursor in that case.  */
+
+  if (MATRIX_ROW_BOTTOM_Y (glyph_row) > 0)
+    FRAME_RIF (f)->draw_window_cursor (w, glyph_row, x, y,
+				       new_cursor_type, new_cursor_width,
+				       on, active_cursor);
 }
 
 
