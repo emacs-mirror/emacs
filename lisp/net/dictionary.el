@@ -34,7 +34,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'custom)
 (require 'dictionary-connection)
 (require 'button)
@@ -409,10 +408,6 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
   nil
   "The current network connection.")
 
-(defvar dictionary-instances
-  0
-  "The number of open dictionary buffers.")
-
 (defvar dictionary-marker
   nil
   "Stores the point position while buffer display.")
@@ -428,8 +423,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
-(defun dictionary-mode ()
-  ;; FIXME: Use define-derived-mode.
+(define-derived-mode dictionary-mode special-mode "Dictionary"
   "Mode for searching a dictionary.
 This is a mode for searching a dictionary server implementing the
 protocol defined in RFC 2229.
@@ -448,27 +442,14 @@ This is a quick reference to this mode describing the default key bindings:
 * \\[dictionary-select-strategy] select the default search strategy
 
 * \\`RET' or \\`<mouse-2>' visit that link"
-
-  (unless (eq major-mode 'dictionary-mode)
-    (cl-incf dictionary-instances))
-
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (use-local-map dictionary-mode-map)
-  (setq major-mode 'dictionary-mode)
-  (setq mode-name "Dictionary")
-
   (setq-local dictionary-data-stack nil)
   (setq-local dictionary-position-stack nil)
-
   (make-local-variable 'dictionary-current-data)
   (make-local-variable 'dictionary-positions)
-
   (make-local-variable 'dictionary-default-dictionary)
   (make-local-variable 'dictionary-default-strategy)
-
-  (add-hook 'kill-buffer-hook #'dictionary-close t t)
-  (run-hooks 'dictionary-mode-hook))
+  (add-hook 'kill-buffer-hook #'dictionary-close t t))
 
 ;;;###autoload
 (defun dictionary ()
@@ -589,19 +570,28 @@ The connection takes the proxy setting in customization group
 ;; Dealing with closing the buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun dictionary--count-mode-buffers ()
+  "Return the number of buffers that "
+  (seq-reduce #'+
+              (mapcar
+               (lambda (buf)
+                 (with-current-buffer buf
+                   (if (derived-mode-p 'dictionary-mode) 1 0)))
+               (buffer-list))
+              0))
+
 (defun dictionary-close (&rest _ignored)
   "Close the current dictionary buffer and its connection."
   (interactive)
-  (if (eq major-mode 'dictionary-mode)
-      (progn
-	(setq major-mode nil)
-	(if (<= (cl-decf dictionary-instances) 0)
-	    (dictionary-connection-close dictionary-connection))
-	(let ((configuration dictionary-window-configuration)
-	      (selected-window dictionary-selected-window))
-	  (kill-buffer (current-buffer))
-	  (set-window-configuration configuration)
-	  (select-window selected-window)))))
+  (when (derived-mode-p 'dictionary-mode)
+    (setq major-mode nil)
+    (if (<= (dictionary--count-mode-buffers) 0)
+        (dictionary-connection-close dictionary-connection))
+    (let ((configuration dictionary-window-configuration)
+          (selected-window dictionary-selected-window))
+      (kill-buffer (current-buffer))
+      (set-window-configuration configuration)
+      (select-window selected-window))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpful functions
