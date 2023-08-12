@@ -723,6 +723,7 @@ Value is t."
 (defmacro in-package (package)
   `(pkg--%in-package ',(pkg--stringify-name package "package")))
 
+(declare-function hash-table-values "subr-x")
 (defun find-all-symbols (name)
   "Return a list of all symbols in the system having the specified name."
   (let ((name (pkg--stringify-name name "symbol name"))
