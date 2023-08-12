@@ -182,6 +182,10 @@ class Lisp_Object:
                 return name.get_string_data()
         return None
 
+    def get_package_name(self):
+        name = Lisp_Object(self.value.GetValueForExpressionPath("->name"))
+        return name.get_string_data()
+
     # Return a summary string for this object.
     def summary(self):
         return str(self.value)
@@ -192,6 +196,8 @@ class Lisp_Object:
             result.AppendMessage(f"name:    {self.get_symbol_name()}")
         elif self.lisp_type == "Lisp_String":
             result.AppendMessage(str(self.get_string_data()))
+        elif self.lisp_type == "Lisp_Vectorlike" and self.pvec_type == "PVEC_PACKAGE":
+            result.AppendMessage(f"package {self.get_package_name()}")
         else:
             result.AppendMessage(self.summary())
 
