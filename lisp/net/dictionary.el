@@ -417,12 +417,6 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
   nil
   "Stores the point position while buffer display.")
 
-(defvar dictionary-color-support
-  (condition-case nil
-      (display-color-p)
-    (error nil))
-  "Determines if the Emacs has support to display color.")
-
 (defvar dictionary-word-history
   '()
   "History list of searched word.")
@@ -900,7 +894,7 @@ them with buttons to perform a new search."
 	(if (search-forward-regexp regexp nil t)
 	    (let ((match-start (match-beginning 2))
 		  (match-end (match-end 2)))
-	      (if dictionary-color-support
+              (if (display-color-p)
 		  ;; Compensate for the replacement
 		  (let ((brace-match-length (- (match-end 1)
 					       (match-beginning 1))))
@@ -1558,6 +1552,10 @@ Further arguments are currently ignored."
           (help-xref-button 1 'help-word
                             (match-string 1)
                             dictionary))))))
+
+(defvar dictionary-color-support (display-color-p)
+  "Determines if the Emacs has support to display color.")
+(make-obsolete-variable 'dictionary-color-support 'display-color-p "30.1")
 
 (provide 'dictionary)
 ;;; dictionary.el ends here
