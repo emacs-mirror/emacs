@@ -356,7 +356,8 @@ otherwise it's assumed to be an Info file."
       (with-temp-buffer
         (insert-file-contents file)
         (setq file (make-temp-file "ox-texinfo-"))
-        (org-export-to-file 'texinfo file)
+        (let ((default-directory docs-directory))
+          (org-export-to-file 'texinfo file))
         (setq clean-up t)))
     (with-current-buffer (get-buffer-create " *package-vc doc*")
       (erase-buffer)
