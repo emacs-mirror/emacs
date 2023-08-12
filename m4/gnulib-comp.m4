@@ -181,7 +181,6 @@ AC_DEFUN([gl_EARLY],
   gl_STDIO_H_EARLY
   # Code from module stdlib:
   # Code from module stpcpy:
-  # Code from module stpncpy:
   # Code from module string:
   # Code from module strnlen:
   # Code from module strtoimax:
@@ -567,13 +566,6 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_STPCPY
   ])
   gl_STRING_MODULE_INDICATOR([stpcpy])
-  gl_FUNC_STPNCPY
-  gl_CONDITIONAL([GL_COND_OBJ_STPNCPY],
-                 [test $HAVE_STPNCPY = 0 || test $REPLACE_STPNCPY = 1])
-  AM_COND_IF([GL_COND_OBJ_STPNCPY], [
-    gl_PREREQ_STPNCPY
-  ])
-  gl_STRING_MODULE_INDICATOR([stpncpy])
   gl_STRING_H
   gl_STRING_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
@@ -1422,7 +1414,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/stpcpy.c
-  lib/stpncpy.c
   lib/str-two-way.h
   lib/strftime.h
   lib/string.in.h
@@ -1569,7 +1560,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/stpcpy.m4
-  m4/stpncpy.m4
   m4/string_h.m4
   m4/strnlen.m4
   m4/strtoimax.m4

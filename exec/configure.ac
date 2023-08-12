@@ -62,8 +62,8 @@ AC_TYPE_SSIZE_T
 AC_TYPE_PID_T
 
 AC_HEADER_STDBOOL
-AC_CHECK_FUNCS([getpagesize stpcpy stpncpy])
-AC_CHECK_DECLS([stpcpy, stpncpy])
+AC_CHECK_FUNCS([getpagesize stpcpy])
+AC_CHECK_DECLS([stpcpy])
 AC_CHECK_FUNC([process_vm_readv],
   [AC_CHECK_FUNC([process_vm_writev],
     [AC_CHECK_DECL([process_vm_readv],
