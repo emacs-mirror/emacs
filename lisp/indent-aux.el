@@ -54,6 +54,7 @@ is yanked."
                       (- indentation))
       (buffer-string))))
 
+;;;###autoload
 (define-minor-mode kill-ring-deindent-mode
   "Toggle removal of indentation from text saved to the kill ring.
 
