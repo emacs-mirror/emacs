@@ -6123,6 +6123,9 @@ from the absolute start of the buffer, disregarding the narrowing.  */)
 {
   ptrdiff_t pos_byte, start_byte = BEGV_BYTE;
 
+  if (!BUFFER_LIVE_P (current_buffer))
+    error ("Attempt to count lines in a dead buffer");
+
   if (MARKERP (position))
     {
       /* We don't trust the byte position if the marker's buffer is

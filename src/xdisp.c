@@ -27653,6 +27653,8 @@ are the selected window and the WINDOW's buffer).  */)
   if (NILP (buffer))
     buffer = w->contents;
   CHECK_BUFFER (buffer);
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
+    error ("Attempt to format a mode line for a dead buffer");
 
   /* Make formatting the modeline a non-op when noninteractive, otherwise
      there will be problems later caused by a partially initialized frame.  */
