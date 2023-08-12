@@ -412,7 +412,7 @@ the minibuffer.
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
 way for using the commands below.  @key{PageUp}, @key{prior} and
-@kbd{M-g M-c} does the same.  You can also select the window in other
+@kbd{M-g M-c} do the same.  You can also select the window in other
 ways (@pxref{Windows}).
 
 @findex choose-completion
