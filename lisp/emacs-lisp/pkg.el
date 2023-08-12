@@ -726,12 +726,12 @@ Value is t."
 (defun find-all-symbols (name)
   "Return a list of all symbols in the system having the specified name."
   (let ((name (pkg--stringify-name name "symbol name"))
-	(result ()))
-    (maphash #'(lambda (_package-name package)
-                 (cl-multiple-value-bind (sym _status) (find-symbol name package)
-		   (when sym
-                     (cl-pushnew sym result))))
-	     *package-registry*)
+	(result ())
+        (all-packages (cl-remove-duplicates (hash-table-values *package-registry*))))
+    (dolist (package all-packages)
+      (cl-multiple-value-bind (sym _status) (find-symbol name package)
+	(when sym
+          (cl-pushnew sym result))))
     result))
 
 
