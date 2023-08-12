@@ -41,6 +41,10 @@
 #  --avoid=dup \
 #  --avoid=fchdir \
 #  --avoid=fstat \
+#  --avoid=iswblank \
+#  --avoid=iswctype \
+#  --avoid=iswdigit \
+#  --avoid=iswxdigit \
 #  --avoid=langinfo \
 #  --avoid=lock \
 #  --avoid=mbrtowc \
@@ -67,6 +71,7 @@
 #  --avoid=utime-h \
 #  --avoid=wchar \
 #  --avoid=wcrtomb \
+#  --avoid=wctype \
 #  --avoid=wctype-h \
 #  alignasof \
 #  alloca-opt \
@@ -658,7 +663,6 @@ GL_GNULIB__EXIT = @GL_GNULIB__EXIT@
 GMALLOC_OBJ = @GMALLOC_OBJ@
 GMP_H = @GMP_H@
 GNULIBHEADERS_OVERRIDE_WINT_T = @GNULIBHEADERS_OVERRIDE_WINT_T@
-GNULIB_GETTIMEOFDAY = @GNULIB_GETTIMEOFDAY@
 GNULIB_WARN_CFLAGS = @GNULIB_WARN_CFLAGS@
 GNUSTEP_CFLAGS = @GNUSTEP_CFLAGS@
 GNU_OBJC_CFLAGS = @GNU_OBJC_CFLAGS@

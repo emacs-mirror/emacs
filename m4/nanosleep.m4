@@ -1,4 +1,4 @@
-# serial 43
+# serial 44
 
 dnl From Jim Meyering.
 dnl Check for the nanosleep function.
@@ -126,9 +126,7 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
        ])
     ])
    case "$gl_cv_func_nanosleep" in
-     *yes)
-       REPLACE_NANOSLEEP=0
-       ;;
+     *yes) ;;
      *)
        REPLACE_NANOSLEEP=1
        case "$gl_cv_func_nanosleep" in
