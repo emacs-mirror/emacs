@@ -11140,48 +11140,6 @@ seconds."
           (setq undo-auto-current-boundary-timer
                 (run-at-time 5 nil #'undo-auto--boundary-timer)))))))
 
-
-
-;; Indent Filter mode.  When enabled, this minor mode filters all
-;; killed text to remove leading indentation.
-
-(defun kill-ring-deindent-buffer-substring-function (beg end delete)
-  "Save the text within BEG and END to kill-ring, decreasing indentation.
-Delete the saved text if DELETE is non-nil.
-
-In the saved copy of the text, remove some of the indentation, such
-that the buffer position at BEG will be at column zero when the text
-is yanked."
-  (let ((a beg)
-        (b end))
-    (setq beg (min a b)
-          end (max a b)))
-  (let ((indentation (save-excursion (goto-char beg)
-                                     (current-column)))
-        (text (if delete
-                  (delete-and-extract-region beg end)
-                (buffer-substring beg end))))
-    (with-temp-buffer
-      (insert text)
-      (indent-rigidly (point-min) (point-max)
-                      (- indentation))
-      (buffer-string))))
-
-(define-minor-mode kill-ring-deindent-mode
-  "Toggle removal of indentation from text saved to the kill ring.
-
-When this minor mode is enabled, text saved into the kill ring is
-indented towards the left by the column number at the start of
-that text."
-  :global 't
-  :group 'killing
-  (if kill-ring-deindent-mode
-      (add-function :override filter-buffer-substring-function
-                    #'kill-ring-deindent-buffer-substring-function
-                    '(:depth 100))
-    (remove-function filter-buffer-substring-function
-                     #'kill-ring-deindent-buffer-substring-function)))
-
 (provide 'simple)
 
 ;;; simple.el ends here
