@@ -771,8 +771,9 @@ DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
 }
 
 DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
-       doc: /* Return SYMBOL's name, a string.  */)
-  (register Lisp_Object symbol)
+       doc: /* Return SYMBOL's name, a string.
+If SYMBOL is a keyword, prepend a ':' to the name.*/)
+  (Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   if (SYMBOL_KEYWORD_P (symbol))
@@ -781,8 +782,10 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
 }
 
 DEFUN ("cl-symbol-name", Fcl_symbol_name, Scl_symbol_name, 1, 1, 0,
-       doc: /* Return SYMBOL's name, a string.  */)
-  (register Lisp_Object symbol)
+       doc: /* Return SYMBOL's name, a string.
+Note that, unlike 'symbol-name' this returns the actual
+symbol-name, without a leading ':' if SYMBOL is a keyword.  */)
+  (Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   return SYMBOL_NAME (symbol);
