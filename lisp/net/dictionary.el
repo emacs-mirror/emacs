@@ -1209,11 +1209,12 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 ;;;###autoload
 (defun dictionary-search (word &optional dictionary)
-  "Prompt for a word WORD to search for in all dictionaries.
-Presents the selection or word at point as default input.
+  "Search for WORD in all the known dictionaries.
+Interactively, prompt for WORD, and offer the word at point as default.
 
-With prefix argument DICTIONARY, prompt for a dictionary and
-restrict the search to only that one."
+Optional argument DICTIONARY means restrict the search to only
+that one dictionary.  Interactively, with prefix argument,
+prompt for DICTIONARY."
   (interactive
    (let ((dict
           (if current-prefix-arg
