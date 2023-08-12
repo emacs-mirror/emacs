@@ -23,11 +23,12 @@
 ;;; Commentary:
 
 ;; dictionary allows you to interact with dictionary servers.
-;; Use M-x customize-group dictionary to modify user settings.
+;;
+;; Use `M-x customize-group RET dictionary RET' to modify user settings.
 ;;
 ;; Main commands for interaction are:
-;; M-x dictionary        - opens a new dictionary buffer
-;; M-x dictionary-search - search for the definition of a word
+;; `M-x dictionary'        - open a new dictionary buffer
+;; `M-x dictionary-search' - search for the definition of a word
 ;;
 ;; You can find more information in the README file of the GitHub
 ;; repository https://github.com/myrkr/dictionary-el
@@ -425,23 +426,25 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
 ;;;###autoload
 (define-derived-mode dictionary-mode special-mode "Dictionary"
   "Mode for searching a dictionary.
+
 This is a mode for searching a dictionary server implementing the
 protocol defined in RFC 2229.
 
 This is a quick reference to this mode describing the default key bindings:
 \\<dictionary-mode-map>
-* \\[dictionary-close] close the dictionary buffer
-* \\[describe-mode] display this help information
-* \\[dictionary-search] ask for a new word to search
-* \\[dictionary-lookup-definition] search the word at point
-* \\[forward-button] or TAB place point to the next link
-* \\[backward-button] or S-TAB place point to the prev link
+ \\[dictionary-close]	close the dictionary buffer
+ \\[describe-mode]	display this help
+ \\[dictionary-search]	ask for a new word to search
+ \\[dictionary-lookup-definition]	search for word at point
+ \\[forward-button] or \\`TAB'	move point to the next link
+ \\[backward-button] or \\`S-TAB'	move point to the previous link
 
-* \\[dictionary-match-words] ask for a pattern and list all matching words.
-* \\[dictionary-select-dictionary] select the default dictionary
-* \\[dictionary-select-strategy] select the default search strategy
+ \\[dictionary-match-words]	ask for a pattern and list all matching words
+ \\[dictionary-select-dictionary]	select the default dictionary
+ \\[dictionary-select-strategy]	select the default search strategy
 
-* \\`RET' or \\`<mouse-2>' visit that link"
+ \\`RET'	visit link at point
+ \\`<mouse-2>'	visit clicked link"
   (buffer-disable-undo)
   (setq-local dictionary-data-stack nil)
   (setq-local dictionary-position-stack nil)
@@ -1206,9 +1209,11 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 ;;;###autoload
 (defun dictionary-search (word &optional dictionary)
-  "Search the WORD in DICTIONARY if given or in all if nil.
-It presents the selection or word at point as default input and
-allows editing it."
+  "Prompt for a word WORD to search for in all dictionaries.
+Presents the selection or word at point as default input.
+
+With prefix argument DICTIONARY, prompt for a dictionary and
+restrict the search to only that one."
   (interactive
    (let ((dict
           (if current-prefix-arg
