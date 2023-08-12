@@ -1828,9 +1828,13 @@ listed in the dispatch menu produced from `project-switch-commands'."
      (let ((key (if key
                     (vector key)
                   (where-is-internal cmd (list project-prefix-map) t))))
-       (format "[%s] %s"
-               (propertize (key-description key) 'face 'bold)
-               label)))
+       (if (facep 'help-key-binding)
+           (format "%s %s"
+                   (propertize (key-description key) 'face 'help-key-binding)
+                   label)
+         (format "[%s] %s"
+                 (propertize (key-description key) 'face 'bold)
+                 label))))
    project-switch-commands
    "  "))
 
