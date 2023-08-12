@@ -15588,7 +15588,7 @@ redisplay_tool_bar (struct frame *f)
 		  h = (extra + rows - 1) / rows;
 		  extra -= h;
 		}
-	  
+
 	      display_tool_bar_line (&it, height + h);
 	    }
 	}

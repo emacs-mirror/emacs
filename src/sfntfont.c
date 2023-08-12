@@ -1804,7 +1804,7 @@ sfntfont_desc_to_entity (struct sfnt_font_desc *desc, int instance)
 		      AREF (vector, 3));
       FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
 		      AREF (vector, 4));
-      ASET (entity, FONT_ADSTYLE_INDEX, AREF (vector, 1));      
+      ASET (entity, FONT_ADSTYLE_INDEX, AREF (vector, 1));
     }
   else
     {
@@ -3192,7 +3192,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 			  AREF (tem, 3));
 	  FONT_SET_STYLE (font_object, FONT_SLANT_INDEX,
 			  AREF (tem, 4));
-	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);	  
+	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);
 	}
     }
 

@@ -1356,7 +1356,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	  if (on)
 	    view.showOnScreenKeyboard ();
 	  else
-	    view.hideOnScreenKeyboard ();	  
+	    view.hideOnScreenKeyboard ();
 	}
       });
   }

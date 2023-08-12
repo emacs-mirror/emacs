@@ -4078,6 +4078,7 @@ if test "${with_tree_sitter}" != "no"; then
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+    NEED_DYNLIB=yes
   else
     EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.6.3],
       [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])

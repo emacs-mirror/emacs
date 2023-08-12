@@ -1036,7 +1036,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	    }
 
 	  /* Add a directory separator if necessary.  */
-      
+
 	  if (!link_size || buffer1[link_size - 1] != '/')
 	    buffer1[link_size] = '/', link_size++;
 

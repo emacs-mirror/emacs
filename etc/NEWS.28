@@ -3150,7 +3150,7 @@ declared obsolete.
 This was a compatibility kludge which is no longer needed.
 
 ** Some libraries obsolete since Emacs 23 have been removed:
-ledit.el, lmenu.el, lucid.el and old-whitespace.el.
+ledit.el, levents.el, lmenu.el, lucid.el and old-whitespace.el.
 
 ** Some functions and variables obsolete since Emacs 23 have been removed:
 'GOLD-map', 'advertised-xscheme-send-previous-expression',
