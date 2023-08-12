@@ -4305,8 +4305,9 @@ last directory in `native-comp-eln-load-path')."
   (comp-ensure-native-compiler)
   (let ((comp-running-batch-compilation t)
         (native-compile-target-directory
-            (if for-tarball
-                (car (last native-comp-eln-load-path)))))
+         (if for-tarball
+             (car (last native-comp-eln-load-path))
+           native-compile-target-directory)))
     (cl-loop for file in command-line-args-left
              if (or (null byte+native-compile)
                     (cl-notany (lambda (re) (string-match re file))
