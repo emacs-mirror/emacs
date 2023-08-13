@@ -1744,6 +1744,7 @@ See Info node `(elisp) Integer Basics'."
          base64-decode-string base64-encode-string base64url-encode-string
          buffer-hash buffer-line-statistics
          compare-strings concat copy-alist copy-hash-table copy-sequence elt
+         equal equal-including-properties
          featurep get
          gethash hash-table-count hash-table-rehash-size
          hash-table-rehash-threshold hash-table-size hash-table-test
@@ -1877,7 +1878,7 @@ See Info node `(elisp) Integer Basics'."
          ;; fileio.c
          default-file-modes
          ;; fns.c
-         eql equal equal-including-properties
+         eql
          hash-table-p identity proper-list-p safe-length
          secure-hash-algorithms
          ;; frame.c
@@ -2161,7 +2162,7 @@ See Info node `(elisp) Integer Basics'."
 
 (defconst byte-compile-side-effect-and-error-free-ops
   '(byte-constant byte-dup byte-symbolp byte-consp byte-stringp byte-listp
-    byte-integerp byte-numberp byte-eq byte-equal byte-not byte-car-safe
+    byte-integerp byte-numberp byte-eq byte-not byte-car-safe
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-list3 byte-list4
     byte-listN byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
@@ -2172,10 +2173,11 @@ See Info node `(elisp) Integer Basics'."
   (append
    '(byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
      byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
-     byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
-     byte-plus byte-max byte-min byte-mult byte-char-after byte-char-syntax
-     byte-buffer-substring byte-string= byte-string< byte-nthcdr byte-elt
-     byte-member byte-assq byte-quo byte-rem byte-substring)
+     byte-eqlsign byte-equal byte-gtr byte-lss byte-leq byte-geq byte-diff
+     byte-negate byte-plus byte-max byte-min byte-mult byte-char-after
+     byte-char-syntax byte-buffer-substring byte-string= byte-string<
+     byte-nthcdr byte-elt byte-member byte-assq byte-quo byte-rem
+     byte-substring)
    byte-compile-side-effect-and-error-free-ops))
 
 ;; This crock is because of the way DEFVAR_BOOL variables work.
