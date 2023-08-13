@@ -724,21 +724,22 @@ On reaching end or beginning of buffer, stop and show a message."
               (not (if reverse (bobp) (eobp))))
     (forward-char (if reverse -1 1))))
 
-(defmacro image-dired--movement-command (to &optional reverse)
-  `(progn
-     (goto-char ,to)
-     (image-dired--movement-ensure-point-pos ,reverse)
-     (when image-dired-track-movement
-       (image-dired-track-original-file))
-     (image-dired--update-header-line)))
+(defun image-dired--update-after-move (reverse)
+  "Book-keeping after move."
+  (image-dired--movement-ensure-point-pos reverse)
+  (when image-dired-track-movement
+    (image-dired-track-original-file))
+  (image-dired--update-header-line))
 
-(defmacro image-dired--movement-command-line (&optional reverse)
-  `(image-dired--movement-command
-     (let ((goal-column (current-column)))
-       (forward-line ,(if reverse -1 1))
-       (move-to-column goal-column)
-       (point))
-     ,reverse))
+(defun image-dired--movement-command (to &optional reverse)
+  (goto-char to)
+  (image-dired--update-after-move reverse))
+
+(defun image-dired--movement-command-line (&optional reverse)
+  (let ((goal-column (current-column)))
+    (forward-line (if reverse -1 1))
+    (move-to-column goal-column)
+    (image-dired--update-after-move reverse)))
 
 (defun image-dired-next-line ()
   "Move to next line in the thumbnail buffer."
@@ -775,10 +776,7 @@ On reaching end or beginning of buffer, stop and show a message."
   (let ((goal-column (current-column)))
     (if down (scroll-down) (scroll-up))
     (move-to-column goal-column)
-    (image-dired--movement-ensure-point-pos down)
-    (when image-dired-track-movement
-      (image-dired-track-original-file))
-    (image-dired--update-header-line)))
+    (image-dired--update-after-move down)))
 
 (defun image-dired-scroll-up ()
   (interactive nil image-dired-thumbnail-mode)
