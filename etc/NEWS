@@ -296,6 +296,16 @@ using this new option.  (Or set 'display-buffer-alist' directly.)
 ** Eshell
 
 +++
+*** New builtin Eshell command 'compile'.
+
+This command runs another command, sending its output to a compilation
+buffer when the command would output interatively.  This can be useful
+when defining aliases so that they produce a compilation buffer when
+appropriate, but still allow piping the output elsewhere if desired.
+For more information, see the "(eshell) Built-ins" node in the Eshell
+manual.
+
++++
 *** New splice operator for Eshell dollar expansions.
 Dollar expansions in Eshell now let you splice the elements of the
 expansion in-place using '$@expr'.  This makes it easier to fill lists

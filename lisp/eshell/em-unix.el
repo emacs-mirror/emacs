@@ -692,19 +692,56 @@ Concatenate FILE(s), or standard input, to standard output.")
 
 ;; special front-end functions for compilation-mode buffers
 
+(defun eshell-compile (command args &optional method mode)
+  "Run an external COMMAND with ARGS using a compilation buffer when possible.
+COMMAND should be a list of command-line arguments.  By default,
+if the command is outputting to the screen and is not part of a
+pipeline or subcommand, open an compilation buffer to hold the
+results; otherwise, write the output on stdout.
+
+If METHOD is `interactive', always open a compilation buffer.  If
+METHOD is `plain', always write to stdout.
+
+MODE, if specified, is the major mode to set in the compilation
+buffer (see `compilation-start')."
+  (if (and (not (eq method 'interactive))
+           (or (eq method 'plain)
+               eshell-in-pipeline-p
+               eshell-in-subcommand-p
+               (not (eshell-interactive-output-p))))
+      (throw 'eshell-replace-command
+              (eshell-parse-command (concat "*" command) args))
+    (compile
+     (mapconcat #'shell-quote-argument
+                (eshell-stringify-list (flatten-tree (cons command args)))
+                " ")
+     mode)))
+
+(defun eshell/compile (&rest args)
+  "Run an external COMMAND using a compilation buffer when possible.
+See `eshell-compile'."
+  (eshell-eval-using-options
+   "compile" args
+   '((?m "mode" t mode "the mode to set in the compilation buffer")
+     (?i "interactive" 'interactive method "always open a compilation buffer")
+     (?p "plain" 'plain method "always write to stdout")
+     :usage "[-p | -i] [-m MODE] COMMAND...
+Run COMMAND in a compilation buffer when outputting to the screen and
+not part of a pipeline or subcommand."
+     :parse-leading-options-only)
+   (when (stringp mode)
+     (setq mode (intern mode)))
+   (eshell-compile (car args) (cdr args) method mode)))
+
+(put 'eshell/compile 'eshell-no-numeric-conversions t)
+
 (defun eshell/make (&rest args)
   "Use `compile' to do background makes.
 Fallback to standard make when called synchronously."
-  (if (and eshell-current-subjob-p
-	   (eshell-interactive-output-p))
-      (let ((compilation-process-setup-function
-	     (list 'lambda nil
-		   (list 'setq 'process-environment
-			 (list 'quote (eshell-copy-environment))))))
-	(compile (concat "make " (eshell-flatten-and-stringify args))))
-    (throw 'eshell-replace-command
-	   (eshell-parse-command "*make" (eshell-stringify-list
-					  (flatten-tree args))))))
+  (eshell-compile "make" args
+                  ;; Use plain output unless we're executing in the
+                  ;; background.
+                  (not eshell-current-subjob-p)))
 
 (put 'eshell/make 'eshell-no-numeric-conversions t)
 
@@ -777,22 +814,10 @@ and if it's not part of a command pipeline.  Otherwise, it calls the
 external command."
   (if (and maybe-use-occur eshell-no-grep-available)
       (eshell-poor-mans-grep args)
-    (if (or eshell-plain-grep-behavior
-	    (not (and (eshell-interactive-output-p)
-		      (not eshell-in-pipeline-p)
-		      (not eshell-in-subcommand-p))))
-	(throw 'eshell-replace-command
-	       (eshell-parse-command (concat "*" command)
-				     (eshell-stringify-list
-				      (flatten-tree args))))
-      (let* ((args (mapconcat 'identity
-			      (mapcar 'shell-quote-argument
-				      (eshell-stringify-list
-				       (flatten-tree args)))
-			      " "))
-	     (cmd (format "%s -n %s" command args))
-	     compilation-scroll-output)
-	(grep cmd)))))
+    (eshell-compile command (cons "-n" args)
+                    (and eshell-plain-grep-behavior
+                         'interactive)
+                     #'grep-mode)))
 
 (defun eshell/grep (&rest args)
   "Use Emacs grep facility instead of calling external grep."
@@ -816,8 +841,7 @@ external command."
 
 (defun eshell/glimpse (&rest args)
   "Use Emacs grep facility instead of calling external glimpse."
-  (let (null-device)
-    (eshell-grep "glimpse" (append '("-z" "-y") args))))
+  (eshell-grep "glimpse" (append '("-z" "-y") args)))
 
 ;; completions rules for some common UNIX commands
 

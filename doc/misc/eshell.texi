@@ -523,6 +523,17 @@ Clear the scrollback contents of the Eshell window.  Unlike the
 command @command{clear}, this command deletes content in the Eshell
 buffer.
 
+@item compile
+@cmindex compile
+Run an external command, sending its output to a compilation buffer if
+the command would output to the screen and is not part of a pipeline
+or subcommand.  This is particularly useful when defining aliases, so
+that interactively, the output shows up in a compilation buffer, but
+you can still pipe the output elsewhere if desired.  For example, if
+you have a grep-like command on your system, you might define an alias
+for it like so: @samp{alias mygrep 'compile --mode=grep-mode -- mygrep
+$*'}.
+
 @item cp
 @cmindex cp
 Copy a file to a new location or copy multiple files to the same
