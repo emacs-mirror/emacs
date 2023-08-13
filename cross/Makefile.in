@@ -22,6 +22,8 @@ srcdir = @srcdir@
 top_builddir = @top_builddir@
 builddir = @builddir@
 
+FIND_DELETE = @FIND_DELETE@
+
 -include $(top_builddir)/src/verbose.mk
 
 # Cross-compiling Emacs for Android.
@@ -51,7 +53,7 @@ LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
 LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
 		  lib-src/ebrowse lib-src/hexl lib-src/movemail
 
-CLEAN_SUBDIRS = src lib-src lib etc
+CLEAN_SUBDIRS = $(wildcard src lib-src lib etc)
 
 .PHONY: all
 all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
@@ -174,17 +176,19 @@ $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a \
 
 .PHONY: clean maintainer-clean distclean
 clean:
-	for dir in $(CLEAN_SUBDIRS); do \
-	  find $$dir -type f -delete;   \
+	for dir in $(CLEAN_SUBDIRS); do		\
+	  find $$dir -type f $(FIND_DELETE);	\
 	done
 	rm -rf lib/config.h lib-src/config.h
 # ndk-build won't have been generated in a non-Android build.
-	-make -C ndk-build clean
+	if test -f ndk-build/Makefile; then	\
+          $(MAKE) -C ndk-build clean;		\
+	fi
 
 maintainer-clean distclean bootstrap-clean: clean
 # Remove links created by configure.
-	for dir in $(CLEAN_SUBDIRS); do \
-	  find $$dir -type l -delete;   \
+	for dir in $(CLEAN_SUBDIRS); do		\
+	  find $$dir -type l $(FIND_DELETE);	\
 	done
 	rm -rf lib/Makefile lib/gnulib.mk ndk-build/Makefile
 	rm -rf ndk-build/ndk-build.mk Makefile
