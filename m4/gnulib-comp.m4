@@ -51,6 +51,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module at-internal:
   # Code from module attribute:
   # Code from module binary-io:
+  # Code from module boot-time:
   # Code from module builtin-expect:
   # Code from module byteswap:
   # Code from module c-ctype:
@@ -243,6 +244,7 @@ AC_DEFUN([gl_INIT],
   gl_ASSERT_H
   gl_CONDITIONAL_HEADER([assert.h])
   AC_PROG_MKDIR_P
+  gl_PREREQ_READUTMP_H
   gl___BUILTIN_EXPECT
   gl_BYTESWAP
   gl_CONDITIONAL_HEADER([byteswap.h])
@@ -1252,6 +1254,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/attribute.h
   lib/binary-io.c
   lib/binary-io.h
+  lib/boot-time-aux.h
+  lib/boot-time.c
+  lib/boot-time.h
   lib/byteswap.in.h
   lib/c++defs.h
   lib/c-ctype.c
@@ -1383,6 +1388,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/rawmemchr.valgrind
   lib/readlink.c
   lib/readlinkat.c
+  lib/readutmp.h
   lib/realloc.c
   lib/regcomp.c
   lib/regex.c
@@ -1542,6 +1548,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/rawmemchr.m4
   m4/readlink.m4
   m4/readlinkat.m4
+  m4/readutmp.m4
   m4/realloc.m4
   m4/regex.m4
   m4/sha1.m4

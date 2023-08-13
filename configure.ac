@@ -2539,7 +2539,7 @@ AC_CHECK_HEADERS_ONCE(
   sys/sysinfo.h
   coff.h pty.h
   sys/resource.h
-  sys/utsname.h pwd.h utmp.h util.h
+  sys/utsname.h pwd.h util.h
   sanitizer/lsan_interface.h
   sanitizer/asan_interface.h
   sanitizer/common_interface_defs.h])
@@ -2634,51 +2634,6 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    fi
 fi
 AC_SUBST([AUTO_DEPEND])
-
-BOOT_TIME_FILE=
-AC_CACHE_CHECK([for old but post-boot file],
-  [emacs_cv_boot_time_file],
-  [AS_CASE([$opsys],
-     [gnu-linux],
-     [emacs_cv_boot_time_file=unknown
-      AS_IF([test $cross_compiling = no],
-	[# systemd puts it in /var/lib/systemd.
-	 # initscripts puts it in /var/lib/urandom (previously /var/lib).
-	 # Linux drivers/char/random.c before 2022-02-21 suggests /var/run.
-	 for file in \
-	     /var/lib/systemd/random-seed \
-	     /var/lib/urandom/random-seed \
-	     /var/lib/random-seed \
-	     /var/run/random-seed
-	 do
-	   test -f $file && { emacs_cv_boot_time_file=$file; break; }
-	 done])],
-     # This isn't perfect, as some systems might have the page file in
-     # another place.  Also, I suspect that the time stamp of that
-     # file might also change when Windows enlarges the file due to
-     # insufficient VM.  Still, this seems to be the most reliable
-     # way; the alternative (of using GetSystemTimes) won't work on
-     # laptops that hibernate, because the system clock is stopped
-     # then.  Other possibility would be to run "net statistics
-     # workstation" and parse the output, but that's gross.  So this
-     # should do; if the file is not there, the boot time will be
-     # returned as zero, and filelock.c already handles that.
-     [mingw32], [emacs_cv_boot_time_file=C:/pagefile.sys],
-     [*], [emacs_cv_boot_time_file=not-needed])])
-
-AS_CASE([$emacs_cv_boot_time_file],
-  [/*|*:*], [BOOT_TIME_FILE=\"$emacs_cv_boot_time_file\"],
-  [not-needed], [BOOT_TIME_FILE=],
-  [# Guess systemd if unknown.
-   # If guess is wrong, Emacs falls back on something else.
-   BOOT_TIME_FILE=\"/var/lib/systemd/random-seed\"])
-
-AS_IF([test -n "$BOOT_TIME_FILE"],
-  [AC_DEFINE_UNQUOTED([BOOT_TIME_FILE], [$BOOT_TIME_FILE],
-    [Name of file that, if it exists, postdates boot and predates
-     the first Emacs invocation; or a null pointer if no such file is known.
-     This file is used only on GNU/Linux and other systems
-     that lack the FreeBSD-style sysctl with KERN_BOOTTIME.])])
 
 #### Choose a window system.
 

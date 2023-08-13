@@ -76,6 +76,7 @@
 #  alignasof \
 #  alloca-opt \
 #  binary-io \
+#  boot-time \
 #  byteswap \
 #  c-ctype \
 #  c-strcase \
@@ -1600,6 +1601,16 @@ libgnu_a_SOURCES += binary-io.h binary-io.c
 
 endif
 ## end   gnulib module binary-io
+
+## begin gnulib module boot-time
+ifeq (,$(OMIT_GNULIB_MODULE_boot-time))
+
+libgnu_a_SOURCES += boot-time.c
+
+EXTRA_DIST += boot-time-aux.h boot-time.h readutmp.h
+
+endif
+## end   gnulib module boot-time
 
 ## begin gnulib module byteswap
 ifeq (,$(OMIT_GNULIB_MODULE_byteswap))
