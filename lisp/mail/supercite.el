@@ -620,9 +620,6 @@ the list should be unique."
 	 ((setq elt (rassq char alist))
 	  (message "%s%s" p (car elt))
 	  (setq p (cdr elt)))
-	 ((if (fboundp 'button-release-event-p)
-	      (button-release-event-p event)) ; ignore them
-	  nil)
 	 (t
 	  (message "%s%s" p (single-key-description event))
 	  (ding)
