@@ -382,7 +382,9 @@ arguments to pass to the OPERATION."
   (tramp-skeleton-write-region start end filename append visit lockname mustbenew
     (let (create-lockfiles)
       (write-region
-       start end (tramp-fuse-local-file-name filename) append 'nomessage))))
+       start end (tramp-fuse-local-file-name filename) append 'nomessage))
+    ;; Now, `last-coding-system-used' has the right value.  Remember it.
+    (setq coding-system-used last-coding-system-used)))
 
 
 ;; File name conversions.

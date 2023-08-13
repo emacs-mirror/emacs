@@ -3467,7 +3467,15 @@ BODY is the backend specific code."
 				 tramp-crypt-file-name-handler
 				 . inhibit-file-name-handlers))
 			      (inhibit-file-name-operation 'write-region))
-			  (find-file-name-handler ,visit 'write-region)))))
+			  (find-file-name-handler ,visit 'write-region))))
+	  ;; We use this to save the value of
+	  ;; `last-coding-system-used' after writing the tmp file.  At
+	  ;; the end of the function, we set `last-coding-system-used'
+	  ;; to this saved value.  This way, any intermediary coding
+	  ;; systems used while talking to the remote shell or
+	  ;; suchlike won't hose this variable.  This approach was
+	  ;; snarfed from ange-ftp.el.
+	  coding-system-used)
      (with-parsed-tramp-file-name filename nil
        (if handler
 	   (progn
@@ -3514,9 +3522,7 @@ BODY is the backend specific code."
 	   ;; likely that it is needed shortly after `write-region'.
 	   (tramp-set-file-property v localname "file-exists-p" t)
 
-	   ;; We must protect `last-coding-system-used', now we have
-	   ;; set it to its correct value.
-	   (let (last-coding-system-used (need-chown t))
+	   (let ((need-chown t))
 	     ;; Set file modification time.
 	     (when (or (eq ,visit t) (stringp ,visit))
 	       (when-let ((file-attr (file-attributes filename 'integer)))
@@ -3535,7 +3541,7 @@ BODY is the backend specific code."
                (tramp-set-file-uid-gid filename uid gid))
 
 	     ;; Set extended attributes.  We ignore possible errors,
-	     ;; because ACL strings could be incompatible.
+	     ;; because ACL strings or SELinux contexts could be incompatible.
 	     (when attributes
 	       (ignore-errors
 		 (set-file-extended-attributes filename attributes)))
@@ -3554,7 +3560,11 @@ BODY is the backend specific code."
 	     (when (and (null noninteractive)
 			(or (eq ,visit t) (string-or-null-p ,visit)))
 	       (tramp-message v 0 "Wrote %s" filename))
-	     (run-hooks 'tramp-handle-write-region-hook)))))))
+	     (run-hooks 'tramp-handle-write-region-hook))))
+
+       ;; Make `last-coding-system-used' have the right value.
+       (when coding-system-used
+	 (setq last-coding-system-used coding-system-used)))))
 
 ;;; Common file name handler functions for different backends:
 
@@ -5202,6 +5212,8 @@ of."
       ;; `set-visited-file-modtime' ourselves later on.
       (let (create-lockfiles)
         (write-region start end tmpfile append 'no-message))
+      ;; Now, `last-coding-system-used' has the right value.  Remember it.
+      (setq coding-system-used last-coding-system-used)
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
