@@ -26,7 +26,7 @@
 ;; The translation to string regexp is done by a macro and does not
 ;; incur any extra processing during run time.  Example:
 ;;
-;;  (rx bos (or (not (any "^"))
+;;  (rx bos (or (not "^")
 ;;              (seq "^" (or " *" "["))))
 ;;
 ;; => "\\`\\(?:[^^]\\|\\^\\(?: \\*\\|\\[\\)\\)"
@@ -616,7 +616,7 @@ classes."
    ;; Empty set (or any char).
    ((and (null intervals) (null classes))
     (if negated
-        (rx--translate-symbol 'anything)
+        (rx--translate-symbol 'anychar)
       (rx--empty)))
 
    ;; More than one character, or at least one class.
@@ -1095,15 +1095,15 @@ Return (REGEXP . PRECEDENCE)."
                                (opt "^")
                                (opt "]")
                                (* (or (seq "[:" (+ (any "a-z")) ":]")
-                                      (not (any "]"))))
+                                      (not "]")))
                                "]")
                           (not (any "*+?^$[\\"))
                           (seq "\\"
-                               (or anything
-                                   (seq (any "sScC_") anything)
+                               (or anychar
+                                   (seq (any "sScC_") anychar)
                                    (seq "("
-                                        (* (or (not (any "\\"))
-                                               (seq "\\" (not (any ")")))))
+                                        (* (or (not "\\")
+                                               (seq "\\" (not ")"))))
                                         "\\)"))))
                       eos)
                     t)))
