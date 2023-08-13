@@ -603,7 +603,7 @@ lost after dumping")))
                    (equal dump-mode "pdump"))
           ;; Don't enable this before bootstrap is completed, as the
           ;; compiler infrastructure may not be usable yet.
-          (setq comp-enable-subr-trampolines t))
+          (setq native-comp-enable-subr-trampolines t))
         (message "Dumping under the name %s" output)
         (condition-case ()
             (delete-file output)
