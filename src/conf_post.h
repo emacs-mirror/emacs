@@ -478,9 +478,9 @@ extern int emacs_setenv_TZ (char const *);
    defined in the C library and used by Gnulib.  Define a prototype
    for it here.  */
 
-#ifndef HAVE_DECL_ENDUTENT
+#if !HAVE_DECL_ENDUTENT
 extern void endutent (void);
-#endif /* HAVE_DECL_ENDUTENT */
+#endif /* !HAVE_DECL_ENDUTENT */
 
 /* Now define substitutes for BOOT_TIME if necessary.  */
 
@@ -488,12 +488,12 @@ extern void endutent (void);
 #include <utmp.h>
 
 #define BOOT_TIME 2
-#endif /* UTMP_H_DEFINES_BOOT_TIME */
+#endif /* !UTMP_H_DEFINES_BOOT_TIME */
 
 /* sysinfo is also absent from some versions of the NDK, yet is
    present on API level 9 and above.  */
 
-#ifndef HAVE_DECL_SYSINFO
+#if !HAVE_DECL_SYSINFO
 #include <sys/sysinfo.h>
 
 #if __ANDROID_API__ >= 9
@@ -502,6 +502,6 @@ extern int sysinfo (struct sysinfo *info);
 /* Gnulib uses this function unconditionally.  */
 #define sysinfo(ignored) ((void) ignored, (errno = ENOSYS), -1)
 #endif /* __ANDROID_API >= 9 */
-#endif /* HAVE_DECL_SYSINFO */
+#endif /* !HAVE_DECL_SYSINFO */
 
 #endif /* __ANDROID__ */
