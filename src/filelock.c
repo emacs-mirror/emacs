@@ -107,7 +107,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      hard nor symbolic links.  */
 
 
-/* Return the time of the last system boot.  */
+/* Return the time of the last system boot, or 0 if that information
+   is unavailable.  */
 
 static time_t
 get_boot_sec (void)
@@ -117,10 +118,16 @@ get_boot_sec (void)
   if (will_dump_p ())
     return 0;
 
-  struct timespec boot_time;
-  boot_time.tv_sec = 0;
-  get_boot_time (&boot_time);
-  return boot_time.tv_sec;
+#ifndef MSDOS
+  {
+    struct timespec boot_time;
+    boot_time.tv_sec = 0;
+    get_boot_time (&boot_time);
+    return boot_time.tv_sec;
+  }
+#else /* MSDOS */
+  return 0;
+#endif /* MSDOS */
 }
 
 /* An arbitrary limit on lock contents length.  8 K should be plenty
