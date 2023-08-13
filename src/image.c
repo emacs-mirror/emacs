@@ -8212,7 +8212,6 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
      simple transparency, we prefer a clipping mask.  */
   if (!transparent_p)
     {
-      /* png_color_16 *image_bg; */
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
       Emacs_Color color;
