@@ -501,6 +501,7 @@ extern int sysinfo (struct sysinfo *info);
 #else /* __ANDROID_API__ < 8 */
 /* Gnulib uses this function unconditionally.  */
 #define sysinfo(ignored) ((void) ignored, (errno = ENOSYS), -1)
+#endif /* __ANDROID_API >= 9 */
 #endif /* HAVE_DECL_SYSINFO */
 
 #endif /* __ANDROID__ */
