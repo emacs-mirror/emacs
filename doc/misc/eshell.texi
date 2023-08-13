@@ -409,8 +409,18 @@ implementing common command-line utilities, but enhanced for Eshell.
 (These built-in commands are just ordinary Lisp functions whose names
 begin with @code{eshell/}.)  In order to call the external variant of
 a built-in command @code{foo}, you could call @code{*foo}.  Usually,
-this should not be necessary.  You can check what will be applied by
-the @code{which} command:
+this should not be necessary; if the Eshell version of a command
+doesn't support a particular option, it will automatically invoke the
+external command for you.
+
+Some built-in Eshell commands provide enhanced versions of regular
+Emacs Lisp functions.  If you want to call the regular Emacs Lisp
+version, you can write your command in Lisp form (@pxref{Invocation}).
+To call the regular version in command form, you can use
+@code{funcall} or @code{apply}, e.g.@: @samp{funcall #'compile "make all"}
+(@pxref{Calling Functions,,, elisp, GNU Emacs Lisp Reference Manual}).
+
+You can check what will be applied by the @code{which} command:
 
 @example
 ~ $ which ls
@@ -420,14 +430,19 @@ eshell/ls is a compiled Lisp function in `em-ls.el'
 @end example
 
 If you want to discard a given built-in command, you could declare an
-alias (@pxref{Aliases}).  Example:
+alias (@pxref{Aliases}).  For example:
 
 @example
-~ $ which sudo
-eshell/sudo is a compiled Lisp function in `em-tramp.el'.
-~ $ alias sudo '*sudo $@@*'
-~ $ which sudo
-sudo is an alias, defined as "*sudo $@@*"
+@group
+~ $ alias ls '*ls $@@*'
+~ $ which ls
+ls is an alias, defined as "*ls $@@*"
+@end group
+@group
+~ $ alias compile 'apply #''compile $*'
+~ $ which compile
+ls is an alias, defined as "apply #'compile $*"
+@end group
 @end example
 
 Some of the built-in commands have different behavior from their
