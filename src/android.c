@@ -18,30 +18,27 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <limits.h>
-#include <signal.h>
-#include <semaphore.h>
-#include <dlfcn.h>
+#include <allocator.h>
+#include <assert.h>
+#include <careadlinkat.h>
 #include <errno.h>
-#include <math.h>
-#include <string.h>
-#include <stdckdint.h>
+#include <fcntl.h>
+#include <fingerprint.h>
 #include <intprops.h>
-#include <timespec.h>
 #include <libgen.h>
-
-#include <sys/stat.h>
-#include <sys/mman.h>
+#include <limits.h>
+#include <math.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <signal.h>
+#include <stdckdint.h>
+#include <string.h>
 #include <sys/param.h>
+#include <timespec.h>
+#include <unistd.h>
 
 /* Old NDK versions lack MIN and MAX.  */
 #include <minmax.h>
-
-#include <assert.h>
-#include <fingerprint.h>
 
 #include "android.h"
 #include "androidgui.h"
@@ -1157,24 +1154,23 @@ android_get_home_directory (void)
 }
 
 /* Return the name of the file behind a file descriptor FD by reading
-   /proc/self/fd/.  Place the name in BUFFER, which should be able to
-   hold size bytes.  Value is 0 upon success, and 1 upon failure.  */
+   /proc/self/fd/.  Value is allocated memory holding the file name
+   upon success, and 0 upon failure.  */
 
-static int
-android_proc_name (int fd, char *buffer, size_t size)
+static char *
+android_proc_name (int fd)
 {
   char format[sizeof "/proc/self/fd/"
 	      + INT_STRLEN_BOUND (int)];
-  ssize_t read;
+  static struct allocator allocator = {
+    /* Fill the allocator with C library malloc functions.  xmalloc
+       and so aren't thread safe.  */
+    malloc, realloc, free, NULL,
+  };
 
   sprintf (format, "/proc/self/fd/%d", fd);
-  read = readlink (format, buffer, size - 1);
-
-  if (read == -1)
-    return 1;
-
-  buffer[read] = '\0';
-  return 0;
+  return careadlinkat (AT_FDCWD, format, NULL, 0,
+		       &allocator, readlinkat);
 }
 
 /* Try to guarantee the existence of the `lib' directory within the
@@ -1465,11 +1461,12 @@ NATIVE_NAME (getProcName) (JNIEnv *env, jobject object, jint fd)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
-  char buffer[PATH_MAX + 1];
+  char *buffer;
   size_t length;
   jbyteArray array;
 
-  if (android_proc_name (fd, buffer, PATH_MAX + 1))
+  buffer = android_proc_name (fd);
+  if (!buffer)
     return NULL;
 
   /* Return a byte array, as Java strings cannot always encode file
@@ -1477,11 +1474,13 @@ NATIVE_NAME (getProcName) (JNIEnv *env, jobject object, jint fd)
   length = strlen (buffer);
   array = (*env)->NewByteArray (env, length);
   if (!array)
-    return NULL;
+    goto finish;
 
   (*env)->SetByteArrayRegion (env, array, 0, length,
 			      (jbyte *) buffer);
 
+ finish:
+  free (buffer);
   return array;
 }
 
