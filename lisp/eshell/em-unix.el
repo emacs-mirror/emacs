@@ -998,14 +998,6 @@ Show wall-clock time elapsed during execution of COMMAND.")
   "Make \"whoami\" Tramp aware."
   (eshell-user-login-name))
 
-(defvar eshell-diff-window-config nil)
-
-(defun eshell-diff-quit ()
-  "Restore the window configuration previous to diff'ing."
-  (interactive)
-  (if eshell-diff-window-config
-      (set-window-configuration eshell-diff-window-config)))
-
 (defun eshell-nil-blank-string (string)
   "Return STRING, or nil if STRING contains only blank characters."
   (cond
@@ -1028,8 +1020,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (throw 'eshell-replace-command
 		 (eshell-parse-command "*diff" orig-args)))
       (let ((old (car (last args 2)))
-	    (new (car (last args)))
-	    (config (current-window-configuration)))
+            (new (car (last args))))
 	(if (= (length args) 2)
 	    (setq args nil)
 	  (setcdr (last args 3) nil))
@@ -1041,18 +1032,6 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	      (error
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))
-	  (when (fboundp 'diff-mode)
-	    (add-hook
-	     'compilation-finish-functions
-	     (lambda (buff _msg)
-		(with-current-buffer buff
-		  (diff-mode)
-                  (setq-local eshell-diff-window-config config)
-		  (local-set-key [?q] #'eshell-diff-quit)
-		  (if (fboundp 'turn-on-font-lock-if-enabled)
-		      (turn-on-font-lock-if-enabled))
-		  (goto-char (point-min))))
-	     nil t))
 	  (pop-to-buffer (current-buffer))))))
   nil)
 
@@ -1088,6 +1067,9 @@ Show wall-clock time elapsed during execution of COMMAND.")
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
 
 (define-obsolete-function-alias 'nil-blank-string #'eshell-nil-blank-string "29.1")
+(defvar eshell-diff-window-config nil)
+(make-obsolete-variable 'eshell-diff-window-config "no longer used." "30.1")
+(define-obsolete-function-alias 'eshell-diff-quit #'ignore "30.1")
 
 (provide 'em-unix)
 
