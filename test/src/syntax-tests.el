@@ -518,7 +518,6 @@ the `parse-partial-sexp's are expected to stop.  See
         (modify-syntax-entry (unibyte-char-to-multibyte 128) "_" st)
         (set-syntax-table st)
         (should (equal (eval '(char-syntax 128) t) ?_))
-        (should (equal (funcall cs 128) ?_))))
-    (list (char-syntax 128) (funcall cs 128))))
+        (should (equal (funcall cs 128) ?_))))))
 
 ;;; syntax-tests.el ends here
