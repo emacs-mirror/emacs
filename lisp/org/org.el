@@ -5893,6 +5893,8 @@ needs to be inserted at a specific position in the font-lock sequence.")
 
 (defvar-local org-custom-properties-overlays nil
   "List of overlays used for custom properties.")
+;; Preserve when switching modes or when restarting Org.
+(put 'org-custom-properties-overlays 'permanent-local t)
 
 (defun org-toggle-custom-properties-visibility ()
   "Display or hide properties in `org-custom-properties'."
@@ -10673,6 +10675,7 @@ D      Show deadlines and scheduled items between a date range."
 
 (defvar-local org-occur-highlights nil
   "List of overlays used for occur matches.")
+(put 'org-occur-highlights 'permanent-local t)
 (defvar-local org-occur-parameters nil
   "Parameters of the active org-occur calls.
 This is a list, each call to org-occur pushes as cons cell,
@@ -16159,6 +16162,10 @@ SNIPPETS-P indicates if this is run to create snippet images for HTML."
 ;; Image display
 
 (defvar-local org-inline-image-overlays nil)
+;; Preserve when switching modes or when restarting Org.
+;; If we clear the overlay list and later enable Or mode, the existing
+;; image overlays will never be cleared by `org-toggle-inline-images'.
+(put 'org-inline-image-overlays 'permanent-local t)
 
 (defun org--inline-image-overlays (&optional beg end)
   "Return image overlays between BEG and END."

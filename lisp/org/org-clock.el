@@ -2069,6 +2069,7 @@ Use `\\[org-clock-remove-overlays]' to remove the subtree times."
 	       h m))))
 
 (defvar-local org-clock-overlays nil)
+(put 'org-clock-overlays 'permanent-local t)
 
 (defun org-clock-put-overlay (time)
   "Put an overlay on the headline at point, displaying TIME.

@@ -11,7 +11,7 @@ Inserted by installing Org mode or when a release is made."
 (defun org-git-version ()
   "The Git version of Org mode.
 Inserted by installing Org or when a release is made."
-   (let ((org-git-version "release_9.6.7-5-gd1d0c3"))
+   (let ((org-git-version "release_9.6.7-13-g99cc96"))
      org-git-version))
 
 (provide 'org-version)
