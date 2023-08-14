@@ -2960,22 +2960,19 @@
 	(module_open_channel): Call MODULE_INTERNAL_CLEANUP prior to
 	returning.
 
-2023-03-11  Po Lu  <luangruo@yahoo.com>
-
-	Implement hourglass cursor on Android
 	* lisp/term/android-win.el (x-pointer-arrow, x-pointer-left-ptr)
 	(x-pointer-left-side, x-pointer-sb-h-double-arrow)
 	(x-pointer-sb-v-double-arrow, x-pointer-watch, x-pointer-xterm)
 	(x-pointer-invisible): New constants.
+
 	* src/androidterm.c (android_show_hourglass)
 	(android_hide_hourglass): New functions.
 	(android_toggle_visible_pointer, android_define_frame_cursor):
 	Define or don't define hourglass cursor if x->hourglass.
 	(android_redisplay_interface): Add new functions.
+
 	* src/androidterm.h (struct android_output): New field
 	`hourglass'.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
 
 2023-03-10  Po Lu  <luangruo@yahoo.com>
 
