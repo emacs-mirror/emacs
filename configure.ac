@@ -2710,27 +2710,8 @@ for Android, but all API calls need to be stubbed out])
 
     # Check for some functions not always present in the NDK.
     AC_CHECK_DECLS([android_get_device_api_level])
-    AC_CHECK_DECLS([endutent, sysinfo], [], [],
-      [[
-#include <sys/sysinfo.h>
-#include <utmp.h>
-]])
 
-    # Establish if BOOT_TIME is defined in utmp.h.
-    AC_CACHE_CHECK([if utmp.h defines BOOT_TIME],
-      [emacs_cv_utmp_h_defines_boot_time],
-      [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <utmp.h>
-#ifndef BOOT_TIME
-BOOT_TIME not defined
-#endif /* BOOT_TIME */
-]], [[]])], [emacs_cv_utmp_h_defines_boot_time=yes],
-      [emacs_cv_utmp_h_defines_boot_time=no])])
-    AS_IF([test x"$emacs_cv_utmp_h_defines_boot_time" = xyes],
-      [AC_DEFINE([UTMP_H_DEFINES_BOOT_TIME], [1],
-        [Define to 1 if building for Android and utmp.h declares BOOT_TIME])])
-
-    # Say this build is really for Android.
+    # Mention this build is really for Android.
     REALLY_ANDROID=yes])])
 
 AC_SUBST([ANDROID])

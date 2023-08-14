@@ -471,37 +471,3 @@ extern int emacs_setenv_TZ (char const *);
 #undef MB_CUR_MAX
 #define MB_CUR_MAX REPLACEMENT_MB_CUR_MAX
 #endif /* REPLACEMENT_MB_CUR_MAX */
-
-#ifdef __ANDROID__
-
-/* The Android NDK r10b omits the function `endutent' that is actually
-   defined in the C library and used by Gnulib.  Define a prototype
-   for it here.  */
-
-#if !HAVE_DECL_ENDUTENT
-extern void endutent (void);
-#endif /* !HAVE_DECL_ENDUTENT */
-
-/* Now define substitutes for BOOT_TIME if necessary.  */
-
-#ifndef UTMP_H_DEFINES_BOOT_TIME
-#include <utmp.h>
-
-#define BOOT_TIME 2
-#endif /* !UTMP_H_DEFINES_BOOT_TIME */
-
-/* sysinfo is also absent from some versions of the NDK, yet is
-   present on API level 9 and above.  */
-
-#if !HAVE_DECL_SYSINFO
-#include <sys/sysinfo.h>
-
-#if __ANDROID_API__ >= 9
-extern int sysinfo (struct sysinfo *info);
-#else /* __ANDROID_API__ < 8 */
-/* Gnulib uses this function unconditionally.  */
-#define sysinfo(ignored) ((void) ignored, (errno = ENOSYS), -1)
-#endif /* __ANDROID_API >= 9 */
-#endif /* !HAVE_DECL_SYSINFO */
-
-#endif /* __ANDROID__ */
