@@ -960,44 +960,30 @@ public final class EmacsService extends Service
       }
   }
 
+  /* Return whether Emacs is directly permitted to access the
+     content:// URI NAME.  This is not a suitable test for files which
+     Emacs can access by virtue of their containing document
+     trees.  */
+
   public boolean
-  checkContentUri (byte[] string, boolean readable, boolean writable)
+  checkContentUri (String name, boolean readable, boolean writable)
   {
-    String mode, name;
+    String mode;
     ParcelFileDescriptor fd;
+    Uri uri;
+    int rc, flags;
 
-    /* Decode this into a URI.  */
+    uri = Uri.parse (name);
+    flags = 0;
 
-    try
-      {
-	/* The usual file name encoding question rears its ugly head
-	   again.  */
-	name = new String (string, "UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	name = null;
-	throw new RuntimeException (exception);
-      }
-
-    mode = "r";
+    if (readable)
+      flags |= Intent.FLAG_GRANT_READ_URI_PERMISSION;
 
     if (writable)
-      mode += "w";
+      flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    try
-      {
-	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
-	fd.close ();
-
-	return true;
-      }
-    catch (Exception exception)
-      {
-	/* Fall through.  */
-      }
-
-    return false;
+    rc = checkCallingUriPermission (uri, flags);
+    return rc == PackageManager.PERMISSION_GRANTED;
   }
 
   /* Build a content file name for URI.

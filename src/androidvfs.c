@@ -2765,14 +2765,13 @@ android_content_initial (char *name, size_t length)
 /* Return the content URI corresponding to a `/content/by-authority'
    file name, or NULL if it is invalid for some reason.  FILENAME
    should be relative to /content/by-authority, with no leading
-   directory separator character.
+   directory separator character.  */
 
-   This function is not reentrant.  */
-
-static const char *
+static char *
 android_get_content_name (const char *filename)
 {
-  static char buffer[PATH_MAX + 1], *fill;
+  char *fill, *buffer;
+  size_t length;
 
   /* Make sure FILENAME isn't obviously invalid: it must contain an
      authority name and a file name component.  */
@@ -2784,48 +2783,53 @@ android_get_content_name (const char *filename)
       return NULL;
     }
 
-  /* FILENAME must also not be a directory.  */
+  /* FILENAME must also not be a directory.  Accessing content
+     provider directories is not supported by this interface.  */
 
-  if (filename[strlen (filename)] == '/')
+  length = strlen (filename);
+  if (filename[length] == '/')
     {
       errno = ENOTDIR;
       return NULL;
     }
 
-  snprintf (buffer, PATH_MAX + 1, "content://%s", filename);
+  /* Prefix FILENAME with content:// and return the buffer containing
+     that URI.  */
+
+  buffer = xmalloc (sizeof "content://" + length);
+  sprintf (buffer, "content://%s", filename);
   return buffer;
 }
 
 /* Return whether or not the specified URI is an accessible content
-   URI.  MODE specifies what to check.  */
+   URI.  MODE specifies what to check.
+
+   URI must be a string in the JVM's extended UTF-8 format.  */
 
 static bool
 android_check_content_access (const char *uri, int mode)
 {
   jobject string;
   size_t length;
-  jboolean rc;
+  jboolean rc, read, write;
 
   length = strlen (uri);
 
-  string = (*android_java_env)->NewByteArray (android_java_env,
-					      length);
+  string = (*android_java_env)->NewStringUTF (android_java_env, uri);
   android_exception_check ();
 
-  (*android_java_env)->SetByteArrayRegion (android_java_env,
-					   string, 0, length,
-					   (jbyte *) uri);
+  /* Establish what is being checked.  Checking for read access is
+     identical to checking if the file exists.  */
+
+  read = (bool) (mode & R_OK || (mode == F_OK));
+  write = (bool) (mode & W_OK);
+
   rc = (*android_java_env)->CallBooleanMethod (android_java_env,
 					       emacs_service,
 					       service_class.check_content_uri,
-					       string,
-					       (jboolean) ((mode & R_OK)
-							   != 0),
-					       (jboolean) ((mode & W_OK)
-							   != 0));
+					       string, read, write);
   android_exception_check_1 (string);
   ANDROID_DELETE_LOCAL_REF (string);
-
   return rc;
 }
 
@@ -2889,7 +2893,7 @@ android_authority_name (struct android_vnode *vnode, char *name,
 			size_t length)
 {
   struct android_authority_vnode *vp;
-  const char *uri_name;
+  char *uri_name;
 
   if (!android_init_gui)
     {
@@ -2922,6 +2926,12 @@ android_authority_name (struct android_vnode *vnode, char *name,
       if (*name == '/')
 	name++, length -= 1;
 
+      /* NAME must be a valid JNI string, so that it can be encoded
+	 properly.  */
+
+      if (android_verify_jni_string (name))
+	goto no_entry;
+
       uri_name = android_get_content_name (name);
       if (!uri_name)
 	goto error;
@@ -2931,11 +2941,12 @@ android_authority_name (struct android_vnode *vnode, char *name,
       vp->vnode.ops = &authority_vfs_ops;
       vp->vnode.type = ANDROID_VNODE_CONTENT_AUTHORITY;
       vp->vnode.flags = 0;
-      vp->uri = xstrdup (uri_name);
+      vp->uri = uri_name;
       return &vp->vnode;
     }
 
   /* Content files can't have children.  */
+ no_entry:
   errno = ENOENT;
  error:
   return NULL;

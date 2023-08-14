@@ -1107,41 +1107,6 @@ android_get_content_name (const char *filename)
   return NULL;
 }
 
-/* Return whether or not the specified FILENAME is an accessible
-   content URI.  MODE specifies what to check.  */
-
-static bool
-android_check_content_access (const char *filename, int mode)
-{
-  const char *name;
-  jobject string;
-  size_t length;
-  jboolean rc;
-
-  name = android_get_content_name (filename);
-  length = strlen (name);
-
-  string = (*android_java_env)->NewByteArray (android_java_env,
-					      length);
-  android_exception_check ();
-
-  (*android_java_env)->SetByteArrayRegion (android_java_env,
-					   string, 0, length,
-					   (jbyte *) name);
-  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
-					       emacs_service,
-					       service_class.check_content_uri,
-					       string,
-					       (jboolean) ((mode & R_OK)
-							   != 0),
-					       (jboolean) ((mode & W_OK)
-							   != 0));
-  android_exception_check_1 (string);
-  ANDROID_DELETE_LOCAL_REF (string);
-
-  return rc;
-}
-
 #endif /* 0 */
 
 /* Return the current user's ``home'' directory, which is actually the
@@ -1549,7 +1514,7 @@ android_init_emacs_service (void)
   FIND_METHOD (open_content_uri, "openContentUri",
 	       "([BZZZ)I");
   FIND_METHOD (check_content_uri, "checkContentUri",
-	       "([BZZ)Z");
+	       "(Ljava/lang/String;ZZ)Z");
   FIND_METHOD (query_battery, "queryBattery", "()[J");
   FIND_METHOD (update_extracted_text, "updateExtractedText",
 	       "(Lorg/gnu/emacs/EmacsWindow;"
