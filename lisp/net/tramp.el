@@ -3522,7 +3522,7 @@ BODY is the backend specific code."
 	   ;; likely that it is needed shortly after `write-region'.
 	   (tramp-set-file-property v localname "file-exists-p" t)
 
-	   (let ((need-chown t))
+	   (let (last-coding-system-used (need-chown t))
 	     ;; Set file modification time.
 	     (when (or (eq ,visit t) (stringp ,visit))
 	       (when-let ((file-attr (file-attributes filename 'integer)))
