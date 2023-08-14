@@ -39,29 +39,25 @@
 
 2023-08-04  Po Lu  <luangruo@yahoo.com>
 
-	Optimize creation of multibyte menu items on Android
 	* src/androidvfs.c (android_verify_jni_string): Move to
 	android.c.
+
 	* src/android.c (android_verify_jni_string): New function.
 	(android_build_string): Forgo encoding menu text if TEXT is a
 	multibyte string that's also a valid JNI string.
+
 	* src/android.h: Update prototypes.
 
-	Avoid encoding commonplace characters in tree names
 	* java/org/gnu/emacs/EmacsService.java (getDocumentTrees): Don't
 	encode some characters that need not be escaped within file
 	names.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
 
 2023-08-03  Po Lu  <luangruo@yahoo.com>
 
 	* src/fileio.c (check_vfs_filename): Revert earlier change.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Isolate fchmodat within the Android VFS layer
 	* src/android.h: Update prototypes.
+
 	* src/androidvfs.c (unix_vfs_ops, android_unix_chmod, afs_vfs_ops)
 	(android_afs_chmod, content_vfs_ops, android_content_chmod)
 	(authority_vfs_ops, android_authority_chmod, saf_root_vfs_ops)
@@ -70,61 +66,56 @@
 	(root_vfs_ops): Add `chmod' to the list of functions implemented
 	by each vnode.
 	(android_fchmodat): New function.
+
 	* src/fileio.c (Fset_file_modes): Use `emacs_fchmodat'.
+
 	* src/lisp.h:
 	* src/sysdep.c (emacs_fchmodat): Delegate to android_fchmodat on
 	Android.
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsSafThread.java (CacheToplevel):
-	(EmacsSafThread):
-	(DocIdEntry):
-	(getCache):
-	(pruneCache):
-	(cacheDirectoryFromCursor):
-	(run):
-	(documentIdFromName1):
-	(statDocument1):
-	(openDocumentDirectory1):
-	(openDocument1): Introduce a file status cache and populate
-	it with files within directories as they are opened.
-	* java/org/gnu/emacs/EmacsService.java (createDocument):
-	(createDirectory):
-	(moveDocument): Invalidate the file status cache wherever
-	needed.
+	* java/org/gnu/emacs/EmacsSafThread.java (CacheToplevel)
+	(EmacsSafThread, DocIdEntry, getCache, pruneCache)
+	(cacheDirectoryFromCursor, run, documentIdFromName1)
+	(statDocument1, openDocumentDirectory1, openDocument1): Introduce
+	a file status cache and populate it with files within directories
+	as they are opened.
+
+	* java/org/gnu/emacs/EmacsService.java (createDocument)
+	(createDirectory, moveDocument): Invalidate the file status cache
+	wherever needed.
+
 	* src/fileio.c (check_vfs_filename):
 	(Fset_file_modes): Permit `set-file-modes' to silently fail
 	on asset and content files.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-08-02  Po Lu  <luangruo@yahoo.com>
 
-	Fix reporting of key events containing SYM and META
-	* doc/emacs/android.texi (Android)::(What is Android?):
-	(Android Startup, Android File System, Android Environment)
-	(Android Windowing, Android Fonts, Android Troubleshooting):
-	Improve section titles.
+	* doc/emacs/android.texi (Android, What is Android?, Android
+	Startup, Android File System, Android Environment,Android
+	Windowing, Android Fonts, Android Troubleshooting): Improve
+	section titles.
 	(Android Windowing): Describe the relation between keyboard
 	modifiers reported by Android and those in key events.
+
 	* java/org/gnu/emacs/EmacsWindow.java (onKeyDown, onKeyUp):
 	Clear META_SYM_ON and META_META_MASK when retrieving ASCII
 	characters.
+
 	* src/androidgui.h: Add ANDROID_META_MASK.
+
 	* src/androidterm.c (android_android_to_emacs_modifiers)
 	(android_emacs_to_android_modifiers): Transform META to Alt, and
 	vice versa.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-08-01  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* doc/emacs/android.texi (Android File System): Describe how to
 	access real files named /assets or /contents if so required.
+
 	* java/org/gnu/emacs/EmacsService.java (validAuthority):
 	* src/android.c (android_init_emacs_service):
 	* src/android.h: New function.
+
 	* src/androidvfs.c (android_saf_valid_authority_p): New
 	function.  Wrap the Java function.
 	(android_saf_root_stat, android_saf_root_access): Don't return
@@ -132,51 +123,45 @@
 	(android_saf_tree_from_name): Check validity of string data
 	before giving it to JNI.
 
-	Micro-optimize PUSHW/PUSHB
 	* src/sfnt.c (CHECK_STACK_AVAILABLE): New macro.
-	(PUSH):
-	(PUSH_UNCHECKED): Always define to unchecked versions,
+	(PUSH, PUSH_UNCHECKED): Always define to unchecked versions,
 	even if TEST.
 	(PUSH2_UNCHECKED): New macro.
-	(NPUSHB):
-	(NPUSHW):
-	(PUSHB):
-	(PUSHW): Check the number of remaining stack elements
-	once.
+	(NPUSHB, NPUSHW, PUSHB, PUSHW): Check the number of remaining
+	stack elements once.
 	(stack_overflow_test_args): Expect zero stack arguments.
 
 	* src/android.c (ANDROID_THROW): Remove unused macro.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-31  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* src/sfnt.c (ISECT): Micro-optimize this instruction.
+
 	* src/sfntfont.c (sfnt_parse_style): Avoid GC safety problem.
+	(sfnt_parse_style): Fix misworded commentary.
 
-	Update Android port
-	* src/sfntfont.c (sfnt_parse_style): Fix misworded commentary.
-
-	Initialize Android API level earlier
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative):
 	* java/org/gnu/emacs/EmacsNoninteractive.java (main):
 	* java/org/gnu/emacs/EmacsService.java (run):
 	* java/org/gnu/emacs/EmacsThread.java (run):
 	* src/android.c (initEmacs, setEmacsParams): Set
 	`android_api_level' within setEmacsParams, not in initEmacs.
+
 	* src/androidvfs.c: Pacify compiler warnings.
 
-	Implement cross-directory SAF rename operations
 	* java/org/gnu/emacs/EmacsService.java (renameDocument): Don't
 	catch UnsupportedOperationException; handle ENOSYS in
 	android_saf_rename_document instead.
 	(moveDocument): New function.
+
 	* lisp/subr.el (y-or-n-p): Always change the text conversion
 	style.
+
 	* src/android.c (android_init_emacs_service)
 	(android_exception_check_4): New function.
+
 	* src/android.h: Update Java function table.
+
 	* src/androidvfs.c (android_saf_rename_document): Handle ENOSYS
 	here by setting errno to EXDEV.
 	(android_saf_move_document): New function.
@@ -184,40 +169,36 @@
 	(android_saf_tree_rename): Use delete-move-rename to implement
 	cross-directory renames.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-30  Po Lu  <luangruo@yahoo.com>
 
-	Partially implement rename operations on SAF files
 	* java/org/gnu/emacs/EmacsSafThread.java
 	(postInvalidateCacheDir):
 	* java/org/gnu/emacs/EmacsService.java (renameDocument): New
 	functions.
+
 	* src/android.c (android_init_emacs_service):
 	* src/android.h (struct android_emacs_service): Link to new JNI
 	function.
+
 	* src/androidvfs.c (android_saf_rename_document): New function.
 	(android_saf_tree_rename): Implement in terms of that function
 	if possible.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-29  Po Lu  <luangruo@yahoo.com>
 
-	Correct directory permissions reported for VFS files
 	* java/org/gnu/emacs/EmacsSafThread.java (statDocument1):
+
 	* src/androidvfs.c (android_afs_stat, android_content_stat)
 	(android_saf_root_stat): Report search permissions for files.
 
-	Update Android port
 	* src/androidvfs.c: Improve commentary.
 
 2023-07-29  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsSafThread.java (postInvalidateCache):
 	New argument cacheName.  Remove that file from the cache.
 	(accessDocument1): Consult the storage cache as well.
+
 	* java/org/gnu/emacs/EmacsService.java (deleteDocument): New
 	argument NAME.
 
@@ -228,62 +209,57 @@
 
 2023-07-29  Po Lu  <luangruo@yahoo.com>
 
-	; Update Android port
 	* src/androidvfs.c (android_saf_exception_check): Describe
 	exceptions earlier.
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsSafThread.java (DocIdEntry):
-	(getCacheEntry):
-	(CacheEntry):
-	(documentIdFromName1): Fix earlier change.
+	* java/org/gnu/emacs/EmacsSafThread.java (DocIdEntry)
+	(getCacheEntry, CacheEntry, documentIdFromName1): Fix earlier
+	change.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* java/org/gnu/emacs/EmacsSafThread.java (DocIdEntry)
 	(getCacheEntry, CacheEntry): Use `uptimeMillis' as the basis for
 	cache expiration.
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsSafThread.java (EmacsSafThread, getCache)
 	(pruneCache1, pruneCache, cacheChild, cacheDirectoryFromCursor)
 	(documentIdFromName1, openDocumentDirectory1): Implement the
 	cache referred to by the commentary.
+
 	* java/org/gnu/emacs/EmacsService.java (deleteDocument):
 	Invalidate the cache upon document removal.
+
 	* src/androidvfs.c (android_saf_exception_check)
 	(android_document_id_from_name): Correctly preserve or set errno
 	in error cases.
 
 2023-07-28  Po Lu  <luangruo@yahoo.com>
 
-	Fix SAF query
 	* java/org/gnu/emacs/EmacsSafThread.java (documentIdFromName1):
 	Fix query argument placeholder string.
 
-	Update Android port
 	* src/androidvfs.c (android_document_id_from_name): Don't return
 	0 if an SAF exception occurs.
 
-	Avoid crashes when the primary clip is empty
 	* src/androidselect.c (Fandroid_get_clipboard): Don't return
 	data if clipboard is empty.  Reported by Johan Widén
 	<j.e.widen@gmail.com>.
 
 2023-07-28  Po Lu  <luangruo@yahoo.com>
 
-	Allow quitting from Android content provider operations
 	* doc/emacs/android.texi (Android Document Providers): Say that
 	quitting is now possible.
+
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
 	functions `safSyncAndReadInput', `safync' and `safPostRequest'.
+
 	* java/org/gnu/emacs/EmacsSafThread.java: New file.  Move
 	cancel-able SAF operations here.
+
 	* java/org/gnu/emacs/EmacsService.java (EmacsService): Allow
 	quitting from most SAF operations.
-	* src/androidvfs.c (android_saf_exception_check): Return EINTR
-	if OperationCanceledException is received.
+
+	* src/androidvfs.c (android_saf_exception_check): Return EINTR if
+	OperationCanceledException is received.
 	(android_saf_stat, android_saf_access)
 	(android_document_id_from_name, android_saf_tree_opendir_1)
 	(android_saf_file_open): Don't allow reentrant calls from async
@@ -292,20 +268,24 @@
 	(android_vfs_init): Initialize new class.
 
 	* src/dired.c (open_directory): Handle EINTR from opendir.
+
 	* src/sysdep.c: Describe which operations may return EINTR on
 	Android.
 
 2023-07-28  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsDirectoryEntry.java
 	(EmacsDirectoryEntry): Make class final.
+
 	* java/org/gnu/emacs/EmacsService.java (accessDocument)
 	(openDocumentDirectory, openDocument, createDocument): Throw
 	access and IO error exceptions instead of catching them.
 	(createDirectory, deleteDocument): New functions.
+
 	* src/android.c (android_init_emacs_service): Add new functions.
+
 	* src/android.h (struct android_emacs_service): Likewise.
+
 	* src/androidvfs.c (android_saf_exception_check): New function.
 	Translate between Java exceptions and errno values.
 	(android_saf_stat, android_saf_access, android_saf_delete_document)
@@ -319,13 +299,11 @@
 	(android_vfs_init): Initialize exception classes.
 	(android_mkdir, android_fstat): Remove trailing whitespace.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-27  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* doc/emacs/android.texi (Android Document Providers): Improve
 	wording of paragraph clarifying limits on subprocesses.
+
 	* java/org/gnu/emacs/EmacsService.java (getDocumentTrees): Use
 	Java standard US-ASCII coding standard instead of the
 	undocumented ``ASCII'' alias.
@@ -333,78 +311,88 @@
 	(documentIdFromName):
 	* src/android.c (android_init_emacs_service): Take a String for
 	NAME instead of a byte array.
+
 	* src/androidvfs.c (android_verify_jni_string): New function.
 	(android_document_id_from_name): Verify that STRING is a valid
 	Modified UTF-8 string.
 
-	Update Android port
-	* src/androidvfs.c (android_afs_initial):
-	(android_content_get_directory_name):
-	(android_saf_tree_name):
-	(android_saf_tree_from_name):
-	(android_vfs_init): Silence compiler warnings.
+	* src/androidvfs.c (android_afs_initial)
+	(android_content_get_directory_name, android_saf_tree_name)
+	(android_saf_tree_from_name, android_vfs_init): Silence compiler
+	warnings.
 
-	Update Android port
 	* src/android.c (android_run_in_emacs_thread): Behave more
 	robustly if SIGIO arrives too late Emacs for Emacs to check for
 	signals, but too early to preempt a long running syscall.
 
-	Avoid crashes in some edge cases
 	* java/org/gnu/emacs/EmacsActivity.java (onActivityResult):
-	Avoid crashes in some edge cases.
 
-	Avoid dereference of a freed vnode's operations table
-	* src/androidvfs.c (android_renameat_noreplace):
-	(android_rename): Free vdst using vdst->ops, not vp->ops.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/androidvfs.c (android_renameat_noreplace, android_rename):
+	Free vdst using vdst->ops, not vp->ops.
 
 2023-07-27  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* configure.ac (ANDROID_STUBIFY): Add androidvfs.o when building
 	libemacs.so.
-	* doc/emacs/android.texi (Android): Add `Android Document Providers'.
+
+	* doc/emacs/android.texi (Android): Add `Android Document
+	Providers'.
 	(Android Startup): Update the location of the content identifier
 	directory.
 	(Android File System): Describe access to document provider
 	directories.
 	(Android Document Providers): New node.
+
 	* doc/emacs/emacs.texi (Top): Update the menu for the Android
 	appendix.
-	* java/Makefile.in (filename, install_temp/assets/build_info): Make
-	directory-tree depend on build_info.
+
+	* java/Makefile.in (filename, install_temp/assets/build_info):
+	Make directory-tree depend on build_info.
+
 	* java/org/gnu/emacs/EmacsActivity.java (onActivityResult): New
 	function.  When a document tree is accepted, persist access to it.
-	* java/org/gnu/emacs/EmacsDirectoryEntry.java (EmacsDirectoryEntry):
-	New struct.
-	* java/org/gnu/emacs/EmacsOpenActivity.java (checkReadableOrCopy): Use
-	EmacsService.buildContentName.
-	* java/org/gnu/emacs/EmacsService.java (getEmacsView, openContentUri)
+
+	* java/org/gnu/emacs/EmacsDirectoryEntry.java
+	(EmacsDirectoryEntry): New struct.
+
+	* java/org/gnu/emacs/EmacsOpenActivity.java (checkReadableOrCopy):
+	Use EmacsService.buildContentName.
+
+	* java/org/gnu/emacs/EmacsService.java (getEmacsView)
+	(openContentUri)
 	(checkContentUri): Remove excessive debug logging.
 	(buildContentName, getDocumentAuthorities, requestDirectoryAccess)
 	(getDocumentTrees, decodeFileName, documentIdFromName, getTreeUri)
-	(statDocument, accessDocument, openDocumentDirectory, readDirectoryEntry)
+	(statDocument, accessDocument, openDocumentDirectory)
+	(readDirectoryEntry)
 	(openDocument, createDocument): New functions.
 
-	* lib-src/asset-directory-tool.c: Improve commentary by illustrating
-	the difference between directory and ordinary files.
+	* lib-src/asset-directory-tool.c: Improve commentary by
+	illustrating the difference between directory and ordinary files.
 
 	* src/android.c (ANDROID_THROW, enum android_fd_table_entry_flags)
 	(struct android_emacs_service, android_extract_long)
 	(android_scan_directory_tree, android_is_directory)
-	(android_get_asset_name, android_url_encode, android_content_name_p)
-	(android_get_content_name, android_check_content_access, android_fstat)
-	(android_fstatat, android_file_access_p, android_hack_asset_fd_fallback)
-	(android_detect_ashmem, android_hack_asset_fd, android_close_on_exec)
-	(android_open, android_close, android_fclose, android_create_lib_link)
-	(android_faccessat, struct android_dir, android_opendir, android_dirfd)
-	(android_readdir, android_closedir, android_lookup_asset_directory_fd)
+	(android_get_asset_name, android_url_encode)
+	(android_content_name_p)
+	(android_get_content_name, android_check_content_access)
+	(android_fstat)
+	(android_fstatat, android_file_access_p)
+	(android_hack_asset_fd_fallback)
+	(android_detect_ashmem, android_hack_asset_fd)
+	(android_close_on_exec)
+	(android_open, android_close, android_fclose)
+	(android_create_lib_link)
+	(android_faccessat, struct android_dir, android_opendir)
+	(android_dirfd)
+	(android_readdir, android_closedir)
+	(android_lookup_asset_directory_fd)
 	(android_exception_check_3, android_get_current_api_level)
 	(android_open_asset, android_close_asset, android_asset_read_quit)
-	(android_asset_read, android_asset_lseek, android_asset_fstat): Move
-	content and asset related functions to androidvfs.c.
-	(android_init_emacs_service): Obtain handles for new JNI functions.
+	(android_asset_read, android_asset_lseek, android_asset_fstat):
+	Move content and asset related functions to androidvfs.c.
+	(android_init_emacs_service): Obtain handles for new JNI
+	functions.
 	(initEmacsParams): Initialize the VFS layer.
 	(android_request_directory_access): New function.
 	(android_display_toast): Remove unused function.
@@ -425,7 +413,8 @@
 	(struct android_parcel_file_descriptor_class)
 	(android_init_cursor_class, android_init_entry_class)
 	(android_init_fd_class, android_vfs_canonicalize_name)
-	(struct android_unix_vnode, struct android_unix_vdir, unix_vfs_ops)
+	(struct android_unix_vnode, struct android_unix_vdir)
+	(unix_vfs_ops)
 	(android_unix_name, android_unix_vnode, android_unix_open)
 	(android_unix_close, android_unix_unlink, android_unix_symlink)
 	(android_unix_rmdir, android_unix_rename, android_unix_stat)
@@ -453,7 +442,8 @@
 	(android_content_opendir, android_content_get_directory_name)
 	(android_content_initial, android_get_content_name)
 	(android_check_content_access, struct android_authority_vnode)
-	(authority_vfs_ops, android_authority_name, android_authority_open)
+	(authority_vfs_ops, android_authority_name)
+	(android_authority_open)
 	(android_authority_close, android_authority_unlink)
 	(android_authority_symlink, android_authority_rmdir)
 	(android_authority_rename, android_authority_stat)
@@ -464,7 +454,7 @@
 	(android_saf_root_close, android_saf_root_unlink)
 	(android_saf_root_symlink, android_saf_root_rmdir)
 	(android_saf_root_rename, android_saf_root_stat)
-	(android_saf_root_access, android_saf_root_mkdir)
+	(androqid_saf_root_access, android_saf_root_mkdir)
 	(android_saf_root_readdir, android_saf_root_closedir)
 	(android_saf_root_dirfd, android_saf_root_opendir)
 	(android_saf_root_initial, android_saf_root_get_directory)
@@ -483,7 +473,8 @@
 	(saf_file_vfs_ops, android_saf_file_name, android_saf_file_open)
 	(android_saf_file_unlink, android_saf_file_rmdir)
 	(android_saf_file_opendir, android_close_parcel_fd)
-	(android_saf_new_vnode, android_saf_new_name, android_saf_new_open)
+	(android_saf_new_vnode, android_saf_new_name)
+	(android_saf_new_open)
 	(android_saf_new_unlink, android_saf_new_symlink)
 	(android_saf_new_rmdir, android_saf_new_rename)
 	(android_saf_new_stat, android_saf_new_access)
@@ -491,7 +482,8 @@
 	(special_vnodes, android_root_name, android_name_file)
 	(android_vfs_init, android_open, android_unlink, android_symlink)
 	(android_rmdir, android_mkdir, android_renameat_noreplace)
-	(android_rename, android_fstat, android_fstatat_1, android_fstatat)
+	(android_rename, android_fstat, android_fstatat_1)
+	(android_fstatat)
 	(android_faccessat, android_fdopen, android_close, android_fclose)
 	(android_open_asset, android_close_asset, android_asset_read_quit)
 	(android_asset_read, android_asset_lseek, android_asset_fstat)
@@ -508,7 +500,8 @@
 	* src/fileio.c (check_mutable_filename, Fcopy_file)
 	(Fmake_directory_internal, Fdelete_directory_internal)
 	(Fdelete_file, Frename_file, Fadd_name_to_file)
-	(Fmake_symbolic_link, file_accessible_directory_p, Fset_file_modes)
+	(Fmake_symbolic_link, file_accessible_directory_p)
+	(Fset_file_modes)
 	(Fset_file_times, write_region):
 	* src/filelock.c (get_boot_time, rename_lock_file)
 	(create_lock_file, current_lock_owner, unlock_file):
@@ -524,40 +517,27 @@
 	for fopen, fdopen, unlink, symlink, rmdir, mkdir,
 	renameat_norepalce and rename.
 
-2023-07-26  Po Lu  <luangruo@yahoo.com>
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-07-24  Po Lu  <luangruo@yahoo.com>
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-23  Po Lu  <luangruo@yahoo.com>
 
-	Facilitate locating the app library directory
-	* doc/emacs/android.texi (Android File System): Document where
-	the app library directory can probably be found.
-	* src/android.c (android_create_lib_link): New function.  Try to
-	symlink `lib' in the directory holding the files directory to
-	the app library directory.
-	(setEmacsParams): Call that function if Emacs is being
-	initialized from an application context.
+	* doc/emacs/android.texi (Android File System): Document where the
+	app library directory can probably be found.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/android.c (android_create_lib_link): New function.  Try to
+	symlink `lib' in the directory holding the files directory to the
+	app library directory.
+	(setEmacsParams): Call that function if Emacs is being initialized
+	from an application context.
 
 2023-07-22  Po Lu  <luangruo@yahoo.com>
 
-	Try harder to keep the initial word selected
 	* lisp/touch-screen.el (touch-screen-drag): If
 	touch-screen-word-select, also keep the initial word within the
 	region while scrolling.
 
-	Fix window box computation for menu bar windows
 	* src/window.h (WINDOW_MENU_BAR_P): Check for external menu bars
 	using HAVE_WINDOW_SYSTEM && HAVE_EXT_MENU_BAR instead of hard
 	coding X without Xt or GTK.
 
-	Update Android port
 	* doc/lispref/commands.texi (Key Sequence Input): Describe which
 	events receive imaginary prefix keys.
 	* lisp/touch-screen.el (touch-screen-translate-touch): Consider
@@ -566,104 +546,95 @@
 
 	* etc/NEWS: Announce `current-key-remap-sequence'.
 
-	Fix default value of scroll bar frame parameters on Android
 	* src/androidfns.c (Fx_create_frame): Default
 	Qvertical_scroll_bars to Qnil, but set scroll-bar-width and
 	scroll-bar-height.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-21  Po Lu  <luangruo@yahoo.com>
 
-	Improve touch screen and text conversion behavior of many commands
 	* doc/lispref/commands.texi (Key Sequence Input): Document new
 	argument to `read-key-sequence' etc.
+
 	* lisp/help-macro.el (make-help-screen):
-	* lisp/subr.el (read-key, read-char-choice-with-read-key):
-	Disable text conversion and display the OSK before reading a key
-	sequence.
+	* lisp/subr.el (read-key, read-char-choice-with-read-key): Disable
+	text conversion and display the OSK before reading a key sequence.
+
 	* lisp/touch-screen.el (touch-screen-window-selection-changed):
 	Only cancel the minibuffer OSK timer.
 	(touch-screen-handle-point-up): Update comment accordingly.
+
 	* src/keyboard.c (command_loop_1, read_menu_command)
 	(read_key_sequence, read_key_sequence_vs, Fread_key_sequence)
 	(Fread_key_sequence_vector): New arg DISABLE_TEXT_CONVERSION.
 	All callers changed.
 
-	Correctly translate touchscreen-up events outside a frame
-	* lisp/touch-screen.el (touch-screen-translate-touch): Check if
-	a prefix is specified separately from prefix being non-nil.
-	Accept `nil' as an imaginary prefix key.
-	(function-key-map): Register translation functions on the tab
-	bar, tab lines and internal border.
+	* lisp/touch-screen.el (touch-screen-translate-touch): Check if a
+	prefix is specified separately from prefix being non-nil.  Accept
+	`nil' as an imaginary prefix key.
+	(function-key-map): Register translation functions on the tab bar,
+	tab lines and internal border.
 
-	Improve touch screen scrolling support
 	* lisp/touch-screen.el (touch-screen-preview-select): Avoid
 	unnecessary redisplays.
 	(touch-screen-drag): Scroll at window margins using window
 	scrolling functions instead of relying on redisplay to recenter
 	the window around point.
 
-	Update Android port
 	* doc/emacs/input.texi (Touchscreens): Document
 	`touch-screen-preview-select'.
-	* doc/lispref/commands.texi (Touchscreen Events): Fix typo in
-	the descriptions of two touch screen events.
-	* lisp/dired.el (dired-insert-set-properties): Adjust for
-	changes to file end computation.
+
+	* doc/lispref/commands.texi (Touchscreen Events): Fix typo in the
+	descriptions of two touch screen events.
+
+	* lisp/dired.el (dired-insert-set-properties): Adjust for changes
+	to file end computation.
+
 	* lisp/minibuffer.el (clear-minibuffer-message): Don't clear
 	minibuffer message if dragging.
+
 	* lisp/touch-screen.el (touch-screen-current-tool): Fix doc
 	string.
 	(touch-screen-preview-select): New function.
 	(touch-screen-drag): Call it if point changes.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-20  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* exec/trace.c (handle_readlinkat): Adjust commentary to match
 	behavior.
-	* src/android.c (android_get_keysym_name): NULL terminate
-	*name_return.
 
-	Update some menu definitions for Android
+	* src/android.c (android_get_keysym_name): NULL terminate
+	*NAME_RETURN.
+
 	* lisp/international/mule-cmds.el (set-coding-system-map): Don't
 	display `set-terminal-coding-system' on Android.
 
 	* lisp/cus-edit.el (custom-display): Add `android' display type.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* src/android.c (struct android_event_queue): Don't make
 	unnecessarily volatile.
 
-	Update Android port
-	* lisp/touch-screen.el (touch-screen-handle-touch): Don't
-	restart dragging if point is at ZV and the tap falls on a
-	different row.
+	* lisp/touch-screen.el (touch-screen-handle-touch): Don't restart
+	dragging if point is at ZV and the tap falls on a different row.
 
-	Use context menu header titles on Android
-	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu):
-	New field `title'.
+	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu): New
+	field `title'.
 	(addSubmenu): New arg TITLE.  Set that field.
 	(expandTo): Set MENU's header title if it's a context menu.
+
 	* src/androidmenu.c (android_init_emacs_context_menu): Adjust
 	signature of `createContextMenu'.
 	(android_menu_show): Use TITLE instead of pane titles if there's
 	only one pane.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Introduce a `dired-click-select' mode
 	* doc/emacs/dired.texi (Marks vs Flags): Document command bound
 	to `touchscreen-hold'.
+
 	* doc/lispref/commands.texi (Touchscreen Events): Describe
 	`touch-screen-inhibit-drag'.
+
 	* etc/NEWS: Improve description of changes to touch screen
 	support.
+
 	* lisp/dired-aux.el (dired-do-chxxx, dired-do-chmod)
 	(dired-do-print, dired-do-shell-command, dired-do-compress-to)
 	(dired-do-create-files, dired-do-rename, dired-do-isearch)
@@ -671,6 +642,7 @@
 	(dired-do-query-replace-regexp, dired-do-find-regexp)
 	(dired-vc-next-action): Disable ``click to select'' after
 	running this command.
+
 	* lisp/dired.el (dired-insert-set-properties): Attach
 	click-to-select keymap to file names if necessary.
 	(dired-mode-map): Bind `touchscreen-hold' to click to select
@@ -680,6 +652,7 @@
 	(dired-mark-for-click, dired-enable-click-to-select-mode): New
 	functions.
 	(dired-click-to-select-mode): New minor mode.
+
 	* lisp/touch-screen.el (touch-screen-current-tool): Fix doc
 	string.
 	(touch-screen-inhibit-drag): New function.
@@ -688,19 +661,20 @@
 
 	* src/sfnt.c (sfnt_infer_deltas): Improve commentary.
 
-	Improve behavior of `restart-drag'
-	* lisp/touch-screen.el (touch-screen-handle-point-up): If what
-	is `restart-drag' (meaning that a drag has been restarted but
-	the touchpoint has not moved), translate the release into a
-	regular mouse click to deactivate the region.
+	* lisp/touch-screen.el (touch-screen-handle-point-up): If what is
+	`restart-drag' (meaning that a drag has been restarted but the
+	touchpoint has not moved), translate the release into a regular
+	mouse click to deactivate the region.
 
-	Update Android port
 	* build-aux/makecounter.sh (curcount): Rename `counter' to
 	`emacs_shortlisp_counter'.
+
 	* doc/emacs/input.texi (Touchscreens): Document
 	`touch-screen-extend-selection'.
+
 	* doc/lispref/commands.texi (Touchscreen Events): Document
 	`touchscreen-restart-drag'.
+
 	* lisp/touch-screen.el (touch-screen-extend-selection): New user
 	option.
 	(touch-screen-restart-drag): New function.
@@ -710,15 +684,15 @@
 	extending a previous drag gesture are met, and generate such
 	events if so.
 	(touch-screen-translate-touch): Update doc string.
+
 	* src/Makefile.in (otherobj): Remove BUILD_COUNTER_OBJ.
 	($(lispsource)/international/charprop.el):
-	(%.elc): Don't depend on bootstrap-emacs if cross configuring
-	for Android.
-	(libemacs.so): Directly depend on and link with
-	BUILD_COUNTER_OBJ.
+	(%.elc): Don't depend on bootstrap-emacs if cross configuring for
+	Android.
+	(libemacs.so): Directly depend on and link with BUILD_COUNTER_OBJ.
 
-	Make sure Android builds are redumped upon changes to shortlisp
 	* build-aux/makecounter.sh: New script.
+
 	* src/Makefile.in (abs_top_builddir): New variable.
 	(BUILD_COUNTER_OBJ): Define to build-counter.o
 	if compiling for Android.
@@ -728,106 +702,94 @@
 	(emacs$(EXEEXT)): Adjust acordingly.
 	(mostlyclean): Remove build-counter.c.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-18  Po Lu  <luangruo@yahoo.com>
 
-	Fix typos in touch-screen.el
 	* lisp/touch-screen.el (touch-screen-handle-point-update)
 	(touch-screen-handle-point-up): Fix typos.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* lisp/touch-screen.el (touch-screen-handle-point-update): Fix
+	typo.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	* lisp/touch-screen.el (touch-screen-handle-point-update): Fix typo.
-
-	Avoid splurious menu-bar nil events
 	* src/keyboard.c (make_lispy_event): Return nil if no menu item
 	is found.
 
-	Update Android port
 	* lisp/touch-screen.el (touch-screen-hold)
 	(touch-screen-handle-point-up): Don't select inactive minibuffer
 	windows.
 	(touch-screen-handle-point-update): Improve detection of left
 	and right edges.
 
-	Update Android port
-	* lisp/touch-screen.el (touch-screen-handle-touch): Fix
-	treatment of stray update events.
+	* lisp/touch-screen.el (touch-screen-handle-touch): Fix treatment
+	of stray update events.
 
-	Don't enable scroll-bar-mode by default on Android
 	* src/frame.c (syms_of_frame): Default to nil if HAVE_ANDROID.
 
 	* src/keyboard.c (make_lispy_event): Fix botched merge.
 
-	Update Android port
 	* doc/lispref/commands.texi (Touchscreen Events): Describe
 	treatment of canceled touch sequences during touch event
 	translation.
+
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Update JNI
 	prototypes.
+
 	* java/org/gnu/emacs/EmacsWindow.java (motionEvent): Set
 	cancelation flag in events sent where appropriate.
+
 	* lisp/touch-screen.el (touch-screen-handle-point-update):
 	Improve treatment of horizontal scrolling near window edges.
 	(touch-screen-handle-touch): Don't handle point up if the touch
 	sequence has been canceled.
+
 	* src/android.c (sendTouchDown, sendTouchUp, sendTouchMove): New
 	argument `flags'.
+
 	* src/androidgui.h (enum android_touch_event_flags): New enum.
 	(struct android_touch_event): New field `flags'.
+
 	* src/androidterm.c (handle_one_android_event): Report
 	cancelation in TOUCHSCREEN_END_EVENTs.
+
 	* src/keyboard.c (make_lispy_event): Fix botched merge.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Merge remote-tracking branch 'origin/master' into feature/android
 
 2023-07-17  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* doc/lispref/commands.texi (Touchscreen Events): Document meaning
+	of `mouse-1-menu-command'.
 
-	Update Android port
-	* doc/lispref/commands.texi (Touchscreen Events): Document
-	meaning of `mouse-1-menu-command'.
 	* lisp/mouse.el (minor-mode-menu-from-indicator): New arg EVENT.
 	Give it to popup-menu.
 	(mouse-minor-mode-menu): Use posn specified within EVENT.
+
 	* lisp/touch-screen.el (touch-screen-handle-touch): Fix
 	interactive translation.  Treat commands labeled
 	`mouse-1-menu-command' like ordinary keymaps.
 
-	Update Android port
 	* doc/lispref/commands.texi (Touchscreen Events): Document
 	changes to simple translation.
+
 	* lisp/touch-screen.el (touch-screen-handle-point-up): Generate
 	`down-mouse-1' if the current gesture is `mouse-1-menu'.
-	(touch-screen-handle-touch): If binding is a keymap, set state
-	to `mouse-1-menu' and wait for point to be released before
-	generating down-mouse-1.
+	(touch-screen-handle-touch): If binding is a keymap, set state to
+	`mouse-1-menu' and wait for point to be released before generating
+	down-mouse-1.
 
-	Improve word selection behavior
 	* lisp/tab-bar.el (tab-bar-map): Don't bind touch-screen-drag.
+
 	* lisp/touch-screen.el (touch-screen-drag): Extend the region
 	based on the position of the mark, not the position of point
 	relative to EVENT.
 	(touch-screen-translate-touch): Don't generate virtual function
 	keys for non-mouse events.
 	(function-key-map): Remove redundant definitions.
-	* src/keyboard.c (read_key_sequence): Don't generate *-bar
-	prefix keys for mock input (such as input from function key
-	translation.)
 
-	Improve touch screen support
+	* src/keyboard.c (read_key_sequence): Don't generate *-bar prefix
+	keys for mock input (such as input from function key translation.)
+
 	* doc/emacs/input.texi (Touchscreens): Document the new feature
 	for people who have trouble dragging to word boundaries.
-	* lisp/touch-screen.el (touch-screen-word-select): New
-	defcustom.
+
+	* lisp/touch-screen.el (touch-screen-word-select): New defcustom.
 	(touch-screen-word-select-bounds)
 	(touch-screen-word-select-initial-word): New variable
 	definitions.
@@ -840,25 +802,24 @@
 	(touch-screen-translate-touch): Fix doc strings and fill
 	comments.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-16  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsService.java (displayToast):
 	* src/android.c (android_init_emacs_service): Remove unused
 	function.
+
 	* lisp/touch-screen.el (touch-screen-handle-point-up): Correctly
 	compute posn point.
 	(touch-screen-translate-touch): Update doc string.
 	(function-key-map): Define touch screen translation functions
 	within the internal border.
 
-	Update Android port
 	* doc/lispref/commands.texi (Touchscreen Events): Improve
 	documentation.
+
 	* lisp/tab-bar.el (tab-bar-map): Bind `[tab-bar
 	touchscreen-hold]'.
+
 	* lisp/touch-screen.el (touch-screen-hold, touch-screen-drag):
 	New functions.
 	(touch-screen-handle-timeout): Generate a `touchscreen-hold'
@@ -867,33 +828,37 @@
 	`touchscreen-drag' event upon dragging.
 	(touch-screen-translate-touch): Cancel touch screen timer upon
 	exit.
+
 	* src/keyboard.c (access_keymap_keyremap): Take unsigned int
 	start and end instead.
 
-	Improve touch-screen support
 	* doc/emacs/emacs.texi (Top):
 	* doc/emacs/input.texi (Other Input Devices): Correctly
 	capitalize subsection name.
 	(Touchscreens): Document additional translation.
+
 	* doc/lispref/commands.texi (Touchscreen Events): Document that
 	`touchscreen-end' events now have prefix keys.  Also, describe
 	mouse emulation and `touchscreen-scroll' events.
+
 	* doc/lispref/keymaps.texi (Translation Keymaps): Document
 	`current-key-remap-sequence'.
+
 	* lisp/touch-screen.el (touch-screen-translate-prompt): New
 	function.
-	(touch-screen-scroll): New command.  Bind to
-	`touchscreen-scroll'.
+	(touch-screen-scroll): New command.  Bind to `touchscreen-scroll'.
 	(touch-screen-handle-point-update, touch-screen-handle-point-up)
-	(touch-screen-handle-touch): Refactor to actually translate
-	touch screen event sequences, as opposed to looking up commands
-	and executing them.
+	(touch-screen-handle-touch): Refactor to actually translate touch
+	screen event sequences, as opposed to looking up commands and
+	executing them.
 	(touch-screen-translate-touch): New function.  Bind in
 	function-key-map to all touch screen events.
 	(touch-screen-drag-mode-line-1, touch-screen-drag-mode-line)
 	(touch-screen-tap-header-line): Remove special commands for
 	dragging the mode line and clicking on the header line.
+
 	* lisp/wid-edit.el (widget-button-click): Adjust accordingly.
+
 	* src/keyboard.c (access_keymap_keyremap): Bind
 	`current-key-remap-sequence' to the key sequence being remapped.
 	(keyremap_step): Give fkey->start and fkey->end to
@@ -902,157 +867,152 @@
 	well.
 	(syms_of_keyboard): New variable Vcurrent_key_remap_sequence.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-15  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* doc/emacs/android.texi (Android): Add new node to menu.
 	(Android Environment): Add footnote pointing to new node.
 	(Android Software): New node.
+
 	* doc/emacs/emacs.texi (Top): Add new node to menu.
+
 	* java/AndroidManifest.xml.in (manifest): Fix location of
 	sharedUserId property.
+
 	* java/INSTALL: Improve documentation of shared user ID
 	support.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-14  Po Lu  <luangruo@yahoo.com>
 
-	Make --with-shared-user-id work
 	* configure.ac (ANDROID_SHARED_USER_NAME): New variable.
 	Substitute it.
+
 	* java/AndroidManifest.xml.in: Set `sharedUserLabel' if a shared
 	user ID is enabled.
+
 	* java/res/values/strings.xml (shared_user_name): New string
 	resource.
 
-	Update Android port
 	* src/android.c (android_blit_copy): Don't check for overflow
 	where not required.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Clean up Android debug code
 	* java/org/gnu/emacs/EmacsInputConnection.java
-	(getSurroundingText): Don't print debug information if DEBUG_IC
-	is off.
+	(getSurroundingText): Don't print debug information if DEBUG_IC is
+	off.
 
 	* lisp/calc/calc.el (calc): Fix typo.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-13  Po Lu  <luangruo@yahoo.com>
 
-	Add a Doc View tool bar
 	* etc/NEWS: Announce the new tool bar.
+
 	* etc/images/last-page.xpm:
 	* etc/images/last-page.pbm: New images.  Mirrored from
 	next-page.xpm.
+
 	* lisp/doc-view.el (doc-view-menu): Use `doc-view-new-search'
 	instead of an anonymous function.
 	(doc-view-tool-bar-map): New keymap.
-	(doc-view-search): Update the tool bar after initiating a
-	search.
+	(doc-view-search): Update the tool bar after initiating a search.
 	(doc-view-new-search): New command.
 	(doc-view-mode): Set the tool bar map appropriately.
 
-	Improve workaround for partial texture updates on Android
+	Restore hardware acceleration, as a small degree of tearing is
+	preferable towards large slowdowns on some specific devices.  The
+	slight tearing remains, but a workaround for the GPU texture
+	remaining partially updated has been introduced.
+
 	* java/AndroidManifest.xml.in:
 	* java/org/gnu/emacs/EmacsDialog.java (toAlertDialog): Don't
 	change hardware acceleration state.
+
 	* java/org/gnu/emacs/EmacsNative.java (notifyPixelsChanged): New
 	function.
+
 	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView):
 	New field `bitmapChanged'.
 	(copyToFrontBuffer): Signal that the bitmap has changed.
-	(onDraw): If the bitmap has changed, increment the generation
-	ID.
+	(onDraw): If the bitmap has changed, increment the generation ID.
+
 	* src/android.c (JNICALL): Implement new function.
 
 2023-07-13  Po Lu  <luangruo@yahoo.com>
 
-	Disable hardware acceleration on Android
-	It serves no purpose and causes tearing.  Uploading the bitmap
-	to the GPU takes about as long as it does to incrementally
-	update the surface in software.
+	Disable hardware acceleration on Android.  It serves no purpose
+	and causes tearing.  Uploading the bitmap to the GPU takes about
+	as long as it does to incrementally update the surface in
+	software.
 
 	* java/AndroidManifest.xml.in: Disable hardware acceleration.
+
 	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): Make
 	lastClosedMenu static.
+
 	* java/org/gnu/emacs/EmacsDialog.java (toAlertDialog): Enable
 	hardware acceleration within alert dialogs.
+
 	* java/org/gnu/emacs/EmacsSurfaceView.java (onDraw): Describe
 	why hardware acceleration is disabled.
+
 	* java/org/gnu/emacs/EmacsWindow.java (run): Remove redundant
 	call.
-
-2023-07-13  Po Lu  <luangruo@yahoo.com>
-
-	Merge remote-tracking branch 'origin/master' into feature/android
 
 2023-07-12  Po Lu  <luangruo@yahoo.com>
 
 	* src/android.c (android_run_select_thread): Fix typo.
 
-	Update Android port
-	* src/android.c (android_run_select_thread): Correctly return
-	the set of ready read and write descriptors on __ANDROID_API__ <
-	16 systems.
+	* src/android.c (android_run_select_thread): Correctly return the
+	set of ready read and write descriptors on __ANDROID_API__ < 16
+	systems.
 	(android_select): Clear the set of ready file descriptors if
 	events from the event queue are present despite pselect failing.
 
-	Fix keyboard state translation on Android
 	* src/androidterm.c (android_android_to_emacs_modifiers)
 	(android_emacs_to_android_modifiers): Fix statement precedence
 	bugs.
 
 	* src/doc.c (doc_close): Remove unused macro.
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsWindow.java (whatButtonWasIt): Handle
 	back and forward buttons along with styluses.
+
 	* src/doc.c (close_file_unwind_android_fd): New function.
 	(get_doc_string, Fsnarf_documentation): Don't create a temporary
 	fd if it can be avoided.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-07-11  Po Lu  <luangruo@yahoo.com>
 
-	Fix doc file generation on Android
 	* .gitignore: Ignore cross/etc/DOC.
+
 	* configure.ac: Make the directory `cross/etc'.
+
 	* cross/Makefile.in (CLEAN_SUBDIRS): Clean files inside `etc' as
 	well.
+
 	* java/Makefile.in (install_temp): Copy cross/etc/DOC to the
 	package if it is available.
+
 	* src/Makefile.in (SOME_MACHINE_OBJECTS): Add androidselect.c,
 	sfntfont-android.c and sfntfont.c.
 	(libemacs.so): Depend on $(etc)/DOC.
 
-	Update Android port
 	* src/sfnt.c (sfnt_fill_span): Correctly clip span to raster
 	width, ensuring that the last pixel is filled.
 	(main): Adjust test sizes.
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsView.java (onGenericMotionEvent): Call
 	onGenericMotionEvent.
+
 	* java/org/gnu/emacs/EmacsWindow.java (Coordinate): New fields
 	`button' and `id'.
 	(<init>): Add new arguments to the construtor.
 	(whatButtonWasIt): Return 0 if the button state has not changed.
 	(buttonForEvent): New function.
-	(figureChange): Return the Coordinate object associated to
-	EVENT.  Determine whether or not EVENT was accompanied by a
-	change to the button state, and ascertain which button that was.
+	(figureChange): Return the Coordinate object associated to EVENT.
+	Determine whether or not EVENT was accompanied by a change to the
+	button state, and ascertain which button that was.
 	(motionEvent): New function.
 	(onGenericMotionEvent, onTouchEvent): Factor out touch and mouse
 	event delivery to motionEvent.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
 
 2023-07-10  Po Lu  <luangruo@yahoo.com>
 
