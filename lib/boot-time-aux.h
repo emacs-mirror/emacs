@@ -65,6 +65,7 @@ get_linux_uptime (struct timespec *p_uptime)
     }
 # endif
 
+# if HAVE_DECL_SYSINFO /* not available in Android API < 9 */
   /* The sysinfo call returns the uptime with a resolution of 1 sec only.  */
   struct sysinfo info;
   if (sysinfo (&info) >= 0)
@@ -73,6 +74,7 @@ get_linux_uptime (struct timespec *p_uptime)
       p_uptime->tv_nsec = 0;
       return 0;
     }
+# endif
 
   return -1;
 }

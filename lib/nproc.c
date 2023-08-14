@@ -46,7 +46,7 @@
 # include <sys/param.h>
 #endif
 
-#if HAVE_SYS_SYSCTL_H && ! defined __GLIBC__
+#if HAVE_SYS_SYSCTL_H && !(defined __GLIBC__ && defined __linux__)
 # include <sys/sysctl.h>
 #endif
 
@@ -306,7 +306,7 @@ num_processors_ignoring_omp (enum nproc_query query)
   /* Finally, as fallback, use the APIs that don't distinguish between
      NPROC_CURRENT and NPROC_ALL.  */
 
-#if HAVE_SYSCTL && ! defined __GLIBC__ && defined HW_NCPU
+#if HAVE_SYSCTL && !(defined __GLIBC__ && defined __linux__) && defined HW_NCPU
   { /* This works on macOS, FreeBSD, NetBSD, OpenBSD.
        macOS 10.14 does not allow mib to be const.  */
     int nprocs;

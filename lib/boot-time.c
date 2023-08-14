@@ -32,7 +32,7 @@
 # include <time.h>
 #endif
 
-#if HAVE_SYS_SYSCTL_H && !defined __minix
+#if HAVE_SYS_SYSCTL_H && !(defined __GLIBC__ && defined __linux__) && !defined __minix
 # if HAVE_SYS_PARAM_H
 #  include <sys/param.h>
 # endif
@@ -65,8 +65,10 @@
 # define UT_USER(UT) ((UT)->ut_user)
 #endif
 
-#if !HAVE_UTMPX_H && HAVE_UTMP_H && defined UTMP_NAME_FUNCTION && !HAVE_DECL_GETUTENT
-struct utmp *getutent (void);
+#if !HAVE_UTMPX_H && HAVE_UTMP_H && defined UTMP_NAME_FUNCTION
+# if !HAVE_DECL_ENDUTENT /* Android */
+void endutent (void);
+# endif
 #endif
 
 #if defined __linux__ || HAVE_UTMPX_H || HAVE_UTMP_H || defined __CYGWIN__ || defined _WIN32

@@ -249,6 +249,13 @@ struct utmpx32
 # define WTMP_FILE "/etc/wtmp"
 #endif
 
+/* In early versions of Android, <utmp.h> did not define BOOT_TIME, only
+   USER_PROCESS.  We need to use the value that is defined in newer versions
+   of Android.  */
+#if defined __ANDROID__ && !defined BOOT_TIME
+# define BOOT_TIME 2
+#endif
+
 /* Some platforms, such as OpenBSD, don't have an ut_type field and don't have
    the BOOT_TIME and USER_PROCESS macros.  But we want to support them in
    'struct gl_utmp'.  */

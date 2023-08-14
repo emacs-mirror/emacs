@@ -1,4 +1,4 @@
-# readutmp.m4 serial 28
+# readutmp.m4 serial 30
 dnl Copyright (C) 2002-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -55,7 +55,7 @@ AC_DEFUN_ONCE([gl_PREREQ_READUTMP_H],
   if test $ac_cv_header_utmp_h = yes || test $ac_cv_header_utmpx_h = yes; then
     dnl Prerequisites of lib/readutmp.h and lib/readutmp.c.
     AC_CHECK_FUNCS_ONCE([utmpname utmpxname])
-    AC_CHECK_DECLS([getutent],,,[[
+    AC_CHECK_DECLS([endutent],,,[[
 /* <sys/types.h> is a prerequisite of <utmp.h> on FreeBSD 8.0, OpenBSD 4.6.  */
 #include <sys/types.h>
 #ifdef HAVE_UTMP_H
@@ -102,6 +102,10 @@ AC_INCLUDES_DEFAULT
     AC_CHECK_MEMBERS([struct utmpx.ut_exit.e_termination],,,[$utmp_includes])
     AC_CHECK_MEMBERS([struct utmp.ut_exit.e_termination],,,[$utmp_includes])
   fi
+
+  AC_CHECK_DECLS([sysinfo],,,[[
+    #include <sys/sysinfo.h>
+    ]])
 
   AC_CHECK_HEADERS_ONCE([sys/param.h])
   dnl <sys/sysctl.h> requires <sys/param.h> on OpenBSD 4.0.
