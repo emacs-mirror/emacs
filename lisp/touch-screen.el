@@ -1122,16 +1122,33 @@ is not read-only."
                     ;; If the position of the touch point hasn't
                     ;; changed, or it doesn't start or end on a
                     ;; window...
-                    (if (and (eq new-window old-window)
-                             (eq new-point old-point)
-                             (windowp new-window)
-                             (windowp old-window))
-                        ;; ... generate a mouse-1 event...
-                        (list 'mouse-1 posn)
-                      ;; ... otherwise, generate a drag-mouse-1 event.
-                      (list 'drag-mouse-1 (cons old-window
-                                                old-posn)
-                            (cons new-window posn))))))
+                    (if (and (not old-point) (not new-point))
+                        ;; Should old-point and new-point both equal
+                        ;; nil, compare the posn areas and nominal
+                        ;; column position.  If either are different,
+                        ;; generate a drag event.
+                        (let ((new-col-row (posn-col-row posn))
+                              (new-area (posn-area posn))
+                              (old-col-row (posn-col-row old-posn))
+                              (old-area (posn-area old-posn)))
+                          (if (and (equal new-col-row old-col-row)
+                                   (eq new-area old-area))
+                              ;; ... generate a mouse-1 event...
+                              (list 'mouse-1 posn)
+                            ;; ... otherwise, generate a drag-mouse-1 event.
+                            (list 'drag-mouse-1 (cons old-window
+                                                      old-posn)
+                                  (cons new-window posn))))
+                      (if (and (eq new-window old-window)
+                               (eq new-point old-point)
+                               (windowp new-window)
+                               (windowp old-window))
+                          ;; ... generate a mouse-1 event...
+                          (list 'mouse-1 posn)
+                        ;; ... otherwise, generate a drag-mouse-1 event.
+                        (list 'drag-mouse-1 (cons old-window
+                                                  old-posn)
+                              (cons new-window posn)))))))
           ((eq what 'mouse-1-menu)
            ;; Generate a `down-mouse-1' event at the position the tap
            ;; took place.
