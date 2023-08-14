@@ -1540,9 +1540,7 @@ the tests)."
   (or noninteractive
       (user-error "This function is only for use in batch mode"))
   (let ((eln-dir (and (featurep 'native-compile)
-                  (make-temp-file "test-nativecomp-cache-" t)))
-        ;; Don't ever wait for user input.
-        (inhibit-interaction t))
+                      (make-temp-file "test-nativecomp-cache-" t))))
     (when eln-dir
       (startup-redirect-eln-cache eln-dir))
     ;; Better crash loudly than attempting to recover from undefined
