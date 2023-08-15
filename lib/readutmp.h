@@ -136,14 +136,18 @@ enum { UT_HOST_SIZE = -1 };
 /* This is a near-copy of glibc's struct utmpx, which stops working
    after the year 2038.  Unlike the glibc version, struct utmpx32
    describes the file format even if time_t is 64 bits.  */
+#define _GL_UT_USER_SIZE  sizeof (((struct utmpx *) 0)->ut_user)
+#define _GL_UT_ID_SIZE    sizeof (((struct utmpx *) 0)->ut_id)
+#define _GL_UT_LINE_SIZE  sizeof (((struct utmpx *) 0)->ut_line)
+#define _GL_UT_HOST_SIZE  sizeof (((struct utmpx *) 0)->ut_host)
 struct utmpx32
 {
   short int ut_type;               /* Type of login.  */
   pid_t ut_pid;                    /* Process ID of login process.  */
-  char ut_line[__UT_LINESIZE];     /* Devicename.  */
-  char ut_id[4];                   /* Inittab ID.  */
-  char ut_user[__UT_USERSIZE];     /* Username.  */
-  char ut_host[__UT_HOSTSIZE];     /* Hostname for remote login. */
+  char ut_line[_GL_UT_LINE_SIZE];  /* Devicename.  */
+  char ut_id[_GL_UT_ID_SIZE];      /* Inittab ID.  */
+  char ut_user[_GL_UT_USER_SIZE];  /* Username.  */
+  char ut_host[_GL_UT_HOST_SIZE];  /* Hostname for remote login. */
   struct __exit_status ut_exit;    /* Exit status of a process marked
                                       as DEAD_PROCESS.  */
   /* The fields ut_session and ut_tv must be the same size when compiled
