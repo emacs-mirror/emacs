@@ -634,16 +634,20 @@ characters need to be doubled.")
 
 (defconst tramp-perl-file-name-all-completions
   "%p -e '
-opendir(d, $ARGV[0]) || die(\"$ARGV[0]: $!\\nfail\\n\");
+($dir = $ARGV[0]) =~ s#/+$##;
+opendir(d, $dir) || die(\"$dir: $!\\nfail\\n\");
 @files = readdir(d); closedir(d);
+print \"(\\n\";
 foreach $f (@files) {
- if (-d \"$ARGV[0]/$f\") {
-  print \"$f/\\n\";
- }
- else {
-  print \"$f\\n\";
- }
+  ($p = $f) =~ s/\\\"/\\\\\\\"/g;
+  ($q = \"$dir/$f\") =~ s/\\\"/\\\\\\\"/g;
+  print \"(\",
+    ((-d \"$q\") ? \"\\\"$p/\\\" \\\"$q\\\" t\" : \"\\\"$p\\\" \\\"$q\\\" nil\"),
+    ((-e \"$q\") ? \" t\" : \" nil\"),
+    ((-r \"$q\") ? \" t\" : \" nil\"),
+    \")\\n\";
 }
+print \")\\n\";
 ' \"$1\" %n"
   "Perl script to produce output suitable for use with
 `file-name-all-completions' on the remote file system.
@@ -1073,21 +1077,10 @@ characters need to be doubled.")
   "echo \"(\"
 while read file; do
     quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/\"`
-    if %s \"$file\"; then
-	echo \"(\\\"$quoted\\\" \\\"file-exists-p\\\" t)\"
-    else
-	echo \"(\\\"$quoted\\\" \\\"file-exists-p\\\" nil)\"
-    fi
-    if %s \"$file\"; then
-	echo \"(\\\"$quoted\\\" \\\"file-readable-p\\\" t)\"
-    else
-	echo \"(\\\"$quoted\\\" \\\"file-readable-p\\\" nil)\"
-    fi
-    if %s \"$file\"; then
-	echo \"(\\\"$quoted\\\" \\\"file-directory-p\\\" t)\"
-    else
-	echo \"(\\\"$quoted\\\" \\\"file-directory-p\\\" nil)\"
-    fi
+    echo -n \"(\\\"$quoted\\\"\"
+    if %s \"$file\"; then echo -n \" t\"; else echo -n \" nil\"; fi
+    if %s \"$file\"; then echo -n \" t\"; else echo -n \" nil\"; fi
+    if %s \"$file\"; then echo \" t)\"; else echo \" nil)\"; fi
 done
 echo \")\""
   "Script to check file attributes of a bundle of files.
@@ -1870,34 +1863,48 @@ ID-FORMAT valid values are `string' and `integer'."
 	     ;; Get a list of directories and files, including
 	     ;; reliably tagging the directories with a trailing "/".
 	     ;; Because I rock.  --daniel@danann.net
-	     (when (tramp-send-command-and-check
-		    v
-		    (if (tramp-get-remote-perl v)
-			(progn
-			  (tramp-maybe-send-script
-			   v tramp-perl-file-name-all-completions
-			   "tramp_perl_file_name_all_completions")
-			  (format "tramp_perl_file_name_all_completions %s"
-				  (tramp-shell-quote-argument localname)))
+	     (if (tramp-get-remote-perl v)
+		 (progn
+		   (tramp-maybe-send-script
+		    v tramp-perl-file-name-all-completions
+		    "tramp_perl_file_name_all_completions")
+		   (setq result
+			 (tramp-send-command-and-read
+			  v (format "tramp_perl_file_name_all_completions %s"
+				    (tramp-shell-quote-argument localname))
+			  'noerror))
+		   ;; Cached values.
+		   (dolist (elt result)
+		     (tramp-set-file-property
+		      v (cadr elt) "file-directory-p" (nth 2 elt))
+		     (tramp-set-file-property
+		      v (cadr elt) "file-exists-p" (nth 3 elt))
+		     (tramp-set-file-property
+		      v (cadr elt) "file-readable-p" (nth 4 elt)))
+		   ;; Result.
+		   (mapcar #'car result))
 
-		      (format (concat
-			       "cd %s 2>&1 && %s -a 2>%s"
-			       " | while IFS= read f; do"
-			       " if %s -d \"$f\" 2>%s;"
-			       " then echo \"$f/\"; else echo \"$f\"; fi;"
-			       " done")
-			      (tramp-shell-quote-argument localname)
-			      (tramp-get-ls-command v)
-			      (tramp-get-remote-null-device v)
-			      (tramp-get-test-command v)
-			      (tramp-get-remote-null-device v))))
+	       ;; Do it with ls.
+	       (when (tramp-send-command-and-check
+		      v (format (concat
+				 "cd %s 2>&1 && %s -a 2>%s"
+				 " | while IFS= read f; do"
+				 " if %s -d \"$f\" 2>%s;"
+				 " then echo \"$f/\"; else echo \"$f\"; fi;"
+				 " done")
+				(tramp-shell-quote-argument localname)
+				(tramp-get-ls-command v)
+				(tramp-get-remote-null-device v)
+				(tramp-get-test-command v)
+				(tramp-get-remote-null-device v)))
 
-	       ;; Now grab the output.
-	       (with-current-buffer (tramp-get-buffer v)
-		 (goto-char (point-max))
-		 (while (zerop (forward-line -1))
-		   (push (buffer-substring (point) (line-end-position)) result)))
-	       result)))))))))
+		 ;; Now grab the output.
+		 (with-current-buffer (tramp-get-buffer v)
+		   (goto-char (point-max))
+		   (while (zerop (forward-line -1))
+		     (push
+		      (buffer-substring (point) (line-end-position)) result)))
+		 result))))))))))
 
 ;; cp, mv and ln
 
@@ -2842,7 +2849,8 @@ the result will be a local, non-Tramp, file name."
 	    ;; appropriate either, because ssh and companions might
 	    ;; use a user name from the config file.
 	    (when (and (tramp-string-empty-or-nil-p uname)
-		       (string-match-p (rx bos "su" (? "do") eos) method))
+		       (string-match-p
+			(rx bos (| "su" "sudo" "doas" "ksu") eos) method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
 	      (setq localname (concat hname fname)))))
@@ -3630,17 +3638,16 @@ filled are described in `tramp-bundle-read-file-names'."
 	    (format
 	     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
 	     tramp-end-of-heredoc
-	     (mapconcat #'tramp-shell-quote-argument
-			files
-			"\n")
+	     (mapconcat #'tramp-shell-quote-argument files "\n")
 	     tramp-end-of-heredoc))
 	   (with-current-buffer (tramp-get-connection-buffer vec)
 	     ;; Read the expression.
 	     (goto-char (point-min))
 	     (read (current-buffer)))))
 
-      (tramp-set-file-property
-       vec (car elt) (cadr elt) (cadr (cdr elt))))))
+      (tramp-set-file-property vec (car elt) "file-exists-p" (nth 1 elt))
+      (tramp-set-file-property vec (car elt) "file-readable-p" (nth 2 elt))
+      (tramp-set-file-property vec (car elt) "file-directory-p" (nth 3 elt)))))
 
 (defvar tramp-vc-registered-file-names nil
   "List used to collect file names, which are checked during `vc-registered'.")
@@ -4256,6 +4263,7 @@ file exists and nonzero exit status otherwise."
 			  vec (format "%s %s" result nonexistent))))))
       (tramp-error
        vec 'file-error "Couldn't find command to check if file exists"))
+    (tramp-set-file-property vec existing "file-exists-p" t)
     result))
 
 (defun tramp-get-sh-extra-args (shell)
@@ -5647,7 +5655,7 @@ Nonexistent directories are removed from spec."
 	       remote-path :test #'string-equal :from-end t))
 
 	;; Remove non-existing directories.
-	(let ((remote-file-name-inhibit-cache nil))
+	(let (remote-file-name-inhibit-cache)
 	  (tramp-bundle-read-file-names vec remote-path)
 	  (cl-remove-if
 	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
