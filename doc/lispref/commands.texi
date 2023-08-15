@@ -710,29 +710,77 @@ context.
 @node Generic Commands
 @subsection Select among Command Alternatives
 @cindex generic commands
-@cindex alternatives, defining
+@cindex alternative commands, defining
 
-The macro @code{define-alternatives} can be used to define
-@dfn{generic commands}.  These are interactive functions whose
-implementation can be selected from several alternatives, as a matter
-of user preference.
+Sometimes it is useful to define a command that serves as a ``generic
+dispatcher'' capable of invoking one of a set of commands according to
+the user's needs.  For example, imagine that you want to define a
+command named @samp{open} that can ``open'' and display several
+different types of objects.  Or you could have a command named
+@samp{mua} (which stands for Mail User Agent) that can read and send
+email using one of several email backends, such as Rmail, Gnus, or
+MH-E.  The macro @code{define-alternatives} can be used to define such
+@dfn{generic commands}.  A generic command is an interactive function
+whose implementation can be selected from several alternatives, as a
+matter of user preference.
 
 @defmac define-alternatives command &rest customizations
-Define the new command @var{command}, a symbol.
+This macro defines the new generic @var{command}, which can have
+several alternative implementations.  The argument @var{command}
+should be an unquoted symbol.
 
-When a user runs @kbd{M-x @var{command} @key{RET}} for the first time,
-Emacs prompts for which real form of the command to use, and records
-the selection by way of a custom variable.  Using a prefix argument
-repeats this process of choosing an alternative.
+When invoked, the macro creates an interactive Lisp closure
+(@pxref{Closures}).  When the user runs @w{@kbd{M-x @var{command}
+@key{RET}}} for the first time, Emacs asks to select one of the
+alternative implementations of @var{command}, offering completion for
+the names of these alternatives.  These names come from the user
+option whose name is @code{@var{command}-alternatives}, which the
+macro creates (if it didn't exist before).  To be useful, this
+variable's value should be an alist whose elements have the form
+@w{@code{(@var{alt-name} . @var{alt-func})}}, where @var{alt-name} is
+the name of the alternative and @var{alt-func} is the interactive
+function to be called if this alternative is selected.  When the user
+selects an alternative, Emacs remembers the selection, and will
+thereafter automatically call that selected alternative without
+prompting when the user invokes @kbd{M-x @var{command}} again.  To
+choose a different alternative, type @w{@kbd{C-u M-x @var{command}
+@key{RET}}}--then Emacs will again prompt for one of the alternatives,
+and the selection will override the previous one.
 
-The variable @code{@var{command}-alternatives} should contain an alist
-with alternative implementations of @var{command}.
-Until this variable is set, @code{define-alternatives} has no effect.
+The variable @code{@var{command}-alternatives} can be created before
+calling @code{define-alternatives}, with the appropriate values;
+otherwise the macro creates the variable with a @code{nil} value, and
+it should then be populated with the associations describing the
+alternatives.  Packages that wish to provide their own implementation
+of an existing generic command can use @code{autoload} cookies
+(@pxref{Autoload}) to add to the alist, for example:
 
-If @var{customizations} is non-@code{nil}, it should consist of
-alternating @code{defcustom} keywords (typically @code{:group} and
-@code{:version}) and values to add to the declaration of
-@code{@var{command}-alternatives}.
+@lisp
+;;;###autoload (push '("My name" . my-foo-symbol) foo-alternatives
+@end lisp
+
+If the optional argument @var{customizations} is non-@code{nil}, it
+should consist of alternating @code{defcustom} keywords (typically
+@code{:group} and @code{:version}) and values to add to the definition
+of the @code{defcustom} @code{@var{command}-alternatives}.
+
+Here is an example of a simple generic dispatcher command named
+@code{open} with 3 alternative implementations:
+
+@example
+@group
+(define-alternatives open
+  :group 'files
+  :version "42.1")
+@end group
+@group
+(setq open-alternatives
+      '(("file" . find-file)
+	("directory" . dired)
+	("hexl" . hexl-find-file)))
+@end group
+@end example
+
 @end defmac
 
 @node Interactive Call
