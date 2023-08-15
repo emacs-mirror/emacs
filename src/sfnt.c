@@ -6635,16 +6635,19 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define GXAXIS()				\
   {						\
     uint32_t v;					\
-    int i;					\
+    int i, naxis;				\
 						\
-    for (i = 0; i < interpreter->n_axis; ++i)	\
+    naxis = interpreter->n_axis;		\
+    CHECK_STACK_AVAILABLE (naxis);		\
+						\
+    for (i = 0; i < naxis; ++i)			\
       {						\
 	if (interpreter->norm_coords)		\
 	  v = interpreter->norm_coords[i] / 4;	\
 	else					\
 	  v = 0;				\
 						\
-	PUSH (v);				\
+	PUSH_UNCHECKED (v);			\
       }						\
   }
 
