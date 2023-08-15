@@ -514,6 +514,15 @@ project, that you can quickly select using 'project-switch-project'
 When non-nil, package specifications with side-effects for building
 software will be used when building a package.
 
+---
+*** New command to start an inferior Emacs loading only specific packages.
+The new command 'package-isolate' will start a new Emacs process, as
+a sub-process of Emacs where you invoke the command, in a way that
+causes the new process to load only some of the installed packages.
+The command prompts for the packages to activate in this
+sub-process, and is intended for testing Emacs and/or the packages
+in a clean environment.
+
 ** Flymake
 
 +++
