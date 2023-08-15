@@ -152,8 +152,7 @@ ndk_resolve_import_module () {
     # tree build system sets it to a meaning value, but build files
     # just use it to test whether or not the NDK is being used.
     ndk_commands=`ndk_run_test`
-
-    AS_IF([test -n "${ndk_commands//\n }"], [eval "$ndk_commands"])
+    eval "$ndk_commands"
 
     if test -n "$module_name"; then
       break;
