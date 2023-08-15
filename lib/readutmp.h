@@ -270,21 +270,19 @@ struct utmpx32
 
 /* Macros that test (UT)->ut_type.  */
 #ifdef BOOT_TIME
-# define UT_TYPE_BOOT_TIME(UT) UT_TYPE_EQ (UT, BOOT_TIME)
+# define UT_TYPE_BOOT_TIME(UT) ((UT)->ut_type == BOOT_TIME)
 #else
 # define UT_TYPE_BOOT_TIME(UT) 0
 #endif
 #ifdef USER_PROCESS
-# define UT_TYPE_USER_PROCESS(UT) UT_TYPE_EQ (UT, USER_PROCESS)
+# define UT_TYPE_USER_PROCESS(UT) ((UT)->ut_type == USER_PROCESS)
 #else
 # define UT_TYPE_USER_PROCESS(UT) 0
 #endif
 
 /* Determines whether an entry *UT corresponds to a user process.  */
 #define IS_USER_PROCESS(UT)                                    \
-  (UT_USER (UT)[0]                                             \
-   && (UT_TYPE_USER_PROCESS (UT)                               \
-       || (UT_TYPE_NOT_DEFINED && UT_TIME_MEMBER (UT) != 0)))
+  ((UT)->ut_user[0] && UT_TYPE_USER_PROCESS (UT))
 
 /* Define if read_utmp is not just a dummy.  */
 #if READUTMP_USE_SYSTEMD || HAVE_UTMPX_H || HAVE_UTMP_H || defined __CYGWIN__ || defined _WIN32
