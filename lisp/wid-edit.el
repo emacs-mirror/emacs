@@ -3801,7 +3801,18 @@ like the newline character or the tab character."
 (define-widget 'list 'group
   "A Lisp list."
   :tag "List"
+  :default-get #'widget-list-default-get
   :format "%{%t%}:\n%v")
+
+(defun widget-list-default-get (widget)
+  "Return the default external value for a list WIDGET.
+
+The default value is the one stored in the :value property, even if it is nil,
+or a list with the default value of each component of the list WIDGET."
+  (widget-apply widget :value-to-external
+                (if (widget-member widget :value)
+                    (widget-get widget :value)
+                  (widget-group-default-get widget))))
 
 (define-widget 'vector 'group
   "A Lisp vector."
@@ -3931,7 +3942,6 @@ example:
 	    value-type widget-plist-value-type))
     `(group :format "Key: %v" :inline t ,key-type ,value-type)))
 
-
 ;;; The `alist' Widget.
 ;;
 ;; Association lists.
@@ -3941,6 +3951,7 @@ example:
   :key-type '(sexp :tag "Key")
   :value-type '(sexp :tag "Value")
   :convert-widget 'widget-alist-convert-widget
+  :default-get #'widget-alist-default-get
   :tag "Alist")
 
 (defvar widget-alist-value-type)	;Dynamic variable
@@ -3975,6 +3986,25 @@ example:
       (setq key-type `(const ,option)
 	    value-type widget-alist-value-type))
     `(cons :format "Key: %v" ,key-type ,value-type)))
+
+(defun widget-alist-default-get (widget)
+  "Return the default value for WIDGET, an alist widget.
+
+The default value may be one of:
+- The one stored in the :value property, even if it is nil.
+- If WIDGET has options available, an alist consisting of the
+default values for each option.
+- nil, otherwise."
+  (widget-apply widget :value-to-external
+                (cond ((widget-member widget :value)
+                       (widget-get widget :value))
+                      ((widget-get widget :options)
+                       (mapcar #'widget-default-get
+                               ;; Last one is the editable-list part, and
+                               ;; we don't want those showing up as
+                               ;; part of the default value.  (Bug#63290)
+                               (butlast (widget-get widget :args))))
+                      (t nil))))
 
 (define-widget 'choice 'menu-choice
   "A union of several sexp types.
