@@ -1226,8 +1226,8 @@ unquoted file names."
                    (file-name-as-directory tmpdir))))
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
-    (should (equal (unhandled-file-name-directory nospecial-dir)
-                   (file-name-as-directory tmpdir)))))
+    (should-not (equal (unhandled-file-name-directory nospecial-dir)
+                       (file-name-as-directory tmpdir)))))
 
 (ert-deftest files-tests-file-name-non-special-vc-registered ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
