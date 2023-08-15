@@ -1101,10 +1101,10 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
          (qualifiers   (cl--generic-method-qualifiers method))
          (call-con     (cl--generic-method-call-con method))
          (function     (cl--generic-method-function method))
-         (args (help-function-arglist (if (not (eq call-con 'curried))
-                                          function
-                                        (funcall function #'ignore))
-                                      'names))
+         (function (if (not (eq call-con 'curried))
+                              function
+                            (funcall function #'ignore)))
+         (args (help-function-arglist function 'names))
          (docstring (documentation function))
          (qual-string
           (if (null qualifiers) ""

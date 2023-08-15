@@ -160,6 +160,12 @@ Po Lu
 
 	Haiku battery support in lisp/battery.el
 
+Jim Porter
+	Eshell
+	    lisp/eshell/*
+	    test/lisp/eshell/*
+	    doc/misc/eshell.texi
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.

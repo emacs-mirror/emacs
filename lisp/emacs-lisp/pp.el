@@ -226,8 +226,10 @@ it inserts and pretty-prints that arg at point."
                     (if (eq lif 'defun) (setq lif 2))
                     (when (natnump lif)
                       (goto-char (match-end 0))
-                      (forward-sexp lif)
-                      (funcall newline)))))
+                      ;; Do nothing if there aren't enough args.
+                      (ignore-error scan-error
+                        (forward-sexp lif)
+                        (funcall newline))))))
               (save-excursion
                 (pp-fill (1+ paired) (1- (point)))))
             ;; Now the sexp either ends beyond `fill-column' or is

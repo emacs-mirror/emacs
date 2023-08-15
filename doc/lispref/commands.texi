@@ -1255,12 +1255,19 @@ A device used by the XTEST extension to report input.
 @cindex @code{display} property, and point display
 @cindex @code{composition} property, and point display
 
-  Emacs cannot display the cursor when point is in the middle of a
-sequence of text that has the @code{display} or @code{composition}
-property, or is invisible.  Therefore, after a command finishes and
-returns to the command loop, if point is within such a sequence, the
-command loop normally moves point to the edge of the sequence, making this
-sequence effectively intangible.
+  When a sequence of text has the @code{display} or @code{composition}
+property, or is invisible, there can be several buffer positions that
+result in the cursor being displayed at same place on the screen.
+Therefore, after a command finishes and returns to the command loop,
+if point is in such a sequence, the command loop normally moves point
+to try and make this sequence effectively intangible.
+
+This @emph{point adjustment} follows the following general rules: first, the
+adjustment should not change the overall direction of the command;
+second if the command moved point, the adjustment tries to ensure the
+cursor is also moved; third, Emacs prefers the edges of an intangible
+sequence and among those edges it prefers the non sticky ones, such
+that newly inserted text is visible.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:
