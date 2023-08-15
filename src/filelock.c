@@ -118,16 +118,10 @@ get_boot_sec (void)
   if (will_dump_p ())
     return 0;
 
-#ifndef MSDOS
-  {
-    struct timespec boot_time;
-    boot_time.tv_sec = 0;
-    get_boot_time (&boot_time);
-    return boot_time.tv_sec;
-  }
-#else /* MSDOS */
-  return 0;
-#endif /* MSDOS */
+  struct timespec boot_time;
+  boot_time.tv_sec = 0;
+  get_boot_time (&boot_time);
+  return boot_time.tv_sec;
 }
 
 /* An arbitrary limit on lock contents length.  8 K should be plenty
