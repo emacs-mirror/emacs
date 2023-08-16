@@ -62,6 +62,7 @@
 
 
 
+(defvar native-comp-eln-load-path)
 (ert-deftest comp-tests-bootstrap ()
   "Compile the compiler and load it to compile it-self.
 Check that the resulting binaries do not differ."
