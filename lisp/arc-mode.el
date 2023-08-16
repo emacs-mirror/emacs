@@ -1990,6 +1990,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (setq p (+ p (point-min)))
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (get-byte (+ p 5)))
+             (gpflags (archive-l-e (+ p 8) 2))
 	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
@@ -2001,7 +2002,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
 			(decode-coding-string
 			 str
-                         (or (if (and w32-fname-encoding
+                         ;; Bit 11 of general purpose bit flags (bytes
+                         ;; 8-9) of Central Directory: 1 means UTF-8
+                         ;; encoded file names.
+                         (or (if (/= 0 (logand gpflags #x0800))
+                                 'utf-8-unix)
+                             (if (and w32-fname-encoding
                                       (memq creator
                                             ;; This should be just 10 and
                                             ;; 14, but InfoZip uses 0 and
