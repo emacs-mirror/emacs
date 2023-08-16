@@ -2972,14 +2972,16 @@ void
 close_output_streams (void)
 {
   /* Android comes with some kind of ``file descriptor sanitizer''
-     that aborts when stdout or stderr is closed.  */
+     that aborts when stdout or stderr is closed.  (bug#65340)
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+     Perform this unconditionally as long as __ANDROID__ is defined,
+     since the file descriptor sanitizer also applies to regular TTY
+     builds under Android.  */
+
+#ifdef __ANDROID__
   fflush (stderr);
   fflush (stdout);
-  return;
-#endif
-
+#else /* !__ANDROID__ */
   if (close_stream (stdout) != 0)
     {
       emacs_perror ("Write error to standard output");
@@ -2993,6 +2995,7 @@ close_output_streams (void)
 	     ? fflush (stderr) != 0 || ferror (stderr)
 	     : close_stream (stderr) != 0))
     _exit (EXIT_FAILURE);
+#endif /* __ANDROID__ */
 }
 
 #ifndef DOS_NT
