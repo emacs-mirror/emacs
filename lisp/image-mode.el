@@ -248,8 +248,9 @@ Stop if the right edge of the image is reached."
 	 (image-set-window-hscroll (max 0 (+ (window-hscroll) n))))
 	(t
 	 (let* ((image (image-get-display-property))
-		(edges (window-inside-edges))
-		(win-width (- (nth 2 edges) (nth 0 edges)))
+		(edges (window-edges nil t nil t))
+		(win-width (- (/ (nth 2 edges) (frame-char-width))
+                              (/ (nth 0 edges) (frame-char-width))))
 		(img-width (ceiling (car (image-display-size image)))))
 	   (image-set-window-hscroll (min (max 0 (- img-width win-width))
 					  (+ n (window-hscroll))))))))
