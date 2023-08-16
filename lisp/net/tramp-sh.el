@@ -4255,8 +4255,10 @@ file exists and nonzero exit status otherwise."
 		     vec (format "%s %s" result existing))
 		    (not (tramp-send-command-and-check
 			  vec (format "%s %s" result nonexistent)))))
+	     ;; We cannot use `tramp-get-ls-command', this results in an infloop.
+	     ;; (Bug#65321)
 	     (ignore-errors
-	       (and (setq result (format "%s -d" (tramp-get-ls-command vec)))
+	       (and (setq result (format "ls -d >%s" (tramp-get-remote-null-device vec)))
 		    (tramp-send-command-and-check
 		     vec (format "%s %s" result existing))
 		    (not (tramp-send-command-and-check
