@@ -141,7 +141,7 @@ computer frequently enough, it is more than worthwhile in the long run.
 Any tool you use often deserves the time spent learning to master it.
 @footnote{For the understandably curious, here is what that command
 looks like: But don't let it fool you; once you know what's going on,
-it's easier than it looks: @code{ls -lt **/*.doc(Lk+50aM+5)}.}
+it's easier than it looks: @code{ls -lt **/*.doc(Lk+100aM+6)}.}
 
 @menu
 * Contributors to Eshell::      People who have helped out!
