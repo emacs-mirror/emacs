@@ -574,13 +574,13 @@ The connection takes the proxy setting in customization group
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun dictionary--count-mode-buffers ()
-  "Return the number of buffers that "
-  (seq-reduce #'+
-              (mapcar
-               (lambda (buf)
-                 (with-current-buffer buf
-                   (if (derived-mode-p 'dictionary-mode) 1 0)))
-               (buffer-list))
+  (seq-reduce (lambda (count buf)
+                (if (provided-mode-derived-p
+                     (buffer-local-value 'major-mode buf)
+                     'dictionary-mode)
+                    (+ count 1)
+                  count))
+              (buffer-list)
               0))
 
 (defun dictionary-close (&rest _ignored)
