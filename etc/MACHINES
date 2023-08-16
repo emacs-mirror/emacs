@@ -147,7 +147,9 @@ the list at the end of this file.
   GUI capabilities provided by the Android port.  We do not know
   exactly which configurations this works on, but the installation
   instructions for such a build should be the same as for any Unix
-  system.
+  system.  (This does in turn imply that such a build must be carried
+  out on an Android device itself utilizing development tools provided
+  by third party package repositories.)
 
 
 * Obsolete platforms
