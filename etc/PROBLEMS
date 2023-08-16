@@ -3398,6 +3398,56 @@ you are not seeing problems with character display, as the
 automatically generated instructions result in superior display
 results that are easier to read.
 
+** The "Anonymous Pro" font displays incorrectly.
+
+Glyphs instruction code within the Anonymous Pro font relies on
+undocumented features of the Microsoft TrueType font scaler, namely
+that the scaler always resets the "projection" and "freedom" vector
+interpreter control registers after the execution of the font
+pre-program, which sets them to a value that is perpendicular to the
+horizontal plane of movement.
+
+Since Emacs does not provide this "feature", various points within
+glyphs are moved vertically rather than horizontally when a glyph
+program later executes an "MIRP" (Move Indirect Relative Point)
+instruction.
+
+This can be remedied in two ways; the first (and the easiest) is to
+replace its instruction code with that supplied by "ttfautohint", as
+depicted above.  The second is to patch the instruction code within
+the font itself, using the "ttx" utility:
+
+  https://fonttools.readthedocs.io/en/latest/ttx.html
+
+First, convert the font to its XML representation:
+
+  $ ttx Anonymous_Pro.ttf
+
+then, find the end of the section labeled 'prep':
+
+  <prep>
+    <assembly>
+      [...]
+      ROUND[01]	/* Round */
+      RTG[ ]	/* RoundToGrid */
+      WCVTP[ ]	/* WriteCVTInPixels */
+    </assembly>
+  </prep>
+
+and insert the following instruction immediately before the closing
+'/assembly' tag:
+
+     SVTCA[1]
+
+(which stands for "Set Vector registers to Control Axis X")
+
+Then, reassemble the font from the modified XML:
+
+  $ ttx Anonymous_Pro.ttx
+
+which should produce a modified font by the name of
+Anonymous_Pro#1.ttf.
+
 * Build-time problems
 
 ** Configuration
