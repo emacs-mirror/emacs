@@ -19,12 +19,19 @@
 
 # This script is meant to be used as ./admin/emake, and will compile
 # the Emacs tree with virtually all of the informational messages
-# removed, and with errors/warnings highlighted in red.  It'll give a
-# quick overview to confirm that nothing has broken, for instance
+# removed, and with errors/warnings highlighted in red.  It will also
+# run the test files belonging to files that have changed.  It'll give
+# a quick overview to confirm that nothing has broken, for instance
 # after doing a "git pull".  It's not meant to be used during actual
 # development, because it removes so much information that commands
 # like `next-error' won't be able to jump to the source code where
 # errors are.
+
+# It has a few options:
+# with --no-color errors/warnings are not highlighted
+# with --no-check test files are not run
+# with --no-fast the FAST=true make variable is not set (see Makefile.in)
+# with --quieter only errors/warnings remain visible
 
 cores=1
 
@@ -96,6 +103,7 @@ GEN.*loaddefs|\
 ^.Read INSTALL.REPO for more|\
 ^Your system has the required tools.|\
 ^Building aclocal.m4|\
+^Building 'aclocal.m4'|\
 ^ Running 'autoreconf|\
 ^You can now run './configure'|\
 ^./configure|\
@@ -129,15 +137,15 @@ The GNU allocators don't work|\
 " | \
 while read
 do
-  C=""
-  (($NOCOLOR == 0)) && [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
-  (($NOCOLOR == 0)) && [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
-  if (($QUIETER == 0))
-  then
-      [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
-  else
-      [[ "X$C" == "X" ]] && printf "%-80s\r" "$REPLY" || printf "$C%-80s\033[0m\n" "$REPLY"
-  fi
+    C=""
+    (($NOCOLOR == 0)) && [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
+    (($NOCOLOR == 0)) && [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
+    if (($QUIETER == 0))
+    then
+	[[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+    else
+	[[ "X$C" == "X" ]] && printf "%-80s\r" "$REPLY" || printf "$C%-80s\033[0m\n" "$REPLY"
+    fi
 done
 
 # If make failed, exit now with its error code.
@@ -149,4 +157,13 @@ done
 # changed since last time.
 make -j$cores check-maybe 2>&1 | \
     sed -n '/contained unexpected results/,$p' | \
-    grep -E --line-buffered -v "^make"
+    grep -E --line-buffered -v "^make" | \
+while read
+do
+    if (($NOCOLOR == 0))
+    then
+	printf "\033[1;31m%s\033[0m\n" "$REPLY"
+    else
+	printf "%s\n" "$REPLY"
+    fi
+done
