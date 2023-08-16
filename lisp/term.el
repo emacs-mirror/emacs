@@ -1129,6 +1129,7 @@ Commands in line mode:
 \\{term-mode-map}
 
 Entry to this mode runs the hooks on `term-mode-hook'."
+  :interactive nil
   ;; we do not want indent to sneak in any tabs
   (setq indent-tabs-mode nil)
   (setq buffer-display-table term-display-table)
