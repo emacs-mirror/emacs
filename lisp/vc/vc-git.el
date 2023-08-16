@@ -1342,8 +1342,10 @@ This prompts for a branch to merge from."
 (defun vc-git-repository-url (file-or-dir &optional remote-name)
   (let ((default-directory (vc-git-root file-or-dir)))
     (with-temp-buffer
-      (vc-git-command (current-buffer) 0 nil "remote" "get-url"
-                      (or remote-name "origin"))
+      ;; The "get-url" subcommand of "git remote" was new in git 2.7.0;
+      ;; "git config" also works in older versions.  -- rgr, 15-Aug-23.
+      (let ((opt-name (concat "remote." (or remote-name "origin") ".url")))
+	(vc-git-command (current-buffer) 0 (list "config" "--get" opt-name)))
       (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 ;; Everywhere but here, follows vc-git-command, which uses vc-do-command
