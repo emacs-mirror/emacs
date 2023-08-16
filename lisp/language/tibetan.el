@@ -126,6 +126,7 @@
 ;;; Definitions of conversion data.
 ;;;
 
+(eval-and-compile
 
 ;;; alists for tibetan char <-> transcription conversion
 ;;; longer transcription should come first
@@ -333,6 +334,7 @@
 
 
 (defconst tibetan-subjoined-transcription-alist
+ (eval-when-compile
   (sort
    (copy-sequence
 	'(("+k"  . "à¾")
@@ -381,7 +383,7 @@
 	  ("+Y" . "à¾»") ;; fixed form subscribed YA
 	  ("+R" . "à¾¼") ;; fixed form subscribed RA
 	  ))
-   (lambda (x y) (> (length (car x)) (length (car y))))))
+   (lambda (x y) (> (length (car x)) (length (car y)))))))
 
 ;;;
 ;;; alist for Tibetan base consonant <-> subjoined consonant conversion.
@@ -557,32 +559,34 @@
     ("à½¦à¾¦" . "ö†¯")
     ("à½¦à¾¨" . "ö†°")))
 
+)   ; eval-and-compile
+
 (defconst tibetan-regexp
-  (mapconcat (lambda (x) (regexp-quote (car x)))
-             (append tibetan-precomposed-transcription-alist
-		     tibetan-consonant-transcription-alist
-		     tibetan-vowel-transcription-alist
-		     tibetan-modifier-transcription-alist
-		     tibetan-subjoined-transcription-alist)
-             "\\|")
+  (eval-when-compile
+    (regexp-opt (mapcar #'car
+                        (append tibetan-precomposed-transcription-alist
+		                tibetan-consonant-transcription-alist
+		                tibetan-vowel-transcription-alist
+		                tibetan-modifier-transcription-alist
+		                tibetan-subjoined-transcription-alist))))
   "Regexp matching a Tibetan transcription of a composable Tibetan sequence.
 The result of matching is to be used for indexing alists at conversion
 from a roman transcription to the corresponding Tibetan character.")
 
 (defvar tibetan-precomposed-regexp
   (purecopy
-   (concat "^\\("
-           (mapconcat #'car tibetan-precomposed-transcription-alist "\\|")
-           "\\)"))
+   (eval-when-compile
+     (concat "^"
+             (regexp-opt (mapcar #'car tibetan-precomposed-transcription-alist)
+                         t))))
   "Regexp string to match a romanized Tibetan complex consonant.
 The result of matching is to be used for indexing alists when the input key
 from an input method is converted to the corresponding precomposed glyph.")
 
 (defvar tibetan-precomposition-rule-regexp
   (purecopy
-   (concat "\\("
-           (mapconcat #'car tibetan-precomposition-rule-alist "\\|")
-           "\\)"))
+   (eval-when-compile
+     (regexp-opt (mapcar #'car tibetan-precomposition-rule-alist) t)))
   "Regexp string to match a sequence of Tibetan consonantic components.
 That is, one base consonant and one or more subjoined consonants.
 The result of matching is to be used for indexing alist when the component
