@@ -2067,7 +2067,7 @@ See `term-replace-by-expanded-history'.  Returns t if successful."
 	       ;; We cannot know the interpreter's idea of input line numbers.
 	       (goto-char (match-end 0))
 	       (message "Absolute reference cannot be expanded"))
-	      ((looking-at "!-\\([0-9]+\\)\\(:?[0-9^$*-]+\\)?")
+	      ((looking-at "!-\\([0-9]+\\):?\\([0-9^$*-]+\\)?")
 	       ;; Just a number of args from `number' lines backward.
 	       (let ((number (1- (string-to-number
 				  (buffer-substring (match-beginning 1)
@@ -2090,7 +2090,7 @@ See `term-replace-by-expanded-history'.  Returns t if successful."
 		t t)
 	       (message "History item: previous"))
 	      ((looking-at
-		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
+		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\):?\\([0-9^$*-]+\\)?")
 	       ;; Most recent input starting with or containing (possibly
 	       ;; protected) string, maybe just a number of args.  Phew.
 	       (let* ((mb1 (match-beginning 1)) (me1 (match-end 1))
