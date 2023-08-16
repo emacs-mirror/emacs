@@ -1097,7 +1097,7 @@ by the user at will."
 (defun project-find-file-in (suggested-filename dirs project &optional include-all)
   "Complete a file name in DIRS in PROJECT and visit the result.
 
-SUGGESTED-FILENAME is a relative file name, or part of it, which
+SUGGESTED-FILENAME is a file name, or part of it, which
 is used as part of \"future history\".
 
 If INCLUDE-ALL is non-nil, or with prefix argument when called
