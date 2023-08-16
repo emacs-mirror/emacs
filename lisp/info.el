@@ -1587,7 +1587,7 @@ escaped (\\\",\\\\)."
   (let ((start 0)
 	(parameter-alist))
     (while (string-match
-	    "\\s *\\([^=]+\\)=\\(?:\\([^\\s \"]+\\)\\|\\(?:\"\\(\\(?:[^\\\"]\\|\\\\[\\\"]\\)*\\)\"\\)\\)"
+	    "\\s *\\([^=]+\\)=\\(?:\\([^\"[:space:]]+\\)\\|\\(?:\"\\(\\(?:[^\\\"]\\|\\\\[\\\"]\\)*\\)\"\\)\\)"
 	    parameter-string start)
       (setq start (match-end 0))
       (push (cons (match-string 1 parameter-string)
