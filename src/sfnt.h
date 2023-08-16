@@ -623,16 +623,16 @@ struct sfnt_compound_glyph_component
 
   /* Various scale formats.  */
   union {
-    uint16_t scale;
+    int16_t scale;
     struct {
-      uint16_t xscale;
-      uint16_t yscale;
+      int16_t xscale;
+      int16_t yscale;
     } a;
     struct {
-      uint16_t xscale;
-      uint16_t scale01;
-      uint16_t scale10;
-      uint16_t yscale;
+      int16_t xscale;
+      int16_t scale01;
+      int16_t scale10;
+      int16_t yscale;
     } b;
   } u;
 };

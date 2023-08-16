@@ -2442,11 +2442,7 @@ sfnt_free_glyph (struct sfnt_glyph *glyph)
    the array of points of length NUM_COORDINATES given as X and Y.
 
    Also, apply the fixed point offsets X_OFF and Y_OFF to each X and Y
-   coordinate.
-
-   See sfnt_decompose_compound_glyph for an explanation of why offsets
-   might be applied here, and not while reading the subglyph
-   itself.  */
+   coordinate after transforms within COMPONENT are effected.  */
 
 static void
 sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
@@ -2460,56 +2456,59 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 
   if (component->flags & 010) /* WE_HAVE_A_SCALE */
     {
-      for (i = 0; i < num_coordinates; ++i)
-	{
-	  x[i] *= component->u.scale / 16384.0;
-	  y[i] *= component->u.scale / 16384.0;
-	  x[i] += x_off;
-	  y[i] += y_off;
-	}
+      m1 = component->u.scale / 16384.0;
+      m2 = m3 = m4 = 0;
+      m5 = component->u.scale / 16384.0;
+      m6 = 0;
     }
   else if (component->flags & 0100) /* WE_HAVE_AN_X_AND_Y_SCALE */
     {
-      for (i = 0; i < num_coordinates; ++i)
-	{
-	  x[i] *= component->u.a.xscale / 16384.0;
-	  y[i] *= component->u.a.yscale / 16384.0;
-	  x[i] += x_off;
-	  y[i] += y_off;
-	}
+      m1 = component->u.a.xscale / 16384.0;
+      m2 = m3 = m4 = 0;
+      m5 = component->u.a.yscale / 16384.0;
+      m6 = 0;
     }
   else if (component->flags & 0200) /* WE_HAVE_A_TWO_BY_TWO */
     {
-      /* Apply the specified affine transformation.
-	 A transform looks like:
-
-	   M1 M2 M3     X
-	   M4 M5 M6   * Y
-
-	   =
-
-	   M1*X + M2*Y + M3*1 = X1
-	   M4*X + M5*Y + M6*1 = Y1
-
-	 (In most transforms, there is another row at the bottom for
-	  mathematical reasons.  Since Z1 is always 1.0, the row is
-	  simply implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 =
-	  1.0.  See the definition of matrix3x3 in image.c for some
-	  more explanations about this.) */
       m1 = component->u.b.xscale / 16384.0;
       m2 = component->u.b.scale01 / 16384.0;
       m3 = 0;
       m4 = component->u.b.scale10 / 16384.0;
       m5 = component->u.b.yscale / 16384.0;
       m6 = 0;
-
+    }
+  else /* No scale, just apply x_off and y_off.  */
+    {
       for (i = 0; i < num_coordinates; ++i)
-	{
-	  x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
-	  y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
-	  x[i] += x_off;
-	  y[i] += y_off;
-	}
+	x[i] += x_off, y[i] += y_off;
+
+      return;
+    }
+
+  m3 = x_off;
+  m6 = y_off;
+
+  /* Apply the specified affine transformation.
+     A transform looks like:
+
+     M1 M2 M3     X
+     M4 M5 M6   * Y
+
+     =
+
+     M1*X + M2*Y + M3*1 = X1
+     M4*X + M5*Y + M6*1 = Y1
+
+     (In most transforms, there is another row at the bottom for
+     mathematical reasons.  Since Z1 is always 1.0, the row is simply
+     implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 = 1.0.  See
+     the definition of matrix3x3 in image.c for some more explanations
+     about this.) */
+
+  for (i = 0; i < num_coordinates; ++i)
+    {
+      x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
+      y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
     }
 }
 
@@ -2629,10 +2628,9 @@ sfnt_round_fixed (int32_t number)
 /* Decompose GLYPH, a compound glyph, into an array of points and
    contours.
 
-   CONTEXT should be zeroed and put on the stack.  OFF_X and OFF_Y
-   should be zero, as should RECURSION_COUNT.  GET_GLYPH and
-   FREE_GLYPH, along with DCONTEXT, mean the same as in
-   sfnt_decompose_glyph.
+   CONTEXT should be zeroed and put on the stack. RECURSION_COUNT
+   should be initialized to 0.  GET_GLYPH and FREE_GLYPH, along with
+   DCONTEXT, mean the same as in sfnt_decompose_glyph.
 
    Value is 1 upon failure, else 0.  */
 
@@ -2641,7 +2639,6 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 			       struct sfnt_compound_glyph_context *context,
 			       sfnt_get_glyph_proc get_glyph,
 			       sfnt_free_glyph_proc free_glyph,
-			       sfnt_fixed off_x, sfnt_fixed off_y,
 			       int recursion_count,
 			       void *dcontext)
 {
@@ -2822,16 +2819,14 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 
 	      for (i = 0; i <= last_point; ++i)
 		{
-		  x_base[i] = ((subglyph->simple->x_coordinates[i] * 65536)
-			       + off_x + x);
-		  y_base[i] = ((subglyph->simple->y_coordinates[i] * 65536)
-			       + off_y + y);
+		  x_base[i] = (subglyph->simple->x_coordinates[i] * 65536);
+		  y_base[i] = (subglyph->simple->y_coordinates[i] * 65536);
 		  flags_base[i] = subglyph->simple->flags[i];
 		}
 
 	      /* Apply the transform to the points.  */
 	      sfnt_transform_coordinates (component, x_base, y_base,
-					  last_point + 1, 0, 0);
+					  last_point + 1, x, y);
 
 	      /* Copy over the contours.  */
 	      for (i = 0; i < number_of_contours; ++i)
@@ -2847,8 +2842,6 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 					      context,
 					      get_glyph,
 					      free_glyph,
-					      off_x + x,
-					      off_y + y,
 					      recursion_count + 1,
 					      dcontext);
 
@@ -3276,7 +3269,7 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 
   if (sfnt_decompose_compound_glyph (glyph, &context,
 				     get_glyph, free_glyph,
-				     0, 0, 0, dcontext))
+				     0, dcontext))
     {
       xfree (context.x_coordinates);
       xfree (context.y_coordinates);
@@ -11347,11 +11340,8 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
    Treat X and Y as arrays of 26.6 fixed point values.
 
    Also, apply the 26.6 fixed point offsets X_OFF and Y_OFF to each X
-   and Y coordinate.
-
-   See sfnt_decompose_compound_glyph for an explanation of why offsets
-   might be applied here, and not while reading the subglyph
-   itself.  */
+   and Y coordinate after the transforms in COMPONENT are
+   effected.  */
 
 static void
 sfnt_transform_f26dot6 (struct sfnt_compound_glyph_component *component,
@@ -11365,56 +11355,59 @@ sfnt_transform_f26dot6 (struct sfnt_compound_glyph_component *component,
 
   if (component->flags & 010) /* WE_HAVE_A_SCALE */
     {
-      for (i = 0; i < num_coordinates; ++i)
-	{
-	  x[i] *= component->u.scale / 16384.0;
-	  y[i] *= component->u.scale / 16384.0;
-	  x[i] += x_off;
-	  y[i] += y_off;
-	}
+      m1 = component->u.scale / 16384.0;
+      m2 = m3 = m4 = 0;
+      m5 = component->u.scale / 16384.0;
+      m6 = 0;
     }
   else if (component->flags & 0100) /* WE_HAVE_AN_X_AND_Y_SCALE */
     {
-      for (i = 0; i < num_coordinates; ++i)
-	{
-	  x[i] *= component->u.a.xscale / 16384.0;
-	  y[i] *= component->u.a.yscale / 16384.0;
-	  x[i] += x_off;
-	  y[i] += y_off;
-	}
+      m1 = component->u.a.xscale / 16384.0;
+      m2 = m3 = m4 = 0;
+      m5 = component->u.a.yscale / 16384.0;
+      m6 = 0;
     }
   else if (component->flags & 0200) /* WE_HAVE_A_TWO_BY_TWO */
     {
-      /* Apply the specified affine transformation.
-	 A transform looks like:
-
-	   M1 M2 M3     X
-	   M4 M5 M6   * Y
-
-	   =
-
-	   M1*X + M2*Y + M3*1 = X1
-	   M4*X + M5*Y + M6*1 = Y1
-
-	 (In most transforms, there is another row at the bottom for
-	  mathematical reasons.  Since Z1 is always 1.0, the row is
-	  simply implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 =
-	  1.0.  See the definition of matrix3x3 in image.c for some
-	  more explanations about this.) */
       m1 = component->u.b.xscale / 16384.0;
       m2 = component->u.b.scale01 / 16384.0;
       m3 = 0;
       m4 = component->u.b.scale10 / 16384.0;
       m5 = component->u.b.yscale / 16384.0;
       m6 = 0;
-
+    }
+  else /* No scale, just apply x_off and y_off.  */
+    {
       for (i = 0; i < num_coordinates; ++i)
-	{
-	  x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
-	  y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
-	  x[i] += x_off;
-	  y[i] += y_off;
-	}
+	x[i] += x_off, y[i] += y_off;
+
+      return;
+    }
+
+  m3 = x_off;
+  m6 = y_off;
+
+  /* Apply the specified affine transformation.
+     A transform looks like:
+
+     M1 M2 M3     X
+     M4 M5 M6   * Y
+
+     =
+
+     M1*X + M2*Y + M3*1 = X1
+     M4*X + M5*Y + M6*1 = Y1
+
+     (In most transforms, there is another row at the bottom for
+     mathematical reasons.  Since Z1 is always 1.0, the row is simply
+     implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 = 1.0.  See
+     the definition of matrix3x3 in image.c for some more explanations
+     about this.) */
+
+  for (i = 0; i < num_coordinates; ++i)
+    {
+      x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
+      y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
     }
 }
 
@@ -11617,7 +11610,6 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
 
 /* Internal helper for sfnt_interpret_compound_glyph.
    RECURSION_COUNT is the number of times this function has called itself.
-   OFF_X and OFF_Y are the offsets to apply to the glyph outline.
 
    METRICS are the unscaled metrics of this compound glyph.
 
@@ -11636,7 +11628,6 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 				 struct sfnt_hhea_table *hhea,
 				 struct sfnt_maxp_table *maxp,
 				 struct sfnt_glyph_metrics *metrics,
-				 sfnt_fixed off_x, sfnt_fixed off_y,
 				 int recursion_count,
 				 void *dcontext)
 {
@@ -11672,7 +11663,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
      maximum valid value of `max_component_depth', which is 16.  */
 
   if (recursion_count > 16)
-    return "Overly deep recursion in compound glyph data";
+    return "Excessive recursion in compound glyph data";
 
   /* Pacify -Wmaybe-uninitialized.  */
   point = point2 = 0;
@@ -11762,7 +11753,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 	      if (need_free)
 		free_glyph (subglyph, dcontext);
 
-	      return "Invalid anchor point";
+	      return "Invalid anchor reference point";
 	    }
 
 	  if (!subglyph->compound)
@@ -11772,14 +11763,25 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 		  if (need_free)
 		    free_glyph (subglyph, dcontext);
 
-		  return "Invalid anchored point";
+		  return "Invalid component anchor point";
 		}
 
 	      /* Get the points and use them to compute the offsets.  */
 	      xtemp = context->x_coordinates[point];
 	      ytemp = context->y_coordinates[point];
-	      x = (xtemp - subglyph->simple->x_coordinates[point2] * 64);
-	      y = (ytemp - subglyph->simple->y_coordinates[point2] * 64);
+
+	      /* Convert the unscaled coordinates within
+		 SIMPLE->x_coordinates to device space.  */
+	      x = subglyph->simple->x_coordinates[point2];
+	      y = subglyph->simple->y_coordinates[point2];
+	      x = sfnt_mul_f26dot6_fixed (x * 64, interpreter->scale);
+	      y = sfnt_mul_f26dot6_fixed (y * 64, interpreter->scale);
+
+	      /* Derive the X and Y offsets from the difference
+		 between the reference point's position and the anchor
+		 point's.  */
+	      x = xtemp - x;
+	      y = ytemp - y;
 	    }
 	  else
 	    {
@@ -11870,8 +11872,8 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 
 	      for (i = 0; i < last_point; ++i)
 		{
-		  x_base[i] = value->x_points[i] + off_x + x;
-		  y_base[i] = value->y_points[i] + off_y + y;
+		  x_base[i] = value->x_points[i];
+		  y_base[i] = value->y_points[i];
 		  flags_base[i] = value->flags[i];
 		}
 
@@ -11884,7 +11886,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 
 	      /* Apply the transform to the points.  */
 	      sfnt_transform_f26dot6 (component, x_base, y_base,
-				      last_point, 0, 0);
+				      last_point, x, y);
 	    }
 	}
       else
@@ -11897,7 +11899,6 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 						   context, get_glyph,
 						   free_glyph, hmtx, hhea,
 						   maxp, &sub_metrics,
-						   off_x + x, off_y + y,
 						   recursion_count + 1,
 						   dcontext);
 
@@ -12028,8 +12029,7 @@ sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
 					   state, &context,
 					   get_glyph, free_glyph,
 					   hmtx, hhea, maxp,
-					   metrics, 0, 0, 0,
-					   dcontext);
+					   metrics, 0, dcontext);
 
   /* If an error occurs, free the data in the context and return.  */
 
