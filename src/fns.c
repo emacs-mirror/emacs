@@ -734,7 +734,8 @@ usage: (vconcat &rest SEQUENCES)   */)
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
        doc: /* Return a copy of a list, vector, string, char-table or record.
 The elements of a list, vector or record are not copied; they are
-shared with the original.
+shared with the original.  See Info node `(elisp) Sequence Functions'
+for more details about this sharing and its effects.
 If the original sequence is empty, this function may return
 the same empty object instead of its copy.  */)
   (Lisp_Object arg)
