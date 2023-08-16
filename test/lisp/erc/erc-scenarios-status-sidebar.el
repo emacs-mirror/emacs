@@ -94,7 +94,7 @@
 ;; terminal, and we lack a fixture for that.  Please try running this
 ;; test interactively with both graphical Emacs and non.
 (declare-function erc-nickbar-mode "erc-speedbar" (arg))
-(declare-function erc-speedbar-close-nicknames-window "erc-speedbar" (kill))
+(declare-function erc-speedbar--get-timers "erc-speedbar" nil)
 (declare-function speedbar-timer-fn "speedbar" nil)
 (defvar erc-nickbar-mode)
 (defvar speedbar-buffer)
@@ -154,16 +154,21 @@
       (ert-info ("Core toggle and kill commands work")
         ;; Avoid using API, e.g., `erc-status-sidebar-buffer-exists-p',
         ;; etc. for testing commands that call those same functions.
-        (erc-nickbar-mode -1)
+        (call-interactively #'erc-nickbar-mode)
+        (should-not erc-nickbar-mode)
         (should-not (and speedbar-buffer
                          (get-buffer-window speedbar-buffer)))
+        (should speedbar-buffer)
+
         (erc-nickbar-mode +1)
         (should (and speedbar-buffer
                      (get-buffer-window speedbar-buffer)))
         (should (get-buffer " SPEEDBAR"))
-        (erc-speedbar-close-nicknames-window 'kill)
+        (erc-nickbar-mode -1)
         (should-not (get-buffer " SPEEDBAR"))
         (should-not erc-nickbar-mode)
-        (should-not (cdr (frame-list)))))))
+        (should-not (cdr (frame-list)))))
+
+    (should-not (erc-speedbar--get-timers))))
 
 ;;; erc-scenarios-status-sidebar.el ends here
