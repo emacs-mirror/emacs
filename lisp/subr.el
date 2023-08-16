@@ -5140,30 +5140,41 @@ the function `undo--wrap-and-run-primitive-undo'."
 	      (kill-local-variable 'before-change-functions))
 	    (if local-acf (setq after-change-functions acf)
 	      (kill-local-variable 'after-change-functions))))
-        (when (not (eq buffer-undo-list t))
-          (let ((ap-elt
-		 (list 'apply
-		       (- end end-marker)
-		       beg
-		       (marker-position end-marker)
-		       #'undo--wrap-and-run-primitive-undo
-		       beg (marker-position end-marker)
-		       ;; We will truncate this list by side-effect below.
-		       buffer-undo-list))
-		(ptr buffer-undo-list))
-	    (if (not (eq buffer-undo-list old-bul))
-		(progn
-		  (while (and (not (eq (cdr ptr) old-bul))
-			      ;; In case garbage collection has removed OLD-BUL.
-			      (or (cdr ptr)
-			          (progn
-			            (message "combine-change-calls: buffer-undo-list broken")
-			            nil)))
-		    (setq ptr (cdr ptr)))
-		  ;; Truncate the list that's in the `apply' entry.
-		  (setcdr ptr nil)
-		  (push ap-elt buffer-undo-list)
-		  (setcdr buffer-undo-list old-bul)))))
+	;; If buffer-undo-list is neither t (in which case undo
+	;; information is not recorded) nor equal to buffer-undo-list
+	;; before body was funcalled (in which case (funcall body) did
+	;; not add items to buffer-undo-list) ...
+	(unless (or (eq buffer-undo-list t)
+		    (eq buffer-undo-list old-bul))
+	  (let ((ptr buffer-undo-list) body-undo-list)
+	    ;; ... then loop over buffer-undo-list, until the head of
+	    ;; buffer-undo-list before body was funcalled is found, or
+	    ;; ptr is nil (which may happen if garbage-collect has
+	    ;; been called after (funcall body) and has removed
+	    ;; entries of buffer-undo-list that were added by (funcall
+	    ;; body)), and add these entries to body-undo-list.
+	    (while (and ptr (not (eq ptr old-bul)))
+	      (push (car ptr) body-undo-list)
+	      (setq ptr (cdr ptr)))
+	    (setq body-undo-list (nreverse body-undo-list))
+	    ;; Warn if garbage-collect has truncated buffer-undo-list
+	    ;; behind our back.
+	    (when (and old-bul (not ptr))
+	      (message
+               "combine-change-calls: buffer-undo-list has been truncated"))
+	    ;; Add an (apply ...) entry to buffer-undo-list, using
+	    ;; body-undo-list ...
+	    (push (list 'apply
+			(- end end-marker)
+			beg
+			(marker-position end-marker)
+			#'undo--wrap-and-run-primitive-undo
+			beg (marker-position end-marker)
+			body-undo-list)
+		  buffer-undo-list)
+	    ;; ... and set the cdr of buffer-undo-list to
+	    ;; buffer-undo-list before body was funcalled.
+	    (setcdr buffer-undo-list old-bul)))
 	(if (not inhibit-modification-hooks)
 	    (run-hook-with-args 'after-change-functions
 				beg (marker-position end-marker)
