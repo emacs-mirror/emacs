@@ -138,14 +138,20 @@ The GNU allocators don't work|\
 while read
 do
     C=""
-    (($NOCOLOR == 0)) && [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
-    (($NOCOLOR == 0)) && [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
+    E=0
+    [ ! -v L ] && L=80
+    [[ "X${REPLY:0:1}" != "X " ]] && E=1
+    [[ "X${REPLY:0:3}" == "X   " ]] && E=1
+    (($NOCOLOR == 0)) && (($E == 1)) && C="\033[1;31m"
+    (($NOCOLOR == 0)) && (($E == 1)) && C="\033[1;31m"
     if (($QUIETER == 0))
     then
-	[[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+	(($E == 0)) && printf "%s\n" "$REPLY" || printf "${C}%s\033[0m\n" "$REPLY"
     else
-	[[ "X$C" == "X" ]] && printf "%-80s\r" "$REPLY" || printf "$C%-80s\033[0m\n" "$REPLY"
+	(($E == 0)) && printf "%-${L}s\r" "$REPLY" || printf "${C}%-${L}s\033[0m\n" "$REPLY"
     fi
+    L=${#REPLY}
+    (($L < 80)) && L=80
 done
 
 # If make failed, exit now with its error code.
