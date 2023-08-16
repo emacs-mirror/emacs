@@ -2908,10 +2908,8 @@
 2023-03-11  Po Lu  <luangruo@yahoo.com>
 
 	* configure.ac (with_mailutils): Default to off on Android.
-
-	* configure.ac (HAVE_MAILUTILS, with_mailutils)
-	(ANDROID_SDK_8_OR_EARLIER, XCONFIGURE): Fix POP and mailutils
-	configuration on Android.
+	(HAVE_MAILUTILS, with_mailutils, ANDROID_SDK_8_OR_EARLIER)
+	(XCONFIGURE): Fix POP and mailutils configuration on Android.
 
 	* java/Makefile.in:
 	* src/callproc.c (syms_of_callproc): Avoid using built-in movemail
@@ -2934,16 +2932,12 @@
 
 	* lib/gnulib.mk.in: Update from gnulib.
 
-2023-03-11  Po Lu  <luangruo@yahoo.com>
-
-	Don't use GCC extensions in src/emacs-module.c
 	* configure.ac: Default modules to on.  Remove check for
 	__attribute__((cleanup)).  However, keep the new `ifavailable'
 	value for systems without dlopen.
 
-	* src/emacs-module.c (MODULE_HANDLE_NONLOCAL_EXIT): Don't rely
-	on cleanup attribute and correctly reset handlerlist upon
-	longjmp.
+	* src/emacs-module.c (MODULE_HANDLE_NONLOCAL_EXIT): Don't rely on
+	cleanup attribute and correctly reset handlerlist upon longjmp.
 	(MODULE_INTERNAL_CLEANUP): New macro.
 	(module_make_global_ref, module_free_global_ref)
 	(module_make_function, module_get_function_finalizer)
@@ -2976,203 +2970,203 @@
 
 2023-03-10  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
-	* doc/emacs/android.texi (Android Windowing): Document how to
-	pass multimedia keys to the system.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
-	function.
+	* doc/emacs/android.texi (Android Windowing): Document how to pass
+	multimedia keys to the system.
+
+	* java/org/gnu/emacs/EmacsNative.java
+	(shouldForwardMultimediaButtons): New function.
+
 	* java/org/gnu/emacs/EmacsView.java (onKeyDown, onKeyMultiple)
 	(onKeyUp): Check that function.
-	* java/org/gnu/emacs/EmacsWindow.java (defineCursor): Handle
-	cases where cursor is NULL.
+
+	* java/org/gnu/emacs/EmacsWindow.java (defineCursor): Handle cases
+	where cursor is NULL.
+
 	* src/android.c (NATIVE_NAME): New function.
+
 	* src/androidfns.c (syms_of_androidfns): New variable.
+
 	* src/keyboard.c (lispy_function_keys): Add volume keys.
 
 	* java/org/gnu/emacs/EmacsCursor.java: New file.
 
-	Implement mouse cursors on Android 7.0 and later
 	* java/org/gnu/emacs/EmacsWindow.java (defineCursor): New
 	function.
+
 	* src/android.c (struct android_emacs_cursor): New struct.
 	(android_init_emacs_cursor): New function.
-	(JNICALL): Call it.
+	(initEmacs): Call it.
 	(android_create_font_cursor, android_define_cursor)
 	(android_free_cursor): New functions.
+
 	* src/android.h (enum android_handle_type): Add cursor handle
 	type.
+
 	* src/androidfns.c (Fx_create_frame, android_create_tip_frame)
 	(enum mouse_cursor, struct mouse_cursor_types, mouse_cursor_types)
 	(struct mouse_cursor_data, android_set_mouse_color)
 	(syms_of_androidfns):
+
 	* src/androidgui.h (enum android_cursor_shape):
+
 	* src/androidterm.c (make_invisible_cursor)
 	(android_toggle_invisible_pointer, android_free_frame_resources)
 	(android_define_frame_cursor):
+
 	* src/androidterm.h (struct android_display_info)
 	(struct android_output): Port mouse cursor code over from X.
 
 	* java/org/gnu/emacs/EmacsNative.java: Add missing dependency.
 
-	Avoid using Linux sysfs APIs to access battery state on Android
-	* lisp/battery.el (battery-status-function): Don't look for /sys,
-	/proc* on Android.  Explain why.
+	* lisp/battery.el (battery-status-function): Don't look for /sys
+	or /proc* on Android.  Explain why.
 
-	Port Android battery status to Android 4.4 and earlier
-	* java/org/gnu/emacs/EmacsService.java (EmacsService)
-	(queryBattery19): New function.
+	* java/org/gnu/emacs/EmacsService.java (queryBattery19): New
+	function.
 	(queryBattery): Call it on old systems.  Also, return AC line
 	status and temperature.
+
 	* lisp/battery.el (battery-android): Implement more format
 	directives.
-	* src/android.c (android_query_battery): Handle new status
-	fields.
-	* src/android.h (struct android_battery_state): Add `plugged'
-	and `temperature'.
-	* src/androidfns.c (Fandroid_query_battery): Return new fields.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/android.c (android_query_battery): Handle new status fields.
+
+	* src/android.h (struct android_battery_state): Add `plugged' and
+	`temperature'.
+
+	* src/androidfns.c (Fandroid_query_battery): Return new fields.
 
 2023-03-09  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* src/android.c (android_destroy_handle): Handle OOM errors in
 	android_destroy_handle.
 
 	* textconv.c: Remove out-of-date comment.
 
-2023-03-09  Po Lu  <luangruo@yahoo.com>
-
-	Fix menu and popup race conditions on Android
 	* java/org/gnu/emacs/EmacsActivity.java (onContextMenuClosed):
+
 	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu)
 	(onMenuItemClick, run):
-	* java/org/gnu/emacs/EmacsDialog.java (EmacsDialog, onClick)
-	(createDialog, onDismiss): Take menu event serial, and pass it
-	along in context menu events.
+
+	* java/org/gnu/emacs/EmacsDialog.java (onClick, createDialog)
+	(onDismiss): Take menu event serial, and pass it along in context
+	menu events.
+
 	* java/org/gnu/emacs/EmacsNative.java (sendContextMenu): New
 	argument.
+
 	* src/android.c (sendContextMenu): Pass serial number in event.
 
 	* src/androidgui.h (struct android_menu_event): New field
 	`menu_event_serial'.
-	* src/androidmenu.c (FIND_METHOD_STATIC)
-	(android_init_emacs_context_menu): Adjust method declarations.
+
+	* src/androidmenu.c (android_init_emacs_dialog): Adjust method
+	declarations.
 	(android_menu_show, android_dialog_show):
+
 	* src/androidterm.c (handle_one_android_event): Expect serial in
 	context menu events.
+
 	* src/androidterm.h: Update prototypes.
 
-2023-03-09  Po Lu  <luangruo@yahoo.com>
-
-	Fix webp test for Android
 	* configure.ac (HAVE_WEBP): Disable WebPGetInfo check when
 	REALLY_ANDROID.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
-	* java/debug.sh (is_root): Port to android versions which don't
+	* java/debug.sh (is_root): Port to Android versions which don't
 	support `chmod +x'.
-	* src/android.c (android_content_name_p): Disable before API
-	level 19.
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu)
-	(addItem): New argument `tooltip'.
+	* src/android.c (android_content_name_p): Disable before API level
+	19.
 
-	Update Android port
+	* java/org/gnu/emacs/EmacsContextMenu.java (addItem): New argument
+	`tooltip'.
+
 	* src/android.c (android_build_string): Convert the text to
 	UTF-16, and create the Java string using that.
 	(android_build_jstring): Update comment.
-	* src/androidmenu.c (android_init_emacs_context_menu): Add
-	String argument to `addItem'.
+
+	* src/androidmenu.c (android_init_emacs_context_menu): Add String
+	argument to `addItem'.
+
 	(android_menu_show): Correctly pass help strings in regular menu
 	items.
+
 	* src/sfnt.c (_sfnt_swap16, _sfnt_swap32): Avoid reserved names.
 
-	Fix crash upon restoring desktop
 	* src/android.c (android_set_input_focus): Don't call method on
 	window using service class.
 
 	* src/sfnt.c (ODD): Use PUSH_UNCHECKED.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-03-08  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
-	* src/fileio.c (Fcopy_file): On Android, ignore ENOSYS and
-	ENOTSUP when restoring file times, as the system call used is
-	supported by many kernels.
+	* src/fileio.c (Fcopy_file): On Android, ignore ENOSYS and ENOTSUP
+	when restoring file times, as many old kernel versions encountered
+	on Android devices omit support for the relevant system calls.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Fix occasional crash
-	* src/androidterm.c (android_build_extracted_text): Return NULL
-	if text class not initialized.
+	* src/androidterm.c (android_build_extracted_text): Return NULL if
+	text class not initialized.
 	(android_update_selection): Check that EXTRACTED is not NULL.
 
-	Update Android port
 	* doc/emacs/android.texi (Android File System): Document what
 	`temp~unlinked' means in the temporary files directory.
-	* java/org/gnu/emacs/EmacsService.java (updateExtractedText):
-	New function.
-	* java/org/gnu/emacs/EmacsView.java (onCreateInputConnection):
-	Ask the input method nicely to not display the extracted text
-	UI.
+
+	* java/org/gnu/emacs/EmacsService.java (updateExtractedText): New
+	function.
+
+	* java/org/gnu/emacs/EmacsView.java (onCreateInputConnection): Ask
+	the input method nicely to not display the extracted text UI.
+
 	* src/android.c (struct android_emacs_service): New method
 	`updateExtractedText'.
-	(android_hack_asset_fd_fallback): Improve naming convention.
-	Fix typo.
+	(android_hack_asset_fd_fallback): Improve naming convention.  Fix
+	typo.
 	(android_init_emacs_service): Add new method.
 	(android_update_extracted_text): New function.
 	(android_open_asset): Fix typo.
+
 	* src/androidgui.h: Update prototypes.
+
 	* src/androidterm.c (struct android_get_extracted_text_context):
 	New field `flags'.
 	(android_get_extracted_text): Set flags on the frame's output
 	data.
 	(android_build_extracted_text): New function.
 	(getExtractedText): Move out class structures.
-	(android_update_selection): Send updates to extracted text if
-	the input method asked for them.
+	(android_update_selection): Send updates to extracted text if the
+	input method asked for them.
 	(android_reset_conversion): Clear extracted text flags.
+
 	* src/androidterm.h (struct android_output): New fields for
 	storing extracted text data.
 
-	Fix double free upon encountering invalid font
-	* src/sfnt.c (sfnt_read_cmap_table): Don't allocate too big
-	data.  Also, free elements of (*data), not offsets into data
-	itself.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/sfnt.c (sfnt_read_cmap_table): Don't allocate too big data.
+	Also, free elements of (*data), not offsets into data itself.
 
 2023-03-07  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* java/Makefile.in (install_temp/assets/build_info): New rule.
+	(emacs.apk-in): Depend on that file.
 
-	Save build timestamps in Android builds
-	* java/Makefile.in (install_temp/assets/build_info): New
-	rule.:(emacs.apk-in): Depend on that file.
 	* lisp/version.el (android-read-build-system)
 	(android-read-build-time): New functions.
 	(emacs-build-system, emacs-build-time): Use those functions on
 	Android, as dumping is done after installation on Android.
+
 	* src/fileio.c (Finsert_file_contents):
+
 	* src/window.c (replace_buffer_in_windows): Don't call functions
 	if they are not defined, which can happen during loadup.
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsWindow.java (onSomeKindOfMotionEvent):
 	Dismiss splurious LeaveNotify events from button presses.
+
 	* src/android.c (android_change_window_attributes)
 	(android_change_gc, android_set_clip_rectangles)
-	(android_reparent_window, android_clear_window, android_map_window)
-	(android_unmap_window, android_resize_window, android_move_window)
-	(android_swap_buffers, android_fill_rectangle, android_copy_area)
+	(android_reparent_window, android_clear_window)
+	(android_map_window, android_unmap_window, android_resize_window)
+	(android_move_window, android_swap_buffers)
+	(android_fill_rectangle, android_copy_area)
 	(android_fill_polygon, android_draw_rectangle, android_draw_point)
 	(android_draw_line, android_clear_area, android_bell)
 	(android_set_input_focus, android_raise_window)
@@ -3183,75 +3177,77 @@
 	(android_set_fullscreen): Optimize by specifying the class
 	explicitly when calling a method.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* src/lread.c (lread_fd, file_tell, infile, skip_dyn_bytes)
 	(skip_dyn_eof, readbyte_from_stdio, safe_to_load_version)
-	(close_infile_unwind, close_file_unwind_android_fd): New
-	function.
-	(Fload, Flocate_file_internal, openp): New argument PLATFORM.
-	All callers changed.
+	(close_infile_unwind, close_file_unwind_android_fd): New function.
+	(Fload, Flocate_file_internal, openp): New argument PLATFORM.  All
+	callers changed.
 	(skip_lazy_string): Add optimized versions of various functions
 	for accessing Android assets.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-03-06  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New function
+	requestSelectionUpdate.
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
-	function requestSelectionUpdate.
 	* java/org/gnu/emacs/EmacsView.java (onCreateInputConnection):
-	Call it instead of losing if getting the current selection
-	fails.
+	Call it instead of losing if getting the current selection fails.
+
 	* src/android-asset.h (AAsset_seek): Define stub.
-	* src/android.c (android_open): Take mode_t.
+
+	* src/android.c (android_open): Take mode_t MODE instead of int.
 	(android_open_asset, android_close_asset, android_asset_read_quit)
 	(android_asset_read, android_asset_lseek, android_asset_fstat):
 	New functions.
+
 	* src/android.h (struct android_fd_or_asset): Update prototypes.
-	* src/androidgui.h (enum android_ime_operation): Add new
-	operation to update the selection position.
+
+	* src/androidgui.h (enum android_ime_operation): Add new operation
+	to update the selection position.
+
 	* src/androidterm.c (android_handle_ime_event): Handle new
 	operation.
 	(requestSelectionUpdate): New function.
+
 	* src/fileio.c (close_file_unwind_emacs_fd): New function.
 	(Fcopy_file, union read_non_regular, read_non_regular)
-	(Finsert_file_contents): Use optimized codepath to insert
-	Android asset files.
+	(Finsert_file_contents): Use optimized codepath to insert Android
+	asset files.
+
 	* src/frame.h (enum text_conversion_operation): New operation.
+
 	* src/textconv.c (really_request_point_update)
 	(handle_pending_conversion_events_1, request_point_update): New
 	functions.
+
 	* src/textconv.h: Update prototypes.
 
 	* src/conf_post.h: Avoid macro redeclaration.
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsService.java (sync): Delete function.
+
 	* java/org/gnu/emacs/EmacsView.java (handleDirtyBitmap): Erase
 	with window background.
 	(onDetachedFromWindow): Only recycle bitmap if non-NULL.
+
 	* java/org/gnu/emacs/EmacsWindow.java (background): New field.
 	(changeWindowBackground): Set it.
+
 	* src/android.c (struct android_emacs_service): Remove `sync'.
 	(android_init_emacs_service): Likewise.
 	(android_sync): Delete function.
+
 	* src/androidfns.c (android_create_tip_frame): Set frame
 	background color correctly.
 	(Fx_show_tip): Make the tip frame visible.
+
 	* src/androidgui.h: Update prototypes.
+
 	* src/androidterm.c (handle_one_android_event): Handle tooltip
 	movement correctly.
 
 2023-03-05  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* java/org/gnu/emacs/EmacsActivity.java (onCreate):
 	* java/org/gnu/emacs/EmacsContextMenu.java:
 	* java/org/gnu/emacs/EmacsDocumentsProvider.java (getMimeType):
@@ -3261,49 +3257,48 @@
 	* java/org/gnu/emacs/EmacsFontDriver.java:
 	* java/org/gnu/emacs/EmacsHandleObject.java:
 	* java/org/gnu/emacs/EmacsInputConnection.java:
-	* java/org/gnu/emacs/EmacsMultitaskActivity.java
-	(EmacsMultitaskActivity):
+	* java/org/gnu/emacs/EmacsMultitaskActivity.java:
 	* java/org/gnu/emacs/EmacsNative.java:
-	* java/org/gnu/emacs/EmacsNoninteractive.java
-	(EmacsNoninteractive, main):
-	* java/org/gnu/emacs/EmacsOpenActivity.java (EmacsOpenActivity)
-	(startEmacsClient):
+	* java/org/gnu/emacs/EmacsNoninteractive.java (main):
+	* java/org/gnu/emacs/EmacsOpenActivity.java (startEmacsClient):
 	* java/org/gnu/emacs/EmacsSdk7FontDriver.java:
 	* java/org/gnu/emacs/EmacsSdk8Clipboard.java:
-	* java/org/gnu/emacs/EmacsService.java (EmacsService, onCreate):
-	* java/org/gnu/emacs/EmacsView.java (EmacsView, onLayout):
+	* java/org/gnu/emacs/EmacsService.java (onCreate):
+	* java/org/gnu/emacs/EmacsView.java (onLayout):
 	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow):
-	* java/org/gnu/emacs/EmacsWindowAttachmentManager.java
-	(EmacsWindowAttachmentManager): Remove redundant includes.
-	Reorganize some functions around, remove duplicate `getLibDir'
-	functions, and remove unused local variables.
+	* java/org/gnu/emacs/EmacsWindowAttachmentManager.java: Remove
+	redundant includes.  Reorganize some functions, remove duplicate
+	`getLibDir' functions, and remove unused local variables.
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsOpenActivity.java (onCreate): Don't
-	set the style here.
+	* java/org/gnu/emacs/EmacsOpenActivity.java (onCreate): Don't set
+	the style here.
+
 	* java/res/values-v11/style.xml:
 	* java/res/values-v14/style.xml:
 	* java/res/values-v29/style.xml:
 	* java/res/values/style.xml: Define styles for the emacsclient
 	wrapper.
-	* src/keyboard.c (read_key_sequence): Don't disable text
-	conversion if use_mouse_menu or if a menu bar prefix key is
-	being displayed.
 
-	Update Android port
+	* src/keyboard.c (read_key_sequence): Don't disable text
+	conversion if use_mouse_menu or if a menu bar prefix key is being
+	displayed.
+
 	* etc/PROBLEMS: Document problem with default monospace font.
-	* src/fileio.c (check_mutable_filename): Check /content as well.
+
+	* src/fileio.c (check_mutable_filename): Check if the file is a
+	constituent of /content as well.
 	(Fcopy_file, Fdelete_directory_internal, Fdelete_file)
 	(Frename_file, Fadd_name_to_file, Fmake_symbolic_link)
 	(Fset_file_modes, Fset_file_times, Ffile_newer_than_file_p)
 	(write_region): Adjust accordingly.
 	(Fset_visited_file_modtime): Remove unnecessary restriction.
+
 	* src/filelock.c (make_lock_file_name): Don't interlock files
 	under /assets and /content.
+
 	* src/inotify.c (Finotify_add_watch): Fix typo.
 
-	Fix cross compilation of cross/lib in some cases
-	* cross/Makefile.in: (config.status): Depend on
+	* cross/Makefile.in (config.status): Depend on
 	top_builddir/config.status instead.
 
 	* configure.ac: Fix another typo.
@@ -3312,189 +3307,168 @@
 
 	* cross/README: Update.
 
-	Remove redundant gnulib files
 	* cross/lib: Delete.  Make configure generate it instead.
 
-	Remove redundant second copy of gnulib
 	* .gitignore: Simplify cross/lib rule.
+
 	* admin/merge-gnulib (avoided_flags): Stop copying to cross/lib.
-	* configure.ac: Link gnulib source and header files to
-	cross/lib.
+
+	* configure.ac: Link gnulib source and header files to cross/lib.
+
 	* cross/Makefile.in (LIB_SRCDIR): Make relative to builddir.
 	(maintainer-clean): Merge with distclean.  Remove links created
 	by configure.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-03-04  Po Lu  <luangruo@yahoo.com>
 
-	Fix x86_64 builds of libjpeg on Android
 	* cross/ndk-build/ndk-build-shared-library.mk:
 	* cross/ndk-build/ndk-build-static-library.mk: Specify right ELF
 	format for 64 bit executables.
 
-	Fix calls to nasm in cross/ndk-build
 	* cross/ndk-build/ndk-build-shared-library.mk:
 	* cross/ndk-build/ndk-build-static-library.mk: Ensure nasm
 	generates ELF objects.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/sfnt.c (sfnt_fill_span): Specifically handle spans that span
+	a single pixel by computing the coverage in the center.
 
-	Fix out of bound write after poly of single pixel span
-	* src/sfnt.c (sfnt_fill_span): Specifically handle spans that
-	span a single pixel by computing the coverage in the center.
+	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): New field
+	`lastClosedMenu'.
+	(onContextMenuClosed): Don't send event if a menu is closed twice
+	in a row.  Also, clear wasSubmenuSelected immediately.
 
-	Improve context menus on old versions of Android
-	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): New
-	field `lastClosedMenu'.
-	(onContextMenuClosed): Don't send event if a menu is closed
-	twice in a row.  Also, clear wasSubmenuSelected immediately.
 	* java/org/gnu/emacs/EmacsContextMenu.java: Display submenus
 	manually in Android 6.0 and earlier.
+
 	* java/org/gnu/emacs/EmacsView.java (onCreateContextMenu)
 	(popupMenu): Adjust accordingly.
 
-	Port to broken Android NDK version
-	* configure.ac: Check for __ctype_get_mb_cur_max.
-	Then see if MB_CUR_MAX is defined to it, and define
-	REPLACEMENT_MB_CUR_MAX if so and it does not link.
+	* configure.ac: Check for __ctype_get_mb_cur_max.  Then see if
+	MB_CUR_MAX is defined to it, and define REPLACEMENT_MB_CUR_MAX if
+	so and it does not link.
+
 	* java/INSTALL: Update documentation.
+
 	* src/conf_post.h (MB_CUR_MAX): Define replacement if
 	necessary.
 
 	* m4/ndk-build.m4 (ndk_INIT): Fix typo.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Improve support for building Android C++ dependencies
 	* configure.ac: Call ndk_LATE after gl_EARLY.
+
 	* cross/ndk-build/Makefile.in (NDK_BUILD_CXX): New variable.
+
 	* cross/ndk-build/ndk-build-shared-library.mk:
 	* cross/ndk-build/ndk-build-static-library.mk: Use it.
+
 	* java/INSTALL: Describe how to build C++ dependencies.
+
 	* m4/ndk-build.m4 (ndk_LATE): New macro.
 	(ndk_INIT): Try to find a suitable C++ compiler.
 	(ndk_CHECK_MODULES): Make sure the C++ compiler works before
 	allowing C++ dependencies.
 
-	Fix cross-compilation of C++ code with old NDK versions
-	* cross/ndk-build/Makefile.in (NDK_BUILD_CFLAGS_CXX): New variable.
+	* cross/ndk-build/Makefile.in (NDK_BUILD_CFLAGS_CXX): New
+	variable.
+
 	* cross/ndk-build/ndk-build-shared-library.mk
 	($(call objname,$(LOCAL_MODULE),$(basename $(1)))):
 	* cross/ndk-build/ndk-build-static-library.mk
-	($(call objname,$(LOCAL_MODULE),$(basename $(1)))): Use it to build
-	C++ code.
+	($(call objname,$(LOCAL_MODULE),$(basename $(1)))): Use it to
+	build C++ code.
 
 2023-03-03  Po Lu  <luangruo@yahoo.com>
 
-	Minor fixes to configury
 	* configure.ac (ANDROID_SDK_8_OR_EARLIER): Pass through
 	`--with-ndk-cxx-shared'.
-	* m4/ndk-build.m4: Fix quoting of $CC.
 
-	Fix out-of-tree builds with native dependencies
+	* m4/ndk-build.m4 (ndk_INIT): Fix quoting of $CC.
+
 	* cross/ndk-build/ndk-build-shared-library.mk:
 	* cross/ndk-build/ndk-build-static-library.mk: Include
 	ndk-resolve.mk in srcdir.
 
 	* cross/ndk-build/README: Update accordingly.
 
-	Improve ndk-build implementation
 	* build-aux/ndk-build-helper.mk: Define in terms of BUILD_AUXDIR.
+
 	* m4/ndk-build.m4 (ndk_INIT): Find right build-aux directory.
 	Remove uses of unportable shell constructs.
 
-	Fix visiting and saving writable content provider files
-	* java/org/gnu/emacs/EmacsService.java (checkContentUri):
-	Improve debug output.
+	* java/org/gnu/emacs/EmacsService.java (checkContentUri): Improve
+	debug output.
+
 	* lisp/files.el (basic-save-buffer): Check whether or not file
 	itself exists before checking for the existence of the directory
 	containing it.
+
 	* src/android.c (android_open): Don't forget to set errno after
 	open_content_uri fails.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-03-03  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
-	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity)
-	(onCreate): Add view tree observer.
+	* java/org/gnu/emacs/EmacsActivity.java (onCreate): Add view tree
+	observer.
 	(onGlobalLayout): Sync fullscreen state.
 	(syncFullscreenWith): Improve visibility flag setting.
 
 	* src/textconv.c (select_window): New function.
-	(textconv_query):
-	(restore_selected_window):
-	(really_commit_text):
-	(really_set_composing_text):
-	(really_set_composing_region):
-	(really_delete_surrounding_text):
-	(really_set_point_and_mark):
-	(get_extracted_text): Call it instead of Fselect_window
-	to avoid selecting the mini window if it is no longer active.
-
-2023-03-03  Po Lu  <luangruo@yahoo.com>
-
-	Merge remote-tracking branch 'origin/master' into feature/android
+	(textconv_query, restore_selected_window, really_commit_text)
+	(really_set_composing_text, really_set_composing_region)
+	(really_delete_surrounding_text, really_set_point_and_mark)
+	(get_extracted_text): Call it instead of Fselect_window to avoid
+	selecting the mini window if it is no longer active.
 
 2023-03-02  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 	* doc/emacs/input.texi (On-Screen Keyboards): Fix indexing.
 
-	Summary: Update Android port
 	* INSTALL: Document where to find Android installation
 	instructions.
+
 	* configure.ac (CHECK_LISP_OBJECT_TYPE): Pacify
 	-Wsuggest-attribute=noreturn only on Android.
+
 	* cross/ndk-build/README: New file.
+
 	* doc/emacs/android.texi (Android):
 	* doc/emacs/emacs.texi (Top):
 	* doc/emacs/input.texi (Other Input Devices): Untabify menus.
+
 	* etc/NEWS: Move INSTALL.android to java/INSTALL.
+
 	* java/INSTALL: New file.
+
 	* java/README:
+
 	* src/coding.c (from_unicode_buffer): Make Android specific code
 	only build on Android.
 
 	* INSTALL.android: Remove file.
 
-	Fix Makefile race conditions
 	* configure.ac: Make cross/* and related directories.
+
 	* cross/Makefile.in (src/verbose.mk, lib/libgnu.a)
 	(src/config.h): Stop making directories here.
 	(lib-src/config.h): New config.h rule.
 	($(LIBSRC_BINARIES)): Add it.
 	(clean): Don't remove CLEAN_SUBDIRS, but clean inside.
 
-	Fix Android handle wraparound
 	* src/android.c (android_alloc_id): Return correct values upon
 	wraparound.
 
-2023-03-02  Po Lu  <luangruo@yahoo.com>
-
-	Improve criteria for restoring fullscreen state on Android
-	* java/Makefile.in ($(CLASS_FILES) &): Touch all class files,
-	even those javac chose not to rebuild.
+	* java/Makefile.in ($(CLASS_FILES) &): Touch all class files, even
+	those the Java compiler elected not to rebuild.
 
 	* java/org/gnu/emacs/EmacsActivity.java (onWindowFocusChanged):
 	Restore fullscreen state here.
 	(onResume): And not here.
 
-2023-03-02  Po Lu  <luangruo@yahoo.com>
-
-	Fix sectioning of android texi files
 	* doc/emacs/android.texi (Android):
 	* doc/emacs/emacs.texi (Top, GNU Free Documentation License):
 	Rearrange menu and sectioning.
 
-	Update Android port
 	* doc/emacs/android.texi (Android Windowing): Reword
 	documentation.
+
 	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity):
 	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu):
 	* java/org/gnu/emacs/EmacsFontDriver.java (EmacsFontDriver):
@@ -3502,31 +3476,36 @@
 	(EmacsSdk7FontDriver):
 	* java/org/gnu/emacs/EmacsService.java (queryBattery):
 	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow): Make
-	functions final and classes static where necessary.
+	functions final and classes static where possible.  This
+	subsequently brings a small speed-up as the JVM can optimize
+	vtable dispatch away at run-time.
+
 	* src/android.c (struct android_emacs_service): New method
 	`display_toast'.
 	(android_init_emacs_service): Load new method.
 	(android_display_toast): New function.
-	* src/android.h: Export.
+
+	* src/android.h (android_display_toast): Export that new function.
+
 	* src/androidfns.c (Fandroid_detect_mouse):
 	* src/androidselect.c (Fandroid_clipboard_owner_p)
 	(Fandroid_set_clipboard, Fandroid_get_clipboard)
 	(Fandroid_browse_url): Prevent crashes when called from
-	libandroid-emacs.so.
+	libandroid-emacs.so, where the Emacs service object is not
+	present.
+
 	* src/androidterm.c (handle_one_android_event): Fix out of date
 	commentary.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-03-01  Po Lu  <luangruo@yahoo.com>
 
-	Fix out-of-tree Android builds
-	* configure.ac (JAVA_PUSH_LINT): Push to WARN_JAVAFLAGS instead
-	of JAVAFLAGS.
+	* configure.ac (JAVA_PUSH_LINT): Push to WARN_JAVAFLAGS instead of
+	JAVAFLAGS.
 	(cross/lib): Always AS_MKDIR_P.
+
 	* cross/Makefile.in (srcdir): New variable.
-	(LIB_SRCDIR): Take realpath relative to srcdir, not
-	.:(src/verbose.mk): Depend on verbose.mk.android in srcdir.
+	(LIB_SRCDIR): Take realpath relative to srcdir, not.
+	(src/verbose.mk): Depend on verbose.mk.android in srcdir.
 	(lib/Makefile): Edit srcdir and VPATH to LIB_SRCDIR.
 	(src/Makefile): Edit -I$$(top_srcdir) to -I../$(srcdir)/lib,
 	instead of ommitting it.
@@ -3540,47 +3519,46 @@
 	(install_temp, emacs.apk-in)
 	(../config.status): Depend relative to top_srcdir.
 	(AndroidManifest.xml, $(APK_NAME)): Likewise.
-	(RESOURCE_FILE, CLASS_FILES, classes.dex): Output class files
-	to $(srcdir); these are arch independents, so this is okay.
+	(RESOURCE_FILE, CLASS_FILES, classes.dex): Output class files to
+	$(srcdir); these are arch independents, so this is okay.
 
 2023-03-01  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Fix mostlyclean rules
 	* cross/Makefile.in: Remove outdated comment.
-	* src/Makefile.in: (.PHONY): Clean android-emacs and
-	libemacs.so, not emacs.so and aemacs.
 
-	Update Android port
+	* src/Makefile.in (.PHONY): Clean android-emacs and libemacs.so,
+	not emacs.so and aemacs.
+
 	* doc/emacs/android.texi (Android File System): Document new
 	behavior of starting a subprocess from /assets.
+
 	* java/org/gnu/emacs/EmacsWindow.java (onSomeKindOfMotionEvent):
 	Don't use isFromSource where not present.
-	* src/androidterm.c (android_scroll_run): Avoid undefined
-	behavior writing to bitfields.
-	* src/callproc.c (get_current_directory): When trying to run a
-	subprocess inside /assets, run it from the home directory
-	instead.
 
-	Update Android port
+	* src/androidterm.c (android_scroll_run): Avoid undefined behavior
+	writing to bitfields.
+
+	* src/callproc.c (get_current_directory): When trying to run a
+	subprocess inside /assets, run it from the home directory instead.
+
 	* java/AndroidManifest.xml.in: Specify @style/EmacsStyle.
+
 	* java/org/gnu/emacs/EmacsActivity.java (onCreate): Stop setting
 	the theme here.
+
 	* java/res/values-v11/style.xml:
 	* java/res/values-v14/style.xml:
 	* java/res/values-v29/style.xml:
 	* java/res/values/style.xml: Extract style resources into
 	res/values.
 
-	Update Android port
 	* java/Makefile.in (ETAGS, clean): New rules to generate tags.
+
 	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity):
 	* java/org/gnu/emacs/EmacsApplication.java (EmacsApplication):
 	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu):
 	* java/org/gnu/emacs/EmacsCopyArea.java (EmacsCopyArea):
-	* java/org/gnu/emacs/EmacsDialog.java (EmacsDialog)::(dialog.
-	Then):
+	* java/org/gnu/emacs/EmacsDialog.java (EmacsDialog):
 	* java/org/gnu/emacs/EmacsDocumentsProvider.java
 	(EmacsDocumentsProvider):
 	* java/org/gnu/emacs/EmacsDrawLine.java (EmacsDrawLine):
@@ -3607,36 +3585,33 @@
 	* java/org/gnu/emacs/EmacsSdk8Clipboard.java
 	(EmacsSdk8Clipboard):
 	* java/org/gnu/emacs/EmacsService.java (EmacsService):
-	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView)
-	(buffers):
-	* java/org/gnu/emacs/EmacsView.java (EmacsView, ViewGroup):
-	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow, drawables):
+	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView):
+	* java/org/gnu/emacs/EmacsView.java (EmacsView):
+	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow):
 	* java/org/gnu/emacs/EmacsWindowAttachmentManager.java
 	(EmacsWindowAttachmentManager): Make classes final where
-	appropriate.
+	appropriate.  The Java virtual machine is capable of removing
+	vtable dispatch when a virtual function call is being performed on
+	an instance of a final class.
 
-	More fixes to JNI error checking
 	* src/android.c (android_query_tree, android_get_geometry)
-	(android_translate_coordinates, android_query_battery):
-	Correctly handle result of GetTArrayElements.
+	(android_translate_coordinates, android_query_battery): Correctly
+	verify the results of calls to JNI Get<Type>ArrayElements
+	functions.
 	(android_exception_check_nonnull): New function.
-	* src/android.h:
-	* src/androidselect.c (Fandroid_get_clipboard): Likewise.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/androidselect.c (Fandroid_get_clipboard): Also check the
+	return values of calls to JNI array extraction functions.
 
 2023-02-28  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* src/sfnt.c (main):
+
 	* src/sfntfont.c (sfntfont_get_glyph_outline): Remove outdated
-	comment.
+	commentary.
 
 2023-02-26  Po Lu  <luangruo@yahoo.com>
 
-	Get rid of android_lookup_method
 	* src/android.c (struct android_emacs_window): New methods.
 	(android_init_emacs_window): Add new methods.
 	(android_lookup_method): Delete now-unused function.
@@ -3646,61 +3621,60 @@
 	(android_raise_window, android_lower_window, android_get_geometry)
 	(android_translate_coordinates, android_set_dont_focus_on_map)
 	(android_set_dont_accept_focus): Don't look up the class and
-	method each time when calling a function; that's just waste.
+	method each time when calling a function; that's just wasteful.
 
-	Update from gnulib
 	* cross/lib/unistd.in.h:
-	* lib/gnulib.mk.in (INT64_MAX_EQ_LONG_MAX):
-	* m4/gnulib-comp.m4 (gl_EARLY): Update from gnulib.
+	* lib/gnulib.mk.in:
+	* m4/gnulib-comp.m4: Update from gnulib.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* doc/lispref/commands.texi (Misc Events): Update documentation.
-	* java/org/gnu/emacs/EmacsService.java (EmacsService)
-	(onStartCommand): Improve notification message.
+
+	* java/org/gnu/emacs/EmacsService.java (onStartCommand): Improve
+	notification message.
+
 	* src/android.c (android_hack_asset_fd): Detect if ashmem is
 	available dynamically.
 	(android_detect_ashmem): New function.
+
 	* src/textconv.c (record_buffer_change): Use markers to
 	represent BEG and END instead.
 	(syms_of_textconv): Update doc string.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-02-25  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
-	* java/debug.sh (is_root): Fix tee detection again for old
-	systems which don't return exit codes from adb shell.
-	* src/android.c (android_run_select_thread, NATIVE_NAME,
-	JNICALL):
-	* src/android.h (NATIVE_NAME):
-	* src/androidterm.c (JNICALL, NATIVE_NAME): Apply stack
-	alignment to all JNICALL functions.
+	* java/debug.sh (is_root): Fix tee detection again for old systems
+	which don't return exit codes from adb shell.
+
+	* src/android.c (android_run_select_thread, initEmacs):
+	* src/android.h:
+	* src/androidterm.c: Apply stack alignment to all JNICALL
+	functions.
 
 	* src/android.c (android_open): Clean up unused variables.
 
-	Update Android port
 	* java/org/gnu/emacs/EmacsNoninteractive.java (main): Port to
 	Android 2.2.
+
 	* src/android-asset.h (AAsset_openFileDescriptor): Delete stub
 	function.
-	* src/android.c (android_check_compressed_file): Delete
-	function.
-	(android_open): Stop trying to find compressed files or to use
-	the system provided file descriptor.  Explain why.
 
-	Update Android port
+	* src/android.c (android_check_compressed_file): Delete function.
+	(android_open): Stop trying to find compressed files or to use the
+	system provided file descriptor.  Explain why.
+
 	* doc/emacs/android.texi (Android Startup, Android File System)
-	(Android Environment, Android Windowing, Android
-	Troubleshooting): Improve documentation; fix typos.
+	(Android Environment, Android Windowing, Android Troubleshooting):
+	Improve documentation; fix typos.
+
 	* doc/lispref/commands.texi (Misc Events): Likewise.
+
 	* java/org/gnu/emacs/EmacsService.java (queryBattery): New
 	function.
+
 	* lisp/battery.el (battery-status-function): Set appropriately
 	for Android.
 	(battery-android): New function.
+
 	* src/android.c (struct android_emacs_service): New method
 	`query_battery'.
 	(android_check_content_access): Improve exception checking.
@@ -3719,9 +3693,12 @@
 	(android_browse_url): Improve exception handling.  Always use
 	android_exception_check and don't leak local refs.
 	(android_query_battery): New function.
+
 	* src/android.h (struct android_battery_state): New struct.
+
 	* src/androidfns.c (Fandroid_query_battery, syms_of_androidfns):
-	New function.
+	New functions.
+
 	* src/androidfont.c (androidfont_from_lisp, DO_SYMBOL_FIELD)
 	(DO_CARDINAL_FIELD, androidfont_list, androidfont_match)
 	(androidfont_draw, androidfont_open_font)
@@ -3730,196 +3707,142 @@
 	(Fandroid_get_clipboard):
 	* src/sfnt.c (sfnt_map_glyf_table):
 	* src/sfntfont.c (sfntfont_free_outline_cache)
-	(sfntfont_free_raster_cache, sfntfont_close): Allow font close
-	functions to be called twice.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
+	(sfntfont_free_raster_cache, sfntfont_close): Allow calling font
+	close functions twice.
 
 2023-02-24  Po Lu  <luangruo@yahoo.com>
 
-	Improve Android configury
 	* configure.ac (JAVA_PUSH_LINT): New macro.
 	(JAVAFLAGS): New variable.  Check for various lint flags and
 	macros and enable them.
+
 	* java/Makefile.in (ANDROID_ABI):
+
 	* java/org/gnu/emacs/EmacsSdk7FontDriver.java: Remove compiler
 	warning.
 
-	Enable normal-erase-is-backspace on Android
 	* lisp/frame.el (display-symbol-keys-p):
 	* lisp/simple.el (normal-erase-is-backspace-setup-frame): Return
 	appropriate values on Android.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Fix auto-revert-mode on Android
-	* src/inotify.c (Finotify_add_watch): Handle asset files.
+	* src/inotify.c (Finotify_add_watch): Handle asset files by
+	returning nil.
 
 	* src/keyboard.c (lispy_function_keys): Add missing delete key.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-02-23  Po Lu  <luangruo@yahoo.com>
 
-	Make sure scroll-bar.el is loaded on Android
 	* lisp/loadup.el: Update commentary.
+
 	* src/androidterm.c (syms_of_androidterm): Define
 	Vx_toolkit_scroll_bars.
-	* src/xterm.c (syms_of_xterm): Update doc string.xf64
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/xterm.c (syms_of_xterm): Update doc string.
 
-	Fix ImageMagick build on Android
-	* INSTALL.android (-linux_arm_sources):
+	* INSTALL.android:
 	* build-aux/ndk-build-helper-1.mk:
-	(NDK_$(LOCAL_MODULE)_STATIC_LIBRARIES)::(NDK_CXX_FLAG_$(LOCAL_MODULE)):
+	(NDK_$(LOCAL_MODULE)_STATIC_LIBRARIES)
+	(NDK_CXX_FLAG_$(LOCAL_MODULE)):
 	* build-aux/ndk-build-helper-2.mk:
-	(NDK_$(LOCAL_MODULE)_STATIC_LIBRARIES)::(NDK_CXX_FLAG_$(LOCAL_MODULE)):
-	* cross/ndk-build/ndk-build-shared-library.mk (objname)::($(call
-	objname,$(LOCAL_MODULE),$(basename
-	$(1))))::(ALL_OBJECT_FILES$(LOCAL_MODULE)):
-	* cross/ndk-build/ndk-build-static-library.mk (objname)::($(call
-	objname,$(LOCAL_MODULE),$(basename
-	$(1))))::(ALL_OBJECT_FILES$(LOCAL_MODULE)):
-	(ALL_SOURCE_FILES): Update ImageMagick build instructions and
-	C++ module detection.
+	(NDK_$(LOCAL_MODULE)_STATIC_LIBRARIES)
+	(NDK_CXX_FLAG_$(LOCAL_MODULE)):
+	* cross/ndk-build/ndk-build-shared-library.mk (objname)
+	($(call	objname,$(LOCAL_MODULE),$(basename $(1))))
+	(ALL_OBJECT_FILES$(LOCAL_MODULE)):
+	* cross/ndk-build/ndk-build-static-library.mk (objname)
+	($(call objname,$(LOCAL_MODULE),$(basename $(1))))
+	(ALL_OBJECT_FILES$(LOCAL_MODULE)):
+	(ALL_SOURCE_FILES): Update ImageMagick build instructions and C++
+	module detection.
 
 	* src/android.c (android_run_select_thread): Fix typos.
-
-	Make android_select more robust
-	* src/android.c (android_run_select_thread): Lock select_mutex
-	before signalling condition variable.
+	(android_run_select_thread): Lock select_mutex before signalling
+	condition variable.
 	(android_select): Unlock event queue mutex prior to waiting for
 	it.
 
 2023-02-22  Po Lu  <luangruo@yahoo.com>
 
-	; Fix typo
 	* cross/ndk-build/ndk-build-shared-library.mk: Fix typo.
 
 	* src/image.c (imagemagick_load_image): Check HAVE_DECL_xxx.
 
-2023-02-22  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
-	ImageMagick now builds but does not link yet some of the time.
-
 	* INSTALL.android: Document ImageMagick and caveats.
+
 	* build-aux/ndk-build-helper-1.mk (NDK_SO_NAMES):
 	* build-aux/ndk-build-helper-2.mk (NDK_A_NAMES):
-	* build-aux/ndk-build-helper.mk (TARGET_ARCH_ABI): Define architecture
-	and don't respect explicitly specified library names.
+	* build-aux/ndk-build-helper.mk (TARGET_ARCH_ABI): Define
+	architecture and don't respect explicitly specified library names.
 	* configure.ac: Enable ImageMagick and lcms2 on Android.
-	* cross/ndk-build/ndk-build-shared-library.mk (objname)::($(call
-	objname,$(LOCAL_MODULE),$(basename
-	$(1))))::(ALL_OBJECT_FILES$(LOCAL_MODULE)):
-	* cross/ndk-build/ndk-build-static-library.mk (objname)::($(call
-	objname,$(LOCAL_MODULE),$(basename $(1)))):
-	(NDK_CFLAGS, ALL_SOURCE_FILES): Handle sources files which start with
-	$(LOCAL_PATH).
-	* cross/ndk-build/ndk-clear-vars.mk: Don't undefine; clear variables
-	instead.
-	* m4/ndk-build.m4 (ndk_SEARCH_MODULE): Redirect make stderr to
-	config.log.xf64
+	* cross/ndk-build/ndk-build-shared-library.mk (objname)
+	($(call objname,$(LOCAL_MODULE),$(basename $(1))))
+	(ALL_OBJECT_FILES$(LOCAL_MODULE)):
+	* cross/ndk-build/ndk-build-static-library.mk (objname)
+	($(call objname,$(LOCAL_MODULE),$(basename $(1))))
+	(NDK_CFLAGS, ALL_SOURCE_FILES): Handle source files whose names
+	begin with $(LOCAL_PATH).
 
-2023-02-22  Po Lu  <luangruo@yahoo.com>
+	* cross/ndk-build/ndk-clear-vars.mk: Don't undefine; clear
+	variables instead.
+
+	* m4/ndk-build.m4 (ndk_SEARCH_MODULE): Redirect make stderr to
+	config.log.
 
 	* src/androidmenu.c (android_menu_show): Fix typo.
 
-	Update Android port
-	* doc/emacs/input.texi (On-Screen Keyboards): Document changes
-	to text conversion.
-	* java/org/gnu/emacs/EmacsInputConnection.java (getExtractedText)
-	(EmacsInputConnection):
+	* doc/emacs/input.texi (On-Screen Keyboards): Document changes to
+	text conversion.
+
+	* java/org/gnu/emacs/EmacsInputConnection.java (getExtractedText):
 	* src/keyboard.c (read_key_sequence): Disable text conversion
 	after reading prefix key.
+
 	* src/textconv.c (get_extracted_text): Fix returned value when
 	request length is zero.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Add cross-compilation test for cleanup attribute
 	* configure.ac: Per title.
 
-	Update Android port
 	* INSTALL.android: Port to MIPS.
-	* configure.ac (modules): Default to ifavailable.
-	Write actual test for __attribute__((cleanup)).
+
+	* configure.ac (modules): Default to ifavailable.  Write actual
+	test for __attribute__((cleanup)).
+
 	* m4/ndk-build.m4: Recognize mips and mips64.
+
 	* src/emacs-module.c: Remove broken HAS_ATTRIBUTE test.
 
 2023-02-21  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* java/org/gnu/emacs/EmacsContextMenu.java (addSubmenu)
+	(inflateMenuItems): Handle tooltips correctly.
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu)
-	(addSubmenu, inflateMenuItems): Handle tooltips correctly.
 	* src/android.c (android_scan_directory_tree): Fix limit
 	generation for root directory.
-	* src/androidmenu.c (android_init_emacs_context_menu)
-	(android_menu_show): Implement menu item help text on Android
-	8.0 and later.
 
-	Update from gnulib
-	* admin/merge-gnulib (GNULIB_MODULES):
-	* cross/lib/getopt-pfx-core.h (optind):
-	* cross/lib/limits.in.h (BOOL_WIDTH):
-	* cross/lib/math.in.h:
-	* cross/lib/stpncpy.c (__stpncpy):
-	* cross/lib/string.in.h:
-	* lib/getopt-pfx-core.h (optind):
-	* lib/gnulib.mk.in (ANDROID_MIN_SDK):
-	(GL_COND_OBJ_STDIO_READ_CONDITION):
-	(LIBS):
-	(NDK_BUILD_AR):
-	(REPLACE__EXIT):
-	(libgnu_a_SOURCES):
-	* lib/limits.in.h (BOOL_WIDTH):
-	* lib/math.in.h:
-	* lib/stpncpy.c (__stpncpy):
-	* lib/string.in.h:
-	* m4/assert_h.m4 (gl_ASSERT_H):
-	* m4/fdopendir.m4 (gl_FUNC_FDOPENDIR):
-	* m4/getdelim.m4 (gl_FUNC_GETDELIM):
-	* m4/getline.m4 (gl_FUNC_GETLINE):
-	* m4/gnulib-common.m4 (gl_COMMON_BODY):
-	(gl_CONDITIONAL_HEADER):
-	(gl_CHECK_FUNCS_ANDROID):
-	* m4/gnulib-comp.m4 (gl_EARLY):
-	(gl_INIT):
-	(gl_FILE_LIST):
-	* m4/limits-h.m4:
-	* m4/lstat.m4 (gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK):
-	* m4/malloc.m4 (_AC_FUNC_MALLOC_IF):
-	* m4/printf.m4 (gl_PRINTF_SIZES_C99):
-	(gl_PRINTF_INFINITE):
-	(gl_PRINTF_INFINITE_LONG_DOUBLE):
-	(gl_PRINTF_DIRECTIVE_A):
-	(gl_PRINTF_DIRECTIVE_F):
-	(gl_PRINTF_FLAG_ZERO):
-	(gl_SNPRINTF_PRESENCE):
-	(gl_SNPRINTF_DIRECTIVE_N):
-	(gl_VSNPRINTF_ZEROSIZE_C99):
-	* m4/pselect.m4 (gl_FUNC_PSELECT):
-	* m4/readlink.m4 (gl_FUNC_READLINK):
-	* m4/realloc.m4 (_AC_FUNC_REALLOC_IF):
-	* m4/signbit.m4 (gl_SIGNBIT):
-	* m4/stpncpy.m4 (gl_FUNC_STPNCPY):
-	* m4/symlink.m4 (gl_FUNC_SYMLINK): Add gnulib module stpncpy.
+	* src/androidmenu.c (android_init_emacs_context_menu)
+	(android_menu_show): Implement menu item help text on Android 8.0
+	and later.
+
+	* admin/merge-gnulib (GNULIB_MODULES): Add gnulib module stpncpy.
+
+	* m4, lib: Update from Gnulib.
+
 	* src/android.c: Include string.h.
 
-	Update Android port
 	* doc/emacs/android.texi (Android Startup): Document `content'
 	special directory.
+
 	* java/debug.sh (is_root): Improve /bin/tee detection.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
-	function `dup'.
-	* java/org/gnu/emacs/EmacsOpenActivity.java (EmacsOpenActivity)
-	(checkReadableOrCopy, onCreate): Create content directory names
-	when the file is not readable.
-	* java/org/gnu/emacs/EmacsService.java (EmacsService)
-	(openContentUri, checkContentUri): New functions.
+
+	* java/org/gnu/emacs/EmacsNative.java (dup): New function.
+
+	* java/org/gnu/emacs/EmacsOpenActivity.java (checkReadableOrCopy)
+	(onCreate): Create content directory names when the file is not
+	readable.
+
+	* java/org/gnu/emacs/EmacsService.java (openContentUri)
+	(checkContentUri): New functions.
+
 	* src/android.c (struct android_emacs_service): New methods.
 	(android_content_name_p, android_get_content_name)
 	(android_check_content_access): New function.
@@ -3928,37 +3851,29 @@
 	(android_init_emacs_service): Initialize new methods.
 	(android_faccessat): Implement content file names.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-02-20  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-02-20  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* INSTALL.android: Explain where to get tree-sitter.
 
 	* configure.ac: Add support for dynamic modules and tree-sitter.
 
 	* doc/emacs/android.texi (Android Windowing):
+
 	* java/org/gnu/emacs/EmacsSdk11Clipboard.java
-	(EmacsSdk11Clipboard, ownsClipboard): Improve clipboard handling
-	and documentation.
+	(ownsClipboard): Enhance the treatment of the clipboard and the
+	documentation addressing that subject.
 
 2023-02-20  Po Lu  <luangruo@yahoo.com>
 
-	Fix crash inside font-list-family
 	* src/androidfont.c (androidfont_list_family): Don't
 	unconditionally initialize the Android font driver.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Improve SFNT driver lookup efficiency
 	* src/fontset.c (fontset_find_font): Add compatibility test to
 	registry strangeness case.
+
 	* src/sfnt.c (sfnt_read_cmap_table): Don't read subtable data if
 	DATA is NULL.
+
 	* src/sfntfont.c (struct sfnt_font_desc): New field `registry'.
 	(sfnt_registry_for_subtable): New function.
 	(sfntfont_identify_cmap): Move above sfnt_grok_registry.
@@ -3969,266 +3884,276 @@
 	(sfntfont_registry_for_desc): New function.
 	(mark_sfntfont): Mark desc->registry.
 
-	Improve reliability of Java code rebuilds
-	* java/Makefile.in ($(CLASS_FILES)): Depend on the Java
-	compiler's internal dependency tracking.
+	* java/Makefile.in ($(CLASS_FILES)): Depend on the Java compiler's
+	internal dependency tracking.
 
-2023-02-19  Po Lu  <luangruo@yahoo.com>
-
-	Match font registry after font is opened
 	* src/fontset.c (fontset_find_font): Work around TrueType
 	performance problem.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 	* cross/Makefile.in (src/libemacs.so): Depend on libgnu.a.
 
-	More fixes to parallel Make
 	* cross/ndk-build/ndk-build.mk.in (NDK_BUILD_MODULES)
 	(NDK_BUILD_SHARED, NDK_BUILD_STATIC): Define group rule to build
 	all files so that they are built within one make process.
+
 	* java/Makefile.in: Reorganize cross compilation and make sure
-	there is only one make subprocess for each subdirectory of
-	cross.
+	there is only one make subprocess for each subdirectory of cross.
 
-	More parallel build fixes
-	* cross/Makefile.in: (.PHONY):
-	* java/Makefile.in: (.PHONY):
-	* src/Makefile.in: (libemacs.so): Avoid calling ndk-build from
-	two places at once.  Build android-emacs separately from
-	libemacs.so.
+	* cross/Makefile.in (.PHONY):
+	* java/Makefile.in (.PHONY):
+	* src/Makefile.in (libemacs.so): Avoid calling ndk-build from two
+	places at once.  Build android-emacs separately from libemacs.so.
 
-	Fix parallel compilation of Android port
 	* cross/Makefile.in ($(top_builddir)/lib/libgnu.a):
-	* java/Makefile.in (CROSS_LIBS): Explicitly depend on gnulib
-	to prevent it from being built at the same time from different
-	jobs.
+	* java/Makefile.in (CROSS_LIBS): Explicitly depend on gnulib to
+	prevent it from being built at the same time from different jobs.
 
-	Fix sfntfont.c build without mmap
 	* src/sfntfont.c (sfntfont_close): Don't unlink font if mmap is
 	not available.
 
-	Improve Android documentation
 	* INSTALL.android: Say where building Emacs is supported.
+
 	* doc/emacs/android.texi (Android Startup): Describe how to
 	connect via ADB.
 
-	Report both sides of the region to the input method upon setup
-	* java/org/gnu/emacs/EmacsNative.java (getSelection): Return
-	array of ints.
+	* java/org/gnu/emacs/EmacsNative.java (getSelection): Return array
+	of ints.
+
 	* java/org/gnu/emacs/EmacsView.java (onCreateInputConnection):
 	Adjust accordingly.
+
 	* src/androidterm.c (struct android_get_selection_context): New
 	field `mark'.
 	(android_get_selection): Set the mark field as appropriate.
 	(getSelection): Adjust accordingly.
 
-	Fix gamegrid.el with high resolution displays
-	* lisp/play/gamegrid.el (gamegrid-setup-default-font): Clamp
-	font size at eight.
+	* lisp/play/gamegrid.el (gamegrid-setup-default-font): Clamp font
+	size at eight.
 
-	Allow opening more files in emacsclient on Android
-	* java/org/gnu/emacs/EmacsOpenActivity.java (EmacsOpenActivity)
-	(checkReadableOrCopy): New function.
-	(onCreate): If the file specified is not readable from C, read
-	it into a temporary file and ask Emacs to open that.
+	* java/org/gnu/emacs/EmacsOpenActivity.java (checkReadableOrCopy):
+	New function.
+	(onCreate): If the file specified is not readable from C, read it
+	into a temporary file and ask Emacs to open that.
 
-	Implement `fullscreen' on Android 4.0 and later
 	* doc/emacs/android.texi (Android Windowing): Document what new
 	frame parameters are now supported.
-	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): New
-	field `isFullscreen'.
+
+	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): New field
+	`isFullscreen'.
 	(detachWindow, attachWindow): Sync fullscreen state.
 	(onWindowFocusChanged): Add more logging.
 	(onResume): Restore previous fullscreen state.
 	(syncFullscreen): New function.
-	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow)
-	(setFullscreen): New function.
+
+	* java/org/gnu/emacs/EmacsWindow.java (setFullscreen): New
+	function.
+
 	* src/android.c (struct android_emacs_window): Add new method.
 	(android_init_emacs_window): Look up new method.
 	(android_set_fullscreen): New function.
+
 	* src/androidgui.h:
 	* src/androidterm.c (android_fullscreen_hook): Implement
 	accordingly.
 
-	Fix crashes in desktop-save-mode
 	* lisp/subr.el (overriding-text-conversion-style, y-or-n-p):
 	Disable text conversion when reading from minibuffer.
+
 	* src/androidfns.c (android_make_monitor_attribute_list): New
 	function.
 	(Fandroid_display_monitor_attributes_list): Call it to set
 	monitor_frames, which avoids a NULL pointer dereference.
 	Reported by Angelo Graziosi <angelo.g0@libero.it>.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-02-18  Po Lu  <luangruo@yahoo.com>
 
 	* lisp/loadup.el: Fix merge typos.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* doc/emacs/input.texi (On-Screen Keyboards): Document
 	`touch-screen-always-display'.
+
 	* doc/lispref/commands.texi (Misc Events): Improve documentation
 	of text conversion events.
+
 	* java/org/gnu/emacs/EmacsDialog.java (toAlertDialog, display1):
 	Reorder buttons to make more sense.
+
 	* lisp/elec-pair.el (electric-pair-analyze-conversion): New
 	function.
+
 	* lisp/simple.el (analyze-text-conversion): Improve integration
 	with electric pair modes.
-	* lisp/term.el (term-mode): Always display the onscreen
-	keyboard.
+
+	* lisp/term.el (term-mode): Always display the onscreen keyboard.
+
 	* lisp/touch-screen.el (touch-screen-display-keyboard)
 	(touch-screen-handle-point-up): Respect new options.
+
 	* src/textconv.c (really_set_composing_text): Stop widenining
 	unnecessarily.
-	(really_delete_surrounding_text): Really delete surrounding
-	text.  Give text conversion analyzers the buffer text.
+	(really_delete_surrounding_text): Really delete surrounding text.
+	Give text conversion analyzers the buffer text.
 	(syms_of_textconv): Update doc string.
 
-	Notify input methods when editing fails
 	* INSTALL.android: Clarify build instructions.
+
 	* src/textconv.c (struct complete_edit_check_context): New
 	structure.
 	(complete_edit_check): New function.
-	(handle_pending_conversion_events_1): If the window is known,
-	then ensure that any editing failures are reported to the input
-	method.
+	(handle_pending_conversion_events_1): If the window is known, then
+	ensure that any editing failures are reported to the input method.
 
-	* configure.ac: Fix typo.
+	* configure.ac: Fix typo.  Check for madvise.
 
-	Update Android port
-	* configure.ac: Check for madvise.
 	* lisp/international/fontset.el (script-representative-chars):
 	Improve detection of CJK fonts.
+
 	* src/pdumper.c (dump_discard_mem): Use madvise if possible.
+
 	* src/sfnt.c (sfnt_map_glyf_table, sfnt_unmap_glyf_table): New
 	functions.
+
 	* src/sfnt.h (struct sfnt_glyf_table): New field.
+
 	* src/sfntfont.c (struct sfnt_font_info, sfntfont_open)
-	(sfntfont_close, sfntfont_detect_sigbus): Allow mmapping fonts
-	if possible.
+	(sfntfont_close, sfntfont_detect_sigbus): Map fonts into memory if
+	possible.
+
 	* src/sfntfont.h: Update prototypes.
+
 	* src/sysdep.c (handle_sigbus, init_sigbus, init_signals):
 	Initialize SIGBUS correctly.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-02-17  Po Lu  <luangruo@yahoo.com>
 
-	Work around race condition bug in Android 13's input manager
 	* src/androidterm.c (android_get_selection): Use ephemeral last
 	point.
+
 	* src/textconv.c (report_selected_window_change): Set
 	w->ephemeral_last_point to the window's point now.
 
-	Update emacsbug and version.el for the Android port
 	* java/Makefile.in (install_temp/assets/version): New generated
 	file.
-	* lisp/loadup.el: Set emacs versions appropriately prior to
+
+	* lisp/loadup.el: Set Emacs versions appropriately prior to
 	dumping on Android.
-	* lisp/mail/emacsbug.el (emacs-build-description): Insert
-	Android build fingerprint.
+
+	* lisp/mail/emacsbug.el (emacs-build-description): Insert Android
+	build fingerprint.
+
 	* lisp/version.el (emacs-repository-version-android)
 	(emacs-repository-get-version, emacs-repository-get-branch):
 	Implement for Android.
-	* src/androidterm.c (android_set_build_fingerprint): New
-	function.
+
+	* src/androidterm.c (android_set_build_fingerprint): New function.
 	(syms_of_androidterm): New variable `android-build-fingerprint'.
 
 	* src/android.c (android_exception_check): Fix typo.
+	(android_exception_check): Print more detailed information.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Improve logging of Java exceptions
-	* src/android.c (android_exception_check): Print more detailed
-	information.
-
-	Fix crash on old versions of Android
 	* java/org/gnu/emacs/EmacsService.java (nameKeysym): Implement
 	stub on Android 3.0 and earlier.
 
-	Fix build and running on Android 2.2
-	* INSTALL.android: Document that Android 2.2 is now supported,
-	with caveats.
+	* INSTALL.android: Document that Android 2.2 is now supported)
+	(with caveats.
+
 	* configure.ac (ANDROID_MIN_SDK, ANDROID_SDK_18_OR_EARLIER)
 	(SYSTEM_TYPE, ANDROID_STUBIFY, SIZEOF_LONG): Correctly detect
 	things missing on Android 2.2.
+
 	* java/Makefile.in (ANDROID_JAR, JARSIGNER_FLAGS):
 	* java/debug.sh (jdb, gdbserver, line):
 	* java/org/gnu/emacs/EmacsApplication.java (findDumpFile):
 	* java/org/gnu/emacs/EmacsService.java (onCreate):
-	* java/org/gnu/emacs/EmacsThread.java (EmacsThread, run): Run
-	parameter initialization on main thread.
+	* java/org/gnu/emacs/EmacsThread.java (run): Run parameter
+	initialization on main thread.
+
 	* src/android-asset.h (struct android_asset_manager)
 	(struct android_asset, AAssetManager_fromJava, AAssetManager_open)
 	(AAsset_close, android_asset_create_stream)
 	(android_asset_read_internal, AAsset_openFileDescriptor)
 	(AAsset_getLength, AAsset_getBuffer, AAsset_read): New file.
-	* src/android.c (android_user_full_name, android_hack_asset_fd)
+	Write substitutes for functions that aren't present within the NDK
+	on Android 2.2.
+
+	* src/android.c: Arrange to include android-asset.h if the minimum
+	supported Android version is 2.2.
+	(android_user_full_name, android_hack_asset_fd)
 	(android_check_compressed_file): Implement for Android 2.2.
+
 	* src/process.c (Fprocess_send_eof): Don't call tcdrain if
 	unavailable.
+
 	* src/sfntfont-android.c (system_font_directories): Fix compiler
 	warning.
+
 	* src/sfntfont.c (sfntfont_read_cmap): Correctly test rc of
 	emacs_open.
-	* src/textconv.c (handle_pending_conversion_events_1): Mark
-	buffer UNINIT.
+
+	* src/textconv.c (handle_pending_conversion_events_1): Mark buffer
+	UNINIT.
 
 2023-02-16  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-02-16  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* doc/emacs/android.texi (Android Fonts):
 	* doc/emacs/input.texi (On-Screen Keyboards):
 	* doc/lispref/commands.texi (Misc Events): Update documentation.
-	* java/org/gnu/emacs/EmacsInputConnection.java (setSelection):
-	New function.
-	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView)
-	(reconfigureFrontBuffer): Make bitmap references weak
-	references.
+
+	* java/org/gnu/emacs/EmacsInputConnection.java (setSelection): New
+	function.
+	* java/org/gnu/emacs/EmacsSurfaceView.java
+	(reconfigureFrontBuffer): Make bitmap references weak references.
+
 	* java/org/gnu/emacs/EmacsView.java (handleDirtyBitmap): Don't
 	clear surfaceView bitmap.
-	* lisp/comint.el (comint-mode):
+
+	* lisp/comint.el (comint-mode): Set text-conversion-style to
+	`action' so on screen keyboards' Return buttons send an actual key
+	press event.
+
 	* lisp/international/fontset.el (script-representative-chars)
 	(setup-default-fontset): Improve detection of CJK fonts.
+
 	* lisp/isearch.el (set-text-conversion-style): New variable.
-	(isearch-mode, isearch-done): Save and restore the text
-	conversion style.
+	(isearch-mode, isearch-done): Save and restore the text conversion
+	style.
+
 	* lisp/minibuffer.el (minibuffer-mode): Set an appropriate text
 	conversion style.
+
 	* lisp/simple.el (analyze-text-conversion): Run
 	post-self-insert-hook properly.
+
 	* lisp/subr.el (read-char-from-minibuffer): Disable text
 	conversion when reading character.
-	* src/androidterm.c (show_back_buffer): Don't check that F is
-	not garbaged.
+
+	* src/androidterm.c (show_back_buffer): Don't check that F is not
+	garbaged.
 	(android_update_selection, android_reset_conversion): Use the
 	ephemeral last point and handle text conversion being disabled.
+
 	* src/buffer.c (syms_of_buffer): Convert old style DEFVAR.
+
 	* src/keyboard.c (kbd_buffer_get_event): Handle text conversion
 	first.
+
 	* src/lisp.h: Update prototypes.
+
 	* src/lread.c (read_filtered_event): Temporarily disable text
 	conversion.
-	* src/sfnt.c (sfnt_decompose_glyph_1, sfnt_decompose_glyph_2):
-	New functions.
+
+	* src/sfnt.c (sfnt_decompose_glyph_1, sfnt_decompose_glyph_2): New
+	functions.
 	(sfnt_decompose_glyph, sfnt_decompose_instructed_outline):
 	Refactor contour decomposition to those two functions.
 	(main): Update tests.
+
 	* src/sfntfont-android.c (system_font_directories): Add empty
 	field.
-	(Fandroid_enumerate_fonts, init_sfntfont_android): Enumerate
-	fonts in a user fonts directory.
-	* src/sfntfont.c (struct sfnt_font_desc): New field
-	`num_glyphs'.
+	(Fandroid_enumerate_fonts, init_sfntfont_android): Enumerate fonts
+	in a user fonts directory.
+
+	* src/sfntfont.c (struct sfnt_font_desc): New field `num_glyphs'.
 	(sfnt_enum_font_1): Set num_glyphs and avoid duplicate fonts.
 	(sfntfont_glyph_valid): New function.
 	(sfntfont_lookup_char, sfntfont_list_1): Make sure glyphs found
@@ -4240,34 +4165,42 @@
 	(handle_pending_conversion_events_1)
 	(handle_pending_conversion_events, conversion_disabled_p)
 	(disable_text_conversion, resume_text_conversion)
-	(Fset_text_conversion_style, syms_of_textconv): Update to
-	respect new options.
-	* src/textconv.h:
+	(Fset_text_conversion_style, syms_of_textconv): Update to respect
+	new options.
+
 	* src/window.h (GCALIGNED_STRUCT): New field
 	`ephemeral_last_point'.
+
 	* src/xdisp.c (mark_window_display_accurate_1): Set it.
 
 2023-02-15  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* doc/emacs/input.texi (On-Screen Keyboards):
 	* doc/lispref/commands.texi (Misc Events): Improve documentation
 	of text conversion stuff.
+
 	* java/org/gnu/emacs/EmacsInputConnection.java (beginBatchEdit)
-	(endBatchEdit, commitCompletion, commitText, deleteSurroundingText)
+	(endBatchEdit, commitCompletion, commitText)
+	(deleteSurroundingText)
 	(finishComposingText, getSelectedText, getTextAfterCursor)
 	(EmacsInputConnection, setComposingRegion, performEditorAction)
 	(getExtractedText): Condition debug code on DEBUG_IC.
+
 	* java/org/gnu/emacs/EmacsService.java (EmacsService, updateIC):
 	Likewise.
+
 	* lisp/bindings.el (global-map):
 	* lisp/electric.el (global-map): Make `text-conversion'
 	`analyze-text-conversion'.
-	* lisp/progmodes/prog-mode.el (prog-mode): Enable text
-	conversion in input methods.
+
+	* lisp/progmodes/prog-mode.el (prog-mode): Enable text conversion
+	in input methods.
+
 	* lisp/simple.el (analyze-text-conversion): New function.
+
 	* lisp/textmodes/text-mode.el (text-conversion-style)
 	(text-mode): Likewise.
+
 	* src/androidterm.c (android_handle_ime_event): Handle
 	set_point_and_mark.
 	(android_sync_edit): Give Emacs 100 ms instead.
@@ -4276,14 +4209,19 @@
 	(getSelectedText): Implement properly.
 	(android_update_selection): Expose mark to input methods.
 	(android_reset_conversion): Handle `text-conversion-style'.
+
 	* src/buffer.c (init_buffer_once, syms_of_buffer): Add buffer
 	local variable `text-conversion-style'.
+
 	* src/buffer.h (struct buffer, bset_text_conversion_style): New
 	fields.
+
 	* src/emacs.c (android_emacs_init): Call syms_of_textconv.
+
 	* src/frame.h (enum text_conversion_operation): Rename
 	TEXTCONV_SET_POINT.
-	* src/lisp.h: Export syms_of_textconv.
+
+	* src/lisp.h (syms_of_textconv): Export syms_of_textconv.
 
 	* src/marker.c (set_marker_internal): Force redisplay when the
 	mark is set and the buffer is visible on builds that use text
@@ -4304,41 +4242,42 @@
 
 	* src/textconv.h (struct textconv_interface): Update
 	documentation.
+
 	* src/window.h (GCALIGNED_STRUCT): New field `prev_mark'.
-	* src/xdisp.c (mark_window_display_accurate_1): Handle
-	prev_mark.
 
-2023-02-15  Po Lu  <luangruo@yahoo.com>
+	* src/xdisp.c (mark_window_display_accurate_1): Handle prev_mark.
 
-	Make debug.sh detect adb running as root
 	* java/debug.sh: Run gdbserver directly if possible.
 
-	Fix small bugs
 	* src/androidterm.c (android_handle_ime_event): Pacify compiler
 	warnings.
+
 	* src/textconv.c (really_set_composing_text)
 	(handle_pending_conversion_events, get_extracted_text): Fix
 	reentrancy problems and uses of uninitialized values.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-02-15  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* configure.ac (HAVE_TEXT_CONVERSION): Define on Android.
+
 	* doc/emacs/input.texi (On-Screen Keyboards): Document ``text
 	conversion'' slightly.
+
 	* doc/lispref/commands.texi (Misc Events): Document new
 	`text-conversion' event.
+
 	* java/org/gnu/emacs/EmacsContextMenu.java (display): Use
 	`syncRunnable'.
+
 	* java/org/gnu/emacs/EmacsDialog.java (display): Likewise.
+
 	* java/org/gnu/emacs/EmacsEditable.java: Delete file.
+
 	* java/org/gnu/emacs/EmacsInputConnection.java
 	(EmacsInputConnection): Reimplement from scratch.
+
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Add new
 	functions.
-	* java/org/gnu/emacs/EmacsService.java (EmacsService, getEmacsView)
+
+	* java/org/gnu/emacs/EmacsService.java (getEmacsView)
 	(getLocationOnScreen, sync, getClipboardManager, restartEmacs):
 	Use syncRunnable.
 	(syncRunnable): New function.
@@ -4350,7 +4289,9 @@
 	(setICMode, getICMode): New functions.
 
 	* lisp/bindings.el (global-map): Ignore text conversion events.
+
 	* src/alloc.c (mark_frame): Mark text conversion data.
+
 	* src/android.c (struct android_emacs_service): New fields
 	`update_ic' and `reset_ic'.
 	(event_serial): Export.
@@ -4362,18 +4303,19 @@
 	methods.
 	(android_check_query, android_begin_query, android_end_query)
 	(android_run_in_emacs_thread):
-	(android_update_ic, android_reset_ic): New functions for
-	managing synchronous queries from one thread to another.
+	(android_update_ic, android_reset_ic): New functions for managing
+	synchronous queries from one thread to another.
 
 	* src/android.h: Export new functions.
+
 	* src/androidgui.h (enum android_event_type): Add input method
 	events.
 	(enum android_ime_operation, struct android_ime_event)
 	(union android_event, enum android_ic_mode): New structs and
 	enums.
 
-	* src/androidterm.c (android_window_to_frame): Allow DPYINFO to
-	be NULL.
+	* src/androidterm.c (android_window_to_frame): Allow DPYINFO to be
+	NULL.
 	(android_decode_utf16, android_handle_ime_event)
 	(handle_one_android_event, android_sync_edit)
 	(android_copy_java_string, beginBatchEdit, endBatchEdit)
@@ -4381,32 +4323,29 @@
 	(getSelectedtext, getTextAfterCursor, getTextBeforeCursor)
 	(setComposingText, setComposingRegion, setSelection, getSelection)
 	(performEditorAction, getExtractedText): New functions.
-	(struct android_conversion_query_context):
-	(android_perform_conversion_query):
-	(android_text_to_string):
-	(struct android_get_selection_context):
-	(android_get_selection):
-	(struct android_get_extracted_text_context):
-	(android_get_extracted_text):
-	(struct android_extracted_text_request_class):
-	(struct android_extracted_text_class):
-	(android_update_selection):
-	(android_reset_conversion):
-	(android_set_point):
-	(android_compose_region_changed):
-	(android_notify_conversion):
+	(struct android_conversion_query_context)
+	(android_perform_conversion_query, android_text_to_string)
+	(android_get_selection_context, android_get_selection)
+	(android_get_extracted_text_context, android_get_extracted_text)
+	(android_extracted_text_request_class)
+	(android_extracted_text_class, android_update_selection)
+	(android_reset_conversion, android_set_point)
+	(android_compose_region_changed, android_notify_conversion)
 	(text_conversion_interface): New functions and structures.
 	(android_term_init): Initialize text conversion.
 
 	* src/coding.c (syms_of_coding): Define Qutf_16le on Android.
+
 	* src/frame.c (make_frame): Clear conversion data.
 	(delete_frame): Reset conversion state.
 
 	* src/frame.h (enum text_conversion_operation)
 	(struct text_conversion_action, struct text_conversion_state)
 	(GCALIGNED_STRUCT): Update structures.
+
 	* src/keyboard.c (read_char, readable_events, kbd_buffer_get_event)
 	(syms_of_keyboard): Handle text conversion events.
+
 	* src/lisp.h:
 	* src/process.c: Fix includes.
 
@@ -4426,78 +4365,81 @@
 
 	* src/textconv.h (struct textconv_interface)
 	(TEXTCONV_SKIP_CONVERSION_REGION): Update prototype.
+
 	* src/xdisp.c (mark_window_display_accurate_1):
 	* src/xfns.c (xic_string_conversion_callback):
 	* src/xterm.c (init_xterm): Adjust accordingly.
 
 2023-02-12  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* doc/emacs/android.texi (Android Environment): Mention that Emacs
+	also requests the notifications permission.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* java/org/gnu/emacs/EmacsEditable.java:
+	* java/org/gnu/emacs/EmacsInputConnection.java: New files.
 
-	Update Android port
-	* doc/emacs/android.texi (Android Environment): Document
-	notifications permission.
-	* java/org/gnu/emacs/EmacsEditable.java (EmacsEditable):
-	* java/org/gnu/emacs/EmacsInputConnection.java
-	(EmacsInputConnection): New files.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Load
-	library dependencies in a less verbose fashion.
+	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Load library
+	dependencies in a less verbose fashion.
+
 	* java/org/gnu/emacs/EmacsView.java (EmacsView): Make imManager
 	public.
 	(onCreateInputConnection): Set InputType to TYPE_NULL for now.
-	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow, onKeyDown)
-	(onKeyUp, getEventUnicodeChar): Correctly handle key events with
-	strings.
+
+	* java/org/gnu/emacs/EmacsWindow.java (onKeyDown, onKeyUp)
+	(getEventUnicodeChar): Correctly handle key events with strings.
+
 	* lisp/term/android-win.el (android-clear-preedit-text)
 	(android-preedit-text): New special event handlers.
+
 	* src/android.c (struct android_emacs_window): Add function
 	lookup_string.
 	(android_init_emacs_window): Adjust accordingly.
 	(android_wc_lookup_string): New function.
-	* src/androidgui.h (struct android_key_event): Improve
-	commentary.
+
+	* src/androidgui.h (struct android_key_event): Improve commentary.
 	(enum android_lookup_status): New enum.
+
 	* src/androidterm.c (handle_one_android_event): Synchronize IM
 	lookup code with X.
+
 	* src/coding.c (from_unicode_buffer): Implement on Android.
+
 	* src/coding.h:
 	* src/sfnt.c: Fix commentary.
 
 2023-02-11  Po Lu  <luangruo@yahoo.com>
 
-	Fix displaying popup menus from a menu entry on Android
-	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity, onDestroy)
+	* java/org/gnu/emacs/EmacsActivity.java (onDestroy)
 	(onWindowFocusChanged): Keep track of the last focused activity.
-	* java/org/gnu/emacs/EmacsDialog.java (display1): Use it if
-	there is no current focus.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* java/org/gnu/emacs/EmacsDialog.java (display1): Use it if there
+	is no current focus.
 
 2023-02-10  Po Lu  <luangruo@yahoo.com>
 
-	Improve appearance of the Android preferences screen
 	* .gitignore: Add org/gnu/emacs/R.java.
+
 	* cross/Makefile.in (top_builddir): Include verbose.mk.  Rewrite
 	rules to print nice looking statements.
+
 	* doc/emacs/android.texi (Android, Android Startup)
 	(Android Environment, Android Windowing, Android Fonts):
 	* doc/emacs/emacs.texi (Top): Add an extra ``Android
 	Troubleshooting'' node and move troubleshooting details there.
+
 	* java/Makefile.in: Generate R.java; improve appearance by using
 	verbose.mk.
 
-	* java/org/gnu/emacs/EmacsPreferencesActivity.java: Reimplement
-	in terms of PreferencesActivity.
+	* java/org/gnu/emacs/EmacsPreferencesActivity.java: Reimplement in
+	terms of PreferencesActivity.
+
 	* java/org/gnu/emacs/EmacsView.java (handleDirtyBitmap): Avoid
 	flicker.
+
 	* java/res/xml/preferences.xml: New file.
+
 	* src/verbose.mk.in (AM_V_AAPT, AM_V_SILENT): New variables.
 
-2023-02-10  Po Lu  <luangruo@yahoo.com>
-
-	Implement more features for the Emacs ``documents provider''
 	* java/org/gnu/emacs/EmacsDocumentsProvider.java (queryRoots):
 	Implement isChild.
 	(getNotificationUri, notifyChange): New functions.
@@ -4509,64 +4451,52 @@
 
 	* java/org/gnu/emacs/EmacsCopyArea.java (perform): Fix typo.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Fix buffer swapping on Android 7.1 and earlier
 	* java/org/gnu/emacs/EmacsSurfaceView.java
 	(reconfigureFrontBuffer): Don't use function only present on
 	Android 8.0 and later.
 
-	Update Android port
 	* doc/emacs/android.texi (Android Windowing): Remove yet another
 	limitation.
+
 	* java/debug.sh: Make this work on systems which prohibit
 	attaching to app processes from adbd.
-	* java/org/gnu/emacs/EmacsCopyArea.java (perform): Avoid
-	creating copies whenever possible.
+
+	* java/org/gnu/emacs/EmacsCopyArea.java (perform): Avoid creating
+	copies whenever possible.
+
 	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView):
 	Remove SurfaceView based implementation and use manual double
 	buffering with invalidate instead.
+
 	* java/org/gnu/emacs/EmacsView.java (EmacsView, handleDirtyBitmap)
 	(raise, lower, onDetachedFromWindow): Adjust accordingly.
+
 	* java/org/gnu/emacs/EmacsWindow.java (windowUpdated): Remove
 	function.
+
 	* src/sfntfont.c (sfntfont_open): Set font->max_width correctly.
-
-2023-02-10  Po Lu  <luangruo@yahoo.com>
-
-	Fix IUP for contours which start past end
-	Found with Droid Sans Mono hinted with ttfautohint 1.8.4.
 
 	* src/sfnt.c (IUP_SINGLE_PAIR): If i is initially more than end,
 	make it start.
 	(sfnt_verbose): Handle cases where interpreter->glyph_zone is
 	NULL.
 	(main): Update tests.
-
-2023-02-10  Po Lu  <luangruo@yahoo.com>
-
-	Fix typo
-	* src/sfnt.c (sfnt_read_cmap_table): Fix typo.
+	(sfnt_read_cmap_table): Fix typo.
 	(main): Update tests.
 
 2023-02-09  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* java/AndroidManifest.xml.in: Declare the new documents provider.
 
-	Allow other text editors to edit files in Emacs' home directory
-	* java/AndroidManifest.xml.in: Declare the new documents
-	provider.
 	* java/README: Describe the meaning of files in res/values.
-	* java/org/gnu/emacs/EmacsDocumentsProvider.java
-	(EmacsDocumentsProvider): New file.
+
+	* java/org/gnu/emacs/EmacsDocumentsProvider.java: New file.
+
 	* java/res/values-v19/bool.xml:
 	* java/res/values/bool.xml: New files.
 
 	* src/sfnt.c (main): Update tests.
 
-2023-02-09  Po Lu  <luangruo@yahoo.com>
-
-	Implement instructing compound glyphs
 	* src/sfnt.c (sfnt_read_simple_glyph, sfnt_read_compound_glyph)
 	(sfnt_read_glyph): Take size_t offsets.
 	(struct sfnt_compound_glyph_context)
@@ -4593,76 +4523,64 @@
 
 2023-02-08  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* src/sfnt.c (SCFS): Fix order of arguments.
 	(sfnt_normalize_vector): Make sure vx and vy are within a
 	reasonable range.
 	(sfnt_move): Don't move when vectors are orthogonal.
 	(main): Update.
 
-	Update Android port
 	* doc/emacs/android.texi (Android Startup): Fix typos.
+
 	* src/sfnt.c (sfnt_interpret_msirp): Fix order in which operands
 	to MSIRP are popped.
 	(main): Reduce ppem values.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-02-08  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* doc/lispref/frames.texi (On-Screen Keyboards): Describe return
 	value of `frame-toggle-on-screen-keyboard'.
-	* java/org/gnu/emacs/EmacsSurfaceView.java (surfaceChanged)
-	(surfaceCreated, EmacsSurfaceView): Remove unuseful
-	synchronization code.  The framework doesn't seem to look at
-	this at all.
 
-	* java/org/gnu/emacs/EmacsView.java (EmacsView):
-	(onLayout): Lay out the window after children.
+	* java/org/gnu/emacs/EmacsSurfaceView.java (surfaceChanged)
+	(surfaceCreated): Remove purposeless synchronization code.  The
+	framework doesn't seem to consult this at all.
+
+	* java/org/gnu/emacs/EmacsView.java (onLayout): Lay out the window
+	after children.
 	(swapBuffers): Properly implement `force'.
 	(windowUpdated): Delete function.
 
-	* lisp/frame.el (frame-toggle-on-screen-keyboard): Return
-	whether or not the on screen keyboard might've been displayed.
+	* lisp/frame.el (frame-toggle-on-screen-keyboard): Return whether
+	or not the on screen keyboard might've been displayed.
 
-	* lisp/minibuffer.el (minibuffer-on-screen-keyboard-timer):
-	(minibuffer-on-screen-keyboard-displayed):
-	(minibuffer-setup-on-screen-keyboard):
+	* lisp/minibuffer.el (minibuffer-on-screen-keyboard-timer)
+	(minibuffer-on-screen-keyboard-displayed)
+	(minibuffer-setup-on-screen-keyboard)
 	(minibuffer-exit-on-screen-keyboard): Improve OSK dismissal when
 	there are consecutive minibuffers.
 
 	* lisp/touch-screen.el (touch-screen-window-selection-changed):
 	New function.
-	(touch-screen-handle-point-up): Register it as a window
-	selection changed function.
+	(touch-screen-handle-point-up): Register it as a window selection
+	changed function.
 
 	* src/android.c (struct android_emacs_window)
-	(android_init_emacs_window): Remove references to
-	`windowUpdated'.
+	(android_init_emacs_window): Remove references to `windowUpdated'.
 	(android_window_updated): Delete function.
+
 	* src/android.h (struct android_output): Remove
 	`last_configure_serial'.
+
 	* src/androidterm.c (handle_one_android_event)
 	(android_frame_up_to_date):
+
 	* src/androidterm.h (struct android_output): Remove frame
 	synchronization, as that does not work on Android.
 
-2023-02-08  Po Lu  <luangruo@yahoo.com>
-
-	Fix graphics state when instructing glyphs
 	* src/sfntfont.c (sfntfont_get_glyph_outline): Take new argument
 	STATE and restore it prior to instructing the glyph.
 	(sfntfont_measure_instructed_pcm, sfntfont_measure_pcm)
 	(sfntfont_draw): Adjust accordingly.
-
-	Correctly round bearing values while computing pcm
-	* src/sfntfont.c (sfntfont_measure_instructed_pcm)
+	(sfntfont_measure_instructed_pcm)
 	(sfntfont_measure_pcm): Ceil rbearing value.
 
-2023-02-08  Po Lu  <luangruo@yahoo.com>
-
-	Improve text display on Android port
 	* src/sfnt.c (sfnt_build_glyph_outline): Clear
 	build_outline_context.
 	(sfnt_poly_coverage): Extend coverage map.
@@ -4670,39 +4588,32 @@
 	increase in coverage makes this hack unnecessary.
 	(sfnt_build_outline_edges): Likewise.
 	(sfnt_compare_edges): Remove function.
-	(sfnt_edge_sort): New function.  Since edges are already
-	partially sorted, and there are not many, insertion sort
-	suffices.
+	(sfnt_edge_sort): New function.  Since edges are already partially
+	sorted, and there are not many, insertion sort suffices.
 	(sfnt_poly_edges): Use sfnt_edge_sort.
 	(sfnt_fill_span): Stop rounding x0 and x1 to the grid, and make
 	coverage computation static.
-	(sfnt_lookup_glyph_metrics): Fix return code for unscaled
-	metrics.
+	(sfnt_lookup_glyph_metrics): Fix return code for unscaled metrics.
 	(sfnt_scale_metrics): New function.
 	(SFNT_ENABLE_HINTING): Remove define.
 	(struct sfnt_cvt_table, struct sfnt_fpgm_table)
 	(struct sfnt_prep_table): Move to sfnt.h.
-	(sfnt_read_cvt_table):
-	(sfnt_read_fpgm_table, sfnt_read_prep_table): Make TEST_STATIC.
+	(sfnt_read_cvt_table, sfnt_read_fpgm_table, sfnt_read_prep_table):
+	Make TEST_STATIC.
 	(struct sfnt_unit_vector, struct sfnt_interpreter_definition)
 	(struct sfnt_interpreter_zone, struct sfnt_graphics_state):
 	(struct sfnt_interpreter): Move to sfnt.h.
 	(sfnt_make_interpreter): Make TEST_STATIC.
 	(POP, PUSH, DELTAP1, DELTAP2, DELTAP3): When TEST, define to
 	regular push and pop.
-	(sfnt_deltac):
-	(sfnt_deltap): Fix order of arguments.
+	(sfnt_deltac, sfnt_deltap): Fix order of arguments.
 	(IUP_SINGLE_PAIR): Fix interpolation loop wraparound.
-	(sfnt_interpret_font_program):
+	(sfnt_interpret_font_program)
 	(sfnt_interpret_control_value_program): Make TEST_STATIC.
 	(struct sfnt_instructed_outline): Move to sfnt.h.
 	(sfnt_build_instructed_outline): Make TEST_STATIC.
-	(sfnt_interpret_simple_glyph):
-	(sfnt_x_raster):
-	(sfnt_test_raster):
-	(all_tests):
-	(sfnt_verbose):
-	(main): Improve test code.
+	(sfnt_interpret_simple_glyph, sfnt_x_raster, sfnt_test_raster)
+	(all_tests, sfnt_verbose, main): Improve test code.
 
 	* src/sfnt.h (SFNT_ENABLE_HINTING, struct sfnt_cvt_table)
 	(struct sfnt_fpgm_table, struct sfnt_prep_table)
@@ -4710,8 +4621,10 @@
 	(struct sfnt_interpreter_zone, struct sfnt_graphics_state)
 	(struct sfnt_interpreter, struct sfnt_instructed_outline)
 	(PROTOTYPE): New definitions.
+
 	* src/sfntfont-android.c (sfntfont_android_put_glyphs): Make
 	coordinate generation more straightforward.
+
 	* src/sfntfont.c (sfntfont_get_glyph_outline): New arguments
 	INTERPRETER and METRICS.
 	(struct sfnt_font_info): New tables.
@@ -4725,20 +4638,13 @@
 
 2023-02-07  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Remove junk from instruction table
-	* src/sfnt.c (sfnt_name_instruction): Do so.
-
-	Remove bresenham stuff
-	* src/sfnt.c (sfnt_step_edge, sfnt_step_edge_n)
+	* src/sfnt.c (sfnt_name_instruction): Remove junk from instruction
+	table.
+	(sfnt_step_edge, sfnt_step_edge_n)
 	(sfnt_build_outline_edges, sfnt_test_edge, main):
 	* src/sfnt.h (struct sfnt_edge): Stop using error corrected line
 	drawing, as it's actually slower.
 
-2023-02-07  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* INSTALL.android: Describe patches for BoringSSL on ARM.
 
 	* src/sfnt.c (sfnt_build_glyph_outline): Remove redundant
@@ -4755,21 +4661,19 @@
 	(sfnt_large_integer_add): New function.
 	(sfnt_mul_f26dot6_fixed): Round product.
 	(sfnt_make_interpreter): Remove redundant multiplication.
-
-	(CHECK_STACK_ELEMENTS, POP_UNCHECKED, PUSH_UNCHECKED): New
-	macros.
+	(CHECK_STACK_ELEMENTS, POP_UNCHECKED, PUSH_UNCHECKED): New macros.
 	(MOVE, POP, SWAP, CINDEX, RS, RCVT, LT, LTEQ, GT, GTEQ, EQ, NEQ)
 	(EVEN, AND, OR, NOT, ADD, SUB, DIV, MUL, ABS, NEG, FLOOR, CEILING)
-	(GETINFO, ROLL, _MAX, _MIN, ROUND, NROUND, GC, MD): Don't check
-	SP redundantly, especially when pushing an element right after
+	(GETINFO, ROLL, _MAX, _MIN, ROUND, NROUND, GC, MD): Don't check SP
+	redundantly, especially when pushing an element right after
 	popping one.
 	(sfnt_move_glyph_zone): Don't touch points by passing NULL as
 	flags.
-	(sfnt_direct_move_zp2): Touch P in the directions of the
-	movement.
+	(sfnt_direct_move_zp2): Touch P in the directions of the movement.
 	(sfnt_interpret_scfs): Fix coding style.
 	(sfnt_interpret_simple_glyph): Don't round Y coordinates.
-	(sfnt_test_span, sfnt_test_edges, sfnt_debug_edges, sfnt_test_edge)
+	(sfnt_test_span, sfnt_test_edges, sfnt_debug_edges)
+	(sfnt_test_edge)
 	(sfnt_x_raster, sfnt_test_raster, rcvt_test_args)
 	(deltac1_test_args, deltac2_test_args, deltac3_test_args)
 	(roll_1_test_args, sfnt_run_hook, sfnt_identify_instruction)
@@ -4779,19 +4683,16 @@
 
 2023-02-06  Po Lu  <luangruo@yahoo.com>
 
-	Port emacsclient wrapper to Android 7.1 and earlier
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Load every
-	native library on which Emacs depends prior to loading libemacs
-	itself.
+	* java/org/gnu/emacs/EmacsNative.java
+	(EmacsNative) <static constructor>: Load every native library on
+	which Emacs depends prior to loading libemacs itself.
 
 	* java/org/gnu/emacs/EmacsOpenActivity.java (readEmacsClientLog)
-	(EmacsOpenActivity, startEmacsClient): Don't use redirectError
-	on Android 7.1 and earlier.
+	(startEmacsClient): Don't use redirectError on Android 7.1 and
+	earlier.
 
-2023-02-06  Po Lu  <luangruo@yahoo.com>
-
-	Adjust ndk-build implementation for old NDK versions
 	* configure.ac: Pass ANDROID_CFLAGS to ndk_INIT.
+
 	* cross/ndk-build/Makefile.in (NDK_BUILD_CFLAGS):
 	* cross/ndk-build/ndk-build-shared-library.mk
 	($(call objname,$(LOCAL_MODULE),$(basename $(1)))):
@@ -4799,12 +4700,9 @@
 	* cross/ndk-build/ndk-build-static-library.mk
 	($(call objname,$(LOCAL_MODULE),$(basename $(1)))):
 	($$(error Unsupported suffix): Use NDK_BUILD_CFLAGS.
+
 	* m4/ndk-build.m4 (ndk_INIT): Accept cflags.
 	(ndk_CONFIG_FILES): Export NDK_BUILD_CFLAGS.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-02-06  Po Lu  <luangruo@yahoo.com>
 
 	Update Android port
 	* java/AndroidManifest.xml.in: Prevent the Emacs activity from
@@ -4815,13 +4713,9 @@
 	* java/org/gnu/emacs/EmacsWindow.java (onTouchEvent): Handle
 	ACTION_CANCEL correctly.
 
-2023-02-06  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* src/sfnt.c (struct sfnt_build_glyph_outline_context)
 	(sfnt_build_glyph_outline, sfnt_fill_span): Improve glyph
 	appearance by rounding coordinate values.
-
 	(struct sfnt_interpreter): New fields `twilight_original_x',
 	`twilight_original_y'.
 	(sfnt_make_interpreter): Set new fields.
@@ -4831,13 +4725,15 @@
 	callers changed.
 	(sfnt_address_zp2, sfnt_address_zp1, sfnt_address_zp0): Obtain
 	original positions in the twilight zone as well.
-	(sfnt_check_zp1, sfnt_interpret_fliprgoff, sfnt_interpret_fliprgon)
+	(sfnt_check_zp1, sfnt_interpret_fliprgoff)
+	(sfnt_interpret_fliprgon)
 	(sfnt_interpret_flippt, sfnt_interpret_scfs, sfnt_interpret_miap)
 	(sfnt_interpret_alignrp, sfnt_line_to_vector, P)
 	(sfnt_interpret_msirp, sfnt_interpret_ip, sfnt_interpret_call)
 	(load_point, sfnt_interpret_iup_1, sfnt_interpret_iup)
 	(sfnt_interpret_run, struct sfnt_scaled_outline)
-	(struct sfnt_instructed_outline, sfnt_decompose_instructed_outline)
+	(struct sfnt_instructed_outline)
+	(sfnt_decompose_instructed_outline)
 	(sfnt_build_instructed_outline, sfnt_compute_phantom_points)
 	(sfnt_interpret_simple_glyph, all_tests, sfnt_setup_debugger)
 	(sfnt_name_instruction, sfnt_draw_debugger, sfnt_run_hook)
@@ -4847,16 +4743,20 @@
 
 2023-02-05  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* INSTALL.android: Explain how to build selinux.
+
 	* configure.ac: Enable selinux on Android.
-	* cross/ndk-build/ndk-build-shared-library.mk: ($(call
-	objname,$(LOCAL_MODULE),$(basename $(1))))::($$(error
-	Unsupported suffix)::(NDK_CFLAGS_$(LOCAL_MODULE)):
-	* cross/ndk-build/ndk-build-static-library.mk: ($(call
-	objname,$(LOCAL_MODULE),$(basename $(1))))::($$(error
-	Unsupported suffix)::(NDK_CFLAGS_$(LOCAL_MODULE)): Correctly
-	handle files with a .cc suffix, and clang-specific asflags.
+
+	* cross/ndk-build/ndk-build-shared-library.mk
+	($(call	objname,$(LOCAL_MODULE),$(basename $(1))))
+	($$(error Unsupported suffix))
+	(NDK_CFLAGS_$(LOCAL_MODULE)):
+	* cross/ndk-build/ndk-build-static-library.mk
+	($(call objname,$(LOCAL_MODULE),$(basename $(1))))
+	($$(error Unsupported suffix))
+	(NDK_CFLAGS_$(LOCAL_MODULE)): Correctly handle files with a .cc
+	suffix, and clang-specific asflags.
+
 	* cross/ndk-build/ndk-clear-vars.mk: Handle AOSP extensions
 	LOCAL_ADDITIONAL_DEPENDENCIES,
 	LOCAL_CLANG_ASFLAGS_$(NDK_BUILD_ARCH) and LOCAL_IS_HOST_MODULE.
@@ -4866,12 +4766,12 @@
 
 	* java/org/gnu/emacs/EmacsView.java (EmacsView): New flag
 	`isCurrentlyTextEditor'.
-	(showOnScreenKeyboard, hideOnScreenKeyboard): Set as
-	appropriate.
+	(showOnScreenKeyboard, hideOnScreenKeyboard): Set as appropriate.
 	(onCheckIsTextEditor): Return its value.
 
 	* lisp/touch-screen.el (touch-screen-handle-scroll): Don't ding
 	at buffer limits.
+
 	* m4/ndk-build.m4: Improve doc.
 
 	* src/Makefile.in (LIBSELINUX_CFLAGS): New variable.
@@ -4879,173 +4779,97 @@
 
 2023-02-05  Po Lu  <luangruo@yahoo.com>
 
-	Update from gnulib
-	* admin/merge-gnulib (avoided_flags):
-	* cross/lib/cdefs.h (__bos):
-	(__glibc_unsigned_or_positive):
-	(__glibc_unsafe_len):
-	(__glibc_fortify):
-	(__glibc_fortify_n):
-	* cross/lib/isnan.c:
-	* cross/lib/libc-config.h:
-	* cross/lib/openat-proc.c (openat_proc_name):
-	* cross/lib/vasnprintf.c (VASNPRINTF):
-	* cross/lib/verify.h (_Static_assert):
-	(_GL_SA3):
-	* lib/gnulib.mk.in (HAVE_GRANTPT):
-	(HAVE_SPAWN_H):
-	(NEXT_AS_FIRST_DIRECTIVE_LIMITS_H):
-	(NEXT_LIMITS_H):
-	(REPLACE_GETSUBOPT):
-	(REPLACE_ILOGB):
-	(SYSTEM_TYPE):
-	(BUILT_SOURCES):
-	* lib/isnan.c:
-	* lib/vasnprintf.c (VASNPRINTF):
-	* lib/verify.h (_GL_SA3):
-	* m4/gnulib-common.m4 (gl_COMMON_BODY):
-	* m4/gnulib-comp.m4 (gl_INIT): Update from gnulib.
+	* m4, lib: Update from Gnulib.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
-	* src/sfnt.c (struct sfnt_graphics_state):
-	(LOOPCALL):
-	(DELTAC3):
-	(PROJECT):
-	(SHPIX):
-	(sfnt_save_projection_vector):
-	(sfnt_check_zp0):
-	(sfnt_dual_project_vector):
-	(sfnt_interpret_scfs):
-	(sfnt_round_symmetric):
-	(sfnt_interpret_miap):
-	(sfnt_interpret_alignrp_1):
-	(sfnt_interpret_alignrp):
-	(sfnt_measure_distance):
-	(sfnt_interpret_msirp):
-	(sfnt_interpret_ip):
-	(sfnt_interpret_mdap):
-	(sfnt_deltap):
-	(sfnt_dual_project_onto_any_vector):
-	(sfnt_validate_gs):
-	(sfnt_set_projection_vector):
-	(sfnt_interpret_shp):
-	(sfnt_interpret_run):
-	(sfnt_check_sloop):
-	(main): Check in more WIP font code.
+	* src/sfnt.c (struct sfnt_graphics_state, LOOPCALL, DELTAC3)
+	(PROJECT, SHPIX, sfnt_save_projection_vector, sfnt_check_zp0)
+	(sfnt_dual_project_vector, sfnt_interpret_scfs)
+	(sfnt_round_symmetric, sfnt_interpret_miap)
+	(sfnt_interpret_alignrp_1, sfnt_interpret_alignrp)
+	(sfnt_measure_distance, sfnt_interpret_msirp, sfnt_interpret_ip)
+	(sfnt_interpret_mdap, sfnt_deltap)
+	(sfnt_dual_project_onto_any_vector, sfnt_validate_gs)
+	(sfnt_set_projection_vector, sfnt_interpret_shp)
+	(sfnt_interpret_run, sfnt_check_sloop, main): Check in more WIP
+	font code.
 
 2023-02-04  Po Lu  <luangruo@yahoo.com>
 
-	Add emacsclient desktop file equivalent on Android
 	* doc/emacs/android.texi (Android File System):
+
 	* java/AndroidManifest.xml.in: Update with new activity.  Remove
 	Android 10 restrictions through a special flag.
 
 	* java/org/gnu/emacs/EmacsNative.java (getProcName): New
 	function.
-	* java/org/gnu/emacs/EmacsOpenActivity.java (EmacsOpenActivity):
-	New file.
+
+	* java/org/gnu/emacs/EmacsOpenActivity.java: New file.
+
 	* java/org/gnu/emacs/EmacsService.java (getLibraryDirection):
 	Remove unused annotation.
+
 	* lib-src/emacsclient.c (decode_options): Set alt_display on
 	Android.
+
 	* src/android.c (android_proc_name): New function.
-	(NATIVE_NAME): Export via JNI.
+	(getProcName): Export via JNI.
 
-2023-02-04  Po Lu  <luangruo@yahoo.com>
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Add additional permissions to Android port
 	* doc/emacs/android.texi (Android Environment):
+
 	* java/AndroidManifest.xml.in: Add network state permissions.
 
-	Update Android port
-	* src/sfnt.c (sfnt_multiply_divide_signed):
-	(struct sfnt_interpreter_zone):
-	(struct sfnt_graphics_state):
-	(struct sfnt_interpreter):
-	(sfnt_mul_f2dot14):
-	(sfnt_interpret_trap):
-	(WCVTF):
-	(ALIGNPTS):
-	(sfnt_scale_by_freedom_vector):
-	(sfnt_interpret_utp):
-	(sfnt_address_zp2):
-	(sfnt_address_zp1):
-	(sfnt_address_zp0):
-	(sfnt_check_zp2):
-	(sfnt_move_zp0):
-	(sfnt_move_zp1):
-	(sfnt_move_glyph_zone):
-	(sfnt_move_twilight_zone):
-	(sfnt_direct_move_zp2):
-	(sfnt_interpret_alignpts):
-	(sfnt_interpret_isect):
-	(sfnt_line_to_vector):
-	(sfnt_deltac):
-	(sfnt_interpret_mdap):
-	(sfnt_interpret_call):
-	(sfnt_dot_fix_14):
-	(sfnt_move_x):
-	(sfnt_move_y):
-	(sfnt_move):
-	(sfnt_validate_gs):
-	(sfnt_interpret_shz):
-	(sfnt_interpret_shc):
-	(sfnt_interpret_shp):
-	(sfnt_interpret_iup_1):
-	(sfnt_interpret_iup):
-	(sfnt_interpret_run):
-	(sfnt_interpret_font_program):
-	(sfnt_interpret_control_value_program):
-	(sfnt_interpret_simple_glyph):
-	(jrot_test_args):
-	(jrof_test_args):
-	(all_tests):
-	(main): Check in more WIP code.
+	* src/sfnt.c (sfnt_multiply_divide_signed)
+	(struct sfnt_interpreter_zone, struct sfnt_graphics_state)
+	(struct sfnt_interpreter, sfnt_mul_f2dot14)
+	(sfnt_interpret_trap, WCVTF)
+	(ALIGNPTS, sfnt_scale_by_freedom_vector, sfnt_interpret_utp)
+	(sfnt_address_zp2, sfnt_address_zp1, sfnt_address_zp0)
+	(sfnt_check_zp2, sfnt_move_zp0, sfnt_move_zp1)
+	(sfnt_move_glyph_zone, sfnt_move_twilight_zone)
+	(sfnt_direct_move_zp2, sfnt_interpret_alignpts)
+	(sfnt_interpret_isect, sfnt_line_to_vector, sfnt_deltac)
+	(sfnt_interpret_mdap, sfnt_interpret_call, sfnt_dot_fix_14)
+	(sfnt_move_x, sfnt_move_y, sfnt_move, sfnt_validate_gs)
+	(sfnt_interpret_shz, sfnt_interpret_shc, sfnt_interpret_shp)
+	(sfnt_interpret_iup_1, sfnt_interpret_iup, sfnt_interpret_run)
+	(sfnt_interpret_font_program)
+	(sfnt_interpret_control_value_program)
+	(sfnt_interpret_simple_glyph, jrot_test_args, jrof_test_args)
+	(all_tests, main): Check in more WIP code.
 
 2023-02-02  Po Lu  <luangruo@yahoo.com>
 
-	Add Emacs icon for Android package
 	* java/AndroidManifest.xml.in: Add new icon.
+
 	* java/Makefile.in (srcdir): New variable.
 	(JAVA_FILES, RESOURCE_FILES): Update variables.
 	(emacs.apk-in): Apply resources.
+
 	* java/README: Describe directory tree.
 
-	Add Emacs icon for Android
 	* java/res/drawable/emacs.png: New file.
 
-	Update Android port
 	* src/android.c (android_get_current_api_level): New function.
-	* src/android.h: Export it.
-	* src/sfntfont-android.c (init_sfntfont_android): Make device
-	API level detection always work.
 
-	Clean up compiler warnings
+	* src/android.h: Export it.
+
+	* src/sfntfont-android.c (init_sfntfont_android): Make device API
+	level detection always work.
+
 	* src/sfnt.c (sfnt_multiply_divide_signed): Add MAYBE_UNUSED.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-02-02  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
-	* src/sfnt.c (xmalloc, xrealloc): Improve behavior upon
-	allocation failures during test.
+	* src/sfnt.c (xmalloc, xrealloc): Improve behavior upon allocation
+	failures during test.
 	(sfnt_table_names): Add prep.
 	(sfnt_transform_coordinates): Allow applying offsets during
 	coordinate transform.
 	(sfnt_decompose_compound_glyph): Defer offset computation until
 	any component compound glyph is loaded, then apply it during the
 	transform process.
-
 	(sfnt_multiply_divide): Make available everywhere.  Implement on
 	64 bit systems.
 	(sfnt_multiply_divide_signed): New function.
 	(sfnt_mul_fixed): Fix division overflow.
-
 	(sfnt_curve_to_and_build_1, sfnt_build_glyph_outline): Remove
 	outdated comment.
 	(sfnt_build_outline_edges): Fix coding style.
@@ -5063,128 +4887,52 @@
 	`move', `vector_dot_product'.  Rename to `sfnt_graphics_state'.
 	(struct sfnt_interpreter, sfnt_mul_f26dot6): Stop doing rounding
 	division.
-	(sfnt_init_graphics_state):
-	(sfnt_make_interpreter):
-	(MOVE):
-	(SSW):
-	(RAW):
-	(SDS):
-	(ADD):
-	(SUB):
-	(ABS):
-	(NEG):
-	(WCVTF):
-	(_MIN):
-	(S45ROUND):
-	(SVTCAx):
-	(sfnt_set_srounding_state):
-	(sfnt_skip_code):
-	(sfnt_interpret_unimplemented):
-	(sfnt_interpret_fdef):
-	(sfnt_interpret_idef):
-	(sfnt_interpret_if):
-	(sfnt_interpret_else):
-	(sfnt_round_none):
-	(sfnt_round_to_grid):
-	(sfnt_round_to_double_grid):
-	(sfnt_round_down_to_grid):
-	(sfnt_round_up_to_grid):
-	(sfnt_round_to_half_grid):
-	(sfnt_round_super):
-	(sfnt_validate_gs):
-	(sfnt_interpret_run):
-	(sfnt_interpret_font_program):
-	(struct sfnt_test_dcontext):
-	(sfnt_test_move_to):
-	(sfnt_test_line_to):
-	(sfnt_test_curve_to):
-	(sfnt_test_get_glyph):
-	(sfnt_test_free_glyph):
-	(sfnt_test_span):
-	(sfnt_test_edge_ignore):
-	(sfnt_test_edge):
-	(sfnt_test_raster):
-	(test_interpreter_profile):
-	(test_cvt_values):
-	(test_interpreter_cvt):
-	(test_interpreter_head):
-	(sfnt_make_test_interpreter):
-	(struct sfnt_interpreter_test):
-	(sfnt_run_interpreter_test):
-	(struct sfnt_generic_test_args):
-	(sfnt_generic_check):
-	(sfnt_check_srp0):
-	(sfnt_check_szp0):
-	(sfnt_check_sloop):
-	(struct sfnt_rounding_test_args):
-	(sfnt_check_rounding):
-	(sfnt_check_smd):
-	(sfnt_check_scvtci):
-	(sfnt_check_sswci):
-	(sfnt_check_ssw):
-	(sfnt_check_flipon):
-	(sfnt_check_flipoff):
-	(npushb_test_args):
-	(npushw_test_args):
-	(pushb_test_args):
-	(pushw_test_args):
-	(stack_overflow_test_args):
-	(stack_underflow_test_args):
-	(rtg_test_args):
-	(rtg_symmetric_test_args):
-	(rtg_1_test_args):
-	(rtg_1_symmetric_test_args):
-	(rthg_test_args):
-	(rthg_1_test_args):
-	(rtdg_test_args):
-	(rtdg_1_test_args):
-	(rtdg_2_test_args):
-	(rtdg_3_test_args):
-	(else_test_args):
-	(jmpr_test_args):
-	(dup_test_args):
-	(pop_test_args):
-	(clear_test_args):
-	(swap_test_args):
-	(depth_test_args):
-	(cindex_test_args):
-	(mindex_test_args):
-	(raw_test_args):
-	(loopcall_test_args):
-	(call_test_args):
-	(fdef_test_args):
-	(fdef_1_test_args):
-	(endf_test_args):
-	(ws_test_args):
-	(rs_test_args):
-	(wcvtp_test_args):
-	(rcvt_test_args):
-	(mppem_test_args):
-	(mps_test_args):
-	(debug_test_args):
-	(lt_test_args):
-	(all_tests):
-	(main): Implement more instructions.
+	(sfnt_init_graphics_state, sfnt_make_interpreter, MOVE, SSW, RAW)
+	(SDS, ADD, SUB, ABS, NEG, WCVTF, _MIN, S45ROUND, SVTCAx)
+	(sfnt_set_srounding_state, sfnt_skip_code)
+	(sfnt_interpret_unimplemented, sfnt_interpret_fdef)
+	(sfnt_interpret_idef, sfnt_interpret_if, sfnt_interpret_else)
+	(sfnt_round_none, sfnt_round_to_grid, sfnt_round_to_double_grid)
+	(sfnt_round_down_to_grid, sfnt_round_up_to_grid)
+	(sfnt_round_to_half_grid, sfnt_round_super, sfnt_validate_gs)
+	(sfnt_interpret_run, sfnt_interpret_font_program)
+	(struct sfnt_test_dcontext, sfnt_test_move_to, sfnt_test_line_to)
+	(sfnt_test_curve_to, sfnt_test_get_glyph, sfnt_test_free_glyph)
+	(sfnt_test_span, sfnt_test_edge_ignore, sfnt_test_edge)
+	(sfnt_test_raster, test_interpreter_profile, test_cvt_values)
+	(test_interpreter_cvt, test_interpreter_head)
+	(sfnt_make_test_interpreter, struct sfnt_interpreter_test)
+	(sfnt_run_interpreter_test, struct sfnt_generic_test_args)
+	(sfnt_generic_check, sfnt_check_srp0, sfnt_check_szp0)
+	(sfnt_check_sloop, struct sfnt_rounding_test_args)
+	(sfnt_check_rounding, sfnt_check_smd, sfnt_check_scvtci)
+	(sfnt_check_sswci, sfnt_check_ssw, sfnt_check_flipon)
+	(sfnt_check_flipoff, npushb_test_args, npushw_test_args)
+	(pushb_test_args, pushw_test_args, stack_overflow_test_args)
+	(stack_underflow_test_args, rtg_test_args)
+	(rtg_symmetric_test_args, rtg_1_test_args)
+	(rtg_1_symmetric_test_args, rthg_test_args, rthg_1_test_args)
+	(rtdg_test_args, rtdg_1_test_args, rtdg_2_test_args)
+	(rtdg_3_test_args, else_test_args, jmpr_test_args, dup_test_args)
+	(pop_test_args, clear_test_args, swap_test_args, depth_test_args)
+	(cindex_test_args, mindex_test_args, raw_test_args)
+	(loopcall_test_args, call_test_args, fdef_test_args)
+	(fdef_1_test_args, endf_test_args, ws_test_args, rs_test_args)
+	(wcvtp_test_args, rcvt_test_args, mppem_test_args, mps_test_args)
+	(debug_test_args, lt_test_args, all_tests, main): Implement more
+	instructions.
 
-	* src/sfnt.h (enum sfnt_table, struct sfnt_glyph_metrics): Add
-	new tables.  Add comment.
+	* src/sfnt.h (enum sfnt_table, struct sfnt_glyph_metrics): Add new
+	tables.  Add comment.
 
 2023-01-30  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* cross/ndk-build/ndk-build-shared-library.mk
+	($(call objname,$(LOCAL_MODULE),$(basename $(1)))):
+	* cross/ndk-build/ndk-build-static-library.mk
+	($(call objname,$(LOCAL_MODULE),$(basename $(1)))): Revert broken
+	typo fixes.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-01-30  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
-	* cross/ndk-build/ndk-build-shared-library.mk: ($(call
-	objname,$(LOCAL_MODULE),$(basename $(1)))):
-	* cross/ndk-build/ndk-build-static-library.mk: ($(call
-	objname,$(LOCAL_MODULE),$(basename $(1)))): Revert broken typo
-	fixes.
 	* src/sfnt.c (TEST_STATIC): Define ARRAYELTS.
 	(sfnt_table_names): New CVT and FPGM tables.
 	(sfnt_decompose_compound_glyph, sfnt_decompose_glyph)
@@ -5237,43 +4985,43 @@
 
 2023-01-29  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* .gitignore: Add missing gnulib files.
 
-	Check in missing files
-	* .gitignore:
-	* cross/lib/_Noreturn.h (_Noreturn): Add missing gnulib files.
-
-	Update Android port
 	* INSTALL.android (module_target): Clarify documentation.
+
 	* cross/ndk-build/ndk-build-shared-library.mk:
-	* cross/ndk-build/ndk-build-static-library.mk: Fix building Neon objects.
+	* cross/ndk-build/ndk-build-static-library.mk: Fix building Neon
+	objects.
+
 	* java/AndroidManifest.xml.in: Add a version code.
 
 2023-01-28  Po Lu  <luangruo@yahoo.com>
 
-	Implement `restart-emacs' on Android
 	* java/org/gnu/emacs/EmacsService.java (restartEmacs): New
 	function.
+
 	* src/android.c (struct android_emacs_service)
 	(android_init_emacs_service): Add new method.
 	(android_restart_emacs): New function.
+
 	* src/android.h: Update prototypes.
+
 	* src/emacs.c (Fkill_emacs): Call android_restart_emacs whenever
 	appropriate.
 
-2023-01-28  Po Lu  <luangruo@yahoo.com>
-
-	Add libtiff support to Android port
 	* INSTALL.android: Document how to build with libtiff.
 
 	* build-aux/ndk-build-helper-1.mk (NDK_SO_NAME):
 	* build-aux/ndk-build-helper-2.mk (NDK_A_NAME):
 	* build-aux/ndk-build-helper-4.mk: Decrease number of duplicate
 	dependencies found.
+
 	* configure.ac (ANDROID_SDK_18_OR_EARLIER, XCONFIGURE, PNG_CFLAGS)
 	(HAVE_TIFF): Allow using libtiff on Android.
+
 	* cross/ndk-build/ndk-clear-vars.mk: Undefine additional
 	variables.
+
 	* cross/ndk-build/ndk-resolve.mk: Split CFLAGS resolution from
 	a-name resolution, and do not recursively add archive or shared
 	object names for dependencies of shared libraries.
@@ -5285,154 +5033,135 @@
 
 	* src/image.c (syms_of_image): Fix typo.
 
-2023-01-28  Po Lu  <luangruo@yahoo.com>
+	* doc/emacs/android.texi (Android File System): Describe an easier
+	way to disable scoped storage.
 
-	Update Android port
-	* doc/emacs/android.texi (Android File System): Describe an
-	easier way to disable scoped storage.
 	* java/AndroidManifest.xml.in: Add new permission to allow that.
+
 	* java/README: Add more text describing Java.
+
 	* java/org/gnu/emacs/EmacsContextMenu.java (Item): New fields
 	`isCheckable' and `isChecked'.
 	(EmacsContextMenu, addItem): New arguments.
 	(inflateMenuItems): Set checked status as appropriate.
 
 	* java/org/gnu/emacs/EmacsCopyArea.java (perform): Disallow
-	operations where width and height are less than or equal to
-	zero.
+	operations where width and height are less than or equal to zero.
+
 	* lisp/menu-bar.el (menu-bar-edit-menu): Make
 	execute-extended-command available as a menu item.
+
 	* src/androidmenu.c (android_init_emacs_context_menu)
-	(android_menu_show):
-	* src/menu.c (have_boxes): Implement menu check boxes.
+	(android_menu_show): Implement menu check boxes.
+
+	* src/menu.c (have_boxes): Treat Android builds as providing menu
+	checkboxes.
 
 2023-01-28  Po Lu  <luangruo@yahoo.com>
 
-	Set up fontset stuff on Android
-	* lisp/term/android-win.el (window-system-initialization):
-	Create default fontset.
+	* lisp/term/android-win.el (window-system-initialization): Create
+	default fontset.
 
-	Fix file descriptor leaks
-	* src/sfntfont.c (sfntfont_read_cmap):
-	(sfntfont_open): Fix leaks of file descriptors.
+	* src/sfntfont.c (sfntfont_read_cmap, sfntfont_open): Fix leaks of
+	file descriptors.
 
-	Update from gnulib
-	* cross/lib/stdalign.in.h (_GL_STDALIGN_H):
-	(_):
-	(__alignof_is_defined):
-	* cross/lib/vasnprintf.c:
-	* lib/gnulib.mk.in (ANDROID_MIN_SDK):
-	(HAVE_SPAWN_H):
-	(LIBGCCJIT_LIBS):
-	(NATIVE_COMPILATION_AOT):
-	(NEXT_AS_FIRST_DIRECTIVE_LIMITS_H):
-	(NEXT_LIMITS_H):
-	(SIZEOF_LONG):
-	(stdalign.h):
-	* ../../../../dev/null:
-	* lib/stdalign.in.h (_GL_STDALIGN_H):
-	(_):
-	(__alignof_is_defined):
-	* lib/vasnprintf.c:
-	* m4/gnulib-common.m4 (gl_COMMON_BODY):
-	* m4/stdalign.m4 (gl_ALIGNASOF):
-	* m4/stddef_h.m4: Update from gnulib.
+	* m4, lib: Update from Gnulib.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-01-28  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* INSTALL.android: Document support for gnutls and libgmp.
+
 	* build-aux/ndk-build-helper-1.mk (NDK_SO_NAMES, NDK_INCLUDES)
 	(SYSTEM_LIBRARIES):
 	* build-aux/ndk-build-helper-2.mk: Recursively resolve and add
 	shared library dependencies; even those of static libraries.
+
 	* build-aux/ndk-module-extract.awk: Fix makefile_imports code.
+
 	* configure.ac (ANDROID_SDK_18_OR_EARLIER, XCONFIGURE)
 	(LIBGMP_CFLAGS): Enable GMP and gnutls on Android.
 
 	* cross/ndk-build/Makefile.in (LOCAL_EXPORT_C_INCLUDES):
-	* cross/ndk-build/ndk-build-shared-library.mk: ($(call
-	objname,$(LOCAL_MODULE),$(basename $(1))))::($$(error
-	Unsupported suffix)::($(LOCAL_MODULE_FILENAME)):
-	* cross/ndk-build/ndk-build-static-library.mk: ($(call
-	objname,$(LOCAL_MODULE),$(basename $(1))))::($$(error
-	Unsupported suffix):
+	* cross/ndk-build/ndk-build-shared-library.mk:
 	* cross/ndk-build/ndk-clear-vars.mk:
 	* cross/ndk-build/ndk-resolve.mk (NDK_SYSTEM_LIBRARIES):
 	(NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE)):
-	(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)):
-	Implement ``LOCAL_ASM_RULE'' and ``LOCAL_C_ADDITIONAL_FLAGS''
-	extensions for libgmp.
+	(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)): Implement ``LOCAL_ASM_RULE''
+	and ``LOCAL_C_ADDITIONAL_FLAGS'' extensions for libgmp.
 
 	* doc/emacs/input.texi (Touchscreens): Document how to
 	horizontally scroll.
+
 	* java/org/gnu/emacs/EmacsActivity.java (attachWindow): Give the
 	view focus again if necessary.
 	(onPause): Call right super function.
+
 	* java/org/gnu/emacs/EmacsPreferencesActivity.java (onClick):
-	Clear dumpFileName lest Emacs try to load a nonexistent dump
-	file.
+	Clear dumpFileName lest Emacs try to load a nonexistent dump file.
+
 	* java/org/gnu/emacs/EmacsView.java (onDetachedFromWindow)
 	(onAttachedToWindow): Call super functions.
-	(onCreateInputConnection): Make sure the IME never obscures
-	Emacs.
-	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow, onKeyDown)
-	(onKeyUp): Improve tracking of quit keys.
+	(onCreateInputConnection): Make sure the IME never obscures Emacs.
 
-	* lisp/isearch.el (isearch-mode): Bring up the onscreen
-	keyboard.
+	* java/org/gnu/emacs/EmacsWindow.java (onKeyDown, onKeyUp):
+	Improve tracking of quit keys.
+
+	* lisp/isearch.el (isearch-mode): Bring up the onscreen keyboard.
+
 	* lisp/touch-screen.el (touch-screen-current-tool): Add three
 	fields.
 	(touch-screen-handle-scroll): Allow hscrolling as well.
 	(touch-screen-handle-touch): Add additional fields to
 	`touch-screen-current-tool'.
-	* src/Makefile.in (LIBGMP_CFLAGS, EMACS_CFLAGS): Add new
-	variable.
-	* src/android.c (android_run_select_thread):
-	(android_write_event): Use pthread_cond_broadcast because
-	pthread_cond_signal does nothing on some Android
-	versions/devices?
+
+	* src/Makefile.in (LIBGMP_CFLAGS, EMACS_CFLAGS): Add new variable.
+
+	* src/android.c (android_run_select_thread, android_write_event):
+	Use pthread_cond_broadcast because pthread_cond_signal does
+	nothing on some Android versions/devices?
 
 2023-01-26  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 	* doc/emacs/input.texi (On-Screen Keyboards): Fix typo.
 
-	Update Android port
-	* INSTALL.android: Describe that apksigner is also required.
-	* configure.ac: Correctly add cross/Makefile to
-	SUBDIR_MAKEFILES.
-	* cross/Makefile.in: (config.status): Depend on
+	* INSTALL.android: Mention that apksigner is also required.
+
+	* configure.ac: Correctly add cross/Makefile to SUBDIR_MAKEFILES.
+
+	* cross/Makefile.in (config.status): Depend on
 	$(top_srcdir)/config.status.
-	* doc/emacs/input.texi (On-Screen Keyboards): Document how to
-	quit without a physical keyboard.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
-	function `quit'.
+
+	* doc/emacs/input.texi (On-Screen Keyboards): Document how to quit
+	without a physical keyboard.
+
+	* java/org/gnu/emacs/EmacsNative.java (quit): New function `quit'.
+
 	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow): New field
 	`lastVolumeButtonPress'.
 	(onKeyDown): Quit if necessary.
-	* m4/ndk-build.m4 (ndk_where_cc): Fix search if CC is not a
-	single word.
+
+	* m4/ndk-build.m4 (ndk_where_cc): Fix search if CC is not a single
+	word.
+
 	* src/android.c (android_open): Remove unused variable.
 	(quit): New function.
+
 	* src/androidmenu.c (android_process_events_for_menu): Allow
 	quitting the menu.
+
 	* src/xterm.c (handle_one_xevent, x_term_init, syms_of_xterm):
-	Implement features described above, so they work on free
+	Implement features illustrated above, so they work on free
 	operating systems.
+
 	* src/xterm.h (struct x_display_info): New fields `quit_keysym',
 	`quit_keysym_time'.
 
 2023-01-26  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* INSTALL.android: Document how to install sqlite3.
+
 	* build-aux/ndk-build-helper-1.mk (SYSTEM_LIBRARIES):
 	* build-aux/ndk-build-helper-2.mk (SYSTEM_LIBRARIES): Add liblog
 	and libandroid.
+
 	* configure.ac (SQLITE3_LIBS, HAVE_SQLITE3)
 	(HAVE_SQLITE3_LOAD_EXTENSION): Support on Android.
 	(APKSIGNER): Look for this new required binary.
@@ -5443,38 +5172,43 @@
 
 	* cross/ndk-build/ndk-build.mk.in (NDK_BUILD_SHARED): Fix
 	definition.
-	* cross/ndk-build/ndk-resolve.mk:
-	(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)): Handle new system
-	libraries.
+
+	* cross/ndk-build/ndk-resolve.mk
+	(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)): Handle new system libraries.
 
 	* doc/emacs/android.texi (Android File System): Document Android
 	10 system restriction.
 
-	* java/AndroidManifest.xml.in: Target Android 33, not 28.
+	* java/AndroidManifest.xml.in: Target Android API 33, not 28.
+
 	* java/Makefile.in (SIGN_EMACS_V2, APKSIGNER): New variables.
-	($(APK_NAME)): Make sure to apply a ``version 2 signature'' to
-	the package as well.
+	($(APK_NAME)): Make sure to apply a ``version 2 signature'' to the
+	package as well.
 
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
 	argument apiLevel.
+
 	* java/org/gnu/emacs/EmacsNoninteractive.java (main):
 	* java/org/gnu/emacs/EmacsThread.java (run): Pass API level.
+
 	* m4/ndk-build.m4 (ndk_package_mape): Add package mapping for
 	sqlite3.
+
 	* src/Makefile.in (SQLITE3_CFLAGS): New substition.
 	(EMACS_CFLAGS): Add that variable.
 
 	* src/android.c (android_api_level): New variable.
 	(initEmacs): Set it.
 	(android_file_access_p): Make static.
-	(android_hack_asset_fd): Adjust for restrictions in Android 29
-	and later.
+	(android_hack_asset_fd): Adjust for restrictions in Android 29 and
+	later.
 	(android_close_on_exec): New function.
 	(android_open): Adjust to not duplicate file descriptor even if
 	CLOEXEC.
 	(android_faccessat): Use fstatat at-func emulation.
 
 	* src/android.h: Update prototypes.
+
 	* src/dired.c (file_name_completion_dirp):
 	* src/fileio.c (file_access_p, Faccess_file): Now that
 	sys_faccessat takes care of everything, stop calling
@@ -5482,9 +5216,10 @@
 
 2023-01-26  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* .gitignore: Ignore lib/math.h.
+
 	* INSTALL.android: Update accordingly.
+
 	* build-aux/ndk-build-helper-1.mk:
 	* build-aux/ndk-build-helper-2.mk:
 	* build-aux/ndk-build-helper.mk:
@@ -5502,11 +5237,13 @@
 	version for actual popup menus.
 	* lib/math.h: Delete file.
 
-	* m4/ndk-build.m4 (ndk_SEARCH_MODULE, ndk_CHECK_MODULES): Look
-	for nasm and C++ libraries.
+	* m4/ndk-build.m4 (ndk_SEARCH_MODULE, ndk_CHECK_MODULES): Look for
+	nasm and C++ libraries.
 
 	* src/android.c (faccessat): Rename to `android_faccessat'.
+
 	* src/android.h: Update prototypes.
+
 	* src/dired.c (file_name_completion_dirp):
 	* src/fileio.c (file_access_p, Faccess_file, file_directory_p):
 	* src/lisp.h:
@@ -5516,26 +5253,26 @@
 
 2023-01-26  Po Lu  <luangruo@yahoo.com>
 
-	Remove unused file
 	* cross/ndk-build/ndk-build.in: Delete unused file.
 
 2023-01-25  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
-	* java/org/gnu/emacs/EmacsDrawLine.java: Fix this again.  Gosh,
-	how does Android do this.
+	* java/org/gnu/emacs/EmacsDrawLine.java: Fix this again.
+
 	* java/org/gnu/emacs/EmacsNoninteractive.java (main): Port to
 	Android 2.3.3.
 
-	* java/org/gnu/emacs/EmacsSdk11Clipboard.java
-	(EmacsSdk11Clipboard): Port to Android 4.0.3.
-	* java/org/gnu/emacs/EmacsService.java (getClipboardManager):
-	New function.
+	* java/org/gnu/emacs/EmacsSdk11Clipboard.java: Port to Android
+	4.0.3.
+
+	* java/org/gnu/emacs/EmacsService.java (getClipboardManager): New
+	function.
 
 	* src/alloc.c (find_string_data_in_pure): Fix Android alignment
 	issue.
 
 	* src/android-emacs.c (main): Port to Android 4.4.
+
 	* src/android.c (initEmacs): Align stack to 32 bytes, so it ends
 	up aligned to 16 even though gcc thinks the stack is already
 	aligned to 16 bytes.
@@ -5543,23 +5280,15 @@
 	* src/callproc.c (init_callproc): Use /system/bin/sh instead of
 	/bin/sh by default.
 
-2023-01-25  Po Lu  <luangruo@yahoo.com>
-
-	Remove extra header
 	* cross/lib/math.h: Delete header.
 
-	Minor fixes to Android port
-	* java/Makefile.in: (emacs.apk-in): Don't call cp with empty
-	args.
+	* java/Makefile.in (emacs.apk-in): Don't call cp with empty args.
+
 	* java/org/gnu/emacs/EmacsDrawLine.java (perform): Fix for
 	PostScript filling semantics.
+
 	* src/Makefile.in (android-emacs): Build android-emacs directly.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-01-25  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* doc/emacs/android.texi (Android Startup, Android Environment):
 	Document that restrictions on starting Emacs have been lifted.
 
@@ -5572,48 +5301,57 @@
 
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Update
 	function declarations.
-	* java/org/gnu/emacs/EmacsNoninteractive.java
-	(EmacsNoninteractive): New class.
 
-	* java/org/gnu/emacs/EmacsService.java (EmacsService, getApkFile)
+	* java/org/gnu/emacs/EmacsNoninteractive.java: New class.
+
+	* java/org/gnu/emacs/EmacsService.java (getApkFile)
 	(onCreate): Pass classpath to setEmacsParams.
-	* java/org/gnu/emacs/EmacsThread.java (EmacsThread): Make run an
-	override.
+
+	* java/org/gnu/emacs/EmacsThread.java (run): Label as an
+	@Override.
+
 	* lisp/loadup.el: Don't dump on Android when noninteractive.
+
 	* lisp/shell.el (shell--command-completion-data): Handle
 	inaccessible directories.
-	* src/Makefile.in (android-emacs): Link with gnulib.
-	* src/android-emacs.c (main): Implement to launch app-process
-	and then EmacsNoninteractive.
+
+	* src/Makefile.in (android-emacs): Link with Gnulib.
+
+	* src/android-emacs.c (main): Implement to launch app-process and
+	then EmacsNoninteractive.
+
 	* src/android.c (setEmacsParams): New argument `class_path'.
 	Don't set stuff up when running noninteractive.
+
 	* src/android.h (initEmacs): Likewise.
+
 	* src/androidfont.c (init_androidfont):
-	* src/androidselect.c (init_androidselect): Don't initialize
-	when running noninteractive.
+	* src/androidselect.c (init_androidselect): Don't initialize when
+	running noninteractive.
+
 	* src/emacs.c (load_pdump): New argument `dump_file'.
 	(android_emacs_init): Give new argument `dump_file' to
 	`load_pdump'.
-	* src/sfntfont-android.c (init_sfntfont_android): Don't
-	initialize when running noninteractive.
 
-2023-01-25  Po Lu  <luangruo@yahoo.com>
-
-	Import gnulib modules printf-posix and vasprintf-posix
-	These are neccessary because Android's printf is missing basic format
-	modifiers such as t.
+	* src/sfntfont-android.c (init_sfntfont_android): Don't initialize
+	when running noninteractive.
 
 	* admin/merge-gnulib (GNULIB_MODULES): Add printf-posix and
-	vasprintf-posix.  Update from gnulib.
+	vasprintf-posix.
+
+	* m4, lib: Update from Gnulib.
+
 	* configure.ac (CFLAGS): Add -DHAVE_CONFIG_H.
 
 2023-01-24  Po Lu  <luangruo@yahoo.com>
 
-	Make binaries distributed with Emacs work on Android
 	* doc/lispref/processes.texi (Subprocess Creation): Document
 	variables containing program names.
+
 	* etc/NEWS: Document new variables.
+
 	* java/Makefile.in (CROSS_BINS): Add missing etags binary.
+
 	* lisp/cedet/semantic/db-ebrowse.el
 	(semanticdb-create-ebrowse-database):
 	* lisp/gnus/mail-source.el (mail-source-movemail-program):
@@ -5627,24 +5365,26 @@
 	* lisp/speedbar.el (speedbar-fetch-etags-command):
 	* lisp/textmodes/reftex-global.el (reftex-create-tags-file): Use
 	new variables.
-	* src/callproc.c (syms_of_callproc): New variables naming
-	binaries redistributed with Emacs.
 
-2023-01-24  Po Lu  <luangruo@yahoo.com>
+	* src/callproc.c (syms_of_callproc): Introduce new variables
+	naming binaries redistributed with Emacs.
 
-	Enable libjpeg on Android
 	* INSTALL.android: Update documentation.
+
 	* build-aux/ndk-build-helper-1.mk: When building shared
 	libraries, do not link libemacs.so with dependent archive files.
-	* build-aux/ndk-build-helper-2.mk: Add whole archive
-	dependencies as well.
+
+	* build-aux/ndk-build-helper-2.mk: Add whole archive dependencies
+	as well.
 
 	* configure.ac (HAVE_JPEG): Enable on Android.
 
 	* cross/ndk-build/ndk-build-shared-library.mk: Link the shared
 	object with archive file dependencies.
+
 	* cross/ndk-build/ndk-build-static-library.mk: Build all code
 	position-independently.
+
 	* cross/ndk-build/ndk-resolve.mk: Separately resolve a names of
 	archive and whole archive dependencies.
 
@@ -5653,10 +5393,12 @@
 
 2023-01-24  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* INSTALL.android: Update.
+
 	* build-aux/ndk-build-helper-1.mk: Fix typo.
+
 	* configure.ac: Enable --with-json on Android.
+
 	* cross/ndk-build/ndk-build-shared-library.mk:
 	(NDK_CFLAGS_$(LOCAL_MODULE)):
 	(LOCAL_MODULE_FILENAME):
@@ -5665,29 +5407,36 @@
 	(LOCAL_MODULE_FILENAME): Recursively resolve dependencies.
 	* cross/ndk-build/ndk-resolve.mk: New function.
 
-	* doc/emacs/android.texi (Android Startup): Document how Emacs
-	is dumped during initial startup.
+	* doc/emacs/android.texi (Android Startup): Document how Emacs is
+	dumped during initial startup.
 
 	* java/Makefile.in (filename): Fix build with multiple shared
 	libraries.
+
 	* java/README: Improve commentary.
+
 	* java/org/gnu/emacs/EmacsApplication.java (onCreate): Look and
 	set dump file.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
+
+	* java/org/gnu/emacs/EmacsNative.java (getFingerprint): New
 	function getFingerprint.
+
 	* java/org/gnu/emacs/EmacsPreferencesActivity.java (onCreate):
 	Add option to erase the dump file.
-	* java/org/gnu/emacs/EmacsService.java (browseUrl): New
-	function.
-	* java/org/gnu/emacs/EmacsThread.java (run): Specify dump file
-	if found.
+
+	* java/org/gnu/emacs/EmacsService.java (browseUrl): New function.
+
+	* java/org/gnu/emacs/EmacsThread.java (run): Specify dump file if
+	found.
+
 	* lisp/loadup.el: Always dump during loadup on Android.
 
-	* lisp/net/browse-url.el (browse-url--browser-defcustom-type):
-	(browse-url-default-browser):
-	(browse-url-default-android-browser): New browse url type.
+	* lisp/net/browse-url.el (browse-url--browser-defcustom-type)
+	(browse-url-default-browser, browse-url-default-android-browser):
+	New browse url type.
 
 	* m4/ndk-build.m4 (ndk_package_map): Map jansson to libjansson.
+
 	* src/android.c (struct android_emacs_service): New method
 	`browse_url'.
 	(getFingerprint): New function.
@@ -5699,37 +5448,29 @@
 	* src/androidselect.c (Fandroid_browse_url): New function.
 	(syms_of_androidselect): Define it.
 
-	* src/emacs.c (load_pdump): Don't look in fancy places on
-	Android.
+	* src/emacs.c (load_pdump): Eschew excessively elaborate dump file
+	location code on on Android.
+
 	* src/pdumper.c (Fdump_emacs_portable): Allow dumping while
 	interactive on Android.
 	(syms_of_pdumper): New variable `pdumper-fingerprint'.
 
-	* src/sfntfont-android.c (sfntfont_android_composite_bitmap):
-	Fix unused variables.
+	* src/sfntfont-android.c (sfntfont_android_composite_bitmap): Fix
+	unused variables.
 
 2023-01-24  Po Lu  <luangruo@yahoo.com>
-
-	Update from gnulib
-	Update from gnulib.  In addition,
 
 	* admin/merge-gnulib: Fix paths for rename.
 
-2023-01-24  Po Lu  <luangruo@yahoo.com>
+	* lib-src/Makefile.in (DONT_INSTALL, clean): Correctly define
+	asset-directory-tool.
 
-	Improve lib-src/Makefile.in
-	* lib-src/Makefile.in (DONT_INSTALL):
-	(clean): Correctly define asset-directory-tool.
-
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Fix distclean target
 	* cross/Makefile.in (distclean bootstrap-clean): Remove Makefile.
 
 2023-01-24  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* .gitignore: Update with new files.  Do not ignore std*.in.h.
+
 	* INSTALL.android: Explain how to build Emacs with external
 	dependencies.
 
@@ -5738,49 +5479,55 @@
 
 	* README: Document new directories.
 
-	* build-aux/ndk-build-helper-1.mk (build_kind, NDK_SO_NAMES):
-	* build-aux/ndk-build-helper-2.mk (build_kind, NDK_SO_NAMES):
-	* build-aux/ndk-build-helper-3.mk (build_kind):
+	* build-aux/ndk-build-helper-1.mk:
+	* build-aux/ndk-build-helper-2.mk:
+	* build-aux/ndk-build-helper-3.mk:
 	* build-aux/ndk-build-helper-4.mk:
 	* build-aux/ndk-build-helper.mk (NDK_BUILD_DIR, my-dir):
 	* build-aux/ndk-module-extract.awk: New files.
-	* configure.ac: Set up libgif, libwebp, and libpng for
-	ndk-build.
-	* cross/ndk-build/Makefile.in (srcdir, NDK_BUILD_ANDROID_MK):
+	* configure.ac: Set up libgif, libwebp, and libpng for ndk-build.
+
+	* cross/ndk-build/Makefile.in:
 	* cross/ndk-build/ndk-build-executable.mk:
-	* cross/ndk-build/ndk-build-shared-library.mk (eq, objname):
-	* cross/ndk-build/ndk-build-static-library.mk (eq, objname):
-	* cross/ndk-build/ndk-build.in (NDK_BUILD_MODULES):
-	* cross/ndk-build/ndk-build.mk.in (NDK_BUILD_MODULES)
-	(NDK_BUILD_SHARED):
+	* cross/ndk-build/ndk-build-shared-library.mk:
+	* cross/ndk-build/ndk-build-static-library.mk:
+	* cross/ndk-build/ndk-build.in:
+	* cross/ndk-build/ndk-build.mk.in:
 	* cross/ndk-build/ndk-clear-vars.mk:
 	* cross/ndk-build/ndk-prebuilt-shared-library.mk:
 	* cross/ndk-build/ndk-prebuilt-static-library.mk: New files.
-	* doc/emacs/android.texi (Android, Android Environment):
-	Document clipboard support on Android.
+
+	* doc/emacs/android.texi (Android, Android Environment): Document
+	clipboard support on Android.
+
 	* doc/emacs/emacs.texi (Top): Update menus.
+
 	* etc/MACHINES: Document Android.
-	* java/AndroidManifest.xml.in: Respect new
-	`--with-android-debug' option.
+
+	* java/AndroidManifest.xml.in: Respect new `--with-android-debug'
+	option.
+
 	* java/Makefile.in (CROSS_BINS, CROSS_LIBS): Adjust for rename.
-	Include ndk-build.mk.:(emacs.apk-in): Depend on shared
-	libraries.  Then, package shared libraries.
-	* java/org/gnu/emacs/EmacsClipboard.java (EmacsClipboard): New
-	class.
+	Include ndk-build.mk.
+	(emacs.apk-in): Depend on shared libraries.  Then, package shared
+	libraries.
+
+	* java/org/gnu/emacs/EmacsClipboard.java: New file.
+
 	* java/org/gnu/emacs/EmacsFontDriver.java: Update comment to say
 	this is unused.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): New
-	function `sendExpose'.
-	* java/org/gnu/emacs/EmacsSdk11Clipboard.java
-	(EmacsSdk11Clipboard):
-	* java/org/gnu/emacs/EmacsSdk8Clipboard.java
-	(EmacsSdk8Clipboard): New classes.
-	* java/org/gnu/emacs/EmacsView.java (EmacsView, handleDirtyBitmap)
+
+	* java/org/gnu/emacs/EmacsNative.java (sendExpose): New function
+	`sendExpose'.
+
+	* java/org/gnu/emacs/EmacsSdk11Clipboard.java:
+	* java/org/gnu/emacs/EmacsSdk8Clipboard.java: New files.
+
+	* java/org/gnu/emacs/EmacsView.java (handleDirtyBitmap)
 	(onDetachedFromWindow): When window is reattached, expose the
 	frame.
 
-	* lib/Makefile.in (VPATH):
-	(ALL_CFLAGS): Adjust for rename.
+	* lib/Makefile.in (VPATH, ALL_CFLAGS): Adjust for rename.
 
 	* lisp/term/android-win.el (android-clipboard-exists-p)
 	(android-get-clipboard, android-set-clipboard)
@@ -5792,11 +5539,10 @@
 	functions.
 
 	* m4/ndk-build.m4: New file.
+
 	* src/Makefile.in (GIF_CFLAGS, ANDROID_LDFLAGS): New variables.
-	(EMACS_CFLAGS): Add GIF_CFLAGS.  Include
-	ndk-build.mk.
-	(libemacs.so): Depend on and link with required
-	libraries.
+	(EMACS_CFLAGS): Add GIF_CFLAGS.  Include ndk-build.mk.
+	(libemacs.so): Depend on and link with required libraries.
 
 	* src/android.c (android_check_compressed_file): New function.
 	(android_open): Work around Android platform bug.
@@ -5807,32 +5553,23 @@
 	(struct android_expose_event, union android_event): Add expose
 	events.
 
-	* src/androidselect.c (struct android_emacs_clipboard)
-	(android_init_emacs_clipboard, Fandroid_clipboard_owner_p)
-	(Fandroid_set_clipboard, Fandroid_get_clipboard)
-	(Fandroid_clipboard_exists_p, init_androidselect)
-	(syms_of_androidselect): New file.
+	* src/androidselect.c: New file.
 
-	* src/androidterm.c (handle_one_android_event): Handle
-	exposures.
+	* src/androidterm.c (handle_one_android_event) <ANDROID_EXPOSE>:
+	Handle exposures.
+
 	* src/androidterm.h: Update prototypes.
+
 	* src/emacs.c (android_emacs_init): Initialize androidselect.
 
-2023-01-24  Po Lu  <luangruo@yahoo.com>
-
-	Update android port
-	* xcompile: Move to cross.
-	* cross: New directory.
-
-	Update android port
 	* xcompile: Move to cross.
 	* cross: New directory.
 
 2023-01-21  Po Lu  <luangruo@yahoo.com>
 
-	Improve touch-screen support
 	* doc/lispref/commands.texi (Touchscreen Events): Document
 	changes.
+
 	* lisp/touch-screen.el (touch-screen-current-tool): Update doc
 	string.
 	(touch-screen-precision-scroll): New user option.
@@ -5848,18 +5585,19 @@
 
 	* src/fileio.c (Fverify_visited_file_modtime): Fix fs check.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-01-21  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* doc/emacs/android.texi (Android File System): Document that
 	ls-lisp is now used by default.
+
 	* java/org/gnu/emacs/EmacsThread.java (EmacsThread): Name the
 	thread something meaningful.
+
 	* lisp/loadup.el (featurep): Load ls-lisp on Android.
-	* lisp/ls-lisp.el (ls-lisp-use-insert-directory-program):
-	Default to off on Android.
+
+	* lisp/ls-lisp.el (ls-lisp-use-insert-directory-program): Default
+	to off on Android.
+
 	* src/android.c (android_is_directory): New fucntion.
 	(android_fstatat): Handle directories created by
 	`android_opendir'.
@@ -5871,6 +5609,7 @@
 	(android_lookup_asset_directory_fd): New function.
 
 	* src/android.h: Update prototypes.
+
 	* src/androidfont.c (androidfont_check_init): New function.
 	(androidfont_list, androidfont_match, androidfont_draw)
 	(androidfont_open_font, androidfont_close_font)
@@ -5894,75 +5633,81 @@
 	* src/sfntfont-android.c (GET_SCANLINE_BUFFER)
 	(sfntfont_android_u255to256, sfntfont_android_over_8888_1)
 	(sfntfont_android_over_8888, sfntfont_android_composite_bitmap):
-	Optimize on 64-bit ARM devices.
-	(sfntfont_android_put_glyphs): Optimize away memset if
-	background need not be filled.
+	Optimize for 64-bit ARM devices.
+	(sfntfont_android_put_glyphs): Optimize away memset if background
+	need not be filled.
 
 2023-01-20  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Update Android port
 	* src/android.c (android_run_select_thread, android_select)
 	(android_ftruncate):
-	* src/android.h (ftruncate): Fix compilation on Android 16 and
-	up.
+	* src/android.h (ftruncate): Fix compilation on Android 16 and up.
 
-	Update Android port
 	* src/android.c (android_run_select_thread, android_init_events)
 	(android_select): Add alternative android_select implementation
 	for API 16 and lower.
+
 	* src/androidterm.c (handle_one_android_event): Fix
 	use-after-frees.
 
-	Remove unused file
 	* xcompile/lib/gnulib.mk.in: Delete.
 
 2023-01-20  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
 	* .gitignore: Don't ignore verbose.mk.android.
+
 	* doc/emacs/Makefile.in (EMACSSOURCES): Add android.texi and
 	input.texi.
+
 	* doc/emacs/android.texi (Android): Document support for the
 	on-screen keyboard.
-	(Android Startup): Document how to start Emacs with -Q on
-	Android.
-	(Android Environment): Document how Emacs works around the
-	system ``task killer''.  Document changes to frame deletion
-	behavior.
+	(Android Startup): Document how to start Emacs with -Q on Android.
+	(Android Environment): Document how Emacs circumvents the system
+	``task killer''.  Document changes to frame deletion behavior.
+
 	* doc/emacs/emacs.texi (Top):
-	* doc/emacs/input.texi (Other Input Devices, On-Screen
-	Keyboards): Document how to use Emacs with virtual keyboards.
-	* doc/lispref/commands.texi (Touchscreen Events): Document
-	changes to `touch-screen-track-drag'.
-	* doc/lispref/frames.texi (Frames, On-Screen Keyboards): New
-	node.
+	* doc/emacs/input.texi (Other Input Devices)
+	(On-Screen Keyboards): Document how to use Emacs with virtual
+	keyboards.
+
+	* doc/lispref/commands.texi (Touchscreen Events): Document changes
+	to `touch-screen-track-drag'.
+
+	* doc/lispref/frames.texi (Frames, On-Screen Keyboards): New node.
+
 	* java/AndroidManifest.xml.in: Add settings activity and
 	appropriate OSK adjustment mode.
-	* java/org/gnu/emacs/EmacsActivity.java (onCreate): Allow
-	creating Emacs with -Q.
+
+	* java/org/gnu/emacs/EmacsActivity.java (onCreate): Allow creating
+	Emacs with -Q.
 	(onDestroy): Don't remove if killed by the system.
-	* java/org/gnu/emacs/EmacsContextMenu.java (inflateMenuItems):
-	Fix context menus again.
+
+	* java/org/gnu/emacs/EmacsContextMenu.java (inflateMenuItems): Fix
+	context menus again.
+
 	* java/org/gnu/emacs/EmacsNative.java (EmacsNative): Make all
 	event sending functions return long.
-	* java/org/gnu/emacs/EmacsPreferencesActivity.java
-	(EmacsPreferencesActivity): New class.
+
+	* java/org/gnu/emacs/EmacsPreferencesActivity.java: New fle.
+
 	* java/org/gnu/emacs/EmacsService.java (EmacsService)
 	(onStartCommand, onCreate, startEmacsService): Start as a
 	foreground service if necessary to bypass system restrictions.
+
 	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView):
-	* java/org/gnu/emacs/EmacsThread.java (EmacsThread, run):
-	* java/org/gnu/emacs/EmacsView.java (EmacsView, onLayout)
+	* java/org/gnu/emacs/EmacsThread.java (run):
+	* java/org/gnu/emacs/EmacsView.java (onLayout)
 	(onDetachedFromWindow):
-	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow, viewLayout):
-	Implement frame resize synchronization..
+	* java/org/gnu/emacs/EmacsWindow.java (viewLayout):
+	Implement frame resize synchronization.
+
 	* java/org/gnu/emacs/EmacsWindowAttachmentManager.java
-	(EmacsWindowAttachmentManager, removeWindowConsumer): Adjust
-	accordingly for changes to frame deletion behavior.
+	(removeWindowConsumer): Adjust accordingly for changes to frame
+	deletion behavior.
+
 	* lisp/frame.el (android-toggle-on-screen-keyboard)
-	(frame-toggle-on-screen-keyboard): New function.
+	(frame-toggle-on-screen-keyboard): New functions.
+
 	* lisp/minibuffer.el (minibuffer-setup-on-screen-keyboard)
 	(minibuffer-exit-on-screen-keyboard): New functions.
 	(minibuffer-setup-hook, minibuffer-exit-hook): Add new functions
@@ -5976,13 +5721,16 @@
 	(touch-screen-drag-mode-line-1, touch-screen-drag-mode-line):
 	Refactor to use `no-drag'.
 
-	* src/android.c (struct android_emacs_window): New methods.
-	Make all event sending functions return the event serial.
+	* src/android.c (struct android_emacs_window): New methods.  Make
+	all event sending functions return the event serial.
 	(android_toggle_on_screen_keyboard, android_window_updated): New
 	functions.
+
 	* src/android.h: Update prototypes.
+
 	* src/androidfns.c (Fandroid_toggle_on_screen_keyboard)
-	(syms_of_androidfns): New function.
+	(syms_of_androidfns): New functions.
+
 	* src/androidgui.h (struct android_any_event)
 	(struct android_key_event, struct android_configure_event)
 	(struct android_focus_event, struct android_window_action_event)
@@ -5993,27 +5741,24 @@
 
 	* src/androidterm.c (handle_one_android_event)
 	(android_frame_up_to_date):
+
 	* src/androidterm.h (struct android_output): Implement frame
 	resize synchronization.
 
-2023-01-20  Po Lu  <luangruo@yahoo.com>
-
-	Check in missing file
 	* xcompile/verbose.mk.android: New file.
 
 2023-01-19  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-01-19  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* .gitignore: Add new files.
-	* INSTALL.android: Explain how to build Emacs for ancient
-	versions of Android.
+
+	* INSTALL.android: Explain how to build Emacs for ancient versions
+	of Android.
+
 	* admin/merge-gnulib (GNULIB_MODULES): Add getdelim.
+
 	* build-aux/config.guess (timestamp, version):
 	* build-aux/config.sub (timestamp, version): Autoupdate.
+
 	* configure.ac (BUILD_DETAILS, ANDROID_MIN_SDK):
 	(ANDROID_STUBIFY): Allow specifying CFLAGS via ANDROID_CFLAGS.
 	Add new configure tests for Android API version when not
@@ -6023,14 +5768,21 @@
 	Input Devices''.
 	(Android File System): Remove restrictions on directory-files on
 	the assets directory.
+
 	* doc/emacs/emacs.texi (Top): Add Other Input Devices to menu.
+
 	* doc/emacs/input.texi (Other Input Devices): New node.
+
 	* doc/lispref/commands.texi (Touchscreen Events): Document
 	changes to touchscreen input events.
+
 	* doc/lispref/frames.texi (Pop-Up Menus): Likewise.
+
 	* etc/NEWS: Announce changes.
+
 	* java/Makefile.in: Use lib-src/asset-directory-tool to generate
 	an `directory-tree' file placed in /assets.
+
 	* java/debug.sh: Large adjustments to support Android 2.2 and
 	later.
 
@@ -6042,11 +5794,11 @@
 	* java/org/gnu/emacs/EmacsDrawable.java (EmacsDrawable):
 	* java/org/gnu/emacs/EmacsFillPolygon.java (perform):
 	* java/org/gnu/emacs/EmacsFillRectangle.java (perform):
-	* java/org/gnu/emacs/EmacsGC.java (EmacsGC):
-	* java/org/gnu/emacs/EmacsPixmap.java (EmacsPixmap):
-	(destroyHandle):
+	* java/org/gnu/emacs/EmacsGC.java:
+	* java/org/gnu/emacs/EmacsPixmap.java (destroyHandle):
 	* java/org/gnu/emacs/EmacsSdk7FontDriver.java (draw): Avoid
 	redundant canvas saves and restores.
+
 	* java/org/gnu/emacs/EmacsService.java (run):
 	* java/org/gnu/emacs/EmacsView.java (EmacsView):
 	(handleDirtyBitmap):
@@ -6054,33 +5806,32 @@
 	(EmacsWindow): Make compatible with Android 2.2 and later.
 
 	* lib-src/Makefile.in (DONT_INSTALL): Add asset-directory-tool
-	on Android.:(asset-directory-tool{EXEEXT}): New target.
+	on Android.
+	(asset-directory-tool${EXEEXT}): New target.
+
 	* lib-src/asset-directory-tool.c (struct directory_tree, xmalloc)
 	(main_1, main_2, main): New file.
 
 	* lib, m4: Merge from gnulib.  This will be reverted before
 	merging to master.
 
-	* lisp/button.el (button-map):
-	(push-button):
+	* lisp/button.el (button-map, push-button):
 	* lisp/frame.el (display-popup-menus-p): Improve touchscreen
 	support.
-	* lisp/subr.el (event-start):
-	(event-end): Handle touchscreen events.
-	* lisp/touch-screen.el (touch-screen-handle-timeout):
-	(touch-screen-handle-point-update):
-	(touch-screen-handle-point-up):
-	(touch-screen-track-tap):
-	(touch-screen-track-drag):
-	(touch-screen-drag-mode-line-1):
-	(touch-screen-drag-mode-line): New functions.
-	([mode-line touchscreen-begin]):
+
+	* lisp/subr.el (event-start, event-end): Handle touchscreen
+	events.
+
+	* lisp/touch-screen.el (touch-screen-handle-timeout)
+	(touch-screen-handle-point-update, touch-screen-handle-point-up)
+	(touch-screen-track-tap, touch-screen-track-drag)
+	(touch-screen-drag-mode-line-1, touch-screen-drag-mode-line): New
+	function
+	([mode-line touchscreen-begin])
 	([bottom-divider touchscreen-begin]): Bind new events.
 
-	* lisp/wid-edit.el (widget-event-point):
-	(widget-keymap):
-	(widget-event-start):
-	(widget-button--check-and-call-button):
+	* lisp/wid-edit.el (widget-event-point, widget-keymap)
+	(widget-event-start, widget-button--check-and-call-button)
 	(widget-button-click): Improve touchscreen support.
 
 	* src/alloc.c (make_lisp_symbol): Avoid ICE on Android NDK GCC.
@@ -6102,18 +5853,25 @@
 	(android_opendir, android_readdir, android_closedir): Likewise.
 	(android_four_corners_bilinear): Fix coding style.
 	(android_ftruncate): New function.
+
 	* src/android.h: Update prototypes.  Replace ftruncate with
 	android_ftruncate when necessary.
 
 	* src/androidterm.c (handle_one_android_event): Pacify GCC.  Fix
 	touch screen tool bar bug.
+
 	* src/emacs.c (using_utf8): Fix compilation error.
+
 	* src/fileio.c (Ffile_system_info): Return Qnil when fsusage.o
 	is not built.
+
 	* src/filelock.c (BOOT_TIME_FILE): Fix definition for Android.
+
 	* src/frame.c (Fx_parse_geometry): Fix uninitialized variable
 	uses.
+
 	* src/keyboard.c (lispy_function_keys): Fix `back'.
+
 	* src/menu.c (x_popup_menu_1): Handle touch screen events.
 	(Fx_popup_menu): Document changes.
 
@@ -6123,8 +5881,9 @@
 	minor problem.
 	(init_sfntfont_android): Check for
 	HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL.
-	* src/sfntfont.c (struct sfnt_font_desc): New fields `adstyle'
-	and `languages'.
+
+	* src/sfntfont.c (struct sfnt_font_desc): New fields `adstyle' and
+	`languages'.
 	(sfnt_parse_style): Append tokens to adstyle.
 	(sfnt_parse_languages): New function.
 	(sfnt_enum_font_1): Parse supported languages and adstyle.
@@ -6134,28 +5893,31 @@
 
 2023-01-17  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* doc/emacs/android.texi (Android Fonts): Document that TTC format
+	fonts are now supported.
 
-2023-01-17  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
-	* doc/emacs/android.texi (Android Fonts): Document that TTC
-	format fonts are now supported.
 	* doc/emacs/emacs.texi (Top): Fix menus.
+
 	* doc/lispref/commands.texi (Touchscreen Events)
 	(Key Sequence Input): Document changes to touchscreen events.
+
 	* etc/DEBUG: Describe how to debug 64 bit binaries on Android.
 
 	* java/org/gnu/emacs/EmacsCopyArea.java (perform): Explicitly
 	recycle copy bitmap.
+
 	* java/org/gnu/emacs/EmacsDialog.java (EmacsDialog): New class.
+
 	* java/org/gnu/emacs/EmacsDrawRectangle.java (perform): Use 5
-	point PolyLine like X, because Android behaves like Postscript
-	on some devices and X elsewhere.
-	* java/org/gnu/emacs/EmacsFillRectangle.java (perform):
-	Explicitly recycle copy bitmap.
-	* java/org/gnu/emacs/EmacsPixmap.java (destroyHandle):
-	Explicitly recycle bitmap and GC if it is big.
+	point PolyLine like X, because Android behaves like Postscript on
+	some devices and X elsewhere.
+
+	* java/org/gnu/emacs/EmacsFillRectangle.java (perform): Explicitly
+	recycle copy bitmap.
+
+	* java/org/gnu/emacs/EmacsPixmap.java (destroyHandle): Explicitly
+	recycle bitmap and GC if it is big.
+
 	* java/org/gnu/emacs/EmacsView.java (EmacsView): Make
 	`bitmapDirty' a boolean.
 	(handleDirtyBitmap): Reimplement in terms of that boolean.
@@ -6169,11 +5931,13 @@
 	* src/android.c (android_run_select_thread, android_select):
 	Really fix android_select.
 	(android_build_jstring): New function.
+
 	* src/android.h: Update prototypes.
+
 	* src/androidmenu.c (android_process_events_for_menu): Totally
 	unblock input before process_pending_signals.
-	(android_menu_show): Remove redundant unblock_input and
-	debugging code.
+	(android_menu_show): Remove redundant unblock_input and debugging
+	code.
 	(struct android_emacs_dialog, android_init_emacs_dialog)
 	(android_dialog_show, android_popup_dialog, init_androidmenu):
 	Implement popup dialogs on Android.
@@ -6183,70 +5947,75 @@
 	tapping tool bar items.
 	(android_create_terminal): Add dialog hook.
 	(android_wait_for_event): Adjust call to android_select.
+
 	* src/androidterm.h (struct android_touch_point): New field
 	`tool_bar_p'.
+
 	* src/keyboard.c (read_key_sequence, head_table)
 	(syms_of_keyboard): Prefix touchscreen events with posn.
+
 	* src/keyboard.h (EVENT_HEAD): Handle touchscreen events.
+
 	* src/process.c (wait_reading_process_output): Adjust call to
 	android_select.
-	* src/sfnt.c (sfnt_read_table_directory): If the first long
-	turns out to be ttcf, return -1.
+
+	* src/sfnt.c (sfnt_read_table_directory): If the first long turns
+	out to be ttcf, return -1.
 	(sfnt_read_ttc_header): New function.
 	(main): Test TTC support.
 
 	* src/sfnt.h (struct sfnt_ttc_header): New structure.
 	(enum sfnt_ttc_tag): New enum.
 
-	* src/sfntfont-android.c (struct
-	sfntfont_android_scanline_buffer): New structure.
+	* src/sfntfont-android.c
+	(struct sfntfont_android_scanline_buffer): New structure.
 	(GET_SCANLINE_BUFFER): New macro.  Try to avoid so much malloc
 	upon accessing the scanline buffer.
-	(sfntfont_android_put_glyphs): Do not use SAFE_ALLOCA to
-	allocate the scaline buffer.
+	(sfntfont_android_put_glyphs): Do not use SAFE_ALLOCA to allocate
+	the scaline buffer.
 	(Fandroid_enumerate_fonts): Enumerate ttc fonts too.
 
 	* src/sfntfont.c (struct sfnt_font_desc): New field `offset'.
 	(sfnt_enum_font_1): Split out enumeration code from
 	sfnt_enum_font.
-	(sfnt_enum_font): Read TTC tables and enumerate each font
-	therein.
+	(sfnt_enum_font): Read TTC tables and enumerate each font therein.
 	(sfntfont_open): Seek to the offset specified.
 
 	* xcompile/Makefile.in (maintainer-clean): Fix depends here.
 
 2023-01-16  Po Lu  <luangruo@yahoo.com>
 
-	Fix display of glyphs with word-sized component offsets on Android
-	* src/sfnt.c (sfnt_decompose_compound_glyph): Handle correctly
+	* src/sfnt.c (sfnt_decompose_compound_glyph): Correct treatment of
 	the Y offset in components with ARG_1_AND_2_ARE_WORDS.
 	(main): Update debugging code.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-2023-01-16  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* doc/emacs/android.texi (Android, Android Environment): Improve
 	documentation.
-	* doc/lispref/commands.texi (Touchscreen Events): Document
-	changes to touchscreen support.
+
+	* doc/lispref/commands.texi (Touchscreen Events): Document changes
+	to touchscreen support.
+
 	* doc/lispref/display.texi (Defining Faces, Window Systems):
-	* doc/lispref/frames.texi (Frame Layout, Font and Color
-	Parameters):
+	* doc/lispref/frames.texi (Frame Layout)
+	(Font and Color Parameters):
 	* doc/lispref/os.texi (System Environment): Document Android in
 	various places.
 
 	* java/org/gnu/emacs/EmacsWindow.java (figureChange): Fix crash.
-	* lisp/loadup.el: ("touch-screen"): Load touch-screen.el.
+
+	* lisp/loadup.el ("touch-screen"): Load touch-screen.el.
+
 	* lisp/pixel-scroll.el: Autoload two functions.
+
 	* lisp/term/android-win.el: Add require 'touch-screen.
+
 	* lisp/touch-screen.el (touch-screen-current-tool)
 	(touch-screen-current-timer, touch-screen-delay)
 	(touch-screen-relative-xy, touch-screen-handle-scroll)
 	(touch-screen-handle-timeout, touch-screen-handle-point-update)
 	(touch-screen-handle-point-up, touch-screen-handle-touch)
 	(global-map, touch-screen): New file.
+
 	* src/android.c (android_run_debug_thread): Fix build on 64 bit
 	systems.
 	(JNICALL, android_put_pixel): Likewise.
@@ -6254,12 +6023,16 @@
 	(android_fetch_pixel_bilinear, android_project_image_bilinear)
 	(android_fetch_pixel_nearest_24, android_fetch_pixel_nearest_1)
 	(android_project_image_nearest): New functions.
+
 	* src/androidgui.h (struct android_transform): New structure.
-	* src/androidterm.c (android_note_mouse_movement): Remove
-	obsolete TODO.
+
+	* src/androidterm.c (android_note_mouse_movement): Remove obsolete
+	TODO.
 	(android_get_scale_factor): New function.
 	(android_draw_underwave): Scale underwave correctly.
+
 	* src/dispextern.h: Support native image transforms on Android.
+
 	* src/image.c (matrix_identity, matrix_rotate)
 	(matrix_mirror_horizontal, matrix_translate): New functions.
 	(image_set_transform): Implement native image transforms on
@@ -6267,64 +6040,77 @@
 	(Fimage_transforms_p): Implement on Android.
 
 	* src/keyboard.c (make_lispy_event, syms_of_keyboard): Handle
-	touch screen- menu bar events.
+	touch screen menu bar events.
+
 	* src/sfnt.c: Fix typo in comment.
+
 	* src/sfntfont-android.c (sfntfont_android_blend, U255TO256)
-	(sfntfont_android_put_glyphs): Avoid redundant swizzling.
+	(sfntfont_android_put_glyphs): Prevent redundant swizzling.
+
 	* src/sfntfont.c (sfntfont_lookup_char): Fix build on 64 bit
 	systems.
 
 2023-01-15  Po Lu  <luangruo@yahoo.com>
 
-	Implement submenus on Android
 	* java/org/gnu/emacs/EmacsActivity.java (onCreate): Set the
 	default theme to Theme.DeviceDefault.NoActionBar if possible.
 	(onContextMenuClosed): Add hack for Android bug.
+
 	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu)
 	(onMenuItemClick): Set flag upon submenu selection.
 	(inflateMenuItems): Set onClickListener for submenus as well.
 	(display1): Clear new flag.
+
 	* java/org/gnu/emacs/EmacsDrawRectangle.java (perform): Fix
 	rectangle bounds.
-	* java/org/gnu/emacs/EmacsNative.java (EmacsNative):
+
+	* java/org/gnu/emacs/EmacsNative.java (setEmacsParams): New
+	argument for the cache directory.
+
 	* java/org/gnu/emacs/EmacsService.java (onCreate): Pass cache
 	directory.
 	(sync): New function.
-	* src/android.c (struct android_emacs_service): New method
-	`sync'.
+
+	* src/android.c (struct android_emacs_service): New method `sync'.
 	(setEmacsParams, initEmacs): Handle cache directory.
 	(android_init_emacs_service): Initialize new method `sync'.
 	(android_sync): New function.
+
 	* src/androidfns.c (Fx_show_tip): Call both functions.
+
 	* src/androidgui.h: Update prototypes.
+
 	* src/androidmenu.c (struct android_menu_subprefix)
 	(android_free_subprefixes, android_menu_show): Handle submenu
 	prefixes correctly.
+
 	* src/androidterm.c (handle_one_android_event): Clear help echo
 	on MotionNotify like on X.
-	* src/menu.c (single_menu_item): Enable submenus on Android.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
+	* src/menu.c (single_menu_item): Enable submenus on Android.
 
 2023-01-15  Po Lu  <luangruo@yahoo.com>
 
-	Implement toolkit menus on Android
 	* java/org/gnu/emacs/EmacsActivity.java (onContextMenuClosed):
 	New function.
-	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu):
-	New field `itemAlreadySelected'.
+
+	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu): New
+	field `itemAlreadySelected'.
 	(onMenuItemClick): New function.
 	(inflateMenuItems): Attach onClickListener as appropriate.
 	(display1): Clear itemAlreadySelected.
 	(display): Fix runnable synchronization.
+
 	* java/org/gnu/emacs/EmacsNative.java (sendContextMenu): New
 	function.
+
 	* java/org/gnu/emacs/EmacsView.java (popupMenu):
 	(cancelPopupMenu): Set popupactive correctly.
 
 	* src/android.c (android_run_select_thread): Fix android_select
 	again.
 	(android_wait_event): New function.
+
 	* src/android.h: Update prototypes.
 	* src/androidgui.h (enum android_event_type): New
 	`ANDROID_CONTEXT_MENU' event.
@@ -6343,54 +6129,55 @@
 
 	* src/androidterm.c (handle_one_android_event): Handle context
 	menu events.
+
 	* src/androidterm.h (struct android_display_info): New field for
 	menu item ID.
+
 	* src/emacs.c (android_emacs_init): Call syms_of_androidmenu.
-	* src/xdisp.c (note_mouse_highlight): Return if popup_activated
-	on Android as well.
+
+	* src/xdisp.c (note_mouse_highlight): Return if popup_activated on
+	Android as well.
 
 2023-01-14  Po Lu  <luangruo@yahoo.com>
 
-	Fix android_select
 	* src/android.c (android_run_select_thread, android_select):
 	Handle EINTR in sem_wait and fix sigsets.
 
-	Add temporary gnulib patch
 	* xcompile/lib/fpending.c (__fpending): Fix gnulib problem.
 
-	Drop unneeded changes to gnulib
 	* xcompile/lib/fpending.c (__fpending):
 	* xcompile/lib/open.c:
 	* xcompile/lib/unistd.c (_GL_UNISTD_INLINE): Remove Android
 	patches.
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
 2023-01-14  Po Lu  <luangruo@yahoo.com>
 
-	Update Android port
-	* java/Makefile.in (clean): Fix distclean and bootstrap-clean rules.
-	* java/debug.sh (jdb_port):
-	(attach_existing):
-	(num_pids):
-	(line): Add new options to upload a gdbserver binary to the device.
+	* java/Makefile.in (clean): Fix distclean and bootstrap-clean
+	rules.
+	* java/debug.sh (jdb_port, attach_existing, num_pids, line): Add
+	new options to upload a gdbserver binary to the device.
 
 	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): Make
 	focusedActivities public.
-	* java/org/gnu/emacs/EmacsContextMenu.java (EmacsContextMenu):
-	New class.
+
+	* java/org/gnu/emacs/EmacsContextMenu.java: New file.
+
 	* java/org/gnu/emacs/EmacsDrawRectangle.java (perform): Fix
 	bounds computation.
-	* java/org/gnu/emacs/EmacsGC.java (markDirty): Set stroke width
-	explicitly.
-	* java/org/gnu/emacs/EmacsService.java (EmacsService)
-	(getLocationOnScreen, nameKeysym): New functions.
-	* java/org/gnu/emacs/EmacsView.java (EmacsView): Disable focus
+
+	* java/org/gnu/emacs/EmacsGC.java (markDirty): Expressly provide
+	stroke width.
+
+	* java/org/gnu/emacs/EmacsService.java (getLocationOnScreen)
+	(nameKeysym): New functions.
+
+	* java/org/gnu/emacs/EmacsView.java (<init>): Disable focus
 	highlight.
-	(onCreateContextMenu, popupMenu, cancelPopupMenu): New
-	functions.
-	* java/org/gnu/emacs/EmacsWindow.java (EmacsWindow): Implement a
-	kind of ``override redirect'' window for tooltips.
+	(onCreateContextMenu, popupMenu, cancelPopupMenu): New functions.
+
+	* java/org/gnu/emacs/EmacsWindow.java: Implement a kind of
+	``override redirect'' window for tooltips.
+
 	* src/android.c (struct android_emacs_service): New method
 	`name_keysym'.
 	(android_run_select_thread, android_init_events):
@@ -6401,6 +6188,7 @@
 	(android_move_resize_window, android_map_raised)
 	(android_translate_coordinates, android_get_keysym_name)
 	(android_build_string, android_exception_check): New functions.
+
 	* src/android.h: Update prototypes.
 
 	* src/androidfns.c (android_set_parent_frame, Fx_create_frame)
@@ -6434,42 +6222,46 @@
 
 2023-01-14  Po Lu  <luangruo@yahoo.com>
 
-	Improve reliability of Android build system
 	* .gitignore: Add new files.
+
 	* INSTALL.android: New file.
+
 	* Makefile.in (clean_dirs): Clean xcompile as well.
-	* admin/merge-gnulib (avoided_flags): Import gnulib into Android
+
+	* admin/merge-gnulib (avoided_flags): Import Gnulib into Android
 	directory as well.
+
 	* doc/emacs/android.texi (Android):
 	* doc/emacs/emacs.texi (Top): New node `Android'.
-	* java/org/gnu/emacs/EmacsThread.java (run): Use right
-	executable name.
+
+	* java/org/gnu/emacs/EmacsThread.java (run): Use right executable
+	name.
+
 	* lib/Makefile.in (ANDROID_CFLAGS): Use better way to refer to
 	/src.
 	(vpath): Delete ugly block of vpath statements.
 	(mostlyclean): Remove Makefile.android.
+
 	* lib/fpending.c (__fpending):
 	* lib/open.c:
 	* lib/unistd.c (_GL_UNISTD_INLINE): Revert changes to gnulib in
 	lib/.
+
 	* src/android.h:
 	* src/androidterm.c: Fix build.
-	* xcompile/Makefile.in (LIB_SRCDIR):
-	(LIBSRC_BINARIES, src/verbose.mk):
-	(PRE_BUILD_DEPS, PHONY): Use gnulib in xcompile/lib/ as opposed
-	to lib/.
+	* xcompile/Makefile.in (LIB_SRCDIR, LIBSRC_BINARIES)
+	(src/verbose.mk, PRE_BUILD_DEPS, PHONY): Use gnulib in
+	xcompile/lib/ as opposed to lib/.
+
 	* xcompile/README: Adjust README.
 
-	Check in gnulib with Android patches
-	* xcompile/lib: Check-in gnulib with patches for Android.
+	* xcompile/lib: Check-in Gnulib with patches for Android.
 
 2023-01-13  Po Lu  <luangruo@yahoo.com>
 
-	Merge remote-tracking branch 'origin/master' into feature/android
-
-	Fix crashes in Android port
 	* java/org/gnu/emacs/EmacsService.java (queryTree): Fix NULL
 	pointer dereference.
+
 	* src/android.c (android_query_tree): Set *nchildren_return.
 
 	* .gitignore: Add AndroidManifest.xml.
@@ -6478,9 +6270,6 @@
 
 	* src/frame.c (make_monitor_attribute_list): Allow source to be NULL.
 
-2023-01-13  Po Lu  <luangruo@yahoo.com>
-
-	Update Android port
 	* configure.ac (ANDROID_MIN_SDK): New variable.
 	(DX): Remove and replace with D8.
 	(XCONFIGURE): Check for the minimum version of Android the cross
@@ -6493,34 +6282,36 @@
 	* java/Makefile.in (top_srcdir, version): New variables.
 	(DX, D8): Replace with D8.
 	(ANDROID_MIN_SDK, APK_NAME): New variables.
-	(.PHONY):
-	(.PRECIOUS):
-	(classes.dex):
-	(emacs.apk): Generate $(APK_NAME) instead of `emacs.apk'.
+	(.PHONY, .PRECIOUS, classes.dex, emacs.apk): Generate $(APK_NAME)
+	rather than `emacs.apk'.
 
 	* java/debug.sh: New option --attach-existing.  Attach to an
 	existing Emacs instance when specified.
 
-	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): New
-	field `isPaused'.
+	* java/org/gnu/emacs/EmacsActivity.java (EmacsActivity): New field
+	`isPaused'.
 	(invalidateFocus1): Fix infinite recursion.
 	(detachWindow): Deiconify window.
 	(attachWindow): Iconify the window if the activity is paused.
 	(onCreate): Use the ``no title bar'' theme.
 	(onPause, onResume): New functions.
+
 	* java/org/gnu/emacs/EmacsNative.java (sendTouchUp, sendTouchDown)
 	(sendTouchMove, sendWheel, sendIconified, sendDeiconified): New
 	functions.
+
 	* java/org/gnu/emacs/EmacsSdk7FontDriver.java (Sdk7Typeface):
 	(list): Remove logging for code that is mostly going to be unused.
+
 	* java/org/gnu/emacs/EmacsService.java (ringBell, queryTree)
 	(getScreenWidth, getScreenHeight, detectMouse): New functions.
+
 	* java/org/gnu/emacs/EmacsSurfaceView.java (EmacsSurfaceView)
 	(surfaceChanged, surfaceCreated, surfaceDestroyed): Add extra
 	debug logging.  Avoid deadlock in surfaceCreated.
 
-	* java/org/gnu/emacs/EmacsView.java (EmacsView): Try very hard
-	to make the SurfaceView respect Z order.  It didn't work.
+	* java/org/gnu/emacs/EmacsView.java (EmacsView): Try very hard to
+	make the SurfaceView respect Z order.  It didn't work.
 	(handleDirtyBitmap): Copy over the contents from the old bitmap.
 	(explicitlyDirtyBitmap): New function.
 	(onLayout): Don't dirty bitmap if unnecessary.
@@ -6542,6 +6333,7 @@
 	(reparentTo, makeInputFocus, raise, lower, getWindowGeometry)
 	(noticeIconified, noticeDeiconified, setDontAcceptFocus)
 	(setDontFocusOnMap, getDontFocusOnMap): New functions.
+
 	* java/org/gnu/emacs/EmacsWindowAttachmentManager.java
 	(registerWindow, detachWindow): Synchronize.
 	(noticeIconified, noticeDeiconified): New functions.
@@ -6552,10 +6344,9 @@
 	(frame-list-z-order, frame-restack, display-mouse-p)
 	(display-monitor-attributes-list): Implement on Android.
 
-	* lisp/mwheel.el (mouse-wheel-down-event):
-	(mouse-wheel-up-event):
-	(mouse-wheel-left-event):
-	(mouse-wheel-right-event): Define on Android.
+	* lisp/mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event)
+	(mouse-wheel-left-event, mouse-wheel-right-event): Define on
+	Android.
 
 	* src/android.c (struct android_emacs_service): New methods
 	`ringBell', `queryTree', `getScreenWidth', `getScreenHeight',
@@ -6570,7 +6361,8 @@
 	(android_bell, android_set_input_focus, android_raise_window)
 	(android_lower_window, android_query_tree, android_get_geometry)
 	(android_get_screen_width, android_get_screen_height)
-	(android_get_mm_width, android_get_mm_height, android_detect_mouse)
+	(android_get_mm_width, android_get_mm_height)
+	(android_detect_mouse)
 	(android_set_dont_focus_on_map, android_set_dont_accept_focus):
 	New functions.
 	(struct android_dir): New structure.
@@ -6611,8 +6403,8 @@
 	handlers.
 	(syms_of_androidfns): Update appropriately.
 
-	* src/androidfont.c (androidfont_draw): Use
-	FRAME_ANDROID_DRAWABLE instead of FRAME_ANDROID_WINDOW.
+	* src/androidfont.c (androidfont_draw): Use FRAME_ANDROID_DRAWABLE
+	instead of FRAME_ANDROID_WINDOW.
 
 	* src/androidgui.h (enum android_event_type): New events.
 	(struct android_touch_event, struct android_wheel_event)
@@ -6622,10 +6414,10 @@
 	* src/androidterm.c (android_clear_frame): Use
 	FRAME_ANDROID_DRAWABLE instead of FRAME_ANDROID_WINDOW.
 	(android_flash, android_ring_bell): Implement bell ringing.
-	(android_toggle_invisible_pointer): Don't TODO function that
-	can't be implemented.
-	(show_back_buffer, android_flush_dirty_back_buffer_on): Check if
-	a buffer flip is required before doing the flip.
+	(android_toggle_invisible_pointer): Don't TODO function that can't
+	be implemented.
+	(show_back_buffer, android_flush_dirty_back_buffer_on): Check if a
+	buffer flip is required before doing the flip.
 	(android_lower_frame, android_raise_frame): Implement functions.
 	(android_update_tools, android_find_tool): New functions.
 	(handle_one_android_event): Handle new iconification, wheel and
@@ -6652,8 +6444,8 @@
 	(android_draw_glyph_string, android_clear_frame_area)
 	(android_clear_under_internal_border, android_draw_hollow_cursor)
 	(android_draw_bar_cursor, android_draw_vertical_window_border)
-	(android_draw_window_divider): Use FRAME_ANDROID_DRAWABLE
-	instead of FRAME_ANDROID_WINDOW for drawing operations.
+	(android_draw_window_divider): Use FRAME_ANDROID_DRAWABLE instead
+	of FRAME_ANDROID_WINDOW for drawing operations.
 
 	* src/androidterm.h (struct android_touch_point): New structure.
 	(struct android_output): New fields.
@@ -6661,9 +6453,8 @@
 
 	* src/dired.c (emacs_readdir, open_directory)
 	(directory_files_internal_unwind, read_dirent)
-	(directory_files_internal, file_name_completion): Add
-	indirection over readdir and opendir.  Use android variants on
-	Android.
+	(directory_files_internal, file_name_completion): Add indirection
+	over readdir and opendir.  Use android variants on Android.
 
 	* src/dispnew.c (Fopen_termscript):
 	* src/fileio.c (fclose_unwind): Use emacs_fclose.
@@ -6671,8 +6462,9 @@
 	(file_accessible_directory_p): Append right suffix to Android
 	assets directory.
 	(do_auto_save_unwind): Use emacs_fclose.
-	* src/keyboard.c (lispy_function_keys): Use right function key
-	for page up and page down.
+
+	* src/keyboard.c (lispy_function_keys): Use right function key for
+	page up and page down.
 	(Fopen_dribble_file): Use emacs_fclose.
 
 	* src/lisp.h: New prototype emacs_fclose.
@@ -6682,33 +6474,28 @@
 	* src/sfnt.c (sfnt_curve_is_flat): Fix area-squared computation.
 	(sfnt_prepare_raster): Compute raster width and height
 	consistently with outline building.
-	(sfnt_build_outline_edges): Use the same offsets used to set
-	offy and offx.
+	(sfnt_build_outline_edges): Use the same offsets used to set offy
+	and offx.
 	(main): Adjust debug code.
 
 	* src/sfntfont-android.c (sfntfont_android_saturate32): Delete
 	function.
 	(sfntfont_android_blend, sfntfont_android_blendrgb): Remove
 	unnecessary debug code.
-	(sfntfont_android_composite_bitmap): Prevent out of bounds
-	write.
+	(sfntfont_android_composite_bitmap): Prevent out of bounds write.
 	(sfntfont_android_put_glyphs): Use FRAME_ANDROID_DRAWABLE.
 	(init_sfntfont_android): Initialize Monospace Serif font to
 	something sensible.
+
 	* src/sfntfont.c (sfntfont_text_extents): Clear glyph metrics
 	before summing up pcm.
 	(sfntfont_draw): Use s->font instead of s->face->font.
 
 	* src/sysdep.c (emacs_fclose): Wrap around android_fclose on
-	android.
+	Android.
 
-	* src/term.c (Fsuspend_tty):
-	(delete_tty): Use emacs_fclose.
+	* src/term.c (Fsuspend_tty, delete_tty): Use emacs_fclose.
 	* src/verbose.mk.in (AM_V_DX): Replace with D8 version.
-
-2023-01-11  Po Lu  <luangruo@yahoo.com>
-
-	Merge remote-tracking branch 'origin/master' into feature/android
 
 2023-01-11  Po Lu  <luangruo@yahoo.com>
 
