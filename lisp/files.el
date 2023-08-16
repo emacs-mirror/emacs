@@ -8553,7 +8553,7 @@ the leading `-' character."
 (defun file-modes-symbolic-to-number (modes &optional from)
   "Convert symbolic file modes to numeric file modes.
 MODES is the string to convert, it should match
-\"[ugoa]*([+-=][rwxXstugo]*)+,...\".
+\"[ugoa]*([+=-][rwxXstugo]*)+,...\".
 See Info node `(coreutils)File permissions' for more information on this
 notation.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if
