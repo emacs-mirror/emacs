@@ -1018,7 +1018,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 				  (eshell-stringify-list
 				   (flatten-tree (cdr time-args))))))))
 
-(defun eshell/whoami (&rest _args)
+(defun eshell/whoami ()
   "Make \"whoami\" Tramp aware."
   (eshell-user-login-name))
 

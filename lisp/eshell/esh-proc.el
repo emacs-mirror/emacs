@@ -193,7 +193,7 @@ This is like `process-live-p', but additionally checks whether
 
 (defalias 'eshell/wait #'eshell-wait-for-process)
 
-(defun eshell/jobs (&rest _args)
+(defun eshell/jobs ()
   "List processes, if there are any."
   (and (fboundp 'process-list)
        (process-list)

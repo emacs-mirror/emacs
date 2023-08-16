@@ -316,7 +316,7 @@ Thus, this does not include the current directory.")
                    (`(boundaries . ,suffix)
                     `(boundaries 0 . ,(string-search "/" suffix))))))))))
 
-(defun eshell/pwd (&rest _args)
+(defun eshell/pwd ()
   "Change output from `pwd' to be cleaner."
   (let* ((path default-directory)
 	 (len (length path)))
