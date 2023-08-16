@@ -4286,12 +4286,6 @@ init_gettimeofday (void)
 }
 #endif
 
-int
-get_boot_time (struct timespec *p_boot_time)
-{
-  return -1;
-}
-
 static void
 msdos_abort (void)
 {
