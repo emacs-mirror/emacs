@@ -4013,8 +4013,9 @@ by `with-restriction' with the same LABEL argument are lifted.
 (defun internal--without-restriction (body &optional label)
   "Helper function for `without-restriction', which see."
   (save-restriction
-    (if label (internal--unlabel-restriction label))
-    (widen)
+    (if label
+        (internal--labeled-widen label)
+      (widen))
     (funcall body)))
 
 (defun find-tag-default-bounds ()
