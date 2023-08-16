@@ -4116,17 +4116,10 @@ buffer, use `without-restriction' with the same LABEL argument.
 \(fn START END [:label LABEL] BODY)"
   (declare (indent 2) (debug t))
   (if (eq (car rest) :label)
-      `(internal--with-restriction ,start ,end (lambda () ,@(cddr rest))
-                                 ,(cadr rest))
-    `(internal--with-restriction ,start ,end (lambda () ,@rest))))
-
-(defun internal--with-restriction (start end body &optional label)
-  "Helper function for `with-restriction', which see."
-  (save-restriction
-    (if label
-        (internal--labeled-narrow-to-region start end label)
-      (narrow-to-region start end))
-    (funcall body)))
+      `(save-restriction
+         (internal--labeled-narrow-to-region ,start ,end ,(cadr rest))
+         ,@(cddr rest))
+    `(save-restriction (narrow-to-region ,start ,end) ,@rest)))
 
 (defmacro without-restriction (&rest rest)
   "Execute BODY without restrictions.
@@ -4139,17 +4132,8 @@ by `with-restriction' with the same LABEL argument are lifted.
 \(fn [:label LABEL] BODY)"
   (declare (indent 0) (debug t))
   (if (eq (car rest) :label)
-      `(internal--without-restriction (lambda () ,@(cddr rest))
-                                    ,(cadr rest))
-    `(internal--without-restriction (lambda () ,@rest))))
-
-(defun internal--without-restriction (body &optional label)
-  "Helper function for `without-restriction', which see."
-  (save-restriction
-    (if label
-        (internal--labeled-widen label)
-      (widen))
-    (funcall body)))
+      `(save-restriction (internal--labeled-widen ,(cadr rest)) ,@(cddr rest))
+    `(save-restriction (widen) ,@rest)))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
