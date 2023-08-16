@@ -137,7 +137,8 @@ URL at point in a new EWW buffer, akin to opening a link in a new
 ``tab'' in other browsers.  When @code{global-tab-line-mode} is
 enabled, this buffer is displayed in the tab on the window tab line.
 When @code{tab-bar-mode} is enabled, a new tab is created on the frame
-tab bar.
+tab bar.  If the prefix key @kbd{C-u} is avaliable, it will stay on
+current buffer.
 
 @findex eww-readable
 @kindex R

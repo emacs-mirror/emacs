@@ -460,6 +460,11 @@ the kill ring.  Alternate links are optional metadata that HTML pages
 use for linking to their alternative representations, such as
 translated versions or associated RSS feeds.
 
++++
+*** 'eww-open-in-new-buffer' support prefix key "C-u" to stay current buffer.
+The command accept the prefix key "C-u" to open the url in a new
+buffer but stay in current buffer, won't jump to the new buffer.
+
 ** go-ts-mode
 
 +++

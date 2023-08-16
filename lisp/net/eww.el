@@ -542,24 +542,37 @@ for the search engine used."
           (call-interactively #'eww)))
     (call-interactively #'eww)))
 
-(defun eww-open-in-new-buffer ()
-  "Fetch link at point in a new EWW buffer."
-  (interactive)
-  (let ((url (eww-suggested-uris)))
-    (if (null url) (user-error "No link at point")
-      (when (or (eq eww-browse-url-new-window-is-tab t)
-                (and (eq eww-browse-url-new-window-is-tab 'tab-bar)
-                     tab-bar-mode))
-        (let ((tab-bar-new-tab-choice t))
-          (tab-new)))
-      ;; clone useful to keep history, but
-      ;; should not clone from non-eww buffer
-      (with-current-buffer
-          (if (eq major-mode 'eww-mode) (clone-buffer)
-            (generate-new-buffer "*eww*"))
-        (unless (equal url (eww-current-url))
-          (eww-mode)
-          (eww (if (consp url) (car url) url)))))))
+(defun eww--open-url-in-new-buffer (url)
+  "Open the URL in a new EWW buffer."
+  ;; clone useful to keep history, but
+  ;; should not clone from non-eww buffer
+  (with-current-buffer
+      (if (eq major-mode 'eww-mode) (clone-buffer)
+        (generate-new-buffer "*eww*"))
+    (unless (equal url (eww-current-url))
+      (eww-mode)
+      (eww (if (consp url) (car url) url)))))
+
+(defun eww-open-in-new-buffer (&optional no-select url)
+  "Fetch URL in a new EWW buffer.
+
+If the NO-SELECT is not `nil', the forcus will stay on current buffer.
+
+If the URL is `nil', it will try `eww-suggested-uris' under current cursor."
+  (interactive "P")
+  (if-let ((url (or url (eww-suggested-uris))))
+      (if (or (eq eww-browse-url-new-window-is-tab t)
+              (and (eq eww-browse-url-new-window-is-tab 'tab-bar)
+                   tab-bar-mode))
+          (let ((tab-bar-new-tab-choice t))
+            (tab-new)
+            (eww--open-url-in-new-buffer url)
+            (when no-select
+              (tab-bar-switch-to-prev-tab)))
+        (if no-select
+            (save-window-excursion (eww--open-url-in-new-buffer url))
+          (eww--open-url-in-new-buffer url)))
+    (user-error "No link at point")))
 
 (defun eww-html-p (content-type)
   "Return non-nil if CONTENT-TYPE designates an HTML content type.
