@@ -351,11 +351,7 @@ compile-first: $(COMPILE_FIRST)
 # TARGETS is set dynamically in the recursive call from 'compile-main'.
 # Do not build comp.el unless necessary not to exceed max-lisp-eval-depth
 # in normal builds.
-ifneq ($(HAVE_NATIVE_COMP),yes)
-compile-targets: $(filter-out ./emacs-lisp/comp-cstr.elc,$(filter-out ./emacs-lisp/comp.elc,$(TARGETS)))
-else
 compile-targets: $(TARGETS)
-endif
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # 'no-byte-compile', so watch out for false-positives!
