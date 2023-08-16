@@ -433,7 +433,7 @@ the values of nil for each."
      (?h "help" nil nil "show this usage screen")
      :external "env"
      :parse-leading-options-only
-     :usage "[NAME=VALUE]... [COMMAND [ARG]...]")
+     :usage "[NAME=VALUE]... [COMMAND]...")
    (if args
        (or (eshell-parse-local-variables args)
            (eshell-named-command (car args) (cdr args)))
