@@ -729,6 +729,13 @@ the needs of users with red-green or blue-yellow color deficiency.
 The Info manual "(modus-themes) Top" describes the details and
 showcases all their customization options.
 
+** Project
+
+*** New user option 'project-file-history-behavior'.
+Customizing it to 'relative' makes commands like 'project-find-file'
+and 'project-find-dir' display previous history entries relative to
+the current project.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 

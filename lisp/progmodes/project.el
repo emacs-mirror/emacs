@@ -1029,10 +1029,12 @@ If INCLUDE-ALL is non-nil, or with prefix argument when called
 interactively, include all files under the project root, except
 for VCS directories listed in `vc-directory-exclusion-list'."
   (interactive "P")
+  (defvar project-file-history-behavior)
   (let* ((pr (project-current t))
          (dirs (cons
                 (project-root pr)
-                (project-external-roots pr))))
+                (project-external-roots pr)))
+         (project-file-history-behavior t))
     (project-find-file-in (thing-at-point 'filename) dirs pr include-all)))
 
 (defcustom project-read-file-name-function #'project--read-file-cpd-relative
@@ -1045,6 +1047,26 @@ For the arguments list, see `project--read-file-cpd-relative'."
                  (function :tag "Custom function" nil))
   :group 'project
   :version "27.1")
+
+(defcustom project-file-history-behavior t
+  "If `relativize', entries in `file-name-history' are adjusted.
+
+History entries shown in `project-find-file', `project-find-dir',
+(from `file-name-history') are adjusted to be relative to the
+current project root, instead of the project which added those
+paths.  This only affects history entries added by earlier calls
+to `project-find-file' or `project-find-dir'.
+
+This has the effect of sharing more history between projects."
+  :type '(choice (const t :tag "Default behavior")
+                 (const relativize :tag "Adjust to be relative to current")))
+
+(defun project--transplant-file-name (filename project)
+  (when-let ((old-root (get-text-property 0 'project filename)))
+    (abbreviate-file-name
+     (expand-file-name
+      (file-relative-name filename old-root)
+      (project-root project)))))
 
 (defun project--read-file-cpd-relative (prompt
                                         all-files &optional predicate
@@ -1079,8 +1101,7 @@ by the user at will."
          (new-collection (project--file-completion-table substrings))
          (abbr-cpd (abbreviate-file-name common-parent-directory))
          (abbr-cpd-length (length abbr-cpd))
-         (relname (cl-letf ((history-add-new-input nil)
-                            ((symbol-value hist)
+         (relname (cl-letf (((symbol-value hist)
                              (mapcan
                               (lambda (s)
                                 (and (string-prefix-p abbr-cpd s)
@@ -1092,8 +1113,6 @@ by the user at will."
                                                      predicate
                                                      hist mb-default)))
          (absname (expand-file-name relname common-parent-directory)))
-    (when (and hist history-add-new-input)
-      (add-to-history hist (abbreviate-file-name absname)))
     absname))
 
 (defun project--read-file-absolute (prompt
@@ -1103,6 +1122,29 @@ by the user at will."
                                    (project--file-completion-table all-files)
                                    predicate
                                    hist mb-default))
+
+(defun project--read-file-name ( project prompt
+                                 all-files &optional predicate
+                                 hist mb-default)
+  "Call `project-read-file-name-function' with appropriate history.
+
+Depending on `project-file-history-behavior', entries are made
+project-relative where possible."
+  (let ((file
+         (cl-letf ((history-add-new-input nil)
+                   ((symbol-value hist)
+                    (if (eq project-file-history-behavior 'relativize)
+                        (mapcar
+                         (lambda (f)
+                           (or (project--transplant-file-name f project) f))
+                         (symbol-value hist))
+                      (symbol-value hist))))
+           (funcall project-read-file-name-function
+                    prompt all-files predicate hist mb-default))))
+    (when (and hist history-add-new-input)
+      (add-to-history hist
+                      (propertize file 'project (project-root project))))
+    file))
 
 (defun project-find-file-in (suggested-filename dirs project &optional include-all)
   "Complete a file name in DIRS in PROJECT and visit the result.
@@ -1124,9 +1166,10 @@ directories listed in `vc-directory-exclusion-list'."
                dirs)
             (project-files project dirs)))
          (completion-ignore-case read-file-name-completion-ignore-case)
-         (file (funcall project-read-file-name-function
-                        "Find file" all-files nil 'file-name-history
-                        suggested-filename)))
+         (file (project--read-file-name
+                project "Find file"
+                all-files nil 'file-name-history
+                suggested-filename)))
     (if (string= file "")
         (user-error "You didn't specify the file")
       (find-file file))))
@@ -1158,11 +1201,11 @@ directories listed in `vc-directory-exclusion-list'."
          ;; https://stackoverflow.com/a/50685235/615245 for possible
          ;; implementation.
          (all-dirs (mapcar #'file-name-directory all-files))
-         (dir (funcall project-read-file-name-function
-                       "Dired"
-                       ;; Some completion UIs show duplicates.
-                       (delete-dups all-dirs)
-                       nil 'file-name-history)))
+         (dir (project--read-file-name
+               project "Dired"
+               ;; Some completion UIs show duplicates.
+               (delete-dups all-dirs)
+               nil 'file-name-history)))
     (dired dir)))
 
 ;;;###autoload
