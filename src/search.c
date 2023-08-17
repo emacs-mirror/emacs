@@ -2359,7 +2359,9 @@ the replacement text.  Otherwise, maybe capitalize the whole text, or
 maybe just word initials, based on the replaced text.  If the replaced
 text has only capital letters and has at least one multiletter word,
 convert NEWTEXT to all caps.  Otherwise if all words are capitalized
-in the replaced text, capitalize each word in NEWTEXT.
+in the replaced text, capitalize each word in NEWTEXT.  Note that
+what exactly is a word is determined by the syntax tables in effect
+in the current buffer.
 
 If optional third arg LITERAL is non-nil, insert NEWTEXT literally.
 Otherwise treat `\\' as special:

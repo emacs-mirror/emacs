@@ -1658,6 +1658,7 @@ command's first argument.  If @code{case-fold-search} is set to
 @code{nil}, case is always significant in all searches.
 
 @vindex case-replace
+@cindex case preservation in replace commands
   In addition, when the second argument of a replace command is all or
 partly lower case, replacement commands try to preserve the case
 pattern of each occurrence.  Thus, the command
@@ -1671,7 +1672,27 @@ replaces a lower case @samp{foo} with a lower case @samp{bar}, an
 all-caps @samp{FOO} with @samp{BAR}, and a capitalized @samp{Foo} with
 @samp{Bar}.  (These three alternatives---lower case, all caps, and
 capitalized, are the only ones that @code{replace-string} can
-distinguish.)
+distinguish.)  Note that Emacs decides whether to up-case or capitalize
+the replacement text by analyzing each word in the text being
+replaced, and will preserve the letter-case of the replaced text only
+if @emph{all} of its words use the same letter-case.  Thus, the
+command
+
+@example
+M-x replace-string @key{RET} foo bar @key{RET} baz quux @key{RET}
+@end example
+
+@noindent
+replaces @samp{Foo Bar} with @samp{Baz Quux} because both words in
+@samp{Foo Bar} are capitalized.  By contrast, the same command
+replaces @samp{Foo bar} with @samp{baz quux}, i.e.@: it leaves the
+letter-case of the replacement text unchanged, since the two words in
+@samp{Foo bar} use different capitalization.  What exactly is
+considered a ``word'' depends on the syntax tables that are in effect
+in the current buffer (@pxref{Syntax Tables,,, elisp, The Emacs Lisp
+Reference Manual}); thus, @samp{Foo_Bar} is two words in Text mode,
+but could be a single word in some major mode that supports a
+programming language.
 
   If upper-case letters are used in the replacement string, they remain
 upper case every time that text is inserted.  If upper-case letters are
@@ -1708,7 +1729,7 @@ This command finds occurrences of @samp{foo} one by one, displays each
 occurrence and asks you whether to replace it.  Aside from querying,
 @code{query-replace} works just like @code{replace-string}
 (@pxref{Unconditional Replace}).  In particular, it preserves case
-provided @code{case-replace} is non-@code{nil}, as it normally is
+provided that @code{case-replace} is non-@code{nil}, as it normally is
 (@pxref{Replacement and Lax Matches}).  A numeric argument means to
 consider only occurrences that are bounded by word-delimiter
 characters.  A negative prefix argument replaces backward.
