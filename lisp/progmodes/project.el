@@ -994,7 +994,8 @@ pattern to search for."
   "Visit a file (with completion) in the current project.
 
 The filename at point (determined by `thing-at-point'), if any,
-is available as part of \"future history\".
+is available as part of \"future history\".  If none, the current
+buffer's file name is used.
 
 If INCLUDE-ALL is non-nil, or with prefix argument when called
 interactively, include all files under the project root, except
@@ -1005,7 +1006,16 @@ for VCS directories listed in `vc-directory-exclusion-list'."
          (dirs (list root)))
     (project-find-file-in
      (or (thing-at-point 'filename)
-         buffer-file-name)
+         (and buffer-file-name
+              (if-let (buffer-proj (and project-current-directory-override
+                                        (project-current nil default-directory)))
+                  ;; Allow using the relative file name of the current
+                  ;; buffer in "other project" as well.
+                  (let ((buffer-root (project-root buffer-proj)))
+                    ;; file-name-concat requires Emacs 28+
+                    (concat (file-name-as-directory root)
+                            (file-relative-name buffer-file-name buffer-root)))
+                buffer-file-name)))
      dirs pr include-all)))
 
 ;;;###autoload
