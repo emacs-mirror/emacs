@@ -1651,8 +1651,9 @@ in the current Emacs session, then this function may return nil."
 
 (defun event-start (event)
   "Return the starting position of EVENT.
-EVENT should be a mouse click, drag, or key press event.  If
-EVENT is nil, the value of `posn-at-point' is used instead.
+EVENT should be a mouse click, drag, touch screen, or key press
+event.  If EVENT is nil, the value of `posn-at-point' is used
+instead.
 
 The following accessor functions are used to access the elements
 of the position:
@@ -1675,27 +1676,32 @@ nil or (STRING . POSITION)'.
 
 For more information, see Info node `(elisp)Click Events'."
   (declare (side-effect-free t))
-  (or (and (consp event)
-           ;; Ignore touchscreen events.  They store the posn in a
-           ;; different format, and can have multiple posns.
-           (not (memq (car event) '(touchscreen-begin
-                                    touchscreen-update
-                                    touchscreen-end)))
-           (nth 1 event))
-      (event--posn-at-point)))
+  (if (or (eq (car event) 'touchscreen-begin)
+          (eq (car event) 'touchscreen-end))
+      ;; Touch screen begin and end events save their information in a
+      ;; different format, where the mouse position list is the cdr of
+      ;; (nth 1 event).
+      (cdadr event)
+    (or (and (consp event)
+             ;; Ignore touchscreen update events.  They store the posn
+             ;; in a different format, and can have multiple posns.
+             (not (eq (car event) 'touchscreen-update))
+             (nth 1 event))
+        (event--posn-at-point))))
 
 (defun event-end (event)
   "Return the ending position of EVENT.
-EVENT should be a click, drag, or key press event.
+EVENT should be a click, drag, touch screen, or key press event.
 
 See `event-start' for a description of the value returned."
   (declare (side-effect-free t))
-  (or (and (consp event)
-           (not (memq (car event) '(touchscreen-begin
-                                    touchscreen-update
-                                    touchscreen-end)))
-           (nth (if (consp (nth 2 event)) 2 1) event))
-      (event--posn-at-point)))
+  (if (or (eq (car event) 'touchscreen-begin)
+          (eq (car event) 'touchscreen-end))
+      (cdadr event)
+    (or (and (consp event)
+             (not (eq (car event) 'touchscreen-update))
+             (nth (if (consp (nth 2 event)) 2 1) event))
+        (event--posn-at-point))))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.

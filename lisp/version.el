@@ -61,13 +61,19 @@ returned by `current-time'."
          (string-to-number (match-string 1 emacs-version)))
   "Minor version number of this version of Emacs.")
 
-(defconst emacs-build-system (or (and (eq system-type 'android)
+;; N.B. (featurep 'android) is tested for in addition to
+;; `system-type', because that can also be Android on a TTY-only
+;; Android build that doesn't employ the window system packaging
+;; support.  (bug#65319)
+(defconst emacs-build-system (or (and (featurep 'android)
+                                      (eq system-type 'android)
                                       (android-read-build-system))
                                  (system-name))
   "Name of the system on which Emacs was built, or nil if not available.")
 
 (defconst emacs-build-time (if emacs-build-system
-                               (or (and (eq system-type 'android)
+                               (or (and (featurep 'android)
+                                        (eq system-type 'android)
                                         (android-read-build-time))
                                    (current-time)))
   "Time at which Emacs was dumped out, or nil if not available.")
@@ -183,7 +189,8 @@ correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'.
 Optional argument EXTERNAL is ignored."
-  (cond ((eq system-type 'android)
+  (cond ((and (featurep 'android)
+              (eq system-type 'android))
          (emacs-repository-version-android))
         (t (emacs-repository-version-git
             (or dir source-directory)))))
@@ -229,7 +236,8 @@ this reports on the current state of the sources, which may not
 correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'."
-  (cond ((eq system-type 'android)
+  (cond ((and (featurep 'android)
+              (eq system-type 'android))
          (emacs-repository-branch-android))
         (t (emacs-repository-branch-git
             (or dir source-directory)))))

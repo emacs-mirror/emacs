@@ -5992,7 +5992,7 @@ AC_DEFUN([tputs_link_source], [
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 AC_CACHE_CHECK([for library containing tputs], [emacs_cv_tputs_lib],
-[if test "${opsys}" = "mingw32" || test "$opsys" = "android"; then
+[if test "${opsys}" = "mingw32" || test x"$REALLY_ANDROID" = "xyes"; then
   emacs_cv_tputs_lib='none required'
 else
   # curses precedes termcap because of AIX (Bug#9736#35) and OpenIndiana.

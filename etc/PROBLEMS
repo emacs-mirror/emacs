@@ -3400,7 +3400,7 @@ results that are easier to read.
 
 ** The "Anonymous Pro" font displays incorrectly.
 
-Glyphs instruction code within the Anonymous Pro font relies on
+Glyph instruction code within the Anonymous Pro font relies on
 undocumented features of the Microsoft TrueType font scaler, namely
 that the scaler always resets the "projection" and "freedom" vector
 interpreter control registers after the execution of the font

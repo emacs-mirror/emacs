@@ -64,12 +64,10 @@
 
 ;;; Compatibility.
 
-(defun widget-event-point (event)
+(defsubst widget-event-point (event)
   "Character position of the end of event if that exists, or nil.
 EVENT can either be a mouse event or a touch screen event."
-  (if (eq (car-safe event) 'touchscreen-begin)
-      (posn-point (cdadr event))
-    (posn-point (event-end event))))
+  (posn-point (event-end event)))
 
 (defun widget-button-release-event-p (event)
   "Non-nil if EVENT is a mouse-button-release event object."
