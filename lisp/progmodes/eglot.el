@@ -222,7 +222,8 @@ chosen (interactively or automatically)."
                                  . ,(if (and (fboundp 'w32-shell-dos-semantics)
                                              (w32-shell-dos-semantics))
                                         '("language_server.bat")
-                                      '("language_server.sh")))
+                                      (eglot-alternatives
+                                       '("language_server.sh" "start_lexical.sh"))))
                                 (ada-mode . ("ada_language_server"))
                                 (scala-mode . ,(eglot-alternatives
                                                 '("metals" "metals-emacs")))
