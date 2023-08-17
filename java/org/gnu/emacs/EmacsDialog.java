@@ -394,6 +394,7 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     final EmacsHolder<Boolean> rc;
 
     rc = new EmacsHolder<Boolean> ();
+    rc.thing = false;
     runnable = new Runnable () {
 	@Override
 	public void
