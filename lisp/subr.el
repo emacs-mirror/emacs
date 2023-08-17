@@ -1676,8 +1676,9 @@ nil or (STRING . POSITION)'.
 
 For more information, see Info node `(elisp)Click Events'."
   (declare (side-effect-free t))
-  (if (or (eq (car event) 'touchscreen-begin)
-          (eq (car event) 'touchscreen-end))
+  (if (and (consp event)
+           (or (eq (car event) 'touchscreen-begin)
+               (eq (car event) 'touchscreen-end)))
       ;; Touch screen begin and end events save their information in a
       ;; different format, where the mouse position list is the cdr of
       ;; (nth 1 event).
@@ -1695,8 +1696,9 @@ EVENT should be a click, drag, touch screen, or key press event.
 
 See `event-start' for a description of the value returned."
   (declare (side-effect-free t))
-  (if (or (eq (car event) 'touchscreen-begin)
-          (eq (car event) 'touchscreen-end))
+  (if (and (consp event)
+           (or (eq (car event) 'touchscreen-begin)
+               (eq (car event) 'touchscreen-end)))
       (cdadr event)
     (or (and (consp event)
              (not (eq (car event) 'touchscreen-update))
