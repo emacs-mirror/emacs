@@ -317,9 +317,10 @@ specify an argument of some other data type, you can use a Lisp form
 (1 2 3)
 @end example
 
-Additionally, many built-in Eshell commands (@pxref{Built-ins}) will
-flatten the arguments they receive, so passing a list as an argument
-will ``spread'' the elements into multiple arguments:
+When calling external commands (and many built-in Eshell commands,
+too) Eshell will flatten the arguments the command receives, so
+passing a list as an argument will ``spread'' the elements into
+multiple arguments:
 
 @example
 ~ $ printnl (list 1 2) 3
@@ -1466,18 +1467,28 @@ other arguments around it.  For example, if @var{numbers} is the list
 
 @node Globbing
 @section Globbing
-@vindex eshell-glob-case-insensitive
 Eshell's globbing syntax is very similar to that of Zsh
 (@pxref{Filename Generation, , , zsh, The Z Shell Manual}).  Users
 coming from Bash can still use Bash-style globbing, as there are no
 incompatibilities.
 
-By default, globs are case sensitive, except on MS-DOS/MS-Windows
+@vindex eshell-glob-case-insensitive
+Globs are case sensitive by default, except on MS-DOS/MS-Windows
 systems.  You can control this behavior via the
-@code{eshell-glob-case-insensitive} option.  You can further customize
-the syntax and behavior of globbing in Eshell via the Customize group
-@code{eshell-glob} (@pxref{Easy Customization, , , emacs, The GNU
-Emacs Manual}).
+@code{eshell-glob-case-insensitive} option.
+
+@vindex eshell-glob-splice-results
+By default, Eshell expands the results of a glob as a sublist into the
+list of arguments.  You can change this to splice the results in-place
+by setting @code{eshell-glob-splice-results} to a non-@code{nil}
+value.  If you want to splice a glob in-place for just one use, you
+can use a subcommand form like @samp{$@@@{listify @var{my-glob}@}}.
+(Conversely, you can explicitly expand a glob as a sublist via
+@samp{$@{listify @var{my-glob}@}}.)
+
+You can further customize the syntax and behavior of globbing in
+Eshell via the Customize group @code{eshell-glob} (@pxref{Easy
+Customization, , , emacs, The GNU Emacs Manual}).
 
 @table @samp
 
@@ -2385,8 +2396,6 @@ be Eshell's job?
 
 This would be so that if a Lisp function calls @code{print}, everything
 will happen as it should (albeit slowly).
-
-@item If a globbing pattern returns one match, should it be a list?
 
 @item Make sure syntax table is correct in Eshell mode
 

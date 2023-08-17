@@ -26,6 +26,13 @@
 (require 'ert)
 (require 'em-glob)
 
+(require 'eshell-tests-helpers
+         (expand-file-name "eshell-tests-helpers"
+                           (file-name-directory (or load-file-name
+                                                    default-directory))))
+
+(defvar eshell-prefer-lisp-functions)
+
 (defmacro with-fake-files (files &rest body)
   "Evaluate BODY forms, pretending that FILES exist on the filesystem.
 FILES is a list of file names that should be reported as
@@ -53,6 +60,60 @@ component ending in \"symlink\" is treated as a symbolic link."
      ,@body))
 
 ;;; Tests:
+
+(ert-deftest em-glob-test/expand/splice-results ()
+  "Test that globs are spliced into the argument list when
+`eshell-glob-splice-results' is non-nil."
+  (let ((eshell-prefer-lisp-functions t)
+        (eshell-glob-splice-results t))
+    (with-fake-files '("a.el" "b.el" "c.txt")
+      ;; Ensure the default expansion splices the glob.
+      (eshell-command-result-equal "list *.el" '("a.el" "b.el"))
+      (eshell-command-result-equal "list *.txt" '("c.txt"))
+      (eshell-command-result-equal "list *.no" '("*.no")))))
+
+(ert-deftest em-glob-test/expand/no-splice-results ()
+  "Test that globs are treated as lists when
+`eshell-glob-splice-results' is nil."
+  (let ((eshell-prefer-lisp-functions t)
+        (eshell-glob-splice-results nil))
+    (with-fake-files '("a.el" "b.el" "c.txt")
+      ;; Ensure the default expansion splices the glob.
+      (eshell-command-result-equal "list *.el" '(("a.el" "b.el")))
+      (eshell-command-result-equal "list *.txt" '(("c.txt")))
+      ;; The no-matches case is special here: the glob is just the
+      ;; string, not the list of results.
+      (eshell-command-result-equal "list *.no" '("*.no")))))
+
+(ert-deftest em-glob-test/expand/explicitly-splice-results ()
+  "Test explicitly splicing globs works the same no matter the
+value of `eshell-glob-splice-results'."
+  (let ((eshell-prefer-lisp-functions t))
+    (dolist (eshell-glob-splice-results '(nil t))
+      (ert-info ((format "eshell-glob-splice-results: %s"
+                         eshell-glob-splice-results))
+        (with-fake-files '("a.el" "b.el" "c.txt")
+          (eshell-command-result-equal "list $@{listify *.el}"
+                                       '("a.el" "b.el"))
+          (eshell-command-result-equal "list $@{listify *.txt}"
+                                       '("c.txt"))
+          (eshell-command-result-equal "list $@{listify *.no}"
+                                       '("*.no")))))))
+
+(ert-deftest em-glob-test/expand/explicitly-listify-results ()
+  "Test explicitly listifying globs works the same no matter the
+value of `eshell-glob-splice-results'."
+  (let ((eshell-prefer-lisp-functions t))
+    (dolist (eshell-glob-splice-results '(nil t))
+      (ert-info ((format "eshell-glob-splice-results: %s"
+                         eshell-glob-splice-results))
+        (with-fake-files '("a.el" "b.el" "c.txt")
+          (eshell-command-result-equal "list ${listify *.el}"
+                                       '(("a.el" "b.el")))
+          (eshell-command-result-equal "list ${listify *.txt}"
+                                       '(("c.txt")))
+          (eshell-command-result-equal "list ${listify *.no}"
+                                       '(("*.no"))))))))
 
 (ert-deftest em-glob-test/match-any-string ()
   "Test that \"*\" pattern matches any string."
@@ -191,6 +252,9 @@ component ending in \"symlink\" is treated as a symbolic link."
   (with-fake-files '("foo.el" "bar.el")
     (should (equal (eshell-extended-glob "*.txt")
                    "*.txt"))
+    (let ((eshell-glob-splice-results t))
+      (should (equal (eshell-extended-glob "*.txt")
+                     '("*.txt"))))
     (let ((eshell-error-if-no-glob t))
       (should-error (eshell-extended-glob "*.txt")))))
 

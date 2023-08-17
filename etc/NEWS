@@ -313,6 +313,13 @@ information, see the "(eshell) Dollars Expansion" node in the Eshell
 manual.
 
 +++
+*** You can now splice Eshell globs in-place into argument lists.
+By setting 'eshell-glob-splice-results' to a non-nil value, Eshell
+will expand glob results in-place as if you had typed each matching
+file name individually.  For more information, see the "(eshell)
+Globbing" node in the Eshell manual.
+
++++
 *** Eshell now supports negative numbers and ranges for indices.
 Now, you can retrieve the last element of a list with '$my-list[-1]'
 or get a sublist of elements 2 through 4 with '$my-list[2..5]'.  For
