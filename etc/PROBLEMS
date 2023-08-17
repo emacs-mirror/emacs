@@ -3353,7 +3353,7 @@ this and many other problems do not exist on the regular X builds.
 ** Text displayed in the default monospace font looks horrible.
 
 Droid Sans Mono (the default Monospace font which comes with Android)
-comes with instruction code designed for Microsoft's proprietary
+incorporates instruction code designed for Microsoft's proprietary
 TrueType font scaler.  When this code is executed by Emacs to instruct
 a glyph containing more than one component, it tries to address
 "reference points" which are set to the values of two extra "phantom
@@ -3398,6 +3398,11 @@ you are not seeing problems with character display, as the
 automatically generated instructions result in superior display
 results that are easier to read.
 
+We have been told that the default Sans font under Android 2.3.7,
+named "Droid Sans", also exhibits this problem.  The procedure for
+repairing the font is identical to the procedure outlined above,
+albeit with "DroidSansMono" replaced by simply "DroidSans".
+
 ** The "Anonymous Pro" font displays incorrectly.
 
 Glyph instruction code within the Anonymous Pro font relies on
@@ -3407,14 +3412,15 @@ interpreter control registers after the execution of the font
 pre-program, which sets them to a value that is perpendicular to the
 horizontal plane of movement.
 
-Since Emacs does not provide this "feature", various points within
+Since Emacs does not provide this "feature", various points inside
 glyphs are moved vertically rather than horizontally when a glyph
-program later executes an "MIRP" (Move Indirect Relative Point)
-instruction.
+program later executes an instruction such as "MIRP" (Move Indirect
+Relative Point) that moves and measures points along the axis
+specified by those registers.
 
 This can be remedied in two ways; the first (and the easiest) is to
 replace its instruction code with that supplied by "ttfautohint", as
-depicted above.  The second is to patch the instruction code within
+depicted above.  The second is to patch the instruction code inside
 the font itself, using the "ttx" utility:
 
   https://fonttools.readthedocs.io/en/latest/ttx.html
@@ -3435,11 +3441,10 @@ then, find the end of the section labeled 'prep':
   </prep>
 
 and insert the following instruction immediately before the closing
-'/assembly' tag:
+'/assembly' tag, so as to reset the interpreter control registers back
+to their default values prior to the completion of the pre-program:
 
-     SVTCA[1]
-
-(which stands for "Set Vector registers to Control Axis X")
+     SVTCA[1]  /* Set Vector registers to Control Axis X */
 
 Then, reassemble the font from the modified XML:
 
@@ -3447,6 +3452,25 @@ Then, reassemble the font from the modified XML:
 
 which should produce a modified font by the name of
 Anonymous_Pro#1.ttf.
+
+** CJK text does not display in Emacs, but does in other programs.
+
+When inserting CJK text into a buffer or visiting a file containing
+CJK text, Emacs often fails to locate a suitable font.  This problem
+manifests itself as hollow squares with numbers and letters within
+being displayed in lieu of the text itself.
+
+The reason for this is Emacs's absence of support for OpenType fonts
+utilizing CFF (Compact Font Format) outlines, which the CJK fonts
+bundled with Android have been distributed as since Android 7.0.
+
+The solution is to install a TrueType CJK font to the user fonts
+directory detailed in the "Android Fonts" node of the Emacs manual.
+
+Introducing support for the byzantine CFF font format into the Android
+port is a large undertaking that we are looking for volunteers to
+perform.  If you are interested in taking responsibility for this
+task, please contact <emacs-devel@gnu.org>.
 
 * Build-time problems
 
