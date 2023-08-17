@@ -337,6 +337,12 @@ enum event_kind
      monitor configuration changed.  .timestamp gives the time on
      which the monitors changed.  */
   , MONITORS_CHANGED_EVENT
+
+#ifdef HAVE_HAIKU
+  /* In a NOTIFICATION_CLICKED_EVENT, .arg is an integer identifying
+     the notification that was clicked.  */
+  , NOTIFICATION_CLICKED_EVENT
+#endif /* HAVE_HAIKU */
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */

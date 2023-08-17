@@ -2850,7 +2850,9 @@ Emacs is restarted by the session manager.
 @cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
-freedesktop.org Desktop Notifications Specification and on MS-Windows.
+freedesktop.org Desktop Notifications Specification, MS-Windows, and
+Haiku.
+
 In order to use this functionality on POSIX hosts, Emacs must have
 been compiled with D-Bus support, and the @code{notifications} library
 must be loaded.  @xref{Top, , D-Bus,dbus,D-Bus integration in Emacs}.
@@ -3165,6 +3167,37 @@ following function:
 @defun w32-notification-close id
 This function removes the tray notification given by its unique
 @var{id}.
+@end defun
+
+@cindex desktop notifications, Haiku
+When Emacs runs under Haiku as a GUI program, it is also provides a
+restricted pastiche of the D-Bus desktop notifications interface
+previously addressed.  The principle capabilities absent from the
+function detailed below are call-back functions such as
+@code{:actions}, @code{:on-action} and @code{:on-close}.
+
+@defun haiku-notifications-notify &rest params
+This function sends a notification to the desktop notification server,
+incorporating a number of parameters that are akin to some of those
+accepted by @code{notifications-notify}.  The parameters are:
+
+@table @code
+@item :title @var{title}
+@item :body @var{body}
+@item :replaces-id @var{replaces-id}
+@item :urgency @var{urgency}
+These have the same meaning as they do when used in calls to
+@code{notifications-notify}.
+
+@item :app-icon @var{app-icon}
+This should be the file name designating an image file to use as the
+icon for the notification displayed.  If @code{nil}, the icon
+presented will instead be Emacs's app icon.
+@end table
+
+Its return value is a number identifying the notification, which can
+be exploited as the @code{:replaces-id} parameter to a subsequent call
+to this function.
 @end defun
 
 @node File Notifications

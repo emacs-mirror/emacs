@@ -4042,6 +4042,19 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	     handled in Lisp.  */
 	  haiku_handle_font_change_event (buf, &inev);
 	  break;
+
+	case NOTIFICATION_CLICK_EVENT:
+	  /* This code doesn't function, but the why is unknown.  */
+#if 0
+	  {
+	    struct haiku_notification_click_event *b = buf;
+
+	    inev.kind = NOTIFICATION_CLICKED_EVENT;
+	    inev.arg  = make_int (b->id);
+	    break;
+	  }
+#endif /* 0 */
+
 	case KEY_UP:
 	case DUMMY_EVENT:
 	default:

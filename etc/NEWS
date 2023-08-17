@@ -784,6 +784,12 @@ See the "(elisp) Porting Old Advice" node for help converting them
 to use 'advice-add' or 'define-advice' instead.
 
 +++
+** Desktop notifications are now supported on the Haiku operating system.
+The new function 'haiku-notifications-notify' provides a subset of the
+capabilities of the 'notifications-notify' function in a manner
+analogous to 'w32-notification-notify'.
+
++++
 ** New value 'if-regular' for the REPLACE argument to 'insert-file-contents'.
 It results in 'insert-file-contents' erasing the buffer instead of
 preserving markers if the file being inserted is not a regular file,

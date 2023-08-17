@@ -51,6 +51,7 @@
 (declare-function org-dynamic-block-define "org" (type func))
 (declare-function w32-notification-notify "w32fns.c" (&rest params))
 (declare-function w32-notification-close "w32fns.c" (&rest params))
+(declare-function haiku-notifications-notify "haikufns.c")
 
 (defvar org-frame-title-format-backup nil)
 (defvar org-state)
@@ -855,6 +856,11 @@ use libnotify if available, or fall back on a message."
 	((stringp org-show-notification-handler)
 	 (start-process "emacs-timer-notification" nil
 			org-show-notification-handler notification))
+        ((fboundp 'haiku-notifications-notify)
+         ;; N.B. timeouts are not available under Haiku.
+         (haiku-notifications-notify :title "Org mode message"
+                                     :body notification
+                                     :urgency 'low))
 	((fboundp 'w32-notification-notify)
 	 (let ((id (w32-notification-notify
 		    :title "Org mode message"
