@@ -4692,6 +4692,39 @@ DESC must be a `package-desc' object."
       (cadr (assq pkg-name package-alist))
       (cadr (assq pkg-name package-archive-contents))))
 
+;;;; Error Recovery
+
+;;;###autoload
+(progn
+  ;; In case there is an issue with package.el being installed from
+  ;; ELPA, this command should help revert to the built-in version,
+  ;; that is assumed to be more reliable.
+  (defun package-revert-to-builtin ()
+    "Force delete a newer installation of package.el from ELPA.
+This command is to be used in case there are issues with an
+updated version of package.el, that might be resolved by
+reverting to the bundled version of package.el"
+    (interactive)
+    (let* ((elpa-dir (or (bound-and-true-p package-user-dir)
+                         (locate-user-emacs-file "elpa")))
+           (files (directory-files
+                   elpa-dir t
+                   ;; THINKME: Should we be concerned about packages
+                   ;; with pathological names like "package-9"?
+                   (rx bos "package-" (+ digit) (* "." (+ digit))))))
+      (if (null files)
+          (message "No newer version of package.el from ELPA found.")
+        (when (yes-or-no-p "Detected a newer version of package.el, delete it?")
+          (dolist (f files)
+            (if (file-directory-p f)
+                (delete-directory f t)
+              (delete-file f)))
+          (require 'package nil t)
+          (when (boundp 'package-selected-packages)
+            (customize-set-variable
+             'package-selected-packages
+             (remq 'package package-selected-packages))))))))
+
 (provide 'package)
 
 ;;; package.el ends here
