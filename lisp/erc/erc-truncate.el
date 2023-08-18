@@ -24,10 +24,8 @@
 
 ;;; Commentary:
 
-;; This implements buffer truncation (and optional log file writing
-;; support for the Emacs IRC client.  Use `erc-truncate-mode' to switch
-;; on.  Use `erc-enable-logging' to enable logging of the stuff which
-;; is getting truncated.
+;; This file implements buffer truncation through the `truncate'
+;; module, with optional `log' module integration.
 
 ;;; Code:
 
@@ -50,15 +48,41 @@ This prevents the query buffer from getting too large, which can
 bring any grown Emacs to its knees after a few days worth of
 tracking heavy-traffic channels."
   ;;enable
-  ((add-hook 'erc-insert-done-hook #'erc-truncate-buffer))
+  ((add-hook 'erc-insert-done-hook #'erc-truncate-buffer)
+   (add-hook 'erc-connect-pre-hook #'erc-truncate--warn-about-logging))
   ;; disable
-  ((remove-hook 'erc-insert-done-hook #'erc-truncate-buffer)))
+  ((remove-hook 'erc-insert-done-hook #'erc-truncate-buffer)
+   (remove-hook 'erc-connect-pre-hook #'erc-truncate--warn-about-logging)))
+
+(defun erc-truncate--warn-about-logging (&rest _)
+  (when (and (not erc--target)
+             (fboundp 'erc-log--call-when-logging-enabled-sans-module))
+    ;; We could also enable `erc-log-mode' here, but the risk of
+    ;; lasting damage is nonzero.
+    (erc-log--call-when-logging-enabled-sans-module
+     (lambda (dirfile)
+       ;; Emit a real Emacs warning because the message may be
+       ;; truncated away before it can be read if merely inserted.
+       (erc-button--display-error-notice-with-keys-and-warn
+        "The `truncate' module no longer enables logging implicitly."
+        " If you want ERC to write logs before truncating, add `log' to"
+        " `erc-modules' using something like \\[customize-option]."
+        " To silence this message, don't `require' `erc-log'."
+        (and dirfile " Alternatively, change the value of")
+        (and dirfile " `erc-log-channels-directory', or move ")
+        dirfile (and dirfile " elsewhere."))))))
 
 ;;;###autoload
 (defun erc-truncate-buffer-to-size (size &optional buffer)
-  "Truncates the buffer to the size SIZE.
-If BUFFER is not provided, the current buffer is assumed.  The deleted
-region is logged if `erc-logging-enabled' returns non-nil."
+  "Truncate BUFFER or the current buffer to SIZE.
+Log the deleted region when the `log' module is active and
+`erc-logging-enabled' returns non-nil.
+
+Note that prior to ERC 5.6, whenever erc-log.el happened to be
+loaded and the option `erc-enable-logging' was left at its
+default value, this function would cause logging to commence
+regardless of whether `erc-log-mode' was enabled or `log' was
+present in `erc-modules'."
   ;; If buffer is non-nil, but get-buffer does not return anything,
   ;; then this is a bug.  If buffer is a buffer name, get the buffer
   ;; object.  If buffer is nil, use the current buffer.
@@ -93,6 +117,9 @@ region is logged if `erc-logging-enabled' returns non-nil."
 	  ;; (not (memq 'erc-save-buffer-in-logs
 	  ;;             erc-insert-post-hook))
 	  ;; Comments?
+          ;; The comments above concern pre-5.6 behavior and reflect
+          ;; an obsolete understanding of how `erc-logging-enabled'
+          ;; behaves in practice.
           (run-hook-with-args 'erc--pre-clear-functions end)
 	  ;; disable undoing for the truncating
 	  (buffer-disable-undo)

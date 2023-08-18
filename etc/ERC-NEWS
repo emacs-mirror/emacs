@@ -196,6 +196,13 @@ these changes has been the deprecation of the ancient option
 'erc-truncate-buffer-on-save'.  Users of the 'log' module can achieve
 the same effect by issuing a "/CLEAR" at the prompt.
 
+** The 'truncate' module no longer enables logging automatically.
+Users expecting 'truncate' to perform logging based on the option
+'erc-enable-logging' need to instead add 'log' to 'erc-modules' for
+continued integration.  With the existing design, merely loading the
+library 'erc-log' caused 'truncate' to start writing logs, possibly
+against a user's wishes.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
