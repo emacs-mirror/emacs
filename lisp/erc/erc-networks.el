@@ -66,7 +66,7 @@
 (declare-function erc-set-active-buffer "erc" (buffer))
 
 (declare-function erc-button--display-error-notice-with-keys
-                  (parsed &rest strings))
+                  (maybe-buffer &rest strings))
 
 ;; Variables
 
@@ -1295,17 +1295,16 @@ shutting down the connection."
                          erc-network)))
      (erc-display-message parsed 'notice nil m)
      nil)
-    ((and
-      (guard (eq erc-network erc-networks--name-missing-sentinel))
-      ;; This can happen theoretically, e.g., when adjusting settings
-      ;; on a proxy service that partially impersonates IRC but isn't
-      ;; currently conveying anything through to a real network.  The
-      ;; service may send a 422 but no NETWORK param (or *any* 005s).
-      (let m (concat "Failed to determine network.  Please set entry for \""
-                     erc-server-announced-name "\" in `erc-networks-alist'"
-                     " or consider calling `erc-tls' with the keyword `:id'."
-                     "  See Info:\"(erc) Network Identifier\" for more.")))
-     (erc-display-error-notice parsed m)
+    ((guard (eq erc-network erc-networks--name-missing-sentinel))
+     ;; This can happen theoretically, e.g., when adjusting settings
+     ;; on a proxy service that partially impersonates IRC but isn't
+     ;; currently conveying anything through to a real network.  The
+     ;; service may send a 422 but no NETWORK param (or *any* 005s).
+     (erc-button--display-error-notice-with-keys
+      "Failed to determine network. Please set entry for \""
+      erc-server-announced-name "\" in `erc-networks-alist' or consider"
+      " calling `erc-tls' with the keyword `:id'."
+      " See Info:\"(erc) Network Identifier\" for more.")
      (if erc-networks--allow-unknown-network
          (progn
            (erc-display-error-notice
@@ -1325,9 +1324,9 @@ Copy source (prefix) from MOTD-ish message as a last resort."
   (unless erc-server-announced-name
     (require 'erc-button)
     (erc-button--display-error-notice-with-keys
-     parsed "Failed to determine server name.  Using \""
+     "Failed to determine server name. Using \""
      (setq erc-server-announced-name (erc-response.sender parsed)) "\" instead"
-     ".  If this was unexpected, consider reporting it via \\[erc-bug]" "."))
+     ". If this was unexpected, consider reporting it via \\[erc-bug]."))
   nil)
 
 (defun erc-unset-network-name (_nick _ip _reason)
@@ -1508,7 +1507,7 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
                                proc)
       (require 'erc-button)
       (erc-button--display-error-notice-with-keys
-       parsed "Unexpected state detected.  Please report via \\[erc-bug].")))
+       "Unexpected state detected. Please report via \\[erc-bug].")))
 
   ;; For now, retain compatibility with erc-server-NNN-functions.
   (or (erc-networks--ensure-announced proc parsed)
