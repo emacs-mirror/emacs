@@ -4,6 +4,11 @@
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Keywords: tools
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "29.1") (package "1.1.1"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
