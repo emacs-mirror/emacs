@@ -1886,6 +1886,10 @@ Return nil if NODE has no parent.  If NODE is nil, return nil.  */)
   TSNode treesit_node = XTS_NODE (node)->node;
   Lisp_Object parser = XTS_NODE (node)->parser;
   TSTreeCursor cursor;
+  /* See the comments to treesit_cursor_helper about the algorithm for
+     finding the parent node.  The complexity is roughly proportional
+     to the square root of the current node's depth in the parse tree,
+     and we punt if the tree is too deep.  */
   if (!treesit_cursor_helper (&cursor, treesit_node, parser))
     return return_value;
 
