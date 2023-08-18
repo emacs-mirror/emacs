@@ -6030,7 +6030,7 @@ TERMINFO=yes
 ## LIBS_TERMCAP="-lncurses", this overrides LIBS_TERMCAP = -ltinfo,
 ## if that was found above to have tputs.
 ## Should we use the gnu* logic everywhere?
-case "$opsys" in
+case "$opsys$REALLY_ANDROID" in
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
   ##  Mac OS X 10.2.  So if configure detects it, set the command-line
@@ -6059,7 +6059,10 @@ fail;
     fi
     ;;
 
-  mingw32 | android)
+  # The case condition is a concatenation of both $opsys and
+  # $REALLY_ANDROID.  Only disable termcap if building a GUI program.
+  # (bug#65340)
+  mingw32 | androidyes)
     TERMINFO=no
     LIBS_TERMCAP=
     ;;
