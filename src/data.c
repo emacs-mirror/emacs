@@ -2213,17 +2213,18 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   if (sym->u.s.trapped_write == SYMBOL_NOWRITE)
     xsignal1 (Qsetting_constant, variable);
 
-  if (blv ? blv->local_if_set
-      : (forwarded && BUFFER_OBJFWDP (valcontents.fwd)))
-    {
-      tem = Fboundp (variable);
-      /* Make sure the symbol has a local value in this particular buffer,
-	 by setting it to the same value it already has.  */
-      Fset (variable, (EQ (tem, Qt) ? Fsymbol_value (variable) : Qunbound));
-      return variable;
-    }
   if (!blv)
     {
+      if (forwarded && BUFFER_OBJFWDP (valcontents.fwd))
+        {
+          int offset = XBUFFER_OBJFWD (valcontents.fwd)->offset;
+          int idx = PER_BUFFER_IDX (offset);
+          eassert (idx);
+          if (idx > 0)
+            /* If idx < 0, it's always buffer local, like `mode-name`.  */
+            SET_PER_BUFFER_VALUE_P (current_buffer, idx, true);
+          return variable;
+        }
       blv = make_blv (sym, forwarded, valcontents);
       sym->u.s.redirect = SYMBOL_LOCALIZED;
       SET_SYMBOL_BLV (sym, blv);
