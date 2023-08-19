@@ -2810,10 +2810,7 @@ static bool
 android_check_content_access (const char *uri, int mode)
 {
   jobject string;
-  size_t length;
   jboolean rc, read, write;
-
-  length = strlen (uri);
 
   string = (*android_java_env)->NewStringUTF (android_java_env, uri);
   android_exception_check ();
