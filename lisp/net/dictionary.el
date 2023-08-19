@@ -573,22 +573,12 @@ The connection takes the proxy setting in customization group
 ;; Dealing with closing the buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun dictionary--count-mode-buffers ()
-  (seq-reduce (lambda (count buf)
-                (if (provided-mode-derived-p
-                     (buffer-local-value 'major-mode buf)
-                     'dictionary-mode)
-                    (+ count 1)
-                  count))
-              (buffer-list)
-              0))
-
 (defun dictionary-close (&rest _ignored)
   "Close the current dictionary buffer and its connection."
   (interactive)
   (when (derived-mode-p 'dictionary-mode)
     (setq major-mode nil)
-    (if (<= (dictionary--count-mode-buffers) 0)
+    (if (<= (length (match-buffers '(derived-mode . dictionary-mode))) 0)
         (dictionary-connection-close dictionary-connection))
     (let ((configuration dictionary-window-configuration)
           (selected-window dictionary-selected-window))
