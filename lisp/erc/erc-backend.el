@@ -119,6 +119,7 @@
 
 (declare-function erc--init-channel-modes "erc" (channel raw-args))
 (declare-function erc--open-target "erc" (target))
+(declare-function erc--parse-nuh "erc" (string))
 (declare-function erc--target-from-string "erc" (string))
 (declare-function erc--update-modes "erc" (raw-args))
 (declare-function erc-active-buffer "erc" nil)
@@ -2407,6 +2408,7 @@ See `erc-display-server-message'." nil
     (erc-display-message parsed 'notice (erc-get-buffer channel proc)
                          's341 ?n nick ?c channel)))
 
+;; FIXME update or add server user instead when channel is "*".
 (define-erc-response-handler (352)
   "WHO notice." nil
   (pcase-let ((`(,channel ,user ,host ,_server ,nick ,away-flag)
@@ -2471,6 +2473,24 @@ See `erc-display-server-message'." nil
    parsed 'notice 'active
    's391 ?s (cadr (erc-response.command-args parsed))
    ?t (nth 2 (erc-response.command-args parsed))))
+
+;; https://defs.ircdocs.horse/defs/numerics.html#rpl-visiblehost-396
+;; As of ERC 5.6, if the client hasn't yet joined any channels,
+;; there's a good chance a server user for the current nick simply
+;; doesn't exist (and there's not enough info in this reply to create
+;; one).  To fix this, ERC could WHO itself on 372 or similar if it
+;; hasn't yet received a 900.
+(define-erc-response-handler (396)
+  "RPL_VISIBLEHOST or RPL_YOURDISPLAYHOST or RPL_HOSTHIDDEN." nil
+  (pcase-let* ((userhost (cadr (erc-response.command-args parsed)))
+               ;; Behavior blindly copied from event_hosthidden in irssi 1.4.
+               (rejectrx (rx (| (: bot (in ?@ ?: ?-)) (in ?* ?? ?! ?# ?& ?\s)
+                                (: ?- eot))))
+               (`(,_ ,user ,host) (and (not (string-match rejectrx userhost))
+                                       (erc--parse-nuh userhost))))
+    (when host
+      (erc-update-user-nick (erc-current-nick) nil host user)
+      (erc-display-message parsed 'notice 'active 's396 ?s userhost))))
 
 (define-erc-response-handler (401)
   "No such nick/channel." nil

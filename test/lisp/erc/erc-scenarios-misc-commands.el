@@ -91,4 +91,36 @@
         (funcall expect -0.1 "Incorrect arguments")
         (funcall expect 10 "See also: HELP EXAMPLES")))))
 
+;; Note that as of ERC 5.6, there is no actual slash-command function
+;; named `erc-cmd-vhost'.  At the moment, this test merely exists to
+;; assert that the `erc-server-396' response handler updates the rolls
+;; correctly.
+(ert-deftest erc-scenarios-misc-commands--VHOST ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "commands")
+       (erc-server-flood-penalty 0.1)
+       (dumb-server (erc-d-run "localhost" t 'vhost))
+       ;; As of ERC 5.6, we must join a channel before ERC adds itself
+       ;; to `erc-server-users'.  Without such an entry, there's
+       ;; nothing to update when the 396 arrives.
+       (erc-autojoin-channels-alist '((foonet "#chan")))
+       (port (process-contact dumb-server :service))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect to server")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (funcall expect 10 "debug mode")))
+
+    (ert-info ("Send VHOST")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (erc-scenarios-common-say "/VHOST tester changeme")
+        (funcall expect 10 "visible host")
+        (should (string= (erc-server-user-host (erc-get-server-user "tester"))
+                         "some.host.test.cc"))))))
+
 ;;; erc-scenarios-misc-commands.el ends here

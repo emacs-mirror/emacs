@@ -7091,9 +7091,9 @@ EmacsSpeak support."
 (defalias 'erc-list 'ensure-list)
 
 (defconst erc--parse-user-regexp-pedantic
-  (rx bot (group (* (not (any "!\r\n"))))
-      "!" (group (* nonl))
-      "@" (group (* nonl)) eot))
+  (rx bot (? (? (group (+ (not (any "!@\r\n"))))) "!")
+      (? (? (group (+ nonl))) "@")
+      (? (group (+ nonl))) eot))
 
 (defconst erc--parse-user-regexp-legacy
   "^\\([^!\n]*\\)!\\([^@\n]*\\)@\\(.*\\)$")
@@ -7116,6 +7116,16 @@ Return a list of the three separate tokens."
           (match-string 2 string)))
    (t
     (list string "" ""))))
+
+(defun erc--parse-nuh (string)
+  "Match STRING against `erc--parse-user-regexp-pedantic'.
+Return matching groups or nil.  Interpret a lone token or one
+with only a leading \"!\" as a host.  See associated unit test
+for precise behavior."
+  (when (string-match erc--parse-user-regexp-pedantic string)
+    (list (match-string 1 string)
+          (match-string 2 string)
+          (match-string 3 string))))
 
 (defun erc-extract-nick (string)
   "Return the nick corresponding to a user specification STRING.
@@ -8844,6 +8854,7 @@ SOFTP, only do so when defined as a variable."
    (s368   . "Banlist of %c ends.")
    (s379   . "%c: Forwarded to %f")
    (s391   . "The time at %s is %t")
+   (s396   . "Your visible host has changed to %s")
    (s401   . "%n: No such nick/channel")
    (s402   . "%c: No such server")
    (s403   . "%c: No such channel")

@@ -632,8 +632,6 @@
     (should (string= "nick" (erc-lurker-maybe-trim "nick-_`")))))
 
 (ert-deftest erc-parse-user ()
-  (should (equal erc--parse-user-regexp erc--parse-user-regexp-legacy))
-
   (should (equal '("" "" "") (erc-parse-user "!@")))
   (should (equal '("" "!" "") (erc-parse-user "!!@")))
   (should (equal '("" "" "@") (erc-parse-user "!@@")))
@@ -646,23 +644,36 @@
   (should (equal '("abc" "123" "fake") (erc-parse-user "abc!123@fake")))
   (should (equal '("abc" "!123" "@xy") (erc-parse-user "abc!!123@@xy")))
 
-  (should (equal '("de" "fg" "xy") (erc-parse-user "abc\nde!fg@xy")))
+  (should (equal '("de" "fg" "xy") (erc-parse-user "abc\nde!fg@xy"))))
 
-  (ert-info ("`erc--parse-user-regexp-pedantic'")
-    (let ((erc--parse-user-regexp erc--parse-user-regexp-pedantic))
-      (should (equal '("" "" "") (erc-parse-user "!@")))
-      (should (equal '("" "!" "") (erc-parse-user "!!@")))
-      (should (equal '("" "@" "") (erc-parse-user "!@@")))
-      (should (equal '("" "!@" "") (erc-parse-user "!!@@")))
+(ert-deftest erc--parse-nuh ()
+  (should (equal '(nil nil nil) (erc--parse-nuh "!@")))
+  (should (equal '(nil nil nil) (erc--parse-nuh "@")))
+  (should (equal '(nil nil nil) (erc--parse-nuh "!")))
+  (should (equal '(nil "!" nil) (erc--parse-nuh "!!@")))
+  (should (equal '(nil "@" nil) (erc--parse-nuh "!@@")))
+  (should (equal '(nil "!@" nil) (erc--parse-nuh "!!@@")))
 
-      (should (equal '("abc" "" "") (erc-parse-user "abc")))
-      (should (equal '("" "123" "fake") (erc-parse-user "!123@fake")))
-      (should (equal '("abc" "" "123") (erc-parse-user "abc!123")))
+  (should (equal '("abc" nil nil) (erc--parse-nuh "abc!")))
+  (should (equal '(nil "abc" nil) (erc--parse-nuh "abc@")))
+  (should (equal '(nil "abc" nil) (erc--parse-nuh "!abc@")))
 
-      (should (equal '("abc" "123" "fake") (erc-parse-user "abc!123@fake")))
-      (should (equal '("abc" "!123@" "xy") (erc-parse-user "abc!!123@@xy")))
+  (should (equal '("abc" "123" "fake") (erc--parse-nuh "abc!123@fake")))
+  (should (equal '("abc" "!123@" "xy") (erc--parse-nuh "abc!!123@@xy")))
 
-      (should (equal '("de" "" "fg@xy") (erc-parse-user "abc\nde!fg@xy"))))))
+  ;; Missing leading components.
+  (should (equal '(nil "abc" "123") (erc--parse-nuh "abc@123")))
+  (should (equal '(nil "123" "fake") (erc--parse-nuh "!123@fake")))
+  (should (equal '(nil nil "gnu.org") (erc--parse-nuh "@gnu.org")))
+
+  ;; Host "wins" over nick and user (sans "@").
+  (should (equal '(nil nil "abc") (erc--parse-nuh "abc")))
+  (should (equal '(nil nil "gnu.org") (erc--parse-nuh "gnu.org")))
+  (should (equal '(nil nil "gnu.org") (erc--parse-nuh "!gnu.org")))
+  (should (equal '("abc" nil "123") (erc--parse-nuh "abc!123")))
+
+  ;; No fallback behavior.
+  (should-not (erc--parse-nuh "abc\nde!fg@xy")))
 
 (ert-deftest erc--parsed-prefix ()
   (erc-mode)
