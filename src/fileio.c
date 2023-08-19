@@ -3617,10 +3617,10 @@ support.  */)
       fail = (acl_set_file (SSDATA (encoded_absname), ACL_TYPE_ACCESS,
 			    acl)
 	      != 0);
+      acl_free (acl);
       if (fail && acl_errno_valid (errno))
 	report_file_error ("Setting ACL", absname);
 
-      acl_free (acl);
       return fail ? Qnil : Qt;
     }
 # endif
