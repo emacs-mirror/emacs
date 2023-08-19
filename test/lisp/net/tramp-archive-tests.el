@@ -895,11 +895,16 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (and (fboundp 'file-user-uid)
                     (fboundp 'file-group-gid)))
 
-  (let ((default-directory tramp-archive-test-archive))
-    ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
-    ;; We don't want to see compiler warnings for older Emacsen.
-    (should (integerp (with-no-warnings (file-user-uid))))
-    (should (integerp (with-no-warnings (file-group-gid))))))
+  ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
+  ;; We don't want to see compiler warnings for older Emacsen.
+  (let* ((default-directory tramp-archive-test-archive)
+	 (uid (with-no-warnings (file-user-uid)))
+	 (gid (with-no-warnings (file-group-gid))))
+    (should (integerp uid))
+    (should (integerp gid))
+    (let ((default-directory tramp-archive-test-file-archive))
+      (should (equal uid (with-no-warnings (file-user-uid))))
+      (should (equal gid (with-no-warnings (file-group-gid)))))))
 
 (ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."
