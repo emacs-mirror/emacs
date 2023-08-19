@@ -1156,18 +1156,13 @@ END is the limit of the search."
     ("^\\(\\(\\sw\\|\\s_\\)+\\)[ \n\r\t]*:"
      1 font-lock-function-name-face)
     (semantic--grammar-macros-matcher
-     1 ,(if (boundp 'font-lock-builtin-face)
-            'font-lock-builtin-face
-          'font-lock-preprocessor-face))
+     1 font-lock-builtin-face)
     ("\\$\\(\\sw\\|\\s_\\)*"
      0 font-lock-variable-name-face)
     ("<\\(\\(\\sw\\|\\s_\\)+\\)>"
      1 font-lock-type-face)
     (,semantic-grammar-lex-c-char-re
-     0 ,(if (boundp 'font-lock-constant-face)
-            'font-lock-constant-face
-          'font-lock-string-face)
-     t)
+     0 font-lock-constant-face t)
     ;; Must highlight :keyword here, because ':' is a punctuation in
     ;; grammar mode!
     ("[\r\n\t ]+:\\sw+\\>"

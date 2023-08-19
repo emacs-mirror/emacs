@@ -354,8 +354,7 @@ the list is a three-string list TAG, KIND, REV."
 
 (defvar font-lock-mode)
 ;; (defun cvs-refontify (beg end)
-;;   (when (and font-lock-mode
-;; 	        (fboundp 'font-lock-fontify-region))
+;;   (when font-lock-mode
 ;;     (font-lock-fontify-region (1- beg) (1+ end))))
 
 (defun cvs-status-trees ()
