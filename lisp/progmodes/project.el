@@ -1597,7 +1597,12 @@ With some possible metadata (to be decided).")
           (when (file-exists-p filename)
             (with-temp-buffer
               (insert-file-contents filename)
-              (read (current-buffer)))))
+              (mapcar
+               (lambda (elem)
+                 (let ((name (car elem)))
+                   (list (if (file-remote-p name) name
+                           (abbreviate-file-name name)))))
+               (read (current-buffer))))))
     (unless (seq-every-p
              (lambda (elt) (stringp (car-safe elt)))
              project--list)
@@ -1617,7 +1622,12 @@ With some possible metadata (to be decided).")
       (insert ";;; -*- lisp-data -*-\n")
       (let ((print-length nil)
             (print-level nil))
-        (pp project--list (current-buffer)))
+        (pp (mapcar (lambda (elem)
+                      (let ((name (car elem)))
+                        (list (if (file-remote-p name) name
+                                (expand-file-name name)))))
+                    project--list)
+            (current-buffer)))
       (write-region nil nil filename nil 'silent))))
 
 ;;;###autoload
@@ -1626,7 +1636,7 @@ With some possible metadata (to be decided).")
 Save the result in `project-list-file' if the list of projects
 has changed, and NO-WRITE is nil."
   (project--ensure-read-project-list)
-  (let ((dir (project-root pr)))
+  (let ((dir (abbreviate-file-name (project-root pr))))
     (unless (equal (caar project--list) dir)
       (dolist (ent project--list)
         (when (equal dir (car ent))
@@ -1642,7 +1652,7 @@ result in `project-list-file'.  Announce the project's removal
 from the list using REPORT-MESSAGE, which is a format string
 passed to `message' as its first argument."
   (project--ensure-read-project-list)
-  (when-let ((ent (assoc project-root project--list)))
+  (when-let ((ent (assoc (abbreviate-file-name project-root) project--list)))
     (setq project--list (delq ent project--list))
     (message report-message project-root)
     (project--write-project-list)))
