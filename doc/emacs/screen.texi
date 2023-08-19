@@ -173,7 +173,7 @@ unselected windows, in order to make it stand out.
   The text displayed in the mode line has the following format:
 
 @example
- @var{cs}:@var{ch}-@var{fr}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})
+ @var{cs}:@var{ch}-@var{d}@var{fr}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})
 @end example
 
 @noindent
@@ -230,6 +230,12 @@ shows @samp{%*} if the buffer is modified, and @samp{%%} otherwise.
   The character after @var{ch} is normally a dash (@samp{-}).
 However, if @code{default-directory} (@pxref{File Names}) for the
 current buffer is on a remote machine, @samp{@@} is displayed instead.
+
+  @var{d} appears if the window is dedicated to its current buffer.
+It appears as @samp{D} for strong dedication and @samp{d} for other
+forms of dedication.  If the window is not dedicated, @var{d} does not
+appear.  @xref{Dedicated Windows,, elisp, The Emacs Lisp Reference
+Manual}.
 
   @var{fr} gives the selected frame name (@pxref{Frames}).  It appears
 only on text terminals.  The initial frame's name is @samp{F1}.
