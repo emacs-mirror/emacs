@@ -800,9 +800,9 @@ static void substitute_in_interval (INTERVAL, void *);
    If SECONDS is a number, wait that many seconds for input, and
    return Qnil if no input arrives within that time.
 
-   If text conversion is enabled and ASCII_REQUIRED && ERROR_NONASCII,
-   temporarily disable any input method which wants to perform
-   edits, unless `disable-inhibit-text-conversion'.  */
+   If text conversion is enabled and ASCII_REQUIRED, temporarily
+   disable any input method which wants to perform edits, unless
+   `disable-inhibit-text-conversion'.  */
 
 static Lisp_Object
 read_filtered_event (bool no_switch_frame, bool ascii_required,
@@ -825,8 +825,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
   /* Don't use text conversion when trying to just read a
      character.  */
 
-  if (ascii_required && error_nonascii
-      && !disable_inhibit_text_conversion)
+  if (ascii_required && !disable_inhibit_text_conversion)
     {
       disable_text_conversion ();
       record_unwind_protect_void (resume_text_conversion);
