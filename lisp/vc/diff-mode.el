@@ -196,6 +196,7 @@ The default \"-b\" means to ignore whitespace-only changes,
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
   "W" #'widen
+  "w" #'diff-kill-ring-save
   "o" #'diff-goto-source                ; other-window
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
@@ -208,7 +209,7 @@ The default \"-b\" means to ignore whitespace-only changes,
           ;; We want to inherit most bindings from
           ;; `diff-mode-shared-map', but not all since they may hide
           ;; useful `M-<foo>' global bindings when editing.
-          (dolist (key '("A" "r" "R" "g" "q" "W" "z"))
+          (dolist (key '("A" "r" "R" "g" "q" "W" "w" "z"))
             (keymap-set map key nil))
           map)
   ;; From compilation-minor-mode.
@@ -2108,6 +2109,55 @@ revision of the file otherwise."
       (goto-char (+ (car pos) (cdr src)))
       (when buffer (next-error-found buffer (current-buffer))))))
 
+(defun diff-kill-ring-save (beg end &optional reverse)
+  "Save to `kill-ring' the result of applying diffs in region between BEG and END.
+By default the command will copy the text that applying the diff would
+produce, along with the text between hunks.  If REVERSE is non-nil, or
+the command was invoked with a prefix argument, copy the lines that the
+diff would remove (beginning with \"+\" or \"<\")."
+  (interactive
+   (append (if (use-region-p)
+               (list (region-beginning) (region-end))
+             (save-excursion
+               (list (diff-beginning-of-hunk)
+                     (diff-end-of-hunk))))
+           (list current-prefix-arg)))
+  (unless (derived-mode-p 'diff-mode)
+    (user-error "Command can only be invoked in a diff-buffer"))
+  (let ((parts '()))
+    (save-excursion
+      (goto-char beg)
+      (catch 'break
+        (while t
+          (let ((hunk (diff-hunk-text
+                       (buffer-substring
+                        (save-excursion (diff-beginning-of-hunk))
+                        (save-excursion (min (diff-end-of-hunk) end)))
+                       (not reverse)
+                       (save-excursion
+                         (- (point) (diff-beginning-of-hunk))))))
+            (push (substring (car hunk) (cdr hunk))
+                  parts))
+          ;; check if we have copied everything
+          (diff-end-of-hunk)
+          (when (<= end (point)) (throw 'break t))
+          ;; copy the text between hunks
+          (let ((inhibit-message t) start)
+            (save-window-excursion
+              (save-excursion
+                (forward-line -1)
+                ;; FIXME: Detect if the line we jump to doesn't match
+                ;; the line in the diff.
+                (diff-goto-source t)
+                (forward-line +1)
+                (setq start (point))))
+            (save-window-excursion
+              (diff-goto-source t)
+              (push (buffer-substring start (point))
+                    parts))))))
+    (kill-new (string-join (nreverse parts)))
+    (setq deactivate-mark t)
+    (message (if reverse "Copied original text" "Copied modified text"))))
 
 (defun diff-current-defun ()
   "Find the name of function at point.

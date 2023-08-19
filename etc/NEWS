@@ -244,6 +244,15 @@ The host name for Kubernetes connections can be of kind
 used.  This overrides the setiing in 'tramp-kubernetes-namespace', if
 any.
 
+** Diff
+
+---
+*** New command 'diff-kill-ring-save'
+This command copies to the 'kill-ring' a region of text modified
+according to diffs in the current buffer, but without applying the diffs
+to the original text.  If the selected range extends a hunk, the
+commands attempts to look up and copy the text in-between the hunks.
+
 
 * New Modes and Packages in Emacs 31.1
 
