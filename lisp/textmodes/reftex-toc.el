@@ -1,6 +1,6 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2000, 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -215,9 +215,7 @@ When called with a raw \\[universal-argument] prefix, rescan the document first.
          (here-I-am (if reftex--rebuilding-toc
                         (get 'reftex-toc :reftex-data)
                       (car (reftex-where-am-I))))
-         (unsplittable (if (fboundp 'frame-property)
-                           (frame-property (selected-frame) 'unsplittable)
-                         (frame-parameter nil 'unsplittable)))
+         (unsplittable (frame-parameter nil 'unsplittable))
          offset toc-window)
 
     (if (setq toc-window (get-buffer-window
@@ -385,11 +383,8 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   ;; Check if FRAME is the dedicated TOC frame.
   ;; If yes, and ERROR is non-nil, throw an error.
   (setq frame (or frame (selected-frame)))
-  (let ((res (equal
-              (if (fboundp 'frame-property)
-                  (frame-property frame 'name)
-                (frame-parameter  frame 'name))
-              "RefTeX TOC Frame")))
+  (let ((res (equal (frame-parameter frame 'name)
+                    "RefTeX TOC Frame")))
     (if (and res error)
         (error (substitute-command-keys
                 "This frame is view-only.  Use \\[reftex-toc] \
@@ -586,10 +581,7 @@ With prefix arg 1, restrict index to the section at point."
 (defun reftex-toc-revert (&rest _)
   "Regenerate the TOC from the internal lists."
   (interactive)
-  (let ((unsplittable
-         (if (fboundp 'frame-property)
-             (frame-property (selected-frame) 'unsplittable)
-           (frame-parameter nil 'unsplittable)))
+  (let ((unsplittable (frame-parameter nil 'unsplittable))
         (reftex--rebuilding-toc t))
     (if unsplittable
         (switch-to-buffer
@@ -1036,12 +1028,9 @@ always show the current section in connection with the option
 `reftex-auto-recenter-toc'."
   (interactive)
   (catch 'exit
-    (let* ((frames (frame-list)) frame
-           (get-frame-prop-func (if (fboundp 'frame-property)
-                                    'frame-property
-                                  'frame-parameter)))
+    (let* ((frames (frame-list)) frame)
       (while (setq frame (pop frames))
-        (if (equal (funcall get-frame-prop-func frame 'name)
+        (if (equal (frame-parameter frame 'name)
                    "RefTeX TOC Frame")
             (progn
               (delete-frame frame)
