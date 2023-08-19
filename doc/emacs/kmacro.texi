@@ -515,6 +515,19 @@ editing it.  Type @kbd{C-h m} once in that buffer to display details
 of how to edit the macro.  When you are finished editing, type
 @kbd{C-c C-c}.
 
+@findex edmacro-insert-key
+@findex edmacro-set-macro-to-region-lines
+  @code{edmacro-mode}, the major mode used by
+@code{kmacro-edit-macro}, provides commands for more easily editing
+the formatted macro.  Use @kbd{C-c C-q} (@code{edmacro-insert-key}) to
+insert the next key sequence that you type into the buffer using the
+correct format, similar to @kbd{C-q} (@code{quoted-insert}).  Use
+@kbd{C-c C-r} (@code{edmacro-set-macro-to-region-lines}) to replace
+the macro's text with the text in the region.  If the region does not
+begin at the start of a line or if it does not end at the end of a
+line, the region is extended to include complete lines.  If the region
+ends at the beginning of a line, that final line is excluded.
+
 @findex edit-kbd-macro
 @kindex C-x C-k e
   You can edit a named keyboard macro or a macro bound to a key by typing
@@ -523,9 +536,13 @@ keyboard input that you would use to invoke the macro---@kbd{C-x e} or
 @kbd{M-x @var{name}} or some other key sequence.
 
 @findex kmacro-edit-lossage
+@vindex edmacro-reverse-macro-lines
 @kindex C-x C-k l
   You can edit the last 300 keystrokes as a macro by typing
-@kbd{C-x C-k l} (@code{kmacro-edit-lossage}).
+@kbd{C-x C-k l} (@code{kmacro-edit-lossage}).  By default,
+your most recent keystrokes are listed at the bottom of the buffer.
+To list a macro's key sequences in reverse order, set
+@code{edmacro-reverse-macro-lines} to @code{t}.
 
 @node Keyboard Macro Step-Edit
 @section Stepwise Editing a Keyboard Macro

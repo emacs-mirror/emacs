@@ -772,6 +772,20 @@ neither of which have been supported by Emacs since version 23.1.
 The user option 'url-gateway-nslookup-program' and the function
 'url-gateway-nslookup-host' are consequently also obsolete.
 
++++
+** Edmacro
+
+*** New command 'edmacro-set-macro-to-region-lines'.
+Bound to 'C-c C-r', this command replaces the macro text with the
+lines of the region.  If needed, the region is extended to include
+whole lines.  If the region ends at the beginning of a line, that last
+line is excluded.
+
+*** New user option 'edmacro-reverse-macro-lines'.
+When this is non-nil, the lines of key sequences are displayed with
+the most recent line fist.  This is can be useful when working with
+macros with many lines, such as from 'kmacro-edit-lossage'.
+
 
 * New Modes and Packages in Emacs 30.1
 
