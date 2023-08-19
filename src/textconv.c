@@ -2137,11 +2137,11 @@ replacement key sequence returned starts a new key sequence and makes
 
 	  if (WINDOW_LIVE_P (f->old_selected_window)
 	      && FRAME_WINDOW_P (f)
-	      && EQ (XWINDOW (f->old_selected_window)->contents,
-		     buffer)
-	      /* Always reset the text conversion style of the
-		 selected frame.  */
-	      || (f == SELECTED_FRAME ()))
+	      && (EQ (XWINDOW (f->old_selected_window)->contents,
+		      buffer)
+		  /* Always reset the text conversion style of the
+		     selected frame.  */
+		  || (f == SELECTED_FRAME ())))
 	    {
 	      block_input ();
 	      reset_frame_state (f);
