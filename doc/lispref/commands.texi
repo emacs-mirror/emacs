@@ -2249,11 +2249,12 @@ occurred.
 
 @var{clicks}, if present, is the number of times that the wheel was
 moved in quick succession.  @xref{Repeat Events}.  @var{lines}, if
-present and not @code{nil}, is the number of screen lines that should
-be scrolled.  @var{pixel-delta}, if present, is a cons cell of the
-form @w{@code{(@var{x} . @var{y})}}, where @var{x} and @var{y} are the
-numbers of pixels by which to scroll in each axis, a.k.a.@:
-@dfn{pixelwise deltas}.
+present and not @code{nil}, is the positive number of screen lines
+that should be scrolled (either up, when the event is @code{wheel-up},
+or down when the event is @code{wheel-down}).  @var{pixel-delta}, if
+present, is a cons cell of the form @w{@code{(@var{x} . @var{y})}},
+where @var{x} and @var{y} are the numbers of pixels by which to scroll
+in each axis, a.k.a.@: @dfn{pixelwise deltas}.
 
 @cindex pixel-resolution wheel events
 You can use these @var{x} and @var{y} pixelwise deltas to determine
