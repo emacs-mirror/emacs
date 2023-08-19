@@ -539,11 +539,7 @@ SPC=view TAB=goto RET=goto+hide [e]dit [q]uit [r]escan [f]ollow [?]Help
       (if (reftex-use-fonts)
           (put-text-property (point-min) (point)
                              'face reftex-index-header-face))
-      (if (fboundp 'cursor-intangible-mode)
-          (cursor-intangible-mode 1)
-        ;; If `cursor-intangible' is not available, fallback on the old
-        ;; intrusive `intangible' property.
-        (put-text-property (point-min) (point) 'intangible t))
+      (cursor-intangible-mode 1)
       (add-text-properties (point-min) (point)
                            '(cursor-intangible t
                              front-sticky (cursor-intangible)
