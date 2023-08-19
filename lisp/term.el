@@ -972,12 +972,7 @@ underlying shell."
 (defun term--update-term-menu (&optional force)
   (when (and (lookup-key term-mode-map [menu-bar terminal])
              (or force (frame-or-buffer-changed-p)))
-    (let ((buffer-list
-           (seq-filter
-            (lambda (buffer)
-              (provided-mode-derived-p (buffer-local-value 'major-mode buffer)
-                                       'term-mode))
-            (buffer-list))))
+    (let ((buffer-list (match-buffers '(derived-mode . term-mode))))
       (easy-menu-change
        nil
        "Terminal Buffers"
