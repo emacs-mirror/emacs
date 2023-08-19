@@ -1998,6 +1998,8 @@ INHIBIT-BUFFER-HOOKS non-nil.
 Note: Be careful with let-binding this hook considering it is
 frequently used for cleanup.")
 
+(defvar find-alternate-file-dont-kill-client nil
+  "If non-nil, `server-buffer-done' should not delete the client.")
 (defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
@@ -2044,7 +2046,8 @@ killed."
     ;; save a modified buffer visiting a file.  Rather, `kill-buffer'
     ;; asks that itself.  Thus, there's no need to temporarily do
     ;; `(set-buffer-modified-p nil)' before running this hook.
-    (run-hooks 'kill-buffer-hook)
+    (let ((find-alternate-file-dont-kill-client 'dont-kill-client))
+      (run-hooks 'kill-buffer-hook))
     ;; Okay, now we can end-of-life the old buffer.
     (if (get-buffer " **lose**")
 	(kill-buffer " **lose**"))
