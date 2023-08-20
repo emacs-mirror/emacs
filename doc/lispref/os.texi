@@ -2850,8 +2850,8 @@ Emacs is restarted by the session manager.
 @cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
-freedesktop.org Desktop Notifications Specification, MS-Windows, and
-Haiku.
+freedesktop.org Desktop Notifications Specification, MS-Windows,
+Haiku, and Android.
 
 In order to use this functionality on POSIX hosts, Emacs must have
 been compiled with D-Bus support, and the @code{notifications} library
@@ -3198,6 +3198,46 @@ presented will instead be Emacs's app icon.
 Its return value is a number identifying the notification, which can
 be exploited as the @code{:replaces-id} parameter to a subsequent call
 to this function.
+@end defun
+
+@cindex desktop notifications, Android
+When Emacs is built as an Android application package, displaying
+notifications is facilitated by the function
+@code{android-notifications-notify}.  This function does not feature
+call-backs, and has several idiosyncrasies, when compared to
+@code{notifications-notify}.
+
+@defun android-notifications-notify &rest params
+This function displays a desktop notification.  @var{params} is a list
+of parameters analogous to its namesake in
+@code{notifications-notify}.  The parameters are:
+
+@table @code
+@item :title @var{title}
+@item :body @var{body}
+@item :replaces-id @var{replaces-id}
+These have the same meaning as they do when used in calls to
+@code{notifications-notify}.
+
+@item :urgency @var{urgency}
+@item :group @var{group}
+These two parameters are ignored under Android 7.1 and earlier
+versions of the system.  The set of values for @var{urgency} is the
+same as with @code{notifications-notify}, but the urgency applies to
+all notifications displayed with the defined @var{group}.
+
+If @var{group} is nil or not present within @var{params}, it is
+replaced by the string @samp{"Desktop Notifications"}.
+@end table
+
+It returns a number identifying the notification, which may be
+supplied as the @code{:replaces-id} parameter to a later call to this
+function.
+
+If Emacs is not afforded the permission to display notifications
+(@pxref{Android Environment,,, emacs, The GNU Emacs Manual}) under
+Android 13 and later, any notifications sent will be silently
+disregarded.
 @end defun
 
 @node File Notifications

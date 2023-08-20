@@ -491,6 +491,8 @@ permissions it has requested upon being installed:
 @code{android.permission.RECORD_AUDIO}
 @item
 @code{android.permission.CAMERA}
+@item
+@code{android.permission.POST_NOTIFICATIONS}
 @end itemize
 
 While most of these permissions are left unused by Emacs itself, they
@@ -516,8 +518,6 @@ permissions upon installation:
 @code{android.permission.TRANSMIT_IR}
 @item
 @code{android.permission.WAKE_LOCK}
-@item
-@code{android.permission.POST_NOTIFICATIONS}
 @end itemize
 
 Other permissions must be granted by the user through the system

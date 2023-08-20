@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <minmax.h>
 #include <unistd.h>
 
+#include <boot-time.h>
+#include <sys/types.h>
+
 #include "lisp.h"
 #include "blockinput.h"
 #include "coding.h"
@@ -466,6 +469,232 @@ does not have any corresponding data.  In that case, use
 
 
 
+/* Desktop notifications.  `android-desktop-notify' implements a
+   facsimile of `notifications-notify'.  */
+
+/* Structure describing the EmacsDesktopNotification class.  */
+
+struct android_emacs_desktop_notification
+{
+  jclass class;
+  jmethodID init;
+  jmethodID display;
+};
+
+/* Methods provided by the EmacsDesktopNotification class.  */
+static struct android_emacs_desktop_notification notification_class;
+
+/* Initialize virtual function IDs and class pointers tied to the
+   EmacsDesktopNotification class.  */
+
+static void
+android_init_emacs_desktop_notification (void)
+{
+  jclass old;
+
+  notification_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "org/gnu/emacs/EmacsDesktopNotification");
+  eassert (notification_class.class);
+
+  old = notification_class.class;
+  notification_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!notification_class.class)
+    emacs_abort ();
+
+#define FIND_METHOD(c_name, name, signature)				\
+  notification_class.c_name						\
+    = (*android_java_env)->GetMethodID (android_java_env,		\
+				        notification_class.class,	\
+					name, signature);		\
+  assert (notification_class.c_name);
+
+  FIND_METHOD (init, "<init>", "(Ljava/lang/String;"
+	       "Ljava/lang/String;Ljava/lang/String;"
+	       "Ljava/lang/String;I)V");
+  FIND_METHOD (display, "display", "()V");
+#undef FIND_METHOD
+}
+
+/* Display a desktop notification with the provided TITLE, BODY,
+   REPLACES_ID, GROUP and URGENCY.  Return an identifier for the
+   resulting notification.  */
+
+static intmax_t
+android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
+				Lisp_Object replaces_id,
+				Lisp_Object group, Lisp_Object urgency)
+{
+  static intmax_t counter;
+  intmax_t id;
+  jstring title1, body1, group1, identifier1;
+  jint type;
+  jobject notification;
+  char identifier[INT_STRLEN_BOUND (int)
+		  + INT_STRLEN_BOUND (long int)
+		  + INT_STRLEN_BOUND (intmax_t)
+		  + sizeof "..."];
+  struct timespec boot_time;
+
+  if (EQ (urgency, Qlow))
+    type = 2; /* IMPORTANCE_LOW */
+  else if (EQ (urgency, Qnormal))
+    type = 3; /* IMPORTANCE_DEFAULT */
+  else if (EQ (urgency, Qcritical))
+    type = 4; /* IMPORTANCE_HIGH */
+  else
+    signal_error ("Invalid notification importance given", urgency);
+
+  if (NILP (replaces_id))
+    {
+      /* Generate a new identifier.  */
+      INT_ADD_WRAPV (counter, 1, &counter);
+      id = counter;
+    }
+  else
+    {
+      CHECK_INTEGER (replaces_id);
+      if (!integer_to_intmax (replaces_id, &id))
+	id = -1; /* Overflow.  */
+    }
+
+  /* Generate a unique identifier for this notification.  Because
+     Android persists notifications past system shutdown, also include
+     the boot time within IDENTIFIER.  Scale it down to avoid being
+     perturbed by minor instabilities in the returned boot time,
+     however.  */
+
+  boot_time.tv_sec = 0;
+  get_boot_time (&boot_time);
+  sprintf (identifier, "%d.%ld.%jd", (int) getpid (),
+	   (long int) (boot_time.tv_sec / 2), id);
+
+  /* Encode all strings into their Java counterparts.  */
+  title1 = android_build_string (title);
+  body1  = android_build_string (body);
+  group1 = android_build_string (group);
+  identifier1 = android_build_jstring (identifier);
+
+  /* Create the notification.  */
+  notification
+    = (*android_java_env)->NewObject (android_java_env,
+				      notification_class.class,
+				      notification_class.init,
+				      title1, body1, group1,
+				      identifier1, type);
+  android_exception_check_4 (title1, body1, group1, identifier1);
+
+  /* Delete unused local references.  */
+  ANDROID_DELETE_LOCAL_REF (title1);
+  ANDROID_DELETE_LOCAL_REF (body1);
+  ANDROID_DELETE_LOCAL_REF (group1);
+  ANDROID_DELETE_LOCAL_REF (identifier1);
+
+  /* Display the notification.  */
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 notification,
+						 notification_class.class,
+						 notification_class.display);
+  android_exception_check_1 (notification);
+  ANDROID_DELETE_LOCAL_REF (notification);
+
+  /* Return the ID.  */
+  return id;
+}
+
+DEFUN ("android-notifications-notify", Fandroid_notifications_notify,
+       Sandroid_notifications_notify, 0, MANY, 0, doc:
+       /* Display a desktop notification.
+ARGS must contain keywords followed by values.  Each of the following
+keywords is understood:
+
+  :title        The notification title.
+  :body         The notification body.
+  :replaces-id  The ID of a previous notification to supersede.
+  :group        The notification group, or nil.
+  :urgency      One of the symbols `low', `normal' or `critical',
+                defining the importance of the notification group.
+
+The notification group and urgency are ignored on Android 7.1 and
+earlier versions of Android.  Outside such older systems, it
+identifies a category that will be displayed in the system Settings
+menu.  The urgency provided always extends to affect all notifications
+displayed within that category.  If the group is not provided, it
+defaults to the string "Desktop Notifications".
+
+When the system is running Android 13 or later, notifications sent
+will be silently disregarded unless permission to display
+notifications is expressly granted from the "App Info" settings panel
+corresponding to Emacs.
+
+A title and body must be supplied.  Value is an integer (fixnum or
+bignum) uniquely designating the notification displayed, which may
+subsequently be specified as the `:replaces-id' of another call to
+this function.
+
+usage: (android-notifications-notify &rest ARGS) */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  Lisp_Object title, body, replaces_id, group, urgency;
+  Lisp_Object key, value;
+  ptrdiff_t i;
+
+  if (!android_init_gui)
+    error ("No Android display connection!");
+
+  /* Clear each variable above.  */
+  title = body = replaces_id = group = urgency = Qnil;
+
+  /* If NARGS is odd, error.  */
+
+  if (nargs & 1)
+    error ("Odd number of arguments in call to `android-notifications-notify'");
+
+  /* Next, iterate through ARGS, searching for arguments.  */
+
+  for (i = 0; i < nargs; i += 2)
+    {
+      key = args[i];
+      value = args[i + 1];
+
+      if (EQ (key, QCtitle))
+	title = value;
+      else if (EQ (key, QCbody))
+	body = value;
+      else if (EQ (key, QCreplaces_id))
+	replaces_id = value;
+      else if (EQ (key, QCgroup))
+	group = value;
+      else if (EQ (key, QCurgency))
+	urgency = value;
+    }
+
+  /* Demand at least TITLE and BODY be present.  */
+
+  if (NILP (title) || NILP (body))
+    error ("Title or body not provided");
+
+  /* Now check the type and possibly expand each non-nil argument.  */
+
+  CHECK_STRING (title);
+  CHECK_STRING (body);
+
+  if (NILP (urgency))
+    urgency = Qlow;
+
+  if (NILP (group))
+    group   = build_string ("Desktop Notifications");
+
+  return make_int (android_notifications_notify_1 (title, body, replaces_id,
+						   group, urgency));
+}
+
+
+
 void
 init_androidselect (void)
 {
@@ -476,6 +705,7 @@ init_androidselect (void)
     return;
 
   android_init_emacs_clipboard ();
+  android_init_emacs_desktop_notification ();
 
   make_clipboard = clipboard_class.make_clipboard;
   tem
@@ -496,6 +726,16 @@ init_androidselect (void)
 void
 syms_of_androidselect (void)
 {
+  DEFSYM (QCtitle, ":title");
+  DEFSYM (QCbody, ":body");
+  DEFSYM (QCreplaces_id, ":replaces-id");
+  DEFSYM (QCgroup, ":group");
+  DEFSYM (QCurgency, ":urgency");
+
+  DEFSYM (Qlow, "low");
+  DEFSYM (Qnormal, "normal");
+  DEFSYM (Qcritical, "critical");
+
   defsubr (&Sandroid_clipboard_owner_p);
   defsubr (&Sandroid_set_clipboard);
   defsubr (&Sandroid_get_clipboard);
@@ -503,4 +743,6 @@ syms_of_androidselect (void)
   defsubr (&Sandroid_browse_url);
   defsubr (&Sandroid_get_clipboard_targets);
   defsubr (&Sandroid_get_clipboard_data);
+
+  defsubr (&Sandroid_notifications_notify);
 }
