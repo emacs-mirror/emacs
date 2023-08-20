@@ -3096,9 +3096,7 @@ displayed."
 (defun sql-accumulate-and-indent ()
   "Continue SQL statement on the next line."
   (interactive)
-  (if (fboundp 'comint-accumulate)
-      (comint-accumulate)
-    (newline))
+  (comint-accumulate)
   (indent-according-to-mode))
 
 (defun sql-help-list-products (indent freep)
