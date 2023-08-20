@@ -357,6 +357,14 @@ to load the edited aliases.
 Running 'rgrep' in Eshell now uses the Emacs grep facility instead of
 calling external rgrep.
 
+** Pcomplete
+
+---
+*** New user option 'pcomplete-remote-file-ignore'.
+When this option is non-nil, remote file names are not completed by
+Pcomplete.  Packages, like 'shell-mode', could set this in order to
+suppress remote file name completion at all.
+
 ** Shell Mode
 
 +++
