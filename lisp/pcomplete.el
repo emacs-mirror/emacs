@@ -932,7 +932,7 @@ this is `comint-dynamic-complete-functions'."
 	      (completion-ignore-case completion-ignore-case)
               (tramp-mode (and tramp-mode (not pcomplete-remote-file-ignore)))
               (non-essential (not (file-remote-p s)))
-              (minibuffer-completing-file-name  (file-remote-p s))))
+              (minibuffer-completing-file-name (not (file-remote-p s))))
           (completion-table-with-predicate
            #'comint-completion-file-name-table pred 'strict s p a))))))
 
