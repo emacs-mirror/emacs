@@ -152,6 +152,12 @@ edited even if this option is enabled."
   :group 'help
   :version "28.1")
 
+(defcustom help-display-function-type t
+  "If non-nil, display the type of a function when available."
+  :type 'boolean
+  :group 'help
+  :version "30.1")
+
 (defun help--symbol-class (s)
   "Return symbol class characters for symbol S."
   (when (stringp s)
@@ -715,7 +721,8 @@ the C sources, too."
           (unless (and (symbolp function)
                        (get function 'reader-construct))
             (insert high-usage "\n")
-            (when-let* ((res (comp-function-type-spec function))
+            (when-let* ((gate help-display-function-type)
+                        (res (comp-function-type-spec function))
                         (type-spec (car res))
                         (kind (cdr res)))
               (insert (format
