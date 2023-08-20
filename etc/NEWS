@@ -538,9 +538,9 @@ project, that you can quickly select using 'project-switch-project'
 ('C-x p p').
 
 ---
-*** New user option 'package-vc-allow-side-effects'.
-When non-nil, package specifications with side-effects for building
-software will be used when building a package.
+*** New user option 'package-vc-allow-build-commands'.
+Controls for which packages Emacs runs extra build commands when
+installing directly from the package VCS repository.
 
 ---
 *** New command to start an inferior Emacs loading only specific packages.

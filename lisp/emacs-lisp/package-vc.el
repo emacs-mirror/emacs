@@ -362,7 +362,7 @@ asynchronously."
         "\n")
        nil pkg-file nil 'silent))))
 
-(defcustom package-vc-allow-side-effects nil
+(defcustom package-vc-allow-build-commands nil
   "Whether to run extra build commands when installing VC packages.
 
 Some packages specify \"make\" targets or other shell commands
@@ -548,9 +548,9 @@ documentation and marking the package as installed."
       (package-vc--generate-description-file pkg-desc pkg-file)
 
       ;; Process :make and :shell-command arguments before building documentation
-      (when (or (eq package-vc-allow-side-effects t)
+      (when (or (eq package-vc-allow-build-commands t)
                 (memq (package-desc-name pkg-desc)
-                      package-vc-allow-side-effects))
+                      package-vc-allow-build-commands))
         (package-vc--make pkg-spec pkg-desc))
 
       ;; Detect a manual
