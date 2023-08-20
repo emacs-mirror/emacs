@@ -688,9 +688,15 @@ typedef void (*sfnt_curve_to_proc) (struct sfnt_point,
 				    struct sfnt_point,
 				    void *);
 
+/* Forward declaration for use in sfnt_get_metrics_proc.  */
+struct sfnt_glyph_metrics;
+
 typedef struct sfnt_glyph *(*sfnt_get_glyph_proc) (sfnt_glyph, void *,
 						   bool *);
 typedef void (*sfnt_free_glyph_proc) (struct sfnt_glyph *, void *);
+typedef int (*sfnt_get_metrics_proc) (sfnt_glyph,
+				      struct sfnt_glyph_metrics *,
+				      void *);
 
 
 
@@ -1372,6 +1378,7 @@ extern void sfnt_free_glyph (struct sfnt_glyph *);
   struct sfnt_glyph_metrics *,	\
   sfnt_get_glyph_proc,		\
   sfnt_free_glyph_proc,		\
+  sfnt_get_metrics_proc,	\
   void *
 extern struct sfnt_glyph_outline *sfnt_build_glyph_outline (PROTOTYPE);
 #undef PROTOTYPE

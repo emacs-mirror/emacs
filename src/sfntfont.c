@@ -1943,6 +1943,11 @@ struct sfntfont_get_glyph_outline_dcontext
   /* glyf table.  */
   struct sfnt_glyf_table *glyf;
 
+  /* hmtx, hhea and maxp tables utilized to acquire glyph metrics.  */
+  struct sfnt_hmtx_table *hmtx;
+  struct sfnt_hhea_table *hhea;
+  struct sfnt_maxp_table *maxp;
+
   /* Variation settings, or NULL.  */
   struct sfnt_blend *blend;
 };
@@ -1985,6 +1990,23 @@ static void
 sfntfont_free_glyph (struct sfnt_glyph *glyph, void *dcontext)
 {
   sfnt_free_glyph (glyph);
+}
+
+/* Return unscaled glyph metrics for the glyph designated by the ID
+   GLYPH within *METRICS, utilizing tables within DCONTEXT.
+
+   Value is 1 upon failure, 0 otherwise.  */
+
+static int
+sfntfont_get_metrics (sfnt_glyph glyph, struct sfnt_glyph_metrics *metrics,
+		      void *dcontext)
+{
+  struct sfntfont_get_glyph_outline_dcontext *tables;
+
+  tables = dcontext;
+  return sfnt_lookup_glyph_metrics (glyph, -1, metrics,
+				    tables->hmtx, tables->hhea,
+				    NULL, tables->maxp);
 }
 
 /* Dereference the outline OUTLINE.  Free it once refcount reaches
@@ -2112,6 +2134,9 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   dcontext.loca_long = loca_long;
   dcontext.loca_short = loca_short;
   dcontext.glyf = glyf;
+  dcontext.hhea = hhea;
+  dcontext.hmtx = hmtx;
+  dcontext.maxp = maxp;
   dcontext.blend = (index != -1 ? blend : NULL);
 
   /* Now load the glyph's unscaled metrics into TEMP.  */
@@ -2160,12 +2185,14 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					    &temp,
 					    sfntfont_get_glyph,
 					    sfntfont_free_glyph,
+					    sfntfont_get_metrics,
 					    &dcontext);
       else
 	outline = sfnt_build_glyph_outline (glyph, scale,
 					    &temp,
 					    sfntfont_get_glyph,
 					    sfntfont_free_glyph,
+					    sfntfont_get_metrics,
 					    &dcontext);
     }
 
