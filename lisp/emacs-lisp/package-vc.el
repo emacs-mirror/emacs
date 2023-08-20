@@ -62,6 +62,18 @@
 (defconst package-vc--elpa-packages-version 1
   "Version number of the package specification format understood by package-vc.")
 
+(defconst package-vc--backend-type
+  `(choice :convert-widget
+           ,(lambda (widget)
+              (let (opts)
+                (dolist (be vc-handled-backends)
+                  (when (or (vc-find-backend-function be 'clone)
+                            (alist-get 'clone (get be 'vc-functions)))
+                    (push (widget-convert (list 'const be)) opts)))
+                (widget-put widget :args opts))
+              widget))
+  "The type of VC backends that support cloning package VCS repositories.")
+
 (defcustom package-vc-heuristic-alist
   `((,(rx bos "http" (? "s") "://"
           (or (: (? "www.") "github.com"
@@ -103,9 +115,7 @@ the first association for which the URL of the repository matches
 the URL-REGEXP of the association.  If no match is found,
 `package-vc-install' uses `package-vc-default-backend' instead."
   :type `(alist :key-type (regexp :tag "Regular expression matching URLs")
-                :value-type (choice :tag "VC Backend"
-                                    ,@(mapcar (lambda (b) `(const ,b))
-                                              vc-handled-backends)))
+                :value-type ,package-vc--backend-type)
   :version "29.1")
 
 (defcustom package-vc-default-backend 'Git
@@ -116,8 +126,7 @@ the backend nor a repository URL that's recognized via
 
 The value must be a member of `vc-handled-backends' that supports
 the `clone' VC function."
-  :type `(choice ,@(mapcar (lambda (b) (list 'const b))
-                           vc-handled-backends))
+  :type package-vc--backend-type
   :version "29.1")
 
 (defcustom package-vc-register-as-project t
