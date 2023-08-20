@@ -22,8 +22,10 @@ package org.gnu.emacs;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
+import android.app.PendingIntent;
 
 import android.content.Context;
+import android.content.Intent;
 
 import android.os.Build;
 
@@ -87,6 +89,8 @@ public final class EmacsDesktopNotification
     Notification notification;
     Object tem;
     RemoteViews contentView;
+    Intent intent;
+    PendingIntent pending;
 
     tem = context.getSystemService (Context.NOTIFICATION_SERVICE);
     manager = (NotificationManager) tem;
@@ -127,6 +131,14 @@ public final class EmacsDesktopNotification
 				     title);
 	contentView.setTextViewText (R.id.sdk8_notifications_content,
 				     content);
+
+	/* A content intent must be provided on these old versions of
+	   Android.  */
+
+	intent = new Intent (context, EmacsActivity.class);
+	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+        pending = PendingIntent.getActivity (context, 0, intent, 0);
+	notification.contentIntent = pending;
       }
 
     manager.notify (tag, 2, notification);
