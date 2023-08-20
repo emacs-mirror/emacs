@@ -4671,6 +4671,7 @@ CASE-FOLD non-nil means the search was case-insensitive."
 	isearch-message message
 	isearch-case-fold-search case-fold)
   (isearch-search)
+  (isearch-push-state)
   (isearch-update))
 
 
