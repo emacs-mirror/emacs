@@ -132,13 +132,13 @@ visible in its rendered content.
 
 @findex eww-open-in-new-buffer
 @kindex M-RET
-  The @kbd{M-@key{RET}} command (@code{eww-open-in-new-buffer}) opens the
-URL at point in a new EWW buffer, akin to opening a link in a new
-``tab'' in other browsers.  When @code{global-tab-line-mode} is
-enabled, this buffer is displayed in the tab on the window tab line.
-When @code{tab-bar-mode} is enabled, a new tab is created on the frame
-tab bar.  If the prefix key @kbd{C-u} is avaliable, it will stay on
-current buffer.
+  The @kbd{M-@key{RET}} command (@code{eww-open-in-new-buffer}) opens
+the URL at point in a new EWW buffer, akin to opening a link in a new
+``tab'' in other browsers.  If invoked with prefix argument, the
+command will not make the new buffer the current one.  When
+@code{global-tab-line-mode} is enabled, this buffer is displayed in
+the tab on the window tab line.  When @code{tab-bar-mode} is enabled,
+a new tab is created on the frame tab bar.
 
 @findex eww-readable
 @kindex R

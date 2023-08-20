@@ -544,8 +544,8 @@ for the search engine used."
 
 (defun eww--open-url-in-new-buffer (url)
   "Open the URL in a new EWW buffer."
-  ;; clone useful to keep history, but
-  ;; should not clone from non-eww buffer
+  ;; Clone is useful to keep history, but we
+  ;; should not clone from a non-eww buffer.
   (with-current-buffer
       (if (eq major-mode 'eww-mode) (clone-buffer)
         (generate-new-buffer "*eww*"))
@@ -554,11 +554,9 @@ for the search engine used."
       (eww (if (consp url) (car url) url)))))
 
 (defun eww-open-in-new-buffer (&optional no-select url)
-  "Fetch URL in a new EWW buffer.
+  "Fetch URL (interactively, the link at point) into a new EWW buffer.
 
-If the NO-SELECT is not `nil', the forcus will stay on current buffer.
-
-If the URL is `nil', it will try `eww-suggested-uris' under current cursor."
+NO-SELECT non-nil means do not make the new buffer the current buffer."
   (interactive "P")
   (if-let ((url (or url (eww-suggested-uris))))
       (if (or (eq eww-browse-url-new-window-is-tab t)
