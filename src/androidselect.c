@@ -515,24 +515,60 @@ android_init_emacs_desktop_notification (void)
 
   FIND_METHOD (init, "<init>", "(Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;"
-	       "Ljava/lang/String;I)V");
+	       "Ljava/lang/String;II)V");
   FIND_METHOD (display, "display", "()V");
 #undef FIND_METHOD
 }
 
+/* Return the numeric resource ID designating the icon within the
+   ``android.R.drawable'' package by the supplied NAME.
+
+   If no icon is found, return that of
+   ``android.R.drawable.ic_dialog_alert''.  */
+
+static jint
+android_locate_icon (const char *name)
+{
+  jclass drawable;
+  jfieldID field;
+  jint rc;
+
+  if (android_verify_jni_string (name))
+    /* If NAME isn't valid, return the default value.  */
+    return 17301543; /* android.R.drawable.ic_dialog_alert.  */
+
+  drawable = (*android_java_env)->FindClass (android_java_env,
+					     "android/R$drawable");
+  android_exception_check ();
+
+  field = (*android_java_env)->GetStaticFieldID (android_java_env,
+						 drawable, name, "I");
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  if (!field)
+    rc = 17301543; /* android.R.drawable.ic_dialog_alert.  */
+  else
+    rc = (*android_java_env)->GetStaticIntField (android_java_env,
+						 drawable, field);
+
+  ANDROID_DELETE_LOCAL_REF (drawable);
+  return rc;
+}
+
 /* Display a desktop notification with the provided TITLE, BODY,
-   REPLACES_ID, GROUP and URGENCY.  Return an identifier for the
-   resulting notification.  */
+   REPLACES_ID, GROUP, ICON, and URGENCY.  Return an identifier for
+   the resulting notification.  */
 
 static intmax_t
 android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 				Lisp_Object replaces_id,
-				Lisp_Object group, Lisp_Object urgency)
+				Lisp_Object group, Lisp_Object icon,
+				Lisp_Object urgency)
 {
   static intmax_t counter;
   intmax_t id;
   jstring title1, body1, group1, identifier1;
-  jint type;
+  jint type, icon1;
   jobject notification;
   char identifier[INT_STRLEN_BOUND (int)
 		  + INT_STRLEN_BOUND (long int)
@@ -562,6 +598,9 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 	id = -1; /* Overflow.  */
     }
 
+  /* Locate the integer ID linked to ICON.  */
+  icon1 = android_locate_icon (SSDATA (icon));
+
   /* Generate a unique identifier for this notification.  Because
      Android persists notifications past system shutdown, also include
      the boot time within IDENTIFIER.  Scale it down to avoid being
@@ -585,7 +624,7 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 				      notification_class.class,
 				      notification_class.init,
 				      title1, body1, group1,
-				      identifier1, type);
+				      identifier1, icon1, type);
   android_exception_check_4 (title1, body1, group1, identifier1);
 
   /* Delete unused local references.  */
@@ -618,6 +657,8 @@ keywords is understood:
   :group        The notification group, or nil.
   :urgency      One of the symbols `low', `normal' or `critical',
                 defining the importance of the notification group.
+  :icon         The name of a drawable resource to display as the
+                notification's icon.
 
 The notification group and urgency are ignored on Android 7.1 and
 earlier versions of Android.  Outside such older systems, it
@@ -625,6 +666,11 @@ identifies a category that will be displayed in the system Settings
 menu.  The urgency provided always extends to affect all notifications
 displayed within that category.  If the group is not provided, it
 defaults to the string "Desktop Notifications".
+
+The provided icon should be the name of a "drawable resource" present
+within the "android.R.drawable" class designating an icon with a
+transparent background.  If no icon is provided (or the icon is absent
+from this system), it defaults to "ic_dialog_alert".
 
 When the system is running Android 13 or later, notifications sent
 will be silently disregarded unless permission to display
@@ -640,6 +686,7 @@ usage: (android-notifications-notify &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object title, body, replaces_id, group, urgency;
+  Lisp_Object icon;
   Lisp_Object key, value;
   ptrdiff_t i;
 
@@ -647,7 +694,7 @@ usage: (android-notifications-notify &rest ARGS) */)
     error ("No Android display connection!");
 
   /* Clear each variable above.  */
-  title = body = replaces_id = group = urgency = Qnil;
+  title = body = replaces_id = group = icon = urgency = Qnil;
 
   /* If NARGS is odd, error.  */
 
@@ -671,6 +718,8 @@ usage: (android-notifications-notify &rest ARGS) */)
 	group = value;
       else if (EQ (key, QCurgency))
 	urgency = value;
+      else if (EQ (key, QCicon))
+	icon = value;
     }
 
   /* Demand at least TITLE and BODY be present.  */
@@ -687,10 +736,15 @@ usage: (android-notifications-notify &rest ARGS) */)
     urgency = Qlow;
 
   if (NILP (group))
-    group   = build_string ("Desktop Notifications");
+    group = build_string ("Desktop Notifications");
+
+  if (NILP (icon))
+    icon = build_string ("ic_dialog_alert");
+  else
+    CHECK_STRING (icon);
 
   return make_int (android_notifications_notify_1 (title, body, replaces_id,
-						   group, urgency));
+						   group, icon, urgency));
 }
 
 
@@ -731,6 +785,7 @@ syms_of_androidselect (void)
   DEFSYM (QCreplaces_id, ":replaces-id");
   DEFSYM (QCgroup, ":group");
   DEFSYM (QCurgency, ":urgency");
+  DEFSYM (QCicon, ":icon");
 
   DEFSYM (Qlow, "low");
   DEFSYM (Qnormal, "normal");

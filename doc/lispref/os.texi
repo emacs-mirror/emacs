@@ -3228,6 +3228,16 @@ all notifications displayed with the defined @var{group}.
 
 If @var{group} is nil or not present within @var{params}, it is
 replaced by the string @samp{"Desktop Notifications"}.
+
+@item :icon @var{icon}
+This parameter controls the symbolic icon the notification will be
+displayed with.  Its value is a string designating an icon within the
+@code{android.R.drawable} system package.  See
+@url{https://developer.android.com/reference/android/R.drawable,,R.drawable
+| Android Developers} for a list of such icons.
+
+If it is not provided within @var{params} or @var{icon} does not
+exist, it defaults to @samp{"ic_dialog_alert"}.
 @end table
 
 It returns a number identifying the notification, which may be

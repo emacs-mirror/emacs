@@ -60,17 +60,22 @@ public final class EmacsDesktopNotification
      function.  */
   public final String tag;
 
+  /* The identifier of this notification's icon.  */
+  public final int icon;
+
   /* The importance of this notification's group.  */
   public final int importance;
 
   public
   EmacsDesktopNotification (String title, String content,
-			    String group, String tag, int importance)
+			    String group, String tag, int icon,
+			    int importance)
   {
     this.content    = content;
     this.title	    = title;
     this.group	    = group;
     this.tag        = tag;
+    this.icon       = icon;
     this.importance = importance;
   }
 
@@ -107,19 +112,19 @@ public final class EmacsDesktopNotification
 	notification = (new Notification.Builder (context, group)
 			.setContentTitle (title)
 			.setContentText (content)
-			.setSmallIcon (R.drawable.emacs)
+			.setSmallIcon (icon)
 			.build ());
       }
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
       notification = (new Notification.Builder (context)
 		      .setContentTitle (title)
 		      .setContentText (content)
-		      .setSmallIcon (R.drawable.emacs)
+		      .setSmallIcon (icon)
 		      .build ());
     else
       {
 	notification = new Notification ();
-	notification.icon = R.drawable.emacs;
+	notification.icon = icon;
 
 	/* This remote widget tree is defined in
 	   java/res/layout/sdk8_notifications_view.xml.  */
@@ -131,15 +136,21 @@ public final class EmacsDesktopNotification
 				     title);
 	contentView.setTextViewText (R.id.sdk8_notifications_content,
 				     content);
-
-	/* A content intent must be provided on these old versions of
-	   Android.  */
-
-	intent = new Intent (context, EmacsActivity.class);
-	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
-        pending = PendingIntent.getActivity (context, 0, intent, 0);
-	notification.contentIntent = pending;
       }
+
+    /* Provide a content intent which starts Emacs when the
+       notification is clicked.  */
+
+    intent = new Intent (context, EmacsActivity.class);
+    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S)
+      pending = PendingIntent.getActivity (context, 0, intent,
+					   PendingIntent.FLAG_IMMUTABLE);
+    else
+      pending = PendingIntent.getActivity (context, 0, intent, 0);
+
+    notification.contentIntent = pending;
 
     manager.notify (tag, 2, notification);
   }
