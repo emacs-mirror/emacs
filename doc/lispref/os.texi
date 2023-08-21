@@ -3233,7 +3233,7 @@ replaced by the string @samp{"Desktop Notifications"}.
 This parameter controls the symbolic icon the notification will be
 displayed with.  Its value is a string designating an icon within the
 @code{android.R.drawable} system package.  See
-@url{https://developer.android.com/reference/android/R.drawable,,R.drawable
+@uref{https://developer.android.com/reference/android/R.drawable,R.drawable
 | Android Developers} for a list of such icons.
 
 If it is not provided within @var{params} or @var{icon} does not
