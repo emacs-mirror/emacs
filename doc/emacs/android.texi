@@ -692,18 +692,20 @@ always be Droid Sans Mono.
 @cindex TrueType GX fonts, android
 @cindex distortable fonts, android
 
-  Like on X systems, Emacs supports distortable fonts under Android.
+  As on X systems, Emacs supports distortable fonts under Android.
 These fonts (also termed ``TrueType GX fonts'', ``variable fonts'',
 and ``multiple master fonts'') provide multiple different styles
 (``Bold'', ``Italic'', etc) using a single font file.
 
-  When a user-installed distortable font is found, each font that a
+  When a user-installed distortable font is found, each style that a
 previously discovered font provided will no longer be used.  In
-addition, any previously specified distortable fonts with the same
-family name are also removed.  When a conventional font is found, any
-previous conventional font with the same style and family will be
-removed; distortable fonts with the same family will no longer be used
-to provide that style.
+addition, any previously installed distortable fonts with the same
+family name are also disregarded, provided that the new distortable
+font supplies a superset of the styles furnished by the previously
+installed font.  When a conventional font is found, any previous
+conventional font with the same style and family will be removed;
+distortable fonts with the same family will no longer be used to
+provide that style.
 
 @node Android Troubleshooting
 @section Troubleshooting Startup Problems on Android

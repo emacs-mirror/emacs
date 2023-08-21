@@ -834,6 +834,9 @@ sfnt_grok_registry (int fd, struct sfnt_font_desc *desc,
    newer font description DESC, and should be removed from the list of
    system fonts.
 
+   If both PREV and DESC are variable fonts, remove styles within PREV
+   that overlap with DESC and return false.
+
    If PREV is a variable font, potentially adjust its list of
    instances.  */
 
@@ -841,8 +844,8 @@ static bool
 sfnt_replace_fonts_p (struct sfnt_font_desc *prev,
 		      struct sfnt_font_desc *desc)
 {
-  int i, width, weight, slant, count_instance;
-  Lisp_Object tem;
+  int i, j, width, weight, slant, count_instance;
+  Lisp_Object tem, tem1;
   bool family_equal_p;
 
   family_equal_p = !NILP (Fstring_equal (prev->family,
@@ -851,7 +854,54 @@ sfnt_replace_fonts_p (struct sfnt_font_desc *prev,
   if ((!NILP (desc->instances)
        || !NILP (Fstring_equal (prev->style, desc->style)))
       && family_equal_p)
-    return true;
+    {
+      /* If both inputs are GX fonts...  */
+      if (!NILP (desc->instances) && !NILP (prev->instances))
+	{
+	  /* ...iterate over each of the styles provided by PREV.  If
+	     they match any styles within DESC, remove the old style
+	     from PREV.  */
+
+	  count_instance = 0;
+	  for (i = 0; i < ASIZE (prev->instances); ++i)
+	    {
+	      tem = AREF (prev->instances, i);
+
+	      if (NILP (tem))
+		continue;
+
+	      for (j = 0; j < ASIZE (desc->instances); ++j)
+		{
+		  tem1 = AREF (desc->instances, j);
+
+		  if (NILP (tem1))
+		    continue;
+
+		  if (!NILP (Fequal (tem1, tem)))
+		    {
+		      /* tem1 is identical to tem, so opt for it over
+			 tem.  */
+		      ASET (prev->instances, i, Qnil);
+		      goto next;
+		    }
+		}
+
+	      /* Increment the number of instances remaining within
+		 PREV.  */
+	      count_instance++;
+
+	    next:
+	      ;
+	    }
+
+	  /* Return true if no instances remain inside
+	     PREV->instances, so that the now purposeless desc may be
+	     removed.  */
+	  return !count_instance;
+	}
+
+      return true;
+    }
 
   if (NILP (prev->instances) || !family_equal_p)
     return false;
