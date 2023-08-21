@@ -153,7 +153,12 @@ edited even if this option is enabled."
   :version "28.1")
 
 (defcustom help-display-function-type t
-  "If non-nil, display the type of a function when available."
+  "Whether to display type specifiers of functions in \"*Help*\" buffers.
+
+The type specifier of a function is returned by `comp-function-type-spec',
+which see.  When this variable is non-nil, \\[describe-function] will \
+display the function's
+type specifier when available."
   :type 'boolean
   :group 'help
   :version "30.1")
