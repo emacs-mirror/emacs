@@ -312,9 +312,13 @@ it makes no sense to convert it to a string using
 Like `let', bind variables in BINDINGS and then evaluate BODY,
 but with the twist that BODY can evaluate itself recursively by
 calling NAME, where the arguments passed to NAME are used
-as the new values of the bound variables in the recursive invocation."
+as the new values of the bound variables in the recursive invocation.
+
+This construct can only be used with lexical binding."
   (declare (indent 2) (debug (symbolp (&rest (symbolp form)) body)))
   (require 'cl-lib)
+  (unless lexical-binding
+    (error "`named-let' requires lexical binding"))
   (let ((fargs (mapcar (lambda (b) (if (consp b) (car b) b)) bindings))
         (aargs (mapcar (lambda (b) (if (consp b) (cadr b))) bindings)))
     ;; According to the Scheme semantics of named let, `name' is not in scope
