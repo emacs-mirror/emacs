@@ -381,7 +381,7 @@ conclude it was written by me."
 
 lisp/term/README
   - had no copyright notice till Feb 2007. ChangeLog.3 suggests it was
-  written by Eric Raymond. When asked by rms on 14 Feb 2007 he said:
+  written by Eric S. Raymond. When asked by rms on 14 Feb 2007 he said:
 
     I don't remember writing it, but it reads like my prose and I believe
     I wrote the feature(s) it's describing.  So I would have been the

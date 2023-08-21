@@ -2745,7 +2745,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_85D317CE74
+#if CHECK_STRUCTS && !defined HASH_buffer_6C25F9C3BC
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;

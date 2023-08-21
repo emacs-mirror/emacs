@@ -78,6 +78,10 @@ ns_can_use_native_image_api (Lisp_Object type)
   else if (EQ (type, Qsvg))
     imageType = @"public.svg-image";
 #endif
+#ifndef HAVE_WEBP
+  else if (EQ (type, Qwebp))
+    imageType = @"org.webmproject.webp";
+#endif
   else if (EQ (type, Qheic))
     imageType = @"public.heic";
 

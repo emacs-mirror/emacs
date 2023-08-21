@@ -1063,7 +1063,7 @@ recovering the contents of Emacs buffers from a core dump file.  You
 might also find those commands useful for displaying the list of
 buffers in human-readable format from within the debugger.
 
-*** Debugging Emacs with LLDB
+** Debugging Emacs with LLDB
 
 On systems where GDB is not available, like macOS with M1 chip, you
 can also use LLDB for Emacs debugging.
@@ -1101,36 +1101,183 @@ from GDB commands to corresponding LLDB commands there.
 
 ** Debugging Emacs on Android.
 
-Attaching GDB to Emacs running inside the Android application setup
-requires a special script found in the java/ directory, and a suitable
-GDB server binary to be present on the Android device, which is
-present on the free versions of Android.  Connecting to the device
-also requires the `adb' (Android Debug Bridge) utility, and telling
-the Android system to resume the Emacs process after startup requires
-the Java debugger (jdb).
+A script located in the java/ directory automates the procedures
+necessary run Emacs under a Gdb session on an Android device connected
+to a computer using USB.
+
+Its requirements are the `adb' (Android Debug Bridge) utility and the
+Java debugger (jdb), utilized to cue the Android system to resume the
+Emacs process after the debugger attaches.
 
 If all three of those tools are present, simply run (from the Emacs
 source directory):
 
   ../java/debug.sh -- [any extra arguments you wish to pass to gdb]
 
-After which, upon waiting a while, the GDB prompt will show up.
+Several lines of debug information will be printed, after which the
+Gdb prompt should be displayed.
 
-If Emacs crashes and "JNI ERROR" shows up in the Android system log,
-then placing a breakpoint on:
-
-  break art::JavaVMExt::JniAbort
-
-will let you find the source of the crash.
-
-If there is no `gdbserver' binary present on the device, then you can
-specify one to upload, like so:
+If there is no Gdbserver binary present on the device, then specify
+one to upload, like so:
 
   ../java/debug.sh --gdbserver /path/to/gdbserver
 
-In addition, when Emacs runs as a 64-bit process on a system
-supporting both 64 and 32-bit binaries, you must specify the path to a
-64-bit gdbserver binary.
+This Gdbserver should be statically linked or compiled using the
+Android NDK, and must target the same architecture as the debugee
+Emacs binary.  Older versions of the Android NDK (such as r24)
+distribute suitable Gdbserver binaries, usually located within
+
+  prebuilt/android-<arch>/gdbserver/gdbserver
+
+relative to the root of the NDK distribution.
+
+To attach Emacs to an existing process on a target device, use the
+`--attach-existing' argument to debug.sh:
+
+  ../java/debug.sh --attach-existing [other arguments]
+
+If multiple Emacs processes are running, debug.sh will display the
+names and PIDs of each running process, and prompt for the process
+that it should attach to.
+
+After Emacs starts, type:
+
+  (gdb) handle SIGUSR1 noprint pass
+
+to ignore the SIGUSR1 signal that is sent by the Android port's
+`select' emulation.  If this is overlooked, Emacs will stop each time
+a windowing event is received, which is probably unwanted.
+
+On top of the debugging procedure described above, Android also
+maintains a "logcat" buffer, where it prints backtraces during or
+after each crash.  Its contents are of interest when performing
+post-mortem debugging after a crash, and can also be retrieved through
+the `adb' tool, like so:
+
+  $ adb logcat
+
+There are three forms of crash messages printed by Android.  The first
+form is printed when a crash arises within Java code, and should
+resemble the following when printed in the logcat buffer:
+
+E AndroidRuntime: FATAL EXCEPTION: main
+E AndroidRuntime: Process: org.gnu.emacs, PID: 18057
+E AndroidRuntime: java.lang.RuntimeException: sample crash
+E AndroidRuntime: 	at org.gnu.emacs.EmacsService.onCreate(EmacsService.java:308)
+E AndroidRuntime: 	at android.app.ActivityThread.handleCreateService(ActivityThread.java:4485)
+E AndroidRuntime: 	... 9 more
+
+The second form is printed when a fatal signal (such as an abort, or
+segmentation fault) is raised within C code.  Here is an example of
+such a crash:
+
+F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x3 in tid 32644
+ (Emacs main thre), pid 32619 (org.gnu.emacs)
+F DEBUG   : Cmdline: org.gnu.emacs
+F DEBUG   : pid: 32619, tid: 32644, name: Emacs main thre  >>> org.gnu.emacs <<<
+F DEBUG   :       #00 pc 002b27b0  /.../lib/arm64/libemacs.so (sfnt_read_cmap_table+32)
+F DEBUG   :       #01 pc 002c4ee8  /.../lib/arm64/libemacs.so (sfntfont_read_cmap+84)
+F DEBUG   :       #02 pc 002c4dc4  /.../lib/arm64/libemacs.so (sfntfont_lookup_char+396)
+F DEBUG   :       #03 pc 002c23d8  /.../lib/arm64/libemacs.so (sfntfont_list+1688)
+F DEBUG   :       #04 pc 0021112c  /.../lib/arm64/libemacs.so (font_list_entities+864)
+F DEBUG   :       #05 pc 002138d8  /.../lib/arm64/libemacs.so (font_find_for_lface+1532)
+F DEBUG   :       #06 pc 00280c50  /.../lib/arm64/libemacs.so (fontset_find_font+2760)
+F DEBUG   :       #07 pc 0027cadc  /.../lib/arm64/libemacs.so (fontset_font+792)
+F DEBUG   :       #08 pc 0027c710  /.../lib/arm64/libemacs.so (face_for_char+412)
+F DEBUG   :       #09 pc 00217314  /.../lib/arm64/libemacs.so (Finternal_char_font+324)
+F DEBUG   :       #10 pc 00240d78  /.../lib/arm64/libemacs.so (exec_byte_code+3112)
+F DEBUG   :       #11 pc 001f5ff8  /.../lib/arm64/libemacs.so (Ffuncall+392)
+F DEBUG   :       #12 pc 001f3cf0  /.../lib/arm64/libemacs.so (eval_sub+2260)
+F DEBUG   :       #13 pc 001f853c  /.../lib/arm64/libemacs.so (Feval+80)
+F DEBUG   :       #14 pc 00240d78  /.../lib/arm64/libemacs.so (exec_byte_code+3112)
+F DEBUG   :       #15 pc 00240130  /.../lib/arm64/libemacs.so (Fbyte_code+120)
+F DEBUG   :       #16 pc 001f3d84  /.../lib/arm64/libemacs.so (eval_sub+2408)
+F DEBUG   :       #17 pc 00221d7c  /.../lib/arm64/libemacs.so (readevalloop+1748)
+F DEBUG   :       #18 pc 002201a0  /.../lib/arm64/libemacs.so (Fload+2544)
+F DEBUG   :       #19 pc 00221f3c  /.../lib/arm64/libemacs.so (save_match_data_load+88)
+F DEBUG   :       #20 pc 001f8414  /.../lib/arm64/libemacs.so (load_with_autoload_queue+252)
+F DEBUG   :       #21 pc 001f6550  /.../lib/arm64/libemacs.so (Fautoload_do_load+608)
+F DEBUG   :       #22 pc 00240d78  /.../lib/arm64/libemacs.so (exec_byte_code+3112)
+F DEBUG   :       #23 pc 001f5ff8  /.../lib/arm64/libemacs.so (Ffuncall+392)
+F DEBUG   :       #24 pc 001f1120  /.../lib/arm64/libemacs.so (Ffuncall_interactively+64)
+F DEBUG   :       #25 pc 001f5ff8  /.../lib/arm64/libemacs.so (Ffuncall+392)
+F DEBUG   :       #26 pc 001f8b8c  /.../lib/arm64/libemacs.so (Fapply+916)
+F DEBUG   :       #27 pc 001f137c  /.../lib/arm64/libemacs.so (Fcall_interactively+576)
+F DEBUG   :       #28 pc 00240d78  /.../lib/arm64/libemacs.so (exec_byte_code+3112)
+F DEBUG   :       #29 pc 001f5ff8  /.../lib/arm64/libemacs.so (Ffuncall+392)
+F DEBUG   :       #30 pc 0016d054  /.../lib/arm64/libemacs.so (command_loop_1+1344)
+F DEBUG   :       #31 pc 001f6d90  /.../lib/arm64/libemacs.so (internal_condition_case+92)
+F DEBUG   :       #32 pc 0016cafc  /.../lib/arm64/libemacs.so (command_loop_2+48)
+F DEBUG   :       #33 pc 001f6660  /.../lib/arm64/libemacs.so (internal_catch+84)
+F DEBUG   :       #34 pc 0016c288  /.../lib/arm64/libemacs.so (command_loop+264)
+F DEBUG   :       #35 pc 0016c0d8  /.../lib/arm64/libemacs.so (recursive_edit_1+144)
+F DEBUG   :       #36 pc 0016c4fc  /.../lib/arm64/libemacs.so (Frecursive_edit+348)
+F DEBUG   :       #37 pc 0016af9c  /.../lib/arm64/libemacs.so (android_emacs_init+7132)
+F DEBUG   :       #38 pc 002ab8d4  /.../lib/arm64/libemacs.so (Java_org_gnu_emacs_...+3816)
+
+Where the first line (the one containing "libc") mentions the number
+of the fatal signal, the address of any VM fault, and the name and ID
+of the thread which crashed.  Subsequent lines then contain a
+backtrace, recounting each function in the call stack culminating in
+the crash.
+
+The third form is printed when Emacs misuses the JVM in some fashion
+that is detected by the Android CheckJNI facility.  It looks like:
+
+A/art﹕ art/runtime/check_jni.cc:65] JNI DETECTED ERROR IN APPLICATION: ...
+A/art﹕ art/runtime/check_jni.cc:65]     in call to CallVoidMethodV
+A/art﹕ art/runtime/check_jni.cc:65]     from void android.os.MessageQueue.nativePollOnce(long, int)
+A/art﹕ art/runtime/check_jni.cc:65] "main" prio=5 tid=1 Runnable
+A/art﹕ art/runtime/check_jni.cc:65]   | group="main" sCount=0 dsCount=0 obj=0x87d30ef0 self=0xb4f07800
+A/art﹕ art/runtime/check_jni.cc:65]   | sysTid=18828 nice=-11 cgrp=apps sched=0/0 handle=0xb6fdeec8
+A/art﹕ art/runtime/check_jni.cc:65]   | state=R schedstat=( 2249126546 506089308 3210 ) utm=183 stm=41 core=3 HZ=100
+A/art﹕ art/runtime/check_jni.cc:65]   | stack=0xbe0c8000-0xbe0ca000 stackSize=8MB
+A/art﹕ art/runtime/check_jni.cc:65]   | held mutexes= "mutator lock"(shared held)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #00 pc 00004640  /system/lib/libbacktrace_libc++.so (UnwindCurrent::Unwind(unsigned int, ucontext*)+23)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #01 pc 00002e8d  /system/lib/libbacktrace_libc++.so (Backtrace::Unwind(unsigned int, ucontext*)+8)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #02 pc 00248381  /system/lib/libart.so (art::DumpNativeStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, int, char const*, art::mirror::ArtMethod*)+68)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #03 pc 0022cd0b  /system/lib/libart.so (art::Thread::Dump(std::__1::basic_ostream<char, std::__1::char_traits<char> >&) const+146)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #04 pc 000b189b  /system/lib/libart.so (art::JniAbort(char const*, char const*)+582)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #05 pc 000b1fd5  /system/lib/libart.so (art::JniAbortF(char const*, char const*, ...)+60)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #06 pc 000b50e5  /system/lib/libart.so (art::ScopedCheck::ScopedCheck(_JNIEnv*, int, char const*)+1284)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #07 pc 000bc59f  /system/lib/libart.so (art::CheckJNI::CallVoidMethodV(_JNIEnv*, _jobject*, _jmethodID*, std::__va_list)+30)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #08 pc 00063803  /system/lib/libandroid_runtime.so (???)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #09 pc 000776bd  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long long, int, unsigned int)+40)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #10 pc 00077885  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::handleEvent(int, int, void*)+80)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #11 pc 00010f6f  /system/lib/libutils.so (android::Looper::pollInner(int)+482)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #12 pc 00011019  /system/lib/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+92)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #13 pc 000830c1  /system/lib/libandroid_runtime.so (android::NativeMessageQueue::pollOnce(_JNIEnv*, int)+22)
+A/art﹕ art/runtime/check_jni.cc:65]   native: #14 pc 000b22d7  /system/framework/arm/boot.oat (Java_android_os_MessageQueue_nativePollOnce__JI+102)
+A/art﹕ art/runtime/check_jni.cc:65]   at android.os.MessageQueue.nativePollOnce(Native method)
+A/art﹕ art/runtime/check_jni.cc:65]   at android.os.MessageQueue.next(MessageQueue.java:143)
+A/art﹕ art/runtime/check_jni.cc:65]   at android.os.Looper.loop(Looper.java:130)
+A/art﹕ art/runtime/check_jni.cc:65]   at android.app.ActivityThread.main(ActivityThread.java:5832)
+A/art﹕ art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke!(Native method)
+A/art﹕ art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke(Method.java:372)
+A/art﹕ art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:1399)
+A/art﹕ art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1194)
+A/art﹕ art/runtime/check_jni.cc:65]
+
+In such situations, the first line explains what infraction Emacs
+committed, while the ensuing ones print backtraces for each running
+Java thread at the time of the error.
+
+If Emacs is executing on Android 5.0 and later, placing a breakpoint
+on
+
+  (gdb) break art::JavaVMExt::JniAbort
+
+will set a breakpoint that is hit each time such an error is detected.
+
+Since the logcat output is always rapidly being amended, it is worth
+piping it to a file or shell command buffer, and then searching for
+keywords such as "AndroidRuntime", "Fatal signal", or "JNI DETECTED
+ERROR IN APPLICATION".
+
+Once in a blue moon, it proves necessary to debug Java rather than C
+code.  To this end, the `--jdb' option will attach the Java debugger
+instead of gdbserver.  Lametably, it seems impossible to debug both C
+and Java code in concert.
 
 
 This file is part of GNU Emacs.

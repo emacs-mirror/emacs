@@ -218,14 +218,19 @@ If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character.")
 
 (defcustom dired-free-space 'first
-  "Whether and how to display the amount of free disk space in Dired buffers.
+  "Whether and how to display the disk space usage info in Dired buffers.
 If nil, don't display.
-If `separate', display on a separate line (along with used count).
-If `first', display only the free disk space on the first line,
-following the directory name."
-  :type '(choice (const :tag "On a separate line" separate)
-                 (const :tag "On the first line, after directory name" first)
-                 (const :tag "Don't display" nil))
+If `separate', display on a separate line, and include both the used
+and the free disk space.
+If `first', the default, display only the free disk space on the first
+line, following the directory name."
+  :type '(choice (const
+                  :tag
+                  "On separate line, display both used and free space" separate)
+                 (const
+                  :tag
+                  "On first line, after directory name, display only free space" first)
+                 (const :tag "Don't display disk space usage" nil))
   :version "29.1"
   :group 'dired)
 
@@ -576,9 +581,6 @@ element, for the listed directory.")
 (defvar-local dired-switches-alist nil
   "Keeps track of which switches to use for inserted subdirectories.
 This is an alist of the form (SUBDIR . SWITCHES).")
-
-(defvaralias 'dired-move-to-filename-regexp
-  'directory-listing-before-filename-regexp)
 
 (defvar dired-subdir-regexp "^. \\(.+\\)\\(:\\)\n"
   "Regexp matching a maybe hidden subdirectory line in `ls -lR' output.
@@ -1773,7 +1775,10 @@ see `dired-use-ls-dired' for more details.")
          ((eq dired-free-space 'separate)
 	  (end-of-line)
 	  (insert " available " available)
-          (forward-line 1)
+          ;; The separate free-space line is considered part of the
+          ;; directory content, for the purposes of
+          ;; 'dired-hide-details-mode'.
+          (beginning-of-line)
           (point))
          ((eq dired-free-space 'first)
           (goto-char beg)
@@ -5039,6 +5044,9 @@ completes."
     (dired-insert-set-properties (point-min) (point-max)))
   ;; Redisplay the tool bar.
   (force-mode-line-update))
+
+(define-obsolete-variable-alias 'dired-move-to-filename-regexp
+  'directory-listing-before-filename-regexp "30.1")
 
 (provide 'dired)
 

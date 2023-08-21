@@ -51,6 +51,8 @@
 (declare-function org-dynamic-block-define "org" (type func))
 (declare-function w32-notification-notify "w32fns.c" (&rest params))
 (declare-function w32-notification-close "w32fns.c" (&rest params))
+(declare-function haiku-notifications-notify "haikuselect.c")
+(declare-function android-notifications-notify "androidselect.c")
 
 (defvar org-frame-title-format-backup nil)
 (defvar org-state)
@@ -855,6 +857,18 @@ use libnotify if available, or fall back on a message."
 	((stringp org-show-notification-handler)
 	 (start-process "emacs-timer-notification" nil
 			org-show-notification-handler notification))
+        ((fboundp 'haiku-notifications-notify)
+         ;; N.B. timeouts are not available under Haiku.
+         (haiku-notifications-notify :title "Org mode message"
+                                     :body notification
+                                     :urgency 'low))
+        ((fboundp 'android-notifications-notify)
+         ;; N.B. timeouts are not available under Haiku or Android.
+         (android-notifications-notify :title "Org mode message"
+                                       :body notification
+                                       ;; Low urgency notifications
+                                       ;; are by default hidden.
+                                       :urgency 'normal))
 	((fboundp 'w32-notification-notify)
 	 (let ((id (w32-notification-notify
 		    :title "Org mode message"
@@ -2069,6 +2083,7 @@ Use `\\[org-clock-remove-overlays]' to remove the subtree times."
 	       h m))))
 
 (defvar-local org-clock-overlays nil)
+(put 'org-clock-overlays 'permanent-local t)
 
 (defun org-clock-put-overlay (time)
   "Put an overlay on the headline at point, displaying TIME.

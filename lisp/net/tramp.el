@@ -1410,6 +1410,7 @@ during direct remote copying with scp.")
 
 (defconst tramp-completion-file-name-handler-alist
   '((expand-file-name . tramp-completion-handle-expand-file-name)
+    (file-directory-p . tramp-completion-handle-file-directory-p)
     (file-exists-p . tramp-completion-handle-file-exists-p)
     (file-name-all-completions
      . tramp-completion-handle-file-name-all-completions)
@@ -2643,6 +2644,29 @@ not in completion mode."
       (concat dir filename))
      (t (tramp-run-real-handler #'expand-file-name (list filename directory))))))
 
+;; This is needed in pcomplete.el.
+(defun tramp-completion-handle-file-directory-p (filename)
+  "Like `file-directory-p' for partial Tramp files."
+  ;; We need special handling only when a method is needed.  Then we
+  ;; regard all files "/method:" or "/[method/" as existent, if
+  ;; "method" is a valid Tramp method.
+  (or (string-equal filename "/")
+      (and ;; Is it a valid method?
+           (not (string-empty-p tramp-postfix-method-format))
+           (string-match
+	    (rx
+	     (regexp tramp-prefix-regexp)
+	     (* (regexp tramp-remote-file-name-spec-regexp)
+		(regexp tramp-postfix-hop-regexp))
+	     (group-n 9 (regexp tramp-method-regexp))
+	     (? (regexp tramp-postfix-method-regexp))
+             eos)
+            filename)
+	   (assoc (match-string 9 filename) tramp-methods)
+	   t)
+
+      (tramp-run-real-handler #'file-directory-p (list filename))))
+
 (defun tramp-completion-handle-file-exists-p (filename)
   "Like `file-exists-p' for partial Tramp files."
   ;; We need special handling only when a method is needed.  Then we
@@ -2650,7 +2674,7 @@ not in completion mode."
   ;; "method" is a valid Tramp method.  And we regard all files
   ;; "/method:user@", "/user@" or "/[method/user@" as existent, if
   ;; "user@" is a valid file name completion.  Host completion is
-  ;; performed in the respective backen operation.
+  ;; performed in the respective backend operation.
   (or (and (cond
             ;; Completion styles like `flex' and `substring' check for
             ;; the file name "/".  This does exist.
@@ -3467,7 +3491,15 @@ BODY is the backend specific code."
 				 tramp-crypt-file-name-handler
 				 . inhibit-file-name-handlers))
 			      (inhibit-file-name-operation 'write-region))
-			  (find-file-name-handler ,visit 'write-region)))))
+			  (find-file-name-handler ,visit 'write-region))))
+	  ;; We use this to save the value of
+	  ;; `last-coding-system-used' after writing the tmp file.  At
+	  ;; the end of the function, we set `last-coding-system-used'
+	  ;; to this saved value.  This way, any intermediary coding
+	  ;; systems used while talking to the remote shell or
+	  ;; suchlike won't hose this variable.  This approach was
+	  ;; snarfed from ange-ftp.el.
+	  coding-system-used)
      (with-parsed-tramp-file-name filename nil
        (if handler
 	   (progn
@@ -3514,8 +3546,6 @@ BODY is the backend specific code."
 	   ;; likely that it is needed shortly after `write-region'.
 	   (tramp-set-file-property v localname "file-exists-p" t)
 
-	   ;; We must protect `last-coding-system-used', now we have
-	   ;; set it to its correct value.
 	   (let (last-coding-system-used (need-chown t))
 	     ;; Set file modification time.
 	     (when (or (eq ,visit t) (stringp ,visit))
@@ -3535,7 +3565,7 @@ BODY is the backend specific code."
                (tramp-set-file-uid-gid filename uid gid))
 
 	     ;; Set extended attributes.  We ignore possible errors,
-	     ;; because ACL strings could be incompatible.
+	     ;; because ACL strings or SELinux contexts could be incompatible.
 	     (when attributes
 	       (ignore-errors
 		 (set-file-extended-attributes filename attributes)))
@@ -3554,7 +3584,11 @@ BODY is the backend specific code."
 	     (when (and (null noninteractive)
 			(or (eq ,visit t) (string-or-null-p ,visit)))
 	       (tramp-message v 0 "Wrote %s" filename))
-	     (run-hooks 'tramp-handle-write-region-hook)))))))
+	     (run-hooks 'tramp-handle-write-region-hook))))
+
+       ;; Make `last-coding-system-used' have the right value.
+       (when coding-system-used
+	 (setq last-coding-system-used coding-system-used)))))
 
 ;;; Common file name handler functions for different backends:
 
@@ -5202,6 +5236,8 @@ of."
       ;; `set-visited-file-modtime' ourselves later on.
       (let (create-lockfiles)
         (write-region start end tmpfile append 'no-message))
+      ;; Now, `last-coding-system-used' has the right value.  Remember it.
+      (setq coding-system-used last-coding-system-used)
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error

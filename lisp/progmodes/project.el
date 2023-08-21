@@ -994,7 +994,8 @@ pattern to search for."
   "Visit a file (with completion) in the current project.
 
 The filename at point (determined by `thing-at-point'), if any,
-is available as part of \"future history\".
+is available as part of \"future history\".  If none, the current
+buffer's file name is used.
 
 If INCLUDE-ALL is non-nil, or with prefix argument when called
 interactively, include all files under the project root, except
@@ -1005,7 +1006,16 @@ for VCS directories listed in `vc-directory-exclusion-list'."
          (dirs (list root)))
     (project-find-file-in
      (or (thing-at-point 'filename)
-         (and buffer-file-name (file-relative-name buffer-file-name root)))
+         (and buffer-file-name
+              (if-let (buffer-proj (and project-current-directory-override
+                                        (project-current nil default-directory)))
+                  ;; Allow using the relative file name of the current
+                  ;; buffer in "other project" as well.
+                  (let ((buffer-root (project-root buffer-proj)))
+                    ;; file-name-concat requires Emacs 28+
+                    (concat (file-name-as-directory root)
+                            (file-relative-name buffer-file-name buffer-root)))
+                buffer-file-name)))
      dirs pr include-all)))
 
 ;;;###autoload
@@ -1058,6 +1068,11 @@ by the user at will."
                          (setq all-files
                                (delete common-parent-directory all-files))
                          t))
+         (mb-default (if (and common-parent-directory
+                              mb-default
+                              (file-name-absolute-p mb-default))
+                         (file-relative-name mb-default common-parent-directory)
+                       mb-default))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
@@ -1092,7 +1107,7 @@ by the user at will."
 (defun project-find-file-in (suggested-filename dirs project &optional include-all)
   "Complete a file name in DIRS in PROJECT and visit the result.
 
-SUGGESTED-FILENAME is a relative file name, or part of it, which
+SUGGESTED-FILENAME is a file name, or part of it, which
 is used as part of \"future history\".
 
 If INCLUDE-ALL is non-nil, or with prefix argument when called
@@ -1476,6 +1491,7 @@ Used by `project-kill-buffers'."
   :package-version '(project . "0.8.2"))
 ;;;###autoload(put 'project-kill-buffers-display-buffer-list 'safe-local-variable #'booleanp)
 
+;; FIXME: Could this be replaced by `buffer-match-p' in Emacs 29+?
 (defun project--buffer-check (buf conditions)
   "Check if buffer BUF matches any element of the list CONDITIONS.
 See `project-kill-buffer-conditions' or
@@ -1828,9 +1844,13 @@ listed in the dispatch menu produced from `project-switch-commands'."
      (let ((key (if key
                     (vector key)
                   (where-is-internal cmd (list project-prefix-map) t))))
-       (format "[%s] %s"
-               (propertize (key-description key) 'face 'bold)
-               label)))
+       (if (facep 'help-key-binding)
+           (format "%s %s"
+                   (propertize (key-description key) 'face 'help-key-binding)
+                   label)
+         (format "[%s] %s"
+                 (propertize (key-description key) 'face 'bold)
+                 label))))
    project-switch-commands
    "  "))
 

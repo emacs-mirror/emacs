@@ -305,7 +305,8 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 ])dnl
 
 dnl OPTION_DEFAULT_IFAVAILABLE(NAME, HELP-STRING)
-dnl Create a new --with option that defaults to 'ifavailable'.
+dnl Create a new --with option that defaults to 'ifavailable',
+dnl unless it is overriden by $with_features being equal to 'no'.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set to either the user's value (if the option is
 dnl   specified; 'yes' for a plain --with-NAME) or to 'ifavailable' (if the
@@ -315,9 +316,11 @@ dnl   characters with "_".
 dnl HELP-STRING is the help text for the option.
 AC_DEFUN([OPTION_DEFAULT_IFAVAILABLE], [dnl
   AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[],[dnl
-    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=ifavailable])dnl
+    AS_IF([test "$with_features" != no],
+      [m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=ifavailable],
+      [m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=no])dnl
+  ])dnl
 ])dnl
-
 
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to $with_features.
@@ -342,22 +345,13 @@ AC_ARG_WITH([mailutils],
       options are irrelevant; this is the default if GNU Mailutils is
       installed])],
   [],
-  [with_mailutils=$with_features
-   AS_IF([test "$with_mailutils" = yes],
-     [AS_IF([test "x$XCONFIGURE" != "xandroid" \
-             && test "$with_android" = "no"],
-       [(movemail --version) >/dev/null 2>&1 || with_mailutils=no],
-       [dnl Don't check for movemail if cross-compiling.
-        dnl instead, default to false.
-        with_mailutils=no])])])
-AS_IF([test "$with_mailutils" = no],
-  [with_mailutils=])
-
-AS_IF([test x"$with_mailutils" = xyes],
-  [AC_DEFINE([HAVE_MAILUTILS], [1],
-     [Define to 1 if Emacs was configured with mailutils])])
-
-AC_SUBST([with_mailutils])
+  [AS_IF([test "$with_features" != "no"],
+   [with_mailutils=yes-unless-android
+    AS_IF([test "x$XCONFIGURE" != "xandroid"],
+     [(movemail --version) >/dev/null 2>&1 || with_mailutils=no],
+     [dnl Don't check for movemail if cross-compiling.
+      dnl instead, default to false.
+      with_mailutils=no])])])
 
 AC_ARG_WITH([pop],
   [AS_HELP_STRING([--with-pop],
@@ -593,6 +587,25 @@ OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for in
 OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
 OPTION_DEFAULT_OFF([android],[cross-compile Android application package])
 OPTION_DEFAULT_ON([android-debug],[don't build Emacs as a debug package on Android])
+
+# Find out of Android support is enabled and mailutils has defaulted
+# to `yes-unless-android'.  Disable it if so.
+
+AS_IF([test "x$with_mailutils" = "xyes-unless-android"],
+  [AS_IF([test "x$with_android" != "xno"],
+     [with_mailutils=no],
+     [with_mailutils=yes])])
+
+# Clear with_mailutils if it's set to no.
+
+AS_IF([test "$with_mailutils" = no],
+  [with_mailutils=])
+
+AS_IF([test x"$with_mailutils" = xyes],
+  [AC_DEFINE([HAVE_MAILUTILS], [1],
+     [Define to 1 if Emacs was configured with mailutils])])
+
+AC_SUBST([with_mailutils])
 
 AC_ARG_WITH([shared-user-id],
   [AS_HELP_STRING([--with-shared-user-id=ID],
@@ -2526,7 +2539,7 @@ AC_CHECK_HEADERS_ONCE(
   sys/sysinfo.h
   coff.h pty.h
   sys/resource.h
-  sys/utsname.h pwd.h utmp.h util.h
+  sys/utsname.h pwd.h util.h
   sanitizer/lsan_interface.h
   sanitizer/asan_interface.h
   sanitizer/common_interface_defs.h])
@@ -2698,7 +2711,7 @@ for Android, but all API calls need to be stubbed out])
     # Check for some functions not always present in the NDK.
     AC_CHECK_DECLS([android_get_device_api_level])
 
-    # Say this build is really for Android.
+    # Mention this build is really for Android.
     REALLY_ANDROID=yes])])
 
 AC_SUBST([ANDROID])
@@ -2759,16 +2772,16 @@ if test x"${x_includes}" = x; then
   bitmapdir=/usr/include/X11/bitmaps
 else
   # accumulate include directories that have X11 bitmap subdirectories
-  bmd_acc=
+  AS_UNSET([bmd_acc])
   for bmd in `AS_ECHO(["$x_includes"]) | sed -e 's/:/ /g'`; do
     if test -d "${bmd}/X11/bitmaps"; then
-      bmd_acc="${bmd_acc}:${bmd}/X11/bitmaps"
+      bmd_acc="${bmd_acc+$bmd_acc:}${bmd}/X11/bitmaps"
     fi
     if test -d "${bmd}/bitmaps"; then
-      bmd_acc="${bmd_acc}:${bmd}/bitmaps"
+      bmd_acc="${bmd_acc+$bmd_acc:}${bmd}/bitmaps"
     fi
   done
-  bitmapdir=${bmd_acc#:}
+  bitmapdir=$bmd_acc
 fi
 
 NATIVE_IMAGE_API=no
@@ -4020,6 +4033,7 @@ if test "${with_tree_sitter}" != "no"; then
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+    NEED_DYNLIB=yes
   else
     EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.6.3],
       [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
@@ -5832,10 +5846,13 @@ getrlimit setrlimit shutdown \
 pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
-getpwent endpwent getgrent endgrent \
+endpwent getgrent endgrent \
 renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
 pthread_set_name_np])
+
+# getpwent is not present in older versions of Android.  (bug#65319)
+gl_CHECK_FUNCS_ANDROID([getpwent], [[#include <pwd.h>]])
 
 if test "$ac_cv_func_cfmakeraw" != "yes"; then
   # On some systems (Android), cfmakeraw is inline, so AC_CHECK_FUNCS
@@ -5975,7 +5992,7 @@ AC_DEFUN([tputs_link_source], [
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 AC_CACHE_CHECK([for library containing tputs], [emacs_cv_tputs_lib],
-[if test "${opsys}" = "mingw32" || test "$opsys" = "android"; then
+[if test "${opsys}" = "mingw32" || test x"$REALLY_ANDROID" = "xyes"; then
   emacs_cv_tputs_lib='none required'
 else
   # curses precedes termcap because of AIX (Bug#9736#35) and OpenIndiana.
@@ -6013,7 +6030,7 @@ TERMINFO=yes
 ## LIBS_TERMCAP="-lncurses", this overrides LIBS_TERMCAP = -ltinfo,
 ## if that was found above to have tputs.
 ## Should we use the gnu* logic everywhere?
-case "$opsys" in
+case "$opsys$REALLY_ANDROID" in
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
   ##  Mac OS X 10.2.  So if configure detects it, set the command-line
@@ -6042,7 +6059,10 @@ fail;
     fi
     ;;
 
-  mingw32 | android)
+  # The case condition is a concatenation of both $opsys and
+  # $REALLY_ANDROID.  Only disable termcap if building a GUI program.
+  # (bug#65340)
+  mingw32 | androidyes)
     TERMINFO=no
     LIBS_TERMCAP=
     ;;

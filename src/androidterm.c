@@ -4869,17 +4869,17 @@ android_perform_conversion_query (void *data)
   context->success = true;
 }
 
-/* Convert a string BUFFERS containing N characters in Emacs's
-   internal multibyte encoding to a Java string utilizing the
-   specified JNI environment.
+/* Convert a string in BUFFER, containing N characters in Emacs's
+   internal multibyte encoding, to a Java string utilizing the
+   specified JNI environment ENV.
 
-   If N is equal to BYTES, then BUFFER is a single byte buffer.
-   Otherwise, BUFFER is a multibyte buffer.
+   If N is equal to BYTES, then BUFFER holds unibyte or plain-ASCII
+   characters.  Otherwise, BUFFER holds multibyte characters.
 
    Make sure N and BYTES are absolutely correct, or you are asking for
    trouble.
 
-   Value is the string upon success, NULL otherwise.  Any exceptions
+   Value is a jstring upon success, NULL otherwise.  Any exceptions
    generated are not cleared.  */
 
 static jstring

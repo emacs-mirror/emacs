@@ -1958,20 +1958,23 @@ entries for git.gnus.org:
          (hosts (if (and hosts (listp hosts)) hosts `(,hosts)))
          (ports (plist-get spec :port))
          (ports (if (and ports (listp ports)) ports `(,ports)))
+         (users (plist-get spec :user))
+         (users (if (and users (listp users)) users `(,users)))
          ;; Loop through all combinations of host/port and pass each of these to
          ;; auth-source-macos-keychain-search-items
          (items (catch 'match
                   (dolist (host hosts)
                     (dolist (port ports)
-                      (let* ((port (if port (format "%S" port)))
-                             (items (apply #'auth-source-macos-keychain-search-items
-                                           coll
-                                           type
-                                           max
-                                           host port
-                                           search-spec)))
-                        (when items
-                          (throw 'match items)))))))
+                      (dolist (user users)
+                        (let ((items (apply
+                                      #'auth-source-macos-keychain-search-items
+                                      coll
+                                      type
+                                      max
+                                      host port user
+                                      search-spec)))
+                          (when items
+                            (throw 'match items))))))))
 
          ;; ensure each item has each key in `returned-keys'
          (items (mapcar (lambda (plist)
@@ -2003,8 +2006,9 @@ entries for git.gnus.org:
                      collect var))
      'utf-8)))
 
-(cl-defun auth-source-macos-keychain-search-items (coll _type _max host port
-                                                   &key label type user
+(cl-defun auth-source-macos-keychain-search-items (coll _type _max
+                                                        host port user
+                                                   &key label type
                                                    &allow-other-keys)
   (let* ((keychain-generic (eq type 'macos-keychain-generic))
          (args `(,(if keychain-generic
@@ -2022,47 +2026,49 @@ entries for git.gnus.org:
     (when port
       (if keychain-generic
           (setq args (append args (list "-s" port)))
-        (setq args (append args (list
-                                 (if (string-match "[0-9]+" port) "-P" "-r")
-                                 port)))))
+        (setq args (append args (if (string-match "[0-9]+" port)
+                                    (list "-P" port)
+                                  (list "-r" (substring
+                                              (format "%-4s" port)
+                                              0 4)))))))
 
-      (unless (equal coll "default")
-        (setq args (append args (list coll))))
+    (unless (equal coll "default")
+      (setq args (append args (list coll))))
 
-      (with-temp-buffer
-        (apply #'call-process "/usr/bin/security" nil t nil args)
-        (goto-char (point-min))
-        (while (not (eobp))
-          (cond
-           ((looking-at "^password: \\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
-            (setq ret (auth-source-macos-keychain-result-append
-                       ret
-                       keychain-generic
-                       "secret"
-                       (let ((v (auth-source--decode-octal-string
-                                 (match-string 1))))
-                         (lambda () v)))))
-           ;; TODO: check if this is really the label
-           ;; match 0x00000007 <blob>="AppleID"
-           ((looking-at
-             "^[ ]+0x00000007 <blob>=\\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
-            (setq ret (auth-source-macos-keychain-result-append
-                       ret
-                       keychain-generic
-                       "label"
-                       (auth-source--decode-octal-string (match-string 1)))))
-           ;; match "crtr"<uint32>="aapl"
-           ;; match "svce"<blob>="AppleID"
-           ((looking-at
-             "^[ ]+\"\\([a-z]+\\)\"[^=]+=\\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
-            (setq ret (auth-source-macos-keychain-result-append
-                       ret
-                       keychain-generic
-                       (auth-source--decode-octal-string (match-string 1))
-                       (auth-source--decode-octal-string (match-string 2))))))
-          (forward-line)))
-      ;; return `ret' iff it has the :secret key
-      (and (plist-get ret :secret) (list ret))))
+    (with-temp-buffer
+      (apply #'call-process "/usr/bin/security" nil t nil args)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (cond
+         ((looking-at "^password: \\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
+          (setq ret (auth-source-macos-keychain-result-append
+                     ret
+                     keychain-generic
+                     "secret"
+                     (let ((v (auth-source--decode-octal-string
+                               (match-string 1))))
+                       (lambda () v)))))
+         ;; TODO: check if this is really the label
+         ;; match 0x00000007 <blob>="AppleID"
+         ((looking-at
+           "^[ ]+0x00000007 <blob>=\\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
+          (setq ret (auth-source-macos-keychain-result-append
+                     ret
+                     keychain-generic
+                     "label"
+                     (auth-source--decode-octal-string (match-string 1)))))
+         ;; match "crtr"<uint32>="aapl"
+         ;; match "svce"<blob>="AppleID"
+         ((looking-at
+           "^[ ]+\"\\([a-z]+\\)\"[^=]+=\\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
+          (setq ret (auth-source-macos-keychain-result-append
+                     ret
+                     keychain-generic
+                     (auth-source--decode-octal-string (match-string 1))
+                     (auth-source--decode-octal-string (match-string 2))))))
+        (forward-line)))
+    ;; return `ret' iff it has the :secret key
+    (and (plist-get ret :secret) (list ret))))
 
 (defun auth-source-macos-keychain-result-append (result generic k v)
   (push v result)

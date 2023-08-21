@@ -37,7 +37,7 @@ main (int argc, char **argv)
 {
   char **args;
   int i;
-  char *bootclasspath, *emacs_class_path;
+  char *bootclasspath, *emacs_class_path, *ld_library_path;
 
   /* Allocate enough to hold the arguments to app_process.  */
   args = alloca ((10 + argc) * sizeof *args);
@@ -46,11 +46,11 @@ main (int argc, char **argv)
   memset (args, 0, (10 + argc) * sizeof *args);
 
   /* First, figure out what program to start.  */
-#if defined __x86_64__ || defined __aarch64__
+#if defined __x86_64__ || defined __aarch64__ || defined __mips64
   args[0] = (char *) "/system/bin/app_process64";
-#else
+#else /* i386 || regular mips || arm */
   args[0] = (char *) "/system/bin/app_process";
-#endif
+#endif /* __x86_64__ || __aarch64__ || __mips64 */
 
   /* Machines with ART require the boot classpath to be manually
      specified.  Machines with Dalvik however refuse to do so, as they
@@ -72,13 +72,13 @@ main (int argc, char **argv)
       bootclasspath = NULL;
       goto skip_setup;
     }
-#else
+#else /* !HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL */
   if (__ANDROID_API__ < 21)
     {
       bootclasspath = NULL;
       goto skip_setup;
     }
-#endif
+#endif /* HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL */
 
   /* Next, obtain the boot class path.  */
   bootclasspath = getenv ("BOOTCLASSPATH");
@@ -105,6 +105,15 @@ main (int argc, char **argv)
 	       " from within a running copy of Emacs.\n");
       return 1;
     }
+
+  /* Restore LD_LIBRARY_PATH to its original value, the app library
+     directory, to guarantee that it is possible for Java to find the
+     Emacs C code later.  */
+
+  ld_library_path = getenv ("EMACS_LD_LIBRARY_PATH");
+
+  if (ld_library_path)
+    setenv ("LD_LIBRARY_PATH", ld_library_path, 1);
 
   if (bootclasspath)
     {
@@ -146,7 +155,7 @@ main (int argc, char **argv)
     }
   else
     {
-#endif
+#endif /* HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL */
       args[3] = (char *) "org.gnu.emacs.EmacsNoninteractive";
 
       /* Arguments from here on are passed to main in
@@ -158,7 +167,7 @@ main (int argc, char **argv)
 	args[4 + i] = argv[i];
 #if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL
     }
-#endif
+#endif /* HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL */
 
   /* Finally, try to start the app_process.  */
   execvp (args[0], args);

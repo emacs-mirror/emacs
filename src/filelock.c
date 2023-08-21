@@ -36,13 +36,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <fcntl.h>
 #include <unistd.h>
-
-#ifdef __FreeBSD__
-#include <sys/sysctl.h>
-#endif /* __FreeBSD__ */
-
 #include <errno.h>
 
+#include <boot-time.h>
 #include <c-ctype.h>
 
 #include "lisp.h"
@@ -54,26 +50,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef MSDOS
-
-#ifdef HAVE_UTMP_H
-#include <utmp.h>
-#endif
-
-/* A file whose last-modified time is just after the most recent boot.
-   Define this to be NULL to disable checking for this file.  */
-#ifndef BOOT_TIME_FILE
-#define BOOT_TIME_FILE "/var/run/random-seed"
-#endif
-
-/* Boot time is not available on Android.  */
-
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-#undef BOOT_TIME
-#endif
-
-#if !defined WTMP_FILE && !defined WINDOWSNT && defined BOOT_TIME
-#define WTMP_FILE "/var/log/wtmp"
-#endif
 
 #ifdef HAVE_ANDROID
 #include "android.h" /* For `android_is_special_directory'.  */
@@ -131,154 +107,22 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      hard nor symbolic links.  */
 
 
-/* Return the time of the last system boot.  */
-
-static time_t boot_time;
-static bool boot_time_initialized;
-
-#ifdef BOOT_TIME
-static void get_boot_time_1 (const char *, bool);
-#endif
+/* Return the time of the last system boot, or 0 if that information
+   is unavailable.  */
 
 static time_t
-get_boot_time (void)
+get_boot_sec (void)
 {
-  if (boot_time_initialized)
-    return boot_time;
-  boot_time_initialized = 1;
-
-#if defined (CTL_KERN) && defined (KERN_BOOTTIME)
-  {
-    int mib[2];
-    size_t size;
-    struct timeval boottime_val;
-
-    mib[0] = CTL_KERN;
-    mib[1] = KERN_BOOTTIME;
-    size = sizeof (boottime_val);
-
-    if (sysctl (mib, 2, &boottime_val, &size, NULL, 0) >= 0 && size != 0)
-      {
-	boot_time = boottime_val.tv_sec;
-	return boot_time;
-      }
-  }
-#endif /* defined (CTL_KERN) && defined (KERN_BOOTTIME) */
-
-  if (BOOT_TIME_FILE)
-    {
-      struct stat st;
-      if (stat (BOOT_TIME_FILE, &st) == 0)
-	{
-	  boot_time = st.st_mtime;
-	  return boot_time;
-	}
-    }
-
-#if defined (BOOT_TIME)
-  /* The utmp routines maintain static state.  Don't touch that state
+  /* get_boot_time maintains static state.  Don't touch that state
      if we are going to dump, since it might not survive dumping.  */
   if (will_dump_p ())
-    return boot_time;
+    return 0;
 
-  /* Try to get boot time from utmp before wtmp,
-     since utmp is typically much smaller than wtmp.
-     Passing a null pointer causes get_boot_time_1
-     to inspect the default file, namely utmp.  */
-  get_boot_time_1 (0, 0);
-  if (boot_time)
-    return boot_time;
-
-  /* Try to get boot time from the current wtmp file.  */
-  get_boot_time_1 (WTMP_FILE, 1);
-
-  /* If we did not find a boot time in wtmp, look at wtmp.1,
-     wtmp.1.gz, wtmp.2, wtmp.2.gz, and so on.  */
-  for (int counter = 0; counter < 20 && ! boot_time; counter++)
-    {
-      Lisp_Object filename = Qnil;
-      bool delete_flag = false;
-      char cmd_string[sizeof WTMP_FILE ".19.gz"];
-      AUTO_STRING_WITH_LEN (tempname, cmd_string,
-			    sprintf (cmd_string, "%s.%d", WTMP_FILE, counter));
-      if (! NILP (Ffile_exists_p (tempname)))
-	filename = tempname;
-      else
-	{
-	  tempname = make_formatted_string (cmd_string, "%s.%d.gz",
-					    WTMP_FILE, counter);
-	  if (! NILP (Ffile_exists_p (tempname)))
-	    {
-	      /* The utmp functions on older systems accept only file
-		 names up to 8 bytes long.  Choose a 2 byte prefix, so
-		 the 6-byte suffix does not make the name too long.  */
-	      filename = Fmake_temp_file_internal (build_string ("wt"), Qnil,
-						   empty_unibyte_string, Qnil);
-	      CALLN (Fcall_process, build_string ("gzip"), Qnil,
-		     list2 (QCfile, filename), Qnil,
-		     build_string ("-cd"), tempname);
-	      delete_flag = true;
-	    }
-	}
-
-      if (! NILP (filename))
-	{
-	  get_boot_time_1 (SSDATA (filename), 1);
-	  if (delete_flag)
-	    emacs_unlink (SSDATA (filename));
-	}
-    }
-
-  return boot_time;
-#else
-  return 0;
-#endif
+  struct timespec boot_time;
+  boot_time.tv_sec = 0;
+  get_boot_time (&boot_time);
+  return boot_time.tv_sec;
 }
-
-#ifdef BOOT_TIME
-/* Try to get the boot time from wtmp file FILENAME.
-   This succeeds if that file contains a reboot record.
-
-   If FILENAME is zero, use the same file as before;
-   if no FILENAME has ever been specified, this is the utmp file.
-   Use the newest reboot record if NEWEST,
-   the first reboot record otherwise.
-   Ignore all reboot records on or before BOOT_TIME.
-   Success is indicated by setting BOOT_TIME to a larger value.  */
-
-void
-get_boot_time_1 (const char *filename, bool newest)
-{
-  struct utmp ut, *utp;
-
-  if (filename)
-    utmpname (filename);
-
-  setutent ();
-
-  while (1)
-    {
-      /* Find the next reboot record.  */
-      ut.ut_type = BOOT_TIME;
-      utp = getutid (&ut);
-      if (! utp)
-	break;
-      /* Compare reboot times and use the newest one.  */
-      if (utp->ut_time > boot_time)
-	{
-	  boot_time = utp->ut_time;
-	  if (! newest)
-	    break;
-	}
-      /* Advance on element in the file
-	 so that getutid won't repeat the same one.  */
-      utp = getutent ();
-      if (! utp)
-	break;
-    }
-  endutent ();
-}
-#endif /* BOOT_TIME */
 
 /* An arbitrary limit on lock contents length.  8 K should be plenty
    big enough in practice.  */
@@ -423,7 +267,7 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
 static int
 lock_file_1 (Lisp_Object lfname, bool force)
 {
-  intmax_t boot = get_boot_time ();
+  intmax_t boot = get_boot_sec ();
   Lisp_Object luser_name = Fuser_login_name (Qnil);
   Lisp_Object lhost_name = Fsystem_name ();
 
@@ -609,7 +453,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
                && (kill (pid, 0) >= 0 || errno == EPERM)
 	       && (boot_time == 0
 		   || (boot_time <= TYPE_MAXIMUM (time_t)
-		       && within_one_second (boot_time, get_boot_time ()))))
+		       && within_one_second (boot_time, get_boot_sec ()))))
         return ANOTHER_OWNS_IT;
       /* The owner process is dead or has a strange pid, so try to
          zap the lockfile.  */

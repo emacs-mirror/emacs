@@ -375,11 +375,13 @@ _gdb_history
 *.desktop
 
 # Files ignored in exec/.
+exec/aclocal.m4
 exec/config.status
 exec/loader
 exec/test
 exec/exec1
 exec/deps/*
+exec/aclocal.m4
 exec/autom4te.cache
 exec/config.h
 exec/config.h.in

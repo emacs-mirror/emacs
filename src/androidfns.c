@@ -2410,11 +2410,16 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
   (void)
 {
 #ifdef ANDROID_STUBIFY
+  /* Fx_hide_tip is called from pre-command-hook (in turn called from
+     the tests.)  Since signaling here prevents any tests from being
+     run, refrain from protesting if this stub is called.  */
+#if 0
   error ("Android cross-compilation stub called!");
+#endif /* 0 */
   return Qnil;
-#else
+#else /* !ANDROID_STUBIFY */
   return android_hide_tip (true);
-#endif
+#endif /* ANDROID_STUBIFY */
 }
 
 DEFUN ("android-detect-mouse", Fandroid_detect_mouse,

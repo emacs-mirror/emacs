@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
-((pass 3 "PASS :barnet:changeme"))
-((nick 3 "NICK tester"))
-((user 3 "USER user 0 * :tester")
+((pass 10 "PASS :barnet:changeme"))
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0 ":irc.barnet.org 001 tester :Welcome to the barnet IRC Network tester")
  (0 ":irc.barnet.org 002 tester :Your host is irc.barnet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.barnet.org 003 tester :This server was created Tue, 01 Jun 2021 07:49:23 UTC")
@@ -17,7 +17,7 @@
  (0 ":irc.barnet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.barnet.org 422 tester :MOTD File is missing"))
 
-((mode-user 3.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  ;; No mode answer
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":tester!~u@286u8jcpis84e.irc JOIN #chan")
@@ -32,18 +32,18 @@
  (0 ":irc.barnet.org NOTICE tester :[09:13:24] This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect.")
  (0 ":irc.barnet.org 305 tester :You are no longer marked as being away"))
 
-((mode 5 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.barnet.org 324 tester #chan +nt")
  (0 ":irc.barnet.org 329 tester #chan 1622538742")
  (0.1 ":joe!~u@286u8jcpis84e.irc PRIVMSG #chan :mike: By favors several which they did bestow.")
  (0.1 ":mike!~u@286u8jcpis84e.irc PRIVMSG #chan :joe: You, Roderigo! come, sir, I am for you."))
 
-((privmsg-a 5 "PRIVMSG rando :Linda said you were gonna kill me.")
+((privmsg-a 10 "PRIVMSG rando :Linda said you were gonna kill me.")
  (0.1 ":joe!~u@286u8jcpis84e.irc PRIVMSG #chan :mike: Play, music, then! Nay, you must do it soon.")
  (0.1 ":rando!~u@95i756tt32ym8.irc PRIVMSG tester :Linda said? I never saw her before I came up here.")
  (0.1 ":mike!~u@286u8jcpis84e.irc PRIVMSG #chan :joe: Of arts inhibited and out of warrant."))
 
-((privmsg-b 3 "PRIVMSG rando :You aren't with Wage?")
+((privmsg-b 10 "PRIVMSG rando :You aren't with Wage?")
  (0.1 ":joe!~u@286u8jcpis84e.irc PRIVMSG #chan :mike: But most of all, agreeing with the proclamation.")
  (0.1 ":rando!~u@95i756tt32ym8.irc PRIVMSG tester :I think you screwed up, Case.")
  (0.1 ":mike!~u@286u8jcpis84e.irc PRIVMSG #chan :joe: Good gentleman, go your gait, and let poor volk pass. An chud ha' bin zwaggered out of my life, 'twould not ha' bin zo long as 'tis by a vortnight. Nay, come not near th' old man; keep out, che vor ye, or ise try whether your costard or my ballow be the harder. Chill be plain with you.")

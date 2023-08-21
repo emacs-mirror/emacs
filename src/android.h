@@ -75,6 +75,8 @@ extern int android_renameat_noreplace (int, const char *,
 				       int, const char *);
 extern int android_rename (const char *, const char *);
 extern int android_fchmodat (int, const char *, mode_t, int);
+extern ssize_t android_readlinkat (int, const char *restrict, char *restrict,
+				   size_t);
 
 
 

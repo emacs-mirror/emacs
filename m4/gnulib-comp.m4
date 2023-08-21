@@ -51,6 +51,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module at-internal:
   # Code from module attribute:
   # Code from module binary-io:
+  # Code from module boot-time:
   # Code from module builtin-expect:
   # Code from module byteswap:
   # Code from module c-ctype:
@@ -181,7 +182,6 @@ AC_DEFUN([gl_EARLY],
   gl_STDIO_H_EARLY
   # Code from module stdlib:
   # Code from module stpcpy:
-  # Code from module stpncpy:
   # Code from module string:
   # Code from module strnlen:
   # Code from module strtoimax:
@@ -244,6 +244,7 @@ AC_DEFUN([gl_INIT],
   gl_ASSERT_H
   gl_CONDITIONAL_HEADER([assert.h])
   AC_PROG_MKDIR_P
+  gl_PREREQ_READUTMP_H
   gl___BUILTIN_EXPECT
   gl_BYTESWAP
   gl_CONDITIONAL_HEADER([byteswap.h])
@@ -567,13 +568,6 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_STPCPY
   ])
   gl_STRING_MODULE_INDICATOR([stpcpy])
-  gl_FUNC_STPNCPY
-  gl_CONDITIONAL([GL_COND_OBJ_STPNCPY],
-                 [test $HAVE_STPNCPY = 0 || test $REPLACE_STPNCPY = 1])
-  AM_COND_IF([GL_COND_OBJ_STPNCPY], [
-    gl_PREREQ_STPNCPY
-  ])
-  gl_STRING_MODULE_INDICATOR([stpncpy])
   gl_STRING_H
   gl_STRING_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
@@ -1260,6 +1254,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/attribute.h
   lib/binary-io.c
   lib/binary-io.h
+  lib/boot-time-aux.h
+  lib/boot-time.c
+  lib/boot-time.h
   lib/byteswap.in.h
   lib/c++defs.h
   lib/c-ctype.c
@@ -1391,6 +1388,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/rawmemchr.valgrind
   lib/readlink.c
   lib/readlinkat.c
+  lib/readutmp.h
   lib/realloc.c
   lib/regcomp.c
   lib/regex.c
@@ -1422,7 +1420,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/stpcpy.c
-  lib/stpncpy.c
   lib/str-two-way.h
   lib/strftime.h
   lib/string.in.h
@@ -1551,6 +1548,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/rawmemchr.m4
   m4/readlink.m4
   m4/readlinkat.m4
+  m4/readutmp.m4
   m4/realloc.m4
   m4/regex.m4
   m4/sha1.m4
@@ -1569,7 +1567,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/stpcpy.m4
-  m4/stpncpy.m4
   m4/string_h.m4
   m4/strnlen.m4
   m4/strtoimax.m4

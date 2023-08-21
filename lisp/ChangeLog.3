@@ -990,7 +990,7 @@
 	(compilation-minor-mode): New function to toggle
 	compilation-minor-mode; if setting it, call compilation-setup.
 
-1993-04-28  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-28  Eric S. Raymond  (esr@thyrsus.com)
 
 	* bibtex.el: Installed Aaron Larson's new bibtex.el.  See the
 	header comment for details.
@@ -1004,7 +1004,7 @@
 
 	* files.el (file-truename): Undo last change.
 
-1993-04-27  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-27  Eric S. Raymond  (esr@thyrsus.com)
 
 	* files.el (file-truename): Do the right thing when $HOME = "".
 
@@ -1058,7 +1058,7 @@
 	(find-tag-noselect): If NEXT-P is '-, pop location off
 	tags-location-stack.
 
-1993-04-26  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-26  Eric S. Raymond  (esr@thyrsus.com)
 
 	* cmacexp.el: Installed Francesco Potortì's enhanced and
 	cleaned-up version, see its commentary for details.
@@ -1070,13 +1070,13 @@
 	Defvars added for many variables.
 	(te-stty-string): Specify the characters explicitly--not `stty dec'.
 
-1993-04-26  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-26  Eric S. Raymond  (esr@thyrsus.com)
 
 	* files.el (cd): Handle leading "~" like an absolute filename.
 
 	* dired.el: Changed fsets to defaliases.
 
-1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-25  Eric S. Raymond  (esr@thyrsus.com)
 
 	* comint.el (comint-mod): Nuked.  A call to ring-mod replaces it.
 	(comint-mem): Nuked.  A call to member replaces it.
@@ -1099,7 +1099,7 @@
 	(vc-finish-logentry, vc-next-comment, vc-previous-comment):
 	Replace *VC-comment-buffer* with a ring vector.
 
-1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-25  Eric S. Raymond  (esr@thyrsus.com)
 
 	* simple.el (down-arrow): New function.
 	Uses next-line-add-newlines to suppress addition of new lines at end of
@@ -1138,11 +1138,11 @@
 	* shell.el (shell-prompt-pattern): Add `;' as potential prompt
 	delimiter (for `es' and `rc' shells most particularly).
 
-1993-04-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-23  Eric S. Raymond  (esr@thyrsus.com)
 
 	* isearch.el: Replaced all fsets with defaliases.
 
-1993-04-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-23  Eric S. Raymond  (esr@thyrsus.com)
 
 	* bytecomp.el (define-function): Change name back to defaliases
 	to get things in a known-good state.  The unload patch had been
@@ -1190,7 +1190,7 @@
 	* ange-ftp.el (ange-ftp-binary-file-name-regexp):
 	Match .z and .z-part-?? files.
 
-1993-04-21  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-21  Eric S. Raymond  (esr@thyrsus.com)
 
 	* makefile.el: Rewritten and simplified, commentary added.  It now
 	will usually detect when the makefile target or macro lists need
@@ -1223,7 +1223,7 @@
 	* sendmail.el (mail-do-fcc): Make a numeric time zone indicator
 	with current-time-zone--don't run `date'.
 
-1993-04-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-16  Eric S. Raymond  (esr@thyrsus.com)
 
 	* bytecomp.el (byte-compile, byte-compile-keep-pending)
 	(byte-compile-file-form-defmumble): Generate define-function
@@ -1237,7 +1237,7 @@
 	* diff.el (diff-parse-differences): Small robustification ---
 	don't lose if we call this with compilation-parsing-end nil
 
-1993-04-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-16  Eric S. Raymond  (esr@thyrsus.com)
 
 	* electric.el (shrink-window-if-larger-than-buffer):
 	Move to window.el.
@@ -1286,14 +1286,14 @@
 
 	* isearch.el: Doc fixes.
 
-1993-04-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-14  Eric S. Raymond  (esr@thyrsus.com)
 
 	* gud.el (gud-mode): Created C-c synonym bindings in the GUD
 	buffer's local map.
 
 	(gud-key-prefix): Change to C-x C-a.
 
-1993-04-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-14  Eric S. Raymond  (esr@thyrsus.com)
 
 	* help-macro.el: Name changed from help-screen.el to fit in a
 	14-character limit.
@@ -1301,7 +1301,7 @@
 	* sun-curs.el: Name changed from sun-cursors.el to protect the
 	innocents.
 
-1993-04-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-14  Eric S. Raymond  (esr@thyrsus.com)
 
 	* finder.el: Rewritten.  The Finder is now a major mode with the
 	ability to browse package commentary sections and a completely
@@ -1352,7 +1352,7 @@
 	* rot13.el (rot13-other-window): Add autoload.
 	(rot13-display-table): Use `vector', not `make-rope'.
 
-1993-04-10  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-04-10  Eric S. Raymond  (esr@thyrsus.com)
 
 	* gud.el (gdb, sdb, dbx): Improve prompting a la grep.
 
@@ -1369,7 +1369,7 @@
 	empty string in response to the keyword prompt, restore the old
 	window configuration properly.
 
-1993-04-09  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-04-09  Eric S. Raymond  (esr@thyrsus.com)
 
 	* emerge.el (emerge-with-ancestor): Applied Donald Erway's fix
 	patch, which included the following explanatory comment: "D.Erway
@@ -1394,7 +1394,7 @@
 
 	* autoload.el (generate-file-autoloads): Doc fix.
 
-1993-04-08  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-04-08  Eric S. Raymond  (esr@thyrsus.com)
 
 	* gud.el: Massive changes, amounting nearly to a rewrite.  The new
 	features include auto-configuring support for SVr4, more commands,
@@ -1508,7 +1508,7 @@
 	Change MIPS RISC CC regexp (last one) to
 	be anchored at bol, and to never match multiple lines.
 
-1993-04-03  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-04-03  Eric S. Raymond  (esr@thyrsus.com)
 
 	* man.el, assoc.el: Installed Barry Warsaw's new and much more
 	featureful man page browser.
@@ -1520,7 +1520,7 @@
 
 	* comint.el: New comint-read-noecho.
 
-1993-04-02  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-04-02  Eric S. Raymond  (esr@thyrsus.com)
 
 	* chistory.el (repeat-history-command): Bug fix.  Someone forgot a car.
 
@@ -1595,7 +1595,7 @@
 	editing ability and be able to abort when called from a process
 	filter.  Re-arranged and updated docstring.
 
-1993-03-30  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-30  Eric S. Raymond  (esr@thyrsus.com)
 
 	* ring.el: Changed summary line.
 
@@ -1611,7 +1611,7 @@
 
 	* buff-menu.el: Put back removed years in copyright notice.
 
-1993-03-29  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-29  Eric S. Raymond  (esr@thyrsus.com)
 
 	* vc.el (vc-next-action, vc-print-log, vc-diff, vc-revert-buffer):
 	Improve logic for parent buffer finding.
@@ -1652,7 +1652,7 @@
 	rlogin-password-paranoia is set.
 	(rlogin-with-args, rlogin-password): New functions.
 
-1993-03-28  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-28  Eric S. Raymond  (esr@thyrsus.com)
 
 	* vc.el (vc-comment-to-changelog): A useful vc-checkin hook, added.
 	(vc-checkout): Now rejects attempts to check out files via FTP.
@@ -1674,7 +1674,7 @@
 	* ebuff-menu.el (electric-buffer-menu-mode-map): fillarray isn't a
 	valid operation on maps any more.
 
-1993-03-27  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-27  Eric S. Raymond  (esr@thyrsus.com)
 
 	* refer.el: Installed.
 
@@ -1682,7 +1682,7 @@
 
 	* lucid.el (try-face-font, find-face, get-face): New aliases.
 
-1993-03-27  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-27  Eric S. Raymond  (esr@thyrsus.com)
 
 	* abbrevlist.el, old-inf-lisp.el, old-screen.el, old-shell.el,
 	* oshell.el: Removed.
@@ -1702,13 +1702,13 @@
 	(set-case-syntax-delims, set-case-syntax-pair, set-case-syntax):
 	Rename arg STRING to TABLE.  Do not set the standard case table.
 
-1993-03-26  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-26  Eric S. Raymond  (esr@thyrsus.com)
 
 	* loaddefs.el: Commented out function-key-error definition and
 	uses in the global keymaps.  RMS and jimb objected to the amount
 	of space these took up in the keybinding listings.
 
-1993-03-27  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-27  Eric S. Raymond  (esr@thyrsus.com)
 
 	* lpr.el (printify-buffer): Add, debugged from Roland McGrath's
 	printify-buffer code in LCD.
@@ -1739,7 +1739,7 @@
 	(set-visited-file-name): Kill local-write-file-hooks as local var.
 	(basic-save-buffer): Use local-write-file-hooks.
 
-1993-03-26  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-26  Eric S. Raymond  (esr@thyrsus.com)
 
 	* yow.el (psychoanalyze-pinhead): Needed a prefrontal lobotomy.
 	I gave it one.
@@ -1752,7 +1752,7 @@
 
 	* uncompress.el: Add provide call.
 
-1993-03-25  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-25  Eric S. Raymond  (esr@thyrsus.com)
 
 	* lisp-mnt.el (lm-last-modified-date): Fix return bug.
 
@@ -1784,7 +1784,7 @@
 	* term/x-win.el: Bind M-next to an alias scroll-other-window-1
 	to get better doc string output.
 
-1993-03-23  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-23  Eric S. Raymond  (esr@thyrsus.com)
 
 	* compile.el: Fix library headers.
 
@@ -1793,7 +1793,7 @@
 	* files.el (insert-directory): Do chase symlinks before passing
 	the directory name to ls.
 
-1993-03-23  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-23  Eric S. Raymond  (esr@thyrsus.com)
 
 	* buff-menu.el: Incorporated changes from Bob Weiner's enhanced
 	buff-menu from the LCD archive.
@@ -1802,7 +1802,7 @@
 
 	* replace.el (query-replace-map): Define backspace like delete.
 
-1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-22  Eric S. Raymond  (esr@thyrsus.com)
 
 	* cookie.el: Created.  This file contains what was formerly the
 	guts of spook.el, lightly hacked to support more than one
@@ -1822,7 +1822,7 @@
 	* term/x-win.el (x-win-suspend-error):
 	suspend-hook renamed from suspend-hooks.
 
-1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-22  Eric S. Raymond  (esr@thyrsus.com)
 
 	* help.el, register.el, replace.el, reposition.el, rfc822.el,
 	* rlogin.el, rot13.el, scribe.el, scroll-bar.el, sendmail.el,
@@ -1835,14 +1835,14 @@
 	* diary-insert.el: Change the name to diary-ins.el.
 	* calendar.el: Change all autoload references to diary-ins.
 
-1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-22  Eric S. Raymond  (esr@thyrsus.com)
 
 	* man.el, mlconvert.el, mlsupport.el, modula2.el, mouse.el,
 	* mpuz.el, netunam.el, novice.el, nroff-mode.el, options.el,
 	* outline.el, page.el, paragraphs.el, picture.el, prolog.el,
 	* rect.el: Add or correct Commentary sections.
 
-1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-22  Eric S. Raymond  (esr@thyrsus.com)
 
 	* abbrev.el, ada.el, add-log.el, array.el, autoinsert.el,
 	* autoload.el, awk-mode.el, bib-mode.el, bibtex.el, buff-menu.el,
@@ -1889,19 +1889,19 @@
 	* lucid.el: Alias lower-screen and raise-screen to lower-frame and
 	raise-frame, the new names for those functions.
 
-1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-19  Eric S. Raymond  (esr@thyrsus.com)
 
 	* bush.el: Deleted.
 
 	* finder.el: Make sure that when new keywords are compiled, we see them
 	immediately.
 
-1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-19  Eric S. Raymond  (esr@thyrsus.com)
 
 	* vt100-led.el, bg-mouse.el, sup-mouse.el, sun-mouse.el:
 	Moved to term directory.
 
-1993-03-18  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-18  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Makefile: Created.  This exists mainly so developers elsewhere
 	can unlock the lisp files to accept an update tar, then relock
@@ -1916,7 +1916,7 @@
 
 	* solar.el (solar-time-string): Round the time properly.
 
-1993-03-18  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+1993-03-18  Eric S. Raymond  (esr@thyrsus.com)
 
 	* abbrev.el, abbrevlist.el, add-log.el, apropos.el, array.el,
 	* autoload.el, awk-mode.el, cal-french.el, cal-mayan.el,
@@ -1938,7 +1938,7 @@
 	* tex-mode.el (tex-send-command): Fix the command sent so that no
 	blank is inserted when replacing the asterisk with the file name.
 
-1993-03-18  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-18  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term/wyse50.el (function-key-map): Nuke code no longer bound to keys.
 
@@ -1949,7 +1949,7 @@
 	Fix things so that bindings are added to the keymap already created by
 	terminal initialization.
 
-1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* help-screen.el: Installed, following release.  Now package
 	writers can easily implement help screens resembling Emacs's
@@ -1961,7 +1961,7 @@
 
 	* finder-inf.el: Deleted the RCS file.
 
-1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* isearch.el, lselect.el, select.el, scroll-bar.el, texinfo.el,
 	* pending-del.el, profile.el, texinfmt.el, ls-lisp.el, meese.el,
@@ -1974,14 +1974,14 @@
 	* case-table.el, byte-run.el, ange-ftp.el, backquote.el:
 	Add or correct library header comments.
 
-1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* finder.el (finder-compile-keywords): Treat nil in a path
 	argument as $PWD.
 
 	(finder-by-keyword): Handle LFD as input gracefully.
 
-1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* vc-hooks.el: Increment version number to match vc.el's.
 
@@ -2017,7 +2017,7 @@
 	* loaddefs.el (minor-mode-alist): Make the mode line element for
 	overwrite-mode be the symbol `overwrite-mode'.
 
-1993-03-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-16  Eric S. Raymond  (esr@thyrsus.com)
 
 	* vc.el, vc-hooks.el: The macro vc-error-occurred has to move from
 	vc.el to vc-hooks.el for C-x C-f of a nonexistent file to work.
@@ -2074,11 +2074,11 @@
 	(rmail-summary-rmail-update): Do nothing if rmail buffer not visible.
 	(rmail-summary-mode-map): Don't bind C-n, C-p.  Use ordinary move cmds.
 
-1993-03-12  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-12  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term/x-win.el: Added library headers.
 
-1993-03-12  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-12  Eric S. Raymond  (esr@thyrsus.com)
 
 	* loaddefs.el (global-map): Fix a typo in the binding of
 	[kp-backtab].
@@ -2092,7 +2092,7 @@
 	* term/x-win.el: Cancel previous change, since it discarded
 	earlier necessary changes.
 
-1993-03-11  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-11  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term/vt100.el:
 	Added headers, commented out code the duplicates startup effects.
@@ -2115,7 +2115,7 @@
 	suspend-hooks, not suspend-hook.  The latter is an obsolete name.
 	Use add-hook instead of setting suspend-hooks directly.
 
-1993-03-11  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-11  Eric S. Raymond  (esr@thyrsus.com)
 
 	A boatload of changes to terminal support and terminal capability
 	initialization that make it a lot smarter, with a more uniform
@@ -2197,7 +2197,7 @@
 	Likewise their Meta versions.
 	Also add `ascii-character' properties.
 
-1993-03-09  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1993-03-09  Eric S. Raymond  (esr@thyrsus.com)
 
 	* term/at386.el: Removed.  The new terminal initialization stuff
 	makes it superfluous.  I wrote it, so I should know. :-)
@@ -3300,7 +3300,7 @@
 	(ange-ftp-read-passwd, ange-ftp-process-filter): Uncomment out the
 	calls to ange-ftp-repaint-buffer.
 
-1992-11-11  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-11-11  Eric S. Raymond  (esr@thyrsus.com)
 
 	* c-mode.el (c-style-alist): Add quotes around C++ style name.
 
@@ -4680,7 +4680,7 @@
 	* compile.el (compilation-parse-errors): Write progress messages
 	on all regexp matches, not just errors.
 
-1992-08-04  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-08-04  Eric S. Raymond  (esr@thyrsus.com)
 
 	* view.el (view-mode): Teach this how to use help-char.
 
@@ -4727,7 +4727,7 @@
 
 	* etags.el (complete-tag): Error if no tags table loaded.
 
-1992-08-03  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-08-03  Eric S. Raymond  (esr@thyrsus.com)
 
 	* ebuff-menu.el, echistory.el, help.el, hexl.el: Teach these packages
 	to use help-char, and add the appropriate magic to doc strings.
@@ -5085,7 +5085,7 @@
 
 	* diff.el (diff-rcs, diff-sccs): Delete.
 
-1992-07-27  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-27  Eric S. Raymond  (esr@thyrsus.com)
 
 	* tar-mode.el (tar-subfile-save-buffer): Whoever changed
 	current-time forgot to check for breakage.  Added code to print
@@ -5201,7 +5201,7 @@
 	* c++-mode.el (indent-c++-exp): Fix typo "innerloop-done".
 	Make last-depth local.
 
-1992-07-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-23  Eric S. Raymond  (esr@thyrsus.com)
 
 	* flow-ctrl.el: Fixed set-input-mode call broken by new third
 	arg for meta control.
@@ -5266,11 +5266,11 @@
 	* byte-opt.el (disassemble-offset, byte-decompile-bytecode-1):
 	Support for relative jumps removed.
 
-1992-07-22  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-22  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Removed all Last-Modified headers.
 
-1992-07-21  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-21  Eric S. Raymond  (esr@thyrsus.com)
 
 	* files.el (trim-versions-without-asking): Non-nil, non-t value
 	suppresses all trimming of excess backups.  This is so we can make
@@ -5335,7 +5335,7 @@
 	Modified the remaining version by adding new argument GLOBAL
 	and setting the parameters locally if GLOBAL is nil.
 
-1992-07-21  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-21  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Turfed r2bibtex.el.  Refbib.el turns out to be a newer version
 	of the same package.
@@ -5484,7 +5484,7 @@
 	(find-file-noselect): Don't remove the automount prefix here; let
 	abbreviate-file-name take care of it.
 
-1992-07-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Keywords added for [n-z]*.el.  Finder now under construction.
 
@@ -5495,7 +5495,7 @@
 	ending with the latter may be deleted accidentally when space is
 	low.
 
-1992-07-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-17  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Keywords added for [a-m]*.el.  The keyword categories will
 	probably need some tuning, but at least this will suffice
@@ -5508,7 +5508,7 @@
 
 	* Changed all copying notices to GPL version 2.
 
-1992-07-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-16  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Finished decorating the library files with new standard headers.
 
@@ -5537,14 +5537,14 @@
 	* byte-run.el (defsubst): Remove extra closing paren at the end
 	of this function.
 
-1992-07-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-16  Eric S. Raymond  (esr@thyrsus.com)
 
 	* At RMS's request, all occurrences of `elisp' changed to `Emacs Lisp'.
 
 	* New library headers for [fghijklmn]*.el.  First steps towards
 	keyword-based code finder via Keywords header.
 
-1992-07-15  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-15  Eric S. Raymond  (esr@thyrsus.com)
 
 	* New library headers for [opqrst]*.el.  Ghod, this is boring.
 
@@ -5594,7 +5594,7 @@
 	(set-frame-height, set-frame-width): Functions deleted; they are
 	defined in frame.c.
 
-1992-07-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-14  Eric S. Raymond  (esr@thyrsus.com)
 
 	* [uvwxy]*.el: Added headers for new Emacs Lisp documentation
 	conventions.
@@ -5604,7 +5604,7 @@
 	* calendar.el (calendar-mode): Change key bindings for all
 	functions to make them consistent with Version 19 requirements.
 
-1992-07-13  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-13  Eric S. Raymond  (esr@thyrsus.com)
 
 	* comint.el: Minor changes to comments to reflect the fact that
 	comint has won its war and replaced shell mode.
@@ -5750,7 +5750,7 @@
 	* etags.el (visit-tags-table): Remove automounter prefixes before
 	setting tags-file-name.
 
-1992-07-06  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-07-06  Eric S. Raymond  (esr@thyrsus.com)
 
 	* Moved gdb.el to =gdb.el.  The autoload generation for
 	loaddefs.el was getting screwed up by the conflicting autoloads
@@ -6157,7 +6157,7 @@
 
 	* info.el (Info-enable-edit): Now a user option.
 
-1992-06-03  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-06-03  Eric S. Raymond  (esr@thyrsus.com)
 
 	* sendmail.el (mail-signature): Suppress move to end of buffer if
 	we gave a prefix argument (requested by Bob Chassell).
@@ -6250,7 +6250,7 @@
 
 	* flow-ctrl.el (evade-flow-control-memstr=): Rename from memstr=.
 
-1992-05-31  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-05-31  Eric S. Raymond  (esr@thyrsus.com)
 
 	* bibtex.el: Merged in alarson's changes.
 
@@ -6261,7 +6261,7 @@
 
 	* subr.el (lambda): Add docstring.
 
-1992-05-31  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-05-31  Eric S. Raymond  (esr@thyrsus.com)
 
 	* gdb.el: Nuked --- subsumed by gdb entry point of gud.el.
 
@@ -6275,7 +6275,7 @@
 	old version still exists in the ~n~ files if this loses, but
 	the code looks good.
 
-1992-05-30  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-05-30  Eric S. Raymond  (esr@thyrsus.com)
 
 	* profile.el: Installed.
 
@@ -6715,7 +6715,7 @@
 
 	* term/new-at386.el: Rewritten to use function-key-map.
 
-1992-01-10  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1992-01-10  Eric S. Raymond  (esr@thyrsus.com)
 
 	* flow-ctrl.el: Installed.
 
@@ -6751,14 +6751,14 @@
 	(sendmail-send-it): Delete code for mail-aliases.
 	(build-mail-aliases, expand-mail-aliases): Autoloads deleted.
 
-1991-12-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1991-12-14  Eric S. Raymond  (esr@thyrsus.com)
 
 	* etags.el (find-tag-noselect): Fix subtle bug due to
 	save-excursion.
 
 	(tags-tag-match): New function, made smarter about exact matches.
 
-1991-12-13  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1991-12-13  Eric S. Raymond  (esr@thyrsus.com)
 
 	* perl-mode.el: Installed.
 
@@ -6767,7 +6767,7 @@
 	* sendmail.el (mail-default-headers): New user variable.
 	(mail-setup): Insert value of that variable.
 
-1991-12-11  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1991-12-11  Eric S. Raymond  (esr@thyrsus.com)
 
 	* c-mode.el: Added C++ style to c-style-alist.
 
@@ -6777,7 +6777,7 @@
 
 	* man.el (nuke-nroff-bs): Simplify o^H+.  Delete "reformatting" msg.
 
-1991-12-08  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+1991-12-08  Eric S. Raymond  (esr@thyrsus.com)
 
 	* blackbox.el: Applied doc patch.  No functions affected.
 
@@ -12032,7 +12032,7 @@
 
 1988-12-22  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* term/at386.el: Eric Raymond's changes to work with keypad.el.
+	* term/at386.el: Eric S. Raymond's changes to work with keypad.el.
 
 	* loaddefs.el (completion-ignored-extensions): Add .a and .ln.
 

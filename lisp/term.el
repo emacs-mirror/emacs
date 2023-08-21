@@ -972,12 +972,7 @@ underlying shell."
 (defun term--update-term-menu (&optional force)
   (when (and (lookup-key term-mode-map [menu-bar terminal])
              (or force (frame-or-buffer-changed-p)))
-    (let ((buffer-list
-           (seq-filter
-            (lambda (buffer)
-              (provided-mode-derived-p (buffer-local-value 'major-mode buffer)
-                                       'term-mode))
-            (buffer-list))))
+    (let ((buffer-list (match-buffers '(derived-mode . term-mode))))
       (easy-menu-change
        nil
        "Terminal Buffers"
@@ -1129,6 +1124,7 @@ Commands in line mode:
 \\{term-mode-map}
 
 Entry to this mode runs the hooks on `term-mode-hook'."
+  :interactive nil
   ;; we do not want indent to sneak in any tabs
   (setq indent-tabs-mode nil)
   (setq buffer-display-table term-display-table)
@@ -2067,7 +2063,7 @@ See `term-replace-by-expanded-history'.  Returns t if successful."
 	       ;; We cannot know the interpreter's idea of input line numbers.
 	       (goto-char (match-end 0))
 	       (message "Absolute reference cannot be expanded"))
-	      ((looking-at "!-\\([0-9]+\\)\\(:?[0-9^$*-]+\\)?")
+	      ((looking-at "!-\\([0-9]+\\):?\\([0-9^$*-]+\\)?")
 	       ;; Just a number of args from `number' lines backward.
 	       (let ((number (1- (string-to-number
 				  (buffer-substring (match-beginning 1)
@@ -2090,7 +2086,7 @@ See `term-replace-by-expanded-history'.  Returns t if successful."
 		t t)
 	       (message "History item: previous"))
 	      ((looking-at
-		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
+		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\):?\\([0-9^$*-]+\\)?")
 	       ;; Most recent input starting with or containing (possibly
 	       ;; protected) string, maybe just a number of args.  Phew.
 	       (let* ((mb1 (match-beginning 1)) (me1 (match-end 1))

@@ -57,9 +57,7 @@ AC_DEFUN([gl_TIME_R],
          [gl_cv_time_r_posix=yes],
          [gl_cv_time_r_posix=no])
       ])
-    if test $gl_cv_time_r_posix = yes; then
-      REPLACE_LOCALTIME_R=0
-    else
+    if test $gl_cv_time_r_posix != yes; then
       REPLACE_LOCALTIME_R=1
     fi
   else

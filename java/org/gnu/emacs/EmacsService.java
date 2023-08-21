@@ -171,7 +171,7 @@ public final class EmacsService extends Service
 		     + " may disable it if you want;"
 		     + " see (emacs)Android Environment.");
 	channel
-	  = new NotificationChannel ("emacs", "Emacs persistent notification",
+	  = new NotificationChannel ("emacs", "Emacs Background Service",
 				     NotificationManager.IMPORTANCE_DEFAULT);
 	manager.createNotificationChannel (channel);
 	notification = (new Notification.Builder (this, "emacs")
@@ -960,44 +960,30 @@ public final class EmacsService extends Service
       }
   }
 
+  /* Return whether Emacs is directly permitted to access the
+     content:// URI NAME.  This is not a suitable test for files which
+     Emacs can access by virtue of their containing document
+     trees.  */
+
   public boolean
-  checkContentUri (byte[] string, boolean readable, boolean writable)
+  checkContentUri (String name, boolean readable, boolean writable)
   {
-    String mode, name;
+    String mode;
     ParcelFileDescriptor fd;
+    Uri uri;
+    int rc, flags;
 
-    /* Decode this into a URI.  */
+    uri = Uri.parse (name);
+    flags = 0;
 
-    try
-      {
-	/* The usual file name encoding question rears its ugly head
-	   again.  */
-	name = new String (string, "UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	name = null;
-	throw new RuntimeException (exception);
-      }
-
-    mode = "r";
+    if (readable)
+      flags |= Intent.FLAG_GRANT_READ_URI_PERMISSION;
 
     if (writable)
-      mode += "w";
+      flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    try
-      {
-	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
-	fd.close ();
-
-	return true;
-      }
-    catch (Exception exception)
-      {
-	/* Fall through.  */
-      }
-
-    return false;
+    rc = checkCallingUriPermission (uri, flags);
+    return rc == PackageManager.PERMISSION_GRANTED;
   }
 
   /* Build a content file name for URI.
@@ -1389,11 +1375,14 @@ public final class EmacsService extends Service
      last modification to this file in milliseconds since 00:00,
      January 1st, 1970.
 
+     If NOCACHE, refrain from placing the file status within the
+     status cache.
+
      OperationCanceledException and other typical exceptions may be
      signaled upon receiving async input or other errors.  */
 
   public long[]
-  statDocument (String uri, String documentId)
+  statDocument (String uri, String documentId, boolean noCache)
   {
     /* Start the thread used to run SAF requests if it isn't already
        running.  */
@@ -1404,7 +1393,7 @@ public final class EmacsService extends Service
 	storageThread.start ();
       }
 
-    return storageThread.statDocument (uri, documentId);
+    return storageThread.statDocument (uri, documentId, noCache);
   }
 
   /* Find out whether Emacs has access to the document designated by
@@ -1500,9 +1489,13 @@ public final class EmacsService extends Service
 	    return entry;
 	  }
 
-	/* Skip this entry if its name cannot be represented.  */
+	/* Skip this entry if its name cannot be represented.  NAME
+	   can still be null here, since some Cursors are permitted to
+	   return NULL if INDEX is not a string.  */
 
-	if (name.equals ("..") || name.equals (".") || name.contains ("/"))
+	if (name == null || name.equals ("..")
+	    || name.equals (".") || name.contains ("/")
+	    || name.contains ("\0"))
 	  continue;
 
 	/* Now, look for its type.  */
@@ -1537,15 +1530,13 @@ public final class EmacsService extends Service
      TRUNCATE and the document already exists, truncate its contents
      before returning.
 
-     On Android 9.0 and earlier, always open the document in
-     ``read-write'' mode; this instructs the document provider to
-     return a seekable file that is stored on disk and returns correct
-     file status.
+     If READ && WRITE, open the file under either the `rw' or `rwt'
+     access mode, which implies that the value must be a seekable
+     on-disk file.  If TRUNC && WRITE, also truncate the file after it
+     is opened.
 
-     Under newer versions of Android, open the document in a
-     non-writable mode if WRITE is false.  This is possible because
-     these versions allow Emacs to explicitly request a seekable
-     on-disk file.
+     If only READ or WRITE is set, value may be a non-seekable FIFO or
+     one end of a socket pair.
 
      Value is NULL upon failure or a parcel file descriptor upon
      success.  Call `ParcelFileDescriptor.close' on this file
@@ -1555,8 +1546,8 @@ public final class EmacsService extends Service
      UnsupportedOperationException may be thrown upon failure.  */
 
   public ParcelFileDescriptor
-  openDocument (String uri, String documentId, boolean write,
-		boolean truncate)
+  openDocument (String uri, String documentId,
+		boolean read, boolean write, boolean truncate)
   {
     /* Start the thread used to run SAF requests if it isn't already
        running.  */
@@ -1567,7 +1558,7 @@ public final class EmacsService extends Service
 	storageThread.start ();
       }
 
-    return storageThread.openDocument (uri, documentId, write,
+    return storageThread.openDocument (uri, documentId, read, write,
 				       truncate);
   }
 

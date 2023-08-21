@@ -1175,9 +1175,7 @@ The mode-line is changed accordingly."
 
 (defun newsticker--buffer-redraw ()
   "Redraw the newsticker window."
-  (if (fboundp 'force-window-update)
-      (force-window-update (current-buffer))
-    (redraw-frame))
+  (force-window-update (current-buffer))
   (run-hooks 'newsticker-buffer-change-hook)
   (sit-for 0))
 

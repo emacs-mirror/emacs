@@ -15,8 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, write to the Free Software Foundation,
-Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -1104,7 +1103,12 @@ sfnt_enum_font (const char *file)
 
 	  subtables = sfnt_read_table_directory (fd);
 
-	  if (!subtables)
+	  if (!subtables
+	      /* This value means that FD was pointing at a TTC
+		 header.  Since FD should already have been moved to
+		 the beginning of the TrueType header above, it
+		 follows that the font format is invalid.  */
+	      || (subtables == (struct sfnt_offset_subtable *) -1))
 	    continue;
 
 	  sfnt_enum_font_1 (fd, file, subtables,
@@ -1341,9 +1345,22 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
   if (fd < 0)
     return;
 
+  /* Seek to the start of the font itself within its collection.  */
+
+  if (desc->offset
+      && lseek (fd, desc->offset, SEEK_SET) != desc->offset)
+    {
+      emacs_close (fd);
+      return;
+    }
+
   font = sfnt_read_table_directory (fd);
 
-  if (!font)
+  /* Return if FONT is a TrueType collection: the file pointer should
+     already have been moved to the start of the table directory if
+     so.  */
+
+  if (!font || (font == (struct sfnt_offset_subtable *) -1))
     {
       emacs_close (fd);
       return;
@@ -1786,7 +1803,7 @@ sfntfont_desc_to_entity (struct sfnt_font_desc *desc, int instance)
 		      AREF (vector, 3));
       FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
 		      AREF (vector, 4));
-      ASET (entity, FONT_ADSTYLE_INDEX, AREF (vector, 1));      
+      ASET (entity, FONT_ADSTYLE_INDEX, AREF (vector, 1));
     }
   else
     {
@@ -1926,6 +1943,11 @@ struct sfntfont_get_glyph_outline_dcontext
   /* glyf table.  */
   struct sfnt_glyf_table *glyf;
 
+  /* hmtx, hhea and maxp tables utilized to acquire glyph metrics.  */
+  struct sfnt_hmtx_table *hmtx;
+  struct sfnt_hhea_table *hhea;
+  struct sfnt_maxp_table *maxp;
+
   /* Variation settings, or NULL.  */
   struct sfnt_blend *blend;
 };
@@ -1968,6 +1990,23 @@ static void
 sfntfont_free_glyph (struct sfnt_glyph *glyph, void *dcontext)
 {
   sfnt_free_glyph (glyph);
+}
+
+/* Return unscaled glyph metrics for the glyph designated by the ID
+   GLYPH within *METRICS, utilizing tables within DCONTEXT.
+
+   Value is 1 upon failure, 0 otherwise.  */
+
+static int
+sfntfont_get_metrics (sfnt_glyph glyph, struct sfnt_glyph_metrics *metrics,
+		      void *dcontext)
+{
+  struct sfntfont_get_glyph_outline_dcontext *tables;
+
+  tables = dcontext;
+  return sfnt_lookup_glyph_metrics (glyph, -1, metrics,
+				    tables->hmtx, tables->hhea,
+				    NULL, tables->maxp);
 }
 
 /* Dereference the outline OUTLINE.  Free it once refcount reaches
@@ -2095,6 +2134,9 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   dcontext.loca_long = loca_long;
   dcontext.loca_short = loca_short;
   dcontext.glyf = glyf;
+  dcontext.hhea = hhea;
+  dcontext.hmtx = hmtx;
+  dcontext.maxp = maxp;
   dcontext.blend = (index != -1 ? blend : NULL);
 
   /* Now load the glyph's unscaled metrics into TEMP.  */
@@ -2143,12 +2185,14 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					    &temp,
 					    sfntfont_get_glyph,
 					    sfntfont_free_glyph,
+					    sfntfont_get_metrics,
 					    &dcontext);
       else
 	outline = sfnt_build_glyph_outline (glyph, scale,
 					    &temp,
 					    sfntfont_get_glyph,
 					    sfntfont_free_glyph,
+					    sfntfont_get_metrics,
 					    &dcontext);
     }
 
@@ -2723,7 +2767,7 @@ sfnt_open_tables (struct sfnt_font_desc *desc)
   /* Read the offset subtable.  */
   subtable = sfnt_read_table_directory (fd);
 
-  if (!subtable)
+  if (!subtable || (subtable == (struct sfnt_offset_subtable *) -1))
     goto bail1;
 
   /* Read required tables.  This font backend is supposed to be used
@@ -3174,7 +3218,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 			  AREF (tem, 3));
 	  FONT_SET_STYLE (font_object, FONT_SLANT_INDEX,
 			  AREF (tem, 4));
-	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);	  
+	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);
 	}
     }
 

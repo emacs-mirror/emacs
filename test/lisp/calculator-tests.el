@@ -47,5 +47,11 @@
        (let ((calculator-input-radix nil))
          (should (equal (calculator-string-to-number str) expected)))))))
 
+(ert-deftest calculator-expt ()
+  (should (= (calculator-expt 2 -1) 0.5))
+  (should (= (calculator-expt -2 2) 4))
+  (should (= (calculator-expt -2 3) -8))
+  (should (= (calculator-expt 2 64) 18446744073709551616)))
+
 (provide 'calculator-tests)
 ;;; calculator-tests.el ends here

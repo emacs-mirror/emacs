@@ -139,7 +139,7 @@
 (defun test-completion-all-sorted-completions (base def history-var history-list)
   (with-temp-buffer
     (insert base)
-    (cl-letf (((symbol-function #'minibufferp) (lambda (&rest _) t)))
+    (cl-letf (((symbol-function #'minibufferp) #'always))
       (let ((completion-styles '(basic))
             (completion-category-defaults nil)
             (completion-category-overrides nil)

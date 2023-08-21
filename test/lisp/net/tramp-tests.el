@@ -2711,7 +2711,20 @@ This checks also `file-name-as-directory', `file-name-directory',
              :type 'file-already-exists)
 	    (should-error
 	     (write-region "foo" nil tmp-name nil nil nil 'excl)
-	     :type 'file-already-exists))
+	     :type 'file-already-exists)
+	    (delete-file tmp-name)
+
+	    ;; Check `buffer-file-coding-system'.  Bug#65022.
+	    (with-temp-buffer
+	      (setq buffer-file-name tmp-name)
+	      (insert "foo")
+	      (set-buffer-file-coding-system 'cp1251)
+	      (let ((bfcs buffer-file-coding-system))
+		(should (buffer-modified-p))
+		(should (null (save-buffer)))
+		(should
+                 (eq (coding-system-get buffer-file-coding-system :mime-charset)
+                     (coding-system-get bfcs :mime-charset))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))
@@ -5370,7 +5383,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
     (let ((default-directory ert-remote-temporary-file-directory)
 	  (tmp-name (tramp--test-make-temp-name nil quoted))
 	  kill-buffer-query-functions command proc)
-      (should-not (make-process))
+      (should-not (apply #'make-process nil)) ; Use `apply' to avoid warnings.
 
       ;; Simple process.
       (unwind-protect
@@ -7398,6 +7411,7 @@ This requires restrictions of file name syntax."
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 245s
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-rclone-p)))
+  (skip-unless (not (or (eq system-type 'darwin) (tramp--test-macos-p))))
 
   ;; Newlines, slashes and backslashes in file names are not
   ;; supported.  So we don't test.  And we don't test the tab
@@ -7473,14 +7487,12 @@ This requires restrictions of file name syntax."
   (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-rclone-p)))
+  (skip-unless (not (or (eq system-type 'darwin) (tramp--test-macos-p))))
 
-  (let* ((utf8 (if (and (eq system-type 'darwin)
-			(memq 'utf-8-hfs (coding-system-list)))
-		   'utf-8-hfs 'utf-8))
-	 (coding-system-for-read utf8)
-	 (coding-system-for-write utf8)
-	 (file-name-coding-system
-	  (coding-system-change-eol-conversion utf8 'unix)))
+  (let ((coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
+	(file-name-coding-system
+	 (coding-system-change-eol-conversion 'utf-8 'unix)))
     (apply
      #'tramp--test-check-files
      (append

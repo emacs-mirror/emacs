@@ -5,8 +5,9 @@ See the end of the file for license conditions.
 Please read the entirety of this file before attempting to build Emacs
 as an application package which can run on Android devices.
 
-When building from the source repository, make sure to read
-INSTALL.REPO as well.
+When building from the source repository (as opposed to from a release
+tarball), make sure to read INSTALL.REPO in the top-level directory as
+well.
 
 
 
@@ -38,8 +39,7 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 13 (API level 33) or
-    later.
+    SDK.  They must correspond to Android version 13 (API level 33).
 
   - the path to the C compiler in the Android NDK, for the kind of CPU
     you are building Emacs to run on.
@@ -66,6 +66,57 @@ built for.
 
 The generated package can be uploaded onto an SD card (or similar
 medium) and installed on-device.
+
+
+LOCATING NECESSARY FILES
+
+As illustrated above, building Emacs for Android requires the presence
+three separate components of the Android SDK and NDK.  Subsequent to
+their installation, the contents of the Android development tools are
+organized into several directories, of which those pertinent to the
+Emacs compilation process are:
+
+  platforms
+  ndk
+  build-tools
+
+The platforms directory contains one subdirectory for each API level
+whose headers have been installed.  Each of these directories in turn
+includes the android.jar archive for that version of Android, also
+necessary for compiling Emacs.
+
+It is imperative that Emacs is compiled using the headers for the
+exact API level that it is written for.  This is currently API level
+33, so the correct android.jar archive is located within a directory
+whose name begins with `android-33'.  Minor revisions to the headers
+are inconsequential towards the Emacs compilation process; if there is
+a directory named `android-33-extN' (where N represents a revision to
+the Android SDK), whether you provide `configure' with that
+directory's android.jar or the android.jar contained within the
+directory named `android-33' is of no special importance.
+
+The ndk directory contains one subdirectory for each version of the
+Android NDK installed.  This directory in turn contains the C and C++
+compilation system.  In contrast to the Java headers mentioned within
+the previous paragraph, the version of the NDK used does not affect
+Emacs to the extent the version of android.jar does.  Having said
+that, each version of the NDK only supports a limited range of API
+levels; your choice of C compiler binary (or __ANDROID_API__) bears
+upon the earliest version of Android the compiled package will
+support.
+
+In most cases, each subdirectory contains a folder named `toolchains',
+holding an `llvm' directory and one directory for each GCC toolchain
+supplied by the NDK.  The C compiler is then positioned within
+`prebuilt/*/bin' inside that directory.
+
+The build-tools directory holds subdirectories containing the utility
+programs used to convert class files output by the Java compiler to
+the DEX format employed by Android.  There is one subdirectory for
+each version of the build tools, but the version you opt for is not of
+paramount significance: if your version does not work, configure will
+protest, so install a newer one.  We anticipate that most recent
+releases will work, such as those from the 33.0.x and 34.0.x series.
 
 
 BUILDING WITH OLD NDK VERSIONS

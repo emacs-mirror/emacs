@@ -1116,7 +1116,7 @@ TAGS tags: lib lib-src # src
 	$(MAKE) -C doc/lispref tags
 	$(MAKE) -C doc/misc tags
 
-CHECK_TARGETS = check check-maybe check-expensive check-all
+CHECK_TARGETS = check check-maybe check-expensive check-all check-byte-compile
 .PHONY: $(CHECK_TARGETS)
 $(CHECK_TARGETS): all
 	$(MAKE) -C test $@

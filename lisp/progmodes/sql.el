@@ -3096,9 +3096,7 @@ displayed."
 (defun sql-accumulate-and-indent ()
   "Continue SQL statement on the next line."
   (interactive)
-  (if (fboundp 'comint-accumulate)
-      (comint-accumulate)
-    (newline))
+  (comint-accumulate)
   (indent-according-to-mode))
 
 (defun sql-help-list-products (indent freep)
@@ -4033,7 +4031,7 @@ The list is maintained in SQL interactive buffers.")
 (defun sql--completion-table (string pred action)
   (when sql-completion-sqlbuf
     (with-current-buffer sql-completion-sqlbuf
-      (let ((schema (and (string-match "\\`\\(\\sw\\(:?\\sw\\|\\s_\\)*\\)[.]" string)
+      (let ((schema (and (string-match "\\`\\(\\sw\\(?:\\sw\\|\\s_\\)*\\)[.]" string)
                          (downcase (match-string 1 string)))))
 
         ;; If we haven't loaded any object name yet, load local schema

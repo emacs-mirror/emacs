@@ -761,7 +761,10 @@ drawer."
   "If kill ring holds a bibtex entry yank it as an Org headline."
   (interactive)
   (let (entry)
-    (with-temp-buffer (yank 1) (setf entry (org-bibtex-read)))
+    (with-temp-buffer
+      (yank 1)
+      (bibtex-mode)
+      (setf entry (org-bibtex-read)))
     (if entry
 	(org-bibtex-write)
       (error "Yanked text does not appear to contain a BibTeX entry"))))

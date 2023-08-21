@@ -516,7 +516,7 @@ directory copy is ineffective.
 This is due to an arbitrary limit in certain versions of awk.
 The solution is to use gawk (GNU awk).
 
-*** Saving, via EasyPG, a file encrypted with GnuPG hangs
+*** Saving a file encrypted with GnuPG via EasyPG hangs.
 
 This is known to happen with GnuPG v2.4.1.  The only known workaround
 is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
@@ -574,6 +574,20 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 1.12.10 or newer to fix this problem.
 
 ** Miscellaneous problems
+
+*** 'set-mouse-color' and the '-ms' command line argument do not work.
+
+Systems where the default cursors are not simple 1 bit-per-pixel
+bitmaps usually forbid recoloring the cursor, since it is unclear
+which colors should replace those already present within each cursor
+image.  For example, 'set-mouse-color' and '-ms' have no function on X
+systems with GNOME, KDE, and other recent desktop environments
+employing cursor images containing colors and partial transparency.
+
+Changing the cursor color is also impossible on MS-Windows and PGTK
+systems.  In the former case, it is because the prerequisite code has
+yet to be written.  In the latter, it is because GTK does not provide
+for changing the color of cursor images.
 
 *** Display artifacts on GUI frames on X-based systems.
 
@@ -1163,43 +1177,6 @@ do anything about it.
 
 ** International characters aren't displayed under X.
 
-*** Missing X fonts
-
-XFree86 4 contains many fonts in iso10646-1 encoding which have
-minimal character repertoires (whereas the encoding part of the font
-name is meant to be a reasonable indication of the repertoire
-according to the XLFD spec).  Emacs may choose one of these to display
-characters from the mule-unicode charsets and then typically won't be
-able to find the glyphs to display many characters.  (Check with C-u
-C-x = .)  To avoid this, you may need to use a fontset which sets the
-font for the mule-unicode sets explicitly.  E.g. to use GNU unifont,
-include in the fontset spec:
-
-mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
-mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
-mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
-
-** The UTF-8/16/7 coding systems don't encode CJK (Far Eastern) characters.
-
-Emacs directly supports the Unicode BMP whose code points are in the
-ranges 0000-33ff and e000-ffff, and indirectly supports the parts of
-CJK characters belonging to these legacy charsets:
-
-    GB2312, Big5, JISX0208, JISX0212, JISX0213-1, JISX0213-2, KSC5601
-
-The latter support is done in Utf-Translate-Cjk mode (turned on by
-default).   Which Unicode CJK characters are decoded into which Emacs
-charset is decided by the current language environment.  For instance,
-in Chinese-GB, most of them are decoded into chinese-gb2312.
-
-If you read UTF-8 data with code points outside these ranges, the
-characters appear in the buffer as raw bytes of the original UTF-8
-(composed into a single quasi-character) and they will be written back
-correctly as UTF-8, assuming you don't break the composed sequences.
-If you read such characters from UTF-16 or UTF-7 data, they are
-substituted with the Unicode 'replacement character', and you lose
-information.
-
 ** Accented ISO-8859-1 characters are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
@@ -1236,6 +1213,16 @@ In your ~/.Xresources file, then run
   $ xrdb ~/.Xresources
 
 And restart Emacs.
+
+** Emacs hangs when using XIM
+
+This is due to an old bug in the implementation of the X protocol's
+XIM transport: when an input method crashes for some reason, Xlib
+cannot recover.  Emacs cannot do anything about this except wait for
+the I-Bux developers to fix their crashes.  You can work around these
+problems by disabling XIM in your X resources:
+
+  Emacs.useXIM: false
 
 ** On Haiku, BeCJK doesn't work properly with Emacs
 
@@ -3366,7 +3353,7 @@ this and many other problems do not exist on the regular X builds.
 ** Text displayed in the default monospace font looks horrible.
 
 Droid Sans Mono (the default Monospace font which comes with Android)
-comes with instruction code designed for Microsoft's proprietary
+incorporates instruction code designed for Microsoft's proprietary
 TrueType font scaler.  When this code is executed by Emacs to instruct
 a glyph containing more than one component, it tries to address
 "reference points" which are set to the values of two extra "phantom
@@ -3410,6 +3397,80 @@ of the Emacs manual.  You may want to perform this procedure even if
 you are not seeing problems with character display, as the
 automatically generated instructions result in superior display
 results that are easier to read.
+
+We have been told that the default Sans font under Android 2.3.7,
+named "Droid Sans", also exhibits this problem.  The procedure for
+repairing the font is identical to the procedure outlined above,
+albeit with "DroidSansMono" replaced by simply "DroidSans".
+
+** The "Anonymous Pro" font displays incorrectly.
+
+Glyph instruction code within the Anonymous Pro font relies on
+undocumented features of the Microsoft TrueType font scaler, namely
+that the scaler always resets the "projection" and "freedom" vector
+interpreter control registers after the execution of the font
+pre-program, which sets them to a value that is perpendicular to the
+horizontal plane of movement.
+
+Since Emacs does not provide this "feature", various points inside
+glyphs are moved vertically rather than horizontally when a glyph
+program later executes an instruction such as "MIRP" (Move Indirect
+Relative Point) that moves and measures points along the axis
+specified by those registers.
+
+This can be remedied in two ways; the first (and the easiest) is to
+replace its instruction code with that supplied by "ttfautohint", as
+depicted above.  The second is to patch the instruction code inside
+the font itself, using the "ttx" utility:
+
+  https://fonttools.readthedocs.io/en/latest/ttx.html
+
+First, convert the font to its XML representation:
+
+  $ ttx Anonymous_Pro.ttf
+
+then, find the end of the section labeled 'prep':
+
+  <prep>
+    <assembly>
+      [...]
+      ROUND[01]	/* Round */
+      RTG[ ]	/* RoundToGrid */
+      WCVTP[ ]	/* WriteCVTInPixels */
+    </assembly>
+  </prep>
+
+and insert the following instruction immediately before the closing
+'/assembly' tag, so as to reset the interpreter control registers back
+to their default values prior to the completion of the pre-program:
+
+     SVTCA[1]  /* Set Vector registers to Control Axis X */
+
+Then, reassemble the font from the modified XML:
+
+  $ ttx Anonymous_Pro.ttx
+
+which should produce a modified font by the name of
+Anonymous_Pro#1.ttf.
+
+** CJK text does not display in Emacs, but does in other programs.
+
+When inserting CJK text into a buffer or visiting a file containing
+CJK text, Emacs often fails to locate a suitable font.  This problem
+manifests itself as hollow squares with numbers and letters within
+being displayed in lieu of the text itself.
+
+The reason for this is Emacs's absence of support for OpenType fonts
+utilizing CFF (Compact Font Format) outlines, which the CJK fonts
+bundled with Android have been distributed as since Android 7.0.
+
+The solution is to install a TrueType CJK font to the user fonts
+directory detailed in the "Android Fonts" node of the Emacs manual.
+
+Introducing support for the byzantine CFF font format into the Android
+port is a large undertaking that we are looking for volunteers to
+perform.  If you are interested in taking responsibility for this
+task, please contact <emacs-devel@gnu.org>.
 
 * Build-time problems
 

@@ -21,6 +21,14 @@
 LC_ALL=C
 export LC_ALL
 
+# If this is a system where /bin/sh isn't sufficient to
+# run git-sh-setup, use a working shell as a recourse.
+if test -x "/usr/xpg4/bin/sh" && test -z "$POSIX_SHELL"; then
+    POSIX_SHELL=1
+    export POSIX_SHELL
+    exec "/usr/xpg4/bin/sh" `dirname $0`/pre-commit
+fi
+
 exec >&2
 
 . git-sh-setup

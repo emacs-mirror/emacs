@@ -143,6 +143,14 @@ the list at the end of this file.
 
   See the file java/INSTALL for detailed installation instructions.
 
+  It is also possible to build Emacs for Android systems without using
+  GUI capabilities provided by the Android port.  We do not know
+  exactly which configurations this works on, but the installation
+  instructions for such a build should be the same as for any Unix
+  system.  (This does in turn imply that such a build must be carried
+  out on an Android device itself utilizing development tools provided
+  by third party package repositories.)
+
 
 * Obsolete platforms
 

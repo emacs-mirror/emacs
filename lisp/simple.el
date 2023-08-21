@@ -11140,8 +11140,6 @@ seconds."
           (setq undo-auto-current-boundary-timer
                 (run-at-time 5 nil #'undo-auto--boundary-timer)))))))
 
-
-
 (provide 'simple)
 
 ;;; simple.el ends here

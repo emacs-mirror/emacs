@@ -326,6 +326,9 @@ check-all: mostlyclean check-no-automated-subdir
 check-maybe: check-no-automated-subdir
 	@${MAKE} check-doit SELECTOR="${SELECTOR_ACTUAL}"
 
+check-byte-compile:
+	@${MAKE} $(ELFILES:.el=.elc)
+
 ## Run the tests.
 .PHONY: check-doit
 ## We can't put LOGFILES as prerequisites, because that would stop the

@@ -566,7 +566,8 @@ lost after dumping")))
 
 
 
-(if (eq system-type 'android)
+(if (and (eq system-type 'android)
+         (featurep 'android))
     (progn
       ;; Dumping Emacs on Android works slightly differently from
       ;; everywhere else.  The first time Emacs starts, Emacs dumps
@@ -603,7 +604,7 @@ lost after dumping")))
                    (equal dump-mode "pdump"))
           ;; Don't enable this before bootstrap is completed, as the
           ;; compiler infrastructure may not be usable yet.
-          (setq comp-enable-subr-trampolines t))
+          (setq native-comp-enable-subr-trampolines t))
         (message "Dumping under the name %s" output)
         (condition-case ()
             (delete-file output)
@@ -631,7 +632,11 @@ lost after dumping")))
                      ;; There's no point keeping old dumps around for
                      ;; the binary used to build Lisp on the build
                      ;; machine.
-                     (featurep 'android)
+                     (or (featurep 'android)
+                         ;; And if this branch is reached with
+                         ;; `system-type' set to Android, this is a
+                         ;; regular Emacs TTY build.  (bug#65339)
+                         (eq system-type 'android))
                      ;; Don't bother adding another name if we're just
                      ;; building bootstrap-emacs.
                      (member dump-mode '("pbootstrap" "bootstrap"))))

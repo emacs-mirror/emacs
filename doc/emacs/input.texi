@@ -20,7 +20,7 @@ which is detailed here.
 @end menu
 
 @node Touchscreens
-@section Using Emacs on touchscreens
+@section Using Emacs on Touchscreens
 @cindex touchscreen input
 
   Touchscreen input works by pressing and moving tools (which include
@@ -97,7 +97,7 @@ this can be changed by customizing the variable
 @code{touch-screen-delay}.
 
 @node On-Screen Keyboards
-@section Using Emacs with virtual keyboards
+@section Using Emacs with Virtual Keyboards
 @cindex virtual keyboards
 @cindex on-screen keyboards
 

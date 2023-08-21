@@ -1,6 +1,6 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2000, 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -1664,11 +1664,6 @@ When DIE is non-nil, throw an error if file not found."
       (pop alist))
     (nreverse out)))
 
-(defun reftex-window-height ()
-  (if (fboundp 'window-displayed-height)
-      (window-displayed-height)
-    (window-height)))
-
 (defun reftex-enlarge-to-fit (buf2 &optional keep-current)
   ;; Enlarge other window displaying buffer to show whole buffer if possible.
   ;; If KEEP-CURRENT in non-nil, current buffer must remain visible.
@@ -1680,7 +1675,7 @@ When DIE is non-nil, throw an error if file not found."
       (unless (and (pos-visible-in-window-p (point-min))
                    (pos-visible-in-window-p (point-max)))
         (enlarge-window (1+ (- (count-lines (point-min) (point-max))
-                               (reftex-window-height))))))
+                               (window-height))))))
     (cond
      ((window-live-p win1) (select-window win1))
      (keep-current
@@ -1705,7 +1700,7 @@ When DIE is non-nil, throw an error if file not found."
           (unless (and (pos-visible-in-window-p (point-min))
                        (pos-visible-in-window-p (point-max)))
             (enlarge-window (1+ (- (count-lines (point-min) (point-max))
-                                   (reftex-window-height)))))
+                                   (window-height)))))
           (setq truncate-lines t))
         (if (and (pos-visible-in-window-p (point-min))
                  (pos-visible-in-window-p (point-max)))
@@ -2274,20 +2269,17 @@ IGNORE-WORDS List of words which should be removed from the string."
 (defun reftex-create-customize-menu ()
   "Create a full customization menu for RefTeX, insert it into the menu."
   (interactive)
-  (if (fboundp 'customize-menu-create)
-      (progn
-        (easy-menu-change
-         '("Ref") "Customize"
-         `(["Browse RefTeX group" reftex-customize t]
-           "--"
-           ,(customize-menu-create 'reftex)
-           ["Set" Custom-set t]
-           ["Save" Custom-save t]
-           ["Reset to Current" Custom-reset-current t]
-           ["Reset to Saved" Custom-reset-saved t]
-           ["Reset to Standard Settings" Custom-reset-standard t]))
-        (message "\"Ref\"-menu now contains full customization menu"))
-    (error "Cannot expand menu (outdated version of cus-edit.el)")))
+  (easy-menu-change
+   '("Ref") "Customize"
+   `(["Browse RefTeX group" reftex-customize t]
+     "--"
+     ,(customize-menu-create 'reftex)
+     ["Set" Custom-set t]
+     ["Save" Custom-save t]
+     ["Reset to Current" Custom-reset-current t]
+     ["Reset to Saved" Custom-reset-saved t]
+     ["Reset to Standard Settings" Custom-reset-standard t]))
+  (message "\"Ref\"-menu now contains full customization menu"))
 
 
 ;;; Misc
@@ -2347,6 +2339,8 @@ Your bug report will be posted to the AUCTeX bug reporting list.
 ;;; That's it! ----------------------------------------------------------------
 
 (setq reftex-tables-dirty t)  ; in case this file is evaluated by hand
+
+(define-obsolete-function-alias 'reftex-window-height #'window-height "30.1")
 
 (provide 'reftex)
 

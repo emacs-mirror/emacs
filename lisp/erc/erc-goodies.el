@@ -800,9 +800,7 @@ servers.  If called from a program, PROC specifies the server process."
    (list (read-string "Search for: ")
          (if current-prefix-arg
              nil erc-server-process)))
-  (if (fboundp 'multi-occur)
-      (multi-occur (erc-buffer-list nil proc) string)
-    (error "`multi-occur' is not defined as a function")))
+  (multi-occur (erc-buffer-list nil proc) string))
 
 (provide 'erc-goodies)
 

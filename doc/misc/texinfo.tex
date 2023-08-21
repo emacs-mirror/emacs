@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2023-07-02.10}
+\def\texinfoversion{2023-07-27.21}
 %
 % Copyright 1985, 1986, 1988, 1990-2023 Free Software Foundation, Inc.
 %
@@ -426,42 +426,21 @@
 }
 
 % First remove any @comment, then any @c comment.  Pass the result on to
-% \argcheckspaces.
+% \argremovespace.
 \def\argremovecomment#1\comment#2\ArgTerm{\argremovec #1\c\ArgTerm}
-\def\argremovec#1\c#2\ArgTerm{\argcheckspaces#1\^^M\ArgTerm}
-
-% Each occurrence of `\^^M' or `<space>\^^M' is replaced by a single space.
-%
-% \argremovec might leave us with trailing space, e.g.,
+\def\argremovec#1\c#2\ArgTerm{\argremovespace#1$ $\ArgTerm}
+% \argremovec might leave us with trailing space, though; e.g.,
 %    @end itemize  @c foo
-% This space token undergoes the same procedure and is eventually removed
-% by \finishparsearg.
-%
-\def\argcheckspaces#1\^^M{\argcheckspacesX#1\^^M \^^M}
-\def\argcheckspacesX#1 \^^M{\argcheckspacesY#1\^^M}
-\def\argcheckspacesY#1\^^M#2\^^M#3\ArgTerm{%
-  \def\temp{#3}%
-  \ifx\temp\empty
-    % Do not use \next, perhaps the caller of \parsearg uses it; reuse \temp:
-    \let\temp\finishparsearg
-  \else
-    \let\temp\argcheckspaces
-  \fi
-  % Put the space token in:
-  \temp#1 #3\ArgTerm
-}
+% Note that the argument cannot contain the TeX $, as its catcode is
+% changed to \other when Texinfo source is read.
+\def\argremovespace#1 $#2\ArgTerm{\finishparsearg#1$\ArgTerm}
 
 % If a _delimited_ argument is enclosed in braces, they get stripped; so
 % to get _exactly_ the rest of the line, we had to prevent such situation.
-% We prepended an \empty token at the very beginning and we expand it now,
-% just before passing the control to \argtorun.
-% (Similarly, we have to think about #3 of \argcheckspacesY above: it is
-% either the null string, or it ends with \^^M---thus there is no danger
-% that a pair of braces would be stripped.
-%
-% But first, we have to remove the trailing space token.
-%
-\def\finishparsearg#1 \ArgTerm{\expandafter\argtorun\expandafter{#1}}
+% We prepended an \empty token at the very beginning and we expand it
+% just before passing the control to \next.
+% (But first, we have to remove the remaining $ or two.)
+\def\finishparsearg#1$#2\ArgTerm{\expandafter\argtorun\expandafter{#1}}
 
 
 % \parseargdef - define a command taking an argument on the line
@@ -5575,6 +5554,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \newdimen\entryrightmargin
 \entryrightmargin=0pt
 
+% amount to indent subsequent lines in an entry when it spans more than
+% one line.
+\newdimen\entrycontskip
+\entrycontskip=1em
+
 % for PDF output, whether to make the text of the entry a link to the page
 % number.  set for @contents and @shortcontents where there is only one
 % page number.
@@ -5684,25 +5668,30 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \advance\dimen@ii by 1\dimen@i
       \ifdim\wd\boxA > \dimen@ii % If the entry doesn't fit in one line
       \ifdim\dimen@ > 0.8\dimen@ii   % due to long index text
+        % Undo changes above
+        \advance \parfillskip by 0pt minus -1\dimen@i
+        \advance\dimen@ii by -1\dimen@i
+        %
         % Try to split the text roughly evenly.  \dimen@ will be the length of
         % the first line.
         \dimen@ = 0.7\dimen@
         \dimen@ii = \hsize
         \ifnum\dimen@>\dimen@ii
           % If the entry is too long (for example, if it needs more than
-          % two lines), use all the space in the first line.
+          % two lines), use the same line length for all lines.
           \dimen@ = \dimen@ii
+        \else
+          \advance \dimen@ by 1\rightskip
         \fi
         \advance\leftskip by 0pt plus 1fill % ragged right
-        \advance \dimen@ by 1\rightskip
         \parshape = 2 0pt \dimen@ 0em \dimen@ii
         % Ideally we'd add a finite glue at the end of the first line only,
         % instead of using \parshape with explicit line lengths, but TeX
         % doesn't seem to provide a way to do such a thing.
         %
         % Indent all lines but the first one.
-        \advance\leftskip by 1em
-        \advance\parindent by -1em
+        \advance\leftskip by \entrycontskip
+        \advance\parindent by -\entrycontskip
       \fi\fi
       \indent % start paragraph
       \unhbox\boxA
@@ -6721,6 +6710,82 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \input \tocreadfilename
 }
 
+% process toc file to find the maximum width of the section numbers for
+% each chapter
+\def\findsecnowidths{%
+  \begingroup
+  \setupdatafile
+  \activecatcodes
+  \secentryfonts
+  % Redefinitions
+  \def\numchapentry##1##2##3##4{%
+    \def\curchapname{secnowidth-##2}%
+    \curchapmax=0pt
+  }%
+  \let\appentry\numchapentry
+  %
+  \def\numsecentry##1##2##3##4{%
+    \def\cursecname{secnowidth-##2}%
+    \cursecmax=0pt
+    %
+    \setbox0=\hbox{##2}%
+    \ifdim\wd0>\curchapmax
+      \curchapmax=\wd0
+      \expandafter\xdef\csname\curchapname\endcsname{\the\wd0}%
+    \fi
+  }%
+  \let\appsecentry\numsecentry
+  %
+  \def\numsubsecentry##1##2##3##4{%
+    \def\curssecname{secnowidth-##2}%
+    \curssecmax=0pt
+    %
+    \setbox0=\hbox{##2}%
+    \ifdim\wd0>\cursecmax
+      \cursecmax=\wd0
+      \expandafter\xdef\csname\cursecname\endcsname{\the\wd0}%
+    \fi
+  }%
+  \let\appsubsecentry\numsubsecentry
+  %
+  \def\numsubsubsecentry##1##2##3##4{%
+    \setbox0=\hbox{##2}%
+    \ifdim\wd0>\curssecmax
+      \curssecmax=\wd0
+      \expandafter\xdef\csname\curssecname\endcsname{\the\wd0}%
+    \fi
+  }%
+  \let\appsubsubsecentry\numsubsubsecentry
+  %
+  % Discard any output by outputting to dummy vbox, in case the toc file
+  % contains macros that we have not redefined above.
+  \setbox\dummybox\vbox\bgroup
+    \input \tocreadfilename\relax
+  \egroup
+  \endgroup
+}
+\newdimen\curchapmax
+\newdimen\cursecmax
+\newdimen\curssecmax
+
+
+% set #1 to the maximum section width for #2
+\def\retrievesecnowidth#1#2{%
+  \expandafter\let\expandafter\savedsecnowidth \csname secnowidth-#2\endcsname
+  \ifx\savedsecnowidth\relax
+    #1=0pt
+  \else
+    #1=\savedsecnowidth
+  \fi
+}
+\newdimen\secnowidthchap
+\secnowidthchap=0pt
+\newdimen\secnowidthsec
+\secnowidthsec=0pt
+\newdimen\secnowidthssec
+\secnowidthssec=0pt
+
+
 \newskip\contentsrightmargin \contentsrightmargin=1in
 \newcount\savepageno
 \newcount\lastnegativepageno \lastnegativepageno = -1
@@ -6766,6 +6831,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \startcontents{\putwordTOC}%
     \openin 1 \tocreadfilename\space
     \ifeof 1 \else
+      \findsecnowidths
       \readtocfile
     \fi
     \vfill \eject
@@ -6793,6 +6859,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \rm
     \hyphenpenalty = 10000
     \advance\baselineskip by 1pt % Open it up a little.
+    \extrasecnoskip=0.4pt
     \def\numsecentry##1##2##3##4{}
     \let\appsecentry = \numsecentry
     \let\unnsecentry = \numsecentry
@@ -6828,8 +6895,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % This space should be enough, since a single number is .5em, and the
   % widest letter (M) is 1em, at least in the Computer Modern fonts.
   % But use \hss just in case.
-  % (This space doesn't include the extra space that gets added after
-  % the label; that gets put in by \shortchapentry above.)
   %
   % We'd like to right-justify chapter numbers, but that looks strange
   % with appendix letters.  And right-justifying numbers and
@@ -6839,10 +6904,15 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \hbox to 1em{#1\hss}%
 }
 
-% These macros generate individual entries in the table of contents.
-% The first argument is the chapter or section name.
-% The last argument is the page number.
-% The arguments in between are the chapter number, section number, ...
+% These macros generate individual entries in the table of contents,
+% and are read in from the *.toc file.
+%
+% The arguments are like:
+% \def\numchapentry#1#2#3#4
+%   #1 - the chapter or section name.
+%   #2 - section number
+%   #3 - level of section (e.g "chap", "sec")
+%   #4 - page number
 
 % Parts, in the main contents.  Replace the part number, which doesn't
 % exist, with an empty box.  Let's hope all the numbers have the same width.
@@ -6855,7 +6925,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \vskip 0pt plus 5\baselineskip
   \penalty-300
   \vskip 0pt plus -5\baselineskip
-  \dochapentry{\numeralbox\labelspace#1}{}%
+  \dochapentry{#1}{\numeralbox}{}%
 }
 %
 % Parts, in the short toc.
@@ -6866,12 +6936,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 
 % Chapters, in the main contents.
-\def\numchapentry#1#2#3#4{\dochapentry{#2\labelspace#1}{#4}}
+\def\numchapentry#1#2#3#4{%
+  \retrievesecnowidth\secnowidthchap{#2}%
+  \dochapentry{#1}{#2}{#4}%
+}
 
 % Chapters, in the short toc.
-% See comments in \dochapentry re vbox and related settings.
 \def\shortchapentry#1#2#3#4{%
-  \tocentry{\shortchaplabel{#2}\labelspace #1}{#4}%
+  \tocentry{#1}{\shortchaplabel{#2}}{#4}%
 }
 
 % Appendices, in the main contents.
@@ -6882,67 +6954,111 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \setbox0 = \hbox{\putwordAppendix{} M}%
   \hbox to \wd0{\putwordAppendix{} #1\hss}}
 %
-\def\appentry#1#2#3#4{\dochapentry{\appendixbox{#2}\hskip.7em#1}{#4}}
+\def\appentry#1#2#3#4{%
+  \retrievesecnowidth\secnowidthchap{#2}%
+  \dochapentry{\appendixbox{#2}\hskip.7em#1}{}{#4}%
+}
 
 % Unnumbered chapters.
-\def\unnchapentry#1#2#3#4{\dochapentry{#1}{#4}}
-\def\shortunnchapentry#1#2#3#4{\tocentry{#1}{#4}}
+\def\unnchapentry#1#2#3#4{\dochapentry{#1}{}{#4}}
+\def\shortunnchapentry#1#2#3#4{\tocentry{#1}{}{#4}}
 
 % Sections.
-\def\numsecentry#1#2#3#4{\dosecentry{#2\labelspace#1}{#4}}
+\def\numsecentry#1#2#3#4{\dosecentry{#1}{#2}{#4}}
+
+\def\numsecentry#1#2#3#4{%
+  \retrievesecnowidth\secnowidthsec{#2}%
+  \dosecentry{#1}{#2}{#4}%
+}
 \let\appsecentry=\numsecentry
-\def\unnsecentry#1#2#3#4{\dosecentry{#1}{#4}}
+\def\unnsecentry#1#2#3#4{%
+  \retrievesecnowidth\secnowidthsec{#2}%
+  \dosecentry{#1}{}{#4}%
+}
 
 % Subsections.
-\def\numsubsecentry#1#2#3#4{\dosubsecentry{#2\labelspace#1}{#4}}
+\def\numsubsecentry#1#2#3#4{%
+  \retrievesecnowidth\secnowidthssec{#2}%
+  \dosubsecentry{#1}{#2}{#4}%
+}
 \let\appsubsecentry=\numsubsecentry
-\def\unnsubsecentry#1#2#3#4{\dosubsecentry{#1}{#4}}
+\def\unnsubsecentry#1#2#3#4{%
+  \retrievesecnowidth\secnowidthssec{#2}%
+  \dosubsecentry{#1}{}{#4}%
+}
 
 % And subsubsections.
-\def\numsubsubsecentry#1#2#3#4{\dosubsubsecentry{#2\labelspace#1}{#4}}
+\def\numsubsubsecentry#1#2#3#4{\dosubsubsecentry{#1}{#2}{#4}}
 \let\appsubsubsecentry=\numsubsubsecentry
-\def\unnsubsubsecentry#1#2#3#4{\dosubsubsecentry{#1}{#4}}
+\def\unnsubsubsecentry#1#2#3#4{\dosubsubsecentry{#1}{}{#4}}
 
 % This parameter controls the indentation of the various levels.
 % Same as \defaultparindent.
 \newdimen\tocindent \tocindent = 15pt
 
-% Now for the actual typesetting. In all these, #1 is the text and #2 is the
-% page number.
+% Now for the actual typesetting. In all these, #1 is the text, #2 is
+% a section number if present, and #3 is the page number.
 %
 % If the toc has to be broken over pages, we want it to be at chapters
 % if at all possible; hence the \penalty.
-\def\dochapentry#1#2{%
+\def\dochapentry#1#2#3{%
    \penalty-300 \vskip1\baselineskip plus.33\baselineskip minus.25\baselineskip
    \begingroup
      % Move the page numbers slightly to the right
      \advance\entryrightmargin by -0.05em
      \chapentryfonts
-     \tocentry{#1}{#2}%
+     \extrasecnoskip=0.4em % separate chapter number more
+     \tocentry{#1}{#2}{#3}%
    \endgroup
    \nobreak\vskip .25\baselineskip plus.1\baselineskip
 }
 
-\def\dosecentry#1#2{\begingroup
+\def\dosecentry#1#2#3{\begingroup
+  \secnowidth=\secnowidthchap
   \secentryfonts \leftskip=\tocindent
-  \tocentry{#1}{#2}%
+  \tocentry{#1}{#2}{#3}%
 \endgroup}
 
-\def\dosubsecentry#1#2{\begingroup
+\def\dosubsecentry#1#2#3{\begingroup
+  \secnowidth=\secnowidthsec
   \subsecentryfonts \leftskip=2\tocindent
-  \tocentry{#1}{#2}%
+  \tocentry{#1}{#2}{#3}%
 \endgroup}
 
-\def\dosubsubsecentry#1#2{\begingroup
+\def\dosubsubsecentry#1#2#3{\begingroup
+  \secnowidth=\secnowidthssec
   \subsubsecentryfonts \leftskip=3\tocindent
-  \tocentry{#1}{#2}%
+  \tocentry{#1}{#2}{#3}%
 \endgroup}
 
-% We use the same \entry macro as for the index entries.
-\let\tocentry = \entry
+% Used for the maximum width of a section number so we can align
+% section titles.
+\newdimen\secnowidth
+\secnowidth=0pt
+\newdimen\extrasecnoskip
+\extrasecnoskip=0pt
 
-% Space between chapter (or whatever) number and the title.
-\def\labelspace{\hskip1em \relax}
+% \tocentry{TITLE}{SEC NO}{PAGE}
+%
+\def\tocentry#1#2#3{%
+  \def\secno{#2}%
+  \ifx\empty\secno
+    \entry{#1}{#3}%
+  \else
+    \ifdim 0pt=\secnowidth
+      \setbox0=\hbox{#2\hskip\labelspace\hskip\extrasecnoskip}%
+    \else
+      \advance\secnowidth by \labelspace
+      \advance\secnowidth by \extrasecnoskip
+      \setbox0=\hbox to \secnowidth{%
+        #2\hskip\labelspace\hskip\extrasecnoskip\hfill}%
+    \fi
+    \entrycontskip=\wd0
+    \entry{\box0 #1}{#3}%
+  \fi
+}
+\newdimen\labelspace
+\labelspace=0.6em
 
 \def\chapentryfonts{\secfonts \rm}
 \def\secentryfonts{\textfonts}
@@ -7787,6 +7903,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \tolerance=10000 \hbadness=10000
   \exdentamount=\defbodyindent
   {%
+    \def\^^M{}% for line continuation
+    %
     % defun fonts. We use typewriter by default (used to be bold) because:
     % . we're printing identifiers, they should be in tt in principle.
     % . in languages with many accents, such as Czech or French, it's
@@ -7819,6 +7937,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Print arguments.  Use slanted for @def*, typewriter for @deftype*.
 \def\defunargs#1{%
   \bgroup
+    \def\^^M{}% for line continuation
     \df \ifdoingtypefn \tt \else \sl \fi
     \ifflagclear{txicodevaristt}{}%
        {\def\var##1{{\setregularquotes \ttsl ##1}}}%

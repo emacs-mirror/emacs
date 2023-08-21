@@ -116,6 +116,7 @@ enum haiku_event_type
     MENU_BAR_LEFT,
     CLIPBOARD_CHANGED_EVENT,
     FONT_CHANGE_EVENT,
+    NOTIFICATION_CLICK_EVENT,
   };
 
 struct haiku_clipboard_changed_event
@@ -462,6 +463,12 @@ struct haiku_font_change_event
      DEFAULT_FAMILY means this is the new plain font.  The other enums
      have no meaning.  */
   enum haiku_what_font what;
+};
+
+struct haiku_notification_click_event
+{
+  /* ID uniquely designating a single notification.  */
+  intmax_t id;
 };
 
 struct haiku_session_manager_reply

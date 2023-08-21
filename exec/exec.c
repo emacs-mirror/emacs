@@ -66,74 +66,6 @@ rpl_stpcpy (char *dest, const char *src)
 #define stpcpy rpl_stpcpy
 #endif /* !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY */
 
-#if !defined HAVE_STPNCPY || !defined HAVE_DECL_STPNCPY
-
-/* Copy no more than N bytes of SRC to DST, returning a pointer past
-   the last non-NUL byte written into DST.  */
-
-static char *
-rpl_stpncpy (char *dest, const char *src, size_t n)
-{
-  char c, *s;
-  size_t n4;
-
-  s = dest;
-
-  if (n >= 4)
-    {
-      n4 = n >> 2;
-
-      for (;;)
-	{
-	  c = *src++;
-	  *dest++ = c;
-	  if (c == '\0')
-	    break;
-	  c = *src++;
-	  *dest++ = c;
-	  if (c == '\0')
-	    break;
-	  c = *src++;
-	  *dest++ = c;
-	  if (c == '\0')
-	    break;
-	  c = *src++;
-	  *dest++ = c;
-	  if (c == '\0')
-	    break;
-	  if (--n4 == 0)
-	    goto last_chars;
-	}
-      n -= dest - s;
-      goto zero_fill;
-    }
-
- last_chars:
-  n &= 3;
-  if (n == 0)
-    return dest;
-
-  for (;;)
-    {
-      c = *src++;
-      --n;
-      *dest++ = c;
-      if (c == '\0')
-	break;
-      if (n == 0)
-	return dest;
-    }
-
- zero_fill:
-  while (n-- > 0)
-    dest[n] = '\0';
-
-  return dest - 1;
-}
-
-#define stpncpy rpl_stpncpy
-#endif /* !defined HAVE_STPNCPY || !defined HAVE_DECL_STPNCPY */
-
 
 
 /* Executable reading functions.
@@ -1005,13 +937,14 @@ exec_0 (char *name, struct exec_tracee *tracee,
   else
     {
       /* If name is not absolute, then make it relative to TRACEE's
-	 cwd.  Use stpcpy, as sprintf is not reentrant.  */
+	 cwd.  Do not use sprintf at it is not reentrant and it
+	 mishandles results longer than INT_MAX.  */
 
       if (name[0] && name[0] != '/')
 	{
-	  /* Clear `buffer'.  */
+	  /* Clear both buffers.  */
 	  memset (buffer, 0, sizeof buffer);
-	  memset (buffer1, 0, sizeof buffer);
+	  memset (buffer1, 0, sizeof buffer1);
 
 	  /* Copy over /proc, the PID, and /cwd/.  */
 	  rewrite = stpcpy (buffer, "/proc/");
@@ -1036,13 +969,13 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	    }
 
 	  /* Add a directory separator if necessary.  */
-      
+
 	  if (!link_size || buffer1[link_size - 1] != '/')
 	    buffer1[link_size] = '/', link_size++;
 
 	  rewrite = buffer1 + link_size;
 	  remaining = buffer1 + sizeof buffer1 - rewrite - 1;
-	  rewrite = stpncpy (rewrite, name, remaining);
+	  memcpy (rewrite, name, strnlen (name, remaining));
 
 	  /* Replace name with buffer1.  */
 #ifndef REENTRANT

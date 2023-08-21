@@ -784,7 +784,7 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
 (defvar font-lock-mode)
 (defun reftex-show-entry (beg-hlt end-hlt)
   ;; Show entry if point is hidden
-  (let* ((n (/ (reftex-window-height) 2))
+  (let* ((n (/ (window-height) 2))
          (beg (save-excursion
                (re-search-backward "[\n\r]" nil 1 n) (point)))
          (end (save-excursion

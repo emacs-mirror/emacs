@@ -4311,10 +4311,7 @@ automatically when called interactively.  When you need routine
 information updated immediately, leave NO-CONCATENATE nil."
   (interactive "P\np")
   ;; Stop any idle processing
-  (if (or (and (fboundp 'itimerp)
-	       (itimerp idlwave-load-rinfo-idle-timer))
-	  (and (fboundp 'timerp)
-	       (timerp idlwave-load-rinfo-idle-timer)))
+  (if (timerp idlwave-load-rinfo-idle-timer)
       (cancel-timer idlwave-load-rinfo-idle-timer))
   (cond
    ((equal arg '(64))
@@ -4388,10 +4385,7 @@ information updated immediately, leave NO-CONCATENATE nil."
 (defvar idlwave-load-rinfo-steps-done (make-vector 6 nil))
 (defvar idlwave-load-rinfo-idle-timer nil)
 (defun idlwave-start-load-rinfo-timer ()
-  (if (or (and (fboundp 'itimerp)
-	       (itimerp idlwave-load-rinfo-idle-timer))
-	  (and (fboundp 'timerp)
-	       (timerp idlwave-load-rinfo-idle-timer)))
+  (if (timerp idlwave-load-rinfo-idle-timer)
       (cancel-timer idlwave-load-rinfo-idle-timer))
   (setq idlwave-load-rinfo-steps-done (make-vector 6 nil))
   (setq idlwave-load-rinfo-idle-timer nil)

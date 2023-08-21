@@ -66,12 +66,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
   <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
 
+  <!-- And under Android 13 or later to post desktop
+       notifications.  -->
+
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
   <uses-sdk android:minSdkVersion="@ANDROID_MIN_SDK@"
 	    android:targetSdkVersion="33"/>
 
   <application android:name="org.gnu.emacs.EmacsApplication"
 	       android:label="Emacs"
-	       android:icon="@drawable/emacs"
+	       android:icon="@mipmap/emacs_icon"
 	       android:hardwareAccelerated="true"
 	       android:supportsRtl="true"
 	       android:theme="@style/EmacsStyle"

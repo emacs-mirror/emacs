@@ -489,8 +489,7 @@ Return the compile-time value of FORM."
   ;; 3.2.3.1, "Processing of Top Level Forms".  The semantics are very
   ;; subtle: see test/lisp/emacs-lisp/bytecomp-tests.el for interesting
   ;; cases.
-  (let ((print-symbols-bare t))         ; Possibly redundant binding.
-    (setf form (macroexp-macroexpand form byte-compile-macro-environment)))
+  (setf form (macroexp-macroexpand form byte-compile-macro-environment))
   (if (eq (car-safe form) 'progn)
       (cons (car form)
             (mapcar (lambda (subform)
@@ -568,11 +567,10 @@ Only conses are traversed and duplicated, not arrays or any other structure."
                               ;; Don't compile here, since we don't know
                               ;; whether to compile as byte-compile-form
                               ;; or byte-compile-file-form.
-                              (let* ((print-symbols-bare t) ; Possibly redundant binding.
-                                     (expanded
-                                      (macroexpand--all-toplevel
-                                       form
-                                       macroexpand-all-environment)))
+                              (let ((expanded
+                                     (macroexpand--all-toplevel
+                                      form
+                                      macroexpand-all-environment)))
                                 (eval (byte-run-strip-symbol-positions
                                        (bytecomp--copy-tree expanded))
                                       lexical-binding)
@@ -2491,8 +2489,7 @@ Call from the source buffer."
     ;; Spill output for the native compiler here
     (push (make-byte-to-native-top-level :form form :lexical lexical-binding)
           byte-to-native-top-level-forms))
-  (let ((print-symbols-bare t)          ; Possibly redundant binding.
-        (print-escape-newlines t)
+  (let ((print-escape-newlines t)
         (print-length nil)
         (print-level nil)
         (print-quoted t)
@@ -2526,8 +2523,7 @@ list that represents a doc string reference.
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
     (with-current-buffer byte-compile--outbuffer
-      (let (position
-            (print-symbols-bare t))     ; Possibly redundant binding.
+      (let (position)
         ;; Insert the doc string, and make it a comment with #@LENGTH.
         (when (and (>= (nth 1 info) 0) dynamic-docstrings)
           (setq position (byte-compile-output-as-comment
@@ -2623,8 +2619,7 @@ list that represents a doc string reference.
               byte-compile-jump-tables nil))))
 
 (defun byte-compile-preprocess (form &optional _for-effect)
-  (let ((print-symbols-bare t))         ; Possibly redundant binding.
-    (setq form (macroexpand-all form byte-compile-macro-environment)))
+  (setq form (macroexpand-all form byte-compile-macro-environment))
   ;; FIXME: We should run byte-optimize-form here, but it currently does not
   ;; recurse through all the code, so we'd have to fix this first.
   ;; Maybe a good fix would be to merge byte-optimize-form into
@@ -5783,6 +5778,74 @@ and corresponding effects."
   (if junk-args
       form    ; arity error
     `(forward-word (- (or ,arg 1)))))
+
+(defun bytecomp--check-keyword-args (form arglist allowed-keys required-keys)
+  (let ((fun (car form)))
+    (cl-flet ((missing (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called without required keyword argument %S"
+		 fun keyword))
+	      (unrecognized (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called with unknown keyword argument %S"
+		 fun keyword))
+	      (duplicate (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called with repeated keyword argument %S"
+		 fun keyword))
+              (missing-val (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "missing value for keyword argument %S"
+		 keyword)))
+      (let* ((seen '())
+	     (l arglist))
+	(while (consp l)
+	  (let ((key (car l)))
+	    (cond ((and (keywordp key) (memq key allowed-keys))
+		   (cond ((memq key seen)
+			  (duplicate l key))
+			 (t
+			  (push key seen))))
+		  (t (unrecognized l key)))
+            (when (null (cdr l))
+              (missing-val l key)))
+	  (setq l (cddr l)))
+        (dolist (key required-keys)
+	  (unless (memq key seen)
+	    (missing form key))))))
+  form)
+
+(put 'make-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name
+            :buffer :command :coding :noquery :stop :connection-type
+            :filter :sentinel :stderr :file-handler)
+          '(:name :command))))
+
+(put 'make-pipe-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name :buffer :coding :noquery :stop :filter :sentinel)
+          '(:name))))
+
+(put 'make-network-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name
+            :buffer :host :service :type :family :local :remote :coding
+            :nowait :noquery :stop :filter :filter-multibyte :sentinel
+            :log :plist :tls-parameters :server :broadcast :dontroute
+            :keepalive :linger :oobinline :priority :reuseaddr :bindtodevice
+            :use-external-socket)
+          '(:name :service))))
 
 (provide 'byte-compile)
 (provide 'bytecomp)

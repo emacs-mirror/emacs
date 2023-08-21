@@ -677,16 +677,18 @@ inner loops respectively."
                      (list x (funcall g))))))))
       (funcall (funcall f 'b)))
     (let ((f (lambda (x)
-               (let ((g (lambda () x))
-                     (h (lambda () (setq x (list x x)))))
-                 (let ((x 'a))
-                   (list x (funcall g) (funcall h)))))))
+               (lambda ()
+                 (let ((g (lambda () x))
+                       (h (lambda () (setq x (list x x)))))
+                   (let ((x 'a))
+                     (list x (funcall g) (funcall h))))))))
       (funcall (funcall f 'b)))
     (let ((f (lambda (x)
-               (let ((g (lambda () x))
-                     (h (lambda () (setq x (list x x)))))
-                 (let* ((x 'a))
-                   (list x (funcall g) (funcall h)))))))
+               (lambda ()
+                 (let ((g (lambda () x))
+                       (h (lambda () (setq x (list x x)))))
+                   (let* ((x 'a))
+                     (list x (funcall g) (funcall h))))))))
       (funcall (funcall f 'b)))
 
     ;; Test constant-propagation of access to captured variables.
@@ -785,6 +787,9 @@ inner loops respectively."
     (let ((x 0))
       (list (= (setq x 1))
             x))
+    ;; Aristotelian identity optimisation
+    (let ((x (bytecomp-test-identity 1)))
+      (list (eq x x) (eql x x) (equal x x)))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -1198,6 +1203,22 @@ byte-compiled.  Run with dynamic binding."
 (bytecomp--define-warning-file-test
  "nowarn-inline-after-defvar.el"
  "Lexical argument shadows" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-missing-keyword-arg.el"
+ "called without required keyword argument :command")
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-unknown-keyword-arg.el"
+ "called with unknown keyword argument :coding-system")
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-repeated-keyword-arg.el"
+ "called with repeated keyword argument :name")
+
+(bytecomp--define-warning-file-test
+ "warn-make-process-missing-keyword-value.el"
+ "missing value for keyword argument :command")
 
 
 ;;;; Macro expansion.

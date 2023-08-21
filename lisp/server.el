@@ -330,6 +330,9 @@ ENV should be in the same format as `process-environment'."
 (defun server-delete-client (proc &optional noframe)
   "Delete PROC, including its buffers, terminals and frames.
 If NOFRAME is non-nil, let the frames live.
+If NOFRAME is the symbol \\='dont-kill-client, also don't
+delete PROC or its terminals, just kill its buffers: this is
+for when `find-alternate-file' calls this via `kill-buffer-hook'.
 Updates `server-clients'."
   (server-log (concat "server-delete-client" (if noframe " noframe")) proc)
   ;; Force a new lookup of client (prevents infinite recursion).
@@ -366,23 +369,28 @@ Updates `server-clients'."
 	    (set-frame-parameter frame 'client nil)
 	    (delete-frame frame))))
 
-      (setq server-clients (delq proc server-clients))
+      (or (eq noframe 'dont-kill-client)
+          (setq server-clients (delq proc server-clients)))
 
       ;; Delete the client's tty, except on Windows (both GUI and
       ;; console), where there's only one terminal and does not make
       ;; sense to delete it, or if we are explicitly told not.
       (unless (or (eq system-type 'windows-nt)
+                  ;; 'find-alternate-file' caused the last client
+                  ;; buffer to be killed, but we will reuse the client
+                  ;; for another buffer.
+                  (eq noframe 'dont-kill-client)
                   (process-get proc 'no-delete-terminal))
 	(let ((terminal (process-get proc 'terminal)))
 	  ;; Only delete the terminal if it is non-nil.
 	  (when (and terminal (eq (terminal-live-p terminal) t))
 	    (delete-terminal terminal))))
 
-      ;; Delete the client's process.
-      (if (eq (process-status proc) 'open)
-	  (delete-process proc))
-
-      (server-log "Deleted" proc))))
+      ;; Delete the client's process (or don't).
+      (unless (eq noframe 'dont-kill-client)
+        (if (eq (process-status proc) 'open)
+	    (delete-process proc))
+        (server-log "Deleted" proc)))))
 
 (defvar server-log-time-function #'current-time-string
   "Function to generate timestamps for `server-buffer'.")
@@ -1590,7 +1598,8 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 		;; frames, which might change the current buffer.  We
 		;; don't want that (bug#640).
 		(save-current-buffer
-		  (server-delete-client proc))
+		  (server-delete-client proc
+                                        find-alternate-file-dont-kill-client))
 	      (server-delete-client proc))))))
     (when (and (bufferp buffer) (buffer-name buffer))
       ;; We may or may not kill this buffer;

@@ -708,6 +708,23 @@ collection clause."
                            (f lex-var)))))
       (should (equal (f nil) 'a)))))
 
+(ert-deftest cl-flet/edebug ()
+  "Check that we can instrument `cl-flet' forms (bug#65344)."
+  (with-temp-buffer
+    (print '(cl-flet (;; "Obscure" form of binding supported by cl-flet
+                      (x (progn (list 1 2) (lambda ())))
+                      ;; Destructuring lambda-list
+                      (y ((min max)) (list min max))
+                      ;; Regular binding plus shadowing.
+                      (z (a) a)
+                      (z (a) a))
+              (y '(1 2)))
+           (current-buffer))
+    (let ((edebug-all-forms t)
+          (edebug-initial-mode 'Go-nonstop))
+      ;; Just make sure the forms can be instrumented.
+      (eval-buffer))))
+
 (ert-deftest cl-macs--progv ()
   (defvar cl-macs--test)
   (defvar cl-macs--test1)

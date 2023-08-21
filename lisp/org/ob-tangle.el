@@ -357,7 +357,7 @@ Did you give the decimal value %1$d by mistake?" mode)))
     (error "File mode %S not recognized as a valid format." mode))
    ((string-match-p "^o0?[0-7][0-7][0-7]$" mode)
     (string-to-number (replace-regexp-in-string "^o" "" mode) 8))
-   ((string-match-p "^[ugoa]*\\(?:[+-=][rwxXstugo]*\\)+\\(,[ugoa]*\\(?:[+-=][rwxXstugo]*\\)+\\)*$" mode)
+   ((string-match-p "^[ugoa]*\\(?:[+=-][rwxXstugo]*\\)+\\(,[ugoa]*\\(?:[+=-][rwxXstugo]*\\)+\\)*$" mode)
     ;; Match regexp taken from `file-modes-symbolic-to-number'.
     (file-modes-symbolic-to-number mode org-babel-tangle-default-file-mode))
    ((string-match-p "^[r-][w-][xs-][r-][w-][xs-][r-][w-][x-]$" mode)

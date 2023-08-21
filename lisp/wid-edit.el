@@ -64,12 +64,10 @@
 
 ;;; Compatibility.
 
-(defun widget-event-point (event)
+(defsubst widget-event-point (event)
   "Character position of the end of event if that exists, or nil.
 EVENT can either be a mouse event or a touch screen event."
-  (if (eq (car-safe event) 'touchscreen-begin)
-      (posn-point (cdadr event))
-    (posn-point (event-end event))))
+  (posn-point (event-end event)))
 
 (defun widget-button-release-event-p (event)
   "Non-nil if EVENT is a mouse-button-release event object."
@@ -1084,15 +1082,6 @@ Note that such modes will need to require wid-edit.")
   "If non-nil, `widget-button-click' moves point to a button after invoking it.
 If nil, point returns to its original position after invoking a button.")
 
-(defun widget-event-start (event)
-  "Return the start of EVENT.
-If EVENT is not a touchscreen event, simply return its
-`event-start'.  Otherwise, it is a touchscreen event, so return
-the posn of its touchpoint."
-  (if (eq (car event) 'touchscreen-begin)
-      (cdadr event)
-    (event-start event)))
-
 (defun widget-button--check-and-call-button (event button)
   "Call BUTTON if BUTTON is a widget and EVENT is correct for it.
 EVENT can either be a mouse event or a touchscreen-begin event.
@@ -1106,9 +1095,9 @@ If nothing was called, return non-nil."
       ;; in a save-excursion so that the click on the button
       ;; doesn't change point.
       (save-selected-window
-        (select-window (posn-window (widget-event-start event)))
+        (select-window (posn-window (event-start event)))
         (save-excursion
-	  (goto-char (posn-point (widget-event-start event)))
+	  (goto-char (posn-point (event-start event)))
 	  (let* ((overlay (widget-get button :button-overlay))
 	         (pressed-face (or (widget-get button :pressed-face)
 				   widget-button-pressed-face))
@@ -1179,7 +1168,7 @@ If nothing was called, return non-nil."
   (if (widget-event-point event)
       (let* ((mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
 	     (pos (widget-event-point event))
-	     (start (widget-event-start event))
+	     (start (event-start event))
              (button (get-char-property
 		      pos 'button (and (windowp (posn-window start))
 				       (window-buffer (posn-window start))))))
@@ -3812,7 +3801,18 @@ like the newline character or the tab character."
 (define-widget 'list 'group
   "A Lisp list."
   :tag "List"
+  :default-get #'widget-list-default-get
   :format "%{%t%}:\n%v")
+
+(defun widget-list-default-get (widget)
+  "Return the default external value for a list WIDGET.
+
+The default value is the one stored in the :value property, even if it is nil,
+or a list with the default value of each component of the list WIDGET."
+  (widget-apply widget :value-to-external
+                (if (widget-member widget :value)
+                    (widget-get widget :value)
+                  (widget-group-default-get widget))))
 
 (define-widget 'vector 'group
   "A Lisp vector."
@@ -3942,7 +3942,6 @@ example:
 	    value-type widget-plist-value-type))
     `(group :format "Key: %v" :inline t ,key-type ,value-type)))
 
-
 ;;; The `alist' Widget.
 ;;
 ;; Association lists.
@@ -3952,6 +3951,7 @@ example:
   :key-type '(sexp :tag "Key")
   :value-type '(sexp :tag "Value")
   :convert-widget 'widget-alist-convert-widget
+  :default-get #'widget-alist-default-get
   :tag "Alist")
 
 (defvar widget-alist-value-type)	;Dynamic variable
@@ -3986,6 +3986,25 @@ example:
       (setq key-type `(const ,option)
 	    value-type widget-alist-value-type))
     `(cons :format "Key: %v" ,key-type ,value-type)))
+
+(defun widget-alist-default-get (widget)
+  "Return the default value for WIDGET, an alist widget.
+
+The default value may be one of:
+- The one stored in the :value property, even if it is nil.
+- If WIDGET has options available, an alist consisting of the
+default values for each option.
+- nil, otherwise."
+  (widget-apply widget :value-to-external
+                (cond ((widget-member widget :value)
+                       (widget-get widget :value))
+                      ((widget-get widget :options)
+                       (mapcar #'widget-default-get
+                               ;; Last one is the editable-list part, and
+                               ;; we don't want those showing up as
+                               ;; part of the default value.  (Bug#63290)
+                               (butlast (widget-get widget :args))))
+                      (t nil))))
 
 (define-widget 'choice 'menu-choice
   "A union of several sexp types.

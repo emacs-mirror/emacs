@@ -4251,7 +4251,7 @@
 	* doc-view.el (doc-view-mode): Support tramp, compressed files and
 	files inside archives uniformly.
 
-2008-01-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-01-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* textmodes/sgml-mode.el (sgml-tag-syntax-table): Initialize this
 	constant with a computation on sgml-specials rather than a literal
@@ -4656,7 +4656,7 @@
 	(vc-git-dir-state): Use it instead of processing the status
 	results here.
 
-2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-01-02  Eric S. Raymond  <esr@thyrsus.com>
 
 	* progmodes/grep.el (grep-find-ignored-directories):
 	Initialize from the value of vc-directory-exclusion-list.
@@ -4718,7 +4718,7 @@
 	MS-Windows and MS-DOS.
 	(ispell-grep-options): Use "-Ei" on MS-Windows and MS-DOS.
 
-2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-01-02  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-svn.el (vc-svn-modify-change comment): New function.
 
@@ -4727,7 +4727,7 @@
 	* vc-git.el (vc-git-dir-state): Set the vc-backend property.
 	Do not disable undo, with-temp-buffer does it by default.
 
-2008-01-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+2008-01-01  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-svn.el (vc-svn-parse-status): Set the `unregistered' property
 	correctly.
@@ -4802,7 +4802,7 @@
 
 	* vc-hg.el (vc-hg-dir-state): Set the vc-backend property.
 
-2007-12-29  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-12-29  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-svn.el (vc-svn-parse-status): Recognize 'unregistered,
 	'added, 'removed.
@@ -4943,7 +4943,7 @@
 
 	* menu-bar.el (menu-bar-describe-menu): Remove dots from menu text.
 
-2007-12-28  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-12-28  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-hooks.el, vc.el: Move vc-directory-exclusion-list from vc.el
 	to vc-hooks.el so it will be available to other modes, such as
@@ -4997,7 +4997,7 @@
 	* calc/calccomp.el (math-to-percentsigns): Change placeholder
 	for percent signs.
 
-2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-12-27  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-dired-ignorable-p, vc-dired-hook): Speed optimization;
 	use completion-ignored-extensions to detect files that should be
@@ -5015,7 +5015,7 @@
 	(ps-print-preprint-region): Use `ps-mark-active-p' instead of
 	`region-active-p' for error checking.
 
-2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-12-27  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el, vc-sccs.el, vc-rcs.el, vc-cvs.el, vc-mcvs.el:
 	Put new machinery in place to support editing of change comments
@@ -5029,7 +5029,7 @@
 	* international/mule-cmds.el (select-safe-coding-system):
 	When a buffer is modified, cancel the writing.
 
-2007-12-26  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-12-26  Eric S. Raymond  <esr@thyrsus.com>
 
 	* log-view.el: Add Subversion and Mercurial log format samples.
 
@@ -9147,7 +9147,7 @@
 	don't try other `or' branches regardless of the value returned by
 	fill-region; just return t.
 
-2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-20  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-do-command): Condition out a misleading message when
 	running asynchronously.
@@ -9197,7 +9197,7 @@
 
 	* vc-hg.el: Require log-view at compile time.
 
-2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-20  Eric S. Raymond  <esr@thyrsus.com>
 
 	* log-view.el (log-view-diff): Adapt log-view-diff for new VC API.
 
@@ -9812,7 +9812,7 @@
 	* bs.el (bs--mark-unmark): New function.
 	(bs-mark-current, bs-unmark-current): Use it.
 
-2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-diff):
 	(vc-diff-internal): Merge a patch by Juanma Barranquero.  Also,
@@ -9830,7 +9830,7 @@
 	Use `follow-call-process-filter' rather than `process-filter'.
 	Simplify.
 
-2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-hooks.el (vc-registered): Robustify this function a bit
 	against filenames with no directory component.
@@ -9919,7 +9919,7 @@
 	* help-fns.el (describe-variable): Add missing "  " for multiline
 	obsolescence info and missing EOL after global value.
 
-2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-10  Eric S. Raymond  <esr@thyrsus.com>
 
 	* add-log.el:
 	* ediff-vers.el:
@@ -9950,7 +9950,7 @@
 	mode" in docstrings and messages.
 	(follow-menu-filter): Fix arg passed to `bound-and-true-p'.
 
-2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-10  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-next-action): Rewrite completely; this principal
 	entry point now operates on a current fileset selected either
@@ -10329,7 +10329,7 @@
 	(smerge-refine-subst): New function holding most of smerge-refine.
 	(smerge-refine): Use it.
 
-2007-10-08  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-08  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (vc-default-wash-log): Remove unused code, the
 	log washers all live in the backends now.
@@ -10390,7 +10390,7 @@
 	* net/tramp-fish.el (tramp-fish-handle-process-file):
 	Rewrite temporary file handling.
 
-2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-10-06  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el: Workfile version -> focus version change.  Port various
 	comments from new VC to reduce the noise in the diff.
@@ -12758,7 +12758,7 @@
 2007-08-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc-rcs.el (vc-rcs-annotate-command):
-	Fix bug introduced 2007-07-18T16:32:40Z!esr@snark.thyrsus.com:
+	Fix bug introduced 2007-07-18T16:32:40Z!esr@thyrsus.com:
 	Add back :vc-annotate-prefix propertization.
 
 2007-08-20  Andreas Schwab  <schwab@suse.de>
@@ -14226,7 +14226,7 @@
 	* vc-hooks.el (vc-find-root): Walk up the tree to find an existing
 	`file' from which to start the search.
 
-2007-07-19  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-07-19  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-cvs.el (vc-cvs-checkin, vc-cvs-diff): Finish transition from
 	having a single file argument to having a list of files as the
@@ -14245,7 +14245,7 @@
 
 	* uniquify.el: Docstring fixes.
 
-2007-07-18  Eric S. Raymond  <esr@snark.thyrsus.com>
+2007-07-18  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc.el (revision-granularity, create-repo): Document new vc
 	backend properties.

@@ -435,5 +435,25 @@ machine c1 port c2 user c3 password c4\n"
             '((("machine" . "XM") ("login" . "XL") ("password" . "XP"))
               (("machine" . "YM") ("login" . "YL") ("password" . "YP")))))))
 
+(ert-deftest test-macos-keychain-search ()
+  "Test if the constructed command line arglist is correct."
+  (let ((auth-sources '(macos-keychain-internet macos-keychain-generic)))
+    ;; Redefine `call-process' to check command line arguments.
+    (cl-letf (((symbol-function 'call-process)
+               (lambda (_program _infile _destination _display
+                                 &rest args)
+                 ;; Arguments must be all strings
+                 (should (cl-every #'stringp args))
+                 ;; Argument number should be even
+                 (should (cl-evenp (length args)))
+                 (should (cond ((string= (car args) "find-internet-password")
+                                (let ((protocol (cl-member "-r" args :test #'string=)))
+                                  (if protocol
+                                      (= 4 (length (cadr protocol)))
+                                    t)))
+                               ((string= (car args) "find-generic-password")
+                                t))))))
+      (auth-source-search :user '("a" "b") :host '("example.org") :port '("irc" "ftp" "https")))))
+
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

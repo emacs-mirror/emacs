@@ -6125,9 +6125,8 @@ performance of @value{tramp} actions.
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
 function call traces are written to the buffer @file{*trace tramp/foo*}.
 
-When @code{tramp-debug-command-messages} is non-@code{nil} and
-@code{tramp-verbose} is greater than or equal to 6, the debug buffer
-contains all messages with verbosity level 6 (sent and received
+When @code{tramp-debug-command-messages} is non-@code{nil}, the debug
+buffer contains all messages with verbosity level 6 (sent and received
 strings), and the entry and exit messages for the function
 @code{tramp-file-name-handler}.  This is intended for @value{tramp}
 maintainers, analyzing the remote commands for performance analysis.

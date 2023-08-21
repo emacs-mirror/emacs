@@ -1998,6 +1998,8 @@ INHIBIT-BUFFER-HOOKS non-nil.
 Note: Be careful with let-binding this hook considering it is
 frequently used for cleanup.")
 
+(defvar find-alternate-file-dont-kill-client nil
+  "If non-nil, `server-buffer-done' should not delete the client.")
 (defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
@@ -2044,7 +2046,8 @@ killed."
     ;; save a modified buffer visiting a file.  Rather, `kill-buffer'
     ;; asks that itself.  Thus, there's no need to temporarily do
     ;; `(set-buffer-modified-p nil)' before running this hook.
-    (run-hooks 'kill-buffer-hook)
+    (let ((find-alternate-file-dont-kill-client 'dont-kill-client))
+      (run-hooks 'kill-buffer-hook))
     ;; Okay, now we can end-of-life the old buffer.
     (if (get-buffer " **lose**")
 	(kill-buffer " **lose**"))
@@ -5873,8 +5876,10 @@ Before and after saving the buffer, this function runs
 		     buffer-file-name)))
 		  (setq tempsetmodes t)
 		(error "Attempt to save to a file that you aren't allowed to write"))))))
-    (or buffer-backed-up
-	(setq setmodes (backup-buffer)))
+    (with-demoted-errors
+        "Backing up buffer: %s"
+      (or buffer-backed-up
+	  (setq setmodes (backup-buffer))))
     (let* ((dir (file-name-directory buffer-file-name))
            (dir-writable (file-writable-p dir)))
       (if (or (and file-precious-flag dir-writable)
@@ -6374,7 +6379,8 @@ With a prefix argument, TRASH is nil."
                      (null current-prefix-arg)))
   (if (and (file-directory-p filename) (not (file-symlink-p filename)))
       (signal 'file-error (list "Removing old name: is a directory" filename)))
-  (let* ((handler (find-file-name-handler filename 'delete-file)))
+  (let* ((filename (expand-file-name filename))
+         (handler (find-file-name-handler filename 'delete-file)))
     (cond (handler (funcall handler 'delete-file filename trash))
           ((and delete-by-moving-to-trash trash) (move-file-to-trash filename))
           (t (delete-file-internal filename)))))
@@ -6761,7 +6767,10 @@ This function binds `revert-buffer-in-progress-p' non-nil while it operates.
 This function calls the function that `revert-buffer-function' specifies
 to do the work, with arguments IGNORE-AUTO and NOCONFIRM.
 The default function runs the hooks `before-revert-hook' and
-`after-revert-hook'
+`after-revert-hook'.
+Return value is whatever `revert-buffer-function' returns.  For historical
+reasons, that return value is non-nil when `revert-buffer-function'
+succeeds in its job and returns non-nil.
 
 Reverting a buffer will try to preserve markers in the buffer,
 but it cannot always preserve all of them.  For better results,
@@ -6778,17 +6787,20 @@ preserve markers and overlays, at the price of being slower."
         (revert-buffer-preserve-modes preserve-modes)
         (state (and (boundp 'read-only-mode--state)
                     (list read-only-mode--state))))
-    (funcall (or revert-buffer-function #'revert-buffer--default)
-             ignore-auto noconfirm)
-    (when state
-      (setq buffer-read-only (car state))
-      (setq-local read-only-mode--state (car state)))))
+    ;; Return whatever 'revert-buffer-function' returns.
+    (prog1 (funcall (or revert-buffer-function #'revert-buffer--default)
+                    ignore-auto noconfirm)
+      (when state
+        (setq buffer-read-only (car state))
+        (setq-local read-only-mode--state (car state))))))
 
 (defun revert-buffer--default (ignore-auto noconfirm)
   "Default function for `revert-buffer'.
 The arguments IGNORE-AUTO and NOCONFIRM are as described for `revert-buffer'.
 Runs the hooks `before-revert-hook' and `after-revert-hook' at the
 start and end.
+The function returns non-nil if it reverts the buffer; signals
+an error if the buffer is not associated with a file.
 
 Calls `revert-buffer-insert-file-contents-function' to reread the
 contents of the visited file, with two arguments: the first is the file
@@ -6896,9 +6908,9 @@ an auto-save file."
       (if revert-buffer-preserve-modes
           (let ((buffer-file-format buffer-file-format))
             (insert-file-contents file-name (not auto-save-p)
-                                  nil nil t))
+                                  nil nil 'if-regular))
         (insert-file-contents file-name (not auto-save-p)
-                              nil nil t))))))
+                              nil nil 'if-regular))))))
 
 (defvar revert-buffer-with-fine-grain-max-seconds 2.0
   "Maximum time that `revert-buffer-with-fine-grain' should use.
@@ -7742,7 +7754,6 @@ If DIR's free space cannot be obtained, this function returns nil."
       (if avail
           (funcall byte-count-to-string-function avail)))))
 
-;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
 	 (l-or-quote "\\([A-Za-z']\\|[^\0-\177]\\)")
@@ -8547,7 +8558,7 @@ the leading `-' character."
 (defun file-modes-symbolic-to-number (modes &optional from)
   "Convert symbolic file modes to numeric file modes.
 MODES is the string to convert, it should match
-\"[ugoa]*([+-=][rwxXstugo]*)+,...\".
+\"[ugoa]*([+=-][rwxXstugo]*)+,...\".
 See Info node `(coreutils)File permissions' for more information on this
 notation.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if

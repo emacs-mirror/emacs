@@ -40,4 +40,3 @@ struct mipsel_regs
 };
 
 #endif /* _MIPSEL_USER_H_ */
-

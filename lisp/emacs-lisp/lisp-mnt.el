@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 14 Jul 1992
 ;; Keywords: docs
@@ -67,7 +67,7 @@
 ;; ;;	Noah Friedman <friedman@ai.mit.edu>
 ;; ;;	Joe Wells <jbw@maverick.uswest.com>
 ;; ;;	Dave Brennan <brennan@hal.com>
-;; ;;	Eric Raymond <esr@snark.thyrsus.com>
+;; ;;	Eric S. Raymond <esr@thyrsus.com>
 ;;
 ;;    * Maintainer line --- should be a single name/address as in the Author
 ;; line, or an address only.  If there is no maintainer
@@ -519,6 +519,7 @@ says display \"OK\" in temp buffer for files that have no problems.
 Optional argument VERBOSE specifies verbosity level.
 Optional argument NON-FSF-OK if non-nil means a non-FSF
 copyright notice is allowed."
+  ;; FIXME: Make obsolete in favor of checkdoc?
   (interactive (list nil nil t))
   (let* ((ret (and verbose "Ok"))
 	 name)
@@ -562,9 +563,8 @@ copyright notice is allowed."
 		  (goto-char (point-max))
 		  (not
 		   (re-search-backward
-		    (concat "^;;;[ \t]+" name "[ \t]+ends here[ \t]*$"
-			    "\\|^;;;[ \t]+ End of file[ \t]+" name)
-		    nil t)))
+                    (rx bol ";;; " (regexp name) " ends here")
+                    nil t)))
 		"Can't find the footer line")
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
 		"Can't find a valid copyright notice")

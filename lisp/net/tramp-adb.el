@@ -538,6 +538,8 @@ Emacs dired can't find files."
 	  (set-file-modes tmpfile (logior (or (file-modes tmpfile) 0) #o0600)))
 	(let (create-lockfiles)
           (write-region start end tmpfile append 'no-message))
+	;; Now, `last-coding-system-used' has the right value.  Remember it.
+	(setq coding-system-used last-coding-system-used)
 	(with-tramp-progress-reporter
 	    v 3 (format-message
 		 "Moving tmp file `%s' to `%s'" tmpfile filename)

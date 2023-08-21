@@ -2691,7 +2691,7 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
    labeled restriction was entered (which may be a narrowing that was
    set by the user and is visible on display).  This alist is used
    internally by narrow-to-region, internal--labeled-narrow-to-region,
-   widen, internal--unlabel-restriction and save-restriction.  For
+   widen, internal--labeled-widen and save-restriction.  For
    efficiency reasons, an alist is used instead of a buffer-local
    variable: otherwise reset_outermost_restrictions, which is called
    during each redisplay cycle, would have to loop through all live
@@ -2867,8 +2867,7 @@ labeled_restrictions_restore (Lisp_Object buf_and_restrictions)
 static void
 unwind_labeled_narrow_to_region (Lisp_Object label)
 {
-  Finternal__unlabel_restriction (label);
-  Fwiden ();
+  Finternal__labeled_widen (label);
 }
 
 /* Narrow current_buffer to BEGV-ZV with a restriction labeled with
@@ -2991,7 +2990,7 @@ argument.  To gain access to other portions of the buffer, use
 
 DEFUN ("internal--labeled-narrow-to-region", Finternal__labeled_narrow_to_region,
        Sinternal__labeled_narrow_to_region, 3, 3, 0,
-       doc: /* Restrict editing in this buffer to START-END, and label the restriction with LABEL.
+       doc: /* Restrict this buffer to START-END, and label the restriction with LABEL.
 
 This is an internal function used by `with-restriction'.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object label)
@@ -3009,9 +3008,9 @@ This is an internal function used by `with-restriction'.  */)
   return Qnil;
 }
 
-DEFUN ("internal--unlabel-restriction", Finternal__unlabel_restriction,
-       Sinternal__unlabel_restriction, 1, 1, 0,
-       doc: /* If the current restriction is labeled with LABEL, remove its label.
+DEFUN ("internal--labeled-widen", Finternal__labeled_widen,
+       Sinternal__labeled_widen, 1, 1, 0,
+       doc: /* Remove the current restriction if it is labeled with LABEL, and widen.
 
 This is an internal function used by `without-restriction'.  */)
   (Lisp_Object label)
@@ -3019,6 +3018,7 @@ This is an internal function used by `without-restriction'.  */)
   Lisp_Object buf = Fcurrent_buffer ();
   if (EQ (labeled_restrictions_peek_label (buf), label))
     labeled_restrictions_pop (buf);
+  Fwiden ();
   return Qnil;
 }
 
@@ -4958,7 +4958,7 @@ it to be non-nil.  */);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
   defsubr (&Sinternal__labeled_narrow_to_region);
-  defsubr (&Sinternal__unlabel_restriction);
+  defsubr (&Sinternal__labeled_widen);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }

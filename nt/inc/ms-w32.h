@@ -111,18 +111,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # endif
 #endif
 
-/* This isn't perfect, as some systems might have the page file in
-   another place.  Also, I suspect that the time stamp of that file
-   might also change when Windows enlarges the file due to
-   insufficient VM.  Still, this seems to be the most reliable way;
-   the alternative (of using GetSystemTimes) won't work on laptops
-   that hibernate, because the system clock is stopped then.  Other
-   possibility would be to run "net statistics workstation" and parse
-   the output, but that's gross.  So this should do; if the file is
-   not there, the boot time will be returned as zero, and filelock.c
-   already handles that.  */
-#define BOOT_TIME_FILE "C:/pagefile.sys"
-
 /* ============================================================ */
 
 /* Here, add any special hacks needed to make Emacs work on this

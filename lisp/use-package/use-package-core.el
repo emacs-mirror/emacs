@@ -1039,15 +1039,23 @@ meaning:
   Configured        :config has been processed (the package is loaded!)
   Initialized       :init has been processed (load status unknown)
   Prefaced          :preface has been processed
-  Declared          the use-package declaration was seen"
+  Declared          the use-package declaration was seen
+
+Customize the user option `use-package-compute-statistics' to
+enable gathering statistics."
   (interactive)
-  (with-current-buffer (get-buffer-create "*use-package statistics*")
-    (setq tabulated-list-entries
-          (mapcar #'use-package-statistics-convert
-                  (hash-table-keys use-package-statistics)))
-    (use-package-statistics-mode)
-    (tabulated-list-print)
-    (display-buffer (current-buffer))))
+  (let ((statistics (hash-table-keys use-package-statistics)))
+    (unless statistics
+      (if use-package-compute-statistics
+          (user-error "No use-package statistics available")
+        (user-error (concat "Customize `use-package-compute-statistics'"
+                            " to enable reporting"))))
+    (with-current-buffer (get-buffer-create "*use-package statistics*")
+      (setq tabulated-list-entries
+            (mapcar #'use-package-statistics-convert statistics))
+      (use-package-statistics-mode)
+      (tabulated-list-print)
+      (display-buffer (current-buffer)))))
 
 (defvar use-package-statistics-status-order
   '(("Declared"    . 0)

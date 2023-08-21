@@ -437,11 +437,14 @@ public final class EmacsSafThread extends HandlerThread
   /* Cache file status for DOCUMENTID within TOPLEVEL.  Value is the
      new cache entry.  CURSOR is the cursor from where to retrieve the
      file status, in the form of the columns COLUMN_FLAGS,
-     COLUMN_SIZE, COLUMN_MIME_TYPE and COLUMN_LAST_MODIFIED.  */
+     COLUMN_SIZE, COLUMN_MIME_TYPE and COLUMN_LAST_MODIFIED.
+
+     If NO_CACHE, don't cache the file status; just return the
+     entry.  */
 
   private StatCacheEntry
   cacheFileStatus (String documentId, CacheToplevel toplevel,
-		   Cursor cursor)
+		   Cursor cursor, boolean no_cache)
   {
     StatCacheEntry entry;
     int flagsIndex, columnIndex, typeIndex;
@@ -482,7 +485,8 @@ public final class EmacsSafThread extends HandlerThread
       entry.mtime = cursor.getLong (mtimeIndex);
 
     /* Finally, add this entry to the cache and return.  */
-    toplevel.statCache.put (documentId, entry);
+    if (!no_cache)
+      toplevel.statCache.put (documentId, entry);
     return entry;
   }
 
@@ -546,7 +550,7 @@ public final class EmacsSafThread extends HandlerThread
 	       directory listing is being requested, it's very likely
 	       that a series of calls for file status will follow.  */
 
-	    cacheFileStatus (id, toplevel, cursor);
+	    cacheFileStatus (id, toplevel, cursor, false);
 
 	    /* If this constituent is a directory, don't cache any
 	       information about it.  It cannot be cached without
@@ -1217,7 +1221,7 @@ public final class EmacsSafThread extends HandlerThread
 
   private long[]
   statDocument1 (String uri, String documentId,
-		 CancellationSignal signal)
+		 CancellationSignal signal, boolean noCache)
   {
     Uri uriObject, tree;
     String[] projection;
@@ -1266,7 +1270,8 @@ public final class EmacsSafThread extends HandlerThread
 	    if (!cursor.moveToFirst ())
 	      return null;
 
-	    cache = cacheFileStatus (documentId, toplevel, cursor);
+	    cache = cacheFileStatus (documentId, toplevel, cursor,
+				     noCache);
 	  }
 	finally
 	  {
@@ -1332,18 +1337,22 @@ public final class EmacsSafThread extends HandlerThread
      last modification to this file in milliseconds since 00:00,
      January 1st, 1970.
 
+     If NOCACHE, refrain from placing the file status within the
+     status cache.
+
      OperationCanceledException and other typical exceptions may be
      signaled upon receiving async input or other errors.  */
 
   public long[]
-  statDocument (final String uri, final String documentId)
+  statDocument (final String uri, final String documentId,
+		final boolean noCache)
   {
     return (long[]) runObjectFunction (new SafObjectFunction () {
 	@Override
 	public Object
 	runObject (CancellationSignal signal)
 	{
-	  return statDocument1 (uri, documentId, signal);
+	  return statDocument1 (uri, documentId, signal, noCache);
 	}
       });
   }
@@ -1565,8 +1574,9 @@ public final class EmacsSafThread extends HandlerThread
      signal.  */
 
   public ParcelFileDescriptor
-  openDocument1 (String uri, String documentId, boolean write,
-		 boolean truncate, CancellationSignal signal)
+  openDocument1 (String uri, String documentId, boolean read,
+		 boolean write, boolean truncate,
+		 CancellationSignal signal)
     throws Throwable
   {
     Uri treeUri, documentUri;
@@ -1586,10 +1596,19 @@ public final class EmacsSafThread extends HandlerThread
 
     if (write)
       {
-	if (truncate)
-	  mode = "rwt";
+	if (read)
+	  {
+	    if (truncate)
+	      mode = "rwt";
+	    else
+	      mode = "rw";
+	  }
 	else
-	  mode = "rw";
+	  /* Set mode to w when WRITE && !READ, disregarding TRUNCATE.
+	     In contradiction with the ContentResolver documentation,
+	     document providers seem to truncate files whenever w is
+	     specified, at least superficially.  (But see below.)  */
+	  mode = "w";
       }
     else
       mode = "r";
@@ -1598,13 +1617,13 @@ public final class EmacsSafThread extends HandlerThread
       = resolver.openFileDescriptor (documentUri, mode,
 				     signal);
 
-    /* If a writable file descriptor is requested and TRUNCATE is set,
-       then probe the file descriptor to detect if it is actually
-       readable.  If not, close this file descriptor and reopen it
-       with MODE set to rw; some document providers granting access to
-       Samba shares don't implement rwt, but these document providers
-       invariably truncate the file opened even when the mode is
-       merely rw.
+    /* If a writable on-disk file descriptor is requested and TRUNCATE
+       is set, then probe the file descriptor to detect if it is
+       actually readable.  If not, close this file descriptor and
+       reopen it with MODE set to rw; some document providers granting
+       access to Samba shares don't implement rwt, but these document
+       providers invariably truncate the file opened even when the
+       mode is merely w.
 
        This may be ascribed to a mix-up in Android's documentation
        regardin DocumentsProvider: the `openDocument' function is only
@@ -1612,7 +1631,7 @@ public final class EmacsSafThread extends HandlerThread
        implementation of the `openFile' function (which documents rwt)
        delegates to `openDocument'.  */
 
-    if (write && truncate && fileDescriptor != null
+    if (read && write && truncate && fileDescriptor != null
 	&& !EmacsNative.ftruncate (fileDescriptor.getFd ()))
       {
 	try
@@ -1633,6 +1652,12 @@ public final class EmacsSafThread extends HandlerThread
 	if (fileDescriptor != null)
 	  EmacsNative.ftruncate (fileDescriptor.getFd ());
       }
+    else if (!read && write && truncate && fileDescriptor != null)
+      /* Moreover, document providers that return actual seekable
+	 files characteristically neglect to truncate the file
+	 returned when the access mode is merely w, so attempt to
+	 truncate it by hand.  */
+      EmacsNative.ftruncate (fileDescriptor.getFd ());
 
     /* Every time a document is opened, remove it from the file status
        cache.  */
@@ -1647,15 +1672,13 @@ public final class EmacsSafThread extends HandlerThread
      TRUNCATE and the document already exists, truncate its contents
      before returning.
 
-     On Android 9.0 and earlier, always open the document in
-     ``read-write'' mode; this instructs the document provider to
-     return a seekable file that is stored on disk and returns correct
-     file status.
+     If READ && WRITE, open the file under either the `rw' or `rwt'
+     access mode, which implies that the value must be a seekable
+     on-disk file.  If WRITE && !READ or TRUNC && WRITE, also truncate
+     the file after it is opened.
 
-     Under newer versions of Android, open the document in a
-     non-writable mode if WRITE is false.  This is possible because
-     these versions allow Emacs to explicitly request a seekable
-     on-disk file.
+     If only READ or WRITE is set, value may be a non-seekable FIFO or
+     one end of a socket pair.
 
      Value is NULL upon failure or a parcel file descriptor upon
      success.  Call `ParcelFileDescriptor.close' on this file
@@ -1667,7 +1690,8 @@ public final class EmacsSafThread extends HandlerThread
 
   public ParcelFileDescriptor
   openDocument (final String uri, final String documentId,
-		final boolean write, final boolean truncate)
+		final boolean read, final boolean write,
+		final boolean truncate)
   {
     Object tem;
 
@@ -1677,8 +1701,8 @@ public final class EmacsSafThread extends HandlerThread
 	runObject (CancellationSignal signal)
 	  throws Throwable
 	{
-	  return openDocument1 (uri, documentId, write, truncate,
-				signal);
+	  return openDocument1 (uri, documentId, read,
+				write, truncate, signal);
 	}
       });
 

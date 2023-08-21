@@ -11888,7 +11888,7 @@
 	(log-edit-mode, log-edit-extra-flags, log-edit-mode):
 	New declarations.
 
-2010-04-09  Eric Raymond  <esr@snark.thyrsus.com>
+2010-04-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc-hooks.el, vc-git.el: Improve documentation comments.
 

@@ -38,7 +38,7 @@ shift
 
 exec "${AWK-awk}" '
   function detexinfo() {
-    gsub(/@value{emacsname}/, "Emacs")
+    gsub(/@value\{emacsname\}/, "Emacs")
     gsub(/@[^{]*\{/, "")
     gsub(/}/, "")
   }

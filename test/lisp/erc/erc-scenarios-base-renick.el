@@ -275,8 +275,8 @@
         (funcall expect 3 "I never saw her before")
         (erc-scenarios-common-say "You aren't with Wage?")))
 
-    (erc-d-t-wait-for 3 (get-buffer "frenemy@foonet"))
-    (erc-d-t-wait-for 3 (get-buffer "frenemy@barnet"))
+    (erc-d-t-wait-for 10 (get-buffer "frenemy@foonet"))
+    (erc-d-t-wait-for 10 (get-buffer "frenemy@barnet"))
     (should-not (get-buffer "rando@foonet"))
     (should-not (get-buffer "rando@barnet"))
 

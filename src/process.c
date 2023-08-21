@@ -1737,6 +1737,18 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
 }
 
 
+static Lisp_Object
+get_required_string_keyword_param (Lisp_Object kwargs, Lisp_Object keyword)
+{
+  Lisp_Object arg = plist_member (kwargs, keyword);
+  if (NILP (arg) || !CONSP (arg) || !CONSP (XCDR (arg)))
+    error ("Missing %s keyword parameter", SSDATA (SYMBOL_NAME (keyword)));
+  Lisp_Object val = XCAR (XCDR (arg));
+  if (!STRINGP (val))
+    error ("%s value not a string", SSDATA (SYMBOL_NAME (keyword)));
+  return val;
+}
+
 /* Starting asynchronous inferior processes.  */
 
 DEFUN ("make-process", Fmake_process, Smake_process, 0, MANY, 0,
@@ -1801,7 +1813,7 @@ such handler, proceed as if FILE-HANDLER were nil.
 usage: (make-process &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object buffer, name, command, program, proc, contact, current_dir, tem;
+  Lisp_Object buffer, command, program, proc, contact, current_dir, tem;
   Lisp_Object xstderr, stderrproc;
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -1830,8 +1842,7 @@ usage: (make-process &rest ARGS)  */)
      chdir, since it's in a vfork.  */
   current_dir = get_current_directory (true);
 
-  name = plist_get (contact, QCname);
-  CHECK_STRING (name);
+  Lisp_Object name = get_required_string_keyword_param (contact, QCname);
 
   command = plist_get (contact, QCcommand);
   if (CONSP (command))
@@ -2408,7 +2419,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 {
   Lisp_Object proc, contact;
   struct Lisp_Process *p;
-  Lisp_Object name, buffer;
+  Lisp_Object buffer;
   Lisp_Object tem;
   int inchannel, outchannel;
 
@@ -2417,8 +2428,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 
   contact = Flist (nargs, args);
 
-  name = plist_get (contact, QCname);
-  CHECK_STRING (name);
+  Lisp_Object name = get_required_string_keyword_param (contact, QCname);
   proc = make_process (name);
   specpdl_ref specpdl_count = SPECPDL_INDEX ();
   record_unwind_protect (remove_process, proc);
@@ -3938,7 +3948,7 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
   EMACS_INT port = 0;
   Lisp_Object tem;
-  Lisp_Object name, buffer, host, service, address;
+  Lisp_Object buffer, host, service, address;
   Lisp_Object filter, sentinel, use_external_socket_p;
   Lisp_Object addrinfos = Qnil;
   int socktype;
@@ -3975,7 +3985,7 @@ usage: (make-network-process &rest ARGS)  */)
   else
     error ("Unsupported connection type");
 
-  name = plist_get (contact, QCname);
+  Lisp_Object name = get_required_string_keyword_param (contact, QCname);
   buffer = plist_get (contact, QCbuffer);
   filter = plist_get (contact, QCfilter);
   sentinel = plist_get (contact, QCsentinel);
@@ -3985,7 +3995,6 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (!NILP (server) && nowait)
     error ("`:server' is incompatible with `:nowait'");
-  CHECK_STRING (name);
 
   /* :local ADDRESS or :remote ADDRESS */
   if (NILP (server))

@@ -1,0 +1,53 @@
+<!-- Adaptive icon for Emacs.
+
+Copyright (C) 2023 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:aapt="http://schemas.android.com/aapt"
+	android:width="108dp"
+	android:height="108dp"
+	android:viewportWidth="512"
+	android:viewportHeight="512">
+  <group android:scaleX="0.6"
+	 android:scaleY="0.6"
+	 android:translateX="102.4"
+	 android:translateY="102.4">
+    <path
+        android:pathData="M0,0h512v512h-512z">
+      <aapt:attr name="android:fillColor">
+        <gradient 
+            android:startX="-0"
+            android:startY="256"
+            android:endX="512"
+            android:endY="256"
+            android:type="linear">
+          <item android:offset="1" android:color="#00000000"/>
+          <item android:offset="1" android:color="#FF5B2A85"/>
+        </gradient>
+      </aapt:attr>
+    </path>
+    <path
+        android:pathData="m174.83,422.11c0,0 19.74,1.4 45.13,-0.84 10.28,-0.91 49.33,-4.74 78.52,-11.14 0,0 35.59,-7.62 54.63,-14.63 19.92,-7.34 30.76,-13.57 35.64,-22.4 -0.21,-1.81 1.5,-8.22 -7.68,-12.08 -23.49,-9.85 -50.73,-8.07 -104.63,-9.21 -59.78,-2.05 -79.66,-12.06 -90.26,-20.12 -10.16,-8.18 -5.05,-30.79 38.47,-50.71 21.92,-10.61 107.87,-30.19 107.87,-30.19 -28.95,-14.31 -82.92,-39.46 -94.01,-44.89 -9.73,-4.76 -25.3,-11.94 -28.68,-20.61 -3.83,-8.33 9.04,-15.51 16.22,-17.56 23.14,-6.68 55.82,-10.83 85.55,-11.29 14.95,-0.23 17.37,-1.2 17.37,-1.2 20.62,-3.42 34.2,-17.53 28.54,-39.88 -5.08,-22.81 -31.86,-36.21 -57.31,-31.57 -23.97,4.37 -81.74,21.15 -81.74,21.15 71.41,-0.62 83.36,0.57 88.7,8.04 3.15,4.41 -1.43,10.45 -20.48,13.56 -20.73,3.39 -63.83,7.46 -63.83,7.46 -41.34,2.46 -70.47,2.62 -79.2,21.11 -5.71,12.08 6.09,22.76 11.25,29.45 21.84,24.29 53.39,37.39 73.69,47.04 7.64,3.63 30.06,10.48 30.06,10.48 -65.88,-3.62 -113.4,16.61 -141.28,39.9 -31.53,29.16 -17.58,63.92 47.01,85.33 38.15,12.64 57.07,18.59 113.98,13.46 33.52,-1.81 38.8,-0.73 39.14,2.02 0.47,3.87 -37.23,13.49 -47.52,16.46 -26.19,7.55 -94.83,22.8 -95.17,22.88z"
+        android:strokeLineJoin="miter"
+        android:strokeWidth="0"
+        android:fillColor="#ffffff"
+        android:strokeColor="#000000"
+        android:fillType="evenOdd"
+        android:strokeLineCap="butt"/>
+  </group>
+</vector>

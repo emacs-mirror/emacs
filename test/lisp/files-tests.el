@@ -1204,30 +1204,30 @@ unquoted file names."
     (let ((process-environment (cons "FOO=foo" process-environment))
           (nospecial-foo (files-tests--new-name nospecial "$FOO")))
       ;; The "/:" prevents substitution.
-      (equal (substitute-in-file-name nospecial-foo) nospecial-foo)))
+      (should (equal (substitute-in-file-name nospecial-foo) nospecial-foo))))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (let ((process-environment (cons "FOO=foo" process-environment))
           (nospecial-foo (files-tests--new-name nospecial "$FOO")))
       ;; The "/:" prevents substitution.
-      (equal (substitute-in-file-name nospecial-foo) nospecial-foo))))
+      (should (equal (substitute-in-file-name nospecial-foo) nospecial-foo)))))
 
 (ert-deftest files-tests-file-name-non-special-temporary-file-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))
-      (equal (temporary-file-directory) temporary-file-directory)))
+      (should (equal (temporary-file-directory) temporary-file-directory))))
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))
-      (equal (temporary-file-directory) temporary-file-directory))))
+      (should (equal (temporary-file-directory) temporary-file-directory)))))
 
 (ert-deftest files-tests-file-name-non-special-unhandled-file-name-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (equal (unhandled-file-name-directory nospecial-dir)
-           (file-name-as-directory tmpdir)))
+    (should (equal (unhandled-file-name-directory nospecial-dir)
+                   (file-name-as-directory tmpdir))))
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
-    (equal (unhandled-file-name-directory nospecial-dir)
-           (file-name-as-directory tmpdir))))
+    (should-not (equal (unhandled-file-name-directory nospecial-dir)
+                       (file-name-as-directory tmpdir)))))
 
 (ert-deftest files-tests-file-name-non-special-vc-registered ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
