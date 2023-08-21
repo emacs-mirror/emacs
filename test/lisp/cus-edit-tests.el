@@ -128,7 +128,6 @@
   ;; Simulate changing the value.
   (let* ((choice (widget-at))
          (args (widget-get choice :args))
-         (const-opt (car (widget-get choice :children)))
          (list-opt (nth 1 args)))
     (widget-put choice :explicit-choice list-opt)
     (widget-value-set choice (widget-default-get list-opt)))
