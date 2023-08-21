@@ -4932,14 +4932,16 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
       eassert (CHAR_HEAD_P (*buffer));
       encoded = STRING_CHAR ((unsigned char *) buffer);
 
-      /* Now figure out how to save ENCODED into the string.
-         Emacs operates on multibyte characters, not UTF-16
-         characters with surrogate pairs as Android does.
+      /* Now establish how to save ENCODED into the string.
+         Emacs operates on multibyte characters, not UTF-16 characters
+         with surrogate pairs as Android does.
 
-         However, character positions in Java are represented in 2
-         byte units, meaning that the text position reported to
-         Android can become out of sync if characters are found in a
-         buffer that require surrogate pairs.
+         However, character positions in Java are represented as
+         character (rather than codepoint) indices into UTF-16
+         strings, meaning that text positions reported to Android can
+         become decoupled from their actual values if the text
+         returned incorporates characters that must be encoded as
+         surrogate pairs.
 
          The hack used by Emacs is to simply replace each multibyte
          character that doesn't fit in a jchar with the NULL
@@ -5940,9 +5942,9 @@ NATIVE_NAME (takeSnapshot) (JNIEnv *env, jobject object, jshort window)
 
 #ifdef __clang__
 #pragma clang diagnostic pop
-#else
+#else /* GCC */
 #pragma GCC diagnostic pop
-#endif
+#endif /* __clang__ */
 
 
 
@@ -5991,11 +5993,11 @@ android_update_selection (struct frame *f, struct window *w)
 	  ? min (w->last_mark, TYPE_MAXIMUM (jint))
 	  : point);
 
-  /* Send the update.  Android doesn't have a concept of ``point'' and
-     ``mark''; instead, it only has a selection, where the start of
-     the selection is less than or equal to the end.  Also, convert
-     the indices from 1-based Emacs indices to 0-based Android
-     ones.  */
+  /* Send the update.  Android doesn't employ a concept of ``point''
+     and ``mark''; instead, it only has a selection, where the start
+     of the selection is less than or equal to the end, and the region
+     is ``active'' when those two values differ.  Also, convert the
+     indices from 1-based Emacs indices to 0-based Android ones.  */
   android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark) - 1,
 		     max (point, mark) - 1, start, end);
 
@@ -6066,9 +6068,10 @@ android_reset_conversion (struct frame *f)
 
   /* Reset the input method.
 
-     Pick an appropriate ``input mode'' based on whether or not the
-     minibuffer window is selected; this controls whether or not
-     ``RET'' inserts a newline or sends an actual key event.  */
+     Select an appropriate ``input mode'' based on whether or not the
+     minibuffer window is selected, which in turn affects if ``RET''
+     inserts a newline or sends an editor action Emacs transforms into
+     a key event (refer to `performEditorAction'.)  */
 
   w = XWINDOW (f->selected_window);
   buffer = XBUFFER (WINDOW_BUFFER (w));
@@ -6360,7 +6363,7 @@ android_set_build_fingerprint (void)
 {
 #ifdef ANDROID_STUBIFY
   Vandroid_build_fingerprint = Qnil;
-#else
+#else /* !ANDROID_STUBIFY */
   jclass class;
   jfieldID field;
   jobject string;
@@ -6378,7 +6381,7 @@ android_set_build_fingerprint (void)
   else
     {
       /* Obtain Build.FINGERPRINT.  Clear exceptions after each query;
-	 JNI can't find Build.FINGERPRIN on some systems.  */
+	 JNI can't find Build.FINGERPRINT on some systems.  */
 
       class = (*android_java_env)->FindClass (android_java_env,
 					      "android/os/Build");
@@ -6415,7 +6418,7 @@ android_set_build_fingerprint (void)
       (*android_java_env)->ReleaseStringUTFChars (android_java_env,
 						  string, data);
 
-      /* Now obtain Build.MANUFACTURER.  */
+      /* Now retrieve Build.MANUFACTURER.  */
 
       ANDROID_DELETE_LOCAL_REF (string);
       string = NULL;
@@ -6462,7 +6465,7 @@ android_set_build_fingerprint (void)
 
   Vandroid_build_fingerprint = Qnil;
   Vandroid_build_manufacturer = Qnil;
-#endif
+#endif /* ANDROID_STUBIFY */
 }
 
 void
