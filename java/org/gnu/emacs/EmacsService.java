@@ -171,7 +171,7 @@ public final class EmacsService extends Service
 		     + " may disable it if you want;"
 		     + " see (emacs)Android Environment.");
 	channel
-	  = new NotificationChannel ("emacs", "Emacs persistent notification",
+	  = new NotificationChannel ("emacs", "Emacs Background Service",
 				     NotificationManager.IMPORTANCE_DEFAULT);
 	manager.createNotificationChannel (channel);
 	notification = (new Notification.Builder (this, "emacs")
