@@ -3284,7 +3284,7 @@ one key sequence.
 The argument @var{disable-text-conversion}, if non-@code{nil}, means
 that system input methods will not directly perform edits to buffer
 text while this key sequence is being read; user input will always
-generated individual key events instead.  @xref{Misc Events} for more
+generated individual key events instead.  @xref{Misc Events}, for more
 about text conversion.
 
 In the following example, Emacs displays the prompt @samp{?} in the
