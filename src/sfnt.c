@@ -1286,6 +1286,19 @@ sfnt_lookup_glyph_8 (sfnt_char character,
   return 0;
 }
 
+/* Compare the sfnt_char A with B's end code.  Employed to bisect
+   through a format 12 table.  */
+
+static int
+sfnt_compare_char (const void *a, const void *b)
+{
+  struct sfnt_cmap_format_8_or_12_group *group;
+
+  group = (struct sfnt_cmap_format_8_or_12_group *) b;
+
+  return ((int) *((sfnt_char *) a)) - group->end_char_code;
+}
+
 /* Look up the glyph corresponding to CHARACTER in the format 12 cmap
    FORMAT12.  Return 0 if no glyph was found.  */
 
@@ -1294,9 +1307,34 @@ sfnt_lookup_glyph_12 (sfnt_char character,
 		      struct sfnt_cmap_format_12 *format12)
 {
   uint32_t i;
+  struct sfnt_cmap_format_8_or_12_group *group;
 
   if (character > 0xffffffff)
     return 0;
+
+  if (format12->num_groups > 64)
+    {
+      /* This table is large, likely supplied by a CJK or similar
+	 font.  Perform a binary search.  */
+
+      /* Find the group whose END_CHAR_CODE is greater than or equal
+	 to CHARACTER.  */
+
+      group = sfnt_bsearch_above (&character, format12->groups,
+				  format12->num_groups,
+				  sizeof format12->groups[0],
+				  sfnt_compare_char);
+
+      if (group->start_char_code > character)
+	/* No glyph matches this group.  */
+	return 0;
+
+      /* Otherwise, use this group to map the character to a
+	 glyph.  */
+      return (group->start_glyph_code
+	      + character
+	      - group->start_char_code);
+    }
 
   for (i = 0; i < format12->num_groups; ++i)
     {
