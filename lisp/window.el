@@ -2121,12 +2121,16 @@ remapped (see `face-remapping-alist'), the function returns the
 information for the remapped face."
    (with-selected-window (window-normalize-window window t)
      (if (display-multi-font-p)
-	 (let* ((face (if face face 'default))
-		(info (font-info (face-font face)))
-		(width (aref info 11)))
-	   (if (> width 0)
-	      width
-	     (aref info 10)))
+         ;; Opening the XLFD returned by `font-info' may be
+         ;; unsuccessful.  Use `frame-char-width' as a recourse if
+         ;; such a situation transpires.
+         (or (when-let* ((face (if face face 'default))
+		         (info (font-info (face-font face)))
+		         (width (aref info 11)))
+	       (if (> width 0)
+	           width
+	         (aref info 10)))
+             (frame-char-width))
        (frame-char-width))))
 
 (defun window-font-height (&optional window face)
@@ -2138,9 +2142,10 @@ remapped (see `face-remapping-alist'), the function returns the
 information for the remapped face."
    (with-selected-window (window-normalize-window window t)
      (if (display-multi-font-p)
-	 (let* ((face (if face face 'default))
-		(info (font-info (face-font face))))
-	   (aref info 3))
+	 (or (when-let* ((face (if face face 'default))
+		         (info (font-info (face-font face))))
+	       (aref info 3))
+             (frame-char-height))
        (frame-char-height))))
 
 (defvar overflow-newline-into-fringe)
