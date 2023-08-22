@@ -1283,7 +1283,7 @@ C code within Emacs rigorously checks for Java exceptions after
 calling any JVM function that may signal an out-of-memory error,
 employing one of the android_exception_check(_N) functions defined
 within android.c for this purpose.  These functions operate presuming
-the preceding Java code does not signal exceptions of their own, and
+the preceding Java code does not signal exceptions of its own, and
 report out-of-memory errors upon any type of exception, not just OOM
 errors.
 
