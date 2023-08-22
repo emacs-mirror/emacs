@@ -118,7 +118,30 @@ treated literally, as a backslash and a newline."
      (format "echo #<buffer %s>" (buffer-name))
      (current-buffer))))
 
-(ert-deftest esh-arg-test/special-reference/special ()
+(ert-deftest esh-arg-test/special-reference/quoted ()
+  "Test that '#<buffer \"foo bar\">' refers to the buffer \"foo bar\"."
+  (with-temp-buffer
+    (rename-buffer "foo bar" t)
+    (eshell-command-result-equal
+     (format "echo #<buffer \"%s\">" (buffer-name))
+     (current-buffer))
+    (eshell-command-result-equal
+     (format "echo #<buffer '%s'>" (buffer-name))
+     (current-buffer))))
+
+(ert-deftest esh-arg-test/special-reference/var-expansion ()
+  "Test that variable expansion inside special references works."
+  (with-temp-buffer
+    (rename-buffer "my-buffer" t)
+    (let ((eshell-test-value (buffer-name)))
+      (eshell-command-result-equal
+       "echo #<buffer $eshell-test-value>"
+       (current-buffer))
+      (eshell-command-result-equal
+       "echo #<buffer \"$eshell-test-value\">"
+       (current-buffer)))))
+
+(ert-deftest esh-arg-test/special-reference/special-characters ()
   "Test that \"#<...>\" works correctly when escaping special characters."
   (with-temp-buffer
     (rename-buffer "<my buffer>" t)

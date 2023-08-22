@@ -196,7 +196,8 @@ describing the mode, e.g. for using with `eshell-get-target'.")
 
 (defun eshell-parse-redirection ()
   "Parse an output redirection, such as `2>' or `>&'."
-  (when (not eshell-current-quoted)
+  (unless (or eshell-current-quoted
+              eshell-current-argument-plain)
     (cond
      ;; Copying a handle (e.g. `2>&1').
      ((looking-at (rx (? (group digit))

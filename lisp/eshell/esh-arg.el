@@ -49,6 +49,8 @@ yield the values intended."
 (defvar eshell-arg-listified nil)
 (defvar eshell-nested-argument nil)
 (defvar eshell-current-quoted nil)
+(defvar eshell-current-argument-plain nil
+  "If non-nil, the current argument is \"plain\", and not part of a command.")
 (defvar eshell-inside-quote-regexp nil)
 (defvar eshell-outside-quote-regexp nil)
 
@@ -183,11 +185,6 @@ treated as a literal character."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
               #'eshell-complete-special-reference nil t)))
-
-(defun eshell-insert-buffer-name (buffer-name)
-  "Insert BUFFER-NAME into the current buffer at point."
-  (interactive "BName of buffer: ")
-  (insert-and-inherit "#<buffer " buffer-name ">"))
 
 (defsubst eshell-escape-arg (string)
   "Return STRING with the `escaped' property on it."
@@ -505,42 +502,6 @@ leaves point where it was."
         (goto-char bound)
         (apply #'concat (nreverse strings))))))
 
-(defun eshell-parse-special-reference ()
-  "Parse a special syntax reference, of the form `#<args>'.
-
-args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
-type           := \"buffer\" or \"process\"
-arbitrary-args := any string of characters.
-
-If the form has no `type', the syntax is parsed as if `type' were
-\"buffer\"."
-  (when (and (not eshell-current-argument)
-             (not eshell-current-quoted)
-             (looking-at (rx "#<" (? (group (or "buffer" "process"))
-                                     space))))
-    (let ((here (point)))
-      (goto-char (match-end 0)) ;; Go to the end of the match.
-      (let ((buffer-p (if (match-beginning 1)
-                          (equal (match-string 1) "buffer")
-                        t)) ; With no type keyword, assume we want a buffer.
-            (end (eshell-find-delimiter ?\< ?\>)))
-        (when (not end)
-          (when (match-beginning 1)
-            (goto-char (match-beginning 1)))
-          (throw 'eshell-incomplete "#<"))
-        (if (eshell-arg-delimiter (1+ end))
-            (prog1
-                (list (if buffer-p #'get-buffer-create #'get-process)
-                      ;; FIXME: We should probably parse this as a
-                      ;; real Eshell argument so that we get the
-                      ;; benefits of quoting, variable-expansion, etc.
-                      (string-trim-right
-                       (replace-regexp-in-string
-                        (rx "\\" (group anychar)) "\\1"
-                        (buffer-substring-no-properties (point) end))))
-              (goto-char (1+ end)))
-          (ignore (goto-char here)))))))
-
 (defun eshell-parse-delimiter ()
   "Parse an argument delimiter, which is essentially a command operator."
   ;; this `eshell-operator' keyword gets parsed out by
@@ -591,7 +552,38 @@ If no argument requested a splice, return nil."
     (when splicep
       grouped-args)))
 
-;;;_* Special ref completion
+;;; Special references
+
+(defun eshell-parse-special-reference ()
+  "Parse a special syntax reference, of the form `#<args>'.
+
+args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
+type           := \"buffer\" or \"process\"
+arbitrary-args := any number of Eshell arguments
+
+If the form has no `type', the syntax is parsed as if `type' were
+\"buffer\"."
+  (when (and (not eshell-current-argument)
+             (not eshell-current-quoted)
+             (looking-at (rx "#<" (? (group (or "buffer" "process"))
+                                     space))))
+    (let ((here (point)))
+      (goto-char (match-end 0)) ;; Go to the end of the match.
+      (let ((buffer-p (if (match-beginning 1)
+                          (equal (match-string 1) "buffer")
+                        t)) ; With no type keyword, assume we want a buffer.
+            (end (eshell-find-delimiter ?\< ?\>)))
+        (when (not end)
+          (when (match-beginning 1)
+            (goto-char (match-beginning 1)))
+          (throw 'eshell-incomplete "#<"))
+        (if (eshell-arg-delimiter (1+ end))
+            (prog1
+                (cons (if buffer-p #'eshell-get-buffer #'get-process)
+                      (let ((eshell-current-argument-plain t))
+                        (eshell-parse-arguments (point) end)))
+              (goto-char (1+ end)))
+          (ignore (goto-char here)))))))
 
 (defun eshell-complete-special-reference ()
   "If there is a special reference, complete it."
@@ -626,6 +618,17 @@ If no argument requested a splice, return nil."
                (insert ">")))))
         (throw 'pcomplete-completions
                (all-completions pcomplete-stub all-results))))))
+
+(defun eshell-get-buffer (buffer-or-name)
+  "Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
+This is equivalent to `get-buffer-create', but only accepts a
+single argument."
+  (get-buffer-create buffer-or-name))
+
+(defun eshell-insert-buffer-name (buffer-name)
+  "Insert BUFFER-NAME into the current buffer at point."
+  (interactive "BName of buffer: ")
+  (insert-and-inherit "#<buffer " (eshell-quote-argument buffer-name) ">"))
 
 (provide 'esh-arg)
 ;;; esh-arg.el ends here

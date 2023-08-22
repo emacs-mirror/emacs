@@ -227,23 +227,6 @@ and signal names."
 
 (put 'eshell/kill 'eshell-no-numeric-conversions t)
 
-(defun eshell-read-process-name (prompt)
-  "Read the name of a process from the minibuffer, using completion.
-The prompt will be set to PROMPT."
-  (completing-read prompt
-		   (mapcar
-                    (lambda (proc)
-                      (cons (process-name proc) t))
-		    (process-list))
-                   nil t))
-
-(defun eshell-insert-process (process)
-  "Insert the name of PROCESS into the current buffer at point."
-  (interactive
-   (list (get-process
-	  (eshell-read-process-name "Name of process: "))))
-  (insert-and-inherit "#<process " (process-name process) ">"))
-
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
   (when (and eshell-subjob-messages
@@ -694,6 +677,27 @@ everything."
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
 ;    (eshell--reset-after-signal "continue\n")))
+
+;;; Special references
+
+(defun eshell-read-process-name (prompt)
+  "Read the name of a process from the minibuffer, using completion.
+The prompt will be set to PROMPT."
+  (completing-read prompt
+		   (mapcar
+                    (lambda (proc)
+                      (cons (process-name proc) t))
+		    (process-list))
+                   nil t))
+
+(defun eshell-insert-process (process)
+  "Insert the name of PROCESS into the current buffer at point."
+  (interactive
+   (list (get-process
+	  (eshell-read-process-name "Name of process: "))))
+  (insert-and-inherit "#<process "
+                      (eshell-quote-argument (process-name process))
+                      ">"))
 
 (provide 'esh-proc)
 ;;; esh-proc.el ends here
