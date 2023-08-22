@@ -1879,7 +1879,11 @@ font_rescale_ratio (Lisp_Object font_entity)
 	    {
 	      if (NILP (name))
 		name = Ffont_xlfd_name (font_entity, Qnil);
-	      if (fast_string_match_ignore_case (XCAR (elt), name) >= 0)
+
+	      /* N.B. that `name' is set to nil if the resulting XLFD
+		 is too long.  */
+	      if (!NILP (name)
+		  && fast_string_match_ignore_case (XCAR (elt), name) >= 0)
 		return XFLOAT_DATA (XCDR (elt));
 	    }
 	  else if (FONT_SPEC_P (XCAR (elt)))
