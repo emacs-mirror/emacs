@@ -6849,6 +6849,7 @@ The value is a symbol:
  `pc' for a direct-write MS-DOS frame.
  `pgtk' for an Emacs frame using pure GTK facilities.
  `haiku' for an Emacs frame running in Haiku.
+ `android' for an Emacs frame running in Android.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
