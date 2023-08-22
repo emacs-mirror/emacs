@@ -545,7 +545,7 @@ This returns a marker for that buffer."
     (point-marker)))
 
 (cl-defmethod eshell-get-target ((raw-target symbol) &optional mode)
-  "Convert a raw symbol RAW-TARGET into a valid output target using MODE.
+  "Convert a symbol RAW-TARGET into a valid output target using MODE.
 This returns RAW-TARGET, with its value initialized to nil if MODE is
 `overwrite'."
   (when (eq mode 'overwrite)
@@ -553,12 +553,12 @@ This returns RAW-TARGET, with its value initialized to nil if MODE is
   raw-target)
 
 (cl-defmethod eshell-get-target ((raw-target process) &optional _mode)
-  "Convert a raw process RAW-TARGET into a valid output target.
+  "Convert a process RAW-TARGET into a valid output target.
 This just returns RAW-TARGET."
   raw-target)
 
 (cl-defmethod eshell-get-target ((raw-target marker) &optional _mode)
-  "Convert a raw process RAW-TARGET into a valid output target.
+  "Convert a marker RAW-TARGET into a valid output target.
 This just returns RAW-TARGET."
   raw-target)
 
