@@ -1219,8 +1219,8 @@ And restart Emacs.
 This is due to an old bug in the implementation of the X protocol's
 XIM transport: when an input method crashes for some reason, Xlib
 cannot recover.  Emacs cannot do anything about this except wait for
-the I-Bux developers to fix their crashes.  You can work around these
-problems by disabling XIM in your X resources:
+input method developers to fix their crashes.  You can work around
+these problems by disabling XIM in your X resources:
 
   Emacs.useXIM: false
 

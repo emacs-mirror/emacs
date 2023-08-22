@@ -10792,10 +10792,13 @@ warning using STRING as the message.")
 
 ;;; Generic dispatcher commands
 
-;; Macro `define-alternatives' is used to create generic commands.
-;; Generic commands are these (like web, mail, news, encrypt, irc, etc.)
-;; that can have different alternative implementations where choosing
-;; among them is exclusively a matter of user preference.
+;; Macro `define-alternatives' can be used to create generic commands.
+;; Generic commands are commands that can have different alternative
+;; implementations, and choosing among them is the matter of user
+;; preference in each case.  For example, you could have a generic
+;; command `open' capable of "opening" a text file, a URL, a
+;; directory, or a binary file, and each of these alternatives would
+;; invoke a different Emacs function.
 
 ;; (define-alternatives COMMAND) creates a new interactive command
 ;; M-x COMMAND and a customizable variable COMMAND-alternatives.
@@ -10805,26 +10808,38 @@ warning using STRING as the message.")
 ;; ;;;###autoload (push '("My impl name" . my-impl-symbol) COMMAND-alternatives
 
 (defmacro define-alternatives (command &rest customizations)
-  "Define the new command `COMMAND'.
+  "Define a new generic COMMAND which can have several implementations.
 
-The argument `COMMAND' should be a symbol.
+The argument `COMMAND' should be an unquoted symbol.
 
 Running `\\[execute-extended-command] COMMAND RET' for \
-the first time prompts for which
-alternative to use and records the selected command as a custom
-variable.
+the first time prompts for the
+alternative implementation to use and records the selected alternative.
+Thereafter, `\\[execute-extended-command] COMMAND RET' will \
+automatically invoke the recorded selection.
 
 Running `\\[universal-argument] \\[execute-extended-command] COMMAND RET' \
-prompts again for an alternative
-and overwrites the previous choice.
+again prompts for an alternative
+and overwrites the previous selection.
 
-The variable `COMMAND-alternatives' contains an alist with
-alternative implementations of COMMAND.  `define-alternatives'
-does not have any effect until this variable is set.
+The macro creates a `defcustom' named `COMMAND-alternatives'.
+CUSTOMIZATIONS, if non-nil, should be pairs of `defcustom'
+keywords and values to add to the definition of that `defcustom';
+typically, these keywords will be :group and :version with the
+appropriate values.
 
-CUSTOMIZATIONS, if non-nil, should be composed of alternating
-`defcustom' keywords and values to add to the declaration of
-`COMMAND-alternatives' (typically :group and :version)."
+To be useful, the value of `COMMAND-alternatives' should be an
+alist describing the alternative implementations of COMMAND.
+The elements of this alist should be of the form
+  (ALTERNATIVE-NAME . FUNCTION)
+where ALTERNATIVE-NAME is the name of the alternative to be shown
+to the user as a selectable alternative, and FUNCTION is the
+interactive function to call which implements that alternative.
+The variable could be populated with associations describing the
+alternatives either before or after invoking `define-alternatives';
+if the variable is not defined when `define-alternatives' is invoked,
+the macro will create it with a nil value, and your Lisp program
+should then populate it."
   (declare (indent defun))
   (let* ((command-name (symbol-name command))
          (varalt-name (concat command-name "-alternatives"))
