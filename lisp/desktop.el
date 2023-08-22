@@ -455,7 +455,7 @@ If nil, deletes existing frames.
 If `keep', keeps existing frames and does not reuse them."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
-		 (const :tag "Keep existing frames" :keep))
+		 (const :tag "Keep existing frames" keep))
   :group 'desktop
   :version "24.4")
 
