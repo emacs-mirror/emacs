@@ -1499,7 +1499,6 @@ coming from Bash can still use Bash-style globbing, as there are no
 incompatibilities.
 
 @vindex eshell-glob-case-insensitive
-@vindex eshell-glob-case-insensitive
 Globs are case sensitive by default, except on MS-DOS/MS-Windows
 systems.  You can control this behavior via the
 @code{eshell-glob-case-insensitive} option.
