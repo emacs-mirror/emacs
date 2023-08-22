@@ -705,7 +705,7 @@ pkg_unqualified_symbol (Lisp_Object name)
 /***********************************************************************
 			    Lisp functions
  ***********************************************************************/
-
+// clang-format off
 DEFUN ("make-%package", Fmake_percent_package, Smake_percent_package,
        2, 2, 0, doc: /**/)
   (Lisp_Object name, Lisp_Object size)
@@ -925,7 +925,7 @@ DEFUN ("watch-*package*", Fwatch_earmuffs_package, Swatch_earmuffs_package,
   return Qnil;
 }
 
-
+// clang-format on
 
 
 /***********************************************************************
