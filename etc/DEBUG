@@ -1279,6 +1279,24 @@ code.  To this end, the `--jdb' option will attach the Java debugger
 instead of gdbserver.  Lametably, it seems impossible to debug both C
 and Java code in concert.
 
+C code within Emacs rigorously checks for Java exceptions after
+calling any JVM function that may signal an out-of-memory error,
+employing one of the android_exception_check(_N) functions defined
+within android.c for this purpose.  These functions operate presuming
+the preceding Java code does not signal exceptions of their own, and
+report out-of-memory errors upon any type of exception, not just OOM
+errors.
+
+If Emacs protests that it is out of memory, yet you witness a
+substantial amount of free space remaining, search the log buffer for
+a string containing:
+
+  "Possible out of memory error.  The Java exception follows:"
+
+subsequent to which a reproduction of the exception precipitating the
+spurious OOM error should be located.  This exception is invariably
+indicative of a bug within Emacs that should be fixed.
+
 
 This file is part of GNU Emacs.
 
