@@ -116,3 +116,7 @@ build-aux/msys-to-w32 diff=shell
 build-aux/update-subdirs diff=shell
 lib-src/rcs2log diff=shell
 /make-dist diff=shell
+
+# This file contains in-line diffs, which can include trailing
+# whitespace.
+java/INSTALL -whitespace
