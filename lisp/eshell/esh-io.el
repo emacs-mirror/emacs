@@ -499,6 +499,7 @@ after all printing is over with no argument."
   (eshell-print "\n"))
 
 (cl-defstruct (eshell-virtual-target
+               (:constructor nil)
                (:constructor eshell-virtual-target-create (output-function)))
   "A virtual target (see `eshell-virtual-targets')."
   output-function)
