@@ -11891,7 +11891,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 	  /* The offset is determined by matching a point location in
 	     a preceeding component with a point location in the
 	     current component.  The index of the point in the
-	     previous component can be determined by adding
+	     previous component is established by adding
 	     component->argument1.a or component->argument1.c to
 	     point.  argument2 contains the index of the point in the
 	     current component.  */
@@ -11920,30 +11920,29 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 
 	  if (!subglyph->compound)
 	    {
+	      /* Detect invalid child anchor points within simple
+		 glyphs in advance.  */
+
 	      if (point2 >= subglyph->simple->number_of_points + 2)
 		{
-		  /* If POINT2 is placed within a phantom point, use
-		     that.  */
-
 		  if (need_free)
 		    free_glyph (subglyph, dcontext);
 
 		  return "Invalid component anchor point";
 		}
-
-	      /* First, set offsets to 0, because it is not yet
-		 possible to ascertain the position of the anchor
-		 point in the child.  That position cannot be
-		 established prior to the completion of
-		 grid-fitting.  */
-	      x = 0;
-	      y = 0;
-
-	      /* Set a flag which indicates that offsets must be
-		 resolved from the child glyph after it is loaded, but
-		 before it is incorporated into the parent glyph.  */
-	      defer_offsets = true;
 	    }
+
+	  /* First, set offsets to 0, because it is not yet possible
+	     to ascertain the position of the anchor point in the
+	     child.  That position cannot be established prior to the
+	     completion of grid-fitting.  */
+	  x = 0;
+	  y = 0;
+
+	  /* Set a flag which indicates that offsets must be resolved
+	     from the child glyph after it is loaded, but before it is
+	     incorporated into the parent glyph.  */
+	  defer_offsets = true;
 	}
 
       /* Obtain the glyph metrics.  If doing so fails, then cancel
