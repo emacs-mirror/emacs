@@ -1094,6 +1094,13 @@ necessary.  By default, its value is
 @code{@var{emacs-version},eshell}.  Other parts of Emacs, such as
 Tramp, may add extra information to this value.
 
+@vindex $PAGER
+@item $PAGER
+This variable indicates the pager that commands should use when they
+wish to paginate long output.  Its value is that of
+@code{comint-pager} if non-@code{nil}; otherwise, it uses the value of
+@code{$PAGER} from the @code{process-environment}.
+
 @end table
 
 @xref{Aliases}, for the built-in variables @samp{$*}, @samp{$1},
