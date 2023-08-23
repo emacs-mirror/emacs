@@ -377,7 +377,8 @@ to writing a completion function."
 	         (throw 'pcompleted (elisp-completion-at-point)))
 	        (t
 	         (eshell--pcomplete-insert-tab)))))
-    (when (get-text-property (1- end) 'comment)
+    (when (and (< begin end)
+               (get-text-property (1- end) 'comment))
       (eshell--pcomplete-insert-tab))
     (let ((pos (1- end)))
       (while (>= pos begin)

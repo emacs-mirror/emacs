@@ -2590,11 +2590,6 @@ If it's a Lisp function, input redirection implies @command{xargs} (in a
 way@dots{}).  If input redirection is added, also update the
 @code{file-name-quote-list}, and the delimiter list.
 
-@item Allow @samp{#<@var{word} @var{arg}>} as a generic syntax
-
-With the handling of @emph{word} specified by an
-@code{eshell-special-alist}.
-
 @item In @code{eshell-eval-using-options}, allow a @code{:complete} tag
 
 It would be used to provide completion rules for that command.  Then the
