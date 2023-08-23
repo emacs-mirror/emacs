@@ -695,7 +695,7 @@ The function must satisfy this calling convention:
   "Table of all macro names known for this buffer.")
 (put 'makefile-macro-table 'risky-local-variable t)
 
-(defvar makefile-browser-client
+(defvar makefile-browser-client nil
   "A buffer in Makefile mode that is currently using the browser.")
 
 (defvar makefile-browser-selection-vector nil)
