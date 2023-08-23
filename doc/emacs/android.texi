@@ -780,7 +780,7 @@ normally installed from within a purpose-built terminal emulator
 application, but Emacs can access them if it is built with the same
 application signing key as the Termux terminal emulator, and with its
 ``shared user ID'' set to the package name of the terminal emulator
-program.  The @file{java/INSTALL} within the Emacs distribution
+program.  The file @file{java/INSTALL} within the Emacs distribution
 explains how to build Emacs in this fashion.
 
   @uref{https://github.com/termux/termux-packages, termux-packages}
