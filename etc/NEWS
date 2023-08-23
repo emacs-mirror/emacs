@@ -732,7 +732,7 @@ showcases all their customization options.
 ** Project
 
 *** New user option 'project-file-history-behavior'.
-Customizing it to 'relative' makes commands like 'project-find-file'
+Customizing it to 'relativize' makes commands like 'project-find-file'
 and 'project-find-dir' display previous history entries relative to
 the current project.
 
