@@ -2075,22 +2075,15 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or
-                           ;; This spec must come first so that a
-                           ;; binding of the form (FN FORM) is always
-                           ;; interpreted as FORM being a form
-                           ;; returning a function, instead of FORM
-                           ;; being a cl-lambda-list and FN returning
-                           ;; nil.
-                           (&define [&name symbolp "@cl-flet@"]
-                                    [&name [] gensym] ;Make it unique!
-                                    def-form)
-                           (&define [&name symbolp "@cl-flet@"]
-                                    [&name [] gensym] ;Make it unique!
-                                    cl-lambda-list
-                                    cl-declarations-or-string
-                                    [&optional ("interactive" interactive)]
-                                    def-body)])
+           (debug ((&rest [&or (&define [&name symbolp "@cl-flet@"]
+                                        [&name [] gensym] ;Make it unique!
+                                        cl-lambda-list
+                                        cl-declarations-or-string
+                                        [&optional ("interactive" interactive)]
+                                        def-body)
+                               (&define [&name symbolp "@cl-flet@"]
+                                        [&name [] gensym] ;Make it unique!
+                                        def-form)])
                    cl-declarations body)))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
