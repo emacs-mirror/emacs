@@ -75,7 +75,7 @@
        (prog1 (setq xdg (concat (file-name-as-directory xdg) "emacs"))
 	 (make-directory xdg t))
      (eval (car (get 'temporary-file-directory 'standard-value)) t)))
-  "The default value of `temporary-file-directory'.")
+  "The default value of `temporary-file-directory' for Tramp.")
 
 (defsubst tramp-compat-make-temp-name ()
   "Generate a local temporary file name (compat function)."

@@ -52,6 +52,7 @@ SYNTAX can be one of the symbols `default' (default),
   (when syntax
     (customize-set-variable 'tramp-syntax syntax)))
 
+;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
@@ -63,6 +64,7 @@ SYNTAX can be one of the symbols `default' (default),
    (all-completions
     "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
+;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."
