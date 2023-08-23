@@ -490,6 +490,29 @@ It includes all faces in list FACES."
     (with-current-buffer standard-output
       (describe-theme-1 theme))))
 
+(defun describe-theme-from-file (&optional file short)
+  "Describe theme from its file FILE without loading it.
+
+If FILE is nil try to find the file from the theme name in
+`custom-theme-load-path'.
+If SHORT is non nil show only the first line of documentation."
+    (let ((file (or file
+                  (locate-file (concat (symbol-name theme) "-theme.el")
+			       (custom-theme--load-path)
+			       '("" "c")))))
+      (with-temp-buffer
+        (insert-file-contents file)
+        (catch 'found
+          (let (sexp)
+            (while (setq sexp (let ((read-circle nil))
+	                        (condition-case nil
+		                    (read (current-buffer))
+		                  (end-of-file nil))))
+              (when (eq (car-safe sexp) 'deftheme)
+	        (throw 'found (if short
+                                  (car (split-string (nth 2 sexp) "\n"))
+                                (nth 2 sexp))))))))))
+
 (defun describe-theme-1 (theme)
   (prin1 theme)
   (princ " is a custom theme")
@@ -510,16 +533,9 @@ It includes all faces in list FACES."
 	    (princ "It is loaded but disabled."))
 	  (setq doc (get theme 'theme-documentation)))
       (princ "It is not loaded.")
-      ;; Attempt to grab the theme documentation
+      ;; Attempt to grab the theme documentation from file.
       (when fn
-	(with-temp-buffer
-	  (insert-file-contents fn)
-	  (let ((sexp (let ((read-circle nil))
-			(condition-case nil
-			    (read (current-buffer))
-			  (end-of-file nil)))))
-            (and (eq (car-safe sexp) 'deftheme)
-		 (setq doc (nth 2 sexp)))))))
+	(setq doc (describe-theme-from-file fn))))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
 	       (substitute-command-keys doc)
