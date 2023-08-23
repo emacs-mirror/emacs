@@ -1071,7 +1071,9 @@ to `project-find-file' or `project-find-dir'.
 
 This has the effect of sharing more history between projects."
   :type '(choice (const t :tag "Default behavior")
-                 (const relativize :tag "Adjust to be relative to current")))
+                 (const relativize :tag "Adjust to be relative to current"))
+  :group 'project
+  :version "30.1")
 
 (defun project--transplant-file-name (filename project)
   (when-let ((old-root (get-text-property 0 'project filename)))
@@ -1902,6 +1904,17 @@ listed in the dispatch menu produced from `project-switch-commands'."
   :group 'project
   :version "28.1")
 
+(defcustom project-key-prompt-style (if (facep 'help-key-binding)
+                                        t
+                                      'brackets)
+  "Which presentation to use when asking to choose a command by key.
+
+When `brackets', use text brackets and `bold' for the character.
+Otherwise, use the face `help-key-binding' in the prompt."
+  :type 'boolean
+  :group 'project
+  :version "30.1")
+
 (defun project--keymap-prompt ()
   "Return a prompt for the project switching dispatch menu."
   (mapconcat
@@ -1914,7 +1927,7 @@ listed in the dispatch menu produced from `project-switch-commands'."
      (let ((key (if key
                     (vector key)
                   (where-is-internal cmd (list project-prefix-map) t))))
-       (if (facep 'help-key-binding)
+       (if (not (eq project-key-prompt-style 'brackets))
            (format "%s %s"
                    (propertize (key-description key) 'face 'help-key-binding)
                    label)

@@ -736,6 +736,10 @@ Customizing it to 'relative' makes commands like 'project-find-file'
 and 'project-find-dir' display previous history entries relative to
 the current project.
 
+*** New user option 'project-key-prompt-style'.
+The look of the key prompt in the project switcher has been changed
+slightly.  To get the previous one, set this option to 'brackets'.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
