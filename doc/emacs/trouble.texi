@@ -1514,7 +1514,7 @@ Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
 @item
-Avoid using @code{defadvice} or @code{with-eval-after-load} for Lisp code
+Avoid using @code{advice-add} or @code{with-eval-after-load} for Lisp code
 to be included in Emacs.
 
 @item
