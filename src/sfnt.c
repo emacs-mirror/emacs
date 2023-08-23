@@ -1262,6 +1262,19 @@ sfnt_lookup_glyph_6 (sfnt_char character,
   return format6->glyph_index_array[character - format6->first_code];
 }
 
+/* Compare the sfnt_char A with B's end code.  Employed to bisect
+   through a format 8 or 12 table.  */
+
+static int
+sfnt_compare_char (const void *a, const void *b)
+{
+  struct sfnt_cmap_format_8_or_12_group *group;
+
+  group = (struct sfnt_cmap_format_8_or_12_group *) b;
+
+  return ((int) *((sfnt_char *) a)) - group->end_char_code;
+}
+
 /* Look up the glyph corresponding to CHARACTER in the format 8 cmap
    FORMAT8.  Return 0 if no glyph was found.  */
 
@@ -1270,9 +1283,34 @@ sfnt_lookup_glyph_8 (sfnt_char character,
 		     struct sfnt_cmap_format_8 *format8)
 {
   uint32_t i;
+  struct sfnt_cmap_format_8_or_12_group *group;
 
   if (character > 0xffffffff)
     return 0;
+
+  if (format8->num_groups > 64)
+    {
+      /* This table is large, likely supplied by a CJK or similar
+	 font.  Perform a binary search.  */
+
+      /* Find the group whose END_CHAR_CODE is greater than or equal
+	 to CHARACTER.  */
+
+      group = sfnt_bsearch_above (&character, format8->groups,
+				  format8->num_groups,
+				  sizeof format8->groups[0],
+				  sfnt_compare_char);
+
+      if (group->start_char_code > character)
+	/* No glyph matches this group.  */
+	return 0;
+
+      /* Otherwise, use this group to map the character to a
+	 glyph.  */
+      return (group->start_glyph_code
+	      + character
+	      - group->start_char_code);
+    }
 
   for (i = 0; i < format8->num_groups; ++i)
     {
@@ -1284,19 +1322,6 @@ sfnt_lookup_glyph_8 (sfnt_char character,
     }
 
   return 0;
-}
-
-/* Compare the sfnt_char A with B's end code.  Employed to bisect
-   through a format 12 table.  */
-
-static int
-sfnt_compare_char (const void *a, const void *b)
-{
-  struct sfnt_cmap_format_8_or_12_group *group;
-
-  group = (struct sfnt_cmap_format_8_or_12_group *) b;
-
-  return ((int) *((sfnt_char *) a)) - group->end_char_code;
 }
 
 /* Look up the glyph corresponding to CHARACTER in the format 12 cmap
@@ -2009,7 +2034,7 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 	  /* The next byte is a delta to apply to the previous
 	     value.  Make sure it is in bounds.  */
 
-	  if (vec_start + 1 >= glyf->glyphs + glyf->size)
+	  if (vec_start + 1 > glyf->glyphs + glyf->size)
 	    {
 	      glyph->simple = NULL;
 	      xfree (simple);
@@ -2026,7 +2051,7 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 	  /* The next word is a delta to apply to the previous value.
 	     Make sure it is in bounds.  */
 
-	  if (vec_start + 2 >= glyf->glyphs + glyf->size)
+	  if (vec_start + 2 > glyf->glyphs + glyf->size)
 	    {
 	      glyph->simple = NULL;
 	      xfree (simple);
@@ -2061,7 +2086,7 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 	  /* The next byte is a delta to apply to the previous
 	     value.  Make sure it is in bounds.  */
 
-	  if (vec_start + 1 >= glyf->glyphs + glyf->size)
+	  if (vec_start + 1 > glyf->glyphs + glyf->size)
 	    {
 	      glyph->simple = NULL;
 	      xfree (simple);
@@ -2078,7 +2103,7 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 	  /* The next word is a delta to apply to the previous value.
 	     Make sure it is in bounds.  */
 
-	  if (vec_start + 2 >= glyf->glyphs + glyf->size)
+	  if (vec_start + 2 > glyf->glyphs + glyf->size)
 	    {
 	      glyph->simple = NULL;
 	      xfree (simple);
@@ -13184,7 +13209,8 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
 
   /* Start reading shared coordinates.  */
 
-  gvar->global_coords = ((sfnt_f2dot14 *) ((char *) gvar + off_size));
+  gvar->global_coords = ((sfnt_f2dot14 *) ((char *) (gvar + 1)
+					   + off_size));
 
   if (gvar->shared_coord_count)
     {
@@ -13199,7 +13225,7 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
 	  != coordinate_size)
 	goto bail;
 
-      for (i = 0; i <= coordinate_size / sizeof *gvar->global_coords; ++i)
+      for (i = 0; i < coordinate_size / sizeof *gvar->global_coords; ++i)
 	sfnt_swap16 (&gvar->global_coords[i]);
     }
 
