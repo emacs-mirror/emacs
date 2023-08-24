@@ -2081,8 +2081,6 @@ European characters."
 
 ;;; The main decoding driver:
 
-(defvar font-lock-mode)			; for the compiler
-
 (defun woman-decode-buffer ()
   "Decode a buffer in UN*X man-page source format.
 No external programs are used."

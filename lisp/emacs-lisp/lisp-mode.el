@@ -31,11 +31,6 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
 
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
-(defvar font-lock-keywords-case-fold-search)
-(defvar font-lock-string-face)
-
 (define-abbrev-table 'lisp-mode-abbrev-table ()
   "Abbrev table for Lisp mode.")
 

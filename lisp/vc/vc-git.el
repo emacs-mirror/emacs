@@ -1631,7 +1631,6 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     map))
 
 (defvar vc-git--log-view-long-font-lock-keywords nil)
-(defvar font-lock-keywords)
 (defvar vc-git-region-history-font-lock-keywords
   '((vc-git-region-history-font-lock)))
 

@@ -1,7 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2023 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Old-Version: 2.0f
@@ -157,10 +156,6 @@
 (autoload 'comint-send-string "comint")
 (autoload 'shell-command-completion "shell")
 (autoload 'shell-environment-variable-completion "shell")
-
-(defvar font-lock-comment-face)
-(defvar font-lock-set-defaults)
-(defvar font-lock-string-face)
 
 
 (defgroup sh nil

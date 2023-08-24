@@ -159,7 +159,6 @@
 ;; 3. Labels for "else" statements (F2003)?
 
 (defvar comment-auto-fill-only-comments)
-(defvar font-lock-keywords)
 
 ;; User options
 

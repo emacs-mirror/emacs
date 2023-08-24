@@ -5335,7 +5335,6 @@ directories and save the routine info.
 	(idlwave-path-alist-remove-flag dir-entry 'user)))
     (idlwave-scan-user-lib-files path-alist)))
 
-(defvar font-lock-mode)
 (defun idlwave-scan-user-lib-files (path-alist)
   ;; Scan the PRO files in PATH-ALIST and store the info in the user catalog
   (let* ((idlwave-scanning-lib t)

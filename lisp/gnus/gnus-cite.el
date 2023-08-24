@@ -1117,12 +1117,6 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 	   (setq count (1+ count)))))) ;;
   "Keywords for highlighting different levels of message citations.")
 
-(defvar font-lock-defaults-computed)
-(defvar font-lock-keywords)
-(defvar font-lock-set-defaults)
-
-(autoload 'font-lock-set-defaults "font-lock")
-
 (define-minor-mode gnus-message-citation-mode
   "Minor mode providing more font-lock support for nested citations.
 When enabled, it automatically turns on `font-lock-mode'."

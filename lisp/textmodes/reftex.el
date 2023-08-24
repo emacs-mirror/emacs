@@ -250,9 +250,6 @@ on the menu bar.
 (defvar LaTeX-label-function)
 (defvar tex-main-file)
 (defvar outline-minor-mode)
-(defvar font-lock-mode)
-(defvar font-lock-keywords)
-(defvar font-lock-fontify-region-function)
 
 ;;; =========================================================================
 ;;;
@@ -2035,7 +2032,6 @@ IGNORE-WORDS List of words which should be removed from the string."
                 ;; Test of we use the font-lock version of x-symbol
                 (and (featurep 'x-symbol-tex) (not (boundp 'x-symbol-mode)))))))
 
-(defvar font-lock-defaults-computed)
 (defun reftex-fontify-select-label-buffer (parent-buffer)
   ;; Fontify the `*RefTeX Select*' buffer.  Buffer is temporarily renamed to
   ;; start with none-SPC char, because Font-Lock otherwise refuses operation.

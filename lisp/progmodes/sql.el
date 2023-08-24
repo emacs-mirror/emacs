@@ -235,10 +235,6 @@
 (require 'view)
 (eval-when-compile (require 'subr-x))   ; string-empty-p
 
-(defvar font-lock-keyword-face)
-(defvar font-lock-set-defaults)
-(defvar font-lock-string-face)
-
 ;;; Allow customization
 
 (defgroup SQL nil

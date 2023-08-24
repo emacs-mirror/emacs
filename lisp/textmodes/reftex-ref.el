@@ -781,7 +781,6 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
         (funcall errorf "Label %s not found" label))
       found)))
 
-(defvar font-lock-mode)
 (defun reftex-show-entry (beg-hlt end-hlt)
   ;; Show entry if point is hidden
   (let* ((n (/ (window-height) 2))

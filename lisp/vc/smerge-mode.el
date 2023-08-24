@@ -255,10 +255,6 @@ Can be nil if the style is undecided, or else:
 - `diff3-E'
 - `diff3-A'")
 
-;; Compiler pacifiers
-(defvar font-lock-mode)
-(defvar font-lock-keywords)
-
 ;;;;
 ;;;; Actual code
 ;;;;

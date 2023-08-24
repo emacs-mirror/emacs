@@ -1141,7 +1141,6 @@ When DING is non-nil, ring the bell as well."
 	  (goto-char pos)
 	  (recenter 0)))))
 
-(defvar font-lock-verbose)
 (defvar idlwave-mode-syntax-table)
 (defvar idlwave-font-lock-defaults)
 (defun idlwave-help-fontify ()
