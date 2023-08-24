@@ -432,7 +432,7 @@ sfnt_read_cmap_format_4 (int fd,
   int seg_count, i;
 
   min_bytes = SFNT_ENDOF (struct sfnt_cmap_format_4,
-			  entry_selector, uint16_t);
+			  range_shift, uint16_t);
 
   /* Check that the length is at least min_bytes.  */
   if (header->length < min_bytes)
@@ -460,6 +460,7 @@ sfnt_read_cmap_format_4 (int fd,
   sfnt_swap16 (&format4->seg_count_x2);
   sfnt_swap16 (&format4->search_range);
   sfnt_swap16 (&format4->entry_selector);
+  sfnt_swap16 (&format4->range_shift);
 
   /* Get the number of segments to read.  */
   seg_count = format4->seg_count_x2 / 2;
@@ -467,7 +468,7 @@ sfnt_read_cmap_format_4 (int fd,
   /* Now calculate whether or not the size is sufficiently large.  */
   bytes_minus_format4
     = format4->length - SFNT_ENDOF (struct sfnt_cmap_format_4,
-				    entry_selector, uint16_t);
+				    range_shift, uint16_t);
   variable_size = (seg_count * sizeof *format4->end_code
 		   + sizeof *format4->reserved_pad
 		   + seg_count * sizeof *format4->start_code
@@ -1221,27 +1222,6 @@ sfnt_lookup_glyph_4 (sfnt_char character,
 
   if (glyph)
     return glyph;
-
-  /* Droid Sans Mono has overlapping segments in its format 4 cmap
-     subtable where the first segment's end code is 32, while the
-     second segment's start code is also 32.  The TrueType Reference
-     Manual says that mapping should begin by searching for the first
-     segment whose end code is greater than or equal to the character
-     being indexed, but that results in the first subtable being
-     found, which doesn't work, while the second table does.  Try to
-     detect this situation and use the second table if possible.  */
-
-  if (!glyph
-      /* The character being looked up is the current segment's end
-	 code.  */
-      && code == format4->end_code[segment]
-      /* There is an additional segment.  */
-      && segment + 1 < format4->seg_count_x2 / 2
-      /* That segment's start code is the same as this segment's end
-	 code.  */
-      && format4->start_code[segment + 1] == format4->end_code[segment])
-    /* Try the second segment.  */
-    return sfnt_lookup_glyph_4_1 (character, segment + 1, format4);
 
   /* Fail.  */
   return 0;
