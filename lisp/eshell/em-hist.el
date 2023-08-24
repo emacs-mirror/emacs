@@ -381,20 +381,19 @@ Input is entered into the input history ring, if the value of
 variable `eshell-input-filter' returns non-nil when called on the
 input."
   (when (and (funcall eshell-input-filter input)
-             (if (eq eshell-hist-ignoredups 'erase)
-                 ;; Remove any old occurrences of the input, and put
-                 ;; the new one at the end.
-                 (unless (ring-empty-p eshell-history-ring)
-                   (ring-remove eshell-history-ring
-	                        (ring-member eshell-history-ring input))
-                   t)
-               ;; Always add...
-               (or (null eshell-hist-ignoredups)
-                   ;; ... or add if it's not already present at the
-                   ;; end.
-	           (not (ring-p eshell-history-ring))
-	           (ring-empty-p eshell-history-ring)
-	           (not (string-equal (eshell-get-history 0) input)))))
+             (pcase eshell-hist-ignoredups
+               ('nil t)                 ; Always add to history
+               ('erase                  ; Add, removing any old occurrences
+                (when-let ((old-index (ring-member eshell-history-ring input)))
+                  ;; Remove the old occurence of this input so we can
+                  ;; add it to the end.  FIXME: Should we try to
+                  ;; remove multiple old occurrences, e.g. if the user
+                  ;; recently changed to using `erase'?
+                  (ring-remove eshell-history-ring old-index))
+                t)
+               (_                       ; Add if not already the latest entry
+                (or (ring-empty-p eshell-history-ring)
+                    (not (string-equal (eshell-get-history 0) input))))))
     (eshell-put-history input))
   (setq eshell-save-history-index eshell-history-index)
   (setq eshell-history-index nil))
