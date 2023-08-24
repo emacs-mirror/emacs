@@ -322,10 +322,29 @@ sfnt_decode_family_style (struct sfnt_name_table *name,
   struct sfnt_name_record family_rec, style_rec;
   unsigned char *family_data, *style_data;
 
-  family_data = sfnt_find_name (name, SFNT_NAME_FONT_FAMILY,
+  /* Because MS-Windows is incapable of treating font families
+     comprising more than four styles correctly, the TrueType
+     specification incorporates additional PREFERRED_FAMILY and
+     PREFERRED_SUBFAMILY name resources that are meant to be consulted
+     over the traditional family and subfamily resources.  When
+     present within fonts supplying unusual styles, these names hold
+     the ``actual'' typographic family and style of the font, in lieu
+     of the font family with the style affixed to the front and
+     Regular.  */
+
+  family_data = sfnt_find_name (name, SFNT_NAME_PREFERRED_FAMILY,
 				&family_rec);
-  style_data = sfnt_find_name (name, SFNT_NAME_FONT_SUBFAMILY,
+
+  if (!family_data)
+    family_data = sfnt_find_name (name, SFNT_NAME_FONT_FAMILY,
+				  &family_rec);
+
+  style_data = sfnt_find_name (name, SFNT_NAME_PREFERRED_SUBFAMILY,
 			       &style_rec);
+
+  if (!style_data)
+    style_data = sfnt_find_name (name, SFNT_NAME_FONT_SUBFAMILY,
+				 &style_rec);
 
   if (!family_data || !style_data)
     return 1;
