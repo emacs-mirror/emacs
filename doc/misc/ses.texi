@@ -1166,7 +1166,7 @@ details-and-summary spreadsheet.
 * Nonrelocatable references::
 * The data area::
 * Buffer-local variables in spreadsheets::
-* Uses of defadvice in @acronym{SES}::
+* Uses of advice-add in @acronym{SES}::
 @end menu
 
 @node Deferred updates
