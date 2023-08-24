@@ -2231,7 +2231,7 @@ struct Lisp_Package
   Lisp_Object use_list;
 
   /* T means the package is locked, i.e. no symbols can be added to it.  */
-  Lisp_Object locked;
+  Lisp_Object lock;
 
   /* List of shadowing symbols.  */
   Lisp_Object shadowing_symbols;
