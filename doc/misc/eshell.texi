@@ -4,7 +4,7 @@
 @settitle Eshell: The Emacs Shell
 @include docstyle.texi
 @defindex cm
-@synindex vr fn
+@syncodeindex vr fn
 @c %**end of header
 
 @copying
@@ -141,7 +141,7 @@ computer frequently enough, it is more than worthwhile in the long run.
 Any tool you use often deserves the time spent learning to master it.
 @footnote{For the understandably curious, here is what that command
 looks like: But don't let it fool you; once you know what's going on,
-it's easier than it looks: @code{ls -lt **/*.doc(Lk+50aM+5)}.}
+it's easier than it looks: @code{ls -lt **/*.doc(Lk+100aM+6)}.}
 
 @menu
 * Contributors to Eshell::      People who have helped out!
@@ -317,9 +317,10 @@ specify an argument of some other data type, you can use a Lisp form
 (1 2 3)
 @end example
 
-Additionally, many built-in Eshell commands (@pxref{Built-ins}) will
-flatten the arguments they receive, so passing a list as an argument
-will ``spread'' the elements into multiple arguments:
+When calling external commands (and many built-in Eshell commands,
+too) Eshell will flatten the arguments the command receives, so
+passing a list as an argument will ``spread'' the elements into
+multiple arguments:
 
 @example
 ~ $ printnl (list 1 2) 3
@@ -457,6 +458,7 @@ overwriting files.  If both settings are non-@code{nil}, the commands
 always prompt.  If both settings are @code{nil} (the default), the
 commands signal an error.
 
+@vindex eshell-default-target-is-dot
 Several commands observe the value of
 @code{eshell-default-target-is-dot}.  If non-@code{nil}, then the
 default target for the commands @command{cp}, @command{mv}, and
@@ -520,6 +522,8 @@ directory.
 With @kbd{cd -42}, you can access the directory stack slots by number.
 
 @item
+@vindex eshell-cd-shows-directory
+@vindex eshell-list-files-after-cd
 If @code{eshell-cd-shows-directory} is non-@code{nil}, @command{cd}
 will report the directory it changes to.  If
 @code{eshell-list-files-after-cd} is non-@code{nil}, then @command{ls}
@@ -554,6 +558,8 @@ $*'}.
 Copy a file to a new location or copy multiple files to the same
 directory.
 
+@vindex eshell-cp-overwrite-files
+@vindex eshell-cp-interactive-query
 If @code{eshell-cp-overwrite-files} is non-@code{nil}, then
 @command{cp} will overwrite files without warning.  If
 @code{eshell-cp-interactive-query} is non-@code{nil}, then
@@ -571,6 +577,7 @@ Compare files using Emacs's internal @code{diff} (not to be confused
 with @code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs
 Manual}.
 
+@vindex eshell-plain-diff-behavior
 If @code{eshell-plain-diff-behavior} is non-@code{nil}, then this
 command does not use Emacs's internal @code{diff}.  This is the same
 as using @samp{alias diff '*diff $@@*'}.
@@ -598,6 +605,7 @@ Echoes its input.  By default, this prints in a Lisp-friendly fashion
 prints a list of all the arguments; otherwise, it prints the empty
 string.
 
+@vindex eshell-plain-echo-behavior
 If @code{eshell-plain-echo-behavior} is non-@code{nil}, @command{echo}
 will try to behave more like a plain shell's @command{echo}, printing
 each argument as a string, separated by a space.
@@ -618,6 +626,7 @@ cmd*}.
 
 @item exit
 @cmindex exit
+@vindex eshell-kill-on-exit
 Exit Eshell and save the history.  By default, this command kills the
 Eshell buffer, but if @code{eshell-kill-on-exit} is @code{nil}, then
 the buffer is merely buried instead.
@@ -643,6 +652,7 @@ The @command{grep} commands are compatible with GNU @command{grep},
 but use Emacs's internal @code{grep} instead.
 @xref{Grep Searching, , , emacs, The GNU Emacs Manual}.
 
+@vindex eshell-plain-grep-behavior
 If @code{eshell-plain-grep-behavior} is non-@code{nil}, then these
 commands do not use Emacs's internal @code{grep}.  This is the same as
 using @samp{alias grep '*grep $@@*'}, though this setting applies to
@@ -681,6 +691,8 @@ and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
 @cmindex ln
 Create links to files.
 
+@vindex eshell-ln-overwrite-files
+@vindex eshell-ln-interactive-query
 If @code{eshell-ln-overwrite-files} is non-@code{nil}, @command{ln}
 will overwrite files without warning.  If
 @code{eshell-ln-interactive-query} is non-@code{nil}, then
@@ -692,6 +704,7 @@ Alias to Emacs's @code{locate} function, which simply runs the external
 @command{locate} command and parses the results.
 @xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
 
+@vindex eshell-plain-locate-behavior
 If @code{eshell-plain-locate-behavior} is non-@code{nil}, then Emacs's
 internal @code{locate} is not used.  This is the same as using
 @samp{alias locate '*locate $@@*'}.
@@ -700,21 +713,25 @@ internal @code{locate} is not used.  This is the same as using
 @cmindex ls
 Lists the contents of directories.
 
+@vindex eshell-ls-use-colors
 If @code{eshell-ls-use-colors} is non-@code{nil}, the contents of a
 directory is color-coded according to file type and status.  These
 colors and the regexps used to identify their corresponding files can
 be customized via @w{@kbd{M-x customize-group @key{RET} eshell-ls @key{RET}}}.
 
+@vindex eshell-ls-date-format
 The user option @code{eshell-ls-date-format} determines how the date
 is displayed when using the @option{-l} option.  The date is produced
 using the function @code{format-time-string} (@pxref{Time Parsing,,,
 elisp, GNU Emacs Lisp Reference Manual}).
 
+@vindex eshell-ls-initial-args
 The user option @code{eshell-ls-initial-args} contains a list of
 arguments to include with any call to @command{ls}.  For example, you
 can include the option @option{-h} to always use a more human-readable
 format.
 
+@vindex eshell-ls-default-blocksize
 The user option @code{eshell-ls-default-blocksize} determines the
 default blocksize used when displaying file sizes with the option
 @option{-s}.
@@ -738,6 +755,8 @@ Make new directories.
 @cmindex mv
 Move or rename files.
 
+@vindex eshell-mv-overwrite-files
+@vindex eshell-mv-interactive-query
 If @code{eshell-mv-overwrite-files} is non-@code{nil}, @command{mv}
 will overwrite files without warning.  If
 @code{eshell-mv-interactive-query} is non-@code{nil}, @command{mv}
@@ -762,6 +781,8 @@ Print the arguments separated by newlines.
 Push the current directory onto the directory stack, then change to
 another directory.
 
+@vindex eshell-pushd-dunique
+@vindex eshell-pushd-dextract
 If @code{eshell-pushd-dunique} is non-@code{nil}, then only unique
 directories will be added to the stack.  If
 @code{eshell-pushd-dextract} is non-@code{nil}, then @samp{pushd
@@ -776,6 +797,8 @@ Prints the current working directory.
 Removes files, buffers, processes, or Emacs Lisp symbols, depending on
 the argument.
 
+@vindex eshell-rm-interactive-query
+@vindex eshell-rm-removes-directories
 If @code{eshell-rm-interactive-query} is non-@code{nil}, @command{rm}
 will prompt before removing anything.  If
 @code{eshell-rm-removes-directories} is non-@code{nil}, then
@@ -1071,6 +1094,13 @@ necessary.  By default, its value is
 @code{@var{emacs-version},eshell}.  Other parts of Emacs, such as
 Tramp, may add extra information to this value.
 
+@vindex $PAGER
+@item $PAGER
+This variable indicates the pager that commands should use when they
+wish to paginate long output.  Its value is that of
+@code{comint-pager} if non-@code{nil}; otherwise, it uses the value of
+@code{$PAGER} from the @code{process-environment}.
+
 @end table
 
 @xref{Aliases}, for the built-in variables @samp{$*}, @samp{$1},
@@ -1080,6 +1110,7 @@ Tramp, may add extra information to this value.
 @section Aliases
 
 @findex eshell-read-aliases-list
+@vindex eshell-aliases-file
 Aliases are commands that expand to a longer input line.  For example,
 @command{ll} is a common alias for @code{ls -l}.  To define this alias
 in Eshell, you can use the command invocation @kbd{alias ll 'ls -l
@@ -1160,6 +1191,7 @@ the option @code{eshell-explicit-remote-commands} to @code{nil}.
 @node History
 @section History
 @cmindex history
+@vindex eshell-history-size
 The @samp{history} command shows all commands kept in the history ring
 as numbered list.  If the history ring contains
 @code{eshell-history-size} commands, those numbers change after every
@@ -1179,6 +1211,7 @@ command beginning with @code{foo}, and @samp{!?foo} to the last
 command containing @code{foo}.  The n-th argument of the last command
 beginning with @code{foo} is accessible by @code{!foo:n}.
 
+@vindex eshell-history-file-name
 The history ring is loaded from a file at the start of every session,
 and written back to the file at the end of every session.  The file path
 is specified in @code{eshell-history-file-name}.  Unlike other shells,
@@ -1364,6 +1397,7 @@ to @code{$(@var{lisp})}, this is identical to @code{@{@var{command}@}}
 when on its own, but the @code{$} allows it to be used inside double
 quotes or as part of a string.
 
+@vindex eshell-convert-numeric-arguments
 Normally, the output is split line-by-line, returning a list (or the
 first element if there's only one line of output); if
 @code{eshell-convert-numeric-arguments} is non-@code{nil} and every
@@ -1466,18 +1500,28 @@ other arguments around it.  For example, if @var{numbers} is the list
 
 @node Globbing
 @section Globbing
-@vindex eshell-glob-case-insensitive
 Eshell's globbing syntax is very similar to that of Zsh
 (@pxref{Filename Generation, , , zsh, The Z Shell Manual}).  Users
 coming from Bash can still use Bash-style globbing, as there are no
 incompatibilities.
 
-By default, globs are case sensitive, except on MS-DOS/MS-Windows
+@vindex eshell-glob-case-insensitive
+Globs are case sensitive by default, except on MS-DOS/MS-Windows
 systems.  You can control this behavior via the
-@code{eshell-glob-case-insensitive} option.  You can further customize
-the syntax and behavior of globbing in Eshell via the Customize group
-@code{eshell-glob} (@pxref{Easy Customization, , , emacs, The GNU
-Emacs Manual}).
+@code{eshell-glob-case-insensitive} option.
+
+@vindex eshell-glob-splice-results
+By default, Eshell expands the results of a glob as a sublist into the
+list of arguments.  You can change this to splice the results in-place
+by setting @code{eshell-glob-splice-results} to a non-@code{nil}
+value.  If you want to splice a glob in-place for just one use, you
+can use a subcommand form like @samp{$@@@{listify @var{my-glob}@}}.
+(Conversely, you can explicitly expand a glob as a sublist via
+@samp{$@{listify @var{my-glob}@}}.)
+
+You can further customize the syntax and behavior of globbing in
+Eshell via the Customize group @code{eshell-glob} (@pxref{Easy
+Customization, , , emacs, The GNU Emacs Manual}).
 
 @table @samp
 
@@ -1825,6 +1869,9 @@ garbage output, since the Eshell buffer is not a terminal emulator.
 Eshell solves this problem by running such programs in Emacs's
 terminal emulator.
 
+@vindex eshell-visual-commands
+@vindex eshell-visual-subcommands
+@vindex eshell-visual-options
 Programs that need a terminal to display output properly are referred
 to in this manual as ``visual commands'', because they are not simply
 line-oriented.  You must tell Eshell which commands are visual, by
@@ -2042,6 +2089,7 @@ modules.@footnote{ERC provides a similar module facility.}
 @node Optional modules
 @section Optional modules
 
+@vindex eshell-modules-list
 In addition to the various modules enabled by default (documented
 above), Eshell provides several other modules which are @emph{not}
 enabled by default.  If you want to enable these, you can add them to
@@ -2069,6 +2117,7 @@ For example, it binds @kbd{C-u} to kill the current input text and
 enabled, it also binds @kbd{C-p} and @kbd{C-n} to move through the
 input history.
 
+@vindex eshell-confine-point-to-input
 If @code{eshell-confine-point-to-input} is non-@code{nil}, this module
 prevents certain commands from causing the point to leave the input
 area, such as @code{backward-word}, @code{previous-line}, etc.
@@ -2385,8 +2434,6 @@ be Eshell's job?
 
 This would be so that if a Lisp function calls @code{print}, everything
 will happen as it should (albeit slowly).
-
-@item If a globbing pattern returns one match, should it be a list?
 
 @item Make sure syntax table is correct in Eshell mode
 

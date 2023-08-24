@@ -69,6 +69,15 @@ by zsh for filename generation."
   :type 'hook
   :group 'eshell-glob)
 
+(defcustom eshell-glob-splice-results nil
+  "If non-nil, the results of glob patterns will be spliced in-place.
+When splicing, the resulting command is as though the user typed
+each result individually.  Otherwise, the glob results a single
+argument as a list."
+  :version "30.1"
+  :type 'boolean
+  :group 'eshell-glob)
+
 (defcustom eshell-glob-include-dot-files nil
   "If non-nil, glob patterns will match files beginning with a dot."
   :type 'boolean
@@ -139,12 +148,15 @@ This mimics the behavior of zsh if non-nil, but bash if nil."
 (defun eshell-no-command-globbing (terms)
   "Don't glob the command argument.  Reflect this by modifying TERMS."
   (ignore
-   (when (and (listp (car terms))
-	      (eq (caar terms) 'eshell-extended-glob))
-     (setcar terms (cadr (car terms))))))
+   (pcase (car terms)
+     ((or `(eshell-extended-glob ,term)
+          `(eshell-splice-args (eshell-extended-glob ,term)))
+      (setcar terms term)))))
 
 (defun eshell-add-glob-modifier ()
   "Add `eshell-extended-glob' to the argument modifier list."
+  (when eshell-glob-splice-results
+    (add-to-list 'eshell-current-modifiers 'eshell-splice-args t))
   (add-to-list 'eshell-current-modifiers 'eshell-extended-glob))
 
 (defun eshell-parse-glob-chars ()
@@ -326,7 +338,9 @@ regular expressions, and these cannot support the above constructs."
     (or (and eshell-glob-matches (sort eshell-glob-matches #'string<))
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
-	  glob))))
+          (if eshell-glob-splice-results
+              (list glob)
+            glob)))))
 
 ;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs only-dirs)

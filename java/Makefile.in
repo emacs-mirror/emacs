@@ -227,6 +227,13 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
 	    cp -f $$file install_temp/lib/$(ANDROID_ABI);	\
 	  fi 							\
 	done
+# Next, produce a version of rcs2log befitting Android's naming
+# conventions and shell interpreter location.
+	$(AM_V_at) \
+	sed 's|/bin/sh|/system/bin/sh|'					\
+	 $(top_srcdir)/lib-src/rcs2log >				\
+	 install_temp/lib/$(ANDROID_ABI)/librcs2log.so
+	$(AM_V_at) chmod +x install_temp/lib/$(ANDROID_ABI)/librcs2log.so
 ifneq ($(NDK_BUILD_SHARED),)
 	$(AM_V_SILENT) cp -f $(NDK_BUILD_SHARED) \
 	  install_temp/lib/$(ANDROID_ABI)

@@ -3315,9 +3315,7 @@ class EmacsFilePanelCallbackLooper : public BLooper
 	      {
 		str_buf = (char *) alloca (std::strlen (str_path)
 					   + std::strlen (name) + 2);
-		snprintf (str_buf, std::strlen (str_path)
-			  + std::strlen (name) + 2, "%s/%s",
-			  str_path, name);
+		sprintf (str_buf, "%s/%s", str_path, name);
 		file_name = strdup (str_buf);
 	      }
 	  }

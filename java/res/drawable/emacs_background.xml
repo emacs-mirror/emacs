@@ -27,14 +27,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
       android:pathData="M-4.99,-5.79h521.12v526.76h-521.12z"
       android:strokeWidth="10.6667">
     <aapt:attr name="android:fillColor">
-      <gradient 
+      <gradient
           android:startX="0"
           android:startY="0"
           android:endX="512"
           android:endY="512"
           android:type="linear">
         <item android:offset="0" android:color="#FF8381C5"/>
-        <item android:offset="0.34" android:color="#FE806BBC"/>
+        <item android:offset="0.64" android:color="#FE806BBC"/>
         <item android:offset="1" android:color="#FDA52ECB"/>
       </gradient>
     </aapt:attr>

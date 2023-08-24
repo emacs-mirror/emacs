@@ -2177,7 +2177,7 @@ More specifically, the composition of the two functions behaves like:
 @findex defadvice
 @findex ad-activate
 
-A lot of code uses the old @code{defadvice} mechanism, which is largely made
+A lot of code uses the old @code{defadvice} mechanism, which has been made
 obsolete by the new @code{advice-add}, whose implementation and semantics is
 significantly simpler.
 

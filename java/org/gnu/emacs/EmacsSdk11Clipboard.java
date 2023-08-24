@@ -71,10 +71,6 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
   public synchronized void
   onPrimaryClipChanged ()
   {
-    Log.d (TAG, ("onPrimaryClipChanged: "
-		 + monitoredClipboardChangedCount
-		 + " " + clipboardChangedCount));
-
     /* Increment monitoredClipboardChangeCount.  If it is now greater
        than clipboardChangedCount, then Emacs no longer owns the
        clipboard.  */
@@ -187,6 +183,10 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
     /* N.B. that Android calls the clipboard the ``primary clip''; it
        is not related to the X primary selection.  */
     clip = manager.getPrimaryClip ();
+
+    if (clip == null)
+      return null;
+
     description = clip.getDescription ();
     i = description.getMimeTypeCount ();
     typeArray = new byte[i][i];
@@ -237,14 +237,12 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 	return null;
       }
 
-    Log.d (TAG, "getClipboardData: "+ mimeType);
-
     /* Now obtain the clipboard data and the data corresponding to
        that MIME type.  */
 
     data = manager.getPrimaryClip ();
 
-    if (data.getItemCount () < 1)
+    if (data == null || data.getItemCount () < 1)
       return null;
 
     try
@@ -253,8 +251,6 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 
 	if (uri == null)
 	  return null;
-
-	Log.d (TAG, "getClipboardData: "+ uri);
 
 	/* Now open the file descriptor.  */
 	assetFd = resolver.openTypedAssetFileDescriptor (uri, mimeType,
@@ -270,8 +266,6 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 
 	/* Close the original offset.  */
 	assetFd.close ();
-
-	Log.d (TAG, "getClipboardData: "+ value);
       }
     catch (FileNotFoundException e)
       {

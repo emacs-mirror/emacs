@@ -123,9 +123,16 @@ encryption is used."
 	      (cons "Opening input file" (cdr error))))))
 
 (defun epa--wrong-password-p (context)
+  "Return whether a wrong password caused the error in CONTEXT."
   (let ((error-string (epg-context-error-output context)))
+    ;; Use a strict regexp here that really only matches "wrong
+    ;; passphrase" errors to avoid hiding diagnostic information
+    ;; (bug#65316).  Below regexp also can fail to match non-English
+    ;; messages, since at least the "decryption failed" part of it
+    ;; seems to be localized.  But since this means false negatives
+    ;; this is probably OK.
     (and (string-match
-          "decryption failed: \\(Bad session key\\|No secret key\\)"
+          "decryption failed: \\(Bad session key\\|Bad passphrase\\)"
           error-string)
          (match-string 1 error-string))))
 

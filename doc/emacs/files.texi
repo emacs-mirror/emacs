@@ -372,12 +372,12 @@ you could say:
       '(("src/emacs/[^/]+/\\(.*\\)\\'" "src/emacs/.*/\\1")))
 @end lisp
 
-As you can see, this is a list of @var{(MATCH EXPANSION...)} elements.
-The @var{match} is a regular expression that matches the visited file
-name, and each @var{expansion} may refer to match groups by using
-@samp{\\1} and so on.  The resulting expansion string is then applied
-to the file system to see if any files match this expansion
-(interpreted as a regexp).
+As you can see, this is a list of @w{@code{(@var{MATCH}
+@var{EXPANSION}...)}} elements.  The @var{match} is a regular
+expression that matches the visited file name, and each
+@var{expansion} may refer to match groups by using @samp{\\1} and so
+on.  The resulting expansion string is then applied to the file system
+to see if any files match this expansion (interpreted as a regexp).
 
 @vindex find-file-hook
 @vindex find-file-not-found-functions

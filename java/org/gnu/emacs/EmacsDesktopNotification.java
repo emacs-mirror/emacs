@@ -144,7 +144,7 @@ public final class EmacsDesktopNotification
     intent = new Intent (context, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
 
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
       pending = PendingIntent.getActivity (context, 0, intent,
 					   PendingIntent.FLAG_IMMUTABLE);
     else

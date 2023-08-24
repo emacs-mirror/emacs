@@ -282,7 +282,7 @@ The value is a symbol:
  `pc' for a direct-write MS-DOS frame.
  `pgtk' for an Emacs frame using pure GTK facilities.
  `haiku' for an Emacs frame running in Haiku.
- `android' for an Emacs frame running in Android/
+ `android' for an Emacs frame running in Android.
 
 FRAME defaults to the currently selected frame.
 

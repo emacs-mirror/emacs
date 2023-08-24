@@ -1845,7 +1845,7 @@ Initialized by `bibtex-set-dialect'.")
   ;; Assume that field names begin at the beginning of a line.
   (concat "^[ \t]*"
           (regexp-opt (delete-dups (mapcar #'caar bibtex-generate-url-list)) t)
-          "[ \t]*=[ \t]*")
+          "[ \t\n]*=[ \t\n]*")
   "Regexp for `bibtex-font-lock-url' derived from `bibtex-generate-url-list'.")
 
 (defvar bibtex-string-empty-key nil

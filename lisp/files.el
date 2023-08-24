@@ -1283,10 +1283,8 @@ Tip: You can use this expansion of remote identifier components
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
      \"/sudo:root@myhost:/bin/sh\"."
-  (let ((handler (find-file-name-handler file 'file-remote-p)))
-    (if handler
-	(funcall handler 'file-remote-p file identification connected)
-      nil)))
+  (when-let ((handler (find-file-name-handler file 'file-remote-p)))
+    (funcall handler 'file-remote-p file identification connected)))
 
 ;; Probably this entire variable should be obsolete now, in favor of
 ;; something Tramp-related (?).  It is not used in many places.

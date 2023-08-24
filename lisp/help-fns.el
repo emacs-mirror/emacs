@@ -153,7 +153,12 @@ edited even if this option is enabled."
   :version "28.1")
 
 (defcustom help-display-function-type t
-  "If non-nil, display the type of a function when available."
+  "Whether to display type specifiers of functions in \"*Help*\" buffers.
+
+The type specifier of a function is returned by `comp-function-type-spec',
+which see.  When this variable is non-nil, \\[describe-function] will \
+display the function's
+type specifier when available."
   :type 'boolean
   :group 'help
   :version "30.1")
@@ -1079,10 +1084,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		  (concat beg "byte-compiled Lisp function"))
                  ((module-function-p def)
                   (concat beg "module function"))
-		 ((eq (car-safe def) 'lambda)
+		 ((memq (car-safe def) '(lambda closure))
 		  (concat beg "Lisp function"))
-		 ((eq (car-safe def) 'closure)
-		  (concat beg "Lisp closure"))
 		 ((keymapp def)
 		  (let ((is-full nil)
 			(elts (cdr-safe def)))

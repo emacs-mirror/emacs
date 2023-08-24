@@ -301,16 +301,25 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
                    (modifiers (eshell-parse-modifiers))
 		   (preds (car modifiers))
 		   (mods (cdr modifiers)))
-	      (if (or preds mods)
-		  ;; has to go at the end, which is only natural since
-		  ;; syntactically it can only occur at the end
-		  (setq eshell-current-modifiers
-			(append
-			 eshell-current-modifiers
-			 (list
-			  (lambda (lst)
-			    (eshell-apply-modifiers
-			     lst preds mods modifier-string))))))))
+              (when (or preds mods)
+                ;; Has to go at the end, which is only natural since
+                ;; syntactically it can only occur at the end.
+                (setq eshell-current-modifiers
+                      (append
+                       eshell-current-modifiers
+                       (list
+                        (lambda (lst)
+                          (eshell-apply-modifiers
+                           lst preds mods modifier-string)))))
+                (when (memq 'eshell-splice-args eshell-current-modifiers)
+                  ;; If splicing results, ensure that
+                  ;; `eshell-splice-args' is the last modifier.
+                  ;; Eshell's command parsing can't handle it anywhere
+                  ;; else.
+                  (setq eshell-current-modifiers
+                        (append (delq 'eshell-splice-args
+                                      eshell-current-modifiers)
+                                (list 'eshell-splice-args)))))))
 	  (goto-char (1+ end))
 	  (eshell-finish-arg))))))
 

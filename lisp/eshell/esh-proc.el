@@ -157,17 +157,14 @@ The signals which will cause this to happen are matched by
     (eshell-reset)))
 
 (defun eshell-wait-for-process (&rest procs)
-  "Wait until PROC has successfully completed."
-  (while procs
-    (let ((proc (car procs)))
-      (when (eshell-processp proc)
-	;; NYI: If the process gets stopped here, that's bad.
-	(while (assq proc eshell-process-list)
-	  (if (input-pending-p)
-	      (discard-input))
-	  (sit-for eshell-process-wait-seconds
-		   eshell-process-wait-milliseconds))))
-    (setq procs (cdr procs))))
+  "Wait until PROCS have successfully completed."
+  (dolist (proc procs)
+    (when (eshell-processp proc)
+      (while (process-live-p proc)
+        (when (input-pending-p)
+          (discard-input))
+        (sit-for eshell-process-wait-seconds
+                 eshell-process-wait-milliseconds)))))
 
 (defalias 'eshell/wait #'eshell-wait-for-process)
 
@@ -506,16 +503,14 @@ If ALL is non-nil, background processes will be interacted with as well.
 If QUERY is non-nil, query the user with QUERY before calling FUNC."
   (let (defunct result)
     (dolist (entry eshell-process-list)
-      (if (and (memq (process-status (car entry))
-		    '(run stop open closed))
+      (if (and (process-live-p (car entry))
 	       (or all
 		   (not (cdr entry)))
 	       (or (not query)
 		   (y-or-n-p (format-message query
 					     (process-name (car entry))))))
 	  (setq result (funcall func (car entry))))
-      (unless (memq (process-status (car entry))
-		    '(run stop open closed))
+      (unless (process-live-p (car entry))
 	(setq defunct (cons entry defunct))))
     ;; clean up the process list; this can get dirty if an error
     ;; occurred that brought the user into the debugger, and then they

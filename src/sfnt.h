@@ -364,6 +364,9 @@ struct sfnt_cmap_format_4
   /* log2(searchRange/2) */
   uint16_t entry_selector;
 
+  /* (2 * segCount) - searchRange */
+  uint16_t range_shift;
+
   /* Variable-length data.  */
   uint16_t *end_code;
   uint16_t *reserved_pad;

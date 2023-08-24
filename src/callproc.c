@@ -2216,6 +2216,17 @@ the system.  */);
   Vebrowse_program_name = build_pure_c_string ("libebrowse.so");
 #endif
 
+  DEFVAR_LISP ("rcs2log-program-name", Vrcs2log_program_name,
+    doc: /* Name of the `rcs2log' program distributed with Emacs.
+Use this instead of calling `rcs2log' directly, as `rcs2log'
+may have been renamed to comply with executable naming restrictions on
+the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vrcs2log_program_name = build_pure_c_string ("rcs2log");
+#else /* HAVE_ANDROID && !ANDROID_STUBIFY */
+  Vrcs2log_program_name = build_pure_c_string ("librcs2log.so");
+#endif /* !HAVE_ANDROID || ANDROID_STUBIFY */
+
   defsubr (&Scall_process);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);
