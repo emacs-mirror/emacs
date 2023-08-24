@@ -294,7 +294,7 @@ then this will always be equivalent to `move'."
                (revert-buffer nil t)))))
   :type '(choice (const :tag "Don't allow dragging" nil)
                  (const :tag "Copy file to new location" t)
-                 (const :tag "Move file to new location" t)
+                 (const :tag "Move file to new location" move)
                  (const :tag "Create symbolic link to file" link))
   :group 'dired
   :version "29.1")
