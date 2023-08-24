@@ -274,11 +274,7 @@ instead."
           ;; use the fancy highlighting in `eshell-ls' rather than font-lock
           (when eshell-ls-use-colors
             (font-lock-mode -1)
-            (setq font-lock-defaults nil)
-            (if (boundp 'font-lock-buffers)
-                (setq font-lock-buffers
-                      (delq (current-buffer)
-                            (symbol-value 'font-lock-buffers)))))
+            (setq font-lock-defaults nil))
           (require 'em-glob)
           (let* ((insert-func 'insert)
                  (error-func 'insert)
