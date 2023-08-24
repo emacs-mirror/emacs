@@ -1070,8 +1070,8 @@ paths.  This only affects history entries added by earlier calls
 to `project-find-file' or `project-find-dir'.
 
 This has the effect of sharing more history between projects."
-  :type '(choice (const t :tag "Default behavior")
-                 (const relativize :tag "Adjust to be relative to current"))
+  :type '(choice (const :tag "Default behavior" t)
+                 (const :tag "Adjust to be relative to current" relativize))
   :group 'project
   :version "30.1")
 
@@ -1911,7 +1911,8 @@ listed in the dispatch menu produced from `project-switch-commands'."
 
 When `brackets', use text brackets and `bold' for the character.
 Otherwise, use the face `help-key-binding' in the prompt."
-  :type 'boolean
+  :type '(choice (const :tag "Using help-key-binding face" t)
+                 (const :tag "Using bold face and brackets" brackets))
   :group 'project
   :version "30.1")
 
