@@ -2182,7 +2182,7 @@ programs was running when the sentinel was started.  However, if
 This makes it possible to use the Lisp debugger to debug the
 sentinel.  @xref{Debugger}.  If an error is caught, Emacs pauses for
 @code{process-error-pause-time} seconds so that the user sees the
-error.  @xref{Asynchronous Processes}
+error.  @xref{Asynchronous Processes}.
 
   While a sentinel is running, the process sentinel is temporarily
 set to @code{nil} so that the sentinel won't run recursively.
