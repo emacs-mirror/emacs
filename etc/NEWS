@@ -846,9 +846,10 @@ within 'function-key-map' or 'input-decode-map' around those calls.
 ** New variables describing the names of built in programs.
 The new variables 'ctags-program-name', 'ebrowse-program-name',
 'etags-program-name', 'hexl-program-name', 'emacsclient-program-name'
-and 'movemail-program-name' should be used instead of "ctags",
-"ebrowse", "etags", "hexl", and "emacsclient", when starting one of
-these built in programs in a subprocess.
+'movemail-program-name', and 'rcs2log-program-name' should be used
+instead of "ctags", "ebrowse", "etags", "hexl", "emacsclient", and
+"rcs2log", when starting one of these built in programs in a
+subprocess.
 
 +++
 ** 'x-popup-menu' now understands touch screen events.

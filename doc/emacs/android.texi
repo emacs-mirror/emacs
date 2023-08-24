@@ -335,17 +335,17 @@ applications.}
   Each application is also prohibited from accessing many system
 directories and the app data directories of other applications.
 
-  Emacs comes with several binaries.  While being executable files,
-they are packaged as libraries in the library directory, because
-otherwise the system will not unpack them while Emacs is being
-installed.  This means, instead of specifying @code{ctags} or
-@code{emacsclient} in a subprocess, Lisp code must specify
-@code{libctags.so} or @code{libemacsclient.so} on the command line
-instead when starting either of those programs in a subprocess; to
-determine which names to use, consult the values of the variables
-@code{ctags-program-name}, @code{etags-program-name},
-@code{hexl-program-name}, @code{emacsclient-program-name},
-@code{movemail-program-name}, and @code{ebrowse-program-name}.
+  The Emacs distribution also incorporates several binaries.  While
+being executable files, they are packaged as libraries in the library
+directory, because otherwise the system will not unpack them while
+Emacs is being installed.  This means that instead of @code{ctags} or
+@code{emacsclient}, Lisp code must specify @code{libctags.so} or
+@code{libemacsclient.so} on the command line when starting either of
+those programs in a subprocess; to determine which names to use,
+consult the values of the variables @code{ctags-program-name},
+@code{etags-program-name}, @code{hexl-program-name},
+@code{emacsclient-program-name}, @code{movemail-program-name},
+@code{ebrowse-program-name}, and @code{rcs2log-program-name}.
 @xref{Subprocess Creation,,, elisp, the Emacs Lisp Reference Manual}.
 
   The @file{/assets} directory containing Emacs start-up files is

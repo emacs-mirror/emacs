@@ -191,17 +191,18 @@ the function returns just the value of the variable @code{exec-path}.
 @vindex hexl-program-name
 @vindex emacsclient-program-name
 @vindex movemail-program-name
-@vindex ebrowse-program-manem
-  When starting a program that is part of the Emacs distribution,
-you must take into account that the program may have been renamed in
-order to comply with executable naming restrictions present on the
-system.
+@vindex ebrowse-program-name
+@vindex rcs2log-program-name
+  When starting a program that is part of the Emacs distribution, you
+must take into account that the program may have been renamed in order
+to comply with executable naming restrictions present on the system.
 
   Instead of starting @command{ctags}, for example, you should specify
 the value of @code{ctags-program-name} instead.  Likewise, instead of
 starting @command{movemail}, you must start
 @code{movemail-program-name}, and the same goes for @command{etags},
-@command{hexl}, @command{emacsclient}, and @command{ebrowse}.
+@command{hexl}, @command{emacsclient}, @code{rcs2log}, and
+@command{ebrowse}.
 
 @node Shell Arguments
 @section Shell Arguments
