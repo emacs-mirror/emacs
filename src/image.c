@@ -10450,22 +10450,36 @@ webp_load (struct frame *f, struct image *img)
     }
 
   /* Create the x image and pixmap.  */
-  Emacs_Pix_Container ximg, mask_img = NULL;
+  Emacs_Pix_Container ximg;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, false))
     goto webp_error2;
 
-  /* Create an image and pixmap serving as mask if the WebP image
-     contains an alpha channel.  */
-  if (features.has_alpha
-      && !image_create_x_image_and_pixmap (f, img, width, height, 1,
-					   &mask_img, true))
+  /* Find the background to use if the WebP image contains an alpha
+     channel.  */
+  Emacs_Color bg_color;
+  if (features.has_alpha)
     {
-      image_destroy_x_image (ximg);
-      image_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP);
-      goto webp_error2;
+      Lisp_Object specified_bg
+	= image_spec_value (img->spec, QCbackground, NULL);
+
+      /* If the user specified a color, try to use it; if not, use the
+	 current frame background, ignoring any default background
+	 color set by the image.  */
+      if (STRINGP (specified_bg))
+	FRAME_TERMINAL (f)->defined_color_hook (f,
+						SSDATA (specified_bg),
+						&bg_color,
+						false,
+						false);
+      else
+	FRAME_TERMINAL (f)->query_frame_background_color (f, &bg_color);
+      bg_color.red   >>= 8;
+      bg_color.green >>= 8;
+      bg_color.blue  >>= 8;
     }
 
-  /* Fill the X image and mask from WebP data.  */
+  /* Fill the X image from WebP data.  */
+
   init_color_table ();
 
   img->corners[TOP_CORNER] = 0;
@@ -10480,21 +10494,21 @@ webp_load (struct frame *f, struct image *img)
     {
       for (int x = 0; x < width; ++x)
 	{
-	  int r = *p++ << 8;
-	  int g = *p++ << 8;
-	  int b = *p++ << 8;
+	  int r, g, b;
+	  /* The WebP alpha channel allows 256 levels of partial
+	     transparency.  Blend it with the background manually.  */
+	  if (features.has_alpha || anim) {
+	    float a = (float) p[3] / UINT8_MAX;
+	    r = (int)(a * p[0] + (1.0 - a) * bg_color.red)   << 8;
+	    g = (int)(a * p[1] + (1.0 - a) * bg_color.green) << 8;
+	    b = (int)(a * p[2] + (1.0 - a) * bg_color.blue)  << 8;
+	    p += 4;
+	  } else {
+	    r = *p++ << 8;
+	    g = *p++ << 8;
+	    b = *p++ << 8;
+	  }
 	  PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, r, g, b));
-
-	  /* An alpha channel associates variable transparency with an
-	     image.  WebP allows up to 256 levels of partial transparency.
-	     We handle this like with PNG (which see), using the frame's
-	     background color to combine the image with.  */
-	  if (features.has_alpha || anim)
-	    {
-	      if (mask_img)
-		PUT_PIXEL (mask_img, x, y, *p > 0 ? PIX_MASK_DRAW : PIX_MASK_RETAIN);
-	      ++p;
-	    }
 	}
     }
 
@@ -10506,16 +10520,6 @@ webp_load (struct frame *f, struct image *img)
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
-
-  /* Same for the mask.  */
-  if (mask_img)
-    {
-      /* Fill in the background_transparent field while we have the
-	 mask handy.  Casting avoids a GCC warning.  */
-      image_background_transparent (img, f, (Emacs_Pix_Context)mask_img);
-
-      image_put_x_image (f, img, mask_img, 1);
-    }
 
   img->width = width;
   img->height = height;
