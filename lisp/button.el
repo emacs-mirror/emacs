@@ -492,7 +492,7 @@ pushing a button, use the `button-describe' command."
 	    (if str-button
 	        ;; mode-line, header-line, or display string event.
 	        (button-activate str t)
-              (if (eq (car pos) 'touchscreen-down)
+              (if (eq (car-safe pos) 'touchscreen-down)
                   ;; If touch-screen-track tap returns nil, then the
                   ;; tap was cancelled.
                   (when (touch-screen-track-tap pos)
