@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.4.1
+@subtitle for version 0.4.3
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -74,7 +74,7 @@ that hurdle is Psionic K's interactive tutorial, available at
 @end quotation
 
 @noindent
-This manual is for Transient version 0.4.1.
+This manual is for Transient version 0.4.3.
 
 @insertcopying
 @end ifnottex
@@ -248,18 +248,18 @@ When using Transient, one can call a command with arguments that are
 just as complex as when calling the same function non-interactively
 from Lisp.
 
-Invoking a transient command with arguments is similar to invoking a
-command in a shell with command-line completion and history enabled.
-One benefit of the Transient interface is that it remembers history
-not only on a global level (“this command was invoked using these
-arguments, and previously it was invoked using those other arguments”),
-but also remembers the values of individual arguments independently.
-@xref{Using History}.
+Invoking a transient suffix command with arguments is similar to
+invoking a command in a shell with command-line completion and history
+enabled.  One benefit of the Transient interface is that it remembers
+history not only on a global level (“this command was invoked using
+these arguments, and previously it was invoked using those other
+arguments”), but also remembers the values of individual arguments
+independently.  See @xref{Using History}.
 
 After a transient prefix command is invoked, @kbd{C-h @var{KEY}} can be used to
 show the documentation for the infix or suffix command that @kbd{@var{KEY}} is
-bound to (@pxref{Getting Help for Suffix Commands}), and infixes and
-suffixes can be removed from the transient using @kbd{C-x l @var{KEY}}.  Infixes
+bound to (see @ref{Getting Help for Suffix Commands}), and infixes and
+suffixes can be removed from the transient using @kbd{C-x l @var{KEY}}. Infixes
 and suffixes that are disabled by default can be enabled the same way.
 @xref{Enabling and Disabling Suffixes}.
 
@@ -270,20 +270,25 @@ Additionally, Transient provides abstractions for defining new types,
 which the author of Transient did not anticipate (or didn't get around
 to implementing yet).
 
+Note that suffix commands also support regular prefix arguments.  A
+suffix command may even be called with both infix and prefix arguments
+at the same time.  If you invoke a command as a suffix of a transient
+prefix command, but also want to pass prefix arguments to it, then
+first invoke the prefix command, and only after doing that invoke the
+prefix arguments, before finally invoking the suffix command.  If you
+instead began by providing the prefix arguments, then those would
+apply to the prefix command, not the suffix command.  Likewise, if you
+want to change infix arguments before invoking a suffix command with
+prefix arguments, then change the infix arguments before invoking the
+prefix arguments.  In other words, regular prefix arguments always
+apply to the next command, and since transient prefix, infix and
+suffix commands are just regular commands, the same applies to them.
+(Regular prefix keys behave differently because they are not commands
+at all, instead they are just incomplete key sequences, and those
+cannot be interrupted with prefix commands.)
+
 @node Usage
 @chapter Usage
-
-@menu
-* Invoking Transients::
-* Aborting and Resuming Transients::
-* Common Suffix Commands::
-* Saving Values::
-* Using History::
-* Getting Help for Suffix Commands::
-* Enabling and Disabling Suffixes::
-* Other Commands::
-* Configuration::
-@end menu
 
 @node Invoking Transients
 @section Invoking Transients
@@ -996,14 +1001,6 @@ signal an error.
 
 @node Defining New Commands
 @chapter Defining New Commands
-
-@menu
-* Defining Transients::
-* Binding Suffix and Infix Commands::
-* Defining Suffix and Infix Commands::
-* Using Infix Arguments::
-* Transient State::
-@end menu
 
 @node Defining Transients
 @section Defining Transients
@@ -2234,11 +2231,6 @@ available depending on user preference.
 @node Related Abstractions and Packages
 @chapter Related Abstractions and Packages
 
-@menu
-* Comparison With Prefix Keys and Prefix Arguments::
-* Comparison With Other Packages::
-@end menu
-
 @node Comparison With Prefix Keys and Prefix Arguments
 @section Comparison With Prefix Keys and Prefix Arguments
 
@@ -2558,8 +2550,6 @@ currently exist.
 
 @node FAQ
 @appendix FAQ
-
-
 
 @anchor{Can I control how the popup buffer is displayed?}
 @appendixsec Can I control how the popup buffer is displayed?
