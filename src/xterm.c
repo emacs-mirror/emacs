@@ -23784,7 +23784,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	         deriving a keysym or text to insert.
 
 	         Otherwise, if the XKB extension is available, calls
-	         are made to XkbLookupKeycode and XkbTranslateKeysym.
+	         are made to XkbTranslateKeyCode and
+	         XkbTranslateKeySym.
 
 	         And if all else fails, XEV is transformed into a core
 	         event and provided to XLookupString, in a manner
@@ -24081,7 +24082,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    goto xi_done_keysym;
 
 			  /* Save the original keysym in case
-			     XkbTranslateKeysym overflows.  */
+			     XkbTranslateKeySym overflows.  */
 			  sym = keysym, overflow = 0;
 
 			  /* Translate this keysym and its modifier
@@ -31098,7 +31099,17 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
     }
-#endif
+
+  /* XFree86 extends XKBlib with a new Xlib control `ControlFallback',
+     which enables a search for symbols designating ASCII characters
+     within inactive groups during keycode translation when
+     ControlMask is set.  Users find this behavior gratuitous, so
+     disable it if present.  */
+
+#ifdef XkbLC_ControlFallback
+  XkbSetXlibControls (dpyinfo->display, XkbLC_ControlFallback, 0);
+#endif /* XkbLC_ControlFallback */
+#endif /* HAVE_XKB */
 
 #ifdef HAVE_XFIXES
   int xfixes_error_base;
