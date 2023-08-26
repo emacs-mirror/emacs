@@ -490,12 +490,12 @@ It includes all faces in list FACES."
     (with-current-buffer standard-output
       (describe-theme-1 theme))))
 
-(defun describe-theme-from-file (&optional file short)
-  "Describe theme from its file FILE without loading it.
+(defun describe-theme-from-file (theme &optional file short)
+  "Describe THEME from its FILE without loading it.
 
-If FILE is nil try to find the file from the theme name in
-`custom-theme-load-path'.
-If SHORT is non nil show only the first line of documentation."
+If FILE is nil try to look in `custom-theme-load-path' for the
+theme's file using the theme's name.
+If SHORT is non-nil, show only the first line of thene's documentation."
     (let ((file (or file
                   (locate-file (concat (symbol-name theme) "-theme.el")
 			       (custom-theme--load-path)
@@ -535,7 +535,7 @@ If SHORT is non nil show only the first line of documentation."
       (princ "It is not loaded.")
       ;; Attempt to grab the theme documentation from file.
       (when fn
-	(setq doc (describe-theme-from-file fn))))
+	(setq doc (describe-theme-from-file theme fn))))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
 	       (substitute-command-keys doc)
