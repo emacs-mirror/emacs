@@ -8,7 +8,7 @@
  (0.0 ":soju.im 005 tester CHATHISTORY=1000 CASEMAPPING=ascii NETWORK=Soju :are supported")
  (0.0 ":soju.im 422 tester :No MOTD"))
 
-((mode 1 "MODE tester +i")
+((mode 10 "MODE tester +i")
  (0.0 ":tester!tester@10.0.2.100 JOIN #chan/foonet")
  (0.25 ":soju.im 331 tester #chan/foonet :No topic is set")
  (0.0 ":soju.im 353 tester = #chan/foonet :@bob/foonet alice/foonet tester")

@@ -2071,8 +2071,7 @@
          ;; This is for integrations testing with managed configs
          ;; ("starter kits") that use a different package manager.
          (init (and-let* ((found (getenv "ERC_TESTS_INIT"))
-                          (files (split-string found ","))
-                          ((seq-every-p #'file-exists-p files)))
+                          (files (split-string found ",")))
                  (mapcan (lambda (f) (list "-l" f)) files)))
          (prog
           `(progn

@@ -74,6 +74,7 @@
   (let ((hunks (erc-d-u-scan-e-sd info))
         (pos (erc-d-u-scan-e-pos info)))
     (or (and (erc-d-u-scan-d-hunks hunks)
+             (buffer-live-p (erc-d-u-scan-d-buf hunks))
              (with-current-buffer (erc-d-u-scan-d-buf hunks)
                (goto-char pos)
                (condition-case _err
