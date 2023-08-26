@@ -1337,6 +1337,18 @@ image_error (const char *format, ...)
 }
 
 static void
+image_invalid_data_error (Lisp_Object data)
+{
+  image_error ("Invalid image data `%s'", data);
+}
+
+static void
+image_not_found_error (Lisp_Object filename)
+{
+  image_error ("Cannot find image file `%s'", filename);
+}
+
+static void
 image_size_error (void)
 {
   image_error ("Invalid image size (see `max-image-size')");
@@ -3838,8 +3850,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
-      image_error ("Unable to create X pixmap", Qnil, Qnil);
-      return 0;
+      image_error ("Unable to create X pixmap");
+      return false;
     }
 
   *pimg = *pixmap;
@@ -3871,8 +3883,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
-      image_error ("Unable to create pixmap", Qnil, Qnil);
-      return 0;
+      image_error ("Unable to create pixmap");
+      return false;
     }
 
   *pimg = *pixmap;
@@ -5065,8 +5077,8 @@ xbm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -5717,12 +5729,12 @@ xpm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
+	  image_not_found_error (specified_file);
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
 	  SAFE_FREE ();
-	  return 0;
+	  return false;
 	}
 
       file = ENCODE_FILE (file);
@@ -5749,7 +5761,7 @@ xpm_load (struct frame *f, struct image *img)
       Lisp_Object buffer = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (buffer))
 	{
-	  image_error ("Invalid image data `%s'", buffer);
+	  image_invalid_data_error (buffer);
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
@@ -6361,8 +6373,8 @@ xpm_load (struct frame *f,
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -6383,8 +6395,8 @@ xpm_load (struct frame *f,
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       success_p = xpm_load_image (f, img, SSDATA (data),
 				  SSDATA (data) + SBYTES (data));
@@ -7390,8 +7402,8 @@ pbm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -7411,8 +7423,8 @@ pbm_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       p = SSDATA (data);
       end = p + SBYTES (data);
@@ -8060,8 +8072,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
 			       O_RDONLY, 0)) < 0)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       /* Open the image file.  */
@@ -8085,8 +8097,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  image_invalid_data_error (specified_data);
+	  return false;
 	}
 
       /* Read from memory.  */
@@ -8789,8 +8801,8 @@ jpeg_load_body (struct frame *f, struct image *img,
 	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
 			       O_RDONLY, 0)) < 0)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       fp = emacs_fdopen (fd, "rb");
@@ -8802,8 +8814,8 @@ jpeg_load_body (struct frame *f, struct image *img,
     }
   else if (!STRINGP (specified_data))
     {
-      image_error ("Invalid image data `%s'", specified_data);
-      return 0;
+      image_invalid_data_error (specified_data);
+      return false;
     }
 
   /* Customize libjpeg's error handling to call my_error_exit when an
@@ -9244,8 +9256,8 @@ tiff_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       Lisp_Object encoded_file = ENCODE_FILE (file);
@@ -9265,8 +9277,8 @@ tiff_load (struct frame *f, struct image *img)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  image_invalid_data_error (specified_data);
+	  return false;
 	}
 
       /* Memory source! */
@@ -9673,7 +9685,7 @@ gif_load (struct frame *f, struct image *img)
 	  Lisp_Object file = image_find_image_file (specified_file);
 	  if (!STRINGP (file))
 	    {
-	      image_error ("Cannot find image file `%s'", specified_file);
+	      image_not_found_error (specified_file);
 	      return false;
 	    }
 
@@ -9718,7 +9730,7 @@ gif_load (struct frame *f, struct image *img)
 	{
 	  if (!STRINGP (specified_data))
 	    {
-	      image_error ("Invalid image data `%s'", specified_data);
+	      image_invalid_data_error (specified_data);
 	      return false;
 	    }
 
@@ -10294,7 +10306,7 @@ webp_load (struct frame *f, struct image *img)
       file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
+	  image_not_found_error (specified_file);
 	  return false;
 	}
 
@@ -10309,7 +10321,7 @@ webp_load (struct frame *f, struct image *img)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
+	  image_invalid_data_error (specified_data);
 	  return false;
 	}
       contents = SDATA (specified_data);
@@ -11318,8 +11330,8 @@ imagemagick_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (file_name);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
       file = ENCODE_FILE (file);
 #ifdef WINDOWSNT
@@ -11336,8 +11348,8 @@ imagemagick_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       success_p = imagemagick_load_image (f, img, SDATA (data),
                                           SBYTES (data), NULL);
@@ -11700,8 +11712,8 @@ svg_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       /* Read the entire file into memory.  */
@@ -11728,8 +11740,8 @@ svg_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       if (!STRINGP (base_uri))
         base_uri = BVAR (current_buffer, filename);
