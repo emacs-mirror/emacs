@@ -10497,17 +10497,20 @@ webp_load (struct frame *f, struct image *img)
 	  int r, g, b;
 	  /* The WebP alpha channel allows 256 levels of partial
 	     transparency.  Blend it with the background manually.  */
-	  if (features.has_alpha || anim) {
-	    float a = (float) p[3] / UINT8_MAX;
-	    r = (int)(a * p[0] + (1.0 - a) * bg_color.red)   << 8;
-	    g = (int)(a * p[1] + (1.0 - a) * bg_color.green) << 8;
-	    b = (int)(a * p[2] + (1.0 - a) * bg_color.blue)  << 8;
-	    p += 4;
-	  } else {
-	    r = *p++ << 8;
-	    g = *p++ << 8;
-	    b = *p++ << 8;
-	  }
+	  if (features.has_alpha || anim)
+	    {
+	      float a = (float) p[3] / UINT8_MAX;
+	      r = (int)(a * p[0] + (1 - a) * bg_color.red)   << 8;
+	      g = (int)(a * p[1] + (1 - a) * bg_color.green) << 8;
+	      b = (int)(a * p[2] + (1 - a) * bg_color.blue)  << 8;
+	      p += 4;
+	    }
+	  else
+	    {
+	      r = *p++ << 8;
+	      g = *p++ << 8;
+	      b = *p++ << 8;
+	    }
 	  PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, r, g, b));
 	}
     }
