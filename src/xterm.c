@@ -30178,6 +30178,16 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
     }
+
+  /* XFree86 extends XKBlib with a new Xlib control `ControlFallback',
+     which enables a search for symbols designating ASCII characters
+     within inactive groups during keycode translation when
+     ControlMask is set.  Users find this behavior gratuitous, so
+     disable it if present.  */
+
+#ifdef XkbLC_ControlFallback
+  XkbSetXlibControls (dpyinfo->display, XkbLC_ControlFallback, 0);
+#endif /* XkbLC_ControlFallback */
 #endif
 
 #ifdef HAVE_XFIXES
