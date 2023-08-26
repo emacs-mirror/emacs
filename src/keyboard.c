@@ -4833,7 +4833,8 @@ The value when Emacs is idle is a Lisp timestamp in the style of
 
 The value when Emacs is not idle is nil.
 
-PSEC is a multiple of the system clock resolution.  */)
+If the value is a list of four integers (HIGH LOW USEC PSEC), then PSEC
+is a multiple of the system clock resolution.  */)
   (void)
 {
   if (timespec_valid_p (timer_idleness_start_time))
