@@ -429,6 +429,14 @@ be used instead.
 
 (defvar warning-minimum-log-level)
 
+(defvar elisp--local-macroenv
+  `((cl-eval-when . ,(lambda (&rest args) `(progn . ,(cdr args))))
+    (eval-when-compile . ,(lambda (&rest args) `(progn . ,args)))
+    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args))))
+  "Environment to use while tentatively expanding macros.
+This is used to try and avoid the most egregious problems linked to the
+use of `macroexpand-all' as a way to find the \"underlying raw code\".")
+
 (defun elisp--local-variables ()
   "Return a list of locally let-bound variables at point."
   (save-excursion
@@ -444,15 +452,17 @@ be used instead.
                        (car (read-from-string
                              (concat txt "elisp--witness--lisp" closer)))
                      ((invalid-read-syntax end-of-file) nil)))
-             (macroexpand-advice (lambda (expander form &rest args)
-                                   (condition-case nil
-                                       (apply expander form args)
-                                     (error form))))
+             (macroexpand-advice
+              (lambda (expander form &rest args)
+                (condition-case err
+                    (apply expander form args)
+                  (error (message "Ignoring macroexpansion error: %S" err)
+                         form))))
              (sexp
               (unwind-protect
                   (let ((warning-minimum-log-level :emergency))
-                    (advice-add 'macroexpand :around macroexpand-advice)
-                    (macroexpand-all sexp))
+                    (advice-add 'macroexpand-1 :around macroexpand-advice)
+                    (macroexpand-all sexp elisp--local-macroenv))
                 (advice-remove 'macroexpand macroexpand-advice)))
              (vars (elisp--local-variables-1 nil sexp)))
         (delq nil
@@ -1380,9 +1390,9 @@ BEG and END are the start and end of the output in current buffer.
 VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the
 alternative printed representations that can be displayed."
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-m" 'elisp-last-sexp-toggle-display)
-    (define-key map [down-mouse-2] 'mouse-set-point)
-    (define-key map [mouse-2] 'elisp-last-sexp-toggle-display)
+    (define-key map "\C-m" #'elisp-last-sexp-toggle-display)
+    (define-key map [down-mouse-2] #'mouse-set-point)
+    (define-key map [mouse-2] #'elisp-last-sexp-toggle-display)
     (add-text-properties
      beg end
      `(printed-value (,value ,alt1 ,alt2)
@@ -1439,7 +1449,7 @@ If CHAR is not a character, return nil."
 		     (lambda (modif)
 		       (cond ((eq modif 'super) "\\s-")
 			     (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
-		     mods "")
+		     mods)
 		    (cond
 		     ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
 		     ((eq c 127) "\\C-?")
@@ -1515,7 +1525,7 @@ If CHAR is not a character, return nil."
                   `(call-interactively
                     (lambda (&rest args) ,expr args))))
 	  expr)))))
-(define-obsolete-function-alias 'preceding-sexp 'elisp--preceding-sexp "25.1")
+(define-obsolete-function-alias 'preceding-sexp #'elisp--preceding-sexp "25.1")
 
 (defun elisp--eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
@@ -1643,9 +1653,8 @@ Reinitialize the face according to the `defface' specification."
 		    ;; The second arg is an expression that evaluates to
 		    ;; an expression.  The second evaluation is the one
 		    ;; normally performed not by normal execution but by
-		    ;; custom-initialize-set (for example), which does not
-		    ;; use lexical-binding.
-		    (eval (eval (nth 2 form) lexical-binding))))
+		    ;; custom-initialize-set (for example).
+		    (eval (eval (nth 2 form) lexical-binding) t)))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
@@ -1785,7 +1794,7 @@ Elements are as follows:
     (or (progn (elisp-eldoc-var-docstring callback) str)
         (progn (elisp-eldoc-funcall callback) str))))
 
-(defalias 'elisp-eldoc-documentation-function 'elisp--documentation-one-liner
+(defalias 'elisp-eldoc-documentation-function #'elisp--documentation-one-liner
   "Return Elisp documentation for the thing at point as one-line string.
 This is meant as a backward compatibility aide to the \"old\"
 Elisp eldoc behavior.  Consider variable docstrings and function
