@@ -1270,6 +1270,14 @@ Otherwise, create a new marker at position POS, with type TYPE."
        (move-marker ,marker-var ,pos)
      (setq ,marker-var (copy-marker ,pos ,type))))
 
+(defun align--rule-should-run (rule)
+  "Given an `align-rules-list' entry RULE, return t if it should run.
+This is decided by the `modes' and `run-if' keys in the alist
+RULE.  Their meaning is documented in `align-rules-list' (which see)."
+  (let-alist rule
+    (not (or (and .modes (not (apply #'derived-mode-p (eval .modes))))
+             (and .run-if (not (funcall .run-if)))))))
+
 (defun align-region (beg end separate rules exclude-rules
 			 &optional func)
   "Align a region based on a given set of alignment rules.
@@ -1307,23 +1315,20 @@ This feature (of passing a FUNC) is used internally to locate the
 position of exclusion areas, but could also be used for any other
 purpose where you might want to know where the regions that the
 aligner would have dealt with are."
-  (let ((end-mark (and end (copy-marker end t)))
-	(real-beg beg)
-	(report (and (not func) align-large-region beg end
-		     (>= (- end beg) align-large-region)))
-	(rule-index 1)
-	(rule-count (length rules))
-	markers)
+  (let* ((end-mark (and end (copy-marker end t)))
+	 (real-beg beg)
+	 (report (and (not func) align-large-region beg end
+		      (>= (- end beg) align-large-region)))
+         (rules (seq-filter #'align--rule-should-run rules))
+	 (rule-index 1)
+	 (rule-count (length rules))
+	 markers)
     (if (and align-indent-before-aligning real-beg end-mark)
 	(indent-region real-beg end-mark nil))
     (while rules
-      (let* ((rule (car rules))
-	     (run-if (assq 'run-if rule))
-	     (modes (assq 'modes rule)))
-	;; unless the `run-if' form tells us not to, look for the
-	;; rule..
-	(unless (or (and modes (not (apply #'derived-mode-p (eval (cdr modes)))))
-		    (and run-if (not (funcall (cdr run-if)))))
+      (let ((rule (car rules)))
+        (progn
+          ;; Search for a match for the rule.
 	  (let* ((case-fold-search case-fold-search)
 		 (case-fold (assq 'case-fold rule))
 		 (regexp  (cdr (assq 'regexp rule)))
