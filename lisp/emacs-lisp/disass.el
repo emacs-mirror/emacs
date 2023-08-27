@@ -89,8 +89,10 @@ redefine OBJECT if it is a symbol."
                  (subr-native-elisp-p obj))
             (progn
               (require 'comp)
-              (call-process "objdump" nil (current-buffer) t "-S"
-                            (native-comp-unit-file (subr-native-comp-unit obj)))
+              (let ((eln (native-comp-unit-file (subr-native-comp-unit obj))))
+                (if (file-exists-p eln)
+                    (call-process "objdump" nil (current-buffer) t "-S" eln)
+                  (error "Missing eln file for #<subr %s>" name)))
               (goto-char (point-min))
               (re-search-forward (concat "^.*"
                                          (regexp-quote
