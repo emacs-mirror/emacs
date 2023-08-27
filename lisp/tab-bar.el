@@ -164,7 +164,8 @@ For easier selection of tabs by their numbers, consider customizing
   (declare-function icons--register "icons")
   (unless (iconp 'tab-bar-new)
     (define-icon tab-bar-new nil
-      `((image "tabs/new.xpm"
+      `((image "symbols/plus_16.svg" "tabs/new.xpm"
+               :face shadow
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji "➕")
@@ -177,7 +178,9 @@ For easier selection of tabs by their numbers, consider customizing
 
   (unless (iconp 'tab-bar-close)
     (define-icon tab-bar-close nil
-      `((image "tabs/close.xpm"
+      `((image "symbols/cross_16.svg" "tabs/close.xpm"
+               :face shadow
+               :height (1.0 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji " ❌")
@@ -191,7 +194,10 @@ For easier selection of tabs by their numbers, consider customizing
 
   (unless (iconp 'tab-bar-menu-bar)
     (define-icon tab-bar-menu-bar nil
-      '(;; (emoji "🍔")
+      `((image "symbols/menu_16.svg"
+               :margin ,tab-bar-button-margin
+               :ascent center)
+        ;; (emoji "🍔")
         (symbol "☰")
         (text "Menu" :face tab-bar-tab-inactive))
       "Icon for the menu bar."
@@ -799,16 +805,17 @@ the formatted tab name to display in the tab bar."
   :version "28.1")
 
 (defun tab-bar-tab-name-format-default (tab i)
-  (let ((current-p (eq (car tab) 'current-tab)))
-    (propertize
-     (concat (if tab-bar-tab-hints (format "%d " i) "")
-             (alist-get 'name tab)
-             (or (and tab-bar-close-button-show
-                      (not (eq tab-bar-close-button-show
-                               (if current-p 'non-selected 'selected)))
-                      tab-bar-close-button)
-                 ""))
-     'face (funcall tab-bar-tab-face-function tab))))
+  (let* ((current-p (eq (car tab) 'current-tab))
+         (name (concat (if tab-bar-tab-hints (format "%d " i) "")
+                       (alist-get 'name tab)
+                       (or (and tab-bar-close-button-show
+                                (not (eq tab-bar-close-button-show
+                                         (if current-p 'non-selected 'selected)))
+                                tab-bar-close-button)
+                           ""))))
+    (add-face-text-property
+     0 (length name) (funcall tab-bar-tab-face-function tab) t name)
+    name))
 
 (defcustom tab-bar-format '(tab-bar-format-history
                             tab-bar-format-tabs
@@ -2233,7 +2240,7 @@ and can restore them."
 
         (unless (iconp 'tab-bar-back)
           (define-icon tab-bar-back nil
-            `((image "tabs/left-arrow.xpm"
+            `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " < "))
@@ -2243,7 +2250,7 @@ and can restore them."
 
         (unless (iconp 'tab-bar-forward)
           (define-icon tab-bar-forward nil
-            `((image "tabs/right-arrow.xpm"
+            `((image "symbols/chevron_right_16.svg" "tabs/right-arrow.xpm"
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " > "))
