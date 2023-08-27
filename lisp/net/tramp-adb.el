@@ -923,7 +923,7 @@ implementation will be used."
 
 	    (when (string-match-p (rx multibyte) command)
 	      (tramp-error
-	       v 'file-error "Cannot apply multi-byte command `%s'" command))
+	       v 'file-error "Cannot apply multibyte command `%s'" command))
 
 	    (while (get-process name1)
 	      ;; NAME must be unique as process name.
