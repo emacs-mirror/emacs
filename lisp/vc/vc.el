@@ -1894,7 +1894,9 @@ in the output buffer."
     (vc-run-delayed (vc-diff-finish (current-buffer) nil))))
 
 (defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose buffer)
-  "Report diffs between two revisions of a fileset.
+  "Report diffs between revisions REV1 and REV2 of a fileset in VC-FILESET.
+ASYNC non-nil means run the backend's commands asynchronously if possible.
+VC-FILESET should have the format described in `vc-deduce-fileset'.
 Output goes to the buffer BUFFER, which defaults to *vc-diff*.
 BUFFER, if non-nil, should be a buffer or a buffer name.
 Return t if the buffer had changes, nil otherwise."
@@ -1910,15 +1912,26 @@ Return t if the buffer had changes, nil otherwise."
 	 ;; but the only way to set it for each file included would
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
-	  (if files (vc-coding-system-for-diff (car files)) 'undecided))
+          ;; Force the EOL conversion to be -unix, in case the files
+          ;; to be compared have DOS EOLs.  In that case, EOL
+          ;; conversion will produce a patch file that will either
+          ;; fail to apply, or will change the EOL format of some of
+          ;; the lines in the patched file.
+          (coding-system-change-eol-conversion
+	   (if files (vc-coding-system-for-diff (car files)) 'undecided)
+           'unix))
          (orig-diff-buffer-clone
           (if revert-buffer-in-progress-p
               (clone-buffer
                (generate-new-buffer-name " *vc-diff-clone*") nil))))
     ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style
     ;; EOLs, which will look ugly if (car files) happens to have Unix
-    ;; EOLs.
-    (if (memq system-type '(windows-nt ms-dos))
+    ;; EOLs.  But for Git, we must force Unix EOLs in the diffs, since
+    ;; Git always produces Unix EOLs in the parts that didn't come
+    ;; from the file, and wants to see any CR characters when applying
+    ;; patches.
+    (if (and (memq system-type '(windows-nt ms-dos))
+             (not (eq (car vc-fileset) 'Git)))
 	(setq coding-system-for-read
 	      (coding-system-change-eol-conversion coding-system-for-read
 						   'dos)))

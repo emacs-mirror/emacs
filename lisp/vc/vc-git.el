@@ -1051,7 +1051,15 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 (user-error "Index not empty"))
               (setq pos (point))))))
       (unless (string-empty-p vc-git-patch-string)
-        (let ((patch-file (make-nearby-temp-file "git-patch")))
+        (let ((patch-file (make-nearby-temp-file "git-patch"))
+              ;; Temporarily countermand the let-binding at the
+              ;; beginning of this function.
+              (coding-system-for-write
+               (coding-system-change-eol-conversion
+                ;; On DOS/Windows, it is important for the patch file
+                ;; to have the Unix EOL format, because Git expects
+                ;; that, even on Windows.
+                (or pcsw vc-git-commits-coding-system) 'unix)))
           (with-temp-file patch-file
             (insert vc-git-patch-string))
           (unwind-protect
