@@ -19,8 +19,14 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'esh-util)
+
+(require 'eshell-tests-helpers
+         (expand-file-name "eshell-tests-helpers"
+                           (file-name-directory (or load-file-name
+                                                    default-directory))))
 
 ;;; Tests:
 
@@ -53,5 +59,29 @@
 (ert-deftest esh-util-test/eshell-stringify/complex ()
   "Test that `eshell-stringify' correctly stringifies complex objects."
   (should (equal (eshell-stringify (list 'quote 'hello)) "'hello")))
+
+(ert-deftest esh-util-test/path/get ()
+  "Test that getting the Eshell path returns the expected results."
+  (let ((expected-path (butlast (exec-path))))
+    (should (equal (eshell-get-path)
+                   (if (eshell-under-windows-p)
+                       (cons "." expected-path)
+                     expected-path)))
+    (should (equal (eshell-get-path 'literal)
+                   expected-path))))
+
+(ert-deftest esh-util-test/path/get-remote ()
+  "Test that getting the remote Eshell path returns the expected results."
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (expected-path (butlast (exec-path))))
+    ;; Make sure we don't have a doubled directory separator.
+    (should (seq-every-p (lambda (i) (not (string-match-p "//" i)))
+                         (eshell-get-path)))
+    (should (equal (eshell-get-path)
+                   (mapcar (lambda (i)
+                             (concat (file-remote-p default-directory) i))
+                           expected-path)))
+    (should (equal (eshell-get-path 'literal)
+                   expected-path))))
 
 ;;; esh-util-tests.el ends here

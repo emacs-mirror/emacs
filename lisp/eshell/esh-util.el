@@ -283,7 +283,7 @@ as the $PATH was actually specified."
                  (eshell-under-windows-p))
         (push "." path))
       (if (and remote (not literal-p))
-          (mapcar (lambda (x) (file-name-concat remote x)) path)
+          (mapcar (lambda (x) (concat remote x)) path)
         path))))
 
 (defun eshell-set-path (path)
