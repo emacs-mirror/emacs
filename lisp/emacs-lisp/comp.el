@@ -4096,7 +4096,8 @@ the deferred compilation mechanism."
              (symbols-with-pos-enabled t)
              ;; Have byte compiler signal an error when compilation fails.
              (byte-compile-debug t)
-             (comp-ctxt (make-comp-ctxt :output output
+             (comp-ctxt (make-comp-ctxt :output (when output
+                                                  (expand-file-name output))
                                         :with-late-load with-late-load)))
         (comp-log "\n\n" 1)
         (unwind-protect
