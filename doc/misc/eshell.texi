@@ -333,7 +333,8 @@ As with other shells, you can escape special characters and spaces by
 prefixing the character with a backslash (@samp{\}), or by surrounding
 the string with apostrophes (@samp{''}) or double quotes (@samp{""}).
 This is needed especially for file names with special characters like
-pipe (@samp{|}), which could be part of remote file names.
+pipe (@samp{|}) or square brackets (@samp{[} or @samp{]}), which could
+be part of remote file names.
 
 When you escape a character with @samp{\} outside of any quotes, the
 result is the literal character immediately following it.  For
