@@ -1399,7 +1399,7 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	}
 
       if (background_width > 0)
-	haiku_draw_background_rect (s, s->face, s->x, s->y,
+	haiku_draw_background_rect (s, s->face, x, s->y,
 				    background_width, s->height);
     }
   s->background_filled_p = 1;
