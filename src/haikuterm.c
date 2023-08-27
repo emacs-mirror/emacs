@@ -1219,7 +1219,7 @@ static void
 haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 {
   struct glyph *glyph = s->first_glyph;
-  unsigned char2b[8];
+  static unsigned char2b[8];
   int x, i, j;
   struct face *face = s->face;
   unsigned long color;
@@ -1399,7 +1399,7 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	}
 
       if (background_width > 0)
-	haiku_draw_background_rect (s, s->face, s->x, s->y,
+	haiku_draw_background_rect (s, s->face, x, s->y,
 				    background_width, s->height);
     }
   s->background_filled_p = 1;
