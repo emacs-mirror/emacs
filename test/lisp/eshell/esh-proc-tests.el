@@ -259,4 +259,19 @@ write the exit status to the pipe.  See bug#54136."
                      output-start (eshell-end-of-output))
                     "")))))
 
+
+;; Remote processes
+
+(ert-deftest esh-var-test/remote/remote-path ()
+  "Ensure that setting the remote PATH in Eshell doesn't interfere with Tramp.
+See bug#65551."
+  (skip-unless (and (eshell-tests-remote-accessible-p)
+                    (executable-find "echo")))
+  (let ((default-directory ert-remote-temporary-file-directory))
+    (with-temp-eshell
+     (eshell-insert-command "set PATH ''")
+     (eshell-match-command-output
+      (format "%s hello" (executable-find "echo" t))
+      "\\`hello\n"))))
+
 ;;; esh-proc-tests.el ends here
