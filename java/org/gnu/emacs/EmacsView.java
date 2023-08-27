@@ -330,11 +330,17 @@ public final class EmacsView extends ViewGroup
 	measuredHeight = bottom - top;
       }
 
+    /* If oldMeasuredHeight or oldMeasuredWidth are wrong, set changed
+       to true as well.  */
+
+    if (right - left != oldMeasuredWidth
+	|| bottom - top != oldMeasuredHeight)
+      changed = true;
+
     /* Dirty the back buffer if the layout change resulted in the view
        being resized.  */
 
-    if (changed && (right - left != oldMeasuredWidth
-		    || bottom - top != oldMeasuredHeight))
+    if (changed)
       {
 	explicitlyDirtyBitmap ();
 
