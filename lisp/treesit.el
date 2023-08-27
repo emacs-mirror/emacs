@@ -2459,7 +2459,8 @@ in `treesit-parser-list'."
                         'bold nil))
         name
         (if (treesit-node-check node 'named) ")" "\""))))
-    (setq treesit--inspect-name name)
+    ;; Escape the percent character for mode-line. (Bug#65540)
+    (setq treesit--inspect-name (string-replace "%" "%%" name))
     (force-mode-line-update)
     (when arg
       (if node-list
