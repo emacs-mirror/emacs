@@ -485,7 +485,7 @@ Default value of MODIFIERS is `shift'."
   (interactive)
   (unless modifiers (setq modifiers 'shift))
   (when (eq modifiers 'none) (setq modifiers nil))
-  (unless (listp modifiers) (setq modifiers (list modifiers)))
+  (setq modifiers (ensure-list modifiers))
   (windmove-install-defaults nil modifiers
                              '((windmove-left left)
                                (windmove-right right)
@@ -626,7 +626,7 @@ Default value of MODIFIERS is `shift-meta'."
   (interactive)
   (unless modifiers (setq modifiers '(shift meta)))
   (when (eq modifiers 'none) (setq modifiers nil))
-  (unless (listp modifiers) (setq modifiers (list modifiers)))
+  (setq modifiers (ensure-list modifiers))
   (windmove-install-defaults nil modifiers
                              '((windmove-display-left left)
                                (windmove-display-right right)
@@ -703,10 +703,10 @@ Default value of PREFIX is \\`C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))
   (when (eq prefix 'none) (setq prefix nil))
-  (unless (listp prefix) (setq prefix (list prefix)))
+  (setq prefix (ensure-list prefix))
   (unless modifiers (setq modifiers '(shift)))
   (when (eq modifiers 'none) (setq modifiers nil))
-  (unless (listp modifiers) (setq modifiers (list modifiers)))
+  (setq modifiers (ensure-list modifiers))
   (windmove-install-defaults prefix modifiers
                              '((windmove-delete-left left)
                                (windmove-delete-right right)
@@ -766,7 +766,7 @@ Default value of MODIFIERS is `shift-super'."
   (interactive)
   (unless modifiers (setq modifiers '(shift super)))
   (when (eq modifiers 'none) (setq modifiers nil))
-  (unless (listp modifiers) (setq modifiers (list modifiers)))
+  (setq modifiers (ensure-list modifiers))
   (windmove-install-defaults nil modifiers
                              '((windmove-swap-states-left left)
                                (windmove-swap-states-right right)

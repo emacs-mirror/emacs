@@ -1463,8 +1463,7 @@ aligner would have dealt with are."
                     ;; that we need it
                     (unless nil ;; group-c
                       (setq groups (or (cdr (assq 'group rule)) 1))
-                      (unless (listp groups)
-                        (setq groups (list groups)))
+                      (setq groups (ensure-list groups))
                       (setq first (car groups)))
 
                     (unless spacing-c

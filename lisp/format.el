@@ -295,7 +295,7 @@ For most purposes, consider using `format-decode-region' instead."
 			  (setq try format-alist))
 		      (setq try (cdr try))))))
 	    ;; Deal with given format(s)
-	    (or (listp format) (setq format (list format)))
+            (setq format (ensure-list format))
 	    (let ((do format) f)
 	      (while do
 		(or (setq f (assq (car do) format-alist))

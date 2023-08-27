@@ -1118,8 +1118,7 @@ element of DEFAULT is returned.  If DEFAULT isn't a list, but
 MULTIPLE is non-nil, a one-element list containing DEFAULT is
 returned.  Otherwise, DEFAULT is returned verbatim."
   (let (defaults)
-    (unless (listp default)
-      (setq default (list default)))
+    (setq default (ensure-list default))
     (when default
       (setq default
             (if multiple

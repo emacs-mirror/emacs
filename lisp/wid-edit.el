@@ -644,8 +644,7 @@ Return a list whose car contains all members of VALS that matched WIDGET."
 (defun widget-prompt-value (widget prompt &optional value unbound)
   "Prompt for a value matching WIDGET, using PROMPT.
 The current value is assumed to be VALUE, unless UNBOUND is non-nil."
-  (unless (listp widget)
-    (setq widget (list widget)))
+  (setq widget (ensure-list widget))
   (setq prompt (format "[%s] %s" (widget-type widget) prompt))
   (setq widget (widget-convert widget))
   (let ((answer (widget-apply widget :prompt-value prompt value unbound)))

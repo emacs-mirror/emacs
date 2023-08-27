@@ -1371,8 +1371,7 @@ When called interactively, prompt for REGEXP."
 	  ;; Allow user-defined functions to be run on this file.
 	  (when gnus-uu-grabbed-file-functions
 	    (let ((funcs gnus-uu-grabbed-file-functions))
-	      (unless (listp funcs)
-		(setq funcs (list funcs)))
+              (setq funcs (ensure-list funcs))
 	      (while funcs
 		(funcall (pop funcs) result-file))))
 	  (setq result-file nil)

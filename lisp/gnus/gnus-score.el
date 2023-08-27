@@ -2994,10 +2994,7 @@ The list is determined from the variable `gnus-score-file-alist'."
 	(group (or group gnus-newsgroup-name))
 	score-files)
     (when group
-      ;; Make sure funcs is a list.
-      (and funcs
-	   (not (listp funcs))
-	   (setq funcs (list funcs)))
+      (setq funcs (ensure-list funcs))
       (when gnus-score-use-all-scores
 	;; Get the initial score files for this group.
 	(when funcs
@@ -3104,12 +3101,8 @@ The list is determined from the variable `gnus-score-file-alist'."
 (defun gnus-home-score-file (group &optional adapt)
   "Return the home score file for GROUP.
 If ADAPT, return the home adaptive file instead."
-  (let ((list (if adapt gnus-home-adapt-file gnus-home-score-file))
+  (let ((list (ensure-list (if adapt gnus-home-adapt-file gnus-home-score-file)))
 	elem found)
-    ;; Make sure we have a list.
-    (unless (listp list)
-      (setq list (list list)))
-    ;; Go through the list and look for matches.
     (while (and (not found)
 		(setq elem (pop list)))
       (setq found
