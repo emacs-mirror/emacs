@@ -811,7 +811,7 @@ INLINE void
    extracted pointer's type is CTYPE *.  */
 
 #define XUNTAG(a, type, ctype) ((ctype *) \
-				((char *) XLP (a) - LISP_WORD_TAG (type)))
+				((uintptr_t) XLP (a) - LISP_WORD_TAG (type)))
 
 /* A forwarding pointer to a value.  It uses a generic pointer to
    avoid alignment bugs that could occur if it used a pointer to a
