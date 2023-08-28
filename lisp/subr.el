@@ -5002,8 +5002,8 @@ the function `undo--wrap-and-run-primitive-undo'."
 			;; Don't include a timestamp entry.
 			(setcdr ptr (cddr ptr))
 		      (setq ptr (cdr ptr))))
-		  (unless (cdr ptr)
-		    (message "combine-change-calls: buffer-undo-list broken"))
+		  (unless (or (cdr ptr) (null old-bul))
+		    (message "combine-change-calls: buffer-undo-list presumably truncated by GC"))
 		  (setcdr ptr nil)
 		  (push ap-elt buffer-undo-list)
 		  (setcdr buffer-undo-list old-bul)))))
