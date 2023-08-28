@@ -146,6 +146,12 @@ Anything following the symbol 'mode-line-format-right-align' in
 right-aligned to is controlled by the new user option
 'mode-line-right-align-edge'.
 
+** Tab Bars and Tab Lines
+
+*** New user option 'tab-bar-tab-name-format-functions'.
+It can be used to add, remove and reorder functions that change
+the appearance of every tab on the tab bar.
+
 
 * Editing Changes in Emacs 30.1
 
