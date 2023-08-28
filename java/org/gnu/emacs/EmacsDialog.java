@@ -88,8 +88,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     public void
     onClick (View view)
     {
-      Log.d (TAG, "onClicked " + this);
-
       wasButtonClicked = true;
       EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
       dismissDialog.dismiss ();
@@ -99,8 +97,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     public void
     onClick (DialogInterface dialog, int which)
     {
-      Log.d (TAG, "onClicked " + this);
-
       wasButtonClicked = true;
       EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
     }
@@ -300,10 +296,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 	   work, then any focused EmacsOpenActivity, and finally the
 	   last EmacsActivity to be focused.  */
 
-	Log.d (TAG, "display1: no focused activities...");
-	Log.d (TAG, ("display1: EmacsOpenActivity.currentActivity: "
-		     + EmacsOpenActivity.currentActivity));
-
 	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
 	    || Settings.canDrawOverlays (EmacsService.SERVICE))
 	  context = EmacsService.SERVICE;
@@ -320,8 +312,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 	 foreground, as this allows the dialog to be dismissed more
 	 consistently.  */
       context = EmacsActivity.focusedActivities.get (0);
-
-    Log.d (TAG, "display1: using context " + context);
 
     dialog = dismissDialog = toAlertDialog (context);
 
@@ -418,8 +408,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   public void
   onDismiss (DialogInterface dialog)
   {
-    Log.d (TAG, "onDismiss: " + this);
-
     if (wasButtonClicked)
       return;
 

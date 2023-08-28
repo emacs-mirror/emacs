@@ -232,19 +232,14 @@ public final class EmacsOpenActivity extends Activity
     int read;
     String content;
 
-    Log.d (TAG, "checkReadableOrCopy: " + file);
-
     inFile = new File (file);
 
     if (inFile.canRead ())
       return file;
 
-    Log.d (TAG, "checkReadableOrCopy: NO");
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
       {
 	content = EmacsService.buildContentName (uri);
-	Log.d (TAG, "checkReadableOrCopy: " + content);
 	return content;
       }
 
@@ -509,8 +504,6 @@ public final class EmacsOpenActivity extends Activity
   public void
   onDestroy ()
   {
-    Log.d (TAG, "onDestroy: " + this);
-
     /* Clear `currentActivity' if it refers to the activity being
        destroyed.  */
 
@@ -524,9 +517,6 @@ public final class EmacsOpenActivity extends Activity
   public void
   onWindowFocusChanged (boolean isFocused)
   {
-    Log.d (TAG, "onWindowFocusChanged: " + this + ", is now focused: "
-	   + isFocused);
-
     if (isFocused)
       currentActivity = this;
     else if (currentActivity == this)
@@ -539,8 +529,6 @@ public final class EmacsOpenActivity extends Activity
   public void
   onPause ()
   {
-    Log.d (TAG, "onPause: " + this);
-
     /* XXX: clear currentActivity here as well; I don't know whether
        or not onWindowFocusChanged is always called prior to this.  */
 
