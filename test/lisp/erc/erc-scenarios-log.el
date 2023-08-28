@@ -202,6 +202,7 @@
         (funcall expect -0.1 "please your lordship")))
 
     (erc-log-mode -1)
+    (erc-truncate-mode -1)
     (when noninteractive (delete-directory tempdir :recursive))))
 
 ;;; erc-scenarios-log.el ends here

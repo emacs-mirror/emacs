@@ -536,7 +536,7 @@ SPC=view TAB=goto RET=goto+hide [e]dit [q]uit [r]escan [f]ollow [?]Help
                    (nth 2 (car reftex-index-restriction-data))
                  reftex-index-restriction-indicator)))
 
-      (if (reftex-use-fonts)
+      (if reftex-use-fonts
           (put-text-property (point-min) (point)
                              'face reftex-index-header-face))
       (cursor-intangible-mode 1)
@@ -567,7 +567,7 @@ SPC=view TAB=goto RET=goto+hide [e]dit [q]uit [r]escan [f]ollow [?]Help
          (context-indent (concat indent "  "))
          (section-chars (mapcar #'identity reftex-index-section-letters))
          (this-section-char 0)
-         (font (reftex-use-fonts))
+         (font reftex-use-fonts)
          (bor (car reftex-index-restriction-data))
          (eor (nth 1 reftex-index-restriction-data))
          (mouse-face

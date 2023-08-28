@@ -8834,8 +8834,6 @@ start with default arguments, then refine the slowdown regions."
       (message "to %s:%6s,%7s" l delta tot))
     tot))
 
-(defvar font-lock-cache-position)
-
 (defun cperl-emulate-lazy-lock (&optional window-size)
   "Emulate `lazy-lock' without `condition-case', so `debug-on-error' works.
 Start fontifying the buffer from the start (or end) using the given

@@ -2212,12 +2212,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	}
 #ifdef NS_IMPL_COCOA
       else
-	/* Under NS, there is no system mechanism for choosing a new
-	   window to get focus -- it is left to application code.
-	   So the portion of THIS application interfacing with NS
-	   needs to know about it.  We call Fraise_frame, but the
-	   purpose is really to transfer focus.  */
-	Fraise_frame (frame1);
+	{
+	  /* Under NS, there is no system mechanism for choosing a new
+	     window to get focus -- it is left to application code.
+	     So the portion of THIS application interfacing with NS
+	     needs to make the frame we switch to the key window.  */
+	  struct frame *f1 = XFRAME (frame1);
+	  if (FRAME_NS_P (f1))
+	    ns_make_frame_key_window (f1);
+	}
 #endif
 
       do_switch_frame (frame1, 0, 1, Qnil);

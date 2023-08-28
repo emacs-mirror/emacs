@@ -1,0 +1,5 @@
+---
+If:
+    PathMatch: "src/.*\.c"
+CompileFlags:
+    Add: [-Wno-unused-macros, -include=config.h]

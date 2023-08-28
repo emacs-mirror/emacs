@@ -235,10 +235,6 @@
 (require 'view)
 (eval-when-compile (require 'subr-x))   ; string-empty-p
 
-(defvar font-lock-keyword-face)
-(defvar font-lock-set-defaults)
-(defvar font-lock-string-face)
-
 ;;; Allow customization
 
 (defgroup SQL nil
@@ -1191,12 +1187,11 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-postgres-options '("-P" "pager=off")
   "List of additional options for `sql-postgres-program'.
-The default setting includes the -P option which breaks older versions
-of the psql client (such as version 6.5.3).  The -P option is equivalent
-to the --pset option.  If you want the psql to prompt you for a user
-name, add the string \"-u\" to the list of options.  If you want to
-provide a user name on the command line (newer versions such as 7.1),
-add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
+The default -P option is equivalent to the --pset option.  If you
+want psql to prompt you for a user name, add the string \"-u\" to
+the list of options.  If you want to provide a user name on the
+command line, add your name with a \"-U\" prefix (such as
+\"-Umark\") to the list."
   :type '(repeat string)
   :version "20.8")
 

@@ -453,8 +453,7 @@ separate appointment."
     ;; It repeatedly reminds you of the date?
     ;; It would make more sense if it was eg the time of the appointment.
     ;; Let's allow it to be a list or not independent of the other elements.
-    (or (listp new-time)
-        (setq new-time (list new-time)))
+    (setq new-time (ensure-list new-time))
     ;; FIXME Link to diary entry?
     (calendar-set-mode-line
      (format " %s. %s" (appt-mode-line min-to-app)

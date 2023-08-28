@@ -264,12 +264,14 @@ file, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
 @cindex CRAM-MD5
 @cindex PLAIN
 @cindex LOGIN
+@cindex OAuth2
+@cindex OAuth 2.0
 The process by which the @acronym{SMTP} library authenticates you to
 the server is known as ``Simple Authentication and Security Layer''
 (@acronym{SASL}).  There are various @acronym{SASL} mechanisms, and
-this library supports three of them: @code{cram-md5}, @code{plain},
+this library supports four of them: @code{cram-md5}, @code{plain},
 @code{login} and @code{xoauth2}, where the first uses a form of
-encryption to obscure your password, while the other two do not.  It
+encryption to obscure your password, while the others do not.  It
 tries each of them, in that order, until one succeeds.
 (@code{xoauth2} requires using the @file{oauth2.el} library.  You can
 override this by assigning a specific authentication mechanism to a

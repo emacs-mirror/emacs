@@ -1,7 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2023 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: tex
@@ -32,9 +31,6 @@
   (require 'compare-w)
   (require 'cl-lib)
   (require 'skeleton))
-
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
 
 (require 'shell)
 (require 'compile)

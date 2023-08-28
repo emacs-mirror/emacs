@@ -122,6 +122,7 @@
       (inhibit-interaction t)
       (auth-source-do-cache nil)
       (timer-list (copy-sequence timer-list))
+      (timer-idle-list (copy-sequence timer-idle-list))
       (erc-auth-source-parameters-join-function nil)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)

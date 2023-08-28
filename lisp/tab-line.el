@@ -29,6 +29,7 @@
 
 (require 'cl-lib)
 (require 'seq) ; tab-line.el is not pre-loaded so it's safe to use it here
+(require 'icons)
 
 
 (defgroup tab-line nil
@@ -190,12 +191,19 @@ If the value is a function, call it with no arguments."
   :group 'tab-line
   :version "27.1")
 
+(define-icon tab-line-new nil
+  `((image "symbols/plus_16.svg" "tabs/new.xpm"
+           :face shadow
+           :margin (2 . 0)
+           :ascent center)
+    (text " + "))
+  "Icon for creating a new tab."
+  :version "30.1"
+  :help-echo "New tab")
+
 (defvar tab-line-new-button
-  (propertize " + "
-              'display '(image :type xpm
-                               :file "tabs/new.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-new)
+              'rear-nonsticky nil
               'keymap tab-line-add-map
               'mouse-face 'tab-line-highlight
               'help-echo "Click to add tab")
@@ -218,34 +226,54 @@ If nil, don't show it at all."
   :group 'tab-line
   :version "27.1")
 
+(define-icon tab-line-close nil
+  `((image "symbols/cross_16.svg" "tabs/close.xpm"
+           :face shadow
+           :height (1.0 . em)
+           :margin (2 . 0)
+           :ascent center)
+    (text " x"))
+  "Icon for closing the clicked tab."
+  :version "30.1"
+  :help-echo "Click to close tab")
+
 (defvar tab-line-close-button
-  (propertize " x"
-              'display '(image :type xpm
-                               :file "tabs/close.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-close)
+              'rear-nonsticky nil ;; important to not break auto-scroll
               'keymap tab-line-tab-close-map
               'mouse-face 'tab-line-close-highlight
               'help-echo "Click to close tab")
   "Button for closing the clicked tab.")
 
+(define-icon tab-line-left nil
+  `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
+           :face shadow
+           :margin (2 . 0)
+           :ascent center)
+    (text " <"))
+  "Icon for scrolling horizontally to the left."
+  :version "30.1")
+
 (defvar tab-line-left-button
-  (propertize " <"
-              'display '(image :type xpm
-                               :file "tabs/left-arrow.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-left)
+              'rear-nonsticky nil
               'keymap tab-line-left-map
               'mouse-face 'tab-line-highlight
               'help-echo "Click to scroll left")
   "Button for scrolling horizontally to the left.")
 
+(define-icon tab-line-right nil
+  `((image "symbols/chevron_right_16.svg" "tabs/right-arrow.xpm"
+           :face shadow
+           :margin (2 . 0)
+           :ascent center)
+    (text "> "))
+  "Icon for scrolling horizontally to the right."
+  :version "30.1")
+
 (defvar tab-line-right-button
-  (propertize "> "
-              'display '(image :type xpm
-                               :file "tabs/right-arrow.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-right)
+              'rear-nonsticky nil
               'keymap tab-line-right-map
               'mouse-face 'tab-line-highlight
               'help-echo "Click to scroll right")
@@ -531,21 +559,27 @@ which the tab will represent."
       (setf face (funcall fn tab tabs face buffer-p selected-p)))
     (apply 'propertize
            (concat (propertize (string-replace "%" "%%" name) ;; (bug#57848)
+                               'face face
                                'keymap tab-line-tab-map
                                'help-echo (if selected-p "Current tab"
                                             "Click to select tab")
                                ;; Don't turn mouse-1 into mouse-2 (bug#49247)
                                'follow-link 'ignore)
-                   (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
-                            tab-line-close-button-show
-                            (not (eq tab-line-close-button-show
-                                     (if selected-p 'non-selected 'selected)))
-                            tab-line-close-button)
-                       ""))
+                   (let ((close (or (and (or buffer-p (assq 'buffer tab)
+                                             (assq 'close tab))
+                                         tab-line-close-button-show
+                                         (not (eq tab-line-close-button-show
+                                                  (if selected-p 'non-selected
+                                                    'selected)))
+                                         tab-line-close-button)
+                                    "")))
+                     (setq close (copy-sequence close))
+                     ;; Don't overwrite the icon face
+                     (add-face-text-property 0 (length close) face t close)
+                     close))
            `(
              tab ,tab
              ,@(if selected-p '(selected t))
-             face ,face
              mouse-face tab-line-highlight))))
 
 (defun tab-line-format-template (tabs)
@@ -684,7 +718,7 @@ the selected tab visible."
       (erase-buffer)
       (apply 'insert strings)
       (goto-char (point-min))
-      (add-face-text-property (point-min) (point-max) 'tab-line)
+      (add-face-text-property (point-min) (point-max) 'tab-line t)
       ;; Continuation means tab-line doesn't fit completely,
       ;; thus scroll arrows are needed for scrolling.
       (setq show-arrows (> (vertical-motion 1) 0))

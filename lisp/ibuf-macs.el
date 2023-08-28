@@ -310,7 +310,7 @@ bound to the current value of the filter.
            (,qualifier-str qualifier))
        ,(when accept-list
           `(progn
-         (unless (listp qualifier) (setq qualifier (list qualifier)))
+         (setq qualifier (ensure-list qualifier))
          ;; Reject equivalent filters: (or f1 f2) is same as (or f2 f1).
          (setq qualifier (sort (delete-dups qualifier) #'string-lessp))
          (setq ,filter (cons ',name (car qualifier)))

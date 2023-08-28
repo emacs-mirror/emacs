@@ -29,6 +29,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
 
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -302,6 +303,26 @@ public final class EmacsView extends ViewGroup
     super.setMeasuredDimension (width, height);
   }
 
+  /* Return whether this view's window is focused.  This is made
+     necessary by Android 11's unreliable dispatch of
+     onWindowFocusChanged prior to gesture navigation away from a
+     frame.  */
+
+  public boolean
+  checkWindowFocus ()
+  {
+    EmacsActivity activity;
+    Object consumer;
+
+    consumer = window.getAttachedConsumer ();
+
+    if (!(consumer instanceof EmacsActivity))
+      return false;
+
+    activity = (EmacsActivity) consumer;
+    return activity.hasWindowFocus ();
+  }
+
   /* Note that the monitor lock for the window must never be held from
      within the lock for the view, because the window also locks the
      other way around.  */
@@ -315,6 +336,7 @@ public final class EmacsView extends ViewGroup
     View child;
     Rect windowRect;
     boolean needExpose;
+    WindowInsets rootWindowInsets;
 
     count = getChildCount ();
     needExpose = false;
@@ -330,11 +352,17 @@ public final class EmacsView extends ViewGroup
 	measuredHeight = bottom - top;
       }
 
+    /* If oldMeasuredHeight or oldMeasuredWidth are wrong, set changed
+       to true as well.  */
+
+    if (right - left != oldMeasuredWidth
+	|| bottom - top != oldMeasuredHeight)
+      changed = true;
+
     /* Dirty the back buffer if the layout change resulted in the view
        being resized.  */
 
-    if (changed && (right - left != oldMeasuredWidth
-		    || bottom - top != oldMeasuredHeight))
+    if (changed)
       {
 	explicitlyDirtyBitmap ();
 
@@ -343,13 +371,36 @@ public final class EmacsView extends ViewGroup
 	if (right - left > oldMeasuredWidth
 	    || bottom - top > oldMeasuredHeight)
 	  needExpose = true;
+
+	/* This might return NULL if this view is not attached.  */
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+	  {
+	    /* If a toplevel view is focused and isCurrentlyTextEditor
+	       is enabled when the IME is hidden, clear
+	       isCurrentlyTextEditor so it isn't shown again if the
+	       user dismisses Emacs before returning.  */
+	    rootWindowInsets = getRootWindowInsets ();
+
+	    if (isCurrentlyTextEditor
+		&& rootWindowInsets != null
+		&& isAttachedToWindow
+		&& !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
+		/* N.B. that the keyboard is dismissed during gesture
+		   navigation under Android 30, but the system is
+		   quite tempermental regarding whether the window is
+		   focused at that point.  Ideally
+		   isCurrentlyTextEditor shouldn't be reset in that
+		   case, but detecting that situation appears to be
+		   impossible.  Sigh.  */
+		&& (window == EmacsActivity.focusedWindow
+		    && hasWindowFocus ()))
+	      isCurrentlyTextEditor = false;
+	  }
       }
 
     for (i = 0; i < count; ++i)
       {
 	child = getChildAt (i);
-
-	Log.d (TAG, "onLayout: " + child);
 
 	if (child == surfaceView)
 	  child.layout (0, 0, right - left, bottom - top);
@@ -485,6 +536,8 @@ public final class EmacsView extends ViewGroup
     return window.onTouchEvent (motion);
   }
 
+
+
   private void
   moveChildToBack (View child)
   {
@@ -512,8 +565,6 @@ public final class EmacsView extends ViewGroup
 
     parent = (EmacsView) getParent ();
 
-    Log.d (TAG, "raise: parent " + parent);
-
     if (parent.indexOfChild (this)
 	== parent.getChildCount () - 1)
       return;
@@ -527,8 +578,6 @@ public final class EmacsView extends ViewGroup
     EmacsView parent;
 
     parent = (EmacsView) getParent ();
-
-    Log.d (TAG, "lower: parent " + parent);
 
     if (parent.indexOfChild (this) == 1)
       return;
@@ -555,9 +604,6 @@ public final class EmacsView extends ViewGroup
 
     contextMenu = menu;
     popupActive = true;
-
-    Log.d (TAG, "popupMenu: " + menu + " @" + xPosition
-	   + ", " + yPosition + " " + force);
 
     /* Use showContextMenu (float, float) on N to get actual popup
        behavior.  */
@@ -694,14 +740,8 @@ public final class EmacsView extends ViewGroup
 
     selection = EmacsService.viewGetSelection (window.handle);
 
-    if (selection != null)
-      Log.d (TAG, "onCreateInputConnection: current selection is: "
-	     + selection[0] + ", by " + selection[1]);
-    else
+    if (selection == null)
       {
-	Log.d (TAG, "onCreateInputConnection: current selection could"
-	       + " not be retrieved.");
-
 	/* If the selection could not be obtained, return 0 by 0.
 	   However, ask for the selection position to be updated as
 	   soon as possible.  */
@@ -773,5 +813,34 @@ public final class EmacsView extends ViewGroup
     getLocationInWindow (locations);
     window.notifyContentRectPosition (locations[0],
 				      locations[1]);
+  }
+
+  @Override
+  public WindowInsets
+  onApplyWindowInsets (WindowInsets insets)
+  {
+    WindowInsets rootWindowInsets;
+
+    /* This function is called when window insets change, which
+       encompasses input method visibility changes under Android 30
+       and later.  If a toplevel view is focused and
+       isCurrentlyTextEditor is enabled when the IME is hidden, clear
+       isCurrentlyTextEditor so it isn't shown again if the user
+       dismisses Emacs before returning.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
+      return super.onApplyWindowInsets (insets);
+
+    /* This might return NULL if this view is not attached.  */
+    rootWindowInsets = getRootWindowInsets ();
+
+    if (isCurrentlyTextEditor
+	&& rootWindowInsets != null
+	&& isAttachedToWindow
+	&& !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
+	&& window == EmacsActivity.focusedWindow)
+      isCurrentlyTextEditor = false;
+
+    return super.onApplyWindowInsets (insets);
   }
 };

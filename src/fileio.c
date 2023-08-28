@@ -2518,8 +2518,8 @@ permissions.  */)
       ts[1] = get_stat_mtime (&st);
       if (futimens (ofd, ts) != 0
 	  /* Various versions of the Android C library are missing
-	     futimens, which leads a gnulib fallback to be installed
-	     that uses fdutimens instead.  However, fdutimens is not
+	     futimens, prompting Gnulib to install a fallback that
+	     uses fdutimens instead.  However, fdutimens is not
 	     supported on many Android kernels, so just silently fail
 	     if errno is ENOTSUP or ENOSYS.  */
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY

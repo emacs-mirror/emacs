@@ -7990,8 +7990,7 @@ indirectly called by the latter."
                           buffer-mode))
          (curwin (selected-window))
          (curframe (selected-frame)))
-    (unless (listp allowed-modes)
-      (setq allowed-modes (list allowed-modes)))
+    (setq allowed-modes (ensure-list allowed-modes))
     (let (same-mode-same-frame
           same-mode-other-frame
           derived-mode-same-frame

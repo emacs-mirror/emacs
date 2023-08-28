@@ -250,9 +250,6 @@ on the menu bar.
 (defvar LaTeX-label-function)
 (defvar tex-main-file)
 (defvar outline-minor-mode)
-(defvar font-lock-mode)
-(defvar font-lock-keywords)
-(defvar font-lock-fontify-region-function)
 
 ;;; =========================================================================
 ;;;
@@ -2027,21 +2024,14 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;;;
 ;;; Fontification and Highlighting
 
-(defun reftex-use-fonts ()
-  ;; Return t if we can and want to use fonts.
-  (and ; window-system
-       reftex-use-fonts
-       (featurep 'font-lock)))
-
 (defun reftex-refontify ()
   ;; Return t if we need to refontify context
-  (and (reftex-use-fonts)
+  (and reftex-use-fonts
        (or (eq t reftex-refontify-context)
            (and (eq 1 reftex-refontify-context)
                 ;; Test of we use the font-lock version of x-symbol
                 (and (featurep 'x-symbol-tex) (not (boundp 'x-symbol-mode)))))))
 
-(defvar font-lock-defaults-computed)
 (defun reftex-fontify-select-label-buffer (parent-buffer)
   ;; Fontify the `*RefTeX Select*' buffer.  Buffer is temporarily renamed to
   ;; start with none-SPC char, because Font-Lock otherwise refuses operation.
@@ -2341,6 +2331,10 @@ Your bug report will be posted to the AUCTeX bug reporting list.
 (setq reftex-tables-dirty t)  ; in case this file is evaluated by hand
 
 (define-obsolete-function-alias 'reftex-window-height #'window-height "30.1")
+
+(defun reftex-use-fonts ()
+  (declare (obsolete "use variable `reftex-use-fonts' instead." "30.1"))
+  reftex-use-fonts)
 
 (provide 'reftex)
 

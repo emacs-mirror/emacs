@@ -1291,7 +1291,7 @@ main (int argc, char **argv)
      for pointers.  */
   void *stack_bottom_variable;
   int old_argc;
-#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+#if defined HAVE_PDUMPER && !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   char *dump_file;
 
   /* This is just a dummy argument used to avoid extra defines.  */

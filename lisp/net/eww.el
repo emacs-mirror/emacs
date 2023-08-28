@@ -566,7 +566,7 @@ NO-SELECT non-nil means do not make the new buffer the current buffer."
             (tab-new)
             (eww--open-url-in-new-buffer url)
             (when no-select
-              (tab-bar-switch-to-prev-tab)))
+              (tab-bar-switch-to-recent-tab)))
         (if no-select
             (save-window-excursion (eww--open-url-in-new-buffer url))
           (eww--open-url-in-new-buffer url)))

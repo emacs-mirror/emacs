@@ -257,6 +257,24 @@ of the address, such as the person's full name.  Emacs puts them in if
 they are needed.  For instance, it inserts the above address as
 @samp{"John Q. Smith" <none@@example.com>}.
 
+@findex rebuild-mail-abbrevs
+@findex merge-mail-abbrevs
+  After editing the @file{~/.mailrc} file, or if the file was modified
+outside of Emacs, you can update the mail aliases used by a running
+Emacs session with @w{@kbd{M-x rebuild-mail-abbrevs @key{RET}}}.  This
+prompts for the name of the file to use, the default being the value
+of @code{mail-personal-alias-file}.  A similar command
+@code{merge-mail-abbrevs} prompts for a file with mail aliases, then
+merges the aliases in that file with the existing ones.
+
+@findex define-mail-abbrev
+  Alternatively, you can use Emacs commands to define mail aliases.
+The command @code{define-mail-abbrev} prompts for the alias and the
+full address, and defines the alias to expand to the full address.
+Emacs will save the added aliases whenever it offers to save all
+files (for @kbd{C-x s} or @kbd{C-x C-c}), like it does with other
+abbrevs (@pxref{Saving Abbrevs}).
+
   Emacs also recognizes include commands in @file{~/.mailrc}.  They
 look like this:
 
@@ -281,6 +299,10 @@ fields, such as @samp{Subject}.
   You can also insert an aliased address directly, using the command
 @kbd{M-x mail-abbrev-insert-alias}.  This reads an alias name, with
 completion, and inserts its definition at point.
+
+@findex mail-abbrev-complete-alias
+  The command @code{mail-abbrev-complete-alias} completes on the mail
+alias preceding point.
 
 @node Mail Commands
 @section Mail Commands

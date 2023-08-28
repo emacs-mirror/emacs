@@ -1148,8 +1148,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 
 (defun pr-menu-get-item (name-list)
   ;; NAME-LIST is a string or a list of strings.
-  (or (listp name-list)
-      (setq name-list (list name-list)))
+  (setq name-list (ensure-list name-list))
   (and name-list
        (let* ((reversed (reverse name-list))
 	      (name (easy-menu-intern (car reversed)))

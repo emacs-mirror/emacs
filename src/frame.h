@@ -1521,6 +1521,10 @@ extern Lisp_Object mouse_position (bool);
 extern void frame_size_history_plain (struct frame *, Lisp_Object);
 extern void frame_size_history_extra (struct frame *, Lisp_Object,
 				      int, int, int, int, int, int);
+#ifdef NS_IMPL_COCOA
+/* Implemented in nsfns.m.  */
+extern void ns_make_frame_key_window (struct frame *);
+#endif
 extern Lisp_Object Vframe_list;
 
 /* Value is a pointer to the selected frame.  If the selected frame

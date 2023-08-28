@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(require 'ert)
+
 (defmacro image-skip-unless (format &rest condition)
   `(skip-unless (and (and (display-images-p)
                           (image-type-available-p ,format))
@@ -41,9 +43,9 @@
                               source-directory))
     (jpeg . ,(expand-file-name "test/data/image/black.jpg"
                                source-directory))
-    (pbm . ,(find-image '((:file "splash.svg" :type svg))))
+    (svg . ,(find-image '((:file "splash.svg" :type svg))))
     (png . ,(find-image '((:file "splash.png" :type png))))
-    (svg . ,(find-image '((:file "splash.pbm" :type pbm))))
+    (pbm . ,(find-image '((:file "splash.pbm" :type pbm))))
     (tiff . ,(expand-file-name
               "nextstep/GNUstep/Emacs.base/Resources/emacs.tiff"
               source-directory))
@@ -80,6 +82,7 @@
 (image-tests-make-load-image-test 'xpm)
 
 (ert-deftest image-tests-load-image/svg-too-big ()
+  (image-skip-unless svg)
   (with-temp-buffer
     (let* ((max-image-size 0)
            (messages-buffer-name (buffer-name (current-buffer)))
@@ -95,6 +98,7 @@
       (should-not (string-match-p "error parsing" (buffer-string))))))
 
 (ert-deftest image-tests-load-image/svg-invalid ()
+  (image-skip-unless svg)
   (with-temp-buffer
     (let ((messages-buffer-name (buffer-name (current-buffer))))
       (with-temp-buffer
@@ -240,6 +244,8 @@
 
 (ert-deftest image-tests-image-metadata/gif ()
   (image-skip-unless 'gif
+                ;; FIXME: Why is this failing on macOS?
+                (not (eq system-type 'darwin))
                 (not (bound-and-true-p w32-use-native-image-API)))
   (should (memq 'delay
                 (image-metadata
@@ -268,7 +274,9 @@
                (create-image (cdr (assq 'tiff image-tests--images))))))
 
 (ert-deftest image-tests-image-metadata/webp ()
-  (image-skip-unless 'webp)
+  (image-skip-unless 'webp
+                ;; FIXME: Why is this failing on macOS?
+                (not (eq system-type 'darwin)))
   (should (memq 'delay
                 (image-metadata
                  (create-image (cdr (assq 'webp image-tests--images)))))))

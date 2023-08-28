@@ -2042,8 +2042,7 @@ from the comment."
 			   (condition-case nil
 			       (setq lst (read (current-buffer)))
 			     (error (setq lst nil))) ; error in text
-                           (if (not (listp lst)) ; not a list of args
-                               (setq lst (list lst)))
+                           (setq lst (ensure-list lst))
 			   (if (and lst (not (symbolp (car lst)))) ;weird arg
 			       (setq lst nil))
 			   (while lst

@@ -475,12 +475,11 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
 
 (defmacro erc--with-dependent-type-match (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
-  `(backquote (,(car type)
-               :match
-               ,(list '\, `(lambda (w v)
+  `(backquote-list* ',(car type)
+                    :match (lambda (w v)
                              ,@(mapcar (lambda (ft) `(require ',ft)) features)
-                             (,(widget-get (widget-convert type) :match) w v)))
-               ,@(cdr type))))
+                             (,(widget-get (widget-convert type) :match) w v))
+                    ',(cdr type)))
 
 (provide 'erc-common)
 

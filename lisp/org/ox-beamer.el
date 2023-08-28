@@ -924,11 +924,10 @@ holding export options."
   "Support for editing Beamer oriented Org mode files."
   :lighter " Bm")
 
-(when (fboundp 'font-lock-add-keywords)
-  (font-lock-add-keywords
-   'org-mode
-   '((":\\(B_[a-z]+\\|BMCOL\\):" 1 'org-beamer-tag prepend))
-   'prepend))
+(font-lock-add-keywords
+ 'org-mode
+ '((":\\(B_[a-z]+\\|BMCOL\\):" 1 'org-beamer-tag prepend))
+ 'prepend)
 
 (defface org-beamer-tag '((t (:box (:line-width 1 :color grey40))))
   "The special face for beamer tags."

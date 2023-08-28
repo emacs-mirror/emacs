@@ -20198,15 +20198,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XKB
 	      int overflow;
 	      unsigned int consumed;
+	      KeySym sym;
 
 	      if (dpyinfo->xkb_desc)
 		{
+		  /* Translate the keycode into the keysym it
+		     represents, using STATE.  CONSUMED is set to the
+		     modifier bits consumed while undertaking this
+		     translation and should be subsequently ignored
+		     during keysym translation.  */
+
 		  if (!XkbTranslateKeyCode (dpyinfo->xkb_desc,
 					    xkey.keycode, xkey.state,
 					    &consumed, &keysym))
 		    goto done_keysym;
 
-		  overflow = 0;
+		  /* Save the original keysym in case
+		     XkbTranslateKeysym overflows.  */
+		  sym = keysym, overflow = 0;
 
 		  nbytes = XkbTranslateKeySym (dpyinfo->display, &keysym,
 					       xkey.state & ~consumed,
@@ -20218,7 +20227,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      copy_bufptr = SAFE_ALLOCA ((copy_bufsiz += overflow)
 						 * sizeof *copy_bufptr);
 		      overflow = 0;
-		      nbytes = XkbTranslateKeySym (dpyinfo->display, &keysym,
+
+		      /* Use the original keysym derived from the
+			 keycode translation in this second call to
+			 XkbTranslateKeysym.  */
+		      nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
 						   xkey.state & ~consumed,
 						   (char *) copy_bufptr,
 						   copy_bufsiz, &overflow);
@@ -23725,7 +23738,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      Lisp_Object c;
 #ifdef HAVE_XKB
 	      unsigned int mods_rtrn;
-#endif
+#endif /* HAVE_XKB */
 	      int keycode = xev->detail;
 	      KeySym keysym;
 	      char copy_buffer[81];
@@ -23734,14 +23747,122 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ptrdiff_t i;
 	      unsigned int old_state;
 	      struct xi_device_t *device, *source;
+	      XKeyPressedEvent xkey;
 
 	      coding = Qlatin_1;
+
+	      /* The code under this label is quite desultory.  There
+		 are also several important discrepancies with the
+		 core KeyPress code to mind.
+
+		 There are three principal objectives:
+
+		 The first is to produce a core or GDK translation of
+	         this XI_KeyPress event, which is relayed to the
+	         toolkit.  This transpires by setting `copy' to a
+	         close copy of XEV, which is later copied or
+	         dispatched to the toolkit by the code beneath the
+	         OTHER label.
+
+	         The second objective is to filter the event through
+	         an input method, by generating a second copy of the
+	         event expressly tailored for such a purpose.  The
+	         core KeyPress code does not endeavor to do so;
+	         instead, this action is taken prior to calling
+	         handle_one_xevent.  Calls to `x_filter_event' or
+	         `xg_filter_key' serve to implement this objective.
+
+	         If the event is not removed by the input method's
+	         filter, the third objective is to establish either a
+	         keysym or a sequence of characters to insert, using
+	         the information supplied within the key event.
+
+	         When an input method connection is available, this
+	         responsibility is vested in the hands of the input
+	         method -- yet another copy of XEV as a core event is
+	         produced, and the input method is responsible for
+	         deriving a keysym or text to insert.
+
+	         Otherwise, if the XKB extension is available, calls
+	         are made to XkbTranslateKeyCode and
+	         XkbTranslateKeySym.
+
+	         And if all else fails, XEV is transformed into a core
+	         event and provided to XLookupString, in a manner
+	         analogous to the core event processing under the
+	         KeyPress label.
+
+	         A wide number of variables are employed during this
+	         translation process.  The most pertinent ones are:
+
+		 `copy'
+
+		   This variable is defined when an X toolkit
+		   incognizant of input extension events is being
+		   employed.  If a popup is active, Emacs copies
+		   fields of interest from the extension event to
+		   COPY, sets the `use_copy' flag, and jumps to the
+		   XI_OTHER label.  `copy' is then relayed to the
+		   toolkit.
+
+		 `xkey'
+
+		   This variable is defined to a copy of the event
+		   used by input methods or XLookupString at various
+		   points during the execution of this label.
+
+		 `coding'
+
+		   This variable is consulted at the conclusion of
+		   event generation, and holds the coding system
+		   for any generated string.
+
+		 `keysym'
+
+		   This variable is eventually set to the keysym tied
+		   to the event, which may be directly provided within
+		   a generated struct input_event, should it bear a
+		   direct relation to an ASCII or Unicode character,
+		   or if it is a control key.
+
+		 `copy_buffer', `copy_bufptr', `copy_bufsiz'
+
+		   These variables hold the buffer that incorporates
+		   characters generated during the keycode-to-keysym
+		   conversion process.
+
+		 `nbytes'
+
+		   Holds the number of characters within that buffer,
+		   in bytes.  These characters are encoded using the
+		   coding system in `coding'.
+
+		   If greater than 0 and KEYSYM does not immediately
+		   relate to a function key, control key or character,
+		   it is provided as the string to insert within a
+		   MULTIBYTE_CHAR_KEYSTROKE_EVENT.
+
+		 `state'
+
+		   Holds the keyboard and group (but not button)
+		   state.  After event filtering concludes, modifier
+		   bits within `extra_keyboard_modifiers' are also
+		   introduced.
+
+	         This illustration may reflect the treatment taken
+	         towards core key events to some degree.  */
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 
 	      if (!device)
 		goto XI_OTHER;
+
+	      /* Convert the keyboard state within XEV to a core
+		 modifier mask, later supplied as arguments to XKB and
+		 core functions.  This encompasses the keyboard group
+		 and effective modifiers but not the button state.  */
+	      state = xi_convert_event_keyboard_state (xev);
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 	      /* Dispatch XI_KeyPress events when in menu.  */
@@ -23758,7 +23879,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  copy.xkey.root = xev->root;
 		  copy.xkey.subwindow = xev->child;
 		  copy.xkey.time = xev->time;
-		  copy.xkey.state = xi_convert_event_keyboard_state (xev);
+		  copy.xkey.state = state;
 		  xi_convert_button_state (&xev->buttons, &copy.xkey.state);
 
 		  copy.xkey.x = lrint (xev->event_x);
@@ -23767,10 +23888,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  copy.xkey.y_root = lrint (xev->root_y);
 		  copy.xkey.keycode = xev->detail;
 		  copy.xkey.same_screen = True;
-#endif
+#endif /* USE_LUCID */
 		  goto XI_OTHER;
 		}
-#endif
+#endif /* USE_X_TOOLKIT || USE_GTK */
 
 	      x_display_set_last_user_time (dpyinfo, xev->time,
 					    xev->send_event, true);
@@ -23790,7 +23911,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
 	      if (f)
 		x_set_gtk_user_time (f, xev->time);
-#endif
+#endif /* USE_GTK */
 
 	      if (f)
 		{
@@ -23802,7 +23923,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					   xev->time);
 		}
 
-	      XKeyPressedEvent xkey;
+	      /* Convert the XI event into a core event structure
+		 provided to old Xlib functions and input method
+		 filter functions.  */
 
 	      memset (&xkey, 0, sizeof xkey);
 
@@ -23814,8 +23937,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.root = xev->root;
 	      xkey.subwindow = xev->child;
 	      xkey.time = xev->time;
-	      xkey.state = xi_convert_event_keyboard_state (xev);
-
+	      xkey.state = state;
 	      xkey.x = lrint (xev->event_x);
 	      xkey.y = lrint (xev->event_y);
 	      xkey.x_root = lrint (xev->root_x);
@@ -23844,7 +23966,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}
-#else
+#else /* !USE_GTK */
 	      if (x_filter_event (dpyinfo, (XEvent *) &xkey))
 		{
 		  /* Try to attribute core key events from the input
@@ -23856,8 +23978,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}
-#endif
-#elif USE_GTK
+#endif /* HAVE_X_I18N */
+#elif USE_GTK /* && !HAVE_X_I18N */
 	      if ((x_gtk_use_native_input
 		   || dpyinfo->prefer_native_input)
 		  && xg_filter_key (any, event))
@@ -23871,40 +23993,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}
-#endif
+#endif /* HAVE_X_I18N || USE_GTK */
 
 	      state |= x_emacs_to_x_modifiers (dpyinfo, extra_keyboard_modifiers);
-
-#ifdef HAVE_XKB
-	      if (dpyinfo->xkb_desc)
-		{
-		  unsigned int xkb_state;
-
-		  xkb_state = state & ~(1 << 13 | 1 << 14);
-		  xkb_state |= xev->group.effective << 13;
-
-		  if (!XkbTranslateKeyCode (dpyinfo->xkb_desc, keycode,
-					    xkb_state, &mods_rtrn, &keysym))
-		    goto XI_OTHER;
-		}
-	      else
-		{
-#endif
-		  int keysyms_per_keycode_return;
-		  KeySym *ksms = XGetKeyboardMapping (dpyinfo->display, keycode, 1,
-						      &keysyms_per_keycode_return);
-		  if (!(keysym = ksms[0]))
-		    {
-		      XFree (ksms);
-		      goto XI_OTHER;
-		    }
-		  XFree (ksms);
-#ifdef HAVE_XKB
-		}
-#endif
-
-	      if (keysym == NoSymbol)
-		goto XI_OTHER;
 
 	      /* If mouse-highlight is an integer, input clears out
 		 mouse highlighting.  */
@@ -23912,7 +24003,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  && (f == 0
 #if ! defined (USE_GTK)
 		      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
-#endif
+#endif /* !USE_GTK */
 		      || !EQ (f->tab_bar_window, hlinfo->mouse_face_window))
 		  )
 		{
@@ -23933,7 +24024,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     dialogs because in that case popup_activated is nonzero
 		     (see above).  */
 		  *finish = X_EVENT_DROP;
-#endif
+#endif /* USE_GTK */
 
 		  XSETFRAME (inev.ie.frame_or_window, f);
 		  inev.ie.timestamp = xev->time;
@@ -23970,25 +24061,54 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			emacs_abort ();
 		    }
 		  else
-#endif
+#endif /* HAVE_X_I18N */
 		    {
 #ifdef HAVE_XKB
-		      int overflow = 0;
-		      KeySym sym = keysym;
-
 		      if (dpyinfo->xkb_desc)
 			{
-			  nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
-						       state & ~mods_rtrn, copy_bufptr,
-						       copy_bufsiz, &overflow);
+			  KeySym sym;
+			  int overflow;
+
+			  /* Translate the keycode into the keysym it
+			     represents, using STATE.  MODS_RTRN is
+			     set to the modifier bits consumed while
+			     undertaking this translation and should
+			     be subsequently ignored during keysym
+			     translation.  */
+
+			  if (!XkbTranslateKeyCode (dpyinfo->xkb_desc,
+						    keycode, state,
+						    &mods_rtrn, &keysym))
+			    goto xi_done_keysym;
+
+			  /* Save the original keysym in case
+			     XkbTranslateKeySym overflows.  */
+			  sym = keysym, overflow = 0;
+
+			  /* Translate this keysym and its modifier
+			     state into the actual symbol and string
+			     it represents.  */
+			  nbytes = XkbTranslateKeySym (dpyinfo->display,
+						       &keysym,
+						       state & ~mods_rtrn,
+						       copy_bufptr,
+						       copy_bufsiz,
+						       &overflow);
 			  if (overflow)
 			    {
-			      copy_bufptr = SAFE_ALLOCA ((copy_bufsiz += overflow)
-							 * sizeof *copy_bufptr);
+			      copy_bufptr
+				= SAFE_ALLOCA ((copy_bufsiz += overflow)
+					       * sizeof *copy_bufptr);
 			      overflow = 0;
-			      nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
-							   state & ~mods_rtrn, copy_bufptr,
-							   copy_bufsiz, &overflow);
+
+			      /* Use the original keysym derived from
+				 the keycode translation.  */
+			      nbytes = XkbTranslateKeySym (dpyinfo->display,
+							   &sym,
+							   state & ~mods_rtrn,
+							   copy_bufptr,
+							   copy_bufsiz,
+							   &overflow);
 
 			      if (overflow)
 				nbytes = 0;
@@ -23997,8 +24117,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  coding = Qnil;
 			}
 		      else
-#endif
+#endif /* HAVE_XKB */
 			{
+			  /* Save the state within XKEY, then remove
+			     all modifier keys Emacs understands from
+			     it, forestalling any attempt by
+			     XLookupString to introduce control
+			     characters.  */
+
 			  old_state = xkey.state;
 			  xkey.state &= ~ControlMask;
 			  xkey.state &= ~(dpyinfo->meta_mod_mask
@@ -24024,7 +24150,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      x_dnd_xm_use_help = true;
 		      goto xi_done_keysym;
 		    }
-#endif
+#endif /* XK_F1 */
 
 		  /* See if keysym should make Emacs quit.  */
 
@@ -30973,7 +31099,17 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
     }
-#endif
+
+  /* XFree86 extends XKBlib with a new Xlib control `ControlFallback',
+     which enables a search for symbols designating ASCII characters
+     within inactive groups during keycode translation when
+     ControlMask is set.  Users find this behavior gratuitous, so
+     disable it if present.  */
+
+#ifdef XkbLC_ControlFallback
+  XkbSetXlibControls (dpyinfo->display, XkbLC_ControlFallback, 0);
+#endif /* XkbLC_ControlFallback */
+#endif /* HAVE_XKB */
 
 #ifdef HAVE_XFIXES
   int xfixes_error_base;

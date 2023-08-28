@@ -89,7 +89,7 @@ Return nil if MODE has no parent."
   "Run FUNCTION on every file buffer with major mode in MODES.
 MODES can be a symbol or a list of symbols.
 FUNCTION does not have arguments."
-  (or (listp modes) (setq modes (list modes)))
+  (setq modes (ensure-list modes))
   (mode-local-map-file-buffers
    function (lambda ()
               (let ((mm (mode-local-equivalent-mode-p major-mode))

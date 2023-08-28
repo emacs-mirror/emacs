@@ -1933,7 +1933,6 @@ The value of this variable will only have any effect when
 
 (defcustom reftex-use-fonts t
   "Non-nil means, use fonts in *toc* and selection buffers.
-Font-lock must be loaded as well to actually get fontified display.
 When changing this option, a rescan may be necessary to activate the change."
   :group 'reftex-fontification-configurations
   :type 'boolean)

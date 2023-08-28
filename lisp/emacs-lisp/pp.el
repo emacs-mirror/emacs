@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(defvar font-lock-verbose)
 
 (defgroup pp nil
   "Pretty printer for Emacs Lisp."

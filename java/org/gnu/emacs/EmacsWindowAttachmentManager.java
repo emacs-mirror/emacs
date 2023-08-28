@@ -87,21 +87,17 @@ public final class EmacsWindowAttachmentManager
   public void
   registerWindowConsumer (WindowConsumer consumer)
   {
-    Log.d (TAG, "registerWindowConsumer " + consumer);
-
     consumers.add (consumer);
 
     for (EmacsWindow window : windows)
       {
 	if (window.getAttachedConsumer () == null)
 	  {
-	    Log.d (TAG, "registerWindowConsumer: attaching " + window);
 	    consumer.attachWindow (window);
 	    return;
 	  }
       }
 
-    Log.d (TAG, "registerWindowConsumer: sendWindowAction 0, 0");
     EmacsNative.sendWindowAction ((short) 0, 0);
   }
 
@@ -111,13 +107,9 @@ public final class EmacsWindowAttachmentManager
     Intent intent;
     ActivityOptions options;
 
-    Log.d (TAG, "registerWindow (maybe): " + window);
-
     if (windows.contains (window))
       /* The window is already registered.  */
       return;
-
-    Log.d (TAG, "registerWindow: " + window);
 
     windows.add (window);
 
@@ -125,7 +117,6 @@ public final class EmacsWindowAttachmentManager
       {
 	if (consumer.getAttachedWindow () == null)
 	  {
-	    Log.d (TAG, "registerWindow: attaching " + consumer);
 	    consumer.attachWindow (window);
 	    return;
 	  }
@@ -147,8 +138,6 @@ public final class EmacsWindowAttachmentManager
 	EmacsService.SERVICE.startActivity (intent,
 					    options.toBundle ());
       }
-
-    Log.d (TAG, "registerWindow: startActivity");
   }
 
   public void
@@ -156,19 +145,14 @@ public final class EmacsWindowAttachmentManager
   {
     EmacsWindow window;
 
-    Log.d (TAG, "removeWindowConsumer " + consumer);
-
     window = consumer.getAttachedWindow ();
 
     if (window != null)
       {
-	Log.d (TAG, "removeWindowConsumer: detaching " + window);
-
 	consumer.detachWindow ();
 	window.onActivityDetached (isFinishing);
       }
 
-    Log.d (TAG, "removeWindowConsumer: removing " + consumer);
     consumers.remove (consumer);
   }
 
@@ -177,13 +161,9 @@ public final class EmacsWindowAttachmentManager
   {
     WindowConsumer consumer;
 
-    Log.d (TAG, "detachWindow " + window);
-
     if (window.getAttachedConsumer () != null)
       {
 	consumer = window.getAttachedConsumer ();
-
-	Log.d (TAG, "detachWindow: removing" + consumer);
 
 	consumers.remove (consumer);
 	consumer.destroy ();
@@ -197,8 +177,6 @@ public final class EmacsWindowAttachmentManager
   {
     EmacsWindow window;
 
-    Log.d (TAG, "noticeIconified " + consumer);
-
     /* If a window is attached, send the appropriate iconification
        events.  */
     window = consumer.getAttachedWindow ();
@@ -211,8 +189,6 @@ public final class EmacsWindowAttachmentManager
   noticeDeiconified (WindowConsumer consumer)
   {
     EmacsWindow window;
-
-    Log.d (TAG, "noticeDeiconified " + consumer);
 
     /* If a window is attached, send the appropriate iconification
        events.  */

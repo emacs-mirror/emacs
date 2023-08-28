@@ -72,8 +72,6 @@ public final class EmacsContextMenu
     public boolean
     onMenuItemClick (MenuItem item)
     {
-      Log.d (TAG, "onMenuItemClick: " + itemName + " (" + itemID + ")");
-
       if (subMenu != null)
 	{
 	  /* Android 6.0 and earlier don't support nested submenus
@@ -81,8 +79,6 @@ public final class EmacsContextMenu
 
 	  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
 	    {
-	      Log.d (TAG, "onMenuItemClick: displaying submenu " + subMenu);
-
 	      /* Still set wasSubmenuSelected -- if not set, the
 		 dismissal of this context menu will result in a
 		 context menu event being sent.  */

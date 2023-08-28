@@ -1190,7 +1190,7 @@ The `ftp' syntax does not support methods.")
      ;; We cannot use `tramp-prefix-regexp', because it starts with `bol'.
      (literal tramp-prefix-format)
 
-     ;; Optional multi hops.
+     ;; Optional multi-hops.
      (* (regexp tramp-remote-file-name-spec-regexp)
         (regexp tramp-postfix-hop-regexp))
 
@@ -1457,10 +1457,12 @@ calling HANDLER.")
 (function-put #'tramp-file-name-localname 'tramp-suppress-trace t)
 (function-put #'tramp-file-name-hop 'tramp-suppress-trace t)
 
-;; Needed for `tramp-read-passwd' and `tramp-get-remote-null-device'.
+;;;###tramp-autoload
 (defconst tramp-null-hop
-  (make-tramp-file-name :user (user-login-name) :host tramp-system-name)
-"Connection hop which identifies the virtual hop before the first one.")
+  (make-tramp-file-name
+   :method "local" :user (user-login-name) :host tramp-system-name)
+  "Connection hop which identifies the virtual hop before the first one.
+Used also for caching properties of the local machine.")
 
 (defun tramp-file-name-user-domain (vec)
   "Return user and domain components of VEC."
@@ -1490,14 +1492,17 @@ If nil, return `tramp-default-port'."
 ;;;###tramp-autoload
 (defun tramp-file-name-unify (vec &optional localname)
   "Unify VEC by removing localname and hop from `tramp-file-name' structure.
-If LOCALNAME is an absolute file name, set it as localname.  If
-LOCALNAME is a relative file name, return `tramp-cache-undefined'.
-Objects returned by this function compare `equal' if they refer to the
-same connection.  Make a copy in order to avoid side effects."
+IF VEC is nil, set it to `tramp-null-hop'.
+If LOCALNAME is an absolute file name, set it as localname.
+If LOCALNAME is a relative file name, return `tramp-cache-undefined'.
+Objects returned by this function compare `equal' if they refer
+to the same connection.  Make a copy in order to avoid side
+effects."
   ;; (declare (tramp-suppress-trace t))
   (if (and (stringp localname)
 	   (not (file-name-absolute-p localname)))
       (setq vec tramp-cache-undefined)
+    (unless vec (setq vec tramp-null-hop))
     (when (tramp-file-name-p vec)
       (setq vec (copy-tramp-file-name vec))
       (setf (tramp-file-name-localname vec)
@@ -2134,6 +2139,8 @@ Example:
 		    ;; DNS-SD service type.
 		    ((string-match-p
 		      tramp-dns-sd-service-regexp (nth 1 (car v))))
+		    ;; Method.
+		    ((string-equal method (nth 1 (car v))))
 		    ;; Configuration file or empty string.
 		    (t (file-exists-p (nth 1 (car v))))))
 	(setq r (delete (car v) r)))
@@ -2774,16 +2781,14 @@ not in completion mode."
 
 	    ;; Possible methods.
 	    (setq result
-		  (append result (tramp-get-completion-methods m)))))))
+		  (append result (tramp-get-completion-methods m hop)))))))
 
     ;; Unify list, add hop, remove nil elements.
     (dolist (elt result)
       (when elt
-	(string-match tramp-prefix-regexp elt)
-	(setq elt (replace-match (concat tramp-prefix-format hop) nil nil elt))
-	(push
-	 (substring elt (length (tramp-drop-volume-letter directory)))
-	 result1)))
+	(setq elt (replace-regexp-in-string
+		   tramp-prefix-regexp (concat tramp-prefix-format hop) elt))
+	(push (substring elt (length directory)) result1)))
 
     ;; Complete local parts.
     (delete-dups
@@ -2911,11 +2916,14 @@ remote host and localname (filename on remote host)."
 
 ;; This function returns all possible method completions, adding the
 ;; trailing method delimiter.
-(defun tramp-get-completion-methods (partial-method)
-  "Return all method completions for PARTIAL-METHOD."
+(defun tramp-get-completion-methods (partial-method hop)
+  "Return all method completions for PARTIAL-METHOD.
+If HOP is non-nil, return only multi-hop capable methods."
   (mapcar
    (lambda (method)
      (and method (string-prefix-p (or partial-method "") method)
+	  (or (not hop)
+	      (tramp-multi-hop-p (make-tramp-file-name :method method)))
 	  (tramp-completion-make-tramp-file-name method nil nil nil)))
    (mapcar #'car tramp-methods)))
 
@@ -6380,6 +6388,7 @@ are written with verbosity of 6."
 	(temporary-file-directory tramp-compat-temporary-file-directory)
 	(process-environment (default-toplevel-value 'process-environment))
 	(buffer (if (eq buffer t) (current-buffer) buffer))
+	(vec (or vec (car tramp-current-connection)))
 	result)
     (tramp-message
      vec 6 "`%s %s' %s %s %s %s"

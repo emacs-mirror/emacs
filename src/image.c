@@ -1337,6 +1337,18 @@ image_error (const char *format, ...)
 }
 
 static void
+image_invalid_data_error (Lisp_Object data)
+{
+  image_error ("Invalid image data `%s'", data);
+}
+
+static void
+image_not_found_error (Lisp_Object filename)
+{
+  image_error ("Cannot find image file `%s'", filename);
+}
+
+static void
 image_size_error (void)
 {
   image_error ("Invalid image size (see `max-image-size')");
@@ -3840,8 +3852,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
-      image_error ("Unable to create X pixmap", Qnil, Qnil);
-      return 0;
+      image_error ("Unable to create X pixmap");
+      return false;
     }
 
   *pimg = *pixmap;
@@ -3873,8 +3885,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
-      image_error ("Unable to create pixmap", Qnil, Qnil);
-      return 0;
+      image_error ("Unable to create pixmap");
+      return false;
     }
 
   *pimg = *pixmap;
@@ -5067,8 +5079,8 @@ xbm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -5719,12 +5731,12 @@ xpm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
+	  image_not_found_error (specified_file);
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
 	  SAFE_FREE ();
-	  return 0;
+	  return false;
 	}
 
       file = ENCODE_FILE (file);
@@ -5751,7 +5763,7 @@ xpm_load (struct frame *f, struct image *img)
       Lisp_Object buffer = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (buffer))
 	{
-	  image_error ("Invalid image data `%s'", buffer);
+	  image_invalid_data_error (buffer);
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
@@ -6363,8 +6375,8 @@ xpm_load (struct frame *f,
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -6385,8 +6397,8 @@ xpm_load (struct frame *f,
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       success_p = xpm_load_image (f, img, SSDATA (data),
 				  SSDATA (data) + SBYTES (data));
@@ -7392,8 +7404,8 @@ pbm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -7413,8 +7425,8 @@ pbm_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       p = SSDATA (data);
       end = p + SBYTES (data);
@@ -8062,8 +8074,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
 			       O_RDONLY, 0)) < 0)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       /* Open the image file.  */
@@ -8087,8 +8099,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  image_invalid_data_error (specified_data);
+	  return false;
 	}
 
       /* Read from memory.  */
@@ -8791,8 +8803,8 @@ jpeg_load_body (struct frame *f, struct image *img,
 	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
 			       O_RDONLY, 0)) < 0)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       fp = emacs_fdopen (fd, "rb");
@@ -8804,8 +8816,8 @@ jpeg_load_body (struct frame *f, struct image *img,
     }
   else if (!STRINGP (specified_data))
     {
-      image_error ("Invalid image data `%s'", specified_data);
-      return 0;
+      image_invalid_data_error (specified_data);
+      return false;
     }
 
   /* Customize libjpeg's error handling to call my_error_exit when an
@@ -9246,8 +9258,8 @@ tiff_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       Lisp_Object encoded_file = ENCODE_FILE (file);
@@ -9267,8 +9279,8 @@ tiff_load (struct frame *f, struct image *img)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  image_invalid_data_error (specified_data);
+	  return false;
 	}
 
       /* Memory source! */
@@ -9675,7 +9687,7 @@ gif_load (struct frame *f, struct image *img)
 	  Lisp_Object file = image_find_image_file (specified_file);
 	  if (!STRINGP (file))
 	    {
-	      image_error ("Cannot find image file `%s'", specified_file);
+	      image_not_found_error (specified_file);
 	      return false;
 	    }
 
@@ -9720,7 +9732,7 @@ gif_load (struct frame *f, struct image *img)
 	{
 	  if (!STRINGP (specified_data))
 	    {
-	      image_error ("Invalid image data `%s'", specified_data);
+	      image_invalid_data_error (specified_data);
 	      return false;
 	    }
 
@@ -10296,7 +10308,7 @@ webp_load (struct frame *f, struct image *img)
       file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
+	  image_not_found_error (specified_file);
 	  return false;
 	}
 
@@ -10311,7 +10323,7 @@ webp_load (struct frame *f, struct image *img)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
+	  image_invalid_data_error (specified_data);
 	  return false;
 	}
       contents = SDATA (specified_data);
@@ -10452,22 +10464,36 @@ webp_load (struct frame *f, struct image *img)
     }
 
   /* Create the x image and pixmap.  */
-  Emacs_Pix_Container ximg, mask_img = NULL;
+  Emacs_Pix_Container ximg;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, false))
     goto webp_error2;
 
-  /* Create an image and pixmap serving as mask if the WebP image
-     contains an alpha channel.  */
-  if (features.has_alpha
-      && !image_create_x_image_and_pixmap (f, img, width, height, 1,
-					   &mask_img, true))
+  /* Find the background to use if the WebP image contains an alpha
+     channel.  */
+  Emacs_Color bg_color;
+  if (features.has_alpha)
     {
-      image_destroy_x_image (ximg);
-      image_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP);
-      goto webp_error2;
+      Lisp_Object specified_bg
+	= image_spec_value (img->spec, QCbackground, NULL);
+
+      /* If the user specified a color, try to use it; if not, use the
+	 current frame background, ignoring any default background
+	 color set by the image.  */
+      if (STRINGP (specified_bg))
+	FRAME_TERMINAL (f)->defined_color_hook (f,
+						SSDATA (specified_bg),
+						&bg_color,
+						false,
+						false);
+      else
+	FRAME_TERMINAL (f)->query_frame_background_color (f, &bg_color);
+      bg_color.red   >>= 8;
+      bg_color.green >>= 8;
+      bg_color.blue  >>= 8;
     }
 
-  /* Fill the X image and mask from WebP data.  */
+  /* Fill the X image from WebP data.  */
+
   init_color_table ();
 
   img->corners[TOP_CORNER] = 0;
@@ -10482,21 +10508,24 @@ webp_load (struct frame *f, struct image *img)
     {
       for (int x = 0; x < width; ++x)
 	{
-	  int r = *p++ << 8;
-	  int g = *p++ << 8;
-	  int b = *p++ << 8;
-	  PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, r, g, b));
-
-	  /* An alpha channel associates variable transparency with an
-	     image.  WebP allows up to 256 levels of partial transparency.
-	     We handle this like with PNG (which see), using the frame's
-	     background color to combine the image with.  */
+	  int r, g, b;
+	  /* The WebP alpha channel allows 256 levels of partial
+	     transparency.  Blend it with the background manually.  */
 	  if (features.has_alpha || anim)
 	    {
-	      if (mask_img)
-		PUT_PIXEL (mask_img, x, y, *p > 0 ? PIX_MASK_DRAW : PIX_MASK_RETAIN);
-	      ++p;
+	      float a = (float) p[3] / UINT8_MAX;
+	      r = (int)(a * p[0] + (1 - a) * bg_color.red)   << 8;
+	      g = (int)(a * p[1] + (1 - a) * bg_color.green) << 8;
+	      b = (int)(a * p[2] + (1 - a) * bg_color.blue)  << 8;
+	      p += 4;
 	    }
+	  else
+	    {
+	      r = *p++ << 8;
+	      g = *p++ << 8;
+	      b = *p++ << 8;
+	    }
+	  PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, r, g, b));
 	}
     }
 
@@ -10508,16 +10537,6 @@ webp_load (struct frame *f, struct image *img)
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
-
-  /* Same for the mask.  */
-  if (mask_img)
-    {
-      /* Fill in the background_transparent field while we have the
-	 mask handy.  Casting avoids a GCC warning.  */
-      image_background_transparent (img, f, (Emacs_Pix_Context)mask_img);
-
-      image_put_x_image (f, img, mask_img, 1);
-    }
 
   img->width = width;
   img->height = height;
@@ -11313,8 +11332,8 @@ imagemagick_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (file_name);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
       file = ENCODE_FILE (file);
 #ifdef WINDOWSNT
@@ -11331,8 +11350,8 @@ imagemagick_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       success_p = imagemagick_load_image (f, img, SDATA (data),
                                           SBYTES (data), NULL);
@@ -11695,8 +11714,8 @@ svg_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       /* Read the entire file into memory.  */
@@ -11723,8 +11742,8 @@ svg_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       if (!STRINGP (base_uri))
         base_uri = BVAR (current_buffer, filename);

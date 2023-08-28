@@ -263,7 +263,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 ------------------------------------------------------------------------------
 " (abbreviate-file-name reftex-last-toc-master)))
 
-      (if (reftex-use-fonts)
+      (if reftex-use-fonts
           (put-text-property (point-min) (point) 'font-lock-face reftex-toc-header-face))
       (cursor-intangible-mode 1)
       (add-text-properties (point-min) (point)

@@ -497,7 +497,6 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
     map))
 
 (defvar vc-hg--log-view-long-font-lock-keywords nil)
-(defvar font-lock-keywords)
 (defvar vc-hg-region-history-font-lock-keywords
   '((vc-hg-region-history-font-lock)))
 

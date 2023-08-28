@@ -328,9 +328,10 @@ applicable)."
 			       (process-buffer vec-or-proc)
 			     (tramp-get-connection-buffer
 			      vec-or-proc 'dont-create))))))))
-	    ;; Translate proc to vec.
+	    ;; Translate proc to vec.  Handle nil vec.
 	    (when (processp vec-or-proc)
-	      (setq vec-or-proc (process-get vec-or-proc 'tramp-vector))))
+	      (setq vec-or-proc (process-get vec-or-proc 'tramp-vector)))
+	    (setq vec-or-proc (tramp-file-name-unify vec-or-proc)))
 	  ;; Do it.
 	  (when (and (tramp-file-name-p vec-or-proc)
 		     (or (null tramp-debug-command-messages) (= level 6)))
@@ -351,10 +352,8 @@ forces the backtrace even if `tramp-verbose' is less than 10.
 This function is meant for debugging purposes."
   (let ((tramp-verbose (if force 10 tramp-verbose)))
     (when (>= tramp-verbose 10)
-      (if vec-or-proc
-	  (tramp-message
-	   vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
-	(with-output-to-temp-buffer "*debug tramp*" (backtrace))))))
+      (tramp-message
+       vec-or-proc 10 "\n%s" (with-output-to-string (backtrace))))))
 
 (defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
@@ -370,13 +369,12 @@ FMT-STRING and ARGUMENTS."
       ;; character, as in smb domain spec.
       (setq arguments (list fmt-string)
 	    fmt-string "%s"))
-    (when vec-or-proc
-      (tramp-message
-       vec-or-proc 1 "%s"
-       (error-message-string
-	(list signal
-	      (get signal 'error-message)
-	      (apply #'format-message fmt-string arguments)))))
+    (tramp-message
+     vec-or-proc 1 "%s"
+     (error-message-string
+      (list signal
+	    (get signal 'error-message)
+	    (apply #'format-message fmt-string arguments))))
     (signal signal (list (substring-no-properties
 			  (apply #'format-message fmt-string arguments))))))
 

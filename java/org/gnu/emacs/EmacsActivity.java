@@ -149,8 +149,6 @@ public class EmacsActivity extends Activity
   public final void
   attachWindow (EmacsWindow child)
   {
-    Log.d (TAG, "attachWindow: " + child);
-
     if (window != null)
       throw new IllegalStateException ("trying to attach window when one"
 				       + " already exists");
@@ -257,7 +255,6 @@ public class EmacsActivity extends Activity
 
     /* The activity will die shortly hereafter.  If there is a window
        attached, close it now.  */
-    Log.d (TAG, "onDestroy " + this);
     isMultitask = this instanceof EmacsMultitaskActivity;
     manager.removeWindowConsumer (this, isMultitask || isFinishing ());
     focusedActivities.remove (this);
@@ -274,9 +271,6 @@ public class EmacsActivity extends Activity
   public final void
   onWindowFocusChanged (boolean isFocused)
   {
-    Log.d (TAG, ("onWindowFocusChanged: "
-		 + (isFocused ? "YES" : "NO")));
-
     if (isFocused && !focusedActivities.contains (this))
       {
 	focusedActivities.add (this);
@@ -322,8 +316,6 @@ public class EmacsActivity extends Activity
   onContextMenuClosed (Menu menu)
   {
     int serial;
-
-    Log.d (TAG, "onContextMenuClosed: " + menu);
 
     /* See the comment inside onMenuItemClick.  */
 
