@@ -808,10 +808,12 @@ INLINE void
 }
 
 /* Extract A's pointer value, assuming A's Lisp type is TYPE and the
-   extracted pointer's type is CTYPE *.  */
-
-#define XUNTAG(a, type, ctype) ((ctype *) \
-				((char *) XLP (a) - LISP_WORD_TAG (type)))
+   extracted pointer's type is CTYPE *.
+   Note that the second term vanishes if EMACS_INT is wider than pointers
+   and the tag is in the upper bits (ie, USE_LSB_TAG=0); this makes
+   untagging slightly cheaper in that case.  */
+#define XUNTAG(a, type, ctype) \
+  ((ctype *) ((uintptr_t) XLP (a) - (uintptr_t) LISP_WORD_TAG (type)))
 
 /* A forwarding pointer to a value.  It uses a generic pointer to
    avoid alignment bugs that could occur if it used a pointer to a
