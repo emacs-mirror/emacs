@@ -369,7 +369,8 @@ if the variable `help-downcase-arguments' is non-nil."
       (setq doc (replace-regexp-in-string
                  ;; This is heuristic, but covers all common cases
                  ;; except ARG1-ARG2
-                 (concat "\\<"                   ; beginning of word
+                 (concat "([^ ]+ .*"             ; skip function name
+                         "\\<"                   ; beginning of word
                          "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
                          "\\("
                          (regexp-quote arg)
