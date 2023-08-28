@@ -874,7 +874,7 @@ Used by `tab-bar-format-menu-bar'."
 (defun tab-bar-format-menu-bar ()
   "Produce the Menu button for the tab bar that shows the menu bar."
   `((menu-bar menu-item ,tab-bar-menu-bar-button
-     tab-bar-menu-bar :help "Menu Bar")))
+     tab-bar-menu-bar :help "Menu bar")))
 
 (defun tab-bar-format-history ()
   "Produce back and forward buttons for the tab bar.
@@ -901,13 +901,13 @@ You can hide these buttons by customizing `tab-bar-format' and removing
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
         ignore
-        :help "Current tab")))
+        :help ,(alist-get 'name tab))))
     (t
      `((,(intern (format "tab-%i" i))
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
         ,(alist-get 'binding tab)
-        :help "Click to visit tab"))))
+        :help ,(alist-get 'name tab)))))
    (when (alist-get 'close-binding tab)
      `((,(if (eq (car tab) 'current-tab) 'C-current-tab
            (intern (format "C-tab-%i" i)))
