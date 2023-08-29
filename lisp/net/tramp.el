@@ -81,8 +81,6 @@
 (defvar tramp-file-name-regexp)
 (defvar tramp-completion-method-regexp)
 (defvar tramp-completion-file-name-regexp)
-(defvar tramp--last-hop-directory nil
-  "Tracks the directory from which to run container executable programs.")
 
 ;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU
 ;; ELPA package.
@@ -2143,10 +2141,8 @@ Example:
 		      tramp-dns-sd-service-regexp (nth 1 (car v))))
 		    ;; Method.
 		    ((string-equal method (nth 1 (car v))))
-                    ;; FIXME: for now do not check local existence of file
-                    ;; to allow allow arbitrary container program executable
-                    ;; name for container completion on remote systems.
-                    (t t)))
+		    ;; Configuration file or empty string.
+		    (t (file-exists-p (nth 1 (car v))))))
 	(setq r (delete (car v) r)))
       (setq v (cdr v)))
 
@@ -2724,6 +2720,9 @@ not in completion mode."
 
       (tramp-run-real-handler #'file-exists-p (list filename))))
 
+(defvar tramp--last-hop-directory nil
+  "Tracks the directory from which to run login programs.")
+
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
 ;; `tramp-file-name' structures.  For all of them we return possible
@@ -2759,7 +2758,7 @@ not in completion mode."
 
       ;; Possible completion structures.
       (dolist (elt (tramp-completion-dissect-file-name fullname))
-        (let* ((method (tramp-file-name-method elt))
+	(let* ((method (tramp-file-name-method elt))
 	       (user (tramp-file-name-user elt))
 	       (host (tramp-file-name-host elt))
 	       (localname (tramp-file-name-localname elt))
@@ -2770,8 +2769,8 @@ not in completion mode."
 
 	    (if (or user host)
 
-	        ;; Method dependent user / host combinations.
-	        (progn
+		;; Method dependent user / host combinations.
+		(progn
 		  (mapc
 		   (lambda (x)
 		     (setq all-user-hosts
@@ -2780,12 +2779,12 @@ not in completion mode."
 		   (tramp-get-completion-function m))
 
 		  (setq result
-		        (append result
-			        (mapcar
-			         (lambda (x)
+			(append result
+				(mapcar
+				 (lambda (x)
 				   (tramp-get-completion-user-host
 				    method user host (nth 0 x) (nth 1 x)))
-			         (delq nil all-user-hosts)))))
+				 (delq nil all-user-hosts)))))
 
 	      ;; Possible methods.
 	      (setq result
@@ -2924,13 +2923,13 @@ remote host and localname (filename on remote host)."
 
 ;; This function returns all possible method completions, adding the
 ;; trailing method delimiter.
-(defun tramp-get-completion-methods (partial-method hop)
+(defun tramp-get-completion-methods (partial-method multi-hop)
   "Return all method completions for PARTIAL-METHOD.
-If HOP is non-nil, return only multi-hop capable methods."
+If MULTI-HOP is non-nil, return only multi-hop capable methods."
   (mapcar
    (lambda (method)
      (and method (string-prefix-p (or partial-method "") method)
-	  (or (not hop)
+	  (or (not multi-hop)
 	      (tramp-multi-hop-p (make-tramp-file-name :method method)))
 	  (tramp-completion-make-tramp-file-name method nil nil nil)))
    (mapcar #'car tramp-methods)))
@@ -3012,6 +3011,7 @@ for all methods.  Resulting data are derived from default settings."
 
 (defcustom tramp-completion-remote-containers nil
   "Whether container hosts in multi-hop paths should be queried for completions."
+  :version "30.1"
   :type 'boolean)
 
 (defcustom tramp-completion-use-auth-sources auth-source-do-cache
@@ -4585,8 +4585,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defun tramp-multi-hop-p (vec)
   "Whether the method of VEC is capable of multi-hops."
-  (and (tramp-sh-file-name-handler-p vec)
-       (not (tramp-get-method-parameter vec 'tramp-copy-program))))
+  (let ((tramp-verbose 0))
+    (and (tramp-sh-file-name-handler-p vec)
+	 (not (tramp-get-method-parameter vec 'tramp-copy-program)))))
 
 (defun tramp-add-hops (vec)
   "Add ad-hoc proxy definitions to `tramp-default-proxies-alist'."

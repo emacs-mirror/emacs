@@ -158,31 +158,39 @@ If it is nil, the default context will be used."
   "Tramp method name to use to connect to Flatpak sandboxes.")
 
 ;;;###tramp-autoload
-(defun tramp-container--completion-function (program)
+(defun tramp-container--completion-function (method)
   "List running containers available for connection.
-PROGRAM is the program to be run for \"ps\", either
-`tramp-docker-program' or `tramp-podman-program'.
+METHOD is the Tramp method to be used for \"ps\", either
+`tramp-docker-method' or `tramp-podman-method'.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  ;; Set the default-directory to the directory of the last hop
-  ;; of a multi-hop path so that we can run the container program
-  ;; from there. If this is not a multi-hop path, run from the local
-  ;; temp file directory.
-  (when-let ((default-directory (or (and tramp-completion-remote-containers tramp--last-hop-directory)
-                                    tramp-compat-temporary-file-directory))
-	     (raw-list (shell-command-to-string
-			(concat program " ps --format '{{.ID}}\t{{.Names}}'")))
-             (lines (split-string raw-list "\n" 'omit))
-             (names (mapcar
-		     (lambda (line)
-                       (when (string-match
-			      (rx bol (group (1+ nonl))
-				  "\t" (? (group (1+ nonl))) eol)
-			      line)
-			 (or (match-string 2 line) (match-string 1 line))))
-                     lines)))
-    (mapcar (lambda (name) (list nil name)) (delq nil names))))
+  (let ((default-directory
+	 (or (and tramp-completion-remote-containers tramp--last-hop-directory)
+	     tramp-compat-temporary-file-directory))
+	(program (tramp-get-method-parameter
+		  (make-tramp-file-name :method method) 'tramp-login-program))
+	non-essential)
+    ;; We don't use connection properties, because this information
+    ;; shouldn't be kept persistently.
+    (with-tramp-file-property
+	(when (tramp-tramp-file-p default-directory)
+	  (tramp-dissect-file-name default-directory))
+	(concat "/" method ":") "user-host-completions"
+      (when-let ((raw-list
+		  (shell-command-to-string
+		   (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
+		 (lines (split-string raw-list "\n" 'omit))
+		 (names
+		  (mapcar
+		   (lambda (line)
+		     (when (string-match
+			    (rx bol (group (1+ nonl))
+				"\t" (? (group (1+ nonl))) eol)
+			    line)
+		       (or (match-string 2 line) (match-string 1 line))))
+		   lines)))
+	(mapcar (lambda (name) (list nil name)) (delq nil names))))))
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--completion-function (&rest _args)
@@ -387,13 +395,11 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-docker-method
-  `((tramp-container--completion-function
-     ,tramp-docker-program)))
+  `((tramp-container--completion-function ,tramp-docker-method)))
 
  (tramp-set-completion-function
   tramp-podman-method
-  `((tramp-container--completion-function
-     ,tramp-podman-program)))
+  `((tramp-container--completion-function ,tramp-podman-method)))
 
  (tramp-set-completion-function
   tramp-kubernetes-method
