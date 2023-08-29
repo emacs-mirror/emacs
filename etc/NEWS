@@ -386,6 +386,13 @@ When this user option is non-nil, 'shell-get-old-input' ('C-RET')
 includes multiple shell "\" continuation lines from command output.
 Default is nil.
 
+** Make mode
+
+*** The Makefile browser is now obsolete.
+The command 'makefile-switch-to-browser' command is now obsolete,
+together with related commands used in the "*Macros and Targets*"
+buffer.  We recommend using an alternative like 'imenu' instead.
+
 ** Prog Mode
 
 +++
