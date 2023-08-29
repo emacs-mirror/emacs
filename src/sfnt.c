@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <setjmp.h>
 #include <errno.h>
+#include <alloca.h>
 
 #ifdef HAVE_MMAP
 #include <sys/mman.h>
@@ -82,7 +83,7 @@ xrealloc (void *ptr, size_t size)
 static void
 xfree (void *ptr)
 {
-  return free (ptr);
+  free (ptr);
 }
 
 /* Use this for functions that are static while building in test mode,
@@ -5686,7 +5687,7 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
   interpreter->run_hook = NULL;
   interpreter->push_hook = NULL;
   interpreter->pop_hook = NULL;
-#endif
+#endif /* TEST */
 
   /* Fill in pointers and default values.  */
   interpreter->max_stack_elements = maxp->max_stack_elements;
@@ -16305,7 +16306,7 @@ static struct sfnt_generic_test_args pushw_test_args =
 
 static struct sfnt_generic_test_args stack_overflow_test_args =
   {
-    (uint32_t[]) { },
+    NULL,
     0,
     true,
     0,
@@ -16313,8 +16314,7 @@ static struct sfnt_generic_test_args stack_overflow_test_args =
 
 static struct sfnt_generic_test_args stack_underflow_test_args =
   {
-    /* GCC BUG, this should be []! */
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     4,
@@ -16441,7 +16441,7 @@ static struct sfnt_generic_test_args jmpr_test_args =
 
 static struct sfnt_generic_test_args dup_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     5,
@@ -16457,7 +16457,7 @@ static struct sfnt_generic_test_args pop_test_args =
 
 static struct sfnt_generic_test_args clear_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     false,
     10,
@@ -16497,7 +16497,7 @@ static struct sfnt_generic_test_args mindex_test_args =
 
 static struct sfnt_generic_test_args raw_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     0,
@@ -16521,7 +16521,7 @@ static struct sfnt_generic_test_args call_test_args =
 
 static struct sfnt_generic_test_args fdef_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     4,
@@ -16529,7 +16529,7 @@ static struct sfnt_generic_test_args fdef_test_args =
 
 static struct sfnt_generic_test_args fdef_1_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     9,
@@ -16537,7 +16537,7 @@ static struct sfnt_generic_test_args fdef_1_test_args =
 
 static struct sfnt_generic_test_args endf_test_args =
   {
-    (uint32_t []) {  },
+    NULL,
     0,
     true,
     0,
@@ -16553,7 +16553,7 @@ static struct sfnt_generic_test_args ws_test_args =
 
 static struct sfnt_generic_test_args rs_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     2,
@@ -16593,7 +16593,7 @@ static struct sfnt_generic_test_args mps_test_args =
 
 static struct sfnt_generic_test_args debug_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     false,
     3,
@@ -16674,7 +16674,7 @@ static struct sfnt_generic_test_args if_test_args =
 
 static struct sfnt_generic_test_args eif_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     false,
     3,
@@ -16706,7 +16706,7 @@ static struct sfnt_generic_test_args not_test_args =
 
 static struct sfnt_generic_test_args sds_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     5,
@@ -16778,7 +16778,7 @@ static struct sfnt_generic_test_args ceiling_test_args =
 
 static struct sfnt_generic_test_args round_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     true,
     0,
@@ -16954,7 +16954,7 @@ static struct sfnt_generic_test_args rdtg_test_args =
 
 static struct sfnt_generic_test_args sangw_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     false,
     3,
@@ -16962,7 +16962,7 @@ static struct sfnt_generic_test_args sangw_test_args =
 
 static struct sfnt_generic_test_args aa_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     false,
     3,
@@ -17022,7 +17022,7 @@ static struct sfnt_generic_test_args min_test_args =
 
 static struct sfnt_generic_test_args scantype_test_args =
   {
-    (uint32_t []) { },
+    NULL,
     0,
     false,
     3,
