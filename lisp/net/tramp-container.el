@@ -165,7 +165,12 @@ PROGRAM is the program to be run for \"ps\", either
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (when-let ((default-directory tramp-compat-temporary-file-directory)
+  ;; Set the default-directory to the directory of the last hop
+  ;; of a multi-hop path so that we can run the container program
+  ;; from there. If this is not a multi-hop path, run from the local
+  ;; temp file directory.
+  (when-let ((default-directory (or (and tramp-completion-remote-containers tramp--last-hop-directory)
+                                    tramp-compat-temporary-file-directory))
 	     (raw-list (shell-command-to-string
 			(concat program " ps --format '{{.ID}}\t{{.Names}}'")))
              (lines (split-string raw-list "\n" 'omit))
@@ -383,12 +388,12 @@ see its function help for a description of the format."
  (tramp-set-completion-function
   tramp-docker-method
   `((tramp-container--completion-function
-     ,(executable-find tramp-docker-program))))
+     ,tramp-docker-program)))
 
  (tramp-set-completion-function
   tramp-podman-method
   `((tramp-container--completion-function
-     ,(executable-find tramp-podman-program))))
+     ,tramp-podman-program)))
 
  (tramp-set-completion-function
   tramp-kubernetes-method
