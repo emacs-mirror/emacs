@@ -170,7 +170,7 @@ describing the mode, e.g. for using with `eshell-get-target'.")
 
 (defvar eshell-current-handles nil)
 
-(defvar eshell-last-command-status 0
+(defvar-local eshell-last-command-status 0
   "The exit code from the last command.  0 if successful.")
 
 (defvar eshell-last-command-result nil

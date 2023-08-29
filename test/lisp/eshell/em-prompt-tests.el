@@ -85,20 +85,41 @@ This tests the case when `eshell-highlight-prompt' is nil."
                 (apply #'propertize "hello\n"
                        eshell-command-output-properties)))))))
 
+(ert-deftest em-prompt-test/after-failure ()
+  "Check that current prompt shows the exit code of the last failed command."
+  (with-temp-eshell
+   (let ((debug-on-error nil))
+     (eshell-insert-command "(zerop \"foo\")"))
+   (let ((current-prompt (field-string (1- (point)))))
+     (should (equal-including-properties
+              current-prompt
+              (propertize
+               (concat (directory-file-name default-directory)
+                       (unless (eshell-exit-success-p)
+                         (format " [%d]" eshell-last-command-status))
+                       (if (= (file-user-uid) 0) " # " " $ "))
+               'read-only t
+               'field 'prompt
+               'font-lock-face 'eshell-prompt
+               'front-sticky '(read-only field font-lock-face)
+               'rear-nonsticky '(read-only field font-lock-face)))))))
+
 (defun em-prompt-test/next-previous-prompt-1 ()
   "Helper for checking forward/backward navigation of old prompts."
   (with-temp-eshell
    (eshell-insert-command "echo one")
    (eshell-insert-command "echo two")
    (eshell-insert-command "echo three")
+   (let ((debug-on-error nil))          ; A failed command.
+     (eshell-insert-command "(zerop \"foo\")"))
    (insert "echo fou")                  ; A partially-entered command.
    (ert-info ("Go back one prompt")
      (eshell-previous-prompt)
      (should (equal (point) (field-beginning)))
-     (should (equal (field-string) "echo three\n")))
-   (ert-info ("Go back two prompts, starting from the end of the input")
+     (should (equal (field-string) "(zerop \"foo\")\n")))
+   (ert-info ("Go back three prompts, starting from the end of the input")
      (end-of-line)
-     (eshell-previous-prompt 2)
+     (eshell-previous-prompt 3)
      (should (equal (point) (field-beginning)))
      (should (equal (field-string) "echo one\n")))
    (ert-info ("Go to the current prompt, starting from the end of the input")
@@ -110,20 +131,20 @@ This tests the case when `eshell-highlight-prompt' is nil."
      (eshell-next-prompt)
      (should (equal (point) (field-beginning)))
      (should (equal (field-string) "echo two\n")))
-   (ert-info ("Go forward two prompts")
-     (eshell-next-prompt 2)
+   (ert-info ("Go forward three prompts")
+     (eshell-next-prompt 3)
      (should (equal (point) (field-beginning)))
      (should (equal (field-string) "echo fou")))
    (ert-info ("Go back one prompt, starting from the beginning of the line")
      (forward-line 0)
      (eshell-previous-prompt 1)
      (should (equal (point) (field-beginning)))
-     (should (equal (field-string) "echo three\n")))
+     (should (equal (field-string) "(zerop \"foo\")\n")))
    (ert-info ("Go back one prompt, starting from the previous prompt's output")
      (forward-line -1)
      (eshell-previous-prompt 1)
      (should (equal (point) (field-beginning)))
-     (should (equal (field-string) "echo two\n")))))
+     (should (equal (field-string) "echo three\n")))))
 
 (ert-deftest em-prompt-test/next-previous-prompt ()
   "Check that navigating forward/backward through old prompts works correctly."
@@ -141,17 +162,20 @@ This tests the case when `eshell-highlight-prompt' is nil."
    (eshell-insert-command "printnl something else")
    (eshell-insert-command "echo two")
    (eshell-insert-command "echo three")
+   (let ((debug-on-error nil))          ; A failed command.
+     (eshell-insert-command "(zerop \"foo\")"))
    (insert "echo fou")                  ; A partially-entered command.
-   (ert-info ("Go back one prompt")
+   (ert-info ("Search for \"echo\", back one prompt")
      (eshell-backward-matching-input "echo" 1)
      (should (equal (point) (field-beginning)))
      (should (equal (field-string) "echo three\n")))
-   (ert-info ("Go back two prompts, starting from the end of this line")
+   (ert-info ((concat "Search for \"echo\", back two prompts, "
+                      "starting from the end of this line"))
      (end-of-line)
      (eshell-backward-matching-input "echo" 2)
      (should (equal (point) (field-beginning)))
      (should (equal (field-string) "echo one\n")))
-   (ert-info ("Go forward three prompts")
+   (ert-info ("Search for \"echo\", forward three prompts")
      (eshell-forward-matching-input "echo" 3)
      (should (equal (point) (field-beginning)))
      (should (equal (field-string) "echo fou")))))

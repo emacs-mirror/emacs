@@ -234,6 +234,9 @@ the foreground.  That said, background processes invoked from Eshell
 can be controlled the same way as any other background process in
 Emacs.
 
+If a command exits abnormally, Eshell will display its exit code
+in the next prompt.
+
 @subsection Command form
 Command form looks much the same as in other shells.  A command
 consists of arguments separated by spaces; the first argument is the

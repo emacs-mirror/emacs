@@ -50,6 +50,8 @@ as is common with most shells."
 (defcustom eshell-prompt-function
   (lambda ()
     (concat (abbreviate-file-name (eshell/pwd))
+            (unless (eshell-exit-success-p)
+              (format " [%d]" eshell-last-command-status))
             (if (= (file-user-uid) 0) " # " " $ ")))
   "A function that returns the Eshell prompt string."
   :type 'function
