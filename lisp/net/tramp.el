@@ -5615,7 +5615,8 @@ If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
 	     (v (process-get proc 'tramp-vector)))
     (dolist (p (delq proc (process-list)))
       (when (tramp-file-name-equal-p v (process-get p 'tramp-vector))
-	(with-local-quit (accept-process-output p 0 nil t)))))
+	(with-tramp-suspended-timers
+	  (with-local-quit (accept-process-output p 0 nil t))))))
 
   (with-current-buffer (process-buffer proc)
     (let ((inhibit-read-only t)
