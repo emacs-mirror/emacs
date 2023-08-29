@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -108,7 +108,8 @@ from a file."
                               features))
                      features)))))
 
-(defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
+(define-obsolete-variable-alias 'loadhist-hook-functions
+  'unload-feature-special-hooks "30.1")
 (defvar unload-feature-special-hooks
   '(after-change-functions after-insert-file-functions
     after-make-frame-functions auto-coding-functions
