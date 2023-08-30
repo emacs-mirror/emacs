@@ -89,7 +89,7 @@ This will always keep the image fit to the window.
 When non-nil, the value should be a number of seconds to wait before
 resizing according to the value specified in `image-auto-resize'."
   :type '(choice (const :tag "No auto-resize on window size change" nil)
-                 (integer :tag "Wait for number of seconds before resize" 1))
+                 (number :tag "Wait for number of seconds before resize" 1))
   :version "27.1"
   :group 'image)
 
