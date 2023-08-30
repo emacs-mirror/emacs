@@ -576,7 +576,7 @@ public final class EmacsWindow extends EmacsHandleObject
      input EVENT.  Replace bits corresponding to Left or Right keys
      with their corresponding general modifier bits.  */
 
-  private int
+  public static int
   eventModifiers (KeyEvent event)
   {
     int state;

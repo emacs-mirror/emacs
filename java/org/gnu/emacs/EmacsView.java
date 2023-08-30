@@ -472,6 +472,26 @@ public final class EmacsView extends ViewGroup
 
   @Override
   public boolean
+  onKeyPreIme (int keyCode, KeyEvent event)
+  {
+    /* Several Android systems intercept key events representing
+       C-SPC.  Avert this by detecting C-SPC events here and relaying
+       them directly to onKeyDown.
+
+       Make this optional though, since some input methods also
+       leverage C-SPC as a shortcut for switching languages.  */
+
+    if ((keyCode == KeyEvent.KEYCODE_SPACE
+	 && (window.eventModifiers (event)
+	     & KeyEvent.META_CTRL_MASK) != 0)
+	&& !EmacsNative.shouldForwardCtrlSpace ())
+      return onKeyDown (keyCode, event);
+
+    return super.onKeyPreIme (keyCode, event);
+  }
+
+  @Override
+  public boolean
   onKeyDown (int keyCode, KeyEvent event)
   {
     if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP

@@ -663,6 +663,19 @@ in Emacs.
 modifier: it is referred to as @key{SYM} on Android keyboards and
 within the Settings keymap menu.
 
+@vindex android-intercept-control-space
+@cindex @kbd{C-SPC} interception, android
+  Android input methods have a penchant for irritating users by
+silently discarding key sequences containing @kbd{C-SPC} during the
+event filtering process, that they normally have no real application
+for such key sequences notwithstanding.  By default, Emacs intercepts
+these key sequences before they can be filtered by the input method.
+
+  If this proves unwanted (for instance, if the input method treats
+@kbd{C-SPC} as a shortcut key for switching languages), it can be
+disabled by setting the variable
+@code{android-intercept-control-space} to @code{nil}.
+
 @node Android Fonts
 @section Font Backends and Selection under Android
 @cindex fonts, android

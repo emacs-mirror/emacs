@@ -2267,6 +2267,12 @@ NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
   return !android_pass_multimedia_buttons_to_system;
 }
 
+JNIEXPORT jboolean JNICALL
+NATIVE_NAME (shouldForwardCtrlSpace) (JNIEnv *env, jobject object)
+{
+  return !android_intercept_control_space;
+}
+
 JNIEXPORT void JNICALL
 NATIVE_NAME (blitRect) (JNIEnv *env, jobject object,
 			jobject src, jobject dest,
