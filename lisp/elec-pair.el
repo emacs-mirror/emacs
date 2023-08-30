@@ -153,7 +153,7 @@ return value is considered instead."
   :type '(choice (set (const :tag "Space" ?\s)
                       (const :tag "Tab" ?\t)
                       (const :tag "Newline" ?\n))
-                 (list character)))
+                 (repeat (character :value " "))))
 
 (defvar-local electric-pair-skip-whitespace-function
   #'electric-pair--skip-whitespace
