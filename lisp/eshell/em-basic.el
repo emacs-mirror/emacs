@@ -199,7 +199,8 @@ itself.  It is not useful for anything else.  The recognized `kinds'
 are:
 
    error       stops Eshell from trapping errors
-   form        shows command form manipulation in `*eshell last cmd*'")
+   form        shows command form manipulation in `*eshell last cmd*'
+   process     shows process events in `*eshell last cmd*'")
    (if args
        (dolist (kind args)
          (if (equal kind "error")
@@ -217,7 +218,7 @@ are:
 
 (defun pcomplete/eshell-mode/eshell-debug ()
   "Completion for the `debug' command."
-  (while (pcomplete-here '("error" "form"))))
+  (while (pcomplete-here '("error" "form" "process"))))
 
 (provide 'em-basic)
 

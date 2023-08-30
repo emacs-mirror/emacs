@@ -625,11 +625,15 @@ command one or more of the following arguments:
 
 @item
 @code{error}, to enable/disable Eshell trapping errors when
-evaluating commands; or
+evaluating commands;
 
 @item
 @code{form}, to show/hide Eshell command form manipulation in the
-buffer @code{*eshell last cmd*}.
+buffer @code{*eshell last cmd*}; or
+
+@item
+@code{process}, to show/hide external process events in the buffer
+@code{*eshell last cmd*}.
 
 @end itemize
 

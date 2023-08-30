@@ -105,11 +105,12 @@ argument matches `eshell-number-regexp'."
 (defcustom eshell-debug-command nil
   "A list of debug features to enable when running Eshell commands.
 Possible entries are `form', to log the manipulation of Eshell
-command forms.
+command forms, and `process', to log external process operations.
 
 If nil, don't debug commands at all."
   :version "30.1"
-  :type '(set (const :tag "Form manipulation" form)))
+  :type '(set (const :tag "Form manipulation" form)
+              (const :tag "Process operations" process)))
 
 ;;; Internal Variables:
 
