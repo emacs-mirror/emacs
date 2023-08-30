@@ -1833,7 +1833,7 @@ on failure."
 
 (defun imap-send-command (command &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
-    (if (not (listp command)) (setq command (list command)))
+    (setq command (ensure-list command))
     (let ((tag (setq imap-tag (1+ imap-tag)))
 	  cmd cmdstr)
       (setq cmdstr (concat (number-to-string imap-tag) " "))

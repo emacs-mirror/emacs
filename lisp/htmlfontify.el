@@ -308,13 +308,14 @@ done;")
   :tag   "etags-cmd-alist"
   :type  '(alist :key-type (string) :value-type (string)))
 
-(defcustom hfy-etags-bin "etags"
+(defcustom hfy-etags-bin etags-program-name
   "Location of etags binary (we begin by assuming it's in your path).
 
 Note that if etags is not in your path, you will need to alter the shell
 commands in `hfy-etags-cmd-alist'."
   :tag   "etags-bin"
-  :type  '(file))
+  :type  '(file)
+  :version "30.1")
 
 (defcustom hfy-shell-file-name "/bin/sh"
   "Shell (Bourne or compatible) to invoke for complex shell operations."

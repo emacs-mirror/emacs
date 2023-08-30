@@ -723,6 +723,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq-local comint-last-input-start (point-min-marker))
   (setq-local comint-last-input-end (point-min-marker))
   (setq-local comint-last-output-start (make-marker))
+  ;; It is ok to let the input method edit prompt text, but RET must
+  ;; be processed by Emacs.
+  (setq text-conversion-style 'action)
   (make-local-variable 'comint-last-prompt)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
@@ -1437,7 +1440,7 @@ actual side-effect."
                (if dry-run (throw dry-run 'message))
 	       (goto-char (match-end 0))
 	       (message "Absolute reference cannot be expanded"))
-	      ((looking-at "!-\\([0-9]+\\)\\(:?[0-9^$*-]+\\)?")
+	      ((looking-at "!-\\([0-9]+\\):?\\([0-9^$*-]+\\)?")
 	       ;; Just a number of args from `number' lines backward.
                (if dry-run (throw dry-run 'history))
 	       (let ((number (1- (string-to-number
@@ -1461,7 +1464,7 @@ actual side-effect."
 			      t t)
 	       (message "History item: previous"))
 	      ((looking-at
-		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
+		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\):?\\([0-9^$*-]+\\)?")
 	       ;; Most recent input starting with or containing (possibly
 	       ;; protected) string, maybe just a number of args.  Phew.
                (if dry-run (throw dry-run 'expand))

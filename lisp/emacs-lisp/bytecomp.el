@@ -489,8 +489,7 @@ Return the compile-time value of FORM."
   ;; 3.2.3.1, "Processing of Top Level Forms".  The semantics are very
   ;; subtle: see test/lisp/emacs-lisp/bytecomp-tests.el for interesting
   ;; cases.
-  (let ((print-symbols-bare t))         ; Possibly redundant binding.
-    (setf form (macroexp-macroexpand form byte-compile-macro-environment)))
+  (setf form (macroexp-macroexpand form byte-compile-macro-environment))
   (if (eq (car-safe form) 'progn)
       (cons (car form)
             (mapcar (lambda (subform)
@@ -568,11 +567,10 @@ Only conses are traversed and duplicated, not arrays or any other structure."
                               ;; Don't compile here, since we don't know
                               ;; whether to compile as byte-compile-form
                               ;; or byte-compile-file-form.
-                              (let* ((print-symbols-bare t) ; Possibly redundant binding.
-                                     (expanded
-                                      (macroexpand--all-toplevel
-                                       form
-                                       macroexpand-all-environment)))
+                              (let ((expanded
+                                     (macroexpand--all-toplevel
+                                      form
+                                      macroexpand-all-environment)))
                                 (eval (byte-run-strip-symbol-positions
                                        (bytecomp--copy-tree expanded))
                                       lexical-binding)
@@ -1883,8 +1881,6 @@ It is too wide if it has any lines longer than the largest of
          (byte-compile-dynamic byte-compile-dynamic)
          (byte-compile-dynamic-docstrings
           byte-compile-dynamic-docstrings)
-         ;; 		(byte-compile-generate-emacs19-bytecodes
-         ;; 		 byte-compile-generate-emacs19-bytecodes)
          (byte-compile-warnings byte-compile-warnings)
          ;; Indicate that we're not currently loading some file.
          ;; This is used in `macroexp-file-name' to make sure that
@@ -1977,6 +1973,10 @@ also be compiled."
       (emacs-lisp-compilation-mode))
     (let ((directories (list default-directory))
 	  (default-directory default-directory)
+          (ignore-files-regexp
+           (if byte-compile-ignore-files
+               (mapconcat #'identity byte-compile-ignore-files "\\|")
+             regexp-unmatchable))
 	  (skip-count 0)
 	  (fail-count 0)
 	  (file-count 0)
@@ -1997,9 +1997,7 @@ also be compiled."
 		      (or (null arg) (eq 0 arg)
 			  (y-or-n-p (concat "Check " source "? ")))
                       ;; Directory is requested to be ignored
-                      (not (string-match-p
-                            (regexp-opt byte-compile-ignore-files)
-                            source))
+                      (not (string-match-p ignore-files-regexp source))
                       (setq directories (nconc directories (list source))))
                ;; It is an ordinary file.  Decide whether to compile it.
                (if (and (string-match emacs-lisp-file-regexp source)
@@ -2009,9 +2007,7 @@ also be compiled."
                         (not (auto-save-file-name-p source))
                         (not (member source (dir-locals--all-files directory)))
                         ;; File is requested to be ignored
-                        (not (string-match-p
-                              (regexp-opt byte-compile-ignore-files)
-                              source)))
+                        (not (string-match-p ignore-files-regexp source)))
                    (progn (cl-incf
                            (pcase (byte-recompile-file source force arg)
                              ('no-byte-compile skip-count)
@@ -2495,8 +2491,7 @@ Call from the source buffer."
     ;; Spill output for the native compiler here
     (push (make-byte-to-native-top-level :form form :lexical lexical-binding)
           byte-to-native-top-level-forms))
-  (let ((print-symbols-bare t)          ; Possibly redundant binding.
-        (print-escape-newlines t)
+  (let ((print-escape-newlines t)
         (print-length nil)
         (print-level nil)
         (print-quoted t)
@@ -2530,8 +2525,7 @@ list that represents a doc string reference.
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
     (with-current-buffer byte-compile--outbuffer
-      (let (position
-            (print-symbols-bare t))     ; Possibly redundant binding.
+      (let (position)
         ;; Insert the doc string, and make it a comment with #@LENGTH.
         (when (and (>= (nth 1 info) 0) dynamic-docstrings)
           (setq position (byte-compile-output-as-comment
@@ -2627,8 +2621,7 @@ list that represents a doc string reference.
               byte-compile-jump-tables nil))))
 
 (defun byte-compile-preprocess (form &optional _for-effect)
-  (let ((print-symbols-bare t))         ; Possibly redundant binding.
-    (setq form (macroexpand-all form byte-compile-macro-environment)))
+  (setq form (macroexpand-all form byte-compile-macro-environment))
   ;; FIXME: We should run byte-optimize-form here, but it currently does not
   ;; recurse through all the code, so we'd have to fix this first.
   ;; Maybe a good fix would be to merge byte-optimize-form into
@@ -4369,9 +4362,6 @@ This function is never called when `lexical-binding' is nil."
 
 ;; more complicated compiler macros
 
-(byte-defop-compiler char-before)
-(byte-defop-compiler backward-char)
-(byte-defop-compiler backward-word)
 (byte-defop-compiler list)
 (byte-defop-compiler concat)
 (byte-defop-compiler (indent-to-column byte-indent-to) byte-compile-indent-to)
@@ -4381,40 +4371,6 @@ This function is never called when `lexical-binding' is nil."
 (byte-defop-compiler (- byte-diff) byte-compile-minus)
 (byte-defop-compiler (/ byte-quo) byte-compile-quo)
 (byte-defop-compiler nconc)
-
-;; Is this worth it?  Both -before and -after are written in C.
-(defun byte-compile-char-before (form)
-  (cond ((or (= 1 (length form))
-	     (and (= 2 (length form)) (not (nth 1 form))))
-	 (byte-compile-form '(char-after (1- (point)))))
-	((= 2 (length form))
-	 (byte-compile-form (list 'char-after (if (numberp (nth 1 form))
-						  (1- (nth 1 form))
-						`(1- (or ,(nth 1 form)
-							 (point)))))))
-	(t (byte-compile-subr-wrong-args form "0-1"))))
-
-;; backward-... ==> forward-... with negated argument.
-;; Is this worth it?  Both -backward and -forward are written in C.
-(defun byte-compile-backward-char (form)
-  (cond ((or (= 1 (length form))
-	     (and (= 2 (length form)) (not (nth 1 form))))
-	 (byte-compile-form '(forward-char -1)))
-	((= 2 (length form))
-	 (byte-compile-form (list 'forward-char (if (numberp (nth 1 form))
-						    (- (nth 1 form))
-						  `(- (or ,(nth 1 form) 1))))))
-	(t (byte-compile-subr-wrong-args form "0-1"))))
-
-(defun byte-compile-backward-word (form)
-  (cond ((or (= 1 (length form))
-	     (and (= 2 (length form)) (not (nth 1 form))))
-	 (byte-compile-form '(forward-word -1)))
-	((= 2 (length form))
-	 (byte-compile-form (list 'forward-word (if (numberp (nth 1 form))
-						    (- (nth 1 form))
-						  `(- (or ,(nth 1 form) 1))))))
-	(t (byte-compile-subr-wrong-args form "0-1"))))
 
 (defun byte-compile-list (form)
   (let ((count (length (cdr form))))
@@ -5865,6 +5821,96 @@ and corresponding effects."
 (put 'rassq 'compiler-macro #'bytecomp--check-memq-args)
 (put 'remq  'compiler-macro #'bytecomp--check-memq-args)
 (put 'delq  'compiler-macro #'bytecomp--check-memq-args)
+
+;; Implement `char-before', `backward-char' and `backward-word' in
+;; terms of `char-after', `forward-char' and `forward-word' which have
+;; their own byte-ops.
+
+(put 'char-before 'compiler-macro #'bytecomp--char-before)
+(defun bytecomp--char-before (form &optional arg &rest junk-args)
+  (if junk-args
+      form    ; arity error
+    `(char-after (1- (or ,arg (point))))))
+
+(put 'backward-char 'compiler-macro #'bytecomp--backward-char)
+(defun bytecomp--backward-char (form &optional arg &rest junk-args)
+  (if junk-args
+      form    ; arity error
+    `(forward-char (- (or ,arg 1)))))
+
+(put 'backward-word 'compiler-macro #'bytecomp--backward-word)
+(defun bytecomp--backward-word (form &optional arg &rest junk-args)
+  (if junk-args
+      form    ; arity error
+    `(forward-word (- (or ,arg 1)))))
+
+(defun bytecomp--check-keyword-args (form arglist allowed-keys required-keys)
+  (let ((fun (car form)))
+    (cl-flet ((missing (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called without required keyword argument %S"
+		 fun keyword))
+	      (unrecognized (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called with unknown keyword argument %S"
+		 fun keyword))
+	      (duplicate (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "`%S´ called with repeated keyword argument %S"
+		 fun keyword))
+              (missing-val (form keyword)
+		(byte-compile-warn-x
+		 form
+		 "missing value for keyword argument %S"
+		 keyword)))
+      (let* ((seen '())
+	     (l arglist))
+	(while (consp l)
+	  (let ((key (car l)))
+	    (cond ((and (keywordp key) (memq key allowed-keys))
+		   (cond ((memq key seen)
+			  (duplicate l key))
+			 (t
+			  (push key seen))))
+		  (t (unrecognized l key)))
+            (when (null (cdr l))
+              (missing-val l key)))
+	  (setq l (cddr l)))
+        (dolist (key required-keys)
+	  (unless (memq key seen)
+	    (missing form key))))))
+  form)
+
+(put 'make-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name
+            :buffer :command :coding :noquery :stop :connection-type
+            :filter :sentinel :stderr :file-handler)
+          '(:name :command))))
+
+(put 'make-pipe-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name :buffer :coding :noquery :stop :filter :sentinel)
+          '(:name))))
+
+(put 'make-network-process 'compiler-macro
+     #'(lambda (form &rest args)
+         (bytecomp--check-keyword-args
+          form args
+          '(:name
+            :buffer :host :service :type :family :local :remote :coding
+            :nowait :noquery :stop :filter :filter-multibyte :sentinel
+            :log :plist :tls-parameters :server :broadcast :dontroute
+            :keepalive :linger :oobinline :priority :reuseaddr :bindtodevice
+            :use-external-socket)
+          '(:name :service))))
 
 (provide 'byte-compile)
 (provide 'bytecomp)

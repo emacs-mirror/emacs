@@ -445,6 +445,15 @@ You can save every individual message by putting this function on
 	    (set-buffer-modified-p nil))))))
   t)
 
+;; This is a kludge to avoid littering erc-truncate.el with forward
+;; declarations needed only for a corner-case compatibility check.
+(defun erc-log--call-when-logging-enabled-sans-module (fn)
+  (when (and (erc-logging-enabled)
+             (not (or erc-log-mode (memq 'log erc-modules))))
+    (let ((dirfile (and (stringp erc-log-channels-directory)
+                        erc-log-channels-directory)))
+      (funcall fn dirfile))))
+
 (provide 'erc-log)
 
 ;;; erc-log.el ends here

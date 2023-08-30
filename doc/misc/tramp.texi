@@ -375,7 +375,7 @@ From behind a proxy:
 
 @example
 @group
-$ git config --global http.proxy http://user:pwd@@proxy.server.com:8080
+$ git config --global http.proxy https://user:pwd@@proxy.server.com:8080
 $ git clone https://git.savannah.gnu.org/r/tramp.git
 @end group
 @end example
@@ -5852,16 +5852,6 @@ If you want to enable Ange FTP's syntax, add the following form:
 @end lisp
 
 @item
-@vindex tramp-mode
-To disable both @value{tramp} (and Ange FTP), set @code{tramp-mode} to
-@code{nil} in @file{.emacs}.  @strong{Note}, that we don't use
-@code{customize-set-variable}, in order to avoid loading @value{tramp}.
-
-@lisp
-(setq tramp-mode nil)
-@end lisp
-
-@item
 @vindex tramp-ignored-file-name-regexp
 To deactivate @value{tramp} for some look-alike remote file names, set
 @code{tramp-ignored-file-name-regexp} to a proper regexp in
@@ -5877,6 +5867,29 @@ This is needed, if you mount for example a virtual file system on your
 local host's root directory as @file{/ssh:example.com:}.
 
 @item
+@findex inhibit-remote-files
+To disable both @value{tramp} (and Ange FTP), type @kbd{M-x
+inhibit-remote-files @key{RET}}.  You can also add this to your
+@file{.emacs}.
+
+@lisp
+(inhibit-remote-files)
+@end lisp
+
+@item
+@findex without-remote-files
+If you write code, which is intended to run only for local files, you
+can use the @code{without-remote-files} macro.
+
+@lisp
+(without-remote-files @dots{})
+@end lisp
+
+This improves performance, because many primitive file name operations
+don't check any longer for Tramp file name regexps then.
+
+@item
+@findex tramp-unload-tramp
 To unload @value{tramp}, type @kbd{M-x tramp-unload-tramp @key{RET}}.
 Unloading @value{tramp} resets Ange FTP plugins also.
 @end itemize
@@ -6041,6 +6054,7 @@ wrapping the timer function body as follows:
 @chapter How to Customize Traces
 @vindex tramp-verbose
 @vindex tramp-debug-to-file
+@vindex tramp-debug-command-messages
 
 @value{tramp} messages are raised with verbosity levels ranging from 0
 to 10.  @value{tramp} does not display all messages; only those with a
@@ -6062,9 +6076,10 @@ The verbosity levels are
 @*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
-also written to a @value{tramp} debug buffer.  Such debug buffers are
-essential to bug and problem analyzes.  For @value{tramp} bug reports,
-set the @code{tramp-verbose} level to 6 (@pxref{Bug Reports}).
+also written to the @value{tramp} debug buffer @file{*debug
+tramp/foo*}.  Such debug buffers are essential to bug and problem
+analyzes.  For @value{tramp} bug reports, set the @code{tramp-verbose}
+level to 6 (@pxref{Bug Reports}).
 
 The debug buffer is in
 @ifinfo
@@ -6108,7 +6123,13 @@ directory}.  Use this option with care, because it could decrease the
 performance of @value{tramp} actions.
 
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
-function call traces are written to the buffer @file{*trace-output*}.
+function call traces are written to the buffer @file{*trace tramp/foo*}.
+
+When @code{tramp-debug-command-messages} is non-@code{nil}, the debug
+buffer contains all messages with verbosity level 6 (sent and received
+strings), and the entry and exit messages for the function
+@code{tramp-file-name-handler}.  This is intended for @value{tramp}
+maintainers, analyzing the remote commands for performance analysis.
 
 
 @node GNU Free Documentation License

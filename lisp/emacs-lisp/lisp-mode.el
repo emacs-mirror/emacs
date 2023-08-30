@@ -31,11 +31,6 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
 
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
-(defvar font-lock-keywords-case-fold-search)
-(defvar font-lock-string-face)
-
 (define-abbrev-table 'lisp-mode-abbrev-table ()
   "Abbrev table for Lisp mode.")
 
@@ -134,7 +129,7 @@
 	 (purecopy (concat "^\\s-*("
 			   (regexp-opt
 			    '(;; Elisp
-                              "defconst" "defcustom"
+                              "defconst" "defcustom" "defvar-keymap"
                               ;; CL
                               "defconstant"
 			      "defparameter" "define-symbol-macro")
@@ -361,7 +356,7 @@ This will generate compile-time constants from BINDINGS."
                  "define-globalized-minor-mode" "define-skeleton"
                  "define-widget" "ert-deftest"))
      (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
-                 "defface"))
+                 "defface" "define-error"))
      (el-tdefs '("defgroup" "deftheme"))
      (el-errs '("user-error"))
      ;; Common-Lisp constructs supported by EIEIO.  FIXME: namespace.

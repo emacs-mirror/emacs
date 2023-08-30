@@ -25,6 +25,10 @@ SHA1=$3
 # Prefer gawk if available, as it handles NUL bytes properly.
 if type gawk >/dev/null 2>&1; then
   awk="gawk"
+# Next use /usr/xpg4/bin/awk if available, since the script
+# doesn't support Unix awk.
+elif test -x /usr/xpg4/bin/awk; then
+  awk="/usr/xpg4/bin/awk"
 else
   awk="awk"
 fi

@@ -896,8 +896,8 @@ Creates a cache file name from @var{url} using MD5 hashing.
 This is creates entries with very few cache collisions and is fast.
 @cindex MD5
 @smallexample
-(url-cache-create-filename-using-md5 "http://www.example.com/foo/bar")
-  @result{} "/home/fx/.url/cache/fx/http/com/example/www/b8a35774ad20db71c7c3409a5410e74f"
+(url-cache-create-filename-using-md5 "https://www.example.com/foo/bar")
+  @result{} "/home/fx/.url/cache/fx/https/com/example/www/b8a35774ad20db71c7c3409a5410e74f"
 @end smallexample
 @end defun
 
@@ -906,8 +906,8 @@ Creates a cache file name from @var{url} more obviously connected to
 @var{url} than for @code{url-cache-create-filename-using-md5}, but
 more likely to conflict with other files.
 @smallexample
-(url-cache-create-filename-human-readable "http://www.example.com/foo/bar")
-  @result{} "/home/fx/.url/cache/fx/http/com/example/www/foo/bar"
+(url-cache-create-filename-human-readable "https://www.example.com/foo/bar")
+  @result{} "/home/fx/.url/cache/fx/https/com/example/www/foo/bar"
 @end smallexample
 @end defun
 
@@ -1159,7 +1159,7 @@ opened by the URL library.
 @c linked with the resolver libraries, it will not be able to get to any
 @c machines off the local network.  This is characterized by being able
 @c to reach someplace with a raw ip number, but not its hostname
-@c (@url{http://129.79.254.191/} works, but
+@c (@url{https://129.79.254.191/} works, but
 @c @url{https://www.cs.indiana.edu/} doesn't).  This used to happen on
 @c SunOS4 and Ultrix, but is now probably now rare.  If Emacs can't be
 @c rebuilt linked against the resolver library, it can use the external

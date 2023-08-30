@@ -434,9 +434,8 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'."
 ;;       ))
 ;;   "Highlighted Semantic keywords.")
 
-;; (when (fboundp 'font-lock-add-keywords)
-;;   (font-lock-add-keywords 'emacs-lisp-mode
-;;                           semantic-fw-font-lock-keywords))
+;; (font-lock-add-keywords 'emacs-lisp-mode
+;;                         semantic-fw-font-lock-keywords)
 
 
 (provide 'semantic/fw)

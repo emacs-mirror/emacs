@@ -4,13 +4,16 @@ Inc.
 See the end of the file for license conditions.
 
 
-This file contains general information on building GNU Emacs.  For
-more information specific to the MS-Windows, GNUstep/macOS, and MS-DOS
-ports, also read the files nt/INSTALL, nextstep/INSTALL, and
-msdos/INSTALL.
+This file contains general information on building GNU Emacs.  If you
+are building an Emacs release tarball on a Unix or a GNU system, the
+instructions in this file should be sufficient.  For other
+configurations, we have additional specialized files:
 
-For information about building from a Git checkout (rather than an
-Emacs release), read the INSTALL.REPO file first.
+  . INSTALL.REPO if you build from a Git checkout
+  . nt/INSTALL if you build for MS-Windows
+  . nextstep/INSTALL if you build for GNUstep/macOS
+  . java/INSTALL if you build for Android
+  . msdos/INSTALL if you build for MS-DOS
 
 
 BASIC INSTALLATION

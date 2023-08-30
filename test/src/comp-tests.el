@@ -33,7 +33,8 @@
 
 (eval-and-compile
   (defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
-  (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el")))
+  (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
+  (defconst comp-test-dyn-src2 (ert-resource-file "comp-test-funcs-dyn2.el")))
 
 (when (native-comp-available-p)
   (message "Compiling tests...")
@@ -44,6 +45,7 @@
 ;; names used in this file.
 (require 'comp-test-funcs comp-test-src)
 (require 'comp-test-dyn-funcs comp-test-dyn-src) ;Non-standard feature name!
+(require 'comp-test-funcs-dyn2 comp-test-dyn-src2)
 
 (defmacro comp-deftest (name args &rest docstring-and-body)
   "Define a test for the native compiler tagging it as :nativecomp."
@@ -62,6 +64,7 @@
 
 
 
+(defvar native-comp-eln-load-path)
 (ert-deftest comp-tests-bootstrap ()
   "Compile the compiler and load it to compile it-self.
 Check that the resulting binaries do not differ."
@@ -70,9 +73,11 @@ Check that the resulting binaries do not differ."
     :suffix "-comp-stage1.el"
     (ert-with-temp-file comp2-src
       :suffix "-comp-stage2.el"
-      (let* ((byte+native-compile t)     ; FIXME HACK
+      (let* ((byte+native-compile t)
+             (native-compile-target-directory
+              (car (last native-comp-eln-load-path)))
              (comp-src (expand-file-name "../../../lisp/emacs-lisp/comp.el"
-                                     (ert-resource-directory)))
+                                         (ert-resource-directory)))
              ;; Can't use debug symbols.
              (native-comp-debug 0))
         (copy-file comp-src comp1-src t)
@@ -1528,4 +1533,7 @@ folded."
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
 
+(comp-deftest comp-tests-result-lambda ()
+  (native-compile 'comp-tests-result-lambda)
+  (should (eq (funcall (comp-tests-result-lambda) '(a . b)) 'a)))
 ;;; comp-tests.el ends here

@@ -3741,7 +3741,7 @@ Ediff Control Panel to restore highlighting."
 ;; these buffers).
 ;; EXCL-BUFF-LIST is an exclusion list.
 (defun ediff-other-buffer (excl-buff-lst)
-  (or (listp excl-buff-lst) (setq excl-buff-lst (list excl-buff-lst)))
+  (setq excl-buff-lst (ensure-list excl-buff-lst))
   (let* ((all-buffers (nconc (ediff-get-selected-buffers) (buffer-list)))
 	 ;; we compute this the second time because we need to do memq on it
 	 ;; later, and nconc above will break it. Either this or use slow

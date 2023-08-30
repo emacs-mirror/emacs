@@ -618,11 +618,11 @@ more..."
    `(helm-source-header ((,class (:weight bold :box (:line-width 1 :color "#C7C7C7") :background "#DEDEDE" :foreground "black"))))
    `(helm-swoop-target-line-block-face ((,class (:background "#CCCC00" :foreground "#222222"))))
    `(helm-swoop-target-line-face ((,class (:background "#CCCCFF"))))
-   `(helm-swoop-target-word-face ((,class (:weight bold :foreground nil :background "#FDBD33"))))
+   `(helm-swoop-target-word-face ((,class (:weight bold :foreground unspecified :background "#FDBD33"))))
    `(helm-visible-mark ((,class ,marked-line)))
    `(helm-w3m-bookmarks-face ((,class (:underline t :foreground "cyan1"))))
-   `(highlight-changes ((,class (:foreground nil)))) ;; blue "#2E08B5"
-   `(highlight-changes-delete ((,class (:strike-through nil :foreground nil)))) ;; red "#B5082E"
+   `(highlight-changes ((,class (:foreground unspecified)))) ;; blue "#2E08B5"
+   `(highlight-changes-delete ((,class (:strike-through nil :foreground unspecified)))) ;; red "#B5082E"
    `(highlight-symbol-face ((,class (:background "#FFFFA0"))))
    `(hl-line ((,class ,highlight-yellow))) ; Highlight current line.
    `(hl-tags-face ((,class ,highlight-current-tag))) ; ~ Pair highlighting (matching tags).
@@ -642,7 +642,7 @@ more..."
    `(info-file ((,class (:family "Sans Serif" :height 1.8 :weight bold :box (:line-width 1 :color "#0000CC") :foreground "cornflower blue" :background "LightSteelBlue1"))))
    `(info-header-node ((,class (:underline t :foreground "orange")))) ; nodes in header
    `(info-header-xref ((,class (:underline t :foreground "dodger blue")))) ; cross references in header
-   `(info-index-match ((,class (:weight bold :foreground nil :background "#FDBD33")))) ; when using `i'
+   `(info-index-match ((,class (:weight bold :foreground unspecified :background "#FDBD33")))) ; when using `i'
    `(info-menu-header ((,class ,ol2))) ; menu titles (headers) -- major topics
    `(info-menu-star ((,class (:foreground "black")))) ; every 3rd menu item
    `(info-node ((,class (:underline t :foreground "blue")))) ; node names

@@ -170,8 +170,10 @@ See `tramp-actions-before-shell' for more info.")
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
-      (save-match-data (apply (cdr fn) args))
-    (tramp-run-real-handler operation args)))
+      (prog1 (save-match-data (apply (cdr fn) args))
+	(setq tramp-debug-message-fnh-function (cdr fn)))
+    (prog1 (tramp-run-real-handler operation args)
+      (setq tramp-debug-message-fnh-function operation))))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -232,7 +234,7 @@ OK-IF-ALREADY-EXISTS means don't barf if NEWNAME exists already.
 KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid if both files are on the same host.
-PRESERVE-EXTENDED-ATTRIBUTES activates selinux and acl commands.
+PRESERVE-EXTENDED-ATTRIBUTES activates SELinux and ACL commands.
 
 This function is invoked by `tramp-sudoedit-handle-copy-file' and
 `tramp-sudoedit-handle-rename-file'.  It is an error if OP is
@@ -432,14 +434,37 @@ the result will be a local, non-Tramp, file name."
   "stat format string to produce output suitable for use with
 `file-attributes' on the remote file system.")
 
+(defconst tramp-sudoedit-file-attributes-with-selinux
+  (format
+   ;; Apostrophes in the stat output are masked as
+   ;; `tramp-stat-marker', in order to make a proper shell escape of
+   ;; them in file names.  They are replaced in
+   ;; `tramp-sudoedit-send-command-and-read'.
+   (concat "((%s%%N%s) %%h (%s%%U%s . %%u) (%s%%G%s . %%g)"
+	   " %%X %%Y %%Z %%s %s%%A%s t %%i -1 %s%%C%s)")
+   tramp-stat-marker tramp-stat-marker  ; %%N
+   tramp-stat-marker tramp-stat-marker  ; %%U
+   tramp-stat-marker tramp-stat-marker  ; %%G
+   tramp-stat-marker tramp-stat-marker  ; %%A
+   tramp-stat-marker tramp-stat-marker) ; %%C
+  "stat format string to produce output suitable for use with
+`file-attributes' on the remote file system, including SELinux context.")
+
 (defun tramp-sudoedit-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   ;; The result is cached in `tramp-convert-file-attributes'.
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-convert-file-attributes v localname id-format
-      (tramp-sudoedit-send-command-and-read
-       v "env" "QUOTING_STYLE=locale" "stat" "-c"
-       tramp-sudoedit-file-attributes (file-name-unquote localname)))))
+      (cond
+       ((tramp-sudoedit-remote-selinux-p v)
+	(tramp-sudoedit-send-command-and-read
+	 v "env" "QUOTING_STYLE=locale" "stat" "-c"
+	 tramp-sudoedit-file-attributes-with-selinux
+	 (file-name-unquote localname)))
+       (t
+	(tramp-sudoedit-send-command-and-read
+	 v "env" "QUOTING_STYLE=locale" "stat" "-c"
+	 tramp-sudoedit-file-attributes (file-name-unquote localname)))))))
 
 (defun tramp-sudoedit-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
@@ -505,7 +530,7 @@ the result will be a local, non-Tramp, file name."
 	 v 'file-error "Error while changing file's mode %s" filename)))))
 
 (defun tramp-sudoedit-remote-selinux-p (vec)
-  "Check, whether SELINUX is enabled on the remote host."
+  "Check, whether SELinux is enabled on the remote host."
   (with-tramp-connection-property (tramp-get-process vec) "selinux-p"
     (zerop (tramp-call-process vec "selinuxenabled"))))
 
@@ -524,7 +549,7 @@ the result will be a local, non-Tramp, file name."
 		    v "ls" "-d" "-Z" (file-name-unquote localname)))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (when (re-search-forward regexp (line-end-position) t)
+	    (when (search-forward-regexp regexp (line-end-position) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -572,9 +597,9 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
+	  ;; Examine `file-attributes' cache to see if request can be
+	  ;; satisfied without remote operation.
 	  (if (tramp-file-property-p v localname "file-attributes")
-	      ;; Examine `file-attributes' cache to see if request can
-	      ;; be satisfied without remote operation.
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-sudoedit-send-command
 	     v "test" "-w" (file-name-unquote localname)))
@@ -594,7 +619,7 @@ the result will be a local, non-Tramp, file name."
 (defun tramp-sudoedit-handle-make-symbolic-link
     (target linkname &optional ok-if-already-exists)
   "Like `make-symbolic-link' for Tramp files."
-  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+  (tramp-skeleton-make-symbolic-link target linkname ok-if-already-exists
     (tramp-sudoedit-send-command
      v "ln" "-sf"
      (file-name-unquote target)
@@ -714,20 +739,21 @@ connection if a previous connection has died for some reason."
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
-  ;; We need a process bound to the connection buffer.  Therefore, we
-  ;; create a dummy process.  Maybe there is a better solution?
-  (unless (tramp-get-connection-process vec)
-    (let ((p (make-network-process
-	      :name (tramp-get-connection-name vec)
-	      :buffer (tramp-get-connection-buffer vec)
-	      :server t :host 'local :service t :noquery t)))
-      (tramp-post-process-creation p vec)
+  (with-tramp-debug-message vec "Opening connection"
+    ;; We need a process bound to the connection buffer.  Therefore,
+    ;; we create a dummy process.  Maybe there is a better solution?
+    (unless (tramp-get-connection-process vec)
+      (let ((p (make-network-process
+		:name (tramp-get-connection-name vec)
+		:buffer (tramp-get-connection-buffer vec)
+		:server t :host 'local :service t :noquery t)))
+	(tramp-post-process-creation p vec)
 
-      ;; Set connection-local variables.
-      (tramp-set-connection-local-variables vec)
+	;; Set connection-local variables.
+	(tramp-set-connection-local-variables vec)
 
-      ;; Mark it as connected.
-      (tramp-set-connection-property p "connected" t))))
+	;; Mark it as connected.
+	(tramp-set-connection-property p "connected" t)))))
 
 (defun tramp-sudoedit-send-command (vec &rest args)
   "Send commands ARGS to connection VEC.
@@ -785,7 +811,7 @@ In case there is no valid Lisp expression, it raises an error."
       (condition-case nil
 	  (prog1 (read (current-buffer))
 	    ;; Error handling.
-	    (when (re-search-forward (rx (not blank)) (line-end-position) t)
+	    (when (search-forward-regexp (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
 		vec 'file-error

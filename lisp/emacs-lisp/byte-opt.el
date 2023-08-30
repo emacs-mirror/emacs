@@ -794,6 +794,17 @@ for speeding up processing.")
                            make-marker copy-marker point-marker mark-marker
                            set-marker
                            kbd key-description
+                           skip-chars-forward skip-chars-backward
+                           skip-syntax-forward skip-syntax-backward
+                           current-column current-indentation
+                           char-syntax syntax-class-to-char
+                           parse-partial-sexp goto-char forward-line
+                           next-window previous-window minibuffer-window
+                           selected-frame selected-window
+                           standard-case-table standard-syntax-table
+                           syntax-table
+                           frame-first-window frame-root-window
+                           frame-selected-window
                            always))
                   t)
                  ((eq head 'if)
@@ -981,7 +992,7 @@ for speeding up processing.")
   (let ((nargs (length (cdr form))))
     (cond
      ((= nargs 1)
-      `(progn (cadr form) t))
+      `(progn ,(cadr form) t))
      ((>= nargs 3)
       ;; At least 3 arguments: transform to N-1 binary comparisons,
       ;; since those have their own byte-ops which are particularly
@@ -1049,23 +1060,26 @@ See Info node `(elisp) Integer Basics'."
   (and (integerp o) (<= -536870912 o 536870911)))
 
 (defun byte-optimize-equal (form)
-  ;; Replace `equal' or `eql' with `eq' if at least one arg is a
-  ;; symbol or fixnum.
-  (byte-optimize-binary-predicate
-   (if (= (length (cdr form)) 2)
-       (if (or (byte-optimize--constant-symbol-p (nth 1 form))
-               (byte-optimize--constant-symbol-p (nth 2 form))
-               (byte-optimize--fixnump (nth 1 form))
-               (byte-optimize--fixnump (nth 2 form)))
-           (cons 'eq (cdr form))
-         form)
-     ;; Arity errors reported elsewhere.
-     form)))
+  (cond ((/= (length (cdr form)) 2) form)  ; Arity errors reported elsewhere.
+        ;; Anything is identical to itself.
+        ((and (eq (nth 1 form) (nth 2 form)) (symbolp (nth 1 form))) t)
+        ;; Replace `equal' or `eql' with `eq' if at least one arg is a
+        ;; symbol or fixnum.
+        ((or (byte-optimize--constant-symbol-p (nth 1 form))
+             (byte-optimize--constant-symbol-p (nth 2 form))
+             (byte-optimize--fixnump (nth 1 form))
+             (byte-optimize--fixnump (nth 2 form)))
+         (byte-optimize-binary-predicate (cons 'eq (cdr form))))
+        (t (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-eq (form)
-  (pcase (cdr form)
-    ((or `(,x nil) `(nil ,x)) `(not ,x))
-    (_ (byte-optimize-binary-predicate form))))
+  (cond ((/= (length (cdr form)) 2) form)  ; arity error
+        ;; Anything is identical to itself.
+        ((and (eq (nth 1 form) (nth 2 form)) (symbolp (nth 1 form))) t)
+        ;; Strength-reduce comparison with `nil'.
+        ((null (nth 1 form)) `(not ,(nth 2 form)))
+        ((null (nth 2 form)) `(not ,(nth 1 form)))
+        (t (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-member (form)
   (cond
@@ -1738,6 +1752,7 @@ See Info node `(elisp) Integer Basics'."
          base64-decode-string base64-encode-string base64url-encode-string
          buffer-hash buffer-line-statistics
          compare-strings concat copy-alist copy-hash-table copy-sequence elt
+         equal equal-including-properties
          featurep get
          gethash hash-table-count hash-table-rehash-size
          hash-table-rehash-threshold hash-table-size hash-table-test
@@ -1871,7 +1886,7 @@ See Info node `(elisp) Integer Basics'."
          ;; fileio.c
          default-file-modes
          ;; fns.c
-         eql equal equal-including-properties
+         eql
          hash-table-p identity proper-list-p safe-length
          secure-hash-algorithms
          ;; frame.c
@@ -1932,7 +1947,7 @@ See Info node `(elisp) Integer Basics'."
 (let ((pure-fns
        '(
          ;; character.c
-         characterp
+         characterp max-char
          ;; data.c
          % * + - / /= 1+ 1- < <= = > >= aref arrayp ash atom bare-symbol
          bool-vector-count-consecutive bool-vector-count-population
@@ -2138,7 +2153,7 @@ See Info node `(elisp) Integer Basics'."
    '(byte-constant byte-dup byte-stack-ref byte-stack-set byte-discard
      byte-discardN byte-discardN-preserve-tos
      byte-symbolp byte-consp byte-stringp byte-listp byte-numberp byte-integerp
-     byte-eq byte-not
+     byte-not
      byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN
      byte-interactive-p)
    ;; How about other side-effect-free-ops?  Is it safe to move an
@@ -2146,11 +2161,16 @@ See Info node `(elisp) Integer Basics'."
    ;; No, it is not, because the unwind-protect forms can alter
    ;; the inside of the object to which nth would apply.
    ;; For the same reason, byte-equal was deleted from this list.
+   ;;
+   ;; In particular, `byte-eq' isn't here despite `eq' being nominally
+   ;; pure because it is currently affected by `symbols-with-pos-enabled'
+   ;; and so cannot be sunk past an unwind op that might end a binding of
+   ;; that variable.  Yes, this is unsatisfactory.
    "Byte-codes that can be moved past an unbind.")
 
 (defconst byte-compile-side-effect-and-error-free-ops
   '(byte-constant byte-dup byte-symbolp byte-consp byte-stringp byte-listp
-    byte-integerp byte-numberp byte-eq byte-equal byte-not byte-car-safe
+    byte-integerp byte-numberp byte-eq byte-not byte-car-safe
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-list3 byte-list4
     byte-listN byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
@@ -2161,10 +2181,11 @@ See Info node `(elisp) Integer Basics'."
   (append
    '(byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
      byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
-     byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
-     byte-plus byte-max byte-min byte-mult byte-char-after byte-char-syntax
-     byte-buffer-substring byte-string= byte-string< byte-nthcdr byte-elt
-     byte-member byte-assq byte-quo byte-rem byte-substring)
+     byte-eqlsign byte-equal byte-gtr byte-lss byte-leq byte-geq byte-diff
+     byte-negate byte-plus byte-max byte-min byte-mult byte-char-after
+     byte-char-syntax byte-buffer-substring byte-string= byte-string<
+     byte-nthcdr byte-elt byte-member byte-assq byte-quo byte-rem
+     byte-substring)
    byte-compile-side-effect-and-error-free-ops))
 
 ;; This crock is because of the way DEFVAR_BOOL variables work.

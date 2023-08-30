@@ -116,6 +116,7 @@ in `org-columns-summary-types-default', which see."
 
 (defvar-local org-columns-overlays nil
   "Holds the list of current column overlays.")
+(put 'org-columns-overlays 'permanent-local t)
 
 (defvar-local org-columns-current-fmt nil
   "Local variable, holds the currently active column format.")

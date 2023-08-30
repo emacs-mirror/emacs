@@ -279,8 +279,13 @@ themselves."
          " entries are deprecated. Either use a variable or a function"
          " that conditionally calls `erc-button-add-button'.")))))
 
-(defvar erc-button-nickname-callback-function #'erc-nick-popup
-  "Escape hatch for those needing a different nickname callback.")
+(defvar erc-button-nickname-callback-function #'erc-button--perform-nick-popup
+  "Escape hatch for users needing a non-standard nick-button callback.
+Value should be a function accepting a NICK and any number of
+trailing arguments that are as yet unspecified.  Runs when
+clicking \\`<mouse-1>' or hitting \\`RET' atop a nickname button.")
+(make-obsolete-variable 'erc-button-nickname-callback-function
+                        "default provides essential functionality" "30.1")
 
 (defun erc-button-add-buttons ()
   "Find external references in the current buffer and make buttons of them.
@@ -745,6 +750,10 @@ In server buffers, also prompt for a channel."
           (funcall code nick)
         (eval code `((nick . ,nick)))))))
 
+(defun erc-button--perform-nick-popup (nick &rest _)
+  "Call `erc-nick-popup' with NICK."
+  (erc-nick-popup nick))
+
 ;;; Callback functions
 (defun erc-button-describe-symbol (symbol-name)
   "Describe SYMBOL-NAME.
@@ -778,33 +787,31 @@ and `apropos' for other symbols."
     (erc-button-add-button from (point) fun nick-p data regexp)))
 
 ;;;###autoload
-(defun erc-button--display-error-notice-with-keys (&optional parsed buffer
-                                                             &rest strings)
+(defun erc-button--display-error-notice-with-keys (maybe-buffer &rest strings)
   "Add help keys to STRINGS for configuration-related admonishments.
-Return inserted result.  Expect PARSED to be an `erc-response'
-object, a string, or nil.  Expect BUFFER to be a buffer, a string,
-or nil.  As a special case, allow PARSED to be a buffer as long
-as BUFFER is a string or nil.  If STRINGS contains any trailing
+Return inserted result.  Expect MAYBE-BUFFER to be an ERC buffer,
+a string, or nil.  When it's a buffer, specify the `buffer'
+argument when calling `erc-display-message'.  Otherwise, add it
+to STRINGS.  If STRINGS contains any trailing non-nil
 non-strings, concatenate leading string members before applying
 `format'.  Otherwise, just concatenate everything."
-  (when (stringp buffer)
-    (push buffer strings)
-    (setq buffer nil))
-  (when (stringp parsed)
-    (push parsed strings)
-    (setq parsed nil))
-  (when (bufferp parsed)
-    (cl-assert (null buffer))
-    (setq buffer parsed
-          parsed nil))
-  (let* ((op (if (seq-every-p #'stringp (cdr strings))
+  (let* ((buffer (if (bufferp maybe-buffer)
+                     maybe-buffer
+                   (when (stringp maybe-buffer)
+                     (push maybe-buffer strings))
+                   'active))
+         (op (if (seq-every-p (lambda (o) (or (not o) (stringp o)))
+                              (cdr strings))
                  #'concat
                (let ((head (pop strings)))
-                 (while (stringp (car strings))
+                 (while (or (stringp (car strings))
+                            (and strings (not (car strings))))
                    (setq head (concat head (pop strings))))
                  (push head strings))
                #'format))
          (string (apply op strings))
+         (erc-insert-modify-hook (remove 'erc-add-timestamp
+                                         erc-insert-modify-hook))
          (erc-insert-post-hook
           (cons (lambda ()
                   (setq string (buffer-substring (point-min)
@@ -815,7 +822,7 @@ non-strings, concatenate leading string members before applying
              erc-button--display-error-with-buttons
              erc-button-describe-symbol 1)
             ,@erc-button-alist)))
-    (erc-display-message parsed '(t notice error) (or buffer 'active) string)
+    (erc-display-message nil '(t notice error) buffer string)
     string))
 
 ;;;###autoload

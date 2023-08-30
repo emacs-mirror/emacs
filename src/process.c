@@ -119,6 +119,11 @@ static struct rlimit nofile_limit;
 #include "gnutls.h"
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h"
+#include "androidterm.h"
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -876,7 +881,8 @@ allocate_pty (char pty_name[PTY_NAME_SIZE])
 
 	    /* Check to make certain that both sides are available.
 	       This avoids a nasty yet stupid bug in rlogins.  */
-	    if (faccessat (AT_FDCWD, pty_name, R_OK | W_OK, AT_EACCESS) != 0)
+	    if (sys_faccessat (AT_FDCWD, pty_name,
+			       R_OK | W_OK, AT_EACCESS) != 0)
 	      {
 		emacs_close (fd);
 		continue;
@@ -1731,6 +1737,18 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
 }
 
 
+static Lisp_Object
+get_required_string_keyword_param (Lisp_Object kwargs, Lisp_Object keyword)
+{
+  Lisp_Object arg = plist_member (kwargs, keyword);
+  if (NILP (arg) || !CONSP (arg) || !CONSP (XCDR (arg)))
+    error ("Missing %s keyword parameter", SSDATA (SYMBOL_NAME (keyword)));
+  Lisp_Object val = XCAR (XCDR (arg));
+  if (!STRINGP (val))
+    error ("%s value not a string", SSDATA (SYMBOL_NAME (keyword)));
+  return val;
+}
+
 /* Starting asynchronous inferior processes.  */
 
 DEFUN ("make-process", Fmake_process, Smake_process, 0, MANY, 0,
@@ -1795,7 +1813,7 @@ such handler, proceed as if FILE-HANDLER were nil.
 usage: (make-process &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object buffer, name, command, program, proc, contact, current_dir, tem;
+  Lisp_Object buffer, command, program, proc, contact, current_dir, tem;
   Lisp_Object xstderr, stderrproc;
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -1824,8 +1842,7 @@ usage: (make-process &rest ARGS)  */)
      chdir, since it's in a vfork.  */
   current_dir = get_current_directory (true);
 
-  name = plist_get (contact, QCname);
-  CHECK_STRING (name);
+  Lisp_Object name = get_required_string_keyword_param (contact, QCname);
 
   command = plist_get (contact, QCcommand);
   if (CONSP (command))
@@ -2002,7 +2019,7 @@ usage: (make-process &rest ARGS)  */)
 	{
 	  tem = Qnil;
 	  openp (Vexec_path, program, Vexec_suffixes, &tem,
-		 make_fixnum (X_OK), false, false);
+		 make_fixnum (X_OK), false, false, NULL);
 	  if (NILP (tem))
 	    report_file_error ("Searching for program", program);
 	  tem = Fexpand_file_name (tem, Qnil);
@@ -2402,7 +2419,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 {
   Lisp_Object proc, contact;
   struct Lisp_Process *p;
-  Lisp_Object name, buffer;
+  Lisp_Object buffer;
   Lisp_Object tem;
   int inchannel, outchannel;
 
@@ -2411,8 +2428,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 
   contact = Flist (nargs, args);
 
-  name = plist_get (contact, QCname);
-  CHECK_STRING (name);
+  Lisp_Object name = get_required_string_keyword_param (contact, QCname);
   proc = make_process (name);
   specpdl_ref specpdl_count = SPECPDL_INDEX ();
   record_unwind_protect (remove_process, proc);
@@ -3932,7 +3948,7 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
   EMACS_INT port = 0;
   Lisp_Object tem;
-  Lisp_Object name, buffer, host, service, address;
+  Lisp_Object buffer, host, service, address;
   Lisp_Object filter, sentinel, use_external_socket_p;
   Lisp_Object addrinfos = Qnil;
   int socktype;
@@ -3969,7 +3985,7 @@ usage: (make-network-process &rest ARGS)  */)
   else
     error ("Unsupported connection type");
 
-  name = plist_get (contact, QCname);
+  Lisp_Object name = get_required_string_keyword_param (contact, QCname);
   buffer = plist_get (contact, QCbuffer);
   filter = plist_get (contact, QCfilter);
   sentinel = plist_get (contact, QCsentinel);
@@ -3979,7 +3995,6 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (!NILP (server) && nowait)
     error ("`:server' is incompatible with `:nowait'");
-  CHECK_STRING (name);
 
   /* :local ADDRESS or :remote ADDRESS */
   if (NILP (server))
@@ -5679,7 +5694,17 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = short_timeout;
 #endif
 
-	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+	  /* Android doesn't support threads and requires using a
+	     replacement for pselect in android.c to poll for
+	     events.  */
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	  nfds = android_select (max_desc + 1,
+				 &Available, (check_write ? &Writeok : 0),
+				 NULL, &timeout);
+#else
+
+	  /* Non-macOS HAVE_GLIB builds call thread_select in
+	     xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
@@ -5695,6 +5720,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 				(check_write ? &Writeok : 0),
 				NULL, &timeout, NULL);
 #endif	/* !HAVE_GLIB */
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
 
 #ifdef HAVE_GNUTLS
 	  /* Merge tls_available into Available. */
@@ -7232,10 +7258,10 @@ process has been transmitted to the serial port.  */)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
     {
-#ifndef WINDOWSNT
+#if !defined WINDOWSNT && defined HAVE_TCDRAIN
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
 	report_file_error ("Failed tcdrain", Qnil);
-#endif /* not WINDOWSNT */
+#endif /* not WINDOWSNT && not TCDRAIN */
       /* Do nothing on Windows because writes are blocking.  */
     }
   else
@@ -7455,6 +7481,16 @@ handle_child_signal (int sig)
 	    {
 	      changed = true;
 	      if (STRINGP (XCDR (head)))
+		/* handle_child_signal is called in an async signal
+		   handler but needs to unlink temporary files which
+		   might've been created in an Android content
+		   provider.
+
+		   emacs_unlink is not async signal safe because
+		   deleting files from content providers must proceed
+		   through Java code.  Consequentially, if XCDR (head)
+		   lies on a content provider it will not be removed,
+		   which is a bug.  */
 		unlink (SSDATA (XCDR (head)));
 	      XSETCAR (tail, Qnil);
 	    }

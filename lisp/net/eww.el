@@ -249,7 +249,7 @@ parameter, and should return the (possibly) transformed URL."
   :version "29.1")
 
 (defface eww-form-submit
-  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
@@ -257,7 +257,7 @@ parameter, and should return the (possibly) transformed URL."
   :group 'eww)
 
 (defface eww-form-file
-  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
@@ -265,7 +265,7 @@ parameter, and should return the (possibly) transformed URL."
   :group 'eww)
 
 (defface eww-form-checkbox
-  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
@@ -273,7 +273,7 @@ parameter, and should return the (possibly) transformed URL."
   :group 'eww)
 
 (defface eww-form-select
-  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
@@ -542,24 +542,35 @@ for the search engine used."
           (call-interactively #'eww)))
     (call-interactively #'eww)))
 
-(defun eww-open-in-new-buffer ()
-  "Fetch link at point in a new EWW buffer."
-  (interactive)
-  (let ((url (eww-suggested-uris)))
-    (if (null url) (user-error "No link at point")
-      (when (or (eq eww-browse-url-new-window-is-tab t)
-                (and (eq eww-browse-url-new-window-is-tab 'tab-bar)
-                     tab-bar-mode))
-        (let ((tab-bar-new-tab-choice t))
-          (tab-new)))
-      ;; clone useful to keep history, but
-      ;; should not clone from non-eww buffer
-      (with-current-buffer
-          (if (eq major-mode 'eww-mode) (clone-buffer)
-            (generate-new-buffer "*eww*"))
-        (unless (equal url (eww-current-url))
-          (eww-mode)
-          (eww (if (consp url) (car url) url)))))))
+(defun eww--open-url-in-new-buffer (url)
+  "Open the URL in a new EWW buffer."
+  ;; Clone is useful to keep history, but we
+  ;; should not clone from a non-eww buffer.
+  (with-current-buffer
+      (if (eq major-mode 'eww-mode) (clone-buffer)
+        (generate-new-buffer "*eww*"))
+    (unless (equal url (eww-current-url))
+      (eww-mode)
+      (eww (if (consp url) (car url) url)))))
+
+(defun eww-open-in-new-buffer (&optional no-select url)
+  "Fetch URL (interactively, the link at point) into a new EWW buffer.
+
+NO-SELECT non-nil means do not make the new buffer the current buffer."
+  (interactive "P")
+  (if-let ((url (or url (eww-suggested-uris))))
+      (if (or (eq eww-browse-url-new-window-is-tab t)
+              (and (eq eww-browse-url-new-window-is-tab 'tab-bar)
+                   tab-bar-mode))
+          (let ((tab-bar-new-tab-choice t))
+            (tab-new)
+            (eww--open-url-in-new-buffer url)
+            (when no-select
+              (tab-bar-switch-to-recent-tab)))
+        (if no-select
+            (save-window-excursion (eww--open-url-in-new-buffer url))
+          (eww--open-url-in-new-buffer url)))
+    (user-error "No link at point")))
 
 (defun eww-html-p (content-type)
   "Return non-nil if CONTENT-TYPE designates an HTML content type.

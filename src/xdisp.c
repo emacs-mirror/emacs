@@ -21,17 +21,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Redisplay.
 
-   Emacs separates the task of updating the display from code
-   modifying global state, e.g. buffer text.  This way functions
-   operating on buffers don't also have to be concerned with updating
-   the display.
+   Emacs separates the task of updating the display -- which we call
+   "redisplay" -- from the code modifying global state, e.g. buffer
+   text.  This way functions operating on buffers don't also have to
+   be concerned with updating the display as result of their
+   operations.
 
-   Updating the display is triggered by the Lisp interpreter when it
-   decides it's time to do it.  This is done either automatically for
-   you as part of the interpreter's command loop or as the result of
-   calling Lisp functions like `sit-for'.  The C function
-   `redisplay_internal' in xdisp.c is the only entry into the inner
-   redisplay code.
+   Redisplay is triggered by the Lisp interpreter when it decides it's
+   time to do it.  This is done either automatically for you as part
+   of the interpreter's command loop, or as the result of calling Lisp
+   functions like `sit-for'.  The C function `redisplay_internal' in
+   xdisp.c is the only entry into the inner redisplay code.
 
    The following diagram shows how redisplay code is invoked.  As you
    can see, Lisp calls redisplay and vice versa.
@@ -75,63 +75,97 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    and to make these changes visible.  Preferably it would do that in
    a moderately intelligent way, i.e. fast.
 
-   Changes in buffer text can be deduced from window and buffer
-   structures, and from some global variables like `beg_unchanged' and
-   `end_unchanged'.  The contents of the display are additionally
-   recorded in a `glyph matrix', a two-dimensional matrix of glyph
-   structures.  Each row in such a matrix corresponds to a line on the
-   display, and each glyph in a row corresponds to a column displaying
-   a character, an image, or what else.  This matrix is called the
-   `current glyph matrix' or `current matrix' in redisplay
-   terminology.
+   At its highest level, redisplay can be divided into 3 distinct
+   steps, all of which are visible in `redisplay_internal':
 
-   For buffer parts that have been changed since the last update, a
-   second glyph matrix is constructed, the so called `desired glyph
-   matrix' or short `desired matrix'.  Current and desired matrix are
-   then compared to find a cheap way to update the display, e.g. by
-   reusing part of the display by scrolling lines.  The actual update
-   of the display of each window by comparing the desired and the
-   current matrix is done by `update_window', which calls functions
-   which draw to the glass (those functions are specific to the type
-   of the window's frame: X, w32, NS, etc.).
+    . decide which frames need their windows to be considered for redisplay
+    . for each window whose display might need to be updated, compute
+      a structure, called "glyph matrix", which describes how it
+      should look on display
+    . actually update the display of windows on the glass where the
+      newly obtained glyph matrix differs from the one produced by the
+      previous redisplay cycle
+
+   The first of these steps is done by `redisplay_internal' itself, by
+   looping through all the frames and testing their various flags,
+   such as their visibility.  The result of this could be that only
+   the selected window on the selected frame must be redisplayed, or
+   it could conclude that other windows need to be considered as well.
+
+   The second step considers each window that might need to be
+   redisplayed.  This could be only the selected window, or the window
+   trees of one or more frames.  The function which considers a window
+   and decides whether it actually needs redisplay is
+   `redisplay_window'.  It does so by looking at the changes in
+   position of point, in buffer text, in text properties, overlays,
+   etc.  These changes can be deduced from window and buffer
+   structures, and from some global variables like `beg_unchanged' and
+   `end_unchanged'.  The current contents of the display are recorded
+   in a `glyph matrix', a two-dimensional matrix of glyph structures.
+   Each row in such a matrix corresponds to a line on the display, and
+   each glyph in a row corresponds to a column displaying a character,
+   an image, or what else.  This matrix is called the `current glyph
+   matrix', or `current matrix', in redisplay terminology.
+
+   For buffer parts that have been changed since the last redisplay,
+   `redisplay_window' constructs a second glyph matrix, the so called
+   `desired glyph matrix' or short `desired matrix'.  It does so in
+   the most optimal way possible, avoiding the examination of text
+   that didn't change, reusing portions of the current matrix if
+   possible, etc.  It could, in particular, decide that a window
+   doesn't need to be redisplayed at all.
+
+   This second step of redisplay also updates the parts of the desired
+   matrix that correspond to the mode lines, header lines, and
+   tab-lines of the windows which need that; see `display_mode_lines'.
+
+   In the third and last step, the current and desired matrix are then
+   compared to find a cheap way to update the display, e.g. by reusing
+   part of the display by scrolling lines.  The actual update of the
+   display of each window, by comparing the desired and the current
+   matrix, is done by `update_window', which calls functions which
+   draw to the glass (those functions are specific to the type of the
+   window's frame: X, w32, NS, etc.).
 
    Once the display of a window on the glass has been updated, its
    desired matrix is used to update the corresponding rows of the
    current matrix, and then the desired matrix is discarded.
 
    You will find a lot of redisplay optimizations when you start
-   looking at the innards of redisplay.  The overall goal of all these
-   optimizations is to make redisplay fast because it is done
-   frequently.  Some of these optimizations are implemented by the
-   following functions:
+   looking at the innards of `redisplay_window'.  The overall goal of
+   all these optimizations is to make redisplay fast because it is
+   done frequently.  Some of these optimizations are implemented by
+   the following functions:
 
     . try_cursor_movement
 
-      This function tries to update the display if the text in the
-      window did not change and did not scroll, only point moved, and
-      it did not move off the displayed portion of the text.
+      This optimization is applicable if the text in the window did
+      not change and did not scroll, only point moved, and it did not
+      move off the displayed portion of the text.  In that case, the
+      window's glyph matrix is still valid, and only the position of
+      the cursor might need to be updated.
 
     . try_window_reusing_current_matrix
 
-      This function reuses the current matrix of a window when text
-      has not changed, but the window start changed (e.g., due to
+      This function reuses the current glyph matrix of a window when
+      text has not changed, but the window start changed (e.g., due to
       scrolling).
 
     . try_window_id
 
-      This function attempts to redisplay a window by reusing parts of
-      its existing display.  It finds and reuses the part that was not
-      changed, and redraws the rest.  (The "id" part in the function's
-      name stands for "insert/delete", not for "identification" or
-      somesuch.)
+      This function attempts to update a window's glyph matrix by
+      reusing parts of its current glyph matrix.  It finds and reuses
+      the part that was not changed, and regenerates the rest.  (The
+      "id" part in the function's name stands for "insert/delete", not
+      for "identification" or somesuch.)
 
     . try_window
 
-      This function performs the full, unoptimized, redisplay of a
-      single window assuming that its fonts were not changed and that
-      the cursor will not end up in the scroll margins.  (Loading
-      fonts requires re-adjustment of dimensions of glyph matrices,
-      which makes this method impossible to use.)
+      This function performs the full, unoptimized, generation of a
+      single window's glyph matrix, assuming that its fonts were not
+      changed and that the cursor will not end up in the scroll
+      margins.  (Loading fonts requires re-adjustment of dimensions of
+      glyph matrices, which makes this method impossible to use.)
 
    The optimizations are tried in sequence (some can be skipped if
    it is known that they are not applicable).  If none of the
@@ -140,16 +174,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Note that there's one more important optimization up Emacs's
    sleeve, but it is related to actually redrawing the potentially
-   changed portions of the window/frame, not to reproducing the
-   desired matrices of those potentially changed portions.  Namely,
-   the function update_frame and its subroutines, which you will find
-   in dispnew.c, compare the desired matrices with the current
-   matrices, and only redraw the portions that changed.  So it could
-   happen that the functions in this file for some reason decide that
-   the entire desired matrix needs to be regenerated from scratch, and
-   still only parts of the Emacs display, or even nothing at all, will
-   be actually delivered to the glass, because update_frame has found
-   that the new and the old screen contents are similar or identical.
+   changed portions of the window/frame as part of the third step, not
+   to generating the desired matrices of those potentially changed
+   portions.  Namely, the function `update_frame' and its subroutines,
+   which you will find in dispnew.c, compare the desired matrices with
+   the current matrices, and only redraw the portions that changed.
+   So it could happen that the functions in this file for some reason
+   decide that the entire desired matrix needs to be regenerated from
+   scratch, and still only parts of the Emacs display, or even nothing
+   at all, will be actually delivered to the glass, because
+   `update_frame' has found that the new and the old screen contents
+   are similar or identical.
 
    Desired matrices.
 
@@ -159,7 +194,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    redisplay tries to optimize its work, and thus only generates
    glyphs for rows that need to be updated on the screen.  Rows that
    don't need to be updated are left "disabled", and their contents
-   should be ignored.
+   in the desired matrix should be ignored.
 
    The function `display_line' is the central function to look at if
    you are interested in how the rows of the desired matrix are
@@ -2724,6 +2759,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
   enum window_part part;
   enum glyph_row_area area;
   int x, y, width, height;
+  int original_gx;
 
   if (mouse_fine_grained_tracking)
     {
@@ -2733,6 +2769,8 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 
   /* Try to determine frame pixel position and size of the glyph under
      frame pixel coordinates X/Y on frame F.  */
+
+  original_gx = gx;
 
   if (window_resize_pixelwise)
     {
@@ -2949,6 +2987,15 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
   gy += WINDOW_TOP_EDGE_Y (w);
 
  store_rect:
+  if (mouse_prefer_closest_glyph)
+    {
+      int half_width = width / 2;
+      width = half_width;
+
+      int bisection = gx + half_width;
+      if (original_gx > bisection)
+        gx = bisection;
+    }
   STORE_NATIVE_RECT (*rect, gx, gy, width, height);
 
   /* Visible feedback for debugging.  */
@@ -8292,9 +8339,17 @@ get_next_display_element (struct it *it)
       && success_p
       && FRAME_WINDOW_P (it->f))
     {
-      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      struct face *face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
 
-      if (it->what == IT_COMPOSITION && it->cmp_it.ch >= 0)
+      /* It shouldn't happen, ever, that FACE is NULL here, but
+         evidently some faulty fonts/fontsets can sometimes cause it.
+         In that case, we punt and consider the stuff undisplayable.  */
+      if (!face)
+	{
+	  it->what = IT_GLYPHLESS;
+	  it->glyphless_method = GLYPHLESS_DISPLAY_EMPTY_BOX;
+	}
+      else if (it->what == IT_COMPOSITION && it->cmp_it.ch >= 0)
 	{
 	  /* Automatic composition with glyph-string.   */
 	  Lisp_Object gstring = composition_gstring_from_id (it->cmp_it.id);
@@ -11651,6 +11706,8 @@ WINDOW.  */)
 
   set_buffer_internal_1 (b);
 
+  ptrdiff_t base_line_pos = w->base_line_pos;
+  int end_valid = w->window_end_valid;
   if (!EQ (buffer, w->contents))
     {
       wset_buffer (w, buffer);
@@ -11662,6 +11719,11 @@ WINDOW.  */)
 				  Qnil);
 
   unbind_to (count, Qnil);
+
+  /* Restore original values.  This is important if this function is
+     called from some ':eval' form in the middle of redisplay.  */
+  w->base_line_pos = base_line_pos;
+  w->window_end_valid = end_valid;
 
   return value;
 }
@@ -14585,21 +14647,32 @@ tab_bar_item_info (struct frame *f, struct glyph *glyph,
 			     Qmenu_item, f->current_tab_bar_string);
   if (! FIXNUMP (prop))
     return false;
+
   *prop_idx = XFIXNUM (prop);
 
-  *close_p = !NILP (Fget_text_property (make_fixnum (charpos),
-                                        Qclose_tab,
-                                        f->current_tab_bar_string));
+  if (close_p)
+    *close_p = !NILP (Fget_text_property (make_fixnum (charpos),
+					  Qclose_tab,
+					  f->current_tab_bar_string));
 
   return true;
 }
 
 
-/* Get information about the tab-bar item at position X/Y on frame F.
-   Return in *GLYPH a pointer to the glyph of the tab-bar item in
-   the current matrix of the tab-bar window of F, or NULL if not
-   on a tab-bar item.  Return in *PROP_IDX the index of the tab-bar
-   item in F->tab_bar_items.  Value is
+/* Get information about the tab-bar item at position X/Y on frame F's
+   tab bar window.
+
+   Set *GLYPH to a pointer to the glyph of the tab-bar item in the
+   current matrix of the tab-bar window of F, or NULL if not on a
+   tab-bar item.  Return in *PROP_IDX the index of the tab-bar item in
+   F->tab_bar_items.
+
+   Place the window-relative vpos of Y in *VPOS, and the
+   window-relative hpos of X in *HPOS.  If CLOSE_P, set it to whether
+   or not the tab bar item represents a button that should close a
+   tab.
+
+   Value is
 
    -1	if X/Y is not on a tab-bar item
    0	if X/Y is on the same item that was highlighted before.
@@ -14607,7 +14680,7 @@ tab_bar_item_info (struct frame *f, struct glyph *glyph,
 
 static int
 get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
-		   int *hpos, int *vpos, int *prop_idx, bool *close_p)
+		  int *hpos, int *vpos, int *prop_idx, bool *close_p)
 {
   struct window *w = XWINDOW (f->tab_bar_window);
   int area;
@@ -14625,6 +14698,38 @@ get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
   return *prop_idx == f->last_tab_bar_item ? 0 : 1;
 }
 
+/* EXPORT:
+
+   Like `get_tab_bar_item'.  However, don't return anything for GLYPH,
+   HPOS, or VPOS, and treat X and Y as relative to F itself, as
+   opposed to its tab bar window.  */
+
+int
+get_tab_bar_item_kbd (struct frame *f, int x, int y, int *prop_idx,
+		      bool *close_p)
+{
+  struct window *w;
+  int area, vpos, hpos;
+  struct glyph *glyph;
+
+  w = XWINDOW (f->tab_bar_window);
+
+  /* Convert X and Y to window coordinates.  */
+  frame_to_window_pixel_xy (w, &x, &y);
+
+  /* Find the glyph under X/Y.  */
+  glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0,
+			    0, &area);
+  if (glyph == NULL)
+    return -1;
+
+  /* Get the start of this tab-bar item's properties in
+     f->tab_bar_items.  */
+  if (!tab_bar_item_info (f, glyph, prop_idx, close_p))
+    return -1;
+
+  return *prop_idx == f->last_tab_bar_item ? 0 : 1;
+}
 
 /* EXPORT:
    Handle mouse button event on the tab-bar of frame F, at
@@ -14957,7 +15062,10 @@ update_tool_bar (struct frame *f, bool save_match_data)
 
 /* Set F->desired_tool_bar_string to a Lisp string representing frame
    F's desired tool-bar contents.  F->tool_bar_items must have
-   been set up previously by calling prepare_menu_bars.  */
+   been set up previously by calling prepare_menu_bars.
+
+   Also set F->tool_bar_wraps_p to whether or not the tool bar
+   contains explicit line breaking items.  */
 
 static void
 build_desired_tool_bar_string (struct frame *f)
@@ -14979,15 +15087,19 @@ build_desired_tool_bar_string (struct frame *f)
   size_needed = f->n_tool_bar_items;
 
   /* Reuse f->desired_tool_bar_string, if possible.  */
+
   if (size < size_needed || NILP (f->desired_tool_bar_string))
-    fset_desired_tool_bar_string
-      (f, Fmake_string (make_fixnum (size_needed), make_fixnum (' '), Qnil));
+    /* Don't initialize the contents of this string yet, as they will
+       be set within the loop below.  */
+    fset_desired_tool_bar_string (f, make_uninit_string (size_needed));
   else
     {
       AUTO_LIST4 (props, Qdisplay, Qnil, Qmenu_item, Qnil);
       Fremove_text_properties (make_fixnum (0), make_fixnum (size),
 			       props, f->desired_tool_bar_string);
     }
+
+  f->tool_bar_wraps_p = false;
 
   /* Put a `display' property on the string for the images to display,
      put a `menu_item' property on tool-bar items with a value that
@@ -15000,6 +15112,21 @@ build_desired_tool_bar_string (struct frame *f)
       bool enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       bool selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
+
+      if (!NILP (PROP (TOOL_BAR_ITEM_WRAP)))
+	{
+	  /* This is a line wrap.  Instead of building a tool bar
+	     item, display a new line character instead.  */
+	  SSET (f->desired_tool_bar_string, i, '\n');
+
+	  /* Set F->tool_bar_wraps_p.  This tells redisplay_tool_bar
+	     to allow individual rows to be different heights.  */
+	  f->tool_bar_wraps_p = true;
+	  continue;
+	}
+
+      /* Replace this with a space character.  */
+      SSET (f->desired_tool_bar_string, i, ' ');
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -15112,6 +15239,16 @@ build_desired_tool_bar_string (struct frame *f)
 			    props, f->desired_tool_bar_string);
 #undef PROP
     }
+
+  /* Now replace each character between i and the end of the tool bar
+     string with spaces, to prevent stray newlines from accumulating
+     when the number of tool bar items decreases.  `size' is 0 if the
+     tool bar string is new, but in that case the string will have
+     been completely initialized anyway.  */
+
+  for (; i < size; ++i)
+    /* Replace this with a space character.  */
+    SSET (f->desired_tool_bar_string, i, ' ');
 }
 
 
@@ -15125,7 +15262,10 @@ build_desired_tool_bar_string (struct frame *f)
    If HEIGHT is -1, we are counting needed tool-bar lines, so don't
    count a final empty row in case the tool-bar width exactly matches
    the window width.
-*/
+
+   HEIGHT may also be -1 if there is an explicit line wrapping item
+   inside the tool bar; in that case, allow individual rows of the
+   tool bar to differ in height.  */
 
 static void
 display_tool_bar_line (struct it *it, int height)
@@ -15189,8 +15329,18 @@ display_tool_bar_line (struct it *it, int height)
 	  ++i;
 	}
 
-      /* Stop at line end.  */
+      /* Stop at the end of the iterator, and move to the next line
+         upon a '\n' appearing in the tool bar string.  Tool bar
+         strings may contain multiple new line characters when
+         explicit wrap items are encountered.  */
+
       if (ITERATOR_AT_END_OF_LINE_P (it))
+	{
+	  reseat_at_next_visible_line_start (it, false);
+	  break;
+	}
+
+      if (ITERATOR_AT_END_P (it))
 	break;
 
       set_iterator_to_next (it, true);
@@ -15217,7 +15367,8 @@ display_tool_bar_line (struct it *it, int height)
     last->left_box_line_p = true;
 
   /* Make line the desired height and center it vertically.  */
-  if ((height -= it->max_ascent + it->max_descent) > 0)
+  if (height != -1
+      && (height -= it->max_ascent + it->max_descent) > 0)
     {
       /* Don't add more than one line height.  */
       height %= FRAME_LINE_HEIGHT (it->f);
@@ -15251,6 +15402,7 @@ display_tool_bar_line (struct it *it, int height)
 /* Value is the number of pixels needed to make all tool-bar items of
    frame F visible.  The actual number of glyph rows needed is
    returned in *N_ROWS if non-NULL.  */
+
 static int
 tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
 {
@@ -15328,7 +15480,9 @@ redisplay_tool_bar (struct frame *f)
   struct window *w;
   struct it it;
   struct glyph_row *row;
+  bool change_height_p;
 
+  change_height_p = false;
   f->tool_bar_redisplayed = true;
 
   /* If frame hasn't a tool-bar window or if it is zero-height, don't
@@ -15381,6 +15535,15 @@ redisplay_tool_bar (struct frame *f)
 	  /* Always do that now.  */
 	  clear_glyph_matrix (w->desired_matrix);
 	  f->fonts_changed = true;
+
+	  /* Kludge (this applies to the X Windows version as well as
+	     Android): when the tool bar size changes,
+	     adjust_window_size (presumably called by
+	     change_tool_bar_height_hook) does not call through to
+	     resize_frame_windows.  Pending further investigation,
+	     just call it here as well.  */
+	  resize_frame_windows (f, FRAME_INNER_HEIGHT (f), false);
+
 	  return true;
 	}
     }
@@ -15403,18 +15566,39 @@ redisplay_tool_bar (struct frame *f)
 	border = 0;
 
       rows = f->n_tool_bar_rows;
-      height = max (1, (it.last_visible_y - border) / rows);
-      extra = it.last_visible_y - border - height * rows;
 
-      while (it.current_y < it.last_visible_y)
+      if (f->tool_bar_wraps_p)
 	{
-	  int h = 0;
-	  if (extra > 0 && rows-- > 0)
+	  /* If the tool bar contains explicit line wrapping items,
+	     don't force each row to have a fixed height.  */
+
+	  while (!ITERATOR_AT_END_P (&it))
+	    display_tool_bar_line (&it, -1);
+
+	  /* Because changes to individual tool bar items may now
+	     change the height of the tool bar, adjust the height of
+	     the tool bar window if it is different from the tool bar
+	     height in any way.  */
+
+	  if (it.current_y != it.last_visible_y)
+	    change_height_p = true;
+	}
+      else
+	{
+	  height = max (1, (it.last_visible_y - border) / rows);
+	  extra = it.last_visible_y - border - height * rows;
+
+	  while (it.current_y < it.last_visible_y)
 	    {
-	      h = (extra + rows - 1) / rows;
-	      extra -= h;
+	      int h = 0;
+	      if (extra > 0 && rows-- > 0)
+		{
+		  h = (extra + rows - 1) / rows;
+		  extra -= h;
+		}
+
+	      display_tool_bar_line (&it, height + h);
 	    }
-	  display_tool_bar_line (&it, height + h);
 	}
     }
   else
@@ -15430,8 +15614,6 @@ redisplay_tool_bar (struct frame *f)
 
   if (!NILP (Vauto_resize_tool_bars))
     {
-      bool change_height_p = false;
-
       /* If we couldn't display everything, change the tool-bar's
 	 height if there is room for more.  */
       if (IT_STRING_CHARPOS (it) < it.end_charpos)
@@ -16490,8 +16672,9 @@ redisplay_internal (void)
   enum {MAX_GARBAGED_FRAME_RETRIES = 2 };
   int garbaged_frame_retries = 0;
 
-  /* True means redisplay has to consider all windows on all
-     frames.  False, only selected_window is considered.  */
+  /* False means that only the selected_window needs to be updated.
+     True means that other windows may need to be updated as well,
+     so we need to consult `needs_no_update` for all windows.  */
   bool consider_all_windows_p;
 
   /* True means redisplay has to redisplay the miniwindow.  */
@@ -16568,7 +16751,7 @@ redisplay_internal (void)
 	 display area, displaying a different frame means redisplay
 	 the whole thing.  */
       SET_FRAME_GARBAGED (sf);
-#ifndef DOS_NT
+#if !defined DOS_NT && !defined HAVE_ANDROID
       set_tty_color_mode (FRAME_TTY (sf), sf);
 #endif
       FRAME_TTY (sf)->previous_frame = sf;
@@ -17409,6 +17592,9 @@ static void
 mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 {
   struct buffer *b = XBUFFER (w->contents);
+#ifdef HAVE_TEXT_CONVERSION
+  ptrdiff_t prev_point, prev_mark;
+#endif /* HAVE_TEXT_CONVERSION */
 
   w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
   w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF (b) : 0;
@@ -17438,12 +17624,59 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       w->last_cursor_vpos = w->cursor.vpos;
       w->last_cursor_off_p = w->cursor_off_p;
 
+#ifdef HAVE_TEXT_CONVERSION
+      prev_point = w->last_point;
+      prev_mark = w->last_mark;
+#endif /* HAVE_TEXT_CONVERSION */
+
       if (w == XWINDOW (selected_window))
 	w->last_point = BUF_PT (b);
       else
 	w->last_point = marker_position (w->pointm);
 
-      w->window_end_valid = true;
+      /* w->last_mark is recorded for text conversion purposes.
+         Input methods aren't interested in the value of the mark
+         if it is inactive, so set it to -1 if it's not.  */
+
+      if (XMARKER (BVAR (b, mark))->buffer == b
+	  && !NILP (BVAR (b, mark_active)))
+	w->last_mark = marker_position (BVAR (b, mark));
+      else
+	w->last_mark = -1;
+
+#ifdef HAVE_TEXT_CONVERSION
+      /* See the description of this field in struct window.  */
+      w->ephemeral_last_point = w->last_point;
+
+      /* Point motion is only propagated to the input method for use
+	 in text conversion during a redisplay.  While this can lead
+	 to inconsistencies when point has moved but the change has
+	 not yet been displayed, it leads to better results most of
+	 the time, as point often changes within calls to
+	 `save-excursion', and the only way to detect such calls is to
+	 observe that the next redisplay never ends with those changes
+	 applied.
+
+         Changes to buffer text are immediately propagated to the
+         input method, and the position of point is also updated
+         during such a change, so the consequences are not that
+         severe.  */
+
+      if ((prev_point != w->last_point
+	   || prev_mark != w->last_mark)
+	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
+	report_point_change (WINDOW_XFRAME (w), w, b);
+#endif /* HAVE_TEXT_CONVERSION */
+
+      struct glyph_row *row;
+      /* These conditions should be consistent with CHECK_WINDOW_END.  */
+      if (w->window_end_vpos < w->current_matrix->nrows
+	  && ((row = MATRIX_ROW (w->current_matrix, w->window_end_vpos),
+	       !row->enabled_p
+	       || MATRIX_ROW_DISPLAYS_TEXT_P (row)
+	       || MATRIX_ROW_VPOS (row, w->current_matrix) == 0)))
+	w->window_end_valid = true;
       w->update_mode_line = false;
       w->preserve_vscroll_p = false;
     }
@@ -17582,6 +17815,7 @@ redisplay_window_error (Lisp_Object error_data)
   if (max_redisplay_ticks > 0
       && CONSP (error_data)
       && EQ (XCAR (error_data), Qerror)
+      && CONSP (XCDR (error_data))
       && STRINGP (XCAR (XCDR (error_data))))
     Vdelayed_warnings_list = Fcons (list2 (XCAR (error_data),
 					   XCAR (XCDR (error_data))),
@@ -26494,7 +26728,7 @@ display_menu_bar (struct window *w)
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_PIXEL_WIDTH (f);
-#elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
+#elif defined (HAVE_X_WINDOWS) || defined (HAVE_ANDROID)
   struct window *menu_window = NULL;
   struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
 
@@ -26564,7 +26798,11 @@ display_menu_bar (struct window *w)
   it.glyph_row->truncated_on_left_p = false;
   it.glyph_row->truncated_on_right_p = false;
 
-#if defined (HAVE_X_WINDOWS) && !defined (USE_X_TOOLKIT) && !defined (USE_GTK)
+  /* This will break the moment someone tries to add another window
+     system that uses the no toolkit menu bar.  Oh well.  At least
+     there will be an error, meaning he will correct the ifdef inside
+     which `face' is defined.  */
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   /* Make a 3D menu bar have a shadow at its right end.  */
   extend_face_to_end_of_line (&it);
   if (face->box != FACE_NO_BOX)
@@ -26604,6 +26842,11 @@ display_menu_bar (struct window *w)
     }
 #endif
 }
+
+/* This code is never used on Android where there are only GUI and
+   initial frames.  */
+
+#ifndef HAVE_ANDROID
 
 /* Deep copy of a glyph row, including the glyphs.  */
 static void
@@ -26725,6 +26968,9 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   row->full_width_p = saved_width;
   row->reversed_p = saved_reversed;
 }
+
+#endif
+
 
 /***********************************************************************
 			      Mode Line
@@ -27117,7 +27363,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 
 		    oprops = Fcopy_sequence (oprops);
 		    tem = props;
-		    while (CONSP (tem))
+		    while (CONSP (tem) && CONSP (XCDR (tem)))
 		      {
 			oprops = plist_put (oprops, XCAR (tem),
 					    XCAR (XCDR (tem)));
@@ -27670,6 +27916,8 @@ are the selected window and the WINDOW's buffer).  */)
   if (NILP (buffer))
     buffer = w->contents;
   CHECK_BUFFER (buffer);
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
+    error ("Attempt to format a mode line for a dead buffer");
 
   /* Make formatting the modeline a non-op when noninteractive, otherwise
      there will be problems later caused by a partially initialized frame.  */
@@ -29050,7 +29298,9 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
       /* 'width': the width of FONT.  */
       if (EQ (prop, Qwidth))
 	return OK_PIXELS (font
-			  ? FONT_WIDTH (font)
+			  ? (font->average_width
+			     ? font->average_width
+			     : font->space_width)
 			  : FRAME_COLUMN_WIDTH (it->f));
 #else
       if (EQ (prop, Qheight) || EQ (prop, Qwidth))
@@ -31858,9 +32108,12 @@ produce_glyphless_glyph (struct it *it, bool for_no_font, Lisp_Object acronym)
   int len;
 
   /* Get the metrics of the base font.  We always refer to the current
-     ASCII face.  */
-  face = FACE_FROM_ID (it->f, it->face_id)->ascii_face;
-  font = face->font ? face->font : FRAME_FONT (it->f);
+     ASCII face, but if some faulty setup of fontsets causes that to
+     be NULL, we fall back to the frame's default font.  */
+  face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
+  if (face)
+    face = face->ascii_face;
+  font = (face && face->font) ? face->font : FRAME_FONT (it->f);
   normal_char_ascent_descent (font, -1, &it->ascent, &it->descent);
   it->ascent += font->baseline_offset;
   it->descent -= font->baseline_offset;
@@ -33550,6 +33803,7 @@ display_and_set_cursor (struct window *w, bool on,
      completely erased, to avoid the extra work of erasing the cursor
      twice.  In other words, phys_cursor_on_p can be true and the cursor
      still not be visible, or it has only been partly erased.  */
+
   if (on)
     {
       w->phys_cursor_ascent = glyph_row->ascent;
@@ -33563,9 +33817,15 @@ display_and_set_cursor (struct window *w, bool on,
       w->phys_cursor.vpos = vpos;
     }
 
-  FRAME_RIF (f)->draw_window_cursor (w, glyph_row, x, y,
-                                     new_cursor_type, new_cursor_width,
-                                     on, active_cursor);
+  /* If make_cursor_line_fully_visible is nil and the row is in fact
+     vscrolled out of the window, then glyph_row->y +
+     glyph_row->height will be less than or equal to 0.  Eschew
+     displaying the cursor in that case.  */
+
+  if (MATRIX_ROW_BOTTOM_Y (glyph_row) > 0)
+    FRAME_RIF (f)->draw_window_cursor (w, glyph_row, x, y,
+				       new_cursor_type, new_cursor_width,
+				       on, active_cursor);
 }
 
 
@@ -33663,7 +33923,9 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
     }
 #endif
 
+#ifndef HAVE_ANDROID
   tty_draw_row_with_mouse_face (w, row, start_hpos, end_hpos, draw);
+#endif
 }
 
 /* Display the active region described by mouse_face_* according to DRAW.  */
@@ -35154,7 +35416,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS) || defined (MSDOS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS) || defined (MSDOS) \
+  || defined (HAVE_ANDROID)
   if (popup_activated ())
     return;
 #endif
@@ -36335,14 +36598,10 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
       |= expose_window (XWINDOW (f->tool_bar_window), &r);
 #endif
 
-#ifdef HAVE_X_WINDOWS
-#ifndef MSDOS
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   if (WINDOWP (f->menu_bar_window))
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->menu_bar_window), &r);
-#endif /* not USE_X_TOOLKIT and not USE_GTK */
-#endif
 #endif
 
   /* Some window managers support a focus-follows-mouse style with
@@ -36424,6 +36683,55 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
     }
 
   return intersection_p;
+}
+
+/* EXPORT:
+   Determine the union of the rectangles A and B.  Return the smallest
+   rectangle encompassing both the bounds of A and B in *RESULT.  It
+   is safe for all three arguments to point to each other.  */
+
+void
+gui_union_rectangles (const Emacs_Rectangle *a, const Emacs_Rectangle *b,
+		      Emacs_Rectangle *result)
+{
+  struct gui_box a_box, b_box, result_box;
+
+  /* Handle special cases where one of the rectangles is empty.  */
+
+  if (!a->width || !a->height)
+    {
+      *result = *b;
+      return;
+    }
+  else if (!b->width || !b->height)
+    {
+      *result = *a;
+      return;
+    }
+
+  /* Convert A and B to boxes.  */
+  a_box.x1 = a->x;
+  a_box.y1 = a->y;
+  a_box.x2 = a->x + a->width;
+  a_box.y2 = a->y + a->height;
+
+  b_box.x1 = b->x;
+  b_box.y1 = b->y;
+  b_box.x2 = b->x + b->width;
+  b_box.y2 = b->y + b->height;
+
+  /* Compute the union of the boxes.  */
+  result_box.x1 = min (a_box.x1, b_box.x1);
+  result_box.y1 = min (a_box.y1, b_box.y1);
+  result_box.x2 = max (a_box.x2, b_box.x2);
+  result_box.y2 = max (a_box.y2, b_box.y2);
+
+  /* Convert result_box to an XRectangle and put the result in
+     RESULT.  */
+  result->x = result_box.x1;
+  result->y = result_box.y1;
+  result->width = result_box.x2 - result_box.x1;
+  result->height = result_box.y2 - result_box.y1;
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -37456,9 +37764,12 @@ may be more familiar to users.  */);
   display_raw_bytes_as_hex = false;
 
   DEFVAR_BOOL ("mouse-fine-grained-tracking", mouse_fine_grained_tracking,
-    doc: /* Non-nil for pixel-wise mouse-movement.
+    doc: /* Non-nil for pixelwise mouse-movement.
 When nil, mouse-movement events will not be generated as long as the
-mouse stays within the extent of a single glyph (except for images).  */);
+mouse stays within the extent of a single glyph (except for images).
+When nil and `mouse-prefer-closest-glyph' is non-nil, mouse-movement
+events will instead not be generated as long as the mouse stays within
+the extent of a single left/right half glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
 
   DEFVAR_BOOL ("tab-bar--dragging-in-progress", tab_bar__dragging_in_progress,

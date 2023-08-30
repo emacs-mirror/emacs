@@ -337,6 +337,8 @@ support it."
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local parse-sexp-ignore-comments t)
   (add-hook 'context-menu-functions 'prog-context-menu 10 t)
+  ;; Enable text conversion in this buffer.
+  (setq-local text-conversion-style t)
   ;; Any programming language is always written left to right.
   (setq bidi-paragraph-direction 'left-to-right))
 

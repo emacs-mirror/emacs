@@ -31,6 +31,9 @@
 
 (defvar eshell-test-value nil)
 
+(defvar eshell-test-value-with-fun nil)
+(defun eshell-test-value-with-fun ())
+
 (defun eshell-test-file-string (file)
   "Return the contents of FILE as a string."
   (with-temp-buffer
@@ -116,6 +119,13 @@
     (with-temp-eshell
      (eshell-insert-command "echo new >> #'eshell-test-value"))
     (should (equal eshell-test-value "oldnew"))))
+
+(ert-deftest esh-io-test/redirect-symbol/with-function-slot ()
+  "Check that redirecting to a symbol with function slot set works."
+  (let ((eshell-test-value-with-fun))
+    (with-temp-eshell
+     (eshell-insert-command "echo hi > #'eshell-test-value-with-fun"))
+    (should (equal eshell-test-value-with-fun "hi"))))
 
 (ert-deftest esh-io-test/redirect-marker ()
   "Check that redirecting to a marker works."

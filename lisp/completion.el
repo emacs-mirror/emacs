@@ -322,9 +322,11 @@ This can be time consuming."
   :type 'boolean)
 
 (defcustom completion-search-distance 15000
-  "How far to search in the buffer when looking for completions.
-In number of characters.  If nil, search the whole buffer."
-  :type 'integer)
+  "How far in the buffer to search when looking for completions.
+Limit is measured in characters.  If nil, search the whole buffer."
+  :type '(choice
+          (const :tag "No limit" nil)
+          (integer :tag "Limit in characters")))
 
 (defcustom completions-merging-modes '(lisp c)
   "List of modes {`c' or `lisp'} for automatic completions merging.

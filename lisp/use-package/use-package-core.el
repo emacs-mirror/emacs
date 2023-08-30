@@ -327,12 +327,15 @@ Must be set before loading `use-package'."
       (set-default sym value))
   :group 'use-package)
 
+;; Redundant in Emacs 26 or later, which already highlights macro names.
 (defconst use-package-font-lock-keywords
   '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face nil t))))
-
-(font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
+(make-obsolete-variable 'use-package-font-lock-keywords
+                        'lisp-el-font-lock-keywords "30.1")
+(when (< emacs-major-version 26)
+  (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords))
 
 (defcustom use-package-compute-statistics nil
   "If non-nil, compute statistics concerned `use-package' declarations.
@@ -1036,15 +1039,23 @@ meaning:
   Configured        :config has been processed (the package is loaded!)
   Initialized       :init has been processed (load status unknown)
   Prefaced          :preface has been processed
-  Declared          the use-package declaration was seen"
+  Declared          the use-package declaration was seen
+
+Customize the user option `use-package-compute-statistics' to
+enable gathering statistics."
   (interactive)
-  (with-current-buffer (get-buffer-create "*use-package statistics*")
-    (setq tabulated-list-entries
-          (mapcar #'use-package-statistics-convert
-                  (hash-table-keys use-package-statistics)))
-    (use-package-statistics-mode)
-    (tabulated-list-print)
-    (display-buffer (current-buffer))))
+  (let ((statistics (hash-table-keys use-package-statistics)))
+    (unless statistics
+      (if use-package-compute-statistics
+          (user-error "No use-package statistics available")
+        (user-error (concat "Customize `use-package-compute-statistics'"
+                            " to enable reporting"))))
+    (with-current-buffer (get-buffer-create "*use-package statistics*")
+      (setq tabulated-list-entries
+            (mapcar #'use-package-statistics-convert statistics))
+      (use-package-statistics-mode)
+      (tabulated-list-print)
+      (display-buffer (current-buffer)))))
 
 (defvar use-package-statistics-status-order
   '(("Declared"    . 0)
@@ -1055,6 +1066,7 @@ meaning:
 (define-derived-mode use-package-statistics-mode tabulated-list-mode
   "use-package statistics"
   "Show current statistics gathered about `use-package' declarations."
+  :interactive nil
   (setq tabulated-list-format
         ;; The sum of column width is 80 characters:
         [("Package" 25 t)

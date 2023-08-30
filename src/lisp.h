@@ -29,6 +29,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <stdio.h>
+
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 
 #include <attribute.h>
 #include <count-leading-zeros.h>
@@ -332,7 +337,14 @@ typedef EMACS_INT Lisp_Word;
    see these functions for commentary.  */
 
 /* Convert among the various Lisp-related types: I for EMACS_INT, L
-   for Lisp_Object, P for void *.  */
+   for Lisp_Object, P for void *.
+
+   These use the following mnemonics:
+
+   XLI: Lisp_Object to Integer;
+   XIL: Integer to Lisp_Object;
+   XLP: Lisp_Object to Pointer.  */
+
 #if !CHECK_LISP_OBJECT_TYPE
 # if LISP_WORDS_ARE_POINTERS
 #  define lisp_h_XLI(o) ((EMACS_INT) (o))
@@ -4505,7 +4517,8 @@ extern bool suffix_p (Lisp_Object, const char *);
 extern Lisp_Object save_match_data_load (Lisp_Object, Lisp_Object, Lisp_Object,
 					 Lisp_Object, Lisp_Object);
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
-                  Lisp_Object *, Lisp_Object, bool, bool);
+                  Lisp_Object *, Lisp_Object, bool, bool,
+		  void **);
 enum { S2N_IGNORE_TRAILING = 1 };
 extern Lisp_Object string_to_number (char const *, int, ptrdiff_t *);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
@@ -4724,6 +4737,7 @@ extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */
 
+extern Lisp_Object file_name_directory (Lisp_Object);
 extern char *splice_dir_file (char *, char const *, char const *)
   ATTRIBUTE_RETURNS_NONNULL;
 extern bool file_name_absolute_p (const char *);
@@ -5063,11 +5077,34 @@ extern void init_random (void);
 extern void emacs_backtrace (int);
 extern AVOID emacs_abort (void) NO_INLINE;
 extern int emacs_fstatat (int, char const *, void *, int);
+#ifdef HAVE_SYS_STAT_H
+extern int sys_fstat (int, struct stat *);
+#endif
+extern int sys_faccessat (int, const char *, int, int);
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
 extern int emacs_openat (int, char const *, int, int);
+#endif
 extern int emacs_open (const char *, int, int);
 extern int emacs_open_noquit (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+# define emacs_fclose fclose
+#else
+extern int emacs_fclose (FILE *);
+#endif
+extern FILE *emacs_fdopen (int, const char *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (emacs_fclose, 1);
+extern FILE *emacs_fopen (char const *, char const *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (emacs_fclose, 1);
+extern int emacs_unlink (const char *);
+extern int emacs_symlink (const char *, const char *);
+extern int emacs_rmdir (const char *);
+extern int emacs_mkdir (const char *, mode_t);
+extern int emacs_renameat_noreplace (int, const char *, int,
+				     const char *);
+extern int emacs_rename (const char *, const char *);
+extern int emacs_fchmodat (int, const char *, mode_t, int);
 extern ptrdiff_t emacs_read (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_read_quit (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);
@@ -5101,7 +5138,9 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              bool, Lisp_Object, Lisp_Object);
 
 /* Defined in term.c.  */
+#ifndef HAVE_ANDROID
 extern int *char_ins_del_vector;
+#endif
 extern void syms_of_term (void);
 extern AVOID fatal (const char *msgid, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
@@ -5211,7 +5250,13 @@ extern char *emacs_root_dir (void);
 
 #ifdef HAVE_TEXT_CONVERSION
 /* Defined in textconv.c.  */
+extern void reset_frame_state (struct frame *);
 extern void report_selected_window_change (struct frame *);
+extern void report_point_change (struct frame *, struct window *,
+				 struct buffer *);
+extern void disable_text_conversion (void);
+extern void resume_text_conversion (void);
+extern void syms_of_textconv (void);
 #endif
 
 #ifdef HAVE_NATIVE_COMP

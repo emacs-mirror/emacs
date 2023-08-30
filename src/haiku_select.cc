@@ -17,15 +17,24 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <intprops.h>
 
 #include <Application.h>
+#include <Bitmap.h>
 #include <Clipboard.h>
-#include <Message.h>
-#include <Path.h>
 #include <Entry.h>
+#include <Message.h>
+#include <Notification.h>
+#include <OS.h>
+#include <Path.h>
+#include <String.h>
+
+#include <translation/TranslationUtils.h>
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
+#include <cstdio>
 
 #include "haikuselect.h"
 
@@ -57,6 +66,10 @@ static bool owned_secondary;
 
 /* And the clipboard.  */
 static bool owned_clipboard;
+
+
+
+/* C++ clipboard support.  */
 
 static BClipboard *
 get_clipboard_object (enum haiku_clipboard clipboard)
@@ -516,4 +529,135 @@ be_get_clipboard_count (enum haiku_clipboard id)
 
   clipboard = get_clipboard_object (id);
   return clipboard->SystemCount ();
+}
+
+
+
+/* C++ notifications support.
+
+   Desktop notifications on Haiku lack some of the features furnished
+   by notifications.el, specifically displaying multiple titled
+   actions within a single notification, sending callbacks when the
+   notification is dismissed, and providing a timeout after which the
+   notification is hidden.
+
+   Other features, such as notification categories and identifiers,
+   have clean straightforward relationships with their counterparts in
+   notifications.el.  */
+
+/* The last notification ID allocated.  */
+static intmax_t last_notification_id;
+
+/* Return the `enum notification_type' for TYPE.  TYPE is the TYPE
+   argument to a call to `be_display_notification'.  */
+
+static enum notification_type
+type_for_type (int type)
+{
+  switch (type)
+    {
+    case 0:
+      return B_INFORMATION_NOTIFICATION;
+
+    case 1:
+      return B_IMPORTANT_NOTIFICATION;
+
+    case 2:
+      return B_ERROR_NOTIFICATION;
+    }
+
+  abort ();
+}
+
+/* Return the ID of this team.  */
+
+static team_id
+my_team_id (void)
+{
+  thread_id id;
+  thread_info info;
+
+  id = find_thread (NULL);
+  get_thread_info (id, &info);
+
+  return info.team;
+}
+
+/* Display a desktop notification and return its identifier.
+
+   TITLE is the title text of the notification, encoded as UTF-8 text.
+
+   BODY is the text to be displayed within the body of the
+   notification.
+
+   SUPERSEDES is the identifier of a previous notification to replace,
+   or -1 if a new notification should be displayed.
+
+   TYPE states the urgency of the notification.  If 0, the
+   notification is displayed without special decoration.  If 1, the
+   notification is displayed with a blue band to its left, identifying
+   it as a notification of medium importance.  If 2, the notification
+   is displayed with a red band to its left, marking it as one of
+   critical importance.
+
+   ICON is the name of a file containing the icon of the notification,
+   or NULL, in which case Emacs's app icon will be displayed.  */
+
+intmax_t
+be_display_notification (const char *title, const char *body,
+			 intmax_t supersedes, int type, const char *icon)
+{
+  intmax_t id;
+  BNotification notification (type_for_type (type));
+  char buffer[INT_STRLEN_BOUND (team_id)
+	      + INT_STRLEN_BOUND (intmax_t)
+	      + sizeof "."];
+  BBitmap *bitmap;
+
+  if (supersedes < 0)
+    {
+      /* SUPERSEDES hasn't been provided, so allocate a new
+	 notification ID.  */
+
+      INT_ADD_WRAPV (last_notification_id, 1,
+		     &last_notification_id);
+      id = last_notification_id;
+    }
+  else
+    id = supersedes;
+
+  /* Set the title and body text.  */
+  notification.SetTitle (title);
+  notification.SetContent (body);
+
+  /* Derive the notification ID from the ID of this team, so as to
+     avoid abrogating notifications from other Emacs sessions.  */
+  sprintf (buffer, "%d.%jd", my_team_id (), id);
+  notification.SetMessageID (BString (buffer));
+
+  /* Now set the bitmap icon, if given.  */
+
+  if (icon)
+    {
+      bitmap = BTranslationUtils::GetBitmap (icon);
+
+      if (bitmap)
+	{
+	  notification.SetIcon (bitmap);
+	  delete bitmap;
+	}
+    }
+
+  /* After this, Emacs::ArgvReceived should be called when the
+     notification is clicked.  Lamentably, this does not come about,
+     probably because arguments are only passed to applications if
+     they are not yet running.  */
+#if 0
+  notification.SetOnClickApp ("application/x-vnd.GNU-emacs");
+  notification.AddOnClickArg (BString ("-Notification,") += buffer);
+#endif /* 0 */
+
+  /* Finally, send the notification.  */
+  notification.Send ();
+  return id;
 }

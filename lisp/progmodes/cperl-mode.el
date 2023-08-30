@@ -5875,6 +5875,14 @@ default function."
     cperl-here-face)
    (t (funcall (default-value 'font-lock-syntactic-face-function) state))))
 
+(defface cperl-method-call
+  '((t (:inherit 'default )))
+  "Font Lock mode face for method calls.
+Usually, method calls are not fontified.
+We use this face to prevent calls to methods which look like
+builtin functions to be fontified like, well, builtin
+functions (which they are not).  Inherits from `default'.")
+
 (defun cperl-init-faces ()
   (condition-case errs
       (progn
@@ -5885,8 +5893,59 @@ default function."
             ;; -------- trailing spaces -> use invalid-face as a warning
             ;; (matcher subexp facespec)
 	    `("[ \t]+$" 0 ',cperl-invalid-face t)
+            ;; -------- function definition _and_ declaration
+            ;; (matcher (subexp facespec))
+            ;; facespec is evaluated depending on whether the
+            ;; statement ends in a "{" (definition) or ";"
+            ;; (declaration without body)
+	    (list (concat "\\<" cperl-sub-regexp
+                          ;; group 1: optional subroutine name
+                          (rx
+                           (sequence (eval cperl--ws+-rx)
+                                     (group (optional
+                                             (eval cperl--normal-identifier-rx)))))
+                          ;; "fontified" elsewhere: Prototype
+                          (rx (optional
+                               (sequence (eval cperl--ws*-rx)
+                                         (eval cperl--prototype-rx))))
+                          ;; fontified elsewhere: Attributes
+                          (rx (optional (sequence (eval cperl--ws*-rx)
+                                                  (eval cperl--attribute-list-rx))))
+                          (rx (eval cperl--ws*-rx))
+                          ;; group 2: Identifies the start of the anchor
+                          (rx (group
+                               (or (group-n 3 ";") ; Either a declaration...
+                                   "{"             ; ... or a code block
+                                   ;; ... or a complete signature
+                                   (sequence (eval cperl--signature-rx)
+                                             (eval cperl--ws*-rx))
+                                   ;; ... or the start of a "sloppy" signature
+                                   (sequence (eval cperl--sloppy-signature-rx)
+                                             ;; arbtrarily continue "a few lines"
+                                             (repeat 0 200 (not (in "{"))))
+                                   ;; make sure we have a reasonably
+                                   ;; short match for an incomplete sub
+                                   (not (in ";{("))
+                                   buffer-end))))
+		  '(1 (if (match-beginning 3)
+			  'font-lock-variable-name-face
+		        'font-lock-function-name-face)
+                      nil ; override
+                      t)  ; laxmatch in case of anonymous subroutines
+                  ;; -------- anchored: Signature
+                  `(,(rx (sequence (in "(,")
+                                   (eval cperl--ws*-rx)
+                                   (group (eval cperl--basic-variable-rx))))
+                    (progn
+                      (goto-char (match-beginning 2)) ; pre-match: Back to sig
+                      (match-end 2))
+                    nil
+                    (1 font-lock-variable-name-face)))
             ;; -------- flow control
             ;; (matcher . subexp) font-lock-keyword-face by default
+	    ;; This highlights declarations and definitions differently.
+	    ;; We do not try to highlight in the case of attributes:
+	    ;; it is already done by `cperl-find-pods-heres'
 	    (cons
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
@@ -5910,6 +5969,11 @@ default function."
 	      "\\)\\>") 2)		; was "\\)[ \n\t;():,|&]"
 					; In what follows we use `type' style
 					; for overwritable builtins
+            ;; -------- avoid method calls being fontified as keywords
+            ;; (matcher (subexp facespec))
+            (list
+             (rx "->" (* space) (group-n 1(eval cperl--basic-identifier-rx)))
+             1 ''cperl-method-call)
             ;; -------- builtin functions
             ;; (matcher subexp facespec)
 	    (list
@@ -5982,57 +6046,6 @@ default function."
             ;; (matcher subexp facespec)
 	    '("-[rwxoRWXOezsfdlpSbctugkTBMAC]\\>\\([ \t]+_\\>\\)?" 0
 	      font-lock-function-name-face keep) ; Not very good, triggers at "[a-z]"
-	    ;; This highlights declarations and definitions differently.
-	    ;; We do not try to highlight in the case of attributes:
-	    ;; it is already done by `cperl-find-pods-heres'
-            ;; -------- function definition _and_ declaration
-            ;; (matcher (subexp facespec))
-            ;; facespec is evaluated depending on whether the
-            ;; statement ends in a "{" (definition) or ";"
-            ;; (declaration without body)
-	    (list (concat "\\<" cperl-sub-regexp
-                          ;; group 1: optional subroutine name
-                          (rx
-                           (sequence (eval cperl--ws+-rx)
-                                     (group (optional
-                                             (eval cperl--normal-identifier-rx)))))
-                          ;; "fontified" elsewhere: Prototype
-                          (rx (optional
-                               (sequence (eval cperl--ws*-rx)
-                                         (eval cperl--prototype-rx))))
-                          ;; fontified elsewhere: Attributes
-                          (rx (optional (sequence (eval cperl--ws*-rx)
-                                                  (eval cperl--attribute-list-rx))))
-                          (rx (eval cperl--ws*-rx))
-                          ;; group 2: Identifies the start of the anchor
-                          (rx (group
-                               (or (group-n 3 ";") ; Either a declaration...
-                                   "{"             ; ... or a code block
-                                   ;; ... or a complete signature
-                                   (sequence (eval cperl--signature-rx)
-                                             (eval cperl--ws*-rx))
-                                   ;; ... or the start of a "sloppy" signature
-                                   (sequence (eval cperl--sloppy-signature-rx)
-                                             ;; arbtrarily continue "a few lines"
-                                             (repeat 0 200 (not (in "{"))))
-                                   ;; make sure we have a reasonably
-                                   ;; short match for an incomplete sub
-                                   (not (in ";{("))
-                                   buffer-end))))
-		  '(1 (if (match-beginning 3)
-			  'font-lock-variable-name-face
-		        'font-lock-function-name-face)
-                      t  ;; override
-                      t) ;; laxmatch in case of anonymous subroutines
-                  ;; -------- anchored: Signature
-                  `(,(rx (sequence (in "(,")
-                                   (eval cperl--ws*-rx)
-                                   (group (eval cperl--basic-variable-rx))))
-                    (progn
-                      (goto-char (match-beginning 2)) ; pre-match: Back to sig
-                      (match-end 2))
-                    nil
-                    (1 font-lock-variable-name-face)))
             ;; -------- various stuff calling for a package name
             ;; (matcher (subexp facespec) (subexp facespec))
             `(,(rx (sequence
@@ -6795,7 +6808,7 @@ in subdirectories too."
   ;; of etags has been commented out in the menu since ... well,
   ;; forever.  So, let's just stick to ASCII here. -- haj, 2021-09-14
   (interactive)
-  (let ((cmd "etags")
+  (let ((cmd etags-program-name)
 	(args `("-l" "none" "-r"
 		;;                        1=fullname  2=package?             3=name                       4=proto?             5=attrs? (VERY APPROX!)
 		,(concat
@@ -7361,6 +7374,9 @@ One may build such TAGS files from CPerl mode menu."
 			    (nreverse list2))
 		      list1)))))
 
+(defvar imenu-max-items nil
+  "Max items in an imenu list.  Defined in imenu.el.")
+
 (defun cperl-menu-to-keymap (menu)
   (let (list)
     (cons 'keymap
@@ -7750,10 +7766,27 @@ $~	The name of the current report format.
 ... >> ...	Bitwise shift right.
 ... >>= ...	Bitwise shift right assignment.
 ... ? ... : ...	Condition=if-then-else operator.
+... | ...	Bitwise or.
+... || ...	Logical or.
+... // ...      Defined-or.
+~ ...		Unary bitwise complement.
+... and ...		Low-precedence synonym for &&.
+... cmp ...	String compare.
+... eq ...	String equality.
+... ge ...	String greater than or equal.
+... gt ...	String greater than.
+... le ...	String less than or equal.
+... lt ...	String less than.
+... ne ...	String inequality.
+not ...		Low-precedence synonym for ! - negation.
+... or ...		Low-precedence synonym for ||.
+... x ...	Repeat string or array.
+x= ...	Repetition assignment.
+... xor ...		Low-precedence synonym for exclusive or.
 @ARGV	Command line arguments (not including the command name - see $0).
 @INC	List of places to look for perl scripts during do/include/use.
 @_    Parameter array for subroutines; result of split() unless in list context.
-\\  Creates reference to what follows, like \\$var, or quotes non-\\w in strings.
+\\  Creates reference to what follows, like \\$var.  Quotes non-\\w in strings.
 \\0	Octal char, e.g. \\033.
 \\E	Case modification terminator.  See \\Q, \\L, and \\U.
 \\L	Lowercase until \\E .  See also \\l, lc.
@@ -7771,12 +7804,8 @@ $~	The name of the current report format.
 \\u	Upcase the next character.  See also \\U and \\l, ucfirst.
 \\x	Hex character, e.g. \\x1b.
 ... ^ ...	Bitwise exclusive or.
-__END__	Ends program source.
 __DATA__	Ends program source.
-__FILE__	Current (source) filename.
-__LINE__	Current line in current source.
-__PACKAGE__	Current package.
-__SUB__	Current sub.
+__END__	Ends program source.
 ADJUST {...}	Callback for object creation
 ARGV	Default multi-file input filehandle.  <ARGV> is a synonym for <>.
 ARGVOUT	Output filehandle with -i flag.
@@ -7786,267 +7815,252 @@ CHECK { ... }	Pseudo-subroutine executed after the script is compiled.
 UNITCHECK { ... }
 INIT { ... }	Pseudo-subroutine executed before the script starts running.
 DATA	Input filehandle for what follows after __END__	or __DATA__.
-accept(NEWSOCKET,GENERICSOCKET)
-alarm(SECONDS)
+abs [ EXPR ]	absolute value function
+accept(NEWSOCKET,GENERICSOCKET)	accept an incoming socket connect
+alarm(SECONDS)	schedule a SIGALRM
 async(SUB NAME {}|SUB {})	Mark function as potentially asynchronous
-atan2(X,Y)
+atan2(X,Y)	arctangent of Y/X in the range -PI to PI
 await(ASYNCEXPR)	Yield result of Future
-bind(SOCKET,NAME)
-binmode(FILEHANDLE)
+bind(SOCKET,NAME)	binds an address to a socket
+binmode(FILEHANDLE)	prepare binary files for I/O
+bless REFERENCE [, PACKAGE]	Makes reference into an object of a package.
 break	Break out of a given/when statement
-caller[(LEVEL)]
-chdir(EXPR)
-chmod(LIST)
-chop[(LIST|VAR)]
-chown(LIST)
-chroot(FILENAME)
-class NAME	Introduce a class.
-close(FILEHANDLE)
-closedir(DIRHANDLE)
-... cmp ...	String compare.
-connect(SOCKET,NAME)
+caller[(LEVEL)]	get context of the current subroutine call
+chdir(EXPR)	change your current working directory
+chmod(LIST)	changes the permissions on a list of files
+chomp [LIST]	Strips $/ off LIST/$_.  Returns count.
+chop[(LIST|VAR)]	remove the last character from a string
+chown(LIST)	change the ownership on a list of files
+chr [NUMBER]	Converts a number to char with the same ordinal.
+chroot(FILENAME)	make directory new root for path lookups
+class NAME	Introduce an object class.
+close(FILEHANDLE)	close file (or pipe or socket) handle
+closedir(DIRHANDLE)	close directory handle
+connect(SOCKET,NAME)	connect to a remote socket
 continue of { block } continue { block }.  Is executed after `next' or at end.
-cos(EXPR)
-crypt(PLAINTEXT,SALT)
-dbmclose(%HASH)
-dbmopen(%HASH,DBNAME,MODE)
-default { ... } default case for given/when block
-defer { ... }	run this block after the containing block.
-defined(EXPR)
-delete($HASH{KEY})
-die(LIST)
+cos(EXPR)	cosine function
+crypt(PLAINTEXT,SALT)	one-way passwd-style encryption
+dbmclose(%HASH)	breaks binding on a tied dbm file
+dbmopen(%HASH,DBNAME,MODE)	create binding on a tied dbm file
+defined(EXPR)	test whether a value, variable, or function is defined
+delete($HASH{KEY})	deletes a value from a hash
+die(LIST)	raise an exception or bail out
 do { ... }|SUBR while|until EXPR	executes at least once
 do(EXPR|SUBR([LIST]))	(with while|until executes at least once)
-dump LABEL
-each(%HASH)
-endgrent
-endhostent
-endnetent
-endprotoent
-endpwent
-endservent
-eof[([FILEHANDLE])]
-... eq ...	String equality.
-eval(EXPR) or eval { BLOCK }
+dump LABEL	create an immediate core dump
+each(%HASH)	retrieve the next key/value pair from a hash
+endgrent	be done using group file
+endhostent	be done using hosts file
+endnetent	be done using networks file
+endprotoent	be done using protocols file
+endpwent	be done using passwd file
+endservent	be done using services file
+eof[([FILEHANDLE])]	test a filehandle for its end
+eval(EXPR) or eval { BLOCK }	catch exceptions or compile and run code
 evalbytes   See eval.
 exec([TRUENAME] ARGV0, ARGVs)     or     exec(SHELL_COMMAND_LINE)
-exit(EXPR)
-exp(EXPR)
+exists $HASH{KEY}	True if the key exists.
+exit(EXPR)	terminate this program
+exp(EXPR)	raise e to a power
+fc EXPR    Returns the casefolded version of EXPR.
 fcntl(FILEHANDLE,FUNCTION,SCALAR)
 field VAR  [:param[(NAME)]] [=EXPR]	declare an object attribute
-fileno(FILEHANDLE)
-flock(FILEHANDLE,OPERATION)
-for (EXPR;EXPR;EXPR) { ... }
-foreach [VAR] (@ARRAY) { ... }
-fork
-... ge ...	String greater than or equal.
-getc[(FILEHANDLE)]
-getgrent
-getgrgid(GID)
-getgrnam(NAME)
-gethostbyaddr(ADDR,ADDRTYPE)
-gethostbyname(NAME)
-gethostent
-getlogin
-getnetbyaddr(ADDR,ADDRTYPE)
-getnetbyname(NAME)
-getnetent
-getpeername(SOCKET)
-getpgrp(PID)
-getppid
-getpriority(WHICH,WHO)
-getprotobyname(NAME)
-getprotobynumber(NUMBER)
-getprotoent
-getpwent
-getpwnam(NAME)
-getpwuid(UID)
-getservbyname(NAME,PROTO)
-getservbyport(PORT,PROTO)
-getservent
-getsockname(SOCKET)
-getsockopt(SOCKET,LEVEL,OPTNAME)
-given (EXPR) { [ when (EXPR) { ... } ]+ [ default { ... } ]? }
-gmtime(EXPR)
-goto LABEL
-... gt ...	String greater than.
-hex(EXPR)
-if (EXPR) { ... } [ elsif (EXPR) { ... } ... ] [ else { ... } ] or EXPR if EXPR
-index(STR,SUBSTR[,OFFSET])
-int(EXPR)
-ioctl(FILEHANDLE,FUNCTION,SCALA)R
-join(EXPR,LIST)
-keys(%HASH)
-kill(LIST)
-last [LABEL]
-... le ...	String less than or equal.
-length(EXPR)
-link(OLDFILE,NEWFILE)
-listen(SOCKET,QUEUESIZE)
-local(LIST)
-localtime(EXPR)
-log(EXPR)
-lstat(EXPR|FILEHANDLE|VAR)
-... lt ...	String less than.
-m/PATTERN/iogsmx
+__FILE__	Current (source) filename.
+fileno(FILEHANDLE)	return file descriptor from filehandle
+flock(FILEHANDLE,OPERATION)	lock an entire file with an advisory lock
+fork	create a new process just like this one
+format [NAME] =	 Start of output format.  Ended by a single dot (.) on a line.
+formline PICTURE, LIST	Backdoor into \"format\" processing.
+getc[(FILEHANDLE)]	get the next character from the filehandle
+getgrent	get group record given group user ID
+getgrgid(GID)	get group record given group user ID
+getgrnam(NAME)	get group record given group name
+gethostbyaddr(ADDR,ADDRTYPE)	get host record given name
+gethostbyname(NAME)	get host record given name
+gethostent	get next hosts record
+getlogin	return who logged in at this tty
+getnetbyaddr(ADDR,ADDRTYPE)	get network record given its address
+getnetbyname(NAME)	get networks record given name
+getnetent	get next networks record
+getpeername(SOCKET)	find the other end of a socket connection
+getpgrp(PID)	get process group
+getppid	get parent process ID
+getpriority(WHICH,WHO)	get current nice value
+getprotobyname(NAME)	get protocol record given name
+getprotobynumber(NUMBER)	get protocol record numeric protocol
+getprotoent	get next protocols record
+getpwent	get next passwd record
+getpwnam(NAME)	get passwd record given user login name
+getpwuid(UID)	get passwd record given user ID
+getservbyname(NAME,PROTO)	get services record given its name
+getservbyport(PORT,PROTO)	get services record given numeric port
+getservent	get next services record
+getsockname(SOCKET)	retrieve the sockaddr for a given socket
+getsockopt(SOCKET,LEVEL,OPTNAME)	get socket options on a given socket
+glob EXPR	expand filenames using wildcards.  Synonym of <EXPR>.
+gmtime(EXPR)	convert UNIX time into record or string using Greenwich time
+goto LABEL	create spaghetti code
+grep EXPR,LIST  or grep {BLOCK} LIST	Filters LIST via EXPR/BLOCK.
+hex(EXPR)	convert a hexadecimal string to a number
+import	patch a module's namespace into your own
+index(STR,SUBSTR[,OFFSET])	find a substring within a string
+int(EXPR)	get the integer portion of a number
+ioctl(FILEHANDLE,FUNCTION,SCALAR)	device control system call
+join(EXPR,LIST)	join a list into a string using a separator
+keys(%HASH)	retrieve list of indices from a hash
+kill(LIST)	send a signal to a process or process group
+last [LABEL]	exit a block prematurely
+lc [ EXPR ]	Returns lowercased EXPR.
+lcfirst [ EXPR ]	Returns EXPR with lower-cased first letter.
+length(EXPR)	return the number of characters in a string
+__LINE__	Current line in current source.
+link(OLDFILE,NEWFILE)	create a hard link in the filesystem
+listen(SOCKET,QUEUESIZE)	register your socket as a server
+local(LIST)	create a temporary value for a global variable
+localtime(EXPR)	convert UNIX time into record or string using local time
+lock(THING)	get a thread lock on a variable, subroutine, or method
+log(EXPR)	retrieve the natural logarithm for a number
+lstat(EXPR|FILEHANDLE|VAR)	stat a symbolic link
+m/PATTERN/iogsmx	match a string with a regular expression pattern
+map EXPR, LIST	or map {BLOCK} LIST	Applies EXPR/BLOCK to elts of LIST.
 method  [NAME [(signature)]] { BODY }	method NAME;
-mkdir(FILENAME,MODE)
-msgctl(ID,CMD,ARG)
-msgget(KEY,FLAGS)
-msgrcv(ID,VAR,SIZE,TYPE.FLAGS)
-msgsnd(ID,MSG,FLAGS)
+mkdir(FILENAME,MODE)	create a directory
+msgctl(ID,CMD,ARG)	SysV IPC message control operations
+msgget(KEY,FLAGS)	get SysV IPC message queue
+msgrcv(ID,VAR,SIZE,TYPE.FLAGS)	receive a SysV IPC message from a message queue
+msgsnd(ID,MSG,FLAGS)	send a SysV IPC message to a message queue
 my VAR or my (VAR1,...)	Introduces a lexical variable ($VAR, @ARR, or %HASH).
-our VAR or our (VAR1,...) Lexically enable a global variable ($V, @A, or %H).
-... ne ...	String inequality.
-next [LABEL]
-oct(EXPR)
-open(FILEHANDLE[,EXPR])
-opendir(DIRHANDLE,EXPR)
+next [LABEL]	iterate a block prematurely
+no MODULE [SYMBOL1, ...]  Partial reverse for `use'.  Runs `unimport' method.
+oct(EXPR)	convert a string to an octal number
+open(FILEHANDLE[,EXPR])	open a file, pipe, or descriptor
+opendir(DIRHANDLE,EXPR)	open a directory
 ord(EXPR)	ASCII value of the first char of the string.
-pack(TEMPLATE,LIST)
+our VAR or our (VAR1,...) Lexically enable a global variable ($V, @A, or %H).
+pack(TEMPLATE,LIST)	convert a list into a binary representation
 package NAME	Introduces package context.
+__PACKAGE__	Current package.
 pipe(READHANDLE,WRITEHANDLE)	Create a pair of filehandles on ends of a pipe.
-pop(ARRAY)
-print [FILEHANDLE] [(LIST)]
-printf [FILEHANDLE] (FORMAT,LIST)
-push(ARRAY,LIST)
+pop(ARRAY)	remove the last element from an array and return it
+pos STRING    Set/Get end-position of the last match over this string, see \\G.
+print [FILEHANDLE] [(LIST)]	output a list to a filehandle
+printf [FILEHANDLE] (FORMAT,LIST)	output a formatted list to a filehandle
+prototype \\&SUB	Returns prototype of the function given a reference.
+push(ARRAY,LIST)	append one or more elements to an array
 q/STRING/	Synonym for \\='STRING\\='
 qq/STRING/	Synonym for \"STRING\"
+qr/PATTERN/	compile pattern
+quotemeta	quote regular expression magic characters
+qw/STRING/	quote a list of words
 qx/STRING/	Synonym for \\=`STRING\\=`
-rand[(EXPR)]
-read(FILEHANDLE,SCALAR,LENGTH[,OFFSET])
-readdir(DIRHANDLE)
-readlink(EXPR)
-recv(SOCKET,SCALAR,LEN,FLAGS)
-redo [LABEL]
-rename(OLDNAME,NEWNAME)
-require [FILENAME | PERL_VERSION]
-reset[(EXPR)]
-return(LIST)
-reverse(LIST)
-rewinddir(DIRHANDLE)
-rindex(STR,SUBSTR[,OFFSET])
-rmdir(FILENAME)
-s/PATTERN/REPLACEMENT/gieoxsm
-say [FILEHANDLE] [(LIST)]
-scalar(EXPR)
-seek(FILEHANDLE,POSITION,WHENCE)
-seekdir(DIRHANDLE,POS)
-select(FILEHANDLE | RBITS,WBITS,EBITS,TIMEOUT)
-semctl(ID,SEMNUM,CMD,ARG)
-semget(KEY,NSEMS,SIZE,FLAGS)
-semop(KEY,...)
-send(SOCKET,MSG,FLAGS[,TO])
-setgrent
-sethostent(STAYOPEN)
-setnetent(STAYOPEN)
-setpgrp(PID,PGRP)
-setpriority(WHICH,WHO,PRIORITY)
-setprotoent(STAYOPEN)
-setpwent
-setservent(STAYOPEN)
-setsockopt(SOCKET,LEVEL,OPTNAME,OPTVAL)
-shift[(ARRAY)]
-shmctl(ID,CMD,ARG)
-shmget(KEY,SIZE,FLAGS)
-shmread(ID,VAR,POS,SIZE)
-shmwrite(ID,STRING,POS,SIZE)
-shutdown(SOCKET,HOW)
-sin(EXPR)
-sleep[(EXPR)]
-socket(SOCKET,DOMAIN,TYPE,PROTOCOL)
-socketpair(SOCKET1,SOCKET2,DOMAIN,TYPE,PROTOCOL)
-sort [SUBROUTINE] (LIST)
-splice(ARRAY,OFFSET[,LENGTH[,LIST]])
-split[(/PATTERN/[,EXPR[,LIMIT]])]
-sprintf(FORMAT,LIST)
-sqrt(EXPR)
-srand(EXPR)
-stat(EXPR|FILEHANDLE|VAR)
+rand[(EXPR)]	retrieve the next pseudorandom number
+read(FILEHANDLE,SCALAR,LENGTH[,OFFSET])	fixed-length buffered input
+readdir(DIRHANDLE)	get a directory from a directory handle
+readline FH	Synonym of <FH>.
+readlink(EXPR)	determine where a symbolic link is pointing
+readpipe CMD	Synonym of \\=`CMD\\=`.
+recv(SOCKET,SCALAR,LEN,FLAGS)	receive a message over a Socket
+redo [LABEL]	start this loop iteration over again
+ref [ EXPR ]	Type of EXPR when dereferenced.
+rename(OLDNAME,NEWNAME)	change a filename
+require [FILENAME | PERL_VERSION]	load from a library at runtime
+reset[(EXPR)]	clear all variables of a given name
+return(LIST)	get out of a function early
+reverse(LIST)	flip a string or a list
+rewinddir(DIRHANDLE)	reset directory handle
+rindex(STR,SUBSTR[,OFFSET])	right-to-left substring search
+rmdir(FILENAME)	remove a directory
+s/PATTERN/REPLACEMENT/gieoxsm	replace a pattern with a string
+say [FILEHANDLE] [(LIST)]	output a list, appending a newline
+scalar(EXPR)	force a scalar context
+seek(FILEHANDLE,POSITION,WHENCE)	reposition file pointer
+seekdir(DIRHANDLE,POS)	reposition directory pointer
+select(FILEHANDLE)	reset default output or do I/O multiplexing
+select(RBITS,WBITS,EBITS,TIMEOUT)	do I/O multiplexing
+semctl(ID,SEMNUM,CMD,ARG)	SysV semaphore control operations
+semget(KEY,NSEMS,SIZE,FLAGS)	get set of SysV semaphores
+semop(KEY,...)	SysV semaphore operations
+send(SOCKET,MSG,FLAGS[,TO])	send a message over a socket
+setgrent	prepare group file for use
+sethostent(STAYOPEN)	prepare hosts file for use
+setnetent(STAYOPEN)	prepare networks file for use
+setpgrp(PID,PGRP)	set the process group of a process
+setpriority(WHICH,WHO,PRIORITY)	Process	set a process\\='s nice value
+setprotoent(STAYOPEN)	etwork	prepare protocols file for use
+setpwent	prepare passwd file for use
+setservent(STAYOPEN)	prepare services file for use
+setsockopt(SOCKET,LEVEL,OPTNAME,OPTVAL)	set some socket options
+shift[(ARRAY)]	remove the first element of an array, and return it
+shmctl(ID,CMD,ARG)	SysV shared memory operations
+shmget(KEY,SIZE,FLAGS)	get SysV shared memory segment identifier
+shmread(ID,VAR,POS,SIZE)	read SysV shared memory
+shmwrite(ID,STRING,POS,SIZE)	write SysV shared memory
+shutdown(SOCKET,HOW)	close down just half of a socket connection
+sin(EXPR)	return the sine of a number
+sleep[(EXPR)]	block for some number of seconds
+socket(SOCKET,DOMAIN,TYPE,PROTOCOL)	create a socket
+socketpair(SOCKET1,SOCKET2,DOMAIN,TYPE,PROTOCOL)	create a pair of sockets
+sort [SUBROUTINE] (LIST)	sort a list of values
+splice(ARRAY,OFFSET[,LENGTH[,LIST]])	add or remove elements anywhere
+split[(/PATTERN/[,EXPR[,LIMIT]])]	split up a string using a regexp
+sprintf(FORMAT,LIST)	formatted print into a string
+sqrt(EXPR)	square root function
+srand(EXPR)	seed the random number generator
+stat(EXPR|FILEHANDLE|VAR)	get a file\\='s status information
 state VAR or state (VAR1,...)	Introduces a static lexical variable
-study[(SCALAR)]
+study[(SCALAR)]	no-op, formerly optimized input data for repeated searches
 sub [NAME [(format)]] { BODY }	sub NAME [(format)];	sub [(format)] {...}
-substr(EXPR,OFFSET[,LEN])
-symlink(OLDFILE,NEWFILE)
-syscall(LIST)
-sysread(FILEHANDLE,SCALAR,LENGTH[,OFFSET])
+__SUB__	the current subroutine, or C<undef> if not in a subroutine
+substr(EXPR,OFFSET[,LEN])	get or alter a portion of a string
+symlink(OLDFILE,NEWFILE)	create a symbolic link to a file
+syscall(LIST)	execute an arbitrary system call
+sysopen FH, FILENAME, MODE [, PERM]	(MODE is numeric, see Fcntl.)
+sysread(FILEHANDLE,SCALAR,LENGTH[,OFFSET])	fixed-length unbuffered input
+sysseek(FILEHANDLE,POSITION,WHENCE) position I/O pointer on handle
 system([TRUENAME] ARGV0 [,ARGV])     or     system(SHELL_COMMAND_LINE)
-syswrite(FILEHANDLE,SCALAR,LENGTH[,OFFSET])
-tell[(FILEHANDLE)]
-telldir(DIRHANDLE)
-time
-times
-tr/SEARCHLIST/REPLACEMENTLIST/cds
-truncate(FILE|EXPR,LENGTH)
-umask[(EXPR)]
-undef[(EXPR)]
-unless (EXPR) { ... } [ else { ... } ] or EXPR unless EXPR
-unlink(LIST)
-unpack(TEMPLATE,EXPR)
-unshift(ARRAY,LIST)
-until (EXPR) { ... }					EXPR until EXPR
-utime(LIST)
-values(%HASH)
-vec(EXPR,OFFSET,BITS)
-wait
-waitpid(PID,FLAGS)
+syswrite(FILEHANDLE,SCALAR,LENGTH[,OFFSET])	fixed-length unbuffered output
+tell[(FILEHANDLE)]	get current seekpointer on a filehandle
+telldir(DIRHANDLE)	get current seekpointer on a directory handle
+tie VAR, CLASS, LIST	Hide an object behind a simple Perl variable.
+tied		Returns internal object for a tied data.
+time	return number of seconds since 1970
+times	return elapsed time for self and child processes
+tr/SEARCHLIST/REPLACEMENTLIST/cds	transliterate a string
+truncate(FILE|EXPR,LENGTH)	shorten a file
+uc [ EXPR ]	Returns upcased EXPR.
+ucfirst [ EXPR ]	Returns EXPR with upcased first letter.
+umask[(EXPR)]	set file creation mode mask
+undef[(EXPR)]	remove a variable or function definition
+unlink(LIST)	remove one link to a file
+unpack(TEMPLATE,EXPR)	convert binary structure into normal perl variables
+unshift(ARRAY,LIST)	prepend more elements to the beginning of a list
+untie VAR	Unlink an object from a simple Perl variable.
+use MODULE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
+utime(LIST)	set a file\\='s last access and modify times
+values(%HASH)	return a list of the values in a hash
+vec(EXPR,OFFSET,BITS)	test or set particular bits in a string
+wait	wait for any child process to die
+waitpid(PID,FLAGS)	wait for a particular child process to die
 wantarray	Returns true if the sub/eval is called in list context.
-warn(LIST)
-while  (EXPR) { ... }					EXPR while EXPR
-write[(EXPR|FILEHANDLE)]
-... x ...	Repeat string or array.
-x= ...	Repetition assignment.
-y/SEARCHLIST/REPLACEMENTLIST/
-... | ...	Bitwise or.
-... || ...	Logical or.
-... // ...      Defined-or.
-~ ...		Unary bitwise complement.
+warn(LIST)	print debugging info
+write[(EXPR|FILEHANDLE)]	print a picture record
+y/SEARCHLIST/REPLACEMENTLIST/	transliterate a string
 #!	OS interpreter indicator.  If contains `perl', used for options, and -x.
 AUTOLOAD {...}	Shorthand for `sub AUTOLOAD {...}'.
 CORE::		Prefix to access builtin function if imported sub obscures it.
 SUPER::		Prefix to lookup for a method in @ISA classes.
 DESTROY		Shorthand for `sub DESTROY {...}'.
-... EQ ...	Obsolete synonym of `eq'.
-... GE ...	Obsolete synonym of `ge'.
-... GT ...	Obsolete synonym of `gt'.
-... LE ...	Obsolete synonym of `le'.
-... LT ...	Obsolete synonym of `lt'.
-... NE ...	Obsolete synonym of `ne'.
-abs [ EXPR ]	absolute value
-... and ...		Low-precedence synonym for &&.
-bless REFERENCE [, PACKAGE]	Makes reference into an object of a package.
-chomp [LIST]	Strips $/ off LIST/$_.  Returns count.  Special if $/ eq \\='\\='!
-chr		Converts a number to char with the same ordinal.
 else		Part of if/unless {BLOCK} elsif {BLOCK} else {BLOCK}.
 elsif		Part of if/unless {BLOCK} elsif {BLOCK} else {BLOCK}.
-exists $HASH{KEY}	True if the key exists.
-fc EXPR    Returns the casefolded version of EXPR.
-format [NAME] =	 Start of output format.  Ended by a single dot (.) on a line.
-formline PICTURE, LIST	Backdoor into \"format\" processing.
-glob EXPR	Synonym of <EXPR>.
-lc [ EXPR ]	Returns lowercased EXPR.
-lcfirst [ EXPR ]	Returns EXPR with lower-cased first letter.
-grep EXPR,LIST  or grep {BLOCK} LIST	Filters LIST via EXPR/BLOCK.
-map EXPR, LIST	or map {BLOCK} LIST	Applies EXPR/BLOCK to elts of LIST.
-no MODULE [SYMBOL1, ...]  Partial reverse for `use'.  Runs `unimport' method.
-not ...		Low-precedence synonym for ! - negation.
-... or ...		Low-precedence synonym for ||.
-pos STRING    Set/Get end-position of the last match over this string, see \\G.
-prototype FUNC   Returns the prototype of a function as a string, or undef.
-quotemeta [ EXPR ]	Quote regexp metacharacters.
-qw/WORD1 .../		Synonym of split(\\='\\=', \\='WORD1 ...\\=')
-readline FH	Synonym of <FH>.
-readpipe CMD	Synonym of \\=`CMD\\=`.
-ref [ EXPR ]	Type of EXPR when dereferenced.
-sysopen FH, FILENAME, MODE [, PERM]	(MODE is numeric, see Fcntl.)
-tie VAR, CLASS, LIST	Hide an object behind a simple Perl variable.
-tied		Returns internal object for a tied data.
-uc [ EXPR ]	Returns upcased EXPR.
-ucfirst [ EXPR ]	Returns EXPR with upcased first letter.
-untie VAR	Unlink an object from a simple Perl variable.
-use MODULE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
-... xor ...		Low-precedence synonym for exclusive or.
-prototype \\&SUB	Returns prototype of the function given a reference.
+default { ... } default case for given/when block
+defer { ... }	run this block after the containing block.
+for (EXPR;EXPR;EXPR) { ... }
+foreach [VAR] (@ARRAY) { ... }
+given (EXPR) { [ when (EXPR) { ... } ]+ [ default { ... } ]? }
+if (EXPR) { ... } [ elsif (EXPR) { ... } ... ] [ else { ... } ] or EXPR if EXPR
+unless (EXPR) { ... } [ else { ... } ] or EXPR unless EXPR
+until (EXPR) { ... }	EXPR until EXPR
+while  (EXPR) { ... }	EXPR while EXPR
 =head1		Top-level heading.
 =head2		Second-level heading.
 =head3		Third-level heading.
@@ -8819,8 +8833,6 @@ start with default arguments, then refine the slowdown regions."
       (setq delta (- (- tt (setq tt (funcall timems)))) tot (+ tot delta))
       (message "to %s:%6s,%7s" l delta tot))
     tot))
-
-(defvar font-lock-cache-position)
 
 (defun cperl-emulate-lazy-lock (&optional window-size)
   "Emulate `lazy-lock' without `condition-case', so `debug-on-error' works.

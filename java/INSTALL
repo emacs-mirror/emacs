@@ -1,0 +1,1028 @@
+Installation instructions for Android
+Copyright (C) 2023 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Please read the entirety of this file before attempting to build Emacs
+as an application package which can run on Android devices.
+
+When building from the source repository (as opposed to from a release
+tarball), make sure to read INSTALL.REPO in the top-level directory as
+well.
+
+
+
+Android is an unusual operating system in that program binaries cannot
+be produced on computers running Android themselves.  Instead, they
+must be built on some other computer using a set of tools known as the
+``Android SDK'' (Software Development Kit) and the ``Android NDK''
+(Native Development Kit.)  Appropriate versions of both must be
+obtained to build GNU Emacs; after being built, the generated binaries
+will work on almost all Android devices.  This document does not
+elaborate on how both sets of tools can be obtained.  However, for
+your freedom's sake, you should use the Android SDK provided by the
+Debian project.
+
+In addition to the Android SDK and Android NDK, Emacs also requires
+the Java compiler from OpenJDK 1.7.0 to be installed on your system,
+along with a working `m4' macro processor.  Building on GNU systems is
+all that is officially supported.  We are told that Mac OS works too,
+and other Unix systems will likely work as well, but MS Windows and
+Cygwin will not.
+
+Once all of those tools are obtained, you may invoke the `configure'
+script like so:
+
+  ./configure --with-android=/path/to/android.jar \
+	      ANDROID_CC=/path/to/android/ndk/cc  \
+	      SDK_BUILD_TOOLS=/path/to/sdk/build/tools
+
+Replacing the paths in the command line above with:
+
+  - the path to the `android.jar' headers which come with the Android
+    SDK.  They must correspond to Android version 13 (API level 33).
+
+  - the path to the C compiler in the Android NDK, for the kind of CPU
+    you are building Emacs to run on.
+
+  - the path to the directory in the Android SDK containing binaries
+    such as `aapt', `apksigner', and `d8'.  These are used to build
+    the application package.
+
+Where the type of CPU can either be `armeabi', `armv7*', `i686',
+`x86_64', `mips', or `mips64'.
+
+After the configuration process completes, you may run:
+
+  make all
+
+Once `make' finishes, there should be a file in the `java' directory
+named along the lines of:
+
+  emacs-<version>-<api-version>-<abi>.apk
+
+where <api-version> is the oldest version of Android that the package
+will run on, and <abi> is the type of Android machine the package was
+built for.
+
+The generated package can be uploaded onto an SD card (or similar
+medium) and installed on-device.
+
+
+LOCATING NECESSARY FILES
+
+As illustrated above, building Emacs for Android requires the presence
+three separate components of the Android SDK and NDK.  Subsequent to
+their installation, the contents of the Android development tools are
+organized into several directories, of which those pertinent to the
+Emacs compilation process are:
+
+  platforms
+  ndk
+  build-tools
+
+The platforms directory contains one subdirectory for each API level
+whose headers have been installed.  Each of these directories in turn
+includes the android.jar archive for that version of Android, also
+necessary for compiling Emacs.
+
+It is imperative that Emacs is compiled using the headers for the
+exact API level that it is written for.  This is currently API level
+33, so the correct android.jar archive is located within a directory
+whose name begins with `android-33'.  Minor revisions to the headers
+are inconsequential towards the Emacs compilation process; if there is
+a directory named `android-33-extN' (where N represents a revision to
+the Android SDK), whether you provide `configure' with that
+directory's android.jar or the android.jar contained within the
+directory named `android-33' is of no special importance.
+
+The ndk directory contains one subdirectory for each version of the
+Android NDK installed.  This directory in turn contains the C and C++
+compilation system.  In contrast to the Java headers mentioned within
+the previous paragraph, the version of the NDK used does not affect
+Emacs to the extent the version of android.jar does.  Having said
+that, each version of the NDK only supports a limited range of API
+levels; your choice of C compiler binary (or __ANDROID_API__) bears
+upon the earliest version of Android the compiled package will
+support.
+
+In most cases, each subdirectory contains a folder named `toolchains',
+holding an `llvm' directory and one directory for each GCC toolchain
+supplied by the NDK.  The C compiler is then positioned within
+`prebuilt/*/bin' inside that directory.
+
+The build-tools directory holds subdirectories containing the utility
+programs used to convert class files output by the Java compiler to
+the DEX format employed by Android.  There is one subdirectory for
+each version of the build tools, but the version you opt for is not of
+paramount significance: if your version does not work, configure will
+protest, so install a newer one.  We anticipate that most recent
+releases will work, such as those from the 33.0.x and 34.0.x series.
+
+
+BUILDING WITH OLD NDK VERSIONS
+
+Building Emacs with an old version of the Android NDK requires special
+setup.	This is because there is no separate C compiler binary for
+each version of Android in those versions of the NDK.
+
+Before running `configure', you must identify three variables:
+
+  - What kind of Android system you are building Emacs for.
+
+  - The minimum API version of Android you want to build Emacs for.
+
+  - The locations of the system root and include files for that
+    version of Android in the NDK.
+
+That information must then be specified as arguments to the NDK C
+compiler.  For example:
+
+  ./configure [...] \
+     ANDROID_CC="i686-linux-android-gcc \
+		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/"
+     ANDROID_CFLAGS="-isystem /path/to/ndk/sysroot/usr/include \
+		     -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
+		     -D__ANDROID_API__=14"
+
+Where __ANDROID_API__ and the version identifier in
+"platforms/android-14" defines the version of Android you are building
+for, and the include directories specify the paths to the relevant
+Android headers.  In addition, it may be necessary to specify
+"-gdwarf-2", due to a bug in the Android NDK.
+
+Even older versions of the Android SDK do not require the extra
+`-isystem' directives.
+
+Emacs is known to run on Android 2.2 (API version 8) or later, with
+the NDK r10b or later.  We wanted to make Emacs work on even older
+versions of Android, but they are missing the required JNI graphics
+library that allows Emacs to display text from C code.
+
+Due to an extremely nasty bug in the Android 2.2 system, the generated
+Emacs package cannot be compressed in builds for Android 2.2.  As a
+result, the Emacs package will be approximately 100 megabytes larger
+than a compressed package for a newer version of Android.
+
+
+BUILDING C++ DEPENDENCIES
+
+With a new version of the NDK, dependencies containing C++ code should
+build without any futher configuration.  However, older versions
+require that you use the ``make_standalone_toolchain.py'' script in
+the NDK distribution to create a ``standalone toolchain'', and use
+that instead, in order for C++ headers to be found.
+
+See https://developer.android.com/ndk/guides/standalone_toolchain for
+more details; when a ``standalone toolchain'' is specified, the
+configure script will try to determine the location of the C++
+compiler based on the C compiler specified.  If that automatic
+detection does not work, you can specify a C++ compiler yourself, like
+so:
+
+  ./configure --with-ndk-cxx=/path/to/toolchain/bin/i686-linux-android-g++
+
+Some versions of the NDK have a bug, where GCC fails to locate
+``stddef.h'' after being copied to a standalone toolchain.  To work
+around this problem (which normally exhibits itself when building C++
+code), add:
+
+   -isystem /path/to/toolchain/include/c++/4.9.x
+
+to ANDROID_CFLAGS.
+
+
+DEBUG AND RELEASE BUILDS
+
+Android makes a distinction between ``debug'' and ``release'' builds
+of applications.  With ``release'' builds, the system will apply
+stronger optimizations to the application at the cost of being unable
+to debug them with the steps in etc/DEBUG.
+
+Emacs is built as a debuggable package by default, but:
+
+      ./configure --without-android-debug
+
+will create a release build of Emacs instead.  This may be useful when
+running Emacs on resource constrained machines.
+
+If you are building an Emacs package for redistribution, we urge you
+to provide both debug and release versions.
+
+
+BUILDING WITH A SHARED USER ID
+
+Sometimes it may be desirable to build Emacs so that it is able to
+access executables and application data from another program.  To
+achieve this, that other program must have a ``shared user ID'', and
+be signed with the same signing key used to sign Emacs (normally
+`emacs.keystore'.)
+
+Once you have both that signing key and its ``shared user ID'', you
+can give it to configure:
+
+    ./configure --with-shared-user-id=MY.SHARED.USER.ID
+
+For instance,
+
+    ./configure --with-shared-user-id=com.termux
+
+will result in Termux (https://termux.dev)'s application data being
+accessible to Emacs, within its own application data directory located
+at `/data/data/com.termux/files'.
+
+Don't do this if you already have Emacs installed with a different
+shared user ID, as the system does not allow programs to change their
+user IDs after being installed.
+
+
+BUILDING WITH THIRD PARTY LIBRARIES
+
+The Android NDK does not support the usual ways of locating third
+party libraries, especially not via `pkg-config'.  Instead, it uses
+its own system called `ndk-build'.  The one exception to this rule is
+zlib, which is considered a part of the Android OS itself and is
+available on all devices running Android.
+
+Android also requires that each application include its own
+dependencies, as the system makes no guarantee about the existence of
+any particular library.
+
+Emacs is not built with the `ndk-build' system.	 Instead, it is built
+with Autoconf and Make.
+
+However, it supports building and including dependencies which use the
+similarly Make-based `ndk-build' system.
+
+To use dependencies built through `ndk-build', you must specify a list
+of directories within which Emacs will search for ``Android.mk''
+files, like so:
+
+  ./configure "--with-ndk-path=directory1 directory2"
+
+If `configure' complains about not being able to find
+``libc++_shared.so'', then you must locate that file in your copy of
+the NDK, and specify it like so:
+
+  ./configure --with-ndk-cxx-shared=/path/to/sysroot/libc++_shared.so
+
+Emacs will then read the ``Android.mk'' file in each directory, and
+automatically build and use those modules.
+
+When building for Intel systems, some ``ndk-build'' modules require
+the Netwide Assembler, usually installed under ``nasm'', to be present
+on the system that is building Emacs.
+
+Google, Inc. has adapted many common Emacs dependencies to use the
+`ndk-build' system.  Here is a non-exhaustive list of what is known to
+work, along with what has to be patched to make them work:
+
+  libpng	- https://android.googlesource.com/platform/external/libpng
+  libwebp	- https://android.googlesource.com/platform/external/webp
+     (You must apply the patch at the end of this file for the resulting
+      binary to work on armv7 devices.)
+  giflib	- https://android.googlesource.com/platform/external/giflib
+     (You must add LOCAL_EXPORT_CFLAGS := -I$(LOCAL_PATH) before
+      its Android.mk includes $(BUILD_STATIC_LIBRARY))
+  libjpeg-turbo - https://android.googlesource.com/platform/external/libjpeg-turbo
+     (You must add LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH) before
+      its Android.mk includes $(BUILD_SHARED_LIBRARY))
+  libxml2	- https://android.googlesource.com/platform/external/libxml2/
+     (You must also place the dependency icu4c in ``--with-ndk-path'',
+      and apply the patch at the end of this file.)
+  icu4c		- https://android.googlesource.com/platform/external/icu/
+     (You must apply the patch at the end of this file.)
+  sqlite3	- https://android.googlesource.com/platform/external/sqlite/
+     (You must apply the patch at the end of this file, and add the `dist'
+      directory to ``--with-ndk-path''.)
+  libselinux	- https://android.googlesource.com/platform/external/libselinux
+     (You must apply the patches at the end of the file, and obtain
+      the following three dependencies.)
+  libpackagelistparser
+    https://android.googlesource.com/platform/system/core/+/refs/heads/nougat-mr1-dev/libpackagelistparser/
+  libpcre	- https://android.googlesource.com/platform/external/pcre
+  libcrypto	- https://android.googlesource.com/platform/external/boringssl
+     (You must apply the patch at the end of this file when building for
+      ARM systems.)
+
+Many of these dependencies have been migrated over to the
+``Android.bp'' build system now used to build Android itself.
+However, the old ``Android.mk'' Makefiles are still present in older
+branches, and can be easily adapte to newer versions.
+
+In addition, some Emacs dependencies provide `ndk-build' support
+themselves:
+
+  libjansson	- https://github.com/akheron/jansson
+    (You must add LOCAL_EXPORT_INCLUDES := $(LOCAL_C_INCLUDES) before
+     its Android.mk includes $(BUILD_SHARED_LIBRARY), then copy
+     android/jansson_config.h to android/jansson_private_config.h.)
+
+Emacs developers have ported the following dependencies to ARM Android
+systems:
+
+  gnutls, gmp	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section GNUTLS near the end of this file.)
+  libtiff    	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Extract and point ``--with-ndk-path'' to tiff-4.5.0-emacs.tar.gz.)
+  tree-sitter	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section TREE-SITTER near the end of this file.)
+  harfbuzz  	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section HARFBUZZ near the end of this file.)
+
+And other developers have ported the following dependencies to Android
+systems:
+
+  ImageMagick, lcms2 - https://github.com/MolotovCherry/Android-ImageMagick7
+    (Please see the section IMAGEMAGICK near the end of this file.)
+
+We anticipate that most untested non-trivial ndk-build dependencies
+will need adjustments in Emacs to work, as the Emacs build system
+which emulates ndk-build is in an extremely early state.
+
+
+GNUTLS
+
+Modified copies of GnuTLS and its dependencies (such as libgmp,
+libtasn1, p11-kit) which can be built with the ndk-build system can be
+found at https://sourceforge.net/projects/android-ports-for-gnu-emacs.
+
+They have only been tested on arm64 Android systems running Android
+5.0 or later, and armv7l systems running Android 13 or later, so your
+mileage may vary, especially if you are trying to build Emacs for
+another kind of machine.
+
+To build Emacs with GnuTLS, you must unpack each of the following tar
+archives in that site:
+
+  gmp-6.2.1-emacs.tgz
+  gnutls-3.7.8-emacs.tar.gz
+  libtasn1-4.19.0-emacs.tar.gz
+  p11-kit-0.24.1-emacs.tar.gz
+  nettle-3.8-emacs.tar.gz
+
+and add the resulting folders to ``--with-ndk-path''.  Note that you
+should not try to build these packages separately using any
+`configure' script or Makefiles inside.
+
+
+TREE-SITTER
+
+A copy of tree-sitter modified to build with the ndk-build system can
+also be found that URL.  To build Emacs with tree-sitter, you must
+unpack the following tar archive in that site:
+
+  tree-sitter-0.20.7-emacs.tar.gz
+
+and add the resulting folder to ``--with-ndk-build''.
+
+
+HARFBUZZ
+
+A copy of HarfBuzz modified to build with the ndk-build system can
+also be found at that URL.  To build Emacs with HarfBuzz, you must
+unpack the following tar archive in that site:
+
+  harfbuzz-7.1.0-emacs.tar.gz
+
+and add the resulting folder to ``--with-ndk-build''.
+
+
+IMAGEMAGICK
+
+There is a third party port of ImageMagick to Android.  Unfortunately,
+the port also uses its own patched versions of libpng, libjpeg,
+libtiff and libwebp, which conflict with those used by Emacs.  Its
+Makefiles were also written for MS Windows, so you must also apply the
+patch at the end of this file.
+
+
+
+PATCH FOR LIBXML2
+
+This patch must be applied to the Android.mk in Google's version of
+libxml2 before it can be built for Emacs.  In addition, you must also
+revert the commit `edb5870767fed8712a9b77ef34097209b61ab2db'.
+
+diff --git a/Android.mk b/Android.mk
+index 07c7b372..24f67e49 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -80,6 +80,7 @@ LOCAL_SHARED_LIBRARIES := libicuuc
+ LOCAL_MODULE:= libxml2
+ LOCAL_CLANG := true
+ LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)
+ include $(BUILD_SHARED_LIBRARY)
+ 
+ # For the host
+@@ -94,3 +95,5 @@ LOCAL_MODULE := libxml2
+ LOCAL_CLANG := true
+ LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
+ include $(BUILD_HOST_STATIC_LIBRARY)
++
++$(call import-module,libicuuc)
+
+PATCH FOR ICU
+
+This patch must be applied to icu4j/Android.mk in Google's version of
+icu before it can be built for Emacs.
+
+diff --git a/icu4j/Android.mk b/icu4j/Android.mk
+index d1ab3d5..69eff81 100644
+--- a/icu4j/Android.mk
++++ b/icu4j/Android.mk
+@@ -69,7 +69,7 @@ include $(BUILD_STATIC_JAVA_LIBRARY)
+ # Path to the ICU4C data files in the Android device file system:
+ icu4c_data := /system/usr/icu
+ icu4j_config_root := $(LOCAL_PATH)/main/classes/core/src
+-include external/icu/icu4j/adjust_icudt_path.mk
++include $(LOCAL_PATH)/adjust_icudt_path.mk
+ 
+ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES := $(icu4j_src_files)
+
+diff --git a/icu4c/source/common/Android.mk b/icu4c/source/common/Android.mk
+index 8e5f757..44bb130 100644
+--- a/icu4c/source/common/Android.mk
++++ b/icu4c/source/common/Android.mk
+@@ -231,7 +231,7 @@ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES += $(src_files)
+ LOCAL_C_INCLUDES += $(c_includes) $(optional_android_logging_includes)
+ LOCAL_CFLAGS += $(local_cflags) -DPIC -fPIC
+-LOCAL_SHARED_LIBRARIES += libdl $(optional_android_logging_libraries)
++LOCAL_SHARED_LIBRARIES += libdl libstdc++ $(optional_android_logging_libraries)
+ LOCAL_MODULE_TAGS := optional
+ LOCAL_MODULE := libicuuc
+ LOCAL_RTTI_FLAG := -frtti
+
+PATCH FOR SQLITE3
+
+diff --git a/dist/Android.mk b/dist/Android.mk
+index bf277d2..36734d9 100644
+--- a/dist/Android.mk
++++ b/dist/Android.mk
+@@ -141,6 +141,7 @@ include $(BUILD_HOST_EXECUTABLE)
+ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES := $(common_src_files)
+ LOCAL_CFLAGS += $(minimal_sqlite_flags)
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)
+ LOCAL_MODULE:= libsqlite_static_minimal
+ LOCAL_SDK_VERSION := 23
+ include $(BUILD_STATIC_LIBRARY)
+
+diff --git a/dist/sqlite3.c b/dist/sqlite3.c
+index b0536a4..8fa1ee9 100644
+--- a/dist/sqlite3.c
++++ b/dist/sqlite3.c
+@@ -26474,7 +26474,7 @@ SQLITE_PRIVATE const char *sqlite3OpcodeName(int i){
+ */
+ #if !defined(HAVE_POSIX_FALLOCATE) \
+       && (_XOPEN_SOURCE >= 600 || _POSIX_C_SOURCE >= 200112L)
+-# define HAVE_POSIX_FALLOCATE 1
++/* # define HAVE_POSIX_FALLOCATE 1 */
+ #endif
+ 
+ /*
+
+PATCH FOR WEBP
+
+diff --git a/Android.mk b/Android.mk
+index c7bcb0f5..d4da1704 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -28,9 +28,10 @@ ifneq ($(findstring armeabi-v7a, $(TARGET_ARCH_ABI)),)
+   # Setting LOCAL_ARM_NEON will enable -mfpu=neon which may cause illegal
+   # instructions to be generated for armv7a code. Instead target the neon code
+   # specifically.
+-  NEON := c.neon
+-  USE_CPUFEATURES := yes
+-  WEBP_CFLAGS += -DHAVE_CPU_FEATURES_H
++  # NEON := c.neon
++  # USE_CPUFEATURES := yes
++  # WEBP_CFLAGS += -DHAVE_CPU_FEATURES_H
++  NEON := c
+ else
+   NEON := c
+ endif
+
+PATCHES FOR SELINUX
+
+diff --git a/Android.mk b/Android.mk
+index 659232e..1e64fd6 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -116,3 +116,7 @@ LOCAL_STATIC_LIBRARIES := libselinux
+ LOCAL_WHOLE_STATIC_LIBRARIES := libpcre
+ LOCAL_C_INCLUDES := external/pcre
+ include $(BUILD_HOST_EXECUTABLE)
++
++$(call import-module,libpcre)
++$(call import-module,libpackagelistparser)
++$(call import-module,libcrypto)
+
+diff --git a/src/android.c b/src/android.c
+index 5206a9f..b351ffc 100644
+--- a/src/android.c
++++ b/src/android.c
+@@ -21,8 +21,7 @@
+ #include <selinux/label.h>
+ #include <selinux/avc.h>
+ #include <openssl/sha.h>
+-#include <private/android_filesystem_config.h>
+-#include <log/log.h>
++#include <android/log.h>
+ #include "policy.h"
+ #include "callbacks.h"
+ #include "selinux_internal.h"
+@@ -686,6 +685,7 @@ static int seapp_context_lookup(enum seapp_kind kind,
+ 		seinfo = parsedseinfo;
+ 	}
+ 
++#if 0
+ 	userid = uid / AID_USER;
+ 	isOwner = (userid == 0);
+ 	appid = uid % AID_USER;
+@@ -702,9 +702,13 @@ static int seapp_context_lookup(enum seapp_kind kind,
+ 		username = "_app";
+ 		appid -= AID_APP;
+ 	} else {
++#endif
+ 		username = "_isolated";
++		appid = 0;
++#if 0
+ 		appid -= AID_ISOLATED_START;
+ 	}
++#endif
+ 
+ 	if (appid >= CAT_MAPPING_MAX_ID || userid >= CAT_MAPPING_MAX_ID)
+ 		goto err;
+@@ -1662,8 +1666,10 @@ int selinux_log_callback(int type, const char *fmt, ...)
+ 
+     va_start(ap, fmt);
+     if (vasprintf(&strp, fmt, ap) != -1) {
++#if 0
+         LOG_PRI(priority, "SELinux", "%s", strp);
+         LOG_EVENT_STRING(AUDITD_LOG_TAG, strp);
++#endif
+         free(strp);
+     }
+     va_end(ap);
+
+PATCH FOR BORINGSSL
+
+diff --git a/Android.mk b/Android.mk
+index 3e3ef2a..277d4a9 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -27,7 +27,9 @@ LOCAL_MODULE := libcrypto
+ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/src/include
+ LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk $(LOCAL_PATH)/crypto-sources.mk
+ LOCAL_CFLAGS += -fvisibility=hidden -DBORINGSSL_SHARED_LIBRARY -DBORINGSSL_IMPLEMENTATION -DOPENSSL_SMALL -Wno-unused-parameter
++LOCAL_CFLAGS_arm = -DOPENSSL_STATIC_ARMCAP -DOPENSSL_NO_ASM
+ LOCAL_SDK_VERSION := 9
++LOCAL_LDFLAGS = --no-undefined
+ # sha256-armv4.S does not compile with clang.
+ LOCAL_CLANG_ASFLAGS_arm += -no-integrated-as
+ LOCAL_CLANG_ASFLAGS_arm64 += -march=armv8-a+crypto
+diff --git a/sources.mk b/sources.mk
+index e82f3d5..be3a3c4 100644
+--- a/sources.mk
++++ b/sources.mk
+@@ -337,20 +337,20 @@ linux_aarch64_sources := \
+   linux-aarch64/crypto/sha/sha256-armv8.S\
+   linux-aarch64/crypto/sha/sha512-armv8.S\
+ 
+-linux_arm_sources := \
+-  linux-arm/crypto/aes/aes-armv4.S\
+-  linux-arm/crypto/aes/aesv8-armx32.S\
+-  linux-arm/crypto/aes/bsaes-armv7.S\
+-  linux-arm/crypto/bn/armv4-mont.S\
+-  linux-arm/crypto/modes/ghash-armv4.S\
+-  linux-arm/crypto/modes/ghashv8-armx32.S\
+-  linux-arm/crypto/sha/sha1-armv4-large.S\
+-  linux-arm/crypto/sha/sha256-armv4.S\
+-  linux-arm/crypto/sha/sha512-armv4.S\
+-  src/crypto/chacha/chacha_vec_arm.S\
+-  src/crypto/cpu-arm-asm.S\
+-  src/crypto/curve25519/asm/x25519-asm-arm.S\
+-  src/crypto/poly1305/poly1305_arm_asm.S\
++# linux_arm_sources := \
++#   linux-arm/crypto/aes/aes-armv4.S\
++#   linux-arm/crypto/aes/aesv8-armx32.S\
++#   linux-arm/crypto/aes/bsaes-armv7.S\
++#   linux-arm/crypto/bn/armv4-mont.S\
++#   linux-arm/crypto/modes/ghash-armv4.S\
++#   linux-arm/crypto/modes/ghashv8-armx32.S\
++#   linux-arm/crypto/sha/sha1-armv4-large.S\
++#   linux-arm/crypto/sha/sha256-armv4.S\
++#   linux-arm/crypto/sha/sha512-armv4.S\
++#   src/crypto/chacha/chacha_vec_arm.S\
++#   src/crypto/cpu-arm-asm.S\
++#   src/crypto/curve25519/asm/x25519-asm-arm.S\
++#   src/crypto/poly1305/poly1305_arm_asm.S\
+ 
+ linux_x86_sources := \
+   linux-x86/crypto/aes/aes-586.S\
+
+PATCH FOR IMAGEMAGICK
+
+diff --git a/Android.mk b/Android.mk
+index 5ab6699..4441417 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -52,6 +52,20 @@ LZMA_LIB_PATH                   := $(LOCAL_PATH)/xz-5.2.4
+ BZLIB_LIB_PATH                  := $(LOCAL_PATH)/bzip-1.0.8
+ LCMS_LIB_PATH                   := $(LOCAL_PATH)/liblcms2-2.9
+ 
++LIBBZ2_ENABLED        := true
++LIBFFTW_ENABLED       := true
++LIBFREETYPE2_ENABLED  := true
++LIBJPEG_TURBO_ENABLED := true
++LIBLZMA_ENABLED       := true
++LIBOPENJPEG_ENABLED   := true
++LIBPNG_ENABLED        := true
++LIBTIFF_ENABLED       := true
++LIBWEBP_ENABLED       := true
++LIBXML2_ENABLED       := true
++LIBZLIB_ENABLED       := true
++LIBLCMS2_ENABLED      := true
++BUILD_MAGICKWAND      := true
++
+ #-------------------------------------------------------------
+ # Include all modules
+ #-------------------------------------------------------------
+@@ -68,6 +82,9 @@ include $(MAKE_PATH)/libjpeg-turbo.mk
+ # libopenjpeg
+ include $(MAKE_PATH)/libopenjpeg.mk
+ 
++# libwebp
++include $(MAKE_PATH)/libwebp.mk
++
+ # libtiff
+ include $(MAKE_PATH)/libtiff.mk
+ 
+@@ -77,9 +94,6 @@ include $(MAKE_PATH)/libpng.mk
+ # libfreetype2
+ include $(MAKE_PATH)/libfreetype2.mk
+ 
+-# libwebp
+-include $(MAKE_PATH)/libwebp.mk
+-
+ # libfftw
+ include $(MAKE_PATH)/libfftw.mk
+ 
+diff --git a/libjpeg-turbo-2.0.2/jconfig.h b/libjpeg-turbo-2.0.2/jconfig.h
+index 47d14c9..5c6f8ee 100644
+--- a/libjpeg-turbo-2.0.2/jconfig.h
++++ b/libjpeg-turbo-2.0.2/jconfig.h
+@@ -1,57 +1,43 @@
+-/* autogenerated jconfig.h based on Android.mk var JCONFIG_FLAGS */ 
++/* autogenerated jconfig.h based on Android.mk var JCONFIG_FLAGS */
+ #ifndef JPEG_LIB_VERSION
+ #define JPEG_LIB_VERSION 62
+ #endif
+-
+ #ifndef LIBJPEG_TURBO_VERSION
+ #define LIBJPEG_TURBO_VERSION 2.0.2
+ #endif
+-
+ #ifndef LIBJPEG_TURBO_VERSION_NUMBER
+ #define LIBJPEG_TURBO_VERSION_NUMBER 202
+ #endif
+-
+ #ifndef C_ARITH_CODING_SUPPORTED
+ #define C_ARITH_CODING_SUPPORTED
+ #endif
+-
+ #ifndef D_ARITH_CODING_SUPPORTED
+ #define D_ARITH_CODING_SUPPORTED
+ #endif
+-
+ #ifndef MEM_SRCDST_SUPPORTED
+ #define MEM_SRCDST_SUPPORTED
+ #endif
+-
+ #ifndef WITH_SIMD
+ #define WITH_SIMD
+ #endif
+-
+ #ifndef BITS_IN_JSAMPLE
+ #define BITS_IN_JSAMPLE 8
+ #endif
+-
+ #ifndef HAVE_LOCALE_H
+ #define HAVE_LOCALE_H
+ #endif
+-
+ #ifndef HAVE_STDDEF_H
+ #define HAVE_STDDEF_H
+ #endif
+-
+ #ifndef HAVE_STDLIB_H
+ #define HAVE_STDLIB_H
+ #endif
+-
+ #ifndef NEED_SYS_TYPES_H
+ #define NEED_SYS_TYPES_H
+ #endif
+-
+ #ifndef HAVE_UNSIGNED_CHAR
+ #define HAVE_UNSIGNED_CHAR
+ #endif
+-
+ #ifndef HAVE_UNSIGNED_SHORT
+ #define HAVE_UNSIGNED_SHORT
+ #endif
+-
+diff --git a/libxml2-2.9.9/encoding.c b/libxml2-2.9.9/encoding.c
+index a3aaf10..60f165b 100644
+--- a/libxml2-2.9.9/encoding.c
++++ b/libxml2-2.9.9/encoding.c
+@@ -2394,7 +2394,6 @@ xmlCharEncOutput(xmlOutputBufferPtr output, int init)
+ {
+     int ret;
+     size_t written;
+-    size_t writtentot = 0;
+     size_t toconv;
+     int c_in;
+     int c_out;
+@@ -2451,7 +2450,6 @@ retry:
+                             xmlBufContent(in), &c_in);
+     xmlBufShrink(in, c_in);
+     xmlBufAddLen(out, c_out);
+-    writtentot += c_out;
+     if (ret == -1) {
+         if (c_out > 0) {
+             /* Can be a limitation of iconv or uconv */
+@@ -2536,7 +2534,6 @@ retry:
+ 	    }
+ 
+             xmlBufAddLen(out, c_out);
+-            writtentot += c_out;
+             goto retry;
+ 	}
+     }
+@@ -2567,9 +2564,7 @@ xmlCharEncOutFunc(xmlCharEncodingHandler *handler, xmlBufferPtr out,
+                   xmlBufferPtr in) {
+     int ret;
+     int written;
+-    int writtentot = 0;
+     int toconv;
+-    int output = 0;
+ 
+     if (handler == NULL) return(-1);
+     if (out == NULL) return(-1);
+@@ -2612,7 +2607,6 @@ retry:
+                             in->content, &toconv);
+     xmlBufferShrink(in, toconv);
+     out->use += written;
+-    writtentot += written;
+     out->content[out->use] = 0;
+     if (ret == -1) {
+         if (written > 0) {
+@@ -2622,8 +2616,6 @@ retry:
+         ret = -3;
+     }
+ 
+-    if (ret >= 0) output += ret;
+-
+     /*
+      * Attempt to handle error cases
+      */
+@@ -2700,7 +2692,6 @@ retry:
+ 	    }
+ 
+             out->use += written;
+-            writtentot += written;
+             out->content[out->use] = 0;
+             goto retry;
+ 	}
+diff --git a/libxml2-2.9.9/xpath.c b/libxml2-2.9.9/xpath.c
+index 5e3bb9f..505ec82 100644
+--- a/libxml2-2.9.9/xpath.c
++++ b/libxml2-2.9.9/xpath.c
+@@ -10547,7 +10547,7 @@ xmlXPathCompFilterExpr(xmlXPathParserContextPtr ctxt) {
+ 
+ static xmlChar *
+ xmlXPathScanName(xmlXPathParserContextPtr ctxt) {
+-    int len = 0, l;
++    int l;
+     int c;
+     const xmlChar *cur;
+     xmlChar *ret;
+@@ -10567,7 +10567,6 @@ xmlXPathScanName(xmlXPathParserContextPtr ctxt) {
+ 	    (c == '_') || (c == ':') ||
+ 	    (IS_COMBINING(c)) ||
+ 	    (IS_EXTENDER(c)))) {
+-	len += l;
+ 	NEXTL(l);
+ 	c = CUR_CHAR(l);
+     }
+diff --git a/make/libicu4c.mk b/make/libicu4c.mk
+index 21ec121..8b77865 100644
+--- a/make/libicu4c.mk
++++ b/make/libicu4c.mk
+@@ -250,7 +250,7 @@ LOCAL_MODULE    := libicuuc
+ LOCAL_SRC_FILES := $(src_files)
+ 
+ # when built in android, they require uconfig_local (because of android project), but we don't need this
+-$(shell > $(ICU_COMMON_PATH)/unicode/uconfig_local.h echo /* Autogenerated stub file to make libicuuc build happy */) \
++$(shell > $(ICU_COMMON_PATH)/unicode/uconfig_local.h echo /\* Autogenerated stub file to make libicuuc build happy \*/) \
+ 
+ ifeq ($(LIBXML2_ENABLED),true)
+     include $(BUILD_STATIC_LIBRARY)
+diff --git a/make/libjpeg-turbo.mk b/make/libjpeg-turbo.mk
+index d39dd41..fdebcf3 100644
+--- a/make/libjpeg-turbo.mk
++++ b/make/libjpeg-turbo.mk
+@@ -230,30 +230,30 @@ JCONFIG_FLAGS += \
+     HAVE_UNSIGNED_SHORT
+ 
+ JCONFIGINT_FLAGS += \
+-    BUILD="20190814" \
+-    PACKAGE_NAME="libjpeg-turbo" \
+-    VERSION="2.0.2"
++    BUILD=\"20190814\" \
++    PACKAGE_NAME=\"libjpeg-turbo\" \
++    VERSION=\"2.0.2\"
+ 
+ # originally defined in jconfigint.h, but the substitution has problems with spaces
+ LOCAL_CFLAGS := \
+     -DINLINE="inline __attribute__((always_inline))"
+ 
+ # create definition file jconfig.h, needed in order to build
+-$(shell echo /* autogenerated jconfig.h based on Android.mk var JCONFIG_FLAGS */ > $(JPEG_LIB_PATH)/jconfig.h)
++$(shell echo \/\* autogenerated jconfig.h based on Android.mk var JCONFIG_FLAGS \*\/ > $(JPEG_LIB_PATH)/jconfig.h)
+ $(foreach name,$(JCONFIG_FLAGS), \
+     $(if $(findstring =,$(name)), \
+-        $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo #ifndef $(firstword $(subst =, ,$(name)))) \
++        $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo \#ifndef $(firstword $(subst =, ,$(name)))) \
+     , \
+-        $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo #ifndef $(name)) \
++        $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo \#ifndef $(name)) \
+     ) \
+-    $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo #define $(subst =, ,$(name))) \
+-    $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo #endif) \
++    $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo \#define $(subst =, ,$(name))) \
++    $(shell >>$(JPEG_LIB_PATH)/jconfig.h echo \#endif) \
+     $(shell >> $(JPEG_LIB_PATH)/jconfig.h echo.) \
+ )
+ 
+ # create definition file jconfigint.h, needed in order to build
+-$(shell >$(JPEG_LIB_PATH)/jconfigint.h echo /* autogenerated jconfigint.h based on Android.mk vars JCONFIGINT_FLAGS */)
+-$(foreach name,$(JCONFIGINT_FLAGS),$(shell >>$(JPEG_LIB_PATH)/jconfigint.h echo #define $(subst =, ,$(name))))
++$(shell >$(JPEG_LIB_PATH)/jconfigint.h echo /\* autogenerated jconfigint.h based on Android.mk vars JCONFIGINT_FLAGS \*/)
++$(foreach name,$(JCONFIGINT_FLAGS),$(shell >>$(JPEG_LIB_PATH)/jconfigint.h echo \#define $(subst =, ,$(name))))
+ 
+ ifeq ($(LIBJPEG_TURBO_ENABLED),true)
+     include $(BUILD_STATIC_LIBRARY)
+diff --git a/make/liblcms2.mk b/make/liblcms2.mk
+index e1fd3b9..29ca791 100644
+--- a/make/liblcms2.mk
++++ b/make/liblcms2.mk
+@@ -10,6 +10,10 @@ LOCAL_C_INCLUDES := \
+     $(LCMS_LIB_PATH)/include \
+     $(LCMS_LIB_PATH)/src
+ 
++LOCAL_EXPORT_C_INCLUDES := \
++    $(LCMS_LIB_PATH) \
++    $(LCMS_LIB_PATH)/include \
++    $(LCMS_LIB_PATH)/src
+ 
+ LOCAL_CFLAGS := \
+     -DHAVE_FUNC_ATTRIBUTE_VISIBILITY=1 \
+diff --git a/make/libmagick++-7.mk b/make/libmagick++-7.mk
+index 5352ccb..929396d 100644
+--- a/make/libmagick++-7.mk
++++ b/make/libmagick++-7.mk
+@@ -12,7 +12,7 @@ LOCAL_C_INCLUDES  :=  \
+ 
+ ifneq ($(STATIC_BUILD),true)
+     LOCAL_LDFLAGS += -fexceptions
+-    LOCAL_LDLIBS    := -L$(SYSROOT)/usr/lib -llog -lz
++    LOCAL_LDLIBS    := -llog -lz
+ endif
+ 
+ LOCAL_SRC_FILES := \
+diff --git a/make/libmagickcore-7.mk b/make/libmagickcore-7.mk
+index 81293b2..d51fced 100644
+--- a/make/libmagickcore-7.mk
++++ b/make/libmagickcore-7.mk
+@@ -25,6 +25,7 @@ else ifeq ($(TARGET_ARCH_ABI),x86_64)
+     
+ endif
+ 
++LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)
+ 
+ LOCAL_C_INCLUDES  += \
+     $(IMAGE_MAGICK) \
+@@ -45,10 +46,9 @@ LOCAL_C_INCLUDES  += \
+     $(BZLIB_LIB_PATH) \
+     $(LCMS_LIB_PATH)/include
+ 
+-
+ ifneq ($(STATIC_BUILD),true)
+ # ignored in static library builds
+-    LOCAL_LDLIBS    := -L$(SYSROOT)/usr/lib -llog -lz
++    LOCAL_LDLIBS    := -llog -lz
+ endif
+ 
+ 
+diff --git a/make/libmagickwand-7.mk b/make/libmagickwand-7.mk
+index 7be2fb6..0bbcca5 100644
+--- a/make/libmagickwand-7.mk
++++ b/make/libmagickwand-7.mk
+@@ -14,7 +14,7 @@ LOCAL_C_INCLUDES  :=  \
+ 
+ # always ignored in static builds
+ ifneq ($(STATIC_BUILD),true)
+-    LOCAL_LDLIBS    := -L$(SYSROOT)/usr/lib -llog -lz
++    LOCAL_LDLIBS    := -llog -lz
+ endif
+ 
+ LOCAL_SRC_FILES := \
+@@ -54,6 +54,29 @@ ifeq ($(OPENCL_BUILD),true)
+     LOCAL_SHARED_LIBRARIES += libopencl
+ endif
+ 
++LOCAL_SHARED_LIBRARIES += libstdc++
++
++ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm64
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm64
++else ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)  
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm
++else ifeq ($(TARGET_ARCH_ABI),x86)
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86
++else ifeq ($(TARGET_ARCH_ABI),x86_64)
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86-64
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86-64
++    
++    ifneq ($(STATIC_BUILD),true)
++        LOCAL_LDFLAGS += -latomic
++    endif
++    
++endif
++
++LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)
++
+ ifeq ($(BUILD_MAGICKWAND),true)
+     ifeq ($(STATIC_BUILD),true)
+         LOCAL_STATIC_LIBRARIES := \
+diff --git a/make/libpng.mk b/make/libpng.mk
+index 24fb8ac..dda05fd 100644
+--- a/make/libpng.mk
++++ b/make/libpng.mk
+@@ -30,6 +30,7 @@ ifeq ($(TARGET_ARCH_ABI), arm64-v8a)
+ endif # TARGET_ARCH_ABI == arm64-v8a
+ 
+ 
++LOCAL_EXPORT_C_INCLUDES := $(PNG_LIB_PATH)
+ LOCAL_C_INCLUDES := $(PNG_LIB_PATH)
+ 
+ LOCAL_SRC_FILES += \
+diff --git a/make/libtiff.mk b/make/libtiff.mk
+index ca43f25..2b17508 100644
+--- a/make/libtiff.mk
++++ b/make/libtiff.mk
+@@ -12,6 +12,9 @@ LOCAL_C_INCLUDES :=  \
+     $(LZMA_LIB_PATH)/liblzma/api \
+     $(WEBP_LIB_PATH)/src
+ 
++LOCAL_EXPORT_C_INCLUDES :=  \
++    $(TIFF_LIB_PATH)
++
+ ifeq ($(LIBLZMA_ENABLED),true)
+     LOCAL_CFLAGS += -DLZMA_SUPPORT=1
+ endif
+diff --git a/make/magick.mk b/make/magick.mk
+index 3ba4b1d..5471608 100644
+--- a/make/magick.mk
++++ b/make/magick.mk
+@@ -18,7 +18,7 @@ LOCAL_C_INCLUDES  :=  \
+     $(FREETYPE_LIB_PATH)/include
+ 
+ 
+-LOCAL_LDLIBS    := -L$(SYSROOT)/usr/lib -llog -lz
++LOCAL_LDLIBS    := -llog -lz
+ LOCAL_SRC_FILES := \
+     $(IMAGE_MAGICK)/utilities/magick.c \
+ 
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

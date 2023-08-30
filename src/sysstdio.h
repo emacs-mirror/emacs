@@ -28,8 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <attribute.h>
 #include <unlocked-io.h>
 
-extern FILE *emacs_fopen (char const *, char const *)
-  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (fclose, 1);
 extern void errputc (int);
 extern void errwrite (void const *, ptrdiff_t);
 extern void close_output_streams (void);

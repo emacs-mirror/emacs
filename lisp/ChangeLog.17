@@ -4218,7 +4218,7 @@
 	(package-activate-1): Reload files given by `package--list-loaded-files'.
 	Fix bug#10125, bug#18443, and bug#18448.
 
-2014-12-13  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-13  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-svn.el (vc-svn-diff): Fix bug #19312.
 
@@ -4253,7 +4253,7 @@
 	* files.el (directory-files-recursively): Don't follow symlinks to
 	other directories.
 
-2014-12-12  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-12  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-dav.el, vc/vc-git.el, vc/vc-hg.el, vc/vc-src.el:
 	* vc/vc.el: latest-on-branch-p is no longer a public method.
@@ -4276,7 +4276,7 @@
 
 	* emacs-lisp/let-alist.el: Add new package and macro.
 
-2014-12-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-10  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-dispatcher.el, vc/vc-hooks.el, vc/vc-rcs.el:
 	* vc/vc-sccs.el, vc/vc.el: Righteous featurectomy of vc-keep-workfiles,
@@ -4308,7 +4308,7 @@
 	(ruby-toggle-string-quotes): New command that allows you to quickly
 	toggle between single-quoted and double-quoted string literals.
 
-2014-12-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-src.el (vc-src-do-comand): Prepend -- to file argument
 	list, avoids problems witt names containing hyphens.
@@ -4429,7 +4429,7 @@
 	* vc/vc-hg.el (vc-hg-dir-status-files): Only include ignores files
 	when FILES is non-nil (bug#19304).
 
-2014-12-08  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-08  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-arch.el: Move to obsolete directory so a test framework
 	won't trip over bit-rot in it.  There has been no Arch snapshot
@@ -4593,7 +4593,7 @@
 	more extensions when generating includes (programs)
 	(bug#19254).
 
-2014-12-03  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-03  Eric S. Raymond  <esr@thyrsus.com>
 
 	* files.el (file-tree-walk): Fix docstring.
 
@@ -4636,7 +4636,7 @@
 
 	* whitespace.el (whitespace-big-indent-regexp): Add :version.
 
-2014-12-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-02  Eric S. Raymond  <esr@thyrsus.com>
 
 	* subr.el (filter): New macro.  Because it's just silly for a Lisp
 	not to have this in 2014.  And VC needs it.
@@ -4659,7 +4659,7 @@
 	is no longer a public method.  It is now local to the one place
 	it's used, in the RCS steal-lock method.
 
-2014-12-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-01  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc.el: In all backends: API simplification; could-register
 	is no longer a public method.  (vc-cvs.el still has a private
@@ -4772,7 +4772,7 @@
 	* net/eww.el (eww): Leave point in a place that doesn't cause
 	scrolling when displaying "Loading...".
 
-2014-12-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-01  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc.el, vc/vc-cvs.el, vc/vc-rcs.el, vc/vc-svn.el: The 'merge'
 	backend method of RCS/CVS/SVN is now 'merge-file', to contrast with
@@ -4791,7 +4791,7 @@
 
 	* emacs-lisp/inline.el: New file.
 
-2014-12-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-12-01  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc.el, vc-hooks.el: All backends: API simplification;
 	vc-state-heuristic is no longer a public method, having been
@@ -5226,7 +5226,7 @@
 
 	* vc/vc.el: Fix a typo in the commentary.
 
-2014-11-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+2014-11-20  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-src.el, vc/vc.el: Added support for SRC.  Needs more
 	testing and a real log-view mode.

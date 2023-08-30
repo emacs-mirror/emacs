@@ -72,7 +72,12 @@ Mode-specific keymaps may want to use this as their parent keymap."
   ;; mode-line or header-line, the `mode-line' or `header-line' prefix
   ;; shouldn't be necessary!
   "<mode-line> <mouse-2>" #'push-button
-  "<header-line> <mouse-2>" #'push-button)
+  "<header-line> <mouse-2>" #'push-button
+  ;; `push-button' will automatically dispatch to
+  ;; `touch-screen-track-tap'.
+  "<mode-line> <touchscreen-down>" #'push-button
+  "<header-line> <touchscreen-down>" #'push-button
+  "<touchscreen-down>" #'push-button)
 
 (define-minor-mode button-mode
   "A minor mode for navigating to buttons with the TAB key."
@@ -454,18 +459,22 @@ instead of starting at the next button."
 
 (defun push-button (&optional pos use-mouse-action)
   "Perform the action specified by a button at location POS.
-POS may be either a buffer position or a mouse-event.  If
-USE-MOUSE-ACTION is non-nil, invoke the button's `mouse-action'
-property instead of its `action' property; if the button has no
-`mouse-action', the value of `action' is used instead.
+POS may be either a buffer position, a mouse-event, or a
+`touchscreen-down' event.  If USE-MOUSE-ACTION is non-nil, invoke
+the button's `mouse-action' property instead of its `action'
+property; if the button has no `mouse-action', the value of
+`action' is used instead.
+
+If POS is a `touchscreen-down' event, wait for the corresponding
+`touchscreen-up' event before calling `push-button'.
 
 The action in both cases may be either a function to call or a
 marker to display and is invoked using `button-activate' (which
 see).
 
 POS defaults to point, except when `push-button' is invoked
-interactively as the result of a mouse-event, in which case, the
-mouse event is used.
+interactively as the result of a mouse-event or touchscreen
+event, in which case, the position in the event event is used.
 
 If there's no button at POS, do nothing and return nil, otherwise
 return t.
@@ -483,7 +492,12 @@ pushing a button, use the `button-describe' command."
 	    (if str-button
 	        ;; mode-line, header-line, or display string event.
 	        (button-activate str t)
-	      (push-button (posn-point posn) t)))))
+              (if (eq (car pos) 'touchscreen-down)
+                  ;; If touch-screen-track tap returns nil, then the
+                  ;; tap was cancelled.
+                  (when (touch-screen-track-tap pos)
+                    (push-button (posn-point posn) t))
+                (push-button (posn-point posn) t))))))
     ;; POS is just normal position
     (let ((button (button-at (or pos (point)))))
       (when button

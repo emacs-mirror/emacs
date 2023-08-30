@@ -4233,7 +4233,7 @@ directory, so that Emacs will know its current contents."
 	 (host (nth 0 parsed))
 	 (user (nth 1 parsed))
 	 (localname (nth 2 parsed)))
-    (and (or (not connected)
+    (and (or (memq connected '(nil never))
 	     (let ((proc (get-process (ange-ftp-ftp-process-buffer host user))))
 	       (and proc (processp proc)
 		    (memq (process-status proc) '(run open)))))

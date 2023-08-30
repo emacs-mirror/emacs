@@ -152,7 +152,7 @@ the external command (usually \"kill\")."
     (pri     "Pr"      "%d" right proced-< t (pri pid) (nil t t))
     (nice    "Ni"      "%3d" 3 proced-< t (nice pid) (t t nil))
     (thcount "THCount" "%d" right proced-< t (thcount pid) (nil t t))
-    (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid)
+    (start   "Start"   proced-format-start left proced-time-lessp nil (start pid)
                        (t t nil))
     (vsize   "VSize"   proced-format-memory right proced-< t (vsize pid)
                        (nil t t))
@@ -776,12 +776,12 @@ of the process.  A value of nil indicates that there are no active refinements."
 	(while (string-match "[ \t\n]+" hl pos)
 	  (setq pos (match-end 0))
 	  (put-text-property (match-beginning 0) pos 'display
-			     `(space :align-to ,(+ pos base))
+			     `(space :align-to (,(+ pos base) . width))
 			     hl)))
       (setq hl (replace-regexp-in-string ;; preserve text properties
 		"\\(%\\)" "\\1\\1"
 		hl)))
-    (list (propertize " " 'display `(space :align-to ,base))
+    (list (propertize " " 'display `(space :align-to (,base . width)))
           hl)))
 
 (defun proced-pid-at-point ()
@@ -894,6 +894,8 @@ normal hook `proced-post-display-hook'.
   (setq-local font-lock-defaults
               '(proced-font-lock-keywords t nil nil beginning-of-line))
   (setq-local switch-to-buffer-preserve-window-point nil)
+  ;; So that the heading scales together with the body of the table.
+  (setq-local text-scale-remap-header-line t)
   (if (and (not proced-auto-update-timer) proced-auto-update-interval)
       (setq proced-auto-update-timer
             (run-at-time t proced-auto-update-interval
@@ -1597,8 +1599,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
            (format "%02d%s%02d" minutes colon seconds)))))
 
 (defun proced-format-start (start)
-  "Format time START.
-The return string is always 6 characters wide."
+  "Format time START."
   (let ((d-start (decode-time start))
         (d-current (decode-time))
         (colon (if proced-enable-color-flag

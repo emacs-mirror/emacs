@@ -170,8 +170,7 @@ When FUN is called match data is just set by `looking-at' and
 point is at the beginning of the line.  Return nil if moving
 forward failed or otherwise the return value of FUN.  Preserve
 global match data, point, mark and current buffer."
-  (unless (listp rst-re-args)
-    (setq rst-re-args (list rst-re-args)))
+  (setq rst-re-args (ensure-list rst-re-args))
   (unless fun
     (setq fun #'identity))
   (save-match-data
@@ -1473,7 +1472,7 @@ for modes derived from Text mode, like Mail mode."
   :version "21.1")
 
 ;; FIXME: Default must match suggestion in
-;;        http://sphinx-doc.org/rest.html#sections for Python documentation.
+;;        https://sphinx-doc.org/rest.html#sections for Python documentation.
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
 				      (?= simple 0)
 				      (?- simple 0)

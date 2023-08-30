@@ -2879,19 +2879,23 @@ this option to nil."
           (cl-assert (< erc-insert-marker erc-input-marker))
           (cl-assert (= (field-end erc-insert-marker) erc-input-marker)))))
 
+(defvar erc--refresh-prompt-hook nil)
+
 (defun erc--refresh-prompt ()
   "Re-render ERC's prompt when the option `erc-prompt' is a function."
   (erc--assert-input-bounds)
-  (when (functionp erc-prompt)
-    (save-excursion
-      (goto-char erc-insert-marker)
-      (set-marker-insertion-type erc-insert-marker nil)
-      ;; Avoid `erc-prompt' (the named function), which appends a
-      ;; space, and `erc-display-prompt', which propertizes all but
-      ;; that space.
-      (insert-and-inherit (funcall erc-prompt))
-      (set-marker-insertion-type erc-insert-marker t)
-      (delete-region (point) (1- erc-input-marker)))))
+  (unless (erc--prompt-hidden-p)
+    (when (functionp erc-prompt)
+      (save-excursion
+        (goto-char erc-insert-marker)
+        (set-marker-insertion-type erc-insert-marker nil)
+        ;; Avoid `erc-prompt' (the named function), which appends a
+        ;; space, and `erc-display-prompt', which propertizes all but
+        ;; that space.
+        (insert-and-inherit (funcall erc-prompt))
+        (set-marker-insertion-type erc-insert-marker t)
+        (delete-region (point) (1- erc-input-marker))))
+    (run-hooks 'erc--refresh-prompt-hook)))
 
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
@@ -3007,21 +3011,50 @@ If STRING is nil, the function does nothing."
 (defvar erc--compose-text-properties nil
   "Non-nil when `erc-put-text-property' defers to `erc--merge-prop'.")
 
+;; To save space, we could maintain a map of all readable property
+;; values and optionally dispense archetypal constants in their place
+;; in order to ensure all occurrences of some list (a b) across all
+;; text-properties in all ERC buffers are actually the same object.
 (defun erc--merge-prop (from to prop val &optional object)
-  "Compose existing PROP values with VAL between FROM and TO in OBJECT.
+  "Combine existing PROP values with VAL between FROM and TO in OBJECT.
 For spans where PROP is non-nil, cons VAL onto the existing
 value, ensuring a proper list.  Otherwise, just set PROP to VAL.
-See also `erc-button-add-face'."
+When VAL is itself a list, prepend its members onto an existing
+value.  See also `erc-button-add-face'."
   (let ((old (get-text-property from prop object))
         (pos from)
         (end (next-single-property-change from prop object to))
         new)
     (while (< pos to)
-      (setq new (if old (cons val (ensure-list old)) val))
+      (setq new (if old
+                    (if (listp val)
+                        (append val (ensure-list old))
+                      (cons val (ensure-list old)))
+                  val))
       (put-text-property pos end prop new object)
       (setq pos end
             old (get-text-property pos prop object)
             end (next-single-property-change pos prop object to)))))
+
+(defvar erc-legacy-invisible-bounds-p nil
+  "Whether to hide trailing rather than preceding newlines.
+Beginning in ERC 5.6, invisibility extends from a message's
+preceding newline to its last non-newline character.")
+(make-obsolete-variable 'erc-legacy-invisible-bounds-p
+                        "decremented interval now permanent" "30.1")
+
+(defun erc--hide-message (value)
+  "Apply `invisible' text-property with VALUE to current message.
+Expect to run in a narrowed buffer during message insertion."
+  (if erc-legacy-invisible-bounds-p
+      ;; Before ERC 5.6, this also used to add an `intangible'
+      ;; property, but the docs say it's now obsolete.
+      (erc--merge-prop (point-min) (point-max) 'invisible value)
+    (let ((beg (point-min))
+          (end (point-max)))
+      (save-restriction
+        (widen)
+        (erc--merge-prop (1- beg) (1- end) 'invisible value)))))
 
 (defun erc-display-message-highlight (type string)
   "Highlight STRING according to TYPE, where erc-TYPE-face is an ERC face.
@@ -4804,7 +4837,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
         ;; shall remain part of the prompt.
         (setq prompt (propertize prompt
                                  'rear-nonsticky t
-                                 'erc-prompt t
+                                 'erc-prompt t ; t or `hidden'
                                  'field 'erc-prompt
                                  'front-sticky t
                                  'read-only t))
@@ -6350,7 +6383,9 @@ This option mainly prevents text accidentally entered into Emacs
 from being sent to the server.  Offending sources include
 terminal multiplexers, desktop-automation scripts, and anything
 capable of rapidly submitting successive lines of prompt input.
-For example, entering \"one\\ntwo\\nthree\\n\" will send \"one\"
+For example, if you could somehow manage to type \"one \\`RET'
+two \\`RET' three \\`RET'\" at the prompt in less than
+`erc-accidental-paste-threshold-seconds', ERC would send \"one\"
 to the server, leave \"two\" at the prompt, and insert \"three\"
 into an \"overflow\" buffer.  See `erc-inhibit-multiline-input'
 and `erc-warn-about-blank-lines' for suppression involving input

@@ -1118,14 +1118,24 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  {
 	    Lisp_Object idxval = POP;
 	    Lisp_Object arrayval = TOP;
+	    if (!FIXNUMP (idxval))
+	      {
+		record_in_backtrace (Qaref, &TOP, 2);
+		wrong_type_argument (Qfixnump, idxval);
+	      }
 	    ptrdiff_t size;
-	    ptrdiff_t idx;
 	    if (((VECTORP (arrayval) && (size = ASIZE (arrayval), true))
-		 || (RECORDP (arrayval) && (size = PVSIZE (arrayval), true)))
-		&& FIXNUMP (idxval)
-		&& (idx = XFIXNUM (idxval),
-		    idx >= 0 && idx < size))
-	      TOP = AREF (arrayval, idx);
+		 || (RECORDP (arrayval) && (size = PVSIZE (arrayval), true))))
+	      {
+		ptrdiff_t idx = XFIXNUM (idxval);
+		if (idx >= 0 && idx < size)
+		  TOP = AREF (arrayval, idx);
+		else
+		  {
+		    record_in_backtrace (Qaref, &TOP, 2);
+		    args_out_of_range (arrayval, idxval);
+		  }
+	      }
 	    else
 	      TOP = Faref (arrayval, idxval);
 	    NEXT;
@@ -1136,16 +1146,26 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object newelt = POP;
 	    Lisp_Object idxval = POP;
 	    Lisp_Object arrayval = TOP;
-	    ptrdiff_t size;
-	    ptrdiff_t idx;
-	    if (((VECTORP (arrayval) && (size = ASIZE (arrayval), true))
-		 || (RECORDP (arrayval) && (size = PVSIZE (arrayval), true)))
-		&& FIXNUMP (idxval)
-		&& (idx = XFIXNUM (idxval),
-		    idx >= 0 && idx < size))
+	    if (!FIXNUMP (idxval))
 	      {
-		ASET (arrayval, idx, newelt);
-		TOP = newelt;
+		record_in_backtrace (Qaset, &TOP, 3);
+		wrong_type_argument (Qfixnump, idxval);
+	      }
+	    ptrdiff_t size;
+	    if (((VECTORP (arrayval) && (size = ASIZE (arrayval), true))
+		 || (RECORDP (arrayval) && (size = PVSIZE (arrayval), true))))
+	      {
+		ptrdiff_t idx = XFIXNUM (idxval);
+		if (idx >= 0 && idx < size)
+		  {
+		    ASET (arrayval, idx, newelt);
+		    TOP = newelt;
+		  }
+		else
+		  {
+		    record_in_backtrace (Qaset, &TOP, 3);
+		    args_out_of_range (arrayval, idxval);
+		  }
 	      }
 	    else
 	      TOP = Faset (arrayval, idxval, newelt);

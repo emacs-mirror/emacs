@@ -162,16 +162,13 @@ This test uses a pipeline for the command."
   "Test moving across command arguments"
   (with-temp-eshell
    (eshell-insert-command "echo $(+ 1 (- 4 3)) \"alpha beta\" file" 'ignore)
-   (let ((here (point)) begin valid)
+   (let ((end (point)) begin)
      (beginning-of-line)
      (setq begin (point))
      (eshell-forward-argument 4)
-     (setq valid (= here (point)))
+     (should (= end (point)))
      (eshell-backward-argument 4)
-     (prog1
-         (and valid (= begin (point)))
-       (beginning-of-line)
-       (delete-region (point) (point-max))))))
+     (should (= begin (point))))))
 
 (ert-deftest eshell-test/queue-input ()
   "Test queuing command input.

@@ -1189,7 +1189,10 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq act (lookup-key kmacro-step-edit-map
 			      (vector (with-current-buffer (current-buffer) (read-event))))))))
 
-    ;; Resume macro execution and perform the action
+    ;; Resume macro execution and perform the action.
+    ;; Suffixing executing-kbd-macro with `dummy-event'
+    ;; is done when pre-command-hook must be called
+    ;; again as part of this keyboard macro's execution.
     (cond
      ((cond
        ((eq act 'act)
@@ -1220,18 +1223,21 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
        ((member act '(replace-1 replace))
 	(setq kmacro-step-edit-inserting (if (eq act 'replace-1) 1 t))
 	(if (= executing-kbd-macro-index (length executing-kbd-macro))
-	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+	    (setq executing-kbd-macro (vconcat executing-kbd-macro
+                                               [dummy-event])
 		  kmacro-step-edit-appending t))
 	nil)
        ((eq act 'append)
 	(setq kmacro-step-edit-inserting t)
 	(if (= executing-kbd-macro-index (length executing-kbd-macro))
-	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+	    (setq executing-kbd-macro (vconcat executing-kbd-macro
+                                               [dummy-event])
 		  kmacro-step-edit-appending t))
 	t)
        ((eq act 'append-end)
 	(if (= executing-kbd-macro-index (length executing-kbd-macro))
-	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+	    (setq executing-kbd-macro (vconcat executing-kbd-macro
+                                               [dummy-event])
 		  kmacro-step-edit-inserting t
 		  kmacro-step-edit-appending t)
 	  (setq kmacro-step-edit-active 'append-end))
@@ -1314,7 +1320,8 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
       (setq this-command #'ignore))
      ((eq kmacro-step-edit-active 'append-end)
       (if (= executing-kbd-macro-index (length executing-kbd-macro))
-	  (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+	  (setq executing-kbd-macro (vconcat executing-kbd-macro
+                                             [dummy-event])
 		kmacro-step-edit-inserting t
 		kmacro-step-edit-appending t
 		kmacro-step-edit-active t)))

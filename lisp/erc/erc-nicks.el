@@ -61,7 +61,7 @@
 ;; 2007/09 - erc-highlight-nicknames.el
 ;;           Initial release by by André Riemann
 
-;; [1] <http://www.github.com/leathekd/erc-hl-nicks>
+;; [1] <https://www.github.com/leathekd/erc-hl-nicks>
 ;; [2] <https://www.emacswiki.org/emacs/ErcHighlightNicknames>
 
 ;;; Code:
@@ -480,6 +480,12 @@ Abandon search after examining LIMIT faces."
   "Uniquely colorize nicknames in target buffers."
   ((if erc--target
        (progn
+         (erc-with-server-buffer
+           (unless erc-nicks-mode
+             (erc--warn-once-before-connect 'erc-nicks-mode
+               "Module `nicks' must be enabled or disabled session-wide."
+               " Toggling it in individual target buffers is unsupported.")
+             (erc-nicks-mode +1))) ; but do it anyway
          (setq erc-nicks--downcased-skip-nicks
                (mapcar #'erc-downcase erc-nicks-skip-nicks))
          (add-function :filter-return (local 'erc-button--modify-nick-function)

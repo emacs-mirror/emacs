@@ -1794,10 +1794,6 @@ and will always be loaded by that time, enabling it by default is
 harmless.  But these are unusual circumstances.  Normally, the
 initial value must be @code{nil}.
 
-@findex easy-mmode-define-minor-mode
-  The name @code{easy-mmode-define-minor-mode} is an alias
-for this macro.
-
   Here is an example of using @code{define-minor-mode}:
 
 @smallexample

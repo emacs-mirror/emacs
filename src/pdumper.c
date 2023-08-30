@@ -2178,7 +2178,7 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
 static dump_off
 dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_EB4C05D8D2)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_5F9D7E02FC)
 # error "Lisp_Overlay changed. See CHECK_STRUCTS comment in config.h."
 #endif
   START_DUMP_PVEC (ctx, &overlay->header, struct Lisp_Overlay, out);
@@ -2747,7 +2747,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_85D317CE74
+#if CHECK_STRUCTS && !defined HASH_buffer_6C25F9C3BC
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -4071,10 +4071,12 @@ types.  */)
 {
   eassert (initialized);
 
+#ifndef HAVE_ANDROID
   if (! noninteractive)
     error ("Dumping Emacs currently works only in batch mode.  "
            "If you'd like it to work interactively, please consider "
            "contributing a patch to Emacs.");
+#endif
 
   if (will_dump_with_unexec_p ())
     error ("This Emacs instance was started under the assumption "
@@ -4744,7 +4746,9 @@ dump_discard_mem (void *mem, size_t size)
 # ifdef HAVE_POSIX_MADVISE
       /* Discard COWed pages.  */
       (void) posix_madvise (mem, size, POSIX_MADV_DONTNEED);
-# endif
+# elif defined HAVE_MADVISE
+      (void) madvise (mem, size, MADV_DONTNEED);
+#endif
       /* Release the commit charge for the mapping.  */
       (void) mprotect (mem, size, PROT_NONE);
 #endif
@@ -5614,7 +5618,7 @@ pdumper_load (const char *dump_filename, char *argv0)
     }
 
   err = PDUMPER_LOAD_FILE_NOT_FOUND;
-  if (fstat (dump_fd, &stat) < 0)
+  if (sys_fstat (dump_fd, &stat) < 0)
     goto out;
 
   err = PDUMPER_LOAD_BAD_FILE_TYPE;
@@ -5836,6 +5840,10 @@ void
 syms_of_pdumper (void)
 {
 #ifdef HAVE_PDUMPER
+  unsigned char desired[sizeof fingerprint];
+  int i;
+  char hexbuf[2 * sizeof fingerprint];
+
   defsubr (&Sdump_emacs_portable);
   defsubr (&Sdump_emacs_portable__sort_predicate);
   defsubr (&Sdump_emacs_portable__sort_predicate_copied);
@@ -5848,5 +5856,17 @@ syms_of_pdumper (void)
   DEFSYM (Qdump_file_name, "dump-file-name");
   DEFSYM (Qafter_pdump_load_hook, "after-pdump-load-hook");
   defsubr (&Spdumper_stats);
+
+  for (i = 0; i < sizeof fingerprint; i++)
+    desired[i] = fingerprint[i];
+
+  hexbuf_digest (hexbuf, desired, sizeof desired);
+
+  DEFVAR_LISP ("pdumper-fingerprint", Vpdumper_fingerprint,
+	       doc: /* The fingerprint of this Emacs binary.
+It is a string that is supposed to be unique to each build of
+Emacs.  */);
+  Vpdumper_fingerprint = make_unibyte_string ((char *) hexbuf,
+					      sizeof hexbuf);
 #endif /* HAVE_PDUMPER */
 }

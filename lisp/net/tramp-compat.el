@@ -29,15 +29,15 @@
 
 ;;; Code:
 
+(require 'tramp-loaddefs)
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
 (require 'parse-time)
 (require 'shell)
-(require 'subr-x)
 (require 'xdg)
 
-(declare-function tramp-error "tramp")
+(declare-function tramp-error "tramp-message")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
@@ -75,7 +75,7 @@
        (prog1 (setq xdg (concat (file-name-as-directory xdg) "emacs"))
 	 (make-directory xdg t))
      (eval (car (get 'temporary-file-directory 'standard-value)) t)))
-  "The default value of `temporary-file-directory'.")
+  "The default value of `temporary-file-directory' for Tramp.")
 
 (defsubst tramp-compat-make-temp-name ()
   "Generate a local temporary file name (compat function)."
@@ -202,7 +202,7 @@ Add the extension of F, if existing."
 	(let ((matches 0)
               (case-fold-search nil))
 	  (goto-char start)
-	  (while (re-search-forward regexp end t)
+	  (while (search-forward-regexp regexp end t)
             (replace-match replacement t)
             (setq matches (1+ matches)))
 	  (and (not (zerop matches))
@@ -307,7 +307,7 @@ Also see `ignore'."
     "List of characters equivalent to trailing colon in \"password\" prompts."))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
-  (put (intern elt) 'tramp-suppress-trace t))
+  (function-put (intern elt) 'tramp-suppress-trace t))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

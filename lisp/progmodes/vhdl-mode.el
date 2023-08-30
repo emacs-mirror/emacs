@@ -6,7 +6,7 @@
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
 ;; Keywords:    languages vhdl
-;; WWW:         https://guest.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
+;; URL:         https://iis-people.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 18/3/2008, and the maintainer agreed that when a bug is

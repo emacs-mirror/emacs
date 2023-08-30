@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
 
-;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Keywords: terminals
 
 ;; This file is part of GNU Emacs.

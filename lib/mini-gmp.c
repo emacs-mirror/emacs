@@ -172,12 +172,19 @@ see https://www.gnu.org/licenses/.  */
     }									\
   } while (0)
 
+/* If mp_limb_t is of size smaller than int, plain u*v implies
+   automatic promotion to *signed* int, and then multiply may overflow
+   and cause undefined behavior. Explicitly cast to unsigned int for
+   that case. */
+#define gmp_umullo_limb(u, v) \
+  ((sizeof(mp_limb_t) >= sizeof(int)) ? (u)*(v) : (unsigned int)(u) * (v))
+
 #define gmp_udiv_qrnnd_preinv(q, r, nh, nl, d, di)			\
   do {									\
     mp_limb_t _qh, _ql, _r, _mask;					\
     gmp_umul_ppmm (_qh, _ql, (nh), (di));				\
     gmp_add_ssaaaa (_qh, _ql, _qh, _ql, (nh) + 1, (nl));		\
-    _r = (nl) - _qh * (d);						\
+    _r = (nl) - gmp_umullo_limb (_qh, (d));				\
     _mask = -(mp_limb_t) (_r > _ql); /* both > and >= are OK */		\
     _qh += _mask;							\
     _r += _mask & (d);							\
@@ -198,7 +205,7 @@ see https://www.gnu.org/licenses/.  */
     gmp_add_ssaaaa ((q), _q0, (q), _q0, (n2), (n1));			\
 									\
     /* Compute the two most significant limbs of n - q'd */		\
-    (r1) = (n1) - (d1) * (q);						\
+    (r1) = (n1) - gmp_umullo_limb ((d1), (q));				\
     gmp_sub_ddmmss ((r1), (r0), (r1), (n0), (d1), (d0));		\
     gmp_umul_ppmm (_t1, _t0, (d0), (q));				\
     gmp_sub_ddmmss ((r1), (r0), (r1), (r0), _t1, _t0);			\

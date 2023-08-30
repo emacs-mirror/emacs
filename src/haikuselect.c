@@ -1255,6 +1255,120 @@ haiku_start_watching_selections (void)
   be_start_watching_selection (CLIPBOARD_SECONDARY);
 }
 
+
+
+/* Notification support.  */
+
+static intmax_t
+haiku_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
+			      Lisp_Object replaces_id,
+			      Lisp_Object app_icon, Lisp_Object urgency)
+{
+  int type;
+  intmax_t supersedes;
+  const char *icon;
+
+  if (EQ (urgency, Qlow))
+    type = 0;
+  else if (EQ (urgency, Qnormal))
+    type = 1;
+  else if (EQ (urgency, Qcritical))
+    type = 2;
+  else
+    signal_error ("Invalid notification type provided", urgency);
+
+  supersedes = -1;
+
+  if (!NILP (replaces_id))
+    {
+      CHECK_INTEGER (replaces_id);
+      if (!integer_to_intmax (replaces_id, &supersedes))
+	supersedes = -1;
+    }
+
+  icon = NULL;
+
+  if (!NILP (app_icon))
+    icon = SSDATA (ENCODE_FILE (app_icon));
+
+  /* GC should not transpire from here onwards.  */
+  return be_display_notification (SSDATA (title), SSDATA (body),
+				  supersedes, type, icon);
+}
+
+DEFUN ("haiku-notifications-notify", Fhaiku_notifications_notify,
+       Shaiku_notifications_notify, 0, MANY, 0, doc:
+       /* Display a desktop notification.
+ARGS must contain keywords followed by values.  Each of the following
+keywords is understood:
+
+  :title        The notification title.
+  :body         The notification body.
+  :replaces-id  The ID of a previous notification to supersede.
+  :app-icon     The file name of the notification's icon, if any.
+  :urgency      One of the symbols `low', `normal' or `critical',
+                specifying the importance of the notification.
+
+:title and :body must be provided.  Value is an integer (fixnum or
+bignum) identifying the notification displayed.
+
+usage: (haiku-notifications-notify &rest ARGS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  Lisp_Object title, body, replaces_id, app_icon, urgency;
+  Lisp_Object key, value;
+  ptrdiff_t i;
+
+  /* First, clear each of the variables above.  */
+  title = body = replaces_id = app_icon = urgency = Qnil;
+
+  /* If NARGS is odd, error.  */
+
+  if (nargs & 1)
+    error ("Odd number of arguments in call to `haiku-notifications-notify'");
+
+  /* Next, iterate through ARGS, searching for arguments.  */
+
+  for (i = 0; i < nargs; i += 2)
+    {
+      key = args[i];
+      value = args[i + 1];
+
+      if (EQ (key, QCtitle))
+	title = value;
+      else if (EQ (key, QCbody))
+	body = value;
+      else if (EQ (key, QCreplaces_id))
+	replaces_id = value;
+      else if (EQ (key, QCapp_icon))
+	app_icon = value;
+      else if (EQ (key, QCurgency))
+	urgency = value;
+    }
+
+  /* Demand at least TITLE and BODY be present.  */
+
+  if (NILP (title) || NILP (body))
+    error ("Title or body not provided");
+
+  /* Now check the type and possibly expand each non-nil argument.  */
+
+  CHECK_STRING (title);
+  title = ENCODE_UTF_8 (title);
+  CHECK_STRING (body);
+  body = ENCODE_UTF_8 (body);
+
+  if (NILP (urgency))
+    urgency = Qlow;
+
+  if (!NILP (app_icon))
+    app_icon = Fexpand_file_name (app_icon, Qnil);
+
+  return make_int (haiku_notifications_notify_1 (title, body,
+						 replaces_id,
+						 app_icon, urgency));
+}
+
 void
 syms_of_haikuselect (void)
 {
@@ -1312,6 +1426,16 @@ keyboard modifiers currently held down.  */);
   DEFSYM (Qdouble, "double");
   DEFSYM (Qalready_running, "already-running");
 
+  DEFSYM (QCtitle, ":title");
+  DEFSYM (QCbody, ":body");
+  DEFSYM (QCreplaces_id, ":replaces-id");
+  DEFSYM (QCapp_icon, ":app-icon");
+  DEFSYM (QCurgency, ":urgency");
+
+  DEFSYM (Qlow, "low");
+  DEFSYM (Qnormal, "normal");
+  DEFSYM (Qcritical, "critical");
+
   defsubr (&Shaiku_selection_data);
   defsubr (&Shaiku_selection_timestamp);
   defsubr (&Shaiku_selection_put);
@@ -1320,6 +1444,7 @@ keyboard modifiers currently held down.  */);
   defsubr (&Shaiku_roster_launch);
   defsubr (&Shaiku_write_node_attribute);
   defsubr (&Shaiku_send_message);
+  defsubr (&Shaiku_notifications_notify);
 
   haiku_dnd_frame = NULL;
 }

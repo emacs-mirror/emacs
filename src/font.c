@@ -177,8 +177,34 @@ font_make_entity (void)
        allocate_pseudovector (VECSIZE (struct font_entity),
 			      FONT_ENTITY_MAX, FONT_ENTITY_MAX, PVEC_FONT));
   XSETFONT (font_entity, entity);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  entity->is_android = false;
+#endif
+
   return font_entity;
 }
+
+#ifdef HAVE_ANDROID
+
+Lisp_Object
+font_make_entity_android (int size)
+{
+  Lisp_Object font_entity;
+  struct font_entity *entity
+    = ((struct font_entity *)
+       allocate_pseudovector (size, FONT_ENTITY_MAX, FONT_ENTITY_MAX,
+			      PVEC_FONT));
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  entity->is_android = true;
+#endif
+
+  XSETFONT (font_entity, entity);
+  return font_entity;
+}
+
+#endif
 
 /* Create a font-object whose structure size is SIZE.  If ENTITY is
    not nil, copy properties from ENTITY to the font-object.  If
@@ -322,7 +348,7 @@ font_pixel_size (struct frame *f, Lisp_Object spec)
       if (FIXNUMP (val))
 	dpi = XFIXNUM (val);
       else
-	dpi = FRAME_RES_Y (f);
+	dpi = FRAME_RES (f);
       pixel_size = POINT_TO_PIXEL (point_size, dpi);
       return pixel_size;
     }
@@ -1853,7 +1879,11 @@ font_rescale_ratio (Lisp_Object font_entity)
 	    {
 	      if (NILP (name))
 		name = Ffont_xlfd_name (font_entity, Qnil);
-	      if (fast_string_match_ignore_case (XCAR (elt), name) >= 0)
+
+	      /* N.B. that `name' is set to nil if the resulting XLFD
+		 is too long.  */
+	      if (!NILP (name)
+		  && fast_string_match_ignore_case (XCAR (elt), name) >= 0)
 		return XFLOAT_DATA (XCDR (elt));
 	    }
 	  else if (FONT_SPEC_P (XCAR (elt)))
@@ -2997,7 +3027,7 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
     {
       double pt = XFIXNUM (attrs[LFACE_HEIGHT_INDEX]);
 
-      pixel_size = POINT_TO_PIXEL (pt / 10, FRAME_RES_Y (f));
+      pixel_size = POINT_TO_PIXEL (pt / 10, FRAME_RES (f));
       if (pixel_size < 1)
 	pixel_size = 1;
     }
@@ -3149,13 +3179,13 @@ font_open_for_lface (struct frame *f, Lisp_Object entity, Lisp_Object *attrs, Li
 	    }
 
 	  pt /= 10;
-	  size = POINT_TO_PIXEL (pt, FRAME_RES_Y (f));
+	  size = POINT_TO_PIXEL (pt, FRAME_RES (f));
 #ifdef HAVE_NS
 	  if (size == 0)
 	    {
 	      Lisp_Object ffsize = get_frame_param (f, Qfontsize);
 	      size = (NUMBERP (ffsize)
-		      ? POINT_TO_PIXEL (XFLOATINT (ffsize), FRAME_RES_Y (f))
+		      ? POINT_TO_PIXEL (XFLOATINT (ffsize), FRAME_RES (f))
 		      : 0);
 	    }
 #endif
@@ -4056,7 +4086,7 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
   if (FIXNUMP (val))
     {
       Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
-      int dpi = FIXNUMP (font_dpi) ? XFIXNUM (font_dpi) : FRAME_RES_Y (f);
+      int dpi = FIXNUMP (font_dpi) ? XFIXNUM (font_dpi) : FRAME_RES (f);
       plist[n++] = QCheight;
       plist[n++] = make_fixnum (PIXEL_TO_POINT (XFIXNUM (val) * 10, dpi));
     }
@@ -4960,7 +4990,7 @@ DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
     {
       CHECK_NUMBER (size);
       if (FLOATP (size))
-	isize = POINT_TO_PIXEL (XFLOAT_DATA (size), FRAME_RES_Y (f));
+	isize = POINT_TO_PIXEL (XFLOAT_DATA (size), FRAME_RES (f));
       else if (! integer_to_intmax (size, &isize))
 	args_out_of_range (font_entity, size);
       if (! (INT_MIN <= isize && isize <= INT_MAX))

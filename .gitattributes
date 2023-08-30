@@ -17,13 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-# A few files use CRLF endings, even on non-Microsoft platforms.
+# A few UTF-8-compatible text files use CRLF endings,
+# even on non-Microsoft platforms.
 # Do not warn about trailing whitespace with these files.
 *.bat whitespace=cr-at-eol
 admin/charsets/mapfiles/PTCP154 whitespace=cr-at-eol
-leim/MISC-DIC/cangjie-table.b5 whitespace=cr-at-eol
-leim/MISC-DIC/cangjie-table.cns whitespace=cr-at-eol
-leim/MISC-DIC/pinyin.map whitespace=cr-at-eol
 test/manual/etags/c-src/dostorture.c whitespace=cr-at-eol
 test/manual/etags/cp-src/c.C whitespace=cr-at-eol
 test/manual/etags/html-src/algrthms.html whitespace=cr-at-eol
@@ -31,19 +29,41 @@ test/manual/etags/html-src/algrthms.html whitespace=cr-at-eol
 # The todo-mode file format includes trailing whitespace.
 *.tod[aorty] -whitespace=blank-at-eol
 
+# The following text files use encodings incompatible with UTF-8.
+# They should not be treated as text when diffing, as that could
+# cause the output to mix encodings.
+*.tit -diff
+admin/charsets/mapfiles/cns2ucsdkw.txt -diff
+leim/MISC-DIC/CTLau* -diff
+leim/MISC-DIC/cangjie-table.* -diff
+leim/MISC-DIC/pinyin.map -diff
+leim/MISC-DIC/ziranma.cin -diff
+leim/SKK-DIC/SKK-JISYO.L -diff
+src/msdos.c -diff
+test/lisp/gnus/mm-decode-resources/win1252-multipart.bin -diff
+
 # Some files should not be treated as text when diffing or merging.
+*.bmp binary
 *.cur binary
+*.gif binary
 *.gpg binary
 *.gz binary
 *.icns binary
 *.ico binary
+*.jpg binary
+*.kbx binary
+*.key binary
 *.pbm binary
 *.pdf binary
 *.pif binary
 *.png binary
 *.sig binary
 *.tiff binary
+*.webp binary
+*.zip binary
 etc/e/eterm-color binary
+etc/e/eterm-direct binary
+java/emacs.keystore binary
 
 # Git's builtin diff hunk header styles.
 *.ad[abs] diff=ada
@@ -96,3 +116,7 @@ build-aux/msys-to-w32 diff=shell
 build-aux/update-subdirs diff=shell
 lib-src/rcs2log diff=shell
 /make-dist diff=shell
+
+# This file contains in-line diffs, which can include trailing
+# whitespace.
+java/INSTALL -whitespace

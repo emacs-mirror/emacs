@@ -41,6 +41,9 @@
   "Non-nil if this buffer's major mode is a variant of Text mode.")
 (make-obsolete-variable 'text-mode-variant 'derived-mode-p "27.1")
 
+;; Actually defined in textconv.c.
+(defvar text-conversion-style)
+
 (defvar text-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\" ".   " st)
@@ -125,6 +128,9 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq-local text-mode-variant t)
   (setq-local require-final-newline mode-require-final-newline)
+
+  ;; Enable text conversion in this buffer.
+  (setq-local text-conversion-style t)
   (add-hook 'context-menu-functions 'text-mode-context-menu 10 t))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"

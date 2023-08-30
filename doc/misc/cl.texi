@@ -1238,10 +1238,15 @@ of variables.
 
 @defmac cl-flet (bindings@dots{}) forms@dots{}
 This form establishes @code{let}-style bindings for functions rather
-than values.  Each @var{binding} must be a list of the form
-@samp{(@var{name} @var{arglist} @var{body}@dots{})}.  Within
-@var{forms}, any reference to the function @var{name} uses the local
-definition instead of the global one.
+than values.  Each @var{binding} must be a list of one of two forms:
+either @w{@code{(@var{name} @var{expr})}} or @w{@code{(@var{name}
+@var{arglist} @var{body}@dots{})}}.  The @var{name} is the name of the
+function, @var{expr} is an expression which returns the function value
+to which the corresponding @var{name} should be bound, and
+@var{arglist} and @var{body} are the argument list and the body of the
+function to bind to @var{name}.  Within @var{forms}, any reference to
+the function @var{name} uses the local definition provided by
+@var{bindings} instead of the global one.
 
 A ``reference'' to a function name is either a call to that function,
 or a use of its name quoted by @code{function} to be passed on to,

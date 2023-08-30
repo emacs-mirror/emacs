@@ -355,5 +355,28 @@ Expected initialization file: `%s'\"
   ;;   (should (equal (lisp-current-defun-name) "defblarg")))
   )
 
+(ert-deftest test-font-lock-keywords ()
+  "Keywords should be fontified in `font-lock-keyword-face`."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (mapc (lambda (el-keyword)
+            (erase-buffer)
+            (insert (format "(%s some-symbol () \"hello\"" el-keyword))
+            (font-lock-ensure)
+            ;; Verify face property throughout the keyword
+            (let* ((begin (1+ (point-min)))
+                   (end (1- (+ begin (length el-keyword)))))
+              (mapc (lambda (pos)
+                      (should (equal (get-text-property pos 'face)
+                                     'font-lock-keyword-face)))
+                    (number-sequence begin end))))
+          '("defsubst" "cl-defsubst" "define-inline"
+            "define-advice" "defadvice" "defalias"
+            "define-derived-mode" "define-minor-mode"
+            "define-generic-mode" "define-global-minor-mode"
+            "define-globalized-minor-mode" "define-skeleton"
+            "define-widget" "ert-deftest" "defconst" "defcustom"
+            "defvaralias" "defvar-local" "defface" "define-error"))))
+
 (provide 'lisp-mode-tests)
 ;;; lisp-mode-tests.el ends here

@@ -1,4 +1,4 @@
-# stdint.m4 serial 61
+# stdint.m4 serial 62
 dnl Copyright (C) 2001-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -150,7 +150,10 @@ intmax_t i = INTMAX_MAX;
 uintmax_t j = UINTMAX_MAX;
 
 /* Check that SIZE_MAX has the correct type, if possible.  */
-#if 201112 <= __STDC_VERSION__
+/* ISO C 11 mandates _Generic, but GCC versions < 4.9 lack it.  */
+#if 201112 <= __STDC_VERSION__ \
+    && (!defined __GNUC__ || 4 < __GNUC__ + (9 <= __GNUC_MINOR__) \
+        || defined __clang__)
 int k = _Generic (SIZE_MAX, size_t: 0);
 #elif (2 <= __GNUC__ || 4 <= __clang_major__ || defined __IBM__TYPEOF__ \
        || (0x5110 <= __SUNPRO_C && !__STDC__))

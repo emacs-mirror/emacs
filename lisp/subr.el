@@ -427,8 +427,8 @@ PREFIX is a string, and defaults to \"g\"."
     (make-symbol (format "%s%d" (or prefix "g") num))))
 
 (defun ignore (&rest _arguments)
-  "Do nothing and return nil.
-This function accepts any number of ARGUMENTS, but ignores them.
+  "Ignore ARGUMENTS, do nothing, and return nil.
+This function accepts any number of arguments in ARGUMENTS.
 Also see `always'."
   ;; Not declared `side-effect-free' because we don't want calls to it
   ;; elided; see `byte-compile-ignore'.
@@ -437,8 +437,8 @@ Also see `always'."
   nil)
 
 (defun always (&rest _arguments)
-  "Do nothing and return t.
-This function accepts any number of ARGUMENTS, but ignores them.
+  "Ignore ARGUMENTS, do nothing, and return t.
+This function accepts any number of arguments in ARGUMENTS.
 Also see `ignore'."
   (declare (pure t) (side-effect-free error-free))
   t)
@@ -1655,8 +1655,9 @@ in the current Emacs session, then this function may return nil."
 
 (defun event-start (event)
   "Return the starting position of EVENT.
-EVENT should be a mouse click, drag, or key press event.  If
-EVENT is nil, the value of `posn-at-point' is used instead.
+EVENT should be a mouse click, drag, touch screen, or key press
+event.  If EVENT is nil, the value of `posn-at-point' is used
+instead.
 
 The following accessor functions are used to access the elements
 of the position:
@@ -1679,17 +1680,34 @@ nil or (STRING . POSITION)'.
 
 For more information, see Info node `(elisp)Click Events'."
   (declare (side-effect-free t))
-  (or (and (consp event) (nth 1 event))
-      (event--posn-at-point)))
+  (if (and (consp event)
+           (or (eq (car event) 'touchscreen-begin)
+               (eq (car event) 'touchscreen-end)))
+      ;; Touch screen begin and end events save their information in a
+      ;; different format, where the mouse position list is the cdr of
+      ;; (nth 1 event).
+      (cdadr event)
+    (or (and (consp event)
+             ;; Ignore touchscreen update events.  They store the posn
+             ;; in a different format, and can have multiple posns.
+             (not (eq (car event) 'touchscreen-update))
+             (nth 1 event))
+        (event--posn-at-point))))
 
 (defun event-end (event)
   "Return the ending position of EVENT.
-EVENT should be a click, drag, or key press event.
+EVENT should be a click, drag, touch screen, or key press event.
 
 See `event-start' for a description of the value returned."
   (declare (side-effect-free t))
-  (or (and (consp event) (nth (if (consp (nth 2 event)) 2 1) event))
-      (event--posn-at-point)))
+  (if (and (consp event)
+           (or (eq (car event) 'touchscreen-begin)
+               (eq (car event) 'touchscreen-end)))
+      (cdadr event)
+    (or (and (consp event)
+             (not (eq (car event) 'touchscreen-update))
+             (nth (if (consp (nth 2 event)) 2 1) event))
+        (event--posn-at-point))))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
@@ -1979,9 +1997,13 @@ instead; it will indirectly limit the specpdl stack size as well.")
                         'native-comp-enable-subr-trampolines
                         "29.1")
 
+(defvaralias 'comp-enable-subr-trampolines 'native-comp-enable-subr-trampolines)
+
 (make-obsolete-variable 'native-comp-deferred-compilation
                         'native-comp-jit-compilation
                         "29.1")
+
+(defvaralias 'native-comp-deferred-compilation 'native-comp-jit-compilation)
 
 
 ;;;; Alternate names for functions - these are not being phased out.
@@ -3091,6 +3113,11 @@ So escape sequences and keyboard encoding are taken into account.
 When there's an ambiguity because the key looks like the prefix of
 some sort of escape sequence, the ambiguity is resolved via `read-key-delay'.
 
+Also in contrast to `read-event', input method text conversion
+will be disabled while the key sequence is read, so that
+character input events will always be generated for keyboard
+input.
+
 If the optional argument PROMPT is non-nil, display that as a
 prompt.
 
@@ -3149,7 +3176,8 @@ only unbound fallback disabled is downcasing of the last event."
 		   (lookup-key global-map [tool-bar])))
              map))
           (let* ((keys
-                  (catch 'read-key (read-key-sequence-vector prompt nil t)))
+                  (catch 'read-key (read-key-sequence-vector prompt nil t
+                                                             nil nil t)))
                  (key (aref keys 0)))
             (if (and (> (length keys) 1)
                      (memq key '(mode-line header-line
@@ -3335,6 +3363,8 @@ causes it to evaluate `help-form' and display the result."
 	(while (not done)
 	  (unless (get-text-property 0 'face prompt)
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+          ;; Display the on screen keyboard if it exists.
+          (frame-toggle-on-screen-keyboard (selected-frame) nil)
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
 		       (read-key prompt)))
 	  (and show-help (buffer-live-p (get-buffer helpbuf))
@@ -3495,6 +3525,9 @@ an error message."
     (minibuffer-message "Wrong answer")
     (sit-for 2)))
 
+;; Defined in textconv.c.
+(defvar overriding-text-conversion-style)
+
 (defun read-char-from-minibuffer (prompt &optional chars history)
   "Read a character from the minibuffer, prompting for it with PROMPT.
 Like `read-char', but uses the minibuffer to read and return a character.
@@ -3509,7 +3542,15 @@ while calling this function, then pressing `help-char'
 causes it to evaluate `help-form' and display the result.
 There is no need to explicitly add `help-char' to CHARS;
 `help-char' is bound automatically to `help-form-show'."
-  (let* ((map (if (consp chars)
+
+  ;; If text conversion is enabled in this buffer, then it will only
+  ;; be disabled the next time `force-mode-line-update' happens.
+  (when (and (bound-and-true-p overriding-text-conversion-style)
+             (bound-and-true-p text-conversion-style))
+    (force-mode-line-update))
+
+  (let* ((overriding-text-conversion-style nil)
+         (map (if (consp chars)
                   (or (gethash (list help-form (cons help-char chars))
                                read-char-from-minibuffer-map-hash)
                       (let ((map (make-sparse-keymap))
@@ -3521,22 +3562,27 @@ There is no need to explicitly add `help-char' to CHARS;
                         ;; being a command char.
                         (when help-form
                           (define-key map (vector help-char)
-                            (lambda ()
-                              (interactive)
-                              (let ((help-form msg)) ; lexically bound msg
-                                (help-form-show)))))
+                                      (lambda ()
+                                        (interactive)
+                                        (let ((help-form msg)) ; lexically bound msg
+                                          (help-form-show)))))
                         (dolist (char chars)
                           (define-key map (vector char)
-                            #'read-char-from-minibuffer-insert-char))
+                                      #'read-char-from-minibuffer-insert-char))
                         (define-key map [remap self-insert-command]
-                          #'read-char-from-minibuffer-insert-other)
+                                    #'read-char-from-minibuffer-insert-other)
                         (puthash (list help-form (cons help-char chars))
                                  map read-char-from-minibuffer-map-hash)
                         map))
                 read-char-from-minibuffer-map))
          ;; Protect this-command when called from pre-command-hook (bug#45029)
          (this-command this-command)
-         (result (read-from-minibuffer prompt nil map nil (or history t)))
+         (result (progn
+                   ;; Disable text conversion if it is enabled.
+                   ;; (bug#65370)
+                   (when (fboundp 'set-text-conversion-style)
+                     (set-text-conversion-style text-conversion-style))
+                   (read-from-minibuffer prompt nil map nil (or history t))))
          (char
           (if (> (length result) 0)
               ;; We have a string (with one character), so return the first one.
@@ -3634,8 +3680,13 @@ confusing to some users.")
        (or (consp last-nonmenu-event)   ; invoked by a mouse event
            (and (null last-nonmenu-event)
                 (consp last-input-event))
+           (featurep 'android)		; Prefer dialog boxes on Android.
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
+
+;; Actually in textconv.c.
+(defvar overriding-text-conversion-style)
+(declare-function set-text-conversion-style "textconv.c")
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
@@ -3746,6 +3797,9 @@ like) while `y-or-n-p' is running)."
       (setq prompt (funcall padded prompt))
       (let* ((enable-recursive-minibuffers t)
              (msg help-form)
+             ;; Disable text conversion so that real Y or N events are
+             ;; sent.
+             (overriding-text-conversion-style nil)
              (keymap (let ((map (make-composed-keymap
                                  y-or-n-p-map query-replace-map)))
                        (when help-form
@@ -3759,9 +3813,15 @@ like) while `y-or-n-p' is running)."
                        map))
              ;; Protect this-command when called from pre-command-hook (bug#45029)
              (this-command this-command)
-             (str (read-from-minibuffer
-                   prompt nil keymap nil
-                   (or y-or-n-p-history-variable t))))
+             (str (progn
+                    ;; If the minibuffer is already active, the
+                    ;; selected window might not change.  Disable
+                    ;; text conversion by hand.
+                    (when (fboundp 'set-text-conversion-style)
+                      (set-text-conversion-style text-conversion-style))
+                    (read-from-minibuffer
+                     prompt nil keymap nil
+                     (or y-or-n-p-history-variable t)))))
         (setq answer (if (member str '("y" "Y")) 'act 'skip)))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
@@ -4074,17 +4134,10 @@ buffer, use `without-restriction' with the same LABEL argument.
 \(fn START END [:label LABEL] BODY)"
   (declare (indent 2) (debug t))
   (if (eq (car rest) :label)
-      `(internal--with-restriction ,start ,end (lambda () ,@(cddr rest))
-                                 ,(cadr rest))
-    `(internal--with-restriction ,start ,end (lambda () ,@rest))))
-
-(defun internal--with-restriction (start end body &optional label)
-  "Helper function for `with-restriction', which see."
-  (save-restriction
-    (if label
-        (internal--labeled-narrow-to-region start end label)
-      (narrow-to-region start end))
-    (funcall body)))
+      `(save-restriction
+         (internal--labeled-narrow-to-region ,start ,end ,(cadr rest))
+         ,@(cddr rest))
+    `(save-restriction (narrow-to-region ,start ,end) ,@rest)))
 
 (defmacro without-restriction (&rest rest)
   "Execute BODY without restrictions.
@@ -4097,16 +4150,8 @@ by `with-restriction' with the same LABEL argument are lifted.
 \(fn [:label LABEL] BODY)"
   (declare (indent 0) (debug t))
   (if (eq (car rest) :label)
-      `(internal--without-restriction (lambda () ,@(cddr rest))
-                                    ,(cadr rest))
-    `(internal--without-restriction (lambda () ,@rest))))
-
-(defun internal--without-restriction (body &optional label)
-  "Helper function for `without-restriction', which see."
-  (save-restriction
-    (if label (internal--unlabel-restriction label))
-    (widen)
-    (funcall body)))
+      `(save-restriction (internal--labeled-widen ,(cadr rest)) ,@(cddr rest))
+    `(save-restriction (widen) ,@rest)))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
@@ -5098,30 +5143,41 @@ the function `undo--wrap-and-run-primitive-undo'."
 	      (kill-local-variable 'before-change-functions))
 	    (if local-acf (setq after-change-functions acf)
 	      (kill-local-variable 'after-change-functions))))
-        (when (not (eq buffer-undo-list t))
-          (let ((ap-elt
-		 (list 'apply
-		       (- end end-marker)
-		       beg
-		       (marker-position end-marker)
-		       #'undo--wrap-and-run-primitive-undo
-		       beg (marker-position end-marker)
-		       ;; We will truncate this list by side-effect below.
-		       buffer-undo-list))
-		(ptr buffer-undo-list))
-	    (if (not (eq buffer-undo-list old-bul))
-		(progn
-		  (while (and (not (eq (cdr ptr) old-bul))
-			      ;; In case garbage collection has removed OLD-BUL.
-			      (or (cdr ptr)
-			          (progn
-			            (message "combine-change-calls: buffer-undo-list broken")
-			            nil)))
-		    (setq ptr (cdr ptr)))
-		  ;; Truncate the list that's in the `apply' entry.
-		  (setcdr ptr nil)
-		  (push ap-elt buffer-undo-list)
-		  (setcdr buffer-undo-list old-bul)))))
+	;; If buffer-undo-list is neither t (in which case undo
+	;; information is not recorded) nor equal to buffer-undo-list
+	;; before body was funcalled (in which case (funcall body) did
+	;; not add items to buffer-undo-list) ...
+	(unless (or (eq buffer-undo-list t)
+		    (eq buffer-undo-list old-bul))
+	  (let ((ptr buffer-undo-list) body-undo-list)
+	    ;; ... then loop over buffer-undo-list, until the head of
+	    ;; buffer-undo-list before body was funcalled is found, or
+	    ;; ptr is nil (which may happen if garbage-collect has
+	    ;; been called after (funcall body) and has removed
+	    ;; entries of buffer-undo-list that were added by (funcall
+	    ;; body)), and add these entries to body-undo-list.
+	    (while (and ptr (not (eq ptr old-bul)))
+	      (push (car ptr) body-undo-list)
+	      (setq ptr (cdr ptr)))
+	    (setq body-undo-list (nreverse body-undo-list))
+	    ;; Warn if garbage-collect has truncated buffer-undo-list
+	    ;; behind our back.
+	    (when (and old-bul (not ptr))
+	      (message
+               "combine-change-calls: buffer-undo-list has been truncated"))
+	    ;; Add an (apply ...) entry to buffer-undo-list, using
+	    ;; body-undo-list ...
+	    (push (list 'apply
+			(- end end-marker)
+			beg
+			(marker-position end-marker)
+			#'undo--wrap-and-run-primitive-undo
+			beg (marker-position end-marker)
+			body-undo-list)
+		  buffer-undo-list)
+	    ;; ... and set the cdr of buffer-undo-list to
+	    ;; buffer-undo-list before body was funcalled.
+	    (setcdr buffer-undo-list old-bul)))
 	(if (not inhibit-modification-hooks)
 	    (run-hook-with-args 'after-change-functions
 				beg (marker-position end-marker)

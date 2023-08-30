@@ -1434,6 +1434,9 @@ Returns a list of [group article score] vectors."
                     ""))
         (groups (mapcar #'gnus-group-short-name groups))
 	artlist article group)
+    (when (>= gnus-verbose 7)
+      (gnus-message 7 "Search engine returned %d results"
+                    (car (buffer-line-statistics))))
     (goto-char (point-min))
     ;; Prep prefix, we want to at least be removing the root
     ;; filesystem separator.
@@ -1485,6 +1488,10 @@ Returns a list of [group article score] vectors."
     ;; Are we running an additional grep query?
     (when-let ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
+
+    (when (>= gnus-verbose 7)
+      (gnus-message 7 "Gnus search returning %d results"
+                    (length artlist)))
     ;; Munge into the list of vectors expected by nnselect.
     (mapcar (pcase-lambda (`(,_ ,article ,group ,score))
               (vector

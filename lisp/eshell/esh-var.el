@@ -162,6 +162,13 @@ if they are quoted with a backslash."
     ("COLUMNS" ,(lambda () (window-body-width nil 'remap)) t t)
     ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
     ("INSIDE_EMACS" eshell-inside-emacs t)
+    ("PAGER" (,(lambda () (or comint-pager (getenv "PAGER")))
+              . ,(lambda (_ value)
+                   ;; When unsetting PAGER, be sure to clear its value
+                   ;; from `process-environment' too.
+                   (unless value (setenv "PAGER"))
+                   (setq comint-pager value)))
+     t t)
     ("UID" ,(lambda () (file-user-uid)) nil t)
     ("GID" ,(lambda () (file-group-gid)) nil t)
 
@@ -262,11 +269,13 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
   ;; changing a variable will affect all of Emacs.
   (unless eshell-modify-global-environment
     (setq-local process-environment (eshell-copy-environment)))
+  (make-local-variable 'comint-pager)
   (setq-local eshell-subcommand-bindings
               (append
                '((process-environment (eshell-copy-environment))
                  (eshell-variable-aliases-list eshell-variable-aliases-list)
-                 (eshell-path-env-list eshell-path-env-list))
+                 (eshell-path-env-list eshell-path-env-list)
+                 (comint-pager comint-pager))
                eshell-subcommand-bindings))
 
   (setq-local eshell-special-chars-inside-quoting

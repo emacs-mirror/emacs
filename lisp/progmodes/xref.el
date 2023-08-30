@@ -1613,7 +1613,8 @@ is nil, prompt only if there's no usable symbol at point."
 (defun xref-find-references-and-replace (from to)
   "Replace all references to identifier FROM with TO."
   (interactive
-   (let* ((query-replace-read-from-default 'find-tag-default)
+   (let* ((query-replace-read-from-default
+           (lambda () (xref-backend-identifier-at-point (xref-find-backend))))
           (common
            (query-replace-read-args "Query replace identifier" nil)))
      (list (nth 0 common) (nth 1 common))))

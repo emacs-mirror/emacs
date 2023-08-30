@@ -192,7 +192,7 @@ the standard Lisp indent package."
     (list
      (cond ((not (lisp-extended-loop-p (elt state 1)))
 	    (+ loop-indentation lisp-simple-loop-indentation))
-	   ((looking-at "^\\s-*\\(:?\\sw+\\|;\\)")
+	   ((looking-at "^\\s-*\\(?::?\\sw+\\|;\\)")
 	    (+ loop-indentation lisp-loop-keyword-indentation))
 	   (t
 	    (+ loop-indentation lisp-loop-forms-indentation)))

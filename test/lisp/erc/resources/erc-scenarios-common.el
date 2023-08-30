@@ -122,6 +122,7 @@
       (inhibit-interaction t)
       (auth-source-do-cache nil)
       (timer-list (copy-sequence timer-list))
+      (timer-idle-list (copy-sequence timer-idle-list))
       (erc-auth-source-parameters-join-function nil)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
@@ -288,7 +289,7 @@ buffer-naming collisions involving bouncers in ERC."
         (erc-d-t-search-for 1 "<bob>")
         (erc-d-t-absent-for 0.1 "<joe>")
         (should (eq erc-server-process erc-server-process-foo))
-        (erc-d-t-search-for 10 "ape is dead")
+        (erc-d-t-search-for 15 "ape is dead")
         (erc-d-t-wait-for 5 (not (erc-server-process-alive)))))
 
     (ert-info ("#chan@<esid> is exclusive to barnet")

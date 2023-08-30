@@ -158,7 +158,7 @@
 		    (or (and (consp real-value) (plist-get real-value :style))
 		        'line))
                    (position (and (consp real-value)
-                                  (plist-get real-value :style))))
+                                  (plist-get real-value :position))))
 	       (list :color color :style style :position position))))
      ;; filter to make customized-value suitable for storing
      ,(lambda (cus-value)

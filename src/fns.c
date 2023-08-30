@@ -746,7 +746,8 @@ usage: (vconcat &rest SEQUENCES)   */)
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
        doc: /* Return a copy of a list, vector, string, char-table or record.
 The elements of a list, vector or record are not copied; they are
-shared with the original.
+shared with the original.  See Info node `(elisp) Sequence Functions'
+for more details about this sharing and its effects.
 If the original sequence is empty, this function may return
 the same empty object instead of its copy.  */)
   (Lisp_Object arg)
@@ -3560,6 +3561,10 @@ The data read from the system are decoded using `locale-coding-system'.  */)
   (Lisp_Object item)
 {
   char *str = NULL;
+
+  /* STR is apparently unused on Android.  */
+  ((void) str);
+
 #ifdef HAVE_LANGINFO_CODESET
   if (EQ (item, Qcodeset))
     {
@@ -6155,6 +6160,9 @@ from the absolute start of the buffer, disregarding the narrowing.  */)
   (register Lisp_Object position, Lisp_Object absolute)
 {
   ptrdiff_t pos_byte, start_byte = BEGV_BYTE;
+
+  if (!BUFFER_LIVE_P (current_buffer))
+    error ("Attempt to count lines in a dead buffer");
 
   if (MARKERP (position))
     {

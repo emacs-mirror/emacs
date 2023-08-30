@@ -60,7 +60,7 @@
                  (const 64))
   :version "24.3")
 
-(defcustom hexl-program "hexl"
+(defcustom hexl-program hexl-program-name
   "The program that will hexlify and dehexlify its stdin.
 `hexl-program' will always be concatenated with `hexl-options'
 and \"-de\" when dehexlifying a buffer."

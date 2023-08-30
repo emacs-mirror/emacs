@@ -204,7 +204,7 @@ During a selection process, these are the local bindings.
   ;;           a used member near to this one, as a possible starting point.
   ;; XR-PREFIX is the prefix to put in front of labels.
   ;; TOC-BUFFER means this is to fill the toc buffer.
-  (let* ((font (reftex-use-fonts))
+  (let* ((font reftex-use-fonts)
          (cnt 0)
          (index -1)
          (toc-indent " ")

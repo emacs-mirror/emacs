@@ -1748,6 +1748,19 @@ The former is based on the GVFS archive backend, which makes it
 available on GNU/Linux only.  That implementation has further
 drawbacks like it doesn't support to write into archives.
 
+** Provide support for CFF outlines in the Android port.
+
+The file src/sfnt.c supplies the font backend for the Android port.
+It is presently a self contained TrueType scaler, implementing both a
+grayscale outline generator and an instruction code interpreter.
+
+Support for CFF (Compact Font Format) outlines will facilitate
+utilizing fonts distributed as ".otf" files, a category that currently
+encompasses all CJK and some Middle Eastern and Indic fonts
+distributed with Android, obviating the present requirement for users
+of such scripts to actively install TrueType versions of fonts
+otherwise bundled with the system.
+
 * Other known bugs
 
 ** 'make-frame' forgets unhandled parameters, at least for X11 frames

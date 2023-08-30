@@ -574,9 +574,7 @@ MODE is either `c' or `cpp'."
    :feature 'constant
    `((true) @font-lock-constant-face
      (false) @font-lock-constant-face
-     (null) @font-lock-constant-face
-     ,@(when (eq mode 'cpp)
-         '((nullptr) @font-lock-constant-face)))
+     (null) @font-lock-constant-face)
 
    :language mode
    :feature 'keyword
@@ -882,29 +880,36 @@ Return nil if NODE is not a defun node or doesn't have a name."
 (defun c-ts-mode--defun-valid-p (node)
   "Return non-nil if NODE is a valid defun node.
 Ie, NODE is not nested."
-  (or (c-ts-mode--emacs-defun-p node)
-      (not (or (and (member (treesit-node-type node)
-                            '("struct_specifier"
-                              "enum_specifier"
-                              "union_specifier"
-                              "declaration"))
-                    ;; If NODE's type is one of the above, make sure it is
-                    ;; top-level.
-                    (treesit-node-top-level
-                     node (rx (or "function_definition"
-                                  "type_definition"
-                                  "struct_specifier"
-                                  "enum_specifier"
-                                  "union_specifier"
-                                  "declaration"))))
-
-               (and (equal (treesit-node-type node) "declaration")
-                    ;; If NODE is a declaration, make sure it is not a
-                    ;; function declaration.
-                    (equal (treesit-node-type
-                            (treesit-node-child-by-field-name
-                             node "declarator"))
-                           "function_declarator"))))))
+  (let ((top-level-p (lambda (node)
+                       (not (treesit-node-top-level
+                             node (rx (or "function_definition"
+                                          "type_definition"
+                                          "struct_specifier"
+                                          "enum_specifier"
+                                          "union_specifier"
+                                          "declaration")))))))
+    (pcase (treesit-node-type node)
+      ;; The declaration part of a DEFUN.
+      ("expression_statement" (c-ts-mode--emacs-defun-p node))
+      ;; The body of a DEFUN.
+      ("compound_statement" (c-ts-mode--emacs-defun-body-p node))
+      ;; If NODE's type is one of these three, make sure it is
+      ;; top-level.
+      ((or "struct_specifier"
+           "enum_specifier"
+           "union_specifier")
+       (funcall top-level-p node))
+      ;; If NODE is a declaration, make sure it's not a function
+      ;; declaration (we only want function_definition) and is a
+      ;; top-level declaration.
+      ("declaration"
+       (and (not (equal (treesit-node-type
+                         (treesit-node-child-by-field-name
+                          node "declarator"))
+                        "function_declarator"))
+            (funcall top-level-p node)))
+      ;; Other types don't need further verification.
+      (_ t))))
 
 (defun c-ts-mode--defun-for-class-in-imenu-p (node)
   "Check if NODE is a valid entry for the Class subindex.
@@ -957,6 +962,11 @@ files using the DEFUN macro."
                t)
               "DEFUN")))
 
+(defun c-ts-mode--emacs-defun-body-p (node)
+  "Return non-nil if NODE is the function body of a DEFUN."
+  (and (equal (treesit-node-type node) "compound_statement")
+       (c-ts-mode--emacs-defun-p (treesit-node-prev-sibling node))))
+
 (defun c-ts-mode--emacs-defun-at-point (&optional range)
   "Return the defun node at point.
 
@@ -971,31 +981,18 @@ function returns the declaration node.
 If RANGE is non-nil, return (BEG . END) where BEG end END
 encloses the whole defun.  This is for when the entire defun
 is required, not just the declaration part for DEFUN."
-  (or (when-let ((node (treesit-defun-at-point)))
-        (if range
-            (cons (treesit-node-start node)
-                (treesit-node-end node))
-            node))
-      (and c-ts-mode-emacs-sources-support
-           (let ((candidate-1 ; For when point is in the DEFUN statement.
-                  (treesit-node-prev-sibling
-                   (treesit-node-top-level
-                    (treesit-node-at (point))
-                    "compound_statement")))
-                 (candidate-2 ; For when point is in the body.
-                  (treesit-node-top-level
-                   (treesit-node-at (point))
-                   "expression_statement")))
-             (when-let
-                 ((node (or (and (c-ts-mode--emacs-defun-p candidate-1)
-                                 candidate-1)
-                            (and (c-ts-mode--emacs-defun-p candidate-2)
-                                 candidate-2))))
-               (if range
-                   (cons (treesit-node-start node)
-                       (treesit-node-end
-                        (treesit-node-next-sibling node)))
-                   node))))))
+  (when-let* ((node (treesit-defun-at-point))
+              (defun-range (cons (treesit-node-start node)
+                                 (treesit-node-end node))))
+    ;; Make some adjustment for DEFUN.
+    (when c-ts-mode-emacs-sources-support
+      (cond ((c-ts-mode--emacs-defun-body-p node)
+             (setq node (treesit-node-prev-sibling node))
+             (setcar defun-range (treesit-node-start node)))
+            ((c-ts-mode--emacs-defun-p node)
+             (setcdr defun-range (treesit-node-end
+                                  (treesit-node-next-sibling node))))))
+    (if range defun-range node)))
 
 (defun c-ts-mode-indent-defun ()
   "Indent the current top-level declaration syntactically.
@@ -1113,13 +1110,19 @@ BEG and END are described in `treesit-range-rules'."
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (cons (regexp-opt '("function_definition"
-                                  "type_definition"
-                                  "struct_specifier"
-                                  "enum_specifier"
-                                  "union_specifier"
-                                  "class_specifier"
-                                  "namespace_definition"))
+              (cons (regexp-opt (append
+                                 '("function_definition"
+                                   "type_definition"
+                                   "struct_specifier"
+                                   "enum_specifier"
+                                   "union_specifier"
+                                   "class_specifier"
+                                   "namespace_definition")
+                                 (and c-ts-mode-emacs-sources-support
+                                      '(;; DEFUN.
+                                        "expression_statement"
+                                        ;; DEFUN body.
+                                        "compound_statement"))))
                     #'c-ts-mode--defun-valid-p))
   (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
   (setq-local treesit-defun-name-function #'c-ts-mode--defun-name)

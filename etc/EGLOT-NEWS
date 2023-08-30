@@ -27,6 +27,12 @@ watching requests.  This change slightly reduces the number of file
 watcher objects requested from the operating system, which can be a
 problem, particularly on Mac OS.  See github#1228 and github#1226.
 
+** Fixed "onTypeFormatting" feature
+
+For 'newline' commands, Eglot sometimes sent the wrong character code
+to the server.  Also made this feature less chatty in the mode-line
+and messages buffer.
+
 
 * Changes in Eglot 1.15 (29/4/2023)
 

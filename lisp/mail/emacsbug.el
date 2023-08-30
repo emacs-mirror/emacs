@@ -144,6 +144,10 @@ This requires either the macOS \"open\" command, or the freedesktop
                (goto-char (point-min))
                (buffer-substring (line-beginning-position)
                                  (line-end-position))))))
+        ((eq system-type 'android)
+         ;; This is a short string containing the Android version,
+         ;; build number, and window system distributor.
+         (symbol-value 'android-build-fingerprint))
         ;; TODO Cygwin, Solaris (usg-unix-v).
         (t
          (or (let ((file "/etc/os-release"))

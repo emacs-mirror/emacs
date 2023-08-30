@@ -389,7 +389,7 @@ more details.
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as defun but use cl-lambda-list.
-            (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
+            (&define [&name symbolp]
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -2037,7 +2037,16 @@ a `let' form, except that the list of symbols can be computed at run-time."
    ;; *after* handling `function', but we want to stop macroexpansion from
    ;; being applied infinitely, so we use a cache to return the exact `form'
    ;; being expanded even though we don't receive it.
-   ((eq f (car cl--labels-convert-cache)) (cdr cl--labels-convert-cache))
+   ;; In Common Lisp, we'd use the `&whole' arg instead (see
+   ;; "Macro Lambda Lists" in the CLHS).
+   ((let ((symbols-with-pos-enabled nil)) ;Don't rewrite #'<X@5> => #'<X@3>
+      (eq f (car cl--labels-convert-cache)))
+    ;; This value should be `eq' to the `&whole' form.
+    ;; If this is not the case, we have a bug.
+    (prog1 (cdr cl--labels-convert-cache)
+      ;; Drop it, so it can't accidentally interfere with some
+      ;; unrelated subsequent use of `function' with the same symbol.
+      (setq cl--labels-convert-cache nil)))
    (t
     (let* ((found (assq f macroexpand-all-environment))
            (replacement (and found
@@ -2045,6 +2054,8 @@ a `let' form, except that the list of symbols can be computed at run-time."
                                (funcall (cdr found) cl--labels-magic)))))
       (if (and replacement (eq cl--labels-magic (car replacement)))
           (nth 1 replacement)
+        ;; FIXME: Here, we'd like to return the `&whole' form, but since ELisp
+        ;; doesn't have that, we approximate it via `cl--labels-convert-cache'.
         (let ((res `(function ,f)))
           (setq cl--labels-convert-cache (cons f res))
           res))))))
@@ -2064,13 +2075,15 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (symbolp form)
-                               (&define [&name symbolp "@cl-flet@"]
+           (debug ((&rest [&or (&define [&name symbolp "@cl-flet@"]
                                         [&name [] gensym] ;Make it unique!
                                         cl-lambda-list
                                         cl-declarations-or-string
                                         [&optional ("interactive" interactive)]
-                                        def-body)])
+                                        def-body)
+                               (&define [&name symbolp "@cl-flet@"]
+                                        [&name [] gensym] ;Make it unique!
+                                        def-form)])
                    cl-declarations body)))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)

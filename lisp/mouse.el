@@ -206,8 +206,16 @@ always return a positive integer or zero."
 
 ;; Provide a mode-specific menu on a mouse button.
 
-(defun minor-mode-menu-from-indicator (indicator)
+(defun minor-mode-menu-from-indicator (indicator &optional window event)
   "Show menu for minor mode specified by INDICATOR.
+
+INDICATOR is either a string object returned by `posn-object' or
+the car of such an object.  WINDOW may be the window whose mode
+line is being displayed.
+
+EVENT may be the mouse event that is causing this menu to be
+displayed.
+
 Interactively, INDICATOR is read using completion.
 If there is no menu defined for the minor mode, then create one with
 items `Turn Off' and `Help'."
@@ -215,7 +223,44 @@ items `Turn Off' and `Help'."
    (list (completing-read
 	  "Minor mode indicator: "
 	  (describe-minor-mode-completion-table-for-indicator))))
-  (let* ((minor-mode (lookup-minor-mode-from-indicator indicator))
+  ;; If INDICATOR is a string object, WINDOW is set, and
+  ;; `mode-line-compact' might be enabled, find a string in
+  ;; `minor-mode-alist' that is present within the INDICATOR and whose
+  ;; extents within INDICATOR contain the position of the object
+  ;; within the string.
+  (when window
+    (catch 'found
+      (with-selected-window window
+        (let ((alist minor-mode-alist) string position)
+          (when (and (consp indicator) mode-line-compact)
+            (with-temp-buffer
+              (insert (car indicator))
+              (dolist (menu alist)
+                ;; If this is a valid minor mode menu entry,
+                (when (and (consp menu)
+                           (setq string (format-mode-line (cadr menu)
+                                                          nil window))
+                           (> (length string) 0))
+                  ;; Start searching for an appearance of (cdr menu).
+                  (goto-char (point-min))
+                  (while (search-forward string nil 0)
+                    ;; If the position of the string object is
+                    ;; contained within, set indicator to the minor
+                    ;; mode in question.
+                    (setq position (1+ (cdr indicator)))
+                    (and (>= position (match-beginning 0))
+                         (<= position (match-end 0))
+                         (setq indicator (car menu))
+                         (throw 'found nil)))))))))))
+  ;; If INDICATOR is still a cons, use its car.
+  (when (consp indicator)
+    (setq indicator (car indicator)))
+  (let* ((minor-mode (if (symbolp indicator)
+                         ;; indicator being set to a symbol means that
+                         ;; the loop above has already found a
+                         ;; matching minor mode.
+                         indicator
+                       (lookup-minor-mode-from-indicator indicator)))
          (mm-fun (or (get minor-mode :minor-mode-function) minor-mode)))
     (unless minor-mode (error "Cannot find minor mode for `%s'" indicator))
     (let* ((map (cdr-safe (assq minor-mode minor-mode-map-alist)))
@@ -234,14 +279,19 @@ items `Turn Off' and `Help'."
                           ,(lambda () (interactive)
                              (describe-function mm-fun)))))))
       (if menu
-          (popup-menu menu)
+          (popup-menu menu event)
         (message "No menu available")))))
 
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."
   (interactive "@e")
-  (let ((indicator (car (nth 4 (car (cdr event))))))
-    (minor-mode-menu-from-indicator indicator)))
+  (let* ((posn (event-start event))
+         (indicator (posn-object posn))
+         (window (posn-window posn)))
+    (minor-mode-menu-from-indicator indicator window event)))
+
+;; See (elisp)Touchscreen Events.
+(put 'mouse-minor-mode-menu 'mouse-1-menu-command t)
 
 (defun mouse-menu-major-mode-map ()
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)

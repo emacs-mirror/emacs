@@ -62,11 +62,15 @@
                     'erc-current-nick-face))))))
 
 ;; When hacking on tests that use this fixture, it's best to run it
-;; interactively, and check for wierdness before and after doing
-;; M-: (remove-from-invisibility-spec 'erc-match) RET.
+;; interactively, and visually inspect the output with various
+;; combinations of:
+;;
+;;   M-x erc-match-toggle-hidden-fools RET
+;;   M-x erc-toggle-timestamps RET
+;;
 (defun erc-scenarios-match--invisible-stamp (hiddenp visiblep)
   (unless noninteractive
-    (kill-new "(remove-from-invisibility-spec 'erc-match)"))
+    (kill-new "erc-match-toggle-hidden-fools"))
 
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "join/legacy")
@@ -128,11 +132,11 @@
 
        ;; Leading stamp has combined `invisible' property value.
        (should (equal (get-text-property (pos-bol) 'invisible)
-                      '(timestamp erc-match)))
+                      '(timestamp match-fools)))
 
-       ;; Message proper has the `invisible' property `erc-match'.
+       ;; Message proper has the `invisible' property `match-fools'.
        (let ((msg-beg (next-single-property-change (pos-bol) 'invisible)))
-         (should (eq (get-text-property msg-beg 'invisible) 'erc-match))
+         (should (eq (get-text-property msg-beg 'invisible) 'match-fools))
          (should (>= (next-single-property-change msg-beg 'invisible nil)
                      (pos-eol)))))
 
@@ -147,19 +151,29 @@
           (= (next-single-property-change msg-beg 'invisible nil (pos-eol))
              (pos-eol))))))))
 
+(defun erc-scenarios-match--find-bol ()
+  (save-excursion
+    (should (get-text-property (1- (point)) 'erc-command))
+    (goto-char (should (previous-single-property-change (point) 'erc-command)))
+    (pos-bol)))
+
 (defun erc-scenarios-match--find-eol ()
   (save-excursion
-    (goto-char (next-single-property-change (point) 'erc-command))
+    (if-let ((next (next-single-property-change (point) 'erc-command)))
+        (goto-char next)
+      ;; We're already at the end of the message.
+      (should (get-text-property (1- (point)) 'erc-command)))
     (pos-eol)))
 
 ;; In most cases, `erc-hide-fools' makes line endings invisible.
-(ert-deftest erc-scenarios-match--stamp-right-fools-invisible ()
+(defun erc-scenarios-match--stamp-right-fools-invisible ()
   :tags '(:expensive-test)
   (let ((erc-insert-timestamp-function #'erc-insert-timestamp-right))
     (erc-scenarios-match--invisible-stamp
 
      (lambda ()
-       (let ((end (erc-scenarios-match--find-eol)))
+       (let ((beg (erc-scenarios-match--find-bol))
+             (end (erc-scenarios-match--find-eol)))
          ;; The end of the message is a newline.
          (should (= ?\n (char-after end)))
 
@@ -168,19 +182,23 @@
 
          ;; Stamps have a combined `invisible' property value.
          (should (equal (get-text-property (1- end) 'invisible)
-                        '(timestamp erc-match)))
+                        '(timestamp match-fools)))
 
          ;; The final newline is hidden by `match', not `stamps'
-         (should (equal (get-text-property end 'invisible) 'erc-match))
+         (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+           (if erc-legacy-invisible-bounds-p
+               (should (eq (get-text-property end 'invisible) 'match-fools))
+             (should (eq (get-text-property beg 'invisible) 'match-fools))
+             (should-not (get-text-property end 'invisible))))
 
-         ;; The message proper has the `invisible' property `erc-match',
+         ;; The message proper has the `invisible' property `match-fools',
          ;; and it starts after the preceding newline.
-         (should (eq (get-text-property (pos-bol) 'invisible) 'erc-match))
+         (should (eq (get-text-property (pos-bol) 'invisible) 'match-fools))
 
          ;; It ends just before the timestamp.
          (let ((msg-end (next-single-property-change (pos-bol) 'invisible)))
            (should (equal (get-text-property msg-end 'invisible)
-                          '(timestamp erc-match)))
+                          '(timestamp match-fools)))
 
            ;; Stamp's `invisible' property extends throughout the stamp
            ;; and ends before the trailing newline.
@@ -196,6 +214,17 @@
          (let ((inv-beg (next-single-property-change (pos-bol) 'invisible)))
            (should (eq (get-text-property inv-beg 'invisible)
                        'timestamp))))))))
+
+(ert-deftest erc-scenarios-match--stamp-right-fools-invisible ()
+  :tags '(:expensive-test)
+  (erc-scenarios-match--stamp-right-fools-invisible))
+
+(ert-deftest erc-scenarios-match--stamp-right-fools-invisible--nooffset ()
+  :tags '(:expensive-test)
+  (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+    (should-not erc-legacy-invisible-bounds-p)
+    (let ((erc-legacy-invisible-bounds-p t))
+      (erc-scenarios-match--stamp-right-fools-invisible))))
 
 ;; This asserts that when `erc-fill-wrap-mode' is enabled, ERC hides
 ;; the preceding message's line ending.
@@ -215,16 +244,16 @@
 
        ;; Stamps have a combined `invisible' property value.
        (should (equal (get-text-property (1- (pos-eol)) 'invisible)
-                      '(timestamp erc-match)))
+                      '(timestamp match-fools)))
 
-       ;; The message proper has the `invisible' property `erc-match',
+       ;; The message proper has the `invisible' property `match-fools',
        ;; which starts at the preceding newline...
-       (should (eq (get-text-property (1- (pos-bol)) 'invisible) 'erc-match))
+       (should (eq (get-text-property (1- (pos-bol)) 'invisible) 'match-fools))
 
        ;; ... and ends just before the timestamp.
        (let ((msgend (next-single-property-change (1- (pos-bol)) 'invisible)))
          (should (equal (get-text-property msgend 'invisible)
-                        '(timestamp erc-match)))
+                        '(timestamp match-fools)))
 
          ;; The newline before `erc-insert-marker' is still visible.
          (should-not (get-text-property (pos-eol) 'invisible))
@@ -242,8 +271,7 @@
        (let ((inv-beg (next-single-property-change (1- (pos-bol)) 'invisible)))
          (should (eq (get-text-property inv-beg 'invisible) 'timestamp)))))))
 
-(ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static ()
-  :tags '(:expensive-test)
+(defun erc-scenarios-match--stamp-both-invisible-fill-static ()
   (should (eq erc-insert-timestamp-function
               #'erc-insert-timestamp-left-and-right))
 
@@ -265,8 +293,8 @@
              (search-forward "[23:59]"))))
 
        (ert-info ("Line endings in Bob's messages are invisible")
-         ;; The message proper has the `invisible' property `erc-match'.
-         (should (eq (get-text-property (pos-bol) 'invisible) 'erc-match))
+         ;; The message proper has the `invisible' property `match-fools'.
+         (should (eq (get-text-property (pos-bol) 'invisible) 'match-fools))
          (let* ((mbeg (next-single-property-change (pos-bol) 'erc-command))
                 (mend (next-single-property-change mbeg 'erc-command)))
 
@@ -283,9 +311,13 @@
            (should (= (next-single-property-change (pos-bol) 'erc-timestamp)
                       mend))
 
-           ;; Line ending has the `invisible' property `erc-match'.
+           ;; Line ending has the `invisible' property `match-fools'.
            (should (= (char-after mend) ?\n))
-           (should (eq (get-text-property mend'invisible) 'erc-match))))
+           (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+             (if erc-legacy-invisible-bounds-p
+                 (should (eq (get-text-property mend 'invisible) 'match-fools))
+               (should (eq (get-text-property mbeg 'invisible) 'match-fools))
+               (should-not (get-text-property mend 'invisible))))))
 
        ;; Only the message right after Alice speaks contains stamps.
        (when (= 1 bob-utterance-counter)
@@ -298,7 +330,7 @@
              ;; Date stamp has a combined `invisible' property value
              ;; that extends until the start of the message proper.
              (should (equal (get-text-property (point) 'invisible)
-                            '(timestamp erc-match)))
+                            '(timestamp match-fools)))
              (should (= (next-single-property-change (point) 'invisible)
                         (1+ (pos-eol))))))
 
@@ -314,7 +346,7 @@
            (let ((msgend (next-single-property-change (pos-bol) 'invisible)))
              ;; Stamp has a combined `invisible' property value.
              (should (equal (get-text-property msgend 'invisible)
-                            '(timestamp erc-match)))
+                            '(timestamp match-fools)))
 
              ;; Combined `invisible' property spans entire timestamp.
              (should (= (next-single-property-change msgend 'invisible)
@@ -330,5 +362,16 @@
        ;; This message has no time stamp and is completely visible.
        (should-not (eq (field-at-pos (1- (pos-eol))) 'erc-timestamp))
        (should-not (next-single-property-change (pos-bol) 'invisible))))))
+
+(ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static ()
+  :tags '(:expensive-test)
+  (erc-scenarios-match--stamp-both-invisible-fill-static))
+
+(ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static--nooffset ()
+  :tags '(:expensive-test)
+  (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+    (should-not erc-legacy-invisible-bounds-p)
+    (let ((erc-legacy-invisible-bounds-p t))
+      (erc-scenarios-match--stamp-both-invisible-fill-static))))
 
 ;;; erc-scenarios-match.el ends here

@@ -143,10 +143,10 @@ Returns (OLD-FORMAT-DETECTED . UPDATED-SAVED-FILTERS-LIST)."
                                         (mode         . bibtex-mode)))
                                    ("web"
                                     (or (derived-mode . sgml-mode)
-                                        (derived-mode . css-mode)
-                                        (mode         . javascript-mode)
+                                        (derived-mode . css-base-mode)
+                                        (derived-mode . js-base-mode)
+                                        (derived-mode . typescript-ts-base-mode)
                                         (mode         . js2-mode)
-                                        (mode         . scss-mode)
                                         (derived-mode . haml-mode)
                                         (mode         . sass-mode)))
                                    ("gnus"

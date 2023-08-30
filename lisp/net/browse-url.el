@@ -52,6 +52,7 @@
 ;; browse-url-xdg-open                freedesktop.org xdg-open
 ;; browse-url-kde                     KDE konqueror (kfm)
 ;; browse-url-elinks                  Elinks      Don't know (tried with 0.12.GIT)
+;; browse-url-default-android-browser Android     2.3.3 (should work on 2.2 too)
 ;; eww-browse-url                     Emacs Web Wowser
 
 ;; Browsers can cache web pages so it may be necessary to tell them to
@@ -173,6 +174,9 @@
     ,@(when (eq system-type 'darwin)
         (list '(function-item :tag "Default macOS browser"
                               :value browse-url-default-macosx-browser)))
+    ,@(when (eq system-type 'android)
+        (list '(function-item :tag "Default Android browser"
+                              :value browse-url-default-android-browser)))
     (function-item :tag "Default browser"
 		   :value browse-url-default-browser)
     (function :tag "Your own function")
@@ -1064,6 +1068,8 @@ instead of `browse-url-new-window-flag'."
      'browse-url-default-macosx-browser)
     ((featurep 'haiku)
      'browse-url-default-haiku-browser)
+    ((eq system-type 'android)
+     'browse-url-default-android-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
 ;;;    ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
@@ -1299,6 +1305,35 @@ Default to the URL around or before point."
     (haiku-roster-launch mime (vector url))))
 
 (function-put 'browse-url-default-haiku-browser
+              'browse-url-browser-kind 'external)
+
+(defcustom browse-url-android-share nil
+  "If non-nil, share URLs instead of opening them.
+When non-nil, `browse-url-default-android-browser' will try to
+share the URL being browsed through programs such as mail clients
+and instant messengers instead of opening it in a web browser."
+  :type 'boolean
+  :version "30.1")
+
+(declare-function android-browse-url "androidselect.c")
+
+;;;###autoload
+(defun browse-url-default-android-browser (url &optional _new-window)
+  "Browse URL with the system default browser.
+If `browse-url-android-share' is non-nil, try to share URL using
+an external program instead.  Default to the URL around or before
+point."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (unless browse-url-android-share
+    ;; The URL shouldn't be encoded if it's being shared through
+    ;; another program.
+    (setq url (browse-url-encode-url url)))
+  ;; Make sure the URL starts with an appropriate scheme.
+  (unless (string-match "\\(.+\\):/" url)
+    (setq url (concat "http://" url)))
+  (android-browse-url url browse-url-android-share))
+
+(function-put 'browse-url-default-android-browser
               'browse-url-browser-kind 'external)
 
 ;;;###autoload

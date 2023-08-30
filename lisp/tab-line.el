@@ -29,6 +29,7 @@
 
 (require 'cl-lib)
 (require 'seq) ; tab-line.el is not pre-loaded so it's safe to use it here
+(require 'icons)
 
 
 (defgroup tab-line nil
@@ -137,33 +138,38 @@ function `tab-line-tab-face-group'."
 
 (defvar-keymap tab-line-tab-map
   :doc "Local keymap for `tab-line-mode' window tabs."
-  "<tab-line> <down-mouse-1>" #'tab-line-select-tab
-  "<tab-line> <mouse-2>"      #'tab-line-close-tab
-  "<tab-line> <down-mouse-3>" #'tab-line-tab-context-menu
+  "<tab-line> <down-mouse-1>"      #'tab-line-select-tab
+  "<tab-line> <mouse-2>"           #'tab-line-close-tab
+  "<tab-line> <down-mouse-3>"      #'tab-line-tab-context-menu
+  "<tab-line> <touchscreen-begin>" #'tab-line-select-tab
   "RET" #'tab-line-select-tab)
 
 (defvar-keymap tab-line-add-map
   :doc "Local keymap to add `tab-line-mode' window tabs."
-  "<tab-line> <down-mouse-1>" #'tab-line-new-tab
-  "<tab-line> <down-mouse-2>" #'tab-line-new-tab
+  "<tab-line> <down-mouse-1>"      #'tab-line-new-tab
+  "<tab-line> <down-mouse-2>"      #'tab-line-new-tab
+  "<tab-line> <touchscreen-begin>" #'tab-line-new-tab
   "RET" #'tab-line-new-tab)
 
 (defvar-keymap tab-line-tab-close-map
   :doc "Local keymap to close `tab-line-mode' window tabs."
-  "<tab-line> <mouse-1>" #'tab-line-close-tab
-  "<tab-line> <mouse-2>" #'tab-line-close-tab)
+  "<tab-line> <mouse-1>"           #'tab-line-close-tab
+  "<tab-line> <mouse-2>"           #'tab-line-close-tab
+  "<tab-line> <touchscreen-begin>" #'tab-line-close-tab)
 
 (defvar-keymap tab-line-left-map
   :doc "Local keymap to scroll `tab-line-mode' window tabs to the left."
-  "<tab-line> <down-mouse-1>" #'tab-line-hscroll-left
-  "<tab-line> <down-mouse-2>" #'tab-line-hscroll-left
-  "RET" #'tab-line-new-tab)
+  "<tab-line> <down-mouse-1>"      #'tab-line-hscroll-left
+  "<tab-line> <down-mouse-2>"      #'tab-line-hscroll-left
+  "<tab-line> <touchscreen-begin>" #'tab-line-hscroll-left
+  "RET"                            #'tab-line-new-tab)
 
 (defvar-keymap tab-line-right-map
   :doc "Local keymap to scroll `tab-line-mode' window tabs to the right."
-  "<tab-line> <down-mouse-1>" #'tab-line-hscroll-right
-  "<tab-line> <down-mouse-2>" #'tab-line-hscroll-right
-  "RET" #'tab-line-new-tab)
+  "<tab-line> <down-mouse-1>"      #'tab-line-hscroll-right
+  "<tab-line> <down-mouse-2>"      #'tab-line-hscroll-right
+  "<tab-line> <touchscreen-begin>" #'tab-line-hscroll-right
+  "RET"                            #'tab-line-new-tab)
 
 
 (defcustom tab-line-new-tab-choice t
@@ -185,12 +191,19 @@ If the value is a function, call it with no arguments."
   :group 'tab-line
   :version "27.1")
 
+(define-icon tab-line-new nil
+  `((image "symbols/plus_16.svg" "tabs/new.xpm"
+           :face shadow
+           :margin (2 . 0)
+           :ascent center)
+    (text " + "))
+  "Icon for creating a new tab."
+  :version "30.1"
+  :help-echo "New tab")
+
 (defvar tab-line-new-button
-  (propertize " + "
-              'display '(image :type xpm
-                               :file "tabs/new.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-new)
+              'rear-nonsticky nil
               'keymap tab-line-add-map
               'mouse-face 'tab-line-highlight
               'help-echo "Click to add tab")
@@ -213,34 +226,54 @@ If nil, don't show it at all."
   :group 'tab-line
   :version "27.1")
 
+(define-icon tab-line-close nil
+  `((image "symbols/cross_16.svg" "tabs/close.xpm"
+           :face shadow
+           :height (1.0 . em)
+           :margin (2 . 0)
+           :ascent center)
+    (text " x"))
+  "Icon for closing the clicked tab."
+  :version "30.1"
+  :help-echo "Click to close tab")
+
 (defvar tab-line-close-button
-  (propertize " x"
-              'display '(image :type xpm
-                               :file "tabs/close.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-close)
+              'rear-nonsticky nil ;; important to not break auto-scroll
               'keymap tab-line-tab-close-map
               'mouse-face 'tab-line-close-highlight
               'help-echo "Click to close tab")
   "Button for closing the clicked tab.")
 
+(define-icon tab-line-left nil
+  `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
+           :face shadow
+           :margin (2 . 0)
+           :ascent center)
+    (text " <"))
+  "Icon for scrolling horizontally to the left."
+  :version "30.1")
+
 (defvar tab-line-left-button
-  (propertize " <"
-              'display '(image :type xpm
-                               :file "tabs/left-arrow.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-left)
+              'rear-nonsticky nil
               'keymap tab-line-left-map
               'mouse-face 'tab-line-highlight
               'help-echo "Click to scroll left")
   "Button for scrolling horizontally to the left.")
 
+(define-icon tab-line-right nil
+  `((image "symbols/chevron_right_16.svg" "tabs/right-arrow.xpm"
+           :face shadow
+           :margin (2 . 0)
+           :ascent center)
+    (text "> "))
+  "Icon for scrolling horizontally to the right."
+  :version "30.1")
+
 (defvar tab-line-right-button
-  (propertize "> "
-              'display '(image :type xpm
-                               :file "tabs/right-arrow.xpm"
-                               :margin (2 . 0)
-                               :ascent center)
+  (propertize (icon-string 'tab-line-right)
+              'rear-nonsticky nil
               'keymap tab-line-right-map
               'mouse-face 'tab-line-highlight
               'help-echo "Click to scroll right")
@@ -325,6 +358,48 @@ or by `tab-line-tabs-buffer-groups'."
 (defvar tab-line-tabs-buffer-list-function #'tab-line-tabs-buffer-list
   "Function to return a global list of buffers.
 Used only for `tab-line-tabs-mode-buffers' and `tab-line-tabs-buffer-groups'.")
+
+
+
+;;; Touch screen support.
+
+(defun tab-line-track-tap (event &optional function)
+  "Track a tap starting from EVENT.
+If EVENT is not a `touchscreen-begin' event, return t.
+Otherwise, return t if the tap completes successfully, and nil if
+the tap should be ignored.
+
+If FUNCTION is specified and the tap does not complete within
+`touch-screen-delay' seconds, display the appropriate context
+menu by calling FUNCTION with EVENT, and return nil."
+  (if (not (eq (car-safe event) 'touchscreen-begin))
+      t
+    (let ((result (catch 'context-menu
+                    (let (timer)
+                      (unwind-protect
+                          (progn
+                            (when function
+                              (setq timer
+                                    (run-at-time touch-screen-delay t
+                                                 #'throw 'context-menu
+                                                 'context-menu)))
+                            (touch-screen-track-tap event))
+                        (when timer
+                          (cancel-timer timer)))))))
+      (cond ((eq result 'context-menu)
+             (prog1 nil
+               (funcall function event)))
+            (result t)))))
+
+(defun tab-line-event-start (event)
+  "Like `event-start'.
+However, return the correct mouse position list if EVENT is a
+`touchscreen-begin' event."
+  (or (and (eq (car-safe event) 'touchscreen-begin)
+           (cdadr event))
+      (event-start event)))
+
+
 
 (defun tab-line-tabs-buffer-list ()
   (seq-filter (lambda (b) (and (buffer-live-p b)
@@ -484,21 +559,27 @@ which the tab will represent."
       (setf face (funcall fn tab tabs face buffer-p selected-p)))
     (apply 'propertize
            (concat (propertize (string-replace "%" "%%" name) ;; (bug#57848)
+                               'face face
                                'keymap tab-line-tab-map
                                'help-echo (if selected-p "Current tab"
                                             "Click to select tab")
                                ;; Don't turn mouse-1 into mouse-2 (bug#49247)
                                'follow-link 'ignore)
-                   (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
-                            tab-line-close-button-show
-                            (not (eq tab-line-close-button-show
-                                     (if selected-p 'non-selected 'selected)))
-                            tab-line-close-button)
-                       ""))
+                   (let ((close (or (and (or buffer-p (assq 'buffer tab)
+                                             (assq 'close tab))
+                                         tab-line-close-button-show
+                                         (not (eq tab-line-close-button-show
+                                                  (if selected-p 'non-selected
+                                                    'selected)))
+                                         tab-line-close-button)
+                                    "")))
+                     (setq close (copy-sequence close))
+                     ;; Don't overwrite the icon face
+                     (add-face-text-property 0 (length close) face t close)
+                     close))
            `(
              tab ,tab
              ,@(if selected-p '(selected t))
-             face ,face
              mouse-face tab-line-highlight))))
 
 (defun tab-line-format-template (tabs)
@@ -637,7 +718,7 @@ the selected tab visible."
       (erase-buffer)
       (apply 'insert strings)
       (goto-char (point-min))
-      (add-face-text-property (point-min) (point-max) 'tab-line)
+      (add-face-text-property (point-min) (point-max) 'tab-line t)
       ;; Continuation means tab-line doesn't fit completely,
       ;; thus scroll arrows are needed for scrolling.
       (setq show-arrows (> (vertical-motion 1) 0))
@@ -719,17 +800,21 @@ the selected tab visible."
   "Scroll the tab line ARG positions to the right.
 Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive (list current-prefix-arg last-nonmenu-event))
-  (let ((window (and (listp event) (posn-window (event-start event)))))
-    (tab-line-hscroll arg window)
-    (force-mode-line-update window)))
+  (when (tab-line-track-tap event)
+    (let ((window (and (listp event)
+                       (posn-window (tab-line-event-start event)))))
+      (tab-line-hscroll arg window)
+      (force-mode-line-update window))))
 
 (defun tab-line-hscroll-left (&optional arg event)
   "Scroll the tab line ARG positions to the left.
 Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive (list current-prefix-arg last-nonmenu-event))
-  (let ((window (and (listp event) (posn-window (event-start event)))))
-    (tab-line-hscroll (- (or arg 1)) window)
-    (force-mode-line-update window)))
+  (when (tab-line-track-tap event)
+    (let ((window (and (listp event)
+                       (posn-window (tab-line-event-start event)))))
+      (tab-line-hscroll (- (or arg 1)) window)
+      (force-mode-line-update window))))
 
 
 (defun tab-line-new-tab (&optional event)
@@ -738,15 +823,16 @@ This command is usually invoked by clicking on the plus-shaped button
 on the tab line.  Switching to another buffer also adds a new tab
 corresponding to the new buffer shown in the window."
   (interactive (list last-nonmenu-event))
-  (if (functionp tab-line-new-tab-choice)
-      (funcall tab-line-new-tab-choice)
-    (let ((tab-line-tabs-buffer-groups mouse-buffer-menu-mode-groups))
-      (if (and (listp event)
-               (display-popup-menus-p)
-               (not tty-menu-open-use-tmm))
-          (mouse-buffer-menu event) ; like (buffer-menu-open)
-        ;; tty menu doesn't support mouse clicks, so use tmm
-        (tmm-prompt (mouse-buffer-menu-keymap))))))
+  (when (tab-line-track-tap event)
+    (if (functionp tab-line-new-tab-choice)
+        (funcall tab-line-new-tab-choice)
+      (let ((tab-line-tabs-buffer-groups mouse-buffer-menu-mode-groups))
+        (if (and (listp event)
+                 (display-popup-menus-p)
+                 (not tty-menu-open-use-tmm))
+            (mouse-buffer-menu event) ; like (buffer-menu-open)
+          ;; tty menu doesn't support mouse clicks, so use tmm
+          (tmm-prompt (mouse-buffer-menu-keymap)))))))
 
 (defun tab-line-select-tab (&optional event)
   "Switch to the buffer specified by the tab on which you click.
@@ -754,16 +840,17 @@ This command maintains the original order of prev/next buffers.
 So, for example, switching to a previous tab is equivalent to
 using the `previous-buffer' command."
   (interactive "e")
-  (let* ((posnp (event-start event))
-         (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
-         (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
-    (if buffer
-        (tab-line-select-tab-buffer buffer (posn-window posnp))
-      (let ((select (cdr (assq 'select tab))))
-        (when (functionp select)
-          (with-selected-window (posn-window posnp)
-            (funcall select)
-            (force-mode-line-update)))))))
+  (when (tab-line-track-tap event #'tab-line-tab-context-menu)
+    (let* ((posnp (tab-line-event-start event))
+           (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
+           (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+      (if buffer
+          (tab-line-select-tab-buffer buffer (posn-window posnp))
+        (let ((select (cdr (assq 'select tab))))
+          (when (functionp select)
+            (with-selected-window (posn-window posnp)
+              (funcall select)
+              (force-mode-line-update))))))))
 
 (defun tab-line-select-tab-buffer (buffer &optional window)
   (let* ((window-buffer (window-buffer window))
@@ -869,25 +956,27 @@ This command is usually invoked by clicking on the close button on the
 right side of the tab.  This command buries the buffer, so it goes out of
 sight of the tab line."
   (interactive (list last-nonmenu-event))
-  (let* ((posnp (and (listp event) (event-start event)))
-         (window (and posnp (posn-window posnp)))
-         (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
-         (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
-         (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
-    (with-selected-window (or window (selected-window))
-      (cond
-       ((functionp close-function)
-        (funcall close-function))
-       ((eq tab-line-close-tab-function 'kill-buffer)
-        (kill-buffer buffer))
-       ((eq tab-line-close-tab-function 'bury-buffer)
-        (if (eq buffer (current-buffer))
-            (bury-buffer)
-          (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
-          (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
-       ((functionp tab-line-close-tab-function)
-        (funcall tab-line-close-tab-function tab)))
-      (force-mode-line-update))))
+  (when (tab-line-track-tap event)
+    (let* ((posnp (and (listp event)
+                       (tab-line-event-start event)))
+           (window (and posnp (posn-window posnp)))
+           (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
+           (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
+           (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
+      (with-selected-window (or window (selected-window))
+        (cond
+         ((functionp close-function)
+          (funcall close-function))
+         ((eq tab-line-close-tab-function 'kill-buffer)
+          (kill-buffer buffer))
+         ((eq tab-line-close-tab-function 'bury-buffer)
+          (if (eq buffer (current-buffer))
+              (bury-buffer)
+            (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
+            (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
+         ((functionp tab-line-close-tab-function)
+          (funcall tab-line-close-tab-function tab)))
+        (force-mode-line-update)))))
 
 (defun tab-line-tab-context-menu (&optional event)
   "Pop up the context menu for a tab-line tab."

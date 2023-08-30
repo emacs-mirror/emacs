@@ -208,6 +208,7 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
  "Japanese" '((setup-function . setup-japanese-environment-internal)
 	      (exit-function . use-default-char-width-table)
 	      (iso639-language . ja)
+              (cjk-locale-symbol . ja_JP)
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201

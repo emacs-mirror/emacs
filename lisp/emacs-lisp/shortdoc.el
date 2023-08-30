@@ -153,14 +153,14 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (let* ((old '((foo . bar)))
                 (new (copy-alist old)))
            (eq old new)))
-  ;; FIXME: Outputs "\.rose" for the symbol `.rose'.
-  ;; (let-alist
-  ;;     :eval (let ((colors '((rose . red)
-  ;;                           (lily . white))))
-  ;;             (let-alist colors
-  ;;               (if (eq .rose 'red)
-  ;;                   .lily))))
-  )
+  ;; FIXME: Outputs "\.rose" for the symbol `.rose'.  It would be
+  ;; better if that could be cleaned up.
+  (let-alist
+      :eval (let ((colors '((rose . red)
+                            (lily . white))))
+              (let-alist colors
+                (if (eq .rose 'red)
+                    .lily)))))
 
 (define-short-documentation-group string
   "Making Strings"
@@ -642,6 +642,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (delete
    :eval (delete 2 (list 1 2 3 4))
    :eval (delete "a" (list "a" "b" "c" "d")))
+  (remq
+   :eval (remq 'b '(a b c)))
   (remove
    :eval (remove 2 '(1 2 3 4))
    :eval (remove "a" '("a" "b" "c" "d")))
@@ -686,8 +688,6 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (member
    :eval (member 2 '(1 2 3))
    :eval (member "b" '("a" "b" "c")))
-  (remq
-   :eval (remq 'b '(a b c)))
   (member-ignore-case
    :eval (member-ignore-case "foo" '("bar" "Foo" "zot")))
   "Association Lists"

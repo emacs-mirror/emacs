@@ -52,6 +52,7 @@ SYNTAX can be one of the symbols `default' (default),
   (when syntax
     (customize-set-variable 'tramp-syntax syntax)))
 
+;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
@@ -63,6 +64,7 @@ SYNTAX can be one of the symbols `default' (default),
    (all-completions
     "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
+;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."
@@ -221,6 +223,7 @@ functions are called with `current-buffer' set."
 
 (defun tramp-cleanup-dired-buffer-p ()
   "Return t if current buffer runs `dired-mode'."
+  (declare (tramp-suppress-trace t))
   (derived-mode-p 'dired-mode))
 
 (add-hook 'tramp-cleanup-some-buffers-hook
@@ -231,13 +234,20 @@ functions are called with `current-buffer' set."
 
 (defun tramp-delete-tainted-remote-process-buffer-function ()
   "Delete current buffer from `tramp-tainted-remote-process-buffers'."
+  (declare (tramp-suppress-trace t))
   (setq tramp-tainted-remote-process-buffers
 	(delete (current-buffer) tramp-tainted-remote-process-buffers)))
 
 ;;;###tramp-autoload
 (defun tramp-taint-remote-process-buffer (buffer)
   "Mark buffer as related to remote processes."
+  ;; (declare (tramp-suppress-trace t))
   (add-to-list 'tramp-tainted-remote-process-buffers buffer))
+
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-taint-remote-process-buffer 'tramp-suppress-trace t)
 
 (add-hook 'kill-buffer-hook
 	  #'tramp-delete-tainted-remote-process-buffer-function)
@@ -738,7 +748,7 @@ buffer in your bug report.
 
   ;; Beautify encoded values.
   (goto-char (point-min))
-  (while (re-search-forward
+  (while (search-forward-regexp
 	  (rx "'" (group "(decode-coding-string")) nil 'noerror)
     (replace-match "\\1"))
   (goto-char (point-max))
@@ -766,7 +776,7 @@ buffer in your bug report.
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (if (re-search-forward tramp-buf-regexp (line-end-position) t)
+	  (if (search-forward-regexp tramp-buf-regexp (line-end-position) t)
 	      (forward-line 1)
 	    (forward-line 0)
 	    (let ((start (point)))

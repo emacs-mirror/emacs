@@ -685,6 +685,12 @@ ns_change_tab_bar_height (struct frame *f, int height)
   SET_FRAME_GARBAGED (f);
 }
 
+void
+ns_make_frame_key_window (struct frame *f)
+{
+  [[FRAME_NS_VIEW (f) window] makeKeyWindow];
+}
+
 /* tabbar support */
 static void
 ns_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
@@ -3796,6 +3802,27 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
   return true;
 }
 
+/* Count the number of characters in STR, NBYTES long.
+   The string must be valid UTF-8.  */
+static ptrdiff_t
+count_utf8_chars (const char *str, ptrdiff_t nbytes)
+{
+  /* This is faster than parse_str_as_multibyte, and much faster than
+     [NSString lengthOfBytesUsingEncoding: NSUTF32StringEncoding].  */
+  const char *end = str + nbytes;
+  ptrdiff_t nc = 0;
+  while (str < end)
+    {
+      nc++;
+      unsigned char c = *str;
+      str += (  c <= 0x7f ? 1    // 0xxxxxxx
+              : c <= 0xdf ? 2    // 110xxxxx 10xxxxxx
+              : c <= 0xef ? 3    // 1110xxxx 10xxxxxx 10xxxxxx
+              :             4);  // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+    }
+  return nc;
+}
+
 @implementation NSString (EmacsString)
 /* Make an NSString from a Lisp string.  STRING must not be in an
    encoded form (e.g. UTF-8).  */
@@ -3840,7 +3867,11 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 /* Make a Lisp string from an NSString.  */
 - (Lisp_Object)lispString
 {
-  return build_string ([self UTF8String]);
+  /* If the input string includes unpaired surrogates, then the result
+     will be an empty string.  */
+  const char *utf8 = [self UTF8String];
+  ptrdiff_t bytes = [self lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
+  return make_multibyte_string (utf8, count_utf8_chars (utf8, bytes), bytes);
 }
 @end
 

@@ -582,11 +582,12 @@ contents and inserting the whole file, because (1) it preserves some
 marker positions and (2) it puts less data in the undo list.
 
 It is possible to read a special file (such as a FIFO or an I/O
-device) with @code{insert-file-contents}, as long as @var{replace},
-and @var{visit} and @var{beg} are @code{nil}.  However, you should
-normally use an @var{end} argument for these files to avoid inserting
-(potentially) unlimited data into the buffer (for instance, when
-inserting data from @file{/dev/urandom}).
+device) with @code{insert-file-contents}, as long as @var{replace} is
+@code{nil} or @code{if-regular}, and @var{visit} and @var{beg} are
+@code{nil}.  However, you should normally use an @var{end} argument
+for these files to avoid inserting (potentially) unlimited data into
+the buffer (for instance, when inserting data from
+@file{/dev/urandom}).
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
@@ -3697,6 +3698,17 @@ between consecutive checks.  For example:
                 (file-chase-links file)))))))
 @end example
 @end defopt
+
+@defmac without-remote-files body@dots{}
+The @code{without-remote-files} macro evaluates the @var{body} forms
+with deactivated file name handlers for remote files.  Those file
+names would be handled literally.
+
+The macro should be used only in forms where it is obvious, that
+remote files cannot appear or where it is intended not to handle
+remote file names.  It also reduces checks with
+@code{file-name-handler-alist}, resulting in more performant code.
+@end defmac
 
 @node Format Conversion
 @section File Format Conversion

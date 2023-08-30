@@ -1219,7 +1219,7 @@ static void
 haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 {
   struct glyph *glyph = s->first_glyph;
-  unsigned char2b[8];
+  static unsigned char2b[8];
   int x, i, j;
   struct face *face = s->face;
   unsigned long color;
@@ -1399,7 +1399,7 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	}
 
       if (background_width > 0)
-	haiku_draw_background_rect (s, s->face, s->x, s->y,
+	haiku_draw_background_rect (s, s->face, x, s->y,
 				    background_width, s->height);
     }
   s->background_filled_p = 1;
@@ -4042,6 +4042,19 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	     handled in Lisp.  */
 	  haiku_handle_font_change_event (buf, &inev);
 	  break;
+
+	case NOTIFICATION_CLICK_EVENT:
+	  /* This code doesn't function, but the why is unknown.  */
+#if 0
+	  {
+	    struct haiku_notification_click_event *b = buf;
+
+	    inev.kind = NOTIFICATION_CLICKED_EVENT;
+	    inev.arg  = make_int (b->id);
+	    break;
+	  }
+#endif /* 0 */
+
 	case KEY_UP:
 	case DUMMY_EVENT:
 	default:

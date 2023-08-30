@@ -156,6 +156,7 @@ control tag inheritance."
 
 (defvar-local org-num--overlays nil
   "Ordered list of overlays used for numbering outlines.")
+(put 'org-num--overlays 'permanent-local t)
 
 (defvar-local org-num--skip-level nil
   "Level below which headlines from current tree are not numbered.

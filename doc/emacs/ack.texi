@@ -899,7 +899,7 @@ Takahashi Naoto co-wrote @file{quail.el} (q.v.), and wrote
 @file{robin.el}, another input method.
 
 @item
-Thomas Neumann and Eric Raymond wrote @file{make-mode.el},
+Thomas Neumann and Eric S. Raymond wrote @file{make-mode.el},
 a mode for editing makefiles.
 
 @item

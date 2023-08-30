@@ -1747,6 +1747,7 @@ Ispell is then restarted because the local words could conflict.")
 
 (defvar-local ispell-buffer-session-localwords nil
   "List of words accepted for session in this buffer.")
+(put 'ispell-buffer-session-localwords 'safe-local-variable #'list-of-strings-p)
 
 (defvar ispell-parser 'use-mode-name
   "Indicates whether ispell should parse the current buffer as TeX Code.

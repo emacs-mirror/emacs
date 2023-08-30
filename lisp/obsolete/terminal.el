@@ -1095,7 +1095,9 @@ subprocess started."
                    (or explicit-shell-file-name
                        (getenv "ESHELL")
                        (getenv "SHELL")
-                       "/bin/sh"))
+                       (if (eq system-type 'android)
+                           "/system/bin/sh"
+                         "/bin/sh")))
                  (s (read-string
                      (format "Run program in emulator (default %s): "
                              default-s))))

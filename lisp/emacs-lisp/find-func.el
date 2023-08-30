@@ -591,7 +591,7 @@ otherwise uses `variable-at-point'."
     (list (intern (completing-read
                    (format-prompt "Find %s" symb prompt-type)
                    obarray predicate
-                   t nil nil (and symb (symbol-name symb)))))))
+                   'lambda nil nil (and symb (symbol-name symb)))))))
 
 (defun find-function-do-it (symbol type switch-fn)
   "Find Emacs Lisp SYMBOL in a buffer and display it.

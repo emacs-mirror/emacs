@@ -152,6 +152,17 @@ edited even if this option is enabled."
   :group 'help
   :version "28.1")
 
+(defcustom help-display-function-type t
+  "Whether to display type specifiers of functions in \"*Help*\" buffers.
+
+The type specifier of a function is returned by `comp-function-type-spec',
+which see.  When this variable is non-nil, \\[describe-function] will \
+display the function's
+type specifier when available."
+  :type 'boolean
+  :group 'help
+  :version "30.1")
+
 (defun help--symbol-class (s)
   "Return symbol class characters for symbol S."
   (when (stringp s)
@@ -229,7 +240,11 @@ interactive command."
                (lambda (f) (if want-command
                           (commandp f)
                         (or (fboundp f) (get f 'function-documentation))))
-               'confirm nil nil
+               ;; We used `confirm' for a while because we may want to see the
+               ;; meta-info about a function even if the function itself is not
+               ;; defined, but this use case is too marginal and rarely tested,
+               ;; not worth the trouble (bug#64902).
+               t nil nil
                (and fn (symbol-name fn)))))
     (unless (equal val "")
       (setq fn (intern val)))
@@ -711,7 +726,8 @@ the C sources, too."
           (unless (and (symbolp function)
                        (get function 'reader-construct))
             (insert high-usage "\n")
-            (when-let* ((res (comp-function-type-spec function))
+            (when-let* ((gate help-display-function-type)
+                        (res (comp-function-type-spec function))
                         (type-spec (car res))
                         (kind (cdr res)))
               (insert (format
@@ -1003,7 +1019,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                               (symbol-name function)))))))
 	 (real-def (cond
                     ((and aliased (not (subrp def)))
-                     (car (function-alias-p real-function)))
+                     (or (car (function-alias-p real-function))
+                         real-function))
 		    ((subrp def) (intern (subr-name def)))
                     (t def))))
 
@@ -1067,10 +1084,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		  (concat beg "byte-compiled Lisp function"))
                  ((module-function-p def)
                   (concat beg "module function"))
-		 ((eq (car-safe def) 'lambda)
+		 ((memq (car-safe def) '(lambda closure))
 		  (concat beg "Lisp function"))
-		 ((eq (car-safe def) 'closure)
-		  (concat beg "Lisp closure"))
 		 ((keymapp def)
 		  (let ((is-full nil)
 			(elts (cdr-safe def)))
@@ -1734,8 +1749,7 @@ If FRAME is omitted or nil, use the selected frame."
 		     (called-interactively-p 'interactive))
     (unless face
       (setq face 'default))
-    (if (not (listp face))
-        (setq face (list face)))
+    (setq face (ensure-list face))
     (with-help-window (help-buffer)
       (with-current-buffer standard-output
         (dolist (f face (buffer-string))
@@ -2066,11 +2080,9 @@ keymap value."
         (if (symbolp keymap)
             (error "Not a keymap variable: %S" keymap)
           (error "Not a keymap")))
-      (let ((sym nil))
-        (unless sym
-          (setq sym (cl-gentemp "KEYMAP OBJECT (no variable) "))
-          (setq used-gentemp t)
-          (set sym keymap))
+      (let ((sym (cl-gentemp "KEYMAP OBJECT (no variable) ")))
+        (setq used-gentemp t)
+        (set sym keymap)
         (setq keymap sym)))
     ;; Follow aliasing.
     (setq keymap (or (ignore-errors (indirect-variable keymap)) keymap))

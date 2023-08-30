@@ -194,13 +194,13 @@ This might return nil if the event did not occur over a buffer."
 (defun tooltip-cancel-delayed-tip ()
   "Disable the tooltip timeout."
   (when tooltip-timeout-id
-    (disable-timeout tooltip-timeout-id)
+    (cancel-timer tooltip-timeout-id)
     (setq tooltip-timeout-id nil)))
 
 (defun tooltip-start-delayed-tip ()
   "Add a one-shot timeout to call function `tooltip-timeout'."
   (setq tooltip-timeout-id
-	(add-timeout (tooltip-delay) 'tooltip-timeout nil)))
+        (run-with-timer (tooltip-delay) nil 'tooltip-timeout nil)))
 
 (defun tooltip-timeout (_object)
   "Function called when timer with id `tooltip-timeout-id' fires."

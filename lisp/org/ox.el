@@ -5684,11 +5684,8 @@ transcoding it."
      (primary-closing
       :utf-8 " »" :html "&nbsp;&raquo;" :latex "\\fg{}"
       :texinfo "@tie{}@guillemetright{}")
-     (secondary-opening
-      :utf-8 "« " :html "&laquo;&nbsp;" :latex "\\og "
-      :texinfo "@guillemetleft{}@tie{}")
-     (secondary-closing :utf-8 " »" :html "&nbsp;&raquo;" :latex "\\fg{}"
-			:texinfo "@tie{}@guillemetright{}")
+     (secondary-opening :utf-8 "“" :html "&ldquo;" :latex "``" :texinfo "``")
+     (secondary-closing :utf-8 "”" :html "&rdquo;" :latex "''" :texinfo "''")
      (apostrophe :utf-8 "’" :html "&rsquo;"))
     ("is"
      (primary-opening

@@ -227,7 +227,7 @@ documentation), this function returns nil."
 ;;;###autoload(defalias 'pcomplete/sha224sum 'pcomplete/md5sum)
 ;;;###autoload(defalias 'pcomplete/sha256sum 'pcomplete/md5sum)
 ;;;###autoload(defalias 'pcomplete/sha384sum 'pcomplete/md5sum)
-;;;###autoload(defalias 'pcomplete/sha521sum 'pcomplete/md5sum)
+;;;###autoload(defalias 'pcomplete/sha512sum 'pcomplete/md5sum)
 
 ;;;###autoload
 (defun pcomplete/sort ()

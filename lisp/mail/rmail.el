@@ -1,7 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2023 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -90,7 +89,6 @@
 its character representation and its display representation.")
 
 (defvar deleted-head)
-(defvar font-lock-fontified)
 (defvar mail-abbrev-syntax-table)
 (defvar mail-abbrevs)
 (defvar messages-head)
@@ -264,7 +262,7 @@ Otherwise, look for `movemail' in the directories in
 	  ;; assuming it would work.
 	  ;; https://lists.gnu.org/r/bug-gnu-emacs/2008-02/msg00087.html
 	  (let ((progname (expand-file-name
-			   (concat "movemail"
+			   (concat movemail-program-name
 				   (if (memq system-type '(ms-dos windows-nt))
 				       ".exe")) dir)))
 	    (when (and (not (file-directory-p progname))
@@ -2016,7 +2014,9 @@ Value is the size of the newly read mail after conversion."
 		 (buffer-disable-undo errors)
 		 (let ((args
 			(append
-			 (list (or rmail-movemail-program "movemail") nil errors nil)
+			 (list (or rmail-movemail-program
+                                   movemail-program-name)
+                               nil errors nil)
 			 (if rmail-preserve-inbox
 			     (list "-p")
 			   nil)

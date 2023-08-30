@@ -212,7 +212,7 @@ If TCP-P, the first two bytes of the packet will be the length field."
                 spec))
         (push (list 'authoritative-p (if (zerop (logand byte (ash 1 2)))
                                          nil t)) spec)
-        (push (list 'truncated-p (if (zerop (logand byte (ash 1 2))) nil t))
+        (push (list 'truncated-p (if (zerop (logand byte (ash 1 1))) nil t))
               spec)
         (push (list 'recursion-desired-p
                     (if (zerop (logand byte (ash 1 0))) nil t)) spec))

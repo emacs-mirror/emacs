@@ -979,10 +979,14 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   if (hl == DRAW_MOUSE_FACE)
     {
       int vpos = row->y + WINDOW_TOP_EDGE_Y (w);
-      int kstart = start_hpos + WINDOW_LEFT_EDGE_X (w);
+      int kstart = (start_hpos + WINDOW_LEFT_EDGE_X (w)
+		    + row->used[LEFT_MARGIN_AREA]);
       int nglyphs = end_hpos - start_hpos;
       int offset = ScreenPrimary + 2*(vpos*screen_size_X + kstart) + 1;
       int start_offset = offset;
+
+      if (end_hpos >= row->used[TEXT_AREA])
+	nglyphs = row->used[TEXT_AREA] - start_hpos;
 
       if (tty->termscript)
 	fprintf (tty->termscript, "\n<MH+ %d-%d:%d>",
@@ -1021,6 +1025,9 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 	 temporarily move cursor coordinates to the beginning of
 	 the highlight region.  */
       new_pos_X = start_hpos + WINDOW_LEFT_EDGE_X (w);
+      /* The coordinates supplied by the caller are relative to the
+	 text area, not the window itself.  */
+      new_pos_X += row->used[LEFT_MARGIN_AREA];
       new_pos_Y = row->y + WINDOW_TOP_EDGE_Y (w);
 
       if (tty->termscript)

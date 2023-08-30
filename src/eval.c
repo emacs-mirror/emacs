@@ -4236,7 +4236,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 void
 get_backtrace (Lisp_Object array)
 {
-  union specbinding *pdl = backtrace_next (backtrace_top ());
+  union specbinding *pdl = backtrace_top ();
   ptrdiff_t i = 0, asize = ASIZE (array);
 
   /* Copy the backtrace contents into working memory.  */
@@ -4337,6 +4337,10 @@ See also the variable `debug-on-quit' and `inhibit-debugger'.  */);
 Each element may be a condition-name or a regexp that matches error messages.
 If any element applies to a given error, that error skips the debugger
 and just returns to top level.
+If you invoke Emacs with --debug-init, and want to remove some
+elements from the default value of this variable, use `setq' to
+change the value of the variable to a new list, rather than `delq'
+to remove some errors from the list.
 This overrides the variable `debug-on-error'.
 It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;

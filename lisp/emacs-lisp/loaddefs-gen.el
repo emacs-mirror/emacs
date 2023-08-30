@@ -433,7 +433,8 @@ don't include."
                     ;; have an autoload cookie on the first column of a
                     ;; doc string or the like.  (The Emacs tree
                     ;; shouldn't contain any such instances.)
-                    (not (ppss-string-terminator (syntax-ppss))))
+                    (not (ppss-string-terminator
+                          (save-match-data (syntax-ppss)))))
             ;; ... and if we have one of these names, then alter outfile.
             (let* ((aname (match-string 2))
                    (to-file (if aname

@@ -6567,7 +6567,9 @@ If you observe Emacs hangs frequently, please report this to Org mode mailing li
                  ;; Make sure that we return referenced element in cache
                  ;; that can be altered directly.
                  (if element
-                     (setq element (or (org-element--cache-put element) element))
+                     (progn
+                       (org-element-put-property element :granularity 'element)
+                       (setq element (or (org-element--cache-put element) element)))
                    ;; Nothing to parse (i.e. empty file).
                    (throw 'exit parent))
                  (unless (or (not (org-element--cache-active-p)) parent)
@@ -6942,12 +6944,13 @@ known element in cache (it may start after END)."
                           (let ((current (org-with-point-at (org-element-property :begin up)
                                            (org-element-with-disabled-cache
                                              (and (looking-at-p org-element-headline-re)
-                                                  (org-element-headline-parser))))))
+                                                  (org-element-headline-parser nil 'fast))))))
                             (when (eq 'headline (org-element-type current))
                               (org-element--cache-log-message
                                "Found non-robust headline that can be updated individually: %S"
                                (org-element--format-element current))
                               (org-element-set-element up current)
+                              (org-element-put-property up :granularity 'element)
                               t)))
                      ;; If UP is org-data, the situation is similar to
                      ;; headline case.  We just need to re-parse the
@@ -7734,7 +7737,8 @@ the cache."
                               ;; it to real beginning then despite
                               ;; START being larger.
                               (setq start nil)
-                              (move-start-to-next-match nil)
+                              (let ((data nil)) ; data may not be valid. ignore it.
+                                (move-start-to-next-match nil))
                               ;; The new element may now start before
                               ;; or at already processed position.
                               ;; Make sure that we continue from an

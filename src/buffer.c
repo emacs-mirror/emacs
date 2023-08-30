@@ -4719,6 +4719,7 @@ init_buffer_once (void)
 #ifdef HAVE_TREE_SITTER
   XSETFASTINT (BVAR (&buffer_local_flags, ts_parser_list), idx); ++idx;
 #endif
+  XSETFASTINT (BVAR (&buffer_local_flags, text_conversion_style), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_in_non_selected_windows), idx); ++idx;
 
   /* buffer_local_flags contains no pointers, so it's safe to treat it
@@ -4790,6 +4791,7 @@ init_buffer_once (void)
 #ifdef HAVE_TREE_SITTER
   bset_ts_parser_list (&buffer_defaults, Qnil);
 #endif
+  bset_text_conversion_style (&buffer_defaults, Qnil);
   bset_cursor_in_non_selected_windows (&buffer_defaults, Qt);
 
   bset_enable_multibyte_characters (&buffer_defaults, Qt);
@@ -5865,6 +5867,26 @@ If t, displays a cursor related to the usual cursor type
 \(a solid box becomes hollow, a bar becomes a narrower bar).
 You can also specify the cursor type as in the `cursor-type' variable.
 Use Custom to set this variable and update the display.  */);
+
+  /* While this is defined here, each *term.c module must implement
+     the logic itself.  */
+
+  DEFVAR_PER_BUFFER ("text-conversion-style", &BVAR (current_buffer,
+						     text_conversion_style),
+		     Qnil,
+    doc: /* How the on screen keyboard's input method should insert in this buffer.
+When nil, the input method will be disabled and an ordinary keyboard
+will be displayed in its place.
+When the symbol `action', the input method will insert text directly, but
+will send `return' key events instead of inserting new line characters.
+Any other value means that the input method will insert text directly.
+
+If you need to make non-buffer local changes to this variable, use
+`overriding-text-conversion-style', which see.
+
+This variable does not take immediate effect when set; rather, it
+takes effect upon the next redisplay after the selected window or
+buffer changes.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.

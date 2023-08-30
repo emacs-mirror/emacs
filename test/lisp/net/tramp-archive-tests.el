@@ -895,11 +895,16 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (and (fboundp 'file-user-uid)
                     (fboundp 'file-group-gid)))
 
-  (let ((default-directory tramp-archive-test-archive))
-    ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
-    ;; We don't want to see compiler warnings for older Emacsen.
-    (should (integerp (with-no-warnings (file-user-uid))))
-    (should (integerp (with-no-warnings (file-group-gid))))))
+  ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
+  ;; We don't want to see compiler warnings for older Emacsen.
+  (let* ((default-directory tramp-archive-test-archive)
+	 (uid (with-no-warnings (file-user-uid)))
+	 (gid (with-no-warnings (file-group-gid))))
+    (should (integerp uid))
+    (should (integerp gid))
+    (let ((default-directory tramp-archive-test-file-archive))
+      (should (equal uid (with-no-warnings (file-user-uid))))
+      (should (equal gid (with-no-warnings (file-group-gid)))))))
 
 (ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."
@@ -987,6 +992,20 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
            (format
             code tae tramp-archive-test-file-archive
             (concat tramp-archive-test-archive "foo"))))))))))
+
+(ert-deftest tramp-archive-test49-without-remote-files ()
+  "Check that Tramp can be suppressed."
+  (skip-unless tramp-archive-enabled)
+
+  (should (file-exists-p tramp-archive-test-archive))
+  (should-not (without-remote-files (file-exists-p tramp-archive-test-archive)))
+  (should (file-exists-p tramp-archive-test-archive))
+
+  (inhibit-remote-files)
+  (should-not (file-exists-p tramp-archive-test-archive))
+  (tramp-register-file-name-handlers)
+  (setq tramp-mode t)
+  (should (file-exists-p tramp-archive-test-archive)))
 
 (ert-deftest tramp-archive-test99-libarchive-tests ()
   "Run tests of libarchive test files."

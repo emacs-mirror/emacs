@@ -28,8 +28,8 @@
 ;; An implementation of information caching for remote files.
 
 ;; Each connection, identified by a `tramp-file-name' structure or by
-;; a process, has a unique cache.  We distinguish 6 kind of caches,
-;; depending on the key:
+;; a process, has a unique cache.  We distinguish several kinds of
+;; caches, depending on the key:
 ;;
 ;; - localname is nil.  These are reusable properties.  Examples:
 ;;   "remote-shell" identifies the POSIX shell to be called on the
@@ -50,11 +50,14 @@
 ;;   definitions already sent to the remote shell, "last-cmd-time" is
 ;;   the timestamp a command has been sent to the remote process.
 ;;
-;; - The key is nil.  These are temporary properties related to the
-;;   local machine.  Examples: "parse-passwd" and "parse-group" keep
-;;   the results of parsing "/etc/passwd" and "/etc/group",
+;; - The key is `tramp-null-hop' or nil.  These are temporary
+;;   properties related to the local machine.  If the key is nil, it
+;;   is silently converted into `tramp-null-hop'.
+;;   Examples: "parse-passwd" and "parse-group" keep the results of
+;;   parsing "/etc/passwd" and "/etc/group",
 ;;   "{uid,gid}-{integer,string}" are the local uid and gid, and
-;;   "locale" is the used shell locale.
+;;   "locale" is the used shell locale.  "user-host-completions" keeps
+;;   the reachable hosts for the commands in tramp-container.el.
 ;;
 ;; - The key is `tramp-cache-version'.  It keeps the Tramp version the
 ;;   cache data was produced with.  If the cache is read by another
@@ -80,7 +83,6 @@
 ;;; Code:
 
 (require 'tramp-compat)
-(require 'tramp-loaddefs)
 (require 'time-stamp)
 
 ;;; -- Cache --
@@ -125,6 +127,7 @@ details see the info pages."
 If it doesn't exist yet, it is created and initialized with
 matching entries of `tramp-connection-properties'.
 If KEY is `tramp-cache-undefined', don't create anything, and return nil."
+  (declare (tramp-suppress-trace t))
   (unless (eq key tramp-cache-undefined)
     (or (gethash key tramp-cache-data)
 	(let ((hash
@@ -506,6 +509,7 @@ PROPERTIES is a list of file properties (strings)."
 ;;;###tramp-autoload
 (defun tramp-cache-print (table)
   "Print hash table TABLE."
+  ;; (declare (tramp-suppress-trace t))
   (when (hash-table-p table)
     (let (result)
       (maphash
@@ -538,6 +542,11 @@ PROPERTIES is a list of file properties (strings)."
        table)
       result)))
 
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-cache-print 'tramp-suppress-trace t)
+
 ;;;###tramp-autoload
 (defun tramp-list-connections ()
   "Return all active `tramp-file-name' structs according to `tramp-cache-data'."
@@ -553,6 +562,7 @@ PROPERTIES is a list of file properties (strings)."
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file \
 `tramp-persistency-file-name'."
+  (declare (tramp-suppress-trace t))
   ;; We shouldn't fail, otherwise Emacs might not be able to be closed.
   (ignore-errors
     (when (and (hash-table-p tramp-cache-data)
@@ -561,6 +571,8 @@ PROPERTIES is a list of file properties (strings)."
 	       (stringp tramp-persistency-file-name))
       (let ((cache (copy-hash-table tramp-cache-data))
 	    print-length print-level)
+	;; Remove `tramp-null-hop'.
+	(remhash tramp-null-hop cache)
 	;; Remove temporary data.  If there is the key "login-as", we
 	;; don't save either, because all other properties might
 	;; depend on the login name, and we want to give the

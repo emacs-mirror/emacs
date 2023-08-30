@@ -859,6 +859,10 @@ This means, between the beginning of line and the point."
 	       (org-mouse-in-region-p (posn-point (event-start event))))
     (mouse-drag-region event)))
 
+;; This function conflicts with touch screen gestures as it relays
+;; events to `mouse-drag-region'.
+(put 'org-mouse-down-mouse 'ignored-mouse-command t)
+
 (add-hook 'org-mode-hook
           (lambda ()
             (setq org-mouse-context-menu-function #'org-mouse-context-menu)
@@ -975,7 +979,7 @@ This means, between the beginning of line and the point."
   (interactive)
   (org-back-to-heading)
   (let ((minlevel 1000)
-	(replace-text (concat (match-string 0) "* ")))
+	(replace-text (concat (make-string (org-current-level) ?*) "* ")))
     (beginning-of-line 2)
     (save-excursion
       (while (not (or (eobp) (looking-at org-outline-regexp)))

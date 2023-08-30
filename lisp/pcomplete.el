@@ -138,6 +138,11 @@
   "A regexp of names to be disregarded during directory completion."
   :type '(choice regexp (const :tag "None" nil)))
 
+(defcustom pcomplete-remote-file-ignore nil
+  "Whether to ignore remote file names."
+  :version "30.1"
+  :type 'boolean)
+
 (define-obsolete-variable-alias 'pcomplete-ignore-case 'completion-ignore-case
   "28.1")
 
@@ -924,7 +929,10 @@ this is `comint-dynamic-complete-functions'."
                            (sort comps pcomplete-compare-entry-function)))
                      ,@(cdr (completion-file-name-table s p a)))
         (let ((completion-ignored-extensions nil)
-	      (completion-ignore-case completion-ignore-case))
+	      (completion-ignore-case completion-ignore-case)
+              (tramp-mode (and tramp-mode (not pcomplete-remote-file-ignore)))
+              (non-essential (not (file-remote-p s)))
+              (minibuffer-completing-file-name (not (file-remote-p s))))
           (completion-table-with-predicate
            #'comint-completion-file-name-table pred 'strict s p a))))))
 
@@ -1318,11 +1326,12 @@ If specific documentation can't be given, be generic."
 
 ;; general utilities
 
-(defun pcomplete-uniquify-list (l)
-  "Sort and remove multiples in L."
-  (setq l (sort l #'string-lessp))
-  (seq-uniq l))
-(define-obsolete-function-alias 'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
+(defun pcomplete-uniquify-list (sequence)
+  "Sort and remove multiples in SEQUENCE.
+Sequence should be a vector or list of strings."
+  (sort (seq-uniq sequence) #'string-lessp))
+(define-obsolete-function-alias
+  'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
 
 (defun pcomplete-process-result (cmd &rest args)
   "Call CMD using `call-process' and return the simplest result."

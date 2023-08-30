@@ -662,7 +662,7 @@ the dot should NOT be quoted in with \\.  Other regular expression
 matchers are allowed however.  EXTENSION may be a single string or a
 list of strings."
   (interactive "sExtension: ")
-  (if (not (listp extension)) (setq extension (list extension)))
+  (setq extension (ensure-list extension))
   (while extension
     (if (member (car extension) speedbar-supported-extension-expressions)
 	nil
@@ -677,8 +677,7 @@ list of strings."
 This function will modify `speedbar-ignored-directory-regexp' and add
 DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
   (interactive "sDirectory regex: ")
-  (if (not (listp directory-expression))
-      (setq directory-expression (list directory-expression)))
+  (setq directory-expression (ensure-list directory-expression))
   (while directory-expression
     (if (member (car directory-expression) speedbar-ignored-directory-expressions)
 	nil
@@ -3531,7 +3530,7 @@ to be at the beginning of a line in the etags buffer.
 
 This variable is ignored if `speedbar-use-imenu-flag' is non-nil.")
 
-(defcustom speedbar-fetch-etags-command "etags"
+(defcustom speedbar-fetch-etags-command etags-program-name
   "Command used to create an etags file.
 This variable is ignored if `speedbar-use-imenu-flag' is t."
   :group 'speedbar

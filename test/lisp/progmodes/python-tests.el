@@ -5973,9 +5973,9 @@ def func():
         else
 "
    (python-tests-look-at "else\n")
-    (should
-     (equal (list (python-tests-look-at "if (" -1 t))
-            (python-info-dedenter-opening-block-positions)))))
+   (should
+    (equal (list (python-tests-look-at "if (" -1 t))
+           (python-info-dedenter-opening-block-positions)))))
 
 (ert-deftest python-info-dedenter-opening-block-positions-7 ()
   "Test case blocks."
@@ -5993,9 +5993,9 @@ match a:
    (python-tests-look-at "case 2:")
    (should-not (python-info-dedenter-opening-block-positions))
    (python-tests-look-at "case 3:")
-   (equal (list (python-tests-look-at "case 2:" -1)
-                (python-tests-look-at "case 1:" -1 t))
-            (python-info-dedenter-opening-block-positions))))
+   (should (equal (list (python-tests-look-at "case 2:" -1 t)
+                        (python-tests-look-at "case 1:" -1 t))
+                  (python-info-dedenter-opening-block-positions)))))
 
 (ert-deftest python-info-dedenter-opening-block-message-1 ()
   "Test dedenters inside strings are ignored."

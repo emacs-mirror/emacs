@@ -25,12 +25,18 @@
 
 (defconst server-tests/can-create-frames-p
   (and (not (memq system-type '(windows-nt ms-dos)))
-       (not (member (getenv "TERM") '("dumb" "" nil))))
+       (not (member (getenv "TERM") '("dumb" "" nil)))
+       (or (not (eq system-type 'cygwin))
+           (featurep 'gfilenotify)
+           (featurep 'dbus)
+           (featurep 'threads)))
   "Non-nil if we can create a new frame in the tests.
 Some tests below need to create new frames for the emacsclient.
 However, this doesn't work on all platforms.  In particular,
-MS-Windows fails to create frames from a batch Emacs session.  In
-cases like that, we just skip the test.")
+MS-Windows fails to create frames from a batch Emacs session.
+The same is true on Cygwin unless Emacs has at least one of the
+features gfilenotify, dbus, or threads (bug#65325).  In cases
+like that, we just skip the test.")
 
 (defconst server-tests/max-wait-time 5
   "The maximum time to wait in `server-tests/wait-until', in seconds.")

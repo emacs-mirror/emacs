@@ -129,6 +129,9 @@
   "C-j" #'doctor-read-print
   "RET" #'doctor-ret-or-read)
 
+;; Actually defined in textconv.c.
+(defvar text-conversion-style)
+
 (define-derived-mode doctor-mode text-mode "Doctor"
   "Major mode for running the Doctor (Eliza) program.
 Like Text mode with Auto Fill mode
@@ -137,6 +140,8 @@ reads the sentence before point, and prints the Doctor's answer."
   :interactive nil
   (doctor-make-variables)
   (turn-on-auto-fill)
+  ;; Make sure RET is processed by Emacs.
+  (setq text-conversion-style 'action)
   (doctor-type '(i am the psychotherapist \.
 		 (doc$ doctor--please) (doc$ doctor--describe) your (doc$ doctor--problems) \.
 		 each time you are finished talking\, type \R\E\T twice \.))

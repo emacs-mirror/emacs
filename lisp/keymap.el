@@ -78,7 +78,7 @@ called from Lisp, COMMAND can be anything that `keymap-set' accepts
 as its DEFINITION argument.
 
 If COMMAND is a string (which can only happen when this function is
-callled from Lisp), it must satisfy `key-valid-p'.
+called from Lisp), it must satisfy `key-valid-p'.
 
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
@@ -102,7 +102,7 @@ called from Lisp, COMMAND can be anything that `keymap-set' accepts
 as its DEFINITION argument.
 
 If COMMAND is a string (which can only happen when this function is
-callled from Lisp), it must satisfy `key-valid-p'.
+called from Lisp), it must satisfy `key-valid-p'.
 
 The binding goes in the current buffer's local keymap, which in most
 cases is shared with all other buffers in the same major mode."

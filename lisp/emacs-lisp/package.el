@@ -609,7 +609,7 @@ package."
   (package-archive-priority (package-desc-archive pkg-desc)))
 
 (defun package--parse-elpaignore (pkg-desc)
-  "Return the of regular expression to match files ignored by PKG-DESC."
+  "Return a list of regular expressions to match files ignored by PKG-DESC."
   (let* ((pkg-dir (file-name-as-directory (package-desc-dir pkg-desc)))
          (ignore (expand-file-name ".elpaignore" pkg-dir))
          files)
@@ -2330,12 +2330,25 @@ from ELPA by either using `\\[package-upgrade]' or
       (mapc #'package-upgrade upgradeable))))
 
 (defun package--dependencies (pkg)
-  "Return a list of all dependencies PKG has.
-This is done recursively."
-  ;; Can we have circular dependencies?  Assume "nope".
-  (when-let* ((desc (cadr (assq pkg package-archive-contents)))
-              (deps (mapcar #'car (package-desc-reqs desc))))
-    (delete-dups (apply #'nconc deps (mapcar #'package--dependencies deps)))))
+  "Return a list of all transitive dependencies of PKG.
+If PKG is a package descriptor, the return value is a list of
+package descriptors.  If PKG is a symbol designating a package,
+the return value is a list of symbols designating packages."
+  (when-let* ((desc (if (package-desc-p pkg) pkg
+                      (cadr (assq pkg package-archive-contents)))))
+    ;; Can we have circular dependencies?  Assume "nope".
+    (let ((all (named-let more ((pkg-desc desc))
+                 (let (deps)
+                   (dolist (req (package-desc-reqs pkg-desc))
+                     (setq deps (nconc
+                                 (catch 'found
+                                   (dolist (p (apply #'append (mapcar #'cdr (package--alist))))
+                                     (when (and (string= (car req) (package-desc-name p))
+                                                (version-list-<= (cadr req) (package-desc-version p)))
+                                       (throw 'found (more p)))))
+                                 deps)))
+                   (delete-dups (cons pkg-desc deps))))))
+      (remq pkg (mapcar (if (package-desc-p pkg) #'identity #'package-desc-name) all)))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -2624,6 +2637,57 @@ will be deleted."
                     (package-delete (cadr (assq p package-alist)) t))
                   removable))
         (message "Nothing to autoremove")))))
+
+(defun package-isolate (packages &optional temp-init)
+  "Start an uncustomised Emacs and only load a set of PACKAGES.
+If TEMP-INIT is non-nil, or when invoked with a prefix argument,
+the Emacs user directory is set to a temporary directory."
+  (interactive
+   (cl-loop for p in (cl-loop for p in (package--alist) append (cdr p))
+	    unless (package-built-in-p p)
+	    collect (cons (package-desc-full-name p) p) into table
+	    finally return
+	    (list (cl-loop for c in (completing-read-multiple
+                                     "Isolate packages: " table
+                                     nil t)
+		           collect (alist-get c table nil nil #'string=))
+                  current-prefix-arg)))
+  (let* ((name (concat "package-isolate-"
+                       (mapconcat #'package-desc-full-name packages ",")))
+         (all-packages (delete-consecutive-dups
+                        (sort (append packages (mapcan #'package--dependencies packages))
+                              (lambda (p0 p1)
+                                (string< (package-desc-name p0) (package-desc-name p1))))))
+         initial-scratch-message package-load-list)
+    (with-temp-buffer
+      (insert ";; This is an isolated testing environment, with these packages enabled:\n\n")
+      (dolist (package all-packages)
+        (push (list (package-desc-name package)
+                    (package-version-join (package-desc-version package)))
+              package-load-list)
+        (insert ";; - " (package-desc-full-name package))
+        (unless (memq package packages)
+          (insert " (dependency)"))
+        (insert "\n"))
+      (insert "\n")
+      (setq initial-scratch-message (buffer-string)))
+    (apply #'start-process (concat "*" name "*") nil
+           (list (expand-file-name invocation-name invocation-directory)
+                 "--quick" "--debug-init"
+                 "--init-directory" (if temp-init
+                                        (make-temp-file name t)
+                                      user-emacs-directory)
+                 (format "--eval=%S"
+                         `(progn
+                            (setq initial-scratch-message ,initial-scratch-message)
+
+                            (require 'package)
+                            ,@(mapcar
+                               (lambda (dir)
+                                 `(add-to-list 'package-directory-list ,dir))
+                               (cons package-user-dir package-directory-list))
+                            (setq package-load-list ',package-load-list)
+                            (package-initialize)))))))
 
 
 ;;;; Package description buffer.
@@ -3088,18 +3152,36 @@ either a full name or nil, and EMAIL is a valid email address."
 
     "--"
     ("Filter Packages"
-     ["Filter by Archive" package-menu-filter-by-archive :help "Filter packages by archive"]
-     ["Filter by Description" package-menu-filter-by-description :help "Filter packages by description"]
-     ["Filter by Keyword" package-menu-filter-by-keyword :help "Filter packages by keyword"]
-     ["Filter by Name" package-menu-filter-by-name :help "Filter packages by name"]
+     ["Filter by Archive" package-menu-filter-by-archive
+      :help
+      "Prompt for archive(s), display only packages from those archives"]
+     ["Filter by Description" package-menu-filter-by-description
+      :help
+      "Prompt for regexp, display only packages with matching description"]
+     ["Filter by Keyword" package-menu-filter-by-keyword
+      :help
+      "Prompt for keyword(s), display only packages with matching keywords"]
+     ["Filter by Name" package-menu-filter-by-name
+      :help
+      "Prompt for regexp, display only packages whose names match the regexp"]
      ["Filter by Name or Description" package-menu-filter-by-name-or-description
-      :help "Filter packages by name or description"]
-     ["Filter by Status" package-menu-filter-by-status :help "Filter packages by status"]
-     ["Filter by Version" package-menu-filter-by-version :help "Filter packages by version"]
-     ["Filter Marked" package-menu-filter-marked :help "Filter packages marked for upgrade"]
-     ["Clear Filter" package-menu-clear-filter :help "Clear package list filter"])
+      :help
+      "Prompt for regexp, display only packages whose name or description matches"]
+     ["Filter by Status" package-menu-filter-by-status
+      :help
+      "Prompt for status(es), display only packages with those statuses"]
+     ["Filter by Upgrades available" package-menu-filter-upgradable
+      :help "Display only installed packages for which upgrades are available"]
+     ["Filter by Version" package-menu-filter-by-version
+      :help
+      "Prompt for version and comparison operator, display only packages of matching versions"]
+     ["Filter Marked" package-menu-filter-marked
+      :help "Display only packages marked for installation or deletion"]
+     ["Clear Filter" package-menu-clear-filter
+      :help "Clear package list filtering, display the entire list again"])
 
-    ["Hide by Regexp" package-menu-hide-package :help "Hide all packages matching a regexp"]
+    ["Hide by Regexp" package-menu-hide-package
+     :help "Toggle visibility of obsolete and unwanted packages"]
     ["Display Older Versions" package-menu-toggle-hiding
      :style toggle :selected (not package-menu--hide-packages)
      :help "Display package even if a newer version is already installed"]
@@ -4295,7 +4377,7 @@ STATUS can be a single status, a string, or a list of strings.
 If STATUS is nil or the empty string, show all packages.
 
 When called interactively, prompt for STATUS.  To specify
-several possible status values, type them seperated by commas."
+several possible status values, type them separated by commas."
   (interactive (list (completing-read "Filter by status: "
                                       '("avail-obso"
                                         "available"
@@ -4641,13 +4723,14 @@ DESC must be a `package-desc' object."
         vars)
     (dolist-with-progress-reporter (group custom-current-group-alist)
         "Scanning for modified user options..."
-      (dolist (ent (get (cdr group) 'custom-group))
-        (when (and (custom-variable-p (car ent))
-                   (boundp (car ent))
-                   (not (eq (custom--standard-value (car ent))
-                            (default-toplevel-value (car ent))))
-                   (file-in-directory-p (car group) (package-desc-dir desc)))
-          (push (car ent) vars))))
+      (when (and (car group)
+                 (file-in-directory-p (car group) (package-desc-dir desc)))
+        (dolist (ent (get (cdr group) 'custom-group))
+          (when (and (custom-variable-p (car ent))
+                     (boundp (car ent))
+                     (not (eq (custom--standard-value (car ent))
+                              (default-toplevel-value (car ent)))))
+            (push (car ent) vars)))))
     (dlet ((reporter-prompt-for-summary-p t))
       (reporter-submit-bug-report maint name vars))))
 

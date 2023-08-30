@@ -47,10 +47,11 @@
       (should (equal
                (file-name-directory (image-dired-thumb-name "foo.jpg"))
                (file-name-directory (image-dired-thumb-name "/tmp/foo.jpg"))))
-      (should (equal (file-name-nondirectory
-                      ;; The checksum is based on the file name.
-                      (image-dired-thumb-name "/some/path/foo.jpg"))
-                     "dc4e6f7068157023e7f2e8362d15bdd2e3ca89e4.jpg"))
+      (should
+       (let* ((test-fn "/some/path/foo.jpg")
+              (thumb-fn (image-dired-thumb-name test-fn)))
+         (equal (file-name-nondirectory thumb-fn)
+                (concat (sha1 (expand-file-name test-fn)) ".jpg"))))
       (should (equal (file-name-extension
                       (image-dired-thumb-name "foo.gif"))
                      "jpg")))))
@@ -62,8 +63,12 @@
     (should (equal
              (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
              (file-name-nondirectory (image-dired-thumb-name "/tmp/foo.jpg"))))
-    (should (equal (file-name-split (image-dired-thumb-name "/tmp/foo.jpg"))
-                   '("" "tmp" ".image-dired" "foo.jpg.thumb.jpg")))
+    ;; The cdr below avoids the system dependency in the car of the
+    ;; list returned by 'file-name-split': it's "" on Posix systems,
+    ;; but the drive letter on MS-Windows.
+    (should (equal (cdr (file-name-split
+                         (image-dired-thumb-name "/tmp/foo.jpg")))
+                   '("tmp" ".image-dired" "foo.jpg.thumb.jpg")))
     (should (equal (file-name-nondirectory
                     (image-dired-thumb-name "foo.jpg"))
                    "foo.jpg.thumb.jpg"))))

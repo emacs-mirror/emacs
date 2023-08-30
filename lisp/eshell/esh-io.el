@@ -423,57 +423,6 @@ If HANDLES is nil, use `eshell-current-handles'."
   (eshell-set-output-handle eshell-output-handle mode target handles)
   (eshell-copy-output-handle eshell-error-handle eshell-output-handle handles))
 
-(defun eshell-close-target (target status)
-  "Close an output TARGET, passing STATUS as the result.
-STATUS should be non-nil on successful termination of the output."
-  (cond
-   ((symbolp target) nil)
-
-   ;; If we were redirecting to a file, save the file and close the
-   ;; buffer.
-   ((markerp target)
-    (let ((buf (marker-buffer target)))
-      (when buf                         ; somebody's already killed it!
-	(save-current-buffer
-	  (set-buffer buf)
-	  (when eshell-output-file-buffer
-	    (save-buffer)
-	    (when (eq eshell-output-file-buffer t)
-	      (or status (set-buffer-modified-p nil))
-	      (kill-buffer buf)))))))
-
-   ;; If we're redirecting to a process (via a pipe, or process
-   ;; redirection), send it EOF so that it knows we're finished.
-   ((eshell-processp target)
-    ;; According to POSIX.1-2017, section 11.1.9, when communicating
-    ;; via terminal, sending EOF causes all bytes waiting to be read
-    ;; to be sent to the process immediately.  Thus, if there are any
-    ;; bytes waiting, we need to send EOF twice: once to flush the
-    ;; buffer, and a second time to cause the next read() to return a
-    ;; size of 0, indicating end-of-file to the reading process.
-    ;; However, some platforms (e.g. Solaris) actually require sending
-    ;; a *third* EOF.  Since sending extra EOFs while the process is
-    ;; running are a no-op, we'll just send the maximum we'd ever
-    ;; need.  See bug#56025 for further details.
-    (let ((i 0)
-          ;; Only call `process-send-eof' once if communicating via a
-          ;; pipe (in truth, this just closes the pipe).
-          (max-attempts (if (process-tty-name target 'stdin) 3 1)))
-      (while (and (<= (cl-incf i) max-attempts)
-                  (eq (process-status target) 'run))
-        (process-send-eof target))))
-
-   ;; A plain function redirection needs no additional arguments
-   ;; passed.
-   ((functionp target)
-    (funcall target status))
-
-   ;; But a more complicated function redirection (which can only
-   ;; happen with aliases at the moment) has arguments that need to be
-   ;; passed along with it.
-   ((consp target)
-    (apply (car target) status (cdr target)))))
-
 (defun eshell-kill-append (string)
   "Call `kill-append' with STRING, if it is indeed a string."
   (if (stringp string)
@@ -484,56 +433,6 @@ STATUS should be non-nil on successful termination of the output."
   (if (stringp string)
       (let ((select-enable-clipboard t))
 	(kill-append string nil))))
-
-(defun eshell-get-target (target &optional mode)
-  "Convert TARGET, which is a raw argument, into a valid output target.
-MODE is either `overwrite', `append' or `insert'; if it is omitted or nil,
-it defaults to `insert'."
-  (setq mode (or mode 'insert))
-  (cond
-   ((stringp target)
-    (let ((redir (assoc target eshell-virtual-targets)))
-      (if redir
-	  (if (nth 2 redir)
-	      (funcall (nth 1 redir) mode)
-	    (nth 1 redir))
-	(let* ((exists (get-file-buffer target))
-	       (buf (find-file-noselect target t)))
-	  (with-current-buffer buf
-	    (if buffer-file-read-only
-		(error "Cannot write to read-only file `%s'" target))
-	    (setq buffer-read-only nil)
-            (setq-local eshell-output-file-buffer
-                        (if (eq exists buf) 0 t))
-	    (cond ((eq mode 'overwrite)
-		   (erase-buffer))
-		  ((eq mode 'append)
-		   (goto-char (point-max))))
-	    (point-marker))))))
-
-
-   ((bufferp target)
-    (with-current-buffer target
-      (cond ((eq mode 'overwrite)
-             (erase-buffer))
-            ((eq mode 'append)
-             (goto-char (point-max))))
-      (point-marker)))
-
-   ((functionp target) nil)
-
-   ((symbolp target)
-    (if (eq mode 'overwrite)
-	(set target nil))
-    target)
-
-   ((or (eshell-processp target)
-	(markerp target))
-    target)
-
-   (t
-    (error "Invalid redirection target: %s"
-	   (eshell-stringify target)))))
 
 (defun eshell-interactive-output-p (&optional index handles)
   "Return non-nil if the specified handle is bound for interactive display.
@@ -599,54 +498,167 @@ after all printing is over with no argument."
   (eshell-print object)
   (eshell-print "\n"))
 
-(defun eshell-output-object-to-target (object target)
-  "Insert OBJECT into TARGET.
-Returns what was actually sent, or nil if nothing was sent."
-  (cond
-   ((functionp target)
-    (funcall target object))
+(cl-defstruct (eshell-virtual-target
+               (:constructor nil)
+               (:constructor eshell-virtual-target-create (output-function)))
+  "A virtual target (see `eshell-virtual-targets')."
+  output-function)
 
-   ((symbolp target)
-    (if (eq target t)                   ; means "print to display"
-	(eshell-interactive-print (eshell-stringify object))
-      (if (not (symbol-value target))
-	  (set target object)
-	(setq object (eshell-stringify object))
-	(if (not (stringp (symbol-value target)))
-	    (set target (eshell-stringify
-			 (symbol-value target))))
-	(set target (concat (symbol-value target) object)))))
+(cl-defgeneric eshell-get-target (raw-target &optional _mode)
+  "Convert RAW-TARGET, which is a raw argument, into a valid output target.
+MODE is either `overwrite', `append' or `insert'; if it is omitted or nil,
+it defaults to `insert'."
+  (error "Invalid redirection target: %s" (eshell-stringify raw-target)))
 
-   ((markerp target)
-    (if (buffer-live-p (marker-buffer target))
-	(with-current-buffer (marker-buffer target)
-	  (let ((moving (= (point) target)))
-	    (save-excursion
-	      (goto-char target)
-	      (unless (stringp object)
-		(setq object (eshell-stringify object)))
-	      (insert-and-inherit object)
-	      (set-marker target (point-marker)))
-	    (if moving
-		(goto-char target))))))
+(cl-defmethod eshell-get-target ((raw-target string) &optional mode)
+  "Convert a string RAW-TARGET into a valid output target using MODE.
+If TARGET is a virtual target (see `eshell-virtual-targets'),
+return an `eshell-virtual-target' instance; otherwise, return a
+marker for a file named TARGET."
+  (setq mode (or mode 'insert))
+  (if-let ((redir (assoc raw-target eshell-virtual-targets)))
+      (eshell-virtual-target-create
+       (if (nth 2 redir)
+           (funcall (nth 1 redir) mode)
+         (nth 1 redir)))
+    (let ((exists (get-file-buffer raw-target))
+          (buf (find-file-noselect raw-target t)))
+      (with-current-buffer buf
+        (when buffer-file-read-only
+          (error "Cannot write to read-only file `%s'" raw-target))
+          (setq buffer-read-only nil)
+          (setq-local eshell-output-file-buffer
+                      (if (eq exists buf) 0 t))
+          (cond ((eq mode 'overwrite)
+                 (erase-buffer))
+                ((eq mode 'append)
+                 (goto-char (point-max))))
+          (point-marker)))))
 
-   ((eshell-processp target)
-    (unless (stringp object)
-      (setq object (eshell-stringify object)))
-    (condition-case err
-        (process-send-string target object)
-      (error
-       ;; If `process-send-string' raises an error and the process has
-       ;; finished, treat it as a broken pipe.  Otherwise, just
-       ;; re-throw the signal.
-       (if (memq (process-status target)
-		 '(run stop open closed))
-           (signal (car err) (cdr err))
-         (signal 'eshell-pipe-broken (list target))))))
+(cl-defmethod eshell-get-target ((raw-target buffer) &optional mode)
+  "Convert a buffer RAW-TARGET into a valid output target using MODE.
+This returns a marker for that buffer."
+  (with-current-buffer raw-target
+    (cond ((eq mode 'overwrite)
+           (erase-buffer))
+          ((eq mode 'append)
+           (goto-char (point-max))))
+    (point-marker)))
 
-   ((consp target)
-    (apply (car target) object (cdr target))))
+(cl-defmethod eshell-get-target ((raw-target symbol) &optional mode)
+  "Convert a symbol RAW-TARGET into a valid output target using MODE.
+This returns RAW-TARGET, with its value initialized to nil if MODE is
+`overwrite'."
+  (when (eq mode 'overwrite)
+    (set raw-target nil))
+  raw-target)
+
+(cl-defmethod eshell-get-target ((raw-target process) &optional _mode)
+  "Convert a process RAW-TARGET into a valid output target.
+This just returns RAW-TARGET."
+  raw-target)
+
+(cl-defmethod eshell-get-target ((raw-target marker) &optional _mode)
+  "Convert a marker RAW-TARGET into a valid output target.
+This just returns RAW-TARGET."
+  raw-target)
+
+(cl-defgeneric eshell-close-target (target status)
+  "Close an output TARGET, passing STATUS as the result.
+STATUS should be non-nil on successful termination of the output.")
+
+(cl-defmethod eshell-close-target ((_target symbol) _status)
+  "Close a symbol TARGET."
+  nil)
+
+(cl-defmethod eshell-close-target ((target marker) status)
+  "Close a marker TARGET.
+If TARGET was created from a file name, save and kill the buffer.
+If status is nil, prompt before killing."
+  (when (buffer-live-p (marker-buffer target))
+    (with-current-buffer (marker-buffer target)
+      (when eshell-output-file-buffer
+        (save-buffer)
+        (when (eq eshell-output-file-buffer t)
+          (or status (set-buffer-modified-p nil))
+          (kill-buffer))))))
+
+(cl-defmethod eshell-close-target ((target process) _status)
+  "Close a process TARGET."
+  ;; According to POSIX.1-2017, section 11.1.9, when communicating via
+  ;; terminal, sending EOF causes all bytes waiting to be read to be
+  ;; sent to the process immediately.  Thus, if there are any bytes
+  ;; waiting, we need to send EOF twice: once to flush the buffer, and
+  ;; a second time to cause the next read() to return a size of 0,
+  ;; indicating end-of-file to the reading process.  However, some
+  ;; platforms (e.g. Solaris) actually require sending a *third* EOF.
+  ;; Since sending extra EOFs to a running process is a no-op, we'll
+  ;; just send the maximum we'd ever need.  See bug#56025 for further
+  ;; details.
+  (catch 'done
+    (dotimes (_ (if (process-tty-name target 'stdin) 3 1))
+      (unless (process-live-p target)
+        (throw 'done nil))
+      (process-send-eof target))))
+
+(cl-defmethod eshell-close-target ((_target eshell-virtual-target) _status)
+  "Close a virtual TARGET."
+  nil)
+
+(cl-defgeneric eshell-output-object-to-target (object target)
+  "Output OBJECT to TARGET.
+Returns what was actually sent, or nil if nothing was sent.")
+
+(cl-defmethod eshell-output-object-to-target (object (_target (eql t)))
+  "Output OBJECT to the display."
+  (setq object (eshell-stringify object))
+  (eshell-interactive-print object))
+
+(cl-defmethod eshell-output-object-to-target (object (target symbol))
+  "Output OBJECT to the value of the symbol TARGET."
+  (if (not (symbol-value target))
+      (set target object)
+    (setq object (eshell-stringify object))
+    (if (not (stringp (symbol-value target)))
+        (set target (eshell-stringify
+                     (symbol-value target))))
+    (set target (concat (symbol-value target) object)))
   object)
+
+(cl-defmethod eshell-output-object-to-target (object (target marker))
+  "Output OBJECT to the marker TARGET."
+  (when (buffer-live-p (marker-buffer target))
+    (with-current-buffer (marker-buffer target)
+      (let ((moving (= (point) target)))
+        (save-excursion
+          (goto-char target)
+          (unless (stringp object)
+            (setq object (eshell-stringify object)))
+          (insert-and-inherit object)
+          (set-marker target (point-marker)))
+        (when moving
+          (goto-char target)))))
+  object)
+
+(cl-defmethod eshell-output-object-to-target (object (target process))
+  "Output OBJECT to the process TARGET."
+  (unless (stringp object)
+    (setq object (eshell-stringify object)))
+  (condition-case err
+      (process-send-string target object)
+    (error
+     ;; If `process-send-string' raises an error and the process has
+     ;; finished, treat it as a broken pipe.  Otherwise, just
+     ;; re-throw the signal.
+     (if (process-live-p target)
+         (signal (car err) (cdr err))
+       (signal 'eshell-pipe-broken (list target)))))
+  object)
+
+(cl-defmethod eshell-output-object-to-target (object
+                                              (target eshell-virtual-target))
+  "Output OBJECT to the virtual TARGET."
+  (funcall (eshell-virtual-target-output-function target) object))
 
 (defun eshell-output-object (object &optional handle-index handles)
   "Insert OBJECT, using HANDLE-INDEX specifically.

@@ -48,26 +48,29 @@
             ;; buffer into `input'.  The substitution logic is
             ;; appropriate for only the use we put it to in this file.
             `(ert-with-temp-file temp
-               (let ((temp-buffer (generate-new-buffer " *temp*" t)))
+               (let ((temp-buffer (generate-new-buffer " *tmp*" t)))
                  (unwind-protect
                      (let ((input
                             (replace-regexp-in-string
                              "temp\\([^>]\\|\\'\\)" temp
-                             (string-replace "#<buffer temp>"
-                                             (buffer-name temp-buffer)
-                                             input))))
+                             (string-replace
+                              "#<buffer temp>"
+                              (concat "#<buffer " (buffer-name temp-buffer) ">")
+                              input))))
                        ,@body)
                    (when (buffer-name temp-buffer)
                      (kill-buffer temp-buffer))))))
           (temp-should-string= (expected)
-            `(string= ,expected (string-trim-right
-                                 (with-temp-buffer
-                                   (insert-file-contents temp)
-                                   (buffer-string)))))
+            `(should (string= ,expected
+                              (string-trim-right
+                               (with-temp-buffer
+                                 (insert-file-contents temp)
+                                 (buffer-string))))))
           (temp-buffer-should-string= (expected)
-            `(string= ,expected (string-trim-right
-                                 (with-current-buffer temp-buffer
-                                   (buffer-string))))))
+            `(should (string= ,expected
+                              (string-trim-right
+                               (with-current-buffer temp-buffer
+                                 (buffer-string)))))))
        (skip-unless shell-file-name)
        (skip-unless shell-command-switch)
        (skip-unless (executable-find shell-file-name))

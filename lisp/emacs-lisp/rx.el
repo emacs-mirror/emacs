@@ -26,7 +26,7 @@
 ;; The translation to string regexp is done by a macro and does not
 ;; incur any extra processing during run time.  Example:
 ;;
-;;  (rx bos (or (not (any "^"))
+;;  (rx bos (or (not "^")
 ;;              (seq "^" (or " *" "["))))
 ;;
 ;; => "\\`\\(?:[^^]\\|\\^\\(?: \\*\\|\\[\\)\\)"
@@ -35,7 +35,42 @@
 ;; Olin Shivers's SRE, with concessions to Emacs regexp peculiarities,
 ;; and the older Emacs package Sregex.
 
+;;; Legacy syntax still accepted by rx:
+;;
+;; These are constructs from earlier rx and sregex implementations
+;; that were mistakes, accidents or just not very good ideas in hindsight.
+
+;; Obsolete: accepted but not documented
+;;
+;; Obsolete                     Preferred
+;; --------------------------------------------------------
+;; (not word-boundary)          not-word-boundary
+;; (not-syntax X)               (not (syntax X))
+;; not-wordchar                 (not wordchar)
+;; (not-char ...)               (not (any ...))
+;; any                          nonl, not-newline
+;; (repeat N FORM)              (= N FORM)
+;; (syntax CHARACTER)           (syntax NAME)
+;; (syntax CHAR-SYM)      [1]   (syntax NAME)
+;; (category chinse-two-byte)   (category chinese-two-byte)
+;; unibyte                      ascii
+;; multibyte                    nonascii
+;; --------------------------------------------------------
+;; [1]  where CHAR-SYM is a symbol with single-character name
+
+;; Obsolescent: accepted and documented but discouraged
+;;
+;; Obsolescent                    Preferred
+;; --------------------------------------------------------
+;; (and ...)                      (seq ...), (: ...), (sequence ...)
+;; anything                       anychar
+;; minimal-match, maximal-match   lazy ops: ??, *?, +?
+
+;; FIXME: Prepare a phase-out by emitting compile-time warnings about
+;; at least some of the legacy constructs above.
+
 ;;; Code:
+
 
 ;; The `rx--translate...' functions below return (REGEXP . PRECEDENCE),
 ;; where REGEXP is a list of string expressions that will be
@@ -126,27 +161,23 @@ Each entry is:
   (or (cdr (assq name rx--local-definitions))
       (get name 'rx-definition)))
 
-(defun rx--expand-def (form)
-  "FORM expanded (once) if a user-defined construct; otherwise nil."
-  (cond ((symbolp form)
-         (let ((def (rx--lookup-def form)))
+(defun rx--expand-def-form (form)
+  "List FORM expanded (once) if a user-defined construct; otherwise nil."
+  (let ((op (car form)))
+    (and (symbolp op)
+         (let ((def (rx--lookup-def op)))
            (and def
                 (if (cdr def)
-                    (error "Not an `rx' symbol definition: %s" form)
-                  (car def)))))
-        ((and (consp form) (symbolp (car form)))
-         (let* ((op (car form))
-                (def (rx--lookup-def op)))
-           (and def
-                (if (cdr def)
-                    (rx--expand-template
-                     op (cdr form) (nth 0 def) (nth 1 def))
+                    (rx--expand-template op (cdr form) (nth 0 def) (nth 1 def))
                   (error "Not an `rx' form definition: %s" op)))))))
 
-;; TODO: Additions to consider:
-;; - A construct like `or' but without the match order guarantee,
-;;   maybe `unordered-or'.  Useful for composition or generation of
-;;   alternatives; permits more effective use of regexp-opt.
+(defun rx--expand-def-symbol (symbol)
+  "SYM expanded (once) if a user-defined name; otherwise nil."
+  (let ((def (rx--lookup-def symbol)))
+    (and def
+         (if (cdr def)
+             (error "Not an `rx' symbol definition: %s" symbol)
+           (car def)))))
 
 (defun rx--translate-symbol (sym)
   "Translate an rx symbol.  Return (REGEXP . PRECEDENCE)."
@@ -167,28 +198,19 @@ Each entry is:
     ('not-word-boundary           (cons (list "\\B") t))
     ('symbol-start                (cons (list "\\_<") t))
     ('symbol-end                  (cons (list "\\_>") t))
-    ('not-wordchar                (cons (list "\\W") t))
+    ('not-wordchar                (rx--translate '(not wordchar)))
     (_
      (cond
       ((let ((class (cdr (assq sym rx--char-classes))))
          (and class (cons (list (concat "[[:" (symbol-name class) ":]]")) t))))
 
-      ((let ((expanded (rx--expand-def sym)))
+      ((let ((expanded (rx--expand-def-symbol sym)))
          (and expanded (rx--translate expanded))))
 
       ;; For compatibility with old rx.
       ((let ((entry (assq sym rx-constituents)))
-         (and (progn
-                (while (and entry (not (stringp (cdr entry))))
-                  (setq entry
-                        (if (symbolp (cdr entry))
-                            ;; Alias for another entry.
-                            (assq (cdr entry) rx-constituents)
-                          ;; Wrong type, try further down the list.
-                          (assq (car entry)
-                                (cdr (memq entry rx-constituents))))))
-                entry)
-              (cons (list (cdr entry)) nil))))
+         (and entry (rx--translate-compat-symbol-entry entry))))
+
       (t (error "Unknown rx symbol `%s'" sym))))))
 
 (defun rx--enclose (left-str rexp right-str)
@@ -254,83 +276,225 @@ Left-fold the list L, starting with X, by the binary function F."
     (setq l (cdr l)))
   x)
 
-(defun rx--normalise-or-arg (form)
-  "Normalize the `or' argument FORM.
-Characters become strings, user-definitions and `eval' forms are expanded,
-and `or' forms are normalized recursively."
-  (cond ((characterp form)
-         (char-to-string form))
-        ((and (consp form) (memq (car form) '(or |)))
-         (cons (car form) (mapcar #'rx--normalise-or-arg (cdr form))))
-        ((and (consp form) (eq (car form) 'eval))
-         (rx--normalise-or-arg (rx--expand-eval (cdr form))))
-        (t
-         (let ((expanded (rx--expand-def form)))
-           (if expanded
-               (rx--normalise-or-arg expanded)
-             form)))))
+;; FIXME: flatten nested `or' patterns when performing char-pattern combining.
+;; The only reason for not flattening is to ensure regexp-opt processing
+;; (which we do for entire `or' patterns, not subsequences), but we
+;; obviously want to translate
+;;   (or "a" space (or "b" (+ nonl) word) "c")
+;;   -> (or (in "ab" space) (+ nonl) (in "c" word))
 
-(defun rx--all-string-or-args (body)
-  "If BODY only consists of strings or such `or' forms, return all the strings.
-Otherwise throw `rx--nonstring'."
+;; FIXME: normalise `seq', both the construct and implicit sequences,
+;; so that they are flattened, adjacent strings concatenated, and
+;; empty strings removed. That would give more opportunities for regexp-opt:
+;;  (or "a" (seq "ab" (seq "c" "d") "")) -> (or "a" "abcd")
+
+;; FIXME: Since `rx--normalise-char-pattern' recurses through `or', `not' and
+;; `intersection', we may end up normalising subtrees multiple times
+;; which wastes time (but should be idempotent).
+;; One way to avoid this is to aggressively normalise the entire tree
+;; before translating anything at all, but we must then recurse through
+;; all constructs and probably copy them.
+;; Such normalisation could normalise synonyms, eliminate `minimal-match'
+;; and `maximal-match' and convert affected `1+' to either `+' or `+?' etc.
+;; We would also consolidate the user-def lookup, both modern and legacy,
+;; in one place.
+
+(defun rx--normalise-char-pattern (form)
+  "Normalize FORM as a pattern matching a single-character.
+Characters become strings, `any' forms and character classes become
+`rx--char-alt' forms, user-definitions and `eval' forms are expanded,
+and `or', `not' and `intersection' forms are normalized recursively.
+
+A `rx--char-alt' form is shaped (rx--char-alt INTERVALS . CLASSES)
+where INTERVALS is a sorted list of disjoint nonadjacent intervals,
+each a cons of characters, and CLASSES an unordered list of unique
+name-normalised character classes."
+  (defvar rx--builtin-forms)
+  (defvar rx--builtin-symbols)
+  (cond ((consp form)
+         (let ((op (car form))
+               (body (cdr form)))
+           (cond ((memq op '(or |))
+                  ;; Normalise the constructor to `or' and the args recursively.
+                  (cons 'or (mapcar #'rx--normalise-char-pattern body)))
+                 ;; Convert `any' forms and char classes now so that we
+                 ;; don't need to do it later on.
+                 ((memq op '(any in char))
+                  (cons 'rx--char-alt (rx--parse-any body)))
+                 ((memq op '(not intersection))
+                  (cons op (mapcar #'rx--normalise-char-pattern body)))
+                 ((eq op 'eval)
+                  (rx--normalise-char-pattern (rx--expand-eval body)))
+                 ((memq op rx--builtin-forms) form)
+                 ((let ((expanded (rx--expand-def-form form)))
+                    (and expanded
+                         (rx--normalise-char-pattern expanded))))
+                 (t form))))
+        ;; FIXME: Should we expand legacy definitions from
+        ;; `rx-constituents' here as well?
+        ((symbolp form)
+         (cond ((let ((class (assq form rx--char-classes)))
+                  (and class
+                       `(rx--char-alt nil . (,(cdr class))))))
+               ((memq form rx--builtin-symbols) form)
+               ((let ((expanded (rx--expand-def-symbol form)))
+                  (and expanded
+                       (rx--normalise-char-pattern expanded))))
+               (t form)))
+        ((characterp form)
+         (char-to-string form))
+        (t form)))
+
+(defun rx--char-alt-union (a b)
+  "Union of the (INTERVALS . CLASSES) pairs A and B."
+  (let* ((a-cl (cdr a))
+         (b-cl (cdr b))
+         (classes (if (and a-cl b-cl)
+                      (let ((acc a-cl))
+                        (dolist (c b-cl)
+                          (unless (memq c a-cl)
+                            (push c acc)))
+                        acc)
+                    (or a-cl b-cl))))
+    (cons (rx--interval-set-union (car a) (car b)) classes)))
+
+(defun rx--intersection-intervals (forms)
+  "Intersection of the normalised FORMS, as an interval set."
+  (rx--foldl #'rx--interval-set-intersection '((0 . #x3fffff))
+             (mapcar (lambda (x)
+                       (let ((char (rx--reduce-to-char-alt x)))
+                         (if (and char (null (cdr char)))
+                             (car char)
+                           (error "Cannot be used in rx intersection: %S"
+                                  (rx--human-readable x)))))
+                     forms)))
+
+(defun rx--reduce-to-char-alt (form)
+  "Transform FORM into (INTERVALS . CLASSES) or nil if not possible.
+Process `or', `intersection' and `not'.
+FORM must be normalised (from `rx--normalise-char-pattern')."
+  (cond
+   ((stringp form)
+    (and (= (length form) 1)
+         (let ((c (aref form 0)))
+           (list (list (cons c c))))))
+   ((consp form)
+    (let ((head (car form)))
+      (cond
+       ;; FIXME: Transform `digit', `xdigit', `cntrl', `ascii', `nonascii'
+       ;; to ranges? That would allow them to be negated and intersected.
+       ((eq head 'rx--char-alt) (cdr form))
+       ((eq head 'not)
+        (unless (= (length form) 2)
+          (error "rx `not' form takes exactly one argument"))
+        (let ((arg (rx--reduce-to-char-alt (cadr form))))
+          ;; Only interval sets without classes are closed under complement.
+          (and arg (null (cdr arg))
+               (list (rx--interval-set-complement (car arg))))))
+       ((eq head 'or)
+        (let ((args (cdr form)))
+          (let ((acc '(nil)))  ; union identity
+            (while (and args
+                        (let ((char (rx--reduce-to-char-alt (car args))))
+                          (setq acc (and char (rx--char-alt-union acc char)))))
+              (setq args (cdr args)))
+            acc)))
+       ((eq head 'intersection)
+        (list (rx--intersection-intervals (cdr form))))
+       )))
+   ((memq form '(nonl not-newline any))
+    '(((0 . 9) (11 . #x3fffff))))
+   ((memq form '(anychar anything))
+    '(((0 . #x3fffff))))
+   ;; FIXME: A better handling of `unmatchable' would be:
+   ;;   * (seq ... unmatchable ...) -> unmatchable
+   ;;   * any or-pattern branch that is `unmatchable' is deleted
+   ;;   * (REPEAT unmatchable) -> "", if REPEAT accepts 0 repetitions
+   ;;   * (REPEAT unmatchable) -> unmatchable, otherwise
+   ;; if it's worth the trouble (probably not).
+   ((eq form 'unmatchable)
+    '(nil))
+   ))
+
+(defun rx--optimise-or-args (args)
+  "Optimise `or' arguments.  Return a new rx form.
+Each element of ARGS should have been normalised using
+`rx--normalise-char-pattern'."
+  (if (null args)
+      ;; No arguments.
+      '(rx--char-alt nil . nil)         ; FIXME: not `unmatchable'?
+    ;; Join consecutive single-char branches into a char alt where possible.
+    ;; Ideally we should collect all single-char branches but that might
+    ;; alter matching order in some cases.
+    (let ((branches nil)
+          (prev-char nil))
+      (while args
+        (let* ((item (car args))
+               (item-char (rx--reduce-to-char-alt item)))
+          (if item-char
+              (setq prev-char (if prev-char
+                                  (rx--char-alt-union prev-char item-char)
+                                item-char))
+            (when prev-char
+              (push (cons 'rx--char-alt prev-char) branches)
+              (setq prev-char nil))
+            (push item branches)))
+        (setq args (cdr args)))
+      (when prev-char
+        (push (cons 'rx--char-alt prev-char) branches))
+      (if (cdr branches)
+          (cons 'or (nreverse branches))
+        (car branches)))))
+
+(defun rx--all-string-branches-p (forms)
+  "Whether FORMS are all strings or `or' forms with the same property."
+  (rx--every (lambda (x) (or (stringp x)
+                             (and (eq (car-safe x) 'or)
+                                  (rx--all-string-branches-p (cdr x)))))
+             forms))
+
+(defun rx--collect-or-strings (forms)
+  "All strings from FORMS, which are strings or `or' forms."
   (mapcan (lambda (form)
-            (cond ((stringp form) (list form))
-                  ((and (consp form) (memq (car form) '(or |)))
-                   (rx--all-string-or-args (cdr form)))
-                  (t (throw 'rx--nonstring nil))))
-          body))
+            (if (stringp form)
+                (list form)
+              ;; must be an `or' form
+              (rx--collect-or-strings (cdr form))))
+          forms))
+
+;; TODO: Write a more general rx-level factoriser to replace
+;; `regexp-opt' for our purposes.  It would handle non-literals:
+;;
+;;    (or "ab" (: "a" space) "bc" (: "b" (+ digit)))
+;; -> (or (: "a" (in "b" space)) (: "b" (or "c" (+ digit))))
+;;
+;; As a minor side benefit we would get less useless bracketing.
+;; The main problem is how to deal with matching order, which `regexp-opt'
+;; alters in its own way.
 
 (defun rx--translate-or (body)
   "Translate an or-pattern of zero or more rx items.
 Return (REGEXP . PRECEDENCE)."
-  ;; FIXME: Possible improvements:
-  ;;
-  ;; - Flatten sub-patterns first: (or (or A B) (or C D)) -> (or A B C D)
-  ;;   Then call regexp-opt on runs of string arguments. Example:
-  ;;   (or (+ digit) "CHARLIE" "CHAN" (+ blank))
-  ;;   -> (or (+ digit) (or "CHARLIE" "CHAN") (+ blank))
-  ;;
-  ;; - Optimize single-character alternatives better:
-  ;;     * classes: space, alpha, ...
-  ;;     * (syntax S), for some S (whitespace, word)
-  ;;   so that (or "@" "%" digit (any "A-Z" space) (syntax word))
-  ;;        -> (any "@" "%" digit "A-Z" space word)
-  ;;        -> "[A-Z@%[:digit:][:space:][:word:]]"
   (cond
    ((null body)                    ; No items: a never-matching regexp.
     (rx--empty))
    ((null (cdr body))              ; Single item.
     (rx--translate (car body)))
    (t
-    (let* ((args (mapcar #'rx--normalise-or-arg body))
-           (all-strings (catch 'rx--nonstring (rx--all-string-or-args args))))
-      (cond
-       (all-strings                       ; Only strings.
-        (cons (list (regexp-opt all-strings nil))
-              t))
-       ((rx--every #'rx--charset-p args)  ; All charsets.
-        (rx--translate-union nil args))
-       (t
-        (cons (append (car (rx--translate (car args)))
-                      (mapcan (lambda (item)
-                                (cons "\\|" (car (rx--translate item))))
-                              (cdr args)))
-              nil)))))))
-
-(defun rx--charset-p (form)
-  "Whether FORM looks like a charset, only consisting of character intervals
-and set operations."
-  (or (and (consp form)
-           (or (and (memq (car form) '(any in char))
-                    (rx--every (lambda (x) (not (symbolp x))) (cdr form)))
-               (and (memq (car form) '(not or | intersection))
-                    (rx--every #'rx--charset-p (cdr form)))))
-      (characterp form)
-      (and (stringp form) (= (length form) 1))
-      (and (or (symbolp form) (consp form))
-           (let ((expanded (rx--expand-def form)))
-             (and expanded
-                  (rx--charset-p expanded))))))
+    (let ((args (mapcar #'rx--normalise-char-pattern body)))
+      (if (rx--all-string-branches-p args)
+          ;; All branches are strings: use `regexp-opt'.
+          (cons (list (regexp-opt (rx--collect-or-strings args) nil))
+                t)
+        (let ((form (rx--optimise-or-args args)))
+          (if (eq (car-safe form) 'or)
+              (let ((branches (cdr form)))
+                (cons (append (car (rx--translate (car branches)))
+                              (mapcan (lambda (item)
+                                        (cons "\\|" (car (rx--translate item))))
+                                      (cdr branches)))
+                      nil))
+            (rx--translate form))))))))
 
 (defun rx--string-to-intervals (str)
   "Decode STR as intervals: A-Z becomes (?A . ?Z), and the single
@@ -385,7 +549,7 @@ INTERVALS is a list of (START . END) with START ≤ END, sorted by START."
 (defun rx--parse-any (body)
   "Parse arguments of an (any ...) construct.
 Return (INTERVALS . CLASSES), where INTERVALS is a sorted list of
-disjoint intervals (each a cons of chars), and CLASSES
+disjoint nonadjacent intervals (each a cons of chars), and CLASSES
 a list of named character classes in the order they occur in BODY."
   (let ((classes nil)
         (strings nil)
@@ -412,83 +576,123 @@ a list of named character classes in the order they occur in BODY."
            (sort (append conses
                          (mapcan #'rx--string-to-intervals strings))
                  #'car-less-than-car))
-          (reverse classes))))
+          (nreverse classes))))
 
 (defun rx--generate-alt (negated intervals classes)
   "Generate a character alternative.  Return (REGEXP . PRECEDENCE).
 If NEGATED is non-nil, negate the result; INTERVALS is a sorted
 list of disjoint intervals and CLASSES a list of named character
 classes."
-  (let ((items (append intervals classes)))
-    ;; Move lone ] and range ]-x to the start.
-    (let ((rbrac-l (assq ?\] items)))
-      (when rbrac-l
-        (setq items (cons rbrac-l (delq rbrac-l items)))))
+  ;; No, this is not pretty code.  You try doing it in a way that is both
+  ;; elegant and efficient.  Or just one of the two.  I dare you.
 
-    ;; Split x-] and move the lone ] to the start.
-    (let ((rbrac-r (rassq ?\] items)))
-      (when (and rbrac-r (not (eq (car rbrac-r) ?\])))
-        (setcdr rbrac-r ?\\)
-        (setq items (cons '(?\] . ?\]) items))))
-
-    ;; Split ,-- (which would end up as ,- otherwise).
-    (let ((dash-r (rassq ?- items)))
-      (when (eq (car dash-r) ?,)
-        (setcdr dash-r ?,)
-        (setq items (nconc items '((?- . ?-))))))
-
-    ;; Remove - (lone or at start of interval)
-    (let ((dash-l (assq ?- items)))
-      (when dash-l
-        (if (eq (cdr dash-l) ?-)
-            (setq items (delq dash-l items))   ; Remove lone -
-          (setcar dash-l ?.))                  ; Reduce --x to .-x
-        (setq items (nconc items '((?- . ?-))))))
-
-    ;; Deal with leading ^ and range ^-x.
-    (when (and (consp (car items))
-               (eq (caar items) ?^)
-               (cdr items))
-      ;; Move ^ and ^-x to second place.
-      (setq items (cons (cadr items)
-                        (cons (car items) (cddr items)))))
-
-    (cond
-     ;; Empty set: if negated, any char, otherwise match-nothing.
-     ((null items)
+  ;; Detect whether the interval set is better described in
+  ;; complemented form.  This is not just a matter of aesthetics: any
+  ;; range that straddles the char-raw boundary will be mutilated by the
+  ;; regexp engine.  Ranges from ASCII to raw bytes will exclude the
+  ;; all non-ASCII non-raw bytes, and ranges from non-ASCII Unicode
+  ;; to raw bytes are ignored.
+  (unless (or classes
+              ;; Any interval set covering #x3fff7f should be negated.
+              (rx--every (lambda (iv) (not (<= (car iv) #x3fff7f (cdr iv))))
+                         intervals))
+    (setq negated (not negated))
+    (setq intervals (rx--interval-set-complement intervals)))
+  (cond
+   ;; Single character.
+   ((and intervals (eq (caar intervals) (cdar intervals))
+         (null (cdr intervals))
+         (null classes))
+    (let ((ch (caar intervals)))
       (if negated
-          (rx--translate-symbol 'anything)
-        (rx--empty)))
-     ;; Single non-negated character.
-     ((and (null (cdr items))
-           (consp (car items))
-           (eq (caar items) (cdar items))
-           (not negated))
-      (cons (list (regexp-quote (char-to-string (caar items))))
-            t))
-     ;; Negated newline.
-     ((and (equal items '((?\n . ?\n)))
-           negated)
-      (rx--translate-symbol 'nonl))
-     ;; At least one character or class, possibly negated.
-     (t
+          (if (eq ch ?\n)
+              ;; Single negated newline.
+              (rx--translate-symbol 'nonl)
+            ;; Single negated character (other than newline).
+            (cons (list (string ?\[ ?^ ch ?\])) t))
+        ;; Single literal character.
+        (cons (list (regexp-quote (char-to-string ch))) t))))
+
+   ;; Empty set (or any char).
+   ((and (null intervals) (null classes))
+    (if negated
+        (rx--translate-symbol 'anychar)
+      (rx--empty)))
+
+   ;; More than one character, or at least one class.
+   (t
+    (let ((dash nil) (caret nil))
+      ;; Move ] and range ]-x to the start.
+      (let ((rbrac-l (assq ?\] intervals)))
+        (when rbrac-l
+          (setq intervals (cons rbrac-l (remq rbrac-l intervals)))))
+
+      ;; Split x-] and move the lone ] to the start.
+      (let ((rbrac-r (rassq ?\] intervals)))
+        (when (and rbrac-r (not (eq (car rbrac-r) ?\])))
+          (setcdr rbrac-r ?\\)
+          (setq intervals (cons '(?\] . ?\]) intervals))))
+
+      ;; Split ,-- (which would end up as ,- otherwise).
+      (let ((dash-r (rassq ?- intervals)))
+        (when (eq (car dash-r) ?,)
+          (setcdr dash-r ?,)
+          (setq dash "-")))
+
+      ;; Remove - (lone or at start of interval)
+      (let ((dash-l (assq ?- intervals)))
+        (when dash-l
+          (if (eq (cdr dash-l) ?-)
+              (setq intervals (remq dash-l intervals))   ; Remove lone -
+            (setcar dash-l ?.))                          ; Reduce --x to .-x
+          (setq dash "-")))
+
+      ;; Deal with leading ^ and range ^-x in non-negated set.
+      (when (and (eq (caar intervals) ?^)
+                 (not negated))
+        (if (eq (cdar intervals) ?^)
+            ;; single leading ^
+            (if (or (cdr intervals) classes)
+                ;; something else to put before the ^
+                (progn
+                  (setq intervals (cdr intervals))   ; remove lone ^
+                  (setq caret "^"))                  ; put ^ (almost) last
+              ;; nothing else but a lone -
+              (setq intervals (cons '(?- . ?-) intervals))  ; move - first
+              (setq dash nil))
+          ;; split ^-x to _-x^
+          (setq intervals `((?_ . ,(cdar intervals)) (?^ . ?^)
+                            . ,(cdr intervals)))))
+
       (cons
        (list
         (concat
          "["
          (and negated "^")
-         (mapconcat (lambda (item)
-                      (cond ((symbolp item)
-                             (format "[:%s:]" item))
-                            ((eq (car item) (cdr item))
-                             (char-to-string (car item)))
-                            ((eq (1+ (car item)) (cdr item))
-                             (string (car item) (cdr item)))
+         (mapconcat (lambda (iv)
+                      (cond ((eq (car iv) (cdr iv))
+                             (char-to-string (car iv)))
+                            ((eq (1+ (car iv)) (cdr iv))
+                             (string (car iv) (cdr iv)))
+                            ;; Ranges that go between normal chars and raw bytes
+                            ;; must be split to avoid being mutilated
+                            ;; by Emacs's regexp parser.
+                            ((<= (car iv) #x3fff7f (cdr iv))
+                             (string (car iv) ?- #x3fff7f
+                                     #x3fff80 ?- (cdr iv)))
                             (t
-                             (string (car item) ?- (cdr item)))))
-                    items nil)
+                             (string (car iv) ?- (cdr iv)))))
+                    intervals)
+         (mapconcat (lambda (cls) (format "[:%s:]" cls)) classes)
+         caret                          ; ^ or nothing
+         dash                           ; - or nothing
          "]"))
        t)))))
+
+(defun rx--translate-char-alt (negated body)
+  "Translate a (rx--char-alt ...) construct.  Return (REGEXP . PRECEDENCE).
+If NEGATED, negate the sense."
+  (rx--generate-alt negated (car body) (cdr body)))
 
 (defun rx--translate-any (negated body)
   "Translate an (any ...) construct.  Return (REGEXP . PRECEDENCE).
@@ -496,22 +700,7 @@ If NEGATED, negate the sense."
   (let ((parsed (rx--parse-any body)))
     (rx--generate-alt negated (car parsed) (cdr parsed))))
 
-(defun rx--intervals-to-alt (negated intervals)
-  "Generate a character alternative from an interval set.
-Return (REGEXP . PRECEDENCE).
-INTERVALS is a sorted list of disjoint intervals.
-If NEGATED, negate the sense."
-  ;; Detect whether the interval set is better described in
-  ;; complemented form.  This is not just a matter of aesthetics: any
-  ;; range from ASCII to raw bytes will automatically exclude the
-  ;; entire non-ASCII Unicode range by the regexp engine.
-  (if (rx--every (lambda (iv) (not (<= (car iv) #x3ffeff (cdr iv))))
-                 intervals)
-      (rx--generate-alt negated intervals nil)
-    (rx--generate-alt
-     (not negated) (rx--complement-intervals intervals) nil)))
-
-;; FIXME: Consider turning `not' into a variadic operator, following SRE:
+;; TODO: Consider turning `not' into a variadic operator, following SRE:
 ;; (not A B) = (not (or A B)) = (intersection (not A) (not B)), and
 ;; (not) = anychar.
 ;; Maybe allow singleton characters as arguments.
@@ -521,43 +710,27 @@ If NEGATED, negate the sense."
 If NEGATED, negate the sense (thus making it positive)."
   (unless (and body (null (cdr body)))
     (error "rx `not' form takes exactly one argument"))
-  (let ((arg (car body)))
-    (cond
-     ((and (consp arg)
-           (pcase (car arg)
-             ((or 'any 'in 'char)
-              (rx--translate-any      (not negated) (cdr arg)))
-             ('syntax
-              (rx--translate-syntax   (not negated) (cdr arg)))
-             ('category
-              (rx--translate-category (not negated) (cdr arg)))
-             ('not
-              (rx--translate-not      (not negated) (cdr arg)))
-             ((or 'or '|)
-              (rx--translate-union    (not negated) (cdr arg)))
-             ('intersection
-              (rx--translate-intersection (not negated) (cdr arg))))))
-     ((let ((class (cdr (assq arg rx--char-classes))))
-        (and class
-             (rx--generate-alt (not negated) nil (list class)))))
-     ((eq arg 'word-boundary)
-      (rx--translate-symbol
-       (if negated 'word-boundary 'not-word-boundary)))
-     ((characterp arg)
-      (rx--generate-alt (not negated) (list (cons arg arg)) nil))
-     ((and (stringp arg) (= (length arg) 1))
-      (let ((char (string-to-char arg)))
-        (rx--generate-alt (not negated) (list (cons char char)) nil)))
-     ((let ((expanded (rx--expand-def arg)))
-        (and expanded
-             (rx--translate-not negated (list expanded)))))
-     (t (error "Illegal argument to rx `not': %S" arg)))))
+  (let ((arg (rx--normalise-char-pattern (car body))))
+    (pcase arg
+      (`(not . ,args)
+       (rx--translate-not      (not negated) args))
+      (`(syntax . ,args)
+       (rx--translate-syntax   (not negated) args))
+      (`(category . ,args)
+       (rx--translate-category (not negated) args))
+      ('word-boundary                     ; legacy syntax
+       (rx--translate-symbol (if negated 'word-boundary 'not-word-boundary)))
+      (_ (let ((char (rx--reduce-to-char-alt arg)))
+           (if char
+               (rx--generate-alt (not negated) (car char) (cdr char))
+             (error "Illegal argument to rx `not': %S"
+                    (rx--human-readable arg))))))))
 
-(defun rx--complement-intervals (intervals)
-  "Complement of the interval list INTERVALS."
+(defun rx--interval-set-complement (ivs)
+  "Complement of the interval set IVS."
   (let ((compl nil)
         (c 0))
-    (dolist (iv intervals)
+    (dolist (iv ivs)
       (when (< c (car iv))
         (push (cons c (1- (car iv))) compl))
       (setq c (1+ (cdr iv))))
@@ -565,8 +738,8 @@ If NEGATED, negate the sense (thus making it positive)."
       (push (cons c (max-char)) compl))
     (nreverse compl)))
 
-(defun rx--intersect-intervals (ivs-a ivs-b)
-  "Intersection of the interval lists IVS-A and IVS-B."
+(defun rx--interval-set-intersection (ivs-a ivs-b)
+  "Intersection of the interval sets IVS-A and IVS-B."
   (let ((isect nil))
     (while (and ivs-a ivs-b)
       (let ((a (car ivs-a))
@@ -588,60 +761,91 @@ If NEGATED, negate the sense (thus making it positive)."
                        ivs-a)))))))
     (nreverse isect)))
 
-(defun rx--union-intervals (ivs-a ivs-b)
-  "Union of the interval lists IVS-A and IVS-B."
-  (rx--complement-intervals
-   (rx--intersect-intervals
-    (rx--complement-intervals ivs-a)
-    (rx--complement-intervals ivs-b))))
+(defun rx--interval-set-union (ivs-a ivs-b)
+  "Union of the interval sets IVS-A and IVS-B."
+  (let ((union nil))
+    (while (and ivs-a ivs-b)
+      (let ((a (car ivs-a))
+            (b (car ivs-b)))
+        (cond
+         ((< (1+ (cdr a)) (car b))      ; a before b, not adacent
+          (push a union)
+          (setq ivs-a (cdr ivs-a)))
+         ((< (1+ (cdr b)) (car a))      ; b before a, not adacent
+          (push b union)
+          (setq ivs-b (cdr ivs-b)))
+         (t                             ; a and b adjacent or overlap
+          (setq ivs-a (cdr ivs-a))
+          (setq ivs-b (cdr ivs-b))
+          (if (< (cdr a) (cdr b))
+              (push (cons (min (car a) (car b))
+                          (cdr b))
+                    ivs-b)
+            (push (cons (min (car a) (car b))
+                        (cdr a))
+                  ivs-a))))))
+    (nconc (nreverse union) (or ivs-a ivs-b))))
 
-(defun rx--charset-intervals (charset)
-  "Return a sorted list of non-adjacent disjoint intervals from CHARSET.
-CHARSET is any expression allowed in a character set expression:
-characters, single-char strings, `any' forms (no classes permitted),
-or `not', `or' or `intersection' forms whose arguments are charsets."
-  (pcase charset
-    (`(,(or 'any 'in 'char) . ,body)
-     (let ((parsed (rx--parse-any body)))
-       (when (cdr parsed)
-         (error
-          "Character class not permitted in set operations: %S"
-          (cadr parsed)))
-       (car parsed)))
-    (`(not ,x) (rx--complement-intervals (rx--charset-intervals x)))
-    (`(,(or 'or '|) . ,body) (rx--charset-union body))
-    (`(intersection . ,body) (rx--charset-intersection body))
-    ((pred characterp)
-     (list (cons charset charset)))
-    ((guard (and (stringp charset) (= (length charset) 1)))
-     (let ((char (string-to-char charset)))
-       (list (cons char char))))
-    (_ (let ((expanded (rx--expand-def charset)))
-         (if expanded
-             (rx--charset-intervals expanded)
-           (error "Bad character set: %S" charset))))))
-
-(defun rx--charset-union (charsets)
-  "Union of CHARSETS, as a set of intervals."
-  (rx--foldl #'rx--union-intervals nil
-             (mapcar #'rx--charset-intervals charsets)))
-
-(defconst rx--charset-all (list (cons 0 (max-char))))
-
-(defun rx--charset-intersection (charsets)
-  "Intersection of CHARSETS, as a set of intervals."
-  (rx--foldl #'rx--intersect-intervals rx--charset-all
-             (mapcar #'rx--charset-intervals charsets)))
-
-(defun rx--translate-union (negated body)
-  "Translate an (or ...) construct of charsets.  Return (REGEXP . PRECEDENCE).
-If NEGATED, negate the sense."
-  (rx--intervals-to-alt negated (rx--charset-union body)))
+(defun rx--human-readable (form)
+  "Turn FORM into something that is more human-readable, for error messages."
+  ;; FIXME: Should we produce a string instead?
+  ;; That way we wouldn't have problems with ? and ??, and we could escape
+  ;; single chars.
+  ;; We could steal `xr--rx-to-string' and just file off the serials.
+  (let ((recurse (lambda (op skip)
+                   (cons op (append (take skip (cdr form))
+                                    (mapcar #'rx--human-readable
+                                            (nthcdr skip (cdr form))))))))
+  (pcase form
+    ;; strings are more readable than numbers for single chars
+    ((pred characterp) (char-to-string form))
+    ;; resugar `rx--char-alt'
+    (`(rx--char-alt ((,c . ,c)) . nil)
+     (char-to-string form))
+    (`(rx--char-alt nil . (,class))
+     class)
+    ;; TODO: render in complemented form if more readable that way?
+    (`(rx--char-alt ,ivs . ,classes)
+     (let ((strings (mapcan (lambda (iv)
+                              (let ((beg (car iv))
+                                    (end (cdr iv)))
+                                (cond
+                                 ;; single char
+                                 ((eq beg end)
+                                  (list (string beg)))
+                                 ;; two chars
+                                 ((eq end (1+ beg))
+                                  (list (string beg) (string end)))
+                                 ;; first char is hyphen
+                                 ((eq beg ?-)
+                                  (cons (string "-")
+                                        (if (eq end (+ ?- 2))
+                                            (list (string (1+ ?-) end))
+                                          (list (string (1+ ?-) ?- end)))))
+                                 ;; other range
+                                 (t (list (string beg ?- end))))))
+                            ivs)))
+       `(any ,@strings ,@classes)))
+    ;; avoid numbers as ops
+    (`(?  . ,_) (funcall recurse '\? 0))
+    (`(??  . ,_) (funcall recurse '\?? 0))
+    ;; recurse on arguments
+    (`(repeat ,_ ,_) (funcall recurse (car form) 1))
+    (`(,(or '** 'repeat) . ,_) (funcall recurse (car form) 2))
+    (`(,(or '= '>= 'group-n 'submatch-n) . ,_) (funcall recurse (car form) 1))
+    (`(,(or 'backref 'syntax 'not-syntax 'category
+            'eval 'regex 'regexp 'literal)
+       . ,_)
+     form)
+    (`(,_ . ,_) (funcall recurse (car form) 0))
+    (_ form))))
 
 (defun rx--translate-intersection (negated body)
   "Translate an (intersection ...) construct.  Return (REGEXP . PRECEDENCE).
 If NEGATED, negate the sense."
-  (rx--intervals-to-alt negated (rx--charset-intersection body)))
+  (rx--generate-alt negated (rx--intersection-intervals
+                             (mapcar #'rx--normalise-char-pattern body))
+                    nil))
 
 (defun rx--atomic-regexp (item)
   "ITEM is (REGEXP . PRECEDENCE); return a regexp of precedence t."
@@ -777,7 +981,10 @@ Return (REGEXP . PRECEDENCE)."
                 (setq syntax char)))))))
       (unless syntax
         (error "Unknown rx syntax name `%s'" sym)))
-    (cons (list (string ?\\ (if negated ?S ?s) syntax))
+    ;; Produce \w and \W instead of \sw and \Sw, for smaller size.
+    (cons (list (if (eq syntax ?w)
+                    (string ?\\ (if negated ?W ?w))
+                  (string ?\\ (if negated ?S ?s) syntax)))
           t)))
 
 (defconst rx--categories
@@ -888,15 +1095,15 @@ Return (REGEXP . PRECEDENCE)."
                                (opt "^")
                                (opt "]")
                                (* (or (seq "[:" (+ (any "a-z")) ":]")
-                                      (not (any "]"))))
+                                      (not "]")))
                                "]")
                           (not (any "*+?^$[\\"))
                           (seq "\\"
-                               (or anything
-                                   (seq (any "sScC_") anything)
+                               (or anychar
+                                   (seq (any "sScC_") anychar)
                                    (seq "("
-                                        (* (or (not (any "\\"))
-                                               (seq "\\" (not (any ")")))))
+                                        (* (or (not "\\")
+                                               (seq "\\" (not ")"))))
                                         "\\)"))))
                       eos)
                     t)))
@@ -927,6 +1134,36 @@ DEF is the definition tuple.  Return (REGEXP . PRECEDENCE)."
       (unless (stringp regexp)
         (error "The `%s' form did not expand to a string" (car form)))
       (cons (list regexp) nil))))
+
+(defun rx--translate-compat-symbol-entry (entry)
+  "Translate a compatibility symbol definition for ENTRY.
+Return (REGEXP . PRECEDENCE) or nil if none."
+  (and (progn
+         (while (and entry (not (stringp (cdr entry))))
+           (setq entry
+                 (if (symbolp (cdr entry))
+                     ;; Alias for another entry.
+                     (assq (cdr entry) rx-constituents)
+                   ;; Wrong type, try further down the list.
+                   (assq (car entry)
+                         (cdr (memq entry rx-constituents))))))
+         entry)
+       (cons (list (cdr entry)) nil)))
+
+(defun rx--translate-compat-form-entry (orig-form entry)
+  "Translate a compatibility ORIG-FORM definition for ENTRY.
+Return (REGEXP . PRECEDENCE) or nil if none."
+  (and (progn
+         (while (and entry (not (consp (cdr entry))))
+           (setq entry
+                 (if (symbolp (cdr entry))
+                     ;; Alias for another entry.
+                     (assq (cdr entry) rx-constituents)
+                   ;; Wrong type, try further down the list.
+                   (assq (car entry)
+                         (cdr (memq entry rx-constituents))))))
+         entry)
+       (rx--translate-compat-form (cdr entry) orig-form)))
 
 (defun rx--substitute (bindings form)
   "Substitute BINDINGS in FORM.  BINDINGS is an alist of (NAME . VALUES)
@@ -1023,6 +1260,7 @@ can expand to any number of values."
       ((or 'seq : 'and 'sequence) (rx--translate-seq body))
       ((or 'or '|)              (rx--translate-or body))
       ((or 'any 'in 'char)      (rx--translate-any nil body))
+      ('rx--char-alt            (rx--translate-char-alt nil body))
       ('not-char                (rx--translate-any t body))
       ('not                     (rx--translate-not nil body))
       ('intersection            (rx--translate-intersection nil body))
@@ -1063,23 +1301,13 @@ can expand to any number of values."
        (cond
         ((not (symbolp op)) (error "Bad rx operator `%S'" op))
 
-        ((let ((expanded (rx--expand-def form)))
+        ((let ((expanded (rx--expand-def-form form)))
            (and expanded
                 (rx--translate expanded))))
 
         ;; For compatibility with old rx.
         ((let ((entry (assq op rx-constituents)))
-           (and (progn
-                  (while (and entry (not (consp (cdr entry))))
-                    (setq entry
-                          (if (symbolp (cdr entry))
-                              ;; Alias for another entry.
-                              (assq (cdr entry) rx-constituents)
-                            ;; Wrong type, try further down the list.
-                            (assq (car entry)
-                                  (cdr (memq entry rx-constituents))))))
-                  entry)
-                (rx--translate-compat-form (cdr entry) form))))
+           (and entry (rx--translate-compat-form-entry form entry))))
 
         (t (error "Unknown rx form `%s'" op)))))))
 

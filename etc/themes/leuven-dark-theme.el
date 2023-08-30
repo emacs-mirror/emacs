@@ -95,7 +95,7 @@ CONTROL can be a number, nil, or t.  When t, use DEFAULT-HEIGHT."
 
 ;;;###theme-autoload
 (deftheme leuven-dark
-  "Face colors with a light background.
+  "Face colors with a dark background.
 Basic, Font Lock, Isearch, Gnus, Message, Org mode, Diff, Ediff,
 Flyspell, Semantic, and Ansi-Color faces are included -- and much
 more..."
@@ -621,11 +621,11 @@ more..."
    `(helm-source-header ((,class (:weight bold :box (:line-width 1 :color "#3d3842") :background "#433e48" :foreground "#ffffff"))))
    `(helm-swoop-target-line-block-face ((,class (:background "#3833ff" :foreground "#e0dde3"))))
    `(helm-swoop-target-line-face ((,class (:background "#38330b"))))
-   `(helm-swoop-target-word-face ((,class (:weight bold :foreground nil :background "#0742d2"))))
+   `(helm-swoop-target-word-face ((,class (:weight bold :foreground unspecified :background "#0742d2"))))
    `(helm-visible-mark ((,class ,marked-line)))
    `(helm-w3m-bookmarks-face ((,class (:underline t :foreground "#ff010b"))))
-   `(highlight-changes ((,class (:foreground nil)))) ;; blue "#d4f754"
-   `(highlight-changes-delete ((,class (:strike-through nil :foreground nil)))) ;; red "#4ff7d7"
+   `(highlight-changes ((,class (:foreground unspecified)))) ;; blue "#d4f754"
+   `(highlight-changes-delete ((,class (:strike-through nil :foreground unspecified)))) ;; red "#4ff7d7"
    `(highlight-symbol-face ((,class (:background "#252080"))))
    `(hl-line ((,class ,highlight-yellow))) ; Highlight current line.
    `(hl-tags-face ((,class ,highlight-current-tag))) ; ~ Pair highlighting (matching tags).
@@ -643,7 +643,7 @@ more..."
    `(info-file ((,class (:family "Sans Serif" :height 1.8 :weight bold :box (:line-width 1 :color "#ffff3d") :foreground "#9f6a1c" :background "#563c2a"))))
    `(info-header-node ((,class (:underline t :foreground "#065aff")))) ; nodes in header
    `(info-header-xref ((,class (:underline t :foreground "#e46f0b")))) ; cross references in header
-   `(info-index-match ((,class (:weight bold :foreground nil :background "#0742d2")))) ; when using `i'
+   `(info-index-match ((,class (:weight bold :foreground unspecified :background "#0742d2")))) ; when using `i'
    `(info-menu-header ((,class ,ol2))) ; menu titles (headers) -- major topics
    `(info-menu-star ((,class (:foreground "#ffffff")))) ; every 3rd menu item
    `(info-node ((,class (:underline t :foreground "#ffff0b")))) ; node names

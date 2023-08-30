@@ -502,26 +502,34 @@ hanging around."
          ;; different buffer.  This can happen, for example, when
          ;; org-capture copies local variables into *Capture* buffer.
          (setq buffers (list (current-buffer)))
-       (dolist (buf (cons (or (buffer-base-buffer) (current-buffer))
-                          (buffer-local-value 'org-fold-core--indirect-buffers (or (buffer-base-buffer) (current-buffer)))))
-         (if (buffer-live-p buf)
-             (push buf buffers)
-           (dolist (spec (org-fold-core-folding-spec-list))
-             (when (and (not (org-fold-core-get-folding-spec-property spec :global))
-                        (gethash (cons buf spec) org-fold-core--property-symbol-cache))
-               ;; Make sure that dead-properties variable can be passed
-               ;; as argument to `remove-text-properties'.
-               (push t dead-properties)
-               (push (gethash (cons buf spec) org-fold-core--property-symbol-cache)
-                     dead-properties))))))
+       (let ((all-buffers (buffer-local-value
+                           'org-fold-core--indirect-buffers
+                           (or (buffer-base-buffer) (current-buffer)))))
+         (dolist (buf (cons (or (buffer-base-buffer) (current-buffer))
+                            (buffer-local-value 'org-fold-core--indirect-buffers (or (buffer-base-buffer) (current-buffer)))))
+           (if (buffer-live-p buf)
+               (push buf buffers)
+             (dolist (spec (org-fold-core-folding-spec-list))
+               (when (and (not (org-fold-core-get-folding-spec-property spec :global))
+                          (gethash (cons buf spec) org-fold-core--property-symbol-cache))
+                 ;; Make sure that dead-properties variable can be passed
+                 ;; as argument to `remove-text-properties'.
+                 (push t dead-properties)
+                 (push (gethash (cons buf spec) org-fold-core--property-symbol-cache)
+                       dead-properties)))))
+         (when dead-properties
+           (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+             (setq-local org-fold-core--indirect-buffers
+                         (seq-filter #'buffer-live-p all-buffers))))))
      (dolist (buf buffers)
        (with-current-buffer buf
-         (with-silent-modifications
-           (save-restriction
-             (widen)
-             (remove-text-properties
-              (point-min) (point-max)
-              dead-properties)))
+         (when dead-properties
+           (with-silent-modifications
+             (save-restriction
+               (widen)
+               (remove-text-properties
+                (point-min) (point-max)
+                dead-properties))))
          ,@body))))
 
 ;; This is the core function used to fold text in buffers.  We use
@@ -1277,19 +1285,19 @@ to :front-sticky/:rear-sticky folding spec property.
 If the folded region is folded with a spec with non-nil :fragile
 property, unfold the region if the :fragile function returns non-nil."
   ;; If no insertions or deletions in buffer, skip all the checks.
-  (unless (or (eq org-fold-core--last-buffer-chars-modified-tick (buffer-chars-modified-tick))
-              org-fold-core--ignore-modifications
+  (unless (or org-fold-core--ignore-modifications
+              (eq org-fold-core--last-buffer-chars-modified-tick (buffer-chars-modified-tick))
               (memql 'ignore-modification-checks org-fold-core--optimise-for-huge-buffers))
     ;; Store the new buffer modification state.
     (setq org-fold-core--last-buffer-chars-modified-tick (buffer-chars-modified-tick))
     (save-match-data
       ;; Handle changes in all the indirect buffers and in the base
       ;; buffer.  Work around Emacs bug#46982.
-      (when (eq org-fold-core-style 'text-properties)
-        (org-fold-core-cycle-over-indirect-buffers
-          ;; Re-hide text inserted in the middle/front/back of a folded
-          ;; region.
-          (unless (equal from to) ; Ignore deletions.
+      ;; Re-hide text inserted in the middle/front/back of a folded
+      ;; region.
+      (unless (equal from to) ; Ignore deletions.
+        (when (eq org-fold-core-style 'text-properties)
+          (org-fold-core-cycle-over-indirect-buffers
 	    (dolist (spec (org-fold-core-folding-spec-list))
               ;; Reveal fully invisible text inserted in the middle
               ;; of visible portion of the buffer.  This is needed,

@@ -274,6 +274,34 @@
                         "abc" " %d def" " 45%s" 123 '\6)
                        "*** abc 123 def 456")))
 
+      (ert-info ("Respects buffer as first argument when given")
+        (should (equal (erc-button--display-error-notice-with-keys
+                        (make-erc-response) "abc") ; compat
+                       "*** abc"))
+        (should (equal (erc-button--display-error-notice-with-keys
+                        (current-buffer) "abc")
+                       "*** abc")))
+
+      (ert-info ("Accounts for nil members when concatenating")
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "a" nil)
+                       "*** a"))
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "a" nil " b")
+                       "*** a b"))
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "a: %d" nil 1)
+                       "*** a: 1"))
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "a: %d %s" 1 nil)
+                       "*** a: 1 nil"))
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "a: " "%d %s" 1 nil)
+                       "*** a: 1 nil"))
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "a: " nil "%d %s" 1 nil)
+                       "*** a: 1 nil")))
+
       (when noninteractive
         (unless mode
           (erc-button-mode -1))

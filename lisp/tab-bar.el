@@ -36,6 +36,8 @@
   (require 'seq)
   (require 'icons))
 
+(autoload 'cl--set-substring "cl-lib")
+
 
 (defgroup tab-bar nil
   "Frame-local tabs."
@@ -162,7 +164,8 @@ For easier selection of tabs by their numbers, consider customizing
   (declare-function icons--register "icons")
   (unless (iconp 'tab-bar-new)
     (define-icon tab-bar-new nil
-      `((image "tabs/new.xpm"
+      `((image "symbols/plus_16.svg" "tabs/new.xpm"
+               :face shadow
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji "➕")
@@ -175,7 +178,9 @@ For easier selection of tabs by their numbers, consider customizing
 
   (unless (iconp 'tab-bar-close)
     (define-icon tab-bar-close nil
-      `((image "tabs/close.xpm"
+      `((image "symbols/cross_16.svg" "tabs/close.xpm"
+               :face shadow
+               :height (1.0 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji " ❌")
@@ -189,7 +194,10 @@ For easier selection of tabs by their numbers, consider customizing
 
   (unless (iconp 'tab-bar-menu-bar)
     (define-icon tab-bar-menu-bar nil
-      '(;; (emoji "🍔")
+      `((image "symbols/menu_16.svg"
+               :margin ,tab-bar-button-margin
+               :ascent center)
+        ;; (emoji "🍔")
         (symbol "☰")
         (text "Menu" :face tab-bar-tab-inactive))
       "Icon for the menu bar."
@@ -341,10 +349,12 @@ only when you click on its \"x\" close button."
     (unless (eq tab-number t)
       (tab-bar-close-tab tab-number))))
 
-(defun tab-bar-mouse-context-menu (event)
-  "Pop up the context menu for the tab on which you click."
+(defun tab-bar-mouse-context-menu (event &optional posn)
+  "Pop up the context menu for the tab on which you click.
+EVENT is a mouse or touch screen event.  POSN is nil or the
+position of EVENT."
   (interactive "e")
-  (let* ((item (tab-bar--event-to-item (event-start event)))
+  (let* ((item (tab-bar--event-to-item (or posn (event-start event))))
          (tab-number (tab-bar--key-to-number (nth 0 item)))
          (menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
 
@@ -397,6 +407,78 @@ at the mouse-down event to the position at mouse-up event."
       (tab-bar-move-tab-to
        (if (null to) (1+ (tab-bar--current-tab-index)) to) from))))
 
+
+
+;;; Tab bar touchscreen support.
+
+(declare-function touch-screen-track-tap "touch-screen.el")
+
+(defun tab-bar-handle-timeout ()
+  "Handle a touch-screen timeout on the tab bar.
+Beep, then throw to `context-menu' and return."
+  (beep)
+  (throw 'context-menu 'context-menu))
+
+(defun tab-bar-touchscreen-begin (event)
+  "Handle a touchscreen begin EVENT on the tab bar.
+
+Determine where the touch was made.  If it was made on a tab
+itself, start a timer set to go off after a certain amount of
+time, and wait for the touch point to be released, and either
+display a context menu or select a tab as appropriate.
+
+Otherwise, if it was made on a button, close or create a tab as
+appropriate."
+  (interactive "e")
+  (let* ((posn (cdadr event))
+         (item (tab-bar--event-to-item posn))
+         (number (tab-bar--key-to-number (car item)))
+         timer)
+    (when (eq (catch 'context-menu
+                (cond ((integerp number)
+                       ;; The touch began on a tab.  Start a context
+                       ;; menu timer and start tracking the tap.
+                       (unwind-protect
+                           (progn
+                             (setq timer (run-at-time touch-screen-delay nil
+                                                      #'tab-bar-handle-timeout))
+                             ;; Now wait for the tap to complete.
+                             (when (touch-screen-track-tap event)
+                               ;; And select the tab, or close it,
+                               ;; depending on whether or not the
+                               ;; close button was pressed.
+                               (if (caddr item)
+                                   (tab-bar-close-tab number)
+                                 (tab-bar-select-tab number))))
+                         ;; Cancel the timer.
+                         (cancel-timer timer)))
+                      ((and (memq (car item) '(add-tab history-back
+                                                       history-forward))
+                            (functionp (cadr item)))
+                       ;; This is some kind of button.  Wait for the
+                       ;; tap to complete and press it.
+                       (when (touch-screen-track-tap event)
+                         (call-interactively (cadr item))))
+                      (t
+                       ;; The touch began on the tab bar itself.
+                       ;; Start a context menu timer and start
+                       ;; tracking the tap, but don't do anything
+                       ;; afterwards.
+                       (unwind-protect
+                           (progn
+                             (setq timer (run-at-time touch-screen-delay nil
+                                                      #'tab-bar-handle-timeout))
+                             ;; Now wait for the tap to complete.
+                             (touch-screen-track-tap event))
+                         ;; Cancel the timer.
+                         (cancel-timer timer)))))
+              'context-menu)
+      ;; Display the context menu in response to a time out waiting
+      ;; for the tap to complete.
+      (tab-bar-mouse-context-menu event posn))))
+
+
+
 (defvar-keymap tab-bar-map
   :doc "Keymap for the commands used on the tab bar."
   "<down-mouse-1>"  #'tab-bar-mouse-down-1
@@ -418,7 +500,8 @@ at the mouse-down event to the position at mouse-up event."
   "S-<wheel-up>"    #'tab-bar-move-tab-backward
   "S-<wheel-down>"  #'tab-bar-move-tab
   "S-<wheel-left>"  #'tab-bar-move-tab-backward
-  "S-<wheel-right>" #'tab-bar-move-tab)
+  "S-<wheel-right>" #'tab-bar-move-tab
+  "<touchscreen-begin>" #'tab-bar-touchscreen-begin)
 
 (global-set-key [tab-bar]
                 `(menu-item ,(purecopy "tab bar") ,(make-sparse-keymap)
@@ -699,6 +782,31 @@ Return its existing value or a new value."
   (set-frame-parameter frame 'tabs tabs))
 
 
+(defun tab-bar-tab-name-format-truncated (name _tab _i)
+  "Truncate the tab name.
+The maximal length is specified by `tab-bar-tab-name-truncated-max'.
+Append ellipsis `tab-bar-tab-name-ellipsis' at the end."
+  (if (< (length name) tab-bar-tab-name-truncated-max)
+      name
+    (truncate-string-to-width
+     name tab-bar-tab-name-truncated-max nil nil
+     tab-bar-tab-name-ellipsis)))
+
+(defun tab-bar-tab-name-format-hints (name _tab i)
+  "Show absolute numbers on tabs in the tab bar before the tab name.
+It has effect when `tab-bar-tab-hints' is non-nil."
+  (if tab-bar-tab-hints (concat (format "%d " i) name) name))
+
+(defun tab-bar-tab-name-format-close-button (name tab _i)
+  "Show the tab close button.
+The variable `tab-bar-close-button-show' defines when to show it."
+  (if (and tab-bar-close-button-show
+           (not (eq tab-bar-close-button-show
+                    (if (eq (car tab) 'current-tab) 'non-selected 'selected)))
+           tab-bar-close-button)
+      (concat name tab-bar-close-button)
+    name))
+
 (defcustom tab-bar-tab-face-function #'tab-bar-tab-face-default
   "Function to define a tab face.
 Function gets one argument: a tab."
@@ -708,6 +816,38 @@ Function gets one argument: a tab."
 
 (defun tab-bar-tab-face-default (tab)
   (if (eq (car tab) 'current-tab) 'tab-bar-tab 'tab-bar-tab-inactive))
+
+(defun tab-bar-tab-name-format-face (name tab _i)
+  "Apply the face to the tab name.
+It uses the function `tab-bar-tab-face-function'."
+  (add-face-text-property
+   0 (length name) (funcall tab-bar-tab-face-function tab) t name)
+  name)
+
+(defcustom tab-bar-tab-name-format-functions
+  '(tab-bar-tab-name-format-hints
+    tab-bar-tab-name-format-close-button
+    tab-bar-tab-name-format-face)
+  "Functions called to modify the tab name.
+Each function is called with three arguments: the name returned
+by the previously called modifier, the tab and its number.
+It should return the formatted tab name to display in the tab bar."
+  :type '(repeat
+          (choice (function-item tab-bar-tab-name-format-truncated)
+                  (function-item tab-bar-tab-name-format-hints)
+                  (function-item tab-bar-tab-name-format-close-button)
+                  (function-item tab-bar-tab-name-format-face)
+                  (function :tag "Custom function")))
+  :group 'tab-bar
+  :version "30.1")
+
+(defun tab-bar-tab-name-format-default (tab i)
+  (let ((name (copy-sequence (alist-get 'name tab))))
+    (run-hook-wrapped 'tab-bar-tab-name-format-functions
+                      (lambda (fun)
+                        (setq name (funcall fun name tab i))
+                        nil))
+    name))
 
 (defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
   "Function to format a tab name.
@@ -720,18 +860,6 @@ the formatted tab name to display in the tab bar."
          (force-mode-line-update))
   :group 'tab-bar
   :version "28.1")
-
-(defun tab-bar-tab-name-format-default (tab i)
-  (let ((current-p (eq (car tab) 'current-tab)))
-    (propertize
-     (concat (if tab-bar-tab-hints (format "%d " i) "")
-             (alist-get 'name tab)
-             (or (and tab-bar-close-button-show
-                      (not (eq tab-bar-close-button-show
-                               (if current-p 'non-selected 'selected)))
-                      tab-bar-close-button)
-                 ""))
-     'face (funcall tab-bar-tab-face-function tab))))
 
 (defcustom tab-bar-format '(tab-bar-format-history
                             tab-bar-format-tabs
@@ -790,7 +918,7 @@ Used by `tab-bar-format-menu-bar'."
 (defun tab-bar-format-menu-bar ()
   "Produce the Menu button for the tab bar that shows the menu bar."
   `((menu-bar menu-item ,tab-bar-menu-bar-button
-     tab-bar-menu-bar :help "Menu Bar")))
+     tab-bar-menu-bar :help "Menu bar")))
 
 (defun tab-bar-format-history ()
   "Produce back and forward buttons for the tab bar.
@@ -817,13 +945,13 @@ You can hide these buttons by customizing `tab-bar-format' and removing
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
         ignore
-        :help "Current tab")))
+        :help ,(alist-get 'name tab))))
     (t
      `((,(intern (format "tab-%i" i))
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
         ,(alist-get 'binding tab)
-        :help "Click to visit tab"))))
+        :help ,(alist-get 'name tab)))))
    (when (alist-get 'close-binding tab)
      `((,(if (eq (car tab) 'current-tab) 'C-current-tab
            (intern (format "C-tab-%i" i)))
@@ -2156,7 +2284,7 @@ and can restore them."
 
         (unless (iconp 'tab-bar-back)
           (define-icon tab-bar-back nil
-            `((image "tabs/left-arrow.xpm"
+            `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " < "))
@@ -2166,7 +2294,7 @@ and can restore them."
 
         (unless (iconp 'tab-bar-forward)
           (define-icon tab-bar-forward nil
-            `((image "tabs/right-arrow.xpm"
+            `((image "symbols/chevron_right_16.svg" "tabs/right-arrow.xpm"
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " > "))

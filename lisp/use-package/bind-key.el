@@ -196,6 +196,7 @@ can safely be called at any time."
                                (key-description ,namevar))
                              (if (symbolp ,keymap) ,keymap (quote ,keymap))))
             (,bindingvar (lookup-key ,kmapvar ,keyvar)))
+       (require 'bind-key)      ; ensure `personal-keybindings' is in scope
        (let ((entry (assoc ,kdescvar personal-keybindings))
              (details (list ,command
                             (unless (numberp ,bindingvar)

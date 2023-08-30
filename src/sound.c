@@ -1147,6 +1147,7 @@ alsa_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
                 alsa_sound_perror ("Can't recover from underrun, prepare failed",
                                    err);
             }
+#ifdef ESTRPIPE
           else if (err == -ESTRPIPE)
             {
               while ((err = snd_pcm_resume (p->handle)) == -EAGAIN)
@@ -1160,6 +1161,7 @@ alsa_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
                                        err);
                 }
             }
+#endif
           else
             alsa_sound_perror ("Error writing to sound device", err);
 
@@ -1384,7 +1386,7 @@ Internal use only, use `play-sound' instead.  */)
       /* Open the sound file.  */
       current_sound->fd =
 	openp (list1 (Vdata_directory), attrs[SOUND_FILE], Qnil, &file, Qnil,
-	       false, false);
+	       false, false, NULL);
       if (current_sound->fd < 0)
 	sound_perror ("Could not open sound file");
 

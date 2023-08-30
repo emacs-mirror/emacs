@@ -553,11 +553,24 @@ the updated value."
     (setq startup--original-eln-load-path
           (copy-sequence native-comp-eln-load-path))))
 
+(defvar android-fonts-enumerated nil
+  "Whether or not fonts have been enumerated already.
+On Android, Emacs uses this variable internally at startup.")
+
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
+  ;; Initialize the Android font driver late.
+  ;; This is done here because it needs the `mac-roman' coding system
+  ;; to be loaded.
+  (when (and (featurep 'android)
+             (fboundp 'android-enumerate-fonts)
+             (not android-fonts-enumerated))
+    (funcall 'android-enumerate-fonts)
+    (setq android-fonts-enumerated t))
+
   (if command-line-processed
       (message internal--top-level-message)
     (setq command-line-processed t)
@@ -1010,6 +1023,7 @@ init-file, or to a default value if loading is not possible."
          ;; Use (startup--witness) instead of nil, so we can detect when the
          ;; init files set `debug-ignored-errors' to nil.
          (if init-file-debug '(startup--witness) debug-ignored-errors))
+        (d-i-e-standard debug-ignored-errors)
         ;; The init file might contain byte-code with embedded NULs,
         ;; which can cause problems when read back, so disable nul
         ;; byte detection.  (Bug#52554)
@@ -1098,8 +1112,16 @@ the `--debug-init' option to view a complete error backtrace."
 
       ;; If we can tell that the init file altered debug-on-error,
       ;; arrange to preserve the value that it set up.
-      (or (eq debug-ignored-errors d-i-e-initial)
-          (setq d-i-e-from-init-file (list debug-ignored-errors)))
+      (unless (eq debug-ignored-errors d-i-e-initial)
+        (if (memq 'startup--witness debug-ignored-errors)
+            ;; The init file wants to add errors to the standard
+            ;; value, so we need to emulate that.
+            (setq d-i-e-from-init-file
+                  (list (append d-i-e-standard
+                                (remq 'startup--witness
+                                      debug-ignored-errors))))
+          ;; The init file _replaces_ the standard value.
+          (setq d-i-e-from-init-file (list debug-ignored-errors))))
       (or (eq debug-on-error debug-on-error-initial)
           (setq debug-on-error-should-be-set t
                 debug-on-error-from-init-file debug-on-error)))

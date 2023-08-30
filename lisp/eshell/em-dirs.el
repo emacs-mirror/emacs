@@ -429,9 +429,13 @@ in the minibuffer:
 	  (and eshell-cd-shows-directory
 	       (eshell-printn result)))
 	(run-hooks 'eshell-directory-change-hook)
-	(if eshell-list-files-after-cd
-	    ;; Let-bind eshell-last-command around this?
-	    (eshell-plain-command "ls" (cdr args)))
+        (when eshell-list-files-after-cd
+          ;; Call "ls", but don't update the last-command information.
+          (let ((eshell-last-command-name)
+                (eshell-last-command-status)
+                (eshell-last-arguments))
+            (eshell-protect
+             (eshell-plain-command "ls" (cdr args)))))
 	nil))))
 
 (put 'eshell/cd 'eshell-no-numeric-conversions t)

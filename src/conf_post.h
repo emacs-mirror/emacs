@@ -461,3 +461,13 @@ extern int emacs_setenv_TZ (char const *);
 #else
 # define UNINIT /* empty */
 #endif
+
+/* MB_CUR_MAX is often broken on systems which copy-paste LLVM
+   headers, so replace its definition with a working one if
+   necessary.  */
+
+#ifdef REPLACEMENT_MB_CUR_MAX
+#include <stdlib.h>
+#undef MB_CUR_MAX
+#define MB_CUR_MAX REPLACEMENT_MB_CUR_MAX
+#endif /* REPLACEMENT_MB_CUR_MAX */

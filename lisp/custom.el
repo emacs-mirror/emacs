@@ -1208,7 +1208,7 @@ The command `customize-create-theme' writes theme files into this
 directory.  By default, Emacs searches for custom themes in this
 directory first---see `custom-theme-load-path'."
   :initialize #'custom-initialize-delay
-  :type 'string
+  :type 'directory
   :group 'customize
   :version "22.1")
 

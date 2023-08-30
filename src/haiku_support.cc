@@ -581,6 +581,24 @@ public:
   }
 };
 
+#if 0
+
+/* Return the ID of this team.  */
+
+static team_id
+my_team_id (void)
+{
+  thread_id id;
+  thread_info info;
+
+  id = find_thread (NULL);
+  get_thread_info (id, &info);
+
+  return info.team;
+}
+
+#endif /* 0 */
+
 class Emacs : public BApplication
 {
 public:
@@ -621,7 +639,8 @@ public:
   {
     BAlert *about = new BAlert (PACKAGE_NAME,
 				PACKAGE_STRING
-				"\nThe extensible, self-documenting, real-time display editor.",
+				"\nThe extensible, self-documenting, "
+				"real-time display editor.",
 				"Close");
     about->Go ();
   }
@@ -674,6 +693,39 @@ public:
     else
       BApplication::MessageReceived (msg);
   }
+
+  /* The code below doesn't function; see `be_display_notification'
+     for further specifics.  */
+
+#if 0
+  void
+  ArgvReceived (int32 argc, char **argv)
+  {
+    struct haiku_notification_click_event rq;
+    intmax_t id;
+    team_id team;
+
+    /* ArgvReceived is called after Emacs is first started, with each
+       command line argument passed to Emacs.  It is, moreover, called
+       with ARGC set to 1 and ARGV[0] a string starting with
+       -Notification, after a notification is clicked.  This string
+       both incorporates the team ID and the notification ID.  */
+
+    if (argc == 1
+	&& sscanf (argv[0], "-Notification,%d.%jd", &team, &id) == 2)
+      {
+	/* Since this is a valid notification message, generate an
+	   event if the team ID matches.  */
+	if (team == my_team_id ())
+	  {
+	    rq.id = id;
+	    haiku_write (NOTIFICATION_CLICK_EVENT, &rq);
+	  }
+      }
+
+    BApplication::ArgvReceived (argc, argv);
+  }
+#endif /* 0 */
 };
 
 class EmacsWindow : public BWindow
@@ -3263,9 +3315,7 @@ class EmacsFilePanelCallbackLooper : public BLooper
 	      {
 		str_buf = (char *) alloca (std::strlen (str_path)
 					   + std::strlen (name) + 2);
-		snprintf (str_buf, std::strlen (str_path)
-			  + std::strlen (name) + 2, "%s/%s",
-			  str_path, name);
+		sprintf (str_buf, "%s/%s", str_path, name);
 		file_name = strdup (str_buf);
 	      }
 	  }

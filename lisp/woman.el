@@ -1338,8 +1338,8 @@ PATH-DIRS should be a list of general manual directories (like
 manual directory regexps (like `woman-path').
 Ignore any paths that are unreadable or not directories."
   ;; Allow each path to be a single string or a list of strings:
-  (if (not (listp path-dirs)) (setq path-dirs (list path-dirs)))
-  (if (not (listp path-regexps)) (setq path-regexps (list path-regexps)))
+  (setq path-dirs (ensure-list path-dirs))
+  (setq path-regexps (ensure-list path-regexps))
   (let (head dirs path)
     (dolist (dir path-dirs)
       (when (consp dir)
@@ -2080,8 +2080,6 @@ European characters."
 
 
 ;;; The main decoding driver:
-
-(defvar font-lock-mode)			; for the compiler
 
 (defun woman-decode-buffer ()
   "Decode a buffer in UN*X man-page source format.

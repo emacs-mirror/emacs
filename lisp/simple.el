@@ -4099,10 +4099,11 @@ default values.")
   "Amalgamate undo if necessary.
 This function can be called before an amalgamating command.  It
 removes the previous `undo-boundary' if a series of such calls
-have been made.  By default `self-insert-command' and
-`delete-char' are the only amalgamating commands, although this
-function could be called by any command wishing to have this
-behavior."
+have been made.  `self-insert-command' and `delete-char' are the
+most common amalgamating commands, although this function can be
+called by any command which desires this behavior.
+`analyze-text-conversion' (which see) is also an amalgamating
+command in most circumstances."
   (let ((last-amalgamating-count
          (undo-auto--last-boundary-amalgamating-number)))
     (setq undo-auto--this-command-amalgamating t)
@@ -5661,7 +5662,7 @@ argument should still be a \"useful\" string for such uses."
                   ;; interrupt this. If they interrupt it, we want to continue
                   ;; so we become selection owner, so this doesn't stay slow.
                   (if (eq (window-system) 'x)
-                      (ignore-error 'quit (funcall interprogram-paste-function))
+                      (ignore-error quit (funcall interprogram-paste-function))
                     (funcall interprogram-paste-function)))))
         (when interprogram-paste
           (setq interprogram-paste
@@ -10285,18 +10286,34 @@ SYMBOL is the name of this modifier, as a symbol.
 LSHIFTBY is the numeric value of this modifier, in keyboard events.
 PREFIX is the string that represents this modifier in an event type symbol."
   (if (numberp event)
-      (cond ((eq symbol 'control)
-	     (if (<= 64 (upcase event) 95)
-		 (- (upcase event) 64)
-	       (logior (ash 1 lshiftby) event)))
-	    ((eq symbol 'shift)
-             ;; FIXME: Should we also apply this "upcase" behavior of shift
-             ;; to non-ascii letters?
-	     (if (<= ?a (downcase event) ?z)
-		 (upcase event)
-	       (logior (ash 1 lshiftby) event)))
-	    (t
-	     (logior (ash 1 lshiftby) event)))
+      ;; Use the base event to determine how the control and shift
+      ;; modifiers should be applied.
+      (let* ((base-event (event-basic-type event)))
+        (cond ((eq symbol 'control)
+	       (if (<= 64 (upcase base-event) 95)
+                   ;; Apply the control modifier...
+		   (logior (- (upcase base-event) 64)
+                           ;; ... and any additional modifiers
+                           ;; specified in the original event...
+                           (logand event (logior ?\M-\0 ?\C-\0 ?\S-\0
+					         ?\H-\0 ?\s-\0 ?\A-\0))
+                           ;; ... including any shift modifier that
+                           ;; `event-basic-type' may have removed.
+                           (if (<= ?A event ?Z) ?\S-\0 0))
+	         (logior (ash 1 lshiftby) event)))
+	      ((eq symbol 'shift)
+               ;; FIXME: Should we also apply this "upcase" behavior of shift
+               ;; to non-ascii letters?
+	       (if (<= ?a base-event ?z)
+                   ;; Apply the Shift modifier.
+		   (logior (upcase base-event)
+                           ;; ... and any additional modifiers
+                           ;; specified in the original event.
+                           (logand event (logior ?\M-\0 ?\C-\0 ?\S-\0
+					         ?\H-\0 ?\s-\0 ?\A-\0)))
+	         (logior (ash 1 lshiftby) event)))
+	      (t
+	       (logior (ash 1 lshiftby) event))))
     (if (memq symbol (event-modifiers event))
 	event
       (let ((event-type (if (symbolp event) event (car event))))
@@ -10569,7 +10586,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
-			(memq window-system '(w32 ns pgtk haiku))
+			(memq window-system '(w32 ns pgtk haiku android))
                         (and (eq window-system 'x)
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))
@@ -10779,10 +10796,13 @@ warning using STRING as the message.")
 
 ;;; Generic dispatcher commands
 
-;; Macro `define-alternatives' is used to create generic commands.
-;; Generic commands are these (like web, mail, news, encrypt, irc, etc.)
-;; that can have different alternative implementations where choosing
-;; among them is exclusively a matter of user preference.
+;; Macro `define-alternatives' can be used to create generic commands.
+;; Generic commands are commands that can have different alternative
+;; implementations, and choosing among them is the matter of user
+;; preference in each case.  For example, you could have a generic
+;; command `open' capable of "opening" a text file, a URL, a
+;; directory, or a binary file, and each of these alternatives would
+;; invoke a different Emacs function.
 
 ;; (define-alternatives COMMAND) creates a new interactive command
 ;; M-x COMMAND and a customizable variable COMMAND-alternatives.
@@ -10792,26 +10812,38 @@ warning using STRING as the message.")
 ;; ;;;###autoload (push '("My impl name" . my-impl-symbol) COMMAND-alternatives
 
 (defmacro define-alternatives (command &rest customizations)
-  "Define the new command `COMMAND'.
+  "Define a new generic COMMAND which can have several implementations.
 
-The argument `COMMAND' should be a symbol.
+The argument `COMMAND' should be an unquoted symbol.
 
 Running `\\[execute-extended-command] COMMAND RET' for \
-the first time prompts for which
-alternative to use and records the selected command as a custom
-variable.
+the first time prompts for the
+alternative implementation to use and records the selected alternative.
+Thereafter, `\\[execute-extended-command] COMMAND RET' will \
+automatically invoke the recorded selection.
 
 Running `\\[universal-argument] \\[execute-extended-command] COMMAND RET' \
-prompts again for an alternative
-and overwrites the previous choice.
+again prompts for an alternative
+and overwrites the previous selection.
 
-The variable `COMMAND-alternatives' contains an alist with
-alternative implementations of COMMAND.  `define-alternatives'
-does not have any effect until this variable is set.
+The macro creates a `defcustom' named `COMMAND-alternatives'.
+CUSTOMIZATIONS, if non-nil, should be pairs of `defcustom'
+keywords and values to add to the definition of that `defcustom';
+typically, these keywords will be :group and :version with the
+appropriate values.
 
-CUSTOMIZATIONS, if non-nil, should be composed of alternating
-`defcustom' keywords and values to add to the declaration of
-`COMMAND-alternatives' (typically :group and :version)."
+To be useful, the value of `COMMAND-alternatives' should be an
+alist describing the alternative implementations of COMMAND.
+The elements of this alist should be of the form
+  (ALTERNATIVE-NAME . FUNCTION)
+where ALTERNATIVE-NAME is the name of the alternative to be shown
+to the user as a selectable alternative, and FUNCTION is the
+interactive function to call which implements that alternative.
+The variable could be populated with associations describing the
+alternatives either before or after invoking `define-alternatives';
+if the variable is not defined when `define-alternatives' is invoked,
+the macro will create it with a nil value, and your Lisp program
+should then populate it."
   (declare (indent defun))
   (let* ((command-name (symbol-name command))
          (varalt-name (concat command-name "-alternatives"))
@@ -10994,7 +11026,138 @@ If the buffer doesn't exist, create it first."
   "Change value in PLIST of PROP to VAL, comparing with `equal'."
   (declare (obsolete plist-put "29.1"))
   (plist-put plist prop val #'equal))
+
 
+
+;; Text conversion support.  See textconv.c for more details about
+;; what this is.
+
+;; Actually in textconv.c.
+(defvar text-conversion-edits)
+
+;; Actually in elec-pair.el.
+(defvar electric-pair-preserve-balance)
+(declare-function electric-pair-analyze-conversion "elec-pair.el")
+
+;; Actually in emacs-lisp/timer.el.
+(declare-function timer-set-time "emacs-lisp/timer.el")
+
+(defvar-local post-text-conversion-hook nil
+  "Hook run after text is inserted by an input method.
+Each function in this list is run until one returns non-nil.
+When run, `last-command-event' is bound to the last character
+that was inserted by the input method.")
+
+(defun analyze-text-conversion ()
+  "Analyze the results of the previous text conversion event.
+
+For each insertion:
+
+  - Look for the insertion of a string starting or ending with a
+    character inside `auto-fill-chars', and fill the text around
+    it if `auto-fill-mode' is enabled.
+
+  - Look for the insertion of a new line, and cause automatic
+    line breaking of the previous line when `auto-fill-mode' is
+    enabled.
+
+  - Look for the deletion of a single electric pair character,
+    and delete the adjascent pair if
+    `electric-pair-delete-adjacent-pairs'.
+
+  - Run `post-self-insert-functions' for the last character of
+    any inserted text so that modes such as `electric-pair-mode'
+    can work.
+
+  - Run `post-text-conversion-hook' with `last-command-event' set
+    to the last character of any inserted text to finish up.
+
+Finally, amalgamate recent changes to the undo list with previous
+ones, unless a new line has been inserted or auto-fill has taken
+place.  If undo information is being recorded, make sure
+`undo-auto-current-boundary-timer' will run within the next 5
+seconds."
+  (interactive)
+  (let ((any-nonephemeral nil))
+    ;; The list must be processed in reverse.
+    (dolist (edit (reverse text-conversion-edits))
+      ;; Filter out ephemeral edits and deletions after point.  Here, we
+      ;; are only interested in insertions or deletions whose contents
+      ;; can be identified.
+      (when (stringp (nth 3 edit))
+        (with-current-buffer (car edit)
+          (if (not (eq (nth 1 edit) (nth 2 edit)))
+              ;; Process this insertion.  (nth 3 edit) is the text which
+              ;; was inserted.
+              (let* ((inserted (nth 3 edit))
+                     ;; Get the first and last characters.
+                     (start (aref inserted 0))
+                     (end (aref inserted (1- (length inserted))))
+                     ;; Figure out whether or not to auto-fill.
+                     (auto-fill-p (or (aref auto-fill-chars start)
+                                      (aref auto-fill-chars end)))
+                     ;; Figure out whether or not a newline was inserted.
+                     (newline-p (string-search "\n" inserted))
+                     ;; Save the current undo list to figure out
+                     ;; whether or not auto-fill has actually taken
+                     ;; place.
+                     (old-undo-list buffer-undo-list))
+                (save-excursion
+                  (if (and auto-fill-function newline-p)
+                      (progn (goto-char (nth 2 edit))
+                             (previous-logical-line)
+                             (funcall auto-fill-function))
+                    (when (and auto-fill-function auto-fill-p)
+                      (progn (goto-char (nth 2 edit))
+                             (funcall auto-fill-function))))
+                  ;; Record whether or not this edit should result in
+                  ;; an undo boundary being added.
+                  (setq any-nonephemeral
+                        (or any-nonephemeral newline-p
+                            ;; See if auto-fill has taken place by
+                            ;; comparing the current undo list with
+                            ;; the saved head.
+                            (not (eq old-undo-list
+                                     buffer-undo-list)))))
+                (goto-char (nth 2 edit))
+                (let ((last-command-event end))
+                  (unless (run-hook-with-args-until-success
+                           'post-text-conversion-hook)
+                    (run-hooks 'post-self-insert-hook))))
+            ;; Process this deletion before point.  (nth 2 edit) is the
+            ;; text which was deleted.  Input methods typically prefer
+            ;; to edit words instead of deleting characters off their
+            ;; ends, but they seem to always send proper requests for
+            ;; deletion for punctuation.
+            (when (and (boundp 'electric-pair-delete-adjacent-pairs)
+                       (symbol-value 'electric-pair-delete-adjacent-pairs)
+                       ;; Make sure elec-pair is loaded.
+                       (fboundp 'electric-pair-analyze-conversion)
+                       ;; Only do this if only a single edit happened.
+                       text-conversion-edits)
+              (save-excursion
+                (goto-char (nth 2 edit))
+                (electric-pair-analyze-conversion (nth 3 edit))))))))
+    ;; If all edits were ephemeral, make this an amalgamating command.
+    ;; Then, make sure that an undo boundary is placed within the next
+    ;; five seconds.
+    (unless any-nonephemeral
+      (undo-auto-amalgamate)
+      (let ((timer undo-auto-current-boundary-timer))
+        (if timer
+            ;; The timer is already running.  See if it's due to expire
+            ;; within the next five seconds.
+            (let ((time (list (aref timer 1) (aref timer 2)
+                              (aref timer 3))))
+              (unless (<= (time-convert (time-subtract time nil)
+                                        'integer)
+                          5)
+                ;; It's not, so make it run in 5 seconds.
+                (timer-set-time undo-auto-current-boundary-timer
+                                (time-add nil 5))))
+          ;; Otherwise, start it for five seconds from now.
+          (setq undo-auto-current-boundary-timer
+                (run-at-time 5 nil #'undo-auto--boundary-timer)))))))
 
 (provide 'simple)
 

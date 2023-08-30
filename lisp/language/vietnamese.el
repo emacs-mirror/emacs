@@ -28,8 +28,8 @@
 
 ;;; Commentary:
 
-;; For Vietnamese, the character sets VISCII, VSCII and TCVN-5712 are
-;; supported.
+;; For Vietnamese, the coding systems VISCII, VSCII-1 (TCVN-5712),
+;; VIQR and windows-1258 are supported.
 
 ;;; Code:
 
@@ -44,13 +44,16 @@
 (define-coding-system-alias 'viscii 'vietnamese-viscii)
 
 (define-coding-system 'vietnamese-vscii
-  "8-bit encoding for Vietnamese VSCII-1."
+  "8-bit encoding for Vietnamese VSCII-1 (TCVN-5712)."
   :coding-type 'charset
   :mnemonic ?v
   :charset-list '(vscii)
   :suitable-for-file-name t)
 
 (define-coding-system-alias 'vscii 'vietnamese-vscii)
+(define-coding-system-alias 'vietnamese-tcvn 'vietnamese-vscii)
+(define-coding-system-alias 'tcvn 'vietnamese-vscii)
+(define-coding-system-alias 'tcvn-5712 'vietnamese-vscii)
 
 ;; (make-coding-system
 ;;  'vietnamese-vps 4 ?p
@@ -74,7 +77,7 @@
 (set-language-info-alist
  "Vietnamese" '((charset viscii)
 		(coding-system vietnamese-viscii vietnamese-vscii
-			       vietnamese-tcvn vietnamese-viqr windows-1258)
+			       vietnamese-viqr windows-1258)
 		(nonascii-translation . viscii)
 		(coding-priority vietnamese-viscii)
 		(input-method . "vietnamese-viqr")
@@ -83,12 +86,12 @@
 		(sample-text . "Vietnamese (Tiếng Việt)	Chào bạn")
 		(documentation . "\
 For Vietnamese, Emacs uses special charsets internally.
-They can be decoded from and encoded to VISCII, VSCII, TCVN-5712, VIQR
-and windows-1258.  VSCII is deprecated in favor of TCVN-5712.  The
-Current setting gives higher priority to the coding system VISCII than
-TCVN-5712.  If you prefer TCVN-5712, please do: (prefer-coding-system
-'vietnamese-tcvn).  There are two Vietnamese input methods: VIQR and
-Telex, VIQR is the default setting.")))
+They can be decoded from and encoded to VISCII, VSCII-1 (TCVN-5712),
+VIQR and windows-1258.  The current setting gives higher priority
+to the coding system VISCII than VSCII-1.  If you prefer VSCII-1,
+please do: (prefer-coding-system 'vietnamese-vscii).  There are
+two Vietnamese input methods: VIQR and Telex, VIQR is the default
+setting.")))
 
 (define-coding-system 'windows-1258
   "windows-1258 encoding for Vietnamese (MIME: WINDOWS-1258)"
@@ -97,15 +100,6 @@ Telex, VIQR is the default setting.")))
   :charset-list '(windows-1258)
   :mime-charset 'windows-1258)
 (define-coding-system-alias 'cp1258 'windows-1258)
-
-(define-coding-system 'vietnamese-tcvn
-  "8-bit encoding for Vietnamese TCVN-5712"
-  :coding-type 'charset
-  :mnemonic ?t
-  :charset-list '(tcvn-5712)
-  :suitable-for-file-name t)
-(define-coding-system-alias 'tcvn 'vietnamese-tcvn)
-(define-coding-system-alias 'tcvn-5712 'vietnamese-tcvn)
 
 (provide 'vietnamese)
 

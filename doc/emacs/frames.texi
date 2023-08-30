@@ -1333,6 +1333,21 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.  On macOS the
 tool bar is hidden when the frame is put into fullscreen, but can be
 displayed by moving the mouse pointer to the top of the screen.
 
+@vindex modifier-bar-mode
+@findex modifier-bar-mode
+@cindex displaying modifier keys in the tool bar
+@cindex mode, Modifier Bar
+@cindex Modifier Bar
+  Keyboards often lack one or more of the modifier keys that Emacs
+might want to use, making it difficult or impossible to input key
+sequences that contain them.  Emacs can optionally display a list of
+buttons that act as substitutes for modifier keys within the tool bar;
+these buttons are also referred to as the ``modifier bar''.  Clicking
+an icon within the modifier bar will cause a modifier key to be
+applied to the next keyboard event that is read.  The modifier bar is
+displayed when the global minor mode @code{modifier-bar-mode} is
+enabled; to do so, type @kbd{M-x modifier-bar-mode}.
+
 @node Tab Bars
 @section Tab Bars
 @cindex tab bar mode
@@ -1570,6 +1585,15 @@ the items that operate on the clicked tab.  Dragging the tab with
 @kbd{mouse-1} moves it to another position on the tab bar.  Mouse
 wheel scrolling switches to the next or previous tab.  Holding down
 the @key{SHIFT} key during scrolling moves the tab to the left or right.
+
+  Touch screen input (@pxref{Other Input Devices}) can also be used to
+operate on tabs.  Long-pressing (@pxref{Touchscreens}) a tab will
+display a context menu with items that operate on the tab that was
+pressed, and long-pressing the tab bar itself will display a context
+menu which lets you create and remove tabs; tapping a tab itself will
+result in that tab's window configuration being selected, and tapping
+a button on the tab bar will behave as if it was clicked with
+@kbd{mouse-1}.
 
 @findex tab-bar-history-mode
   You can enable @code{tab-bar-history-mode} to remember window

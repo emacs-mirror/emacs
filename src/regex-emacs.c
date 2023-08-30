@@ -47,6 +47,9 @@
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX(c) syntax_property (c, 1)
 
+/* Explicit syntax lookup using the buffer-local table.  */
+#define BUFFER_SYNTAX(c) syntax_property (c, 0)
+
 #define RE_MULTIBYTE_P(bufp) ((bufp)->multibyte)
 #define RE_TARGET_MULTIBYTE_P(bufp) ((bufp)->target_multibyte)
 #define RE_STRING_CHAR(p, multibyte) \
@@ -132,18 +135,22 @@
 
 #define ISLOWER(c) lowercasep (c)
 
+#define ISUPPER(c) uppercasep (c)
+
+/* The following predicates use the buffer-local syntax table and
+   ignore syntax properties, for consistency with the up-front
+   assumptions made at compile time.  */
+
 #define ISPUNCT(c) (IS_REAL_ASCII (c)				\
 		    ? ((c) > ' ' && (c) < 0177			\
 		       && !(((c) >= 'a' && (c) <= 'z')		\
 		            || ((c) >= 'A' && (c) <= 'Z')	\
 		            || ((c) >= '0' && (c) <= '9')))	\
-		    : SYNTAX (c) != Sword)
+		    : BUFFER_SYNTAX (c) != Sword)
 
-#define ISSPACE(c) (SYNTAX (c) == Swhitespace)
+#define ISSPACE(c) (BUFFER_SYNTAX (c) == Swhitespace)
 
-#define ISUPPER(c) uppercasep (c)
-
-#define ISWORD(c) (SYNTAX (c) == Sword)
+#define ISWORD(c) (BUFFER_SYNTAX (c) == Sword)
 
 /* Use alloca instead of malloc.  This is because using malloc in
    re_search* or re_match* could cause memory leaks when C-g is used
@@ -554,7 +561,7 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	    fprintf (stderr, "/charset [%s",
 		     (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
-	    if (p + *p >= pend)
+	    if (p + (*p & 0x7f) >= pend)
 	      fputs (" !extends past end of pattern! ", stderr);
 
 	    for (c = 0; c < 256; c++)
@@ -2047,13 +2054,6 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		       a flag.  Exceptions are is_blank, is_digit, is_cntrl, and
 		       is_xdigit, since they can only match ASCII characters.
 		       We don't need to handle them for multibyte.  */
-
-		    /* Setup the gl_state object to its buffer-defined value.
-		       This hardcodes the buffer-global syntax-table for ASCII
-		       chars, while the other chars will obey syntax-table
-		       properties.  It's not ideal, but it's the way it's been
-		       done until now.  */
-		    SETUP_BUFFER_SYNTAX_TABLE ();
 
 		    for (c = 0; c < 0x80; ++c)
 		      if (re_iswctype (c, cc))

@@ -175,6 +175,31 @@ typedef struct haiku_bitmap_record Bitmap_Record;
 
 #endif
 
+#ifdef HAVE_ANDROID
+#include "androidterm.h"
+
+typedef struct android_bitmap_record Bitmap_Record;
+
+typedef struct android_image XImage;
+typedef android_pixmap Pixmap;
+
+#define GET_PIXEL(ximg, x, y) 		android_get_pixel (ximg, x, y)
+#define PUT_PIXEL(ximg, x, y, pixel)    android_put_pixel (ximg, x, y, pixel)
+#define NO_PIXMAP			0
+
+#define PIX_MASK_RETAIN	0
+#define PIX_MASK_DRAW	1
+
+#define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
+#define GREEN_FROM_ULONG(color)	(((color) >> 8) & 0xff)
+#define BLUE_FROM_ULONG(color)	((color) & 0xff)
+#define RED16_FROM_ULONG(color)		(RED_FROM_ULONG (color) * 0x101)
+#define GREEN16_FROM_ULONG(color)	(GREEN_FROM_ULONG (color) * 0x101)
+#define BLUE16_FROM_ULONG(color)	(BLUE_FROM_ULONG (color) * 0x101)
+
+#endif
+
 static void image_disable_image (struct frame *, struct image *);
 static void image_edge_detection (struct frame *, struct image *, Lisp_Object,
                                   Lisp_Object);
@@ -441,32 +466,101 @@ image_reference_bitmap (struct frame *f, ptrdiff_t id)
 }
 
 #ifdef HAVE_PGTK
+
+/* Create a Cairo pattern from the bitmap BITS, which should be WIDTH
+   and HEIGHT in size.  BITS's fill order is LSB first, meaning that
+   the value of the left most pixel within a byte is its least
+   significant bit.  */
+
 static cairo_pattern_t *
-image_create_pattern_from_pixbuf (struct frame *f, GdkPixbuf * pixbuf)
+image_bitmap_to_cr_pattern (char *bits, int width, int height)
 {
-  GdkPixbuf *pb = gdk_pixbuf_add_alpha (pixbuf, TRUE, 255, 255, 255);
-  cairo_surface_t *surface =
-    cairo_surface_create_similar_image (cairo_get_target
-					(f->output_data.pgtk->cr_context),
-					CAIRO_FORMAT_A1,
-					gdk_pixbuf_get_width (pb),
-					gdk_pixbuf_get_height (pb));
+  cairo_surface_t *surface;
+  unsigned char *data;
+  int stride;
+  cairo_pattern_t *pattern;
+#ifdef WORDS_BIGENDIAN
+  int x;
+  static const unsigned char table[] = {
+    0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
+    0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
+    0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
+    0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
+    0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
+    0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
+    0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
+    0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
+    0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
+    0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
+    0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
+    0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
+    0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
+    0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
+    0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
+    0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
+    0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
+    0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
+    0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
+    0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
+    0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
+    0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
+    0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
+    0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
+    0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
+    0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
+    0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
+    0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
+    0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
+    0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
+    0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
+  };
+#endif /* WORDS_BIGENDIAN */
 
-  cairo_t *cr = cairo_create (surface);
-  gdk_cairo_set_source_pixbuf (cr, pb, 0, 0);
-  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  cairo_paint (cr);
-  cairo_destroy (cr);
+  surface = cairo_image_surface_create (CAIRO_FORMAT_A1, width,
+					height);
 
-  cairo_pattern_t *pat = cairo_pattern_create_for_surface (surface);
-  cairo_pattern_set_extend (pat, CAIRO_EXTEND_REPEAT);
+  if (cairo_surface_status (surface) != CAIRO_STATUS_SUCCESS)
+    memory_full (0);
 
+  cairo_surface_flush (surface);
+  data = cairo_image_surface_get_data (surface);
+  stride = cairo_image_surface_get_stride (surface);
+
+#ifdef WORDS_BIGENDIAN
+  /* Big endian systems require that individual bytes be inverted to
+     compensate for the different fill order used by Cairo.  */
+  while (height--)
+    {
+      memcpy (data, bits, (width + 7) / 8);
+      for (x = 0; x < (width + 7) / 8; ++x)
+	data[x] = table[data[x]];
+      data += stride;
+      bits += (width + 7) / 8;
+    }
+#else /* !WORDS_BIGENDIAN */
+  /* Cairo uses LSB first fill order for bitmaps on little-endian
+     systems, so copy each row over.  */
+
+  while (height--)
+    {
+      memcpy (data, bits, (width + 7) / 8);
+      data += stride;
+      bits += (width + 7) / 8;
+    }
+#endif /* WORDS_BIGENDIAN */
+
+  cairo_surface_mark_dirty (surface);
+  pattern = cairo_pattern_create_for_surface (surface);
+  if (cairo_pattern_status (pattern) != CAIRO_STATUS_SUCCESS)
+    memory_full (0);
+
+  /* The pattern now holds a reference to the surface.  */
   cairo_surface_destroy (surface);
-  g_object_unref (pb);
-
-  return pat;
+  cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
+  return pattern;
 }
-#endif
+
+#endif /* HAVE_PGTK */
 
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
 
@@ -486,6 +580,18 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
     return -1;
 #endif /* HAVE_X_WINDOWS */
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  android_pixmap bitmap;
+
+  bitmap = android_create_bitmap_from_data (bits, width, height);
+
+  if (!bitmap)
+    return -1;
+#elif defined HAVE_ANDROID
+  ((void) dpyinfo);
+  emacs_abort ();
+#endif /* HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
 #ifdef HAVE_NTGUI
   Lisp_Object frame UNINIT;	/* The value is not used.  */
   Emacs_Pixmap bitmap;
@@ -504,46 +610,9 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-				      FALSE,
-				      8,
-				      width,
-				      height);
-  {
-    char *sp = bits;
-    int mask = 0x01;
-    unsigned char *buf = gdk_pixbuf_get_pixels (pixbuf);
-    int rowstride = gdk_pixbuf_get_rowstride (pixbuf);
-    for (int y = 0; y < height; y++)
-      {
-	unsigned char *dp = buf + rowstride * y;
-	for (int x = 0; x < width; x++)
-	  {
-	    if (*sp & mask)
-	      {
-		*dp++ = 0xff;
-		*dp++ = 0xff;
-		*dp++ = 0xff;
-	      }
-	    else
-	      {
-		*dp++ = 0x00;
-		*dp++ = 0x00;
-		*dp++ = 0x00;
-	      }
-	    if ((mask <<= 1) >= 0x100)
-	      {
-		mask = 0x01;
-		sp++;
-	      }
-	  }
-	if (mask != 0x01)
-	  {
-	    mask = 0x01;
-	    sp++;
-	  }
-      }
-  }
+  cairo_pattern_t *pattern;
+
+  pattern = image_bitmap_to_cr_pattern (bits, width, height);
 #endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
@@ -577,10 +646,8 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  dpyinfo->bitmaps[id - 1].img = pixbuf;
   dpyinfo->bitmaps[id - 1].depth = 1;
-  dpyinfo->bitmaps[id - 1].pattern =
-    image_create_pattern_from_pixbuf (f, pixbuf);
+  dpyinfo->bitmaps[id - 1].pattern = pattern;
 #endif
 
 #ifdef HAVE_HAIKU
@@ -598,14 +665,16 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   dpyinfo->bitmaps[id - 1].width = width;
   dpyinfo->bitmaps[id - 1].refcount = 1;
 
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+#ifndef ANDROID_STUBIFY
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+#endif /* ANDROID_STUBIFY */
   dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].depth = 1;
 #ifdef USE_CAIRO
   dpyinfo->bitmaps[id - 1].stipple = NULL;
 #endif	/* USE_CAIRO */
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS || HAVE_ANDROID */
 
 #ifdef HAVE_NTGUI
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
@@ -616,9 +685,20 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
-#if defined HAVE_HAIKU || defined HAVE_NS
-static char *slurp_file (int, ptrdiff_t *);
-static Lisp_Object image_find_image_fd (Lisp_Object, int *);
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "android.h"
+
+/* This abstraction allows directly loading images from assets without
+   copying them to a file descriptor first.  */
+typedef struct android_fd_or_asset image_fd;
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+typedef int image_fd;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+#if defined HAVE_HAIKU || defined HAVE_NS || defined HAVE_PGTK	\
+  || defined HAVE_ANDROID
+static char *slurp_file (image_fd, ptrdiff_t *);
+static Lisp_Object image_find_image_fd (Lisp_Object, image_fd *);
 static bool xbm_read_bitmap_data (struct frame *, char *, char *,
 				  int *, int *, char **, bool);
 #endif
@@ -680,25 +760,38 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #endif
 
 #ifdef HAVE_PGTK
-  GError *err = NULL;
-  ptrdiff_t id;
-  void * bitmap = gdk_pixbuf_new_from_file (SSDATA (file), &err);
+  ptrdiff_t id, size;
+  int fd, width, height, rc;
+  char *contents, *data;
+  void *bitmap;
 
-  if (!bitmap)
+  if (!STRINGP (image_find_image_fd (file, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
     {
-      g_error_free (err);
+      xfree (contents);
       return -1;
     }
 
   id = image_allocate_bitmap_record (f);
 
-  dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
-  dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
-  dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
+  dpyinfo->bitmaps[id - 1].height = width;
+  dpyinfo->bitmaps[id - 1].width = height;
   dpyinfo->bitmaps[id - 1].pattern
-    = image_create_pattern_from_pixbuf (f, bitmap);
+    = image_bitmap_to_cr_pattern (data, width, height);
+  xfree (contents);
+  xfree (data);
   return id;
 #endif
 
@@ -724,7 +817,7 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   /* Search bitmap-file-path for the file, if appropriate.  */
   if (openp (Vx_bitmap_file_path, file, Qnil, &found,
-	     make_fixnum (R_OK), false, false)
+	     make_fixnum (R_OK), false, false, NULL)
       < 0)
     return -1;
 
@@ -773,7 +866,7 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   /* Search bitmap-file-path for the file, if appropriate.  */
   if (openp (Vx_bitmap_file_path, file, Qnil, &found,
-	     make_fixnum (R_OK), false, false)
+	     make_fixnum (R_OK), false, false, NULL)
       < 0)
     return -1;
 
@@ -834,6 +927,73 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   xfree (contents);
   return id;
 #endif
+
+#ifdef HAVE_ANDROID
+#ifdef ANDROID_STUBIFY
+  ((void) dpyinfo);
+
+  /* This function should never be called when building stubs.  */
+  emacs_abort ();
+#else
+  ptrdiff_t id, size;
+  int width, height, rc;
+  image_fd fd;
+  char *contents, *data;
+  Lisp_Object found;
+  android_pixmap bitmap;
+
+  /* Look for an existing bitmap with the same name.  */
+  for (id = 0; id < dpyinfo->bitmaps_last; ++id)
+    {
+      if (dpyinfo->bitmaps[id].refcount
+	  && dpyinfo->bitmaps[id].file
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
+	{
+	  ++dpyinfo->bitmaps[id].refcount;
+	  return id + 1;
+	}
+    }
+
+  /* Search bitmap-file-path for the file, if appropriate.  */
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
+	     make_fixnum (R_OK), false, false, NULL)
+      < 0)
+    return -1;
+
+  if (!STRINGP (image_find_image_fd (file, &fd))
+      && !STRINGP (image_find_image_fd (found, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  xfree (contents);
+  bitmap = android_create_bitmap_from_data (data, width, height);
+  xfree (data);
+
+  id = image_allocate_bitmap_record (f);
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = false;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
+
+  return id;
+#endif
+#endif
 }
 
 /* Free bitmap B.  */
@@ -858,6 +1018,13 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
     cairo_pattern_destroy (bm->stipple);
 #endif	/* USE_CAIRO */
 #endif /* HAVE_X_WINDOWS */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  android_free_pixmap (bm->pixmap);
+
+  if (bm->have_mask)
+    android_free_pixmap (bm->pixmap);
+#endif
 
 #ifdef HAVE_NTGUI
   DeleteObject (bm->pixmap);
@@ -946,7 +1113,7 @@ static void image_unget_x_image (struct image *, bool, Emacs_Pix_Container);
   image_unget_x_image (img, mask_p, ximg)
 #endif
 
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
 
 #ifndef USE_CAIRO
 static void image_sync_to_pixmaps (struct frame *, struct image *);
@@ -959,6 +1126,8 @@ static void image_sync_to_pixmaps (struct frame *, struct image *);
 static bool x_create_x_image_and_pixmap (struct frame *, int, int, int,
 					 XImage **, Pixmap *);
 static void x_destroy_x_image (XImage *);
+
+#if defined HAVE_X_WINDOWS
 
 /* Create a mask of a bitmap. Note is this not a perfect mask.
    It's nicer with some borders in this context */
@@ -1056,7 +1225,9 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
   x_destroy_x_image (mask_img);
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif
+
+#endif /* HAVE_X_WINDOWS || defined HAVE_ANDROID*/
 
 /***********************************************************************
 			    Image types
@@ -1090,7 +1261,7 @@ struct image_type
 #if defined HAVE_RSVG || defined HAVE_PNG || defined HAVE_GIF || \
   defined HAVE_TIFF || defined HAVE_JPEG || defined HAVE_XPM || \
   defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK || \
-  defined HAVE_WEBP
+  defined HAVE_WEBP || defined HAVE_ANDROID
 # ifdef WINDOWSNT
 #  define IMAGE_TYPE_INIT(f) f
 # else
@@ -1163,6 +1334,18 @@ image_error (const char *format, ...)
   va_start (ap, format);
   vadd_to_log (format, ap);
   va_end (ap);
+}
+
+static void
+image_invalid_data_error (Lisp_Object data)
+{
+  image_error ("Invalid image data `%s'", data);
+}
+
+static void
+image_not_found_error (Lisp_Object filename)
+{
+  image_error ("Cannot find image file `%s'", filename);
 }
 
 static void
@@ -1592,7 +1775,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
 	}
       unblock_input ();
     }
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   if (!img->load_failed_p)
     {
       block_input ();
@@ -1799,7 +1982,7 @@ image_clear_image_1 (struct frame *f, struct image *img, int flags)
 	  /* NOTE (HAVE_NS): background color is NOT an indexed color! */
 	  img->background_valid = 0;
 	}
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
       if (img->ximg)
 	{
 	  image_destroy_x_image (img->ximg);
@@ -1817,7 +2000,7 @@ image_clear_image_1 (struct frame *f, struct image *img, int flags)
 	  img->mask = NO_PIXMAP;
 	  img->background_transparent_valid = 0;
 	}
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
       if (img->mask_img)
 	{
 	  image_destroy_x_image (img->mask_img);
@@ -2189,11 +2372,11 @@ image_size_in_bytes (struct image *img)
   if (msk)
     size += msk->height * msk->bytes_per_line;
 
-#elif defined HAVE_X_WINDOWS
-  /* Use a nominal depth of 24 bpp for pixmap and 1 bpp for mask,
-     to avoid having to query the server. */
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+  /* Use a nominal depth of 24 and a bpp of 32 for pixmap and 1 bpp
+     for mask, to avoid having to query the server. */
   if (img->pixmap != NO_PIXMAP)
-    size += img->width * img->height * 3;
+    size += img->width * img->height * 4;
   if (img->mask != NO_PIXMAP)
     size += img->width * img->height / 8;
 
@@ -2528,11 +2711,11 @@ compute_image_size (double width, double height,
    finally move the origin back to the top left of the image, which
    may now be a different corner.
 
-   Note that different GUI backends (X, Cairo, w32, NS, Haiku) want
-   the transform matrix defined as transform from the original image
-   to the transformed image, while others want the matrix to describe
-   the transform of the space, which boils down to inverting the
-   matrix.
+   Note that different GUI backends (X, Cairo, w32, NS, Haiku,
+   Android) want the transform matrix defined as transform from the
+   original image to the transformed image, while others want the
+   matrix to describe the transform of the space, which boils down to
+   inverting the matrix.
 
    It's possible to pre-calculate the matrix multiplications and just
    generate one transform matrix that will do everything we need in a
@@ -2574,6 +2757,96 @@ compute_image_rotation (struct image *img, double *rotation)
     *rotation = XFIXNUM (reduced_angle);
 }
 
+#ifdef HAVE_ANDROID
+
+static void
+matrix_identity (matrix3x3 matrix)
+{
+  memset (matrix, 0, sizeof (matrix3x3));
+
+  matrix[0][0] = 1.0;
+  matrix[1][1] = 1.0;
+  matrix[2][2] = 1.0;
+}
+
+/* Translate the matrix TRANSFORM to X, Y, and then perform clockwise
+   rotation by the given angle THETA in radians and translate back.
+   As the transform is being performed in a coordinate system where Y
+   grows downwards, the given angle describes a clockwise
+   rotation.  */
+
+static void
+matrix_rotate (matrix3x3 transform, double theta, double x, double y)
+{
+  matrix3x3 temp, copy;
+
+  /* 1. Translate the matrix so X and Y are in the center.  */
+
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  temp[0][2] = x;
+  temp[1][2] = y;
+
+  matrix3x3_mult (copy, temp, transform);
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  /* 2. Rotate the matrix counter-clockwise, assuming a coordinate
+     system where Y grows downwards.  */
+
+  temp[0][0] = cos (theta);
+  temp[0][1] = -sin (theta);
+  temp[1][0] = sinf (theta);
+  temp[1][1] = cosf (theta);
+
+  matrix3x3_mult (copy, temp, transform);
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  /* 3. Translate back.  */
+
+  temp[0][2] = -x;
+  temp[1][2] = -y;
+
+  matrix3x3_mult (copy, temp, transform);
+}
+
+/* Scale the matrix TRANSFORM by -1, and then apply a TX of width, in
+   effect flipping the image horizontally.  */
+
+static void
+matrix_mirror_horizontal (matrix3x3 transform, double width)
+{
+  matrix3x3 temp, copy;
+
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  temp[0][0] = -1.0f;
+  temp[0][2] = width;
+
+  matrix3x3_mult (copy, temp, transform);
+}
+
+static void
+matrix_translate (matrix3x3 transform, float tx, float ty)
+{
+  matrix3x3 temp, copy;
+
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  /* Set the tx and ty.  */
+  temp[0][2] = tx;
+  temp[1][2] = ty;
+
+  /* Multiply it with the transform.  */
+  matrix3x3_mult (copy, temp, transform);
+}
+
+#endif
+
 static void
 image_set_transform (struct frame *f, struct image *img)
 {
@@ -2591,6 +2864,14 @@ image_set_transform (struct frame *f, struct image *img)
   img->use_bilinear_filtering = false;
 
   memcpy (&img->transform, identity, sizeof identity);
+#endif
+
+#if defined HAVE_ANDROID
+  matrix3x3 identity = {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 },
+  };
 #endif
 
 # if (defined HAVE_IMAGEMAGICK \
@@ -2630,7 +2911,8 @@ image_set_transform (struct frame *f, struct image *img)
   /* Determine flipping.  */
   flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
 
-# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU \
+  || defined HAVE_ANDROID
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
      operations to use a blended filter, to avoid aliasing and the like.
@@ -2652,7 +2934,7 @@ image_set_transform (struct frame *f, struct image *img)
 
   matrix3x3 matrix
     = {
-# if defined USE_CAIRO || defined HAVE_XRENDER
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_ANDROID
 	[0][0] = (!IEEE_FLOATING_POINT && width == 0 ? DBL_MAX
 		  : img->width / (double) width),
 	[1][1] = (!IEEE_FLOATING_POINT && height == 0 ? DBL_MAX
@@ -2675,7 +2957,7 @@ image_set_transform (struct frame *f, struct image *img)
 
   /* Haiku needs this, since the transformation is done on the basis
      of the view, and not the image.  */
-#ifdef HAVE_HAIKU
+#if defined HAVE_HAIKU
   int extra_tx, extra_ty;
 
   extra_tx = 0;
@@ -2686,8 +2968,9 @@ image_set_transform (struct frame *f, struct image *img)
     rotate_flag = 0;
   else
     {
-# if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NTGUI || defined HAVE_NS \
+#ifndef HAVE_ANDROID
+# if (defined USE_CAIRO || defined HAVE_XRENDER		\
+      || defined HAVE_NTGUI || defined HAVE_NS		\
       || defined HAVE_HAIKU)
       int cos_r, sin_r;
       if (rotation == 0)
@@ -2714,7 +2997,7 @@ image_set_transform (struct frame *f, struct image *img)
 	  sin_r = 1;
 	  rotate_flag = 1;
 
-#ifdef HAVE_HAIKU
+#if defined HAVE_HAIKU
 	  if (!flip)
 	    extra_ty = height;
 	  extra_tx = 0;
@@ -2750,7 +3033,7 @@ image_set_transform (struct frame *f, struct image *img)
 
       if (0 < rotate_flag)
 	{
-#  if defined USE_CAIRO || defined HAVE_XRENDER
+#  if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_ANDROID
 	  /* 1. Translate so (0, 0) is in the center of the image.  */
 	  matrix3x3 t
 	    = { [0][0] = 1,
@@ -2801,6 +3084,93 @@ image_set_transform (struct frame *f, struct image *img)
 	  img->height = height;
 	}
 # endif
+#else
+      /* Calculate the inverse transform from the destination to the
+	 source.  The matrix is currently identity with scale
+	 applied.
+
+         This code makes more sense to me than what lies above.  But
+         I'm not touching what works.  */
+
+      if (rotation != 0 && rotation != 90
+	  && rotation != 180 && rotation != 270)
+	{
+	  rotate_flag = 0;
+	  goto bail;
+	}
+
+      rotate_flag = 1;
+
+      switch ((int) rotation + (flip ? 1 : 0))
+	{
+	case 0:
+	  break;
+
+	case 90:
+	  /* Rotate the image 90 degrees clockwise.  IOW, rotate the
+	     destination by 90 degrees counterclockwise, which is 270
+	     degrees clockwise.  */
+	  matrix_rotate (matrix, M_PI * 1.5, 0, 0);
+	  matrix_translate (matrix, -height, 0);
+	  break;
+
+	case 180:
+	  /* Apply clockwise 180 degree rotation around the
+	     center.  */
+	  matrix_rotate (matrix, M_PI, width / 2.0, height / 2.0);
+	  break;
+
+	case 270:
+	  /* Apply 270 degree counterclockwise rotation to the
+	     destination, which is 90 degrees clockwise.  */
+	  matrix_rotate (matrix, M_PI * 0.5, 0, 0);
+	  matrix_translate (matrix, 0, -width);
+	  break;
+
+	case 1:
+	  /* Flipped.  Apply horizontal flip.  */
+	  matrix_mirror_horizontal (matrix, width);
+	  break;
+
+	case 91:
+	  /* Apply a flip but otherwise treat this the same as 90.  */
+	  matrix_rotate (matrix, M_PI * 1.5, 0, 0);
+	  matrix_translate (matrix, -height, 0);
+	  matrix_mirror_horizontal (matrix, height);
+	  break;
+
+	case 181:
+	  /* Flipped 180 degrees.  Apply a flip and treat this the
+	     same as 180.  */
+	  matrix_rotate (matrix, M_PI, width / 2.0, height / 2.0);
+	  matrix_mirror_horizontal (matrix, width);
+	  break;
+
+	case 271:
+	  /* Flipped 270 degrees.  Apply a flip and treat this the
+	     same as 270.  */
+	  matrix_rotate (matrix, M_PI * 0.5, 0, 0);
+	  matrix_translate (matrix, 0, -width);
+	  matrix_mirror_horizontal (matrix, height);
+	  break;
+	}
+
+      /* Now set img->width and img->height.  Flip them if the
+	 rotation being applied requires so.  */
+
+      if (rotation != 270 && rotation != 90)
+	{
+	  img->width = width;
+	  img->height = height;
+	}
+      else
+	{
+	  img->height = width;
+	  img->width = height;
+	}
+    bail:
+      ;
+#endif
     }
 
   if (rotate_flag < 0)
@@ -2865,6 +3235,103 @@ image_set_transform (struct frame *f, struct image *img)
       img->transform[0][2] = extra_tx;
       img->transform[1][2] = extra_ty;
     }
+# elif defined HAVE_ANDROID
+  /* Create a new image of the right size, then turn it into a pixmap
+     and set that as img->pixmap.  Destroy img->mask for now (this is
+     not right.)  */
+
+  struct android_image *transformed_image, *image;
+  struct android_transform transform;
+
+  /* If there is no transform, simply return.  */
+  if (!memcmp (&matrix, &identity, sizeof matrix))
+    return;
+
+  /* First, get the source image.  */
+  image = image_get_x_image (f, img, false);
+
+  /* Make the transformed image.  */
+  transformed_image = android_create_image (image->depth,
+					    ANDROID_Z_PIXMAP,
+					    NULL, img->width,
+					    img->height);
+
+  /* Allocate memory for that image.  */
+  transformed_image->data
+    = xmalloc (transformed_image->bytes_per_line
+	       * transformed_image->height);
+
+  /* Do the transform.  */
+  transform.m1 = matrix[0][0];
+  transform.m2 = matrix[0][1];
+  transform.m3 = matrix[0][2];
+  transform.m4 = matrix[1][0];
+  transform.m5 = matrix[1][1];
+  transform.m6 = matrix[1][2];
+
+  if (image->depth == 24 && smoothing)
+    android_project_image_bilinear (image, transformed_image,
+				    &transform);
+  else
+    android_project_image_nearest (image, transformed_image,
+				   &transform);
+
+  image_unget_x_image (img, false, image);
+
+  /* Now replace the image.  */
+
+  if (img->ximg)
+    image_destroy_x_image (img->ximg);
+
+  img->ximg = transformed_image;
+
+#ifndef ANDROID_STUBIFY
+  /* Then replace the pixmap.  */
+  android_free_pixmap (img->pixmap);
+
+  /* In case android_create_pixmap signals.  */
+  img->pixmap = ANDROID_NONE;
+  img->pixmap = android_create_pixmap (img->width, img->height,
+				       transformed_image->depth);
+  android_put_image (img->pixmap, transformed_image);
+#else
+  emacs_abort ();
+#endif
+
+  /* Now, transform the mask.  The mask should be depth 1, and is
+     always transformed using a nearest neighbor filter.  */
+
+  if (img->mask_img || img->mask)
+    {
+      image = image_get_x_image (f, img, true);
+      transformed_image = android_create_image (1, ANDROID_Z_PIXMAP,
+						NULL, img->width,
+						img->height);
+      transformed_image->data
+	= xmalloc (transformed_image->bytes_per_line
+		   * transformed_image->height);
+      android_project_image_nearest (image, transformed_image,
+				     &transform);
+      image_unget_x_image (img, true, image);
+
+      /* Now replace the image.  */
+
+      if (img->mask_img)
+	image_destroy_x_image (img->mask_img);
+
+      img->mask_img = transformed_image;
+
+#ifndef ANDROID_STUBIFY
+      if (img->mask)
+	android_free_pixmap (img->mask);
+
+      img->mask = ANDROID_NONE;
+      img->mask = android_create_pixmap (img->width, img->height, 1);
+      android_put_image (img->mask, transformed_image);
+#endif
+    }
+
+  /* Done! */
 #endif
 }
 
@@ -3172,9 +3639,12 @@ mark_image_cache (struct image_cache *c)
 
 /***********************************************************************
 			  X / NS / W32 support code
+             Most of this code is shared with Android to make
+             it easier to maintain.
  ***********************************************************************/
 
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+
 static bool
 x_check_image_size (XImage *ximg, int width, int height)
 {
@@ -3190,7 +3660,11 @@ x_check_image_size (XImage *ximg, int width, int height)
   int bitmap_pad, depth, bytes_per_line;
   if (ximg)
     {
+#ifndef HAVE_ANDROID
       bitmap_pad = ximg->bitmap_pad;
+#else
+      bitmap_pad = (ximg->depth == 1 ? 8 : 32);
+#endif
       depth = ximg->depth;
       bytes_per_line = ximg->bytes_per_line;
     }
@@ -3208,16 +3682,23 @@ static bool
 x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 			     XImage **ximg, Pixmap *pixmap)
 {
+#ifndef HAVE_ANDROID
   Display *display = FRAME_X_DISPLAY (f);
   Drawable drawable = FRAME_X_DRAWABLE (f);
+#endif
 
   eassert (input_blocked_p ());
 
   if (depth <= 0)
     depth = FRAME_DISPLAY_INFO (f)->n_planes;
+#ifndef HAVE_ANDROID
   *ximg = XCreateImage (display, FRAME_X_VISUAL (f),
 			depth, ZPixmap, 0, NULL, width, height,
 			depth > 16 ? 32 : depth > 8 ? 16 : 8, 0);
+#else
+  *ximg = android_create_image (depth, ANDROID_Z_PIXMAP, NULL, width,
+				height);
+#endif
   if (*ximg == NULL)
     {
       image_error ("Unable to allocate X image");
@@ -3237,7 +3718,15 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   (*ximg)->data = xmalloc ((*ximg)->bytes_per_line * height);
 
   /* Allocate a pixmap of the same size.  */
+#ifndef HAVE_ANDROID
   *pixmap = XCreatePixmap (display, drawable, width, height, depth);
+#else
+#ifndef ANDROID_STUBIFY
+  *pixmap = android_create_pixmap (width, height, depth);
+#else
+  emacs_abort ();
+#endif
+#endif
   if (*pixmap == NO_PIXMAP)
     {
       x_destroy_x_image (*ximg);
@@ -3258,7 +3747,11 @@ x_destroy_x_image (XImage *ximg)
       ximg->data = NULL;
     }
 
+#ifndef HAVE_ANDROID
   XDestroyImage (ximg);
+#else
+  android_destroy_image (ximg);
+#endif
 }
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
@@ -3325,7 +3818,7 @@ x_create_xrender_picture (struct frame *f, Emacs_Pixmap pixmap, int depth)
 static bool
 image_check_image_size (Emacs_Pix_Container ximg, int width, int height)
 {
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
   return x_check_image_size (ximg, width, height);
 #else
   /* FIXME: Implement this check for the HAVE_NS and HAVE_NTGUI cases.
@@ -3357,13 +3850,13 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
-      image_error ("Unable to create X pixmap", Qnil, Qnil);
-      return 0;
+      image_error ("Unable to create X pixmap");
+      return false;
     }
 
   *pimg = *pixmap;
   return 1;
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   if (!x_create_x_image_and_pixmap (f, width, height, depth, pimg, pixmap))
     return 0;
 # ifdef HAVE_XRENDER
@@ -3390,8 +3883,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
-      image_error ("Unable to create pixmap", Qnil, Qnil);
-      return 0;
+      image_error ("Unable to create pixmap");
+      return false;
     }
 
   *pimg = *pixmap;
@@ -3509,7 +4002,7 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
 static void
 image_destroy_x_image (Emacs_Pix_Container pimg)
 {
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
   x_destroy_x_image (pimg);
 #else
   eassert (input_blocked_p ());
@@ -3548,7 +4041,9 @@ gui_put_x_image (struct frame *f, Emacs_Pix_Container pimg,
   XPutImage (FRAME_X_DISPLAY (f), pixmap, gc, pimg, 0, 0, 0, 0,
              pimg->width, pimg->height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
-#endif /* HAVE_X_WINDOWS */
+#elif defined HAVE_ANDROID
+  android_put_image (pixmap, pimg);
+#endif
 
 #ifdef HAVE_NS
   eassert (pimg == pixmap);
@@ -3585,7 +4080,7 @@ static void
 image_put_x_image (struct frame *f, struct image *img, Emacs_Pix_Container ximg,
 		   bool mask_p)
 {
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
   if (!mask_p)
     {
       eassert (img->ximg == NULL);
@@ -3603,7 +4098,7 @@ image_put_x_image (struct frame *f, struct image *img, Emacs_Pix_Container ximg,
 #endif
 }
 
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
 /* Put the X images recorded in IMG on frame F into pixmaps, then free
    the X images and their buffers.  */
 
@@ -3659,7 +4154,7 @@ image_get_x_image (struct frame *f, struct image *img, bool mask_p)
 {
 #if defined USE_CAIRO || defined (HAVE_HAIKU)
   return !mask_p ? img->pixmap : img->mask;
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   XImage *ximg_in_img = !mask_p ? img->ximg : img->mask_img;
 
   if (ximg_in_img)
@@ -3669,9 +4164,15 @@ image_get_x_image (struct frame *f, struct image *img, bool mask_p)
     return XGetImage (FRAME_X_DISPLAY (f), !mask_p ? img->pixmap : img->mask,
 		      0, 0, img->original_width, img->original_height, ~0, ZPixmap);
 #endif
+#ifndef HAVE_ANDROID
   else
     return XGetImage (FRAME_X_DISPLAY (f), !mask_p ? img->pixmap : img->mask,
 		      0, 0, img->width, img->height, ~0, ZPixmap);
+#else
+  else
+    return android_get_image (!mask_p ? img->pixmap : img->mask,
+			      ANDROID_Z_PIXMAP);
+#endif
 #elif defined (HAVE_NS)
   Emacs_Pix_Container pixmap = !mask_p ? img->pixmap : img->mask;
 
@@ -3684,13 +4185,18 @@ static void
 image_unget_x_image (struct image *img, bool mask_p, Emacs_Pix_Container ximg)
 {
 #ifdef USE_CAIRO
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   XImage *ximg_in_img = !mask_p ? img->ximg : img->mask_img;
 
   if (ximg_in_img)
     eassert (ximg == ximg_in_img);
+#ifdef HAVE_ANDROID
+  else
+    android_destroy_image (ximg);
+#else
   else
     XDestroyImage (ximg);
+#endif
 #elif defined (HAVE_NS)
   ns_release_object (ximg);
 #endif
@@ -3709,10 +4215,11 @@ image_unget_x_image (struct image *img, bool mask_p, Emacs_Pix_Container ximg)
    PFD is null, do not open the file.  */
 
 static Lisp_Object
-image_find_image_fd (Lisp_Object file, int *pfd)
+image_find_image_fd (Lisp_Object file, image_fd *pfd)
 {
   Lisp_Object file_found, search_path;
   int fd;
+  void *platform;
 
   /* TODO I think this should use something like image-load-path
      instead.  Unfortunately, that can contain non-string elements.  */
@@ -3721,8 +4228,10 @@ image_find_image_fd (Lisp_Object file, int *pfd)
 		       Vx_bitmap_file_path);
 
   /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
+  platform = NULL;
   fd = openp (search_path, file, Qnil, &file_found,
-	      pfd ? Qt : make_fixnum (R_OK), false, false);
+	      pfd ? Qt : make_fixnum (R_OK), false, false,
+	      pfd ? &platform : NULL);
   if (fd == -2)
     {
       /* The file exists locally, but has a file name handler.
@@ -3732,10 +4241,23 @@ image_find_image_fd (Lisp_Object file, int *pfd)
       Lisp_Object encoded_name = ENCODE_FILE (file_found);
       fd = emacs_open (SSDATA (encoded_name), O_RDONLY, 0);
     }
-  else if (fd < 0)
+  /* FD is -3 if PLATFORM is set to a valid asset file descriptor on
+     Android.  */
+  else if (fd < 0 && fd != -3)
     return Qnil;
+
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   if (pfd)
     *pfd = fd;
+#else
+  /* Construct an asset file descriptor.  */
+
+  if (pfd)
+    {
+      pfd->fd = fd;
+      pfd->asset = platform;
+    }
+#endif
   return file_found;
 }
 
@@ -3749,15 +4271,26 @@ image_find_image_file (Lisp_Object file)
   return image_find_image_fd (file, 0);
 }
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+
+static void
+close_android_fd (void *ptr)
+{
+  android_close_asset (*(struct android_fd_or_asset *) ptr);
+}
+
+#endif
+
 /* Read FILE into memory.  Value is a pointer to a buffer allocated
    with xmalloc holding FILE's contents.  Value is null if an error
    occurred.  FD is a file descriptor open for reading FILE.  Set
    *SIZE to the size of the file.  */
 
 static char *
-slurp_file (int fd, ptrdiff_t *size)
+slurp_file (image_fd fd, ptrdiff_t *size)
 {
-  FILE *fp = fdopen (fd, "rb");
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  FILE *fp = emacs_fdopen (fd, "rb");
 
   char *buf = NULL;
   struct stat st;
@@ -3767,7 +4300,7 @@ slurp_file (int fd, ptrdiff_t *size)
       specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (fclose_unwind, fp);
 
-      if (fstat (fileno (fp), &st) == 0
+      if (sys_fstat (fileno (fp), &st) == 0
 	  && 0 <= st.st_size && st.st_size < min (PTRDIFF_MAX, SIZE_MAX))
 	{
 	  /* Report an error if we read past the purported EOF.
@@ -3785,6 +4318,39 @@ slurp_file (int fd, ptrdiff_t *size)
 
       unbind_to (count, Qnil);
     }
+#else
+  char *buf;
+  struct stat st;
+  specpdl_ref count;
+
+  if (!android_asset_fstat (fd, &st)
+      && (0 <= st.st_size
+	  && st.st_size < min (PTRDIFF_MAX, SIZE_MAX)))
+    {
+      count = SPECPDL_INDEX ();
+      record_unwind_protect_ptr (close_android_fd, &fd);
+      buf = xmalloc (st.st_size + 1);
+
+      /* Read one byte past the end of the file.  That allows
+	 detecting if the file grows as it is being read.  */
+
+      if (android_asset_read (fd, buf,
+			      st.st_size + 1) == st.st_size)
+	*size = st.st_size;
+      else
+	{
+	  xfree (buf);
+	  buf = NULL;
+	}
+
+      unbind_to (count, Qnil);
+    }
+  else
+    {
+      buf = NULL;
+      android_close_asset (fd);
+    }
+#endif
 
   return buf;
 }
@@ -4213,6 +4779,15 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
     img->picture = x_create_xrender_picture (f, img->pixmap, 0);
 # endif
 
+#elif defined HAVE_ANDROID
+#ifndef ANDROID_STUBIFY
+  img->pixmap
+    = android_create_pixmap_from_bitmap_data (data, img->width, img->height,
+					      fg, bg,
+					      FRAME_DISPLAY_INFO (f)->n_planes);
+#else
+  emacs_abort ();
+#endif
 #elif defined HAVE_NTGUI
   img->pixmap
     = w32_create_pixmap_from_bitmap_data (img->width, img->height, data);
@@ -4498,12 +5073,12 @@ xbm_load (struct frame *f, struct image *img)
   file_name = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (file_name))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -4643,7 +5218,8 @@ xbm_load (struct frame *f, struct image *img)
 			      XPM images
  ***********************************************************************/
 
-#if defined (HAVE_XPM) || defined (HAVE_NS) || defined (HAVE_PGTK)
+#if defined (HAVE_XPM) || defined (HAVE_NS) || defined (HAVE_PGTK) \
+  || defined (HAVE_ANDROID)
 
 static bool xpm_image_p (Lisp_Object object);
 static bool xpm_load (struct frame *f, struct image *img);
@@ -4673,7 +5249,8 @@ static bool xpm_load (struct frame *f, struct image *img);
 #endif /* not HAVE_NTGUI */
 #endif /* HAVE_XPM */
 
-#if defined HAVE_XPM || defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU
+#if defined HAVE_XPM || defined USE_CAIRO || defined HAVE_NS	\
+  || defined HAVE_HAIKU || defined HAVE_ANDROID
 
 /* Indices of image specification fields in xpm_format, below.  */
 
@@ -4693,7 +5270,8 @@ enum xpm_keyword_index
   XPM_LAST
 };
 
-#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_PGTK || defined HAVE_ANDROID
 /* Vector of image_keyword structures describing the format
    of valid XPM image specifications.  */
 
@@ -4935,7 +5513,8 @@ init_xpm_functions (void)
 
 #endif /* WINDOWSNT */
 
-#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_PGTK || defined HAVE_ANDROID
 /* Value is true if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
    cdr are strings.  */
@@ -4971,9 +5550,9 @@ xpm_image_p (Lisp_Object object)
 	  && (! fmt[XPM_COLOR_SYMBOLS].count
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
-#endif	/* HAVE_XPM || HAVE_NS || HAVE_HAIKU || HAVE_PGTK */
+#endif	/* HAVE_XPM || HAVE_NS || HAVE_HAIKU || HAVE_PGTK || HAVE_ANDROID */
 
-#endif /* HAVE_XPM || USE_CAIRO || HAVE_NS || HAVE_HAIKU */
+#endif /* HAVE_XPM || USE_CAIRO || HAVE_NS || HAVE_HAIKU || HAVE_ANDROID */
 
 #if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 ptrdiff_t
@@ -5150,12 +5729,12 @@ xpm_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
+	  image_not_found_error (specified_file);
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
 	  SAFE_FREE ();
-	  return 0;
+	  return false;
 	}
 
       file = ENCODE_FILE (file);
@@ -5182,7 +5761,7 @@ xpm_load (struct frame *f, struct image *img)
       Lisp_Object buffer = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (buffer))
 	{
-	  image_error ("Invalid image data `%s'", buffer);
+	  image_invalid_data_error (buffer);
 #ifdef ALLOC_XPM_COLORS
 	  xpm_free_color_cache ();
 #endif
@@ -5346,10 +5925,12 @@ xpm_load (struct frame *f, struct image *img)
 #if (defined USE_CAIRO && defined HAVE_XPM)	\
   || (defined HAVE_NS && !defined HAVE_XPM)	\
   || (defined HAVE_HAIKU && !defined HAVE_XPM)  \
-  || (defined HAVE_PGTK && !defined HAVE_XPM)
+  || (defined HAVE_PGTK && !defined HAVE_XPM)	\
+  || (defined HAVE_ANDROID && !defined HAVE_XPM)
 
-/* XPM support functions for NS and Haiku where libxpm is not available, and for
-   Cairo.  Only XPM version 3 (without any extensions) is supported.  */
+/* XPM support functions for NS, Haiku and Android where libxpm is not
+   available, and for Cairo.  Only XPM version 3 (without any
+   extensions) is supported.  */
 
 static void xpm_put_color_table_v (Lisp_Object, const char *,
                                    int, Lisp_Object);
@@ -5788,12 +6369,12 @@ xpm_load (struct frame *f,
   file_name = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (file_name))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -5814,8 +6395,8 @@ xpm_load (struct frame *f,
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       success_p = xpm_load_image (f, img, SSDATA (data),
 				  SSDATA (data) + SBYTES (data));
@@ -6085,7 +6666,8 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
 {
 #ifdef HAVE_NTGUI
   return PALETTERGB (r >> 8, g >> 8, b >> 8);
-#elif defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU
+#elif defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_ANDROID
   return RGB_TO_ULONG (r >> 8, g >> 8, b >> 8);
 #else
   xsignal1 (Qfile_error,
@@ -6158,7 +6740,8 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
   p = colors;
   for (y = 0; y < img->height; ++y)
     {
-#if !defined USE_CAIRO && !defined HAVE_NS && !defined HAVE_HAIKU
+#if !defined USE_CAIRO && !defined HAVE_NS && !defined HAVE_HAIKU	\
+  && !defined HAVE_ANDROID
       Emacs_Color *row = p;
       for (x = 0; x < img->width; ++x, ++p)
 	p->pixel = GET_PIXEL (ximg, x, y);
@@ -6166,7 +6749,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
         {
           FRAME_TERMINAL (f)->query_colors (f, row, img->width);
         }
-#else  /* USE_CAIRO || HAVE_NS || HAVE_HAIKU */
+#else  /* USE_CAIRO || HAVE_NS || HAVE_HAIKU || HAVE_ANDROID */
       for (x = 0; x < img->width; ++x, ++p)
 	{
 	  p->pixel = GET_PIXEL (ximg, x, y);
@@ -6177,7 +6760,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
 	      p->blue = BLUE16_FROM_ULONG (p->pixel);
 	    }
 	}
-#endif	/* USE_CAIRO || HAVE_NS */
+#endif	/* USE_CAIRO || HAVE_NS || HAVE_ANDROID */
     }
 
   image_unget_x_image_or_dc (img, 0, ximg, prev);
@@ -6242,7 +6825,11 @@ image_from_emacs_colors (struct frame *f, struct image *img, Emacs_Color *colors
   Emacs_Pix_Container ximage;
   Emacs_Color *p;
 
+#ifndef HAVE_ANDROID
   ximage = NULL;
+#else
+  ximage = 0;
+#endif
 
   init_color_table ();
 
@@ -6404,7 +6991,9 @@ image_edge_detection (struct frame *f, struct image *img,
 }
 
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU	\
+  || defined HAVE_ANDROID
+
 static void
 image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
 			 int x, int y, unsigned int width, unsigned int height,
@@ -6440,8 +7029,21 @@ image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
   XFreeGC (dpy, gc);
 #elif HAVE_HAIKU
   be_draw_cross_on_pixmap (pixmap, x, y, width, height, color);
+#elif HAVE_ANDROID
+#ifndef ANDROID_STUBIFY
+  struct android_gc *gc;
+
+  gc = android_create_gc (0, NULL);
+  android_set_foreground (gc, color);
+  android_draw_line (pixmap, gc, x, y, x + width - 1, y + height - 1);
+  android_draw_line (pixmap, gc, x, y + height - 1, x + width - 1, y);
+  android_free_gc (gc);
+#else
+  emacs_abort ();
+#endif
 #endif
 }
+
 #endif	/* HAVE_X_WINDOWS || USE_CAIRO || HAVE_HAIKU */
 
 /* Transform image IMG on frame F so that it looks disabled.  */
@@ -6485,7 +7087,7 @@ image_disable_image (struct frame *f, struct image *img)
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
-#if !defined USE_CAIRO && !defined HAVE_HAIKU
+#if !defined USE_CAIRO && !defined HAVE_HAIKU && !defined HAVE_ANDROID
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 #else  /* USE_CAIRO || HAVE_HAIKU */
@@ -6796,12 +7398,12 @@ pbm_load (struct frame *f, struct image *img)
 
   if (STRINGP (specified_file))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       ptrdiff_t size;
@@ -6821,8 +7423,8 @@ pbm_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       p = SSDATA (data);
       end = p + SBYTES (data);
@@ -7464,15 +8066,18 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   if (NILP (specified_data))
     {
       int fd;
-      Lisp_Object file = image_find_image_fd (specified_file, &fd);
-      if (!STRINGP (file))
+      Lisp_Object file = image_find_image_file (specified_file);
+
+      if (!STRINGP (file)
+	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
+			       O_RDONLY, 0)) < 0)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       /* Open the image file.  */
-      fp = fdopen (fd, "rb");
+      fp = emacs_fdopen (fd, "rb");
       if (!fp)
 	{
 	  image_error ("Cannot open image file `%s'", file);
@@ -7483,7 +8088,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
 	  || png_sig_cmp (sig, 0, sizeof sig))
 	{
-	  fclose (fp);
+	  emacs_fclose (fp);
 	  image_error ("Not a PNG file: `%s'", file);
 	  return 0;
 	}
@@ -7492,8 +8097,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  image_invalid_data_error (specified_data);
+	  return false;
 	}
 
       /* Read from memory.  */
@@ -7537,7 +8142,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
     }
   if (! png_ptr)
     {
-      if (fp) fclose (fp);
+      if (fp) emacs_fclose (fp);
       return 0;
     }
 
@@ -7551,7 +8156,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       xfree (c->pixels);
       xfree (c->rows);
       if (c->fp)
-	fclose (c->fp);
+	emacs_fclose (c->fp);
       return 0;
     }
 
@@ -7619,7 +8224,6 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
      simple transparency, we prefer a clipping mask.  */
   if (!transparent_p)
     {
-      /* png_color_16 *image_bg; */
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
       Emacs_Color color;
@@ -7676,7 +8280,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   png_read_end (png_ptr, info_ptr);
   if (fp)
     {
-      fclose (fp);
+      emacs_fclose (fp);
       c->fp = NULL;
     }
 
@@ -8192,14 +8796,16 @@ jpeg_load_body (struct frame *f, struct image *img,
   if (NILP (specified_data))
     {
       int fd;
-      Lisp_Object file = image_find_image_fd (specified_file, &fd);
-      if (!STRINGP (file))
+      Lisp_Object file = image_find_image_file (specified_file);
+      if (!STRINGP (file)
+	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
+			       O_RDONLY, 0)) < 0)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
-      fp = fdopen (fd, "rb");
+      fp = emacs_fdopen (fd, "rb");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file);
@@ -8208,8 +8814,8 @@ jpeg_load_body (struct frame *f, struct image *img,
     }
   else if (!STRINGP (specified_data))
     {
-      image_error ("Invalid image data `%s'", specified_data);
-      return 0;
+      image_invalid_data_error (specified_data);
+      return false;
     }
 
   /* Customize libjpeg's error handling to call my_error_exit when an
@@ -8239,11 +8845,12 @@ jpeg_load_body (struct frame *f, struct image *img,
 
       /* Close the input file and destroy the JPEG object.  */
       if (fp)
-	fclose (fp);
+	emacs_fclose (fp);
       jpeg_destroy_decompress (&mgr->cinfo);
 
       /* If we already have an XImage, free that.  */
-      image_destroy_x_image (ximg);
+      if (ximg)
+	image_destroy_x_image (ximg);
       /* Free pixmap and colors.  */
       image_clear_image (f, img);
       return 0;
@@ -8334,7 +8941,7 @@ jpeg_load_body (struct frame *f, struct image *img,
   jpeg_finish_decompress (&mgr->cinfo);
   jpeg_destroy_decompress (&mgr->cinfo);
   if (fp)
-    fclose (fp);
+    emacs_fclose (fp);
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
@@ -8649,8 +9256,8 @@ tiff_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  image_not_found_error (specified_file);
+	  return false;
 	}
 
       Lisp_Object encoded_file = ENCODE_FILE (file);
@@ -8670,8 +9277,8 @@ tiff_load (struct frame *f, struct image *img)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  image_invalid_data_error (specified_data);
+	  return false;
 	}
 
       /* Memory source! */
@@ -9078,7 +9685,7 @@ gif_load (struct frame *f, struct image *img)
 	  Lisp_Object file = image_find_image_file (specified_file);
 	  if (!STRINGP (file))
 	    {
-	      image_error ("Cannot find image file `%s'", specified_file);
+	      image_not_found_error (specified_file);
 	      return false;
 	    }
 
@@ -9108,17 +9715,22 @@ gif_load (struct frame *f, struct image *img)
 
 	  /* Get the file size so that we can report it in
 	     `image-cache-size'.  */
-	  struct stat st;
-	  FILE *fp = fopen (SSDATA (encoded_file), "rb");
-	  if (fstat (fileno (fp), &st) == 0)
-	    byte_size = st.st_size;
-	  fclose (fp);
+	  {
+	    struct stat st;
+	    int fd;
+
+	    fd = emacs_open (SSDATA (encoded_file), O_RDONLY,
+			     0);
+	    if (!sys_fstat (fd, &st))
+	      byte_size = st.st_size;
+	    emacs_close (fd);
+	  }
 	}
       else
 	{
 	  if (!STRINGP (specified_data))
 	    {
-	      image_error ("Invalid image data `%s'", specified_data);
+	      image_invalid_data_error (specified_data);
 	      return false;
 	    }
 
@@ -9690,11 +10302,11 @@ webp_load (struct frame *f, struct image *img)
 
   if (NILP (specified_data))
     {
-      int fd;
+      image_fd fd;
       file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
+	  image_not_found_error (specified_file);
 	  return false;
 	}
 
@@ -9709,7 +10321,7 @@ webp_load (struct frame *f, struct image *img)
     {
       if (!STRINGP (specified_data))
 	{
-	  image_error ("Invalid image data `%s'", specified_data);
+	  image_invalid_data_error (specified_data);
 	  return false;
 	}
       contents = SDATA (specified_data);
@@ -9850,22 +10462,36 @@ webp_load (struct frame *f, struct image *img)
     }
 
   /* Create the x image and pixmap.  */
-  Emacs_Pix_Container ximg, mask_img = NULL;
+  Emacs_Pix_Container ximg;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, false))
     goto webp_error2;
 
-  /* Create an image and pixmap serving as mask if the WebP image
-     contains an alpha channel.  */
-  if (features.has_alpha
-      && !image_create_x_image_and_pixmap (f, img, width, height, 1,
-					   &mask_img, true))
+  /* Find the background to use if the WebP image contains an alpha
+     channel.  */
+  Emacs_Color bg_color;
+  if (features.has_alpha)
     {
-      image_destroy_x_image (ximg);
-      image_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP);
-      goto webp_error2;
+      Lisp_Object specified_bg
+	= image_spec_value (img->spec, QCbackground, NULL);
+
+      /* If the user specified a color, try to use it; if not, use the
+	 current frame background, ignoring any default background
+	 color set by the image.  */
+      if (STRINGP (specified_bg))
+	FRAME_TERMINAL (f)->defined_color_hook (f,
+						SSDATA (specified_bg),
+						&bg_color,
+						false,
+						false);
+      else
+	FRAME_TERMINAL (f)->query_frame_background_color (f, &bg_color);
+      bg_color.red   >>= 8;
+      bg_color.green >>= 8;
+      bg_color.blue  >>= 8;
     }
 
-  /* Fill the X image and mask from WebP data.  */
+  /* Fill the X image from WebP data.  */
+
   init_color_table ();
 
   img->corners[TOP_CORNER] = 0;
@@ -9880,21 +10506,24 @@ webp_load (struct frame *f, struct image *img)
     {
       for (int x = 0; x < width; ++x)
 	{
-	  int r = *p++ << 8;
-	  int g = *p++ << 8;
-	  int b = *p++ << 8;
-	  PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, r, g, b));
-
-	  /* An alpha channel associates variable transparency with an
-	     image.  WebP allows up to 256 levels of partial transparency.
-	     We handle this like with PNG (which see), using the frame's
-	     background color to combine the image with.  */
+	  int r, g, b;
+	  /* The WebP alpha channel allows 256 levels of partial
+	     transparency.  Blend it with the background manually.  */
 	  if (features.has_alpha || anim)
 	    {
-	      if (mask_img)
-		PUT_PIXEL (mask_img, x, y, *p > 0 ? PIX_MASK_DRAW : PIX_MASK_RETAIN);
-	      ++p;
+	      float a = (float) p[3] / UINT8_MAX;
+	      r = (int)(a * p[0] + (1 - a) * bg_color.red)   << 8;
+	      g = (int)(a * p[1] + (1 - a) * bg_color.green) << 8;
+	      b = (int)(a * p[2] + (1 - a) * bg_color.blue)  << 8;
+	      p += 4;
 	    }
+	  else
+	    {
+	      r = *p++ << 8;
+	      g = *p++ << 8;
+	      b = *p++ << 8;
+	    }
+	  PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, r, g, b));
 	}
     }
 
@@ -9906,16 +10535,6 @@ webp_load (struct frame *f, struct image *img)
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
-
-  /* Same for the mask.  */
-  if (mask_img)
-    {
-      /* Fill in the background_transparent field while we have the
-	 mask handy.  Casting avoids a GCC warning.  */
-      image_background_transparent (img, f, (Emacs_Pix_Context)mask_img);
-
-      image_put_x_image (f, img, mask_img, 1);
-    }
 
   img->width = width;
   img->height = height;
@@ -10373,7 +10992,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
       return 0;
     }
 
-#ifdef HAVE_MAGICKAUTOORIENTIMAGE
+#if defined HAVE_MAGICKAUTOORIENTIMAGE		\
+  || HAVE_DECL_MAGICKAUTOORIENTIMAGE
   /* If no :rotation is explicitly specified, apply the automatic
      rotation from EXIF. */
   if (NILP (image_spec_value (img->spec, QCrotation, NULL)))
@@ -10530,7 +11150,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
   {
     MagickWand *new_wand;
     MagickSetImageBackgroundColor (image_wand, bg_wand);
-#ifdef HAVE_MAGICKMERGEIMAGELAYERS
+#if defined HAVE_MAGICKMERGEIMAGELAYERS		\
+  || HAVE_DECL_MAGICKMERGEIMAGELAYERS
     new_wand = MagickMergeImageLayers (image_wand, MergeLayer);
 #else
     new_wand = MagickFlattenImages (image_wand);
@@ -10559,8 +11180,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-#if defined (HAVE_MAGICKEXPORTIMAGEPIXELS) && \
-  ! defined (HAVE_NS) && ! defined (HAVE_HAIKU)
+#if (defined (HAVE_MAGICKEXPORTIMAGEPIXELS)	     \
+     || HAVE_DECL_MAGICKEXPORTIMAGEPIXELS)	     \
+  && ! defined (HAVE_NS) && ! defined (HAVE_HAIKU)
   if (imagemagick_render_type != 0)
     {
       /* Magicexportimage is normally faster than pixelpushing.  This
@@ -10708,8 +11330,8 @@ imagemagick_load (struct frame *f, struct image *img)
       Lisp_Object file = image_find_image_file (file_name);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
       file = ENCODE_FILE (file);
 #ifdef WINDOWSNT
@@ -10726,8 +11348,8 @@ imagemagick_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       success_p = imagemagick_load_image (f, img, SDATA (data),
                                           SBYTES (data), NULL);
@@ -11086,12 +11708,12 @@ svg_load (struct frame *f, struct image *img)
   base_uri = image_spec_value (img->spec, QCbase_uri, NULL);
   if (STRINGP (file_name))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file `%s'", file_name);
-	  return 0;
+	  image_not_found_error (file_name);
+	  return false;
 	}
 
       /* Read the entire file into memory.  */
@@ -11118,8 +11740,8 @@ svg_load (struct frame *f, struct image *img)
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
 	{
-	  image_error ("Invalid image data `%s'", data);
-	  return 0;
+	  image_invalid_data_error (data);
+	  return false;
 	}
       if (!STRINGP (base_uri))
         base_uri = BVAR (current_buffer, filename);
@@ -11136,6 +11758,12 @@ static double
 svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 {
   double value = length.length;
+
+#if ! LIBRSVG_CHECK_VERSION (2, 48, 0)
+  /* librsvg 2.48 lets us define the font size, but earlier versions
+     default to 12 pixels.  */
+  font_size = 12;
+#endif
 
   switch (length.unit)
     {
@@ -11161,16 +11789,31 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
     case RSVG_UNIT_IN:
       value *= dpi;
       break;
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-      /* We don't know exactly what font size is used on older librsvg
-	 versions.  */
     case RSVG_UNIT_EM:
       value *= font_size;
       break;
-#endif
+    case RSVG_UNIT_EX:
+      /* librsvg uses an ex height of half the em height, so we match
+	 that here.  */
+      value = value * font_size / 2.0;
+      break;
+    case RSVG_UNIT_PERCENT:
+      /* Percent is a ratio of the containing "viewport".  We don't
+	 have a viewport, as such, as we try to draw the image to it's
+	 'natural' size rather than dictate the size as if we were
+	 drawing icons on a toolbar or similar.  This means that
+	 percent values are useless to us and we are best off just
+	 drawing the image according to whatever other sizes we can
+	 derive.
+
+	 If we do set explicit width and height values in the image
+	 spec, this will work out correctly as librsvg will still
+	 honour the percentage sizes in its final rendering no matter
+	 what size we make the image.  */
+      value = 0;
+      break;
     default:
-      /* Probably ex or %.  We can't know what the pixel value is
-         without more information.  */
+      /* We should never reach this.  */
       value = 0;
     }
 
@@ -11301,7 +11944,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     }
   else
     {
-      RsvgRectangle zero_rect, viewbox, out_logical_rect;
+      RsvgRectangle  viewbox;
+      double explicit_width = 0, explicit_height = 0;
 
       /* Try the intrinsic dimensions first.  */
       gboolean has_width, has_height;
@@ -11313,34 +11957,27 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 					    &has_height, &iheight,
 					    &has_viewbox, &viewbox);
 
-      if (has_width && has_height)
-	{
-	  /* Success!  We can use these values directly.  */
-	  viewbox_width = svg_css_length_to_pixels (iwidth, dpi,
+      if (has_width)
+	explicit_width = svg_css_length_to_pixels (iwidth, dpi,
+						   img->face_font_size);
+      if (has_height)
+	explicit_height = svg_css_length_to_pixels (iheight, dpi,
 						    img->face_font_size);
-	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
-						     img->face_font_size);
 
-	  /* Here one dimension could be zero because in percent unit.
-	     So calculate this dimension with the other.  */
-	  if (! (0 < viewbox_width) && (iwidth.unit == RSVG_UNIT_PERCENT))
-	    viewbox_width = (viewbox_height * viewbox.width / viewbox.height)
-	      * iwidth.length;
-	  else if (! (0 < viewbox_height) && (iheight.unit == RSVG_UNIT_PERCENT))
-	    viewbox_height = (viewbox_width * viewbox.height / viewbox.width)
-	      * iheight.length;
-	}
-      else if (has_width && has_viewbox)
+      if (explicit_width > 0 && explicit_height > 0)
 	{
-	  viewbox_width = svg_css_length_to_pixels (iwidth, dpi,
-						    img->face_font_size);
-	  viewbox_height = viewbox_width * viewbox.height / viewbox.width;
+	  viewbox_width = explicit_width;
+	  viewbox_height = explicit_height;
 	}
-      else if (has_height && has_viewbox)
+      else if (explicit_width > 0 && has_viewbox)
 	{
-	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
-						     img->face_font_size);
-	  viewbox_width = viewbox_height * viewbox.width / viewbox.height;
+	  viewbox_width = explicit_width;
+	  viewbox_height = explicit_width * viewbox.height / viewbox.width;
+	}
+      else if (explicit_height > 0 && has_viewbox)
+	{
+	  viewbox_height = explicit_height;
+	  viewbox_width = explicit_height * viewbox.width / viewbox.height;
 	}
       else if (has_viewbox)
 	{
@@ -11354,8 +11991,15 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 	{
 	  /* We haven't found a usable set of sizes, so try working out
 	     the visible area.  */
+
+	  /* FIXME: I'm not sure exactly how librsvg uses this
+	     viewport input here, so I'm not sure what values I should
+	     set. */
+	  RsvgRectangle max_viewport_rect = {0, 0, UINT_MAX, UINT_MAX};
+	  RsvgRectangle out_logical_rect;
+
 	  rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
-					      &zero_rect, &viewbox,
+					      &max_viewport_rect, &viewbox,
 					      &out_logical_rect, NULL);
 	  viewbox_width = viewbox.x + viewbox.width;
 	  viewbox_height = viewbox.y + viewbox.height;
@@ -11909,7 +12553,7 @@ The list of capabilities can include one or more of the following:
     {
 #ifdef HAVE_NATIVE_TRANSFORMS
 # if defined HAVE_IMAGEMAGICK || defined (USE_CAIRO) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU)
+  || defined (HAVE_HAIKU) | defined HAVE_ANDROID
       return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
       if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)
@@ -12020,7 +12664,8 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qjpeg), jpeg_image_p, jpeg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_jpeg_functions) },
 #endif
-#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_PGTK || defined HAVE_ANDROID
  { SYMBOL_INDEX (Qxpm), xpm_image_p, xpm_load, image_clear_image,
    IMAGE_TYPE_INIT (init_xpm_functions) },
 #endif
@@ -12182,7 +12827,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   add_image_type (Qxbm);
 
 #if defined (HAVE_XPM) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU) || defined (HAVE_PGTK)
+  || defined (HAVE_HAIKU) || defined (HAVE_PGTK) \
+  || defined (HAVE_ANDROID)
   DEFSYM (Qxpm, "xpm");
   add_image_type (Qxpm);
 #endif
@@ -12207,8 +12853,10 @@ non-numeric, there is no explicit limit on the size of images.  */);
   add_image_type (Qpng);
 #endif
 
-#if defined (HAVE_WEBP) || (defined (HAVE_NATIVE_IMAGE_API) \
-			    && defined (HAVE_HAIKU))
+#if defined (HAVE_WEBP)						\
+  || (defined (HAVE_NATIVE_IMAGE_API)				\
+      && ((defined (HAVE_NS) && defined (NS_IMPL_COCOA))	\
+	  || defined (HAVE_HAIKU)))
   DEFSYM (Qwebp, "webp");
   DEFSYM (Qwebpdemux, "webpdemux");
   add_image_type (Qwebp);

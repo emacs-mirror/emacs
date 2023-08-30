@@ -1218,15 +1218,14 @@ you aren't familiar with @samp{use-package} or have no interest in
 learning it.  For our purposes, it's just a means of presenting
 configuration details in a tidy, standardized format.  If it helps,
 just pretend it's some make-believe, pseudo configuration language.
-Although the syntax below is easy enough to intuit and adapt to your
-setup, you may wish to keep the following in mind (or @pxref{Top,,,
-use-package,}):
+And while the syntax below is easy enough to intuit and adapt to your
+setup, you may wish to keep the following in mind:
 
 @itemize @bullet
 @item
 Each @code{use-package} ``declaration'' focuses on a library
 ``feature'', which is just a symbol you'd normally @code{require} in
-your config @pxref{Named Features,,, elisp,}).
+your config.
 
 @item
 Emacs loads anything in a @code{:config} section @emph{after} loading
@@ -1235,6 +1234,10 @@ whatever library @code{provide}s the declaration's feature.
 @item
 Everything in a @code{:custom} or @code{:custom-face} section is
 basically something you'd find in your @code{custom-file}.
+
+@item
+For more info, @pxref{Named Features,,, elisp,}, or @pxref{Top,,,
+use-package,}.
 @end itemize
 
 @noindent
@@ -1264,6 +1267,9 @@ settings (@pxref{Sample configuration via Customize}).
   ;; Reconnect automatically using a fancy strategy.
   (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
   (erc-server-reconnect-timeout 30)
+
+  ;; Show new buffers in the current window instead of a split.
+  (erc-interactive-display 'buffer)
 
   ;; Insert a newline when I hit <RET> at the prompt, and prefer
   ;; something more deliberate for actually sending messages.
@@ -1300,12 +1306,12 @@ settings (@pxref{Sample configuration via Customize}).
 
 (use-package erc-goodies
   ;; Turn on read indicators when joining channels.
-  :hook (erc-join . my-erc-enable-read-indicator-on-join))
+  :hook (erc-join . my-erc-enable-keep-place-indicator-on-join))
 
 (defvar my-erc-read-indicator-channels '("#emacs")
   "Channels in which to show a `keep-place-indicator'.")
 
-(defun my-erc-enable-read-indicator-on-join ()
+(defun my-erc-enable-keep-place-indicator-on-join ()
   "Enable read indicators for certain queries or channels."
   (when (member (erc-default-target) my-erc-read-indicator-channels)
     (erc-keep-place-indicator-mode +1)))
@@ -1313,14 +1319,16 @@ settings (@pxref{Sample configuration via Customize}).
 ;; Handy commands from the Emacs Wiki.
 (defun erc-cmd-TRACK (&optional target)
   "Start tracking TARGET or that of current buffer."
-  (setq erc-track-exclude (delete (or target (erc-default-target))
-                                  erc-track-exclude)))
+  (setq erc-track-exclude
+        (delete (or target (erc-default-target) (current-buffer))
+                erc-track-exclude)))
 
 (defun erc-cmd-UNTRACK (&optional target)
   "Stop tracking TARGET or that of current buffer."
-  (setq erc-track-exclude (cl-pushnew (or target (erc-default-target))
-                                      erc-track-exclude
-                                      :test #'equal)))
+  (setq erc-track-exclude
+        (cl-pushnew (or target (erc-default-target) (current-buffer))
+                    erc-track-exclude
+                    :test #'equal)))
 
 @end lisp
 
@@ -1385,6 +1393,16 @@ group (note the ``breadcrumb'' for group @samp{Erc} atop the buffer).
 Indeed, you can always get back here by running @kbd{M-x
 customize-group @key{RET} erc-server @key{RET}} from almost anywhere
 in Emacs.
+
+To make sure you've got this, try quickly customizing the option
+@code{erc-interactive-display}, which lives in the @samp{Erc Buffers}
+group (@kbd{M-x customize-group @key{RET} erc-buffers @key{RET}}).  As
+its doc string explains, the option controls where new buffers show up
+when you do @kbd{M-x erc-tls @key{RET}} or issue certain ``slash''
+commands, like @kbd{/JOIN #emacs-beginners @key{RET}}, at ERC's
+prompt.  Change its value to the symbol @code{buffer} by choosing
+@samp{Use current window} (item @kbd{5}) from the option's
+@samp{[Value Menu]}.  Don't forget to save.
 
 Now it's time to set some key bindings for @code{erc-mode-map}, a
 major-mode keymap active in all ERC buffers.  In general, it's best to

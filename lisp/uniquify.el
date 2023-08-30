@@ -168,6 +168,32 @@ This can be handy when you have deep parallel hierarchies."
 That means that when `buffer-file-name' is set to nil, `list-buffers-directory'
 contains the name of the directory which the buffer is visiting.")
 
+(defcustom uniquify-dirname-transform #'identity
+  "Function to transform buffer's directory name when uniquifying buffer's name.
+
+When `uniquify-buffer-name-style' is non-nil, Emacs makes buffer
+names unique by adding components of the buffer's directory name
+until the resulting name is unique.  This function is used to
+transform the buffer's directory name during this uniquifying
+process, allowing the unique buffer name to include strings
+from sources other than the buffer's directory.  The default is
+`identity', so the unmodified buffer's directory name is used for
+uniquifying.
+
+This function is called with the buffer's directory name and
+should return a string which names a file (that does not need to
+actually exist in the filesystem); the components of this file
+name will then be used to uniquify the buffer's name.
+
+To include components from the `project-name' of the buffer, set
+this variable to `project-uniquify-dirname-transform'."
+  :type '(choice (function-item :tag "Use directory name as-is" identity)
+                 (function-item :tag "Include project name in directory name"
+                                #'project-uniquify-dirname-transform)
+                 function)
+  :version "30.1"
+  :group 'uniquify)
+
 ;;; Utilities
 
 ;; uniquify-fix-list data structure
@@ -209,7 +235,8 @@ this rationalization."
   ;; this buffer.
   (with-current-buffer newbuf (setq uniquify-managed nil))
   (when dirname
-    (setq dirname (expand-file-name (directory-file-name dirname)))
+    (setq dirname (funcall uniquify-dirname-transform
+                           (expand-file-name (directory-file-name dirname))))
     (let ((fix-list (list (uniquify-make-item base dirname newbuf
                                               nil)))
 	  items)
@@ -268,10 +295,11 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	       (if (memq major-mode uniquify-list-buffers-directory-modes)
 		   list-buffers-directory))))
       (when filename
-	(directory-file-name
-	 (file-name-directory
-	  (expand-file-name
-	   (directory-file-name filename))))))))
+	 (funcall uniquify-dirname-transform
+	          (directory-file-name
+	          (file-name-directory
+	           (expand-file-name
+	            (directory-file-name filename)))))))))
 
 (defun uniquify-rerationalize-w/o-cb (fix-list)
   "Re-rationalize the buffers in FIX-LIST, but ignoring `current-buffer'."

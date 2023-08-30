@@ -72,7 +72,10 @@ characters are those marked with W or F in that file.  Zero-width
 characters are not taken from EastAsianWidth.txt, they are those whose
 Unicode General Category property is one of Mn, Me, or Cf, and also
 Hangul jungseong and jongseong characters (a.k.a. "Jamo medial vowels"
-and "Jamo final consonants").
+and "Jamo final consonants").  The list of "ambiguous-width
+characters" recorded in the ambiguous-width-chars table (around line
+1400 of characters.el) should also be checked against the latest
+Unicode data in EastAsianWidth.txt.
 
 Any new scripts added by UnicodeData.txt will also need updates to
 script-representative-chars defined in fontset.el, and also the list
@@ -302,6 +305,12 @@ nontrivial changes to the build process.
 
 	src/msdos.c
 
+ * iso-latin-1
+
+     This file is used to test Emacs encoding.
+
+        test/lisp/gnus/mm-decode-resources/win1252-multipart.bin
+
  * iso-2022-cn-ext
 
      This file is externally generated from leim/MISC-DIC/cangjie-table.b5
@@ -352,19 +361,27 @@ nontrivial changes to the build process.
      Some of the entries in this list are patterns, and stand for any
      files with the listed extension.
 
+	*.bmp
+	*.cur
+	*.gif
+	*.gpg
 	*.gz
 	*.icns
 	*.ico
+	*.jpg
+	*.kbx
+	*.key
 	*.pbm
 	*.pdf
+	*.pif
 	*.png
 	*.sig
+	*.tiff
+	*.webp
+	*.zip
 	etc/e/eterm-color
-	etc/package-keyring.gpg
-	msdos/emacs.pif
-	nextstep/GNUstep/Emacs.base/Resources/emacs.tiff
-	nt/icons/hand.cur
-
+	etc/e/eterm-direct
+	java/emacs.keystore
 
 This file is part of GNU Emacs.
 

@@ -39,6 +39,23 @@
 (require 'warnings)
 (require 'comp-cstr)
 
+;; These variables and functions are defined in comp.c
+(defvar native-comp-enable-subr-trampolines)
+(defvar comp-installed-trampolines-h)
+(defvar comp-subr-arities-h)
+(defvar native-comp-eln-load-path)
+(defvar comp-native-version-dir)
+(defvar comp-deferred-pending-h)
+(defvar comp--no-native-compile)
+
+(declare-function comp-el-to-eln-rel-filename "comp.c")
+(declare-function native-elisp-load "comp.c")
+(declare-function comp--release-ctxt "comp.c")
+(declare-function comp--init-ctxt "comp.c")
+(declare-function comp--compile-ctxt-to-file "comp.c")
+(declare-function comp-el-to-eln-filename "comp.c")
+(declare-function comp--install-trampoline "comp.c")
+
 (defgroup comp nil
   "Emacs Lisp native compiler."
   :group 'lisp)
@@ -1304,34 +1321,47 @@ clashes."
           (make-temp-file (comp-c-func-name function-name "freefn-")
                           nil ".eln")))
   (let* ((f (symbol-function function-name))
+         (byte-code (byte-compile function-name))
          (c-name (comp-c-func-name function-name "F"))
-         (func (make-comp-func-l :name function-name
-                                 :c-name c-name
-                                 :doc (documentation f t)
-                                 :int-spec (interactive-form f)
-                                 :command-modes (command-modes f)
-                                 :speed (comp-spill-speed function-name)
-                                 :pure (comp-spill-decl-spec function-name
-                                                             'pure)
-                                 :defining-symbol function-name)))
+         (func
+          (if (comp-lex-byte-func-p byte-code)
+              (make-comp-func-l :name function-name
+                                :c-name c-name
+                                :doc (documentation f t)
+                                :int-spec (interactive-form f)
+                                :command-modes (command-modes f)
+                                :speed (comp-spill-speed function-name)
+                                :pure (comp-spill-decl-spec function-name
+                                                            'pure)
+                                :defining-symbol function-name)
+            (make-comp-func-d :name function-name
+                              :c-name c-name
+                              :doc (documentation f t)
+                              :int-spec (interactive-form f)
+                              :command-modes (command-modes f)
+                              :speed (comp-spill-speed function-name)
+                              :pure (comp-spill-decl-spec function-name
+                                                          'pure)
+                              :defining-symbol function-name))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 '("can't native compile an already byte-compiled function")))
-      (setf (comp-func-byte-func func)
-            (byte-compile (comp-func-name func)))
+      (setf (comp-func-byte-func func) byte-code)
       (let ((lap (byte-to-native-lambda-lap
                   (gethash (aref (comp-func-byte-func func) 1)
                            byte-to-native-lambdas-h))))
         (cl-assert lap)
         (comp-log lap 2 t)
-        (let ((arg-list (aref (comp-func-byte-func func) 0)))
-          (setf (comp-func-l-args func)
-                (comp-decrypt-arg-list arg-list function-name)
-                (comp-func-lap func)
-                lap
-                (comp-func-frame-size func)
-                (comp-byte-frame-size (comp-func-byte-func func))))
-        (setf (comp-ctxt-top-level-forms comp-ctxt)
+        (if (comp-func-l-p func)
+            (let ((arg-list (aref (comp-func-byte-func func) 0)))
+              (setf (comp-func-l-args func)
+                    (comp-decrypt-arg-list arg-list function-name)))
+          (setf (comp-func-d-lambda-list func) (cadr f)))
+        (setf (comp-func-lap func)
+              lap
+              (comp-func-frame-size func)
+              (comp-byte-frame-size (comp-func-byte-func func))
+              (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-func-def :name function-name
                                                   :c-name c-name)))
         (comp-add-func-to-ctxt func))))
@@ -1427,11 +1457,8 @@ clashes."
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte (list filename)))
   (unless (comp-ctxt-output comp-ctxt)
-    (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
-                                        filename
-                                        (or native-compile-target-directory
-                                            (when byte+native-compile
-                                              (car (last native-comp-eln-load-path)))))))
+    (setf (comp-ctxt-output comp-ctxt)
+          (comp-el-to-eln-filename filename native-compile-target-directory)))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
@@ -4377,8 +4404,9 @@ last directory in `native-comp-eln-load-path')."
   (comp-ensure-native-compiler)
   (let ((comp-running-batch-compilation t)
         (native-compile-target-directory
-            (if for-tarball
-                (car (last native-comp-eln-load-path)))))
+         (if for-tarball
+             (car (last native-comp-eln-load-path))
+           native-compile-target-directory)))
     (cl-loop for file in command-line-args-left
              if (or (null byte+native-compile)
                     (cl-notany (lambda (re) (string-match re file))
@@ -4420,6 +4448,8 @@ variable \"NATIVE_DISABLED\" is set, only byte compile."
       (batch-byte-compile)
     (cl-assert (length= command-line-args-left 1))
     (let* ((byte+native-compile t)
+           (native-compile-target-directory
+            (car (last native-comp-eln-load-path)))
            (byte-to-native-output-buffer-file nil)
            (eln-file (car (batch-native-compile))))
       (comp-write-bytecode-file eln-file)

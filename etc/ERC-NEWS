@@ -14,28 +14,29 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.6
 
-** Module 'keep-place' has gained a more flamboyant cousin.
-Remember your place in ERC buffers a bit more easily while retaining
-the freedom to look around.  Optionally sync the indicator to any
-progress made when you haven't yet caught up to the live stream.  See
-options 'erc-keep-place-indicator-style' and friends, and try M-x
+** Module 'keep-place' has a more decorative cousin.
+Remember your place in ERC buffers a bit more easily with the help of
+a configurable, visible indicator.  Optionally sync the indicator to
+any progress made while you haven't yet caught up to the live stream.
+See options 'erc-keep-place-indicator-style' and friends, and try M-x
 keep-place-indicator-mode to see it in action.
 
-** Module 'fill' now offers a style based on 'visual-line-mode'.
-This fill style mimics the "hanging indent" look of 'erc-fill-static'
-and provides some movement and editing commands to optionally tame the
+** Module 'fill' offers an adaptive style based on 'visual-line-mode'.
+This style dynamically wraps messages to a window's width while
+mimicking the "hanging indent" look of 'erc-fill-static'.  It also
+provides some movement and editing commands to optionally tame the
 less familiar aspects of 'visual-line' behavior.  An interactive
-helper called 'erc-fill-wrap-nudge' allows for dynamic "refilling" of
-buffers on the fly.  Set 'erc-fill-function' to 'erc-fill-wrap' to get
-started.
+helper called 'erc-fill-wrap-nudge' makes easy work of adjusting the
+overhang on the fly.  Set 'erc-fill-function' to 'erc-fill-wrap' to
+get started.
 
-** A new module for nickname highlighting has joined ERC.
+** A module for nickname highlighting has joined ERC.
 Automatic nickname coloring has come to ERC core.  Users familiar with
 'erc-hl-nicks', from which this module directly descends, will already
 be familiar with its suite of handy options.  By default, each
 nickname in an ERC session receives a unique face with a unique (or
-evenly dealt) foreground color.  Add 'nicks' to 'erc-modules' to get
-started.
+uniformly dealt) foreground color.  Add 'nicks' to 'erc-modules' to
+get started.
 
 ** A unified interactive entry point.
 New users are often dismayed to discover that M-x ERC doesn't connect
@@ -87,9 +88,9 @@ users to edit the 'erc-modules' widget instead.
 Users can now add 'bufbar' to 'erc-modules' to achieve the same effect
 as toggling 'erc-status-sidebar-open' manually at the start of an IRC
 session.  The module has also been outfitted to show channels and
-queries under their respective servers by default.  To avoid
-confusion, the major mode used for the sidebar buffer itself,
-'erc-status-sidebar-mode', is no longer available interactively.
+queries under their servers by default.  To avoid confusion, the major
+mode for the actual sidebar buffer itself, 'erc-status-sidebar-mode',
+is no longer available interactively.
 
 ** A new spin on a classic integration in erc-speedbar.
 Add 'nickbar' to 'erc-modules' to spawn a dynamically updating side
@@ -102,11 +103,8 @@ side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
 ** The option 'erc-timestamp-use-align-to' is more versatile.
 While this option has always offered to right-align stamps via the
 'display' text property, it's now more effective at doing so when set
-to a number indicating an offset from the right edge.  And when set to
-the symbol 'margin', it displays stamps in the right margin, although,
-at the moment, this is mostly intended for use by other modules, such
-as 'fill-wrap', described above.  For both these variants, users of
-the 'log' module may want to customize 'erc-log-filter-function' to
+to a number indicating an offset from the right edge.  Users of the
+'log' module may want to customize 'erc-log-filter-function' to
 'erc-stamp-prefix-log-filter' to avoid ragged right-hand stamps
 appearing in their saved logs.
 
@@ -140,7 +138,7 @@ This is especially handy when using the option 'erc-fill-wrap-merge'
 to omit repeated speaker tags, which can make message boundaries less
 detectable by tired eyes.
 
-** Some keybindings are now set by modules rather than their libraries.
+** Modules rather than their libraries set major-mode keybindings.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during
 module setup.  This should not impact most user configs since ERC
@@ -149,7 +147,7 @@ previously created.  Note that while all affected bindings still
 reside in 'erc-mode-map', future built-in modules will use their own
 minor-mode maps, and new third-party modules should do the same.
 
-** The option 'erc-timestamp-format-right' has been deprecated.
+** Option 'erc-timestamp-format-right' deprecated.
 Having to account for this option prevented other ERC modules from
 easily determining what right-hand stamps would look like before
 insertion, which is knowledge needed for certain UI decisions.  The
@@ -198,6 +196,13 @@ these changes has been the deprecation of the ancient option
 'erc-truncate-buffer-on-save'.  Users of the 'log' module can achieve
 the same effect by issuing a "/CLEAR" at the prompt.
 
+** The 'truncate' module no longer enables logging automatically.
+Users expecting 'truncate' to perform logging based on the option
+'erc-enable-logging' need to instead add 'log' to 'erc-modules' for
+continued integration.  With the existing design, merely loading the
+library 'erc-log' caused 'truncate' to start writing logs, possibly
+against a user's wishes.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
@@ -227,7 +232,8 @@ Chiefly, 'rear-sticky' has been replaced by 'erc-command', which
 records the IRC command (or numeric) associated with a message.  Less
 impactfully, the value of the 'field' property for ERC's prompt has
 changed from 't' to the more useful 'erc-prompt', although the
-property of the same name has been retained.
+property of the same name has been retained and now has a value of
+'hidden' when disconnected.
 
 *** Members of insert- and send-related hooks have been reordered.
 Built-in and third-party modules rely on certain hooks for adjusting
@@ -253,12 +259,21 @@ versions.
 For starters, the 'cursor-sensor-functions' property no longer
 contains unique closures and thus no longer proves effective for
 traversing messages.  To compensate, a new property, 'erc-timestamp',
-now spans message bodies but not the newlines delimiting them.
-Somewhat relatedly, the function 'erc-insert-aligned' has been
-deprecated and removed from the primary client code path.
-Additionally, the 'stamp' module now merges its 'invisible' property
-with existing ones, when present, and it includes all white space
-around stamps when doing so.
+now spans message bodies but not the newlines delimiting them.  Also
+affecting the `stamp' module is the deprecation of the function
+'erc-insert-aligned' and its removal from client code.  Additionally,
+the module now merges its 'invisible' property with existing ones and
+includes all white space around stamps when doing so.
+
+This "propertizing" of surrounding white space also extends to all
+'stamp'-applied properties, like 'field', in all intervening space
+between message text and timestamps.  Technically, this constitutes a
+breaking change from the perspective of detecting a timestamp's
+bounds.  However, ERC has always propertized leading space before
+right-sided stamps on the same line as message text but not those
+folded onto the next line.  Such inconsistency made stamp detection
+overly complex and produced uneven results when toggling stamp
+visibility.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library
@@ -270,7 +285,7 @@ encouraged to keep a module's name aligned with its group's as well as
 the provided feature of its containing library, if only for the usual
 reasons of namespace hygiene and discoverability.
 
-*** ERC now supports arbitrary CHANTYPES.
+*** ERC supports arbitrary CHANTYPES.
 Specifically, channels can be prefixed with any predesignated
 character, mainly to afford more flexibility to specialty services,
 like bridges to other protocols.
@@ -281,10 +296,19 @@ specify a subcommand to actually carry out anything of consequence.
 Built-in modules can now provide more detailed help for a particular
 subcommand by telling ERC to defer to a specialized handler.
 
-*** Longtime quasi modules have been made proper.
+*** Longtime quasi modules made proper.
 The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
+
+*** Hidden messages contain a preceding rather than trailing newline.
+ERC has traditionally only offered to hide messages involving fools,
+but plans are to make hiding more powerful.  Anyone depending on the
+existing behavior should be aware that hidden messages now start and
+end one character earlier, so that hidden line endings precede rather
+than follow accompanying text.  However, an escape hatch is available
+in the variable 'erc-legacy-invisible-bounds-p'.  It reinstates the
+old behavior, which is unsupported by newer modules and features.
 
 *** 'erc-display-message' optionally combines faces.
 Users may notice that ERC now inserts some important error messages in
@@ -299,11 +323,11 @@ third-party code, the key takeaway is that more 'font-lock-face'
 properties encountered in the wild may be combinations of faces rather
 than lone ones.
 
-*** Prompt input is split before 'erc-pre-send-functions' has a say.
-Hook members are now treated to input whose lines have already been
-adjusted to fall within the allowed length limit.  For convenience,
-third-party code can request that the final input be "re-filled" prior
-to being sent.  See doc string for details.
+*** 'erc-pre-send-functions' visits prompt input post-split.
+ERC now adjusts input lines to fall within allowed length limits
+before showing hook members the result.  For compatibility,
+third-party code can request that the final input be adjusted again
+prior to being sent.  See doc string for details.
 
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while
@@ -311,18 +335,20 @@ running hooks during message insertion, and the position of its
 "insert marker" (ERC's per-buffer process mark) was inconsistent
 during these spells.  To make insertion handling more predictable in
 preparation for incorporating various protocol extensions, the prompt
-and its bounding markers have become perennial fixtures.  To effect
-this change, small behavioral differences in message insertion have
-been adopted.  Crucially, 'erc-insert-marker' now has an "insertion
-type" of t, and 'erc-display-line-1' now calls 'insert' instead of
-'insert-before-prompt'.  This allows user code to leave its own
-markers via 'erc-insert-modify-hook' and 'erc-insert-post-hook'
-instead of having to resort to workarounds.  Message insertion for
-outgoing messages, in 'erc-display-msg', remains as before.  In rare
-cases, these changes may mean third-party code needs tweaking, for
-example, requiring the use of 'insert-before-markers' instead of
-'insert'.  As always, users feeling unduly inconvenienced by these
-changes are encouraged to voice their concerns on the bug list.
+and its bounding markers have become perennial fixtures.
+
+To effect this change, small behavioral differences in message
+insertion have been adopted.  Crucially, 'erc-insert-marker' now has
+an "insertion type" of t, and 'erc-display-line-1' now calls 'insert'
+instead of 'insert-before-markers.  This allows user code running on
+'erc-insert-modify-hook' and 'erc-insert-post-hook' to leave its own
+markers at the actual insertion point instead of resorting to
+workarounds.  Message insertion for outgoing messages, in
+'erc-display-msg', remains as before.  In rare cases, these changes
+may mean third-party code needs tweaking, for example, requiring the
+use of 'insert-before-markers' instead of 'insert'.  As always, users
+feeling unduly inconvenienced by these changes are encouraged to voice
+their concerns on the bug list.
 
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to

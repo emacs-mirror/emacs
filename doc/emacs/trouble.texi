@@ -706,7 +706,7 @@ produced by typing those commands.
 for the detailed raw data.  Reporting the facts is straightforward,
 but many people strain to posit explanations and report them instead
 of the facts.  If the explanations are based on guesses about how
-Emacs is implemented, they night not be useful; meanwhile, lacking the
+Emacs is implemented, they might not be useful; meanwhile, lacking the
 facts, we will have no real information about the bug.  If you want to
 actually @emph{debug} the problem, and report explanations that are
 more than guesses, that is useful---but please include the raw facts
@@ -1514,7 +1514,7 @@ Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
 @item
-Avoid using @code{defadvice} or @code{with-eval-after-load} for Lisp code
+Avoid using @code{advice-add} or @code{with-eval-after-load} for Lisp code
 to be included in Emacs.
 
 @item

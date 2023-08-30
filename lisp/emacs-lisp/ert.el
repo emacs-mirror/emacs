@@ -237,7 +237,9 @@ in batch mode, an error is signaled.
                             `(:expected-result-type ,expected-result))
                         ,@(when tags-supplied-p
                             `(:tags ,tags))
-                        :body (lambda () ,@body)
+                        ;; Add `nil' after the body to enable compiler warnings
+                        ;; about unused computations at the end.
+                        :body (lambda () ,@body nil)
                         :file-name ,(or (macroexp-file-name) buffer-file-name)))
          ',name))))
 

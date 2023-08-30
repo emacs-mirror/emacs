@@ -776,7 +776,7 @@ comp_hash_source_file (Lisp_Object filename)
 #else
   int res = md5_stream (f, SSDATA (digest));
 #endif
-  fclose (f);
+  emacs_fclose (f);
 
   if (res)
     xsignal2 (Qfile_notify_error, build_string ("hashing failed"), filename);
@@ -4749,7 +4749,7 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
     gcc_jit_context_release (comp.ctxt);
 
   if (logfile)
-    fclose (logfile);
+    emacs_fclose (logfile);
   comp.ctxt = NULL;
 
   return Qt;

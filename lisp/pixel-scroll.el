@@ -504,6 +504,7 @@ Otherwise, redisplay will reset the window's vscroll."
   (set-window-start nil (pixel-point-at-unseen-line) t)
   (set-window-vscroll nil vscroll t))
 
+;;;###autoload
 (defun pixel-scroll-precision-scroll-down-page (delta)
   "Scroll the current window down by DELTA pixels.
 Note that this function doesn't work if DELTA is larger than
@@ -518,38 +519,41 @@ the height of the current window."
 	 (desired-vscroll (if start-posn
                               (- delta (cdr (posn-x-y start-posn)))
                             (+ current-vs delta)))
-         (edges (window-edges nil t))
-         (usable-height (- (nth 3 edges)
-                           (nth 1 edges)))
-         (next-pos (save-excursion
-                     (goto-char desired-start)
-                     (when (zerop (vertical-motion (1+ scroll-margin)))
-                       (set-window-start nil desired-start)
-                       (signal 'end-of-buffer nil))
-                     (while (when-let ((posn (posn-at-point)))
-                              (< (cdr (posn-x-y posn)) delta))
-                       (when (zerop (vertical-motion 1))
-                         (set-window-start nil desired-start)
-                         (signal 'end-of-buffer nil)))
-                     (point)))
          (scroll-preserve-screen-position nil)
-         (auto-window-vscroll nil))
-    (when (and (or (< (point) next-pos))
-               (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
-                 (and pos-visibility
-                      (or (eq (length pos-visibility) 2)
-                          (when-let* ((posn (posn-at-point next-pos)))
-                            (> (cdr (posn-object-width-height posn))
-                               usable-height))))))
-      (goto-char next-pos))
-    (set-window-start nil (if (zerop (window-hscroll))
-                              desired-start
-                            (save-excursion
-                              (goto-char desired-start)
-                              (beginning-of-visual-line)
-                              (point)))
-                      t)
-    (set-window-vscroll nil desired-vscroll t t)))
+         (auto-window-vscroll nil)
+         (new-start-position (if (zerop (window-hscroll))
+                                 desired-start
+                               (save-excursion
+                                 (goto-char desired-start)
+                                 (beginning-of-visual-line)
+                                 (point)))))
+    (set-window-start nil new-start-position
+                      (not (zerop desired-vscroll)))
+    (set-window-vscroll nil desired-vscroll t t)
+    ;; Constrain point to a location that will not result in
+    ;; recentering, if it is no longer completely visible.
+    (unless (pos-visible-in-window-p (point))
+      ;; If desired-vscroll is 0, target the window start itself.  But
+      ;; in any other case, target the line immediately below the
+      ;; window start, unless that line is itself invisible.  This
+      ;; improves the appearance of the window by maintaining the
+      ;; cursor row in a fully visible state.
+      (if (zerop desired-vscroll)
+          (goto-char new-start-position)
+        (let ((line-after (save-excursion
+                            (goto-char new-start-position)
+                            (if (zerop (vertical-motion 1))
+                                (progn
+                                  (set-window-vscroll nil 0 t t)
+                                  nil) ; nil means move to new-start-position.
+                              (point)))))
+          (if (not line-after)
+              (progn
+                (goto-char new-start-position)
+                (signal 'end-of-buffer nil))
+            (if (pos-visible-in-window-p line-after nil t)
+                (goto-char line-after)
+              (goto-char new-start-position))))))))
 
 (defun pixel-scroll-precision-scroll-down (delta)
   "Scroll the current window down by DELTA pixels."
@@ -560,6 +564,7 @@ the height of the current window."
       (setq delta (- delta max-height)))
     (pixel-scroll-precision-scroll-down-page delta)))
 
+;;;###autoload
 (defun pixel-scroll-precision-scroll-up-page (delta)
   "Scroll the current window up by DELTA pixels.
 Note that this function doesn't work if DELTA is larger than
@@ -567,27 +572,12 @@ the height of the current window."
   (let* ((edges (window-edges nil t nil t))
          (max-y (- (nth 3 edges)
                    (nth 1 edges)))
-         (usable-height max-y)
          (posn (posn-at-x-y 0 (+ (window-tab-line-height)
                                  (window-header-line-height)
                                  (- max-y delta))))
-         (point (posn-point posn))
-         (up-point (and point
-                        (save-excursion
-                          (goto-char point)
-                          (vertical-motion (- (1+ scroll-margin)))
-                          (point)))))
-    (when (and point (> (point) up-point))
-      (when (let ((pos-visible (pos-visible-in-window-p up-point nil t)))
-              (or (eq (length pos-visible) 2)
-                  (when-let* ((posn (posn-at-point up-point))
-                              (edges (window-edges nil t))
-                              (usable-height (- (nth 3 edges)
-                                                (nth 1 edges))))
-                    (> (cdr (posn-object-width-height posn))
-                       usable-height))))
-        (goto-char up-point)))
-    (let ((current-vscroll (window-vscroll nil t)))
+         (point (posn-point posn)))
+    (let ((current-vscroll (window-vscroll nil t))
+          (wanted-pos (window-start)))
       (setq delta (- delta current-vscroll))
       (set-window-vscroll nil 0 t t)
       (when (> delta 0)
@@ -596,16 +586,25 @@ the height of the current window."
                                              start nil nil nil t))
                (height (nth 1 dims))
                (position (nth 2 dims)))
-          (set-window-start nil position t)
-          ;; If the line above is taller than the window height (i.e. there's
-          ;; a very tall image), keep point on it.
-          (when (> height usable-height)
-            (goto-char position))
+          (setq wanted-pos position)
           (when (or (not position) (eq position start))
             (signal 'beginning-of-buffer nil))
           (setq delta (- delta height))))
+      (set-window-start nil wanted-pos
+                        (not (zerop delta)))
       (when (< delta 0)
-        (set-window-vscroll nil (- delta) t t)))))
+        (set-window-vscroll nil (- delta) t t))
+      ;; vscroll and the window start are now set.  Move point to a
+      ;; position where redisplay will not recenter, if it is now
+      ;; outside the window.
+      (unless (pos-visible-in-window-p (point))
+        (let ((up-pos (save-excursion
+                        (goto-char point)
+                        (vertical-motion -1)
+                        (point))))
+          (if (pos-visible-in-window-p up-pos nil t)
+              (goto-char up-pos)
+            (goto-char (window-start))))))))
 
 (defun pixel-scroll-precision-interpolate (delta &optional old-window factor)
   "Interpolate a scroll of DELTA pixels.
@@ -858,7 +857,9 @@ precisely, according to the turning of the mouse wheel."
   :group 'mouse
   :keymap pixel-scroll-precision-mode-map
   (setq mwheel-coalesce-scroll-events
-        (not pixel-scroll-precision-mode)))
+        (not pixel-scroll-precision-mode))
+  (setq-default make-cursor-line-fully-visible
+                (not pixel-scroll-precision-mode)))
 
 (provide 'pixel-scroll)
 ;;; pixel-scroll.el ends here

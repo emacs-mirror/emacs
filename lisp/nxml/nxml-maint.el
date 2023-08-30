@@ -26,7 +26,7 @@
 
 ;;; Parsing target repertoire files from ucs-fonts.
 ;; This is for converting the TARGET? files in
-;; http://www.cl.cam.ac.uk/~mgk25/download/ucs-fonts.tar.gz
+;; https://www.cl.cam.ac.uk/~mgk25/download/ucs-fonts.tar.gz
 ;; into a glyph set.
 
 (defun nxml-insert-target-repertoire-glyph-set (file var)

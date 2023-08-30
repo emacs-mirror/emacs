@@ -3619,7 +3619,7 @@ replacement text.  Here is an example:
 
 #+begin_src emacs-lisp
 (setq org-link-abbrev-alist
-      '(("bugzilla"        . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
+      '(("bugzilla"        . "https://10.1.2.9/bugzilla/show_bug.cgi?id=")
         ("Nu Html Checker" . "https://validator.w3.org/nu/?doc=%h")
         ("duckduckgo"      . "https://duckduckgo.com/?q=%s")
         ("omap"            . "https://nominatim.openstreetmap.org/search?q=%s&polygon=1")
@@ -4562,7 +4562,7 @@ all children are done, you can use the following setup:
 #+begin_src emacs-lisp
 (defun org-summary-todo (n-done n-not-done)
   "Switch entry to DONE when all subentries are done, to TODO otherwise."
-  (let (org-log-done org-log-states)   ; turn off logging
+  (let (org-log-done org-todo-log-states)   ; turn off logging
     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 
 (add-hook 'org-after-todo-statistics-hook #'org-summary-todo)
@@ -16034,7 +16034,12 @@ can remove every headline in the buffer during export like this:
   "Remove all headlines in the current buffer.
 BACKEND is the export back-end being used, as a symbol."
   (org-map-entries
-   (lambda () (delete-region (point) (line-beginning-position 2)))))
+   (lambda ()
+     (delete-region (point) (line-beginning-position 2))
+     ;; We need to tell `org-map-entries' to not skip over heading at
+     ;; point. Otherwise, it would continue from _next_ heading. See
+     ;; the docstring of `org-map-entries' for details.
+     (setq org-map-continue-from (point)))))
 
 (add-hook 'org-export-before-parsing-hook #'my-headline-removal)
 #+end_src
@@ -20688,8 +20693,8 @@ adding ~:rewrites~ rules like this:
 
 #+texinfo: @noindent
 Since =example.com/$= is used as a regular expression, it maps
-=http://example.com/=, =https://example.com=,
-=http://www.example.com/= and similar to
+=https://example.com/=, =https://example.com=,
+=https://www.example.com/= and similar to
 =/home/user/example/index.php=.
 
 The ~:rewrites~ rules are searched as a last resort if and only if no

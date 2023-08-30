@@ -1,0 +1,793 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 2023 Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Android
+@appendix Emacs and Android
+@cindex Android
+
+  Android is a mobile operating system developed by the Open Handset
+Alliance.  This section describes the peculiarities of using Emacs on
+an Android device running Android 2.2 or later.
+
+  Android devices commonly rely on user input through a touch screen
+or digitizer device and on-screen keyboard.  For more information
+about using such devices with Emacs, @pxref{Other Input Devices}.
+
+@menu
+* What is Android?::            Preamble.
+* Android Startup::             Starting up Emacs on Android.
+* Android File System::         The Android file system.
+* Android Document Providers::  Accessing files from other programs.
+* Android Environment::         Running Emacs under Android.
+* Android Windowing::           The Android window system.
+* Android Fonts::               Font selection under Android.
+* Android Troubleshooting::     Dealing with problems.
+* Android Software::            Getting extra software.
+@end menu
+
+@node What is Android?
+@section Android History
+
+  Android is an operating system for mobile devices developed by the
+Open Handset Alliance, a group of companies interested in developing
+handsets that can run a common set of software.  It is supposedly free
+software.
+
+  Like the X Consortium of times past, the Open Handset Alliance
+believes that ``openness'' (namely, the regular release of the Android
+source code) is simply a tool to increase the popularity of the
+Android platform.  Computer companies normally produce proprietary
+software.  The companies in the Open Handset Alliance are no different
+-- most versions of Android installed on devices are proprietary, by
+virtue of containing proprietary components, that often cannot even be
+replaced by the user.
+
+  Android is not designed to respect users' freedom.  Almost all
+versions of Android (including some which are supposedly free
+software) include support for Digital Restrictions Management,
+technology that is designed to limit users' ability to copy media to
+and from their own devices.  Most Android devices also come with
+proprietary Google applications which are required to run the system,
+and many other Android applications.
+
+  Thus, it must be necessary to consider Android proprietary software
+from a practical standpoint.  That is an injustice.  If you use
+Android, we urge you to switch to a free operating system, if only for
+your freedom's sake.
+
+  We support GNU Emacs on proprietary operating systems because we
+hope this taste of freedom will inspire users to escape from them.
+
+@node Android Startup
+@section Starting Emacs on Android
+
+  Emacs is not installed on Android devices from source code or
+through a package manager.  Instead, Emacs is compiled for Android on
+a different operating system, with the resulting binaries packaged
+into an archive, that is then transferred to the system and installed.
+
+  After being installed, the system places an application icon on the
+desktop (a.k.a@: ``home screen''.)  Emacs then starts up once the
+application icon is clicked.
+
+@cindex ``adb logcat''
+
+  During startup, Emacs will display messages in the system log
+buffer; reading that buffer during start-up requires the Android Debug
+Bridge (@command{adb}) utility to be installed on another computer.
+
+  After enabling the ``USB Debugging'' feature on the Android system,
+and connecting it via USB to another system with the @command{adb}
+utility installed, the log can be viewed by running the following
+command on that other system:
+
+@example
+$ adb logcat | grep -E "(android_run_debug_thread|[Ee]macs)"
+@end example
+
+  Assuming that the @command{adb} utility is installed on a GNU/Linux
+or Unix system, follow the steps below to connect to your device.
+
+@enumerate
+@item
+Enable ``developer options'' on your device, by going to the ``About''
+page in the system settings application and clicking on the ``build
+version'' or ``kernel version'' items five to seven times.
+
+@item
+Open the ``developer options'' settings page, which should be under
+the ``system'' page in the settings application.
+
+@item
+Turn on the switch ``USB debugging''.
+
+@item
+Connect one end of a USB cable to your device, and the other end to
+your computer's USB port.
+
+@item
+Run the command @command{adb shell} on your computer.  This will fail
+or hang because you have not yet granted your computer permission to
+access the connected device.
+
+@item
+Confirm the pop-up displayed on your device asking whether or not it
+should allow access from your computer.
+@end enumerate
+
+  Depending on the versions of Android and @command{adb} installed,
+there may be other ways to establish a connection.  See the official
+documentation at
+@url{https://developer.android.com/studio/command-line/adb} for more
+details.
+
+  Once Emacs starts up, simply running the command @command{logcat} as
+an asynchronous shell command (@pxref{Shell}) will display the log
+buffer.
+
+@cindex emacsclient wrapper, android
+  Since there is no other way to start the @command{emacsclient}
+program (@pxref{Emacs Server}) from another Android program, Emacs
+provides a wrapper around the @command{emacsclient} program, which is
+registered with the system as an application that can open all text
+files.
+
+  When that wrapper is selected as the program with which to open a
+file, it invokes @command{emacsclient} with the options
+@command{--reuse-frame}, @command{--timeout=10}, @command{--no-wait},
+and the name of the file being opened.  Then, upon success, the focus
+is transferred to any open Emacs frame.
+
+  However, if Emacs is not running at the time the wrapper is opened,
+it starts Emacs and gives it the file to open as an argument.  Note
+that if that Emacs in turn does not start the Emacs server, subsequent
+attempts to open the file with the wrapper will fail.
+
+@cindex /content/by-authority directory, android
+  Some files are given to Emacs as ``content identifiers'' that the
+system provides access to outside the normal filesystem APIs.  Emacs
+uses a pseudo-directory named @file{/content/by-authority} to access
+those files.  Do not make any assumptions about the contents of this
+directory, or try to open files in it yourself.
+
+  This feature is not provided on Android 4.3 and earlier, in which
+case such files are copied to a temporary directory before being
+opened.
+
+@node Android File System
+@section What Files Emacs Can Access on Android
+@cindex /assets directory, android
+
+  Emacs exposes a special directory on Android systems: the name of
+the directory is @file{/assets}, and it contains the @file{etc},
+@file{lisp} and @file{info} directories which are normally installed
+in @file{/usr/share/emacs} directory on GNU and Unix systems.  On
+Android systems, the Lisp emulation of @command{ls} (@pxref{ls in
+Lisp}) is also enabled by default, as the @command{ls} binary which
+comes with the system varies by manufacturer and usually does not
+support all of the features required by Emacs.  One copy of
+@command{ls} distributed with some Android systems is even known to
+lack support for the @code{-l} flag.
+
+@cindex limitations of the /assets directory
+
+  This directory exists because Android does not extract the contents
+of application packages on to the file system while unpacking them,
+but instead requires programs like Emacs to access its contents using
+a special ``asset manager'' interface.  Here are the peculiarities
+that result from such an implementation:
+
+@itemize @bullet
+@item
+Subprocesses (such as @command{ls}) can not run from the
+@file{/assets} directory; if you try to run a subprocess with
+@code{current-directory} set to @file{/assets},
+@file{/content/storage} or a subdirectory thereof, it will run from
+the home directory instead.
+
+@item
+There are no @file{.} and @file{..} directories inside the
+@file{/assets} or @file{/content} directory.
+
+@item
+Files in the @file{/assets} directory are always read only, and may be
+read in to memory more than once each time they are opened.
+@end itemize
+
+  Aside from the @file{/assets} directory, Android programs normally
+have access to four other directories.  They are:
+
+@itemize @bullet
+@item
+The @dfn{app data} directory.  This also serves as the home directory
+for Emacs, and is always accessible read-write.
+
+@item
+The @dfn{app library} directory.  This is automatically appended to
+@code{exec-path} and made @code{exec-directory} upon startup, and
+contains utility executables alongside Emacs itself.
+
+@item
+The @dfn{external storage} directory.  This is accessible to Emacs
+when the user grants the ``Files and Media'' permission to Emacs via
+system settings.
+
+@item
+Directories provided by @dfn{document providers} on Android 5.0 and
+later.  These directories exist outside the normal Unix filesystem,
+containing files provided by external programs (@pxref{Android
+Document Providers}.)
+@end itemize
+
+  Despite ordinary installations of Android not having files within
+the (normally read-only) root directory named @file{content} or
+@file{assets}, you may want to access real files by these names if the
+Android installation in use has been customized.  These files will
+conflict with the aformentioned special directories, but can
+nevertheless be accessed by writing their names relative to the
+``parent'' directory of the root directory, as so illustrated:
+@file{/../content}, @file{/../assets}.
+
+  The external storage directory is found at @file{/sdcard}.  The
+other directories are not found at any fixed location (but see below),
+although the app data directory is typically symlinked to
+@file{/data/data/org.gnu.emacs/files}.
+
+@cindex app library directory, android
+@cindex where is emacsclient under android
+  Older versions of Android used to place the app library directory
+under the name @file{lib} in the parent of the app data directory.
+Today, this directory is often placed in a directory with a randomly
+generated name under @file{/data/app}.
+
+  For the convenience of scripts running within applications sharing
+the same user ID as Emacs (which have no access to the
+@code{exec-directory} variable), a fairly considerable effort is made
+at startup to symlink the application library directory to its
+traditional location within the parent of the app data directory.
+
+  If Emacs is reinstalled and the location of the app library
+directory consequentially changes, that symlink will also be updated
+to point to its new location the next time Emacs is started by the
+system.
+
+@cindex temp~unlinked.NNNN files, Android
+  On Android devices running very old (2.6.29) versions of the Linux
+kernel, Emacs needs to create files named starting with
+@file{temp~unlinked} in the the temporary file directory in order to
+read from asset files.  Do not create files with such names yourself,
+or they may be overwritten or removed.
+
+@cindex file system limitations, Android 11
+  On Android 11 and later, the Android system restricts applications
+from accessing files in the @file{/sdcard} directory using
+file-related system calls such as @code{open} and @code{readdir}.
+
+  This restriction is known as ``Scoped Storage'', and supposedly
+makes the system more secure.  Unfortunately, it also means that Emacs
+cannot access files in those directories, despite holding the
+necessary permissions.  Thankfully, the Open Handset Alliance's
+version of Android allows this restriction to be disabled on a
+per-program basis; the corresponding option in the system settings
+panel is:
+
+@example
+System -> Apps -> Special App Access -> All files access -> Emacs
+@end example
+
+  After you disable or enable this setting as appropriate and grant
+Emacs the ``Files and Media'' permission, it will be able to access
+files under @file{/sdcard} as usual.  These settings are not present
+on some proprietary versions of Android.
+
+@node Android Document Providers
+@section Accessing Files from Other Programs on Android
+@cindex document providers, Android
+@cindex /content/storage directory, Android
+
+  Android 5.0 introduces a new sort of program, the ``document
+provider'': these programs are small programs that provide access to
+their own files outside both the asset manager and the Unix
+filesystem.  Emacs supports accessing files and directories they
+provide, placing their files within the directory
+@file{/content/storage}.
+
+@findex android-request-directory-access
+  Before Emacs is granted access to any of these directories, it must
+first request the right to access it.  This is done by running the
+command (@pxref{M-x}) @code{android-request-directory-access}, which
+displays a file selection dialog.
+
+  If a directory is selected within this dialog, its contents are
+subsequently made available within a new directory named
+@file{/content/storage/@var{authority}/@var{id}}, where
+@var{authority} is the name of the document provider, and @var{id} is
+a unique identifier assigned to the directory by the document
+provider.
+
+  The same limitations applied to the @file{/assets} directory
+(@pxref{Android File System}) are applied when creating sub-processes
+within those directories, because they do not exist within the Unix
+file-system.  In addition, although Emacs can normally write and
+create files inside these directories, it cannot create symlinks or
+hard links.
+
+  Since document providers are allowed to perform expensive network
+operations to obtain file contents, a file access operation within one
+of these directories has the potential to take a significant amount of
+time.
+
+@node Android Environment
+@section Running Emacs under Android
+
+  From the perspective of users, Android is mostly a single user
+operating system; however, from the perspective of applications and
+Emacs, the system has an overwhelming number of users.
+
+  Each application runs in its own user, with its home directory set
+to its app data directory (@pxref{Android File
+System}.)@footnote{Except in cases where a ``shared user ID'' is
+specified and other applications signed using the same ``package
+signing key'' are installed, in which case Emacs runs as the same user
+and has access to the same files as each of the aformentioned
+applications.}
+
+  Each application is also prohibited from accessing many system
+directories and the app data directories of other applications.
+
+  The Emacs distribution also incorporates several binaries.  While
+being executable files, they are packaged as libraries in the library
+directory, because otherwise the system will not unpack them while
+Emacs is being installed.  This means that instead of @code{ctags} or
+@code{emacsclient}, Lisp code must specify @code{libctags.so} or
+@code{libemacsclient.so} on the command line when starting either of
+those programs in a subprocess; to determine which names to use,
+consult the values of the variables @code{ctags-program-name},
+@code{etags-program-name}, @code{hexl-program-name},
+@code{emacsclient-program-name}, @code{movemail-program-name},
+@code{ebrowse-program-name}, and @code{rcs2log-program-name}.
+@xref{Subprocess Creation,,, elisp, the Emacs Lisp Reference Manual}.
+
+  The @file{/assets} directory containing Emacs start-up files is
+supposed to be inaccessible to processes not directly created by
+@code{zygote}, the system service responsible for starting
+applications.  Since required Lisp is found in the @file{/assets}
+directory, it would thus follow that it is not possible for Emacs to
+start itself as a subprocess.  A special binary named
+@command{libandroid-emacs.so} is provided with Emacs, and does its
+best to start Emacs for the purpose of running Lisp in batch mode.
+However, the approach it takes was devised by reading Android source
+code, and is not sanctioned by the Android compatibility definition
+documents, so your mileage may vary.
+
+@cindex call-process, Android
+@vindex android-use-exec-loader
+  Android 10 and later also prohibit Emacs itself from running
+executables inside the app data directory, obstensibly for security
+reasons.  On these systems, Emacs normally applies a workaround;
+however, this workaround requires running all sub-processes through
+another subprocess which implements an executable loader and applies
+process tracing to all its children, which may prove to be problematic
+for various different reasons.  In that case, the workaround can be
+disabled by changing the variable @code{android-use-exec-loader} to
+@code{nil}.
+
+  When this workaround is in effect, process IDs retrieved through the
+@code{process-id} function will be that of the executable loader
+process; its child will belong to the same process group as the
+loader.  As a result, @code{interrupt-process}, and other related
+functions will work correctly, but using the process ID returned by
+@code{process-id} for other purposes will not.
+
+  One side effect of the mechanism by which process tracing is carried
+out is that job control facilities inside inferior shells
+(@pxref{Interactive Shell}) will not be able to stop processes, and
+sending the @code{SIGSTOP} signal to a subprocess created by Emacs
+will appear to have no effect.
+
+  In addition, Android 12 also terminates subprocesses which are
+consuming CPU while Emacs itself is in the background.  The system
+determines which processes are consuming too much CPU in intervals of
+five minutes, and terminates the process that has consumed the most
+CPU time.
+
+  Android 12.1 and Android 13 provide an option to disable this
+behavior; to use it, enable ``USB debugging'' (@pxref{Android
+Startup}) connect the Android system to another computer, and run:
+
+@example
+$ adb shell "settings put global settings_enable_monitor_phantom_procs false"
+@end example
+
+@cindex running emacs in the background, android
+@cindex emacs killed, android
+@cindex emacs in the background, android
+
+  Application processes are treated as disposable entities by the
+system.  When all Emacs frames move to the background, Emacs might be
+terminated by the system at any time, for the purpose of saving system
+resources.
+
+  On Android 7.1 and earlier, Emacs tells the system to treat it as a
+``background service''.  The system will try to avoid killing Emacs
+unless the system is stressed for memory.
+
+  Android 8.0 removed the ability for background services to receive
+such special treatment.  However, Emacs applies a workaround: the
+system considers applications that create a permanent notification to
+be performing active work, and will avoid killing such applications.
+Thus, on those systems, Emacs displays a permanent notification for as
+long as it is running.  Once the notification is displayed, it can be
+safely hidden through the system settings without resulting in Emacs
+being killed.
+
+  However, it is not guaranteed that the system will not kill Emacs
+even if a notification is being displayed.  While the Open Handset
+Alliance's sample implementation of Android behaves correctly, many
+manufacturers place additional restrictions on program execution in
+the background in their proprietary versions of Android.  There is a
+list of such troublesome manufacturers and sometimes workarounds at
+@url{https://dontkillmyapp.com/}.
+
+@cindex permissions under android
+@cindex external storage, android
+
+  Android also defines a permissions system that determines what
+system services Emacs is allowed to access.  Programs must specify
+what permissions they want; what then happens depends on the version
+of Android being used:
+
+@itemize @bullet
+@item
+On Android 5.1 and earlier, Emacs automatically receives the following
+permissions it has requested upon being installed:
+
+@itemize @minus
+@item
+@code{android.permission.READ_CONTACTS}
+@item
+@code{android.permission.WRITE_CONTACTS}
+@item
+@code{android.permission.VIBRATE}
+@item
+@code{android.permission.ACCESS_COARSE_LOCATION}
+@item
+@code{android.permission.ACCESS_NETWORK_STATE}
+@item
+@code{android.permission.INTERNET}
+@item
+@code{android.permission.SET_WALLPAPER}
+@item
+@code{android.permission.READ_EXTERNAL_STORAGE}
+@item
+@code{android.permission.WRITE_EXTERNAL_STORAGE}
+@item
+@code{android.permission.SEND_SMS}
+@item
+@code{android.permission.RECEIVE_SMS}
+@item
+@code{android.permission.RECEIVE_MMS}
+@item
+@code{android.permission.WRITE_SMS}
+@item
+@code{android.permission.READ_SMS}
+@item
+@code{android.permission.NFC}
+@item
+@code{android.permission.TRANSMIT_IR}
+@item
+@code{android.permission.READ_PHONE_STATE}
+@item
+@code{android.permission.WAKE_LOCK}
+@item
+@code{android.permission.FOREGROUND_SEVICE}
+@item
+@code{android.permission.REQUEST_INSTALL_PACKAGES}
+@item
+@code{android.permission.REQUEST_DELETE_PACKAGES}
+@item
+@code{android.permission.SYSTEM_ALERT_WINDOW}
+@item
+@code{android.permission.RECORD_AUDIO}
+@item
+@code{android.permission.CAMERA}
+@item
+@code{android.permission.POST_NOTIFICATIONS}
+@end itemize
+
+While most of these permissions are left unused by Emacs itself, they
+are declared by Emacs as they could be useful for other programs; for
+example, the permission to access contacts may be useful for EUDC.
+
+@item
+On Android 6.0 and later, Emacs only receives the following
+permissions upon installation:
+
+@itemize @minus
+@item
+@code{android.permission.VIBRATE}
+@item
+@code{android.permission.ACCESS_NETWORK_STATE}
+@item
+@code{android.permission.INTERNET}
+@item
+@code{android.permission.SET_WALLPAPER}
+@item
+@code{android.permission.NFC}
+@item
+@code{android.permission.TRANSMIT_IR}
+@item
+@code{android.permission.WAKE_LOCK}
+@end itemize
+
+Other permissions must be granted by the user through the system
+settings application.  Consult the manufacturer of your device for
+more details, as how to do this varies by device.
+@end itemize
+
+@node Android Windowing
+@section The Android Window System
+
+  Android has an unusual window system; there, all windows are
+maximized or full-screen, and only one window can be displayed at a
+time.  On larger devices, the system allows up to four windows to be
+tiled on the screen at any time.
+
+  Windows on Android do not continue to exist indefinitely after they
+are created.  Instead, the system may choose to close windows that are
+not on screen in order to save memory, with the assumption that the
+program will save its contents to disk and restore them later, when
+the user asks for it to be opened again.  As this is obviously not
+possible with Emacs, Emacs separates the resources associated with a
+frame from its system window.
+
+  Each system window created (including the initial window created
+during Emacs startup) is appended to a list of windows that do not
+have associated frames.  When a frame is created, Emacs looks up any
+window within that list, and displays the contents of the frame
+within; if there is no window at all, then one is created.  Likewise,
+when a new window is created by the system, Emacs places the contents
+of any frame that is not already displayed within a window inside.
+When a frame is closed, the corresponding system window is also
+closed.  Upon startup, the system creates a window itself (within
+which Emacs displays the first window system frame shortly
+thereafter.)  Emacs differentiates between that window and windows
+created on behalf of other frames to determine what to do when the
+system window associated with a frame is closed:
+
+@itemize @bullet
+@item
+When the system closes the window created during application startup
+in order to save memory, Emacs retains the frame for when that window
+is created later.
+
+@item
+When the user closes the window created during application startup,
+and the window was not previously closed by the system in order to
+save resources, Emacs deletes any frame displayed within that window.
+
+@item
+When the user or the system closes any window created by Emacs on
+behalf of a specific frame, Emacs deletes the frame displayed within
+that window.
+@end itemize
+
+@cindex windowing limitations, android
+@cindex frame parameters, android
+Emacs only supports a limited subset of GUI features on Android; the
+limitations are as follows:
+
+@itemize @bullet
+@item
+Scroll bars are not supported, as they are close to useless on Android
+devices.
+
+@item
+The @code{alpha}, @code{alpha-background}, @code{z-group},
+@code{override-redirect}, @code{mouse-color}, @code{title},
+@code{wait-for-wm}, @code{sticky}, @code{undecorated} and
+@code{tool-bar-position} frame parameters (@pxref{Frame Parameters,,,
+elisp, the Emacs Lisp Reference Manual}) are unsupported.
+
+@item
+On Android 4.0 and earlier, the @code{fullscreen} frame parameter is
+always @code{maximized} for top-level frames; on later versions of
+Android, it can also be @code{fullscreen}.
+@end itemize
+
+@cindex selections, android
+@cindex android clipboard
+  Emacs does not implement all selection related features supported
+under the X Window System on Android.  For example, only the
+@code{CLIPBOARD} and @code{PRIMARY} selections (@pxref{Cut and Paste})
+are supported, and Emacs is only able to set selections to plain text.
+
+  In addition, the Android system itself places certain restrictions
+on what selection data Emacs can access:
+
+@itemize @bullet
+@item
+On Android 2.3 and earlier, the function @code{gui-selection-owner-p}
+always returns @code{nil} for the clipboard selection.
+
+@item
+Between Android 3.0 and Android 9.0, Emacs is able to access the
+clipboard whenever it wants, and @code{gui-selection-owner-p} always
+returns accurate results.
+
+@item
+Under Android 10.0 and later, Emacs can only access clipboard data
+when one of its frames has the input focus, and
+@code{gui-selection-owner-p} always returns @code{nil} for the
+clipboard selection.
+@end itemize
+
+  Since the Android system itself has no concept of a primary
+selection, Emacs provides an emulation instead.  This means there is
+no way to transfer the contents of the primary selection to another
+application via cut-and-paste.
+
+@vindex android-pass-multimedia-buttons-to-system
+@cindex volume/multimedia buttons, Android
+  The volume keys are normally reserved by Emacs and used to provide
+the ability to quit Emacs without a physical keyboard
+(@pxref{On-Screen Keyboards}.)  However, if you want them to adjust
+the volume instead, you can set the variable
+@code{android-pass-multimedia-buttons-to-system} to a non-@code{nil}
+value; note that you will no longer be able to quit Emacs using the
+volume buttons in that case.
+
+@cindex dialog boxes, android
+  Emacs is unable to display dialog boxes (@pxref{Dialog Boxes}) while
+it does not have the input focus on Android 6.0 or later.  If this is
+important to you, this ability can be restored by granting Emacs
+permission to display over other programs.  Normally, this can be done
+from the:
+
+@example
+System -> Apps -> Emacs -> More -> Display over other apps
+@end example
+
+menu in the system settings, but this procedure may vary by device.
+
+@cindex keyboard modifiers, android
+  There is a direct relation between physical modifier keys and Emacs
+modifiers (@pxref{Modifier Keys}) reported within key events, subject
+to a single exception: if @key{Alt} on your keyboard is depressed,
+then the @key{Meta} modifier will be reported by Emacs in its place,
+and vice versa.  This irregularity is since most keyboards posses no
+special @key{Meta} key, and the @key{Alt} modifier is seldom employed
+in Emacs.
+
+  Bear in mind that Android uses a different name for the @key{Super}
+modifier: it is referred to as @key{SYM} on Android keyboards and
+within the Settings keymap menu.
+
+@node Android Fonts
+@section Font Backends and Selection under Android
+@cindex fonts, android
+
+  Emacs supports two font backends under Android: they are respectively
+named @code{sfnt-android} and @code{android}.
+
+  Upon startup, Emacs enumerates all the TrueType format fonts in the
+directories @file{/system/fonts} and @file{/product/fonts}, and the
+@file{fonts} directory (@dfn{user fonts directory}) inside the Emacs
+home directory.  Emacs assumes there will always be a font named
+``Droid Sans Mono'', and then defaults to using this font.  These
+fonts are then displayed by the @code{sfnt-android} font driver.
+
+  When running on Android, Emacs currently lacks support for OpenType
+fonts.  This means that only a subset of the fonts installed on the
+system are currently available to Emacs.  If you are interested in
+lifting this limitation, please contact @email{emacs-devel@@gnu.org}.
+
+  If the @code{sfnt-android} font driver fails to find any fonts at
+all, Emacs falls back to the @code{android} font driver.  This is a
+very lousy font driver, because of limitations and inaccuracies in the
+font metrics provided by the Android platform.  In that case, Emacs
+uses the ``Monospace'' typeface configured on your system; this should
+always be Droid Sans Mono.
+
+@cindex TrueType GX fonts, android
+@cindex distortable fonts, android
+
+  As on X systems, Emacs supports distortable fonts under Android.
+These fonts (also termed ``TrueType GX fonts'', ``variable fonts'',
+and ``multiple master fonts'') provide multiple different styles
+(``Bold'', ``Italic'', etc) using a single font file.
+
+  When a user-installed distortable font is found, each style that a
+previously discovered font provided will no longer be used.  In
+addition, any previously installed distortable fonts with the same
+family name are also disregarded, provided that the new distortable
+font supplies a superset of the styles furnished by the previously
+installed font.  When a conventional font is found, any previous
+conventional font with the same style and family will be removed;
+distortable fonts with the same family will no longer be used to
+provide that style.
+
+@node Android Troubleshooting
+@section Troubleshooting Startup Problems on Android
+@cindex troubleshooting, android
+
+@cindex emacs -Q, android
+@cindex emacs --debug-init, android
+  Since Android has no command line, there is normally no way to
+specify command-line arguments when starting Emacs.  This is very
+nasty when you make a mistake in your Emacs initialization files that
+prevents Emacs from starting up at all, as the system normally
+prevents other programs from accessing Emacs's home directory.
+@xref{Initial Options}.
+
+  However, Emacs can be started with the equivalent of either the
+option @code{--quick}, or @code{--debug-init} through a special
+preferences screen.  Under Android 7.0 and later, this can be accessed
+through the Emacs ``app info'' page in the system settings program; on
+older systems, this is displayed as a separate icon on the desktop
+labeled ``Emacs options''.
+
+  Consult the manufacturer of your device for more details, as how to
+do this varies by device.
+
+@cindex dumping, android
+  The first time any given copy of Emacs starts on a device, it spends
+a while loading the preloaded Lisp files which normally come with
+Emacs.  This produces a ``dump file'' (@pxref{Initial Options}) in the
+files directory, containing an identifier unique to that copy of
+Emacs.
+
+  The next time that same copy of Emacs starts up, it simply loads the
+data contained in that dump file, greatly reducing start up time.
+
+  If by some unforeseen circumstance the dump file is corrupted, Emacs
+can crash.  If that happens, the dump file stored in the Emacs files
+directory can be erased through the preferences screen described
+above.
+
+@cindex accessing Emacs directories, Android
+  Emacs supports an alternative method of rescuing broken Emacs
+installations on Android 4.4 and later: Emacs exports a ``documents
+provider'' which accesses the contents of Emacs's home directory, that
+can then be accessed by any file manager program.
+
+  If you can find out how to open that documents provider in the file
+manager that comes with your device, you can rename, delete, or edit
+your initialization or dump files from there instead.
+
+@node Android Software
+@section Installing Extra Software on Android
+@cindex installing extra software on Android
+@cindex installing Unix software on Android
+
+  Android includes an extremely limited set of Unix-like command line
+tools in a default installation.  Several projects exist to argument
+this selection, providing options that range from improved
+reproductions of Unix command-line utilities to package repositories
+containing extensive collections of free GNU and Unix software.
+
+  @uref{http://busybox.net, Busybox} provides Unix utilities and
+limited replicas of certain popular GNU programs such as
+@command{wget} in a single statically-linked Linux binary, which is
+capable of running under Android.
+
+  @uref{https://termux.dev, Termux} provides a package manager based
+on the Debian project's @command{dpkg} system and a set of package
+repositories containing substantial amounts of free software for Unix
+systems, including compilers, debuggers, and runtimes for languages
+such as C, C++, Java, Python and Common Lisp.  These packages are
+normally installed from within a purpose-built terminal emulator
+application, but Emacs can access them if it is built with the same
+application signing key as the Termux terminal emulator, and with its
+``shared user ID'' set to the package name of the terminal emulator
+program.  The file @file{java/INSTALL} within the Emacs distribution
+explains how to build Emacs in this fashion.
+
+  @uref{https://github.com/termux/termux-packages, termux-packages}
+provides the package definitions that are used by Termux to generate
+their package repositories, which may also be independently compiled
+for installation within Emacs's home directory.
+
+  In addition to the projects mentioned above, statically linked
+binaries for most Linux kernel-based systems can also be run on
+Android.

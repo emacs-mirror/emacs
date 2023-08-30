@@ -51,6 +51,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module at-internal:
   # Code from module attribute:
   # Code from module binary-io:
+  # Code from module boot-time:
   # Code from module builtin-expect:
   # Code from module byteswap:
   # Code from module c-ctype:
@@ -104,8 +105,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module fsync:
   # Code from module futimens:
   # Code from module gen-header:
+  # Code from module getdelim:
   # Code from module getdtablesize:
   # Code from module getgroups:
+  # Code from module getline:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
@@ -241,6 +244,7 @@ AC_DEFUN([gl_INIT],
   gl_ASSERT_H
   gl_CONDITIONAL_HEADER([assert.h])
   AC_PROG_MKDIR_P
+  gl_PREREQ_READUTMP_H
   gl___BUILTIN_EXPECT
   gl_BYTESWAP
   gl_CONDITIONAL_HEADER([byteswap.h])
@@ -346,6 +350,12 @@ AC_DEFUN([gl_INIT],
   gl_CONDITIONAL([GL_COND_OBJ_FUTIMENS],
                  [test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1])
   gl_SYS_STAT_MODULE_INDICATOR([futimens])
+  gl_FUNC_GETLINE
+  gl_CONDITIONAL([GL_COND_OBJ_GETLINE], [test $REPLACE_GETLINE = 1])
+  AM_COND_IF([GL_COND_OBJ_GETLINE], [
+    gl_PREREQ_GETLINE
+  ])
+  gl_STDIO_MODULE_INDICATOR([getline])
   AC_REQUIRE([AC_CANONICAL_HOST])
   gl_GETLOADAVG
   gl_CONDITIONAL([GL_COND_OBJ_GETLOADAVG],
@@ -642,6 +652,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_dirfd=false
   gl_gnulib_enabled_925677f0343de64b89a9f0c790b4104c=false
   gl_gnulib_enabled_euidaccess=false
+  gl_gnulib_enabled_getdelim=false
   gl_gnulib_enabled_getdtablesize=false
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
@@ -711,6 +722,19 @@ AC_DEFUN([gl_INIT],
         func_gl_gnulib_m4code_a9786850e999ae65a836a6041e8e5ed1
       fi
       func_gl_gnulib_m4code_6099e9737f757db36c47fa9d9f02e88c
+    fi
+  }
+  func_gl_gnulib_m4code_getdelim ()
+  {
+    if $gl_gnulib_enabled_getdelim; then :; else
+      gl_FUNC_GETDELIM
+      gl_CONDITIONAL([GL_COND_OBJ_GETDELIM],
+                     [test $HAVE_GETDELIM = 0 || test $REPLACE_GETDELIM = 1])
+      AM_COND_IF([GL_COND_OBJ_GETDELIM], [
+        gl_PREREQ_GETDELIM
+      ])
+      gl_STDIO_MODULE_INDICATOR([getdelim])
+      gl_gnulib_enabled_getdelim=true
     fi
   }
   func_gl_gnulib_m4code_getdtablesize ()
@@ -978,6 +1002,9 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     func_gl_gnulib_m4code_utimens
   fi
+  if test $REPLACE_GETLINE = 1; then
+    func_gl_gnulib_m4code_getdelim
+  fi
   if case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0 || test $REPLACE_GETLOADAVG = 1;; esac; then
     func_gl_gnulib_m4code_open
   fi
@@ -1017,6 +1044,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dirfd], [$gl_gnulib_enabled_dirfd])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c], [$gl_gnulib_enabled_925677f0343de64b89a9f0c790b4104c])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_euidaccess], [$gl_gnulib_enabled_euidaccess])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_getdelim], [$gl_gnulib_enabled_getdelim])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getdtablesize], [$gl_gnulib_enabled_getdtablesize])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getgroups], [$gl_gnulib_enabled_getgroups])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
@@ -1226,6 +1254,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/attribute.h
   lib/binary-io.c
   lib/binary-io.h
+  lib/boot-time-aux.h
+  lib/boot-time.c
+  lib/boot-time.h
   lib/byteswap.in.h
   lib/c++defs.h
   lib/c-ctype.c
@@ -1284,8 +1315,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/ftoastr.h
   lib/futimens.c
   lib/get-permissions.c
+  lib/getdelim.c
   lib/getdtablesize.c
   lib/getgroups.c
+  lib/getline.c
   lib/getloadavg.c
   lib/getopt-cdefs.in.h
   lib/getopt-core.h
@@ -1355,6 +1388,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/rawmemchr.valgrind
   lib/readlink.c
   lib/readlinkat.c
+  lib/readutmp.h
   lib/realloc.c
   lib/regcomp.c
   lib/regex.c
@@ -1462,8 +1496,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fsusage.m4
   m4/fsync.m4
   m4/futimens.m4
+  m4/getdelim.m4
   m4/getdtablesize.m4
   m4/getgroups.m4
+  m4/getline.m4
   m4/getloadavg.m4
   m4/getopt.m4
   m4/getrandom.m4
@@ -1512,6 +1548,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/rawmemchr.m4
   m4/readlink.m4
   m4/readlinkat.m4
+  m4/readutmp.m4
   m4/realloc.m4
   m4/regex.m4
   m4/sha1.m4

@@ -1211,12 +1211,7 @@ the stroke as a character in some language."
 ;;\\{edit-strokes-mode-map}"
 ;;  (setq truncate-lines nil
 ;;	auto-show-mode nil		; don't want problems here either
-;;	mode-popup-menu edit-strokes-menu) ; what about extent-specific stuff?
-;;  (and (featurep 'menubar)
-;;       current-menubar
-;;       (setq-local current-menubar
-;;                   (copy-sequence current-menubar))
-;;       (add-submenu nil edit-strokes-menu)))
+;;	mode-popup-menu edit-strokes-menu)) ; what about extent-specific stuff?
 
 ;;(let ((map edit-strokes-mode-map))
 ;;  (define-key map "<" 'beginning-of-buffer)

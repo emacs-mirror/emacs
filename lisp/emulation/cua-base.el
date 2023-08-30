@@ -1134,7 +1134,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (defun cua--M/H-key (map key fct)
   ;; bind H-KEY or M-KEY to FCT in MAP
-  (unless (listp key) (setq key (list key)))
+  (setq key (ensure-list key))
   (define-key map (vector (cons cua--rectangle-modifier-key key)) fct))
 
 (defun cua--self-insert-char-p (def)

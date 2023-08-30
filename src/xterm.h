@@ -255,19 +255,71 @@ struct xi_scroll_valuator_t
 
 #ifdef HAVE_XINPUT2_2
 
+/* Enum describing the ownership of a touch point.
+
+   The input extension allows other clients to intercept touch
+   sequences destined for a client window through passively grabbing
+   for touch events on a parent window.
+
+   When a passive touch grab for an XI_TouchBegin event activates, one
+   grabbing client is designated the ``owner'' of the touch sequence
+   started by the grabbed event.  Touch events are then delivered to
+   both the grabbing client and other clients that have selected for
+   touch events on the subwindow.
+
+   The X server will not deliver TouchEnd events to clients other than
+   the owner until one grabbing client decides to take over processing
+   the touch event sequence, or no more grabbing clients remain.
+   Instead, a TouchUpdate event with the TouchPendingEnd flag is sent,
+   and the TouchEnd event is postponed until the decision is made and
+   all XI_TouchOwnership events are sent.
+
+   If the owner decides to take over processing the touch sequence, an
+   XI_TouchEnd event is delivered to all other clients receiving
+   events for the current touch sequence, who are then expected to
+   cancel or undo any actions which have taken place in reaction to
+   events from that sequence.
+
+   If the owner decides to relinquish ownership over the touch
+   sequence, the X server looks for another grabbing client, and
+   transfers touch ownership to that client instead.  Nothing changes
+   from the perspective of clients who have merely selected for events
+   from the subwindow, while an XI_TouchEnd event is delivered to the
+   old owner, and an XI_TouchOwnership event is delivered to the new
+   owner.
+
+   If all grabbing clients reject ownership over the touch sequence,
+   the X server delivers an XI_TouchOwnership event to the client that
+   has selected for touch events on the subwindow, the only client
+   that will receive events for this touch sequence from this time
+   forward.  */
+
+enum xi_touch_ownership
+  {
+    /* Emacs doesn't own this touch sequence.  */
+    TOUCH_OWNERSHIP_NONE,
+
+    /* Emacs owns this touch sequence.  */
+    TOUCH_OWNERSHIP_SELF,
+  };
+
 struct xi_touch_point_t
 {
-  /* The next touch point in this list.  */
-  struct xi_touch_point_t *next;
-
   /* The touchpoint detail.  */
   int number;
 
-  /* The last known X and Y position of the touchpoint.  */
-  double x, y;
+  /* Whether or not Emacs has ``exclusive'' access to this touch
+     point.  */
+  enum xi_touch_ownership ownership;
+
+  /* The last known rounded X and Y positions of the touchpoint.  */
+  int x, y;
 
   /* The frame associated with this touch point.  */
   struct frame *frame;
+
+  /* The next touch point in this list.  */
+  struct xi_touch_point_t *next;
 };
 
 #endif
@@ -924,6 +976,13 @@ struct x_display_info
      server_time_monotonic_p will be true).  */
   int_fast64_t server_time_offset;
 #endif
+
+  /* Keysym that will cause Emacs to quit if pressed twice within 150
+     ms.  */
+  KeySym quit_keysym;
+
+  /* The last time that keysym was pressed.  */
+  Time quit_keysym_time;
 };
 
 #ifdef HAVE_XINPUT2
