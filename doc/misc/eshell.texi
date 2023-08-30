@@ -619,10 +619,19 @@ environment.
 @item eshell-debug
 @cmindex eshell-debug
 Toggle debugging information for Eshell itself.  You can pass this
-command the argument @code{errors} to enable/disable Eshell trapping
-errors when evaluating commands, or the argument @code{commands} to
-show/hide command execution progress in the buffer @code{*eshell last
-cmd*}.
+command one or more of the following arguments:
+
+@itemize @bullet
+
+@item
+@code{error}, to enable/disable Eshell trapping errors when
+evaluating commands; or
+
+@item
+@code{form}, to show/hide Eshell command form manipulation in the
+buffer @code{*eshell last cmd*}.
+
+@end itemize
 
 @item exit
 @cmindex exit
