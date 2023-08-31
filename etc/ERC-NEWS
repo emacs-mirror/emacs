@@ -203,11 +203,18 @@ continued integration.  With the existing design, merely loading the
 library 'erc-log' caused 'truncate' to start writing logs, possibly
 against a user's wishes.
 
+** The function 'erc-echo-timestamp' is now a command.
+The option 'erc-echo-timestamps' (plural) has always enabled the
+contextual printing of timestamps to the echo area when moving between
+messages in an ERC buffer.  Similar functionality is now available on
+demand by invoking the newly interactive function 'erc-echo-timestamp'
+atop any message.  The new companion option 'erc-echo-timestamp-zone'
+determines the default timezone when not specified with a prefix
+argument.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
-ERC.  For example, the function 'erc-echo-timestamp' is now
-interactive and can be invoked on any message to view its timestamp in
-the echo area.  Fool visibility has become togglable with the new
+ERC.  For example, fool visibility has become togglable with the new
 command 'erc-match-toggle-hidden-fools'.  The 'button' module's
 'erc-button-previous' now moves to the beginning instead of the end of
 buttons.  A new command, 'erc-news', can be invoked to visit this very

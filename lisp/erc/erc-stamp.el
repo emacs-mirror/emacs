@@ -136,14 +136,27 @@ hidden, they will still be present in the logs."
   "If non-nil, print timestamp in the minibuffer when point is moved.
 Using this variable, you can turn off normal timestamping,
 and simply move point to an irc message to see its timestamp
-printed in the minibuffer."
+printed in the minibuffer.  When attempting to enable this option
+after `erc-stamp-mode' is already active, you may need to run the
+command `erc-show-timestamps' (or `erc-hide-timestamps') in the
+appropriate ERC buffer before the change will take effect."
   :type 'boolean)
 
 (defcustom erc-echo-timestamp-format "Timestamped %A, %H:%M:%S"
   "Format string to be used when `erc-echo-timestamps' is non-nil.
 This string specifies the format of the timestamp being echoed in
 the minibuffer."
-  :type 'string)
+  :type '(choice (const "Timestamped %A, %H:%M:%S")
+                 (const  "%Y-%m-%d %H:%M:%S %Z")
+                 string))
+
+(defcustom erc-echo-timestamp-zone nil
+  "Default timezone for the option `erc-echo-timestamps'.
+Also affects the command `erc-echo-timestamp' (singular).  See
+the ZONE parameter of `format-time-string' for a description of
+acceptable value types."
+  :type '(choice boolean number (const wall) (list number string))
+  :package-version '(ERC . "5.6")) ; FIXME sync on release
 
 (defcustom erc-timestamp-intangible nil
   "Whether the timestamps should be intangible, i.e. prevent the point
@@ -167,14 +180,15 @@ from entering them and instead jump over them."
    (add-hook 'erc-send-modify-hook #'erc-add-timestamp 60)
    (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
    (add-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
-   (unless erc--updating-modules-p
-     (erc-buffer-do #'erc-munge-invisibility-spec)))
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-stamp--setup)))
   ((remove-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
    (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
    (remove-hook 'erc--pre-clear-functions #'erc-stamp--reset-on-clear)
    (erc-with-all-buffers-of-server nil nil
+     (erc-stamp--setup)
+     (kill-local-variable 'erc-stamp--last-stamp)
      (kill-local-variable 'erc-timestamp-last-inserted)
      (kill-local-variable 'erc-timestamp-last-inserted-left)
      (kill-local-variable 'erc-timestamp-last-inserted-right))))
@@ -200,9 +214,8 @@ the stamp passed to `erc-insert-timestamp-function'.")
 
 (cl-defgeneric erc-stamp--current-time ()
   "Return a lisp time object to associate with an IRC message.
-This becomes the message's `erc-timestamp' text property, which
-may not be unique, `equal'-wise."
-  (erc-current-time))
+This becomes the message's `erc-timestamp' text property."
+  (let (current-time-list) (current-time)))
 
 (cl-defmethod erc-stamp--current-time :around ()
   (or erc-stamp--current-time (cl-call-next-method)))
@@ -218,15 +231,17 @@ or `erc-send-modify-hook'."
            (erc-stamp--invisible-property
             ;; FIXME on major version bump, make this `erc-' prefixed.
             (if invisible `(timestamp ,@(ensure-list invisible)) 'timestamp))
+           (skipp (and erc-stamp--skip-when-invisible invisible))
            (erc-stamp--current-time ct))
-      (unless (setq invisible (and erc-stamp--skip-when-invisible invisible))
+      (unless skipp
         (funcall erc-insert-timestamp-function
                  (erc-format-timestamp ct erc-timestamp-format)))
-      ;; FIXME this will error when advice has been applied.
-      (when (and (not invisible) (fboundp erc-insert-away-timestamp-function)
-		 erc-away-timestamp-format
-		 (erc-away-time)
-		 (not erc-timestamp-format))
+      ;; Check `erc-insert-away-timestamp-function' for historical
+      ;; reasons even though its Custom :type only allows functions.
+      (when (and (not (or skipp erc-timestamp-format))
+                 erc-away-timestamp-format
+                 (functionp erc-insert-away-timestamp-function)
+                 (erc-away-time))
 	(funcall erc-insert-away-timestamp-function
 		 (erc-format-timestamp ct erc-away-timestamp-format)))
       (add-text-properties (point-min) (1- (point-max))
@@ -640,13 +655,30 @@ Return the empty string if FORMAT is nil."
 ;; please modify this function and move it to a more appropriate
 ;; location.
 (defun erc-munge-invisibility-spec ()
-  (and erc-timestamp-intangible (not (bound-and-true-p cursor-intangible-mode))
-       (cursor-intangible-mode 1))
-  (and erc-echo-timestamps (not (bound-and-true-p cursor-sensor-mode))
-       (cursor-sensor-mode 1))
+  (if erc-timestamp-intangible
+      (cursor-intangible-mode +1) ; idempotent
+    (when (bound-and-true-p cursor-intangible-mode)
+      (cursor-intangible-mode -1)))
+  (if erc-echo-timestamps
+      (progn
+        (cursor-sensor-mode +1) ; idempotent
+        (when (>= emacs-major-version 29)
+          (add-function :before-until (local 'clear-message-function)
+                        #'erc-stamp--on-clear-message)))
+    (when (bound-and-true-p cursor-sensor-mode)
+      (cursor-sensor-mode -1))
+    (remove-function (local 'clear-message-function)
+                     #'erc-stamp--on-clear-message))
   (if erc-hide-timestamps
       (add-to-invisibility-spec 'timestamp)
     (remove-from-invisibility-spec 'timestamp)))
+
+(defun erc-stamp--setup ()
+  "Enable or disable buffer-local `erc-stamp-mode' modifications."
+  (if erc-stamp-mode
+      (erc-munge-invisibility-spec)
+    (let (erc-echo-timestamps erc-hide-timestamps erc-timestamp-intangible)
+      (erc-munge-invisibility-spec))))
 
 (defun erc-hide-timestamps ()
   "Hide timestamp information from display."
@@ -677,14 +709,33 @@ enabled when the message was inserted."
 	    (erc-munge-invisibility-spec)))
 	(erc-buffer-list)))
 
-(defun erc-echo-timestamp (dir stamp)
-  "Print timestamp text-property of an IRC message."
-  ;; Could also pass an &optional `zone' arg to `format-time-string'.
-  (interactive (list 'entered (get-text-property (point) 'erc-timestamp)))
-  (when (eq 'entered dir)
-    (when stamp
-      (message "%s" (format-time-string erc-echo-timestamp-format
-					stamp)))))
+(defvar-local erc-stamp--last-stamp nil)
+
+(defun erc-stamp--on-clear-message (&rest _)
+  "Return `dont-clear-message' when operating inside the same stamp."
+  (and erc-stamp--last-stamp erc-echo-timestamps
+       (eq (get-text-property (point) 'erc-timestamp) erc-stamp--last-stamp)
+       'dont-clear-message))
+
+(defun erc-echo-timestamp (dir stamp &optional zone)
+  "Display timestamp of message at point in echo area.
+Interactively, interpret a numeric prefix as a ZONE offset in
+hours (or seconds, if its abs value is larger than 14), and
+interpret a \"raw\" prefix as UTC.  To specify a zone for use
+with the option `erc-echo-timestamps', see the companion option
+`erc-echo-timestamp-zone'."
+  (interactive (list nil (get-text-property (point) 'erc-timestamp)
+                     (pcase current-prefix-arg
+                       ((and (pred numberp) v)
+                        (if (<= (abs v) 14) (* v 3600) v))
+                       (`(,_) t))))
+  (if (and stamp (or (null dir) (and erc-echo-timestamps (eq 'entered dir))))
+      (progn
+        (setq erc-stamp--last-stamp stamp)
+        (message (format-time-string erc-echo-timestamp-format
+                                     stamp (or zone erc-echo-timestamp-zone))))
+    (when (and erc-echo-timestamps (eq 'left dir))
+      (setq erc-stamp--last-stamp nil))))
 
 (defun erc--echo-ts-csf (_window _before dir)
   (erc-echo-timestamp dir (get-text-property (point) 'erc-timestamp)))
