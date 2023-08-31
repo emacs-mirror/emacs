@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
 #include <allocator.h>
 #include <assert.h>
 #include <careadlinkat.h>
@@ -31,11 +32,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <stat-time.h>
 #include <stdckdint.h>
 #include <string.h>
-#include <sys/param.h>
 #include <timespec.h>
 #include <unistd.h>
+
+#include <sys/param.h>
+#include <sys/stat.h>
 
 /* Old NDK versions lack MIN and MAX.  */
 #include <minmax.h>
@@ -47,6 +51,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "coding.h"
 #include "epaths.h"
+#include "systime.h"
 
 /* Whether or not Emacs is running inside the application process and
    Android windowing should be enabled.  */
@@ -186,6 +191,10 @@ static struct android_emacs_window window_class;
 
 /* Various methods associated with the EmacsCursor class.  */
 static struct android_emacs_cursor cursor_class;
+
+/* The time at which Emacs was installed, which also supplies the
+   mtime of asset files.  */
+struct timespec emacs_installation_time;
 
 /* The last event serial used.  This is a 32 bit value, but it is
    stored in unsigned long to be consistent with X.  */
@@ -1247,6 +1256,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   int pipefd[2];
   pthread_t thread;
   const char *java_string;
+  struct stat statb;
 
   /* Set the Android API level early, as it is used by
      `android_vfs_init'.  */
@@ -1341,11 +1351,22 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
       android_class_path = strdup ((const char *) java_string);
 
-      if (!android_files_dir)
+      if (!android_class_path)
 	emacs_abort ();
 
       (*env)->ReleaseStringUTFChars (env, (jstring) class_path,
 				     java_string);
+    }
+
+  /* Derive the installation date from the modification time of the
+     file constitituing the class path.  */
+
+  emacs_installation_time = invalid_timespec ();
+
+  if (class_path)
+    {
+      if (!stat (android_class_path, &statb))
+	emacs_installation_time = get_stat_mtime (&statb);
     }
 
   /* Calculate the site-lisp path.  */

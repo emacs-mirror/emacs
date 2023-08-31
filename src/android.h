@@ -299,6 +299,10 @@ extern jobject emacs_service;
 /* Various methods associated with the EmacsService.  */
 extern struct android_emacs_service service_class;
 
+/* The time at which Emacs was installed, which also supplies the
+   mtime of asset files.  */
+extern struct timespec emacs_installation_time;
+
 #define ANDROID_DELETE_LOCAL_REF(ref)				\
   ((*android_java_env)->DeleteLocalRef (android_java_env,	\
 					(ref)))
