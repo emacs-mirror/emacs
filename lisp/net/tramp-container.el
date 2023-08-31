@@ -166,7 +166,8 @@ METHOD is the Tramp method to be used for \"ps\", either
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (let ((default-directory
-	 (or (and (member method tramp-completion-multi-hop-methods) tramp--last-hop-directory)
+	 (or (and (member method tramp-completion-multi-hop-methods)
+		  tramp--last-hop-directory)
 	     tramp-compat-temporary-file-directory))
 	(program (tramp-get-method-parameter
 		  (make-tramp-file-name :method method) 'tramp-login-program))
@@ -412,6 +413,9 @@ see its function help for a description of the format."
  (tramp-set-completion-function
   tramp-flatpak-method
   '((tramp-flatpak--completion-function "")))
+
+(add-to-list 'tramp-completion-multi-hop-methods
+	     `(,tramp-docker-method ,tramp-podman-method))
 
  ;; Default connection-local variables for Tramp.
 

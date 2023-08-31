@@ -3009,8 +3009,8 @@ This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from default settings."
   `((,(tramp-find-user method nil nil) ,(tramp-find-host method nil nil))))
 
-(defcustom tramp-completion-multi-hop-methods `(,tramp-docker-method ,tramp-podman-method)
-  "Methods for which to attempt to provide completions over multi-hop connections."
+(defcustom tramp-completion-multi-hop-methods nil
+  "Methods for which to provide completions over multi-hop connections."
   :version "30.1"
   :type 'boolean)
 
