@@ -254,7 +254,8 @@ chosen (interactively or automatically)."
                                  . ,(eglot-alternatives
                                      '(("marksman" "server")
                                        ("vscode-markdown-language-server" "--stdio"))))
-                                (graphviz-dot-mode . ("dot-language-server" "--stdio")))
+                                (graphviz-dot-mode . ("dot-language-server" "--stdio"))
+                                (terraform-mode . ("terraform-ls" "serve")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
