@@ -423,7 +423,7 @@ otherwise it's assumed to be an Info file."
         (let ((default-directory docs-directory))
           (org-export-to-file 'texinfo file))
         (setq clean-up t)))
-    (with-current-buffer (get-buffer-create " *package-vc doc*")
+    (with-current-buffer (get-buffer-create (format " *package-vc doc: %s*" pkg-name))
       (erase-buffer)
       (cond
        ((/= 0 (call-process "makeinfo" nil t nil
