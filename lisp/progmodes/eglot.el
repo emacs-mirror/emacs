@@ -108,6 +108,8 @@
 (require 'filenotify)
 (require 'ert)
 (require 'text-property-search nil t)
+(require 'diff-mode)
+(require 'diff)
 
 ;; These dependencies are also GNU ELPA core packages.  Because of
 ;; bug#62576, since there is a risk that M-x package-install, despite
@@ -388,10 +390,35 @@ done by `eglot-reconnect'."
   :type '(choice (const :tag "No limit" nil)
                  (integer :tag "Number of characters")))
 
-(defcustom eglot-confirm-server-initiated-edits 'confirm
-  "Non-nil if server-initiated edits should be confirmed with user."
-  :type '(choice (const :tag "Don't show confirmation prompt" nil)
-                 (const :tag "Show confirmation prompt" confirm)))
+(define-obsolete-variable-alias 'eglot-confirm-server-initiated-edits
+  'eglot-confirm-server-edits "1.16")
+
+(defcustom eglot-confirm-server-edits '((eglot-rename . nil)
+                                        (t . maybe-summary))
+  "Control if changes proposed by LSP should be confirmed with user.
+
+If this variable's value is the symbol `diff', a diff buffer is
+popped up, allowing the user to apply each change individually.
+If the symbol `summary' or any other non-nil value a short
+summary of changes is presented to the user in a
+minibuffer-prompt.  The symbols `maybe-diff' and `maybe-summary'
+are also accepted and mean that the confirmation is presented to
+the user if the changes target visited files only.  A nil value
+means the change is applied directly to visited and non-visited
+files, without any confirmation.
+
+If this variable's value is a list, it should be an
+alist ((COMMAND . ACTION) ...) where COMMAND is a symbol
+designating a command, such as `eglot-rename',
+`eglot-code-actions', `eglot-code-action-quickfix', etc.  ACTION
+is one of the symbols described above.  The value `t' for COMMAND
+is accepted and its ACTION is the default value."
+  :type '(choice (const :tag "Use diff" diff)
+                 (const :tag "Summarize and prompt" summary)
+                 (const :tag "Maybe use diff" maybe-diff)
+                 (const :tag "Maybe summarize and prompt" maybe-summary)
+                 (const :tag "Don't confirm" nil)
+                 (alist :tag "Per-command alist")))
 
 (defcustom eglot-extend-to-xref nil
   "If non-nil, activate Eglot in cross-referenced non-project files."
@@ -753,7 +780,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
       (if (and (null edit) (null command) data
                (eglot--server-capable :codeActionProvider :resolveProvider))
           (eglot-execute server (eglot--request server :codeAction/resolve action))
-        (when edit (eglot--apply-workspace-edit edit))
+        (when edit (eglot--apply-workspace-edit edit this-command))
         (when command (eglot--request server :workspace/executeCommand command)))))))
 
 (cl-defgeneric eglot-initialization-options (server)
@@ -2379,7 +2406,7 @@ THINGS are either registrations or unregisterations (sic)."
 (cl-defmethod eglot-handle-request
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
-  (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits)
+  (eglot--apply-workspace-edit edit last-command)
   `(:applied t))
 
 (cl-defmethod eglot-handle-request
@@ -3431,8 +3458,42 @@ If SILENT, don't echo progress in mode-line."
       (when reporter
         (progress-reporter-done reporter)))))
 
-(defun eglot--apply-workspace-edit (wedit &optional confirm)
-  "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
+(defun eglot--confirm-server-edits (origin _prepared)
+  (let (v)
+    (cond ((symbolp eglot-confirm-server-edits) eglot-confirm-server-edits)
+          ((setq v (assoc origin eglot-confirm-server-edits)) (cdr v))
+          ((setq v (assoc t eglot-confirm-server-edits)) (cdr v)))))
+
+(defun eglot--propose-changes-as-diff (prepared)
+  "Helper for `eglot--apply-workspace-edit'.
+PREPARED is a list ((FILENAME EDITS VERSION)...)."
+  (with-current-buffer (get-buffer-create "*EGLOT proposed server changes*")
+    (buffer-disable-undo (current-buffer))
+    (let ((buffer-read-only t))
+      (diff-mode))
+    (let ((inhibit-read-only t)
+          (target (current-buffer)))
+      (erase-buffer)
+      (pcase-dolist (`(,path ,edits ,_) prepared)
+        (with-temp-buffer
+          (let ((diff (current-buffer)))
+            (with-temp-buffer
+              (insert-file-contents path)
+              (eglot--apply-text-edits edits)
+              (diff-no-select path (current-buffer)
+                              nil t diff))
+            (with-current-buffer target
+              (insert-buffer-substring diff))))))
+    (setq-local buffer-read-only t)
+    (buffer-enable-undo (current-buffer))
+    (goto-char (point-min))
+    (pop-to-buffer (current-buffer))
+    (font-lock-ensure)))
+
+(defun eglot--apply-workspace-edit (wedit origin)
+  "Apply the workspace edit WEDIT.
+ORIGIN is a symbol designating the command that originated this
+edit proposed by the server."
   (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
     (let ((prepared
            (mapcar (eglot--lambda ((TextDocumentEdit) textDocument edits)
@@ -3446,18 +3507,36 @@ If SILENT, don't echo progress in mode-line."
         ;; prefer documentChanges over changes.
         (cl-loop for (uri edits) on changes by #'cddr
                  do (push (list (eglot--uri-to-path uri) edits) prepared)))
-      (if (or confirm
-              (cl-notevery #'find-buffer-visiting
-                           (mapcar #'car prepared)))
-          (unless (y-or-n-p
-                   (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
-                           (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
-            (jsonrpc-error "User canceled server edit")))
-      (cl-loop for edit in prepared
-               for (path edits version) = edit
-               do (with-current-buffer (find-file-noselect path)
-                    (eglot--apply-text-edits edits version))
-               finally (eldoc) (eglot--message "Edit successful!")))))
+      (cl-flet ((notevery-visited-p ()
+                  (cl-notevery #'find-buffer-visiting
+                               (mapcar #'car prepared)))
+                (prompt ()
+                  (unless (y-or-n-p
+                           (format "[eglot] Server wants to edit:\n%sProceed? "
+                                   (cl-loop
+                                    for (f eds _) in prepared
+                                    concat (format
+                                            "  %s (%d change%s)\n"
+                                            f (length eds)
+                                            (if (> (length eds) 1) "s" "")))))
+                    (jsonrpc-error "User canceled server edit")))
+                (apply ()
+                  (cl-loop for edit in prepared
+                   for (path edits version) = edit
+                   do (with-current-buffer (find-file-noselect path)
+                        (eglot--apply-text-edits edits version))
+                   finally (eldoc) (eglot--message "Edit successful!"))))
+        (let ((decision (eglot--confirm-server-edits origin prepared)))
+          (cond
+           ((or (eq decision 'diff)
+                (and (eq decision 'maybe-diff) (notevery-visited-p)))
+            (eglot--propose-changes-as-diff prepared))
+           ((or (eq decision 'summary)
+                (and (eq decision 'maybe-summary) (notevery-visited-p)))
+            (prompt)
+            (apply))
+           (t
+            (apply))))))))
 
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
@@ -3472,7 +3551,7 @@ If SILENT, don't echo progress in mode-line."
    (eglot--request (eglot--current-server-or-lose)
                    :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
                                           :newName ,newname))
-   current-prefix-arg))
+   this-command))
 
 (defun eglot--region-bounds ()
   "Region bounds if active, else bounds of things at point."

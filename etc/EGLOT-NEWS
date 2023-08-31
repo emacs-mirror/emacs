@@ -20,6 +20,15 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes in upcoming Eglot
 
+** Diff previews of edits and new variable 'eglot-confirm-server-edits'
+
+The variable 'eglot-confirm-server-edits' replaces the obsolete
+'eglot-confirm-server-initiated-edits' and brings about a new
+confirmation model, making it possible to have only certain commands
+require user confirmation.  The type of confirmation has also been
+enhanced.  In particular it allows a temporary 'diff-mode' buffer to
+display the proposed changes, so the user can apply them one by one.
+
 ** Optimized file-watching capability
 
 Some servers, like the Pyright language server, issue too many file
