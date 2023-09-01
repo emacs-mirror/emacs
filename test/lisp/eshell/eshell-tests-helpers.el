@@ -58,7 +58,8 @@ beginning of the test file."
               ;; to remove this eventually once we're confident that
               ;; all the process bugs have been worked out.  (At that
               ;; point, we can just enable this selectively when
-              ;; needed.)
+              ;; needed.)  See also `eshell-test-command-result'
+              ;; below.
               (eshell-debug-command (cons 'process eshell-debug-command))
               (eshell-history-file-name nil)
               (eshell-last-dir-ring-file-name nil)
@@ -159,7 +160,10 @@ inserting the command."
 (defun eshell-test-command-result (command)
   "Like `eshell-command-result', but not using HOME."
   (ert-with-temp-directory eshell-directory-name
-    (let ((eshell-history-file-name nil))
+    (let ((eshell-history-file-name nil)
+          ;; Enable process debug instrumentation.  See
+          ;; `with-temp-eshell' above.
+          (eshell-debug-command (cons 'process eshell-debug-command)))
       (eshell-command-result command))))
 
 (defun eshell-command-result--equal (_command actual expected)
