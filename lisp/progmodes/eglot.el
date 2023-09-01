@@ -398,27 +398,31 @@ done by `eglot-reconnect'."
   "Control if changes proposed by LSP should be confirmed with user.
 
 If this variable's value is the symbol `diff', a diff buffer is
-popped up, allowing the user to apply each change individually.
-If the symbol `summary' or any other non-nil value a short
-summary of changes is presented to the user in a
-minibuffer-prompt.  The symbols `maybe-diff' and `maybe-summary'
-are also accepted and mean that the confirmation is presented to
-the user if the changes target visited files only.  A nil value
-means the change is applied directly to visited and non-visited
-files, without any confirmation.
+pops up, allowing the user to apply each change individually.  If
+the symbol `summary' or any other non-nil value, the user is
+prompted in the minibuffer with aa short summary of changes.  The
+symbols `maybe-diff' and `maybe-summary' mean that the
+confirmation is offered to the user only if the changes target
+files visited in buffers.  Finally, a nil value means all changes
+are applied directly without any confirmation.
 
-If this variable's value is a list, it should be an
-alist ((COMMAND . ACTION) ...) where COMMAND is a symbol
-designating a command, such as `eglot-rename',
-`eglot-code-actions', `eglot-code-action-quickfix', etc.  ACTION
-is one of the symbols described above.  The value `t' for COMMAND
-is accepted and its ACTION is the default value."
-  :type '(choice (const :tag "Use diff" diff)
+If this variable's value can also be an alist ((COMMAND . ACTION)
+...) where COMMAND is a symbol designating a command, such as
+`eglot-rename', `eglot-code-actions',
+`eglot-code-action-quickfix', etc.  ACTION is one of the symbols
+described above.  The value `t' for COMMAND is accepted and its
+ACTION is the default value for commands not in the alist."
+  :type (let ((basic-choices
+               '((const :tag "Use diff" diff)
                  (const :tag "Summarize and prompt" summary)
                  (const :tag "Maybe use diff" maybe-diff)
                  (const :tag "Maybe summarize and prompt" maybe-summary)
-                 (const :tag "Don't confirm" nil)
-                 (alist :tag "Per-command alist")))
+                 (const :tag "Don't confirm" nil))))
+          `(choice ,@basic-choices
+                   (alist :tag "Per-command alist"
+                          :key-type (choice (function :tag "Command")
+                                            (const :tag "Default" t))
+                          :value-type (choice . ,basic-choices)))))
 
 (defcustom eglot-extend-to-xref nil
   "If non-nil, activate Eglot in cross-referenced non-project files."
