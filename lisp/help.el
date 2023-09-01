@@ -1230,15 +1230,60 @@ appeared on the mode-line."
 		      i))))
 		minor-mode-alist)))
 
-(defun describe-minor-mode-from-indicator (indicator)
+(defun describe-minor-mode-from-indicator (indicator &optional event)
   "Display documentation of a minor mode specified by INDICATOR.
 If you call this function interactively, you can give indicator which
-is currently activated with completion."
+is currently activated with completion.
+
+If non-nil, EVENT is a mouse event used to establish which minor
+mode lighter was clicked."
   (interactive (list
 		(completing-read
 		 "Minor mode indicator: "
 		 (describe-minor-mode-completion-table-for-indicator))))
-  (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
+  (when (and event mode-line-compact)
+    (let* ((event-start (event-start event))
+           (window (posn-window event-start)))
+      ;; If INDICATOR is a string object, WINDOW is set, and
+      ;; `mode-line-compact' might be enabled, find a string in
+      ;; `minor-mode-alist' that is present within the INDICATOR and
+      ;; whose extents within INDICATOR contain the position of the
+      ;; object within the string.
+      (when (windowp window)
+        (setq indicator (posn-object event-start))
+        (catch 'found
+          (with-selected-window window
+            (let ((alist minor-mode-alist) string position)
+              (when (consp indicator)
+                (with-temp-buffer
+                  (insert (car indicator))
+                  (dolist (menu alist)
+                    ;; If this is a valid minor mode menu entry,
+                    (when (and (consp menu)
+                               (setq string (format-mode-line (cadr menu)
+                                                              nil window))
+                               (> (length string) 0))
+                      ;; Start searching for an appearance of (cdr
+                      ;; menu).
+                      (goto-char (point-min))
+                      (while (search-forward string nil 0)
+                        ;; If the position of the string object is
+                        ;; contained within, set indicator to the
+                        ;; minor mode in question.
+                        (setq position (1+ (cdr indicator)))
+                        (and (>= position (match-beginning 0))
+                             (<= position (match-end 0))
+                             (setq indicator (car menu))
+                             (throw 'found nil)))))))))))))
+  ;; If INDICATOR is still a cons, use its car.
+  (when (consp indicator)
+    (setq indicator (car indicator)))
+  (let ((minor-mode (if (symbolp indicator)
+                        ;; indicator being set to a symbol means that
+                        ;; the loop above has already found a
+                        ;; matching minor mode.
+                        indicator
+                      (lookup-minor-mode-from-indicator indicator))))
     (if minor-mode
 	(describe-minor-mode-from-symbol minor-mode)
       (error "Cannot find minor mode for `%s'" indicator))))
