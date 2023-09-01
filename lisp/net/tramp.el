@@ -3009,6 +3009,7 @@ This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from default settings."
   `((,(tramp-find-user method nil nil) ,(tramp-find-host method nil nil))))
 
+;;;###tramp-autoload
 (defcustom tramp-completion-multi-hop-methods nil
   "Methods for which to provide completions over multi-hop connections."
   :version "30.1"
