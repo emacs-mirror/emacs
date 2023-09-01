@@ -2851,7 +2851,7 @@ Values smaller than 0.2 sec are treated as 0.2 sec."
   "How many times to blink before using a solid cursor on NS, X, and MS-Windows.
 Use 0 or negative value to blink forever."
   :version "24.4"
-  :type 'natnum
+  :type 'integer
   :group 'cursor)
 
 (defvar blink-cursor-blinks-done 1
