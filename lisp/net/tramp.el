@@ -3012,7 +3012,7 @@ for all methods.  Resulting data are derived from default settings."
 (defcustom tramp-completion-multi-hop-methods nil
   "Methods for which to provide completions over multi-hop connections."
   :version "30.1"
-  :type 'boolean)
+  :type '(repeat (string :tag "Method name")))
 
 (defcustom tramp-completion-use-auth-sources auth-source-do-cache
   "Whether to use `auth-source-search' for completion of user and host names.

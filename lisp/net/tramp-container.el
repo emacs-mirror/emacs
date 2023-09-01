@@ -414,8 +414,8 @@ see its function help for a description of the format."
   tramp-flatpak-method
   '((tramp-flatpak--completion-function "")))
 
-(add-to-list 'tramp-completion-multi-hop-methods
-	     `(,tramp-docker-method ,tramp-podman-method))
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-docker-method)
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-podman-method)
 
  ;; Default connection-local variables for Tramp.
 
