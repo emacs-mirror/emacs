@@ -87,6 +87,11 @@
   "Face for VC modeline state when the file is edited."
   :version "25.1")
 
+(defface vc-ignored-state
+  '((default :inherit vc-state-base))
+  "Face for VC modeline state when the file is registered, but ignored."
+  :version "30.1")
+
 ;; Customization Variables (the rest is in vc.el)
 
 (defcustom vc-ignore-dir-regexp
@@ -743,6 +748,10 @@ This function assumes that the file is registered."
             (setq state-echo "File tracked by the VC system, but missing from the file system")
 	    (setq face 'vc-missing-state)
             (concat backend-name "?" rev))
+           ((eq state 'ignored)
+            (setq state-echo "File tracked by the VC system, but ignored")
+            (setq face 'vc-ignored-state)
+            (concat backend-name "!" rev))
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
