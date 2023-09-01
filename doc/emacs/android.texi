@@ -293,7 +293,7 @@ provide, placing their files within the directory
 @file{/content/storage}.
 
 @findex android-request-directory-access
-  Before Emacs is granted access to any of these directories, it must
+  Before Emacs is granted access to one of these directories, it must
 first request the right to access it.  This is done by running the
 command (@pxref{M-x}) @code{android-request-directory-access}, which
 displays a file selection dialog.

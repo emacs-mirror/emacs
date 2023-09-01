@@ -28,8 +28,9 @@ the binaries directory, which are identical save for some identifying
 file-system metadata.  The first is a normal Emacs executable,
 @file{emacs}, whereas the second, @file{Emacs}, incorporates an icon
 and an application ``signature'' that abets the system in attributing
-both file types and open frames to it, thereby enabling the assignment
-of file types to it, and thus opening files directly from the Tracker.
+both file types and open frames to it, thereby enabling it to receive
+file type assignments, and thus to open files directly from the
+Tracker.
 
   Several file attributes are set within @file{Emacs} that prompt the
 system to permit only a single copy to run at any given time.  This
