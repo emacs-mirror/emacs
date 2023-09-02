@@ -877,8 +877,8 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 (defun emerge-buffers (buffer-A buffer-B &optional startup-hooks quit-hooks)
   "Run Emerge on two buffers BUFFER-A and BUFFER-B."
   (interactive "bBuffer A to merge: \nbBuffer B to merge: ")
-  (let ((emerge-file-A (emerge-make-temp-file "A"))
-	(emerge-file-B (emerge-make-temp-file "B")))
+  (let ((emerge-file-A (make-temp-file "emerge-A"))
+        (emerge-file-B (make-temp-file "emerge-B")))
     (with-current-buffer
      buffer-A
      (write-region (point-min) (point-max) emerge-file-A nil 'no-message))
@@ -901,9 +901,9 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   "Run Emerge on two buffers, giving another buffer as the ancestor."
   (interactive
    "bBuffer A to merge: \nbBuffer B to merge: \nbAncestor buffer: ")
-  (let ((emerge-file-A (emerge-make-temp-file "A"))
-	(emerge-file-B (emerge-make-temp-file "B"))
-	(emerge-file-ancestor (emerge-make-temp-file "anc")))
+  (let ((emerge-file-A (make-temp-file "emerge-A"))
+        (emerge-file-B (make-temp-file "emerge-B"))
+        (emerge-file-ancestor (make-temp-file "emerge-ancestor")))
     (with-current-buffer
      buffer-A
      (write-region (point-min) (point-max) emerge-file-A nil 'no-message))
@@ -1039,8 +1039,8 @@ This is *not* a user option, since Emerge uses it for its own processing.")
                                   startup-hooks quit-hooks _output-file)
   (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
 	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
-	(emerge-file-A (emerge-make-temp-file "A"))
-	(emerge-file-B (emerge-make-temp-file "B")))
+        (emerge-file-A (make-temp-file "emerge-A"))
+        (emerge-file-B (make-temp-file "emerge-B")))
     ;; Get the revisions into buffers
     (with-current-buffer
      buffer-A
@@ -1076,9 +1076,9 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
 	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
 	(buffer-ancestor (get-buffer-create (format "%s,%s" file ancestor)))
-	(emerge-file-A (emerge-make-temp-file "A"))
-	(emerge-file-B (emerge-make-temp-file "B"))
-	(emerge-ancestor (emerge-make-temp-file "ancestor")))
+        (emerge-file-A (make-temp-file "emerge-A"))
+        (emerge-file-B (make-temp-file "emerge-B"))
+        (emerge-ancestor (make-temp-file "emerge-ancestor")))
     ;; Get the revisions into buffers
     (with-current-buffer
      buffer-A
@@ -2851,14 +2851,6 @@ Otherwise, signal an error."
     (setq vars (cdr vars))
     (setq values (cdr values))))
 
-;; When the pointless option emerge-temp-file-prefix goes,
-;; make this function obsolete too, and just use make-temp-file.
-(defun emerge-make-temp-file (prefix)
-  "Make a private temporary file based on PREFIX.
-This is named by concatenating `emerge-temp-file-prefix' with
-PREFIX."
-  (make-temp-file (concat emerge-temp-file-prefix prefix)))
-
 ;;; Functions that query the user before he can write out the current buffer.
 
 (defun emerge-query-write-file ()
@@ -3061,6 +3053,8 @@ See also `auto-save-file-name-p'."
   "No longer used.  Emerge now uses `shell-quote-argument'."
   :type '(choice (const nil) regexp))
 (make-obsolete-variable 'emerge-metachars nil "26.1")
+
+(define-obsolete-function-alias 'emerge-make-temp-file #'make-temp-file "30.1")
 
 (provide 'emerge)
 
