@@ -1457,8 +1457,7 @@ used instead of `browse-url-new-window-flag'."
 
 ;;;###autoload
 (defun browse-url-w3-gnudoit (url &optional _new-window)
-  ;; new-window ignored
-  "Ask another Emacs running gnuserv to load the URL using the W3 browser.
+  "Ask another Emacs running emacsclient to load the URL using the W3 browser.
 The `browse-url-gnudoit-program' program is used with options given by
 `browse-url-gnudoit-args'.  Default to the URL around or before point."
   (declare (obsolete nil "25.1"))

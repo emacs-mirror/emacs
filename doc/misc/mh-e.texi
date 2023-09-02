@@ -1479,7 +1479,6 @@ Binding} of @samp{m}.
 
 @cindex @command{emacsclient}
 @cindex @command{xbuffy}
-@cindex @samp{gnuserv}
 @cindex Unix commands, @command{emacsclient}
 @cindex Unix commands, @command{xbuffy}
 
@@ -8920,7 +8919,7 @@ Bill Wohler, August 2008
 @c LocalWords: Baushke Bcc BBN Beranek bogofilter bogofilter's
 @c LocalWords: cmd CMU contrib cron
 @c LocalWords: DesBrisay Dcc devel dir dired docstring filll forw
-@c LocalWords: GECOS Gildea Gildea's Ginnean GnuCash goto gnuserv htm
+@c LocalWords: GECOS Gildea Gildea's Ginnean GnuCash goto htm
 @c LocalWords: ImageMagick inbox ispell keychain
 @c LocalWords: Larus licensor LocalWords lookup lpr
 @c LocalWords: makeinfo mairix mbox mh mhbuild mhl mhpath mlisp
