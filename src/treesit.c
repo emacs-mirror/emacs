@@ -3088,7 +3088,7 @@ treesit_cursor_helper (TSTreeCursor *cursor, TSNode node, Lisp_Object parser)
   TSNode root = ts_tree_root_node (XTS_PARSER (parser)->tree);
   *cursor = ts_tree_cursor_new (root);
   bool success = treesit_cursor_helper_1 (cursor, &node, start_pos,
-					  end_pos, treesit_recursion_limit);
+					  end_pos, TREESIT_RECURSION_LIMIT);
   if (!success)
     ts_tree_cursor_delete (cursor);
   return success;
