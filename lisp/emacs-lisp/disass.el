@@ -92,17 +92,16 @@ redefine OBJECT if it is a symbol."
                  (subr-native-elisp-p obj))
             (progn
               (require 'comp)
-              (call-process "objdump" nil (current-buffer) t "-S"
-                            (native-comp-unit-file (subr-native-comp-unit obj)))
+              (let ((eln (native-comp-unit-file (subr-native-comp-unit obj))))
+                (if (file-exists-p eln)
+                    (call-process "objdump" nil (current-buffer) t "-S" eln)
+                  (error "Missing eln file for #<subr %s>" name)))
               (goto-char (point-min))
-              (re-search-forward (concat "^.*"
+              (re-search-forward (concat "^.*<_?"
                                          (regexp-quote
-                                          (concat "<"
-                                                  (when (eq system-type 'darwin)
-                                                    "_")
-                                                  (comp-c-func-name
-                                                   (subr-name obj) "F" t)
-                                                  ">:"))))
+                                          (comp-c-func-name
+                                           (subr-name obj) "F" t))
+                                         ">:"))
               (beginning-of-line)
               (delete-region (point-min) (point))
               (when (re-search-forward "^.*<.*>:" nil t 2)

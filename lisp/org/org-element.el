@@ -6705,20 +6705,8 @@ The function returns the new value of `org-element--cache-change-warning'."
        (setq org-element--cache-change-tic (buffer-chars-modified-tick))
        (setq org-element--cache-last-buffer-size (buffer-size))
        (goto-char beg)
-       (beginning-of-line)
-       (let ((bottom (save-excursion
-                       (goto-char end)
-                       (if (and (bolp)
-                                ;; When beg == end, still extent to eol.
-                                (> (point) beg))
-                           ;; FIXME: Potential pitfall.
-                           ;; We are appending to an element end.
-                           ;; Unless the last inserted char is not
-                           ;; newline, the next element is not broken
-                           ;; and does not need to be purged from the
-                           ;; cache.
-                           end
-                         (line-end-position)))))
+       (forward-line 0)
+       (let ((bottom (save-excursion (goto-char end) (line-end-position))))
          (prog1
              ;; Use the worst change warning to not miss important edits.
              ;; This function is called before edit and after edit by
@@ -7859,7 +7847,7 @@ element ending there."
     (setq cached-only nil))
   (let (element)
     (when (org-element--cache-active-p)
-      (if (not org-element--cache) (org-element-cache-reset)
+      (if (not (org-with-base-buffer nil org-element--cache)) (org-element-cache-reset)
         (unless cached-only (org-element--cache-sync (current-buffer) pom))))
     (setq element (if cached-only
                       (when (and (org-element--cache-active-p)

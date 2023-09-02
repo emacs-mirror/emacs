@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6.7
+;; Version: 9.6.8
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -6322,7 +6322,10 @@ unconditionally."
        (if (not level) (outline-next-heading) ;before first headline
 	 (org-back-to-heading invisible-ok)
 	 (when (equal arg '(16)) (org-up-heading-safe))
-	 (org-end-of-subtree)))
+	 (org-end-of-subtree invisible-ok 'to-heading)))
+      ;; At `point-max', if the file does not have ending newline,
+      ;; create one, so that we are not appending stars at non-empty
+      ;; line.
       (unless (bolp) (insert "\n"))
       (when (and blank? (save-excursion
                           (backward-char)
@@ -6334,7 +6337,9 @@ unconditionally."
         (backward-char))
       (unless (and blank? (org-previous-line-empty-p))
 	(org-N-empty-lines-before-current (if blank? 1 0)))
-      (insert stars " ")
+      (insert stars " " "\n")
+      ;; Move point after stars.
+      (backward-char)
       ;; When INVISIBLE-OK is non-nil, ensure newly created headline
       ;; is visible.
       (unless invisible-ok
@@ -14753,12 +14758,12 @@ is considered `day' (i.e. only `bracket', `day', and `after' return
 values are possible).
 
 When matching, the match groups are the following:
-  group 1: year, if any
-  group 2: month, if any
-  group 3: day number, if any
-  group 4: day name, if any
-  group 5: hours, if any
-  group 6: minutes, if any"
+  group 2: year, if any
+  group 3: month, if any
+  group 4: day number, if any
+  group 5: day name, if any
+  group 7: hours, if any
+  group 8: minutes, if any"
   (let* ((regexp
           (if extended
               (if (eq extended 'agenda)
@@ -17662,6 +17667,8 @@ If INDENT is non-nil, call `newline-and-indent' with ARG to
 indent unconditionally; otherwise, call `newline' with ARG and
 INTERACTIVE, which can trigger indentation if
 `electric-indent-mode' is enabled."
+  (when interactive
+    (org-fold-check-before-invisible-edit 'insert))
   (if indent
       (org-newline-and-indent arg)
     (newline arg interactive)))
