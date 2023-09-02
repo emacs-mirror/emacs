@@ -222,7 +222,6 @@ address for root variables.")
 Only used for files that Emacs can't find.")
 (defvar gdb-active-process nil
   "GUD tooltips display variable values when t, and macro definitions otherwise.")
-(defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
 (defvar gdb-register-names nil "List of register names.")
