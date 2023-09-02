@@ -243,7 +243,8 @@ or `erc-send-modify-hook'."
            (erc-stamp--invisible-property
             ;; FIXME on major version bump, make this `erc-' prefixed.
             (if invisible `(timestamp ,@(ensure-list invisible)) 'timestamp))
-           (skipp (and erc-stamp--skip-when-invisible invisible))
+           (skipp (or (and erc-stamp--skip-when-invisible invisible)
+                      (erc--check-msg-prop 'erc-ephemeral)))
            (erc-stamp--current-time ct))
       (when erc--msg-props
         (puthash 'erc-ts ct erc--msg-props))
