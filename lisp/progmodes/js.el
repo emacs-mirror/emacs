@@ -3878,6 +3878,7 @@ See `treesit-sexp-type-regexp' for more information.")
                 (append "{}():;,<>/" electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
     (setq-local electric-layout-rules
 	        '((?\; . after) (?\{ . after) (?\} . before)))
+    (setq-local syntax-propertize-function #'js-ts--syntax-propertize)
 
     ;; Tree-sitter setup.
     (treesit-parser-create 'javascript)
@@ -3920,6 +3921,29 @@ See `treesit-sexp-type-regexp' for more information.")
 
     (add-to-list 'auto-mode-alist
                  '("\\(\\.js[mx]\\|\\.har\\)\\'" . js-ts-mode))))
+
+(defvar js-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'javascript
+                           '(((regex pattern: (regex_pattern) @regexp))
+                             ((variable_declarator value: (jsx_element) @jsx))
+                             ((assignment_expression right: (jsx_element) @jsx))
+                             ((return_statement (jsx_element) @jsx))))))
+
+(defun js-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'javascript js-ts--s-p-query beg end)))
+    (pcase-dolist (`(,name . ,node) captures)
+      (let* ((ns (treesit-node-start node))
+             (ne (treesit-node-end node))
+             (syntax (pcase-exhaustive name
+                       ('regexp
+                        (cl-decf ns)
+                        (cl-incf ne)
+                        (string-to-syntax "\"/"))
+                       ('jsx
+                        (string-to-syntax "|")))))
+        (put-text-property ns (1+ ns) 'syntax-table syntax)
+        (put-text-property (1- ne) ne 'syntax-table syntax)))))
 
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"

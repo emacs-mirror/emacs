@@ -80,6 +80,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_tree_cursor_current_node
 #undef ts_tree_cursor_delete
 #undef ts_tree_cursor_goto_first_child
+#undef ts_tree_cursor_goto_first_child_for_byte
 #undef ts_tree_cursor_goto_next_sibling
 #undef ts_tree_cursor_goto_parent
 #undef ts_tree_cursor_new
@@ -147,6 +148,7 @@ DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_copy, (const TSTreeCursor *));
 DEF_DLL_FN (TSNode, ts_tree_cursor_current_node, (const TSTreeCursor *));
 DEF_DLL_FN (void, ts_tree_cursor_delete, (const TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_first_child, (TSTreeCursor *));
+DEF_DLL_FN (int64_t, ts_tree_cursor_goto_first_child_for_byte, (TSTreeCursor *, uint32_t));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_next_sibling, (TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
 DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_new, (TSNode));
@@ -210,6 +212,7 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_tree_cursor_current_node);
   LOAD_DLL_FN (library, ts_tree_cursor_delete);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child);
+  LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child_for_byte);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_next_sibling);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_parent);
   LOAD_DLL_FN (library, ts_tree_cursor_new);
@@ -267,6 +270,7 @@ init_treesit_functions (void)
 #define ts_tree_cursor_current_node fn_ts_tree_cursor_current_node
 #define ts_tree_cursor_delete fn_ts_tree_cursor_delete
 #define ts_tree_cursor_goto_first_child fn_ts_tree_cursor_goto_first_child
+#define ts_tree_cursor_goto_first_child_for_byte fn_ts_tree_cursor_goto_first_child_for_byte
 #define ts_tree_cursor_goto_next_sibling fn_ts_tree_cursor_goto_next_sibling
 #define ts_tree_cursor_goto_parent fn_ts_tree_cursor_goto_parent
 #define ts_tree_cursor_new fn_ts_tree_cursor_new
@@ -3027,7 +3031,8 @@ treesit_assume_true (bool val)
    limit.  */
 static bool
 treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
-			 uint32_t end_pos, ptrdiff_t limit)
+			 uint32_t start_pos, uint32_t end_pos,
+			 ptrdiff_t limit)
 {
   if (limit <= 0)
     return false;
@@ -3036,23 +3041,17 @@ treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
   if (ts_node_eq (cursor_node, *target))
     return true;
 
-  if (!ts_tree_cursor_goto_first_child (cursor))
+  if (ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) == -1)
     return false;
-
-  /* Skip nodes that definitely don't contain TARGET.  */
-  while (ts_node_end_byte (cursor_node) < end_pos)
-    {
-      if (!ts_tree_cursor_goto_next_sibling (cursor))
-	break;
-      cursor_node = ts_tree_cursor_current_node (cursor);
-    }
 
   /* Go through each sibling that could contain TARGET.  Because of
      missing nodes (their width is 0), there could be multiple
      siblings that could contain TARGET.  */
   while (ts_node_start_byte (cursor_node) <= end_pos)
     {
-      if (treesit_cursor_helper_1 (cursor, target, end_pos, limit - 1))
+      if (ts_node_end_byte (cursor_node) >= end_pos
+	  && treesit_cursor_helper_1 (cursor, target, start_pos, end_pos,
+				      limit - 1))
 	return true;
 
       if (!ts_tree_cursor_goto_next_sibling (cursor))
@@ -3084,11 +3083,12 @@ treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
 static bool
 treesit_cursor_helper (TSTreeCursor *cursor, TSNode node, Lisp_Object parser)
 {
+  uint32_t start_pos = ts_node_start_byte (node);
   uint32_t end_pos = ts_node_end_byte (node);
   TSNode root = ts_tree_root_node (XTS_PARSER (parser)->tree);
   *cursor = ts_tree_cursor_new (root);
-  bool success = treesit_cursor_helper_1 (cursor, &node, end_pos,
-					  TREESIT_RECURSION_LIMIT);
+  bool success = treesit_cursor_helper_1 (cursor, &node, start_pos,
+					  end_pos, treesit_recursion_limit);
   if (!success)
     ts_tree_cursor_delete (cursor);
   return success;

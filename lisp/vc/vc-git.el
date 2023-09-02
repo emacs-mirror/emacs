@@ -1058,7 +1058,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
           ;; might not support the non-ASCII characters in the log
           ;; message.  Handle also remote files.
           (if (eq system-type 'windows-nt)
-              (let ((default-directory (file-name-directory file1)))
+              (let ((default-directory (or (file-name-directory file1)
+                                           default-directory)))
                 (make-nearby-temp-file "git-msg"))))
          to-stash)
     (when vc-git-patch-string

@@ -1645,7 +1645,8 @@ Refers to the element for character @var{char}
 
 @item @code{(@var{from} . @var{to})}
 A cons cell refers to all the characters in the inclusive range
-@samp{[@var{from}..@var{to}]}.
+@samp{[@var{from}..@var{to}]}.  In this case, the function returns the
+value for the character specified by @var{from}.
 @end table
 @end defun
 
