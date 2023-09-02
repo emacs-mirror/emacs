@@ -495,6 +495,21 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
                  (string :tag "Switches"))
   :version "29.1")
 
+(defcustom dired-movement-style nil
+  "Non-nil means point skips empty lines when moving.
+This affects only `dired-next-line' and `dired-previous-line'.
+
+Possible non-nil values:
+ *   `cycle': the next/previous line of the last/first visible line is
+              the first/last visible line.
+ * `bounded': cannot move up/down if the current line is the
+              first/last visible line."
+  :type '(choice (const :tag "Move to any line" nil)
+                 (const :tag "Loop through non-empty lines" cycle)
+                 (const :tag "Only to non-empty line" bounded))
+  :group 'dired
+  :version "30.1")
+
 (defcustom dired-hide-details-preserved-columns nil
   "List of columns which are not hidden in `dired-hide-details-mode'."
   :type '(repeat integer)
@@ -2666,22 +2681,69 @@ Otherwise, toggle `read-only-mode'."
       (wdired-change-to-wdired-mode)
     (read-only-mode 'toggle)))
 
-(defun dired-next-line (arg)
-  "Move down lines then position at filename.
-Optional prefix ARG says how many lines to move; default is one line."
-  (interactive "^p")
+(defun dired--trivial-next-line (arg)
+  "Move down ARG lines then position at filename."
   (let ((line-move-visual)
-	(goal-column))
+    (goal-column))
     (line-move arg t))
   ;; We never want to move point into an invisible line.
   (while (and (invisible-p (point))
-	      (not (if (and arg (< arg 0)) (bobp) (eobp))))
+          (not (if (and arg (< arg 0)) (bobp) (eobp))))
     (forward-char (if (and arg (< arg 0)) -1 1)))
   (dired-move-to-filename))
 
+(defun dired-next-line (arg)
+  "Move down lines then position at filename.
+Optional prefix ARG says how many lines to move; default is one line.
+
+Whether to skip empty lines and how to move when encountering a
+boundary are controlled by `dired-movement-style'."
+  (interactive "^p")
+  (if dired-movement-style
+      (let ((old-position (progn
+                            ;; It's always true that we should move
+                            ;; to the filename when possible.
+                            (dired-move-to-filename)
+                            (point)))
+            ;; Up/Down indicates the direction.
+            (moving-down (if (cl-plusp arg)
+                             1    ; means Down.
+                           -1)))  ; means Up.
+        ;; Line by line in case we forget to skip empty lines.
+        (while (not (zerop arg))
+          (dired--trivial-next-line moving-down)
+          (when (= old-position (point))
+            ;; Now point is at beginning/end of movable area,
+            ;; but it still wants to move farther.
+            (if (eq dired-movement-style 'cycle)
+                ;; `cycle': go to the other end.
+                (goto-char (if (cl-plusp moving-down)
+                               (point-min)
+                             (point-max)))
+              ;; `bounded': go back to the last non-empty line.
+              (while (string-match-p "\\`[[:blank:]]*\\'"
+                                     (buffer-substring-no-properties
+                                      (line-beginning-position)
+                                      (line-end-position)))
+                (dired--trivial-next-line (- moving-down)))
+              ;; Encountered a boundary, so let's stop movement.
+              (setq arg moving-down)))
+          (when (not (string-match-p "\\`[[:blank:]]*\\'"
+                                     (buffer-substring-no-properties
+                                      (line-beginning-position)
+                                      (line-end-position))))
+            ;; Has moved to a non-empty line.  This movement does
+            ;; make sense.
+            (cl-decf arg moving-down))
+          (setq old-position (point))))
+    (dired--trivial-next-line arg)))
+
 (defun dired-previous-line (arg)
   "Move up lines then position at filename.
-Optional prefix ARG says how many lines to move; default is one line."
+Optional prefix ARG says how many lines to move; default is one line.
+
+Whether to skip empty lines and how to move when encountering a
+boundary are controlled by `dired-movement-style'."
   (interactive "^p")
   (dired-next-line (- (or arg 1))))
 
