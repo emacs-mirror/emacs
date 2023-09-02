@@ -179,7 +179,7 @@ With a prefix argument, format the macro in a more concise way."
         (setq-local edmacro-finish-hook finish-hook)
         (setq-local edmacro-store-hook store-hook)
         (setq-local font-lock-defaults
-                    '(edmacro-mode-font-lock-keywords nil nil nil nil))
+                    '(edmacro-mode-font-lock-keywords nil nil ((?\" . "w"))))
         (setq font-lock-multiline nil)
 	(erase-buffer)
         (insert (substitute-command-keys
