@@ -4016,20 +4016,20 @@ LANGUAGE is a language symbol, and DEFINITIONS is a list of
     (THING PRED)
 
 THING is a symbol representing the thing, like `defun', `sexp', or
-`block'; PRED defines what kind of node can be qualified as THING.
+`sentence'; PRED defines what kind of node can be qualified as THING.
 
 PRED can be a regexp string that matches the type of the node; it can
 be a predicate function that takes the node as the sole argument and
-returns t if the node is the thing; it can be a cons (REGEXP . FN),
-which is a combination of a regexp and a predicate function, and the
-node has to match both to qualify as the thing.
+returns t if the node is the thing, and nil otherwise; it can be a
+cons (REGEXP . FN), which is a combination of a regexp and a predicate
+function, and the node has to match both to qualify as the thing.
 
 PRED can also be recursively defined.  It can be (or PRED...), meaning
 satisfying anyone of the inner PREDs qualifies the node; or (not
 PRED), meaning not satisfying the inner PRED qualifies the node.
 
 Finally, PRED can refer to other THINGs defined in this list by using
-the symbol of that THING.  For example, (or block sexp).  */);
+the symbol of that THING.  For example, (or sexp sentence).  */);
   Vtreesit_thing_settings = Qnil;
 
   staticpro (&Vtreesit_str_libtree_sitter);
