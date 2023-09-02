@@ -6316,12 +6316,22 @@ EmacsSpeak support."
 
 (defalias 'erc-list 'ensure-list)
 
+(defconst erc--parse-user-regexp-pedantic
+  (rx bot (group (* (not (any "!\r\n"))))
+      "!" (group (* nonl))
+      "@" (group (* nonl)) eot))
+
+(defconst erc--parse-user-regexp-legacy
+  "^\\([^!\n]*\\)!\\([^@\n]*\\)@\\(.*\\)$")
+
+(defvar erc--parse-user-regexp erc--parse-user-regexp-legacy)
+
 (defun erc-parse-user (string)
   "Parse STRING as a user specification (nick!login@host).
 
 Return a list of the three separate tokens."
   (cond
-   ((string-match "^\\([^!\n]*\\)!\\([^@\n]*\\)@\\(.*\\)$" string)
+   ((string-match erc--parse-user-regexp string)
     (list (match-string 1 string)
           (match-string 2 string)
           (match-string 3 string)))

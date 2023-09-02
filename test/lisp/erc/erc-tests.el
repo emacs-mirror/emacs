@@ -576,6 +576,39 @@
     (setq erc-lurker-ignore-chars "_-`") ; set of chars, not character alts
     (should (string= "nick" (erc-lurker-maybe-trim "nick-_`")))))
 
+(ert-deftest erc-parse-user ()
+  (should (equal erc--parse-user-regexp erc--parse-user-regexp-legacy))
+
+  (should (equal '("" "" "") (erc-parse-user "!@")))
+  (should (equal '("" "!" "") (erc-parse-user "!!@")))
+  (should (equal '("" "" "@") (erc-parse-user "!@@")))
+  (should (equal '("" "!" "@") (erc-parse-user "!!@@")))
+
+  (should (equal '("abc" "" "") (erc-parse-user "abc")))
+  (should (equal '("" "123" "fake") (erc-parse-user "!123@fake")))
+  (should (equal '("abc" "" "123") (erc-parse-user "abc!123")))
+
+  (should (equal '("abc" "123" "fake") (erc-parse-user "abc!123@fake")))
+  (should (equal '("abc" "!123" "@xy") (erc-parse-user "abc!!123@@xy")))
+
+  (should (equal '("de" "fg" "xy") (erc-parse-user "abc\nde!fg@xy")))
+
+  (ert-info ("`erc--parse-user-regexp-pedantic'")
+    (let ((erc--parse-user-regexp erc--parse-user-regexp-pedantic))
+      (should (equal '("" "" "") (erc-parse-user "!@")))
+      (should (equal '("" "!" "") (erc-parse-user "!!@")))
+      (should (equal '("" "@" "") (erc-parse-user "!@@")))
+      (should (equal '("" "!@" "") (erc-parse-user "!!@@")))
+
+      (should (equal '("abc" "" "") (erc-parse-user "abc")))
+      (should (equal '("" "123" "fake") (erc-parse-user "!123@fake")))
+      (should (equal '("abc" "" "123") (erc-parse-user "abc!123")))
+
+      (should (equal '("abc" "123" "fake") (erc-parse-user "abc!123@fake")))
+      (should (equal '("abc" "!123@" "xy") (erc-parse-user "abc!!123@@xy")))
+
+      (should (equal '("de" "" "fg@xy") (erc-parse-user "abc\nde!fg@xy"))))))
+
 (ert-deftest erc--parse-isupport-value ()
   (should (equal (erc--parse-isupport-value "a,b") '("a" "b")))
   (should (equal (erc--parse-isupport-value "a,b,c") '("a" "b" "c")))
