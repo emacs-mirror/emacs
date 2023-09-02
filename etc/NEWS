@@ -355,6 +355,9 @@ this to your configuration:
 
     (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
 
+This also means you no longer need to adjust 'eshell-prompt-regexp'
+when customizing your Eshell prompt.
+
 ---
 *** You can now properly unload Eshell.
 Calling '(unload-feature 'eshell)' no longer signals an error, and now
