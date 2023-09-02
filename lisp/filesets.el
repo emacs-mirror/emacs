@@ -413,15 +413,14 @@ directory's name.
 
 Note: You have to manually rebuild the menu if you change this value."
   :set #'filesets-set-default
-  :type '(choice :tag "Function:"
+  :type '(choice :tag "Function"
 		 (const :tag "dired"
 			:value dired)
 		 (list :tag "Command"
 		       :value ("" "%s")
 		       (string :tag "Name")
 		       (string :tag "Arguments"))
-		 (function :tag "Function"
-			   :value nil)))
+                 (function :tag "Function")))
 
 (defcustom filesets-open-file-function #'filesets-find-or-display-file
   "The function used for opening files.
@@ -437,23 +436,21 @@ readable, will not be opened.
 
 Caveat: Changes will take effect only after rebuilding the menu."
   :set #'filesets-set-default
-  :type '(choice :tag "Function:"
+  :type '(choice :tag "Function"
 		 (const :tag "filesets-find-or-display-file"
 			:value filesets-find-or-display-file)
 		 (const :tag "filesets-find-file"
 			:value filesets-find-file)
-		 (function :tag "Function"
-			   :value nil)))
+                 (function :tag "Function")))
 
 (defcustom filesets-save-buffer-function #'save-buffer
   "The function used to save a buffer.
 Caveat: Changes will take effect after rebuilding the menu."
   :set #'filesets-set-default
-  :type '(choice :tag "Function:"
+  :type '(choice :tag "Function"
 		 (const :tag "save-buffer"
 			:value save-buffer)
-		 (function :tag "Function"
-			   :value nil)))
+                 (function :tag "Function")))
 
 (defcustom filesets-find-file-delay
   (if (and (featurep 'xemacs) gutter-buffers-tab-visible-p)
@@ -535,7 +532,7 @@ the filename."
   :type '(repeat :tag "Commands"
 		 (list :tag "Definition" :value ("")
 		       (string "Name")
-		       (choice :tag "Command"
+                       (choice :tag "Command" :value ""
 			       (string :tag "String")
 			       (function :tag "Function"))
 		       (repeat :tag "Argument List"
@@ -546,8 +543,7 @@ the filename."
 					       :value "<file-name>")
 				       (string :tag "Quoted File Name"
 					       :value "<<file-name>>")
-				       (function :tag "Function"
-                                                 :value nil))))))
+                                       (function :tag "Function"))))))
 
 (defcustom filesets-external-viewers
   (let
@@ -647,12 +643,12 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 		       (repeat :tag "Properties"
 			       (choice
 				(list :tag ":constraintp"
-				      :value (:constraintp)
+                                      :value (:constraintp ignore)
 				      (const :format ""
 					     :value :constraintp)
 				      (function :tag "Function"))
 				(list :tag ":constraint-flag (obsolete)"
-				      :value (:constraint-flag)
+                                      :value (:constraint-flag nil)
 				      (const :format ""
 					     :value :constraint-flag)
 				      (sexp :tag "Symbol"))
@@ -667,7 +663,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 					      :value :ignore-on-read-text)
 				      (boolean :tag "Boolean"))
 				(list :tag ":args"
-				      :value (:args)
+                                      :value (:args nil)
 				      (const :format ""
 					     :value :args)
 				      (repeat :tag "List"
@@ -676,10 +672,9 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 							      :value "")
 						      (symbol :tag "Symbol"
 							      :value nil)
-						      (function :tag "Function"
-								:value nil))))
+                                                      (function :tag "Function"))))
 				(list :tag ":open-hook"
-				      :value (:open-hook)
+                                      :value (:open-hook nil)
 				      (const :format ""
 					     :value :open-hook)
 				      (hook :tag "Hook"))
