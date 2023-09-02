@@ -733,11 +733,10 @@ See `project-vc-extra-root-markers' for the marker value format.")
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (let* ((root (nth 2 project))
-         backend)
+         (backend (cadr project)))
     (append
      (when (and backend
                 (file-equal-p dir root))
-       (setq backend (cadr project))
        (delq
         nil
         (mapcar
