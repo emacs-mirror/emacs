@@ -1585,7 +1585,7 @@ aligner would have dealt with are."
                         (if (= (point) search-start)
                             (forward-char)))))
 
-                  ;; when they are no more matches for this rule,
+                  ;; when there are no more matches for this rule,
                   ;; align whatever was left over
                   (if regions
                       (align-regions regions align-props rule func))))))))
