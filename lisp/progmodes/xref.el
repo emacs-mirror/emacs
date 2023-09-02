@@ -1480,20 +1480,22 @@ The meanings of both arguments are the same as documented in
                   (setq xrefs 'called-already)))))))
   (let ((cb (current-buffer))
         (pt (point)))
-    (funcall xref-show-xrefs-function fetcher
-             `((window . ,(selected-window))
-               (display-action . ,display-action)
-               (auto-jump . ,xref-auto-jump-to-first-xref)))
-    (xref--push-markers cb pt)))
+    (prog1
+        (funcall xref-show-xrefs-function fetcher
+                 `((window . ,(selected-window))
+                   (display-action . ,display-action)
+                   (auto-jump . ,xref-auto-jump-to-first-xref)))
+      (xref--push-markers cb pt))))
 
 (defun xref--show-defs (xrefs display-action)
   (let ((cb (current-buffer))
         (pt (point)))
-    (funcall xref-show-definitions-function xrefs
-             `((window . ,(selected-window))
-               (display-action . ,display-action)
-               (auto-jump . ,xref-auto-jump-to-first-definition)))
-    (xref--push-markers cb pt)))
+    (prog1
+        (funcall xref-show-definitions-function xrefs
+                 `((window . ,(selected-window))
+                   (display-action . ,display-action)
+                   (auto-jump . ,xref-auto-jump-to-first-definition)))
+      (xref--push-markers cb pt))))
 
 (defun xref--push-markers (buf pt)
   (when (buffer-live-p buf)
