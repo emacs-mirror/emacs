@@ -92,6 +92,8 @@
 
 (declare-function treesit-available-p "treesit.c")
 
+(defvar treesit-thing-settings)
+
 ;;; Custom options
 
 ;; Tree-sitter always appear as treesit in symbols.
