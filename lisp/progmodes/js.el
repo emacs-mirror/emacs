@@ -3831,7 +3831,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     "jsx_element"
     "jsx_self_closing_element")
   "Nodes that designate sentences in JavaScript.
-See `treesit-sentence-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 (defvar js--treesit-sexp-nodes
   '("expression"
@@ -3873,10 +3873,6 @@ See `treesit-sexp-type-regexp' for more information.")
     (c-ts-common-comment-setup)
     (setq-local comment-multi-line t)
 
-    (setq-local treesit-text-type-regexp
-                (regexp-opt '("comment"
-                              "template_string")))
-
     ;; Electric-indent.
     (setq-local electric-indent-chars
                 (append "{}():;,<>/" electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
@@ -3896,11 +3892,12 @@ See `treesit-sexp-type-regexp' for more information.")
                         "lexical_declaration")))
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-    (setq-local treesit-sentence-type-regexp
-                (regexp-opt js--treesit-sentence-nodes))
-
-    (setq-local treesit-sexp-type-regexp
-                (regexp-opt js--treesit-sexp-nodes))
+    (setq-local treesit-thing-settings
+                `((javascript
+                   (sexp ,(regexp-opt js--treesit-sexp-nodes))
+                   (sentence ,(regexp-opt js--treesit-sentence-nodes))
+                   (text ,(regexp-opt '("comment"
+                                        "template_string"))))))
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)

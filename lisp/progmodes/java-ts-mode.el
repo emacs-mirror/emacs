@@ -317,11 +317,6 @@ Return nil if there is no name or if NODE is not a defun node."
   ;; Comments.
   (c-ts-common-comment-setup)
 
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("line_comment"
-                            "block_comment"
-                            "text_block")))
-
   ;; Indent.
   (setq-local c-ts-common-indent-type-regexp-alist
               `((block . ,(rx (or "class_body"
@@ -360,28 +355,30 @@ Return nil if there is no name or if NODE is not a defun node."
                             "constructor_declaration")))
   (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
 
-  (setq-local treesit-sentence-type-regexp
-              (regexp-opt '("statement"
-                            "local_variable_declaration"
-                            "field_declaration"
-                            "module_declaration"
-                            "package_declaration"
-                            "import_declaration")))
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt '("annotation"
-                            "parenthesized_expression"
-                            "argument_list"
-                            "identifier"
-                            "modifiers"
-                            "block"
-                            "body"
-                            "literal"
-                            "access"
-                            "reference"
-                            "_type"
-                            "true"
-                            "false")))
+  (setq-local treesit-thing-settings
+              `(java
+                (sexp ,(rx (or "annotation"
+                               "parenthesized_expression"
+                               "argument_list"
+                               "identifier"
+                               "modifiers"
+                               "block"
+                               "body"
+                               "literal"
+                               "access"
+                               "reference"
+                               "_type"
+                               "true"
+                               "false")))
+                (sentence ,(rx (or "statement"
+                                   "local_variable_declaration"
+                                   "field_declaration"
+                                   "module_declaration"
+                                   "package_declaration"
+                                   "import_declaration")))
+                (text ,(regexp-opt '("line_comment"
+                                     "block_comment"
+                                     "text_block")))))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)

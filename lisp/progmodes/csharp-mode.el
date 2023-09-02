@@ -959,10 +959,12 @@ Key bindings:
   ;; Comments.
   (c-ts-common-comment-setup)
 
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("comment"
-                            "verbatim_string-literal"
-                            "interpolated_verbatim_string-text")))
+  (setq-local treesit-thing-settings
+              `((c-sharp
+                 (text
+                  ,(regexp-opt '("comment"
+                                 "verbatim_string-literal"
+                                 "interpolated_verbatim_string-text"))))))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules csharp-ts-mode--indent-rules)

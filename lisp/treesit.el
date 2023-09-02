@@ -1799,6 +1799,8 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
       (goto-char current-pos)))
     node))
 
+(make-obsolete 'treesit-sexp-type-regexp "`treesit-sexp-type-regexp' will be removed in a few months, use `treesit-thing-settings' instead." "30.0.5")
+
 (defvar-local treesit-sexp-type-regexp nil
   "A regexp that matches the node type of sexp nodes.
 
@@ -1816,7 +1818,7 @@ like `forward-sexp' does.  If point is already at top-level,
 return nil without moving point."
   (interactive "^p")
   (let ((arg (or arg 1))
-        (pred treesit-sexp-type-regexp))
+        (pred (or treesit-sexp-type-regexp 'sexp)))
     (or (if (> arg 0)
             (treesit-end-of-thing pred (abs arg) 'restricted)
           (treesit-beginning-of-thing pred (abs arg) 'restricted))
@@ -1842,7 +1844,12 @@ its sibling node ARG nodes away.
 Return a pair of positions as described by
 `transpose-sexps-function' for use in `transpose-subr' and
 friends."
-  (let* ((parent (treesit-node-parent (treesit-node-at (point))))
+  ;; First arrive at the right level at where the node at point is
+  ;; considered a sexp. If sexp isn't defined, or we can't find any
+  ;; node that's a sexp, use the node at point.
+  (let* ((node (or (treesit-thing-at-point 'sexp 'nested)
+                   (treesit-node-at (point))))
+         (parent (treesit-node-parent node))
          (child (treesit-node-child parent 0 t)))
     (named-let loop ((prev child)
                      (next (treesit-node-next-sibling child t)))
@@ -1900,9 +1907,6 @@ for invalid node.
 
 This is used by `treesit-beginning-of-defun' and friends.")
 
-(defvar-local treesit-block-type-regexp nil
-  "Like `treesit-defun-type-regexp', but for blocks.")
-
 (defvar-local treesit-defun-tactic 'nested
   "Determines how does Emacs treat nested defuns.
 If the value is `top-level', Emacs only moves across top-level
@@ -1928,11 +1932,20 @@ nil.")
   "The delimiter used to connect several defun names.
 This is used in `treesit-add-log-current-defun'.")
 
+(defun treesit-thing-definition (thing)
+  "Return the predicate for THING if it's defined.
+A thing is considered defined if it has an entry in
+`treesit-thing-settings'."
+  (alist-get thing treesit-thing-settings))
+
+(defalias 'treesit-thing-defined-p 'treesit-thing-definition
+  "Return non-nil if THING is defined.")
+
 (defun treesit-beginning-of-thing (pred &optional arg tactic)
   "Like `beginning-of-defun', but generalized into things.
 
-PRED is like `treesit-defun-type-regexp', ARG
-is the same as in `beginning-of-defun'.
+PRED is a thing predicate, see `treesit-thing-settings' for more
+detail.  ARG is the same as in `beginning-of-defun'.
 
 TACTIC determines how does this function move between things.  It
 can be `nested', `top-level', `restricted', or nil.  `nested'
@@ -1954,8 +1967,8 @@ Return non-nil if successfully moved, nil otherwise."
 (defun treesit-end-of-thing (pred &optional arg tactic)
   "Like `end-of-defun', but generalized into things.
 
-PRED is like `treesit-defun-type-regexp', ARG is the same as
-in `end-of-defun'.
+PRED is a thing predicate, see `treesit-thing-settings' for more
+detail.  ARG is the same as in `end-of-defun'.
 
 TACTIC determines how does this function move between things.  It
 can be `nested', `top-level', `restricted', or nil.  `nested'
@@ -1984,19 +1997,21 @@ If search is successful, return t, otherwise return nil.
 
 This is a tree-sitter equivalent of `beginning-of-defun'.
 Behavior of this function depends on `treesit-defun-type-regexp'
-and `treesit-defun-skipper'."
+and `treesit-defun-skipper'.  If `treesit-defun-type-regexp' is
+not set, Emacs also looks for definition of defun in
+`treesit-thing-settings'."
   (interactive "^p")
   (or (not (eq this-command 'treesit-beginning-of-defun))
       (eq last-command 'treesit-beginning-of-defun)
       (and transient-mark-mode mark-active)
       (push-mark))
   (let ((orig-point (point))
-        (success nil))
+        (success nil)
+        (pred (or treesit-defun-type-regexp 'defun)))
     (catch 'done
       (dotimes (_ 2)
 
-        (when (treesit-beginning-of-thing
-               treesit-defun-type-regexp arg treesit-defun-tactic)
+        (when (treesit-beginning-of-thing pred arg treesit-defun-tactic)
           (when treesit-defun-skipper
             (funcall treesit-defun-skipper)
             (setq success t)))
@@ -2017,9 +2032,12 @@ Negative argument -N means move back to Nth preceding end of defun.
 
 This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
 this function depends on `treesit-defun-type-regexp' and
-`treesit-defun-skipper'."
+`treesit-defun-skipper'.  If `treesit-defun-type-regexp' is not
+set, Emacs also looks for definition of defun in
+`treesit-thing-settings'."
   (interactive "^p\nd")
-  (let ((orig-point (point)))
+  (let ((orig-point (point))
+        (pred (or treesit-defun-type-regexp 'defun)))
     (if (or (null arg) (= arg 0)) (setq arg 1))
     (or (not (eq this-command 'treesit-end-of-defun))
         (eq last-command 'treesit-end-of-defun)
@@ -2028,8 +2046,7 @@ this function depends on `treesit-defun-type-regexp' and
     (catch 'done
       (dotimes (_ 2) ; Not making progress is better than infloop.
 
-        (when (treesit-end-of-thing
-               treesit-defun-type-regexp arg treesit-defun-tactic)
+        (when (treesit-end-of-thing pred arg treesit-defun-tactic)
           (when treesit-defun-skipper
             (funcall treesit-defun-skipper)))
 
@@ -2041,6 +2058,8 @@ this function depends on `treesit-defun-type-regexp' and
             (throw 'done nil)
           (setq arg (if (> arg 0) (1+ arg) (1- arg))))))))
 
+(make-obsolete 'treesit-text-type-regexp "`treesit-text-type-regexp' will be removed in a few months, use `treesit-thing-settings' instead." "30.0.5")
+
 (defvar-local treesit-text-type-regexp "\\`comment\\'"
   "A regexp that matches the node type of textual nodes.
 
@@ -2049,6 +2068,8 @@ comments and multiline string literals.  For example,
 \"(line|block)_comment\" in the case of a comment, or
 \"text_block\" in the case of a string.  This is used by
 `prog-fill-reindent-defun' and friends.")
+
+(make-obsolete 'treesit-sentence-type-regexp "`treesit-sentence-type-regexp' will be removed in a few months, use `treesit-thing-settings' instead." "30.0.5")
 
 (defvar-local treesit-sentence-type-regexp nil
   "A regexp that matches the node type of sentence nodes.
@@ -2059,21 +2080,21 @@ smaller in scope than defuns.  This is used by
 `treesit-forward-sentence' and friends.")
 
 (defun treesit-forward-sentence (&optional arg)
-  "Tree-sitter `forward-sentence-function' function.
+  "Tree-sitter `forward-sentence-function' implementation.
 
 ARG is the same as in `forward-sentence'.
 
-If inside comment or other nodes described in
-`treesit-sentence-type-regexp', use
-`forward-sentence-default-function', else move across nodes as
-described by `treesit-sentence-type-regexp'."
-  (if (string-match-p
-       treesit-text-type-regexp
-       (treesit-node-type (treesit-node-at (point))))
+If point is inside a text environment, go forward a prose
+sentence using `forward-sentence-default-function'.  If point is
+inside code, go forward a source code sentence.
+
+What constitutes as text and source code sentence is determined
+by `text' and `sentence' in `treesit-thing-settings'."
+  (if (treesit-node-match-p (treesit-node-at (point)) 'text)
       (funcall #'forward-sentence-default-function arg)
     (funcall
      (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-     treesit-sentence-type-regexp (abs arg))))
+     'sentence (abs arg))))
 
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
@@ -2111,8 +2132,8 @@ previous and next sibling things around POS, and PARENT is the
 parent thing surrounding POS.  All of three could be nil if no
 sound things exists.
 
-PRED can be a regexp, a predicate function, and more.  See
-`treesit-thing-settings' for details."
+PRED should be a thing defined in `treesit-thing-settings', it
+can also be a predicate, which see."
   (let* ((node (treesit-node-at pos))
          (result (list nil nil nil)))
     ;; 1. Find previous and next sibling defuns.
@@ -2319,10 +2340,11 @@ Respects `treesit-defun-tactic': return the top-level defun if it
 is `top-level', return the immediate parent defun if it is
 `nested'.
 
-Return nil if `treesit-defun-type-regexp' is not set."
-  (when treesit-defun-type-regexp
+Return nil if `treesit-defun-type-regexp' isn't set and `defun'
+isn't defined in `treesit-thing-settings'."
+  (when (or treesit-defun-type-regexp (treesit-thing-defined-p 'defun))
     (treesit-thing-at-point
-     treesit-defun-type-regexp treesit-defun-tactic)))
+     (or treesit-defun-type-regexp 'defun) treesit-defun-tactic)))
 
 (defun treesit-defun-name (node)
   "Return the defun name of NODE.
@@ -2495,13 +2517,17 @@ and enable `font-lock-mode'.
 
 If `treesit-simple-indent-rules' is non-nil, set up indentation.
 
-If `treesit-defun-type-regexp' is non-nil, set up
-`beginning-of-defun-function' and `end-of-defun-function'.
+If `treesit-defun-type-regexp' is non-nil or `defun' is defined
+in `treesit-thing-settings', set up `beginning-of-defun-function'
+and `end-of-defun-function'.
 
 If `treesit-defun-name-function' is non-nil, set up
 `add-log-current-defun'.
 
 If `treesit-simple-imenu-settings' is non-nil, set up Imenu.
+
+If `sexp', `sentence' are defined in `treesit-thing-settings',
+enable tree-sitter navigation commands for them.
 
 Make sure necessary parsers are created for the current buffer
 before calling this function."
@@ -2526,7 +2552,7 @@ before calling this function."
     (setq-local indent-line-function #'treesit-indent)
     (setq-local indent-region-function #'treesit-indent-region))
   ;; Navigation.
-  (when treesit-defun-type-regexp
+  (when (or treesit-defun-type-regexp (treesit-thing-defined-p 'defun))
     (keymap-set (current-local-map) "<remap> <beginning-of-defun>"
                 #'treesit-beginning-of-defun)
     (keymap-set (current-local-map) "<remap> <end-of-defun>"
@@ -2545,10 +2571,10 @@ before calling this function."
     (setq-local add-log-current-defun-function
                 #'treesit-add-log-current-defun))
 
-  (when treesit-sexp-type-regexp
+  (when (treesit-thing-defined-p 'sexp)
     (setq-local forward-sexp-function #'treesit-forward-sexp))
   (setq-local transpose-sexps-function #'treesit-transpose-sexps)
-  (when treesit-sentence-type-regexp
+  (when (treesit-thing-defined-p 'sentence)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
 
   ;; Imenu.

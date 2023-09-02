@@ -147,7 +147,9 @@ Return nil if there is no name or if NODE is not a defun node."
               (rx (or "pair" "object")))
   (setq-local treesit-defun-name-function #'json-ts-mode--defun-name)
 
-  (setq-local treesit-sentence-type-regexp "pair")
+  (setq-local treesit-thing-settings
+              `((json
+                 (sentence "pair"))))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)

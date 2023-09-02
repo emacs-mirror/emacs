@@ -872,28 +872,17 @@ defuns.  If the value is @code{nested}, navigation functions recognize
 nested defuns.
 @end defvar
 
-@defvar treesit-sentence-type-regexp
-The value of this variable is a regexp matching the node type of sentence
-nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
-@end defvar
-
 @findex treesit-forward-sentence
 @findex forward-sentence
 @findex backward-sentence
 If Emacs is compiled with tree-sitter, it can use the tree-sitter
 parser information to move across syntax constructs.  Since what
 exactly is considered a sentence varies between languages, a major
-mode should set @code{treesit-sentence-type-regexp} to determine that.
+mode should set @code{treesit-thing-settings} to determine that.
 Then the mode can get navigation-by-sentence functionality for free,
 by using @code{forward-sentence} and
 @code{backward-sentence}(@pxref{Moving by Sentences,,, emacs, The
 extensible self-documenting text editor}).
-
-@defvar treesit-sexp-type-regexp
-The value of this variable is a regexp matching the node type of sexp
-nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program
-Source}.)
-@end defvar
 
 @findex treesit-forward-sexp
 @findex forward-sexp@r{, and tree-sitter}
@@ -901,7 +890,7 @@ Source}.)
 If Emacs is compiled with tree-sitter, it can use the tree-sitter
 parser information to move across syntax constructs.  Since what
 exactly is considered a sexp varies between languages, a major mode
-should set @code{treesit-sexp-type-regexp} to determine that.  Then
+should set @code{treesit-thing-settings} to determine that.  Then
 the mode can get navigation-by-sexp functionality for free, by using
 @code{forward-sexp} and @code{backward-sexp}(@pxref{Moving by
 Sentences,,, emacs, The extensible self-documenting text editor}).

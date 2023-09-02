@@ -387,7 +387,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "lexical_declaration"
     "property_signature")
   "Nodes that designate sentences in TypeScript.
-See `treesit-sentence-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 (defvar typescript-ts-mode--sexp-nodes
   '("expression"
@@ -409,7 +409,7 @@ See `treesit-sentence-type-regexp' for more information.")
     "arguments"
     "pair")
   "Nodes that designate sexps in TypeScript.
-See `treesit-sexp-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
@@ -420,10 +420,6 @@ See `treesit-sexp-type-regexp' for more information.")
   ;; Comments.
   (c-ts-common-comment-setup)
   (setq-local treesit-defun-prefer-top-level t)
-
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("comment"
-                            "template_string")))
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -438,11 +434,13 @@ See `treesit-sexp-type-regexp' for more information.")
                             "lexical_declaration")))
   (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-  (setq-local treesit-sentence-type-regexp
-              (regexp-opt typescript-ts-mode--sentence-nodes))
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt typescript-ts-mode--sexp-nodes))
+  (setq-local treesit-thing-settings
+              `((typescript
+                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes))
+                 (sentence ,(regexp-opt
+                             typescript-ts-mode--sentence-nodes))
+                 (text ,(regexp-opt '("comment"
+                                      "template_string"))))))
 
   ;; Imenu (same as in `js-ts-mode').
   (setq-local treesit-simple-imenu-settings
@@ -513,17 +511,15 @@ at least 3 (which is the default value)."
     (setq-local treesit-simple-indent-rules
                 (typescript-ts-mode--indent-rules 'tsx))
 
-    ;; Navigation
-    (setq-local treesit-sentence-type-regexp
-                (regexp-opt (append
-                             typescript-ts-mode--sentence-nodes
-                             '("jsx_element"
-                               "jsx_self_closing_element"))))
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt (append
-                           typescript-ts-mode--sexp-nodes
-                           '("jsx"))))
+    (setq-local treesit-thing-settings
+                `((tsx
+                   (sexp ,(regexp-opt
+                           (append typescript-ts-mode--sexp-nodes
+                                   '("jsx"))))
+                   (sentence ,(regexp-opt
+                               (append typescript-ts-mode--sentence-nodes
+                                       '("jsx_element"
+                                         "jsx_self_closing_element")))))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
