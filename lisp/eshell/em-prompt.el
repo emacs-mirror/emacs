@@ -172,16 +172,27 @@ negative, find the Nth next match."
   (interactive (eshell-regexp-arg "Backward input matching (regexp): "))
   (eshell-forward-matching-input regexp (- arg)))
 
-(defun eshell-next-prompt (n)
+(defun eshell-next-prompt (&optional n)
   "Move to end of Nth next prompt in the buffer."
   (interactive "p")
+  (unless n (setq n 1))
+  ;; First, move point to our starting position: the end of the
+  ;; current prompt (aka the beginning of the input), if any.  (The
+  ;; welcome message and output from commands don't count as having a
+  ;; current prompt.)
+  (pcase (get-text-property (point) 'field)
+    ('command-output)
+    ('prompt (goto-char (field-end)))
+    (_ (when-let ((match (text-property-search-backward 'field 'prompt t)))
+         (goto-char (prop-match-end match)))))
+  ;; Now, move forward/backward to our destination prompt.
   (if (natnump n)
       (while (and (> n 0)
                   (text-property-search-forward 'field 'prompt t))
         (setq n (1- n)))
     (let (match this-match)
-      ;; Don't count the current prompt.
-      (text-property-search-backward 'field 'prompt t)
+      ;; Go to the beginning of the current prompt.
+      (goto-char (field-beginning (point) t))
       (while (and (< n 0)
                   (setq this-match (text-property-search-backward
                                     'field 'prompt t)))
@@ -190,10 +201,10 @@ negative, find the Nth next match."
       (when match
         (goto-char (prop-match-end match))))))
 
-(defun eshell-previous-prompt (n)
+(defun eshell-previous-prompt (&optional n)
   "Move to end of Nth previous prompt in the buffer."
   (interactive "p")
-  (eshell-next-prompt (- n)))
+  (eshell-next-prompt (- (or n 1))))
 
 (defun eshell-skip-prompt ()
   "Skip past the text matching regexp `eshell-prompt-regexp'.
