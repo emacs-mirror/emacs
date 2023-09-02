@@ -411,7 +411,6 @@ The return value is the last VAL in the list.
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
-(make-obsolete-generalized-variable 'buffer-local-value nil "29.1")
 
 (gv-define-expander alist-get
   (lambda (do key alist &optional default remove testfn)
