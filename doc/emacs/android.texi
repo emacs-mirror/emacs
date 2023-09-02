@@ -129,8 +129,7 @@ buffer.
   Since there is no other way to start the @command{emacsclient}
 program (@pxref{Emacs Server}) from another Android program, Emacs
 provides a wrapper around the @command{emacsclient} program, which is
-registered with the system as an application that can open all text
-files.
+registered with the system as an application that can open any file.
 
   When that wrapper is selected as the program with which to open a
 file, it invokes @command{emacsclient} with the options
@@ -153,6 +152,11 @@ directory, or try to open files in it yourself.
   This feature is not provided on Android 4.3 and earlier, in which
 case such files are copied to a temporary directory before being
 opened.
+
+@cindex ``org-protocol'' links, android
+  In addition to opening ordinary text files, Emacs also registers its
+@command{emacsclient} wrapper as a program capable of opening
+``org-protocol'' links (@pxref{Protocols,,,org, The Org Manual}).
 
 @node Android File System
 @section What Files Emacs Can Access on Android

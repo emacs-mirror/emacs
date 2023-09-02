@@ -477,6 +477,10 @@ public final class EmacsOpenActivity extends Activity
 		      }
 		  }
 	      }
+	    else if (uri.getScheme ().equals ("org-protocol"))
+	      /* URL is an org-protocol:// link, which is meant to be
+		 directly relayed to emacsclient.  */
+	      fileName = uri.toString ();
 
 	    if (fileName == null)
 	      {
