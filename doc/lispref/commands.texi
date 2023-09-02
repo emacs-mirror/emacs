@@ -2523,16 +2523,6 @@ the @code{track-mouse} macro, that produces an event like this:
 (mouse-movement (#<frame *ielm* 0x102849a30> nil (563 . 205) 532301936))
 @end smallexample
 
-To handle a SIGUSR1 signal, define an interactive function, and
-bind it to the @code{signal usr1} event sequence:
-
-@smallexample
-(defun usr1-handler ()
-  (interactive)
-  (message "Got USR1 signal"))
-(keymap-global-set "<signal> <usr1>" 'usr1-handler)
-@end smallexample
-
 @node Classifying Events
 @subsection Classifying Events
 @cindex event type
