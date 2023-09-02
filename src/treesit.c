@@ -3247,8 +3247,8 @@ treesit_traverse_get_predicate (Lisp_Object thing, Lisp_Object language)
    recusion levels: we place a arbitrary 100 level limit on recursive
    predicates.  RECURSION_LEVEL is the current recursion level (that
    starts at 0), if it goes over 99, return false and set SIGNAL_DATA.
-   LANGUAGE is a LANGUAGE symbol.  See `Ftreesit_node_match_p' for
-   ignore_missing.  */
+   LANGUAGE is a LANGUAGE symbol.  IGNORE_MISSING is as in
+   `treesit-node-match-p' below.  */
 static bool
 treesit_traverse_validate_predicate (Lisp_Object pred,
 				     Lisp_Object language,
@@ -3521,7 +3521,7 @@ DEFUN ("treesit-search-subtree",
 Traverse the subtree of NODE, and match PREDICATE with each node along
 the way.  PREDICATE can be a regexp string that matches against each
 node's type, a predicate function, and more.  See
-`treesit-thing-settings' for all possible predicates.  PREDICATE can
+`treesit-thing-settings' for the possible predicates.  PREDICATE can
 also be a thing defined in `treesit-thing-settings'.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
@@ -3582,7 +3582,7 @@ DEFUN ("treesit-search-forward",
 Start traversing the tree from node START, and match PREDICATE with
 each node (except START itself) along the way.  PREDICATE can be a
 regexp string that matches against each node's type, a predicate
-function, and more.  See `treesit-thing-settings' for all possible
+function, and more.  See `treesit-thing-settings' for the possible
 predicates.  PREDICATE can also be a thing defined in
 `treesit-thing-settings'.
 
@@ -3698,7 +3698,7 @@ This takes the subtree under ROOT, and combs it so only the nodes that
 match PREDICATE are left, like picking out grapes on the vine.
 PREDICATE can be a regexp string that matches against each node's
 type, a predicate function, and more.  See `treesit-thing-settings'
-for all possible predicates.  PREDICATE can also be a thing defined in
+for the possible predicates.  PREDICATE can also be a thing defined in
 `treesit-thing-settings'.
 
 For a subtree on the left that consist of both numbers and letters, if
@@ -3785,15 +3785,15 @@ DEFUN ("treesit-node-match-p",
        doc: /* Check whether NODE matches PREDICATE.
 
 PREDICATE can be a symbol representing a thing in
-`treesit-thing-settings', or an predicate, like regexp matching node
-type, etc.  See `treesit-thing-settings' for detail.
+`treesit-thing-settings', or a predicate, like regexp matching node
+type, etc.  See `treesit-thing-settings' for more details.
 
-Return non-nil if NODE matches PRED, nil otherwise.
+Return non-nil if NODE matches PREDICATE, nil otherwise.
 
 Signals `treesit-invalid-predicate' if there's no definition of THING
-in `treesit-thing-settings', or the predicate is malformed.  If
-IGNORE-MISSING is non-nil, don't signal for missing THING definition,
-but still signal for malformed predicate.  */)
+in `treesit-thing-settings', or if PREDICATE is malformed.  If
+IGNORE-MISSING is non-nil, don't signal an error for missing THING
+definition, but still signal for malformed PREDICATE.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object ignore_missing)
 {
   CHECK_TS_NODE (node);

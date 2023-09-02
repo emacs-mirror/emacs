@@ -1952,8 +1952,8 @@ If LANGUAGE is nil, return the first definition for THING in
 (defun treesit-beginning-of-thing (thing &optional arg tactic)
   "Like `beginning-of-defun', but generalized into things.
 
-THING can be a thing defined in `treesit-thing-settings', or a
-predicate, which see.  ARG is the same as in `beginning-of-defun'.
+THING can be a thing defined in `treesit-thing-settings', which see,
+or a predicate.  ARG is the same as in `beginning-of-defun'.
 
 TACTIC determines how does this function move between things.  It
 can be `nested', `top-level', `restricted', or nil.  `nested'
@@ -1975,8 +1975,8 @@ Return non-nil if successfully moved, nil otherwise."
 (defun treesit-end-of-thing (thing &optional arg tactic)
   "Like `end-of-defun', but generalized into things.
 
-THING can be a thing defined in `treesit-thing-settings', or a
-predicate, which see.  ARG is the same as in `end-of-defun'.
+THING can be a thing defined in `treesit-thing-settings', which
+see, or a predicate.  ARG is the same as in `end-of-defun'.
 
 TACTIC determines how does this function move between things.  It
 can be `nested', `top-level', `restricted', or nil.  `nested'
@@ -2140,8 +2140,8 @@ previous and next sibling things around POS, and PARENT is the
 parent thing surrounding POS.  All of three could be nil if no
 sound things exists.
 
-THING should be a thing defined in `treesit-thing-settings', it
-can also be a predicate, which see."
+THING should be a thing defined in `treesit-thing-settings',
+which see; it can also be a predicate."
   (let* ((node (treesit-node-at pos))
          (result (list nil nil nil)))
     ;; 1. Find previous and next sibling defuns.
