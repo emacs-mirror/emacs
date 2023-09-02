@@ -1934,11 +1934,17 @@ nil.")
   "The delimiter used to connect several defun names.
 This is used in `treesit-add-log-current-defun'.")
 
-(defun treesit-thing-definition (thing)
-  "Return the predicate for THING if it's defined.
+(defun treesit-thing-definition (thing language)
+  "Return the predicate for THING if it's defined for LANGUAGE.
 A thing is considered defined if it has an entry in
+`treesit-thing-settings'.
+
+If LANGUAGE is nil, return the first definition for THING in
 `treesit-thing-settings'."
-  (alist-get thing treesit-thing-settings))
+  (if language
+      (car (alist-get thing (alist-get language
+                                       treesit-thing-settings)))
+    (car (alist-get thing (mapcan #'cdr treesit-thing-settings)))))
 
 (defalias 'treesit-thing-defined-p 'treesit-thing-definition
   "Return non-nil if THING is defined.")
@@ -2554,7 +2560,8 @@ before calling this function."
     (setq-local indent-line-function #'treesit-indent)
     (setq-local indent-region-function #'treesit-indent-region))
   ;; Navigation.
-  (when (or treesit-defun-type-regexp (treesit-thing-defined-p 'defun))
+  (when (or treesit-defun-type-regexp
+            (treesit-thing-defined-p 'defun nil))
     (keymap-set (current-local-map) "<remap> <beginning-of-defun>"
                 #'treesit-beginning-of-defun)
     (keymap-set (current-local-map) "<remap> <end-of-defun>"
@@ -2573,10 +2580,11 @@ before calling this function."
     (setq-local add-log-current-defun-function
                 #'treesit-add-log-current-defun))
 
-  (when (treesit-thing-defined-p 'sexp)
-    (setq-local forward-sexp-function #'treesit-forward-sexp))
-  (setq-local transpose-sexps-function #'treesit-transpose-sexps)
-  (when (treesit-thing-defined-p 'sentence)
+  (when (treesit-thing-defined-p 'sexp nil)
+    (setq-local forward-sexp-function #'treesit-forward-sexp)
+    (setq-local transpose-sexps-function #'treesit-transpose-sexps))
+
+  (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
 
   ;; Imenu.
