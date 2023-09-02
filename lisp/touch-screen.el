@@ -1034,9 +1034,9 @@ If the fourth element of `touch-screen-current-tool' is
 original position of the tool to display its bound keymap as a
 menu.
 
-If the fourth element of `touch-screen-current-tool' is `drag',
-the region is active, and the tool's initial window's selected
-buffer isn't read-only, display the on screen keyboard.
+If the fourth element of `touch-screen-current-tool' is `drag' or
+`held', the region is active, and the tool's initial window's
+selected buffer isn't read-only, display the on screen keyboard.
 
 If the command being executed is listed in
 `touch-screen-set-point-commands' also display the on-screen
@@ -1159,7 +1159,10 @@ is not read-only."
            (throw 'input-event
                   (list 'down-mouse-1
                         (nth 4 touch-screen-current-tool))))
-          ((eq what 'drag)
+          ((or (eq what 'drag)
+               ;; Merely initiating a drag is sufficient to select a
+               ;; word if word selection is enabled.
+               (eq what 'held))
            ;; Display the on screen keyboard if the region is now
            ;; active.  Check this within the window where the tool was
            ;; first place.

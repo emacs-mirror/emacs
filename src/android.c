@@ -833,22 +833,18 @@ android_user_full_name (struct passwd *pw)
     return (char *) "Android user";
 
   return pw->pw_gecos;
-#else
+#else /* !HAVE_STRUCT_PASSWD_PW_GECOS */
   return "Android user";
-#endif
+#endif /* HAVE_STRUCT_PASSWD_PW_GECOS */
 }
 
 
 
-/* Determine whether or not the specified file NAME describes a file
-   in the directory DIR, which should be an absolute file name.  NAME
-   must be in canonical form.
+/* Return whether or not the specified file NAME designates a file in
+   the directory DIR, which should be an absolute file name.  NAME
+   must be in canonical form.  */
 
-   Value is NULL if not.  Otherwise, it is a pointer to the first
-   character in NAME after the part containing DIR and its trailing
-   directory separator.  */
-
-const char *
+bool
 android_is_special_directory (const char *name, const char *dir)
 {
   size_t len;
@@ -857,7 +853,7 @@ android_is_special_directory (const char *name, const char *dir)
 
   len = strlen (dir);
   if (strncmp (name, dir, len))
-    return NULL;
+    return false;
 
   /* Now see if the character of NAME after len is either a directory
      separator or a terminating NULL.  */
@@ -865,20 +861,13 @@ android_is_special_directory (const char *name, const char *dir)
   name += len;
   switch (*name)
     {
-    case '\0':
-      /* Return the empty string if this is the end of the file
-	 name.  */
-      return name;
-
-    case '/':
-      /* Return NAME (with the separator removed) if it describes a
-	 file.  */
-      return name + 1;
-
-    default:
-      /* The file name doesn't match.  */
-      return NULL;
+    case '\0': /* NAME is an exact match for DIR.  */
+    case '/':  /* NAME is a constituent of DIR.  */
+      return true;
     }
+
+  /* The file name doesn't match.  */
+  return false;
 }
 
 #if 0

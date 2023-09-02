@@ -54,7 +54,7 @@ extern char *android_user_full_name (struct passwd *);
 /* File I/O operations.  Many of these are defined in
    androidvfs.c.  */
 
-extern const char *android_is_special_directory (const char *, const char *);
+extern bool android_is_special_directory (const char *, const char *);
 extern const char *android_get_home_directory (void);
 
 extern void android_vfs_init (JNIEnv *, jobject);
@@ -238,7 +238,7 @@ extern int android_rewrite_spawn_argv (const char ***);
 
 /* Define a substitute for use during Emacs compilation.  */
 
-#define android_is_special_directory(name, dir) ((const char *) NULL)
+#define android_is_special_directory(name, dir) (false)
 
 #endif /* !ANDROID_STUBIFY */
 
