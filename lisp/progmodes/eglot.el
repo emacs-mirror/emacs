@@ -3480,28 +3480,21 @@ of PREPARED, ready to apply with C-c C-a.  PREPARED is a
 list ((FILENAME EDITS VERSION)...)."
   (with-current-buffer (get-buffer-create "*EGLOT proposed server changes*")
     (buffer-disable-undo (current-buffer))
-    (let ((buffer-read-only t))
-      (diff-mode))
     (let ((inhibit-read-only t)
           (target (current-buffer)))
+      (diff-mode)
       (erase-buffer)
       (pcase-dolist (`(,path ,edits ,_) prepared)
         (with-temp-buffer
           (let* ((diff (current-buffer))
                  (existing-buf (find-buffer-visiting path))
                  (existing-buf-label (prin1-to-string existing-buf)))
-            ;; `existing-buf' might be an unsaved buffer, so we do
-            ;; this complicated little dance to diff it with a
-            ;; temporary file with the proposed changes applied.
             (with-temp-buffer
               (if existing-buf
-                  (let ((temp (current-buffer)))
-                    (with-current-buffer existing-buf
-                      (copy-to-buffer temp (point-min) (point-max))))
+                  (insert-buffer-substring existing-buf)
                 (insert-file-contents path))
               (eglot--apply-text-edits edits nil t)
-              (diff-no-select (or existing-buf path) (current-buffer)
-                              nil t diff)
+              (diff-no-select (or existing-buf path) (current-buffer) nil t diff)
               (when existing-buf
                 ;; Here we have to pretend the label of the unsaved
                 ;; buffer is the actual file, just so that we can
