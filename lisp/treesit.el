@@ -257,7 +257,7 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
                             (treesit-node-parent node))
              then (treesit-node-parent cursor)
              while cursor
-             if (treesit-node-match-p cursor pred)
+             if (treesit-node-match-p cursor pred t)
              do (setq result cursor))
     result))
 
@@ -2090,7 +2090,7 @@ inside code, go forward a source code sentence.
 
 What constitutes as text and source code sentence is determined
 by `text' and `sentence' in `treesit-thing-settings'."
-  (if (treesit-node-match-p (treesit-node-at (point)) 'text)
+  (if (treesit-node-match-p (treesit-node-at (point)) 'text t)
       (funcall #'forward-sentence-default-function arg)
     (funcall
      (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
@@ -2156,7 +2156,7 @@ can also be a predicate, which see."
      when node
      do (let ((cursor node)
               (iter-pred (lambda (node)
-                           (and (treesit-node-match-p node thing)
+                           (and (treesit-node-match-p node thing t)
                                 (funcall pos-pred node)))))
           ;; Find the node just before/after POS to start searching.
           (save-excursion
@@ -2174,7 +2174,7 @@ can also be a predicate, which see."
     ;; 2. Find the parent defun.
     (let ((cursor (or (nth 0 result) (nth 1 result) node))
           (iter-pred (lambda (node)
-                       (and (treesit-node-match-p node thing)
+                       (and (treesit-node-match-p node thing t)
                             (not (treesit-node-eq node (nth 0 result)))
                             (not (treesit-node-eq node (nth 1 result)))
                             (< (treesit-node-start node)
