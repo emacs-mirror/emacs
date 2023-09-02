@@ -719,6 +719,15 @@ Checkdoc now warns if the first line of an Emacs Lisp file does not
 end with a "-*- lexical-binding: t -*-" cookie.  Customize the user
 option 'checkdoc-lexical-binding-flag' to nil to disable this warning.
 
+** url
+
++++
+*** 'url-gateway-broken-resolution' is now obsolete.
+This option was intended for use on SunOS 4.x and Ultrix systems,
+neither of which have been supported by Emacs since version 23.1.
+The user option 'url-gateway-nslookup-program' and the function
+'url-gateway-nslookup-host' are consequently also obsolete.
+
 
 * New Modes and Packages in Emacs 30.1
 
