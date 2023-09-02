@@ -480,8 +480,6 @@ THINGS TO DO
 
 ** Have a look at set_frame_matrix_frame.
 
-** Check if we got term-setup-hook right.
-
 ** I think tip_frame should be display-local.
 
 ** Check display reference count handling in x_create_tip_frame.

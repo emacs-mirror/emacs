@@ -651,9 +651,9 @@ struct buffer
   ptrdiff_t last_window_start;
 
   /* If the long line scan cache is enabled (i.e. the buffer-local
-     variable cache-long-line-scans is non-nil), newline_cache
-     points to the newline cache, and width_run_cache points to the
-     width run cache.
+     variable cache-long-scans is non-nil), newline_cache points to
+     the newline cache, and width_run_cache points to the width run
+     cache.
 
      The newline cache records which stretches of the buffer are
      known *not* to contain newlines, so that they can be skipped

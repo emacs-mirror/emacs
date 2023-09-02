@@ -24523,8 +24523,8 @@ that is needed.  It can also contain @samp{(@var{addr} @var{string}
 @var{amount})} cells, where the @var{string} is the string to use
 (normally the email address or newsgroup name is used).
 
-@item hashcash-path
-@vindex hashcash-path
+@item hashcash-program
+@vindex hashcash-program
 Where the @code{hashcash} binary is installed.  This variable should
 be automatically set by @code{executable-find}, but if it's @code{nil}
 (usually because the @code{hashcash} binary is not in your path)
