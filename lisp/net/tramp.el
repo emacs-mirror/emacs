@@ -2923,7 +2923,7 @@ remote host and localname (filename on remote host)."
 
 ;; This function returns all possible method completions, adding the
 ;; trailing method delimiter.
-(defun tramp-get-completion-methods (partial-method multi-hop)
+(defun tramp-get-completion-methods (partial-method &optional multi-hop)
   "Return all method completions for PARTIAL-METHOD.
 If MULTI-HOP is non-nil, return only multi-hop capable methods."
   (mapcar
