@@ -290,6 +290,18 @@ cannot be interrupted with prefix commands.)
 @node Usage
 @chapter Usage
 
+@menu
+* Invoking Transients::
+* Aborting and Resuming Transients::
+* Common Suffix Commands::
+* Saving Values::
+* Using History::
+* Getting Help for Suffix Commands::
+* Enabling and Disabling Suffixes::
+* Other Commands::
+* Configuration::
+@end menu
+
 @node Invoking Transients
 @section Invoking Transients
 
@@ -1001,6 +1013,14 @@ signal an error.
 
 @node Defining New Commands
 @chapter Defining New Commands
+
+@menu
+* Defining Transients::
+* Binding Suffix and Infix Commands::
+* Defining Suffix and Infix Commands::
+* Using Infix Arguments::
+* Transient State::
+@end menu
 
 @node Defining Transients
 @section Defining Transients
@@ -2230,6 +2250,11 @@ available depending on user preference.
 
 @node Related Abstractions and Packages
 @chapter Related Abstractions and Packages
+
+@menu
+* Comparison With Prefix Keys and Prefix Arguments::
+* Comparison With Other Packages::
+@end menu
 
 @node Comparison With Prefix Keys and Prefix Arguments
 @section Comparison With Prefix Keys and Prefix Arguments
