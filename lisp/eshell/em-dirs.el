@@ -262,6 +262,7 @@ Thus, this does not include the current directory.")
 (defun eshell-parse-user-reference ()
   "An argument beginning with ~ is a filename to be expanded."
   (when (and (not eshell-current-argument)
+             (not eshell-current-quoted)
              (eq (char-after) ?~))
     ;; Apply this modifier fairly early so it happens before things
     ;; like glob expansion.
