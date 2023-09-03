@@ -1,4 +1,4 @@
-;;; x-win.el --- parse relevant switches and set up for Android  -*- lexical-binding:t -*-
+;;; android-win.el --- terminal set up for Android  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
