@@ -147,7 +147,7 @@ and also consults the `emoji-alternate-names' alist."
 (transient-define-suffix emoji-insert-glyph (glyph)
   "Insert the emoji you selected."
   (interactive
-   (list (if (string-prefix-p "emoji-" (symbol-name transient-current-prefix))
+   (list (if (string-prefix-p "emoji-" (symbol-name transient-current-command))
              (oref (transient-suffix-object) description)
            (car (multisession-value emoji--recent))))
    not-a-mode)
