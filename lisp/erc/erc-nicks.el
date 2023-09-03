@@ -102,7 +102,10 @@ should adjust it before connecting."
   (frame-parameter (selected-frame) 'background-color)
   "Background color for calculating contrast.
 Set this explicitly when the background color isn't discoverable,
-which may be the case in terminal Emacs."
+which may be the case in terminal Emacs.  Even when automatically
+initialized, this value may need adjustment mid-session, such as
+after loading a new theme.  Remember to run \\[erc-nicks-refresh]
+after doing so."
   :type 'string)
 
 (defcustom erc-nicks-color-adjustments
@@ -153,9 +156,13 @@ List of colors as strings (hex or named) or, alternatively, a
 single symbol representing a set of colors, like that produced by
 the function `defined-colors', which ERC associates with the
 symbol `defined'.  Similarly, `all' tells ERC to use any 24-bit
-color.  When specifying a list, users may want to set the option
-`erc-nicks-color-adjustments' to nil to prevent unwanted culling."
-  :type '(choice (const all) (const defined) (repeat string)))
+color.  To change the value mid-session, try
+\\[erc-nicks-refresh]."
+  :type `(choice (const :tag "All 24-bit colors" all)
+                 (const :tag "Defined terminal colors" defined)
+                 (const :tag "Font Lock faces" font-lock)
+                 (const :tag "ANSI color faces" ansi-color)
+                 (repeat :tag "User-provided list" string)))
 
 (defcustom erc-nicks-key-suffix-format "@%n"
   "Template for latter portion of keys to generate colors from.
@@ -227,6 +234,7 @@ If FG or BG are floats, interpret them as luminance values."
 
 ;; https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html
 (defun erc-nicks--adjust-contrast (color target &optional decrease)
+  (cl-assert erc-nicks--fg-rgb)
   (let* ((lum-bg (or erc-nicks--bg-luminance
                      (setq erc-nicks--bg-luminance
                            (erc-nicks--get-luminance erc-nicks-bg-color))))
@@ -356,7 +364,40 @@ Return a hex string."
                      erc-nicks-color-adjustments
                      (if (stringp color) (color-name-to-rgb color) color))))
 
-(defun erc-nicks--create-pool (adjustments colors)
+(defvar erc-nicks--create-pool-function #'erc-nicks--create-coerced-pool
+  "Filter function for initializing the pool of colors.
+Takes a list of adjustment functions, such as those named in
+`erc-nicks-color-adjustments', and a list of colors.  Returns
+another list whose members need not be among the original
+candidates.  Users should note that this variable, along with its
+predefined function values, `erc-nicks--create-coerced-pool' and
+`erc-nicks--create-culled-pool', can be made public in a future
+version of this module, perhaps as a single user option, given
+sufficient demand.")
+
+(defun erc-nicks--create-coerced-pool (adjustments colors)
+  "Return COLORS that fall within parameters heeded by ADJUSTMENTS.
+Apply ADJUSTMENTS and dedupe after replacing adjusted values with
+those nearest defined for the terminal.  Only perform one pass.
+That is, accept the nearest initially found as \"close enough,\"
+knowing that values may fall outside desired parameters and thus
+yield a larger pool than simple culling might produce.  When
+debugging, add candidates to `erc-nicks--colors-rejects' that map
+to the same output color as some prior candidate."
+  (let* ((seen (make-hash-table :test #'equal))
+         (erc-nicks-color-adjustments adjustments)
+         pool)
+    (dolist (color colors)
+      (let ((quantized (car (tty-color-approximate
+                             (color-values (erc-nicks--reduce color))))))
+        (if (gethash quantized seen)
+            (when erc-nicks--colors-rejects
+              (push color erc-nicks--colors-rejects))
+          (push quantized pool)
+          (puthash quantized color seen))))
+    (nreverse pool)))
+
+(defun erc-nicks--create-culled-pool (adjustments colors)
   "Return COLORS that fall within parameters indicated by ADJUSTMENTS."
   (let (addp capp satp pool)
     (dolist (adjustment adjustments)
@@ -382,8 +423,12 @@ Return a hex string."
   "Initialize colors and optionally display faces or color palette."
   (unless (eq erc-nicks-colors 'all)
     (let* ((colors (or (and (listp erc-nicks-colors) erc-nicks-colors)
+                       (and (memq erc-nicks-colors '(font-lock ansi-color))
+                            (erc-nicks--colors-from-faces
+                             (format "%s-" erc-nicks-colors)))
                        (defined-colors)))
-           (pool (erc-nicks--create-pool erc-nicks-color-adjustments colors)))
+           (pool (funcall erc-nicks--create-pool-function
+                          erc-nicks-color-adjustments colors)))
       (setq erc-nicks--colors-pool pool
             erc-nicks--colors-len (length pool)))))
 
@@ -487,7 +532,8 @@ Abandon search after examining LIMIT faces."
                " Toggling it in individual target buffers is unsupported.")
              (erc-nicks-mode +1))) ; but do it anyway
          (setq erc-nicks--downcased-skip-nicks
-               (mapcar #'erc-downcase erc-nicks-skip-nicks))
+               (mapcar #'erc-downcase erc-nicks-skip-nicks)
+               erc-nicks--fg-rgb (erc-with-server-buffer erc-nicks--fg-rgb))
          (add-function :filter-return (local 'erc-button--modify-nick-function)
                        #'erc-nicks--highlight-button '((depth . 80)))
          (erc-button--phantom-users-mode +1))
@@ -505,14 +551,14 @@ Abandon search after examining LIMIT faces."
           "Module `nicks' unable to determine background color.  Setting to \""
           temp "\" globally.  Please see `erc-nicks-bg-color'.")
          (custom-set-variables (list 'erc-nicks-bg-color temp))))
+     (setq erc-nicks--fg-rgb
+           (or (color-name-to-rgb
+                (face-foreground 'erc-default-face nil 'default))
+               (color-name-to-rgb
+                (readable-foreground-color erc-nicks-bg-color))))
      (erc-nicks--init-pool)
      (erc--restore-initialize-priors erc-nicks-mode
        erc-nicks--face-table (make-hash-table :test #'equal)))
-   (setq erc-nicks--fg-rgb
-         (or (color-name-to-rgb
-              (face-foreground 'erc-default-face nil 'default))
-             (color-name-to-rgb
-              (readable-foreground-color erc-nicks-bg-color))))
    (setf (alist-get "Edit face" erc-button--nick-popup-alist nil nil #'equal)
          #'erc-nicks-customize-face)
    (advice-add 'widget-create-child-and-convert :filter-args
@@ -599,8 +645,10 @@ Abandon search after examining LIMIT faces."
 
 (defun erc-nicks-refresh (debug)
   "Recompute faces for all nicks on current network.
-With DEBUG, review affected faces or colors.  Which one depends
-on the value of `erc-nicks-colors'."
+With DEBUG, review affected faces or colors.  Exactly which of
+the two depends on the value of `erc-nicks-colors'.  Note that
+the list of rejected faces may include duplicates of accepted
+ones."
   (interactive "P")
   (unless (derived-mode-p 'erc-mode)
     (user-error "Not an ERC buffer"))
@@ -608,6 +656,8 @@ on the value of `erc-nicks-colors'."
     (unless erc-nicks-mode (user-error "Module `nicks' disabled"))
     (let ((erc-nicks--colors-rejects (and debug (list t))))
       (erc-nicks--init-pool)
+      (unless erc-nicks--colors-pool
+        (user-error "Pool empty: all colors rejected"))
       (dolist (nick (hash-table-keys erc-nicks--face-table))
         ;; User-tuned faces do not have an `erc-nicks--key' property.
         (when-let ((face (gethash nick erc-nicks--face-table))
@@ -633,6 +683,15 @@ on the value of `erc-nicks-colors'."
                             (erc-nicks--get-contrast c)
                             (cadr (apply #'color-rgb-to-hsl
                                          (color-name-to-rgb c))))))))))))))
+
+(defun erc-nicks--colors-from-faces (prefix)
+  "Extract foregrounds from faces with PREFIX
+Expect PREFIX to be something like \"ansi-color-\" or \"font-lock-\"."
+  (let (out)
+    (dolist (face (face-list) (nreverse out))
+      (when-let (((string-prefix-p prefix (symbol-name face)))
+                 (color (face-foreground face)))
+        (push color out)))))
 
 (provide 'erc-nicks)
 
