@@ -2021,6 +2021,7 @@ instead; it will indirectly limit the specpdl stack size as well.")
 (defalias 'store-match-data #'set-match-data)
 (defalias 'chmod #'set-file-modes)
 (defalias 'mkdir #'make-directory)
+(defalias 'wholenump #'natnump)
 
 ;; These were the XEmacs names, now obsolete:
 (defalias 'point-at-eol #'line-end-position)
