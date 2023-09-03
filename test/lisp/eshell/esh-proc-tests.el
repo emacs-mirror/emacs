@@ -281,7 +281,7 @@ prompt.  See bug#54136."
                     (executable-find "sleep")))
   ;; This test doesn't work on EMBA with AOT nativecomp, but works
   ;; fine elsewhere.
-  (skip-unless (not (getenv "EMACS_EMBA_CI")))
+  (skip-when (getenv "EMACS_EMBA_CI"))
   (with-temp-eshell
    (eshell-insert-command
     (concat "sh -c 'while true; do echo y; sleep 1; done' | "

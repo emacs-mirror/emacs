@@ -4918,7 +4918,7 @@ import abc
   ;; Skip the test on macOS, since the standard Python installation uses
   ;; libedit rather than readline which confuses the running of an inferior
   ;; interpreter in this case (see bug#59477 and bug#25753).
-  (skip-unless (not (eq system-type 'darwin)))
+  (skip-when (eq system-type 'darwin))
   (trace-function 'python-shell-output-filter)
   (python-tests-with-temp-buffer-with-shell
    "
