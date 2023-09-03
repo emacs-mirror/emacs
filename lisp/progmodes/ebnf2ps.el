@@ -5247,7 +5247,7 @@ killed after process termination."
        (or ebnf-fonts-required
 	   (setq ebnf-fonts-required
 		 (mapconcat #'identity
-			    (ps-remove-duplicates
+			    (delete-dups
 			     (mapcar #'ebnf-font-name-select
 				     (list ebnf-production-font
 					   ebnf-terminal-font
