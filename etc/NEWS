@@ -55,7 +55,7 @@ the signature) the automatically inferred function type as well.
 ---
 ** New user option 'describe-bindings-outline-rules'.
 This user option controls outline visibility in the output buffer of
-'describe-bindings' when 'describe-bindings-outline' in non-nil.
+'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
 ** X selection requests are now handled much faster and asynchronously.
 This means it should be less necessary to disable the likes of
@@ -860,6 +860,12 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 ** 'defadvice' is marked as obsolete.
 See the "(elisp) Porting Old Advice" node for help converting them
 to use 'advice-add' or 'define-advice' instead.
+
++++
+** New macro 'static-if' for conditional compilation of code.
+This macro hides a form from the compiler based on a compile-time
+condition.  This is handy for avoiding byte-compilation warnings about
+code that will never actually run under some conditions.
 
 +++
 ** Desktop notifications are now supported on the Haiku operating system.
