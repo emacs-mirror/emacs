@@ -153,19 +153,6 @@ The metadata of a completion table should be constant between two boundaries."
 (defun completion-metadata-get (metadata prop)
   (cdr (assq prop metadata)))
 
-(defun completion--some (fun xs)
-  "Apply FUN to each element of XS in turn.
-Return the first non-nil returned value.
-Like CL's `some'."
-  (let ((firsterror nil)
-        res)
-    (while (and (not res) xs)
-      (condition-case-unless-debug err
-          (setq res (funcall fun (pop xs)))
-        (error (unless firsterror (setq firsterror err)) nil)))
-    (or res
-        (if firsterror (signal (car firsterror) (cdr firsterror))))))
-
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
 STRING, COLLECTION and PREDICATE are used as in `try-completion'.
@@ -426,9 +413,9 @@ obeys predicates."
   ;; is returned by TABLE2 (because TABLE1 returned an empty list).
   ;; Same potential problem if any of the tables use quoting.
   (lambda (string pred action)
-    (completion--some (lambda (table)
-                        (complete-with-action action table string pred))
-                      tables)))
+    (seq-some (lambda (table)
+                (complete-with-action action table string pred))
+              tables)))
 
 (defun completion-table-merge (&rest tables)
   "Create a completion table that collects completions from all TABLES."
@@ -451,9 +438,9 @@ obeys predicates."
                                 (all-completions string table pred))
                               tables)))
      (t
-      (completion--some (lambda (table)
-                          (complete-with-action action table string pred))
-                        tables)))))
+      (seq-some (lambda (table)
+                  (complete-with-action action table string pred))
+                tables)))))
 
 (defun completion-table-with-quoting (table unquote requote)
   ;; A difficult part of completion-with-quoting is to map positions in the
@@ -1216,7 +1203,7 @@ overrides the default specified in `completion-category-defaults'."
               (cl-assert (<= point (length string)))
               (pop new))))
          (result-and-style
-          (completion--some
+          (seq-some
            (lambda (style)
              (let ((probe (funcall
                            (or (nth n (assq style completion-styles-alist))
