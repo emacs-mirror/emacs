@@ -724,6 +724,13 @@ without specifying a file, like this:
 *** New user option 'image-dired-thumb-naming'.
 You can now configure how a thumbnail is named using this option.
 
+** ERT
+
+*** New macro `skip-when' to skip 'ert-deftest' tests.
+This can help avoid some awkward skip conditions.  For example
+'(skip-unless (not noninteractive))' can be changed to the easier
+to read '(skip-when noninteractive)'.
+
 ** checkdoc
 
 ---

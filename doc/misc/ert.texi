@@ -658,11 +658,30 @@ versions, specific architectures, etc.:
 @cindex skipping tests
 @cindex test preconditions
 @cindex preconditions of a test
+@findex skip-when
+@findex skip-unless
 Sometimes, it doesn't make sense to run a test due to missing
 preconditions.  A required Emacs feature might not be compiled in, the
 function to be tested could call an external binary which might not be
-available on the test machine, you name it.  In this case, the macro
-@code{skip-unless} could be used to skip the test:
+available on the test machine, you name it.  In this case, the macros
+@code{skip-when} or @code{skip-unless} could be used to skip the
+test.@footnote{The @code{skip-when} macro was added in Emacs 30.1.  If
+you need your tests to be compatible with older versions of Emacs, use
+@code{skip-unless} instead.}
+
+@noindent
+For example, this test is skipped on MS-Windows and macOS:
+
+@lisp
+(ert-deftest test-gnu-linux ()
+  "A test that is not relevant on MS-Windows and macOS."
+  (skip-when (memq system-type '(windows-nt ns))
+  ...))
+@end lisp
+
+@noindent
+This test is skipped if the feature @samp{dbusbind} is not present in
+the running Emacs:
 
 @lisp
 (ert-deftest test-dbus ()
