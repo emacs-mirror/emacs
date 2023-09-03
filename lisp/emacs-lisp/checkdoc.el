@@ -1793,7 +1793,7 @@ function,command,variable,option or symbol." ms1))))))
 		   (order (and (nth 3 fp) (car (nth 3 fp))))
 		   (nocheck (append '("&optional" "&rest" "&key" "&aux"
                                       "&context" "&environment" "&whole"
-                                      "&body" "&allow-other-keys")
+                                      "&body" "&allow-other-keys" "nil")
                                     (nth 3 fp)))
 		   (inopts nil))
 	       (while (and args found (> found last-pos))
