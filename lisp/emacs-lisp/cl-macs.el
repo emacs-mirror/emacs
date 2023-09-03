@@ -3587,7 +3587,8 @@ possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
   ;; Like `cl-defmacro', but with the `&whole' special case.
-  (declare (debug (&define name cl-macro-list
+  (declare (debug (&define [&name symbolp "@cl-compiler-macro"]
+                           cl-macro-list
                            cl-declarations-or-string def-body))
            (indent 2))
   (let ((p args) (res nil))
