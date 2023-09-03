@@ -643,13 +643,18 @@ public final class EmacsService extends Service
 							  uri.getPath ());
 	      }
 
-	    Log.d (TAG, ("browseUri: browsing " + url
-			 + " --> " + uri.getPath ()
-			 + " --> " + uri));
-
 	    intent = new Intent (Intent.ACTION_VIEW, uri);
+
+	    /* Set several flags on the Intent prompting the system to
+	       permit the recipient to read and edit the URI
+	       indefinitely.  */
+
 	    intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK
-			     | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			     | Intent.FLAG_GRANT_READ_URI_PERMISSION
+			     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+	      intent.addFlags (Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 	  }
 	else
 	  {
