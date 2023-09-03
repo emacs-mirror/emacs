@@ -28,7 +28,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'seq) ; tab-line.el is not pre-loaded so it's safe to use it here
+(require 'seq)
 (require 'icons)
 
 
