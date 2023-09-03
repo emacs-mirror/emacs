@@ -1624,6 +1624,18 @@ to normal, do
 
   (set-scroll-bar-mode 'left)
 
+*** Redisplay with scaled images is slow when built with Cairo.
+
+Cairo expends a noticeable amount of time displaying large images with
+a transform applied.  These images most frequently appear within Eww
+buffers or Image Mode buffers after executing the image scaling
+commands `i +' or `i -', and their presence incurs a performance
+penalty of hundereds of milliseconds to seconds upon redisplay.  The
+remedy is to build without Cairo after verifying the XRender extension
+is present on your X server and its headers are present on your
+system, whereupon Emacs will use that extension to efficiently perform
+image transforms within the X server.
+
 *** Error messages about undefined colors on X.
 
 The messages might say something like this:
