@@ -122,7 +122,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defcustom vc-git-annotate-switches nil
   "String or list of strings specifying switches for Git blame under VC.
-If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
+If nil, use the value of `vc-annotate-switches'.  If t, use no switches.
+
+Tip: Set this to \"-w\" to make Git blame ignore whitespace when
+comparing changes.  See Man page `git-blame' for more."
   :type '(choice (const :tag "Unspecified" nil)
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
