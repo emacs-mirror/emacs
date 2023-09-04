@@ -889,8 +889,6 @@ public final class EmacsService extends Service
 					0);
     info = builder.build ();
 
-
-
     if (DEBUG_IC)
       Log.d (TAG, ("updateCursorAnchorInfo: " + x + " " + y
 		   + " " + yBaseline + "-" + yBottom));
@@ -1142,8 +1140,10 @@ public final class EmacsService extends Service
     if (DEBUG_IC)
       Log.d (TAG, "updateExtractedText: @" + token + ", " + text);
 
+    icBeginSynchronous ();
     window.view.imManager.updateExtractedText (window.view,
 					       token, text);
+    icEndSynchronous ();
   }
 
 
