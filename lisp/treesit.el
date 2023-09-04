@@ -263,15 +263,17 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
              do (setq result cursor))
     result))
 
-(defun treesit-buffer-root-node (&optional language)
+(defun treesit-buffer-root-node (&optional language tag)
   "Return the root node of the current buffer.
 
 Use the first parser in the parser list if LANGUAGE is omitted.
-If LANGUAGE is non-nil, use the first parser for LANGUAGE in the
-parser list, or create one if none exists."
+
+If LANGUAGE is non-nil, use the first parser for LANGUAGE with
+TAG in the parser list, or create one if none exists.  TAG
+defaults to nil."
   (if-let ((parser
             (if language
-                (treesit-parser-create language)
+                (treesit-parser-create language nil nil tag)
               (or (car (treesit-parser-list))
                   (signal 'treesit-no-parser (list (current-buffer)))))))
       (treesit-parser-root-node parser)))

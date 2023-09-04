@@ -400,14 +400,17 @@ when deciding whether to enable tree-sitter features.
 
 @cindex creating tree-sitter parsers
 @cindex tree-sitter parser, creating
-@defun treesit-parser-create language &optional buffer no-reuse
+@defun treesit-parser-create language &optional buffer no-reuse tag
 Create a parser for the specified @var{buffer} and @var{language}
-(@pxref{Language Grammar}).  If @var{buffer} is omitted or
-@code{nil}, it stands for the current buffer.
+(@pxref{Language Grammar}), with @var{tag}.  If @var{buffer} is
+omitted or @code{nil}, it stands for the current buffer.
 
 By default, this function reuses a parser if one already exists for
-@var{language} in @var{buffer}, but if @var{no-reuse} is
-non-@code{nil}, this function always creates a new parser.
+@var{language} with @var{tag} in @var{buffer}, but if @var{no-reuse}
+is non-@code{nil}, this function always creates a new parser.
+
+@var{tag} should be a symbol and defaults to @code{nil}.  Different
+parsers can have the same tag.
 
 If that buffer is an indirect buffer, its base buffer is used instead.
 That is, indirect buffers use their base buffer's parsers.  If the

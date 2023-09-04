@@ -34,13 +34,17 @@ INLINE_HEADER_BEGIN
 struct Lisp_TS_Parser
 {
   union vectorlike_header header;
-  /* A symbol representing the language this parser uses.  See the
+    /* A symbol representing the language this parser uses.  See the
      manual for more explanation.  */
   Lisp_Object language_symbol;
   /* A list of functions to call after re-parse.  Every function is
      called with the changed ranges and the parser.  The changed
      ranges is a list of (BEG . END).  */
   Lisp_Object after_change_functions;
+  /* A tag (symbol) for the parser.  Different parsers can have the
+     same tag.  A tag is primarily used to differentiate between
+     parsers for the same language.  */
+  Lisp_Object tag;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
   /* The pointer to the tree-sitter parser.  Never NULL.  */
@@ -183,7 +187,7 @@ INLINE_HEADER_END
 
 extern void treesit_record_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_treesit_parser (Lisp_Object, TSParser *, TSTree *,
-					Lisp_Object);
+					Lisp_Object, Lisp_Object);
 extern Lisp_Object make_treesit_node (Lisp_Object, TSNode);
 
 extern bool treesit_node_uptodate_p (Lisp_Object);

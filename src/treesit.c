@@ -1153,7 +1153,8 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
    machine.  */
 Lisp_Object
 make_treesit_parser (Lisp_Object buffer, TSParser *parser,
-		     TSTree *tree, Lisp_Object language_symbol)
+		     TSTree *tree, Lisp_Object language_symbol,
+		     Lisp_Object tag)
 {
   struct Lisp_TS_Parser *lisp_parser;
 
@@ -1162,6 +1163,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 
   lisp_parser->language_symbol = language_symbol;
   lisp_parser->after_change_functions = Qnil;
+  lisp_parser->tag = tag;
   lisp_parser->buffer = buffer;
   lisp_parser->parser = parser;
   lisp_parser->tree = tree;
@@ -1379,24 +1381,29 @@ DEFUN ("treesit-node-parser",
 
 DEFUN ("treesit-parser-create",
        Ftreesit_parser_create, Streesit_parser_create,
-       1, 3, 0,
-       doc: /* Create and return a parser in BUFFER for LANGUAGE.
+       1, 4, 0,
+       doc: /* Create and return a parser in BUFFER for LANGUAGE with TAG.
 
 The parser is automatically added to BUFFER's parser list, as returned
 by `treesit-parser-list'.  LANGUAGE is a language symbol.  If BUFFER
 is nil or omitted, it defaults to the current buffer.  If BUFFER
-already has a parser for LANGUAGE, return that parser, but if NO-REUSE
-is non-nil, always create a new parser.
+already has a parser for LANGUAGE with TAG, return that parser, but if
+NO-REUSE is non-nil, always create a new parser.
+
+TAG should be a symbol and defaults to nil.  Different parsers can
+have the same tag.
 
 If that buffer is an indirect buffer, its base buffer is used instead.
 That is, indirect buffers use their base buffer's parsers.  Lisp
 programs should widen as necessary should they want to use a parser in
 an indirect buffer.  */)
-  (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse)
+  (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse,
+   Lisp_Object tag)
 {
   treesit_initialize ();
 
   CHECK_SYMBOL (language);
+  CHECK_SYMBOL (tag);
   struct buffer *buf;
   if (NILP (buffer))
     buf = current_buffer;
@@ -1417,7 +1424,8 @@ an indirect buffer.  */)
       FOR_EACH_TAIL (tail)
       {
 	struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
-	if (EQ (parser->language_symbol, language))
+	if (EQ (parser->tag, tag)
+	    && EQ (parser->language_symbol, language))
 	  return XCAR (tail);
       }
     }
@@ -1437,7 +1445,7 @@ an indirect buffer.  */)
   /* Create parser.  */
   Lisp_Object lisp_parser = make_treesit_parser (Fcurrent_buffer (),
 						 parser, NULL,
-						 language);
+						 language, tag);
 
   /* Update parser-list.  */
   BVAR (buf, ts_parser_list) = Fcons (lisp_parser, BVAR (buf, ts_parser_list));
@@ -2775,7 +2783,7 @@ static Lisp_Object treesit_resolve_node (Lisp_Object obj)
   else if (SYMBOLP (obj))
     {
       Lisp_Object parser
-	= Ftreesit_parser_create (obj, Fcurrent_buffer (), Qnil);
+	= Ftreesit_parser_create (obj, Fcurrent_buffer (), Qnil, Qnil);
       return Ftreesit_parser_root_node (parser);
     }
   else
