@@ -2075,15 +2075,20 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (&define [&name symbolp "@cl-flet@"]
+           ;; The first (symbolp form) case doesn't use `&name' because
+           ;; it's hard to associate this name with the body of the function
+           ;; that `form' will return (bug#65344).
+           ;; We could try and use a `&name' for those cases where the
+           ;; body of the function can be found, (e.g. the form wraps
+           ;; some `prog1/progn/let' around the final `lambda'), but it's
+           ;; not clear it's worth the trouble.
+           (debug ((&rest [&or (symbolp form)
+                               (&define [&name symbolp "@cl-flet@"]
                                         [&name [] gensym] ;Make it unique!
                                         cl-lambda-list
                                         cl-declarations-or-string
                                         [&optional ("interactive" interactive)]
-                                        def-body)
-                               (&define [&name symbolp "@cl-flet@"]
-                                        [&name [] gensym] ;Make it unique!
-                                        def-form)])
+                                        def-body)])
                    cl-declarations body)))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
