@@ -2617,10 +2617,13 @@ flags that control whether to collect or render objects."
     columns))
 
 (defun shr-count (dom elem)
-  (seq-count (lambda (sub)
-               (and (not (stringp sub))
-                    (eq (dom-tag sub) elem)))
-             (dom-children dom)))
+  ;; This is faster than `seq-count', and shr can use it.
+  (let ((i 0))
+    (dolist (sub (dom-children dom))
+      (when (and (not (stringp sub))
+                 (eq (dom-tag sub) elem))
+        (setq i (1+ i))))
+    i))
 
 (defun shr-max-columns (dom)
   (let ((max 0)
