@@ -676,6 +676,28 @@ default_toplevel_binding (Lisp_Object symbol)
   return binding;
 }
 
+static union specbinding *
+default_buffer_local_binding (Lisp_Object symbol)
+{
+  union specbinding *binding = NULL;
+  union specbinding *pdl = specpdl_ptr;
+  while (pdl > specpdl)
+    {
+      switch ((--pdl)->kind)
+	{
+	case SPECPDL_LET_LOCAL:
+	case SPECPDL_LET_DEFAULT:
+	case SPECPDL_LET:
+	  if (EQ (specpdl_symbol (pdl), symbol))
+	    binding = pdl;
+	  break;
+
+	default: break;
+	}
+    }
+  return binding;
+}
+
 /* Look for a lexical-binding of SYMBOL somewhere up the stack.
    This will only find bindings created with interpreted code, since once
    compiled names of lexical variables are basically gone anyway.  */
@@ -709,6 +731,18 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
   (Lisp_Object symbol)
 {
   union specbinding *binding = default_toplevel_binding (symbol);
+  Lisp_Object value
+    = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
+  if (!BASE_EQ (value, Qunbound))
+    return value;
+  xsignal1 (Qvoid_variable, symbol);
+}
+
+DEFUN ("default-buffer-local-value", Fdefault_buffer_local_value, Sdefault_buffer_local_value, 1, 1, 0,
+       doc: /* Return SYMBOL's toplevel buffer-local value. */)
+  (Lisp_Object symbol)
+{
+  union specbinding *binding = default_buffer_local_binding (symbol);
   Lisp_Object value
     = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
   if (!BASE_EQ (value, Qunbound))
@@ -4423,6 +4457,7 @@ alist of active lexical bindings.  */);
   defsubr (&Squote);
   defsubr (&Sfunction);
   defsubr (&Sdefault_toplevel_value);
+  defsubr (&Sdefault_buffer_local_value);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
   defsubr (&Sdefvar_1);
