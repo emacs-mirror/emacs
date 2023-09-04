@@ -38,6 +38,7 @@
 (gv-define-simple-setter package-%use-list package-%set-use-list)
 (gv-define-simple-setter package-%shadowing-symbols
                          package-%set-shadowing-symbols)
+(gv-define-simple-setter package-%lock package-%set-lock)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -346,6 +347,27 @@ registered package."
 If PACKAGE is not a package object already, it must the name of a
 registered package."
   (package-%shadowing-symbols (pkg--package-or-lose package)))
+
+;;;###autoload
+(defun package-locked-p (package)
+  "Return non-nnil if PACKAGE is locked.
+If PACKAGE is not a package object already, it must the name of a
+registered package."
+  (package-%lock (pkg--package-or-lose package)))
+
+;;;###autoload
+(defun lock-package (package)
+  "Lock PACKAGE.
+If PACKAGE is not a package object already, it must the name of a
+registered package."
+  (setf (package-%lock (pkg--package-or-lose package)) t))
+
+;;;###autoload
+(defun unlock-package (package)
+  "Lock PACKAGE.
+If PACKAGE is not a package object already, it must the name of a
+registered package."
+  (setf (package-%lock (pkg--package-or-lose package)) nil))
 
 ;;;###autoload
 (defun package-use-list (package)

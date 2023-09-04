@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Common Lisp style packages.
 
    Useful features that could be added:
-   package locks
    hierarchical packages
    package-local nicknames  */
 
@@ -315,7 +314,11 @@ pkg_intern_symbol1 (const Lisp_Object name, Lisp_Object package,
   if (!EQ (existing_symbol, Qunbound))
     symbol = existing_symbol;
   else
-    symbol = Fmake_symbol (name);
+    {
+      if (!NILP (XPACKAGE (package)->lock))
+	error ("Package %s is locked", SDATA (XPACKAGE (package)->name));
+      symbol = Fmake_symbol (name);
+    }
 
   /* PACKAGE becomes the home package of the symbol created.  */
   XSYMBOL (symbol)->u.s.package = package;
