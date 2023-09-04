@@ -13,6 +13,7 @@ languages=(
     'go-mod'
     'heex'
     'html'
+    'java'
     'javascript'
     'json'
     'python'

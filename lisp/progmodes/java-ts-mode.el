@@ -356,7 +356,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
 
   (setq-local treesit-thing-settings
-              `(java
+              `((java
                 (sexp ,(rx (or "annotation"
                                "parenthesized_expression"
                                "argument_list"
@@ -378,7 +378,7 @@ Return nil if there is no name or if NODE is not a defun node."
                                    "import_declaration")))
                 (text ,(regexp-opt '("line_comment"
                                      "block_comment"
-                                     "text_block")))))
+                                     "text_block"))))))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
