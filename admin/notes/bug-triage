@@ -1,10 +1,10 @@
 HOW TO TRIAGE EMACS BUGS  -*- outline -*-
 
-This document just describes the procedure of triaging bugs, for information on
-how to work with the bug tracker, see the bugtracker file in this same directory
-for the basics.  You can also install the debbugs ELPA package for access to M-x
-debbugs-gnu, an emacs interface to debbugs, and M-x debbugs-org, an emacs
-interface via org-mode.
+This document describes the procedure of triaging bugs.  For information on how
+to work with the bug tracker, see the file "bugtracker" in the same directory as
+this file for the basics.  You can also install the GNU ELPA package 'debbugs'
+for access to 'M-x debbugs-gnu', an Emacs interface to the debbugs bug tracker,
+and 'M-x debbugs-org', an Emacs interface via org-mode.
 
 * Bug backlog triage procedure
 
@@ -15,9 +15,10 @@ the ones that are not reproducible on the current release.
      calling debbugs-gnu-emacs-release-blocking-reports.  If you want
      to check this for another Emacs version but the next-to-be-released-one,
      use the "C-u" prefix.
-  1. After that, enter debbugs mode (either debbugs-gnu, debbugs-org, or via the
-     web browser), and accept the default list option of bugs that have severity
-     serious, important, or normal.
+  1. After that, enter debbugs mode (either using 'M-x debbugs-gnu',
+     'M-x debbugs-org', or via the web browser), and accept the
+     default list option of bugs that have severity "serious",
+     "important", or "normal".
   2. For each bug, we want to primarily make sure it is still
      reproducible.  A bug can and should stay open as long as it is
      still a bug and no one has fixed it.  The following is a
@@ -90,21 +91,51 @@ necessary information for others to act on.
 
 For each new bug, ask the following questions:
 
-  1. Is the bug report written in a way to be easy to reproduce (starts from
-     "emacs -Q", etc.)?  If not, ask the reporter to try and reproduce it on an
-     emacs without customization.
-  2. Is the bug report written against the latest emacs?  If not, try to
-     reproduce on the latest version, and if it can't be reproduced, ask the
-     reporter to try again with the latest version.
+  1. Is the bug report written in a way to be easy to reproduce
+     (starts from "emacs -Q", etc.)?  If not, ask the reporter to try
+     and reproduce it on an emacs without customization.
+  2. Is the bug report written against the latest emacs?  If not, try
+     to reproduce on the latest version, and if it can't be
+     reproduced, ask the reporter to try again with the latest
+     version.
   3. Is the bug the same as another bug?  If so, merge the bugs.
-  4. What is the priority of the bug?  Add a priority: serious, important,
-     normal, minor, or wishlist.
-  5. Who should be the owner?  This depends on what component the bug is part
-     of.  You can look at the admin/MAINTAINERS file (then you can just search
-     emacs-devel to match the name with an email address).
+  4. What is the priority of the bug?  Add a priority: "serious",
+     "important", "normal", "minor, or "wishlist".
+  5. Who should be the owner?  This depends on what component the bug
+     is part of.  You can look at the "Maintainer" comment header in
+     the relevant Lisp files.  If you can't find the name there, look
+     at admin/MAINTAINERS file (then you can just search emacs-devel
+     to match the name with an email address).
 
 In the debbugs-gnu buffer, bugs are marked in the "State" column
 according to the communication flow.  Red bugs mean that nobody has
-answered, these bugs need primary attention.  Green bugs flag that
+answered; these bugs need primary attention.  Green bugs flag that
 there is a recent communication about, and orange bugs flag that the
 bug hasn't been touched for at least two weeks.
+
+* Bugs in GNU ELPA and NonGNU ELPA packages
+
+The goal here is to ping the relevant maintainers, as Emacs core
+developers aren't always up-to-date with recent developments in all
+GNU ELPA packages, and can't do anything with reports about bugs in
+NonGNU ELPA packages.
+
+This is how we deal with them:
+
+  1. Bugs in GNU ELPA packages can always be reported to our bug
+     tracker, even if they are usually tracked by other means.  Search
+     for the maintainer of that package, e.g. on
+     https://elpa.gnu.org/packages and take note of their email
+     address.  Send a reply with an email body like "<name> is the
+     maintainer of <package>, so I'm copying them in here.", and
+     include their email address in Cc.
+  2. Bugs in NonGNU ELPA packages should be sent to their maintainers,
+     because we can't do anything to fix them.  If you suspect that
+     the bug is about a NonGNU ELPA package, it's usually polite to
+     ask the reporter if this is indeed the case (in case you
+     misunderstood something), and then to point them in the right
+     direction.  Such bugs can be closed once the confusion has been
+     resolved.
+  3. Bugs in third-party packages that are not in any of the above
+     repositories are handled in the same way as packages in NonGNU
+     ELPA.
