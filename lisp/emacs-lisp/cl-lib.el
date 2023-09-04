@@ -170,6 +170,17 @@ to an element already in the list stored in PLACE.
 	  val
 	  (and (< end (length str)) (substring str end))))
 
+(gv-define-expander substring
+  (lambda (do place from &optional to)
+    (gv-letplace (getter setter) place
+      (macroexp-let2* nil ((start from) (end to))
+        (funcall do `(substring ,getter ,start ,end)
+                 (lambda (v)
+                   (macroexp-let2 nil v v
+                     `(progn
+                        ,(funcall setter `(cl--set-substring
+                                           ,getter ,start ,end ,v))
+                        ,v))))))))
 
 ;;; Blocks and exits.
 
