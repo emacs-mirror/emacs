@@ -1982,7 +1982,10 @@ Used to populate `package-selected-packages'."
 
 (defun package--save-selected-packages (&optional value)
   "Set and save `package-selected-packages' to VALUE."
-  (when value
+  (when (or value after-init-time)
+    ;; It is valid to set it to nil, for example when the last package
+    ;; is uninstalled.  But it shouldn't be done at init time, to
+    ;; avoid overwriting configurations that haven't yet been loaded.
     (setq package-selected-packages value))
   (if after-init-time
       (customize-save-variable 'package-selected-packages package-selected-packages)
@@ -2484,7 +2487,9 @@ Clean-up the corresponding .eln files if Emacs is native
 compiled."
   (when (featurep 'native-compile)
     (cl-loop
-     for file in (directory-files-recursively dir "\\.el\\'")
+     for file in (directory-files-recursively dir
+                                              ;; Exclude lockfiles
+                                              (rx bos (or (and "." (not "#")) (not ".")) (* nonl) ".el" eos))
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
   (if (file-symlink-p (directory-file-name dir))
       (delete-file (directory-file-name dir))

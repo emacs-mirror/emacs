@@ -410,7 +410,8 @@ the buffer's value of `default-directory'."
 (defcustom project-vc-ignores nil
   "List of patterns to add to `project-ignores'."
   :type '(repeat string))
-;;;###autoload(put 'project-vc-ignores 'safe-local-variable #'listp)
+;; Change to `list-of-strings-p' when support for Emacs 28 is dropped.
+;;;###autoload(put 'project-vc-ignores 'safe-local-variable (lambda (val) (and (listp val) (not (memq nil (mapcar #'stringp val))))))
 
 (defcustom project-vc-merge-submodules t
   "Non-nil to consider submodules part of the parent project.
@@ -465,6 +466,7 @@ variables, such as `project-vc-ignores' or `project-vc-name'."
   :type '(repeat string)
   :version "29.1"
   :package-version '(project . "0.9.0"))
+;; Change to `list-of-strings-p' when support for Emacs 28 is dropped.
 ;;;###autoload(put 'project-vc-extra-root-markers 'safe-local-variable (lambda (val) (and (listp val) (not (memq nil (mapcar #'stringp val))))))
 
 ;; FIXME: Using the current approach, major modes are supposed to set
@@ -731,11 +733,10 @@ See `project-vc-extra-root-markers' for the marker value format.")
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (let* ((root (nth 2 project))
-         backend)
+         (backend (cadr project)))
     (append
      (when (and backend
                 (file-equal-p dir root))
-       (setq backend (cadr project))
        (delq
         nil
         (mapcar

@@ -97,7 +97,7 @@ representing names.  For instance:
                        (multisession-value emoji--recent)))
 
 ;;;###autoload (autoload 'emoji-search "emoji" nil t)
-(transient-define-prefix emoji-search ()
+(transient-define-prefix emoji-search (glyph derived)
   "Choose and insert an emoji glyph by typing its Unicode name.
 This command prompts for an emoji name, with completion, and
 inserts it.  It recognizes the Unicode Standard names of emoji,
@@ -106,15 +106,17 @@ and also consults the `emoji-alternate-names' alist."
   [:class transient-columns
    :setup-children emoji--setup-suffixes
    :description emoji--group-description]
-  (interactive "*")
-  (emoji--init)
-  (pcase-let ((`(,glyph . ,derived) (emoji--read-emoji)))
-    (if derived
-        (emoji--setup-prefix 'emoji-search "Choose Emoji"
-                             (list glyph)
-                             (cons glyph derived))
-      (emoji--add-recent glyph)
-      (insert glyph))))
+  (interactive
+   (progn (barf-if-buffer-read-only)
+          (emoji--init)
+          (let ((cons (emoji--read-emoji)))
+            (list (car cons) (cdr cons)))))
+  (if derived
+      (emoji--setup-prefix 'emoji-search "Choose Emoji"
+                           (list glyph)
+                           (cons glyph derived))
+    (emoji--add-recent glyph)
+    (insert glyph)))
 
 (defclass emoji--narrow (transient-suffix)
   ((title :initarg :title)
@@ -142,12 +144,15 @@ and also consults the `emoji-alternate-names' alist."
 (defun emoji--group-description ()
   (car (oref transient--prefix scope)))
 
-(transient-define-suffix emoji-insert-glyph ()
+(transient-define-suffix emoji-insert-glyph (glyph)
   "Insert the emoji you selected."
-  (interactive nil not-a-mode)
-  (let ((glyph (oref (transient-suffix-object) description)))
-    (emoji--add-recent glyph)
-    (insert glyph)))
+  (interactive
+   (list (if (string-prefix-p "emoji-" (symbol-name transient-current-command))
+             (oref (transient-suffix-object) description)
+           (car (multisession-value emoji--recent))))
+   not-a-mode)
+  (emoji--add-recent glyph)
+  (insert glyph))
 
 ;;;###autoload
 (defun emoji-list ()

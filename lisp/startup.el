@@ -1682,7 +1682,7 @@ Changed settings will be marked as \"CHANGED outside of Customize\"."
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for text that is not saved, and for Lisp evaluation.
-;; To create a file, visit it with \\[find-file] and enter text in its buffer.
+;; To create a file, visit it with `\\[find-file]' and enter text in its buffer.
 
 ")
   "Initial documentation displayed in *scratch* buffer at startup.

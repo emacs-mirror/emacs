@@ -831,12 +831,14 @@ last buffer managed by it is killed.  @xref{Shutting Down LSP Servers}.
 The default is @code{nil}; if you want to shut down a server, use
 @kbd{M-x eglot-shutdown} (@pxref{Eglot Commands}).
 
-@item eglot-confirm-server-initiated-edits
+@item eglot-confirm-server-edits
 Various Eglot commands and code actions result in the language server
 sending editing commands to Emacs.  If this option's value is
-non-@code{nil} (the default), Eglot will ask for confirmation before
-performing edits initiated by the server or edits whose scope affects
-buffers other than the one where the user initiated the request.
+non-@code{nil}, Eglot will ask for confirmation before performing
+edits proposed by the language server.  This option's value can be
+crafted to require this confirmation for specific commands or only
+when the edit affects files not yet visited by the user.  Consult this
+option's docstring for more information.
 
 @item eglot-ignored-server-capabilities
 This variable's value is a list of language server capabilities that

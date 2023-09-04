@@ -129,8 +129,7 @@ buffer.
   Since there is no other way to start the @command{emacsclient}
 program (@pxref{Emacs Server}) from another Android program, Emacs
 provides a wrapper around the @command{emacsclient} program, which is
-registered with the system as an application that can open all text
-files.
+registered with the system as an application that can open any file.
 
   When that wrapper is selected as the program with which to open a
 file, it invokes @command{emacsclient} with the options
@@ -153,6 +152,11 @@ directory, or try to open files in it yourself.
   This feature is not provided on Android 4.3 and earlier, in which
 case such files are copied to a temporary directory before being
 opened.
+
+@cindex ``org-protocol'' links, android
+  In addition to opening ordinary text files, Emacs also registers its
+@command{emacsclient} wrapper as a program capable of opening
+``org-protocol'' links (@pxref{Protocols,,,org, The Org Manual}).
 
 @node Android File System
 @section What Files Emacs Can Access on Android
@@ -293,7 +297,7 @@ provide, placing their files within the directory
 @file{/content/storage}.
 
 @findex android-request-directory-access
-  Before Emacs is granted access to any of these directories, it must
+  Before Emacs is granted access to one of these directories, it must
 first request the right to access it.  This is done by running the
 command (@pxref{M-x}) @code{android-request-directory-access}, which
 displays a file selection dialog.
@@ -662,6 +666,19 @@ in Emacs.
   Bear in mind that Android uses a different name for the @key{Super}
 modifier: it is referred to as @key{SYM} on Android keyboards and
 within the Settings keymap menu.
+
+@vindex android-intercept-control-space
+@cindex @kbd{C-SPC} interception, android
+  Android input methods have a penchant for irritating users by
+silently discarding key sequences containing @kbd{C-SPC} during the
+event filtering process, that they normally have no real application
+for such key sequences notwithstanding.  By default, Emacs intercepts
+these key sequences before they can be filtered by the input method.
+
+  If this proves unwanted (for instance, if the input method treats
+@kbd{C-SPC} as a shortcut key for switching languages), it can be
+disabled by setting the variable
+@code{android-intercept-control-space} to @code{nil}.
 
 @node Android Fonts
 @section Font Backends and Selection under Android

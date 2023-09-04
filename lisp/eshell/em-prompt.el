@@ -50,22 +50,18 @@ as is common with most shells."
 (defcustom eshell-prompt-function
   (lambda ()
     (concat (abbreviate-file-name (eshell/pwd))
+            (unless (eshell-exit-success-p)
+              (format " [%d]" eshell-last-command-status))
             (if (= (file-user-uid) 0) " # " " $ ")))
-  "A function that returns the Eshell prompt string.
-Make sure to update `eshell-prompt-regexp' so that it will match your
-prompt."
+  "A function that returns the Eshell prompt string."
   :type 'function
   :group 'eshell-prompt)
 
 (defcustom eshell-prompt-regexp "^[^#$\n]* [#$] "
-  "A regexp which fully matches your Eshell prompt.
-This is useful for navigating by paragraph using \
-\\[forward-paragraph] and \\[backward-paragraph].
-
-If this variable is changed, all Eshell buffers must be exited
-and re-entered for it to take effect."
+  "A regexp which fully matches your Eshell prompt."
   :type 'regexp
   :group 'eshell-prompt)
+(make-obsolete-variable 'eshell-prompt-regexp nil "30.1")
 
 (defcustom eshell-highlight-prompt t
   "If non-nil, Eshell should highlight the prompt."
@@ -98,8 +94,10 @@ arriving, or after."
   :group 'eshell-prompt)
 
 (defvar-keymap eshell-prompt-mode-map
-  "C-c C-n" #'eshell-next-prompt
-  "C-c C-p" #'eshell-previous-prompt)
+  "C-c C-n"                      #'eshell-next-prompt
+  "C-c C-p"                      #'eshell-previous-prompt
+  "<remap> <forward-paragraph>"  #'eshell-forward-paragraph
+  "<remap> <backward-paragraph>" #'eshell-backward-paragraph)
 
 (defvar-keymap eshell-prompt-repeat-map
   :doc "Keymap to repeat eshell-prompt key sequences.  Used in `repeat-mode'."
@@ -119,11 +117,6 @@ arriving, or after."
   "Initialize the prompting code."
   (unless eshell-non-interactive-p
     (add-hook 'eshell-post-command-hook 'eshell-emit-prompt nil t)
-
-    (make-local-variable 'eshell-prompt-regexp)
-    (if eshell-prompt-regexp
-        (setq-local paragraph-start eshell-prompt-regexp))
-
     (eshell-prompt-mode)))
 
 (defun eshell-emit-prompt ()
@@ -172,16 +165,41 @@ negative, find the Nth next match."
   (interactive (eshell-regexp-arg "Backward input matching (regexp): "))
   (eshell-forward-matching-input regexp (- arg)))
 
-(defun eshell-next-prompt (n)
+(defun eshell-forward-paragraph (&optional n)
+  "Move to the beginning of the Nth next prompt in the buffer.
+Like `forward-paragraph', but navigates using fields."
+  (interactive "p")
+  (eshell-next-prompt n)
+  (goto-char (field-beginning (point) t)))
+
+(defun eshell-backward-paragraph (&optional n)
+  "Move to the beginning of the Nth previous prompt in the buffer.
+Like `backward-paragraph', but navigates using fields."
+  (interactive "p")
+  (eshell-previous-prompt n)
+  (goto-char (field-beginning (point) t)))
+
+(defun eshell-next-prompt (&optional n)
   "Move to end of Nth next prompt in the buffer."
   (interactive "p")
+  (unless n (setq n 1))
+  ;; First, move point to our starting position: the end of the
+  ;; current prompt (aka the beginning of the input), if any.  (The
+  ;; welcome message and output from commands don't count as having a
+  ;; current prompt.)
+  (pcase (get-text-property (point) 'field)
+    ('command-output)
+    ('prompt (goto-char (field-end)))
+    (_ (when-let ((match (text-property-search-backward 'field 'prompt t)))
+         (goto-char (prop-match-end match)))))
+  ;; Now, move forward/backward to our destination prompt.
   (if (natnump n)
       (while (and (> n 0)
                   (text-property-search-forward 'field 'prompt t))
         (setq n (1- n)))
     (let (match this-match)
-      ;; Don't count the current prompt.
-      (text-property-search-backward 'field 'prompt t)
+      ;; Go to the beginning of the current prompt.
+      (goto-char (field-beginning (point) t))
       (while (and (< n 0)
                   (setq this-match (text-property-search-backward
                                     'field 'prompt t)))
@@ -190,10 +208,10 @@ negative, find the Nth next match."
       (when match
         (goto-char (prop-match-end match))))))
 
-(defun eshell-previous-prompt (n)
+(defun eshell-previous-prompt (&optional n)
   "Move to end of Nth previous prompt in the buffer."
   (interactive "p")
-  (eshell-next-prompt (- n)))
+  (eshell-next-prompt (- (or n 1))))
 
 (defun eshell-skip-prompt ()
   "Skip past the text matching regexp `eshell-prompt-regexp'.

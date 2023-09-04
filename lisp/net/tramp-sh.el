@@ -2831,7 +2831,8 @@ the result will be a local, non-Tramp, file name."
     (with-parsed-tramp-file-name name nil
       ;; If connection is not established yet, run the real handler.
       (if (not (tramp-connectable-p v))
-	  (tramp-run-real-handler #'expand-file-name (list name))
+	  (tramp-drop-volume-letter
+	   (tramp-run-real-handler #'expand-file-name (list name)))
 	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	  (setq localname (concat "~/" localname)))
 	;; Tilde expansion if necessary.  This needs a shell which

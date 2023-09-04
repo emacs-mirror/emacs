@@ -573,14 +573,10 @@ calls `w3m-toggle-inline-image'.  It works only if
                 (when pos
                   (goto-char pos)
                   (when (get-text-property pos 'w3m-image)
-                    (let ((invis (newsticker--lists-intersect-p
-                                  (get-text-property (1- (point))
-                                                     'invisible)
-                                  buffer-invisibility-spec)))
-                      (unless  (car (get-text-property (1- (point))
-                                                       'display))
-                        (unless invis
-                          (w3m-toggle-inline-image t)))))))))))))
+                    (unless (car (get-text-property (1- (point))
+                                                    'display))
+                      (unless (invisible-p (1- (point)))
+                        (w3m-toggle-inline-image t))))))))))))
 
 ;; ======================================================================
 ;;; Keymap stuff
@@ -606,9 +602,7 @@ is non-nil."
 	  (goto-char (point-min))
 	  (newsticker-next-new-item t))
 	(setq go-ahead nil))
-      (unless (newsticker--lists-intersect-p
-               (get-text-property (point) 'invisible)
-               buffer-invisibility-spec)
+      (unless (invisible-p (point))
 	;; this item is invisible -- continue search
         (setq go-ahead nil))))
   (run-hooks 'newsticker-select-item-hook)
@@ -627,9 +621,7 @@ is non-nil."
 	(unless do-not-wrap-at-bob
 	  (goto-char (point-max))
 	  (newsticker--buffer-goto '(item) 'new t)))
-      (unless (newsticker--lists-intersect-p
-               (get-text-property (point) 'invisible)
-		    buffer-invisibility-spec)
+      (unless (invisible-p (point))
 	(setq go-ahead nil))))
   (run-hooks 'newsticker-select-item-hook)
   (point))
@@ -652,9 +644,7 @@ non-nil."
 	(unless do-not-wrap-at-eob
 	  (goto-char (point-min)))
 	(setq go-ahead nil))
-      (unless (newsticker--lists-intersect-p
-               (get-text-property (point) 'invisible)
-		    buffer-invisibility-spec)
+      (unless (invisible-p (point))
 	(setq go-ahead nil))))
   (run-hooks 'newsticker-select-item-hook)
   (force-mode-line-update)
@@ -673,9 +663,7 @@ auto-narrow-to-item is enabled, nil is returned."
       (while go-ahead
         (unless (newsticker--buffer-goto '(item))
           (setq go-ahead nil))
-        (unless (newsticker--lists-intersect-p
-                 (get-text-property (point) 'invisible)
-                 buffer-invisibility-spec)
+        (unless (invisible-p (point))
           (setq go-ahead nil)))
       (if (and (> (point) current-pos)
                (< (point) end-of-feed))
@@ -700,9 +688,7 @@ is non-nil."
 	(goto-char (point-max))))
     (while go-ahead
       (if (newsticker--buffer-goto search-list nil t)
-          (unless (newsticker--lists-intersect-p
-                   (get-text-property (point) 'invisible)
-                   buffer-invisibility-spec)
+          (unless (invisible-p (point))
             (setq go-ahead nil))
         (goto-char (point-min))
         (setq go-ahead nil))))
@@ -1079,9 +1065,7 @@ If VALUE is nil, auto-narrowing is turned off, otherwise it is turned on."
       (while (< (point) (point-max))
         (unless (newsticker--buffer-goto '(item))
           (throw 'result nil))
-        (unless (newsticker--lists-intersect-p
-                 (get-text-property (point) 'invisible)
-                 buffer-invisibility-spec)
+        (unless (invisible-p (point))
           (throw 'result t))))))
 
 (defun newsticker-previous-item-available-p ()
@@ -1091,9 +1075,7 @@ If VALUE is nil, auto-narrowing is turned off, otherwise it is turned on."
       (while (> (point) (point-min))
         (unless (newsticker--buffer-goto '(item) nil t)
           (throw 'result nil))
-        (unless (newsticker--lists-intersect-p
-                 (get-text-property (point) 'invisible)
-                 buffer-invisibility-spec)
+        (unless (invisible-p (point))
           (throw 'result t))))))
 
 (defun newsticker-item-not-old-p ()

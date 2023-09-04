@@ -166,6 +166,7 @@ For easier selection of tabs by their numbers, consider customizing
     (define-icon tab-bar-new nil
       `((image "symbols/plus_16.svg" "tabs/new.xpm"
                :face shadow
+               :height (1.0 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji "➕")
@@ -195,6 +196,7 @@ For easier selection of tabs by their numbers, consider customizing
   (unless (iconp 'tab-bar-menu-bar)
     (define-icon tab-bar-menu-bar nil
       `((image "symbols/menu_16.svg"
+               :height (1.0 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji "🍔")
@@ -782,6 +784,31 @@ Return its existing value or a new value."
   (set-frame-parameter frame 'tabs tabs))
 
 
+(defun tab-bar-tab-name-format-truncated (name _tab _i)
+  "Truncate the tab name.
+The maximal length is specified by `tab-bar-tab-name-truncated-max'.
+Append ellipsis `tab-bar-tab-name-ellipsis' at the end."
+  (if (< (length name) tab-bar-tab-name-truncated-max)
+      name
+    (truncate-string-to-width
+     name tab-bar-tab-name-truncated-max nil nil
+     tab-bar-tab-name-ellipsis)))
+
+(defun tab-bar-tab-name-format-hints (name _tab i)
+  "Show absolute numbers on tabs in the tab bar before the tab name.
+It has effect when `tab-bar-tab-hints' is non-nil."
+  (if tab-bar-tab-hints (concat (format "%d " i) name) name))
+
+(defun tab-bar-tab-name-format-close-button (name tab _i)
+  "Show the tab close button.
+The variable `tab-bar-close-button-show' defines when to show it."
+  (if (and tab-bar-close-button-show
+           (not (eq tab-bar-close-button-show
+                    (if (eq (car tab) 'current-tab) 'non-selected 'selected)))
+           tab-bar-close-button)
+      (concat name tab-bar-close-button)
+    name))
+
 (defcustom tab-bar-tab-face-function #'tab-bar-tab-face-default
   "Function to define a tab face.
 Function gets one argument: a tab."
@@ -791,6 +818,38 @@ Function gets one argument: a tab."
 
 (defun tab-bar-tab-face-default (tab)
   (if (eq (car tab) 'current-tab) 'tab-bar-tab 'tab-bar-tab-inactive))
+
+(defun tab-bar-tab-name-format-face (name tab _i)
+  "Apply the face to the tab name.
+It uses the function `tab-bar-tab-face-function'."
+  (add-face-text-property
+   0 (length name) (funcall tab-bar-tab-face-function tab) t name)
+  name)
+
+(defcustom tab-bar-tab-name-format-functions
+  '(tab-bar-tab-name-format-hints
+    tab-bar-tab-name-format-close-button
+    tab-bar-tab-name-format-face)
+  "Functions called to modify the tab name.
+Each function is called with three arguments: the name returned
+by the previously called modifier, the tab and its number.
+It should return the formatted tab name to display in the tab bar."
+  :type '(repeat
+          (choice (function-item tab-bar-tab-name-format-truncated)
+                  (function-item tab-bar-tab-name-format-hints)
+                  (function-item tab-bar-tab-name-format-close-button)
+                  (function-item tab-bar-tab-name-format-face)
+                  (function :tag "Custom function")))
+  :group 'tab-bar
+  :version "30.1")
+
+(defun tab-bar-tab-name-format-default (tab i)
+  (let ((name (copy-sequence (alist-get 'name tab))))
+    (run-hook-wrapped 'tab-bar-tab-name-format-functions
+                      (lambda (fun)
+                        (setq name (funcall fun name tab i))
+                        nil))
+    name))
 
 (defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
   "Function to format a tab name.
@@ -803,19 +862,6 @@ the formatted tab name to display in the tab bar."
          (force-mode-line-update))
   :group 'tab-bar
   :version "28.1")
-
-(defun tab-bar-tab-name-format-default (tab i)
-  (let* ((current-p (eq (car tab) 'current-tab))
-         (name (concat (if tab-bar-tab-hints (format "%d " i) "")
-                       (alist-get 'name tab)
-                       (or (and tab-bar-close-button-show
-                                (not (eq tab-bar-close-button-show
-                                         (if current-p 'non-selected 'selected)))
-                                tab-bar-close-button)
-                           ""))))
-    (add-face-text-property
-     0 (length name) (funcall tab-bar-tab-face-function tab) t name)
-    name))
 
 (defcustom tab-bar-format '(tab-bar-format-history
                             tab-bar-format-tabs
@@ -2241,6 +2287,7 @@ and can restore them."
         (unless (iconp 'tab-bar-back)
           (define-icon tab-bar-back nil
             `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
+                     :height (1.0 . em)
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " < "))
@@ -2251,6 +2298,7 @@ and can restore them."
         (unless (iconp 'tab-bar-forward)
           (define-icon tab-bar-forward nil
             `((image "symbols/chevron_right_16.svg" "tabs/right-arrow.xpm"
+                     :height (1.0 . em)
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " > "))

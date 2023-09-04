@@ -293,10 +293,13 @@ then the result will be:
               (append (list 'eshell-concat eshell-current-quoted)
                       eshell-current-argument)))
       (setq eshell-arg-listified nil))
-    (while eshell-current-modifiers
+    (when eshell-current-modifiers
+      (eshell-debug-command 'form (format-message "applying modifiers %S"
+                                                  eshell-current-modifiers)
+                            eshell-current-argument))
+    (dolist (modifier eshell-current-modifiers)
       (setq eshell-current-argument
-	    (list (car eshell-current-modifiers) eshell-current-argument)
-	    eshell-current-modifiers (cdr eshell-current-modifiers))))
+            (list modifier eshell-current-argument))))
   (setq eshell-current-modifiers nil))
 
 (defun eshell-finish-arg (&rest arguments)

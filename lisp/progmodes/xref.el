@@ -1468,7 +1468,6 @@ The meanings of both arguments are the same as documented in
   (xref--show-xrefs fetcher display-action))
 
 (defun xref--show-xrefs (fetcher display-action &optional _always-show-list)
-  (xref--push-markers)
   (unless (functionp fetcher)
     ;; Old convention.
     (let ((xrefs fetcher))
@@ -1479,21 +1478,32 @@ The meanings of both arguments are the same as documented in
                 (prog1
                     xrefs
                   (setq xrefs 'called-already)))))))
-  (funcall xref-show-xrefs-function fetcher
-           `((window . ,(selected-window))
-             (display-action . ,display-action)
-             (auto-jump . ,xref-auto-jump-to-first-xref))))
+  (let ((cb (current-buffer))
+        (pt (point)))
+    (prog1
+        (funcall xref-show-xrefs-function fetcher
+                 `((window . ,(selected-window))
+                   (display-action . ,display-action)
+                   (auto-jump . ,xref-auto-jump-to-first-xref)))
+      (xref--push-markers cb pt))))
 
 (defun xref--show-defs (xrefs display-action)
-  (xref--push-markers)
-  (funcall xref-show-definitions-function xrefs
-           `((window . ,(selected-window))
-             (display-action . ,display-action)
-             (auto-jump . ,xref-auto-jump-to-first-definition))))
+  (let ((cb (current-buffer))
+        (pt (point)))
+    (prog1
+        (funcall xref-show-definitions-function xrefs
+                 `((window . ,(selected-window))
+                   (display-action . ,display-action)
+                   (auto-jump . ,xref-auto-jump-to-first-definition)))
+      (xref--push-markers cb pt))))
 
-(defun xref--push-markers ()
-  (unless (region-active-p) (push-mark nil t))
-  (xref-push-marker-stack))
+(defun xref--push-markers (buf pt)
+  (when (buffer-live-p buf)
+    (save-excursion
+      (with-no-warnings (set-buffer buf))
+      (goto-char pt)
+      (unless (region-active-p) (push-mark nil t))
+      (xref-push-marker-stack))))
 
 (defun xref--prompt-p (command)
   (or (eq xref-prompt-for-identifier t)
@@ -1638,7 +1648,9 @@ This command is intended to be bound to a mouse event."
            (mouse-set-point event)
            (xref-backend-identifier-at-point (xref-find-backend)))))
     (if identifier
-        (xref-find-definitions identifier)
+        (progn
+          (mouse-set-point event)
+          (xref-find-definitions identifier))
       (user-error "No identifier here"))))
 
 ;;;###autoload
@@ -1652,6 +1664,7 @@ This command is intended to be bound to a mouse event."
            (xref-backend-identifier-at-point (xref-find-backend)))))
     (if identifier
         (let ((xref-prompt-for-identifier nil))
+          (mouse-set-point event)
           (xref-find-references identifier))
       (user-error "No identifier here"))))
 

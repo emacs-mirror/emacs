@@ -301,7 +301,8 @@ argument), then insert output into the current buffer at point."
                     `(let ((eshell-current-handles
                             (eshell-create-handles ,stdout 'insert))
                            (eshell-current-subjob-p))
-		       ,(eshell-parse-command command))))
+		       ,(eshell-parse-command command))
+                    command))
 	     intr
 	     (bufname (if (eq (car-safe proc) :eshell-background)
 			  "*Eshell Async Command Output*"
@@ -356,6 +357,7 @@ corresponding to a successful execution."
     (with-temp-buffer
       (let ((eshell-non-interactive-p t))
 	(eshell-mode)
+        (eshell-debug-command-start command)
 	(let ((result (eshell-do-eval
 		       (list 'eshell-commands
 			     (list 'eshell-command-to-value

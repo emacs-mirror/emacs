@@ -4381,8 +4381,6 @@ syms_of_data (void)
   defsubr (&Sbool_vector_count_consecutive);
   defsubr (&Sbool_vector_count_population);
 
-  set_symbol_function (Qwholenump, XSYMBOL (Qnatnump)->u.s.function);
-
   DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
 	       doc: /* The greatest integer that is represented efficiently.
 This variable cannot be set; trying to do so will signal an error.  */);

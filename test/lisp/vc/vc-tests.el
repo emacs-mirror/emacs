@@ -596,8 +596,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
     (let ((vc-handled-backends `(,backend))
           (default-directory
            (file-name-as-directory
-            (expand-file-name
-             (make-temp-name "vc-test") temporary-file-directory)))
+            (file-truename
+             (expand-file-name
+              (make-temp-name "vc-test") temporary-file-directory))))
           (process-environment process-environment)
           vc-test--cleanup-hook)
       (when (eq backend 'Bzr)

@@ -237,17 +237,6 @@ return non-nil if the command is complex."
   :version "24.1"		       ; removed eshell-cmd-initialize
   :type 'hook)
 
-(defcustom eshell-debug-command nil
-  "If non-nil, enable Eshell debugging code.
-This is slow, and only useful for debugging problems with Eshell.
-If you change this without using customize after Eshell has loaded,
-you must re-load `esh-cmd.el'."
-  :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
-	 (set symbol value)
-	 (load "esh-cmd"))
-  :type 'boolean)
-
 (defcustom eshell-deferrable-commands
   '(eshell-named-command
     eshell-lisp-command
@@ -436,22 +425,9 @@ hooks should be run before and after the command."
                             (run-hooks 'eshell-post-command-hook)))
       (macroexp-progn commands))))
 
-(defun eshell-debug-command (tag subform)
-  "Output a debugging message to `*eshell last cmd*'."
-  (let ((buf (get-buffer-create "*eshell last cmd*"))
-	(text (eshell-stringify eshell-current-command)))
-    (with-current-buffer buf
-      (if (not tag)
-	  (erase-buffer)
-	(insert "\n\C-l\n" tag "\n\n" text
-		(if subform
-		    (concat "\n\n" (eshell-stringify subform)) ""))))))
-
 (defun eshell-debug-show-parsed-args (terms)
   "Display parsed arguments in the debug buffer."
-  (ignore
-   (if eshell-debug-command
-       (eshell-debug-command "parsed arguments" terms))))
+  (ignore (eshell-debug-command 'form "parsed arguments" terms)))
 
 (defun eshell-no-command-conversion (terms)
   "Don't convert the command argument."
@@ -942,38 +918,6 @@ This avoids the need to use `let*'."
 ;; finishes, it will resume the evaluation using the remainder of the
 ;; command tree.
 
-(defun eshell/eshell-debug (&rest args)
-  "A command for toggling certain debug variables."
-  (ignore
-   (cond
-    ((not args)
-     (if eshell-handle-errors
-	 (eshell-print "errors\n"))
-     (if eshell-debug-command
-	 (eshell-print "commands\n")))
-    ((member (car args) '("-h" "--help"))
-     (eshell-print "usage: eshell-debug [kinds]
-
-This command is used to aid in debugging problems related to Eshell
-itself.  It is not useful for anything else.  The recognized `kinds'
-at the moment are:
-
-  errors       stops Eshell from trapping errors
-  commands     shows command execution progress in `*eshell last cmd*'
-"))
-    (t
-     (while args
-       (cond
-	((string= (car args) "errors")
-	 (setq eshell-handle-errors (not eshell-handle-errors)))
-	((string= (car args) "commands")
-	 (setq eshell-debug-command (not eshell-debug-command))))
-       (setq args (cdr args)))))))
-
-(defun pcomplete/eshell-mode/eshell-debug ()
-  "Completion for the `debug' command."
-  (while (pcomplete-here '("errors" "commands"))))
-
 (iter-defun eshell--find-subcommands (haystack)
   "Recursively search for subcommand forms in HAYSTACK.
 This yields the SUBCOMMANDs when found in forms like
@@ -1049,10 +993,7 @@ process(es) in a cons cell like:
                        (if here
                            (eshell-update-markers here))
                        (eshell-do-eval ',command))))
-    (and eshell-debug-command
-         (with-current-buffer (get-buffer-create "*eshell last cmd*")
-           (erase-buffer)
-           (insert "command: \"" input "\"\n")))
+    (eshell-debug-command-start input)
     (setq eshell-current-command command)
     (let* (result
            (delim (catch 'eshell-incomplete
@@ -1088,17 +1029,17 @@ process(es) in a cons cell like:
     (error
      (error (error-message-string err)))))
 
-(defmacro eshell-manipulate (tag &rest commands)
-  "Manipulate a COMMAND form, with TAG as a debug identifier."
-  (declare (indent 1))
-  ;; Check `bound'ness since at compile time the code until here has not
-  ;; executed yet.
-  (if (not (and (boundp 'eshell-debug-command) eshell-debug-command))
-      `(progn ,@commands)
-    `(progn
-       (eshell-debug-command ,(eval tag) form)
-       ,@commands
-       (eshell-debug-command ,(concat "done " (eval tag)) form))))
+(defmacro eshell-manipulate (form tag &rest body)
+  "Manipulate a command FORM with BODY, using TAG as a debug identifier."
+  (declare (indent 2))
+  (let ((tag-symbol (make-symbol "tag")))
+    `(if (not (memq 'form eshell-debug-command))
+         (progn ,@body)
+       (let ((,tag-symbol ,tag))
+         (eshell-debug-command 'form ,tag-symbol ,form 'always)
+         ,@body
+         (eshell-debug-command 'form (concat "done " ,tag-symbol) ,form
+                               'always)))))
 
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate FORM, simplifying it as we go.
@@ -1125,8 +1066,8 @@ have been replaced by constants."
     ;; we can modify any `let' forms to evaluate only once.
     (if (macrop (car form))
         (let ((exp (copy-tree (macroexpand form))))
-	  (eshell-manipulate (format-message "expanding macro `%s'"
-					     (symbol-name (car form)))
+          (eshell-manipulate form
+              (format-message "expanding macro `%s'" (symbol-name (car form)))
 	    (setcar form (car exp))
 	    (setcdr form (cdr exp)))))
     (let ((args (cdr form)))
@@ -1138,7 +1079,7 @@ have been replaced by constants."
         (let ((new-form (copy-tree `(let ((eshell--command-body nil)
                                           (eshell--test-body nil))
                                       (eshell--wrapped-while ,@args)))))
-          (eshell-manipulate "modifying while form"
+          (eshell-manipulate form "modifying while form"
             (setcar form (car new-form))
             (setcdr form (cdr new-form)))
           (eshell-do-eval form synchronous-p)))
@@ -1161,7 +1102,7 @@ have been replaced by constants."
           (setq eshell--command-body nil
                 eshell--test-body (copy-tree (car args)))))
        ((eq (car form) 'if)
-        (eshell-manipulate "evaluating if condition"
+        (eshell-manipulate form "evaluating if condition"
           (setcar args (eshell-do-eval (car args) synchronous-p)))
         (eshell-do-eval
          (cond
@@ -1180,7 +1121,7 @@ have been replaced by constants."
 	(eval form))
        ((eq (car form) 'let)
         (unless (eq (car-safe (cadr args)) 'eshell-do-eval)
-          (eshell-manipulate "evaluating let args"
+          (eshell-manipulate form "evaluating let args"
             (dolist (letarg (car args))
               (when (and (listp letarg)
                          (not (eq (cadr letarg) 'quote)))
@@ -1207,7 +1148,7 @@ have been replaced by constants."
             ;; the let-bindings' values so that those values are
             ;; correct when we resume evaluation of this form.
             (when deferred
-              (eshell-manipulate "rebinding let args after `eshell-defer'"
+              (eshell-manipulate form "rebinding let args after `eshell-defer'"
                 (let ((bindings (car args)))
                   (while bindings
                     (let ((binding (if (consp (car bindings))
@@ -1232,7 +1173,7 @@ have been replaced by constants."
 	(unless (eq (car form) 'unwind-protect)
 	  (setq args (cdr args)))
 	(unless (eq (caar args) 'eshell-do-eval)
-	  (eshell-manipulate "handling special form"
+          (eshell-manipulate form "handling special form"
 	    (setcar args `(eshell-do-eval ',(car args) ,synchronous-p))))
 	(eval form))
        ((eq (car form) 'setq)
@@ -1242,7 +1183,7 @@ have been replaced by constants."
 	(list 'quote (eval form)))
        (t
 	(if (and args (not (memq (car form) '(run-hooks))))
-	    (eshell-manipulate
+            (eshell-manipulate form
 		(format-message "evaluating arguments to `%s'"
 				(symbol-name (car form)))
 	      (while args
@@ -1283,7 +1224,7 @@ have been replaced by constants."
                      (setq result (eval form))))))
 	    (if new-form
 		(progn
-		  (eshell-manipulate "substituting replacement form"
+                  (eshell-manipulate form "substituting replacement form"
 		    (setcar form (car new-form))
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
@@ -1292,7 +1233,7 @@ have been replaced by constants."
                        (procs (eshell-make-process-pair result)))
                   (if synchronous-p
 		      (eshell/wait (cdr procs))
-		    (eshell-manipulate "inserting ignore form"
+                    (eshell-manipulate form "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
 		    (throw 'eshell-defer procs))

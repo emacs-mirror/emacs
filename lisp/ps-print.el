@@ -4850,17 +4850,6 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
     (and has-local-background (ps-output "}def\n"))))
 
 
-;; Return a list of the distinct elements of LIST.
-;; Elements are compared with `equal'.
-(defun ps-remove-duplicates (list)
-  (let (new (tail list))
-    (while tail
-      (or (member (car tail) new)
-	  (setq new (cons (car tail) new)))
-      (setq tail (cdr tail)))
-    (nreverse new)))
-
-
 ;; Find the first occurrence of ITEM in LIST.
 ;; Return the index of the matching item, or nil if not found.
 ;; Elements are compared with `eq'.
@@ -5342,7 +5331,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      (if ps-landscape-mode "Landscape" "Portrait")
      "\n%%DocumentNeededResources: font Times-Roman Times-Italic\n%%+ font "
      (mapconcat 'identity
-		(ps-remove-duplicates
+                (seq-uniq
 		 (append (ps-fonts 'ps-font-for-text)
 			 (list (ps-font 'ps-font-for-header 'normal)
 			       (ps-font 'ps-font-for-header 'bold)
@@ -5491,7 +5480,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      "\n%%IncludeResource: font Times-Italic"
      "\n%%IncludeResource: font "
      (mapconcat 'identity
-		(ps-remove-duplicates
+                (seq-uniq
 		 (append (ps-fonts 'ps-font-for-text)
 			 (list (ps-font 'ps-font-for-header 'normal)
 			       (ps-font 'ps-font-for-header 'bold)
@@ -6548,6 +6537,7 @@ Please send all bug fixes and enhancements to
 (make-obsolete-variable 'ps-print-version 'emacs-version "29.1")
 
 (define-obsolete-function-alias 'ps-print-ensure-fontified #'font-lock-ensure "29.1")
+(define-obsolete-function-alias 'ps-remove-duplicates #'seq-uniq "30.1")
 
 (provide 'ps-print)
 

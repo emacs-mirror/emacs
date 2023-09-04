@@ -1122,44 +1122,45 @@ leading double colon is not added."
   ;; Navigation.
   (setq-local treesit-defun-type-regexp ruby-ts--method-regex)
 
-  (setq-local treesit-sexp-type-regexp
-              (cons (rx
-                     bol
-                     (or
-                      "class"
-                      "module"
-                      "method"
-                      "array"
-                      "hash"
-                      "parenthesized_statements"
-                      "method_parameters"
-                      "array_pattern"
-                      "hash_pattern"
-                      "if"
-                      "unless"
-                      "case"
-                      "case_match"
-                      "when"
-                      "block"
-                      "do_block"
-                      "begin"
-                      "integer"
-                      "identifier"
-                      "constant"
-                      "simple_symbol"
-                      "hash_key_symbol"
-                      "symbol_array"
-                      "string"
-                      "string_array"
-                      "heredoc_body"
-                      "regex"
-                      "argument_list"
-                      "interpolation"
-                      "instance_variable"
-                      "global_variable"
-                      )
-                     eol)
-                    #'ruby-ts--sexp-p))
+  (setq-local treesit-thing-settings
+              `((ruby
+                 (sexp ,(cons (rx
+                               bol
+                               (or
+                                "class"
+                                "module"
+                                "method"
+                                "array"
+                                "hash"
+                                "parenthesized_statements"
+                                "method_parameters"
+                                "array_pattern"
+                                "hash_pattern"
+                                "if"
+                                "unless"
+                                "case"
+                                "case_match"
+                                "when"
+                                "block"
+                                "do_block"
+                                "begin"
+                                "integer"
+                                "identifier"
+                                "constant"
+                                "simple_symbol"
+                                "hash_key_symbol"
+                                "symbol_array"
+                                "string"
+                                "string_array"
+                                "heredoc_body"
+                                "regex"
+                                "argument_list"
+                                "interpolation"
+                                "instance_variable"
+                                "global_variable"
+                                )
+                               eol)
+                              #'ruby-ts--sexp-p)))))
 
   ;; AFAIK, Ruby can not nest methods
   (setq-local treesit-defun-prefer-top-level nil)

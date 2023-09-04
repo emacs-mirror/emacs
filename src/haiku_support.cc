@@ -741,8 +741,6 @@ public:
   EmacsWindow *parent;
   BRect pre_fullscreen_rect;
   BRect pre_zoom_rect;
-  int x_before_zoom;
-  int y_before_zoom;
   bool shown_flag;
   volatile bool was_shown_p;
   bool menu_bar_active_p;
@@ -760,8 +758,6 @@ public:
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS),
 		   subset_windows (NULL),
 		   parent (NULL),
-		   x_before_zoom (INT_MIN),
-		   y_before_zoom (INT_MIN),
 		   shown_flag (false),
 		   was_shown_p (false),
 		   menu_bar_active_p (false),

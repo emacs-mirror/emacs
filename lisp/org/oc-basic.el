@@ -162,7 +162,7 @@ Return a hash table with citation references as keys and fields alist as values.
         (puthash (cdr (assq 'id item))
                  (mapcar (pcase-lambda (`(,field . ,value))
                            (pcase field
-                             ((or 'author 'editors)
+                             ((or 'author 'editor)
                               ;; Author and editors are arrays of
                               ;; objects, each of them designing a
                               ;; person.  These objects may contain

@@ -8,52 +8,55 @@
   Haiku is a Unix-like operating system that originated as a
 re-implementation of the operating system BeOS.
 
-  This section describes the peculiarities of using Emacs built with
-the Application Kit, the windowing system native to Haiku.  The
-oddities described here do not apply to using Emacs on Haiku built
-without windowing support, or built with X11.
+  This appendix describes the peculiarities of using Emacs built with
+the Application Kit, the windowing system indigenous to Haiku.  The
+idiosyncracies illustrated here do not apply to Emacs on Haiku built
+without windowing support, or configured with X11.
 
 @menu
 * Haiku Basics::        Basic Emacs usage and installation under Haiku.
-* Haiku Fonts::         The various options for displaying fonts on Haiku.
+* Haiku Fonts::         Various options for displaying fonts on Haiku.
 @end menu
 
 @node Haiku Basics
-@section Installation and usage peculiarities under Haiku
+@section Haiku Installation and Startup
 @cindex haiku application
 @cindex haiku installation
 
-  Emacs installs two separate executables under Haiku; it is up to the
-user to decide which one suits him best: A regular executable, with
-the lowercase name @code{emacs}, and a binary containing
-Haiku-specific application metadata, with the name @code{Emacs}.
+  When Emacs is installed under Haiku, two executables are copied to
+the binaries directory, which are identical save for some identifying
+file-system metadata.  The first is a normal Emacs executable,
+@file{emacs}, whereas the second, @file{Emacs}, incorporates an icon
+and an application ``signature'' that abets the system in attributing
+both file types and open frames to it, thereby enabling it to receive
+file type assignments, and thus to open files directly from the
+Tracker.
 
-@cindex launching Emacs from the tracker
-@cindex tty Emacs in haiku
-  If you are launching Emacs from the Tracker, or want to make the
-Tracker open files using Emacs, you should use the binary named
-@code{Emacs}; if you are going to use Emacs in the terminal, or wish
-to launch separate instances of Emacs, or do not care for the
-aforementioned system integration features, use the binary named
-@code{emacs} instead.
+  Several file attributes are set within @file{Emacs} that prompt the
+system to permit only a single copy to run at any given time.  This
+invariant is verified upon the establishment of a display connection,
+and is enforced by terminating any Emacs process that attempts to
+create a display connection when one is already present.
+
+  For this and other reasons, @file{Emacs} is appropriate for starting
+a GUI session of Emacs, while @file{emacs} should be used for other
+types of Emacs sessions.
 
 @cindex modifier keys and system keymap (Haiku)
-@cindex haiku keymap
-  On Haiku, unusual modifier keys such as the Hyper key are
-unsupported.  By default, the super key corresponds with the option
-key defined by the operating system, the meta key with the command
-key, the control key with the system control key, and the shift key
-with the system shift key.  On a standard PC keyboard, Haiku should
-map these keys to positions familiar to those using a GNU system, but
-this may require some adjustment to your system's configuration to
-work.
+  Emacs is incapable of receiving unusual modifier keys such as
+@kbd{Hyper} under Haiku, or to receive accented characters produced
+from the system Super key map.
 
-  It is impossible to type accented characters using the system super
-key map.
+  By default, the @key{Super} modifier is reported when the Option key
+defined by the operating system is depressed.  Analogously, the
+@key{Meta} modifier is assigned to the Command key, and of course
+@key{Control} to the system Control key and @key{Shift} to the system
+Shift key.  On a standard PC keyboard, Haiku should map these keys to
+positions familiar to those using a GNU system, but this may require
+some adjustment to your system's configuration to work.
 
-  You can customize the correspondence between modifier keys known to
-the system, and those known to Emacs.  The variables that allow for
-that are described below.
+  You can customize the relation between modifier keys known to the
+system and those known to Emacs by means of the variables below.
 
 @cindex modifier key customization (Haiku)
 @table @code
@@ -86,25 +89,22 @@ instead.
 @cindex tooltips (haiku)
 @cindex haiku tooltips
   On Haiku, Emacs defaults to using the system tooltip mechanism.
-This usually leads to more responsive tooltips, but the tooltips will
-not be able to display text properties or faces.  If you need those
-features, customize the variable @code{use-system-tooltips} to the
-@code{nil} value, and Emacs will use its own implementation of
-tooltips.
+Tooltips thus generated are sometimes more responsive, but will not be
+able to display text properties or faces.  If you need those features,
+customize the variable @code{use-system-tooltips} to @code{nil} value,
+whereupon Emacs will use its own implementation of tooltips instead.
 
 @cindex X resources on Haiku
-  Unlike the X window system, Haiku does not have a system-wide
-resource database.  Since many important options are specified via
-X resources (@pxref{X Resources}), an emulation is provided: upon
+  Unlike the X window system, Haiku does not provide a system-wide
+resource database.  Since many important options are specified via X
+resources (@pxref{X Resources}), an emulation is provided: upon
 startup, Emacs will load a file named @file{GNU Emacs} inside the user
 configuration directory (normally @file{/boot/home/config/settings}),
 which should be a flattened system message where keys and values are
 both strings, and correspond to attributes and their values
-respectively.
+respectively.  Such a file may be created with the
+@command{xmlbmessage} tool.
 
-You can create such a file with the @command{xmlbmessage} tool.
-
-@subsection What to do when Emacs crashes
 @cindex crashes, Haiku
 @cindex haiku debugger
 @vindex haiku-debug-on-fatal-error
@@ -115,18 +115,18 @@ attach the report generated by the system debugger when reporting a
 bug.
 
 @node Haiku Fonts
-@section Font and font backend selection on Haiku
+@section Font Backends and Selection under Haiku
 @cindex font backend selection (Haiku)
 
-  Emacs, when built with Haiku windowing support, can be built with
-several different font backends.  You can specify font backends by
-specifying @kbd{-xrm Emacs.fontBackend:BACKEND} on the command line
-used to invoke Emacs, where @kbd{BACKEND} is one of the backends
-specified below, or on a per-frame basis by changing the
-@code{font-backend} frame parameter.
+  Emacs supports several different font backends when built with Haiku
+windowing support, though the subset supported is subject to the list
+of dependencies present and enabled when Emacs was configured.  You
+can specify which font backends to utilize by providing @w{@code{-xrm
+Emacs.fontBackend:@var{backend}}} on the command line used to invoke
+Emacs, where @var{backend} is one of the backends listed below, or on
+a per-frame basis by changing the @code{font-backend} frame parameter.
 
   Two of these backends, @code{ftcr} and @code{ftcrhb} are identical
 to their counterparts on the X Window System.  There is also a
 Haiku-specific backend named @code{haiku}, that uses the App Server to
-draw fonts, but does not at present support display of color font and
-emoji.
+draw fonts, but presently cannot display color fonts or Emoji.

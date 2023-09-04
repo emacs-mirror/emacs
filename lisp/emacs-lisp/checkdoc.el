@@ -128,6 +128,14 @@
 ;; simple style rules to follow which checkdoc will auto-fix for you.
 ;; `y-or-n-p' and `yes-or-no-p' should also end in "?".
 ;;
+;; Lexical binding:
+;;
+;;   We recommend always using lexical binding in new code, and
+;; converting old code to use it.  Checkdoc warns if you don't have
+;; the recommended string "-*- lexical-binding: t -*-" at the top of
+;; the file.  You can disable this check with the user option
+;; `checkdoc-lexical-binding-flag'.
+;;
 ;; Adding your own checks:
 ;;
 ;;   You can experiment with adding your own checks by setting the
@@ -338,6 +346,12 @@ This backslash is no longer needed on Emacs 27.1 or later.
 See Info node `(elisp) Documentation Tips' for background."
   :type 'boolean
   :version "28.1")
+
+(defcustom checkdoc-lexical-binding-flag t
+  "Non-nil means generate warnings if file is not using lexical binding.
+See Info node `(elisp) Converting to Lexical Binding' for more."
+  :type 'boolean
+  :version "30.1")
 
 ;; This is how you can use checkdoc to make mass fixes on the Emacs
 ;; source tree:
@@ -1779,7 +1793,7 @@ function,command,variable,option or symbol." ms1))))))
 		   (order (and (nth 3 fp) (car (nth 3 fp))))
 		   (nocheck (append '("&optional" "&rest" "&key" "&aux"
                                       "&context" "&environment" "&whole"
-                                      "&body" "&allow-other-keys")
+                                      "&body" "&allow-other-keys" "nil")
                                     (nth 3 fp)))
 		   (inopts nil))
 	       (while (and args found (> found last-pos))
@@ -2377,6 +2391,31 @@ Code:, and others referenced in the style guide."
 	      (point-min) (save-excursion (goto-char (point-min))
 					  (line-end-position))))
 	 nil))
+      (when checkdoc-lexical-binding-flag
+        (setq
+         err
+         ;; Lexical binding cookie.
+         (if (not (save-excursion
+                    (save-restriction
+                      (goto-char (point-min))
+                      (narrow-to-region (point) (pos-eol))
+                      (re-search-forward
+                       (rx "-*-" (* (* nonl) ";")
+                           (* space) "lexical-binding:" (* space) "t" (* space)
+                           (* ";" (* nonl))
+                           "-*-")
+                       nil t))))
+             (let ((pos (save-excursion (goto-char (point-min))
+                                        (goto-char (pos-eol))
+                                        (point))))
+               (if (checkdoc-y-or-n-p "There is no lexical-binding cookie!  Add one?")
+                   (progn
+                     (goto-char pos)
+                     (insert "  -*- lexical-binding: t -*-"))
+                 (checkdoc-create-error
+                  "The first line should end with \"-*- lexical-binding: t -*-\""
+                  pos (1+ pos) t)))
+           nil)))
       (setq
        err
        (or

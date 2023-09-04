@@ -2720,6 +2720,9 @@ not in completion mode."
 
       (tramp-run-real-handler #'file-exists-p (list filename))))
 
+(defvar tramp--last-hop-directory nil
+  "Tracks the directory from which to run login programs.")
+
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
 ;; `tramp-file-name' structures.  For all of them we return possible
@@ -2728,16 +2731,8 @@ not in completion mode."
   "Like `file-name-all-completions' for partial Tramp files."
   (let ((fullname
 	 (tramp-drop-volume-letter (expand-file-name filename directory)))
-	;; When `tramp-syntax' is `simplified', we need a default method.
-	(tramp-default-method
-	 (and (string-empty-p tramp-postfix-method-format)
-	      tramp-default-method))
-	(tramp-default-method-alist
-	 (and (string-empty-p tramp-postfix-method-format)
-	      tramp-default-method-alist))
-	tramp-default-user tramp-default-user-alist
-	tramp-default-host tramp-default-host-alist
-	hop result result1)
+	(directory (tramp-drop-volume-letter directory))
+	tramp--last-hop-directory hop result result1)
 
     ;; Suppress hop from completion.
     (when (string-match
@@ -2747,56 +2742,68 @@ not in completion mode."
 		      (regexp tramp-postfix-hop-regexp))))
 	   fullname)
       (setq hop (match-string 1 fullname)
-	    fullname (replace-match "" nil nil fullname 1)))
+	    fullname (replace-match "" nil nil fullname 1)
+	    tramp--last-hop-directory
+	    (tramp-make-tramp-file-name (tramp-dissect-hop-name hop))))
 
-    ;; Possible completion structures.
-    (dolist (elt (tramp-completion-dissect-file-name fullname))
-      (let* ((method (tramp-file-name-method elt))
-	     (user (tramp-file-name-user elt))
-	     (host (tramp-file-name-host elt))
-	     (localname (tramp-file-name-localname elt))
-	     (m (tramp-find-method method user host))
-	     all-user-hosts)
+    (let (;; When `tramp-syntax' is `simplified', we need a default method.
+	  (tramp-default-method
+	   (and (string-empty-p tramp-postfix-method-format)
+		tramp-default-method))
+	  (tramp-default-method-alist
+	   (and (string-empty-p tramp-postfix-method-format)
+		tramp-default-method-alist))
+	  tramp-default-user tramp-default-user-alist
+	  tramp-default-host tramp-default-host-alist)
 
-	(unless localname ;; Nothing to complete.
+      ;; Possible completion structures.
+      (dolist (elt (tramp-completion-dissect-file-name fullname))
+	(let* ((method (tramp-file-name-method elt))
+	       (user (tramp-file-name-user elt))
+	       (host (tramp-file-name-host elt))
+	       (localname (tramp-file-name-localname elt))
+	       (m (tramp-find-method method user host))
+	       all-user-hosts)
 
-	  (if (or user host)
+	  (unless localname ;; Nothing to complete.
 
-	      ;; Method dependent user / host combinations.
-	      (progn
-		(mapc
-		 (lambda (x)
-		   (setq all-user-hosts
-			 (append all-user-hosts
-				 (funcall (nth 0 x) (nth 1 x)))))
-		 (tramp-get-completion-function m))
+	    (if (or user host)
 
-		(setq result
-		      (append result
-			      (mapcar
-			       (lambda (x)
-				 (tramp-get-completion-user-host
-				  method user host (nth 0 x) (nth 1 x)))
-			       (delq nil all-user-hosts)))))
+		;; Method dependent user / host combinations.
+		(progn
+		  (mapc
+		   (lambda (x)
+		     (setq all-user-hosts
+			   (append all-user-hosts
+				   (funcall (nth 0 x) (nth 1 x)))))
+		   (tramp-get-completion-function m))
 
-	    ;; Possible methods.
-	    (setq result
-		  (append result (tramp-get-completion-methods m hop)))))))
+		  (setq result
+			(append result
+				(mapcar
+				 (lambda (x)
+				   (tramp-get-completion-user-host
+				    method user host (nth 0 x) (nth 1 x)))
+				 (delq nil all-user-hosts)))))
 
-    ;; Unify list, add hop, remove nil elements.
-    (dolist (elt result)
-      (when elt
-	(setq elt (replace-regexp-in-string
-		   tramp-prefix-regexp (concat tramp-prefix-format hop) elt))
-	(push (substring elt (length directory)) result1)))
+	      ;; Possible methods.
+	      (setq result
+		    (append result (tramp-get-completion-methods m hop)))))))
 
-    ;; Complete local parts.
-    (delete-dups
-     (append
-      result1
-      (ignore-errors
-        (tramp-run-real-handler
-	 #'file-name-all-completions (list filename directory)))))))
+      ;; Unify list, add hop, remove nil elements.
+      (dolist (elt result)
+        (when elt
+	  (setq elt (replace-regexp-in-string
+		     tramp-prefix-regexp (concat tramp-prefix-format hop) elt))
+	  (push (substring elt (length directory)) result1)))
+
+      ;; Complete local parts.
+      (delete-dups
+       (append
+        result1
+        (ignore-errors
+          (tramp-run-real-handler
+	   #'file-name-all-completions (list filename directory))))))))
 
 ;; Method, host name and user name completion for a file.
 (defun tramp-completion-handle-file-name-completion
@@ -2916,13 +2923,13 @@ remote host and localname (filename on remote host)."
 
 ;; This function returns all possible method completions, adding the
 ;; trailing method delimiter.
-(defun tramp-get-completion-methods (partial-method hop)
+(defun tramp-get-completion-methods (partial-method &optional multi-hop)
   "Return all method completions for PARTIAL-METHOD.
-If HOP is non-nil, return only multi-hop capable methods."
+If MULTI-HOP is non-nil, return only multi-hop capable methods."
   (mapcar
    (lambda (method)
      (and method (string-prefix-p (or partial-method "") method)
-	  (or (not hop)
+	  (or (not multi-hop)
 	      (tramp-multi-hop-p (make-tramp-file-name :method method)))
 	  (tramp-completion-make-tramp-file-name method nil nil nil)))
    (mapcar #'car tramp-methods)))
@@ -3001,6 +3008,12 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
 This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from default settings."
   `((,(tramp-find-user method nil nil) ,(tramp-find-host method nil nil))))
+
+;;;###tramp-autoload
+(defcustom tramp-completion-multi-hop-methods nil
+  "Methods for which to provide completions over multi-hop connections."
+  :version "30.1"
+  :type '(repeat (string :tag "Method name")))
 
 (defcustom tramp-completion-use-auth-sources auth-source-do-cache
   "Whether to use `auth-source-search' for completion of user and host names.
@@ -4573,8 +4586,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defun tramp-multi-hop-p (vec)
   "Whether the method of VEC is capable of multi-hops."
-  (and (tramp-sh-file-name-handler-p vec)
-       (not (tramp-get-method-parameter vec 'tramp-copy-program))))
+  (let ((tramp-verbose 0))
+    (and (tramp-sh-file-name-handler-p vec)
+	 (not (tramp-get-method-parameter vec 'tramp-copy-program)))))
 
 (defun tramp-add-hops (vec)
   "Add ad-hoc proxy definitions to `tramp-default-proxies-alist'."
@@ -5602,7 +5616,8 @@ If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
 	     (v (process-get proc 'tramp-vector)))
     (dolist (p (delq proc (process-list)))
       (when (tramp-file-name-equal-p v (process-get p 'tramp-vector))
-	(with-local-quit (accept-process-output p 0 nil t)))))
+	(with-tramp-suspended-timers
+	  (with-local-quit (accept-process-output p 0 nil t))))))
 
   (with-current-buffer (process-buffer proc)
     (let ((inhibit-read-only t)

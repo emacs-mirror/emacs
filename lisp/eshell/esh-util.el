@@ -102,6 +102,16 @@ argument matches `eshell-number-regexp'."
 				     (string :tag "Username")
 				     (repeat :tag "UIDs" string))))))
 
+(defcustom eshell-debug-command nil
+  "A list of debug features to enable when running Eshell commands.
+Possible entries are `form', to log the manipulation of Eshell
+command forms, and `process', to log external process operations.
+
+If nil, don't debug commands at all."
+  :version "30.1"
+  :type '(set (const :tag "Form manipulation" form)
+              (const :tag "Process operations" process)))
+
 ;;; Internal Variables:
 
 (defvar eshell-number-regexp
@@ -145,6 +155,9 @@ function `string-to-number'.")
                             ,#'eshell--mark-yanked-as-output))
   "A list of text properties to apply to command output.")
 
+(defvar eshell-debug-command-buffer "*eshell last cmd*"
+  "The name of the buffer to log debug messages about command invocation.")
+
 ;;; Obsolete variables:
 
 (define-obsolete-variable-alias 'eshell-host-names
@@ -164,11 +177,33 @@ function `string-to-number'.")
   "If `eshell-handle-errors' is non-nil, this is `condition-case'.
 Otherwise, evaluates FORM with no error handling."
   (declare (indent 2) (debug (sexp form &rest form)))
-  (if eshell-handle-errors
-      `(condition-case-unless-debug ,tag
-	   ,form
-	 ,@handlers)
-    form))
+  `(if eshell-handle-errors
+       (condition-case-unless-debug ,tag
+           ,form
+         ,@handlers)
+     ,form))
+
+(defun eshell-debug-command-start (command)
+  "Start debugging output for the command string COMMAND.
+If debugging is enabled (see `eshell-debug-command'), this will
+start logging to `*eshell last cmd*'."
+  (when eshell-debug-command
+    (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
+      (erase-buffer)
+      (insert "command: \"" command "\"\n"))))
+
+(defmacro eshell-debug-command (kind message &optional form always)
+  "Output a debugging message to `*eshell last cmd*' if debugging is enabled.
+KIND is the kind of message to log (either `form' or `io').  If
+present in `eshell-debug-command' (or if ALWAYS is non-nil),
+output this message; otherwise, ignore it."
+  (let ((kind-sym (make-symbol "kind")))
+    `(let ((,kind-sym ,kind))
+       (when ,(or always `(memq ,kind-sym eshell-debug-command))
+         (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
+           (insert "\n\C-l\n[" (symbol-name ,kind-sym) "] " ,message)
+           (when-let ((form ,form))
+             (insert "\n\n" (eshell-stringify form))))))))
 
 (defun eshell--mark-as-output (start end &optional object)
   "Mark the text from START to END as Eshell output.
@@ -326,7 +361,7 @@ as the $PATH was actually specified."
                  (eshell-under-windows-p))
         (push "." path))
       (if (and remote (not literal-p))
-          (mapcar (lambda (x) (file-name-concat remote x)) path)
+          (mapcar (lambda (x) (concat remote x)) path)
         path))))
 
 (defun eshell-set-path (path)

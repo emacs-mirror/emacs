@@ -3205,6 +3205,19 @@ Note that if you set this, you will no longer be able to quit Emacs
 using the volume down button.  */);
   android_pass_multimedia_buttons_to_system = false;
 
+  DEFVAR_BOOL ("android-intercept-control-space",
+	       android_intercept_control_space,
+    doc: /* Whether Emacs should intercept C-SPC.
+When this variable is set, Emacs intercepts C-SPC events as they are
+delivered to a frame before they are registered and filtered by the
+input method.
+
+For no apparent purpose, Android input methods customarily discard SPC
+events with the Ctrl modifier set without delivering them to Emacs
+afterwards, which is an impediment to typing key sequences
+incorporating such keys.  */);
+  android_intercept_control_space = true;
+
   DEFVAR_BOOL ("android-use-exec-loader", android_use_exec_loader,
     doc: /* Whether or not to bypass system restrictions on program execution.
 

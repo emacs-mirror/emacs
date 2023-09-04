@@ -24,13 +24,30 @@
 
 ;; Plist based data store providing search and partial encryption.
 ;;
-;; By default, this package uses symmetric encryption, which means
+;; By default, this library uses symmetric encryption, which means
 ;; that you have to enter the password protecting your store more
 ;; often than you probably expect to.  To use public key encryption
-;; with this package, create a GnuPG key and customize user option
+;; with this library, create a GnuPG key and customize user option
 ;; `plstore-encrypt-to' to use it.  You can then configure the GnuPG
 ;; agent to adjust caching and expiration of the passphrase for your
 ;; store.
+;;
+;; You can read more on these topics in the EasyPG Assistant user's
+;; manual (Info node `(epa)'), of which much information also applies
+;; to this library.  Most notably:
+;;
+;; - Info node `(epa)GnuPG version compatibility'
+;; - Info node `(epa)GnuPG Pinentry'
+;; - Info node `(epa)Caching Passphrases'
+;;
+;; Use only keyword symbols (starting with a colon) as property names
+;; in any plist stored with this library.  While this library does not
+;; actively enforce the use of keyword symbols, it silently assumes
+;; that the first character of all property names can be discarded
+;; without sacrificing uniqueness of names (FIXME).  Likewise, this
+;; library does not enforce that the plists provided as input are
+;; actually valid and can behave in undefined ways if they are not
+;; (FIXME).
 ;;
 ;; Creating:
 ;;
@@ -52,8 +69,8 @@
 ;; (plstore-close store)
 ;;
 ;; Avoid marking one property both as public *and* secret, as the
-;; behavior of this package with respect to such duplicate properties
-;; is not (yet) defined.
+;; behavior of this library with respect to such duplicate properties
+;; is not defined (FIXME).
 ;;
 ;; Searching:
 ;;
@@ -71,7 +88,7 @@
 ;; ;; While the entry "baz" associated with "baz.example.org" has also
 ;; ;; a secret property `:password', it is encrypted together with
 ;; ;; `:user' of "bar", so no need to decrypt the secret.
-;; (plstore-find store '(:host ("bar.example.org")))
+;; (plstore-find store '(:host ("baz.example.org")))
 ;;
 ;; (plstore-close store)
 ;;
@@ -87,8 +104,8 @@
 ;; `:secret-' prefix) is marked as secret.  Thus, when you save the
 ;; buffer, the `:secret-user' property is encrypted as `:user'.  Do
 ;; not use a property consisting solely of the prefix, as the behavior
-;; of this package with respect to such properties is not (yet)
-;; defined.
+;; of this library with respect to such properties is not defined
+;; (FIXME).
 ;;
 ;; You can toggle the view between encrypted form and the decrypted
 ;; form with C-c C-c.
@@ -101,7 +118,7 @@
 ;; Internals:
 ;;
 ;; This is information on the internal data structure and functions of
-;; this package.  None of it should be necessary to actually use it.
+;; this library.  None of it should be necessary to actually use it.
 ;; For easier reading, we usually do not distinguish in this internal
 ;; documentation between a Lisp object and its printed representation.
 ;;
@@ -589,7 +606,11 @@ If no one is selected, symmetric encryption will be performed.  "
 	(insert ";;; secret entries\n" (pp-to-string cipher)))))
 
 (defun plstore-save (plstore)
-  "Save PLSTORE to its associated file."
+  "Save PLSTORE to its associated file.
+Save with symmetric encryption or public key encryption depending
+on `plstore-encrypt-to'.  If `plstore-encrypt-to' is non-nil but
+none of the recipients from `plstore-encrypt-to' matches any
+GnuPG key, silently save with symmetric encryption." ; (FIXME)
   (with-current-buffer (plstore--get-buffer plstore)
     (erase-buffer)
     (plstore--insert-buffer plstore)

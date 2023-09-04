@@ -36,13 +36,14 @@ evaluated sequentially.  You can use macros to define your own control
 structure constructs (@pxref{Macros}).
 
 @menu
-* Sequencing::             Evaluation in textual order.
-* Conditionals::           @code{if}, @code{cond}, @code{when}, @code{unless}.
-* Combining Conditions::   @code{and}, @code{or}, @code{not}, and friends.
+* Sequencing::                  Evaluation in textual order.
+* Conditionals::                @code{if}, @code{cond}, @code{when}, @code{unless}.
+* Combining Conditions::        @code{and}, @code{or}, @code{not}, and friends.
 * Pattern-Matching Conditional::  How to use @code{pcase} and friends.
-* Iteration::              @code{while} loops.
-* Generators::             Generic sequences and coroutines.
-* Nonlocal Exits::         Jumping out of a sequence.
+* Iteration::                   @code{while} loops.
+* Generators::                  Generic sequences and coroutines.
+* Nonlocal Exits::              Jumping out of a sequence.
+* Conditional Compilation::     A facility like C's #if.
 @end menu
 
 @node Sequencing
@@ -2467,3 +2468,47 @@ quit, and the quit happens immediately after the function
 @code{ftp-setup-buffer} returns but before the variable @code{process} is
 set, the process will not be killed.  There is no easy way to fix this bug,
 but at least it is very unlikely.
+
+@node Conditional Compilation
+@section Conditional Compilation
+
+  There will be times when you want certain code to be compiled only
+when a certain condition holds.  This is particularly the case when
+maintaining Emacs packages; to keep the package compatible with older
+versions of Emacs you may need to use a function or variable which has
+become obsolete in the current version of Emacs.
+
+  You could just use a conditional form to select the old or new form
+at run time, but this tends to output annoying warning messages about
+the obsolete function/variable.  For such situations, the macro
+@code{static-if} comes in handy.  It is patterned after the special
+form @code{if} (@pxref{Conditionals}).
+
+  To use this facility for an older version of Emacs, copy the source
+for @code{static-if} from the Emacs source file @file{lisp/subr.el}
+into your package.
+
+@defmac static-if condition then-form else-forms...
+Test @var{condition} at macro-expansion time.  If its value is
+non-@code{nil}, expand the macro to @var{then-form}, otherwise expand
+it to @var{else-forms} enclosed in a @code{progn}.  @var{else-forms}
+may be empty.
+
+Here is an example of its use from CC Mode, which prevents a
+@code{defadvice} form being compiled in newer versions of Emacs:
+@example
+@group
+(static-if (boundp 'comment-line-break-function)
+    (progn)
+  (defvar c-inside-line-break-advice nil)
+  (defadvice indent-new-comment-line (around c-line-break-advice
+                                             activate preactivate)
+    "Call `c-indent-new-comment-line' if in CC Mode."
+    (if (or c-inside-line-break-advice
+            (not c-buffer-is-cc-mode))
+        ad-do-it
+      (let ((c-inside-line-break-advice t))
+        (c-indent-new-comment-line (ad-get-arg 0))))))
+@end group
+@end example
+@end defmac

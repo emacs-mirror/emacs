@@ -4805,7 +4805,7 @@ by calling `format-decode', which see.  */)
 
 	/* 'try' is reserved in some compilers (Microsoft C).  */
 	ptrdiff_t trytry = min (gap_size, READ_BUF_SIZE);
-	if (!NILP (end))
+	if (seekable || !NILP (end))
 	  trytry = min (trytry, total - inserted);
 
 	if (!seekable && NILP (end))

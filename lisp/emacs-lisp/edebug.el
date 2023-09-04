@@ -2469,12 +2469,52 @@ MSG is printed after `::::} '."
   (setf (cdr (assq 'edebug edebug-behavior-alist))
         '(edebug-default-enter edebug-fast-before edebug-fast-after)))
 
-(defalias 'edebug-before nil
+;; The following versions of `edebug-before' and `edebug-after' exist
+;; to handle the error which occurs if either of them gets called
+;; without an enclosing `edebug-enter'.  This can happen, for example,
+;; when a macro mistakenly has a `form' element in its edebug spec,
+;; and it additionally, at macro-expansion time, calls `eval',
+;; `apply', or `funcall' (etc.) on the corresponding argument.  This
+;; is intended to fix bug#65620.
+
+(defun edebug-b/a-error (func)
+  "Throw an error for an invalid call of FUNC.
+FUNC is expected to be `edebug-before' or `edebug-after'."
+  (let (this-macro
+        (n 0)
+        bt-frame)
+    (while (and (setq bt-frame (backtrace-frame n))
+                (not (and (car bt-frame)
+                          (memq (cadr bt-frame)
+                                '(macroexpand macroexpand-1)))))
+      (setq n (1+ n)))
+    (when bt-frame
+      (setq this-macro (caaddr bt-frame)))
+
+    (error
+     (concat "Invalid call to `" (symbol-name func) "'"
+             (if this-macro
+                 (concat ".  Is the edebug spec for `"
+                         (symbol-name this-macro)
+                         "' correct?")
+               ""   ; Not sure this case is possible (ACM, 2023-09-02)
+               )))))
+
+(defun edebug-before (_before-index)
   "Function called by Edebug before a form is evaluated.
-See `edebug-behavior-alist' for implementations.")
-(defalias 'edebug-after nil
+See `edebug-behavior-alist' for other implementations.  This
+version of `edebug-before' gets called when edebug is not yet set
+up.  `edebug-enter' binds the function cell to a real function
+when edebug becomes active."
+  (edebug-b/a-error 'edebug-before))
+
+(defun edebug-after (_before-index _after-index _form)
   "Function called by Edebug after a form is evaluated.
-See `edebug-behavior-alist' for implementations.")
+See `edebug-behavior-alist' for other implementations.  This
+version of `edebug-after' gets called when edebug is not yet set
+up.  `edebug-enter' binds the function cell to a real function
+when edebug becomes active."
+  (edebug-b/a-error 'edebug-after))
 
 (defun edebug--update-coverage (after-index value)
   (let ((old-result (aref edebug-coverage after-index)))

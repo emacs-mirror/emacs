@@ -580,7 +580,8 @@ DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
        doc: /* Return the value in CHAR-TABLE for a range of characters RANGE.
 RANGE should be nil (for the default value),
-a cons of character codes (for characters in the range), or a character code.  */)
+a cons of character codes (for characters in the range), or a character code.
+If RANGE is a cons (FROM . TO), the function returns the value for FROM.  */)
   (Lisp_Object char_table, Lisp_Object range)
 {
   Lisp_Object val;

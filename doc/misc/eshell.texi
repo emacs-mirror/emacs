@@ -234,6 +234,9 @@ the foreground.  That said, background processes invoked from Eshell
 can be controlled the same way as any other background process in
 Emacs.
 
+If a command exits abnormally, Eshell will display its exit code
+in the next prompt.
+
 @subsection Command form
 Command form looks much the same as in other shells.  A command
 consists of arguments separated by spaces; the first argument is the
@@ -334,7 +337,8 @@ As with other shells, you can escape special characters and spaces by
 prefixing the character with a backslash (@samp{\}), or by surrounding
 the string with apostrophes (@samp{''}) or double quotes (@samp{""}).
 This is needed especially for file names with special characters like
-pipe (@samp{|}), which could be part of remote file names.
+pipe (@samp{|}) or square brackets (@samp{[} or @samp{]}), which could
+be part of remote file names.
 
 When you escape a character with @samp{\} outside of any quotes, the
 result is the literal character immediately following it.  For
@@ -619,10 +623,23 @@ environment.
 @item eshell-debug
 @cmindex eshell-debug
 Toggle debugging information for Eshell itself.  You can pass this
-command the argument @code{errors} to enable/disable Eshell trapping
-errors when evaluating commands, or the argument @code{commands} to
-show/hide command execution progress in the buffer @code{*eshell last
-cmd*}.
+command one or more of the following arguments:
+
+@itemize @bullet
+
+@item
+@code{error}, to enable/disable Eshell trapping errors when
+evaluating commands;
+
+@item
+@code{form}, to show/hide Eshell command form manipulation in the
+buffer @code{*eshell last cmd*}; or
+
+@item
+@code{process}, to show/hide external process events in the buffer
+@code{*eshell last cmd*}.
+
+@end itemize
 
 @item exit
 @cmindex exit

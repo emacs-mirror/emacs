@@ -266,6 +266,14 @@ able to see the strokes.  This be helpful for people who don't like
 the delay in switching to the strokes buffer."
   :type 'boolean)
 
+(defvar strokes-no-match-function 'strokes-no-match-default
+  "Function run by `strokes-execute-stroke' when no stroke matches.
+The function is called with two arguments, the stroke and the
+closest match returned by `strokes-match-stroke'.  It can be used
+to show detailed information about the unmatched stroke or
+perform some fallback action.  The default function
+`strokes-no-match-default' simply signals an error.")
+
 ;;; internal variables...
 
 (defvar strokes-window-configuration nil
@@ -838,14 +846,16 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	    (goto-char (point-min))
 	    (bury-buffer)))))))
 
+(defun strokes-no-match-default (&rest _)
+  "Signal an error when no stroke matches."
+  (error
+   "No stroke matches; see variable `strokes-minimum-match-score'"))
+
 (defun strokes-execute-stroke (stroke)
   "Given STROKE, execute the command which corresponds to it.
 The command will be executed provided one exists for that stroke,
-based on the variable `strokes-minimum-match-score'.
-If no stroke matches, nothing is done and return value is nil."
-  ;; FIXME: Undocument return value.  It is not documented for all cases,
-  ;; and doesn't allow differentiating between no stroke matches and
-  ;; command-execute returning nil, anyway.
+based on the variable `strokes-minimum-match-score'.  If no
+stroke matches, `strokes-no-match-function' is called."
   (let* ((match (strokes-match-stroke stroke strokes-global-map))
 	 (command (car match))
 	 (score (cdr match)))
@@ -859,10 +869,7 @@ If no stroke matches, nothing is done and return value is nil."
 				     strokes-file))
 		    (strokes-load-user-strokes))
 	     (error "No strokes defined; use `strokes-global-set-stroke'")))
-	  (t
-	   (error
-	    "No stroke matches; see variable `strokes-minimum-match-score'")
-	   nil))))
+	  (t (funcall strokes-no-match-function stroke match)))))
 
 ;;;###autoload
 (defun strokes-do-stroke (event)

@@ -1629,10 +1629,11 @@ not written in Bash or sh."
                   ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
-    (setq-local treesit-text-type-regexp
-                (regexp-opt '("comment"
-                              "heredoc_start"
-                              "heredoc_body")))
+    (setq-local treesit-thing-settings
+                `((bash
+                   (sentence ,(regexp-opt '("comment"
+                                            "heredoc_start"
+                                            "heredoc_body"))))))
     (setq-local treesit-defun-type-regexp "function_definition")
     (treesit-major-mode-setup)))
 

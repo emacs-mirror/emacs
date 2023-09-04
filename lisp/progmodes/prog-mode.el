@@ -37,6 +37,7 @@
 (declare-function treesit-parser-list "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-at "treesit.c")
+(declare-function treesit-node-match-p "treesit.c")
 
 (defgroup prog-mode nil
   "Generic programming mode, from which others derive."
@@ -160,9 +161,8 @@ or follows point."
     (let ((treesit-text-node
            (and (treesit-available-p)
                 (treesit-parser-list)
-                (string-match-p
-                 treesit-text-type-regexp
-                 (treesit-node-type (treesit-node-at (point)))))))
+                (treesit-node-match-p
+                 (treesit-node-at (point)) 'text t))))
       (if (or treesit-text-node
               (nth 8 (syntax-ppss))
               (re-search-forward "\\s-*\\s<" (line-end-position) t))

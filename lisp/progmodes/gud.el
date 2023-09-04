@@ -128,6 +128,10 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   "Non-nil if debugged program is running.
 Used to gray out relevant toolbar icons.")
 
+(defvar gud-async-running nil
+  "Non-nil if debugged program is running in async mode.
+Check it when `gud-running' is t")
+
 (defvar gud-target-name "--unknown--"
   "The apparent name of the program being debugged in a gud buffer.")
 
@@ -261,13 +265,13 @@ Used to gray out relevant toolbar icons.")
      :visible (memq gud-minor-mode
 		    '(gdbmi gdb guiler dbx xdb jdb pdb))]
     ["Set Breakpoint" gud-break
-     :enable (not gud-running)
+     :enable (or (not gud-running) gud-async-running)
      :visible (gud-tool-bar-item-visible-no-fringe)]
     ["Temporary Breakpoint" gud-tbreak
-     :enable (not gud-running)
+     :enable (or (not gud-running) gud-async-running)
      :visible (memq gud-minor-mode '(gdbmi gdb sdb xdb))]
     ["Remove Breakpoint" gud-remove
-     :enable (not gud-running)
+     :enable (or (not gud-running) gud-async-running)
      :visible (gud-tool-bar-item-visible-no-fringe)]
     ["Continue to selection" gud-until
      :enable (not gud-running)
@@ -283,7 +287,7 @@ Used to gray out relevant toolbar icons.")
      :visible (and (eq gud-minor-mode 'gdbmi)
                    (gdb-show-run-p))]
     ["Run" gud-run
-     :enable (not gud-running)
+     :enable (or (not gud-running) gud-async-running)
      :visible (or (memq gud-minor-mode '(gdb dbx jdb))
 		  (and (eq gud-minor-mode 'gdbmi)
 		       (or (not (gdb-show-run-p))
@@ -403,13 +407,15 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 ;; Of course you may use `gud-def' with any other debugger command, including
 ;; user defined ones.
 
-;; A macro call like (gud-def FUNC CMD KEY DOC) expands to a form
+;; A macro call like (gud-def FUNC CMD KEY DOC ASYNC-OK) expands to a form
 ;; which defines FUNC to send the command CMD to the debugger, gives
 ;; it the docstring DOC, and binds that function to KEY in the GUD
-;; major mode.  The function is also bound in the global keymap with the
+;; major mode. The FUNC still sends CMD when both ASYNC-OK and
+;; `gud-async-running' are t even `gud-running' is t.
+;; The function is also bound in the global keymap with the
 ;; GUD prefix.
 
-(defmacro gud-def (func cmd key &optional doc)
+(defmacro gud-def (func cmd key &optional doc async-ok)
   "Define FUNC to be a command sending CMD and bound to KEY, with
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
@@ -434,7 +440,7 @@ we're in the GUD buffer)."
      (defalias ',func (lambda (arg)
        ,@(if doc (list doc))
        (interactive "p")
-       (if (not gud-running)
+       (if (or (not gud-running) (and ,async-ok gud-async-running))
 	 ,(if (stringp cmd)
 	      `(gud-call ,cmd arg)
 	    ;; Unused lexical warning if cmd does not use "arg".

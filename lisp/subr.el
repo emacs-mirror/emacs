@@ -277,6 +277,21 @@ change the list."
          (macroexp-let2 macroexp-copyable-p x getter
            `(prog1 ,x ,(funcall setter `(cdr ,x))))))))
 
+;; Note: `static-if' can be copied into a package to enable it to be
+;; used in Emacsen older than Emacs 30.1.  If the package is used in
+;; very old Emacsen or XEmacs (in which `eval' takes exactly one
+;; argument) the copy will need amending.
+(defmacro static-if (condition then-form &rest else-forms)
+  "A conditional compilation macro.
+Evaluate CONDITION at macro-expansion time.  If it is non-nil,
+expand the macro to THEN-FORM.  Otherwise expand it to ELSE-FORMS
+enclosed in a `progn' form.  ELSE-FORMS may be empty."
+  (declare (indent 2)
+           (debug (sexp sexp &rest sexp)))
+  (if (eval condition lexical-binding)
+      then-form
+    (cons 'progn else-forms)))
+
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
 When COND yields non-nil, eval BODY forms sequentially and return
@@ -2021,6 +2036,7 @@ instead; it will indirectly limit the specpdl stack size as well.")
 (defalias 'store-match-data #'set-match-data)
 (defalias 'chmod #'set-file-modes)
 (defalias 'mkdir #'make-directory)
+(defalias 'wholenump #'natnump)
 
 ;; These were the XEmacs names, now obsolete:
 (defalias 'point-at-eol #'line-end-position)
