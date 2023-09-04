@@ -152,6 +152,13 @@ right-aligned to is controlled by the new user option
 It can be used to add, remove and reorder functions that change
 the appearance of every tab on the tab bar.
 
+** Miscellaneous
+
+---
+*** New face 'appt-notification' for 'appt-display-mode-line'.
+It can be used to customize the look of the appointment notification
+displayed on the mode line when 'appt-display-mode-line' is non-nil.
+
 
 * Editing Changes in Emacs 30.1
 

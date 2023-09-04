@@ -165,6 +165,12 @@ Only relevant if reminders are being displayed in a window."
   :type 'function
   :group 'appt)
 
+(defface appt-notification
+  '((t :inherit mode-line-emphasis))
+  "Face for appointment notification on the modeline.
+Shown when `appt-display-mode-line' is non-nil."
+  :group 'mode-line-faces
+  :version "30.1")
 
 ;;; Internal variables below this point.
 
@@ -406,7 +412,7 @@ displayed in a window:
                          (appt-mode-line (mapcar #'number-to-string
                                                  min-list)
                                          t)
-                         'face 'mode-line-emphasis)
+                         'face 'appt-notification)
                         " ")))
         ;; Reset count to 0 in case we display another appt on the next cycle.
         (setq appt-display-count (if (equal '(0) min-list) 0
