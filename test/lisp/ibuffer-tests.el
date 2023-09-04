@@ -34,7 +34,7 @@
 
 (ert-deftest ibuffer-0autoload ()       ; sort first
   "Tests to see whether ibuffer has been autoloaded"
-  (skip-unless (not (featurep 'ibuf-ext)))
+  (skip-when (featurep 'ibuf-ext))
   (should
    (fboundp 'ibuffer-mark-unsaved-buffers))
   (should

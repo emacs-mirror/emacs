@@ -34,17 +34,18 @@
 ;; `ert-run-tests-batch-and-exit' for non-interactive use.
 ;;
 ;; The body of `ert-deftest' forms resembles a function body, but the
-;; additional operators `should', `should-not', `should-error' and
-;; `skip-unless' are available.  `should' is similar to cl's `assert',
-;; but signals a different error when its condition is violated that
-;; is caught and processed by ERT.  In addition, it analyzes its
-;; argument form and records information that helps debugging
-;; (`cl-assert' tries to do something similar when its second argument
-;; SHOW-ARGS is true, but `should' is more sophisticated).  For
-;; information on `should-not' and `should-error', see their
-;; docstrings.  `skip-unless' skips the test immediately without
-;; processing further, this is useful for checking the test
-;; environment (like availability of features, external binaries, etc).
+;; additional operators `should', `should-not', `should-error',
+;; `skip-when' and `skip-unless' are available.  `should' is similar
+;; to cl's `assert', but signals a different error when its condition
+;; is violated that is caught and processed by ERT.  In addition, it
+;; analyzes its argument form and records information that helps
+;; debugging (`cl-assert' tries to do something similar when its
+;; second argument SHOW-ARGS is true, but `should' is more
+;; sophisticated).  For information on `should-not' and
+;; `should-error', see their docstrings.  The `skip-when' and
+;; `skip-unless' forms skip the test immediately, which is useful for
+;; checking the test environment (like availability of features,
+;; external binaries, etc).
 ;;
 ;; See ERT's Info manual `(ert) Top' as well as the docstrings for
 ;; more details.  To see some examples of tests written in ERT, see
@@ -194,8 +195,8 @@ and the body."
 BODY is evaluated as a `progn' when the test is run.  It should
 signal a condition on failure or just return if the test passes.
 
-`should', `should-not', `should-error' and `skip-unless' are
-useful for assertions in BODY.
+`should', `should-not', `should-error', `skip-when', and
+`skip-unless' are useful for assertions in BODY.
 
 Use `ert' to run tests interactively.
 
@@ -227,7 +228,8 @@ in batch mode, an error is signaled.
                (tags nil tags-supplied-p))
          body)
         (ert--parse-keys-and-body docstring-keys-and-body)
-      `(cl-macrolet ((skip-unless (form) `(ert--skip-unless ,form)))
+      `(cl-macrolet ((skip-when (form) `(ert--skip-when ,form))
+                     (skip-unless (form) `(ert--skip-unless ,form)))
          (ert-set-test ',name
                        (make-ert-test
                         :name ',name
@@ -463,6 +465,15 @@ failed."
                        (funcall ,form-description-fn)
                        (list
                         :fail-reason "did not signal an error")))))))))
+
+(cl-defmacro ert--skip-when (form)
+  "Evaluate FORM.  If it returns t, skip the current test.
+Errors during evaluation are caught and handled like t."
+  (declare (debug t))
+  (ert--expand-should `(skip-when ,form) form
+                      (lambda (inner-form form-description-form _value-var)
+                        `(when (condition-case nil ,inner-form (t t))
+                           (ert-skip ,form-description-form)))))
 
 (cl-defmacro ert--skip-unless (form)
   "Evaluate FORM.  If it returns nil, skip the current test.

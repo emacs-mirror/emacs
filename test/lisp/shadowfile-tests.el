@@ -101,7 +101,7 @@ Per definition, all files are identical on the different hosts of
 a cluster (or site).  This is not tested here; it must be
 guaranteed by the originator of a cluster definition."
   :tags '(:expensive-test)
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((text-quoting-style 'grave) ;; We inspect the *Messages* buffer!
@@ -219,7 +219,7 @@ guaranteed by the originator of a cluster definition."
 Per definition, all files are identical on the different hosts of
 a cluster (or site).  This is not tested here; it must be
 guaranteed by the originator of a cluster definition."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -320,7 +320,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test02-files ()
   "Check file manipulation functions."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -391,7 +391,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test03-expand-cluster-in-file-name ()
   "Check canonical file name of a cluster or site."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -456,7 +456,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test04-contract-file-name ()
   "Check canonical file name of a cluster or site."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -511,7 +511,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test05-file-match ()
   "Check `shadow-same-site' and `shadow-file-match'."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -563,7 +563,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test06-literal-groups ()
   "Check literal group definitions."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -648,7 +648,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test07-regexp-groups ()
   "Check regexp group definitions."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
 
   (let ((shadow-info-file shadow-test-info-file)
@@ -710,7 +710,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test08-shadow-todo ()
   "Check that needed shadows are added to todo."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
   (skip-unless (file-writable-p ert-remote-temporary-file-directory))
 
@@ -855,7 +855,7 @@ guaranteed by the originator of a cluster definition."
 (ert-deftest shadow-test09-shadow-copy-files ()
   "Check that needed shadow files are copied."
   :tags '(:expensive-test)
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (skip-unless (file-remote-p ert-remote-temporary-file-directory))
   (skip-unless (file-writable-p ert-remote-temporary-file-directory))
 

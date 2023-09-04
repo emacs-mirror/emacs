@@ -32,7 +32,7 @@
 (ert-deftest find-func-tests--library-completion () ;bug#43393
   ;; FIXME: How can we make this work in batch (see also
   ;; `mule-cmds--test-universal-coding-system-argument')?
-  ;; (skip-unless (not noninteractive))
+  ;; (skip-when noninteractive)
   ;; Check that `partial-completion' works when completing library names.
   (should (equal "org/org"
                  (ert-simulate-keys

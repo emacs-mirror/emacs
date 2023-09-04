@@ -231,7 +231,7 @@ process to complete."
   (with-timeout (60 (ert-fail "Test timed out"))
   ;; Frequent random (?) failures on hydra.nixos.org, with no process output.
   ;; Maybe this test should be tagged unstable?  See bug#31214.
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-when (getenv "EMACS_HYDRA_CI"))
   (with-temp-buffer
     (let ((process (make-process
                     :name "mix-stderr"
@@ -723,7 +723,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
   (skip-unless (featurep 'make-network-process '(:server t)))
   (skip-unless (featurep 'make-network-process '(:family local)))
   ;; Avoid hang due to connect/accept handshake on Cygwin (bug#49496).
-  (skip-unless (not (eq system-type 'cygwin)))
+  (skip-when (eq system-type 'cygwin))
   (with-timeout (60 (ert-fail "Test timed out"))
     (ert-with-temp-directory directory
       (process-tests--with-processes processes
@@ -763,7 +763,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
   ;; This test cannot be run if PTYs aren't supported.
-  (skip-unless (not (eq system-type 'windows-nt)))
+  (skip-when (eq system-type 'windows-nt))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes
       ;; In order to use `make-serial-process', we need to create some

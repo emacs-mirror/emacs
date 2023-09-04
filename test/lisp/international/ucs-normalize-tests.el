@@ -255,8 +255,8 @@ Must be called with `ucs-normalize-tests--norm-buf' as current buffer."
 
 (ert-deftest ucs-normalize-part1 ()
   :tags '(:expensive-test)
-  (skip-unless (not (or (getenv "EMACS_HYDRA_CI")
-                        (getenv "EMACS_EMBA_CI")))) ; SLOW ~ 1800s
+  (skip-when (or (getenv "EMACS_HYDRA_CI")
+                 (getenv "EMACS_EMBA_CI"))) ; SLOW ~ 1800s
   ;; This takes a long time, so make sure we're compiled.
   (dolist (fun '(ucs-normalize-tests--part1-rule2
                  ucs-normalize-tests--rule1-failing-for-partX

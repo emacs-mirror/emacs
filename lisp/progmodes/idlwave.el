@@ -8750,11 +8750,12 @@ This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
 
 (defun idlwave-count-eq (elt list)
   "How often is ELT in LIST?"
-  (length (delq nil (mapcar (lambda (x) (eq x elt)) list))))
+  (declare (obsolete nil "30.1"))
+  (seq-count (lambda (x) (eq x elt)) list))
 
 (defun idlwave-count-memq (elt alist)
   "How often is ELT a key in ALIST?"
-  (length (delq nil (mapcar (lambda (x) (eq (car x) elt)) alist))))
+  (seq-count (lambda (x) (eq (car x) elt)) alist))
 
 (defun idlwave-syslib-p (file)
   "Non-nil if FILE is in the system library."
