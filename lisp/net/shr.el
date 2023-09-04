@@ -2617,7 +2617,7 @@ flags that control whether to collect or render objects."
     columns))
 
 (defun shr-count (dom elem)
-  (seq-count (lambda (x)
+  (seq-count (lambda (sub)
                (and (not (stringp sub))
                     (eq (dom-tag sub) elem)))
              (dom-children dom)))
