@@ -2774,10 +2774,13 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 
   /* A symbol with position compares the contained symbol, and is
      `equal' to the corresponding ordinary symbol.  */
-  if (SYMBOL_WITH_POS_P (o1))
-    o1 = SYMBOL_WITH_POS_SYM (o1);
-  if (SYMBOL_WITH_POS_P (o2))
-    o2 = SYMBOL_WITH_POS_SYM (o2);
+  if (symbols_with_pos_enabled)
+    {
+      if (SYMBOL_WITH_POS_P (o1))
+	o1 = SYMBOL_WITH_POS_SYM (o1);
+      if (SYMBOL_WITH_POS_P (o2))
+	o2 = SYMBOL_WITH_POS_SYM (o2);
+    }
 
   if (BASE_EQ (o1, o2))
     return true;
@@ -2825,8 +2828,8 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (ASIZE (o2) != size)
 	  return false;
 
-	/* Compare bignums, overlays, markers, and boolvectors
-	   specially, by comparing their values.  */
+	/* Compare bignums, overlays, markers, boolvectors, and
+	   symbols with position specially, by comparing their values.  */
 	if (BIGNUMP (o1))
 	  return mpz_cmp (*xbignum_val (o1), *xbignum_val (o2)) == 0;
 	if (OVERLAYP (o1))
@@ -2858,6 +2861,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (TS_NODEP (o1))
 	  return treesit_node_eq (o1, o2);
 #endif
+	if (SYMBOL_WITH_POS_P(o1)) /* symbols_with_pos_enabled is false.  */
+	  return (BASE_EQ (XSYMBOL_WITH_POS (o1)->sym,
+			   XSYMBOL_WITH_POS (o2)->sym)
+		  && BASE_EQ (XSYMBOL_WITH_POS (o1)->pos,
+			      XSYMBOL_WITH_POS (o2)->pos));
 
 	/* Aside from them, only true vectors, char-tables, compiled
 	   functions, and fonts (font-spec, font-entity, font-object)
