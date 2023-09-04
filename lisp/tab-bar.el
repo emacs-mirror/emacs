@@ -31,13 +31,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'seq)
-  (require 'icons))
-
-(autoload 'cl--set-substring "cl-lib")
-
+(eval-when-compile (require 'icons))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup tab-bar nil
   "Frame-local tabs."
