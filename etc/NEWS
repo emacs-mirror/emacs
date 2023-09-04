@@ -459,6 +459,13 @@ This macro could wrap code which handles local files only.  Due to the
 temporary deactivation of remote files, it results in a slightly
 improved performance of file name handling in Emacs.
 
++++
+*** New user option 'tramp-completion-multi-hop-methods'.
+It contains a list of connection methods for which completion should
+be attempted at the end of a multi-hop chain.  This allows completion
+candidates to include a list of, for example, containers running on a
+remote docker host.
+
 ** EWW
 
 +++

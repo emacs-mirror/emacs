@@ -3704,6 +3704,17 @@ host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
 @samp{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
 
+@defopt tramp-completion-multi-hop-methods
+When this list includes the last method in a multi-hop connection, the
+remote host will be queried for a list of completion candidates.  This
+can, for example, provide a list of running docker or podman
+containers on the remote host.
+
+@lisp
+(customize-set-variable 'tramp-completion-multi-hop-methods
+ `(,tramp-docker-method ,tramp-podman-method))
+@end lisp
+@end defopt
 
 @node Home directories
 @section Expanding @file{~} to home directory
