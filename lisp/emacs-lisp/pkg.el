@@ -45,6 +45,11 @@
 ;;                               Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun pkg--check-package-lock (package)
+  (when (and (package-locked-p package)
+             enable-package-locks)
+    (error "Package %s is locked" (package-name package))))
+
 (defun pkg--check-disjoint (&rest args)
   "Check whether all given arguments specify disjoint sets of symbols.
 Each argument is of the form (:key . set)."
@@ -179,7 +184,7 @@ BUFFER must be either a buffer object or the name of an existing buffer."
 		      (if (bufferp buffer)
 			  buffer
 			(get-buffer buffer))))
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Macros
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -255,6 +260,26 @@ normally, or else if an explcit return occurs the value it transfers."
          ,var
 	 ,result-form))))
 
+(defun pkg--internal-symbols (package)
+  (let (syms)
+    (do-symbols (sym (pkg--package-or-lose package))
+      (when (eq (symbol-package sym) *emacs-user-package*)
+        (push sym syms)))
+    syms))
+
+(defun pkg--external-symbols (package)
+  (let (syms)
+    (do-external-symbols (sym (pkg--package-or-lose package))
+      (when (eq (symbol-package sym) *emacs-user-package*)
+        (push sym syms)))
+    syms))
+
+(cl-defmacro without-package-locks (&body body)
+  `(let ((enable-package-locks nil))
+     (progn ,@body)))
+
+(cl-defmacro with-unlocked-packages ((&rest _packages) &body body)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                        Basic stuff
@@ -452,6 +477,7 @@ Value is the renamed package object."
         (new-name (pkg--stringify-name new-name "package name"))
         (new-nicknames (pkg--stringify-names new-nicknames
                                              "package nickname")))
+    (pkg--check-package-lock package)
     (unless (package-%name package)
       (error "Package is deleted"))
     (pkg--remove-from-registry package)

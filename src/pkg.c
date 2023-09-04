@@ -286,6 +286,14 @@ pkg_remove_symbol (Lisp_Object symbol, Lisp_Object package)
   Fremhash (symbol, PACKAGE_SYMBOLS (package));
 }
 
+static void
+pkg_check_package_lock (Lisp_Object package)
+{
+  if (!NILP (Venable_package_locks))
+    if (!NILP (XPACKAGE (package)->lock))
+      error ("Package %s is locked", SDATA (XPACKAGE (package)->name));
+}
+
 /* Intern a symbol with name NAME to PACKAGE.  If a symbol with name
    NAME is already accessible in PACKAGE, return that symbol.
 
@@ -315,8 +323,7 @@ pkg_intern_symbol1 (const Lisp_Object name, Lisp_Object package,
     symbol = existing_symbol;
   else
     {
-      if (!NILP (XPACKAGE (package)->lock))
-	error ("Package %s is locked", SDATA (XPACKAGE (package)->name));
+      pkg_check_package_lock (package);
       symbol = Fmake_symbol (name);
     }
 
@@ -988,6 +995,9 @@ init_pkg_once (void)
   staticpro (&Vsymbol_packages);
   Vsymbol_packages = Qnil;
 
+  staticpro (&Venable_package_locks);
+  Venable_package_locks = Qt;
+
   pkg_define_builtin_symbols ();
 }
 
@@ -1033,6 +1043,8 @@ syms_of_pkg (void)
   DEFVAR_LISP_NOPRO ("symbol-packages", Vsymbol_packages,
 		     doc: /* */);
   Fmake_variable_buffer_local (Qsymbol_packages);
+  DEFVAR_LISP_NOPRO ("enable-package-locks", Venable_package_locks,
+		     doc: /* */);
 
   Fprovide (Qsymbol_packages, Qnil);
 }
