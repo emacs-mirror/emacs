@@ -172,6 +172,13 @@ Otherwise assume that "
       (error "%s does not contain a symbol %s"
              (package-name package) name))))
 
+(defun buffer-package (buffer)
+  "Return the value of *package* in BUFFER.
+BUFFER must be either a buffer object or the name of an existing buffer."
+  (buffer-local-value '*package*
+		      (if (bufferp buffer)
+			  buffer
+			(get-buffer buffer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Macros

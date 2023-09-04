@@ -2769,7 +2769,8 @@ The argument SPECIAL, if non-nil, means that this command is
 executing a special event, so ignore the prefix argument and
 don't clear it."
   (setq debug-on-next-call nil)
-  (let ((prefixarg (unless special
+  (let ((*package* *emacs-package*)
+        (prefixarg (unless special
                      ;; FIXME: This should probably be done around
                      ;; pre-command-hook rather than here!
                      (prog1 prefix-arg
