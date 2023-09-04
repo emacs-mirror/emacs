@@ -869,10 +869,11 @@ See the "(elisp) Porting Old Advice" node for help converting them
 to use 'advice-add' or 'define-advice' instead.
 
 +++
-** New macro 'static-if' for conditional compilation of code.
-This macro hides a form from the compiler based on a compile-time
-condition.  This is handy for avoiding byte-compilation warnings about
-code that will never actually run under some conditions.
+** New macro 'static-if' for conditional evaluation of code.
+This macro hides a form from the evaluator or byte-compiler based on a
+compile-time condition.  This is handy for avoiding byte-compilation
+warnings about code that will never actually run under some
+conditions.
 
 +++
 ** Desktop notifications are now supported on the Haiku operating system.
