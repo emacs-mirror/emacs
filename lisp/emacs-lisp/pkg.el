@@ -177,14 +177,13 @@ Otherwise assume that "
       (error "%s does not contain a symbol %s"
              (package-name package) name))))
 
+;;;###autoload
 (cl-defun buffer-package (&optional (buffer (current-buffer)))
   "Return the value of *package* set in BUFFER.
 BUFFER must be either a buffer object or the name of an existing buffer."
-  (let ((buffer (if (bufferp buffer)
-                    buffer
-                  (get-buffer buffer))))
-    (with-current-buffer buffer
-      (default-buffer-local-value '*package*))))
+  (let ((buffer (or (get-buffer buffer)
+                    (error "Buffer not found: %s" buffer))))
+    (default-buffer-local-value '*package* buffer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Macros

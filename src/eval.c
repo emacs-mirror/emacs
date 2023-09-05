@@ -677,24 +677,16 @@ default_toplevel_binding (Lisp_Object symbol)
 }
 
 static union specbinding *
-default_buffer_local_binding (Lisp_Object symbol)
+default_buffer_local_binding (Lisp_Object symbol, Lisp_Object buffer)
 {
   union specbinding *binding = NULL;
-  union specbinding *pdl = specpdl_ptr;
-  while (pdl > specpdl)
-    {
-      switch ((--pdl)->kind)
-	{
-	case SPECPDL_LET_LOCAL:
-	case SPECPDL_LET_DEFAULT:
-	case SPECPDL_LET:
-	  if (EQ (specpdl_symbol (pdl), symbol))
-	    binding = pdl;
-	  break;
 
-	default: break;
-	}
-    }
+  for (union specbinding *pdl = specpdl_ptr - 1; pdl >= specpdl; --pdl)
+    if (pdl->kind == SPECPDL_LET_LOCAL
+	&& EQ (specpdl_symbol (pdl), symbol)
+	&& EQ (pdl->let.where, buffer))
+      binding = pdl;
+
   return binding;
 }
 
@@ -725,6 +717,8 @@ lexbound_p (Lisp_Object symbol)
   return false;
 }
 
+// clang-format off
+
 DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_value, 1, 1, 0,
        doc: /* Return SYMBOL's toplevel default value.
 "Toplevel" means outside of any let binding.  */)
@@ -738,11 +732,12 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
   xsignal1 (Qvoid_variable, symbol);
 }
 
-DEFUN ("default-buffer-local-value", Fdefault_buffer_local_value, Sdefault_buffer_local_value, 1, 1, 0,
-       doc: /* Return SYMBOL's toplevel buffer-local value. */)
-  (Lisp_Object symbol)
+DEFUN ("default-buffer-local-value", Fdefault_buffer_local_value,
+       Sdefault_buffer_local_value, 2, 2, 0,
+       doc: /* Return SYMBOL's toplevel buffer-local value in BUFFER. */)
+  (Lisp_Object symbol, Lisp_Object buffer)
 {
-  union specbinding *binding = default_buffer_local_binding (symbol);
+  union specbinding *binding = default_buffer_local_binding (symbol, buffer);
   Lisp_Object value
     = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
   if (!BASE_EQ (value, Qunbound))
@@ -793,6 +788,8 @@ value.  */)
   LOADHIST_ATTACH (symbol);
   return Qnil;
 }
+
+// clang-format on
 
 static Lisp_Object
 defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval)
