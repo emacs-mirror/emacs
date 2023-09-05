@@ -626,7 +626,7 @@ Value is t."
 (defun pkg-defpackage (name nicknames size shadows shadowing-imports
 			    use imports interns exports _doc-string)
   (let ((package (or (find-package name)
-                     (make-package name :use nil :size size
+                     (make-package name :use '("emacs") :size size
                                    :nicknames nicknames))))
 
     ;; Removed old nicknames from the registry, and adds new ones.
