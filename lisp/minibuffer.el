@@ -4025,7 +4025,9 @@ the same set of elements."
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (and (stringp prefix)
                                       (eq t (try-completion prefix comps))))))
-                (unless (or (eq elem 'prefix)
+                ;; if the common prefix is unique, it also is a common
+                ;; suffix, so we should add it for `prefix' elements
+                (unless (or (and (eq elem 'prefix) (not unique))
                             (equal prefix ""))
                   (push prefix res))
                 ;; If there's only one completion, `elem' is not useful

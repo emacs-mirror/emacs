@@ -298,6 +298,19 @@
                   "jab" '("dabjabstabby" "many") nil 3)))
            6)))
 
+(ert-deftest completion-substring-test-5 ()
+  ;; merge-completions needs to work correctly when
+  (should (equal
+           (completion-pcm--merge-completions '("ab" "sab") '(prefix "b"))
+           '("b" "a" prefix)))
+  (should (equal
+           (completion-pcm--merge-completions '("ab" "ab") '(prefix "b"))
+           '("b" "a")))
+  ;; substring completion should successfully complete the entire string
+  (should (equal
+           (completion-substring-try-completion "b" '("ab" "ab") nil 0)
+           '("ab" . 2))))
+
 (ert-deftest completion-flex-test-1 ()
   ;; Fuzzy match
   (should (equal
