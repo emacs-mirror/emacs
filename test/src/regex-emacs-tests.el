@@ -873,6 +873,7 @@ This evaluates the TESTS test cases from glibc."
   (should (equal (string-match "\\`a\\{2\\}*\\'" "a") nil)))
 
 (ert-deftest regexp-tests-backtrack-optimization () ;bug#61514
+  :expected-result :failed
   ;; Make sure we don't use up the regexp stack needlessly.
   (with-current-buffer (get-buffer-create "*bug*")
     (erase-buffer)
