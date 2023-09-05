@@ -76,7 +76,7 @@ static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
 static void delete_tty (struct terminal *);
 
-#endif
+#endif /* !HAVE_ANDROID */
 
 static AVOID maybe_fatal (bool, struct terminal *, const char *, const char *,
 			  ...)
@@ -2356,7 +2356,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       if (f != t->display_info.tty->output)
         emacs_fclose (t->display_info.tty->output);
       emacs_fclose (f);
-#endif
+#endif /* !MSDOS */
 
       t->display_info.tty->input = 0;
       t->display_info.tty->output = 0;
@@ -2368,10 +2368,11 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 
   /* Clear display hooks to prevent further output.  */
   clear_tty_hooks (t);
-#else
-  /* This will always signal on Android.  */
-  decode_tty_terminal (tty);
-#endif
+#else /* HAVE_ANDROID */
+  /* Android doesn't support TTY terminal devices, so unconditionally
+     signal.  */
+  error ("Attempt to suspend a non-text terminal device");
+#endif /* !HAVE_ANDROID */
 
   return Qnil;
 }
@@ -2428,7 +2429,7 @@ frame's terminal). */)
 
       if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
         dissociate_if_controlling_tty (fd);
-#endif
+#endif /* MSDOS */
 
       add_keyboard_wait_descriptor (fd);
 
@@ -2457,9 +2458,11 @@ frame's terminal). */)
     }
 
   set_tty_hooks (t);
-#else
-  decode_tty_terminal (tty);
-#endif
+#else /* HAVE_ANDROID */
+  /* Android doesn't support TTY terminal devices, so unconditionally
+     signal.  */
+  error ("Attempt to suspend a non-text terminal device");
+#endif /* !HAVE_ANDROID */
 
   return Qnil;
 }
@@ -2504,7 +2507,7 @@ A value of zero means TTY uses the system's default value.  */)
   error ("Not a tty terminal");
 }
 
-#endif
+#endif /* !HAVE_ANDROID */
 
 
 /***********************************************************************
