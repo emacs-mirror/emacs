@@ -883,4 +883,8 @@ This evaluates the TESTS test cases from glibc."
     (should (looking-at "x*\\(=\\|:\\)*"))
     (should (looking-at "x*=*?"))))
 
+(ert-deftest regex-tests-mutual-exclusive-inf-rec ()
+  ;; Regression test for bug#65726, where this crashed Emacs.
+  (should (equal (string-match "a*\\(?:c\\|b*\\)*" "a") 0)))
+
 ;;; regex-emacs-tests.el ends here
