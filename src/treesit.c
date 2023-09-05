@@ -1390,8 +1390,8 @@ is nil or omitted, it defaults to the current buffer.  If BUFFER
 already has a parser for LANGUAGE with TAG, return that parser, but if
 NO-REUSE is non-nil, always create a new parser.
 
-TAG should be a symbol and defaults to nil.  Different parsers can
-have the same tag.
+TAG can be any symbol except t, and defaults to nil.  Different
+parsers can have the same tag.
 
 If that buffer is an indirect buffer, its base buffer is used instead.
 That is, indirect buffers use their base buffer's parsers.  Lisp
@@ -1414,6 +1414,9 @@ an indirect buffer.  */)
     }
   if (buf->base_buffer)
     buf = buf->base_buffer;
+
+  if (EQ (tag, Qt))
+    xsignal2(Qwrong_type_argument, list2(Qnot, Qt), Qt);
 
   treesit_check_buffer_size (buf);
 
@@ -1472,15 +1475,22 @@ See `treesit-parser-list' for the buffer's parser list.  */)
   return Qnil;
 }
 
+/* If TAG is t, include all parsers regardless of their tag.  But
+   don't document this until there's some actual need for it.  */
 DEFUN ("treesit-parser-list",
        Ftreesit_parser_list, Streesit_parser_list,
-       0, 1, 0,
-       doc: /* Return BUFFER's parser list.
+       0, 3, 0,
+       doc: /* Return BUFFER's parser list, filtered by LANGUAGE and TAG.
 
 BUFFER defaults to the current buffer.  If that buffer is an indirect
 buffer, its base buffer is used instead.  That is, indirect buffers
-use their base buffer's parsers.  */)
-  (Lisp_Object buffer)
+use their base buffer's parsers.
+
+If LANGUAGE is non-nil, only return parsers for that language.
+
+The returned list only contain parsers with TAG.  TAG defaults to
+nil.  */)
+  (Lisp_Object buffer, Lisp_Object language, Lisp_Object tag)
 {
   struct buffer *buf;
   if (NILP (buffer))
@@ -1501,7 +1511,12 @@ use their base buffer's parsers.  */)
   tail = BVAR (buf, ts_parser_list);
 
   FOR_EACH_TAIL (tail)
-    return_list = Fcons (XCAR (tail), return_list);
+    {
+      struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
+      if ((NILP (language) || EQ (language, parser->language_symbol))
+	  && (EQ (tag, Qt) || EQ (tag, parser->tag)))
+	return_list = Fcons (XCAR (tail), return_list);
+    }
 
   return Freverse (return_list);
 }

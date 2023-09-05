@@ -409,8 +409,8 @@ By default, this function reuses a parser if one already exists for
 @var{language} with @var{tag} in @var{buffer}, but if @var{no-reuse}
 is non-@code{nil}, this function always creates a new parser.
 
-@var{tag} should be a symbol and defaults to @code{nil}.  Different
-parsers can have the same tag.
+@var{tag} can be any symbol except @code{t}, and defaults to
+@code{nil}.  Different parsers can have the same tag.
 
 If that buffer is an indirect buffer, its base buffer is used instead.
 That is, indirect buffers use their base buffer's parsers.  If the
@@ -453,11 +453,16 @@ internal parser list.  Every time a change is made to the buffer,
 Emacs updates parsers in this list so they can update their syntax
 tree incrementally.
 
-@defun treesit-parser-list &optional buffer
-This function returns the parser list of @var{buffer}.  If
-@var{buffer} is @code{nil} or omitted, it defaults to the current
-buffer.  If that buffer is an indirect buffer, its base buffer is used
-instead.  That is, indirect buffers use their base buffer's parsers.
+@defun treesit-parser-list &optional buffer language tag
+This function returns the parser list of @var{buffer}, filtered by
+@var{language} and @var{tag}.  If @var{buffer} is @code{nil} or
+omitted, it defaults to the current buffer.  If that buffer is an
+indirect buffer, its base buffer is used instead.  That is, indirect
+buffers use their base buffer's parsers.
+
+If @var{language} is non-@var{nil}, only include parsers for that
+language. And only include parsers with @var{tag}.  @var{tag} defaults
+to @code{nil}.
 @end defun
 
 @defun treesit-parser-delete parser
