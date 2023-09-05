@@ -711,7 +711,7 @@ Value is t."
 	(doc nil))
     (dolist (option options)
       (unless (consp option)
-	(error "Bogus DEFPACKAGE option: %s" option))
+	(error "Valid defpackage options must be lists: '%s'" option))
       (cl-case (car option)
 	(:nicknames
 	 (setf nicknames (pkg--stringify-names (cdr option) "package")))
