@@ -4410,11 +4410,13 @@ android_saf_move_document (const char *uri, char **doc_id,
 
   /* Do the rename.  */
   method = service_class.move_document;
-  result = (*android_java_env)->CallObjectMethod (android_java_env,
-						  emacs_service,
-						  method, uri1,
-						  doc_id1, dir_name1,
-						  dst_id1, src_id1);
+  result
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, uri1,
+						       doc_id1, dir_name1,
+						       dst_id1, src_id1);
   if (android_saf_exception_check (5, src_id1, dst_id1, dir_name1,
 				   doc_id1, uri1))
     {
