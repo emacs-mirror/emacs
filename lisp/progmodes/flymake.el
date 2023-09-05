@@ -965,6 +965,9 @@ report applies to that region."
 
 (defvar-local flymake-mode nil)
 
+(defvar-local flymake--mode-line-counter-cache nil
+  "A cache used in `flymake-mode-line-counters'.")
+
 (cl-defun flymake--publish-diagnostics (diags &key backend state region)
   "Helper for `flymake--handle-report'.
 Publish DIAGS, which contain diagnostics for the current buffer
@@ -1025,7 +1028,9 @@ and other buffers."
                    (setf (flymake--diag-locus d) (buffer-file-name))))
                (cl-assert (stringp (flymake--diag-locus d)))
                (push d (gethash (flymake--diag-locus d)
-                                (flymake--state-foreign-diags state))))))))
+                                (flymake--state-foreign-diags state))))))
+    ;; Finally, flush some caches
+    (setq flymake--mode-line-counter-cache nil)))
 
 (defun flymake-make-report-fn (backend &optional token)
   "Make a suitable anonymous report function for BACKEND.
@@ -1501,7 +1506,7 @@ The counters are only placed if some Flymake backend initialized
 correctly.")
 
 (defvar flymake-mode-line-error-counter
-  `(:eval (flymake--mode-line-counter :error t)))
+  `(:eval (flymake--mode-line-counter :error)))
 (defvar flymake-mode-line-warning-counter
   `(:eval (flymake--mode-line-counter :warning)))
 (defvar flymake-mode-line-note-counter
@@ -1598,9 +1603,8 @@ correctly.")
                 #'flymake--mode-line-counter-scroll-next)
     map))
 
-(defun flymake--mode-line-counter (type &optional no-space)
-  "Compute number of diagnostics in buffer with TYPE's severity.
-TYPE is usually keyword `:error', `:warning' or `:note'."
+(defun flymake--mode-line-counter-1 (type)
+  "Helper for `flymake--mode-line-counter'."
   (let ((count 0)
         (face (flymake--lookup-type-property type
                                              'mode-line-face
@@ -1617,7 +1621,7 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                          (warning-numeric-level
                           flymake-suppress-zero-counters)))
                     (t t)))
-      `(,(if no-space "" '(:propertize " "))
+      `(,(if (eq type :error) "" '(:propertize " "))
         (:propertize
          ,(format "%d" count)
          face ,face
@@ -1630,6 +1634,15 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                              (t (format "%s diagnostics" type))))
          flymake--diagnostic-type ,type
          keymap ,flymake--mode-line-counter-map)))))
+
+(defun flymake--mode-line-counter (type)
+  "Compute number of diagnostics in buffer with TYPE's severity.
+TYPE is usually keyword `:error', `:warning' or `:note'."
+  (let ((probe (alist-get type flymake--mode-line-counter-cache 'none)))
+    (if (eq probe 'none)
+        (setf (alist-get type flymake--mode-line-counter-cache)
+            (flymake--mode-line-counter-1 type))
+      probe)))
 
 ;;; Per-buffer diagnostic listing
 
