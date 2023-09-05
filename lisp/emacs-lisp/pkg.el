@@ -261,16 +261,18 @@ normally, or else if an explcit return occurs the value it transfers."
 	 ,result-form))))
 
 (defun pkg--internal-symbols (package)
-  (let (syms)
-    (do-symbols (sym (pkg--package-or-lose package))
-      (when (eq (symbol-package sym) *emacs-user-package*)
+  (let (syms
+        (package (pkg--package-or-lose package)))
+    (do-symbols (sym package)
+      (when (eq (symbol-package sym) package)
         (push sym syms)))
     syms))
 
 (defun pkg--external-symbols (package)
-  (let (syms)
-    (do-external-symbols (sym (pkg--package-or-lose package))
-      (when (eq (symbol-package sym) *emacs-user-package*)
+  (let (syms
+        (package (pkg--package-or-lose package)))
+    (do-external-symbols (sym package)
+      (when (eq (symbol-package sym) package)
         (push sym syms)))
     syms))
 
