@@ -55,39 +55,19 @@
 ;; Font-lock
 
 (defface sieve-control-commands
-  '((((type tty) (class color)) (:foreground "blue" :weight light))
-    (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-    (((class color) (background light)) (:foreground "Orchid"))
-    (((class color) (background dark)) (:foreground "LightSteelBlue"))
-    (t (:bold t)))
+  '((t :inherit font-lock-builtin-face))
   "Face used for Sieve Control Commands.")
 
 (defface sieve-action-commands
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
-    (((class color) (background light)) (:foreground "Blue"))
-    (((class color) (background dark)) (:foreground "LightSkyBlue"))
-    (t (:inverse-video t :bold t)))
+  '((t :inherit font-lock-function-name-face))
   "Face used for Sieve Action Commands.")
 
 (defface sieve-test-commands
-  '((((type tty) (class color)) (:foreground "magenta"))
-    (((class grayscale) (background light))
-     (:foreground "LightGray" :bold t :underline t))
-    (((class grayscale) (background dark))
-     (:foreground "Gray50" :bold t :underline t))
-    (((class color) (background light)) (:foreground "CadetBlue"))
-    (((class color) (background dark)) (:foreground "Aquamarine"))
-    (t (:bold t :underline t)))
+  '((t :inherit font-lock-constant-face))
   "Face used for Sieve Test Commands.")
 
 (defface sieve-tagged-arguments
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-    (((class color) (background light)) (:foreground "Purple"))
-    (((class color) (background dark)) (:foreground "Cyan"))
-    (t (:bold t)))
+  '((t :inherit font-lock-keyword face))
   "Face used for Sieve Tagged Arguments.")
 
 
