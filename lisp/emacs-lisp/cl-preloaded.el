@@ -159,7 +159,9 @@ supertypes from the most specific to least specific.")
   (cl-check-type name (satisfies cl--struct-name-p))
   (unless type
     ;; Legacy defstruct, using tagged vectors.  Enable backward compatibility.
-    (cl-old-struct-compat-mode 1))
+    (with-suppressed-warnings ((obsolete cl-old-struct-compat-mode))
+      (message "cl-old-struct-compat-mode is obsolete!")
+      (cl-old-struct-compat-mode 1)))
   (if (eq type 'record)
       ;; Defstruct using record objects.
       (setq type nil))

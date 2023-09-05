@@ -882,6 +882,9 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 See the "(elisp) Porting Old Advice" node for help converting them
 to use 'advice-add' or 'define-advice' instead.
 
+** 'cl-old-struct-compat-mode' is marked as obsolete.
+You may need to recompile our code if it was compiled with Emacs<24.3.
+
 +++
 ** New macro 'static-if' for conditional evaluation of code.
 This macro hides a form from the evaluator or byte-compiler based on a

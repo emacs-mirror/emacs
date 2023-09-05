@@ -571,6 +571,7 @@ of record objects."
     (advice-add 'type-of :around #'cl--old-struct-type-of))
    (t
     (advice-remove 'type-of #'cl--old-struct-type-of))))
+(make-obsolete 'cl-old-struct-compat-mode nil "30.1")
 
 (defun cl-constantly (value)
   "Return a function that takes any number of arguments, but returns VALUE."
