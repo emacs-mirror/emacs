@@ -1544,9 +1544,7 @@ contains a circular object."
 (defun edebug-list-form (cursor)
   ;; Return an instrumented form built from the list form.
   ;; The after offset will be left in the cursor after processing the form.
-  (let ((head (edebug-top-element-required cursor "Expected elements"))
-	;; Prevent backtracking whenever instrumenting.
-	(edebug-gate t))
+  (let ((head (edebug-top-element-required cursor "Expected elements")))
     ;; Skip the first offset.
     (edebug-set-cursor cursor (edebug-cursor-expressions cursor)
 		       (cdr (edebug-cursor-offsets cursor)))
