@@ -2682,7 +2682,9 @@ Finally, show the buffer."
                     (and which-key--god-mode-support-enabled
                          (bound-and-true-p god-local-mode)
                          (eq this-command 'god-mode-self-insert))
-                    (null this-command)))
+                    (null this-command))
+                (let ((max-dim (which-key--popup-max-dimensions)))
+                  (> (min (car-safe max-dim) (cdr-safe max-dim)) 0)))
            (when (and (not (equal prefix-keys (which-key--current-prefix)))
                       (or (null which-key-delay-functions)
                           (null (setq delay-time
