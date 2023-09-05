@@ -418,6 +418,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
                   (keyword string escape-sequence)
                   (constant expression identifier number pattern property)
                   (function bracket delimiter)))
+    (setq-local syntax-propertize-function #'ts-ts--syntax-propertize)
 
     (treesit-major-mode-setup)))
 
@@ -464,8 +465,46 @@ at least 3 (which is the default value)."
                   (keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
                   (function bracket delimiter)))
+    (setq-local syntax-propertize-function #'tsx-ts--syntax-propertize)
 
     (treesit-major-mode-setup)))
+
+(defvar ts-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'typescript
+                           '(((regex pattern: (regex_pattern) @regexp))))))
+
+(defvar tsx-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'tsx
+                           '(((regex pattern: (regex_pattern) @regexp))
+                             ((variable_declarator value: (jsx_element) @jsx))
+                             ((assignment_expression right: (jsx_element) @jsx))
+                             ((arguments (jsx_element) @jsx))
+                             ((parenthesized_expression (jsx_element) @jsx))
+                             ((return_statement (jsx_element) @jsx))))))
+
+(defun ts-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'typescript ts-ts--s-p-query beg end)))
+    (ts-ts--syntax-propertize-captures captures)))
+
+(defun tsx-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'tsx tsx-ts--s-p-query beg end)))
+    (ts-ts--syntax-propertize-captures captures)))
+
+(defun ts-ts--syntax-propertize-captures (captures)
+  (pcase-dolist (`(,name . ,node) captures)
+    (let* ((ns (treesit-node-start node))
+           (ne (treesit-node-end node))
+           (syntax (pcase-exhaustive name
+                     ('regexp
+                      (cl-decf ns)
+                      (cl-incf ne)
+                      (string-to-syntax "\"/"))
+                     ('jsx
+                      (string-to-syntax "|")))))
+      (put-text-property ns (1+ ns) 'syntax-table syntax)
+      (put-text-property (1- ne) ne 'syntax-table syntax))))
 
 (if (treesit-ready-p 'tsx)
     (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
