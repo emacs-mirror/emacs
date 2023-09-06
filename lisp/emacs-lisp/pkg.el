@@ -284,12 +284,21 @@ normally, or else if an explcit return occurs the value it transfers."
      (progn ,@body)))
 
 ;;;###autoload
-(cl-defmacro with-unlocked-packages ((&rest _packages) &body body)
-  )
+(defun pkg--with-package-locks (packages lock body)
+  `(cl-letf (,@(mapcar #'(lambda (p)
+                           `((package-%lock (pkg--package-or-lose ,p)) ,lock))
+                       packages))
+     ,@body))
 
 ;;;###autoload
-(cl-defmacro with-locked-packages ((&rest _packages) &body body)
-  )
+(cl-defmacro with-unlocked-packages ((&rest packages) &rest body)
+  (declare (indent 1))
+  (pkg--with-package-locks packages nil body))
+
+;;;###autoload
+(cl-defmacro with-locked-packages ((&rest packages) &rest body)
+  (declare (indent 1))
+  (pkg--with-package-locks packages t body))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

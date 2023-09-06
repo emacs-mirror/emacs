@@ -388,3 +388,4 @@ exec/config.h.in
 exec/config-mips.m4
 exec/configure
 exec/*.s.s
+/nextstep/Pkg.app/
