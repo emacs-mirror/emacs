@@ -82,7 +82,9 @@ it does not make sense to enter objects of these types as constants in
 a Lisp program.  These objects are printed in @dfn{hash notation},
 which consists of the characters @samp{#<}, a descriptive string
 (typically the type name followed by the name of the object), and a
-closing @samp{>}.  For example:
+closing @samp{>}.  (This is called ``hash notation'' because it begins
+with the @samp{#} character, known as ``hash'' or ``number sign'').
+For example:
 
 @example
 (current-buffer)
