@@ -863,7 +863,8 @@ also modify the dynamic variables described for the variable
 (defcustom ido-completion-buffer "*Ido Completions*"
   "Name of completion buffer used by Ido.
 Set to nil to disable completion buffers popping up."
-  :type 'string)
+  :type '(choice (const :tag "Disable popping up completion buffer" nil)
+                 string))
 
 (defcustom ido-completion-buffer-all-completions nil
   "Non-nil means to show all completions in completion buffer.
