@@ -186,11 +186,18 @@ only look for named nodes.
 If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
 is a language, find the first parser for that language in the
 current buffer, or create one if none exists; If PARSER-OR-LANG
-is nil, try to guess the language at POS using `treesit-language-at'."
-  (let* ((root (if (treesit-parser-p parser-or-lang)
+is nil, try to guess the language at POS using `treesit-language-at'.
+
+If there's a local parser at POS, try to use that parser first."
+  (let* ((lang-at-point (treesit-language-at pos))
+         (root (if (treesit-parser-p parser-or-lang)
                    (treesit-parser-root-node parser-or-lang)
-                 (treesit-buffer-root-node
-                  (or parser-or-lang (treesit-language-at pos)))))
+                 (or (when-let ((parser (car (treesit-local-parsers-at
+                                              pos (or parser-or-lang
+                                                      lang-at-point)))))
+                       (treesit-parser-root-node parser))
+                     (treesit-buffer-root-node
+                      (or parser-or-lang lang-at-point)))))
          (node root)
          (node-before root)
          (pos-1 (max (1- pos) (point-min)))
@@ -235,11 +242,20 @@ named node.
 If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
 is a language, find the first parser for that language in the
 current buffer, or create one if none exists; If PARSER-OR-LANG
-is nil, try to guess the language at BEG using `treesit-language-at'."
-  (let ((root (if (treesit-parser-p parser-or-lang)
-                  (treesit-parser-root-node parser-or-lang)
-                (treesit-buffer-root-node
-                 (or parser-or-lang (treesit-language-at beg))))))
+is nil, try to guess the language at BEG using `treesit-language-at'.
+
+If there's a local parser between BEG and END, try to use that
+parser first."
+  (let* ((lang-at-point (treesit-language-at beg))
+         (root (if (treesit-parser-p parser-or-lang)
+                   (treesit-parser-root-node parser-or-lang)
+                 (or (when-let ((parser
+                                 (car (treesit-local-parsers-in
+                                       beg end (or parser-or-lang
+                                                   lang-at-point)))))
+                       (treesit-parser-root-node parser))
+                     (treesit-buffer-root-node
+                      (or parser-or-lang lang-at-point))))))
     (treesit-node-descendant-for-range root beg (or end beg) named)))
 
 (defun treesit-node-top-level (node &optional pred include-node)
