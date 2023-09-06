@@ -2877,3 +2877,21 @@ This is the major mode used in inactive minibuffers.  It uses
 keymap @code{minibuffer-inactive-mode-map}.  This can be useful
 if the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
 @end deffn
+
+@deffn Command minibuffer-regexp-mode
+This is a minor mode for editing regular expressions in the minibuffer.
+It highlight parens via @code{show-paren-mode} and
+@code{blink-matching-paren} in a user-friendly way, avoids reporting
+alleged paren mismatches and makes sexp navigation more intuitive.
+
+The list of prompts activating this mode in specific minibuffer
+interactions is customizable via @code{minibuffer-regexp-prompts}, see
+below.
+@end deffn
+
+@defopt minibuffer-regexp-prompts
+List of minibuffer prompts that trigger @code{minibuffer-regexp-mode}.
+@code{minibuffer-regexp-mode} is activated in a specific minibuffer
+interaction if and only if a prompt in this list appears at the
+beginning of the minibuffer.
+@end defopt

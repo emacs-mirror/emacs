@@ -775,6 +775,13 @@ A major mode based on the tree-sitter library for editing HEEx files.
 A major mode based on the tree-sitter library for editing Elixir
 files.
 
++++
+** New global minor mode 'minibuffer-regexp-mode'.
+This is a minor mode for editing regular expressions in the minibuffer.
+It highlight parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
+a user-friendly way, avoids reporting alleged paren mismatches and makes
+sexp navigation more intuitive.
+
 ---
 ** The highly accessible Modus themes collection has eight items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have
