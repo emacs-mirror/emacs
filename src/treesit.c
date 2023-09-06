@@ -1475,8 +1475,6 @@ See `treesit-parser-list' for the buffer's parser list.  */)
   return Qnil;
 }
 
-/* If TAG is t, include all parsers regardless of their tag.  But
-   don't document this until there's some actual need for it.  */
 DEFUN ("treesit-parser-list",
        Ftreesit_parser_list, Streesit_parser_list,
        0, 3, 0,
@@ -1488,8 +1486,9 @@ use their base buffer's parsers.
 
 If LANGUAGE is non-nil, only return parsers for that language.
 
-The returned list only contain parsers with TAG.  TAG defaults to
-nil.  */)
+The returned list only contain parsers with TAG.  TAG defaults to nil.
+If TAG is t, include parsers in the returned list regardless of their
+tag.  */)
   (Lisp_Object buffer, Lisp_Object language, Lisp_Object tag)
 {
   struct buffer *buf;

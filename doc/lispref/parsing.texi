@@ -462,7 +462,8 @@ buffers use their base buffer's parsers.
 
 If @var{language} is non-@var{nil}, only include parsers for that
 language. And only include parsers with @var{tag}.  @var{tag} defaults
-to @code{nil}.
+to @code{nil}.  If @var{tag} is @code{t}, include parsers in the
+returned list regardless of their tag.
 @end defun
 
 @defun treesit-parser-delete parser
