@@ -1714,6 +1714,19 @@ If @var{query} is a tree-sitter query, it should be preceded by two
 specifies the embedded language, and the @code{:host} keyword
 specifies the host language.
 
+@cindex local parser
+If the query is given a @code{:local} keyword, and the value is
+@code{t}, the range set by this query has a dedicated local parser;
+otherwise the range shares a parser with other ranges for the same
+language.
+
+A parser sees view its ranges continuously, rather than viewing them
+as independent segments.  Therefore, if the embedded range are
+semantically independent segments, use local parsers for them.
+
+Local parser set to a range can be retrieved by
+@code{treesit-local-parsers-at} and @code{treesit-local-parsers-in}.
+
 @code{treesit-update-ranges} uses @var{query} to figure out how to set
 the ranges for parsers for the embedded language.  It queries
 @var{query} in a host language parser, computes the ranges which the
@@ -1748,6 +1761,23 @@ argument, @var{pos}, which is a buffer position, and returns the
 language of the buffer text at @var{pos}.  This variable is used by
 @code{treesit-language-at}.
 @end defvar
+
+@defun treesit-local-parsers-at &optional pos language
+This function returns all the local parsers at @var{pos}.
+
+Local parsers are those who only parses a limited region marked by an
+overlay.  If @var{language} is non-@code{nil}, only return parsers for
+that language.
+
+@var{pos} defaults to point.
+@end defun
+
+@defun treesit-local-parsers-on &optional beg end language
+This function is the same as @code{treesit-local-parsers-at}, but gets
+the local parsers in a range instead of at a point.
+
+@var{beg} and @var{end} default to cover the whole buffer.
+@end defun
 
 @node Tree-sitter Major Modes
 @section Developing major modes with tree-sitter
@@ -1843,6 +1873,8 @@ add-log functions used by @code{add-log-current-defun}.
 If @code{treesit-simple-imenu-settings} (@pxref{Imenu}) is
 non-@code{nil}, it sets up Imenu.
 @end itemize
+
+@c TODO: Add treesit-thing-settings stuff once we finalize it.
 @end defun
 
 For more information on these built-in tree-sitter features,
