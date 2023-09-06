@@ -411,18 +411,6 @@ like <img alt=\"Some thing.\">."
   (run-hooks 'flyspell-prog-mode-hook))
 
 ;;*---------------------------------------------------------------------*/
-;;*    Overlay compatibility                                            */
-;;*---------------------------------------------------------------------*/
-(autoload 'make-overlay            "overlay" "Overlay compatibility kit." t)
-(autoload 'overlayp                "overlay" "Overlay compatibility kit." t)
-(autoload 'overlays-in             "overlay" "Overlay compatibility kit." t)
-(autoload 'delete-overlay          "overlay" "Overlay compatibility kit." t)
-(autoload 'overlays-at             "overlay" "Overlay compatibility kit." t)
-(autoload 'overlay-put             "overlay" "Overlay compatibility kit." t)
-(autoload 'overlay-get             "overlay" "Overlay compatibility kit." t)
-(autoload 'previous-overlay-change "overlay" "Overlay compatibility kit." t)
-
-;;*---------------------------------------------------------------------*/
 ;;*    The minor mode declaration.                                      */
 ;;*---------------------------------------------------------------------*/
 (defvar-keymap flyspell-mouse-map
