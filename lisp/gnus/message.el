@@ -911,8 +911,10 @@ installations, which are rare these days."
 (defcustom message-sendmail-envelope-from
   'obey-mail-envelope-from
   "Envelope-from when sending mail with sendmail.
-If this is nil, use `user-mail-address'.  If it is the symbol
-`header', use the From: header of the message."
+If this is `obey-mail-envelope-from', then use
+`mail-envelope-from' to decide what to do.  If it is nil, use
+`user-mail-address'.  If it is the symbol `header', use the
+\"From:\" header of the message."
   :version "27.1"
   :type '(choice (string :tag "From name")
 		 (const :tag "Use From: header from message" header)
