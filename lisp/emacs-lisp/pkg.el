@@ -260,7 +260,8 @@ normally, or else if an explcit return occurs the value it transfers."
          ,var
 	 ,result-form))))
 
-(defun pkg--internal-symbols (package)
+;;;###autoload
+(defun internal-symbols (package)
   (let (syms
         (package (pkg--package-or-lose package)))
     (do-symbols (sym package)
@@ -268,7 +269,8 @@ normally, or else if an explcit return occurs the value it transfers."
         (push sym syms)))
     syms))
 
-(defun pkg--external-symbols (package)
+;;;###autoload
+(defun external-symbols (package)
   (let (syms
         (package (pkg--package-or-lose package)))
     (do-external-symbols (sym package)
@@ -276,12 +278,19 @@ normally, or else if an explcit return occurs the value it transfers."
         (push sym syms)))
     syms))
 
+;;;###autoload
 (cl-defmacro without-package-locks (&body body)
   `(let ((enable-package-locks nil))
      (progn ,@body)))
 
+;;;###autoload
 (cl-defmacro with-unlocked-packages ((&rest _packages) &body body)
   )
+
+;;;###autoload
+(cl-defmacro with-locked-packages ((&rest _packages) &body body)
+  )
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                        Basic stuff
@@ -454,7 +463,9 @@ error."
     (let ((package (pkg--package-or-lose package)))
       (when (or (eq package *emacs-package*)
                 (eq package *keyword-package*))
-        (error "Cannot delete a standard package"))
+        (error "Cannot delete a standard package: %s"
+               package))
+      (pkg--check-package-lock package)
       (pkg--remove-from-registry package)
       (setf (package-%name package) nil)
       (do-symbols (sym package)
@@ -479,9 +490,9 @@ Value is the renamed package object."
         (new-name (pkg--stringify-name new-name "package name"))
         (new-nicknames (pkg--stringify-names new-nicknames
                                              "package nickname")))
-    (pkg--check-package-lock package)
     (unless (package-%name package)
-      (error "Package is deleted"))
+      (error "Package %s is deleted" package))
+    (pkg--check-package-lock package)
     (pkg--remove-from-registry package)
     (setf (package-%nicknames package) new-nicknames)
     (setf (package-%name package) new-name)
