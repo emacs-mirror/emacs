@@ -967,7 +967,7 @@ DEFUN ("try-completion-in-all-packages",
   return longest_prefix;
 }
 
-DEFUN ("all-completions-ina-ll-packages",
+DEFUN ("all-completions-in-all-packages",
        Fall_completions_in_all_packages,
        Sall_completions_in_all_packages, 2, 4, 0,
        doc: /* */)
