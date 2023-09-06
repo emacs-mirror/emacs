@@ -34,7 +34,7 @@ public final class EmacsPixmap extends EmacsHandleObject
 {
   /* The depth of the bitmap.  This is not actually used, just defined
      in order to be consistent with X.  */
-  public int depth, width, height;
+  public final int depth, width, height;
 
   /* The bitmap itself.  */
   public Bitmap bitmap;
@@ -44,7 +44,7 @@ public final class EmacsPixmap extends EmacsHandleObject
 
   /* Whether or not GC should be explicitly triggered upon
      release.  */
-  private boolean needCollect;
+  private final boolean needCollect;
 
   /* ID used to determine whether or not the GC clip rects
      changed.  */
@@ -77,6 +77,10 @@ public final class EmacsPixmap extends EmacsHandleObject
     this.width = width;
     this.height = height;
     this.depth = depth;
+
+    /* The immutable bitmap constructor is only leveraged to create
+       small fringe bitmaps.  */
+    this.needCollect = false;
   }
 
   public

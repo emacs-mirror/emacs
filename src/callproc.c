@@ -1735,6 +1735,10 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
   }
 #endif
 
+  /* Setting DISPLAY under Android hinders attempts to display other
+     programs within X servers that are available for Android.  */
+
+#ifndef HAVE_ANDROID
   /* For DISPLAY try to get the values from the frame or the initial env.  */
   if (strcmp (var, "DISPLAY") == 0)
     {
@@ -1747,12 +1751,13 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
-#endif
+#endif /* !HAVE_PGTK */
       /* If still not found, Look for DISPLAY in Vinitial_environment.  */
       if (getenv_internal_1 (var, varlen, value, valuelen,
 			     Vinitial_environment))
 	return *value ? 1 : 0;
     }
+#endif /* !HAVE_ANDROID */
 
   return 0;
 }
@@ -1845,7 +1850,9 @@ make_environment_block (Lisp_Object current_dir)
     register char **new_env;
     char **p, **q;
     register int new_length;
+#ifndef HAVE_ANDROID
     Lisp_Object display = Qnil;
+#endif /* !HAVE_ANDROID */
 
     new_length = 0;
 
@@ -1853,14 +1860,20 @@ make_environment_block (Lisp_Object current_dir)
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
       {
+#ifndef HAVE_ANDROID
 	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
 	    && (SDATA (XCAR (tem)) [7] == '\0'
 		|| SDATA (XCAR (tem)) [7] == '='))
 	  /* DISPLAY is specified in process-environment.  */
 	  display = Qt;
+#endif /* !HAVE_ANDROID */
 	new_length++;
       }
 
+    /* Setting DISPLAY under Android hinders attempts to display other
+       programs within X servers that are available for Android.  */
+
+#ifndef HAVE_ANDROID
     /* If not provided yet, use the frame's DISPLAY.  */
     if (NILP (display))
       {
@@ -1875,7 +1888,7 @@ make_environment_block (Lisp_Object current_dir)
 	    && strcmp (G_OBJECT_TYPE_NAME (FRAME_X_DISPLAY (SELECTED_FRAME ())),
 		       "GdkX11Display"))
 	  tmp = Qnil;
-#endif
+#endif /* HAVE_PGTK */
 
 	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
 	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
@@ -1887,6 +1900,7 @@ make_environment_block (Lisp_Object current_dir)
 	    new_length++;
 	  }
       }
+#endif /* !HAVE_ANDROID */
 
     /* new_length + 2 to include PWD and terminating 0.  */
     env = new_env = xnmalloc (new_length + 2, sizeof *env);
@@ -1896,6 +1910,7 @@ make_environment_block (Lisp_Object current_dir)
     if (egetenv ("PWD"))
       *new_env++ = pwd_var;
 
+#ifndef HAVE_ANDROID
     if (STRINGP (display))
       {
 	char *vdata = xmalloc (sizeof "DISPLAY=" + SBYTES (display));
@@ -1903,6 +1918,7 @@ make_environment_block (Lisp_Object current_dir)
 	lispstpcpy (stpcpy (vdata, "DISPLAY="), display);
 	new_env = add_env (env, new_env, vdata);
       }
+#endif /* !HAVE_ANDROID */
 
     /* Overrides.  */
     for (tem = Vprocess_environment;
