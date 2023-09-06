@@ -154,8 +154,8 @@ strings that describe how to insert CONSONANT."
   (setq consonants
      (sort consonants
          (lambda (x y)
-           (or (seq-position (car x) quail-tamil-itrans--consonant-order) 1000)
-           (or (seq-position (car y) quail-tamil-itrans--consonant-order) 1000))))
+           (< (or (seq-position (car x) quail-tamil-itrans--consonant-order) 1000)
+              (or (seq-position (car y) quail-tamil-itrans--consonant-order) 1000)))))
   (let ((virama #x0BCD)
 	clm)
     (with-temp-buffer
