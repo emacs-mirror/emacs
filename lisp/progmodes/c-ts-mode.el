@@ -478,6 +478,7 @@ MODE is either `c' or `cpp'."
        ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
        ((parent-is "compound_statement") parent-bol c-ts-mode-indent-offset)
        ((parent-is "if_statement") parent-bol 0)
+       ((parent-is "else_clause") parent-bol 0)
        ((parent-is "for_statement") parent-bol 0)
        ((parent-is "while_statement") parent-bol 0)
        ((parent-is "switch_statement") parent-bol 0)
