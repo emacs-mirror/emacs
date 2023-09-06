@@ -271,6 +271,9 @@ pkg_add_symbol (Lisp_Object symbol, Lisp_Object status, Lisp_Object package)
   eassert (SYMBOLP (status));
   eassert (PACKAGEP (package));
   Fputhash (symbol, status, PACKAGE_SYMBOLS (package));
+  if (EQ (package, Vemacs_package)
+      && strcmp (SDATA (SYMBOL_NAME (symbol)), "schleim") == 0)
+    pkg_break ();
   return symbol;
 }
 
@@ -935,7 +938,71 @@ DEFUN ("watch-*package*", Fwatch_earmuffs_package, Swatch_earmuffs_package,
   return Qnil;
 }
 
-// clang-format on
+
+/***********************************************************************
+			    Completion
+ ***********************************************************************/
+
+DEFUN ("try-completion-in-all-packages",
+       Ftry_completion_in_all_packages,
+       Stry_completion_in_all_packages, 2, 3, 0,
+       doc: /* */)
+  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
+{
+  Lisp_Object longest_prefix = Qnil;
+  ptrdiff_t longest_len = 0;
+
+  Lisp_Object tail = pkg_list_all_packages ();
+  FOR_EACH_TAIL (tail)
+    {
+      Lisp_Object prefix
+	= Ftry_completion (string, XCAR (tail), predicate);
+      if (STRINGP (prefix) && SCHARS (prefix) > longest_len)
+	{
+	  longest_prefix = prefix;
+	  longest_len = SCHARS (prefix);
+	}
+    }
+
+  return longest_prefix;
+}
+
+DEFUN ("all-completions-ina-ll-packages",
+       Fall_completions_in_all_packages,
+       Sall_completions_in_all_packages, 2, 4, 0,
+       doc: /* */)
+  (Lisp_Object string, Lisp_Object collection,
+   Lisp_Object predicate, Lisp_Object hide_spaces)
+{
+  Lisp_Object result = Qnil;
+
+  Lisp_Object tail = pkg_list_all_packages ();
+  FOR_EACH_TAIL (tail)
+    {
+      Lisp_Object partial
+	= Fall_completions (string, XCAR (tail), predicate, hide_spaces);
+      result = CALLN (Fappend, result, partial);
+    }
+
+  return result;
+}
+
+DEFUN ("test-completion-in-all-packages",
+       Ftest_completion_in_all_packages,
+       Stest_completion_in_all_packages, 2, 3, 0,
+       doc: /* */)
+  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
+{
+  Lisp_Object tail = pkg_list_all_packages ();
+  FOR_EACH_TAIL (tail)
+    {
+      Lisp_Object test
+	= Ftest_completion (string, XCAR (tail), predicate);
+      if (!NILP (test))
+	return Qt;
+    }
+  return Qnil;
+}
 
 
 /***********************************************************************
@@ -1027,6 +1094,9 @@ syms_of_pkg (void)
   defsubr (&Spackagep);
   defsubr (&Spkg_read);
   defsubr (&Swatch_earmuffs_package);
+  defsubr (&Stry_completion_in_all_packages);
+  defsubr (&Sall_completions_in_all_packages);
+  defsubr (&Stest_completion_in_all_packages);
 
   DEFVAR_LISP_NOPRO ("*package-registry*", Vpackage_registry,
 		     doc: /* The package registry.  For internal use only.  */);
