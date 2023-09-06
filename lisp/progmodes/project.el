@@ -567,6 +567,12 @@ See `project-vc-extra-root-markers' for the marker value format.")
           (let* ((parent (file-name-directory (directory-file-name root))))
             (setq root (vc-call-backend 'Git 'root parent))))
         (when root
+          (when (not backend)
+            (let* ((project-vc-extra-root-markers nil)
+                   ;; Avoid submodules scan.
+                   (enable-dir-local-variables nil)
+                   (parent (project-try-vc root)))
+              (and parent (setq backend (nth 1 parent)))))
           (setq project (list 'vc backend root))
           ;; FIXME: Cache for a shorter time.
           (vc-file-setprop dir 'project-vc project)

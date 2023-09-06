@@ -137,6 +137,7 @@ When `project-ignores' includes a name matching project dir."
          (project-vc-extra-root-markers '("files-x-tests.*"))
          (project (project-current nil dir)))
     (should-not (null project))
+    (should (nth 1 project))
     (should (string-match-p "/test/lisp/\\'" (project-root project)))))
 
 (ert-deftest project-vc-supports-project-in-different-dir ()

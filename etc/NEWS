@@ -797,6 +797,13 @@ the current project.
 The look of the key prompt in the project switcher has been changed
 slightly.  To get the previous one, set this option to 'brackets'.
 
+*** 'project-try-vc' tries harder to find the responsible VCS.
+When 'project-vc-extra-root-markers' is non-nil, and causes
+subdirectory project to be detected which is not a VCS root, we now
+additionally traverse the parent directories until a VCS root is found
+(if any), so that the ignore rules for that repository are used, and
+the file listing's performance is still optimized.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
