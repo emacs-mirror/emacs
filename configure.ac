@@ -4385,8 +4385,9 @@ if test "${with_native_compilation}" != "no"; then
     case "${opsys}" in
       # mingw32 loads the library dynamically.
       mingw32) ;;
-      # OpenBSD doesn't have libdl, all the functions are in libc
-      netbsd|openbsd)
+      # Neither NetBSD, OpenBSD nor Haiku have libdl, with all dynamic
+      # linker functions placed within libc.
+      netbsd|openbsd|haiku)
         LIBGCCJIT_LIBS="-lgccjit" ;;
       darwin)
         LIBGCCJIT_CFLAGS="${MAC_CFLAGS}"
