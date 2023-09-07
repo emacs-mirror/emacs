@@ -2879,19 +2879,20 @@ if the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
 @end deffn
 
 @deffn Command minibuffer-regexp-mode
-This is a minor mode for editing regular expressions in the minibuffer.
-It highlight parens via @code{show-paren-mode} and
+This minor mode makes editing regular expressions in the minibuffer
+more convenient.  It highlight parens via @code{show-paren-mode} and
 @code{blink-matching-paren} in a user-friendly way, avoids reporting
-alleged paren mismatches and makes sexp navigation more intuitive.
-
-The list of prompts activating this mode in specific minibuffer
-interactions is customizable via @code{minibuffer-regexp-prompts}, see
-below.
+false paren mismatches, and makes sexp navigation more intuitive.
 @end deffn
 
+By default, only certain minibuffer prompts automatically activate the
+convenience features of @code{minibuffer-regexp-mode} when the
+minibuffer becomes active.  This list of prompts can be customized via
+@code{minibuffer-regexp-prompts}.
+
 @defopt minibuffer-regexp-prompts
-List of minibuffer prompts that trigger @code{minibuffer-regexp-mode}.
-@code{minibuffer-regexp-mode} is activated in a specific minibuffer
-interaction if and only if a prompt in this list appears at the
-beginning of the minibuffer.
+This variable holds the list of regular expressions for activating the
+features of @code{minibuffer-regexp-mode} in the minibuffer.  The
+mode's features will be activated only if the minibuffer prompt
+matches one of the regular expressions in the list.
 @end defopt

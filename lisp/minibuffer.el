@@ -4759,10 +4759,13 @@ and `blink-matching-paren' more user-friendly."
 
 (defcustom minibuffer-regexp-prompts
   '("Posix search" "RE search" "Search for regexp" "Query replace regexp")
-  "List of minibuffer prompts that trigger `minibuffer-regexp-mode'.
-`minibuffer-regexp-mode' is activated in a specific minibuffer
-interaction if and only if a prompt in this list appears at the
-beginning of the minibuffer."
+  "List of regular expressions that trigger `minibuffer-regexp-mode' features.
+The features of `minibuffer-regexp-mode' will be activated in a minibuffer
+interaction if and only if a prompt matching some regexp in this list
+appears at the beginning of the minibuffer.
+
+Setting this variable directly with `setq' has no effect; instead,
+either use \\[customize-option] interactively or use `setopt'."
   :type '(repeat (string :tag "Prompt"))
   :set (lambda (sym val)
 	 (set-default sym val)
