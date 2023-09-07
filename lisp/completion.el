@@ -2133,7 +2133,25 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
 ;;;###autoload
 (define-minor-mode dynamic-completion-mode
-  "Toggle dynamic word-completion on or off."
+  "Toggle dynamic word-completion on or off.
+
+When this minor mode is turned on, typing `M-RET' or `C-RET'
+invokes the command `complete', which completes the word or
+symbol at point using the record of words/symbols you used
+previously and the previously-inserted completions.  Typing
+a word or moving point across it constitutes \"using\" the
+word.
+
+By default, the database of all the dynamic completions that
+were inserted by \\[complete] is saved on the file specified
+by `save-completions-file-name' when you exit Emacs, and will
+be loaded from that file when this mode is enabled in a future
+Emacs session.
+
+The following important options control the various aspects of
+this mode: `enable-completion', `save-completions-flag', and
+`save-completions-retention-time'.  Few other less important
+options can be found in the `completion' group."
   :global t
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])
