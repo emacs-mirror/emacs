@@ -681,7 +681,7 @@ region."
                             (treesit--merge-ranges
                              old-ranges new-ranges beg end)
                             (point-min) (point-max))))
-          (dolist (parser (treesit-parser-list language))
+          (dolist (parser (treesit-parser-list nil language))
             (treesit-parser-set-included-ranges
              parser set-ranges))))))))
 
