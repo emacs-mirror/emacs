@@ -6513,7 +6513,7 @@ case $opsys in
 esac
 
 case $opsys in
-  gnu-* | solaris | cygwin )
+  gnu-* | android | solaris | cygwin )
     dnl FIXME Can't we test if this exists (eg /proc/$$)?
     AC_DEFINE([HAVE_PROCFS], [1], [Define if you have the /proc filesystem.])
   ;;
