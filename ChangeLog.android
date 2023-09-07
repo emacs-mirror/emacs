@@ -90,10 +90,10 @@
 
 2023-08-02  Po Lu  <luangruo@yahoo.com>
 
-	* doc/emacs/android.texi (Android, What is Android?, Android
-	Startup, Android File System, Android Environment,Android
-	Windowing, Android Fonts, Android Troubleshooting): Improve
-	section titles.
+	* doc/emacs/android.texi (Android, What is Android?)
+	(Android Startup, Android File System, Android Environment)
+	(Android Windowing, Android Fonts, Android Troubleshooting):
+	Improve section titles.
 	(Android Windowing): Describe the relation between keyboard
 	modifiers reported by Android and those in key events.
 
@@ -203,6 +203,7 @@
 	argument NAME.
 
 	* src/android.c (android_init_emacs_service): Add new argument.
+
 	* src/androidvfs.c (android_saf_delete_document)
 	(android_saf_tree_rmdir, android_saf_file_unlink): Pass name of
 	file being deleted to `deleteDocument'.
