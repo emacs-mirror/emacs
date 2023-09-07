@@ -461,7 +461,7 @@ indirect buffer, its base buffer is used instead.  That is, indirect
 buffers use their base buffer's parsers.
 
 If @var{language} is non-@var{nil}, only include parsers for that
-language. And only include parsers with @var{tag}.  @var{tag} defaults
+language, and only include parsers with @var{tag}.  @var{tag} defaults
 to @code{nil}.  If @var{tag} is @code{t}, include parsers in the
 returned list regardless of their tag.
 @end defun
@@ -1716,16 +1716,17 @@ specifies the embedded language, and the @code{:host} keyword
 specifies the host language.
 
 @cindex local parser
-If the query is given a @code{:local} keyword, and the value is
+If the query is given the @code{:local} keyword whose value is
 @code{t}, the range set by this query has a dedicated local parser;
 otherwise the range shares a parser with other ranges for the same
 language.
 
-A parser sees view its ranges continuously, rather than viewing them
-as independent segments.  Therefore, if the embedded range are
-semantically independent segments, use local parsers for them.
+By default, a parser sees its ranges as a continuum, rather than
+treating them as separate independent segments.  Therefore, if the
+embedded ranges are semantically independent segments, they should be
+processed by local parsers, described below.
 
-Local parser set to a range can be retrieved by
+The local parser set to a range can be retrieved by
 @code{treesit-local-parsers-at} and @code{treesit-local-parsers-in}.
 
 @code{treesit-update-ranges} uses @var{query} to figure out how to set
@@ -1764,20 +1765,22 @@ language of the buffer text at @var{pos}.  This variable is used by
 @end defvar
 
 @defun treesit-local-parsers-at &optional pos language
-This function returns all the local parsers at @var{pos}.
+This function returns all the local parsers at @var{pos} in the
+current buffer.  @var{pos} defaults to point.
 
-Local parsers are those who only parses a limited region marked by an
-overlay.  If @var{language} is non-@code{nil}, only return parsers for
-that language.
-
-@var{pos} defaults to point.
+Local parsers are those which only parse a limited region marked by an
+overlay with a non-@code{nil} @code{treesit-parser} property.  If
+@var{language} is non-@code{nil}, only return parsers for that
+language.
 @end defun
 
 @defun treesit-local-parsers-on &optional beg end language
-This function is the same as @code{treesit-local-parsers-at}, but gets
-the local parsers in a range instead of at a point.
+This function is the same as @code{treesit-local-parsers-at}, but it
+returns the local parsers in the range between @var{beg} and @var{end}
+instead of at point.
 
-@var{beg} and @var{end} default to cover the whole buffer.
+@var{beg} and @var{end} default to the entire accessible portion of
+the buffer.
 @end defun
 
 @node Tree-sitter Major Modes

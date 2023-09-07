@@ -589,11 +589,10 @@ those inside are kept."
 (defun treesit-local-parsers-at (&optional pos language)
   "Return all the local parsers at POS.
 
-Local parsers are those who only parses a limited region marked
-by an overlay.  If LANGUAGE is non-nil, only return parsers for
-that language.
-
-POS defaults to point."
+POS defaults to point.
+Local parsers are those which only parse a limited region marked
+by an overlay with non-nil `treesit-parser' property.
+If LANGUAGE is non-nil, only return parsers for LANGUAGE."
   (let ((res nil))
     (dolist (ov (overlays-at (or pos (point))))
       (when-let ((parser (overlay-get ov 'treesit-parser)))
@@ -606,11 +605,11 @@ POS defaults to point."
 (defun treesit-local-parsers-in (&optional beg end language)
   "Return all the local parsers between BEG END.
 
-Local parsers are those who has an `embedded' tag, and only
-parses a limited region marked by an overlay.  If LANGUAGE is
-non-nil, only return parsers for that language.
-
-BEG and END default to cover the whole buffer."
+BEG and END default to the beginning and end of the buffer's
+accessible portion.
+Local parsers are those which have an `embedded' tag, and only parse
+a limited region marked by an overlay with a non-nil `treesit-parser'
+property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE."
   (let ((res nil))
     (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
       (when-let ((parser (overlay-get ov 'treesit-parser)))
