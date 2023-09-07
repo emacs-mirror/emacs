@@ -1014,6 +1014,36 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
   (or (treesit-add-log-current-defun)
       (c-ts-mode--defun-name (c-ts-mode--emacs-defun-at-point))))
 
+;;; Things
+
+(defvar c-ts-mode--thing-settings
+  `(;; It's more useful to include semicolons as sexp so
+    ;; that users can move to the end of a statement.
+    (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+    ;; compound_statement makes us jump over too big units
+    ;; of code, so skip that one, and include the other
+    ;; statements.
+    (sentence
+     ,(regexp-opt '("preproc"
+                    "declaration"
+                    "specifier"
+                    "attributed_statement"
+                    "labeled_statement"
+                    "expression_statement"
+                    "if_statement"
+                    "switch_statement"
+                    "do_statement"
+                    "while_statement"
+                    "for_statement"
+                    "return_statement"
+                    "break_statement"
+                    "continue_statement"
+                    "goto_statement"
+                    "case_statement")))
+    (text ,(regexp-opt '("comment"
+                         "raw_string_literal"))))
+  "`treesit-thing-settings' for both C and C++.")
+
 ;;; Support for FOR_EACH_* macros
 ;;
 ;; FOR_EACH_TAIL, FOR_EACH_TAIL_SAFE, FOR_EACH_FRAME etc., followed by
@@ -1133,32 +1163,8 @@ BEG and END are described in `treesit-range-rules'."
   ;; spirit, especially when used for movement, is like "expression"
   ;; or "syntax unit". --yuan
   (setq-local treesit-thing-settings
-              `((c
-                 ;; It's more useful to include semicolons as sexp so
-                 ;; that users can move to the end of a statement.
-                 (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
-                 ;; compound_statement makes us jump over too big units
-                 ;; of code, so skip that one, and include the other
-                 ;; statements.
-                 (sentence
-                  ,(regexp-opt '("preproc"
-                                 "declaration"
-                                 "specifier"
-                                 "attributed_statement"
-                                 "labeled_statement"
-                                 "expression_statement"
-                                 "if_statement"
-                                 "switch_statement"
-                                 "do_statement"
-                                 "while_statement"
-                                 "for_statement"
-                                 "return_statement"
-                                 "break_statement"
-                                 "continue_statement"
-                                 "goto_statement"
-                                 "case_statement")))
-                 (text ,(regexp-opt '("comment"
-                                      "raw_string_literal"))))))
+              `((c ,@c-ts-mode--thing-settings)
+                (cpp ,@c-ts-mode--thing-settings)))
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
