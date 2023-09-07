@@ -4676,8 +4676,14 @@ and `blink-matching-paren' more user-friendly."
         (remove-text-properties (point-min) (point-max) '(syntax-table nil))
         (goto-char (point-min))
         (while (re-search-forward
-                "\\(\\\\\\\\\\)\\|\\(?:\\(?:\\\\\\)\\(?:\\([(){}]\\)\\|\\(\\[\\)\\|\\(\\]\\)\\)\\)\
-\\|\\(\\[:[a-zA-Z]+:\\]\\)\\|\\(\\[\\)\\|\\(\\]\\)\\|\\([(){}]\\)"
+                (rx (| (group "\\\\")
+                       (: "\\" (| (group (in "(){}"))
+                                  (group "[")
+                                  (group "]")))
+                       (group "[:" (+ (in "A-Za-z")) ":]")
+                       (group "[")
+                       (group "]")
+                       (group (in "(){}"))))
 	        (point-max) 'noerror)
 	  (cond
            ((match-beginning 1))                ; \\, skip
