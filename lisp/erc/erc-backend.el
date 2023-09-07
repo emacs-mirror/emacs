@@ -104,7 +104,7 @@
 (defvar erc--called-as-input-p)
 (defvar erc--display-context)
 (defvar erc--target)
-(defvar erc--user-from-nick-function)
+(defvar erc--cmem-from-nick-function)
 (defvar erc-channel-list)
 (defvar erc-channel-users)
 (defvar erc-default-nicks)
@@ -1944,7 +1944,7 @@ add things to `%s' instead."
             ;; at this point.
             (erc-update-channel-member (if privp nick tgt) nick nick
                                        privp nil nil nil nil nil host login nil nil t)
-            (let ((cdata (funcall erc--user-from-nick-function
+            (let ((cdata (funcall erc--cmem-from-nick-function
                                   (erc-downcase nick) sndr parsed)))
               (setq fnick (funcall erc-format-nick-function
                                    (car cdata) (cdr cdata))))))

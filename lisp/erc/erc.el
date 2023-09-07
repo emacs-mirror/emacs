@@ -5262,14 +5262,15 @@ Assume buffer is narrowed to the confines of an inserted message."
                  (next-single-property-change (point-min) 'erc-speaker))))
      (cons beg (next-single-property-change beg 'erc-speaker)))))
 
-(defvar erc--user-from-nick-function #'erc--examine-nick
-  "Function to possibly consider unknown user.
-Must return either nil or a cons of an `erc-server-user' and a
-possibly nil `erc-channel-user' for formatting a server user's
-nick.  Called in the appropriate buffer with the downcased nick,
-the parsed NUH, and the original `erc-response' object.")
+(defvar erc--cmem-from-nick-function #'erc--cmem-get-existing
+  "Function maybe returning a \"channel member\" cons from a nick.
+Must return either nil or a cons of an `erc-server-user' and an
+`erc-channel-user' (see `erc-channel-users') for use in
+formatting a user's nick prior to insertion.  Called in the
+appropriate target buffer with the downcased nick, the parsed
+NUH, and the current `erc-response' object.")
 
-(defun erc--examine-nick (downcased _nuh _parsed)
+(defun erc--cmem-get-existing (downcased _nuh _parsed)
   (and erc-channel-users (gethash downcased erc-channel-users)))
 
 (defun erc-format-privmessage (nick msg privp msgp)

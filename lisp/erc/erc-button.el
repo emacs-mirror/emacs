@@ -380,32 +380,37 @@ buttonizing ought to proceed and nil otherwise.  While running,
 all faces defined in `erc-button' are bound temporarily and can
 be updated at will.")
 
-(defvar-local erc-button--phantom-users nil)
+(defvar-local erc-button--phantom-cmems nil)
 
-(defvar erc-button--fallback-user-function #'ignore
-  "Function to determine `erc-server-user' if not found in the usual places.
+(defvar erc-button--fallback-cmem-function #'ignore
+  "Function to determine channel member if not found in the usual places.
 Called with DOWNCASED-NICK, NICK, and NICK-BOUNDS when
 `erc-button-add-nickname-buttons' cannot find a user object for
 DOWNCASED-NICK in `erc-channel-users' or `erc-server-users'.")
 
+;; Historical or fictitious users.  As long as these two structs
+;; remain superficial "subclasses" with the same slots and defaults,
+;; they can live here instead of in erc-common.el.
+(cl-defstruct (erc--phantom-channel-user (:include erc-channel-user)))
+(cl-defstruct (erc--phantom-server-user (:include erc-server-user)))
+
 (defun erc-button--add-phantom-speaker (downcased nuh _parsed)
-  "Stash fictitious `erc-server-user' while processing \"PRIVMSG\".
-Expect DOWNCASED to be the downcased nickname, NUH to be a triple
-of (NICK LOGIN HOST), and parsed to be an `erc-response' object."
   (pcase-let* ((`(,nick ,login ,host) nuh)
-               (user (or (gethash downcased erc-button--phantom-users)
-                         (make-erc-server-user
+               (cmem (gethash downcased erc-button--phantom-cmems))
+               (user (or (car cmem)
+                         (make-erc--phantom-server-user
                           :nickname nick
                           :host (and (not (string-empty-p host)) host)
-                          :login (and (not (string-empty-p login)) login)))))
-    (list (puthash downcased user erc-button--phantom-users))))
+                          :login (and (not (string-empty-p login)) login))))
+               (cuser (or (cdr cmem)
+                          (make-erc--phantom-channel-user
+                           :last-message-time (current-time)))))
+    (puthash downcased (cons user cuser) erc-button--phantom-cmems)
+    (cons user cuser)))
 
-(defun erc-button--get-phantom-user (down _word _bounds)
-  (gethash down erc-button--phantom-users))
+(defun erc-button--get-phantom-cmem (down _word _bounds)
+  (gethash down erc-button--phantom-cmems))
 
-;; In the future, we'll most likely create temporary
-;; `erc-channel-users' tables during BATCH chathistory playback, thus
-;; obviating the need for this mode entirely.
 (define-minor-mode erc-button--phantom-users-mode
   "Minor mode to recognize unknown speakers.
 Expect to be used by module setup code for creating placeholder
@@ -415,22 +420,22 @@ appeared in a prior \"353\" message and are thus a known member
 of the channel.  However, don't bother creating an actual
 `erc-channel-user' object because their status prefix is unknown.
 Instead, just spoof an `erc-server-user' and stash it during
-\"PRIVMSG\" handling via `erc--user-from-nick-function' and
+\"PRIVMSG\" handling via `erc--cmem-from-nick-function' and
 retrieve it during buttonizing via
 `erc-button--fallback-user-function'."
   :interactive nil
   (if erc-button--phantom-users-mode
       (progn
-        (add-function :after-until (local 'erc--user-from-nick-function)
-                      #'erc-button--add-phantom-speaker '((depth . -50)))
-        (add-function :after-until (local 'erc-button--fallback-user-function)
-                      #'erc-button--get-phantom-user '((depth . 50)))
-        (setq erc-button--phantom-users (make-hash-table :test #'equal)))
-    (remove-function (local 'erc--user-from-nick-function)
+        (add-function :after-until (local 'erc--cmem-from-nick-function)
+                      #'erc-button--add-phantom-speaker '((depth . 30)))
+        (add-function :after-until (local 'erc-button--fallback-cmem-function)
+                      #'erc-button--get-phantom-cmem '((depth . 50)))
+        (setq erc-button--phantom-cmems (make-hash-table :test #'equal)))
+    (remove-function (local 'erc--cmem-from-nick-function)
                      #'erc-button--add-phantom-speaker)
-    (remove-function (local 'erc-button--fallback-user-function)
-                     #'erc-button--get-phantom-user)
-    (kill-local-variable 'erc-nicks--phantom-users)))
+    (remove-function (local 'erc-button--fallback-cmem-function)
+                     #'erc-button--get-phantom-cmem)
+    (kill-local-variable 'erc-button--phantom-cmems)))
 
 (defun erc-button-add-nickname-buttons (entry)
   "Search through the buffer for nicknames, and add buttons."
@@ -451,11 +456,12 @@ retrieve it during buttonizing via
          (down (erc-downcase word)))
       (let* ((erc-button-mouse-face erc-button-mouse-face)
              (erc-button-nickname-face erc-button-nickname-face)
-             (cuser (and erc-channel-users (gethash down erc-channel-users)))
+             (cuser (and erc-channel-users
+                         (or (gethash down erc-channel-users)
+                             (funcall erc-button--fallback-cmem-function
+                                      down word bounds))))
              (user (or (and cuser (car cuser))
-                       (and erc-server-users (gethash down erc-server-users))
-                       (funcall erc-button--fallback-user-function
-                                down word bounds)))
+                       (and erc-server-users (gethash down erc-server-users))))
              (data (list word)))
         (when (or (not (functionp form))
                   (and-let* ((user)
