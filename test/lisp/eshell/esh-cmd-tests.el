@@ -154,6 +154,16 @@ bug#59469."
    (eshell-match-command-output "*echo hi | echo bye"
                                 "bye\nhi\n")))
 
+(ert-deftest esh-cmd-test/pipeline-wait/multi-proc ()
+  "Check that a pipeline waits for all its processes before returning."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "sh")
+                    (executable-find "rev")))
+  (with-temp-eshell
+   (eshell-match-command-output
+    "*echo hello | sh -c 'sleep 1; rev' 1>&2 | *echo goodbye"
+    "goodbye\nolleh\n")))
+
 (ert-deftest esh-cmd-test/pipeline-wait/subcommand ()
   "Check that piping with an asynchronous subcommand waits for the subcommand."
   (skip-unless (and (executable-find "echo")

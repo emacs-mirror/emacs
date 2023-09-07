@@ -994,13 +994,17 @@ process(es) in a cons cell like:
       result)))
 
 (defun eshell-resume-command (proc status)
-  "Resume the current command when a process ends."
-  (when proc
-    (unless (or (not (stringp status))
-		(string= "stopped" status)
-		(string-match eshell-reset-signals status))
-      (if (eq proc (eshell-tail-process))
-	  (eshell-resume-eval)))))
+  "Resume the current command when a pipeline ends."
+  (when (and proc
+             ;; Make sure STATUS is something we want to handle.
+             (stringp status)
+             (not (string= "stopped" status))
+             (not (string-match eshell-reset-signals status))
+             ;; Make sure PROC is one of our foreground processes and
+             ;; that all of those processes are now dead.
+             (member proc eshell-last-async-procs)
+             (not (seq-some #'process-live-p eshell-last-async-procs)))
+    (eshell-resume-eval)))
 
 (defun eshell-resume-eval ()
   "Destructively evaluate a form which may need to be deferred."
