@@ -24,6 +24,7 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 30.1
 
++++
 ** Emacs has been ported to the Android operating system.
 This requires Emacs to be compiled on another computer.  The Android
 NDK, SDK, and a suitable Java compiler must also be installed.
