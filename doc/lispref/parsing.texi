@@ -1726,8 +1726,8 @@ treating them as separate independent segments.  Therefore, if the
 embedded ranges are semantically independent segments, they should be
 processed by local parsers, described below.
 
-The local parser set to a range can be retrieved by
-@code{treesit-local-parsers-at} and @code{treesit-local-parsers-in}.
+Local parser set to a range can be retrieved by
+@code{treesit-local-parsers-at} and @code{treesit-local-parsers-on}.
 
 @code{treesit-update-ranges} uses @var{query} to figure out how to set
 the ranges for parsers for the embedded language.  It queries

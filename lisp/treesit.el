@@ -602,7 +602,7 @@ If LANGUAGE is non-nil, only return parsers for LANGUAGE."
           (push parser res))))
     (nreverse res)))
 
-(defun treesit-local-parsers-in (&optional beg end language)
+(defun treesit-local-parsers-on (&optional beg end language)
   "Return all the local parsers between BEG END.
 
 BEG and END default to the beginning and end of the buffer's
@@ -1134,7 +1134,7 @@ If LOUDLY is non-nil, display some debugging information."
     (message "Fontifying region: %s-%s" start end))
   (treesit-update-ranges start end)
   (font-lock-unfontify-region start end)
-  (let* ((local-parsers (treesit-local-parsers-in start end))
+  (let* ((local-parsers (treesit-local-parsers-on start end))
          (global-parsers (treesit-parser-list))
          (root-nodes
           (mapcar (lambda (parser)
