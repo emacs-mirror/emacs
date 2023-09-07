@@ -2135,7 +2135,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (define-minor-mode dynamic-completion-mode
   "Toggle dynamic word-completion on or off.
 
-When this minor mode is turned on, typing `M-RET' or `C-RET'
+When this minor mode is turned on, typing \\`M-RET' or \\`C-RET'
 invokes the command `complete', which completes the word or
 symbol at point using the record of words/symbols you used
 previously and the previously-inserted completions.  Typing
