@@ -1543,6 +1543,16 @@ This symbol is the one used to create the parser.  */)
   return XTS_PARSER (parser)->language_symbol;
 }
 
+DEFUN ("treesit-parser-tag",
+       Ftreesit_parser_tag, Streesit_parser_tag,
+       1, 1, 0,
+       doc: /* Return PARSER's tag.  */)
+  (Lisp_Object parser)
+{
+  treesit_check_parser (parser);
+  return XTS_PARSER (parser)->tag;
+}
+
 /* Return true if PARSER is not deleted and its buffer is live.  */
 static bool
 treesit_parser_live_p (Lisp_Object parser)
@@ -4110,6 +4120,7 @@ the symbol of that THING.  For example, (or sexp sentence).  */);
   defsubr (&Streesit_parser_list);
   defsubr (&Streesit_parser_buffer);
   defsubr (&Streesit_parser_language);
+  defsubr (&Streesit_parser_tag);
 
   defsubr (&Streesit_parser_root_node);
   /* defsubr (&Streesit_parse_string); */

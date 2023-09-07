@@ -56,6 +56,7 @@
 (declare-function treesit-parser-list "treesit.c")
 (declare-function treesit-parser-buffer "treesit.c")
 (declare-function treesit-parser-language "treesit.c")
+(declare-function treesit-parser-tag "treesit.c")
 
 (declare-function treesit-parser-root-node "treesit.c")
 
