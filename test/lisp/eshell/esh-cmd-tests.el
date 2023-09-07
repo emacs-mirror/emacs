@@ -138,6 +138,68 @@ bug#59469."
                                 "hi\n")))
 
 
+;; Pipelines
+
+(ert-deftest esh-cmd-test/pipeline-wait/head-proc ()
+  "Check that piping a non-process to a process command waits for the process."
+  (skip-unless (executable-find "cat"))
+  (with-temp-eshell
+   (eshell-match-command-output "echo hi | *cat"
+                                "hi")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/tail-proc ()
+  "Check that piping a process to a non-process command waits for the process."
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-match-command-output "*echo hi | echo bye"
+                                "bye\nhi\n")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/subcommand ()
+  "Check that piping with an asynchronous subcommand waits for the subcommand."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-match-command-output "echo ${*echo hi} | *cat"
+                                "hi")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/subcommand-with-pipe ()
+  "Check that piping with an asynchronous subcommand with its own pipe works.
+This should also wait for the subcommand."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-match-command-output "echo ${*echo hi | *cat} | *cat"
+                                "hi")))
+
+(ert-deftest esh-cmd-test/reset-in-pipeline/subcommand ()
+  "Check that subcommands reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo {%s} | *cat"
+                      "echo ${%s} | *cat"
+                      "*cat $<%s> | *cat"))
+    (eshell-command-result-equal
+     (format template "echo $eshell-in-pipeline-p")
+     nil)
+    (eshell-command-result-equal
+     (format template "echo | echo $eshell-in-pipeline-p")
+     "last")
+    (eshell-command-result-equal
+     (format template "echo $eshell-in-pipeline-p | echo")
+     "first")
+    (eshell-command-result-equal
+     (format template "echo | echo $eshell-in-pipeline-p | echo")
+     "t")))
+
+(ert-deftest esh-cmd-test/reset-in-pipeline/lisp ()
+  "Check that interpolated Lisp forms reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo (%s) | *cat"
+                      "echo $(%s) | *cat"))
+    (eshell-command-result-equal
+     (format template "format \"%s\" eshell-in-pipeline-p")
+     "nil")))
+
+
 ;; Control flow statements
 
 (ert-deftest esh-cmd-test/for-loop ()
