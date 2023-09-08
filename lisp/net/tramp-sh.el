@@ -634,7 +634,10 @@ characters need to be doubled.")
 
 (defconst tramp-perl-file-name-all-completions
   "%p -e '
-($dir = $ARGV[0]) =~ s#/+$##;
+$dir = $ARGV[0];
+if ($dir ne \"/\") {
+  $dir =~ s#/+$##;
+}
 opendir(d, $dir) || die(\"$dir: $!\\nfail\\n\");
 @files = readdir(d); closedir(d);
 print \"(\\n\";
