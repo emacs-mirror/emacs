@@ -7921,8 +7921,6 @@ ns_in_echo_area (void)
   maximizing_resize = NO;
 #endif
 
-  [[EmacsWindow alloc] initWithEmacsFrame:f];
-
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
   /* These settings mean AppKit will retain the contents of the frame
      on resize.  Unfortunately it also means the frame will not be
@@ -7933,9 +7931,16 @@ ns_in_echo_area (void)
           NSViewLayerContentsRedrawOnSetNeedsDisplay];
   [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
 
-  /* initWithEmacsFrame can't create the toolbar before the layer is
-     set, so have another go at creating the toolbar here.  */
-  [(EmacsWindow*)[self window] createToolbar:f];
+  [[EmacsWindow alloc] initWithEmacsFrame:f];
+
+  /* Now the NSWindow has been created, we can finish up configuring
+     the layer.  */
+  [(EmacsLayer *)[self layer] setColorSpace:
+                   [[[self window] colorSpace] CGColorSpace]];
+  [(EmacsLayer *)[self layer] setContentsScale:
+                   [[self window] backingScaleFactor]];
+#else
+  [[EmacsWindow alloc] initWithEmacsFrame:f];
 #endif
 
   if (ns_drag_types)
@@ -8606,10 +8611,9 @@ ns_in_echo_area (void)
 - (CALayer *)makeBackingLayer
 {
   EmacsLayer *l = [[EmacsLayer alloc]
-                    initWithColorSpace:[[[self window] colorSpace] CGColorSpace]
-                        doubleBuffered:FRAME_DOUBLE_BUFFERED (emacsframe)];
+                    initWithDoubleBuffered:FRAME_DOUBLE_BUFFERED (emacsframe)];
+
   [l setDelegate:(id)self];
-  [l setContentsScale:[[self window] backingScaleFactor]];
 
   return l;
 }
@@ -10437,15 +10441,14 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
    cache.  If no free surfaces are found in the cache then a new one
    is created.  */
 
-- (id) initWithColorSpace: (CGColorSpaceRef)cs
-           doubleBuffered: (bool)db
+- (id) initWithDoubleBuffered: (bool)db
 {
-  NSTRACE ("[EmacsLayer initWithColorSpace:doubleBuffered:]");
+  NSTRACE ("[EmacsLayer initWithDoubleBuffered:]");
 
   self = [super init];
   if (self)
     {
-      [self setColorSpace:cs];
+      [self setColorSpace:nil];
       [self setDoubleBuffered:db];
       cache = [[NSMutableArray arrayWithCapacity:(doubleBuffered ? 2 : 1)] retain];
     }

@@ -748,7 +748,7 @@ enum ns_return_frame_mode
   CGContextRef context;
   bool doubleBuffered;
 }
-- (id) initWithColorSpace: (CGColorSpaceRef)cs doubleBuffered: (bool)db;
+- (id) initWithDoubleBuffered: (bool)db;
 - (void) setColorSpace: (CGColorSpaceRef)cs;
 - (void) setDoubleBuffered: (bool)db;
 - (CGContextRef) getContext;
