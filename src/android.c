@@ -301,7 +301,7 @@ android_set_task_name (const char *name)
   sprintf (proc_name, "/proc/self/task/%ld/comm", (long) lwp);
   fd = open (proc_name, O_WRONLY | O_TRUNC);
 
-  if (fd < 1)
+  if (fd < 0)
     goto failure;
 
   length = strlen (name);
