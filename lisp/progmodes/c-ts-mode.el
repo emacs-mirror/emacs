@@ -1221,7 +1221,7 @@ BEG and END are described in `treesit-range-rules'."
                    c-ts-mode--defun-for-class-in-imenu-p nil))))
 
   (setq-local treesit-font-lock-feature-list
-              c-ts-mode-feature-list))
+              c-ts-mode--feature-list))
 
 (defvar treesit-load-name-override-list)
 
