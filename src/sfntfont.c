@@ -3293,7 +3293,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 
  cancel_blend:
   /* Calculate the xfld name.  */
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qt);
 
 #ifdef HAVE_HARFBUZZ
   /* HarfBuzz will potentially read font tables after the font has

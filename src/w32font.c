@@ -1072,7 +1072,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
      name to be usable in x-list-fonts. Eventually we expect to change
      x-list-fonts and other places that use fonts so that this can be
      an fcname or similar.  */
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qt);
 
   return 1;
 }

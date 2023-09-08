@@ -4254,14 +4254,18 @@ key-attribute pairs may be omitted from the list if they are not
 specified by @var{font}.
 @end defun
 
-@defun font-xlfd-name font &optional fold-wildcards
+@defun font-xlfd-name font &optional fold-wildcards long-xlfds
 This function returns the XLFD (X Logical Font Descriptor), a string,
 matching @var{font}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}, for
-information about XLFDs.  If the name is too long for an XLFD (which
-can contain at most 255 characters), the function returns @code{nil}.
+information about XLFDs.
 
 If the optional argument @var{fold-wildcards} is non-@code{nil},
 consecutive wildcards in the XLFD are folded into one.
+
+If the optional argument @var{long-xlfds} is @code{nil}, then
+@code{nil} is returned if the XLFD would otherwise exceed 255
+characters in length; this is for compatibility with the X protocol,
+which mandates that XLFDs be restricted to that length.
 @end defun
 
 The following two functions return important information about a font.

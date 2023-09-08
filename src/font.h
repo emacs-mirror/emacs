@@ -885,8 +885,8 @@ extern void font_parse_family_registry (Lisp_Object family,
                                         Lisp_Object spec);
 
 extern int font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font);
-extern ptrdiff_t font_unparse_xlfd (Lisp_Object font, int pixel_size,
-				    char *name, int bytes);
+extern char *font_dynamic_unparse_xlfd (Lisp_Object, int);
+extern ptrdiff_t font_unparse_xlfd (Lisp_Object, int, char *, int);
 extern void register_font_driver (struct font_driver const *, struct frame *);
 extern void free_font_driver_list (struct frame *f);
 #ifdef ENABLE_CHECKING

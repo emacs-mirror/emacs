@@ -776,7 +776,7 @@ androidfont_open_font (struct frame *f, Lisp_Object font_entity,
 #undef DO_CARDINAL_FIELD
 
   /* This should eventually become unnecessary.  */
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qt);
 
   return font_object;
 }
