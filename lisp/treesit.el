@@ -1625,7 +1625,8 @@ Return (ANCHOR . OFFSET).  This function is used by
          (local-parsers (treesit-local-parsers-at bol))
          (smallest-node
           (cond ((null (treesit-parser-list)) nil)
-                (local-parsers (car local-parsers))
+                (local-parsers (treesit-node-at
+                                bol (car local-parsers)))
                 ((eq 1 (length (treesit-parser-list)))
                  (treesit-node-at bol))
                 ((treesit-language-at (point))
