@@ -1839,19 +1839,11 @@ fontset_from_font (Lisp_Object font_object)
 				Vfontset_alias_alist);
 
   xlfd = AREF (font_object, FONT_NAME_INDEX);
-
-  /* XLFD can be nil if the font's registry or family name gives rise
-     to an XLFD name that cannot be represented within 255
-     characters.  (bug#65800) */
-
-  if (!NILP (xlfd))
-    {
-      alias = Fdowncase (xlfd);
-      Vfontset_alias_alist
-	= Fcons (Fcons (name, alias), Vfontset_alias_alist);
-      auto_fontset_alist
-	= Fcons (Fcons (font_spec, fontset), auto_fontset_alist);
-    }
+  alias = Fdowncase (xlfd);
+  Vfontset_alias_alist
+    = Fcons (Fcons (name, alias), Vfontset_alias_alist);
+  auto_fontset_alist
+    = Fcons (Fcons (font_spec, fontset), auto_fontset_alist);
 
   font_spec = Ffont_spec (0, NULL);
   ASET (font_spec, FONT_REGISTRY_INDEX, registry);
