@@ -1295,7 +1295,7 @@ font_dynamic_unparse_xlfd (Lisp_Object font, int pixel_size)
   char *p;
   const char *f[XLFD_REGISTRY_INDEX + 1];
   Lisp_Object val;
-  int i, j, len;
+  int i, j;
   char *name;
   USE_SAFE_ALLOCA;
 
@@ -4452,6 +4452,7 @@ the consecutive wildcards are folded into one.  */)
 	{
 	  if (NILP (fold_wildcards))
 	    return font_name;
+	  name = name_buffer;
 	  lispstpcpy (name, font_name);
 	  namelen = SBYTES (font_name);
 	  goto done;
