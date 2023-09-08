@@ -271,14 +271,13 @@ The elements in ELEMENTS can be of several types:
 				       name)))
 	 (command-name template-name))
     (set template-name elements)
-    (fset command-name (list 'lambda (list '&optional 'arg)
-			     (or documentation
-				 (concat "Insert a " name "."))
-			     (list 'interactive "*P")
-			     (list 'tempo-insert-template (list 'quote
-								template-name)
-				   (list 'if 'tempo-insert-region
-					 (list 'not 'arg) 'arg))))
+    (fset command-name (lambda (&optional arg)
+			 (:documentation
+			  (or documentation (concat "Insert a " name ".")))
+			 (interactive "*P")
+			 (tempo-insert-template template-name
+			                        (if tempo-insert-region
+			                            (not arg) arg))))
     (and tag
 	 (tempo-add-tag tag template-name taglist))
     command-name))
@@ -386,7 +385,7 @@ possible."
 			     (open-line 1)))
 	((null element))
 	(t (tempo-insert (or (tempo-is-user-element element)
-			     (eval element))
+			     (eval element t))
 			 on-region))))
 
 ;;;
@@ -632,7 +631,7 @@ If `tempo-dirty-collection' is nil, the old collection is reused."
 					; If the format for
 					; tempo-local-tags changes,
 					; change this
-                                 (eval (car tag-list)))
+                                 (eval (car tag-list) t))
 			       tempo-local-tags))))
     (setq tempo-dirty-collection nil)))
 
