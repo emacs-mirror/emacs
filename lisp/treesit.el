@@ -2064,7 +2064,9 @@ If LANGUAGE is nil, return the first definition for THING in
   (if language
       (car (alist-get thing (alist-get language
                                        treesit-thing-settings)))
-    (car (alist-get thing (mapcan #'cdr treesit-thing-settings)))))
+    (car (alist-get thing (mapcan (lambda (entry)
+                                    (copy-tree (cdr entry)))
+                                  treesit-thing-settings)))))
 
 (defalias 'treesit-thing-defined-p 'treesit-thing-definition
   "Return non-nil if THING is defined.")
