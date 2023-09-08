@@ -496,6 +496,13 @@ NODE should be a labeled_statement.  PARENT is its parent."
 
 ;;; Font-lock
 
+(defvar c-ts-mode--feature-list
+  '(( comment definition)
+    ( keyword preprocessor string type)
+    ( assignment constant escape-sequence label literal)
+    ( bracket delimiter error function operator property variable))
+  "`treesit-font-lock-feature-list' for `c-ts-mode'.")
+
 (defvar c-ts-mode--preproc-keywords
   '("#define" "#if" "#ifdef" "#ifndef"
     "#else" "#elif" "#endif" "#include")
@@ -1214,10 +1221,7 @@ BEG and END are described in `treesit-range-rules'."
                    c-ts-mode--defun-for-class-in-imenu-p nil))))
 
   (setq-local treesit-font-lock-feature-list
-              '(( comment definition)
-                ( keyword preprocessor string type)
-                ( assignment constant escape-sequence label literal)
-                ( bracket delimiter error function operator property variable))))
+              c-ts-mode-feature-list))
 
 (defvar treesit-load-name-override-list)
 
