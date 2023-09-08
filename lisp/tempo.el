@@ -643,16 +643,10 @@ If `tempo-dirty-collection' is nil, the old collection is reused."
 FINDER is a function or a string.  Returns (STRING . POS), or nil
 if no reasonable string is found."
   (cond ((stringp finder)
-	 (let (successful)
-	   (save-excursion
-	     (or (setq successful (re-search-backward finder nil t))
-		 0))
-	   (if successful
-	       (cons (buffer-substring (match-beginning 1)
-				       (match-end 1)) ; This seems to be a
-					; bug in emacs
-		     (match-beginning 1))
-	     nil)))
+	 (if (save-excursion (re-search-backward finder nil t))
+	     (cons (match-string 1)   ; This seems to be a bug in Emacs (?)
+		   (match-beginning 1))
+	   nil))
 	(t
 	 (funcall finder))))
 
