@@ -185,11 +185,12 @@ returns a pair of the form (STRING . POS), where STRING is the string
 used for matching and POS is the buffer position after which text
 should be replaced with a template.")
 
-(defvar tempo-user-elements nil
+(define-obsolete-variable-alias 'tempo-user-elements 'tempo-user-element-functions "30.1")
+(defvar tempo-user-element-functions nil
   "Element handlers for user-defined elements.
-A list of symbols which are bound to functions that take one argument.
-This function should return something to be sent to `tempo-insert' if
-it recognizes the argument, and nil otherwise.")
+This is an abnormal hook where the functions are called with one argument
+\(an element in a template) and they should return something to be sent to
+`tempo-insert' if they recognize the argument, and nil otherwise.")
 
 (defvar-local tempo-named-insertions nil
   "Temporary storage for named insertions.")
@@ -258,7 +259,7 @@ The elements in ELEMENTS can be of several types:
  - `n>': Inserts a newline and indents line.
  - `o': Like `%' but leaves the point before the newline.
  - nil: It is ignored.
- - Anything else: Each function in `tempo-user-elements' is called
+ - Anything else: Each function in `tempo-user-element-functions' is called
    with it as argument until one of them returns non-nil, and the
    result is inserted.  If all of them return nil, it is evaluated and
    the result is treated as an element to be inserted.  One additional
@@ -441,14 +442,8 @@ never prompted."
 ;;; tempo-is-user-element
 
 (defun tempo-is-user-element (element)
-  "Try all the user-defined element handlers in `tempo-user-elements'."
-  ;; Sigh... I need (some list)
-  (catch 'found
-    (mapc (lambda (handler)
-            (let ((result (funcall handler element)))
-              (if result (throw 'found result))))
-	  tempo-user-elements)
-    (throw 'found nil)))
+  "Try all the user-defined element handlers in `tempo-user-element-functions'."
+  (run-hook-with-args-until-success 'tempo-user-element-functions element))
 
 ;;;
 ;;; tempo-forget-insertions
