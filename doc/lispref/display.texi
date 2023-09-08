@@ -4262,10 +4262,12 @@ information about XLFDs.
 If the optional argument @var{fold-wildcards} is non-@code{nil},
 consecutive wildcards in the XLFD are folded into one.
 
-If the optional argument @var{long-xlfds} is @code{nil}, then
-@code{nil} is returned if the XLFD would otherwise exceed 255
+If the optional argument @var{long-xlfds} is omitted or @code{nil},
+then the function returns @code{nil} if the XLFD would exceed 255
 characters in length; this is for compatibility with the X protocol,
-which mandates that XLFDs be restricted to that length.
+which mandates that XLFDs are restricted to that length.  If
+@var{long-xlfds} is non-@code{nil}, this restriction is lifted, and
+the function can return XLFDs of any length.
 @end defun
 
 The following two functions return important information about a font.
