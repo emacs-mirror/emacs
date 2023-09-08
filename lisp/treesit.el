@@ -251,7 +251,7 @@ parser first."
          (root (if (treesit-parser-p parser-or-lang)
                    (treesit-parser-root-node parser-or-lang)
                  (or (when-let ((parser
-                                 (car (treesit-local-parsers-in
+                                 (car (treesit-local-parsers-on
                                        beg end (or parser-or-lang
                                                    lang-at-point)))))
                        (treesit-parser-root-node parser))
