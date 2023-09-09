@@ -380,4 +380,15 @@ return nil, even with a non-nil bubblep argument."
                                     :value (("1" . 1) ("2" . 2))))))
       (should (equal '(("1" . 1) ("2" . 2)) (widget-default-get w))))))
 
+(ert-deftest widget-test-restricted-sexp-empty-val ()
+  "Test that we handle an empty restricted-sexp widget just fine."
+  (with-temp-buffer
+    (let ((w (widget-create '(restricted-sexp
+                              :value 3
+                              :match-alternatives (integerp)))))
+      (widget-setup)
+      (widget-backward 1)
+      (delete-char 1)
+      (should (string= (widget-value w) "")))))
+
 ;;; wid-edit-tests.el ends here
