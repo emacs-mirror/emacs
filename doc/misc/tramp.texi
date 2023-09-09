@@ -5263,30 +5263,11 @@ How to get notified after @value{tramp} completes file transfers?
 Make Emacs beep after reading from or writing to the remote host with
 the following code in @file{~/.emacs}.
 
+@vindex tramp-handle-write-region-hook
+@vindex tramp-handle-file-local-copy-hook
 @lisp
-@group
-(defadvice tramp-handle-write-region
-  (after tramp-write-beep-advice activate)
-  "Make @value{tramp} beep after writing a file."
-  (interactive)
-  (beep))
-@end group
-
-@group
-(defadvice tramp-handle-do-copy-or-rename-file
-  (after tramp-copy-beep-advice activate)
-  "Make @value{tramp} beep after copying a file."
-  (interactive)
-  (beep))
-@end group
-
-@group
-(defadvice tramp-handle-insert-file-contents
-  (after tramp-insert-beep-advice activate)
-  "Make @value{tramp} beep after inserting a file."
-  (interactive)
-  (beep))
-@end group
+(add-hook 'tramp-handle-write-region-hook 'beep)
+(add-hook 'tramp-handle-file-local-copy-hook 'beep)
 @end lisp
 
 
@@ -5539,9 +5520,8 @@ minibuffer:
 @end group
 
 @group
-(defadvice minibuffer-complete
-  (before my-minibuffer-complete activate)
-  (expand-abbrev))
+(advice-add 'minibuffer-complete
+ :before 'expand-abbrev)
 @end group
 @end lisp
 
@@ -5738,6 +5718,8 @@ If you find the cleanup disturbing, because the file names in
 two forms in your @file{~/.emacs} after loading the @code{tramp} and
 @code{recentf} packages:
 
+@vindex tramp-cleanup-connection-hook
+@vindex tramp-cleanup-all-connections-hook
 @lisp
 @group
 (remove-hook

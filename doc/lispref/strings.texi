@@ -754,7 +754,7 @@ ignores case differences.
 @defun string-search needle haystack &optional start-pos
 Return the position of the first instance of @var{needle} in
 @var{haystack}, both of which are strings.  If @var{start-pos} is
-non-@code{nil}, start searching from that position in @var{needle}.
+non-@code{nil}, start searching from that position in @var{haystack}.
 Return @code{nil} if no match was found.
 This function only considers the characters in the strings when doing
 the comparison; text properties are ignored.  Matching is always

@@ -419,41 +419,6 @@ modify them.  Also, when properties are looked up during redisplay, we
 generally can't run Elisp code, whereas we generally can do that when
 properties are added.
 
-*** Move overlays to intervals.c
-Currently overlays are implemented as (two) sorted singly linked lists (one
-for overlays_before some position and one for overlay_after that
-position, for some quirky definition of "before" and "after").
-The function 'overlay-recenter' changes the position used for the split
-(and is called internally in various situations).
-
-Each overlay is itself implemented with two markers (which keep track of
-the overlay-start and overlay-end).  Markers are implemented as
-a non-sorted singly linked list of markers.  So every text
-insertion/deletion requires O(N) time, where N is the number of markers
-since we have to go down that list to update those markers that are
-affected by the modification.
-
-You can start in src/buffer.[ch], maybe grepping for overlays_before for
-a starting point.
-
-Text-properties, OTOH, are implemented with a (mostly) balanced binary
-tree.  This is implemented in src/intervals.[ch].
-
-So we'd like to change overlays so that they don't use markers (and we
-don't keep them in two sorted singly-linked lists) any more.  Instead,
-we'll store them inside the balanced binary tree used for
-text-properties.  I think we can use the "augmented tree" approach
-described in https://en.wikipedia.org/wiki/Interval_tree.
-
-To ease up debugging during development, I'd guess the implementation
-would first add the new stuff, keeping the old stuff (i.e. add to
-Lisp_Overlay whichever fields are needed for the new code, while keeping
-the old ones, add needed overlay fields to the intervals tree, but keep
-the old fields, the overlays_before etc...).  This way, you can add
-consistency checks that make sure the new code computes the same results
-as the old code.  And once that works well, we can remove the old code
-and old fields.
-
 ** Implement Unicode-compliant display of "default-ignorable" characters
 See the "Characters Ignored for Display" section of paragraph 5.21 in
 the Unicode Standard for the details.
@@ -472,6 +437,20 @@ support hard (physical) newlines in the buffer as well as soft
 wrapping of long lines under 'visual-line-mode'.  The algorithm for
 selecting the wrap point may also need be changed to break at the soft
 hyphen.
+
+** Support external rules for indentation
+This should teach Emacs to read indentation rules from a file and use
+them in preference to the user customizations and the built-in
+defaults.  An example of such rule files is '.clang-format', see
+
+  https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+As a minimum, there should be a command, a variant of indent-region,
+which could be told to use the rules from such a file, and should then
+reformat the region of source code according to the rules.
+
+The next step is to use these rules during editing of files residing
+in a directory that has such an indentation-rules spec in it.
 
 ** FFI (foreign function interface)
 See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html

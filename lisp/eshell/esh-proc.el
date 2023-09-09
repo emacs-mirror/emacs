@@ -266,6 +266,8 @@ nil, write to `eshell-output-handle'."
   "A marker that tracks the beginning of output of the last subprocess.
 Used only on systems which do not support async subprocesses.")
 
+(defvar tramp-remote-path)
+
 (defun eshell-gather-process-output (command args)
   "Gather the output from COMMAND + ARGS."
   (require 'esh-var)
@@ -273,7 +275,9 @@ Used only on systems which do not support async subprocesses.")
   (unless (and (file-executable-p command)
 	       (file-regular-p (file-truename command)))
     (error "%s: not an executable file" command))
-  (let* ((delete-exited-processes
+  (let* ((real-path (getenv "PATH"))
+         (tramp-remote-path (bound-and-true-p tramp-remote-path))
+         (delete-exited-processes
 	  (if eshell-current-subjob-p
 	      eshell-delete-exited-processes
 	    delete-exited-processes))
@@ -281,6 +285,16 @@ Used only on systems which do not support async subprocesses.")
          (coding-system-for-read coding-system-for-read)
          (coding-system-for-write coding-system-for-write)
 	 proc stderr-proc decoding encoding changed)
+    ;; HACK: We want to supply our subprocess with the all the
+    ;; environment variables we've set in Eshell.  However, supplying
+    ;; a remote PATH this way can break Tramp, which needs the *local*
+    ;; PATH for calling "ssh", etc.  Instead, set the local path in
+    ;; our `process-environment' and pass the remote PATH via
+    ;; `tramp-remote-path'.  (If we handle this some better way in the
+    ;; future, remember to remove `tramp-remote-path' above, too.)
+    (when (file-remote-p default-directory)
+      (push (concat "PATH=" real-path) process-environment)
+      (setq tramp-remote-path (eshell-get-path)))
     ;; MS-Windows needs special setting of encoding/decoding, because
     ;; (a) non-ASCII text in command-line arguments needs to be
     ;; encoded in the system's codepage; and (b) because many Windows

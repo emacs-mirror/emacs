@@ -525,7 +525,7 @@ browser to display a URL.
 
 @item
 Lars Magne Ingebrigtsen was the Emacs (co-)maintainer from Emacs 27.2
-onwards.  He did a major redesign of the Gnus news-reader and wrote
+to 29.1.  He did a major redesign of the Gnus news-reader and wrote
 many of its parts.  Several of these are now general components of
 Emacs, including: @file{dns.el} for Domain Name Service lookups;
 @file{format-spec.el} for formatting arbitrary format strings;
@@ -589,6 +589,9 @@ control system.
 @item
 Tomoji Kagatani implemented @file{smtpmail.el}, used for sending out
 mail with SMTP.
+
+@item
+Stefan Kangas was the Emacs (co-)maintainer from 29.2 onwards.
 
 @item
 Ivan Kanis wrote @file{vc-hg.el}, support for the Mercurial version
@@ -1379,9 +1382,9 @@ Rodney Whitby and Reto Zimmermann wrote @file{vhdl-mode.el}, a major
 mode for editing VHDL source code.
 
 @item
-John Wiegley was the Emacs maintainer from Emacs 25 onwards.  He wrote
-@file{align.el}, a set of commands for aligning text according to
-regular-expression based rules; @file{isearchb.el} for fast buffer
+John Wiegley was the Emacs (co-)maintainer from Emacs 25 to 29.1.  He
+wrote @file{align.el}, a set of commands for aligning text according
+to regular-expression based rules; @file{isearchb.el} for fast buffer
 switching; @file{timeclock.el}, a package for keeping track of time
 spent on projects; the Bahá'í calendar support; @file{pcomplete.el}, a
 programmable completion facility; @file{remember.el}, a mode for

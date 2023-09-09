@@ -266,11 +266,11 @@ car is a function and cdr is a callback data.
 The function gets three arguments: the context, the key-id in
 question, and the callback data (if any).
 
-The callback may not be called if you use GnuPG 2.x, which relies
-on the external program called `gpg-agent' for passphrase query.
-If you really want to intercept passphrase query, consider
-installing GnuPG 1.x _along with_ GnuPG 2.x, which does passphrase
-query by itself and Emacs can intercept them."
+The callback may not be called if you use GnuPG 2.0, which relies
+only on external programs for passphrase query and does not
+provide loopback pinentry.  For details see Info node `(epa)
+GnuPG version compatibility' and Info node `(epa) GnuPG
+Pinentry'."
   ;; (declare (obsolete setf "25.1"))
   (setf (epg-context-passphrase-callback context)
         (if (functionp passphrase-callback)
@@ -2018,9 +2018,7 @@ PARAMETERS is a string which tells how to create the key."
 (defun epg-start-edit-key (context key edit-callback handback)
   "Initiate an edit operation on KEY.
 
-EDIT-CALLBACK is called from process filter and takes four
-arguments: the context, a status, an argument string, and the
-handback argument.
+See `epg-edit-key' for a description of the arguments.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
@@ -2035,7 +2033,47 @@ If you are unsure, use synchronous version of this function
 			     (car (epg-key-sub-key-list key))))))
 
 (defun epg-edit-key (context key edit-callback handback)
-  "Edit KEY in the keyring."
+  "Edit KEY in the keyring.
+
+This function and function `epg-start-edit-key' use the
+line-based protocol enabled by \"gpg\" parameter \"--status-fd\"
+to edit KEY.  For each GnuPG status line, these functions or,
+more precisely, the EPG process filter calls EDIT-CALLBACK with
+four arguments: argument CONTEXT, the GnuPG status keyword, the
+GnuPG status argument string, and argument HANDBACK.
+
+The following example uses a simple state machine to trust the
+first subkey of key KEY ultimately:
+
+  (let ((state 0))
+    (epg-edit-key
+     context key
+     (lambda (context status string _handback)
+       (pcase (vector state status string)
+         (\\=`[0  \"KEY_CONSIDERED\" ,_])
+         (\\='[1  \"GET_LINE\" \"keyedit.prompt\"]
+          (process-send-string (epg-context-process context) \"1\\n\"))
+         (\\='[2  \"GOT_IT\" \"\"])
+         (\\='[3  \"GET_LINE\" \"keyedit.prompt\"]
+          (process-send-string (epg-context-process context) \"trust\\n\"))
+         (\\='[4  \"GOT_IT\" \"\"])
+         (\\='[5  \"GET_LINE\" \"edit_ownertrust.value\"]
+          (process-send-string (epg-context-process context) \"5\\n\"))
+         (\\='[6  \"GOT_IT\" \"\"])
+         (\\='[7  \"GET_BOOL\" \"edit_ownertrust.set_ultimate.okay\"]
+          (process-send-string (epg-context-process context) \"yes\\n\"))
+         (\\='[8  \"GOT_IT\" \"\"])
+         (\\='[9  \"GET_LINE\" \"keyedit.prompt\"]
+          (process-send-string (epg-context-process context) \"quit\\n\"))
+         (\\='[10 \"GOT_IT\" \"\"])
+         (_
+          (error \"Key edit protocol error in state %d\" state)))
+       (setq state (1+ state)))
+     nil))
+
+This is a slightly simplified example: Ideally, it should have
+double-checked the fingerprint argument to the \"KEY_CONSIDERED\"
+status keyword instead of ignoring it."
   (unwind-protect
       (progn
 	(epg-start-edit-key context key edit-callback handback)

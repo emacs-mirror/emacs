@@ -205,7 +205,11 @@ General steps (for each step, check for possible errors):
     you need to repeat from step 4 onwards.  (You can commit the files
     from step 2 and 3 earlier to reduce the chance of this.)
 
-6.   ./make-dist --snapshot --no-compress
+6.  If there has been a change in who is the Emacs maintainer since
+    the last release, update doc/misc/ack.texi and admin/MAINTAINERS
+    to reflect this.  You can commit this separately.
+
+7.   ./make-dist --snapshot --no-compress
 
     Check the contents of the new tar with admin/diff-tar-files
     against the previous release (if this is the first pretest) or the
@@ -234,7 +238,7 @@ General steps (for each step, check for possible errors):
     The output of this command might be easier to compare to the
     tarball than the one you get from find.
 
-7.   tar xf emacs-NEW.tar; cd emacs-NEW
+8.   tar xf emacs-NEW.tar; cd emacs-NEW
      ./configure --prefix=/tmp/emacs && make check && make install
 
     Use 'script' or M-x compile to save the compilation log in
@@ -244,7 +248,7 @@ General steps (for each step, check for possible errors):
     M-x ediff.  Especially check that Info files aren't built, and that
     no autotools (autoconf etc) run.
 
-8.  You can now tag the release/pretest and push it together with the
+9.  You can now tag the release/pretest and push it together with the
     last commit:
 
      cd EMACS_ROOT_DIR && git tag -a TAG -m "Emacs TAG"
@@ -270,7 +274,7 @@ General steps (for each step, check for possible errors):
      git tag -a emacs-28.1-rc1 -m "Emacs 28.1 RC1"
      git tag -a emacs-28.1     -m "Emacs 28.1 release"
 
-9. Decide what compression schemes to offer.
+10. Decide what compression schemes to offer.
     For a release, at least gz and xz:
       gzip --best --no-name -c emacs-NEW.tar > emacs-NEW.tar.gz
       xz -c emacs-NEW.tar > emacs-NEW.tar.xz
@@ -314,14 +318,14 @@ General steps (for each step, check for possible errors):
     For a pretest, place the files in /incoming/alpha instead, so that
     they appear on https://alpha.gnu.org/.
 
-10. After five minutes, verify that the files are visible at
+11. After five minutes, verify that the files are visible at
     https://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, or
     https://ftp.gnu.org/gnu/emacs/ for a release.
 
     Download them and check the signatures and SHA1/SHA256 checksums.
     Check they build (./configure --with-native-compilation).
 
-11. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
+12. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
     For a pretest, also bcc: platform-testers@gnu.org.
     For a release, also bcc: info-gnu@gnu.org.
     (The reason for using bcc: is to make it less likely that people
@@ -345,9 +349,9 @@ General steps (for each step, check for possible errors):
     (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
     an email.)
 
-12. After a release, update the Emacs pages as described below.
+13. After a release, update the Emacs pages as described below.
 
-13. After a release, bump the Emacs version on the release branch.
+14. After a release, bump the Emacs version on the release branch.
     There is no need to bump the version after a pretest; the version
     is bumped before the next pretest or release instead.
 

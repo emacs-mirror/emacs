@@ -1116,7 +1116,7 @@ functions provided by the @file{.elc} file.
 @end defvar
 
 @cindex trampolines, in native compilation
-  Setting the value of @code{native-comp-jit-compilation} to@code{nil}
+  Setting the value of @code{native-comp-jit-compilation} to @code{nil}
 disables JIT native compilation.  However, even when JIT native
 compilation is disabled, Emacs might still need to start asynchronous
 native compilation subprocesses to produce @dfn{trampolines}.  To

@@ -5,6 +5,11 @@ what parts of the Emacs distribution.  The areas can be defined
 "arbitrarily", but should provide fairly well-defined boundaries so
 that there are not too many ambiguities.
 
+The (co-)maintainers of Emacs are:
+
+	Eli Zaretskii <eliz@gnu.org>
+	Stefan Kangas <stefankangas@gmail.com>
+
 ==============================================================================
 1. Areas that someone wants to be maintaining (i.e. has a particularly
 keen interest in).  There's no need to list files where you are

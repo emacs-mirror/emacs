@@ -441,6 +441,17 @@ environment.
 
 ** Keyboard problems
 
+*** PGTK build of Emacs running on Wayland doesn't recognize Hyper modifier
+
+If you arrange for the Wayland compositor to send the Hyper key
+modifier (e.g., via XKB customizations), the Hyper modifier will still
+not be reported to Emacs.
+
+The reason is that GDK 3.x doesn't recognize the Hyper key modifier.
+Since GDK 3.x is no longer developed, this bug in GDK will probably
+never be solved.  And the Emacs PGTK build cannot yet support GTK4,
+where this problem is reportedly solved.
+
 *** Unable to enter the M-| key on some German keyboards.
 Some users have reported that M-| suffers from "keyboard ghosting".
 This can't be fixed by Emacs, as the keypress never gets passed to it
@@ -522,6 +533,15 @@ This is known to happen with GnuPG v2.4.1.  The only known workaround
 is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
 future, upgrade to a newer version which solves the problem, when such
 a fixed version becomes available).
+
+*** Emacs running on WSL receives stray characters as input.
+
+For example, you could see Emacs inserting 'z' characters even though
+nothing is typed on the keyboard, and even if you unplug the keyboard.
+
+The reason is a bug in the WSL X server's handling of key-press and
+key-repeat events.  A workaround is to use the Cygwin or native
+MS-Windows build of Emacs instead.
 
 ** Problems with hostname resolution
 
