@@ -32867,7 +32867,7 @@
 	(reftex-index-switch-index-tag): Add `redo' to arguments of
 	`reftex-display-index'.
 	(reftex-index-make-phrase-regexp): Fix bug with case-sensitive
-	indexing.  Fix bug with matching is there is a quote before or
+	indexing.  Fix bug with matching if there is a quote before or
 	after the word.
 
 	* textmodes/reftex-cite.el (reftex-all-used-citation-keys):

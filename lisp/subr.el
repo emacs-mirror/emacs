@@ -6039,7 +6039,7 @@ by `find-word-boundary-function-table'.  It is also not interactive."
 With argument ARG, do this that many times.
 If ARG is omitted or nil, move point backward one word.
 
-This function is like `forward-word', but it is not affected
+This function is like `backward-word', but it is not affected
 by `find-word-boundary-function-table'.  It is also not interactive."
   (let ((find-word-boundary-function-table
          (if (char-table-p word-move-empty-char-table)

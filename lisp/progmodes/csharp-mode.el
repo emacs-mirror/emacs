@@ -493,7 +493,7 @@ compilation and evaluation time conflicts."
        ;; Next non-whitespace character should be '{'
        (goto-char (c-point 'boi))
        (unless (eq (char-after) ?{)
-         (backward-up-list 1 t t))
+         (ignore-errors (backward-up-list 1 t t)))
        (save-excursion
          ;; 'new' should be part of the line
          (goto-char (c-point 'iopl))

@@ -6068,14 +6068,18 @@ See `save-some-buffers' for PRED values."
 
 (defvar save-some-buffers-functions nil
   "Functions to be run by `save-some-buffers' after saving the buffers.
-The functions can be called in two \"modes\", depending on the
-first argument.  If the first argument is `query', then the
+These functions should accept one mandatory and one optional
+argument, and they can be called in two \"modes\", depending on
+the first argument.  If the first argument is `query', then the
 function should return non-nil if there is something to be
 saved (but it should not actually save anything).
 
 If the first argument is something else, then the function should
 save according to the value of the second argument, which is the
-ARG argument from `save-some-buffers'.")
+ARG argument with which `save-some-buffers' was called.
+
+The main purpose of these functions is to save stuff that is kept
+in variables (rather than in buffers).")
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.

@@ -3832,7 +3832,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
 	/* Don't just test `mcnt > 0` because non-greedy loops have
 	   their test at the end with an unconditional jump at the start.  */
-	if (p2 + mcnt > p2_orig) /* Ensure forward progress.  */
+	if (p2 > p2_orig && mcnt >= 0) /* Ensure forward progress.  */
 	  return (mutually_exclusive_p (bufp, p1, p2)
 		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
 	break;

@@ -300,6 +300,11 @@ them right the first time, so here are guidelines for formatting them:
   blank ChangeLog entries from the diff being committed, then use
   'M-q' to combine and fill them.  See 'info "(emacs) Log Buffer"'.
 
+- If you use the third-party package Magit, you can use
+  'magit-generate-changelog' from the commit message buffer.
+  See also 'magit-add-change-log-entry' and
+  'magit-add-change-log-entry-other-window'.
+
 - Alternatively, you can use Emacs functions for ChangeLog files; see
   https://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html
   or run 'info "(emacs)Change Log Commands"'.
