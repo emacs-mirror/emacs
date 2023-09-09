@@ -644,15 +644,13 @@ volume buttons in that case.
 @cindex dialog boxes, android
   Emacs is unable to display dialog boxes (@pxref{Dialog Boxes}) while
 it does not have the input focus on Android 6.0 or later.  If this is
-important to you, this ability can be restored by granting Emacs
-permission to display over other programs.  Normally, this can be done
-from the:
+important to you, this capability can be restored by granting Emacs
+permission to display over other programs.  On most systems, this can
+be done from the following Settings menu:
 
 @example
 System -> Apps -> Emacs -> More -> Display over other apps
 @end example
-
-menu in the system settings, but this procedure may vary by device.
 
 @cindex keyboard modifiers, android
   There is a direct relation between physical modifier keys and Emacs
