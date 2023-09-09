@@ -1465,6 +1465,7 @@ For more details, see Info node `(cl)Loop Facility'.
 			  (t (setq buf (cl--pop2 cl--loop-args)))))
 		  (if (and (consp var) (symbolp (car var)) (symbolp (cdr var)))
 		      (setq var1 (car var) var2 (cdr var))
+		    (push (list var nil) loop-for-bindings)
 		    (push (list var `(cons ,var1 ,var2)) loop-for-sets))
 		  (cl--loop-set-iterator-function
                    'intervals (lambda (body)
