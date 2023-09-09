@@ -189,16 +189,18 @@ is a language, find the first parser for that language in the
 current buffer, or create one if none exists; If PARSER-OR-LANG
 is nil, try to guess the language at POS using `treesit-language-at'.
 
-If there's a local parser at POS, try to use that parser first."
-  (let* ((lang-at-point (treesit-language-at pos))
-         (root (if (treesit-parser-p parser-or-lang)
+If there's a local parser at POS, the local parser takes priority
+unless PARSER-OR-LANG is a parser, or PARSER-OR-LANG is a
+language and doesn't match the language of the local parser."
+  (let* ((root (if (treesit-parser-p parser-or-lang)
                    (treesit-parser-root-node parser-or-lang)
-                 (or (when-let ((parser (car (treesit-local-parsers-at
-                                              pos (or parser-or-lang
-                                                      lang-at-point)))))
+                 (or (when-let ((parser
+                                 (car (treesit-local-parsers-at
+                                       pos parser-or-lang))))
                        (treesit-parser-root-node parser))
                      (treesit-buffer-root-node
-                      (or parser-or-lang lang-at-point)))))
+                      (or parser-or-lang
+                          (treesit-language-at pos))))))
          (node root)
          (node-before root)
          (pos-1 (max (1- pos) (point-min)))
