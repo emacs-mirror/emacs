@@ -1513,6 +1513,15 @@ literals (Bug#20852)."
    "Warning: `unwind-protect' without unwind forms")
 
   (test-suppression
+   '(defun zot (x)
+      (cond
+       ((zerop x) 'zero)
+       (t 'nonzero)
+       (happy puppy)))
+   '((suspicious cond))
+   "Warning: Useless clause following default `cond' clause")
+
+  (test-suppression
    '(defun zot ()
       (let ((_ 1))
         ))

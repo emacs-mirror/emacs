@@ -1085,6 +1085,21 @@ This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
 
 ---
+*** Warn about useless trailing 'cond' clauses.
+The compiler now warns when a 'cond' form contains clauses following a
+default (unconditional) clause.  Example:
+
+    (cond ((= x 0) (say "none"))
+          (t (say "some"))
+          (say "goodbye"))
+
+Such a clause will never be executed but is likely to be a mistake,
+perhaps due to misplaced brackets.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+---
 *** Warn about mutation of constant values.
 The compiler now warns about code that modifies program constants in
 some obvious cases.  Examples:
