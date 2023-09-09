@@ -71,6 +71,8 @@
 (eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-parser-root-node "treesit.c")
+(declare-function treesit-parser-set-included-ranges "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
@@ -80,7 +82,6 @@
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-next-sibling "treesit.c")
-(declare-function treesit-parser-set-included-ranges "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
 
 ;;; Custom variables
