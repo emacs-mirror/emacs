@@ -93,6 +93,9 @@ xfree (void *ptr)
 /* Needed for tests.  */
 #define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
 
+/* Also necessary.  */
+#define AVOID _Noreturn ATTRIBUTE_COLD void
+
 #else
 #define TEST_STATIC
 #include "lisp.h"
@@ -5805,7 +5808,7 @@ enum sfnt_interpreter_run_context
    After this is called, it is probably okay to reuse INTERPRETER.
    However, instructions must always be reloaded.  */
 
-_Noreturn static void
+static AVOID
 sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 		     const char *reason)
 {
