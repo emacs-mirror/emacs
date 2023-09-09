@@ -137,18 +137,19 @@
   (skip-unless (and (executable-find "sh")
                     (executable-find "echo")
                     (executable-find "sleep")))
-  (with-temp-eshell
-   (eshell-match-command-output
-    ;; The first command is like `yes' but slower.  This is to prevent
-    ;; it from taxing Emacs's process filter too much and causing a
-    ;; hang.  Note that we use "|&" to connect the processes so that
-    ;; Emacs doesn't create an extra pipe process for the first "sh"
-    ;; invocation.
-    (concat "sh -c 'while true; do echo y; sleep 1; done' |& "
-            "sh -c 'read NAME; echo ${NAME}'")
-    "y\n")
-   (eshell-wait-for-subprocess t)
-   (should (eq (process-list) nil))))
+  (let ((starting-process-list (process-list)))
+    (with-temp-eshell
+     (eshell-match-command-output
+      ;; The first command is like `yes' but slower.  This is to prevent
+      ;; it from taxing Emacs's process filter too much and causing a
+      ;; hang.  Note that we use "|&" to connect the processes so that
+      ;; Emacs doesn't create an extra pipe process for the first "sh"
+      ;; invocation.
+      (concat "sh -c 'while true; do echo y; sleep 1; done' |& "
+              "sh -c 'read NAME; echo ${NAME}'")
+      "y\n")
+     (eshell-wait-for-subprocess t)
+     (should (equal (process-list) starting-process-list)))))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/no-pipeline ()
   "Test that all streams are PTYs when a command is not in a pipeline."
