@@ -838,6 +838,11 @@ byte-compiled.  Run with dynamic binding."
         (should (equal (bytecomp-tests--eval-interpreted form)
                        (bytecomp-tests--eval-compiled form)))))))
 
+(defmacro bytecomp-tests--with-fresh-warnings (&rest body)
+  `(let ((macroexp--warned            ; oh dear
+          (make-hash-table :test #'equal :weakness 'key)))
+     ,@body))
+
 (defun test-byte-comp-compile-and-load (compile &rest forms)
   (declare (indent 1))
   (ert-with-temp-file elfile
@@ -852,7 +857,8 @@ byte-compiled.  Run with dynamic binding."
       (if compile
           (let ((byte-compile-dest-file-function
                  (lambda (e) elcfile)))
-            (byte-compile-file elfile)))
+            (bytecomp-tests--with-fresh-warnings
+             (byte-compile-file elfile))))
       (load elfile nil 'nomessage))))
 
 (ert-deftest test-byte-comp-macro-expansion ()
@@ -923,14 +929,13 @@ byte-compiled.  Run with dynamic binding."
   (declare (indent 1))
   (with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
-     (let ((text-quoting-style 'grave)
-           (macroexp--warned            ; oh dear
-            (make-hash-table :test #'equal :weakness 'key)))
        (ert-info ((prin1-to-string form) :prefix "form: ")
-         (byte-compile form)
+         (let ((text-quoting-style 'grave))
+           (bytecomp-tests--with-fresh-warnings
+            (byte-compile form)))
          (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
            (should (re-search-forward
-                    (string-replace " " "[ \n]+" re-warning))))))))
+                    (string-replace " " "[ \n]+" re-warning)))))))
 
 (ert-deftest bytecomp-warn--ignore ()
   (bytecomp--with-warning-test "unused"
