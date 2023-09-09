@@ -86,7 +86,7 @@
       "\\`\\'"))
     (should (equal (buffer-string) "stdout\nstderr\n"))))
 
-(ert-deftest esh-var-test/output/remote-redirect ()
+(ert-deftest esh-proc-test/output/remote-redirect ()
   "Check that redirecting stdout for a remote process works."
   (skip-unless (and (eshell-tests-remote-accessible-p)
                     (executable-find "echo")))
