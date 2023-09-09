@@ -340,7 +340,7 @@ android_asset_read_internal (AAsset *asset, int nbytes, char *buffer)
       /* Detect error conditions.  */
 
       if ((*env)->ExceptionCheck (env))
-	goto out;
+	goto out_errno;
 
       /* Detect EOF.  */
 
@@ -363,6 +363,14 @@ android_asset_read_internal (AAsset *asset, int nbytes, char *buffer)
   (*env)->ExceptionClear (env);
   (*env)->DeleteLocalRef (env, stash);
   return total;
+
+ out_errno:
+  /* Return an error indication if an exception arises while the file
+     is being read.  */
+  (*env)->ExceptionClear (env);
+  (*env)->DeleteLocalRef (env, stash);
+  errno = EIO;
+  return -1;
 }
 
 static long
@@ -399,7 +407,7 @@ AAsset_getBuffer (AAsset *asset)
   if (android_asset_read_internal (asset, length, buffer)
       != length)
     {
-      xfree (buffer);
+      free (buffer);
       return NULL;
     }
 
