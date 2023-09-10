@@ -299,8 +299,8 @@ that match at least one applicable CONDITION are disabled."
   "If non-nil, means show status messages for buffer fontification.
 If a number, only buffers greater than this size have fontification messages."
   :type '(choice (const :tag "never" nil)
-		 (other :tag "always" t)
-		 (integer :tag "size"))
+		 (integer :tag "size")
+                 (other :tag "always" t))
   :group 'font-lock
   :version "24.1")
 
