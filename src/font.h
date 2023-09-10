@@ -298,10 +298,16 @@ struct font
      SPACE glyph, the value is 0.  */
   int space_width;
 
-  /* Average width of glyphs in the font.  If the font itself doesn't
-     have that information, but has glyphs of ASCII characters, the
-     value is the average width of those glyphs.  Otherwise, the value
-     is 0.  */
+  /* Average width of glyphs in the font.  Should be the average width
+     of the glyphs of ASCII characters.  The value for the default
+     face's font is used to determine the canonical character width of
+     the frame (see FRAME_COLUMN_WIDTH).  For fonts that are not
+     fixed-pitch, the font backend should actually calculate the value
+     from the glyphs of ASCII characters in the range 32..126
+     inclusively; relying on the average-width attribute recorded in
+     the font is unreliable in this case, especially in fonts that
+     support CJK scripts, where many characters are wide.  Value can
+     be zero if the font doesn't have glyphs for ASCII characters.  */
   int average_width;
 
   /* Ascent and descent of the font (in pixels).  */
