@@ -3759,7 +3759,7 @@ preferred way regardless of whether the display is also guided by an
 @code{display-buffer-alist} differs from customizing
 @code{display-buffer-base-action} in two major aspects: it is stronger
 because it overrides the @var{action} argument of
-@code{display-buffer}, and it allows to explicitly specify the
+@code{display-buffer}, and it enables you to explicitly specify the
 affected buffers.  In fact, displaying other buffers is not affected
 in any way by a customization for @file{*foo*}.  For example,
 
@@ -6150,11 +6150,11 @@ up-to-date.
 @section Mouse Window Auto-selection
 @cindex window auto-selection
 @cindex auto-selection of window
-The following option allows to automatically select the window under the
-mouse pointer.  This accomplishes a policy similar to that of window
-managers that give focus to a frame (and thus trigger its subsequent
-selection) whenever the mouse pointer enters its window-system window
-(@pxref{Input Focus}).
+The following option enables automatically selecting the window under
+the mouse pointer.  This accomplishes a policy similar to that of
+window managers that give focus to a frame (and thus trigger its
+subsequent selection) whenever the mouse pointer enters its
+window-system window (@pxref{Input Focus}).
 
 @defopt mouse-autoselect-window
 If this variable is non-@code{nil}, Emacs will try to automatically

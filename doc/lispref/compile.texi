@@ -831,9 +831,9 @@ produced by earlier or later Emacs versions; native compilation of the
 same Lisp code by a different Emacs version will usually produce a
 natively-compiled library under a unique file name that only that
 version of Emacs will be able to load.  However, the use of unique
-file names allows to have in the same directory several versions of
-the same Lisp library natively-compiled by several different versions
-of Emacs.
+file names enables several versions of the same Lisp library
+natively-compiled by several different versions of Emacs to be placed
+within the same directory.
 
 @vindex no-native-compile
   A non-@code{nil} file-local variable binding of

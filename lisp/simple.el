@@ -6460,9 +6460,9 @@ If non-nil, the kill ring is rotated after selecting previously killed text."
 
 (defun yank-from-kill-ring (string &optional arg)
   "Select a stretch of previously killed text and insert (\"paste\") it.
-This command allows to choose one of the stretches of text killed
-or yanked by previous commands, which are recorded in `kill-ring',
-and reinsert the chosen kill at point.
+This command allows you to select one of the stretches of text
+killed or yanked by previous commands, which are recorded in
+`kill-ring', and reinsert the chosen kill at point.
 
 This command prompts for a previously-killed text in the minibuffer.
 Use the minibuffer history and search commands, or the minibuffer
@@ -8440,7 +8440,7 @@ even beep.)"
         (and (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
-             ;; character whose category set allows to wrap at it.
+             ;; character whose category set permits wrapping at it.
              (or (looking-at-p "[ \t]")
                  (and word-wrap-by-category
                       (aref (char-category-set (following-char)) ?\|)))

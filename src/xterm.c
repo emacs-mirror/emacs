@@ -20649,8 +20649,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
 	 That is fixed above but bites us here again.
 
-	 The option x_set_frame_visibility_more_laxly allows to override
-	 the default behavior (Bug#49955, Bug#53298).  */
+	 The option x_set_frame_visibility_more_laxly enables
+	 overriding the default behavior (Bug#49955, Bug#53298).  */
       if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
 	  || EQ (x_set_frame_visibility_more_laxly, Qt))
 #endif /* USE_GTK */
@@ -22091,17 +22091,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifdef USE_GTK
 	      /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
-		 minimized/iconified windows; thus, for those WMs we won't get
-		 a MapNotify when unminimizing/deiconifying.  Check here if we
-		 are deiconizing a window (Bug42655).
+		 minimized/iconified windows; thus, for those WMs we
+		 won't get a MapNotify when unminimizing/deiconifying.
+		 Check here if we are deiconizing a window (Bug42655).
 
-		 But don't do that by default on GTK since it may cause a plain
-		 invisible frame get reported as iconified, compare
+		 But don't do that by default on GTK since it may
+		 cause a plain invisible frame get reported as
+		 iconified, compare
 		 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
 		 That is fixed above but bites us here again.
 
-		 The option x_set_frame_visibility_more_laxly allows to override
-		 the default behavior (Bug#49955, Bug#53298).  */
+		 The option x_set_frame_visibility_more_laxly enables
+		 overriding the default behavior (Bug#49955,
+		 Bug#53298).  */
 	      if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
 		  || EQ (x_set_frame_visibility_more_laxly, Qt))
 #endif /* USE_GTK */

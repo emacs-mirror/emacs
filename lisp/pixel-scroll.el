@@ -851,7 +851,7 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode
   "Toggle pixel scrolling.
-When enabled, this minor mode allows to scroll the display
+When enabled, this minor mode allows you to scroll the display
 precisely, according to the turning of the mouse wheel."
   :global t
   :group 'mouse

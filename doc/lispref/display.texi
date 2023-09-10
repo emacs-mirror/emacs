@@ -1821,8 +1821,8 @@ where the @var{primary} value is used as described above, and
 @var{secondary} is the fallback value used when @var{primary} and the
 nesting considerations fail to resolve the precedence between
 overlays.  In particular, priority value @w{@code{(nil . @var{n})}},
-with @var{n} a positive integer, allows to have the overlays ordered
-by priority when necessary without completely overriding other
+with @var{n} a positive integer, enables you to have the overlays
+ordered by priority when necessary without completely overriding other
 overlays.
 
 Currently, all overlays take priority over text properties.
@@ -8731,8 +8731,8 @@ hexadecimal notation.
 Display a box containing that string.  The string should contain at
 most 6 @acronym{ASCII} characters.  As an exception, if the string
 includes just one character, on text-mode terminals that character
-will be displayed without a box; this allows to handle such
-``acronyms'' as a replacement character for characters that cannot be
+will be displayed without a box; this enables treating such
+``acronyms'' as replacement characters for characters that cannot be
 displayed by the terminal.
 
 @item a cons cell @code{(@var{graphical} . @var{text})}

@@ -1121,8 +1121,8 @@ feature, when you need to insert a single special character.
 allows selection of one of the previous kills.
 
 @item
-New minor mode @code{repeat-mode} allows to repeat commands with fewer
-keystrokes.
+New minor mode @code{repeat-mode} enables repeating commands with
+fewer keystrokes.
 
 @item
 Among the many internal changes in this release, we would like to

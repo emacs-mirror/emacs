@@ -681,7 +681,7 @@ This function is the basic low-level primitive for starting
 asynchronous subprocesses.  It returns a process object representing
 the subprocess.  Compared to the more high-level @code{start-process},
 described below, it takes keyword arguments, is more flexible, and
-allows to specify process filters and sentinels in a single call.
+enables you to specify process filters and sentinels in a single call.
 
 The arguments @var{args} are a list of keyword/argument pairs.
 Omitting a keyword is always equivalent to specifying it with value

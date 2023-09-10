@@ -2857,7 +2857,7 @@ text matching `comint-prompt-regexp'."
   "If non-nil, `comint-insert-previous-argument' counts args from the end.
 If this variable is nil, the default, `comint-insert-previous-argument'
 counts the arguments from the beginning; if non-nil, it counts from
-the end instead.  This allows to emulate the behavior of `ESC-NUM ESC-.'
+the end instead.  This emulates the behavior of `ESC-NUM ESC-.'
 in both Bash and zsh: in Bash, `number' counts from the
 beginning (variable is nil), while in zsh, it counts from the end."
   :type 'boolean

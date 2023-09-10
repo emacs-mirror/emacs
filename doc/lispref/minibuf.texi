@@ -2669,7 +2669,7 @@ variable instead (@pxref{Echo Area Customization}).
 
 The option @code{resize-mini-windows} does not affect the behavior of
 minibuffer-only frames (@pxref{Frame Layout}).  The following option
-allows to automatically resize such frames as well.
+enables automatically resizing such frames as well.
 
 @defopt resize-mini-frames
 If this is @code{nil}, minibuffer-only frames are never resized

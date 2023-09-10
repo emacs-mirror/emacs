@@ -746,7 +746,8 @@ voice);
 	s) Allows indentation of //x-style regular expressions;
 	t) Highlights different symbols in regular expressions according
 	   to their function; much less problems with backslashitis;
-	u) Allows to find regular expressions which contain interpolated parts.
+	u) Allows you to locate regular expressions which contain
+	   interpolated parts.
 
 5) The indentation engine was very smart, but most of tricks may be
 not needed anymore with the support for `syntax-table' property.  Has

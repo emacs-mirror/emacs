@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; The "sudoedit" Tramp method allows to edit a file as a different
+;; The "sudoedit" Tramp method enables editing a file as a different
 ;; user on the local host.  Contrary to the "sudo" method, all magic
 ;; file name functions are implemented by single "sudo ..."  commands.
 ;; The purpose is to make editing such a file as secure as possible;

@@ -1281,11 +1281,11 @@ fail, @code{pcase} will immediately return @code{nil} without calling
 @code{message}.
 
 Extraction of multiple values stored in an object is known as
-@dfn{destructuring}.  Using @code{pcase} patterns allows to perform
-@dfn{destructuring binding}, which is similar to a local binding
-(@pxref{Local Variables}), but gives values to multiple elements of
-a variable by extracting those values from an object of compatible
-structure.
+@dfn{destructuring}.  Using @code{pcase} patterns allows you to
+perform @dfn{destructuring binding}, which is similar to a local
+binding (@pxref{Local Variables}), but gives values to multiple
+elements of a variable by extracting those values from an object of
+compatible structure.
 
 The macros described in this section use @code{pcase} patterns to
 perform destructuring binding.  The condition of the object to be of

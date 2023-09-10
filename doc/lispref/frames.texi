@@ -1742,7 +1742,7 @@ Geometry}) of the frame, in characters.  Normally, the functions that
 establish a frame's initial width or resize a frame horizontally make
 sure that all the frame's windows, vertical scroll bars, fringes,
 margins and vertical dividers can be displayed.  This parameter, if
-non-@code{nil} allows to make a frame narrower than that with the
+non-@code{nil} enables making a frame narrower than that with the
 consequence that any components that do not fit will be clipped by the
 window manager.
 
@@ -1753,7 +1753,7 @@ Geometry}) of the frame, in characters.  Normally, the functions that
 establish a frame's initial size or resize a frame make sure that all
 the frame's windows, horizontal scroll bars and dividers, mode and
 header lines, the echo area and the internal menu and tool bar can be
-displayed.  This parameter, if non-@code{nil} allows to make a frame
+displayed.  This parameter, if non-@code{nil} enables making a frame
 smaller than that with the consequence that any components that do not
 fit will be clipped by the window manager.
 
@@ -1814,14 +1814,14 @@ the first time.
 
 @vindex fit-frame-to-buffer-margins@r{, a frame parameter}
 @item fit-frame-to-buffer-margins
-This parameter allows to override the value of the option
-@code{fit-frame-to-buffer-margins} when fitting this frame to the buffer
-of its root window with @code{fit-frame-to-buffer} (@pxref{Resizing
-Windows}).
+This parameter enables overriding the value of the option
+@code{fit-frame-to-buffer-margins} when fitting this frame to the
+buffer of its root window with @code{fit-frame-to-buffer}
+(@pxref{Resizing Windows}).
 
 @vindex fit-frame-to-buffer-sizes@r{, a frame parameter}
 @item fit-frame-to-buffer-sizes
-This parameter allows to override the value of the option
+This parameter enables overriding the value of the option
 @code{fit-frame-to-buffer-sizes} when fitting this frame to the buffer
 of its root window with @code{fit-frame-to-buffer} (@pxref{Resizing
 Windows}).
@@ -1902,13 +1902,13 @@ to not draw bottom dividers.
 @vindex menu-bar-lines@r{, a frame parameter}
 @item menu-bar-lines
 The number of lines to allocate at the top of the frame for a menu bar
-(@pxref{Menu Bar}).  The default is one if Menu Bar mode is enabled and
-zero otherwise.  @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  For an
-external menu bar (@pxref{Frame Layout}), this value remains unchanged
-even when the menu bar wraps to two or more lines.  In that case, the
-@code{menu-bar-size} value returned by @code{frame-geometry}
-(@pxref{Frame Geometry}) allows to derive whether the menu bar actually
-occupies one or more lines.
+(@pxref{Menu Bar}).  The default is one if Menu Bar mode is enabled
+and zero otherwise.  @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.
+For an external menu bar (@pxref{Frame Layout}), this value remains
+unchanged even when the menu bar wraps to two or more lines.  In that
+case, the @code{menu-bar-size} value returned by @code{frame-geometry}
+(@pxref{Frame Geometry}) enables you to establish whether the menu bar
+actually occupies one or more lines.
 
 @vindex tool-bar-lines@r{, a frame parameter}
 @item tool-bar-lines
@@ -3433,11 +3433,11 @@ parameter indicates the number of pixels where the frame @dfn{snaps} at
 the respective edge or corner of its parent frame.
 
   There are two ways to drag an entire child frame with the mouse: The
-@code{drag-with-mode-line} parameter, if non-@code{nil}, allows to drag
-a frame without minibuffer window (@pxref{Minibuffer Windows}) via the
-mode line area of its bottommost window.  The
-@code{drag-with-header-line} parameter, if non-@code{nil}, allows to
-drag the frame via the header line area of its topmost window.
+@code{drag-with-mode-line} parameter, if non-@code{nil}, enables
+dragging a frame without minibuffer window (@pxref{Minibuffer
+Windows}) via the mode line area of its bottommost window.  The
+@code{drag-with-header-line} parameter, if non-@code{nil}, enables
+dragging the frame via the header line area of its topmost window.
 
   In order to give a child frame a draggable header or mode line, the
 window parameters @code{mode-line-format} and @code{header-line-format}

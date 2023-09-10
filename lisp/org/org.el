@@ -1021,7 +1021,7 @@ time."
 This is useful since some lines containing links can be very long and
 uninteresting.  Also tables look terrible when wrapped.
 
-The variable `org-startup-truncated' allows to configure
+The variable `org-startup-truncated' enables you to configure
 truncation for Org mode different to the other modes that use the
 variable `truncate-lines' and as a shortcut instead of putting
 the variable `truncate-lines' into the `org-mode-hook'.  If one
@@ -1321,14 +1321,15 @@ Possible values for the file identifier are:
                      to open [[file:document.pdf::5]] with evince at page 5.
 
                  Likely, you will need more entries: without page
-                 number; with search pattern; with cross-reference
-                 anchor; some combination of options.  Consider simple
-                 pattern here and a Lisp function to determine command
-                 line arguments instead.  Passing argument list to
-                 `call-process' or `make-process' directly allows to
-                 avoid treating some character in peculiar file names
-                 as shell specialls causing executing part of file
-                 name as a subcommand.
+                 number; with search pattern; with
+                 cross-reference anchor; some combination of
+                 options.  Consider simple pattern here and a
+                 Lisp function to determine command line
+                 arguments instead.  Passing an argument list to
+                 `call-process' or `make-process' directly avoids
+                 treating some character in peculiar file names
+                 as shell specials that prompt parts of said file
+                 names to be executed as subcommands.
 
  `directory'   Matches a directory
  `remote'      Matches a remote file, accessible through tramp.

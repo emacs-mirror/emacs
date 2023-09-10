@@ -343,10 +343,10 @@ Symbols are also allowed; their print names are used instead."
       (yes-or-no-p prompt)
     (message "")))
 
-;; By Frank Schmitt <ich@Frank-Schmitt.net>. Allows to have
-;; age-depending date representations. (e.g. just the time if it's
-;; from today, the day of the week if it's within the last 7 days and
-;; the full date if it's older)
+;; By Frank Schmitt <ich@Frank-Schmitt.net>.  Enables age-dependent
+;; date representations.  (e.g. just the time if it's from today, the
+;; day of the week if it's within the last 7 days and the full date if
+;; it's older)
 
 (defun gnus-seconds-today ()
   "Return the integer number of seconds passed today."
