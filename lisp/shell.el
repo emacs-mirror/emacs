@@ -596,7 +596,8 @@ Shell buffers.  It implements `shell-completion-execonly' for
   ;; shell-dynamic-complete-functions instead.
   (setq-local pcomplete-default-completion-function #'ignore)
   ;; Do not expand remote file names.
-  (setq-local pcomplete-remote-file-ignore t)
+  (setq-local pcomplete-remote-file-ignore
+              (not (file-remote-p default-directory)))
   (setq-local comint-input-autoexpand shell-input-autoexpand)
   ;; Not needed in shell-mode because it's inherited from comint-mode, but
   ;; placed here for read-shell-command.
