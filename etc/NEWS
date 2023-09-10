@@ -297,7 +297,7 @@ the previously hard-coded "-b".
 When non-nil, make 'dired-next-line' and 'dired-previous-line' skip
 empty lines.  It also controls how to move point when encountering a
 boundary (e.g., if every line is visible, invoking 'dired-next-line'
-at the last line will move to the first line).
+at the last line will move to the first line).  The default is nil.
 
 ** Ediff
 

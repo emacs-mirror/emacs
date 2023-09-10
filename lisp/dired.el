@@ -496,17 +496,17 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :version "29.1")
 
 (defcustom dired-movement-style nil
-  "Non-nil means point skips empty lines when moving.
+  "Non-nil means point skips empty lines when moving in Dired buffers.
 This affects only `dired-next-line' and `dired-previous-line'.
 
 Possible non-nil values:
- *   `cycle': the next/previous line of the last/first visible line is
-              the first/last visible line.
- * `bounded': cannot move up/down if the current line is the
+ * `cycle':   when moving from the last/first visible line, cycle back
+              to the first/last visible line.
+ * `bounded': don't move up/down if the current line is the
               first/last visible line."
   :type '(choice (const :tag "Move to any line" nil)
-                 (const :tag "Loop through non-empty lines" cycle)
-                 (const :tag "Only to non-empty line" bounded))
+                 (const :tag "Cycle through non-empty lines" cycle)
+                 (const :tag "Stop on last/first non-empty line" bounded))
   :group 'dired
   :version "30.1")
 
@@ -2682,7 +2682,7 @@ Otherwise, toggle `read-only-mode'."
     (read-only-mode 'toggle)))
 
 (defun dired--trivial-next-line (arg)
-  "Move down ARG lines then position at filename."
+  "Move down ARG lines, then position at filename."
   (let ((line-move-visual)
     (goal-column))
     (line-move arg t))
@@ -2693,11 +2693,12 @@ Otherwise, toggle `read-only-mode'."
   (dired-move-to-filename))
 
 (defun dired-next-line (arg)
-  "Move down lines then position at filename.
-Optional prefix ARG says how many lines to move; default is one line.
+  "Move down ARG lines, then position at filename.
+The argument ARG (interactively, prefix argument) says how many lines
+to move; the default is one line.
 
-Whether to skip empty lines and how to move when encountering a
-boundary are controlled by `dired-movement-style'."
+Whether to skip empty lines and how to move from last line
+is controlled by `dired-movement-style'."
   (interactive "^p")
   (if dired-movement-style
       (let ((old-position (progn
@@ -2739,11 +2740,12 @@ boundary are controlled by `dired-movement-style'."
     (dired--trivial-next-line arg)))
 
 (defun dired-previous-line (arg)
-  "Move up lines then position at filename.
-Optional prefix ARG says how many lines to move; default is one line.
+  "Move up ARG lines, then position at filename.
+The argument ARG (interactively, prefix argument) says how many lines
+to move; the default is one line.
 
-Whether to skip empty lines and how to move when encountering a
-boundary are controlled by `dired-movement-style'."
+Whether to skip empty lines and how to move from first line
+is controlled by `dired-movement-style'."
   (interactive "^p")
   (dired-next-line (- (or arg 1))))
 
