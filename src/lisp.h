@@ -994,25 +994,35 @@ typedef EMACS_UINT Lisp_Word_tag;
    number of members has been reduced to one.  */
 union vectorlike_header
   {
-    /* The main member contains various pieces of information:
-       - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
-       - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
-         vector (0) or a pseudovector (1).
-       - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
-         of slots) of the vector.
-       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into three fields:
-	 - a) pseudovector subtype held in PVEC_TYPE_MASK field;
-	 - b) number of Lisp_Objects slots at the beginning of the object
-	   held in PSEUDOVECTOR_SIZE_MASK field.  These objects are always
-	   traced by the GC;
-	 - c) size of the rest fields held in PSEUDOVECTOR_REST_MASK and
-	   measured in word_size units.  Rest fields may also include
-	   Lisp_Objects, but these objects usually needs some special treatment
-	   during GC.
-	 There are some exceptions.  For PVEC_FREE, b) is always zero.  For
-	 PVEC_BOOL_VECTOR and PVEC_SUBR, both b) and c) are always zero.
-	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
-	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
+    /* The `size' header word, W bits wide, has one of two forms
+       discriminated by the second-highest bit (PSEUDOVECTOR_FLAG):
+
+         1   1                    W-2
+       +---+---+-------------------------------------+
+       | M | 0 |                 SIZE                |  vector
+       +---+---+-------------------------------------+
+
+         1   1    W-32      6       12         12
+       +---+---+--------+------+----------+----------+
+       | M | 1 | unused | TYPE | RESTSIZE | LISPSIZE |  pseudovector
+       +---+---+--------+------+----------+----------+
+
+       M (ARRAY_MARK_FLAG) holds the GC mark bit.
+
+       SIZE     is the length (number of slots) of a regular Lisp vector,
+                and the object layout is struct Lisp_Vector.
+
+       TYPE     is the pseudovector subtype (enum pvec_type).
+
+       LISPSIZE is the number of Lisp_Object fields at the beginning of the
+                object (after the header).  These are always traced by the GC.
+
+       RESTSIZE is the number of fields (in word_size units) following.
+                These are not automatically traced by the GC.
+                For PVEC_BOOL and statically allocated PVEC_SUBR, RESTSIZE is 0.
+                (The block size for PVEC_BOOL is computed from its own size
+                field, to avoid being restricted by the 12-bit RESTSIZE field.)
+    */
     ptrdiff_t size;
   };
 
