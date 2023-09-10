@@ -260,6 +260,7 @@ to set this in a mode hook, rather than customize the default value."
 
 (defcustom comint-pager nil
   "If non-nil, the program to use for pagination of program output.
+If nil, use the default pager.
 
 Some programs produce large amounts of output, and have provision for
 pagination of their output through a filter program, commonly known as
