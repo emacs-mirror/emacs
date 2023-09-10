@@ -2610,7 +2610,7 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
 
   /* Next, loop through the common ASCII characters.  Tally up their
      advance widths and set space_width if necessary.  */
-  for (i = 0; i < 127; ++i)
+  for (i = 32; i < 127; ++i)
     {
       glyph = sfntfont_lookup_glyph (font_info, i);
 
