@@ -1086,7 +1086,8 @@ enum pvec_type
   PVEC_CHAR_TABLE,
   PVEC_SUB_CHAR_TABLE,
   PVEC_RECORD,
-  PVEC_FONT /* Should be last because it's used for range checking.  */
+  PVEC_FONT,
+  PVEC_TAG_MAX = PVEC_FONT  /* Keep this equal to the highest member.  */
 };
 
 enum More_Lisp_Bits

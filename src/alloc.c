@@ -3613,7 +3613,7 @@ allocate_pseudovector (int memlen, int lisplen,
   enum { size_max = (1 << PSEUDOVECTOR_SIZE_BITS) - 1 };
   enum { rest_max = (1 << PSEUDOVECTOR_REST_BITS) - 1 };
   verify (size_max + rest_max <= VECTOR_ELTS_MAX);
-  eassert (0 <= tag && tag <= PVEC_FONT);
+  eassert (0 <= tag && tag <= PVEC_TAG_MAX);
   eassert (0 <= lisplen && lisplen <= zerolen && zerolen <= memlen);
   eassert (lisplen <= size_max);
   eassert (memlen <= size_max + rest_max);
