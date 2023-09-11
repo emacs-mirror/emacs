@@ -560,6 +560,36 @@
                        (pop calls)))
         (should-not calls)))
 
+    ;; Mimic simplistic version of example in "(erc) display-buffer".
+    (when (>= emacs-major-version 29)
+      (let ((proc erc-server-process))
+        (with-temp-buffer
+          (should-not (eq (window-buffer) (current-buffer)))
+          (erc-mode)
+          (setq erc-server-process proc)
+
+          (cl-letf (((symbol-function 'erc--test-fun-p)
+                     (lambda (buf action)
+                       (should (eql 1 (alist-get 'erc-buffer-display action)))
+                       (push (cons 'erc--test-fun-p buf) calls)))
+                    ((symbol-function 'action-fn)
+                     (lambda (buf action)
+                       (should (eql 1 (alist-get 'erc-buffer-display action)))
+                       (should (eql 42 (alist-get 'foo action)))
+                       (push (cons 'action-fn buf) calls)
+                       (selected-window))))
+
+            (let ((erc--display-context '((erc-buffer-display . 1)))
+                  (display-buffer-alist
+                   `(((and (major-mode . erc-mode) erc--test-fun-p)
+                      action-fn (foo . 42))))
+                  (erc-buffer-display 'display-buffer))
+
+              (erc-setup-buffer (current-buffer))
+              (should (equal 'action-fn (car (pop calls))))
+              (should (equal 'erc--test-fun-p (car (pop calls))))
+              (should-not calls))))))
+
     (should (eq owin (selected-window)))
     (should (eq obuf (window-buffer)))))
 
