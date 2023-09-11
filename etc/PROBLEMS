@@ -3526,6 +3526,18 @@ points the test font attempts to hide.
 Since this behavior does not influence the display of real fonts, no
 action will be taken to address this problem.
 
+** Some other font's instruction code produces undesirable results.
+
+Executing instruction code is not a strict requirement for producing
+correct display results from most current fonts.  If a font's
+instruction code produces results that are merely unpleasing, but not
+incorrect, then the font was presumably not designed for Emacs's
+scaler.  If its uninstructed glyphs are satisfactory (such as if your
+screen resolution is high to the extent that scaling artifacts prove
+invisible), disable instruction code execution by appending its family
+name to the variable 'sfnt-uninstructable-font-regexp', then
+restarting Emacs.
+
 ** CJK text does not display in Emacs, but does in other programs.
 
 When inserting CJK text into a buffer or visiting a file containing

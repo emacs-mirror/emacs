@@ -2667,6 +2667,18 @@ sfntfont_setup_interpreter (struct sfnt_font_info *info,
   struct sfnt_interpreter *interpreter;
   const char *error;
   struct sfnt_graphics_state state;
+  Lisp_Object regexp;
+
+  /* If Vsfnt_uninstructable_family_regexp matches this font, then
+     return.  */
+
+  regexp = Vsfnt_uninstructable_family_regexp;
+
+  if (STRINGP (regexp)
+      && (fast_string_match_ignore_case (regexp,
+					 desc->family)
+	  >= 0))
+    return;
 
   /* Load the cvt, fpgm and prep already read.  */
 
@@ -3952,12 +3964,26 @@ syms_of_sfntfont (void)
      of the font backend.  */
   DEFVAR_LISP ("sfnt-default-family-alist", Vsfnt_default_family_alist,
     doc: /* Alist between "emulated" and actual font family names.
-
 Much Emacs code assumes that font families named "Monospace" and "Sans
 Serif" exist, and map to the default monospace and Sans Serif fonts on
 a system.  When the `sfnt' font driver is asked to look for a font
 with one of the families in this alist, it uses its value instead.  */);
   Vsfnt_default_family_alist = Qnil;
+
+  DEFVAR_LISP ("sfnt-uninstructable-family-regexp",
+	       Vsfnt_uninstructable_family_regexp,
+    doc: /* Regexp matching font families whose glyphs must not be instructed.
+If nil, instruction code supplied by all fonts will be executed.  This
+variable takes effect when a font entity is opened, not after, and
+therefore won't affect the scaling of realized faces until their
+frames' font caches are cleared (see `clear-font-cache').
+
+TrueType fonts incorporate instruction code executed to fit each glyph
+to a pixel grid, so as to improve the visual fidelity of each glyph by
+eliminating artifacts and chance effects consequent upon the direct
+upscaling of glyph outline data.  Instruction code is occasionally
+incompatible with Emacs and must be disregarded.  */);
+  Vsfnt_uninstructable_family_regexp = Qnil;
 }
 
 void
