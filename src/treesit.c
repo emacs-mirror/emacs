@@ -2160,7 +2160,10 @@ return nil.  */)
 static bool treesit_cursor_first_child_for_byte
 (TSTreeCursor *cursor, ptrdiff_t pos, bool named)
 {
-  if (!ts_tree_cursor_goto_first_child (cursor))
+  /* ts_tree_cursor_goto_first_child_for_byte is significantly faster,
+     so despite it having problems, we try it first.  */
+  if (ts_tree_cursor_goto_first_child_for_byte (cursor, pos) == -1
+      && !ts_tree_cursor_goto_first_child (cursor))
     return false;
 
   TSNode node = ts_tree_cursor_current_node (cursor);
@@ -2890,7 +2893,11 @@ treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
   if (ts_node_eq (cursor_node, *target))
     return true;
 
-  if (ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) == -1)
+  /* ts_tree_cursor_goto_first_child_for_byte is significantly faster,
+     so despite it having problems (see bug#60127), we try it
+     first.  */
+  if (ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) == -1
+      && !ts_tree_cursor_goto_first_child (cursor))
     return false;
 
   /* Go through each sibling that could contain TARGET.  Because of
