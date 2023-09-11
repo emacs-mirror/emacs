@@ -35,7 +35,7 @@
 (put 'track-mouse 'lisp-indent-function 0)
 
 (defgroup mouse nil
-  "Input from the mouse."  ;; "Mouse support."
+  "Input from the mouse."
   :group 'environment
   :group 'editing)
 

@@ -148,67 +148,62 @@ is always with pixel resolution.")
   "<next>"                             #'pixel-scroll-interpolate-down
   "<prior>"                            #'pixel-scroll-interpolate-up)
 
+(defgroup pixel-scroll-precision nil
+  "Precise pixel scrolling."
+  :group 'mouse
+  :version "30.1")
+
 (defcustom pixel-scroll-precision-use-momentum nil
   "If non-nil, continue to scroll the display after wheel movement stops.
 This is only effective if supported by your mouse or touchpad."
-  :group 'mouse
   :type 'boolean
   :version "29.1")
 
 (defcustom pixel-scroll-precision-momentum-tick 0.01
   "Number of seconds between each momentum scroll."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-momentum-seconds 1.75
   "The maximum duration in seconds of momentum scrolling."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-momentum-min-velocity 10.0
   "The minimum scrolled pixels per second before momentum scrolling starts."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-initial-velocity-factor (/ 0.0335 4)
   "Factor applied to the initial velocity before momentum scrolling begins."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-large-scroll-height nil
   "Pixels that must be scrolled before an animation is performed.
 Nil means to not interpolate such scrolls."
-  :group 'mouse
   :type '(choice (const :tag "Do not interpolate large scrolls" nil)
                  number)
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolation-total-time 0.1
   "The total time in seconds to spend interpolating a large scroll."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolation-factor 2.0
   "A factor to apply to the distance of an interpolated scroll."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolation-between-scroll 0.001
   "The number of seconds between each step of an interpolated scroll."
-  :group 'mouse
   :type 'float
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolate-page nil
   "Whether or not to interpolate scrolling via the Page Down and Page Up keys.
 This is only effective when `pixel-scroll-precision-mode' is enabled."
-  :group 'scrolling
   :type 'boolean
   :version "29.1")
 
@@ -216,7 +211,6 @@ This is only effective when `pixel-scroll-precision-mode' is enabled."
   "Whether or not to interpolate scrolling from a mouse.
 If non-nil, scrolling from the mouse wheel of an actual mouse (as
 opposed to a touchpad) will cause Emacs to interpolate the scroll."
-  :group 'scrolling
   :type 'boolean
   :version "29.1")
 
