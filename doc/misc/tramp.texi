@@ -3716,6 +3716,36 @@ containers on the remote host.
 @end lisp
 @end defopt
 
+A common use case for ad-hoc specifications is to visit a file or a
+directory with proper permissions, for example with the @option{sudo}
+method.  The command @code{tramp-revert-buffer-with-sudo} supports
+this.
+
+@deffn Command tramp-revert-buffer-with-sudo
+This command shows the current buffer with @option{sudo} permissions.
+The buffer must either visit a file, or a directory
+(@code{dired-mode}).
+@end deffn
+
+@defopt tramp-file-name-with-method
+The method @code{tramp-revert-buffer-with-sudo} shows an alternate
+buffer.  It defaults to @code{sudo}, other valid methods are
+@code{su}, @code{doas}, and @code{ksu}.
+
+@lisp
+(customize-set-variable 'tramp-file-name-with-method "doas")
+@end lisp
+@end defopt
+
+These methods apply the user @samp{root} as default.  If another user
+shall be taken, add a proper rule to the user option
+@code{tramp-default-user-alist} (@pxref{Default User}):
+
+@lisp
+(add-to-list 'tramp-default-user-alist '("sudo" "remotehost" "admin"))
+@end lisp
+
+
 @node Home directories
 @section Expanding @file{~} to home directory
 

@@ -483,6 +483,13 @@ be attempted at the end of a multi-hop chain.  This allows completion
 candidates to include a list of, for example, containers running on a
 remote docker host.
 
++++
+*** New command 'tramp-revert-buffer-with-sudo'.
+It reverts the current buffer to visit with "sudo" permissions.  The
+buffer must either visit a file, or it must run 'dired-mode'.  Another
+method but "sudo" can be configured with user option
+'tramp-file-name-with-method'.
+
 ** EWW
 
 +++
@@ -748,7 +755,7 @@ This can help avoid some awkward skip conditions.  For example
 '(skip-unless (not noninteractive))' can be changed to the easier
 to read '(skip-when noninteractive)'.
 
-** checkdoc
+** Checkdoc
 
 ---
 *** New checkdock warning if not using lexical-binding.
@@ -756,7 +763,7 @@ Checkdoc now warns if the first line of an Emacs Lisp file does not
 end with a "-*- lexical-binding: t -*-" cookie.  Customize the user
 option 'checkdoc-lexical-binding-flag' to nil to disable this warning.
 
-** url
+** URL
 
 +++
 *** 'url-gateway-broken-resolution' is now obsolete.
@@ -787,7 +794,7 @@ files.
 +++
 ** New global minor mode 'minibuffer-regexp-mode'.
 This is a minor mode for editing regular expressions in the minibuffer.
-It highlight parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
+It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
 sexp navigation more intuitive.
 
@@ -915,7 +922,7 @@ See the "(elisp) Porting Old Advice" node for help converting them
 to use 'advice-add' or 'define-advice' instead.
 
 ** 'cl-old-struct-compat-mode' is marked as obsolete.
-You may need to recompile our code if it was compiled with Emacs<24.3.
+You may need to recompile our code if it was compiled with Emacs < 24.3.
 
 +++
 ** New macro 'static-if' for conditional evaluation of code.
