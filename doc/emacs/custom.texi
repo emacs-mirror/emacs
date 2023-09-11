@@ -626,7 +626,7 @@ button.
 the theme file and asks if you really want to load it.  Because
 loading a Custom theme can execute arbitrary Lisp code, you should
 only say yes if you know that the theme is safe; in that case, Emacs
-offers to remember in the future that the theme is safe(this is done
+offers to remember in the future that the theme is safe (this is done
 by saving the theme file's SHA-256 hash to the variable
 @code{custom-safe-themes}; if you want to treat all themes as safe,
 change its value to @code{t}).  Themes that come with Emacs (in the
