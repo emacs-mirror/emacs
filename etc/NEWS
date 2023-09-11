@@ -460,7 +460,7 @@ sessions, respectively.
 
 +++
 *** New command 'tramp-cleanup-some-buffers'.
-It allows to kill only selected remote buffers, controlled by user
+It kills only a subset of opened remote buffers, subject to the user
 option 'tramp-cleanup-some-buffers-hook'.
 
 +++
