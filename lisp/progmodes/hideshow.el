@@ -264,6 +264,7 @@ This has effect only if `search-invisible' is set to `open'."
     (java-ts-mode "{" "}" "/[*/]" nil nil)
     (js-mode "{" "}" "/[*/]" nil)
     (js-ts-mode "{" "}" "/[*/]" nil)
+    (lua-ts-mode "{\\|\\[\\[" "}\\|\\]\\]" "--" nil)
     (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil)
     ;; Add more support here.
     ))

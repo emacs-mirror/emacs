@@ -268,8 +268,8 @@ chosen (interactively or automatically)."
                                 (gdscript-mode . ("localhost" 6008))
                                 ((fortran-mode f90-mode) . ("fortls"))
                                 (futhark-mode . ("futhark" "lsp"))
-                                (lua-mode . ,(eglot-alternatives
-                                              '("lua-language-server" "lua-lsp")))
+                                ((lua-mode lua-ts-mode) . ,(eglot-alternatives
+                                                            '("lua-language-server" "lua-lsp")))
                                 (zig-mode . ("zls"))
                                 ((css-mode css-ts-mode)
                                  . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")

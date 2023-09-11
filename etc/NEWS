@@ -813,6 +813,10 @@ a user-friendly way, avoids reporting alleged paren mismatches and makes
 sexp navigation more intuitive.
 
 ---
+*** New major mode 'lua-ts-mode'.
+A major mode based on the tree-sitter library for editing Lua files.
+
+---
 ** The highly accessible Modus themes collection has eight items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have
 been part of Emacs since version 28.  The former is light, the latter

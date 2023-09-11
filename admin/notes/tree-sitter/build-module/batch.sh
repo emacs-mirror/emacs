@@ -16,6 +16,7 @@ languages=(
     'java'
     'javascript'
     'json'
+    'lua'
     'python'
     'rust'
     'toml'
