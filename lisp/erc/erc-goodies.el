@@ -122,6 +122,7 @@ may be nil, is the number of lines between `window-start' and
 (defvar erc--scrolltobottom-post-force-commands
   '(beginning-of-buffer
     electric-newline-and-maybe-indent
+    newline
     default-indent-new-line)
   "Commands that force a scroll after execution at prompt.
 That is, ERC recalculates the window's start instead of blindly

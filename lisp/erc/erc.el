@@ -8040,7 +8040,7 @@ prompt or `nil' otherwise, set it to such a value, so as to
 guarantee that the input method functions properly for the
 purpose of typing within the ERC prompt."
   (when (and (eq major-mode 'erc-mode)
-             (boundp set-text-conversion-style))
+             (boundp 'text-conversion-style))
     (if (>= (point) (erc-beg-of-input-line))
         (unless (eq text-conversion-style 'action)
           (set-text-conversion-style 'action))
