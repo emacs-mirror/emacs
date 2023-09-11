@@ -3313,6 +3313,21 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   open_fonts = font_info;
 #endif /* HAVE_MMAP */
 
+  /* Now ascertain if vertical centering is desired by matching the
+     font XLFD against vertical-centering-font-regexp.  */
+
+  if (!NILP (font->props[FONT_NAME_INDEX]))
+    font->vertical_centering
+      = (STRINGP (Vvertical_centering_font_regexp)
+	 && (fast_string_match_ignore_case
+	     (Vvertical_centering_font_regexp,
+	      font->props[FONT_NAME_INDEX]) >= 0));
+
+  /* And set a reasonable full name, namely the name of the font
+     file.  */
+  font->props[FONT_FULLNAME_INDEX]
+    = DECODE_FILE (build_unibyte_string (desc->path));
+
   /* All done.  */
   unblock_input ();
   return font_object;
