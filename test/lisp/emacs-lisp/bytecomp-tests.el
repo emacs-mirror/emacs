@@ -937,14 +937,17 @@ byte-compiled.  Run with dynamic binding."
            (should (re-search-forward
                     (string-replace " " "[ \n]+" re-warning)))))))
 
+(defun bytecomp--without-warning-test (form)
+  (bytecomp--with-warning-test "\\`\\'" form))
+
 (ert-deftest bytecomp-warn--ignore ()
   (bytecomp--with-warning-test "unused"
     '(lambda (y) 6))
-  (bytecomp--with-warning-test "\\`\\'" ;No warning!
+  (bytecomp--without-warning-test
     '(lambda (y) (ignore y) 6))
   (bytecomp--with-warning-test "assq"
     '(lambda (x y) (progn (assq x y) 5)))
-  (bytecomp--with-warning-test "\\`\\'" ;No warning!
+  (bytecomp--without-warning-test
     '(lambda (x y) (progn (ignore (assq x y)) 5))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
