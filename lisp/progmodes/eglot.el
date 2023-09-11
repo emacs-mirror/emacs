@@ -228,7 +228,7 @@ chosen (interactively or automatically)."
                                  . ,(eglot-alternatives
                                      '(("phpactor" "language-server")
                                        ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
-                                ((c-mode c-ts-mode c++-mode c++-ts-mode)
+                                ((c-mode c-ts-mode c++-mode c++-ts-mode objc-mode)
                                  . ,(eglot-alternatives
                                      '("clangd" "ccls")))
                                 (((caml-mode :language-id "ocaml")
