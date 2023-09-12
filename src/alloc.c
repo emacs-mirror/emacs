@@ -6595,13 +6595,6 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
-  if (!NILP (Vpost_gc_hook))
-    {
-      specpdl_ref gc_count = inhibit_garbage_collection ();
-      safe_run_hooks (Qpost_gc_hook);
-      unbind_to (gc_count, Qnil);
-    }
-
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
     {
@@ -6619,6 +6612,13 @@ garbage_collect (void)
       byte_ct tot_after = total_bytes_of_live_objects ();
       if (tot_after < tot_before)
 	malloc_probe (min (tot_before - tot_after, SIZE_MAX));
+    }
+
+  if (!NILP (Vpost_gc_hook))
+    {
+      specpdl_ref gc_count = inhibit_garbage_collection ();
+      safe_run_hooks (Qpost_gc_hook);
+      unbind_to (gc_count, Qnil);
     }
 }
 

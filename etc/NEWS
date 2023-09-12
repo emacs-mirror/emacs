@@ -831,6 +831,8 @@ the file listing's performance is still optimized.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+** 'post-gc-hook' runs after updating 'gcs-done' and `'gcs-elapsed'.
+
 ---
 ** The escape sequence '\x' not followed by hex digits is now an error.
 Previously, '\x' without at least one hex digit denoted character code
