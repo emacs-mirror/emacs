@@ -1377,5 +1377,6 @@ the code is C or C++ and based on that chooses whether to enable
     (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
+(provide 'c++-ts-mode)
 
 ;;; c-ts-mode.el ends here
