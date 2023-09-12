@@ -1913,8 +1913,10 @@ add things to `%s' instead."
         (tgt (car (erc-response.command-args parsed)))
         (msg (erc-response.contents parsed)))
     (defvar erc-minibuffer-ignored)
-    (if (or (erc-ignored-user-p sender-spec)
-            (erc-ignored-reply-p msg tgt proc))
+    (defvar erc-ignore-list)
+    (defvar erc-ignore-reply-list)
+    (if (or (and erc-ignore-list (erc-ignored-user-p sender-spec))
+            (and erc-ignore-reply-list (erc-ignored-reply-p msg tgt proc)))
         (when erc-minibuffer-ignored
           (message "Ignored %s from %s to %s" cmd sender-spec tgt))
       (let* ((sndr (erc-parse-user sender-spec))
@@ -1929,7 +1931,6 @@ add things to `%s' instead."
                                      ,@erc--display-context))
              s buffer
              fnick)
-        (setf (erc-response.contents parsed) msg)
         (setq buffer (erc-get-buffer (if privp nick tgt) proc))
         ;; Even worth checking for empty target here? (invalid anyway)
         (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0))

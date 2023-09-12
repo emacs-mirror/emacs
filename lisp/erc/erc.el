@@ -7718,6 +7718,8 @@ The previous default target of QUERY type gets removed."
         (setq erc-default-recipients d2)
       (error "Current target is not a QUERY"))))
 
+;; FIXME move all ignore-related functionality to its own module,
+;; required and enabled by default (until some major version change).
 (defun erc-ignored-user-p (spec)
   "Return non-nil if SPEC matches something in `erc-ignore-list'.
 

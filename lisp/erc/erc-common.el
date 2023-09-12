@@ -498,8 +498,9 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
 (define-inline erc-get-server-user (nick)
   "Find NICK in the current server's `erc-server-users' hash table."
   (inline-letevals (nick)
-    (inline-quote (erc-with-server-buffer
-                    (gethash (erc-downcase ,nick) erc-server-users)))))
+    (inline-quote
+     (gethash (erc-downcase ,nick)
+              (erc-with-server-buffer erc-server-users)))))
 
 (defmacro erc--with-dependent-type-match (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
