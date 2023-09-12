@@ -109,7 +109,7 @@ struct sfnt_font_desc
   /* Style name of the font.  */
   Lisp_Object style;
 
-  /* Designer (foundry) of the font.  */
+  /* The font foundry name, or `misc' if not present.  */
   Lisp_Object designer;
 
   /* Style tokens that could not be parsed.  */
@@ -363,28 +363,6 @@ sfnt_decode_family_style (struct sfnt_name_table *name,
 
   /* Return whether or not it was successful.  */
   return (!NILP (*family) && !NILP (*style)) ? 0 : 1;
-}
-
-/* Decode the foundry names from the name table NAME.  Return the
-   foundry name, or nil upon failure.  */
-
-static Lisp_Object
-sfnt_decode_foundry_name (struct sfnt_name_table *name)
-{
-  struct sfnt_name_record designer_rec;
-  unsigned char *designer_data;
-
-  designer_data = sfnt_find_name (name, SFNT_NAME_DESIGNER,
-				  &designer_rec);
-
-  if (!designer_data)
-    return Qnil;
-
-  return sfnt_decode_font_string (designer_data,
-				  designer_rec.platform_id,
-				  designer_rec.platform_specific_id,
-				  designer_rec.language_id,
-				  designer_rec.length);
 }
 
 /* Decode the name of the specified font INSTANCE using the given NAME
@@ -972,9 +950,11 @@ sfnt_enum_font_1 (int fd, const char *file,
   struct sfnt_meta_table *meta;
   struct sfnt_maxp_table *maxp;
   struct sfnt_fvar_table *fvar;
+  struct sfnt_OS_2_table *OS_2;
   struct sfnt_font_desc temp;
   Lisp_Object family, style, instance, style1;
   int i;
+  char buffer[5];
 
   /* Create the font desc and copy in the file name.  */
   desc = xzalloc (sizeof *desc + strlen (file) + 1);
@@ -1013,9 +993,32 @@ sfnt_enum_font_1 (int fd, const char *file,
 
   /* Set the family.  */
   desc->family = family;
-  desc->designer = sfnt_decode_foundry_name (name);
   desc->char_cache = Qnil;
   desc->subtable.platform_id = 500;
+
+  /* Now set the font foundry name.  This information is located
+     within the OS/2 table's `ach_vendor_id' field, but use `misc' as
+     a recourse if it is not present.  */
+
+  OS_2 = sfnt_read_OS_2_table (fd, subtables);
+
+  if (OS_2)
+    {
+      memcpy (buffer, OS_2->ach_vendor_id,
+	      sizeof OS_2->ach_vendor_id);
+      buffer[sizeof OS_2->ach_vendor_id] = '\0';
+
+      /* If the foundry name is empty, use `misc' instead.  */
+
+      if (!buffer[0])
+	desc->designer = Qmisc;
+      else
+	desc->designer = intern (buffer);
+
+      xfree (OS_2);
+    }
+  else
+    desc->designer = Qmisc;
 
   /* Set the largest glyph identifier.  */
   desc->num_glyphs = maxp->num_glyphs;
@@ -1843,11 +1846,7 @@ sfntfont_desc_to_entity (struct sfnt_font_desc *desc, int instance)
   entity = font_make_entity ();
 
   ASET (entity, FONT_TYPE_INDEX, sfnt_vendor_name);
-
-  if (!NILP (desc->designer))
-    ASET (entity, FONT_FOUNDRY_INDEX,
-	  Fintern (desc->designer, Qnil));
-
+  ASET (entity, FONT_FOUNDRY_INDEX, desc->designer);
   ASET (entity, FONT_FAMILY_INDEX, Fintern (desc->family, Qnil));
   ASET (entity, FONT_ADSTYLE_INDEX, Qnil);
   ASET (entity, FONT_REGISTRY_INDEX,
@@ -3186,10 +3185,12 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* Figure out the font ascent and descent.  */
   font->ascent
     = ceil (font_info->hhea->ascent
-	    * pixel_size * 1.0 / font_info->head->units_per_em);
+	    * pixel_size
+	    * (1.0 / font_info->head->units_per_em));
   font->descent
-    = -floor (font_info->hhea->descent
-	      * pixel_size * 1.0 / font_info->head->units_per_em);
+    = ceil ((-font_info->hhea->descent)
+	    * pixel_size
+	    * (1.0 / font_info->head->units_per_em));
   font->height = font->ascent + font->descent;
 
   /* Set font->max_width to the maximum advance width.  */
@@ -3198,11 +3199,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 
   /* Set generic attributes such as type and style.  */
   ASET (font_object, FONT_TYPE_INDEX, sfnt_vendor_name);
-
-  if (!NILP (desc->designer))
-    ASET (font_object, FONT_FOUNDRY_INDEX,
-	  Fintern (desc->designer, Qnil));
-
+  ASET (font_object, FONT_FOUNDRY_INDEX, desc->designer);
   ASET (font_object, FONT_FAMILY_INDEX, Fintern (desc->family, Qnil));
   ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);
   ASET (font_object, FONT_REGISTRY_INDEX,
@@ -3955,6 +3952,9 @@ syms_of_sfntfont (void)
 
   /* Char-table purpose.  */
   DEFSYM (Qfont_lookup_cache, "font-lookup-cache");
+
+  /* Default foundry name.  */
+  DEFSYM (Qmisc, "misc");
 
   /* Set up staticpros.  */
   sfnt_vendor_name = Qnil;

@@ -52,6 +52,7 @@ enum sfnt_table
     SFNT_TABLE_GVAR,
     SFNT_TABLE_CVAR,
     SFNT_TABLE_AVAR,
+    SFNT_TABLE_OS_2,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\
@@ -1333,6 +1334,85 @@ struct sfnt_metrics_distortion
 
 
 
+/* OS/2 font metadata.  */
+
+struct sfnt_OS_2_table
+{
+  /* Table version number.  */
+  uint16_t version;
+
+  /* Average weighted advance width of lower case letters and
+     space.  */
+  int16_t x_avg_char_width;
+
+  /* Wisual weight (degree of blackness or thickness) of stroke in
+     glyphs.  */
+  uint16_t us_weight_class;
+
+  /* Relative change from the normal aspect ratio (width to height
+     ratio) as specified by a font designer for the glyphs in the
+     font.  */
+  uint16_t us_width_class;
+
+  /* Miscellaneous font attributes.  */
+  int16_t fs_type;
+
+  /* Recommended horizontal size in pixels for subscripts.  */
+  int16_t y_subscript_x_size;
+
+  /* Recommended vertical subscript size.  */
+  int16_t y_subscript_y_size;
+
+  /* Recommended horizontal offset for subscripts.  */
+  int16_t y_subscript_x_offset;
+
+  /* Recommended vertical offset from the baseline for subscripts.  */
+  int16_t y_subscript_y_offset;
+
+  /* Recommended horizontal size in pixels for superscripts.  */
+  int16_t y_superscript_x_size;
+
+  /* Recommended vertical superscript size.  */
+  int16_t y_superscript_y_size;
+
+  /* Recommended horizontal offset for superscripts.  */
+  int16_t y_superscript_x_offset;
+
+  /* Recommended vertical offset from the baseline for superscripts.  */
+  int16_t y_superscript_y_offset;
+
+  /* Width of the strikeout stroke.  */
+  int16_t y_strikeout_size;
+
+  /* Position of the strikeout stroke relative to the baseline.  */
+  int16_t y_strikeout_position;
+
+  /* Font family classification.  */
+  int16_t s_family_class;
+
+  /* Microsoft ``panose'' classification.  */
+  unsigned char panose[10];
+
+  /* Alignment boundary! */
+
+  /* Unicode range specification.  */
+  uint32_t ul_unicode_range[4];
+
+  /* Font foundry name.  */
+  char ach_vendor_id[4];
+
+  /* Two byte bitfield providing the nature of font patterns.  */
+  uint16_t fs_selection;
+
+  /* The minimum Unicode codepoint covered.  */
+  uint16_t fs_first_char_index;
+
+  /* The maximum Unicode codepoint covered.  */
+  uint16_t fs_last_char_index;
+};
+
+
+
 #define SFNT_CEIL_FIXED(fixed)	(((fixed) + 0177777) & 037777600000)
 #define SFNT_FLOOR_FIXED(fixed) ((fixed) & 037777600000)
 
@@ -1499,6 +1579,14 @@ extern int sfnt_vary_simple_glyph (struct sfnt_blend *, sfnt_glyph,
 extern int sfnt_vary_compound_glyph (struct sfnt_blend *, sfnt_glyph,
 				     struct sfnt_glyph *,
 				     struct sfnt_metrics_distortion *);
+
+
+
+#define PROTOTYPE int, struct sfnt_offset_subtable *
+
+extern struct sfnt_OS_2_table *sfnt_read_OS_2_table (PROTOTYPE);
+
+#undef PROTOTYPE
 
 #endif /* TEST */
 

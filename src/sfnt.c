@@ -157,6 +157,7 @@ static uint32_t sfnt_table_names[] =
     [SFNT_TABLE_GVAR] = 0x67766172,
     [SFNT_TABLE_CVAR] = 0x63766172,
     [SFNT_TABLE_AVAR] = 0x61766172,
+    [SFNT_TABLE_OS_2] = 0x4f532f32,
   };
 
 /* Swap values from TrueType to system byte order.  */
@@ -15296,6 +15297,110 @@ sfnt_vary_interpreter (struct sfnt_interpreter *interpreter,
 
 
 
+/* OS/2 metadata retrieval.
+
+   A font's `OS/2' table incorporates some miscellaneous information
+   that is consulted by the font scaler on MS-Windows.  Emacs requires
+   one fragment of this information: the font foundry name.  */
+
+/* Read an OS/2 table from the given font FD.  Use the table directory
+   provided in SUBTABLE.
+
+   Return the OS/2 table if successful, NULL otherwise.  */
+
+TEST_STATIC struct sfnt_OS_2_table *
+sfnt_read_OS_2_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_OS_2_table *OS_2;
+  struct sfnt_table_directory *directory;
+  ssize_t rc;
+  size_t minimum, wanted;
+
+  /* Search for the OS/2 table within SUBTABLE.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_OS_2);
+
+  if (!directory)
+    return NULL;
+
+  /* Calculate how large the table must be.  The field `panose' is the
+     last field aligned to natural boundaries, and thus contents must
+     be read twice: once to populate the table with information up to
+     `panose', and once again to retrieve the information
+     afterwards.  */
+
+  minimum = (SFNT_ENDOF (struct sfnt_OS_2_table, panose,
+			 unsigned char[10])
+	     + SFNT_ENDOF (struct sfnt_OS_2_table, fs_last_char_index,
+			   uint16_t)
+	     - offsetof (struct sfnt_OS_2_table, ul_unicode_range));
+
+  /* If the table is too short, return.  */
+  if (directory->length < minimum)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  OS_2 = xmalloc (sizeof *OS_2);
+
+  /* Read data up to the end of `panose'.  */
+
+  wanted = SFNT_ENDOF (struct sfnt_OS_2_table, panose,
+		       unsigned char[10]);
+  rc = read (fd, OS_2, wanted);
+
+  if (rc != wanted)
+    {
+      xfree (OS_2);
+      return NULL;
+    }
+
+  /* Byte swap that data.  */
+
+  sfnt_swap16 (&OS_2->version);
+  sfnt_swap16 (&OS_2->x_avg_char_width);
+  sfnt_swap16 (&OS_2->us_weight_class);
+  sfnt_swap16 (&OS_2->us_width_class);
+  sfnt_swap16 (&OS_2->fs_type);
+  sfnt_swap16 (&OS_2->y_subscript_x_size);
+  sfnt_swap16 (&OS_2->y_subscript_y_size);
+  sfnt_swap16 (&OS_2->y_subscript_x_offset);
+  sfnt_swap16 (&OS_2->y_subscript_y_offset);
+  sfnt_swap16 (&OS_2->y_superscript_x_size);
+  sfnt_swap16 (&OS_2->y_superscript_y_size);
+  sfnt_swap16 (&OS_2->y_superscript_x_offset);
+  sfnt_swap16 (&OS_2->y_superscript_y_offset);
+  sfnt_swap16 (&OS_2->y_strikeout_size);
+  sfnt_swap16 (&OS_2->y_strikeout_position);
+  sfnt_swap16 (&OS_2->s_family_class);
+
+  /* Read fields between ul_unicode_range and fs_last_char_index.  */
+  wanted = (SFNT_ENDOF (struct sfnt_OS_2_table, fs_last_char_index,
+			uint16_t)
+	    - offsetof (struct sfnt_OS_2_table, ul_unicode_range));
+  rc = read (fd, &OS_2->ul_unicode_range, wanted);
+
+  if (rc != wanted)
+    {
+      xfree (OS_2);
+      return NULL;
+    }
+
+  /* Swap the remainder and return the table.  */
+  sfnt_swap32 (&OS_2->ul_unicode_range[0]);
+  sfnt_swap32 (&OS_2->ul_unicode_range[1]);
+  sfnt_swap32 (&OS_2->ul_unicode_range[2]);
+  sfnt_swap32 (&OS_2->ul_unicode_range[3]);
+  sfnt_swap16 (&OS_2->fs_selection);
+  sfnt_swap16 (&OS_2->fs_first_char_index);
+  sfnt_swap16 (&OS_2->fs_last_char_index);
+  return OS_2;
+}
+
+
+
 #ifdef TEST
 
 struct sfnt_test_dcontext
@@ -19158,6 +19263,7 @@ main (int argc, char **argv)
   struct sfnt_gvar_table *gvar;
   struct sfnt_avar_table *avar;
   struct sfnt_cvar_table *cvar;
+  struct sfnt_OS_2_table *OS_2;
   sfnt_fixed scale;
   char *fancy;
   int *advances;
@@ -19293,6 +19399,7 @@ main (int argc, char **argv)
   fvar = sfnt_read_fvar_table (fd, font);
   gvar = sfnt_read_gvar_table (fd, font);
   avar = sfnt_read_avar_table (fd, font);
+  OS_2 = sfnt_read_OS_2_table (fd, font);
   cvar = NULL;
   hmtx = NULL;
 
@@ -19308,6 +19415,10 @@ main (int argc, char **argv)
 
   loca_long = NULL;
   loca_short = NULL;
+
+  if (OS_2)
+    fprintf (stderr, "OS/2 table found!\nach_vendor_id: %.4s\n",
+	     OS_2->ach_vendor_id);
 
   if (fvar)
     {
@@ -19971,6 +20082,7 @@ main (int argc, char **argv)
   xfree (gvar);
   xfree (avar);
   xfree (cvar);
+  xfree (OS_2);
 
   return 0;
 }
