@@ -18872,9 +18872,7 @@ ELEMENT."
 	     (goto-char start)
 	     (current-indentation)))
 	  ;; In any other case, indent like the current line.
-	  (t (current-indentation)))))
-      ;; Finally, no indentation is needed, fall back to 0.
-      (t (current-indentation))))))
+	  (t (current-indentation)))))))))
 
 (defun org--align-node-property ()
   "Align node property at point.

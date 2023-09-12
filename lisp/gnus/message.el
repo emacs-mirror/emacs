@@ -6595,8 +6595,8 @@ they are."
     (widen)
     (forward-line 1)
     (unless (looking-at "$")
-      (forward-line 2)))
-   (sit-for 0)))
+      (forward-line 2))))
+  (sit-for 0))
 
 (defcustom message-beginning-of-line t
   "Whether \\<message-mode-map>\\[message-beginning-of-line]\
