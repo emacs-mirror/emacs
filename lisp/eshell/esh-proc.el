@@ -350,6 +350,13 @@ Used only on systems which do not support async subprocesses.")
        'process (format-message "started external process `%s'" proc))
       (eshell-record-process-object proc)
       (eshell-record-process-properties proc)
+      (when stderr-proc
+        ;; Provide a shared flag between the primary and stderr
+        ;; processes.  This lets the primary process wait to clean up
+        ;; until stderr is totally finished (see `eshell-sentinel').
+        (let ((stderr-live (list t)))
+          (process-put proc :eshell-stderr-live stderr-live)
+          (process-put stderr-proc :eshell-stderr-live stderr-live)))
       (run-hook-with-args 'eshell-exec-hook proc)
       (when (fboundp 'process-coding-system)
 	(let ((coding-systems (process-coding-system proc)))
@@ -491,11 +498,12 @@ PROC is the process that's exiting.  STRING is the exit message."
       (unwind-protect
           (let* ((handles (process-get proc :eshell-handles))
                  (index (process-get proc :eshell-handle-index))
+                 (primary (= index eshell-output-handle))
                  (data (process-get proc :eshell-pending))
                  ;; Only get the status for the primary subprocess,
                  ;; not the pipe process (if any).
-                 (status (when (= index eshell-output-handle)
-                           (process-exit-status proc))))
+                 (status (when primary (process-exit-status proc)))
+                 (stderr-live (process-get proc :eshell-stderr-live)))
             ;; Write the exit message for the last process in the
             ;; foreground pipeline if its status is abnormal and
             ;; stderr is already writing to the terminal.
@@ -507,9 +515,12 @@ PROC is the process that's exiting.  STRING is the exit message."
             (process-put proc :eshell-pending nil)
             ;; If we're in the middle of handling output from this
             ;; process then schedule the EOF for later.
-            (letrec ((finish-io
+            (letrec ((wait-for-stderr (and primary
+                                           (not (process-live-p proc))))
+                     (finish-io
                       (lambda ()
-                        (if (process-get proc :eshell-busy)
+                        (if (or (process-get proc :eshell-busy)
+                                (and wait-for-stderr (car stderr-live)))
                             (run-at-time 0 nil finish-io)
                           (when data
                             (ignore-error eshell-pipe-broken
@@ -519,11 +530,13 @@ PROC is the process that's exiting.  STRING is the exit message."
                            status
                            (when status (list 'quote (= status 0)))
                            handles)
-                          (eshell-kill-process-function proc string)
-                            (eshell-debug-command
-                             'process
-                             (format-message
-                              "finished external process `%s'" proc))))))
+                          (eshell-debug-command
+                           'process
+                           (format-message
+                            "finished external process `%s'" proc))
+                          (if primary
+                              (eshell-kill-process-function proc string)
+                            (setcar stderr-live nil))))))
               (funcall finish-io)))
         (when-let ((entry (assq proc eshell-process-list)))
           (eshell-remove-process-entry entry))))))
