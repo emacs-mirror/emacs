@@ -1298,27 +1298,19 @@ MODE is either a mode symbol or a list of mode symbols."
       (most-positive-fixnum))))
 
 (defmacro c-put-char-properties (from to property value)
-  ;; FIXME!!!  Doc comment here!
+  ;; Put the given PROPERTY with the given VALUE on the characters between
+  ;; FROM and TO.  PROPERTY is assumed to be constant.  The return value is
+  ;; undefined.
+  ;;
+  ;; This macro does hidden buffer changes.
   (declare (debug t))
   (setq property (eval property))
-  `(let ((-to- ,to) (-from- ,from))
-     ,(if c-use-extents
-	  ;; XEmacs
-	  `(progn
-	     (map-extents (lambda (ext ignored)
-			    (delete-extent ext))
-			  nil -from- -to- nil nil ',property)
-	     (set-extent-properties (make-extent -from- -to-)
-				    (cons property
-					  (cons ,value
-						'(start-open t
-							     end-open t)))))
-	;; Emacs
-	`(progn
+  `(let ((-from- ,from))
+	 (progn
 	   ,@(when (and (fboundp 'syntax-ppss)
 			(eq `,property 'syntax-table))
 	       `((setq c-syntax-table-hwm (min c-syntax-table-hwm -from-))))
-	   (put-text-property -from- -to- ',property ,value)))))
+	   (put-text-property -from- ,to ',property ,value))))
 
 (defmacro c-clear-char-properties (from to property)
   ;; Remove all the occurrences of the given property in the given
