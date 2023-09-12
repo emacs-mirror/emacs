@@ -1164,6 +1164,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->language_symbol = language_symbol;
   lisp_parser->after_change_functions = Qnil;
   lisp_parser->tag = tag;
+  lisp_parser->last_set_ranges = Qnil;
   lisp_parser->buffer = buffer;
   lisp_parser->parser = parser;
   lisp_parser->tree = tree;
@@ -1174,7 +1175,6 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->visible_end = BUF_ZV_BYTE (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
   lisp_parser->deleted = false;
-  lisp_parser->has_range = false;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
@@ -1656,6 +1656,10 @@ buffer.  */)
   treesit_check_parser (parser);
   if (!NILP (ranges))
     CHECK_CONS (ranges);
+
+  if (Fequal (XTS_PARSER (parser)->last_set_ranges, ranges))
+    return Qnil;
+
   treesit_check_range_argument (ranges);
 
   treesit_initialize ();
@@ -1663,10 +1667,10 @@ buffer.  */)
   treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
   treesit_sync_visible_region (parser);
 
+  XTS_PARSER (parser)->last_set_ranges = ranges;
   bool success;
   if (NILP (ranges))
     {
-      XTS_PARSER (parser)->has_range = false;
       /* If RANGES is nil, make parser to parse the whole document.
 	 To do that we give tree-sitter a 0 length, the range is a
 	 dummy.  */
@@ -1677,8 +1681,6 @@ buffer.  */)
   else
     {
       /* Set ranges for PARSER.  */
-      XTS_PARSER (parser)->has_range = true;
-
       if (list_length (ranges) > UINT32_MAX)
 	xsignal (Qargs_out_of_range, list2 (ranges, Flength (ranges)));
       uint32_t len = (uint32_t) list_length (ranges);
@@ -1734,10 +1736,10 @@ See also `treesit-parser-set-included-ranges'.  */)
 
   /* When the parser doesn't have a range set and we call
      ts_parser_included_ranges on it, it doesn't return an empty list,
-     but rather return some garbled data. (A single range where
-     start_byte = 0, end_byte = UINT32_MAX).  So we need to track
-     whether the parser is ranged ourselves.  */
-  if (!XTS_PARSER (parser)->has_range)
+     but rather return DEFAULT_RANGE. (A single range where start_byte
+     = 0, end_byte = UINT32_MAX).  So we need to track whether the
+     parser is ranged ourselves.  */
+  if (NILP (XTS_PARSER (parser)->last_set_ranges))
     return Qnil;
 
   uint32_t len;
