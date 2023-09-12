@@ -2810,7 +2810,7 @@ If N is negative, find the previous or Nth previous match."
 If `comint-use-prompt-regexp' is nil, then this means the beginning of
 the Nth next `input' field, otherwise, it means the Nth occurrence of
 text matching `comint-prompt-regexp'."
-  (interactive "p")
+  (interactive "^p")
   (if comint-use-prompt-regexp
       ;; Use comint-prompt-regexp
       (let ((paragraph-start comint-prompt-regexp))
@@ -2847,7 +2847,7 @@ text matching `comint-prompt-regexp'."
 If `comint-use-prompt-regexp' is nil, then this means the beginning of
 the Nth previous `input' field, otherwise, it means the Nth occurrence of
 text matching `comint-prompt-regexp'."
-  (interactive "p")
+  (interactive "^p")
   (comint-next-prompt (- n)))
 
 ;; State used by `comint-insert-previous-argument' when cycling.
