@@ -3109,10 +3109,12 @@ the text in the active region is highlighted in the explorer
 window."
   :lighter " TSexplore"
   (if treesit-explore-mode
-      (let ((language (intern (completing-read
-                               "Language: "
-                               (mapcar #'treesit-parser-language
-                                       (treesit-parser-list))))))
+      (let ((language
+             (intern (completing-read
+                      "Language: "
+                      (cl-remove-duplicates
+                       (mapcar #'treesit-parser-language
+                               (treesit-parser-list nil nil t)))))))
         (if (not (treesit-language-available-p language))
             (user-error "Cannot find tree-sitter grammar for %s: %s"
                         language (cdr (treesit-language-available-p
