@@ -2076,7 +2076,11 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
                                   (insert-file-contents file)
                                   (buffer-string)))
                           (cons "name" name)
-                          (cons "filename" file))
+                          ;; RFC 2183 declares that recipients should
+                          ;; only respect the basename of the filename
+                          ;; parameter, so we only send that portion in
+                          ;; our request.
+                          (cons "filename" (file-name-nondirectory file)))
                     values)))
 	   ((equal (plist-get input :type) "submit")
 	    ;; We want the values from buttons if we hit a button if
