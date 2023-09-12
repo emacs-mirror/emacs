@@ -3871,6 +3871,8 @@ Currently there are `js-mode' and `js-ts-mode'."
                            '(((regex pattern: (regex_pattern) @regexp))
                              ((variable_declarator value: (jsx_element) @jsx))
                              ((assignment_expression right: (jsx_element) @jsx))
+                             ((arguments (jsx_element) @jsx))
+                             ((parenthesized_expression (jsx_element) @jsx))
                              ((return_statement (jsx_element) @jsx))))))
 
 (defun js-ts--syntax-propertize (beg end)
