@@ -2931,7 +2931,14 @@ The function's arguments should be treated as immutable.
              ,(if (memq '&key args)
                   `(&whole cl-whole &cl-quote ,@args)
                 (cons '&cl-quote args))
-             ,(format "compiler-macro for inlining `%s'." name)
+             ;; NB.  This will produce incorrect results in some
+             ;; cases, as our coding conventions says that the first
+             ;; line must be a full sentence.  However, if we don't
+             ;; word wrap we will have byte-compiler warnings about
+             ;; overly long docstrings.  So we can't have a perfect
+             ;; result here, and choose to avoid the byte-compiler
+             ;; warnings.
+             ,(internal--format-docstring-line "compiler-macro for `%s'." name)
              (cl--defsubst-expand
               ',argns '(cl-block ,name ,@(cdr (macroexp-parse-body body)))
               nil

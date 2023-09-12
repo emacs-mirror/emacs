@@ -972,6 +972,17 @@ byte-compiled.  Run with dynamic binding."
   (bytecomp--with-warning-test "defvar.*foo.*wider than.*characters"
     `(defvar foo t ,bytecomp-tests--docstring)))
 
+(ert-deftest bytecomp-warn-wide-docstring/cl-defsubst ()
+  (bytecomp--without-warning-test
+   `(cl-defsubst short-name ()
+      "Do something."))
+  (bytecomp--without-warning-test
+   `(cl-defsubst long-name-with-less-80-characters-but-still-quite-a-bit ()
+      "Do something."))
+  (bytecomp--with-warning-test "wider than.*characters"
+   `(cl-defsubst long-name-with-more-than-80-characters-yes-this-is-a-very-long-name-but-why-not!! ()
+      "Do something.")))
+
 (ert-deftest bytecomp-warn-quoted-condition ()
   (bytecomp--with-warning-test
       "Warning: `condition-case' condition should not be quoted: 'arith-error"
