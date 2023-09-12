@@ -983,6 +983,23 @@ byte-compiled.  Run with dynamic binding."
    `(cl-defsubst long-name-with-more-than-80-characters-yes-this-is-a-very-long-name-but-why-not!! ()
       "Do something.")))
 
+(ert-deftest bytecomp-warn-wide-docstring/cl-defstruct ()
+  (bytecomp--without-warning-test
+   `(cl-defstruct short-name
+      field))
+  (bytecomp--without-warning-test
+   `(cl-defstruct short-name
+      long-name-with-less-80-characters-but-still-quite-a-bit))
+  (bytecomp--without-warning-test
+   `(cl-defstruct long-name-with-less-80-characters-but-still-quite-a-bit
+      field))
+  (bytecomp--with-warning-test "wider than.*characters"
+    `(cl-defstruct short-name
+       long-name-with-more-than-80-characters-yes-this-is-a-very-long-name-but-why-not!!))
+  (bytecomp--with-warning-test "wider than.*characters"
+    `(cl-defstruct long-name-with-more-than-80-characters-yes-this-is-a-very-long-name-but-why-not!!
+       field)))
+
 (ert-deftest bytecomp-warn-quoted-condition ()
   (bytecomp--with-warning-test
       "Warning: `condition-case' condition should not be quoted: 'arith-error"

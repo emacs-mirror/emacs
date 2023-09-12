@@ -3187,18 +3187,27 @@ To see the documentation for a defined struct type, use
               ;; The arg "cl-x" is referenced by name in e.g. pred-form
 	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(,defsym ,accessor (cl-x)
-                       ,(concat
-                         ;; NB.  This will produce incorrect results
-                         ;; in some cases, as our coding conventions
-                         ;; says that the first line must be a full
-                         ;; sentence.  However, if we don't word wrap
-                         ;; we will have byte-compiler warnings about
-                         ;; overly long docstrings.  So we can't have
-                         ;; a perfect result here, and choose to avoid
-                         ;; the byte-compiler warnings.
-                         (internal--format-docstring-line
-                          "Access slot \"%s\" of `%s' struct CL-X." slot name)
-                         (if doc (concat "\n" doc) ""))
+                       ,(let ((long-docstring
+                               (format "Access slot \"%s\" of `%s' struct CL-X." slot name)))
+                          (concat
+                           ;; NB.  This will produce incorrect results
+                           ;; in some cases, as our coding conventions
+                           ;; says that the first line must be a full
+                           ;; sentence.  However, if we don't word
+                           ;; wrap we will have byte-compiler warnings
+                           ;; about overly long docstrings.  So we
+                           ;; can't have a perfect result here, and
+                           ;; choose to avoid the byte-compiler
+                           ;; warnings.
+                           (if (>= (length long-docstring) byte-compile-docstring-max-column)
+                               (concat
+                                (internal--format-docstring-line
+                                 "Access slot \"%s\" of CL-X." slot)
+                                "\n"
+                                (internal--format-docstring-line
+                                 "Struct CL-X is a `%s'." name))
+                             (internal--format-docstring-line long-docstring))
+                           (if doc (concat "\n" doc) "")))
                        (declare (side-effect-free t))
                        ,access-body)
                     forms)
@@ -3274,7 +3283,16 @@ To see the documentation for a defined struct type, use
 	(push `(,cldefsym ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
-                    (format "Constructor for objects of type `%s'." name))
+                    ;; NB.  This will produce incorrect results in
+                    ;; some cases, as our coding conventions says that
+                    ;; the first line must be a full sentence.
+                    ;; However, if we don't word wrap we will have
+                    ;; byte-compiler warnings about overly long
+                    ;; docstrings.  So we can't have a perfect result
+                    ;; here, and choose to avoid the byte-compiler
+                    ;; warnings.
+                    (internal--format-docstring-line
+                     "Constructor for objects of type `%s'." name))
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))
                  (,con-fun ,@make))
