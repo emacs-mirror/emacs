@@ -496,12 +496,14 @@ PROC is the process that's exiting.  STRING is the exit message."
                  ;; not the pipe process (if any).
                  (status (when (= index eshell-output-handle)
                            (process-exit-status proc))))
-            ;; Write the exit message if the status is abnormal and
-            ;; the process is already writing to the terminal.
+            ;; Write the exit message for the last process in the
+            ;; foreground pipeline if its status is abnormal and
+            ;; stderr is already writing to the terminal.
             (when (and (eq proc (eshell-tail-process))
+                       (eshell-interactive-output-p eshell-error-handle handles)
                        (not (string-match "^\\(finished\\|exited\\)"
                                           string)))
-              (funcall (process-filter proc) proc string))
+              (eshell-output-object string eshell-error-handle handles))
             (process-put proc :eshell-pending nil)
             ;; If we're in the middle of handling output from this
             ;; process then schedule the EOF for later.

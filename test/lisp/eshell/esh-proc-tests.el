@@ -313,6 +313,16 @@ write the exit status to the pipe.  See bug#54136."
                      output-start (eshell-end-of-output))
                     "")))))
 
+(ert-deftest esh-proc-test/kill-process/redirect-message ()
+  "Test that killing a process with a redirected stderr omits the exit status."
+  (skip-unless (executable-find "sleep"))
+  (with-temp-buffer
+    (let ((tempbuf (current-buffer)))
+      (with-temp-eshell
+       (eshell-insert-command (format "sleep 100 2> #<buffer %s>" tempbuf))
+       (kill-process (eshell-head-process))))
+    (should (equal (buffer-string) ""))))
+
 
 ;; Remote processes
 
