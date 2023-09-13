@@ -112,6 +112,7 @@ To add or remove elements of this list, see
 `eshell-record-process-object' and `eshell-remove-process-entry'.")
 
 (declare-function eshell-send-eof-to-process "esh-mode")
+(declare-function eshell-interactive-filter "esh-mode" (buffer string))
 (declare-function eshell-tail-process "esh-cmd")
 
 (defvar-keymap eshell-proc-mode-map
@@ -437,8 +438,6 @@ This is done after all necessary filtering has been done."
      'process (format-message "received output from process `%s'\n\n%s"
                               process string))
     (eshell--mark-as-output 0 (length string) string)
-    (require 'esh-mode)
-    (declare-function eshell-interactive-filter "esh-mode" (buffer string))
     (eshell-interactive-filter (if process (process-buffer process)
                                  (current-buffer))
                                string)))
@@ -511,7 +510,8 @@ PROC is the process that's exiting.  STRING is the exit message."
                        (eshell-interactive-output-p eshell-error-handle handles)
                        (not (string-match "^\\(finished\\|exited\\)"
                                           string)))
-              (eshell-output-object string eshell-error-handle handles))
+              (eshell--mark-as-output 0 (length string) string)
+              (eshell-interactive-filter (process-buffer proc) string))
             (process-put proc :eshell-pending nil)
             ;; If we're in the middle of handling output from this
             ;; process then schedule the EOF for later.
