@@ -273,7 +273,7 @@
 (eval-when-compile (require 'subr-x))   ;For `string-empty-p' and `string-join'.
 (require 'treesit)
 (require 'pcase)
-(require 'compat nil 'noerror)
+(require 'compat)
 (require 'project nil 'noerror)
 (require 'seq)
 

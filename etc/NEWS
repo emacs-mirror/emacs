@@ -1396,6 +1396,13 @@ This minor mode generates the tags table automatically based on the
 current project configuration, and later updates it as you edit the
 files and save the changes.
 
++++
+** New package Compat
+Emacs now comes with a stub implementation of the
+forwards-compatibility Compat package from GNU ELPA.  This allows
+built-in packages to use the library more effectively, and helps
+preventing the installation of Compat if unnecessary.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
