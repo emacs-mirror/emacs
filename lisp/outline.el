@@ -314,12 +314,15 @@ These buttons can be used to hide and show the body under the heading.
 When the value is `insert', additional placeholders for buttons are
 inserted to the buffer, so buttons are not only clickable,
 but also typing `RET' on them can hide and show the body.
+Using the value `insert' is not recommended in editable
+buffers because it modifies them.
 When the value is `in-margins', then clickable buttons are
 displayed in the margins before the headings.
 When the value is `t', clickable buttons are displayed
 in the buffer before the headings.  The values `t' and
 `in-margins' can be used in editing buffers because they
 don't modify the buffer."
+  ;; The value `insert' is not intended to be customizable.
   :type '(choice (const :tag "Do not use outline buttons" nil)
                  (const :tag "Show outline buttons in margins" in-margins)
                  (const :tag "Show outline buttons in buffer" t))

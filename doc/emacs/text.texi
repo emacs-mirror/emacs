@@ -1020,10 +1020,11 @@ addition to ellipsis, to show that a section is hidden.  Clicking the
 mouse on the button toggles display of the section.  If the value of
 this variable is @code{insert}, the buttons are inserted directly into
 the buffer text, so @key{RET} on the button will also toggle display
-of the section, like a mouse click does.  If the value is
-@code{in-margins}, Outline minor mode will use the window margins to
-indicate that a section is hidden.  The buttons are customizable as icons
-(@pxref{Icons}).
+of the section, like a mouse click does.  Using the value @code{insert}
+is not recommended in editable buffers because it modifies them.
+If the value is @code{in-margins}, Outline minor mode will use the
+window margins to indicate that a section is hidden.  The buttons are
+customizable as icons (@pxref{Icons}).
 
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is
