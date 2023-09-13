@@ -213,12 +213,13 @@ public final class EmacsOpenActivity extends Activity
     dialog.show ();
   }
 
-  /* Check that the specified FILE is readable.  If Android 4.4 or
-     later is being used, return URI formatted into a `/content/' file
-     name.
+  /* Check that the specified FILE is non-NULL and readable.
 
      If it is not, then copy the file in FD to a location in the
-     system cache directory and return the name of that file.  */
+     system cache directory and return the name of that file.
+
+     Alternatively, return URI formatted into a `/content/' file name
+     if the system runs Android 4.4 or later.  */
 
   private String
   checkReadableOrCopy (String file, ParcelFileDescriptor fd,
@@ -232,10 +233,19 @@ public final class EmacsOpenActivity extends Activity
     int read;
     String content;
 
-    inFile = new File (file);
+    if (file != null)
+      {
+	inFile = new File (file);
 
-    if (inFile.canRead ())
-      return file;
+	if (inFile.canRead ())
+	  return file;
+
+	content = inFile.getName ();
+      }
+    else
+      /* content is the name of this content file if the next branch
+	 is not taken.  */
+      content = uri.getLastPathSegment ();
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
       {
@@ -243,8 +253,14 @@ public final class EmacsOpenActivity extends Activity
 	return content;
       }
 
+    /* The file is unnamed if content is NULL.  Generate a unique
+       name with the current time as a reference.  */
+
+    if (content == null)
+      content = "content." + System.currentTimeMillis () / 1000;
+
     /* inFile is now the file being written to.  */
-    inFile = new File (getCacheDir (), inFile.getName ());
+    inFile = new File (getCacheDir (), content);
     buffer = new byte[4098];
 
     /* Initialize both streams to NULL.  */
@@ -463,6 +479,14 @@ public final class EmacsOpenActivity extends Activity
 		catch (IOException exception)
 		  {
 		    /* Do nothing.  */
+		  }
+		catch (SecurityException exception)
+		  {
+		    /* This means Emacs lacks the rights to open this
+		       file.  Display the error message and exit.  */
+		    displayFailureDialog ("Error openining file",
+					  exception.toString ());
+		    return;
 		  }
 
 		if (fd != null)
