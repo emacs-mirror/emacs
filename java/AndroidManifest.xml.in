@@ -40,6 +40,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.SET_WALLPAPER" />
+  <uses-permission android:name="android.permission.READ_CALENDAR" />
+  <uses-permission android:name="android.permission.WRITE_CALENDAR" />
   <!-- Despite the claim that WRITE_EXTERNAL_STORAGE also covers
        reading from external storage, specifying READ_EXTERNAL_STORAGE
        seems to still be necessary on some versions of Android.

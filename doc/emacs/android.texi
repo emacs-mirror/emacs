@@ -462,6 +462,10 @@ permissions it has requested upon being installed:
 @item
 @code{android.permission.SET_WALLPAPER}
 @item
+@code{android.permission.READ_CALENDAR}
+@item
+@code{android.permission.WRITE_CALENDAR}
+@item
 @code{android.permission.READ_EXTERNAL_STORAGE}
 @item
 @code{android.permission.WRITE_EXTERNAL_STORAGE}
