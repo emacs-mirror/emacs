@@ -161,7 +161,11 @@ The signals which will cause this to happen are matched by
   "Wait until PROCS have successfully completed."
   (dolist (proc procs)
     (when (eshell-processp proc)
-      (while (process-live-p proc)
+      (while (or (process-live-p proc)
+                 ;; If we have handles, this is an Eshell-managed
+                 ;; process.  Wait until we're 100% done and have
+                 ;; cleared out the handles (see `eshell-sentinel').
+                 (process-get proc :eshell-handles))
         (when (input-pending-p)
           (discard-input))
         (sit-for eshell-process-wait-seconds
@@ -530,6 +534,9 @@ PROC is the process that's exiting.  STRING is the exit message."
                            status
                            (when status (list 'quote (= status 0)))
                            handles)
+                          ;; Clear the handles to mark that we're 100%
+                          ;; finished with the I/O for this process.
+                          (process-put proc :eshell-handles nil)
                           (eshell-debug-command
                            'process
                            (format-message
