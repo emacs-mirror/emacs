@@ -1180,7 +1180,7 @@ have been replaced by constants."
 	(if (and args (not (memq (car form) '(run-hooks))))
             (eshell-manipulate form
 		(format-message "evaluating arguments to `%s'"
-				(symbol-name (car form)))
+				(car form))
 	      (while args
 		(setcar args (eshell-do-eval (car args) synchronous-p))
 		(setq args (cdr args)))))
