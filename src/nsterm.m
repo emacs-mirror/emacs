@@ -2708,7 +2708,7 @@ ns_scroll_run (struct window *w, struct run *run)
 
     [view copyRect:srcRect to:dest];
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED < 101400
-    [view setNeedsDisplayInRect:destRect];
+    [view setNeedsDisplayInRect:srcRect];
 #endif
   }
 
