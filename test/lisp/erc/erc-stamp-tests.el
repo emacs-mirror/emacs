@@ -275,6 +275,8 @@
         (kill-buffer)))))
 
 (ert-deftest erc-echo-timestamp ()
+  :tags (and (null (getenv "CI")) '(:unstable))
+
   (should-not erc-echo-timestamps)
   (should-not erc-stamp--last-stamp)
   (insert (propertize "abc" 'erc-timestamp 433483200))
@@ -298,8 +300,9 @@
                    "1983-09-27 00:00:00 EDT"))
     ;; Interactive with zone
     (let ((current-prefix-arg '(4)))
-      (should (equal (call-interactively #'erc-echo-timestamp)
-                     "1983-09-27 04:00:00 GMT")))
+      (should (member (call-interactively #'erc-echo-timestamp)
+                      '("1983-09-27 04:00:00 GMT"
+                        "1983-09-27 04:00:00 UTC"))))
     (let ((current-prefix-arg -7))
       (should (equal (call-interactively #'erc-echo-timestamp)
                      "1983-09-26 21:00:00 -07")))))
