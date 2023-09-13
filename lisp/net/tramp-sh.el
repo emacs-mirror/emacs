@@ -743,6 +743,13 @@ on the remote file system, including SELinux context.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
+(defconst tramp-ls-file-attributes
+  "%s -ild %s \"$1\" || return\n%s -lnd%s %s \"$1\""
+  "Shell function to produce output suitable for use with `file-attributes'
+on the remote file system.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
 (defconst tramp-perl-directory-files-and-attributes
   "%p -e '
 chdir($ARGV[0]) or printf(\"\\\"Cannot change to $ARGV[0]: $''!''\\\"\\n\"), exit();
@@ -1295,43 +1302,25 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 
 (defun tramp-do-file-attributes-with-ls (vec localname)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
-  (let (symlinkp dirp
+  (tramp-message vec 5 "file attributes with ls: %s" localname)
+  (let ((tramp-ls-file-attributes
+	 (format tramp-ls-file-attributes
+		 (tramp-get-ls-command vec)
+		 ;; On systems which have no quoting style, file
+		 ;; names with special characters could fail.
+		 (tramp-sh--quoting-style-options vec)
+		 (tramp-get-ls-command vec)
+		 (if (tramp-remote-selinux-p vec) "Z" "")
+		 (tramp-sh--quoting-style-options vec)))
+	symlinkp dirp
 	res-inode res-filemodes res-numlinks
 	res-uid-string res-gid-string res-uid-integer res-gid-integer
 	res-size res-symlink-target res-context)
-    (tramp-message vec 5 "file attributes with ls: %s" localname)
-    ;; We cannot send both commands combined, it could exceed NAME_MAX
-    ;; or PATH_MAX.  Happened on macOS, for example.
+    (tramp-maybe-send-script
+     vec tramp-ls-file-attributes "tramp_ls_file_attributes")
     (when (tramp-send-command-and-check
-           vec
-           (format "cd %s && (%s %s || %s -h %s)"
-		   (tramp-shell-quote-argument
-		    (tramp-run-real-handler
-		     #'file-name-directory (list localname)))
-		   (tramp-get-file-exists-command vec)
-		   (if (string-empty-p (file-name-nondirectory localname))
-		       "."
-                     (tramp-shell-quote-argument
-		      (file-name-nondirectory localname)))
-                   (tramp-get-test-command vec)
-		   (if (string-empty-p (file-name-nondirectory localname))
-		       "."
-                     (tramp-shell-quote-argument
-		      (file-name-nondirectory localname)))))
-      (tramp-send-command
-       vec
-       (format "%s -ild %s %s; %s -lnd%s %s %s"
-               (tramp-get-ls-command vec)
-               ;; On systems which have no quoting style, file names
-               ;; with special characters could fail.
-               (tramp-sh--quoting-style-options vec)
-               (tramp-shell-quote-argument localname)
-               (tramp-get-ls-command vec)
-	       (if (tramp-remote-selinux-p vec) "Z" "")
-               ;; On systems which have no quoting style, file names
-               ;; with special characters could fail.
-               (tramp-sh--quoting-style-options vec)
-               (tramp-shell-quote-argument localname)))
+	   vec (format "tramp_ls_file_attributes %s"
+		       (tramp-shell-quote-argument localname)))
       ;; Parse `ls -l' output ...
       (with-current-buffer (tramp-get-buffer vec)
         (when (> (buffer-size) 0)
