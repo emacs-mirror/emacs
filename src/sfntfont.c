@@ -468,6 +468,12 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
     {
       style = NULL;
 
+      if (!strcmp (single, "regular"))
+	/* ``Regular'' within a font family can represent either the
+	   weight, slant or width of the font.  Leave each value as
+	   its default, but never append it to the adstyle.  */
+	goto next;
+
       if (desc->weight == 80)
 	{
 	  /* Weight hasn't been found yet.  Scan through the weight
