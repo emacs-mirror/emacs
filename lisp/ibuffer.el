@@ -1898,14 +1898,17 @@ the buffer object itself and the current mark symbol."
 		    (t
 		     (cl-incf ibuffer-map-lines-count)
 		     (forward-line 1)))))
-	  ;; With `ibuffer-auto-mode' enabled, the preceding loop
+	  ;; With `ibuffer-auto-mode' enabled, `ibuffer-expert' nil
+	  ;; and more than one marked buffer lines, the preceding loop
 	  ;; counts the automatically popped up (and hence not
 	  ;; user-marked) buffer "*Ibuffer confirmation*".  Since
-	  ;; Ibuffer reports how many user-marked buffers were acted
+	  ;; Ibuffer reports how many marked buffers lines were acted
 	  ;; upon, and in this case the reported count would be too
 	  ;; high by one, we decrement the count to avoid the
 	  ;; confusing message (see bug#64230).
-          (if (and (featurep 'ibuf-ext) ibuffer-auto-mode)
+          (if (and (featurep 'ibuf-ext) ibuffer-auto-mode
+                   (> ibuffer-map-lines-count 1)
+                   (not ibuffer-expert))
               (1- ibuffer-map-lines-count)
             ibuffer-map-lines-count))
       (progn
