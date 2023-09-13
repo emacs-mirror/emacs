@@ -438,10 +438,36 @@ list of such troublesome manufacturers and sometimes workarounds at
 
   Android also defines a permissions system that determines what
 system services Emacs is allowed to access.  Programs must specify
-what permissions they want; what then happens depends on the version
-of Android being used:
+what permissions they want; what then happens is then subject to the
+version of Android being used:
 
 @itemize @bullet
+@item
+Under more or less recent releases of Android, such as Android 6.0 and
+later, Emacs only receives the following permissions upon
+installation:
+
+@itemize @minus
+@item
+@code{android.permission.VIBRATE}
+@item
+@code{android.permission.ACCESS_NETWORK_STATE}
+@item
+@code{android.permission.INTERNET}
+@item
+@code{android.permission.SET_WALLPAPER}
+@item
+@code{android.permission.NFC}
+@item
+@code{android.permission.TRANSMIT_IR}
+@item
+@code{android.permission.WAKE_LOCK}
+@end itemize
+
+Other permissions must be granted by the user through the system
+settings application.  Consult the manufacturer of your device for
+more details, as how to do this varies by device.
+
 @item
 On Android 5.1 and earlier, Emacs automatically receives the following
 permissions it has requested upon being installed:
@@ -506,31 +532,6 @@ permissions it has requested upon being installed:
 While most of these permissions are left unused by Emacs itself, they
 are declared by Emacs as they could be useful for other programs; for
 example, the permission to access contacts may be useful for EUDC.
-
-@item
-On Android 6.0 and later, Emacs only receives the following
-permissions upon installation:
-
-@itemize @minus
-@item
-@code{android.permission.VIBRATE}
-@item
-@code{android.permission.ACCESS_NETWORK_STATE}
-@item
-@code{android.permission.INTERNET}
-@item
-@code{android.permission.SET_WALLPAPER}
-@item
-@code{android.permission.NFC}
-@item
-@code{android.permission.TRANSMIT_IR}
-@item
-@code{android.permission.WAKE_LOCK}
-@end itemize
-
-Other permissions must be granted by the user through the system
-settings application.  Consult the manufacturer of your device for
-more details, as how to do this varies by device.
 @end itemize
 
 @node Android Windowing
