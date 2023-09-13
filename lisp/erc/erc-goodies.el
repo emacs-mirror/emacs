@@ -223,7 +223,7 @@ attempt to restore last `window-start', if known."
           ((erc--scrolltobottom-window-info)
            (found (assq window erc--scrolltobottom-window-info))
            ((not (erc--scrolltobottom-confirm (nth 2 found)))))
-        (setf (window-start window) (cadr found)))))
+        (set-window-start window (cadr found) 'no-force))))
   ;; Necessary unless we're sure `erc--scrolltobottom-on-pre-insert'
   ;; always runs between calls to this function.
   (setq erc--scrolltobottom-window-info nil))
@@ -280,7 +280,7 @@ Undo that arrangement when disabling `erc-scrolltobottom-mode'."
     (kill-local-variable 'erc--scrolltobottom-relaxed-commands)
     (kill-local-variable 'erc--scrolltobottom-window-info)))
 
-(cl-defmethod erc--scrolltobottom-on-pre-insert (_input-or-string)
+(defun erc--scrolltobottom-on-pre-insert (_)
   "Remember the `window-start' before inserting a message."
   (setq erc--scrolltobottom-window-info
         (mapcar (lambda (w)
@@ -292,11 +292,6 @@ Undo that arrangement when disabling `erc-scrolltobottom-mode'."
                                                     (point-max) nil w)))
                           (if (= ?\n (char-before (point-max))) (1+ c) c))))
                 (get-buffer-window-list nil nil 'visible))))
-
-(cl-defmethod erc--scrolltobottom-on-pre-insert ((input erc-input))
-  "Remember the `window-start' before inserting a message."
-  (when (erc-input-insertp input)
-    (cl-call-next-method)))
 
 (defun erc--scrolltobottom-confirm (&optional scroll-to)
   "Like `erc-scroll-to-bottom', but use `window-point'.
