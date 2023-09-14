@@ -1657,7 +1657,7 @@ buffer.  */)
   if (!NILP (ranges))
     CHECK_CONS (ranges);
 
-  if (Fequal (XTS_PARSER (parser)->last_set_ranges, ranges))
+  if (!NILP (Fequal (XTS_PARSER (parser)->last_set_ranges, ranges)))
     return Qnil;
 
   treesit_check_range_argument (ranges);
