@@ -650,7 +650,7 @@ parser for EMBEDDED-LANG."
         (dolist (ov (overlays-in beg end))
           ;; Update range of local parser.
           (let ((embedded-parser (overlay-get ov 'treesit-parser)))
-            (when (and embedded-parser
+            (when (and (treesit-parser-p embedded-parser)
                        (eq (treesit-parser-language embedded-parser)
                            embedded-lang))
               (treesit-parser-set-included-ranges
@@ -1149,16 +1149,17 @@ If LOUDLY is non-nil, display some debugging information."
   (let* ((local-parsers (treesit-local-parsers-on start end))
          (global-parsers (treesit-parser-list))
          (root-nodes
-          (mapcar (lambda (parser)
-                    (cons (treesit-parser-language parser)
-                          (treesit-parser-root-node parser)))
+          (mapcar #'treesit-parser-root-node
                   (append local-parsers global-parsers))))
     (dolist (setting treesit-font-lock-settings)
       (let* ((query (nth 0 setting))
              (enable (nth 1 setting))
              (override (nth 3 setting))
              (language (treesit-query-language query))
-             (root (alist-get language root-nodes)))
+             (root-nodes (cl-remove-if-not
+                          (lambda (node)
+                            (eq (treesit-node-language node) language))
+                          root-nodes)))
 
         ;; Use deterministic way to decide whether to turn on "fast
         ;; mode". (See bug#60691, bug#60223.)
@@ -1171,11 +1172,15 @@ If LOUDLY is non-nil, display some debugging information."
               (setq treesit--font-lock-fast-mode nil))))
 
         ;; Only activate if ENABLE flag is t.
-        (when-let ((activate (eq t enable))
-                   (nodes (if (eq t treesit--font-lock-fast-mode)
-                              (treesit--children-covering-range-recurse
-                               root start end (* 4 jit-lock-chunk-size))
-                            (list root))))
+        (when-let
+            ((activate (eq t enable))
+             (nodes (if (eq t treesit--font-lock-fast-mode)
+                        (mapcan
+                         (lambda (node)
+                           (treesit--children-covering-range-recurse
+                            node start end (* 4 jit-lock-chunk-size)))
+                         root-nodes)
+                      root-nodes)))
           (ignore activate)
 
           ;; Query each node.
@@ -2724,7 +2729,13 @@ before calling this function."
   ;; Imenu.
   (when treesit-simple-imenu-settings
     (setq-local imenu-create-index-function
-                #'treesit-simple-imenu)))
+                #'treesit-simple-imenu))
+
+  ;; Remove existing local parsers.
+  (dolist (ov (overlays-in (point-min) (point-max)))
+    (when-let ((parser (overlay-get ov 'treesit-parser)))
+      (treesit-parser-delete parser)
+      (delete-overlay ov))))
 
 ;;; Debugging
 
