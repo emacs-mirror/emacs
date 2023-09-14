@@ -133,7 +133,8 @@ Useful for temporary file such as commit message files that are
 automatically created by the VCS.  If set to nil, this feature is
 disabled, i.e., the position is recorded for all files."
   :version "24.1"
-  :type 'regexp)
+  :type '(choice (const :tag "Record position for all files" nil)
+                 regexp))
 
 (declare-function dired-current-directory "dired" (&optional localp))
 
