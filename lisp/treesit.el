@@ -1185,44 +1185,52 @@ If LOUDLY is non-nil, display some debugging information."
 
           ;; Query each node.
           (dolist (sub-node nodes)
-            (let* ((delta-start (car treesit--font-lock-query-expand-range))
-                   (delta-end (cdr treesit--font-lock-query-expand-range))
-                   (captures (treesit-query-capture
-                              sub-node query
-                              (max (- start delta-start) (point-min))
-                              (min (+ end delta-end) (point-max)))))
-
-              ;; For each captured node, fontify that node.
-              (with-silent-modifications
-                (dolist (capture captures)
-                  (let* ((face (car capture))
-                         (node (cdr capture))
-                         (node-start (treesit-node-start node))
-                         (node-end (treesit-node-end node)))
-
-                    ;; If node is not in the region, take them out.  See
-                    ;; comment #3 above for more detail.
-                    (if (and (facep face)
-                             (or (>= start node-end) (>= node-start end)))
-                        (when (or loudly treesit--font-lock-verbose)
-                          (message "Captured node %s(%s-%s) but it is outside of fontifing region" node node-start node-end))
-
-                      (cond
-                       ((facep face)
-                        (treesit-fontify-with-override
-                         (max node-start start) (min node-end end)
-                         face override))
-                       ((functionp face)
-                        (funcall face node override start end)))
-
-                      ;; Don't raise an error if FACE is neither a face nor
-                      ;; a function.  This is to allow intermediate capture
-                      ;; names used for #match and #eq.
-                      (when (or loudly treesit--font-lock-verbose)
-                        (message "Fontifying text from %d to %d, Face: %s, Node: %s"
-                                 (max node-start start) (min node-end end)
-                                 face (treesit-node-type node)))))))))))))
+            (treesit--font-lock-fontify-region-1
+             sub-node query start end override loudly))))))
   `(jit-lock-bounds ,start . ,end))
+
+(defun treesit--font-lock-fontify-region-1 (node query start end override loudly)
+  "Fontify the region between START and END by querying NODE with QUERY.
+
+If OVERRIDE is non-nil, override existing faces, if LOUDLY is
+non-nil, print debugging information."
+  (let* ((delta-start (car treesit--font-lock-query-expand-range))
+         (delta-end (cdr treesit--font-lock-query-expand-range))
+         (captures (treesit-query-capture
+                    node query
+                    (max (- start delta-start) (point-min))
+                    (min (+ end delta-end) (point-max)))))
+
+    ;; For each captured node, fontify that node.
+    (with-silent-modifications
+      (dolist (capture captures)
+        (let* ((face (car capture))
+               (node (cdr capture))
+               (node-start (treesit-node-start node))
+               (node-end (treesit-node-end node)))
+
+          ;; If node is not in the region, take them out.  See
+          ;; comment #3 above for more detail.
+          (if (and (facep face)
+                   (or (>= start node-end) (>= node-start end)))
+              (when (or loudly treesit--font-lock-verbose)
+                (message "Captured node %s(%s-%s) but it is outside of fontifing region" node node-start node-end))
+
+            (cond
+             ((facep face)
+              (treesit-fontify-with-override
+               (max node-start start) (min node-end end)
+               face override))
+             ((functionp face)
+              (funcall face node override start end)))
+
+            ;; Don't raise an error if FACE is neither a face nor
+            ;; a function.  This is to allow intermediate capture
+            ;; names used for #match and #eq.
+            (when (or loudly treesit--font-lock-verbose)
+              (message "Fontifying text from %d to %d, Face: %s, Node: %s"
+                       (max node-start start) (min node-end end)
+                       face (treesit-node-type node)))))))))
 
 (defun treesit--font-lock-notifier (ranges parser)
   "Ensures updated parts of the parse-tree are refontified.
