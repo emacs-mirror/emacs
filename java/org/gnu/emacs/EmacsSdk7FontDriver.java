@@ -31,6 +31,19 @@ import android.graphics.Canvas;
 
 import android.util.Log;
 
+
+
+/* EmacsSdk7FontDriver implements a fallback font driver under
+   Android.  This font driver is enabled when the SFNT font driver (in
+   sfntfont-android.c) proves incapable of locating any fonts, which
+   has hitherto not been observed in practice.
+
+   This font driver does not supply each font installed on the system,
+   in lieu of which it provides a list of fonts for each conceivable
+   style and sub-type of the system's own Typefaces, which arises from
+   Android's absence of suitable APIs for loading individual font
+   files.  */
+
 public class EmacsSdk7FontDriver extends EmacsFontDriver
 {
   private static final String TOFU_STRING = "\uDB3F\uDFFD";
@@ -46,11 +59,14 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     public int slant, width, weight, spacing;
 
     public
-    Sdk7Typeface (String fileName, Typeface typeface)
+    Sdk7Typeface (String familyName, Typeface typeface)
     {
       String style, testString;
       int index, measured, i;
       float[] widths;
+
+      /* Initialize the font style fields and create a paint object
+	 linked with that typeface.  */
 
       slant = NORMAL;
       weight = REGULAR;
@@ -58,94 +74,11 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       spacing = PROPORTIONAL;
 
       this.typeface = typeface;
+      this.familyName = familyName;
 
       typefacePaint = new Paint ();
       typefacePaint.setAntiAlias (true);
       typefacePaint.setTypeface (typeface);
-
-      /* For the calls to measureText below.  */
-      typefacePaint.setTextSize (10.0f);
-
-      /* Parse the file name into some useful data.  First, strip off
-	 the extension.  */
-      fileName = fileName.split ("\\.", 2)[0];
-
-      /* Next, split the file name by dashes.  Everything before the
-	 last dash is part of the family name.  */
-      index = fileName.lastIndexOf ("-");
-
-      if (index > 0)
-	{
-	  style = fileName.substring (index + 1, fileName.length ());
-	  familyName = fileName.substring (0, index);
-
-	  /* Look for something describing the weight.  */
-	  if (style.contains ("Thin"))
-	    weight = THIN;
-	  else if (style.contains ("UltraLight"))
-	    weight = ULTRA_LIGHT;
-	  else if (style.contains ("SemiLight"))
-	    weight = SEMI_LIGHT;
-	  else if (style.contains ("Light"))
-	    weight = LIGHT;
-	  else if (style.contains ("Medium"))
-	    weight = MEDIUM;
-	  else if (style.contains ("SemiBold"))
-	    weight = SEMI_BOLD;
-	  else if (style.contains ("ExtraBold"))
-	    weight = EXTRA_BOLD;
-	  else if (style.contains ("Bold"))
-	    weight = BOLD;
-	  else if (style.contains ("Black"))
-	    weight = BLACK;
-	  else if (style.contains ("UltraHeavy"))
-	    weight = ULTRA_HEAVY;
-
-	  /* And the slant.  */
-	  if (style.contains ("ReverseOblique"))
-	    slant = OBLIQUE;
-	  else if (style.contains ("ReverseItalic"))
-	    slant = REVERSE_ITALIC;
-	  else if (style.contains ("Italic"))
-	    slant = ITALIC;
-	  else if (style.contains ("Oblique"))
-	    slant = OBLIQUE;
-
-	  /* Finally, the width.  */
-	  if (style.contains ("UltraCondensed"))
-	    width = ULTRA_CONDENSED;
-	  else if (style.contains ("ExtraCondensed"))
-	    width = EXTRA_CONDENSED;
-	  else if (style.contains ("SemiCondensed"))
-	    width = SEMI_CONDENSED;
-	  else if (style.contains ("Condensed"))
-	    width = CONDENSED;
-	  else if (style.contains ("SemiExpanded"))
-	    width = SEMI_EXPANDED;
-	  else if (style.contains ("ExtraExpanded"))
-	    width = EXTRA_EXPANDED;
-	  else if (style.contains ("UltraExpanded"))
-	    width = ULTRA_EXPANDED;
-	  else if (style.contains ("Expanded"))
-	    width = EXPANDED;
-
-	  /* Guess the spacing information.  */
-	  testString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	  widths = new float[testString.length ()];
-
-	  measured = typefacePaint.getTextWidths (testString,
-						  0, testString.length (),
-						  widths);
-	  spacing = MONO;
-	  for (i = 0; i < measured; ++i)
-	    {
-	      if (i != 0 && widths[i - 1] != widths[i])
-		/* This isn't a monospace font.  */
-		spacing = PROPORTIONAL;
-	    }
-	}
-      else
-	familyName = fileName;
     }
 
     @Override
@@ -244,43 +177,42 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
   EmacsSdk7FontDriver ()
   {
     int i;
-    File systemFontsDirectory, fontFile;
     Typeface typeface;
 
-    systemFontsDirectory = new File ("/system/fonts");
+    typefaceList = new Sdk7Typeface[5];
 
-    fontFamilyList = systemFontsDirectory.list ();
+    /* Initialize the default monospace and Sans Serif typefaces.
+       Initialize the same typeface with various distinct styles.  */
+    fallbackTypeface = new Sdk7Typeface ("Sans Serif",
+					 Typeface.DEFAULT);
+    typefaceList[1] = fallbackTypeface;
 
-    /* If that returned null, replace it with an empty array.  */
-    fontFamilyList = new String[0];
+    fallbackTypeface = new Sdk7Typeface ("Sans Serif",
+					 Typeface.create (Typeface.DEFAULT,
+							  Typeface.BOLD));
+    fallbackTypeface.weight = BOLD;
+    typefaceList[2] = fallbackTypeface;
 
-    typefaceList = new Sdk7Typeface[fontFamilyList.length + 3];
+    fallbackTypeface = new Sdk7Typeface ("Sans Serif",
+					 Typeface.create (Typeface.DEFAULT,
+							  Typeface.ITALIC));
+    fallbackTypeface.slant = ITALIC;
+    typefaceList[3] = fallbackTypeface;
 
-    /* It would be nice to avoid opening each and every font upon
-       startup.  But that doesn't seem to be possible on
-       Android.  */
-
-    for (i = 0; i < fontFamilyList.length; ++i)
-      {
-	fontFile = new File (systemFontsDirectory,
-			     fontFamilyList[i]);
-	typeface = Typeface.createFromFile (fontFile);
-	typefaceList[i] = new Sdk7Typeface (fontFile.getName (),
-					    typeface);
-      }
-
-    /* Initialize the default monospace and serif typefaces.  */
-    fallbackTypeface = new Sdk7Typeface ("monospace",
-					 Typeface.MONOSPACE);
-    typefaceList[fontFamilyList.length] = fallbackTypeface;
+    fallbackTypeface
+      = new Sdk7Typeface ("Sans Serif",
+			  Typeface.create (Typeface.DEFAULT,
+					   Typeface.BOLD_ITALIC));
+    fallbackTypeface.weight = BOLD;
+    fallbackTypeface.slant = ITALIC;
+    typefaceList[4] = fallbackTypeface;
 
     fallbackTypeface = new Sdk7Typeface ("Monospace",
 					 Typeface.MONOSPACE);
-    typefaceList[fontFamilyList.length + 1] = fallbackTypeface;
+    fallbackTypeface.spacing = MONO;
+    typefaceList[0] = fallbackTypeface;
 
-    fallbackTypeface = new Sdk7Typeface ("Sans Serif",
-					 Typeface.DEFAULT);
-    typefaceList[fontFamilyList.length + 2] = fallbackTypeface;
+    fontFamilyList = new String[] { "Monospace", "Sans Serif", };
   }
 
   private boolean
@@ -491,16 +423,12 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
   {
     Rect backgroundRect, bounds;
     Sdk7FontObject sdk7FontObject;
-    char[] charsArray;
     int i;
     Canvas canvas;
     Paint paint;
+    char[] array;
 
     sdk7FontObject = (Sdk7FontObject) fontObject;
-    charsArray = new char[chars.length];
-
-    for (i = 0; i < chars.length; ++i)
-      charsArray[i] = (char) chars[i];
 
     backgroundRect = new Rect ();
     backgroundRect.top = y - sdk7FontObject.ascent;
@@ -526,13 +454,33 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     paint.setTextSize (sdk7FontObject.pixelSize);
     paint.setTypeface (sdk7FontObject.typeface.typeface);
     paint.setAntiAlias (true);
-    canvas.drawText (charsArray, 0, chars.length, x, y, paint);
+
+    /* Android applies kerning to non-monospaced fonts by default,
+       which brings the dimensions of strings drawn via `drawText' out
+       of agreement with measurements previously provided to redisplay
+       by textExtents.  To avert such disaster, draw each character
+       individually, advancing the origin point by hand.  */
 
     bounds = new Rect ();
-    paint.getTextBounds (charsArray, 0, chars.length, bounds);
-    bounds.offset (x, y);
-    bounds.union (backgroundRect);
-    drawable.damageRect (bounds);
+    array = new char[1];
+
+    for (i = 0; i < chars.length; ++i)
+      {
+	/* Retrieve the text bounds for this character so as to
+	   compute the damage rectangle.  */
+	array[0] = (char) chars[i];
+	paint.getTextBounds (array, 0, 1, bounds);
+	bounds.offset (x, y);
+	backgroundRect.union (bounds);
+
+	/* Draw this character.  */
+	canvas.drawText (array, 0, 1, x, y, paint);
+
+	/* Advance the origin point by that much.  */
+	x += paint.measureText ("" + array[0]);
+      }
+
+    drawable.damageRect (backgroundRect);
     paint.setAntiAlias (false);
     return 1;
   }
