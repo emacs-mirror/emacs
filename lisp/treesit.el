@@ -136,14 +136,23 @@ Return the root node of the syntax tree."
 This is used by `treesit-language-at', which is used by various
 functions to determine which parser to use at point.
 
-The function is called with one argument, the position of point.")
+The function is called with one argument, the position of point.
+
+In general, this function should call `treesit-node-at' with an
+explicit language (usually the host language), and determine the
+language at point using the type of the returned node.")
 
 (defun treesit-language-at (position)
   "Return the language at POSITION.
+
 This function assumes that parser ranges are up-to-date.  It
 returns the return value of `treesit-language-at-point-function'
 if it's non-nil, otherwise it returns the language of the first
-parser in `treesit-parser-list', or nil if there is no parser."
+parser in `treesit-parser-list', or nil if there is no parser.
+
+In a multi-language buffer, make sure
+`treesit-language-at-point-function' is implemented!  Otherwise
+`treesit-language-at' wouldn't return the correct result."
   (if treesit-language-at-point-function
       (funcall treesit-language-at-point-function position)
     (when-let ((parser (car (treesit-parser-list))))
