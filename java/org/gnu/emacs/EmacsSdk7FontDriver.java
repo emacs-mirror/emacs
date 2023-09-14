@@ -291,12 +291,17 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 
   @Override
   public int
-  hasChar (FontSpec font, char charCode)
+  hasChar (FontSpec font, int charCode)
   {
     float missingGlyphWidth, width;
     Rect rect1, rect2;
     Paint paint;
     Sdk7FontObject fontObject;
+
+    /* Ignore characters outside the BMP.  */
+
+    if (charCode > 65535)
+      return 0;
 
     if (font instanceof Sdk7FontObject)
       {
@@ -308,7 +313,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 
     paint.setTextSize (10);
 
-    if (Character.isWhitespace (charCode))
+    if (Character.isWhitespace ((char) charCode))
       return 1;
 
     missingGlyphWidth = paint.measureText (TOFU_STRING);
@@ -325,7 +330,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 
     paint.getTextBounds (TOFU_STRING, 0, TOFU_STRING.length (),
 			 rect1);
-    paint.getTextBounds ("" + charCode, 0, 1, rect2);
+    paint.getTextBounds ("" + (char) charCode, 0, 1, rect2);
     return rect1.equals (rect2) ? 0 : 1;
   }
 
@@ -410,8 +415,11 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 
   @Override
   public int
-  encodeChar (FontObject fontObject, char charCode)
+  encodeChar (FontObject fontObject, int charCode)
   {
+    if (charCode > 65535)
+      return FONT_INVALID_CODE;
+
     return charCode;
   }
 

@@ -204,11 +204,11 @@ android_init_font_driver (void)
   FIND_METHOD (open_font, "openFont", "(Lorg/gnu/emacs/EmacsFontDriver$Font"
 	       "Entity;I)Lorg/gnu/emacs/EmacsFontDriver$FontObject;");
   FIND_METHOD (has_char, "hasChar", "(Lorg/gnu/emacs/EmacsFontDriver$Font"
-	       "Spec;C)I");
+	       "Spec;I)I");
   FIND_METHOD (text_extents, "textExtents", "(Lorg/gnu/emacs/EmacsFontDriver"
 	       "$FontObject;[ILorg/gnu/emacs/EmacsFontDriver$FontMetrics;)V");
   FIND_METHOD (encode_char, "encodeChar", "(Lorg/gnu/emacs/EmacsFontDriver"
-	       "$FontObject;C)I");
+	       "$FontObject;I)I");
   FIND_METHOD (draw, "draw", "(Lorg/gnu/emacs/EmacsFontDriver$FontObject;"
 	       "Lorg/gnu/emacs/EmacsGC;Lorg/gnu/emacs/EmacsDrawable;[IIIIZ)I");
 
