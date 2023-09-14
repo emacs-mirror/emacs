@@ -453,22 +453,27 @@ This is done after all necessary filtering has been done."
   "Insert a string into the eshell buffer, or a process/file/buffer.
 PROC is the process for which we're inserting output.  STRING is the
 output."
+  (eshell-debug-command
+   'process (format-message "received output from process `%s'\n\n%s"
+                            proc string))
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (process-put proc :eshell-pending
                    (concat (process-get proc :eshell-pending)
                            string))
-      (unless (process-get proc :eshell-busy) ; Already being handled?
-        (while (process-get proc :eshell-pending)
-          (let ((handles (process-get proc :eshell-handles))
-                (index (process-get proc :eshell-handle-index))
-                (data (process-get proc :eshell-pending)))
-            (process-put proc :eshell-pending nil)
-            (process-put proc :eshell-busy t)
-            (eshell-debug-command
-             'process (format-message "received output from process `%s'\n\n%s"
-                                      proc string))
-            (unwind-protect
+      (if (process-get proc :eshell-busy)
+          (eshell-debug-command
+           'process (format-message "i/o busy for process `%s'" proc))
+        (unwind-protect
+            (let ((handles (process-get proc :eshell-handles))
+                  (index (process-get proc :eshell-handle-index))
+                  data)
+              (while (setq data (process-get proc :eshell-pending))
+                (process-put proc :eshell-pending nil)
+                (eshell-debug-command
+                 'process (format-message
+                           "forwarding output from process `%s'\n\n%s"
+                           proc data))
                 (condition-case nil
                     (eshell-output-object data index handles)
                   ;; FIXME: We want to send SIGPIPE to the process
@@ -486,8 +491,8 @@ output."
                    (if (or (process-get proc 'remote-pid)
                            (eq system-type 'windows-nt))
                        (delete-process proc)
-                     (signal-process proc 'SIGPIPE))))
-              (process-put proc :eshell-busy nil))))))))
+                     (signal-process proc 'SIGPIPE))))))
+                (process-put proc :eshell-busy nil))))))
 
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
@@ -525,7 +530,11 @@ PROC is the process that's exiting.  STRING is the exit message."
                       (lambda ()
                         (if (or (process-get proc :eshell-busy)
                                 (and wait-for-stderr (car stderr-live)))
-                            (run-at-time 0 nil finish-io)
+                            (progn
+                              (eshell-debug-command
+                               'process (format-message
+                                         "i/o busy for process `%s'" proc))
+                              (run-at-time 0 nil finish-io))
                           (when data
                             (ignore-error eshell-pipe-broken
                               (eshell-output-object
