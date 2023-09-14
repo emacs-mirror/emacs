@@ -3553,11 +3553,13 @@ DEFUN ("treesit-search-subtree",
        doc: /* Traverse the parse tree of NODE depth-first using PREDICATE.
 
 Traverse the subtree of NODE, and match PREDICATE with each node along
-the way.  PREDICATE can be a regexp string that matches against each
-node's type, a predicate function, and more.  See
-`treesit-thing-settings' for the possible predicates.  PREDICATE can
-also be a thing defined in `treesit-thing-settings'.  Using an
-undefined thing doesn't raise an error.
+the way.
+
+PREDICATE can be a regexp string that matches against each node's
+type, a predicate function, and more.  See `treesit-thing-settings'
+for the possible predicates.  PREDICATE can also be a thing defined in
+`treesit-thing-settings'.  Using an undefined thing doesn't raise an
+error.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
 all nodes.  If BACKWARD is non-nil, traverse backwards.  If DEPTH is
@@ -3621,10 +3623,11 @@ DEFUN ("treesit-search-forward",
        doc: /* Search for node matching PREDICATE in the parse tree of START.
 
 Start traversing the tree from node START, and match PREDICATE with
-each node (except START itself) along the way.  PREDICATE can be a
-regexp string that matches against each node's type, a predicate
-function, and more.  See `treesit-thing-settings' for the possible
-predicates.  PREDICATE can also be a thing defined in
+each node (except START itself) along the way.
+
+PREDICATE can be a regexp string that matches against each node's
+type, a predicate function, and more.  See `treesit-thing-settings'
+for the possible predicates.  PREDICATE can also be a thing defined in
 `treesit-thing-settings'.  Using an undefined thing doesn't raise an
 error.
 
@@ -3744,6 +3747,7 @@ DEFUN ("treesit-induce-sparse-tree",
 
 This takes the subtree under ROOT, and combs it so only the nodes that
 match PREDICATE are left, like picking out grapes on the vine.
+
 PREDICATE can be a regexp string that matches against each node's
 type, a predicate function, and more.  See `treesit-thing-settings'
 for the possible predicates.  PREDICATE can also be a thing defined in
@@ -3775,11 +3779,7 @@ ROOT.  If DEPTH is nil or omitted, it defaults to 1000.
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
 root of this tree might be nil, if ROOT doesn't match PREDICATE.
 
-If no node matches PREDICATE, return nil.
-
-PREDICATE can also be a function that takes a node and returns
-nil/non-nil, but it is slower and more memory consuming than using
-a regexp.  */)
+If no node matches PREDICATE, return nil.  */)
   (Lisp_Object root, Lisp_Object predicate, Lisp_Object process_fn,
    Lisp_Object depth)
 {
