@@ -218,8 +218,8 @@ reapplied as soon as point moves away from the symbol.  If
 set to nil, the prettification persists even when point is
 on the symbol.
 
-This will only have an effect if it is set to a non-nil before
-`prettify-symbols-mode' is activated."
+This will only have an effect if it is set to a non-nil value
+before `prettify-symbols-mode' is activated."
   :version "25.1"
   :type '(choice (const :tag "Never unprettify" nil)
                  (const :tag "Unprettify when point is inside" t)
