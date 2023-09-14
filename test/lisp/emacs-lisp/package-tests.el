@@ -125,6 +125,7 @@
             abbreviated-home-dir
             package--initialized
             package-alist
+            package-selected-packages
             ,@(if update-news
                   '(package-update-news-on-upload t)
                 (list (cl-gensym)))
@@ -306,6 +307,21 @@ Must called from within a `tar-mode' buffer."
       (should (package-installed-p 'v7-withsub))
       (package-delete (cadr (assq 'v7-withsub package-alist))))
     ))
+
+(ert-deftest package-test-bug65475 ()
+  "Deleting the last package clears `package-selected-packages'."
+  (with-package-test (:basedir (ert-resource-directory))
+    (package-initialize)
+    (let* ((pkg-el "simple-single-1.3.el")
+           (source-file (expand-file-name pkg-el (ert-resource-directory))))
+      (package-install-file source-file)
+      (should package-alist)
+      (should package-selected-packages)
+      (let ((desc (cadr (assq 'simple-single package-alist))))
+        (should desc)
+        (package-delete desc))
+      (should-not package-alist)
+      (should-not package-selected-packages))))
 
 (ert-deftest package-test-install-file-EOLs ()
   "Install same file multiple time with `package-install-file'
