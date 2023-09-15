@@ -20587,7 +20587,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       /* Apply the fix for bug#57468 on GTK 3.x and no toolkit builds,
 	 but not GTK+ 2.x and X toolkit builds, where it is required
-	 to treat implicit focus correctly.  */
+	 to treat implicit focus correctly.  (bug#65919) */
 #if defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3)
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
