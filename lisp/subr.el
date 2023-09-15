@@ -507,8 +507,10 @@ If COUNT is negative, shifting is actually to the right.
 In this case, if VALUE is a negative fixnum treat it as unsigned,
 i.e., subtract 2 * `most-negative-fixnum' from VALUE before shifting it.
 
-This function is provided for compatibility.  In new code, use `ash'
-instead."
+Most uses of this function turn out to be mistakes.  We recommend
+to use `ash' instead, unless COUNT could ever be negative, and
+if, when COUNT is negative, your program really needs the special
+treatment of negative COUNT provided by this function."
   (declare (compiler-macro
             (lambda (form)
               (macroexp-warn-and-return "avoid `lsh'; use `ash' instead"
