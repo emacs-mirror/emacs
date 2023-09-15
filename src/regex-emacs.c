@@ -3643,13 +3643,111 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte,
   return not;
 }
 
+/* Case where `p2` points to an `exactn`.  */
+static bool
+mutually_exclusive_exactn (struct re_pattern_buffer *bufp, re_char *p1,
+		           re_char *p2)
+{
+  bool multibyte = RE_MULTIBYTE_P (bufp);
+  int c
+    = (re_opcode_t) *p2 == endline ? '\n'
+      : RE_STRING_CHAR (p2 + 2, multibyte);
+
+  if ((re_opcode_t) *p1 == exactn)
+    {
+      if (c != RE_STRING_CHAR (p1 + 2, multibyte))
+	{
+	  DEBUG_PRINT ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
+	  return true;
+	}
+    }
+
+  else if ((re_opcode_t) *p1 == charset
+	   || (re_opcode_t) *p1 == charset_not)
+    {
+      if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
+                            Qnil))
+	{
+	  DEBUG_PRINT ("	 No match => fast loop.\n");
+	  return true;
+	}
+    }
+  else if ((re_opcode_t) *p1 == anychar
+	   && c == '\n')
+    {
+      DEBUG_PRINT ("   . != \\n => fast loop.\n");
+      return true;
+    }
+  return false;
+}
+
+/* Case where `p2` points to an `charset`.  */
+static bool
+mutually_exclusive_charset (struct re_pattern_buffer *bufp, re_char *p1,
+		            re_char *p2)
+{
+  /* It is hard to list up all the character in charset
+     P2 if it includes multibyte character.  Give up in
+     such case.  */
+  if (!RE_MULTIBYTE_P (bufp) || !CHARSET_RANGE_TABLE_EXISTS_P (p2))
+    {
+      /* Now, we are sure that P2 has no range table.
+	     So, for the size of bitmap in P2, 'p2[1]' is
+	     enough.  But P1 may have range table, so the
+	     size of bitmap table of P1 is extracted by
+	     using macro 'CHARSET_BITMAP_SIZE'.
+
+	     In a multibyte case, we know that all the character
+	     listed in P2 is ASCII.  In a unibyte case, P1 has only a
+	     bitmap table.  So, in both cases, it is enough to test
+	     only the bitmap table of P1.  */
+
+      if ((re_opcode_t) *p1 == charset)
+	{
+	  int idx;
+	  /* We win if the charset inside the loop
+		 has no overlap with the one after the loop.  */
+	  for (idx = 0;
+		(idx < (int) p2[1]
+		 && idx < CHARSET_BITMAP_SIZE (p1));
+		idx++)
+	    if ((p2[2 + idx] & p1[2 + idx]) != 0)
+	      break;
+
+	  if (idx == p2[1]
+	      || idx == CHARSET_BITMAP_SIZE (p1))
+	    {
+	      DEBUG_PRINT ("	 No match => fast loop.\n");
+	      return true;
+	    }
+	}
+      else if ((re_opcode_t) *p1 == charset_not)
+	{
+	  int idx;
+	  /* We win if the charset_not inside the loop lists
+		 every character listed in the charset after.  */
+	  for (idx = 0; idx < (int) p2[1]; idx++)
+	    if (! (p2[2 + idx] == 0
+		   || (idx < CHARSET_BITMAP_SIZE (p1)
+		       && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
+	      break;
+
+	  if (idx == p2[1])
+	    {
+	      DEBUG_PRINT ("	 No match => fast loop.\n");
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
 /* True if "p1 matches something" implies "p2 fails".  */
 static bool
 mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 		      re_char *p2)
 {
   re_opcode_t op2;
-  bool multibyte = RE_MULTIBYTE_P (bufp);
   unsigned char *pend = bufp->buffer + bufp->used;
   re_char *p2_orig = p2;
 
@@ -3684,98 +3782,14 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 
     case endline:
     case exactn:
-      {
-	int c
-	  = (re_opcode_t) *p2 == endline ? '\n'
-	  : RE_STRING_CHAR (p2 + 2, multibyte);
-
-	if ((re_opcode_t) *p1 == exactn)
-	  {
-	    if (c != RE_STRING_CHAR (p1 + 2, multibyte))
-	      {
-		DEBUG_PRINT ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
-		return true;
-	      }
-	  }
-
-	else if ((re_opcode_t) *p1 == charset
-		 || (re_opcode_t) *p1 == charset_not)
-	  {
-	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
-                                  Qnil))
-	      {
-		DEBUG_PRINT ("	 No match => fast loop.\n");
-		return true;
-	      }
-	  }
-	else if ((re_opcode_t) *p1 == anychar
-		 && c == '\n')
-	  {
-	    DEBUG_PRINT ("   . != \\n => fast loop.\n");
-	    return true;
-	  }
-      }
-      break;
+      return mutually_exclusive_exactn (bufp, p1, p2);
 
     case charset:
       {
 	if ((re_opcode_t) *p1 == exactn)
-	  /* Reuse the code above.  */
-	  return mutually_exclusive_p (bufp, p2, p1);
-
-      /* It is hard to list up all the character in charset
-	 P2 if it includes multibyte character.  Give up in
-	 such case.  */
-      else if (!multibyte || !CHARSET_RANGE_TABLE_EXISTS_P (p2))
-	{
-	  /* Now, we are sure that P2 has no range table.
-	     So, for the size of bitmap in P2, 'p2[1]' is
-	     enough.  But P1 may have range table, so the
-	     size of bitmap table of P1 is extracted by
-	     using macro 'CHARSET_BITMAP_SIZE'.
-
-	     In a multibyte case, we know that all the character
-	     listed in P2 is ASCII.  In a unibyte case, P1 has only a
-	     bitmap table.  So, in both cases, it is enough to test
-	     only the bitmap table of P1.  */
-
-	  if ((re_opcode_t) *p1 == charset)
-	    {
-	      int idx;
-	      /* We win if the charset inside the loop
-		 has no overlap with the one after the loop.  */
-	      for (idx = 0;
-		   (idx < (int) p2[1]
-		    && idx < CHARSET_BITMAP_SIZE (p1));
-		   idx++)
-		if ((p2[2 + idx] & p1[2 + idx]) != 0)
-		  break;
-
-	      if (idx == p2[1]
-		  || idx == CHARSET_BITMAP_SIZE (p1))
-		{
-		  DEBUG_PRINT ("	 No match => fast loop.\n");
-		  return true;
-		}
-	    }
-	  else if ((re_opcode_t) *p1 == charset_not)
-	    {
-	      int idx;
-	      /* We win if the charset_not inside the loop lists
-		 every character listed in the charset after.  */
-	      for (idx = 0; idx < (int) p2[1]; idx++)
-		if (! (p2[2 + idx] == 0
-		       || (idx < CHARSET_BITMAP_SIZE (p1)
-			   && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
-		  break;
-
-	      if (idx == p2[1])
-		{
-		  DEBUG_PRINT ("	 No match => fast loop.\n");
-		  return true;
-		}
-	      }
-	  }
+	  return mutually_exclusive_exactn (bufp, p2, p1);
+	else
+	  return mutually_exclusive_charset (bufp, p1, p2);
       }
       break;
 
@@ -3783,9 +3797,9 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
       switch (*p1)
 	{
 	case exactn:
+	  return mutually_exclusive_exactn (bufp, p2, p1);
 	case charset:
-	  /* Reuse the code above.  */
-	  return mutually_exclusive_p (bufp, p2, p1);
+	  return mutually_exclusive_charset (bufp, p2, p1);
 	case charset_not:
 	  /* When we have two charset_not, it's very unlikely that
 	     they don't overlap.  The union of the two sets of excluded
