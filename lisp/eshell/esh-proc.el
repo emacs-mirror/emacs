@@ -351,8 +351,10 @@ Used only on systems which do not support async subprocesses.")
                :connection-type conn-type
                :stderr stderr-proc
                :file-handler t)))
-      (eshell-debug-command
-       'process (format-message "started external process `%s'" proc))
+      (eshell-debug-command 'process
+        "started external process `%s'\n\n%s" proc
+        (mapconcat (lambda (i) (shell-quote-argument i 'posix))
+                   (process-command proc) " "))
       (eshell-record-process-object proc)
       (eshell-record-process-properties proc)
       (when stderr-proc
@@ -438,9 +440,8 @@ Used only on systems which do not support async subprocesses.")
   "Send the output from PROCESS (STRING) to the interactive display.
 This is done after all necessary filtering has been done."
   (when string
-    (eshell-debug-command
-     'process (format-message "received output from process `%s'\n\n%s"
-                              process string))
+    (eshell-debug-command 'process
+      "received output from process `%s'\n\n%s" process string)
     (eshell--mark-as-output 0 (length string) string)
     (eshell-interactive-filter (if process (process-buffer process)
                                  (current-buffer))
@@ -453,27 +454,23 @@ This is done after all necessary filtering has been done."
   "Insert a string into the eshell buffer, or a process/file/buffer.
 PROC is the process for which we're inserting output.  STRING is the
 output."
-  (eshell-debug-command
-   'process (format-message "received output from process `%s'\n\n%s"
-                            proc string))
+  (eshell-debug-command 'process
+    "received output from process `%s'\n\n%s" proc string)
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (process-put proc :eshell-pending
                    (concat (process-get proc :eshell-pending)
                            string))
       (if (process-get proc :eshell-busy)
-          (eshell-debug-command
-           'process (format-message "i/o busy for process `%s'" proc))
+          (eshell-debug-command 'process "i/o busy for process `%s'" proc)
         (unwind-protect
             (let ((handles (process-get proc :eshell-handles))
                   (index (process-get proc :eshell-handle-index))
                   data)
               (while (setq data (process-get proc :eshell-pending))
                 (process-put proc :eshell-pending nil)
-                (eshell-debug-command
-                 'process (format-message
-                           "forwarding output from process `%s'\n\n%s"
-                           proc data))
+                (eshell-debug-command 'process
+                  "forwarding output from process `%s'\n\n%s" proc data)
                 (condition-case nil
                     (eshell-output-object data index handles)
                   ;; FIXME: We want to send SIGPIPE to the process
@@ -497,9 +494,8 @@ output."
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
 PROC is the process that's exiting.  STRING is the exit message."
-  (eshell-debug-command
-   'process (format-message "sentinel for external process `%s': %S"
-                            proc string))
+  (eshell-debug-command 'process
+    "sentinel for external process `%s': %S" proc string)
   (when (and (buffer-live-p (process-buffer proc))
              (not (string= string "run")))
     (with-current-buffer (process-buffer proc)
@@ -531,9 +527,8 @@ PROC is the process that's exiting.  STRING is the exit message."
                         (if (or (process-get proc :eshell-busy)
                                 (and wait-for-stderr (car stderr-live)))
                             (progn
-                              (eshell-debug-command
-                               'process (format-message
-                                         "i/o busy for process `%s'" proc))
+                              (eshell-debug-command 'process
+                                "i/o busy for process `%s'" proc)
                               (run-at-time 0 nil finish-io))
                           (when data
                             (ignore-error eshell-pipe-broken
@@ -546,10 +541,8 @@ PROC is the process that's exiting.  STRING is the exit message."
                           ;; Clear the handles to mark that we're 100%
                           ;; finished with the I/O for this process.
                           (process-put proc :eshell-handles nil)
-                          (eshell-debug-command
-                           'process
-                           (format-message
-                            "finished external process `%s'" proc))
+                          (eshell-debug-command 'process
+                            "finished external process `%s'" proc)
                           (if primary
                               (eshell-kill-process-function proc string)
                             (setcar stderr-live nil))))))

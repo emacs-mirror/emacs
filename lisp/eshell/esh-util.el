@@ -192,18 +192,26 @@ start logging to `*eshell last cmd*'."
       (erase-buffer)
       (insert "command: \"" command "\"\n"))))
 
-(defmacro eshell-debug-command (kind message &optional form always)
+(defun eshell-always-debug-command (kind string &rest objects)
+  "Output a debugging message to `*eshell last cmd*'.
+KIND is the kind of message to log.  STRING and OBJECTS are as
+`format-message' (which see)."
+  (declare (indent 1))
+  (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
+    (insert "\n\C-l\n[" (symbol-name kind) "] "
+            (apply #'format-message string objects))))
+
+(defmacro eshell-debug-command (kind string &rest objects)
   "Output a debugging message to `*eshell last cmd*' if debugging is enabled.
-KIND is the kind of message to log (either `form' or `io').  If
-present in `eshell-debug-command' (or if ALWAYS is non-nil),
-output this message; otherwise, ignore it."
+KIND is the kind of message to log (either `form' or `process').  If
+present in `eshell-debug-command', output this message; otherwise, ignore it.
+
+STRING and OBJECTS are as `format-message' (which see)."
+  (declare (indent 1))
   (let ((kind-sym (make-symbol "kind")))
     `(let ((,kind-sym ,kind))
-       (when ,(or always `(memq ,kind-sym eshell-debug-command))
-         (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
-           (insert "\n\C-l\n[" (symbol-name ,kind-sym) "] " ,message)
-           (when-let ((form ,form))
-             (insert "\n\n" (eshell-stringify form))))))))
+       (when (memq ,kind-sym eshell-debug-command)
+         (eshell-always-debug-command ,kind-sym ,string ,@objects)))))
 
 (defun eshell--mark-as-output (start end &optional object)
   "Mark the text from START to END as Eshell output.

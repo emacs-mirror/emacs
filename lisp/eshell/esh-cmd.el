@@ -424,7 +424,8 @@ hooks should be run before and after the command."
 
 (defun eshell-debug-show-parsed-args (terms)
   "Display parsed arguments in the debug buffer."
-  (ignore (eshell-debug-command 'form "parsed arguments" terms)))
+  (ignore (eshell-debug-command 'form
+            "parsed arguments\n\n%s" (eshell-stringify terms))))
 
 (defun eshell-no-command-conversion (terms)
   "Don't convert the command argument."
@@ -1031,10 +1032,11 @@ process(es) in a cons cell like:
     `(if (not (memq 'form eshell-debug-command))
          (progn ,@body)
        (let ((,tag-symbol ,tag))
-         (eshell-debug-command 'form ,tag-symbol ,form 'always)
+         (eshell-always-debug-command 'form
+           "%s\n\n%s" ,tag-symbol ,(eshell-stringify form))
          ,@body
-         (eshell-debug-command 'form (concat "done " ,tag-symbol) ,form
-                               'always)))))
+         (eshell-always-debug-command 'form
+           "done %s\n\n%s " ,tag-symbol ,(eshell-stringify form))))))
 
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate FORM, simplifying it as we go.
