@@ -13170,6 +13170,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
 #ifdef HAVE_XINPUT2
 
+/* Disable per-device keyboard focus tracking within X toolkit and GTK
+   2.x builds, given that these builds receive updates to the keyboard
+   input focus as core events.  */
+
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
+
 /* Since the input extension assigns a keyboard focus to each master
    device, there is no longer a 1:1 correspondence between the
    selected frame and the focus frame immediately after the keyboard
@@ -13381,6 +13387,8 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
   xi_handle_focus_change (dpyinfo);
 }
 
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
+
 static void
 xi_handle_delete_frame (struct x_display_info *dpyinfo,
 			struct frame *f)
@@ -13409,6 +13417,7 @@ xi_handle_interaction (struct x_display_info *dpyinfo,
 		       struct frame *f, struct xi_device_t *device,
 		       Time time)
 {
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
   bool change;
 
   /* If DEVICE is a pointer, use its attached keyboard device.  */
@@ -13435,6 +13444,7 @@ xi_handle_interaction (struct x_display_info *dpyinfo,
   /* If F isn't currently focused, update the focus state.  */
   if (change && f != dpyinfo->x_focus_frame)
     xi_handle_focus_change (dpyinfo);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 }
 
 /* Return whether or not XEV actually represents a change in the
@@ -20575,6 +20585,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       }
 #endif
 
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit builds,
+	 but not GTK+ 2.x and X toolkit builds, where it is required
+	 to treat implicit focus correctly.  */
+#if defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3)
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3) */
+
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
 	 EnterNotify and LeaveNotify events despite us selecting for
@@ -20585,10 +20603,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (dpyinfo->supports_xi2)
 	goto OTHER;
-#endif
+#endif /* HAVE_XINPUT2 */
 
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit
+	 builds.  */
+#if !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3)
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3) */
 
       f = any;
 
@@ -20673,6 +20695,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
 				    event->xcrossing.send_event, false);
 
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit builds,
+	 but not GTK+ 2.x and X toolkit builds, where it is required
+	 to treat implicit focus correctly.  */
+#if defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3)
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3) */
+
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
 	 EnterNotify and LeaveNotify events despite us selecting for
@@ -20685,7 +20715,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 #if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	  goto OTHER;
-#else
+#else /* USE_X_TOOLKIT || (USE_GTK && !HAVE_GTK3) */
 	  /* Unfortunately, X toolkit popups generate LeaveNotify
 	     events due to the core grabs they acquire (and our
 	     releasing of the device grab).  This leads to the mouse
@@ -20694,9 +20724,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	     outside the frame, in which case no XI_Enter event is
 	     generated for the grab.  */
 	  goto just_clear_mouse_face;
-#endif
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 	}
-#endif
+#endif /* HAVE_XINPUT2 */
+
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit
+	 builds.  */
+#if !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3)
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3) */
 
 #ifdef HAVE_XWIDGETS
       {
@@ -20711,9 +20748,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
       }
 #endif
-
-      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
-	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
 #if defined HAVE_XINPUT2						\
   && (defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3))
@@ -22082,6 +22116,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	switch (event->xcookie.evtype)
 	  {
+	    /* XI focus events aren't employed under X toolkit or GTK+
+	       2.x because windows created by these two toolkits are
+	       incompatible with input extension focus events.  */
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	  case XI_FocusIn:
 	    {
 	      XIFocusInEvent *focusin;
@@ -22134,6 +22172,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      goto XI_OTHER;
 	    }
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 	  case XI_Enter:
 	    {
@@ -22179,8 +22218,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 passive focus from non-top windows at all, since they
 		 are an inferiors of the frame's top window, which will
 		 get virtual events.  */
+
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      if (any)
 		xi_focus_handle_for_device (dpyinfo, any, xi_event);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 	      if (!any)
 		any = x_any_window_to_frame (dpyinfo, enter->event);
@@ -22360,8 +22402,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      }
 #endif
 
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      if (any)
 		xi_focus_handle_for_device (dpyinfo, any, xi_event);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 #ifndef USE_X_TOOLKIT
 	      f = x_top_window_to_frame (dpyinfo, leave->event);
@@ -24432,9 +24476,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XIDeviceInfo *info;
 	      int i, ndevices, n_disabled, *disabled;
 	      struct xi_device_t *device;
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      bool any_changed;
 
 	      any_changed = false;
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 	      hev = (XIHierarchyEvent *) xi_event;
 	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
 	      n_disabled = 0;
@@ -24451,10 +24497,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  xi_disable_devices (dpyinfo, disabled, n_disabled);
 			  n_disabled = 0;
 
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 			  /* This flag really just means that disabled
 			     devices were handled early and should be
 			     used in conjunction with n_disabled.  */
 			  any_changed = true;
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 			}
 
 		      /* Under unknown circumstances, multiple
@@ -24521,12 +24569,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 event.  */
 	      xi_disable_devices (dpyinfo, disabled, n_disabled);
 
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      /* If the device hierarchy has been changed, recompute
 		 focus.  This might seem like a micro-optimization but
 		 it actually keeps the focus from changing in some
 		 cases where it would be undesierable.  */
 	      if (any_changed || n_disabled)
 		xi_handle_focus_change (dpyinfo);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 	      goto XI_OTHER;
 	    }
@@ -29454,6 +29504,7 @@ x_free_frame_resources (struct frame *f)
     dpyinfo->last_mouse_frame = NULL;
 
 #ifdef HAVE_XINPUT2
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
   /* Consider a frame being unfocused with no following FocusIn event
      while an older focus from another seat exists.  The client
      pointer should then revert to the other seat, so handle potential
@@ -29461,7 +29512,8 @@ x_free_frame_resources (struct frame *f)
 
   if (dpyinfo->supports_xi2)
     xi_handle_focus_change (dpyinfo);
-#endif
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
+#endif /* HAVE_XINPUT2 */
 
   unblock_input ();
 }

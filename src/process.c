@@ -7416,7 +7416,24 @@ child_signal_notify (void)
   eassert (0 <= fd);
   char dummy = 0;
   if (emacs_write (fd, &dummy, 1) != 1)
-    emacs_perror ("writing to child signal FD");
+    /* This call is commented out.  It calls `emacs_perror', which in
+       turn invokes a localized version of strerror that is not
+       reentrant and must not be called within a signal handler:
+
+       __lll_lock_wait_private () at /lib64/libc.so.6
+       malloc () at /lib64/libc.so.6
+       _nl_make_l10nflist.localalias () at /lib64/libc.so.6
+       _nl_find_domain () at /lib64/libc.so.6
+       __dcigettext () at /lib64/libc.so.6
+       strerror_l () at /lib64/libc.so.6
+       emacs_perror (message=message@entry=0x6babc2)
+       child_signal_notify () at process.c:7419
+       handle_child_signal (sig=17) at process.c:7533
+       deliver_process_signal (sig=17, handler=0x6186b0>)
+       <signal handler called> () at /lib64/libc.so.6
+       _int_malloc () at /lib64/libc.so.6
+       in malloc () at /lib64/libc.so.6.  */
+    /* emacs_perror ("writing to child signal FD") */;
 #endif
 }
 
