@@ -252,7 +252,14 @@ node `(auth) Top' and Info node `(erc) auth-source'.")
   :type 'boolean)
 
 (defcustom erc-warn-about-blank-lines t
-  "Warn the user if they attempt to send a blank line."
+  "Warn the user if they attempt to send a blank line.
+When non-nil, ERC signals a `user-error' upon encountering prompt
+input containing empty or whitespace-only lines.  When nil, ERC
+still inhibits sending but does so silently.  With the companion
+option `erc-send-whitespace-lines' enabled, ERC sends pending
+input and prints a message in the echo area indicating the amount
+of padding and/or stripping applied, if any.  Setting this option
+to nil suppresses such reporting."
   :group 'erc
   :type 'boolean)
 
@@ -264,8 +271,8 @@ node `(auth) Top' and Info node `(erc) auth-source'.")
 (defcustom erc-inhibit-multiline-input nil
   "When non-nil, conditionally disallow input consisting of multiple lines.
 Issue an error when the number of input lines submitted for
-sending exceeds this value.  The value t means disallow more
-than 1 line of input."
+sending meets or exceeds this value.  The value t is synonymous
+with a value of 2 and means disallow more than 1 line of input."
   :package-version '(ERC . "5.5")
   :group 'erc
   :type '(choice integer boolean))
@@ -1095,9 +1102,9 @@ subprotocols should probably be handled manually."
 
 (define-obsolete-variable-alias 'erc--pre-send-split-functions
   'erc--input-review-functions "30.1")
-(defvar erc--input-review-functions '(erc--discard-trailing-multiline-nulls
-                                      erc--split-lines
-                                      erc--run-input-validation-checks)
+(defvar erc--input-review-functions '(erc--split-lines
+                                      erc--run-input-validation-checks
+                                      erc--discard-trailing-multiline-nulls)
   "Special hook for reviewing and modifying prompt input.
 ERC runs this before clearing the prompt and before running any
 send-related hooks, such as `erc-pre-send-functions'.  Thus, it's
@@ -6424,20 +6431,6 @@ holds off on submitting it, for obvious reasons."
 (defvar erc-command-regexp "^/\\([A-Za-z']+\\)\\(\\s-+.*\\|\\s-*\\)$"
   "Regular expression used for matching commands in ERC.")
 
-(defun erc--blank-in-multiline-input-p (lines)
-  "Detect whether LINES contains a blank line.
-When `erc-send-whitespace-lines' is in effect, return nil if
-LINES is multiline or the first line is non-empty.  When
-`erc-send-whitespace-lines' is nil, return non-nil when any line
-is empty or consists of one or more spaces, tabs, or form-feeds."
-  (catch 'return
-    (let ((multilinep (cdr lines)))
-      (dolist (line lines)
-        (when (if erc-send-whitespace-lines
-                  (and (string-empty-p line) (not multilinep))
-                (string-match (rx bot (* (in " \t\f")) eot) line))
-          (throw 'return t))))))
-
 (defun erc--check-prompt-input-for-excess-lines (_ lines)
   "Return non-nil when trying to send too many LINES."
   (when erc-inhibit-multiline-input
@@ -6457,12 +6450,77 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
                      (y-or-n-p (concat "Send input " msg "?")))
           (concat "Too many lines " msg))))))
 
-(defun erc--check-prompt-input-for-multiline-blanks (_ lines)
-  "Return non-nil when multiline prompt input has blank LINES."
-  (when (erc--blank-in-multiline-input-p lines)
+(defun erc--check-prompt-input-for-something (string _)
+  (when (string-empty-p string)
     (if erc-warn-about-blank-lines
         "Blank line - ignoring..."
       'invalid)))
+
+(defun erc--count-blank-lines (lines)
+  "Report on the number of whitespace-only and empty LINES.
+Return a list of (BLANKS TO-PAD TO-STRIP).  Expect caller to know
+that BLANKS includes non-empty whitespace-only lines and that no
+padding or stripping has yet occurred."
+  (let ((real 0) (total 0) (pad 0) (strip 0))
+    (dolist (line lines)
+      (if (string-match (rx bot (* (in " \t\f")) eot) line)
+          (progn
+            (cl-incf total)
+            (if (zerop (match-end 0))
+                (cl-incf strip)
+              (cl-incf pad strip)
+              (setq strip 0)))
+        (cl-incf real)
+        (unless (zerop strip)
+          (cl-incf pad strip)
+          (setq strip 0))))
+    (when (and (zerop real) (not (zerop total)) (= total (+ pad strip)))
+      (cl-incf strip (1- pad))
+      (setq pad 1))
+    (list total pad strip)))
+
+(defvar erc--check-prompt-explanation nil
+  "List of strings to print if no validator returns non-nil.")
+
+(defun erc--check-prompt-input-for-multiline-blanks (_ lines)
+  "Return non-nil when multiline prompt input has blank LINES.
+Consider newlines to be intervening delimiters, meaning the empty
+\"logical\" line between a trailing newline and `eob' constitutes
+a separate message."
+  (pcase-let ((`(,total ,pad ,strip)(erc--count-blank-lines lines)))
+    (cond ((zerop total) nil)
+          ((and erc-warn-about-blank-lines erc-send-whitespace-lines)
+           (let (msg args)
+             (unless (zerop strip)
+               (push "stripping (%d)" msg)
+               (push strip args))
+             (unless (zerop pad)
+               (when msg
+                 (push "and" msg))
+               (push "padding (%d)" msg)
+               (push pad args))
+             (when msg
+               (push "blank" msg)
+               (push (if (> (apply #'+ args) 1) "lines" "line") msg))
+             (when msg
+               (setf msg (nreverse msg)
+                     (car msg) (capitalize (car msg))))
+             (when msg
+               (push (apply #'format (string-join msg " ") (nreverse args))
+                     erc--check-prompt-explanation)
+               nil)))
+          (erc-warn-about-blank-lines
+           (concat (if (= total 1)
+                       (if (zerop strip) "Blank" "Trailing")
+                     (if (= total strip)
+                         (format "%d trailing" strip)
+                       (format "%d blank" total)))
+                   (and (> total 1) (/= total strip) (not (zerop strip))
+                        (format " (%d trailing)" strip))
+                   (if (= total 1) " line" " lines")
+                   " detected (see `erc-send-whitespace-lines')"))
+          (erc-send-whitespace-lines nil)
+          (t 'invalid))))
 
 (defun erc--check-prompt-input-for-point-in-bounds (_ _)
   "Return non-nil when point is before prompt."
@@ -6484,25 +6542,34 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
 
 (defvar erc--check-prompt-input-functions
   '(erc--check-prompt-input-for-point-in-bounds
+    erc--check-prompt-input-for-something
     erc--check-prompt-input-for-multiline-blanks
     erc--check-prompt-input-for-running-process
     erc--check-prompt-input-for-excess-lines
     erc--check-prompt-input-for-multiline-command)
   "Validators for user input typed at prompt.
-Called with latest input string submitted by user and the list of
-lines produced by splitting it.  If any member function returns
-non-nil, processing is abandoned and input is left untouched.
-When the returned value is a string, ERC passes it to `erc-error'.")
+Called with two arguments: the current input submitted by the
+user, as a string, along with the same input as a list of
+strings.  If any member function returns non-nil, ERC abandons
+processing and leaves pending input untouched in the prompt area.
+When the returned value is a string, ERC passes it to
+`user-error'.  Any other non-nil value tells ERC to abort
+silently.  If all members return nil, and the variable
+`erc--check-prompt-explanation' is a nonempty list of strings,
+ERC prints them as a single message joined by newlines.")
 
 (defun erc--run-input-validation-checks (state)
   "Run input checkers from STATE, an `erc--input-split' object."
-  (when-let ((msg (run-hook-with-args-until-success
-                   'erc--check-prompt-input-functions
-                   (erc--input-split-string state)
-                   (erc--input-split-lines state))))
-    (unless (stringp msg)
-      (setq msg (format "Input error: %S" msg)))
-    (user-error msg)))
+  (let* ((erc--check-prompt-explanation nil)
+         (msg (run-hook-with-args-until-success
+               'erc--check-prompt-input-functions
+               (erc--input-split-string state)
+               (erc--input-split-lines state))))
+    (cond ((stringp msg) (user-error msg))
+          (msg (push msg (erc--input-split-abortp state)))
+          (erc--check-prompt-explanation
+           (message "%s" (string-join (nreverse erc--check-prompt-explanation)
+                                      "\n"))))))
 
 (defun erc-send-current-line ()
   "Parse current line and send it to IRC."
@@ -6526,8 +6593,9 @@ When the returned value is a string, ERC passes it to `erc-error'.")
                                  str erc--input-line-delim-regexp)
                          :cmdp (string-match erc-command-regexp str))))
             (run-hook-with-args 'erc--input-review-functions state)
-            (let ((inhibit-read-only t)
-                  (old-buf (current-buffer)))
+            (when-let (((not (erc--input-split-abortp state)))
+                       (inhibit-read-only t)
+                       (old-buf (current-buffer)))
               (progn ; unprogn this during next major surgery
                 (erc-set-active-buffer (current-buffer))
                 ;; Kill the input and the prompt
@@ -6556,12 +6624,11 @@ When the returned value is a string, ERC passes it to `erc-error'.")
    (erc-end-of-input-line)))
 
 (defun erc--discard-trailing-multiline-nulls (state)
-  "Ensure last line of STATE's string is non-null.
-But only when `erc-send-whitespace-lines' is non-nil.  STATE is
-an `erc--input-split' object."
-  (when (and erc-send-whitespace-lines (erc--input-split-lines state))
+  "Remove trailing empty lines from STATE, an `erc--input-split' object.
+When all lines are empty, remove all but the first."
+  (when (erc--input-split-lines state)
     (let ((reversed (nreverse (erc--input-split-lines state))))
-      (while (and reversed (string-empty-p (car reversed)))
+      (while (and (cdr reversed) (string-empty-p (car reversed)))
         (setq reversed (cdr reversed)))
       (setf (erc--input-split-lines state) (nreverse reversed)))))
 
@@ -6581,7 +6648,7 @@ multiline input.  Optionally readjust lines to protocol length
 limits and pad empty ones, knowing full well that additional
 processing may still corrupt messages before they reach the send
 queue.  Expect LINES-OBJ to be an `erc--input-split' object."
-  (when (or erc-send-pre-hook erc-pre-send-functions)
+  (progn ; FIXME remove `progn' after code review.
     (with-suppressed-warnings ((lexical str) (obsolete erc-send-this))
       (defvar str) ; see note in string `erc-send-input'.
       (let* ((str (string-join (erc--input-split-lines lines-obj) "\n"))
