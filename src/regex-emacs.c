@@ -3743,9 +3743,20 @@ mutually_exclusive_charset (struct re_pattern_buffer *bufp, re_char *p1,
 }
 
 /* True if "p1 matches something" implies "p2 fails".  */
+/* Avoiding inf-loops:
+   We're trying to follow all paths reachable from `p2`, but since some
+   loops can match the empty string, this can loop back to `p2`.
+   To avoid inf-looping, we keep track of points that have been considered
+   "already".  Instead of keeping a list of such points, `done_beg` and
+   `done_end` delimit a chunk of bytecode we already considered.
+   To guarantee termination, a lexical ordering between `done_*` and `p2`
+   should be obeyed:
+       At each recursion, either `done_beg` gets smaller,
+       or `done_beg` is unchanged and `done_end` gets larger
+       or they're both unchanged and `p2` gets larger.  */
 static bool
-mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
-		      re_char *p2)
+mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
+		        re_char *p2, re_char *done_beg, re_char *done_end)
 {
   re_opcode_t op2;
   unsigned char *pend = bufp->buffer + bufp->used;
@@ -3753,6 +3764,9 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 
   eassert (p1 >= bufp->buffer && p1 < pend
 	   && p2 >= bufp->buffer && p2 <= pend);
+
+  eassert (done_beg <= done_end);
+  eassert (done_end <= p2);
 
   /* Skip over open/close-group commands.
      If what follows this loop is a ...+ construct,
@@ -3844,12 +3858,29 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
         int mcnt;
 	p2++;
 	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
-	/* Don't just test `mcnt > 0` because non-greedy loops have
-	   their test at the end with an unconditional jump at the start.  */
-	if (p2 > p2_orig && mcnt >= 0) /* Ensure forward progress.  */
-	  return (mutually_exclusive_p (bufp, p1, p2)
-		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
-	break;
+	re_char *p2_other = p2 + mcnt;
+
+	/* When we jump backward we bump `done_end` up to `p3` under
+	   the assumption that any other position between `done_end`
+	   and `p3` is either:
+           - checked by the other call to RECURSE.
+           - not reachable from here (e.g. for positions before the
+             `on_failure_jump`), or at least not without first
+             jumping before `done_beg`.
+           This should hold because our state machines are not arbitrary:
+           they consists of syntaxically nested loops with limited
+	   control flow.
+	   FIXME: This can fail (i.e. return true when it shouldn't)
+	   if we start generating bytecode with a different shape,
+	   so maybe we should bite the bullet and replace done_beg/end
+	   with an actual list of positions we've already processed.  */
+#define RECURSE(p3)                                                \
+  ((p3) < done_beg ? mutually_exclusive_aux (bufp, p1, p3, p3, p3) \
+   : (p3) <= done_end ? true                                       \
+   : mutually_exclusive_aux (bufp, p1, p3, done_beg,               \
+	                     (p3) > p2_orig ? done_end : (p3)))
+
+	return RECURSE (p2) && RECURSE (p2_other);
       }
 
     default:
@@ -3860,6 +3891,12 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
   return false;
 }
 
+static bool
+mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
+		      re_char *p2)
+{
+  return mutually_exclusive_aux (bufp, p1, p2, p2, p2);
+}
 
 /* Matching routines.  */
 
