@@ -449,34 +449,40 @@ See `treesit-query-capture' for QUERY."
        (treesit-parser-root-node parser)
        query))))
 
-(defun treesit-query-range (node query &optional beg end)
+(defun treesit-query-range (node query &optional beg end offset)
   "Query the current buffer and return ranges of captured nodes.
 
 QUERY, NODE, BEG, END are the same as in `treesit-query-capture'.
 This function returns a list of (START . END), where START and
-END specifics the range of each captured node.  Capture names
-generally don't matter, but names that starts with an underscore
-are ignored."
-  (cl-loop for capture
-           in (treesit-query-capture node query beg end)
-           for name = (car capture)
-           for node = (cdr capture)
-           if (not (string-prefix-p "_" (symbol-name name)))
-           collect (cons (treesit-node-start node)
-                         (treesit-node-end node))))
+END specifics the range of each captured node.  OFFSET is an
+optional pair of numbers (START-OFFSET . END-OFFSET).  The
+respective offset values are added to each (START . END) range
+being returned.  Capture names generally don't matter, but names
+that starts with an underscore are ignored."
+  (let ((offset-left (or (car offset) 0))
+        (offset-right (or (cdr offset) 0)))
+    (cl-loop for capture
+             in (treesit-query-capture node query beg end)
+             for name = (car capture)
+             for node = (cdr capture)
+             if (not (string-prefix-p "_" (symbol-name name)))
+             collect (cons (+ (treesit-node-start node) offset-left)
+                           (+ (treesit-node-end node) offset-right)))))
 
 ;;; Range API supplement
 
 (defvar-local treesit-range-settings nil
   "A list of range settings.
 
-Each element of the list is of the form (QUERY LANGUAGE LOCAL-P).
-When updating the range of each parser in the buffer,
+Each element of the list is of the form (QUERY LANGUAGE LOCAL-P
+OFFSET).  When updating the range of each parser in the buffer,
 `treesit-update-ranges' queries each QUERY, and sets LANGUAGE's
 range to the range spanned by captured nodes.  QUERY must be a
 compiled query.  If LOCAL-P is t, give each range a separate
 local parser rather than using a single parser for all the
-ranges.
+ranges.  If OFFSET is non-nil, it should be a cons of
+numbers (START-OFFSET . END-OFFSET), where the start and end
+offset are added to each queried range to get the result ranges.
 
 Capture names generally don't matter, but names that starts with
 an underscore are ignored.
@@ -509,6 +515,7 @@ it.  For example,
     (treesit-range-rules
      :embed \\='javascript
      :host \\='html
+     :offset \\='(1 . -1)
      \\='((script_element (raw_text) @cap)))
 
 The `:embed' keyword specifies the embedded language, and the
@@ -521,13 +528,20 @@ If there's a `:local' keyword with value t, the range computed by
 this QUERY is given a dedicated local parser.  Otherwise, the
 range shares the same parser with other ranges.
 
+If there's an `:offset' keyword with a pair of numbers, each
+captured range is offset by those numbers.  For example, an
+offset of (1 . -1) will update a captured range of (2 . 8) to
+be (3 . 7).  This can be used to exclude things like surrounding
+delimiters from being included in the range covered by an
+embedded parser.
+
 QUERY can also be a function that takes two arguments, START and
 END.  If QUERY is a function, it doesn't need the :KEYWORD VALUE
 pair preceding it.  This function should set the ranges for
 parsers in the current buffer in the region between START and
 END.  It is OK for this function to set ranges in a larger region
 that encompasses the region between START and END."
-  (let (host embed result local)
+  (let (host embed offset result local)
     (while query-specs
       (pcase (pop query-specs)
         (:local (when (eq t (pop query-specs))
@@ -540,6 +554,12 @@ that encompasses the region between START and END."
                   (unless (symbolp embed-lang)
                     (signal 'treesit-error (list "Value of :embed option should be a symbol" embed-lang)))
                   (setq embed embed-lang)))
+        (:offset (let ((range-offset (pop query-specs)))
+                   (unless (and (consp range-offset)
+                                (numberp (car range-offset))
+                                (numberp (cdr range-offset)))
+                    (signal 'treesit-error (list "Value of :offset option should be a pair of numbers" range-offset)))
+                  (setq offset range-offset)))
         (query (if (functionp query)
                    (push (list query nil nil) result)
                  (when (null embed)
@@ -547,9 +567,9 @@ that encompasses the region between START and END."
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
                  (push (list (treesit-query-compile host query)
-                             embed local)
+                             embed local offset)
                        result))
-               (setq host nil embed nil))))
+               (setq host nil embed nil offset nil))))
     (nreverse result)))
 
 (defun treesit--merge-ranges (old-ranges new-ranges start end)
@@ -676,6 +696,7 @@ region."
     (let ((query (nth 0 setting))
           (language (nth 1 setting))
           (local (nth 2 setting))
+          (offset (nth 3 setting))
           (beg (or beg (point-min)))
           (end (or end (point-max))))
       (cond
@@ -687,7 +708,7 @@ region."
                (parser (treesit-parser-create language))
                (old-ranges (treesit-parser-included-ranges parser))
                (new-ranges (treesit-query-range
-                            host-lang query beg end))
+                            host-lang query beg end offset))
                (set-ranges (treesit--clip-ranges
                             (treesit--merge-ranges
                              old-ranges new-ranges beg end)
