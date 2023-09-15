@@ -7415,10 +7415,14 @@ child_signal_notify (void)
   int fd = child_signal_write_fd;
   eassert (0 <= fd);
   char dummy = 0;
-  if (emacs_write (fd, &dummy, 1) != 1)
-    /* This call is commented out.  It calls `emacs_perror', which in
-       turn invokes a localized version of strerror that is not
-       reentrant and must not be called within a signal handler:
+  /* We used to error out here, like this:
+
+     if (emacs_write (fd, &dummy, 1) != 1)
+       emacs_perror ("writing to child signal FD");
+
+     But this calls `emacs_perror', which in turn invokes a localized
+     version of strerror, which is not reentrant and must not be
+     called within a signal handler:
 
        __lll_lock_wait_private () at /lib64/libc.so.6
        malloc () at /lib64/libc.so.6
@@ -7432,8 +7436,10 @@ child_signal_notify (void)
        deliver_process_signal (sig=17, handler=0x6186b0>)
        <signal handler called> () at /lib64/libc.so.6
        _int_malloc () at /lib64/libc.so.6
-       in malloc () at /lib64/libc.so.6.  */
-    /* emacs_perror ("writing to child signal FD") */;
+       in malloc () at /lib64/libc.so.6.
+
+     So we no longer check errors of emacs_write here.  */
+  emacs_write (fd, &dummy, 1);
 #endif
 }
 
