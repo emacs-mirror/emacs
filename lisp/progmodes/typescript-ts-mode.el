@@ -163,7 +163,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   ;; but then raises an error if the wrong node type is used. So it is
   ;; important to check with the new node type (member_expression)
   (condition-case nil
-      (progn (treesit-query-capture language '((member_expression) @capture))
+      (progn (treesit-query-capture language '(jsx_opening_element (member_expression) @capture))
 	     '((jsx_opening_element
 		[(member_expression (identifier)) (identifier)]
 		@typescript-ts-jsx-tag-face)
