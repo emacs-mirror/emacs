@@ -952,7 +952,8 @@ name, it is ignored."
 (defvar treesit--font-lock-verbose nil
   "If non-nil, print debug messages when fontifying.")
 
-(defun treesit-font-lock-recompute-features (&optional add-list remove-list)
+(defun treesit-font-lock-recompute-features
+    (&optional add-list remove-list language)
   "Enable/disable font-lock features.
 
 Enable each feature in ADD-LIST, disable each feature in
@@ -967,7 +968,10 @@ the features are disabled.
 
 ADD-LIST and REMOVE-LIST are lists of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
-signals the `treesit-font-lock-error' error if that happens."
+signals the `treesit-font-lock-error' error if that happens.
+
+If LANGUAGE is non-nil, only compute features for that language,
+and leave settings for other languages unchanged."
   (when-let ((intersection (cl-intersection add-list remove-list)))
     (signal 'treesit-font-lock-error
             (list "ADD-LIST and REMOVE-LIST contain the same feature"
@@ -987,9 +991,13 @@ signals the `treesit-font-lock-error' error if that happens."
          (additive (or add-list remove-list)))
     (cl-loop for idx = 0 then (1+ idx)
              for setting in treesit-font-lock-settings
+             for lang = (treesit-query-language (nth 0 setting))
              for feature = (nth 2 setting)
              for current-value = (nth 1 setting)
-             ;; Set the ENABLE flag for the setting.
+             ;; Set the ENABLE flag for the setting if its language is
+             ;; relevant.
+             if (or (null language)
+                    (eq language lang))
              do (setf (nth 1 (nth idx treesit-font-lock-settings))
                       (cond
                        ((not additive)
