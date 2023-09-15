@@ -957,6 +957,7 @@ See Bug#21722."
 
 (ert-deftest simple-tests-shell-command-39067 ()
   "The output buffer is erased or not according to `shell-command-dont-erase-buffer'."
+  :tags '(:expensive-test)
   (let ((str "foo\\n"))
     (dolist (output-current '(t nil))
       (with-shell-command-dont-erase-buffer str output-current

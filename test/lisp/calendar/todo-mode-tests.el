@@ -825,6 +825,7 @@ automatic testing."
 Calling todo-show should display the last current todo file, not
 necessarily the new file.  After deleting the new file, todo-show
 should display the previously current (or default) todo file."
+  :tags '(:expensive-test)
   (with-todo-test
    (todo-show)
    (should (equal todo-current-todo-file todo-test-file-1))
