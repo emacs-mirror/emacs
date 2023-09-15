@@ -2810,7 +2810,7 @@ Helper function for `describe-package'."
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
          (maintainers (or (cdr (assoc :maintainers extras))
-                          (cdr (assoc :maintainer extras))))
+                          (list (cdr (assoc :maintainer extras)))))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))
