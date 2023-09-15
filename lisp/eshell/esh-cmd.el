@@ -1286,16 +1286,24 @@ have been replaced by constants."
 COMMAND may result in an alias being executed, or a plain command."
   (unless eshell-allow-commands
     (signal 'eshell-commands-forbidden '(named)))
+  ;; Strip off any leading nil values.  This can only happen if a
+  ;; variable evaluates to nil, such as "$var x", where `var' is nil.
+  ;; In that case, the command name becomes `x', for compatibility
+  ;; with most regular shells (the difference is that they do an
+  ;; interpolation pass before the argument parsing pass, but Eshell
+  ;; does both at the same time).
+  (while (and (not command) args)
+    (setq command (pop args)))
   (setq eshell-last-arguments args
-	eshell-last-command-name (eshell-stringify command))
+        eshell-last-command-name (eshell-stringify command))
   (run-hook-with-args 'eshell-prepare-command-hook)
   (cl-assert (stringp eshell-last-command-name))
-  (if eshell-last-command-name
-      (or (run-hook-with-args-until-success
-	   'eshell-named-command-hook eshell-last-command-name
-	   eshell-last-arguments)
-	  (eshell-plain-command eshell-last-command-name
-				eshell-last-arguments))))
+  (when eshell-last-command-name
+    (or (run-hook-with-args-until-success
+         'eshell-named-command-hook eshell-last-command-name
+         eshell-last-arguments)
+        (eshell-plain-command eshell-last-command-name
+                              eshell-last-arguments))))
 
 (defalias 'eshell-named-command* 'eshell-named-command)
 

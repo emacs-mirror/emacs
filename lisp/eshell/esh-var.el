@@ -296,43 +296,30 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
 
 (defun eshell-handle-local-variables ()
   "Allow for the syntax `VAR=val <command> <args>'."
-  ;; strip off any null commands, which can only happen if a variable
-  ;; evaluates to nil, such as "$var x", where `var' is nil.  The
-  ;; command name in that case becomes `x', for compatibility with
-  ;; most regular shells (the difference is that they do an
-  ;; interpolation pass before the argument parsing pass, but Eshell
-  ;; does both at the same time).
-  (while (and (not eshell-last-command-name)
-	      eshell-last-arguments)
-    (setq eshell-last-command-name (car eshell-last-arguments)
-	  eshell-last-arguments (cdr eshell-last-arguments)))
+  ;; Eshell handles local variable settings (e.g. 'CFLAGS=-O2 make')
+  ;; by making the whole command into a subcommand, and calling
+  ;; `eshell-set-variable' immediately before the command is invoked.
+  ;; This means that 'FOO=x cd bar' won't work exactly as expected,
+  ;; but that is by no means a typical use of local environment
+  ;; variables.
   (let ((setvar "\\`\\([A-Za-z_][A-Za-z0-9_]*\\)=\\(.*\\)\\'")
-	(command (eshell-stringify eshell-last-command-name))
-	(args eshell-last-arguments))
-    ;; local variable settings (such as 'CFLAGS=-O2 make') are handled
-    ;; by making the whole command into a subcommand, and calling
-    ;; setenv immediately before the command is invoked.  This means
-    ;; that 'BLAH=x cd blah' won't work exactly as expected, but that
-    ;; is by no means a typical use of local environment variables.
-    (if (and command (string-match setvar command))
-	(throw
-	 'eshell-replace-command
-	 (list
-	  'eshell-as-subcommand
-	  (append
-	   (list 'progn)
-	   (let ((l (list t)))
-	     (while (string-match setvar command)
-	       (nconc
-		l (list
-                   (list 'eshell-set-variable
-                         (match-string 1 command)
-                         (match-string 2 command))))
-	       (setq command (eshell-stringify (car args))
-		     args (cdr args)))
-	     (cdr l))
-	   (list (list 'eshell-named-command
-		       command (list 'quote args)))))))))
+        (command eshell-last-command-name)
+        (args eshell-last-arguments))
+    (when (and (stringp command) (string-match setvar command))
+      (throw 'eshell-replace-command
+             `(eshell-as-subcommand
+               (progn
+                 ,@(let (locals)
+                     (while (and (stringp command)
+                                 (string-match setvar command))
+                       (push `(eshell-set-variable
+                               ,(match-string 1 command)
+                               ,(match-string 2 command))
+                             locals)
+                       (setq command (pop args)))
+                     (nreverse locals))
+                 (eshell-named-command ,command ,(list 'quote args)))
+              )))))
 
 (defun eshell-interpolate-variable ()
   "Parse a variable interpolation.

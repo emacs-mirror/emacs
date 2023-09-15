@@ -80,6 +80,12 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-match-command-output "echo ${echo $value}"
                                 "hello\n")))
 
+(ert-deftest esh-cmd-test/skip-leading-nils ()
+  "Test that Eshell skips leading nil arguments for named commands."
+  (eshell-command-result-equal "$eshell-test-value echo hello" "hello")
+  (eshell-command-result-equal
+   "$eshell-test-value $eshell-test-value echo hello" "hello"))
+
 (ert-deftest esh-cmd-test/let-rebinds-after-defer ()
   "Test that let-bound values are properly updated after `eshell-defer'.
 When inside a `let' block in an Eshell command form, we need to

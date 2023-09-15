@@ -1385,9 +1385,15 @@ Concatenate the string representation of each value.
 
 @node Dollars Expansion
 @section Dollars Expansion
-Eshell has different @code{$} expansion syntax from other shells.  There
-are some similarities, but don't let these lull you into a false sense
-of familiarity.
+Like in many other shells, you can use @code{$} expansions to insert
+various values into your Eshell invocations.  While Eshell's @code{$}
+expansion syntax has some similarities to the syntax from other
+shells, there are also many differences.  Don't let these similarities
+lull you into a false sense of familiarity.
+
+When using command form (@pxref{Invocation}), Eshell will ignore any
+leading nil values, so if @var{foo} is @code{nil}, @samp{$@var{foo}
+echo hello} is equivalent to @samp{echo hello}.
 
 @table @code
 
