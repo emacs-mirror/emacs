@@ -472,6 +472,16 @@ and, assuming that "xtype" says that args[0] is a symbol:
 
 ** Debugging Emacs redisplay problems
 
+The Emacs display code includes special debugging code, but it is normally
+disabled.  Configuring Emacs with --enable-checking='yes,glyphs' enables it.
+
+Building Emacs like that activates many assertions which scrutinize display
+code operation more than Emacs does normally.  (To see the code which tests
+these assertions, look for calls to the 'eassert' macros.)  Any assertion that
+is reported to fail should be investigated.  Redisplay problems that cause
+aborts or segfaults in production builds of Emacs will many times be caught by
+these assertions before they cause a crash.
+
 If you configured Emacs with --enable-checking='glyphs', you can use redisplay
 tracing facilities from a running Emacs session.
 
@@ -481,21 +491,18 @@ code paths taken by the display engine under various conditions, especially if
 some redisplay optimizations produce wrong results.  (You know that redisplay
 optimizations might be involved if "M-x redraw-display RET", or even just
 typing "M-x", causes Emacs to correct the bad display.)  Since the cursor
-blinking feature triggers periodic redisplay cycles, we recommend disabling
-'blink-cursor-mode' before invoking 'trace-redisplay', so that you have less
-clutter in the trace.  You can also have up to 30 last trace messages dumped to
-standard error by invoking the 'dump-redisplay-history' command.
+blinking feature and ElDoc trigger periodic redisplay cycles, we recommend
+disabling 'blink-cursor-mode' and 'global-eldoc-mode' before invoking
+'trace-redisplay', so that you have less clutter in the trace.  You can also
+have up to 30 last trace messages dumped to standard error by invoking the
+'dump-redisplay-history' command.
 
 To find the code paths which were taken by the display engine, search xdisp.c
 for the trace messages you see.
 
 The command 'dump-glyph-matrix' is useful for producing on standard error
 stream a full dump of the selected window's glyph matrix.  See the function's
-doc string for more details.  If you are debugging redisplay issues in
-text-mode frames, you may find the command 'dump-frame-glyph-matrix' useful.
-
-Other commands useful for debugging redisplay are 'dump-glyph-row' and
-'dump-tool-bar-row'.
+doc string for more details.
 
 If you run Emacs under GDB, you can print the contents of any glyph matrix by
 just calling that function with the matrix as its argument.  For example, the
@@ -507,13 +514,11 @@ whose pointer is in 'w':
 (The second argument 2 tells dump_glyph_matrix to print the glyphs in
 a long form.)
 
-The Emacs display code includes special debugging code, but it is normally
-disabled.  Configuring Emacs with --enable-checking='yes,glyphs' enables it.
+If you are debugging redisplay issues in text-mode frames, you may find the
+command 'dump-frame-glyph-matrix' useful.
 
-Building Emacs like that activates many assertions which scrutinize
-display code operation more than Emacs does normally.  (To see the
-code which tests these assertions, look for calls to the 'eassert'
-macros.)  Any assertion that is reported to fail should be investigated.
+Other commands useful for debugging redisplay are 'dump-glyph-row' and
+'dump-tool-bar-row'.
 
 When you debug display problems running emacs under X, you can use
 the 'ff' command to flush all pending display updates to the screen.
@@ -535,36 +540,40 @@ object of the relevant type as argument.  For example, 'pgrowx' dumps all
 glyphs in its argument, which must be of type 'struct glyph_row'.
 
 Since redisplay is performed by Emacs very frequently, you need to place your
-breakpoints cleverly to avoid hitting them all the time, when the issue you are
-debugging did not (yet) happen.  Here are some useful techniques for that:
+breakpoints cleverly to avoid hitting them all the time, when the issue you
+are debugging did not (yet) happen.  Here are some useful techniques for that:
 
- . Put a breakpoint at 'Fredraw_display' before running Emacs.  Then do
-   whatever is required to reproduce the bad display, and invoke "M-x
-   redraw-display".  The debugger will kick in, and you can set or enable
-   breakpoints in strategic places, knowing that the bad display will be
+ . Put a breakpoint at 'Frecenter' or 'Fredraw_display' before running Emacs.
+   Then do whatever is required to reproduce the bad display, and type C-l or
+   "M-x redraw-display" just before invoking the last action that reproduces
+   the bug.  The debugger will kick in, and you can set or enable breakpoints
+   in strategic places, knowing that the bad display will happen soon.  With a
+   breakpoint at 'Fredraw_display', you can even reproduce the bug and invoke
+   "M-x redraw-display" afterwards, knowing that the bad display will be
    redrawn from scratch.
 
- . For debugging incorrect cursor position, a good place to put a breakpoint is
-   in 'set_cursor_from_row'.  The first time this function is called as part of
-   'redraw-display', Emacs is redrawing the minibuffer window, which is usually
-   not what you want; type "continue" to get to the call you want.  In general,
-   always make sure 'set_cursor_from_row' is called for the right window and
-   buffer by examining the value of w->contents: it should be the buffer whose
-   display you are debugging.
+ . For debugging incorrect cursor position, a good place to put a breakpoint
+   is in 'set_cursor_from_row'.  The first time this function is called as
+   part of 'redraw-display', Emacs is redrawing the minibuffer window, which
+   is usually not what you want; type "continue" to get to the call you want.
+   In general, always make sure 'set_cursor_from_row' is called for the right
+   window and buffer by examining the value of w->contents: it should be the
+   buffer whose display you are debugging.
 
  . 'set_cursor_from_row' is also a good place to look at the contents of a
    screen line (a.k.a. "glyph row"), by means of the 'pgrow' GDB command.  Of
    course, you need first to make sure the cursor is on the screen line which
-   you want to investigate.  If you have set a breakpoint in 'Fredraw_display',
-   as advised above, move cursor to that line before invoking 'redraw-display'.
+   you want to investigate.  If you have set a breakpoint in 'Fredraw_display'
+   or 'Frecenter', as advised above, move cursor to that line before invoking
+   these commands.
 
  . If the problem happens only at some specific buffer position or for some
-   specific rarely-used character, you can make your breakpoints conditional on
-   those values.  The display engine maintains the buffer and string position
-   it is processing in the it->current member; for example, the buffer
-   character position is in it->current.pos.charpos.  Most redisplay functions
-   accept a pointer to a 'struct it' object as their argument, so you can make
-   conditional breakpoints in those functions, like this:
+   specific rarely-used character, you can make your breakpoints conditional
+   on those values.  The display engine maintains the buffer and string
+   position it is processing in the it->current member; for example, the
+   buffer character position is in it->current.pos.charpos.  Most redisplay
+   functions accept a pointer to a 'struct it' object as their argument, so
+   you can make conditional breakpoints in those functions, like this:
 
     (gdb) break x_produce_glyphs if it->current.pos.charpos == 1234
 
@@ -577,6 +586,16 @@ debugging did not (yet) happen.  Here are some useful techniques for that:
    displaying a Lisp string (e.g., a 'display' property or an overlay string),
    GET_FROM_IMAGE for displaying an image, etc.  See 'enum it_method' in
    dispextern.h for the full list of values.
+
+ . When the display engine is processing a 'display' text property or an
+   overlay string, it pushes on the iterator stack the state variables
+   describing its iteration of buffer text, then reinitializes the iterator
+   object for processing the property or overlay.  The it->sp ("stack
+   pointer") member, if it is greater than zero, means the iterators stack was
+   pushed at least once.  You can therefore condition your breakpoints on the
+   value of it->sp being positive or being of a certain positive value, to
+   debug display problems that happen only with display properties or
+   overlays.
 
 ** Debugging problems with native-compiled Lisp.
 
