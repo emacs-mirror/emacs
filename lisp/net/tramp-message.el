@@ -236,9 +236,12 @@ ARGUMENTS to actually emit the message (if applicable)."
 		  tramp-trace-functions))
 	      (unless (get elt 'tramp-suppress-trace)
 		(trace-function-background elt (tramp-trace-buffer-name vec)))))
-	  ;; Delete debug file.
+	  ;; Delete debug file.  Announce its further existence.
 	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
-	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))))
+	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))
+	    (let ((message-log-max t))
+	      (message
+	       "Tramp debug file is %s" (tramp-get-debug-file-name vec)))))
 	(unless (bolp)
 	  (insert "\n"))
 	;; Timestamp.
@@ -301,18 +304,6 @@ applicable)."
 	   (if tramp-debug-command-messages
 	       (max tramp-verbose 6) tramp-verbose)))
       (when (<= level tramp-verbose)
-	;; Display only when there is a minimum level, and the
-	;; progress reporter doesn't suppress further messages.
-	(when (and (<= level 3) (null tramp-inhibit-progress-reporter))
-	  (apply #'message
-		 (concat
-		  (cond
-		   ((= level 0) "")
-		   ((= level 1) "")
-		   ((= level 2) "Warning: ")
-		   (t           "Tramp: "))
-		  fmt-string)
-		 arguments))
 	;; Log only when there is a minimum level.
 	(when (>= tramp-verbose 4)
 	  (let ((tramp-verbose 0))
@@ -338,7 +329,19 @@ applicable)."
 	    (apply #'tramp-debug-message
 		   vec-or-proc
 		   (concat (format "(%d) # " level) fmt-string)
-		   arguments)))))))
+		   arguments)))
+	;; Display only when there is a minimum level, and the
+	;; progress reporter doesn't suppress further messages.
+	(when (and (<= level 3) (null tramp-inhibit-progress-reporter))
+	  (apply #'message
+		 (concat
+		  (cond
+		   ((= level 0) "")
+		   ((= level 1) "")
+		   ((= level 2) "Warning: ")
+		   (t           "Tramp: "))
+		  fmt-string)
+		 arguments))))))
 
 ;; We cannot use the `declare' form for `tramp-suppress-trace' in
 ;; autoloaded functions, because the tramp-loaddefs.el generation
