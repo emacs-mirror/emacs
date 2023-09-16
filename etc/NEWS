@@ -243,8 +243,9 @@ functions in CJK locales.
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
+** gdb-mi
 ---
-** Variable order and truncation can now be configured in 'gdb-many-windows'.
+*** Variable order and truncation can now be configured in 'gdb-many-windows'.
 The new user option 'gdb-locals-table-row-config' allows users to
 configure the order and max length of various properties in the local
 variables buffer when using 'gdb-many-windows'.
@@ -258,6 +259,13 @@ If you want to get back the old behavior, set the user option to the value
 
     (setopt gdb-locals-table-row-config
             `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
+
+---
+*** New user option 'gdb-display-io-buffer'.
+If this is nil, "M-x gdb" will neither create nor display a separate
+buffer for the I/O of the program being debugged, but will instead
+redirect the program's interaction to the GDB execution buffer.  The
+default is t, to preserve previous behavior.
 
 ** Grep
 

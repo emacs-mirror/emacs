@@ -716,6 +716,13 @@ that GDB starts to reuse existing source windows."
   :group 'gdb
   :version "28.1")
 
+(defcustom gdb-display-io-buffer t
+  "When non-nil, display the separate `gdb-inferior-io' buffer.
+Otherwise, send program output to the GDB buffer."
+  :type 'boolean
+  :group 'gdb-buffers
+  :version "30.1")
+
 (defvar gdbmi-debug-mode nil
   "When non-nil, print the messages sent/received from GDB/MI in *Messages*.")
 
@@ -1828,13 +1835,6 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
   :type 'boolean
   :group 'gdb
   :version "25.1")
-
-(defcustom gdb-display-io-buffer t
-  "When non-nil, display the `gdb-inferior-io' buffer.  Otherwise,
-send program output to the GDB buffer."
-  :type 'boolean
-  :group 'gdb
-  :version "30.1")
 
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
