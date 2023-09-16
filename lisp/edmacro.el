@@ -74,7 +74,7 @@ Default nil means to write characters above \\177 in octal notation."
   :group 'kmacro)
 
 (defcustom edmacro-reverse-macro-lines nil
-  "Non-nil if `edit-kbd-macro' should show the most recent line of key sequences first.
+  "If non-nil, `edit-kbd-macro' shows most recent line of key sequences first.
 
 This is useful when dealing with long lists of key sequences, such as
 from `kmacro-edit-lossage'."
