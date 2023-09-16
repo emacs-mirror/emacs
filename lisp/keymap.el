@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
+;; Maintainer: emacs-devel@gnu.org
+;; Keywords: internal
+;; Package: emacs
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
