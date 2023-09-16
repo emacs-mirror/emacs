@@ -374,6 +374,7 @@ key, so the text properties are only preserved on the last three
 characters.
 @end defvar
 
+@vindex minibuffer-mode-map
 @defvar minibuffer-local-map
 This
 @anchor{Definition of minibuffer-local-map}
@@ -414,6 +415,9 @@ default, it makes the following bindings:
 @code{file-cache-minibuffer-complete}
 @end ignore
 @end table
+
+@noindent
+The variable @code{minibuffer-mode-map} is an alias for this variable.
 @end defvar
 
 @defun read-no-blanks-input prompt &optional initial inherit-input-method
