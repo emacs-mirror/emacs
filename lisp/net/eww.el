@@ -2062,7 +2062,8 @@ If CHARSET is nil then use UTF-8."
   (let ((completion-extra-properties
          '(:annotation-function (lambda (buf)
                                   (with-current-buffer buf
-                                    (format " %s" (eww-current-url)))))))
+                                    (format " %s" (eww-current-url))))))
+        (curbuf (current-buffer)))
     (pop-to-buffer-same-window
      (read-buffer "Switch to EWW buffer: "
                   (cl-loop for buf in (nreverse (buffer-list))
@@ -2070,9 +2071,10 @@ If CHARSET is nil then use UTF-8."
                            return buf)
                   t
                   (lambda (bufn)
-                    (with-current-buffer
-                        (if (consp bufn) (cdr bufn) (get-buffer bufn))
-                      (derived-mode-p 'eww-mode)))))))
+                    (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
+                    (and (with-current-buffer bufn
+                           (derived-mode-p 'eww-mode))
+                         (not (eq bufn curbuf))))))))
 
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."
