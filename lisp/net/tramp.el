@@ -660,10 +660,11 @@ The `sudo' program appears to insert a `^@' character into the prompt."
   :type 'regexp)
 
 (defcustom tramp-otp-password-prompt-regexp
-  (rx bol (* nonl)
-      ;; JumpCloud.
-      (group (| "Verification code"))
-      (* nonl) (any ":：៖") (* blank))
+  (rx-to-string
+   `(: bol (* nonl)
+       ;; JumpCloud.
+       (group (| "Verification code"))
+       (* nonl) (any . ,tramp-compat-password-colon-equivalents) (* blank)))
   "Regexp matching one-time password prompts.
 The regexp should match at end of buffer."
   :version "29.2"
@@ -1341,6 +1342,7 @@ let-bind this variable."
 ;; GNU/Linux (Debian, Suse, RHEL, Cygwin, MINGW64): /bin:/usr/bin
 ;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
 ;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
+;; NetBSD 9.3: /usr/bin:/bin:/usr/sbin:/sbin:/usr/pkg/bin:/usr/pkg/sbin:/usr/local/bin:/usr/local/sbin
 ;; IRIX64: /usr/bin
 ;; QNAP QTS: ---
 ;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
@@ -6560,8 +6562,8 @@ Consults the auth-source package."
 
 (defun tramp-read-passwd-without-cache (proc &optional prompt)
   "Read a password from user (compat function)."
-  ;; We suspend the timers while reading the password.
   (declare (tramp-suppress-trace t))
+  ;; We suspend the timers while reading the password.
   (let (tramp-dont-suspend-timers)
     (with-tramp-suspended-timers
       (password-read
