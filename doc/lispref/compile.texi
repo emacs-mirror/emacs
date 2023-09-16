@@ -422,7 +422,7 @@ execution of the compiled file.  For example,
 @lisp
 (eval-when-compile
   (unless (fboundp 'some-new-thing)
-    (defmacro 'some-new-thing ()
+    (defmacro some-new-thing ()
       (compatibility code))))
 @end lisp
 

@@ -59,8 +59,11 @@ types of diagnostics.
 
 To learn about using Flymake, @pxref{Using Flymake}.
 
-Flymake is designed to be easily extended to support new backends via
-an Elisp interface.  @xref{Extending Flymake}.
+When the Emacs LSP support mode Eglot is enabled, Flymake will use
+that as an additional back-end.  @xref{Eglot Features,,, eglot, Eglot:
+The Emacs LSP Client}  Flymake is also designed to be easily extended
+to support new backends via an Elisp interface.  @xref{Extending
+Flymake}.
 
 Historically, Flymake used to accept diagnostics from a single
 backend.  Although obsolete, it is still functional.  To learn how to
@@ -92,6 +95,10 @@ It's possible that some major modes or a third-party package has
 already setup this hook for you, by adding @dfn{backend functions} to
 @code{flymake-diagnostic-functions}.  If you know Elisp you may also
 write your own Flymake backend functions.  @xref{Backend functions}.
+
+When the Emacs LSP support mode Eglot is enabled, Flymake will use
+that as an additional back-end automatically.  @xref{Eglot Features,,,
+eglot, Eglot: The Emacs LSP Client}
 
 @menu
 * Starting Flymake::

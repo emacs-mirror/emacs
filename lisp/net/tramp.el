@@ -659,6 +659,16 @@ The `sudo' program appears to insert a `^@' character into the prompt."
   :version "29.1"
   :type 'regexp)
 
+(defcustom tramp-otp-password-prompt-regexp
+  (rx bol (* nonl)
+      ;; JumpCloud.
+      (group (| "Verification code"))
+      (* nonl) (any ":：៖") (* blank))
+  "Regexp matching one-time password prompts.
+The regexp should match at end of buffer."
+  :version "29.2"
+  :type 'regexp)
+
 (defcustom tramp-wrong-passwd-regexp
   (rx bol (* nonl)
       (| "Permission denied"
@@ -5362,6 +5372,25 @@ of."
 	     #'tramp-read-passwd-without-cache #'tramp-read-passwd)
 	 proc)
 	tramp-local-end-of-line))
+      ;; Hide password prompt.
+      (narrow-to-region (point-max) (point-max))))
+  t)
+
+(defun tramp-action-otp-password (proc vec)
+  "Query the user for a one-time password."
+  (with-current-buffer (process-buffer proc)
+    (let ((case-fold-search t)
+	  prompt)
+      (goto-char (point-min))
+      (tramp-check-for-regexp proc tramp-process-action-regexp)
+      (setq prompt (concat (match-string 1) " "))
+      (tramp-message vec 3 "Sending %s" (match-string 1))
+      ;; We don't call `tramp-send-string' in order to hide the
+      ;; password from the debug buffer and the traces.
+      (process-send-string
+       proc
+       (concat
+	(tramp-read-passwd-without-cache proc prompt) tramp-local-end-of-line))
       ;; Hide password prompt.
       (narrow-to-region (point-max) (point-max))))
   t)

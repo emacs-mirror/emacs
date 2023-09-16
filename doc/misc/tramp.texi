@@ -2436,8 +2436,10 @@ which may not be the same as the local login shell prompt,
 @value{tramp} sets a similar default value for both prompts.
 
 @item @code{tramp-password-prompt-regexp}
+@item @code{tramp-otp-password-prompt-regexp}
 @item @code{tramp-wrong-passwd-regexp}
 @vindex tramp-password-prompt-regexp
+@vindex tramp-otp-password-prompt-regexp
 @vindex tramp-wrong-passwd-regexp
 
 @value{tramp} uses @code{tramp-password-prompt-regexp} to
@@ -2470,6 +2472,10 @@ This user option is, by default, initialized from
 @code{password-word-equivalents} when @value{tramp} is loaded, and it
 is usually more convenient to add new passphrases to that user option
 instead of altering this user option.
+
+The user option @code{tramp-otp-password-prompt-regexp} has a similar
+purpose, but for one-time passwords.  Those passwords are not cached
+by @value{tramp} for reuse.
 
 Similar localization may be necessary for handling wrong password
 prompts, for which @value{tramp} uses @code{tramp-wrong-passwd-regexp}.

@@ -93,6 +93,11 @@ might need to be updated because it knows about used and unused ranges
 of Unicode codepoints, which a new release of the Unicode Standard
 could change.
 
+The data used by ucs-normalize.el might need to be updated.
+Specifically, the values of 'ucs-normalize-composition-exclusions' and
+'check-range", defined at the beginning of ucs-normalize.el, should be
+verified against the latest Unicode data files.
+
 Next, test normalization functions against NormalizationTests.txt,
 in the test/ directory run:
 

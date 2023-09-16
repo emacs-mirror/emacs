@@ -570,18 +570,23 @@ SECRET-KEYS is a plist containing secret data."
 
 (defvar pp-escape-newlines)
 (defun plstore--insert-buffer (plstore)
-  "Insert the file representation of PLSTORE at point.
-Assumes that PLSTORE has been decrypted."
+  "Insert the file representation of PLSTORE at point."
   (insert ";;; public entries -*- mode: plstore -*- \n"
 	  (pp-to-string (plstore--get-alist plstore)))
-  (if (plstore--get-secret-alist plstore)
+  (let ((pp-escape-newlines nil)
+        (cipher nil))
+    (cond
+     ;; Reuse the encrypted data as cipher text if this store has not
+     ;; been decrypted yet.
+     ((plstore--get-encrypted-data plstore)
+      (setq cipher (plstore--get-encrypted-data plstore)))
+     ;; Encrypt the secret alist to generate the cipher text.
+     ((plstore--get-secret-alist plstore)
       (let ((context (epg-make-context 'OpenPGP))
-	    (pp-escape-newlines nil)
 	    (recipients
 	     (cond
 	      ((listp plstore-encrypt-to) plstore-encrypt-to)
-	      ((stringp plstore-encrypt-to) (list plstore-encrypt-to))))
-	    cipher)
+	      ((stringp plstore-encrypt-to) (list plstore-encrypt-to)))))
 	(setf (epg-context-armor context) t)
 	(epg-context-set-passphrase-callback
 	 context
@@ -601,9 +606,10 @@ Assumes that PLSTORE has been decrypted."
 If no one is selected, symmetric encryption will be performed.  "
 			   recipients)
 			(if plstore-encrypt-to
-			    (epg-list-keys context recipients)))))
-	(goto-char (point-max))
-	(insert ";;; secret entries\n" (pp-to-string cipher)))))
+			    (epg-list-keys context recipients))))))))
+    (when cipher
+      (goto-char (point-max))
+      (insert ";;; secret entries\n" (pp-to-string cipher)))))
 
 (defun plstore-save (plstore)
   "Save PLSTORE to its associated file.

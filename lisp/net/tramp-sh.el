@@ -540,6 +540,7 @@ shell from reading its init file."
 (defconst tramp-actions-before-shell
   '((tramp-login-prompt-regexp tramp-action-login)
     (tramp-password-prompt-regexp tramp-action-password)
+    (tramp-otp-password-prompt-regexp tramp-action-otp-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (shell-prompt-pattern tramp-action-succeed)
     (tramp-shell-prompt-pattern tramp-action-succeed)
@@ -563,6 +564,7 @@ corresponding PATTERN matches, the ACTION function is called.")
 
 (defconst tramp-actions-copy-out-of-band
   '((tramp-password-prompt-regexp tramp-action-password)
+    (tramp-otp-password-prompt-regexp tramp-action-otp-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
     (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)

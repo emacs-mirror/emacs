@@ -63,6 +63,7 @@
   (setq-local sqlite--db (sqlite-open file))
   (unless (sqlitep sqlite--db)
     (error "`sqlite-open' failed to open SQLite file"))
+  (add-hook 'kill-buffer-hook (lambda () (sqlite-close sqlite--db)) nil t)
   (sqlite-mode-list-tables))
 
 (defun sqlite-mode-list-tables ()

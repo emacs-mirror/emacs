@@ -142,6 +142,7 @@ properties."
                 (expected-calls . ((modification-hooks (nil 3 4))
                                    (modification-hooks (t 3 4 1)))))
                ((replace . "4"))
+               ((replace . "4") (overlay-beg . 4)) ;bug#65929
                ((replace . "12")
                 (expected-calls . ((modification-hooks (nil 1 3))
                                    (modification-hooks (t 1 2 2)))))

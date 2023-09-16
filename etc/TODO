@@ -452,6 +452,10 @@ reformat the region of source code according to the rules.
 The next step is to use these rules during editing of files residing
 in a directory that has such an indentation-rules spec in it.
 
+For some discussion and implementation ideas (including possibly using
+LSP), see the thread starting at
+https://lists.gnu.org/archive/html/emacs-devel/2023-09/msg00609.html
+
 ** FFI (foreign function interface)
 See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
