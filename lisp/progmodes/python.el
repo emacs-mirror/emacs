@@ -1819,7 +1819,7 @@ possibilities can be narrowed to specific indentation points."
         (`(:after-block-end . ,start)
          ;; Subtract one indentation level.
          (goto-char start)
-         (- (current-indentation) python-indent-offset))
+         (max 0 (- (current-indentation) python-indent-offset)))
         (`(:at-dedenter-block-start . ,_)
          ;; List all possible indentation levels from opening blocks.
          (let ((opening-block-start-points

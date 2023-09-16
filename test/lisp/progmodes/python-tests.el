@@ -2149,6 +2149,15 @@ def test_re(string):
    (python-tests-look-at "else:")
    (should (= (python-indent-calculate-indentation) 4))))
 
+(ert-deftest python-indent-badly-indented-block-end ()
+  "Test BUG 65870 regression."
+  (python-tests-with-temp-buffer
+   "
+return
+"
+   (goto-char (point-max))
+   (should (= (python-indent-calculate-indentation) 0))))
+
 
 ;;; Filling
 
