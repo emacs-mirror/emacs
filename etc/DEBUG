@@ -591,9 +591,9 @@ are debugging did not (yet) happen.  Here are some useful techniques for that:
    overlay string, it pushes on the iterator stack the state variables
    describing its iteration of buffer text, then reinitializes the iterator
    object for processing the property or overlay.  The it->sp ("stack
-   pointer") member, if it is greater than zero, means the iterators stack was
-   pushed at least once.  You can therefore condition your breakpoints on the
-   value of it->sp being positive or being of a certain positive value, to
+   pointer") member, if it is greater than zero, means the iterator's stack
+   was pushed at least once.  You can therefore condition your breakpoints on
+   the value of it->sp being positive or being of a certain positive value, to
    debug display problems that happen only with display properties or
    overlays.
 
