@@ -622,6 +622,13 @@ public final class EmacsView extends ViewGroup
     if (popupActive && !force)
       return false;
 
+    /* Android will permanently cease to display any popup menus at
+       all if the list of menu items is empty.  Prevent this by
+       promptly returning if there are no menu items.  */
+
+    if (menu.menuItems.isEmpty ())
+      return false;
+
     contextMenu = menu;
     popupActive = true;
 
