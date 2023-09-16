@@ -1143,6 +1143,20 @@ Perl is not Lisp: An open paren in column 0 does not start a function."
      (cperl-indent-command)
      (forward-line 1))))
 
+(ert-deftest cperl-test-bug-35925 ()
+  "Check that indentation is correct after a terminating format declaration."
+  (cperl-set-style "PBP") ; Make cperl-mode use the same settings as perl-mode.
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-35925.pl")
+   (let ((tab-function
+          (if (equal cperl-test-mode 'perl-mode)
+              #'indent-for-tab-command
+            #'cperl-indent-command)))
+     (goto-char (point-max))
+     (forward-line -2)
+     (funcall tab-function)))
+  (cperl-set-style-back))
+
 (ert-deftest cperl-test-bug-37127 ()
   "Verify that closing a paren in a regex goes without a message.
 Also check that the message is issued if the regex terminator is
