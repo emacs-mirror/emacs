@@ -3648,7 +3648,6 @@ sfntfont_list_family (struct frame *f)
 {
   Lisp_Object families, tem, next;
   struct sfnt_font_desc *desc;
-  unsigned short count;
 
   families = Qnil;
 
