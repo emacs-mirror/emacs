@@ -87,7 +87,7 @@ Check if a node type is available, then return the right indent rules."
       (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
              `(((match "<" "jsx_fragment") parent 0)
                ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
-    (error
+    (treesit-query-error
      `(((match "<" "jsx_text") parent 0)
        ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
 
@@ -178,7 +178,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 	       (jsx_self_closing_element
 		[(member_expression (identifier)) (identifier)]
 		@typescript-ts-jsx-tag-face)))
-    (error '((jsx_opening_element
+    (treesit-query-error
+           '((jsx_opening_element
 	      [(nested_identifier (identifier)) (identifier)]
 	      @typescript-ts-jsx-tag-face)
 
@@ -370,7 +371,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
-  "Major mode for editing TypeScript."
+  "Generic major mode for editing TypeScript.
+
+This mode is intended to be inherited by concrete major modes."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
