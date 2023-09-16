@@ -980,8 +980,8 @@ or `dbus-call-method-asynchronously'."
   (vec bus service path interface)
   "Return all properties of INTERFACE.
 The call will be traced by Tramp with trace level 6."
-     ;; Check, that interface exists at object path.  Retrieve properties.
   (declare (indent 1) (debug t))
+  ;; Check, that interface exists at object path.  Retrieve properties.
   `(when (member
 	  ,interface
 	  (tramp-dbus-function

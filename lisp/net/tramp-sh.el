@@ -4166,6 +4166,18 @@ This function expects to be in the right *tramp* buffer."
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
 ;; check it, and use a temporary file in case of.  See Bug#33781.
+
+;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
+;; on various platforms:
+;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
+;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
+;;   - 5 KiB on Solaris.
+;;   - 8 KiB on HP-UX, Plan9.
+;;   - 10 KiB on IRIX.
+;;   - 32 KiB on AIX, Minix.
+;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
+;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
+;; See Bug#65324.
 (defun tramp-set-remote-path (vec)
   "Set the remote environment PATH to existing directories.
 I.e., for each directory in `tramp-remote-path', it is tested
