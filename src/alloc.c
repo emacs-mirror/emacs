@@ -3054,9 +3054,8 @@ enum { VECTOR_BLOCK_SIZE = 4096 };
 /* Vector size requests are a multiple of this.  */
 enum { roundup_size = COMMON_MULTIPLE (LISP_ALIGNMENT, word_size) };
 
-/* Verify assumptions described above.  */
+/* Verify assumption described above.  */
 verify (VECTOR_BLOCK_SIZE % roundup_size == 0);
-verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
 #define vroundup_ct(x) ROUNDUP (x, roundup_size)
@@ -3066,6 +3065,11 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 /* Rounding helps to maintain alignment constraints if USE_LSB_TAG.  */
 
 enum {VECTOR_BLOCK_BYTES = VECTOR_BLOCK_SIZE - vroundup_ct (sizeof (void *))};
+
+/* The current code expects to be able to represent an unused block by
+   a single PVEC_FREE object, whose size is limited by the header word.
+   (Of course we could use multiple such objects.)  */
+verify (VECTOR_BLOCK_BYTES <= (word_size << PSEUDOVECTOR_REST_BITS));
 
 /* Size of the minimal vector allocated from block.  */
 
