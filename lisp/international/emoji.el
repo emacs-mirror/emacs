@@ -726,10 +726,14 @@ FACTOR is the multiplication factor for the size."
             (add-text-properties
              (point) (1+ (point))
              (list 'face
-                   (if (eq (car old) :height)
-                       (plist-put (copy-sequence old) :height newheight)
+                   (cond
+                    ((eq (car old) :height)
+                     (plist-put (copy-sequence old) :height newheight))
+                    ((plistp (car old))
                      (cons (plist-put (car old) :height newheight)
                            (cdr old)))
+                    (t
+                     (append (list (list :height newheight)) old)))
                    'rear-nonsticky t))
           (add-face-text-property (point) (1+ (point))
                                   (list :height newheight))
