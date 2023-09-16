@@ -1098,9 +1098,10 @@ detailed description of this mode.
                      (if gdb-debuginfod-enable "on" "off"))
              'gdb-debuginfod-message)
 
-  (gdb-get-buffer-create 'gdb-inferior-io)
-  (gdb-clear-inferior-io)
-  (gdb-inferior-io--init-proc (get-process "gdb-inferior"))
+  (when gdb-display-io-buffer
+    (gdb-get-buffer-create 'gdb-inferior-io)
+    (gdb-clear-inferior-io)
+    (gdb-inferior-io--init-proc (get-process "gdb-inferior")))
 
   (when (eq system-type 'windows-nt)
     ;; Don't create a separate console window for the debuggee.
@@ -1827,6 +1828,13 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
   :type 'boolean
   :group 'gdb
   :version "25.1")
+
+(defcustom gdb-display-io-buffer t
+  "When non-nil, display the `gdb-inferior-io' buffer.  Otherwise,
+send program output to the GDB buffer."
+  :type 'boolean
+  :group 'gdb
+  :version "30.1")
 
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
