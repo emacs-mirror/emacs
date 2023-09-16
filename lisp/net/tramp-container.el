@@ -158,6 +158,26 @@ If it is nil, the default context will be used."
   "Tramp method name to use to connect to Flatpak sandboxes.")
 
 ;;;###tramp-autoload
+(defmacro tramp-skeleton-completion-function (method &rest body)
+  "Skeleton for `tramp-*-completion-function' with multi-hop support.
+BODY is the backend specific code."
+  (declare (indent 1) (debug t))
+  `(let* ((default-directory
+	   (or (and (member ,method tramp-completion-multi-hop-methods)
+		    tramp--last-hop-directory)
+	       tramp-compat-temporary-file-directory))
+	  (program (tramp-get-method-parameter
+		    (make-tramp-file-name :method ,method) 'tramp-login-program))
+	  (vec (when (tramp-tramp-file-p default-directory)
+		 (tramp-dissect-file-name default-directory)))
+	  non-essential)
+     ;; We don't use connection properties, because this information
+     ;; shouldn't be kept persistently.
+     (with-tramp-file-property
+	 vec (concat "/" ,method ":") "user-host-completions"
+       ,@body)))
+
+;;;###tramp-autoload
 (defun tramp-container--completion-function (method)
   "List running containers available for connection.
 METHOD is the Tramp method to be used for \"ps\", either
@@ -165,62 +185,51 @@ METHOD is the Tramp method to be used for \"ps\", either
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (let ((default-directory
-	 (or (and (member method tramp-completion-multi-hop-methods)
-		  tramp--last-hop-directory)
-	     tramp-compat-temporary-file-directory))
-	(program (tramp-get-method-parameter
-		  (make-tramp-file-name :method method) 'tramp-login-program))
-	non-essential)
-    ;; We don't use connection properties, because this information
-    ;; shouldn't be kept persistently.
-    (with-tramp-file-property
-	(when (tramp-tramp-file-p default-directory)
-	  (tramp-dissect-file-name default-directory))
-	(concat "/" method ":") "user-host-completions"
-      (when-let ((raw-list
-		  (shell-command-to-string
-		   (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
-		 (lines (split-string raw-list "\n" 'omit))
-		 (names
-		  (mapcar
-		   (lambda (line)
-		     (when (string-match
-			    (rx bol (group (1+ nonl))
-				"\t" (? (group (1+ nonl))) eol)
-			    line)
-		       (or (match-string 2 line) (match-string 1 line))))
-		   lines)))
-	(mapcar (lambda (name) (list nil name)) (delq nil names))))))
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list
+		(shell-command-to-string
+		 (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
+	       (lines (split-string raw-list "\n" 'omit))
+	       (names
+		(mapcar
+		 (lambda (line)
+		   (when (string-match
+			  (rx bol (group (1+ nonl))
+			      "\t" (? (group (1+ nonl))) eol)
+			  line)
+		     (or (match-string 2 line) (match-string 1 line))))
+		 lines)))
+      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
 
 ;;;###tramp-autoload
-(defun tramp-kubernetes--completion-function (&rest _args)
+(defun tramp-kubernetes--completion-function (method)
   "List Kubernetes pods available for connection.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (when-let ((default-directory tramp-compat-temporary-file-directory)
-	     (raw-list (shell-command-to-string
-			(concat
-			 tramp-kubernetes-program " "
-			 (tramp-kubernetes--context-namespace nil)
-                         " get pods --no-headers"
-			 ;; We separate pods by "|".  Inside a pod,
-			 ;; its name is separated from the containers
-			 ;; by ":".  Containers are separated by ",".
-			 " -o jsonpath='{range .items[*]}{\"|\"}{.metadata.name}"
-			 "{\":\"}{range .spec.containers[*]}{.name}{\",\"}"
-			 "{end}{end}'")))
-             (lines (split-string raw-list "|" 'omit)))
-    (let (names)
-      (dolist (line lines)
-	(setq line (split-string line ":" 'omit))
-	;; Pod name.
-	(push (car line) names)
-	;; Container names.
-	(dolist (elt (split-string (cadr line) "," 'omit))
-	  (push (concat elt "." (car line)) names)))
-      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list
+		(shell-command-to-string
+		 (concat
+		  program " "
+		  (tramp-kubernetes--context-namespace vec)
+                  " get pods --no-headers"
+		  ;; We separate pods by "|".  Inside a pod, its name
+		  ;; is separated from the containers by ":".
+		  ;; Containers are separated by ",".
+		  " -o jsonpath='{range .items[*]}{\"|\"}{.metadata.name}"
+		  "{\":\"}{range .spec.containers[*]}{.name}{\",\"}"
+		  "{end}{end}'")))
+               (lines (split-string raw-list "|" 'omit)))
+      (let (names)
+	(dolist (line lines)
+	  (setq line (split-string line ":" 'omit))
+	  ;; Pod name.
+	  (push (car line) names)
+	  ;; Container names.
+	  (dolist (elt (split-string (cadr line) "," 'omit))
+	    (push (concat elt "." (car line)) names)))
+	(mapcar (lambda (name) (list nil name)) (delq nil names))))))
 
 (defconst tramp-kubernetes--host-name-regexp
   (rx (? (group (regexp tramp-host-regexp)) ".")
@@ -243,30 +252,53 @@ see its function help for a description of the format."
 	     (match-string 2 host)))
       ""))
 
+;; We must change `vec' and `default-directory' to the previous hop,
+;; in order to run `process-file' in a proper environment.
+(defmacro tramp-skeleton-kubernetes-vector (vec &rest body)
+  "Skeleton for `tramp-kubernetes--current-context*' with multi-hop support.
+BODY is the backend specific code."
+  (declare (indent 1) (debug t))
+  `(let* ((vec
+	   (cond
+	    ((null ,vec) tramp-null-hop)
+	    ((equal (tramp-file-name-method ,vec) tramp-kubernetes-method)
+	     (if (tramp-file-name-hop ,vec)
+		 (tramp-dissect-hop-name (tramp-file-name-hop ,vec))
+	       tramp-null-hop))
+	    (t ,vec)))
+	  (default-directory
+	   (if (equal vec tramp-null-hop)
+	       tramp-compat-temporary-file-directory
+	     (tramp-make-tramp-file-name vec "/"))))
+     ,@body))
+
 (defun tramp-kubernetes--current-context (vec)
   "Return Kubernetes current context.
 Obey `tramp-kubernetes-context'"
   (or tramp-kubernetes-context
-      (with-tramp-connection-property nil "current-context"
-	(with-temp-buffer
-	  (when (zerop
-		 (tramp-call-process
-		  vec tramp-kubernetes-program nil t nil
-		  "config" "current-context"))
-	    (goto-char (point-min))
-	    (buffer-substring (point) (line-end-position)))))))
+      (tramp-skeleton-kubernetes-vector vec
+	(with-tramp-file-property
+	    vec (concat "/" tramp-kubernetes-method ":") "current-context"
+	  (with-temp-buffer
+	    (when (zerop
+		   (process-file
+		    tramp-kubernetes-program nil t nil
+		    "config" "current-context"))
+	      (goto-char (point-min))
+	      (buffer-substring (point) (line-end-position))))))))
 
 (defun tramp-kubernetes--current-context-data (vec)
   "Return Kubernetes current context data as JSON string."
   (when-let ((current-context (tramp-kubernetes--current-context vec)))
-    (with-temp-buffer
-      (when (zerop
-	     (tramp-call-process
-	      vec tramp-kubernetes-program nil t nil
-	      "config" "view" "-o"
-	      (format
-	       "jsonpath='{.contexts[?(@.name == \"%s\")]}'" current-context)))
-	(buffer-string)))))
+    (tramp-skeleton-kubernetes-vector vec
+      (with-temp-buffer
+	(when (zerop
+	       (process-file
+		tramp-kubernetes-program nil t nil
+		"config" "view" "-o"
+		(format
+		 "jsonpath='{.contexts[?(@.name == \"%s\")]}'" current-context)))
+	  (buffer-string))))))
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--context-namespace (vec)
@@ -404,7 +436,7 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-kubernetes-method
-  '((tramp-kubernetes--completion-function "")))
+  `((tramp-kubernetes--completion-function ,tramp-kubernetes-method)))
 
  (tramp-set-completion-function
   tramp-toolbox-method
@@ -416,6 +448,7 @@ see its function help for a description of the format."
 
  (add-to-list 'tramp-completion-multi-hop-methods tramp-docker-method)
  (add-to-list 'tramp-completion-multi-hop-methods tramp-podman-method)
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-kubernetes-method)
 
  ;; Default connection-local variables for Tramp.
 
@@ -425,7 +458,8 @@ see its function help for a description of the format."
      (tramp-extra-expand-args
       . (?a (tramp-kubernetes--container (car tramp-current-connection))
 	 ?h (tramp-kubernetes--pod (car tramp-current-connection))
-	 ?x (tramp-kubernetes--context-namespace (car tramp-current-connection)))))
+	 ?x (tramp-kubernetes--context-namespace
+	     (car tramp-current-connection)))))
    "Default connection-local variables for remote kubernetes connections.")
 
  (connection-local-set-profile-variables
