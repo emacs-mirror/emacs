@@ -1033,10 +1033,10 @@ process(es) in a cons cell like:
          (progn ,@body)
        (let ((,tag-symbol ,tag))
          (eshell-always-debug-command 'form
-           "%s\n\n%s" ,tag-symbol ,(eshell-stringify form))
+           "%s\n\n%s" ,tag-symbol (eshell-stringify ,form))
          ,@body
          (eshell-always-debug-command 'form
-           "done %s\n\n%s " ,tag-symbol ,(eshell-stringify form))))))
+           "done %s\n\n%s" ,tag-symbol (eshell-stringify ,form))))))
 
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate FORM, simplifying it as we go.
@@ -1110,12 +1110,10 @@ have been replaced by constants."
                    `(progn ,@(cddr args))) ; Multiple ELSE forms
                   (t
                    (caddr args)))))        ; Zero or one ELSE forms
-            (if (consp new-form)
-                (progn
-                  (setcar form (car new-form))
-                  (setcdr form (cdr new-form)))
-              (setcar form 'progn)
-              (setcdr form new-form))))
+            (unless (consp new-form)
+              (setq new-form (cons 'progn new-form)))
+            (setcar form (car new-form))
+            (setcdr form (cdr new-form))))
         (eshell-do-eval form synchronous-p))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
