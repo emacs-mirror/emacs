@@ -65,10 +65,6 @@ The Emacs LSP Client}  Flymake is also designed to be easily extended
 to support new backends via an Elisp interface.  @xref{Extending
 Flymake}.
 
-Historically, Flymake used to accept diagnostics from a single
-backend.  Although obsolete, it is still functional.  To learn how to
-use and customize it, @pxref{The legacy Proc backend}.
-
 @ifnottex
 @insertcopying
 @end ifnottex
