@@ -47,11 +47,12 @@
   "Execute a block of Eshell code BODY with PARAMS.
 This function is called by `org-babel-execute-src-block'.
 
-The BODY can be any code which allowed executed in Eshell.
-Eshell allow to execute normal shell command and Elisp code.
-More details please reference Eshell Info.
+The BODY argument is code which can be executed in Eshell.
+Eshell allows executing normal shell command and Elisp code.
+For more details, see Info node `(eshell) Top'.
 
-The PARAMS are variables assignments."
+The PARAMS argument is passed to
+`org-babel-expand-body:generic' (which see)."
   (let* ((session (org-babel-eshell-initiate-session
 		   (cdr (assq :session params))))
 	 (full-body (org-babel-expand-body:generic
