@@ -166,8 +166,10 @@ BODY is the backend specific code."
 	   (or (and (member ,method tramp-completion-multi-hop-methods)
 		    tramp--last-hop-directory)
 	       tramp-compat-temporary-file-directory))
-	  (program (tramp-get-method-parameter
-		    (make-tramp-file-name :method ,method) 'tramp-login-program))
+	  (program (let ((tramp-verbose 0))
+		     (tramp-get-method-parameter
+		      (make-tramp-file-name :method ,method)
+		      'tramp-login-program)))
 	  (vec (when (tramp-tramp-file-p default-directory)
 		 (tramp-dissect-file-name default-directory)))
 	  non-essential)
@@ -312,49 +314,48 @@ Obey `tramp-kubernetes-context'"
    " "))
 
 ;;;###tramp-autoload
-(defun tramp-toolbox--completion-function (&rest _args)
+(defun tramp-toolbox--completion-function (method)
   "List Toolbox containers available for connection.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (when-let ((default-directory tramp-compat-temporary-file-directory)
-	     (raw-list (shell-command-to-string
-			(concat tramp-toolbox-program " list -c")))
-	     ;; Ignore header line.
-             (lines (cdr (split-string raw-list "\n" 'omit)))
-             (names (mapcar
-		     (lambda (line)
-                       (when (string-match
-			      (rx bol (1+ (not space))
-				  (1+ space) (group (1+ (not space))) space)
-			      line)
-			 (match-string 1 line)))
-                     lines)))
-    (mapcar (lambda (name) (list nil name)) (delq nil names))))
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list (shell-command-to-string (concat program " list -c")))
+	       ;; Ignore header line.
+               (lines (cdr (split-string raw-list "\n" 'omit)))
+               (names (mapcar
+		       (lambda (line)
+			 (when (string-match
+				(rx bol (1+ (not space))
+				    (1+ space) (group (1+ (not space))) space)
+				line)
+			   (match-string 1 line)))
+                       lines)))
+      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
 
 ;;;###tramp-autoload
-(defun tramp-flatpak--completion-function (&rest _args)
+(defun tramp-flatpak--completion-function (method)
   "List Flatpak sandboxes available for connection.
 It returns application IDs or, in case there is no application
 ID, instance IDs.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (when-let ((default-directory tramp-compat-temporary-file-directory)
-	     (raw-list
-	      (shell-command-to-string
-	       (concat tramp-flatpak-program
-		       " ps --columns=instance,application")))
-             (lines (split-string raw-list "\n" 'omit))
-             (names (mapcar
-		     (lambda (line)
-                       (when (string-match
-			      (rx bol (* space) (group (+ (not space)))
-				  (? (+ space) (group (+ (not space)))) eol)
-			      line)
-			 (or (match-string 2 line) (match-string 1 line))))
-                     lines)))
-    (mapcar (lambda (name) (list nil name)) (delq nil names))))
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list
+		(shell-command-to-string
+		 ;; Ignore header line.
+		 (concat program " ps --columns=instance,application | cat -")))
+               (lines (split-string raw-list "\n" 'omit))
+               (names (mapcar
+		       (lambda (line)
+			 (when (string-match
+				(rx bol (* space) (group (+ (not space)))
+				    (? (+ space) (group (+ (not space)))) eol)
+				line)
+			   (or (match-string 2 line) (match-string 1 line))))
+                       lines)))
+      (mapcar (lambda (name) (list nil name)) (delq nil names)))))
 
 ;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
@@ -440,15 +441,17 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-toolbox-method
-  '((tramp-toolbox--completion-function "")))
+  `((tramp-toolbox--completion-function ,tramp-toolbox-method)))
 
  (tramp-set-completion-function
   tramp-flatpak-method
-  '((tramp-flatpak--completion-function "")))
+  `((tramp-flatpak--completion-function ,tramp-flatpak-method)))
 
  (add-to-list 'tramp-completion-multi-hop-methods tramp-docker-method)
  (add-to-list 'tramp-completion-multi-hop-methods tramp-podman-method)
  (add-to-list 'tramp-completion-multi-hop-methods tramp-kubernetes-method)
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-toolbox-method)
+ (add-to-list 'tramp-completion-multi-hop-methods tramp-flatpak-method)
 
  ;; Default connection-local variables for Tramp.
 
