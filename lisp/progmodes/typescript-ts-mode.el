@@ -87,7 +87,7 @@ Check if a node type is available, then return the right indent rules."
       (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
              `(((match "<" "jsx_fragment") parent 0)
                ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
-    (error
+    (treesit-query-error
      `(((match "<" "jsx_text") parent 0)
        ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
 
@@ -178,7 +178,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 	       (jsx_self_closing_element
 		[(member_expression (identifier)) (identifier)]
 		@typescript-ts-jsx-tag-face)))
-    (error '((jsx_opening_element
+    (treesit-query-error
+           '((jsx_opening_element
 	      [(nested_identifier (identifier)) (identifier)]
 	      @typescript-ts-jsx-tag-face)
 
@@ -416,7 +417,9 @@ See `treesit-thing-settings' for more information.")
 
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
-  "Major mode for editing TypeScript."
+  "Generic major mode for editing TypeScript.
+
+This mode is intended to be inherited by concrete major modes."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
@@ -476,7 +479,7 @@ See `treesit-thing-settings' for more information.")
                   (keyword string escape-sequence)
                   (constant expression identifier number pattern property)
                   (function bracket delimiter)))
-    (setq-local syntax-propertize-function #'ts-ts--syntax-propertize)
+    (setq-local syntax-propertize-function #'typescript-ts--syntax-propertize)
 
     (treesit-major-mode-setup)))
 
@@ -537,7 +540,7 @@ at least 3 (which is the default value)."
 
     (treesit-major-mode-setup)))
 
-(defvar ts-ts--s-p-query
+(defvar typescript-ts--s-p-query
   (when (treesit-available-p)
     (treesit-query-compile 'typescript
                            '(((regex pattern: (regex_pattern) @regexp))))))
@@ -552,15 +555,15 @@ at least 3 (which is the default value)."
                              ((parenthesized_expression (jsx_element) @jsx))
                              ((return_statement (jsx_element) @jsx))))))
 
-(defun ts-ts--syntax-propertize (beg end)
-  (let ((captures (treesit-query-capture 'typescript ts-ts--s-p-query beg end)))
-    (ts-ts--syntax-propertize-captures captures)))
+(defun typescript-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'typescript typescript-ts--s-p-query beg end)))
+    (tsx-ts--syntax-propertize-captures captures)))
 
 (defun tsx-ts--syntax-propertize (beg end)
   (let ((captures (treesit-query-capture 'tsx tsx-ts--s-p-query beg end)))
-    (ts-ts--syntax-propertize-captures captures)))
+    (tsx-ts--syntax-propertize-captures captures)))
 
-(defun ts-ts--syntax-propertize-captures (captures)
+(defun tsx-ts--syntax-propertize-captures (captures)
   (pcase-dolist (`(,name . ,node) captures)
     (let* ((ns (treesit-node-start node))
            (ne (treesit-node-end node))

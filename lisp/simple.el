@@ -8263,7 +8263,11 @@ rests."
       (let ((newpos
 	     (save-excursion
 	       (let ((goal-column 0)
-		     (line-move-visual nil))
+		     (line-move-visual nil)
+                     ;; Always move to eol when invoking `C-e' from
+                     ;; within the minibuffer's prompt string (see
+                     ;; bug#65980).
+                     (inhibit-field-text-motion (minibufferp)))
 		 (and (line-move arg t)
 		      ;; With bidi reordering, we may not be at bol,
 		      ;; so make sure we are.
