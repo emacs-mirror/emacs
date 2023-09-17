@@ -1567,7 +1567,7 @@ return values from module functions.  For this purpose, the module
 Emacs Lisp objects communicated via the @acronym{API}; it is the
 functional equivalent of the @code{Lisp_Object} type used in Emacs C
 primitives (@pxref{Writing Emacs Primitives}).  This section describes
-the parts of the module @acronym{API} that allow to create
+the parts of the module @acronym{API} that allow creating
 @code{emacs_value} objects corresponding to basic Lisp data types, and
 how to access from C data in @code{emacs_value} objects that
 correspond to Lisp objects.

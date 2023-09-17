@@ -1891,7 +1891,7 @@ This makes its global value shadowed by the binding;
 @code{default-value} will then return the value from that binding, not
 the global value, and @code{set-default} will be prevented from
 setting the global value (it will change the let-bound value instead).
-The following two functions allow to reference the global value even
+The following two functions allow referencing the global value even
 if it's shadowed by a let-binding.
 
 @cindex top-level default value

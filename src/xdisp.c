@@ -19170,7 +19170,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
       && !f->cursor_type_changed
       && NILP (Vshow_trailing_whitespace)
       /* When display-line-numbers is in relative mode, moving point
-	 requires to redraw the entire window.  */
+	 requires redrawing the entire window.  */
       && !EQ (Vdisplay_line_numbers, Qrelative)
       && !EQ (Vdisplay_line_numbers, Qvisual)
       /* When the current line number should be displayed in a

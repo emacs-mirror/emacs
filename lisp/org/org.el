@@ -13228,7 +13228,7 @@ Optional argument DEFAULT provides a default value for PROPERTY."
      nil nil nil nil default-prop)))
 
 (defun org-set-property-and-value (use-last)
-  "Allow to set [PROPERTY]: [value] direction from prompt.
+  "Allow setting [PROPERTY]: [value] direction from prompt.
 When use-default, don't even ask, just use the last
 \"[PROPERTY]: [value]\" string from the history."
   (interactive "P")
@@ -17655,8 +17655,8 @@ region."
 (defun org-open-line (n)
   "Insert a new row in tables, call `open-line' elsewhere.
 If `org-special-ctrl-o' is nil, just call `open-line' everywhere.
-As a special case, when a document starts with a table, allow to
-call `open-line' on the very first character."
+As a special case, when a document starts with a table, allow
+calling `open-line' on the very first character."
   (interactive "*p")
   (if (and org-special-ctrl-o (/= (point) 1) (org-at-table-p))
       (org-table-insert-row)

@@ -133,7 +133,7 @@ This function is similar to @code{position-bytes}, but instead of byte
 position in the current buffer it returns the offset from the
 beginning of the current buffer's file of the byte that corresponds to
 the given character @var{position} in the buffer.  The conversion
-requires to know how the text is encoded in the buffer's file; this is
+requires knowing how the text is encoded in the buffer's file; this is
 what the @var{coding-system} argument is for, defaulting to the value
 of @code{buffer-file-coding-system}.  The optional argument
 @var{quality} specifies how accurate the result should be; it should
@@ -1181,7 +1181,7 @@ the text to be written cannot be safely encoded using the coding system
 specified by this variable, these operations select an alternative
 encoding by calling the function @code{select-safe-coding-system}
 (@pxref{User-Chosen Coding Systems}).  If selecting a different encoding
-requires to ask the user to specify a coding system,
+requires asking the user to specify a coding system,
 @code{buffer-file-coding-system} is updated to the newly selected coding
 system.
 

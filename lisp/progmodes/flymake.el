@@ -114,7 +114,7 @@
 (require 'thingatpt) ; end-of-thing
 (require 'warnings) ; warning-numeric-level, display-warning
 (require 'compile) ; for some faces
-;; We need the next require to avoid compiler warnings and run-time
+;; We need the next `require' to avoid compiler warnings and run-time
 ;; errors about mouse-wheel-up/down-event in builds --without-x, where
 ;; mwheel is not preloaded.
 (require 'mwheel)

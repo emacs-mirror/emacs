@@ -456,8 +456,8 @@ sandboxes provided by Flatpak.
 The host name for Kubernetes connections can be of kind [CONTAINER.]POD,
 in order to specify a dedicated container.  If there is just the pod
 name, the first container in the pod is taken.  The new user options
-'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow to
-access pods with different context or namespace but the default one.
+'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow
+accessing pods with different context or namespace but the default one.
 
 +++
 *** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share'.
@@ -649,9 +649,10 @@ This keyword enables the user to install packages using 'package-vc'.
 *** New commands for reading mailing lists.
 The new Rmail commands 'rmail-mailing-list-post',
 'rmail-mailing-list-unsubscribe', 'rmail-mailing-list-help', and
-'rmail-mailing-list-archive' allow to, respectively, post to,
-unsubscribe from, request help about, and browse the archives, of the
-mailing list from which the current email message was delivered.
+'rmail-mailing-list-archive' allow, respectively, posting to,
+unsubscribing from, requesting help about, and browsing the archives
+of, the mailing list from which the current email message was
+delivered.
 
 ** Dictionary
 
@@ -746,7 +747,7 @@ of the accessibility of remote files can now time out if
 ** Notifications
 
 +++
-*** Allow to use Icon Naming Specification for ':app-icon'.
+*** Allow using Icon Naming Specification for ':app-icon'.
 You can use a symbol as the value for ':app-icon' to provide icon name
 without specifying a file, like this:
 

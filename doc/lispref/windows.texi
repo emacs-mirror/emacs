@@ -2847,8 +2847,8 @@ the left edge coordinate of the reference window.  Its left edge
 coordinate would equal the left edge coordinate of the frame's new
 root window.
 
-Four special values for @code{direction} entries allow to implicitly
-specify the selected frame's main window as the reference window:
+Four special values for @code{direction} entries allow implicitly
+specifying the selected frame's main window as the reference window:
 @code{leftmost}, @code{top}, @code{rightmost} and @code{bottom}.  This
 means that instead of, for example, @w{@code{(direction . left)
 (window . main)}} one can just specify @w{@code{(direction
@@ -4596,7 +4596,7 @@ window and a number of side windows surrounding that main window.  The
 main window is either a ``normal'' live window or specifies the area
 containing all the normal windows.
 
-   In their most simple form of use, side windows allow to display
+   In their most simple form of use, side windows allow displaying
 specific buffers always in the same area of a frame.  Hence they can
 be regarded as a generalization of the concept provided by
 @code{display-buffer-at-bottom} (@pxref{Buffer Display Action
@@ -6188,7 +6188,7 @@ and never deselects the active minibuffer window.
 
 Mouse auto-selection can be used to emulate a focus follows mouse policy
 for child frames (@pxref{Child Frames}) which usually are not tracked by
-the window manager.  This requires to set the value of
+the window manager.  This requires setting the value of
 @code{focus-follows-mouse} (@pxref{Input Focus}) to a non-@code{nil}
 value.  If the value of @code{focus-follows-mouse} is @code{auto-raise},
 entering a child frame with the mouse will raise it automatically above
@@ -6341,7 +6341,7 @@ and/or two columns.
 @end defun
 
 The functions @code{window-state-get} and @code{window-state-put} also
-allow to exchange the contents of two live windows.  The following
+allow exchanging the contents of two live windows.  The following
 function does precisely that:
 
 @deffn Command window-swap-states &optional window-1 window-2 size

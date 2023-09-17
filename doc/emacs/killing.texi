@@ -308,7 +308,7 @@ way to move or copy text is to kill it and then yank it elsewhere.
 Yank the last kill into the buffer, at point (@code{yank}).
 @item M-y
 Either replace the text just yanked with an earlier batch of killed
-text (@code{yank-pop}), or allow to select from the list of
+text (@code{yank-pop}), or allow selecting from the list of
 previously-killed batches of text.  @xref{Earlier Kills}.
 @item C-M-w
 Cause the following command, if it is a kill command, to append to the

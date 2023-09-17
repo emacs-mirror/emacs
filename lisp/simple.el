@@ -4899,7 +4899,7 @@ appears at the end of the output.
 Optional fourth arg OUTPUT-BUFFER specifies where to put the
 command's output.  If the value is a buffer or buffer name,
 erase that buffer and insert the output there; a non-nil value of
-`shell-command-dont-erase-buffer' prevent to erase the buffer.
+`shell-command-dont-erase-buffer' prevents erasing the buffer.
 If the value is nil, use the buffer specified by `shell-command-buffer-name'.
 Any other non-nil value means to insert the output in the
 current buffer after START.
@@ -5146,7 +5146,7 @@ never with `setq'.")
 (defcustom process-file-return-signal-string nil
   "Whether to return a string describing the signal interrupting a process.
 When a process returns an exit code greater than 128, it is
-interpreted as a signal.  `process-file' requires to return a
+interpreted as a signal.  `process-file' requires returning a
 string describing this signal.
 Since there are processes violating this rule, returning exit
 codes greater than 128 which are not bound to a signal,

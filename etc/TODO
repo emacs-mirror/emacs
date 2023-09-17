@@ -1229,7 +1229,7 @@ Necessary for indirect buffers to work?
 
 *** Locating schemas
 
-**** Should 'rng-validate-mode' allow to specify a schema?
+**** Should 'rng-validate-mode' allow specifying a schema?
 Give the user an opportunity to specify a schema if there is currently
 none?  Or should it at least give a hint to the user how to specify a
 non-vacuous schema?

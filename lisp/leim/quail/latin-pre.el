@@ -789,9 +789,9 @@ and Silesian (both Steuer and Ślabikŏrzowy szrajbōnek) scripts."
  ("'Z" ?Ź)
  (".z" ?ż)
  (".Z" ?Ż)
- ;; Explicit input of prefix characters. Normally, to input a prefix
- ;; character itself, one needs to press <Tab>. Definitions below
- ;; allow to input those characters by entering them twice.
+ ;; Explicit input of prefix characters.  Normally, to input a prefix
+ ;; character itself, one needs to press <Tab>.  Definitions below
+ ;; allow inputting those characters by entering them twice.
  ("//" ?/)
  ("\\\\" ?\\)
  ("~~" ?~)

@@ -1804,7 +1804,7 @@ prompt you for the project directory.
 @vindex vc-directory-exclusion-list
   The command @kbd{C-x p f} (@code{project-find-file}) is a convenient
 way of visiting files (@pxref{Visiting}) that belong to the current
-project.  Unlike @kbd{C-x C-f}, this command doesn't require to type
+project.  Unlike @kbd{C-x C-f}, this command doesn't require typing
 the full file name of the file to visit, you can type only the file's
 base name (i.e., omit the leading directories).  In addition, the
 completion candidates considered by the command include only the files

@@ -801,9 +801,9 @@ Compilation, the previous chapter}, Emacs can also optionally compile
 Lisp function definitions into a true compiled code, known as
 @dfn{native code}.  This feature uses the @file{libgccjit} library,
 which is part of the GCC distribution, and requires that Emacs be
-built with support for using that library.  It also requires to have
-GCC and Binutils (the assembler and linker) available on your system
-for you to be able to native-compile Lisp code.
+built with support for using that library.  It also requires GCC and
+Binutils (the assembler and linker) to be available on your system for
+you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load

@@ -872,7 +872,7 @@ name and arguments.
 
 ** Tramp
 
-*** New connection method "adb", which allows to access Android
+*** New connection method "adb", which allows accessing Android
 devices by the Android Debug Bridge.  The variable 'tramp-adb-program'
 can be used to adapt the path of the "adb" program, if needed.
 
@@ -2703,12 +2703,12 @@ specified by 'display-buffer-fallback-action'.
 display actions, taking precedence over 'display-buffer-base-action'.
 
 *** New option 'window-combination-limit'.
-The new option 'window-combination-limit' allows to return the space
+The new option 'window-combination-limit' allows returning the space
 obtained for resizing or creating a window more reliably to the window
 from which such space was obtained.
 
 *** New option 'window-combination-resize'.
-The new option 'window-combination-resize' allows to split a window that
+The new option 'window-combination-resize' allows splitting a window that
 otherwise cannot be split because it's too small by stealing space from
 other windows in the same combination.  Subsequent resizing or deletion
 of the window will resize all windows in the same combination as well.
@@ -2721,7 +2721,7 @@ frame, or quitting a window showing a buffer in a frame of its own.
 These maximize and minimize the size of a window within its frame.
 
 *** New commands 'switch-to-prev-buffer' and 'switch-to-next-buffer'.
-These functions allow to navigate through the live buffers that have
+These functions allow navigating through the live buffers that have
 been shown in a specific window.
 
 ** Minibuffer changes
@@ -3496,7 +3496,7 @@ and 'window-body-height' are provided.
 For each window you can specify a parameter to override the default
 behavior of a number of functions like 'split-window', 'delete-window'
 and 'delete-other-windows'.  The variable 'ignore-window-parameters'
-allows to ignore processing such parameters.
+allows ignoring processing such parameters.
 
 *** New semantics of third argument of 'split-window'.
 The third argument of 'split-window' has been renamed to SIDE and can be
@@ -3554,7 +3554,7 @@ are user-customizable variables.
 See the docstring of 'display-buffer' for details.
 
 *** New functions 'window-state-get' and 'window-state-put'.
-These functions allow to save and restore the state of an arbitrary
+These functions allow saving and restoring the state of an arbitrary
 frame or window as an Elisp object.
 
 ** Completion

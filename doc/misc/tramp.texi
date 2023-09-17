@@ -2366,7 +2366,7 @@ connection information}.  If you want, for example, use
 @end group
 @end lisp
 
-This works only for connection methods which allow to override the
+This works only for connection methods which allow overriding the
 remote login shell, like @option{sshx} or @option{plink}.  See
 @ref{Inline methods} and @ref{External methods} for connection methods
 which support this.

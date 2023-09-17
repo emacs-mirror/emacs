@@ -836,7 +836,7 @@ On many systems, it is possible to set LD_LIBRARY_PATH in your
 environment to specify additional directories where shared libraries
 can be found.
 
-Other systems allow to set LD_RUN_PATH in a similar way, but before
+Other systems allow setting LD_RUN_PATH in a similar way, but before
 Emacs is linked.  With LD_RUN_PATH set, the linker will include a
 specified run-time search path in the executable.
 
@@ -2540,7 +2540,7 @@ keyboard; printing that file on a PostScript printer will show what
 keys can serve as Meta.
 
 The 'xkeycaps' also shows a visual representation of the current
-keyboard settings.  It also allows to modify them.
+keyboard settings.  It also allows modifying them.
 
 *** GNU/Linux: slow startup on Linux-based GNU systems.
 
@@ -2794,7 +2794,7 @@ one, you could use the following workarounds:
     directory to that new home directory.
   . Move all the *.eln files from ~/.emacs.d/eln-cache to a directory
     out of the C:\Users tree, and customize Emacs to use that
-    directory for *.eln files.  This requires to call the function
+    directory for *.eln files.  This requires calling the function
     startup-redirect-eln-cache in your init file, to force Emacs to
     write *.eln files compiled at run time to that directory.
   . Delete all *.eln files in your ~/.emacs.d/eln-cache directory, and

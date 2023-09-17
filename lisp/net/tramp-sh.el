@@ -4431,7 +4431,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "A function to be called with one argument, VEC.
 It should return a string which is used to check, whether the
 configuration of the remote host has been changed (which would
-require to flush the cache data).  This string is kept as
+require flushing the cache data).  This string is kept as
 connection property \"config-check-data\".
 This variable is intended as connection-local variable.")
 

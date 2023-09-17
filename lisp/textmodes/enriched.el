@@ -146,7 +146,7 @@ them and their old values to `enriched-old-bindings'."
   :type 'hook)
 
 (defcustom enriched-allow-eval-in-display-props nil
-  "If non-nil allow to evaluate arbitrary forms in display properties.
+  "If non-nil, allow evaluating arbitrary forms in display properties.
 
 Enriched mode recognizes display properties of text stored using
 an extension command to the text/enriched format, \"x-display\".

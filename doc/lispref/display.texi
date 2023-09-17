@@ -9028,7 +9028,7 @@ Bidirectionality'' class implementation of the @acronym{UBA},
 consistent with the requirements of the Unicode Standard v9.0.  Note,
 however, that the way Emacs displays continuation lines when text
 direction is opposite to the base paragraph direction deviates from
-the UBA, which requires to perform line wrapping before reordering
+the UBA, which requires performing line wrapping before reordering
 text for display.
 
 @defvar bidi-display-reordering
