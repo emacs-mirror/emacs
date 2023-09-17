@@ -39,9 +39,9 @@ repository).
 
 Next, review the assignment of default values of the Bidi Class
 property to blocks in the file extracted/DerivedBidiClass.txt from the
-UCD (search for "unassigned" in that file).  Any changes should be
-reflected in the unidata-gen.el file, where it sets up the default
-values around line 210.
+UCD (search for "unassigned" and "@missing" in that file).  Any
+changes should be reflected in the unidata-gen.el file, where it sets
+up the default values around line 210.
 
 Then Emacs should be rebuilt for them to take effect.  Rebuilding
 Emacs updates several derived files elsewhere in the Emacs source
@@ -61,9 +61,10 @@ Next, review the changes in UnicodeData.txt vs the previous version
 used by Emacs.  Any changes, be it introduction of new scripts or
 addition of codepoints to existing scripts, might need corresponding
 changes in the data used for filling the category-table, case-table,
-and char-width-table.  The additional scripts should cause automatic
-updates in charscript.el, but it is a good idea to look at the results
-and see if any changes in admin/unidata/blocks.awk are required.
+and char-width-table in characters.el.  The additional scripts should
+cause automatic updates in charscript.el, but it is a good idea to
+look at the results and see if any changes in admin/unidata/blocks.awk
+are required.
 
 The setting of char-width-table around line 1200 of characters.el
 should be checked against the latest version of the Unicode file

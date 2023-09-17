@@ -1,6 +1,6 @@
-# BidiBrackets-15.0.0.txt
-# Date: 2022-05-03, 18:42:00 GMT [AG, LI, KW]
-# © 2022 Unicode®, Inc.
+# BidiBrackets-15.1.0.txt
+# Date: 2023-01-18
+# © 2023 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
 # For terms of use, see https://www.unicode.org/terms_of_use.html
 #
@@ -12,11 +12,11 @@
 # This file is a normative contributory data file in the Unicode
 # Character Database.
 #
-# Bidi_Paired_Bracket is a normative property of type Miscellaneous,
+# Bidi_Paired_Bracket is a normative property
 # which establishes a mapping between characters that are treated as
 # bracket pairs by the Unicode Bidirectional Algorithm.
 #
-# Bidi_Paired_Bracket_Type is a normative property of type Enumeration,
+# Bidi_Paired_Bracket_Type is a normative property
 # which classifies characters into opening and closing paired brackets
 # for the purposes of the Unicode Bidirectional Algorithm.
 #
