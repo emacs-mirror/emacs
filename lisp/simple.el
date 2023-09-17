@@ -5060,7 +5060,15 @@ characters."
     exit-status))
 
 (defun shell-command-to-string (command)
-  "Execute shell command COMMAND and return its output as a string."
+  "Execute shell command COMMAND and return its output as a string.
+Use `shell-quote-argument' to quote dangerous characters in
+COMMAND before passing it as an argument to this function.
+
+Use this function only when a shell interpreter is needed.  In
+other cases, consider alternatives such as `call-process' or
+`process-lines', which do not invoke the shell.  Prefer built-in
+functions like `mv' to the external command \"mv\".  For more
+information, see Info node ‘(elisp)Security Considerations’."
   (with-output-to-string
     (with-current-buffer standard-output
       (shell-command command t))))
