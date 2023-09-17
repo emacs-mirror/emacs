@@ -75,12 +75,36 @@ This test uses a pipeline for the command."
   (skip-unless (and (executable-find "echo")
                     (executable-find "cat")))
   (ert-with-temp-directory eshell-directory-name
-    (let ((orig-processes (copy-tree (process-list)))
+    (let ((orig-processes (process-list))
           (eshell-history-file-name nil))
       (with-temp-buffer
         (eshell-command "*echo hi | *cat &" t)
         (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
         (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/output-buffer/sync ()
+  "Test that the `eshell-command' function writes to its output buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (process-list))
+          (eshell-history-file-name nil))
+      (eshell-command "*echo 'hi\nbye'")
+      (with-current-buffer "*Eshell Command Output*"
+        (should (equal (buffer-string) "hi\nbye")))
+      (kill-buffer "*Eshell Command Output*"))))
+
+(ert-deftest eshell-test/eshell-command/output-buffer/async ()
+  "Test that the `eshell-command' function writes to its async output buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (process-list))
+          (eshell-history-file-name nil))
+      (eshell-command "*echo hi &")
+      (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+      (with-current-buffer "*Eshell Async Command Output*"
+        (goto-char (point-min))
+        (forward-line)
+        (should (looking-at "hi\n"))))))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"

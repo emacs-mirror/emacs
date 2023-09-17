@@ -1009,21 +1009,20 @@ process(es) in a cons cell like:
 
 (defun eshell-resume-eval ()
   "Destructively evaluate a form which may need to be deferred."
-  (eshell-condition-case err
-      (progn
-	(setq eshell-last-async-procs nil)
-	(when eshell-current-command
-	  (let* (retval
-		 (procs (catch 'eshell-defer
-			 (ignore
-			  (setq retval
-				(eshell-do-eval
-				 eshell-current-command))))))
-           (if (eshell-process-list-p procs)
-               (ignore (setq eshell-last-async-procs procs))
-             (cadr retval)))))
-    (error
-     (error (error-message-string err)))))
+  (setq eshell-last-async-procs nil)
+  (when eshell-current-command
+    (eshell-condition-case err
+        (let* (retval
+               (procs (catch 'eshell-defer
+                        (ignore
+                         (setq retval
+                               (eshell-do-eval
+                                eshell-current-command))))))
+          (if retval
+              (cadr retval)
+            (ignore (setq eshell-last-async-procs procs))))
+      (error
+       (error (error-message-string err))))))
 
 (defmacro eshell-manipulate (form tag &rest body)
   "Manipulate a command FORM with BODY, using TAG as a debug identifier."
