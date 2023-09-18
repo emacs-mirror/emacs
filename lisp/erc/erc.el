@@ -3684,6 +3684,11 @@ This is for special cases in which a \"slash\" command needs
 details about the input it's handling or needs to detect whether
 it's been dispatched by `erc-send-current-line'.")
 
+(defvar erc--allow-empty-outgoing-lines-p nil
+  "Flag to opt out of last-minute padding of empty lines.
+Useful to extensions, like `multiline', and for interop with
+IRC-adjacent protocols.")
+
 (defvar-local erc-send-input-line-function #'erc-send-input-line
   "Function for sending lines lacking a leading \"slash\" command.
 When prompt input starts with a \"slash\" command, like \"/MSG\",
@@ -3697,7 +3702,7 @@ for other purposes.")
 
 (defun erc-send-input-line (target line &optional force)
   "Send LINE to TARGET."
-  (when (string= line "\n")
+  (when (and (not erc--allow-empty-outgoing-lines-p) (string= line "\n"))
     (setq line " \n"))
   (erc-message "PRIVMSG" (concat target " " line) force))
 
@@ -7033,9 +7038,11 @@ queue.  Expect LINES-OBJ to be an `erc--input-split' object."
               (erc--input-split-insertp lines-obj) (erc-input-insertp state)
               ;; See note in test of same name re trailing newlines.
               (erc--input-split-lines lines-obj)
-              (cl-nsubst " " "" (split-string (erc-input-string state)
-                                              erc--input-line-delim-regexp)
-                         :test #'equal))
+              (let ((lines (split-string (erc-input-string state)
+                                         erc--input-line-delim-regexp)))
+                (if erc--allow-empty-outgoing-lines-p
+                    lines
+                  (cl-nsubst " " "" lines :test #'equal))))
         (when (erc-input-refoldp state)
           (erc--split-lines lines-obj)))))
   (when (and (erc--input-split-cmdp lines-obj)
