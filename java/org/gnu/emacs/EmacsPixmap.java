@@ -176,6 +176,13 @@ public final class EmacsPixmap extends EmacsHandleObject
   }
 
   @Override
+  public void
+  damageRect (int left, int top, int right, int bottom)
+  {
+
+  }
+
+  @Override
   public Bitmap
   getBitmap ()
   {

@@ -437,6 +437,16 @@ public final class EmacsView extends ViewGroup
     damageRegion.union (damageRect);
   }
 
+  /* This function enables damage to be recorded without consing a new
+     Rect object.  */
+
+  public void
+  damageRect (int left, int top, int right, int bottom)
+  {
+    EmacsService.checkEmacsThread ();
+    damageRegion.op (left, top, right, bottom, Region.Op.UNION);
+  }
+
   /* This method is called from both the UI thread and the Emacs
      thread.  */
 

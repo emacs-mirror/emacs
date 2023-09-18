@@ -87,7 +87,6 @@ struct android_emacs_drawable
 {
   jclass class;
   jmethodID get_bitmap;
-  jmethodID damage_rect;
 };
 
 struct android_emacs_window
@@ -111,6 +110,7 @@ struct android_emacs_window
   jmethodID set_dont_accept_focus;
   jmethodID set_dont_focus_on_map;
   jmethodID define_cursor;
+  jmethodID damage_rect;
 };
 
 struct android_emacs_cursor
@@ -1712,7 +1712,6 @@ android_init_emacs_drawable (void)
   assert (drawable_class.c_name);
 
   FIND_METHOD (get_bitmap, "getBitmap", "()Landroid/graphics/Bitmap;");
-  FIND_METHOD (damage_rect, "damageRect", "(Landroid/graphics/Rect;)V");
 #undef FIND_METHOD
 }
 
@@ -1766,6 +1765,12 @@ android_init_emacs_window (void)
   FIND_METHOD (set_dont_accept_focus, "setDontAcceptFocus", "(Z)V");
   FIND_METHOD (define_cursor, "defineCursor",
 	       "(Lorg/gnu/emacs/EmacsCursor;)V");
+
+  /* In spite of the declaration of this function being located within
+     EmacsDrawable, the ID of the `damage_rect' method is retrieved
+     from EmacsWindow, which avoids virtual function dispatch within
+     android_damage_window.  */
+  FIND_METHOD (damage_rect, "damageRect", "(IIII)V");
 #undef FIND_METHOD
 }
 
@@ -5284,25 +5289,18 @@ android_damage_window (android_drawable handle,
 
   drawable = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
-  /* Now turn DAMAGE into a Java rectangle.  */
-  rect = (*android_java_env)->NewObject (android_java_env,
-					 android_rect_class,
-					 android_rect_constructor,
-					 (jint) damage->x,
-					 (jint) damage->y,
-					 (jint) (damage->x
-						 + damage->width),
-					 (jint) (damage->y
-						 + damage->height));
-  android_exception_check ();
-
   /* Post the damage to the drawable.  */
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       drawable,
-				       drawable_class.damage_rect,
-				       rect);
-  android_exception_check_1 (rect);
-  ANDROID_DELETE_LOCAL_REF (rect);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 drawable,
+						 window_class.class,
+						 window_class.damage_rect,
+						 (jint) damage->x,
+						 (jint) damage->y,
+						 (jint) (damage->x
+							 + damage->width),
+						 (jint) (damage->y
+							 + damage->height));
+  android_exception_check ();
 }
 
 
