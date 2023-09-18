@@ -1018,7 +1018,7 @@ process(es) in a cons cell like:
              ;; Make sure PROC is one of our foreground processes and
              ;; that all of those processes are now dead.
              (member proc eshell-last-async-procs)
-             (not (seq-some #'process-live-p eshell-last-async-procs)))
+             (not (seq-some #'eshell-process-active-p eshell-last-async-procs)))
     (eshell-resume-eval)))
 
 (defun eshell-resume-eval ()

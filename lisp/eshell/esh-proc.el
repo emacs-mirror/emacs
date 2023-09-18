@@ -157,15 +157,21 @@ The signals which will cause this to happen are matched by
     (declare-function eshell-reset "esh-mode" (&optional no-hooks))
     (eshell-reset)))
 
+(defun eshell-process-active-p (process)
+  "Return non-nil if PROCESS is active.
+This is like `process-live-p', but additionally checks whether
+`eshell-sentinel' has finished all of its work yet."
+  (or (process-live-p process)
+      ;; If we have handles, this is an Eshell-managed
+      ;; process.  Wait until we're 100% done and have
+      ;; cleared out the handles (see `eshell-sentinel').
+      (process-get process :eshell-handles)))
+
 (defun eshell-wait-for-process (&rest procs)
   "Wait until PROCS have successfully completed."
   (dolist (proc procs)
     (when (eshell-processp proc)
-      (while (or (process-live-p proc)
-                 ;; If we have handles, this is an Eshell-managed
-                 ;; process.  Wait until we're 100% done and have
-                 ;; cleared out the handles (see `eshell-sentinel').
-                 (process-get proc :eshell-handles))
+      (while (eshell-process-active-p proc)
         (when (input-pending-p)
           (discard-input))
         (sit-for eshell-process-wait-seconds
