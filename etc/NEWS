@@ -35,10 +35,10 @@ using 'emacsclient':
 
 Previously, users had to manually configure their GNU/Linux desktop
 environment to open 'org-protocol' links in Emacs.  These links should
-now open in Emacs automatically, as the 'emacsclient.desktop' file now
+now open in Emacs automatically, as the "emacsclient.desktop" file now
 arranges for Emacs to be the default application for the 'org-protocol'
-URI scheme.  See the Org mode manual, Info node '(org) Protocols for
-External Access' for more details.
+URI scheme.  See the Org mode manual, Info node "(org) Protocols" for
+more details.
 
 
 * Changes in Emacs 29.2
