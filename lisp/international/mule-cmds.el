@@ -3094,6 +3094,10 @@ on encoding."
 (defun ucs-names ()
   "Return table of CHAR-NAME keys and CHAR-CODE values cached in `ucs-names'."
   (or ucs-names
+      ;; Sometimes these ranges will need adjusting as codepoints are
+      ;; added to unicode.  The test case
+      ;; 'mule-cmds-tests--ucs-names-missing-names' will tell you
+      ;; which are missing (Bug#65997).
       (let ((ranges
 	     '((#x0000 . #x33FF)
 	       ;; (#x3400 . #x4DBF) CJK Ideographs Extension A
@@ -3106,14 +3110,16 @@ on encoding."
                (#x14400 . #x14646)
 	       ;; (#x14647 . #x167FF) unused
 	       (#x16800 . #x16F9F)
-               (#x16FE0 . #x16FE3)
+               (#x16FE0 . #x16FF1)
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
                ;; (#x18B00 . #x18CFF) Khitan Small Script
                ;; (#x18D00 . #x18D0F) Tangut Ideograph Supplement
 	       ;; (#x18D10 . #x1AFEF) unused
-	       (#x1AFF0 . #x1B12F)
-               ;; (#x1B130 . #x1B14F) unused
+	       (#x1AFF0 . #x1B122)
+               ;; (#x1B123 . #x1B131) unused
+               (#x1B132 . #x1B132)
+               ;; (#x1B133 . #x1B14F) unused
                (#x1B150 . #x1B16F)
                (#x1B170 . #x1B2FF)
 	       ;; (#x1B300 . #x1BBFF) unused
@@ -3130,12 +3136,16 @@ on encoding."
 	    (while (<= c end)
 	      (let ((new-name (get-char-code-property c 'name))
 		    (old-name (get-char-code-property c 'old-name)))
-	        ;; In theory this code could end up pushing an "old-name" that
-	        ;; shadows a "new-name" but in practice every time an
-	        ;; `old-name' conflicts with a `new-name', the newer one has a
-	        ;; higher code, so it gets pushed later!
+                ;; This code used to push both old-name and new-name
+                ;; on the assumption that the new-name codepoint would
+                ;; always be higher, which was true for a long time.
+                ;; As of at latest 2023-09-15, this is no longer true,
+                ;; so we now skip the old-name if it conflicts with an
+                ;; existing new-name (Bug#65997).
 	        (if new-name (puthash new-name c names))
-	        (if old-name (puthash old-name c names))
+                (when (and old-name
+                           (not (gethash old-name names)))
+                  (puthash old-name c names))
                 ;; Unicode uses the spelling "lamda" in character
                 ;; names, instead of "lambda", due to "preferences
                 ;; expressed by the Greek National Body" (Bug#30513).
