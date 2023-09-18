@@ -350,48 +350,62 @@ This only returns external (non-Lisp) processes."
 
 ;; Command parsing
 
-(defmacro eshell-with-temp-command (region &rest body)
-  "Narrow the buffer to REGION and execute the forms in BODY.
+(defsubst eshell--region-p (object)
+  "Return non-nil if OBJECT is a pair of numbers or markers."
+  (and (consp object)
+       (number-or-marker-p (car object))
+       (number-or-marker-p (cdr object))))
 
-REGION is a cons cell (START . END) that specifies the region to
-which to narrow the buffer.  REGION can also be a string, in
-which case the macro temporarily inserts it into the buffer at
-point, and narrows the buffer to the inserted string.  Before
-executing BODY, point is set to the beginning of the narrowed
-REGION.
+(defmacro eshell-with-temp-command (command &rest body)
+  "Temporarily insert COMMAND into the buffer and execute the forms in BODY.
+
+COMMAND can be a string to insert, a cons cell (START . END)
+specifying a region in the current buffer, or (:file . FILENAME)
+to temporarily insert the contents of FILENAME.
+
+Before executing BODY, narrow the buffer to the text for COMMAND
+and and set point to the beginning of the narrowed region.
 
 The value returned is the last form in BODY."
   (declare (indent 1))
-  `(let ((reg ,region))
-     (if (stringp reg)
+  (let ((command-sym (make-symbol "command"))
+        (begin-sym (make-symbol "begin"))
+        (end-sym (make-symbol "end")))
+    `(let ((,command-sym ,command))
+       (if (eshell--region-p ,command-sym)
+           (save-restriction
+             (narrow-to-region (car ,command-sym) (cdr ,command-sym))
+             (goto-char (car ,command-sym))
+             ,@body)
          ;; Since parsing relies partly on buffer-local state
          ;; (e.g. that of `eshell-parse-argument-hook'), we need to
          ;; perform the parsing in the Eshell buffer.
-         (let ((begin (point)) end)
+         (let ((,begin-sym (point)) ,end-sym)
            (with-silent-modifications
-             (insert reg)
-             (setq end (point))
+             (if (stringp ,command-sym)
+                 (insert ,command-sym)
+               (forward-char (cadr (insert-file-contents (cdr ,command-sym)))))
+             (setq ,end-sym (point))
              (unwind-protect
                  (save-restriction
-                   (narrow-to-region begin end)
-                   (goto-char begin)
+                   (narrow-to-region ,begin-sym ,end-sym)
+                   (goto-char ,begin-sym)
                    ,@body)
-               (delete-region begin end))))
-       (save-restriction
-         (narrow-to-region (car reg) (cdr reg))
-         (goto-char (car reg))
-         ,@body))))
+               (delete-region ,begin-sym ,end-sym))))))))
 
 (defun eshell-parse-command (command &optional args toplevel)
   "Parse the COMMAND, adding ARGS if given.
-COMMAND can either be a string, or a cons cell demarcating a buffer
-region.  TOPLEVEL, if non-nil, means that the outermost command (the
-user's input command) is being parsed, and that pre and post command
-hooks should be run before and after the command."
+COMMAND can be a string, a cons cell (START . END) demarcating a
+buffer region, or (:file . FILENAME) to parse the contents of
+FILENAME.
+
+TOPLEVEL, if non-nil, means that the outermost command (the
+user's input command) is being parsed, and that pre and post
+command hooks should be run before and after the command."
   (pcase-let*
     ((terms
       (append
-       (if (consp command)
+       (if (eshell--region-p command)
            (eshell-parse-arguments (car command) (cdr command))
          (eshell-with-temp-command command
            (goto-char (point-max))
