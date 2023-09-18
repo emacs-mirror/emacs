@@ -86,8 +86,7 @@ This test uses a pipeline for the command."
   "Test that the `eshell-command' function writes to its output buffer."
   (skip-unless (executable-find "echo"))
   (ert-with-temp-directory eshell-directory-name
-    (let ((orig-processes (process-list))
-          (eshell-history-file-name nil))
+    (let ((eshell-history-file-name nil))
       (eshell-command "*echo 'hi\nbye'")
       (with-current-buffer "*Eshell Command Output*"
         (should (equal (buffer-string) "hi\nbye")))
