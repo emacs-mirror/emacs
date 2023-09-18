@@ -4506,8 +4506,10 @@ inferred from the code itself by the native compiler; if it is
         type-spec )
     (when-let ((res (gethash function comp-known-func-cstr-h)))
       (setf type-spec (comp-cstr-to-type-spec res)))
-    (let ((f (symbol-function function)))
-      (when (and (null type-spec)
+    (let ((f (and (symbolp function)
+                  (symbol-function function))))
+      (when (and f
+                 (null type-spec)
                  (subr-native-elisp-p f))
         (setf kind 'inferred
               type-spec (subr-type f))))
