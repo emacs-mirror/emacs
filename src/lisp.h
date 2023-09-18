@@ -919,20 +919,11 @@ verify (GCALIGNED (struct Lisp_Symbol));
 #define DEFUN_ARGS_8	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
 
-/* untagged_ptr represents a pointer before tagging, and Lisp_Word_tag
-   contains a possibly-shifted tag to be added to an untagged_ptr to
-   convert it to a Lisp_Word.  */
+/* Lisp_Word_tag is big enough for a possibly-shifted tag, to be
+   added to a pointer value for conversion to a Lisp_Word.  */
 #if LISP_WORDS_ARE_POINTERS
-/* untagged_ptr is a pointer so that the compiler knows that TAG_PTR
-   yields a pointer.  It is char * so that adding a tag uses simple
-   machine addition.  */
-typedef char *untagged_ptr;
 typedef uintptr_t Lisp_Word_tag;
 #else
-/* untagged_ptr is an unsigned integer instead of a pointer, so that
-   it can be added to the possibly-wider Lisp_Word_tag type without
-   losing information.  */
-typedef uintptr_t untagged_ptr;
 typedef EMACS_UINT Lisp_Word_tag;
 #endif
 
@@ -942,7 +933,7 @@ typedef EMACS_UINT Lisp_Word_tag;
 
 /* An initializer for a Lisp_Object that contains TAG along with PTR.  */
 #define TAG_PTR(tag, ptr) \
-  LISP_INITIALLY ((Lisp_Word) ((untagged_ptr) (ptr) + LISP_WORD_TAG (tag)))
+  LISP_INITIALLY ((Lisp_Word) ((uintptr_t) (ptr) + LISP_WORD_TAG (tag)))
 
 /* LISPSYM_INITIALLY (Qfoo) is equivalent to Qfoo except it is
    designed for use as an initializer, even for a constant initializer.  */
