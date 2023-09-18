@@ -27,6 +27,17 @@ applies, and please also update docstrings as needed.
 
 * Startup Changes in Emacs 29.2
 
+** Emacs is now the default application for the 'org-protocol' URI scheme.
+Org mode provides a way to quickly capture bookmarks, notes, and links
+using 'emacsclient':
+
+    emacsclient "org-protocol://store-link?url=URL&title=TITLE"
+
+Previously, users had to manually configure their GNU/Linux desktop
+environment to open 'org-protocol' links in Emacs.  These links should
+now open in Emacs automatically.  See the Org mode manual, Info node
+'(org) Protocols for External Access' for more details.
+
 
 * Changes in Emacs 29.2
 
