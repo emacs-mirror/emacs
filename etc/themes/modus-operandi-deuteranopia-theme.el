@@ -43,6 +43,7 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-operandi-deuteranopia
     "Deuteranopia-optimized theme with a white background.
 This variant is optimized for users with red-green color
@@ -50,14 +51,17 @@ deficiency (deuteranopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
-standard).")
+standard)."
+    :background-mode 'light
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-operandi-deuteranopia-palette
     '(
 ;;; Basic values
 
       (bg-main          "#ffffff")
-      (bg-dim           "#f0f0f0")
+      (bg-dim           "#f2f2f2")
       (fg-main          "#000000")
       (fg-dim           "#595959")
       (fg-alt           "#193668")
@@ -155,7 +159,7 @@ standard).")
 ;;; Special purpose
 
       (bg-completion       "#c0deff")
-      (bg-hover            "#97dfed")
+      (bg-hover            "#b2e4dc")
       (bg-hover-secondary  "#f5d0a0")
       (bg-hl-line          "#dae5ec")
       (bg-region           "#bdbdbd")
@@ -198,7 +202,7 @@ standard).")
 
       (bg-removed         "#f4f099")
       (bg-removed-faint   "#f6f6b7")
-      (bg-removed-refine  "#f0e56f")
+      (bg-removed-refine  "#ede06f")
       (bg-removed-fringe  "#c0b200")
       (fg-removed         "#553d00")
       (fg-removed-intense "#7f6f00")
@@ -284,6 +288,7 @@ standard).")
       (date-deadline yellow-warmer)
       (date-event fg-alt)
       (date-holiday yellow-warmer)
+      (date-holiday-other blue)
       (date-now blue-faint)
       (date-range fg-alt)
       (date-scheduled yellow-cooler)
@@ -367,6 +372,48 @@ standard).")
       (fg-space border)
       (bg-space-err bg-yellow-intense)
 
+;;;; Terminal mappings
+
+      (bg-term-black           "black")
+      (fg-term-black           "black")
+      (bg-term-black-bright    "gray35")
+      (fg-term-black-bright    "gray35")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "gray65")
+      (fg-term-white           "gray65")
+      (bg-term-white-bright    "white")
+      (fg-term-white-bright    "white")
+
 ;;;; Heading mappings
 
       (fg-heading-0 cyan-cooler)
@@ -435,8 +482,5 @@ represents."
                       modus-operandi-deuteranopia-palette-overrides)
 
   (provide-theme 'modus-operandi-deuteranopia))
-
-;;;###theme-autoload
-(put 'modus-operandi-deuteranopia 'theme-properties '(:background-mode light :kind color-scheme :family modus))
 
 ;;; modus-operandi-deuteranopia-theme.el ends here

@@ -6,6 +6,7 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
+;; Keywords: faces, theme, accessibility
 
 ;; This file is part of GNU Emacs.
 
@@ -42,6 +43,7 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-vivendi-tritanopia
     "Tritanopia-optimized theme with a black background.
 This variant is optimized for users with blue-yellow color
@@ -49,7 +51,10 @@ deficiency (tritanopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
-standard).")
+standard)."
+    :background-mode 'dark
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-vivendi-tritanopia-palette
     '(
@@ -161,8 +166,8 @@ standard).")
       (fg-region           "#ffffff")
 
       (bg-char-0 "#922a00")
-      (bg-char-1 "#4f3f7f")
-      (bg-char-2 "#00709f")
+      (bg-char-1 "#00709f")
+      (bg-char-2 "#5f3faf")
 
       (bg-mode-line-active        "#003c52")
       (fg-mode-line-active        "#f0f0f0")
@@ -283,6 +288,7 @@ standard).")
       (date-deadline red)
       (date-event fg-alt)
       (date-holiday red-intense)
+      (date-holiday-other cyan-warmer)
       (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled magenta)
@@ -366,6 +372,48 @@ standard).")
       (fg-space border)
       (bg-space-err bg-red-intense)
 
+;;;; Terminal mappings
+
+      (bg-term-black           "black")
+      (fg-term-black           "black")
+      (bg-term-black-bright    "gray35")
+      (fg-term-black-bright    "gray35")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "gray65")
+      (fg-term-white           "gray65")
+      (bg-term-white-bright    "white")
+      (fg-term-white-bright    "white")
+
 ;;;; Heading mappings
 
       (fg-heading-0 cyan-cooler)
@@ -434,8 +482,5 @@ represents."
                       modus-vivendi-tritanopia-palette-overrides)
 
   (provide-theme 'modus-vivendi-tritanopia))
-
-;;;###theme-autoload
-(put 'modus-vivendi-tritanopia 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
 
 ;;; modus-vivendi-tritanopia-theme.el ends here

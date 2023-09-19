@@ -43,6 +43,7 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-operandi-tritanopia
     "Tritanopia-optimized theme with a white background.
 This variant is optimized for users with blue-yellow color
@@ -50,14 +51,17 @@ deficiency (tritanopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
-standard).")
+standard)."
+    :background-mode 'light
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-operandi-tritanopia-palette
     '(
 ;;; Basic values
 
       (bg-main          "#ffffff")
-      (bg-dim           "#f0f0f0")
+      (bg-dim           "#f2f2f2")
       (fg-main          "#000000")
       (fg-dim           "#595959")
       (fg-alt           "#193668")
@@ -161,9 +165,9 @@ standard).")
       (bg-region           "#bdbdbd")
       (fg-region           "#000000")
 
-      (bg-char-0 "#ff8a5f")
-      (bg-char-1 "#bf7aff")
-      (bg-char-2 "#7fe0e0")
+      (bg-char-0 "#ff908f")
+      (bg-char-1 "#bfbfff")
+      (bg-char-2 "#5fcfdf")
 
       (bg-mode-line-active        "#afe0f2")
       (fg-mode-line-active        "#0f0f0f")
@@ -284,6 +288,7 @@ standard).")
       (date-deadline red)
       (date-event fg-alt)
       (date-holiday red)
+      (date-holiday-other cyan)
       (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled magenta)
@@ -367,6 +372,48 @@ standard).")
       (fg-space border)
       (bg-space-err bg-red-intense)
 
+;;;; Terminal mappings
+
+      (bg-term-black           "black")
+      (fg-term-black           "black")
+      (bg-term-black-bright    "gray35")
+      (fg-term-black-bright    "gray35")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "gray65")
+      (fg-term-white           "gray65")
+      (bg-term-white-bright    "white")
+      (fg-term-white-bright    "white")
+
 ;;;; Heading mappings
 
       (fg-heading-0 cyan-cooler)
@@ -435,8 +482,5 @@ represents."
                       modus-operandi-tritanopia-palette-overrides)
 
   (provide-theme 'modus-operandi-tritanopia))
-
-;;;###theme-autoload
-(put 'modus-operandi-tritanopia 'theme-properties '(:background-mode light :kind color-scheme :family modus))
 
 ;;; modus-operandi-tritanopia-theme.el ends here

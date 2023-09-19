@@ -42,6 +42,7 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-vivendi-deuteranopia
     "Deuteranopia-optimized theme with a black background.
 This variant is optimized for users with red-green color
@@ -49,7 +50,10 @@ deficiency (deuteranopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
-standard).")
+standard)."
+    :background-mode 'dark
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-vivendi-deuteranopia-palette
     '(
@@ -154,7 +158,7 @@ standard).")
 ;;; Special purpose
 
       (bg-completion       "#2f447f")
-      (bg-hover            "#004f70")
+      (bg-hover            "#45605e")
       (bg-hover-secondary  "#654a39")
       (bg-hl-line          "#2f3849")
       (bg-region           "#5a5a5a")
@@ -197,7 +201,7 @@ standard).")
 
       (bg-removed         "#3d3d00")
       (bg-removed-faint   "#281f00")
-      (bg-removed-refine  "#515100")
+      (bg-removed-refine  "#555500")
       (bg-removed-fringe  "#d0c03f")
       (fg-removed         "#d4d48f")
       (fg-removed-intense "#d0b05f")
@@ -283,6 +287,7 @@ standard).")
       (date-deadline yellow-warmer)
       (date-event fg-alt)
       (date-holiday yellow-warmer)
+      (date-holiday-other blue)
       (date-now blue-faint)
       (date-range fg-alt)
       (date-scheduled yellow-cooler)
@@ -366,6 +371,48 @@ standard).")
       (fg-space border)
       (bg-space-err bg-yellow-intense)
 
+;;;; Terminal mappings
+
+      (bg-term-black           "black")
+      (fg-term-black           "black")
+      (bg-term-black-bright    "gray35")
+      (fg-term-black-bright    "gray35")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "gray65")
+      (fg-term-white           "gray65")
+      (bg-term-white-bright    "white")
+      (fg-term-white-bright    "white")
+
 ;;;; Heading mappings
 
       (fg-heading-0 cyan-cooler)
@@ -434,8 +481,5 @@ represents."
                       modus-vivendi-deuteranopia-palette-overrides)
 
   (provide-theme 'modus-vivendi-deuteranopia))
-
-;;;###theme-autoload
-(put 'modus-vivendi-deuteranopia 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
 
 ;;; modus-vivendi-deuteranopia-theme.el ends here

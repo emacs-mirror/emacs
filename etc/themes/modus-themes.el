@@ -6,7 +6,7 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
-;; Version: 4.2.0
+;; Version: 4.3.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -841,8 +841,6 @@ represents."
 
 (defvar modus-themes-preset-overrides-faint
   '((bg-completion       bg-inactive)
-    (bg-hover            bg-cyan-subtle)
-    (bg-hover-secondary  bg-magenta-subtle)
     (bg-hl-line          bg-dim)
     (bg-paren-match      bg-cyan-subtle)
     (bg-region           bg-active)
@@ -997,9 +995,9 @@ Info node `(modus-themes) Option for palette overrides'.")
 
     (prose-block red-faint)
     (prose-done green-intense)
-    (prose-metadata cyan-faint)
+    (prose-metadata magenta-faint)
     (prose-metadata-value blue-cooler)
-    (prose-table cyan)
+    (prose-table blue)
     (prose-todo red-intense)
 
     (fg-heading-0 blue-cooler)
@@ -1031,7 +1029,7 @@ Info node `(modus-themes) Option for palette overrides'.")
     (overline-heading-6 yellow-cooler)
     (overline-heading-7 red-cooler)
     (overline-heading-8 magenta))
-  "Preset for palette overrides with faint coloration.
+  "Preset for palette overrides with intense coloration.
 
 This changes many parts of the theme to make them look more
 colorful/intense.  Many background colors are accented and
@@ -1111,7 +1109,7 @@ Info node `(modus-themes) Option for palette overrides'.")
     (fnname magenta-cooler)
     (keyword magenta-warmer)
     (preprocessor red-cooler)
-    (string olive)
+    (string green-warmer)
     (type cyan-cooler)
     (variable cyan)
     (rx-construct blue-cooler)
@@ -1322,7 +1320,20 @@ symbol, which is safe when used as a face attribute's value."
 
 (defun modus-themes--annotate-theme (theme)
   "Return completion annotation for THEME."
-  (format " -- %s" (car (split-string (get (intern theme) 'theme-documentation) "\\."))))
+  (when-let ((symbol (intern-soft theme))
+             (doc-string (get symbol 'theme-documentation)))
+    (format " -- %s" (car (split-string doc-string "\\.")))))
+
+(defun modus-themes--completion-table (category candidates)
+  "Pass appropriate metadata CATEGORY to completion CANDIDATES."
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata (category . ,category))
+      (complete-with-action action candidates string pred))))
+
+(defun modus-themes--completion-table-candidates ()
+  "Render `modus-themes--list-known-themes' as completion with theme category."
+  (modus-themes--completion-table 'theme (modus-themes--list-known-themes)))
 
 (defun modus-themes--select-prompt ()
   "Minibuffer prompt to select a Modus theme."
@@ -1330,7 +1341,7 @@ symbol, which is safe when used as a face attribute's value."
     (intern
      (completing-read
       "Select Modus theme: "
-      (modus-themes--list-known-themes)
+      (modus-themes--completion-table-candidates)
       nil t nil
       'modus-themes--select-theme-history))))
 
@@ -1344,12 +1355,13 @@ Disable other themes per `modus-themes-disable-other-themes'."
 
 (defun modus-themes--toggle-theme-p ()
   "Return non-nil if `modus-themes-to-toggle' are valid."
-  (mapc (lambda (theme)
-          (if (or (memq theme modus-themes-items)
-                  (memq theme (modus-themes--list-known-themes)))
-              theme
-            (user-error "`%s' is not part of `modus-themes-items'" theme)))
-        modus-themes-to-toggle))
+  (mapc
+   (lambda (theme)
+     (if (or (memq theme modus-themes-items)
+             (memq theme (modus-themes--list-known-themes)))
+         theme
+       (user-error "`%s' is not part of `modus-themes-items'" theme)))
+   modus-themes-to-toggle))
 
 ;;;###autoload
 (defun modus-themes-toggle ()
@@ -1364,9 +1376,7 @@ Disable other themes per `modus-themes-disable-other-themes'."
   (if-let* ((themes (modus-themes--toggle-theme-p))
             (one (car themes))
             (two (cadr themes)))
-      (if (eq (car custom-enabled-themes) one)
-          (modus-themes-load-theme two)
-        (modus-themes-load-theme one))
+      (modus-themes-load-theme (if (eq (car custom-enabled-themes) one) two one))
     (modus-themes-load-theme (modus-themes--select-prompt))))
 
 (defun modus-themes--list-colors-render (buffer theme &optional mappings &rest _)
@@ -1424,7 +1434,8 @@ Helper function for `modus-themes-list-colors'."
         (completion-extra-properties `(:annotation-function ,#'modus-themes--annotate-theme)))
     (completing-read
      (format "Use palette from theme [%s]: " def)
-     (modus-themes--list-known-themes) nil t nil
+     (modus-themes--completion-table-candidates)
+     nil t nil
      'modus-themes--list-colors-prompt-history def)))
 
 (defun modus-themes-list-colors (theme &optional mappings)
@@ -1552,20 +1563,22 @@ Optional OL is the color of an overline."
          (style (or key (alist-get t modus-themes-headings)))
          (style-listp (listp style))
          (properties style)
-         (var (when (memq 'variable-pitch properties) 'variable-pitch))
+         (var (when (and style-listp (memq 'variable-pitch properties)) 'variable-pitch))
          (weight (when style-listp (modus-themes--weight style))))
-    (list :inherit
-          (cond
-           ;; `no-bold' is for backward compatibility because we cannot
-           ;; deprecate a variable's value.
-           ((or weight (memq 'no-bold properties))
-            var)
-           (var (append (list 'bold) (list var)))
-           ('bold))
+    (list :inherit (cond
+                    ((not style-listp) 'bold)
+                    ;; `no-bold' is for backward compatibility because we cannot
+                    ;; deprecate a variable's value.
+                    ((or weight (memq 'no-bold properties))
+                     var)
+                    (var (append (list 'bold) (list var)))
+                    (t 'bold))
           :background (or bg 'unspecified)
           :foreground fg
           :overline (or ol 'unspecified)
-          :height (modus-themes--property-lookup properties 'height #'floatp 'unspecified)
+          :height (if style-listp
+                      (modus-themes--property-lookup properties 'height #'floatp 'unspecified)
+                    'unspecified)
           :weight (or weight 'unspecified))))
 
 (defun modus-themes--org-block (fg bg)
@@ -1747,6 +1760,8 @@ FG and BG are the main colors."
     `(tool-bar ((,c :background ,bg-dim :foreground ,fg-main)))
     `(vertical-border ((,c :foreground ,border)))
 ;;;;; basic and/or ungrouped styles
+    `(appt-notification ((,c :inherit error)))
+    `(blink-matching-paren-highlight-offscreen ((,c :background ,bg-paren-match)))
     `(bold ((,c :weight bold)))
     `(bold-italic ((,c :inherit (bold italic))))
     `(underline ((,c :underline ,fg-dim)))
@@ -1824,9 +1839,9 @@ FG and BG are the main colors."
     `(agda2-highlight-unsolved-meta-face ((,c :inherit modus-themes-lang-warning)))
 ;;;;; all-the-icons
     `(all-the-icons-blue ((,c :foreground ,blue-cooler)))
-    `(all-the-icons-blue-warmer ((,c :foreground ,blue-warmer)))
-    `(all-the-icons-cyan ((,c :foreground ,cyan-intense)))
-    `(all-the-icons-cyan-warmer ((,c :foreground ,cyan-warmer)))
+    `(all-the-icons-blue-alt ((,c :foreground ,blue-warmer)))
+    `(all-the-icons-cyan ((,c :foreground ,cyan)))
+    `(all-the-icons-cyan-alt ((,c :foreground ,cyan-warmer)))
     `(all-the-icons-dblue ((,c :foreground ,blue-faint)))
     `(all-the-icons-dcyan ((,c :foreground ,cyan-faint)))
     `(all-the-icons-dgreen ((,c :foreground ,green-faint)))
@@ -1834,7 +1849,7 @@ FG and BG are the main colors."
     `(all-the-icons-dorange ((,c :foreground ,red-faint)))
     `(all-the-icons-dpink ((,c :foreground ,magenta-faint)))
     `(all-the-icons-dpurple ((,c :foreground ,magenta-cooler)))
-    `(all-the-icons-dred ((,c :foreground ,red-faint)))
+    `(all-the-icons-dred ((,c :foreground ,red)))
     `(all-the-icons-dsilver ((,c :foreground ,cyan-faint)))
     `(all-the-icons-dyellow ((,c :foreground ,yellow-faint)))
     `(all-the-icons-green ((,c :foreground ,green)))
@@ -1845,12 +1860,18 @@ FG and BG are the main colors."
     `(all-the-icons-lorange ((,c :foreground ,red-warmer)))
     `(all-the-icons-lpink ((,c :foreground ,magenta)))
     `(all-the-icons-lpurple ((,c :foreground ,magenta-faint)))
-    `(all-the-icons-lred ((,c :foreground ,red)))
+    `(all-the-icons-lred ((,c :foreground ,red-faint)))
+    `(all-the-icons-lsilver ((,c :foreground "gray50")))
     `(all-the-icons-lyellow ((,c :foreground ,yellow-warmer)))
-    `(all-the-icons-maroon ((,c :foreground ,yellow-cooler)))
-    `(all-the-icons-red ((,c :foreground ,red-intense)))
-    `(all-the-icons-red-warmer ((,c :foreground ,red-cooler)))
-    `(all-the-icons-yellow ((,c :foreground ,yellow-intense)))
+    `(all-the-icons-maroon ((,c :foreground ,magenta)))
+    `(all-the-icons-orange ((,c :foreground ,yellow-warmer)))
+    `(all-the-icons-pink ((,c :foreground ,magenta-warmer)))
+    `(all-the-icons-purple ((,c :foreground ,magenta-cooler)))
+    `(all-the-icons-purple-alt ((,c :foreground ,blue-warmer)))
+    `(all-the-icons-red ((,c :foreground ,red)))
+    `(all-the-icons-red-alt ((,c :foreground ,red-cooler)))
+    `(all-the-icons-silver ((,c :foreground "gray50")))
+    `(all-the-icons-yellow ((,c :foreground ,yellow)))
 ;;;;; all-the-icons-dired
     `(all-the-icons-dired-dir-face ((,c :foreground ,cyan-faint)))
 ;;;;; all-the-icons-ibuffer
@@ -1865,23 +1886,23 @@ FG and BG are the main colors."
     `(annotate-highlight-secondary ((,c :background ,bg-magenta-subtle :underline ,magenta-intense)))
 ;;;;; ansi-color
     ;; Those are in Emacs28.
-    `(ansi-color-black ((,c :background "black" :foreground "black")))
-    `(ansi-color-blue ((,c :background ,blue :foreground ,blue)))
+    `(ansi-color-black ((,c :background ,bg-term-black :foreground ,fg-term-black)))
+    `(ansi-color-blue ((,c :background ,bg-term-blue :foreground ,fg-term-blue)))
     `(ansi-color-bold ((,c :inherit bold)))
-    `(ansi-color-bright-black ((,c :background "gray35" :foreground "gray35")))
-    `(ansi-color-bright-blue ((,c :background ,blue-warmer :foreground ,blue-warmer)))
-    `(ansi-color-bright-cyan ((,c :background ,cyan-cooler :foreground ,cyan-cooler)))
-    `(ansi-color-bright-green ((,c :background ,green-cooler :foreground ,green-cooler)))
-    `(ansi-color-bright-magenta ((,c :background ,magenta-cooler :foreground ,magenta-cooler)))
-    `(ansi-color-bright-red ((,c :background ,red-warmer :foreground ,red-warmer)))
-    `(ansi-color-bright-white ((,c :background "white" :foreground "white")))
-    `(ansi-color-bright-yellow ((,c :background ,yellow-warmer :foreground ,yellow-warmer)))
-    `(ansi-color-cyan ((,c :background ,cyan :foreground ,cyan)))
-    `(ansi-color-green ((,c :background ,green :foreground ,green)))
-    `(ansi-color-magenta ((,c :background ,magenta :foreground ,magenta)))
-    `(ansi-color-red ((,c :background ,red :foreground ,red)))
-    `(ansi-color-white ((,c :background "gray65" :foreground "gray65")))
-    `(ansi-color-yellow ((,c :background ,yellow :foreground ,yellow)))
+    `(ansi-color-bright-black ((,c :background ,bg-term-black-bright :foreground ,fg-term-black-bright)))
+    `(ansi-color-bright-blue ((,c :background ,bg-term-blue-bright :foreground ,fg-term-blue-bright)))
+    `(ansi-color-bright-cyan ((,c :background ,bg-term-cyan-bright :foreground ,fg-term-cyan-bright)))
+    `(ansi-color-bright-green ((,c :background ,bg-term-green-bright :foreground ,fg-term-green-bright)))
+    `(ansi-color-bright-magenta ((,c :background ,bg-term-magenta-bright :foreground ,fg-term-magenta-bright)))
+    `(ansi-color-bright-red ((,c :background ,bg-term-red-bright :foreground ,fg-term-red-bright)))
+    `(ansi-color-bright-white ((,c :background ,bg-term-white-bright :foreground ,fg-term-white-bright)))
+    `(ansi-color-bright-yellow ((,c :background ,bg-term-yellow-bright :foreground ,fg-term-yellow-bright)))
+    `(ansi-color-cyan ((,c :background ,bg-term-cyan :foreground ,fg-term-cyan)))
+    `(ansi-color-green ((,c :background ,bg-term-green :foreground ,fg-term-green)))
+    `(ansi-color-magenta ((,c :background ,bg-term-magenta :foreground ,fg-term-magenta)))
+    `(ansi-color-red ((,c :background ,bg-term-red :foreground ,fg-term-red)))
+    `(ansi-color-white ((,c :background ,bg-term-white :foreground ,fg-term-white)))
+    `(ansi-color-yellow ((,c :background ,bg-term-yellow :foreground ,fg-term-yellow)))
 ;;;;; anzu
     `(anzu-match-1 ((,c :inherit modus-themes-subtle-cyan)))
     `(anzu-match-2 ((,c :inherit modus-themes-search-current)))
@@ -1932,6 +1953,10 @@ FG and BG are the main colors."
     `(binder-sidebar-marked ((,c :inherit modus-themes-mark-sel)))
     `(binder-sidebar-missing ((,c :inherit modus-themes-mark-del)))
     `(binder-sidebar-tags ((,c :foreground ,variable)))
+;;;;; breadcrumb
+    `(breadcrumb-face ((,c :foreground ,fg-alt)))
+    `(breadcrumb-imenu-leaf-face ((,c :inherit bold :foreground ,modeline-info))) ; same as `which-func'
+    `(breadcrumb-project-leaf-face ((,c :inherit bold)))
 ;;;;; bongo
     `(bongo-album-title (( )))
     `(bongo-artist ((,c :foreground ,accent-0)))
@@ -2009,7 +2034,7 @@ FG and BG are the main colors."
     `(change-log-name ((,c :foreground ,name)))
     `(log-edit-header ((,c :inherit bold)))
     `(log-edit-headers-separator ((,c :height 1 :background ,border :extend t)))
-    `(log-edit-summary ((,c :inherit bold :foreground ,blue)))
+    `(log-edit-summary ((,c :inherit success)))
     `(log-edit-unknown-header ((,c :inherit shadow)))
     `(log-view-commit-body (( )))
     `(log-view-file ((,c :inherit bold)))
@@ -2084,6 +2109,8 @@ FG and BG are the main colors."
     `(corfu-bar ((,c :background ,fg-dim)))
     `(corfu-border ((,c :background ,bg-active)))
     `(corfu-default ((,c :background ,bg-dim)))
+;;;;; corfu-candidate-overlay
+    `(corfu-candidate-overlay-face ((t :inherit shadow)))
 ;;;;; corfu-quick
     `(corfu-quick1 ((,c :inherit bold :background ,bg-char-0)))
     `(corfu-quick2 ((,c :inherit bold :background ,bg-char-1)))
@@ -2104,9 +2131,6 @@ FG and BG are the main colors."
     `(crontab-month ((,c :foreground ,constant)))
     `(crontab-week-day ((,c :foreground ,variable)))
     `(crontab-predefined ((,c :foreground ,string)))
-;;;;; css-mode
-    `(css-property ((,c :inherit font-lock-type-face)))
-    `(css-selector ((,c :inherit font-lock-keyword-face)))
 ;;;;; csv-mode
     `(csv-separator-face ((,c :foreground ,red-intense)))
 ;;;;; ctrlf
@@ -2413,6 +2437,11 @@ FG and BG are the main colors."
 ;;;;; ert
     `(ert-test-result-expected ((,c :inherit modus-themes-prominent-note)))
     `(ert-test-result-unexpected ((,c :inherit modus-themes-prominent-error)))
+;;;;; erts-mode
+    `(erts-mode-end-test ((,c :inherit error)))
+    `(erts-mode-specification-name ((,c :inherit bold)))
+    `(erts-mode-specification-value ((,c :foreground ,string)))
+    `(erts-mode-start-test ((,c :inherit success)))
 ;;;;; eshell
     `(eshell-ls-archive ((,c :foreground ,accent-2)))
     `(eshell-ls-backup ((,c :inherit shadow)))
@@ -2524,7 +2553,7 @@ FG and BG are the main colors."
     `(git-commit-keyword ((,c :foreground ,keyword)))
     `(git-commit-nonempty-second-line ((,c :inherit error)))
     `(git-commit-overlong-summary ((,c :inherit warning)))
-    `(git-commit-summary ((,c :inherit bold :foreground ,blue)))
+    `(git-commit-summary ((,c :inherit success)))
 ;;;;; git-gutter
     `(git-gutter:added ((,c :background ,bg-added-fringe)))
     `(git-gutter:deleted ((,c :background ,bg-removed-fringe)))
@@ -2799,6 +2828,8 @@ FG and BG are the main colors."
 ;;;;; ivy-posframe
     `(ivy-posframe-border ((,c :background ,border)))
     `(ivy-posframe-cursor ((,c :background ,fg-main :foreground ,bg-main)))
+;;;;; japanese-holidays
+    `(japanese-holiday-saturday ((,c :foreground ,date-holiday-other)))
 ;;;;; jira (org-jira)
     `(jiralib-comment-face ((,c :background ,bg-inactive)))
     `(jiralib-comment-header-face ((,c :inherit bold)))
@@ -3127,6 +3158,50 @@ FG and BG are the main colors."
     `(mc/cursor-bar-face ((,c :height 1 :foreground ,fg-main :background ,bg-main)))
     `(mc/cursor-face ((,c :inverse-video t)))
     `(mc/region-face ((,c :inherit region)))
+;;;;; nerd-icons
+    `(nerd-icons-blue ((,c :foreground ,blue-cooler)))
+    `(nerd-icons-blue-alt ((,c :foreground ,blue-warmer)))
+    `(nerd-icons-cyan ((,c :foreground ,cyan)))
+    `(nerd-icons-cyan-alt ((,c :foreground ,cyan-warmer)))
+    `(nerd-icons-dblue ((,c :foreground ,blue-faint)))
+    `(nerd-icons-dcyan ((,c :foreground ,cyan-faint)))
+    `(nerd-icons-dgreen ((,c :foreground ,green-faint)))
+    `(nerd-icons-dmaroon ((,c :foreground ,magenta-faint)))
+    `(nerd-icons-dorange ((,c :foreground ,red-faint)))
+    `(nerd-icons-dpink ((,c :foreground ,magenta-faint)))
+    `(nerd-icons-dpurple ((,c :foreground ,magenta-cooler)))
+    `(nerd-icons-dred ((,c :foreground ,red)))
+    `(nerd-icons-dsilver ((,c :foreground ,cyan-faint)))
+    `(nerd-icons-dyellow ((,c :foreground ,yellow-faint)))
+    `(nerd-icons-green ((,c :foreground ,green)))
+    `(nerd-icons-lblue ((,c :foreground ,blue-cooler)))
+    `(nerd-icons-lcyan ((,c :foreground ,cyan)))
+    `(nerd-icons-lgreen ((,c :foreground ,green-warmer)))
+    `(nerd-icons-lmaroon ((,c :foreground ,magenta-warmer)))
+    `(nerd-icons-lorange ((,c :foreground ,red-warmer)))
+    `(nerd-icons-lpink ((,c :foreground ,magenta)))
+    `(nerd-icons-lpurple ((,c :foreground ,magenta-faint)))
+    `(nerd-icons-lred ((,c :foreground ,red-faint)))
+    `(nerd-icons-lsilver ((,c :foreground "gray50")))
+    `(nerd-icons-lyellow ((,c :foreground ,yellow-warmer)))
+    `(nerd-icons-maroon ((,c :foreground ,magenta)))
+    `(nerd-icons-orange ((,c :foreground ,yellow-warmer)))
+    `(nerd-icons-pink ((,c :foreground ,magenta-warmer)))
+    `(nerd-icons-purple ((,c :foreground ,magenta-cooler)))
+    `(nerd-icons-purple-alt ((,c :foreground ,blue-warmer)))
+    `(nerd-icons-red ((,c :foreground ,red)))
+    `(nerd-icons-red-alt ((,c :foreground ,red-cooler)))
+    `(nerd-icons-silver ((,c :foreground "gray50")))
+    `(nerd-icons-yellow ((,c :foreground ,yellow)))
+;;;;; nerd-icons-completion
+    `(nerd-icons-completion-dir-face ((,c :foreground ,cyan-faint)))
+;;;;; nerd-icons-dired
+    `(nerd-icons-dired-dir-face ((,c :foreground ,cyan-faint)))
+;;;;; nerd-icons-ibuffer
+    `(nerd-icons-ibuffer-dir-face ((,c :foreground ,cyan-faint)))
+    `(nerd-icons-ibuffer-file-face ((,c :foreground ,blue-faint)))
+    `(nerd-icons-ibuffer-mode-face ((,c :foreground ,cyan)))
+    `(nerd-icons-ibuffer-size-face ((,c :foreground ,cyan-cooler)))
 ;;;;; neotree
     `(neo-banner-face ((,c :foreground ,accent-0)))
     `(neo-button-face ((,c :inherit button)))
@@ -3247,7 +3322,7 @@ FG and BG are the main colors."
     `(org-date ((,c :inherit modus-themes-fixed-pitch :foreground ,date-common)))
     `(org-date-selected ((,c :foreground ,date-common :inverse-video t)))
     `(org-document-info ((,c :foreground ,prose-metadata-value)))
-    `(org-document-info-keyword ((,c :foreground ,prose-metadata)))
+    `(org-document-info-keyword ((,c :inherit modus-themes-fixed-pitch :foreground ,prose-metadata)))
     `(org-document-title ((,c :inherit modus-themes-heading-0)))
     `(org-done ((,c :foreground ,prose-done)))
     `(org-drawer ((,c :inherit modus-themes-fixed-pitch :foreground ,prose-metadata)))
@@ -3707,16 +3782,19 @@ FG and BG are the main colors."
     `(terraform--resource-name-face ((,c :foreground ,keyword)))
     `(terraform--resource-type-face ((,c :foreground ,type)))
 ;;;;; term
+    ;; NOTE 2023-08-10: `term-color-black' and `term-color-white' use
+    ;; the "bright" semantic color mappings to make sure they are
+    ;; distinct from `term'.
     `(term ((,c :background ,bg-main :foreground ,fg-main)))
     `(term-bold ((,c :inherit bold)))
-    `(term-color-black ((,c :background "gray35" :foreground "gray35")))
-    `(term-color-blue ((,c :background ,blue :foreground ,blue)))
-    `(term-color-cyan ((,c :background ,cyan :foreground ,cyan)))
-    `(term-color-green ((,c :background ,green :foreground ,green)))
-    `(term-color-magenta ((,c :background ,magenta :foreground ,magenta)))
-    `(term-color-red ((,c :background ,red :foreground ,red)))
-    `(term-color-white ((,c :background "gray65" :foreground "gray65")))
-    `(term-color-yellow ((,c :background ,yellow :foreground ,yellow)))
+    `(term-color-black ((,c :background ,bg-term-black-bright :foreground ,fg-term-black-bright)))
+    `(term-color-blue ((,c :background ,bg-term-blue :foreground ,fg-term-blue)))
+    `(term-color-cyan ((,c :background ,bg-term-cyan :foreground ,fg-term-cyan)))
+    `(term-color-green ((,c :background ,bg-term-green :foreground ,fg-term-green)))
+    `(term-color-magenta ((,c :background ,bg-term-magenta :foreground ,fg-term-magenta)))
+    `(term-color-red ((,c :background ,bg-term-red :foreground ,fg-term-red)))
+    `(term-color-white ((,c :background ,bg-term-white-bright :foreground ,fg-term-white-bright)))
+    `(term-color-yellow ((,c :background ,bg-term-yellow :foreground ,fg-term-yellow)))
     `(term-underline ((,c :underline t)))
 ;;;;; textsec
     `(textsec-suspicious (( )))
@@ -3847,17 +3925,20 @@ FG and BG are the main colors."
     `(vr/match-1 ((,c :inherit modus-themes-intense-yellow)))
     `(vr/match-separator-face ((,c :inherit bold :background ,bg-active)))
 ;;;;; vterm
-    `(vterm-color-black ((,c :background "gray35" :foreground "black")))
-    `(vterm-color-blue ((,c :background ,blue-warmer :foreground ,blue)))
-    `(vterm-color-cyan ((,c :background ,cyan-cooler :foreground ,cyan)))
+    ;; NOTE 2023-08-10: `vterm-color-black' and `vterm-color-white'
+    ;; use the "bright" semantic color mappings to make sure they are
+    ;; distinct from `vterm-color-default'.
+    `(vterm-color-black ((,c :background ,bg-term-black :foreground ,fg-term-black)))
+    `(vterm-color-blue ((,c :background ,bg-term-blue :foreground ,fg-term-blue)))
+    `(vterm-color-cyan ((,c :background ,bg-term-cyan :foreground ,fg-term-cyan)))
     `(vterm-color-default ((,c :background ,bg-main :foreground ,fg-main)))
-    `(vterm-color-green ((,c :background ,green-cooler :foreground ,green)))
+    `(vterm-color-green ((,c :background ,bg-term-green :foreground ,fg-term-green)))
     `(vterm-color-inverse-video ((,c :background ,bg-main :inverse-video t)))
-    `(vterm-color-magenta ((,c :background ,magenta-cooler :foreground ,magenta)))
-    `(vterm-color-red ((,c :background ,red-warmer :foreground ,red)))
+    `(vterm-color-magenta ((,c :background ,bg-term-magenta :foreground ,fg-term-magenta)))
+    `(vterm-color-red ((,c :background ,bg-term-red :foreground ,fg-term-red)))
     `(vterm-color-underline ((,c :underline t)))
-    `(vterm-color-white ((,c :background "white" :foreground "gray65")))
-    `(vterm-color-yellow ((,c :background ,yellow-warmer :foreground ,yellow)))
+    `(vterm-color-white ((,c :background ,bg-term-white :foreground ,fg-term-white)))
+    `(vterm-color-yellow ((,c :background ,bg-term-yellow :foreground ,fg-term-yellow)))
 ;;;;; vundo
     `(vundo-default ((,c :inherit shadow)))
     `(vundo-highlight ((,c :inherit (bold vundo-node) :foreground ,red)))
@@ -3941,7 +4022,7 @@ FG and BG are the main colors."
     `(wgrep-file-face ((,c :foreground ,fg-alt)))
     `(wgrep-reject-face ((,c :inherit error)))
 ;;;;; which-function-mode
-    `(which-func ((,c :inherit bold :foreground ,modeline-info)))
+    `(which-func ((,c :inherit bold :foreground ,modeline-info))) ; same as `breadcrumb-imenu-leaf-face'
 ;;;;; which-key
     `(which-key-command-description-face ((,c :foreground ,fg-main)))
     `(which-key-group-description-face ((,c :foreground ,keyword)))
