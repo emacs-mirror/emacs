@@ -1851,7 +1851,7 @@ SP-DELTA is the stack adjustment."
 (eval-when-compile
   (defun comp-op-to-fun (x)
     "Given the LAP op strip \"byte-\" to have the subr name."
-    (intern (replace-regexp-in-string "byte-" "" x)))
+    (intern (string-replace "byte-" "" x)))
 
   (defun comp-body-eff (body op-name sp-delta)
     "Given the original BODY, compute the effective one.
