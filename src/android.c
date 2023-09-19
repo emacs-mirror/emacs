@@ -5710,8 +5710,9 @@ android_exception_check (void)
 }
 
 /* Check for JNI exceptions.  If there is one such exception, clear
-   it, then delete the local reference to OBJECT and call
-   memory_full.  */
+   it, then delete the local reference to OBJECT and call memory_full.
+   OBJECT can be NULL, which is a valid local reference to the Java
+   null object.  */
 
 void
 android_exception_check_1 (jobject object)
@@ -5725,7 +5726,10 @@ android_exception_check_1 (jobject object)
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
   memory_full (0);
 }
 
@@ -5744,8 +5748,13 @@ android_exception_check_2 (jobject object, jobject object1)
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
-  ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
   memory_full (0);
 }
 
@@ -5765,9 +5774,16 @@ android_exception_check_3 (jobject object, jobject object1,
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
-  ANDROID_DELETE_LOCAL_REF (object1);
-  ANDROID_DELETE_LOCAL_REF (object2);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object2);
+
   memory_full (0);
 }
 
@@ -5787,10 +5803,19 @@ android_exception_check_4 (jobject object, jobject object1,
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
-  ANDROID_DELETE_LOCAL_REF (object1);
-  ANDROID_DELETE_LOCAL_REF (object2);
-  ANDROID_DELETE_LOCAL_REF (object3);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object2);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object3);
+
   memory_full (0);
 }
 
@@ -6127,7 +6152,7 @@ android_browse_url (Lisp_Object url, Lisp_Object send)
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) value,
 						   NULL);
-  android_exception_check_1 (string);
+  android_exception_check_1 (value);
 
   /* Otherwise, build the string describing the error.  */
   tem = build_string_from_utf8 (buffer);
