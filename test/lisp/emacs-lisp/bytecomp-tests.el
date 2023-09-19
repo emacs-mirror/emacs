@@ -1875,7 +1875,7 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
 (FIXTURE-FN \\='#\\='electric-pair-mode))" fill-column)))
 
 (ert-deftest bytecomp-test-defcustom-type ()
-  (cl-flet ((dc (type) `(defcustom mytest nil "doc" :type ',type)))
+  (cl-flet ((dc (type) `(defcustom mytest nil "doc" :type ',type :group 'test)))
     (bytecomp--with-warning-test
      (rx "type should not be quoted") (dc ''integer))
     (bytecomp--with-warning-test
@@ -1890,6 +1890,9 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     (bytecomp--with-warning-test
      (rx "duplicated value in `choice': `a'")
      (dc '(choice (const a) (const b) (const a))))
+    (bytecomp--with-warning-test
+     (rx "duplicated :tag string in `choice': \"X\"")
+     (dc '(choice (const :tag "X" a) (const :tag "Y" b) (other :tag "X" c))))
     (bytecomp--with-warning-test
      (rx "`cons' requires 2 type specs, found 1")
      (dc '(cons :tag "a" integer)))

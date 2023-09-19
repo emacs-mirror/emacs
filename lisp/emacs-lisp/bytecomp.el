@@ -5272,7 +5272,8 @@ FORM is used to provide location, `bytecomp--cus-function' and
           (unless tail
             (bytecomp--cus-warn type "`%s' without any types inside" head))
           (let ((clauses tail)
-                (constants nil))
+                (constants nil)
+                (tags nil))
             (while clauses
               (let* ((ty (car clauses))
                      (ty-head (car-safe ty)))
@@ -5291,6 +5292,12 @@ FORM is used to provide location, `bytecomp--cus-function' and
                       (bytecomp--cus-warn
                        ty "duplicated value in `%s': `%S'" head val))
                     (push val constants)))
+                (let ((tag (and (consp ty) (plist-get (cdr ty) :tag))))
+                  (when (stringp tag)
+                    (when (member tag tags)
+                      (bytecomp--cus-warn
+                       ty "duplicated :tag string in `%s': %S" head tag))
+                    (push tag tags)))
                 (bytecomp--check-cus-type ty))
               (setq clauses (cdr clauses)))))
          ((eq head 'cons)
