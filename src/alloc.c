@@ -3328,93 +3328,134 @@ static void
 cleanup_vector (struct Lisp_Vector *vector)
 {
   detect_suspicious_free (vector);
-
-  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BIGNUM))
-    mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_OVERLAY))
+  if ((vector->header.size & PSEUDOVECTOR_FLAG) == 0)
+    return;  /* nothing more to do for plain vectors */
+  switch (PSEUDOVECTOR_TYPE (vector))
     {
-      struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
-      xfree (ol->interval);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FINALIZER))
-    unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT))
-    {
-      if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
-	{
-	  struct font *font = PSEUDOVEC_STRUCT (vector, font);
-	  struct font_driver const *drv = font->driver;
+    case PVEC_BIGNUM:
+      mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
+      break;
+    case PVEC_OVERLAY:
+      {
+	struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
+	xfree (ol->interval);
+      }
+      break;
+    case PVEC_FINALIZER:
+      unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
+      break;
+    case PVEC_FONT:
+      {
+	if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
+	  {
+	    struct font *font = PSEUDOVEC_STRUCT (vector, font);
+	    struct font_driver const *drv = font->driver;
 
-	  /* The font driver might sometimes be NULL, e.g. if Emacs was
-	     interrupted before it had time to set it up.  */
-	  if (drv)
-	    {
-	      /* Attempt to catch subtle bugs like Bug#16140.  */
-	      eassert (valid_font_driver (drv));
-	      drv->close_font (font);
-	    }
-	}
+	    /* The font driver might sometimes be NULL, e.g. if Emacs was
+	       interrupted before it had time to set it up.  */
+	    if (drv)
+	      {
+		/* Attempt to catch subtle bugs like Bug#16140.  */
+		eassert (valid_font_driver (drv));
+		drv->close_font (font);
+	      }
+	  }
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-      /* The Android font driver needs the ability to associate extra
-	 information with font entities.  */
-      if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
-	   == FONT_ENTITY_MAX)
-	  && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
-	android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
+	/* The Android font driver needs the ability to associate extra
+	   information with font entities.  */
+	if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	     == FONT_ENTITY_MAX)
+	    && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
+	  android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
 #endif
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_THREAD))
-    finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MUTEX))
-    finalize_one_mutex (PSEUDOVEC_STRUCT (vector, Lisp_Mutex));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_CONDVAR))
-    finalize_one_condvar (PSEUDOVEC_STRUCT (vector, Lisp_CondVar));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MARKER))
-    {
+      }
+      break;
+    case PVEC_THREAD:
+      finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
+      break;
+    case PVEC_MUTEX:
+      finalize_one_mutex (PSEUDOVEC_STRUCT (vector, Lisp_Mutex));
+      break;
+    case PVEC_CONDVAR:
+      finalize_one_condvar (PSEUDOVEC_STRUCT (vector, Lisp_CondVar));
+      break;
+    case PVEC_MARKER:
       /* sweep_buffer should already have unchained this from its buffer.  */
       eassert (! PSEUDOVEC_STRUCT (vector, Lisp_Marker)->buffer);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_USER_PTR))
-    {
-      struct Lisp_User_Ptr *uptr = PSEUDOVEC_STRUCT (vector, Lisp_User_Ptr);
-      if (uptr->finalizer)
-	uptr->finalizer (uptr->p);
-    }
+      break;
+    case PVEC_USER_PTR:
+      {
+	struct Lisp_User_Ptr *uptr = PSEUDOVEC_STRUCT (vector, Lisp_User_Ptr);
+	if (uptr->finalizer)
+	  uptr->finalizer (uptr->p);
+      }
+      break;
+    case PVEC_TS_PARSER:
 #ifdef HAVE_TREE_SITTER
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_PARSER))
-    treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_COMPILED_QUERY))
-    treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+      treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
 #endif
+      break;
+    case PVEC_TS_COMPILED_QUERY:
+#ifdef HAVE_TREE_SITTER
+      treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+#endif
+      break;
+    case PVEC_MODULE_FUNCTION:
 #ifdef HAVE_MODULES
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))
-    {
-      ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
-        = (struct Lisp_Module_Function *) vector;
-      module_finalize_function (function);
-    }
+      {
+	ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
+	  = (struct Lisp_Module_Function *) vector;
+	module_finalize_function (function);
+      }
 #endif
+      break;
+    case PVEC_NATIVE_COMP_UNIT:
 #ifdef HAVE_NATIVE_COMP
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
-    {
-      struct Lisp_Native_Comp_Unit *cu =
-	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
-      unload_comp_unit (cu);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
-    {
-      struct Lisp_Subr *subr =
-	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
-      if (!NILP (subr->native_comp_u))
-	{
-	  /* FIXME Alternative and non invasive solution to this
-	     cast?  */
-	  xfree ((char *)subr->symbol_name);
-	  xfree (subr->native_c_name);
-	}
-    }
+      {
+	struct Lisp_Native_Comp_Unit *cu =
+	  PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
+	unload_comp_unit (cu);
+      }
 #endif
+      break;
+    case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
+      {
+	struct Lisp_Subr *subr = PSEUDOVEC_STRUCT (vector, Lisp_Subr);
+	if (!NILP (subr->native_comp_u))
+	  {
+	    /* FIXME Alternative and non invasive solution to this cast?  */
+	    xfree ((char *)subr->symbol_name);
+	    xfree (subr->native_c_name);
+	  }
+      }
+#endif
+      break;
+    /* Keep the switch exhaustive.  */
+    case PVEC_NORMAL_VECTOR:
+    case PVEC_FREE:
+    case PVEC_SYMBOL_WITH_POS:
+    case PVEC_MISC_PTR:
+    case PVEC_PROCESS:
+    case PVEC_FRAME:
+    case PVEC_WINDOW:
+    case PVEC_BOOL_VECTOR:
+    case PVEC_BUFFER:
+    case PVEC_HASH_TABLE:
+    case PVEC_TERMINAL:
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_OTHER:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_TS_NODE:
+    case PVEC_SQLITE:
+    case PVEC_COMPILED:
+    case PVEC_CHAR_TABLE:
+    case PVEC_SUB_CHAR_TABLE:
+    case PVEC_RECORD:
+      break;
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
