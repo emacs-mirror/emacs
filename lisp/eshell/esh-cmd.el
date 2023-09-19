@@ -990,15 +990,19 @@ process(es) in a cons cell like:
 
   (:eshell-background . PROCESS)"
   (if eshell-current-command
-      ;; We can just stick the new command at the end of the current
-      ;; one, and everything will happen as it should.
-      (setcdr (last (cdr eshell-current-command))
-              (list `(let ((here (and (eobp) (point))))
-                       ,(and input
-                             `(insert-and-inherit ,(concat input "\n")))
-                       (if here
-                           (eshell-update-markers here))
-                       (eshell-do-eval ',command))))
+      (progn
+        ;; We can just stick the new command at the end of the current
+        ;; one, and everything will happen as it should.
+        (setcdr (last (cdr eshell-current-command))
+                (list `(let ((here (and (eobp) (point))))
+                         ,(and input
+                               `(insert-and-inherit ,(concat input "\n")))
+                         (if here
+                             (eshell-update-markers here))
+                         (eshell-do-eval ',command))))
+        (eshell-debug-command 'form
+          "enqueued command form for %S\n\n%s"
+          (or input "<no string>") (eshell-stringify eshell-current-command)))
     (eshell-debug-command-start input)
     (setq eshell-current-command command)
     (let* (result
