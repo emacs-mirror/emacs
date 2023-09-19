@@ -3757,13 +3757,10 @@ Prepare every function for final compilation and drive the C back-end."
     (comp--compile-ctxt-to-file name)))
 
 (defun comp-final1 ()
-  (let (compile-result)
-    (comp--init-ctxt)
-    (unwind-protect
-        (setf compile-result
-              (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt)))
-      (and (comp--release-ctxt)
-           compile-result))))
+  (comp--init-ctxt)
+  (unwind-protect
+      (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt))
+    (comp--release-ctxt)))
 
 (defvar comp-async-compilation nil
   "Non-nil while executing an asynchronous native compilation.")
