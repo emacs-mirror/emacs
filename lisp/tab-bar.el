@@ -161,7 +161,7 @@ For easier selection of tabs by their numbers, consider customizing
     (define-icon tab-bar-new nil
       `((image "symbols/plus_16.svg" "tabs/new.xpm"
                :face shadow
-               :height (1.0 . em)
+               :height (1 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji "➕")
@@ -176,7 +176,7 @@ For easier selection of tabs by their numbers, consider customizing
     (define-icon tab-bar-close nil
       `((image "symbols/cross_16.svg" "tabs/close.xpm"
                :face shadow
-               :height (1.0 . em)
+               :height (1 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji " ❌")
@@ -191,7 +191,7 @@ For easier selection of tabs by their numbers, consider customizing
   (unless (iconp 'tab-bar-menu-bar)
     (define-icon tab-bar-menu-bar nil
       `((image "symbols/menu_16.svg"
-               :height (1.0 . em)
+               :height (1 . em)
                :margin ,tab-bar-button-margin
                :ascent center)
         ;; (emoji "🍔")
@@ -2282,7 +2282,7 @@ and can restore them."
         (unless (iconp 'tab-bar-back)
           (define-icon tab-bar-back nil
             `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
-                     :height (1.0 . em)
+                     :height (1 . em)
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " < "))
@@ -2293,7 +2293,7 @@ and can restore them."
         (unless (iconp 'tab-bar-forward)
           (define-icon tab-bar-forward nil
             `((image "symbols/chevron_right_16.svg" "tabs/right-arrow.xpm"
-                     :height (1.0 . em)
+                     :height (1 . em)
                      :margin ,tab-bar-button-margin
                      :ascent center)
               (text " > "))
