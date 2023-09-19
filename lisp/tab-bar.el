@@ -1234,8 +1234,7 @@ tab bar might wrap to the second line when it shouldn't.")
                                            space
                                            (substring name ins-pos)))
                         (setq curr-width (string-pixel-width name))
-                        (if (and (< curr-width width)
-                                 (> curr-width prev-width))
+                        (if (< curr-width width)
                             (setq prev-width curr-width
                                   prev-name name)
                           ;; Set back a shorter name
@@ -1249,8 +1248,7 @@ tab bar might wrap to the second line when it shouldn't.")
                                            (and del-pos2
                                                 (substring name del-pos2))))
                         (setq curr-width (string-pixel-width name))
-                        (if (and (> curr-width width)
-                                 (< curr-width prev-width))
+                        (if (> curr-width width)
                             (setq prev-width curr-width)
                           (setq continue nil)))
                       (let* ((len (length name))
