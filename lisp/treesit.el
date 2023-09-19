@@ -681,7 +681,9 @@ parser for EMBEDDED-LANG."
           (let ((embedded-parser (treesit-parser-create
                                   embedded-lang nil t 'embedded))
                 (ov (make-overlay beg end nil nil t)))
-            (overlay-put ov 'treesit-parser embedded-parser)))))))
+            (overlay-put ov 'treesit-parser embedded-parser)
+            (treesit-parser-set-included-ranges
+             embedded-parser `((,beg . ,end)))))))))
 
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
