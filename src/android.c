@@ -5752,7 +5752,7 @@ android_exception_check_2 (jobject object, jobject object1)
   if (object)
     ANDROID_DELETE_LOCAL_REF (object);
 
-  if (object)
+  if (object1)
     ANDROID_DELETE_LOCAL_REF (object1);
 
   memory_full (0);
@@ -5778,10 +5778,10 @@ android_exception_check_3 (jobject object, jobject object1,
   if (object)
     ANDROID_DELETE_LOCAL_REF (object);
 
-  if (object)
+  if (object1)
     ANDROID_DELETE_LOCAL_REF (object1);
 
-  if (object)
+  if (object2)
     ANDROID_DELETE_LOCAL_REF (object2);
 
   memory_full (0);
@@ -5807,13 +5807,13 @@ android_exception_check_4 (jobject object, jobject object1,
   if (object)
     ANDROID_DELETE_LOCAL_REF (object);
 
-  if (object)
+  if (object1)
     ANDROID_DELETE_LOCAL_REF (object1);
 
-  if (object)
+  if (object2)
     ANDROID_DELETE_LOCAL_REF (object2);
 
-  if (object)
+  if (object3)
     ANDROID_DELETE_LOCAL_REF (object3);
 
   memory_full (0);
