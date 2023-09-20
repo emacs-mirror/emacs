@@ -11808,7 +11808,7 @@ vadd_to_log (char const *format, va_list ap)
   eassert (nargs <= ARRAYELTS (args));
   AUTO_STRING (args0, format);
   args[0] = args0;
-  for (ptrdiff_t i = 1; i <= nargs; i++)
+  for (ptrdiff_t i = 1; i < nargs; i++)
     args[i] = va_arg (ap, Lisp_Object);
   Lisp_Object msg = Qnil;
   msg = Fformat_message (nargs, args);
