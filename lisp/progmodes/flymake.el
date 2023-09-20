@@ -1120,15 +1120,7 @@ with a report function."
       (setf (flymake--state-running state) run-token
             (flymake--state-disabled state) nil
             (flymake--state-reported-p state) nil))
-    ;; FIXME: Should use `condition-case-unless-debug' here, but don't
-    ;; for two reasons: (1) that won't let me catch errors from inside
-    ;; `ert-deftest' where `debug-on-error' appears to be always
-    ;; t. (2) In cases where the user is debugging elisp somewhere
-    ;; else, and using flymake, the presence of a frequently
-    ;; misbehaving backend in the global hook (most likely the legacy
-    ;; backend) will trigger an annoying backtrace.
-    ;;
-    (condition-case err
+    (condition-case-unless-debug err
         (apply backend (flymake-make-report-fn backend run-token)
                args)
       (error
