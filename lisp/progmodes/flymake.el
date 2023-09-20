@@ -433,7 +433,7 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   :package-version '(Flymake . "1.3.4"))
 
 (defface flymake-note-echo
-  '((t :inherit flymake-note))
+  '((t :inherit compilation-info))
   "Face used for showing summarized descriptions of notes."
   :package-version '(Flymake . "1.3.4"))
 
@@ -454,7 +454,7 @@ See variable `flymake-show-diagnostics-at-end-of-line'."
   :package-version '(Flymake . "1.3.5"))
 
 (defface flymake-note-echo-at-eol
-  '((t :inherit (flymake-end-of-line-diagnostics-face flymake-note)))
+  '((t :inherit (flymake-end-of-line-diagnostics-face compilation-info)))
   "Face like `flymake-note-echo', but for end-of-line overlays."
   :package-version '(Flymake . "1.3.5"))
 
