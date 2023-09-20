@@ -1713,7 +1713,6 @@ AS_IF([test $gl_gcc_warnings = no],
   AS_IF([test "$emacs_cv_clang" = yes],
    [
      # Turn off some warnings if supported.
-     gl_WARN_ADD([-Wno-switch])
      gl_WARN_ADD([-Wno-pointer-sign])
      gl_WARN_ADD([-Wno-string-plus-int])
      gl_WARN_ADD([-Wno-unknown-attributes])
