@@ -3579,11 +3579,18 @@ edit proposed by the server."
                                           :newName ,newname))
    this-command))
 
-(defun eglot--region-bounds ()
-  "Region bounds if active, else bounds of things at point."
-  (if (use-region-p) `(,(region-beginning) ,(region-end))
-    (let ((boftap (bounds-of-thing-at-point 'sexp)))
-      (list (car boftap) (cdr boftap)))))
+(defun eglot--code-action-bounds ()
+  "Calculate appropriate bounds depending on region and point."
+  (let (diags)
+    (cond ((use-region-p) `(,(region-beginning) ,(region-end)))
+          ((setq diags (flymake-diagnostics (point)))
+           (cl-loop for d in diags
+                    minimizing (flymake-diagnostic-beg d) into beg
+                    maximizing (flymake-diagnostic-end d) into end
+                    finally (cl-return (list beg end))))
+          (t
+           (let ((boftap (bounds-of-thing-at-point 'sexp)))
+             (list (car boftap) (cdr boftap)))))))
 
 (defun eglot-code-actions (beg &optional end action-kind interactive)
   "Find LSP code actions of type ACTION-KIND between BEG and END.
@@ -3593,7 +3600,7 @@ Interactively, default BEG and END to region's bounds else BEG is
 point and END is nil, which results in a request for code actions
 at point.  With prefix argument, prompt for ACTION-KIND."
   (interactive
-   `(,@(eglot--region-bounds)
+   `(,@(eglot--code-action-bounds)
      ,(and current-prefix-arg
            (completing-read "[eglot] Action kind: "
                             '("quickfix" "refactor.extract" "refactor.inline"
@@ -3656,7 +3663,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   "Define NAME to execute KIND code action."
   `(defun ,name (beg &optional end)
      ,(format "Execute `%s' code actions between BEG and END." kind)
-     (interactive (eglot--region-bounds))
+     (interactive (eglot--code-action-bounds))
      (eglot-code-actions beg end ,kind t)))
 
 (eglot--code-action eglot-code-action-organize-imports "source.organizeImports")
