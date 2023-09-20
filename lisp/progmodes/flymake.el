@@ -356,7 +356,10 @@ otherwise if BEG is non-nil and END is nil, consider only
 diagnostics at BEG."
   (save-restriction
     (widen)
-    (cl-loop for o in (overlays-in (or beg (point-min)) (or end (point-max)))
+    (cl-loop for o in
+             (cond (end (overlays-in beg end))
+                   (beg (overlays-at beg))
+                   (t (overlays-in (point-min) (point-max))))
              when (overlay-get o 'flymake-diagnostic) collect it)))
 
 (defmacro flymake--diag-accessor (public internal thing)
