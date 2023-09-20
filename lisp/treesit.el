@@ -1486,8 +1486,8 @@ Return (ANCHOR . OFFSET).  This function is used by
           (cond ((null (treesit-parser-list)) nil)
                 ((eq 1 (length (treesit-parser-list)))
                  (treesit-node-at bol))
-                ((treesit-language-at (point))
-                 (treesit-node-at bol (treesit-language-at (point))))
+                ((treesit-language-at bol)
+                 (treesit-node-at bol (treesit-language-at bol)))
                 (t (treesit-node-at bol))))
          (root (treesit-parser-root-node
                 (treesit-node-parser smallest-node)))
