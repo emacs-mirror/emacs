@@ -757,9 +757,9 @@ Return nil or the overlay created."
              (setq beg a end b))))
     (setf (flymake--diag-beg diagnostic) beg
           (flymake--diag-end diagnostic) end)
-    ;; Try to fix the remedy the situation if there is the same
-    ;; diagnostic is already registered in the same place, which only
-    ;; happens for clashes between domestic and foreign diagnostics
+    ;; Try to remedy the situation if the same diagnostic is already
+    ;; registered in the same place.  This happens for clashes between
+    ;; domestic and foreign diagnostics
     (cl-loop for e in (flymake-diagnostics beg end)
              for eov = (flymake--diag-overlay e)
              when (flymake--equal-diagnostic-p e diagnostic)
@@ -778,7 +778,12 @@ Return nil or the overlay created."
                         (flymake--diag-end e)
                         (flymake--diag-orig-end e))
                   (flymake--delete-overlay eov)))
-    (setq ov (make-overlay end beg))
+    (setq ov (make-overlay beg end))
+    (when (= (overlay-start ov) (overlay-end ov))
+      ;; Some backends report diagnostics with invalid bounds.  Don't
+      ;; bother.
+      (delete-overlay ov)
+      (cl-return-from flymake--highlight-line nil))
     (setf (flymake--diag-beg diagnostic) (overlay-start ov)
           (flymake--diag-end diagnostic) (overlay-end ov))
     ;; First set `category' in the overlay
