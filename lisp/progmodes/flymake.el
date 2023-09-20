@@ -703,24 +703,27 @@ associated `flymake-category' return DEFAULT."
           (delete-overlay eolov))))
     (delete-overlay ov)))
 
-(defun flymake--eol-overlay-summary (_eolov src-ovs)
+(defun flymake--eol-overlay-summary (eolov)
   "Helper function for `flymake--highlight-line'."
   (cl-loop
-   for s in src-ovs
+   for s in (overlay-get eolov 'flymake-eol-source-overlays)
    for d = (overlay-get s 'flymake-diagnostic)
    for type = (flymake--diag-type d)
    for eol-face = (flymake--lookup-type-property type 'eol-face)
    concat (propertize (flymake-diagnostic-oneliner d t) 'face eol-face) into retval
    concat " "
    into retval
-   finally (cl-return (concat "  " retval))))
+   finally
+   (setq retval (concat "  " retval))
+   (put-text-property 0 1 'cursor t retval)
+   (cl-return retval)))
 
 (defun flymake--eol-overlay-update ()
   (save-excursion
     (widen)
     (cl-loop for o in (overlays-in (point-min) (point-max))
-             when (overlay-get o 'flymake--eol-overlay-summary)
-             do (overlay-put o 'before-string it))))
+             when (overlay-get o 'flymake--eol-overlay)
+             do (overlay-put o 'before-string (flymake--eol-overlay-summary o)))))
 
 (cl-defun flymake--highlight-line (diagnostic &optional foreign)
   "Attempt to overlay DIAGNOSTIC in current buffer.
@@ -844,21 +847,17 @@ Return nil or the overlay created."
                (eolov (car
                        (cl-remove-if-not
                         (lambda (o) (overlay-get o 'flymake-eol-source-overlays))
-                        (overlays-in start end))))
-               src-ovs
-               summary)
+                        (overlays-in start end)))))
           ;; FIXME: 1. no checking if there are unexpectedly more than
           ;; one eolov at point.
           (if eolov
-              (setq src-ovs (push ov (overlay-get eolov 'flymake-eol-source-overlays)))
+              (push ov (overlay-get eolov 'flymake-eol-source-overlays))
             (setq eolov (make-overlay start end nil t nil))
             (overlay-put eolov 'flymake-overlay t)
-            (setq src-ovs (overlay-put eolov 'flymake-eol-source-overlays (list ov)))
+            (overlay-put eolov 'flymake--eol-overlay t)
+            (overlay-put eolov 'flymake-eol-source-overlays (list ov))
             (overlay-put eolov 'evaporate (not (= start end)))) ; FIXME: fishy
-          (overlay-put ov 'eol-ov eolov)
-          (setq summary (flymake--eol-overlay-summary eolov src-ovs))
-          (put-text-property 0 1 'cursor t summary)
-          (overlay-put eolov 'flymake--eol-overlay-summary summary))))
+          (overlay-put ov 'eol-ov eolov))))
     ov))
 
 ;; Nothing in Flymake uses this at all any more, so this is just for
@@ -971,8 +970,9 @@ report applies to that region."
     ;; a call to update them.  But check running and reporting
     ;; backends first to flickering when multiple backends touch the
     ;; same eol overlays.
-    (unless (cl-set-difference (flymake-running-backends)
-                               (flymake-reporting-backends))
+    (when (and flymake-show-diagnostics-at-end-of-line
+               (not (cl-set-difference (flymake-running-backends)
+                                       (flymake-reporting-backends))))
       (flymake--eol-overlay-update))
     (flymake--update-diagnostics-listings (current-buffer))))
 
