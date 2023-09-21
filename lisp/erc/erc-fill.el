@@ -86,10 +86,12 @@ function is called.
 
 A third style resembles static filling but \"wraps\" instead of
 fills, thanks to `visual-line-mode' mode, which ERC automatically
-enables when this option is `erc-fill-wrap' or when
-`erc-fill-wrap-mode' is active.  Set `erc-fill-static-center' to
-your preferred initial \"prefix\" width.  For adjusting the width
-during a session, see the command `erc-fill-wrap-nudge'."
+enables when this option is `erc-fill-wrap' or when the module
+`fill-wrap' is active.  Use `erc-fill-static-center' to specify
+an initial \"prefix\" width and `erc-fill-wrap-margin-width'
+instead of `erc-fill-column' for influencing initial message
+width.  For adjusting these during a session, see the commands
+`erc-fill-wrap-nudge' and `erc-fill-wrap-refill-buffer'."
   :type '(choice (const :tag "Variable Filling" erc-fill-variable)
                  (const :tag "Static Filling" erc-fill-static)
                  (const :tag "Dynamic word-wrap" erc-fill-wrap)
@@ -403,15 +405,19 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
 (define-erc-module fill-wrap nil
   "Fill style leveraging `visual-line-mode'.
 This module displays nicks overhanging leftward to a common
-offset, as determined by the option `erc-fill-static-center'.  To
-use it, either include `fill-wrap' in `erc-modules' or set
-`erc-fill-function' to `erc-fill-wrap'.  Most users will want to
-enable the `scrolltobottom' module as well.  Once active, use
+offset, as determined by the option `erc-fill-static-center'.
+And it \"wraps\" messages at a common margin width, as determined
+by the option `erc-fill-wrap-margin-width'.  To use it, either
+include `fill-wrap' in `erc-modules' or set `erc-fill-function'
+to `erc-fill-wrap'.  Most users will want to enable the
+`scrolltobottom' module as well.  Once active, use
 \\[erc-fill-wrap-nudge] to adjust the width of the indent and the
 stamp margin, and use \\[erc-fill-wrap-toggle-truncate-lines] for
 cycling between logical- and screen-line oriented command
-movement.  Also see related options `erc-fill-line-spacing' and
-`erc-fill-wrap-merge'.
+movement.  Similarly, use \\[erc-fill-wrap-refill-buffer] to fix
+alignment problems after running certain commands, like
+`text-scale-adjust'.  Also see related stylistic options
+`erc-fill-line-spacing' and `erc-fill-wrap-merge'.
 
 This module imposes various restrictions on the appearance of
 timestamps.  Most notably, it insists on displaying them in the
@@ -564,6 +570,78 @@ See `erc-fill-wrap-mode' for details."
                                          `(- erc-fill--wrap-value ,len)
                                        'erc-fill--wrap-value))
           wrap-prefix (space :width erc-fill--wrap-value))))))
+
+(defvar erc-fill--wrap-rejigger-last-message nil
+  "Temporary working instance of `erc-fill--wrap-last-msg'.")
+
+(defun erc-fill--wrap-rejigger-region (start finish on-next repairp)
+  "Recalculate `line-prefix' from START to FINISH.
+After refilling each message, call ON-NEXT with no args.  But
+stash and restore `erc-fill--wrap-last-msg' before doing so, in
+case this module's insert hooks run by way of the process filter.
+With REPAIRP, destructively fill gaps and re-merge speakers."
+  (goto-char start)
+  (cl-assert (null erc-fill--wrap-rejigger-last-message))
+  (let (erc-fill--wrap-rejigger-last-message)
+    (while-let
+        (((< (point) finish))
+         (beg (if (get-text-property (point) 'line-prefix)
+                  (point)
+                (next-single-property-change (point) 'line-prefix)))
+         (val (get-text-property beg 'line-prefix))
+         (end (text-property-not-all beg finish 'line-prefix val)))
+      ;; If this is a left-side stamp on its own line.
+      (remove-text-properties beg (1+ end) '(line-prefix nil wrap-prefix nil))
+      (when-let ((repairp)
+                 (dbeg (text-property-not-all beg end 'display nil))
+                 ((get-text-property (1+ dbeg) 'erc-speaker))
+                 (dval (get-text-property dbeg 'display))
+                 ((equal "" dval)))
+        (remove-text-properties
+         dbeg (text-property-not-all dbeg end 'display dval) '(display)))
+      (let* ((pos (if (eq 'date-left (get-text-property beg 'erc-stamp-type))
+                      (field-beginning beg)
+                    beg))
+             (erc--msg-props (map-into (text-properties-at pos) 'hash-table))
+             (erc-stamp--current-time (gethash 'erc-ts erc--msg-props)))
+        (save-restriction
+          (narrow-to-region beg (1+ end))
+          (let ((erc-fill--wrap-last-msg erc-fill--wrap-rejigger-last-message))
+            (erc-fill-wrap)
+            (setq erc-fill--wrap-rejigger-last-message
+                  erc-fill--wrap-last-msg))))
+      (when on-next
+        (funcall on-next))
+      ;; Skip to end of message upon encountering accidental gaps
+      ;; introduced by third parties (or bugs).
+      (if-let (((/= ?\n (char-after end)))
+               (next (erc--get-inserted-msg-bounds 'end beg)))
+          (progn
+            (cl-assert (= ?\n (char-after next)))
+            (when repairp ; eol <= next
+              (put-text-property end (pos-eol) 'line-prefix val))
+            (goto-char next))
+        (goto-char end)))))
+
+(defun erc-fill-wrap-refill-buffer (repair)
+  "Recalculate all `fill-wrap' prefixes in the current buffer.
+With REPAIR, attempt to refresh \"speaker merges\", which may be
+necessary after revealing previously hidden text with commands
+like `erc-match-toggle-hidden-fools'."
+  (interactive "P")
+  (unless erc-fill-wrap-mode
+    (user-error "Module `fill-wrap' not active in current buffer."))
+  (save-excursion
+    (with-silent-modifications
+      (let* ((rep (make-progress-reporter
+                   "Rewrap" 0 (line-number-at-pos erc-insert-marker) 1))
+             (seen 0)
+             (callback (lambda ()
+                         (progress-reporter-update rep (cl-incf seen))
+                         (accept-process-output nil 0.000001))))
+        (erc-fill--wrap-rejigger-region (point-min) erc-insert-marker
+                                        callback repair)
+        (progress-reporter-done rep)))))
 
 ;; FIXME use own text property to avoid false positives.
 (defun erc-fill--wrap-merged-button-p (point)

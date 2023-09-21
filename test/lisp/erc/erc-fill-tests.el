@@ -234,6 +234,13 @@
        (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
        (erc-fill-tests--compare "monospace-04-reset")))))
 
+(defun erc-fill-tests--simulate-refill ()
+  ;; Simulate `erc-fill-wrap-refill-buffer' synchronously and without
+  ;; a progress reporter.
+  (save-excursion
+    (with-silent-modifications
+      (erc-fill--wrap-rejigger-region (point-min) erc-insert-marker nil nil))))
+
 (ert-deftest erc-fill-wrap--merge ()
   :tags '(:unstable)
   (unless (>= emacs-major-version 29)
@@ -245,7 +252,9 @@
      (erc-update-channel-member
       "#chan" "Dummy" "Dummy" t nil nil nil nil nil "fake" "~u" nil nil t)
 
-     ;; Set this here so that the first few messages are from 1970
+     ;; Set this here so that the first few messages are from 1970.
+     ;; Following the current date stamp, the speaker isn't merged
+     ;; even though it's continued: "<bob> zero."
      (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
        (erc-fill-tests--insert-privmsg "bob" "zero.")
        (erc-fill-tests--insert-privmsg "alice" "one.")
@@ -267,7 +276,12 @@
        (erc-fill-tests--wrap-check-prefixes
         "*** " "<alice> " "<bob> "
         "<bob> " "<alice> " "<alice> " "<bob> " "<bob> " "<Dummy> " "<Dummy> ")
-       (erc-fill-tests--compare "merge-02-right")))))
+       (erc-fill-tests--compare "merge-02-right")
+
+       (ert-info ("Command `erc-fill-wrap-refill-buffer' is idempotent")
+         (kill-buffer (pop erc-fill-tests--buffers))
+         (erc-fill-tests--simulate-refill) ; idempotent
+         (erc-fill-tests--compare "merge-02-right"))))))
 
 (ert-deftest erc-fill-wrap--merge-action ()
   :tags '(:unstable)
