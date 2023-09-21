@@ -162,10 +162,11 @@ android_dismiss_menu (void *pointer)
   struct android_dismiss_menu_data *data;
 
   data = pointer;
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       data->menu,
-				       menu_class.dismiss,
-				       data->window);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 data->menu,
+						 menu_class.class,
+						 menu_class.dismiss,
+						 data->window);
   popup_activated_flag = 0;
 }
 
@@ -362,14 +363,12 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	    pane_string++;
 
 	  /* Add the pane.  */
-	  temp = (*android_java_env)->NewStringUTF (android_java_env,
-						    pane_string);
+	  temp = (*env)->NewStringUTF (env, pane_string);
 	  android_exception_check ();
 
-	  (*android_java_env)->CallVoidMethod (android_java_env,
-					       current_context_menu,
-					       menu_class.add_pane,
-					       temp);
+	  (*env)->CallNonvirtualVoidMethod (env, current_context_menu,
+					    menu_class.class,
+					    menu_class.add_pane, temp);
 	  android_exception_check ();
 	  ANDROID_DELETE_LOCAL_REF (temp);
 

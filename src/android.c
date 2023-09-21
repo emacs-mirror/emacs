@@ -4963,15 +4963,17 @@ android_query_tree (android_window handle, android_window *root_return,
   jsize nelements, i;
   android_window *children;
   jshort *shorts;
+  jmethodID method;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   /* window can be NULL, so this is a service method.  */
+  method = service_class.query_tree;
   array
-    = (*android_java_env)->CallObjectMethod (android_java_env,
-					     emacs_service,
-					     service_class.query_tree,
-					     window);
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, window);
   android_exception_check ();
 
   /* The first element of the array is the parent window.  The rest
@@ -5024,9 +5026,10 @@ android_get_geometry (android_window handle,
   get_geometry = window_class.get_window_geometry;
 
   window_geometry
-    = (*android_java_env)->CallObjectMethod (android_java_env,
-					     window,
-					     get_geometry);
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       window,
+						       window_class.class,
+						       get_geometry);
   android_exception_check ();
 
   /* window_geometry is an array containing x, y, width and
@@ -5084,9 +5087,11 @@ android_translate_coordinates (android_window src, int x,
   window = android_resolve_handle (src, ANDROID_HANDLE_WINDOW);
   method = window_class.translate_coordinates;
   coordinates
-    = (*android_java_env)->CallObjectMethod (android_java_env,
-					     window, method,
-					     (jint) x, (jint) y);
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       window,
+						       window_class.class,
+						       method, (jint) x,
+						       (jint) y);
   android_exception_check ();
 
   /* The array must contain two elements: X, Y translated to the root
@@ -5124,7 +5129,9 @@ android_wc_lookup_string (android_key_pressed_event *event,
   const jchar *characters;
   jsize size;
   size_t i;
+  JNIEnv *env;
 
+  env = android_java_env;
   status = ANDROID_LOOKUP_NONE;
   rc = 0;
 
@@ -5175,9 +5182,10 @@ android_wc_lookup_string (android_key_pressed_event *event,
     {
       window = android_handles[event->window].handle;
       string
-	= (*android_java_env)->CallObjectMethod (android_java_env, window,
-						 window_class.lookup_string,
-						 (jint) event->serial);
+	= (*env)->CallNonvirtualObjectMethod (env, window,
+					      window_class.class,
+					      window_class.lookup_string,
+					      (jint) event->serial);
       android_exception_check ();
 
       if (!string)
@@ -5185,13 +5193,11 @@ android_wc_lookup_string (android_key_pressed_event *event,
       else
 	{
 	  /* Now return this input method string.  */
-	  characters = (*android_java_env)->GetStringChars (android_java_env,
-							    string, NULL);
+	  characters = (*env)->GetStringChars (env, string, NULL);
 	  android_exception_check_nonnull ((void *) characters, string);
 
-	  /* Figure out how big the string is.  */
-	  size = (*android_java_env)->GetStringLength (android_java_env,
-						       string);
+	  /* Establish the size of the the string.  */
+	  size = (*env)->GetStringLength (env, string);
 
 	  /* Copy over the string data.  */
 	  for (i = 0; i < MIN ((unsigned int) wchars_buffer, size); ++i)
@@ -5210,8 +5216,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	  else
 	    rc = size;
 
-	  (*android_java_env)->ReleaseStringChars (android_java_env, string,
-						   characters);
+	  (*env)->ReleaseStringChars (env, string, characters);
 	  ANDROID_DELETE_LOCAL_REF (string);
 	}
     }
@@ -5425,11 +5430,15 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
 {
   jobject string;
   const char *buffer;
+  jmethodID method;
 
-  string = (*android_java_env)->CallObjectMethod (android_java_env,
-						  emacs_service,
-						  service_class.name_keysym,
-						  (jint) keysym);
+  method = service_class.name_keysym;
+  string
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method,
+						       (jint) keysym);
   android_exception_check ();
 
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
@@ -6136,11 +6145,13 @@ android_browse_url (Lisp_Object url, Lisp_Object send)
   const char *buffer;
 
   string = android_build_string (url);
-  value = (*android_java_env)->CallObjectMethod (android_java_env,
-						 emacs_service,
-						 service_class.browse_url,
-						 string,
-						 (jboolean) !NILP (send));
+  value
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       service_class.browse_url,
+						       string,
+						       (jboolean) !NILP (send));
   android_exception_check ();
 
   ANDROID_DELETE_LOCAL_REF (string);
@@ -6205,10 +6216,14 @@ android_query_battery (struct android_battery_state *status)
 {
   jlongArray array;
   jlong *longs;
+  jmethodID method;
 
-  array = (*android_java_env)->CallObjectMethod (android_java_env,
-						 emacs_service,
-						 service_class.query_battery);
+  method = service_class.query_battery;
+  array
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method);
   android_exception_check ();
 
   /* A NULL return with no exception means that battery information
