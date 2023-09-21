@@ -1923,12 +1923,22 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 		    if (!zero_times_ok && simple)
 		      { /* Since simple * loops can be made faster by using
-			   on_failure_keep_string_jump, we turn simple P+
-			   into PP* if P is simple.  */
+			   on_failure_keep_string_jump, we turn P+ into PP*
+                           if P is simple.
+			   We can't use `top: <BODY>; OFJS exit; J top; exit:`
+			   because the OFJS needs to be at the beginning
+			   so we can replace
+			       top: OFJS exit; <BODY>; J top; exit
+			   with
+			       OFKSJ exit; loop: <BODY>; J loop; exit
+			   i.e. a single OFJ at the beginning of the loop
+			   rather than once per iteration.  */
 			unsigned char *p1, *p2;
 			startoffset = b - laststart;
 			GET_BUFFER_SPACE (startoffset);
 			p1 = b; p2 = laststart;
+			/* We presume that the code skipped
+			   by `skip_one_char` is position-independent.  */
 			while (p2 < p1)
 			  *b++ = *p2++;
 			zero_times_ok = 1;
@@ -3068,8 +3078,10 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	  continue;
 
 	case succeed_n:
-	  /* If N == 0, it should be an on_failure_jump_loop instead.  */
-	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); eassert (j > 0));
+	  /* If N == 0, it should be an on_failure_jump_loop instead.
+	     `j` can be negative because `EXTRACT_NUMBER` extracts a
+	     signed number whereas `succeed_n` treats it as unsigned.  */
+	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); eassert (j != 0));
 	  p += 4;
 	  /* We only care about one iteration of the loop, so we don't
 	     need to consider the case where this behaves like an
@@ -3743,20 +3755,32 @@ mutually_exclusive_charset (struct re_pattern_buffer *bufp, re_char *p1,
 }
 
 /* True if "p1 matches something" implies "p2 fails".  */
-/* Avoiding inf-loops:
-   We're trying to follow all paths reachable from `p2`, but since some
+/* We're trying to follow all paths reachable from `p2`, but since some
    loops can match the empty string, this can loop back to `p2`.
-   To avoid inf-looping, we keep track of points that have been considered
-   "already".  Instead of keeping a list of such points, `done_beg` and
-   `done_end` delimit a chunk of bytecode we already considered.
-   To guarantee termination, a lexical ordering between `done_*` and `p2`
-   should be obeyed:
-       At each recursion, either `done_beg` gets smaller,
-       or `done_beg` is unchanged and `done_end` gets larger
-       or they're both unchanged and `p2` gets larger.  */
+
+   To avoid inf-looping, we take advantage of the fact that
+   the bytecode we generate is made of syntactically nested loops, more
+   specifically, every loop has a single entry point and single exit point.
+
+   The function takes 2 more arguments (`loop_entry` and `loop_exit`).
+   `loop_entry` points to the sole entry point of the current loop and
+   `loop_exit` points to its sole exit point (when non-NULL).
+
+   Jumps outside of `loop_entry..exit` should not occur.
+   The function can assume that `loop_exit` is "mutually exclusive".
+   The same holds for `loop_entry` except when `p2 == loop_entry`.
+
+   To guarantee termination, recursive calls should make sure that either
+   `loop_entry` is larger, or it's unchanged but `p2` is larger.
+
+   FIXME: This is failsafe (can't return true when it shouldn't)
+   but it could be too conservative if we start generating bytecode
+   with a different shape, so maybe we should bite the bullet and
+   replace done_beg/end with an actual list of positions we've
+   already processed.  */
 static bool
 mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
-		        re_char *p2, re_char *done_beg, re_char *done_end)
+		        re_char *p2, re_char *loop_entry, re_char *loop_exit)
 {
   re_opcode_t op2;
   unsigned char *pend = bufp->buffer + bufp->used;
@@ -3765,8 +3789,15 @@ mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
   eassert (p1 >= bufp->buffer && p1 < pend
 	   && p2 >= bufp->buffer && p2 <= pend);
 
-  eassert (done_beg <= done_end);
-  eassert (done_end <= p2);
+  if (p2 == loop_exit)
+    return true;          /* Presumably already checked elsewhere.  */
+  eassert (loop_entry && p2 >= loop_entry);
+  if (p2 < loop_entry || (loop_exit && p2 > loop_exit))
+    /* The assumptions about the shape of the code aren't true :-(  */
+#ifdef ENABLE_CHECKING
+    error ("Broken assumption in regex.c:mutually_exclusive_aux");
+#endif
+    return false;
 
   /* Skip over open/close-group commands.
      If what follows this loop is a ...+ construct,
@@ -3858,29 +3889,43 @@ mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
         int mcnt;
 	p2++;
 	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
-	re_char *p2_other = p2 + mcnt;
+	re_char *p2_other = p2 + mcnt, *tmp;
+	/* For `+` loops, we often have an `on_failure_jump` that skips forward
+	   over a subsequent `jump` for lack of an `on_failure_dont_jump`
+	   kind of thing.  Recognize this pattern since that subsequent
+	   `jump` is the one that jumps to the loop-entry.  */
+	if ((re_opcode_t) p2[0] == jump && mcnt == 3)
+	  {
+	    EXTRACT_NUMBER (mcnt, p2 + 1);
+	    p2 += mcnt + 3;
+	  }
 
-	/* When we jump backward we bump `done_end` up to `p3` under
-	   the assumption that any other position between `done_end`
-	   and `p3` is either:
-           - checked by the other call to RECURSE.
-           - not reachable from here (e.g. for positions before the
-             `on_failure_jump`), or at least not without first
-             jumping before `done_beg`.
-           This should hold because our state machines are not arbitrary:
-           they consists of syntaxically nested loops with limited
-	   control flow.
-	   FIXME: This can fail (i.e. return true when it shouldn't)
-	   if we start generating bytecode with a different shape,
-	   so maybe we should bite the bullet and replace done_beg/end
-	   with an actual list of positions we've already processed.  */
-#define RECURSE(p3)                                                \
-  ((p3) < done_beg ? mutually_exclusive_aux (bufp, p1, p3, p3, p3) \
-   : (p3) <= done_end ? true                                       \
-   : mutually_exclusive_aux (bufp, p1, p3, done_beg,               \
-	                     (p3) > p2_orig ? done_end : (p3)))
+	/* We have to check that both destinations are safe.
+	   Arrange for `p2` to be the smaller of the two.  */
+	if (p2 > p2_other)
+	  (tmp = p2, p2 = p2_other, p2_other = tmp);
 
-	return RECURSE (p2) && RECURSE (p2_other);
+	if (p2_other <= p2_orig /* Both destinations go backward!  */
+	    || !mutually_exclusive_aux (bufp, p1, p2_other,
+	                                loop_entry, loop_exit))
+	  return false;
+
+	/* Now that we know that `p2_other` is a safe (i.e. mutually-exclusive)
+	   position, let's check `p2`.  */
+	if (p2 == loop_entry)
+	  /* If we jump backward to the entry point of the current loop
+	     it means it's a zero-length cycle through that loop, so
+	     this cycle itself does not break mutual-exclusion.  */
+	  return true;
+	else if (p2 > p2_orig)
+	  /* Boring forward jump.  */
+	  return mutually_exclusive_aux (bufp, p1, p2, loop_entry, loop_exit);
+	else if (loop_entry < p2 && p2 < p2_orig)
+	  /* We jump backward to a new loop, nested within the current one.
+	     `p2` is the entry point and `p2_other` the exit of that inner.  */
+	  return mutually_exclusive_aux (bufp, p1, p2, p2, p2_other);
+	else
+	  return false;
       }
 
     default:
@@ -3895,7 +3940,7 @@ static bool
 mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 		      re_char *p2)
 {
-  return mutually_exclusive_aux (bufp, p1, p2, p2, p2);
+  return mutually_exclusive_aux (bufp, p1, p2, bufp->buffer, NULL);
 }
 
 /* Matching routines.  */
