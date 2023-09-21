@@ -5290,7 +5290,7 @@ void
 android_damage_window (android_drawable handle,
 		       struct android_rectangle *damage)
 {
-  jobject drawable, rect;
+  jobject drawable;
 
   drawable = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
