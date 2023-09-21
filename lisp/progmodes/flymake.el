@@ -699,14 +699,13 @@ associated `flymake-category' return DEFAULT."
   (let ((eolov (overlay-get ov 'eol-ov)))
     (when eolov
       (let ((src-ovs (delq ov (overlay-get eolov 'flymake-eol-source-overlays))))
-        (if src-ovs (overlay-put eolov 'flymake-eol-source-overlays src-ovs)
-          (delete-overlay eolov))))
+        (overlay-put eolov 'flymake-eol-source-overlays src-ovs)))
     (delete-overlay ov)))
 
-(defun flymake--eol-overlay-summary (eolov)
-  "Helper function for `flymake--highlight-line'."
+(defun flymake--eol-overlay-summary (src-ovs)
+  "Helper function for `flymake--eol-overlay-update'."
   (cl-loop
-   for s in (overlay-get eolov 'flymake-eol-source-overlays)
+   for s in src-ovs
    for d = (overlay-get s 'flymake-diagnostic)
    for type = (flymake--diag-type d)
    for eol-face = (flymake--lookup-type-property type 'eol-face)
@@ -722,8 +721,10 @@ associated `flymake-category' return DEFAULT."
   (save-excursion
     (widen)
     (cl-loop for o in (overlays-in (point-min) (point-max))
-             when (overlay-get o 'flymake--eol-overlay)
-             do (overlay-put o 'before-string (flymake--eol-overlay-summary o)))))
+             for src-ovs = (overlay-get o 'flymake-eol-source-overlays)
+             if src-ovs
+             do (overlay-put o 'before-string (flymake--eol-overlay-summary src-ovs))
+             else do (delete-overlay o))))
 
 (cl-defun flymake--highlight-line (diagnostic &optional foreign)
   "Attempt to overlay DIAGNOSTIC in current buffer.
@@ -1187,6 +1188,11 @@ Interactively, with a prefix arg, FORCE is t."
                            (cl-reduce
                             #'max (mapcar #'cadr flymake--recent-changes))))))
                (setq flymake--recent-changes nil)
+               (run-hook-wrapped
+                'flymake-diagnostic-functions
+                (lambda (backend)
+                  (flymake--with-backend-state backend state
+                    (setf (flymake--state-reported-p state) nil))))
                (run-hook-wrapped
                 'flymake-diagnostic-functions
                 (lambda (backend)
