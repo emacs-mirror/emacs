@@ -643,6 +643,7 @@ ifndef NO_BIN_LINK
 	cd "$(DESTDIR)${bindir}" && $(LN_S_FILEONLY) "$(EMACSFULL)" "$(EMACS)"
 endif
 else
+	${INSTALL_DATA} src/emacs.pdmp "$(DESTDIR)${libexecdir}/Emacs.pdmp"
 	subdir=${ns_appresdir}/site-lisp && ${write_subdir}
 	rm -rf ${ns_appresdir}/share
 endif
