@@ -717,14 +717,14 @@ associated `flymake-category' return DEFAULT."
    (put-text-property 0 1 'cursor t retval)
    (cl-return retval)))
 
-(defun flymake--eol-overlay-update ()
+(defun flymake--update-eol-overlays ()
   (save-excursion
     (widen)
-    (cl-loop for o in (overlays-in (point-min) (point-max))
-             for src-ovs = (overlay-get o 'flymake-eol-source-overlays)
-             if src-ovs
-             do (overlay-put o 'before-string (flymake--eol-overlay-summary src-ovs))
-             else do (delete-overlay o))))
+    (dolist (o (overlays-in (point-min) (point-max)))
+      (when (overlay-get o 'flymake--eol-overlay)
+        (if-let ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
+            (overlay-put o 'before-string (flymake--eol-overlay-summary src-ovs))
+          (delete-overlay o))))))
 
 (cl-defun flymake--highlight-line (diagnostic &optional foreign)
   "Attempt to overlay DIAGNOSTIC in current buffer.
@@ -974,7 +974,7 @@ report applies to that region."
     (when (and flymake-show-diagnostics-at-end-of-line
                (not (cl-set-difference (flymake-running-backends)
                                        (flymake-reporting-backends))))
-      (flymake--eol-overlay-update))
+      (flymake--update-eol-overlays))
     (flymake--update-diagnostics-listings (current-buffer))))
 
 (defun flymake--clear-foreign-diags (state)
