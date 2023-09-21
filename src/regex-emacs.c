@@ -3793,11 +3793,12 @@ mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
     return true;          /* Presumably already checked elsewhere.  */
   eassert (loop_entry && p2 >= loop_entry);
   if (p2 < loop_entry || (loop_exit && p2 > loop_exit))
-    /* The assumptions about the shape of the code aren't true :-(  */
+    { /* The assumptions about the shape of the code aren't true :-(  */
 #ifdef ENABLE_CHECKING
-    error ("Broken assumption in regex.c:mutually_exclusive_aux");
+      error ("Broken assumption in regex.c:mutually_exclusive_aux");
 #endif
-    return false;
+      return false;
+    }
 
   /* Skip over open/close-group commands.
      If what follows this loop is a ...+ construct,
