@@ -4,7 +4,7 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.3.4
+;; Version: 1.3.6
 ;; Keywords: c languages tools
 ;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.7.1"))
 
@@ -461,10 +461,22 @@ See variable `flymake-show-diagnostics-at-end-of-line'."
   "Face like `flymake-note-echo', but for end-of-line overlays."
   :package-version '(Flymake . "1.3.5"))
 
+(defface flymake-eol-information-face
+  '((t :inherit (flymake-end-of-line-diagnostics-face)
+       :box nil
+       :slant italic))
+  "Face used for information about end-of-line diagnostics."
+  :package-version '(Flymake . "1.3.6"))
+
 (defcustom flymake-show-diagnostics-at-end-of-line nil
-  "If non-nil, add diagnostic summary messages at end-of-line."
-  :type 'boolean
-  :package-version '(Flymake . "1.3.4"))
+  "If non-nil, add diagnostic summary messages at end-of-line.
+The value `short' means that only the most severe diagnostic
+shall be shown.  Any other non-nil value means show all
+diagnostic summaries at end-of-line."
+  :type '(choice (const :tag "Display most severe diagnostic" short)
+                 (const :tag "Display all diagnostics" t)
+                 (const :tag "Don't display diagnostics at end-of-line" nil))
+  :package-version '(Flymake . "1.3.6"))
 
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
@@ -704,20 +716,34 @@ associated `flymake-category' return DEFAULT."
 
 (defun flymake--eol-overlay-summary (src-ovs)
   "Helper function for `flymake--eol-overlay-update'."
-  (cl-loop
-   for s in src-ovs
-   for d = (overlay-get s 'flymake-diagnostic)
-   for type = (flymake--diag-type d)
-   for eol-face = (flymake--lookup-type-property type 'eol-face)
-   concat (propertize (flymake-diagnostic-oneliner d t) 'face eol-face) into retval
-   concat " "
-   into retval
-   finally
-   (setq retval (concat "  " retval))
-   (put-text-property 0 1 'cursor t retval)
-   (cl-return retval)))
+  (cl-flet ((summarize (d)
+              (propertize (flymake-diagnostic-oneliner d t) 'face
+                          (flymake--lookup-type-property (flymake--diag-type d)
+                                                         'eol-face))))
+    (let* ((diags
+            (cl-sort
+             (mapcar (lambda (o) (overlay-get o 'flymake-diagnostic)) src-ovs)
+             #'>
+             :key (lambda (d) (flymake--severity (flymake-diagnostic-type d)))))
+           (summary
+            (concat
+             "  "
+             (cond ((eq flymake-show-diagnostics-at-end-of-line 'short)
+                    (concat
+                     (summarize (car diags))
+                     (and (cdr diags)
+                          (concat
+                           " "
+                           (propertize (format "and %s more"
+                                               (1- (length diags)))
+                                       'face 'flymake-eol-information-face)))))
+                   (t
+                    (mapconcat #'summarize diags " "))))))
+      (put-text-property 0 1 'cursor t summary)
+      summary)))
 
 (defun flymake--update-eol-overlays ()
+  "Update the `before-string' property of end-of-line overlays."
   (save-excursion
     (widen)
     (dolist (o (overlays-in (point-min) (point-max)))
