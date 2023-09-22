@@ -8,6 +8,7 @@
 ;; Version: 0.2
 ;; Package-Requires: ((use-package "2.1") (system-packages "1.0.4"))
 ;; Filename: use-package-ensure-system-package.el
+;; Package: use-package
 
 ;; This file is part of GNU Emacs.
 

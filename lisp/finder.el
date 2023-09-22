@@ -166,7 +166,6 @@ would otherwise be.")
     ("org"  . org)
     ("srecode" . srecode)
     ("term" . emacs)
-    ("use-package" . use-package)
     ("url"  . url))
   "Alist of built-in package directories.
 Each element should have the form (DIR . PACKAGE), where DIR is a

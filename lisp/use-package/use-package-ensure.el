@@ -4,6 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
+;; Package: use-package
 
 ;; This file is part of GNU Emacs.
 
