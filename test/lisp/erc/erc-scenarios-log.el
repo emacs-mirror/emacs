@@ -81,6 +81,7 @@
 
 (ert-deftest erc-scenarios-log--clear-stamp ()
   :tags '(:expensive-test)
+  (require 'erc-stamp)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
        (dumb-server (erc-d-run "localhost" t 'foonet))

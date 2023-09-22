@@ -158,6 +158,11 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
     (when (or erc-fill--function erc-fill-function)
       ;; skip initial empty lines
       (goto-char (point-min))
+      ;; Note the following search pattern was altered in 5.6 to adapt
+      ;; to a change in Emacs regexp behavior that turned out to be a
+      ;; regression (which has since been fixed).  The patterns appear
+      ;; to be equivalent in practice, so this was left as is (wasn't
+      ;; reverted) to avoid additional git-blame(1)-related churn.
       (while (and (looking-at (rx bol (* (in " \t")) eol))
                   (zerop (forward-line 1))))
       (unless (eobp)
@@ -167,12 +172,10 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
           (when-let* ((erc-fill-line-spacing)
                       (p (point-min)))
             (widen)
-            (when (or (and-let* ((cmd (get-text-property p 'erc-command)))
-                        (memq cmd erc-fill--spaced-commands))
+            (when (or (erc--check-msg-prop 'erc-cmd erc-fill--spaced-commands)
                       (and-let* ((cmd (save-excursion
                                         (forward-line -1)
-                                        (get-text-property (point)
-                                                           'erc-command))))
+                                        (get-text-property (point) 'erc-cmd))))
                         (memq cmd erc-fill--spaced-commands)))
               (put-text-property (1- p) p
                                  'line-spacing erc-fill-line-spacing))))))))
@@ -181,15 +184,17 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
   "Fills a text such that messages start at column `erc-fill-static-center'."
   (save-restriction
     (goto-char (point-min))
-    (looking-at "^\\(\\S-+\\)")
-    (let ((nick (match-string 1)))
+    (when-let (((looking-at "^\\(\\S-+\\)"))
+               ((not (erc--check-msg-prop 'erc-msg 'datestamp)))
+               (nick (match-string 1)))
+      (progn
         (let ((fill-column (- erc-fill-column (erc-timestamp-offset)))
               (fill-prefix (make-string erc-fill-static-center 32)))
           (insert (make-string (max 0 (- erc-fill-static-center
                                          (length nick) 1))
                                32))
           (erc-fill-regarding-timestamp))
-        (erc-restore-text-properties))))
+        (erc-restore-text-properties)))))
 
 (defun erc-fill-variable ()
   "Fill from `point-min' to `point-max'."
@@ -423,8 +428,6 @@ is not recommended."
              (eq (default-value 'erc-insert-timestamp-function)
                  #'erc-insert-timestamp-left)))
    (setq erc-fill--function #'erc-fill-wrap)
-   (add-function :after (local 'erc-stamp--insert-date-function)
-                 #'erc-fill--wrap-stamp-insert-prefixed-date)
    (when erc-fill-wrap-merge
      (add-hook 'erc-button--prev-next-predicate-functions
                #'erc-fill--wrap-merged-button-p nil t))
@@ -436,9 +439,7 @@ is not recommended."
    (kill-local-variable 'erc-fill--function)
    (kill-local-variable 'erc-fill--wrap-visual-keys)
    (remove-hook 'erc-button--prev-next-predicate-functions
-                #'erc-fill--wrap-merged-button-p t)
-   (remove-function (local 'erc-stamp--insert-date-function)
-                    #'erc-fill--wrap-stamp-insert-prefixed-date))
+                #'erc-fill--wrap-merged-button-p t))
   'local)
 
 (defvar-local erc-fill--wrap-length-function nil
@@ -456,6 +457,9 @@ parties.")
 (defvar-local erc-fill--wrap-max-lull (* 24 60 60))
 
 (defun erc-fill--wrap-continued-message-p ()
+  "Return non-nil when the current speaker hasn't changed.
+That is, indicate whether the text just inserted is from the same
+sender as that of the previous \"PRIVMSG\"."
   (prog1 (and-let*
              ((m (or erc-fill--wrap-last-msg
                      (setq erc-fill--wrap-last-msg (point-min-marker))
@@ -463,45 +467,37 @@ parties.")
               ((< (1+ (point-min)) (- (point) 2)))
               (props (save-restriction
                        (widen)
-                       (when (eq 'erc-timestamp (field-at-pos m))
-                         (set-marker m (field-end m)))
                        (and-let*
-                           (((eq 'PRIVMSG (get-text-property m 'erc-command)))
-                            ((not (eq (get-text-property m 'erc-ctcp)
-                                      'ACTION)))
+                           (((eq 'PRIVMSG (get-text-property m 'erc-cmd)))
+                            ((not (eq (get-text-property m 'erc-msg) 'ACTION)))
+                            ((not (invisible-p m)))
                             (spr (next-single-property-change m 'erc-speaker)))
-                         (cons (get-text-property m 'erc-timestamp)
+                         (cons (get-text-property m 'erc-ts)
                                (get-text-property spr 'erc-speaker)))))
               (ts (pop props))
               (props)
               ((not (time-less-p (erc-stamp--current-time) ts)))
               ((time-less-p (time-subtract (erc-stamp--current-time) ts)
                             erc-fill--wrap-max-lull))
+              ;; Assume presence of leading angle bracket or hyphen.
               (speaker (next-single-property-change (point-min) 'erc-speaker))
-              ((not (eq (get-text-property speaker 'erc-ctcp) 'ACTION)))
+              ((not (erc--check-msg-prop 'erc-ctcp 'ACTION)))
               (nick (get-text-property speaker 'erc-speaker))
               ((erc-nick-equal-p props nick))))
     (set-marker erc-fill--wrap-last-msg (point-min))))
 
-(defun erc-fill--wrap-stamp-insert-prefixed-date (&rest args)
-  "Apply `line-prefix' property to args."
-  (let* ((ts-left (car args))
-         (start)
-         ;; Insert " " to simulate gap between <speaker> and msg beg.
-         (end (save-excursion (skip-chars-backward "\n")
-                              (setq start (pos-bol))
-                              (insert " ")
-                              (point)))
-         (width (if (and erc-fill-wrap-use-pixels
-                         (fboundp 'buffer-text-pixel-size))
-                    (save-restriction (narrow-to-region start end)
-                                      (list (car (buffer-text-pixel-size))))
-                  (length (string-trim-left ts-left)))))
-    (delete-region (1- end) end)
-    ;; Use `point-min' instead of `start' to cover leading newilnes.
-    (put-text-property (point-min) (point) 'line-prefix
-                       `(space :width (- erc-fill--wrap-value ,width))))
-  args)
+(defun erc-fill--wrap-measure (beg end)
+  "Return display spec width for inserted region between BEG and END.
+Ignore any `invisible' props that may be present when figuring."
+  (if (and erc-fill-wrap-use-pixels (fboundp 'buffer-text-pixel-size))
+      ;; `buffer-text-pixel-size' can move point!
+      (save-excursion
+        (save-restriction
+          (narrow-to-region beg end)
+          (let* ((buffer-invisibility-spec)
+                 (rv (car (buffer-text-pixel-size))))
+            (if (zerop rv) 0 (list rv)))))
+    (- end beg)))
 
 ;; An escape hatch for third-party code expecting speakers of ACTION
 ;; messages to be exempt from `line-prefix'.  This could be converted
@@ -518,33 +514,38 @@ See `erc-fill-wrap-mode' for details."
     (goto-char (point-min))
     (let ((len (or (and erc-fill--wrap-length-function
                         (funcall erc-fill--wrap-length-function))
-                   (progn
+                   (and-let* ((msg-prop (erc--check-msg-prop 'erc-msg)))
                      (when-let ((e (erc--get-speaker-bounds))
                                 (b (pop e))
                                 ((or erc-fill--wrap-action-dedent-p
-                                     (not (eq (get-text-property b 'erc-ctcp)
-                                              'ACTION)))))
+                                     (not (erc--check-msg-prop 'erc-ctcp
+                                                               'ACTION)))))
                        (goto-char e))
                      (skip-syntax-forward "^-")
                      (forward-char)
-                     ;; Using the `invisible' property might make more
-                     ;; sense, but that would require coordination
-                     ;; with other modules, like `erc-match'.
-                     (cond ((and erc-fill-wrap-merge
+                     (cond ((eq msg-prop 'datestamp)
+                            (when erc-fill--wrap-last-msg
+                              (set-marker erc-fill--wrap-last-msg (point-min)))
+                            (save-excursion
+                              (goto-char (point-max))
+                              (skip-chars-backward "\n")
+                              (let ((beg (pos-bol)))
+                                (insert " ")
+                                (prog1 (erc-fill--wrap-measure beg (point))
+                                  (delete-region (1- (point)) (point))))))
+                           ((and erc-fill-wrap-merge
                                  (erc-fill--wrap-continued-message-p))
                             (put-text-property (point-min) (point)
                                                'display "")
                             0)
-                           ((and erc-fill-wrap-use-pixels
-                                 (fboundp 'buffer-text-pixel-size))
-                            (save-restriction
-                              (narrow-to-region (point-min) (point))
-                              (list (car (buffer-text-pixel-size)))))
-                           (t (- (point) (point-min))))))))
-      (erc-put-text-properties (point-min) (1- (point-max)) ; exclude "\n"
-                               '(line-prefix wrap-prefix) nil
-                               `((space :width (- erc-fill--wrap-value ,len))
-                                 (space :width erc-fill--wrap-value))))))
+                           (t
+                            (erc-fill--wrap-measure (point-min) (point))))))))
+      (add-text-properties
+       (point-min) (1- (point-max)) ; exclude "\n"
+       `( line-prefix (space :width ,(if len
+                                         `(- erc-fill--wrap-value ,len)
+                                       'erc-fill--wrap-value))
+          wrap-prefix (space :width erc-fill--wrap-value))))))
 
 ;; FIXME use own text property to avoid false positives.
 (defun erc-fill--wrap-merged-button-p (point)

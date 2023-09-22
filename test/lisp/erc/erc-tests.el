@@ -292,6 +292,8 @@
                                (cl-incf counter))))
          erc-accidental-paste-threshold-seconds
          erc-insert-modify-hook
+         (erc-modules (remq 'stamp erc-modules))
+         (erc-send-input-line-function #'ignore)
          (erc--input-review-functions erc--input-review-functions)
          erc-send-completed-hook)
 
@@ -356,7 +358,8 @@
         (should (looking-back "#chan@ServNet 11> "))
         (should (= (point) erc-input-marker))
         (insert "/query bob")
-        (erc-send-current-line)
+        (let (erc-modules)
+          (erc-send-current-line))
         ;; Last command not inserted
         (save-excursion (forward-line -1)
                         (should (looking-at "<tester> Howdy")))
@@ -1430,6 +1433,44 @@
                            '("PRIVMSG #chan : \r\n" . utf-8))))
 
           (should-not calls))))))
+
+(ert-deftest erc--order-text-properties-from-hash ()
+  (let ((table (map-into '((a . 1)
+                           (erc-ts . 0)
+                           (erc-msg . s005)
+                           (b . 2)
+                           (erc-cmd . 5)
+                           (c . 3))
+                         'hash-table)))
+    (with-temp-buffer
+      (erc-mode)
+      (insert "abc\n")
+      (add-text-properties 1 2 (erc--order-text-properties-from-hash table))
+      (should (equal '( erc-msg s005
+                        erc-ts 0
+                        erc-cmd 5
+                        a 1
+                        b 2
+                        c 3)
+                     (text-properties-at (point-min)))))))
+
+(ert-deftest erc--check-msg-prop ()
+  (let ((erc--msg-props (map-into '((a . 1) (b . x)) 'hash-table)))
+    (should (eq 1 (erc--check-msg-prop 'a)))
+    (should (erc--check-msg-prop 'a 1))
+    (should-not (erc--check-msg-prop 'a 2))
+
+    (should (eq 'x (erc--check-msg-prop 'b)))
+    (should (erc--check-msg-prop 'b 'x))
+    (should-not (erc--check-msg-prop 'b 1))
+
+    (should (erc--check-msg-prop 'a '(1 42)))
+    (should-not (erc--check-msg-prop 'a '(2 42)))
+
+    (let ((props '(42 x)))
+      (should (erc--check-msg-prop 'b props)))
+    (let ((v '(42 y)))
+      (should-not (erc--check-msg-prop 'b v)))))
 
 (defmacro erc-tests--equal-including-properties (a b)
   (list (if (< emacs-major-version 29)

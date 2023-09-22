@@ -242,8 +242,8 @@ variable `erc-input-line-position'."
 ;;;###autoload(autoload 'erc-readonly-mode "erc-goodies" nil t)
 (define-erc-module readonly nil
   "This mode causes all inserted text to be read-only."
-  ((add-hook 'erc-insert-post-hook #'erc-make-read-only)
-   (add-hook 'erc-send-post-hook #'erc-make-read-only))
+  ((add-hook 'erc-insert-post-hook #'erc-make-read-only 70)
+   (add-hook 'erc-send-post-hook #'erc-make-read-only 70))
   ((remove-hook 'erc-insert-post-hook #'erc-make-read-only)
    (remove-hook 'erc-send-post-hook #'erc-make-read-only)))
 

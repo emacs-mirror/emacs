@@ -149,7 +149,7 @@ minor-mode maps, and new third-party modules should do the same.
 
 ** Option 'erc-timestamp-format-right' deprecated.
 Having to account for this option prevented other ERC modules from
-easily determining what right-hand stamps would look like before
+easily determining what right-sided stamps would look like before
 insertion, which is knowledge needed for certain UI decisions.  The
 way ERC has chosen to address this is imperfect and boils down to
 asking users who've customized this option to switch to
@@ -290,11 +290,13 @@ continue to modify non-ERC hooks locally whenever possible, especially
 in new code.
 
 *** ERC now manages timestamp-related properties a bit differently.
-For starters, the 'cursor-sensor-functions' property no longer
+For starters, the 'cursor-sensor-functions' text property is absent by
+default unless the option 'erc-echo-timestamps' is already enabled on
+module init.  And when present, the property's value no longer
 contains unique closures and thus no longer proves effective for
-traversing messages.  To compensate, a new property, 'erc-timestamp',
-now spans message bodies but not the newlines delimiting them.  Also
-affecting the 'stamp' module is the deprecation of the function
+traversing inserted messages.  For now, ERC only provides an internal
+means of visiting messages, but a public interface is forthcoming.
+Also affecting the 'stamp' module is the deprecation of the function
 'erc-insert-aligned' and its removal from client code.  Additionally,
 the module now merges its 'invisible' property with existing ones and
 includes all white space around stamps when doing so.
@@ -308,6 +310,23 @@ right-sided stamps on the same line as message text but not those
 folded onto the next line.  Such inconsistency made stamp detection
 overly complex and produced uneven results when toggling stamp
 visibility.
+
+*** Date stamps are independent messages.
+ERC now inserts "date stamps" generated from the option
+'erc-timestamp-format-left' as separate, standalone messages.  (This
+only matters if 'erc-insert-timestamp-function' is set to its default
+value of 'erc-insert-timestamp-left-and-right'.)  ERC's near-term UI
+goals require exposing these stamps to existing code designed to
+operate on complete messages.  For example, users likely expect date
+stamps to be togglable with 'erc-toggle-timestamps' while also being
+immune to hiding from commands like 'erc-match-toggle-hidden-fools'.
+Before this change, meeting such expectations demanded brittle
+heuristics that checked for the presence of these stamps in the
+leading portion of message bodies as well as special casing to act on
+these areas without inflicting collateral damage.  It may also be
+worth noting that as consequence of these changes, the internally
+managed variable 'erc-timestamp-last-inserted-left' no longer records
+the final trailing newline in 'erc-timestamp-format-left'.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library

@@ -279,7 +279,7 @@
 
   (should-not erc-echo-timestamps)
   (should-not erc-stamp--last-stamp)
-  (insert (propertize "abc" 'erc-timestamp 433483200))
+  (insert (propertize "a" 'erc-ts 433483200 'erc-msg 'msg) "bc")
   (goto-char (point-min))
   (let ((inhibit-message t)
         (erc-echo-timestamp-format "%Y-%m-%d %H:%M:%S %Z")
