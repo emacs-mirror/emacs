@@ -121,7 +121,9 @@
    :feature 'constant
    '((variable_list
       attribute: (attribute (["<" ">"] (identifier))))
-     @font-lock-constant-face)
+     @font-lock-constant-face
+     (goto_statement (identifier) @font-lock-constant-face)
+     (label_statement) @font-lock-constant-face)
 
    :language 'lua
    :feature 'operator
@@ -130,12 +132,6 @@
       "~" "|" "<<" ">>" "//" ".."]
      @font-lock-operator-face
      (vararg_expression) @font-lock-operator-face)
-
-   :language 'lua
-   :feature 'property
-   '((field name: (identifier) @font-lock-property-name-face)
-     (dot_index_expression
-      field: (identifier) @font-lock-property-use-face))
 
    :language 'lua
    :feature 'builtin
@@ -150,8 +146,7 @@
       name: (method_index_expression
              method: (identifier) @font-lock-function-call-face))
      (function_call
-      name: (dot_index_expression
-             table: (identifier) @font-lock-function-call-face)))
+      name: (dot_index_expression (identifier) @font-lock-function-call-face)))
 
    :language 'lua
    :feature 'punctuation
@@ -164,12 +159,7 @@
       @font-lock-variable-use-face)
      (function_call
       name: (method_index_expression
-             table: (identifier) @font-lock-variable-use-face))
-     (goto_statement (identifier) @font-lock-variable-use-face))
-
-   :language 'lua
-   :feature 'assignment
-   '((variable_list (identifier) @font-lock-variable-name-face))
+             table: (identifier) @font-lock-variable-use-face)))
 
    :language 'lua
    :feature 'number
@@ -199,9 +189,43 @@
    :feature 'definition
    '((function_declaration
       name: (identifier) @font-lock-function-name-face)
+     (assignment_statement
+      (variable_list name: [(identifier)]) @font-lock-function-name-face
+      (expression_list value: (function_definition)))
+     (table_constructor
+      (field
+        name: (identifier) @font-lock-function-name-face
+        value: (function_definition)))
+     (function_declaration
+      name: (dot_index_expression (identifier) @font-lock-function-name-face))
+     (function_declaration
+      name: (method_index_expression (identifier) @font-lock-function-name-face))
+     (function_declaration
+      (method_index_expression
+       (dot_index_expression
+        table: (identifier) @font-lock-function-name-face
+        field: (identifier) @font-lock-property-name-face
+        )))
      (parameters
       name: (identifier) @font-lock-variable-name-face)
-     (label_statement) @font-lock-variable-name-face)
+     (for_numeric_clause name: (identifier) @font-lock-variable-name-face))
+
+   :language 'lua
+   :feature 'property
+   '((field name: (identifier) @font-lock-property-name-face)
+     (dot_index_expression
+      field: (identifier) @font-lock-property-use-face))
+
+   :language 'lua
+   :feature 'assignment
+   '((variable_list
+      [(identifier)
+       (bracket_index_expression)]
+      @font-lock-variable-name-face)
+     (variable_list
+      (dot_index_expression
+       table: (identifier))
+      @font-lock-variable-name-face))
 
    :language 'lua
    :feature 'error
