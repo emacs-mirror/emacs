@@ -342,8 +342,14 @@ public final class EmacsOpenActivity extends Activity
       });
   }
 
+  /* Start `emacsclient' with the provided list of ARGUMENTS, after
+     ARGUMENTS[0] is replaced with the name of the emacsclient binary.
+
+     Create a new thread to await its completion, subsequently
+     reporting any errors that arise to the user.  */
+
   public void
-  startEmacsClient (String fileName)
+  startEmacsClient (String[] arguments)
   {
     String libDir;
     ProcessBuilder builder;
@@ -352,23 +358,10 @@ public final class EmacsOpenActivity extends Activity
     File file;
     Intent intent;
 
-    /* If the Emacs service is not running, then start Emacs and make
-       it open this file.  */
-
-    if (EmacsService.SERVICE == null)
-      {
-	fileToOpen = fileName;
-	intent = new Intent (EmacsOpenActivity.this,
-			     EmacsActivity.class);
-	finish ();
-	startActivity (intent);
-	return;
-      }
-
     libDir = EmacsService.getLibraryDirectory (this);
-    builder = new ProcessBuilder (libDir + "/libemacsclient.so",
-				  fileName, "--reuse-frame",
-				  "--timeout=10", "--no-wait");
+    arguments[0] = libDir + "/libemacsclient.so";
+
+    builder = new ProcessBuilder (arguments);
 
     /* Redirection is unfortunately not possible in Android 7 and
        earlier.  */
@@ -413,7 +406,7 @@ public final class EmacsOpenActivity extends Activity
     ContentResolver resolver;
     ParcelFileDescriptor fd;
     byte[] names;
-    String errorBlurb;
+    String errorBlurb, scheme;
 
     super.onCreate (savedInstanceState);
 
@@ -431,7 +424,8 @@ public final class EmacsOpenActivity extends Activity
 
     if (action.equals ("android.intent.action.VIEW")
 	|| action.equals ("android.intent.action.EDIT")
-	|| action.equals ("android.intent.action.PICK"))
+	|| action.equals ("android.intent.action.PICK")
+	|| action.equals ("android.intent.action.SENDTO"))
       {
 	/* Obtain the URI of the action.  */
 	uri = intent.getData ();
@@ -442,15 +436,35 @@ public final class EmacsOpenActivity extends Activity
 	    return;
 	  }
 
+	scheme = uri.getScheme ();
+
+	/* If URL is a mailto URI, call `message-mailto' much the same
+	   way emacsclient-mail.desktop does.  */
+
+	if (scheme.equals ("mailto"))
+	  {
+	    /* Escape the special characters $ and " before enclosing
+	       the string within the `message-mailto' wrapper.  */
+	    fileName = uri.toString ();
+	    fileName.replace ("\"", "\\\"").replace ("$", "\\$");
+	    fileName = "(message-mailto \"" + fileName + "\")";
+
+	    /* Execute emacsclient in order to execute this code.  */
+	    currentActivity = this;
+	    startEmacsClient (new String[] { "--timeout=10", "--no-wait",
+					     "--eval", fileName, });
+	    return;
+	  }
+
 	/* Now, try to get the file name.  */
 
-	if (uri.getScheme ().equals ("file"))
+	if (scheme.equals ("file"))
 	  fileName = uri.getPath ();
 	else
 	  {
 	    fileName = null;
 
-	    if (uri.getScheme ().equals ("content"))
+	    if (scheme.equals ("content"))
 	      {
 		/* This is one of the annoying Android ``content''
 		   URIs.  Most of the time, there is actually an
@@ -501,7 +515,7 @@ public final class EmacsOpenActivity extends Activity
 		      }
 		  }
 	      }
-	    else if (uri.getScheme ().equals ("org-protocol"))
+	    else if (scheme.equals ("org-protocol"))
 	      /* URL is an org-protocol:// link, which is meant to be
 		 directly relayed to emacsclient.  */
 	      fileName = uri.toString ();
@@ -516,11 +530,25 @@ public final class EmacsOpenActivity extends Activity
 	      }
 	  }
 
+	/* If the Emacs service is not running, then start Emacs and make
+	   it open this file.  */
+
+	if (EmacsService.SERVICE == null)
+	  {
+	    fileToOpen = fileName;
+	    intent = new Intent (EmacsOpenActivity.this,
+				 EmacsActivity.class);
+	    finish ();
+	    startActivity (intent);
+	    return;
+	  }
+
 	/* And start emacsclient.  Set `currentActivity' to this now.
 	   Presumably, it will shortly become capable of displaying
 	   dialogs.  */
 	currentActivity = this;
-	startEmacsClient (fileName);
+	startEmacsClient (new String[] { "--timeout=10", "--no-wait",
+					 "--reuse-frame", fileName, });
       }
     else
       finish ();

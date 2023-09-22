@@ -122,6 +122,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="org-protocol"/>
       </intent-filter>
+
+      <!-- And also mailto links.  -->
+
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="mailto"/>
+      </intent-filter>
+
+      <intent-filter>
+        <action android:name="android.intent.action.SENDTO"/>
+        <data android:scheme="mailto"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+      </intent-filter>
     </activity>
 
     <activity android:name="org.gnu.emacs.EmacsMultitaskActivity"

@@ -158,6 +158,13 @@ opened.
 @command{emacsclient} wrapper as a program capable of opening
 ``org-protocol'' links (@pxref{Protocols,,,org, The Org Manual}).
 
+@cindex ``mailto'' links, android
+  Furthermore, the wrapper is also registered as a program capable of
+sending mail to @code{mailto} URIs; when it is invoked to open such a
+URL, it calls the function @code{message-mailto} with that URI as its
+first argument.  This feature does not function when the Emacs server
+is not already running.
+
 @node Android File System
 @section What Files Emacs Can Access on Android
 @cindex /assets directory, android
