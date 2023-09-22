@@ -2078,6 +2078,15 @@ files.  When this option is given, the arguments to
 @command{emacsclient} are interpreted as a list of expressions to
 evaluate, @emph{not} as a list of files to visit.
 
+@vindex server-eval-args-left
+If you have arbitrary data which you want to provide as input to one
+of your expressions, you can pass the data as another argument to
+@command{emacsclient} and use @var{server-eval-args-left} in the
+expression to access the data.  Be careful to have your expression
+remove the data from @var{server-eval-args-left} regardless of whether
+your code succeeds, such as by using @code{pop}, otherwise Emacs will
+attempt to evaluate the data as a Lisp expression.
+
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
 Specify a server file (@pxref{TCP Emacs server}) for connecting to an

@@ -120,7 +120,10 @@ the remaining command-line args are in the variable `command-line-args-left'.")
     "List of command-line args not yet processed.
 This is a convenience alias, so that one can write (pop argv)
 inside of --eval command line arguments in order to access
-following arguments."))
+following arguments.
+
+See also `server-eval-args-left' for a similar variable which
+works for invocations of \"emacsclient --eval\"."))
 (internal-make-var-non-special 'argv)
 
 (defvar command-line-args-left nil

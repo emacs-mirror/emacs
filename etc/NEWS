@@ -233,6 +233,16 @@ to enter the file you want to modify.
 It can be used to customize the look of the appointment notification
 displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
+** Emacs Server and Client
+
+---
+*** 'server-eval-args-left' can be used to pop subsequent eval args
+When '--eval' is passed to emacsclient and Emacs is evaluating each
+argument, this variable is set to those which have not yet been
+evaluated.  It can be used to 'pop' arguments to prevent them from
+being evaluated, which is useful when those arguments contain
+arbitrary data.
+
 
 * Editing Changes in Emacs 30.1
 
