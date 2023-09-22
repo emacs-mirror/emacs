@@ -1318,10 +1318,10 @@ consecutive checks.  For example:
   :group 'files
   :version "24.1"
   :type '(choice
-	  (const   :tag "Do not inhibit file name cache" nil)
-	  (const   :tag "Do not use file name cache" t)
-	  (integer :tag "Do not use file name cache"
-		   :format "Do not use file name cache older then %v seconds"
+          (const   :tag "Do not cache remote file attributes" t)
+          (const   :tag "Cache remote file attributes" nil)
+          (integer :tag "Cache remote file attributes with expiration"
+                   :format "Cache expiry in seconds: %v"
 		   :value 10)))
 
 (defun file-local-name (file)
