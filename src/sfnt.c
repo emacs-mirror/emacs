@@ -2948,16 +2948,11 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	  /* When an anchor point is being used to translate the
 	     glyph, and the subglyph in question is actually a
 	     compound glyph, it is impossible to know which offset to
-	     use until the compound subglyph has actually been
-	     loaded.
+	     use until the compound subglyph has actually been loaded.
 
-	     As a result, the offset is calculated here, using the
-	     points in the loaded child compound glyph.  But first, X
-	     and Y must be reset to 0, as otherwise the translation
-	     might be applied twice if defer_offsets is not set.  */
-
-	  x = 0;
-	  y = 0;
+	     defer_offsets is set to true if these conditions apply,
+	     whereupon the offset is calculated here, using the points
+	     in the loaded child compound glyph.  */
 
 	  if (defer_offsets)
 	    {
