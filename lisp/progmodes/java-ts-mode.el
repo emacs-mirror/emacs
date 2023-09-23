@@ -99,6 +99,8 @@
      ((parent-is "field_declaration") parent-bol java-ts-mode-indent-offset)
      ((parent-is "return_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "variable_declarator") parent-bol java-ts-mode-indent-offset)
+     ((match ">" "type_arguments") parent-bol 0)
+     ((parent-is "type_arguments") parent-bol java-ts-mode-indent-offset)
      ((parent-is "method_invocation") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_rule") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_label") parent-bol java-ts-mode-indent-offset)

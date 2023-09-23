@@ -327,9 +327,8 @@ and syntax highlighting is set up with `sh-mode'.  In addition to
 buffer as the current buffer after its setup is done.  This can
 be used to further customize fontification and other behavior of
 the indirect buffer."
-  :type 'boolean
+  :type 'hook
   :group 'shell
-  :safe 'booleanp
   :version "29.1")
 
 (defcustom shell-highlight-undef-enable nil
