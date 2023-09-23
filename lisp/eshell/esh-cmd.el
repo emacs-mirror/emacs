@@ -742,7 +742,10 @@ if none)."
   "Evaluate a command OBJECT as a subjob.
 We indicate that the process was run in the background by returning it
 ensconced in a list."
-  `(let ((eshell-current-subjob-p t))
+  `(let ((eshell-current-subjob-p t)
+         ;; Print subjob messages.  This could have been cleared
+         ;; (e.g. by `eshell-source-file', which see).
+         (eshell-subjob-messages t))
      ,object))
 
 (defmacro eshell-commands (object &optional silent)

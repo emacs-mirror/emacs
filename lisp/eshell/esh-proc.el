@@ -100,6 +100,8 @@ information, for example."
 (defvar eshell-supports-asynchronous-processes (fboundp 'make-process)
   "Non-nil if Eshell can create asynchronous processes.")
 
+(defvar eshell-subjob-messages t
+  "Non-nil if we should print process start/end messages for subjobs.")
 (defvar eshell-current-subjob-p nil)
 
 (defvar eshell-process-list nil
@@ -243,8 +245,9 @@ The prompt will be set to PROMPT."
 
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
-  (when (and (eshell-processp object)
-	     eshell-current-subjob-p)
+  (when (and eshell-subjob-messages
+             eshell-current-subjob-p
+             (eshell-processp object))
     (require 'esh-mode)
     (declare-function eshell-interactive-print "esh-mode" (string))
     (eshell-interactive-print
@@ -253,11 +256,12 @@ The prompt will be set to PROMPT."
 
 (defun eshell-remove-process-entry (entry)
   "Record the process ENTRY as fully completed."
-  (if (and (eshell-processp (car entry))
-	   (cdr entry)
-	   eshell-done-messages-in-minibuffer)
-      (message "[%s]+ Done %s" (process-name (car entry))
-	       (process-command (car entry))))
+  (when (and eshell-subjob-messages
+             eshell-done-messages-in-minibuffer
+             (eshell-processp (car entry))
+             (cdr entry))
+    (message "[%s]+ Done %s" (process-name (car entry))
+             (process-command (car entry))))
   (setq eshell-process-list
 	(delq entry eshell-process-list)))
 
