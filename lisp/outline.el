@@ -260,7 +260,7 @@ non-nil and point is located on the heading line.")
   '(
     ;; Highlight headings according to the level.
     (eval . (list (or outline-search-function
-                      (concat "^\\(?:" outline-regexp "\\).*"))
+                      (concat "^\\(?:" outline-regexp "\\).*" outline-heading-end-regexp))
                   0 '(if outline-minor-mode
                          (if outline-minor-mode-highlight
                              (list 'face (outline-font-lock-face)))
