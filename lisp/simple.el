@@ -5103,7 +5103,7 @@ other cases, consider alternatives such as `call-process' or
 `process-lines', which do not invoke the shell.  Consider using
 built-in functions like `rename-file' instead of the external
 command \"mv\".  For more information, see Info node
-‘(elisp)Security Considerations’."
+`(elisp)Security Considerations'."
   (with-output-to-string
     (with-current-buffer standard-output
       (shell-command command t))))
