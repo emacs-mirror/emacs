@@ -6146,6 +6146,11 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
 				    ssize_t nbytes,
 				    struct coding_system *coding);
 
+static void
+read_and_insert_process_output (struct Lisp_Process *p, char *buf,
+				    ssize_t nread,
+				struct coding_system *process_coding);
+
 /* Read pending output from the process channel,
    starting with our buffered-ahead character if we have one.
    Yield number of decoded characters read,
@@ -6261,13 +6266,138 @@ read_process_output (Lisp_Object proc, int channel)
      friends don't expect current-buffer to be changed from under them.  */
   record_unwind_current_buffer ();
 
-  read_and_dispose_of_process_output (p, chars, nbytes, coding);
+  if (read_process_output_fast && p->filter == Qinternal_default_process_filter)
+    read_and_insert_process_output (p, chars, nbytes, coding);
+  else
+    read_and_dispose_of_process_output (p, chars, nbytes, coding);
 
   /* Handling the process output should not deactivate the mark.  */
   Vdeactivate_mark = odeactivate;
 
   SAFE_FREE_UNBIND_TO (count, Qnil);
   return nbytes;
+}
+
+static void
+read_process_output_before_insert (struct Lisp_Process *p, Lisp_Object *old_read_only,
+				   ptrdiff_t *old_begv, ptrdiff_t *old_zv,
+				   ptrdiff_t *before, ptrdiff_t *before_byte,
+				   ptrdiff_t *opoint, ptrdiff_t *opoint_byte)
+{
+  Fset_buffer (p->buffer);
+  *opoint = PT;
+  *opoint_byte = PT_BYTE;
+  *old_read_only = BVAR (current_buffer, read_only);
+  *old_begv = BEGV;
+  *old_zv = ZV;
+
+  bset_read_only (current_buffer, Qnil);
+
+  /* Insert new output into buffer at the current end-of-output
+     marker, thus preserving logical ordering of input and output.  */
+  if (XMARKER (p->mark)->buffer)
+    set_point_from_marker (p->mark);
+  else
+    SET_PT_BOTH (ZV, ZV_BYTE);
+  *before = PT;
+  *before_byte = PT_BYTE;
+
+  /* If the output marker is outside of the visible region, save
+     the restriction and widen.  */
+  if (! (BEGV <= PT && PT <= ZV))
+    Fwiden ();
+}
+
+static void
+read_process_output_after_insert (struct Lisp_Process *p, Lisp_Object *old_read_only,
+				  ptrdiff_t old_begv, ptrdiff_t old_zv,
+				  ptrdiff_t before, ptrdiff_t before_byte,
+				  ptrdiff_t opoint, ptrdiff_t opoint_byte)
+{
+  struct buffer *b;
+
+  /* Make sure the process marker's position is valid when the
+     process buffer is changed in the signal_after_change above.
+     W3 is known to do that.  */
+  if (BUFFERP (p->buffer)
+      && (b = XBUFFER (p->buffer), b != current_buffer))
+    set_marker_both (p->mark, p->buffer, BUF_PT (b), BUF_PT_BYTE (b));
+  else
+    set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
+
+  update_mode_lines = 23;
+
+  /* Make sure opoint and the old restrictions
+     float ahead of any new text just as point would.  */
+  if (opoint >= before)
+    {
+      opoint += PT - before;
+      opoint_byte += PT_BYTE - before_byte;
+    }
+  if (old_begv > before)
+    old_begv += PT - before;
+  if (old_zv >= before)
+    old_zv += PT - before;
+
+  /* If the restriction isn't what it should be, set it.  */
+  if (old_begv != BEGV || old_zv != ZV)
+    Fnarrow_to_region (make_fixnum (old_begv), make_fixnum (old_zv));
+
+  bset_read_only (current_buffer, *old_read_only);
+  SET_PT_BOTH (opoint, opoint_byte);
+}
+
+static void read_and_insert_process_output (struct Lisp_Process *p, char *buf,
+				    ssize_t nread,
+				    struct coding_system *process_coding)
+{
+  if (!nread || NILP (p->buffer) || !BUFFER_LIVE_P (XBUFFER (p->buffer)))
+    return;
+
+  Lisp_Object old_read_only;
+  ptrdiff_t old_begv, old_zv;
+  ptrdiff_t before, before_byte;
+  ptrdiff_t opoint, opoint_byte;
+
+  read_process_output_before_insert (p, &old_read_only, &old_begv, &old_zv,
+				     &before, &before_byte, &opoint, &opoint_byte);
+
+  /* Adapted from call_process.  */
+  if (NILP (BVAR (XBUFFER(p->buffer), enable_multibyte_characters))
+	   && ! CODING_MAY_REQUIRE_DECODING (process_coding))
+    {
+      insert_1_both (buf, nread, nread, 0, 0, 0);
+      signal_after_change (PT - nread, 0, nread);
+    }
+  else
+    {			/* We have to decode the input.  */
+      Lisp_Object curbuf;
+      int carryover = 0;
+      specpdl_ref count1 = SPECPDL_INDEX ();
+
+      XSETBUFFER (curbuf, current_buffer);
+      /* We cannot allow after-change-functions be run
+	 during decoding, because that might modify the
+	 buffer, while we rely on process_coding.produced to
+	 faithfully reflect inserted text until we
+	 TEMP_SET_PT_BOTH below.  */
+      specbind (Qinhibit_modification_hooks, Qt);
+      decode_coding_c_string (process_coding,
+			      (unsigned char *) buf, nread, curbuf);
+      unbind_to (count1, Qnil);
+
+      TEMP_SET_PT_BOTH (PT + process_coding->produced_char,
+			PT_BYTE + process_coding->produced);
+      signal_after_change (PT - process_coding->produced_char,
+			   0, process_coding->produced_char);
+      carryover = process_coding->carryover_bytes;
+      if (carryover > 0)
+	memcpy (buf, process_coding->carryover,
+		process_coding->carryover_bytes);
+    }
+
+  read_process_output_after_insert (p, &old_read_only, old_begv, old_zv,
+				    before, before_byte, opoint, opoint_byte);
 }
 
 static void
@@ -6373,7 +6503,6 @@ Otherwise it discards the output.  */)
   (Lisp_Object proc, Lisp_Object text)
 {
   struct Lisp_Process *p;
-  ptrdiff_t opoint;
 
   CHECK_PROCESS (proc);
   p = XPROCESS (proc);
@@ -6384,31 +6513,10 @@ Otherwise it discards the output.  */)
       Lisp_Object old_read_only;
       ptrdiff_t old_begv, old_zv;
       ptrdiff_t before, before_byte;
-      ptrdiff_t opoint_byte;
-      struct buffer *b;
+      ptrdiff_t opoint, opoint_byte;
 
-      Fset_buffer (p->buffer);
-      opoint = PT;
-      opoint_byte = PT_BYTE;
-      old_read_only = BVAR (current_buffer, read_only);
-      old_begv = BEGV;
-      old_zv = ZV;
-
-      bset_read_only (current_buffer, Qnil);
-
-      /* Insert new output into buffer at the current end-of-output
-	 marker, thus preserving logical ordering of input and output.  */
-      if (XMARKER (p->mark)->buffer)
-	set_point_from_marker (p->mark);
-      else
-	SET_PT_BOTH (ZV, ZV_BYTE);
-      before = PT;
-      before_byte = PT_BYTE;
-
-      /* If the output marker is outside of the visible region, save
-	 the restriction and widen.  */
-      if (! (BEGV <= PT && PT <= ZV))
-	Fwiden ();
+      read_process_output_before_insert (p, &old_read_only, &old_begv, &old_zv,
+					 &before, &before_byte, &opoint, &opoint_byte);
 
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (BVAR (current_buffer, enable_multibyte_characters))
@@ -6421,35 +6529,8 @@ Otherwise it discards the output.  */)
       insert_from_string_before_markers (text, 0, 0,
 					 SCHARS (text), SBYTES (text), 0);
 
-      /* Make sure the process marker's position is valid when the
-	 process buffer is changed in the signal_after_change above.
-	 W3 is known to do that.  */
-      if (BUFFERP (p->buffer)
-	  && (b = XBUFFER (p->buffer), b != current_buffer))
-	set_marker_both (p->mark, p->buffer, BUF_PT (b), BUF_PT_BYTE (b));
-      else
-	set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
-
-      update_mode_lines = 23;
-
-      /* Make sure opoint and the old restrictions
-	 float ahead of any new text just as point would.  */
-      if (opoint >= before)
-	{
-	  opoint += PT - before;
-	  opoint_byte += PT_BYTE - before_byte;
-	}
-      if (old_begv > before)
-	old_begv += PT - before;
-      if (old_zv >= before)
-	old_zv += PT - before;
-
-      /* If the restriction isn't what it should be, set it.  */
-      if (old_begv != BEGV || old_zv != ZV)
-	Fnarrow_to_region (make_fixnum (old_begv), make_fixnum (old_zv));
-
-      bset_read_only (current_buffer, old_read_only);
-      SET_PT_BOTH (opoint, opoint_byte);
+      read_process_output_after_insert (p, &old_read_only, old_begv, old_zv,
+					before, before_byte, opoint, opoint_byte);
     }
   return Qnil;
 }
@@ -8798,6 +8879,13 @@ amounts of data in one go.
 On GNU/Linux systems, the value should not exceed
 /proc/sys/fs/pipe-max-size.  See pipe(7) manpage for details.  */);
   read_process_output_max = 4096;
+
+  DEFVAR_BOOL ("read-process-output-fast", read_process_output_fast,
+	       doc: /* Non-nil to optimize the insertion of process output.
+We skip calling `internal-default-process-filter' and don't allocate
+the Lisp string that would be used as its argument.  Only affects the
+case of asynchronous process with the default filter.  */);
+  read_process_output_fast = Qt;
 
   DEFVAR_INT ("process-error-pause-time", process_error_pause_time,
 	      doc: /* The number of seconds to pause after handling process errors.
