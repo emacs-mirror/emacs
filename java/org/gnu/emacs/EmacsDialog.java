@@ -41,6 +41,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.FrameLayout;
 
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -157,6 +158,13 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     Theme theme;
     TypedArray attributes;
     Window window;
+
+    /* Wrap the context within a style wrapper.  Any dialog properties
+       tied to EmacsStyle (such as those applied by the system ``dark
+       theme'') will thus affect the dialog irrespective of whether
+       CONTEXT is an activity or the service.  */
+
+    context = new ContextThemeWrapper (context, R.style.EmacsStyle);
 
     size = buttons.size ();
     styleId = -1;
