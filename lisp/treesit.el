@@ -716,8 +716,13 @@ region."
                              old-ranges new-ranges beg end)
                             (point-min) (point-max))))
           (dolist (parser (treesit-parser-list nil language))
-            (treesit-parser-set-included-ranges
-             parser set-ranges))))))))
+              (treesit-parser-set-included-ranges
+               parser (or set-ranges
+                          ;; When there's no range for the embedded
+                          ;; language, set it's range to a dummy (1
+                          ;; . 1), otherwise it would be set to the
+                          ;; whole buffer, which is not what we want.
+                          `((,(point-min) . ,(point-min))))))))))))
 
 (defun treesit-parser-range-on (parser beg &optional end)
   "Check if PARSER's range covers the portion between BEG and END.

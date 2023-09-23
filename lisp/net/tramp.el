@@ -3522,7 +3522,7 @@ BODY is the backend specific code."
 			(let ((inhibit-file-name-handlers
 			       `(tramp-file-name-handler
 				 tramp-crypt-file-name-handler
-				 . inhibit-file-name-handlers))
+				 . ,inhibit-file-name-handlers))
 			      (inhibit-file-name-operation 'write-region))
 			  (find-file-name-handler ,visit 'write-region))))
 	  ;; We use this to save the value of

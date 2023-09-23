@@ -120,9 +120,9 @@ Emacs version in which they will appear.  Likewise with defcustom's
 whose value is changed -- update their ':version' tag.
 
 Think about whether your change requires updating the manuals.  If you
-know it does not, mark the NEWS entry with "---".  If you know
-that *all* the necessary documentation updates have been made as part
-of your changes or those by others, mark the entry with "+++".
+know it does not, mark the NEWS entry with "---" before the entry.  If
+you know that *all* the necessary documentation updates have been made
+as part of your changes or those by others, mark the entry with "+++".
 Otherwise, do not mark it.
 
 If your change requires updating the manuals to document new
