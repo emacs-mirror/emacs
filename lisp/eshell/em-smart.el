@@ -294,7 +294,7 @@ and the end of the buffer are still visible."
        ((eq this-command 'self-insert-command)
 	(if (eq last-command-event ? )
 	    (if (and eshell-smart-space-goes-to-end
-		     eshell-current-command)
+		     eshell-foreground-command)
 		(if (not (pos-visible-in-window-p (point-max)))
 		    (setq this-command 'scroll-up)
 		  (setq this-command 'eshell-smart-goto-end))

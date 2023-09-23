@@ -58,6 +58,18 @@ This test uses a pipeline for the command."
         (eshell-command "*echo hi | *cat" t)
         (should (equal (buffer-string) "hi\n"))))))
 
+(ert-deftest eshell-test/eshell-command/pipeline-wait ()
+  "Check that `eshell-command' waits for all its processes before returning."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "sh")
+                    (executable-find "rev")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command
+         "*echo hello | sh -c 'sleep 1; rev' 1>&2 | *echo goodbye" t)
+        (should (equal (buffer-string) "goodbye\nolleh\n"))))))
+
 (ert-deftest eshell-test/eshell-command/background ()
   "Test that `eshell-command' works for background commands."
   (skip-unless (executable-find "echo"))
@@ -132,7 +144,7 @@ insert the queued one at the next prompt, and finally run it."
    (eshell-insert-command "sleep 1; echo slept")
    (eshell-insert-command "echo alpha" #'eshell-queue-input)
    (let ((start (marker-position (eshell-beginning-of-output))))
-     (eshell-wait-for (lambda () (not eshell-current-command)))
+     (eshell-wait-for (lambda () (not eshell-foreground-command)))
      (should (string-match "^slept\n.*echo alpha\nalpha\n$"
                            (buffer-substring-no-properties
                             start (eshell-end-of-output)))))))

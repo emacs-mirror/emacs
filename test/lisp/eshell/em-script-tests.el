@@ -67,14 +67,14 @@
   "Test sourcing a script in the background."
   (skip-unless (executable-find "echo"))
   (ert-with-temp-file temp-file
-    :text "*echo hi"
+    :text "*echo hi\nif {[ foo = foo ]} {*echo bye}"
     (eshell-with-temp-buffer bufname "old"
       (with-temp-eshell
        (eshell-match-command-output
         (format "source %s > #<%s> &" temp-file bufname)
         "\\`\\'")
        (eshell-wait-for-subprocess t))
-      (should (equal (buffer-string) "hi\n")))))
+      (should (equal (buffer-string) "hi\nbye\n")))))
 
 (ert-deftest em-script-test/source-script/arg-vars ()
   "Test sourcing script with $0, $1, ... variables."
