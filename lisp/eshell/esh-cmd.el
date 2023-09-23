@@ -319,17 +319,6 @@ This only returns external (non-Lisp) processes."
   (setq-local eshell-last-async-procs nil)
 
   (add-hook 'eshell-kill-hook #'eshell-resume-command nil t)
-
-  ;; make sure that if a command is over, and no process is being
-  ;; waited for, that `eshell-current-command' is set to nil.  This
-  ;; situation can occur, for example, if a Lisp function results in
-  ;; `debug' being called, and the user then types \\[top-level]
-  (add-hook 'eshell-post-command-hook
-            (lambda ()
-              (setq eshell-current-command nil
-                    eshell-last-async-procs nil))
-            nil t)
-
   (add-hook 'eshell-parse-argument-hook
 	    #'eshell-parse-subcommand-argument nil t)
   (add-hook 'eshell-parse-argument-hook
@@ -432,8 +421,9 @@ command hooks should be run before and after the command."
     (if toplevel
 	`(eshell-commands (progn
                             (run-hooks 'eshell-pre-command-hook)
-                            (catch 'top-level (progn ,@commands))
-                            (run-hooks 'eshell-post-command-hook)))
+                            (unwind-protect
+                                (progn ,@commands)
+                              (run-hooks 'eshell-post-command-hook))))
       (macroexp-progn commands))))
 
 (defun eshell-debug-show-parsed-args (terms)
@@ -772,15 +762,14 @@ to this hook using `nconc', and *not* `add-hook'.
 
 Someday, when Scheme will become the dominant Emacs language, all of
 this grossness will be made to disappear by using `call/cc'..."
-  `(let ((eshell-this-command-hook '(ignore)))
-     (eshell-condition-case err
-	 (prog1
-	     ,object
-	   (mapc #'funcall eshell-this-command-hook))
-       (error
-	(mapc #'funcall eshell-this-command-hook)
-	(eshell-errorn (error-message-string err))
-	(eshell-close-handles 1)))))
+  `(eshell-condition-case err
+       (let ((eshell-this-command-hook '(ignore)))
+         (unwind-protect
+             ,object
+           (mapc #'funcall eshell-this-command-hook)))
+     (error
+      (eshell-errorn (error-message-string err))
+      (eshell-close-handles 1))))
 
 (defvar eshell-output-handle)           ;Defined in esh-io.el.
 (defvar eshell-error-handle)            ;Defined in esh-io.el.
@@ -1015,30 +1004,41 @@ process(es) in a cons cell like:
 (defun eshell-resume-command (proc status)
   "Resume the current command when a pipeline ends."
   (when (and proc
-             ;; Make sure STATUS is something we want to handle.
-             (stringp status)
-             (not (string= "stopped" status))
-             (not (string-match eshell-reset-signals status))
              ;; Make sure PROC is one of our foreground processes and
              ;; that all of those processes are now dead.
              (member proc eshell-last-async-procs)
              (not (seq-some #'eshell-process-active-p eshell-last-async-procs)))
-    (eshell-resume-eval)))
+    (if (and ;; Check STATUS to determine whether we want to resume or
+             ;; abort the command.
+             (stringp status)
+             (not (string= "stopped" status))
+             (not (string-match eshell-reset-signals status)))
+        (eshell-resume-eval)
+      (setq eshell-last-async-procs nil)
+      (setq eshell-current-command nil)
+      (declare-function eshell-reset "esh-mode" (&optional no-hooks))
+      (eshell-reset))))
 
 (defun eshell-resume-eval ()
   "Destructively evaluate a form which may need to be deferred."
   (setq eshell-last-async-procs nil)
   (when eshell-current-command
     (eshell-condition-case err
-        (let* (retval
-               (procs (catch 'eshell-defer
-                        (ignore
-                         (setq retval
-                               (eshell-do-eval
-                                eshell-current-command))))))
-          (if retval
-              (cadr retval)
-            (ignore (setq eshell-last-async-procs procs))))
+        (let (retval procs)
+          (unwind-protect
+              (progn
+                (setq procs (catch 'eshell-defer
+                              (ignore (setq retval
+                                            (eshell-do-eval
+                                             eshell-current-command)))))
+                (when retval
+                  (cadr retval)))
+            (setq eshell-last-async-procs procs)
+            ;; If we didn't defer this command, clear it out.  This
+            ;; applies both when the command has finished normally,
+            ;; and when a signal or thrown value causes us to unwind.
+            (unless procs
+              (setq eshell-current-command nil))))
       (error
        (error (error-message-string err))))))
 
@@ -1051,9 +1051,10 @@ process(es) in a cons cell like:
        (let ((,tag-symbol ,tag))
          (eshell-always-debug-command 'form
            "%s\n\n%s" ,tag-symbol (eshell-stringify ,form))
-         ,@body
-         (eshell-always-debug-command 'form
-           "done %s\n\n%s" ,tag-symbol (eshell-stringify ,form))))))
+         (unwind-protect
+             (progn ,@body)
+           (eshell-always-debug-command 'form
+             "done %s\n\n%s" ,tag-symbol (eshell-stringify ,form)))))))
 
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate FORM, simplifying it as we go.
@@ -1181,20 +1182,40 @@ have been replaced by constants."
             ;; If we get here, there was no `eshell-defer' thrown, so
             ;; just return the `let' body's result.
             result)))
-       ((memq (car form) '(catch condition-case unwind-protect))
-	;; `condition-case' and `unwind-protect' have to be
-	;; handled specially, because we only want to call
-	;; `eshell-do-eval' on their first form.
+       ((memq (car form) '(catch condition-case))
+        ;; `catch' and `condition-case' have to be handled specially,
+        ;; because we only want to call `eshell-do-eval' on their
+        ;; second forms.
 	;;
 	;; NOTE: This requires obedience by all forms which this
 	;; function might encounter, that they do not contain
 	;; other special forms.
-	(unless (eq (car form) 'unwind-protect)
-	  (setq args (cdr args)))
+        (setq args (cdr args))
 	(unless (eq (caar args) 'eshell-do-eval)
           (eshell-manipulate form "handling special form"
 	    (setcar args `(eshell-do-eval ',(car args) ,synchronous-p))))
 	(eval form))
+       ((eq (car form) 'unwind-protect)
+        ;; `unwind-protect' has to be handled specially, because we
+        ;; only want to call `eshell-do-eval' on its first form, and
+        ;; we need to ensure we let `eshell-defer' through without
+        ;; evaluating the unwind forms.
+        (let (deferred)
+          (unwind-protect
+              (eshell-manipulate form "handling `unwind-protect' body form"
+                (setq deferred
+                      (catch 'eshell-defer
+                        (ignore
+                         (setcar args (eshell-do-eval
+                                       (car args) synchronous-p)))))
+                (car args))
+            (if deferred
+                (throw 'eshell-defer deferred)
+              (eshell-manipulate form "handling `unwind-protect' unwind forms"
+                (pop args)
+                (while args
+                  (setcar args (eshell-do-eval (car args) synchronous-p))
+                  (pop args)))))))
        ((eq (car form) 'setq)
 	(if (cddr args) (error "Unsupported form (setq X1 E1 X2 E2..)"))
         (eshell-manipulate form "evaluating arguments to setq"
