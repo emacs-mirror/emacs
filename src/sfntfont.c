@@ -1144,7 +1144,9 @@ sfnt_enum_font_1 (int fd, const char *file,
 int
 sfnt_enum_font (const char *file)
 {
-  int fd, rc;
+  int fd;
+  int rc;
+  off_t seek;
   struct sfnt_offset_subtable *subtables;
   struct sfnt_ttc_header *ttc;
   size_t i;
@@ -1175,8 +1177,9 @@ sfnt_enum_font (const char *file)
 
       for (i = 0; i < ttc->num_fonts; ++i)
 	{
-	  if (lseek (fd, ttc->offset_table[i], SEEK_SET)
-	      != ttc->offset_table[i])
+	  seek = lseek (fd, ttc->offset_table[i], SEEK_SET);
+
+	  if (seek == -1 || seek != ttc->offset_table[i])
 	    continue;
 
 	  subtables = sfnt_read_table_directory (fd);
