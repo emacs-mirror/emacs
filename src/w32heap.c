@@ -123,7 +123,7 @@ typedef struct _RTL_HEAP_PARAMETERS {
 # if defined _WIN64 || defined WIDE_EMACS_INT
 #  define DUMPED_HEAP_SIZE (28*1024*1024)
 # else
-#  define DUMPED_HEAP_SIZE (18*1024*1024)
+#  define DUMPED_HEAP_SIZE (24*1024*1024)
 # endif
 #endif
 
