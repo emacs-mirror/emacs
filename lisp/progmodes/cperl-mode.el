@@ -79,6 +79,9 @@
 (eval-when-compile (require 'cl-lib))
 (require 'facemenu)
 
+(defvar Man-switches)
+(defvar manual-program)
+(defvar imenu-max-items)
 (defvar msb-menu-cond)
 (defvar gud-perldb-history)
 (defvar vc-rcs-header)
@@ -901,9 +904,6 @@ Unless KEEP, removes the old indentation."
   (or keep
       (delete-horizontal-space))
   (indent-to column minimum))
-
-(eval-when-compile
-  (mapc #'require '(imenu easymenu etags timer man info)))
 
 (define-abbrev-table 'cperl-mode-electric-keywords-abbrev-table
   (mapcar (lambda (x)
