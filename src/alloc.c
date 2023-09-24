@@ -105,7 +105,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    or a new vector block is allocated (allocate_vector_from_block).
    Accordingly, objects reused from the free list are unpoisoned.
 
-   This feature can be disabled wtih the run-time flag
+   This feature can be disabled with the run-time flag
    `allow_user_poisoning' set to zero.  */
 #if ADDRESS_SANITIZER && defined HAVE_SANITIZER_ASAN_INTERFACE_H \
   && !defined GC_ASAN_POISON_OBJECTS

@@ -1378,7 +1378,7 @@ Elisp plists (@pxref{JSONRPC objects in Elisp}).
 The Eglot generic function machinery will automatically destructure
 the incoming message, so these two properties can simply be added to
 the new method's lambda list as @code{&key} arguments.  Also, the
-@code{eglot-uri-to-path} and@code{eglot-range-region} may be used to
+@code{eglot-uri-to-path} and @code{eglot-range-region} may be used to
 easily parse the LSP @code{:uri} and @code{:start ... :end ...}
 objects to obtain Emacs objects for file names and positions.
 
