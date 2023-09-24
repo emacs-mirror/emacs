@@ -95,6 +95,7 @@ lisp/cedet/semantic/grammar-wy.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/leim/ja-dic/
+leim/small-ja-dic-option
 lisp/leim/leim-list.el
 lisp/leim/quail/4Corner.el
 lisp/leim/quail/ARRAY30.el
