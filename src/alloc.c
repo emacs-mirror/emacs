@@ -3155,6 +3155,11 @@ static struct vector_block *vector_blocks;
    - For I = VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) ≥ I */
 static struct Lisp_Vector *vector_free_lists[VECTOR_FREE_LIST_ARRAY_SIZE];
 
+/* Index to the bucket in vector_free_lists into which we last inserted
+   or split a free vector.  We use this as a heuristic telling us where
+   to start looking for free vectors when the exact-size bucket is empty.  */
+static ptrdiff_t last_inserted_vector_free_idx = VECTOR_FREE_LIST_ARRAY_SIZE;
+
 /* Singly-linked list of large vectors.  */
 
 static struct large_vector *large_vectors;
@@ -3191,6 +3196,7 @@ setup_on_free_list (struct Lisp_Vector *v, ptrdiff_t nbytes)
   set_next_vector (v, vector_free_lists[vindex]);
   ASAN_POISON_VECTOR_CONTENTS (v, nbytes - header_size);
   vector_free_lists[vindex] = v;
+  last_inserted_vector_free_idx = vindex;
 }
 
 /* Get a new vector block.  */
@@ -3256,7 +3262,8 @@ allocate_vector_from_block (ptrdiff_t nbytes)
   /* Next, check free lists containing larger vectors.  Since
      we will split the result, we should have remaining space
      large enough to use for one-slot vector at least.  */
-  for (index = VINDEX (nbytes + VBLOCK_BYTES_MIN);
+  for (index = max (VINDEX (nbytes + VBLOCK_BYTES_MIN),
+		    last_inserted_vector_free_idx);
        index < VECTOR_FREE_LIST_ARRAY_SIZE; index++)
     if (vector_free_lists[index])
       {
@@ -3489,6 +3496,7 @@ sweep_vectors (void)
   gcstat.total_vectors = 0;
   gcstat.total_vector_slots = gcstat.total_free_vector_slots = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
+  last_inserted_vector_free_idx = VECTOR_FREE_LIST_ARRAY_SIZE;
 
   /* Looking through vector blocks.  */
 
