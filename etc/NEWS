@@ -144,6 +144,14 @@ can use this to distinguish between buffers visiting files with the
 same base name that belong to different projects by using the provided
 transform function 'project-uniquify-dirname-transform'.
 
+** 'insert-directory-program' is now a defcustom.
+
+** 'insert-directory-program' prefers "gls" on *BSD and macOS.
+On *BSD and macOS systems, this user option now defaults to the "gls"
+executable, if it exists.  This should remove the need to change its
+value when installing GNU coreutils using something like ports or
+Homebrew.
+
 ** cl-print
 
 *** You can expand the "..." truncation everywhere.
