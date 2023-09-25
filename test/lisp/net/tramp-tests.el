@@ -5313,7 +5313,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   ;; `make-process' supports file name handlers since Emacs 27.  We
   ;; cannot use `tramp--test-always' during compilation of the macro.
   (when (let ((file-name-handler-alist '(("" . (lambda (&rest _) t)))))
-	  (ignore-errors (make-process :file-handler t)))
+	  (ignore-errors (make-process :name "" :command "" :file-handler t)))
     `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
        ;; This is the docstring.  However, it must be expanded to a
        ;; string inside the macro.  No idea.
@@ -5354,7 +5354,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
     (let ((default-directory ert-remote-temporary-file-directory)
 	  (tmp-name (tramp--test-make-temp-name nil quoted))
 	  kill-buffer-query-functions command proc)
-      (with-no-warnings (should-not (make-process)))
+      (should-not (apply #'make-process nil)) ; Use `apply' to avoid warnings.
 
       ;; Simple process.
       (unwind-protect
