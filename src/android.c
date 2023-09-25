@@ -73,7 +73,6 @@ bool android_init_gui;
 struct android_emacs_pixmap
 {
   jclass class;
-  jmethodID constructor;
   jmethodID constructor_mutable;
 };
 
@@ -1649,7 +1648,6 @@ android_init_emacs_pixmap (void)
 					name, signature);	\
   assert (pixmap_class.c_name);
 
-  FIND_METHOD (constructor, "<init>", "(S[IIII)V");
   FIND_METHOD (constructor_mutable, "<init>", "(SIII)V");
 
 #undef FIND_METHOD
@@ -3404,86 +3402,91 @@ android_create_pixmap_from_bitmap_data (char *data, unsigned int width,
 					unsigned long background,
 					unsigned int depth)
 {
-  android_handle prev_max_handle;
-  jobject object;
-  jintArray colors;
   android_pixmap pixmap;
+  jobject object;
+  AndroidBitmapInfo info;
+  unsigned int *depth_24;
+  unsigned char *depth_8;
+  void *bitmap_data;
   unsigned int x, y;
-  jint *region;
+  unsigned int r, g, b;
 
-  USE_SAFE_ALLOCA;
+  /* Create a pixmap with the right dimensions and depth.  */
+  pixmap = android_create_pixmap (width, height, depth);
 
-  /* Create the color array holding the data.  */
-  colors = (*android_java_env)->NewIntArray (android_java_env,
-					     width * height);
-  android_exception_check ();
+  /* Lock the bitmap data.  */
+  bitmap_data = android_lock_bitmap (pixmap, &info, &object);
 
-  SAFE_NALLOCA (region, sizeof *region, width);
+  /* Merely return if locking the bitmap fails.  */
+  if (!bitmap_data)
+    return pixmap;
 
-  for (y = 0; y < height; ++y)
+  eassert (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888
+	   || info.format == ANDROID_BITMAP_FORMAT_A_8);
+
+  /* Begin copying each line.  */
+
+  switch (info.format)
     {
-      for (x = 0; x < width; ++x)
-	{
-	  if (depth == 24)
-	    {
-	      /* The alpha channels must be set, or otherwise, the
-		 pixmap will be created entirely transparent.  */
+    case ANDROID_BITMAP_FORMAT_RGBA_8888:
 
-	      if (data[x / 8] & (1 << (x % 8)))
-		region[x] = foreground | 0xff000000;
-	      else
-		region[x] = background | 0xff000000;
-	    }
-	  else
-	    {
-	      if (data[x / 8] & (1 << (x % 8)))
-		region[x] = foreground;
-	      else
-		region[x] = background;
-	    }
+      /* Swizzle the pixels into ABGR format.  Android uses Skia's
+	 ``native color type'', which is ABGR.  This is despite the
+	 format being named ``ARGB'', and more confusingly
+	 `ANDROID_BITMAP_FORMAT_RGBA_8888' in bitmap.h.  */
+
+      r = background & 0x00ff0000;
+      g = background & 0x0000ff00;
+      b = background & 0x000000ff;
+      background = (r >> 16) | g | (b << 16) | 0xff000000;
+      r = foreground & 0x00ff0000;
+      g = foreground & 0x0000ff00;
+      b = foreground & 0x000000ff;
+      foreground = (r >> 16) | g | (b << 16) | 0xff000000;
+
+      for (y = 0; y < height; ++y)
+	{
+	  depth_24 = (void *) ((char *) bitmap_data + y * info.stride);
+
+	  for (x = 0; x < width; ++x)
+	    depth_24[x] = ((data[x / 8] & (1 << (x % 8)))
+			   ? foreground : background);
+
+	  data += (width + 7) / 8;
 	}
 
-      (*android_java_env)->SetIntArrayRegion (android_java_env,
-					      colors,
-					      width * y, width,
-					      region);
-      data += width / 8;
+      break;
+
+    case ANDROID_BITMAP_FORMAT_A_8:
+
+      /* 8-bit pixmaps are created, but in spite of that they are
+	 employed only to represent bitmaps.  */
+
+      foreground = (foreground ? 255 : 0);
+      background = (background ? 255 : 0);
+
+      for (y = 0; y < height; ++y)
+	{
+	  depth_8 = (void *) ((char *) bitmap_data + y * info.stride);
+
+	  for (x = 0; x < width; ++x)
+	    depth_8[x] = ((data[x / 8] & (1 << (x % 8)))
+			  ? foreground : background);
+
+	  data += (width + 7) / 8;
+	}
+
+      break;
+
+    default:
+      emacs_abort ();
     }
 
-  /* First, allocate the pixmap handle.  */
-  prev_max_handle = max_handle;
-  pixmap = android_alloc_id ();
-
-  if (!pixmap)
-    {
-      ANDROID_DELETE_LOCAL_REF ((jobject) colors);
-      error ("Out of pixmap handles!");
-    }
-
-  object = (*android_java_env)->NewObject (android_java_env,
-					   pixmap_class.class,
-					   pixmap_class.constructor,
-					   (jshort) pixmap, colors,
-					   (jint) width, (jint) height,
-					   (jint) depth);
-  (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF ((jobject) colors);
-
-  if (!object)
-    {
-      max_handle = prev_max_handle;
-      memory_full (0);
-    }
-
-  android_handles[pixmap].type = ANDROID_HANDLE_PIXMAP;
-  android_handles[pixmap].handle
-    = (*android_java_env)->NewGlobalRef (android_java_env, object);
+  /* Unlock the bitmap itself.  */
+  AndroidBitmap_unlockPixels (android_java_env, object);
   ANDROID_DELETE_LOCAL_REF (object);
 
-  if (!android_handles[pixmap].handle)
-    memory_full (0);
-
-  SAFE_FREE ();
+  /* Return the pixmap.  */
   return pixmap;
 }
 

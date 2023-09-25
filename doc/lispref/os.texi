@@ -3220,14 +3220,24 @@ These have the same meaning as they do when used in calls to
 @code{notifications-notify}.
 
 @item :urgency @var{urgency}
+The set of values for @var{urgency} is the same as with
+@code{notifications-notify}, but the urgency applies to all
+notifications displayed with the defined @var{group}, except under
+Android 7.1 and earlier.
+
 @item :group @var{group}
-These two parameters are ignored under Android 7.1 and earlier
-versions of the system.  The set of values for @var{urgency} is the
-same as with @code{notifications-notify}, but the urgency applies to
-all notifications displayed with the defined @var{group}.
+@var{group} is a string that designates a category to which the
+notification sent will belong.  This category is reproduced within the
+system's notification settings menus, but is ignored under Android 7.1
+and earlier.
 
 If @var{group} is nil or not present within @var{params}, it is
 replaced by the string @samp{"Desktop Notifications"}.
+
+Callers should provide one stable combination of @var{urgency} and
+@var{group} for each kind of notification they send, given that the
+system may elect to disregard @var{urgency} if it does not match that
+of any notification previously delivered to @var{group}.
 
 @item :icon @var{icon}
 This parameter controls the symbolic icon the notification will be
