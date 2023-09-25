@@ -3080,10 +3080,10 @@ enum { VBLOCK_BYTES_MIN = vroundup_ct (header_size + sizeof (Lisp_Object)) };
 enum { VBLOCK_BYTES_MAX = vroundup_ct ((VECTOR_BLOCK_BYTES / 2) - word_size) };
 
 /* We maintain one free list for each possible block-allocated
-   vector size, and this is the number of free lists we have.  */
-
-enum { VECTOR_MAX_FREE_LIST_INDEX =
-       (VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN) / roundup_size + 1 };
+   vector size, one for blocks one word bigger,
+   and one for all free vectors larger than that.  */
+enum { VECTOR_FREE_LIST_ARRAY_SIZE =
+       (VBLOCK_BYTES_MAX - VBLOCK_BYTES_MIN) / roundup_size + 1 + 2 };
 
 /* Common shortcut to advance vector pointer over a block data.  */
 
@@ -3145,9 +3145,15 @@ struct vector_block
 static struct vector_block *vector_blocks;
 
 /* Vector free lists, where NTH item points to a chain of free
-   vectors of the same NBYTES size, so NTH == VINDEX (NBYTES).  */
+   vectors of the same NBYTES size, so NTH == VINDEX (NBYTES),
+   except for the last element which may contain larger vectors.
 
-static struct Lisp_Vector *vector_free_lists[VECTOR_MAX_FREE_LIST_INDEX];
+   I.e., for each vector V in vector_free_lists[I] the following holds:
+   - V has type PVEC_FREE
+   - V's total size in bytes, BS(V) = PVSIZE(V) * word_size + header_size
+   - For I < VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) = I
+   - For I = VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) ≥ I */
+static struct Lisp_Vector *vector_free_lists[VECTOR_FREE_LIST_ARRAY_SIZE];
 
 /* Singly-linked list of large vectors.  */
 
@@ -3180,7 +3186,8 @@ setup_on_free_list (struct Lisp_Vector *v, ptrdiff_t nbytes)
   XSETPVECTYPESIZE (v, PVEC_FREE, 0, nwords);
   eassert (nbytes % roundup_size == 0);
   ptrdiff_t vindex = VINDEX (nbytes);
-  eassert (vindex < VECTOR_MAX_FREE_LIST_INDEX);
+  /* Anything too large goes into the last slot (overflow bin).  */
+  vindex = min(vindex, VECTOR_FREE_LIST_ARRAY_SIZE - 1);
   set_next_vector (v, vector_free_lists[vindex]);
   ASAN_POISON_VECTOR_CONTENTS (v, nbytes - header_size);
   vector_free_lists[vindex] = v;
@@ -3212,6 +3219,17 @@ init_vectors (void)
   staticpro (&zero_vector);
 }
 
+/* Memory footprint in bytes of a pseudovector other than a bool-vector.  */
+static ptrdiff_t
+pseudovector_nbytes (const union vectorlike_header *hdr)
+{
+  eassert (!PSEUDOVECTOR_TYPEP (hdr, PVEC_BOOL_VECTOR));
+  ptrdiff_t nwords = ((hdr->size & PSEUDOVECTOR_SIZE_MASK)
+		      + ((hdr->size & PSEUDOVECTOR_REST_MASK)
+			 >> PSEUDOVECTOR_SIZE_BITS));
+  return vroundup (header_size + word_size * nwords);
+}
+
 /* Allocate vector from a vector block.  */
 
 static struct Lisp_Vector *
@@ -3239,17 +3257,19 @@ allocate_vector_from_block (ptrdiff_t nbytes)
      we will split the result, we should have remaining space
      large enough to use for one-slot vector at least.  */
   for (index = VINDEX (nbytes + VBLOCK_BYTES_MIN);
-       index < VECTOR_MAX_FREE_LIST_INDEX; index++)
+       index < VECTOR_FREE_LIST_ARRAY_SIZE; index++)
     if (vector_free_lists[index])
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
+	size_t vector_nbytes = pseudovector_nbytes (&vector->header);
+	eassert (vector_nbytes > nbytes);
 	ASAN_UNPOISON_VECTOR_CONTENTS (vector, nbytes - header_size);
 	vector_free_lists[index] = next_vector (vector);
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
-	restbytes = index * roundup_size + VBLOCK_BYTES_MIN - nbytes;
+	restbytes = vector_nbytes - nbytes;
 	eassert (restbytes % roundup_size == 0);
 #if GC_ASAN_POISON_OBJECTS
 	/* Ensure that accessing excess bytes does not trigger ASan.  */
@@ -3303,9 +3323,7 @@ vectorlike_nbytes (const union vectorlike_header *hdr)
 	  nwords = (boolvec_bytes - header_size + word_size - 1) / word_size;
         }
       else
-	nwords = ((size & PSEUDOVECTOR_SIZE_MASK)
-		  + ((size & PSEUDOVECTOR_REST_MASK)
-		     >> PSEUDOVECTOR_SIZE_BITS));
+	return pseudovector_nbytes (hdr);
     }
   else
     nwords = size;
