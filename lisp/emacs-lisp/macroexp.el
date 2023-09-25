@@ -525,12 +525,17 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 (defun macroexp-parse-body (body)
   "Parse a function BODY into (DECLARATIONS . EXPS)."
   (let ((decls ()))
-    (while (and (cdr body)
-                (let ((e (car body)))
-                  (or (stringp e)
-                      (memq (car-safe e)
-                            '(:documentation declare interactive cl-declare)))))
-      (push (pop body) decls))
+    ;; If there is only a string literal with nothing following, we
+    ;; consider this to be part of the body (the return value) rather
+    ;; than a declaration at this point.
+    (unless (and (null (cdr body)) (stringp (car body)))
+      (while
+          (and body
+               (let ((e (car body)))
+                 (or (stringp e)
+                     (memq (car-safe e)
+                           '(:documentation declare interactive cl-declare)))))
+        (push (pop body) decls)))
     (cons (nreverse decls) body)))
 
 (defun macroexp-progn (exps)
