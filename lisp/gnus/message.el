@@ -747,16 +747,14 @@ default is system dependent and determined by the function
 `message-send-mail-function'.
 
 See also `send-mail-function'."
-  :type '(radio (function-item message--default-send-mail-function
-		               :tag "Use send-mail-function")
+  :type '(radio (function-item message--default-send-mail-function)
 		(function-item message-send-mail-with-sendmail)
 		(function-item message-send-mail-with-mh)
 		(function-item message-send-mail-with-qmail)
 		(function-item message-smtpmail-send-it)
-		(function-item smtpmail-send-it)
+                (function-item :doc "Use SMTPmail package." smtpmail-send-it)
 		(function-item feedmail-send-it)
-		(function-item message-send-mail-with-mailclient
-			       :tag "Use Mailclient package")
+                (function-item message-send-mail-with-mailclient)
  		(function :tag "Other"))
   :group 'message-sending
   :version "27.1"
@@ -8210,7 +8208,6 @@ which specify the range to operate on."
 It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `message-mode-map'."
-  :type '(repeat gmm-tool-bar-list-item)
   :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
   :version "29.1"

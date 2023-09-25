@@ -79,16 +79,16 @@ are as follows, and suppress messages about the indicated features:
   empty-let           - let-bindings with empty variable lists"
   :type '(choice (const :tag "Don't suppress any warnings" nil)
 		 (repeat :tag "List of issues to ignore"
-			 (choice (const undefined-functions
-					:tag "Calls to unknown functions")
-				 (const unbound-reference
-					:tag "Reference to unknown variables")
-				 (const unbound-assignment
-					:tag "Assignment to unknown variables")
-				 (const macro-expansion
-					:tag "Failure to expand macros")
-				 (const empty-let
-					:tag "Let-binding with empty varlist"))))
+                         (choice (const :tag "Calls to unknown functions"
+                                        undefined-functions)
+                                 (const :tag "Reference to unknown variables"
+                                        unbound-reference)
+                                 (const :tag "Assignment to unknown variables"
+                                        unbound-assignment)
+                                 (const :tag "Failure to expand macros"
+                                        macro-expansion)
+                                 (const :tag "Let-binding with empty varlist"
+                                        empty-let))))
   :safe (lambda (value) (or (null value)
 			    (and (listp value)
 				 (equal value

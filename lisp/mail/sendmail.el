@@ -151,11 +151,11 @@ not a valid RFC 822 (or later) header or continuation line,
 that matches the variable `mail-header-separator'.
 This is used by the default mail-sending commands.  See also
 `message-send-mail-function' for use with the Message package."
-  :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
-		(function-item sendmail-query-once :tag "Query the user")
-		(function-item smtpmail-send-it :tag "Use SMTPmail package")
-		(function-item feedmail-send-it :tag "Use Feedmail package")
-		(function-item mailclient-send-it :tag "Use Mailclient package")
+  :type '(radio (function-item sendmail-send-it)
+                (function-item sendmail-query-once)
+                (function-item :doc "Use SMTPmail package." smtpmail-send-it)
+                (function-item feedmail-send-it)
+                (function-item mailclient-send-it)
 		function)
   :version "24.1")
 

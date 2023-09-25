@@ -309,7 +309,7 @@ beginning with a \";\".  Expressions for comments at the beginning of
 the line should begin with \"^\"."
   :group 'idlwave-code-formatting
   :type '(choice (const :tag "Any line beginning with `;'" nil)
-		 'regexp))
+                 regexp))
 
 (defcustom idlwave-code-comment ";;[^;]"
   "A comment that starts with this regular expression on a line by
