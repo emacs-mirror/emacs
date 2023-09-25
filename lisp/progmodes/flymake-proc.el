@@ -607,6 +607,9 @@ Create parent directories as needed."
             (process-put proc 'flymake-proc--unprocessed-mark
                          (point-marker))))))))
 
+(defvar-local flymake-proc--temp-source-file-name nil)
+(defvar-local flymake-proc--temp-master-file-name nil)
+
 (defun flymake-proc--process-sentinel (proc _event)
   "Sentinel for syntax check buffers."
   (let (debug
@@ -910,9 +913,7 @@ can also be executed interactively independently of
        (file-truename (expand-file-name suffix temp-dir)))
       (setq suffix (file-name-directory suffix)))))
 
-(defvar-local flymake-proc--temp-source-file-name nil)
 (defvar-local flymake-proc--master-file-name nil)
-(defvar-local flymake-proc--temp-master-file-name nil)
 (defvar-local flymake-proc--base-dir nil)
 
 (defun flymake-proc-init-create-temp-buffer-copy (create-temp-f)
