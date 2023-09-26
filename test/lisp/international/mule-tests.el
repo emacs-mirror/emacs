@@ -49,6 +49,30 @@
                        (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET")
                      (read-string "prompt:"))))))
 
+;;Bug#65997, ensure that old-names haven't overriden new names.
+(ert-deftest mule-cmds-tests--ucs-names-old-name-override ()
+  (let (code-points)
+    (dotimes (u (1+ (max-char 'ucs)))
+      (when-let* ((name (get-char-code-property u 'name))
+                  (c (char-from-name name)))
+        (when (and (not (<= #xD800 u #xDFFF))
+                   (not (= c u)))
+          (push (format "%X" u) code-points))))
+    (setq code-points (nreverse code-points))
+    (should (null code-points))))
+
+;; Bug#65997, ensure that all codepoints with names are in '(ucs-names)'.
+(ert-deftest mule-cmds-tests--ucs-names-missing-names ()
+  (let (code-points)
+    (dotimes (u (1+ (max-char 'ucs)))
+      (when-let ((name (get-char-code-property u 'name)))
+        (when (and (not (<= #xD800 u #xDFFF))
+                   (not (<= #x18800 u #x18AFF))
+                   (not (char-from-name name)))
+          (push (format "%X" u) code-points))))
+    (setq code-points (nreverse code-points))
+    (should (null code-points))))
+
 (ert-deftest mule-utf-7 ()
   ;; utf-7 and utf-7-imap are not ASCII-compatible.
   (should-not (coding-system-get 'utf-7 :ascii-compatible-p))

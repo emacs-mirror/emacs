@@ -660,12 +660,18 @@ keywords is understood:
   :icon         The name of a drawable resource to display as the
                 notification's icon.
 
-The notification group and urgency are ignored on Android 7.1 and
-earlier versions of Android.  Outside such older systems, it
-identifies a category that will be displayed in the system Settings
-menu.  The urgency provided always extends to affect all notifications
-displayed within that category.  If the group is not provided, it
-defaults to the string "Desktop Notifications".
+The notification group is ignored on Android 7.1 and earlier versions
+of Android.  Outside such older systems, it identifies a category that
+will be displayed in the system Settings menu, and the urgency
+provided always extends to affect all notifications displayed within
+that category.  If the group is not provided, it defaults to the
+string "Desktop Notifications".
+
+Each caller should strive to provide one unchanging combination of
+notification group and urgency for each kind of notification it sends,
+inasmuch as the system may, subject to user configuration, disregard
+the urgency specified within a notification, should it not be the
+first notification sent to its notification group.
 
 The provided icon should be the name of a "drawable resource" present
 within the "android.R.drawable" class designating an icon with a

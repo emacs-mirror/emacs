@@ -1168,15 +1168,15 @@ binary and the Ctrl-M characters are significant.
 @subsection CR/LF translation by file system
 @cindex line ends, determining by filesystem
 @cindex binary files, determining by filesystem
-@vindex untranslated-filesystem-list
-@findex add-untranslated-filesystem
-@findex remove-untranslated-filesystem
+@vindex w32-untranslated-filesystem-list
+@findex w32-add-untranslated-filesystem
+@findex w32-remove-untranslated-filesystem
 
-The variable @code{untranslated-filesystem-list} defines whole
+The variable @code{w32-untranslated-filesystem-list} defines whole
 directory trees that should not have CR/LF autodetection performed on
 them.  The list can be manipulated with the functions
-@code{add-untranslated-filesystem} and
-@code{remove-untranslated-filesystem}.  With auto-detection in
+@code{w32-add-untranslated-filesystem} and
+@code{w32-remove-untranslated-filesystem}.  With auto-detection in
 recent versions of Emacs, this is seldom useful for existing files,
 but can still be used to influence the choice of line ends for newly
 created files.

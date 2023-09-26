@@ -1,0 +1,152 @@
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq lua-ts-indent-offset 2)
+    (lua-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: Basic Indent
+
+=-=
+      print(
+0,
+      1
+)
+
+local function f(o)
+   if o.x > o.y then
+ return o.x
+elseif o.y > o.z then
+           return o.y
+      else
+return o.z
+            end
+end
+
+f({
+ x = 1,
+  y = 2,
+   z = 3,
+})
+
+;(function()
+return false
+)()
+=-=
+print(
+  0,
+  1
+)
+
+local function f(o)
+  if o.x > o.y then
+    return o.x
+  elseif o.y > o.z then
+    return o.y
+  else
+    return o.z
+  end
+end
+
+f({
+  x = 1,
+  y = 2,
+  z = 3,
+})
+
+;(function()
+  return false
+)()
+=-=-=
+
+Name: Argument Indent
+
+=-=
+function h(
+string,
+number,
+options)
+print(string, number, options)
+end
+
+local p = h(
+"sring",
+	 1000,
+      {
+cost = 2,
+length = 8,
+	parallelism = 4,
+})
+=-=
+function h(
+  string,
+  number,
+  options)
+  print(string, number, options)
+end
+
+local p = h(
+  "sring",
+  1000,
+  {
+    cost = 2,
+    length = 8,
+    parallelism = 4,
+  })
+=-=-=
+
+Name: Continuation Indent
+
+=-=
+function f()
+  local str = [[
+  multi-line
+	string
+    ]]
+--[[
+multi-line
+comment
+    ]]
+return true
+end
+=-=
+function f()
+  local str = [[
+  multi-line
+	string
+    ]]
+  --[[
+multi-line
+comment
+    ]]
+  return true
+end
+=-=-=
+
+Name: Loop Indent
+
+=-=
+for k, v in pairs({}) do
+	 print(k, v)
+end
+
+while n < 10 do
+n = n + 1
+end
+
+repeat
+z = z * 2
+ until z > 12
+=-=
+for k, v in pairs({}) do
+  print(k, v)
+end
+
+while n < 10 do
+  n = n + 1
+end
+
+repeat
+  z = z * 2
+until z > 12
+=-=-=

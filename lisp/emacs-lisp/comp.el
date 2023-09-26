@@ -1851,7 +1851,7 @@ SP-DELTA is the stack adjustment."
 (eval-when-compile
   (defun comp-op-to-fun (x)
     "Given the LAP op strip \"byte-\" to have the subr name."
-    (intern (replace-regexp-in-string "byte-" "" x)))
+    (intern (string-replace "byte-" "" x)))
 
   (defun comp-body-eff (body op-name sp-delta)
     "Given the original BODY, compute the effective one.
@@ -2918,7 +2918,7 @@ blocks."
                           finger2 (comp-block-post-num b2))))
                 b1))
             (first-processed (l)
-              (if-let ((p (cl-find-if (lambda (p) (comp-block-idom p)) l)))
+              (if-let ((p (cl-find-if #'comp-block-idom l)))
                   p
                 (signal 'native-ice '("can't find first preprocessed")))))
 
@@ -3757,13 +3757,10 @@ Prepare every function for final compilation and drive the C back-end."
     (comp--compile-ctxt-to-file name)))
 
 (defun comp-final1 ()
-  (let (compile-result)
-    (comp--init-ctxt)
-    (unwind-protect
-        (setf compile-result
-              (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt)))
-      (and (comp--release-ctxt)
-           compile-result))))
+  (comp--init-ctxt)
+  (unwind-protect
+      (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt))
+    (comp--release-ctxt)))
 
 (defvar comp-async-compilation nil
   "Non-nil while executing an asynchronous native compilation.")
@@ -4506,8 +4503,10 @@ inferred from the code itself by the native compiler; if it is
         type-spec )
     (when-let ((res (gethash function comp-known-func-cstr-h)))
       (setf type-spec (comp-cstr-to-type-spec res)))
-    (let ((f (symbol-function function)))
-      (when (and (null type-spec)
+    (let ((f (and (symbolp function)
+                  (symbol-function function))))
+      (when (and f
+                 (null type-spec)
                  (subr-native-elisp-p f))
         (setf kind 'inferred
               type-spec (subr-type f))))

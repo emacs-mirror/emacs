@@ -294,9 +294,9 @@ then the result will be:
                       eshell-current-argument)))
       (setq eshell-arg-listified nil))
     (when eshell-current-modifiers
-      (eshell-debug-command 'form (format-message "applying modifiers %S"
-                                                  eshell-current-modifiers)
-                            eshell-current-argument))
+      (eshell-debug-command 'form
+        "applying modifiers %S\n\n%s" eshell-current-modifiers
+        (eshell-stringify eshell-current-argument)))
     (dolist (modifier eshell-current-modifiers)
       (setq eshell-current-argument
             (list modifier eshell-current-argument))))

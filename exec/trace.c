@@ -1039,16 +1039,22 @@ process_system_call (struct exec_tracee *tracee)
 #endif /* READLINK_SYSCALL */
     case READLINKAT_SYSCALL:
 
-      /* Handle this readlinkat system call.  */
-      rc = handle_readlinkat (callno, &regs, tracee,
-			      &result);
+      /* This system call is already in progress if
+	 TRACEE->waiting_for_syscall is true.  */
 
-      /* rc means the same as in `handle_exec'.  */
+      if (!tracee->waiting_for_syscall)
+	{
+	  /* Handle this readlinkat system call.  */
+	  rc = handle_readlinkat (callno, &regs, tracee,
+				  &result);
 
-      if (rc == 1)
-	goto report_syscall_error;
-      else if (rc == 2)
-	goto emulate_syscall;
+	  /* rc means the same as in `handle_exec'.  */
+
+	  if (rc == 1)
+	    goto report_syscall_error;
+	  else if (rc == 2)
+	    goto emulate_syscall;
+	}
 
       /* Fallthrough.  */
 

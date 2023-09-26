@@ -27,6 +27,7 @@ public interface EmacsDrawable
 {
   public Canvas lockCanvas (EmacsGC gc);
   public void damageRect (Rect damageRect);
+  public void damageRect (int left, int top, int right, int bottom);
   public Bitmap getBitmap ();
   public boolean isDestroyed ();
 };

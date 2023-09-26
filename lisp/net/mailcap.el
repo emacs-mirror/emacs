@@ -689,9 +689,9 @@ to supply to the test."
 	 status cache result)
     (cond ((not (or (stringp viewer) (fboundp viewer)))
 	   nil)				; Non-existent Lisp function
+	  ((null test-info) t)		; No test clause
 	  ((setq cache (assoc test mailcap-viewer-test-cache))
 	   (cadr cache))
-	  ((not test-info) t)		; No test clause
 	  (t
 	   (setq
 	    result

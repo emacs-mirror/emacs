@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.23
+;; Version: 2.24
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -38,9 +38,6 @@
 ;; the sequence as their second argument.  All other functions take
 ;; the sequence as their first argument.
 ;;
-;; While seq.el version 1.8 is in GNU ELPA for convenience, seq.el
-;; version 2.0 requires Emacs>=25.1.
-;;
 ;; seq.el can be extended to support new type of sequences.  Here are
 ;; the generic functions that must be implemented by new seq types:
 ;; - `seq-elt'
@@ -51,10 +48,16 @@
 ;; - `seq-into-sequence'
 ;; - `seq-copy'
 ;; - `seq-into'
-;;
-;; All functions are tested in test/lisp/emacs-lisp/seq-tests.el
 
 ;;; Code:
+
+;; Note regarding the `seq' package on GNU ELPA:
+;;
+;; It was decided not to bother upgrading seq beyond 2.24 on GNU ELPA.
+;; The main purpose of the GNU ELPA package was to encourage adoption
+;; and accommodate changes more easily, but it's mature enough that
+;; changes are fairly slow.  Thus, we can now rely on "the usual"
+;; solutions to deal with compatibility issues.  (Bug#60990)
 
 (eval-when-compile (require 'cl-generic))
 

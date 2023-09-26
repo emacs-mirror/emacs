@@ -105,7 +105,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    or a new vector block is allocated (allocate_vector_from_block).
    Accordingly, objects reused from the free list are unpoisoned.
 
-   This feature can be disabled wtih the run-time flag
+   This feature can be disabled with the run-time flag
    `allow_user_poisoning' set to zero.  */
 #if ADDRESS_SANITIZER && defined HAVE_SANITIZER_ASAN_INTERFACE_H \
   && !defined GC_ASAN_POISON_OBJECTS
@@ -3071,9 +3071,8 @@ enum { VECTOR_BLOCK_SIZE = 4096 };
 /* Vector size requests are a multiple of this.  */
 enum { roundup_size = COMMON_MULTIPLE (LISP_ALIGNMENT, word_size) };
 
-/* Verify assumptions described above.  */
+/* Verify assumption described above.  */
 verify (VECTOR_BLOCK_SIZE % roundup_size == 0);
-verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
 #define vroundup_ct(x) ROUNDUP (x, roundup_size)
@@ -3084,6 +3083,11 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 enum {VECTOR_BLOCK_BYTES = VECTOR_BLOCK_SIZE - vroundup_ct (sizeof (void *))};
 
+/* The current code expects to be able to represent an unused block by
+   a single PVEC_FREE object, whose size is limited by the header word.
+   (Of course we could use multiple such objects.)  */
+verify (VECTOR_BLOCK_BYTES <= (word_size << PSEUDOVECTOR_REST_BITS));
+
 /* Size of the minimal vector allocated from block.  */
 
 enum { VBLOCK_BYTES_MIN = vroundup_ct (header_size + sizeof (Lisp_Object)) };
@@ -3093,10 +3097,10 @@ enum { VBLOCK_BYTES_MIN = vroundup_ct (header_size + sizeof (Lisp_Object)) };
 enum { VBLOCK_BYTES_MAX = vroundup_ct ((VECTOR_BLOCK_BYTES / 2) - word_size) };
 
 /* We maintain one free list for each possible block-allocated
-   vector size, and this is the number of free lists we have.  */
-
-enum { VECTOR_MAX_FREE_LIST_INDEX =
-       (VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN) / roundup_size + 1 };
+   vector size, one for blocks one word bigger,
+   and one for all free vectors larger than that.  */
+enum { VECTOR_FREE_LIST_ARRAY_SIZE =
+       (VBLOCK_BYTES_MAX - VBLOCK_BYTES_MIN) / roundup_size + 1 + 2 };
 
 /* Common shortcut to advance vector pointer over a block data.  */
 
@@ -3158,9 +3162,20 @@ struct vector_block
 static struct vector_block *vector_blocks;
 
 /* Vector free lists, where NTH item points to a chain of free
-   vectors of the same NBYTES size, so NTH == VINDEX (NBYTES).  */
+   vectors of the same NBYTES size, so NTH == VINDEX (NBYTES),
+   except for the last element which may contain larger vectors.
 
-static struct Lisp_Vector *vector_free_lists[VECTOR_MAX_FREE_LIST_INDEX];
+   I.e., for each vector V in vector_free_lists[I] the following holds:
+   - V has type PVEC_FREE
+   - V's total size in bytes, BS(V) = PVSIZE(V) * word_size + header_size
+   - For I < VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) = I
+   - For I = VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) ≥ I */
+static struct Lisp_Vector *vector_free_lists[VECTOR_FREE_LIST_ARRAY_SIZE];
+
+/* Index to the bucket in vector_free_lists into which we last inserted
+   or split a free vector.  We use this as a heuristic telling us where
+   to start looking for free vectors when the exact-size bucket is empty.  */
+static ptrdiff_t last_inserted_vector_free_idx = VECTOR_FREE_LIST_ARRAY_SIZE;
 
 /* Singly-linked list of large vectors.  */
 
@@ -3193,10 +3208,12 @@ setup_on_free_list (struct Lisp_Vector *v, ptrdiff_t nbytes)
   XSETPVECTYPESIZE (v, PVEC_FREE, 0, nwords);
   eassert (nbytes % roundup_size == 0);
   ptrdiff_t vindex = VINDEX (nbytes);
-  eassert (vindex < VECTOR_MAX_FREE_LIST_INDEX);
+  /* Anything too large goes into the last slot (overflow bin).  */
+  vindex = min(vindex, VECTOR_FREE_LIST_ARRAY_SIZE - 1);
   set_next_vector (v, vector_free_lists[vindex]);
   ASAN_POISON_VECTOR_CONTENTS (v, nbytes - header_size);
   vector_free_lists[vindex] = v;
+  last_inserted_vector_free_idx = vindex;
 }
 
 /* Get a new vector block.  */
@@ -3253,6 +3270,17 @@ init_vectors (void)
   staticpro (&zero_vector);
 }
 
+/* Memory footprint in bytes of a pseudovector other than a bool-vector.  */
+static ptrdiff_t
+pseudovector_nbytes (const union vectorlike_header *hdr)
+{
+  eassert (!PSEUDOVECTOR_TYPEP (hdr, PVEC_BOOL_VECTOR));
+  ptrdiff_t nwords = ((hdr->size & PSEUDOVECTOR_SIZE_MASK)
+		      + ((hdr->size & PSEUDOVECTOR_REST_MASK)
+			 >> PSEUDOVECTOR_SIZE_BITS));
+  return vroundup (header_size + word_size * nwords);
+}
+
 /* Allocate vector from a vector block.  */
 
 static struct Lisp_Vector *
@@ -3279,18 +3307,21 @@ allocate_vector_from_block (ptrdiff_t nbytes)
   /* Next, check free lists containing larger vectors.  Since
      we will split the result, we should have remaining space
      large enough to use for one-slot vector at least.  */
-  for (index = VINDEX (nbytes + VBLOCK_BYTES_MIN);
-       index < VECTOR_MAX_FREE_LIST_INDEX; index++)
+  for (index = max (VINDEX (nbytes + VBLOCK_BYTES_MIN),
+		    last_inserted_vector_free_idx);
+       index < VECTOR_FREE_LIST_ARRAY_SIZE; index++)
     if (vector_free_lists[index])
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
+	size_t vector_nbytes = pseudovector_nbytes (&vector->header);
+	eassert (vector_nbytes > nbytes);
 	ASAN_UNPOISON_VECTOR_CONTENTS (vector, nbytes - header_size);
 	vector_free_lists[index] = next_vector (vector);
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
-	restbytes = index * roundup_size + VBLOCK_BYTES_MIN - nbytes;
+	restbytes = vector_nbytes - nbytes;
 	eassert (restbytes % roundup_size == 0);
 #if GC_ASAN_POISON_OBJECTS
 	/* Ensure that accessing excess bytes does not trigger ASan.  */
@@ -3344,9 +3375,7 @@ vectorlike_nbytes (const union vectorlike_header *hdr)
 	  nwords = (boolvec_bytes - header_size + word_size - 1) / word_size;
         }
       else
-	nwords = ((size & PSEUDOVECTOR_SIZE_MASK)
-		  + ((size & PSEUDOVECTOR_REST_MASK)
-		     >> PSEUDOVECTOR_SIZE_BITS));
+	return pseudovector_nbytes (hdr);
     }
   else
     nwords = size;
@@ -3369,93 +3398,134 @@ static void
 cleanup_vector (struct Lisp_Vector *vector)
 {
   detect_suspicious_free (vector);
-
-  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BIGNUM))
-    mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_OVERLAY))
+  if ((vector->header.size & PSEUDOVECTOR_FLAG) == 0)
+    return;  /* nothing more to do for plain vectors */
+  switch (PSEUDOVECTOR_TYPE (vector))
     {
-      struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
-      xfree (ol->interval);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FINALIZER))
-    unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT))
-    {
-      if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
-	{
-	  struct font *font = PSEUDOVEC_STRUCT (vector, font);
-	  struct font_driver const *drv = font->driver;
+    case PVEC_BIGNUM:
+      mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
+      break;
+    case PVEC_OVERLAY:
+      {
+	struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
+	xfree (ol->interval);
+      }
+      break;
+    case PVEC_FINALIZER:
+      unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
+      break;
+    case PVEC_FONT:
+      {
+	if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
+	  {
+	    struct font *font = PSEUDOVEC_STRUCT (vector, font);
+	    struct font_driver const *drv = font->driver;
 
-	  /* The font driver might sometimes be NULL, e.g. if Emacs was
-	     interrupted before it had time to set it up.  */
-	  if (drv)
-	    {
-	      /* Attempt to catch subtle bugs like Bug#16140.  */
-	      eassert (valid_font_driver (drv));
-	      drv->close_font (font);
-	    }
-	}
+	    /* The font driver might sometimes be NULL, e.g. if Emacs was
+	       interrupted before it had time to set it up.  */
+	    if (drv)
+	      {
+		/* Attempt to catch subtle bugs like Bug#16140.  */
+		eassert (valid_font_driver (drv));
+		drv->close_font (font);
+	      }
+	  }
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-      /* The Android font driver needs the ability to associate extra
-	 information with font entities.  */
-      if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
-	   == FONT_ENTITY_MAX)
-	  && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
-	android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
+	/* The Android font driver needs the ability to associate extra
+	   information with font entities.  */
+	if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	     == FONT_ENTITY_MAX)
+	    && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
+	  android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
 #endif
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_THREAD))
-    finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MUTEX))
-    finalize_one_mutex (PSEUDOVEC_STRUCT (vector, Lisp_Mutex));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_CONDVAR))
-    finalize_one_condvar (PSEUDOVEC_STRUCT (vector, Lisp_CondVar));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MARKER))
-    {
+      }
+      break;
+    case PVEC_THREAD:
+      finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
+      break;
+    case PVEC_MUTEX:
+      finalize_one_mutex (PSEUDOVEC_STRUCT (vector, Lisp_Mutex));
+      break;
+    case PVEC_CONDVAR:
+      finalize_one_condvar (PSEUDOVEC_STRUCT (vector, Lisp_CondVar));
+      break;
+    case PVEC_MARKER:
       /* sweep_buffer should already have unchained this from its buffer.  */
       eassert (! PSEUDOVEC_STRUCT (vector, Lisp_Marker)->buffer);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_USER_PTR))
-    {
-      struct Lisp_User_Ptr *uptr = PSEUDOVEC_STRUCT (vector, Lisp_User_Ptr);
-      if (uptr->finalizer)
-	uptr->finalizer (uptr->p);
-    }
+      break;
+    case PVEC_USER_PTR:
+      {
+	struct Lisp_User_Ptr *uptr = PSEUDOVEC_STRUCT (vector, Lisp_User_Ptr);
+	if (uptr->finalizer)
+	  uptr->finalizer (uptr->p);
+      }
+      break;
+    case PVEC_TS_PARSER:
 #ifdef HAVE_TREE_SITTER
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_PARSER))
-    treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_COMPILED_QUERY))
-    treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+      treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
 #endif
+      break;
+    case PVEC_TS_COMPILED_QUERY:
+#ifdef HAVE_TREE_SITTER
+      treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+#endif
+      break;
+    case PVEC_MODULE_FUNCTION:
 #ifdef HAVE_MODULES
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))
-    {
-      ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
-        = (struct Lisp_Module_Function *) vector;
-      module_finalize_function (function);
-    }
+      {
+	ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
+	  = (struct Lisp_Module_Function *) vector;
+	module_finalize_function (function);
+      }
 #endif
+      break;
+    case PVEC_NATIVE_COMP_UNIT:
 #ifdef HAVE_NATIVE_COMP
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
-    {
-      struct Lisp_Native_Comp_Unit *cu =
-	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
-      unload_comp_unit (cu);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
-    {
-      struct Lisp_Subr *subr =
-	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
-      if (!NILP (subr->native_comp_u))
-	{
-	  /* FIXME Alternative and non invasive solution to this
-	     cast?  */
-	  xfree ((char *)subr->symbol_name);
-	  xfree (subr->native_c_name);
-	}
-    }
+      {
+	struct Lisp_Native_Comp_Unit *cu =
+	  PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
+	unload_comp_unit (cu);
+      }
 #endif
+      break;
+    case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
+      {
+	struct Lisp_Subr *subr = PSEUDOVEC_STRUCT (vector, Lisp_Subr);
+	if (!NILP (subr->native_comp_u))
+	  {
+	    /* FIXME Alternative and non invasive solution to this cast?  */
+	    xfree ((char *)subr->symbol_name);
+	    xfree (subr->native_c_name);
+	  }
+      }
+#endif
+      break;
+    /* Keep the switch exhaustive.  */
+    case PVEC_NORMAL_VECTOR:
+    case PVEC_FREE:
+    case PVEC_SYMBOL_WITH_POS:
+    case PVEC_MISC_PTR:
+    case PVEC_PROCESS:
+    case PVEC_FRAME:
+    case PVEC_WINDOW:
+    case PVEC_BOOL_VECTOR:
+    case PVEC_BUFFER:
+    case PVEC_HASH_TABLE:
+    case PVEC_TERMINAL:
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_OTHER:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_TS_NODE:
+    case PVEC_SQLITE:
+    case PVEC_COMPILED:
+    case PVEC_CHAR_TABLE:
+    case PVEC_SUB_CHAR_TABLE:
+    case PVEC_RECORD:
+      break;
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -3471,6 +3541,7 @@ sweep_vectors (void)
   gcstat.total_vectors = 0;
   gcstat.total_vector_slots = gcstat.total_free_vector_slots = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
+  last_inserted_vector_free_idx = VECTOR_FREE_LIST_ARRAY_SIZE;
 
   /* Looking through vector blocks.  */
 
@@ -3658,7 +3729,7 @@ allocate_pseudovector (int memlen, int lisplen,
   enum { size_max = (1 << PSEUDOVECTOR_SIZE_BITS) - 1 };
   enum { rest_max = (1 << PSEUDOVECTOR_REST_BITS) - 1 };
   verify (size_max + rest_max <= VECTOR_ELTS_MAX);
-  eassert (0 <= tag && tag <= PVEC_FONT);
+  eassert (0 <= tag && tag <= PVEC_TAG_MAX);
   eassert (0 <= lisplen && lisplen <= zerolen && zerolen <= memlen);
   eassert (lisplen <= size_max);
   eassert (memlen <= size_max + rest_max);
@@ -6457,13 +6528,6 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
-  if (!NILP (Vpost_gc_hook))
-    {
-      specpdl_ref gc_count = inhibit_garbage_collection ();
-      safe_run_hooks (Qpost_gc_hook);
-      unbind_to (gc_count, Qnil);
-    }
-
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
     {
@@ -6481,6 +6545,13 @@ garbage_collect (void)
       byte_ct tot_after = total_bytes_of_live_objects ();
       if (tot_after < tot_before)
 	malloc_probe (min (tot_before - tot_after, SIZE_MAX));
+    }
+
+  if (!NILP (Vpost_gc_hook))
+    {
+      specpdl_ref gc_count = inhibit_garbage_collection ();
+      safe_run_hooks (Qpost_gc_hook);
+      unbind_to (gc_count, Qnil);
     }
 }
 

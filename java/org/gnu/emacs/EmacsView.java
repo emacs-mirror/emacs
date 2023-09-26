@@ -437,6 +437,16 @@ public final class EmacsView extends ViewGroup
     damageRegion.union (damageRect);
   }
 
+  /* This function enables damage to be recorded without consing a new
+     Rect object.  */
+
+  public void
+  damageRect (int left, int top, int right, int bottom)
+  {
+    EmacsService.checkEmacsThread ();
+    damageRegion.op (left, top, right, bottom, Region.Op.UNION);
+  }
+
   /* This method is called from both the UI thread and the Emacs
      thread.  */
 
@@ -620,6 +630,13 @@ public final class EmacsView extends ViewGroup
 	     int yPosition, boolean force)
   {
     if (popupActive && !force)
+      return false;
+
+    /* Android will permanently cease to display any popup menus at
+       all if the list of menu items is empty.  Prevent this by
+       promptly returning if there are no menu items.  */
+
+    if (menu.menuItems.isEmpty ())
       return false;
 
     contextMenu = menu;

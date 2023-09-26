@@ -47,10 +47,6 @@
 ;; comment; move to end of line; create an empty comment; tell you that
 ;; the line ends in a quoted string, or has a # which should be a \#.
 
-;; If your machine is slow, you may want to remove some of the bindings
-;; to perl-electric-terminator.  I changed the indenting defaults to be
-;; what Larry Wall uses in perl/lib, but left in all the options.
-
 ;; I also tuned a few things:  comments and labels starting in column
 ;; zero are left there by perl-indent-exp; perl-beginning-of-function
 ;; goes back to the first open brace/paren in column zero, the open brace
@@ -968,7 +964,7 @@ changed by, or (parse-state) if line starts in a quoted string."
 
 (defun perl-hanging-paren-p ()
   "Non-nil if we are right after a hanging parenthesis-like char."
-  (and (looking-at "[ \t]*$")
+  (and (looking-at "[ \t]*\\(?:#.*\\)?$")
        (save-excursion
 	 (skip-syntax-backward " (") (not (bolp)))))
 

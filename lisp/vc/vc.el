@@ -3676,8 +3676,7 @@ If successful, returns the string with the directory of the
 checkout.  If BACKEND is nil, iterate through every known backend
 in `vc-handled-backends' until one succeeds.  If REV is non-nil,
 it indicates a specific revision to check out."
-  (unless directory
-    (setq directory default-directory))
+  (setq directory (expand-file-name (or directory default-directory)))
   (if backend
       (progn
         (unless (memq backend vc-handled-backends)

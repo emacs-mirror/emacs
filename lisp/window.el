@@ -4177,8 +4177,8 @@ a non-nil `no-other-window' parameter."
   "How to choose a frame's selected window after window deletion.
 When a frame's selected window gets deleted, Emacs has to choose
 another live window on that frame to serve as its selected
-window.  This option allows to control which window gets selected
-instead.
+window.  This option controls the window that is selected in such
+a situation.
 
 The possible choices are `mru' (the default) to select the most
 recently used window on that frame, and `pos' to choose the
@@ -8275,8 +8275,8 @@ This function tries to reuse or split a window such that the
 window produced this way is on the side of the reference window
 specified by the `direction' entry.
 
-Four special values for `direction' entries allow to implicitly
-specify the selected frame's main window as reference window:
+Four special values for `direction' entries allow implicitly
+specifying the selected frame's main window as reference window:
 `leftmost', `top', `rightmost' and `bottom'.  Hence, instead of
 `(direction . left) (window . main)' one can simply write
 `(direction . leftmost)'.

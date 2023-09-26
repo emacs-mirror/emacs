@@ -42,19 +42,23 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-operandi-tinted
     "Elegant, highly legible theme with a light ochre background.
 Conforms with the highest legibility standard for color contrast
 between background and foreground in any given piece of text,
 which corresponds to a minimum contrast in relative luminance of
-7:1 (WCAG AAA standard).")
+7:1 (WCAG AAA standard)."
+    :background-mode 'light
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-operandi-tinted-palette
     '(
 ;;; Basic values
 
       (bg-main          "#fbf7f0")
-      (bg-dim           "#ede7db")
+      (bg-dim           "#efe9dd")
       (fg-main          "#000000")
       (fg-dim           "#595959")
       (fg-alt           "#193668")
@@ -152,7 +156,7 @@ which corresponds to a minimum contrast in relative luminance of
 ;;; Special purpose
 
       (bg-completion       "#f0c1cf")
-      (bg-hover            "#94d4ff")
+      (bg-hover            "#b2e4dc")
       (bg-hover-secondary  "#f5d0a0")
       (bg-hl-line          "#f1d5d0")
       (bg-region           "#c2bcb5")
@@ -281,6 +285,7 @@ which corresponds to a minimum contrast in relative luminance of
       (date-deadline red)
       (date-event fg-alt)
       (date-holiday red-cooler)
+      (date-holiday-other blue)
       (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled yellow-warmer)
@@ -364,6 +369,48 @@ which corresponds to a minimum contrast in relative luminance of
       (fg-space border)
       (bg-space-err bg-red-intense)
 
+;;;; Terminal mappings
+
+      (bg-term-black           "black")
+      (fg-term-black           "black")
+      (bg-term-black-bright    "gray35")
+      (fg-term-black-bright    "gray35")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "gray65")
+      (fg-term-white           "gray65")
+      (bg-term-white-bright    "white")
+      (fg-term-white-bright    "white")
+
 ;;;; Heading mappings
 
       (fg-heading-0 cyan-cooler)
@@ -432,8 +479,5 @@ represents."
                       modus-operandi-tinted-palette-overrides)
 
   (provide-theme 'modus-operandi-tinted))
-
-;;;###theme-autoload
-(put 'modus-operandi-tinted 'theme-properties '(:background-mode light :kind color-scheme :family modus))
 
 ;;; modus-operandi-tinted-theme.el ends here

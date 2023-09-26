@@ -4,6 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: lisp
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

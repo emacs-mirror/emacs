@@ -781,7 +781,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
           ;; CVS calls vc-delete-file, which insists on prompting
           ;; "Really want to delete ...?", and `vc-mtn.el' does not implement
           ;; `delete-file' at all.
-          (skip-unless (not (memq ',backend '(CVS Mtn))))
+          (skip-when (memq ',backend '(CVS Mtn)))
           (vc-test--rename-file ',backend))
 
         (ert-deftest
@@ -796,7 +796,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                  (format "vc-test-%s01-register" backend-string))))))
           ;; `vc-mtn.el' gives me:
           ;; "Failed (status 1): mtn commit -m Testing vc-version-diff\n\n foo"
-          (skip-unless (not (memq ',backend '(Mtn))))
+          (skip-when (memq ',backend '(Mtn)))
           (vc-test--version-diff ',backend))
         ))))
 

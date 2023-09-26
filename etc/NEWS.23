@@ -1200,7 +1200,7 @@ of the region to comment, rather than the leftmost column.
 *** The new commands 'pp-macroexpand-expression' and
 'pp-macroexpand-last-sexp' pretty-print macro expansions.
 
-*** The new command 'set-file-modes' allows to set file's mode bits.
+*** The new command 'set-file-modes' allows setting file's mode bits.
 The mode bits can be specified in symbolic notation, like with GNU
 Coreutils, in addition to an octal number.  'chmod' is a new
 convenience alias for this function.
@@ -1540,7 +1540,7 @@ authentication respectively.
 *** New macro 'with-help-window' should set up help windows better
 than 'with-output-to-temp-buffer' with 'print-help-return-message'.
 
-*** New option 'help-window-select' permits to customize whether help
+*** New option 'help-window-select' permits customizing whether help
 window shall be automatically selected when invoking help.
 
 *** New variable 'help-window-point-marker' permits one to specify a new
@@ -1670,7 +1670,7 @@ Previously, this information was hidden.
 ** TeX modes
 
 *** New option 'latex-indent-within-escaped-parens'
-permits to customize indentation of LaTeX environments delimited
+permits customizing indentation of LaTeX environments delimited
 by escaped parens.
 
 ** T-mouse Mode
@@ -1726,7 +1726,7 @@ and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
 
 *** 'vc-dir' is a new command that displays file names and their VC
-status.  It allows to apply various VC operations to a file, a
+status.  It allows applying various VC operations to a file, a
 directory or a set of files/directories.
 
 *** VC switches are no longer appended, rather the first non-nil value is used.

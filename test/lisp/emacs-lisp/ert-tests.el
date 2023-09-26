@@ -304,6 +304,20 @@ failed or if there was a problem."
   (cl-macrolet ((test () (error "Foo")))
     (should-error (test))))
 
+(ert-deftest ert-test-skip-when ()
+  ;; Don't skip.
+  (let ((test (make-ert-test :body (lambda () (skip-when nil)))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-passed-p result))))
+  ;; Skip.
+  (let ((test (make-ert-test :body (lambda () (skip-when t)))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-skipped-p result))))
+  ;; Skip in case of error.
+  (let ((test (make-ert-test :body (lambda () (skip-when (error "Foo"))))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-skipped-p result)))))
+
 (ert-deftest ert-test-skip-unless ()
   ;; Don't skip.
   (let ((test (make-ert-test :body (lambda () (skip-unless t)))))

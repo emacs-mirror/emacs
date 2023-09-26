@@ -3186,7 +3186,7 @@ the expression printed by IDL.
 
 @defopt idlwave-shell-output-face
 The face for @code{idlwave-shell-output-overlay}.
-Allows to choose the font, color and other properties for the most
+Allows you to choose the font, color and other properties for the most
 recent output of IDL when examining an expression."
 @end defopt
 

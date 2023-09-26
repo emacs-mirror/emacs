@@ -3,6 +3,7 @@
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
 ;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
+;; Package    : emacs
 ;; Keywords   : c c++ java javascript rust languages tree-sitter
 
 ;; This file is part of GNU Emacs.

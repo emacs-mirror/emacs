@@ -24,6 +24,7 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 30.1
 
++++
 ** Emacs has been ported to the Android operating system.
 This requires Emacs to be compiled on another computer.  The Android
 NDK, SDK, and a suitable Java compiler must also be installed.
@@ -43,8 +44,23 @@ ALSA on these operating systems instead.
 
 * Startup Changes in Emacs 30.1
 
+** On GNU/Linux, Emacs is now the default application for 'org-protocol'.
+Org mode provides a way to quickly capture bookmarks, notes, and links
+using 'emacsclient':
+
+    emacsclient "org-protocol://store-link?url=URL&title=TITLE"
+
+Previously, users had to manually configure their GNU/Linux desktop
+environment to open 'org-protocol' links in Emacs.  These links should
+now open in Emacs automatically, as the "emacsclient.desktop" file now
+arranges for Emacs to be the default application for the 'org-protocol'
+URI scheme.  See the Org mode manual, Info node "(org) Protocols" for
+more details.
+
 
 * Changes in Emacs 30.1
+
+** Emacs now supports Unicode Standard version 15.1.
 
 ** Help
 
@@ -128,6 +144,14 @@ can use this to distinguish between buffers visiting files with the
 same base name that belong to different projects by using the provided
 transform function 'project-uniquify-dirname-transform'.
 
+** 'insert-directory-program' is now a defcustom.
+
+** 'insert-directory-program' prefers "gls" on *BSD and macOS.
+On *BSD and macOS systems, this user option now defaults to the "gls"
+executable, if it exists.  This should remove the need to change its
+value when installing GNU coreutils using something like ports or
+Homebrew.
+
 ** cl-print
 
 *** You can expand the "..." truncation everywhere.
@@ -151,6 +175,13 @@ right-aligned to is controlled by the new user option
 *** New user option 'tab-bar-tab-name-format-functions'.
 It can be used to add, remove and reorder functions that change
 the appearance of every tab on the tab bar.
+
+** Miscellaneous
+
+---
+*** New face 'appt-notification' for 'appt-display-mode-line'.
+It can be used to customize the look of the appointment notification
+displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
 
 * Editing Changes in Emacs 30.1
@@ -235,8 +266,9 @@ functions in CJK locales.
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
+** gdb-mi
 ---
-** Variable order and truncation can now be configured in 'gdb-many-windows'.
+*** Variable order and truncation can now be configured in 'gdb-many-windows'.
 The new user option 'gdb-locals-table-row-config' allows users to
 configure the order and max length of various properties in the local
 variables buffer when using 'gdb-many-windows'.
@@ -250,6 +282,13 @@ If you want to get back the old behavior, set the user option to the value
 
     (setopt gdb-locals-table-row-config
             `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
+
+---
+*** New user option 'gdb-display-io-buffer'.
+If this is nil, "M-x gdb" will neither create nor display a separate
+buffer for the I/O of the program being debugged, but will instead
+redirect the program's interaction to the GDB execution buffer.  The
+default is t, to preserve previous behavior.
 
 ** Grep
 
@@ -281,6 +320,15 @@ current diff, regenerating them without whitespace changes.
 This allows changing which type of whitespace changes are ignored when
 regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
 the previously hard-coded "-b".
+
+** Dired
+
+---
+*** New user option 'dired-movement-style'.
+When non-nil, make 'dired-next-line' and 'dired-previous-line' skip
+empty lines.  It also controls how to move point when encountering a
+boundary (e.g., if every line is visible, invoking 'dired-next-line'
+at the last line will move to the first line).  The default is nil.
 
 ** Ediff
 
@@ -429,8 +477,8 @@ sandboxes provided by Flatpak.
 The host name for Kubernetes connections can be of kind [CONTAINER.]POD,
 in order to specify a dedicated container.  If there is just the pod
 name, the first container in the pod is taken.  The new user options
-'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow to
-access pods with different context or namespace but the default one.
+'tramp-kubernetes-context' and 'tramp-kubernetes-namespace' allow
+accessing pods with different context or namespace but the default one.
 
 +++
 *** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share'.
@@ -443,7 +491,7 @@ sessions, respectively.
 
 +++
 *** New command 'tramp-cleanup-some-buffers'.
-It allows to kill only selected remote buffers, controlled by user
+It kills only a subset of opened remote buffers, subject to the user
 option 'tramp-cleanup-some-buffers-hook'.
 
 +++
@@ -458,6 +506,20 @@ performance of file name handling in Emacs.
 This macro could wrap code which handles local files only.  Due to the
 temporary deactivation of remote files, it results in a slightly
 improved performance of file name handling in Emacs.
+
++++
+*** New user option 'tramp-completion-multi-hop-methods'.
+It contains a list of connection methods for which completion should
+be attempted at the end of a multi-hop chain.  This allows completion
+candidates to include a list of, for example, containers running on a
+remote docker host.
+
++++
+*** New command 'tramp-revert-buffer-with-sudo'.
+It reverts the current buffer to visit with "sudo" permissions.  The
+buffer must either visit a file, or it must run 'dired-mode'.  Another
+method but "sudo" can be configured with user option
+'tramp-file-name-with-method'.
 
 ** EWW
 
@@ -608,9 +670,10 @@ This keyword enables the user to install packages using 'package-vc'.
 *** New commands for reading mailing lists.
 The new Rmail commands 'rmail-mailing-list-post',
 'rmail-mailing-list-unsubscribe', 'rmail-mailing-list-help', and
-'rmail-mailing-list-archive' allow to, respectively, post to,
-unsubscribe from, request help about, and browse the archives, of the
-mailing list from which the current email message was delivered.
+'rmail-mailing-list-archive' allow, respectively, posting to,
+unsubscribing from, requesting help about, and browsing the archives
+of, the mailing list from which the current email message was
+delivered.
 
 ** Dictionary
 
@@ -705,7 +768,7 @@ of the accessibility of remote files can now time out if
 ** Notifications
 
 +++
-*** Allow to use Icon Naming Specification for ':app-icon'.
+*** Allow using Icon Naming Specification for ':app-icon'.
 You can use a symbol as the value for ':app-icon' to provide icon name
 without specifying a file, like this:
 
@@ -717,7 +780,14 @@ without specifying a file, like this:
 *** New user option 'image-dired-thumb-naming'.
 You can now configure how a thumbnail is named using this option.
 
-** checkdoc
+** ERT
+
+*** New macro `skip-when' to skip 'ert-deftest' tests.
+This can help avoid some awkward skip conditions.  For example
+'(skip-unless (not noninteractive))' can be changed to the easier
+to read '(skip-when noninteractive)'.
+
+** Checkdoc
 
 ---
 *** New checkdock warning if not using lexical-binding.
@@ -725,7 +795,7 @@ Checkdoc now warns if the first line of an Emacs Lisp file does not
 end with a "-*- lexical-binding: t -*-" cookie.  Customize the user
 option 'checkdoc-lexical-binding-flag' to nil to disable this warning.
 
-** url
+** URL
 
 +++
 *** 'url-gateway-broken-resolution' is now obsolete.
@@ -733,6 +803,20 @@ This option was intended for use on SunOS 4.x and Ultrix systems,
 neither of which have been supported by Emacs since version 23.1.
 The user option 'url-gateway-nslookup-program' and the function
 'url-gateway-nslookup-host' are consequently also obsolete.
+
++++
+** Edmacro
+
+*** New command 'edmacro-set-macro-to-region-lines'.
+Bound to 'C-c C-r', this command replaces the macro text with the
+lines of the region.  If needed, the region is extended to include
+whole lines.  If the region ends at the beginning of a line, that last
+line is excluded.
+
+*** New user option 'edmacro-reverse-macro-lines'.
+When this is non-nil, the lines of key sequences are displayed with
+the most recent line fist.  This is can be useful when working with
+macros with many lines, such as from 'kmacro-edit-lossage'.
 
 
 * New Modes and Packages in Emacs 30.1
@@ -752,6 +836,17 @@ A major mode based on the tree-sitter library for editing HEEx files.
 *** New major mode 'elixir-ts-mode'.
 A major mode based on the tree-sitter library for editing Elixir
 files.
+
++++
+** New global minor mode 'minibuffer-regexp-mode'.
+This is a minor mode for editing regular expressions in the minibuffer.
+It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
+a user-friendly way, avoids reporting alleged paren mismatches and makes
+sexp navigation more intuitive.
+
+---
+*** New major mode 'lua-ts-mode'.
+A major mode based on the tree-sitter library for editing Lua files.
 
 ---
 ** The highly accessible Modus themes collection has eight items.
@@ -776,8 +871,17 @@ the current project.
 The look of the key prompt in the project switcher has been changed
 slightly.  To get the previous one, set this option to 'brackets'.
 
+*** 'project-try-vc' tries harder to find the responsible VCS.
+When 'project-vc-extra-root-markers' is non-nil, and causes
+subdirectory project to be detected which is not a VCS root, we now
+additionally traverse the parent directories until a VCS root is found
+(if any), so that the ignore rules for that repository are used, and
+the file listing's performance is still optimized.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
+
+** 'post-gc-hook' runs after updating 'gcs-done' and `'gcs-elapsed'.
 
 ---
 ** The escape sequence '\x' not followed by hex digits is now an error.
@@ -857,15 +961,27 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 
 * Lisp Changes in Emacs 30.1
 
++++
+** XLFDs are no longer restricted to 255 characters.
+'font-xlfd-name' now returns an XLFD even if it is greater than 255
+characters in length, provided that the LONG_XLFDs argument is true.
+
+Other features in Emacs which employ XLFDs have been modified to
+produce and understand XLFDs larger than 255 characters.
+
 ** 'defadvice' is marked as obsolete.
 See the "(elisp) Porting Old Advice" node for help converting them
 to use 'advice-add' or 'define-advice' instead.
 
+** 'cl-old-struct-compat-mode' is marked as obsolete.
+You may need to recompile our code if it was compiled with Emacs < 24.3.
+
 +++
-** New macro 'static-if' for conditional compilation of code.
-This macro hides a form from the compiler based on a compile-time
-condition.  This is handy for avoiding byte-compilation warnings about
-code that will never actually run under some conditions.
+** New macro 'static-if' for conditional evaluation of code.
+This macro hides a form from the evaluator or byte-compiler based on a
+compile-time condition.  This is handy for avoiding byte-compilation
+warnings about code that will never actually run under some
+conditions.
 
 +++
 ** Desktop notifications are now supported on the Haiku operating system.
@@ -1032,6 +1148,21 @@ because the behavior is identical to that of the argument; there is
 no protection of any kind.  Perhaps the intended unwind forms have
 been misplaced or forgotten, or the use of 'unwind-protect' could be
 simplified away.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+---
+*** Warn about useless trailing 'cond' clauses.
+The compiler now warns when a 'cond' form contains clauses following a
+default (unconditional) clause.  Example:
+
+    (cond ((= x 0) (say "none"))
+          (t (say "some"))
+          (say "goodbye"))
+
+Such a clause will never be executed but is likely to be a mistake,
+perhaps due to misplaced brackets.
 
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.

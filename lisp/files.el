@@ -1322,10 +1322,10 @@ consecutive checks.  For example:
   :group 'tramp
   :version "24.1"
   :type '(choice
-	  (const   :tag "Do not inhibit file name cache" nil)
-	  (const   :tag "Do not use file name cache" t)
-	  (integer :tag "Do not use file name cache"
-		   :format "Do not use file name cache older then %v seconds"
+          (const   :tag "Do not cache remote file attributes" t)
+          (const   :tag "Cache remote file attributes" nil)
+          (integer :tag "Cache remote file attributes with expiration"
+                   :format "Cache expiry in seconds: %v"
 		   :value 10)))
 
 (defcustom remote-file-name-access-timeout nil
@@ -6070,14 +6070,18 @@ See `save-some-buffers' for PRED values."
 
 (defvar save-some-buffers-functions nil
   "Functions to be run by `save-some-buffers' after saving the buffers.
-The functions can be called in two \"modes\", depending on the
-first argument.  If the first argument is `query', then the
+These functions should accept one mandatory and one optional
+argument, and they can be called in two \"modes\", depending on
+the first argument.  If the first argument is `query', then the
 function should return non-nil if there is something to be
 saved (but it should not actually save anything).
 
 If the first argument is something else, then the function should
 save according to the value of the second argument, which is the
-ARG argument from `save-some-buffers'.")
+ARG argument with which `save-some-buffers' was called.
+
+The main purpose of these functions is to save stuff that is kept
+in variables (rather than in buffers).")
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
@@ -7725,10 +7729,28 @@ need to be passed verbatim to shell commands."
       pattern))))
 
 
-(defvar insert-directory-program (purecopy "ls")
+(defcustom insert-directory-program
+  (if (and (memq system-type '(berkeley-unix darwin))
+           (executable-find "gls"))
+      (purecopy "gls")
+    (purecopy "ls"))
   "Absolute or relative name of the `ls'-like program.
 This is used by `insert-directory' and `dired-insert-directory'
-\(thus, also by `dired').")
+(thus, also by `dired').  For Dired, this should ideally point to
+GNU ls, or another version of ls that supports the \"--dired\"
+flag.  See `dired-use-ls-dired'.
+
+On GNU/Linux and other capable systems, the default is \"ls\".
+
+On *BSD and macOS systems, the default \"ls\" does not support
+the \"--dired\" flag.  Therefore, the default is to use the
+\"gls\" executable on such machines, if it exists.  This means
+that there should normally be no need to customize this when
+installing GNU coreutils using something like ports or Homebrew."
+  :group 'dired
+  :type 'string
+  :initialize #'custom-initialize-delay
+  :version "30.1")
 
 (defcustom directory-free-space-program (purecopy "df")
   "Program to get the amount of free space on a file system.

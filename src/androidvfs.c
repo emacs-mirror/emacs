@@ -3033,6 +3033,7 @@ android_authority_open (struct android_vnode *vnode, int flags,
   size_t length;
   jobject string;
   int fd;
+  JNIEnv *env;
 
   vp = (struct android_authority_vnode *) vnode;
 
@@ -3044,39 +3045,40 @@ android_authority_open (struct android_vnode *vnode, int flags,
       return -1;
     }
 
+  /* Save the JNI environment within `env', to make wrapping
+     subsequent lines referencing CallNonvirtualIntMethod
+     feasible.  */
+  env = android_java_env;
+
   /* Allocate a buffer to hold the file name.  */
   length = strlen (vp->uri);
-  string = (*android_java_env)->NewByteArray (android_java_env,
-					      length);
+  string = (*env)->NewByteArray (env, length);
   if (!string)
     {
-      (*android_java_env)->ExceptionClear (android_java_env);
+      (*env)->ExceptionClear (env);
       errno = ENOMEM;
       return -1;
     }
 
   /* Copy the URI into this byte array.  */
-  (*android_java_env)->SetByteArrayRegion (android_java_env,
-					   string, 0, length,
-					   (jbyte *) vp->uri);
+  (*env)->SetByteArrayRegion (env, string, 0, length,
+			      (jbyte *) vp->uri);
 
   /* Try to open the file descriptor.  */
 
-  fd
-    = (*android_java_env)->CallIntMethod (android_java_env,
-					  emacs_service,
-					  service_class.open_content_uri,
-					  string,
-					  (jboolean) ((mode & O_WRONLY
-						       || mode & O_RDWR)
-						      != 0),
-					  (jboolean) !(mode & O_WRONLY),
-					  (jboolean) ((mode & O_TRUNC)
-						      != 0));
-
-  if ((*android_java_env)->ExceptionCheck (android_java_env))
+  fd = (*env)->CallNonvirtualIntMethod (env, emacs_service,
+					service_class.class,
+					service_class.open_content_uri,
+					string,
+					(jboolean) ((mode & O_WRONLY
+						     || mode & O_RDWR)
+						    != 0),
+					(jboolean) !(mode & O_WRONLY),
+					(jboolean) ((mode & O_TRUNC)
+						    != 0));
+  if ((*env)->ExceptionCheck (env))
     {
-      (*android_java_env)->ExceptionClear (android_java_env);
+      (*env)->ExceptionClear (env);
       errno = ENOMEM;
       ANDROID_DELETE_LOCAL_REF (string);
       return -1;
@@ -4252,10 +4254,11 @@ android_saf_delete_document (const char *tree, const char *doc_id,
 
   /* Now, try to delete the document.  */
   method = service_class.delete_document;
-  rc = (*android_java_env)->CallIntMethod (android_java_env,
-					   emacs_service,
-					   method, uri, id,
-					   name);
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method, uri, id,
+						     name);
 
   if (android_saf_exception_check (3, id, uri, name))
     return -1;
@@ -4410,11 +4413,13 @@ android_saf_move_document (const char *uri, char **doc_id,
 
   /* Do the rename.  */
   method = service_class.move_document;
-  result = (*android_java_env)->CallObjectMethod (android_java_env,
-						  emacs_service,
-						  method, uri1,
-						  doc_id1, dir_name1,
-						  dst_id1, src_id1);
+  result
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, uri1,
+						       doc_id1, dir_name1,
+						       dst_id1, src_id1);
   if (android_saf_exception_check (5, src_id1, dst_id1, dir_name1,
 				   doc_id1, uri1))
     {

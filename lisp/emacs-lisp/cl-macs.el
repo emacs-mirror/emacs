@@ -1465,6 +1465,7 @@ For more details, see Info node `(cl)Loop Facility'.
 			  (t (setq buf (cl--pop2 cl--loop-args)))))
 		  (if (and (consp var) (symbolp (car var)) (symbolp (cdr var)))
 		      (setq var1 (car var) var2 (cdr var))
+		    (push (list var nil) loop-for-bindings)
 		    (push (list var `(cons ,var1 ,var2)) loop-for-sets))
 		  (cl--loop-set-iterator-function
                    'intervals (lambda (body)
@@ -2075,15 +2076,20 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (&define [&name symbolp "@cl-flet@"]
+           ;; The first (symbolp form) case doesn't use `&name' because
+           ;; it's hard to associate this name with the body of the function
+           ;; that `form' will return (bug#65344).
+           ;; We could try and use a `&name' for those cases where the
+           ;; body of the function can be found, (e.g. the form wraps
+           ;; some `prog1/progn/let' around the final `lambda'), but it's
+           ;; not clear it's worth the trouble.
+           (debug ((&rest [&or (symbolp form)
+                               (&define [&name symbolp "@cl-flet@"]
                                         [&name [] gensym] ;Make it unique!
                                         cl-lambda-list
                                         cl-declarations-or-string
                                         [&optional ("interactive" interactive)]
-                                        def-body)
-                               (&define [&name symbolp "@cl-flet@"]
-                                        [&name [] gensym] ;Make it unique!
-                                        def-form)])
+                                        def-body)])
                    cl-declarations body)))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
@@ -2925,7 +2931,14 @@ The function's arguments should be treated as immutable.
              ,(if (memq '&key args)
                   `(&whole cl-whole &cl-quote ,@args)
                 (cons '&cl-quote args))
-             ,(format "compiler-macro for inlining `%s'." name)
+             ;; NB.  This will produce incorrect results in some
+             ;; cases, as our coding conventions says that the first
+             ;; line must be a full sentence.  However, if we don't
+             ;; word wrap we will have byte-compiler warnings about
+             ;; overly long docstrings.  So we can't have a perfect
+             ;; result here, and choose to avoid the byte-compiler
+             ;; warnings.
+             ,(internal--format-docstring-line "compiler-macro for `%s'." name)
              (cl--defsubst-expand
               ',argns '(cl-block ,name ,@(cdr (macroexp-parse-body body)))
               nil
@@ -3174,18 +3187,30 @@ To see the documentation for a defined struct type, use
               ;; The arg "cl-x" is referenced by name in e.g. pred-form
 	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(,defsym ,accessor (cl-x)
-                       ,(concat
-                         ;; NB.  This will produce incorrect results
-                         ;; in some cases, as our coding conventions
-                         ;; says that the first line must be a full
-                         ;; sentence.  However, if we don't word wrap
-                         ;; we will have byte-compiler warnings about
-                         ;; overly long docstrings.  So we can't have
-                         ;; a perfect result here, and choose to avoid
-                         ;; the byte-compiler warnings.
-                         (internal--format-docstring-line
-                          "Access slot \"%s\" of `%s' struct CL-X." slot name)
-                         (if doc (concat "\n" doc) ""))
+                       ,(let ((long-docstring
+                               (format "Access slot \"%s\" of `%s' struct CL-X." slot name)))
+                          (concat
+                           ;; NB.  This will produce incorrect results
+                           ;; in some cases, as our coding conventions
+                           ;; says that the first line must be a full
+                           ;; sentence.  However, if we don't word
+                           ;; wrap we will have byte-compiler warnings
+                           ;; about overly long docstrings.  So we
+                           ;; can't have a perfect result here, and
+                           ;; choose to avoid the byte-compiler
+                           ;; warnings.
+                           (if (>= (length long-docstring)
+                                   (or (and (boundp 'byte-compile-docstring-max-column)
+                                            byte-compile-docstring-max-column)
+                                       80))
+                               (concat
+                                (internal--format-docstring-line
+                                 "Access slot \"%s\" of CL-X." slot)
+                                "\n"
+                                (internal--format-docstring-line
+                                 "Struct CL-X is a `%s'." name))
+                             (internal--format-docstring-line long-docstring))
+                           (if doc (concat "\n" doc) "")))
                        (declare (side-effect-free t))
                        ,access-body)
                     forms)
@@ -3261,7 +3286,16 @@ To see the documentation for a defined struct type, use
 	(push `(,cldefsym ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
-                    (format "Constructor for objects of type `%s'." name))
+                    ;; NB.  This will produce incorrect results in
+                    ;; some cases, as our coding conventions says that
+                    ;; the first line must be a full sentence.
+                    ;; However, if we don't word wrap we will have
+                    ;; byte-compiler warnings about overly long
+                    ;; docstrings.  So we can't have a perfect result
+                    ;; here, and choose to avoid the byte-compiler
+                    ;; warnings.
+                    (internal--format-docstring-line
+                     "Constructor for objects of type `%s'." name))
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))
                  (,con-fun ,@make))

@@ -2521,8 +2521,12 @@ If NOSAVE is non-nil, the package is not removed from
                                            nil t)))
        (list (cdr (assoc package-name package-table))
              current-prefix-arg nil))))
-  (let ((dir (package-desc-dir pkg-desc))
-        (name (package-desc-name pkg-desc))
+  (let* ((dir (package-desc-dir pkg-desc))
+         (name (package-desc-name pkg-desc))
+         (new-package-alist (let ((pkgs (assq name package-alist)))
+                              (if (null (remove pkg-desc (cdr pkgs)))
+                                  (remq pkgs package-alist)
+                                package-alist)))
         pkg-used-elsewhere-by)
     ;; If the user is trying to delete this package, they definitely
     ;; don't want it marked as selected, so we remove it from
@@ -2541,7 +2545,8 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-full-name pkg-desc)))
           ((and (null force)
                 (setq pkg-used-elsewhere-by
-                      (package--used-elsewhere-p pkg-desc)))
+                      (let ((package-alist new-package-alist))
+                        (package--used-elsewhere-p pkg-desc)))) ;See bug#65475
            ;; Don't delete packages used as dependency elsewhere.
            (error "Package `%s' is used by `%s' as dependency, not deleting"
                   (package-desc-full-name pkg-desc)
@@ -2562,10 +2567,7 @@ If NOSAVE is non-nil, the package is not removed from
                (when (file-exists-p file)
                  (delete-file file))))
            ;; Update package-alist.
-           (let ((pkgs (assq name package-alist)))
-             (delete pkg-desc pkgs)
-             (unless (cdr pkgs)
-               (setq package-alist (delq pkgs package-alist))))
+           (setq package-alist new-package-alist)
            (package--quickstart-maybe-refresh)
            (message "Package `%s' deleted."
                     (package-desc-full-name pkg-desc))))))
@@ -2810,7 +2812,7 @@ Helper function for `describe-package'."
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
          (maintainers (or (cdr (assoc :maintainers extras))
-                          (cdr (assoc :maintainer extras))))
+                          (list (cdr (assoc :maintainer extras)))))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))

@@ -1713,7 +1713,6 @@ AS_IF([test $gl_gcc_warnings = no],
   AS_IF([test "$emacs_cv_clang" = yes],
    [
      # Turn off some warnings if supported.
-     gl_WARN_ADD([-Wno-switch])
      gl_WARN_ADD([-Wno-pointer-sign])
      gl_WARN_ADD([-Wno-string-plus-int])
      gl_WARN_ADD([-Wno-unknown-attributes])
@@ -5171,8 +5170,9 @@ if test "${with_native_compilation}" != "no"; then
     case "${opsys}" in
       # mingw32 loads the library dynamically.
       mingw32) ;;
-      # OpenBSD doesn't have libdl, all the functions are in libc
-      netbsd|openbsd)
+      # Neither NetBSD, OpenBSD nor Haiku have libdl, with all dynamic
+      # linker functions placed within libc.
+      netbsd|openbsd|haiku)
         LIBGCCJIT_LIBS="-lgccjit" ;;
       darwin)
         LIBGCCJIT_CFLAGS="${MAC_CFLAGS}"
@@ -6513,7 +6513,7 @@ case $opsys in
 esac
 
 case $opsys in
-  gnu-* | solaris | cygwin )
+  gnu-* | android | solaris | cygwin )
     dnl FIXME Can't we test if this exists (eg /proc/$$)?
     AC_DEFINE([HAVE_PROCFS], [1], [Define if you have the /proc filesystem.])
   ;;

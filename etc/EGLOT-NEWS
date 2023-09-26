@@ -43,6 +43,13 @@ For 'newline' commands, Eglot sometimes sent the wrong character code
 to the server.  Also made this feature less chatty in the mode-line
 and messages buffer.
 
+** Improve mouse invocation of code actions
+
+When invoking code actions by middle clicking with the mouse on
+Flymake diagnostics, it was often the case that Eglot didn't request
+code actions correctly and thus no actions were offered to the user.
+This has been fixed. github#1295
+
 
 * Changes in Eglot 1.15 (29/4/2023)
 

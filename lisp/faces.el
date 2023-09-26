@@ -1145,16 +1145,16 @@ returned.  Otherwise, DEFAULT is returned verbatim."
                       (format-prompt prompt default)
                     (format "%s: " prompt)))
           (completion-extra-properties
-           '(:affixation-function
-             (lambda (faces)
-               (mapcar
-                (lambda (face)
-                  (list face
-                        (concat (propertize read-face-name-sample-text
-                                            'face face)
-                                "\t")
-                        ""))
-                faces))))
+           `(:affixation-function
+             ,(lambda (faces)
+                (mapcar
+                 (lambda (face)
+                   (list face
+                         (concat (propertize read-face-name-sample-text
+                                             'face face)
+                                 "\t")
+                         ""))
+                 faces))))
           aliasfaces nonaliasfaces faces)
       ;; Build up the completion tables.
       (mapatoms (lambda (s)

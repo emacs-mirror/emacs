@@ -204,10 +204,10 @@ are available (see Info node `(emacs)Document View')."
     #'doc-view-pdf->png-converter-ghostscript)
   "Function to call to convert a PDF file into a PNG file."
   :type '(radio
-          (function-item doc-view-pdf->png-converter-ghostscript
-                         :doc "Use ghostscript")
-          (function-item doc-view-pdf->png-converter-mupdf
-                         :doc "Use mupdf")
+          (function-item :doc "Use Ghostscript"
+                         doc-view-pdf->png-converter-ghostscript)
+          (function-item :doc "Use MuPDF"
+                         doc-view-pdf->png-converter-mupdf)
           function)
   :version "24.4")
 
@@ -375,17 +375,15 @@ Needed for viewing OpenOffice.org (and MS Office) files."
   :type 'file)
 
 (defcustom doc-view-odf->pdf-converter-function
-  (cond
-   ((string-match "unoconv\\'" doc-view-odf->pdf-converter-program)
-    #'doc-view-odf->pdf-converter-unoconv)
-   ((string-match "soffice\\'" doc-view-odf->pdf-converter-program)
-    #'doc-view-odf->pdf-converter-soffice))
-  "Function to call to convert a ODF file into a PDF file."
+  (if (string-suffix-p "unoconv" doc-view-odf->pdf-converter-program)
+      #'doc-view-odf->pdf-converter-unoconv
+    #'doc-view-odf->pdf-converter-soffice)
+  "Function to call to convert an ODF file into a PDF file."
   :type '(radio
-          (function-item doc-view-odf->pdf-converter-unoconv
-                         :doc "Use unoconv")
-          (function-item doc-view-odf->pdf-converter-soffice
-                         :doc "Use LibreOffice")
+          (function-item :doc "Use LibreOffice"
+                         doc-view-odf->pdf-converter-soffice)
+          (function-item :doc "Use unoconv"
+                         doc-view-odf->pdf-converter-unoconv)
           function)
   :version "24.4")
 
@@ -940,8 +938,7 @@ Document types are symbols like `dvi', `ps', `pdf', `epub',
                (and doc-view-pdfdraw-program
                     (executable-find doc-view-pdfdraw-program)))))
 	((eq type 'odf)
-	 (and doc-view-odf->pdf-converter-program
-	      (executable-find doc-view-odf->pdf-converter-program)
+         (and (executable-find doc-view-odf->pdf-converter-program)
 	      (doc-view-mode-p 'pdf)))
 	((eq type 'djvu)
 	 (executable-find "ddjvu"))
@@ -2238,8 +2235,15 @@ toggle between displaying the document or editing it as text.
                   ;; supposed to return nil for things like local files accessed
                   ;; via `su' or via file://...
                   ((let ((file-name-handler-alist nil))
-                     (not (and buffer-file-name
-                               (file-readable-p buffer-file-name))))
+                     (or (not (and buffer-file-name
+                                   (file-readable-p buffer-file-name)))
+                         ;; If the system is Android and the file name
+                         ;; begins with /content or /assets, it's not
+                         ;; readable by local processes.
+                         (and (eq system-type 'android)
+                              (string-match-p "/\\(content\\|assets\\)[/$]"
+                                              (expand-file-name
+                                               buffer-file-name)))))
                    ;; FIXME: there's a risk of name conflicts here.
                    (expand-file-name
                     (if buffer-file-name

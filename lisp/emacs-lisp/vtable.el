@@ -240,13 +240,14 @@ See info node `(vtable)Top' for vtable documentation."
 
 (defun vtable-beginning-of-table ()
   "Go to the start of the current table."
-  (if (text-property-search-backward 'vtable (vtable-current-table))
+  (if (or (text-property-search-backward 'vtable (vtable-current-table) #'eq)
+          (get-text-property (point) 'vtable))
       (point)
     (goto-char (point-min))))
 
 (defun vtable-end-of-table ()
   "Go to the end of the current table."
-  (if (text-property-search-forward 'vtable (vtable-current-table))
+  (if (text-property-search-forward 'vtable (vtable-current-table) #'eq)
       (point)
     (goto-char (point-max))))
 

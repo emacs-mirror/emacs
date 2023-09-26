@@ -659,6 +659,17 @@ The `sudo' program appears to insert a `^@' character into the prompt."
   :version "29.1"
   :type 'regexp)
 
+(defcustom tramp-otp-password-prompt-regexp
+  (rx-to-string
+   `(: bol (* nonl)
+       ;; JumpCloud.
+       (group (| "Verification code"))
+       (* nonl) (any . ,tramp-compat-password-colon-equivalents) (* blank)))
+  "Regexp matching one-time password prompts.
+The regexp should match at end of buffer."
+  :version "29.2"
+  :type 'regexp)
+
 (defcustom tramp-wrong-passwd-regexp
   (rx bol (* nonl)
       (| "Permission denied"
@@ -1331,6 +1342,7 @@ let-bind this variable."
 ;; GNU/Linux (Debian, Suse, RHEL, Cygwin, MINGW64): /bin:/usr/bin
 ;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
 ;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
+;; NetBSD 9.3: /usr/bin:/bin:/usr/sbin:/sbin:/usr/pkg/bin:/usr/pkg/sbin:/usr/local/bin:/usr/local/sbin
 ;; IRIX64: /usr/bin
 ;; QNAP QTS: ---
 ;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
@@ -3510,7 +3522,7 @@ BODY is the backend specific code."
 			(let ((inhibit-file-name-handlers
 			       `(tramp-file-name-handler
 				 tramp-crypt-file-name-handler
-				 . inhibit-file-name-handlers))
+				 . ,inhibit-file-name-handlers))
 			      (inhibit-file-name-operation 'write-region))
 			  (find-file-name-handler ,visit 'write-region))))
 	  ;; We use this to save the value of
@@ -5366,6 +5378,25 @@ of."
       (narrow-to-region (point-max) (point-max))))
   t)
 
+(defun tramp-action-otp-password (proc vec)
+  "Query the user for a one-time password."
+  (with-current-buffer (process-buffer proc)
+    (let ((case-fold-search t)
+	  prompt)
+      (goto-char (point-min))
+      (tramp-check-for-regexp proc tramp-process-action-regexp)
+      (setq prompt (concat (match-string 1) " "))
+      (tramp-message vec 3 "Sending %s" (match-string 1))
+      ;; We don't call `tramp-send-string' in order to hide the
+      ;; password from the debug buffer and the traces.
+      (process-send-string
+       proc
+       (concat
+	(tramp-read-passwd-without-cache proc prompt) tramp-local-end-of-line))
+      ;; Hide password prompt.
+      (narrow-to-region (point-max) (point-max))))
+  t)
+
 (defun tramp-action-succeed (_proc _vec)
   "Signal success in finding shell prompt."
   (throw 'tramp-action 'ok))
@@ -6531,8 +6562,8 @@ Consults the auth-source package."
 
 (defun tramp-read-passwd-without-cache (proc &optional prompt)
   "Read a password from user (compat function)."
-  ;; We suspend the timers while reading the password.
   (declare (tramp-suppress-trace t))
+  ;; We suspend the timers while reading the password.
   (let (tramp-dont-suspend-timers)
     (with-tramp-suspended-timers
       (password-read

@@ -2553,7 +2553,7 @@ static dump_off
 dump_vectorlike_generic (struct dump_context *ctx,
 			 const union vectorlike_header *header)
 {
-#if CHECK_STRUCTS && !defined (HASH_vectorlike_header_00A5A4BFB2)
+#if CHECK_STRUCTS && !defined (HASH_vectorlike_header_785E52047B)
 # error "vectorlike_header changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = (const struct Lisp_Vector *) header;
@@ -2745,7 +2745,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_6C25F9C3BC
+#if CHECK_STRUCTS && !defined HASH_buffer_EB0A5191C5
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -2996,7 +2996,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_345B9F880C
+#if CHECK_STRUCTS && !defined HASH_pvec_type_D8A254BC70
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);

@@ -1803,7 +1803,7 @@ generate a description as described in `org-link-parameters'
 docstring.  Otherwise, if `org-link-make-description-function' is
 non-nil, this function will be called with the link target, and
 the result will be the default link description.  When called
-non-interactively, don't allow to edit the default description."
+non-interactively, don't allow editing the default description."
   (interactive "P")
   (let* ((wcf (current-window-configuration))
 	 (origbuf (current-buffer))
@@ -2042,7 +2042,7 @@ Also refresh fontification if needed."
   (interactive)
   (let ((old-regexp org-target-link-regexp)
 	;; Some languages, e.g., Chinese, do not use spaces to
-	;; separate words.  Also allow to surround radio targets with
+        ;; separate words.  Also allow surrounding radio targets with
 	;; line-breakable characters.
 	(before-re "\\(?:^\\|[^[:alnum:]]\\|\\c|\\)\\(")
 	(after-re "\\)\\(?:$\\|[^[:alnum:]]\\|\\c|\\)")

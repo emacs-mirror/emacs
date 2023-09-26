@@ -126,7 +126,8 @@
 (defun read-multiple-choice (prompt choices &optional help-string show-help
                                     long-form)
   "Ask user to select an entry from CHOICES, prompting with PROMPT.
-This function allows to ask the user a multiple-choice question.
+This function is used to ask the user a question with multiple
+choices.
 
 CHOICES should be a list of the form (KEY NAME [DESCRIPTION]).
 KEY is a character the user should type to select the entry.

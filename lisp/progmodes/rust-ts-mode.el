@@ -48,6 +48,12 @@
   :safe 'integerp
   :group 'rust)
 
+(defvar rust-ts-mode-prettify-symbols-alist
+  '(("&&" . ?∧) ("||" . ?∨)
+    ("<=" . ?≤)  (">=" . ?≥) ("!=" . ?≠)
+    ("INFINITY" . ?∞) ("->" . ?→) ("=>" . ?⇒))
+  "Value for `prettify-symbols-alist' in `rust-ts-mode'.")
+
 (defvar rust-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?+   "."      table)
@@ -386,6 +392,19 @@ delimiters < and >'s."
                             (?< '(4 . ?>))
                             (?> '(5 . ?<))))))))
 
+(defun rust-ts-mode--prettify-symbols-compose-p (start end match)
+  "Return true iff the symbol MATCH should be composed.
+See `prettify-symbols-compose-predicate'."
+  (and (fboundp 'prettify-symbols-default-compose-p)
+       (prettify-symbols-default-compose-p start end match)
+       ;; Make sure || is not a closure with 0 arguments and && is not
+       ;; a double reference.
+       (pcase match
+         ((or "||" "&&")
+          (string= (treesit-node-field-name (treesit-node-at (point)))
+                   "operator"))
+         (_ t))))
+
 ;;;###autoload
 (define-derived-mode rust-ts-mode prog-mode "Rust"
   "Major mode for editing Rust, powered by tree-sitter."
@@ -410,6 +429,11 @@ delimiters < and >'s."
                   ( assignment attribute builtin constant escape-sequence
                     number type)
                   ( bracket delimiter error function operator property variable)))
+
+    ;; Prettify configuration
+    (setq prettify-symbols-alist rust-ts-mode-prettify-symbols-alist)
+    (setq prettify-symbols-compose-predicate
+          #'rust-ts-mode--prettify-symbols-compose-p)
 
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings

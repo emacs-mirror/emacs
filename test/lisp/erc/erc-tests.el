@@ -560,6 +560,36 @@
                        (pop calls)))
         (should-not calls)))
 
+    ;; Mimic simplistic version of example in "(erc) display-buffer".
+    (when (>= emacs-major-version 29)
+      (let ((proc erc-server-process))
+        (with-temp-buffer
+          (should-not (eq (window-buffer) (current-buffer)))
+          (erc-mode)
+          (setq erc-server-process proc)
+
+          (cl-letf (((symbol-function 'erc--test-fun-p)
+                     (lambda (buf action)
+                       (should (eql 1 (alist-get 'erc-buffer-display action)))
+                       (push (cons 'erc--test-fun-p buf) calls)))
+                    ((symbol-function 'action-fn)
+                     (lambda (buf action)
+                       (should (eql 1 (alist-get 'erc-buffer-display action)))
+                       (should (eql 42 (alist-get 'foo action)))
+                       (push (cons 'action-fn buf) calls)
+                       (selected-window))))
+
+            (let ((erc--display-context '((erc-buffer-display . 1)))
+                  (display-buffer-alist
+                   `(((and (major-mode . erc-mode) erc--test-fun-p)
+                      action-fn (foo . 42))))
+                  (erc-buffer-display 'display-buffer))
+
+              (erc-setup-buffer (current-buffer))
+              (should (equal 'action-fn (car (pop calls))))
+              (should (equal 'erc--test-fun-p (car (pop calls))))
+              (should-not calls))))))
+
     (should (eq owin (selected-window)))
     (should (eq obuf (window-buffer)))))
 
@@ -575,6 +605,39 @@
 
     (setq erc-lurker-ignore-chars "_-`") ; set of chars, not character alts
     (should (string= "nick" (erc-lurker-maybe-trim "nick-_`")))))
+
+(ert-deftest erc-parse-user ()
+  (should (equal erc--parse-user-regexp erc--parse-user-regexp-legacy))
+
+  (should (equal '("" "" "") (erc-parse-user "!@")))
+  (should (equal '("" "!" "") (erc-parse-user "!!@")))
+  (should (equal '("" "" "@") (erc-parse-user "!@@")))
+  (should (equal '("" "!" "@") (erc-parse-user "!!@@")))
+
+  (should (equal '("abc" "" "") (erc-parse-user "abc")))
+  (should (equal '("" "123" "fake") (erc-parse-user "!123@fake")))
+  (should (equal '("abc" "" "123") (erc-parse-user "abc!123")))
+
+  (should (equal '("abc" "123" "fake") (erc-parse-user "abc!123@fake")))
+  (should (equal '("abc" "!123" "@xy") (erc-parse-user "abc!!123@@xy")))
+
+  (should (equal '("de" "fg" "xy") (erc-parse-user "abc\nde!fg@xy")))
+
+  (ert-info ("`erc--parse-user-regexp-pedantic'")
+    (let ((erc--parse-user-regexp erc--parse-user-regexp-pedantic))
+      (should (equal '("" "" "") (erc-parse-user "!@")))
+      (should (equal '("" "!" "") (erc-parse-user "!!@")))
+      (should (equal '("" "@" "") (erc-parse-user "!@@")))
+      (should (equal '("" "!@" "") (erc-parse-user "!!@@")))
+
+      (should (equal '("abc" "" "") (erc-parse-user "abc")))
+      (should (equal '("" "123" "fake") (erc-parse-user "!123@fake")))
+      (should (equal '("abc" "" "123") (erc-parse-user "abc!123")))
+
+      (should (equal '("abc" "123" "fake") (erc-parse-user "abc!123@fake")))
+      (should (equal '("abc" "!123@" "xy") (erc-parse-user "abc!!123@@xy")))
+
+      (should (equal '("de" "" "fg@xy") (erc-parse-user "abc\nde!fg@xy"))))))
 
 (ert-deftest erc--parse-isupport-value ()
   (should (equal (erc--parse-isupport-value "a,b") '("a" "b")))
@@ -2038,8 +2101,7 @@
          ;; This is for integrations testing with managed configs
          ;; ("starter kits") that use a different package manager.
          (init (and-let* ((found (getenv "ERC_TESTS_INIT"))
-                          (files (split-string found ","))
-                          ((seq-every-p #'file-exists-p files)))
+                          (files (split-string found ",")))
                  (mapcan (lambda (f) (list "-l" f)) files)))
          (prog
           `(progn

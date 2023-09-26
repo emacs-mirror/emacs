@@ -174,7 +174,8 @@ Note this name may be omitted if it equals the default
   "\\`/\\(afs\\|net\\)/."
   ;; afs only: (and (file-exists-p "/afs") "\\`/afs/.")
   "Matching file names are treated as remote.  Use nil to disable."
-  :type 'regexp
+  :type '(choice (const :tag "Disable" nil)
+                 regexp)
   :group 'ffap)
 
 (defvar ffap-url-regexp

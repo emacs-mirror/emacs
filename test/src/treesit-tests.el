@@ -662,6 +662,20 @@ visible_end.)"
       ;; TODO: More tests.
       )))
 
+(ert-deftest treesit-range-offset ()
+  "Tests if range offsets work."
+  (skip-unless (treesit-language-available-p 'javascript))
+  (with-temp-buffer
+    (let ((query '(((call_expression (identifier) @_html_template_fn
+                                     (template_string) @capture)
+                    (:equal "html" @_html_template_fn)))))
+      (progn
+        (insert "const x = html`<p>Hello</p>`;")
+        (treesit-parser-create 'javascript))
+      (should (equal '((15 . 29)) (treesit-query-range 'javascript query)))
+      (should (equal '((16 . 28)) (treesit-query-range
+                                   'javascript query nil nil '(1 . -1)))))))
+
 ;;; Multiple language
 
 (ert-deftest treesit-multi-lang ()

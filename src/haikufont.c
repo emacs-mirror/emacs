@@ -873,7 +873,8 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   font->baseline_offset = 0;
   font->relative_compose = 0;
 
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+  font->props[FONT_NAME_INDEX]
+    = Ffont_xlfd_name (font_object, Qnil, Qt);
 
   unblock_input ();
   return font_object;

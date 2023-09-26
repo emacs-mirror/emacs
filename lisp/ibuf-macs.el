@@ -230,6 +230,9 @@ buffer object.
 				(_
 				 'ibuffer-marked-buffer-names)))))
 	 (when (null marked-names)
+           (cl-assert (get-text-property (line-beginning-position)
+                                         'ibuffer-properties)
+                      nil "No buffer on this line")
 	   (setq marked-names (list (buffer-name (ibuffer-current-buffer))))
 	   (ibuffer-set-mark ,(pcase mark
 				(:deletion
@@ -243,7 +246,9 @@ buffer object.
 			    ())
                           (and after `(,after)) ; post-operation form.
 			  `((ibuffer-redisplay t)
-			    (message ,(concat "Operation finished; " opstring " %s buffers") count))))
+			    (message ,(concat "Operation finished; " opstring
+                                              " %s %s")
+                                     count (ngettext "buffer" "buffers" count)))))
 		 (inner-body (if complex
 				 `(progn ,@body)
 			       `(progn

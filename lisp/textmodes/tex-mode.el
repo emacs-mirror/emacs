@@ -2673,17 +2673,17 @@ This function is more useful than \\[tex-buffer] when you need the
 The last line of the buffer is displayed on
 line LINE of the window, or centered if LINE is nil."
   (interactive "P")
-  (let ((tex-shell (get-buffer "*tex-shell*"))
-	(window))
+  (let ((tex-shell (get-buffer "*tex-shell*")))
     (if (null tex-shell)
 	(message "No TeX output buffer")
-      (setq window (display-buffer tex-shell display-tex-shell-buffer-action))
-      (with-selected-window window
-	(bury-buffer tex-shell)
-	(goto-char (point-max))
-	(recenter (if linenum
-		      (prefix-numeric-value linenum)
-		    (/ (window-height) 2)))))))
+      (when-let ((window
+                  (display-buffer tex-shell display-tex-shell-buffer-action)))
+        (with-selected-window window
+	  (bury-buffer tex-shell)
+	  (goto-char (point-max))
+	  (recenter (if linenum
+		        (prefix-numeric-value linenum)
+		      (/ (window-height) 2))))))))
 
 (defcustom tex-print-file-extension ".dvi"
   "The TeX-compiled file extension for viewing and printing.

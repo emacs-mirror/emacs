@@ -192,18 +192,26 @@ start logging to `*eshell last cmd*'."
       (erase-buffer)
       (insert "command: \"" command "\"\n"))))
 
-(defmacro eshell-debug-command (kind message &optional form always)
+(defun eshell-always-debug-command (kind string &rest objects)
+  "Output a debugging message to `*eshell last cmd*'.
+KIND is the kind of message to log.  STRING and OBJECTS are as
+`format-message' (which see)."
+  (declare (indent 1))
+  (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
+    (insert "\n\C-l\n[" (symbol-name kind) "] "
+            (apply #'format-message string objects))))
+
+(defmacro eshell-debug-command (kind string &rest objects)
   "Output a debugging message to `*eshell last cmd*' if debugging is enabled.
-KIND is the kind of message to log (either `form' or `io').  If
-present in `eshell-debug-command' (or if ALWAYS is non-nil),
-output this message; otherwise, ignore it."
+KIND is the kind of message to log (either `form' or `process').  If
+present in `eshell-debug-command', output this message; otherwise, ignore it.
+
+STRING and OBJECTS are as `format-message' (which see)."
+  (declare (indent 1))
   (let ((kind-sym (make-symbol "kind")))
     `(let ((,kind-sym ,kind))
-       (when ,(or always `(memq ,kind-sym eshell-debug-command))
-         (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
-           (insert "\n\C-l\n[" (symbol-name ,kind-sym) "] " ,message)
-           (when-let ((form ,form))
-             (insert "\n\n" (eshell-stringify form))))))))
+       (when (memq ,kind-sym eshell-debug-command)
+         (eshell-always-debug-command ,kind-sym ,string ,@objects)))))
 
 (defun eshell--mark-as-output (start end &optional object)
   "Mark the text from START to END as Eshell output.
@@ -730,19 +738,18 @@ gid format.  Valid values are `string' and `integer', defaulting to
   "If the `processp' function does not exist, PROC is not a process."
   (and (fboundp 'processp) (processp proc)))
 
-(defun eshell-process-pair-p (procs)
-  "Return non-nil if PROCS is a pair of process objects."
-  (and (consp procs)
-       (eshell-processp (car procs))
-       (eshell-processp (cdr procs))))
+(defun eshell-process-list-p (procs)
+  "Return non-nil if PROCS is a list of process objects."
+  (and (listp procs)
+       (seq-every-p #'eshell-processp procs)))
 
-(defun eshell-make-process-pair (procs)
-  "Make a pair of process objects from PROCS if possible.
-This represents the head and tail of a pipeline of processes,
-where the head and tail may be the same process."
+(defun eshell-make-process-list (procs)
+  "Make a list of process objects from PROCS if possible.
+PROCS can be a single process or a list thereof.  If PROCS is
+anything else, return nil instead."
   (pcase procs
-    ((pred eshell-processp) (cons procs procs))
-    ((pred eshell-process-pair-p) procs)))
+    ((pred eshell-processp) (list procs))
+    ((pred eshell-process-list-p) procs)))
 
 ;; (defun eshell-copy-file
 ;;   (file newname &optional ok-if-already-exists keep-date)

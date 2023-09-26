@@ -742,7 +742,7 @@ See Bug#21722."
 
 (ert-deftest eval-expression-print-format-sym-echo ()
   ;; We can only check the echo area when running interactive.
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (cl-letf (((symbol-function 'read--expression) (lambda (&rest _) t)))
       (let ((current-prefix-arg nil))
@@ -763,7 +763,7 @@ See Bug#21722."
         (should (equal (buffer-string) "65 (#o101, #x41, ?A)"))))))
 
 (ert-deftest eval-expression-print-format-small-int-echo ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (cl-letf (((symbol-function 'read--expression) (lambda (&rest _) ?A)))
       (let ((current-prefix-arg nil))
@@ -789,7 +789,7 @@ See Bug#21722."
         (should (equal (buffer-string) "66 (#o102, #x42, ?B)"))))))
 
 (ert-deftest eval-expression-print-format-large-int-echo ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (cl-letf (((symbol-function 'read--expression) (lambda (&rest _) ?B))
               (eval-expression-print-maximum-character ?A))

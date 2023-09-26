@@ -88,7 +88,7 @@
 
 (ert-deftest thread-tests-list-threads-error-when-not-configured ()
   "Signal an error running `list-threads' if threads are not configured."
-  (skip-unless (not (featurep 'threads)))
+  (skip-when (featurep 'threads))
   (should-error (list-threads)))
 
 (provide 'thread-tests)

@@ -347,6 +347,13 @@ public final class EmacsContextMenu
     Runnable runnable;
     final EmacsHolder<Boolean> rc;
 
+    /* Android will permanently cease to display any popup menus at
+       all if the list of menu items is empty.  Prevent this by
+       promptly returning if there are no menu items.  */
+
+    if (menuItems.isEmpty ())
+      return false;
+
     rc = new EmacsHolder<Boolean> ();
     rc.thing = false;
 

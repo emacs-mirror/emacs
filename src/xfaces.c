@@ -1629,7 +1629,7 @@ the face font sort order, see `face-font-selection-order'.  */)
 					  make_fixnum
 					  (FONT_SPACING_PROPORTIONAL)))
 			     ? Qnil : Qt,
-			     Ffont_xlfd_name (font, Qnil),
+			     Ffont_xlfd_name (font, Qnil, Qt),
 			     AREF (font, FONT_REGISTRY_INDEX));
       result = Fcons (v, result);
     }
@@ -1738,7 +1738,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 	  ASET (font_entity, FONT_SIZE_INDEX,
 		AREF (font_spec, FONT_SIZE_INDEX));
 	}
-      XSETCAR (tail, Ffont_xlfd_name (font_entity, Qnil));
+      XSETCAR (tail, Ffont_xlfd_name (font_entity, Qnil, Qt));
     }
   if (NILP (frame))
     /* We don't have to check fontsets.  */
@@ -4017,7 +4017,8 @@ x_update_menu_appearance (struct frame *f)
 	      || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	      || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
 	{
-	  Lisp_Object xlfd = Ffont_xlfd_name (LFACE_FONT (lface), Qnil);
+	  Lisp_Object xlfd = Ffont_xlfd_name (LFACE_FONT (lface), Qnil,
+					      Qnil);
 #ifdef USE_MOTIF
 	  const char *suffix = "List";
 	  bool motif = true;

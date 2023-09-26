@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6.8
+;; Version: 9.6.9
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -1021,7 +1021,7 @@ time."
 This is useful since some lines containing links can be very long and
 uninteresting.  Also tables look terrible when wrapped.
 
-The variable `org-startup-truncated' allows to configure
+The variable `org-startup-truncated' enables you to configure
 truncation for Org mode different to the other modes that use the
 variable `truncate-lines' and as a shortcut instead of putting
 the variable `truncate-lines' into the `org-mode-hook'.  If one
@@ -1321,14 +1321,15 @@ Possible values for the file identifier are:
                      to open [[file:document.pdf::5]] with evince at page 5.
 
                  Likely, you will need more entries: without page
-                 number; with search pattern; with cross-reference
-                 anchor; some combination of options.  Consider simple
-                 pattern here and a Lisp function to determine command
-                 line arguments instead.  Passing argument list to
-                 `call-process' or `make-process' directly allows to
-                 avoid treating some character in peculiar file names
-                 as shell specialls causing executing part of file
-                 name as a subcommand.
+                 number; with search pattern; with
+                 cross-reference anchor; some combination of
+                 options.  Consider simple pattern here and a
+                 Lisp function to determine command line
+                 arguments instead.  Passing an argument list to
+                 `call-process' or `make-process' directly avoids
+                 treating some character in peculiar file names
+                 as shell specials that prompt parts of said file
+                 names to be executed as subcommands.
 
  `directory'   Matches a directory
  `remote'      Matches a remote file, accessible through tramp.
@@ -13227,7 +13228,7 @@ Optional argument DEFAULT provides a default value for PROPERTY."
      nil nil nil nil default-prop)))
 
 (defun org-set-property-and-value (use-last)
-  "Allow to set [PROPERTY]: [value] direction from prompt.
+  "Allow setting [PROPERTY]: [value] direction from prompt.
 When use-default, don't even ask, just use the last
 \"[PROPERTY]: [value]\" string from the history."
   (interactive "P")
@@ -17654,8 +17655,8 @@ region."
 (defun org-open-line (n)
   "Insert a new row in tables, call `open-line' elsewhere.
 If `org-special-ctrl-o' is nil, just call `open-line' everywhere.
-As a special case, when a document starts with a table, allow to
-call `open-line' on the very first character."
+As a special case, when a document starts with a table, allow
+calling `open-line' on the very first character."
   (interactive "*p")
   (if (and org-special-ctrl-o (/= (point) 1) (org-at-table-p))
       (org-table-insert-row)
@@ -18871,9 +18872,7 @@ ELEMENT."
 	     (goto-char start)
 	     (current-indentation)))
 	  ;; In any other case, indent like the current line.
-	  (t (current-indentation)))))
-      ;; Finally, no indentation is needed, fall back to 0.
-      (t (current-indentation))))))
+	  (t (current-indentation)))))))))
 
 (defun org--align-node-property ()
   "Align node property at point.

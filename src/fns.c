@@ -141,6 +141,10 @@ efficient.  */)
 
   if (STRINGP (sequence))
     val = SCHARS (sequence);
+  else if (CONSP (sequence))
+    val = list_length (sequence);
+  else if (NILP (sequence))
+    val = 0;
   else if (VECTORP (sequence))
     val = ASIZE (sequence);
   else if (CHAR_TABLE_P (sequence))
@@ -149,10 +153,6 @@ efficient.  */)
     val = bool_vector_size (sequence);
   else if (COMPILEDP (sequence) || RECORDP (sequence))
     val = PVSIZE (sequence);
-  else if (CONSP (sequence))
-    val = list_length (sequence);
-  else if (NILP (sequence))
-    val = 0;
   else
     wrong_type_argument (Qsequencep, sequence);
 
@@ -2104,7 +2104,27 @@ changing the value of a sequence `foo'.  See also `remove', which
 does not modify the argument.  */)
   (Lisp_Object elt, Lisp_Object seq)
 {
-  if (VECTORP (seq))
+  if (NILP (seq))
+    ;
+  else if (CONSP (seq))
+    {
+      Lisp_Object prev = Qnil, tail = seq;
+
+      FOR_EACH_TAIL (tail)
+	{
+	  if (!NILP (Fequal (elt, XCAR (tail))))
+	    {
+	      if (NILP (prev))
+		seq = XCDR (tail);
+	      else
+		Fsetcdr (prev, XCDR (tail));
+	    }
+	  else
+	    prev = tail;
+	}
+      CHECK_LIST_END (tail, seq);
+    }
+  else if (VECTORP (seq))
     {
       ptrdiff_t n = 0;
       ptrdiff_t size = ASIZE (seq);
@@ -2193,23 +2213,7 @@ does not modify the argument.  */)
 	}
     }
   else
-    {
-      Lisp_Object prev = Qnil, tail = seq;
-
-      FOR_EACH_TAIL (tail)
-	{
-	  if (!NILP (Fequal (elt, XCAR (tail))))
-	    {
-	      if (NILP (prev))
-		seq = XCDR (tail);
-	      else
-		Fsetcdr (prev, XCDR (tail));
-	    }
-	  else
-	    prev = tail;
-	}
-      CHECK_LIST_END (tail, seq);
-    }
+    wrong_type_argument (Qsequencep, seq);
 
   return seq;
 }
@@ -2222,8 +2226,6 @@ This function may destructively modify SEQ to produce the value.  */)
 {
   if (NILP (seq))
     return seq;
-  else if (STRINGP (seq))
-    return Freverse (seq);
   else if (CONSP (seq))
     {
       Lisp_Object prev, tail, next;
@@ -2263,6 +2265,8 @@ This function may destructively modify SEQ to produce the value.  */)
 	  bool_vector_set (seq, size - i - 1, tem);
 	}
     }
+  else if (STRINGP (seq))
+    return Freverse (seq);
   else
     wrong_type_argument (Qarrayp, seq);
   return seq;
@@ -2334,9 +2338,9 @@ See also the function `nreverse', which is used more often.  */)
 
 
 /* Stably sort LIST ordered by PREDICATE using the TIMSORT
-   algorithm. This converts the list to a vector, sorts the vector,
-   and returns the result converted back to a list.  The input list is
-   destructively reused to hold the sorted result.  */
+   algorithm.  This converts the list to a vector, sorts the vector,
+   and returns the result converted back to a list.  The input list
+   is destructively reused to hold the sorted result.  */
 
 static Lisp_Object
 sort_list (Lisp_Object list, Lisp_Object predicate)
@@ -2774,10 +2778,13 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 
   /* A symbol with position compares the contained symbol, and is
      `equal' to the corresponding ordinary symbol.  */
-  if (SYMBOL_WITH_POS_P (o1))
-    o1 = SYMBOL_WITH_POS_SYM (o1);
-  if (SYMBOL_WITH_POS_P (o2))
-    o2 = SYMBOL_WITH_POS_SYM (o2);
+  if (symbols_with_pos_enabled)
+    {
+      if (SYMBOL_WITH_POS_P (o1))
+	o1 = SYMBOL_WITH_POS_SYM (o1);
+      if (SYMBOL_WITH_POS_P (o2))
+	o2 = SYMBOL_WITH_POS_SYM (o2);
+    }
 
   if (BASE_EQ (o1, o2))
     return true;
@@ -2825,8 +2832,8 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (ASIZE (o2) != size)
 	  return false;
 
-	/* Compare bignums, overlays, markers, and boolvectors
-	   specially, by comparing their values.  */
+	/* Compare bignums, overlays, markers, boolvectors, and
+	   symbols with position specially, by comparing their values.  */
 	if (BIGNUMP (o1))
 	  return mpz_cmp (*xbignum_val (o1), *xbignum_val (o2)) == 0;
 	if (OVERLAYP (o1))
@@ -2858,6 +2865,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (TS_NODEP (o1))
 	  return treesit_node_eq (o1, o2);
 #endif
+	if (SYMBOL_WITH_POS_P(o1)) /* symbols_with_pos_enabled is false.  */
+	  return (BASE_EQ (XSYMBOL_WITH_POS (o1)->sym,
+			   XSYMBOL_WITH_POS (o2)->sym)
+		  && BASE_EQ (XSYMBOL_WITH_POS (o1)->pos,
+			      XSYMBOL_WITH_POS (o2)->pos));
 
 	/* Aside from them, only true vectors, char-tables, compiled
 	   functions, and fonts (font-spec, font-entity, font-object)

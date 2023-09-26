@@ -128,7 +128,7 @@
 
 (ert-deftest eval-last-sexp-print-format-sym-echo ()
   ;; We can only check the echo area when running interactive.
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((current-prefix-arg nil))
       (erase-buffer) (insert "t") (message nil)
@@ -147,7 +147,7 @@
       (should (equal (buffer-string) "?A65 (#o101, #x41, ?A)")))))
 
 (ert-deftest eval-last-sexp-print-format-small-int-echo ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((current-prefix-arg nil))
       (erase-buffer) (insert "?A") (message nil)
@@ -171,7 +171,7 @@
         (should (equal (buffer-string) "?B66 (#o102, #x42, ?B)"))))))
 
 (ert-deftest eval-last-sexp-print-format-large-int-echo ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((eval-expression-print-maximum-character ?A))
       (let ((current-prefix-arg nil))
@@ -186,7 +186,7 @@
 ;;; eval-defun
 
 (ert-deftest eval-defun-prints-edebug-when-instrumented ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((current-prefix-arg '(4)))
       (erase-buffer) (insert "(defun foo ())") (message nil)

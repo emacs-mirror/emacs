@@ -464,7 +464,7 @@ See Bug#36226."
 
 (ert-deftest module/async-pipe ()
   "Check that writing data from another thread works."
-  (skip-unless (not (eq system-type 'windows-nt))) ; FIXME!
+  (skip-when (eq system-type 'windows-nt)) ; FIXME!
   (with-temp-buffer
     (let ((process (make-pipe-process :name "module/async-pipe"
                                       :buffer (current-buffer)

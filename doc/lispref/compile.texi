@@ -422,7 +422,7 @@ execution of the compiled file.  For example,
 @lisp
 (eval-when-compile
   (unless (fboundp 'some-new-thing)
-    (defmacro 'some-new-thing ()
+    (defmacro some-new-thing ()
       (compatibility code))))
 @end lisp
 
@@ -801,9 +801,9 @@ Compilation, the previous chapter}, Emacs can also optionally compile
 Lisp function definitions into a true compiled code, known as
 @dfn{native code}.  This feature uses the @file{libgccjit} library,
 which is part of the GCC distribution, and requires that Emacs be
-built with support for using that library.  It also requires to have
-GCC and Binutils (the assembler and linker) available on your system
-for you to be able to native-compile Lisp code.
+built with support for using that library.  It also requires GCC and
+Binutils (the assembler and linker) to be available on your system for
+you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load
@@ -831,9 +831,9 @@ produced by earlier or later Emacs versions; native compilation of the
 same Lisp code by a different Emacs version will usually produce a
 natively-compiled library under a unique file name that only that
 version of Emacs will be able to load.  However, the use of unique
-file names allows to have in the same directory several versions of
-the same Lisp library natively-compiled by several different versions
-of Emacs.
+file names enables several versions of the same Lisp library
+natively-compiled by several different versions of Emacs to be placed
+within the same directory.
 
 @vindex no-native-compile
   A non-@code{nil} file-local variable binding of
@@ -1116,7 +1116,7 @@ functions provided by the @file{.elc} file.
 @end defvar
 
 @cindex trampolines, in native compilation
-  Setting the value of @code{native-comp-jit-compilation} to@code{nil}
+  Setting the value of @code{native-comp-jit-compilation} to @code{nil}
 disables JIT native compilation.  However, even when JIT native
 compilation is disabled, Emacs might still need to start asynchronous
 native compilation subprocesses to produce @dfn{trampolines}.  To

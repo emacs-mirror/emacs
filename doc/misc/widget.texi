@@ -49,14 +49,16 @@ modify this GNU manual.''
 * Introduction::
 * User Interface::
 * Programming Example::
+* Widgets Basics::
 * Setting Up the Buffer::
-* Basic Types::
-* Sexp Types::
-* Widget Properties::
+* Working with Widgets::
+* Widgets and the Buffer::
+* Widget Gallery::
 * Defining New Widgets::
-* Widget Browser::
+* Inspecting Widgets::
 * Widget Minor Mode::
 * Utilities::
+* Customization::
 * Widget Wishlist::
 * GNU Free Documentation License::
 * Index::
@@ -68,7 +70,7 @@ modify this GNU manual.''
 Most graphical user interface toolkits provide a number of standard
 user interface controls (sometimes known as ``widgets'' or ``gadgets'').
 Emacs doesn't really support anything like this, except for an
-incredibly powerful text ``widget.''  On the other hand, Emacs does
+incredibly powerful text ``widget''.  On the other hand, Emacs does
 provide the necessary primitives to implement many other widgets
 within a text buffer.  The @code{widget} package simplifies this task.
 
@@ -85,13 +87,13 @@ Like link, but intended for stand-alone buttons.
 @item editable-field
 An editable text field.  It can be either variable or fixed length.
 @item menu-choice
-Allows the user to choose one of multiple options from a menu, each
-option is itself a widget.  Only the selected option will be visible in
-the buffer.
+Allows the user to choose one of multiple options from a menu, where
+each option is itself a widget.  Only the selected option is visible
+in the buffer.
 @item radio-button-choice
 Allows the user to choose one of multiple options by activating radio
-buttons.  The options are implemented as widgets.  All options will be
-visible in the buffer.
+buttons.  The options are implemented as widgets.  All options are
+visible in the buffer, with the selected one marked as chosen.
 @item item
 A simple constant widget intended to be used in the @code{menu-choice} and
 @code{radio-button-choice} widgets.
@@ -137,9 +139,9 @@ Editing happens in the buffer, not in the mini-buffer.
 Packages using the library get a uniform look, making them easier for
 the user to learn.
 @item
-As support for embedded graphics improve, the widget library will be
+As support for embedded graphics improve, the Widget library will be
 extended to use the GUI features.  This means that your code using the
-widget library will also use the new graphic features automatically.
+Widget library will also use the new graphic features automatically.
 @end enumerate
 
 @node User Interface
@@ -201,12 +203,6 @@ middle of another field is prohibited.
 
 Editable text fields are created by the @code{editable-field} widget.
 
-@strong{Warning:} In an @code{editable-field} widget, the editable
-field must not be adjacent to another widget---that won't work.
-You must put some text in between.  Either make this text part of
-the @code{editable-field} widget itself, or insert it with
-@code{widget-insert}.
-
 The @code{:format} keyword is useful for generating the necessary
 text; for instance, if you give it a value of @code{"Name: %v "},
 the @samp{Name: } part will provide the necessary separating text
@@ -215,16 +211,8 @@ separating text after the field.  If you don't include the
 @code{:size} keyword, the field will extend to the end of the
 line, and the terminating newline will provide separation after.
 
-@strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
-must be preceded by some other text in the @code{:format} string
-(if specified).
-
 The editing text fields are highlighted with the
 @code{widget-field-face} face, making them easy to find.
-
-@deffn Face widget-field-face
-Face used for other editing fields.
-@end deffn
 
 @section Buttons
 
@@ -233,24 +221,9 @@ Face used for other editing fields.
 Some portions of the buffer have an associated @dfn{action}, which can
 be @dfn{invoked} by a standard key or mouse command.  These portions
 are called @dfn{buttons}.  The default commands for activating a button
-are:
-
-@table @kbd
-@item @key{RET}
-@deffn Command widget-button-press @var{pos} &optional @var{event}
-Invoke the button at @var{pos}, defaulting to point.
-If point is not located on a button, invoke the binding in
-@code{widget-global-map} (by default the global map).
-@end deffn
-
-@kindex mouse-2 @r{(on button widgets})
-@item mouse-2
-@deffn Command widget-button-click @var{event}
-Invoke the button at the location of the mouse pointer.  If the mouse
-pointer is located in an editable text field, invoke the binding in
-@code{widget-global-map} (by default the global map).
-@end deffn
-@end table
+are @code{widget-button-press} and @code{widget-button-click}.  The
+user typically interacts with the buttons with a key, like @key{RET},
+or with the mouse buttons.
 
 There are several different kind of buttons, all of which are present in
 the example:
@@ -286,33 +259,15 @@ main difference from the @code{link} widget is that the buttons will be
 displayed as GUI buttons when possible.
 @end table
 
-To make them easier to locate, buttons are emphasized in the buffer.
-
-@deffn Face widget-button-face
-Face used for buttons.
-@end deffn
-
-@defopt widget-mouse-face
-Face used for highlighting a button when the mouse pointer moves across
-it.
-@end defopt
+To make them easier to locate, buttons are emphasized in the buffer
+with a distinctive face, like @code{widget-button-face} or
+@code{widget-mouse-face}.
 
 @section Navigation
 
 You can use all the normal Emacs commands to move around in a form
-buffer, plus you will have these additional commands:
-
-@table @kbd
-@item @key{TAB}
-@deffn Command widget-forward &optional count
-Move point @var{count} buttons or editing fields forward.
-@end deffn
-@item @kbd{M-@key{TAB}}
-@itemx @kbd{S-@key{TAB}}
-@deffn Command widget-backward &optional count
-Move point @var{count} buttons or editing fields backward.
-@end deffn
-@end table
+buffer, plus you will have these additional commands to navigate from
+widget to widget: @code{widget-forward} and @code{widget-backward}.
 
 @node Programming Example
 @chapter Programming Example
@@ -414,91 +369,666 @@ Interface}).
   (widget-setup))
 @end lisp
 
+@node Widgets Basics
+@chapter Widgets Basics
+@cindex widget object
+The Widget Library deals with widgets objects.  A widget object has
+properties whose value may be anything, be it numbers, strings,
+symbols, functions, etc.  Those properties are referred to as keywords
+and are responsible for the way a widget is represented in a buffer,
+and control the way a user or a program can interact with it.
+
+@cindex widget inheritance
+The library defines several widget types, and gives you a way to
+define new types as well.  In addition, widgets can derive from other
+types, creating a sort of widget inheritance.  In fact, all widgets
+defined in the Widget Library share a common parent, the @dfn{default}
+widget.  In this manual, when we talk about a default behavior, we
+usually mean the behavior as defined by this @code{default} widget.
+@xref{Widget Gallery}, for a description of each defined widget.
+
+Defining a new type that derives from a previous one is not mandatory
+to create widgets that work very different from a specified type.
+When creating a widget, you can override any default property,
+including functions, that control the widget.  That is, you can
+specialize a widget on creation, without having to define it as a new
+type of widget.
+
+In addition to the function for defining a widget, this library
+provides functions to create widgets, query and change its properties,
+respond to user events and destroy them.  The following sections
+describe them.
+
+@cindex widget value
+One important property of a widget is its @dfn{value}.  All widgets
+may have a value,  which is stored in a so-called @dfn{internal format}.
+For the rest of Emacs, the widget presents its value in a so-called
+@dfn{external format}.  Both formats can be equal or different, and
+each widget is responsible for defining how the conversion between
+each format should happen.
+
+@c FIXME: Briefly describe inline widgets?
+@c The inline concept is described elsewhere, and it's difficult to
+@c describe.
+
+The value property is an important property for almost all widgets,
+and perhaps more important for @code{editable-field} widgets.  This
+type of widgets allow the user to edit them via the usual editing
+commands in Emacs.  They can also be edited programmatically.
+@strong{Important:} You @emph{must} call @code{widget-setup} after
+modifying the value of a widget before the user is allowed to edit the
+widget again.  It is enough to call @code{widget-setup} once if you
+modify multiple widgets.  This is currently only necessary if the widget
+contains an editing field, but may be necessary for other widgets in the
+future.
+
+@cindex widget properties
+If your application needs to associate some information with the widget
+objects, for example a reference to the item being edited, it can be
+done with the @code{widget-put} and @code{widget-get} functions.  The
+property names, as shown, are keywords, so they must begin with a
+@samp{:}.
+
 @node Setting Up the Buffer
 @chapter Setting Up the Buffer
+@cindex widget creation, widget conversion
+To show the widgets in a buffer, you have to create them.  Widget
+creation is actually a two-step process: conversion and creation per
+se.  With simple projects, usually the conversion step isn't really
+important, and you only care about widget creation, so feel free to
+skip the conversion description until you really need to know it.
 
-Widgets are created with @code{widget-create}, which returns a
-@dfn{widget} object.  This object can be queried and manipulated by
-other widget functions, until it is deleted with @code{widget-delete}.
-After the widgets have been created, @code{widget-setup} must be called
-to enable them.
+Widget conversion is the process that involves taking a widget
+specification and transforming it into a @dfn{widget} object, suitable
+to be created, queried and manipulated with other widget functions.
+Widget creation is the process that takes a widget object and actually
+inserts it in the buffer.
 
-@defun widget-create type [ keyword argument ]@dots{}
-Create and return a widget of type @var{type}.
-The syntax for the @var{type} argument is described in @ref{Basic Types}.
+The simplest function to create a widget is @code{widget-create}, which
+gets a widget specification and returns a widget object.
 
-The keyword arguments can be used to overwrite the keyword arguments
-that are part of @var{type}.
+@defun widget-create type [ keyword argument ]@dots{} args
+Create and return a widget of type @var{type}, converting it.
+
+@var{type} is a symbol that specifies a widget type.  @var{keyword}
+may be one of the properties supported by the widget type, and
+@var{argument} specify the value for that property.  These keyword
+arguments can be used to overwrite the keyword arguments that are part
+of @var{type} by default, as well as to provide other properties not
+present in @var{type} by default.  @var{args} holds additional
+information for the creation of @var{type} and each widget type is
+responsible for handling that information in a specific way.
+
+The syntax for the @var{type} argument is described in @ref{Widget
+Gallery}, and in more detail in every widget where it's relevant.
 @end defun
 
-@defun widget-delete widget
-Delete @var{widget} and remove it from the buffer.
+There are other functions for creating widgets, useful when you work
+with composite widgets.  That is, widgets that are part of other
+widgets.
+
+@defun widget-create-child-and-convert parent type &rest args
+Create a widget of type @var{type} as a child of @var{parent}.
+
+Before creating it, converts @var{type} using the keyword arguments
+provided in @var{args}.
+@c FIXME: Is this description useful?
+Adds the @code{:indent} property, unless it is already present, and
+sets it to the sum of the values of: @code{:indent} and @code{:offset}
+from @var{parent} and @code{:extra-offset} from @var{type}.
+
+Returns a widget object, with the property @code{:parent} set to
+@var{PARENT}.
 @end defun
+
+@defun widget-create-child parent type
+Create a widget of type @var{type} as a child of @var{parent}.
+
+This function is like @code{widget-create-child-and-convert} but it
+doesn't convert @var{type}, so it expects an already converted widget.
+@end defun
+
+@defun widget-create-child-value parent type value
+Create a widget of type @var{type} as a child of @var{parent} with
+value @var{value}.
+
+This function is like @code{widget-create-child}, but it lets you
+specify a value for the widget.
+
+Converts @var{value} to the internal format, as specified by
+@var{type}, and stores it into the @code{:value} property of @var{type}.
+That means, @var{value} should be in the external format, as
+specified by @var{type}.
+@end defun
+
+All these creating functions described here use the function stored in
+the @code{:create} property.  So, to modify the creation logic for a
+widget, you can provide a different @code{:create} function.
+
+When you're done creating widgets and you're ready for the user to
+interact with the buffer, use the function @code{widget-setup}.
 
 @defun widget-setup
-Set up a buffer to support widgets.
+Setup the current buffer, so that editable widgets can be edited.
 
 This should be called after creating all the widgets and before allowing
 the user to edit them.
 @end defun
 
-If you want to insert text outside the widgets in the form, the
-recommended way to do that is with @code{widget-insert}.
+As mentioned, all these functions return a widget object.  That widget
+object can be queried and manipulated with widget functions that
+take widgets as arguments, until deleting it with the widgets
+functions available to delete widgets.  Even if you don't save the
+returned widget object, you still can interact programmatically with
+the widget.  @xref{Working with Widgets}.
 
-@defun widget-insert
-Insert the arguments, either strings or characters, at point.
-The inserted text will be read-only.
+@defun widget-delete widget
+Delete the widget @var{widget} and remove it from the buffer.
 @end defun
 
-There is a standard widget keymap which you might find useful.
+@defun widget-children-value-delete widget
+Delete all children and buttons in widget @var{widget}.
 
-@findex widget-button-press
-@findex widget-button-click
+This function does not delete @var{widget} itself, only the widgets
+stored in the @code{:children} and @code{:buttons} properties.  It
+also sets those properties to @code{nil}.
+@end defun
+
+As with the creation mechanism, the function stored in @code{:delete}
+controls the deletion mechanism for a widget.
+
+Additionally, the library provides a way to make a copy of a widget.
+
+@defun widget-copy widget
+Makes a copy of widget @var{widget} and returns it.
+
+It uses the function stored in the @code{:copy} property of @var{widget}
+and returns the widget that that function returns.
+@end defun
+
+As discussed, there is a conversion step when creating a widget.  To
+do the conversion without actually creating the widget, you can use
+the @code{widget-convert} function.
+
+@defun widget-convert type &rest args
+Convert @var{type} to a widget object, using keyword arguments @var{args}.
+
+Returns a widget object, suitable for creation.  It calls the function
+stored in the @code{:convert-widget} property, after putting into the
+@code{:args} property the arguments that the widget in question needs.
+If @var{type} has a @code{:value} property, either originally or after
+doing the conversion, this function converts the value stored in
+@code{:value} to the internal format, and stores it into @code{:value}.
+@end defun
+
+Apart from only creating widgets in the buffer, It's useful to have
+plain text.  For inserting text, the recommended way is with the
+@code{widget-insert} function.
+
+@defun widget-insert &rest args
+Insert @var{args}, either strings or characters, at point.
+
+Uses @code{insert} to perform the insertion, passing @var{args} as
+argument.  @xref{Insertion,,,elisp, the Emacs Lisp Reference Manual},
+for more information about @var{args}.
+
+The resulting text will be read-only.
+@end defun
+
+@node Working with Widgets
+@chapter Working with Widgets
+This section covers the more important functions needed to query and
+manipulate widgets in a generic way.  Widgets may have additional
+functions for interacting with them, those are described in the
+description for each widget.  @xref{Widget Gallery}.
+
+@defun widgetp widget
+Non-@code{nil} if @var{widget} is a widget.
+@end defun
+
+@defun widget-type widget
+Return the type of widget @var{widget}, a symbol.
+
+This function is useful to find out which kind of widget @var{widget}
+represents, i.e., the name of the widget type when the widget
+was created.
+@end defun
+
+@defun widget-member widget property
+Non-@code{nil} if widget @var{widget} has a value (even @code{nil}) for
+property @var{property}.
+@end defun
+
+@defun widget-get widget property
+For widget @var{widget}, return the value of the property @var{property}.
+
+@var{property} should be a keyword, and the value is what was last set by
+@code{widget-put} for @var{property}.
+@end defun
+
+@defun widget-put widget property value
+For widget @var{widget}, set the property @var{property} to @var{value}.
+@var{property} should be a keyword, while @var{value} can be anything.
+@end defun
+
+@defun widget-at &optional pos
+Return the widget at position @var{pos}, or at point if @var{pos} is @code{nil}.
+@end defun
+
+@defun widget-field-at pos
+Return the widget field at position POS, or @code{nil} if there is none.
+@end defun
+
+@defun widget-apply widget property &rest args
+Apply the function stored in @var{property} to @var{widget}, passing @var{args}
+as additional arguments to the function.
+
+Returns the result of that function call.
+@end defun
+
+@defun widget-value widget
+Return the current value contained in @var{widget}.
+
+Note that the value returned by this function might differ from what's
+stored in the @code{:value} property of @var{widget}.  This is because
+this function extracts the current value of @var{widget} from the
+buffer, taking editions into account.
+
+The value returned is in the external format, after getting it with
+the @code{:value-get} function.
+
+It is an error to call this function on an uninitialized widget.
+@end defun
+
+@defun widget-value-set widget value
+Set the value contained in @var{widget} to @var{value}.
+
+Converts @var{value} to the internal format, and then sets it by
+applying the @code{:value-set} function.
+
+It is an error to call this function with an invalid @var{value}, that
+is, a value that @var{widget} cannot represent.
+@end defun
+
+@defun widget-default-get widget
+Return the default external value of widget @var{widget}.
+
+The default value is the one stored in @code{:value} or the result of
+applying the @code{:default-get} function to the arguments of
+@var{widget}, as stored in @code{:args}.  A value of @code{nil} is
+ignored by default, so in order for a widget to respect @code{nil} as
+a value, it has to override the @code{:default-get} function.
+@end defun
+
+@defun widget-type-default-get widget
+Convert the @code{:type} attribute in @var{widget} and return its
+default value.
+@end defun
+
+@defun widget-child-value-get widget
+Return the value of the first member of @code{:children} in
+@var{widget}.
+@end defun
+
+@defun widget-child-value-inline widget
+Return the inline value of the first member of @code{:children} in
+@var{widget}.
+
+The inline value is whatever the function stored in
+@code{:value-inline} returns.
+@end defun
+
+@defun widget-type-value-create widget
+Create a child widget for @var{widget}, of type stored in
+@code{:type}.
+
+Creates the child widget taking the value from the @code{:value}
+property and stores the newly created widget in the @code{:children}
+property of @var{widget}.
+
+The value stored in @code{:type} should be an unconverted widget
+type.
+@end defun
+
+@defun widget-value-convert-widget widget
+Initializes the @code{:value} property of @var{widget} from
+@code{:args}.
+
+Sets @code{:args} to @code{nil} and returns the modified widget
+@var{widget}.
+@end defun
+
+@defun widget-value-value-get widget
+Return the value stored in @code{:value} for widget @var{widget}.
+
+This is different to getting the current value for @var{widget} with
+@code{widget-value}, since that function extracts the value from the
+buffer.
+@end defun
+
+@defun widget-apply-action widget &optional event
+Apply the function stored in @code{:action} to @var{widget}, in
+response to @var{event}.
+
+It is an error to call this function with an inactive widget.
+@end defun
+
+@defun widget-parent-action widget &optional event
+Tell @code{:parent} of @var{widget} to handle @var{event}.
+
+Optional @var{event} is the event that triggered the action.
+@end defun
+
+@defun widget-child-validate widget
+Check that the first member of @code{:children} in @var{widget} is valid.
+
+To be valid means that the widget value passes the checks that the
+function stored in @code{:validate} makes.
+@end defun
+
+@defun widget-children-validate widget
+Check that all @code{:children} in @var{widget} are valid.
+
+Returns @code{nil} on success, or the first child that isn't valid.
+@end defun
+
+@defun widget-type-match widget value
+Return non-@code{nil} if @var{VALUE} matches the value for the
+@code{:type} widget.
+
+As with the other type functions, the widget stored in @code{:type}
+should be an unconverted widget.
+@end defun
+
+@defun widget-types-copy widget
+Copy the @code{:args} value in @var{widget} and store them in @code{:args}.
+
+Makes the copies by calling @code{widget-copy} on each element present
+in @code{:args}.  Returns the modified widget @var{widget}.
+@end defun
+
+@defun widget-types-convert-widget widget
+Convert the @code{:args} value in @var{widget} and store them in
+@code{args}.
+
+Returns the modified widget @var{widget}.
+@end defun
+
+@node Widgets and the Buffer
+@chapter Widgets and the Buffer
+This chapter describes commands that are specific to buffers that
+contain widgets.
+
+@cindex widget keybindings
 @defvr Const widget-keymap
-@key{TAB} and @kbd{C-@key{TAB}} are bound to @code{widget-forward} and
-@code{widget-backward}, respectively.  @key{RET} and @kbd{mouse-2}
-are bound to @code{widget-button-press} and
-@code{widget-button-click}.
+Keymap containing useful bindings for buffers containing widgets.
+
+Binds @key{TAB} and @kbd{C-@key{TAB}} to @code{widget-forward} and
+@code{widget-backward}, respectively.  It also binds @key{RET} to
+@code{widget-button-press} and @kbd{down-mouse-1} and
+@kbd{down-mouse-2} to @code{widget-button-click}.
 @end defvr
+
+There's also a keymap for events that the Widget library doesn't need
+to handle.
 
 @defvar widget-global-map
 Keymap used by @code{widget-button-press} and @code{widget-button-click}
 when not on a button.  By default this is @code{global-map}.
 @end defvar
 
-@node Basic Types
-@chapter Basic Types
+In addition to these two keymaps, each widget might define a keymap of
+its own, active when events happen at that widget.
 
-This is the general syntax of a type specification:
+@cindex widget navigation
+The following navigation commands are available:
 
+@table @kbd
+@item @key{TAB}
+@deffn Command widget-forward &optional count
+Move point @var{count} buttons or editing fields forward.
+@end deffn
+@item @kbd{M-@key{TAB}}
+@itemx @kbd{S-@key{TAB}}
+@deffn Command widget-backward &optional count
+Move point @var{count} buttons or editing fields backward.
+@end deffn
+@end table
+
+
+When editing an @code{editable-field} widget, the following commands
+are available:
+
+@table @kbd
+@item @key{C-e}
+@deffn Command widget-end-of-line
+Move point to the end of field or end of line, whichever is first.
+@end deffn
+
+@item @kbd{C-k}
+@deffn Command widget-kill-line
+Kill to end of field or end of line, whichever is first.
+@end deffn
+
+@item @kbd{M-TAB}
+@deffn Command widget-complete
+Complete the content of the editable field at point.
+@end deffn
+
+@item @kbd{C-m}
+@deffn Command widget-field-activate
+Invoke the editable field at point.
+@end deffn
+@end table
+
+The following two are commands that can execute widget actions.
+@table @kbd
+@item @key{RET}
+@findex widget-button-press
+@deffn Command widget-button-press @var{pos} &optional @var{event}
+Invoke the button at @var{pos}, defaulting to point.
+
+Invocation means to run the function stored in the @code{:action}
+property.
+
+If point is not located on a button, invoke the binding in
+@code{widget-global-map} (by default the global map).
+@end deffn
+
+@kindex mouse-2 @r{(on button widgets})
+@item mouse-2
+@findex widget-button-click
+@deffn Command widget-button-click @var{event}
+Invoke the button at the location of the mouse pointer.
+
+If the mouse pointer is located in an editable text field, invoke the
+binding in @code{widget-global-map} (by default the global map).
+
+In case the mouse-click is on a widget, calls the function stored in
+the @code{:mouse-down-action} property.
+@end deffn
+@end table
+
+@node Widget Gallery
+@chapter Widget Gallery
+@cindex widget syntax
+All widgets can be created from a type specification.  The general
+syntax of a type specification is:
+
+@c FIXME: Add BNF reference here? If yes, what reference?
 @example
 @var{name} ::= (@var{name} [@var{keyword} @var{argument}]... @var{args})
      |   @var{name}
 @end example
 
-Where, @var{name} is a widget name, @var{keyword} is the name of a
-property, @var{argument} is the value of the property, and @var{args}
-are interpreted in a widget specific way.
+Where @var{name} is a widget name, as defined with
+@code{define-widget}, @var{keyword} is the name of a property and
+@var{argument} is the value for that property, and @var{args} are
+interpreted in a widget specific way.  @xref{Defining New Widgets}.
+
+@menu
+* Basic Types::
+* Sexp Types::
+@end menu
+
+@node Basic Types
+@section Basic Types
+
+@menu
+* default::
+* item::
+* link::
+* url-link::
+* info-link::
+* function-link::
+* variable-link::
+* face-link::
+* file-link::
+* emacs-library-link::
+* emacs-commentary-link::
+* push-button::
+* editable-field::
+* text::
+* menu-choice::
+* radio-button-choice::
+* choice-item::
+* toggle::
+* radio-button-toggle::
+* checkbox::
+* checklist::
+* editable-list::
+* group::
+* documentation-string::
+@end menu
+
+@node default
+@subsection The @code{default} Widget
+@findex default@r{ widget}
+The most basic widget in the Widget Library is the @dfn{default}
+widget.  It provides the basic behavior for all other widgets, and all
+its properties are present by default in derived widgets.  You're
+seldom (if ever) going to effectively create a default widget, but
+here we describe its properties and behavior, so that we can describe
+other widgets only by mentioning the properties and behavior those
+other widgets specialize.
+
+@deffn Widget default
+Widget used as a base for other widgets.
+
+It provides most of the functionality that is referred to as ``by
+default'' in this text.  If you want to define a new widget from
+scratch, use the @code{default} widget as its base.
+@end deffn
 
 @cindex keyword arguments
 The following keyword arguments apply to all widgets:
 
 @table @code
+@vindex create@r{ keyword}
+@item :create
+Function to create a widget from scratch.
+
+The function takes one argument, a widget type, and creates a widget
+of that type, inserts it in the buffer, and returns a widget object.
+
+By default, it inserts the widget at point, using the format provided
+in the @code{:format} property.
+
+@vindex delete@r{ keyword}
+@item :delete
+Function to delete a widget.
+
+The function should take one argument, a widget, and should remove all
+traces of the widget from the buffer.
+
+The default value is:
+
+@defun widget-default-delete widget
+Remove @var{widget} from the buffer.
+Delete all @code{:children} and @code{:buttons} in @var{widget}.
+@end defun
+
+In most cases you should not change this value, but instead use
+@code{:value-delete} to make any additional cleanup.
+
 @cindex internal format
 @cindex external format
 @vindex value@r{ keyword}
 @item :value
-The initial value for widgets of this type.  Typically, a widget
-represents its value in two formats: external and internal.  The
-external format is the value as the rest of Emacs sees it, and the
-internal format is a representation that the widget defines and uses
-in a widget specific way.
+The initial value for widgets of this type.
+
+Typically, a widget represents its value in two formats: external and
+internal.  The external format is the value as the rest of Emacs sees
+it, and the internal format is a representation that the widget
+defines and uses in a widget specific way.
 
 Both formats might be the same for certain widgets and might differ
 for others, and there is no guarantee about which format the value
 stored in the @code{:value} property has.  However, when creating a
 widget or defining a new one (@pxref{Defining New Widgets}), the
 @code{:value} should be in the external format.
+
+@vindex value-to-internal@r{ keyword}
+@item :value-to-internal
+Function to convert the value to the internal format.
+
+The function takes two arguments, a widget and an external value, and
+returns the internal value.  The function is called on the present
+@code{:value} when the widget is created, and on any value set later
+with @code{widget-value-set}.
+
+@vindex value-to-external@r{ keyword}
+@item :value-to-external
+Function to convert the value to the external format.
+
+The function takes two arguments, a widget and an internal value, and
+returns the value in the external format.
+
+@vindex value-create@r{ keyword}
+@item :value-create
+Function to expand the @samp{%v} escape in the format string.
+
+It will be called with the widget as its argument and should insert a
+representation of the widget's value in the buffer.
+
+@vindex value-delete@r{ keyword}
+@item :value-delete
+A function that should remove the representation of the widget's value
+from the buffer.
+
+It will be called with the widget as its argument.  It doesn't have to
+remove the text, but it should release markers and delete nested widgets
+if these are not listed in @code{:children} or @code{:buttons}.
+
+By default, it's a no-op.
+
+@vindex value-get@r{ keyword}
+@item :value-get
+Function to extract the value of a widget, as it is displayed in the
+buffer.
+
+@vindex value-set@r{ keyword}
+@item :value-set
+Function that takes a widget and a value as arguments, and recreates
+it.
+
+The value must already be in the internal format for widget.  By
+default, it deletes the widget with the @code{:delete} function and
+creates it again with the @code{:create} function.
+
+@vindex value-inline@r{ keyword}
+@item :value-inline
+Function that takes a widget and returns its value, inlined.
+
+Inlined means that if the widget is not inline (i.e., its
+@code{:inline} property is @code{nil}), the return value is wrapped in
+a list.
+
+@vindex default-get@r{ keyword}
+@item :default-get
+Function that takes a widget and returns its default value.
+
+By default, it just returns the value stored in @code{:value}.
 
 @vindex format@r{ keyword}
 @item :format
@@ -513,14 +1043,6 @@ The text inside will be marked as a button.
 By default, the text will be shown in @code{widget-button-face}, and
 surrounded by brackets.
 
-@defopt widget-button-prefix
-String to prefix buttons.
-@end defopt
-
-@defopt widget-button-suffix
-String to suffix buttons.
-@end defopt
-
 @item %@{
 @itemx %@}
 The text inside will be displayed with the face specified by
@@ -529,9 +1051,6 @@ The text inside will be displayed with the face specified by
 @item %v
 This will be replaced with the buffer representation of the widget's
 value.  What this is depends on the widget type.
-
-@strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
-must be preceded by some other text in the format string (if specified).
 
 @item %d
 Insert the string specified by @code{:doc} here.
@@ -561,6 +1080,11 @@ Face used to highlight text inside %[ %] in the format.
 @vindex button-suffix@r{ keyword}
 @item :button-prefix
 @itemx :button-suffix
+Strings used as prefix and suffix for widgets that are buttons.
+
+By default, the values are @code{widget-button-prefix} and
+@code{widget-button-suffix}.
+
 Text around %[ %] in the format.
 
 These can be
@@ -594,10 +1118,11 @@ Emacsen that supports it.
 @item :help-echo
 Specifies how to display a message whenever you move to the widget with
 either @code{widget-forward} or @code{widget-backward} or move the mouse
-over it (using the standard @code{help-echo} mechanism).  The argument
-is either a string to display, a function of one argument, the widget,
-which should return a string to display, or a form that evaluates to
-such a string.
+over it (using the standard @code{help-echo} mechanism).
+
+The value is either a string to display, or a function of one
+argument, the widget.  If a function, it should return a string to
+display, or a form that evaluates to such a string.
 
 @vindex follow-link@r{ keyword}
 @item :follow-link
@@ -607,7 +1132,12 @@ Specifies how to interpret a @key{mouse-1} click on the widget.
 @vindex indent@r{ keyword}
 @item :indent
 An integer indicating the absolute number of spaces to indent children
-of this widget.
+of this widget.  Its value might be @code{nil} too, which corresponds
+to a value of 0.
+
+The default @code{:create} functions and the functions that create the
+value per se use this property as a rudimentary layout mechanism for
+the widgets.
 
 @vindex offset@r{ keyword}
 @item :offset
@@ -619,14 +1149,6 @@ grandchildren compared to this widget.
 An integer indicating how many extra spaces to add to the widget's
 children compared to this widget.
 
-@vindex notify@r{ keyword}
-@item :notify
-A function called each time the widget or a nested widget is changed.
-The function is called with two or three arguments.  The first argument
-is the widget itself, the second argument is the widget that was
-changed, and the third argument is the event leading to the change, if
-any.
-
 @vindex menu-tag@r{ keyword}
 @item :menu-tag
 Tag used in the menu when the widget is used as an option in a
@@ -634,10 +1156,12 @@ Tag used in the menu when the widget is used as an option in a
 
 @vindex menu-tag-get@r{ keyword}
 @item :menu-tag-get
-Function used for finding the tag when the widget is used as an option
-in a @code{menu-choice} widget.  By default, the tag used will be either the
-@code{:menu-tag} or @code{:tag} property if present, or the @code{princ}
-representation of the @code{:value} property if not.
+Function that takes a widget and returns the tag when the widget is
+used as an option in a @code{menu-choice} widget.
+
+By default, the tag used will be either the @code{:menu-tag} or
+@code{:tag} property if present, or the @code{princ} representation of
+the @code{:value} property if not.
 
 @vindex match@r{ keyword}
 @item :match
@@ -648,22 +1172,19 @@ represent the specified value.
 @vindex validate@r{ keyword}
 @item :validate
 A function which takes a widget as an argument, and returns @code{nil}
-if the widget's current value is valid for the widget.  Otherwise it
-should return the widget containing the invalid data, and set that
-widget's @code{:error} property to a string explaining the error.
+if the widget's current value is valid for the widget.
 
-The following predefined function can be used:
+Otherwise, it should return the widget containing the invalid data,
+and set that widget's @code{:error} property to a string explaining
+the error.
 
-@defun widget-children-validate widget
-All the @code{:children} of @var{widget} must be valid.
-@end defun
+By default, it always returns @code{nil}.
 
 @vindex tab-order@r{ keyword}
 @item :tab-order
 Specify the order in which widgets are traversed with
 @code{widget-forward} or @code{widget-backward}.  This is only partially
 implemented.
-
 @enumerate a
 @item
 Widgets with tabbing order @code{-1} are ignored.
@@ -690,787 +1211,67 @@ This keyword is only used for members of a @code{radio-button-choice} or
 arguments, which will be used when creating the @code{radio-button} or
 @code{checkbox} associated with this item.
 
-@end table
-
-@deffn {User Option} widget-image-directory
-Directory where Widget should look for images.
-Widget will look here for a file with the same name as specified for the
-image, with either a @file{.xpm} (if supported) or @file{.xbm} extension.
-@end deffn
-
-@deffn{User Option} widget-image-enable
-If non-@code{nil}, allow images to appear on displays where they are supported.
-@end deffn
-
-
-@menu
-* link::
-* url-link::
-* info-link::
-* push-button::
-* editable-field::
-* text::
-* menu-choice::
-* radio-button-choice::
-* item::
-* choice-item::
-* toggle::
-* checkbox::
-* checklist::
-* editable-list::
-* group::
-@end menu
-
-@node link
-@section The @code{link} Widget
-@findex link@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (link [@var{keyword} @var{argument}]...  [ @var{value} ])
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property.  The value should be a string, which will be inserted in the
-buffer.
-
-By default the link will be shown in brackets.
-
-@defopt widget-link-prefix
-String to prefix links.
-@end defopt
-
-@defopt widget-link-suffix
-String to suffix links.
-@end defopt
-
-@node url-link
-@section The @code{url-link} Widget
-@findex url-link@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (url-link [@var{keyword} @var{argument}]...  @var{url})
-@end example
-
-@findex browse-url-browser-function@r{, and @code{url-link} widget}
-When this link is invoked, the @acronym{WWW} browser specified by
-@code{browse-url-browser-function} will be called with @var{url}.
-
-@node info-link
-@section The @code{info-link} Widget
-@findex info-link@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (info-link [@var{keyword} @var{argument}]...  @var{address})
-@end example
-
-When this link is invoked, the built-in Info reader is started on
-@var{address}.
-
-@node  push-button
-@section The @code{push-button} Widget
-@findex push-button@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (push-button [@var{keyword} @var{argument}]...  [ @var{value} ])
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property.  The value should be a string, which will be inserted in the
-buffer.
-
-By default the tag will be shown in brackets.
-
-@defopt widget-push-button-prefix
-String to prefix push buttons.
-@end defopt
-
-@defopt widget-push-button-suffix
-String to suffix push buttons.
-@end defopt
-
-@node editable-field
-@section The @code{editable-field} Widget
-@findex editable-field@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (editable-field [@var{keyword} @var{argument}]... [ @var{value} ])
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property.  The value should be a string, which will be inserted in the
-field.  This widget will match all string values.
-
-The following extra properties are recognized:
-
-@table @code
-@vindex size@r{ keyword}
-@item :size
-The width of the editable field.@*
-By default the field will reach to the end of the line.
-
-@vindex value-face@r{ keyword}
-@item :value-face
-Face used for highlighting the editable field.  Default is
-@code{widget-field-face}, see @ref{User Interface}.
-
-@vindex secret@r{ keyword}
-@item :secret
-Character used to display the value.  You can set this to, e.g., @code{?*}
-if the field contains a password or other secret information.  By
-default, this is @code{nil}, and the value is not secret.
-
-@vindex valid-regexp@r{ keyword}
-@item :valid-regexp
-By default the @code{:validate} function will match the content of the
-field with the value of this attribute.  The default value is @code{""}
-which matches everything.
-
-@vindex keymap@r{ keyword}
-@vindex widget-field-keymap
-@item :keymap
-Keymap used in the editable field.  The default value is
-@code{widget-field-keymap}, which allows you to use all the normal
-editing commands, even if the buffer's major mode suppresses some of
-them.  Pressing @key{RET} invokes the function specified by
-@code{:action}.
-@end table
-
-@node text
-@section The @code{text} Widget
-@findex text@r{ widget}
-
-@vindex widget-text-keymap
-This is just like @code{editable-field}, but intended for multiline text
-fields.  The default @code{:keymap} is @code{widget-text-keymap}, which
-does not rebind the @key{RET} key.
-
-@node menu-choice
-@section The @code{menu-choice} Widget
-@findex menu-choice@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (menu-choice [@var{keyword} @var{argument}]... @var{type} ... )
-@end example
-
-The @var{type} argument represents each possible choice.  The widget's
-value will be that of the chosen @var{type} argument.  This widget will
-match any value matching at least one of the specified @var{type}
-arguments.
-
-@table @code
-@vindex void@r{ keyword}
-@item :void
-Widget type used as a fallback when the value does not match any of the
-specified @var{type} arguments.
-
-@vindex case-fold@r{ keyword}
-@item :case-fold
-Set this to @code{nil} if you don't want to ignore case when prompting for a
-choice through the minibuffer.
-
-@vindex children@r{ keyword}
-@item :children
-A list whose @sc{car} is the widget representing the currently chosen
-type in the buffer.
-
-@vindex choice@r{ keyword}
-@item :choice
-The current chosen type.
-
-@vindex args@r{ keyword}
-@item :args
-The list of types.
-@end table
-
-@node radio-button-choice
-@section The @code{radio-button-choice} Widget
-@findex radio-button-choice@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (radio-button-choice [@var{keyword} @var{argument}]...  @var{type} ... )
-@end example
-
-The component types specify the choices, with one radio button for
-each.  The widget's value will be that of the chosen @var{type}
-argument.  This widget matches any value that matches at least one of
-the specified @var{type} arguments.
-
-The following extra properties are recognized.
-
-@table @code
-@vindex entry-format@r{ keyword}
-@item :entry-format
-This string will be inserted for each entry in the list.
-The following @samp{%} escapes are available:
-@table @samp
-@item %v
-Replace with the buffer representation of the @var{type} widget.
-@item %b
-Replace with the radio button.
-@item %%
-Insert a literal @samp{%}.
-@end table
-
-@vindex button-args@r{ keyword}
-@item :button-args
-A list of keywords to pass to the radio buttons.  Useful for setting,
-e.g., the @samp{:help-echo} for each button.
-
-@vindex buttons@r{ keyword}
-@item :buttons
-The widgets representing the radio buttons.
-
-@vindex children@r{ keyword}
-@item :children
-The widgets representing each type.
-
-@vindex choice@r{ keyword}
-@item :choice
-The current chosen type
-
-@vindex args@r{ keyword}
-@item :args
-The list of types.
-@end table
-
-You can add extra radio button items to a @code{radio-button-choice}
-widget after it has been created with the function
-@code{widget-radio-add-item}.
-
-@defun widget-radio-add-item widget type
-Add to @code{radio-button-choice} widget @var{widget} a new radio button
-item of type @var{type}.
-@end defun
-
-Please note that such items added after the @code{radio-button-choice}
-widget has been created will @strong{not} be properly destructed when
-you call @code{widget-delete}.
-
-@node item
-@section The @code{item} Widget
-@findex item@r{ widget}
-
-Syntax:
-
-@example
-@var{item} ::= (item [@var{keyword} @var{argument}]... @var{value})
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property.  The value should be a string, which will be inserted in the
-buffer.  This widget will only match the specified value.
-
-@node choice-item
-@section The @code{choice-item} Widget
-@findex choice-item@r{ widget}
-
-Syntax:
-
-@example
-@var{item} ::= (choice-item [@var{keyword} @var{argument}]... @var{value})
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property.  The value should be a string, which will be inserted in the
-buffer as a button.  Activating the button of a @code{choice-item} is
-equivalent to activating the parent widget.  This widget will only match
-the specified value.
-
-@node toggle
-@section The @code{toggle} Widget
-@findex toggle@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (toggle [@var{keyword} @var{argument}]...)
-@end example
-
-The widget has two possible states, @samp{on} and @samp{off}, which
-correspond to a @code{t} or @code{nil} value, respectively.
-
-The following extra properties are recognized:
-
-@table @code
-@item :on
-A string representing the @samp{on} state.  By default the string
-@samp{on}.
-@item :off
-A string representing the @samp{off} state.  By default the string
-@samp{off}.
-@vindex on-glyph@r{ keyword}
-@item :on-glyph
-Name of a glyph to be used instead of the @samp{:on} text string, on
-emacsen that supports this.
-@vindex off-glyph@r{ keyword}
-@item :off-glyph
-Name of a glyph to be used instead of the @samp{:off} text string, on
-emacsen that supports this.
-@end table
-
-@node checkbox
-@section The @code{checkbox} Widget
-@findex checkbox@r{ widget}
-
-This widget has two possible states, @samp{selected} and
-@samp{unselected}, which corresponds to a @code{t} or @code{nil} value.
-
-Syntax:
-
-@example
-@var{type} ::= (checkbox [@var{keyword} @var{argument}]...)
-@end example
-
-@node checklist
-@section The @code{checklist} Widget
-@findex checklist@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (checklist [@var{keyword} @var{argument}]...  @var{type} ... )
-@end example
-
-The @var{type} arguments represent each checklist item.  The widget's
-value will be a list containing the values of all checked @var{type}
-arguments.  The checklist widget will match a list whose elements all
-match at least one of the specified @var{type} arguments.
-
-The following extra properties are recognized:
-
-@table @code
-@vindex entry-format@r{ keyword}
-@item :entry-format
-This string will be inserted for each entry in the list.
-The following @samp{%} escapes are available:
-@table @samp
-@item %v
-Replaced with the buffer representation of the @var{type} widget.
-@item %b
-Replace with the checkbox.
-@item %%
-Insert a literal @samp{%}.
-@end table
-
-@vindex greedy@r{ keyword}
-@item :greedy
-Usually a checklist will only match if the items are in the exact
-sequence given in the specification.  By setting @code{:greedy} to
-non-@code{nil}, it will allow the items to come in any sequence.
-However, if you extract the value they will be in the sequence given
-in the checklist, i.e., the original sequence is forgotten.
-
-@vindex button-args@r{ keyword}
-@item :button-args
-A list of keywords to pass to the checkboxes.  Useful for setting,
-e.g., the @samp{:help-echo} for each checkbox.
-
-@vindex buttons@r{ keyword}
-@item :buttons
-The widgets representing the checkboxes.
-
-@vindex children@r{ keyword}
-@item :children
-The widgets representing each type.
-
-@vindex args@r{ keyword}
-@item :args
-The list of types.
-@end table
-
-@node editable-list
-@section The @code{editable-list} Widget
-@findex editable-list@r{ widget}
-
-Syntax:
-
-@example
-@var{type} ::= (editable-list [@var{keyword} @var{argument}]... @var{type})
-@end example
-
-The value is a list, where each member represents one widget of type
-@var{type}.
-
-The following extra properties are recognized:
-
-@table @code
-@vindex entry-format@r{ keyword}
-@item :entry-format
-This string will be inserted for each entry in the list.
-The following @samp{%} escapes are available:
-@table @samp
-@item %v
-This will be replaced with the buffer representation of the @var{type}
-widget.
-@item %i
-Insert the @b{[INS]} button.
-@item %d
-Insert the @b{[DEL]} button.
-@item %%
-Insert a literal @samp{%}.
-@end table
-
-@vindex insert-button-args@r{ keyword}
-@item :insert-button-args
-A list of keyword arguments to pass to the insert buttons.
-
-@vindex delete-button-args@r{ keyword}
-@item :delete-button-args
-A list of keyword arguments to pass to the delete buttons.
-
-@vindex append-button-args@r{ keyword}
-@item :append-button-args
-A list of keyword arguments to pass to the trailing insert button.
-
-@vindex buttons@r{ keyword}
-@item :buttons
-The widgets representing the insert and delete buttons.
-
-@vindex children@r{ keyword}
-@item :children
-The widgets representing the elements of the list.
-
-@vindex args@r{ keyword}
-@item :args
-List whose @sc{car} is the type of the list elements.
-@end table
-
-@node group
-@section The @code{group} Widget
-@findex group@r{ widget}
-
-This widget simply group other widgets together.
-
-Syntax:
-
-@example
-@var{type} ::= (group [@var{keyword} @var{argument}]... @var{type}...)
-@end example
-
-The value is a list, with one member for each @var{type}.
-
-@node Sexp Types
-@chapter Sexp Types
-@cindex sexp types
-
-A number of widgets for editing @dfn{s-expressions} (Lisp types), sexp
-for short, are also available.  These basically fall in several
-categories described in this section.
-
-@menu
-* constants::
-* generic::
-* atoms::
-* composite::
-@end menu
-
-@node constants
-@section The Constant Widgets
-@cindex constant widgets
-
-The @code{const} widget can contain any Lisp expression, but the user is
-prohibited from editing it, which is mainly useful as a component of one
-of the composite widgets.
-
-The syntax for the @code{const} widget is:
-
-@example
-@var{type} ::= (const [@var{keyword} @var{argument}]...  [ @var{value} ])
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property and can be any s-expression.
-
-@deffn Widget const
-This will display any valid s-expression in an immutable part of the
-buffer.
-@end deffn
-
-There are two variations of the @code{const} widget, namely
-@code{variable-item} and @code{function-item}.  These should contain a
-symbol with a variable or function binding.  The major difference from
-the @code{const} widget is that they will allow the user to see the
-variable or function documentation for the symbol.
-
-@deffn Widget variable-item
-An immutable symbol that is bound as a variable.
-@end deffn
-
-@deffn Widget function-item
-An immutable symbol that is bound as a function.
-@end deffn
-
-@node generic
-@section Generic Sexp Widget
-@cindex generic sexp widget
-
-The @code{sexp} widget can contain any Lisp expression, and allows the
-user to edit it inline in the buffer.
-
-The syntax for the @code{sexp} widget is:
-
-@example
-@var{type} ::= (sexp [@var{keyword} @var{argument}]...  [ @var{value} ])
-@end example
-
-@deffn Widget sexp
-This will allow you to edit any valid s-expression in an editable buffer
-field.
-
-The @code{sexp} widget takes the same keyword arguments as the
-@code{editable-field} widget.  @xref{editable-field}.
-@end deffn
-
-@node atoms
-@section Atomic Sexp Widgets
-@cindex atomic sexp widget
-
-The atoms are s-expressions that do not consist of other s-expressions.
-For example, a string, a file name, or a symbol are atoms, while a list
-is a composite type.  You can edit the value of an atom with the
-following widgets.
-
-The syntax for all the atoms are:
-
-@example
-@var{type} ::= (@var{construct} [@var{keyword} @var{argument}]...  [ @var{value} ])
-@end example
-
-The @var{value}, if present, is used to initialize the @code{:value}
-property and must be an expression of the same type as the widget.
-That is, the string widget can only be initialized with a string.
-
-All the atom widgets take the same keyword arguments as the
-@code{editable-field} widget.  @xref{editable-field}.
-
-@deffn Widget string
-Allows you to edit a string in an editable field.
-@end deffn
-
-@deffn Widget regexp
-Allows you to edit a regular expression in an editable field.
-@end deffn
-
-@deffn Widget character
-Allows you to enter a character in an editable field.
-@end deffn
-
-@deffn Widget file
-Allows you to edit a file name in an editable field.
-
-Keywords:
-@table @code
-@vindex must-match@r{ keyword}
-@item :must-match
-If this is set to non-@code{nil}, only existing file names will be
-allowed in the minibuffer.
-@end table
-@end deffn
-
-@deffn Widget directory
-Allows you to edit a directory name in an editable field.
-Similar to the @code{file} widget.
-@end deffn
-
-@deffn Widget symbol
-Allows you to edit a Lisp symbol in an editable field.
-@end deffn
-
-@deffn Widget function
-Allows you to edit a lambda expression, or a function name with completion.
-@end deffn
-
-@deffn Widget variable
-Allows you to edit a variable name, with completion.
-@end deffn
-
-@deffn Widget integer
-Allows you to edit an integer in an editable field.
-@end deffn
-
-@deffn Widget number
-Allows you to edit a number in an editable field.
-@end deffn
-
-@deffn Widget boolean
-Allows you to edit a boolean.  In Lisp this means a variable which is
-either @code{nil} meaning false, or non-@code{nil} meaning true.
-@end deffn
-
-
-@node composite
-@section Composite Sexp Widgets
-@cindex composite sexp widgets
-
-The syntax for the composite widget construct is:
-
-@example
-@var{type} ::= (@var{construct} [@var{keyword} @var{argument}]...  @var{component}...)
-@end example
-
-@noindent
-where each @var{component} must be a widget type.  Each component widget
-will be displayed in the buffer, and will be editable by the user.
-
-@deffn Widget cons
-The value of a @code{cons} widget must be a cons-cell whose @sc{car}
-and @sc{cdr} have two specified types.  It uses this syntax:
-
-@example
-@var{type} ::= (cons [@var{keyword} @var{argument}]...  @var{car-type} @var{cdr-type})
-@end example
-@end deffn
-
-@deffn Widget choice
-The value matched by a @code{choice} widget must have one of a fixed
-set of types.  The widget's syntax is as follows:
-
-@example
-@var{type} ::= (choice [@var{keyword} @var{argument}]...  @var{type} ... )
-@end example
-
-The value of a @code{choice} widget can be anything that matches any of the
-@var{types}.
-@end deffn
-
-@deffn Widget list
-The value of a @code{list} widget must be a list whose element types
-match the specified component types:
-
-@example
-@var{type} ::= (list [@var{keyword} @var{argument}]...  @var{component-type}...)
-@end example
-
-Thus, @code{(list string number)} matches lists of two elements,
-the first being a string and the second being a number.
-@end deffn
-
-@deffn Widget vector
-The @code{vector} widget is like the @code{list} widget but matches
-vectors instead of lists.  Thus, @code{(vector string number)} matches
-vectors of two elements, the first being a string and the second being
-a number.
-@end deffn
-
-The above suffice for specifying fixed size lists and vectors.  To get
-variable length lists and vectors, you can use a @code{choice},
-@code{set}, or @code{repeat} widget together with the @code{:inline}
-keyword.  If any component of a composite widget has the
-@code{:inline} keyword set, its value must be a list which will then
-be spliced into the composite.  For example, to specify a list whose
-first element must be a file name, and whose remaining elements should
-either be the symbol @code{t} or two strings (file names), you can use
-the following widget specification:
-
-@example
-(list file
-      (choice (const t)
-              (list :inline t
-                    :value ("foo" "bar")
-                    string string)))
-@end example
-
-The value of a widget of this type will either have the form
-@code{(file t)} or @code{(file @var{string} @var{string})}.
-
-This concept of @code{:inline} may be hard to understand.  It was
-certainly hard to implement, so instead of confusing you more by
-trying to explain it here, I'll just suggest you meditate over it for
-a while.
-
-@deffn Widget set
-Specifies a type whose values are the lists whose elements all belong
-to a given set.  The order of elements of the list is not significant.
-Here's the syntax:
-
-@example
-@var{type} ::= (set [@var{keyword} @var{argument}]...  @var{permitted-element} ... )
-@end example
-
-Use @code{const} to specify each permitted element, like this:
-@code{(set (const a) (const b))}.
-@end deffn
-
-@deffn Widget repeat
-Specifies a list of any number of elements that fit a certain type.
-
-@example
-@var{type} ::= (repeat [@var{keyword} @var{argument}]...  @var{type})
-@end example
-@end deffn
-
-@node Widget Properties
-@chapter Properties
-@cindex properties of widgets
-@cindex widget properties
-
-You can examine or set the value of a widget by using the widget object
-that was returned by @code{widget-create}.
-
-@defun widget-value widget
-Return the current value contained in @var{widget}.
-It is an error to call this function on an uninitialized widget.
-@end defun
-
-@defun widget-value-set widget value
-Set the value contained in @var{widget} to @var{value}.
-It is an error to call this function with an invalid @var{value}.
-@end defun
-
-@strong{Important:} You @emph{must} call @code{widget-setup} after
-modifying the value of a widget before the user is allowed to edit the
-widget again.  It is enough to call @code{widget-setup} once if you
-modify multiple widgets.  This is currently only necessary if the widget
-contains an editing field, but may be necessary for other widgets in the
-future.
-
-If your application needs to associate some information with the widget
-objects, for example a reference to the item being edited, it can be
-done with @code{widget-put} and @code{widget-get}.  The property names
-must begin with a @samp{:}.
-
-@defun widget-put widget property value
-In @var{widget} set @var{property} to @var{value}.
-@var{property} should be a symbol, while @var{value} can be anything.
-@end defun
-
-@defun widget-get widget property
-In @var{widget} return the value for @var{property}.
-@var{property} should be a symbol, the value is what was last set by
-@code{widget-put} for @var{property}.
-@end defun
-
-@defun widget-member widget property
-Non-@code{nil} if @var{widget} has a value (even @code{nil}) for
-property @var{property}.
-@end defun
-
-@defun widget-apply widget property &rest args
-Apply the value of @var{property} to @var{widget}, passing @var{args}
-as additional arguments to the function.  Return the result of that
-function call.
-@end defun
-
-Occasionally it can be useful to know which kind of widget you have,
-i.e., the name of the widget type you gave when the widget was created.
-
-@defun widget-type widget
-Return the name of @var{widget}, a symbol.
-@end defun
+@vindex completions-function@r{ keyword}
+@item :completions-function
+Function that takes a widget and returns completion data for that
+widget, like @code{completion-at-point-functions} would.
+@xref{Completion,,,elisp, the Emacs Lisp Reference Manual}.  It's
+used by @code{editable-field} widgets to provide completions.
+
+By default, it looks into the property @code{:completions}, which
+should be a completion table.  If @code{:completions} is @code{nil},
+then it calls the function stored either in the @code{:complete} or
+@code{:complete-function} property.
+
+@vindex format-handler@r{ keyword}
+@item :format-handler
+Function to handle unknown @samp{%} escapes in the format string.
+
+It takes a widget and the character that follows the @samp{%} as
+arguments.  You can set this to allow your widget to handle
+non-standard escapes in your own specialized widgets.
+
+@findex widget-default-format-handler
+You should end up calling @code{widget-default-format-handler} to handle
+unknown escape sequences, which will handle the @samp{%h} and any future
+escape sequences, as well as give an error for unknown escapes.
+
+@vindex button-face-get@r{ keyword}
+@item :button-face-get
+Function to return the face used to fontify a widget button.
+
+Takes a widget and returns an appropriate face for the widget.  By
+default, it either returns the face stored in the @code{:button-face}
+property, or calls the @code{:button-face-get} function from the
+parent of the widget, if it has one.
+
+@vindex mouse-face-get@r{ keyword}
+@item :mouse-face-get
+Function to return the face used to fontify a widget when the mouse
+pointer hovers over it.
+
+Takes a widget and returns an appropriate face.  By default, it either
+returns the face stored in the @code{:mouse-face} property, or calls
+the @code{:button-face-get} function from the parent of the widget, if
+it has one.
+
+@vindex copy@r{ keyword}
+@item :copy
+Function to deep copy a widget type.
+
+It takes a shallow copy of the widget type as an argument (made by
+@code{copy-sequence}), and returns a deep copy.  The purpose of this
+is to avoid having different instances of combined widgets share
+nested attributes.
+
+Its value by default is @code{identity}.
+
+@vindex active@r{ keyword}
+@item :active
+Function that takes a widget and returns @code{t} if it is active.
+
+A widget might be effectively always active, if its
+@code{:always-active} property is @code{t}.
 
 @cindex active widget
 @cindex inactive widget
@@ -1510,8 +1311,1526 @@ has been deactivated.  This is different from using the @code{:active}
 keyword, in that the latter tells you if the widget @strong{or} any of
 its ancestors have been deactivated.  Do not attempt to set the
 @code{:inactive} keyword directly.  Use the @code{:activate}
-@code{:deactivate} keywords instead.
+@code{:deactivate} functions instead.
 
+@vindex activate@r{ keyword}
+@item :activate
+Function that takes a widget and makes it active for user
+modifications.
+
+@vindex deactivate@r{ keyword}
+@item :deactivate
+Function that takes a widget and makes it inactive for user
+modifications.
+
+@vindex action@r{ keyword}
+@item :action
+Function that takes a widget and optionally an event, and handles a
+user initiated event.
+
+By default, uses the @code{:notify} function to notify the widget's
+parent about the event.
+
+@vindex mouse-down-action@r{ keyword}
+@item :mouse-down-action
+Function that takes a widget and optionally an event, and handles a
+mouse click on the widget.
+
+By default, it does nothing.
+
+@vindex notify@r{ keyword}
+@item :notify
+A function called each time the widget or a nested widget is changed.
+
+The function is called with two or three arguments.  The first argument
+is the widget itself, the second argument is the widget that was
+changed, and the third argument is the event leading to the change, if
+any.
+
+By default, it passes the notification to the widget's parent.
+
+@vindex prompt-value@r{ keyword}
+@item :prompt-value
+Function to prompt for a value in the minibuffer.
+
+The function should take four arguments, a widget, a prompt (a
+string), a value and a boolean, and should return a value for the
+widget, entered by the user.
+
+The prompt is the prompt to use.  The value is the default value to
+use, unless the fourtha argument is non-@code{nil}, in which case
+there is no default value.
+
+The function should read the value using the method most natural for
+this widget, and does not have to check that it matches.
+@end table
+
+@node item
+@subsection The @code{item} Widget
+@findex item@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (item [@var{keyword} @var{argument}]... @var{value})
+@end example
+
+A useful widget that holds a constant value, and can be included in
+other widgets.  Its super is the @code{default} widget.
+
+As can be seen in the syntax, the @code{item} widget is one of the
+widget that handles the @var{args} argument to @code{widget-create} in
+a specific way.  If present, @var{value} is used to initialize the
+@code{:value} property.  When created, it inserts the value as a
+string in the buffer.
+
+By default, it has the following properties:
+
+@table @code
+@item :convert-widget
+The function that allows it to handle @var{value}.
+
+@item :value-create
+Prints the representation of @code{:value} in the buffer.
+
+@item :value-get
+Returns the value stored in @code{:value}.
+
+@item :match
+A value matches the @code{item} widget if it's @code{equal} to its
+@code{:value}.
+
+@item :match-inline
+Inline values match the @code{item} widget if @code{:value} is a
+sublist of values.
+
+@item :action
+The @code{item} widget notifies itself of an event.
+
+@item :format
+By default, the @code{item} widget inserts its tag in the buffer.
+@end table
+
+@node link
+@subsection The @code{link} Widget
+@findex link@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (link [@var{keyword} @var{argument}]...  [ @var{value} ])
+@end example
+
+A widget to represent an embedded link.  Its super is the @code{item}
+widget.
+
+The @var{value}, if present, is used to initialize the @code{:value}
+property.  The value should be a string, which will be inserted in the
+buffer.
+
+By default, it has the following properties:
+
+@table @code
+@item :button-prefix
+The value of @code{widget-link-prefix}.
+
+@item :button-suffix
+The value of @code{widget-link-suffix}.
+
+@item :keymap
+A custom keymap for the link widget, so that it can respond to mouse clicks.
+
+@item :follow-link
+This property allows the link to respect the value of
+@code{mouse-1-click-follows-link}.  @xref{Clickable Text,,,elisp, the Emacs Lisp Reference Manual}.
+
+@item :format
+Buttonizes the link, to make it clickable.
+
+If you override this property, you should make sure to provide the
+@samp{%[} and @samp{%]} escape sequences, so that the link is
+clickable.
+
+@end table
+
+By default the link will be shown in brackets.
+
+@node url-link
+@subsection The @code{url-link} Widget
+@findex url-link@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (url-link [@var{keyword} @var{argument}]...  @var{url})
+@end example
+
+A widget to represent a link to a web page.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property to open up the @var{url}
+specified.
+
+@node info-link
+@subsection The @code{info-link} Widget
+@findex info-link@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (info-link [@var{keyword} @var{argument}]...  @var{address})
+@end example
+
+A widget to represent a link to an info file.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property, to a function to start the
+built-in Info reader on @var{address}, when invoked.
+
+@node function-link
+@subsection The @code{function-link} Widget
+@findex function-link@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (function-link [@var{keyword} @var{argument}]...  @var{function})
+@end example
+
+A widget to represent a link to an Emacs function.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property, to a function to describe
+@var{function}.
+
+@node variable-link
+@subsection The @code{variable-link} Widget
+@findex variable-link@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (variable-link [@var{keyword} @var{argument}]...  @var{var})
+@end example
+
+A widget to represent a link to an Emacs variable.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property, to a function to describe
+@var{var}.
+
+@node face-link
+@subsection The @code{face-link} Widget
+@findex face-link@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (face-link [@var{keyword} @var{argument}]...  @var{face})
+@end example
+
+A widget to represent a link to an Emacs face.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property, to a function to describe
+@var{face}.
+
+@node file-link
+@subsection The @code{file-link} Widget
+@findex file-link@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (file-link [@var{keyword} @var{argument}]...  @var{file})
+@end example
+
+A widget to represent a link to a file.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property, to a function to find the file
+@var{file}.
+
+@node emacs-library-link
+@subsection The @code{emacs-library-link} Widget
+@findex emacs-library-link@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (emacs-library-link [@var{keyword} @var{argument}]...  @var{file})
+@end example
+
+A widget to represent a link to an Emacs Lisp file.  Its super is the
+@code{link} widget.
+
+It overrides the @code{:action} property, to a function to find the file
+@var{file}.
+
+@node emacs-commentary-link
+@subsection The @code{emacs-commentary-link} Widget
+@findex emacs-commentary-link@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (emacs-commentary-link [@var{keyword} @var{argument}]...  @var{file})
+@end example
+
+A widget to represent a link to the Comment section of an Emacs Lisp
+file.  Its super is the @code{link} widget.
+
+It overrides the @code{:action} property, to a function to find the file
+@var{file} and put point in the Comment section.
+
+@node  push-button
+@subsection The @code{push-button} Widget
+@findex push-button@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (push-button [@var{keyword} @var{argument}]...  [ @var{value} ])
+@end example
+
+A widget that acts as a pushable button.  Its super is the @code{item}
+widget.
+
+The @var{value}, if present, is used to initialize the @code{:value}
+property.  The value should be a string, which will be inserted in the
+buffer.
+
+By default, it has the following properties:
+@table @code
+@item :button-prefix
+The empty string.
+
+@item :button-suffix
+The empty string.
+
+@item :value-create
+Inserts a representation of the ``on'' and ``off'' states for the push
+button.
+
+The representation might be an image, stored in the @code{:tag-glyph}
+property, or text.  If it is text, it might be the value of the
+@code{:tag} property, or the @code{:value} of the widget, surrounded
+with @code{widget-push-button-prefix} and
+@code{widget-push-button-suffix}.  @xref{Customization}.
+
+@item :format
+Buttonizes the widget, to make it clickable.
+@end table
+
+@node editable-field
+@subsection The @code{editable-field} Widget
+@findex editable-field@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (editable-field [@var{keyword} @var{argument}]... [ @var{value} ])
+@end example
+
+A widget that can be edited by the user.  Its super is the
+@code{default} widget.
+
+The @var{value}, if present, is used to initialize the @code{:value}
+property.  The value should be a string, which will be inserted in the
+field.  If not present, @code{:value} is the empty string.
+
+@strong{Warning:} In an @code{editable-field} widget, the editable
+field must not be adjacent to another widget---that won't work.
+You must put some text in between.  Either make this text part of
+the @code{editable-field} widget itself, or insert it with
+@code{widget-insert}.
+
+This widget either overrides or adds the following properties:
+
+@table @code
+@item :convert-widget
+Just like the @code{item} widget, this function allows it to
+initialize @code{:value} from @var{value}.
+
+@vindex keymap@r{ keyword}
+@vindex widget-field-keymap
+@item :keymap
+Keymap used in the editable field.
+
+The default value is @code{widget-field-keymap}, which allows the user
+to use all the normal editing commands, even if the buffer's major
+mode suppresses some of them.  Pressing @key{RET} invokes the function
+specified by @code{:action}.
+
+@item :format
+By default, it specifies to insert only the widget's value.
+
+@strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
+must be preceded by some other text in the @code{:format} string (if
+specified).
+
+@vindex size@r{ keyword}
+@item :size
+The width of the editable field.
+
+By default the field will reach to the end of the line.
+
+@vindex value-face@r{ keyword}
+@item :value-face
+Face used for highlighting the editable field.
+
+Default is @code{widget-field-face}, @pxref{User Interface}.
+
+@vindex secret@r{ keyword}
+@item :secret
+Character used to display the value.
+
+You can set this to, e.g., @code{?*} if the field contains a password
+or other secret information.  By default, this is @code{nil}, and the
+value is not secret.
+
+@vindex valid-regexp@r{ keyword}
+@item :valid-regexp
+By default the @code{:validate} function will match the content of the
+field with the value of this attribute.
+
+The default value is @code{""} which matches everything.
+
+@item :validate
+Returns @code{nil} if the current value of the widget matches the
+@code{:valid-regexp} value.
+
+@item :prompt-internal
+A function to read a value for widget, used by the
+@code{:prompt-value} function.
+
+@item :prompt-history
+A variable that holds the history of field minibuffer edits.
+
+@item :prompt-value
+A function that uses the @code{:prompt-internal} function and the
+@code{:prompt-history} value to prompt for a string, and retun the
+user response in the external format.
+
+@item :action
+When invoked, moves point to the next field.
+
+@item :value-create
+Function that takes care of creating the widget, respecting its
+@code{:size} and @code{:value}.
+
+@item :value-set
+Function to use to modify programatically the current value of the
+widget.
+
+@item :value-delete
+Function that removes the widget so it cannot be edited anymore.
+
+@item :value-get
+Function to return the current text in the widget.
+
+It takes an optional argument, @var{no-truncate}.  If
+@var{no-truncate} is nil, truncates trailing spaces.
+
+@item :match
+Function that makes the widget match any string value.
+@end table
+
+@node text
+@subsection The @code{text} Widget
+@findex text@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (text [@var{keyword} @var{argument}]... [ @var{value} ])
+@end example
+
+A widget just like the @code{editable-field} widget, but intended for
+multiline text fields.  Its super is the @code{editable-field} widget.
+
+It overrides the following properties:
+
+@table @code
+@item :format
+By default, prints a tag and the value.
+
+@vindex widget-text-keymap
+@item :keymap
+The default is @code{widget-text-keymap}, which does not rebind the
+@key{RET} key.
+@end table
+
+@node menu-choice
+@subsection The @code{menu-choice} Widget
+@findex menu-choice@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (menu-choice [@var{keyword} @var{argument}]... @var{type} ... )
+@end example
+
+A widget to represent a menu of options.  Its super is the
+@code{default} widget.
+
+The @var{type} argument represents each possible choice.  The widget's
+value will be that of the chosen @var{type} argument.
+
+It either overrides or adds the following properties:
+
+@table @code
+@item :convert-widget
+A function that takes care of converting each possible choice.
+
+@item :copy
+A function to copy each possible choice.
+
+@item :format
+By default, buttonize the tag and show the value.
+
+@vindex void@r{ keyword}
+@item :void
+Widget type used as a fallback when the value does not match any of the
+specified @var{type} arguments.
+
+By default this is an @code{item} widget.
+
+@vindex case-fold@r{ keyword}
+@item :case-fold
+If @code{nil} don't ignore case when prompting for a choice through
+the minibuffer.
+
+By default, its value is @code{t}.
+
+@vindex children@r{ keyword}
+@item :children
+A list whose @sc{car} is the widget representing the currently chosen
+type in the buffer.
+
+@vindex choice@r{ keyword}
+@item :choice
+The current chosen type.
+
+@vindex args@r{ keyword}
+@item :args
+The list of types.
+
+@item :value-create
+The function that inserts the current value for the widget.
+
+It inserts the first choice that matches, as with the @code{:match}
+function, the value of the widget.
+
+@item :value-get
+Returns the value of the first child for the widget (see the
+description for @code{:children} above).
+
+@item :value-inline
+Returns the inline value of the first child for the widget.
+
+@item :default-get
+The default value for this widget is the default value for the first
+choice, in case @code{:value} is missing.
+
+This means that if you want a specific default value for the
+@code{menu-choice} widget, you should either pass a @code{:value}
+property when creating it, or arrange the choices so that the first
+one can hold your desired default value.
+
+@item :mouse-down-action
+A function that takes care of showing a menu, if possible and desired.
+
+@item :action
+A function that takes care of getting a new choice for the widget.
+
+Depending on the number of choices available, it may show a menu or
+just toggle the choices, or even do nothing at all.
+
+After getting the choice, it recreates the widget and notifies it.
+
+@item :validate
+Returns @code{nil} if the widget's value is a valid choice.
+
+@item :match
+This widget will match any value matching at least one of the
+specified @var{type} arguments.
+
+@item :match-inline
+A function that returns non-@code{nil} if the values match the widget,
+taking into account the @code{:inline} property.
+@end table
+
+@node radio-button-choice
+@subsection The @code{radio-button-choice} Widget
+@findex radio-button-choice@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (radio-button-choice [@var{keyword} @var{argument}]...  @var{type} ... )
+@end example
+
+A widget to represent a choice from multiple options.  Its super is
+the @code{default} widget.
+
+The component @var{types} specify the choices, with one radio button for
+each.  The widget's value will be that of the chosen @var{type}
+argument.
+
+It overrides the following properties:
+
+@table @code
+@item :convert-widget
+As other composite widgets, a function that takes care of converting
+each available choice.
+
+@item :copy
+A function to copy each available choice.
+
+@item :action
+A function that checks if any radio button was pressed and activates
+the pressed one, possibly deactivating an old one.  Then, it notifies
+itself.
+
+@vindex entry-format@r{ keyword}
+@item :entry-format
+This string will be inserted for each entry in the list.
+The following @samp{%} escapes are available:
+@table @samp
+@item %v
+Replace with the buffer representation of the @var{type} widget.
+@item %b
+Replace with the radio button.
+@item %%
+Insert a literal @samp{%}.
+@end table
+
+@item :format
+By default, it inserts its value.
+
+@vindex button-args@r{ keyword}
+@item :button-args
+A list of keywords to pass to the radio buttons.  Useful for setting,
+e.g., the @samp{:help-echo} for each button.
+
+@vindex buttons@r{ keyword}
+@item :buttons
+The widgets representing the radio buttons.
+
+@vindex children@r{ keyword}
+@item :children
+The widgets representing each type.
+
+@vindex choice@r{ keyword}
+@item :choice
+The current chosen type.
+
+@vindex args@r{ keyword}
+@item :args
+The list of types.
+
+@item :value-create
+A function to insert all available choices.
+
+@item :value-get
+Returns the value for the chosen widget.
+
+@item :value-set
+A function to set the value to one of its available options.
+
+@item :value-inline
+A function that returns the inline value of the child widget.
+
+@item :offset
+By default, this widget has an offset of 4.
+
+@item :validate
+The widget validates if the current value is valid for one of its
+children.
+
+@item :match
+This widget matches any value that matches at least one of
+the specified @var{type} arguments.
+
+@item :match-inline
+Like the @code{:match} function, but taking into account inline
+values.
+@end table
+
+You can add extra radio button items to a @code{radio-button-choice}
+widget after it has been created with the function
+@code{widget-radio-add-item}.
+
+@defun widget-radio-add-item widget type
+Add to @code{radio-button-choice} widget @var{widget} a new radio button
+item of type @var{type}.
+@end defun
+
+Please note that such items added after the @code{radio-button-choice}
+widget has been created will @strong{not} be properly destructed when
+you call @code{widget-delete}.
+
+@node choice-item
+@subsection The @code{choice-item} Widget
+@findex choice-item@r{ widget}
+
+Syntax:
+
+@example
+@var{item} ::= (choice-item [@var{keyword} @var{argument}]... @var{value})
+@end example
+
+A widget to represent a choice in a @code{menu-choice} widget.  Its
+super is the @code{item} widget.
+
+The @var{value}, if present, is used to initialize the @code{:value}
+property.
+
+It overrides the following properties:
+
+@table @code
+@item :action
+Activating the button of a @code{choice-item} is equivalent to
+activating the parent widget.
+
+@item :format
+By default, it buttonizes the tag (i.e., its value) and adds a newline
+character at the end of the widget.
+@end table
+
+@node toggle
+@subsection The @code{toggle} Widget
+@findex toggle@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (toggle [@var{keyword} @var{argument}]...)
+@end example
+
+A widget that can toggle between two states.  Its super is the
+@code{item} widget.
+
+The widget has two possible states, @samp{on} and @samp{off}, which
+correspond to a @code{t} or @code{nil} value, respectively.
+
+It either overrides or adds the following properties:
+
+@table @code
+@item :format
+By default, it buttonizes the value and adds a newline at the end of
+the widget.
+
+@item :on
+A string representing the @samp{on} state.  By default the string
+@samp{on}.
+
+@item :off
+A string representing the @samp{off} state.  By default the string
+@samp{off}.
+
+@vindex on-glyph@r{ keyword}
+@item :on-glyph
+Name of a glyph to be used instead of the @samp{:on} text string, on
+emacsen that supports this.
+
+@vindex off-glyph@r{ keyword}
+@item :off-glyph
+Name of a glyph to be used instead of the @samp{:off} text string, on
+emacsen that supports this.
+
+@item :value-create
+A function for creating the widget's value, according to its
+@samp{:on} or @samp{:off} state.
+
+@item :action
+Function to toggle the state of the widget.  After toggling, it
+notifies itself.
+
+@item :match
+This widget matches anything.
+@end table
+
+@node radio-button-toggle
+@subsection The @code{radio-button-toggle} Widget
+@findex radio-button-toggle@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (radio-button-toggle [@var{keyword} @var{argument}]...)
+@end example
+
+A toggle to use in the @code{radio} widget.
+
+It overrides the following properties:
+
+@table @code
+@item :button-prefix
+The empty string.
+
+@item :button-suffix
+The empty string.
+
+@item :on
+The string ``(*)'', to represent the @samp{on} state.
+
+@item :off
+The string ``( )'', to represent the @samp{off} state.
+
+@item :on-glyph
+The name of an image to represent the @samp{on} state.
+
+@item :off-glpyh
+The name of an image to represent the @samp{off} state.
+
+@item :format
+By default, it buttonizes its value.
+
+@item :notify
+A function to notify its parent.
+@end table
+
+@node checkbox
+@subsection The @code{checkbox} Widget
+@findex checkbox@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (checkbox [@var{keyword} @var{argument}]...)
+@end example
+
+A widget to represent a toggle widget, with a checkbox.  Its super is
+the @code{toggle} widget.
+
+This widget has two possible states, @samp{selected} and
+@samp{unselected}, which corresponds to a @code{t} or @code{nil}
+value, respectively.
+
+It either overrides or adds the following properties:
+
+@table @code
+@item :button-prefix
+The empty string.
+
+@item :button-suffix
+The empty string.
+
+@item :format
+By default, buttonizes the value.
+
+@item :on
+By default, the string ``[X]''.
+
+@item :off
+By default, the string ``[ ]''.
+
+@item :on-glyph
+The name of the image to use when the state is @samp{on}.
+
+@item :off-glyph
+The name of the image to use when the state is @samp{off}.
+
+@item :action
+A function that toggles the checkbox, notifies the parents and in the
+@samp{on} state, activates its siblings.
+@end table
+
+@node checklist
+@subsection The @code{checklist} Widget
+@findex checklist@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (checklist [@var{keyword} @var{argument}]...  @var{type} ... )
+@end example
+
+A widget to represent a multiplice choice.  Its super is the
+@code{default} widget.
+
+The @var{type} arguments represent each checklist item.  The widget's
+value will be a list containing the values of all checked @var{type}
+arguments.
+
+It either overrides or adds the following properties:
+
+@table @code
+@item :convert-widget
+As other composite widgets, a function that takes care of converting
+each checklist item.
+
+@item :copy
+A function to copy each checklist item.
+
+@item :format
+By default, it inserts its value.
+
+@vindex entry-format@r{ keyword}
+@item :entry-format
+This string will be inserted for each entry in the list.
+The following @samp{%} escapes are available:
+@table @samp
+@item %v
+Replaced with the buffer representation of the @var{type} widget.
+@item %b
+Replace with the checkbox.
+@item %%
+Insert a literal @samp{%}.
+@end table
+
+@vindex button-args@r{ keyword}
+@item :button-args
+A list of keywords to pass to the checkboxes.  Useful for setting,
+e.g., the @samp{:help-echo} for each checkbox.
+
+@vindex buttons@r{ keyword}
+@item :buttons
+The widgets representing the checkboxes.
+
+@vindex children@r{ keyword}
+@item :children
+The widgets representing each type.
+
+@vindex args@r{ keyword}
+@item :args
+The list of types.
+
+@item :value-create
+The function that takes care of inserting all values.
+
+@item :value-get
+A function that returns all values of selected items.
+
+@item :validate
+A function that ensures all selected children are valid.
+
+@item :match
+The checklist widget will match a list whose elements all
+match at least one of the specified @var{type} arguments.
+
+@item :match-inline
+Like the @code{:match} function, but taking into account the
+@code{:inline} property.
+
+@vindex greedy@r{ keyword}
+@item :greedy
+Usually a checklist will only match if the items are in the exact
+sequence given in the specification.  By setting @code{:greedy} to
+non-@code{nil}, it will allow the items to come in any sequence.
+However, if you extract the value they will be in the sequence given
+in the checklist, i.e., the original sequence is forgotten.
+@end table
+
+@node editable-list
+@subsection The @code{editable-list} Widget
+@findex editable-list@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (editable-list [@var{keyword} @var{argument}]... @var{type})
+@end example
+
+A widget that can hold a variable list of widgets of the same type,
+represented by @var{type}.  Its super is the @code{default} widget.
+
+It either overrides or adds the following properties:
+
+@table @code
+@item :convert-widget
+As other composite widgets, a function that takes care of converting
+each type in @var{type}.
+
+@item :copy
+A function to copy the types given in @var{type}.
+
+@vindex entry-format@r{ keyword}
+@item :entry-format
+This string will be inserted for each entry in the list.
+The following @samp{%} escapes are available:
+@table @samp
+@item %v
+This will be replaced with the buffer representation of the @var{type}
+widget.
+@item %i
+Insert the @b{[INS]} button, a widget of type @code{insert-button}.
+@item %d
+Insert the @b{[DEL]} button, a widget of type @code{delete-button}.
+@item %%
+Insert a literal @samp{%}.
+@end table
+
+@vindex insert-button-args@r{ keyword}
+@item :insert-button-args
+A list of keyword arguments to pass to the insert buttons.
+
+@vindex delete-button-args@r{ keyword}
+@item :delete-button-args
+A list of keyword arguments to pass to the delete buttons.
+
+@vindex append-button-args@r{ keyword}
+@item :append-button-args
+A list of keyword arguments to pass to the trailing insert button.
+
+@vindex buttons@r{ keyword}
+@item :buttons
+The widgets representing the insert and delete buttons.
+
+@item :format
+By default, insert its value and at the and adds an insert button.
+
+This is useful so that new elements can be added to the list upon user
+request.
+
+@item :format-handler
+A function that recognize the escape for inserting an insert button.
+
+@item :offset
+By default, this widget has an offset of 12.
+
+@vindex children@r{ keyword}
+@item :children
+The widgets representing the elements of the list.
+
+@vindex args@r{ keyword}
+@item :args
+List whose @sc{car} is the type of the list elements.
+
+@item :insert-before
+Function to insert a new widget as a child of the @code{editable-list}
+widget.
+
+This function inserts a recently deleted child, if there is one.  That
+is useful, so that the user can move elements in a list easily.  If
+there is not a recently deleted child, it inserts a child with its
+default value.
+
+@item :delete-at
+Function to delete a child from the widget, and store it into the
+@code{:last-deleted} list, so that it can be reinserted when the
+@code{:insert-before} function executes.
+
+@item :value-create
+The function that takes care of inserting all values.
+
+@item :value-get
+Function that returns a list with the value of the child widgets.
+
+@item :validate
+This widget validates if all children validate.
+
+@item :match
+To match, the value must be a list and all the list members must match
+the specified @var{type}.
+
+@item :match-inline
+Like the @code{:match} function, but taking into account inline
+values and widgets.
+@end table
+
+@node group
+@subsection The @code{group} Widget
+@findex group@r{ widget}
+
+Syntax:
+
+@example
+@var{type} ::= (group [@var{keyword} @var{argument}]... @var{type}...)
+@end example
+
+A widget to group other widgets.  Its super is the @code{default}
+widget.
+
+Its value is a list, with one member for each @var{type}.
+
+It overrides the following properties:
+
+@table @code
+@item :convert-widget
+As other composite widgets, a function that takes care of converting
+each widget in @var{type}.
+
+@item :copy
+A function to copy the types given in @var{type}.
+
+@item :format
+By default, displays a newline character and its value.
+
+@item :value-create
+A function to create each of its components.
+
+@item :value-get
+The same function used by the @code{editable-list} widget.
+
+@item :default-get
+A function that returns a list whose members are the default values of
+each widget it groups.
+
+@item :validate
+This widget validates if all of its children validate.
+
+@item :match
+This widget matches a value that matches each of its components.
+
+@item :match-inline
+As @code{:match}, but taking into account widgets and values that are
+inline.
+@end table
+
+@node documentation-string
+@subsection The @code{documentation-string} Widget
+@findex documentation-string@r{ widget}
+Syntax:
+
+@example
+@var{type} ::= (documentation-string [@var{keyword} @var{argument}]... @var{value})
+@end example
+
+A widget to represent a documentation string.  Its super is the
+@code{item} widget.
+
+It either overrides or adds the following properties:
+
+@table @code
+@item :format
+By default, insert its value.
+
+@item :value-create
+Function to insert a documentation string, possibly hiding part of the
+documentation if its large.
+
+To show or hide the rest of the documentation, uses a
+@code{visibility} widget.
+
+@item :action
+Function to toggle showing the documentation upon an event.
+
+@item :visibility-widget
+A symbol, the type of the widget to use for the visibility widget.
+
+This is, by default, the symbol @code{visibility}.
+@end table
+
+@node Sexp Types
+@section Sexp Types
+@cindex sexp types
+
+A number of widgets for editing @dfn{s-expressions} (Lisp types), sexp
+for short, are also available.  These basically fall in several
+categories described in this section.
+
+@menu
+* constants::
+* generic::
+* atoms::
+* composite::
+@end menu
+
+@node constants
+@subsection The Constant Widgets
+@cindex constant widgets
+
+The @code{const} widget can contain any Lisp expression, but the user is
+prohibited from editing it, which is mainly useful as a component of one
+of the composite widgets.
+
+The syntax for the @code{const} widget is:
+
+@example
+@var{type} ::= (const [@var{keyword} @var{argument}]...  [ @var{value} ])
+@end example
+
+Its super is the @code{item} widget.  The @var{value}, if present, is
+used to initialize the @code{:value} property and can be any
+s-expression.
+
+@deffn Widget const
+This will display any valid s-expression in an immutable part of the
+buffer.
+
+It overrides the @code{:prompt-value} function, to avoid prompting and
+just return the widget's value.
+@end deffn
+
+There are two variations of the @code{const} widget, namely
+@code{variable-item} and @code{function-item}.  These should contain a
+symbol with a variable or function binding, respectively.  The major
+difference from the @code{const} widget is that they will allow the
+user to see the variable or function documentation for the symbol.
+
+This is accomplished via using the @samp{%h} format escape, and adding
+an appropiate @code{:documentation-property} function for each widget.
+
+@deffn Widget variable-item
+An immutable symbol that is bound as a variable.
+@end deffn
+
+@deffn Widget function-item
+An immutable symbol that is bound as a function.
+@end deffn
+
+@node generic
+@subsection Generic Sexp Widget
+@cindex generic sexp widget
+
+The @code{sexp} widget can contain any Lisp expression, and allows the
+user to edit it inline in the buffer.
+
+The syntax for the @code{sexp} widget is:
+
+@example
+@var{type} ::= (sexp [@var{keyword} @var{argument}]...  [ @var{value} ])
+@end example
+
+@deffn Widget sexp
+This widget represents an editable field that's useful to edit any
+valid s-expression.
+
+The @code{sexp} widget takes the same keyword arguments as the
+@code{editable-field} widget.  @xref{editable-field}.
+
+Its default value is @code{nil}.
+@end deffn
+
+@deffn Widget restricted-sexp
+A widget to edit Lisp expressions restricted to certain values or
+types.  Its super is the @code{sexp} widget.
+
+It works just like the sexp widget, but it overrides the @code{:match}
+function to match for certain values.  To use this widget, either you
+must define a @code{:match} function or give a
+@code{:match-alternatives} property.  The @code{:match-alternatives}
+property holds a list of predicate functions to call when checking if
+a given value matches the widget.  Each predicate function will be
+called with one argument, the value to be matched, and should return
+non-@code{nil} on success.
+
+As an example, the @code{integer} widget overrides
+@code{:match-alternatives} to @code{(integerp)}.
+@end deffn
+
+@node atoms
+@subsection Atomic Sexp Widgets
+@cindex atomic sexp widget
+
+The atoms are s-expressions that do not consist of other s-expressions.
+For example, a string, a file name, or a symbol are atoms, while a list
+is a composite type.  You can edit the value of an atom with the
+widgets described in this section.
+
+The syntax for all the atoms is:
+
+@example
+@var{type} ::= (@var{construct} [@var{keyword} @var{argument}]...  [ @var{value} ])
+@end example
+
+The @var{value}, if present, is used to initialize the @code{:value}
+property and must be an expression of the same type as the widget.
+That is, for example, the string widget can only be initialized with a
+string.
+
+All the atom widgets take the same keyword arguments as the
+@code{editable-field} widget.  @xref{editable-field}.
+
+@deffn Widget string
+An editable field widget that can represent any Lisp string.
+
+It offers completion via the ispell library and the @code{:complete}
+property.
+@end deffn
+
+@deffn Widget regexp
+An editable field widget that can represent a regular expression.
+
+Overrides the @code{:match} and the @code{:validate} properties to
+check that the value is a valid regexp.
+@end deffn
+
+@deffn Widget character
+An editable field widget that can represent a character.
+
+The character widget represents some characters (like the newline
+character) in a special manner, to make it easier for the user to see
+what's the content of the character field.
+@end deffn
+
+@deffn Widget file
+A widget for editing file names.
+
+Keywords:
+@table @code
+@item :completions
+Offers file name completion to the user.
+
+@item :prompt-value
+A function to read a file name from the minibuffer.
+
+@vindex must-match@r{ keyword}
+@item :must-match
+If this is set to non-@code{nil}, only existing file names are allowed
+when prompting for a value in the minibuffer.
+
+@item :match
+The widget matches if the value is a string, and the file whose name
+is that string is an existing file, or if @code{:must-match} is
+@code{nil}.
+
+@item :validate
+The widget is valid if its value matches.
+
+@end table
+@end deffn
+
+@deffn Widget directory
+A widget for editing directory names.
+
+Its super is the @code{file} widget, and it overrides the
+@code{:completions} property, to offer completions only for
+directories.
+@end deffn
+
+@deffn Widget symbol
+A widget for editing a Lisp symbol.
+
+Its value by default is @code{nil}.
+@end deffn
+
+@deffn Widget function
+A widget for editing a lambda expression, or a function name, offering
+completion.  Its super is the @code{restricted-sexp} widget.
+@end deffn
+
+@deffn Widget variable
+A widget for editing variable names, offering completion.  Its super
+is the @code{symbol} widget.
+@end deffn
+
+@deffn Widget integer
+A widget for editing integers in an editable field.  Its super is the
+@code{restricted-sexp} widget.
+
+It has a default @code{:value} of 0.
+@end deffn
+
+@deffn Widget natnum
+A widget for editing non-negative integers.  Its super is the
+@code{restricted-sexp} widget.
+
+It has a default @code{:value} of 0.
+@end deffn
+
+@deffn Widget float
+A widget for editing a floating point number.  Its super is the
+@code{restricted-sexp} widget.
+
+It has a default @code{:value} of 0.0.
+@end deffn
+
+@deffn Widget number
+A widget for editing a number, either floating point or integer.  Its
+super is the @code{restricted-sexp} widget.
+
+It has a default @code{:value} of 0.0.
+@end deffn
+
+@deffn Widget boolean
+A widget for editing a boolean value.  Its super is the @code{toggle}
+widget.
+
+Its value may be @code{nil}, meaning false, or non-@code{nil}, meaning
+true.
+@end deffn
+
+@deffn Widget color
+A widget to edit a color name.
+
+In addition, shows a sample that shows the selected color, if any.
+@end deffn
+
+@deffn Widget other
+A widget useful as the last item in a @code{choice} widget, since it
+matches any value.
+
+Its super is the @code{sexp} widget, and its @code{:value} is
+@code{other}, by default.
+@end deffn
+
+@deffn Widget coding-system
+A widget that can represent a coding system name, offering
+completions.  @xref{Coding Systems,,,elisp, the Emacs Lisp Reference
+Manual}.  Its super is the @code{symbol} widget.
+
+It has a default value of @code{undecided}.
+@end deffn
+
+@deffn Widget key
+A widget to represent a key sequence.
+
+It uses a special keymap as the @code{:keymap}.
+@end deffn
+
+@node composite
+@subsection Composite Sexp Widgets
+@cindex composite sexp widgets
+
+The syntax for the composite widget construct is:
+
+@example
+@var{type} ::= (@var{construct} [@var{keyword} @var{argument}]...  @var{component}...)
+@end example
+
+@noindent
+where each @var{component} must be a widget type.  Each component widget
+will be displayed in the buffer, and will be editable by the user.
+
+@deffn Widget cons
+A widget to edit cons-cell values.  Its super is the @code{group}
+widget.
+
+The value of a @code{cons} widget must be a cons-cell whose @sc{car}
+and @sc{cdr} have two specified types.  It uses this syntax:
+
+@example
+@var{type} ::= (cons [@var{keyword} @var{argument}]...  @var{car-type} @var{cdr-type})
+@end example
+@end deffn
+
+@deffn Widget choice
+A widget to hold a value of one of a fixed set of types.  Its super is
+the @code{menu-choice} widget.
+
+The widget's syntax is as follows:
+
+@example
+@var{type} ::= (choice [@var{keyword} @var{argument}]...  @var{type} ... )
+@end example
+
+The value of a @code{choice} widget can be anything that matches any of the
+@var{types}.
+
+This widget only displays the widget that corresponds to the current
+choice.
+@end deffn
+
+@deffn Widget radio
+A widget to hold a value of one of a fixed set of options.  Its super is
+the @code{radio-button-choice} widget.
+@end deffn
+
+@deffn Widget list
+A widget to edit a list value.  Its super is the @code{group} widget.
+
+The value of a @code{list} widget must be a list whose element types
+match the specified component types:
+
+@example
+@var{type} ::= (list [@var{keyword} @var{argument}]...  @var{component-type}...)
+@end example
+
+Thus, for example, @code{(list string number)} matches lists of two
+elements, the first being a string and the second being a number.
+@end deffn
+
+@deffn Widget vector
+A widget to edit a vector value.  Its super is the @code{group}
+widget.
+
+The @code{vector} widget is like the @code{list} widget but matches
+vectors instead of lists.  Thus, for example, @code{(vector string
+number)} matches vectors of two elements, the first being a string and
+the second being a number.
+@end deffn
+
+The above suffice for specifying fixed size lists and vectors.  To get
+variable length lists and vectors, you can use a @code{choice},
+@code{set}, or @code{repeat} widget together with the @code{:inline}
+keyword.  If any component of a composite widget has the
+@code{:inline} keyword set, its value must be a list which will then
+be spliced into the composite.  For example, to specify a list whose
+first element must be a file name, and whose remaining elements should
+either be the symbol @code{t} or two strings (file names), you can use
+the following widget specification:
+
+@example
+(list file
+      (choice (const t)
+              (list :inline t
+                    :value ("foo" "bar")
+                    string string)))
+@end example
+
+The value of a widget of this type will either have the form
+@code{(file t)} or @code{(file @var{string} @var{string})}.
+
+This concept of @code{:inline} may be hard to understand.  It was
+certainly hard to implement, so instead of confusing you more by
+trying to explain it here, I'll just suggest you meditate over it for
+a while.
+
+@deffn Widget set
+A widget to hold a list of members from a fixed set.  Its super is the
+@code{checklist} widget.
+
+Its value is a list where the elements all belong to a given set.  The
+order of elements of the list is not significant.
+
+Here's the syntax:
+
+@example
+@var{type} ::= (set [@var{keyword} @var{argument}]...  @var{permitted-element} ... )
+@end example
+
+Use @code{const} to specify each permitted element, like this:
+@code{(set (const a) (const b))}.
+@end deffn
+
+@deffn Widget repeat
+Specifies a list of any number of elements that fit a certain type.
+Its super is the @code{editable-list} widget.
+
+@example
+@var{type} ::= (repeat [@var{keyword} @var{argument}]...  @var{type})
+@end example
+@end deffn
+
+@deffn Widget plist
+A widget to edit property lists.  Its super is the @code{list} widget.
+
+It recognizes the following properties:
+
+@table @code
+@item :options
+A given set of recommended key-value values for the @code{plist}
+widget.  Each option shows up as a checklist item.
+
+@item :key-type
+The widget type to use for the plist keys.  By default, it uses the
+@code{symbol} widget.
+
+@item :value-type
+The widget type to use for the plist values.  By default, it uses the
+@code{sexp} widget.
+@end table
+@end deffn
+
+@deffn Widget alist
+A widget to edit association lists.  Its super is the @code{list}
+widget.
+
+It recognizes the same properties that the @code{plist} widget, with
+the difference that the @code{:key-type} uses by default a @code{sexp}
+widget.
+@end deffn
+
+Most composite widgets do not allow for recursion.  That is, none of
+the contained widgets may be of the same type that is currently being
+defined.  To allow for this kind of widgets, there's the @code{lazy}
+widget.
+
+@deffn Widget lazy
+A base widget for recursive data structures.  Its super is the
+@code{default} widget.
+
+When instantiated, it contains a single inferior widget of the widget
+type specified in the @code{:type} property.  Its value is the same as
+the value of this inferior widget.
+@end deffn
 
 @node Defining New Widgets
 @chapter Defining New Widgets
@@ -1520,19 +2839,27 @@ its ancestors have been deactivated.  Do not attempt to set the
 
 You can define specialized widgets with @code{define-widget}.  It allows
 you to create a shorthand for more complex widgets, including specifying
-component widgets and new default values for the keyword
-arguments.
+component widgets and new default values for the keyword arguments.
 
 @defun define-widget name class doc &rest args
-Define a new widget type named @var{name} from @code{class}.
+Define a new widget type named @var{name} that derives from @var{class}.
 
-@var{name} and class should both be symbols, @code{class} should be one
-of the existing widget types.
+@var{name} and @var{class} should both be symbols, and @var{class}
+should be one of the existing widget types.
 
 The third argument @var{doc} is a documentation string for the widget.
 
-After the new widget has been defined, the following two calls will
-create identical widgets:
+@var{args} should be key-value pairs, overriding keyword values of
+@var{class}, or adding new recognized keywords for @var{name}.
+
+Usually, you'll want to derive from an existing widget type, like the
+@code{editable-field} widget, or the @code{default} widget, but it's
+also possible to derive from nothing, by passing a value of @code{nil}
+as @var{class}.  Note that if you do this, you're entirely responsible
+for defining a whole new default behavior for your widgets.
+
+After using this function, the following two calls will create
+identical widgets:
 
 @itemize @bullet
 @item
@@ -1555,168 +2882,65 @@ in the @code{widget-type} property of @var{name}, which is what
 If you only want to specify defaults for keywords with no complex
 conversions, you can use @code{identity} as your conversion function.
 
-The following additional keyword arguments are useful when defining new
-widgets:
+When defining new widgets, the @code{:convert-widget} property might
+be useful:
+
 @table @code
 @vindex convert-widget@r{ keyword}
 @item :convert-widget
 Function to convert a widget type before creating a widget of that
-type.  It takes a widget type as an argument, and returns the converted
-widget type.  When a widget is created, this function is called for the
-widget type and all the widget's parent types, most derived first.
+type.
 
-The following predefined functions can be used here:
+It takes a widget type as an argument, and returns the converted
+widget type.  When a widget is created, this function is called for
+the widget type and all the widget's parent types, most derived first.
 
-@defun widget-types-convert-widget widget
-Convert @code{:args} as widget types in @var{widget}.
-@end defun
-
-@defun widget-value-convert-widget widget
-Initialize @code{:value} from @code{:args} in @var{widget}.
-@end defun
-
-@vindex copy@r{ keyword}
-@item :copy
-Function to deep copy a widget type.  It takes a shallow copy of the
-widget type as an argument (made by @code{copy-sequence}), and returns a
-deep copy.  The purpose of this is to avoid having different instances
-of combined widgets share nested attributes.
-
-The following predefined functions can be used here:
-
-@defun widget-types-copy widget
-Copy @code{:args} as widget types in @var{widget}.
-@end defun
-
-@vindex value-to-internal@r{ keyword}
-@item :value-to-internal
-Function to convert the value to the internal format.  The function
-takes two arguments, a widget and an external value, and returns the
-internal value.  The function is called on the present @code{:value}
-when the widget is created, and on any value set later with
-@code{widget-value-set}.
-
-@vindex value-to-external@r{ keyword}
-@item :value-to-external
-Function to convert the value to the external format.  The function
-takes two arguments, a widget and an internal value, and returns the
-external value.
-
-@vindex create@r{ keyword}
-@item :create
-Function to create a widget from scratch.  The function takes one
-argument, a widget type, and creates a widget of that type, inserts it
-in the buffer, and returns a widget object.
-
-@vindex delete@r{ keyword}
-@item :delete
-Function to delete a widget.  The function takes one argument, a widget,
-and should remove all traces of the widget from the buffer.
-
-The default value is:
-
-@defun widget-default-delete widget
-Remove @var{widget} from the buffer.
-Delete all @code{:children} and @code{:buttons} in @var{widget}.
-@end defun
-
-In most cases you should not change this value, but instead use
-@code{:value-delete} to make any additional cleanup.
-
-@vindex value-create@r{ keyword}
-@item :value-create
-Function to expand the @samp{%v} escape in the format string.  It will
-be called with the widget as its argument and should insert a
-representation of the widget's value in the buffer.
-
-Nested widgets should be listed in @code{:children} or @code{:buttons}
-to make sure they are automatically deleted.
-
-@vindex value-delete@r{ keyword}
-@item :value-delete
-Should remove the representation of the widget's value from the buffer.
-It will be called with the widget as its argument.  It doesn't have to
-remove the text, but it should release markers and delete nested widgets
-if these are not listed in @code{:children} or @code{:buttons}.
-
-@vindex value-get@r{ keyword}
-@item :value-get
-Function to extract the value of a widget, as it is displayed in the
-buffer.
-
-The following predefined function can be used here:
-
-@defun widget-value-value-get widget
-Return the @code{:value} property of @var{widget}.
-@end defun
-
-@vindex format-handler@r{ keyword}
-@item :format-handler
-Function to handle unknown @samp{%} escapes in the format string.  It
-will be called with the widget and the character that follows the
-@samp{%} as arguments.  You can set this to allow your widget to handle
-non-standard escapes.
-
-@findex widget-default-format-handler
-You should end up calling @code{widget-default-format-handler} to handle
-unknown escape sequences, which will handle the @samp{%h} and any future
-escape sequences, as well as give an error for unknown escapes.
-
-@vindex action@r{ keyword}
-@item :action
-Function to handle user initiated events.  By default, @code{:notify}
-the parent.
-
-The following predefined function can be used here:
-
-@defun widget-parent-action widget &optional event
-Tell @code{:parent} of @var{widget} to handle the @code{:action}.
-Optional @var{event} is the event that triggered the action.
-@end defun
-
-@vindex prompt-value@r{ keyword}
-@item :prompt-value
-Function to prompt for a value in the minibuffer.  The function should
-take four arguments, @var{widget}, @var{prompt}, @var{value}, and
-@var{unbound} and should return a value for widget entered by the user.
-@var{prompt} is the prompt to use.  @var{value} is the default value to
-use, unless @var{unbound} is non-@code{nil}, in which case there is no default
-value.  The function should read the value using the method most natural
-for this widget, and does not have to check that it matches.
+The predefined functions @code{widget-types-convert-widget} and
+@code{widget-value-convert-widget} can be used here.
 @end table
 
-If you want to define a new widget from scratch, use the @code{default}
-widget as its base.
-
-@deffn Widget default
-Widget used as a base for other widgets.
-
-It provides most of the functionality that is referred to as ``by
-default'' in this text.
-@end deffn
-
-@node Widget Browser
-@chapter Widget Browser
+@node Inspecting Widgets
+@chapter Inspecting Widgets
 @cindex widget browser
 
-There is a separate package to browse widgets.  This is intended to help
-programmers who want to examine the content of a widget.  The browser
-shows the value of each keyword, but uses links for certain keywords
-such as @samp{:parent}, which avoids printing cyclic structures.
+There is a separate package to browse widgets, in
+@samp{wid-browse.el}.  This is intended to help programmers who want
+to examine the content of a widget.  The browser shows the value of
+each keyword, but uses links for certain keywords such as
+@samp{:parent}, which avoids printing cyclic structures.
 
 @deffn Command widget-browse @var{widget}
 Create a widget browser for @var{widget}.
+
 When called interactively, prompt for @var{widget}.
 @end deffn
 
 @deffn Command widget-browse-other-window @var{widget}
 Create a widget browser for @var{widget} and show it in another window.
+
 When called interactively, prompt for @var{widget}.
 @end deffn
 
 @deffn Command widget-browse-at @var{pos}
 Create a widget browser for the widget at @var{pos}.
+
 When called interactively, use the position of point.
+@end deffn
+
+In addition, there's a function to describe the widget at point.
+
+@deffn Command widget-describe &optional widget-or-pos
+Describe the widget at point.
+
+When called from Lisp, @var{widget-or-pos} might be the widget to
+describe or a buffer position where a widget is present.  If
+@var{widget-or-pos} is @code{nil}, the widget to describe is the
+widget at point.
+
+This command sets up a help buffer for providing information about the
+widget, mainly its @code{:action} and @code{:mouse-down-action}
+functions, and provides links to describe it in more detail using the
+@code{widget-browse} commands described above.
 @end deffn
 
 @node  Widget Minor Mode
@@ -1740,14 +2964,24 @@ Keymap used in @code{widget-minor-mode}.
 @chapter Utilities
 @cindex utility functions for widgets
 
+Here we describe some utility functions that don't really have a place
+earlier in this manual.
+
 @defun widget-prompt-value widget prompt [ value unbound ]
 Prompt for a value matching @var{widget}, using @var{prompt}.
 The current value is assumed to be @var{value}, unless @var{unbound} is
 non-@code{nil}.
+
+Converts @var{widget} before prompting, and for prompting it uses the
+@code{:prompt-value} function.  This function returns the user
+``answer'', and it's an error if that answer doesn't match the widget,
+as with the @code{:match} function.
+
+If the answer matches the widget, returns the answer.
 @end defun
 
 @defun widget-get-sibling widget
-Get the item which @var{widget} is assumed to toggle.
+Get the item which @var{widget} should toggle.
 This is only meaningful for radio buttons or checkboxes in a list.
 @end defun
 
@@ -1772,6 +3006,142 @@ Manual}).  When @var{items} is a list whose selectable items are of
 the form (@var{name} . @var{value}) (i.e., the simplified format),
 then the return value is the @var{value} of the chosen element.
 @end defun
+
+@defun widget-image-find image
+Create a graphical button from @var{image}, an image or a file name
+sans extension.
+
+If @var{image} is a file name, the file should be in
+@code{widget-image-directory}, or in a place where @code{find-image}
+will find it.
+@end defun
+
+@defun widget-image-insert widget tag image
+As part of @var{widget}, insert the text @var{tag} or, if supported,
+the image @var{image}.
+
+@var{image} should be as described in @code{widget-image-find}.
+@end defun
+
+@defun widget-echo-help pos
+Display help-echo text for the widget at @var{pos}.
+
+Uses the value of @code{:help-echo}.  If it is a function, it calls it
+to get a string.  Otherwise, it @code{eval}s it.
+@end defun
+
+@node  Customization
+@chapter Customization
+This chapter is about the customization options for the Widget
+library, for the end user.
+
+@deffn Face widget-field-face
+Face used for other editing fields.
+@end deffn
+
+@deffn Face widget-button-face
+Face used for buttons.
+@end deffn
+
+@defopt widget-mouse-face
+Face used for highlighting a button when the mouse pointer moves
+across it.
+
+The default value is @code{highlight}.
+@end defopt
+
+@defopt widget-image-directory
+Directory where Widget should look for images.
+
+Widget will look here for a file with the same name as specified for the
+image, with either a @file{.xpm} (if supported) or @file{.xbm} extension.
+@end defopt
+
+@defopt widget-image-enable
+If non-@code{nil}, allow images to appear on displays where they are supported.
+@end defopt
+
+@defopt widget-image-conversion
+An alist to convert symbols from image formats to file name suffixes.
+
+Each element is a cons cell (@var{format} . @var{suffix}), where
+@var{format} is a symbol that represents an image format and
+@var{suffix} is its correspondent suffix.
+@end defopt
+
+@defopt widget-button-prefix
+String to prefix buttons.
+@end defopt
+
+@defopt widget-button-suffix
+String to suffix buttons.
+@end defopt
+
+@defopt widget-push-button-prefix
+String to prefix push buttons.
+@end defopt
+
+@defopt widget-push-button-suffix
+String to suffix push buttons.
+@end defopt
+
+@defopt widget-link-prefix
+String to prefix links.
+@end defopt
+
+@defopt widget-link-suffix
+String to suffix links.
+@end defopt
+
+@defopt widget-choice-toggle
+If non-@code{nil}, toggle when there are just two options.
+
+By default, its value is @code{nil}.
+@end defopt
+
+@defopt widget-documentation-links
+If non-@code{nil}, add hyperlinks to documentation strings.
+@end defopt
+
+@defopt widget-documentation-link-regexp
+A regexp that matches potential links in documentation strings.  The
+link itself should match to the first group.
+@end defopt
+
+@defopt widget-documentation-link-p
+A predicate function to test if a string is useful as a link.  The
+function is called with one argument, a string, and should return
+non-@code{nil} if there should be a link for that string.
+
+By default, the value is @code{intern-soft}.
+@end defopt
+
+@defopt widget-documentation-link-type
+A symbol that represents a widget type to use for links in
+documentation strings.
+
+By default, the value is @code{documentation-link}.
+@end defopt
+
+@defopt widget-menu-max-size
+Maximum size for a popup menu.  By default, its value is 40.
+
+If a function ask you to choose from a menu that is larger than this
+value, it will use the minibuffer.
+@end defopt
+
+@defopt widget-menu-max-shortcuts
+Largest number of items for which it works to choose one with a
+character.
+
+For a larger number, use the minibuffer.
+@end defopt
+
+@defopt widget-menu-minibuffer-flag
+Whether to use the minibuffer to ask for a choice.
+
+If @code{nil}, the default, read a single character.
+@end defopt
 
 @node  Widget Wishlist
 @chapter Wishlist
@@ -1807,15 +3177,6 @@ Find a way to disable mouse highlight for inactive widgets.
 
 @item
 Find a way to make glyphs look inactive.
-
-@item
-Add @code{property-list} widget.
-
-@item
-Add @code{association-list} widget.
-
-@item
-Add @code{key-binding} widget.
 
 @item
 Add @code{widget} widget for editing widget specifications.

@@ -38,7 +38,7 @@ in its NEWS.)
 
 ** Installing Emacs now installs the emacs-module.h file.
 The emacs-module.h file is now installed in the system-wide include
-directory as part of the Emacs installation.  This allows to build
+directory as part of the Emacs installation.  This allows building
 Emacs modules outside of the Emacs source tree.
 
 

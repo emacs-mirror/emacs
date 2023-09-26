@@ -1094,11 +1094,11 @@ decode programs.
 @cindex method @option{sudoedit}
 @cindex @option{sudoedit} method
 
-The @option{sudoedit} method allows to edit a file as a different user
-on the local host.  You could regard this as @value{tramp}'s
+The @option{sudoedit} method facilitates editing a file as a different
+user on the local host.  You could regard this as @value{tramp}'s
 implementation of the @command{sudoedit}.  Contrary to the
 @option{sudo} method, all magic file name functions are implemented by
-single @command{sudo @dots{}}  commands.  The purpose is to make
+single @command{sudo @dots{}} commands.  The purpose is to make
 editing such a file as secure as possible; there must be no session
 running in the Emacs background which could be attacked from inside
 Emacs.
@@ -1383,7 +1383,7 @@ possible, @value{tramp} emulates those operations otherwise.
 @cindex @option{rclone} method
 
 @vindex tramp-rclone-program
-The program @command{rclone} allows to access different system
+The program @command{rclone} enables accessing different system
 storages in the cloud, see @uref{https://rclone.org/} for a list of
 supported systems.  If the @command{rclone} program isn't found in
 your @env{PATH} environment variable, you can tell @value{tramp} its
@@ -2366,7 +2366,7 @@ connection information}.  If you want, for example, use
 @end group
 @end lisp
 
-This works only for connection methods which allow to override the
+This works only for connection methods which allow overriding the
 remote login shell, like @option{sshx} or @option{plink}.  See
 @ref{Inline methods} and @ref{External methods} for connection methods
 which support this.
@@ -2436,8 +2436,10 @@ which may not be the same as the local login shell prompt,
 @value{tramp} sets a similar default value for both prompts.
 
 @item @code{tramp-password-prompt-regexp}
+@item @code{tramp-otp-password-prompt-regexp}
 @item @code{tramp-wrong-passwd-regexp}
 @vindex tramp-password-prompt-regexp
+@vindex tramp-otp-password-prompt-regexp
 @vindex tramp-wrong-passwd-regexp
 
 @value{tramp} uses @code{tramp-password-prompt-regexp} to
@@ -2470,6 +2472,10 @@ This user option is, by default, initialized from
 @code{password-word-equivalents} when @value{tramp} is loaded, and it
 is usually more convenient to add new passphrases to that user option
 instead of altering this user option.
+
+The user option @code{tramp-otp-password-prompt-regexp} has a similar
+purpose, but for one-time passwords.  Those passwords are not cached
+by @value{tramp} for reuse.
 
 Similar localization may be necessary for handling wrong password
 prompts, for which @value{tramp} uses @code{tramp-wrong-passwd-regexp}.
@@ -3703,6 +3709,47 @@ On the other hand, if a trailing hop does not specify a host name, the
 host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
 @samp{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
+
+@defopt tramp-completion-multi-hop-methods
+When this list includes the last method in a multi-hop connection, the
+remote host will be queried for a list of completion candidates.  This
+can, for example, provide a list of running docker or podman
+containers on the remote host.
+
+@lisp
+(customize-set-variable 'tramp-completion-multi-hop-methods
+ `(,tramp-docker-method ,tramp-podman-method))
+@end lisp
+@end defopt
+
+A common use case for ad-hoc specifications is to visit a file or a
+directory with proper permissions, for example with the @option{sudo}
+method.  The command @code{tramp-revert-buffer-with-sudo} supports
+this.
+
+@deffn Command tramp-revert-buffer-with-sudo
+This command shows the current buffer with @option{sudo} permissions.
+The buffer must either visit a file, or a directory
+(@code{dired-mode}).
+@end deffn
+
+@defopt tramp-file-name-with-method
+The method @code{tramp-revert-buffer-with-sudo} shows an alternate
+buffer.  It defaults to @code{sudo}, other valid methods are
+@code{su}, @code{doas}, and @code{ksu}.
+
+@lisp
+(customize-set-variable 'tramp-file-name-with-method "doas")
+@end lisp
+@end defopt
+
+These methods apply the user @samp{root} as default.  If another user
+shall be taken, add a proper rule to the user option
+@code{tramp-default-user-alist} (@pxref{Default User}):
+
+@lisp
+(add-to-list 'tramp-default-user-alist '("sudo" "remotehost" "admin"))
+@end lisp
 
 
 @node Home directories
@@ -5252,30 +5299,11 @@ How to get notified after @value{tramp} completes file transfers?
 Make Emacs beep after reading from or writing to the remote host with
 the following code in @file{~/.emacs}.
 
+@vindex tramp-handle-write-region-hook
+@vindex tramp-handle-file-local-copy-hook
 @lisp
-@group
-(defadvice tramp-handle-write-region
-  (after tramp-write-beep-advice activate)
-  "Make @value{tramp} beep after writing a file."
-  (interactive)
-  (beep))
-@end group
-
-@group
-(defadvice tramp-handle-do-copy-or-rename-file
-  (after tramp-copy-beep-advice activate)
-  "Make @value{tramp} beep after copying a file."
-  (interactive)
-  (beep))
-@end group
-
-@group
-(defadvice tramp-handle-insert-file-contents
-  (after tramp-insert-beep-advice activate)
-  "Make @value{tramp} beep after inserting a file."
-  (interactive)
-  (beep))
-@end group
+(add-hook 'tramp-handle-write-region-hook 'beep)
+(add-hook 'tramp-handle-file-local-copy-hook 'beep)
 @end lisp
 
 
@@ -5528,9 +5556,8 @@ minibuffer:
 @end group
 
 @group
-(defadvice minibuffer-complete
-  (before my-minibuffer-complete activate)
-  (expand-abbrev))
+(advice-add 'minibuffer-complete
+ :before 'expand-abbrev)
 @end group
 @end lisp
 
@@ -5727,6 +5754,8 @@ If you find the cleanup disturbing, because the file names in
 two forms in your @file{~/.emacs} after loading the @code{tramp} and
 @code{recentf} packages:
 
+@vindex tramp-cleanup-connection-hook
+@vindex tramp-cleanup-all-connections-hook
 @lisp
 @group
 (remove-hook

@@ -4099,7 +4099,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 	    }
 	  /* Test for intersecting intervals.  This does the right thing
 	     for both insertion and deletion.  */
-	  if (! insertion || (end_arg > obegin && begin_arg < oend))
+	  if (end_arg > obegin && begin_arg < oend)
 	    {
 	      Lisp_Object prop = Foverlay_get (overlay, Qmodification_hooks);
 	      if (!NILP (prop))

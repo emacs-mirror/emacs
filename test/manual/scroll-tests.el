@@ -80,25 +80,25 @@
        ,@body)))
 
 (ert-deftest scroll-tests-scroll-margin-0 ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (scroll-tests-with-buffer-window
     (scroll-tests-up-and-down 0)))
 
 (ert-deftest scroll-tests-scroll-margin-negative ()
   "A negative `scroll-margin' should be the same as 0."
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (scroll-tests-with-buffer-window
     (scroll-tests-up-and-down -10 0)))
 
 (ert-deftest scroll-tests-scroll-margin-max ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (scroll-tests-with-buffer-window
     (let ((max-margin (/ (window-text-height) 4)))
       (scroll-tests-up-and-down max-margin))))
 
 (ert-deftest scroll-tests-scroll-margin-over-max ()
   "A `scroll-margin' more than max should be the same as max."
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (scroll-tests-with-buffer-window 7
     (let ((max-margin (/ (window-text-height) 4)))
       (scroll-tests-up-and-down (+ max-margin 1) max-margin)
@@ -155,7 +155,7 @@ middle of the window."
       (should (scroll-tests--point-in-middle-of-window-p)))))
 
 (ert-deftest scroll-tests-scroll-margin-whole-window ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (scroll-tests--scroll-margin-whole-window))
 
 (ert-deftest scroll-tests-scroll-margin-whole-window-line-spacing ()

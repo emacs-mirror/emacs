@@ -20,14 +20,14 @@
  (0 ":irc.example.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.example.org 422 tester :MOTD File is missing"))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 2 "MODE tester +i")
  (0 ":irc.example.org 221 tester +Zi")
  (0 ":irc.example.org 306 tester :You have been marked as being away")
  (0 ":tester!~tester@localhost JOIN #chan")
  (0 ":irc.example.org 353 alice = #chan :+alice!~alice@example.com @%+bob!~bob@example.org")
  (0 ":irc.example.org 366 alice #chan :End of NAMES list"))
 
-((mode-chan 1.2 "MODE #chan")
+((mode-chan 2 "MODE #chan")
  (0 ":bob!~bob@example.org PRIVMSG #chan :hey"))
 
 ((linger 1.0 LINGER))

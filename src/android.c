@@ -73,7 +73,6 @@ bool android_init_gui;
 struct android_emacs_pixmap
 {
   jclass class;
-  jmethodID constructor;
   jmethodID constructor_mutable;
 };
 
@@ -87,7 +86,6 @@ struct android_emacs_drawable
 {
   jclass class;
   jmethodID get_bitmap;
-  jmethodID damage_rect;
 };
 
 struct android_emacs_window
@@ -111,6 +109,7 @@ struct android_emacs_window
   jmethodID set_dont_accept_focus;
   jmethodID set_dont_focus_on_map;
   jmethodID define_cursor;
+  jmethodID damage_rect;
 };
 
 struct android_emacs_cursor
@@ -282,6 +281,46 @@ static volatile sig_atomic_t android_pselect_interrupted;
 
 #endif
 
+/* Set the task name of the current task to NAME, a string at most 16
+   characters in length.
+
+   This name is displayed as that of the task (LWP)'s pthread in
+   GDB.  */
+
+static void
+android_set_task_name (const char *name)
+{
+  char proc_name[INT_STRLEN_BOUND (long)
+		 + sizeof "/proc/self/task//comm"];
+  int fd;
+  pid_t lwp;
+  size_t length;
+
+  lwp = gettid ();
+  sprintf (proc_name, "/proc/self/task/%ld/comm", (long) lwp);
+  fd = open (proc_name, O_WRONLY | O_TRUNC);
+
+  if (fd < 0)
+    goto failure;
+
+  length = strlen (name);
+
+  if (write (fd, name, MIN (16, length)) < 0)
+    goto failure;
+
+  close (fd);
+  return;
+
+ failure:
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Failed to set task name for LWP %ld: %s",
+		       (long) lwp, strerror (errno));
+
+  /* Close the file descriptor if it is already set.  */
+  if (fd >= 0)
+    close (fd);
+}
+
 static void *
 android_run_select_thread (void *data)
 {
@@ -297,6 +336,9 @@ android_run_select_thread (void *data)
   sigset_t signals, waitset;
   int sig;
 #endif
+
+  /* Set the name of this thread's LWP for debugging purposes.  */
+  android_set_task_name ("`android_select'");
 
 #if __ANDROID_API__ < 16
   /* A completely different implementation is used when building for
@@ -796,6 +838,9 @@ android_run_debug_thread (void *data)
   int fd;
   char *line;
   size_t n;
+
+  /* Set the name of this thread's LWP for debugging purposes.  */
+  android_set_task_name ("`android_debug'");
 
   fd = (int) (intptr_t) data;
   file = fdopen (fd, "r");
@@ -1603,7 +1648,6 @@ android_init_emacs_pixmap (void)
 					name, signature);	\
   assert (pixmap_class.c_name);
 
-  FIND_METHOD (constructor, "<init>", "(S[IIII)V");
   FIND_METHOD (constructor_mutable, "<init>", "(SIII)V");
 
 #undef FIND_METHOD
@@ -1666,7 +1710,6 @@ android_init_emacs_drawable (void)
   assert (drawable_class.c_name);
 
   FIND_METHOD (get_bitmap, "getBitmap", "()Landroid/graphics/Bitmap;");
-  FIND_METHOD (damage_rect, "damageRect", "(Landroid/graphics/Rect;)V");
 #undef FIND_METHOD
 }
 
@@ -1720,6 +1763,12 @@ android_init_emacs_window (void)
   FIND_METHOD (set_dont_accept_focus, "setDontAcceptFocus", "(Z)V");
   FIND_METHOD (define_cursor, "defineCursor",
 	       "(Lorg/gnu/emacs/EmacsCursor;)V");
+
+  /* In spite of the declaration of this function being located within
+     EmacsDrawable, the ID of the `damage_rect' method is retrieved
+     from EmacsWindow, which avoids virtual function dispatch within
+     android_damage_window.  */
+  FIND_METHOD (damage_rect, "damageRect", "(IIII)V");
 #undef FIND_METHOD
 }
 
@@ -3353,86 +3402,91 @@ android_create_pixmap_from_bitmap_data (char *data, unsigned int width,
 					unsigned long background,
 					unsigned int depth)
 {
-  android_handle prev_max_handle;
-  jobject object;
-  jintArray colors;
   android_pixmap pixmap;
+  jobject object;
+  AndroidBitmapInfo info;
+  unsigned int *depth_24;
+  unsigned char *depth_8;
+  void *bitmap_data;
   unsigned int x, y;
-  jint *region;
+  unsigned int r, g, b;
 
-  USE_SAFE_ALLOCA;
+  /* Create a pixmap with the right dimensions and depth.  */
+  pixmap = android_create_pixmap (width, height, depth);
 
-  /* Create the color array holding the data.  */
-  colors = (*android_java_env)->NewIntArray (android_java_env,
-					     width * height);
-  android_exception_check ();
+  /* Lock the bitmap data.  */
+  bitmap_data = android_lock_bitmap (pixmap, &info, &object);
 
-  SAFE_NALLOCA (region, sizeof *region, width);
+  /* Merely return if locking the bitmap fails.  */
+  if (!bitmap_data)
+    return pixmap;
 
-  for (y = 0; y < height; ++y)
+  eassert (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888
+	   || info.format == ANDROID_BITMAP_FORMAT_A_8);
+
+  /* Begin copying each line.  */
+
+  switch (info.format)
     {
-      for (x = 0; x < width; ++x)
-	{
-	  if (depth == 24)
-	    {
-	      /* The alpha channels must be set, or otherwise, the
-		 pixmap will be created entirely transparent.  */
+    case ANDROID_BITMAP_FORMAT_RGBA_8888:
 
-	      if (data[x / 8] & (1 << (x % 8)))
-		region[x] = foreground | 0xff000000;
-	      else
-		region[x] = background | 0xff000000;
-	    }
-	  else
-	    {
-	      if (data[x / 8] & (1 << (x % 8)))
-		region[x] = foreground;
-	      else
-		region[x] = background;
-	    }
+      /* Swizzle the pixels into ABGR format.  Android uses Skia's
+	 ``native color type'', which is ABGR.  This is despite the
+	 format being named ``ARGB'', and more confusingly
+	 `ANDROID_BITMAP_FORMAT_RGBA_8888' in bitmap.h.  */
+
+      r = background & 0x00ff0000;
+      g = background & 0x0000ff00;
+      b = background & 0x000000ff;
+      background = (r >> 16) | g | (b << 16) | 0xff000000;
+      r = foreground & 0x00ff0000;
+      g = foreground & 0x0000ff00;
+      b = foreground & 0x000000ff;
+      foreground = (r >> 16) | g | (b << 16) | 0xff000000;
+
+      for (y = 0; y < height; ++y)
+	{
+	  depth_24 = (void *) ((char *) bitmap_data + y * info.stride);
+
+	  for (x = 0; x < width; ++x)
+	    depth_24[x] = ((data[x / 8] & (1 << (x % 8)))
+			   ? foreground : background);
+
+	  data += (width + 7) / 8;
 	}
 
-      (*android_java_env)->SetIntArrayRegion (android_java_env,
-					      colors,
-					      width * y, width,
-					      region);
-      data += width / 8;
+      break;
+
+    case ANDROID_BITMAP_FORMAT_A_8:
+
+      /* 8-bit pixmaps are created, but in spite of that they are
+	 employed only to represent bitmaps.  */
+
+      foreground = (foreground ? 255 : 0);
+      background = (background ? 255 : 0);
+
+      for (y = 0; y < height; ++y)
+	{
+	  depth_8 = (void *) ((char *) bitmap_data + y * info.stride);
+
+	  for (x = 0; x < width; ++x)
+	    depth_8[x] = ((data[x / 8] & (1 << (x % 8)))
+			  ? foreground : background);
+
+	  data += (width + 7) / 8;
+	}
+
+      break;
+
+    default:
+      emacs_abort ();
     }
 
-  /* First, allocate the pixmap handle.  */
-  prev_max_handle = max_handle;
-  pixmap = android_alloc_id ();
-
-  if (!pixmap)
-    {
-      ANDROID_DELETE_LOCAL_REF ((jobject) colors);
-      error ("Out of pixmap handles!");
-    }
-
-  object = (*android_java_env)->NewObject (android_java_env,
-					   pixmap_class.class,
-					   pixmap_class.constructor,
-					   (jshort) pixmap, colors,
-					   (jint) width, (jint) height,
-					   (jint) depth);
-  (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF ((jobject) colors);
-
-  if (!object)
-    {
-      max_handle = prev_max_handle;
-      memory_full (0);
-    }
-
-  android_handles[pixmap].type = ANDROID_HANDLE_PIXMAP;
-  android_handles[pixmap].handle
-    = (*android_java_env)->NewGlobalRef (android_java_env, object);
+  /* Unlock the bitmap itself.  */
+  AndroidBitmap_unlockPixels (android_java_env, object);
   ANDROID_DELETE_LOCAL_REF (object);
 
-  if (!android_handles[pixmap].handle)
-    memory_full (0);
-
-  SAFE_FREE ();
+  /* Return the pixmap.  */
   return pixmap;
 }
 
@@ -4912,15 +4966,17 @@ android_query_tree (android_window handle, android_window *root_return,
   jsize nelements, i;
   android_window *children;
   jshort *shorts;
+  jmethodID method;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   /* window can be NULL, so this is a service method.  */
+  method = service_class.query_tree;
   array
-    = (*android_java_env)->CallObjectMethod (android_java_env,
-					     emacs_service,
-					     service_class.query_tree,
-					     window);
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, window);
   android_exception_check ();
 
   /* The first element of the array is the parent window.  The rest
@@ -4973,9 +5029,10 @@ android_get_geometry (android_window handle,
   get_geometry = window_class.get_window_geometry;
 
   window_geometry
-    = (*android_java_env)->CallObjectMethod (android_java_env,
-					     window,
-					     get_geometry);
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       window,
+						       window_class.class,
+						       get_geometry);
   android_exception_check ();
 
   /* window_geometry is an array containing x, y, width and
@@ -5033,9 +5090,11 @@ android_translate_coordinates (android_window src, int x,
   window = android_resolve_handle (src, ANDROID_HANDLE_WINDOW);
   method = window_class.translate_coordinates;
   coordinates
-    = (*android_java_env)->CallObjectMethod (android_java_env,
-					     window, method,
-					     (jint) x, (jint) y);
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       window,
+						       window_class.class,
+						       method, (jint) x,
+						       (jint) y);
   android_exception_check ();
 
   /* The array must contain two elements: X, Y translated to the root
@@ -5073,7 +5132,9 @@ android_wc_lookup_string (android_key_pressed_event *event,
   const jchar *characters;
   jsize size;
   size_t i;
+  JNIEnv *env;
 
+  env = android_java_env;
   status = ANDROID_LOOKUP_NONE;
   rc = 0;
 
@@ -5124,9 +5185,10 @@ android_wc_lookup_string (android_key_pressed_event *event,
     {
       window = android_handles[event->window].handle;
       string
-	= (*android_java_env)->CallObjectMethod (android_java_env, window,
-						 window_class.lookup_string,
-						 (jint) event->serial);
+	= (*env)->CallNonvirtualObjectMethod (env, window,
+					      window_class.class,
+					      window_class.lookup_string,
+					      (jint) event->serial);
       android_exception_check ();
 
       if (!string)
@@ -5134,13 +5196,11 @@ android_wc_lookup_string (android_key_pressed_event *event,
       else
 	{
 	  /* Now return this input method string.  */
-	  characters = (*android_java_env)->GetStringChars (android_java_env,
-							    string, NULL);
+	  characters = (*env)->GetStringChars (env, string, NULL);
 	  android_exception_check_nonnull ((void *) characters, string);
 
-	  /* Figure out how big the string is.  */
-	  size = (*android_java_env)->GetStringLength (android_java_env,
-						       string);
+	  /* Establish the size of the the string.  */
+	  size = (*env)->GetStringLength (env, string);
 
 	  /* Copy over the string data.  */
 	  for (i = 0; i < MIN ((unsigned int) wchars_buffer, size); ++i)
@@ -5159,8 +5219,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	  else
 	    rc = size;
 
-	  (*android_java_env)->ReleaseStringChars (android_java_env, string,
-						   characters);
+	  (*env)->ReleaseStringChars (env, string, characters);
 	  ANDROID_DELETE_LOCAL_REF (string);
 	}
     }
@@ -5234,29 +5293,22 @@ void
 android_damage_window (android_drawable handle,
 		       struct android_rectangle *damage)
 {
-  jobject drawable, rect;
+  jobject drawable;
 
   drawable = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
-  /* Now turn DAMAGE into a Java rectangle.  */
-  rect = (*android_java_env)->NewObject (android_java_env,
-					 android_rect_class,
-					 android_rect_constructor,
-					 (jint) damage->x,
-					 (jint) damage->y,
-					 (jint) (damage->x
-						 + damage->width),
-					 (jint) (damage->y
-						 + damage->height));
-  android_exception_check ();
-
   /* Post the damage to the drawable.  */
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       drawable,
-				       drawable_class.damage_rect,
-				       rect);
-  android_exception_check_1 (rect);
-  ANDROID_DELETE_LOCAL_REF (rect);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 drawable,
+						 window_class.class,
+						 window_class.damage_rect,
+						 (jint) damage->x,
+						 (jint) damage->y,
+						 (jint) (damage->x
+							 + damage->width),
+						 (jint) (damage->y
+							 + damage->height));
+  android_exception_check ();
 }
 
 
@@ -5381,11 +5433,15 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
 {
   jobject string;
   const char *buffer;
+  jmethodID method;
 
-  string = (*android_java_env)->CallObjectMethod (android_java_env,
-						  emacs_service,
-						  service_class.name_keysym,
-						  (jint) keysym);
+  method = service_class.name_keysym;
+  string
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method,
+						       (jint) keysym);
   android_exception_check ();
 
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
@@ -5666,8 +5722,9 @@ android_exception_check (void)
 }
 
 /* Check for JNI exceptions.  If there is one such exception, clear
-   it, then delete the local reference to OBJECT and call
-   memory_full.  */
+   it, then delete the local reference to OBJECT and call memory_full.
+   OBJECT can be NULL, which is a valid local reference to the Java
+   null object.  */
 
 void
 android_exception_check_1 (jobject object)
@@ -5681,7 +5738,10 @@ android_exception_check_1 (jobject object)
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
   memory_full (0);
 }
 
@@ -5700,8 +5760,13 @@ android_exception_check_2 (jobject object, jobject object1)
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
-  ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
   memory_full (0);
 }
 
@@ -5721,9 +5786,16 @@ android_exception_check_3 (jobject object, jobject object1,
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
-  ANDROID_DELETE_LOCAL_REF (object1);
-  ANDROID_DELETE_LOCAL_REF (object2);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object2)
+    ANDROID_DELETE_LOCAL_REF (object2);
+
   memory_full (0);
 }
 
@@ -5743,10 +5815,19 @@ android_exception_check_4 (jobject object, jobject object1,
   /* Describe exactly what went wrong.  */
   (*android_java_env)->ExceptionDescribe (android_java_env);
   (*android_java_env)->ExceptionClear (android_java_env);
-  ANDROID_DELETE_LOCAL_REF (object);
-  ANDROID_DELETE_LOCAL_REF (object1);
-  ANDROID_DELETE_LOCAL_REF (object2);
-  ANDROID_DELETE_LOCAL_REF (object3);
+
+  if (object)
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object2)
+    ANDROID_DELETE_LOCAL_REF (object2);
+
+  if (object3)
+    ANDROID_DELETE_LOCAL_REF (object3);
+
   memory_full (0);
 }
 
@@ -6067,11 +6148,13 @@ android_browse_url (Lisp_Object url, Lisp_Object send)
   const char *buffer;
 
   string = android_build_string (url);
-  value = (*android_java_env)->CallObjectMethod (android_java_env,
-						 emacs_service,
-						 service_class.browse_url,
-						 string,
-						 (jboolean) !NILP (send));
+  value
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       service_class.browse_url,
+						       string,
+						       (jboolean) !NILP (send));
   android_exception_check ();
 
   ANDROID_DELETE_LOCAL_REF (string);
@@ -6083,7 +6166,7 @@ android_browse_url (Lisp_Object url, Lisp_Object send)
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) value,
 						   NULL);
-  android_exception_check_1 (string);
+  android_exception_check_1 (value);
 
   /* Otherwise, build the string describing the error.  */
   tem = build_string_from_utf8 (buffer);
@@ -6136,10 +6219,14 @@ android_query_battery (struct android_battery_state *status)
 {
   jlongArray array;
   jlong *longs;
+  jmethodID method;
 
-  array = (*android_java_env)->CallObjectMethod (android_java_env,
-						 emacs_service,
-						 service_class.query_battery);
+  method = service_class.query_battery;
+  array
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method);
   android_exception_check ();
 
   /* A NULL return with no exception means that battery information

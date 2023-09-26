@@ -1583,7 +1583,7 @@ the file watch."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
   ;; This test does not work for kqueue (yet).
-  (skip-unless (not (string-equal (file-notify--test-library) "kqueue")))
+  (skip-when (string-equal (file-notify--test-library) "kqueue"))
 
   (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
         file-notify--test-tmpfile1 (file-notify--test-make-temp-name))

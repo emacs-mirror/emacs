@@ -491,7 +491,11 @@ status message."
               (setq count  (+ count
                               (dired-do-kill-lines
                                nil
-                               (if dired-omit-verbose "Omitted %d line%s" "")
+                               (if dired-omit-verbose
+                                   (format "Omitted %%d line%%s in %s"
+                                           (abbreviate-file-name
+                                            dired-directory))
+                                 "")
                                init-count)))
               (force-mode-line-update))))
         ;; Try to preserve modified state, so `%*' doesn't appear in

@@ -4,6 +4,7 @@
 
 ;; Author: Philip K. <philipk@posteo.net>
 ;; Keywords: PGP, GnuPG
+;; Package: epa
 
 ;; This file is part of GNU Emacs.
 

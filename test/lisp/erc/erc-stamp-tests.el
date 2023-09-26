@@ -274,4 +274,37 @@
       (when noninteractive
         (kill-buffer)))))
 
+(ert-deftest erc-echo-timestamp ()
+  :tags (and (null (getenv "CI")) '(:unstable))
+
+  (should-not erc-echo-timestamps)
+  (should-not erc-stamp--last-stamp)
+  (insert (propertize "abc" 'erc-timestamp 433483200))
+  (goto-char (point-min))
+  (let ((inhibit-message t)
+        (erc-echo-timestamp-format "%Y-%m-%d %H:%M:%S %Z")
+        (erc-echo-timestamp-zone (list (* 60 60 -4) "EDT")))
+
+    ;; No-op when non-interactive and option is nil
+    (should-not (erc--echo-ts-csf nil nil 'entered))
+    (should-not erc-stamp--last-stamp)
+
+    ;; Non-interactive (cursor sensor function)
+    (let ((erc-echo-timestamps t))
+      (should (equal (erc--echo-ts-csf nil nil 'entered)
+                     "1983-09-27 00:00:00 EDT")))
+    (should (= 433483200 erc-stamp--last-stamp))
+
+    ;; Interactive
+    (should (equal (call-interactively #'erc-echo-timestamp)
+                   "1983-09-27 00:00:00 EDT"))
+    ;; Interactive with zone
+    (let ((current-prefix-arg '(4)))
+      (should (member (call-interactively #'erc-echo-timestamp)
+                      '("1983-09-27 04:00:00 GMT"
+                        "1983-09-27 04:00:00 UTC"))))
+    (let ((current-prefix-arg -7))
+      (should (equal (call-interactively #'erc-echo-timestamp)
+                     "1983-09-26 21:00:00 -07")))))
+
 ;;; erc-stamp-tests.el ends here

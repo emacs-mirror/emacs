@@ -4,9 +4,9 @@
 #+language: en
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
-#+macro: stable-version 4.2.0
-#+macro: release-date 2023-05-30
-#+macro: development-version 4.3.0-dev
+#+macro: stable-version 4.3.0
+#+macro: release-date 2023-09-19
+#+macro: development-version 4.4.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -581,11 +581,11 @@ Possible values:
 All theme user options take effect when a theme is loaded.  Any
 subsequent changes require the theme to be reloaded.
 
-When this variable has a non-nil value, any change made via the Custom
+When this variable has a non-~nil~ value, any change made via the Custom
 UI or related functions such as ~customize-set-variable~ and ~setopt~
 (Emacs 29), will trigger a reload automatically.
 
-With a nil value, changes to user options have no further consequences:
+With a ~nil~ value, changes to user options have no further consequences:
 the user must manually reload the theme ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]]).
 
 ** Option for disabling other themes while loading Modus
@@ -605,20 +605,20 @@ Possible values:
 1. ~nil~
 2. ~t~ (default)
 
-When the value is non-nil, the commands ~modus-themes-toggle~ and
+When the value is non-~nil~, the commands ~modus-themes-toggle~ and
 ~modus-themes-select~, as well as the ~modus-themes-load-theme~
 function, will disable all other themes while loading the specified
 Modus theme.  This is done to ensure that Emacs does not blend two or
 more themes: such blends lead to awkward results that undermine the
 work of the designer.
 
-When the value is nil, the aforementioned commands and function will
+When the value is ~nil~, the aforementioned commands and function will
 only disable other themes within the Modus collection.
 
 This option is provided because Emacs themes are not necessarily
 limited to colors/faces: they can consist of an arbitrary set of
 customizations.  Users who use such customization bundles must set
-this variable to a nil value.
+this variable to a ~nil~ value.
 
 ** Option for more bold constructs
 :properties:
@@ -794,7 +794,7 @@ followed by a description of the particularities:
 #+end_src
 
 The ~matches~ key refers to the highlighted characters that correspond
-to the user's input.  When its properties are nil or an empty list,
+to the user's input.  When its properties are ~nil~ or an empty list,
 matching characters in the user interface will have a bold weight and
 a colored foreground.  The list of properties may include any of the
 following symbols regardless of the order they may appear in:
@@ -810,7 +810,7 @@ following symbols regardless of the order they may appear in:
 
 The ~selection~ key applies to the current line or currently matched
 candidate, depending on the specifics of the user interface.  When its
-properties are nil or an empty list, it has a subtle gray background,
+properties are ~nil~ or an empty list, it has a subtle gray background,
 a bold weight, and the base foreground value for the text.  The list
 of properties it accepts is as follows (order is not significant):
 
@@ -861,10 +861,10 @@ Possible values:
 2. ~gray-background~
 3. ~tinted-background~
 
-Nil (the default) means that the block has no background of its own:
-it uses the one that applies to the rest of the buffer.  In this case,
-the delimiter lines have a gray color for their text, making them look
-exactly like all other Org properties.
+Option ~nil~ (the default) means that the block has no background of
+its own: it uses the one that applies to the rest of the buffer.
+In this case, the delimiter lines have a gray color for their text,
+making them look exactly like all other Org properties.
 
 Option ~gray-background~ applies a subtle gray background to the
 block's contents.  It also affects the begin and end lines of the
@@ -883,9 +883,9 @@ For this to take effect, the Org buffer needs to be restarted with
 ~org-mode-restart~.
 
 Code blocks use their major mode's fontification (syntax highlighting)
-only when the variable ~org-src-fontify-natively~ is non-nil.  While
+only when the variable ~org-src-fontify-natively~ is non-~nil~.  While
 quote/verse blocks require setting
-~org-fontify-quote-and-verse-blocks~ to a non-nil value.
+~org-fontify-quote-and-verse-blocks~ to a non-~nil~ value.
 
 [[#h:f44cc6e3-b0f1-4a5e-8a90-9e48fa557b50][Update Org block delimiter fontification]].
 
@@ -2730,7 +2730,7 @@ If the value is the name of another color entry in the palette (so a
 mapping), this function recurs until it finds the underlying color
 value.
 
-With an optional =OVERRIDES= argument as a non-nil value, it accounts
+With an optional =OVERRIDES= argument as a non-~nil~ value, it accounts
 for palette overrides.  Else it reads only the default palette.
 
 [[#h:34c7a691-19bb-4037-8d2f-67a07edab150][Option for palette overrides]].
@@ -2884,7 +2884,7 @@ above:
 #+end_src
 
 The reason we no longer provide this option is because it depends on a
-non-nil value for ~x-underline-at-descent-line~.  That variable
+non-~nil~ value for ~x-underline-at-descent-line~.  That variable
 affects ALL underlines, including those of links.  The effect is
 intrusive and looks awkard in prose.
 
@@ -3150,20 +3150,20 @@ have something like this:
 #+end_src
 
 You could then use a variant of the following to inherit from a face
-that uses the styles you want and also to preserve the properties
-applied by the ~org-todo~ face (in case there is a difference between the
-two):
+that uses the styles you want and also to preserve the attributes
+applied by the ~org-todo~ face (in case there is a difference between
+the two):
 
 #+begin_src emacs-lisp
 (setq org-todo-keyword-faces
-      '(("MEET" . '(bold org-todo))
-        ("STUDY" . '(warning org-todo))
-        ("WRITE" . '(shadow org-todo))))
+      '(("MEET" . (:inherit (bold org-todo)))
+        ("STUDY" . (:inherit (warning org-todo)))
+        ("WRITE" . (:inherit (shadow org-todo)))))
 #+end_src
 
 This will refashion the keywords you specify, while letting the other
-items in ~org-todo-keywords~ use their original styles (which are defined
-in the ~org-todo~ and ~org-done~ faces).
+items in ~org-todo-keywords~ use their original styles, which are
+defined in the ~org-todo~ and ~org-done~ faces.
 
 If you want back the defaults, try specifying just the ~org-todo~ face:
 
@@ -3174,24 +3174,27 @@ If you want back the defaults, try specifying just the ~org-todo~ face:
         ("WRITE" . org-todo)))
 #+end_src
 
-When you inherit from multiple faces, you need to quote the list as
+Or set ~org-todo-keyword-faces~ to ~nil~.
+
+When you inherit from multiple faces, you need to do it the way it is
 shown further above.  The order is significant: the first entry is
-applied on top of the second, overriding any properties that are
-explicitly set for both of them: any property that is not specified is
-not overridden, so, for example, if ~org-todo~ has a background and a
-foreground, while ~font-lock-type-face~ only has a foreground, the merged
-face will include the background of the former and the foreground of the
-latter.  If you do not want to blend multiple faces, you do not need a
-quoted list.  A pattern of =keyword . face= will suffice.
+applied on top of the second, overriding any attributes that are
+explicitly set for both of them: any attribute that is not specified
+is not overridden, so, for example, if ~org-todo~ has a background and
+a foreground, while ~font-lock-type-face~ only has a foreground, the
+merged face will include the background of the former and the
+foreground of the latter.  If you do not want to blend multiple faces,
+you only specify one by name without parentheses or an =:inherit=
+keyword.  A pattern of =keyword . face= will suffice.
 
 Both approaches can be used simultaneously, as illustrated in this
 configuration of the priority cookies:
 
 #+begin_src emacs-lisp
 (setq org-priority-faces
-      '((?A . '(bold org-priority))
+      '((?A . (:inherit (bold org-priority)))
         (?B . org-priority)
-        (?C . '(shadow org-priority))))
+        (?C . (:inherit (shadow org-priority)))))
 #+end_src
 
 To find all the faces that are loaded in your current Emacs session, use
@@ -3636,6 +3639,10 @@ need to (provided they understand the implications).
 :CUSTOM_ID: h:43bcb5d0-e25f-470f-828c-662cee9e21f1
 :END:
 
+[ UPDATE 2023-06-25: Instead of following these instructions, you can
+  simply install my ~spacious-padding~ package from GNU ELPA.  It
+  implements the padding and provides relevant user options. ]
+
 By default, Emacs frames try to maximize the number of characters that
 fit in the current visible portion of the buffer.  Users may prefer to
 have some extra padding instead.  This can make Emacs frames look more
@@ -3847,6 +3854,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + avy
 + bbdb
 + binder
++ breadcrumb
 + bongo
 + boon
 + bookmark
@@ -3864,11 +3872,11 @@ have lots of extensions, so the "full support" may not be 100% true…
 + completions
 + consult
 + corfu
++ corfu-candidate-overlay
 + corfu-quick
 + counsel*
 + cperl-mode
 + crontab-mode
-+ css-mode
 + csv-mode
 + ctrlf
 + custom (what you get with {{{kbd(M-x customize)}}})
@@ -3905,6 +3913,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + epa
 + erc
 + ert
++ erts-mode
 + eshell
 + eshell-fringe-status
 + evil* (evil-mode)
@@ -3951,6 +3960,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + isearch, occur, etc.
 + ivy*
 + ivy-posframe
++ japanese-holidays
 + jira (org-jira)
 + jit-spell
 + jinx
@@ -3975,6 +3985,10 @@ have lots of extensions, so the "full support" may not be 100% true…
 + mpdel
 + mu4e
 + multiple-cursors
++ nerd-icons
++ nerd-icons-completion
++ nerd-icons-dired
++ nerd-icons-ibuffer
 + neotree
 + notmuch
 + num3-mode
@@ -4038,7 +4052,6 @@ have lots of extensions, so the "full support" may not be 100% true…
 + suggest
 + switch-window
 + swiper
-+ sx
 + symbol-overlay
 + syslog-mode
 + tab-bar-mode
@@ -4099,6 +4112,7 @@ supported by the themes.
 + bufler
 + counsel-notmuch
 + counsel-org-capture-string
++ css-mode
 + dashboard (emacs-dashboard)
 + define-word
 + denote
@@ -4722,7 +4736,7 @@ Consult the doc string of ~shr-use-colors~.
 By default, packages that build on top of the Simple HTML Remember
 (~shr~) use proportionately spaced fonts.  This is controlled by the
 user option ~shr-use-fonts~, which is set to non-~nil~ by default.  To
-use the standard font instead, set that variable to nil.
+use the standard font instead, set that variable to ~nil~.
 
 [[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
 
@@ -4859,7 +4873,7 @@ consider including (or equivalent) this in their setup:
       goto-address-mail-mouse-face 'highlight)
 #+end_src
 
-My personal preference is to set ~goto-address-mail-face~ to nil, as
+My personal preference is to set ~goto-address-mail-face~ to ~nil~, as
 it otherwise adds too much visual noise to the buffer (email addresses
 stand out more, due to the use of the uncommon =@= character but also
 because they are often enclosed in angled brackets).
@@ -5345,8 +5359,9 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Matthew Stevenson, Mauro Aranda, Nacho Barrientos, Nicolas De
   Jaeghere, Paul David, Philip Kaludercic, Pierre Téchoueyres, Rudolf
   Adamkovič, Sergey Nichiporchik, Shreyas Ragavan, Stefan Kangas,
-  Stephen Gildea, Steve Downey, Tomasz Hołubowicz, Utkarsh Singh,
-  Vincent Murphy, Xinglu Chen, Yuanchen Xie, okamsn.
+  Stephen Berman, Stephen Gildea, Steve Downey, Tomasz Hołubowicz,
+  Utkarsh Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie, fluentpwn,
+  okamsn.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
   Adrian Manea, Aleksei Pirogov, Alex Griffin, Alex Koen, Alex
@@ -5363,25 +5378,25 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Ferguson, Jeremy Friesen, Jerry Zhang, Johannes Grødem, John Haman,
   Jonas Collberg, Jorge Morais, Joshua O'Connor, Julio C. Villasante,
   Kenta Usami, Kevin Fleming, Kévin Le Gouguec, Kevin Kainan Li,
-  Kostadin Ninev, Laith Bahodi, Len Trigg, Lennart C. Karssen, Luis
-  Miguel Castañeda, Magne Hov, Manuel Giraud, Manuel Uberti, Mark
-  Bestley, Mark Burton, Mark Simpson, Marko Kocic, Markus Beppler,
-  Matt Armstrong, Matthias Fuchs, Mattias Engdegård, Mauro Aranda,
-  Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock,
-  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Nicolas
-  Semrau, Oliver Epper, Pablo Stafforini, Paul Poloskov, Pengji Zhang,
-  Pete Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres,
-  Przemysław Kryger, Robert Hepple, Roman Rudakov, Russell Sim, Ryan
-  Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam Kleinman, Samuel
-  Culpepper, Saša Janiška, Shreyas Ragavan, Simon Pugnet, Steve
-  Downey, Tassilo Horn, Thanos Apollo, Thibaut Verron, Thomas
-  Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz
-  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley,
-  Zoltan Kiraly.  As well as users: Ben, CsBigDataHub1, Emacs Contrib,
-  Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42,
-  TitusMu, Trey, bepolymathe, bit9tream, bangedorrunt, derek-upham,
-  doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p,
-  soaringbird, tumashu, wakamenod.
+  Kostadin Ninev, Laith Bahodi, Lasse Lindner, Len Trigg, Lennart
+  C. Karssen, Luis Miguel Castañeda, Magne Hov, Manuel Giraud, Manuel
+  Uberti, Mark Bestley, Mark Burton, Mark Simpson, Marko Kocic, Markus
+  Beppler, Matt Armstrong, Matthias Fuchs, Mattias Engdegård, Mauro
+  Aranda, Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan
+  Willcock, Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere,
+  Nicolas Semrau, Olaf Meeuwissen, Oliver Epper, Pablo Stafforini,
+  Paul Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip
+  Kaludercic, Pierre Téchoueyres, Przemysław Kryger, Robert Hepple,
+  Roman Rudakov, Russell Sim, Ryan Phillips, Rytis Paškauskas, Rudolf
+  Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška, Shreyas
+  Ragavan, Simon Pugnet, Steve Downey, Tassilo Horn, Thanos Apollo,
+  Thibaut Verron, Thomas Heartman, Togan Muftuoglu, Tony Zorman, Trey
+  Merkley, Tomasz Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh,
+  Vincent Foley, Zoltan Kiraly.  As well as users: Ben, CsBigDataHub1,
+  Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer
+  Emacs, TheBlob42, TitusMu, Trey, bepolymathe, bit9tream,
+  bangedorrunt, derek-upham, doolio, fleimgruber, gitrj95, iSeeU,
+  jixiuf, okamsn, pRot0ta1p, soaringbird, tumashu, wakamenod.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
   Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core

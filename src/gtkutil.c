@@ -4141,7 +4141,7 @@ xg_update_frame_menubar (struct frame *f)
   g_signal_connect (x->menubar_widget, "map", G_CALLBACK (menubar_map_cb), f);
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
-  req.height *= xg_get_scale (f);
+  req.height *= scale;
 
 #if !defined HAVE_PGTK && defined HAVE_GTK3
   if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
@@ -4154,9 +4154,9 @@ xg_update_frame_menubar (struct frame *f)
     }
 #endif
 
-  if (FRAME_MENUBAR_HEIGHT (f) != (req.height * scale))
+  if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
-      FRAME_MENUBAR_HEIGHT (f) = req.height * scale;
+      FRAME_MENUBAR_HEIGHT (f) = req.height;
       adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
     }
   unblock_input ();

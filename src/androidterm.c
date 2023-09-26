@@ -2440,7 +2440,8 @@ android_reset_clip_rectangles (struct frame *f, struct android_gc *gc)
 
 static void
 android_clip_to_row (struct window *w, struct glyph_row *row,
-		     enum glyph_row_area area, struct android_gc *gc)
+		     enum glyph_row_area area, struct android_gc *gc,
+		     struct android_rectangle *rect_return)
 {
   struct android_rectangle clip_rect;
   int window_x, window_y, window_width;
@@ -2454,6 +2455,9 @@ android_clip_to_row (struct window *w, struct glyph_row *row,
   clip_rect.height = row->visible_height;
 
   android_set_clip_rectangles (gc, 0, 0, &clip_rect, 1);
+
+  if (rect_return)
+    *rect_return = clip_rect;
 }
 
 static void
@@ -2463,9 +2467,10 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct android_gc *gc = f->output_data.android->normal_gc;
   struct face *face = p->face;
+  struct android_rectangle clip_rect;
 
   /* Must clip because of partially visible lines.  */
-  android_clip_to_row (w, row, ANY_AREA, gc);
+  android_clip_to_row (w, row, ANY_AREA, gc, &clip_rect);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -2499,12 +2504,35 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       struct android_gc_values gcv;
       unsigned long background, cursor_pixel;
       int depth;
+      struct android_rectangle image_rect, dest;
+      int px, py, pwidth, pheight;
 
       drawable = FRAME_ANDROID_DRAWABLE (f);
       clipmask = ANDROID_NONE;
       background = face->background;
       cursor_pixel = f->output_data.android->cursor_pixel;
       depth = FRAME_DISPLAY_INFO (f)->n_planes;
+
+      /* Intersect the destination rectangle with that of the row.
+	 Setting a clip mask overrides the clip rectangles provided by
+	 x_clip_to_row, so clipping must be performed by hand.  */
+
+      image_rect.x = p->x;
+      image_rect.y = p->y;
+      image_rect.width = p->wd;
+      image_rect.height = p->h;
+
+      if (!gui_intersect_rectangles (&clip_rect, &image_rect, &dest))
+	/* The entire destination rectangle falls outside the row.  */
+	goto undo_clip;
+
+      /* Extrapolate the source rectangle from the difference between
+	 the destination and image rectangles.  */
+
+      px = dest.x - image_rect.x;
+      py = dest.y - image_rect.y;
+      pwidth = dest.width;
+      pheight = dest.height;
 
       if (p->wd > 8)
 	bits = (char *) (p->bits + p->dh);
@@ -2533,8 +2561,8 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 			     &gcv);
 	}
 
-      android_copy_area (pixmap, drawable, gc, 0, 0, p->wd, p->h,
-			 p->x, p->y);
+      android_copy_area (pixmap, drawable, gc, px, py,
+			 pwidth, pheight, dest.x, dest.y);
       android_free_pixmap (pixmap);
 
       if (p->overlay_p)
@@ -2545,6 +2573,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	}
     }
 
+ undo_clip:
   android_reset_clip_rectangles (f, gc);
 }
 
@@ -4327,7 +4356,7 @@ android_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 	wd -= 1;
     }
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  android_clip_to_row (w, row, TEXT_AREA, gc);
+  android_clip_to_row (w, row, TEXT_AREA, gc, NULL);
   android_draw_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, x, y, wd, h - 1);
   android_reset_clip_rectangles (f, gc);
 }
@@ -4385,7 +4414,7 @@ android_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
 	  FRAME_DISPLAY_INFO (f)->scratch_cursor_gc = gc;
 	}
 
-      android_clip_to_row (w, row, TEXT_AREA, gc);
+      android_clip_to_row (w, row, TEXT_AREA, gc, NULL);
 
       if (kind == BAR_CURSOR)
 	{

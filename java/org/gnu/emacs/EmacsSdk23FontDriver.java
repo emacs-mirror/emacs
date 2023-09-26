@@ -96,7 +96,7 @@ public final class EmacsSdk23FontDriver extends EmacsSdk7FontDriver
 
   @Override
   public int
-  hasChar (FontSpec font, char charCode)
+  hasChar (FontSpec font, int charCode)
   {
     Sdk7FontObject fontObject;
     Paint paint;
@@ -109,6 +109,12 @@ public final class EmacsSdk23FontDriver extends EmacsSdk7FontDriver
     else
       paint = ((Sdk7FontEntity) font).typeface.typefacePaint;
 
-    return paint.hasGlyph (String.valueOf (charCode)) ? 1 : 0;
+    /* If the character falls within the confines of the BMP, return
+       1.  */
+    if (charCode < 65536)
+      return paint.hasGlyph (String.valueOf ((char) charCode)) ? 1 : 0;
+
+    /* Otherwise return 0.  */
+    return 0;
   }
 };

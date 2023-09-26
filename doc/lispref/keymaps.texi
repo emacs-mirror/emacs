@@ -90,7 +90,7 @@ Manual}.
 (kbd "C-x C-f") @result{} "\C-x\C-f"
 (kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
 (kbd "X") @result{} "X"
-(kbd "RET") @result{} "\^M"
+(kbd "RET") @result{} "^M"
 (kbd "C-c SPC") @result{} "\C-c@ "
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]

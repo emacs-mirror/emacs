@@ -196,12 +196,13 @@ removable and network volumes."
 
 (defcustom save-place-ignore-files-regexp
   "\\(?:COMMIT_EDITMSG\\|hg-editor-[[:alnum:]]+\\.txt\\|svn-commit\\.tmp\\|bzr_log\\.[[:alnum:]]+\\)$"
-  "Regexp matching files for which no position should be recorded.
-Useful for temporary file such as commit message files that are
-automatically created by the VCS.  If set to nil, this feature is
-disabled, i.e., the position is recorded for all files."
+  "Regexp matching files whose positions should not be recorded.
+Useful to exclude temporary files, such as commit message files that are
+automatically created by VCSes.  If set to nil, this feature is
+disabled, i.e., no files are excluded."
   :version "24.1"
-  :type 'regexp)
+  :type '(choice (const :tag "Don't exclude any files" nil)
+                 regexp))
 
 (declare-function dired-current-directory "dired" (&optional localp))
 

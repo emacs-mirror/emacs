@@ -4021,6 +4021,7 @@ initial_set_up_x_back_buffer (struct frame *f)
 }
 
 #if defined HAVE_XINPUT2
+
 static void
 setup_xi_event_mask (struct frame *f)
 {
@@ -4069,8 +4070,7 @@ setup_xi_event_mask (struct frame *f)
       XISetMask (m, XI_GesturePinchEnd);
     }
 #endif /* HAVE_XINPUT2_4 */
-  XISelectEvents (FRAME_X_DISPLAY (f),
-		  FRAME_X_WINDOW (f),
+  XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  &mask, 1);
 
   /* Fortunately `xi_masks' isn't used on GTK 3, where we really have
@@ -4085,11 +4085,8 @@ setup_xi_event_mask (struct frame *f)
 #ifdef USE_X_TOOLKIT
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
-  XISetMask (m, XI_FocusIn);
-  XISetMask (m, XI_FocusOut);
 
-  XISelectEvents (FRAME_X_DISPLAY (f),
-		  FRAME_OUTER_WINDOW (f),
+  XISelectEvents (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		  &mask, 1);
   memset (m, 0, l);
 #endif /* USE_X_TOOLKIT */
@@ -4135,6 +4132,7 @@ setup_xi_event_mask (struct frame *f)
 
   unblock_input ();
 }
+
 #endif
 
 #ifdef USE_X_TOOLKIT

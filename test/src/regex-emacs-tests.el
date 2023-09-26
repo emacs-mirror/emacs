@@ -965,4 +965,9 @@ This evaluates the TESTS test cases from glibc."
                      (re-search-forward re nil t))
                    nil))))
 
+(ert-deftest regex-tests-mutual-exclusive-inf-rec ()
+  ;; Regression test for bug#65726, where this crashed Emacs.
+  ;; relint suppression: Repetition of expression matching an empty string
+  (should (equal (string-match "a*\\(?:c\\|b*\\)*" "a") 0)))
+
 ;;; regex-emacs-tests.el ends here

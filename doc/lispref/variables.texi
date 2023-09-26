@@ -678,15 +678,15 @@ which are being phased out.)
 it as safe or risky; see @ref{File Local Variables}.
 
   When defining and initializing a variable that holds a complicated
-value (such as a keymap with bindings in it), it's best to put the
+value (such as a syntax table for a major mode), it's best to put the
 entire computation of the value into the @code{defvar}, like this:
 
 @example
-(defvar my-mode-map
-  (let ((map (make-sparse-keymap)))
-    (keymap-set map "C-c C-a" 'my-command)
+(defvar my-major-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?# "<" table)
     @dots{}
-    map)
+    table)
   @var{docstring})
 @end example
 
@@ -696,9 +696,9 @@ loading the file, the variable is either still uninitialized or
 initialized properly, never in-between.  If it is still uninitialized,
 reloading the file will initialize it properly.  Second, reloading the
 file once the variable is initialized will not alter it; that is
-important if the user has run hooks to alter part of the contents
-(such as, to rebind keys).  Third, evaluating the @code{defvar} form
-with @kbd{C-M-x} will reinitialize the map completely.
+important if the user has changed its value.  Third, evaluating the
+@code{defvar} form with @kbd{C-M-x} will reinitialize the variable
+completely.
 
 @node Accessing Variables
 @section Accessing Variable Values
@@ -1891,7 +1891,7 @@ This makes its global value shadowed by the binding;
 @code{default-value} will then return the value from that binding, not
 the global value, and @code{set-default} will be prevented from
 setting the global value (it will change the let-bound value instead).
-The following two functions allow to reference the global value even
+The following two functions allow referencing the global value even
 if it's shadowed by a let-binding.
 
 @cindex top-level default value

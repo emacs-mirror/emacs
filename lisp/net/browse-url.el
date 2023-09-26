@@ -914,6 +914,11 @@ If ARGS are omitted, the default is to pass
                 ;; (setenv "WAYLAND_DISPLAY" dpy)
                 )
             (setenv "DISPLAY" dpy)))
+         ((featurep 'android)
+          ;; Avoid modifying the DISPLAY environment variable here,
+          ;; which interferes with any X server the user may have
+          ;; expressly set.
+          nil)
          (t
           (setenv "DISPLAY" dpy)))))
     (if (functionp function)

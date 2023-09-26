@@ -1923,12 +1923,22 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 		    if (!zero_times_ok && simple)
 		      { /* Since simple * loops can be made faster by using
-			   on_failure_keep_string_jump, we turn simple P+
-			   into PP* if P is simple.  */
+			   on_failure_keep_string_jump, we turn P+ into PP*
+                           if P is simple.
+			   We can't use `top: <BODY>; OFJS exit; J top; exit:`
+			   because the OFJS needs to be at the beginning
+			   so we can replace
+			       top: OFJS exit; <BODY>; J top; exit
+			   with
+			       OFKSJ exit; loop: <BODY>; J loop; exit
+			   i.e. a single OFJ at the beginning of the loop
+			   rather than once per iteration.  */
 			unsigned char *p1, *p2;
 			startoffset = b - laststart;
 			GET_BUFFER_SPACE (startoffset);
 			p1 = b; p2 = laststart;
+			/* We presume that the code skipped
+			   by `skip_one_char` is position-independent.  */
 			while (p2 < p1)
 			  *b++ = *p2++;
 			zero_times_ok = 1;
@@ -3068,8 +3078,10 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	  continue;
 
 	case succeed_n:
-	  /* If N == 0, it should be an on_failure_jump_loop instead.  */
-	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); eassert (j > 0));
+	  /* If N == 0, it should be an on_failure_jump_loop instead.
+	     `j` can be negative because `EXTRACT_NUMBER` extracts a
+	     signed number whereas `succeed_n` treats it as unsigned.  */
+	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); eassert (j != 0));
 	  p += 4;
 	  /* We only care about one iteration of the loop, so we don't
 	     need to consider the case where this behaves like an
@@ -3643,18 +3655,150 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte,
   return not;
 }
 
-/* True if "p1 matches something" implies "p2 fails".  */
+/* Case where `p2` points to an `exactn`.  */
 static bool
-mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
-		      re_char *p2)
+mutually_exclusive_exactn (struct re_pattern_buffer *bufp, re_char *p1,
+		           re_char *p2)
+{
+  bool multibyte = RE_MULTIBYTE_P (bufp);
+  int c
+    = (re_opcode_t) *p2 == endline ? '\n'
+      : RE_STRING_CHAR (p2 + 2, multibyte);
+
+  if ((re_opcode_t) *p1 == exactn)
+    {
+      if (c != RE_STRING_CHAR (p1 + 2, multibyte))
+	{
+	  DEBUG_PRINT ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
+	  return true;
+	}
+    }
+
+  else if ((re_opcode_t) *p1 == charset
+	   || (re_opcode_t) *p1 == charset_not)
+    {
+      if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
+                            Qnil))
+	{
+	  DEBUG_PRINT ("	 No match => fast loop.\n");
+	  return true;
+	}
+    }
+  else if ((re_opcode_t) *p1 == anychar
+	   && c == '\n')
+    {
+      DEBUG_PRINT ("   . != \\n => fast loop.\n");
+      return true;
+    }
+  return false;
+}
+
+/* Case where `p2` points to an `charset`.  */
+static bool
+mutually_exclusive_charset (struct re_pattern_buffer *bufp, re_char *p1,
+		            re_char *p2)
+{
+  /* It is hard to list up all the character in charset
+     P2 if it includes multibyte character.  Give up in
+     such case.  */
+  if (!RE_MULTIBYTE_P (bufp) || !CHARSET_RANGE_TABLE_EXISTS_P (p2))
+    {
+      /* Now, we are sure that P2 has no range table.
+	     So, for the size of bitmap in P2, 'p2[1]' is
+	     enough.  But P1 may have range table, so the
+	     size of bitmap table of P1 is extracted by
+	     using macro 'CHARSET_BITMAP_SIZE'.
+
+	     In a multibyte case, we know that all the character
+	     listed in P2 is ASCII.  In a unibyte case, P1 has only a
+	     bitmap table.  So, in both cases, it is enough to test
+	     only the bitmap table of P1.  */
+
+      if ((re_opcode_t) *p1 == charset)
+	{
+	  int idx;
+	  /* We win if the charset inside the loop
+		 has no overlap with the one after the loop.  */
+	  for (idx = 0;
+		(idx < (int) p2[1]
+		 && idx < CHARSET_BITMAP_SIZE (p1));
+		idx++)
+	    if ((p2[2 + idx] & p1[2 + idx]) != 0)
+	      break;
+
+	  if (idx == p2[1]
+	      || idx == CHARSET_BITMAP_SIZE (p1))
+	    {
+	      DEBUG_PRINT ("	 No match => fast loop.\n");
+	      return true;
+	    }
+	}
+      else if ((re_opcode_t) *p1 == charset_not)
+	{
+	  int idx;
+	  /* We win if the charset_not inside the loop lists
+		 every character listed in the charset after.  */
+	  for (idx = 0; idx < (int) p2[1]; idx++)
+	    if (! (p2[2 + idx] == 0
+		   || (idx < CHARSET_BITMAP_SIZE (p1)
+		       && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
+	      break;
+
+	  if (idx == p2[1])
+	    {
+	      DEBUG_PRINT ("	 No match => fast loop.\n");
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+/* True if "p1 matches something" implies "p2 fails".  */
+/* We're trying to follow all paths reachable from `p2`, but since some
+   loops can match the empty string, this can loop back to `p2`.
+
+   To avoid inf-looping, we take advantage of the fact that
+   the bytecode we generate is made of syntactically nested loops, more
+   specifically, every loop has a single entry point and single exit point.
+
+   The function takes 2 more arguments (`loop_entry` and `loop_exit`).
+   `loop_entry` points to the sole entry point of the current loop and
+   `loop_exit` points to its sole exit point (when non-NULL).
+
+   Jumps outside of `loop_entry..exit` should not occur.
+   The function can assume that `loop_exit` is "mutually exclusive".
+   The same holds for `loop_entry` except when `p2 == loop_entry`.
+
+   To guarantee termination, recursive calls should make sure that either
+   `loop_entry` is larger, or it's unchanged but `p2` is larger.
+
+   FIXME: This is failsafe (can't return true when it shouldn't)
+   but it could be too conservative if we start generating bytecode
+   with a different shape, so maybe we should bite the bullet and
+   replace done_beg/end with an actual list of positions we've
+   already processed.  */
+static bool
+mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
+		        re_char *p2, re_char *loop_entry, re_char *loop_exit)
 {
   re_opcode_t op2;
-  bool multibyte = RE_MULTIBYTE_P (bufp);
   unsigned char *pend = bufp->buffer + bufp->used;
   re_char *p2_orig = p2;
 
   eassert (p1 >= bufp->buffer && p1 < pend
 	   && p2 >= bufp->buffer && p2 <= pend);
+
+  if (p2 == loop_exit)
+    return true;          /* Presumably already checked elsewhere.  */
+  eassert (loop_entry && p2 >= loop_entry);
+  if (p2 < loop_entry || (loop_exit && p2 > loop_exit))
+    { /* The assumptions about the shape of the code aren't true :-(  */
+#ifdef ENABLE_CHECKING
+      error ("Broken assumption in regex.c:mutually_exclusive_aux");
+#endif
+      return false;
+    }
 
   /* Skip over open/close-group commands.
      If what follows this loop is a ...+ construct,
@@ -3684,98 +3828,14 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 
     case endline:
     case exactn:
-      {
-	int c
-	  = (re_opcode_t) *p2 == endline ? '\n'
-	  : RE_STRING_CHAR (p2 + 2, multibyte);
-
-	if ((re_opcode_t) *p1 == exactn)
-	  {
-	    if (c != RE_STRING_CHAR (p1 + 2, multibyte))
-	      {
-		DEBUG_PRINT ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
-		return true;
-	      }
-	  }
-
-	else if ((re_opcode_t) *p1 == charset
-		 || (re_opcode_t) *p1 == charset_not)
-	  {
-	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
-                                  Qnil))
-	      {
-		DEBUG_PRINT ("	 No match => fast loop.\n");
-		return true;
-	      }
-	  }
-	else if ((re_opcode_t) *p1 == anychar
-		 && c == '\n')
-	  {
-	    DEBUG_PRINT ("   . != \\n => fast loop.\n");
-	    return true;
-	  }
-      }
-      break;
+      return mutually_exclusive_exactn (bufp, p1, p2);
 
     case charset:
       {
 	if ((re_opcode_t) *p1 == exactn)
-	  /* Reuse the code above.  */
-	  return mutually_exclusive_p (bufp, p2, p1);
-
-      /* It is hard to list up all the character in charset
-	 P2 if it includes multibyte character.  Give up in
-	 such case.  */
-      else if (!multibyte || !CHARSET_RANGE_TABLE_EXISTS_P (p2))
-	{
-	  /* Now, we are sure that P2 has no range table.
-	     So, for the size of bitmap in P2, 'p2[1]' is
-	     enough.  But P1 may have range table, so the
-	     size of bitmap table of P1 is extracted by
-	     using macro 'CHARSET_BITMAP_SIZE'.
-
-	     In a multibyte case, we know that all the character
-	     listed in P2 is ASCII.  In a unibyte case, P1 has only a
-	     bitmap table.  So, in both cases, it is enough to test
-	     only the bitmap table of P1.  */
-
-	  if ((re_opcode_t) *p1 == charset)
-	    {
-	      int idx;
-	      /* We win if the charset inside the loop
-		 has no overlap with the one after the loop.  */
-	      for (idx = 0;
-		   (idx < (int) p2[1]
-		    && idx < CHARSET_BITMAP_SIZE (p1));
-		   idx++)
-		if ((p2[2 + idx] & p1[2 + idx]) != 0)
-		  break;
-
-	      if (idx == p2[1]
-		  || idx == CHARSET_BITMAP_SIZE (p1))
-		{
-		  DEBUG_PRINT ("	 No match => fast loop.\n");
-		  return true;
-		}
-	    }
-	  else if ((re_opcode_t) *p1 == charset_not)
-	    {
-	      int idx;
-	      /* We win if the charset_not inside the loop lists
-		 every character listed in the charset after.  */
-	      for (idx = 0; idx < (int) p2[1]; idx++)
-		if (! (p2[2 + idx] == 0
-		       || (idx < CHARSET_BITMAP_SIZE (p1)
-			   && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
-		  break;
-
-	      if (idx == p2[1])
-		{
-		  DEBUG_PRINT ("	 No match => fast loop.\n");
-		  return true;
-		}
-	      }
-	  }
+	  return mutually_exclusive_exactn (bufp, p2, p1);
+	else
+	  return mutually_exclusive_charset (bufp, p1, p2);
       }
       break;
 
@@ -3783,9 +3843,9 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
       switch (*p1)
 	{
 	case exactn:
+	  return mutually_exclusive_exactn (bufp, p2, p1);
 	case charset:
-	  /* Reuse the code above.  */
-	  return mutually_exclusive_p (bufp, p2, p1);
+	  return mutually_exclusive_charset (bufp, p2, p1);
 	case charset_not:
 	  /* When we have two charset_not, it's very unlikely that
 	     they don't overlap.  The union of the two sets of excluded
@@ -3830,12 +3890,43 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
         int mcnt;
 	p2++;
 	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
-	/* Don't just test `mcnt > 0` because non-greedy loops have
-	   their test at the end with an unconditional jump at the start.  */
-	if (p2 + mcnt > p2_orig) /* Ensure forward progress.  */
-	  return (mutually_exclusive_p (bufp, p1, p2)
-		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
-	break;
+	re_char *p2_other = p2 + mcnt, *tmp;
+	/* For `+` loops, we often have an `on_failure_jump` that skips forward
+	   over a subsequent `jump` for lack of an `on_failure_dont_jump`
+	   kind of thing.  Recognize this pattern since that subsequent
+	   `jump` is the one that jumps to the loop-entry.  */
+	if ((re_opcode_t) p2[0] == jump && mcnt == 3)
+	  {
+	    EXTRACT_NUMBER (mcnt, p2 + 1);
+	    p2 += mcnt + 3;
+	  }
+
+	/* We have to check that both destinations are safe.
+	   Arrange for `p2` to be the smaller of the two.  */
+	if (p2 > p2_other)
+	  (tmp = p2, p2 = p2_other, p2_other = tmp);
+
+	if (p2_other <= p2_orig /* Both destinations go backward!  */
+	    || !mutually_exclusive_aux (bufp, p1, p2_other,
+	                                loop_entry, loop_exit))
+	  return false;
+
+	/* Now that we know that `p2_other` is a safe (i.e. mutually-exclusive)
+	   position, let's check `p2`.  */
+	if (p2 == loop_entry)
+	  /* If we jump backward to the entry point of the current loop
+	     it means it's a zero-length cycle through that loop, so
+	     this cycle itself does not break mutual-exclusion.  */
+	  return true;
+	else if (p2 > p2_orig)
+	  /* Boring forward jump.  */
+	  return mutually_exclusive_aux (bufp, p1, p2, loop_entry, loop_exit);
+	else if (loop_entry < p2 && p2 < p2_orig)
+	  /* We jump backward to a new loop, nested within the current one.
+	     `p2` is the entry point and `p2_other` the exit of that inner.  */
+	  return mutually_exclusive_aux (bufp, p1, p2, p2, p2_other);
+	else
+	  return false;
       }
 
     default:
@@ -3846,6 +3937,12 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
   return false;
 }
 
+static bool
+mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
+		      re_char *p2)
+{
+  return mutually_exclusive_aux (bufp, p1, p2, bufp->buffer, NULL);
+}
 
 /* Matching routines.  */
 

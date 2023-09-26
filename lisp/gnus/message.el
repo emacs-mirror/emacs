@@ -911,8 +911,10 @@ installations, which are rare these days."
 (defcustom message-sendmail-envelope-from
   'obey-mail-envelope-from
   "Envelope-from when sending mail with sendmail.
-If this is nil, use `user-mail-address'.  If it is the symbol
-`header', use the From: header of the message."
+If this is `obey-mail-envelope-from', then use
+`mail-envelope-from' to decide what to do.  If it is nil, use
+`user-mail-address'.  If it is the symbol `header', use the
+\"From:\" header of the message."
   :version "27.1"
   :type '(choice (string :tag "From name")
 		 (const :tag "Use From: header from message" header)
@@ -2838,11 +2840,11 @@ will not be inserted."
 			(const :tag "No ID" nil))
 		(choice (string :tag "Key")
 			(const :tag "No Key" nil))
-		(choice (other :tag "None" nil)
-			(const :tag "Unprotected" "unprotected")
+                (choice (const :tag "Unprotected" "unprotected")
 			(const :tag "Sign" "sign")
 			(const :tag "Encrypt" "encrypt")
-			(const :tag "Sign and Encrypt" "signencrypt"))))
+                        (const :tag "Sign and Encrypt" "signencrypt")
+                        (other :tag "None" nil))))
   :version "28.1")
 
 (defun message-add-openpgp-header ()
@@ -6593,8 +6595,8 @@ they are."
     (widen)
     (forward-line 1)
     (unless (looking-at "$")
-      (forward-line 2)))
-   (sit-for 0)))
+      (forward-line 2))))
+  (sit-for 0))
 
 (defcustom message-beginning-of-line t
   "Whether \\<message-mode-map>\\[message-beginning-of-line]\

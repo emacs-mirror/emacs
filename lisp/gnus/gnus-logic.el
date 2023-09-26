@@ -71,11 +71,11 @@
 		    (+ (cdr score) new-score))
 	  (push (cons (mail-header-number gnus-advanced-headers)
 		      new-score)
-		gnus-newsgroup-scored)
-	  (when trace
-	    (push (cons "A file" rule)
-		  ;; Must be synced with `gnus-score-edit-file-at-point'.
-		  gnus-score-trace)))))))
+		gnus-newsgroup-scored))
+	(when trace
+	  (push (cons "A file" rule)
+		;; Must be synced with `gnus-score-edit-file-at-point'.
+		gnus-score-trace))))))
 
 (defun gnus-advanced-score-rule (rule)
   "Apply RULE to `gnus-advanced-headers'."

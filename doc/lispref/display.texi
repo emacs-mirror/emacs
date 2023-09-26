@@ -1821,8 +1821,8 @@ where the @var{primary} value is used as described above, and
 @var{secondary} is the fallback value used when @var{primary} and the
 nesting considerations fail to resolve the precedence between
 overlays.  In particular, priority value @w{@code{(nil . @var{n})}},
-with @var{n} a positive integer, allows to have the overlays ordered
-by priority when necessary without completely overriding other
+with @var{n} a positive integer, enables you to have the overlays
+ordered by priority when necessary without completely overriding other
 overlays.
 
 Currently, all overlays take priority over text properties.
@@ -4254,14 +4254,20 @@ key-attribute pairs may be omitted from the list if they are not
 specified by @var{font}.
 @end defun
 
-@defun font-xlfd-name font &optional fold-wildcards
+@defun font-xlfd-name font &optional fold-wildcards long-xlfds
 This function returns the XLFD (X Logical Font Descriptor), a string,
 matching @var{font}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}, for
-information about XLFDs.  If the name is too long for an XLFD (which
-can contain at most 255 characters), the function returns @code{nil}.
+information about XLFDs.
 
 If the optional argument @var{fold-wildcards} is non-@code{nil},
 consecutive wildcards in the XLFD are folded into one.
+
+If the optional argument @var{long-xlfds} is omitted or @code{nil},
+then the function returns @code{nil} if the XLFD would exceed 255
+characters in length; this is for compatibility with the X protocol,
+which mandates that XLFDs are restricted to that length.  If
+@var{long-xlfds} is non-@code{nil}, this restriction is lifted, and
+the function can return XLFDs of any length.
 @end defun
 
 The following two functions return important information about a font.
@@ -8725,8 +8731,8 @@ hexadecimal notation.
 Display a box containing that string.  The string should contain at
 most 6 @acronym{ASCII} characters.  As an exception, if the string
 includes just one character, on text-mode terminals that character
-will be displayed without a box; this allows to handle such
-``acronyms'' as a replacement character for characters that cannot be
+will be displayed without a box; this enables treating such
+``acronyms'' as replacement characters for characters that cannot be
 displayed by the terminal.
 
 @item a cons cell @code{(@var{graphical} . @var{text})}
@@ -9022,7 +9028,7 @@ Bidirectionality'' class implementation of the @acronym{UBA},
 consistent with the requirements of the Unicode Standard v9.0.  Note,
 however, that the way Emacs displays continuation lines when text
 direction is opposite to the base paragraph direction deviates from
-the UBA, which requires to perform line wrapping before reordering
+the UBA, which requires performing line wrapping before reordering
 text for display.
 
 @defvar bidi-display-reordering

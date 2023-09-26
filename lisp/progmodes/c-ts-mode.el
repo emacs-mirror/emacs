@@ -71,6 +71,8 @@
 (eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-parser-root-node "treesit.c")
+(declare-function treesit-parser-set-included-ranges "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
@@ -80,7 +82,6 @@
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-next-sibling "treesit.c")
-(declare-function treesit-parser-set-included-ranges "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
 
 ;;; Custom variables
@@ -478,6 +479,7 @@ MODE is either `c' or `cpp'."
        ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
        ((parent-is "compound_statement") parent-bol c-ts-mode-indent-offset)
        ((parent-is "if_statement") parent-bol 0)
+       ((parent-is "else_clause") parent-bol 0)
        ((parent-is "for_statement") parent-bol 0)
        ((parent-is "while_statement") parent-bol 0)
        ((parent-is "switch_statement") parent-bol 0)
@@ -494,6 +496,13 @@ NODE should be a labeled_statement.  PARENT is its parent."
               (treesit-node-type (treesit-node-parent parent)))))
 
 ;;; Font-lock
+
+(defvar c-ts-mode--feature-list
+  '(( comment definition)
+    ( keyword preprocessor string type)
+    ( assignment constant escape-sequence label literal)
+    ( bracket delimiter error function operator property variable))
+  "`treesit-font-lock-feature-list' for `c-ts-mode'.")
 
 (defvar c-ts-mode--preproc-keywords
   '("#define" "#if" "#ifdef" "#ifndef"
@@ -1013,17 +1022,46 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
   (or (treesit-add-log-current-defun)
       (c-ts-mode--defun-name (c-ts-mode--emacs-defun-at-point))))
 
+;;; Things
+
+(defvar c-ts-mode--thing-settings
+  `(;; It's more useful to include semicolons as sexp so
+    ;; that users can move to the end of a statement.
+    (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+    ;; compound_statement makes us jump over too big units
+    ;; of code, so skip that one, and include the other
+    ;; statements.
+    (sentence
+     ,(regexp-opt '("preproc"
+                    "declaration"
+                    "specifier"
+                    "attributed_statement"
+                    "labeled_statement"
+                    "expression_statement"
+                    "if_statement"
+                    "switch_statement"
+                    "do_statement"
+                    "while_statement"
+                    "for_statement"
+                    "return_statement"
+                    "break_statement"
+                    "continue_statement"
+                    "goto_statement"
+                    "case_statement")))
+    (text ,(regexp-opt '("comment"
+                         "raw_string_literal"))))
+  "`treesit-thing-settings' for both C and C++.")
+
 ;;; Support for FOR_EACH_* macros
 ;;
 ;; FOR_EACH_TAIL, FOR_EACH_TAIL_SAFE, FOR_EACH_FRAME etc., followed by
 ;; an unbracketed body will mess up the parser, which parses the thing
 ;; as a function declaration.  We "fix" it by adding a shadow parser
-;; for a language 'emacs-c' (which is just 'c' but under a different
-;; name).  We use 'emacs-c' to find each FOR_EACH_* macro with a
-;; unbracketed body, and set the ranges of the C parser so that it
-;; skips those FOR_EACH_*'s.  Note that we only ignore FOR_EACH_*'s
-;; with a unbracketed body.  Those with a bracketed body parse more
-;; or less fine.
+;; with the tag `for-each'.  We use this parser to find each
+;; FOR_EACH_* macro with a unbracketed body, and set the ranges of the
+;; default C parser so that it skips those FOR_EACH_*'s.  Note that we
+;; only ignore FOR_EACH_*'s with a unbracketed body.  Those with a
+;; bracketed body parse more or less fine.
 ;;
 ;; In the meantime, we have a special fontification rule for
 ;; FOR_EACH_* macros with a bracketed body that removes any applied
@@ -1044,12 +1082,12 @@ For BOL see `treesit-simple-indent-rules'."
 (defvar c-ts-mode--emacs-c-range-query
   (when (treesit-available-p)
     (treesit-query-compile
-     'emacs-c `(((declaration
-                  type: (macro_type_specifier
-                         name: (identifier) @_name)
-                  @for-each-tail)
-                 (:match ,c-ts-mode--for-each-tail-regexp
-                         @_name)))))
+     'c `(((declaration
+            type: (macro_type_specifier
+                   name: (identifier) @_name)
+            @for-each-tail)
+           (:match ,c-ts-mode--for-each-tail-regexp
+                   @_name)))))
   "Query that finds a FOR_EACH_* macro with an unbracketed body.")
 
 (defvar-local c-ts-mode--for-each-tail-ranges nil
@@ -1079,9 +1117,11 @@ parser parse the whole buffer."
   "Set ranges for the C parser to skip some FOR_EACH_* macros.
 BEG and END are described in `treesit-range-rules'."
   (let* ((c-parser (treesit-parser-create 'c))
+         (for-each-parser (treesit-parser-create 'c nil nil 'for-each))
          (old-ranges c-ts-mode--for-each-tail-ranges)
          (new-ranges (treesit-query-range
-                      'emacs-c c-ts-mode--emacs-c-range-query beg end))
+                      (treesit-parser-root-node for-each-parser)
+                      c-ts-mode--emacs-c-range-query beg end))
          (set-ranges (treesit--clip-ranges
                       (treesit--merge-ranges
                        old-ranges new-ranges beg end)
@@ -1131,32 +1171,8 @@ BEG and END are described in `treesit-range-rules'."
   ;; spirit, especially when used for movement, is like "expression"
   ;; or "syntax unit". --yuan
   (setq-local treesit-thing-settings
-              `((c
-                 ;; It's more useful to include semicolons as sexp so
-                 ;; that users can move to the end of a statement.
-                 (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
-                 ;; compound_statement makes us jump over too big units
-                 ;; of code, so skip that one, and include the other
-                 ;; statements.
-                 (sentence
-                  ,(regexp-opt '("preproc"
-                                 "declaration"
-                                 "specifier"
-                                 "attributed_statement"
-                                 "labeled_statement"
-                                 "expression_statement"
-                                 "if_statement"
-                                 "switch_statement"
-                                 "do_statement"
-                                 "while_statement"
-                                 "for_statement"
-                                 "return_statement"
-                                 "break_statement"
-                                 "continue_statement"
-                                 "goto_statement"
-                                 "case_statement")))
-                 (text ,(regexp-opt '("comment"
-                                      "raw_string_literal"))))))
+              `((c ,@c-ts-mode--thing-settings)
+                (cpp ,@c-ts-mode--thing-settings)))
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
@@ -1206,10 +1222,7 @@ BEG and END are described in `treesit-range-rules'."
                    c-ts-mode--defun-for-class-in-imenu-p nil))))
 
   (setq-local treesit-font-lock-feature-list
-              '(( comment definition)
-                ( keyword preprocessor string type)
-                ( assignment constant escape-sequence label literal)
-                ( bracket delimiter error function operator property variable))))
+              c-ts-mode--feature-list))
 
 (defvar treesit-load-name-override-list)
 
@@ -1233,16 +1246,10 @@ in your configuration."
   :after-hook (c-ts-mode-set-modeline)
 
   (when (treesit-ready-p 'c)
-    ;; Add a fake "emacs-c" language which is just C.  Used for
-    ;; skipping FOR_EACH_* macros, see `c-ts-mode--emacs-set-ranges'.
-    (setf (alist-get 'emacs-c treesit-load-name-override-list)
-          '("libtree-sitter-c" "tree_sitter_c"))
-    ;; If Emacs source support is enabled, make sure emacs-c parser is
-    ;; after c parser in the parser list. This way various tree-sitter
-    ;; functions will automatically use the c parser rather than the
-    ;; emacs-c parser.
+    ;; Create an "for-each" parser, see `c-ts-mode--emacs-set-ranges'
+    ;; for more.
     (when c-ts-mode-emacs-sources-support
-      (treesit-parser-create 'emacs-c))
+      (treesit-parser-create 'c nil nil 'for-each))
 
     (treesit-parser-create 'c)
     ;; Comments.
@@ -1411,5 +1418,6 @@ the code is C or C++ and based on that chooses whether to enable
     (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
+(provide 'c++-ts-mode)
 
 ;;; c-ts-mode.el ends here

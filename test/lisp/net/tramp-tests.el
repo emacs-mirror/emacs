@@ -7020,7 +7020,7 @@ This is used in tests which we don't want to tag
     (ert--stats-selector ert--current-run-stats)
     (list (make-ert-test :name (ert-test-name (ert-running-test))
                          :body nil :tags '(:tramp-asynchronous-processes))))
-   ;; tramp-adb.el cannot apply multi-byte commands.
+   ;; tramp-adb.el cannot apply multibyte commands.
    (not (and (tramp--test-adb-p)
 	     (string-match-p (rx multibyte) default-directory)))))
 
@@ -7095,6 +7095,12 @@ a $'' syntax."
 This does not support external Emacs calls."
   (string-equal
    "mock" (file-remote-p ert-remote-temporary-file-directory 'method)))
+
+(defun tramp--test-netbsd-p ()
+  "Check, whether the remote host runs NetBSD."
+  ;; We must refill the cache.  `file-truename' does it.
+  (file-truename ert-remote-temporary-file-directory)
+  (ignore-errors (tramp-check-remote-uname tramp-test-vec "NetBSD")))
 
 (defun tramp--test-openbsd-p ()
   "Check, whether the remote host runs OpenBSD."
@@ -7333,9 +7339,11 @@ This requires restrictions of file name syntax."
 
 		;; Check symlink in `directory-files-and-attributes'.
 		;; It does not work in the "smb" case, only relative
-		;; symlinks to existing files are shown there.
+		;; symlinks to existing files are shown there.  On
+		;; NetBSD, there are problems with loooong file names,
+		;; see Bug#65324.
 		(tramp--test-ignore-make-symbolic-link-error
-		  (unless (tramp--test-smb-p)
+		  (unless (or (tramp--test-netbsd-p) (tramp--test-smb-p))
 		    (make-symbolic-link file2 file3)
 		    (should (file-symlink-p file3))
 		    (should
@@ -8150,6 +8158,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * tramp-set-file-uid-gid
 
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
+;; * Use `skip-when' starting with Emacs 30.1.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for "ftp".
 ;; * Check, why a process filter t doesn't work in

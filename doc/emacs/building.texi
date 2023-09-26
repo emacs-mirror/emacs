@@ -701,7 +701,6 @@ to recompile and restart the program.
 @cindex GUD Tooltip mode
 @cindex mode, GUD Tooltip
 @findex gud-tooltip-mode
-@vindex gud-tooltip-echo-area
   GUD Tooltip mode is a global minor mode that adds tooltip support to
 GUD@.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
 disabled by default.  If enabled, you can move the mouse pointer over a
@@ -713,10 +712,8 @@ you can tell Emacs more explicitly what expression to evaluate by
 dragging the mouse over the expression, then leaving the mouse inside
 the marked area.  The GUD Tooltip mode takes effect in the GUD
 interaction buffer, and in all source buffers with major modes listed
-in the variable @code{gud-tooltip-modes}.  If the variable
-@code{gud-tooltip-echo-area} is non-@code{nil}, or if you turned off
-the tooltip mode, values are shown in the echo area instead of a
-tooltip.
+in the variable @code{gud-tooltip-modes}.  If you turned off the
+tooltip mode, values are shown in the echo area instead of a tooltip.
 
   When using GUD Tooltip mode with @kbd{M-x gud-gdb}, displaying an
 expression's value in GDB can sometimes expand a macro, potentially

@@ -131,6 +131,7 @@ manually with \\[dns-mode-soa-increment-serial]."
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\; "<   " table)
     (modify-syntax-entry ?\n ">   " table)
+    (modify-syntax-entry ?\" "\""   table)
     table)
   "Syntax table in use in DNS master file buffers.")
 

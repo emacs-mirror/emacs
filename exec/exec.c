@@ -309,10 +309,10 @@ write_load_command (program_header *header, bool use_alternate,
 #else /* HAVE_GETPAGESIZE */
   if (!pagesize)
     pagesize = sysconf (_SC_PAGESIZE);
+#endif /* HAVE_GETPAGESIZE */
 
 #define PAGE_MASK (~(pagesize - 1))
 #define PAGE_SIZE (pagesize)
-#endif /* HAVE_GETPAGESIZE */
 #endif /* PAGE_MASK */
 
   start = header->p_vaddr & PAGE_MASK;

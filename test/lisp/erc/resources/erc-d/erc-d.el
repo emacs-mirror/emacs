@@ -463,7 +463,7 @@ including line delimiters."
 ;; Misc process properties:
 ;;
 ;; The server property `:dialog-dialogs' is an alist of (symbol
-;; . erc-d-u-scan-d) conses, each of which pairs a dialogs name with
+;; . erc-d-u-scan-d) conses, each of which pairs a dialog's name with
 ;; info on its read progress (described above in the Commentary).
 ;; This list is populated by `erc-d-run' at the start of each session.
 ;;

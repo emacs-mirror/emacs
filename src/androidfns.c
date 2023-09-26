@@ -1326,9 +1326,9 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
 {
   check_android_display_info (terminal);
 
-  /* The Java part is implemented in a way that it always does the
-     equivalent of backing store.  */
-  return Qalways;
+  /* Window contents are preserved insofar as they remain mapped, in a
+     fashion tantamount to WhenMapped.  */
+  return Qwhen_mapped;
 }
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
@@ -3102,7 +3102,7 @@ syms_of_androidfns (void)
 {
   /* Miscellaneous symbols used by some functions here.  */
   DEFSYM (Qtrue_color, "true-color");
-  DEFSYM (Qalways, "always");
+  DEFSYM (Qwhen_mapped, "when-mapped");
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* SKIP: real text in xfns.c.  */);

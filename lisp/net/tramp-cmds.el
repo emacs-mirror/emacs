@@ -31,6 +31,8 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
+(declare-function dired-advertise "dired")
+(declare-function dired-unadvertise "dired")
 (declare-function mml-mode "mml")
 (declare-function mml-insert-empty-tag "mml")
 (declare-function reporter-dump-variable "reporter")
@@ -74,6 +76,8 @@ SYNTAX can be one of the symbols `default' (default),
     (lambda (x)
       (when (tramp-tramp-file-p (tramp-get-default-directory x)) x))
     (buffer-list))))
+
+;;; Cleanup
 
 ;;;###tramp-autoload
 (defvar tramp-cleanup-connection-hook nil
@@ -221,13 +225,13 @@ functions are called with `current-buffer' set."
 (add-hook 'tramp-cleanup-some-buffers-hook
 	  #'buffer-file-name)
 
-(defun tramp-cleanup-dired-buffer-p ()
+(defun tramp-dired-buffer-p ()
   "Return t if current buffer runs `dired-mode'."
   (declare (tramp-suppress-trace t))
   (derived-mode-p 'dired-mode))
 
 (add-hook 'tramp-cleanup-some-buffers-hook
-	  #'tramp-cleanup-dired-buffer-p)
+	  #'tramp-dired-buffer-p)
 
 (defvar tramp-tainted-remote-process-buffers nil
   "List of process buffers to be cleaned up.")
@@ -256,12 +260,12 @@ functions are called with `current-buffer' set."
 	    (remove-hook 'kill-buffer-hook
 			 #'tramp-delete-tainted-remote-process-buffer-function)))
 
-(defun tramp-cleanup-remote-process-p ()
+(defun tramp-remote-process-p ()
   "Return t if current buffer belongs to a remote process."
   (memq (current-buffer) tramp-tainted-remote-process-buffers))
 
 (add-hook 'tramp-cleanup-some-buffers-hook
-	  #'tramp-cleanup-remote-process-p)
+	  #'tramp-remote-process-p)
 
 ;;;###tramp-autoload
 (defun tramp-cleanup-some-buffers ()
@@ -287,6 +291,8 @@ non-nil."
   (interactive)
   (let ((tramp-cleanup-some-buffers-hook '(tramp-compat-always)))
     (tramp-cleanup-some-buffers)))
+
+;;; Rename
 
 (defcustom tramp-default-rename-alist nil
   "Default target for renaming remote buffer file names.
@@ -551,6 +557,73 @@ For details, see `tramp-rename-files'."
 ;;;###tramp-autoload
 (function-put
  #'tramp-rename-these-files 'completion-predicate #'tramp-command-completion-p)
+
+;;; Run as sudo
+
+(defcustom tramp-file-name-with-method "sudo"
+  "Which method to be used in `tramp-file-name-with-sudo'."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const "su")
+		 (const "sudo")
+		 (const "doas")
+		 (const "ksu")))
+
+(defun tramp-file-name-with-sudo (filename)
+  "Convert FILENAME into a multi-hop file name with \"sudo\".
+An alternative method could be chosen with `tramp-file-name-with-method'."
+  (setq filename (expand-file-name filename))
+  (if (tramp-tramp-file-p filename)
+      (with-parsed-tramp-file-name filename nil
+	(cond
+	 ;; Remote file with proper method.
+	 ((string-equal method tramp-file-name-with-method)
+	  filename)
+	 ;; Remote file on the local host.
+	 ((and
+	   (stringp tramp-local-host-regexp) (stringp host)
+	   (string-match-p tramp-local-host-regexp host))
+	  (tramp-make-tramp-file-name
+	   (make-tramp-file-name
+	    :method tramp-file-name-with-method :localname localname)))
+	 ;; Remote file with multi-hop capable method..
+	 ((tramp-multi-hop-p v)
+	  (tramp-make-tramp-file-name
+	   (make-tramp-file-name
+	    :method (tramp-find-method tramp-file-name-with-method nil host)
+	    :user (tramp-find-user tramp-file-name-with-method nil host)
+	    :host (tramp-find-host tramp-file-name-with-method nil host)
+	    :localname localname :hop (tramp-make-tramp-hop-name v))))
+	 ;; Other remote file.
+	 (t (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
+    ;; Local file.
+    (tramp-make-tramp-file-name
+     (make-tramp-file-name
+      :method tramp-file-name-with-method :localname filename))))
+
+;;;###tramp-autoload
+(defun tramp-revert-buffer-with-sudo ()
+  "Revert current buffer to visit with \"sudo\" permissions.
+An alternative method could be chosen with `tramp-file-name-with-method'.
+If the buffer visits a file, the file is replaced.
+If the buffer runs `dired', the buffer is reverted."
+  (interactive)
+  (cond
+   ((buffer-file-name)
+    (find-alternate-file (tramp-file-name-with-sudo (buffer-name))))
+   ((tramp-dired-buffer-p)
+    (dired-unadvertise (expand-file-name default-directory))
+    (setq default-directory (tramp-file-name-with-sudo default-directory)
+	  list-buffers-directory
+	  (tramp-file-name-with-sudo list-buffers-directory))
+    (if (consp dired-directory)
+	(setcar
+	 dired-directory (tramp-file-name-with-sudo (car dired-directory)))
+      (setq dired-directory (tramp-file-name-with-sudo dired-directory)))
+    (dired-advertise)
+    (revert-buffer))))
+
+;;; Recompile on ELPA
 
 ;; This function takes action since Emacs 28.1, when
 ;; `read-extended-command-predicate' is set to

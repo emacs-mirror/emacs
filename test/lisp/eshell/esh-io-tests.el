@@ -334,6 +334,17 @@ stdout originally pointed (the terminal)."
    (eshell-match-command-output "{echo foo; echo bar} | rev"
                                 "\\`raboof\n?")))
 
+(ert-deftest esh-io-test/pipeline/stdin-to-head ()
+  "Check that standard input is sent to the head process in a pipeline."
+  (skip-unless (and (executable-find "tr")
+                    (executable-find "rev")))
+  (with-temp-eshell
+   (eshell-insert-command "tr a-z A-Z | rev")
+   (eshell-insert-command "hello")
+   (eshell-send-eof-to-process)
+   (eshell-wait-for-subprocess)
+   (should (eshell-match-output "OLLEH\n"))))
+
 
 ;; Virtual targets
 

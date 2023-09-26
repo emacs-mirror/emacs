@@ -2968,7 +2968,7 @@ CONTENTS is verse block contents."
 ;; object types they can contain will be specified in
 ;; `org-element-object-restrictions'.
 ;;
-;; Creating a new type of object requires to alter
+;; Creating a new type of object requires altering
 ;; `org-element--object-regexp' and `org-element--object-lex', add the
 ;; new type in `org-element-all-objects', and possibly add
 ;; restrictions in `org-element-object-restrictions'.
@@ -3523,7 +3523,7 @@ Assume point is at the beginning of the link."
 	;;
 	;; Also treat any newline character and associated
 	;; indentation as a single space character.  This is not
-	;; compatible with RFC 3986, which requires to ignore
+        ;; compatible with RFC 3986, which requires ignoring
 	;; them altogether.  However, doing so would require
 	;; users to encode spaces on the fly when writing links
 	;; (e.g., insert [[shell:ls%20*.org]] instead of

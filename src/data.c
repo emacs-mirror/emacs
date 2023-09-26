@@ -898,7 +898,7 @@ add_to_function_history (Lisp_Object symbol, Lisp_Object olddef)
   Lisp_Object past = Fget (symbol, Qfunction_history);
   Lisp_Object file = Qnil;
   /* FIXME: Sadly, `Vload_file_name` gives less precise information
-     (it's sometimes non-nil when it shoujld be nil).  */
+     (it's sometimes non-nil when it should be nil).  */
   Lisp_Object tail = Vcurrent_load_list;
   FOR_EACH_TAIL_SAFE (tail)
     if (NILP (XCDR (tail)) && STRINGP (XCAR (tail)))
@@ -1616,8 +1616,6 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
   bool voide = BASE_EQ (newval, Qunbound);
 
   /* If restoring in a dead buffer, do nothing.  */
-  /* if (BUFFERP (where) && NILP (XBUFFER (where)->name))
-      return; */
 
   CHECK_SYMBOL (symbol);
   struct Lisp_Symbol *sym = XSYMBOL (symbol);
