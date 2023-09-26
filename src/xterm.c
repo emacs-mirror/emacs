@@ -7916,7 +7916,6 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       memset (&attrs, 0, sizeof attrs);
 #endif
       XRectangle image_rect, dest;
-      int window_x, window_y, window_width;
       int px, py, pwidth, pheight;
 
       /* Intersect the destination rectangle with that of the row.
