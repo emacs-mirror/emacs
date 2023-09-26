@@ -2573,6 +2573,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	}
     }
 
+ undo_clip:
   android_reset_clip_rectangles (f, gc);
 }
 
