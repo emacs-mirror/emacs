@@ -878,10 +878,28 @@ This evaluates the TESTS test cases from glibc."
     (erase-buffer)
     (insert (make-string 1000000 ?x) "=")
     (goto-char (point-min))
+    ;; Make sure we do perform the optimization (if we don't, the
+    ;; below will burp with regexp-stack-overflow).
     (should (looking-at "x*=*"))
     (should (looking-at "x*\\(=\\|:\\)"))
     (should (looking-at "x*\\(=\\|:\\)*"))
-    (should (looking-at "x*=*?"))))
+    (should (looking-at "x*=*?"))
+    (should (looking-at "x*\\(=*\\|h\\)*?"))
+    (should (looking-at "x*\\(=*\\|h\\)*"))
+    (should (looking-at "x*\\(=*?\\|h\\)*"))
+    (should (looking-at "x*\\(=*?\\|h\\)*?"))
+    (should (looking-at "x*\\(=*\\|h\\)+?"))
+    (should (looking-at "x*\\(=*\\|h\\)+"))
+    (should (looking-at "x*\\(=*?\\|h\\)+"))
+    (should (looking-at "x*\\(=*?\\|h\\)+?"))
+    (should (looking-at "x*\\(=+\\|h\\)+?"))
+    (should (looking-at "x*\\(=+\\|h\\)+"))
+    (should (looking-at "x*\\(=+?\\|h\\)+"))
+    (should (looking-at "x*\\(=+?\\|h\\)+?"))
+    ;; Regression check for overly optimistic optimization.
+    (should (eq 0 (string-match "\\(ca*\\|ab\\)+d" "cabd")))
+    (should (string-match "\\(aa*\\|b\\)*c" "ababc"))
+    ))
 
 (ert-deftest regexp-tests-zero-width-assertion-repetition ()
   ;; Check compatibility behaviour with repetition operators after

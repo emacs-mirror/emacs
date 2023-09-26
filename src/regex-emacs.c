@@ -3941,7 +3941,7 @@ static bool
 mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 		      re_char *p2)
 {
-  return mutually_exclusive_aux (bufp, p1, p2, bufp->buffer, NULL);
+  return mutually_exclusive_aux (bufp, p1, p2, bufp->buffer - 1, NULL);
 }
 
 /* Matching routines.  */
