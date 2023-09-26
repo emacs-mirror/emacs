@@ -312,7 +312,16 @@
        ((parent-is "^catch_block$") parent ,offset)
        ((parent-is "^keywords$") parent-bol 0)
        ((node-is "^call$") parent-bol ,offset)
-       ((node-is "^comment$") parent-bol ,offset)))))
+       ((node-is "^comment$") parent-bol ,offset)
+       ((node-is "\"\"\"") parent-bol 0)
+       ;; Handle quoted_content indentation on the last
+       ;; line before the closing \"\"\", where it might
+       ;; see it as no-node outside a HEEx tag.
+       (no-node (lambda (_n _p _bol)
+                  (treesit-node-start
+                   (treesit-node-parent
+                    (treesit-node-at (point) 'elixir))))
+                  0)))))
 
 (defvar elixir-ts--font-lock-settings
   (treesit-font-lock-rules
@@ -510,21 +519,15 @@ With ARG, do it many times.  Negative ARG means move backward."
 
 (defun elixir-ts--treesit-language-at-point (point)
   "Return the language at POINT."
-  (let* ((range nil)
-         (language-in-range
-          (cl-loop
-           for parser in (treesit-parser-list)
-           do (setq range
-                    (cl-loop
-                     for range in (treesit-parser-included-ranges parser)
-                     if (and (>= point (car range)) (<= point (cdr range)))
-                     return parser))
-           if range
-           return (treesit-parser-language parser))))
-    (if (null language-in-range)
-        (when-let ((parser (car (treesit-parser-list))))
-          (treesit-parser-language parser))
-      language-in-range)))
+  (let ((node (treesit-node-at point 'elixir)))
+    (if (and (equal (treesit-node-type node) "quoted_content")
+             (let ((prev-sibling (treesit-node-prev-sibling node t)))
+               (and (treesit-node-p prev-sibling)
+                    (string-match-p
+                     (rx bos (or "H" "F") eos)
+                     (treesit-node-text prev-sibling)))))
+        'heex
+      'elixir)))
 
 (defun elixir-ts--defun-p (node)
   "Return non-nil when NODE is a defun."
