@@ -24838,7 +24838,7 @@ ends such as Bogofilter (@pxref{Bogofilter}) and the Spam Statistics
 package (@pxref{Spam Statistics Filtering}).
 
 The spam and ham processors that apply to each group are determined by
-the group's@code{spam-process} group parameter.  If this group
+the group's @code{spam-process} group parameter.  If this group
 parameter is not defined, they are determined by the variable
 @code{gnus-spam-process-newsgroups}.
 
