@@ -447,9 +447,14 @@ be used instead.
                                      (error form))))
              (sexp
               (unwind-protect
-                  (let ((warning-minimum-log-level :emergency))
+                  ;; Silence any macro expansion errors when
+                  ;; attempting completion at point (bug#58148).
+                  (let ((inhibit-message t)
+                        (warning-minimum-log-level :emergency))
                     (advice-add 'macroexpand :around macroexpand-advice)
-                    (macroexpand-all sexp))
+                    (condition-case nil
+                        (macroexpand-all sexp)
+                      (error sexp)))
                 (advice-remove 'macroexpand macroexpand-advice)))
              (vars (elisp--local-variables-1 nil sexp)))
         (delq nil
