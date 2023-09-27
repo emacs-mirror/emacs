@@ -2386,7 +2386,6 @@ before calling this function."
                 '( nil nil nil nil
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
-    (font-lock-mode 1)
     (treesit-font-lock-recompute-features)
     (dolist (parser (treesit-parser-list))
       (treesit-parser-add-notifier
