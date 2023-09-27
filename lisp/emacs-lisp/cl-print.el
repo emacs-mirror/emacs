@@ -264,17 +264,27 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object ((object string) stream)
   (unless stream (setq stream standard-output))
   (let* ((has-properties (or (text-properties-at 0 object)
-                             (next-property-change 0 object))))
+                             (next-property-change 0 object)))
+         (len (length object))
+         (limit (if (natnump print-length) (min print-length len) len)))
     (if (and has-properties
              cl-print--depth
              (natnump print-level)
              (> cl-print--depth print-level))
         (cl-print-insert-ellipsis object nil stream)
-      ;; Print the string.
+      ;; Print all or part of the string
       (when has-properties
         (princ "#(" stream))
-      (prin1 (if has-properties (substring-no-properties object) object)
-             stream)
+      (if (= limit len)
+          (prin1 (if has-properties (substring-no-properties object) object)
+                 stream)
+        (let ((part (concat (substring-no-properties object 0 limit) "...")))
+          (prin1 part stream)
+          (when (bufferp stream)
+            (with-current-buffer stream
+              (cl-print-propertize-ellipsis object limit
+                                            (- (point) 4)
+                                            (- (point) 1) stream)))))
       ;; Print the property list.
       (when has-properties
         (cl-print--string-props object 0 stream)
