@@ -140,7 +140,10 @@ The function is called with one argument, the position of point.
 
 In general, this function should call `treesit-node-at' with an
 explicit language (usually the host language), and determine the
-language at point using the type of the returned node.")
+language at point using the type of the returned node.
+
+DO NOT derive the language at point from parser ranges.  It's
+cumbersome and can't deal with some edge cases.")
 
 (defun treesit-language-at (position)
   "Return the language at POSITION.
