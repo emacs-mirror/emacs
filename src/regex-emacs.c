@@ -3086,8 +3086,10 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	  /* We only care about one iteration of the loop, so we don't
 	     need to consider the case where this behaves like an
 	     on_failure_jump.  */
-	  continue;
-
+	  /* FIXME: Sadly, the above is not true when the loop's body
+	     can match the empty string :-(  */
+	  /* continue; */
+	  return -1;
 
 	case set_number_at:
 	  p += 4;

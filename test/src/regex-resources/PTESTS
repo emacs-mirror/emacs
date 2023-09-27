@@ -269,6 +269,7 @@
 #W the expected result for \([a-c]*\)\{2,\} is failure which isn't correct
 1¦3¦\([a-c]*\)\{2,\}¦abcdefg¦
 1¦3¦\([a-c]*\)\{1,\}¦abcdefg¦
+0¦0¦\([a-c]*\)\{2,\}¦gabcdefg¦
 -1¦-1¦a\{64,\}¦aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa¦
 # GA142
 1¦3¦a\{2,3\}¦aaaa¦
