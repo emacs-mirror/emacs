@@ -884,13 +884,21 @@ This evaluates the TESTS test cases from glibc."
     (should (looking-at "x*\\(=\\|:\\)"))
     (should (looking-at "x*\\(=\\|:\\)*"))
     (should (looking-at "x*=*?"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*\\|h\\)*?"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*\\|h\\)*"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*?\\|h\\)*"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*?\\|h\\)*?"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*\\|h\\)+?"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*\\|h\\)+"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*?\\|h\\)+"))
+    ;; relint suppression: Repetition of expression matching an empty string
     (should (looking-at "x*\\(=*?\\|h\\)+?"))
     (should (looking-at "x*\\(=+\\|h\\)+?"))
     (should (looking-at "x*\\(=+\\|h\\)+"))
