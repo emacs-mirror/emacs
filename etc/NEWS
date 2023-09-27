@@ -321,6 +321,10 @@ This allows changing which type of whitespace changes are ignored when
 regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
 the previously hard-coded "-b".
 
+*** New command 'diff-apply-buffer' bound to 'C-c RET a'.
+It applies the diff in the entire diff buffer and
+saves all modified file buffers.
+
 ** Isearch and Replace
 
 *** New command 'replace-regexp-as-diff'.
