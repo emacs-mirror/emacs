@@ -200,7 +200,7 @@ The final element is \"*\", indicating an unspecified month.")
 		 (month "\\(?7:[0-9]+\\|\\*\\)")
 		 (day "\\(?8:[0-9]+\\|\\*\\)")
 		 (year "-?\\(?9:[0-9]+\\|\\*\\)"))
-	      (mapconcat #'eval calendar-date-display-form ""))
+	      (mapconcat #'eval calendar-date-display-form))
 	    "\\)"))
   "Regular expression matching a todo item date header.")
 
@@ -1206,7 +1206,7 @@ visiting the deleted files."
 		(let ((sexp (read (buffer-substring-no-properties
 				   (line-beginning-position)
 				   (line-end-position))))
-		      (buffer-read-only nil)
+		      (inhibit-read-only t)
 		      (print-length nil)
 		      (print-level nil))
 		  (mapc (lambda (x) (aset (cdr x) 3 0)) sexp)
@@ -1304,7 +1304,7 @@ return the new category number."
       (widen)
       (goto-char (point-max))
       (save-excursion			; Save point for todo-category-select.
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  (insert todo-category-beg cat "\n\n" todo-category-done "\n")))
       (todo-update-categories-sexp)
       ;; If invoked by user, display the newly added category, if
@@ -1486,7 +1486,7 @@ the archive of the file moved to, creating it if it does not exist."
 				      nfile-short)
 			      (format "the category \"%s\";\n" cat)
 			      "enter a new category name: "))
-		     (buffer-read-only nil)
+		     (inhibit-read-only t)
 		     (print-length nil)
 		     (print-level nil))
 		(widen)
@@ -1528,7 +1528,7 @@ the archive of the file moved to, creating it if it does not exist."
 	    ;; Delete the category from the old file, and if that was the
 	    ;; last category, delete the file.  Also handle archive file
 	    ;; if necessary.
-	    (let ((buffer-read-only nil))
+	    (let ((inhibit-read-only t))
 	      (widen)
               (remove-overlays beg end)
 	      (delete-region beg end)
@@ -1581,7 +1581,7 @@ archive file and the source category is deleted."
 	 here)
     (with-current-buffer (get-buffer (find-file-noselect tfile))
       (widen)
-      (let* ((buffer-read-only nil)
+      (let* ((inhibit-read-only t)
 	     (cbeg (progn
 		     (re-search-backward
 		      (concat "^" (regexp-quote todo-category-beg)) nil t)
@@ -1609,7 +1609,7 @@ archive file and the source category is deleted."
 	  (unless (derived-mode-p 'todo-mode) (todo-mode))
 	  (widen)
 	  (goto-char (point-min))
-	  (let ((buffer-read-only nil))
+	  (let ((inhibit-read-only t))
 	    ;; Merge any todo items.
 	    (unless (zerop (length todo))
 	      (re-search-forward
@@ -1647,7 +1647,7 @@ archive file and the source category is deleted."
       (with-current-buffer (get-buffer (find-file-noselect tarchive))
 	(widen)
 	(goto-char (point-min))
-	(let* ((buffer-read-only nil)
+	(let* ((inhibit-read-only t)
 	       (cbeg (progn
 		       (when (re-search-forward
 			      (concat "^" (regexp-quote
@@ -1967,7 +1967,7 @@ their associated keys and their effects."
 	(setq todo-current-todo-file file)
 	(unless todo-global-current-todo-file
 	  (setq todo-global-current-todo-file todo-current-todo-file))
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      done-only item-added)
 	  (unless copy
 	    (setq new-item
@@ -2197,9 +2197,9 @@ the item at point."
                                      end t)
 		  (if comment-delete
 		      (when (todo-y-or-n-p "Delete comment? ")
-			(let ((buffer-read-only nil))
+			(let ((inhibit-read-only t))
 			  (delete-region (match-beginning 0) (match-end 0))))
-		    (let ((buffer-read-only nil))
+		    (let ((inhibit-read-only t))
 		      (replace-match (save-match-data
 				       (prog1 (let ((buffer-read-only t))
 						(read-string
@@ -2216,7 +2216,7 @@ the item at point."
 				     nil nil nil 1)))
 		(if comment-delete
 		    (user-error "There is no comment to delete")
-		  (let ((buffer-read-only nil))
+		  (let ((inhibit-read-only t))
 		    (insert " [" todo-comment-string ": "
 			    (prog1 (let ((buffer-read-only t))
 				     (read-string prompt))
@@ -2261,7 +2261,7 @@ the item at point."
 		(todo-category-number ocat)
 		(todo-category-select)
 		(goto-char opoint))
-	      (let ((buffer-read-only nil))
+	      (let ((inhibit-read-only t))
 		(todo-remove-item)
 		(todo-insert-with-overlays new))
 	      (move-to-column item-beg)))))))))
@@ -2493,8 +2493,8 @@ made in the number or names of categories."
                            (month month)
                            (day day)
                            (dayname nil)) ;; dayname
-                        (mapconcat #'eval calendar-date-display-form "")))))
-	    (let ((buffer-read-only nil))
+                        (mapconcat #'eval calendar-date-display-form)))))
+	    (let ((inhibit-read-only t))
 	      (when ndate (replace-match ndate nil nil nil 1))
 	      ;; Add new time string to the header, if it was supplied.
 	      (when ntime
@@ -2754,7 +2754,7 @@ meaning to raise or lower the item's priority by one."
 	    (when match
 	      (user-error (concat "Cannot reprioritize items from the same "
 				  "category in this mode, only in Todo mode")))))
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  ;; Interactively or with non-nil ARG, relocate the item within its
 	  ;; category.
 	  (when (or arg (called-interactively-p 'any))
@@ -2877,7 +2877,7 @@ section in the category moved to."
                 (setq here (point))
                 (while todo-items
                   (todo-forward-item)
-                  (let ((buffer-read-only nil))
+                  (let ((inhibit-read-only t))
 		    (todo-insert-with-overlays (pop todo-items)))))
 	      ;; Move done items en bloc to top of done items section.
               (when done-items
@@ -2892,7 +2892,7 @@ section in the category moved to."
 		(forward-line)
                 (unless here (setq here (point)))
                 (while done-items
-                  (let ((buffer-read-only nil))
+                  (let ((inhibit-read-only t))
 		    (todo-insert-with-overlays (pop done-items)))
                   (todo-item-end)
 		  (forward-line)))
@@ -2933,13 +2933,13 @@ section in the category moved to."
 			(goto-char beg)
 			(while (< (point) end)
 			  (if (todo-marked-item-p)
-			      (let ((buffer-read-only nil))
+			      (let ((inhibit-read-only t))
 				(todo-remove-item))
 			    (todo-forward-item)))
 			(setq todo-categories-with-marks
 			      (assq-delete-all cat1 todo-categories-with-marks)))
 		    (if ov (delete-overlay ov))
-		    (let ((buffer-read-only nil))
+		    (let ((inhibit-read-only t))
 		      (todo-remove-item)))))
 	      (when todo (todo-update-count 'todo (- todo) cat1))
 	      (when diary (todo-update-count 'diary (- diary) cat1))
@@ -2999,7 +2999,7 @@ visible."
 	     (show-done (save-excursion
 			  (goto-char (point-min))
 			  (re-search-forward todo-done-string-start nil t)))
-	     (buffer-read-only nil)
+	     (inhibit-read-only t)
 	     header item done-items
 	     (opoint (point)))
 	;; Don't add empty comment to done item.
@@ -3131,7 +3131,7 @@ comments without asking."
 	  (when ov (delete-overlay ov))
 	  (if (not undone)
 	      (goto-char opoint)
-	    (let ((buffer-read-only nil))
+	    (let ((inhibit-read-only t))
 	      (if marked
 		  (progn
 		    (setq item nil)
@@ -3299,7 +3299,7 @@ this category does not exist in the archive, it is created."
 		  (todo-archive-mode))
                 (if headers-hidden (todo-toggle-item-header))))
 	    (with-current-buffer tbuf
-	      (let ((buffer-read-only nil))
+	      (let ((inhibit-read-only t))
 		(cond
 		 (all
 		  (save-excursion
@@ -3602,7 +3602,7 @@ decreasing or increasing its number."
 	       ;; Category's name and items counts list.
 	       (catcons (nth (1- curnum) todo-categories))
 	       (todo-categories (nconc head (list catcons) tail))
-	       (buffer-read-only nil)
+	       (inhibit-read-only t)
 	       newcats)
 	  (when lower (setq todo-categories (nreverse todo-categories)))
 	  (setq todo-categories (delete-dups todo-categories))
@@ -3823,8 +3823,7 @@ which is the value of the user option
 				(cons todo-categories-diary-label 'diary)
 				(cons todo-categories-done-label 'done)
 				(cons todo-categories-archived-label
-				      'archived)))
-			  "")
+				      'archived))))
 	     " ") ; Make highlighting on last column look better.
      'face (if (and todo-skip-archived-categories
 		    (zerop (todo-get-count 'todo cat))
@@ -3932,8 +3931,7 @@ which is the value of the user option
 	       (list (cons todo-categories-todo-label 0)
 		     (cons todo-categories-diary-label 1)
 		     (cons todo-categories-done-label 2)
-		     (cons todo-categories-archived-label 3)))
-	     ""))
+		     (cons todo-categories-archived-label 3)))))
     ;; Put cursor on Category button initially.
     (if pt (goto-char pt))
     (setq buffer-read-only t)))
@@ -4758,7 +4756,7 @@ Helper function for `todo-convert-legacy-files'."
        (time (match-string 4))
        dayname)
     (replace-match "")
-    (insert (mapconcat #'eval calendar-date-display-form "")
+    (insert (mapconcat #'eval calendar-date-display-form)
 	    (when time (concat " " time)))))
 
 (defun todo-convert-legacy-files ()
@@ -5112,7 +5110,7 @@ With nil or omitted CATEGORY, default to the current category."
 
 (defun todo-update-categories-sexp ()
   "Update the `todo-categories' sexp at the top of the file."
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(print-length nil)
         (print-level nil))
     (save-excursion
@@ -6180,7 +6178,7 @@ number of the last the day of the month."
 	       (if (memq 'month calendar-date-display-form)
 		   month
 		 monthname)))
-      (mapconcat #'eval calendar-date-display-form ""))))
+      (mapconcat #'eval calendar-date-display-form))))
 
 (defun todo-read-dayname ()
   "Choose name of a day of the week with completion and return it."
