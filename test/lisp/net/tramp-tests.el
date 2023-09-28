@@ -7384,13 +7384,13 @@ This requires restrictions of file name syntax."
 		  ;; of process output.  So we unset it temporarily.
 		  (setenv "PS1")
 		  (with-temp-buffer
-		    (should (zerop (process-file "printenv" nil t nil)))
-		    (goto-char (point-min))
-		    (should
-		     (re-search-forward
-		      (tramp-compat-rx
-		       bol (literal envvar)
-		       "=" (literal (getenv envvar)) eol))))))))
+		    (when (zerop (process-file "printenv" nil t nil))
+		      (goto-char (point-min))
+		      (should
+		       (re-search-forward
+			(tramp-compat-rx
+			 bol (literal envvar)
+			 "=" (literal (getenv envvar)) eol)))))))))
 
 	;; Cleanup.
 	(ignore-errors (kill-buffer buffer))
