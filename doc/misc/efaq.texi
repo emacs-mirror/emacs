@@ -3301,12 +3301,12 @@ Emacs has an inherent fixed limitation on the size of buffers.  This
 limit is stricter than the maximum size of objects supported by other
 programs on the same architecture.
 
-The maximum buffer size on 32-bit machines is 512 MBytes.  If Emacs
-was built using the @code{--with-wide-int} flag, the maximum buffer
-size on 32-bit machines is 2 GB.
+The maximum buffer size on 64-bit machines is 2.3 exabytes
+(@code{most-positive-fixnum}).
 
-Emacs compiled on a 64-bit machine can handle much larger buffers; up
-to @code{most-positive-fixnum} (2.3 exabytes).
+Emacs compiled on a 32-bit machine can handle buffers up to 512
+MBytes.  If Emacs was built using the @code{--with-wide-int} flag, the
+maximum buffer size on 32-bit machines is 2 GB.
 
 Due to things like decoding of multibyte characters, you can only
 visit files with a size that is roughly half the buffer size limit.
