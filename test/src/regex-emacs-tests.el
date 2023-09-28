@@ -907,6 +907,7 @@ This evaluates the TESTS test cases from glibc."
     ;; Regression check for overly optimistic optimization.
     (should (eq 0 (string-match "\\(ca*\\|ab\\)+d" "cabd")))
     (should (string-match "\\(aa*\\|b\\)*c" "ababc"))
+    (should (string-match " \\sw*\\bfoo" " foo"))
     ))
 
 (ert-deftest regexp-tests-zero-width-assertion-repetition ()

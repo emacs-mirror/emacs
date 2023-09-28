@@ -3874,9 +3874,22 @@ mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
       return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == p2[1]);
 
     case wordbound:
+      /* FIXME: This optimization seems correct after the first iteration
+         of the loop, but not for the very first :-(
+         IOW we'd need to pull out the first iteration and do:
+
+            syntaxspec w
+            on_failure_keep_string_jump end
+          loop:
+            syntaxspec w
+            goto loop
+          end:
+            wordbound
+
       return (((re_opcode_t) *p1 == notsyntaxspec
-	       || (re_opcode_t) *p1 == syntaxspec)
-	      && p1[1] == Sword);
+               || (re_opcode_t) *p1 == syntaxspec)
+              && p1[1] == Sword);  */
+      return false;
 
     case categoryspec:
       return ((re_opcode_t) *p1 == notcategoryspec && p1[1] == p2[1]);
