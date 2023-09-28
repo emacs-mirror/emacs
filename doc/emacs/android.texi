@@ -690,6 +690,15 @@ these key sequences before they can be filtered by the input method.
 disabled by setting the variable
 @code{android-intercept-control-space} to @code{nil}.
 
+@vindex android-keyboard-bell-duration
+@cindex keyboard bell, android
+  The keyboard bell installed within Android systems takes the form of
+a vibrating element that is activated for a number of milliseconds
+whenever the bell is rung.  The duration of this vibration can be
+customized through altering the variable
+@code{android-keyboard-bell-duration} to any value between @code{10}
+and @code{1000}.
+
 @node Android Fonts
 @section Font Backends and Selection under Android
 @cindex fonts, android

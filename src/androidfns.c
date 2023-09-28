@@ -3232,6 +3232,14 @@ restrictions.
 This option has no effect on Android 9 and earlier.  */);
   android_use_exec_loader = true;
 
+  DEFVAR_INT ("android-keyboard-bell-duration",
+	      android_keyboard_bell_duration,
+    doc: /* Number of milliseconds to vibrate after ringing the keyboard bell.
+The keyboard bell under Android systems takes the form of a vibrating
+element that is activated for a given number of milliseconds upon the
+bell being rung.  */);
+  android_keyboard_bell_duration = 50;
+
   /* Functions defined.  */
   defsubr (&Sx_create_frame);
   defsubr (&Sxw_color_defined_p);
