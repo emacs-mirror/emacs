@@ -2227,7 +2227,7 @@ otherwise it could decide to silently do nothing."
    ((not (menu-bar-menu-frame-live-and-visible-p)))
    ((menu-bar-non-minibuffer-window-p)
     (kill-buffer (current-buffer))
-    ;; Also close the current window if `menu-bar-close-windows' is
+    ;; Also close the current window if `menu-bar-close-window' is
     ;; set.
     (when menu-bar-close-window
       (ignore-errors (delete-window))))

@@ -69,7 +69,7 @@ For native compiled Lisp functions 'describe-function' prints (after
 the signature) the automatically inferred function type as well.
 
 ---
-** New user option 'describe-bindings-outline-rules'.
+*** New user option 'describe-bindings-outline-rules'.
 This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
