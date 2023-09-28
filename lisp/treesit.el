@@ -1880,10 +1880,10 @@ Helper function to use in the `interactive' spec of `treesit-check-indent'."
 	   (format-prompt "Target major mode" default)
 	   obarray
 	   (lambda (sym)
-	     (and (string-match-p "-mode\\'" (symbol-name sym))
+	     (and (string-suffix-p "-mode" (symbol-name sym))
 		  (not (or (memq sym minor-mode-list)
-                           (string-match-p "-minor-mode\\'"
-                                           (symbol-name sym))))))
+                           (string-suffix-p "-minor-mode"
+                                            (symbol-name sym))))))
 	   nil nil nil default nil)))
     (cond
      ((equal mode "nil") nil)
