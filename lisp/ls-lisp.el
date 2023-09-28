@@ -161,8 +161,8 @@ systems, set your locale instead."
 	((eq ls-lisp-emulation 'MS-Windows)
 	 (if (and (fboundp 'w32-using-nt) (w32-using-nt))
 	     '(links)))			; distinguish NT/2K from 9x
-	((eq ls-lisp-emulation 'UNIX) '(links uid)) ; UNIX ls
-	(t '(links uid gid)))		; GNU ls
+	((eq ls-lisp-emulation 'UNIX) '(links uid modes)) ; UNIX ls
+	(t '(links uid gid modes)))		; GNU ls
   "A list of optional file attributes that ls-lisp should display.
 It should contain none or more of the symbols: links, uid, gid.
 A value of nil (or an empty list) means display none of them.
@@ -808,7 +808,9 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 			     (* 1024.0 (fceiling (/ file-size 1024.0)))))
 		  (format ls-lisp-filesize-b-fmt
 			  (fceiling (/ file-size 1024.0)))))
-	    drwxrwxrwx			; attribute string
+            (if (memq 'modes ls-lisp-verbosity)
+	        drwxrwxrwx      ; modes string
+              (substring drwxrwxrwx 0 1)) ; "d" or "-" for directory vs file
 	    (if (memq 'links ls-lisp-verbosity)
 		(format "%3d" (file-attribute-link-number file-attr)))
 	    ;; Numeric uid/gid are more confusing than helpful;
