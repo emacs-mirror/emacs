@@ -145,7 +145,7 @@ Note that there is no way to differentiate the case where a key
 is missing from when it is present, but its value is nil.  Thus,
 the following form evaluates to nil:
 
-    (let-alist '((some-key . nil))
+    (let-alist \\='((some-key . nil))
       .some-key)"
   (declare (indent 1) (debug t))
   (let ((var (make-symbol "alist")))
