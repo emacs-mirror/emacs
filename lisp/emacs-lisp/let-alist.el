@@ -9,8 +9,8 @@
 ;; Prefix: let-alist
 ;; Separator: -
 
-;; This is an Elpa :core package. Don't use functionality that is not
-;; compatible with Emacs 24.1.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
