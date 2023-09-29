@@ -1183,6 +1183,9 @@ runs its body, and removes the current buffer from
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
 
++++
+** 'read-directory-name' now accepts an optional PREDICATE argument.
+
 ---
 ** All the digit characters now have the 'digit' category.
 All the characters whose Unicode general-category is Nd now have the

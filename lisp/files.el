@@ -875,7 +875,7 @@ See Info node `(elisp)Standard File Names' for more details."
     (dos-convert-standard-filename filename))
    (t filename)))
 
-(defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
+(defun read-directory-name (prompt &optional dir default-dirname mustmatch initial predicate)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
 Default name to DEFAULT-DIRNAME if user exits with the same
@@ -889,14 +889,21 @@ Fourth arg MUSTMATCH non-nil means require existing directory's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
 DIR should be an absolute directory name.  It defaults to
-the value of `default-directory'."
+the value of `default-directory'.
+When sixth arg PREDICATE is non-nil, the union of PREDICATE and
+`file-directory-p' is passed as the PREDICATE argument to
+`read-file-name'.  Otherwise, only `file-directory-p' is passed."
   (unless dir
     (setq dir default-directory))
   (read-file-name prompt dir (or default-dirname
 				 (if initial (expand-file-name initial dir)
 				   dir))
 		  mustmatch initial
-		  'file-directory-p))
+                  (if predicate
+                      (lambda (filename)
+                        (and (file-directory-p filename)
+                             (funcall predicate filename)))
+                    #'file-directory-p)))
 
 
 (defun pwd (&optional insert)
