@@ -268,7 +268,9 @@ typedef enum
   on_failure_jump,
 
 	/* Like on_failure_jump, but pushes a placeholder instead of the
-	   current string position when executed.  */
+	   current string position when executed.  Upon failure,
+	   the current string position is thus not restored.
+	   Used only for single-char loops that don't require backtracking.  */
   on_failure_keep_string_jump,
 
 	/* Just like 'on_failure_jump', except that it checks that we
@@ -434,38 +436,27 @@ extract_number_and_incr (re_char **source)
 /* If REGEX_EMACS_DEBUG is defined, print many voluminous messages
    (if the variable regex_emacs_debug is positive).  */
 
-#ifdef REGEX_EMACS_DEBUG
+#if defined REGEX_EMACS_DEBUG || ENABLE_CHECKING
 
 /* Use standard I/O for debugging.  */
 # include "sysstdio.h"
 
-static int regex_emacs_debug = -100000;
-
-# define DEBUG_STATEMENT(e) e
-# define DEBUG_PRINT(...)                                       \
-  if (regex_emacs_debug > 0) fprintf (stderr, __VA_ARGS__)
-# define DEBUG_COMPILES_ARGUMENTS
-# define DEBUG_PRINT_COMPILED_PATTERN(p, s, e)				\
-  if (regex_emacs_debug > 0) print_partial_compiled_pattern (s, e)
-# define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)			\
-  if (regex_emacs_debug > 0) print_double_string (w, s1, sz1, s2, sz2)
-
 static void
-debug_putchar (int c)
+debug_putchar (FILE *dest, int c)
 {
   if (c >= 32 && c <= 126)
-    putc (c, stderr);
+    putc (c, dest);
   else
     {
       unsigned int uc = c;
-      fprintf (stderr, "{%02x}", uc);
+      fprintf (dest, "{%02x}", uc);
     }
 }
 
 /* Print the fastmap in human-readable form.  */
 
 static void
-print_fastmap (char *fastmap)
+print_fastmap (FILE *dest, char *fastmap)
 {
   bool was_a_range = false;
   int i = 0;
@@ -475,7 +466,7 @@ print_fastmap (char *fastmap)
       if (fastmap[i++])
 	{
 	  was_a_range = false;
-	  debug_putchar (i - 1);
+	  debug_putchar (dest, i - 1);
 	  while (i < (1 << BYTEWIDTH)  &&  fastmap[i])
 	    {
 	      was_a_range = true;
@@ -483,12 +474,12 @@ print_fastmap (char *fastmap)
 	    }
 	  if (was_a_range)
 	    {
-	      debug_putchar ('-');
-	      debug_putchar (i - 1);
+	      debug_putchar (dest, '-');
+	      debug_putchar (dest, i - 1);
 	    }
 	}
     }
-  putc ('\n', stderr);
+  putc ('\n', dest);
 }
 
 
@@ -496,7 +487,7 @@ print_fastmap (char *fastmap)
    the START pointer into it and ending just before the pointer END.  */
 
 static void
-print_partial_compiled_pattern (re_char *start, re_char *end)
+print_partial_compiled_pattern (FILE *dest, re_char *start, re_char *end)
 {
   int mcnt, mcnt2;
   re_char *p = start;
@@ -504,50 +495,50 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 
   if (start == NULL)
     {
-      fputs ("(null)\n", stderr);
+      fputs ("(null)\n", dest);
       return;
     }
 
   /* Loop over pattern commands.  */
   while (p < pend)
     {
-      fprintf (stderr, "%td:\t", p - start);
+      fprintf (dest, "%td:\t", p - start);
 
       switch ((re_opcode_t) *p++)
 	{
 	case no_op:
-	  fputs ("/no_op", stderr);
+	  fputs ("/no_op", dest);
 	  break;
 
 	case succeed:
-	  fputs ("/succeed", stderr);
+	  fputs ("/succeed", dest);
 	  break;
 
 	case exactn:
 	  mcnt = *p++;
-	  fprintf (stderr, "/exactn/%d", mcnt);
+	  fprintf (dest, "/exactn/%d", mcnt);
 	  do
 	    {
-	      debug_putchar ('/');
-	      debug_putchar (*p++);
+	      debug_putchar (dest, '/');
+	      debug_putchar (dest, *p++);
 	    }
 	  while (--mcnt);
 	  break;
 
 	case start_memory:
-	  fprintf (stderr, "/start_memory/%d", *p++);
+	  fprintf (dest, "/start_memory/%d", *p++);
 	  break;
 
 	case stop_memory:
-	  fprintf (stderr, "/stop_memory/%d", *p++);
+	  fprintf (dest, "/stop_memory/%d", *p++);
 	  break;
 
 	case duplicate:
-	  fprintf (stderr, "/duplicate/%d", *p++);
+	  fprintf (dest, "/duplicate/%d", *p++);
 	  break;
 
 	case anychar:
-	  fputs ("/anychar", stderr);
+	  fputs ("/anychar", dest);
 	  break;
 
 	case charset:
@@ -558,11 +549,11 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	    int length = CHARSET_BITMAP_SIZE (p - 1);
 	    bool has_range_table = CHARSET_RANGE_TABLE_EXISTS_P (p - 1);
 
-	    fprintf (stderr, "/charset [%s",
+	    fprintf (dest, "/charset [%s",
 		     (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
 	    if (p + (*p & 0x7f) >= pend)
-	      fputs (" !extends past end of pattern! ", stderr);
+	      fputs (" !extends past end of pattern! ", dest);
 
 	    for (c = 0; c < 256; c++)
 	      if (c / 8 < length
@@ -571,33 +562,33 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 		  /* Are we starting a range?  */
 		  if (last + 1 == c && ! in_range)
 		    {
-		      debug_putchar ('-');
+		      debug_putchar (dest, '-');
 		      in_range = true;
 		    }
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
 		    {
-		      debug_putchar (last);
+		      debug_putchar (dest, last);
 		      in_range = false;
 		    }
 
 		  if (! in_range)
-		    debug_putchar (c);
+		    debug_putchar (dest, c);
 
 		  last = c;
 	      }
 
 	    if (in_range)
-	      debug_putchar (last);
+	      debug_putchar (dest, last);
 
-	    debug_putchar (']');
+	    debug_putchar (dest, ']');
 
 	    p += 1 + length;
 
 	    if (has_range_table)
 	      {
 		int count;
-		fputs ("has-range-table", stderr);
+		fputs ("has-range-table", dest);
 
 		/* ??? Should print the range table; for now, just skip it.  */
 		p += 2;		/* skip range table bits */
@@ -608,160 +599,175 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	  break;
 
 	case begline:
-	  fputs ("/begline", stderr);
+	  fputs ("/begline", dest);
 	  break;
 
 	case endline:
-	  fputs ("/endline", stderr);
+	  fputs ("/endline", dest);
 	  break;
 
 	case on_failure_jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump to %td", p + mcnt - start);
+	  fprintf (dest, "/on_failure_jump to %td", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_keep_string_jump to %td",
+	  fprintf (dest, "/on_failure_keep_string_jump to %td",
 		   p + mcnt - start);
 	  break;
 
 	case on_failure_jump_nastyloop:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump_nastyloop to %td",
+	  fprintf (dest, "/on_failure_jump_nastyloop to %td",
 		   p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump_loop to %td",
+	  fprintf (dest, "/on_failure_jump_loop to %td",
 		   p + mcnt - start);
 	  break;
 
 	case on_failure_jump_smart:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump_smart to %td",
+	  fprintf (dest, "/on_failure_jump_smart to %td",
 		   p + mcnt - start);
 	  break;
 
 	case jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/jump to %td", p + mcnt - start);
+	  fprintf (dest, "/jump to %td", p + mcnt - start);
 	  break;
 
 	case succeed_n:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  EXTRACT_NUMBER_AND_INCR (mcnt2, p);
-	  fprintf (stderr, "/succeed_n to %td, %d times",
+	  fprintf (dest, "/succeed_n to %td, %d times",
 		   p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case jump_n:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  EXTRACT_NUMBER_AND_INCR (mcnt2, p);
-	  fprintf (stderr, "/jump_n to %td, %d times",
+	  fprintf (dest, "/jump_n to %td, %d times",
 		   p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case set_number_at:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  EXTRACT_NUMBER_AND_INCR (mcnt2, p);
-	  fprintf (stderr, "/set_number_at location %td to %d",
+	  fprintf (dest, "/set_number_at location %td to %d",
 		   p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case wordbound:
-	  fputs ("/wordbound", stderr);
+	  fputs ("/wordbound", dest);
 	  break;
 
 	case notwordbound:
-	  fputs ("/notwordbound", stderr);
+	  fputs ("/notwordbound", dest);
 	  break;
 
 	case wordbeg:
-	  fputs ("/wordbeg", stderr);
+	  fputs ("/wordbeg", dest);
 	  break;
 
 	case wordend:
-	  fputs ("/wordend", stderr);
+	  fputs ("/wordend", dest);
 	  break;
 
 	case symbeg:
-	  fputs ("/symbeg", stderr);
+	  fputs ("/symbeg", dest);
 	  break;
 
 	case symend:
-	  fputs ("/symend", stderr);
+	  fputs ("/symend", dest);
 	  break;
 
 	case syntaxspec:
-	  fputs ("/syntaxspec", stderr);
+	  fputs ("/syntaxspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case notsyntaxspec:
-	  fputs ("/notsyntaxspec", stderr);
+	  fputs ("/notsyntaxspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case at_dot:
-	  fputs ("/at_dot", stderr);
+	  fputs ("/at_dot", dest);
 	  break;
 
 	case categoryspec:
-	  fputs ("/categoryspec", stderr);
+	  fputs ("/categoryspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case notcategoryspec:
-	  fputs ("/notcategoryspec", stderr);
+	  fputs ("/notcategoryspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case begbuf:
-	  fputs ("/begbuf", stderr);
+	  fputs ("/begbuf", dest);
 	  break;
 
 	case endbuf:
-	  fputs ("/endbuf", stderr);
+	  fputs ("/endbuf", dest);
 	  break;
 
 	default:
-	  fprintf (stderr, "?%d", *(p-1));
+	  fprintf (dest, "?%d", *(p-1));
 	}
 
-      putc ('\n', stderr);
+      putc ('\n', dest);
     }
 
-  fprintf (stderr, "%td:\tend of pattern.\n", p - start);
+  fprintf (dest, "%td:\tend of pattern.\n", p - start);
 }
 
-
-static void
-print_compiled_pattern (struct re_pattern_buffer *bufp)
+void
+print_compiled_pattern (FILE *dest, struct re_pattern_buffer *bufp)
 {
+  if (!dest)
+    dest = stderr;
   re_char *buffer = bufp->buffer;
 
-  print_partial_compiled_pattern (buffer, buffer + bufp->used);
-  fprintf (stderr, "%td bytes used/%td bytes allocated.\n",
+  print_partial_compiled_pattern (dest, buffer, buffer + bufp->used);
+  fprintf (dest, "%td bytes used/%td bytes allocated.\n",
            bufp->used, bufp->allocated);
 
   if (bufp->fastmap_accurate && bufp->fastmap)
     {
-      fputs ("fastmap: ", stderr);
-      print_fastmap (bufp->fastmap);
+      fputs ("fastmap: ", dest);
+      print_fastmap (dest, bufp->fastmap);
     }
 
-  fprintf (stderr, "re_nsub: %td\t", bufp->re_nsub);
-  fprintf (stderr, "regs_alloc: %d\t", bufp->regs_allocated);
-  fprintf (stderr, "can_be_null: %d\n", bufp->can_be_null);
+  fprintf (dest, "re_nsub: %td\t", bufp->re_nsub);
+  fprintf (dest, "regs_alloc: %d\t", bufp->regs_allocated);
+  fprintf (dest, "can_be_null: %d\n", bufp->can_be_null);
   /* Perhaps we should print the translate table?  */
 }
 
+#endif
+
+#ifdef REGEX_EMACS_DEBUG
+
+static int regex_emacs_debug = -100000;
+
+# define DEBUG_STATEMENT(e) e
+# define DEBUG_PRINT(...)                                       \
+  if (regex_emacs_debug > 0) fprintf (stderr, __VA_ARGS__)
+# define DEBUG_COMPILES_ARGUMENTS
+# define DEBUG_PRINT_COMPILED_PATTERN(p, s, e)				\
+  if (regex_emacs_debug > 0) print_partial_compiled_pattern (stderr, s, e)
+# define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)			\
+  if (regex_emacs_debug > 0) print_double_string (w, s1, sz1, s2, sz2)
 
 static void
 print_double_string (re_char *where, re_char *string1, ptrdiff_t size1,
@@ -775,12 +781,12 @@ print_double_string (re_char *where, re_char *string1, ptrdiff_t size1,
       if (FIRST_STRING_P (where))
 	{
 	  for (i = 0; i < string1 + size1 - where; i++)
-	    debug_putchar (where[i]);
+	    debug_putchar (stderr, where[i]);
 	  where = string2;
 	}
 
       for (i = 0; i < string2 + size2 - where; i++)
-        debug_putchar (where[i]);
+        debug_putchar (stderr, where[i]);
     }
 }
 
@@ -1760,7 +1766,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
   if (regex_emacs_debug > 0)
     {
       for (ptrdiff_t debug_count = 0; debug_count < size; debug_count++)
-	debug_putchar (pattern[debug_count]);
+	debug_putchar (stderr, pattern[debug_count]);
       putc ('\n', stderr);
     }
 #endif

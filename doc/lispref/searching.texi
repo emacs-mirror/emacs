@@ -1972,6 +1972,17 @@ advice, don't be afraid of performing the matching in multiple
 function calls, each using a simpler regexp where backtracking can
 more easily be contained.
 
+@defun re--describe-compiled regexp &optional raw
+To help diagnose problems in your regexps or in the regexp engine
+itself, this function returns a string describing the compiled
+form of @var{regexp}.  To make sense of it, it can be necessary
+to read at least the description of the @code{re_opcode_t} type in the
+@code{src/regex-emacs.c} file in Emacs' source code.
+
+It is currently able to give a meaningful description only if Emacs
+was compiled with @code{--enable_checking}.
+@end defun
+
 @node Regexp Search
 @section Regular Expression Searching
 @cindex regular expression searching

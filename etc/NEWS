@@ -976,6 +976,10 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 
 * Lisp Changes in Emacs 30.1
 
+** New function 're--describe-compiled' to see the innards of a regexp.
+If you compiled with '--enable-checking', you can use this to help debug
+either your regexp performance problems or the regexp engine.
+
 +++
 ** XLFDs are no longer restricted to 255 characters.
 'font-xlfd-name' now returns an XLFD even if it is greater than 255
