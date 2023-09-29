@@ -370,6 +370,12 @@ extract_number (re_char *source)
   return leading_byte * 256 + source[0];
 }
 
+static re_char *
+extract_address (re_char *source)
+{
+  return source + 2 + extract_number (source);
+}
+
 /* Same as EXTRACT_NUMBER, except increment SOURCE to after the number.
    SOURCE must be an lvalue.  */
 
@@ -1173,8 +1179,8 @@ static void insert_op2 (re_opcode_t op, unsigned char *loc,
 static bool at_begline_loc_p (re_char *pattern, re_char *p);
 static bool at_endline_loc_p (re_char *p, re_char *pend);
 static re_char *skip_one_char (re_char *p);
-static int analyze_first (re_char *p, re_char *pend,
-			  char *fastmap, bool multibyte);
+static bool analyze_first (re_char *p, re_char *pend,
+                           char *fastmap, bool multibyte);
 
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
@@ -1981,7 +1987,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		GET_BUFFER_SPACE (7); /* We might use less.  */
 		if (many_times_ok)
 		  {
-		    bool emptyp = !!analyze_first (laststart, b, NULL, false);
+		    bool emptyp = analyze_first (laststart, b, NULL, false);
 
 		    /* The non-greedy multiple match looks like
 		       a repeat..until: we only need a conditional jump
@@ -2687,7 +2693,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
     {
       re_compile_fastmap (bufp);
       DEBUG_PRINT ("\nCompiled pattern:\n");
-      print_compiled_pattern (bufp);
+      print_compiled_pattern (stderr, bufp);
     }
   regex_emacs_debug--;
 #endif
@@ -2822,11 +2828,11 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
    bother filling it up (obviously) and only return whether the
    pattern could potentially match the empty string.
 
-   Return 1  if p..pend might match the empty string.
-   Return 0  if p..pend matches at least one char.
-   Return -1 if fastmap was not updated accurately.  */
+   Return false if p..pend matches at least one char.
+   Return true  if p..pend might match the empty string
+                or if fastmap was not updated accurately.  */
 
-static int
+static bool
 analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 {
   int j, k;
@@ -2869,13 +2875,18 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
       switch (*p++)
 	{
 	case succeed:
-	  return 1;
+	  return true;
 
 	case duplicate:
 	  /* If the first character has to match a backreference, that means
 	     that the group was empty (since it already matched).  Since this
 	     is the only case that interests us here, we can assume that the
 	     backreference must match the empty string.  */
+	  /* Note: Only true if we started from bufp->buffer (e.g. when
+	     fastmap is non-NULL), but when fastmap is NULL we're only
+	     trying to figure out if the body of a loop can possibly match
+	     the empty string so it's safe (tho sometimes pessimistic)
+	     to presume that `duplicate` can.  */
 	  p++;
 	  continue;
 
@@ -2915,7 +2926,7 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	  /* We could put all the chars except for \n (and maybe \0)
 	     but we don't bother since it is generally not worth it.  */
 	  if (!fastmap) break;
-	  return -1;
+	  return true;
 
 
 	case charset_not:
@@ -2994,7 +3005,7 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	  if (!fastmap) break;
 	  /* This match depends on text properties.  These end with
 	     aborting optimizations.  */
-	  return -1;
+	  return true;
 
 	case categoryspec:
 	case notcategoryspec:
@@ -3068,7 +3079,7 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	    { /* We have to look down both arms.
 		 We first go down the "straight" path so as to minimize
 		 stack usage when going through alternatives.  */
-	      int r = analyze_first (p, pend, fastmap, multibyte);
+	      bool r = analyze_first (p, pend, fastmap, multibyte);
 	      if (r) return r;
 	      p += j;
 	    }
@@ -3096,7 +3107,7 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
 	  /* FIXME: Sadly, the above is not true when the loop's body
 	     can match the empty string :-(  */
 	  /* continue; */
-	  return -1;
+	  return true;
 
 	case set_number_at:
 	  p += 4;
@@ -3116,11 +3127,11 @@ analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
       /* Getting here means we have found the possible starting
 	 characters for one path of the pattern -- and that the empty
 	 string does not match.  We need not follow this path further.  */
-      return 0;
+      return false;
     } /* while p */
 
   /* We reached the end without matching anything.  */
-  return 1;
+  return true;
 
 } /* analyze_first */
 
@@ -3143,7 +3154,6 @@ static void
 re_compile_fastmap (struct re_pattern_buffer *bufp)
 {
   char *fastmap = bufp->fastmap;
-  int analysis;
 
   eassert (fastmap && bufp->buffer);
 
@@ -3152,9 +3162,8 @@ re_compile_fastmap (struct re_pattern_buffer *bufp)
   /* FIXME: Is the following assignment correct even when ANALYSIS < 0?  */
   bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
 
-  analysis = analyze_first (bufp->buffer, bufp->buffer + bufp->used,
-			    fastmap, RE_MULTIBYTE_P (bufp));
-  bufp->can_be_null = (analysis != 0);
+  bufp->can_be_null = analyze_first (bufp->buffer, bufp->buffer + bufp->used,
+			             fastmap, RE_MULTIBYTE_P (bufp));
 } /* re_compile_fastmap */
 
 /* Set REGS to hold NUM_REGS registers, storing them in STARTS and
@@ -3192,7 +3201,7 @@ re_set_registers (struct re_pattern_buffer *bufp, struct re_registers *regs,
 /* Searching routines.  */
 
 /* Like re_search_2, below, but only one string is specified, and
-   doesn't let you say where to stop matching. */
+   doesn't let you say where to stop matching.  */
 
 ptrdiff_t
 re_search (struct re_pattern_buffer *bufp, const char *string, ptrdiff_t size,
@@ -3573,7 +3582,6 @@ skip_one_char (re_char *p)
 static re_char *
 skip_noops (re_char *p, re_char *pend)
 {
-  int mcnt;
   while (p < pend)
     {
       switch (*p)
@@ -3584,9 +3592,7 @@ skip_noops (re_char *p, re_char *pend)
 	case no_op:
 	  p += 1; break;
 	case jump:
-	  p += 1;
-	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  p += mcnt;
+	  p = extract_address (p + 1);
 	  break;
 	default:
 	  return p;
@@ -3664,7 +3670,7 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte,
   return not;
 }
 
-/* Case where `p2` points to an `exactn`.  */
+/* Case where `p2` points to an `exactn` or `endline`.  */
 static bool
 mutually_exclusive_exactn (struct re_pattern_buffer *bufp, re_char *p1,
 		           re_char *p2)
@@ -3918,10 +3924,7 @@ mutually_exclusive_aux (struct re_pattern_buffer *bufp, re_char *p1,
 	   kind of thing.  Recognize this pattern since that subsequent
 	   `jump` is the one that jumps to the loop-entry.  */
 	if ((re_opcode_t) p2[0] == jump && mcnt == 3)
-	  {
-	    EXTRACT_NUMBER (mcnt, p2 + 1);
-	    p2 += mcnt + 3;
-	  }
+	  p2 = extract_address (p2 + 1);
 
 	/* We have to check that both destinations are safe.
 	   Arrange for `p2` to be the smaller of the two.  */
@@ -4092,6 +4095,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   /* This keeps track of how many buffer/string positions we examined.  */
   ptrdiff_t nchars = 0;
+
+  /* Final return value of the function.  */
+  ptrdiff_t retval = -1;        /* Presumes failure to match for now.  */
 
 #ifdef DEBUG_COMPILES_ARGUMENTS
   /* Counts the total number of registers pushed.  */
@@ -4347,15 +4353,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	  DEBUG_PRINT ("Returning %td from re_match_2.\n", dcnt);
 
-	  unbind_to (count, Qnil);
-	  SAFE_FREE ();
-	  /* The factor of 50 below is a heuristic that needs to be tuned.  It
-	     means we consider 50 buffer positions examined by this function
-	     roughly equivalent to the display engine iterating over a single
-	     buffer position.  */
-	  if (max_redisplay_ticks > 0 && nchars > 0)
-	    update_redisplay_ticks (nchars / 50 + 1, NULL);
-	  return dcnt;
+	  retval = dcnt;
+	  goto endof_re_match;
 	}
 
       /* Otherwise match next pattern command.  */
@@ -4848,7 +4847,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 
 	/* Have to succeed matching what follows at least n times.
-	   After that, handle like 'on_failure_jump'.  */
+	   After that, handle like 'on_failure_jump_loop'.  */
 	case succeed_n:
 	  /* Signedness doesn't matter since we only compare MCNT to 0.  */
 	  EXTRACT_NUMBER (mcnt, p + 2);
@@ -5196,8 +5195,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    case succeed_n:
 	      d = str;
 	    continue_failure_jump:
-	      EXTRACT_NUMBER_AND_INCR (mcnt, pat);
-	      p = pat + mcnt;
+	      p = extract_address (pat);
 	      break;
 
 	    case no_op:
@@ -5220,13 +5218,18 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   if (best_regs_set)
     goto restore_best_regs;
 
+endof_re_match:
   unbind_to (count, Qnil);
   SAFE_FREE ();
 
+  /* The factor of 50 below is a heuristic that needs to be tuned.
+     It means we consider 50 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
   if (max_redisplay_ticks > 0 && nchars > 0)
     update_redisplay_ticks (nchars / 50 + 1, NULL);
 
-  return -1;				/* Failure to match.  */
+  return retval;
 }
 
 /* Subroutine definitions for re_match_2.  */
