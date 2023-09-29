@@ -339,7 +339,8 @@ suppress.  For example, (not free-vars) will suppress the `free-vars' warning.
 The t value means \"all non experimental warning types\", and
 excludes the types in `byte-compile--emacs-build-warning-types'.
 A value of `all' really means all."
-  :type `(choice (const :tag "All" t)
+  :type `(choice (const :tag "Default selection" t)
+                 (const :tag "All" all)
 		 (set :menu-tag "Some"
                       ,@(mapcar (lambda (x) `(const ,x))
                                 byte-compile-warning-types))))
