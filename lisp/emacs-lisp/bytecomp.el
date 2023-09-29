@@ -1736,8 +1736,11 @@ Warn if documentation string of FORM is too wide.
 It is too wide if it has any lines longer than the largest of
 `fill-column' and `byte-compile-docstring-max-column'."
   (when (byte-compile-warning-enabled-p 'docstrings)
-    (let ((col (max byte-compile-docstring-max-column fill-column))
-          kind name docs)
+    (let* ((kind nil) (name nil) (docs nil)
+           (prefix (lambda ()
+                     (format "%s%s"
+                             kind
+                             (if name (format-message " `%s' " name) "")))))
       (pcase (car form)
         ((or 'autoload 'custom-declare-variable 'defalias
              'defconst 'define-abbrev-table
@@ -1745,20 +1748,18 @@ It is too wide if it has any lines longer than the largest of
              'custom-declare-face)
          (setq kind (nth 0 form))
          (setq name (nth 1 form))
+         (when (and (consp name) (eq (car name) 'quote))
+           (setq name (cadr name)))
          (setq docs (nth 3 form)))
         ('lambda
           (setq kind "")          ; can't be "function", unfortunately
-          (setq docs (and (stringp (nth 2 form))
-                          (nth 2 form)))))
-      (when (and (consp name) (eq (car name) 'quote))
-        (setq name (cadr name)))
-      (setq name (if name (format " `%s' " name) ""))
+          (setq docs (nth 2 form))))
       (when (and kind docs (stringp docs))
-        (when (byte-compile--wide-docstring-p docs col)
-          (byte-compile-warn-x
-           name
-           "%s%sdocstring wider than %s characters"
-           kind name col))
+        (let ((col (max byte-compile-docstring-max-column fill-column)))
+          (when (byte-compile--wide-docstring-p docs col)
+            (byte-compile-warn-x
+             name
+             "%sdocstring wider than %s characters" (funcall prefix) col)))
         ;; There's a "naked" ' character before a symbol/list, so it
         ;; should probably be quoted with \=.
         (when (string-match-p (rx (| (in " \t") bol)
@@ -1768,16 +1769,19 @@ It is too wide if it has any lines longer than the largest of
                               docs)
           (byte-compile-warn-x
            name
-           (concat "%s%sdocstring has wrong usage of unescaped single quotes"
+           (concat "%sdocstring has wrong usage of unescaped single quotes"
                    " (use \\=%c or different quoting such as %c...%c)")
-           kind name ?' ?` ?'))
+           (funcall prefix) ?' ?` ?'))
         ;; There's a "Unicode quote" in the string -- it should probably
         ;; be an ASCII one instead.
         (when (byte-compile-warning-enabled-p 'docstrings-non-ascii-quotes)
-          (when (string-match-p "\\( \"\\|[ \t]\\|^\\)[‘’]" docs)
+          (when (string-match-p (rx (| " \"" (in " \t") bol)
+                                    (in "‘’"))
+                                docs)
             (byte-compile-warn-x
-             name "%s%sdocstring has wrong usage of \"fancy\" single quotation marks"
-             kind name))))))
+             name
+             "%sdocstring uses curved single quotes; use %s instead of ‘...’"
+             (funcall prefix) "`...'"))))))
   form)
 
 ;; If we have compiled any calls to functions which are not known to be
