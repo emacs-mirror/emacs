@@ -733,9 +733,10 @@ various buffer change hooks."
 
 (defmacro c-forward-syntactic-ws (&optional limit)
   "Forward skip over syntactic whitespace.
-Syntactic whitespace is defined as whitespace characters, comments,
-and preprocessor directives.  However if point starts inside a comment
-or preprocessor directive, the content of it is not treated as
+Syntactic whitespace is defined as whitespace characters with
+whitespace (or comment-end) syntax, comments, and preprocessor
+directives.  However if point starts inside a comment or
+preprocessor directive, the content of it is not treated as
 whitespace.
 
 LIMIT sets an upper limit of the forward movement, if specified.  If
@@ -755,9 +756,10 @@ comment at the start of cc-engine.el for more info."
 
 (defmacro c-backward-syntactic-ws (&optional limit)
   "Backward skip over syntactic whitespace.
-Syntactic whitespace is defined as whitespace characters, comments,
-and preprocessor directives.  However if point starts inside a comment
-or preprocessor directive, the content of it is not treated as
+Syntactic whitespace is defined as whitespace characters with
+whitespace (or comment-end) syntax, comments, and preprocessor
+directives.  However if point starts inside a comment or
+preprocessor directive, the content of it is not treated as
 whitespace.
 
 LIMIT sets a lower limit of the backward movement, if specified.  If
@@ -1102,6 +1104,38 @@ continuations."
 		   (eq (char-before) ?\\)))
        (backward-char))))
 
+(defmacro c-skip-ws-chars-forward (string &optional lim)
+  ;; Move point forward, stopping before a char which isn't in STRING, or a
+  ;; char whose syntax isn't whitespace or comment-end, or at pos LIM.
+  ;; Note that \n usually has comment-end syntax.
+  ;;
+  ;; Returns the distance traveled, either zero or positive.
+  (declare (debug t))
+  `(let ((-lim- ,lim)
+	 (here (point))
+	 count)
+     (setq count (skip-chars-forward ,string -lim-))
+     (when (> count 0)
+       (goto-char here)
+       (setq count (skip-syntax-forward " >" (+ here count))))
+     count))
+
+(defmacro c-skip-ws-chars-backward (string &optional lim)
+  ;; Move point backward, stopping after a char which isn't in STRING, or a
+  ;; char whose syntax isn't whitespace or comment-end, or at pos LIM.  Note
+  ;; that \n usually has comment-end syntax.
+  ;;
+  ;; Returns the distance traveled, either zero or negative.
+  (declare (debug t))
+  `(let ((-lim- ,lim)
+	 (here (point))
+	 count)
+     (setq count (skip-chars-backward ,string -lim-))
+     (when (< count 0)
+       (goto-char here)
+       (setq count (skip-syntax-backward " >" (+ here count))))
+     count))
+
 (eval-and-compile
   (defvar c-langs-are-parametric nil))
 
@@ -1207,6 +1241,17 @@ MODE is either a mode symbol or a list of mode symbols."
 		    (eq `,property 'syntax-table))
 	   `((setq c-syntax-table-hwm (min c-syntax-table-hwm -pos-))))
        (put-text-property -pos- (1+ -pos-) ',property ,value))))
+
+(defmacro c-put-string-fence (pos)
+  ;; Put the string-fence syntax-table text property at POS.
+  ;; Since the character there cannot then count as syntactic whitespace,
+  ;; clear the properties `c-is-sws' and `c-in-sws' (see functions
+  ;; `c-forward-sws' and `c-backward-sws' in cc-engine.el for details).
+  (declare (debug t))
+  `(let ((-pos- ,pos))
+     (c-put-char-property -pos- 'syntax-table '(15))
+     (c-clear-char-property -pos- 'c-is-sws)
+     (c-clear-char-property -pos- 'c-in-sws)))
 
 (eval-and-compile
   ;; Constant to decide at compilation time whether to use category
