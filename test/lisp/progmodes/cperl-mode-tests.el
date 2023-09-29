@@ -25,6 +25,10 @@
 ;;; Commentary:
 
 ;; This is a collection of tests for CPerl-mode.
+;; The maintainer would like to use this test file with cperl-mode.el
+;; also in older Emacs versions (currently: Emacs 26.1): Please don't
+;; use Emacs features which are not available in that version (unless
+;; they're already used in existing tests).
 
 ;;; Code:
 
@@ -892,8 +896,8 @@ without a statement terminator on the same line does not loop
 forever.  The test starts an asynchronous Emacs batch process
 under timeout control."
   :tags '(:expensive-test)
-  (skip-when (getenv "EMACS_HYDRA_CI")) ; FIXME times out
-  (skip-when (< emacs-major-version 28)) ; times out in older Emacsen
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
+  (skip-unless (not (< emacs-major-version 28))) ; times out in older Emacsen
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let* ((emacs (concat invocation-directory invocation-name))
          (test-function 'cperl-test--run-bug-10483)
@@ -1242,7 +1246,7 @@ however, must not happen when the keyword occurs in a variable
 \"$else\" or \"$continue\"."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   ;; `self-insert-command' takes a second argument only since Emacs 27
-  (skip-when (< emacs-major-version 27))
+  (skip-unless (not (< emacs-major-version 27)))
   (with-temp-buffer
     (setq cperl-electric-keywords t)
     (cperl-mode)
