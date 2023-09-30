@@ -2841,6 +2841,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
     {
       re_char *newp1, *newp2, *tmp;
       re_char *p_orig = p;
+      int offset;
 
       if (p == pend)
         return false;
@@ -2978,7 +2979,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	    goto do_twoway_jump;
 
           case set_number_at:
-            int offset = extract_number (p + 1);
+            offset = extract_number (p + 1);
             DEBUG_STATEMENT (eassert (extract_number (p + 3)));
             /* If we're setting the counter of an immediately following
                `succeed_n`, then this next execution of `succeed_n` will do
