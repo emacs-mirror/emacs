@@ -2314,14 +2314,16 @@ The menu shows all the killed text sequences stored in `kill-ring'."
 
 ;;; Buffers Menu
 
-(defcustom buffers-menu-max-size 10
+(defcustom buffers-menu-max-size (if (display-graphic-p) 15 10)
   "Maximum number of entries which may appear on the Buffers menu.
-If this is 10, then only the ten most-recently-selected buffers are shown.
-If this is nil, then all buffers are shown.
-A large number or nil slows down menu responsiveness."
-  :type '(choice integer
-		 (const :tag "All" nil))
-  :group 'menu)
+If this is a number, only that many most-recently-selected
+buffers are shown.
+If this is nil, all buffers are shown."
+  :initialize #'custom-initialize-delay
+  :type '(choice natnum
+                 (const :tag "All" nil))
+  :group 'menu
+  :version "30.1")
 
 (defcustom buffers-menu-buffer-name-length 30
   "Maximum length of the buffer name on the Buffers menu.
@@ -2465,9 +2467,12 @@ It must accept a buffer as its only required argument.")
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
                (let ((i 0)
-		     (limit (and (integerp buffers-menu-max-size)
-				 (> buffers-menu-max-size 1)
-				 buffers-menu-max-size))
+                     (limit (if (boundp 'buffers-menu-max-size)
+                                (and (integerp buffers-menu-max-size)
+                                     (> buffers-menu-max-size 1)
+                                     buffers-menu-max-size)
+                              ;; Used when bootstrapping.
+                              10))
                      alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,
