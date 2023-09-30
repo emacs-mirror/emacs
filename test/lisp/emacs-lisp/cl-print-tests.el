@@ -60,18 +60,20 @@
 
 (ert-deftest cl-print-tests-ellipsis-string ()
   "Ellipsis expansion works in strings."
-  (let ((print-length 4)
-        (print-level 3))
+  (let ((cl-print-string-length 4))
     (cl-print-tests-check-ellipsis-expansion
      "abcdefg" "\"abcd...\"" "efg")
     (cl-print-tests-check-ellipsis-expansion
      "abcdefghijk" "\"abcd...\"" "efgh...")
-    (cl-print-tests-check-ellipsis-expansion
-     '(1 (2 (3 #("abcde" 0 5 (test t)))))
-     "(1 (2 (3 ...)))" "#(\"abcd...\" 0 5 (test t))")
-    (cl-print-tests-check-ellipsis-expansion
-     #("abcd" 0 1 (bold t) 1 2 (invisible t) 3 4 (italic t))
-     "#(\"abcd\" 0 1 (bold t) ...)" "1 2 (invisible t) ...")))
+    (let ((print-length 4)
+          (print-level 3))
+      (cl-print-tests-check-ellipsis-expansion
+       '(1 (2 (3 #("abcde" 0 5 (test t)))))
+       "(1 (2 (3 ...)))" "#(\"abcd...\" 0 5 (test t))"))
+    (let ((print-length 4))
+      (cl-print-tests-check-ellipsis-expansion
+       #("abcd" 0 1 (bold t) 1 2 (invisible t) 3 4 (italic t))
+       "#(\"abcd\" 0 1 (bold t) ...)" "1 2 (invisible t) ..."))))
 
 (ert-deftest cl-print-tests-ellipsis-struct ()
   "Ellipsis expansion works in structures."
