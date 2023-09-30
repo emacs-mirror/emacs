@@ -1,12 +1,15 @@
 ;;; ntlm.el --- NTLM (NT LanManager) authentication support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Keywords: NTLM, SASL, comm
 ;; Version: 2.1.0
 ;; Created: February 2001
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
