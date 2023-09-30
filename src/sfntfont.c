@@ -545,6 +545,11 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
       continue;
     }
 
+  /* The adstyle must be a symbol, so intern it if it is set.  */
+
+  if (!NILP (desc->adstyle))
+    desc->adstyle = Fintern (desc->adstyle, Qnil);
+
   SAFE_FREE ();
 }
 
@@ -1655,7 +1660,7 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec,
   if (NILP (desc->instances))
     {
       tem = AREF (spec, FONT_ADSTYLE_INDEX);
-      if (!NILP (tem) && NILP (Fequal (tem, desc->adstyle)))
+      if (!NILP (tem) && !EQ (tem, desc->adstyle))
 	return 0;
 
       if (FONT_WIDTH_NUMERIC (spec) != -1

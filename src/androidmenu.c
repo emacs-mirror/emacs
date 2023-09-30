@@ -248,7 +248,6 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   jobject title_string, help_string, temp;
   size_t i;
   Lisp_Object pane_name, prefix;
-  const char *pane_string;
   specpdl_ref count, count1;
   Lisp_Object item_name, enable, def, tem, entry, type, selected;
   Lisp_Object help;
@@ -357,13 +356,21 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  /* Now figure out the title of this pane.  */
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-	  pane_string = (NILP (pane_name)
-			 ? "" : SSDATA (pane_name));
-	  if ((menuflags & MENU_KEYMAPS) && !NILP (prefix))
-	    pane_string++;
+
+	  /* PANE_NAME may be nil, in which case it must be set to an
+	     empty string.  */
+
+	  if (NILP (pane_name))
+	    pane_name = empty_unibyte_string;
+
+	  /* Remove the leading prefix character if need be.  */
+
+	  if ((menuflags & MENU_KEYMAPS) && !NILP (prefix)
+	      && SCHARS (prefix))
+	    pane_name = Fsubstring (pane_name, make_fixnum (1), Qnil);
 
 	  /* Add the pane.  */
-	  temp = (*env)->NewStringUTF (env, pane_string);
+	  temp = android_build_string (pane_name);
 	  android_exception_check ();
 
 	  (*env)->CallNonvirtualVoidMethod (env, current_context_menu,
