@@ -79,7 +79,8 @@ See the documentation for `tmm-prompt'."
   "String to insert between shortcut and menu item.
 If nil, there will be no shortcuts.  It should not consist only of spaces,
 or else the correct item might not be found in the `*Completions*' buffer."
-  :type 'string)
+  :type '(choice (const :tag "No shortcuts" nil)
+                 string))
 
 (defvar tmm-mb-map nil
   "A place to store minibuffer map.")

@@ -26,6 +26,7 @@ SHELL = @SHELL@
 # Here are the things that we expect ../configure to edit.
 srcdir=@srcdir@
 top_builddir = @top_builddir@
+top_srcdir = @top_srcdir@
 
 # Where the generated files go.
 leimdir = ${srcdir}/../lisp/leim
@@ -134,9 +135,15 @@ ${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 
 ${leimdir}/ja-dic/ja-dic.el: | $(leimdir)/ja-dic
 
+# This is used to support regeneration of ja-dic when the SMALL_JA_DIC
+# option is flipped by the configure-time option.
+small-ja-dic-option: ../config.status
+	$(AM_V_GEN)echo "Small ja-dic option: $(SMALL_JA_DIC)" > $@.$$$$ && \
+	  ${top_srcdir}/build-aux/move-if-change $@.$$$$ $@
+
 .PHONY: generate-ja-dic
 generate-ja-dic: ${leimdir}/ja-dic/ja-dic.el
-${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
+${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L small-ja-dic-option
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
 	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" $(JA_DIC_NO_REDUCTION_OPTION) "$<"
 

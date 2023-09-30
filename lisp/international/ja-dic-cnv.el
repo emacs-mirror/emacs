@@ -346,6 +346,8 @@ If NO-REDUCTION is non-nil, do not reduce the dictionary vocabulary."
       (erase-buffer)
       (buffer-disable-undo)
       (generate-lisp-file-heading ja-dic-filename 'skkdic-convert :code nil)
+      (insert (format ";; Generated with small ja-dic option: %s\n\n"
+                      (if no-reduction "no" "yes")))
       (insert ";; Original SKK dictionary file: "
 	      (file-relative-name (expand-file-name filename) dirname)
 	      "\n\n"
