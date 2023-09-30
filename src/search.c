@@ -3391,13 +3391,13 @@ If RAW is non-nil, just return the actual bytecode.  */)
                        !NILP (BVAR (current_buffer,
                                     enable_multibyte_characters)));
   if (!NILP (raw))
-    return make_unibyte_string (cache_entry->buf.buffer,
+    return make_unibyte_string ((char *) cache_entry->buf.buffer,
                                 cache_entry->buf.used);
   else
     {                           /* FIXME: Why ENABLE_CHECKING?  */
-#if !ENABLE_CHECKING
+#if !defined ENABLE_CHECKING
       error ("Not available: rebuild with --enable-checking");
-#elsif HAVE_OPEN_MEMSTREAM
+#elif HAVE_OPEN_MEMSTREAM
       char *buffer = NULL;
       size_t size = 0;
       FILE* f = open_memstream (&buffer, &size);
@@ -3410,10 +3410,10 @@ If RAW is non-nil, just return the actual bytecode.  */)
       Lisp_Object description = make_unibyte_string (buffer, size);
       free (buffer);
       return description;
-#else
+#else /* ENABLE_CHECKING && !HAVE_OPEN_MEMSTREAM */
       print_compiled_pattern (stderr, &cache_entry->buf);
       return build_string ("Description was sent to standard error");
-#endif
+#endif /* !ENABLE_CHECKING */
     }
 }
 
