@@ -27,6 +27,19 @@ applies, and please also update docstrings as needed.
 
 * Startup Changes in Emacs 29.2
 
+** On GNU/Linux, Emacs is now the default application for 'org-protocol'.
+Org mode provides a way to quickly capture bookmarks, notes, and links
+using 'emacsclient':
+
+    emacsclient "org-protocol://store-link?url=URL&title=TITLE"
+
+Previously, users had to manually configure their GNU/Linux desktop
+environment to open 'org-protocol' links in Emacs.  These links should
+now open in Emacs automatically, as the "emacsclient.desktop" file now
+arranges for Emacs to be the default application for the 'org-protocol'
+URI scheme.  See the Org mode manual, Info node "(org) Protocols" for
+more details.
+
 
 * Changes in Emacs 29.2
 
@@ -2004,7 +2017,7 @@ The intention is that this command can be used to access a wide
 variety of version control system-specific functionality from VC
 without complexifying either the VC command set or the backend API.
 
-*** 'C-x v v' in a diffs buffer allows committing only some of the changes.
+*** 'C-x v v' in a diffs buffer allows to commit only some of the changes.
 This command is intended to allow you to commit only some of the
 changes you have in your working tree.  Begin by creating a buffer
 with the changes against the last commit, e.g. with 'C-x v D'
@@ -3501,7 +3514,7 @@ The variables 'connection-local-profile-alist' and
 make it more convenient to inspect and modify them.
 
 *** New function 'connection-local-update-profile-variables'.
-This function allows modifying the settings of an existing
+This function allows to modify the settings of an existing
 connection-local profile.
 
 *** New macro 'with-connection-local-application-variables'.
@@ -4018,7 +4031,7 @@ measured will be counted for the purpose of calculating the text
 dimensions.
 
 ** 'window-text-pixel-size' understands a new meaning of FROM.
-Specifying a cons as the FROM argument allows measuring text starting
+Specifying a cons as the FROM argument allows to start measuring text
 from a specified amount of pixels above or below a position.
 
 ** 'window-body-width' and 'window-body-height' can use remapped faces.
