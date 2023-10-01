@@ -2149,7 +2149,7 @@ overrides the environment variable.)
 Create a new client frame on the current text terminal, instead of
 using an existing Emacs frame.  This behaves just like the @samp{-c}
 option, described above, except that it creates a text terminal frame
-(@pxref{Non-Window Terminals}).
+(@pxref{Text Terminals}).
 
 On MS-Windows, @samp{-t} behaves just like @samp{-c} if the Emacs
 server is using the graphical display, but if the Emacs server is

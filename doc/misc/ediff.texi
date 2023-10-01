@@ -1368,13 +1368,13 @@ the variable @code{ediff-help-message}, which is local to
 @node Window and Frame Configuration
 @section Window and Frame Configuration
 
-On a non-windowing display, Ediff sets things up in one frame, splitting
+On a non-graphical display, Ediff sets things up in one frame, splitting
 it between a small control window and the windows for buffers A, B, and C@.
 The split between these windows can be horizontal or
 vertical, which can be changed interactively by typing @kbd{|} while the
 cursor is in the control window.
 
-On a window display, Ediff sets up a dedicated frame for Ediff Control
+On a graphical display, Ediff sets up a dedicated frame for Ediff Control
 Panel and then it chooses windows as follows: If one of the buffers
 is invisible, it is displayed in the currently selected frame.  If
 a buffer is visible, it is displayed in the frame where it is visible.
@@ -1477,7 +1477,7 @@ The multiframe setup is done by the
 @code{ediff-setup-windows-multiframe} function, which is the default on
 windowing displays.  The plain setup, one where all windows are always
 in one frame, is done by @code{ediff-setup-windows-plain}, which is the
-default on a non-windowing display (or in an xterm window).  In fact,
+default on a non-graphical display (or in an xterm window).  In fact,
 under Emacs, you can switch freely between these two setups by executing
 the command @code{ediff-toggle-multiframe} using the Minibuffer of the
 Menubar.
