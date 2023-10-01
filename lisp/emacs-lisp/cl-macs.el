@@ -3200,8 +3200,8 @@ To see the documentation for a defined struct type, use
                            ;; choose to avoid the byte-compiler
                            ;; warnings.
                            (if (>= (length long-docstring)
-                                   (or (and (boundp 'byte-compile-docstring-max-column)
-                                            byte-compile-docstring-max-column)
+                                   (or (bound-and-true-p
+                                        byte-compile-docstring-max-column)
                                        80))
                                (concat
                                 (internal--format-docstring-line
