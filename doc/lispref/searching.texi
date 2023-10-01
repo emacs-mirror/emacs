@@ -1980,7 +1980,7 @@ to read at least the description of the @code{re_opcode_t} type in the
 @code{src/regex-emacs.c} file in Emacs' source code.
 
 It is currently able to give a meaningful description only if Emacs
-was compiled with @code{--enable_checking}.
+was compiled with @code{--enable-checking}.
 @end defun
 
 @node Regexp Search
