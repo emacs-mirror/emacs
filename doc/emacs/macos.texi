@@ -149,7 +149,10 @@ the corresponding left-hand key.
 @vindex ns-use-proxy-icon
 @item ns-use-proxy-icon
 This variable specifies whether to display the proxy icon in the
-titlebar.
+titlebar.  The proxy icon can be used to drag the file associated with
+the current buffer to other applications, much in the same way you
+would do it from Finder.  You might have to disable
+@code{tool-bar-mode} to see the proxy icon.
 
 @vindex ns-confirm-quit
 @item ns-confirm-quit
