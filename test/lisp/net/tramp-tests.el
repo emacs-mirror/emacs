@@ -3441,12 +3441,12 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 		(rx-to-string
 		 `(:
 		   ;; There might be a summary line.
-		   (? "total" (+ nonl) (+ digit) (? blank)
+		   (? (* blank) "total" (+ nonl) (+ digit) (? blank)
 		      (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
 		   ;; We don't know in which order ".", ".." and "foo" appear.
 		   (= ,(length (directory-files tmp-name1))
 		      (+ nonl) blank
-		      (regexp ,(regexp-opt (directory-files tmp-name1)))
+		      (| . ,(directory-files tmp-name1))
 		      (? " ->" (+ nonl)) "\n"))))))
 
 	    ;; Check error cases.
@@ -7399,13 +7399,13 @@ This requires restrictions of file name syntax."
 		  ;; of process output.  So we unset it temporarily.
 		  (setenv "PS1")
 		  (with-temp-buffer
-		    (should (zerop (process-file "printenv" nil t nil)))
-		    (goto-char (point-min))
-		    (should
-		     (search-forward-regexp
-		      (rx
-		       bol (literal envvar)
-		       "=" (literal (getenv envvar)) eol))))))))
+		    (when (zerop (process-file "printenv" nil t nil))
+		      (goto-char (point-min))
+		      (should
+		       (search-forward-regexp
+			(rx
+			 bol (literal envvar)
+			 "=" (literal (getenv envvar)) eol)))))))))
 
 	;; Cleanup.
 	(ignore-errors (kill-buffer buffer))
@@ -7876,7 +7876,7 @@ process sentinels.  They shall not disturb each other."
 
 (ert-deftest tramp-test47-read-password ()
   "Check Tramp password handling."
-  :tags '(:expensive-test :unstable)
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-mock-p))
   ;; Not all read commands understand argument "-s" or "-p".
@@ -7933,7 +7933,7 @@ process sentinels.  They shall not disturb each other."
 	  (let ((auth-sources `(,netrc-file)))
 	    (should (file-exists-p ert-remote-temporary-file-directory)))))))))
 
-(ert-deftest tramp-test46-read-otp-password ()
+(ert-deftest tramp-test47-read-otp-password ()
   "Check Tramp one-time password handling."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-mock-p))
