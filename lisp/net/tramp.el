@@ -8,6 +8,9 @@
 ;; Keywords: comm, processes
 ;; Package: tramp
 
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded in trampver.el.
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
