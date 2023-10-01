@@ -145,9 +145,10 @@ of a hardware button that is always present on the device results in
 Emacs quitting.  @xref{Quitting}.
 
 @vindex x-quit-keysym
-  Which button is used to do this depends on the window system in use:
-on X, it is defined in the variable @code{x-quit-keysym}, and on
-Android, it is always the volume down button.
+  The button afforded such special treatment varies; under X, no such
+button exists by default, but one can be configured through the
+variable @code{x-quit-keysym}, whereas under Android it is always the
+volume down buttons.
 
 @cindex text conversion, keyboards
   Most input methods designed to work with on-screen keyboards perform
