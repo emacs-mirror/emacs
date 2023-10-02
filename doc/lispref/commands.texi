@@ -1854,20 +1854,19 @@ represented in Lisp as lists.  The lists record both the starting mouse
 position and the final position, like this:
 
 @example
-(@var{event-type}
- (@var{window1} START-POSITION)
- (@var{window2} END-POSITION))
+(@var{event-type} @var{start-position} @var{end-position})
 @end example
 
 For a drag event, the name of the symbol @var{event-type} contains the
 prefix @samp{drag-}.  For example, dragging the mouse with button 2
 held down generates a @code{drag-mouse-2} event.  The second and third
-elements of the event give the starting and ending position of the
-drag, as mouse position lists (@pxref{Click Events}).  You can access
-the second element of any mouse event in the same way.  However, the
-drag event may end outside the boundaries of the frame that was
-initially selected.  In that case, the third element's position list
-contains that frame in place of a window.
+elements of the event, @var{start-position} and @var{end-position} in
+the foregoing illustration, are set to the start and end positions of
+the drag as mouse position lists (@pxref{Click Events}).  You can
+access the second element of any mouse event in the same way.
+However, the drag event may end outside the boundaries of the frame
+that was initially selected.  In that case, the third element's
+position list contains that frame in place of a window.
 
 The @samp{drag-} prefix follows the modifier key prefixes such as
 @samp{C-} and @samp{M-}.

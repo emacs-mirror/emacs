@@ -1140,9 +1140,7 @@ is not read-only."
                               ;; ... generate a mouse-1 event...
                               (list 'mouse-1 posn)
                             ;; ... otherwise, generate a drag-mouse-1 event.
-                            (list 'drag-mouse-1 (cons old-window
-                                                      old-posn)
-                                  (cons new-window posn))))
+                            (list 'drag-mouse-1 old-posn posn)))
                       (if (and (eq new-window old-window)
                                (eq new-point old-point)
                                (windowp new-window)
@@ -1150,9 +1148,7 @@ is not read-only."
                           ;; ... generate a mouse-1 event...
                           (list 'mouse-1 posn)
                         ;; ... otherwise, generate a drag-mouse-1 event.
-                        (list 'drag-mouse-1 (cons old-window
-                                                  old-posn)
-                              (cons new-window posn)))))))
+                        (list 'drag-mouse-1 old-posn posn))))))
           ((eq what 'mouse-1-menu)
            ;; Generate a `down-mouse-1' event at the position the tap
            ;; took place.
