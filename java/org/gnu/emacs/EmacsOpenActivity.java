@@ -438,6 +438,12 @@ public final class EmacsOpenActivity extends Activity
 
 	scheme = uri.getScheme ();
 
+	/* It is possible for scheme to be NULL, under Android 2.3 at
+	   least.  */
+
+	if (scheme == null)
+	  return;
+
 	/* If URL is a mailto URI, call `message-mailto' much the same
 	   way emacsclient-mail.desktop does.  */
 
