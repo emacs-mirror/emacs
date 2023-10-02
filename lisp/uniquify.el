@@ -187,9 +187,9 @@ name will then be used to uniquify the buffer's name.
 
 To include components from the `project-name' of the buffer, set
 this variable to `project-uniquify-dirname-transform'."
-  :type '(choice (function-item :tag "Use directory name as-is" identity)
+  :type `(choice (function-item :tag "Use directory name as-is" identity)
                  (function-item :tag "Include project name in directory name"
-                                #'project-uniquify-dirname-transform)
+                                ,#'project-uniquify-dirname-transform)
                  function)
   :version "30.1"
   :group 'uniquify)

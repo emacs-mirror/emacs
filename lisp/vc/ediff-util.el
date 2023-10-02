@@ -1269,36 +1269,28 @@ which see."
     (or (display-graphic-p)
 	(user-error "Emacs is not running as a window application"))
 
-  (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
-	 (setq ediff-multiframe nil)
-	 (setq window-setup-func #'ediff-setup-windows-plain)
-         (message "ediff is now in `plain' mode"))
-	((eq ediff-window-setup-function #'ediff-setup-windows-plain)
-	 (if (and (ediff-buffer-live-p ediff-control-buffer)
-		  (window-live-p ediff-control-window))
-	     (set-window-dedicated-p ediff-control-window nil))
-	 (setq ediff-multiframe t)
-	 (setq window-setup-func #'ediff-setup-windows-multiframe)
-         (message "ediff is now in `multiframe' mode"))
-	(t
-	 (if (and (ediff-buffer-live-p ediff-control-buffer)
-		  (window-live-p ediff-control-window))
-	     (set-window-dedicated-p ediff-control-window nil))
-	 (setq ediff-multiframe t)
-	 (setq window-setup-func #'ediff-setup-windows-multiframe))
-         (message "ediff is now in `multiframe' mode"))
+    (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
+           (setq ediff-multiframe nil)
+           (setq window-setup-func #'ediff-setup-windows-plain)
+           (message "ediff is now in `plain' mode"))
+          (t ; (eq ediff-window-setup-function #'ediff-setup-windows-plain)
+           (if (and (ediff-buffer-live-p ediff-control-buffer)
+                    (window-live-p ediff-control-window))
+               (set-window-dedicated-p ediff-control-window nil))
+           (setq ediff-multiframe t)
+           (setq window-setup-func #'ediff-setup-windows-multiframe)
+           (message "ediff is now in `multiframe' mode")))
 
-  ;; change default
-  (setq-default ediff-window-setup-function window-setup-func)
-  ;; change in all active ediff sessions
-  (mapc (lambda(buf) (ediff-with-current-buffer buf
-		       (setq ediff-window-setup-function window-setup-func
-			     ediff-window-B nil)))
-	ediff-session-registry)
-  (if (ediff-in-control-buffer-p)
-      (progn
-	(set-window-dedicated-p (selected-window) nil)
-	(ediff-recenter 'no-rehighlight)))))
+    ;; change default
+    (setq-default ediff-window-setup-function window-setup-func)
+    ;; change in all active ediff sessions
+    (mapc (lambda (buf) (ediff-with-current-buffer buf
+                          (setq ediff-window-setup-function window-setup-func
+                                ediff-window-B nil)))
+          ediff-session-registry)
+    (when (ediff-in-control-buffer-p)
+      (set-window-dedicated-p (selected-window) nil)
+      (ediff-recenter 'no-rehighlight))))
 
 
 ;;;###autoload

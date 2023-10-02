@@ -1280,7 +1280,8 @@ The test is performed using `doc-view-pdfdraw-program'."
                                     (expand-file-name
                                      doc-view-epub-user-stylesheet)))))))
     (doc-view-start-process
-     "pdf->png" doc-view-pdfdraw-program
+     (concat "pdf->" (symbol-name doc-view--image-type))
+     doc-view-pdfdraw-program
      `(,@(doc-view-pdfdraw-program-subcommand)
        ,@options
        ,pdf

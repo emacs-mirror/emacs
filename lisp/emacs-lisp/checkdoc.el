@@ -2584,11 +2584,11 @@ Argument END is the maximum bounds to search in."
                  (rx "("
                      (* (syntax whitespace))
                      (group
-                      (or (seq (* (group (or wordchar (syntax symbol))))
+                      (or (seq (* (or wordchar (syntax symbol)))
                                "error")
-                          (seq (* (group (or wordchar (syntax symbol))))
+                          (seq (* (or wordchar (syntax symbol)))
                                (or "y-or-n-p" "yes-or-no-p")
-                               (? (group "-with-timeout")))
+                               (? "-with-timeout"))
                           "checkdoc-autofix-ask-replace"))
                      (+ (any "\n\t ")))
                  end t))

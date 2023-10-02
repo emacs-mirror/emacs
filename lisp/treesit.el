@@ -140,7 +140,10 @@ The function is called with one argument, the position of point.
 
 In general, this function should call `treesit-node-at' with an
 explicit language (usually the host language), and determine the
-language at point using the type of the returned node.")
+language at point using the type of the returned node.
+
+DO NOT derive the language at point from parser ranges.  It's
+cumbersome and can't deal with some edge cases.")
 
 (defun treesit-language-at (position)
   "Return the language at POSITION.
@@ -1689,8 +1692,8 @@ Return (ANCHOR . OFFSET).  This function is used by
                                 bol (car local-parsers)))
                 ((eq 1 (length (treesit-parser-list nil nil t)))
                  (treesit-node-at bol))
-                ((treesit-language-at (point))
-                 (treesit-node-at bol (treesit-language-at (point))))
+                ((treesit-language-at bol)
+                 (treesit-node-at bol (treesit-language-at bol)))
                 (t (treesit-node-at bol))))
          (root (treesit-parser-root-node
                 (treesit-node-parser smallest-node)))
@@ -1877,10 +1880,10 @@ Helper function to use in the `interactive' spec of `treesit-check-indent'."
 	   (format-prompt "Target major mode" default)
 	   obarray
 	   (lambda (sym)
-	     (and (string-match-p "-mode\\'" (symbol-name sym))
+	     (and (string-suffix-p "-mode" (symbol-name sym))
 		  (not (or (memq sym minor-mode-list)
-                           (string-match-p "-minor-mode\\'"
-                                           (symbol-name sym))))))
+                           (string-suffix-p "-minor-mode"
+                                            (symbol-name sym))))))
 	   nil nil nil default nil)))
     (cond
      ((equal mode "nil") nil)
@@ -2730,7 +2733,6 @@ before calling this function."
                 '( nil nil nil nil
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
-    (font-lock-mode 1)
     (treesit-font-lock-recompute-features)
     (dolist (parser (treesit-parser-list))
       (treesit-parser-add-notifier

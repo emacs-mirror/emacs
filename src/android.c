@@ -1552,7 +1552,7 @@ android_init_emacs_service (void)
 	       "(Lorg/gnu/emacs/EmacsWindow;)V");
   FIND_METHOD (clear_area, "clearArea",
 	       "(Lorg/gnu/emacs/EmacsWindow;IIII)V");
-  FIND_METHOD (ring_bell, "ringBell", "()V");
+  FIND_METHOD (ring_bell, "ringBell", "(I)V");
   FIND_METHOD (query_tree, "queryTree",
 	       "(Lorg/gnu/emacs/EmacsWindow;)[S");
   FIND_METHOD (get_screen_width, "getScreenWidth", "(Z)I");
@@ -4900,10 +4900,17 @@ android_put_image (android_pixmap handle, struct android_image *image)
 void
 android_bell (void)
 {
+  jint duration;
+
+  /* Restrict android_keyboard_bell_duration to values between 10 and
+     1000.  */
+  duration = MIN (1000, MAX (0, android_keyboard_bell_duration));
+
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
 						 emacs_service,
 						 service_class.class,
-						 service_class.ring_bell);
+						 service_class.ring_bell,
+						 duration);
   android_exception_check ();
 }
 

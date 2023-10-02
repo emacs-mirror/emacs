@@ -137,7 +137,7 @@ public final class EmacsDesktopNotification
 	    priority = Notification.PRIORITY_HIGH;
 	    break;
 	  }
-	
+
 	notification = (new Notification.Builder (context)
 			.setContentTitle (title)
 			.setContentText (content)

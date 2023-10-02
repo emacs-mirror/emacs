@@ -1664,13 +1664,13 @@ AC_ARG_ENABLE([gcc-warnings],
    # however, if there is also a .tarball-version file it is probably
    # just a release imported into Git for patch management.
    gl_gcc_warnings=no
-   if test -d "$srcdir"/.git && test ! -f "$srcdir"/.tarball-version; then
-      # Clang typically identifies itself as GCC 4.2 or something similar
-      # even if it is recent enough to accept the warnings we enable.
-      AS_IF([test "$emacs_cv_clang" = yes],
-         [gl_gcc_warnings=warn-only],
-         [gl_GCC_VERSION_IFELSE([5], [3], [gl_gcc_warnings=warn-only])])
-   fi])
+   AS_IF([test -d "$srcdir"/.git || test -f "$srcdir"/.git],
+     [AS_IF([test -f "$srcdir"/.tarball-version], [],
+	# Clang typically identifies itself as GCC 4.2 or something similar
+	# even if it is recent enough to accept the warnings we enable.
+	[AS_IF([test "$emacs_cv_clang" = yes],
+	   [gl_gcc_warnings=warn-only],
+	   [gl_GCC_VERSION_IFELSE([5], [3], [gl_gcc_warnings=warn-only])])])])])
 
 NATIVE_COMPILATION_AOT=no
 AC_ARG_WITH([native-compilation],
@@ -6263,7 +6263,7 @@ AC_FUNC_FORK
 
 dnl AC_CHECK_FUNCS_ONCE wouldn’t be right for snprintf, which needs
 dnl the current CFLAGS etc.
-AC_CHECK_FUNCS([snprintf])
+AC_CHECK_FUNCS([snprintf open_memstream])
 
 dnl posix_spawn.  The chdir and setsid functionality is relatively
 dnl recent, so we check for it specifically.

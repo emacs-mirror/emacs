@@ -767,7 +767,7 @@ the C sources, too."
 	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
-      (insert (cond ((stringp use) (concat "; " use))
+      (insert (cond ((stringp use) (concat "; " (substitute-quotes use)))
                     (use (format-message "; use `%s' instead." use))
                     (t "."))
               "\n")

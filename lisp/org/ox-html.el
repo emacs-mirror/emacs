@@ -3094,6 +3094,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
   (let ((latex-frag (org-element-property :value latex-fragment))
 	(processing-type (plist-get info :with-latex)))
     (cond
+     ;; FIXME: Duplicated value in ‘cond’: t
      ((memq processing-type '(t mathjax))
       (org-html-format-latex latex-frag 'mathjax info))
      ((memq processing-type '(t html))

@@ -976,10 +976,10 @@ comment at the start of cc-engine.el for more info."
 		  (point-min)))
       (widen)
 
-      (if (save-excursion
-	    (and (c-beginning-of-macro)
-		 (/= (point) start)))
-	  (setq macro-start (point)))
+      (save-excursion
+	(if (and (c-beginning-of-macro)
+		 (/= (point) start))
+	    (setq macro-start (point))))
 
       ;; Try to skip back over unary operator characters, to register
       ;; that we've moved.
@@ -2130,7 +2130,7 @@ comment at the start of cc-engine.el for more info."
     ;; Skip simple ws and do a quick check on the following character to see
     ;; if it's anything that can't start syntactic ws, so we can bail out
     ;; early in the majority of cases when there just are a few ws chars.
-    (skip-chars-forward " \t\n\r\f\v")
+    (c-skip-ws-chars-forward " \t\n\r\f\v")
     (when (or (looking-at c-syntactic-ws-start)
 	      (and c-opt-cpp-prefix
 		   (looking-at c-noise-macro-name-re))
@@ -2180,7 +2180,7 @@ comment at the start of cc-engine.el for more info."
 		   rung-pos (point) (point-max))
 
 		  (setq rung-pos (point))
-		  (and (> (skip-chars-forward " \t\n\r\f\v") 0)
+		  (and (> (c-skip-ws-chars-forward " \t\n\r\f\v") 0)
 		       (not (eobp))))
 
 	      ;; We'll loop here if there is simple ws after the last rung.
@@ -2246,7 +2246,7 @@ comment at the start of cc-engine.el for more info."
 		(and c-opt-cpp-prefix
 		     (looking-at c-opt-cpp-start)
 		     (setq macro-start (point))
-		     (progn (skip-chars-backward " \t")
+		     (progn (c-skip-ws-chars-backward " \t")
 			    (bolp))
 		     (or (bobp)
 			 (progn (backward-char)
@@ -2286,7 +2286,7 @@ comment at the start of cc-engine.el for more info."
 	;; We've searched over a piece of non-white syntactic ws.  See if this
 	;; can be cached.
 	(setq next-rung-pos (point))
-	(skip-chars-forward " \t\n\r\f\v")
+	(c-skip-ws-chars-forward " \t\n\r\f\v")
 	(setq rung-end-pos (min (1+ (point)) (point-max)))
 
 	(if (or
@@ -2383,7 +2383,7 @@ comment at the start of cc-engine.el for more info."
     ;; bail out early in the majority of cases when there just are a few ws
     ;; chars.  Newlines are complicated in the backward direction, so we can't
     ;; skip over them.
-    (skip-chars-backward " \t\f")
+    (c-skip-ws-chars-backward " \t\f")
     (when (and (not (bobp))
 	       (save-excursion
 		 (or (and
@@ -2411,7 +2411,7 @@ comment at the start of cc-engine.el for more info."
       (setq simple-ws-beg (or attr-end	      ; After attribute.
 			      (match-end 1) ; Noise macro, etc.
 			      (match-end 0))) ; c-syntactic-ws-end
-      (skip-chars-backward " \t\n\r\f\v")
+      (c-skip-ws-chars-backward " \t\n\r\f\v")
       (if (setq rung-is-marked (text-property-any
 				(point) (min (1+ rung-pos) (point-max))
 				'c-is-sws t))
@@ -2448,10 +2448,10 @@ comment at the start of cc-engine.el for more info."
 		   (point) rung-pos (point-min))
 
 		  (setq rung-pos (point))
-		  (if (and (< (min (skip-chars-backward " \t\f\v")
+		  (if (and (< (min (c-skip-ws-chars-backward " \t\f\v")
 				   (progn
 				     (setq simple-ws-beg (point))
-				     (skip-chars-backward " \t\n\r\f\v")))
+				     (c-skip-ws-chars-backward " \t\n\r\f\v")))
 			      0)
 			   (setq rung-is-marked
 				 (text-property-any (point) rung-pos
@@ -2531,7 +2531,7 @@ comment at the start of cc-engine.el for more info."
 		  ;; the macro, and then `simple-ws-beg' must be kept on the
 		  ;; same side of those comments.
 		  (goto-char simple-ws-beg)
-		  (skip-chars-backward " \t\n\r\f\v")
+		  (c-skip-ws-chars-backward " \t\n\r\f\v")
 		  (if (eq (char-before) ?\\)
 		      (forward-char))
 		  (forward-line 1)
@@ -2544,7 +2544,7 @@ comment at the start of cc-engine.el for more info."
 		  t)))
 
 	     ((/= (save-excursion
-		    (skip-chars-forward " \t\n\r\f\v" simple-ws-beg)
+		    (c-skip-ws-chars-forward " \t\n\r\f\v" simple-ws-beg)
 		    (setq next-rung-pos (point)))
 		  simple-ws-beg)
 	      ;; Skipped over comments.  Must put point at the end of
@@ -2581,7 +2581,7 @@ comment at the start of cc-engine.el for more info."
 	;; We've searched over a piece of non-white syntactic ws.  See if this
 	;; can be cached.
 	(setq next-rung-pos (point))
-	(skip-chars-backward " \t\f\v")
+	(c-skip-ws-chars-backward " \t\f\v")
 
 	(if (or
 	     ;; Cache if we started either from a marked rung or from a
@@ -2591,7 +2591,7 @@ comment at the start of cc-engine.el for more info."
 
 	     ;; Cache if there's a marked rung in the encountered simple ws.
 	     (save-excursion
-	       (skip-chars-backward " \t\n\r\f\v")
+	       (c-skip-ws-chars-backward " \t\n\r\f\v")
 	       (text-property-any (point) (min (1+ next-rung-pos) (point-max))
 				  'c-is-sws t)))
 
@@ -7202,10 +7202,8 @@ comment at the start of cc-engine.el for more info."
 			(progn
 			  (c-clear-char-property (1- beg-literal-end)
 						 'syntax-table)
-			  (c-put-char-property (1- end-literal-end)
-					       'syntax-table '(15)))
-		      (c-put-char-property (1- beg-literal-end)
-					   'syntax-table '(15))
+			  (c-put-string-fence (1- end-literal-end)))
+		      (c-put-string-fence (1- beg-literal-end))
 		      (c-clear-char-property (1- end-literal-end)
 					     'syntax-table)))
 
@@ -7284,10 +7282,8 @@ comment at the start of cc-engine.el for more info."
 		  (progn
 		    (c-clear-char-property (1- beg-literal-end)
 					   'syntax-table)
-		    (c-put-char-property (1- end-literal-end)
-					 'syntax-table '(15)))
-		(c-put-char-property (1- beg-literal-end)
-				     'syntax-table '(15))
+		    (c-put-string-fence (1- end-literal-end)))
+		(c-put-string-fence (1- beg-literal-end))
 		(c-clear-char-property (1- end-literal-end)
 				       'syntax-table)))))
 	  ;; Extend the fontification region, if needed.
@@ -7946,7 +7942,7 @@ multi-line strings (but not C++, for example)."
 		(insert (nth 3 (car state))))
 	       ((eq (nth 3 (car state)) t)
 		(insert ?\")
-		(c-put-char-property end 'syntax-table '(15))))
+		(c-put-string-fence end)))
 	      (c-truncate-lit-pos-cache end)
 	      ;; ....ensure c-new-END extends right to the end of the about
 	      ;; to be un-stringed raw string....
@@ -8191,7 +8187,7 @@ multi-line strings (but not C++, for example)."
 	(goto-char (cadr end-delim))
 	t)
     (c-put-char-property (cddr delim) 'syntax-table '(1))
-    (c-put-char-property (1- (cadr delim)) 'syntax-table '(15))
+    (c-put-string-fence (1- (cadr delim)))
     (c-truncate-lit-pos-cache (1- (cddr delim)))
     (when bound
       ;; In a CPP construct, we try to apply a generic-string
@@ -8221,10 +8217,10 @@ multi-line strings (but not C++, for example)."
 	     (cadr delim) t))
 	  (if (match-beginning 10)
 	      (progn
-		(c-put-char-property (match-beginning 10) 'syntax-table '(15))
+		(c-put-string-fence (match-beginning 10))
 		(c-truncate-lit-pos-cache (match-beginning 10)))
 	    (c-put-char-property (match-beginning 5) 'syntax-table '(1))
-	    (c-put-char-property (1+ (match-beginning 5)) 'syntax-table '(15))
+	    (c-put-string-fence (1+ (match-beginning 5)))
 	    (c-truncate-lit-pos-cache (match-beginning 5))))
       (goto-char bound))
     nil))

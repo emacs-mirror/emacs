@@ -261,20 +261,44 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object-contents ((object cl-structure-object) start stream)
   (cl-print--struct-contents object start stream)) ;FIXME: η-redex!
 
+(defvar cl-print-string-length nil
+  "Maximum length of string to print before abbreviating.
+A value of nil means no limit.
+
+When Emacs abbreviates a string, it prints the first
+`cl-print-string-length' characters of the string, followed by
+\"...\".  You can type RET, or click on this ellipsis to expand
+the string.
+
+This variable has effect only in the `cl-prin*' functions, not in
+primitives such as `prin1'.")
+
 (cl-defmethod cl-print-object ((object string) stream)
   (unless stream (setq stream standard-output))
   (let* ((has-properties (or (text-properties-at 0 object)
-                             (next-property-change 0 object))))
+                             (next-property-change 0 object)))
+         (len (length object))
+         (limit (if (natnump cl-print-string-length)
+                    (min cl-print-string-length len)
+                  len)))
     (if (and has-properties
              cl-print--depth
              (natnump print-level)
              (> cl-print--depth print-level))
         (cl-print-insert-ellipsis object nil stream)
-      ;; Print the string.
+      ;; Print all or part of the string
       (when has-properties
         (princ "#(" stream))
-      (prin1 (if has-properties (substring-no-properties object) object)
-             stream)
+      (if (= limit len)
+          (prin1 (if has-properties (substring-no-properties object) object)
+                 stream)
+        (let ((part (concat (substring-no-properties object 0 limit) "...")))
+          (prin1 part stream)
+          (when (bufferp stream)
+            (with-current-buffer stream
+              (cl-print-propertize-ellipsis object limit
+                                            (- (point) 4)
+                                            (- (point) 1) stream)))))
       ;; Print the property list.
       (when has-properties
         (cl-print--string-props object 0 stream)
@@ -315,8 +339,9 @@ into a button whose action shows the function's disassembly.")
   (let* ((len (length object)))
     (if (atom start)
         ;; Print part of the string.
-        (let* ((limit (if (natnump print-length)
-                          (min (+ start print-length) len) len))
+        (let* ((limit (if (natnump cl-print-string-length)
+                          (min (+ start cl-print-string-length) len)
+                        len))
                (substr (substring-no-properties object start limit))
                (printed (prin1-to-string substr))
                (trimmed (substring printed 1 -1)))
@@ -547,6 +572,11 @@ abbreviating it with ellipses to fit within a size limit."
                         ((null limit) nil)
                         ((eq limit t) print-level)
                         (t (min 8 (truncate (log limit))))))
+         (cl-print-string-length
+          (cond
+           ((or (null limit) (zerop limit)) nil)
+           ((eq limit t) cl-print-string-length)
+           (t (max 0 (- limit 3)))))
          (delta-length (when (natnump limit)
                          (max 1 (truncate (/ print-length print-level))))))
     (with-temp-buffer
@@ -562,7 +592,10 @@ abbreviating it with ellipses to fit within a size limit."
             (let* ((ratio (/ result limit))
                    (delta-level (max 1 (min (- print-level 2) ratio))))
               (cl-decf print-level delta-level)
-              (cl-decf print-length (* delta-length delta-level)))))))))
+              (cl-decf print-length (* delta-length delta-level))
+              (when cl-print-string-length
+                (cl-decf cl-print-string-length
+                         (ceiling cl-print-string-length 4.0))))))))))
 
 (provide 'cl-print)
 ;;; cl-print.el ends here

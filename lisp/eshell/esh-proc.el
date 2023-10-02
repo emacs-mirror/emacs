@@ -129,6 +129,7 @@ To add or remove elements of this list, see
   "Function run when killing a process.
 Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
 PROC and STATUS to functions on the latter."
+  (declare (obsolete nil "30.1"))
   ;; Was there till 24.1, but it is not optional.
   (remove-hook 'eshell-kill-hook #'eshell-reset-after-proc)
   ;; Only reset the prompt if this process is running interactively.
@@ -151,6 +152,7 @@ PROC and STATUS to functions on the latter."
   "Reset the command input location after a process terminates.
 The signals which will cause this to happen are matched by
 `eshell-reset-signals'."
+  (declare (obsolete nil "30.1"))
   (when (and (stringp status)
 	     (string-match eshell-reset-signals status))
     (require 'esh-mode)
@@ -434,7 +436,7 @@ Used only on systems which do not support async subprocesses.")
 	(eshell-close-handles
          (if (numberp exit-status) exit-status -1)
          (list 'quote (and (numberp exit-status) (= exit-status 0))))
-	(eshell-kill-process-function command exit-status)
+	(run-hook-with-args 'eshell-kill-hook command exit-status)
 	(or (bound-and-true-p eshell-in-pipeline-p)
 	    (setq eshell-last-sync-output-start nil))
 	(if (not (numberp exit-status))
@@ -550,7 +552,7 @@ PROC is the process that's exiting.  STRING is the exit message."
                           (eshell-debug-command 'process
                             "finished external process `%s'" proc)
                           (if primary
-                              (eshell-kill-process-function proc string)
+                              (run-hook-with-args 'eshell-kill-hook proc string)
                             (setcar stderr-live nil))))))
               (funcall finish-io)))
         (when-let ((entry (assq proc eshell-process-list)))
@@ -647,25 +649,25 @@ See the variable `eshell-kill-processes-on-exit'."
   "Interrupt a process."
   (interactive)
   (unless (eshell-process-interact 'interrupt-process)
-    (eshell-kill-process-function nil "interrupt")))
+    (run-hook-with-args 'eshell-kill-hook nil "interrupt")))
 
 (defun eshell-kill-process ()
   "Kill a process."
   (interactive)
   (unless (eshell-process-interact 'kill-process)
-    (eshell-kill-process-function nil "killed")))
+    (run-hook-with-args 'eshell-kill-hook nil "killed")))
 
 (defun eshell-quit-process ()
   "Send quit signal to process."
   (interactive)
   (unless (eshell-process-interact 'quit-process)
-    (eshell-kill-process-function nil "quit")))
+    (run-hook-with-args 'eshell-kill-hook nil "quit")))
 
 ;(defun eshell-stop-process ()
 ;  "Send STOP signal to process."
 ;  (interactive)
 ;  (unless (eshell-process-interact 'stop-process)
-;    (eshell-kill-process-function nil "stopped")))
+;    (run-hook-with-args 'eshell-kill-hook nil "stopped")))
 
 ;(defun eshell-continue-process ()
 ;  "Send CONTINUE signal to process."
@@ -674,7 +676,7 @@ See the variable `eshell-kill-processes-on-exit'."
 ;    ;; jww (1999-09-17): this signal is not dealt with yet.  For
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
-;    (eshell-kill-process-function nil "continue")))
+;    (run-hook-with-args 'eshell-kill-hook nil "continue")))
 
 (provide 'esh-proc)
 ;;; esh-proc.el ends here

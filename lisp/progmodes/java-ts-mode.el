@@ -305,6 +305,13 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name")
       t))))
 
+
+(defvar java-ts-mode--feature-list
+  '(( comment definition )
+    ( constant keyword string type)
+    ( annotation expression literal)
+    ( bracket delimiter operator)))
+
 ;;;###autoload
 (define-derived-mode java-ts-mode prog-mode "Java"
   "Major mode for editing Java, powered by tree-sitter."
@@ -384,11 +391,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
-  (setq-local treesit-font-lock-feature-list
-              '(( comment definition )
-                ( constant keyword string type)
-                ( annotation expression literal)
-                ( bracket delimiter operator)))
+  (setq-local treesit-font-lock-feature-list java-ts-mode--feature-list)
 
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings

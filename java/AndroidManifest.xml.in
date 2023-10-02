@@ -110,7 +110,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	<action android:name="android.intent.action.EDIT"/>
 	<action android:name="android.intent.action.PICK"/>
         <category android:name="android.intent.category.DEFAULT"/>
-	<data android:mimeType="*/*"/>
+	<!-- Don't offer to start Emacs for URLs that designate
+	     resources other than files.  -->
+	<data android:mimeType="*/*" android:scheme="file"/>
+	<data android:mimeType="*/*" android:scheme="content"/>
       </intent-filter>
 
       <!-- Facilitate opening org-protocol:// URLs as well, the same

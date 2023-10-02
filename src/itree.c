@@ -278,7 +278,7 @@ check_subtree (struct itree_node *node,
 
    This runs in constant time when ENABLE_OVERLAY_CHECKING is 0
    (i.e. Emacs is not configured with
-   "--enable_checking=yes,overlays").  In this mode it can't check all
+   "--enable-checking=yes,overlays").  In this mode it can't check all
    the invariants.  When ENABLE_OVERLAY_CHECKING is 1 it checks the
    entire tree and validates all invariants.
 */

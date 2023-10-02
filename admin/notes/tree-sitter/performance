@@ -13,3 +13,13 @@ range, so you have to update the ranges every time before
 parsing. Fortunately, changing ranges doesn’t invalidate incremental
 parsing, so there isn’t any performance lost in update ranges
 frequently.
+
+* Experiments
+
+Using regexp by default in treesit-simple-indent-rules seems wasteful,
+so I tried replacing all string-match-p to equal in
+treesit-simple-indent-presets, and indent xdisp.c for a comparison.
+Turns out using regexp by default is faster: regexp-based indent took
+45s and equal-based indent took 75s.
+
+I could be missing something, further experiments are welcome.

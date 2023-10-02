@@ -442,4 +442,20 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
   (eshell-command-result-equal "unless {[ foo = bar ]} {echo no} {echo yes}"
                                "no"))
 
+
+;; Error handling
+
+(ert-deftest esh-cmd-test/throw ()
+  "Test that calling `throw' as an Eshell command unwinds everything properly."
+  (with-temp-eshell
+   (should (= (catch 'tag
+                (eshell-insert-command
+                 "echo hi; (throw 'tag 42); echo bye"))
+              42))
+   (should (eshell-match-output "\\`hi\n\\'"))
+   (should-not eshell-current-command)
+   (should-not eshell-last-async-procs)
+   ;; Make sure we can call another command after throwing.
+   (eshell-match-command-output "echo again" "\\`again\n")))
+
 ;; esh-cmd-tests.el ends here

@@ -167,8 +167,8 @@ form of ((MONTH DAY YEAR) STRING), where string is the diary
 entry for the given date.  This can be used, for example, to
 produce a different buffer for display (perhaps combined with
 holidays), or hard copy output."
-  :type '(choice (const diary-fancy-display :tag "Fancy display")
-                 (const diary-simple-display :tag "Basic display")
+  :type '(choice (const :tag "Fancy display" diary-fancy-display)
+                 (const :tag "Basic display" diary-simple-display)
                  (const :tag "No display" ignore)
                  (function :tag "User-specified function"))
   :initialize 'custom-initialize-default

@@ -4989,6 +4989,10 @@ static const char *const lispy_accent_keys[] =
 #ifdef HAVE_ANDROID
 #define FUNCTION_KEY_OFFSET 0
 
+/* Mind that Android designates 23 KEYCODE_DPAD_CENTER, but it is
+   merely abstruse terminology for the ``select'' key frequently
+   located in certain physical keyboards.  */
+
 const char *const lispy_function_keys[] =
   {
     /* All elements in this array default to 0, except for the few
@@ -5025,6 +5029,7 @@ const char *const lispy_function_keys[] =
     [218] = "kana",
     [21]  = "left",
     [22]  = "right",
+    [23]  = "select",
     [24]  = "volume-up",
     [259] = "help",
     [25]  = "volume-down",

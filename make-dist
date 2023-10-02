@@ -356,8 +356,9 @@ possibly_non_vc_files="
   $top_level_ChangeLog
   MANIFEST aclocal.m4 configure
   admin/charsets/jisx2131-filter
-  src/config.in exec/configure
-  exec/config.h.in
+  src/config.in
+  exec/configure exec/config.h.in
+  leim/small-ja-dic-option
 "$(
   find admin doc etc lisp \
    \( -name '*.el' -o -name '*.elc' -o -name '*.map' -o -name '*.stamp' \

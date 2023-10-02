@@ -1291,6 +1291,9 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 (defconst tramp-sunos-unames (rx (| "SunOS 5.10" "SunOS 5.11"))
   "Regexp to determine remote SunOS.")
 
+(defconst tramp-bsd-unames (rx (| "BSD" "DragonFly" "Darwin"))
+  "Regexp to determine remote *BSD and macOS.")
+
 (defun tramp-sh--quoting-style-options (vec)
   "Quoting style options to be used for VEC."
   (or
@@ -1789,7 +1792,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		 ;; On BSD-derived systems files always inherit the
                  ;; parent directory's group, so skip the group-gid
                  ;; test.
-                 (tramp-check-remote-uname v (rx (| "BSD" "DragonFly" "Darwin")))
+                 (tramp-check-remote-uname v tramp-bsd-unames)
 		 (= (file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 
@@ -2643,12 +2646,14 @@ The method used must be an out-of-band method."
 	     (not ls-lisp-use-insert-directory-program))
 	(tramp-handle-insert-directory
 	 filename switches wildcard full-directory-p)
-      (when (stringp switches)
-        (setq switches (split-string switches)))
-      (setq switches
-	    (append switches (split-string (tramp-sh--quoting-style-options v))))
-      (unless (tramp-get-ls-command-with v "--dired")
-	(setq switches (delete "-N" (delete "--dired" switches))))
+      (let ((dired (tramp-get-ls-command-with v "--dired")))
+	(when (stringp switches)
+          (setq switches (split-string switches)))
+	(setq switches
+	      (append switches (split-string (tramp-sh--quoting-style-options v))
+		      (when dired `(,dired))))
+	(unless dired
+	  (setq switches (delete "-N" (delete "--dired" switches)))))
       (when wildcard
         (setq wildcard (tramp-run-real-handler
 			#'file-name-nondirectory (list localname)))
@@ -2656,7 +2661,8 @@ The method used must be an out-of-band method."
 			 #'file-name-directory (list localname))))
       (unless (or full-directory-p (member "-d" switches))
         (setq switches (append switches '("-d"))))
-      (setq switches (mapconcat #'tramp-shell-quote-argument switches " "))
+      (setq switches (delete-dups switches)
+	    switches (mapconcat #'tramp-shell-quote-argument switches " "))
       (when wildcard
 	(setq switches (concat switches " " wildcard)))
       (tramp-message
@@ -4586,7 +4592,7 @@ process to set up.  VEC specifies the connection."
       (tramp-send-command vec "set +H" t))
 
     ;; Disable tab expansion.
-    (if (string-match-p (rx (| "BSD" "DragonFly" "Darwin")) uname)
+    (if (string-match-p tramp-bsd-unames uname)
 	(tramp-send-command vec "stty tabs" t)
       (tramp-send-command vec "stty tab0" t))
 
@@ -5694,7 +5700,10 @@ Nonexistent directories are removed from spec."
     (tramp-message vec 5 "Finding a suitable `ls' command")
     (or
      (catch 'ls-found
-       (dolist (cmd '("ls" "gnuls" "gls"))
+       (dolist (cmd
+		;; Prefer GNU ls on *BSD and macOS.
+                (if (tramp-check-remote-uname vec tramp-bsd-unames)
+		    '( "gls" "ls" "gnuls") '("ls" "gnuls" "gls")))
 	 (let ((dl (tramp-get-remote-path vec))
 	       result)
 	   (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))

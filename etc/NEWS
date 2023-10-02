@@ -69,7 +69,7 @@ For native compiled Lisp functions 'describe-function' prints (after
 the signature) the automatically inferred function type as well.
 
 ---
-** New user option 'describe-bindings-outline-rules'.
+*** New user option 'describe-bindings-outline-rules'.
 This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
@@ -320,6 +320,21 @@ current diff, regenerating them without whitespace changes.
 This allows changing which type of whitespace changes are ignored when
 regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
 the previously hard-coded "-b".
+
+*** New command 'diff-apply-buffer' bound to 'C-c RET a'.
+It applies the diff in the entire diff buffer and
+saves all modified file buffers.
+
+** Isearch and Replace
+
+*** New command 'replace-regexp-as-diff'.
+It reads a regexp to search for and a string to replace with, then
+displays a buffer with replacements as diffs.  After reviewing the
+changes in the output buffer you can apply the replacements as
+a patch to the current file buffer.  There are also new commands
+'multi-file-replace-regexp-as-diff' that shows as diffs replacements
+in a list of specified files, and 'dired-do-replace-regexp-as-diff'
+that shows as diffs replacements in the marked files in Dired.
 
 ** Dired
 
@@ -960,6 +975,10 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 
 
 * Lisp Changes in Emacs 30.1
+
+** New function 're--describe-compiled' to see the innards of a regexp.
+If you compiled with '--enable-checking', you can use this to help debug
+either your regexp performance problems or the regexp engine.
 
 +++
 ** XLFDs are no longer restricted to 255 characters.

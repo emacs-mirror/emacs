@@ -223,7 +223,10 @@
             "\\|=>"
             "\\|[?:.,;|&*=!~({[]"
             "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
-            "\\|\\(^\\)\\)[ \t\n]*")))
+            "\\|\\(^\\)\\)[ \t\n]*"))
+
+  (defconst perl--format-regexp "^[ \t]*format.*=[ \t]*\\(\n\\)"
+  "Regexp to match the start of a format declaration."))
 
 (defun perl-syntax-propertize-function (start end)
   (let ((case-fold-search nil))
@@ -252,7 +255,7 @@
       ;; Handle funny names like $DB'stop.
       ("\\$ ?{?\\^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
-      ("^[ \t]*format.*=[ \t]*\\(\n\\)"
+      (perl--format-regexp
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))
       ;; Propertize perl prototype chars `$%&*;+@\[]' as punctuation
       ;; in `sub' arg-specs like `sub myfun ($)' and `sub ($)'.  But
@@ -946,6 +949,17 @@ changed by, or (parse-state) if line starts in a quoted string."
 	(goto-char (- (point-max) pos)))
     shift-amt))
 
+(defun perl--end-of-format-p ()
+  "Non-nil if point is at the end of a format declaration, skipping whitespace."
+  (save-excursion
+    (skip-chars-backward " \t\n")
+    (beginning-of-line)
+    (when-let ((comm (and (looking-at "^\\.$")
+                          (nth 8 (syntax-ppss)))))
+      (goto-char comm)
+      (beginning-of-line)
+      (looking-at perl--format-regexp))))
+
 (defun perl-continuation-line-p ()
   "Move to end of previous line and return non-nil if continued."
   ;; Statement level.  Is it a continuation or a new statement?
@@ -959,7 +973,8 @@ changed by, or (parse-state) if line starts in a quoted string."
     (beginning-of-line)
     (perl-backward-to-noncomment))
   ;; Now we get the answer.
-  (unless (memq (preceding-char) '(?\; ?\} ?\{))
+  (unless (or (memq (preceding-char) '(?\; ?\} ?\{))
+              (perl--end-of-format-p))
     (preceding-char)))
 
 (defun perl-hanging-paren-p ()
@@ -999,7 +1014,9 @@ Returns (parse-state) if line starts inside a string."
 	   (state (syntax-ppss))
 	   (containing-sexp (nth 1 state))
 	   ;; Don't auto-indent in a quoted string or a here-document.
-	   (unindentable (or (nth 3 state) (eq 2 (nth 7 state)))))
+           (unindentable (or (nth 3 state) (eq 2 (nth 7 state))))
+           (format (and (nth 3 state)
+                        (char-equal (nth 3 state) ?\n))))
       (when (and (eq t (nth 3 state))
                  (save-excursion
                    (goto-char (nth 8 state))
@@ -1009,7 +1026,7 @@ Returns (parse-state) if line starts inside a string."
         (setq unindentable nil)
         (setq containing-sexp (nth 8 state)))
       (cond
-       (unindentable 'noindent)
+       (unindentable (if format 0 'noindent))
        ((null containing-sexp)          ; Line is at top level.
         (skip-chars-forward " \t\f")
         (if (memq (following-char)
@@ -1018,7 +1035,8 @@ Returns (parse-state) if line starts inside a string."
           ;; indent a little if this is a continuation line
           (perl-backward-to-noncomment)
           (if (or (bobp)
-                  (memq (preceding-char) '(?\; ?\})))
+                  (memq (preceding-char) '(?\; ?\}))
+                  (perl--end-of-format-p))
               0 perl-continued-statement-offset)))
        ((/= (char-after containing-sexp) ?{)
         ;; line is expression, not statement:
