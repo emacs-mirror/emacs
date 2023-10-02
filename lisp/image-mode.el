@@ -773,7 +773,7 @@ to switch back to
 ;;;###autoload
 (defun image-mode-to-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
-A non-mage major mode found from `auto-mode-alist' or fundamental mode
+A non-image major mode found from `auto-mode-alist' or fundamental mode
 displays an image file as text."
   ;; image-mode-as-text = normal-mode + image-minor-mode
   (let ((previous-image-type image-type)) ; preserve `image-type'
@@ -786,7 +786,7 @@ displays an image file as text."
 
 (defun image-mode-as-hex ()
   "Set `hexl-mode' as major mode in combination with image minor mode.
-A non-mage major mode found from `auto-mode-alist' or fundamental mode
+A non-image major mode found from `auto-mode-alist' or fundamental mode
 displays an image file as hex.  `image-minor-mode' provides the key
 \\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode' \
 to display an image file as
