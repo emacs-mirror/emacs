@@ -3524,6 +3524,7 @@ cleanup_vector (struct Lisp_Vector *vector)
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
+    case PVEC_PACKAGE:
       break;
     }
 }
@@ -5758,6 +5759,7 @@ check_pure_size (void)
 	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
 
+#if 0
 /* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
    the non-Lisp data pool of the pure storage, and return its start
    address.  Return NULL if not found.  */
@@ -5838,6 +5840,8 @@ find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 
   return NULL;
 }
+
+#endif // 0
 
 
 /* Return a string allocated in pure space.  DATA is a buffer holding
