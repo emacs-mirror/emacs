@@ -271,9 +271,6 @@ pkg_add_symbol (Lisp_Object symbol, Lisp_Object status, Lisp_Object package)
   eassert (SYMBOLP (status));
   eassert (PACKAGEP (package));
   Fputhash (symbol, status, PACKAGE_SYMBOLS (package));
-  if (EQ (package, Vemacs_package)
-      && strcmp (SDATA (SYMBOL_NAME (symbol)), "schleim") == 0)
-    pkg_break ();
   return symbol;
 }
 
