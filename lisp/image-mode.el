@@ -772,9 +772,8 @@ to switch back to
 
 ;;;###autoload
 (defun image-mode-to-text ()
-  "Set a non-image mode as major mode in combination with image minor mode.
-A non-image major mode found from `auto-mode-alist' or fundamental mode
-displays an image file as text."
+  "Set current buffer's modes be a non-image major mode, plus `image-minor-mode'.
+A non-image major mode displays an image file as text."
   ;; image-mode-as-text = normal-mode + image-minor-mode
   (let ((previous-image-type image-type)) ; preserve `image-type'
     (major-mode-restore '(image-mode image-mode-as-text))
@@ -785,15 +784,14 @@ displays an image file as text."
       (image-toggle-display-text))))
 
 (defun image-mode-as-hex ()
-  "Set `hexl-mode' as major mode in combination with image minor mode.
-A non-image major mode found from `auto-mode-alist' or fundamental mode
-displays an image file as hex.  `image-minor-mode' provides the key
-\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode' \
-to display an image file as
-the actual image.
+  "Set current buffer's modes be `hexl-mode' major mode, plus `image-minor-mode'.
+This will by default display an image file as hex.  `image-minor-mode'
+provides the key sequence \\<image-mode-map>\\[image-toggle-hex-display] to \
+switch back to `image-mode' to display
+an image file's buffer as an image.
 
 You can use `image-mode-as-hex' in `auto-mode-alist' when you want to
-display an image file as hex initially.
+display image files as hex by default.
 
 See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
