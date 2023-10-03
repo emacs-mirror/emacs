@@ -20297,20 +20297,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  /* See if keysym should make Emacs quit.  */
 
-	  if (keysym == dpyinfo->quit_keysym
-	      && (xkey.time - dpyinfo->quit_keysym_time
-		  <= 350))
+	  if (dpyinfo->quit_keysym)
 	    {
-	      Vquit_flag = Qt;
-	      goto done_keysym;
-	    }
+	      if (keysym == dpyinfo->quit_keysym
+		  && (xkey.time - dpyinfo->quit_keysym_time
+		      <= 350))
+		{
+		  Vquit_flag = Qt;
+		  goto done_keysym;
+		}
 
-	  if (keysym == dpyinfo->quit_keysym)
-	    {
-	      /* Otherwise, set the last time that keysym was
-		 pressed.  */
-	      dpyinfo->quit_keysym_time = xkey.time;
-	      goto done_keysym;
+	      if (keysym == dpyinfo->quit_keysym)
+		{
+		  /* Otherwise, set the last time that keysym was
+		     pressed.  */
+		  dpyinfo->quit_keysym_time = xkey.time;
+		  goto done_keysym;
+		}
 	    }
 
           /* If not using XIM/XIC, and a compose sequence is in progress,
@@ -24227,20 +24230,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  /* See if keysym should make Emacs quit.  */
 
-		  if (keysym == dpyinfo->quit_keysym
-		      && (xev->time - dpyinfo->quit_keysym_time
-			  <= 350))
+		  if (dpyinfo->quit_keysym)
 		    {
-		      Vquit_flag = Qt;
-		      goto xi_done_keysym;
-		    }
+		      if (keysym == dpyinfo->quit_keysym
+			  && (xev->time - dpyinfo->quit_keysym_time
+			      <= 350))
+			{
+			  Vquit_flag = Qt;
+			  goto xi_done_keysym;
+			}
 
-		  if (keysym == dpyinfo->quit_keysym)
-		    {
-		      /* Otherwise, set the last time that keysym was
-			 pressed.  */
-		      dpyinfo->quit_keysym_time = xev->time;
-		      goto xi_done_keysym;
+		      if (keysym == dpyinfo->quit_keysym)
+			{
+			  /* Otherwise, set the last time that keysym
+			     was pressed.  */
+			  dpyinfo->quit_keysym_time = xev->time;
+			  goto xi_done_keysym;
+			}
 		    }
 
 		  /* First deal with keysyms which have defined
