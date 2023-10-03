@@ -2925,6 +2925,9 @@ this option to nil."
         (delete-region (point) (1- erc-input-marker))))
     (run-hooks 'erc--refresh-prompt-hook)))
 
+(defvar erc--insert-marker nil
+  "Internal override for `erc-insert-marker'.")
+
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
 Auxiliary function used in `erc-display-line'.  The line gets filtered to
@@ -2948,6 +2951,8 @@ If STRING is nil, the function does nothing."
                            (format "%s" buffer)))
           (setq erc-insert-this t)
           (run-hook-with-args 'erc-insert-pre-hook string)
+          (setq insert-position (marker-position (or erc--insert-marker
+                                                     erc-insert-marker)))
           (if (null erc-insert-this)
               ;; Leave erc-insert-this set to t as much as possible.  Fran
               ;; Litterio <franl> has seen erc-insert-this set to nil while
@@ -2970,7 +2975,8 @@ If STRING is nil, the function does nothing."
                                             '(erc-parsed nil))))
                 (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
-        (erc-update-undo-list (- (or (marker-position erc-insert-marker)
+        (erc-update-undo-list (- (or (marker-position (or erc--insert-marker
+                                                          erc-insert-marker))
                                      (point-max))
                                  insert-position))))))
 

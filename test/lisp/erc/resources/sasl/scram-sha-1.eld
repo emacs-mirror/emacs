@@ -42,6 +42,6 @@
  (0 ":jaguar.test 372 jilles :   ~~ or rkpryyrag gb rnpu bgure ~~")
  (0 ":jaguar.test 376 jilles :End of message of the day."))
 
-((mode-user 1.2 "MODE jilles +i")
+((mode-user 10 "MODE jilles +i")
  (0 ":jilles!~jilles@127.0.0.1 MODE jilles :+ri")
  (0 ":jaguar.test 306 jilles :You have been marked as being away"))
