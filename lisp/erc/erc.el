@@ -2893,9 +2893,18 @@ I.e. any char in it has the `invisible' property set."
 
 The default is to remove it, since it causes ERC to take up extra
 memory.  If you have code that relies on this property, then set
-this option to nil."
+this option to nil.
+
+Note that this option is deprecated because a value of nil is
+impractical in prolonged sessions with more than a few channels.
+Use `erc-insert-post-hook' or similar and the helper function
+`erc-find-parsed-property' and friends to stash the current
+`erc-response' object as needed.  And instead of using this for
+debugging purposes, try `erc-debug-irc-protocol'."
   :type 'boolean
   :group 'erc)
+(make-obsolete-variable 'erc-remove-parsed-property
+                        "impractical when non-nil" "30.1")
 
 (define-inline erc--assert-input-bounds ()
   (inline-quote
@@ -2972,7 +2981,7 @@ If STRING is nil, the function does nothing."
                   (run-hooks 'erc-insert-post-hook)
                   (when erc-remove-parsed-property
                     (remove-text-properties (point-min) (point-max)
-                                            '(erc-parsed nil))))
+                                            '(erc-parsed nil tags nil))))
                 (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
         (erc-update-undo-list (- (or (marker-position (or erc--insert-marker

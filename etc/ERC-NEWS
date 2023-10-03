@@ -220,6 +220,14 @@ atop any message.  The new companion option 'erc-echo-timestamp-zone'
 determines the default timezone when not specified with a prefix
 argument.
 
+** Option 'erc-remove-parsed-property' deprecated.
+This option's nil behavior serves no practical purpose yet has the
+potential to degrade the user experience by competing for space with
+forthcoming features powered by next generation extensions.  Anyone
+with a legitimate use for this option likely also possesses the
+knowledge to rig up a suitable analog with minimal effort.  That said,
+the road to removal is long.
+
 ** Option 'erc-warn-about-blank-lines' is more informative.
 Enabled by default, this option now produces more useful feedback
 whenever ERC rejects prompt input containing whitespace-only lines.
