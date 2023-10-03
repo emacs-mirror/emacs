@@ -362,6 +362,14 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (ruby-Test::Unit
      "^    [[ ]?\\([^ (].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
+    ;; Tested with Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1.
+    (lua
+     "^[^\n\t]+?: \\([^\n\t]+?\\):\\([0-9]+?\\): .+\nstack traceback:\n\t"
+     1 2 nil 2 1)
+    (lua-stack
+     "^\t\\(?:\\[C\\]:\\|\\([^\n\t]+?\\):\\(?:\\([0-9]+?\\):\\)?\\) in "
+     1 2 nil 0 1)
+
     (gmake
      ;; Set GNU make error messages as INFO level.
      ;; It starts with the name of the make program which is variable,

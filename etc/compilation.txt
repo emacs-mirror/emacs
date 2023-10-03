@@ -344,6 +344,19 @@ In /home/janneke/vc/guile/examples/gud-break.scm:
 1033: 0 [stderr "~a:hello world\n" (# # #)]
 
 
+* Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1
+
+/usr/bin/lua: database.lua:31: assertion failed!
+stack traceback:
+	[C]: in function 'assert'
+	database.lua:31: in field 'statement'
+	database.lua:42: in field 'table'
+	database.lua:55: in field 'row'
+	database.lua:63: in field 'value'
+	io.lua: in main chunk
+	[C]: in ?
+
+
 * Lucid Compiler, lcc 3.x
 
 symbol: lcc

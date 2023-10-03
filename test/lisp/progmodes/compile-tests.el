@@ -206,6 +206,33 @@
      1 0 31 "/usr/include/c++/3.3/backward/iostream.h")
     (gcc-include "                 from test_clt.cc:1:"
      1 nil 1 "test_clt.cc")
+    ;; Lua
+    (lua "lua: database.lua:10: assertion failed!\nstack traceback:\n\t"
+         6 nil 10 "database.lua")
+    (lua "lua 5.4: database 2.lua:10: assertion failed!\nstack traceback:\n\t"
+         10 nil 10 "database 2.lua")
+    (lua "/usr/local/bin/lua: core/database.lua:20: assertion failed!\nstack traceback:\n\t"
+         21 nil 20 "core/database.lua")
+    (lua "C:\\Lua\\Lua.exe: Core\\Database.lua:20: assertion failed!\nstack traceback:\n\t"
+         17 nil 20 "Core\\Database.lua")
+    (lua "lua: /tmp/database.lua:20: assertion failed!\nstack traceback:\n\t"
+         6 nil 20 "/tmp/database.lua")
+    (lua "Lua.exe: C:\\Temp\\Database.lua:20: assertion failed!\nstack traceback:\n\t"
+         10 nil 20 "C:\\Temp\\Database.lua")
+    (lua-stack "	database.lua: in field 'statement'"
+               2 nil nil "database.lua" 0)
+    (lua-stack "	database.lua:10: in field 'statement'"
+               2 nil 10 "database.lua" 0)
+    (lua-stack "	core/database.lua:20: in field 'statement'"
+               2 nil 20 "core/database.lua" 0)
+    (lua-stack "	database 2.lua: in field 'statement'"
+               2 nil nil "database 2.lua" 0)
+    (lua-stack "	Core\\Database.lua:20: in field 'statement'"
+               2 nil 20 "Core\\Database.lua" 0)
+    (lua-stack "	/tmp/database.lua: in field 'statement'"
+               2 nil nil "/tmp/database.lua" 0)
+    (lua-stack "	C:\\Core\\Database.lua: in field 'statement'"
+               2 nil nil "C:\\Core\\Database.lua" 0)
     ;; gmake
     (gmake "make: *** [Makefile:20: all] Error 2" 12 nil 20 "Makefile" 0)
     (gmake "make[4]: *** [sub/make.mk:19: all] Error 127" 15 nil 19
@@ -507,9 +534,9 @@ The test data is in `compile-tests--test-regexps-data'."
                    1 15 5 "alpha.c")))
         (compile--test-error-line test))
 
-      (should (eq compilation-num-errors-found 100))
+      (should (eq compilation-num-errors-found 106))
       (should (eq compilation-num-warnings-found 35))
-      (should (eq compilation-num-infos-found 28)))))
+      (should (eq compilation-num-infos-found 35)))))
 
 (ert-deftest compile-test-grep-regexps ()
   "Test the `grep-regexp-alist' regexps.

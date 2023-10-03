@@ -452,6 +452,11 @@ This is because it partly acts by modifying other rules which may
 occasionally be surprising.  It can be re-enabled by adding 'omake' to
 'compilation-error-regexp-alist'.
 
+*** Lua errors and stack traces are now recognized.
+Compilation mode now recognizes Lua language errors and stack traces.
+Every Lua error is recognized as a compilation error, and every Lua
+stack frame is recognized as a compilation info.
+
 ** Project
 
 +++
