@@ -35,7 +35,7 @@
 
   (should-not erc-scrolltobottom-all)
 
-  (erc-scenarios-scrolltobottom--normal
+  (erc-scenarios-common-scrolltobottom--normal
    (lambda ()
      (ert-info ("New insertion doesn't anchor prompt in other window")
        (let ((w (next-window)))
@@ -52,7 +52,7 @@
 
   (let ((erc-scrolltobottom-all t))
 
-    (erc-scenarios-scrolltobottom--normal
+    (erc-scenarios-common-scrolltobottom--normal
      (lambda ()
        (ert-info ("New insertion anchors prompt in other window")
          (let ((w (next-window)))

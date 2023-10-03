@@ -60,6 +60,7 @@
                                                      ((obsolete erc-send-this))
                                                    erc-send-this))))
   (lines nil :type (list-of string))
+  (abortp nil :type (list-of symbol))
   (cmdp nil :type boolean))
 
 (cl-defstruct (erc-server-user (:type vector) :named)

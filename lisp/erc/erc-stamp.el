@@ -215,7 +215,7 @@ the stamp passed to `erc-insert-timestamp-function'.")
 (cl-defgeneric erc-stamp--current-time ()
   "Return a lisp time object to associate with an IRC message.
 This becomes the message's `erc-timestamp' text property."
-  (let (current-time-list) (current-time)))
+  (erc-compat--current-lisp-time))
 
 (cl-defmethod erc-stamp--current-time :around ()
   (or erc-stamp--current-time (cl-call-next-method)))

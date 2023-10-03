@@ -221,6 +221,12 @@ atop any message.  The new companion option 'erc-echo-timestamp-zone'
 determines the default timezone when not specified with a prefix
 argument.
 
+** Option 'erc-warn-about-blank-lines' is more informative.
+Enabled by default, this option now produces more useful feedback
+whenever ERC rejects prompt input containing whitespace-only lines.
+When paired with option 'erc-send-whitespace-lines', ERC echoes a
+tally of blank lines padded and trailing blanks culled.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, fool visibility has become togglable with the new
@@ -281,7 +287,7 @@ For starters, the 'cursor-sensor-functions' property no longer
 contains unique closures and thus no longer proves effective for
 traversing messages.  To compensate, a new property, 'erc-timestamp',
 now spans message bodies but not the newlines delimiting them.  Also
-affecting the `stamp' module is the deprecation of the function
+affecting the 'stamp' module is the deprecation of the function
 'erc-insert-aligned' and its removal from client code.  Additionally,
 the module now merges its 'invisible' property with existing ones and
 includes all white space around stamps when doing so.

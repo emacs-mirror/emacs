@@ -292,7 +292,7 @@
                                (cl-incf counter))))
          erc-accidental-paste-threshold-seconds
          erc-insert-modify-hook
-         erc--input-review-functions
+         (erc--input-review-functions erc--input-review-functions)
          erc-send-completed-hook)
 
     (ert-info ("Server buffer")
@@ -357,6 +357,9 @@
         (should (= (point) erc-input-marker))
         (insert "/query bob")
         (erc-send-current-line)
+        ;; Last command not inserted
+        (save-excursion (forward-line -1)
+                        (should (looking-at "<tester> Howdy")))
         ;; Query does not redraw (nor /help, only message input)
         (should (looking-back "#chan@ServNet 11> "))
         ;; No sign of old prompts
@@ -877,11 +880,12 @@
   (with-current-buffer (get-buffer-create "*#fake*")
     (erc-mode)
     (erc-tests--send-prep)
+    (setq erc-server-current-nick "tester")
     (setq-local erc-last-input-time 0)
     (should-not (local-variable-if-set-p 'erc-send-completed-hook))
     (set (make-local-variable 'erc-send-completed-hook) nil) ; skip t (globals)
     ;; Just in case erc-ring-mode is already on
-    (setq-local erc--input-review-functions nil)
+    (setq-local erc--input-review-functions erc--input-review-functions)
     (add-hook 'erc--input-review-functions #'erc-add-to-input-ring)
     ;;
     (cl-letf (((symbol-function 'erc-process-input-line)
@@ -1056,43 +1060,6 @@
     (should (equal '("" "" "") (split-string "\n\n" p)))
     (should (equal '("" "" "") (split-string "\n\r" p)))))
 
-(ert-deftest erc--blank-in-multiline-input-p ()
-  (let ((check (lambda (s)
-                 (erc--blank-in-multiline-input-p
-                  (split-string s erc--input-line-delim-regexp)))))
-
-    (ert-info ("With `erc-send-whitespace-lines'")
-      (let ((erc-send-whitespace-lines t))
-        (should (funcall check ""))
-        (should-not (funcall check "\na"))
-        (should-not (funcall check "/msg a\n")) ; real /cmd
-        (should-not (funcall check "a\n\nb")) ; "" allowed
-        (should-not (funcall check "/msg a\n\nb")) ; non-/cmd
-        (should-not (funcall check " "))
-        (should-not (funcall check "\t"))
-        (should-not (funcall check "a\nb"))
-        (should-not (funcall check "a\n "))
-        (should-not (funcall check "a\n \t"))
-        (should-not (funcall check "a\n \f"))
-        (should-not (funcall check "a\n \nb"))
-        (should-not (funcall check "a\n \t\nb"))
-        (should-not (funcall check "a\n \f\nb"))))
-
-    (should (funcall check ""))
-    (should (funcall check " "))
-    (should (funcall check "\t"))
-    (should (funcall check "a\n\nb"))
-    (should (funcall check "a\n\nb"))
-    (should (funcall check "a\n "))
-    (should (funcall check "a\n \t"))
-    (should (funcall check "a\n \f"))
-    (should (funcall check "a\n \nb"))
-    (should (funcall check "a\n \t\nb"))
-
-    (should-not (funcall check "a\rb"))
-    (should-not (funcall check "a\nb"))
-    (should-not (funcall check "a\r\nb"))))
-
 (defun erc-tests--with-process-input-spy (test)
   (with-current-buffer (get-buffer-create "FakeNet")
     (let* ((erc--input-review-functions
@@ -1138,7 +1105,7 @@
        (delete-region (point) (point-max))
        (insert "one\n")
        (let ((e (should-error (erc-send-current-line))))
-         (should (equal "Blank line - ignoring..." (cadr e))))
+         (should (string-prefix-p "Trailing line detected" (cadr e))))
        (goto-char (point-max))
        (ert-info ("Input remains untouched")
          (should (save-excursion (goto-char erc-input-marker)
@@ -1180,6 +1147,137 @@
 
      (should (consp erc-last-input-time)))))
 
+(ert-deftest erc--discard-trailing-multiline-nulls ()
+  (pcase-dolist (`(,input ,want) '((("") (""))
+                                   (("" "") (""))
+                                   (("a") ("a"))
+                                   (("a" "") ("a"))
+                                   (("" "a") ("" "a"))
+                                   (("" "a" "") ("" "a"))))
+    (ert-info ((format "Input: %S, want: %S" input want))
+      (let ((s (make-erc--input-split :lines input)))
+        (erc--discard-trailing-multiline-nulls s)
+        (should (equal (erc--input-split-lines s) want))))))
+
+(ert-deftest erc--count-blank-lines ()
+  (pcase-dolist (`(,input ,want) '((() (0 0 0))
+                                   (("") (1 1 0))
+                                   (("" "") (2 1 1))
+                                   (("" "" "") (3 1 2))
+                                   ((" " "") (2 0 1))
+                                   ((" " "" "") (3 0 2))
+                                   (("" " " "") (3 1 1))
+                                   (("" "" " ") (3 2 0))
+                                   (("a") (0 0 0))
+                                   (("a" "") (1 0 1))
+                                   (("a" " " "") (2 0 1))
+                                   (("a" "" "") (2 0 2))
+                                   (("a" "b") (0 0 0))
+                                   (("a" "" "b") (1 1 0))
+                                   (("a" " " "b") (1 0 0))
+                                   (("" "a") (1 1 0))
+                                   ((" " "a") (1 0 0))
+                                   (("" "a" "") (2 1 1))
+                                   (("" " " "a" "" " ") (4 2 0))
+                                   (("" " " "a" "" " " "") (5 2 1))))
+    (ert-info ((format "Input: %S, want: %S" input want))
+      (should (equal (erc--count-blank-lines input) want)))))
+
+;; Opt `wb': `erc-warn-about-blank-lines'
+;; Opt `sw': `erc-send-whitespace-lines'
+;; `s': " \n",`a': "a\n",`b': "b\n"
+(defvar erc-tests--check-prompt-input--expect
+  ;;  opts     ""  " "   "\n"  "\n "   " \n" "\n\n" "a\n" "a\n " "a\n \nb"
+  '(((+wb -sw) err err   err   err     err   err    err   err    err)
+    ((-wb -sw) nop nop   nop   nop     nop   nop    nop   nop    nop)
+    ((+wb +sw) err (s)   (0 s) (1 s s) (s)   (0 s)  (0 a) (a s)  (a s b))
+    ((-wb +sw) nop (s)   (s)   (s s)   (s)   (s)    (a)   (a s)  (a s b))))
+
+;; Help messages echoed (not IRC message) was emitted
+(defvar erc-tests--check-prompt-input-messages
+  '("Stripping" "Padding"))
+
+(ert-deftest erc--check-prompt-input-for-multiline-blanks ()
+  (erc-tests--with-process-input-spy
+   (lambda (next)
+     (erc-tests--set-fake-server-process "sleep" "1")
+     (should-not erc-send-whitespace-lines)
+     (should erc-warn-about-blank-lines)
+
+     (pcase-dolist (`((,wb ,sw) . ,ex) erc-tests--check-prompt-input--expect)
+       (let ((print-escape-newlines t)
+             (erc-warn-about-blank-lines (eq wb '+wb))
+             (erc-send-whitespace-lines (eq sw '+sw))
+             (samples '("" " " "\n" "\n " " \n" "\n\n"
+                        "a\n" "a\n " "a\n \nb")))
+         (setq ex `(,@ex (a) (a b)) ; baseline, same for all combos
+               samples `(,@samples "a" "a\nb"))
+         (dolist (input samples)
+           (insert input)
+           (ert-info ((format "Opts: %S, Input: %S, want: %S"
+                              (list wb sw) input (car ex)))
+             (ert-with-message-capture messages
+               (pcase-exhaustive (pop ex)
+                 ('err (let ((e (should-error (erc-send-current-line))))
+                         (should (string-match (rx (| "trailing" "blank"))
+                                               (cadr e))))
+                       (should (equal (erc-user-input) input))
+                       (should-not (funcall next)))
+                 ('nop (erc-send-current-line)
+                       (should (equal (erc-user-input) input))
+                       (should-not (funcall next)))
+                 ('clr (erc-send-current-line)
+                       (should (string-empty-p (erc-user-input)))
+                       (should-not (funcall next)))
+                 ((and (pred consp) v)
+                  (erc-send-current-line)
+                  (should (string-empty-p (erc-user-input)))
+                  (setq v (reverse v)) ; don't use `nreverse' here
+                  (while v
+                    (pcase (pop v)
+                      ((and (pred integerp) n)
+                       (should (string-search
+                                (nth n erc-tests--check-prompt-input-messages)
+                                messages)))
+                      ('s (should (equal " \n" (car (funcall next)))))
+                      ('a (should (equal "a\n" (car (funcall next)))))
+                      ('b (should (equal "b\n" (car (funcall next)))))))
+                  (should-not (funcall next))))))
+           (delete-region erc-input-marker (point-max))))))))
+
+(ert-deftest erc--check-prompt-input-for-multiline-blanks/explanations ()
+  (should erc-warn-about-blank-lines)
+  (should-not erc-send-whitespace-lines)
+
+  (let ((erc-send-whitespace-lines t))
+    (pcase-dolist (`(,input ,msg)
+                   '((("") "Padding (1) blank line")
+                     (("" " ") "Padding (1) blank line")
+                     ((" " "") "Stripping (1) blank line")
+                     (("a" "") "Stripping (1) blank line")
+                     (("" "") "Stripping (1) and padding (1) blank lines")
+                     (("" "" "") "Stripping (2) and padding (1) blank lines")
+                     (("" "a" "" "b" "" "c" "" "")
+                      "Stripping (2) and padding (3) blank lines")))
+      (ert-info ((format "Input: %S, Msg: %S" input msg))
+        (let (erc--check-prompt-explanation)
+          (should-not (erc--check-prompt-input-for-multiline-blanks nil input))
+          (should (equal (list msg) erc--check-prompt-explanation))))))
+
+  (pcase-dolist (`(,input ,msg)
+                 '((("") "Blank line detected")
+                   (("" " ") "2 blank lines detected")
+                   ((" " "") "2 blank (1 trailing) lines detected")
+                   (("a" "") "Trailing line detected")
+                   (("" "") "2 blank (1 trailing) lines detected")
+                   (("a" "" "") "2 trailing lines detected")
+                   (("" "a" "" "b" "" "c" "" "")
+                    "5 blank (2 trailing) lines detected")))
+    (ert-info ((format "Input: %S, Msg: %S" input msg))
+      (let ((rv (erc--check-prompt-input-for-multiline-blanks nil input)))
+        (should (equal (concat msg " (see `erc-send-whitespace-lines')")
+                       rv ))))))
+
 (ert-deftest erc-send-whitespace-lines ()
   (erc-tests--with-process-input-spy
    (lambda (next)
@@ -1196,7 +1294,7 @@
          (erc-bol)
          (should (eq (point) (point-max))))
        (should (equal (funcall next) '("two\n" nil t)))
-       (should (equal (funcall next) '("\n" nil t)))
+       (should (equal (funcall next) '(" \n" nil t)))
        (should (equal (funcall next) '("one\n" nil t))))
 
      (ert-info ("Multiline hunk with trailing newline filtered")
@@ -1218,17 +1316,12 @@
        (should-not (funcall next)))
 
      (ert-info ("Multiline command with trailing blank filtered")
-       (pcase-dolist (`(,p . ,q)
-                      '(("/a b\r" "/a b\n") ("/a b\n" "/a b\n")
-                        ("/a b\n\n" "/a b\n") ("/a b\r\n" "/a b\n")
-                        ("/a b\n\n\n" "/a b\n")))
+       (dolist (p '("/a b" "/a b\n" "/a b\n\n" "/a b\n\n\n"))
          (insert p)
          (erc-send-current-line)
          (erc-bol)
          (should (eq (point) (point-max)))
-         (while q
-           (should (pcase (funcall next)
-                     (`(,cmd ,_ nil) (equal cmd (pop q))))))
+         (should (pcase (funcall next) (`(,cmd ,_ nil) (equal cmd "/a b\n"))))
          (should-not (funcall next))))
 
      (ert-info ("Multiline command with non-blanks errors")
