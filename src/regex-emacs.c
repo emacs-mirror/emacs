@@ -3899,6 +3899,7 @@ mutually_exclusive_charset (struct re_pattern_buffer *bufp, re_char *p1,
 struct mutexcl_data {
   struct re_pattern_buffer *bufp;
   re_char *p1;
+  bool unconstrained;
 };
 
 static bool
@@ -3907,7 +3908,32 @@ mutually_exclusive_one (re_char *p2, void *arg)
   struct mutexcl_data *data = arg;
   switch (*p2)
     {
+    case succeed:
+      /* If `p1` matches, `succeed` can still match, so we should return
+         `false`.  *BUT* when N iterations of `p1` and N+1 iterations of `p1`
+         match, the `succeed` that comes after N+1 always takes precedence
+         over the one after N because we always prefer a longer match, so
+         the succeed after N can actually be replaced by a "fail" without
+         changing the end result.
+         In this sense, "if `p1` matches, `succeed` can't match".
+         So we can return `true`.
+         *BUT* this only holds if we're sure that the N+1 will indeed succeed,
+         so we need to make sure there is no other matching operator between
+         the exit of the iteration and the `succeed`.  */
+      return data->unconstrained;
+
+/* Remember that there may be an empty matching operator on the way.
+   If we return true, this is the "end" of this control flow path,
+   so it can't get in the way of a subsequent `succeed.  */
+#define RETURN_CONSTRAIN(v)        \
+  { bool tmp = (v);                \
+    if (!tmp)                      \
+      data->unconstrained = false; \
+    return tmp;                    \
+  }
+
     case endline:
+      RETURN_CONSTRAIN (mutually_exclusive_exactn (data->bufp, data->p1, p2));
     case exactn:
       return mutually_exclusive_exactn (data->bufp, data->p1, p2);
     case charset:
@@ -3945,18 +3971,17 @@ mutually_exclusive_one (re_char *p2, void *arg)
       return (*data->p1 == categoryspec && data->p1[1] == p2[1]);
 
     case endbuf:
-    case succeed:
       return true;
     case wordbeg:
-      return (*data->p1 == notsyntaxspec && data->p1[1] == Sword);
+      RETURN_CONSTRAIN (*data->p1 == notsyntaxspec && data->p1[1] == Sword);
     case wordend:
-      return (*data->p1 == syntaxspec && data->p1[1] == Sword);
+      RETURN_CONSTRAIN (*data->p1 == syntaxspec && data->p1[1] == Sword);
     case symbeg:
-      return (*data->p1 == notsyntaxspec
-              && (data->p1[1] == Ssymbol || data->p1[1] == Sword));
+      RETURN_CONSTRAIN (*data->p1 == notsyntaxspec
+                        && (data->p1[1] == Ssymbol || data->p1[1] == Sword));
     case symend:
-      return (*data->p1 == syntaxspec
-              && (data->p1[1] == Ssymbol || data->p1[1] == Sword));
+      RETURN_CONSTRAIN (*data->p1 == syntaxspec
+                        && (data->p1[1] == Ssymbol || data->p1[1] == Sword));
 
     case duplicate:
       /* At this point, we know nothing about what this can match, sadly.  */
@@ -3976,7 +4001,7 @@ static bool
 mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 		      re_char *p2)
 {
-  struct mutexcl_data data = { bufp, p1 };
+  struct mutexcl_data data = { bufp, p1, true };
   return forall_firstchar (bufp, p2, NULL, mutually_exclusive_one, &data);
 }
 
