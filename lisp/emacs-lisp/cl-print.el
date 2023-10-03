@@ -549,14 +549,14 @@ node `(elisp)Output Variables'."
 (defun cl-print-to-string-with-limit (print-function value limit)
   "Return a string containing a printed representation of VALUE.
 Attempt to get the length of the returned string under LIMIT
-characters with appropriate settings of `print-level' and
-`print-length.'  Use PRINT-FUNCTION to print, which should take
-the arguments VALUE and STREAM and which should respect
-`print-length' and `print-level'.  LIMIT may be nil or zero in
-which case PRINT-FUNCTION will be called with `print-level' and
-`print-length' bound to nil, and it can also be t in which case
-PRINT-FUNCTION will be called with the current values of `print-level'
-and `print-length'.
+characters with appropriate settings of `print-level',
+`print-length.', and `cl-print-string-length'.  Use
+PRINT-FUNCTION to print, which should take the arguments VALUE
+and STREAM and which should respect `print-length',
+`print-level', and `cl-print-string-length'.  LIMIT may be nil or
+zero in which case PRINT-FUNCTION will be called with these
+settings bound to nil, and it can also be t in which case
+PRINT-FUNCTION will be called with their current values.
 
 Use this function with `cl-prin1' to print an object,
 abbreviating it with ellipses to fit within a size limit."
@@ -565,17 +565,17 @@ abbreviating it with ellipses to fit within a size limit."
   ;; limited, if you increase print-level here, add more depth in
   ;; call_debugger (bug#31919).
   (let* ((print-length (cond
-                        ((null limit) nil)
                         ((eq limit t) print-length)
+                        ((or (null limit) (zerop limit)) nil)
                         (t (min limit 50))))
          (print-level (cond
-                        ((null limit) nil)
                         ((eq limit t) print-level)
+                        ((or (null limit) (zerop limit)) nil)
                         (t (min 8 (truncate (log limit))))))
          (cl-print-string-length
           (cond
-           ((or (null limit) (zerop limit)) nil)
            ((eq limit t) cl-print-string-length)
+           ((or (null limit) (zerop limit)) nil)
            (t (max 0 (- limit 3)))))
          (delta-length (when (natnump limit)
                          (max 1 (truncate (/ print-length print-level))))))
