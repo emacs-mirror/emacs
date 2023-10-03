@@ -315,6 +315,10 @@ This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
 
+---
+*** Obsolete command 'vc-switch-backend' re-added as 'vc-change-backend'.
+The command was previously obsoleted and unbound in Emacs 28.
+
 ** Diff Mode
 
 +++

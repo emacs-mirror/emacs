@@ -3171,14 +3171,13 @@ its name; otherwise return nil."
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
-(defun vc-switch-backend (file backend)
+(defun vc-change-backend (file backend)
   "Make BACKEND the current version control system for FILE.
 FILE must already be registered in BACKEND.  The change is not
 permanent, only for the current session.  This function only changes
 VC's perspective on FILE, it does not register or unregister it.
 By default, this command cycles through the registered backends.
 To get a prompt, use a prefix argument."
-  (declare (obsolete nil "28.1"))
   (interactive
    (list
     (or buffer-file-name
@@ -3209,6 +3208,9 @@ To get a prompt, use a prefix argument."
       (error "%s is not registered in %s" file backend))
     (vc-mode-line file)))
 
+(define-obsolete-function-alias 'vc-switch-backend #'vc-change-backend
+  "30.1")
+
 ;;;###autoload
 (defun vc-transfer-file (file new-backend)
   "Transfer FILE to another version control system NEW-BACKEND.
@@ -3233,8 +3235,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (if registered
 	(set-file-modes file (logior (file-modes file) 128))
       ;; `registered' might have switched under us.
-      (with-suppressed-warnings ((obsolete vc-switch-backend))
-        (vc-switch-backend file old-backend))
+      (vc-change-backend file old-backend)
       (let* ((rev (vc-working-revision file))
 	     (modified-file (and edited (make-temp-file file)))
 	     (unmodified-file (and modified-file (vc-version-backup-file file))))
@@ -3253,19 +3254,16 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 		    (vc-revert-file file))))
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
-            (with-suppressed-warnings ((obsolete vc-switch-backend))
-              (vc-switch-backend file new-backend))
+            (vc-change-backend file new-backend)
 	    (unless (eq (vc-checkout-model new-backend (list file)) 'implicit)
 	      (vc-checkout file))
 	    (rename-file modified-file file 'ok-if-already-exists)
 	    (vc-file-setprop file 'vc-checkout-time nil)))))
     (when move
-      (with-suppressed-warnings ((obsolete vc-switch-backend))
-        (vc-switch-backend file old-backend))
+      (vc-change-backend file old-backend)
       (setq comment (vc-call-backend old-backend 'comment-history file))
       (vc-call-backend old-backend 'unregister file))
-    (with-suppressed-warnings ((obsolete vc-switch-backend))
-      (vc-switch-backend file new-backend))
+    (vc-change-backend file new-backend)
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
       (vc-mode-line file new-backend)
