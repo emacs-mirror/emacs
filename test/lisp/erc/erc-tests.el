@@ -1475,6 +1475,175 @@
     (when noninteractive
       (kill-buffer))))
 
+(ert-deftest erc--remove-from-prop-value-list ()
+  (with-current-buffer (get-buffer-create "*erc-test*")
+    ;; Non-list match.
+    (insert "abc\n")
+    (put-text-property 1 2 'erc-test 'a)
+    (put-text-property 2 3 'erc-test 'b)
+    (put-text-property 3 4 'erc-test 'c)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc"
+                                      0 1 (erc-test a)
+                                      1 2 (erc-test b)
+                                      2 3 (erc-test c))))
+
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'b)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc"
+                                      0 1 (erc-test a)
+                                      2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'a)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'c)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "abc"))
+
+    ;; List match.
+    (goto-char (point-min))
+    (insert "def\n")
+    (put-text-property 1 2 'erc-test '(d x))
+    (put-text-property 2 3 'erc-test '(e y))
+    (put-text-property 3 4 'erc-test '(f z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test (d x))
+                                      1 2 (erc-test (e y))
+                                      2 3 (erc-test (f z)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'y)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test (d x))
+                                      1 2 (erc-test e)
+                                      2 3 (erc-test (f z)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'd)
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'f)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test x)
+                                      1 2 (erc-test e)
+                                      2 3 (erc-test z))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'e)
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'z)
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'x)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "def"))
+
+    ;; List match.
+    (goto-char (point-min))
+    (insert "ghi\n")
+    (put-text-property 1 2 'erc-test '(g x))
+    (put-text-property 2 3 'erc-test '(h x))
+    (put-text-property 3 4 'erc-test '(i y))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      0 1 (erc-test (g x))
+                                      1 2 (erc-test (h x))
+                                      2 3 (erc-test (i y)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'x)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      0 1 (erc-test g)
+                                      1 2 (erc-test h)
+                                      2 3 (erc-test (i y)))))
+    (erc--remove-from-prop-value-list 1 2 'erc-test 'g) ; narrowed
+    (erc--remove-from-prop-value-list 3 4 'erc-test 'i) ; narrowed
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      1 2 (erc-test h)
+                                      2 3 (erc-test y))))
+
+    ;; Pathological (,c) case (hopefully not created by ERC)
+    (goto-char (point-min))
+    (insert "jkl\n")
+    (put-text-property 1 2 'erc-test '(j x))
+    (put-text-property 2 3 'erc-test '(k))
+    (put-text-property 3 4 'erc-test '(k))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'k)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("jkl" 0 1 (erc-test (j x)))))
+
+    (when noninteractive
+      (kill-buffer))))
+
+(ert-deftest erc--remove-from-prop-value-list/many ()
+  (with-current-buffer (get-buffer-create "*erc-test*")
+    ;; Non-list match.
+    (insert "abc\n")
+    (put-text-property 1 2 'erc-test 'a)
+    (put-text-property 2 3 'erc-test 'b)
+    (put-text-property 3 4 'erc-test 'c)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc"
+                                      0 1 (erc-test a)
+                                      1 2 (erc-test b)
+                                      2 3 (erc-test c))))
+
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(a b))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'a)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(c))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "abc"))
+
+    ;; List match.
+    (goto-char (point-min))
+    (insert "def\n")
+    (put-text-property 1 2 'erc-test '(d x y))
+    (put-text-property 2 3 'erc-test '(e y))
+    (put-text-property 3 4 'erc-test '(f z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test (d x y))
+                                      1 2 (erc-test (e y))
+                                      2 3 (erc-test (f z)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(d y f))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test x)
+                                      1 2 (erc-test e)
+                                      2 3 (erc-test z))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(e z x))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "def"))
+
+    ;; Narrowed beg.
+    (goto-char (point-min))
+    (insert "ghi\n")
+    (put-text-property 1 2 'erc-test '(g x))
+    (put-text-property 2 3 'erc-test '(h x))
+    (put-text-property 3 4 'erc-test '(i x))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      0 1 (erc-test (g x))
+                                      1 2 (erc-test (h x))
+                                      2 3 (erc-test (i x)))))
+    (erc--remove-from-prop-value-list 1 3 'erc-test '(x g i))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      1 2 (erc-test h)
+                                      2 3 (erc-test (i x)))))
+
+    ;; Narrowed middle.
+    (goto-char (point-min))
+    (insert "jkl\n")
+    (put-text-property 1 2 'erc-test '(j x))
+    (put-text-property 2 3 'erc-test '(k))
+    (put-text-property 3 4 'erc-test '(l y z))
+    (erc--remove-from-prop-value-list 3 4 'erc-test '(k x y z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("jkl"
+                                      0 1 (erc-test (j x))
+                                      1 2 (erc-test (k))
+                                      2 3 (erc-test l))))
+
+    (when noninteractive
+      (kill-buffer))))
+
 (ert-deftest erc--split-string-shell-cmd ()
 
   ;; Leading and trailing space

@@ -3079,6 +3079,30 @@ value.  See also `erc-button-add-face'."
             old (get-text-property pos prop object)
             end (next-single-property-change pos prop object to)))))
 
+(defun erc--remove-from-prop-value-list (from to prop val &optional object)
+  "Remove VAL from text prop value between FROM and TO.
+If current value is VAL itself, remove the property entirely.
+When VAL is a list, act as if this function were called
+repeatedly with VAL set to each of VAL's members."
+  (let ((old (get-text-property from prop object))
+        (pos from)
+        (end (next-single-property-change from prop object to))
+        new)
+    (while (< pos to)
+      (when old
+        (if (setq new (and (consp old) (if (consp val)
+                                           (seq-difference old val)
+                                         (remq val old))))
+            (put-text-property pos end prop
+                               (if (cdr new) new (car new)) object)
+          (when (pcase val
+                  ((pred consp) (or (consp old) (memq old val)))
+                  (_ (if (consp old) (memq val old) (eq old val))))
+            (remove-text-properties pos end (list prop nil) object))))
+      (setq pos end
+            old (get-text-property pos prop object)
+            end (next-single-property-change pos prop object to)))))
+
 (defvar erc-legacy-invisible-bounds-p nil
   "Whether to hide trailing rather than preceding newlines.
 Beginning in ERC 5.6, invisibility extends from a message's
