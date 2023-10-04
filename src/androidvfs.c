@@ -3995,8 +3995,11 @@ android_saf_exception_check (int n, ...)
   /* First, check for an exception.  */
 
   if (!(*env)->ExceptionCheck (env))
-    /* No exception has taken place.  Return 0.  */
-    return 0;
+    {
+      /* No exception has taken place.  Return 0.  */
+      va_end (ap);
+      return 0;
+    }
 
   /* Print the exception.  */
   (*env)->ExceptionDescribe (env);
@@ -4045,6 +4048,7 @@ android_saf_exception_check (int n, ...)
   /* expression is still a local reference! */
   ANDROID_DELETE_LOCAL_REF ((jobject) exception);
   errno = new_errno;
+  va_end (ap);
   return 1;
 }
 

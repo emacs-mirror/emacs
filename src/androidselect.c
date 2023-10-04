@@ -613,10 +613,12 @@ android_notifications_notify_1 (Lisp_Object title, Lisp_Object body,
 	   (long int) (boot_time.tv_sec / 2), id);
 
   /* Encode all strings into their Java counterparts.  */
-  title1 = android_build_string (title);
-  body1  = android_build_string (body);
-  group1 = android_build_string (group);
-  identifier1 = android_build_jstring (identifier);
+  title1 = android_build_string (title, NULL);
+  body1  = android_build_string (body, title1, NULL);
+  group1 = android_build_string (group, body1, title1, NULL);
+  identifier1
+    = (*android_java_env)->NewStringUTF (android_java_env, identifier);
+  android_exception_check_3 (title1, body1, group1);
 
   /* Create the notification.  */
   notification

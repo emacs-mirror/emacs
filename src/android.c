@@ -5593,15 +5593,20 @@ android_verify_jni_string (const char *name)
 }
 
 /* Given a Lisp string TEXT, return a local reference to an equivalent
-   Java string.  */
+   Java string.  Each argument following TEXT should be NULL or a
+   local reference that will be freed if creating the string fails,
+   whereupon memory_full will also be signaled.  */
 
 jstring
-android_build_string (Lisp_Object text)
+android_build_string (Lisp_Object text, ...)
 {
   Lisp_Object encoded;
   jstring string;
   size_t nchars;
   jchar *characters;
+  va_list ap;
+  jobject object;
+
   USE_SAFE_ALLOCA;
 
   /* Directly encode TEXT if it contains no non-ASCII characters, or
@@ -5619,9 +5624,11 @@ android_build_string (Lisp_Object text)
     {
       string = (*android_java_env)->NewStringUTF (android_java_env,
 						  SSDATA (text));
-      android_exception_check ();
-      SAFE_FREE ();
 
+      if ((*android_java_env)->ExceptionCheck (android_java_env))
+	goto error;
+
+      SAFE_FREE ();
       return string;
     }
 
@@ -5640,10 +5647,36 @@ android_build_string (Lisp_Object text)
   string
     = (*android_java_env)->NewString (android_java_env,
 				      characters, nchars);
-  android_exception_check ();
+
+  if ((*android_java_env)->ExceptionCheck (android_java_env))
+    goto error;
 
   SAFE_FREE ();
   return string;
+
+ error:
+  /* An exception arose while creating the string.  When this
+     transpires, an assumption is made that the error was induced by
+     running out of memory.  Delete each of the local references
+     within AP.  */
+
+  va_start (ap, text);
+
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "Possible out of memory error. "
+		       " The Java exception follows:  ");
+  /* Describe exactly what went wrong.  */
+  (*android_java_env)->ExceptionDescribe (android_java_env);
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  /* Now remove each and every local reference provided after
+     OBJECT.  */
+
+  while ((object = va_arg (ap, jobject)))
+    ANDROID_DELETE_LOCAL_REF (object);
+
+  va_end (ap);
+  memory_full (0);
 }
 
 /* Do the same, except TEXT is constant string data in ASCII or
@@ -6154,7 +6187,7 @@ android_browse_url (Lisp_Object url, Lisp_Object send)
   Lisp_Object tem;
   const char *buffer;
 
-  string = android_build_string (url);
+  string = android_build_string (url, NULL);
   value
     = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
 						       emacs_service,
