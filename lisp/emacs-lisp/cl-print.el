@@ -550,7 +550,7 @@ node `(elisp)Output Variables'."
   "Return a string containing a printed representation of VALUE.
 Attempt to get the length of the returned string under LIMIT
 characters with appropriate settings of `print-level',
-`print-length.', and `cl-print-string-length'.  Use
+`print-length', and `cl-print-string-length'.  Use
 PRINT-FUNCTION to print, which should take the arguments VALUE
 and STREAM and which should respect `print-length',
 `print-level', and `cl-print-string-length'.  LIMIT may be nil or
