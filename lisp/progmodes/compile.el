@@ -683,7 +683,10 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
   "Alist of values for `compilation-error-regexp-alist'.")
 
 (defcustom compilation-error-regexp-alist
-  (mapcar #'car compilation-error-regexp-alist-alist)
+  ;; Omit `omake' by default: its mere presence here triggers special processing
+  ;; and modifies regexps for other rules (see `compilation-parse-errors'),
+  ;; which may slow down matching (or even cause mismatches).
+  (delq 'omake (mapcar #'car compilation-error-regexp-alist-alist))
   "Alist that specifies how to match errors in compiler output.
 On GNU and Unix, any string is a valid filename, so these
 matchers must make some common sense assumptions, which catch

@@ -299,6 +299,14 @@ equivalent to the "--heading" option of some tools such as 'git grep'
 and 'rg'.  The headings are displayed using the new 'grep-heading'
 face.
 
+---
+** Compilation mode
+
+*** The 'omake' matching rule is now disabled by default.
+This is because it partly acts by modifying other rules which may
+occasionally be surprising.  It can be re-enabled by adding 'omake' to
+'compilation-error-regexp-alist'.
+
 ** VC
 
 ---
