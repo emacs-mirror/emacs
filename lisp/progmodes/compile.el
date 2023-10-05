@@ -2721,7 +2721,7 @@ looking for the next message."
 	  (compilation-loop > compilation-next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))
 				"No more %ss yet"
-			      "Moved past last %s")
+			      "Past last %s")
 			    (point-max))
 	;; Don't move "back" to message at or before point.
 	;; Pass an explicit (point-min) to make sure pt is non-nil.
