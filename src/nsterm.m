@@ -554,29 +554,32 @@ ns_init_locale (void)
 /* macOS doesn't set any environment variables for the locale when run
    from the GUI. Get the locale from the OS and set LANG.  */
 {
-  NSLocale *locale = [NSLocale currentLocale];
-
   NSTRACE ("ns_init_locale");
 
-  /* If we were run from a terminal then assume an unset LANG variable
-     is intentional and don't try to "fix" it.  */
-  if (!isatty (STDIN_FILENO))
+  /* Either use LANG, if set, or try to construct LANG from
+     NSLocale.  */
+  const char *lang = getenv ("LANG");
+  if (lang == NULL || *lang == 0)
     {
-      char *oldLocale = setlocale (LC_ALL, NULL);
-      /* It seems macOS should probably use UTF-8 everywhere.
-         'localeIdentifier' does not specify the encoding, and I can't
-         find any way to get the OS to tell us which encoding to use,
-         so hard-code '.UTF-8'.  */
-      NSString *localeID = [NSString stringWithFormat:@"%@.UTF-8",
-                                     [locale localeIdentifier]];
-
-      /* Check the locale ID is valid and if so set LANG, but not if
-         it is already set.  */
-      if (setlocale (LC_ALL, [localeID UTF8String]))
-        setenv("LANG", [localeID UTF8String], 0);
-
-      setlocale (LC_ALL, oldLocale);
+      const NSLocale *locale = [NSLocale currentLocale];
+      const NSString *localeID = [NSString stringWithFormat:@"%@.UTF-8",
+					   [locale localeIdentifier]];
+      lang = [localeID UTF8String];
     }
+
+  /* Check if LANG can be used for initializing the locale.  If not,
+     use a default setting.  Note that Emacs' main will undo the
+     setlocale below, initializing the locale from the
+     environment.  */
+  if (setlocale (LC_ALL, lang) == NULL)
+    {
+      const char *const default_lang = "en_US.UTF-8";
+      fprintf (stderr, "LANG=%s cannot be used, using %s instead.\n",
+	       lang, default_lang);
+      lang = default_lang;
+    }
+
+  setenv ("LANG", lang, 1);
 }
 
 
