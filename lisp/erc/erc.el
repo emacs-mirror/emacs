@@ -3609,16 +3609,14 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
             (run-at-time timeout nil
                          (lambda ()
                            (erc--unignore-user user buffer))))
-          (erc-display-line
-           (erc-make-notice (format "Now ignoring %s" user))
-           'active)
+          (erc-display-message nil 'notice 'active
+                               (format "Now ignoring %s" user))
           (erc-with-server-buffer (add-to-list 'erc-ignore-list user))))
     (if (null (erc-with-server-buffer erc-ignore-list))
-        (erc-display-line (erc-make-notice "Ignore list is empty") 'active)
-      (erc-display-line (erc-make-notice "Ignore list:") 'active)
+        (erc-display-message nil 'notice 'active "Ignore list is empty")
+      (erc-display-message nil 'notice 'active "Ignore list:")
       (mapc (lambda (item)
-              (erc-display-line (erc-make-notice item)
-                             'active))
+              (erc-display-message nil 'notice 'active item))
             (erc-with-server-buffer erc-ignore-list))))
   t)
 
@@ -3632,9 +3630,8 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
           (unless (y-or-n-p (format "Remove this regexp (%s)? "
                                     ignored-nick))
             (setq ignored-nick nil))
-        (erc-display-line
-         (erc-make-notice (format "%s is not currently ignored!" user))
-         'active)))
+        (erc-display-message nil 'notice 'active
+                             (format "%s is not currently ignored!" user))))
     (when ignored-nick
       (erc--unignore-user user (current-buffer))))
   t)
@@ -3642,9 +3639,8 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
 (defun erc--unignore-user (user buffer)
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
-      (erc-display-line
-       (erc-make-notice (format "No longer ignoring %s" user))
-       'active)
+      (erc-display-message nil 'notice 'active
+                           (format "No longer ignoring %s" user))
       (erc-with-server-buffer
         (setq erc-ignore-list (delete user erc-ignore-list))))))
 
@@ -4129,12 +4125,10 @@ See `erc-cmd-WHOIS' for more details."
                             (string-to-number
                              (cl-third
                               (erc-response.command-args parsed)))))
-                       (erc-display-line
-                        (erc-make-notice
+                       (erc-display-message nil 'notice origbuf
                          (format "%s has been idle for %s."
                                  (erc-string-no-properties nick)
                                  (erc-seconds-to-string idleseconds)))
-                        origbuf)
                        t)))
                   'erc-server-317-functions)
             symlist)
@@ -4683,8 +4677,7 @@ The ban list is fetched from the server if necessary."
 
     (cond
      ((not (erc-channel-p chnl))
-      (erc-display-line (erc-make-notice "You're not on a channel\n")
-                        'active))
+      (erc-display-message nil 'notice 'active "You're not on a channel\n"))
 
      ((not (get 'erc-channel-banlist 'received-from-server))
       (let ((old-367-hook erc-server-367-functions))
@@ -4703,9 +4696,8 @@ The ban list is fetched from the server if necessary."
           (erc-server-send (format "MODE %s b" chnl)))))
 
      ((null erc-channel-banlist)
-      (erc-display-line (erc-make-notice
-                         (format "No bans for channel: %s\n" chnl))
-                        'active)
+      (erc-display-message nil 'notice 'active
+                           (format "No bans for channel: %s\n" chnl))
       (put 'erc-channel-banlist 'received-from-server nil))
 
      (t
@@ -4719,10 +4711,9 @@ The ban list is fetched from the server if necessary."
                    "%-" (number-to-string (/ erc-fill-column 2)) "s"
                    "%" (number-to-string (/ erc-fill-column 2)) "s")))
 
-        (erc-display-line
-         (erc-make-notice (format "Ban list for channel: %s\n"
-                                  (erc-default-target)))
-         'active)
+        (erc-display-message
+         nil 'notice 'active
+         (format "Ban list for channel: %s\n" (erc-default-target)))
 
         (erc-display-line separator 'active)
         (erc-display-line (format fmt "Ban Mask" "Banned By") 'active)
@@ -4739,8 +4730,7 @@ The ban list is fetched from the server if necessary."
             'active))
          erc-channel-banlist)
 
-        (erc-display-line (erc-make-notice "End of Ban list")
-                          'active)
+        (erc-display-message nil 'notice 'active "End of Ban list")
         (put 'erc-channel-banlist 'received-from-server nil)))))
   t)
 
@@ -4754,9 +4744,7 @@ Unban all currently banned users in the current channel."
     (cond
 
      ((not (erc-channel-p chnl))
-      (erc-display-line
-       (erc-make-notice "You're not on a channel\n")
-       'active))
+      (erc-display-message nil 'notice 'active "You're not on a channel\n"))
 
      ((not (get 'erc-channel-banlist 'received-from-server))
       (let ((old-367-hook erc-server-367-functions))
