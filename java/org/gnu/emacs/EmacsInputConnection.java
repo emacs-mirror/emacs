@@ -628,6 +628,21 @@ public final class EmacsInputConnection implements InputConnection
     batchEditCount = 0;
   }
 
+  @Override
+  public boolean
+  replaceText (int start, int end, CharSequence text,
+	       int newCursorPosition, TextAttribute attributes)
+  {
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, ("replaceText: " + text + ":: " + start + ","
+		   + end + "," + newCursorPosition));
+
+    EmacsNative.replaceText (windowHandle, start, end,
+			     text.toString (), newCursorPosition,
+			     attributes);
+    return true;
+  }
+
 
 
   public void

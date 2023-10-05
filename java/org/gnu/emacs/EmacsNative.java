@@ -26,6 +26,7 @@ import android.graphics.Bitmap;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.SurroundingText;
+import android.view.inputmethod.TextAttribute;
 import android.view.inputmethod.TextSnapshot;
 
 public final class EmacsNative
@@ -219,6 +220,9 @@ public final class EmacsNative
 						   int leftLength,
 						   int rightLength);
   public static native void finishComposingText (short window);
+  public static native void replaceText (short window, int start, int end,
+					 String text, int newCursorPosition,
+					 TextAttribute attributes);
   public static native String getSelectedText (short window, int flags);
   public static native String getTextAfterCursor (short window, int length,
 						  int flags);

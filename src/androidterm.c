@@ -687,9 +687,17 @@ android_handle_ime_event (union android_event *event, struct frame *f)
     {
     case ANDROID_IME_COMMIT_TEXT:
     case ANDROID_IME_SET_COMPOSING_TEXT:
+    case ANDROID_IME_REPLACE_TEXT:
       text = android_decode_utf16 (event->ime.text,
 				   event->ime.length);
       xfree (event->ime.text);
+
+      /* Return should text be long enough that it overflows ptrdiff_t.
+	 Such circumstances are detected within android_decode_utf16.  */
+
+      if (NILP (text))
+	return;
+
       break;
 
     default:
@@ -772,6 +780,12 @@ android_handle_ime_event (union android_event *event, struct frame *f)
 
     case ANDROID_IME_REQUEST_CURSOR_UPDATES:
       android_request_cursor_updates (f, event->ime.length);
+      break;
+
+    case ANDROID_IME_REPLACE_TEXT:
+      replace_text (f, event->ime.start, event->ime.end,
+		    text, event->ime.position,
+		    event->ime.counter);
       break;
     }
 }
@@ -4851,6 +4865,39 @@ NATIVE_NAME (finishComposingText) (JNIEnv *env, jobject object,
   event.ime.length = 0;
   event.ime.position = 0;
   event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (replaceText) (JNIEnv *env, jobject object, jshort window,
+			   jint start, jint end, jobject text,
+			   int new_cursor_position, jobject attribute)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  size_t length;
+
+  /* First, obtain a copy of the Java string.  */
+  text = android_copy_java_string (env, text, &length);
+
+  if (!text)
+    return;
+
+  /* Next, populate the event with the information in this function's
+     arguments.  */
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_REPLACE_TEXT;
+  event.ime.start = start + 1;
+  event.ime.end = end + 1;
+  event.ime.length = length;
+  event.ime.position = new_cursor_position;
+  event.ime.text = text;
   event.ime.counter = ++edit_counter;
 
   android_write_event (&event);
