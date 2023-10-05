@@ -223,6 +223,21 @@ public final class EmacsService extends Service
       }
   }
 
+  /* Return the display density, adjusted in accord with the user's
+     text scaling preferences.  */
+
+  @SuppressWarnings ("deprecation")
+  private static float
+  getScaledDensity (DisplayMetrics metrics)
+  {
+    /* The scaled density has been made obsolete by the introduction
+       of non-linear text scaling in Android 34, where there is no
+       longer a fixed relation between point and pixel sizes, but
+       remains useful, considering that Emacs does not support
+       non-linear text scaling.  */
+    return metrics.scaledDensity;
+  }
+
   @Override
   public void
   onCreate ()
@@ -242,7 +257,7 @@ public final class EmacsService extends Service
     metrics = getResources ().getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
-    tempScaledDensity = ((metrics.scaledDensity
+    tempScaledDensity = ((getScaledDensity (metrics)
 			  / metrics.density)
 			 * pixelDensityX);
     resolver = getContentResolver ();

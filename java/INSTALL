@@ -39,7 +39,7 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 13 (API level 33).
+    SDK.  They must correspond to Android version 14 (API level 34).
 
   - the path to the C compiler in the Android NDK, for the kind of CPU
     you are building Emacs to run on.
@@ -87,13 +87,13 @@ necessary for compiling Emacs.
 
 It is imperative that Emacs is compiled using the headers for the
 exact API level that it is written for.  This is currently API level
-33, so the correct android.jar archive is located within a directory
-whose name begins with `android-33'.  Minor revisions to the headers
+34, so the correct android.jar archive is located within a directory
+whose name begins with `android-34'.  Minor revisions to the headers
 are inconsequential towards the Emacs compilation process; if there is
-a directory named `android-33-extN' (where N represents a revision to
+a directory named `android-34-extN' (where N represents a revision to
 the Android SDK), whether you provide `configure' with that
 directory's android.jar or the android.jar contained within the
-directory named `android-33' is of no special importance.
+directory named `android-34' is of no special importance.
 
 The ndk directory contains one subdirectory for each version of the
 Android NDK installed.  This directory in turn contains the C and C++

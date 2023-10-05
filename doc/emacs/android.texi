@@ -469,6 +469,10 @@ installation:
 @code{android.permission.TRANSMIT_IR}
 @item
 @code{android.permission.WAKE_LOCK}
+@item
+@code{android.permission.FOREGROUND_SERVICE}
+@item
+@code{android.permission.FOREGROUND_SERVICE_SPECIAL_USE}
 @end itemize
 
 Other permissions must be granted by the user through the system

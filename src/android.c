@@ -6238,7 +6238,7 @@ android_restart_emacs (void)
   exit (0);
 }
 
-/* Return a number from 1 to 33 describing the version of Android
+/* Return a number from 1 to 34 describing the version of Android
    Emacs is running on.
 
    This is different from __ANDROID_API__, as that describes the
