@@ -287,12 +287,26 @@ into a button whose action shows the function's disassembly.")
 (cl-defmethod cl-print-object-contents ((object cl-structure-object) start stream)
   (cl-print--struct-contents object start stream)) ;FIXME: η-redex!
 
+(defvar cl-print-string-length nil
+  "Maximum length of string to print before abbreviating.
+A value of nil means no limit.
+
+When Emacs abbreviates a string, it prints the first
+`cl-print-string-length' characters of the string, followed by
+\"...\".  You can type RET, or click on this ellipsis to expand
+the string.
+
+This variable has effect only in the `cl-prin*' functions, not in
+primitives such as `prin1'.")
+
 (cl-defmethod cl-print-object ((object string) stream)
   (unless stream (setq stream standard-output))
   (let* ((has-properties (or (text-properties-at 0 object)
                              (next-property-change 0 object)))
          (len (length object))
-         (limit (if (natnump print-length) (min print-length len) len)))
+         (limit (if (natnump cl-print-string-length)
+                    (min cl-print-string-length len)
+                  len)))
     (if (and has-properties
              cl-print--depth
              (natnump print-level)
@@ -351,8 +365,9 @@ into a button whose action shows the function's disassembly.")
   (let* ((len (length object)))
     (if (atom start)
         ;; Print part of the string.
-        (let* ((limit (if (natnump print-length)
-                          (min (+ start print-length) len) len))
+        (let* ((limit (if (natnump cl-print-string-length)
+                          (min (+ start cl-print-string-length) len)
+                        len))
                (substr (substring-no-properties object start limit))
                (printed (prin1-to-string substr))
                (trimmed (substring printed 1 -1)))
@@ -560,14 +575,14 @@ node `(elisp)Output Variables'."
 (defun cl-print-to-string-with-limit (print-function value limit)
   "Return a string containing a printed representation of VALUE.
 Attempt to get the length of the returned string under LIMIT
-characters with appropriate settings of `print-level' and
-`print-length.'  Use PRINT-FUNCTION to print, which should take
-the arguments VALUE and STREAM and which should respect
-`print-length' and `print-level'.  LIMIT may be nil or zero in
-which case PRINT-FUNCTION will be called with `print-level' and
-`print-length' bound to nil, and it can also be t in which case
-PRINT-FUNCTION will be called with the current values of `print-level'
-and `print-length'.
+characters with appropriate settings of `print-level',
+`print-length.', and `cl-print-string-length'.  Use
+PRINT-FUNCTION to print, which should take the arguments VALUE
+and STREAM and which should respect `print-length',
+`print-level', and `cl-print-string-length'.  LIMIT may be nil or
+zero in which case PRINT-FUNCTION will be called with these
+settings bound to nil, and it can also be t in which case
+PRINT-FUNCTION will be called with their current values.
 
 Use this function with `cl-prin1' to print an object,
 abbreviating it with ellipses to fit within a size limit."
@@ -576,13 +591,18 @@ abbreviating it with ellipses to fit within a size limit."
   ;; limited, if you increase print-level here, add more depth in
   ;; call_debugger (bug#31919).
   (let* ((print-length (cond
-                        ((null limit) nil)
                         ((eq limit t) print-length)
+                        ((or (null limit) (zerop limit)) nil)
                         (t (min limit 50))))
          (print-level (cond
-                        ((null limit) nil)
                         ((eq limit t) print-level)
+                        ((or (null limit) (zerop limit)) nil)
                         (t (min 8 (truncate (log limit))))))
+         (cl-print-string-length
+          (cond
+           ((eq limit t) cl-print-string-length)
+           ((or (null limit) (zerop limit)) nil)
+           (t (max 0 (- limit 3)))))
          (delta-length (when (natnump limit)
                          (max 1 (truncate (/ print-length print-level))))))
     (with-temp-buffer
@@ -598,7 +618,10 @@ abbreviating it with ellipses to fit within a size limit."
             (let* ((ratio (/ result limit))
                    (delta-level (max 1 (min (- print-level 2) ratio))))
               (cl-decf print-level delta-level)
-              (cl-decf print-length (* delta-length delta-level)))))))))
+              (cl-decf print-length (* delta-length delta-level))
+              (when cl-print-string-length
+                (cl-decf cl-print-string-length
+                         (ceiling cl-print-string-length 4.0))))))))))
 
 (provide 'cl-print)
 ;;; cl-print.el ends here

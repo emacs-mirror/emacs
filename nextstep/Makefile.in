@@ -71,11 +71,11 @@ ${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} $@
 
-# FIXME: Don't install the dump file into the app bundle when
-# self-contained install is disabled.
 ${ns_applibexecdir}/Emacs.pdmp: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}.pdmp
 	${MKDIR_P} ${ns_applibexecdir}
+ifeq (${ns_self_contained},no)
 	cp -f ../src/emacs${EXEEXT}.pdmp $@
+endif
 
 .PHONY: FORCE
 

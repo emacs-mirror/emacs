@@ -374,6 +374,7 @@ key, so the text properties are only preserved on the last three
 characters.
 @end defvar
 
+@vindex minibuffer-mode-map
 @defvar minibuffer-local-map
 This
 @anchor{Definition of minibuffer-local-map}
@@ -414,6 +415,9 @@ default, it makes the following bindings:
 @code{file-cache-minibuffer-complete}
 @end ignore
 @end table
+
+@noindent
+The variable @code{minibuffer-mode-map} is an alias for this variable.
 @end defvar
 
 @defun read-no-blanks-input prompt &optional initial inherit-input-method
@@ -2669,7 +2673,7 @@ variable instead (@pxref{Echo Area Customization}).
 
 The option @code{resize-mini-windows} does not affect the behavior of
 minibuffer-only frames (@pxref{Frame Layout}).  The following option
-allows to automatically resize such frames as well.
+enables automatically resizing such frames as well.
 
 @defopt resize-mini-frames
 If this is @code{nil}, minibuffer-only frames are never resized
@@ -2877,3 +2881,22 @@ This is the major mode used in inactive minibuffers.  It uses
 keymap @code{minibuffer-inactive-mode-map}.  This can be useful
 if the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
 @end deffn
+
+@deffn Command minibuffer-regexp-mode
+This minor mode makes editing regular expressions in the minibuffer
+more convenient.  It highlight parens via @code{show-paren-mode} and
+@code{blink-matching-paren} in a user-friendly way, avoids reporting
+false paren mismatches, and makes sexp navigation more intuitive.
+@end deffn
+
+By default, only certain minibuffer prompts automatically activate the
+convenience features of @code{minibuffer-regexp-mode} when the
+minibuffer becomes active.  This list of prompts can be customized via
+@code{minibuffer-regexp-prompts}.
+
+@defopt minibuffer-regexp-prompts
+This variable holds the list of regular expressions for activating the
+features of @code{minibuffer-regexp-mode} in the minibuffer.  The
+mode's features will be activated only if the minibuffer prompt
+matches one of the regular expressions in the list.
+@end defopt

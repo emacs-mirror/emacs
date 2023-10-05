@@ -411,7 +411,6 @@ The return value is the last VAL in the list.
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
-(make-obsolete-generalized-variable 'buffer-local-value nil "29.1")
 
 (gv-define-expander alist-get
   (lambda (do key alist &optional default remove testfn)
@@ -821,18 +820,6 @@ REF must have been previously obtained with `gv-ref'."
                      (,v ,(funcall setter val))
                      ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
 (make-obsolete-generalized-variable 'eq nil "29.1")
-
-(gv-define-expander substring
-  (lambda (do place from &optional to)
-    (gv-letplace (getter setter) place
-      (macroexp-let2* nil ((start from) (end to))
-        (funcall do `(substring ,getter ,start ,end)
-                 (lambda (v)
-                   (macroexp-let2 nil v v
-                     `(progn
-                        ,(funcall setter `(cl--set-substring
-                                           ,getter ,start ,end ,v))
-                        ,v))))))))
 
 (provide 'gv)
 ;;; gv.el ends here

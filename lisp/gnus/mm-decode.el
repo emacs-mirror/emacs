@@ -119,7 +119,7 @@
 	((executable-find "links") 'links)
         ((executable-find "lynx") 'lynx)
         (t 'shr))
-  "Render of HTML contents.
+  "Renderer of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
 `shr': use the built-in Gnus HTML renderer;
@@ -131,8 +131,8 @@ The defined renderer types are:
   :version "29.1"
   :type '(choice (const shr)
                  (const gnus-w3m)
-                 (const w3m :tag "emacs-w3m")
-		 (const w3m-standalone :tag "standalone w3m" )
+                 (const :tag "emacs-w3m" w3m)
+                 (const :tag "standalone w3m" w3m-standalone)
 		 (const links)
 		 (const lynx)
 		 (function))

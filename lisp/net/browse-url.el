@@ -236,7 +236,7 @@ be used instead."
 
 (defcustom browse-url-button-regexp
   (concat
-   "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|gemini\\|"
+   "\\b\\(\\(www\\.\\|\\(s?https?\\|ftps?\\|file\\|gophers?\\|gemini\\|"
    "nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
    "\\(//[-a-z0-9_.]+:[0-9]*\\)?"
    (let ((chars "-a-z0-9_=#$@~%&*+\\/[:word:]")
@@ -914,6 +914,11 @@ If ARGS are omitted, the default is to pass
                 ;; (setenv "WAYLAND_DISPLAY" dpy)
                 )
             (setenv "DISPLAY" dpy)))
+         ((featurep 'android)
+          ;; Avoid modifying the DISPLAY environment variable here,
+          ;; which interferes with any X server the user may have
+          ;; expressly set.
+          nil)
          (t
           (setenv "DISPLAY" dpy)))))
     (if (functionp function)
@@ -1457,8 +1462,7 @@ used instead of `browse-url-new-window-flag'."
 
 ;;;###autoload
 (defun browse-url-w3-gnudoit (url &optional _new-window)
-  ;; new-window ignored
-  "Ask another Emacs running gnuserv to load the URL using the W3 browser.
+  "Ask another Emacs running emacsclient to load the URL using the W3 browser.
 The `browse-url-gnudoit-program' program is used with options given by
 `browse-url-gnudoit-args'.  Default to the URL around or before point."
   (declare (obsolete nil "25.1"))

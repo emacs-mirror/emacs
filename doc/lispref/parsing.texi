@@ -400,14 +400,17 @@ when deciding whether to enable tree-sitter features.
 
 @cindex creating tree-sitter parsers
 @cindex tree-sitter parser, creating
-@defun treesit-parser-create language &optional buffer no-reuse
+@defun treesit-parser-create language &optional buffer no-reuse tag
 Create a parser for the specified @var{buffer} and @var{language}
-(@pxref{Language Grammar}).  If @var{buffer} is omitted or
-@code{nil}, it stands for the current buffer.
+(@pxref{Language Grammar}), with @var{tag}.  If @var{buffer} is
+omitted or @code{nil}, it stands for the current buffer.
 
 By default, this function reuses a parser if one already exists for
-@var{language} in @var{buffer}, but if @var{no-reuse} is
-non-@code{nil}, this function always creates a new parser.
+@var{language} with @var{tag} in @var{buffer}, but if @var{no-reuse}
+is non-@code{nil}, this function always creates a new parser.
+
+@var{tag} can be any symbol except @code{t}, and defaults to
+@code{nil}.  Different parsers can have the same tag.
 
 If that buffer is an indirect buffer, its base buffer is used instead.
 That is, indirect buffers use their base buffer's parsers.  If the
@@ -450,11 +453,17 @@ internal parser list.  Every time a change is made to the buffer,
 Emacs updates parsers in this list so they can update their syntax
 tree incrementally.
 
-@defun treesit-parser-list &optional buffer
-This function returns the parser list of @var{buffer}.  If
-@var{buffer} is @code{nil} or omitted, it defaults to the current
-buffer.  If that buffer is an indirect buffer, its base buffer is used
-instead.  That is, indirect buffers use their base buffer's parsers.
+@defun treesit-parser-list &optional buffer language tag
+This function returns the parser list of @var{buffer}, filtered by
+@var{language} and @var{tag}.  If @var{buffer} is @code{nil} or
+omitted, it defaults to the current buffer.  If that buffer is an
+indirect buffer, its base buffer is used instead.  That is, indirect
+buffers use their base buffer's parsers.
+
+If @var{language} is non-@var{nil}, only include parsers for that
+language, and only include parsers with @var{tag}.  @var{tag} defaults
+to @code{nil}.  If @var{tag} is @code{t}, include parsers in the
+returned list regardless of their tag.
 @end defun
 
 @defun treesit-parser-delete parser
@@ -1706,6 +1715,20 @@ If @var{query} is a tree-sitter query, it should be preceded by two
 specifies the embedded language, and the @code{:host} keyword
 specifies the host language.
 
+@cindex local parser
+If the query is given the @code{:local} keyword whose value is
+@code{t}, the range set by this query has a dedicated local parser;
+otherwise the range shares a parser with other ranges for the same
+language.
+
+By default, a parser sees its ranges as a continuum, rather than
+treating them as separate independent segments.  Therefore, if the
+embedded ranges are semantically independent segments, they should be
+processed by local parsers, described below.
+
+Local parser set to a range can be retrieved by
+@code{treesit-local-parsers-at} and @code{treesit-local-parsers-on}.
+
 @code{treesit-update-ranges} uses @var{query} to figure out how to set
 the ranges for parsers for the embedded language.  It queries
 @var{query} in a host language parser, computes the ranges which the
@@ -1740,6 +1763,25 @@ argument, @var{pos}, which is a buffer position, and returns the
 language of the buffer text at @var{pos}.  This variable is used by
 @code{treesit-language-at}.
 @end defvar
+
+@defun treesit-local-parsers-at &optional pos language
+This function returns all the local parsers at @var{pos} in the
+current buffer.  @var{pos} defaults to point.
+
+Local parsers are those which only parse a limited region marked by an
+overlay with a non-@code{nil} @code{treesit-parser} property.  If
+@var{language} is non-@code{nil}, only return parsers for that
+language.
+@end defun
+
+@defun treesit-local-parsers-on &optional beg end language
+This function is the same as @code{treesit-local-parsers-at}, but it
+returns the local parsers in the range between @var{beg} and @var{end}
+instead of at point.
+
+@var{beg} and @var{end} default to the entire accessible portion of
+the buffer.
+@end defun
 
 @node Tree-sitter Major Modes
 @section Developing major modes with tree-sitter
@@ -1835,6 +1877,8 @@ add-log functions used by @code{add-log-current-defun}.
 If @code{treesit-simple-imenu-settings} (@pxref{Imenu}) is
 non-@code{nil}, it sets up Imenu.
 @end itemize
+
+@c TODO: Add treesit-thing-settings stuff once we finalize it.
 @end defun
 
 For more information on these built-in tree-sitter features,

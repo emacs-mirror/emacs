@@ -1167,7 +1167,7 @@ static struct terminal *x_create_terminal (struct x_display_info *);
 static void x_frame_rehighlight (struct x_display_info *);
 
 static void x_clip_to_row (struct window *, struct glyph_row *,
-			   enum glyph_row_area, GC);
+			   enum glyph_row_area, GC, XRectangle *);
 static struct scroll_bar *x_window_to_scroll_bar (Display *, Window, int);
 static struct frame *x_window_to_frame (struct x_display_info *, int);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
@@ -7842,9 +7842,10 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   Display *display = FRAME_X_DISPLAY (f);
   GC gc = f->output_data.x->normal_gc;
   struct face *face = p->face;
+  XRectangle clip_rect;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, ANY_AREA, gc);
+  x_clip_to_row (w, row, ANY_AREA, gc, &clip_rect);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -7914,6 +7915,29 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
       memset (&attrs, 0, sizeof attrs);
 #endif
+      XRectangle image_rect, dest;
+      int px, py, pwidth, pheight;
+
+      /* Intersect the destination rectangle with that of the row.
+	 Setting a clip mask overrides the clip rectangles provided by
+	 x_clip_to_row, so clipping must be performed by hand.  */
+
+      image_rect.x = p->x;
+      image_rect.y = p->y;
+      image_rect.width = p->wd;
+      image_rect.height = p->h;
+
+      if (!gui_intersect_rectangles (&clip_rect, &image_rect, &dest))
+	/* The entire destination rectangle falls outside the row.  */
+	goto undo_clip;
+
+      /* Extrapolate the source rectangle from the difference between
+	 the destination and image rectangles.  */
+
+      px = dest.x - image_rect.x;
+      py = dest.y - image_rect.y;
+      pwidth = dest.width;
+      pheight = dest.height;
 
       if (p->wd > 8)
 	bits = (char *) (p->bits + p->dh);
@@ -7985,15 +8009,16 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	  x_xr_apply_ext_clip (f, gc);
 	  XRenderComposite (display, PictOpSrc, picture,
 			    None, FRAME_X_PICTURE (f),
-			    0, 0, 0, 0, p->x, p->y, p->wd, p->h);
+			    px, py, px, py, dest.x, dest.y,
+			    pwidth, pheight);
 	  x_xr_reset_ext_clip (f);
 
 	  XRenderFreePicture (display, picture);
 	}
       else
 #endif
-	XCopyArea (display, pixmap, drawable, gc, 0, 0,
-		   p->wd, p->h, p->x, p->y);
+	XCopyArea (display, pixmap, drawable, gc, px, py,
+		   pwidth, pheight, dest.x, dest.y);
       XFreePixmap (display, pixmap);
 
       if (p->overlay_p)
@@ -8003,6 +8028,8 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	  XFreePixmap (display, clipmask);
 	}
     }
+
+  undo_clip:
 #endif  /* not USE_CAIRO */
 
   x_reset_clip_rectangles (f, gc);
@@ -13170,6 +13197,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
 #ifdef HAVE_XINPUT2
 
+/* Disable per-device keyboard focus tracking within X toolkit and GTK
+   2.x builds, given that these builds receive updates to the keyboard
+   input focus as core events.  */
+
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
+
 /* Since the input extension assigns a keyboard focus to each master
    device, there is no longer a 1:1 correspondence between the
    selected frame and the focus frame immediately after the keyboard
@@ -13381,6 +13414,8 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
   xi_handle_focus_change (dpyinfo);
 }
 
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
+
 static void
 xi_handle_delete_frame (struct x_display_info *dpyinfo,
 			struct frame *f)
@@ -13409,6 +13444,7 @@ xi_handle_interaction (struct x_display_info *dpyinfo,
 		       struct frame *f, struct xi_device_t *device,
 		       Time time)
 {
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
   bool change;
 
   /* If DEVICE is a pointer, use its attached keyboard device.  */
@@ -13435,6 +13471,7 @@ xi_handle_interaction (struct x_display_info *dpyinfo,
   /* If F isn't currently focused, update the focus state.  */
   if (change && f != dpyinfo->x_focus_frame)
     xi_handle_focus_change (dpyinfo);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 }
 
 /* Return whether or not XEV actually represents a change in the
@@ -20260,20 +20297,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  /* See if keysym should make Emacs quit.  */
 
-	  if (keysym == dpyinfo->quit_keysym
-	      && (xkey.time - dpyinfo->quit_keysym_time
-		  <= 350))
+	  if (dpyinfo->quit_keysym)
 	    {
-	      Vquit_flag = Qt;
-	      goto done_keysym;
-	    }
+	      if (keysym == dpyinfo->quit_keysym
+		  && (xkey.time - dpyinfo->quit_keysym_time
+		      <= 350))
+		{
+		  Vquit_flag = Qt;
+		  goto done_keysym;
+		}
 
-	  if (keysym == dpyinfo->quit_keysym)
-	    {
-	      /* Otherwise, set the last time that keysym was
-		 pressed.  */
-	      dpyinfo->quit_keysym_time = xkey.time;
-	      goto done_keysym;
+	      if (keysym == dpyinfo->quit_keysym)
+		{
+		  /* Otherwise, set the last time that keysym was
+		     pressed.  */
+		  dpyinfo->quit_keysym_time = xkey.time;
+		  goto done_keysym;
+		}
 	    }
 
           /* If not using XIM/XIC, and a compose sequence is in progress,
@@ -20575,6 +20615,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       }
 #endif
 
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit builds,
+	 but not GTK+ 2.x and X toolkit builds, where it is required
+	 to treat implicit focus correctly.  (bug#65919) */
+#if defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3)
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3) */
+
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
 	 EnterNotify and LeaveNotify events despite us selecting for
@@ -20585,10 +20633,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (dpyinfo->supports_xi2)
 	goto OTHER;
-#endif
+#endif /* HAVE_XINPUT2 */
 
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit
+	 builds.  */
+#if !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3)
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3) */
 
       f = any;
 
@@ -20649,8 +20701,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
 	 That is fixed above but bites us here again.
 
-	 The option x_set_frame_visibility_more_laxly allows to override
-	 the default behavior (Bug#49955, Bug#53298).  */
+	 The option x_set_frame_visibility_more_laxly enables
+	 overriding the default behavior (Bug#49955, Bug#53298).  */
       if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
 	  || EQ (x_set_frame_visibility_more_laxly, Qt))
 #endif /* USE_GTK */
@@ -20673,6 +20725,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
 				    event->xcrossing.send_event, false);
 
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit builds,
+	 but not GTK+ 2.x and X toolkit builds, where it is required
+	 to treat implicit focus correctly.  */
+#if defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3)
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3) */
+
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
 	 EnterNotify and LeaveNotify events despite us selecting for
@@ -20685,7 +20745,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 #if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	  goto OTHER;
-#else
+#else /* USE_X_TOOLKIT || (USE_GTK && !HAVE_GTK3) */
 	  /* Unfortunately, X toolkit popups generate LeaveNotify
 	     events due to the core grabs they acquire (and our
 	     releasing of the device grab).  This leads to the mouse
@@ -20694,9 +20754,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	     outside the frame, in which case no XI_Enter event is
 	     generated for the grab.  */
 	  goto just_clear_mouse_face;
-#endif
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 	}
-#endif
+#endif /* HAVE_XINPUT2 */
+
+      /* Apply the fix for bug#57468 on GTK 3.x and no toolkit
+	 builds.  */
+#if !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3)
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+#endif /* !defined USE_X_TOOLKIT || (!defined USE_GTK || defined HAVE_GTK3) */
 
 #ifdef HAVE_XWIDGETS
       {
@@ -20711,9 +20778,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
       }
 #endif
-
-      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
-	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
 #if defined HAVE_XINPUT2						\
   && (defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3))
@@ -22082,6 +22146,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	switch (event->xcookie.evtype)
 	  {
+	    /* XI focus events aren't employed under X toolkit or GTK+
+	       2.x because windows created by these two toolkits are
+	       incompatible with input extension focus events.  */
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	  case XI_FocusIn:
 	    {
 	      XIFocusInEvent *focusin;
@@ -22091,17 +22159,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifdef USE_GTK
 	      /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
-		 minimized/iconified windows; thus, for those WMs we won't get
-		 a MapNotify when unminimizing/deiconifying.  Check here if we
-		 are deiconizing a window (Bug42655).
+		 minimized/iconified windows; thus, for those WMs we
+		 won't get a MapNotify when unminimizing/deiconifying.
+		 Check here if we are deiconizing a window (Bug42655).
 
-		 But don't do that by default on GTK since it may cause a plain
-		 invisible frame get reported as iconified, compare
+		 But don't do that by default on GTK since it may
+		 cause a plain invisible frame get reported as
+		 iconified, compare
 		 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
 		 That is fixed above but bites us here again.
 
-		 The option x_set_frame_visibility_more_laxly allows to override
-		 the default behavior (Bug#49955, Bug#53298).  */
+		 The option x_set_frame_visibility_more_laxly enables
+		 overriding the default behavior (Bug#49955,
+		 Bug#53298).  */
 	      if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
 		  || EQ (x_set_frame_visibility_more_laxly, Qt))
 #endif /* USE_GTK */
@@ -22132,6 +22202,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      goto XI_OTHER;
 	    }
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 	  case XI_Enter:
 	    {
@@ -22177,8 +22248,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 passive focus from non-top windows at all, since they
 		 are an inferiors of the frame's top window, which will
 		 get virtual events.  */
+
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      if (any)
 		xi_focus_handle_for_device (dpyinfo, any, xi_event);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 	      if (!any)
 		any = x_any_window_to_frame (dpyinfo, enter->event);
@@ -22358,8 +22432,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      }
 #endif
 
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      if (any)
 		xi_focus_handle_for_device (dpyinfo, any, xi_event);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 #ifndef USE_X_TOOLKIT
 	      f = x_top_window_to_frame (dpyinfo, leave->event);
@@ -24154,20 +24230,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  /* See if keysym should make Emacs quit.  */
 
-		  if (keysym == dpyinfo->quit_keysym
-		      && (xev->time - dpyinfo->quit_keysym_time
-			  <= 350))
+		  if (dpyinfo->quit_keysym)
 		    {
-		      Vquit_flag = Qt;
-		      goto xi_done_keysym;
-		    }
+		      if (keysym == dpyinfo->quit_keysym
+			  && (xev->time - dpyinfo->quit_keysym_time
+			      <= 350))
+			{
+			  Vquit_flag = Qt;
+			  goto xi_done_keysym;
+			}
 
-		  if (keysym == dpyinfo->quit_keysym)
-		    {
-		      /* Otherwise, set the last time that keysym was
-			 pressed.  */
-		      dpyinfo->quit_keysym_time = xev->time;
-		      goto xi_done_keysym;
+		      if (keysym == dpyinfo->quit_keysym)
+			{
+			  /* Otherwise, set the last time that keysym
+			     was pressed.  */
+			  dpyinfo->quit_keysym_time = xev->time;
+			  goto xi_done_keysym;
+			}
 		    }
 
 		  /* First deal with keysyms which have defined
@@ -24430,9 +24509,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XIDeviceInfo *info;
 	      int i, ndevices, n_disabled, *disabled;
 	      struct xi_device_t *device;
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      bool any_changed;
 
 	      any_changed = false;
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 	      hev = (XIHierarchyEvent *) xi_event;
 	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
 	      n_disabled = 0;
@@ -24449,10 +24530,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  xi_disable_devices (dpyinfo, disabled, n_disabled);
 			  n_disabled = 0;
 
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 			  /* This flag really just means that disabled
 			     devices were handled early and should be
 			     used in conjunction with n_disabled.  */
 			  any_changed = true;
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 			}
 
 		      /* Under unknown circumstances, multiple
@@ -24519,12 +24602,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 event.  */
 	      xi_disable_devices (dpyinfo, disabled, n_disabled);
 
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
 	      /* If the device hierarchy has been changed, recompute
 		 focus.  This might seem like a micro-optimization but
 		 it actually keeps the focus from changing in some
 		 cases where it would be undesierable.  */
 	      if (any_changed || n_disabled)
 		xi_handle_focus_change (dpyinfo);
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 
 	      goto XI_OTHER;
 	    }
@@ -25594,13 +25679,17 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* Set clipping for output in glyph row ROW.  W is the window in which
    we operate.  GC is the graphics context to set clipping in.
 
+   If RECT_RETURN is non-NULL, return the clip rectangle within
+   *RECT_RETURN.
+
    ROW may be a text row or, e.g., a mode line.  Text rows must be
    clipped to the interior of the window dedicated to text display,
    mode lines must be clipped to the whole window.  */
 
 static void
 x_clip_to_row (struct window *w, struct glyph_row *row,
-	       enum glyph_row_area area, GC gc)
+	       enum glyph_row_area area, GC gc,
+	       XRectangle *rect_return)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   XRectangle clip_rect;
@@ -25615,6 +25704,9 @@ x_clip_to_row (struct window *w, struct glyph_row *row,
   clip_rect.height = row->visible_height;
 
   x_set_clip_rectangles (f, gc, &clip_rect, 1);
+
+  if (rect_return)
+    *rect_return = clip_rect;
 }
 
 
@@ -25663,7 +25755,7 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 	wd -= 1;
     }
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  x_clip_to_row (w, row, TEXT_AREA, gc);
+  x_clip_to_row (w, row, TEXT_AREA, gc, NULL);
   x_draw_rectangle (f, gc, x, y, wd, h - 1);
   x_reset_clip_rectangles (f, gc);
 }
@@ -25733,7 +25825,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 	  FRAME_DISPLAY_INFO (f)->scratch_cursor_gc = gc;
 	}
 
-      x_clip_to_row (w, row, TEXT_AREA, gc);
+      x_clip_to_row (w, row, TEXT_AREA, gc, NULL);
 
       if (kind == BAR_CURSOR)
 	{
@@ -29452,6 +29544,7 @@ x_free_frame_resources (struct frame *f)
     dpyinfo->last_mouse_frame = NULL;
 
 #ifdef HAVE_XINPUT2
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
   /* Consider a frame being unfocused with no following FocusIn event
      while an older focus from another seat exists.  The client
      pointer should then revert to the other seat, so handle potential
@@ -29459,7 +29552,8 @@ x_free_frame_resources (struct frame *f)
 
   if (dpyinfo->supports_xi2)
     xi_handle_focus_change (dpyinfo);
-#endif
+#endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
+#endif /* HAVE_XINPUT2 */
 
   unblock_input ();
 }
@@ -32724,17 +32818,12 @@ frame placement via frame parameters, `set-frame-position', and
 
 This is used to support quitting on devices that do not have any kind
 of physical keyboard, or where the physical keyboard is incapable of
-entering `C-g'.  It defaults to `XF86XK_AudioLowerVolume' on XFree86
-and X.Org servers, and is unset.
+entering `C-g'.
 
 The value is an alist associating between strings, describing X server
 vendor names, and a single number describing the keysym to use.  The
 keysym to use for each display connection is determined upon
 connection setup, and does not reflect further changes to this
 variable.  */);
-  Vx_quit_keysym
-    = list2 (Fcons (build_string ("The X.Org Foundation"),
-		    make_int (269025041)),
-	     Fcons (build_string ("The XFree86 Project, Inc."),
-		    make_int (269025041)));
+  Vx_quit_keysym = Qnil;
 }

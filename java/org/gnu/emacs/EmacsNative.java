@@ -196,6 +196,10 @@ public final class EmacsNative
      KEYCODE_VOLUME_MUTE should be forwarded to Emacs.  */
   public static native boolean shouldForwardMultimediaButtons ();
 
+  /* Return whether KEYCODE_SPACE combined with META_CTRL_MASK should
+     be prevented from reaching the system input method.  */
+  public static native boolean shouldForwardCtrlSpace ();
+
   /* Initialize the current thread, by blocking signals that do not
      interest it.  */
   public static native void setupSystemThread ();

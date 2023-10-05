@@ -1326,9 +1326,9 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
 {
   check_android_display_info (terminal);
 
-  /* The Java part is implemented in a way that it always does the
-     equivalent of backing store.  */
-  return Qalways;
+  /* Window contents are preserved insofar as they remain mapped, in a
+     fashion tantamount to WhenMapped.  */
+  return Qwhen_mapped;
 }
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
@@ -3102,7 +3102,7 @@ syms_of_androidfns (void)
 {
   /* Miscellaneous symbols used by some functions here.  */
   DEFSYM (Qtrue_color, "true-color");
-  DEFSYM (Qalways, "always");
+  DEFSYM (Qwhen_mapped, "when-mapped");
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* SKIP: real text in xfns.c.  */);
@@ -3205,6 +3205,19 @@ Note that if you set this, you will no longer be able to quit Emacs
 using the volume down button.  */);
   android_pass_multimedia_buttons_to_system = false;
 
+  DEFVAR_BOOL ("android-intercept-control-space",
+	       android_intercept_control_space,
+    doc: /* Whether Emacs should intercept C-SPC.
+When this variable is set, Emacs intercepts C-SPC events as they are
+delivered to a frame before they are registered and filtered by the
+input method.
+
+For no apparent purpose, Android input methods customarily discard SPC
+events with the Ctrl modifier set without delivering them to Emacs
+afterwards, which is an impediment to typing key sequences
+incorporating such keys.  */);
+  android_intercept_control_space = true;
+
   DEFVAR_BOOL ("android-use-exec-loader", android_use_exec_loader,
     doc: /* Whether or not to bypass system restrictions on program execution.
 
@@ -3218,6 +3231,14 @@ restrictions.
 
 This option has no effect on Android 9 and earlier.  */);
   android_use_exec_loader = true;
+
+  DEFVAR_INT ("android-keyboard-bell-duration",
+	      android_keyboard_bell_duration,
+    doc: /* Number of milliseconds to vibrate after ringing the keyboard bell.
+The keyboard bell under Android systems takes the form of a vibrating
+element that is activated for a given number of milliseconds upon the
+bell being rung.  */);
+  android_keyboard_bell_duration = 50;
 
   /* Functions defined.  */
   defsubr (&Sx_create_frame);

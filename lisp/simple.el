@@ -2504,7 +2504,7 @@ Equivalent key-bindings are also shown in the completion list of
   :group 'keyboard
   :type '(choice (const :tag "off" nil)
                  (natnum :tag "time" 2)
-                 (other :tag "on")))
+                 (other :tag "on" t)))
 
 (defcustom extended-command-suggest-shorter t
   "If non-nil, show a shorter \\[execute-extended-command] invocation \
@@ -4903,7 +4903,7 @@ appears at the end of the output.
 Optional fourth arg OUTPUT-BUFFER specifies where to put the
 command's output.  If the value is a buffer or buffer name,
 erase that buffer and insert the output there; a non-nil value of
-`shell-command-dont-erase-buffer' prevent to erase the buffer.
+`shell-command-dont-erase-buffer' prevents erasing the buffer.
 If the value is nil, use the buffer specified by `shell-command-buffer-name'.
 Any other non-nil value means to insert the output in the
 current buffer after START.
@@ -5098,7 +5098,16 @@ characters."
     exit-status))
 
 (defun shell-command-to-string (command)
-  "Execute shell command COMMAND and return its output as a string."
+  "Execute shell command COMMAND and return its output as a string.
+Use `shell-quote-argument' to quote dangerous characters in
+COMMAND before passing it as an argument to this function.
+
+Use this function only when a shell interpreter is needed.  In
+other cases, consider alternatives such as `call-process' or
+`process-lines', which do not invoke the shell.  Consider using
+built-in functions like `rename-file' instead of the external
+command \"mv\".  For more information, see Info node
+`(elisp)Security Considerations'."
   (with-output-to-string
     (with-current-buffer standard-output
       (shell-command command t))))
@@ -5150,7 +5159,7 @@ never with `setq'.")
 (defcustom process-file-return-signal-string nil
   "Whether to return a string describing the signal interrupting a process.
 When a process returns an exit code greater than 128, it is
-interpreted as a signal.  `process-file' requires to return a
+interpreted as a signal.  `process-file' requires returning a
 string describing this signal.
 Since there are processes violating this rule, returning exit
 codes greater than 128 which are not bound to a signal,
@@ -6464,9 +6473,9 @@ If non-nil, the kill ring is rotated after selecting previously killed text."
 
 (defun yank-from-kill-ring (string &optional arg)
   "Select a stretch of previously killed text and insert (\"paste\") it.
-This command allows to choose one of the stretches of text killed
-or yanked by previous commands, which are recorded in `kill-ring',
-and reinsert the chosen kill at point.
+This command allows you to select one of the stretches of text
+killed or yanked by previous commands, which are recorded in
+`kill-ring', and reinsert the chosen kill at point.
 
 This command prompts for a previously-killed text in the minibuffer.
 Use the minibuffer history and search commands, or the minibuffer
@@ -8267,7 +8276,11 @@ rests."
       (let ((newpos
 	     (save-excursion
 	       (let ((goal-column 0)
-		     (line-move-visual nil))
+		     (line-move-visual nil)
+                     ;; Always move to eol when invoking `C-e' from
+                     ;; within the minibuffer's prompt string (see
+                     ;; bug#65980).
+                     (inhibit-field-text-motion (minibufferp)))
 		 (and (line-move arg t)
 		      ;; With bidi reordering, we may not be at bol,
 		      ;; so make sure we are.
@@ -8444,7 +8457,7 @@ even beep.)"
         (and (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
-             ;; character whose category set allows to wrap at it.
+             ;; character whose category set permits wrapping at it.
              (or (looking-at-p "[ \t]")
                  (and word-wrap-by-category
                       (aref (char-category-set (following-char)) ?\|)))
@@ -8570,12 +8583,12 @@ variables `truncate-lines' and `truncate-partial-width-windows'."
   "Interchange characters around point, moving forward one character.
 With prefix arg ARG, effect is to take character before point
 and drag it forward past ARG other characters (backward if ARG negative).
-If no argument and at end of line, the previous two chars are exchanged."
-  (interactive "*P")
-  (when (and (null arg) (eolp) (not (bobp))
+If at end of line, the previous two chars are exchanged."
+  (interactive "*p")
+  (when (and (eolp) (not (bobp))
 	     (not (get-text-property (1- (point)) 'read-only)))
     (forward-char -1))
-  (transpose-subr 'forward-char (prefix-numeric-value arg)))
+  (transpose-subr #'forward-char arg))
 
 (defun transpose-words (arg)
   "Interchange words around point, leaving point at end of them.

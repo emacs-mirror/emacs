@@ -2408,7 +2408,7 @@ called with a prefix argument.  Related new options are
 
 The new command 'reftex-create-bibtex-file' creates a BibTeX database
 with all entries referenced in the current document.  The keys "e" and
-"E" allow to produce a BibTeX database file from entries marked in a
+"E" allow producing a BibTeX database file from entries marked in a
 citation selection buffer.
 
 The command 'reftex-citation' uses the word in the buffer before the

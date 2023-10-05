@@ -120,9 +120,9 @@ Emacs version in which they will appear.  Likewise with defcustom's
 whose value is changed -- update their ':version' tag.
 
 Think about whether your change requires updating the manuals.  If you
-know it does not, mark the NEWS entry with "---".  If you know
-that *all* the necessary documentation updates have been made as part
-of your changes or those by others, mark the entry with "+++".
+know it does not, mark the NEWS entry with "---" before the entry.  If
+you know that *all* the necessary documentation updates have been made
+as part of your changes or those by others, mark the entry with "+++".
 Otherwise, do not mark it.
 
 If your change requires updating the manuals to document new
@@ -299,6 +299,11 @@ them right the first time, so here are guidelines for formatting them:
 - If you use Emacs VC, you can use 'C-c C-w' to generate formatted
   blank ChangeLog entries from the diff being committed, then use
   'M-q' to combine and fill them.  See 'info "(emacs) Log Buffer"'.
+
+- If you use the third-party package Magit, you can use
+  'magit-generate-changelog' from the commit message buffer.
+  See also 'magit-add-change-log-entry' and
+  'magit-add-change-log-entry-other-window'.
 
 - Alternatively, you can use Emacs functions for ChangeLog files; see
   https://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html

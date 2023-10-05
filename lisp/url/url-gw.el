@@ -1,6 +1,6 @@
 ;;; url-gw.el --- Gateway munging for URL loading  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -97,21 +97,27 @@ This list will be executed as a command after logging in via telnet."
 
 (defcustom url-gateway-broken-resolution nil
   "Whether to use nslookup to resolve hostnames.
-This should be used when your version of Emacs cannot correctly use DNS,
-but your machine can.  This usually happens if you are running a statically
-linked Emacs under SunOS 4.x."
+This should be used when your version of Emacs cannot correctly
+use DNS, but your machine can.
+
+This used to happen on SunOS 4.x and Ultrix when Emacs was linked
+statically, and also was not linked with the resolver libraries.
+Those systems are no longer supported by Emacs."
   :type 'boolean
   :group 'url-gateway)
+(make-obsolete-variable 'url-gateway-broken-resolution nil "30.1")
 
 (defcustom url-gateway-nslookup-program "nslookup"
   "If non-nil then a string naming nslookup program."
   :type '(choice (const :tag "None" :value nil) string)
   :group 'url-gateway)
+(make-obsolete-variable 'url-gateway-nslookup-program nil "30.1")
 
 ;; Stolen from ange-ftp
 ;;;###autoload
 (defun url-gateway-nslookup-host (host)
   "Attempt to resolve the given HOST using nslookup if possible."
+  (declare (obsolete nil "30.1"))
   (interactive "sHost:  ")
   (if url-gateway-nslookup-program
       (let ((proc (start-process " *nslookup*" " *nslookup*"
@@ -237,7 +243,8 @@ overriding the value of `url-gateway-method'."
 
       ;; If the user told us to do DNS for them, do it.
       (if url-gateway-broken-resolution
-	  (setq host (url-gateway-nslookup-host host)))
+          (with-suppressed-warnings ((obsolete url-gateway-nslookup-host))
+            (setq host (url-gateway-nslookup-host host))))
 
       ;; This is a clean way to ensure the new process inherits the
       ;; right coding systems in both Emacs and XEmacs.

@@ -514,7 +514,17 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   damageRect (Rect damageRect)
   {
-    view.damageRect (damageRect);
+    view.damageRect (damageRect.left,
+		     damageRect.top,
+		     damageRect.right,
+		     damageRect.bottom);
+  }
+
+  @Override
+  public void
+  damageRect (int left, int top, int right, int bottom)
+  {
+    view.damageRect (left, top, right, bottom);
   }
 
   public void
@@ -576,7 +586,7 @@ public final class EmacsWindow extends EmacsHandleObject
      input EVENT.  Replace bits corresponding to Left or Right keys
      with their corresponding general modifier bits.  */
 
-  private int
+  public static int
   eventModifiers (KeyEvent event)
   {
     int state;

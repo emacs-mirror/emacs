@@ -794,7 +794,7 @@ meaningful if it refers to a lexically bound variable."
   "Describe minor mode for EVENT on minor modes area of the mode line."
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
-    (describe-minor-mode-from-indicator indicator)))
+    (describe-minor-mode-from-indicator indicator event)))
 
 (defvar mode-line-defining-kbd-macro (propertize " Def" 'face 'font-lock-warning-face)
   "String displayed in the mode line in keyboard macro recording mode.")

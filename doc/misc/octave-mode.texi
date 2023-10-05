@@ -421,7 +421,7 @@ when Octave is waiting for input, or done sending output.
 
 @bye
 
-@c TODO Update
+@c TODO Update (and change gnuserv to emacsclient)
 
 @c @node Using the Emacs Info Reader for Octave
 @c @chapter Using the Emacs Info Reader for Octave

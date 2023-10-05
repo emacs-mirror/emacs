@@ -580,6 +580,7 @@ test-src-inotify:
       lisp/progmodes/go-ts-mode-tests.log
       lisp/progmodes/heex-ts-mode-tests.log
       lisp/progmodes/java-ts-mode-tests.log
+      lisp/progmodes/lua-ts-mode-tests.log
       lisp/progmodes/ruby-ts-mode-tests.log
       lisp/progmodes/typescript-ts-mode-tests.log
       src/treesit-tests.log

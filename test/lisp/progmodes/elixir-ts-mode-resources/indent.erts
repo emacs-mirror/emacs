@@ -330,6 +330,22 @@ Name: Long tuple
  "October", "November", "December"}
 =-=-=
 
+Name: Doc
+
+=-=
+defmodule Foo do
+"""
+    bar
+    """
+end
+=-=
+defmodule Foo do
+  """
+    bar
+  """
+end
+=-=-=
+
 Name: Embedded HEEx
 
 =-=

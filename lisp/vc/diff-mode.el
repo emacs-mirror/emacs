@@ -216,6 +216,7 @@ The default \"-b\" means to ignore whitespace-only changes,
   "C-x 4 A" #'diff-add-change-log-entries-other-window
   ;; Misc operations.
   "C-c C-a" #'diff-apply-hunk
+  "C-c C-m a" #'diff-apply-buffer
   "C-c C-e" #'diff-ediff-patch
   "C-c C-n" #'diff-restrict-view
   "C-c C-s" #'diff-split-hunk
@@ -2053,6 +2054,40 @@ With a prefix argument, try to REVERSE the hunk."
       (if (and line-offset switched)
           (diff-hunk-kill)
         (diff-hunk-next)))))
+
+(defun diff-apply-buffer ()
+  "Apply the diff in the entire diff buffer.
+When applying all hunks was successful, then save the changed buffers."
+  (interactive)
+  (let ((buffer-edits nil)
+        (failures 0)
+        (diff-refine nil))
+    (save-excursion
+      (goto-char (point-min))
+      (diff-beginning-of-hunk t)
+      (while (pcase-let ((`(,buf ,line-offset ,pos ,_src ,dst ,switched)
+                          (diff-find-source-location nil nil)))
+               (cond ((and line-offset (not switched))
+                      (push (cons pos dst)
+                            (alist-get buf buffer-edits)))
+                     (t (setq failures (1+ failures))))
+               (and (not (eq (prog1 (point) (ignore-errors (diff-hunk-next)))
+                             (point)))
+                    (looking-at-p diff-hunk-header-re)))))
+    (cond ((zerop failures)
+           (dolist (buf-edits (reverse buffer-edits))
+             (with-current-buffer (car buf-edits)
+               (dolist (edit (cdr buf-edits))
+                 (let ((pos (car edit))
+                       (dst (cdr edit))
+                       (inhibit-read-only t))
+                   (goto-char (car pos))
+                   (delete-region (car pos) (cdr pos))
+                   (insert (car dst))))
+               (save-buffer)))
+           (message "Saved %d buffers" (length buffer-edits)))
+          (t
+           (message "%d hunks failed; no buffers changed" failures)))))
 
 (defalias 'diff-mouse-goto-source #'diff-goto-source)
 

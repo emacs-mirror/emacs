@@ -3376,6 +3376,46 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
     set_buffer_internal_1 (old);
   return val;
 }
+
+DEFUN ("re--describe-compiled", Fre__describe_compiled, Sre__describe_compiled,
+       1, 2, 0,
+       doc: /* Return a string describing the compiled form of REGEXP.
+If RAW is non-nil, just return the actual bytecode.  */)
+  (Lisp_Object regexp, Lisp_Object raw)
+{
+  struct regexp_cache *cache_entry
+    = compile_pattern (regexp, NULL,
+                       (!NILP (BVAR (current_buffer, case_fold_search))
+                        ? BVAR (current_buffer, case_canon_table) : Qnil),
+                       false,
+                       !NILP (BVAR (current_buffer,
+                                    enable_multibyte_characters)));
+  if (!NILP (raw))
+    return make_unibyte_string ((char *) cache_entry->buf.buffer,
+                                cache_entry->buf.used);
+  else
+    {                           /* FIXME: Why ENABLE_CHECKING?  */
+#if !defined ENABLE_CHECKING
+      error ("Not available: rebuild with --enable-checking");
+#elif HAVE_OPEN_MEMSTREAM
+      char *buffer = NULL;
+      size_t size = 0;
+      FILE* f = open_memstream (&buffer, &size);
+      if (!f)
+        report_file_error ("open_memstream failed", regexp);
+      print_compiled_pattern (f, &cache_entry->buf);
+      fclose (f);
+      if (!buffer)
+        return Qnil;
+      Lisp_Object description = make_unibyte_string (buffer, size);
+      free (buffer);
+      return description;
+#else /* ENABLE_CHECKING && !HAVE_OPEN_MEMSTREAM */
+      print_compiled_pattern (stderr, &cache_entry->buf);
+      return build_string ("Description was sent to standard error");
+#endif /* !ENABLE_CHECKING */
+    }
+}
 
 
 static void syms_of_search_for_pdumper (void);
@@ -3455,6 +3495,7 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Smatch_data__translate);
   defsubr (&Sregexp_quote);
   defsubr (&Snewline_cache_check);
+  defsubr (&Sre__describe_compiled);
 
   pdumper_do_now_and_after_load (syms_of_search_for_pdumper);
 }

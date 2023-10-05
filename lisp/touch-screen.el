@@ -1034,6 +1034,10 @@ If the fourth element of `touch-screen-current-tool' is
 original position of the tool to display its bound keymap as a
 menu.
 
+If the fourth element of `touch-screen-current-tool' is `drag' or
+`held', the region is active, and the tool's initial window's
+selected buffer isn't read-only, display the on screen keyboard.
+
 If the command being executed is listed in
 `touch-screen-set-point-commands' also display the on-screen
 keyboard if the current buffer and the character at the new point
@@ -1064,8 +1068,8 @@ is not read-only."
                                  posn))
                     ;; Look for the command bound to this event.
                     (command (key-binding (if prefix
-                                                 (vector prefix
-                                                         (car event))
+                                              (vector prefix
+                                                      (car event))
                                             (vector (car event)))
                                           t nil posn)))
                (deactivate-mark)
@@ -1136,9 +1140,7 @@ is not read-only."
                               ;; ... generate a mouse-1 event...
                               (list 'mouse-1 posn)
                             ;; ... otherwise, generate a drag-mouse-1 event.
-                            (list 'drag-mouse-1 (cons old-window
-                                                      old-posn)
-                                  (cons new-window posn))))
+                            (list 'drag-mouse-1 old-posn posn)))
                       (if (and (eq new-window old-window)
                                (eq new-point old-point)
                                (windowp new-window)
@@ -1146,15 +1148,34 @@ is not read-only."
                           ;; ... generate a mouse-1 event...
                           (list 'mouse-1 posn)
                         ;; ... otherwise, generate a drag-mouse-1 event.
-                        (list 'drag-mouse-1 (cons old-window
-                                                  old-posn)
-                              (cons new-window posn)))))))
+                        (list 'drag-mouse-1 old-posn posn))))))
           ((eq what 'mouse-1-menu)
            ;; Generate a `down-mouse-1' event at the position the tap
            ;; took place.
            (throw 'input-event
                   (list 'down-mouse-1
-                        (nth 4 touch-screen-current-tool)))))))
+                        (nth 4 touch-screen-current-tool))))
+          ((or (eq what 'drag)
+               ;; Merely initiating a drag is sufficient to select a
+               ;; word if word selection is enabled.
+               (eq what 'held))
+           ;; Display the on screen keyboard if the region is now
+           ;; active.  Check this within the window where the tool was
+           ;; first place.
+           (setq window (nth 1 touch-screen-current-tool))
+           (when window
+             (with-selected-window window
+               (when (and (region-active-p)
+                          (not buffer-read-only))
+                 ;; Once the on-screen keyboard has been opened, add
+                 ;; `touch-screen-window-selection-changed' as a window
+                 ;; selection change function This then prevents it from
+                 ;; being hidden after exiting the minibuffer.
+                 (progn
+                   (add-hook 'window-selection-change-functions
+                             #'touch-screen-window-selection-changed)
+                   (frame-toggle-on-screen-keyboard (selected-frame)
+                                                    nil)))))))))
 
 (defun touch-screen-handle-touch (event prefix &optional interactive)
   "Handle a single touch EVENT, and perform associated actions.

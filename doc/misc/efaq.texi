@@ -1121,8 +1121,8 @@ feature, when you need to insert a single special character.
 allows selection of one of the previous kills.
 
 @item
-New minor mode @code{repeat-mode} allows to repeat commands with fewer
-keystrokes.
+New minor mode @code{repeat-mode} enables repeating commands with
+fewer keystrokes.
 
 @item
 Among the many internal changes in this release, we would like to
@@ -3301,12 +3301,12 @@ Emacs has an inherent fixed limitation on the size of buffers.  This
 limit is stricter than the maximum size of objects supported by other
 programs on the same architecture.
 
-The maximum buffer size on 32-bit machines is 512 MBytes.  If Emacs
-was built using the @code{--with-wide-int} flag, the maximum buffer
-size on 32-bit machines is 2 GB.
+The maximum buffer size on 64-bit machines is 2.3 exabytes
+(@code{most-positive-fixnum}).
 
-Emacs compiled on a 64-bit machine can handle much larger buffers; up
-to @code{most-positive-fixnum} (2.3 exabytes).
+Emacs compiled on a 32-bit machine can handle buffers up to 512
+MBytes.  If Emacs was built using the @code{--with-wide-int} flag, the
+maximum buffer size on 32-bit machines is 2 GB.
 
 Due to things like decoding of multibyte characters, you can only
 visit files with a size that is roughly half the buffer size limit.
@@ -3839,13 +3839,28 @@ description of what they do and how they should be used.
 
 The easiest way to add more features to your Emacs is to use the
 command @kbd{M-x list-packages}.  This contacts the
-@uref{https://elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
-server and fetches the list of additional packages that it offers.
-These are GNU packages that are available for use with Emacs, but are
-distributed separately from Emacs itself, for reasons of space, etc.
-You can browse the resulting @file{*Packages*} buffer to see what is
-available, and then Emacs can automatically download and install the
-packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
+@uref{https://elpa.gnu.org, GNU ELPA} and
+@uref{https://elpa.nongnu.org, NonGNU ELPA} (``Emacs Lisp Package
+Archive'') servers and fetches the list of additional packages that
+they offer.  You can browse the resulting @file{*Packages*} buffer to
+see what is available, and then Emacs can automatically download and
+install the packages that you select.  @xref{Packages,,, emacs, The
+GNU Emacs Manual}.
+
+GNU ELPA contains GNU packages that are available for use with Emacs,
+but are distributed separately from Emacs itself, for reasons of
+space, etc.  NonGNU ELPA contains a selection of third-party packages
+that can not be included in GNU ELPA because their copyright has not
+yet been assigned to the Free Software Foundation.@footnote{For more
+information, see @uref{https://www.gnu.org/licenses/why-assign.html,
+Why the FSF Gets Copyright Assignments from Contributors}.}
+
+The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
+GNU Emacs sources mailing list} is automatically sent an email when a
+new version of a GNU ELPA or NonGNU ELPA package is
+released.@footnote{It used to be an official place where people could
+post or announce their extensions to Emacs.  That is still allowed,
+but exceedingly rare these days.}
 
 There are other Emacs Lisp package archives.  To use additional
 archives, you can customize the @code{package-archives} variable.
@@ -3855,14 +3870,10 @@ correctness and safety of the code, or they may give only cursory
 attention.
 
 Also, packages hosted on these other archives may encourage or require
-you to install and use other nonfree programs.  Unless you can verify
+you to install and use nonfree programs.  Unless you can verify
 that a package is free software, and that it functions without
 installing any nonfree software, we recommend for your freedom's sake
 that you stay away from it.
-
-The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
-GNU Emacs sources mailing list} is an official place where people can
-post or announce their extensions to Emacs.
 
 The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
 additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an
@@ -3870,8 +3881,8 @@ alternative wiki for Emacs.
 
 It is impossible for us to list here all the sites that offer Emacs
 Lisp packages.  If you are interested in a specific feature, then
-after checking Emacs itself and GNU ELPA, a web search is often the
-best way to find results.
+after checking Emacs itself, GNU ELPA, and NonGNU ELPA, a web search
+is often the best way to find results.
 
 @node Spell-checkers
 @section Spell-checkers

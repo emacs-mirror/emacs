@@ -134,7 +134,7 @@ but all the 3 primitives allow optionally to direct the standard error
 stream to a different destination.
 
 @cindex program arguments
-  All three of the subprocess-creating functions allow to specify
+  All three of the subprocess-creating functions allow specifying
 command-line arguments for the process to run. For @code{call-process}
 and @code{call-process-region}, these come in the form of a
 @code{&rest} argument, @var{args}.  For @code{make-process}, both the
@@ -520,7 +520,7 @@ This user option indicates whether a call of @code{process-file}
 returns a string describing the signal interrupting a remote process.
 
 When a process returns an exit code greater than 128, it is
-interpreted as a signal.  @code{process-file} requires to return a
+interpreted as a signal.  @code{process-file} requires returning a
 string describing this signal.
 
 Since there are processes violating this rule, returning exit codes
@@ -681,7 +681,7 @@ This function is the basic low-level primitive for starting
 asynchronous subprocesses.  It returns a process object representing
 the subprocess.  Compared to the more high-level @code{start-process},
 described below, it takes keyword arguments, is more flexible, and
-allows to specify process filters and sentinels in a single call.
+enables you to specify process filters and sentinels in a single call.
 
 The arguments @var{args} are a list of keyword/argument pairs.
 Omitting a keyword is always equivalent to specifying it with value

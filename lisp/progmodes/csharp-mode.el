@@ -493,7 +493,7 @@ compilation and evaluation time conflicts."
        ;; Next non-whitespace character should be '{'
        (goto-char (c-point 'boi))
        (unless (eq (char-after) ?{)
-         (backward-up-list 1 t t))
+         (ignore-errors (backward-up-list 1 t t)))
        (save-excursion
          ;; 'new' should be part of the line
          (goto-char (c-point 'iopl))
@@ -959,10 +959,12 @@ Key bindings:
   ;; Comments.
   (c-ts-common-comment-setup)
 
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("comment"
-                            "verbatim_string-literal"
-                            "interpolated_verbatim_string-text")))
+  (setq-local treesit-thing-settings
+              `((c-sharp
+                 (text
+                  ,(regexp-opt '("comment"
+                                 "verbatim_string-literal"
+                                 "interpolated_verbatim_string-text"))))))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules csharp-ts-mode--indent-rules)

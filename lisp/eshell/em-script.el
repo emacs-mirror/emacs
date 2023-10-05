@@ -89,26 +89,18 @@ This includes when running `eshell-command'."
 (defun eshell-source-file (file &optional args subcommand-p)
   "Execute a series of Eshell commands in FILE, passing ARGS.
 Comments begin with `#'."
-  (let ((orig (point))
-	(here (point-max)))
-    (goto-char (point-max))
-    (with-silent-modifications
-      ;; FIXME: Why not use a temporary buffer and avoid this
-      ;; "insert&delete" business?  --Stef
-      (insert-file-contents file)
-      (goto-char (point-max))
-      (throw 'eshell-replace-command
-             (prog1
-                 (list 'let
-                       (list (list 'eshell-command-name (list 'quote file))
-                             (list 'eshell-command-arguments
-                                   (list 'quote args)))
-                       (let ((cmd (eshell-parse-command (cons here (point)))))
-                         (if subcommand-p
-                             (setq cmd (list 'eshell-as-subcommand cmd)))
-                         cmd))
-               (delete-region here (point))
-               (goto-char orig))))))
+  (let ((cmd (eshell-parse-command `(:file . ,file))))
+    (when subcommand-p
+      (setq cmd `(eshell-as-subcommand ,cmd)))
+    (throw 'eshell-replace-command
+           `(let ((eshell-command-name ',file)
+                  (eshell-command-arguments ',args)
+                  ;; Don't print subjob messages by default.
+                  ;; Otherwise, if this function was called as a
+                  ;; subjob, then *all* commands in the script would
+                  ;; print start/stop messages.
+                  (eshell-subjob-messages nil))
+              ,cmd))))
 
 (defun eshell/source (&rest args)
   "Source a file in a subshell environment."

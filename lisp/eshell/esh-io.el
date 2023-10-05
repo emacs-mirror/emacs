@@ -170,7 +170,7 @@ describing the mode, e.g. for using with `eshell-get-target'.")
 
 (defvar eshell-current-handles nil)
 
-(defvar eshell-last-command-status 0
+(defvar-local eshell-last-command-status 0
   "The exit code from the last command.  0 if successful.")
 
 (defvar eshell-last-command-result nil
@@ -648,8 +648,11 @@ Returns what was actually sent, or nil if nothing was sent.")
       (process-send-string target object)
     (error
      ;; If `process-send-string' raises an error and the process has
-     ;; finished, treat it as a broken pipe.  Otherwise, just
-     ;; re-throw the signal.
+     ;; finished, treat it as a broken pipe.  Otherwise, just re-raise
+     ;; the signal.  NOTE: When running Emacs in batch mode
+     ;; (e.g. during regression tests), Emacs can abort due to SIGPIPE
+     ;; here.  Maybe `process-send-string' should handle SIGPIPE even
+     ;; in batch mode (bug#66186).
      (if (process-live-p target)
          (signal (car err) (cdr err))
        (signal 'eshell-pipe-broken (list target)))))

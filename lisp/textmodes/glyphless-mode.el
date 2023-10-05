@@ -30,7 +30,6 @@ The value can be any of the groups supported by
 `all', for all glyphless characters."
   :version "29.1"
   :type '(repeat (choice (const :tag "All" all)
-                         (const :tag "No font" no-font)
                          (const :tag "C0 Control" c0-control)
                          (const :tag "C1 Control" c1-control)
                          (const :tag "Format Control" format-control)

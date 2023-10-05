@@ -275,6 +275,8 @@ Edit a list of abbrevs; you can add, alter or remove definitions.
 
 @example
 @var{various other tables@dots{}}
+(python-mode-skeleton-abbrev-table)
+"class" (sys)	    0 "" python-skeleton-class
 (lisp-mode-abbrev-table)
 "ks"          0    "keymap-set"
 (global-abbrev-table)
@@ -297,11 +299,14 @@ keeps track of this to help you see which abbrevs you actually use, so
 that you can eliminate those that you don't use often.  The string at
 the end of the line is the expansion.
 
-  Some abbrevs are marked with @samp{(sys)}.  These @dfn{system abbrevs}
-(@pxref{Abbrevs,,, elisp, The Emacs Lisp Reference Manual}) are
-pre-defined by various modes, and are not saved to your abbrev file.
-To disable a system abbrev, define an abbrev of the same name that
-expands to itself, and save it to your abbrev file.
+  Some abbrevs are marked with @samp{(sys)}.  These @dfn{system
+abbrevs} (@pxref{Abbrevs,,, elisp, The Emacs Lisp Reference Manual})
+are pre-defined by various modes, and are not saved to your abbrev
+file.  To disable a system abbrev, define an abbrev of the same name
+that expands to itself, and save it to your abbrev file.  The system
+abbrevs have an associated hook function, which is called to perform
+the abbrev expansion; the name of that function follows the abbrev
+expansion in the buffer shown by @code{list-abbrevs}.
 
 @findex edit-abbrevs
 @kindex C-c C-c @r{(Edit Abbrevs)}

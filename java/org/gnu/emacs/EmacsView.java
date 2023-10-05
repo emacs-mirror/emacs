@@ -437,6 +437,16 @@ public final class EmacsView extends ViewGroup
     damageRegion.union (damageRect);
   }
 
+  /* This function enables damage to be recorded without consing a new
+     Rect object.  */
+
+  public void
+  damageRect (int left, int top, int right, int bottom)
+  {
+    EmacsService.checkEmacsThread ();
+    damageRegion.op (left, top, right, bottom, Region.Op.UNION);
+  }
+
   /* This method is called from both the UI thread and the Emacs
      thread.  */
 
@@ -468,6 +478,26 @@ public final class EmacsView extends ViewGroup
     /* Transfer the bitmap to the surface view, then invalidate
        it.  */
     surfaceView.setBitmap (bitmap, damageRect);
+  }
+
+  @Override
+  public boolean
+  onKeyPreIme (int keyCode, KeyEvent event)
+  {
+    /* Several Android systems intercept key events representing
+       C-SPC.  Avert this by detecting C-SPC events here and relaying
+       them directly to onKeyDown.
+
+       Make this optional though, since some input methods also
+       leverage C-SPC as a shortcut for switching languages.  */
+
+    if ((keyCode == KeyEvent.KEYCODE_SPACE
+	 && (window.eventModifiers (event)
+	     & KeyEvent.META_CTRL_MASK) != 0)
+	&& !EmacsNative.shouldForwardCtrlSpace ())
+      return onKeyDown (keyCode, event);
+
+    return super.onKeyPreIme (keyCode, event);
   }
 
   @Override
@@ -600,6 +630,13 @@ public final class EmacsView extends ViewGroup
 	     int yPosition, boolean force)
   {
     if (popupActive && !force)
+      return false;
+
+    /* Android will permanently cease to display any popup menus at
+       all if the list of menu items is empty.  Prevent this by
+       promptly returning if there are no menu items.  */
+
+    if (menu.menuItems.isEmpty ())
       return false;
 
     contextMenu = menu;

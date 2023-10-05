@@ -35,7 +35,7 @@
 (put 'track-mouse 'lisp-indent-function 0)
 
 (defgroup mouse nil
-  "Input from the mouse."  ;; "Mouse support."
+  "Input from the mouse."
   :group 'environment
   :group 'editing)
 
@@ -1829,10 +1829,11 @@ The region will be defined with mark and point."
              map)
            t (lambda ()
                (funcall cleanup)
-               ;; Don't deactivate the mark when the context menu was invoked
-               ;; by down-mouse-3 immediately after down-mouse-1 and without
-               ;; releasing the mouse button with mouse-1. This allows to use
-               ;; region-related context menu to operate on the selected region.
+               ;; Don't deactivate the mark when the context menu was
+               ;; invoked by down-mouse-3 immediately after
+               ;; down-mouse-1 and without releasing the mouse button
+               ;; with mouse-1.  This enables region-related context
+               ;; menu to operate on the selected region.
                (unless (and context-menu-mode
                             (eq (car-safe (aref (this-command-keys-vector) 0))
                                 'down-mouse-3))

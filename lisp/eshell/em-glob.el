@@ -156,8 +156,8 @@ This mimics the behavior of zsh if non-nil, but bash if nil."
 (defun eshell-add-glob-modifier ()
   "Add `eshell-extended-glob' to the argument modifier list."
   (when eshell-glob-splice-results
-    (add-to-list 'eshell-current-modifiers 'eshell-splice-args t))
-  (add-to-list 'eshell-current-modifiers 'eshell-extended-glob))
+    (add-hook 'eshell-current-modifiers #'eshell-splice-args 99))
+  (add-hook 'eshell-current-modifiers #'eshell-extended-glob))
 
 (defun eshell-parse-glob-chars ()
   "Parse a globbing delimiter.

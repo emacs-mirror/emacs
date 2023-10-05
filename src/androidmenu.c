@@ -162,10 +162,11 @@ android_dismiss_menu (void *pointer)
   struct android_dismiss_menu_data *data;
 
   data = pointer;
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       data->menu,
-				       menu_class.dismiss,
-				       data->window);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 data->menu,
+						 menu_class.class,
+						 menu_class.dismiss,
+						 data->window);
   popup_activated_flag = 0;
 }
 
@@ -247,7 +248,6 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   jobject title_string, help_string, temp;
   size_t i;
   Lisp_Object pane_name, prefix;
-  const char *pane_string;
   specpdl_ref count, count1;
   Lisp_Object item_name, enable, def, tem, entry, type, selected;
   Lisp_Object help;
@@ -261,9 +261,11 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   struct android_menu_subprefix *subprefix_1;
   bool checkmark;
   unsigned int serial;
+  JNIEnv *env;
 
   count = SPECPDL_INDEX ();
   serial = ++current_menu_serial;
+  env = android_java_env;
 
   block_input ();
 
@@ -313,9 +315,10 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	     context menu.  */
 	  store = current_context_menu;
 	  current_context_menu
-	    = (*android_java_env)->CallObjectMethod (android_java_env,
-						     current_context_menu,
-						     menu_class.parent);
+	    = (*env)->CallNonvirtualObjectMethod (env,
+						  current_context_menu,
+						  menu_class.class,
+						  menu_class.parent);
 	  android_exception_check ();
 
 	  if (store != context_menu)
@@ -353,20 +356,26 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  /* Now figure out the title of this pane.  */
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-	  pane_string = (NILP (pane_name)
-			 ? "" : SSDATA (pane_name));
-	  if ((menuflags & MENU_KEYMAPS) && !NILP (prefix))
-	    pane_string++;
+
+	  /* PANE_NAME may be nil, in which case it must be set to an
+	     empty string.  */
+
+	  if (NILP (pane_name))
+	    pane_name = empty_unibyte_string;
+
+	  /* Remove the leading prefix character if need be.  */
+
+	  if ((menuflags & MENU_KEYMAPS) && !NILP (prefix)
+	      && SCHARS (prefix))
+	    pane_name = Fsubstring (pane_name, make_fixnum (1), Qnil);
 
 	  /* Add the pane.  */
-	  temp = (*android_java_env)->NewStringUTF (android_java_env,
-						    pane_string);
+	  temp = android_build_string (pane_name);
 	  android_exception_check ();
 
-	  (*android_java_env)->CallVoidMethod (android_java_env,
-					       current_context_menu,
-					       menu_class.add_pane,
-					       temp);
+	  (*env)->CallNonvirtualVoidMethod (env, current_context_menu,
+					    menu_class.class,
+					    menu_class.add_pane, temp);
 	  android_exception_check ();
 	  ANDROID_DELETE_LOCAL_REF (temp);
 
@@ -403,11 +412,12 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	      store = current_context_menu;
 	      current_context_menu
-		= (*android_java_env)->CallObjectMethod (android_java_env,
-							 current_context_menu,
-							 menu_class.add_submenu,
-							 title_string,
-							 help_string);
+		= (*env)->CallNonvirtualObjectMethod (env,
+						      current_context_menu,
+						      menu_class.class,
+						      menu_class.add_submenu,
+						      title_string,
+						      help_string);
 	      android_exception_check ();
 
 	      if (store != context_menu)
@@ -449,17 +459,18 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	      checkmark = (EQ (type, QCtoggle)
 			   || EQ (type, QCradio));
 
-	      (*android_java_env)->CallVoidMethod (android_java_env,
-						   current_context_menu,
-						   menu_class.add_item,
-						   (jint) item_id,
-						   title_string,
-						   (jboolean) !NILP (enable),
-						   (jboolean) checkmark,
-						   (jboolean) !NILP (selected),
-						   help_string,
-						   (jboolean) (EQ (type,
-								   QCradio)));
+	      (*env)->CallNonvirtualVoidMethod (env,
+						current_context_menu,
+						menu_class.class,
+						menu_class.add_item,
+						(jint) item_id,
+						title_string,
+						(jboolean) !NILP (enable),
+						(jboolean) checkmark,
+						(jboolean) !NILP (selected),
+						help_string,
+						(jboolean) (EQ (type,
+								QCradio)));
 	      android_exception_check ();
 
 	      if (title_string)
@@ -479,12 +490,12 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   /* Now, display the context menu.  */
   window = android_resolve_handle (FRAME_ANDROID_WINDOW (f),
 				   ANDROID_HANDLE_WINDOW);
-  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
-					       context_menu,
-					       menu_class.display,
-					       window, (jint) x,
-					       (jint) y,
-					       (jint) serial);
+  rc = (*env)->CallNonvirtualBooleanMethod (env, context_menu,
+					    menu_class.class,
+					    menu_class.display,
+					    window, (jint) x,
+					    (jint) y,
+					    (jint) serial);
   android_exception_check ();
 
   if (!rc)
@@ -652,6 +663,7 @@ android_dialog_show (struct frame *f, Lisp_Object title,
   int id;
   jmethodID method;
   unsigned int serial;
+  JNIEnv *env;
 
   /* Generate a unique ID for events from this dialog box.  */
   serial = ++current_menu_serial;
@@ -690,6 +702,11 @@ android_dialog_show (struct frame *f, Lisp_Object title,
     ANDROID_DELETE_LOCAL_REF (java_header);
   ANDROID_DELETE_LOCAL_REF (java_title);
 
+  /* Save the JNI environment pointer prior to constructing the
+     dialog, as typing (*android_java_env)->... gives rise to very
+     long lines.  */
+  env = android_java_env;
+
   /* Create the buttons.  */
   i = MENU_ITEMS_PANE_LENGTH;
   while (i < menu_items_used)
@@ -722,11 +739,11 @@ android_dialog_show (struct frame *f, Lisp_Object title,
 
 	  /* Add the button.  */
 	  temp = android_build_string (item_name);
-	  (*android_java_env)->CallVoidMethod (android_java_env,
-					       dialog,
-					       dialog_class.add_button,
-					       temp, (jint) i,
-					       (jboolean) NILP (enable));
+	  (*env)->CallNonvirtualVoidMethod (env, dialog,
+					    dialog_class.class,
+					    dialog_class.add_button,
+					    temp, (jint) i,
+					    (jboolean) NILP (enable));
 	  android_exception_check ();
 	  ANDROID_DELETE_LOCAL_REF (temp);
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -734,9 +751,9 @@ android_dialog_show (struct frame *f, Lisp_Object title,
     }
 
   /* The dialog is now built.  Run it.  */
-  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
-					       dialog,
-					       dialog_class.display);
+  rc = (*env)->CallNonvirtualBooleanMethod (env, dialog,
+					    dialog_class.class,
+					    dialog_class.display);
   android_exception_check ();
 
   if (!rc)

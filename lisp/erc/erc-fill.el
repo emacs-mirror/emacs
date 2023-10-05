@@ -158,9 +158,8 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
     (when (or erc-fill--function erc-fill-function)
       ;; skip initial empty lines
       (goto-char (point-min))
-      (save-match-data
-        (while (and (looking-at "[ \t\n]*$")
-                    (= (forward-line 1) 0))))
+      (while (and (looking-at (rx bol (* (in " \t")) eol))
+                  (zerop (forward-line 1))))
       (unless (eobp)
         (save-restriction
           (narrow-to-region (point) (point-max))

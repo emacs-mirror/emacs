@@ -447,9 +447,10 @@ merge-based version control system, a @samp{-} character indicates
 that the work file is unmodified, and @samp{:} indicates that it has
 been modified.  @samp{!} indicates that the file contains conflicts as
 result of a recent merge operation (@pxref{Merging}), or that the file
-was removed from the version control.  Finally, @samp{?} means that
-the file is under version control, but is missing from the working
-tree.
+was removed from the version control, or that it is versioned but also
+@dfn{ignored}, something that usually should not happen (@pxref{VC
+Ignore}).  Finally, @samp{?} means that the file is under version
+control, but is missing from the working tree.
 
   In a lock-based system, @samp{-} indicates an unlocked file, and
 @samp{:} a locked file; if the file is locked by another user (for
@@ -1803,7 +1804,7 @@ prompt you for the project directory.
 @vindex vc-directory-exclusion-list
   The command @kbd{C-x p f} (@code{project-find-file}) is a convenient
 way of visiting files (@pxref{Visiting}) that belong to the current
-project.  Unlike @kbd{C-x C-f}, this command doesn't require to type
+project.  Unlike @kbd{C-x C-f}, this command doesn't require typing
 the full file name of the file to visit, you can type only the file's
 base name (i.e., omit the leading directories).  In addition, the
 completion candidates considered by the command include only the files
@@ -2657,8 +2658,8 @@ definitions have tag names like @samp{operator+}.  If you specify the
 @samp{--class-qualify} option, tags for variables and functions in
 classes are named @samp{@var{class}::@var{variable}} and
 @samp{@var{class}::@var{function}}.  By default, class methods and
-members are not class-qualified, which allows to identify their names in
-the sources more accurately.
+members are not class-qualified, which facilitates identifying their
+names in the sources more accurately.
 
 @item
 In Java code, tags include all the constructs recognized in C++, plus

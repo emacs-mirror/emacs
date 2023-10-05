@@ -96,6 +96,7 @@ public final class EmacsDesktopNotification
     RemoteViews contentView;
     Intent intent;
     PendingIntent pending;
+    int priority;
 
     tem = context.getSystemService (Context.NOTIFICATION_SERVICE);
     manager = (NotificationManager) tem;
@@ -116,11 +117,37 @@ public final class EmacsDesktopNotification
 			.build ());
       }
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      notification = (new Notification.Builder (context)
-		      .setContentTitle (title)
-		      .setContentText (content)
-		      .setSmallIcon (icon)
-		      .build ());
+      {
+	/* Android 7.1 and earlier don't segregate notifications into
+	   distinct categories, but permit an importance to be
+	   assigned to each individual notification.  */
+
+	switch (importance)
+	  {
+	  case 2: /* IMPORTANCE_LOW */
+	  default:
+	    priority = Notification.PRIORITY_LOW;
+	    break;
+
+	  case 3: /* IMPORTANCE_DEFAULT */
+	    priority = Notification.PRIORITY_DEFAULT;
+	    break;
+
+	  case 4: /* IMPORTANCE_HIGH */
+	    priority = Notification.PRIORITY_HIGH;
+	    break;
+	  }
+
+	notification = (new Notification.Builder (context)
+			.setContentTitle (title)
+			.setContentText (content)
+			.setSmallIcon (icon)
+			.setPriority (priority)
+			.build ());
+
+	if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN)
+	  notification.priority = priority;
+      }
     else
       {
 	notification = new Notification ();

@@ -178,6 +178,15 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
+** Module 'scrolltobottom' can attempt to be more aggressive.
+Enabling the experimental option 'erc-scrolltobottom-all' tells
+'scrolltobottom' to be more vigilant about staking down the input area
+and to do so in all ERC windows.  The dependent option
+'erc-scrolltobottom-relaxed', also experimental, makes ERC's prompt
+stationary wherever it happens to reside instead of forcing it to the
+bottom of a window.  That is, new input appears above the prompt,
+scrolling existing messages upward to compensate.
+
 ** Subtle changes in two fundamental faces.
 Users of the default theme may notice that 'erc-action-face' and
 'erc-notice-face' now appear slightly less bold on systems supporting
@@ -203,11 +212,24 @@ continued integration.  With the existing design, merely loading the
 library 'erc-log' caused 'truncate' to start writing logs, possibly
 against a user's wishes.
 
+** The function 'erc-echo-timestamp' is now a command.
+The option 'erc-echo-timestamps' (plural) has always enabled the
+contextual printing of timestamps to the echo area when moving between
+messages in an ERC buffer.  Similar functionality is now available on
+demand by invoking the newly interactive function 'erc-echo-timestamp'
+atop any message.  The new companion option 'erc-echo-timestamp-zone'
+determines the default timezone when not specified with a prefix
+argument.
+
+** Option 'erc-warn-about-blank-lines' is more informative.
+Enabled by default, this option now produces more useful feedback
+whenever ERC rejects prompt input containing whitespace-only lines.
+When paired with option 'erc-send-whitespace-lines', ERC echoes a
+tally of blank lines padded and trailing blanks culled.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
-ERC.  For example, the function 'erc-echo-timestamp' is now
-interactive and can be invoked on any message to view its timestamp in
-the echo area.  Fool visibility has become togglable with the new
+ERC.  For example, fool visibility has become togglable with the new
 command 'erc-match-toggle-hidden-fools'.  The 'button' module's
 'erc-button-previous' now moves to the beginning instead of the end of
 buttons.  A new command, 'erc-news', can be invoked to visit this very
@@ -239,9 +261,9 @@ property of the same name has been retained and now has a value of
 Built-in and third-party modules rely on certain hooks for adjusting
 incoming and outgoing messages upon insertion.  And some modules only
 want to do so after others have done their damage.  Traditionally,
-this required various hacks and finagling to achieve.  And while this
-release makes an effort to load modules in a more consistent order,
-that alone isn't enough to ensure similar predictability among
+this has required various hacks and finagling to achieve.  And while
+this release makes an effort to load modules in a more consistent
+order, that alone isn't enough to ensure similar predictability among
 essential members of important hooks.
 
 Luckily, ERC now leverages a feature introduced in Emacs 27, "hook
@@ -255,12 +277,17 @@ the first two, 'erc-button-add-buttons' and 'erc-fill', which have
 been swapped with respect to their previous places in recent ERC
 versions.
 
+ERC also provisionally reserves the same depth interval for
+'erc-insert-pre-hook' and possibly other, similar hooks, but will
+continue to modify non-ERC hooks locally whenever possible, especially
+in new code.
+
 *** ERC now manages timestamp-related properties a bit differently.
 For starters, the 'cursor-sensor-functions' property no longer
 contains unique closures and thus no longer proves effective for
 traversing messages.  To compensate, a new property, 'erc-timestamp',
 now spans message bodies but not the newlines delimiting them.  Also
-affecting the `stamp' module is the deprecation of the function
+affecting the 'stamp' module is the deprecation of the function
 'erc-insert-aligned' and its removal from client code.  Additionally,
 the module now merges its 'invisible' property with existing ones and
 includes all white space around stamps when doing so.

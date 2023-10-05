@@ -1250,7 +1250,7 @@ for large documents), you can reuse these buffers by setting
 
 *** References to external documents.
 
-The LaTeX package 'xr' allows to cross-reference labels in external
+The LaTeX package 'xr' allows cross-referencing labels in external
 documents.  RefTeX can provide information about the external
 documents as well.  To use this feature, set up the \externaldocument
 macros required by the 'xr' package and rescan the document with
@@ -3260,7 +3260,7 @@ can connect to an Emacs server started by a non-root user.
 it to return immediately without waiting for you to "finish" the
 buffer in Emacs.
 
-*** The new option --alternate-editor allows to specify an editor to
+*** The new option --alternate-editor allows specifying an editor to
 use if Emacs is not running.  The environment variable
 ALTERNATE_EDITOR can be used for the same effect; the command line
 option takes precedence.

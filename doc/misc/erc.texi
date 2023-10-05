@@ -1803,10 +1803,11 @@ Observe that ERC supplies the names of buffer-display options as
 the symbols @samp{erc-tls} or @samp{url}, the full lineup of which are
 listed below.
 
-In this second example, the user writes three predicates that somewhat
-resemble the ``@code{display-buffer}-like'' function above.  These too
-look for @var{action} alist keys sharing the names of buffer-display
-options (and, in one case, a module's minor mode).
+In this second example, for Emacs 29 and above, the user writes three
+predicates that somewhat resemble the ``@code{display-buffer}-like''
+function above.  These too look for @var{action} alist keys sharing
+the names of ERC's buffer-display options (and, in one case, a
+module's minor mode).
 
 @lisp
 (defun my-erc-disp-entry-p (_ action)
@@ -1821,7 +1822,7 @@ options (and, in one case, a module's minor mode).
 
 (defun my-erc-disp-chan-p (_ action)
   (or (assq 'erc-autojoin-mode action)
-      (and (memq (cdr (assq 'erc-buffer-display alist)) 'JOIN)
+      (and (eq (cdr (assq 'erc-buffer-display action)) 'JOIN)
            (member (erc-default-target) '("#emacs" "#fsf")))))
 @end lisp
 

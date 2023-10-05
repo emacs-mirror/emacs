@@ -40,6 +40,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.SET_WALLPAPER" />
+  <uses-permission android:name="android.permission.READ_CALENDAR" />
+  <uses-permission android:name="android.permission.WRITE_CALENDAR" />
   <!-- Despite the claim that WRITE_EXTERNAL_STORAGE also covers
        reading from external storage, specifying READ_EXTERNAL_STORAGE
        seems to still be necessary on some versions of Android.
@@ -107,73 +109,36 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
         <action android:name="android.intent.action.VIEW"/>
 	<action android:name="android.intent.action.EDIT"/>
 	<action android:name="android.intent.action.PICK"/>
-
         <category android:name="android.intent.category.DEFAULT"/>
+	<!-- Don't offer to start Emacs for URLs that designate
+	     resources other than files.  -->
+	<data android:mimeType="*/*" android:scheme="file"/>
+	<data android:mimeType="*/*" android:scheme="content"/>
+      </intent-filter>
 
-	<data android:mimeType="image/aces"/>
-	<data android:mimeType="image/avci"/>
-	<data android:mimeType="image/avcs"/>
-	<data android:mimeType="image/avif"/>
-	<data android:mimeType="image/bmp"/>
-	<data android:mimeType="image/cgm"/>
-	<data android:mimeType="image/dicom-rle"/>
-	<data android:mimeType="image/dpx"/>
-	<data android:mimeType="image/emf"/>
-	<data android:mimeType="image/example"/>
-	<data android:mimeType="image/fits"/>
-	<data android:mimeType="image/g3fax"/>
-	<data android:mimeType="image/heic"/>
-	<data android:mimeType="image/heic-sequence"/>
-	<data android:mimeType="image/heif"/>
-	<data android:mimeType="image/heif-sequence"/>
-	<data android:mimeType="image/hej2k"/>
-	<data android:mimeType="image/hsj2"/>
-	<data android:mimeType="image/jls"/>
-	<data android:mimeType="image/jp2"/>
-	<data android:mimeType="image/jph"/>
-	<data android:mimeType="image/jphc"/>
-	<data android:mimeType="image/jpm"/>
-	<data android:mimeType="image/jpx"/>
-	<data android:mimeType="image/jxr"/>
-	<data android:mimeType="image/jxrA"/>
-	<data android:mimeType="image/jxrS"/>
-	<data android:mimeType="image/jxs"/>
-	<data android:mimeType="image/jxsc"/>
-	<data android:mimeType="image/jxsi"/>
-	<data android:mimeType="image/jxss"/>
-	<data android:mimeType="image/ktx"/>
-	<data android:mimeType="image/ktx2"/>
-	<data android:mimeType="image/naplps"/>
-	<data android:mimeType="image/png"/>
-	<data android:mimeType="image/prs.btif"/>
-	<data android:mimeType="image/prs.pti"/>
-	<data android:mimeType="image/pwg-raster"/>
-	<data android:mimeType="image/svg+xml"/>
-	<data android:mimeType="image/t38"/>
-	<data android:mimeType="image/tiff"/>
-	<data android:mimeType="image/tiff-fx"/>
-	<data android:mimeType="image/xpm"/>
-	<data android:mimeType="text/*"/>
-        <data android:mimeType="application/*xml"/>
-        <data android:mimeType="application/atom+xml"/>
-        <data android:mimeType="application/dxf"/>
-        <data android:mimeType="application/ecmascript"/>
-        <data android:mimeType="application/javascript"/>
-        <data android:mimeType="application/json"/>
-        <data android:mimeType="application/*log*"/>
-        <data android:mimeType="application/octet-stream"/>
-        <data android:mimeType="application/soap+xm"/>
-        <data android:mimeType="application/x-caramel"/>
-        <data android:mimeType="application/x-klaunch"/>
-        <data android:mimeType="application/x-latex"/>
-        <data android:mimeType="application/x-sh"/>
-        <data android:mimeType="application/x-tcl"/>
-        <data android:mimeType="application/x-tex*"/>
-        <data android:mimeType="application/x-troff*"/>
-        <data android:mimeType="application/xhtml+xml"/>
-        <data android:mimeType="application/xml*"/>
-        <data android:mimeType="application/zip"/>
-        <data android:mimeType="application/x-zip-compressed"/>
+      <!-- Facilitate opening org-protocol:// URLs as well, the same
+           way emacsclient.desktop does.  -->
+
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="org-protocol"/>
+      </intent-filter>
+
+      <!-- And also mailto links.  -->
+
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="mailto"/>
+      </intent-filter>
+
+      <intent-filter>
+        <action android:name="android.intent.action.SENDTO"/>
+        <data android:scheme="mailto"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
 

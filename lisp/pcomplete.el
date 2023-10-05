@@ -470,6 +470,8 @@ Same as `pcomplete' but using the standard completion UI."
            ;; rely less on c-t-subvert.
            (beg (max (- (point) (length pcomplete-stub))
                      argbeg))
+           (end (point))
+           tmp
            buftext)
       ;; Try and improve our guess of `beg' in case the difference
       ;; between pcomplete-stub and the buffer's text is simply due to
@@ -477,11 +479,19 @@ Same as `pcomplete' but using the standard completion UI."
       ;; indispensable but reduces the reliance on c-t-subvert and
       ;; improves corner case behaviors.
       (while (progn (setq buftext (pcomplete-unquote-argument
-                                   (buffer-substring beg (point))))
+                                   (buffer-substring beg end)))
                     (and (> beg argbeg)
                          (> (length pcomplete-stub) (length buftext))))
         (setq beg (max argbeg (- beg (- (length pcomplete-stub)
                                         (length buftext))))))
+      ;; Try and improve our guess of `end' in case it's not point.
+      (while (and (< (length buftext) (length pcomplete-stub))
+                  (< end (point-max))
+                  (string-prefix-p (setq tmp (pcomplete-unquote-argument
+                                              (buffer-substring beg (1+ end))))
+                                   pcomplete-stub))
+        (setq end (1+ end))
+        (setq buftext tmp))
       (when completions
         (let ((table
                (completion-table-with-quoting
@@ -515,7 +525,7 @@ Same as `pcomplete' but using the standard completion UI."
                            seen)))))))
           (when completion-ignore-case
             (setq table (completion-table-case-fold table)))
-          (list beg (point) table
+          (list beg end table
                 :annotation-function
                 (lambda (cand)
                   (when (stringp cand)

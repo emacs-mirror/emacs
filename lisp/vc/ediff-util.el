@@ -1269,36 +1269,28 @@ which see."
     (or (display-graphic-p)
 	(user-error "Emacs is not running as a window application"))
 
-  (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
-	 (setq ediff-multiframe nil)
-	 (setq window-setup-func #'ediff-setup-windows-plain)
-         (message "ediff is now in `plain' mode"))
-	((eq ediff-window-setup-function #'ediff-setup-windows-plain)
-	 (if (and (ediff-buffer-live-p ediff-control-buffer)
-		  (window-live-p ediff-control-window))
-	     (set-window-dedicated-p ediff-control-window nil))
-	 (setq ediff-multiframe t)
-	 (setq window-setup-func #'ediff-setup-windows-multiframe)
-         (message "ediff is now in `multiframe' mode"))
-	(t
-	 (if (and (ediff-buffer-live-p ediff-control-buffer)
-		  (window-live-p ediff-control-window))
-	     (set-window-dedicated-p ediff-control-window nil))
-	 (setq ediff-multiframe t)
-	 (setq window-setup-func #'ediff-setup-windows-multiframe))
-         (message "ediff is now in `multiframe' mode"))
+    (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
+           (setq ediff-multiframe nil)
+           (setq window-setup-func #'ediff-setup-windows-plain)
+           (message "ediff is now in `plain' mode"))
+          (t ; (eq ediff-window-setup-function #'ediff-setup-windows-plain)
+           (if (and (ediff-buffer-live-p ediff-control-buffer)
+                    (window-live-p ediff-control-window))
+               (set-window-dedicated-p ediff-control-window nil))
+           (setq ediff-multiframe t)
+           (setq window-setup-func #'ediff-setup-windows-multiframe)
+           (message "ediff is now in `multiframe' mode")))
 
-  ;; change default
-  (setq-default ediff-window-setup-function window-setup-func)
-  ;; change in all active ediff sessions
-  (mapc (lambda(buf) (ediff-with-current-buffer buf
-		       (setq ediff-window-setup-function window-setup-func
-			     ediff-window-B nil)))
-	ediff-session-registry)
-  (if (ediff-in-control-buffer-p)
-      (progn
-	(set-window-dedicated-p (selected-window) nil)
-	(ediff-recenter 'no-rehighlight)))))
+    ;; change default
+    (setq-default ediff-window-setup-function window-setup-func)
+    ;; change in all active ediff sessions
+    (mapc (lambda (buf) (ediff-with-current-buffer buf
+                          (setq ediff-window-setup-function window-setup-func
+                                ediff-window-B nil)))
+          ediff-session-registry)
+    (when (ediff-in-control-buffer-p)
+      (set-window-dedicated-p (selected-window) nil)
+      (ediff-recenter 'no-rehighlight))))
 
 
 ;;;###autoload
@@ -3138,16 +3130,15 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		   ;; e.g., if file name ends with .Z or .gz
                    ;; This is needed so that patches produced by ediff will
 		   ;; have more meaningful names
-		   (ediff-make-empty-tmp-file short-f))
+                   (make-temp-file short-f))
 		  (prefix
 		   ;; Prefix is most often the same as the file name for the
-		   ;; variant.  Here we are trying to use the original file
-		   ;; name but in the temp directory.
-		   (ediff-make-empty-tmp-file f 'keep-name))
+                   ;; variant.
+                   (make-temp-file f))
 		  (t
 		   ;; If don't care about name, add some random stuff
 		   ;; to proposed file name.
-		   (ediff-make-empty-tmp-file short-f))))
+                   (make-temp-file short-f))))
 
     ;; create the file
     (ediff-with-current-buffer buff
@@ -3158,28 +3149,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		    'no-message)
       (set-file-modes f ediff-temp-file-mode)
       (expand-file-name f))))
-
-;; Create a temporary file.
-;; The returned file name (created by appending some random characters at the
-;; end of PROPOSED-NAME is guaranteed to point to a newly created empty file.
-;; This is a replacement for make-temp-name, which eliminates a security hole.
-;; If KEEP-PROPOSED-NAME isn't nil, try to keep PROPOSED-NAME, unless such file
-;; already exists.
-;; It is a modified version of make-temp-file in emacs 20.5
-(defun ediff-make-empty-tmp-file (proposed-name &optional keep-proposed-name)
-  (let ((file proposed-name))
-    (while (condition-case ()
-               (progn
-		 (if (or (file-exists-p file) (not keep-proposed-name))
-		     (setq file (make-temp-name proposed-name)))
-                 (write-region "" nil file nil 'silent nil 'excl)
-                 nil)
-            (file-already-exists t))
-      ;; the file was somehow created by someone else between
-      ;; `make-temp-name' and `write-region', let's try again.
-      nil)
-    file))
-
 
 ;; Make sure the current buffer (for a file) has the same contents as the
 ;; file on disk, and attempt to remedy the situation if not.
@@ -4143,6 +4112,10 @@ Mail anyway? (y or n) ")
 (define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
 (define-obsolete-function-alias 'ediff-intersection #'seq-intersection "28.1")
 (define-obsolete-function-alias 'ediff-set-difference #'seq-difference "28.1")
+
+(defun ediff-make-empty-tmp-file (prefix &optional _ignored)
+  (declare (obsolete make-temp-file "30.1"))
+  (make-temp-file prefix))
 
 (run-hooks 'ediff-load-hook)
 

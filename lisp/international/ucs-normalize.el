@@ -131,11 +131,19 @@
       #x1D1BF #x1D1C0)
    "Composition Exclusion List.
   This list is taken from
-    https://www.unicode.org/Public/UNIDATA/5.2/CompositionExclusions.txt")
+    https://www.unicode.org/Public/UNIDATA/15.0/CompositionExclusions.txt")
 
-  ;; Unicode ranges that decompositions & combining characters are defined.
+  ;; Unicode ranges where decompositions & combining characters are
+  ;; defined.  Find them by running the following Awk program on
+  ;; UnicodeData.txt:
+  ;;
+  ;;                  gawk -F";" "$6 != \"\" {print $0}"
+
   (defvar check-range nil)
-    (setq check-range '((#x00a0 . #x3400) (#xA600 . #xAC00) (#xF900 . #x110ff) (#x1d000 . #x1dfff) (#x1f100 . #x1f2ff) (#x2f800 . #x2faff)))
+    (setq check-range
+          '((#x00A0 . #x3400) (#xA600 . #xAC00) (#xF900 . #x11100)
+            (#x11100 . #x11A00) (#x1D000 . #x1E100) (#x1EE00 . #x1F300)
+            (#x1FBF0 . #x1FC00) (#x2F800 . #x2FB00)))
 
   ;; Basic normalization functions
   (defun nfd (char)

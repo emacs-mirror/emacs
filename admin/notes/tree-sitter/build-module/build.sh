@@ -42,6 +42,9 @@ case "${lang}" in
     "heex")
         org="phoenixframework"
         ;;
+    "lua")
+        org="MunifTanjim"
+        ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"
         grammardir="tree-sitter-typescript/typescript"

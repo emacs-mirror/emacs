@@ -102,6 +102,16 @@ argument matches `eshell-number-regexp'."
 				     (string :tag "Username")
 				     (repeat :tag "UIDs" string))))))
 
+(defcustom eshell-debug-command nil
+  "A list of debug features to enable when running Eshell commands.
+Possible entries are `form', to log the manipulation of Eshell
+command forms, and `process', to log external process operations.
+
+If nil, don't debug commands at all."
+  :version "30.1"
+  :type '(set (const :tag "Form manipulation" form)
+              (const :tag "Process operations" process)))
+
 ;;; Internal Variables:
 
 (defvar eshell-number-regexp
@@ -145,6 +155,9 @@ function `string-to-number'.")
                             ,#'eshell--mark-yanked-as-output))
   "A list of text properties to apply to command output.")
 
+(defvar eshell-debug-command-buffer "*eshell last cmd*"
+  "The name of the buffer to log debug messages about command invocation.")
+
 ;;; Obsolete variables:
 
 (define-obsolete-variable-alias 'eshell-host-names
@@ -164,11 +177,41 @@ function `string-to-number'.")
   "If `eshell-handle-errors' is non-nil, this is `condition-case'.
 Otherwise, evaluates FORM with no error handling."
   (declare (indent 2) (debug (sexp form &rest form)))
-  (if eshell-handle-errors
-      `(condition-case-unless-debug ,tag
-	   ,form
-	 ,@handlers)
-    form))
+  `(if eshell-handle-errors
+       (condition-case-unless-debug ,tag
+           ,form
+         ,@handlers)
+     ,form))
+
+(defun eshell-debug-command-start (command)
+  "Start debugging output for the command string COMMAND.
+If debugging is enabled (see `eshell-debug-command'), this will
+start logging to `*eshell last cmd*'."
+  (when eshell-debug-command
+    (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
+      (erase-buffer)
+      (insert "command: \"" command "\"\n"))))
+
+(defun eshell-always-debug-command (kind string &rest objects)
+  "Output a debugging message to `*eshell last cmd*'.
+KIND is the kind of message to log.  STRING and OBJECTS are as
+`format-message' (which see)."
+  (declare (indent 1))
+  (with-current-buffer (get-buffer-create eshell-debug-command-buffer)
+    (insert "\n\C-l\n[" (symbol-name kind) "] "
+            (apply #'format-message string objects))))
+
+(defmacro eshell-debug-command (kind string &rest objects)
+  "Output a debugging message to `*eshell last cmd*' if debugging is enabled.
+KIND is the kind of message to log (either `form' or `process').  If
+present in `eshell-debug-command', output this message; otherwise, ignore it.
+
+STRING and OBJECTS are as `format-message' (which see)."
+  (declare (indent 1))
+  (let ((kind-sym (make-symbol "kind")))
+    `(let ((,kind-sym ,kind))
+       (when (memq ,kind-sym eshell-debug-command)
+         (eshell-always-debug-command ,kind-sym ,string ,@objects)))))
 
 (defun eshell--mark-as-output (start end &optional object)
   "Mark the text from START to END as Eshell output.
@@ -326,7 +369,7 @@ as the $PATH was actually specified."
                  (eshell-under-windows-p))
         (push "." path))
       (if (and remote (not literal-p))
-          (mapcar (lambda (x) (file-name-concat remote x)) path)
+          (mapcar (lambda (x) (concat remote x)) path)
         path))))
 
 (defun eshell-set-path (path)
@@ -695,19 +738,18 @@ gid format.  Valid values are `string' and `integer', defaulting to
   "If the `processp' function does not exist, PROC is not a process."
   (and (fboundp 'processp) (processp proc)))
 
-(defun eshell-process-pair-p (procs)
-  "Return non-nil if PROCS is a pair of process objects."
-  (and (consp procs)
-       (eshell-processp (car procs))
-       (eshell-processp (cdr procs))))
+(defun eshell-process-list-p (procs)
+  "Return non-nil if PROCS is a list of process objects."
+  (and (listp procs)
+       (seq-every-p #'eshell-processp procs)))
 
-(defun eshell-make-process-pair (procs)
-  "Make a pair of process objects from PROCS if possible.
-This represents the head and tail of a pipeline of processes,
-where the head and tail may be the same process."
+(defun eshell-make-process-list (procs)
+  "Make a list of process objects from PROCS if possible.
+PROCS can be a single process or a list thereof.  If PROCS is
+anything else, return nil instead."
   (pcase procs
-    ((pred eshell-processp) (cons procs procs))
-    ((pred eshell-process-pair-p) procs)))
+    ((pred eshell-processp) (list procs))
+    ((pred eshell-process-list-p) procs)))
 
 ;; (defun eshell-copy-file
 ;;   (file newname &optional ok-if-already-exists keep-date)

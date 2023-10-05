@@ -620,46 +620,49 @@ The renaming scheme is performed in accordance with
     (let ((redirect (plist-get status :redirect)))
       (when redirect
         (setq url redirect)))
-    (with-current-buffer buffer
-      ;; Save the https peer status.
-      (plist-put eww-data :peer (plist-get status :peer))
-      ;; Make buffer listings more informative.
-      (setq list-buffers-directory url)
-      ;; Let the URL library have a handle to the current URL for
-      ;; referer purposes.
-      (setq url-current-lastloc (url-generic-parse-url url)))
-    (unwind-protect
-	(progn
-	  (cond
-           ((and eww-use-external-browser-for-content-type
-                 (string-match-p eww-use-external-browser-for-content-type
-                                 (car content-type)))
-            (erase-buffer)
-            (insert "<title>Unsupported content type</title>")
-            (insert (format "<h1>Content-type %s is unsupported</h1>"
-                            (car content-type)))
-            (insert (format "<a href=%S>Direct link to the document</a>"
-                            url))
-            (goto-char (point-min))
-	    (eww-display-html charset url nil point buffer encode))
-	   ((eww-html-p (car content-type))
-	    (eww-display-html charset url nil point buffer encode))
-	   ((equal (car content-type) "application/pdf")
-	    (eww-display-pdf))
-	   ((string-match-p "\\`image/" (car content-type))
-	    (eww-display-image buffer))
-	   (t
-	    (eww-display-raw buffer (or encode charset 'utf-8))))
-	  (with-current-buffer buffer
-	    (plist-put eww-data :url url)
-	    (eww--after-page-change)
-	    (setq eww-history-position 0)
-	    (and last-coding-system-used
-		 (set-buffer-file-coding-system last-coding-system-used))
-	    (run-hooks 'eww-after-render-hook)
-            ;; Enable undo again so that undo works in text input
-            ;; boxes.
-            (setq buffer-undo-list nil)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        ;; Save the https peer status.
+        (plist-put eww-data :peer (plist-get status :peer))
+        ;; Make buffer listings more informative.
+        (setq list-buffers-directory url)
+        ;; Let the URL library have a handle to the current URL for
+        ;; referer purposes.
+        (setq url-current-lastloc (url-generic-parse-url url)))
+      (unwind-protect
+	  (progn
+	    (cond
+             ((and eww-use-external-browser-for-content-type
+                   (string-match-p eww-use-external-browser-for-content-type
+                                   (car content-type)))
+              (erase-buffer)
+              (insert "<title>Unsupported content type</title>")
+              (insert (format "<h1>Content-type %s is unsupported</h1>"
+                              (car content-type)))
+              (insert (format "<a href=%S>Direct link to the document</a>"
+                              url))
+              (goto-char (point-min))
+	      (eww-display-html charset url nil point buffer encode))
+	     ((eww-html-p (car content-type))
+	      (eww-display-html charset url nil point buffer encode))
+	     ((equal (car content-type) "application/pdf")
+	      (eww-display-pdf))
+	     ((string-match-p "\\`image/" (car content-type))
+	      (eww-display-image buffer))
+	     (t
+	      (eww-display-raw buffer (or encode charset 'utf-8))))
+	    (with-current-buffer buffer
+	      (plist-put eww-data :url url)
+	      (eww--after-page-change)
+	      (setq eww-history-position 0)
+	      (and last-coding-system-used
+		   (set-buffer-file-coding-system last-coding-system-used))
+	      (run-hooks 'eww-after-render-hook)
+              ;; Enable undo again so that undo works in text input
+              ;; boxes.
+              (setq buffer-undo-list nil)))
+        (kill-buffer data-buffer)))
+    (unless (buffer-live-p buffer)
       (kill-buffer data-buffer))))
 
 (defun eww-parse-headers ()
@@ -2059,7 +2062,8 @@ If CHARSET is nil then use UTF-8."
   (let ((completion-extra-properties
          '(:annotation-function (lambda (buf)
                                   (with-current-buffer buf
-                                    (format " %s" (eww-current-url)))))))
+                                    (format " %s" (eww-current-url))))))
+        (curbuf (current-buffer)))
     (pop-to-buffer-same-window
      (read-buffer "Switch to EWW buffer: "
                   (cl-loop for buf in (nreverse (buffer-list))
@@ -2067,9 +2071,10 @@ If CHARSET is nil then use UTF-8."
                            return buf)
                   t
                   (lambda (bufn)
-                    (with-current-buffer
-                        (if (consp bufn) (cdr bufn) (get-buffer bufn))
-                      (derived-mode-p 'eww-mode)))))))
+                    (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
+                    (and (with-current-buffer bufn
+                           (derived-mode-p 'eww-mode))
+                         (not (eq bufn curbuf))))))))
 
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."

@@ -32,8 +32,11 @@
 (eval-when-compile (require 'rx))
 (require 'c-ts-common) ; For comment indent and filling.
 
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-query-capture "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
 
 (defcustom typescript-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `typescript-ts-mode'."
@@ -84,7 +87,7 @@ Check if a node type is available, then return the right indent rules."
       (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
              `(((match "<" "jsx_fragment") parent 0)
                ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
-    (error
+    (treesit-query-error
      `(((match "<" "jsx_text") parent 0)
        ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
 
@@ -163,7 +166,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   ;; but then raises an error if the wrong node type is used. So it is
   ;; important to check with the new node type (member_expression)
   (condition-case nil
-      (progn (treesit-query-capture language '((member_expression) @capture))
+      (progn (treesit-query-capture language '(jsx_opening_element (member_expression) @capture))
 	     '((jsx_opening_element
 		[(member_expression (identifier)) (identifier)]
 		@typescript-ts-jsx-tag-face)
@@ -175,7 +178,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 	       (jsx_self_closing_element
 		[(member_expression (identifier)) (identifier)]
 		@typescript-ts-jsx-tag-face)))
-    (error '((jsx_opening_element
+    (treesit-query-error
+           '((jsx_opening_element
 	      [(nested_identifier (identifier)) (identifier)]
 	      @typescript-ts-jsx-tag-face)
 
@@ -387,7 +391,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "lexical_declaration"
     "property_signature")
   "Nodes that designate sentences in TypeScript.
-See `treesit-sentence-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 (defvar typescript-ts-mode--sexp-nodes
   '("expression"
@@ -409,21 +413,19 @@ See `treesit-sentence-type-regexp' for more information.")
     "arguments"
     "pair")
   "Nodes that designate sexps in TypeScript.
-See `treesit-sexp-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
-  "Major mode for editing TypeScript."
+  "Generic major mode for editing TypeScript.
+
+This mode is intended to be inherited by concrete major modes."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
   ;; Comments.
   (c-ts-common-comment-setup)
   (setq-local treesit-defun-prefer-top-level t)
-
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("comment"
-                            "template_string")))
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -438,11 +440,13 @@ See `treesit-sexp-type-regexp' for more information.")
                             "lexical_declaration")))
   (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-  (setq-local treesit-sentence-type-regexp
-              (regexp-opt typescript-ts-mode--sentence-nodes))
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt typescript-ts-mode--sexp-nodes))
+  (setq-local treesit-thing-settings
+              `((typescript
+                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes))
+                 (sentence ,(regexp-opt
+                             typescript-ts-mode--sentence-nodes))
+                 (text ,(regexp-opt '("comment"
+                                      "template_string"))))))
 
   ;; Imenu (same as in `js-ts-mode').
   (setq-local treesit-simple-imenu-settings
@@ -475,6 +479,7 @@ See `treesit-sexp-type-regexp' for more information.")
                   (keyword string escape-sequence)
                   (constant expression identifier number pattern property)
                   (function bracket delimiter)))
+    (setq-local syntax-propertize-function #'typescript-ts--syntax-propertize)
 
     (treesit-major-mode-setup)))
 
@@ -513,17 +518,15 @@ at least 3 (which is the default value)."
     (setq-local treesit-simple-indent-rules
                 (typescript-ts-mode--indent-rules 'tsx))
 
-    ;; Navigation
-    (setq-local treesit-sentence-type-regexp
-                (regexp-opt (append
-                             typescript-ts-mode--sentence-nodes
-                             '("jsx_element"
-                               "jsx_self_closing_element"))))
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt (append
-                           typescript-ts-mode--sexp-nodes
-                           '("jsx"))))
+    (setq-local treesit-thing-settings
+                `((tsx
+                   (sexp ,(regexp-opt
+                           (append typescript-ts-mode--sexp-nodes
+                                   '("jsx"))))
+                   (sentence ,(regexp-opt
+                               (append typescript-ts-mode--sentence-nodes
+                                       '("jsx_element"
+                                         "jsx_self_closing_element")))))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
@@ -533,8 +536,46 @@ at least 3 (which is the default value)."
                   (keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
                   (function bracket delimiter)))
+    (setq-local syntax-propertize-function #'tsx-ts--syntax-propertize)
 
     (treesit-major-mode-setup)))
+
+(defvar typescript-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'typescript
+                           '(((regex pattern: (regex_pattern) @regexp))))))
+
+(defvar tsx-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'tsx
+                           '(((regex pattern: (regex_pattern) @regexp))
+                             ((variable_declarator value: (jsx_element) @jsx))
+                             ((assignment_expression right: (jsx_element) @jsx))
+                             ((arguments (jsx_element) @jsx))
+                             ((parenthesized_expression (jsx_element) @jsx))
+                             ((return_statement (jsx_element) @jsx))))))
+
+(defun typescript-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'typescript typescript-ts--s-p-query beg end)))
+    (tsx-ts--syntax-propertize-captures captures)))
+
+(defun tsx-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'tsx tsx-ts--s-p-query beg end)))
+    (tsx-ts--syntax-propertize-captures captures)))
+
+(defun tsx-ts--syntax-propertize-captures (captures)
+  (pcase-dolist (`(,name . ,node) captures)
+    (let* ((ns (treesit-node-start node))
+           (ne (treesit-node-end node))
+           (syntax (pcase-exhaustive name
+                     ('regexp
+                      (cl-decf ns)
+                      (cl-incf ne)
+                      (string-to-syntax "\"/"))
+                     ('jsx
+                      (string-to-syntax "|")))))
+      (put-text-property ns (1+ ns) 'syntax-table syntax)
+      (put-text-property (1- ne) ne 'syntax-table syntax))))
 
 (if (treesit-ready-p 'tsx)
     (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))

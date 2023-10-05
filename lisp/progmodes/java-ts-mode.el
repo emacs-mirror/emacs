@@ -99,6 +99,8 @@
      ((parent-is "field_declaration") parent-bol java-ts-mode-indent-offset)
      ((parent-is "return_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "variable_declarator") parent-bol java-ts-mode-indent-offset)
+     ((match ">" "type_arguments") parent-bol 0)
+     ((parent-is "type_arguments") parent-bol java-ts-mode-indent-offset)
      ((parent-is "method_invocation") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_rule") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_label") parent-bol java-ts-mode-indent-offset)
@@ -303,6 +305,13 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name")
       t))))
 
+
+(defvar java-ts-mode--feature-list
+  '(( comment definition )
+    ( constant keyword string type)
+    ( annotation expression literal)
+    ( bracket delimiter operator)))
+
 ;;;###autoload
 (define-derived-mode java-ts-mode prog-mode "Java"
   "Major mode for editing Java, powered by tree-sitter."
@@ -316,11 +325,6 @@ Return nil if there is no name or if NODE is not a defun node."
 
   ;; Comments.
   (c-ts-common-comment-setup)
-
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("line_comment"
-                            "block_comment"
-                            "text_block")))
 
   ;; Indent.
   (setq-local c-ts-common-indent-type-regexp-alist
@@ -360,36 +364,34 @@ Return nil if there is no name or if NODE is not a defun node."
                             "constructor_declaration")))
   (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
 
-  (setq-local treesit-sentence-type-regexp
-              (regexp-opt '("statement"
-                            "local_variable_declaration"
-                            "field_declaration"
-                            "module_declaration"
-                            "package_declaration"
-                            "import_declaration")))
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt '("annotation"
-                            "parenthesized_expression"
-                            "argument_list"
-                            "identifier"
-                            "modifiers"
-                            "block"
-                            "body"
-                            "literal"
-                            "access"
-                            "reference"
-                            "_type"
-                            "true"
-                            "false")))
+  (setq-local treesit-thing-settings
+              `((java
+                (sexp ,(rx (or "annotation"
+                               "parenthesized_expression"
+                               "argument_list"
+                               "identifier"
+                               "modifiers"
+                               "block"
+                               "body"
+                               "literal"
+                               "access"
+                               "reference"
+                               "_type"
+                               "true"
+                               "false")))
+                (sentence ,(rx (or "statement"
+                                   "local_variable_declaration"
+                                   "field_declaration"
+                                   "module_declaration"
+                                   "package_declaration"
+                                   "import_declaration")))
+                (text ,(regexp-opt '("line_comment"
+                                     "block_comment"
+                                     "text_block"))))))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
-  (setq-local treesit-font-lock-feature-list
-              '(( comment definition )
-                ( constant keyword string type)
-                ( annotation expression literal)
-                ( bracket delimiter operator)))
+  (setq-local treesit-font-lock-feature-list java-ts-mode--feature-list)
 
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings

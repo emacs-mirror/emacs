@@ -69,8 +69,8 @@ Its value should be one of the following:
 Resizing will always preserve the aspect ratio of the image."
   :type '(choice (const :tag "No resizing" nil)
                  (const :tag "Fit to window" fit-window)
-                 (other :tag "Scale down to fit window" t)
-                 (number :tag "Scale factor" 1))
+                 (number :tag "Scale factor" 1)
+                 (other :tag "Scale down to fit window" t))
   :version "29.1"
   :group 'image)
 
@@ -89,7 +89,7 @@ This will always keep the image fit to the window.
 When non-nil, the value should be a number of seconds to wait before
 resizing according to the value specified in `image-auto-resize'."
   :type '(choice (const :tag "No auto-resize on window size change" nil)
-                 (integer :tag "Wait for number of seconds before resize" 1))
+                 (number :tag "Wait for number of seconds before resize" 1))
   :version "27.1"
   :group 'image)
 

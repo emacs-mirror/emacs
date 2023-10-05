@@ -60,6 +60,7 @@
                                                      ((obsolete erc-send-this))
                                                    erc-send-this))))
   (lines nil :type (list-of string))
+  (abortp nil :type (list-of symbol))
   (cmdp nil :type boolean))
 
 (cl-defstruct (erc-server-user (:type vector) :named)
@@ -270,18 +271,20 @@ instead of a `set' state, which precludes any actual saving."
              " above."))))))
 
 (defun erc--fill-module-docstring (&rest strings)
+  "Concatenate STRINGS and fill as a doc string."
+  ;; Perhaps it's better to mimic `internal--format-docstring-line'
+  ;; and use basic filling instead of applying a major mode?
   (with-temp-buffer
-    (emacs-lisp-mode)
-    (insert "(defun foo ()\n"
-            (format "%S" (apply #'concat strings))
-            "\n(ignore))")
+    (delay-mode-hooks
+      (if (fboundp 'lisp-data-mode) (lisp-data-mode) (emacs-lisp-mode)))
+    (insert (format "%S" (apply #'concat strings)))
     (goto-char (point-min))
-    (forward-line 2)
-    (let ((emacs-lisp-docstring-fill-column 65)
+    (forward-line)
+    (let ((fill-column 65)
           (sentence-end-double-space t))
       (fill-paragraph))
     (goto-char (point-min))
-    (nth 3 (read (current-buffer)))))
+    (read (current-buffer))))
 
 (defmacro erc--find-feature (name alias)
   `(pcase (erc--find-group ',name ,(and alias (list 'quote alias)))

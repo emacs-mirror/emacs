@@ -149,8 +149,9 @@ With ARG, do it many times.  Negative ARG means move backward."
     (treesit-parser-create 'heex)
 
     ;; Comments
-    (setq-local treesit-text-type-regexp
-                (regexp-opt '("comment" "text")))
+    (setq-local treesit-thing-settings
+                `((heex
+                   (text ,(regexp-opt '("comment" "text"))))))
 
     (setq-local forward-sexp-function #'heex-ts--forward-sexp)
 

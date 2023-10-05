@@ -6278,7 +6278,7 @@
 2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_initialize): Add new argument RAISE_ERROR, which
-	allows to suppress errors when polling in Emacs' main loop.
+	allows suppressing errors when polling in Emacs' main loop.
 	(Fdbus_init_bus, Fdbus_get_unique_name, Fdbus_call_method)
 	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
 	(Fdbus_method_error_internal, Fdbus_send_signal)

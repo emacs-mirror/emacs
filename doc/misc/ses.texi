@@ -188,7 +188,7 @@ the end-points, e.g.:
 @emph{list} of values.  This allows for more complex possibilities.)
 
 Alternatively you can use the @code{!} modifier of @code{ses-range} to
-remove blank cells from the returned list, which allows to use
+remove blank cells from the returned list, which enables using
 @code{+} instead of @code{ses+}:
 
 @lisp
@@ -1007,7 +1007,7 @@ are some useful functions to call from your formulas:
 @item (ses-delete-blanks &rest @var{args})
 Returns a list from which all blank cells (value is either @code{nil}
 or '*skip*) have been deleted. Order of args is reverted. Please note
-that @code{ses-range} has a @code{!} modifier that allows to remove
+that @code{ses-range} has a @code{!} modifier that enables removing
 blanks, so it is possible to write:
 @lisp
 (ses-range A1 A5 !)

@@ -9431,7 +9431,7 @@ the estimated effort of an entry (see [[*Effort Estimates]]).
 #+vindex: org-agenda-effort-filter-preset
 #+vindex: org-agenda-regexp-filter-preset
 Agenda built-in or custom commands are statically defined.  Agenda
-filters and limits allow to flexibly narrow down the list of agenda
+filters and limits allow flexibly narrowing down the list of agenda
 entries.
 
 /Filters/ only change the visibility of items, are very fast and are

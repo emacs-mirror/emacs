@@ -148,6 +148,7 @@ easy interactive way to set this from the Server buffer."
 
 (defun gnus-cloud-decode-data ()
   (cond
+   ;; FIXME: Duplicated value in ‘cond’: base64-gzip.
    ((memq gnus-cloud-storage-method '(base64 base64-gzip))
     (base64-decode-region (point-min) (point-max)))
 

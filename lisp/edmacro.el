@@ -73,9 +73,19 @@ Default nil means to write characters above \\177 in octal notation."
   :type 'boolean
   :group 'kmacro)
 
+(defcustom edmacro-reverse-macro-lines nil
+  "If non-nil, `edit-kbd-macro' shows most recent line of key sequences first.
+
+This is useful when dealing with long lists of key sequences, such as
+from `kmacro-edit-lossage'."
+  :type 'boolean
+  :group 'kmacro
+  :version "30.1")
+
 (defvar-keymap edmacro-mode-map
   "C-c C-c" #'edmacro-finish-edit
-  "C-c C-q" #'edmacro-insert-key)
+  "C-c C-q" #'edmacro-insert-key
+  "C-c C-r" #'edmacro-set-macro-to-region-lines)
 
 (defface edmacro-label
   '((default :inherit bold)
@@ -88,7 +98,10 @@ Default nil means to write characters above \\177 in octal notation."
   :group 'kmacro)
 
 (defvar edmacro-mode-font-lock-keywords
-  `((,(rx bol (group (or "Command" "Key" "Macro") ":")) 0 'edmacro-label)
+  `((,(rx bol (group (or "Command" "Key"
+                         (seq "Macro" (zero-or-one " (most recent line first)")))
+                     ":"))
+     0 'edmacro-label)
     (,(rx bol
           (group ";; Keyboard Macro Editor.  Press ")
           (group (*? nonl))
@@ -166,7 +179,13 @@ With a prefix argument, format the macro in a more concise way."
       (let* ((oldbuf (current-buffer))
 	     (mmac (edmacro-fix-menu-commands mac))
 	     (fmt (edmacro-format-keys mmac 1))
-	     (fmtv (edmacro-format-keys mmac (not prefix)))
+	     (fmtv (let ((fmtv (edmacro-format-keys mmac (not prefix))))
+                     (if (not edmacro-reverse-macro-lines)
+                         fmtv
+                       (with-temp-buffer
+                         (insert fmtv)
+                         (reverse-region (point-min) (point-max))
+                         (buffer-string)))))
 	     (buf (get-buffer-create "*Edit Macro*")))
 	(message "Formatting keyboard macro...done")
 	(switch-to-buffer buf)
@@ -179,8 +198,11 @@ With a prefix argument, format the macro in a more concise way."
         (setq-local edmacro-finish-hook finish-hook)
         (setq-local edmacro-store-hook store-hook)
         (setq-local font-lock-defaults
-                    '(edmacro-mode-font-lock-keywords nil nil nil nil))
+                    '(edmacro-mode-font-lock-keywords nil nil ((?\" . "w"))))
         (setq font-lock-multiline nil)
+        ;; Make buffer-local so that the commands still work
+        ;; even if the default value changes.
+        (make-local-variable 'edmacro-reverse-macro-lines)
 	(erase-buffer)
         (insert (substitute-command-keys
                  (concat
@@ -202,7 +224,9 @@ With a prefix argument, format the macro in a more concise way."
 	      (insert "Key: none\n")))
 	  (when (and mac-counter mac-format)
 	    (insert (format "Counter: %d\nFormat: \"%s\"\n" mac-counter mac-format))))
-	(insert "\nMacro:\n\n")
+	(insert (format "\nMacro%s:\n\n" (if edmacro-reverse-macro-lines
+                                             " (most recent line first)"
+                                           "")))
 	(save-excursion
 	  (insert fmtv "\n"))
 	(recenter '(4))
@@ -255,6 +279,33 @@ or nil, use a compact 80-column format."
 
 ;;; Commands for *Edit Macro* buffer.
 
+(defvar edmacro--skip-line-regexp
+  "[ \t]*\\($\\|;;\\|REM[ \t\n]\\)"
+  "A regexp identifying lines that should be ignored.")
+
+(defvar edmacro--command-line-regexp
+  "Command:[ \t]*\\([^ \t\n]*\\)[ \t]*$"
+  "A regexp identifying the line containing the command name.")
+
+(defvar edmacro--key-line-regexp
+  "Key:\\(.*\\)$"
+  "A regexp identifying the line containing the bound key sequence.")
+
+(defvar edmacro--counter-line-regexp
+  "Counter:[ \t]*\\([^ \t\n]*\\)[ \t]*$"
+  "A regexp identifying the line containing the counter value.")
+
+(defvar edmacro--format-line-regexp
+  "Format:[ \t]*\"\\([^\n]*\\)\"[ \t]*$"
+  "A regexp identifying the line containing the counter format.")
+
+(defvar edmacro--macro-lines-regexp
+  (rx "Macro"
+      (zero-or-one " (most recent line first)")
+      ":"
+      (zero-or-more (any " \t\n")))
+  "A regexp identifying the lines that precede the macro's contents.")
+
 (defun edmacro-finish-edit ()
   (interactive nil edmacro-mode)
   (unless (eq major-mode 'edmacro-mode)
@@ -266,9 +317,9 @@ or nil, use a compact 80-column format."
 	(top (point-min)))
     (goto-char top)
     (let ((case-fold-search nil))
-      (while (cond ((looking-at "[ \t]*\\($\\|;;\\|REM[ \t\n]\\)")
+      (while (cond ((looking-at edmacro--skip-line-regexp)
 		    t)
-		   ((looking-at "Command:[ \t]*\\([^ \t\n]*\\)[ \t]*$")
+		   ((looking-at edmacro--command-line-regexp)
 		    (when edmacro-store-hook
 		      (error "\"Command\" line not allowed in this context"))
 		    (let ((str (match-string 1)))
@@ -283,7 +334,7 @@ or nil, use a compact 80-column format."
                                     cmd)))
 			     (keyboard-quit))))
 		    t)
-		   ((looking-at "Key:\\(.*\\)$")
+		   ((looking-at edmacro--key-line-regexp)
 		    (when edmacro-store-hook
 		      (error "\"Key\" line not allowed in this context"))
 		    (let ((key (kbd (match-string 1))))
@@ -303,21 +354,21 @@ or nil, use a compact 80-column format."
                                         (edmacro-format-keys key 1))))
 				 (keyboard-quit))))))
 		    t)
-		   ((looking-at "Counter:[ \t]*\\([^ \t\n]*\\)[ \t]*$")
+		   ((looking-at edmacro--counter-line-regexp)
 		    (when edmacro-store-hook
 		      (error "\"Counter\" line not allowed in this context"))
 		    (let ((str (match-string 1)))
 		      (unless (equal str "")
 			(setq mac-counter (string-to-number str))))
 		    t)
-		   ((looking-at "Format:[ \t]*\"\\([^\n]*\\)\"[ \t]*$")
+		   ((looking-at edmacro--format-line-regexp)
 		    (when edmacro-store-hook
 		      (error "\"Format\" line not allowed in this context"))
 		    (let ((str (match-string 1)))
 		      (unless (equal str "")
 			(setq mac-format str)))
 		    t)
-		   ((looking-at "Macro:[ \t\n]*")
+		   ((looking-at edmacro--macro-lines-regexp)
 		    (goto-char (match-end 0))
 		    nil)
 		   ((eobp) nil)
@@ -336,7 +387,13 @@ or nil, use a compact 80-column format."
 	(when (buffer-name obuf)
 	  (set-buffer obuf))
 	(message "Compiling keyboard macro...")
-	(let ((mac (edmacro-parse-keys str)))
+	(let ((mac (edmacro-parse-keys (if edmacro-reverse-macro-lines
+                                           (with-temp-buffer
+                                             (insert str)
+                                             (reverse-region (point-min)
+                                                             (point-max))
+                                             (buffer-string))
+                                         str))))
 	  (message "Compiling keyboard macro...done")
 	  (if store-hook
 	      (funcall store-hook mac)
@@ -372,6 +429,36 @@ or nil, use a compact 80-column format."
       (insert (edmacro-format-keys key t) "\n")
     (insert (edmacro-format-keys key) " ")))
 
+(defun edmacro-set-macro-to-region-lines (beg end)
+  "Set the macro text to lines of text in the buffer between BEG and END.
+
+Interactively, BEG and END are the beginning and end of the
+region.  If the region does not begin at the start of a line or
+if it does not end at the end of a line, the region is extended
+to include complete lines.  If the region ends at the beginning
+of a line, that final line is excluded."
+  (interactive "*r" edmacro-mode)
+  ;; Use `save-excursion' to restore region if there are any errors.
+  ;; If there are no errors, update the macro text, then go to the
+  ;; beginning of the macro text.
+  (let ((final-position))
+    (save-excursion
+      (goto-char beg)
+      (unless (bolp) (setq beg (pos-bol)))
+      (goto-char end)
+      (unless (or (bolp) (eolp)) (setq end (pos-eol)))
+      (let ((text (buffer-substring beg end)))
+        (goto-char (point-min))
+        (if (not (let ((case-fold-search nil))
+                   (re-search-forward edmacro--macro-lines-regexp nil t)))
+            (user-error "\"Macro:\" line not found")
+          (delete-region (match-end 0)
+                         (point-max))
+          (goto-char (point-max))
+          (insert text)
+          (setq final-position (match-beginning 0)))))
+    (goto-char final-position)))
+
 (defun edmacro-mode ()
   "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \
 \\[edmacro-finish-edit] to save and exit.
@@ -393,6 +480,10 @@ or \"none\" for no key bindings.
 You can edit these lines to change the places where the new macro
 is stored.
 
+Press \\[edmacro-set-macro-to-region-lines] to replace the text following the \"Macro:\" line
+with the text of the lines overlapping the region of text between
+point and mark.  If that region ends at the beginning of a line,
+that final line is excluded.
 
 Format of keyboard macros during editing:
 

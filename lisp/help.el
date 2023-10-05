@@ -1230,15 +1230,60 @@ appeared on the mode-line."
 		      i))))
 		minor-mode-alist)))
 
-(defun describe-minor-mode-from-indicator (indicator)
+(defun describe-minor-mode-from-indicator (indicator &optional event)
   "Display documentation of a minor mode specified by INDICATOR.
 If you call this function interactively, you can give indicator which
-is currently activated with completion."
+is currently activated with completion.
+
+If non-nil, EVENT is a mouse event used to establish which minor
+mode lighter was clicked."
   (interactive (list
 		(completing-read
 		 "Minor mode indicator: "
 		 (describe-minor-mode-completion-table-for-indicator))))
-  (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
+  (when (and event mode-line-compact)
+    (let* ((event-start (event-start event))
+           (window (posn-window event-start)))
+      ;; If INDICATOR is a string object, WINDOW is set, and
+      ;; `mode-line-compact' might be enabled, find a string in
+      ;; `minor-mode-alist' that is present within the INDICATOR and
+      ;; whose extents within INDICATOR contain the position of the
+      ;; object within the string.
+      (when (windowp window)
+        (setq indicator (posn-object event-start))
+        (catch 'found
+          (with-selected-window window
+            (let ((alist minor-mode-alist) string position)
+              (when (consp indicator)
+                (with-temp-buffer
+                  (insert (car indicator))
+                  (dolist (menu alist)
+                    ;; If this is a valid minor mode menu entry,
+                    (when (and (consp menu)
+                               (setq string (format-mode-line (cadr menu)
+                                                              nil window))
+                               (> (length string) 0))
+                      ;; Start searching for an appearance of (cdr
+                      ;; menu).
+                      (goto-char (point-min))
+                      (while (search-forward string nil 0)
+                        ;; If the position of the string object is
+                        ;; contained within, set indicator to the
+                        ;; minor mode in question.
+                        (setq position (1+ (cdr indicator)))
+                        (and (>= position (match-beginning 0))
+                             (<= position (match-end 0))
+                             (setq indicator (car menu))
+                             (throw 'found nil)))))))))))))
+  ;; If INDICATOR is still a cons, use its car.
+  (when (consp indicator)
+    (setq indicator (car indicator)))
+  (let ((minor-mode (if (symbolp indicator)
+                        ;; indicator being set to a symbol means that
+                        ;; the loop above has already found a
+                        ;; matching minor mode.
+                        indicator
+                      (lookup-minor-mode-from-indicator indicator))))
     (if minor-mode
 	(describe-minor-mode-from-symbol minor-mode)
       (error "Cannot find minor mode for `%s'" indicator))))
@@ -1423,7 +1468,7 @@ Otherwise, return a new string."
                   ;; in case it is a local variable.
                   (with-current-buffer orig-buf
                     ;; This is for computing the SHADOWS arg for
-                    ;; describe-map-tree.
+                    ;; help--describe-map-tree.
                     (setq active-maps (current-active-maps))
                     (when (boundp name)
                       (setq this-keymap (and (keymapp (symbol-value name))
@@ -1444,9 +1489,10 @@ Otherwise, return a new string."
                     ;; If this one's not active, get nil.
                     (let ((earlier-maps
                            (cdr (memq this-keymap (reverse active-maps)))))
-                      (describe-map-tree this-keymap t (nreverse earlier-maps)
-                                         nil nil (not include-menus)
-                                         nil nil t))))))))
+                      (help--describe-map-tree this-keymap t
+                                               (nreverse earlier-maps)
+                                               nil nil (not include-menus)
+                                               nil nil t))))))))
              ;; 2. Handle quotes.
              ((and (eq (text-quoting-style) 'curve)
                    (or (and (= (following-char) ?\`)
@@ -1463,10 +1509,11 @@ Otherwise, return a new string."
         (buffer-string)))))
 
 (defun substitute-quotes (string)
-  "Substitute quote characters for display.
+  "Substitute quote characters in STRING for display.
 Each grave accent \\=` is replaced by left quote, and each
-apostrophe \\=' is replaced by right quote.  Left and right quote
-characters are specified by `text-quoting-style'."
+apostrophe \\=' is replaced by right quote.  Which left and right
+quote characters to use is determined by the variable
+`text-quoting-style'."
   (cond ((eq (text-quoting-style) 'curve)
          (string-replace "`" "‘"
                          (string-replace "'" "’" string)))
@@ -1475,9 +1522,9 @@ characters are specified by `text-quoting-style'."
         (t string)))
 
 (defvar help--keymaps-seen nil)
-(defun describe-map-tree (startmap &optional partial shadow prefix title
-                                   no-menu transl always-title mention-shadow
-                                   buffer)
+(defun help--describe-map-tree (startmap &optional partial shadow prefix title
+                                         no-menu transl always-title mention-shadow
+                                         buffer)
   "Insert a description of the key bindings in STARTMAP.
 This is followed by the key bindings of all maps reachable
 through STARTMAP.
@@ -1631,7 +1678,7 @@ Assume that this keymap itself is reached by the sequence of
 prefix keys PREFIX (a string or vector).
 
 TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW and BUFFER are as
-in `describe-map-tree'."
+in `help--describe-map-tree'."
   ;; Converted from describe_map in keymap.c.
   (let* ((map (keymap-canonicalize map))
          (tail map)
@@ -2412,6 +2459,7 @@ the suggested string to use instead.  See
         #'help-command-error-confusable-suggestions))
 
 (define-obsolete-function-alias 'help-for-help-internal #'help-for-help "28.1")
+(define-obsolete-function-alias 'describe-map-tree #'help--describe-map-tree "30.1")
 
 
 (provide 'help)

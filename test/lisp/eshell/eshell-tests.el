@@ -38,75 +38,6 @@
 
 ;;; Tests:
 
-(ert-deftest eshell-test/pipe-headproc ()
-  "Check that piping a non-process to a process command waits for the process"
-  (skip-unless (executable-find "cat"))
-  (with-temp-eshell
-   (eshell-match-command-output "echo hi | *cat"
-                                "hi")))
-
-(ert-deftest eshell-test/pipe-tailproc ()
-  "Check that piping a process to a non-process command waits for the process"
-  (skip-unless (executable-find "echo"))
-  (with-temp-eshell
-   (eshell-match-command-output "*echo hi | echo bye"
-                                "bye\nhi\n")))
-
-(ert-deftest eshell-test/pipe-headproc-stdin ()
-  "Check that standard input is sent to the head process in a pipeline"
-  (skip-unless (and (executable-find "tr")
-                    (executable-find "rev")))
-  (with-temp-eshell
-   (eshell-insert-command "tr a-z A-Z | rev")
-   (eshell-insert-command "hello")
-   (eshell-send-eof-to-process)
-   (eshell-wait-for-subprocess)
-   (should (eshell-match-output "OLLEH\n"))))
-
-(ert-deftest eshell-test/pipe-subcommand ()
-  "Check that piping with an asynchronous subcommand works"
-  (skip-unless (and (executable-find "echo")
-                    (executable-find "cat")))
-  (with-temp-eshell
-   (eshell-match-command-output "echo ${*echo hi} | *cat"
-                                "hi")))
-
-(ert-deftest eshell-test/pipe-subcommand-with-pipe ()
-  "Check that piping with an asynchronous subcommand with its own pipe works"
-  (skip-unless (and (executable-find "echo")
-                    (executable-find "cat")))
-  (with-temp-eshell
-   (eshell-match-command-output "echo ${*echo hi | *cat} | *cat"
-                                "hi")))
-
-(ert-deftest eshell-test/subcommand-reset-in-pipeline ()
-  "Check that subcommands reset `eshell-in-pipeline-p'."
-  (skip-unless (executable-find "cat"))
-  (dolist (template '("echo {%s} | *cat"
-                      "echo ${%s} | *cat"
-                      "*cat $<%s> | *cat"))
-    (eshell-command-result-equal
-     (format template "echo $eshell-in-pipeline-p")
-     nil)
-    (eshell-command-result-equal
-     (format template "echo | echo $eshell-in-pipeline-p")
-     "last")
-    (eshell-command-result-equal
-     (format template "echo $eshell-in-pipeline-p | echo")
-     "first")
-    (eshell-command-result-equal
-     (format template "echo | echo $eshell-in-pipeline-p | echo")
-     "t")))
-
-(ert-deftest eshell-test/lisp-reset-in-pipeline ()
-  "Check that interpolated Lisp forms reset `eshell-in-pipeline-p'."
-  (skip-unless (executable-find "cat"))
-  (dolist (template '("echo (%s) | *cat"
-                      "echo $(%s) | *cat"))
-    (eshell-command-result-equal
-     (format template "format \"%s\" eshell-in-pipeline-p")
-     "nil")))
-
 (ert-deftest eshell-test/eshell-command/simple ()
   "Test that the `eshell-command' function writes to the current buffer."
   (skip-unless (executable-find "echo"))
@@ -127,6 +58,18 @@ This test uses a pipeline for the command."
         (eshell-command "*echo hi | *cat" t)
         (should (equal (buffer-string) "hi\n"))))))
 
+(ert-deftest eshell-test/eshell-command/pipeline-wait ()
+  "Check that `eshell-command' waits for all its processes before returning."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "sh")
+                    (executable-find "rev")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command
+         "*echo hello | sh -c 'sleep 1; rev' 1>&2 | *echo goodbye" t)
+        (should (equal (buffer-string) "goodbye\nolleh\n"))))))
+
 (ert-deftest eshell-test/eshell-command/background ()
   "Test that `eshell-command' works for background commands."
   (skip-unless (executable-find "echo"))
@@ -144,12 +87,35 @@ This test uses a pipeline for the command."
   (skip-unless (and (executable-find "echo")
                     (executable-find "cat")))
   (ert-with-temp-directory eshell-directory-name
-    (let ((orig-processes (copy-tree (process-list)))
+    (let ((orig-processes (process-list))
           (eshell-history-file-name nil))
       (with-temp-buffer
         (eshell-command "*echo hi | *cat &" t)
         (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
         (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/output-buffer/sync ()
+  "Test that the `eshell-command' function writes to its output buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (eshell-command "*echo 'hi\nbye'")
+      (with-current-buffer "*Eshell Command Output*"
+        (should (equal (buffer-string) "hi\nbye")))
+      (kill-buffer "*Eshell Command Output*"))))
+
+(ert-deftest eshell-test/eshell-command/output-buffer/async ()
+  "Test that the `eshell-command' function writes to its async output buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (process-list))
+          (eshell-history-file-name nil))
+      (eshell-command "*echo hi &")
+      (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+      (with-current-buffer "*Eshell Async Command Output*"
+        (goto-char (point-min))
+        (forward-line)
+        (should (looking-at "hi\n"))))))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
@@ -178,7 +144,7 @@ insert the queued one at the next prompt, and finally run it."
    (eshell-insert-command "sleep 1; echo slept")
    (eshell-insert-command "echo alpha" #'eshell-queue-input)
    (let ((start (marker-position (eshell-beginning-of-output))))
-     (eshell-wait-for (lambda () (not eshell-current-command)))
+     (eshell-wait-for (lambda () (not eshell-foreground-command)))
      (should (string-match "^slept\n.*echo alpha\nalpha\n$"
                            (buffer-substring-no-properties
                             start (eshell-end-of-output)))))))

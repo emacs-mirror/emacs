@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
+;; Maintainer: emacs-devel@gnu.org
+;; Keywords: internal
+;; Package: emacs
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -378,15 +382,17 @@ which is
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
-Both KEY and TO should be specified by strings that satisfy `key-valid-p'."
+Both FROM and TO should be specified by strings that satisfy `key-valid-p'."
   (declare (compiler-macro
             (lambda (form) (keymap--compile-check from to) form)))
   (keymap--check from)
   (keymap--check to)
   (or (char-table-p keyboard-translate-table)
       (setq keyboard-translate-table
-	    (make-char-table 'keyboard-translate-table nil)))
-  (aset keyboard-translate-table (key-parse from) (key-parse to)))
+            (make-char-table 'keyboard-translate-table nil)))
+  (aset keyboard-translate-table
+        (aref (key-parse from) 0)
+        (aref (key-parse to) 0)))
 
 (defun keymap-lookup (keymap key &optional accept-default no-remap position)
   "Return the binding for command KEY in KEYMAP.

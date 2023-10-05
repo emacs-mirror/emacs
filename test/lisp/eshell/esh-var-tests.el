@@ -645,6 +645,14 @@ nil, use FUNCTION instead."
    (eshell-match-command-output "VAR=hello env" "VAR=hello\n")
    (should (equal (getenv "VAR") "value"))))
 
+(ert-deftest esh-var-test/local-variables/skip-nil ()
+  "Test that Eshell skips leading nil arguments after local variable setting."
+  (with-temp-eshell
+   (push "VAR=value" process-environment)
+   (eshell-match-command-output "VAR=hello $eshell-test-value env"
+                                "VAR=hello\n")
+   (should (equal (getenv "VAR") "value"))))
+
 
 ;; Variable aliases
 

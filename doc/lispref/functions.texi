@@ -1994,9 +1994,16 @@ advice.  Advice can also cause confusion in debugging, if the person doing the
 debugging does not notice or remember that the function has been modified
 by advice.
 
-  For these reasons, advice should be reserved for the cases where you
-cannot modify a function's behavior in any other way.  If it is
-possible to do the same thing via a hook, that is preferable
+  Note that the problems are not due to advice per se, but to the act
+of modifying a named function.  It is even more problematic to modify
+a named function via lower-level primitives like @code{fset},
+@code{defalias}, or @code{cl-letf}.  From that point of view, advice
+is the better way to modify a named function because it keeps track of
+the modifications, so they can be listed and undone.
+
+  Modifying a named function should be reserved for
+the cases where you cannot modify Emacs' behavior in any other way.
+If it is possible to do the same thing via a hook, that is preferable
 (@pxref{Hooks}).  If you simply want to change what a particular key
 does, it may be better to write a new command, and remap the old
 command's key bindings to the new one (@pxref{Remapping Commands}).

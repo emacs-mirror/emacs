@@ -339,7 +339,8 @@ suppress.  For example, (not free-vars) will suppress the `free-vars' warning.
 The t value means \"all non experimental warning types\", and
 excludes the types in `byte-compile--emacs-build-warning-types'.
 A value of `all' really means all."
-  :type `(choice (const :tag "All" t)
+  :type `(choice (const :tag "Default selection" t)
+                 (const :tag "All" all)
 		 (set :menu-tag "Some"
                       ,@(mapcar (lambda (x) `(const ,x))
                                 byte-compile-warning-types))))
@@ -1618,57 +1619,6 @@ extra args."
 (dolist (elt '(format message format-message error))
   (put elt 'byte-compile-format-like t))
 
-(defun byte-compile--defcustom-type-quoted (type)
-  "Whether defcustom TYPE contains an accidentally quoted value."
-  ;; Detect mistakes such as (const 'abc).
-  ;; We don't actually follow the syntax for defcustom types, but this
-  ;; should be good enough.
-  (and (consp type)
-       (proper-list-p type)
-       (if (memq (car type) '(const other))
-           (assq 'quote type)
-         (let ((elts (cdr type)))
-           (while (and elts (not (byte-compile--defcustom-type-quoted
-                                  (car elts))))
-             (setq elts (cdr elts)))
-           elts))))
-
-;; Warn if a custom definition fails to specify :group, or :type.
-(defun byte-compile-nogroup-warn (form)
-  (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
-	(name (cadr form)))
-    (when (eq (car-safe name) 'quote)
-      (when (eq (car form) 'custom-declare-variable)
-        (let ((type (plist-get keyword-args :type)))
-	  (cond
-           ((not type)
-	    (byte-compile-warn-x (cadr name)
-	                         "defcustom for `%s' fails to specify type"
-                                 (cadr name)))
-           ((byte-compile--defcustom-type-quoted type)
-	    (byte-compile-warn-x
-             (cadr name)
-	     "defcustom for `%s' may have accidentally quoted value in type `%s'"
-             (cadr name) type)))))
-      (if (and (memq (car form) '(custom-declare-face custom-declare-variable))
-	       byte-compile-current-group)
-	  ;; The group will be provided implicitly.
-	  nil
-	(or (and (eq (car form) 'custom-declare-group)
-		 (equal name ''emacs))
-	    (plist-get keyword-args :group)
-	    (byte-compile-warn-x (cadr name)
-	     "%s for `%s' fails to specify containing group"
-	     (cdr (assq (car form)
-			'((custom-declare-group . defgroup)
-			  (custom-declare-face . defface)
-			  (custom-declare-variable . defcustom))))
-	     (cadr name)))
-	;; Update the current group, if needed.
-	(if (and byte-compile-current-file ;Only when compiling a whole file.
-		 (eq (car form) 'custom-declare-group))
-	    (setq byte-compile-current-group (cadr name)))))))
-
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
 (defun byte-compile-arglist-warn (name arglist macrop)
@@ -1786,8 +1736,11 @@ Warn if documentation string of FORM is too wide.
 It is too wide if it has any lines longer than the largest of
 `fill-column' and `byte-compile-docstring-max-column'."
   (when (byte-compile-warning-enabled-p 'docstrings)
-    (let ((col (max byte-compile-docstring-max-column fill-column))
-          kind name docs)
+    (let* ((kind nil) (name nil) (docs nil)
+           (prefix (lambda ()
+                     (format "%s%s"
+                             kind
+                             (if name (format-message " `%s' " name) "")))))
       (pcase (car form)
         ((or 'autoload 'custom-declare-variable 'defalias
              'defconst 'define-abbrev-table
@@ -1795,6 +1748,8 @@ It is too wide if it has any lines longer than the largest of
              'custom-declare-face)
          (setq kind (nth 0 form))
          (setq name (nth 1 form))
+         (when (and (consp name) (eq (car name) 'quote))
+           (setq name (cadr name)))
          (setq docs (nth 3 form)))
         ('lambda
           (setq kind "")          ; can't be "function", unfortunately
@@ -1806,11 +1761,11 @@ It is too wide if it has any lines longer than the largest of
         (setq name (cadr name)))
       (setq name (if name (format " `%s' " name) ""))
       (when (and kind docs (stringp docs))
-        (when (byte-compile--wide-docstring-p docs col)
-          (byte-compile-warn-x
-           name
-           "%s%sdocstring wider than %s characters"
-           kind name col))
+        (let ((col (max byte-compile-docstring-max-column fill-column)))
+          (when (byte-compile--wide-docstring-p docs col)
+            (byte-compile-warn-x
+             name
+             "%sdocstring wider than %s characters" (funcall prefix) col)))
         ;; There's a "naked" ' character before a symbol/list, so it
         ;; should probably be quoted with \=.
         (when (string-match-p (rx (| (in " \t") bol)
@@ -1820,16 +1775,19 @@ It is too wide if it has any lines longer than the largest of
                               docs)
           (byte-compile-warn-x
            name
-           (concat "%s%sdocstring has wrong usage of unescaped single quotes"
+           (concat "%sdocstring has wrong usage of unescaped single quotes"
                    " (use \\=%c or different quoting such as %c...%c)")
-           kind name ?' ?` ?'))
+           (funcall prefix) ?' ?` ?'))
         ;; There's a "Unicode quote" in the string -- it should probably
         ;; be an ASCII one instead.
         (when (byte-compile-warning-enabled-p 'docstrings-non-ascii-quotes)
-          (when (string-match-p "\\( \"\\|[ \t]\\|^\\)[‘’]" docs)
+          (when (string-match-p (rx (| " \"" (in " \t") bol)
+                                    (in "‘’"))
+                                docs)
             (byte-compile-warn-x
-             name "%s%sdocstring has wrong usage of \"fancy\" single quotation marks"
-             kind name))))))
+             name
+             "%sdocstring uses curved single quotes; use %s instead of ‘...’"
+             (funcall prefix) "`...'"))))))
   form)
 
 ;; If we have compiled any calls to functions which are not known to be
@@ -3738,10 +3696,6 @@ lambda-expression."
 (defun byte-compile-normal-call (form)
   (when (and (symbolp (car form))
              (byte-compile-warning-enabled-p 'callargs (car form)))
-    (if (memq (car form)
-              '(custom-declare-group custom-declare-variable
-                                     custom-declare-face))
-        (byte-compile-nogroup-warn form))
     (byte-compile-callargs-warn form))
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
@@ -5337,6 +5291,194 @@ binding slots have been popped."
 (defun byte-compile-make-local-variable (form)
   (pcase form (`(,_ ',var) (byte-compile--declare-var var)))
   (byte-compile-normal-call form))
+
+;; Warn about mistakes in `defcustom', `defface', `defgroup', `define-widget'
+
+(defvar bytecomp--cus-function)
+(defvar bytecomp--cus-name)
+
+(defun bytecomp--cus-warn (form format &rest args)
+  "Emit a warning about a `defcustom' type.
+FORM is used to provide location, `bytecomp--cus-function' and
+`bytecomp--cus-name' for context."
+  (let* ((actual-fun (or (cdr (assq bytecomp--cus-function
+                                    '((custom-declare-group    . defgroup)
+			              (custom-declare-face     . defface)
+			              (custom-declare-variable . defcustom))))
+                         bytecomp--cus-function))
+         (prefix (format "in %s%s: "
+                         actual-fun
+                         (if bytecomp--cus-name
+                             (format " for `%s'" bytecomp--cus-name)
+                           ""))))
+    (apply #'byte-compile-warn-x form (concat prefix format) args)))
+
+(defun bytecomp--check-cus-type (type)
+  "Warn about common mistakes in the `defcustom' type TYPE."
+  (let ((invalid-types
+         '(
+           ;; Lisp type predicates, often confused with customisation types:
+           functionp numberp integerp fixnump natnump floatp booleanp
+           characterp listp stringp consp vectorp symbolp keywordp
+           hash-table-p facep
+           ;; other mistakes occasionally seen (oh yes):
+           or and nil t
+           interger intger lits bool boolen constant filename
+           kbd any list-of auto
+           ;; from botched backquoting
+           \, \,@ \`
+           )))
+    (cond
+     ((consp type)
+      (let* ((head (car type))
+             (tail (cdr type)))
+        (while (and (keywordp (car tail)) (cdr tail))
+          (setq tail (cddr tail)))
+        (cond
+         ((plist-member (cdr type) :convert-widget) nil)
+         ((let ((tl tail))
+            (and (not (keywordp (car tail)))
+                 (progn
+                   (while (and tl (not (keywordp (car tl))))
+                     (setq tl (cdr tl)))
+                   (and tl
+                        (progn
+                          (bytecomp--cus-warn
+                           tl "misplaced %s keyword in `%s' type" (car tl) head)
+                          t))))))
+         ((memq head '(choice radio))
+          (unless tail
+            (bytecomp--cus-warn type "`%s' without any types inside" head))
+          (let ((clauses tail)
+                (constants nil)
+                (tags nil))
+            (while clauses
+              (let* ((ty (car clauses))
+                     (ty-head (car-safe ty)))
+                (when (and (eq ty-head 'other) (cdr clauses))
+                  (bytecomp--cus-warn ty "`other' not last in `%s'" head))
+                (when (memq ty-head '(const other))
+                  (let ((ty-tail (cdr ty))
+                        (val nil))
+                    (while (and (keywordp (car ty-tail)) (cdr ty-tail))
+                      (when (eq (car ty-tail) :value)
+                        (setq val (cadr ty-tail)))
+                      (setq ty-tail (cddr ty-tail)))
+                    (when ty-tail
+                      (setq val (car ty-tail)))
+                    (when (member val constants)
+                      (bytecomp--cus-warn
+                       ty "duplicated value in `%s': `%S'" head val))
+                    (push val constants)))
+                (let ((tag (and (consp ty) (plist-get (cdr ty) :tag))))
+                  (when (stringp tag)
+                    (when (member tag tags)
+                      (bytecomp--cus-warn
+                       ty "duplicated :tag string in `%s': %S" head tag))
+                    (push tag tags)))
+                (bytecomp--check-cus-type ty))
+              (setq clauses (cdr clauses)))))
+         ((eq head 'cons)
+          (unless (= (length tail) 2)
+            (bytecomp--cus-warn
+             type "`cons' requires 2 type specs, found %d" (length tail)))
+          (dolist (ty tail)
+            (bytecomp--check-cus-type ty)))
+         ((memq head '(list group vector set repeat))
+          (unless tail
+            (bytecomp--cus-warn type "`%s' without type specs" head))
+          (dolist (ty tail)
+            (bytecomp--check-cus-type ty)))
+         ((memq head '(alist plist))
+          (let ((key-tag (memq :key-type (cdr type)))
+                (value-tag (memq :value-type (cdr type))))
+            (when key-tag
+              (bytecomp--check-cus-type (cadr key-tag)))
+            (when value-tag
+              (bytecomp--check-cus-type (cadr value-tag)))))
+         ((memq head '(const other))
+          (let* ((value-tag (memq :value (cdr type)))
+                 (n (length tail))
+                 (val (car tail)))
+            (cond
+             ((or (> n 1) (and value-tag tail))
+              (bytecomp--cus-warn type "`%s' with too many values" head))
+             (value-tag
+              (setq val (cadr value-tag)))
+             ;; ;; This is a useful check but it results in perhaps
+             ;; ;; a bit too many complaints.
+             ;; ((null tail)
+             ;;  (bytecomp--cus-warn
+             ;;   type "`%s' without value is implicitly nil" head))
+             )
+            (when (memq (car-safe val) '(quote function))
+              (bytecomp--cus-warn type "`%s' with quoted value: %S" head val))))
+         ((eq head 'quote)
+          (bytecomp--cus-warn type "type should not be quoted: %s" (cadr type)))
+         ((memq head invalid-types)
+          (bytecomp--cus-warn type "`%s' is not a valid type" head))
+         ((or (not (symbolp head)) (keywordp head))
+          (bytecomp--cus-warn type "irregular type `%S'" head))
+         )))
+     ((or (not (symbolp type)) (keywordp type))
+      (bytecomp--cus-warn type "irregular type `%S'" type))
+     ((memq type '( list cons group vector choice radio const other
+                    function-item variable-item set repeat restricted-sexp))
+      (bytecomp--cus-warn type "`%s' without arguments" type))
+     ((memq type invalid-types)
+      (bytecomp--cus-warn type "`%s' is not a valid type" type))
+     )))
+
+;; Unified handler for multiple functions with similar arguments:
+;; (NAME SOMETHING DOC KEYWORD-ARGS...)
+(byte-defop-compiler-1 define-widget           bytecomp--custom-declare)
+(byte-defop-compiler-1 custom-declare-group    bytecomp--custom-declare)
+(byte-defop-compiler-1 custom-declare-face     bytecomp--custom-declare)
+(byte-defop-compiler-1 custom-declare-variable bytecomp--custom-declare)
+(defun bytecomp--custom-declare (form)
+  (when (>= (length form) 4)
+    (let* ((name-arg (nth 1 form))
+           (name (and (eq (car-safe name-arg) 'quote)
+                      (symbolp (nth 1 name-arg))
+                      (nth 1 name-arg)))
+           (keyword-args (nthcdr 4 form))
+           (fun (car form))
+           (bytecomp--cus-function fun)
+           (bytecomp--cus-name name))
+
+      ;; Check :type
+      (when (memq fun '(custom-declare-variable define-widget))
+        (let ((type-tag (memq :type keyword-args)))
+          (if (null type-tag)
+              ;; :type only mandatory for `defcustom'
+              (when (eq fun 'custom-declare-variable)
+                (bytecomp--cus-warn form "missing :type keyword parameter"))
+            (let ((dup-type (memq :type (cdr type-tag))))
+              (when dup-type
+                (bytecomp--cus-warn
+                 dup-type "duplicated :type keyword argument")))
+            (let ((type-arg (cadr type-tag)))
+              (when (or (null type-arg)
+                        (eq (car-safe type-arg) 'quote))
+                (bytecomp--check-cus-type (cadr type-arg)))))))
+
+      ;; Check :group
+      (when (cond
+             ((memq fun '(custom-declare-variable custom-declare-face))
+              (not byte-compile-current-group))
+             ((eq fun 'custom-declare-group)
+              (not (eq name 'emacs))))
+        (unless (plist-get keyword-args :group)
+          (bytecomp--cus-warn form "fails to specify containing group")))
+
+      ;; Update current group
+      (when (and name
+                 byte-compile-current-file  ; only when compiling a whole file
+		 (eq fun 'custom-declare-group))
+	(setq byte-compile-current-group name))))
+
+  (byte-compile-normal-call form))
+
 
 (put 'function-put 'byte-hunk-handler 'byte-compile-define-symbol-prop)
 (put 'define-symbol-prop 'byte-hunk-handler 'byte-compile-define-symbol-prop)

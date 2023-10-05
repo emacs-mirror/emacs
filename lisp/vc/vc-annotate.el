@@ -718,23 +718,24 @@ The annotations are relative to the current time, unless overridden by OFFSET."
         (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
                           (cons nil vc-annotate-very-old-color)))
                ;; substring from index 1 to remove any leading `#' in the name
-               (face-name (concat "vc-annotate-face-"
-                                  (if (string-equal
-                                       (substring (cdr color) 0 1) "#")
-                                      (substring (cdr color) 1)
-                                    (cdr color))))
+               (face (intern (concat "vc-annotate-face-"
+                                     (if (string-equal
+                                          (substring (cdr color) 0 1) "#")
+                                         (substring (cdr color) 1)
+                                       (cdr color)))))
                ;; Make the face if not done.
-               (face (or (intern-soft face-name)
-                         (let ((tmp-face (make-face (intern face-name))))
-                           (set-face-extend tmp-face t)
-                           (cond
-                            (vc-annotate-background-mode
-                             (set-face-background tmp-face (cdr color)))
-                            (t
-                             (set-face-foreground tmp-face (cdr color))
-                             (when vc-annotate-background
-			       (set-face-background tmp-face vc-annotate-background))))
-                           tmp-face))))	; Return the face
+               (face (if (facep face)
+                         face
+                       (make-face face)
+                       (set-face-extend face t)
+                       (cond
+                        (vc-annotate-background-mode
+                         (set-face-background face (cdr color)))
+                        (t
+                         (set-face-foreground face (cdr color))
+                         (when vc-annotate-background
+			   (set-face-background face vc-annotate-background))))
+                       face)))
           (put-text-property start end 'face face)))))
   ;; Pretend to font-lock there were no matches.
   nil)

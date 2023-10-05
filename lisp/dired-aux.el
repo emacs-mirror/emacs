@@ -3655,6 +3655,22 @@ resume the query replace with the command \\[fileloop-continue]."
    delimited)
   (fileloop-continue))
 
+;;;###autoload
+(defun dired-do-replace-regexp-as-diff (from to &optional delimited)
+  "Do `replace-regexp' of FROM with TO as diff, on all marked files.
+Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+The replacements are displayed in the buffer *replace-diff* that
+you can later apply as a patch after reviewing the changes."
+  (interactive
+   (let ((common
+          (query-replace-read-args
+           "Replace regexp as diff in marked files" t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
+  (dired-post-do-command)
+  (multi-file-replace-regexp-as-diff
+   (dired-get-marked-files nil nil #'dired-nondirectory-p)
+   from to delimited))
+
 (declare-function xref-query-replace-in-results "xref")
 (declare-function project--files-in-directory "project")
 

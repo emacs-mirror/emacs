@@ -262,7 +262,7 @@ Non-interactively can also be called with a single argument, in which
 case that argument will be inserted pretty-printed at point."
   (interactive "r")
   (if (null end) (pp--object beg #'pp-29)
-    (save-restriction beg end
+    (with-restriction beg end
       (goto-char (point-min))
       (while (not (eobp))
         (cond

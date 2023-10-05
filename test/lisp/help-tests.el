@@ -378,7 +378,7 @@ Key             Binding
                                      (foo menu-item "Foo" foo
                                           :enable mark-active
                                           :help "Help text"))))))
-      (describe-map-tree map nil nil nil nil t nil nil nil)
+      (help--describe-map-tree map nil nil nil nil t nil nil nil)
       (should (string-match "
 Key             Binding
 -+
@@ -393,7 +393,7 @@ C-a		foo\n"
                                      (foo menu-item "Foo" foo
                                           :enable mark-active
                                           :help "Help text"))))))
-      (describe-map-tree map nil nil nil nil nil nil nil nil)
+      (help--describe-map-tree map nil nil nil nil nil nil nil nil)
       (should (string-match "
 Key             Binding
 -+
@@ -408,7 +408,7 @@ C-a		foo
           (map '(keymap . ((1 . foo)
                            (2 . bar))))
           (shadow-maps '((keymap . ((1 . baz))))))
-      (describe-map-tree map t shadow-maps nil nil t nil nil t)
+      (help--describe-map-tree map t shadow-maps nil nil t nil nil t)
       (should (string-match "
 Key             Binding
 -+
@@ -423,7 +423,7 @@ C-b		bar\n"
           (map '(keymap . ((1 . foo)
                            (2 . bar))))
           (shadow-maps '((keymap . ((1 . baz))))))
-      (describe-map-tree map t shadow-maps nil nil t nil nil nil)
+      (help--describe-map-tree map t shadow-maps nil nil t nil nil nil)
       (should (string-match "
 Key             Binding
 -+
@@ -435,7 +435,7 @@ C-b		bar\n"
     (let ((standard-output (current-buffer))
           (map '(keymap . ((1 . foo)
                            (2 . undefined)))))
-      (describe-map-tree map t nil nil nil nil nil nil nil)
+      (help--describe-map-tree map t nil nil nil nil nil nil nil)
       (should (string-match "
 Key             Binding
 -+
@@ -447,7 +447,7 @@ C-a		foo\n"
     (let ((standard-output (current-buffer))
           (map '(keymap . ((1 . foo)
                            (2 . undefined)))))
-      (describe-map-tree map nil nil nil nil nil nil nil nil)
+      (help--describe-map-tree map nil nil nil nil nil nil nil nil)
       (should (string-match "
 Key             Binding
 -+

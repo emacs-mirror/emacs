@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <minmax.h>
 #include <string.h>
+#include <systime.h>
 #include <semaphore.h>
 
 #include <sys/stat.h>
@@ -1920,6 +1921,21 @@ android_afs_open (struct android_vnode *vnode, int flags,
       /* Size of the file.  */
       info->statb.st_size = AAsset_getLength (asset);
 
+      /* If the installation date can be ascertained, return that as
+	 the file's modification time.  */
+
+      if (timespec_valid_p (emacs_installation_time))
+	{
+#ifdef STAT_TIMESPEC
+	  STAT_TIMESPEC (&info->statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+          /* Headers supplied by the NDK r10b contain a `struct stat'
+	     without POSIX fields for nano-second timestamps.  */
+	  info->statb.st_mtime = emacs_installation_time.tv_sec;
+	  info->statb.st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+	}
+
       /* Chain info onto afs_file_descriptors.  */
       afs_file_descriptors = info;
 
@@ -2058,7 +2074,7 @@ android_afs_stat (struct android_vnode *vnode, struct stat *statb)
       /* Concoct a nonexistent device and an inode number.  */
       statb->st_dev = -1;
       statb->st_ino = 0;
-      return 0;
+      goto set_file_times;
     }
 
   /* AASSET_MODE_STREAMING is fastest here.  */
@@ -2083,6 +2099,24 @@ android_afs_stat (struct android_vnode *vnode, struct stat *statb)
 
   /* Close the asset.  */
   AAsset_close (asset_desc);
+
+ set_file_times:
+
+  /* If the installation date can be ascertained, return that as the
+     file's modification time.  */
+
+  if (timespec_valid_p (emacs_installation_time))
+    {
+#ifdef STAT_TIMESPEC
+      STAT_TIMESPEC (statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+      /* Headers supplied by the NDK r10b contain a `struct stat'
+	 without POSIX fields for nano-second timestamps.  */
+      statb->st_mtime = emacs_installation_time.tv_sec;
+      statb->st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+    }
+
   return 0;
 }
 
@@ -3014,6 +3048,7 @@ android_authority_open (struct android_vnode *vnode, int flags,
   size_t length;
   jobject string;
   int fd;
+  JNIEnv *env;
 
   vp = (struct android_authority_vnode *) vnode;
 
@@ -3025,39 +3060,40 @@ android_authority_open (struct android_vnode *vnode, int flags,
       return -1;
     }
 
+  /* Save the JNI environment within `env', to make wrapping
+     subsequent lines referencing CallNonvirtualIntMethod
+     feasible.  */
+  env = android_java_env;
+
   /* Allocate a buffer to hold the file name.  */
   length = strlen (vp->uri);
-  string = (*android_java_env)->NewByteArray (android_java_env,
-					      length);
+  string = (*env)->NewByteArray (env, length);
   if (!string)
     {
-      (*android_java_env)->ExceptionClear (android_java_env);
+      (*env)->ExceptionClear (env);
       errno = ENOMEM;
       return -1;
     }
 
   /* Copy the URI into this byte array.  */
-  (*android_java_env)->SetByteArrayRegion (android_java_env,
-					   string, 0, length,
-					   (jbyte *) vp->uri);
+  (*env)->SetByteArrayRegion (env, string, 0, length,
+			      (jbyte *) vp->uri);
 
   /* Try to open the file descriptor.  */
 
-  fd
-    = (*android_java_env)->CallIntMethod (android_java_env,
-					  emacs_service,
-					  service_class.open_content_uri,
-					  string,
-					  (jboolean) ((mode & O_WRONLY
-						       || mode & O_RDWR)
-						      != 0),
-					  (jboolean) !(mode & O_WRONLY),
-					  (jboolean) ((mode & O_TRUNC)
-						      != 0));
-
-  if ((*android_java_env)->ExceptionCheck (android_java_env))
+  fd = (*env)->CallNonvirtualIntMethod (env, emacs_service,
+					service_class.class,
+					service_class.open_content_uri,
+					string,
+					(jboolean) ((mode & O_WRONLY
+						     || mode & O_RDWR)
+						    != 0),
+					(jboolean) !(mode & O_WRONLY),
+					(jboolean) ((mode & O_TRUNC)
+						    != 0));
+  if ((*env)->ExceptionCheck (env))
     {
-      (*android_java_env)->ExceptionClear (android_java_env);
+      (*env)->ExceptionClear (env);
       errno = ENOMEM;
       ANDROID_DELETE_LOCAL_REF (string);
       return -1;
@@ -4233,10 +4269,11 @@ android_saf_delete_document (const char *tree, const char *doc_id,
 
   /* Now, try to delete the document.  */
   method = service_class.delete_document;
-  rc = (*android_java_env)->CallIntMethod (android_java_env,
-					   emacs_service,
-					   method, uri, id,
-					   name);
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method, uri, id,
+						     name);
 
   if (android_saf_exception_check (3, id, uri, name))
     return -1;
@@ -4391,11 +4428,13 @@ android_saf_move_document (const char *uri, char **doc_id,
 
   /* Do the rename.  */
   method = service_class.move_document;
-  result = (*android_java_env)->CallObjectMethod (android_java_env,
-						  emacs_service,
-						  method, uri1,
-						  doc_id1, dir_name1,
-						  dst_id1, src_id1);
+  result
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, uri1,
+						       doc_id1, dir_name1,
+						       dst_id1, src_id1);
   if (android_saf_exception_check (5, src_id1, dst_id1, dir_name1,
 				   doc_id1, uri1))
     {
@@ -7340,6 +7379,21 @@ android_asset_fstat (struct android_fd_or_asset asset,
   /* Owned by root.  */
   statb->st_uid = 0;
   statb->st_gid = 0;
+
+  /* If the installation date can be ascertained, return that as the
+     file's modification time.  */
+
+  if (timespec_valid_p (emacs_installation_time))
+    {
+#ifdef STAT_TIMESPEC
+      STAT_TIMESPEC (statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+      /* Headers supplied by the NDK r10b contain a `struct stat'
+	 without POSIX fields for nano-second timestamps.  */
+      statb->st_mtime = emacs_installation_time.tv_sec;
+      statb->st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+    }
 
   /* Size of the file.  */
   statb->st_size = AAsset_getLength (asset.asset);

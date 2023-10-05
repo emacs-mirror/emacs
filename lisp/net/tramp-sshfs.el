@@ -60,7 +60,7 @@
 		;; These are for remote processes.
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-q") ("-l" "%u") ("-p" "%p")
-				             ("-e" "none") ("-t" "-t")
+				             ("-e" "none") ("%a" "%a")
 					     ("%h") ("%l")))
                 (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -326,7 +326,7 @@ arguments to pass to the OPERATION."
 	    ?h (or (tramp-file-name-host v) "")
 	    ?u (or (tramp-file-name-user v) "")
 	    ?p (or (tramp-file-name-port v) "")
-	    ?l command))
+            ?a "-t" ?l command))
 
 	;; Synchronize stderr.
 	(when tmpstderr

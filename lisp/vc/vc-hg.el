@@ -249,7 +249,10 @@ If `ask', you will be prompted for a branch type."
                     (error nil)))))))
     (when (and (eq 0 status)
 	       (> (length out) 0)
-	       (null (string-match ".*: No such file or directory$" out)))
+                         ;; Posix
+	       (null (or (string-match ".*: No such file or directory$" out)
+                         ;; MS-Windows
+                         (string-match ".*: The system cannot find the file specified$" out))))
       (let ((state (aref out 0)))
 	(cond
 	 ((eq state ?=) 'up-to-date)

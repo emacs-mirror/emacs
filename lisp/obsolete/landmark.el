@@ -549,10 +549,10 @@ along the DX, DY direction, considering that DVAL has been added on SQUARE."
 ;;; GAME CONTROL.
 ;;;
 
-;; Several variables are used to monitor a game, including a GAME-HISTORY (the
-;; list of all (SQUARE . PREVSCORE) played) that allows to take moves back
-;; (anti-updating the score table) and to compute the table from scratch in
-;; case of an interruption.
+;; Several variables are used to monitor a game, including a
+;; GAME-HISTORY (the list of all (SQUARE . PREVSCORE) played) that
+;; enables rescinding moves (anti-updating the score table) and to
+;; compute the table from scratch in case of an interruption.
 
 (defvar landmark-game-in-progress nil
   "Non-nil if a game is in progress.")

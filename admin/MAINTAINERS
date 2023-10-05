@@ -5,6 +5,11 @@ what parts of the Emacs distribution.  The areas can be defined
 "arbitrarily", but should provide fairly well-defined boundaries so
 that there are not too many ambiguities.
 
+The (co-)maintainers of Emacs are:
+
+	Eli Zaretskii <eliz@gnu.org>
+	Stefan Kangas <stefankangas@gmail.com>
+
 ==============================================================================
 1. Areas that someone wants to be maintaining (i.e. has a particularly
 keen interest in).  There's no need to list files where you are
@@ -159,6 +164,69 @@ Po Lu
 	    doc/emacs/haiku.texi
 
 	Haiku battery support in lisp/battery.el
+
+	The Android port:
+	    src/android-asset.h
+	    src/android.c
+	    src/android-emacs.c
+	    src/androidfns.c
+	    src/androidfont.c
+	    src/androidgui.h
+	    src/android.h
+	    src/androidmenu.c
+	    src/androidselect.c
+	    src/androidterm.c
+	    src/androidterm.h
+	    src/androidvfs.c
+	    src/sfnt.c
+	    src/sfntfont-android.c
+	    src/sfntfont.c
+	    src/sfntfont.h
+	    src/sfnt.h
+	    java/org/gnu/emacs/EmacsActivity.java
+	    java/org/gnu/emacs/EmacsApplication.java
+	    java/org/gnu/emacs/EmacsClipboard.java
+	    java/org/gnu/emacs/EmacsContextMenu.java
+	    java/org/gnu/emacs/EmacsCursor.java
+	    java/org/gnu/emacs/EmacsDesktopNotification.java
+	    java/org/gnu/emacs/EmacsDialogButtonLayout.java
+	    java/org/gnu/emacs/EmacsDialog.java
+	    java/org/gnu/emacs/EmacsDirectoryEntry.java
+	    java/org/gnu/emacs/EmacsDocumentsProvider.java
+	    java/org/gnu/emacs/EmacsDrawable.java
+	    java/org/gnu/emacs/EmacsDrawLine.java
+	    java/org/gnu/emacs/EmacsDrawPoint.java
+	    java/org/gnu/emacs/EmacsDrawRectangle.java
+	    java/org/gnu/emacs/EmacsFillPolygon.java
+	    java/org/gnu/emacs/EmacsFillRectangle.java
+	    java/org/gnu/emacs/EmacsFontDriver.java
+	    java/org/gnu/emacs/EmacsGC.java
+	    java/org/gnu/emacs/EmacsHandleObject.java
+	    java/org/gnu/emacs/EmacsHolder.java
+	    java/org/gnu/emacs/EmacsInputConnection.java
+	    java/org/gnu/emacs/EmacsLauncherPreferencesActivity.java
+	    java/org/gnu/emacs/EmacsMultitaskActivity.java
+	    java/org/gnu/emacs/EmacsNative.java
+	    java/org/gnu/emacs/EmacsNoninteractive.java
+	    java/org/gnu/emacs/EmacsOpenActivity.java
+	    java/org/gnu/emacs/EmacsPixmap.java
+	    java/org/gnu/emacs/EmacsPreferencesActivity.java
+	    java/org/gnu/emacs/EmacsSafThread.java
+	    java/org/gnu/emacs/EmacsSdk11Clipboard.java
+	    java/org/gnu/emacs/EmacsSdk23FontDriver.java
+	    java/org/gnu/emacs/EmacsSdk7FontDriver.java
+	    java/org/gnu/emacs/EmacsSdk8Clipboard.java
+	    java/org/gnu/emacs/EmacsService.java
+	    java/org/gnu/emacs/EmacsSurfaceView.java
+	    java/org/gnu/emacs/EmacsThread.java
+	    java/org/gnu/emacs/EmacsView.java
+	    java/org/gnu/emacs/EmacsWindowAttachmentManager.java
+	    java/org/gnu/emacs/EmacsWindow.java
+	    java/org/gnu/emacs/R.java
+	    m4/ndk-build.m4
+	    cross
+
+	Android battery support in lisp/battery.el
 
 Jim Porter
 	Eshell

@@ -1408,9 +1408,10 @@ the number of tabs created on each frame.
 
 @findex toggle-frame-tab-bar
   To toggle the use of the Tab Bar only on the selected frame, type
-@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
-display of the Tab Bar on some frames and disable it on others,
-regardless of the values of @code{tab-bar-mode} and @code{tab-bar-show}.
+@kbd{M-x toggle-frame-tab-bar}.  This command facilitates selectively
+enabling the Tab Bar on some frames while keeping it disabled on
+others, irrespective of the values of @code{tab-bar-mode} and
+@code{tab-bar-show}.
 
 @kindex C-x t
   The prefix key @kbd{C-x t} is analogous to @kbd{C-x 5}.

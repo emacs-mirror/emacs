@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -22,7 +22,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; Flyspell is a minor Emacs mode performing on-the-fly spelling
 ;; checking.
 ;;
@@ -33,8 +33,7 @@
 ;; M-x flyspell-prog-mode.
 ;; In that mode only text inside comments and strings is checked.
 ;;
-;; Some user variables control the behavior of flyspell.  They are
-;; those defined under the `User configuration' comment.
+;; Use `M-x customize-group RET flyspell RET' to customize flyspell.
 
 ;;; Code:
 
@@ -411,18 +410,6 @@ like <img alt=\"Some thing.\">."
   (run-hooks 'flyspell-prog-mode-hook))
 
 ;;*---------------------------------------------------------------------*/
-;;*    Overlay compatibility                                            */
-;;*---------------------------------------------------------------------*/
-(autoload 'make-overlay            "overlay" "Overlay compatibility kit." t)
-(autoload 'overlayp                "overlay" "Overlay compatibility kit." t)
-(autoload 'overlays-in             "overlay" "Overlay compatibility kit." t)
-(autoload 'delete-overlay          "overlay" "Overlay compatibility kit." t)
-(autoload 'overlays-at             "overlay" "Overlay compatibility kit." t)
-(autoload 'overlay-put             "overlay" "Overlay compatibility kit." t)
-(autoload 'overlay-get             "overlay" "Overlay compatibility kit." t)
-(autoload 'previous-overlay-change "overlay" "Overlay compatibility kit." t)
-
-;;*---------------------------------------------------------------------*/
 ;;*    The minor mode declaration.                                      */
 ;;*---------------------------------------------------------------------*/
 (defvar-keymap flyspell-mouse-map
@@ -529,10 +516,10 @@ in your init file.
   :group 'flyspell
   (if flyspell-mode
       (condition-case err
-	  (flyspell-mode-on (called-interactively-p 'interactive))
+          (flyspell--mode-on (called-interactively-p 'interactive))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
-    (flyspell-mode-off)))
+    (flyspell--mode-off)))
 
 ;;;###autoload
 (defun turn-on-flyspell ()
@@ -597,14 +584,14 @@ in your init file.
       (kill-local-variable 'flyspell-word-cache-word))))
 
 ;; Make sure we flush our caches when needed.  Do it here rather than in
-;; flyspell-mode-on, since flyspell-region may be used without ever turning
+;; flyspell--mode-on, since flyspell-region may be used without ever turning
 ;; on flyspell-mode.
 (add-hook 'ispell-kill-ispell-hook 'flyspell-kill-ispell-hook)
 
 ;;*---------------------------------------------------------------------*/
-;;*    flyspell-mode-on ...                                             */
+;;*    flyspell--mode-on ...                                            */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-mode-on (&optional show-msg)
+(defun flyspell--mode-on (&optional show-msg)
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead.
 
 If optional argument SHOW-MSG is non-nil, show a welcome message
@@ -612,7 +599,6 @@ if `flyspell-issue-message-flag' and `flyspell-issue-welcome-flag'
 are both non-nil."
   (ispell-set-spellchecker-params) ; Initialize variables and dicts alists
   (setq ispell-highlight-face 'flyspell-incorrect)
-  ;; local dictionaries setup
   (or ispell-local-dictionary ispell-dictionary
       (if flyspell-default-dictionary
 	  (ispell-change-dictionary flyspell-default-dictionary)))
@@ -622,24 +608,16 @@ are both non-nil."
   ;; Pass the `force' argument for the case where flyspell was active already
   ;; but the buffer's local-defs have been edited.
   (flyspell-accept-buffer-local-defs 'force)
-  ;; we put the `flyspell-delayed' property on some commands
   (flyspell-delay-commands)
-  ;; we put the `flyspell-deplacement' property on some commands
   (flyspell-deplacement-commands)
-  ;; we bound flyspell action to post-command hook
   (add-hook 'post-command-hook (function flyspell-post-command-hook) t t)
-  ;; we bound flyspell action to pre-command hook
   (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
-  ;; we bound flyspell action to after-change hook
   (add-hook 'after-change-functions 'flyspell-after-change-function nil t)
-  ;; we bound flyspell action to hack-local-variables-hook
   (add-hook 'hack-local-variables-hook
 	    (function flyspell-hack-local-variables-hook) t t)
-  ;; set flyspell-generic-check-word-predicate based on the major mode
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
 	(setq flyspell-generic-check-word-predicate mode-predicate)))
-  ;; the welcome message
   (if (and flyspell-issue-message-flag
            flyspell-issue-welcome-flag
            show-msg)
@@ -726,23 +704,19 @@ has been used, the current word is not checked."
   (setq flyspell-pre-column (current-column)))
 
 ;;*---------------------------------------------------------------------*/
-;;*    flyspell-mode-off ...                                            */
+;;*    flyspell--mode-off ...                                           */
 ;;*---------------------------------------------------------------------*/
 ;;;###autoload
-(defun flyspell-mode-off ()
+(defun flyspell--mode-off ()
   "Turn Flyspell mode off."
-  ;; We remove the hooks.
   (remove-hook 'post-command-hook (function flyspell-post-command-hook) t)
   (remove-hook 'pre-command-hook (function flyspell-pre-command-hook) t)
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
   (remove-hook 'hack-local-variables-hook
 	       (function flyspell-hack-local-variables-hook) t)
-  ;; We remove all the flyspell highlightings.
   (flyspell-delete-all-overlays)
-  ;; We have to erase pre cache variables.
   (setq flyspell-pre-buffer nil)
   (setq flyspell-pre-point  nil)
-  ;; We mark the mode as killed.
   (setq flyspell-mode nil))
 
 ;;*---------------------------------------------------------------------*/
@@ -2380,6 +2354,9 @@ This function is meant to be added to `flyspell-incorrect-hook'."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-change-abbrev (table old new)
   (set (abbrev-symbol old table) new))
+
+(define-obsolete-function-alias 'flyspell-mode-on 'flyspell--mode-on "30.1")
+(define-obsolete-function-alias 'flyspell-mode-off 'flyspell--mode-off "30.1")
 
 (provide 'flyspell)
 

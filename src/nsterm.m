@@ -2704,12 +2704,11 @@ ns_scroll_run (struct window *w, struct run *run)
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
     NSPoint dest = NSMakePoint (x, to_y);
-    NSRect destRect = NSMakeRect (x, from_y, width, height);
     EmacsView *view = FRAME_NS_VIEW (f);
 
     [view copyRect:srcRect to:dest];
-#ifdef NS_IMPL_COCOA
-    [view setNeedsDisplayInRect:destRect];
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED < 101400
+    [view setNeedsDisplayInRect:srcRect];
 #endif
   }
 
@@ -4561,21 +4560,6 @@ ns_send_appdefined (int value)
   /* Only post this event if we haven't already posted one.  This will end
      the [NXApp run] main loop after having processed all events queued at
      this moment.  */
-
-#ifdef NS_IMPL_COCOA
-  if (! send_appdefined)
-    {
-      /* OS X 10.10.1 swallows the AppDefined event we are sending ourselves
-         in certain situations (rapid incoming events).
-         So check if we have one, if not add one.  */
-      NSEvent *appev = [NSApp nextEventMatchingMask:NSEventMaskApplicationDefined
-                                          untilDate:[NSDate distantPast]
-                                             inMode:NSDefaultRunLoopMode
-                                            dequeue:NO];
-      if (! appev) send_appdefined = YES;
-    }
-#endif
-
   if (send_appdefined)
     {
       NSEvent *nxev;
@@ -7922,8 +7906,6 @@ ns_in_echo_area (void)
   maximizing_resize = NO;
 #endif
 
-  [[EmacsWindow alloc] initWithEmacsFrame:f];
-
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
   /* These settings mean AppKit will retain the contents of the frame
      on resize.  Unfortunately it also means the frame will not be
@@ -7934,9 +7916,16 @@ ns_in_echo_area (void)
           NSViewLayerContentsRedrawOnSetNeedsDisplay];
   [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
 
-  /* initWithEmacsFrame can't create the toolbar before the layer is
-     set, so have another go at creating the toolbar here.  */
-  [(EmacsWindow*)[self window] createToolbar:f];
+  [[EmacsWindow alloc] initWithEmacsFrame:f];
+
+  /* Now the NSWindow has been created, we can finish up configuring
+     the layer.  */
+  [(EmacsLayer *)[self layer] setColorSpace:
+                   [[[self window] colorSpace] CGColorSpace]];
+  [(EmacsLayer *)[self layer] setContentsScale:
+                   [[self window] backingScaleFactor]];
+#else
+  [[EmacsWindow alloc] initWithEmacsFrame:f];
 #endif
 
   if (ns_drag_types)
@@ -8607,9 +8596,9 @@ ns_in_echo_area (void)
 - (CALayer *)makeBackingLayer
 {
   EmacsLayer *l = [[EmacsLayer alloc]
-                    initWithColorSpace:[[[self window] colorSpace] CGColorSpace]];
+                    initWithDoubleBuffered:FRAME_DOUBLE_BUFFERED (emacsframe)];
+
   [l setDelegate:(id)self];
-  [l setContentsScale:[[self window] backingScaleFactor]];
 
   return l;
 }
@@ -8664,8 +8653,10 @@ ns_in_echo_area (void)
                                NSHeight (srcRect));
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-  double scale = [[self window] backingScaleFactor];
   CGContextRef context = [(EmacsLayer *)[self layer] getContext];
+  CGContextFlush (context);
+
+  double scale = [[self window] backingScaleFactor];
   int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
   void *pixels = CGBitmapContextGetData (context);
   int rowSize = CGBitmapContextGetBytesPerRow (context);
@@ -10435,22 +10426,19 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
    cache.  If no free surfaces are found in the cache then a new one
    is created.  */
 
-#define CACHE_MAX_SIZE 2
-
-- (id) initWithColorSpace: (CGColorSpaceRef)cs
+- (id) initWithDoubleBuffered: (bool)db
 {
-  NSTRACE ("[EmacsLayer initWithColorSpace:]");
+  NSTRACE ("[EmacsLayer initWithDoubleBuffered:]");
 
   self = [super init];
   if (self)
     {
-      cache = [[NSMutableArray arrayWithCapacity:CACHE_MAX_SIZE] retain];
-      [self setColorSpace:cs];
+      [self setColorSpace:nil];
+      [self setDoubleBuffered:db];
+      cache = [[NSMutableArray arrayWithCapacity:(doubleBuffered ? 2 : 1)] retain];
     }
   else
-    {
-      return nil;
-    }
+    return nil;
 
   return self;
 }
@@ -10464,6 +10452,15 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
     colorSpace = cs;
   else
     colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+}
+
+
+- (void) setDoubleBuffered: (bool)db
+{
+  if (doubleBuffered != db)
+    [self releaseSurfaces];
+
+  doubleBuffered = db;
 }
 
 
@@ -10538,7 +10535,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
             }
         }
 
-      if (!surface && [cache count] >= CACHE_MAX_SIZE)
+      if (!surface && [cache count] >= (doubleBuffered ? 2 : 1))
         {
           /* Just grab the first one off the cache.  This may result
              in tearing effects.  The alternative is to wait for one
@@ -10591,7 +10588,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
           return nil;
         }
 
-      CGContextTranslateCTM(context, 0, IOSurfaceGetHeight (currentSurface));
+      CGContextTranslateCTM(context, 0, IOSurfaceGetHeight (surface));
       CGContextScaleCTM(context, scale, -scale);
     }
 
@@ -10608,6 +10605,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   if (!context)
     return;
 
+  CGContextFlush (context);
   CGContextRelease (context);
   context = NULL;
 
@@ -10621,26 +10619,18 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 {
   NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer display]");
 
-  if (context)
+  if (context && context != [[NSGraphicsContext currentContext] CGContext])
     {
       [self releaseContext];
 
-#if CACHE_MAX_SIZE == 1
-      /* This forces the layer to see the surface as updated.  */
+      /* This forces the layer to see the surface as updated even if
+         we replace it with itself.  */
       [self setContents:nil];
-#endif
-
       [self setContents:(id)currentSurface];
 
       /* Put currentSurface back on the end of the cache.  */
       [cache addObject:(id)currentSurface];
       currentSurface = NULL;
-
-      /* Schedule a run of getContext so that if Emacs is idle it will
-         perform the buffer copy, etc.  */
-      [self performSelectorOnMainThread:@selector (getContext)
-                             withObject:nil
-                          waitUntilDone:NO];
     }
 }
 

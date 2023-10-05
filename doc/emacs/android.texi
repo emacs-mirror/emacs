@@ -129,8 +129,7 @@ buffer.
   Since there is no other way to start the @command{emacsclient}
 program (@pxref{Emacs Server}) from another Android program, Emacs
 provides a wrapper around the @command{emacsclient} program, which is
-registered with the system as an application that can open all text
-files.
+registered with the system as an application that can open any file.
 
   When that wrapper is selected as the program with which to open a
 file, it invokes @command{emacsclient} with the options
@@ -153,6 +152,18 @@ directory, or try to open files in it yourself.
   This feature is not provided on Android 4.3 and earlier, in which
 case such files are copied to a temporary directory before being
 opened.
+
+@cindex ``org-protocol'' links, android
+  In addition to opening ordinary text files, Emacs also registers its
+@command{emacsclient} wrapper as a program capable of opening
+``org-protocol'' links (@pxref{Protocols,,,org, The Org Manual}).
+
+@cindex ``mailto'' links, android
+  Furthermore, the wrapper is also registered as a program capable of
+sending mail to @code{mailto} URIs; when it is invoked to open such a
+URL, it calls the function @code{message-mailto} with that URI as its
+first argument.  This feature does not function when the Emacs server
+is not already running.
 
 @node Android File System
 @section What Files Emacs Can Access on Android
@@ -293,7 +304,7 @@ provide, placing their files within the directory
 @file{/content/storage}.
 
 @findex android-request-directory-access
-  Before Emacs is granted access to any of these directories, it must
+  Before Emacs is granted access to one of these directories, it must
 first request the right to access it.  This is done by running the
 command (@pxref{M-x}) @code{android-request-directory-access}, which
 displays a file selection dialog.
@@ -434,10 +445,36 @@ list of such troublesome manufacturers and sometimes workarounds at
 
   Android also defines a permissions system that determines what
 system services Emacs is allowed to access.  Programs must specify
-what permissions they want; what then happens depends on the version
-of Android being used:
+what permissions they want; what then happens is then subject to the
+version of Android being used:
 
 @itemize @bullet
+@item
+Under more or less recent releases of Android, such as Android 6.0 and
+later, Emacs only receives the following permissions upon
+installation:
+
+@itemize @minus
+@item
+@code{android.permission.VIBRATE}
+@item
+@code{android.permission.ACCESS_NETWORK_STATE}
+@item
+@code{android.permission.INTERNET}
+@item
+@code{android.permission.SET_WALLPAPER}
+@item
+@code{android.permission.NFC}
+@item
+@code{android.permission.TRANSMIT_IR}
+@item
+@code{android.permission.WAKE_LOCK}
+@end itemize
+
+Other permissions must be granted by the user through the system
+settings application.  Consult the manufacturer of your device for
+more details, as how to do this varies by device.
+
 @item
 On Android 5.1 and earlier, Emacs automatically receives the following
 permissions it has requested upon being installed:
@@ -457,6 +494,10 @@ permissions it has requested upon being installed:
 @code{android.permission.INTERNET}
 @item
 @code{android.permission.SET_WALLPAPER}
+@item
+@code{android.permission.READ_CALENDAR}
+@item
+@code{android.permission.WRITE_CALENDAR}
 @item
 @code{android.permission.READ_EXTERNAL_STORAGE}
 @item
@@ -498,31 +539,6 @@ permissions it has requested upon being installed:
 While most of these permissions are left unused by Emacs itself, they
 are declared by Emacs as they could be useful for other programs; for
 example, the permission to access contacts may be useful for EUDC.
-
-@item
-On Android 6.0 and later, Emacs only receives the following
-permissions upon installation:
-
-@itemize @minus
-@item
-@code{android.permission.VIBRATE}
-@item
-@code{android.permission.ACCESS_NETWORK_STATE}
-@item
-@code{android.permission.INTERNET}
-@item
-@code{android.permission.SET_WALLPAPER}
-@item
-@code{android.permission.NFC}
-@item
-@code{android.permission.TRANSMIT_IR}
-@item
-@code{android.permission.WAKE_LOCK}
-@end itemize
-
-Other permissions must be granted by the user through the system
-settings application.  Consult the manufacturer of your device for
-more details, as how to do this varies by device.
 @end itemize
 
 @node Android Windowing
@@ -640,15 +656,13 @@ volume buttons in that case.
 @cindex dialog boxes, android
   Emacs is unable to display dialog boxes (@pxref{Dialog Boxes}) while
 it does not have the input focus on Android 6.0 or later.  If this is
-important to you, this ability can be restored by granting Emacs
-permission to display over other programs.  Normally, this can be done
-from the:
+important to you, this capability can be restored by granting Emacs
+permission to display over other programs.  On most systems, this can
+be done from the following Settings menu:
 
 @example
 System -> Apps -> Emacs -> More -> Display over other apps
 @end example
-
-menu in the system settings, but this procedure may vary by device.
 
 @cindex keyboard modifiers, android
   There is a direct relation between physical modifier keys and Emacs
@@ -662,6 +676,28 @@ in Emacs.
   Bear in mind that Android uses a different name for the @key{Super}
 modifier: it is referred to as @key{SYM} on Android keyboards and
 within the Settings keymap menu.
+
+@vindex android-intercept-control-space
+@cindex @kbd{C-SPC} interception, android
+  Android input methods have a penchant for irritating users by
+silently discarding key sequences containing @kbd{C-SPC} during the
+event filtering process, that they normally have no real application
+for such key sequences notwithstanding.  By default, Emacs intercepts
+these key sequences before they can be filtered by the input method.
+
+  If this proves unwanted (for instance, if the input method treats
+@kbd{C-SPC} as a shortcut key for switching languages), it can be
+disabled by setting the variable
+@code{android-intercept-control-space} to @code{nil}.
+
+@vindex android-keyboard-bell-duration
+@cindex keyboard bell, android
+  The keyboard bell installed within Android systems takes the form of
+a vibrating element that is activated for a number of milliseconds
+whenever the bell is rung.  The duration of this vibration can be
+customized through altering the variable
+@code{android-keyboard-bell-duration} to any value between @code{10}
+and @code{1000}.
 
 @node Android Fonts
 @section Font Backends and Selection under Android

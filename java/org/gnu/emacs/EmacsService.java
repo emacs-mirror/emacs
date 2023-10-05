@@ -448,12 +448,13 @@ public final class EmacsService extends Service
 
   @SuppressWarnings ("deprecation")
   public void
-  ringBell ()
+  ringBell (int duration)
   {
     Vibrator vibrator;
     VibrationEffect effect;
     VibratorManager vibratorManager;
     Object tem;
+    int amplitude;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
       {
@@ -467,13 +468,13 @@ public final class EmacsService extends Service
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
       {
+	amplitude = VibrationEffect.DEFAULT_AMPLITUDE;
 	effect
-	  = VibrationEffect.createOneShot (50,
-					   VibrationEffect.DEFAULT_AMPLITUDE);
+	  = VibrationEffect.createOneShot (duration, amplitude);
 	vibrator.vibrate (effect);
       }
     else
-      vibrator.vibrate (50);
+      vibrator.vibrate (duration);
   }
 
   public short[]
@@ -643,13 +644,18 @@ public final class EmacsService extends Service
 							  uri.getPath ());
 	      }
 
-	    Log.d (TAG, ("browseUri: browsing " + url
-			 + " --> " + uri.getPath ()
-			 + " --> " + uri));
-
 	    intent = new Intent (Intent.ACTION_VIEW, uri);
+
+	    /* Set several flags on the Intent prompting the system to
+	       permit the recipient to read and edit the URI
+	       indefinitely.  */
+
 	    intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK
-			     | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			     | Intent.FLAG_GRANT_READ_URI_PERMISSION
+			     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+	      intent.addFlags (Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 	  }
 	else
 	  {
@@ -883,8 +889,6 @@ public final class EmacsService extends Service
     builder.setInsertionMarkerLocation (x, y, yBaseline, yBottom,
 					0);
     info = builder.build ();
-
-
 
     if (DEBUG_IC)
       Log.d (TAG, ("updateCursorAnchorInfo: " + x + " " + y
@@ -1137,8 +1141,10 @@ public final class EmacsService extends Service
     if (DEBUG_IC)
       Log.d (TAG, "updateExtractedText: @" + token + ", " + text);
 
+    icBeginSynchronous ();
     window.view.imManager.updateExtractedText (window.view,
 					       token, text);
+    icEndSynchronous ();
   }
 
 

@@ -276,9 +276,9 @@ other sexp entries are enumerated in any case."
                                 :value 10)
                        (set :tag "Alarm type"
                             (list :tag "Audio"
-                                  (const audio :tag "Audio"))
+                                  (const :tag "Audio" audio))
                             (list :tag "Display"
-                                  (const display :tag "Display"))
+                                  (const :tag "Display" display))
                             (list :tag "Email"
                                   (const email)
                                   (repeat :tag "Attendees"

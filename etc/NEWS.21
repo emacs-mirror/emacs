@@ -1424,7 +1424,7 @@ digest message.
 *** The new user option 'rmail-automatic-folder-directives' specifies
 in which folder to put messages automatically.
 
-*** The new function 'rmail-redecode-body' allows to fix a message
+*** The new function 'rmail-redecode-body' allows fixing a message
 with non-ASCII characters if Emacs happens to decode it incorrectly
 due to missing or malformed "charset=" header.
 
@@ -1437,7 +1437,7 @@ use the -f option when sending mail.
 ** The Rmail command 'o' ('rmail-output-to-rmail-file') now writes the
 current message in the internal 'emacs-mule' encoding, rather than in
 the encoding taken from the variable 'buffer-file-coding-system'.
-This allows to save messages whose characters cannot be safely encoded
+This allows saving messages whose characters cannot be safely encoded
 by the buffer's coding system, and makes sure the message will be
 displayed correctly when you later visit the target Rmail file.
 
@@ -1465,7 +1465,7 @@ other than 'emacs-mule', you can customize the variable
     sorted *Index* buffer which looks like the final index.  Entries
     can be edited from that buffer.
 
-*** Label and citation key selection now allow to select several
+*** Label and citation key selection now allow selecting several
     items and reference them together (use 'm' to mark items, 'a' or
     'A' to use all marked entries).
 
@@ -1804,7 +1804,7 @@ to phrases and to highlight entire lines containing a match.
 *** The new package zone.el plays games with Emacs' display when
 Emacs is idle.
 
-*** The new package tildify.el allows to add hard spaces or other text
+*** The new package tildify.el allows adding hard spaces or other text
 fragments in accordance with the current major mode.
 
 *** The new package xml.el provides a simple but generic XML
@@ -1826,7 +1826,7 @@ provides an alternative interface to VC-dired for CVS.  It comes with
 'log-view-mode' to view RCS and SCCS logs and 'log-edit-mode' used to
 enter check-in log messages.
 
-*** The new package called 'woman' allows to browse Unix man pages
+*** The new package called 'woman' allows browsing Unix man pages
 without invoking external programs.
 
 The command `M-x woman' formats manual pages entirely in Emacs Lisp
@@ -2011,8 +2011,8 @@ recent file list can be displayed:
 - sorted by file paths, file names, ascending or descending.
 - showing paths relative to the current default-directory
 
-The 'recentf-filter-changer' menu filter function allows to
-dynamically change the menu appearance.
+The 'recentf-filter-changer' menu filter function allows
+dynamically changing the menu appearance.
 
 *** 'elide-head' provides a mechanism for eliding boilerplate header
 text.
@@ -2139,7 +2139,7 @@ new command M-x strokes-list-strokes.
 ** Hexl contains a new command 'hexl-insert-hex-string' which inserts
 a string of hexadecimal numbers read from the mini-buffer.
 
-** Hexl mode allows to insert non-ASCII characters.
+** Hexl mode allows inserting non-ASCII characters.
 
 The non-ASCII characters are encoded using the same encoding as the
 file you are visiting in Hexl mode.
@@ -2369,7 +2369,7 @@ allows the animated display of strings.
 ** The new function 'interactive-form' can be used to obtain the
 interactive form of a function.
 
-** The keyword :set-after in defcustom allows to specify dependencies
+** The keyword :set-after in defcustom allows specifying dependencies
 between custom options.  Example:
 
   (defcustom default-input-method nil
@@ -3629,7 +3629,7 @@ Each face can specify the following display attributes:
    13. Whether or not a box should be drawn around characters, its
    color, the width of the box lines, and 3D appearance.
 
-Faces are frame-local by nature because Emacs allows to define the
+Faces are frame-local by nature because Emacs allows defining the
 same named face (face names are symbols) differently for different
 frames.  Each frame has an alist of face definitions for all named
 faces.  The value of a named face in such an alist is a Lisp vector

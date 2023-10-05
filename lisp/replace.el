@@ -1667,13 +1667,15 @@ A positive number means to include that many lines both before and after."
 (defcustom list-matching-lines-face 'match
   "Face used by \\[list-matching-lines] to show the text that matches.
 If the value is nil, don't highlight the matching portions specially."
-  :type 'face
+  :type '(choice (const :tag "Don't highlight matching portions" nil)
+                 face)
   :group 'matching)
 
 (defcustom list-matching-lines-buffer-name-face 'underline
   "Face used by \\[list-matching-lines] to show the names of buffers.
 If the value is nil, don't highlight the buffer names specially."
-  :type 'face
+  :type '(choice (const :tag "Don't highlight buffer names" nil)
+                 face)
   :group 'matching)
 
 (defcustom list-matching-lines-current-line-face 'lazy-highlight

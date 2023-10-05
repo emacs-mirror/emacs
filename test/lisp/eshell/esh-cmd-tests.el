@@ -80,6 +80,12 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-match-command-output "echo ${echo $value}"
                                 "hello\n")))
 
+(ert-deftest esh-cmd-test/skip-leading-nils ()
+  "Test that Eshell skips leading nil arguments for named commands."
+  (eshell-command-result-equal "$eshell-test-value echo hello" "hello")
+  (eshell-command-result-equal
+   "$eshell-test-value $eshell-test-value echo hello" "hello"))
+
 (ert-deftest esh-cmd-test/let-rebinds-after-defer ()
   "Test that let-bound values are properly updated after `eshell-defer'.
 When inside a `let' block in an Eshell command form, we need to
@@ -96,6 +102,32 @@ bug#59469."
             "  echo \"$LOCAL\"; "
             "}")
     "value\nexternal\nvalue\n")))
+
+
+;; Background command invocation
+
+(ert-deftest esh-cmd-test/background/simple-command ()
+  "Test invocation with a simple background command."
+  (skip-unless (executable-find "echo"))
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "*echo hi > #<%s> &" bufname)
+      (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
+     (eshell-wait-for-subprocess t))
+    (should (equal (buffer-string) "hi\n"))))
+
+(ert-deftest esh-cmd-test/background/subcommand ()
+  "Test invocation with a background command containing subcommands."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "rev")))
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "*echo ${*echo hello | rev} > #<%s> &" bufname)
+      (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
+     (eshell-wait-for-subprocess t))
+    (should (equal (buffer-string) "olleh\n"))))
 
 
 ;; Lisp forms
@@ -136,6 +168,78 @@ bug#59469."
                                 "\\`\\'")
    (eshell-match-command-output "[ foo = bar ] || echo hi"
                                 "hi\n")))
+
+
+;; Pipelines
+
+(ert-deftest esh-cmd-test/pipeline-wait/head-proc ()
+  "Check that piping a non-process to a process command waits for the process."
+  (skip-unless (executable-find "cat"))
+  (with-temp-eshell
+   (eshell-match-command-output "echo hi | *cat"
+                                "hi")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/tail-proc ()
+  "Check that piping a process to a non-process command waits for the process."
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-match-command-output "*echo hi | echo bye"
+                                "bye\nhi\n")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/multi-proc ()
+  "Check that a pipeline waits for all its processes before returning."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "sh")
+                    (executable-find "rev")))
+  (with-temp-eshell
+   (eshell-match-command-output
+    "*echo hello | sh -c 'sleep 1; rev' 1>&2 | *echo goodbye"
+    "goodbye\nolleh\n")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/subcommand ()
+  "Check that piping with an asynchronous subcommand waits for the subcommand."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-match-command-output "echo ${*echo hi} | *cat"
+                                "hi")))
+
+(ert-deftest esh-cmd-test/pipeline-wait/subcommand-with-pipe ()
+  "Check that piping with an asynchronous subcommand with its own pipe works.
+This should also wait for the subcommand."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-match-command-output "echo ${*echo hi | *cat} | *cat"
+                                "hi")))
+
+(ert-deftest esh-cmd-test/reset-in-pipeline/subcommand ()
+  "Check that subcommands reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo {%s} | *cat"
+                      "echo ${%s} | *cat"
+                      "*cat $<%s> | *cat"))
+    (eshell-command-result-equal
+     (format template "echo $eshell-in-pipeline-p")
+     nil)
+    (eshell-command-result-equal
+     (format template "echo | echo $eshell-in-pipeline-p")
+     "last")
+    (eshell-command-result-equal
+     (format template "echo $eshell-in-pipeline-p | echo")
+     "first")
+    (eshell-command-result-equal
+     (format template "echo | echo $eshell-in-pipeline-p | echo")
+     "t")))
+
+(ert-deftest esh-cmd-test/reset-in-pipeline/lisp ()
+  "Check that interpolated Lisp forms reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo (%s) | *cat"
+                      "echo $(%s) | *cat"))
+    (eshell-command-result-equal
+     (format template "format \"%s\" eshell-in-pipeline-p")
+     "nil")))
 
 
 ;; Control flow statements
@@ -363,5 +467,20 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                "yes")
   (eshell-command-result-equal "unless {[ foo = bar ]} {echo no} {echo yes}"
                                "no"))
+
+
+;; Error handling
+
+(ert-deftest esh-cmd-test/throw ()
+  "Test that calling `throw' as an Eshell command unwinds everything properly."
+  (with-temp-eshell
+   (should (= (catch 'tag
+                (eshell-insert-command
+                 "echo hi; (throw 'tag 42); echo bye"))
+              42))
+   (should (eshell-match-output "\\`hi\n\\'"))
+   (should-not eshell-foreground-command)
+   ;; Make sure we can call another command after throwing.
+   (eshell-match-command-output "echo again" "\\`again\n")))
 
 ;; esh-cmd-tests.el ends here

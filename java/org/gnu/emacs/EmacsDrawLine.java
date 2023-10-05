@@ -29,7 +29,6 @@ public final class EmacsDrawLine
   perform (EmacsDrawable drawable, EmacsGC gc,
 	   int x, int y, int x2, int y2)
   {
-    Rect rect;
     Canvas canvas;
     Paint paint;
     int x0, x1, y0, y1;
@@ -48,7 +47,6 @@ public final class EmacsDrawLine
     /* And the clip rectangle.  */
 
     paint = gc.gcPaint;
-    rect = new Rect (x0, y0, x1, y1);
     canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
@@ -74,6 +72,6 @@ public final class EmacsDrawLine
 
     /* DrawLine with clip mask not implemented; it is not used by
        Emacs.  */
-    drawable.damageRect (rect);
+    drawable.damageRect (x0, y0, x1, y1);
   }
 }

@@ -152,7 +152,14 @@ return nil."
 	  nil)
       (with-current-buffer b
 	(goto-char (point-min))
-	(re-search-forward "(?GNU GLOBAL)? \\([0-9.]+\\)" nil t)
+        (re-search-forward
+         (rx (or
+              ;; global (Global) 6.6.10
+              "global (Global)"
+              (seq (opt "(") "GNU GLOBAL" (opt ")")))
+             " "
+             (group (one-or-more (any "0-9."))))
+         nil t)
 	(setq rev (match-string 1))
         (if (version< rev cedet-global-min-version)
 	    (if noerror

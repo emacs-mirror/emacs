@@ -79,6 +79,9 @@
 (eval-when-compile (require 'cl-lib))
 (require 'facemenu)
 
+(defvar Man-switches)
+(defvar manual-program)
+(defvar imenu-max-items)
 (defvar msb-menu-cond)
 (defvar gud-perldb-history)
 (defvar vc-rcs-header)
@@ -333,17 +336,7 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
 (defcustom cperl-vc-rcs-header '("($rcs) = (' $Id\ $ ' =~ /(\\d+(\\.\\d+)+)/);")
   "Special version of `vc-rcs-header' that is used in CPerl mode buffers."
   :type '(repeat string)
-     :group 'cperl)
-
-;; (defcustom cperl-clobber-mode-lists
-;;   (not
-;;    (and
-;;     (boundp 'interpreter-mode-alist)
-;;     (assoc "miniperl" interpreter-mode-alist)
-;;     (assoc "\\.\\([pP][Llm]\\|al\\)$" auto-mode-alist)))
-;;   "Whether to install us into `interpreter-' and `extension' mode lists."
-;;   :type 'boolean
-;;   :group 'cperl)
+  :group 'cperl)
 
 (defcustom cperl-info-on-command-no-prompt nil
   "Not-nil (and non-null) means not to prompt on \\[cperl-info-on-command].
@@ -746,7 +739,8 @@ voice);
 	s) Allows indentation of //x-style regular expressions;
 	t) Highlights different symbols in regular expressions according
 	   to their function; much less problems with backslashitis;
-	u) Allows to find regular expressions which contain interpolated parts.
+	u) Allows you to locate regular expressions which contain
+	   interpolated parts.
 
 5) The indentation engine was very smart, but most of tricks may be
 not needed anymore with the support for `syntax-table' property.  Has
@@ -910,17 +904,6 @@ Unless KEEP, removes the old indentation."
   (or keep
       (delete-horizontal-space))
   (indent-to column minimum))
-
-;; Probably it is too late to set these guys already, but it can help later:
-
-;;(and cperl-clobber-mode-lists
-;;(setq auto-mode-alist
-;;      (append '(("\\.\\([pP][Llm]\\|al\\)$" . perl-mode))  auto-mode-alist ))
-;;(and (boundp 'interpreter-mode-alist)
-;;     (setq interpreter-mode-alist (append interpreter-mode-alist
-;;					  '(("miniperl" . perl-mode))))))
-(eval-when-compile
-  (mapc #'require '(imenu easymenu etags timer man info)))
 
 (define-abbrev-table 'cperl-mode-electric-keywords-abbrev-table
   (mapcar (lambda (x)

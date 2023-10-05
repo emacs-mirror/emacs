@@ -369,7 +369,8 @@ if the variable `help-downcase-arguments' is non-nil."
       (setq doc (replace-regexp-in-string
                  ;; This is heuristic, but covers all common cases
                  ;; except ARG1-ARG2
-                 (concat "\\<"                   ; beginning of word
+                 (concat "([^ ]+ .*"             ; skip function name
+                         "\\<"                   ; beginning of word
                          "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
                          "\\("
                          (regexp-quote arg)
@@ -766,7 +767,7 @@ the C sources, too."
 	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
-      (insert (cond ((stringp use) (concat "; " use))
+      (insert (cond ((stringp use) (concat "; " (substitute-quotes use)))
                     (use (format-message "; use `%s' instead." use))
                     (t "."))
               "\n")

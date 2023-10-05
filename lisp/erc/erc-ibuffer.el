@@ -27,6 +27,9 @@
 ;; needs work.  Usage:  Type / C-e C-h when in Ibuffer-mode to see new
 ;; limiting commands
 
+;; This library does not contain a module, but you can `require' it
+;; after loading `erc' to make use of its functionality.
+
 ;;; Code:
 
 (require 'ibuffer)
@@ -118,11 +121,11 @@
 
 (define-ibuffer-column
  erc-members (:name "Users")
-  (if (and (eq major-mode 'erc-mode)
-	   (boundp 'erc-channel-users)
-	   (hash-table-p erc-channel-users)
-	   (> (hash-table-size erc-channel-users) 0))
-     (number-to-string (hash-table-size erc-channel-users))
+  (if-let ((table (or erc-channel-users erc-server-users))
+           ((hash-table-p table))
+           (count (hash-table-count table))
+           ((> count 0)))
+      (number-to-string count)
     ""))
 
 (define-ibuffer-column erc-away (:name "A")
@@ -177,8 +180,7 @@
 (defvar erc-ibuffer-limit-map nil
   "Prefix keymap to use for ERC related limiting.")
 (define-prefix-command 'erc-ibuffer-limit-map)
-;; FIXME: Where is `ibuffer-limit-by-erc-server' defined?
-(define-key 'erc-ibuffer-limit-map (kbd "s") 'ibuffer-limit-by-erc-server)
+(define-key 'erc-ibuffer-limit-map (kbd "s") #'ibuffer-filter-by-erc-server)
 (define-key ibuffer-mode-map (kbd "/ \C-e") 'erc-ibuffer-limit-map)
 
 (provide 'erc-ibuffer)

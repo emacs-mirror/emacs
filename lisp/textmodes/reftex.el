@@ -439,7 +439,7 @@ the label information is recompiled on next use."
         ;; When it is a symbol, remove all other symbols
         (and (symbolp entry)
              (not (memq entry list))
-             (setq list (reftex-remove-symbols-from-list list)))
+             (setq list (seq-remove #'symbolp list)))
         ;; Add to list unless already member
         (unless (member entry list)
           (setq reftex-tables-dirty t
@@ -1820,15 +1820,6 @@ When DIE is non-nil, throw an error if file not found."
       (push (pop list) rtn))
     (nreverse rtn)))
 
-(defun reftex-remove-symbols-from-list (list)
-  ;; Remove all symbols from list
-  (let (rtn)
-    (while list
-      (unless (symbolp (car list))
-        (push (car list) rtn))
-      (setq list (cdr list)))
-    (nreverse rtn)))
-
 (defun reftex-uniquify (list &optional sort)
   ;; Return a list of all strings in LIST, but each only once, keeping order
   ;; unless SORT is set (faster!).
@@ -2335,6 +2326,10 @@ Your bug report will be posted to the AUCTeX bug reporting list.
 (defun reftex-use-fonts ()
   (declare (obsolete "use variable `reftex-use-fonts' instead." "30.1"))
   reftex-use-fonts)
+
+(defun reftex-remove-symbols-from-list (list)
+  (declare (obsolete seq-remove "30.1"))
+  (seq-remove #'symbolp list))
 
 (provide 'reftex)
 

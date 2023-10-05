@@ -100,14 +100,14 @@ END {
          vec[codepoint] = vec[codepoint] "\n\"\\N{U+" trigger_codepoints[trig] "}\\N{U+FE0F}\""
      }
 
-     print "(dolist (elt `("
+     print "(dolist (elt (eval-when-compile `("
 
      for (elt in ch)
     {
-        print "(#x" elt " .\n,(eval-when-compile (regexp-opt\n'(\n" vec[elt]
-        print "\"\\N{U+" elt "}\\N{U+FE0E}\"\n\"\\N{U+" elt "}\\N{U+FE0F}\"\n))))"
+        print "(#x" elt " .\n,(regexp-opt\n'(\n" vec[elt]
+        print "\"\\N{U+" elt "}\\N{U+FE0E}\"\n\"\\N{U+" elt "}\\N{U+FE0F}\"\n)))"
     }
-     print "))"
+     print ")))"
      print "  (set-char-table-range composition-function-table"
      print "                        (car elt)"
      print "                        (nconc (char-table-range composition-function-table (car elt))"

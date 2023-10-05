@@ -114,7 +114,6 @@ public final class EmacsDrawRectangle
 	maskBitmap.recycle ();
       }
 
-    drawable.damageRect (new Rect (x, y, x + width + 1,
-				   y + height + 1));
+    drawable.damageRect (x, y, x + width + 1, y + height + 1);
   }
 }

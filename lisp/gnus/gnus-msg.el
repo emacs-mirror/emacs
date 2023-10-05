@@ -1104,12 +1104,12 @@ If VERY-WIDE, make a very wide reply."
 		(setq headers (concat headers (buffer-string)))))))
 	(set-buffer (gnus-copy-article-buffer))
 	(gnus-msg-treat-broken-reply-to gnus-msg-force-broken-reply-to)
-	(save-restriction
-	  (message-narrow-to-head)
-	  (when very-wide
-	    (erase-buffer)
-	    (insert headers))
-	  (goto-char (point-max)))
+	(when very-wide
+          (save-restriction
+	    (message-narrow-to-head)
+	    (delete-region (point-min) (point-max))
+	    (insert headers)
+	    (goto-char (point-max))))
 	(mml-quote-region (point) (point-max))
 	(message-reply nil wide)
 	(when yank

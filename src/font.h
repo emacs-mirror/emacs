@@ -303,10 +303,16 @@ struct font
      SPACE glyph, the value is 0.  */
   int space_width;
 
-  /* Average width of glyphs in the font.  If the font itself doesn't
-     have that information, but has glyphs of ASCII characters, the
-     value is the average width of those glyphs.  Otherwise, the value
-     is 0.  */
+  /* Average width of glyphs in the font.  Should be the average width
+     of the glyphs of ASCII characters.  The value for the default
+     face's font is used to determine the canonical character width of
+     the frame (see FRAME_COLUMN_WIDTH).  For fonts that are not
+     fixed-pitch, the font backend should actually calculate the value
+     from the glyphs of ASCII characters in the range 32..126
+     inclusively; relying on the average-width attribute recorded in
+     the font is unreliable in this case, especially in fonts that
+     support CJK scripts, where many characters are wide.  Value can
+     be zero if the font doesn't have glyphs for ASCII characters.  */
   int average_width;
 
   /* Ascent and descent of the font (in pixels).  */
@@ -885,8 +891,8 @@ extern void font_parse_family_registry (Lisp_Object family,
                                         Lisp_Object spec);
 
 extern int font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font);
-extern ptrdiff_t font_unparse_xlfd (Lisp_Object font, int pixel_size,
-				    char *name, int bytes);
+extern char *font_dynamic_unparse_xlfd (Lisp_Object, int);
+extern ptrdiff_t font_unparse_xlfd (Lisp_Object, int, char *, int);
 extern void register_font_driver (struct font_driver const *, struct frame *);
 extern void free_font_driver_list (struct frame *f);
 #ifdef ENABLE_CHECKING

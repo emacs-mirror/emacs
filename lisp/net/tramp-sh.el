@@ -540,6 +540,7 @@ shell from reading its init file."
 (defconst tramp-actions-before-shell
   '((tramp-login-prompt-regexp tramp-action-login)
     (tramp-password-prompt-regexp tramp-action-password)
+    (tramp-otp-password-prompt-regexp tramp-action-otp-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (shell-prompt-pattern tramp-action-succeed)
     (tramp-shell-prompt-pattern tramp-action-succeed)
@@ -563,6 +564,7 @@ corresponding PATTERN matches, the ACTION function is called.")
 
 (defconst tramp-actions-copy-out-of-band
   '((tramp-password-prompt-regexp tramp-action-password)
+    (tramp-otp-password-prompt-regexp tramp-action-otp-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
     (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
@@ -634,7 +636,10 @@ characters need to be doubled.")
 
 (defconst tramp-perl-file-name-all-completions
   "%p -e '
-($dir = $ARGV[0]) =~ s#/+$##;
+$dir = $ARGV[0];
+if ($dir ne \"/\") {
+  $dir =~ s#/+$##;
+}
 opendir(d, $dir) || die(\"$dir: $!\\nfail\\n\");
 @files = readdir(d); closedir(d);
 print \"(\\n\";
@@ -737,6 +742,13 @@ characters need to be doubled.")
    tramp-stat-quoted-marker)
   "Shell function to produce output suitable for use with `file-attributes'
 on the remote file system, including SELinux context.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
+(defconst tramp-ls-file-attributes
+  "%s -ild %s \"$1\" || return\n%s -lnd%s %s \"$1\""
+  "Shell function to produce output suitable for use with `file-attributes'
+on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
@@ -1279,6 +1291,9 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 (defconst tramp-sunos-unames (rx (| "SunOS 5.10" "SunOS 5.11"))
   "Regexp to determine remote SunOS.")
 
+(defconst tramp-bsd-unames (rx (| "BSD" "DragonFly" "Darwin"))
+  "Regexp to determine remote *BSD and macOS.")
+
 (defun tramp-sh--quoting-style-options (vec)
   "Quoting style options to be used for VEC."
   (or
@@ -1292,43 +1307,25 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 
 (defun tramp-do-file-attributes-with-ls (vec localname)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
-  (let (symlinkp dirp
+  (tramp-message vec 5 "file attributes with ls: %s" localname)
+  (let ((tramp-ls-file-attributes
+	 (format tramp-ls-file-attributes
+		 (tramp-get-ls-command vec)
+		 ;; On systems which have no quoting style, file
+		 ;; names with special characters could fail.
+		 (tramp-sh--quoting-style-options vec)
+		 (tramp-get-ls-command vec)
+		 (if (tramp-remote-selinux-p vec) "Z" "")
+		 (tramp-sh--quoting-style-options vec)))
+	symlinkp dirp
 	res-inode res-filemodes res-numlinks
 	res-uid-string res-gid-string res-uid-integer res-gid-integer
 	res-size res-symlink-target res-context)
-    (tramp-message vec 5 "file attributes with ls: %s" localname)
-    ;; We cannot send both commands combined, it could exceed NAME_MAX
-    ;; or PATH_MAX.  Happened on macOS, for example.
+    (tramp-maybe-send-script
+     vec tramp-ls-file-attributes "tramp_ls_file_attributes")
     (when (tramp-send-command-and-check
-           vec
-           (format "cd %s && (%s %s || %s -h %s)"
-		   (tramp-shell-quote-argument
-		    (tramp-run-real-handler
-		     #'file-name-directory (list localname)))
-		   (tramp-get-file-exists-command vec)
-		   (if (string-empty-p (file-name-nondirectory localname))
-		       "."
-                     (tramp-shell-quote-argument
-		      (file-name-nondirectory localname)))
-                   (tramp-get-test-command vec)
-		   (if (string-empty-p (file-name-nondirectory localname))
-		       "."
-                     (tramp-shell-quote-argument
-		      (file-name-nondirectory localname)))))
-      (tramp-send-command
-       vec
-       (format "%s -ild %s %s; %s -lnd%s %s %s"
-               (tramp-get-ls-command vec)
-               ;; On systems which have no quoting style, file names
-               ;; with special characters could fail.
-               (tramp-sh--quoting-style-options vec)
-               (tramp-shell-quote-argument localname)
-               (tramp-get-ls-command vec)
-	       (if (tramp-remote-selinux-p vec) "Z" "")
-               ;; On systems which have no quoting style, file names
-               ;; with special characters could fail.
-               (tramp-sh--quoting-style-options vec)
-               (tramp-shell-quote-argument localname)))
+	   vec (format "tramp_ls_file_attributes %s"
+		       (tramp-shell-quote-argument localname)))
       ;; Parse `ls -l' output ...
       (with-current-buffer (tramp-get-buffer vec)
         (when (> (buffer-size) 0)
@@ -1795,7 +1792,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		 ;; On BSD-derived systems files always inherit the
                  ;; parent directory's group, so skip the group-gid
                  ;; test.
-                 (tramp-check-remote-uname v (rx (| "BSD" "DragonFly" "Darwin")))
+                 (tramp-check-remote-uname v tramp-bsd-unames)
 		 (= (file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 
@@ -2640,21 +2637,23 @@ The method used must be an out-of-band method."
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (unless switches (setq switches ""))
-  ;; Check, whether directory is accessible.
-  (unless wildcard
-    (access-file filename "Reading directory"))
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (if (and (featurep 'ls-lisp)
-	     (not ls-lisp-use-insert-directory-program))
-	(tramp-handle-insert-directory
-	 filename switches wildcard full-directory-p)
-      (when (stringp switches)
-        (setq switches (split-string switches)))
-      (setq switches
-	    (append switches (split-string (tramp-sh--quoting-style-options v))))
-      (unless (tramp-get-ls-command-with v "--dired")
-	(setq switches (delete "-N" (delete "--dired" switches))))
+  (if (and (featurep 'ls-lisp)
+	   (not ls-lisp-use-insert-directory-program))
+      (tramp-handle-insert-directory
+       filename switches wildcard full-directory-p)
+    (unless switches (setq switches ""))
+    ;; Check, whether directory is accessible.
+    (unless wildcard
+      (access-file filename "Reading directory"))
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
+      (let ((dired (tramp-get-ls-command-with v "--dired")))
+	(when (stringp switches)
+          (setq switches (split-string switches)))
+	(setq switches
+	      (append switches (split-string (tramp-sh--quoting-style-options v))
+		      (when dired `(,dired))))
+	(unless dired
+	  (setq switches (delete "-N" (delete "--dired" switches)))))
       (when wildcard
         (setq wildcard (tramp-run-real-handler
 			#'file-name-nondirectory (list localname)))
@@ -2662,7 +2661,8 @@ The method used must be an out-of-band method."
 			 #'file-name-directory (list localname))))
       (unless (or full-directory-p (member "-d" switches))
         (setq switches (append switches '("-d"))))
-      (setq switches (mapconcat #'tramp-shell-quote-argument switches " "))
+      (setq switches (delete-dups switches)
+	    switches (mapconcat #'tramp-shell-quote-argument switches " "))
       (when wildcard
 	(setq switches (concat switches " " wildcard)))
       (tramp-message
@@ -2831,7 +2831,8 @@ the result will be a local, non-Tramp, file name."
     (with-parsed-tramp-file-name name nil
       ;; If connection is not established yet, run the real handler.
       (if (not (tramp-connectable-p v))
-	  (tramp-run-real-handler #'expand-file-name (list name))
+	  (tramp-drop-volume-letter
+	   (tramp-run-real-handler #'expand-file-name (list name)))
 	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	  (setq localname (concat "~/" localname)))
 	;; Tilde expansion if necessary.  This needs a shell which
@@ -4171,6 +4172,18 @@ This function expects to be in the right *tramp* buffer."
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
 ;; check it, and use a temporary file in case of.  See Bug#33781.
+
+;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
+;; on various platforms:
+;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
+;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
+;;   - 5 KiB on Solaris.
+;;   - 8 KiB on HP-UX, Plan9.
+;;   - 10 KiB on IRIX.
+;;   - 32 KiB on AIX, Minix.
+;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
+;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
+;; See Bug#65324.
 (defun tramp-set-remote-path (vec)
   "Set the remote environment PATH to existing directories.
 I.e., for each directory in `tramp-remote-path', it is tested
@@ -4424,7 +4437,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "A function to be called with one argument, VEC.
 It should return a string which is used to check, whether the
 configuration of the remote host has been changed (which would
-require to flush the cache data).  This string is kept as
+require flushing the cache data).  This string is kept as
 connection property \"config-check-data\".
 This variable is intended as connection-local variable.")
 
@@ -4579,7 +4592,7 @@ process to set up.  VEC specifies the connection."
       (tramp-send-command vec "set +H" t))
 
     ;; Disable tab expansion.
-    (if (string-match-p (rx (| "BSD" "DragonFly" "Darwin")) uname)
+    (if (string-match-p tramp-bsd-unames uname)
 	(tramp-send-command vec "stty tabs" t)
       (tramp-send-command vec "stty tab0" t))
 
@@ -5687,7 +5700,10 @@ Nonexistent directories are removed from spec."
     (tramp-message vec 5 "Finding a suitable `ls' command")
     (or
      (catch 'ls-found
-       (dolist (cmd '("ls" "gnuls" "gls"))
+       (dolist (cmd
+		;; Prefer GNU ls on *BSD and macOS.
+                (if (tramp-check-remote-uname vec tramp-bsd-unames)
+		    '( "gls" "ls" "gnuls") '("ls" "gnuls" "gls")))
 	 (let ((dl (tramp-get-remote-path vec))
 	       result)
 	   (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))

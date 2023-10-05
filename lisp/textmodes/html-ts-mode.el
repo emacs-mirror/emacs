@@ -94,10 +94,6 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (treesit-parser-create 'html)
 
-  ;; Comments.
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("comment" "text")))
-
   ;; Indent.
   (setq-local treesit-simple-indent-rules html-ts-mode--indent-rules)
 
@@ -106,13 +102,14 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (setq-local treesit-defun-name-function #'html-ts-mode--defun-name)
 
-  (setq-local treesit-sentence-type-regexp "tag")
-
-  (setq-local treesit-sexp-type-regexp
-              (regexp-opt '("element"
-                            "text"
-                            "attribute"
-                            "value")))
+  (setq-local treesit-thing-settings
+              `((html
+                 (sexp ,(regexp-opt '("element"
+                                      "text"
+                                      "attribute"
+                                      "value")))
+                 (sentence "tag")
+                 (text ,(regexp-opt '("comment" "text"))))))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings html-ts-mode--font-lock-settings)

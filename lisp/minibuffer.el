@@ -153,19 +153,6 @@ The metadata of a completion table should be constant between two boundaries."
 (defun completion-metadata-get (metadata prop)
   (cdr (assq prop metadata)))
 
-(defun completion--some (fun xs)
-  "Apply FUN to each element of XS in turn.
-Return the first non-nil returned value.
-Like CL's `some'."
-  (let ((firsterror nil)
-        res)
-    (while (and (not res) xs)
-      (condition-case-unless-debug err
-          (setq res (funcall fun (pop xs)))
-        (error (unless firsterror (setq firsterror err)) nil)))
-    (or res
-        (if firsterror (signal (car firsterror) (cdr firsterror))))))
-
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
 STRING, COLLECTION and PREDICATE are used as in `try-completion'.
@@ -426,9 +413,9 @@ obeys predicates."
   ;; is returned by TABLE2 (because TABLE1 returned an empty list).
   ;; Same potential problem if any of the tables use quoting.
   (lambda (string pred action)
-    (completion--some (lambda (table)
-                        (complete-with-action action table string pred))
-                      tables)))
+    (seq-some (lambda (table)
+                (complete-with-action action table string pred))
+              tables)))
 
 (defun completion-table-merge (&rest tables)
   "Create a completion table that collects completions from all TABLES."
@@ -451,9 +438,9 @@ obeys predicates."
                                 (all-completions string table pred))
                               tables)))
      (t
-      (completion--some (lambda (table)
-                          (complete-with-action action table string pred))
-                        tables)))))
+      (seq-some (lambda (table)
+                  (complete-with-action action table string pred))
+                tables)))))
 
 (defun completion-table-with-quoting (table unquote requote)
   ;; A difficult part of completion-with-quoting is to map positions in the
@@ -1216,7 +1203,7 @@ overrides the default specified in `completion-category-defaults'."
               (cl-assert (<= point (length string)))
               (pop new))))
          (result-and-style
-          (completion--some
+          (seq-some
            (lambda (style)
              (let ((probe (funcall
                            (or (nth n (assq style completion-styles-alist))
@@ -4038,7 +4025,9 @@ the same set of elements."
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (and (stringp prefix)
                                       (eq t (try-completion prefix comps))))))
-                (unless (or (eq elem 'prefix)
+                ;; if the common prefix is unique, it also is a common
+                ;; suffix, so we should add it for `prefix' elements
+                (unless (or (and (eq elem 'prefix) (not unique))
                             (equal prefix ""))
                   (push prefix res))
                 ;; If there's only one completion, `elem' is not useful
@@ -4673,6 +4662,179 @@ The latter is implemented in `touch-screen.el'."
 
 (add-hook 'minibuffer-setup-hook #'minibuffer-setup-on-screen-keyboard)
 (add-hook 'minibuffer-exit-hook #'minibuffer-exit-on-screen-keyboard)
+
+(defvar minibuffer-regexp-mode)
+
+(defun minibuffer--regexp-propertize ()
+  "In current minibuffer propertize parens and slashes in regexps.
+Put punctuation `syntax-table' property on selected paren and
+backslash characters in current buffer to make `show-paren-mode'
+and `blink-matching-paren' more user-friendly."
+  (let (in-char-alt-p)
+    (save-excursion
+      (with-silent-modifications
+        (remove-text-properties (point-min) (point-max) '(syntax-table nil))
+        (goto-char (point-min))
+        (while (re-search-forward
+                (rx (| (group "\\\\")
+                       (: "\\" (| (group (in "(){}"))
+                                  (group "[")
+                                  (group "]")))
+                       (group "[:" (+ (in "A-Za-z")) ":]")
+                       (group "[")
+                       (group "]")
+                       (group (in "(){}"))))
+	        (point-max) 'noerror)
+	  (cond
+           ((match-beginning 1))                ; \\, skip
+           ((match-beginning 2)			; \( \) \{ \}
+            (if in-char-alt-p
+	        ;; Within character alternative, set symbol syntax for
+	        ;; paren only.
+                (put-text-property (1- (point)) (point) 'syntax-table '(3))
+	      ;; Not within character alternative, set symbol syntax for
+	      ;; backslash only.
+              (put-text-property (- (point) 2) (1- (point)) 'syntax-table '(3))))
+	   ((match-beginning 3)			; \[
+            (if in-char-alt-p
+                (progn
+	          ;; Set symbol syntax for backslash.
+                  (put-text-property (- (point) 2) (1- (point)) 'syntax-table '(3))
+                  ;; Re-read bracket we might be before a character class.
+                  (backward-char))
+	      ;; Set symbol syntax for bracket.
+	      (put-text-property (1- (point)) (point) 'syntax-table '(3))))
+	   ((match-beginning 4)			; \]
+            (if in-char-alt-p
+                (progn
+                  ;; Within character alternative, set symbol syntax for
+	          ;; backslash, exit alternative.
+                  (put-text-property (- (point) 2) (1- (point)) 'syntax-table '(3))
+	          (setq in-char-alt-p nil))
+	      ;; Not within character alternative, set symbol syntax for
+	      ;; bracket.
+	      (put-text-property (1- (point)) (point) 'syntax-table '(3))))
+	   ((match-beginning 5))         ; POSIX character class, skip
+	   ((match-beginning 6)          ; [
+	    (if in-char-alt-p
+	        ;; Within character alternative, set symbol syntax.
+	        (put-text-property (1- (point)) (point) 'syntax-table '(3))
+	      ;; Start new character alternative.
+	      (setq in-char-alt-p t)
+              ;; Looking for immediately following non-closing ].
+	      (when (looking-at "\\^?\\]")
+	        ;; Non-special right bracket, set symbol syntax.
+	        (goto-char (match-end 0))
+	        (put-text-property (1- (point)) (point) 'syntax-table '(3)))))
+	   ((match-beginning 7)			; ]
+            (if in-char-alt-p
+                (setq in-char-alt-p nil)
+              ;; The only warning we can emit before RET.
+	      (message "Not in character alternative")))
+	   ((match-beginning 8)                 ; (){}
+	    ;; Plain parenthesis or brace, set symbol syntax.
+	    (put-text-property (1- (point)) (point) 'syntax-table '(3)))))))))
+
+;; The following variable is set by 'minibuffer--regexp-before-change'.
+;; If non-nil, either 'minibuffer--regexp-post-self-insert' or
+;; 'minibuffer--regexp-after-change', whichever comes next, will
+;; propertize the minibuffer via 'minibuffer--regexp-propertize' and
+;; reset this variable to nil, avoiding to propertize the buffer twice.
+(defvar-local minibuffer--regexp-primed nil
+  "Non-nil when minibuffer contents change.")
+
+(defun minibuffer--regexp-before-change (_a _b)
+  "`minibuffer-regexp-mode' function on `before-change-functions'."
+  (setq minibuffer--regexp-primed t))
+
+(defun minibuffer--regexp-after-change (_a _b _c)
+  "`minibuffer-regexp-mode' function on `after-change-functions'."
+  (when minibuffer--regexp-primed
+    (setq minibuffer--regexp-primed nil)
+    (minibuffer--regexp-propertize)))
+
+(defun minibuffer--regexp-post-self-insert ()
+  "`minibuffer-regexp-mode' function on `post-self-insert-hook'."
+  (when minibuffer--regexp-primed
+    (setq minibuffer--regexp-primed nil)
+    (minibuffer--regexp-propertize)))
+
+(defvar minibuffer--regexp-prompt-regexp
+  "\\(?:Posix search\\|RE search\\|Search for regexp\\|Query replace regexp\\)"
+  "Regular expression compiled from `minibuffer-regexp-prompts'.")
+
+(defcustom minibuffer-regexp-prompts
+  '("Posix search" "RE search" "Search for regexp" "Query replace regexp")
+  "List of regular expressions that trigger `minibuffer-regexp-mode' features.
+The features of `minibuffer-regexp-mode' will be activated in a minibuffer
+interaction if and only if a prompt matching some regexp in this list
+appears at the beginning of the minibuffer.
+
+Setting this variable directly with `setq' has no effect; instead,
+either use \\[customize-option] interactively or use `setopt'."
+  :type '(repeat (string :tag "Prompt"))
+  :set (lambda (sym val)
+	 (set-default sym val)
+         (when val
+           (setq minibuffer--regexp-prompt-regexp
+                 (concat "\\(?:" (mapconcat 'regexp-quote val "\\|") "\\)"))))
+  :version "30.1")
+
+(defun minibuffer--regexp-setup ()
+  "Function to activate`minibuffer-regexp-mode' in current buffer.
+Run by `minibuffer-setup-hook'."
+  (if (and minibuffer-regexp-mode
+           (save-excursion
+             (goto-char (point-min))
+             (looking-at minibuffer--regexp-prompt-regexp)))
+      (progn
+        (setq-local parse-sexp-lookup-properties t)
+        (add-hook 'before-change-functions #'minibuffer--regexp-before-change nil t)
+        (add-hook 'after-change-functions #'minibuffer--regexp-after-change nil t)
+        (add-hook 'post-self-insert-hook #'minibuffer--regexp-post-self-insert nil t))
+    ;; Make sure.
+    (minibuffer--regexp-exit)))
+
+(defun minibuffer--regexp-exit ()
+  "Function to deactivate `minibuffer-regexp-mode' in current buffer.
+Run by `minibuffer-exit-hook'."
+  (with-silent-modifications
+    (remove-text-properties (point-min) (point-max) '(syntax-table nil)))
+  (setq-local parse-sexp-lookup-properties nil)
+  (remove-hook 'before-change-functions #'minibuffer--regexp-before-change t)
+  (remove-hook 'after-change-functions #'minibuffer--regexp-after-change t)
+  (remove-hook 'post-self-insert-hook #'minibuffer--regexp-post-self-insert t))
+
+(define-minor-mode minibuffer-regexp-mode
+  "Minor mode for editing regular expressions in the minibuffer.
+Highlight parens via `show-paren-mode' and `blink-matching-paren'
+in a user-friendly way, avoid reporting alleged paren mismatches
+and make sexp navigation more intuitive.
+
+The list of prompts activating this mode in specific minibuffer
+interactions is customizable via `minibuffer-regexp-prompts'."
+  :global t
+  :initialize 'custom-initialize-delay
+  :init-value t
+  (if minibuffer-regexp-mode
+      (progn
+        (add-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
+        (add-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit))
+    ;; Clean up - why is Vminibuffer_list not available in Lisp?
+    (dolist (buffer (buffer-list))
+      (when (and (minibufferp)
+                 parse-sexp-lookup-properties
+                 (with-current-buffer buffer
+                   (save-excursion
+                     (goto-char (point-min))
+                     (looking-at minibuffer--regexp-prompt-regexp))))
+        (with-current-buffer buffer
+          (with-silent-modifications
+            (remove-text-properties
+             (point-min) (point-max) '(syntax-table nil)))
+          (setq-local parse-sexp-lookup-properties t))))
+    (remove-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
+    (remove-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit)))
 
 (provide 'minibuffer)
 

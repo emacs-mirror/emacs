@@ -1149,40 +1149,6 @@ If this variable is non-@code{nil} new network connections are never
 opened by the URL library.
 @end defvar
 
-@c @node Broken hostname resolution
-@c @subsection Broken Hostname Resolution
-
-@c @cindex hostname resolver
-@c @cindex resolver, hostname
-@c Some C libraries do not include the hostname resolver routines in
-@c their static libraries.  If Emacs was linked statically, and was not
-@c linked with the resolver libraries, it will not be able to get to any
-@c machines off the local network.  This is characterized by being able
-@c to reach someplace with a raw ip number, but not its hostname
-@c (@url{https://129.79.254.191/} works, but
-@c @url{https://www.cs.indiana.edu/} doesn't).  This used to happen on
-@c SunOS4 and Ultrix, but is now probably now rare.  If Emacs can't be
-@c rebuilt linked against the resolver library, it can use the external
-@c @command{nslookup} program instead.
-
-@c @defopt url-gateway-broken-resolution
-@c @cindex @code{nslookup} program
-@c @cindex program, @code{nslookup}
-@c If non-@code{nil}, this variable says to use the program specified by
-@c @code{url-gateway-nslookup-program} program to do hostname resolution.
-@c @end defopt
-
-@c @defopt url-gateway-nslookup-program
-@c The name of the program to do hostname lookup if Emacs can't do it
-@c directly.  This program should expect a single argument on the command
-@c line---the hostname to resolve---and should produce output similar to
-@c the standard Unix @command{nslookup} program:
-@c @example
-@c Name: www.cs.indiana.edu
-@c Address: 129.79.254.191
-@c @end example
-@c @end defopt
-
 @node History
 @section History
 

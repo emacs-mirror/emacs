@@ -209,7 +209,7 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 
      Value is normally an array of three longs: the file descriptor,
      the start offset of the data, and its length; length may be
-     AssetFileDescriptor.UNKOWN_LENGTH, meaning that the data extends
+     AssetFileDescriptor.UNKNOWN_LENGTH, meaning that the data extends
      from that offset to the end of the file.
 
      Do not use this function to open text targets; use `getClipboard'

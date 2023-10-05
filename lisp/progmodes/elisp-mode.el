@@ -461,14 +461,14 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
               (lambda (expander form &rest args)
                 (condition-case err
                     (apply expander form args)
-                  (error (message "Ignoring macroexpansion error: %S" err)
-                         form))))
+                  ((debug error)
+                   (message "Ignoring macroexpansion error: %S" err) form))))
              (sexp
               (unwind-protect
                   (let ((warning-minimum-log-level :emergency))
                     (advice-add 'macroexpand-1 :around macroexpand-advice)
                     (macroexpand-all sexp elisp--local-macroenv))
-                (advice-remove 'macroexpand macroexpand-advice)))
+                (advice-remove 'macroexpand-1 macroexpand-advice)))
              (vars (elisp--local-variables-1 nil sexp)))
         (delq nil
               (mapcar (lambda (var)

@@ -923,7 +923,7 @@ With prefix argument, only self insert."
   "Skip to beginning of tag or matching opening tag if present.
 With prefix argument ARG, repeat this ARG times.
 Return non-nil if we skipped over matched tags."
-  (interactive "p")
+  (interactive "^p")
   ;; FIXME: use sgml-get-context or something similar.
   (let ((return t))
     (while (>= arg 1)
@@ -1036,7 +1036,7 @@ an opening markup tag automatically updates the closing tag."
   "Skip to end of tag or matching closing tag if present.
 With prefix argument ARG, repeat this ARG times.
 Return t if after a closing tag."
-  (interactive "p")
+  (interactive "^p")
   ;; FIXME: Use sgml-get-context or something similar.
   ;; It currently might jump to an unrelated </P> if the <P>
   ;; we're skipping has no matching </P>.

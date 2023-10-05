@@ -252,12 +252,20 @@ font_build_object (int vectorsize, Lisp_Object type,
 {
   int len;
   char name[256];
-  Lisp_Object font_object = font_make_object (vectorsize, entity, pixelsize);
+  char *xlfd_name;
+  Lisp_Object font_object;
+
+  font_object = font_make_object (vectorsize, entity, pixelsize);
 
   ASET (font_object, FONT_TYPE_INDEX, type);
-  len = font_unparse_xlfd (entity, pixelsize, name, sizeof name);
-  if (len > 0)
-    ASET (font_object, FONT_NAME_INDEX, make_string (name, len));
+  xlfd_name = font_dynamic_unparse_xlfd (entity, pixelsize);
+
+  if (xlfd_name)
+    {
+      ASET (font_object, FONT_NAME_INDEX, build_string (xlfd_name));
+      xfree (xlfd_name);
+    }
+
   len = font_unparse_fcname (entity, pixelsize, name, sizeof name);
   if (len > 0)
     ASET (font_object, FONT_FULLNAME_INDEX, make_string (name, len));
@@ -1067,8 +1075,8 @@ font_parse_xlfd_1 (char *name, ptrdiff_t len, Lisp_Object font, int segments)
   Lisp_Object val;
   char *p;
 
-  if (len > 255 || !len)
-    /* Maximum XLFD name length is 255. */
+  /* Reject empty XLFDs.  */
+  if (!len)
     return -1;
 
   /* Accept "*-.." as a fully specified XLFD. */
@@ -1276,6 +1284,167 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
     return -1;
 }
 
+/* Return the XLFD name of FONT as a NULL terminated string, or NULL
+   if the font is invalid.  If FONT is a scalable font, return
+   PIXEL_SIZE as the XLFD's pixel size in lieu of its
+   FONT_SIZE_INDEX.  */
+
+char *
+font_dynamic_unparse_xlfd (Lisp_Object font, int pixel_size)
+{
+  char *p;
+  const char *f[XLFD_REGISTRY_INDEX + 1];
+  Lisp_Object val;
+  int i, j;
+  char *name;
+  USE_SAFE_ALLOCA;
+
+  eassert (FONTP (font));
+
+  for (i = FONT_FOUNDRY_INDEX, j = XLFD_FOUNDRY_INDEX; i <= FONT_REGISTRY_INDEX;
+       i++, j++)
+    {
+      if (i == FONT_ADSTYLE_INDEX)
+	j = XLFD_ADSTYLE_INDEX;
+      else if (i == FONT_REGISTRY_INDEX)
+	j = XLFD_REGISTRY_INDEX;
+      val = AREF (font, i);
+      if (NILP (val))
+	{
+	  if (j == XLFD_REGISTRY_INDEX)
+	    f[j] = "*-*";
+	  else
+	    f[j] = "*";
+	}
+      else
+	{
+	  if (SYMBOLP (val))
+	    val = SYMBOL_NAME (val);
+	  if (j == XLFD_REGISTRY_INDEX
+	      && ! strchr (SSDATA (val), '-'))
+	    {
+	      ptrdiff_t alloc = SBYTES (val) + 4;
+
+	      /* Change "jisx0208*" and "jisx0208" to "jisx0208*-*".  */
+	      f[j] = p = SAFE_ALLOCA (alloc);
+	      sprintf (p, "%s%s-*", SDATA (val),
+		       &"*"[SDATA (val)[SBYTES (val) - 1] == '*']);
+	    }
+	  else
+	    f[j] = SSDATA (val);
+	}
+    }
+
+  for (i = FONT_WEIGHT_INDEX, j = XLFD_WEIGHT_INDEX; i <= FONT_WIDTH_INDEX;
+       i++, j++)
+    {
+      val = font_style_symbolic (font, i, 0);
+      if (NILP (val))
+	f[j] = "*";
+      else
+	{
+	  int c, k, l;
+	  ptrdiff_t alloc;
+
+	  val = SYMBOL_NAME (val);
+	  alloc = SBYTES (val) + 1;
+	  f[j] = p = SAFE_ALLOCA (alloc);
+	  /* Copy the name while excluding '-', '?', ',', and '"'.  */
+	  for (k = l = 0; k < alloc; k++)
+	    {
+	      c = SREF (val, k);
+	      if (c != '-' && c != '?' && c != ',' && c != '"')
+		p[l++] = c;
+	    }
+	}
+    }
+
+  val = AREF (font, FONT_SIZE_INDEX);
+  eassert (NUMBERP (val) || NILP (val));
+  char font_size_index_buf[sizeof "-*"
+			   + max (INT_STRLEN_BOUND (EMACS_INT),
+				  1 + DBL_MAX_10_EXP + 1)];
+  if (INTEGERP (val))
+    {
+      intmax_t v;
+      if (! (integer_to_intmax (val, &v) && 0 < v))
+	v = pixel_size;
+      if (v > 0)
+	{
+	  f[XLFD_PIXEL_INDEX] = p = font_size_index_buf;
+	  sprintf (p, "%"PRIdMAX"-*", v);
+	}
+      else
+	f[XLFD_PIXEL_INDEX] = "*-*";
+    }
+  else if (FLOATP (val))
+    {
+      double v = XFLOAT_DATA (val) * 10;
+      f[XLFD_PIXEL_INDEX] = p = font_size_index_buf;
+      sprintf (p, "*-%.0f", v);
+    }
+  else
+    f[XLFD_PIXEL_INDEX] = "*-*";
+
+  char dpi_index_buf[sizeof "-" + 2 * INT_STRLEN_BOUND (EMACS_INT)];
+  if (FIXNUMP (AREF (font, FONT_DPI_INDEX)))
+    {
+      EMACS_INT v = XFIXNUM (AREF (font, FONT_DPI_INDEX));
+      f[XLFD_RESX_INDEX] = p = dpi_index_buf;
+      sprintf (p, "%"pI"d-%"pI"d", v, v);
+    }
+  else
+    f[XLFD_RESX_INDEX] = "*-*";
+
+  if (FIXNUMP (AREF (font, FONT_SPACING_INDEX)))
+    {
+      EMACS_INT spacing = XFIXNUM (AREF (font, FONT_SPACING_INDEX));
+
+      f[XLFD_SPACING_INDEX] = (spacing <= FONT_SPACING_PROPORTIONAL ? "p"
+			       : spacing <= FONT_SPACING_DUAL ? "d"
+			       : spacing <= FONT_SPACING_MONO ? "m"
+			       : "c");
+    }
+  else
+    f[XLFD_SPACING_INDEX] = "*";
+
+  char avgwidth_index_buf[INT_BUFSIZE_BOUND (EMACS_INT)];
+  if (FIXNUMP (AREF (font,  FONT_AVGWIDTH_INDEX)))
+    {
+      f[XLFD_AVGWIDTH_INDEX] = p = avgwidth_index_buf;
+      sprintf (p, "%"pI"d", XFIXNUM (AREF (font, FONT_AVGWIDTH_INDEX)));
+    }
+  else
+    f[XLFD_AVGWIDTH_INDEX] = "*";
+
+  /* Allocate a buffer large enough to accommodate the entire
+     XLFD.  */
+
+  name = xmalloc (strlen (f[XLFD_FOUNDRY_INDEX])
+		  + strlen (f[XLFD_FAMILY_INDEX])
+		  + strlen (f[XLFD_WEIGHT_INDEX])
+		  + strlen (f[XLFD_SLANT_INDEX])
+		  + strlen (f[XLFD_SWIDTH_INDEX])
+		  + strlen (f[XLFD_ADSTYLE_INDEX])
+		  + strlen (f[XLFD_PIXEL_INDEX])
+		  + strlen (f[XLFD_RESX_INDEX])
+		  + strlen (f[XLFD_SPACING_INDEX])
+		  + strlen (f[XLFD_AVGWIDTH_INDEX])
+		  + strlen (f[XLFD_REGISTRY_INDEX])
+		  + sizeof "-----------");
+
+  /* Return the XLFD.  */
+
+  sprintf (name, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
+	   f[XLFD_FOUNDRY_INDEX], f[XLFD_FAMILY_INDEX],
+	   f[XLFD_WEIGHT_INDEX], f[XLFD_SLANT_INDEX],
+	   f[XLFD_SWIDTH_INDEX], f[XLFD_ADSTYLE_INDEX],
+	   f[XLFD_PIXEL_INDEX], f[XLFD_RESX_INDEX],
+	   f[XLFD_SPACING_INDEX], f[XLFD_AVGWIDTH_INDEX],
+	   f[XLFD_REGISTRY_INDEX]);
+  SAFE_FREE ();
+  return name;
+}
 
 /* Store XLFD name of FONT (font-spec or font-entity) in NAME (NBYTES
    length), and return the name length.  If FONT_SIZE_INDEX of FONT is
@@ -1878,7 +2047,7 @@ font_rescale_ratio (Lisp_Object font_entity)
 	  if (STRINGP (XCAR (elt)))
 	    {
 	      if (NILP (name))
-		name = Ffont_xlfd_name (font_entity, Qnil);
+		name = Ffont_xlfd_name (font_entity, Qnil, Qt);
 
 	      /* N.B. that `name' is set to nil if the resulting XLFD
 		 is too long.  */
@@ -2490,12 +2659,30 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
       entity = AREF (vec, i);
       if (! NILP (Vface_ignored_fonts))
 	{
-	  char name[256];
+	  char name[256], *xlfd;
 	  ptrdiff_t namelen;
 	  namelen = font_unparse_xlfd (entity, 0, name, 256);
+
 	  if (namelen >= 0)
-            if (font_is_ignored (name, namelen))
+	    {
+	      if (font_is_ignored (name, namelen))
                 continue;
+	    }
+	  else
+	    {
+	      /* The font family or foundry is too long for a 256
+		 character xlfd to accommodate.  */
+
+	      xlfd = font_dynamic_unparse_xlfd (entity, 0);
+
+	      if (xlfd && font_is_ignored (xlfd, sizeof (xlfd)))
+		{
+		  xfree (xlfd);
+		  continue;
+		}
+
+	      xfree (xlfd);
+	    }
 	}
       if (NILP (spec))
 	{
@@ -4239,16 +4426,20 @@ Optional 2nd argument FRAME, if non-nil, specifies the target frame.  */)
   return val;
 }
 
-DEFUN ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 2, 0,
+DEFUN ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 3, 0,
        doc: /*  Return XLFD name of FONT.
 FONT is a font-spec, font-entity, or font-object.
-If the name is too long for XLFD (maximum 255 chars), return nil.
+
+If the name is too long to be represented as an XLFD (maximum 255
+chars) and LONG_XLFDS is nil, return nil.
+
 If the 2nd optional arg FOLD-WILDCARDS is non-nil,
 the consecutive wildcards are folded into one.  */)
-  (Lisp_Object font, Lisp_Object fold_wildcards)
+  (Lisp_Object font, Lisp_Object fold_wildcards, Lisp_Object long_xlfds)
 {
-  char name[256];
+  char name_buffer[256], *name;
   int namelen, pixel_size = 0;
+  Lisp_Object string;
 
   CHECK_FONT (font);
 
@@ -4261,15 +4452,32 @@ the consecutive wildcards are folded into one.  */)
 	{
 	  if (NILP (fold_wildcards))
 	    return font_name;
+	  name = name_buffer;
 	  lispstpcpy (name, font_name);
 	  namelen = SBYTES (font_name);
 	  goto done;
 	}
       pixel_size = XFONT_OBJECT (font)->pixel_size;
     }
-  namelen = font_unparse_xlfd (font, pixel_size, name, 256);
-  if (namelen < 0)
-    return Qnil;
+
+  if (NILP (long_xlfds))
+    {
+      name = name_buffer;
+      namelen = font_unparse_xlfd (font, pixel_size, name, 256);
+      if (namelen < 0)
+	return Qnil;
+    }
+  else
+    {
+      /* Dynamically allocate the XLFD.  */
+      name = font_dynamic_unparse_xlfd (font, pixel_size);
+
+      if (!name)
+	return Qnil;
+
+      namelen = strlen (name);
+    }
+
  done:
   if (! NILP (fold_wildcards))
     {
@@ -4283,7 +4491,14 @@ the consecutive wildcards are folded into one.  */)
 	}
     }
 
-  return make_string (name, namelen);
+  /* If NAME is dynamically allocated, free it.  */
+
+  string = make_string (name, namelen);
+
+  if (name != name_buffer)
+    xfree (name);
+
+  return string;
 }
 
 void
@@ -5487,7 +5702,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
       Lisp_Object tail, elt;
       AUTO_STRING (equal, "=");
 
-      val = Ffont_xlfd_name (arg, Qt);
+      val = Ffont_xlfd_name (arg, Qt, Qt);
       for (tail = AREF (arg, FONT_EXTRA_INDEX); CONSP (tail);
 	   tail = XCDR (tail))
 	{
@@ -5515,7 +5730,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
     result = font_vconcat_entity_vectors (result);
   if (FONTP (result))
     {
-      val = Ffont_xlfd_name (result, Qt);
+      val = Ffont_xlfd_name (result, Qt, Qt);
       if (! FONT_SPEC_P (result))
 	{
 	  AUTO_STRING (colon, ":");
@@ -5532,7 +5747,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 	{
 	  val = XCAR (tail);
 	  if (FONTP (val))
-	    val = Ffont_xlfd_name (val, Qt);
+	    val = Ffont_xlfd_name (val, Qt, Qt);
 	  XSETCAR (tail, val);
 	}
     }
@@ -5543,7 +5758,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 	{
 	  val = AREF (result, i);
 	  if (FONTP (val))
-	    val = Ffont_xlfd_name (val, Qt);
+	    val = Ffont_xlfd_name (val, Qt, Qt);
 	  ASET (result, i, val);
 	}
     }

@@ -5,6 +5,7 @@
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
 ;; Keywords: multimedia
+;; Package: image-dired
 
 ;; This file is part of GNU Emacs.
 

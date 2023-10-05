@@ -441,6 +441,17 @@ environment.
 
 ** Keyboard problems
 
+*** PGTK build of Emacs running on Wayland doesn't recognize Hyper modifier
+
+If you arrange for the Wayland compositor to send the Hyper key
+modifier (e.g., via XKB customizations), the Hyper modifier will still
+not be reported to Emacs.
+
+The reason is that GDK 3.x doesn't recognize the Hyper key modifier.
+Since GDK 3.x is no longer developed, this bug in GDK will probably
+never be solved.  And the Emacs PGTK build cannot yet support GTK4,
+where this problem is reportedly solved.
+
 *** Unable to enter the M-| key on some German keyboards.
 Some users have reported that M-| suffers from "keyboard ghosting".
 This can't be fixed by Emacs, as the keypress never gets passed to it
@@ -522,6 +533,15 @@ This is known to happen with GnuPG v2.4.1.  The only known workaround
 is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
 future, upgrade to a newer version which solves the problem, when such
 a fixed version becomes available).
+
+*** Emacs running on WSL receives stray characters as input.
+
+For example, you could see Emacs inserting 'z' characters even though
+nothing is typed on the keyboard, and even if you unplug the keyboard.
+
+The reason is a bug in the WSL X server's handling of key-press and
+key-repeat events.  A workaround is to use the Cygwin or native
+MS-Windows build of Emacs instead.
 
 ** Problems with hostname resolution
 
@@ -816,7 +836,7 @@ On many systems, it is possible to set LD_LIBRARY_PATH in your
 environment to specify additional directories where shared libraries
 can be found.
 
-Other systems allow to set LD_RUN_PATH in a similar way, but before
+Other systems allow setting LD_RUN_PATH in a similar way, but before
 Emacs is linked.  With LD_RUN_PATH set, the linker will include a
 specified run-time search path in the executable.
 
@@ -1637,6 +1657,18 @@ try that and see how much difference it makes.  To set things back
 to normal, do
 
   (set-scroll-bar-mode 'left)
+
+*** Redisplay with scaled images is slow in Emacs built with Cairo.
+
+Cairo expends a noticeable amount of CPU time displaying large images
+with applied transforms.  These images most frequently appear within
+EWW buffers or in Image Mode buffers after executing the image scaling
+commands `i +' or `i -', and their presence incurs a performance
+penalty of hundereds of milliseconds to seconds upon redisplay.  The
+remedy is to build Emacs without Cairo after verifying the XRender
+extension is present on your X server and its headers are present on
+your system, in which case Emacs will use XRender to efficiently
+perform image transforms within the X server.
 
 *** Error messages about undefined colors on X.
 
@@ -2508,7 +2540,7 @@ keyboard; printing that file on a PostScript printer will show what
 keys can serve as Meta.
 
 The 'xkeycaps' also shows a visual representation of the current
-keyboard settings.  It also allows to modify them.
+keyboard settings.  It also allows modifying them.
 
 *** GNU/Linux: slow startup on Linux-based GNU systems.
 
@@ -2762,7 +2794,7 @@ one, you could use the following workarounds:
     directory to that new home directory.
   . Move all the *.eln files from ~/.emacs.d/eln-cache to a directory
     out of the C:\Users tree, and customize Emacs to use that
-    directory for *.eln files.  This requires to call the function
+    directory for *.eln files.  This requires calling the function
     startup-redirect-eln-cache in your init file, to force Emacs to
     write *.eln files compiled at run time to that directory.
   . Delete all *.eln files in your ~/.emacs.d/eln-cache directory, and
@@ -3493,6 +3525,18 @@ points the test font attempts to hide.
 
 Since this behavior does not influence the display of real fonts, no
 action will be taken to address this problem.
+
+** Some other font's instruction code produces undesirable results.
+
+Executing instruction code is not a strict requirement for producing
+correct display results from most current fonts.  If a font's
+instruction code produces results that are merely unpleasing, but not
+incorrect, then the font was presumably not designed for Emacs's
+scaler.  If its uninstructed glyphs are satisfactory (such as if your
+screen resolution is high to the extent that scaling artifacts prove
+invisible), disable instruction code execution by appending its family
+name to the variable 'sfnt-uninstructable-font-regexp', then
+restarting Emacs.
 
 ** CJK text does not display in Emacs, but does in other programs.
 

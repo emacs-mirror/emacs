@@ -413,30 +413,36 @@ otherwise it's assumed to be an Info file."
          (default-directory (package-desc-dir pkg-desc))
          (docs-directory (file-name-directory (expand-file-name file)))
          (output (expand-file-name (format "%s.info" pkg-name)))
+         (log-buffer (get-buffer-create (format " *package-vc doc: %s*" pkg-name)))
          clean-up)
-    (when (string-match-p "\\.org\\'" file)
-      (require 'ox)
-      (require 'ox-texinfo)
-      (with-temp-buffer
-        (insert-file-contents file)
-        (setq file (make-temp-file "ox-texinfo-"))
-        (let ((default-directory docs-directory))
-          (org-export-to-file 'texinfo file))
-        (setq clean-up t)))
-    (with-current-buffer (get-buffer-create " *package-vc doc*")
-      (erase-buffer)
-      (cond
-       ((/= 0 (call-process "makeinfo" nil t nil
-                            "-I" docs-directory
-                            "--no-split" file
-                            "-o" output))
-        (message "Failed to build manual %s, see buffer %S"
-                 file (buffer-name)))
-       ((/= 0 (call-process "install-info" nil t nil
-                            output (expand-file-name "dir")))
-        (message "Failed to install manual %s, see buffer %S"
-                 output (buffer-name)))
-       ((kill-buffer))))
+    (with-current-buffer log-buffer
+      (erase-buffer))
+    (condition-case err
+        (progn
+          (when (string-match-p "\\.org\\'" file)
+            (require 'ox)
+            (require 'ox-texinfo)
+            (with-temp-buffer
+              (insert-file-contents file)
+              (setq file (make-temp-file "ox-texinfo-"))
+              (let ((default-directory docs-directory))
+                (org-export-to-file 'texinfo file))
+              (setq clean-up t)))
+          (cond
+           ((/= 0 (call-process "makeinfo" nil log-buffer nil
+                                "-I" docs-directory
+                                "--no-split" file
+                                "-o" output))
+            (message "Failed to build manual %s, see buffer %S"
+                     file (buffer-name)))
+           ((/= 0 (call-process "install-info" nil log-buffer nil
+                                output (expand-file-name "dir")))
+            (message "Failed to install manual %s, see buffer %S"
+                     output (buffer-name)))
+           ((kill-buffer log-buffer))))
+      (error (with-current-buffer log-buffer
+               (insert (error-message-string err)))
+             (message "Failed to export org manual for %s, see buffer %S" pkg-name log-buffer)))
     (when clean-up
       (delete-file file))))
 

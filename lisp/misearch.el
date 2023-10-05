@@ -387,6 +387,157 @@ whose file names match the specified wildcard."
     (goto-char (if isearch-forward (point-min) (point-max)))
     (isearch-forward-regexp nil t)))
 
+
+;;; Global multi-file replacements as diff
+
+(defcustom multi-file-diff-unsaved 'save-buffers
+  "What to do with unsaved edits when showing multi-file replacements as diffs.
+If the value is `save-buffers', save unsaved buffers before creating diff.
+If the value is `use-file', use text from the file even when the
+file-visiting buffer is modified.
+If the value is `use-modified-buffer', use text from the file-visiting
+modified buffer to be able to use unsaved changes."
+  :type '(choice
+          (const :tag "Save buffers" save-buffers)
+          (const :tag "Use file" use-file)
+          (const :tag "Use modified buffer" use-modified-buffer))
+  :version "30.1")
+
+(declare-function diff-setup-whitespace "diff-mode" ())
+(declare-function diff-setup-buffer-type "diff-mode" ())
+
+(defun multi-file-replace-as-diff (files from-string replacements regexp-flag delimited-flag)
+  "Show as diffs replacements of FROM-STRING with REPLACEMENTS.
+FILES is a list of file names.  REGEXP-FLAG and DELIMITED-FLAG have
+the same meaning as in `perform-replace'."
+  (require 'diff)
+  (let ((inhibit-message t)
+        (diff-buffer (get-buffer-create "*replace-diff*")))
+    (when (eq multi-file-diff-unsaved 'save-buffers)
+      (save-some-buffers t (lambda ()
+                             (seq-some (lambda (f-or-b)
+                                         (equal f-or-b buffer-file-name))
+                                       files))))
+    (with-current-buffer diff-buffer
+      (buffer-disable-undo (current-buffer))
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      ;; Make the *vc-diff* buffer read only, the diff-mode key
+      ;; bindings are nicer for read only buffers.
+      (setq buffer-read-only t)
+      (diff-mode))
+    (dolist (file-name files)
+      (let* ((file-exists (file-exists-p file-name))
+             (file-buffer
+              (when (or (not file-exists)
+                        (eq multi-file-diff-unsaved 'use-modified-buffer))
+                (find-buffer-visiting file-name))))
+        (when file-name
+          (with-temp-buffer
+            (if (and file-buffer
+                     (or (not file-exists)
+                         (buffer-modified-p file-buffer)))
+                (insert-buffer-substring file-buffer)
+              (insert-file-contents file-name))
+            (goto-char (point-min))
+            (perform-replace from-string replacements nil regexp-flag delimited-flag)
+            (multi-file-diff-no-select
+             (if file-exists file-name file-buffer)
+             (current-buffer) nil diff-buffer
+             (concat file-name "~") file-name)))))
+    (with-current-buffer diff-buffer
+      (diff-setup-whitespace)
+      (diff-setup-buffer-type)
+      (buffer-enable-undo (current-buffer))
+      (setq-local revert-buffer-function
+                  (lambda (_ignore-auto _noconfirm)
+                    (multi-file-replace-as-diff
+                     files from-string replacements regexp-flag delimited-flag)))
+      (goto-char (point-min)))
+    (pop-to-buffer diff-buffer)))
+
+;;;###autoload
+(defun multi-file-replace-regexp-as-diff (files regexp to-string &optional delimited)
+  "Show as diffs replacements of REGEXP with TO-STRING in FILES.
+DELIMITED has the same meaning as in `replace-regexp'.
+The replacements are displayed in the buffer *replace-diff* that
+you can later apply as a patch after reviewing the changes."
+  (interactive
+   (let ((files (multi-isearch-read-files))
+         (common
+          (query-replace-read-args
+           (concat "Replace"
+                   (if current-prefix-arg " word" "")
+                   " regexp as diff in files")
+           t t)))
+     (list files (nth 0 common) (nth 1 common) (nth 2 common))))
+  (multi-file-replace-as-diff files regexp to-string t delimited))
+
+;;;###autoload
+(defun replace-regexp-as-diff (regexp to-string &optional delimited)
+  "Show as diffs replacements of REGEXP with TO-STRING in the current buffer.
+DELIMITED has the same meaning as in `replace-regexp'.
+The replacements are displayed in the buffer *replace-diff* that
+you can later apply as a patch after reviewing the changes."
+  (interactive
+   (let ((common
+          (query-replace-read-args
+           (concat "Replace"
+                   (if current-prefix-arg " word" "")
+                   " regexp as diff")
+           t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
+  (multi-file-replace-as-diff
+   (list buffer-file-name) regexp to-string t delimited))
+
+(defvar diff-use-labels)
+(declare-function diff-check-labels "diff" (&optional force))
+(declare-function diff-file-local-copy "diff" (file-or-buf))
+
+(defun multi-file-diff-no-select (old new &optional switches buf label-old label-new)
+  ;; Based on `diff-no-select' tailored to multi-file diffs.
+  "Compare the OLD and NEW file/buffer.
+If the optional SWITCHES is nil, the switches specified in the
+variable `diff-switches' are passed to the diff command,
+otherwise SWITCHES is used.  SWITCHES can be a string or a list
+of strings.  BUF should be non-nil.  LABEL-OLD and LABEL-NEW
+specify labels to use for file names."
+  (unless (bufferp new) (setq new (expand-file-name new)))
+  (unless (bufferp old) (setq old (expand-file-name old)))
+  (or switches (setq switches diff-switches)) ; If not specified, use default.
+  (setq switches (ensure-list switches))
+  (diff-check-labels)
+  (let* ((old-alt (diff-file-local-copy old))
+         (new-alt (diff-file-local-copy new))
+         (command
+          (mapconcat #'identity
+                     `(,diff-command
+                       ;; Use explicitly specified switches
+                       ,@switches
+                       ,@(mapcar #'shell-quote-argument
+                                 (nconc
+                                  (and (or old-alt new-alt)
+                                       (eq diff-use-labels t)
+                                       (list "--label"
+                                             (cond ((stringp label-old) label-old)
+                                                   ((stringp old) old)
+                                                   ((prin1-to-string old)))
+                                             "--label"
+                                             (cond ((stringp label-new) label-new)
+                                                   ((stringp new) new)
+                                                   ((prin1-to-string new)))))
+                                  (list (or old-alt old)
+                                        (or new-alt new)))))
+                     " ")))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (insert command "\n")
+        (call-process shell-file-name nil buf nil
+                      shell-command-switch command))
+      (if old-alt (delete-file old-alt))
+      (if new-alt (delete-file new-alt)))))
+
+
 (defvar unload-function-defs-list)
 
 (defun multi-isearch-unload-function ()

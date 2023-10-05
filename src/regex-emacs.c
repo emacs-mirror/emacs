@@ -268,7 +268,9 @@ typedef enum
   on_failure_jump,
 
 	/* Like on_failure_jump, but pushes a placeholder instead of the
-	   current string position when executed.  */
+	   current string position when executed.  Upon failure,
+	   the current string position is thus not restored.
+	   Used only for single-char loops that don't require backtracking.  */
   on_failure_keep_string_jump,
 
 	/* Just like 'on_failure_jump', except that it checks that we
@@ -338,11 +340,12 @@ typedef enum
 
 /* Store NUMBER in two contiguous bytes starting at DESTINATION.  */
 
-#define STORE_NUMBER(destination, number)				\
-  do {									\
-    (destination)[0] = (number) & 0377;					\
-    (destination)[1] = (number) >> 8;					\
-  } while (false)
+static void
+STORE_NUMBER (unsigned char *destination, int16_t number)
+{
+  (destination)[0] = (number) & 0377;
+  (destination)[1] = (number) >> 8;
+}
 
 /* Same as STORE_NUMBER, except increment DESTINATION to
    the byte after where the number is stored.  Therefore, DESTINATION
@@ -365,6 +368,12 @@ extract_number (re_char *source)
 {
   signed char leading_byte = source[1];
   return leading_byte * 256 + source[0];
+}
+
+static re_char *
+extract_address (re_char *source)
+{
+  return source + 2 + extract_number (source);
 }
 
 /* Same as EXTRACT_NUMBER, except increment SOURCE to after the number.
@@ -434,38 +443,27 @@ extract_number_and_incr (re_char **source)
 /* If REGEX_EMACS_DEBUG is defined, print many voluminous messages
    (if the variable regex_emacs_debug is positive).  */
 
-#ifdef REGEX_EMACS_DEBUG
+#if defined REGEX_EMACS_DEBUG || ENABLE_CHECKING
 
 /* Use standard I/O for debugging.  */
 # include "sysstdio.h"
 
-static int regex_emacs_debug = -100000;
-
-# define DEBUG_STATEMENT(e) e
-# define DEBUG_PRINT(...)                                       \
-  if (regex_emacs_debug > 0) fprintf (stderr, __VA_ARGS__)
-# define DEBUG_COMPILES_ARGUMENTS
-# define DEBUG_PRINT_COMPILED_PATTERN(p, s, e)				\
-  if (regex_emacs_debug > 0) print_partial_compiled_pattern (s, e)
-# define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)			\
-  if (regex_emacs_debug > 0) print_double_string (w, s1, sz1, s2, sz2)
-
 static void
-debug_putchar (int c)
+debug_putchar (FILE *dest, int c)
 {
   if (c >= 32 && c <= 126)
-    putc (c, stderr);
+    putc (c, dest);
   else
     {
       unsigned int uc = c;
-      fprintf (stderr, "{%02x}", uc);
+      fprintf (dest, "{%02x}", uc);
     }
 }
 
 /* Print the fastmap in human-readable form.  */
 
 static void
-print_fastmap (char *fastmap)
+print_fastmap (FILE *dest, char *fastmap)
 {
   bool was_a_range = false;
   int i = 0;
@@ -475,7 +473,7 @@ print_fastmap (char *fastmap)
       if (fastmap[i++])
 	{
 	  was_a_range = false;
-	  debug_putchar (i - 1);
+	  debug_putchar (dest, i - 1);
 	  while (i < (1 << BYTEWIDTH)  &&  fastmap[i])
 	    {
 	      was_a_range = true;
@@ -483,12 +481,12 @@ print_fastmap (char *fastmap)
 	    }
 	  if (was_a_range)
 	    {
-	      debug_putchar ('-');
-	      debug_putchar (i - 1);
+	      debug_putchar (dest, '-');
+	      debug_putchar (dest, i - 1);
 	    }
 	}
     }
-  putc ('\n', stderr);
+  putc ('\n', dest);
 }
 
 
@@ -496,7 +494,7 @@ print_fastmap (char *fastmap)
    the START pointer into it and ending just before the pointer END.  */
 
 static void
-print_partial_compiled_pattern (re_char *start, re_char *end)
+print_partial_compiled_pattern (FILE *dest, re_char *start, re_char *end)
 {
   int mcnt, mcnt2;
   re_char *p = start;
@@ -504,50 +502,50 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 
   if (start == NULL)
     {
-      fputs ("(null)\n", stderr);
+      fputs ("(null)\n", dest);
       return;
     }
 
   /* Loop over pattern commands.  */
   while (p < pend)
     {
-      fprintf (stderr, "%td:\t", p - start);
+      fprintf (dest, "%td:\t", p - start);
 
       switch ((re_opcode_t) *p++)
 	{
 	case no_op:
-	  fputs ("/no_op", stderr);
+	  fputs ("/no_op", dest);
 	  break;
 
 	case succeed:
-	  fputs ("/succeed", stderr);
+	  fputs ("/succeed", dest);
 	  break;
 
 	case exactn:
 	  mcnt = *p++;
-	  fprintf (stderr, "/exactn/%d", mcnt);
+	  fprintf (dest, "/exactn/%d", mcnt);
 	  do
 	    {
-	      debug_putchar ('/');
-	      debug_putchar (*p++);
+	      debug_putchar (dest, '/');
+	      debug_putchar (dest, *p++);
 	    }
 	  while (--mcnt);
 	  break;
 
 	case start_memory:
-	  fprintf (stderr, "/start_memory/%d", *p++);
+	  fprintf (dest, "/start_memory/%d", *p++);
 	  break;
 
 	case stop_memory:
-	  fprintf (stderr, "/stop_memory/%d", *p++);
+	  fprintf (dest, "/stop_memory/%d", *p++);
 	  break;
 
 	case duplicate:
-	  fprintf (stderr, "/duplicate/%d", *p++);
+	  fprintf (dest, "/duplicate/%d", *p++);
 	  break;
 
 	case anychar:
-	  fputs ("/anychar", stderr);
+	  fputs ("/anychar", dest);
 	  break;
 
 	case charset:
@@ -558,11 +556,11 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	    int length = CHARSET_BITMAP_SIZE (p - 1);
 	    bool has_range_table = CHARSET_RANGE_TABLE_EXISTS_P (p - 1);
 
-	    fprintf (stderr, "/charset [%s",
+	    fprintf (dest, "/charset [%s",
 		     (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
 	    if (p + (*p & 0x7f) >= pend)
-	      fputs (" !extends past end of pattern! ", stderr);
+	      fputs (" !extends past end of pattern! ", dest);
 
 	    for (c = 0; c < 256; c++)
 	      if (c / 8 < length
@@ -571,33 +569,33 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 		  /* Are we starting a range?  */
 		  if (last + 1 == c && ! in_range)
 		    {
-		      debug_putchar ('-');
+		      debug_putchar (dest, '-');
 		      in_range = true;
 		    }
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
 		    {
-		      debug_putchar (last);
+		      debug_putchar (dest, last);
 		      in_range = false;
 		    }
 
 		  if (! in_range)
-		    debug_putchar (c);
+		    debug_putchar (dest, c);
 
 		  last = c;
 	      }
 
 	    if (in_range)
-	      debug_putchar (last);
+	      debug_putchar (dest, last);
 
-	    debug_putchar (']');
+	    debug_putchar (dest, ']');
 
 	    p += 1 + length;
 
 	    if (has_range_table)
 	      {
 		int count;
-		fputs ("has-range-table", stderr);
+		fputs ("has-range-table", dest);
 
 		/* ??? Should print the range table; for now, just skip it.  */
 		p += 2;		/* skip range table bits */
@@ -608,160 +606,175 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	  break;
 
 	case begline:
-	  fputs ("/begline", stderr);
+	  fputs ("/begline", dest);
 	  break;
 
 	case endline:
-	  fputs ("/endline", stderr);
+	  fputs ("/endline", dest);
 	  break;
 
 	case on_failure_jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump to %td", p + mcnt - start);
+	  fprintf (dest, "/on_failure_jump to %td", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_keep_string_jump to %td",
+	  fprintf (dest, "/on_failure_keep_string_jump to %td",
 		   p + mcnt - start);
 	  break;
 
 	case on_failure_jump_nastyloop:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump_nastyloop to %td",
+	  fprintf (dest, "/on_failure_jump_nastyloop to %td",
 		   p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump_loop to %td",
+	  fprintf (dest, "/on_failure_jump_loop to %td",
 		   p + mcnt - start);
 	  break;
 
 	case on_failure_jump_smart:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/on_failure_jump_smart to %td",
+	  fprintf (dest, "/on_failure_jump_smart to %td",
 		   p + mcnt - start);
 	  break;
 
 	case jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (stderr, "/jump to %td", p + mcnt - start);
+	  fprintf (dest, "/jump to %td", p + mcnt - start);
 	  break;
 
 	case succeed_n:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  EXTRACT_NUMBER_AND_INCR (mcnt2, p);
-	  fprintf (stderr, "/succeed_n to %td, %d times",
+	  fprintf (dest, "/succeed_n to %td, %d times",
 		   p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case jump_n:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  EXTRACT_NUMBER_AND_INCR (mcnt2, p);
-	  fprintf (stderr, "/jump_n to %td, %d times",
+	  fprintf (dest, "/jump_n to %td, %d times",
 		   p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case set_number_at:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  EXTRACT_NUMBER_AND_INCR (mcnt2, p);
-	  fprintf (stderr, "/set_number_at location %td to %d",
+	  fprintf (dest, "/set_number_at location %td to %d",
 		   p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case wordbound:
-	  fputs ("/wordbound", stderr);
+	  fputs ("/wordbound", dest);
 	  break;
 
 	case notwordbound:
-	  fputs ("/notwordbound", stderr);
+	  fputs ("/notwordbound", dest);
 	  break;
 
 	case wordbeg:
-	  fputs ("/wordbeg", stderr);
+	  fputs ("/wordbeg", dest);
 	  break;
 
 	case wordend:
-	  fputs ("/wordend", stderr);
+	  fputs ("/wordend", dest);
 	  break;
 
 	case symbeg:
-	  fputs ("/symbeg", stderr);
+	  fputs ("/symbeg", dest);
 	  break;
 
 	case symend:
-	  fputs ("/symend", stderr);
+	  fputs ("/symend", dest);
 	  break;
 
 	case syntaxspec:
-	  fputs ("/syntaxspec", stderr);
+	  fputs ("/syntaxspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case notsyntaxspec:
-	  fputs ("/notsyntaxspec", stderr);
+	  fputs ("/notsyntaxspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case at_dot:
-	  fputs ("/at_dot", stderr);
+	  fputs ("/at_dot", dest);
 	  break;
 
 	case categoryspec:
-	  fputs ("/categoryspec", stderr);
+	  fputs ("/categoryspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case notcategoryspec:
-	  fputs ("/notcategoryspec", stderr);
+	  fputs ("/notcategoryspec", dest);
 	  mcnt = *p++;
-	  fprintf (stderr, "/%d", mcnt);
+	  fprintf (dest, "/%d", mcnt);
 	  break;
 
 	case begbuf:
-	  fputs ("/begbuf", stderr);
+	  fputs ("/begbuf", dest);
 	  break;
 
 	case endbuf:
-	  fputs ("/endbuf", stderr);
+	  fputs ("/endbuf", dest);
 	  break;
 
 	default:
-	  fprintf (stderr, "?%d", *(p-1));
+	  fprintf (dest, "?%d", *(p-1));
 	}
 
-      putc ('\n', stderr);
+      putc ('\n', dest);
     }
 
-  fprintf (stderr, "%td:\tend of pattern.\n", p - start);
+  fprintf (dest, "%td:\tend of pattern.\n", p - start);
 }
 
-
-static void
-print_compiled_pattern (struct re_pattern_buffer *bufp)
+void
+print_compiled_pattern (FILE *dest, struct re_pattern_buffer *bufp)
 {
+  if (!dest)
+    dest = stderr;
   re_char *buffer = bufp->buffer;
 
-  print_partial_compiled_pattern (buffer, buffer + bufp->used);
-  fprintf (stderr, "%td bytes used/%td bytes allocated.\n",
+  print_partial_compiled_pattern (dest, buffer, buffer + bufp->used);
+  fprintf (dest, "%td bytes used/%td bytes allocated.\n",
            bufp->used, bufp->allocated);
 
   if (bufp->fastmap_accurate && bufp->fastmap)
     {
-      fputs ("fastmap: ", stderr);
-      print_fastmap (bufp->fastmap);
+      fputs ("fastmap: ", dest);
+      print_fastmap (dest, bufp->fastmap);
     }
 
-  fprintf (stderr, "re_nsub: %td\t", bufp->re_nsub);
-  fprintf (stderr, "regs_alloc: %d\t", bufp->regs_allocated);
-  fprintf (stderr, "can_be_null: %d\n", bufp->can_be_null);
+  fprintf (dest, "re_nsub: %td\t", bufp->re_nsub);
+  fprintf (dest, "regs_alloc: %d\t", bufp->regs_allocated);
+  fprintf (dest, "can_be_null: %d\n", bufp->can_be_null);
   /* Perhaps we should print the translate table?  */
 }
 
+#endif
+
+#ifdef REGEX_EMACS_DEBUG
+
+static int regex_emacs_debug = -100000;
+
+# define DEBUG_STATEMENT(e) e
+# define DEBUG_PRINT(...)                                       \
+  if (regex_emacs_debug > 0) fprintf (stderr, __VA_ARGS__)
+# define DEBUG_COMPILES_ARGUMENTS
+# define DEBUG_PRINT_COMPILED_PATTERN(p, s, e)				\
+  if (regex_emacs_debug > 0) print_partial_compiled_pattern (stderr, s, e)
+# define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)			\
+  if (regex_emacs_debug > 0) print_double_string (w, s1, sz1, s2, sz2)
 
 static void
 print_double_string (re_char *where, re_char *string1, ptrdiff_t size1,
@@ -775,12 +788,12 @@ print_double_string (re_char *where, re_char *string1, ptrdiff_t size1,
       if (FIRST_STRING_P (where))
 	{
 	  for (i = 0; i < string1 + size1 - where; i++)
-	    debug_putchar (where[i]);
+	    debug_putchar (stderr, where[i]);
 	  where = string2;
 	}
 
       for (i = 0; i < string2 + size2 - where; i++)
-        debug_putchar (where[i]);
+        debug_putchar (stderr, where[i]);
     }
 }
 
@@ -1166,8 +1179,8 @@ static void insert_op2 (re_opcode_t op, unsigned char *loc,
 static bool at_begline_loc_p (re_char *pattern, re_char *p);
 static bool at_endline_loc_p (re_char *p, re_char *pend);
 static re_char *skip_one_char (re_char *p);
-static int analyze_first (re_char *p, re_char *pend,
-			  char *fastmap, bool multibyte);
+static bool analyze_first (struct re_pattern_buffer *bufp,
+                           re_char *p, re_char *pend, char *fastmap);
 
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
@@ -1760,7 +1773,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
   if (regex_emacs_debug > 0)
     {
       for (ptrdiff_t debug_count = 0; debug_count < size; debug_count++)
-	debug_putchar (pattern[debug_count]);
+	debug_putchar (stderr, pattern[debug_count]);
       putc ('\n', stderr);
     }
 #endif
@@ -1917,18 +1930,28 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    ptrdiff_t startoffset = 0;
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
-		      (simple || !analyze_first (laststart, b, NULL, false))
+		      (simple || !analyze_first (bufp, laststart, b, NULL))
 		      ? on_failure_jump : on_failure_jump_loop;
 		    eassert (skip_one_char (laststart) <= b);
 
 		    if (!zero_times_ok && simple)
 		      { /* Since simple * loops can be made faster by using
-			   on_failure_keep_string_jump, we turn simple P+
-			   into PP* if P is simple.  */
+			   on_failure_keep_string_jump, we turn P+ into PP*
+                           if P is simple.
+			   We can't use `top: <BODY>; OFJS exit; J top; exit:`
+			   because the OFJS needs to be at the beginning
+			   so we can replace
+			       top: OFJS exit; <BODY>; J top; exit
+			   with
+			       OFKSJ exit; loop: <BODY>; J loop; exit
+			   i.e. a single OFJ at the beginning of the loop
+			   rather than once per iteration.  */
 			unsigned char *p1, *p2;
 			startoffset = b - laststart;
 			GET_BUFFER_SPACE (startoffset);
 			p1 = b; p2 = laststart;
+			/* We presume that the code skipped
+			   by `skip_one_char` is position-independent.  */
 			while (p2 < p1)
 			  *b++ = *p2++;
 			zero_times_ok = 1;
@@ -1964,7 +1987,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		GET_BUFFER_SPACE (7); /* We might use less.  */
 		if (many_times_ok)
 		  {
-		    bool emptyp = !!analyze_first (laststart, b, NULL, false);
+		    bool emptyp = analyze_first (bufp, laststart, b, NULL);
 
 		    /* The non-greedy multiple match looks like
 		       a repeat..until: we only need a conditional jump
@@ -2670,7 +2693,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
     {
       re_compile_fastmap (bufp);
       DEBUG_PRINT ("\nCompiled pattern:\n");
-      print_compiled_pattern (bufp);
+      print_compiled_pattern (stderr, bufp);
     }
   regex_emacs_debug--;
 #endif
@@ -2799,309 +2822,469 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
   return false;
 }
 
+/* Iterate through all the char-matching operations directly reachable from P.
+   This is the inner loop of `forall_firstchar`, which see.
+   LOOP_BEG..LOOP_END delimit the currentl "block" of code (we assume
+   the code is made of syntactically nested loops).
+   LOOP_END is blindly assumed to be "safe".
+   To guarantee termination, at each iteration, either LOOP_BEG should
+   get bigger, or it should stay the same and P should get bigger.  */
+static bool
+forall_firstchar_1 (re_char *p, re_char *pend,
+                    re_char *loop_beg, re_char *loop_end,
+                    bool f (const re_char *p, void *arg), void *arg)
+{
+  eassert (p >= loop_beg);
+  eassert (p <= loop_end);
+
+  while (true)
+    {
+      re_char *newp1, *newp2, *tmp;
+      re_char *p_orig = p;
+      int offset;
+
+      if (p == pend)
+        return false;
+      else if (p == loop_end)
+        return true;
+      else if (p > loop_end)
+        {
+#if ENABLE_CHECKING
+          fprintf (stderr, "FORALL_FIRSTCHAR: Broken assumption1!!\n");
+#endif
+          return false; /* FIXME: Broken assumption about the code shape.  */
+        }
+      else
+        switch (*p)
+          {
+          /* Cases which stop the iteration.  */
+          case succeed:
+          case exactn:
+          case charset:
+          case charset_not:
+          case anychar:
+          case syntaxspec:
+          case notsyntaxspec:
+          case categoryspec:
+          case notcategoryspec:
+            return f (p, arg);
+
+          /* Cases which may match the empty string.  */
+          case at_dot:
+          case begbuf:
+          case no_op:
+          case wordbound:
+          case notwordbound:
+          case begline:
+            p++;
+            continue;
+
+          /* Cases which may match the empty string and may
+             tell us something about the next char.  */
+          case endline:
+          case endbuf:
+          case wordbeg:
+          case wordend:
+          case symbeg:
+          case symend:
+            if (f (p, arg))
+              return true;
+            p++;
+            continue;
+
+          case jump:
+          case jump_n:
+	    newp1 = extract_address (p + 1);
+	    if (newp1 > p)
+	      { /* Forward jump, boring.  */
+	        p = newp1;
+	        continue;
+	      }
+	    switch (*newp1)
+	      {
+	      case on_failure_jump:
+	      case on_failure_keep_string_jump:
+	      case on_failure_jump_nastyloop:
+	      case on_failure_jump_loop:
+	      case on_failure_jump_smart:
+	      case succeed_n:
+	        newp2 = extract_address (newp1 + 1);
+	        goto do_twoway_jump;
+	      default:
+	        newp2 = loop_end; /* "Safe" choice.  */
+	        goto do_jump;
+	      }
+
+	  case on_failure_jump:
+	  case on_failure_keep_string_jump:
+	  case on_failure_jump_nastyloop:
+	  case on_failure_jump_loop:
+	  case on_failure_jump_smart:
+	    newp1 = extract_address (p + 1);
+	    newp2 = p + 3;
+	    /* For `+` loops, we often have an `on_failure_jump` that skips
+               forward over a subsequent `jump`.  Recognize this pattern
+               since that subsequent `jump` is the one that jumps to the
+               loop-entry.  */
+	    newp2 = ((re_opcode_t) *newp2 == jump)
+	            ? extract_address (newp2 + 1) : newp2;
+
+	  do_twoway_jump:
+	    /* We have to check that both destinations are safe.
+	       Arrange for `newp1` to be the smaller of the two.  */
+	    if (newp1 > newp2)
+	      (tmp = newp1, newp1 = newp2, newp2 = tmp);
+
+	    if (newp2 <= p_orig) /* Both destinations go backward!  */
+	      {
+#if ENABLE_CHECKING
+	        fprintf (stderr, "FORALL_FIRSTCHAR: Broken assumption2!!\n");
+#endif
+	        return false;
+              }
+
+            if (!forall_firstchar_1 (newp2, pend, loop_beg, loop_end, f, arg))
+              return false;
+
+	  do_jump:
+	    eassert (newp2 <= loop_end);
+            if (newp1 <= p_orig)
+	      {
+	        if (newp1 < loop_beg)
+	          {
+#if ENABLE_CHECKING
+	            fprintf (stderr, "FORALL_FIRSTCHAR: Broken assumption3!!\n");
+#endif
+	            return false;
+	          }
+	        else if (newp1 == loop_beg)
+	          /* If we jump backward to the entry point of the current loop
+	             it means it's a zero-length cycle through that loop;
+	             this cycle itself does not break safety.  */
+	          return true;
+	        else
+	          /* We jump backward to a new loop, nested within the current
+	             one. `newp1` is the entry point and `newp2` the exit of
+	             that inner loop.  */
+	          /* `p` gets smaller, but termination is still ensured because
+	             `loop_beg` gets bigger. */
+	          (loop_beg = newp1, loop_end = newp2);
+	      }
+	    p = newp1;
+	    continue;
+
+          case succeed_n:
+	    newp1 = extract_address (p + 1);
+	    newp2 = p + 5;      /* Skip the two bytes containing the count.  */
+	    goto do_twoway_jump;
+
+          case set_number_at:
+            offset = extract_number (p + 1);
+            DEBUG_STATEMENT (eassert (extract_number (p + 3)));
+            /* If we're setting the counter of an immediately following
+               `succeed_n`, then this next execution of `succeed_n` will do
+               nothing but decrement its counter and "fall through".
+               So we do the fall through here to avoid considering the
+               "on failure" part of the `succeed_n` which should only be
+               considered when coming from the `jump(_n)` at the end of
+               the loop.  */
+            p += (offset == 5 && p[5] == succeed_n) ? 10 : 5;
+            continue;
+
+          case start_memory:
+          case stop_memory:
+            p += 2;
+            continue;
+
+          /* This could match the empty string, so we may need to continue,
+             but in most cases, this can match "anything", so we should
+             return `false` unless told otherwise.  */
+          case duplicate:
+            if (!f (p, arg))
+              return false;
+            p += 2;
+            continue;
+
+          default:
+            abort (); /* We have listed all the cases.  */
+          }
+      }
+}
+
+/* Iterate through all the char-matching operations directly reachable from P.
+   Return true if P is "safe", meaning that PEND cannot be reached directly
+   from P and all calls to F returned true.
+   Return false if PEND *may* be directly reachable from P or if one of
+   the calls to F returned false.
+   PEND can be NULL (and hence never reachable).
+
+   Call `F (POS, ARG)` for every POS directly reachable from P,
+   before reaching PEND, where POS is the position of a char-matching
+   operation (`exactn`, `charset`, ...).
+
+   For operations that match the empty string (`wordbeg`, ...), if F
+   returns true we stop going down that path immediately but if it returns
+   false we don't consider it as a failure and we simply look for the
+   next char-matching operations on that path.
+   For `duplicate`, it is the reverse: a false is an immediate failure
+   whereas a true just lets the analysis continue with the rest of the path.
+
+   This function can be used while building the bytecode (in which case
+   you should pass NULL for bufp), but if so, P and PEND need to delimit
+   a valid block such that there is not jump to a location outside
+   of [P...PEND].  */
+static bool
+forall_firstchar (struct re_pattern_buffer *bufp, re_char *p, re_char *pend,
+                  bool f (re_char *p, void *arg), void *arg)
+{
+  eassert (!bufp || bufp->used);
+  eassert (pend || bufp->used);
+  return forall_firstchar_1 (p, pend,
+                             bufp ? bufp->buffer - 1 : p,
+                             bufp ? bufp->buffer + bufp->used + 1 : pend,
+                             f, arg);
+}
+
+struct anafirst_data {
+  bool multibyte;
+  char *fastmap;
+  bool match_any_multibyte_characters;
+};
+
+static bool
+analyze_first_fastmap (const re_char *p, void *arg)
+{
+  struct anafirst_data *data = arg;
+
+  int j, k;
+  int nbits;
+  bool not;
+
+  switch (*p)
+    {
+    case succeed:
+      return false;
+
+    case duplicate:
+      /* If the first character has to match a backreference, that means
+         that the group was empty (since it already matched).  Since this
+         is the only case that interests us here, we can assume that the
+         backreference must match the empty string and we need to
+         build the fastmap from the rest of the path.  */
+      return true;
+
+    /* Following are the cases which match a character.  These end
+       with 'break'.  */
+
+    case exactn:
+      p++;
+      /* If multibyte is nonzero, the first byte of each
+	 character is an ASCII or a leading code.  Otherwise,
+	 each byte is a character.  Thus, this works in both
+	 cases. */
+      data->fastmap[p[1]] = 1;
+      if (data->multibyte)
+	{
+	  /* Cover the case of matching a raw char in a
+	     multibyte regexp against unibyte.	*/
+	  if (CHAR_BYTE8_HEAD_P (p[1]))
+	    data->fastmap[CHAR_TO_BYTE8 (STRING_CHAR (p + 1))] = 1;
+	}
+      else
+	{
+	  /* For the case of matching this unibyte regex
+	     against multibyte, we must set a leading code of
+	     the corresponding multibyte character.  */
+	  int c = RE_CHAR_TO_MULTIBYTE (p[1]);
+
+	  data->fastmap[CHAR_LEADING_CODE (c)] = 1;
+	}
+      return true;
+
+    case anychar:
+      /* We could put all the chars except for \n (and maybe \0)
+	 but we don't bother since it is generally not worth it.  */
+      return false;
+
+    case charset_not:
+      {
+	/* Chars beyond end of bitmap are possible matches.  */
+	for (j = CHARSET_BITMAP_SIZE (p) * BYTEWIDTH;
+	      j < (1 << BYTEWIDTH); j++)
+	  data->fastmap[j] = 1;
+      }
+      FALLTHROUGH;
+    case charset:
+      not = (re_opcode_t) *(p) == charset_not;
+      nbits = CHARSET_BITMAP_SIZE (p) * BYTEWIDTH;
+      p += 2;
+      for (j = 0; j < nbits; j++)
+	if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
+	  data->fastmap[j] = 1;
+
+      /* To match raw bytes (in the 80..ff range) against multibyte
+	 strings, add their leading bytes to the fastmap.  */
+      for (j = 0x80; j < nbits; j++)
+	if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
+	  data->fastmap[CHAR_LEADING_CODE (BYTE8_TO_CHAR (j))] = 1;
+
+      if (/* Any leading code can possibly start a character
+	     which doesn't match the specified set of characters.  */
+	  not
+	  ||
+	  /* If we can match a character class, we can match any
+	     multibyte characters.  */
+	  (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
+	   && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0))
+
+	{
+	  if (!data->match_any_multibyte_characters)
+	    {
+	      for (j = MIN_MULTIBYTE_LEADING_CODE;
+		    j <= MAX_MULTIBYTE_LEADING_CODE; j++)
+		data->fastmap[j] = 1;
+	      data->match_any_multibyte_characters = true;
+	    }
+	}
+
+      else if (!not && CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
+	       && data->match_any_multibyte_characters == false)
+	{
+	  /* Set fastmap[I] to 1 where I is a leading code of each
+	     multibyte character in the range table. */
+	  int c, count;
+	  unsigned char lc1, lc2;
+
+	  /* Make P points the range table.  '+ 2' is to skip flag
+	     bits for a character class.  */
+	  p += CHARSET_BITMAP_SIZE (&p[-2]) + 2;
+
+	  /* Extract the number of ranges in range table into COUNT.  */
+	  EXTRACT_NUMBER_AND_INCR (count, p);
+	  for (; count > 0; count--, p += 3)
+	    {
+	      /* Extract the start and end of each range.  */
+	      EXTRACT_CHARACTER (c, p);
+	      lc1 = CHAR_LEADING_CODE (c);
+	      p += 3;
+	      EXTRACT_CHARACTER (c, p);
+	      lc2 = CHAR_LEADING_CODE (c);
+	      for (j = lc1; j <= lc2; j++)
+		data->fastmap[j] = 1;
+	    }
+	}
+      return true;
+
+    case syntaxspec:
+    case notsyntaxspec:
+      /* This match depends on text properties.  These end with
+	 aborting optimizations.  */
+      return false;
+
+    case categoryspec:
+    case notcategoryspec:
+      not = (re_opcode_t)p[0] == notcategoryspec;
+      p++;
+      k = *p++;
+      for (j = (1 << BYTEWIDTH); j >= 0; j--)
+	if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
+	  data->fastmap[j] = 1;
+
+      /* Any leading code can possibly start a character which
+	 has or doesn't has the_malloc_fn specified category.  */
+      if (!data->match_any_multibyte_characters)
+	{
+	  for (j = MIN_MULTIBYTE_LEADING_CODE;
+		j <= MAX_MULTIBYTE_LEADING_CODE; j++)
+	    data->fastmap[j] = 1;
+	  data->match_any_multibyte_characters = true;
+	}
+      return true;
+
+    case endline:
+    case endbuf:
+    case wordbeg:
+    case wordend:
+    case symbeg:
+    case symend:
+      /* This false doesn't mean failure but rather "not succeeded yet".  */
+      return false;
+
+    default:
+#if ENABLE_CHECKING
+      abort (); /* We have listed all the cases.  */
+#endif
+      return false;
+    }
+}
+
+static bool
+analyze_first_null (const re_char *p, void *arg)
+{
+  switch (*p)
+    {
+    case succeed:
+      /* This is safe: we can't reach `pend` at all from here.  */
+      return true;
+
+    case duplicate:
+      /* Either `duplicate` ends up matching a non-empty string, in which
+         case we're good, or it matches the empty string, in which case we
+         need to continue checking the rest of this path, which is exactly
+         what returning `true` does, here.  */
+      return true;
+
+    case exactn:
+    case anychar:
+    case charset_not:
+    case charset:
+    case syntaxspec:
+    case notsyntaxspec:
+    case categoryspec:
+    case notcategoryspec:
+      return true;
+
+    case endline:
+    case endbuf:
+    case wordbeg:
+    case wordend:
+    case symbeg:
+    case symend:
+      /* This false doesn't mean failure but rather "not succeeded yet".  */
+      return false;
+
+    default:
+#if ENABLE_CHECKING
+      abort (); /* We have listed all the cases.  */
+#endif
+      return false;
+    }
+}
+
 /* analyze_first.
    If fastmap is non-NULL, go through the pattern and fill fastmap
    with all the possible leading chars.  If fastmap is NULL, don't
    bother filling it up (obviously) and only return whether the
    pattern could potentially match the empty string.
 
-   Return 1  if p..pend might match the empty string.
-   Return 0  if p..pend matches at least one char.
-   Return -1 if fastmap was not updated accurately.  */
+   Return false if p matches at least one char before reaching pend.
+   Return true  if p..pend might match the empty string
+                or if fastmap was not updated accurately.  */
 
-static int
-analyze_first (re_char *p, re_char *pend, char *fastmap, bool multibyte)
+static bool
+analyze_first (struct re_pattern_buffer *bufp,
+               re_char *p, re_char *pend, char *fastmap)
 {
-  int j, k;
-  int nbits;
-  bool not;
+  eassert (pend);
+  struct anafirst_data data = { bufp ? bufp->multibyte : false,
+                                fastmap, false };
+  bool safe = forall_firstchar (bufp->used ? bufp : NULL, p, pend,
+                                fastmap ? analyze_first_fastmap
+                                : analyze_first_null,
+                                &data);
+  return !safe;
+}
 
-  /* If all elements for base leading-codes in fastmap is set, this
-     flag is set true.  */
-  bool match_any_multibyte_characters = false;
-
-  eassert (p);
-
-  /* The loop below works as follows:
-     - It has a working-list kept in the PATTERN_STACK and which basically
-       starts by only containing a pointer to the first operation.
-     - If the opcode we're looking at is a match against some set of
-       chars, then we add those chars to the fastmap and go on to the
-       next work element from the worklist (done via 'break').
-     - If the opcode is a control operator on the other hand, we either
-       ignore it (if it's meaningless at this point, such as 'start_memory')
-       or execute it (if it's a jump).  If the jump has several destinations
-       (i.e. 'on_failure_jump'), then we push the other destination onto the
-       worklist.
-     We guarantee termination by ignoring backward jumps (more or less),
-     so that P is monotonically increasing.  More to the point, we
-     never set P (or push) anything '<= p1'.  */
-
-  while (p < pend)
-    {
-      /* P1 is used as a marker of how far back a 'on_failure_jump'
-	 can go without being ignored.  It is normally equal to P
-	 (which prevents any backward 'on_failure_jump') except right
-	 after a plain 'jump', to allow patterns such as:
-	    0: jump 10
-	    3..9: <body>
-	    10: on_failure_jump 3
-	 as used for the *? operator.  */
-      re_char *p1 = p;
-
-      switch (*p++)
-	{
-	case succeed:
-	  return 1;
-
-	case duplicate:
-	  /* If the first character has to match a backreference, that means
-	     that the group was empty (since it already matched).  Since this
-	     is the only case that interests us here, we can assume that the
-	     backreference must match the empty string.  */
-	  p++;
-	  continue;
-
-
-      /* Following are the cases which match a character.  These end
-	 with 'break'.  */
-
-	case exactn:
-	  if (fastmap)
-	    {
-	      /* If multibyte is nonzero, the first byte of each
-		 character is an ASCII or a leading code.  Otherwise,
-		 each byte is a character.  Thus, this works in both
-		 cases. */
-	      fastmap[p[1]] = 1;
-	      if (multibyte)
-		{
-		  /* Cover the case of matching a raw char in a
-		     multibyte regexp against unibyte.	*/
-		  if (CHAR_BYTE8_HEAD_P (p[1]))
-		    fastmap[CHAR_TO_BYTE8 (STRING_CHAR (p + 1))] = 1;
-		}
-	      else
-		{
-		  /* For the case of matching this unibyte regex
-		     against multibyte, we must set a leading code of
-		     the corresponding multibyte character.  */
-		  int c = RE_CHAR_TO_MULTIBYTE (p[1]);
-
-		  fastmap[CHAR_LEADING_CODE (c)] = 1;
-		}
-	    }
-	  break;
-
-
-	case anychar:
-	  /* We could put all the chars except for \n (and maybe \0)
-	     but we don't bother since it is generally not worth it.  */
-	  if (!fastmap) break;
-	  return -1;
-
-
-	case charset_not:
-	  if (!fastmap) break;
-	  {
-	    /* Chars beyond end of bitmap are possible matches.  */
-	    for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
-		 j < (1 << BYTEWIDTH); j++)
-	      fastmap[j] = 1;
-	  }
-	  FALLTHROUGH;
-	case charset:
-	  if (!fastmap) break;
-	  not = (re_opcode_t) *(p - 1) == charset_not;
-	  nbits = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
-	  p++;
-	  for (j = 0; j < nbits; j++)
-	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
-	      fastmap[j] = 1;
-
-	  /* To match raw bytes (in the 80..ff range) against multibyte
-	     strings, add their leading bytes to the fastmap.  */
-	  for (j = 0x80; j < nbits; j++)
-	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
-	      fastmap[CHAR_LEADING_CODE (BYTE8_TO_CHAR (j))] = 1;
-
-	  if (/* Any leading code can possibly start a character
-		 which doesn't match the specified set of characters.  */
-	      not
-	      ||
-	      /* If we can match a character class, we can match any
-		 multibyte characters.  */
-	      (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
-	       && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0))
-
-	    {
-	      if (match_any_multibyte_characters == false)
-		{
-		  for (j = MIN_MULTIBYTE_LEADING_CODE;
-		       j <= MAX_MULTIBYTE_LEADING_CODE; j++)
-		    fastmap[j] = 1;
-		  match_any_multibyte_characters = true;
-		}
-	    }
-
-	  else if (!not && CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
-		   && match_any_multibyte_characters == false)
-	    {
-	      /* Set fastmap[I] to 1 where I is a leading code of each
-		 multibyte character in the range table. */
-	      int c, count;
-	      unsigned char lc1, lc2;
-
-	      /* Make P points the range table.  '+ 2' is to skip flag
-		 bits for a character class.  */
-	      p += CHARSET_BITMAP_SIZE (&p[-2]) + 2;
-
-	      /* Extract the number of ranges in range table into COUNT.  */
-	      EXTRACT_NUMBER_AND_INCR (count, p);
-	      for (; count > 0; count--, p += 3)
-		{
-		  /* Extract the start and end of each range.  */
-		  EXTRACT_CHARACTER (c, p);
-		  lc1 = CHAR_LEADING_CODE (c);
-		  p += 3;
-		  EXTRACT_CHARACTER (c, p);
-		  lc2 = CHAR_LEADING_CODE (c);
-		  for (j = lc1; j <= lc2; j++)
-		    fastmap[j] = 1;
-		}
-	    }
-	  break;
-
-	case syntaxspec:
-	case notsyntaxspec:
-	  if (!fastmap) break;
-	  /* This match depends on text properties.  These end with
-	     aborting optimizations.  */
-	  return -1;
-
-	case categoryspec:
-	case notcategoryspec:
-	  if (!fastmap) break;
-	  not = (re_opcode_t)p[-1] == notcategoryspec;
-	  k = *p++;
-	  for (j = (1 << BYTEWIDTH); j >= 0; j--)
-	    if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
-	      fastmap[j] = 1;
-
-	  /* Any leading code can possibly start a character which
-	     has or doesn't has the specified category.  */
-	  if (match_any_multibyte_characters == false)
-	    {
-	      for (j = MIN_MULTIBYTE_LEADING_CODE;
-		   j <= MAX_MULTIBYTE_LEADING_CODE; j++)
-		fastmap[j] = 1;
-	      match_any_multibyte_characters = true;
-	    }
-	  break;
-
-      /* All cases after this match the empty string.  These end with
-	 'continue'.  */
-
-	case at_dot:
-	case no_op:
-	case begline:
-	case endline:
-	case begbuf:
-	case endbuf:
-	case wordbound:
-	case notwordbound:
-	case wordbeg:
-	case wordend:
-	case symbeg:
-	case symend:
-	  continue;
-
-
-	case jump:
-	  EXTRACT_NUMBER_AND_INCR (j, p);
-	  if (j < 0)
-	    /* Backward jumps can only go back to code that we've already
-	       visited.  're_compile' should make sure this is true.  */
-	    break;
-	  p += j;
-	  switch (*p)
-	    {
-	    case on_failure_jump:
-	    case on_failure_keep_string_jump:
-	    case on_failure_jump_loop:
-	    case on_failure_jump_nastyloop:
-	    case on_failure_jump_smart:
-	      p++;
-	      break;
-	    default:
-	      continue;
-	    };
-	  /* Keep P1 to allow the 'on_failure_jump' we are jumping to
-	     to jump back to "just after here".  */
-	  FALLTHROUGH;
-	case on_failure_jump:
-	case on_failure_keep_string_jump:
-	case on_failure_jump_nastyloop:
-	case on_failure_jump_loop:
-	case on_failure_jump_smart:
-	  EXTRACT_NUMBER_AND_INCR (j, p);
-	  if (p + j <= p1)
-	    ; /* Backward jump to be ignored.  */
-	  else
-	    { /* We have to look down both arms.
-		 We first go down the "straight" path so as to minimize
-		 stack usage when going through alternatives.  */
-	      int r = analyze_first (p, pend, fastmap, multibyte);
-	      if (r) return r;
-	      p += j;
-	    }
-	  continue;
-
-
-	case jump_n:
-	  /* This code simply does not properly handle forward jump_n.  */
-	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p); eassert (j < 0));
-	  p += 4;
-	  /* jump_n can either jump or fall through.  The (backward) jump
-	     case has already been handled, so we only need to look at the
-	     fallthrough case.  */
-	  continue;
-
-	case succeed_n:
-	  /* If N == 0, it should be an on_failure_jump_loop instead.  */
-	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); eassert (j > 0));
-	  p += 4;
-	  /* We only care about one iteration of the loop, so we don't
-	     need to consider the case where this behaves like an
-	     on_failure_jump.  */
-	  continue;
-
-
-	case set_number_at:
-	  p += 4;
-	  continue;
-
-
-	case start_memory:
-	case stop_memory:
-	  p += 1;
-	  continue;
-
-
-	default:
-	  abort (); /* We have listed all the cases.  */
-	} /* switch *p++ */
-
-      /* Getting here means we have found the possible starting
-	 characters for one path of the pattern -- and that the empty
-	 string does not match.  We need not follow this path further.  */
-      return 0;
-    } /* while p */
-
-  /* We reached the end without matching anything.  */
-  return 1;
-
-} /* analyze_first */
 
 /* Compute a fastmap for the compiled pattern in BUFP.
    A fastmap records which of the (1 << BYTEWIDTH) possible
@@ -3122,7 +3305,6 @@ static void
 re_compile_fastmap (struct re_pattern_buffer *bufp)
 {
   char *fastmap = bufp->fastmap;
-  int analysis;
 
   eassert (fastmap && bufp->buffer);
 
@@ -3131,9 +3313,8 @@ re_compile_fastmap (struct re_pattern_buffer *bufp)
   /* FIXME: Is the following assignment correct even when ANALYSIS < 0?  */
   bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
 
-  analysis = analyze_first (bufp->buffer, bufp->buffer + bufp->used,
-			    fastmap, RE_MULTIBYTE_P (bufp));
-  bufp->can_be_null = (analysis != 0);
+  bufp->can_be_null = analyze_first (bufp, bufp->buffer,
+			             bufp->buffer + bufp->used, fastmap);
 } /* re_compile_fastmap */
 
 /* Set REGS to hold NUM_REGS registers, storing them in STARTS and
@@ -3171,7 +3352,7 @@ re_set_registers (struct re_pattern_buffer *bufp, struct re_registers *regs,
 /* Searching routines.  */
 
 /* Like re_search_2, below, but only one string is specified, and
-   doesn't let you say where to stop matching. */
+   doesn't let you say where to stop matching.  */
 
 ptrdiff_t
 re_search (struct re_pattern_buffer *bufp, const char *string, ptrdiff_t size,
@@ -3548,33 +3729,6 @@ skip_one_char (re_char *p)
 }
 
 
-/* Jump over non-matching operations.  */
-static re_char *
-skip_noops (re_char *p, re_char *pend)
-{
-  int mcnt;
-  while (p < pend)
-    {
-      switch (*p)
-	{
-	case start_memory:
-	case stop_memory:
-	  p += 2; break;
-	case no_op:
-	  p += 1; break;
-	case jump:
-	  p += 1;
-	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  p += mcnt;
-	  break;
-	default:
-	  return p;
-	}
-    }
-  eassert (p == pend);
-  return p;
-}
-
 /* Test if C matches charset op.  *PP points to the charset or charset_not
    opcode.  When the function finishes, *PP will be advanced past that opcode.
    C is character to test (possibly after translations) and CORIG is original
@@ -3643,92 +3797,55 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte,
   return not;
 }
 
-/* True if "p1 matches something" implies "p2 fails".  */
+/* Case where `p2` points to an `exactn` or `endline`.  */
 static bool
-mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
-		      re_char *p2)
+mutually_exclusive_exactn (struct re_pattern_buffer *bufp, re_char *p1,
+		           re_char *p2)
 {
-  re_opcode_t op2;
   bool multibyte = RE_MULTIBYTE_P (bufp);
-  unsigned char *pend = bufp->buffer + bufp->used;
-  re_char *p2_orig = p2;
+  int c
+    = (re_opcode_t) *p2 == endline ? '\n'
+      : RE_STRING_CHAR (p2 + 2, multibyte);
 
-  eassert (p1 >= bufp->buffer && p1 < pend
-	   && p2 >= bufp->buffer && p2 <= pend);
-
-  /* Skip over open/close-group commands.
-     If what follows this loop is a ...+ construct,
-     look at what begins its body, since we will have to
-     match at least one of that.  */
-  p2 = skip_noops (p2, pend);
-  /* The same skip can be done for p1, except that this function
-     is only used in the case where p1 is a simple match operator.  */
-  /* p1 = skip_noops (p1, pend); */
-
-  eassert (p1 >= bufp->buffer && p1 < pend
-	   && p2 >= bufp->buffer && p2 <= pend);
-
-  op2 = p2 == pend ? succeed : *p2;
-
-  switch (op2)
+  if ((re_opcode_t) *p1 == exactn)
     {
-    case succeed:
-    case endbuf:
-      /* If we're at the end of the pattern, we can change.  */
-      if (skip_one_char (p1))
+      if (c != RE_STRING_CHAR (p1 + 2, multibyte))
 	{
-	  DEBUG_PRINT ("  End of pattern: fast loop.\n");
+	  DEBUG_PRINT ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
 	  return true;
 	}
-      break;
+    }
 
-    case endline:
-    case exactn:
-      {
-	int c
-	  = (re_opcode_t) *p2 == endline ? '\n'
-	  : RE_STRING_CHAR (p2 + 2, multibyte);
-
-	if ((re_opcode_t) *p1 == exactn)
-	  {
-	    if (c != RE_STRING_CHAR (p1 + 2, multibyte))
-	      {
-		DEBUG_PRINT ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
-		return true;
-	      }
-	  }
-
-	else if ((re_opcode_t) *p1 == charset
-		 || (re_opcode_t) *p1 == charset_not)
-	  {
-	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
-                                  Qnil))
-	      {
-		DEBUG_PRINT ("	 No match => fast loop.\n");
-		return true;
-	      }
-	  }
-	else if ((re_opcode_t) *p1 == anychar
-		 && c == '\n')
-	  {
-	    DEBUG_PRINT ("   . != \\n => fast loop.\n");
-	    return true;
-	  }
-      }
-      break;
-
-    case charset:
-      {
-	if ((re_opcode_t) *p1 == exactn)
-	  /* Reuse the code above.  */
-	  return mutually_exclusive_p (bufp, p2, p1);
-
-      /* It is hard to list up all the character in charset
-	 P2 if it includes multibyte character.  Give up in
-	 such case.  */
-      else if (!multibyte || !CHARSET_RANGE_TABLE_EXISTS_P (p2))
+  else if ((re_opcode_t) *p1 == charset
+	   || (re_opcode_t) *p1 == charset_not)
+    {
+      if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
+                            Qnil))
 	{
-	  /* Now, we are sure that P2 has no range table.
+	  DEBUG_PRINT ("	 No match => fast loop.\n");
+	  return true;
+	}
+    }
+  else if ((re_opcode_t) *p1 == anychar
+	   && c == '\n')
+    {
+      DEBUG_PRINT ("   . != \\n => fast loop.\n");
+      return true;
+    }
+  return false;
+}
+
+/* Case where `p2` points to an `charset`.  */
+static bool
+mutually_exclusive_charset (struct re_pattern_buffer *bufp, re_char *p1,
+		            re_char *p2)
+{
+  /* It is hard to list up all the character in charset
+     P2 if it includes multibyte character.  Give up in
+     such case.  */
+  if (!RE_MULTIBYTE_P (bufp) || !CHARSET_RANGE_TABLE_EXISTS_P (p2))
+    {
+      /* Now, we are sure that P2 has no range table.
 	     So, for the size of bitmap in P2, 'p2[1]' is
 	     enough.  But P1 may have range table, so the
 	     size of bitmap table of P1 is extracted by
@@ -3739,113 +3856,154 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 	     bitmap table.  So, in both cases, it is enough to test
 	     only the bitmap table of P1.  */
 
-	  if ((re_opcode_t) *p1 == charset)
-	    {
-	      int idx;
-	      /* We win if the charset inside the loop
+      if ((re_opcode_t) *p1 == charset)
+	{
+	  int idx;
+	  /* We win if the charset inside the loop
 		 has no overlap with the one after the loop.  */
-	      for (idx = 0;
-		   (idx < (int) p2[1]
-		    && idx < CHARSET_BITMAP_SIZE (p1));
-		   idx++)
-		if ((p2[2 + idx] & p1[2 + idx]) != 0)
-		  break;
+	  for (idx = 0;
+		(idx < (int) p2[1]
+		 && idx < CHARSET_BITMAP_SIZE (p1));
+		idx++)
+	    if ((p2[2 + idx] & p1[2 + idx]) != 0)
+	      break;
 
-	      if (idx == p2[1]
-		  || idx == CHARSET_BITMAP_SIZE (p1))
-		{
-		  DEBUG_PRINT ("	 No match => fast loop.\n");
-		  return true;
-		}
-	    }
-	  else if ((re_opcode_t) *p1 == charset_not)
+	  if (idx == p2[1]
+	      || idx == CHARSET_BITMAP_SIZE (p1))
 	    {
-	      int idx;
-	      /* We win if the charset_not inside the loop lists
+	      DEBUG_PRINT ("	 No match => fast loop.\n");
+	      return true;
+	    }
+	}
+      else if ((re_opcode_t) *p1 == charset_not)
+	{
+	  int idx;
+	  /* We win if the charset_not inside the loop lists
 		 every character listed in the charset after.  */
-	      for (idx = 0; idx < (int) p2[1]; idx++)
-		if (! (p2[2 + idx] == 0
-		       || (idx < CHARSET_BITMAP_SIZE (p1)
-			   && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
-		  break;
+	  for (idx = 0; idx < (int) p2[1]; idx++)
+	    if (! (p2[2 + idx] == 0
+		   || (idx < CHARSET_BITMAP_SIZE (p1)
+		       && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
+	      break;
 
-	      if (idx == p2[1])
-		{
-		  DEBUG_PRINT ("	 No match => fast loop.\n");
-		  return true;
-		}
-	      }
-	  }
+	  if (idx == p2[1])
+	    {
+	      DEBUG_PRINT ("	 No match => fast loop.\n");
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+struct mutexcl_data {
+  struct re_pattern_buffer *bufp;
+  re_char *p1;
+  bool unconstrained;
+};
+
+static bool
+mutually_exclusive_one (re_char *p2, void *arg)
+{
+  struct mutexcl_data *data = arg;
+  switch (*p2)
+    {
+    case succeed:
+      /* If `p1` matches, `succeed` can still match, so we should return
+         `false`.  *BUT* when N iterations of `p1` and N+1 iterations of `p1`
+         match, the `succeed` that comes after N+1 always takes precedence
+         over the one after N because we always prefer a longer match, so
+         the succeed after N can actually be replaced by a "fail" without
+         changing the end result.
+         In this sense, "if `p1` matches, `succeed` can't match".
+         So we can return `true`.
+         *BUT* this only holds if we're sure that the N+1 will indeed succeed,
+         so we need to make sure there is no other matching operator between
+         the exit of the iteration and the `succeed`.  */
+      return data->unconstrained;
+
+/* Remember that there may be an empty matching operator on the way.
+   If we return true, this is the "end" of this control flow path,
+   so it can't get in the way of a subsequent `succeed.  */
+#define RETURN_CONSTRAIN(v)        \
+  { bool tmp = (v);                \
+    if (!tmp)                      \
+      data->unconstrained = false; \
+    return tmp;                    \
+  }
+
+    case endline:
+      RETURN_CONSTRAIN (mutually_exclusive_exactn (data->bufp, data->p1, p2));
+    case exactn:
+      return mutually_exclusive_exactn (data->bufp, data->p1, p2);
+    case charset:
+      {
+	if (*data->p1 == exactn)
+	  return mutually_exclusive_exactn (data->bufp, p2, data->p1);
+	else
+	  return mutually_exclusive_charset (data->bufp, data->p1, p2);
       }
-      break;
 
     case charset_not:
-      switch (*p1)
+      switch (*data->p1)
 	{
 	case exactn:
+	  return mutually_exclusive_exactn (data->bufp, p2, data->p1);
 	case charset:
-	  /* Reuse the code above.  */
-	  return mutually_exclusive_p (bufp, p2, p1);
+	  return mutually_exclusive_charset (data->bufp, p2, data->p1);
 	case charset_not:
 	  /* When we have two charset_not, it's very unlikely that
 	     they don't overlap.  The union of the two sets of excluded
 	     chars should cover all possible chars, which, as a matter of
 	     fact, is virtually impossible in multibyte buffers.  */
-	  break;
+	  return false;
 	}
-      break;
-
-    case wordend:
-      return ((re_opcode_t) *p1 == syntaxspec && p1[1] == Sword);
-    case symend:
-      return ((re_opcode_t) *p1 == syntaxspec
-              && (p1[1] == Ssymbol || p1[1] == Sword));
-    case notsyntaxspec:
-      return ((re_opcode_t) *p1 == syntaxspec && p1[1] == p2[1]);
-
-    case wordbeg:
-      return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == Sword);
-    case symbeg:
-      return ((re_opcode_t) *p1 == notsyntaxspec
-              && (p1[1] == Ssymbol || p1[1] == Sword));
+      return false;
+    case anychar:
+      return false;             /* FIXME: exactn \n ? */
     case syntaxspec:
-      return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == p2[1]);
-
-    case wordbound:
-      return (((re_opcode_t) *p1 == notsyntaxspec
-	       || (re_opcode_t) *p1 == syntaxspec)
-	      && p1[1] == Sword);
-
+      return (*data->p1 == notsyntaxspec && data->p1[1] == p2[1]);
+    case notsyntaxspec:
+      return (*data->p1 == syntaxspec && data->p1[1] == p2[1]);
     case categoryspec:
-      return ((re_opcode_t) *p1 == notcategoryspec && p1[1] == p2[1]);
+      return (*data->p1 == notcategoryspec && data->p1[1] == p2[1]);
     case notcategoryspec:
-      return ((re_opcode_t) *p1 == categoryspec && p1[1] == p2[1]);
+      return (*data->p1 == categoryspec && data->p1[1] == p2[1]);
 
-    case on_failure_jump_nastyloop:
-    case on_failure_jump_smart:
-    case on_failure_jump_loop:
-    case on_failure_keep_string_jump:
-    case on_failure_jump:
-      {
-        int mcnt;
-	p2++;
-	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
-	/* Don't just test `mcnt > 0` because non-greedy loops have
-	   their test at the end with an unconditional jump at the start.  */
-	if (p2 + mcnt > p2_orig) /* Ensure forward progress.  */
-	  return (mutually_exclusive_p (bufp, p1, p2)
-		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
-	break;
-      }
+    case endbuf:
+      return true;
+    case wordbeg:
+      RETURN_CONSTRAIN (*data->p1 == notsyntaxspec && data->p1[1] == Sword);
+    case wordend:
+      RETURN_CONSTRAIN (*data->p1 == syntaxspec && data->p1[1] == Sword);
+    case symbeg:
+      RETURN_CONSTRAIN (*data->p1 == notsyntaxspec
+                        && (data->p1[1] == Ssymbol || data->p1[1] == Sword));
+    case symend:
+      RETURN_CONSTRAIN (*data->p1 == syntaxspec
+                        && (data->p1[1] == Ssymbol || data->p1[1] == Sword));
+
+    case duplicate:
+      /* At this point, we know nothing about what this can match, sadly.  */
+      return false;
 
     default:
-      ;
+#if ENABLE_CHECKING
+      abort (); /* We have listed all the cases.  */
+#endif
+      return false;
     }
-
-  /* Safe default.  */
-  return false;
 }
 
+/* True if "p1 matches something" implies "p2 fails".  */
+
+static bool
+mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
+		      re_char *p2)
+{
+  struct mutexcl_data data = { bufp, p1, true };
+  return forall_firstchar (bufp, p2, NULL, mutually_exclusive_one, &data);
+}
 
 /* Matching routines.  */
 
@@ -3973,6 +4131,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   /* This keeps track of how many buffer/string positions we examined.  */
   ptrdiff_t nchars = 0;
+
+  /* Final return value of the function.  */
+  ptrdiff_t retval = -1;        /* Presumes failure to match for now.  */
 
 #ifdef DEBUG_COMPILES_ARGUMENTS
   /* Counts the total number of registers pushed.  */
@@ -4228,15 +4389,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	  DEBUG_PRINT ("Returning %td from re_match_2.\n", dcnt);
 
-	  unbind_to (count, Qnil);
-	  SAFE_FREE ();
-	  /* The factor of 50 below is a heuristic that needs to be tuned.  It
-	     means we consider 50 buffer positions examined by this function
-	     roughly equivalent to the display engine iterating over a single
-	     buffer position.  */
-	  if (max_redisplay_ticks > 0 && nchars > 0)
-	    update_redisplay_ticks (nchars / 50 + 1, NULL);
-	  return dcnt;
+	  retval = dcnt;
+	  goto endof_re_match;
 	}
 
       /* Otherwise match next pattern command.  */
@@ -4729,7 +4883,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 
 	/* Have to succeed matching what follows at least n times.
-	   After that, handle like 'on_failure_jump'.  */
+	   After that, handle like 'on_failure_jump_loop'.  */
 	case succeed_n:
 	  /* Signedness doesn't matter since we only compare MCNT to 0.  */
 	  EXTRACT_NUMBER (mcnt, p + 2);
@@ -5077,8 +5231,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    case succeed_n:
 	      d = str;
 	    continue_failure_jump:
-	      EXTRACT_NUMBER_AND_INCR (mcnt, pat);
-	      p = pat + mcnt;
+	      p = extract_address (pat);
 	      break;
 
 	    case no_op:
@@ -5101,13 +5254,18 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   if (best_regs_set)
     goto restore_best_regs;
 
+endof_re_match:
   unbind_to (count, Qnil);
   SAFE_FREE ();
 
+  /* The factor of 50 below is a heuristic that needs to be tuned.
+     It means we consider 50 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
   if (max_redisplay_ticks > 0 && nchars > 0)
     update_redisplay_ticks (nchars / 50 + 1, NULL);
 
-  return -1;				/* Failure to match.  */
+  return retval;
 }
 
 /* Subroutine definitions for re_match_2.  */

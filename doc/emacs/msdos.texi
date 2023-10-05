@@ -412,10 +412,10 @@ this option can be one of the following symbols:
 @itemx nil
 Emulate @sc{gnu} systems; this is the default.  This sets
 @code{ls-lisp-ignore-case} and @code{ls-lisp-dirs-first} to
-@code{nil}, and @code{ls-lisp-verbosity} to @code{(links uid gid)}.
+@code{nil}, and @code{ls-lisp-verbosity} to @code{(links uid gid modes)}.
 @item UNIX
 Emulate Unix systems.  Like @code{GNU}, but sets
-@code{ls-lisp-verbosity} to @code{(links uid)}.
+@code{ls-lisp-verbosity} to @code{(links uid modes)}.
 @item MacOS
 Emulate macOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
 @code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.

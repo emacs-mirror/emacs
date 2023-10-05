@@ -747,16 +747,14 @@ default is system dependent and determined by the function
 `message-send-mail-function'.
 
 See also `send-mail-function'."
-  :type '(radio (function-item message--default-send-mail-function
-		               :tag "Use send-mail-function")
+  :type '(radio (function-item message--default-send-mail-function)
 		(function-item message-send-mail-with-sendmail)
 		(function-item message-send-mail-with-mh)
 		(function-item message-send-mail-with-qmail)
 		(function-item message-smtpmail-send-it)
-		(function-item smtpmail-send-it)
+                (function-item :doc "Use SMTPmail package." smtpmail-send-it)
 		(function-item feedmail-send-it)
-		(function-item message-send-mail-with-mailclient
-			       :tag "Use Mailclient package")
+                (function-item message-send-mail-with-mailclient)
  		(function :tag "Other"))
   :group 'message-sending
   :version "27.1"
@@ -911,8 +909,10 @@ installations, which are rare these days."
 (defcustom message-sendmail-envelope-from
   'obey-mail-envelope-from
   "Envelope-from when sending mail with sendmail.
-If this is nil, use `user-mail-address'.  If it is the symbol
-`header', use the From: header of the message."
+If this is `obey-mail-envelope-from', then use
+`mail-envelope-from' to decide what to do.  If it is nil, use
+`user-mail-address'.  If it is the symbol `header', use the
+\"From:\" header of the message."
   :version "27.1"
   :type '(choice (string :tag "From name")
 		 (const :tag "Use From: header from message" header)
@@ -2838,11 +2838,11 @@ will not be inserted."
 			(const :tag "No ID" nil))
 		(choice (string :tag "Key")
 			(const :tag "No Key" nil))
-		(choice (other :tag "None" nil)
-			(const :tag "Unprotected" "unprotected")
+                (choice (const :tag "Unprotected" "unprotected")
 			(const :tag "Sign" "sign")
 			(const :tag "Encrypt" "encrypt")
-			(const :tag "Sign and Encrypt" "signencrypt"))))
+                        (const :tag "Sign and Encrypt" "signencrypt")
+                        (other :tag "None" nil))))
   :version "28.1")
 
 (defun message-add-openpgp-header ()
@@ -6593,8 +6593,8 @@ they are."
     (widen)
     (forward-line 1)
     (unless (looking-at "$")
-      (forward-line 2)))
-   (sit-for 0)))
+      (forward-line 2))))
+  (sit-for 0))
 
 (defcustom message-beginning-of-line t
   "Whether \\<message-mode-map>\\[message-beginning-of-line]\
@@ -8208,7 +8208,6 @@ which specify the range to operate on."
 It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `message-mode-map'."
-  :type '(repeat gmm-tool-bar-list-item)
   :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
   :version "29.1"

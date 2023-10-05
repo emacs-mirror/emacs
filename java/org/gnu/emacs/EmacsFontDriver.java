@@ -63,6 +63,11 @@ public abstract class EmacsFontDriver
   public static final int MONO		= 100;
   public static final int CHARCELL	= 110;
 
+  /* Special glyph codes.  */
+  public static final int FONT_INVALID_CODE = 0xFFFFFFFF;
+
+
+
   public static class FontSpec
   {
     /* The fields below mean the same as they do in enum
@@ -148,15 +153,17 @@ public abstract class EmacsFontDriver
     }
   };
 
+
+
   /* These mean the same as they do in struct font_driver.  */
   public abstract FontEntity[] list (FontSpec fontSpec);
   public abstract FontEntity match (FontSpec fontSpec);
   public abstract String[] listFamilies ();
   public abstract FontObject openFont (FontEntity fontEntity, int pixelSize);
-  public abstract int hasChar (FontSpec font, char charCode);
+  public abstract int hasChar (FontSpec font, int charCode);
   public abstract void textExtents (FontObject font, int code[],
 				    FontMetrics fontMetrics);
-  public abstract int encodeChar (FontObject fontObject, char charCode);
+  public abstract int encodeChar (FontObject fontObject, int charCode);
   public abstract int draw (FontObject fontObject, EmacsGC gc,
 			    EmacsDrawable drawable, int[] chars,
 			    int x, int y, int backgroundWidth,

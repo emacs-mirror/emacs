@@ -1289,6 +1289,8 @@ examples):
 @item sexp
 A single unevaluated Lisp object, which is not instrumented.
 @c an "expression" is not necessarily intended for evaluation.
+If the macro evaluates an argument at macro-expansion time, you should
+use @code{sexp} for it rather than @code{form}.
 
 @item form
 A single evaluated expression, which is instrumented.  If your macro

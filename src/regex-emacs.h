@@ -195,4 +195,8 @@ extern bool re_iswctype (int ch, re_wctype_t cc);
 extern re_wctype_t re_wctype_parse (const unsigned char **strp,
 				    ptrdiff_t limit);
 
+#if ENABLE_CHECKING
+extern void print_compiled_pattern (FILE *dest, struct re_pattern_buffer *bufp);
+#endif
+
 #endif /* EMACS_REGEX_H */
