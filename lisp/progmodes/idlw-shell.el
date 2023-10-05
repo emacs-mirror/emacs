@@ -1454,9 +1454,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 			 (concat idlwave-shell-accumulation string)))
 		    (setq idlwave-shell-accumulation
 			  (substring string
-				     (progn (string-match "\\(.*[\n\r]+\\)*"
-							  string)
-					    (match-end 0)))))
+				     (string-match "[^\n\r]*\\'" string))))
 		(setq idlwave-shell-accumulation
 		      (concat idlwave-shell-accumulation string)))
 
