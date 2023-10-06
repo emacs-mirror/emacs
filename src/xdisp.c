@@ -35537,6 +35537,16 @@ note_mouse_highlight (struct frame *f, int x, int y)
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_MENU_BAR)
+  /* Handle menu-bar window differently since it doesn't display a
+     buffer.  */
+  if (EQ (window, f->menu_bar_window))
+    {
+      cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
+      goto set_cursor;
+    }
+#endif
+
 #if defined (HAVE_WINDOW_SYSTEM)
   /* Handle tab-bar window differently since it doesn't display a
      buffer.  */
