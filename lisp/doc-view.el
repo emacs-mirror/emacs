@@ -2092,35 +2092,35 @@ GOTO-PAGE-FN other than `doc-view-goto-page'."
 (defun doc-view-set-doc-type ()
   "Figure out the current document type (`doc-view-doc-type')."
   (let ((name-types
-	 (when buffer-file-name
-	   (cdr (assoc-string
-                 (file-name-extension buffer-file-name)
-                 '(
-                   ;; DVI
-                   ("dvi" dvi)
-                   ;; PDF
-                   ("pdf" pdf) ("epdf" pdf)
-                   ;; EPUB
-                   ("epub" epub)
-                   ;; PostScript
-                   ("ps" ps) ("eps" ps)
-                   ;; DjVu
-                   ("djvu" djvu)
-                   ;; OpenDocument formats.
-                   ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
-                   ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
-                   ("ots" odf) ("otp" odf) ("otg" odf)
-                   ;; Microsoft Office formats (also handled by the odf
-                   ;; conversion chain).
-                   ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf)
-                   ;; CBZ
-                   ("cbz" cbz)
-                   ;; FB2
-                   ("fb2" fb2)
-                   ;; (Open)XPS
-                   ("xps" xps) ("oxps" oxps))
-		 t))))
+         (cdr (assoc-string
+               (file-name-extension
+                (or buffer-file-name (buffer-name (current-buffer))))
+               '(
+                 ;; DVI
+                 ("dvi" dvi)
+                 ;; PDF
+                 ("pdf" pdf) ("epdf" pdf)
+                 ;; EPUB
+                 ("epub" epub)
+                 ;; PostScript
+                 ("ps" ps) ("eps" ps)
+                 ;; DjVu
+                 ("djvu" djvu)
+                 ;; OpenDocument formats.
+                 ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
+                 ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
+                 ("ots" odf) ("otp" odf) ("otg" odf)
+                 ;; Microsoft Office formats (also handled by the odf
+                 ;; conversion chain).
+                 ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
+                 ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf)
+                 ;; CBZ
+                 ("cbz" cbz)
+                 ;; FB2
+                 ("fb2" fb2)
+                 ;; (Open)XPS
+                 ("xps" xps) ("oxps" oxps))
+               t)))
 	(content-types
 	 (save-excursion
 	   (goto-char (point-min))
