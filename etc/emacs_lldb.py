@@ -122,19 +122,21 @@ class Lisp_Object:
         if self.lisp_type == "Lisp_Symbol":
             offset = self.get_lisp_pointer("char").GetValueAsUnsigned()
             self.value = self.eval(f"(struct Lisp_Symbol *)"
-                                   f" ((char *) &lispsym + {offset})")
+                                   f" ((char *) &lispsym + {offset})",
+                                   True)
         elif self.lisp_type == "Lisp_String":
-            self.value = self.get_lisp_pointer("struct Lisp_String")
+            self.value = self.get_lisp_pointer("struct Lisp_String", True)
         elif self.lisp_type == "Lisp_Vectorlike":
             c_type = Lisp_Object.pvec2type[self.pvec_type]
-            self.value = self.get_lisp_pointer(c_type)
+            self.value = self.get_lisp_pointer(c_type, True)
         elif self.lisp_type == "Lisp_Cons":
-            self.value = self.get_lisp_pointer("struct Lisp_Cons")
+            self.value = self.get_lisp_pointer("struct Lisp_Cons", True)
         elif self.lisp_type == "Lisp_Float":
-            self.value = self.get_lisp_pointer("struct Lisp_Float")
+            self.value = self.get_lisp_pointer("struct Lisp_Float", True)
         elif self.lisp_type in ("Lisp_Int0", "Lisp_Int1"):
             self.value = self.eval(f"((EMACS_INT) {self.unsigned}) "
-                                   f">> (GCTYPEBITS - 1)")
+                                   f">> (GCTYPEBITS - 1)",
+                                   True)
         else:
             assert False, "Unknown Lisp type"
 
@@ -143,14 +145,19 @@ class Lisp_Object:
         return self.lisp_obj.CreateValueFromExpression(name, expr)
 
     # Evaluate EXPR in the context of the current frame.
-    def eval(self, expr):
-        return self.frame.EvaluateExpression(expr)
+    def eval(self, expr, make_var=False):
+        if make_var:
+            return self.frame.EvaluateExpression(expr)
+        options = lldb.SBExpressionOptions()
+        options.SetSuppressPersistentResult(True)
+        return self.frame.EvaluateExpression(expr, options)
 
     # Return an SBValue for this object denoting a pointer of type
     # TYP*.
-    def get_lisp_pointer(self, typ):
+    def get_lisp_pointer(self, typ, make_var=False):
         return self.eval(f"({typ}*) (((EMACS_INT) "
-                         f"{self.unsigned}) & VALMASK)")
+                         f"{self.unsigned}) & VALMASK)",
+                         make_var)
 
     # If this is a Lisp_String, return an SBValue for its string data.
     # Return None otherwise.
