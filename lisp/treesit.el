@@ -922,12 +922,22 @@ name, it is ignored."
           ;; that following queries will apply to.
           current-language current-override
           current-feature
+          ;; DEFAULT-LANGUAGE will be chosen when current-language is
+          ;; not set.
+          default-language
           ;; The list this function returns.
           (result nil))
       (while query-specs
         (let ((token (pop query-specs)))
           (pcase token
             ;; (1) Process keywords.
+            (:default-language
+             (let ((lang (pop query-specs)))
+               (when (or (not (symbolp lang)) (null lang))
+                 (signal 'treesit-font-lock-error
+                         `("Value of :default-language should be a symbol"
+                           ,lang)))
+               (setq default-language lang)))
             (:language
              (let ((lang (pop query-specs)))
                (when (or (not (symbolp lang)) (null lang))
@@ -955,23 +965,24 @@ name, it is ignored."
                (setq current-feature var)))
             ;; (2) Process query.
             ((pred treesit-query-p)
-             (when (null current-language)
-               (signal 'treesit-font-lock-error
-                       `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
-             (when (null current-feature)
-               (signal 'treesit-font-lock-error
-                       `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
-             (if (treesit-compiled-query-p token)
-                 (push `(,current-language token) result)
-               (push `(,(treesit-query-compile current-language token)
-                       t
-                       ,current-feature
-                       ,current-override)
-                     result))
-             ;; Clears any configurations set for this query.
-             (setq current-language nil
-                   current-override nil
-                   current-feature nil))
+             (let ((lang (or default-language current-language)))
+               (when (null lang)
+                 (signal 'treesit-font-lock-error
+                         `("Language unspecified, use :language keyword or :default-language to specify a language for this query" ,token)))
+               (when (null current-feature)
+                 (signal 'treesit-font-lock-error
+                         `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
+               (if (treesit-compiled-query-p token)
+                   (push `(,lang token) result)
+                 (push `(,(treesit-query-compile lang token)
+                         t
+                         ,current-feature
+                         ,current-override)
+                       result))
+               ;; Clears any configurations set for this query.
+               (setq current-language nil
+                     current-override nil
+                     current-feature nil)))
             (_ (signal 'treesit-font-lock-error
                        `("Unexpected value" ,token))))))
       (nreverse result))))
