@@ -1508,8 +1508,8 @@ Removes badly formatted data and ignored directories."
   (add-hook 'minibuffer-setup-hook #'ido-minibuffer-setup)
   (add-hook 'choose-completion-string-functions #'ido-choose-completion-string))
 
-(defun ido--ffap-find-file (file)
-  (find-file file))
+(defun ido--ffap-find-file (file &optional wildcard)
+  (find-file file wildcard))
 
 (define-minor-mode ido-everywhere
   "Toggle use of Ido for all buffer/file reading."
