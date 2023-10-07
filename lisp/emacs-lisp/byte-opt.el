@@ -566,7 +566,7 @@ for speeding up processing.")
             `(internal-make-closure ,vars ,env . ,rest)
             (let def nil)))
        `(,fn
-         ,vars ,(byte-optimize--rename-var-body var new-var env) 
+         ,vars ,(byte-optimize--rename-var-body var new-var env)
          ,@(if def `(,def))
          . ,rest))
       (`(defvar ,name . ,rest)

@@ -466,7 +466,7 @@ The return value is undefined.
                      (list 'quote name)
                      (list 'function
                            (cons 'lambda
-                                 (cons 
+                                 (cons
                                   (bare-symbol name)
                                   (cons arglist body)
                                   ))))))

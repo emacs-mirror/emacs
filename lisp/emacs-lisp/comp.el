@@ -1356,7 +1356,7 @@ clashes."
             (let ((arg-list (aref (comp-func-byte-func func) 0)))
               (setf (comp-func-l-args func)
                     (comp-decrypt-arg-list arg-list function-name)))
-          (setf (comp-func-d-lambda-list func) (cadr f)))
+          (setf (comp-func-d-lambda-list func) (lambda-arglist f)))
         (setf (comp-func-lap func)
               lap
               (comp-func-frame-size func)

@@ -1759,7 +1759,6 @@ It is too wide if it has any lines longer than the largest of
                             docstring)))))
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
-      (setq name (if name (format " `%s' " name) ""))
       (when (and kind docs (stringp docs))
         (let ((col (max byte-compile-docstring-max-column fill-column)))
           (when (byte-compile--wide-docstring-p docs col)
