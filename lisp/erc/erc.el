@@ -2004,6 +2004,14 @@ buffer rather than a server buffer.")
   ;; each item is in the format '(old . new)
   (delete-dups (mapcar #'erc--normalize-module-symbol mods)))
 
+(defun erc--sort-modules (modules)
+  "Return a copy of MODULES, deduped and led by sorted built-ins."
+  (let (built-in third-party)
+    (dolist (mod modules)
+      (setq mod (erc--normalize-module-symbol mod))
+      (cl-pushnew mod (if (get mod 'erc--module) built-in third-party)))
+    `(,@(sort built-in #'string-lessp) ,@(nreverse third-party))))
+
 (defcustom erc-modules '( autojoin button completion fill imenu irccontrols
                           list match menu move-to-prompt netsplit
                           networks noncommands readonly ring stamp track)
@@ -2039,16 +2047,10 @@ removed from the list will be disabled."
                                           (when (symbol-value f)
                                             (funcall f 0))
                                           (kill-local-variable f)))))))))
-         (let (built-in third-party)
-           (dolist (v val)
-             (setq v (erc--normalize-module-symbol v))
-             (if (get v 'erc--module)
-                 (push v built-in)
-               (push v third-party)))
-           ;; Calling `set-default-toplevel-value' complicates testing
-           (set sym (append (sort built-in #'string-lessp)
-                            (nreverse third-party))))
+         ;; Calling `set-default-toplevel-value' complicates testing.
+         (set sym (erc--sort-modules val))
          ;; this test is for the case where erc hasn't been loaded yet
+         ;; FIXME explain how this ^ can occur or remove comment.
          (when (fboundp 'erc-update-modules)
            (unless erc--inside-mode-toggle-p
              (erc-update-modules))))
@@ -2112,15 +2114,29 @@ removed from the list will be disabled."
 (defun erc-update-modules ()
   "Enable minor mode for every module in `erc-modules'.
 Except ignore all local modules, which were introduced in ERC 5.5."
-  (erc--update-modules)
+  (erc--update-modules erc-modules)
   nil)
+
+(defvar erc--aberrant-modules nil
+  "Modules suspected of being improperly loaded.")
+
+(defun erc--warn-about-aberrant-modules ()
+  (when (and erc--aberrant-modules (not erc--target))
+    (erc-button--display-error-notice-with-keys-and-warn
+     "The following modules exhibited strange loading behavior: "
+     (mapconcat (lambda (s) (format "`%s'" s)) erc--aberrant-modules ", ")
+     ". Please contact ERC with \\[erc-bug] if you believe this to be untrue."
+     " See Info:\"(erc) Module Loading\" for more.")
+    (setq erc--aberrant-modules nil)))
 
 (defun erc--find-mode (sym)
   (setq sym (erc--normalize-module-symbol sym))
-  (if-let* ((mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
-            ((or (boundp mode)
-                 (and (fboundp mode)
-                      (autoload-do-load (symbol-function mode) mode)))))
+  (if-let ((mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
+           ((and (fboundp mode)
+                 (autoload-do-load (symbol-function mode) mode)))
+           ((or (get sym 'erc--module)
+                (symbol-file mode)
+                (ignore (cl-pushnew sym erc--aberrant-modules)))))
       mode
     (and (require (or (get sym 'erc--feature)
                       (intern (concat "erc-" (symbol-name sym))))
@@ -2129,9 +2145,9 @@ Except ignore all local modules, which were introduced in ERC 5.5."
          (fboundp mode)
          mode)))
 
-(defun erc--update-modules ()
+(defun erc--update-modules (modules)
   (let (local-modes)
-    (dolist (module erc-modules local-modes)
+    (dolist (module modules local-modes)
       (if-let ((mode (erc--find-mode module)))
           (if (custom-variable-p mode)
               (funcall mode 1)
@@ -2158,7 +2174,7 @@ realizes it's missing some required module \"foo\", it can
 confidently call (erc-foo-mode 1) without having to learn
 anything about the dependency's implementation.")
 
-(defvar erc--setup-buffer-hook nil
+(defvar erc--setup-buffer-hook '(erc--warn-about-aberrant-modules)
   "Internal hook for module setup involving windows and frames.")
 
 (defvar erc--display-context nil
@@ -2315,7 +2331,8 @@ Returns the buffer for the given server or channel."
     (setq old-point (point))
     (setq delayed-modules
           (erc--merge-local-modes (let ((erc--updating-modules-p t))
-                                    (erc--update-modules))
+                                    (erc--update-modules
+                                     (erc--sort-modules erc-modules)))
                                   (or erc--server-reconnecting
                                       erc--target-priors)))
 

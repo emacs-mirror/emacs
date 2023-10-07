@@ -2293,65 +2293,130 @@
   (should (eq (erc--find-group 'smiley nil) 'erc))
   (should (eq (erc--find-group 'unmorse nil) 'erc)))
 
-(ert-deftest erc--update-modules ()
-  (let (calls
-        erc-modules
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+(ert-deftest erc--sort-modules ()
+  (should (equal (erc--sort-modules '(networks foo fill bar fill stamp bar))
+                 ;; Third-party mods appear in original order.
+                 '(fill networks stamp foo bar))))
 
-    ;; This `lbaz' module is unknown, so ERC looks for it via the
-    ;; symbol proerty `erc--feature' and, failing that, by
-    ;; `require'ing its "erc-" prefixed symbol.
-    (should-not (intern-soft "erc-lbaz-mode"))
+(defun erc-tests--update-modules (fn)
+  (let* ((calls nil)
+         (custom-modes nil)
+         (on-load nil)
+
+         (get-calls (lambda () (prog1 (nreverse calls) (setq calls nil))))
+
+         (add-onload (lambda (m k v)
+                       (put (intern m) 'erc--feature k)
+                       (push (cons k (lambda () (funcall v m))) on-load)))
+
+         (mk-cmd (lambda (module)
+                   (let ((mode (intern (format "erc-%s-mode" module))))
+                     (fset mode (lambda (n) (push (cons mode n) calls))))))
+
+         (mk-builtin (lambda (module-string)
+                       (let ((s (intern module-string)))
+                         (put s 'erc--module s))))
+
+         (mk-global (lambda (module)
+                      (push (intern (format "erc-%s-mode" module))
+                            custom-modes))))
 
     (cl-letf (((symbol-function 'require)
                (lambda (s &rest _)
-                 (when (eq s 'erc--lbaz-feature)
-                   (fset (intern "erc-lbaz-mode") ; local module
-                         (lambda (n) (push (cons 'lbaz n) calls))))
-                 (push s calls)))
+                 ;; Simulate library being loaded, things defined.
+                 (when-let ((h (alist-get s on-load))) (funcall h))
+                 (push (cons 'req s) calls)))
 
-              ;; Local modules
-              ((symbol-function 'erc-lbar-mode)
-               (lambda (n) (push (cons 'lbar n) calls)))
-              ((get 'lbaz 'erc--feature) 'erc--lbaz-feature)
+              ;; Spoof global module detection.
+              ((symbol-function 'custom-variable-p)
+               (lambda (v) (memq v custom-modes))))
 
-              ;; Global modules
-              ((symbol-function 'erc-gfoo-mode)
-               (lambda (n) (push (cons 'gfoo n) calls)))
-              ((get 'erc-gfoo-mode 'standard-value) 'ignore)
+      (funcall fn get-calls add-onload mk-cmd mk-builtin mk-global))
+    (should-not erc--aberrant-modules)))
+
+(ert-deftest erc--update-modules/unknown ()
+  (erc-tests--update-modules
+
+   (lambda (get-calls _ mk-cmd _ mk-global)
+
+     (ert-info ("Baseline")
+       (let* ((erc-modules '(foo))
+              (obarray (obarray-make))
+              (err (should-error (erc--update-modules erc-modules))))
+         (should (equal (cadr err) "`foo' is not a known ERC module"))
+         (should (equal (funcall get-calls)
+                        `((req . ,(intern-soft "erc-foo")))))))
+
+     ;; Module's mode command exists but lacks an associated file.
+     (ert-info ("Bad autoload flagged as suspect")
+       (should-not erc--aberrant-modules)
+       (let* ((erc--aberrant-modules nil)
+              (obarray (obarray-make))
+              (erc-modules (list (intern "foo"))))
+
+         ;; Create a mode activation command.
+         (funcall mk-cmd "foo")
+
+         ;; Make the mode var global.
+         (funcall mk-global "foo")
+
+         ;; No local modules to return.
+         (should-not (erc--update-modules erc-modules))
+         (should (equal (mapcar #'prin1-to-string erc--aberrant-modules)
+                        '("foo")))
+         ;; ERC requires the library via prefixed module name.
+         (should (equal (mapcar #'prin1-to-string (funcall get-calls))
+                        `("(req . erc-foo)" "(erc-foo-mode . 1)"))))))))
+
+;; A local module (here, `lo2') lacks a mode toggle, so ERC tries to
+;; load its defining library, first via the symbol property
+;; `erc--feature', and then via an "erc-" prefixed symbol.
+(ert-deftest erc--update-modules/local ()
+  (erc-tests--update-modules
+
+   (lambda (get-calls add-onload mk-cmd mk-builtin mk-global)
+
+     (let* ((obarray (obarray-make 20))
+            (erc-modules (mapcar #'intern '("glo" "lo1" "lo2"))))
+
+       ;; Create a global and a local module.
+       (mapc mk-cmd '("glo" "lo1"))
+       (mapc mk-builtin '("glo" "lo1"))
+       (funcall mk-global "glo")
+       (funcall add-onload "lo2" 'explicit-feature-lib mk-cmd)
+
+       ;; Returns local modules.
+       (should (equal (mapcar #'symbol-name (erc--update-modules erc-modules))
+                      '("erc-lo2-mode" "erc-lo1-mode")))
+
+       ;; Requiring `erc-lo2' defines `erc-lo2-mode'.
+       (should (equal (mapcar #'prin1-to-string (funcall get-calls))
+                      `("(erc-glo-mode . 1)"
+                        "(req . explicit-feature-lib)")))))))
+
+(ert-deftest erc--update-modules/realistic ()
+  (let ((calls nil)
+        ;; Module `pcomplete' "resolves" to `completion'.
+        (erc-modules '(pcomplete autojoin networks)))
+    (cl-letf (((symbol-function 'require)
+               (lambda (s &rest _) (push (cons 'req s) calls)))
+
+              ;; Spoof global module detection.
+              ((symbol-function 'custom-variable-p)
+               (lambda (v)
+                 (memq v '(erc-autojoin-mode erc-networks-mode
+                                             erc-completion-mode))))
+              ;; Mock and spy real builtins.
               ((symbol-function 'erc-autojoin-mode)
                (lambda (n) (push (cons 'autojoin n) calls)))
-              ((get 'erc-autojoin-mode 'standard-value) 'ignore)
               ((symbol-function 'erc-networks-mode)
                (lambda (n) (push (cons 'networks n) calls)))
-              ((get 'erc-networks-mode 'standard-value) 'ignore)
               ((symbol-function 'erc-completion-mode)
-               (lambda (n) (push (cons 'completion n) calls)))
-              ((get 'erc-completion-mode 'standard-value) 'ignore))
+               (lambda (n) (push (cons 'completion n) calls))))
 
-      (ert-info ("Unknown module")
-        (setq erc-modules '(lfoo))
-        (should-error (erc--update-modules))
-        (should (equal (pop calls) 'erc-lfoo))
-        (should-not calls))
-
-      (ert-info ("Local modules")
-        (setq erc-modules '(gfoo lbar lbaz))
-        ;; Don't expose the mode here
-        (should (equal (mapcar #'symbol-name (erc--update-modules))
-                       '("erc-lbaz-mode" "erc-lbar-mode")))
-        ;; Lbaz required because unknown.
-        (should (equal (nreverse calls) '((gfoo . 1) erc--lbaz-feature)))
-        (fmakunbound (intern "erc-lbaz-mode"))
-        (unintern (intern "erc-lbaz-mode") obarray)
-        (setq calls nil))
-
-      (ert-info ("Global modules") ; `pcomplete' resolved to `completion'
-        (setq erc-modules '(pcomplete autojoin networks))
-        (should-not (erc--update-modules)) ; no locals
-        (should (equal (nreverse calls)
-                       '((completion . 1) (autojoin . 1) (networks . 1))))
-        (setq calls nil)))))
+      (should-not (erc--update-modules erc-modules)) ; no locals
+      (should (equal (nreverse calls)
+                     '((completion . 1) (autojoin . 1) (networks . 1)))))))
 
 (ert-deftest erc--merge-local-modes ()
   (cl-letf (((get 'erc-b-mode 'erc-module) 'b)

@@ -653,6 +653,41 @@ And unlike global toggles, none of these ever mutates
 @code{erc-modules}.
 
 
+@anchor{Module Loading}
+@subheading Module Loading
+@cindex module loading
+
+ERC loads internal modules in alphabetical order and third-party
+modules as they appear in @code{erc-modules}.  When defining your own
+module, take care to ensure ERC can find it.  An easy way to do that
+is by mimicking the example in the doc string for
+@code{define-erc-module}.  For historical reasons, ERC also falls back
+to @code{require}ing features.  For example, if some module
+@code{<mymod>} in @code{erc-modules} lacks a corresponding
+@code{erc-<mymod>-mode} command, ERC will attempt to load the library
+@code{erc-<mymod>} prior to connecting.  If this fails, ERC signals an
+error.  Users wanting to define modules in an init files should
+@code{(provide 'erc-<my-mod>)} somewhere to placate ERC.  Dynamically
+generating modules on the fly is not supported.
+
+Sometimes, packages attempt to autoload a module's definition instead
+of its minor-mode command, which breaks the link between the library
+and the module.  This means that enabling the mode by invoking its
+command toggle isn't enough to load its defining library.  Such
+packages should instead only supply autoload cookies featuring an
+explicit @code{autoload} form for their module's minor-mode command.
+As mentioned above, packages can also usually avoid autoload cookies
+entirely so long as their module's prefixed name matches that of its
+defining library and the latter's provided feature.
+
+Packages have also been seen to specify unnecessary top-level
+@code{eval-after-load} forms, which end up being ineffective in most
+cases.  Another unfortunate practice is mutating @code{erc-modules}
+itself in an autoloaded form.  Doing this tricks Customize into
+displaying the widget for @code{erc-modules} incorrectly, with
+built-in modules moved from the predefined checklist to the
+user-provided free-form area.
+
 @c PRE5_4: Document every option of every module in its own subnode
 
 
