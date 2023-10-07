@@ -749,26 +749,31 @@ init_sfntfont_android (void)
   if (!android_init_gui)
     return;
 
-  /* Make sure to pick the right Sans Serif font depending on what
+  /* Make sure to pick the proper Sans Serif and Serif fonts for the
      version of Android the device is running.  */
+
   if (android_get_current_api_level () >= 15)
     Vsfnt_default_family_alist
-      = list3 (Fcons (build_string ("Monospace"),
+      = list4 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
 	       /* Android doesn't come with a Monospace Serif font, so
 		  this will have to do.  */
 	       Fcons (build_string ("Monospace Serif"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
-		      build_string ("Roboto")));
+		      build_string ("Roboto")),
+	       Fcons (build_string ("DejaVu Serif"),
+		      build_string ("Noto Serif")));
   else
     Vsfnt_default_family_alist
-      = list3 (Fcons (build_string ("Monospace"),
+      = list4 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Monospace Serif"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
-		      build_string ("Droid Sans")));
+		      build_string ("Droid Sans")),
+	       Fcons (build_string ("DejaVu Serif"),
+		      build_string ("Droid Serif")));
 
   /* Set up the user fonts directory.  This directory is ``fonts'' in
      the Emacs files directory.  */

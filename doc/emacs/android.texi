@@ -333,7 +333,7 @@ time.
 
   From the perspective of users, Android is mostly a single user
 operating system; however, from the perspective of applications and
-Emacs, the system has an overwhelming number of users.
+Emacs, the system is host to an overwhelming number of users.
 
   Each application runs in its own user, with its home directory set
 to its app data directory (@pxref{Android File
@@ -360,12 +360,12 @@ consult the values of the variables @code{ctags-program-name},
 @xref{Subprocess Creation,,, elisp, the Emacs Lisp Reference Manual}.
 
   The @file{/assets} directory containing Emacs start-up files is
-supposed to be inaccessible to processes not directly created by
+meant to be inaccessible to processes not directly created by
 @code{zygote}, the system service responsible for starting
 applications.  Since required Lisp is found in the @file{/assets}
 directory, it would thus follow that it is not possible for Emacs to
 start itself as a subprocess.  A special binary named
-@command{libandroid-emacs.so} is provided with Emacs, and does its
+@command{libandroid-emacs.so} is provided with Emacs, which tries its
 best to start Emacs for the purpose of running Lisp in batch mode.
 However, the approach it takes was devised by reading Android source
 code, and is not sanctioned by the Android compatibility definition
@@ -419,25 +419,31 @@ system.  When all Emacs frames move to the background, Emacs might be
 terminated by the system at any time, for the purpose of saving system
 resources.
 
-  On Android 7.1 and earlier, Emacs tells the system to treat it as a
-``background service''.  The system will try to avoid killing Emacs
-unless the system is stressed for memory.
+  On Android 7.1 and earlier, Emacs designates itself a ``background
+service'', which impels the system to avoid killing Emacs unless it is
+stressed for memory.
 
   Android 8.0 removed the ability for background services to receive
 such special treatment.  However, Emacs applies a workaround: the
 system considers applications that create a permanent notification to
 be performing active work, and will avoid killing such applications.
 Thus, on those systems, Emacs displays a permanent notification for as
-long as it is running.  Once the notification is displayed, it can be
-safely hidden through the system settings without resulting in Emacs
-being killed.
+long as it is running.
 
-  However, it is not guaranteed that the system will not kill Emacs
-even if a notification is being displayed.  While the Open Handset
-Alliance's sample implementation of Android behaves correctly, many
-manufacturers place additional restrictions on program execution in
-the background in their proprietary versions of Android.  There is a
-list of such troublesome manufacturers and sometimes workarounds at
+  Before Android 13, Emacs does not require rights to display
+notifications.  Under Android 13 or later, the notification is hidden
+until the user accords Emacs such rights.  In spite of that, merely
+attempting to display the notification suffices to avert sudden death;
+whether the notification is displayed has no bearing on Emacs's
+capacity to execute in the background, and it may be disabled without
+any adverse consequences.
+
+  However, it is not guaranteed that the system will not kill Emacs.
+Although the Open Handset Alliance's sample implementation of Android
+behaves correctly, many manufacturers institute additional
+restrictions on program execution in the background in their
+proprietary versions of Android.  There is a list of such troublesome
+manufacturers and sometimes workarounds at
 @url{https://dontkillmyapp.com/}.
 
 @cindex permissions under android
@@ -746,6 +752,22 @@ installed font.  When a conventional font is found, any previous
 conventional font with the same style and family will be removed;
 distortable fonts with the same family will no longer be used to
 provide that style.
+
+@cindex default font families, Android
+@vindex sfnt-default-family-alist
+
+  Emacs generally assumes the presence of font families named
+@samp{Monospace}, @samp{Monospace Serif}, @samp{Sans Serif}, and
+@samp{DejaVu Serif}.  Since Android does not provide any fonts by
+these names, Emacs modifies requests for them to request one of a
+corresponding set of font families distributed with Android.
+
+  To change either the set of font families subject to replacement, or
+that by which they are replaced, modify the variable
+@code{sfnt-default-family-alist}; then, restart Emacs.  Bear in mind
+that this is usually unwarranted, with customizations to the default
+or @code{variable-pitch} faces better made through modifying their
+definitions (@xref{Face Customization}).
 
 @node Android Troubleshooting
 @section Troubleshooting Startup Problems on Android
