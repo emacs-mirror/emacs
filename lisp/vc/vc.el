@@ -1264,6 +1264,8 @@ the revision ID or branch ID."
       (error "Fileset files are missing, so cannot be operated on"))
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system"))
+     ;; Fileset comes from a diff-mode buffer, see
+     ;; 'diff-vc-deduce-fileset', and the buffer is the patch to apply.
      ((eq model 'patch)
       (vc-checkin files backend nil nil nil (buffer-string)))
      ((or (null state) (eq state 'unregistered))

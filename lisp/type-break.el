@@ -77,7 +77,8 @@ rest from typing, then the next typing break is simply rescheduled for later.
 If a break is interrupted before this much time elapses, the user will be
 asked whether or not really to interrupt the break."
   :set-after '(type-break-interval)
-  :type 'natnum
+  :type '(choice (const :tag "Don't check idle time" nil)
+                 natnum)
   :group 'type-break)
 
 (defcustom type-break-good-break-interval nil
@@ -201,7 +202,8 @@ key is pressed."
   "Name of file used to save state across sessions.
 If this is nil, no data will be saved across sessions."
   :version "24.4"                       ; added locate-user
-  :type 'file)
+  :type '(choice (const :tag "Don't save data" nil)
+                 file))
 
 (defvar type-break-post-command-hook '(type-break-check)
   "Hook run indirectly by `post-command-hook' for typing break functions.

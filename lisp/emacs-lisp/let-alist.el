@@ -9,8 +9,8 @@
 ;; Prefix: let-alist
 ;; Separator: -
 
-;; This is an Elpa :core package. Don't use functionality that is not
-;; compatible with Emacs 24.1.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -60,7 +60,7 @@
 ;; the variables of the outer one.  You can, however, access alists
 ;; inside the original alist by using dots inside the symbol, as
 ;; displayed in the example above by the `.site.contents'.
-;;
+
 ;;; Code:
 
 
@@ -139,7 +139,14 @@ essentially expands to
 If you nest `let-alist' invocations, the inner one can't access
 the variables of the outer one.  You can, however, access alists
 inside the original alist by using dots inside the symbol, as
-displayed in the example above."
+displayed in the example above.
+
+Note that there is no way to differentiate the case where a key
+is missing from when it is present, but its value is nil.  Thus,
+the following form evaluates to nil:
+
+    (let-alist \\='((some-key . nil))
+      .some-key)"
   (declare (indent 1) (debug t))
   (let ((var (make-symbol "alist")))
     `(let ((,var ,alist))

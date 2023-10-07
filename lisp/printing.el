@@ -1,6 +1,6 @@
 ;;; printing.el --- printing utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2001, 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
@@ -5518,7 +5518,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	  (setq ext (cdr ext)
 		found nil))
 	found)
-    ;; non-windows systems
+    ;; non-Windows systems
     (and (file-regular-p cmd)
 	 (file-executable-p cmd)
 	 cmd)))

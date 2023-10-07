@@ -6110,6 +6110,11 @@ ns_term_shutdown (int sig)
 
 */
 
+- (BOOL) applicationSupportsSecureRestorableState: (NSApplication *)app
+{
+  return YES;
+}
+
 - (void) terminate: (id)sender
 {
   struct input_event ie;

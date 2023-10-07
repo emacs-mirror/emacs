@@ -414,7 +414,7 @@ Another host name is useful only in combination with
   ;; an external method.
   (cond
    ;; PuTTY is installed.  We don't take it, if it is installed on a
-   ;; non-windows system, or pscp from the pssh (parallel ssh) package
+   ;; non-Windows system, or pscp from the pssh (parallel ssh) package
    ;; is found.
    ((and (eq system-type 'windows-nt) (executable-find "pscp")) "pscp")
    ;; There is an ssh installation.
