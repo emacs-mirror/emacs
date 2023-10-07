@@ -2206,10 +2206,15 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       inchannel = p->open_fd[READ_FROM_SUBPROCESS];
       forkout = p->open_fd[SUBPROCESS_STDOUT];
 
-#if (defined (GNU_LINUX) || defined __ANDROID__)	\
-  && defined (F_SETPIPE_SZ)
-      fcntl (inchannel, F_SETPIPE_SZ, read_process_output_max);
-#endif /* (GNU_LINUX || __ANDROID__) && F_SETPIPE_SZ */
+#if defined(F_SETPIPE_SZ) && defined(F_GETPIPE_SZ)
+      /* If they requested larger reads than the default system pipe
+         capacity, try enlarging the capacity to match the request.  */
+      if (read_process_output_max > fcntl (inchannel, F_GETPIPE_SZ))
+	{
+	  int readmax = clip_to_bounds (1, read_process_output_max, INT_MAX);
+	  fcntl (inchannel, F_SETPIPE_SZ, readmax);
+	}
+#endif
     }
 
   if (!NILP (p->stderrproc))
