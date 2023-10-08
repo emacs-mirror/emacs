@@ -519,8 +519,11 @@ See also `find-buffer-visiting'.  */)
   return Qnil;
 }
 
-Lisp_Object
-get_truename_buffer (register Lisp_Object filename)
+DEFUN ("get-truename-buffer", Fget_truename_buffer, Sget_truename_buffer, 1, 1, 0,
+       doc: /* Return the buffer with `file-truename' equal to FILENAME (a string).
+If there is no such live buffer, return nil.
+See also `find-buffer-visiting'.  */)
+  (register Lisp_Object filename)
 {
   register Lisp_Object tail, buf;
 
@@ -528,6 +531,22 @@ get_truename_buffer (register Lisp_Object filename)
     {
       if (!STRINGP (BVAR (XBUFFER (buf), file_truename))) continue;
       if (!NILP (Fstring_equal (BVAR (XBUFFER (buf), file_truename), filename)))
+	return buf;
+    }
+  return Qnil;
+}
+
+DEFUN ("find-buffer", Ffind_buffer, Sfind_buffer, 2, 2, 0,
+       doc: /* Return the buffer with buffer-local VARIABLE equal to VALUE.
+	       If there is no such live buffer, return nil.
+See also `find-buffer-visiting'.  */)
+  (Lisp_Object variable, Lisp_Object value)
+{
+  register Lisp_Object tail, buf;
+
+  FOR_EACH_LIVE_BUFFER (tail, buf)
+    {
+      if (!NILP (Fequal (value, Fbuffer_local_value(variable, buf))))
 	return buf;
     }
   return Qnil;
@@ -6010,6 +6029,8 @@ There is no reason to change that value except for debugging purposes.  */);
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
   defsubr (&Sget_file_buffer);
+  defsubr (&Sget_truename_buffer);
+  defsubr (&Sfind_buffer);
   defsubr (&Sget_buffer_create);
   defsubr (&Smake_indirect_buffer);
   defsubr (&Sgenerate_new_buffer_name);
