@@ -953,18 +953,19 @@ for the last released version of the package."
     (find-file directory)))
 
 ;;;###autoload
-(defun package-vc-install-from-checkout (dir name)
+(defun package-vc-install-from-checkout (dir &optional name)
   "Install the package NAME from its source directory DIR.
+NAME defaults to the base name of DIR.
 Interactively, prompt the user for DIR, which should be a directory
 under version control, typically one created by `package-vc-checkout'.
 If invoked interactively with a prefix argument, prompt the user
-for the NAME of the package to set up.  Otherwise infer the package
-name from the base name of DIR."
-  (interactive (let ((dir (read-directory-name "Directory: ")))
-                 (list dir
-                       (if current-prefix-arg
-                           (read-string "Package name: ")
-                         (file-name-base (directory-file-name dir))))))
+for the NAME of the package to set up."
+  (interactive (let* ((dir (read-directory-name "Directory: "))
+                      (base (file-name-base (directory-file-name dir))))
+                 (list dir (and current-prefix-arg
+                                (read-string
+                                 (format-prompt "Package name" base)
+                                 nil nil base)))))
   (unless (vc-responsible-backend dir)
     (user-error "Directory %S is not under version control" dir))
   (package-vc--archives-initialize)
