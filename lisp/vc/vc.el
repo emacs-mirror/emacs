@@ -1222,18 +1222,23 @@ BEWARE: this function may change the current buffer."
 (defun vc-next-action (verbose)
   "Do the next logical version control operation on the current fileset.
 This requires that all files in the current VC fileset be in the
-same state.  If not, signal an error.
+same state.  If they are not, signal an error.  Also signal an error if
+files in the fileset are missing (removed, but tracked by version control),
+or are ignored by the version control system.
 
-For merging-based version control systems:
-  If every file in the VC fileset is not registered for version
-   control, register the fileset (but don't commit).
-  If every work file in the VC fileset is added or changed, pop
-   up a *vc-log* buffer to commit the fileset.
+For modern merging-based version control systems:
+  If every file in the fileset is not registered for version
+   control, register the fileset (but don't commit).  If VERBOSE is
+   non-nil (interactively, the prefix argument), ask for the VC
+   backend with which to register the fileset.
+  If every work file in the VC fileset is either added or modified,
+   pop up a *vc-log* buffer to commit the fileset changes.
   For a centralized version control system, if any work file in
    the VC fileset is out of date, offer to update the fileset.
 
 For old-style locking-based version control systems, like RCS:
-  If every file is not registered, register the file(s).
+  If every file is not registered, register the file(s); with a prefix
+   argument, allow to specify the VC backend for registration.
   If every file is registered and unlocked, check out (lock)
    the file(s) for editing.
   If every file is locked by you and has changes, pop up a
@@ -1241,14 +1246,21 @@ For old-style locking-based version control systems, like RCS:
    read-only copy of each changed file after checking in.
   If every file is locked by you and unchanged, unlock them.
   If every file is locked by someone else, offer to steal the lock.
+  If files are unlocked, but have changes, offer to either claim the
+   lock or revert to the last checked-in version.
+
+If this command is invoked from a patch buffer under `diff-mode', it
+will apply the diffs from the patch and pop up a *vc-log* buffer to
+check-in the resulting changes.
 
 When using this command to register a new file (or files), it
 will automatically deduce which VC repository to register it
 with, using the most specific one.
 
 If VERBOSE is non-nil (interactively, the prefix argument),
-you can specify a VC backend or (for centralized VCS only)
-the revision ID or branch ID."
+you can specify another VC backend for the file(s),
+or (for centralized VCS only) the revision ID or branch ID
+from which to check out the file(s)."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))

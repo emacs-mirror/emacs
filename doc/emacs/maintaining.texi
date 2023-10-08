@@ -481,22 +481,23 @@ system, but is usually not excessive.
 @cindex filesets, VC
 @cindex VC filesets
    Most VC commands operate on @dfn{VC filesets}.  A VC fileset is a
-collection of one or more files that a VC operation acts on.  When you
-type VC commands in a buffer visiting a version-controlled file, the
-VC fileset is simply that one file.  When you type them in a VC
+collection of one or more files that a VC operation acts upon.  When
+you type VC commands in a buffer visiting a version-controlled file,
+the VC fileset is simply that one file.  When you type them in a VC
 Directory buffer, and some files in it are marked, the VC fileset
 consists of the marked files (@pxref{VC Directory Mode}).  Likewise,
 when you invoke a VC command from a Dired buffer, the VC fileset
 consists of the marked files (@pxref{Marks vs Flags}), defaulting to
 the file shown on the current line if no files are marked.
 
-  On modern changeset-based version control systems (@pxref{VCS
-Changesets}), VC commands handle multi-file VC filesets as a group.
-For example, committing a multi-file VC fileset generates a single
-revision, containing the changes to all those files.  On older
-file-based version control systems like CVS, each file in a multi-file
-VC fileset is handled individually; for example, a commit generates
-one revision for each changed file.
+  With modern changeset-based version control systems (@pxref{VCS
+Changesets}), such as Git, Mercurial, and Bazaar, VC commands handle
+multi-file VC filesets as a group.  For example, committing a
+multi-file VC fileset generates a single revision, containing the
+changes to all those files.  On older file-based version control
+systems like CVS, each file in a multi-file VC fileset is handled
+individually; thus, committing a fileset generates one revision for
+each changed file in the fileset.
 
 @table @kbd
 @item C-x v v
@@ -507,14 +508,16 @@ VC fileset.
 @findex vc-next-action
 @kindex C-x v v
   The principal VC command is a multi-purpose command, @kbd{C-x v v}
-(@code{vc-next-action}), which performs the most appropriate
-action on the current VC fileset: either registering it with a version
-control system, or committing it, or unlocking it, or merging changes
-into it.  The precise actions are described in detail in the following
-subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer, in a Dired buffer, or in a VC Directory buffer; in the latter
-two cases the command operates on the fileset consisting of the marked
-files.
+(@code{vc-next-action}), which performs the most appropriate action on
+the current VC fileset: either registering it with a version control
+system, or committing it, or unlocking it, or merging changes into it.
+The precise actions for each situation are described in detail in the
+following subsections.  You can use @kbd{C-x v v} either in a
+file-visiting buffer, in a Dired buffer, or in a VC Directory buffer;
+in the latter two cases the command operates on the fileset consisting
+of the marked files.  You can also use @kbd{C-x v v}, in a buffer with
+patches under Diff Mode (@pxref{Diff Mode}), in which case the command
+operates on the files whose diffs are shown in the buffer.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups
@@ -522,7 +525,7 @@ for viewing and visiting files in functional groups
 and don't persist across sessions.
 
 @menu
-* VC With A Merging VCS::  Without locking: default mode for CVS.
+* VC With A Merging VCS::  Without locking: default mode for Git, Hg, SVN, CVS.
 * VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
 * Advanced C-x v v::       Advanced features available with a prefix argument.
 @end menu
@@ -530,44 +533,56 @@ and don't persist across sessions.
 @node VC With A Merging VCS
 @subsubsection Basic Version Control with Merging
 
-  On a merging-based version control system (i.e., most modern ones;
-@pxref{VCS Merging}), @kbd{C-x v v} does the following:
+  With a modern merging-based version control system (such as Git and Hg;
+@pxref{VCS Merging}), @kbd{C-x v v} does the following when invoked
+from a buffer that visits a version-controlled file or a VC Directory
+or Dired buffer:
 
 @itemize @bullet
 @item
 If there is more than one file in the VC fileset and the files have
 inconsistent version control statuses, signal an error.  (Note,
-however, that a fileset is allowed to include both newly-added
-files and modified files; @pxref{Registering}.)
+however, that a fileset is allowed to include both newly-added files
+and modified files; @pxref{Registering}.)  Also signal an error if the
+files in the fileset are missing (removed from the filesystem, but
+still tracked by version control), or are ignored by version control.
+
+@item
+If every file in the VC fileset is registered and unchanged with
+respect to the last revision, do nothing.
 
 @item
 If none of the files in the VC fileset are registered with a version
-control system, register the VC fileset, i.e., place it under version
-control.  @xref{Registering}.  If Emacs cannot find a system to
-register under, it prompts for a repository type, creates a new
-repository, and registers the VC fileset with it.
+control system, register the newly-added files in the VC fileset,
+i.e., place them under version control.  @xref{Registering}.  If Emacs
+cannot find a system to register under, it prompts for a repository
+type, creates a new repository, and registers the VC fileset with it.
+You can also specify the system explicitly, see @ref{Advanced C-x v
+v}.  Note that registering the files doesn't commit them; you must
+invoke @w{@kbd{C-x v v}} again to commit, see below.
 
 @item
-If every work file in the VC fileset is unchanged, do nothing.
+If every file in the VC fileset has been either newly-added or
+modified, commit the changed files.  To do this, Emacs pops up a
+@file{*vc-log*} buffer; type the desired log entry for the changes,
+followed by @kbd{C-c C-c} to commit.  @xref{Log Buffer}.
+
+With modern decentralized version control systems (Git, Mercurial,
+etc.), the changes are committed locally and not automatically
+propagated to the upstream repository (which is usually on a remote
+host).  In these cases, if the repository has been changed since your
+last update, the commit may fail.  In that case, you must update from
+upstream and then try again.  Use @kbd{C-x v +} (@pxref{Pulling /
+Pushing}) or @kbd{C-x v m} (@pxref{Merging}) for that.
+
+With a centralized version control system, if the commit fails due to
+upstream changes, type @kbd{C-x v v} again to merge in the upstream
+repository changes.
 
 @item
-If every work file in the VC fileset has been modified, commit the
-changes.  To do this, Emacs pops up a @file{*vc-log*} buffer; type the
-desired log entry for the new revision, followed by @kbd{C-c C-c} to
-commit.  @xref{Log Buffer}.
-
-If committing to a shared repository, the commit may fail if the
-repository has been changed since your last update.  In that
-case, you must perform an update before trying again.  On a
-decentralized version control system, use @kbd{C-x v +}
-(@pxref{Pulling / Pushing}) or @kbd{C-x v m} (@pxref{Merging}).
-On a centralized version control system, type @kbd{C-x v v} again to
-merge in the repository changes.
-
-@item
-Finally, if you are using a centralized version control system, check
-if each work file in the VC fileset is up-to-date.  If any file has
-been changed in the repository, offer to update it.
+Finally, if you are using a centralized version control system, if any
+file in the VC fileset is outdated with respect to the upstream
+repository, offer to update the fileset from the repository.
 @end itemize
 
   These rules also apply when you use RCS in its non-locking mode,
@@ -581,43 +596,60 @@ changes.  In addition, locking is possible with RCS even in this mode:
 @kbd{C-x v v} with an unmodified file locks the file, just as it does
 with RCS in its normal locking mode (@pxref{VC With A Locking VCS}).
 
+  If @kbd{C-x v v} is invoked from a buffer under Diff Mode, the
+command assumes the buffer holds a set of patches for one or more
+files.  It then applies the changes to the respective files and
+commits the changes after popping up the @file{*vc-log*} buffer to
+allow you to type a suitable commit log message.
+
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
 
-  On a locking-based version control system (such as SCCS, and RCS in
+  With a locking-based version control system (such as SCCS, and RCS in
 its default mode), @kbd{C-x v v} does the following:
 
 @itemize @bullet
 @item
 If there is more than one file in the VC fileset and the files have
-inconsistent version control statuses, signal an error.
+inconsistent version control statuses, signal an error.  Also signal
+an error if the files in the fileset are missing (removed from the
+filesystem, but still tracked by version control).
 
 @item
 If each file in the VC fileset is not registered with a version
-control system, register the VC fileset.  @xref{Registering}.  If
-Emacs cannot find a system to register under, it prompts for a
-repository type, creates a new repository, and registers the VC
-fileset with it.
+control system, register the newly-added files in the fileset.
+@xref{Registering}.  If Emacs cannot find a system to register under,
+it prompts for a repository type, creates a new repository, and
+registers the VC fileset with it.  You can also specify the system
+explicitly, see @ref{Advanced C-x v v}.
 
 @item
-If each file is registered and unlocked, lock it and make it writable,
-so that you can begin to edit it.
+If each file is registered and unlocked, check the files out: lock
+each one and make it writable, so that you can begin to edit it.
 
 @item
-If each file is locked by you and contains changes, commit the
-changes.  To do this, Emacs pops up a @file{*vc-log*} buffer; type the
-desired log entry for the new revision, followed by @kbd{C-c C-c} to
-commit (@pxref{Log Buffer}).
+If each file is locked by you and contains changes, commit (a.k.a.@:
+``check-in'') the changes.  To do this, Emacs pops up a
+@file{*vc-log*} buffer; type the desired log entry for the new
+revision, followed by @kbd{C-c C-c} to commit (@pxref{Log Buffer}).
 
 @item
 If each file is locked by you, but you have not changed it, release
-the lock and make the file read-only again.
+the lock and make the file read-only again.  This undoes previous
+check-out operation for files that were not changed since the
+checkout.
 
 @item
 If each file is locked by another user, ask whether you want to
 steal the lock.  If you say yes, the file becomes locked by you,
 and a warning message is sent to the user who had formerly locked the
 file.
+
+@item
+If files in the fileset are unlocked, but have changes with respect to
+their last revision, offer to claim the lock for each such file or to
+revert the file to the last checked-in revision.  (This situation is
+exceptional and should not normally happen.)
 @end itemize
 
   These rules also apply when you use CVS in locking mode, except
@@ -642,19 +674,21 @@ and Emacs fails to detect the correct one.
 @item
 Otherwise, if using CVS, RCS or SRC, you can specify a revision ID.
 
-If the fileset is modified (or locked), this makes Emacs commit with
-that revision ID@.  You can create a new branch by supplying an
-appropriate revision ID (@pxref{Branches}).
+If the fileset is modified (or locked), this makes Emacs commit the
+files with that revision ID@.  You can create a new branch by
+supplying an appropriate revision ID (@pxref{Branches}).
 
-If the fileset is unmodified (and unlocked), this checks the specified
-revision into the working tree.  You can also specify a revision on
-another branch by giving its revision or branch ID (@pxref{Switching
-Branches}).  An empty argument (i.e., @kbd{C-u C-x v v @key{RET}})
-checks out the latest (head) revision on the current branch.
+If the fileset is unmodified (and unlocked), this checks out the
+specified revision into the working tree.  You can also specify a
+revision on another branch by giving its revision or branch ID
+(@pxref{Switching Branches}).  An empty argument (i.e., @kbd{C-u C-x v
+v @key{RET}}) checks out the latest (a.k.a.@: ``head'') revision on
+the current branch.
 
-This is silently ignored on a decentralized version control system.
-Those systems do not let you specify your own revision IDs, nor do
-they use the concept of checking out individual files.
+Specifying revision ID in this manner is silently ignored by a
+decentralized version control system.  Those systems do not let you
+specify your own revision IDs, nor do they use the concept of checking
+out individual files.
 @end itemize
 
 @node Log Buffer
@@ -788,17 +822,21 @@ If Emacs cannot find a version control system to register the file
 under, it prompts for a repository type, creates a new repository, and
 registers the file into that repository.
 
-  On most version control systems, registering a file with @kbd{C-x v
-i} or @kbd{C-x v v} adds it to the working tree but not to the
-repository.  Such files are labeled as @samp{added} in the VC
-Directory buffer, and show a revision ID of @samp{@@@@} in the mode
-line.  To make the registration take effect in the repository, you
-must perform a commit (@pxref{Basic VC Editing}).  Note that a single
-commit can include both file additions and edits to existing files.
+@cindex added files, VC
+@cindex files added to VCS
+  With most version control systems, registering a file with
+@w{@kbd{C-x v i}} or @w{@kbd{C-x v v}} adds it to the working tree,
+but does not commit it, i.e., doesn't add it to the repository.  Such
+files are labeled as @dfn{added} in the VC Directory buffer, and the
+mode line of the buffers visiting such files shows a revision ID of
+@samp{@@@@}.  To make the registration take effect in the repository,
+you must commit the newly-added files (@pxref{Basic VC Editing}).
+Note that a single commit can include both file additions and edits to
+files already known to the VCS.
 
-  On a locking-based version control system (@pxref{VCS Merging}),
+  With a locking-based version control system (@pxref{VCS Merging}),
 registering a file leaves it unlocked and read-only.  Type @kbd{C-x v
-v} to start editing it.
+v} to check-out the file and start editing it.
 
 @node Old Revisions
 @subsection Examining And Comparing Old Revisions
@@ -1563,32 +1601,39 @@ commit will be committed to that specific branch.
 @subsubsection Pulling/Pushing Changes into/from a Branch
 
 @table @kbd
+@cindex push changes to upstream (VC)
 @item C-x v P
-On a decentralized version control system, update another location
-with changes from the current branch (a.k.a. ``push'' changes).  This
-concept does not exist for centralized version control systems
+With a decentralized version control system, update another repository
+with locally-committed changes from the current branch (a.k.a.@:
+@dfn{push} changes).  This concept does not exist for centralized
+version control systems
 
+@cindex pull changes from upstream (VC)
 @item C-x v +
-On a decentralized version control system, update the current branch
-by ``pulling in'' changes from another location.
+With a decentralized version control system, update the current branch
+of the local repository by @dfn{pulling in} changes from another
+repository.
 
-On a centralized version control system, update the current VC
-fileset.
+With a centralized version control system, update the current VC
+fileset from the repository.
 @end table
 
 @kindex C-x v P
 @findex vc-push
+@cindex upstream repository
 On a decentralized version control system, the command @kbd{C-x v P}
-(@code{vc-push}) updates another location with changes from the
+(@code{vc-push}) updates another location, commonly known as the
+@dfn{upstream repository}, with locally-committed changes from the
 current branch.  With a prefix argument, it prompts for the exact
 version control command to run, which lets you specify where to push
-changes; the default is @kbd{bzr push} with Bazaar, @kbd{git
-push} with Git, and @kbd{hg push} with Mercurial.  The default
-commands always push to a default location determined by the version
-control system from your branch configuration.
+changes; the default is @kbd{bzr push} with Bazaar, @kbd{git push}
+with Git, and @kbd{hg push} with Mercurial.  The default commands
+always push to the repository in the default location determined by
+the version control system from your branch configuration.
 
 Prior to pushing, you can use @kbd{C-x v O} (@code{vc-log-outgoing})
-to view a log buffer of the changes to be sent.  @xref{VC Change Log}.
+to view a log buffer of the changes to be sent upstream.  @xref{VC
+Change Log}.
 
 @cindex bound branch (Bazaar VCS)
 This command is currently supported only by Bazaar, Git, and Mercurial.
@@ -1602,13 +1647,15 @@ bound.
 
 @kindex C-x v +
 @findex vc-pull
-  On a decentralized version control system, the command @kbd{C-x v +}
-(@code{vc-pull}) updates the current branch and working tree.  It is
-typically used to update a copy of a remote branch.  If you supply a
-prefix argument, the command prompts for the exact version control
-command to use, which lets you specify where to pull changes from.
-Otherwise, it pulls from a default location determined by the version
-control system.
+  With a decentralized version control system, the command @kbd{C-x v
++} (@code{vc-pull}) updates the current branch of the local repository
+and it working tree with changes made in the upstream repository.  It
+is typically used to update a copy (a.k.a.@: @dfn{clone}) of a remote
+branch.  If you supply a prefix argument, the command prompts for the
+exact version control command to use, which lets you specify where to
+pull changes from.  Otherwise, it pulls from the repository in the
+default location determined by the version control system from your
+branch configuration.
 
   Amongst decentralized version control systems, @kbd{C-x v +} is
 currently supported only by Bazaar, Git, and Mercurial.  With Bazaar,
@@ -1624,7 +1671,7 @@ the working directory.
 to view a log buffer of the changes to be applied.  @xref{VC Change
 Log}.
 
-  On a centralized version control system like CVS, @kbd{C-x v +}
+  With a centralized version control system like CVS, @kbd{C-x v +}
 updates the current VC fileset from the repository.
 
 @node Merging
@@ -1633,36 +1680,36 @@ updates the current VC fileset from the repository.
 
 @table @kbd
 @item C-x v m
-On a decentralized version control system, merge changes from another
+With a decentralized version control system, merge changes from another
 branch into the current one.
 
-On a centralized version control system, merge changes from another
+With a centralized version control system, merge changes from another
 branch into the current VC fileset.
 @end table
 
   While developing a branch, you may sometimes need to @dfn{merge} in
 changes that have already been made in another branch.  This is not a
-trivial operation, as overlapping changes may have been made to the
-two branches.
+trivial operation, as overlapping and conflicting changes may have
+been made to the two branches.
 
-  On a decentralized version control system, merging is done with the
-command @kbd{C-x v m} (@code{vc-merge}).  On Bazaar, this prompts for
-the exact arguments to pass to @kbd{bzr merge}, offering a
-sensible default if possible.  On Git, this prompts for the name of a
-branch to merge from, with completion (based on the branch names known
-to the current repository).  With Mercurial, this prompts for argument
-to pass to @kbd{hg merge}.  The output from running the merge
-command is shown in a separate buffer.
+  With a decentralized version control system, you merge changes with
+the command @kbd{C-x v m} (@code{vc-merge}).  With Bazaar, this
+prompts for the exact arguments to pass to the @command{bzr merge}
+command, offering a sensible default if possible.  With Git, this
+prompts for the name of a branch to merge from, with completion (based
+on the branch names known to the current repository).  With Mercurial,
+this prompts for argument to pass to @command{hg merge}.  The output
+from running the merge command is shown in a separate buffer.
 
-  On a centralized version control system like CVS, @kbd{C-x v m}
+  With a centralized version control system like CVS, @kbd{C-x v m}
 prompts for a branch ID, or a pair of revision IDs (@pxref{Switching
 Branches}); then it finds the changes from that branch, or the changes
 between the two revisions you specified, and merges those changes into
-the current VC fileset.  If you just type @kbd{@key{RET}}, Emacs simply
-merges any changes that were made on the same branch since you checked
-the file out.
+the current VC fileset.  If you just type @kbd{@key{RET}} at the
+prompt, Emacs simply merges any changes that were made on the same
+branch since you checked the file out.
 
-@cindex conflicts
+@cindex conflicts, VC
 @cindex resolving conflicts
   Immediately after performing a merge, only the working tree is
 modified, and you can review the changes produced by the merge with
@@ -1671,9 +1718,12 @@ two branches contained overlapping changes, merging produces a
 @dfn{conflict}; a warning appears in the output of the merge command,
 and @dfn{conflict markers} are inserted into each affected work file,
 surrounding the two sets of conflicting changes.  You must then
-resolve the conflict by editing the conflicted files.  Once you are
-done, the modified files must be committed in the usual way for the
-merge to take effect (@pxref{Basic VC Editing}).
+resolve the conflict by editing the conflicted files; by default,
+Emacs will place buffers with VC conflicts in the special Smerge mode,
+which provides special commands for resolving the merge conflicts.
+Once you are done with resolving the conflicts and have saved the
+files with resolved conflicts, those files must be committed in the
+usual way for the merge to take effect (@pxref{Basic VC Editing}).
 
 @node Creating Branches
 @subsubsection Creating New Branches
