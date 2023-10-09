@@ -638,6 +638,18 @@ If SELECT is non-nil, select the target window."
   "Face used to highlight matches in the xref buffer."
   :version "28.1")
 
+(defvar-local xref-num-matches-found 0)
+
+(defvar xref-num-matches-face 'compilation-info
+  "Face name to show the number of matches on the mode line.")
+
+(defconst xref-mode-line-matches
+  `(" [" (:propertize (:eval (int-to-string xref-num-matches-found))
+                      face ,xref-num-matches-face
+                      help-echo "Number of matches so far")
+    "]"))
+(put 'xref-mode-line-matches 'risky-local-variable t)
+
 (defmacro xref--with-dedicated-window (&rest body)
   `(let* ((xref-w (get-buffer-window xref-buffer-name))
           (xref-w-dedicated (window-dedicated-p xref-w)))
@@ -1235,6 +1247,8 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
       (xref--ensure-default-directory dd (current-buffer))
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
+      (setq xref-num-matches-found (length xrefs))
+      (setq mode-line-process (list xref-mode-line-matches))
       (pop-to-buffer (current-buffer))
       (setq buf (current-buffer)))
     (xref--auto-jump-first buf (assoc-default 'auto-jump alist))
