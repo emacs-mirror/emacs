@@ -238,10 +238,22 @@ A value of t tells ERC to use movement commands defined by
 `visual-line-mode' everywhere in an ERC buffer along with visual
 editing commands in the input area.  A value of nil means to
 never do so.  A value of `non-input' tells ERC to act like the
-value is nil in the input area and t elsewhere.  This option only
-plays a role when `erc-fill-wrap-mode' is enabled."
+value is nil in the input area and t elsewhere.  See related
+option `erc-fill-wrap-force-screen-line-movement' for behavior
+involving `next-line' and `previous-line'."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const nil) (const t) (const non-input)))
+
+(defcustom erc-fill-wrap-force-screen-line-movement '(non-input)
+  "Exceptions for vertical movement by logical line.
+Including a symbol known to `erc-fill-wrap-visual-keys' in this
+set tells `next-line' and `previous-line' to move vertically by
+screen line even if the current `erc-fill-wrap-visual-keys' value
+would normally do otherwise.  For example, setting this to
+\\='(nil non-input) disables logical-line movement regardless of
+the value of `erc-fill-wrap-visual-keys'."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(set (const nil) (const non-input)))
 
 (defcustom erc-fill-wrap-merge t
   "Whether to consolidate messages from the same speaker.
@@ -250,13 +262,13 @@ messages less than a day apart."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :type 'boolean)
 
-(defun erc-fill--wrap-move (normal-cmd visual-cmd arg)
-  (funcall (pcase erc-fill--wrap-visual-keys
-             ('non-input
-              (if (>= (point) erc-input-marker) normal-cmd visual-cmd))
-             ('t visual-cmd)
-             (_ normal-cmd))
-           arg))
+(defun erc-fill--wrap-move (normal-cmd visual-cmd &rest args)
+  (apply (pcase erc-fill--wrap-visual-keys
+           ('non-input
+            (if (>= (point) erc-input-marker) normal-cmd visual-cmd))
+           ('t visual-cmd)
+           (_ normal-cmd))
+         args))
 
 (defun erc-fill--wrap-kill-line (arg)
   "Defer to `kill-line' or `kill-visual-line'."
@@ -287,17 +299,23 @@ Basically mimic what `move-beginning-of-line' does with invisible text."
 (defun erc-fill--wrap-previous-line (&optional arg try-vscroll)
   "Move to ARGth previous logical or screen line."
   (interactive "^p\np")
-  (if erc-fill--wrap-visual-keys
-      (with-no-warnings (previous-line arg try-vscroll))
-    (prog1 (previous-logical-line arg try-vscroll)
-      (erc-fill--wrap-escape-hidden-speaker))))
+  ;; Return value seems undefined but preserve anyway just in case.
+  (prog1
+      (let ((visp (memq erc-fill--wrap-visual-keys
+                        erc-fill-wrap-force-screen-line-movement)))
+        (erc-fill--wrap-move (if visp #'previous-line #'previous-logical-line)
+                             #'previous-line
+                             arg try-vscroll))
+    (erc-fill--wrap-escape-hidden-speaker)))
 
 (defun erc-fill--wrap-next-line (&optional arg try-vscroll)
   "Move to ARGth next logical or screen line."
   (interactive "^p\np")
-  (if erc-fill--wrap-visual-keys
-      (with-no-warnings (next-line arg try-vscroll))
-    (next-logical-line arg try-vscroll)))
+  (let ((visp (memq erc-fill--wrap-visual-keys
+                    erc-fill-wrap-force-screen-line-movement)))
+    (erc-fill--wrap-move (if visp #'next-line #'next-logical-line)
+                         #'next-line
+                         arg try-vscroll)))
 
 (defun erc-fill--wrap-end-of-line (arg)
   "Defer to `move-end-of-line' or `end-of-visual-line'."
