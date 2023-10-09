@@ -392,8 +392,9 @@ and the cdr part is used for encoding."
                                     (cons (coding-system :tag "Decode")
                                           (coding-system :tag "Encode")))))
 
-(defcustom rcirc-multiline-major-mode 'fundamental-mode
+(defcustom rcirc-multiline-major-mode #'text-mode
   "Major-mode function to use in multiline edit buffers."
+  :version "30.1"
   :type 'function)
 
 (defcustom rcirc-nick-completion-format "%s: "
