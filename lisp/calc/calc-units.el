@@ -57,12 +57,13 @@
     ( ft      "12 in"                "Foot")
     ( yd      "3 ft"                 "Yard" )
     ( mi      "5280 ft"              "Mile" )
-    ( au      "149597870691. m"      "Astronomical Unit" nil
-              "149597870691 m (*)")
-              ;; (approx) NASA JPL (https://neo.jpl.nasa.gov/glossary/au.html)
+    ( au      "149597870700 m"       "Astronomical Unit")
+              ;; "149 597 870 700 m exactly"
+              ;; http://www.iau.org/static/resolutions/IAU2012_English.pdf
     ( lyr     "c yr"                 "Light Year" )
-    ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
-              "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
+    ( pc      "(648000/pi) au"       "Parsec (**)")
+              ;; "The parsec is defined as exactly (648 000/π) au"
+              ;; http://www.iau.org/static/resolutions/IAU2015_English.pdf
     ( nmi     "1852 m"               "Nautical Mile" )
     ( fath    "6 ft"                 "Fathom" )
     ( fur     "660 ft"               "Furlong")
