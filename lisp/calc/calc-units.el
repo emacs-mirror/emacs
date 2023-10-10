@@ -183,6 +183,8 @@
 
     ;; Temperature
     ( K       nil                    "*Kelvin"            K )
+    ;; FIXME: Add °C and °F, but it requires that we sort out input etc for
+    ;; the ° sign.
     ( dC      "K"                    "Degree Celsius"     C )
     ( degC    "K"                    "Degree Celsius"     C )
     ( dF      "(5/9) K"              "Degree Fahrenheit"  F )
@@ -315,7 +317,9 @@ NAME      is the unit symbol.
 DEF       is a string defining the unit as a Calc expression; nil if base unit.
 DESC      is a string describing the unit (to a human reader).
           A leading asterisk indicates that the unit is first in its group.
-TEMP-UNIT is an additional symbol tabulated for temperature units (?) or nil.
+TEMP-UNIT is `K', `C' or `F' for temperature units and is used to identify
+          the unit when doing absolute temperature conversion
+          (`calc-convert-temperature').  For other units, nil.
 HUMAN-DEF is a string defining the unit (to a human reader).
           If absent or nil, DEF is used.
 
