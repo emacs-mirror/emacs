@@ -890,8 +890,9 @@ showcases all their customization options.
 ** Project
 
 *** New user option 'project-mode-line'.
-When non-nil, display the name of the current project on
-the mode line.  Clicking mouse-1 pops up the project menu.
+When non-nil, display the name of the current project on the mode
+line.  Clicking 'mouse-1' on the project name pops up the project
+menu.  The default value is nil.
 
 *** New user option 'project-file-history-behavior'.
 Customizing it to 'relativize' makes commands like 'project-find-file'

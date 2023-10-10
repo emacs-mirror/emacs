@@ -2014,9 +2014,10 @@ would otherwise have the same name."
 
 ;;;###autoload
 (defcustom project-mode-line nil
-  "Show the current project name with the menu on the mode line.
+  "Whether to show current project name and Project menu on the mode line.
 This feature requires the presence of the following item in
-`mode-line-format': `(project-mode-line project-mode-line-format)'."
+`mode-line-format': `(project-mode-line project-mode-line-format)'; it
+is part of the default mode line beginning with Emacs 30."
   :type 'boolean
   :group 'project
   :version "30.1")

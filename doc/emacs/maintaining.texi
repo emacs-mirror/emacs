@@ -1743,6 +1743,14 @@ project.  Also, the VC-aware Project back-end considers ``untracked''
 files by default.  That behavior is controllable with the variable
 @code{project-vc-include-untracked}.
 
+@cindex current project name on mode line
+@defopt project-mode-line
+If this user option is non-@code{nil}, Emacs displays the name of the
+current project (if any) on the mode line; clicking @kbd{mouse-1} on
+the project name pops up the menu with the project-related commands.
+The default value is @code{nil}.
+@end defopt
+
 @menu
 * Project File Commands::   Commands for handling project files.
 * Project Buffer Commands:: Commands for handling project buffers.
