@@ -822,7 +822,7 @@ your initialization or dump files from there instead.
 @cindex installing extra software on Android
 @cindex installing Unix software on Android
 
-  An exceptionally limited set of Unix-like command line tools are
+  An exceptionally limited set of Unix-like command line tools is
 distributed alongside default installations of Android.  Several
 projects exist to augment this selection, providing options that range
 from improved reproductions of Unix command-line utilities to package
