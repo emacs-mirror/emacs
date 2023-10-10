@@ -104,6 +104,7 @@ struct android_emacs_window
   jmethodID make_input_focus;
   jmethodID raise;
   jmethodID lower;
+  jmethodID reconfigure;
   jmethodID get_window_geometry;
   jmethodID translate_coordinates;
   jmethodID set_dont_accept_focus;
@@ -1755,6 +1756,7 @@ android_init_emacs_window (void)
   FIND_METHOD (make_input_focus, "makeInputFocus", "(J)V");
   FIND_METHOD (raise, "raise", "()V");
   FIND_METHOD (lower, "lower", "()V");
+  FIND_METHOD (reconfigure, "reconfigure", "(Lorg/gnu/emacs/EmacsWindow;I)V");
   FIND_METHOD (get_window_geometry, "getWindowGeometry",
 	       "()[I");
   FIND_METHOD (translate_coordinates, "translateCoordinates",
@@ -4960,6 +4962,37 @@ android_lower_window (android_window handle)
 						 window,
 						 window_class.class,
 						 lower);
+  android_exception_check ();
+}
+
+void
+android_reconfigure_wm_window (android_window handle,
+			       enum android_wc_value_mask value_mask,
+			       struct android_window_changes *values)
+{
+  jobject sibling, window;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+
+  if (!(value_mask & ANDROID_CW_STACK_MODE))
+    return;
+
+  /* If value_mask & ANDROID_CW_SIBLING, place HANDLE above or below
+     values->sibling pursuant to values->stack_mode; else, reposition
+     it at the top or the bottom of its parent.  */
+
+  sibling = NULL;
+
+  if (value_mask & ANDROID_CW_SIBLING)
+    sibling = android_resolve_handle (values->sibling,
+				      ANDROID_HANDLE_WINDOW);
+
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 window_class.reconfigure,
+						 sibling,
+						 (jint) values->stack_mode);
   android_exception_check ();
 }
 

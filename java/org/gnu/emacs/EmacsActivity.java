@@ -89,8 +89,11 @@ public class EmacsActivity extends Activity
     if (window.view.isFocused ())
       focusedWindow = window;
 
-    for (EmacsWindow child : window.children)
-      invalidateFocus1 (child);
+    synchronized (window.children)
+      {
+	for (EmacsWindow child : window.children)
+	  invalidateFocus1 (child);
+      }
   }
 
   public static void

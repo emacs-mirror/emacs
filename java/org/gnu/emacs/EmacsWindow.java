@@ -22,6 +22,7 @@ package org.gnu.emacs;
 import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -93,7 +94,9 @@ public final class EmacsWindow extends EmacsHandleObject
   public EmacsWindow parent;
 
   /* List of all children in stacking order.  This must be kept
-     consistent with their Z order!  */
+     consistent with their Z order!
+
+     Synchronize access to this list with itself.  */
   public ArrayList<EmacsWindow> children;
 
   /* Map between pointer identifiers and last known position.  Used to
@@ -165,7 +168,11 @@ public final class EmacsWindow extends EmacsHandleObject
 
     if (parent != null)
       {
-	parent.children.add (this);
+	synchronized (parent.children)
+	  {
+	    parent.children.add (this);
+	  }
+
         EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	    @Override
 	    public void
@@ -214,7 +221,12 @@ public final class EmacsWindow extends EmacsHandleObject
   destroyHandle () throws IllegalStateException
   {
     if (parent != null)
-      parent.children.remove (this);
+      {
+	synchronized (parent.children)
+	  {
+	    parent.children.remove (this);
+	  }
+      }
 
     EmacsActivity.invalidateFocus ();
 
@@ -1163,10 +1175,20 @@ public final class EmacsWindow extends EmacsHandleObject
     /* Reparent this window to the other window.  */
 
     if (parent != null)
-      parent.children.remove (this);
+      {
+	synchronized (parent.children)
+	  {
+	    parent.children.remove (this);
+	  }
+      }
 
     if (otherWindow != null)
-      otherWindow.children.add (this);
+      {
+	synchronized (otherWindow.children)
+	  {
+	    otherWindow.children.add (this);
+	  }
+      }
 
     parent = otherWindow;
 
@@ -1239,9 +1261,12 @@ public final class EmacsWindow extends EmacsHandleObject
     if (parent == null)
       return;
 
-    /* Remove and add this view again.  */
-    parent.children.remove (this);
-    parent.children.add (this);
+    synchronized (parent.children)
+      {
+	/* Remove and add this view again.  */
+	parent.children.remove (this);
+	parent.children.add (this);
+      }
 
     /* Request a relayout.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
@@ -1261,9 +1286,12 @@ public final class EmacsWindow extends EmacsHandleObject
     if (parent == null)
       return;
 
-    /* Remove and add this view again.  */
-    parent.children.remove (this);
-    parent.children.add (this);
+    synchronized (parent.children)
+      {
+	/* Remove and add this view again.  */
+	parent.children.remove (this);
+	parent.children.add (this);
+      }
 
     /* Request a relayout.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
@@ -1274,6 +1302,86 @@ public final class EmacsWindow extends EmacsHandleObject
 	  view.lower ();
 	}
       });
+  }
+
+  public synchronized void
+  reconfigure (final EmacsWindow window, final int stackMode)
+  {
+    ListIterator<EmacsWindow> iterator;
+    EmacsWindow object;
+
+    /* This does nothing here.  */
+    if (parent == null)
+      return;
+
+    /* If window is NULL, call lower or upper subject to
+       stackMode.  */
+
+    if (window == null)
+      {
+	if (stackMode == 1) /* ANDROID_BELOW */
+	  lower ();
+	else
+	  raise ();
+
+	return;
+      }
+
+    /* Otherwise, if window.parent is distinct from this, return.  */
+    if (window.parent != this.parent)
+      return;
+
+    /* Synchronize with the parent's child list.  Iterate over each
+       item until WINDOW is encountered, before moving this window to
+       the location prescribed by STACKMODE.  */
+
+    synchronized (parent.children)
+      {
+	/* Remove this window from parent.children, for it will be
+	   reinserted before or after WINDOW.  */
+	parent.children.remove (this);
+
+	/* Create an iterator.  */
+	iterator = parent.children.listIterator ();
+
+	while (iterator.hasNext ())
+	  {
+	    object = iterator.next ();
+
+	    if (object == window)
+	      {
+		/* Now place this before or after the cursor of the
+		   iterator.  */
+
+		if (stackMode == 0) /* ANDROID_ABOVE */
+		  iterator.add (this);
+		else
+		  {
+		    iterator.previous ();
+		    iterator.add (this);
+		  }
+
+		/* Effect the same adjustment upon the view
+		   hiearchy.  */
+
+		EmacsService.SERVICE.runOnUiThread (new Runnable () {
+		    @Override
+		    public void
+		    run ()
+		    {
+		      if (stackMode == 0)
+			view.moveAbove (window.view);
+		      else
+			view.moveBelow (window.view);
+		    }
+		  });
+	      }
+	  }
+
+	/* parent.children does not list WINDOW, which should never
+	   transpire.  */
+	EmacsNative.emacsAbort ();
+      }
   }
 
   public synchronized int[]

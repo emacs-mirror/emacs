@@ -1591,7 +1591,8 @@ and width values are in pixels.
 #endif
 }
 
-DEFUN ("android-frame-edges", Fandroid_frame_edges, Sandroid_frame_edges, 0, 2, 0,
+DEFUN ("android-frame-edges", Fandroid_frame_edges,
+       Sandroid_frame_edges, 0, 2, 0,
        doc: /* Return edge coordinates of FRAME.
 FRAME must be a live frame and defaults to the selected one.  The return
 value is a list of the form (LEFT, TOP, RIGHT, BOTTOM).  All values are
@@ -1693,6 +1694,28 @@ TERMINAL is a frame.  */)
 #endif
 }
 
+#ifndef ANDROID_STUBIFY
+
+static void
+android_frame_restack (struct frame *f1, struct frame *f2,
+		       bool above_flag)
+{
+  android_window window1;
+  struct android_window_changes wc;
+  unsigned long mask;
+
+  window1 = FRAME_ANDROID_WINDOW (f1);
+  wc.sibling = FRAME_ANDROID_WINDOW (f2);
+  wc.stack_mode = above_flag ? ANDROID_ABOVE : ANDROID_BELOW;
+  mask = ANDROID_CW_SIBLING | ANDROID_CW_STACK_MODE;
+
+  block_input ();
+  android_reconfigure_wm_window (window1, mask, &wc);
+  unblock_input ();
+}
+
+#endif /* !ANDROID_STUBIFY */
+
 DEFUN ("android-frame-restack", Fandroid_frame_restack,
        Sandroid_frame_restack, 2, 3, 0,
        doc: /* Restack FRAME1 below FRAME2.
@@ -1709,19 +1732,25 @@ that of FRAME2.  Hence the position of FRAME2 in its display's Z
 \(stacking) order relative to all other frames excluding FRAME1 remains
 unaltered.
 
-The Android system refuses to restack windows, so this does not
-work.  */)
-  (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object frame3)
+Android does not facilitate restacking top-level windows managed by
+its own window manager; nor is it possible to restack frames that are
+children of different parents.  Consequently, this function only
+functions when FRAME1 and FRAME2 are both child frames subordinate to
+the same parent frame.  */)
+  (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
 {
 #ifdef ANDROID_STUBIFY
   error ("Android cross-compilation stub called!");
   return Qnil;
-#else
-  /* This is not supported on Android because of limitations in the
-     platform that prevent ViewGroups from restacking
-     SurfaceViews.  */
-  return Qnil;
-#endif
+#else /* !ANDROID_STUBIFY */
+  struct frame *f1 = decode_live_frame (frame1);
+  struct frame *f2 = decode_live_frame (frame2);
+
+  if (!(FRAME_ANDROID_WINDOW (f1) && FRAME_ANDROID_WINDOW (f2)))
+    error ("Cannot restack frames");
+  android_frame_restack (f1, f2, !NILP (above));
+  return Qt;
+#endif /* ANDROID_STUBIFY */
 }
 
 DEFUN ("android-mouse-absolute-pixel-position",

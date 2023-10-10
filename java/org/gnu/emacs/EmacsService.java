@@ -505,15 +505,18 @@ public final class EmacsService extends Service
     else
       windowList = window.children;
 
-    array = new short[windowList.size () + 1];
-    i = 1;
+    synchronized (windowList)
+      {
+	array = new short[windowList.size () + 1];
+	i = 1;
 
-    array[0] = (window == null
-		? 0 : (window.parent != null
-		       ? window.parent.handle : 0));
+	array[0] = (window == null
+		    ? 0 : (window.parent != null
+			   ? window.parent.handle : 0));
 
-    for (EmacsWindow treeWindow : windowList)
-      array[i++] = treeWindow.handle;
+	for (EmacsWindow treeWindow : windowList)
+	  array[i++] = treeWindow.handle;
+      }
 
     return array;
   }

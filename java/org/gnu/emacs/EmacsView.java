@@ -581,12 +581,12 @@ public final class EmacsView extends ViewGroup
 
 	/* The view at 0 is the surface view.  */
 	attachViewToParent (child, 1,
-			    child.getLayoutParams());
+			    child.getLayoutParams ());
       }
   }
 
-  /* The following two functions must not be called if the view has no
-     parent, or is parented to an activity.  */
+  /* The following four functions must not be called if the view has
+     no parent, or is parented to an activity.  */
 
   public void
   raise ()
@@ -613,6 +613,40 @@ public final class EmacsView extends ViewGroup
       return;
 
     parent.moveChildToBack (this);
+  }
+
+  public void
+  moveAbove (EmacsView view)
+  {
+    EmacsView parent;
+    int index;
+
+    parent = (EmacsView) getParent ();
+
+    if (parent != view.getParent ())
+      throw new IllegalStateException ("Moving view above non-sibling");
+
+    index = parent.indexOfChild (this);
+    parent.detachViewFromParent (index);
+    index = parent.indexOfChild (view);
+    parent.attachViewToParent (this, index + 1, getLayoutParams ());
+  }
+
+  public void
+  moveBelow (EmacsView view)
+  {
+    EmacsView parent;
+    int index;
+
+    parent = (EmacsView) getParent ();
+
+    if (parent != view.getParent ())
+      throw new IllegalStateException ("Moving view above non-sibling");
+
+    index = parent.indexOfChild (this);
+    parent.detachViewFromParent (index);
+    index = parent.indexOfChild (view);
+    parent.attachViewToParent (this, index, getLayoutParams ());
   }
 
   @Override
