@@ -631,7 +631,7 @@ function `speedbar-extension-list-to-regex'.")
   (append '(".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?"
 	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".js" ".f\\(90\\|77\\|or\\)?")
 	  (if speedbar-use-imenu-flag
-	      '(".ad[abs]" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g"
+	      '(".ad[abs]" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g" ".lua"
 		;; html is not supported by default, but an imenu tags package
 		;; is available.  Also, html files are nice to be able to see.
 		".s?html"

@@ -443,6 +443,33 @@ Return nil if there is no name or if NODE is not a defun node."
        (and (treesit-search-subtree node "function_definition" nil nil 1)
             (treesit-node-text child t))))))
 
+(defun lua-ts--named-function-p (node)
+  "Matches if NODE is a named function."
+  (let ((type (treesit-node-type node)))
+    (or (equal "function_declaration" type)
+        (and (equal "field" type)
+             (equal "function_definition"
+                    (treesit-node-type
+                     (treesit-node-child-by-field-name
+                      node "value")))
+             (treesit-node-child-by-field-name node "name")))))
+
+(defun lua-ts--require-name-function (node)
+  "Return name of NODE to use for requires in imenu."
+  (when-let* (((lua-ts--require-p node))
+              (parent (treesit-node-parent node))
+              (parent-type (treesit-node-type parent)))
+    (if (equal "expression_list" parent-type)
+        (let* ((g-parent (treesit-node-parent parent))
+               (name (treesit-node-child-by-field-name g-parent "name")))
+          (treesit-node-text name t))
+      (treesit-node-text (treesit-search-subtree node "string_content") t))))
+
+(defun lua-ts--require-p (node)
+  "Matches if NODE is a require statement."
+  (let ((name (treesit-node-child-by-field-name node "name")))
+    (equal "require" (treesit-node-text name t))))
+
 (defvar-local lua-ts--flymake-process nil)
 
 (defun lua-ts-flymake-luacheck (report-fn &rest _args)
@@ -692,13 +719,15 @@ Calls REPORT-FN directly."
 
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings
-                `(("Variable" ,(rx bos "variable_declaration" eos) nil nil)
-                  ("Function" ,(rx bos
-                                   (or "function_declaration"
-                                       "function_definition"
-                                       "field")
-                                   eos)
-                   nil nil)))
+                `(("Requires"
+                   "\\`function_call\\'"
+                   lua-ts--require-p
+                   lua-ts--require-name-function)
+                  ("Variables" "\\`variable_declaration\\'" nil nil)
+                  (nil
+                   "\\`\\(?:f\\(?:ield\\|unction_declaration\\)\\)\\'"
+                   lua-ts--named-function-p
+                   nil)))
 
     ;; Which-function.
     (setq-local which-func-functions (treesit-defun-at-point))
