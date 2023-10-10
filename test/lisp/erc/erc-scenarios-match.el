@@ -134,7 +134,7 @@
 
        ;; Leading stamp has combined `invisible' property value.
        (should (equal (get-text-property (pos-bol) 'invisible)
-                      '(timestamp match-fools)))
+                      '(match-fools timestamp)))
 
        ;; Message proper has the `invisible' property `match-fools'.
        (let ((msg-beg (next-single-property-change (pos-bol) 'invisible)))
@@ -168,7 +168,7 @@
 
          ;; Stamps have a combined `invisible' property value.
          (should (equal (get-text-property (1- end) 'invisible)
-                        '(timestamp match-fools)))
+                        '(match-fools timestamp)))
 
          ;; The final newline is hidden by `match', not `stamps'
          (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
@@ -184,7 +184,7 @@
          ;; It ends just before the timestamp.
          (let ((msg-end (next-single-property-change (pos-bol) 'invisible)))
            (should (equal (get-text-property msg-end 'invisible)
-                          '(timestamp match-fools)))
+                          '(match-fools timestamp)))
 
            ;; Stamp's `invisible' property extends throughout the stamp
            ;; and ends before the trailing newline.
@@ -230,7 +230,7 @@
 
        ;; Stamps have a combined `invisible' property value.
        (should (equal (get-text-property (1- (pos-eol)) 'invisible)
-                      '(timestamp match-fools)))
+                      '(match-fools timestamp)))
 
        ;; The message proper has the `invisible' property `match-fools',
        ;; which starts at the preceding newline...
@@ -239,7 +239,7 @@
        ;; ... and ends just before the timestamp.
        (let ((msgend (next-single-property-change (1- (pos-bol)) 'invisible)))
          (should (equal (get-text-property msgend 'invisible)
-                        '(timestamp match-fools)))
+                        '(match-fools timestamp)))
 
          ;; The newline before `erc-insert-marker' is still visible.
          (should-not (get-text-property (pos-eol) 'invisible))
@@ -350,7 +350,7 @@
            (let ((msgend (next-single-property-change (pos-bol) 'invisible)))
              ;; Stamp has a combined `invisible' property value.
              (should (equal (get-text-property msgend 'invisible)
-                            '(timestamp match-fools)))
+                            '(match-fools timestamp)))
 
              ;; Combined `invisible' property spans entire timestamp.
              (should (= (next-single-property-change msgend 'invisible)
@@ -492,7 +492,7 @@
            (let ((msgend (next-single-property-change (pos-bol) 'invisible)))
              ;; Stamp has a combined `invisible' property value.
              (should (equal (get-text-property msgend 'invisible)
-                            '(timestamp match-fools)))
+                            '(match-fools timestamp)))
 
              ;; Combined `invisible' property spans entire timestamp.
              (should (= (next-single-property-change msgend 'invisible)

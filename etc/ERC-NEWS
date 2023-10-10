@@ -276,13 +276,12 @@ essential members of important hooks.
 Luckily, ERC now leverages a feature introduced in Emacs 27, "hook
 depth," to secure the positions of a few key members of
 'erc-insert-modify-hook' and 'erc-send-modify-hook'.  So far, this
-includes the functions 'erc-button-add-buttons', 'erc-fill',
-'erc-match-message', and 'erc-add-timestamp', which now appear in that
-order, when present, at depths beginning at 20 and ending below 80.
-Of most interest to module authors is the new relative positioning of
-the first two, 'erc-button-add-buttons' and 'erc-fill', which have
-been swapped with respect to their previous places in recent ERC
-versions.
+includes the functions 'erc-button-add-buttons', 'erc-match-message',
+'erc-fill', and 'erc-add-timestamp', which now appear in that order,
+when present, at depths beginning at 20 and ending below 80.  Of most
+interest to module authors is the new relative positioning of the
+first three, which have been rotated leftward with respect to their
+previous places in recent ERC versions (fill, button, match ,stamp).
 
 ERC also provisionally reserves the same depth interval for
 'erc-insert-pre-hook' and possibly other, similar hooks, but will

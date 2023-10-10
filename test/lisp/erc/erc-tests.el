@@ -2455,14 +2455,14 @@
 
    '( :erc-insert-modify-hook (erc-controls-highlight ; 0
                                erc-button-add-buttons ; 30
-                               erc-fill ; 40
                                erc-match-message ; 50
-                               erc-add-timestamp) ; 60
+                               erc-fill ; 60
+                               erc-add-timestamp) ; 70
 
       :erc-send-modify-hook ( erc-controls-highlight ; 0
                               erc-button-add-buttons ; 30
                               erc-fill ; 40
-                              erc-add-timestamp)))) ; 50
+                              erc-add-timestamp)))) ; 70
 
 (ert-deftest erc-migrate-modules ()
   (should (equal (erc-migrate-modules '(autojoin timestamp button))
