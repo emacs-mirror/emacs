@@ -181,9 +181,7 @@
     ( hpm     "75 m kgf/s"           "Metric Horsepower") ;;ESUWM
 
     ;; Temperature
-    ( K       nil                    "*Degree Kelvin"     K )
-    ( dK      "K"                    "Degree Kelvin"      K )
-    ( degK    "K"                    "Degree Kelvin"      K )
+    ( K       nil                    "*Kelvin"            K )
     ( dC      "K"                    "Degree Celsius"     C )
     ( degC    "K"                    "Degree Celsius"     C )
     ( dF      "(5/9) K"              "Degree Fahrenheit"  F )
