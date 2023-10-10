@@ -1196,7 +1196,7 @@ bent, contributed ideas and algorithms for a number of Calc features
 including modulo forms, primality testing, and float-to-fraction conversion.
 
 Units were added at the eager insistence of Mass Sivilotti.  Later,
-Ulrich Mueller at CERN and Przemek Klosowski at NIST provided invaluable
+Ulrich Müller at CERN and Przemek Klosowski at NIST provided invaluable
 expert assistance with the units table.  As far as I can remember, the
 idea of using algebraic formulas and variables to represent units dates
 back to an ancient article in Byte magazine about muMath, an early
