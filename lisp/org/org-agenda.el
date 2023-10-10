@@ -6784,7 +6784,8 @@ scheduled items with an hour specification like [h]h:mm."
 		          (let ((deadline (time-to-days
                                            (when (org-element-property :deadline el)
                                              (org-time-string-to-time
-                                              (org-element-property :deadline el))))))
+                                              (org-element-interpret-data
+                                               (org-element-property :deadline el)))))))
 		            (and (<= schedule deadline) (> current deadline))))
 		         (`not-today pastschedp)
 		         (`t t)
