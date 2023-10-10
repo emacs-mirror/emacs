@@ -443,6 +443,9 @@ Calls REPORT-FN directly."
                                            "function"))
                                   symbol-end)))))
 
+    ;; Align.
+    (setq-local align-indent-before-aligning t)
+
     (treesit-major-mode-setup))
 
   (add-hook 'flymake-diagnostic-functions #'lua-ts-flymake-luacheck nil 'local))

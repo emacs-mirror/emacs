@@ -49,6 +49,13 @@
   (ert-test-erts-file (ert-resource-file "latex-mode.erts")
                       (test-align-transform-fun #'latex-mode)))
 
+(ert-deftest align-lua ()
+  (skip-unless (treesit-ready-p 'lua))
+  (let ((comment-column 20)
+        (indent-tabs-mode nil))
+    (ert-test-erts-file (ert-resource-file "lua-ts-mode.erts")
+                        (test-align-transform-fun #'lua-ts-mode))))
+
 (ert-deftest align-python ()
   (ert-test-erts-file (ert-resource-file "python-mode.erts")
                       (test-align-transform-fun #'python-mode)))
