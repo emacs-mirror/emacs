@@ -431,6 +431,14 @@ For more information, see the "(eshell) Built-ins" node in the Eshell
 manual.
 
 +++
+*** New special reference type '#<marker POSITION BUFFER>'.
+This special reference type returns a marker at 'POSITION' in
+'BUFFER'.  You can insert it by typing or using the new interactive
+command 'eshell-insert-marker'.  You can also insert markers of any
+type with the new command 'eshell-insert-special-reference'.  See the
+"(eshell) Arguments" node in the Eshell manual for more details.
+
++++
 *** New splice operator for Eshell dollar expansions.
 Dollar expansions in Eshell now let you splice the elements of the
 expansion in-place using '$@expr'.  This makes it easier to fill lists

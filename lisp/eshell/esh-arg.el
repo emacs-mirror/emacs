@@ -169,7 +169,11 @@ treated as a literal character."
   '(("buffer"
      (creation-function   eshell-get-buffer)
      (insertion-function  eshell-insert-buffer-name)
-     (completion-function eshell-complete-buffer-ref)))
+     (completion-function eshell-complete-buffer-ref))
+    ("marker"
+     (creation-function   eshell-get-marker)
+     (insertion-function  eshell-insert-marker)
+     (completion-function eshell-complete-marker-ref)))
   "Alist of special reference types for Eshell.
 Each entry is a list of the form (TYPE (KEY VALUE)...).  TYPE is
 the name of the special reference type, and each KEY/VALUE pair
@@ -715,6 +719,27 @@ single argument."
 
 (defun eshell-complete-buffer-ref ()
   "Perform completion for buffer references."
+  (pcomplete-here (mapcar #'buffer-name (buffer-list))))
+
+(defun eshell-get-marker (position buffer-or-name)
+  "Return the marker for character number POSITION in BUFFER-OR-NAME.
+BUFFER-OR-NAME can be a buffer or a string.  If a string and a
+live buffer with that name exists, use that buffer.  If no such
+buffer exists, create a new buffer with that name and use it."
+  (let ((marker (make-marker)))
+    (set-marker marker (string-to-number position)
+                (get-buffer-create buffer-or-name))))
+
+(defun eshell-insert-marker (position buffer-name)
+  "Insert a marker into the current buffer at point.
+This marker will point to POSITION in BUFFER-NAME."
+  (interactive "nPosition: \nBName of buffer: ")
+  (insert-and-inherit "#<marker " (number-to-string position) " "
+                      (eshell-quote-argument buffer-name) ">"))
+
+(defun eshell-complete-marker-ref ()
+  "Perform completion for marker references."
+  (pcomplete-here)
   (pcomplete-here (mapcar #'buffer-name (buffer-list))))
 
 (provide 'esh-arg)
