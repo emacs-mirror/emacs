@@ -2219,8 +2219,10 @@ resource must also be set to the string @code{"extended"}.
 @item inhibit-double-buffering
 If non-@code{nil}, the frame is drawn to the screen without double
 buffering.  Emacs normally attempts to use double buffering, where
-available, to reduce flicker.  Set this property if you experience
-display bugs or pine for that retro, flicker-y feeling.
+available, to reduce flicker; nevertheless, this parameter is provided
+for circumstances where double-buffering induces display corruption,
+and for those eccentrics wistful for the immemorial flicker that once
+beset Emacs.
 
 @vindex skip-taskbar@r{, a frame parameter}
 @item skip-taskbar
