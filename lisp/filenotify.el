@@ -138,7 +138,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                         ((memq action '(delete delete-self move-self)) 'deleted)
                         ((eq action 'moved-from) 'renamed-from)
                         ((eq action 'moved-to) 'renamed-to)
-                        ((eq action 'ignored) 'stopped)))
+                        ((memq action '(ignored unmount)) 'stopped)))
                      actions))
    file file1-or-cookie))
 
@@ -153,7 +153,8 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                         ((eq action 'write) 'changed)
                         ((memq action '(attrib link)) 'attribute-changed)
                         ((eq action 'delete) 'deleted)
-                        ((eq action 'rename) 'renamed)))
+                        ((eq action 'rename) 'renamed)
+                        ((eq action 'revoke) 'stopped)))
                      actions))
    file file1-or-cookie))
 
@@ -179,7 +180,8 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                         ((memq action
                                '(created changed attribute-changed deleted))
                          action)
-                        ((eq action 'moved) 'renamed)))
+                        ((eq action 'moved) 'renamed)
+                        ((eq action 'unmounted) 'stopped)))
                      (if (consp actions) actions (list actions))))
    file file1-or-cookie))
 
@@ -195,6 +197,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                  ((memq action '(created changed attribute-changed deleted))
                   action)
                  ((eq action 'moved) 'renamed)
+                 ((eq action 'unmounted) 'stopped)
                  ;; inotify actions:
                  ((eq action 'create) 'created)
                  ((eq action 'modify) 'changed)
@@ -202,7 +205,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                  ((memq action '(delete delete-self move-self)) 'deleted)
                  ((eq action 'moved-from) 'renamed-from)
                  ((eq action 'moved-to) 'renamed-to)
-                 ((eq action 'ignored) 'stopped)))
+                 ((memq action '(ignored unmount)) 'stopped)))
               (if (consp actions) actions (list actions))))
    file file1-or-cookie))
 
@@ -339,7 +342,7 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
   "Add a watch for FILE in DIR with FLAGS, using inotify."
   (inotify-add-watch dir
                      (append
-                      '(dont-follow)
+                      '(dont-follow ignored unmount)
                       (and (memq 'change flags)
                            '(create delete delete-self modify move-self move))
                       (and (memq 'attribute-change flags)
@@ -352,6 +355,7 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
   ;; directories, so we watch each file directly.
   (kqueue-add-watch file
                     (append
+                     '(revoke)
                      (and (memq 'change flags)
 	                  '(create delete write extend rename))
                      (and (memq 'attribute-change flags)

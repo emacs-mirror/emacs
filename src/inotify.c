@@ -148,6 +148,11 @@ symbol_to_inotifymask (Lisp_Object symb)
   else if (EQ (symb, Qonlydir))
     return IN_ONLYDIR;
 
+  else if (EQ (symb, Qignored))
+    return IN_IGNORED;
+  else if (EQ (symb, Qunmount))
+    return IN_UNMOUNT;
+
   else if (EQ (symb, Qt) || EQ (symb, Qall_events))
     return IN_ALL_EVENTS;
   else

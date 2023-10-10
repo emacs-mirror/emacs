@@ -3802,11 +3802,12 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
-			"delete,delete_self,attrib,ignored"))
+			"delete,delete_self,attrib"))
 	       ((memq 'change flags)
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
-			"delete,delete_self,ignored"))
-	       ((memq 'attribute-change flags) "attrib,ignored"))
+			"delete,delete_self"))
+	       ((memq 'attribute-change flags) "attrib"))
+              events (concat events ",ignored,unmount")
 	      ;; "-P" has been added to version 3.21, so we cannot assume it yet.
 	      sequence `(,command "-mq" "-e" ,events ,localname)
 	      ;; Make events a list of symbols.
@@ -3821,10 +3822,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
 		'(created changed changes-done-hint moved deleted
-			  attribute-changed))
+			  attribute-changed unmounted))
 	       ((memq 'change flags)
-		'(created changed changes-done-hint moved deleted))
-	       ((memq 'attribute-change flags) '(attribute-changed)))
+		'(created changed changes-done-hint moved deleted unmounted))
+	       ((memq 'attribute-change flags) '(attribute-changed unmounted)))
 	      sequence `(,command "monitor" ,localname)))
        ;; None.
        (t (tramp-error

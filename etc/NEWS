@@ -144,9 +144,7 @@ can use this to distinguish between buffers visiting files with the
 same base name that belong to different projects by using the provided
 transform function 'project-uniquify-dirname-transform'.
 
-** 'insert-directory-program' is now a defcustom.
-
-** 'insert-directory-program' prefers "gls" on *BSD and macOS.
+** 'insert-directory-program' is now a user option.
 On *BSD and macOS systems, this user option now defaults to the "gls"
 executable, if it exists.  This should remove the need to change its
 value when installing GNU coreutils using something like ports or
@@ -267,6 +265,7 @@ functions in CJK locales.
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
 ** gdb-mi
+
 ---
 *** Variable order and truncation can now be configured in 'gdb-many-windows'.
 The new user option 'gdb-locals-table-row-config' allows users to
@@ -285,7 +284,7 @@ If you want to get back the old behavior, set the user option to the value
 
 ---
 *** New user option 'gdb-display-io-buffer'.
-If this is nil, "M-x gdb" will neither create nor display a separate
+If this is nil, 'M-x gdb' will neither create nor display a separate
 buffer for the I/O of the program being debugged, but will instead
 redirect the program's interaction to the GDB execution buffer.  The
 default is t, to preserve previous behavior.
@@ -299,9 +298,9 @@ equivalent to the "--heading" option of some tools such as 'git grep'
 and 'rg'.  The headings are displayed using the new 'grep-heading'
 face.
 
----
 ** Compilation mode
 
+---
 *** The 'omake' matching rule is now disabled by default.
 This is because it partly acts by modifying other rules which may
 occasionally be surprising.  It can be re-enabled by adding 'omake' to
@@ -547,6 +546,11 @@ It reverts the current buffer to visit with "sudo" permissions.  The
 buffer must either visit a file, or it must run 'dired-mode'.  Another
 method but "sudo" can be configured with user option
 'tramp-file-name-with-method'.
+
+** File Notifications
+
++++
+*** All backends except w32notify detect unmounting of a watched filesystem now.
 
 ** EWW
 
@@ -809,7 +813,8 @@ You can now configure how a thumbnail is named using this option.
 
 ** ERT
 
-*** New macro `skip-when' to skip 'ert-deftest' tests.
++++
+*** New macro 'skip-when' to skip 'ert-deftest' tests.
 This can help avoid some awkward skip conditions.  For example
 '(skip-unless (not noninteractive))' can be changed to the easier
 to read '(skip-when noninteractive)'.
@@ -831,18 +836,19 @@ neither of which have been supported by Emacs since version 23.1.
 The user option 'url-gateway-nslookup-program' and the function
 'url-gateway-nslookup-host' are consequently also obsolete.
 
-+++
 ** Edmacro
 
++++
 *** New command 'edmacro-set-macro-to-region-lines'.
 Bound to 'C-c C-r', this command replaces the macro text with the
 lines of the region.  If needed, the region is extended to include
 whole lines.  If the region ends at the beginning of a line, that last
 line is excluded.
 
++++
 *** New user option 'edmacro-reverse-macro-lines'.
 When this is non-nil, the lines of key sequences are displayed with
-the most recent line fist.  This is can be useful when working with
+the most recent line first.  This is can be useful when working with
 macros with many lines, such as from 'kmacro-edit-lossage'.
 
 
@@ -861,8 +867,11 @@ A major mode based on the tree-sitter library for editing HEEx files.
 
 ---
 *** New major mode 'elixir-ts-mode'.
-A major mode based on the tree-sitter library for editing Elixir
-files.
+A major mode based on the tree-sitter library for editing Elixir files.
+
+---
+*** New major mode 'lua-ts-mode'.
+A major mode based on the tree-sitter library for editing Lua files.
 
 +++
 ** New global minor mode 'minibuffer-regexp-mode'.
@@ -870,10 +879,6 @@ This is a minor mode for editing regular expressions in the minibuffer.
 It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
 a user-friendly way, avoids reporting alleged paren mismatches and makes
 sexp navigation more intuitive.
-
----
-*** New major mode 'lua-ts-mode'.
-A major mode based on the tree-sitter library for editing Lua files.
 
 ---
 ** The highly accessible Modus themes collection has eight items.
@@ -913,7 +918,7 @@ the file listing's performance is still optimized.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
-** 'post-gc-hook' runs after updating 'gcs-done' and `'gcs-elapsed'.
+** 'post-gc-hook' runs after updating 'gcs-done' and 'gcs-elapsed'.
 
 ---
 ** The escape sequence '\x' not followed by hex digits is now an error.

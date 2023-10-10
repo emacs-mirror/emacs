@@ -3355,7 +3355,8 @@ reliably report file attribute changes when watching a directory.
 The @code{stopped} event means that watching the file has been
 discontinued.  This could be because @code{file-notify-rm-watch} was
 called (see below), or because the file being watched was deleted, or
-due to another error reported from the underlying library which makes
+because the filesystem of the file being watched was unmounted, or due
+to another error reported from the underlying library which makes
 further watching impossible.
 
 @var{file} and @var{file1} are the name of the file(s) whose event is
