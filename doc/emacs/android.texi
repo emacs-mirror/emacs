@@ -554,18 +554,18 @@ example, the permission to access contacts may be useful for EUDC.
 @node Android Windowing
 @section The Android Window System
 
-  Android has an unusual window system; there, all windows are
+  Android's window system is unusual, in that all windows are
 maximized or full-screen, and only one window can be displayed at a
-time.  On larger devices, the system allows up to four windows to be
-tiled on the screen at any time.
+time.  On larger devices, the system permits simultaneously tiling up
+to four windows on the screen.
 
-  Windows on Android do not continue to exist indefinitely after they
-are created.  Instead, the system may choose to close windows that are
-not on screen in order to save memory, with the assumption that the
-program will save its contents to disk and restore them later, when
-the user asks for it to be opened again.  As this is obviously not
-possible with Emacs, Emacs separates the resources associated with a
-frame from its system window.
+  Windows on Android do not exist indefinitely after they are created.
+Instead, the system may choose to close windows that are not on screen
+in order to conserve memory, with the assumption that the program will
+save its contents to disk and restore them later, when the user asks
+for it to be opened again.  As this is obviously not possible with
+Emacs, Emacs separates the resources associated with a frame from its
+system window.
 
   Each system window created (including the initial window created
 during Emacs startup) is appended to a list of windows that do not
@@ -679,7 +679,7 @@ System -> Apps -> Emacs -> More -> Display over other apps
 modifiers (@pxref{Modifier Keys}) reported within key events, subject
 to a single exception: if @key{Alt} on your keyboard is depressed,
 then the @key{Meta} modifier will be reported by Emacs in its place,
-and vice versa.  This irregularity is since most keyboards posses no
+and vice versa.  This irregularity is since most keyboards possess no
 special @key{Meta} key, and the @key{Alt} modifier is seldom employed
 in Emacs.
 
@@ -713,8 +713,8 @@ and @code{1000}.
 @section Font Backends and Selection under Android
 @cindex fonts, android
 
-  Emacs supports two font backends under Android: they are respectively
-named @code{sfnt-android} and @code{android}.
+  Emacs supports two font backends under Android: they are
+respectively named @code{sfnt-android} and @code{android}.
 
   Upon startup, Emacs enumerates all the TrueType format fonts in the
 directories @file{/system/fonts} and @file{/product/fonts}, and the
@@ -723,17 +723,17 @@ home directory.  Emacs assumes there will always be a font named
 ``Droid Sans Mono'', and then defaults to using this font.  These
 fonts are then displayed by the @code{sfnt-android} font driver.
 
-  When running on Android, Emacs currently lacks support for OpenType
-fonts.  This means that only a subset of the fonts installed on the
-system are currently available to Emacs.  If you are interested in
-lifting this limitation, please contact @email{emacs-devel@@gnu.org}.
+  This font driver is presently without support for OpenType fonts;
+hence, only a subset of the fonts installed on any given system are
+available to Emacs.  If you are interested in lifting this limitation,
+please contact @email{emacs-devel@@gnu.org}.
 
   If the @code{sfnt-android} font driver fails to find any fonts at
 all, Emacs falls back to the @code{android} font driver.  This is a
-very lousy font driver, because of limitations and inaccuracies in the
-font metrics provided by the Android platform.  In that case, Emacs
-uses the ``Monospace'' typeface configured on your system; this should
-always be Droid Sans Mono.
+very poor font driver, consequent upon limitations and inaccuracies in
+the font metrics provided by the Android platform.  In that case,
+Emacs uses the ``Monospace'' typeface configured on your system; this
+should always be Droid Sans Mono.
 
 @cindex TrueType GX fonts, android
 @cindex distortable fonts, android
@@ -741,7 +741,7 @@ always be Droid Sans Mono.
   As on X systems, Emacs supports distortable fonts under Android.
 These fonts (also termed ``TrueType GX fonts'', ``variable fonts'',
 and ``multiple master fonts'') provide multiple different styles
-(``Bold'', ``Italic'', etc) using a single font file.
+(``Bold'', ``Italic'', and the like) using a single font file.
 
   When a user-installed distortable font is found, each style that a
 previously discovered font provided will no longer be used.  In
@@ -778,8 +778,8 @@ definitions (@xref{Face Customization}).
   Since Android has no command line, there is normally no way to
 specify command-line arguments when starting Emacs.  This is very
 nasty when you make a mistake in your Emacs initialization files that
-prevents Emacs from starting up at all, as the system normally
-prevents other programs from accessing Emacs's home directory.
+prevents Emacs from starting up at all, as the system generally
+prohibits other programs from accessing Emacs's home directory.
 @xref{Initial Options}.
 
   However, Emacs can be started with the equivalent of either the
@@ -822,11 +822,12 @@ your initialization or dump files from there instead.
 @cindex installing extra software on Android
 @cindex installing Unix software on Android
 
-  Android includes an extremely limited set of Unix-like command line
-tools in a default installation.  Several projects exist to argument
-this selection, providing options that range from improved
-reproductions of Unix command-line utilities to package repositories
-containing extensive collections of free GNU and Unix software.
+  An exceptionally limited set of Unix-like command line tools are
+distributed alongside default installations of Android.  Several
+projects exist to augment this selection, providing options that range
+from improved reproductions of Unix command-line utilities to package
+repositories providing extensive collections of free GNU and Unix
+software.
 
   @uref{http://busybox.net, Busybox} provides Unix utilities and
 limited replicas of certain popular GNU programs such as
@@ -838,17 +839,17 @@ on the Debian project's @command{dpkg} system and a set of package
 repositories containing substantial amounts of free software for Unix
 systems, including compilers, debuggers, and runtimes for languages
 such as C, C++, Java, Python and Common Lisp.  These packages are
-normally installed from within a purpose-built terminal emulator
-application, but Emacs can access them if it is built with the same
-application signing key as the Termux terminal emulator, and with its
-``shared user ID'' set to the package name of the terminal emulator
-program.  The file @file{java/INSTALL} within the Emacs distribution
-explains how to build Emacs in this fashion.
+customarily installed from within a purpose-built terminal emulator
+application, but access is also granted to Emacs when it is built with
+the same application signing key, and its ``shared user ID'' is set to
+the same package name, as that of the terminal emulator program.  The
+file @file{java/INSTALL} within the Emacs distribution illustrates how
+to build Emacs in this fashion.
 
   @uref{https://github.com/termux/termux-packages, termux-packages}
-provides the package definitions that are used by Termux to generate
-their package repositories, which may also be independently compiled
-for installation within Emacs's home directory.
+provides the package definitions used by Termux to generate their
+package repositories, which may also be independently compiled for
+installation within Emacs's home directory.
 
   In addition to the projects mentioned above, statically linked
 binaries for most Linux kernel-based systems can also be run on
