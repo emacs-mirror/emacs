@@ -195,6 +195,25 @@ insert the queued one at the next prompt, and finally run it."
    (eshell-send-input)
    (eshell-match-output "(\"hello\" \"there\")")))
 
+(ert-deftest eshell-test/yank-output ()
+  "Test that yanking a line of output into the next prompt works (bug#66469)."
+  (with-temp-eshell
+   (eshell-insert-command "echo hello")
+   ;; Go to the output and kill the line of text.
+   (forward-line -1)
+   (kill-line)
+   ;; Go to the last prompt and yank the previous output.
+   (goto-char (point-max))
+   (yank)
+   ;; Go to the beginning of the prompt and add some text.
+   (move-beginning-of-line 1)
+   (insert-and-inherit "echo ")
+   ;; Make sure when we go to the beginning of the line, we go to the
+   ;; right spot (before the "echo").
+   (move-end-of-line 1)
+   (move-beginning-of-line 1)
+   (should (looking-at "echo hello"))))
+
 (provide 'eshell-tests)
 
 ;;; eshell-tests.el ends here

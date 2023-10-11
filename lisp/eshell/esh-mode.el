@@ -361,6 +361,9 @@ and the hook `eshell-exit-hook'."
   (setq-local eshell-last-output-end (point-marker))
   (setq-local eshell-last-output-block-begin (point))
 
+  (add-function :filter-return (local 'filter-buffer-substring-function)
+                #'eshell--unmark-string-as-output)
+
   (let ((modules-list (copy-sequence eshell-modules-list)))
     (setq-local eshell-modules-list modules-list))
 
