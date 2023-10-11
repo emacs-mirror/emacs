@@ -178,14 +178,13 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
-** Module 'scrolltobottom' can attempt to be more aggressive.
-Enabling the experimental option 'erc-scrolltobottom-all' tells
-'scrolltobottom' to be more vigilant about staking down the input area
-and to do so in all ERC windows.  The dependent option
-'erc-scrolltobottom-relaxed', also experimental, makes ERC's prompt
-stationary wherever it happens to reside instead of forcing it to the
-bottom of a window.  That is, new input appears above the prompt,
-scrolling existing messages upward to compensate.
+** Module 'scrolltobottom' now optionally more aggressive.
+Enabling the experimental option 'erc-scrolltobottom-all' makes ERC
+more vigilant about staking down the input area in all ERC windows.
+And the option's 'relaxed' variant makes ERC's prompt stationary
+wherever it happens to reside instead of forcing it to the bottom of a
+window, meaning new input appears above the prompt, scrolling existing
+messages upward to compensate.
 
 ** Subtle changes in two fundamental faces.
 Users of the default theme may notice that 'erc-action-face' and

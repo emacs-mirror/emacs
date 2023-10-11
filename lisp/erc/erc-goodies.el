@@ -44,45 +44,46 @@
 This should be an integer specifying the line of the buffer on which
 the input line should stay.  A value of \"-1\" would keep the input
 line positioned on the last line in the buffer.  This is passed as an
-argument to `recenter', unless `erc-scrolltobottom-relaxed' is
-non-nil, in which case, ERC interprets it as additional lines to
-scroll down by per message insertion (minus one for the prompt)."
+argument to `recenter', unless `erc-scrolltobottom-all' is
+`relaxed', in which case, ERC interprets it as additional lines
+to scroll down by per message insertion (minus one for the
+prompt)."
   :group 'erc-display
   :type '(choice integer (const nil)))
 
 (defcustom erc-scrolltobottom-all nil
   "Whether to scroll all windows or just the selected one.
-A value of nil preserves pre-5.6 behavior, in which scrolling
-only affects the selected window.  Users should consider its
-non-nil behavior experimental for the time being.  Note also that
 ERC expects this option to be configured before module
-initialization."
-  :group 'erc-display
-  :package-version '(ERC . "5.6") ; FIXME sync on release
-  :type 'boolean)
+initialization.  A value of nil preserves pre-5.6 behavior, in
+which scrolling only affects the selected window.  A value of t
+means ERC attempts to recenter all visible windows whose point
+resides in the input area.
 
-(defcustom erc-scrolltobottom-relaxed nil
-  "Whether to forgo forcing prompt to the bottom of the window.
-When non-nil, and point is at the prompt, ERC scrolls the window
-up when inserting messages, making the prompt appear stationary.
-Users who find this effect too \"stagnant\" can adjust the option
-`erc-input-line-position', which ERC borrows to express a scroll
-step offset when this option is non-nil.  Setting that value to
-zero lets the prompt drift toward the bottom by one line per
-message, which is generally slow enough not to distract while
-composing input.  Of course, this doesn't apply when receiving a
-large influx of messages, such as after typing \"/msg NickServ
-help\".  Note that ERC only considers this option when the
-experimental companion option `erc-scrolltobottom-all' is enabled
-and, only then, during module setup."
+A value of `relaxed' tells ERC to forgo forcing prompt to the
+bottom of the window.  When point is at the prompt, ERC scrolls
+the window up when inserting messages, making the prompt appear
+stationary.  Users who find this effect too \"stagnant\" can
+adjust the option `erc-input-line-position', borrowed here to
+express a scroll step offset.  Setting that value to zero lets
+the prompt drift toward the bottom by one line per message, which
+is generally slow enough not to distract while composing input.
+Of course, this doesn't apply when receiving a large influx of
+messages, such as after typing \"/msg NickServ help\".
+
+Note that users should consider this option's non-nil behavior to
+be experimental.  It currently only works with Emacs 28+."
   :group 'erc-display
   :package-version '(ERC . "5.6") ; FIXME sync on release
-  :type 'boolean)
+  :type '(choice boolean (const relaxed)))
 
 ;;;###autoload(autoload 'erc-scrolltobottom-mode "erc-goodies" nil t)
 (define-erc-module scrolltobottom nil
   "This mode causes the prompt to stay at the end of the window."
   ((add-hook 'erc-mode-hook #'erc--scrolltobottom-setup)
+   (when (and erc-scrolltobottom-all (< emacs-major-version 28))
+     (erc-button--display-error-notice-with-keys
+      "Option `erc-scrolltobottom-all' requires Emacs 28+. Disabling.")
+     (setopt erc-scrolltobottom-all nil))
    (unless erc--updating-modules-p (erc-buffer-do #'erc--scrolltobottom-setup))
    (if erc-scrolltobottom-all
        (progn
@@ -93,24 +94,16 @@ and, only then, during module setup."
      (add-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)))
   ((remove-hook 'erc-mode-hook #'erc--scrolltobottom-setup)
    (erc-buffer-do #'erc--scrolltobottom-setup)
-   (if erc-scrolltobottom-all
-       (progn
-         (remove-hook 'erc-insert-pre-hook #'erc--scrolltobottom-on-pre-insert)
-         (remove-hook 'erc-send-completed-hook #'erc--scrolltobottom-all)
-         (remove-hook 'erc-insert-done-hook #'erc--scrolltobottom-all)
-         (remove-hook 'erc-pre-send-functions
-                      #'erc--scrolltobottom-on-pre-insert))
-     (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom))))
+   (remove-hook 'erc-insert-pre-hook #'erc--scrolltobottom-on-pre-insert)
+   (remove-hook 'erc-send-completed-hook #'erc--scrolltobottom-all)
+   (remove-hook 'erc-insert-done-hook #'erc--scrolltobottom-all)
+   (remove-hook 'erc-pre-send-functions #'erc--scrolltobottom-on-pre-insert)
+   (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)))
 
 (defun erc-possibly-scroll-to-bottom ()
   "Like `erc-add-scroll-to-bottom', but only if window is selected."
   (when (eq (selected-window) (get-buffer-window))
     (erc-scroll-to-bottom)))
-
-(defvar-local erc--scrolltobottom-relaxed-commands '(end-of-buffer)
-  "Commands triggering a forced scroll to prompt.
-Only applies with `erc-scrolltobottom-relaxed' while away from
-prompt.")
 
 (defvar-local erc--scrolltobottom-window-info nil
   "Alist with windows as keys and lists of window-related info as values.
@@ -119,33 +112,11 @@ the last \"window line\" of point.  The \"window line\", which
 may be nil, is the number of lines between `window-start' and
 `window-point', inclusive.")
 
-(defvar erc--scrolltobottom-post-force-commands
-  '(beginning-of-buffer
-    electric-newline-and-maybe-indent
-    newline
-    default-indent-new-line)
-  "Commands that force a scroll after execution at prompt.
-That is, ERC recalculates the window's start instead of blindly
-restoring it.")
-
-;; Unfortunately, this doesn't work when `erc-scrolltobottom-relaxed'
-;; is enabled (scaling up still moves the prompt).
+;; FIXME treat `end-of-buffer' specially and always recenter -1.
+;; FIXME make this work when `erc-scrolltobottom-all' is set to
+;; `relaxed'.
 (defvar erc--scrolltobottom-post-ignore-commands '(text-scale-adjust)
   "Commands to skip instead of force-scroll on `post-command-hook'.")
-
-(defvar erc--scrolltobottom-relaxed-skip-commands
-  '(recenter-top-bottom scroll-down-command)
-  "Commands exempt from triggering a stash and restore of `window-start'.
-Only applies with `erc-scrolltobottom-relaxed' while in the input
-area.")
-
-(defun erc--scrolltobottom-on-pre-command ()
-  (when (and (eq (selected-window) (get-buffer-window))
-             (>= (point) erc-input-marker))
-    (setq erc--scrolltobottom-window-info
-          (list (list (selected-window)
-                      (window-start)
-                      (count-screen-lines (window-start) (point-max)))))))
 
 (defun erc--scrolltobottom-on-post-command ()
   "Restore window start or scroll to prompt and recenter.
@@ -154,55 +125,8 @@ item is associated with the selected window, restore start of
 window so long as prompt hasn't moved.  Expect buffer to be
 unnarrowed."
   (when (eq (selected-window) (get-buffer-window))
-    (if-let (((not (input-pending-p)))
-             (erc--scrolltobottom-window-info)
-             (found (car erc--scrolltobottom-window-info))
-             ((eq (car found) (selected-window)))
-             ((not (memq this-command
-                         erc--scrolltobottom-post-force-commands)))
-             ((= (nth 2 found)
-                 (count-screen-lines (window-start) (point-max)))))
-        (set-window-start (selected-window) (nth 1 found))
-      (unless (memq this-command erc--scrolltobottom-post-ignore-commands)
-        (erc--scrolltobottom-confirm)))
-    (setq erc--scrolltobottom-window-info nil)))
-
-(defun erc--scrolltobottom-on-pre-command-relaxed ()
-  "Maybe scroll to bottom when away from prompt.
-When `erc-scrolltobottom-relaxed' is active, only scroll when
-prompt is past window's end and the command is `end-of-buffer' or
-`self-insert-command' (assuming `move-to-prompt' is active).
-When at prompt and current command does not appear in
-`erc--scrolltobottom-relaxed-skip-commands', stash
-`erc--scrolltobottom-window-info' for the selected window.
-Assume an unnarrowed buffer."
-  (when (eq (selected-window) (get-buffer-window))
-    (when (and (not (input-pending-p))
-               (< (point) erc-input-marker)
-               (memq this-command erc--scrolltobottom-relaxed-commands)
-               (< (window-end nil t) erc-input-marker))
-      (save-excursion
-        (goto-char (point-max))
-        (recenter (or erc-input-line-position -1))))
-    (when (and (>= (point) erc-input-marker)
-               (not (memq this-command
-                          erc--scrolltobottom-relaxed-skip-commands)))
-      (setq erc--scrolltobottom-window-info
-            (list (list (selected-window)
-                        (window-start)
-                        (count-screen-lines (window-start) (point-max))))))))
-
-(defun erc--scrolltobottom-on-post-command-relaxed ()
-  "Set window start or scroll when data was captured on pre-command."
-  (when-let (((eq (selected-window) (get-buffer-window)))
-             (erc--scrolltobottom-window-info)
-             (found (car erc--scrolltobottom-window-info))
-             ((eq (car found) (selected-window))))
-    (if (and (not (memq this-command erc--scrolltobottom-post-force-commands))
-             (= (nth 2 found)
-                (count-screen-lines (window-start) (point-max))))
-        (set-window-start (selected-window) (nth 1 found))
-      (recenter (nth 2 found)))
+    (unless (memq this-command erc--scrolltobottom-post-ignore-commands)
+      (erc--scrolltobottom-confirm))
     (setq erc--scrolltobottom-window-info nil)))
 
 ;; It may be desirable to also restore the relative line position of
@@ -246,54 +170,33 @@ function used `window-scroll-functions', which was replaced by
   (declare (obsolete erc--scrolltobottom-setup "30.1"))
   (add-hook 'post-command-hook #'erc-scroll-to-bottom nil t))
 
-(cl-defgeneric erc--scrolltobottom-setup ()
-  "Arrange for scrolling to bottom on window configuration changes.
-Undo that arrangement when disabling `erc-scrolltobottom-mode'."
+(defun erc--scrolltobottom-setup ()
+  "Perform buffer-local setup for module `scrolltobottom'."
   (if erc-scrolltobottom-mode
-      (add-hook 'post-command-hook #'erc-scroll-to-bottom nil t)
-    (remove-hook 'post-command-hook #'erc-scroll-to-bottom t)))
-
-(cl-defmethod erc--scrolltobottom-setup (&context
-                                         (erc-scrolltobottom-all (eql t)))
-  "Add and remove local hooks specific to `erc-scrolltobottom-all'."
-  (if erc-scrolltobottom-mode
-      (if erc-scrolltobottom-relaxed
+      (if erc-scrolltobottom-all
           (progn
-            (when (or (bound-and-true-p erc-move-to-prompt-mode)
-                      (memq 'move-to-prompt erc-modules))
-              (cl-pushnew 'self-insert-command
-                          erc--scrolltobottom-relaxed-commands))
-            (add-hook 'post-command-hook
-                      #'erc--scrolltobottom-on-post-command-relaxed 60 t)
-            (add-hook 'pre-command-hook ; preempt `move-to-prompt'
-                      #'erc--scrolltobottom-on-pre-command-relaxed 60 t))
-        (add-hook 'window-configuration-change-hook
-                  #'erc--scrolltobottom-at-prompt-minibuffer-active nil t)
-        (add-hook 'pre-command-hook
-                  #'erc--scrolltobottom-on-pre-command 60 t)
-        (add-hook 'post-command-hook
-                  #'erc--scrolltobottom-on-post-command 60 t))
+            (setq-local read-minibuffer-restore-windows nil)
+            (unless (eq erc-scrolltobottom-all 'relaxed)
+              (add-hook 'window-configuration-change-hook
+                        #'erc--scrolltobottom-at-prompt-minibuffer-active 50 t)
+              (add-hook 'post-command-hook
+                        #'erc--scrolltobottom-on-post-command 50 t)))
+        (add-hook 'post-command-hook #'erc-scroll-to-bottom nil t))
+    (remove-hook 'post-command-hook #'erc-scroll-to-bottom t)
+    (remove-hook 'post-command-hook #'erc--scrolltobottom-on-post-command t)
     (remove-hook 'window-configuration-change-hook
                  #'erc--scrolltobottom-at-prompt-minibuffer-active t)
-    (remove-hook 'pre-command-hook
-                 #'erc--scrolltobottom-on-pre-command t)
-    (remove-hook 'post-command-hook
-                 #'erc--scrolltobottom-on-post-command t)
-    (remove-hook 'pre-command-hook
-                 #'erc--scrolltobottom-on-pre-command-relaxed t)
-    (remove-hook 'post-command-hook
-                 #'erc--scrolltobottom-on-post-command-relaxed t)
-    (kill-local-variable 'erc--scrolltobottom-relaxed-commands)
+    (kill-local-variable 'read-minibuffer-restore-windows)
     (kill-local-variable 'erc--scrolltobottom-window-info)))
 
 (defun erc--scrolltobottom-on-pre-insert (_)
-  "Remember the `window-start' before inserting a message."
+  "Remember `window-start' before inserting a message."
   (setq erc--scrolltobottom-window-info
         (mapcar (lambda (w)
                   (list w
                         (window-start w)
                         (and-let*
-                            ((erc-scrolltobottom-relaxed)
+                            (((eq erc-scrolltobottom-all 'relaxed))
                              (c (count-screen-lines (window-start w)
                                                     (point-max) nil w)))
                           (if (= ?\n (char-before (point-max))) (1+ c) c))))
