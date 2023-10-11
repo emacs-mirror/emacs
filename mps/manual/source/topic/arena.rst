@@ -139,7 +139,7 @@ Client arenas
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`) is its
       size.
 
-    It also accepts three optional keyword arguments:
+    It also accepts five optional keyword arguments:
 
     * :c:macro:`MPS_KEY_COMMIT_LIMIT` (type :c:type:`size_t`) is
       the maximum amount of memory, in :term:`bytes (1)`, that the MPS
@@ -158,6 +158,18 @@ Client arenas
       the maximum time, in seconds, that operations within the arena
       may pause the :term:`client program` for. See
       :c:func:`mps_arena_pause_time_set` for details.
+
+    * :c:macro:`MPS_KEY_ARENA_EXTENDED` (type :c:type:`mps_fun_t`) is
+      a function that will be called immediately after the arena is
+      *extended*: that is, just after it acquires a new chunk of address
+      space from the operating system. See :ref:`topic-arena-extension`
+      for details.
+
+    * :c:macro:`MPS_KEY_ARENA_CONTRACTED` (type :c:type:`mps_fun_t`)
+      is a function that will be called immediately before the arena is
+      *contracted*: that is, just before it finishes with a chunk of
+      address space and returns it to the operating system. See
+      :ref:`topic-arena-extension` for details.
 
     For example::
 
@@ -983,8 +995,8 @@ Arena introspection and debugging
         from MPS-managed memory, then it may attempt to re-enter the
         MPS, which will fail as the MPS is not re-entrant.
 
-        .. |RtlInstallFunctionTableCallback| replace:: ``RtlInstallFunctionTableCallback()``
-        .. _RtlInstallFunctionTableCallback: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680595(v=vs.85).aspx
+        .. |RtlInstallFunctionTableCallback| replace:: :c:func:`RtlInstallFunctionTableCallback`
+        .. _RtlInstallFunctionTableCallback: https://docs.microsoft.com/en-gb/windows/win32/api/winnt/nf-winnt-rtlinstallfunctiontablecallback
 
         If this happens, in order to allow the debugger to finish
         decoding the call stack, the only remedy is to put the arena
@@ -1040,3 +1052,138 @@ Arena introspection and debugging
         :c:func:`mps_addr_pool`, and to find out which :term:`object
         format` describes the object at the address, use
         :c:func:`mps_addr_fmt`.
+
+
+.. c:function:: mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr)
+
+    Find the :term:`base pointer` of an :term:`object` if provided with an
+    :term:`interior pointer` to that object, or the object's base pointer,
+    provided the object exists in a pool that supports this feature.
+
+    ``p_o`` points to a location that will hold the object's base pointer.
+
+    ``arena`` is an arena.
+
+    ``addr`` is an address that might be an interior or base pointer.
+
+    Returns MPS_RES_OK if a base pointer to an object into which ``addr``
+    points was successfully returned.
+
+    Returns MPS_RES_FAIL if ``addr`` points to memory not managed by the
+    ``arena`` or if ``addr`` points to the interior of an object which has
+    been moved by a :term:`moving memory manager`.
+
+    Returns MPS_RES_UNIMPL if ``addr`` is found to be managed by a :term:`pool`
+    which does not currently implement this feature.
+
+    :c:func:`mps_addr_object` allows client programs that allocate
+    code on the heap to implement debugging and stack tracing, in that it provides
+    a way to unwind a client program's stack by finding the block of code to which the
+    program counter or function return addresses currently point. It can be called
+    multiple times as needed to build a complete trace of the client program's stack.
+
+    This function does not support debugging in situations where the arena
+    itself has encountered a runtime error. For cases where the MPS encounters
+    runtime errors, see :c:func:`mps_arena_postmortem`.
+
+    .. note::
+
+        This function is intended to assist with debugging fatal
+        errors in the :term:`client program`. It is not expected to be
+        needed in normal use, i.e. as part of the regular operation of code in
+        production, since it is not optimized for performance. If you find yourself
+        wanting to use this function other than in the use case described, there may
+        be a better way to meet your requirements: please
+        :ref:`contact us <contact>`.
+
+        If you would like this function to work in a pool in which it's currently
+        unimplemented, please :ref:`contact us <contact>`.
+
+
+.. index::
+   single: arena extension callbacks; introduction
+   single: extension callbacks; introduction
+   single: arena contraction callbacks; introduction
+   single: contraction callbacks; introduction
+
+.. _topic-arena-extension:
+
+Arena extension callbacks
+-------------------------
+
+There are situations in which the :term:`client program` needs to be
+informed about the chunks of address space that an :term:`arena` is
+managing. To support this, the MPS allows the client program to
+specify two callback functions when creating a :term:`virtual memory
+arena`: one function is called when the arena is *extended* (that is,
+when it acquires a new chunk of address space from the operating
+system), and the other when the arena is *contracted* (that is, when
+it returns a chunk of address space to the operating system).
+
+The use case that this feature is designed to support is debugging of
+dynamically generated code in 64-bit Windows. Microsoft's
+documentation for |RtlInstallFunctionTableCallback|_ says:
+
+    Function tables are used on 64-bit Windows to determine how to
+    unwind or walk the stack. These tables are usually generated by
+    the compiler and stored as part of the image. However,
+    applications must provide the function table for dynamically
+    generated code.
+
+An application may install a dynamic function table by calling
+|RtlInstallFunctionTableCallback|_, passing the region of memory in
+which the dynamically generated functions can be found, and may later
+delete the table by calling |RtlDeleteFunctionTable|_.
+
+.. |RtlDeleteFunctionTable| replace:: :c:func:`RtlDeleteFunctionTable`
+.. _RtlDeleteFunctionTable: https://docs.microsoft.com/en-gb/windows/win32/api/winnt/nf-winnt-rtldeletefunctiontable
+
+So if the client program is storing dynamically generated functions in
+MPS-managed memory, then it could define callback functions that
+install and delete the function table callback for the dynamically
+generated code, like this::
+
+    void arena_extended(mps_arena_t arena, void *base, size_t size)
+    {
+        RtlInstallFunctionTableCallback(...);
+    }
+
+    void arena_contracted(mps_arena_t arena, void *base, size_t size)
+    {
+        RtlDeleteFunctionTable(...);
+    }
+
+and then pass these two functions using :term:`keyword arguments` to
+:c:func:`mps_arena_create_k`::
+
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_EXTENDED, (mps_fun_t)arena_extended);
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_CONTRACTED, (mps_fun_t)arena_contracted);
+        /* ... other keyword arguments ... */
+        res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+    } MPS_ARGS_END(args);
+
+The callback functions receive three arguments: ``arena`` (the arena
+being extended or contracted), ``base`` (the base address of the chunk
+of address space that has just been acquired from, or is about to be
+returned to, the operating system), and ``size`` (the size of the
+chunk, in bytes). They must not call any function in the MPS, and must
+not access any memory managed by the MPS.
+
+.. note::
+
+    The extenstion callback is also called immediately after the arena
+    is created, in other words, the creation of the arena is treated as
+    a special example of an extension of the arena.
+
+    The contraction callback is called on all remaining chunks when
+    the arena is destroyed.  There will be at least one callback.
+
+    Every contraction of the arena will match one-to-one with the arena
+    extensions that have already taken place. After creation, any
+    contractions performed by the arena will be the same size as the
+    extensions that have already taken place. Contractions never occur as
+    amalgamations nor as fractions of previous arena extensions.
+
+    Arena extension callbacks are only supported by :term:`virtual
+    memory arenas`.
