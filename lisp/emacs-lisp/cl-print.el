@@ -165,6 +165,7 @@ Print the contents hidden by the ellipsis to STREAM."
 (defvar cl-print-compiled nil
   "Control how to print byte-compiled functions.
 Acceptable values include:
+- `raw' to print out the full contents of the function using `prin1'.
 - `static' to print the vector of constants.
 - `disassemble' to print the disassembly of the code.
 - nil to skip printing any details about the code.")
@@ -187,42 +188,54 @@ into a button whose action shows the function's disassembly.")
     (if args
         (prin1 args stream)
       (princ "()" stream)))
-  (pcase (help-split-fundoc (documentation object 'raw) object)
-    ;; Drop args which `help-function-arglist' already printed.
-    (`(,_usage . ,(and doc (guard (stringp doc))))
-     (princ " " stream)
-     (prin1 doc stream)))
-  (let ((inter (interactive-form object)))
-    (when inter
-      (princ " " stream)
-      (cl-print-object
-       (if (eq 'byte-code (car-safe (cadr inter)))
-           `(interactive ,(make-byte-code nil (nth 1 (cadr inter))
-                                          (nth 2 (cadr inter))
-                                          (nth 3 (cadr inter))))
-         inter)
-       stream)))
-  (if (eq cl-print-compiled 'disassemble)
-      (princ
-       (with-temp-buffer
-         (insert "\n")
-         (disassemble-1 object 0)
-         (buffer-string))
-       stream)
-    (princ " " stream)
-    (let ((button-start (and cl-print-compiled-button
-                             (bufferp stream)
-                             (with-current-buffer stream (point)))))
-      (princ (format "#<bytecode %#x>" (sxhash object)) stream)
-      (when (eq cl-print-compiled 'static)
+  (if (eq cl-print-compiled 'raw)
+      (let ((button-start
+             (and cl-print-compiled-button
+                  (bufferp stream)
+                  (with-current-buffer stream (1+ (point))))))
         (princ " " stream)
-        (cl-print-object (aref object 2) stream))
-      (when button-start
-        (with-current-buffer stream
-          (make-text-button button-start (point)
-                            :type 'help-byte-code
-                            'byte-code-function object)))))
-  (princ ")" stream))
+        (prin1 object stream)
+        (when button-start
+          (with-current-buffer stream
+            (make-text-button button-start (point)
+                              :type 'help-byte-code
+                              'byte-code-function object))))
+    (pcase (help-split-fundoc (documentation object 'raw) object)
+      ;; Drop args which `help-function-arglist' already printed.
+      (`(,_usage . ,(and doc (guard (stringp doc))))
+       (princ " " stream)
+       (prin1 doc stream)))
+    (let ((inter (interactive-form object)))
+      (when inter
+        (princ " " stream)
+        (cl-print-object
+         (if (eq 'byte-code (car-safe (cadr inter)))
+             `(interactive ,(make-byte-code nil (nth 1 (cadr inter))
+                                            (nth 2 (cadr inter))
+                                            (nth 3 (cadr inter))))
+           inter)
+         stream)))
+    (if (eq cl-print-compiled 'disassemble)
+        (princ
+         (with-temp-buffer
+           (insert "\n")
+           (disassemble-1 object 0)
+           (buffer-string))
+         stream)
+      (princ " " stream)
+      (let ((button-start (and cl-print-compiled-button
+                               (bufferp stream)
+                               (with-current-buffer stream (point)))))
+        (princ (format "#<bytecode %#x>" (sxhash object)) stream)
+        (when (eq cl-print-compiled 'static)
+          (princ " " stream)
+          (cl-print-object (aref object 2) stream))
+        (when button-start
+          (with-current-buffer stream
+            (make-text-button button-start (point)
+                              :type 'help-byte-code
+                              'byte-code-function object)))))
+    (princ ")" stream)))
 
 ;; This belongs in oclosure.el, of course, but some load-ordering issues make it
 ;; complicated.
