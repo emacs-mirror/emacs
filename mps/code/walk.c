@@ -19,7 +19,7 @@ SRCID(walk, "$Id$");
 typedef struct FormattedObjectsStepClosureStruct *FormattedObjectsStepClosure;
 
 typedef struct FormattedObjectsStepClosureStruct {
-  Sig sig;
+  Sig sig; /* design.mps.sig.field */
   mps_formatted_objects_stepper_t f;
   void *p;
   size_t s;
@@ -150,7 +150,7 @@ typedef struct rootsStepClosureStruct {
   void *p;                           /* client closure data */
   size_t s;                          /* client closure data */
   Root root;                         /* current root, or NULL */
-  Sig sig;                           /* <code/misc.h#sig> */
+  Sig sig;                           /* design.mps.sig.field.end.outer */
 } rootsStepClosureStruct;
 
 #define rootsStepClosure2ScanState(rsc) (&(rsc)->ssStruct)

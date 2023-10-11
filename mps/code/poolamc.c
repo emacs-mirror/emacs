@@ -35,7 +35,7 @@ static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO);
 static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
                        void *p, size_t s);
 
-/* local class declations */
+/* local class declarations */
 
 typedef AMC AMCZPool;
 #define AMCZPoolCheck AMCCheck
@@ -56,7 +56,7 @@ typedef struct amcGenStruct {
   PoolGenStruct pgen;
   RingStruct amcRing;           /* link in list of gens in pool */
   Buffer forward;               /* forwarding buffer */
-  Sig sig;                      /* <code/misc.h#sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } amcGenStruct;
 
 #define amcGenAMC(amcgen) MustBeA(AMCZPool, (amcgen)->pgen.pool)
@@ -113,7 +113,7 @@ typedef struct amcSegStruct {
   BOOLFIELD(accountedAsBuffered); /* .seg.accounted-as-buffered */
   BOOLFIELD(old);           /* .seg.old */
   BOOLFIELD(deferred);      /* .seg.deferred */
-  Sig sig;                  /* <code/misc.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } amcSegStruct;
 
 
@@ -422,7 +422,7 @@ typedef struct AMCStruct { /* <design/poolamc#.struct> */
   amcPinnedFunction pinned; /* function determining if block is pinned */
   Size extendBy;           /* segment size to extend pool by */
   Size largeSize;          /* min size of "large" segments */
-  Sig sig;                 /* <design/pool#.outer-structure.sig> */
+  Sig sig;                 /* design.mps.sig.field.end.outer */
 } AMCStruct;
 
 
@@ -457,7 +457,7 @@ typedef struct amcBufStruct {
   SegBufStruct segbufStruct;    /* superclass fields must come first */
   amcGen gen;                   /* The AMC generation */
   Bool forHashArrays;           /* allocates hash table arrays, see AMCBufferFill */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } amcBufStruct;
 
 
@@ -513,7 +513,6 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   if (ArgPick(&arg, args, amcKeyAPHashArrays))
     forHashArrays = arg.val.b;
 
-  /* call next method */
   res = NextMethod(Buffer, amcBuf, init)(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;
@@ -1893,6 +1892,90 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   }
 }
 
+/* AMCAddrObject -- return base pointer from interior pointer
+ *
+ * amcAddrObjectSearch implements the scan for an object containing
+ * the interior pointer by skipping using format methods.
+ *
+ * AMCAddrObject locates the segment containing the interior pointer
+ * and wraps amcAddrObjectSearch in the necessary shield operations to
+ * give it access.
+ */
+
+static Res amcAddrObjectSearch(Addr *pReturn,
+                               Pool pool,
+                               Addr objBase,
+                               Addr searchLimit,
+                               Addr addr)
+{
+  Format format;
+  Size hdrSize;
+
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVER(objBase <= searchLimit);
+
+  format = pool->format;
+  hdrSize = format->headerSize;
+  while (objBase < searchLimit) {
+    Addr objRef = AddrAdd(objBase, hdrSize);
+    Addr objLimit = AddrSub((*format->skip)(objRef), hdrSize);
+    AVER(objBase < objLimit);
+
+    if (addr < objLimit) {
+      AVER(objBase <= addr);
+      AVER(addr < objLimit);
+
+      /* Don't return base pointer if object is moved */
+      if (NULL == (*format->isMoved)(objRef)) {
+        *pReturn = objRef;
+        return ResOK;
+      }
+      break;
+    }
+    objBase = objLimit;
+  }
+  return ResFAIL;
+}
+
+static Res AMCAddrObject(Addr *pReturn, Pool pool, Addr addr)
+{
+  Res res;
+  Arena arena;
+  Addr base, limit;
+  Buffer buffer;
+  Seg seg;
+
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+
+  arena = PoolArena(pool);
+  if (!SegOfAddr(&seg, arena, addr) || SegPool(seg) != pool)
+    return ResFAIL;
+
+  base = SegBase(seg);
+  if (SegBuffer(&buffer, seg))
+    /* We use BufferGetInit here (and not BufferScanLimit) because we
+     * want to be able to find objects that have been allocated and
+     * committed since the last flip. These objects lie between the
+     * addresses returned by BufferScanLimit (which returns the value
+     * of init at the last flip) and BufferGetInit.
+     *
+     * Strictly speaking we only need a limit that is at least the
+     * maximum of the objects on the segments. This is because addr
+     * *must* point inside a live object and we stop skipping once we
+     * have found it. The init pointer serves this purpose.
+     */
+    limit = BufferGetInit(buffer);
+  else
+    limit = SegLimit(seg);
+
+  ShieldExpose(arena, seg);
+  res = amcAddrObjectSearch(pReturn, pool, base, limit, addr);
+  ShieldCover(arena, seg);
+  return res;
+}
+
 
 /* AMCTotalSize -- total memory allocated from the arena */
 
@@ -2008,6 +2091,7 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;
+  klass->addrObject = AMCAddrObject;
   AVERT(PoolClass, klass);
 }
 

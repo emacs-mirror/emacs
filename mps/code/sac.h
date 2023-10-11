@@ -21,7 +21,7 @@
 typedef struct SACStruct *SAC;
 
 typedef struct SACStruct {
-  Sig sig;
+  Sig sig;             /* design.mps.sig.field */
   Pool pool;
   Count classesCount;  /* number of classes */
   Index middleIndex;   /* index of the middle */

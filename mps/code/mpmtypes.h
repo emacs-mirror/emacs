@@ -26,7 +26,7 @@
 
 /* TYPES */
 
-typedef unsigned long Sig;              /* <design/sig> */
+typedef unsigned long Sig;              /* design.mps.sig */
 typedef int Res;                        /* <design/type#.res> */
 
 typedef void (*Fun)(void);              /* <design/type#.fun> */
@@ -214,6 +214,7 @@ typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
+typedef Res (*PoolAddrObjectMethod)(Addr *pReturn, Pool pool, Addr addr);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
@@ -262,7 +263,7 @@ typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range
 /* CONSTANTS */
 
 
-/* <design/sig>  */
+/* design.mps.sig  */
 #define SigInvalid      ((Sig)0x51915BAD) /* SIGnature IS BAD */
 
 #define SizeMAX         ((Size)-1)
@@ -327,7 +328,7 @@ enum {
 
 /* Root Variants -- see <design/type#.rootvar>
  *
- * .rootvar: Synchonize with <code/root.c#rootvarcheck>
+ * .rootvar: Synchronize with <code/root.c#rootvarcheck>
  */
 
 enum {

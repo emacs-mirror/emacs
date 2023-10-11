@@ -214,6 +214,7 @@ MPMCOMMON = \
     trace.c \
     traceanc.c \
     tract.c \
+    trans.c \
     tree.c \
     version.c \
     vm.c \
@@ -253,6 +254,7 @@ LIB_TARGETS=mps.a mpsplan.a
 
 TEST_TARGETS=\
     abqtest \
+    addrobj \
     airtest \
     amcss \
     amcsshe \
@@ -267,6 +269,7 @@ TEST_TARGETS=\
     btcv \
     bttest \
     djbench \
+    extcon \
     finalcv \
     finaltest \
     forktest \
@@ -293,7 +296,8 @@ TEST_TARGETS=\
     teletest \
     walkt0 \
     zcoll \
-    zmess
+    zmess \
+    ztfm
 
 # This target records programs that we were once able to build but
 # can't at the moment:
@@ -445,6 +449,9 @@ ifdef VARIETY
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/addrobj: $(PFM)/$(VARIETY)/addrobj.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
 	$(FMTSCMOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -486,6 +493,9 @@ $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
 
 $(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
 	$(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)/$(VARIETY)/extcon: $(PFM)/$(VARIETY)/extcon.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -566,6 +576,9 @@ $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/ztfm: $(PFM)/$(VARIETY)/ztfm.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \

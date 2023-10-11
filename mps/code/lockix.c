@@ -51,7 +51,7 @@ SRCID(lockix, "$Id$");
  */
 
 typedef struct LockStruct {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   unsigned long claims;         /* # claims held by owner */
   pthread_mutex_t mut;          /* the mutex itself */
 } LockStruct;
