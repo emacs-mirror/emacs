@@ -65,7 +65,7 @@ SRCID(thw3, "$Id$");
 
 
 typedef struct mps_thr_s {      /* Win32 thread structure */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* threads attached to arena */

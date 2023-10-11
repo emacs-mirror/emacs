@@ -41,7 +41,7 @@ typedef struct AMSTStruct {
   Count badMerges;          /* count of unsuccessful segment merges */
   Count bsplits;            /* count of buffered segment splits */
   Count bmerges;            /* count of buffered segment merges */
-  Sig sig;                  /* <design/pool#.outer-structure.sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } AMSTStruct;
 
 typedef struct AMSTStruct *AMST;
@@ -89,7 +89,7 @@ typedef struct AMSTSegStruct {
   AMSSegStruct amsSegStruct; /* superclass fields must come first */
   AMSTSeg next;          /* mergeable next segment, or NULL */
   AMSTSeg prev;          /* mergeable prev segment, or NULL */
-  Sig sig;               /* <design/pool#.outer-structure.sig> */
+  Sig sig;               /* design.mps.sig.field.end.outer */
 } AMSTSegStruct;
 
 

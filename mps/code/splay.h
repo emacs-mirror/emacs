@@ -26,7 +26,7 @@ extern void SplayTrivUpdate(SplayTree splay, Tree node);
 #define SplayTreeSig      ((Sig)0x5195B1A1) /* SIGnature SPLAY */
 
 typedef struct SplayTreeStruct {
-  Sig sig;
+  Sig sig; /* design.mps.sig.field */
   TreeCompareFunction compare;
   TreeKeyFunction nodeKey;
   SplayUpdateNodeFunction updateNode;

@@ -114,6 +114,7 @@
 
 #if defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define PRIuLONGEST "llu"
+#define PRIdLONGEST "lld"
 #define SCNuLONGEST "llu"
 #define SCNXLONGEST "llX"
 #define PRIXLONGEST "llX"
@@ -122,6 +123,7 @@ typedef long long longest_t;
 #define MPS_WORD_CONST(n) (n##ull)
 #else
 #define PRIuLONGEST "lu"
+#define PRIdLONGEST "ld"
 #define SCNuLONGEST "lu"
 #define SCNXLONGEST "lX"
 #define PRIXLONGEST "lX"

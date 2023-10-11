@@ -79,7 +79,7 @@ typedef const struct SrcIdStruct {
 /* NOOP -- null statement
  *
  * Do not be tempted to use NULL, or just semicolon as the null
- * statement.  These items are dangerously ambigous and could cause
+ * statement.  These items are dangerously ambiguous and could cause
  * subtle bugs if misplaced.  NOOP is a macro which is guaranteed to
  * cause an error if it is not used in a statement context.
  */
@@ -146,7 +146,7 @@ typedef const struct SrcIdStruct {
 
 /* UNUSED -- declare parameter unused
  *
- * This macro supresses warnings about unused parameters.  It should be
+ * This macro suppresses warnings about unused parameters.  It should be
  * applied to the parameter at the beginning of the body of the
  * procedure.
  *

@@ -23,7 +23,7 @@ typedef union AreaScanUnion {
 } AreaScanUnion;
 
 typedef struct RootStruct {
-  Sig sig;
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->rootSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attachment to arena */
@@ -95,7 +95,7 @@ Bool RootModeCheck(RootMode mode)
 
 /* RootCheck -- check the consistency of a root structure
  *
- * .rootcheck: Keep synchonized with <code/mpmst.h#root>. */
+ * .rootcheck: Keep synchronized with <code/mpmst.h#root>. */
 
 Bool RootCheck(Root root)
 {

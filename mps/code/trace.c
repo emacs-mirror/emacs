@@ -1,11 +1,12 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2020 Ravenbrook Limited.
+ * Copyright (c) 2001-2023 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * .design: <design/trace>.  */
+ * .design: design.mps.trace.
+ */
 
 #include "locus.h"
 #include "mpm.h"
@@ -81,10 +82,10 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   AVERT(Rank, rank);
   /* white is arbitrary and can't be checked */
 
-  /* NOTE: We can only currently support scanning for a set of traces
-     with the same fix method. To remove this restriction, it would be
-     necessary to dispatch to the fix methods of sets of traces in
-     TraceFix. */
+  /* .fix.single: NOTE: We can only currently support scanning for a
+     set of traces with the same fix method. To remove this
+     restriction, it would be necessary to dispatch to the fix methods
+     of sets of traces in TraceFix.  See also impl.c.trans.park. */
   ss->fix = NULL;
   ss->fixClosure = NULL;
   TRACE_SET_ITER(ti, trace, ts, arena) {
@@ -1920,7 +1921,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are

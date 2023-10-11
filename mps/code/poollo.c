@@ -25,7 +25,7 @@ typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   PoolGenStruct pgenStruct;     /* generation representing the pool */
   PoolGen pgen;                 /* NULL or pointer to pgenStruct */
-  Sig sig;                      /* <code/misc.h#sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } LOStruct;
 
 typedef LO LOPool;
@@ -59,7 +59,7 @@ typedef struct LOSegStruct {
   Count bufferedGrains;     /* grains in buffers */
   Count newGrains;          /* grains allocated since last collection */
   Count oldGrains;          /* grains allocated prior to last collection */
-  Sig sig;                  /* <code/misc.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } LOSegStruct;
 
 
@@ -312,8 +312,8 @@ static void loSegReclaim(Seg seg, Trace trace)
   Buffer buffer;
   Bool hasBuffer = SegBuffer(&buffer, seg);
   Count reclaimedGrains = (Count)0;
-  Format format = NULL; /* supress "may be used uninitialized" warning */
-  Count preservedInPlaceCount = (Count)0;
+  Format format = NULL; /* suppress "may be used uninitialized" warning */
+  STATISTIC_DECL(Count preservedInPlaceCount = (Count)0)
   Size preservedInPlaceSize = (Size)0;
   Bool b;
 
@@ -355,7 +355,7 @@ static void loSegReclaim(Seg seg, Trace trace)
     q = (*format->skip)(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
     if(BTGet(loseg->mark, i)) {
-      ++preservedInPlaceCount;
+      STATISTIC(++preservedInPlaceCount);
       preservedInPlaceSize += AddrOffset(p, q);
     } else {
       Index j = PoolIndexOfAddr(base, pool, q);

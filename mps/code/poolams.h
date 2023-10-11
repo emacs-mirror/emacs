@@ -48,7 +48,7 @@ typedef struct AMSStruct {
   AMSSegsDestroyFunction segsDestroy;
   AMSSegClassFunction segClass;/* fn to get the class for segments */
   Bool shareAllocTable;        /* the alloc table is also used as white table */
-  Sig sig;                     /* <design/pool#.outer-structure.sig> */
+  Sig sig;                     /* design.mps.sig.field.end.outer */
 } AMSStruct;
 
 
@@ -69,7 +69,7 @@ typedef struct AMSSegStruct {
   Bool colourTablesInUse;/* the colour tables are in use */
   BT nonwhiteTable;      /* set if grain not white */
   BT nongreyTable;       /* set if not first grain of grey object */
-  Sig sig;
+  Sig sig;               /* design.mps.sig.field.end.outer */
 } AMSSegStruct;
 
 

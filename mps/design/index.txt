@@ -108,6 +108,7 @@ testthr_                Multi-threaded testing
 thread-manager_         Thread manager
 thread-safety_          Thread safety in the MPS
 trace_                  Tracer
+transform_              Transforms
 type_                   General MPS types
 version-library_        Library version mechanism
 vm_                     Virtual mapping
@@ -185,6 +186,7 @@ writef_                 The WriteF function
 .. _thread-manager: thread-manager
 .. _thread-safety: thread-safety
 .. _trace: trace
+.. _transform: transform
 .. _type: type
 .. _version-library: version-library
 .. _vm: vm
@@ -226,6 +228,7 @@ Document History
 - 2016-03-22    RB_     Add write-barier.
 - 2016-03-27    RB_     Goodbye pool MV *sniff*.
 - 2020-08-31    GDR_    Add walk.
+- 2023-06-16    RB_     Add transform.
 
 .. _RB: https://www.ravenbrook.com/consultants/rb
 .. _NB: https://www.ravenbrook.com/consultants/nb
@@ -236,7 +239,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2002–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+Copyright © 2002–2023 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

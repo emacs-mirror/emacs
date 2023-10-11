@@ -45,10 +45,9 @@ _`.struct.outer`: The *outer structure* of a pool belonging to the ABC
 pool class is a C object of type ``ABCPoolStruct``, which is a typedef
 for ``struct PoolABCStruct``.
 
-_`.stuct.outer.sig`: It is good practice to put the signature for the
-outer structure at the end (of the structure). This is because there's
-already one at the beginning (in the generic structure), so putting it
-at the end gives some extra fencepost checking.
+_`.stuct.outer.sig`: See `design.mps.sig.field.end.outer`_.
+
+.. _design.mps.sig.field.end.outer: sig.txt#field-end-outer
 
 _`.struct.generic`: The *generic structure* of a pool is a C object of
 type ``PoolStruct`` (found embedded in the outer structure), which is

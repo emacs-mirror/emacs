@@ -22,7 +22,7 @@ typedef struct NailboardStruct *Nailboard;
  * each function call by the owner.) newNails would fit in 1 bit.
  */
 typedef struct NailboardStruct {
-  Sig sig;
+  Sig sig;             /* design.mps.sig.field */
   RangeStruct range;   /* range of addresses covered by nailboard */
   Count levels;        /* number of levels */
   Shift alignShift;    /* shift due to address alignment */

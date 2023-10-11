@@ -120,6 +120,13 @@ typedef mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t);
 typedef void (*mps_fmt_pad_t)(mps_addr_t, size_t);
 typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
 
+/* Callbacks indicating that the arena has extended or contracted.
+ * These are used to register chunks with RtlInstallFunctionTableCallback
+ * <https://docs.microsoft.com/en-gb/windows/win32/api/winnt/nf-winnt-rtlinstallfunctiontablecallback>
+ * so that the client can unwind the stack through functions in the arena.
+ */
+typedef void (*mps_arena_extended_t)(mps_arena_t, void *, size_t);
+typedef void (*mps_arena_contracted_t)(mps_arena_t, void *, size_t);
 
 /* Keyword argument lists */
 
@@ -171,6 +178,12 @@ extern const struct mps_key_s _mps_key_ARENA_SIZE;
 extern const struct mps_key_s _mps_key_ARENA_ZONED;
 #define MPS_KEY_ARENA_ZONED     (&_mps_key_ARENA_ZONED)
 #define MPS_KEY_ARENA_ZONED_FIELD b
+extern const struct mps_key_s _mps_key_arena_extended;
+#define MPS_KEY_ARENA_EXTENDED (&_mps_key_arena_extended)
+#define MPS_KEY_ARENA_EXTENDED_FIELD fun
+extern const struct mps_key_s _mps_key_arena_contracted;
+#define MPS_KEY_ARENA_CONTRACTED (&_mps_key_arena_contracted)
+#define MPS_KEY_ARENA_CONTRACTED_FIELD fun
 extern const struct mps_key_s _mps_key_FORMAT;
 #define MPS_KEY_FORMAT          (&_mps_key_FORMAT)
 #define MPS_KEY_FORMAT_FIELD    format
@@ -246,6 +259,9 @@ extern const struct mps_key_s _mps_key_FMT_PAD;
 extern const struct mps_key_s _mps_key_FMT_CLASS;
 #define MPS_KEY_FMT_CLASS   (&_mps_key_FMT_CLASS)
 #define MPS_KEY_FMT_CLASS_FIELD fmt_class
+extern const struct mps_key_s _mps_key_ap_hash_arrays;
+#define MPS_KEY_AP_HASH_ARRAYS (&_mps_key_ap_hash_arrays)
+#define MPS_KEY_AP_HASH_ARRAYS_FIELD b
 
 /* Maximum length of a keyword argument list. */
 #define MPS_ARGS_MAX          32
@@ -831,6 +847,17 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
    } \
    (ss)->_ufs = _mps_ufs; \
   MPS_END
+
+/* Misc interface */
+extern mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr);
+
+/* Transforms interface. */
+
+typedef struct mps_transform_s *mps_transform_t;
+extern mps_res_t mps_transform_create(mps_transform_t *, mps_arena_t);
+extern mps_res_t mps_transform_add_oldnew(mps_transform_t, mps_addr_t *, mps_addr_t *, size_t);
+extern mps_res_t mps_transform_apply(mps_bool_t *, mps_transform_t);
+extern void mps_transform_destroy(mps_transform_t);
 
 
 #endif /* mps_h */

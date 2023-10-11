@@ -1,36 +1,41 @@
-/* prmcix.h:  MUTATOR CONTEXT (UNIX)
+/* trans.h: TRANSFORMS INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
- *
- * .readership: MPS developers.
+ * Copyright 2011-2022 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef prmcix_h
-#define prmcix_h
+#ifndef trans_h
+#define trans_h
 
 #include "mpm.h"
 
-#include <signal.h> /* siginfo_t -- see .feature.li in config.h */
-#include <ucontext.h> /* ucontext_t */
 
-typedef struct MutatorContextStruct {
-  Sig sig;                      /* design.mps.sig.field */
-  MutatorContextVar var;        /* Discriminator. */
-  siginfo_t *info;              /* Signal info, if stopped by protection
-                                 * fault; NULL if stopped by thread manager. */
-  ucontext_t *ucontext;
-} MutatorContextStruct;
+typedef struct mps_transform_s *Transform;
 
-extern void MutatorContextInitFault(MutatorContext context, siginfo_t *info, ucontext_t *ucontext);
-extern void MutatorContextInitThread(MutatorContext context, ucontext_t *ucontext);
+typedef struct OldNewStruct *OldNew;
 
-#endif /* prmcix_h */
+extern Res TransformCreate(Transform *transformReturn, Arena arena);
+
+extern Res TransformAddOldNew(Transform transform,
+                              Ref old_list[],
+                              Ref new_list[],
+                              Count count);
+
+extern Res TransformApply(Bool *appliedReturn, Transform transform);
+
+extern void TransformDestroy(Transform transform);
+
+extern Bool TransformCheck(Transform transform);
+
+extern Arena TransformArena(Transform transform);
+
+
+#endif /* trans_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ * Copyright (C) 2011-2022 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are

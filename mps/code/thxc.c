@@ -1,7 +1,7 @@
 /* thxc.c: THREAD MANAGER (macOS)
  *
  * $Id$
- * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2023 Ravenbrook Limited.  See end of file for license.
  *
  * .design: <design/thread-manager>.
  *
@@ -22,7 +22,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_XC)
-#error "protw3.c is specific to MPS_OS_XC"
+#error "thxc.c is specific to MPS_OS_XC"
 #endif
 
 #include "protxc.h"
@@ -38,7 +38,7 @@ SRCID(thxc, "$Id$");
 
 
 typedef struct mps_thr_s {      /* macOS thread structure */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
@@ -397,7 +397,7 @@ void ThreadSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
