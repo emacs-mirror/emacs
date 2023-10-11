@@ -894,6 +894,7 @@ showcases all their customization options.
 
 ** Project
 
++++
 *** New user option 'project-mode-line'.
 When non-nil, display the name of the current project on the mode
 line.  Clicking 'mouse-1' on the project name pops up the project

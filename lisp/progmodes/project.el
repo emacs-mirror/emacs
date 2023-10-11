@@ -2030,6 +2030,9 @@ is part of the default mode line beginning with Emacs 30."
     (define-key map [mode-line down-mouse-1] project-menu-entry)
     map))
 
+(defvar project-mode-line-face nil
+  "Face name to use for the project name on the mode line.")
+
 (defvar project-mode-line-format '(:eval (project-mode-line-format)))
 (put 'project-mode-line-format 'risky-local-variable t)
 
@@ -2040,6 +2043,7 @@ is part of the default mode line beginning with Emacs 30."
      " "
      (propertize
       (project-name project)
+      'face project-mode-line-face
       'mouse-face 'mode-line-highlight
       'help-echo "mouse-1: Project menu"
       'local-map project-mode-line-map))))
