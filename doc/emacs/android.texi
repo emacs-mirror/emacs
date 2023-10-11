@@ -767,7 +767,7 @@ that by which they are replaced, modify the variable
 @code{sfnt-default-family-alist}; then, restart Emacs.  Bear in mind
 that this is usually unwarranted, with customizations to the default
 or @code{variable-pitch} faces better made through modifying their
-definitions (@xref{Face Customization}).
+definitions (@pxref{Face Customization}).
 
 @node Android Troubleshooting
 @section Troubleshooting Startup Problems on Android
