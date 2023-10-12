@@ -36,22 +36,23 @@
 ;; symbol inside body is let-bound to their cdrs in the alist.  Dotted
 ;; symbol is any symbol starting with a `.'.  Only those present in
 ;; the body are let-bound and this search is done at compile time.
+;; A number will result in a list index.
 ;;
 ;; For instance, the following code
 ;;
 ;;   (let-alist alist
-;;     (if (and .title .body)
+;;     (if (and .title.0 .body)
 ;;         .body
 ;;       .site
 ;;       .site.contents))
 ;;
 ;; essentially expands to
 ;;
-;;   (let ((.title (cdr (assq 'title alist)))
+;;   (let ((.title.0 (nth 0 (cdr (assq 'title alist))))
 ;;         (.body  (cdr (assq 'body alist)))
 ;;         (.site  (cdr (assq 'site alist)))
 ;;         (.site.contents (cdr (assq 'contents (cdr (assq 'site alist))))))
-;;     (if (and .title .body)
+;;     (if (and .title.0 .body)
 ;;         .body
 ;;       .site
 ;;       .site.contents))
@@ -93,14 +94,17 @@ symbol, and each cdr is the same symbol without the `.'."
     (if (string-match "\\`\\." name)
         clean
       (let-alist--list-to-sexp
-       (mapcar #'intern (nreverse (split-string name "\\.")))
+       (mapcar #'read (nreverse (split-string name "\\.")))
        variable))))
 
 (defun let-alist--list-to-sexp (list var)
   "Turn symbols LIST into recursive calls to `cdr' `assq' on VAR."
-  `(cdr (assq ',(car list)
-              ,(if (cdr list) (let-alist--list-to-sexp (cdr list) var)
-                 var))))
+  (let ((sym (car list))
+        (rest (if (cdr list) (let-alist--list-to-sexp (cdr list) var)
+                 var)))
+    (cond
+     ((numberp sym) `(nth ,sym ,rest))
+     (t `(cdr (assq ',sym ,rest))))))
 
 (defun let-alist--remove-dot (symbol)
   "Return SYMBOL, sans an initial dot."
@@ -116,22 +120,23 @@ symbol, and each cdr is the same symbol without the `.'."
   "Let-bind dotted symbols to their cdrs in ALIST and execute BODY.
 Dotted symbol is any symbol starting with a `.'.  Only those present
 in BODY are let-bound and this search is done at compile time.
+A number will result in a list index.
 
 For instance, the following code
 
   (let-alist alist
-    (if (and .title .body)
+    (if (and .title.0 .body)
         .body
       .site
       .site.contents))
 
 essentially expands to
 
-  (let ((.title (cdr (assq \\='title alist)))
+  (let ((.title (nth 0 (cdr (assq \\='title alist))))
         (.body  (cdr (assq \\='body alist)))
         (.site  (cdr (assq \\='site alist)))
         (.site.contents (cdr (assq \\='contents (cdr (assq \\='site alist))))))
-    (if (and .title .body)
+    (if (and .title.0 .body)
         .body
       .site
       .site.contents))
