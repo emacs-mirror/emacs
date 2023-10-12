@@ -2942,6 +2942,10 @@ It is saved for when this flag is not set.")
 (declare-function speedbar-change-initial-expansion-list "speedbar" (new))
 (defvar speedbar-previously-used-expansion-list-name)
 
+(defvar gud-highlight-current-line-overlay nil
+  "Overlay created for `gud-highlight-current-line'.
+It is nil if not yet present.")
+
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
@@ -2958,6 +2962,10 @@ It is saved for when this flag is not set.")
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
+         ;; And any highlight overlays.
+         (when gud-highlight-current-line-overlay
+           (delete-overlay gud-highlight-current-line-overlay)
+           (setq gud-highlight-current-line-overlay nil))
 	 (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 		   'gdbmi)
 	     (gdb-reset)
@@ -3024,6 +3032,24 @@ Obeying it means displaying in another window the specified file and line."
 ;; region-restriction if that's possible.  We use an explicit display-buffer
 ;; to get around the fact that this is called inside a save-excursion.
 
+(defcustom gud-highlight-current-line nil
+  "Whether Gud should highlight the source line being debugged.
+If non-nil, Gud will accentuate the source code line previously
+executed upon each pause in the debugee's execution with an
+overlay in the face `gud-highlight-current-line-face'.
+
+If nil, yet one of `hl-line-mode' or `global-hl-line-mode' (which
+see) is enabled, then the emphasis imposed by either of those
+major modes is instead momentarily moved to the aforesaid source
+line, until it is displaced by subsequent cursor motion."
+  :version "30.1"
+  :type 'boolean)
+
+(defface gud-highlight-current-line-face
+  '((t :inherit highlight :extend t))
+  "Face for highlighting the source code line being executed."
+  :version "30.1")
+
 (defun gud-display-line (true-file line)
   (let* ((last-nonmenu-event t)	 ; Prevent use of dialog box for questions.
 	 (buffer
@@ -3053,14 +3079,32 @@ Obeying it means displaying in another window the specified file and line."
 	  (or gud-overlay-arrow-position
 	      (setq gud-overlay-arrow-position (make-marker)))
 	  (set-marker gud-overlay-arrow-position (point) (current-buffer))
-	  ;; If they turned on hl-line, move the hl-line highlight to
-	  ;; the arrow's line.
-	  (when (featurep 'hl-line)
-	    (cond
-	     (global-hl-line-mode
-	      (global-hl-line-highlight))
-	     ((and hl-line-mode hl-line-sticky-flag)
-	      (hl-line-highlight)))))
+          (if gud-highlight-current-line
+              (progn
+                (unless gud-highlight-current-line-overlay
+                  ;; Create the highlight overlay if it does not yet
+                  ;; exist.
+                  (let ((overlay (make-overlay (point) (point))))
+                    (overlay-put overlay 'priority -45) ; 5 less than hl-line.
+                    (overlay-put overlay 'face 'gud-highlight-current-line-face)
+                    (setq gud-highlight-current-line-overlay overlay)))
+                ;; Next, move the overlay to the current line.
+                (move-overlay gud-highlight-current-line-overlay
+                              (line-beginning-position)
+                              (line-beginning-position 2)
+                              (current-buffer)))
+            ;; Delete any overlay introduced if g-h-c-l-f has changed.
+            (when gud-highlight-current-line-overlay
+              (delete-overlay gud-highlight-current-line-overlay)
+              (setq gud-highlight-current-line-overlay nil))
+	    ;; If they turned on hl-line, move the hl-line highlight to
+	    ;; the arrow's line.
+	    (when (featurep 'hl-line)
+	      (cond
+	       (global-hl-line-mode
+	        (global-hl-line-highlight))
+	       ((and hl-line-mode hl-line-sticky-flag)
+	        (hl-line-highlight))))))
 	(cond ((or (< pos (point-min)) (> pos (point-max)))
 	       (widen)
 	       (goto-char pos))))

@@ -197,6 +197,12 @@ displayed on the mode line when 'appt-display-mode-line' is non-nil.
 
 * Editing Changes in Emacs 30.1
 
++++
+** New user option 'gud-highlight-current-line-overlay'.
+When enabled, Gud will visually emphasize the line being executed upon
+pauses in the debugee's execution, such as those occasioned by
+breakpoints being hit.
+
 ---
 ** New global minor mode 'kill-ring-deindent-mode'.
 When enabled, text being saved to the kill ring will be de-indented by

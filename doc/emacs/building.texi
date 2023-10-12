@@ -698,6 +698,20 @@ which edited source line corresponds to the line reported by the
 debugger subprocess.  To update this information, you typically have
 to recompile and restart the program.
 
+@cindex GUD and hl-line-mode
+@cindex highlighting execution lines in GUD
+@vindex gud-highlight-current-line
+  Moreover, GUD is capable of visually demarcating the current
+execution line within the window text itself in one of two fashions:
+the first takes effect when the user option
+@code{gud-highlight-current-line} is enabled, and displays that line
+in an overlay whose appearance is provided by the face
+@code{gud-highlight-current-line-face}.  The other takes effect when
+HL Line Mode (@pxref{Cursor Display}) is enabled, and moves the
+overlay introduced by HL Line Mode briefly to the execution line,
+until a subsequent editing command repositions it back beneath the
+cursor.
+
 @cindex GUD Tooltip mode
 @cindex mode, GUD Tooltip
 @findex gud-tooltip-mode
