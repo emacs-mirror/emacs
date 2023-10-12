@@ -517,12 +517,14 @@ it invalid.  */)
 #ifdef INOTIFY_DEBUG
 DEFUN ("inotify-watch-list", Finotify_watch_list, Sinotify_watch_list, 0, 0, 0,
        doc: /* Return a copy of the internal watch_list.  */)
+  (void)
 {
   return Fcopy_sequence (watch_list);
 }
 
 DEFUN ("inotify-allocated-p", Finotify_allocated_p, Sinotify_allocated_p, 0, 0, 0,
        doc: /* Return non-nil, if an inotify instance is allocated.  */)
+  (void)
 {
   return inotifyfd < 0 ? Qnil : Qt;
 }
