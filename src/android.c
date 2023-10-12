@@ -4409,6 +4409,7 @@ android_fill_polygon (android_drawable drawable, struct android_gc *gc,
 						 service_class.fill_polygon,
 						 drawable_object,
 						 gcontext, array);
+  android_exception_check_1 (array);
   ANDROID_DELETE_LOCAL_REF (array);
 }
 
@@ -4431,6 +4432,10 @@ android_draw_rectangle (android_drawable handle, struct android_gc *gc,
 						 drawable, gcontext,
 						 (jint) x, (jint) y,
 						 (jint) width, (jint) height);
+
+  /* In lieu of android_exception_check, clear all exceptions after
+     calling this frequently called graphics operation.  */
+  (*android_java_env)->ExceptionClear (android_java_env);
 }
 
 void
@@ -4451,6 +4456,10 @@ android_draw_point (android_drawable handle, struct android_gc *gc,
 						 service_class.draw_point,
 						 drawable, gcontext,
 						 (jint) x, (jint) y);
+
+  /* In lieu of android_exception_check, clear all exceptions after
+     calling this frequently called graphics operation.  */
+  (*android_java_env)->ExceptionClear (android_java_env);
 }
 
 void
@@ -4472,6 +4481,10 @@ android_draw_line (android_drawable handle, struct android_gc *gc,
 						 drawable, gcontext,
 						 (jint) x, (jint) y,
 						 (jint) x2, (jint) y2);
+
+  /* In lieu of android_exception_check, clear all exceptions after
+     calling this frequently called graphics operation.  */
+  (*android_java_env)->ExceptionClear (android_java_env);
 }
 
 android_pixmap
@@ -5279,7 +5292,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
    The caller must take care to unlock the bitmap data afterwards.  */
 
 unsigned char *
-android_lock_bitmap (android_window drawable,
+android_lock_bitmap (android_drawable drawable,
 		     AndroidBitmapInfo *bitmap_info,
 		     jobject *bitmap_return)
 {
@@ -5295,9 +5308,15 @@ android_lock_bitmap (android_window drawable,
 						  object,
 						  drawable_class.get_bitmap);
   if (!bitmap)
-    /* NULL is returned when the bitmap does not currently exist due
-       to ongoing reconfiguration on the main thread.  */
-    return NULL;
+    {
+      /* Report any exception signaled.  */
+      android_exception_check ();
+
+      /* If no exception was signaled, then NULL was returned as the
+	 bitmap does not presently exist due to window reconfiguration
+	 on the main thread.  */
+      return NULL;
+    }
 
   memset (bitmap_info, 0, sizeof *bitmap_info);
 
