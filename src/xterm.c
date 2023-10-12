@@ -6055,8 +6055,9 @@ x_end_cr_clip (struct frame *f)
 }
 
 void
-x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
-				    bool respect_alpha_background)
+x_set_other_cr_source_with_gc_foreground (struct frame *f, GC gc,
+					  cairo_t *cr,
+					  bool respect_alpha_background)
 {
   XGCValues xgcv;
   XColor color;
@@ -6070,18 +6071,27 @@ x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
   if (f->alpha_background < 1.0 && depth == 32
       && respect_alpha_background)
     {
-      cairo_set_source_rgba (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+      cairo_set_source_rgba (cr, color.red / 65535.0,
 			     color.green / 65535.0, color.blue / 65535.0,
 			     f->alpha_background);
 
-      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
+      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
     }
   else
     {
-      cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+      cairo_set_source_rgb (cr, color.red / 65535.0,
 			    color.green / 65535.0, color.blue / 65535.0);
-      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_OVER);
+      cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
     }
+}
+
+void
+x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
+				    bool respect_alpha_background)
+{
+  x_set_other_cr_source_with_gc_foreground (f, gc,
+					    FRAME_CR_CONTEXT (f),
+					    respect_alpha_background);
 }
 
 void

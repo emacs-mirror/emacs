@@ -1652,6 +1652,7 @@ enum lface_attribute_index
   LFACE_HEIGHT_INDEX,
   LFACE_WEIGHT_INDEX,
   LFACE_SLANT_INDEX,
+  LFACE_SHADOW_INDEX,
   LFACE_UNDERLINE_INDEX,
   LFACE_INVERSE_INDEX,
   LFACE_FOREGROUND_INDEX,
@@ -1737,11 +1738,12 @@ struct face
   unsigned long background;
 
   /* Pixel value or color index of underline, overlined,
-     strike-through, or box color.  */
+     strike-through, box color, or shadow color.  */
   unsigned long underline_color;
   unsigned long overline_color;
   unsigned long strike_through_color;
   unsigned long box_color;
+  unsigned long shadow_color;
 
   struct font *font;
 
@@ -1783,9 +1785,16 @@ struct face
   bool_bf use_box_color_for_shadows_p : 1;
 
   /* Non-zero if text in this face should be underlined, overlined,
-     strike-through or have a box drawn around it.  */
+     strike-through, have a box drawn around it, or have shadows.  */
   bool_bf overline_p : 1;
   bool_bf strike_through_p : 1;
+  bool_bf shadow_p : 1;
+
+  /* The blur parameter of the shadow. */
+  double shadow_blur;
+
+  /* Shadow offset.  In most cases, both fields are taken to be zero. */
+  struct { short x, y; } shadow_offset;
 
   /* True means that the colors specified for this face could not be
      loaded, and were replaced by default colors, so they shouldn't be
@@ -1800,6 +1809,7 @@ struct face
   bool_bf overline_color_defaulted_p : 1;
   bool_bf strike_through_color_defaulted_p : 1;
   bool_bf box_color_defaulted_p : 1;
+  bool_bf shadow_color_defaulted_p : 1;
 
   /* True means the underline should be drawn at the descent line.  */
   bool_bf underline_at_descent_line_p : 1;

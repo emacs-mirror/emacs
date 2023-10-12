@@ -252,6 +252,7 @@ WEBKIT_CFLAGS= @WEBKIT_CFLAGS@
 
 CAIRO_LIBS= @CAIRO_LIBS@
 CAIRO_CFLAGS= @CAIRO_CFLAGS@
+CAIRO_OBJ= @CAIRO_OBJ@
 
 IMAGEMAGICK_LIBS= @IMAGEMAGICK_LIBS@
 IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
@@ -480,7 +481,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	$(if $(HYBRID_MALLOC),sheap.o) 					       \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)        \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ) 	       \
-	$(HAIKU_OBJ) $(PGTK_OBJ) $(ANDROID_OBJ)
+	$(HAIKU_OBJ) $(PGTK_OBJ) $(ANDROID_OBJ) $(CAIRO_OBJ)
 doc_obj = $(base_obj) $(NS_OBJC_OBJ)
 obj = $(doc_obj) $(HAIKU_CXX_OBJ)
 

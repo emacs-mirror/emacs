@@ -7259,8 +7259,9 @@ pgtk_set_cr_source_with_gc_background (struct frame *f, Emacs_GC *gc,
 }
 
 void
-pgtk_set_cr_source_with_color (struct frame *f, unsigned long color,
-			       bool respects_alpha_background)
+pgtk_set_other_cr_source_with_color (struct frame *f, cairo_t *cr,
+				     unsigned long color,
+				     bool respects_alpha_background)
 {
   Emacs_Color col;
   col.pixel = color;
@@ -7268,17 +7269,24 @@ pgtk_set_cr_source_with_color (struct frame *f, unsigned long color,
 
   if (!respects_alpha_background)
     {
-      cairo_set_source_rgb (FRAME_CR_CONTEXT (f), col.red / 65535.0,
+      cairo_set_source_rgb (cr, col.red / 65535.0,
 			    col.green / 65535.0, col.blue / 65535.0);
-      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_OVER);
+      cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
     }
   else
     {
-      cairo_set_source_rgba (FRAME_CR_CONTEXT (f), col.red / 65535.0,
+      cairo_set_source_rgba (cr, col.red / 65535.0,
 			     col.green / 65535.0, col.blue / 65535.0,
 			     f->alpha_background);
-      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
+      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
     }
+}
+
+void
+pgtk_set_cr_source_with_color (struct frame *f, unsigned long color,
+			       bool respects_alpha_background)
+{
+  pgtk_set_other_cr_source_with_color (f, FRAME_CR_CONTEXT (f), color, respects_alpha_background);
 }
 
 void

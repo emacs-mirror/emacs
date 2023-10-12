@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#include <time.h>
 
 #include <config.h>
 #include <math.h>
@@ -41,11 +42,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xsettings.h"
 #endif
 
-#ifdef USE_BE_CAIRO
+#include "xcairo.h"
+
 #define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
 #define GREEN_FROM_ULONG(color)	(((color) >> 8) & 0xff)
 #define BLUE_FROM_ULONG(color)	((color) & 0xff)
-#endif
 
 #define METRICS_NCOLS_PER_ROW	(128)
 
@@ -529,16 +530,11 @@ ftcrfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
 }
 #endif	/* HAVE_OTF_GET_VARIATION_GLYPHS || HAVE_FT_FACE_GETCHARVARIANTINDEX */
 
-static int
-ftcrfont_draw (struct glyph_string *s,
-               int from, int to, int x, int y, bool with_background)
+static void
+ftcrfont_select_foreground_color (struct frame *f,
+				  cairo_t *cr,
+				  struct glyph_string *s)
 {
-  struct frame *f = s->f;
-  struct font_info *ftcrfont_info = (struct font_info *) s->font;
-  cairo_t *cr;
-  cairo_glyph_t *glyphs;
-  int len = to - from;
-  int i;
 #ifdef USE_BE_CAIRO
   unsigned long be_foreground, be_background;
 
@@ -551,6 +547,101 @@ ftcrfont_draw (struct glyph_string *s,
     haiku_merge_cursor_foreground (s, &be_foreground,
 				   &be_background);
 #endif
+
+#ifndef USE_BE_CAIRO
+#ifdef HAVE_X_WINDOWS
+  x_set_other_cr_source_with_gc_foreground (f, s->gc, cr, false);
+#else
+  pgtk_set_other_cr_source_with_color (f, cr, s->xgcv.foreground, false);
+#endif
+#else
+  uint32_t col = be_foreground;
+
+  cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
+			GREEN_FROM_ULONG (col) / 255.0,
+			BLUE_FROM_ULONG (col) / 255.0);
+#endif
+}
+
+/* Select the proper foreground color (source) before calling this. */
+static void
+ftcrfont_show_glyphs (struct glyph_string *s, cairo_t *cr,
+		      int from, int to, int x, int y)
+{
+  struct font_info *ftcrfont_info = (struct font_info *) s->font;
+  int len = to - from;
+  cairo_glyph_t *glyphs;
+  int i;
+
+  glyphs = alloca (sizeof (cairo_glyph_t) * len);
+  for (i = 0; i < len; i++)
+    {
+      glyphs[i].index = s->char2b[from + i];
+      glyphs[i].x = x;
+      glyphs[i].y = y;
+      x += (s->padding_p ? 1 : ftcrfont_glyph_extents (s->font,
+						       glyphs[i].index,
+						       NULL));
+    }
+
+  cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
+  cairo_show_glyphs (cr, glyphs, len);
+}
+
+static void
+ftcrfont_draw_shadow (struct glyph_string *s, cairo_t *frame_cr,
+		      int from, int to, int x, int y, bool save)
+{
+  cairo_surface_t *surface;
+  cairo_t *dc;
+
+  int x1, y1, w1, h1;
+  unsigned long col;
+  int margin;
+
+  margin = (int) ceil (s->face->shadow_blur);
+  w1 = s->width + margin;
+  h1 = FONT_HEIGHT (s->font) + margin;
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w1, h1);
+  dc = cairo_create (surface);
+
+  if (s->face->shadow_color_defaulted_p)
+    col = s->face->foreground;
+  else
+    col = s->face->shadow_color;
+
+  cairo_set_source_rgb (dc,
+			RED_FROM_ULONG (col) / 255.0,
+			GREEN_FROM_ULONG (col) / 255.0,
+			BLUE_FROM_ULONG (col) / 255.0);
+  cairo_set_operator (dc, CAIRO_OPERATOR_OVER);
+
+  ftcrfont_show_glyphs (s, dc, from, to, margin, FONT_BASE(s->font) + margin);
+  gaussian_blur (surface, w1, h1, s->face->shadow_blur / 2.0);
+
+  x1 = x + s->face->shadow_offset.x - margin;
+  y1 = y - FONT_BASE (s->font) + s->face->shadow_offset.y - margin;
+
+  if (save)
+    cairo_save (frame_cr);
+  cairo_set_source_surface (frame_cr, surface, x1, y1);
+  cairo_rectangle (frame_cr, x1, y1, w1, h1);
+  cairo_fill (frame_cr);
+  if (save)
+    cairo_restore (frame_cr);
+
+  cairo_destroy (dc);
+  cairo_surface_destroy (surface);
+}
+
+static int
+ftcrfont_draw (struct glyph_string *s,
+               int from, int to, int x, int y, bool with_background)
+{
+  struct frame *f = s->f;
+  cairo_t *cr;
+  int len = to - from;
 
   block_input ();
 
@@ -595,31 +686,19 @@ ftcrfont_draw (struct glyph_string *s,
       cairo_fill (cr);
     }
 
-  glyphs = alloca (sizeof (cairo_glyph_t) * len);
-  for (i = 0; i < len; i++)
-    {
-      glyphs[i].index = s->char2b[from + i];
-      glyphs[i].x = x;
-      glyphs[i].y = y;
-      x += (s->padding_p ? 1 : ftcrfont_glyph_extents (s->font,
-                                                       glyphs[i].index,
-                                                       NULL));
-    }
-#ifndef USE_BE_CAIRO
-#ifdef HAVE_X_WINDOWS
-  x_set_cr_source_with_gc_foreground (f, s->gc, false);
+#if defined(HAVE_PGTK)
+  /* PGTK requires the foreground color to be selected BEFORE creating
+     the shadow layer.  Hence we need to save and restore cairo_t. */
+  ftcrfont_select_foreground_color (f, cr, s);
+  if (s->face->shadow_p)
+    ftcrfont_draw_shadow (s, cr, from, to, x, y, true);
 #else
-  pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
+  if (s->face->shadow_p)
+    ftcrfont_draw_shadow (s, cr, from, to, x, y, false);
+  ftcrfont_select_foreground_color (f, cr, s);
 #endif
-#else
-  uint32_t col = be_foreground;
+  ftcrfont_show_glyphs (s, cr, from, to, x, y);
 
-  cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
-			GREEN_FROM_ULONG (col) / 255.0,
-			BLUE_FROM_ULONG (col) / 255.0);
-#endif
-  cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
-  cairo_show_glyphs (cr, glyphs, len);
 #ifndef USE_BE_CAIRO
 #ifdef HAVE_X_WINDOWS
   x_end_cr_clip (f);

@@ -42,21 +42,24 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    8. Background color.
 
-   9. Whether or not characters should be underlined, and in what color.
+   9. Whether or not characters should be decorated with shadows, in
+   what color, and where should them be placed.
 
-   10. Whether or not characters should be displayed in inverse video.
+   10. Whether or not characters should be underlined, and in what color.
 
-   11. A background stipple, a bitmap.
+   11. Whether or not characters should be displayed in inverse video.
 
-   12. Whether or not characters should be overlined, and in what color.
+   12. A background stipple, a bitmap.
 
-   13. Whether or not characters should be strike-through, and in what
+   13. Whether or not characters should be overlined, and in what color.
+
+   14. Whether or not characters should be strike-through, and in what
    color.
 
-   14. Whether or not a box should be drawn around characters, the box
+   15. Whether or not a box should be drawn around characters, the box
    type, and, for simple boxes, in what color.
 
-   15. Font-spec, or nil.  This is a special attribute.
+   16. Font-spec, or nil.  This is a special attribute.
 
    A font-spec is a collection of font attributes (specs).
 
@@ -68,17 +71,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    On the other hand, if one of the other font-related attributes are
    specified, the corresponding specs in this attribute is set to nil.
 
-   16. A face name or list of face names from which to inherit attributes.
+   17. A face name or list of face names from which to inherit attributes.
 
-   17. A fontset name.  This is another special attribute.
+   18. A fontset name.  This is another special attribute.
 
    A fontset is a mappings from characters to font-specs, and the
    specs overwrite the font-spec in the 14th attribute.
 
-   18. A "distant background" color, to be used when the foreground is
+   19. A "distant background" color, to be used when the foreground is
    too close to the background and is hard to read.
 
-   19. Whether to extend the face to end of line when the face
+   20. Whether to extend the face to end of line when the face
    "covers" the newline that ends the line.
 
    On the C level, a Lisp face is completely represented by its array
@@ -394,7 +397,7 @@ static void clear_face_gcs (struct face_cache *);
 static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
 					    struct face *);
 #endif /* HAVE_WINDOW_SYSTEM */
-
+
 /***********************************************************************
 			      Utilities
  ***********************************************************************/
@@ -1761,6 +1764,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_HEIGHT(LFACE)	    AREF ((LFACE), LFACE_HEIGHT_INDEX)
 #define LFACE_WEIGHT(LFACE)	    AREF ((LFACE), LFACE_WEIGHT_INDEX)
 #define LFACE_SLANT(LFACE)	    AREF ((LFACE), LFACE_SLANT_INDEX)
+#define LFACE_SHADOW(LFACE)         AREF((LFACE), LFACE_SHADOW_INDEX)
 #define LFACE_UNDERLINE(LFACE)      AREF ((LFACE), LFACE_UNDERLINE_INDEX)
 #define LFACE_INVERSE(LFACE)	    AREF ((LFACE), LFACE_INVERSE_INDEX)
 #define LFACE_FOREGROUND(LFACE)     AREF ((LFACE), LFACE_FOREGROUND_INDEX)
@@ -3246,6 +3250,46 @@ FRAME 0 means change the face on all frames, and change the default
       ASET (lface, LFACE_SLANT_INDEX, value);
       prop_index = FONT_SLANT_INDEX;
     }
+  else if (EQ (attr, QCshadow))
+    {
+      bool valid_p = false;
+
+      /* TODO allow ignore-defface? */
+      if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
+        valid_p = true;
+      else if (NILP (value) || EQ (value, Qt))
+        valid_p = true;
+      else if (FLOATP (value))
+        valid_p = true;
+      else if (CONSP (value))
+        {
+          Lisp_Object blur, color, offsetx, offsety, temp;
+          blur = CAR (value);
+          temp = CDR (value);
+          if (NILP (temp) || STRINGP (temp) || SCHARS (temp) > 0)
+            valid_p = FLOATP (blur);
+          else if (CONSP (temp))
+            {
+              color = CAR (temp);
+              temp = CDR (temp);
+              offsetx = CAR (temp);
+              offsety = CDR (temp);
+              valid_p = FLOATP (blur)
+                && (NILP (color) || STRINGP (color) || SCHARS (color) > 0)
+                && FIXNUMP (offsetx) && FIXNUMP (offsety);
+            }
+          else
+            valid_p = false;
+        }
+
+      if (!valid_p)
+        signal_error ("Invalid text shadow", value);
+      else
+        {
+          old_value = LFACE_SHADOW (lface);
+          ASET (lface, LFACE_SHADOW_INDEX, value);
+        }
+    }
   else if (EQ (attr, QCunderline))
     {
       bool valid_p = false;
@@ -4129,6 +4173,8 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
     value = LFACE_WEIGHT (lface);
   else if (EQ (keyword, QCslant))
     value = LFACE_SLANT (lface);
+  else if (EQ (keyword, QCshadow))
+    value = LFACE_SHADOW (lface);
   else if (EQ (keyword, QCunderline))
     value = LFACE_UNDERLINE (lface);
   else if (EQ (keyword, QCoverline))
@@ -6085,7 +6131,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 #ifdef HAVE_WINDOW_SYSTEM
   struct face *default_face;
   struct frame *f;
-  Lisp_Object stipple, underline, overline, strike_through, box;
+  Lisp_Object stipple, underline, overline, strike_through, box, shadow;
 
   eassert (FRAME_WINDOW_P (cache->f));
 
@@ -6280,6 +6326,106 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 		}
 	    }
 	}
+    }
+
+  /* Text shadow */
+
+  shadow = attrs[LFACE_SHADOW_INDEX];
+  if (EQ (shadow, Qt))
+    {
+      /* Use the default parameters. */
+      face->shadow_p = true;
+      face->shadow_blur = 1.0;
+      face->shadow_color_defaulted_p = true;
+      face->shadow_offset.x = 0;
+      face->shadow_offset.y = 0;
+    }
+  else if (NILP (shadow))
+    {
+      face->shadow_p = false;
+      face->shadow_blur = 0.0;
+      face->shadow_color_defaulted_p = false;
+      face->shadow_offset.x = 0;
+      face->shadow_offset.y = 0;
+    }
+  else if (FLOATP (shadow))
+    {
+      face->shadow_p = true;
+      face->shadow_blur = XFLOAT_DATA (shadow);
+      face->shadow_color_defaulted_p = true;
+      face->shadow_offset.x = 0;
+      face->shadow_offset.y = 0;
+    }
+  else if (CONSP (shadow))
+    {
+      /* (blur . color) or (blur color offset) */
+      Lisp_Object blur, color, offset, rest;
+      blur = CAR (shadow);
+      if (FLOATP (blur))
+	{
+	  face->shadow_p = true;
+	  face->shadow_blur = XFLOAT_DATA (blur);
+	}
+      else
+	{
+	  face->shadow_p = false;
+	  add_to_log ("Invalid shadow blur value");
+	}
+
+      rest = CDR (shadow);
+      if (STRINGP (rest))
+        {
+          color = rest;
+	  offset = Qnil;
+          rest = Qnil;
+        }
+      else if (CONSP (rest))
+        {
+          color = CAR (rest);
+          offset = CDR (rest);
+	  if (CONSP (CAR (offset)) && NILP (CDR (offset)))
+	    {
+	      /* Be tolerant about something like (5.0 "color" (x . y)) */
+	      offset = CAR (offset);
+	    }
+        }
+      else
+	{
+	  add_to_log ("Invalid shadow");
+	  color = Qnil;
+	  offset = Qnil;
+	}
+
+      if (STRINGP (color))
+        {
+          face->shadow_color_defaulted_p = false;
+          face->shadow_color = load_color (f, face, color,
+                                           LFACE_SHADOW_INDEX);
+        }
+      else
+	{
+	  add_to_log ("Invalid shadow color");
+	  face->shadow_color_defaulted_p = true;
+	}
+
+      if (NILP (offset))
+        {
+          face->shadow_offset.x = 0;
+          face->shadow_offset.y = 0;
+        }
+      else if (FIXNUMP (CAR (offset)) && FIXNUMP (CDR (offset)))
+        {
+	  EMACS_INT x = XFIXNUM (CAR (offset)), y = XFIXNUM (CDR (offset));
+	  if (x >= 128 || y >= 128 || x <= -127 || y <= -127)
+	    add_to_log ("Invalid shadow offset");
+	  else
+	    {
+	      face->shadow_offset.x = x;
+	      face->shadow_offset.y = y;
+	    }
+        }
+      else
+	add_to_log ("Invalid shadow offset");
     }
 
   /* Text underline, overline, strike-through.  */
@@ -7180,6 +7326,7 @@ syms_of_xfaces (void)
   DEFSYM (QCheight, ":height");
   DEFSYM (QCweight, ":weight");
   DEFSYM (QCslant, ":slant");
+  DEFSYM (QCshadow, ":shadow");
   DEFSYM (QCunderline, ":underline");
   DEFSYM (QCinverse_video, ":inverse-video");
   DEFSYM (QCreverse_video, ":reverse-video");
