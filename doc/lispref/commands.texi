@@ -3967,10 +3967,6 @@ the timeout elapses).
 In batch mode (@pxref{Batch Mode}), @code{sit-for} cannot be
 interrupted, even by input from the standard input descriptor.  It is
 thus equivalent to @code{sleep-for}, which is described below.
-
-It is also possible to call @code{sit-for} with three arguments,
-as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},
-but that is considered obsolete.
 @end defun
 
 @defun sleep-for seconds &optional millisec

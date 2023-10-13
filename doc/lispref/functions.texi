@@ -2364,8 +2364,8 @@ accepted three arguments, like this
   (sit-for seconds milliseconds nodisp)
 @end example
 
-However, calling @code{sit-for} this way is considered obsolete
-(@pxref{Waiting}).  The old calling convention is deprecated like
+During a transition period, the function accepted those three
+arguments, but declared this old calling convention as deprecated like
 this:
 
 @example

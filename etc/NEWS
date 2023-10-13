@@ -1022,6 +1022,9 @@ The compatibility aliases 'x-defined-colors', 'x-color-defined-p',
 ** 'easy-mmode-define-{minor,global}-mode' aliases are now obsolete.
 Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 
+** The obsolete calling convention of 'sit-for' has been removed.
+That convention was: (sit-for SECONDS MILLISEC &optional NODISP)
+
 
 * Lisp Changes in Emacs 30.1
 
