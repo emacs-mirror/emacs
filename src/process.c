@@ -1279,7 +1279,8 @@ static void
 update_process_mark (struct Lisp_Process *p)
 {
   Lisp_Object buffer = p->buffer;
-  if (BUFFERP (buffer))
+  if (BUFFERP (buffer)
+      && XMARKER (p->mark)->buffer != XBUFFER (buffer))
     set_marker_both (p->mark, buffer,
 		     BUF_ZV (XBUFFER (buffer)),
 		     BUF_ZV_BYTE (XBUFFER (buffer)));
