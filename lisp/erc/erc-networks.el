@@ -756,9 +756,8 @@ number, a list of numbers, or a list of port ranges."
 Each network is a list (NET MATCHER) where
 NET is a symbol naming that IRC network and
 MATCHER is used to find a corresponding network to a server while
-  connected to it.  If it is regexp, it's used to match against
-  `erc-server-announced-name'.  It can also be a function (predicate).
-  Then it is executed with the server buffer as current buffer."
+connected to it.  If it is a regexp, it's used to match against
+`erc-server-announced-name'."
   :type '(repeat
 	  (list :tag "Network"
 		(symbol :tag "Network name")

@@ -292,7 +292,9 @@ displays an arrow in the left fringe or margin.  When it's
 appropriate line.  A value of t does both."
   :group 'erc
   :package-version '(ERC . "5.6") ; FIXME sync on release
-  :type '(choice (const t) (const server) (const target)))
+  :type '(choice (const :tag "Use arrow" arrow)
+                 (const :tag "Use face" face)
+                 (const :tag "Use both arrow and face" t)))
 
 (defcustom erc-keep-place-indicator-buffer-type t
   "ERC buffer type in which to display `keep-place-indicator'.

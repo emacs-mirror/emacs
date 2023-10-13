@@ -112,7 +112,8 @@ https://en.wikipedia.org/wiki/Hanging_indent."
 (defcustom erc-fill-variable-maximum-indentation 17
   "Don't indent a line after a long nick more than this many characters.
 Set to nil to disable."
-  :type 'integer)
+  :type '(choice (const :tag "Disable" nil)
+                 integer))
 
 (defcustom erc-fill-column 78
   "The column at which a filled paragraph is broken."
