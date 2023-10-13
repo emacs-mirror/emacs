@@ -5374,10 +5374,7 @@ primitive or interface named NAME."
                                 (goto-char (match-end 0))
                                 (setq there (point))
                                 (setq err nil)
-                                (setq str (concat " // " cntx (verilog-get-expr))))
-
-                               (;-- otherwise...
-                                (setq str " // auto-endcomment confused "))))
+                                (setq str (concat " // " cntx (verilog-get-expr))))))
 
                              ((and
                                (verilog-in-case-region-p) ;-- handle case item differently
