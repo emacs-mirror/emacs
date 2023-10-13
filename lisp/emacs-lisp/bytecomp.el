@@ -292,49 +292,51 @@ The information is logged to `byte-compile-log-buffer'."
 ;;;###autoload(put 'byte-compile-error-on-warn 'safe-local-variable 'booleanp)
 
 (defconst byte-compile-warning-types
-  '(redefine callargs free-vars unresolved
-             obsolete noruntime interactive-only
-             make-local mapcar constants suspicious lexical lexical-dynamic
-             docstrings docstrings-wide docstrings-non-ascii-quotes not-unused
-             empty-body)
+  '( callargs constants
+     docstrings docstrings-non-ascii-quotes docstrings-wide
+     empty-body free-vars ignored-return-value interactive-only
+     lexical lexical-dynamic make-local
+     mapcar                             ; obsolete
+     mutate-constant noruntime not-unused obsolete redefine suspicious
+     unresolved)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for almost all).
 
 Elements of the list may be:
 
-  free-vars   references to variables not in the current lexical scope.
-  unresolved  calls to unknown functions.
   callargs    function calls with args that don't match the definition.
-  redefine    function name redefined from a macro to ordinary function or vice
-              versa, or redefined to take a different number of arguments.
-  obsolete    obsolete variables and functions.
-  noruntime   functions that may not be defined at runtime (typically
-              defined only under `eval-when-compile').
+  constants   let-binding of, or assignment to, constants/nonvariables.
+  docstrings  various docstring stylistic issues, such as incorrect use
+              of single quotes
+  docstrings-non-ascii-quotes
+              docstrings that have non-ASCII quotes.
+              Only enabled when `docstrings' also is.
+  docstrings-wide
+              docstrings that are too wide, containing lines longer than both
+              `byte-compile-docstring-max-column' and `fill-column' characters.
+              Only enabled when `docstrings' also is.
+  empty-body  body argument to a special form or macro is empty.
+  free-vars   references to variables not in the current lexical scope.
+  ignored-return-value
+              function called without using the return value where this
+              is likely to be a mistake.
   interactive-only
 	      commands that normally shouldn't be called from Lisp code.
   lexical     global/dynamic variables lacking a prefix.
   lexical-dynamic
               lexically bound variable declared dynamic elsewhere
   make-local  calls to `make-variable-buffer-local' that may be incorrect.
-  ignored-return-value
-              function called without using the return value where this
-              is likely to be a mistake
-  not-unused  warning about using variables with symbol names starting with _.
-  constants   let-binding of, or assignment to, constants/nonvariables.
-  docstrings  various docstring stylistic issues, such as incorrect use
-              of single quotes
-  docstrings-wide
-              docstrings that are too wide, containing lines longer than both
-              `byte-compile-docstring-max-column' and `fill-column' characters.
-              Only enabled when `docstrings' also is.
-  docstrings-non-ascii-quotes
-              docstrings that have non-ASCII quotes.
-              Only enabled when `docstrings' also is.
-  suspicious  constructs that usually don't do what the coder wanted.
-  empty-body  body argument to a special form or macro is empty.
   mutate-constant
-              code that mutates program constants such as quoted lists
+              code that mutates program constants such as quoted lists.
+  noruntime   functions that may not be defined at runtime (typically
+              defined only under `eval-when-compile').
+  not-unused  warning about using variables with symbol names starting with _.
+  obsolete    obsolete variables and functions.
+  redefine    function name redefined from a macro to ordinary function or vice
+              versa, or redefined to take a different number of arguments.
+  suspicious  constructs that usually don't do what the coder wanted.
+  unresolved  calls to unknown functions.
 
 If the list begins with `not', then the remaining elements specify warnings to
 suppress.  For example, (not free-vars) will suppress the `free-vars' warning.
