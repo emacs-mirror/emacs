@@ -216,8 +216,9 @@ If `ask', you will be prompted for a branch type."
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
-  (let ((state (vc-hg-state-fast file)))
-    (if (eq state 'unsupported) (vc-hg-state-slow file) state)))
+  (unless (file-directory-p file)
+    (let ((state (vc-hg-state-fast file)))
+      (if (eq state 'unsupported) (vc-hg-state-slow file) state))))
 
 (defun vc-hg-state-slow (file)
   "Determine status of FILE by running hg."
