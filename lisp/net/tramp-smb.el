@@ -731,6 +731,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (tramp-run-real-handler #'expand-file-name (list name))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
+      ;; Tilde expansion shall be possible also for quoted localname.
+      (when (string-prefix-p "~" (file-name-unquote localname))
+	(setq localname (file-name-unquote localname)))
       ;; Tilde expansion if necessary.
       (when (string-match
 	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)

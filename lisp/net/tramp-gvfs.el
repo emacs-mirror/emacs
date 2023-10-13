@@ -1176,10 +1176,13 @@ file names."
       (tramp-run-real-handler #'expand-file-name (list name))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
+      ;; Tilde expansion shall be possible also for quoted localname.
+      (when (string-prefix-p "~" (file-name-unquote localname))
+	(setq localname (file-name-unquote localname)))
       ;; If there is a default location, expand tilde.
       (when (string-match
 	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
-	      localname)
+	     localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
