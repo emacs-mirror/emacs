@@ -295,7 +295,7 @@ The information is logged to `byte-compile-log-buffer'."
   '(redefine callargs free-vars unresolved
              obsolete noruntime interactive-only
              make-local mapcar constants suspicious lexical lexical-dynamic
-             docstrings docstrings-non-ascii-quotes not-unused
+             docstrings docstrings-wide docstrings-non-ascii-quotes not-unused
              empty-body)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
@@ -322,12 +322,15 @@ Elements of the list may be:
               is likely to be a mistake
   not-unused  warning about using variables with symbol names starting with _.
   constants   let-binding of, or assignment to, constants/nonvariables.
-  docstrings  docstrings that are too wide (longer than
-              `byte-compile-docstring-max-column' or
-              `fill-column' characters, whichever is bigger) or
-              have other stylistic issues.
-  docstrings-non-ascii-quotes docstrings that have non-ASCII quotes.
-                              This depends on the `docstrings' warning type.
+  docstrings  various docstring stylistic issues, such as incorrect use
+              of single quotes
+  docstrings-wide
+              docstrings that are too wide, containing lines longer than both
+              `byte-compile-docstring-max-column' and `fill-column' characters.
+              Only enabled when `docstrings' also is.
+  docstrings-non-ascii-quotes
+              docstrings that have non-ASCII quotes.
+              Only enabled when `docstrings' also is.
   suspicious  constructs that usually don't do what the coder wanted.
   empty-body  body argument to a special form or macro is empty.
   mutate-constant
@@ -1756,7 +1759,8 @@ It is too wide if it has any lines longer than the largest of
           (setq docs (nth 2 form))))
       (when (and kind docs (stringp docs))
         (let ((col (max byte-compile-docstring-max-column fill-column)))
-          (when (byte-compile--wide-docstring-p docs col)
+          (when (and (byte-compile-warning-enabled-p 'docstrings-wide)
+                     (byte-compile--wide-docstring-p docs col))
             (byte-compile-warn-x
              name
              "%sdocstring wider than %s characters" (funcall prefix) col)))

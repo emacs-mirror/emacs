@@ -1266,6 +1266,10 @@ name 'ignored-return-value'.
 The warning will only be issued for calls to functions declared
 'important-return-value' or 'side-effect-free' (but not 'error-free').
 
+---
+*** The warning about wide docstrings can now be disabled separately.
+Its warning name is 'docstrings-wide'.
+
 +++
 ** New function declaration and property 'important-return-value'.
 The declaration '(important-return-value t)' sets the
