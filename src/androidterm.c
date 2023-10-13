@@ -2529,7 +2529,8 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
       /* Intersect the destination rectangle with that of the row.
 	 Setting a clip mask overrides the clip rectangles provided by
-	 x_clip_to_row, so clipping must be performed by hand.  */
+	 android_clip_to_row, so clipping must be performed by
+	 hand.  */
 
       image_rect.x = p->x;
       image_rect.y = p->y;

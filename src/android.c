@@ -5542,22 +5542,40 @@ android_toggle_on_screen_keyboard (android_window window, bool show)
 
 
 
+#if defined __clang_major__ && __clang_major__ < 5
+# define HAS_BUILTIN_TRAP 0
+#elif 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
+# define HAS_BUILTIN_TRAP 1
+#elif defined __has_builtin
+# define HAS_BUILTIN_TRAP __has_builtin (__builtin_trap)
+#else /* !__has_builtin */
+# define HAS_BUILTIN_TRAP 0
+#endif /* defined __clang_major__ && __clang_major__ < 5 */
+
 /* emacs_abort implementation for Android.  This logs a stack
    trace.  */
 
 void
 emacs_abort (void)
 {
+#ifndef HAS_BUILTIN_TRAP
   volatile char *foo;
+#endif /* !HAS_BUILTIN_TRAP */
 
   __android_log_print (ANDROID_LOG_FATAL, __func__,
-		       "emacs_abort called, please review the ensuing"
+		       "emacs_abort called, please review the following"
 		       " stack trace");
 
-  /* Cause a NULL pointer dereference to make debuggerd generate a
+#ifndef HAS_BUILTIN_TRAP
+  /* Induce a NULL pointer dereference to make debuggerd generate a
      tombstone.  */
   foo = NULL;
   *foo = '\0';
+#else /* HAS_BUILTIN_TRAP */
+  /* Crash through __builtin_trap instead.  This appears to more
+     uniformly elicit crash reports from debuggerd.  */
+  __builtin_trap ();
+#endif /* !HAS_BUILTIN_TRAP */
 
   abort ();
 }
