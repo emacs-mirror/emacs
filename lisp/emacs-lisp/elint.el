@@ -1,8 +1,9 @@
 ;;; elint.el --- Lint Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: May 1997
 ;; Keywords: lisp
 
@@ -27,7 +28,7 @@
 ;; misspellings and undefined variables, although it can also catch
 ;; function calls with the wrong number of arguments.
 
-;; To use, call `elint-current-buffer' or `elint-defun' to lint a buffer
+;; To use it, call `elint-current-buffer' or `elint-defun' to lint a buffer
 ;; or defun.  The first call runs `elint-initialize' to set up some
 ;; argument data, which may take a while.
 
@@ -37,9 +38,9 @@
 
 ;;; To do:
 
-;; * Adding type checking. (Stop that sniggering!)
+;; * Adding type checking.  (Stop that sniggering!)
 ;; * Make eval-when-compile be sensitive to the difference between
-;;   funcs and macros.
+;;   functions and macros.
 ;; * Requires within function bodies.
 ;; * Handle defstruct.
 ;; * Prevent recursive requires.
