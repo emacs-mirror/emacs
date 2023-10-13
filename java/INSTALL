@@ -299,6 +299,8 @@ work, along with what has to be patched to make them work:
       the following three dependencies.)
   libpackagelistparser
     https://android.googlesource.com/platform/system/core/+/refs/heads/nougat-mr1-dev/libpackagelistparser/
+    (You must add LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/include before
+      its Android.mk includes $(BUILD_SHARED_LIBRARY))
   libpcre	- https://android.googlesource.com/platform/external/pcre
   libcrypto	- https://android.googlesource.com/platform/external/boringssl
      (You must apply the patch at the end of this file when building for
@@ -404,14 +406,14 @@ libxml2 before it can be built for Emacs.  In addition, you must also
 revert the commit `edb5870767fed8712a9b77ef34097209b61ab2db'.
 
 diff --git a/Android.mk b/Android.mk
-index 07c7b372..24f67e49 100644
+index 07c7b372..2494274f 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -80,6 +80,7 @@ LOCAL_SHARED_LIBRARIES := libicuuc
  LOCAL_MODULE:= libxml2
  LOCAL_CLANG := true
  LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
-+LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)/include
  include $(BUILD_SHARED_LIBRARY)
  
  # For the host
