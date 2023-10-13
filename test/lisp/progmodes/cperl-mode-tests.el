@@ -1403,6 +1403,20 @@ beginning with `cperl-test-unicode`."
                          (cdr (assoc (match-string-no-properties 1)
                                      faces)))))))))
 
+(ert-deftest cperl-test-bug-66161 ()
+  "Verify that text after \"__END__\" is fontified as comment.
+For `cperl-mode', this needs the custom variable
+`cperl-fontify-trailer' to be set to `comment'.  Per default,
+cperl-mode fontifies text after the delimiter as Perl code."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-66161.pl"))
+    (setq cperl-fontify-trailer 'comment)
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (search-forward "TODO")             ; leaves point before the colon
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-comment-face))))
+
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
 

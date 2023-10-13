@@ -550,6 +550,18 @@ This way enabling/disabling of menu items is more correct."
   :version "29.1")
 ;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
+(defcustom cperl-fontify-trailer
+  'perl-code
+  "How to fontify text after an \"__END__\" or \"__DATA__\" token.
+If \"perl-code\", treat as Perl code for fontification, and
+examine for imenu entries.  Use this setting if you have trailing
+POD documentation, or for modules which use AutoLoad or
+AutoSplit.  If \"comment\", treat as comment, and do not look for
+imenu entries."
+  :type '(choice (const perl-code)
+		 (const comment))
+  :group 'cperl-faces)
+
 (defcustom cperl-ps-print-face-properties
   '((font-lock-keyword-face		nil nil		bold shadow)
     (font-lock-variable-name-face	nil nil		bold)
@@ -4913,8 +4925,9 @@ recursive calls in starting lines of here-documents."
 	       ;; 1+6+2+1+1+6+1+1=19 extra () before this:
 	       ;; "__\\(END\\|DATA\\)__"
 	       ((match-beginning 20)	; __END__, __DATA__
-		(setq bb (match-end 0))
-		;; (put-text-property b (1+ bb) 'syntax-type 'pod) ; Cheat
+                (if (eq cperl-fontify-trailer 'perl-code)
+		    (setq bb (match-end 0))
+                  (setq bb (point-max)))
 		(cperl-commentify b bb nil)
 		(setq end t))
 	       ;; "\\\\\\(['`\"($]\\)"
