@@ -1018,7 +1018,7 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 
 * Lisp Changes in Emacs 30.1
 
-** New function 're--describe-compiled' to see the innards of a regexp.
+** New function 're-disassemble' to see the innards of a regexp.
 If you compiled with '--enable-checking', you can use this to help debug
 either your regexp performance problems or the regexp engine.
 
