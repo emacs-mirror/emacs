@@ -796,6 +796,13 @@ which makes them visually distinct from subroutine prototypes.
 CPerl mode supports the new keywords for exception handling and the
 object oriented syntax which were added in Perl 5.36 and 5.38.
 
+*** New user option 'cperl-fontify-trailer'.
+This user option takes the values "perl-code" or "comment" and treats
+text after an "__END__" or "__DATA__" token accordingly.  The default
+value of "perl-code" is useful for trailing POD and for AutoSplit
+modules, the value "comment" makes cperl-mode treat trailers as
+comment, like perl-mode does.
+
 ** Emacs Sessions (Desktop)
 
 +++
