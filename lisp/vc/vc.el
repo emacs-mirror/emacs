@@ -2238,7 +2238,7 @@ saving the buffer."
     (vc-maybe-buffer-sync not-urgent)
     (let ((backend (vc-deduce-backend))
 	  (default-directory default-directory)
-	  rootdir working-revision)
+	  rootdir)
       (if backend
 	  (setq rootdir (vc-call-backend backend 'root default-directory))
 	(setq rootdir (read-directory-name "Directory for VC root-diff: "))
@@ -2246,14 +2246,13 @@ saving the buffer."
 	(if backend
 	    (setq default-directory rootdir)
 	  (error "Directory is not version controlled")))
-      (setq working-revision (vc-working-revision rootdir))
       ;; VC diff for the root directory produces output that is
       ;; relative to it.  Bind default-directory to the root directory
       ;; here, this way the *vc-diff* buffer is setup correctly, so
       ;; relative file names work.
       (let ((default-directory rootdir))
         (vc-diff-internal
-         t (list backend (list rootdir) working-revision) nil nil
+         t (list backend (list rootdir)) nil nil
          (called-interactively-p 'interactive))))))
 
 ;;;###autoload
