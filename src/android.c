@@ -2320,6 +2320,100 @@ NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
 }
 
 JNIEXPORT jboolean JNICALL
+NATIVE_NAME (sendDndDrag) (JNIEnv *env, jobject object,
+			   jshort window, jint x, jint y)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+
+  event.dnd.type = ANDROID_DND_DRAG_EVENT;
+  event.dnd.serial = ++event_serial;
+  event.dnd.window = window;
+  event.dnd.x = x;
+  event.dnd.y = y;
+  event.dnd.uri_or_string = NULL;
+  event.dnd.length = 0;
+
+  android_write_event (&event);
+  return event_serial;
+}
+
+JNIEXPORT jboolean JNICALL
+NATIVE_NAME (sendDndUri) (JNIEnv *env, jobject object,
+			  jshort window, jint x, jint y,
+			  jstring string)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  const jchar *characters;
+  jsize length;
+  uint16_t *buffer;
+
+  event.dnd.type = ANDROID_DND_URI_EVENT;
+  event.dnd.serial = ++event_serial;
+  event.dnd.window = window;
+  event.dnd.x = x;
+  event.dnd.y = y;
+
+  length = (*env)->GetStringLength (env, string);
+  buffer = malloc (length * sizeof *buffer);
+  characters = (*env)->GetStringChars (env, string, NULL);
+
+  if (!characters)
+    /* The JVM has run out of memory; return and let the out of memory
+       error take its course.  */
+    return 0;
+
+  memcpy (buffer, characters, length * sizeof *buffer);
+  (*env)->ReleaseStringChars (env, string, characters);
+
+  event.dnd.uri_or_string = buffer;
+  event.dnd.length = length;
+
+  android_write_event (&event);
+  return event_serial;
+}
+
+JNIEXPORT jboolean JNICALL
+NATIVE_NAME (sendDndText) (JNIEnv *env, jobject object,
+			   jshort window, jint x, jint y,
+			   jstring string)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  const jchar *characters;
+  jsize length;
+  uint16_t *buffer;
+
+  event.dnd.type = ANDROID_DND_TEXT_EVENT;
+  event.dnd.serial = ++event_serial;
+  event.dnd.window = window;
+  event.dnd.x = x;
+  event.dnd.y = y;
+
+  length = (*env)->GetStringLength (env, string);
+  buffer = malloc (length * sizeof *buffer);
+  characters = (*env)->GetStringChars (env, string, NULL);
+
+  if (!characters)
+    /* The JVM has run out of memory; return and let the out of memory
+       error take its course.  */
+    return 0;
+
+  memcpy (buffer, characters, length * sizeof *buffer);
+  (*env)->ReleaseStringChars (env, string, characters);
+
+  event.dnd.uri_or_string = buffer;
+  event.dnd.length = length;
+
+  android_write_event (&event);
+  return event_serial;
+}
+
+JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 					      jobject object)
 {

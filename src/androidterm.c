@@ -1706,6 +1706,45 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       goto OTHER;
 
+    case ANDROID_DND_DRAG_EVENT:
+
+      if (!any)
+	goto OTHER;
+
+      /* Generate a drag and drop event to convey its position.  */
+      inev.ie.kind = DRAG_N_DROP_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.timestamp = ANDROID_CURRENT_TIME;
+      XSETINT (inev.ie.x, event->dnd.x);
+      XSETINT (inev.ie.y, event->dnd.y);
+      inev.ie.arg = Fcons (inev.ie.x, inev.ie.y);
+      goto OTHER;
+
+    case ANDROID_DND_URI_EVENT:
+    case ANDROID_DND_TEXT_EVENT:
+
+      if (!any)
+	{
+	  free (event->dnd.uri_or_string);
+	  goto OTHER;
+	}
+
+      /* An item was dropped over ANY, and is a file in the form of a
+	 content or file URI or a string to be inserted.  Generate an
+	 event with this information.  */
+
+      inev.ie.kind = DRAG_N_DROP_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.timestamp = ANDROID_CURRENT_TIME;
+      XSETINT (inev.ie.x, event->dnd.x);
+      XSETINT (inev.ie.y, event->dnd.y);
+      inev.ie.arg = Fcons ((event->type == ANDROID_DND_TEXT_EVENT
+			    ? Qtext : Quri),
+			   android_decode_utf16 (event->dnd.uri_or_string,
+						 event->dnd.length));
+      free (event->dnd.uri_or_string);
+      goto OTHER;
+
     default:
       goto OTHER;
     }
@@ -6593,6 +6632,10 @@ Emacs is running on.  */);
   pdumper_do_now_and_after_load (android_set_build_fingerprint);
 
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
+
+  /* Symbols defined for DND events.  */
+  DEFSYM (Quri, "uri");
+  DEFSYM (Qtext, "text");
 }
 
 void

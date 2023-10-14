@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.Context;
 
 import android.graphics.Rect;
@@ -34,12 +36,15 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 
-import android.view.View;
-import android.view.ViewManager;
+import android.net.Uri;
+
+import android.view.DragEvent;
 import android.view.Gravity;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.InputDevice;
+import android.view.View;
+import android.view.ViewManager;
 import android.view.WindowManager;
 
 import android.util.Log;
@@ -1559,5 +1564,132 @@ public final class EmacsWindow extends EmacsHandleObject
 					 xPosition, yPosition,
 					 rect.width (), rect.height ());
       }
+  }
+
+
+
+  /* Drag and drop.
+
+     Android 7.0 and later permit multiple windows to be juxtaposed
+     on-screen, consequently enabling items selected from one window
+     to be dragged onto another.  Data is transferred across program
+     boundaries using ClipData items, much the same way clipboard data
+     is transferred.
+
+     When an item is dropped, Emacs must ascertain whether the clip
+     data represents plain text, a content URI incorporating a file,
+     or some other data.  This is implemented by examining the clip
+     data's ``description'', which enumerates each of the MIME data
+     types the clip data is capable of providing data in.
+
+     If the clip data represents plain text, then that text is copied
+     into a string and conveyed to Lisp code.  Otherwise, Emacs must
+     solicit rights to access the URI from the system, absent which it
+     is accounted plain text and reinterpreted as such, to cue the
+     user that something has gone awry.
+
+     Moreover, events are regularly sent as the item being dragged
+     travels across the frame, even if it might not be dropped.  This
+     facilitates cursor motion and scrolling in response, as provided
+     by the options dnd-indicate-insertion-point and
+     dnd-scroll-margin.  */
+
+  /* Register the drag and drop event EVENT.  */
+
+  public boolean
+  onDragEvent (DragEvent event)
+  {
+    ClipData data;
+    ClipDescription description;
+    int i, x, y;
+    String type;
+    Uri uri;
+    EmacsActivity activity;
+
+    x = (int) event.getX ();
+    y = (int) event.getY ();
+
+    switch (event.getAction ())
+      {
+      case DragEvent.ACTION_DRAG_STARTED:
+	/* Return true to continue the drag and drop operation.  */
+	return true;
+
+      case DragEvent.ACTION_DRAG_LOCATION:
+	/* Send this drag motion event to Emacs.  */
+	EmacsNative.sendDndDrag (handle, x, y);
+	return true;
+
+      case DragEvent.ACTION_DROP:
+	/* Judge whether this is plain text, or if it's a file URI for
+	   which permissions must be requested.  */
+
+	data = event.getClipData ();
+	description = data.getDescription ();
+
+	/* If there are insufficient items within the clip data,
+	   return false.  */
+
+	if (data.getItemCount () < 1)
+	  return false;
+
+	/* Search for plain text data within the clipboard.  */
+
+	for (i = 0; i < description.getMimeTypeCount (); ++i)
+	  {
+	    type = description.getMimeType (i);
+
+	    if (type.equals (ClipDescription.MIMETYPE_TEXT_PLAIN)
+		|| type.equals (ClipDescription.MIMETYPE_TEXT_HTML))
+	      {
+		/* The data being dropped is plain text; encode it
+		   suitably and send it to the main thread.  */
+		type = (data.getItemAt (0).coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndText (handle, x, y, type);
+		return true;
+	      }
+	    else if (type.equals (ClipDescription.MIMETYPE_TEXT_URILIST))
+	      {
+		/* The data being dropped is a list of URIs; encode it
+		   suitably and send it to the main thread.  */
+		type = (data.getItemAt (0).coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndUri (handle, x, y, type);
+		return true;
+	      }
+	    else
+	      {
+		/* If the item dropped is a URI, send it to the main
+		   thread.  */
+		uri = data.getItemAt (0).getUri ();
+
+		/* Attempt to acquire permissions for this URI;
+		   failing which, insert it as text instead.  */
+
+		if (uri.getScheme () != null
+		    && uri.getScheme ().equals ("content")
+		    && (activity = EmacsActivity.lastFocusedActivity) != null)
+		  {
+		    if (activity.requestDragAndDropPermissions (event) == null)
+		      uri = null;
+		  }
+
+		if (uri != null)
+		  EmacsNative.sendDndUri (handle, x, y, uri.toString ());
+		else
+		  {
+		    type = (data.getItemAt (0)
+			    .coerceToText (EmacsService.SERVICE)
+			    .toString ());
+		    EmacsNative.sendDndText (handle, x, y, type);
+		  }
+
+		return true;
+	      }
+	  }
+      }
+
+    return true;
   }
 };

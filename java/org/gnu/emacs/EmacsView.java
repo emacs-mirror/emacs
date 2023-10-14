@@ -24,6 +24,7 @@ import android.content.Context;
 import android.text.InputType;
 
 import android.view.ContextMenu;
+import android.view.DragEvent;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -564,6 +565,19 @@ public final class EmacsView extends ViewGroup
   onTouchEvent (MotionEvent motion)
   {
     return window.onTouchEvent (motion);
+  }
+
+  @Override
+  public boolean
+  onDragEvent (DragEvent drag)
+  {
+    /* Inter-program drag and drop isn't supported under Android 23
+       and earlier.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      return false;
+
+    return window.onDragEvent (drag);
   }
 
 

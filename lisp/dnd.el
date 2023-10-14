@@ -201,6 +201,11 @@ Return nil if URI is not a local file."
 		     (string-equal sysname-no-dot hostname)))
 	(concat "file://" (substring uri (+ 7 (length hostname))))))))
 
+(defvar dnd-unescape-file-uris t
+  "Whether to unescape file: URIs before they are opened.
+Bind this to nil when providing `dnd-get-local-file-name' with a
+file name that may incorporate URI escape sequences.")
+
 (defun dnd--unescape-uri (uri)
   ;; Merge with corresponding code in URL library.
   (replace-regexp-in-string
@@ -226,7 +231,10 @@ Return nil if URI is not a local file."
 		    'utf-8
 		  (or file-name-coding-system
 		      default-file-name-coding-system))))
-    (and f (setq f (decode-coding-string (dnd--unescape-uri f) coding)))
+    (and f (setq f (decode-coding-string
+                    (if dnd-unescape-file-uris
+                        (dnd--unescape-uri f) f)
+                    coding)))
     (when (and f must-exist (not (file-readable-p f)))
       (setq f nil))
     f))
