@@ -1738,7 +1738,8 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
                                              nil
                                              "-p1"
                                              "-r" null-device
-                                             "--no-backup-if-mismatch"
+                                             "--posix"
+                                             "--remove-empty-files"
                                              "-i" "-"))
               (user-error "Patch failed: %s" (buffer-string))))
           (vc-call-backend backend 'checkin files comment))
