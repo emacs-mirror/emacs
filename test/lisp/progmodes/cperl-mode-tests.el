@@ -1379,6 +1379,22 @@ as a regex."
        (forward-line 1))))
   (cperl-set-style-back))
 
+(ert-deftest cperl-test-bug-65834 ()
+  "Verify that CPerl mode identifies a left-shift operator.
+Left-shift and here-documents both use the \"<<\" operator.
+In the code provided by this bug report, it needs to be
+detected as left-shift operator."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-65834.pl"))
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (search-forward "retur")             ; leaves point before the "n"
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-keyword-face))
+    (search-forward "# comm")           ; leaves point before "ent"
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-comment-face))))
+
 (ert-deftest cperl-test-bug-66145 ()
   "Verify that hashes and arrays are only fontified in code.
 In strings, comments and POD the syntaxified faces should

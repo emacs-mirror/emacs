@@ -3973,8 +3973,8 @@ recursive calls in starting lines of here-documents."
 	   "\\([^\"'`\n]*\\)"		; 4 + 1
 	   "\\4"
 	   "\\|"
-	   ;; Second variant: Identifier or \ID (same as 'ID') or empty
-	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)?\\)" ; 5 + 1, 6 + 1
+	   ;; Second variant: Identifier or \ID (same as 'ID')
+	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)\\)" ; 5 + 1, 6 + 1
 	   ;; Do not have <<= or << 30 or <<30 or << $blah.
 	   ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
 	   "\\)"
