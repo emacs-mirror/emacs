@@ -182,7 +182,7 @@ If DATE lacks timezone information, GMT is assumed."
 ;;;###autoload
 (defun days-to-time (days)
   "Convert Emacs-epoch DAYS into a time value.
-Note that this does not use the same epoch as time-to-days; you
+Note that this does not use the same epoch as `time-to-days'; you
 must subtract (time-to-days 0) first to convert, and may get nil
 if the result is before the start."
   ;; FIXME: We should likely just pass `t' to `time-convert'.
