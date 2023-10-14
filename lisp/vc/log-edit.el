@@ -1219,7 +1219,10 @@ line of MSG."
       (let ((pt (point)))
         (and (zerop (forward-line 1))
              (looking-at "\n\\|\\'")
-             (let ((summary (buffer-substring-no-properties pt (1- (point)))))
+             (let ((summary (buffer-substring-no-properties pt
+                                                            (if (bolp)
+                                                                (1- (point))
+                                                              (point)))))
                (skip-chars-forward " \n")
                (delete-region pt (point))
                (log-edit-set-header "Summary" summary)))))))
