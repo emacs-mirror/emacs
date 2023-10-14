@@ -8318,13 +8318,12 @@ arguments as the running Emacs)."
 	;; Get a list of the indices of the args that are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			'(;; The first eight are special because they
+			'(;; The first seven are special because they
 			  ;; return a file name.  We want to include
 			  ;; the /: in the return value.  So just
 			  ;; avoid stripping it in the first place.
                           (abbreviate-file-name)
                           (directory-file-name)
-                          (expand-file-name)
                           (file-name-as-directory)
                           (file-name-directory)
                           (file-name-sans-versions)
@@ -8333,6 +8332,10 @@ arguments as the running Emacs)."
 	                  ;; `identity' means just return the first
 			  ;; arg not stripped of its quoting.
 			  (substitute-in-file-name identity)
+                          ;; `expand-file-name' shall do special case
+                          ;; for the first argument starting with
+                          ;; "/:~".  (Bug#65685)
+                          (expand-file-name expand-file-name)
 			  ;; `add' means add "/:" to the result.
 			  (file-truename add 0)
                           ;;`insert-file-contents' needs special handling.
@@ -8388,6 +8391,10 @@ arguments as the running Emacs)."
     (let ((tramp-mode (and tramp-mode (eq method 'local-copy))))
       (pcase method
         ('identity (car arguments))
+        ('expand-file-name
+         (when (string-prefix-p "/:~" (car arguments))
+           (setcar arguments (file-name-unquote (car arguments) t)))
+         (apply operation arguments))
         ('add (file-name-quote (apply operation arguments) t))
         ('buffer-file-name
          (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
