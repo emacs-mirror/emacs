@@ -2,7 +2,9 @@
 
 ### Start a git bisection, ensuring that commits in branches that are
 ### the result of merging external trees into the Emacs repository, as
-### well as certain commits on which Emacs fails to build, are skipped.
+### well as certain commits on which Emacs fails to build (with the
+### default options, on a GNU/Linux computer and with GCC; see below),
+### are skipped.
 
 ## Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
@@ -82,7 +84,7 @@ done
 # SKIP-BRANCH 58cc931e92ece70c3e64131ee12a799d65409100
 
 ## The list below is the exhaustive list of all commits between Dec 1
-## 2016 and Aug 10 2023 on which building Emacs with the default
+## 2016 and Oct 2 2023 on which building Emacs with the default
 ## options, on a GNU/Linux computer and with GCC, fails.  It is
 ## possible (though unlikely) that building Emacs with non-default
 ## options, with other compilers, or on other platforms, would succeed
@@ -1776,3 +1778,13 @@ $REAL_GIT bisect skip $(cat $0 | grep '^# SKIP-SINGLE ' | sed 's/^# SKIP-SINGLE 
 # SKIP-SINGLE 2752573dfb76873dbe783e89a1fbf01d157c54e3
 # SKIP-SINGLE 62e990db7a2fad16756e019b331c28ad5a5a89fe
 # SKIP-SINGLE 6253e7e74249c7cdfa86723f0b91a1d207cb143e
+# SKIP-SINGLE 1f7113e68988fa0bcbdeca5ae364cba8d6db3637
+# SKIP-SINGLE 6e44d6e18438ea2665ae6252a6ec090963dd7e42
+# SKIP-SINGLE 168cc0aff0bfbc1d67a7e8a72b88a1bf10ad019e
+# SKIP-SINGLE efb276fef1f580eafa8458fc262a4b35eb3abd5e
+# SKIP-SINGLE cc0d7d7a3867e4554f89262e4641c9845ee0d647
+# SKIP-SINGLE 012f9c28053d06b6d527d77530605aedbd55d5b4
+# SKIP-SINGLE e61a03984335b4ffb164280b2df80668b2a92c23
+# SKIP-SINGLE f7fd21b06865d20a16c11e20776e843db24d4b14
+# SKIP-SINGLE 35fbf6f15830f576fd1909f4a8d30e7ba1d777bd
+# SKIP-SINGLE 0e44ab5f061c81874dd8298a0f3318f14ef95a24

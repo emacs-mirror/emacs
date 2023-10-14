@@ -2568,8 +2568,6 @@ A special associate array, which can take references of the form
 @samp{$=[REGEXP]}.  It indexes into the directory ring.
 @end table
 
-@item Eshell scripts can't execute in the background
-
 @item Support zsh's ``Parameter Expansion'' syntax, i.e., @samp{$@{@var{name}:-@var{val}@}}
 
 @item Create a mode @code{eshell-browse}

@@ -71,7 +71,9 @@ Any other value means to do the default pulsing behavior.
 If `pulse-flag' is non-nil, but `pulse-available-p' is nil, then
 this flag is ignored."
   :group 'pulse
-  :type 'boolean)
+  :type '(choice (const :tag "Highlight with unchanging color" nil)
+                 (const :tag "No highlight" never)
+                 (other :tag "Pulse" t)))
 
 (defface pulse-highlight-start-face
   '((((class color) (background dark))

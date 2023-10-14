@@ -1196,7 +1196,7 @@ bent, contributed ideas and algorithms for a number of Calc features
 including modulo forms, primality testing, and float-to-fraction conversion.
 
 Units were added at the eager insistence of Mass Sivilotti.  Later,
-Ulrich Mueller at CERN and Przemek Klosowski at NIST provided invaluable
+Ulrich Müller at CERN and Przemek Klosowski at NIST provided invaluable
 expert assistance with the units table.  As far as I can remember, the
 idea of using algebraic formulas and variables to represent units dates
 back to an ancient article in Byte magazine about muMath, an early
@@ -28032,7 +28032,7 @@ unit name on the stack and then reduce it to base units with @kbd{u b}.
 The @kbd{u e} (@code{calc-explain-units}) command displays an English
 description of the units of the expression on the stack.  For example,
 for the expression @samp{62 km^2 g / s^2 mol K}, the description is
-``Square-Kilometer Gram per (Second-squared Mole Degree-Kelvin).''  This
+``Square-Kilometer Gram per (Second-squared Mole Kelvin).''  This
 command uses the English descriptions that appear in the righthand
 column of the Units Table.
 
@@ -28066,8 +28066,8 @@ Canadian (@code{galC}), and British (@code{galUK}) definitions.  Also,
 note that @code{oz} is a standard ounce of mass, @code{ozt} is a Troy
 ounce, and @code{ozfl} is a fluid ounce.
 
-The temperature units corresponding to degrees Kelvin and Centigrade
-(Celsius) are the same in this table, since most units commands treat
+The temperature units corresponding to Kelvin and degree Celsius
+are the same in this table, since most units commands treat
 temperatures as being relative.  The @code{calc-convert-temperature}
 command has special rules for handling the different absolute magnitudes
 of the various temperature scales.

@@ -2325,6 +2325,17 @@ is greater than 10.
       (should (string-equal (expand-file-name local dir) dir))
       (should (string-equal (expand-file-name (concat dir local)) dir)))))
 
+;; The following test is inspired by Bug#65685.
+(ert-deftest tramp-test05-expand-file-name-tilde ()
+  "Check `expand-file-name'."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
+
+  (let ((dir (file-remote-p ert-remote-temporary-file-directory))
+	(tramp-tolerate-tilde t))
+    (should (string-equal (expand-file-name (concat dir "~"))
+			  (expand-file-name (concat dir "/:~"))))))
+
 (ert-deftest tramp-test06-directory-file-name ()
   "Check `directory-file-name'.
 This checks also `file-name-as-directory', `file-name-directory',

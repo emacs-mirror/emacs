@@ -740,7 +740,7 @@ frame:
 This is the base face used for the mode lines, as well as header lines
 and for menu bars when toolkit menus are not used.  By default, it's
 drawn with shadows for a raised effect on graphical displays, and
-drawn as the inverse of the default face on non-windowed terminals.
+drawn as the inverse of the default face on text terminals.
 
 The @code{mode-line-active} and @code{mode-line-inactive} faces (which
 are the ones used on the mode lines) inherit from this face.

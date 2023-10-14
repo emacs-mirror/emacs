@@ -164,7 +164,6 @@
 (declare-function erc-is-message-ctcp-p "erc" (message))
 (declare-function erc-log-irc-protocol "erc" (string &optional outbound))
 (declare-function erc-login "erc" nil)
-(declare-function erc-make-notice "erc" (message))
 (declare-function erc-network "erc-networks" nil)
 (declare-function erc-networks--id-given "erc-networks" (arg &rest args))
 (declare-function erc-networks--id-reload "erc-networks" (arg &rest args))
@@ -511,7 +510,7 @@ It should take same arguments as `open-network-stream' does."
   "Either nil or a list of strings.
 Each string is a IRC message type, like PRIVMSG or NOTICE.
 All Message types in that list of subjected to duplicate prevention."
-  :type '(choice (const nil) (list string)))
+  :type '(repeat string))
 
 (defcustom erc-server-duplicate-timeout 60
   "The time allowed in seconds between duplicate messages.
@@ -1718,7 +1717,7 @@ add things to `%s' instead."
       (if (string-match "^\\(.*\\)\^g.*$" chnl)
           (setq chnl (match-string 1 chnl)))
       (save-excursion
-        (let* ((str (cond
+        (let ((args (cond
                      ;; If I have joined a channel
                      ((erc-current-nick-p nick)
                       (let ((erc--display-context
@@ -1735,18 +1734,15 @@ add things to `%s' instead."
                         (erc-channel-begin-receiving-names))
                       (erc-update-mode-line)
                       (run-hooks 'erc-join-hook)
-                      (erc-make-notice
-                       (erc-format-message 'JOIN-you ?c chnl)))
+                      (list 'JOIN-you ?c chnl))
                      (t
                       (setq buffer (erc-get-buffer chnl proc))
-                      (erc-make-notice
-                       (erc-format-message
-                        'JOIN ?n nick ?u login ?h host ?c chnl))))))
+                      (list 'JOIN ?n nick ?u login ?h host ?c chnl)))))
           (when buffer (set-buffer buffer))
           (erc-update-channel-member chnl nick nick t nil nil nil nil nil host login)
           ;; on join, we want to stay in the new channel buffer
           ;;(set-buffer ob)
-          (erc-display-message parsed nil buffer str))))))
+          (apply #'erc-display-message parsed 'notice buffer args))))))
 
 (define-erc-response-handler (KICK)
   "Handle kick messages received from the server." nil

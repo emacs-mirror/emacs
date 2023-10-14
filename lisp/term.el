@@ -486,7 +486,7 @@ Customize this option to nil if you want the previous behavior."
 
 (defcustom term-scroll-to-bottom-on-output nil
   "Controls whether interpreter output causes window to scroll.
-If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
+If nil, then do not scroll.  If t, scroll all windows showing buffer.
 If `this', scroll only the selected window.
 If `others', scroll only those that are not the selected window.
 
@@ -494,7 +494,12 @@ The default is nil.
 
 See variable `term-scroll-show-maximum-output'.
 This variable is buffer-local."
-  :type 'boolean
+  :type '(choice (const :tag "Don't scroll" nil)
+                 (const :tag "Scroll selected window only" this)
+                 (const :tag "Scroll unselected windows" others)
+                 ;; We also recognize `all', but we don't advertise it
+                 ;; anymore.  (Bug#66071)
+                 (other :tag "Scroll all windows" t))
   :group 'term)
 
 (defcustom term-scroll-snap-to-bottom t

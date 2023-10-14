@@ -1921,6 +1921,21 @@ android_afs_open (struct android_vnode *vnode, int flags,
       /* Size of the file.  */
       info->statb.st_size = AAsset_getLength (asset);
 
+      /* If the installation date can be ascertained, return that as
+	 the file's modification time.  */
+
+      if (timespec_valid_p (emacs_installation_time))
+	{
+#ifdef STAT_TIMESPEC
+	  STAT_TIMESPEC (&info->statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+          /* Headers supplied by the NDK r10b contain a `struct stat'
+	     without POSIX fields for nano-second timestamps.  */
+	  info->statb.st_mtime = emacs_installation_time.tv_sec;
+	  info->statb.st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+	}
+
       /* Chain info onto afs_file_descriptors.  */
       afs_file_descriptors = info;
 
@@ -3980,8 +3995,11 @@ android_saf_exception_check (int n, ...)
   /* First, check for an exception.  */
 
   if (!(*env)->ExceptionCheck (env))
-    /* No exception has taken place.  Return 0.  */
-    return 0;
+    {
+      /* No exception has taken place.  Return 0.  */
+      va_end (ap);
+      return 0;
+    }
 
   /* Print the exception.  */
   (*env)->ExceptionDescribe (env);
@@ -4030,6 +4048,7 @@ android_saf_exception_check (int n, ...)
   /* expression is still a local reference! */
   ANDROID_DELETE_LOCAL_REF ((jobject) exception);
   errno = new_errno;
+  va_end (ap);
   return 1;
 }
 
@@ -7364,6 +7383,21 @@ android_asset_fstat (struct android_fd_or_asset asset,
   /* Owned by root.  */
   statb->st_uid = 0;
   statb->st_gid = 0;
+
+  /* If the installation date can be ascertained, return that as the
+     file's modification time.  */
+
+  if (timespec_valid_p (emacs_installation_time))
+    {
+#ifdef STAT_TIMESPEC
+      STAT_TIMESPEC (statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+      /* Headers supplied by the NDK r10b contain a `struct stat'
+	 without POSIX fields for nano-second timestamps.  */
+      statb->st_mtime = emacs_installation_time.tv_sec;
+      statb->st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+    }
 
   /* Size of the file.  */
   statb->st_size = AAsset_getLength (asset.asset);

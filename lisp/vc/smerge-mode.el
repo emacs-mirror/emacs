@@ -1239,7 +1239,11 @@ spacing of the \"Lower\" chunk."
     (write-region beg1 end1 file1 nil 'nomessage)
     (write-region beg2 end2 file2 nil 'nomessage)
     (unwind-protect
-	(with-current-buffer (get-buffer-create smerge-diff-buffer-name)
+	(save-current-buffer
+          (if-let (buffer (get-buffer smerge-diff-buffer-name))
+              (set-buffer buffer)
+            (set-buffer (get-buffer-create smerge-diff-buffer-name))
+            (setq buffer-read-only t))
 	  (setq default-directory dir)
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)

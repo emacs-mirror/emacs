@@ -100,6 +100,8 @@ information, for example."
 (defvar eshell-supports-asynchronous-processes (fboundp 'make-process)
   "Non-nil if Eshell can create asynchronous processes.")
 
+(defvar eshell-subjob-messages t
+  "Non-nil if we should print process start/end messages for subjobs.")
 (defvar eshell-current-subjob-p nil)
 
 (defvar eshell-process-list nil
@@ -111,6 +113,7 @@ subjob.
 To add or remove elements of this list, see
 `eshell-record-process-object' and `eshell-remove-process-entry'.")
 
+(declare-function eshell-reset "esh-mode" (&optional no-hooks))
 (declare-function eshell-send-eof-to-process "esh-mode")
 (declare-function eshell-interactive-filter "esh-mode" (buffer string))
 (declare-function eshell-tail-process "esh-cmd")
@@ -148,16 +151,8 @@ PROC and STATUS to functions on the latter."
   (make-local-variable 'eshell-process-list)
   (eshell-proc-mode))
 
-(defun eshell-reset-after-proc (status)
-  "Reset the command input location after a process terminates.
-The signals which will cause this to happen are matched by
-`eshell-reset-signals'."
-  (declare (obsolete nil "30.1"))
-  (when (and (stringp status)
-	     (string-match eshell-reset-signals status))
-    (require 'esh-mode)
-    (declare-function eshell-reset "esh-mode" (&optional no-hooks))
-    (eshell-reset)))
+(define-obsolete-function-alias 'eshell-reset-after-proc
+  'eshell--reset-after-signal "30.1")
 
 (defun eshell-process-active-p (process)
   "Return non-nil if PROCESS is active.
@@ -243,8 +238,9 @@ The prompt will be set to PROMPT."
 
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
-  (when (and (eshell-processp object)
-	     eshell-current-subjob-p)
+  (when (and eshell-subjob-messages
+             eshell-current-subjob-p
+             (eshell-processp object))
     (require 'esh-mode)
     (declare-function eshell-interactive-print "esh-mode" (string))
     (eshell-interactive-print
@@ -253,11 +249,12 @@ The prompt will be set to PROMPT."
 
 (defun eshell-remove-process-entry (entry)
   "Record the process ENTRY as fully completed."
-  (if (and (eshell-processp (car entry))
-	   (cdr entry)
-	   eshell-done-messages-in-minibuffer)
-      (message "[%s]+ Done %s" (process-name (car entry))
-	       (process-command (car entry))))
+  (when (and eshell-subjob-messages
+             eshell-done-messages-in-minibuffer
+             (eshell-processp (car entry))
+             (cdr entry))
+    (message "[%s]+ Done %s" (process-name (car entry))
+             (process-command (car entry))))
   (setq eshell-process-list
 	(delq entry eshell-process-list)))
 
@@ -645,29 +642,41 @@ See the variable `eshell-kill-processes-on-exit'."
 	    (kill-buffer buf)))
       (message nil))))
 
+(defun eshell--reset-after-signal (status)
+  "Reset the prompt after a signal when necessary.
+STATUS is the status associated with the signal; if
+`eshell-reset-signals' matches status, reset the prompt.
+
+This is really only useful when \"signaling\" while there's no
+foreground process.  Otherwise, `eshell-resume-command' handles
+everything."
+  (when (and (stringp status)
+	     (string-match eshell-reset-signals status))
+    (eshell-reset)))
+
 (defun eshell-interrupt-process ()
   "Interrupt a process."
   (interactive)
   (unless (eshell-process-interact 'interrupt-process)
-    (run-hook-with-args 'eshell-kill-hook nil "interrupt")))
+    (eshell--reset-after-signal "interrupt\n")))
 
 (defun eshell-kill-process ()
   "Kill a process."
   (interactive)
   (unless (eshell-process-interact 'kill-process)
-    (run-hook-with-args 'eshell-kill-hook nil "killed")))
+    (eshell--reset-after-signal "killed\n")))
 
 (defun eshell-quit-process ()
   "Send quit signal to process."
   (interactive)
   (unless (eshell-process-interact 'quit-process)
-    (run-hook-with-args 'eshell-kill-hook nil "quit")))
+    (eshell--reset-after-signal "quit\n")))
 
 ;(defun eshell-stop-process ()
 ;  "Send STOP signal to process."
 ;  (interactive)
 ;  (unless (eshell-process-interact 'stop-process)
-;    (run-hook-with-args 'eshell-kill-hook nil "stopped")))
+;    (eshell--reset-after-signal "stopped\n")))
 
 ;(defun eshell-continue-process ()
 ;  "Send CONTINUE signal to process."
@@ -676,7 +685,7 @@ See the variable `eshell-kill-processes-on-exit'."
 ;    ;; jww (1999-09-17): this signal is not dealt with yet.  For
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
-;    (run-hook-with-args 'eshell-kill-hook nil "continue")))
+;    (eshell--reset-after-signal "continue\n")))
 
 (provide 'esh-proc)
 ;;; esh-proc.el ends here

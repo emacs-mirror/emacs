@@ -2924,6 +2924,7 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @node Early Init File
 @subsection The Early Init File
 @cindex early init file
+@cindex @file{early-init.el} file
 
   Most customizations for Emacs should be put in the normal init file.
 @xref{Init File}.  However, it is sometimes necessary

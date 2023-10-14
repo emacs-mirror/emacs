@@ -444,6 +444,21 @@ If START or END is negative, it counts from the end."
                  (cons '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
                        existing))))))
 
+;; We can't store (TICKS . HZ) style timestamps on 27 and 28 because
+;; `time-less-p' and friends do
+;;
+;;   message("obsolete timestamp with cdr ...", ...)
+;;   decode_lisp_time(_, WARN_OBSOLETE_TIMESTAMPS, ...)
+;;   lisp_time_struct(...)
+;;   time_cmp(...)
+;;
+;; which spams *Messages* (and stderr when running the test suite).
+(defmacro erc-compat--current-lisp-time ()
+  "Return `current-time' as a (TICKS . HZ) pair on 29+."
+  (if (>= emacs-major-version 29)
+      '(let (current-time-list) (current-time))
+    '(current-time)))
+
 
 (provide 'erc-compat)
 

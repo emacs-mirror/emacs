@@ -516,7 +516,9 @@ is customizable via `ruby-encoding-magic-comment-style'.
 
 When set to `always-utf8' an utf-8 comment will always be added,
 even if it's not required."
-  :type 'boolean :group 'ruby)
+  :type '(choice (const :tag "Don't insert" nil)
+                 (const :tag "Insert utf-8 comment always" always-utf8)
+                 (const :tag "Insert only when required" t)))
 
 (defcustom ruby-encoding-magic-comment-style 'ruby
   "The style of the magic encoding comment to use."

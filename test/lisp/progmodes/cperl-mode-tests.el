@@ -1379,6 +1379,43 @@ as a regex."
        (forward-line 1))))
   (cperl-set-style-back))
 
+(ert-deftest cperl-test-bug-66145 ()
+  "Verify that hashes and arrays are only fontified in code.
+In strings, comments and POD the syntaxified faces should
+prevail.  The tests exercise all combinations of sigils $@% and
+parenthesess [{ for comments, POD, strings and HERE-documents.
+Fontification in code for `cperl-mode' is done in the tests
+beginning with `cperl-test-unicode`."
+  (let ((types '("array" "hash" "key"))
+        (faces `(("string"  . font-lock-string-face)
+                 ("comment" . font-lock-comment-face)
+                 ("here"    . ,(if (equal cperl-test-mode 'perl-mode)
+                                   'perl-heredoc
+                                 font-lock-string-face)))))
+    (with-temp-buffer
+      (insert-file-contents (ert-resource-file "cperl-bug-66145.pl"))
+      (funcall cperl-test-mode)
+      (font-lock-ensure)
+      (dolist (type types)
+        (goto-char (point-min))
+        (while (re-search-forward (concat type "_\\([a-z]+\\)") nil t)
+          (should (equal (get-text-property (match-beginning 1) 'face)
+                         (cdr (assoc (match-string-no-properties 1)
+                                     faces)))))))))
+
+(ert-deftest cperl-test-bug-66161 ()
+  "Verify that text after \"__END__\" is fontified as comment.
+For `cperl-mode', this needs the custom variable
+`cperl-fontify-trailer' to be set to `comment'.  Per default,
+cperl-mode fontifies text after the delimiter as Perl code."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-66161.pl"))
+    (setq cperl-fontify-trailer 'comment)
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (search-forward "TODO")             ; leaves point before the colon
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-comment-face))))
 
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))

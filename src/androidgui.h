@@ -248,6 +248,9 @@ enum android_event_type
     ANDROID_CONTEXT_MENU,
     ANDROID_EXPOSE,
     ANDROID_INPUT_METHOD,
+    ANDROID_DND_DRAG_EVENT,
+    ANDROID_DND_URI_EVENT,
+    ANDROID_DND_TEXT_EVENT,
   };
 
 struct android_any_event
@@ -463,6 +466,7 @@ enum android_ime_operation
     ANDROID_IME_END_BATCH_EDIT,
     ANDROID_IME_REQUEST_SELECTION_UPDATE,
     ANDROID_IME_REQUEST_CURSOR_UPDATES,
+    ANDROID_IME_REPLACE_TEXT,
   };
 
 enum
@@ -509,6 +513,28 @@ struct android_ime_event
   unsigned long counter;
 };
 
+struct android_dnd_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* The event serial.  */
+  unsigned long serial;
+
+  /* The window that gave rise to the event.  */
+  android_window window;
+
+  /* X and Y coordinates of the event.  */
+  int x, y;
+
+  /* Data tied to this event, such as a URI or clipboard string.
+     Must be deallocated with `free'.  */
+  unsigned short *uri_or_string;
+
+  /* Length of that data.  */
+  size_t length;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -540,6 +566,11 @@ union android_event
 
   /* This is used to dispatch input method editing requests.  */
   struct android_ime_event ime;
+
+  /* There is no analog under X because Android defines a strict DND
+     protocol, whereas there exist several competing X protocols
+     implemented in terms of X client messages.  */
+  struct android_dnd_event dnd;
 };
 
 enum
@@ -562,6 +593,24 @@ enum android_ic_mode
     ANDROID_IC_MODE_ACTION = 1,
     ANDROID_IC_MODE_TEXT   = 2,
   };
+
+enum android_stack_mode
+  {
+    ANDROID_ABOVE = 0,
+    ANDROID_BELOW = 1,
+  };
+
+enum android_wc_value_mask
+  {
+    ANDROID_CW_SIBLING	  = 0,
+    ANDROID_CW_STACK_MODE = 1,
+  };
+
+struct android_window_changes
+{
+  android_window sibling;
+  enum android_stack_mode stack_mode;
+};
 
 extern int android_pending (void);
 extern void android_next_event (union android_event *);
@@ -642,6 +691,9 @@ extern void android_bell (void);
 extern void android_set_input_focus (android_window, unsigned long);
 extern void android_raise_window (android_window);
 extern void android_lower_window (android_window);
+extern void android_reconfigure_wm_window (android_window,
+					   enum android_wc_value_mask,
+					   struct android_window_changes *);
 extern int android_query_tree (android_window, android_window *,
 			       android_window *, android_window **,
 			       unsigned int *);

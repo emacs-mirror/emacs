@@ -149,7 +149,7 @@ minor-mode maps, and new third-party modules should do the same.
 
 ** Option 'erc-timestamp-format-right' deprecated.
 Having to account for this option prevented other ERC modules from
-easily determining what right-hand stamps would look like before
+easily determining what right-sided stamps would look like before
 insertion, which is knowledge needed for certain UI decisions.  The
 way ERC has chosen to address this is imperfect and boils down to
 asking users who've customized this option to switch to
@@ -178,14 +178,13 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
-** Module 'scrolltobottom' can attempt to be more aggressive.
-Enabling the experimental option 'erc-scrolltobottom-all' tells
-'scrolltobottom' to be more vigilant about staking down the input area
-and to do so in all ERC windows.  The dependent option
-'erc-scrolltobottom-relaxed', also experimental, makes ERC's prompt
-stationary wherever it happens to reside instead of forcing it to the
-bottom of a window.  That is, new input appears above the prompt,
-scrolling existing messages upward to compensate.
+** Module 'scrolltobottom' now optionally more aggressive.
+Enabling the experimental option 'erc-scrolltobottom-all' makes ERC
+more vigilant about staking down the input area in all ERC windows.
+And the option's 'relaxed' variant makes ERC's prompt stationary
+wherever it happens to reside instead of forcing it to the bottom of a
+window, meaning new input appears above the prompt, scrolling existing
+messages upward to compensate.
 
 ** Subtle changes in two fundamental faces.
 Users of the default theme may notice that 'erc-action-face' and
@@ -220,6 +219,20 @@ demand by invoking the newly interactive function 'erc-echo-timestamp'
 atop any message.  The new companion option 'erc-echo-timestamp-zone'
 determines the default timezone when not specified with a prefix
 argument.
+
+** Option 'erc-remove-parsed-property' deprecated.
+This option's nil behavior serves no practical purpose yet has the
+potential to degrade the user experience by competing for space with
+forthcoming features powered by next generation extensions.  Anyone
+with a legitimate use for this option likely also possesses the
+knowledge to rig up a suitable analog with minimal effort.  That said,
+the road to removal is long.
+
+** Option 'erc-warn-about-blank-lines' is more informative.
+Enabled by default, this option now produces more useful feedback
+whenever ERC rejects prompt input containing whitespace-only lines.
+When paired with option 'erc-send-whitespace-lines', ERC echoes a
+tally of blank lines padded and trailing blanks culled.
 
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
@@ -263,13 +276,12 @@ essential members of important hooks.
 Luckily, ERC now leverages a feature introduced in Emacs 27, "hook
 depth," to secure the positions of a few key members of
 'erc-insert-modify-hook' and 'erc-send-modify-hook'.  So far, this
-includes the functions 'erc-button-add-buttons', 'erc-fill',
-'erc-match-message', and 'erc-add-timestamp', which now appear in that
-order, when present, at depths beginning at 20 and ending below 80.
-Of most interest to module authors is the new relative positioning of
-the first two, 'erc-button-add-buttons' and 'erc-fill', which have
-been swapped with respect to their previous places in recent ERC
-versions.
+includes the functions 'erc-button-add-buttons', 'erc-match-message',
+'erc-fill', and 'erc-add-timestamp', which now appear in that order,
+when present, at depths beginning at 20 and ending below 80.  Of most
+interest to module authors is the new relative positioning of the
+first three, which have been rotated leftward with respect to their
+previous places in recent ERC versions (fill, button, match ,stamp).
 
 ERC also provisionally reserves the same depth interval for
 'erc-insert-pre-hook' and possibly other, similar hooks, but will
@@ -277,11 +289,13 @@ continue to modify non-ERC hooks locally whenever possible, especially
 in new code.
 
 *** ERC now manages timestamp-related properties a bit differently.
-For starters, the 'cursor-sensor-functions' property no longer
+For starters, the 'cursor-sensor-functions' text property is absent by
+default unless the option 'erc-echo-timestamps' is already enabled on
+module init.  And when present, the property's value no longer
 contains unique closures and thus no longer proves effective for
-traversing messages.  To compensate, a new property, 'erc-timestamp',
-now spans message bodies but not the newlines delimiting them.  Also
-affecting the `stamp' module is the deprecation of the function
+traversing inserted messages.  For now, ERC only provides an internal
+means of visiting messages, but a public interface is forthcoming.
+Also affecting the 'stamp' module is the deprecation of the function
 'erc-insert-aligned' and its removal from client code.  Additionally,
 the module now merges its 'invisible' property with existing ones and
 includes all white space around stamps when doing so.
@@ -295,6 +309,23 @@ right-sided stamps on the same line as message text but not those
 folded onto the next line.  Such inconsistency made stamp detection
 overly complex and produced uneven results when toggling stamp
 visibility.
+
+*** Date stamps are independent messages.
+ERC now inserts "date stamps" generated from the option
+'erc-timestamp-format-left' as separate, standalone messages.  (This
+only matters if 'erc-insert-timestamp-function' is set to its default
+value of 'erc-insert-timestamp-left-and-right'.)  ERC's near-term UI
+goals require exposing these stamps to existing code designed to
+operate on complete messages.  For example, users likely expect date
+stamps to be togglable with 'erc-toggle-timestamps' while also being
+immune to hiding from commands like 'erc-match-toggle-hidden-fools'.
+Before this change, meeting such expectations demanded brittle
+heuristics that checked for the presence of these stamps in the
+leading portion of message bodies as well as special casing to act on
+these areas without inflicting collateral damage.  It may also be
+worth noting that as consequence of these changes, the internally
+managed variable 'erc-timestamp-last-inserted-left' no longer records
+the final trailing newline in 'erc-timestamp-format-left'.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library

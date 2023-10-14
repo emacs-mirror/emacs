@@ -1211,18 +1211,23 @@ BEWARE: this function may change the current buffer."
 (defun vc-next-action (verbose)
   "Do the next logical version control operation on the current fileset.
 This requires that all files in the current VC fileset be in the
-same state.  If not, signal an error.
+same state.  If they are not, signal an error.  Also signal an error if
+files in the fileset are missing (removed, but tracked by version control),
+or are ignored by the version control system.
 
-For merging-based version control systems:
-  If every file in the VC fileset is not registered for version
-   control, register the fileset (but don't commit).
-  If every work file in the VC fileset is added or changed, pop
-   up a *vc-log* buffer to commit the fileset.
+For modern merging-based version control systems:
+  If every file in the fileset is not registered for version
+   control, register the fileset (but don't commit).  If VERBOSE is
+   non-nil (interactively, the prefix argument), ask for the VC
+   backend with which to register the fileset.
+  If every work file in the VC fileset is either added or modified,
+   pop up a *vc-log* buffer to commit the fileset changes.
   For a centralized version control system, if any work file in
    the VC fileset is out of date, offer to update the fileset.
 
 For old-style locking-based version control systems, like RCS:
-  If every file is not registered, register the file(s).
+  If every file is not registered, register the file(s); with a prefix
+   argument, allow to specify the VC backend for registration.
   If every file is registered and unlocked, check out (lock)
    the file(s) for editing.
   If every file is locked by you and has changes, pop up a
@@ -1230,14 +1235,21 @@ For old-style locking-based version control systems, like RCS:
    read-only copy of each changed file after checking in.
   If every file is locked by you and unchanged, unlock them.
   If every file is locked by someone else, offer to steal the lock.
+  If files are unlocked, but have changes, offer to either claim the
+   lock or revert to the last checked-in version.
+
+If this command is invoked from a patch buffer under `diff-mode', it
+will apply the diffs from the patch and pop up a *vc-log* buffer to
+check-in the resulting changes.
 
 When using this command to register a new file (or files), it
 will automatically deduce which VC repository to register it
 with, using the most specific one.
 
 If VERBOSE is non-nil (interactively, the prefix argument),
-you can specify a VC backend or (for centralized VCS only)
-the revision ID or branch ID."
+you can specify another VC backend for the file(s),
+or (for centralized VCS only) the revision ID or branch ID
+from which to check out the file(s)."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
@@ -1264,6 +1276,8 @@ the revision ID or branch ID."
       (error "Fileset files are missing, so cannot be operated on"))
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system"))
+     ;; Fileset comes from a diff-mode buffer, see
+     ;; 'diff-vc-deduce-fileset', and the buffer is the patch to apply.
      ((eq model 'patch)
       (vc-checkin files backend nil nil nil (buffer-string)))
      ((or (null state) (eq state 'unregistered))
@@ -3169,14 +3183,13 @@ its name; otherwise return nil."
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
-(defun vc-switch-backend (file backend)
+(defun vc-change-backend (file backend)
   "Make BACKEND the current version control system for FILE.
 FILE must already be registered in BACKEND.  The change is not
 permanent, only for the current session.  This function only changes
 VC's perspective on FILE, it does not register or unregister it.
 By default, this command cycles through the registered backends.
 To get a prompt, use a prefix argument."
-  (declare (obsolete nil "28.1"))
   (interactive
    (list
     (or buffer-file-name
@@ -3207,6 +3220,9 @@ To get a prompt, use a prefix argument."
       (error "%s is not registered in %s" file backend))
     (vc-mode-line file)))
 
+(define-obsolete-function-alias 'vc-switch-backend #'vc-change-backend
+  "30.1")
+
 ;;;###autoload
 (defun vc-transfer-file (file new-backend)
   "Transfer FILE to another version control system NEW-BACKEND.
@@ -3231,8 +3247,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (if registered
 	(set-file-modes file (logior (file-modes file) 128))
       ;; `registered' might have switched under us.
-      (with-suppressed-warnings ((obsolete vc-switch-backend))
-        (vc-switch-backend file old-backend))
+      (vc-change-backend file old-backend)
       (let* ((rev (vc-working-revision file))
 	     (modified-file (and edited (make-temp-file file)))
 	     (unmodified-file (and modified-file (vc-version-backup-file file))))
@@ -3251,19 +3266,16 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 		    (vc-revert-file file))))
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
-            (with-suppressed-warnings ((obsolete vc-switch-backend))
-              (vc-switch-backend file new-backend))
+            (vc-change-backend file new-backend)
 	    (unless (eq (vc-checkout-model new-backend (list file)) 'implicit)
 	      (vc-checkout file))
 	    (rename-file modified-file file 'ok-if-already-exists)
 	    (vc-file-setprop file 'vc-checkout-time nil)))))
     (when move
-      (with-suppressed-warnings ((obsolete vc-switch-backend))
-        (vc-switch-backend file old-backend))
+      (vc-change-backend file old-backend)
       (setq comment (vc-call-backend old-backend 'comment-history file))
       (vc-call-backend old-backend 'unregister file))
-    (with-suppressed-warnings ((obsolete vc-switch-backend))
-      (vc-switch-backend file new-backend))
+    (vc-change-backend file new-backend)
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
       (vc-mode-line file new-backend)

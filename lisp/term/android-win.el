@@ -233,5 +233,63 @@ EVENT is a preedit-text event."
 (defconst x-pointer-invisible 0)
 
 
+;; Drag-and-drop.  There are two formats of drag and drop event under
+;; Android.  The data field of the first is set to a cons of X and Y,
+;; which represent a position within a frame that something is being
+;; dragged over, whereas that of the second is a cons of either symbol
+;; `uri' or `text' and a list of URIs or text to insert.
+;;
+;; If a content:// URI is encountered, then it in turn designates a
+;; file within the special-purpose /content/by-authority directory,
+;; which facilitates accessing such atypical files.
+
+(declare-function url-type "url-parse")
+(declare-function url-host "url-parse")
+(declare-function url-filename "url-parse")
+
+(defun android-handle-dnd-event (event)
+  "Respond to a drag-and-drop event EVENT.
+If it reflects the motion of an item above a frame, call
+`dnd-handle-movement' to move the cursor or scroll the window
+under the item pursuant to the pertinent user options.
+
+If it reflects dropped text, insert such text within window at
+the location of the drop.
+
+If it reflects a list of URIs, then open each URI, converting
+content:// URIs into the special file names which represent them."
+  (interactive "e")
+  (let ((message (caddr event))
+        (posn (event-start event)))
+    (cond ((fixnump (car message))
+           (dnd-handle-movement posn))
+          ((eq (car message) 'text)
+           (let ((window (posn-window posn)))
+             (with-selected-window window
+               (unless mouse-yank-at-point
+                 (goto-char (posn-point (event-start event))))
+               (dnd-insert-text window 'copy (cdr message)))))
+          ((eq (car message) 'uri)
+           (let ((uri-list (split-string (cdr message)
+                                         "[\0\r\n]" t))
+                 (dnd-unescape-file-uris t))
+             (dolist (uri uri-list)
+               (ignore-errors
+                 (let ((url (url-generic-parse-url uri)))
+                   (when (equal (url-type url) "content")
+                     ;; Replace URI with a matching /content file
+                     ;; name.
+                     (setq uri (format "file:/content/by-authority/%s%s"
+                                       (url-host url)
+                                       (url-filename url))
+                           ;; And guarantee that this file URI is not
+                           ;; subject to URI decoding, for it must be
+                           ;; transformed back into a content URI.
+                           dnd-unescape-file-uris nil))))
+               (dnd-handle-one-url (posn-window posn) 'copy uri)))))))
+
+(define-key special-event-map [drag-n-drop] 'android-handle-dnd-event)
+
+
 (provide 'android-win)
 ;; android-win.el ends here.

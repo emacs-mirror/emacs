@@ -8,8 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2023 Free Software Foundation,
-Inc.
+Copyright @copyright{} 1995--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1700,7 +1699,7 @@ a text-formatting function, @code{indent-for-tab-command} (which facilitates
 programming and document writing).  Instead, the tab is inserted via the
 command @code{viper-insert-tab}, which is bound to @kbd{S-tab} (shift + tab).
 
-On some non-windowing terminals, Shift doesn't modify the @key{TAB} key, so
+On some text terminals, Shift doesn't modify the @key{TAB} key, so
 @kbd{S-tab} behaves as if it were @key{TAB}.  In such a case, you will have
 to bind @code{viper-insert-tab} to some other convenient key.
 
@@ -2232,7 +2231,7 @@ For this reason, Viper doesn't change the standard Emacs binding of
 (except for users at level 1).  Instead, in Viper, the key
 @kbd{S-tab} (shift+ tab) is chosen to emulate Vi's @key{TAB}.
 
-We should note that on some non-windowing terminals, Shift doesn't modify
+We should note that on some text terminals, Shift doesn't modify
 the @key{TAB} key, so @kbd{S-tab} behaves as if it were @key{TAB}.  In such
 a case, you will have to bind @code{viper-insert-tab} to some other
 convenient key.

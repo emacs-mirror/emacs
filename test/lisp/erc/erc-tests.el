@@ -292,7 +292,9 @@
                                (cl-incf counter))))
          erc-accidental-paste-threshold-seconds
          erc-insert-modify-hook
-         erc--input-review-functions
+         (erc-modules (remq 'stamp erc-modules))
+         (erc-send-input-line-function #'ignore)
+         (erc--input-review-functions erc--input-review-functions)
          erc-send-completed-hook)
 
     (ert-info ("Server buffer")
@@ -356,7 +358,11 @@
         (should (looking-back "#chan@ServNet 11> "))
         (should (= (point) erc-input-marker))
         (insert "/query bob")
-        (erc-send-current-line)
+        (let (erc-modules)
+          (erc-send-current-line))
+        ;; Last command not inserted
+        (save-excursion (forward-line -1)
+                        (should (looking-at "<tester> Howdy")))
         ;; Query does not redraw (nor /help, only message input)
         (should (looking-back "#chan@ServNet 11> "))
         ;; No sign of old prompts
@@ -793,18 +799,15 @@
       (should (erc--valid-local-channel-p "&local")))))
 
 (ert-deftest erc--restore-initialize-priors ()
-  ;; This `pcase' expands to 100+k.  Guess we could do something like
-  ;; (and `(,_ ((,e . ,_) . ,_) . ,_) v) first and then return a
-  ;; (equal `(if-let* ((,e ...)...)...) v) to cut it down to < 1k.
   (should (pcase (macroexpand-1 '(erc--restore-initialize-priors erc-my-mode
                                    foo (ignore 1 2 3)
-                                   bar #'spam))
-            (`(if-let* ((,e (or erc--server-reconnecting erc--target-priors))
-                        ((alist-get 'erc-my-mode ,e)))
-                  (setq foo (alist-get 'foo ,e)
-                        bar (alist-get 'bar ,e))
-                (setq foo (ignore 1 2 3)
-                      bar #'spam))
+                                   bar #'spam
+                                   baz nil))
+            (`(let* ((,p (or erc--server-reconnecting erc--target-priors))
+                     (,q (and ,p (alist-get 'erc-my-mode ,p))))
+                (setq foo (if ,q (alist-get 'foo ,p) (ignore 1 2 3))
+                      bar (if ,q (alist-get 'bar ,p) #'spam)
+                      baz (if ,q (alist-get 'baz ,p) nil)))
              t))))
 
 (ert-deftest erc--target-from-string ()
@@ -877,11 +880,12 @@
   (with-current-buffer (get-buffer-create "*#fake*")
     (erc-mode)
     (erc-tests--send-prep)
+    (setq erc-server-current-nick "tester")
     (setq-local erc-last-input-time 0)
     (should-not (local-variable-if-set-p 'erc-send-completed-hook))
     (set (make-local-variable 'erc-send-completed-hook) nil) ; skip t (globals)
     ;; Just in case erc-ring-mode is already on
-    (setq-local erc--input-review-functions nil)
+    (setq-local erc--input-review-functions erc--input-review-functions)
     (add-hook 'erc--input-review-functions #'erc-add-to-input-ring)
     ;;
     (cl-letf (((symbol-function 'erc-process-input-line)
@@ -1056,43 +1060,6 @@
     (should (equal '("" "" "") (split-string "\n\n" p)))
     (should (equal '("" "" "") (split-string "\n\r" p)))))
 
-(ert-deftest erc--blank-in-multiline-input-p ()
-  (let ((check (lambda (s)
-                 (erc--blank-in-multiline-input-p
-                  (split-string s erc--input-line-delim-regexp)))))
-
-    (ert-info ("With `erc-send-whitespace-lines'")
-      (let ((erc-send-whitespace-lines t))
-        (should (funcall check ""))
-        (should-not (funcall check "\na"))
-        (should-not (funcall check "/msg a\n")) ; real /cmd
-        (should-not (funcall check "a\n\nb")) ; "" allowed
-        (should-not (funcall check "/msg a\n\nb")) ; non-/cmd
-        (should-not (funcall check " "))
-        (should-not (funcall check "\t"))
-        (should-not (funcall check "a\nb"))
-        (should-not (funcall check "a\n "))
-        (should-not (funcall check "a\n \t"))
-        (should-not (funcall check "a\n \f"))
-        (should-not (funcall check "a\n \nb"))
-        (should-not (funcall check "a\n \t\nb"))
-        (should-not (funcall check "a\n \f\nb"))))
-
-    (should (funcall check ""))
-    (should (funcall check " "))
-    (should (funcall check "\t"))
-    (should (funcall check "a\n\nb"))
-    (should (funcall check "a\n\nb"))
-    (should (funcall check "a\n "))
-    (should (funcall check "a\n \t"))
-    (should (funcall check "a\n \f"))
-    (should (funcall check "a\n \nb"))
-    (should (funcall check "a\n \t\nb"))
-
-    (should-not (funcall check "a\rb"))
-    (should-not (funcall check "a\nb"))
-    (should-not (funcall check "a\r\nb"))))
-
 (defun erc-tests--with-process-input-spy (test)
   (with-current-buffer (get-buffer-create "FakeNet")
     (let* ((erc--input-review-functions
@@ -1138,7 +1105,7 @@
        (delete-region (point) (point-max))
        (insert "one\n")
        (let ((e (should-error (erc-send-current-line))))
-         (should (equal "Blank line - ignoring..." (cadr e))))
+         (should (string-prefix-p "Trailing line detected" (cadr e))))
        (goto-char (point-max))
        (ert-info ("Input remains untouched")
          (should (save-excursion (goto-char erc-input-marker)
@@ -1180,6 +1147,137 @@
 
      (should (consp erc-last-input-time)))))
 
+(ert-deftest erc--discard-trailing-multiline-nulls ()
+  (pcase-dolist (`(,input ,want) '((("") (""))
+                                   (("" "") (""))
+                                   (("a") ("a"))
+                                   (("a" "") ("a"))
+                                   (("" "a") ("" "a"))
+                                   (("" "a" "") ("" "a"))))
+    (ert-info ((format "Input: %S, want: %S" input want))
+      (let ((s (make-erc--input-split :lines input)))
+        (erc--discard-trailing-multiline-nulls s)
+        (should (equal (erc--input-split-lines s) want))))))
+
+(ert-deftest erc--count-blank-lines ()
+  (pcase-dolist (`(,input ,want) '((() (0 0 0))
+                                   (("") (1 1 0))
+                                   (("" "") (2 1 1))
+                                   (("" "" "") (3 1 2))
+                                   ((" " "") (2 0 1))
+                                   ((" " "" "") (3 0 2))
+                                   (("" " " "") (3 1 1))
+                                   (("" "" " ") (3 2 0))
+                                   (("a") (0 0 0))
+                                   (("a" "") (1 0 1))
+                                   (("a" " " "") (2 0 1))
+                                   (("a" "" "") (2 0 2))
+                                   (("a" "b") (0 0 0))
+                                   (("a" "" "b") (1 1 0))
+                                   (("a" " " "b") (1 0 0))
+                                   (("" "a") (1 1 0))
+                                   ((" " "a") (1 0 0))
+                                   (("" "a" "") (2 1 1))
+                                   (("" " " "a" "" " ") (4 2 0))
+                                   (("" " " "a" "" " " "") (5 2 1))))
+    (ert-info ((format "Input: %S, want: %S" input want))
+      (should (equal (erc--count-blank-lines input) want)))))
+
+;; Opt `wb': `erc-warn-about-blank-lines'
+;; Opt `sw': `erc-send-whitespace-lines'
+;; `s': " \n",`a': "a\n",`b': "b\n"
+(defvar erc-tests--check-prompt-input--expect
+  ;;  opts     ""  " "   "\n"  "\n "   " \n" "\n\n" "a\n" "a\n " "a\n \nb"
+  '(((+wb -sw) err err   err   err     err   err    err   err    err)
+    ((-wb -sw) nop nop   nop   nop     nop   nop    nop   nop    nop)
+    ((+wb +sw) err (s)   (0 s) (1 s s) (s)   (0 s)  (0 a) (a s)  (a s b))
+    ((-wb +sw) nop (s)   (s)   (s s)   (s)   (s)    (a)   (a s)  (a s b))))
+
+;; Help messages echoed (not IRC message) was emitted
+(defvar erc-tests--check-prompt-input-messages
+  '("Stripping" "Padding"))
+
+(ert-deftest erc--check-prompt-input-for-multiline-blanks ()
+  (erc-tests--with-process-input-spy
+   (lambda (next)
+     (erc-tests--set-fake-server-process "sleep" "1")
+     (should-not erc-send-whitespace-lines)
+     (should erc-warn-about-blank-lines)
+
+     (pcase-dolist (`((,wb ,sw) . ,ex) erc-tests--check-prompt-input--expect)
+       (let ((print-escape-newlines t)
+             (erc-warn-about-blank-lines (eq wb '+wb))
+             (erc-send-whitespace-lines (eq sw '+sw))
+             (samples '("" " " "\n" "\n " " \n" "\n\n"
+                        "a\n" "a\n " "a\n \nb")))
+         (setq ex `(,@ex (a) (a b)) ; baseline, same for all combos
+               samples `(,@samples "a" "a\nb"))
+         (dolist (input samples)
+           (insert input)
+           (ert-info ((format "Opts: %S, Input: %S, want: %S"
+                              (list wb sw) input (car ex)))
+             (ert-with-message-capture messages
+               (pcase-exhaustive (pop ex)
+                 ('err (let ((e (should-error (erc-send-current-line))))
+                         (should (string-match (rx (| "trailing" "blank"))
+                                               (cadr e))))
+                       (should (equal (erc-user-input) input))
+                       (should-not (funcall next)))
+                 ('nop (erc-send-current-line)
+                       (should (equal (erc-user-input) input))
+                       (should-not (funcall next)))
+                 ('clr (erc-send-current-line)
+                       (should (string-empty-p (erc-user-input)))
+                       (should-not (funcall next)))
+                 ((and (pred consp) v)
+                  (erc-send-current-line)
+                  (should (string-empty-p (erc-user-input)))
+                  (setq v (reverse v)) ; don't use `nreverse' here
+                  (while v
+                    (pcase (pop v)
+                      ((and (pred integerp) n)
+                       (should (string-search
+                                (nth n erc-tests--check-prompt-input-messages)
+                                messages)))
+                      ('s (should (equal " \n" (car (funcall next)))))
+                      ('a (should (equal "a\n" (car (funcall next)))))
+                      ('b (should (equal "b\n" (car (funcall next)))))))
+                  (should-not (funcall next))))))
+           (delete-region erc-input-marker (point-max))))))))
+
+(ert-deftest erc--check-prompt-input-for-multiline-blanks/explanations ()
+  (should erc-warn-about-blank-lines)
+  (should-not erc-send-whitespace-lines)
+
+  (let ((erc-send-whitespace-lines t))
+    (pcase-dolist (`(,input ,msg)
+                   '((("") "Padding (1) blank line")
+                     (("" " ") "Padding (1) blank line")
+                     ((" " "") "Stripping (1) blank line")
+                     (("a" "") "Stripping (1) blank line")
+                     (("" "") "Stripping (1) and padding (1) blank lines")
+                     (("" "" "") "Stripping (2) and padding (1) blank lines")
+                     (("" "a" "" "b" "" "c" "" "")
+                      "Stripping (2) and padding (3) blank lines")))
+      (ert-info ((format "Input: %S, Msg: %S" input msg))
+        (let (erc--check-prompt-explanation)
+          (should-not (erc--check-prompt-input-for-multiline-blanks nil input))
+          (should (equal (list msg) erc--check-prompt-explanation))))))
+
+  (pcase-dolist (`(,input ,msg)
+                 '((("") "Blank line detected")
+                   (("" " ") "2 blank lines detected")
+                   ((" " "") "2 blank (1 trailing) lines detected")
+                   (("a" "") "Trailing line detected")
+                   (("" "") "2 blank (1 trailing) lines detected")
+                   (("a" "" "") "2 trailing lines detected")
+                   (("" "a" "" "b" "" "c" "" "")
+                    "5 blank (2 trailing) lines detected")))
+    (ert-info ((format "Input: %S, Msg: %S" input msg))
+      (let ((rv (erc--check-prompt-input-for-multiline-blanks nil input)))
+        (should (equal (concat msg " (see `erc-send-whitespace-lines')")
+                       rv ))))))
+
 (ert-deftest erc-send-whitespace-lines ()
   (erc-tests--with-process-input-spy
    (lambda (next)
@@ -1196,7 +1294,7 @@
          (erc-bol)
          (should (eq (point) (point-max))))
        (should (equal (funcall next) '("two\n" nil t)))
-       (should (equal (funcall next) '("\n" nil t)))
+       (should (equal (funcall next) '(" \n" nil t)))
        (should (equal (funcall next) '("one\n" nil t))))
 
      (ert-info ("Multiline hunk with trailing newline filtered")
@@ -1218,17 +1316,12 @@
        (should-not (funcall next)))
 
      (ert-info ("Multiline command with trailing blank filtered")
-       (pcase-dolist (`(,p . ,q)
-                      '(("/a b\r" "/a b\n") ("/a b\n" "/a b\n")
-                        ("/a b\n\n" "/a b\n") ("/a b\r\n" "/a b\n")
-                        ("/a b\n\n\n" "/a b\n")))
+       (dolist (p '("/a b" "/a b\n" "/a b\n\n" "/a b\n\n\n"))
          (insert p)
          (erc-send-current-line)
          (erc-bol)
          (should (eq (point) (point-max)))
-         (while q
-           (should (pcase (funcall next)
-                     (`(,cmd ,_ nil) (equal cmd (pop q))))))
+         (should (pcase (funcall next) (`(,cmd ,_ nil) (equal cmd "/a b\n"))))
          (should-not (funcall next))))
 
      (ert-info ("Multiline command with non-blanks errors")
@@ -1341,6 +1434,44 @@
 
           (should-not calls))))))
 
+(ert-deftest erc--order-text-properties-from-hash ()
+  (let ((table (map-into '((a . 1)
+                           (erc-ts . 0)
+                           (erc-msg . s005)
+                           (b . 2)
+                           (erc-cmd . 5)
+                           (c . 3))
+                         'hash-table)))
+    (with-temp-buffer
+      (erc-mode)
+      (insert "abc\n")
+      (add-text-properties 1 2 (erc--order-text-properties-from-hash table))
+      (should (equal '( erc-msg s005
+                        erc-ts 0
+                        erc-cmd 5
+                        a 1
+                        b 2
+                        c 3)
+                     (text-properties-at (point-min)))))))
+
+(ert-deftest erc--check-msg-prop ()
+  (let ((erc--msg-props (map-into '((a . 1) (b . x)) 'hash-table)))
+    (should (eq 1 (erc--check-msg-prop 'a)))
+    (should (erc--check-msg-prop 'a 1))
+    (should-not (erc--check-msg-prop 'a 2))
+
+    (should (eq 'x (erc--check-msg-prop 'b)))
+    (should (erc--check-msg-prop 'b 'x))
+    (should-not (erc--check-msg-prop 'b 1))
+
+    (should (erc--check-msg-prop 'a '(1 42)))
+    (should-not (erc--check-msg-prop 'a '(2 42)))
+
+    (let ((props '(42 x)))
+      (should (erc--check-msg-prop 'b props)))
+    (let ((v '(42 y)))
+      (should-not (erc--check-msg-prop 'b v)))))
+
 (defmacro erc-tests--equal-including-properties (a b)
   (list (if (< emacs-major-version 29)
             'ert-equal-including-properties
@@ -1381,6 +1512,175 @@
     (should (erc-tests--equal-including-properties
              (buffer-substring 1 4)
              #("ghi" 0 1 (erc-test (w x)) 1 2 (erc-test (w x y z)))))
+
+    (when noninteractive
+      (kill-buffer))))
+
+(ert-deftest erc--remove-from-prop-value-list ()
+  (with-current-buffer (get-buffer-create "*erc-test*")
+    ;; Non-list match.
+    (insert "abc\n")
+    (put-text-property 1 2 'erc-test 'a)
+    (put-text-property 2 3 'erc-test 'b)
+    (put-text-property 3 4 'erc-test 'c)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc"
+                                      0 1 (erc-test a)
+                                      1 2 (erc-test b)
+                                      2 3 (erc-test c))))
+
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'b)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc"
+                                      0 1 (erc-test a)
+                                      2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'a)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'c)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "abc"))
+
+    ;; List match.
+    (goto-char (point-min))
+    (insert "def\n")
+    (put-text-property 1 2 'erc-test '(d x))
+    (put-text-property 2 3 'erc-test '(e y))
+    (put-text-property 3 4 'erc-test '(f z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test (d x))
+                                      1 2 (erc-test (e y))
+                                      2 3 (erc-test (f z)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'y)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test (d x))
+                                      1 2 (erc-test e)
+                                      2 3 (erc-test (f z)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'd)
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'f)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test x)
+                                      1 2 (erc-test e)
+                                      2 3 (erc-test z))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'e)
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'z)
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'x)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "def"))
+
+    ;; List match.
+    (goto-char (point-min))
+    (insert "ghi\n")
+    (put-text-property 1 2 'erc-test '(g x))
+    (put-text-property 2 3 'erc-test '(h x))
+    (put-text-property 3 4 'erc-test '(i y))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      0 1 (erc-test (g x))
+                                      1 2 (erc-test (h x))
+                                      2 3 (erc-test (i y)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'x)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      0 1 (erc-test g)
+                                      1 2 (erc-test h)
+                                      2 3 (erc-test (i y)))))
+    (erc--remove-from-prop-value-list 1 2 'erc-test 'g) ; narrowed
+    (erc--remove-from-prop-value-list 3 4 'erc-test 'i) ; narrowed
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      1 2 (erc-test h)
+                                      2 3 (erc-test y))))
+
+    ;; Pathological (,c) case (hopefully not created by ERC)
+    (goto-char (point-min))
+    (insert "jkl\n")
+    (put-text-property 1 2 'erc-test '(j x))
+    (put-text-property 2 3 'erc-test '(k))
+    (put-text-property 3 4 'erc-test '(k))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'k)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("jkl" 0 1 (erc-test (j x)))))
+
+    (when noninteractive
+      (kill-buffer))))
+
+(ert-deftest erc--remove-from-prop-value-list/many ()
+  (with-current-buffer (get-buffer-create "*erc-test*")
+    ;; Non-list match.
+    (insert "abc\n")
+    (put-text-property 1 2 'erc-test 'a)
+    (put-text-property 2 3 'erc-test 'b)
+    (put-text-property 3 4 'erc-test 'c)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc"
+                                      0 1 (erc-test a)
+                                      1 2 (erc-test b)
+                                      2 3 (erc-test c))))
+
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(a b))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test 'a)
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("abc" 2 3 (erc-test c))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(c))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "abc"))
+
+    ;; List match.
+    (goto-char (point-min))
+    (insert "def\n")
+    (put-text-property 1 2 'erc-test '(d x y))
+    (put-text-property 2 3 'erc-test '(e y))
+    (put-text-property 3 4 'erc-test '(f z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test (d x y))
+                                      1 2 (erc-test (e y))
+                                      2 3 (erc-test (f z)))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(d y f))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("def"
+                                      0 1 (erc-test x)
+                                      1 2 (erc-test e)
+                                      2 3 (erc-test z))))
+    (erc--remove-from-prop-value-list 1 4 'erc-test '(e z x))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) "def"))
+
+    ;; Narrowed beg.
+    (goto-char (point-min))
+    (insert "ghi\n")
+    (put-text-property 1 2 'erc-test '(g x))
+    (put-text-property 2 3 'erc-test '(h x))
+    (put-text-property 3 4 'erc-test '(i x))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      0 1 (erc-test (g x))
+                                      1 2 (erc-test (h x))
+                                      2 3 (erc-test (i x)))))
+    (erc--remove-from-prop-value-list 1 3 'erc-test '(x g i))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("ghi"
+                                      1 2 (erc-test h)
+                                      2 3 (erc-test (i x)))))
+
+    ;; Narrowed middle.
+    (goto-char (point-min))
+    (insert "jkl\n")
+    (put-text-property 1 2 'erc-test '(j x))
+    (put-text-property 2 3 'erc-test '(k))
+    (put-text-property 3 4 'erc-test '(l y z))
+    (erc--remove-from-prop-value-list 3 4 'erc-test '(k x y z))
+    (should (erc-tests--equal-including-properties
+             (buffer-substring 1 4) #("jkl"
+                                      0 1 (erc-test (j x))
+                                      1 2 (erc-test (k))
+                                      2 3 (erc-test l))))
 
     (when noninteractive
       (kill-buffer))))
@@ -2155,14 +2455,14 @@
 
    '( :erc-insert-modify-hook (erc-controls-highlight ; 0
                                erc-button-add-buttons ; 30
-                               erc-fill ; 40
                                erc-match-message ; 50
-                               erc-add-timestamp) ; 60
+                               erc-fill ; 60
+                               erc-add-timestamp) ; 70
 
       :erc-send-modify-hook ( erc-controls-highlight ; 0
                               erc-button-add-buttons ; 30
                               erc-fill ; 40
-                              erc-add-timestamp)))) ; 50
+                              erc-add-timestamp)))) ; 70
 
 (ert-deftest erc-migrate-modules ()
   (should (equal (erc-migrate-modules '(autojoin timestamp button))
@@ -2203,65 +2503,130 @@
   (should (eq (erc--find-group 'smiley nil) 'erc))
   (should (eq (erc--find-group 'unmorse nil) 'erc)))
 
-(ert-deftest erc--update-modules ()
-  (let (calls
-        erc-modules
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+(ert-deftest erc--sort-modules ()
+  (should (equal (erc--sort-modules '(networks foo fill bar fill stamp bar))
+                 ;; Third-party mods appear in original order.
+                 '(fill networks stamp foo bar))))
 
-    ;; This `lbaz' module is unknown, so ERC looks for it via the
-    ;; symbol proerty `erc--feature' and, failing that, by
-    ;; `require'ing its "erc-" prefixed symbol.
-    (should-not (intern-soft "erc-lbaz-mode"))
+(defun erc-tests--update-modules (fn)
+  (let* ((calls nil)
+         (custom-modes nil)
+         (on-load nil)
+
+         (get-calls (lambda () (prog1 (nreverse calls) (setq calls nil))))
+
+         (add-onload (lambda (m k v)
+                       (put (intern m) 'erc--feature k)
+                       (push (cons k (lambda () (funcall v m))) on-load)))
+
+         (mk-cmd (lambda (module)
+                   (let ((mode (intern (format "erc-%s-mode" module))))
+                     (fset mode (lambda (n) (push (cons mode n) calls))))))
+
+         (mk-builtin (lambda (module-string)
+                       (let ((s (intern module-string)))
+                         (put s 'erc--module s))))
+
+         (mk-global (lambda (module)
+                      (push (intern (format "erc-%s-mode" module))
+                            custom-modes))))
 
     (cl-letf (((symbol-function 'require)
                (lambda (s &rest _)
-                 (when (eq s 'erc--lbaz-feature)
-                   (fset (intern "erc-lbaz-mode") ; local module
-                         (lambda (n) (push (cons 'lbaz n) calls))))
-                 (push s calls)))
+                 ;; Simulate library being loaded, things defined.
+                 (when-let ((h (alist-get s on-load))) (funcall h))
+                 (push (cons 'req s) calls)))
 
-              ;; Local modules
-              ((symbol-function 'erc-lbar-mode)
-               (lambda (n) (push (cons 'lbar n) calls)))
-              ((get 'lbaz 'erc--feature) 'erc--lbaz-feature)
+              ;; Spoof global module detection.
+              ((symbol-function 'custom-variable-p)
+               (lambda (v) (memq v custom-modes))))
 
-              ;; Global modules
-              ((symbol-function 'erc-gfoo-mode)
-               (lambda (n) (push (cons 'gfoo n) calls)))
-              ((get 'erc-gfoo-mode 'standard-value) 'ignore)
+      (funcall fn get-calls add-onload mk-cmd mk-builtin mk-global))
+    (should-not erc--aberrant-modules)))
+
+(ert-deftest erc--update-modules/unknown ()
+  (erc-tests--update-modules
+
+   (lambda (get-calls _ mk-cmd _ mk-global)
+
+     (ert-info ("Baseline")
+       (let* ((erc-modules '(foo))
+              (obarray (obarray-make))
+              (err (should-error (erc--update-modules erc-modules))))
+         (should (equal (cadr err) "`foo' is not a known ERC module"))
+         (should (equal (funcall get-calls)
+                        `((req . ,(intern-soft "erc-foo")))))))
+
+     ;; Module's mode command exists but lacks an associated file.
+     (ert-info ("Bad autoload flagged as suspect")
+       (should-not erc--aberrant-modules)
+       (let* ((erc--aberrant-modules nil)
+              (obarray (obarray-make))
+              (erc-modules (list (intern "foo"))))
+
+         ;; Create a mode activation command.
+         (funcall mk-cmd "foo")
+
+         ;; Make the mode var global.
+         (funcall mk-global "foo")
+
+         ;; No local modules to return.
+         (should-not (erc--update-modules erc-modules))
+         (should (equal (mapcar #'prin1-to-string erc--aberrant-modules)
+                        '("foo")))
+         ;; ERC requires the library via prefixed module name.
+         (should (equal (mapcar #'prin1-to-string (funcall get-calls))
+                        `("(req . erc-foo)" "(erc-foo-mode . 1)"))))))))
+
+;; A local module (here, `lo2') lacks a mode toggle, so ERC tries to
+;; load its defining library, first via the symbol property
+;; `erc--feature', and then via an "erc-" prefixed symbol.
+(ert-deftest erc--update-modules/local ()
+  (erc-tests--update-modules
+
+   (lambda (get-calls add-onload mk-cmd mk-builtin mk-global)
+
+     (let* ((obarray (obarray-make 20))
+            (erc-modules (mapcar #'intern '("glo" "lo1" "lo2"))))
+
+       ;; Create a global and a local module.
+       (mapc mk-cmd '("glo" "lo1"))
+       (mapc mk-builtin '("glo" "lo1"))
+       (funcall mk-global "glo")
+       (funcall add-onload "lo2" 'explicit-feature-lib mk-cmd)
+
+       ;; Returns local modules.
+       (should (equal (mapcar #'symbol-name (erc--update-modules erc-modules))
+                      '("erc-lo2-mode" "erc-lo1-mode")))
+
+       ;; Requiring `erc-lo2' defines `erc-lo2-mode'.
+       (should (equal (mapcar #'prin1-to-string (funcall get-calls))
+                      `("(erc-glo-mode . 1)"
+                        "(req . explicit-feature-lib)")))))))
+
+(ert-deftest erc--update-modules/realistic ()
+  (let ((calls nil)
+        ;; Module `pcomplete' "resolves" to `completion'.
+        (erc-modules '(pcomplete autojoin networks)))
+    (cl-letf (((symbol-function 'require)
+               (lambda (s &rest _) (push (cons 'req s) calls)))
+
+              ;; Spoof global module detection.
+              ((symbol-function 'custom-variable-p)
+               (lambda (v)
+                 (memq v '(erc-autojoin-mode erc-networks-mode
+                                             erc-completion-mode))))
+              ;; Mock and spy real builtins.
               ((symbol-function 'erc-autojoin-mode)
                (lambda (n) (push (cons 'autojoin n) calls)))
-              ((get 'erc-autojoin-mode 'standard-value) 'ignore)
               ((symbol-function 'erc-networks-mode)
                (lambda (n) (push (cons 'networks n) calls)))
-              ((get 'erc-networks-mode 'standard-value) 'ignore)
               ((symbol-function 'erc-completion-mode)
-               (lambda (n) (push (cons 'completion n) calls)))
-              ((get 'erc-completion-mode 'standard-value) 'ignore))
+               (lambda (n) (push (cons 'completion n) calls))))
 
-      (ert-info ("Unknown module")
-        (setq erc-modules '(lfoo))
-        (should-error (erc--update-modules))
-        (should (equal (pop calls) 'erc-lfoo))
-        (should-not calls))
-
-      (ert-info ("Local modules")
-        (setq erc-modules '(gfoo lbar lbaz))
-        ;; Don't expose the mode here
-        (should (equal (mapcar #'symbol-name (erc--update-modules))
-                       '("erc-lbaz-mode" "erc-lbar-mode")))
-        ;; Lbaz required because unknown.
-        (should (equal (nreverse calls) '((gfoo . 1) erc--lbaz-feature)))
-        (fmakunbound (intern "erc-lbaz-mode"))
-        (unintern (intern "erc-lbaz-mode") obarray)
-        (setq calls nil))
-
-      (ert-info ("Global modules") ; `pcomplete' resolved to `completion'
-        (setq erc-modules '(pcomplete autojoin networks))
-        (should-not (erc--update-modules)) ; no locals
-        (should (equal (nreverse calls)
-                       '((completion . 1) (autojoin . 1) (networks . 1))))
-        (setq calls nil)))))
+      (should-not (erc--update-modules erc-modules)) ; no locals
+      (should (equal (nreverse calls)
+                     '((completion . 1) (autojoin . 1) (networks . 1)))))))
 
 (ert-deftest erc--merge-local-modes ()
   (cl-letf (((get 'erc-b-mode 'erc-module) 'b)

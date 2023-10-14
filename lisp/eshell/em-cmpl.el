@@ -343,7 +343,7 @@ to writing a completion function."
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
-	     (eshell-interactive-process-p))
+             eshell-foreground-command)
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (beginning-of-line) (point)))

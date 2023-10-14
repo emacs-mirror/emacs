@@ -460,7 +460,11 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
                    (message "Ignoring macroexpansion error: %S" err) form))))
              (sexp
               (unwind-protect
-                  (let ((warning-minimum-log-level :emergency))
+                  ;; Silence any macro expansion errors when
+                  ;; attempting completion at point (bug#58148).
+                  (let ((inhibit-message t)
+                        (macroexp-inhibit-compiler-macros t)
+                        (warning-minimum-log-level :emergency))
                     (advice-add 'macroexpand-1 :around macroexpand-advice)
                     (macroexpand-all sexp elisp--local-macroenv))
                 (advice-remove 'macroexpand-1 macroexpand-advice)))

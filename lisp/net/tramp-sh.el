@@ -2637,15 +2637,15 @@ The method used must be an out-of-band method."
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (unless switches (setq switches ""))
-  ;; Check, whether directory is accessible.
-  (unless wildcard
-    (access-file filename "Reading directory"))
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (if (and (featurep 'ls-lisp)
-	     (not ls-lisp-use-insert-directory-program))
-	(tramp-handle-insert-directory
-	 filename switches wildcard full-directory-p)
+  (if (and (featurep 'ls-lisp)
+	   (not ls-lisp-use-insert-directory-program))
+      (tramp-handle-insert-directory
+       filename switches wildcard full-directory-p)
+    (unless switches (setq switches ""))
+    ;; Check, whether directory is accessible.
+    (unless wildcard
+      (access-file filename "Reading directory"))
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (let ((dired (tramp-get-ls-command-with v "--dired")))
 	(when (stringp switches)
           (setq switches (split-string switches)))
@@ -2835,6 +2835,9 @@ the result will be a local, non-Tramp, file name."
 	   (tramp-run-real-handler #'expand-file-name (list name)))
 	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	  (setq localname (concat "~/" localname)))
+        ;; Tilde expansion shall be possible also for quoted localname.
+	(when (string-prefix-p "~" (file-name-unquote localname))
+	  (setq localname (file-name-unquote localname)))
 	;; Tilde expansion if necessary.  This needs a shell which
 	;; groks tilde expansion!  The function `tramp-find-shell' is
 	;; supposed to find such a shell on the remote host.  Please
@@ -3802,11 +3805,12 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
-			"delete,delete_self,attrib,ignored"))
+			"delete,delete_self,attrib"))
 	       ((memq 'change flags)
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
-			"delete,delete_self,ignored"))
-	       ((memq 'attribute-change flags) "attrib,ignored"))
+			"delete,delete_self"))
+	       ((memq 'attribute-change flags) "attrib"))
+              events (concat events ",ignored,unmount")
 	      ;; "-P" has been added to version 3.21, so we cannot assume it yet.
 	      sequence `(,command "-mq" "-e" ,events ,localname)
 	      ;; Make events a list of symbols.
@@ -3821,10 +3825,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
 		'(created changed changes-done-hint moved deleted
-			  attribute-changed))
+			  attribute-changed unmounted))
 	       ((memq 'change flags)
-		'(created changed changes-done-hint moved deleted))
-	       ((memq 'attribute-change flags) '(attribute-changed)))
+		'(created changed changes-done-hint moved deleted unmounted))
+	       ((memq 'attribute-change flags) '(attribute-changed unmounted)))
 	      sequence `(,command "monitor" ,localname)))
        ;; None.
        (t (tramp-error

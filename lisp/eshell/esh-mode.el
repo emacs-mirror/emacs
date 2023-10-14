@@ -361,6 +361,9 @@ and the hook `eshell-exit-hook'."
   (setq-local eshell-last-output-end (point-marker))
   (setq-local eshell-last-output-block-begin (point))
 
+  (add-function :filter-return (local 'filter-buffer-substring-function)
+                #'eshell--unmark-string-as-output)
+
   (let ((modules-list (copy-sequence eshell-modules-list)))
     (setq-local eshell-modules-list modules-list))
 
@@ -453,7 +456,7 @@ and the hook `eshell-exit-hook'."
 		     last-command-event))))
 
 (defun eshell-intercept-commands ()
-  (when (and (eshell-interactive-process-p)
+  (when (and eshell-foreground-command
 	     (not (and (integerp last-input-event)
 		       (memq last-input-event '(?\C-x ?\C-c)))))
     (let ((possible-events (where-is-internal this-command))
@@ -967,7 +970,7 @@ buffer's process if STRING contains a password prompt defined by
 `eshell-password-prompt-regexp'.
 
 This function could be in the list `eshell-output-filter-functions'."
-  (when (eshell-interactive-process-p)
+  (when eshell-foreground-command
     (save-excursion
       (let ((case-fold-search t))
 	(goto-char eshell-last-output-block-begin)

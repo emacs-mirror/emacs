@@ -165,6 +165,7 @@ Print the contents hidden by the ellipsis to STREAM."
 (defvar cl-print-compiled nil
   "Control how to print byte-compiled functions.
 Acceptable values include:
+- `raw' to print out the full contents of the function using `prin1'.
 - `static' to print the vector of constants.
 - `disassemble' to print the disassembly of the code.
 - nil to skip printing any details about the code.")
@@ -187,42 +188,54 @@ into a button whose action shows the function's disassembly.")
     (if args
         (prin1 args stream)
       (princ "()" stream)))
-  (pcase (help-split-fundoc (documentation object 'raw) object)
-    ;; Drop args which `help-function-arglist' already printed.
-    (`(,_usage . ,(and doc (guard (stringp doc))))
-     (princ " " stream)
-     (prin1 doc stream)))
-  (let ((inter (interactive-form object)))
-    (when inter
-      (princ " " stream)
-      (cl-print-object
-       (if (eq 'byte-code (car-safe (cadr inter)))
-           `(interactive ,(make-byte-code nil (nth 1 (cadr inter))
-                                          (nth 2 (cadr inter))
-                                          (nth 3 (cadr inter))))
-         inter)
-       stream)))
-  (if (eq cl-print-compiled 'disassemble)
-      (princ
-       (with-temp-buffer
-         (insert "\n")
-         (disassemble-1 object 0)
-         (buffer-string))
-       stream)
-    (princ " " stream)
-    (let ((button-start (and cl-print-compiled-button
-                             (bufferp stream)
-                             (with-current-buffer stream (point)))))
-      (princ (format "#<bytecode %#x>" (sxhash object)) stream)
-      (when (eq cl-print-compiled 'static)
+  (if (eq cl-print-compiled 'raw)
+      (let ((button-start
+             (and cl-print-compiled-button
+                  (bufferp stream)
+                  (with-current-buffer stream (1+ (point))))))
         (princ " " stream)
-        (cl-print-object (aref object 2) stream))
-      (when button-start
-        (with-current-buffer stream
-          (make-text-button button-start (point)
-                            :type 'help-byte-code
-                            'byte-code-function object)))))
-  (princ ")" stream))
+        (prin1 object stream)
+        (when button-start
+          (with-current-buffer stream
+            (make-text-button button-start (point)
+                              :type 'help-byte-code
+                              'byte-code-function object))))
+    (pcase (help-split-fundoc (documentation object 'raw) object)
+      ;; Drop args which `help-function-arglist' already printed.
+      (`(,_usage . ,(and doc (guard (stringp doc))))
+       (princ " " stream)
+       (prin1 doc stream)))
+    (let ((inter (interactive-form object)))
+      (when inter
+        (princ " " stream)
+        (cl-print-object
+         (if (eq 'byte-code (car-safe (cadr inter)))
+             `(interactive ,(make-byte-code nil (nth 1 (cadr inter))
+                                            (nth 2 (cadr inter))
+                                            (nth 3 (cadr inter))))
+           inter)
+         stream)))
+    (if (eq cl-print-compiled 'disassemble)
+        (princ
+         (with-temp-buffer
+           (insert "\n")
+           (disassemble-1 object 0)
+           (buffer-string))
+         stream)
+      (princ " " stream)
+      (let ((button-start (and cl-print-compiled-button
+                               (bufferp stream)
+                               (with-current-buffer stream (point)))))
+        (princ (format "#<bytecode %#x>" (sxhash object)) stream)
+        (when (eq cl-print-compiled 'static)
+          (princ " " stream)
+          (cl-print-object (aref object 2) stream))
+        (when button-start
+          (with-current-buffer stream
+            (make-text-button button-start (point)
+                              :type 'help-byte-code
+                              'byte-code-function object)))))
+    (princ ")" stream)))
 
 ;; This belongs in oclosure.el, of course, but some load-ordering issues make it
 ;; complicated.
@@ -549,14 +562,14 @@ node `(elisp)Output Variables'."
 (defun cl-print-to-string-with-limit (print-function value limit)
   "Return a string containing a printed representation of VALUE.
 Attempt to get the length of the returned string under LIMIT
-characters with appropriate settings of `print-level' and
-`print-length.'  Use PRINT-FUNCTION to print, which should take
-the arguments VALUE and STREAM and which should respect
-`print-length' and `print-level'.  LIMIT may be nil or zero in
-which case PRINT-FUNCTION will be called with `print-level' and
-`print-length' bound to nil, and it can also be t in which case
-PRINT-FUNCTION will be called with the current values of `print-level'
-and `print-length'.
+characters with appropriate settings of `print-level',
+`print-length', and `cl-print-string-length'.  Use
+PRINT-FUNCTION to print, which should take the arguments VALUE
+and STREAM and which should respect `print-length',
+`print-level', and `cl-print-string-length'.  LIMIT may be nil or
+zero in which case PRINT-FUNCTION will be called with these
+settings bound to nil, and it can also be t in which case
+PRINT-FUNCTION will be called with their current values.
 
 Use this function with `cl-prin1' to print an object,
 abbreviating it with ellipses to fit within a size limit."
@@ -565,17 +578,17 @@ abbreviating it with ellipses to fit within a size limit."
   ;; limited, if you increase print-level here, add more depth in
   ;; call_debugger (bug#31919).
   (let* ((print-length (cond
-                        ((null limit) nil)
                         ((eq limit t) print-length)
+                        ((or (null limit) (zerop limit)) nil)
                         (t (min limit 50))))
          (print-level (cond
-                        ((null limit) nil)
                         ((eq limit t) print-level)
+                        ((or (null limit) (zerop limit)) nil)
                         (t (min 8 (truncate (log limit))))))
          (cl-print-string-length
           (cond
-           ((or (null limit) (zerop limit)) nil)
            ((eq limit t) cl-print-string-length)
+           ((or (null limit) (zerop limit)) nil)
            (t (max 0 (- limit 3)))))
          (delta-length (when (natnump limit)
                          (max 1 (truncate (/ print-length print-level))))))

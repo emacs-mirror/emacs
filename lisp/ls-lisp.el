@@ -169,7 +169,7 @@ A value of nil (or an empty list) means display none of them.
 
 Concepts come from UNIX: `links' means count of names associated with
 the file; `uid' means user (owner) identifier; `gid' means group
-identifier.
+identifier; `modes' means Unix-style permission bits (drwxrwxrwx).
 
 If emulation is MacOS then default is nil;
 if emulation is MS-Windows then default is `(links)' if platform is
@@ -180,7 +180,8 @@ if emulation is GNU then default is `(links uid gid)'."
   ;; Functionality suggested by Howard Melman <howard@silverstream.com>
   :type '(set (const :tag "Show Link Count" links)
 	      (const :tag "Show User" uid)
-	      (const :tag "Show Group" gid))
+	      (const :tag "Show Group" gid)
+              (const :tag "Show Modes" modes))
   :group 'ls-lisp)
 
 (defcustom ls-lisp-use-insert-directory-program

@@ -104,6 +104,32 @@ bug#59469."
     "value\nexternal\nvalue\n")))
 
 
+;; Background command invocation
+
+(ert-deftest esh-cmd-test/background/simple-command ()
+  "Test invocation with a simple background command."
+  (skip-unless (executable-find "echo"))
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "*echo hi > #<%s> &" bufname)
+      (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
+     (eshell-wait-for-subprocess t))
+    (should (equal (buffer-string) "hi\n"))))
+
+(ert-deftest esh-cmd-test/background/subcommand ()
+  "Test invocation with a background command containing subcommands."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "rev")))
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "*echo ${*echo hello | rev} > #<%s> &" bufname)
+      (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
+     (eshell-wait-for-subprocess t))
+    (should (equal (buffer-string) "olleh\n"))))
+
+
 ;; Lisp forms
 
 (ert-deftest esh-cmd-test/quoted-lisp-form ()
@@ -453,8 +479,7 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                  "echo hi; (throw 'tag 42); echo bye"))
               42))
    (should (eshell-match-output "\\`hi\n\\'"))
-   (should-not eshell-current-command)
-   (should-not eshell-last-async-procs)
+   (should-not eshell-foreground-command)
    ;; Make sure we can call another command after throwing.
    (eshell-match-command-output "echo again" "\\`again\n")))
 

@@ -768,6 +768,10 @@ prettify_key (const char *key)
 			     pressure: 0];
 
   context_menu_value = -1;
+#ifdef NS_IMPL_COCOA
+  /* Don't let the system add a Services menu here.  */
+  self.allowsContextMenuPlugIns = NO;
+#endif
   [NSMenu popUpContextMenu: self withEvent: event forView: view];
   retVal = context_menu_value;
   context_menu_value = 0;

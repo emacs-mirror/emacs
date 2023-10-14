@@ -1804,7 +1804,7 @@ mail status in mode line"))
     (bindings--define-key menu [project-find-regexp] '(menu-item "Find Regexp..." project-find-regexp :help "Search for a regexp in files belonging to current project"))
     (bindings--define-key menu [separator-project-search] menu-bar-separator)
     (bindings--define-key menu [project-kill-buffers] '(menu-item "Kill Buffers..." project-kill-buffers :help "Kill the buffers belonging to the current project"))
-    (bindings--define-key menu [project-list-buffers] '(menu-item "List Buffers..." project-list-buffers :help "Pop up a window listing all Emacs buffers belonging to current project"))
+    (bindings--define-key menu [project-list-buffers] '(menu-item "List Buffers" project-list-buffers :help "Pop up a window listing all Emacs buffers belonging to current project"))
     (bindings--define-key menu [project-switch-to-buffer] '(menu-item "Switch To Buffer..." project-switch-to-buffer :help "Prompt for a buffer belonging to current project, and switch to it"))
     (bindings--define-key menu [separator-project-buffers] menu-bar-separator)
     (bindings--define-key menu [project-async-shell-command] '(menu-item "Async Shell Command..." project-async-shell-command :help "Invoke a shell command in project root asynchronously in background"))
@@ -1814,7 +1814,7 @@ mail status in mode line"))
     (bindings--define-key menu [project-compile] '(menu-item "Compile..." project-compile :help "Invoke compiler or Make for current project, view errors"))
     (bindings--define-key menu [separator-project-programs] menu-bar-separator)
     (bindings--define-key menu [project-switch-project] '(menu-item "Switch Project..." project-switch-project :help "Switch to another project and then run a command"))
-    (bindings--define-key menu [project-vc-dir] '(menu-item "VC Dir..." project-vc-dir :help "Show the VC status of the project repository"))
+    (bindings--define-key menu [project-vc-dir] '(menu-item "VC Dir" project-vc-dir :help "Show the VC status of the project repository"))
     (bindings--define-key menu [project-dired] '(menu-item "Open Project Root" project-dired :help "Read the root directory of the current project, to operate on its files"))
     (bindings--define-key menu [project-find-dir] '(menu-item "Open Directory..." project-find-dir :help "Open existing directory that belongs to current project"))
     (bindings--define-key menu [project-or-external-find-file] '(menu-item "Open File Including External Roots..." project-or-external-find-file :help "Open existing file that belongs to current project or its external roots"))
@@ -2314,12 +2314,12 @@ The menu shows all the killed text sequences stored in `kill-ring'."
 
 ;;; Buffers Menu
 
-(defcustom buffers-menu-max-size (if (display-graphic-p) 15 10)
+;; Increasing this more might be problematic on TTY frames.  See Bug#64398.
+(defcustom buffers-menu-max-size 15
   "Maximum number of entries which may appear on the Buffers menu.
 If this is a number, only that many most-recently-selected
 buffers are shown.
 If this is nil, all buffers are shown."
-  :initialize #'custom-initialize-delay
   :type '(choice natnum
                  (const :tag "All" nil))
   :group 'menu
@@ -2467,12 +2467,9 @@ It must accept a buffer as its only required argument.")
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
                (let ((i 0)
-                     (limit (if (boundp 'buffers-menu-max-size)
-                                (and (integerp buffers-menu-max-size)
-                                     (> buffers-menu-max-size 1)
-                                     buffers-menu-max-size)
-                              ;; Used when bootstrapping.
-                              10))
+		     (limit (and (integerp buffers-menu-max-size)
+				 (> buffers-menu-max-size 1)
+				 buffers-menu-max-size))
                      alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,

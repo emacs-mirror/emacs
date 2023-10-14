@@ -909,7 +909,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 (defun ediff-windows-wordwise (dumb-mode &optional wind-A wind-B startup-hooks)
   "Compare WIND-A and WIND-B, which are selected by clicking, wordwise.
 This compares the portions of text visible in each of the two windows.
-With prefix argument, DUMB-MODE, or on a non-windowing display, works as
+With prefix argument, DUMB-MODE, or on a non-graphical display, works as
 follows:
 If WIND-A is nil, use selected window.
 If WIND-B is nil, use window next to WIND-A.
@@ -923,7 +923,7 @@ arguments after setting up the Ediff buffers."
 (defun ediff-windows-linewise (dumb-mode &optional wind-A wind-B startup-hooks)
   "Compare WIND-A and WIND-B, which are selected by clicking, linewise.
 This compares the portions of text visible in each of the two windows.
-With prefix argument, DUMB-MODE, or on a non-windowing display, works as
+With prefix argument, DUMB-MODE, or on a non-graphical display, works as
 follows:
 If WIND-A is nil, use selected window.
 If WIND-B is nil, use window next to WIND-A.
@@ -935,7 +935,7 @@ arguments after setting up the Ediff buffers."
 
 ;; Compare visible portions of text in WIND-A and WIND-B, which are
 ;; selected by clicking.
-;; With prefix argument, DUMB-MODE, or on a non-windowing display,
+;; With prefix argument, DUMB-MODE, or on a non-graphical display,
 ;; works as follows:
 ;; If WIND-A is nil, use selected window.
 ;; If WIND-B is nil, use window next to WIND-A.

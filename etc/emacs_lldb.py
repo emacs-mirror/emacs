@@ -89,7 +89,7 @@ class Lisp_Object:
         self.init_values()
 
     def init_unsigned(self):
-        if self.lisp_obj.GetNumChildren() != 0:
+        if self.lisp_obj.GetType().GetTypeClass() == lldb.eTypeClassStruct:
             # Lisp_Object is actually a struct.
             lisp_word = self.lisp_obj.GetValueForExpressionPath(".i")
             self.unsigned = lisp_word.GetValueAsUnsigned()
@@ -123,19 +123,21 @@ class Lisp_Object:
         if self.lisp_type == "Lisp_Symbol":
             offset = self.get_lisp_pointer("char").GetValueAsUnsigned()
             self.value = self.eval(f"(struct Lisp_Symbol *)"
-                                   f" ((char *) &lispsym + {offset})")
+                                   f" ((char *) &lispsym + {offset})",
+                                   True)
         elif self.lisp_type == "Lisp_String":
-            self.value = self.get_lisp_pointer("struct Lisp_String")
+            self.value = self.get_lisp_pointer("struct Lisp_String", True)
         elif self.lisp_type == "Lisp_Vectorlike":
             c_type = Lisp_Object.pvec2type[self.pvec_type]
-            self.value = self.get_lisp_pointer(c_type)
+            self.value = self.get_lisp_pointer(c_type, True)
         elif self.lisp_type == "Lisp_Cons":
-            self.value = self.get_lisp_pointer("struct Lisp_Cons")
+            self.value = self.get_lisp_pointer("struct Lisp_Cons", True)
         elif self.lisp_type == "Lisp_Float":
-            self.value = self.get_lisp_pointer("struct Lisp_Float")
+            self.value = self.get_lisp_pointer("struct Lisp_Float", True)
         elif self.lisp_type in ("Lisp_Int0", "Lisp_Int1"):
             self.value = self.eval(f"((EMACS_INT) {self.unsigned}) "
-                                   f">> (GCTYPEBITS - 1)")
+                                   f">> (GCTYPEBITS - 1)",
+                                   True)
         else:
             msg = f"Unknown Lisp type {self.lisp_type}"
             assert False, msg
@@ -145,14 +147,19 @@ class Lisp_Object:
         return self.lisp_obj.CreateValueFromExpression(name, expr)
 
     # Evaluate EXPR in the context of the current frame.
-    def eval(self, expr):
-        return self.frame.EvaluateExpression(expr)
+    def eval(self, expr, make_var=False):
+        if make_var:
+            return self.frame.EvaluateExpression(expr)
+        options = lldb.SBExpressionOptions()
+        options.SetSuppressPersistentResult(True)
+        return self.frame.EvaluateExpression(expr, options)
 
     # Return an SBValue for this object denoting a pointer of type
     # TYP*.
-    def get_lisp_pointer(self, typ):
+    def get_lisp_pointer(self, typ, make_var=False):
         return self.eval(f"({typ}*) (((EMACS_INT) "
-                         f"{self.unsigned}) & VALMASK)")
+                         f"{self.unsigned}) & VALMASK)",
+                         make_var)
 
     # If this is a Lisp_String, return an SBValue for its string data.
     # Return None otherwise.
@@ -242,6 +249,41 @@ def xprint(debugger, command, ctx, result, internal_dict):
 def type_summary_Lisp_Object(obj, internal_dict):
     return Lisp_Object(obj).summary()
 
+# Don't know at the moment how to use this outside of the LLDB gui
+# command.  And it's still incomplete.
+class Lisp_Object_Provider:
+    def __init__(self, valobj, internal_dict):
+        self.valobj = valobj
+        self.lisp_obj = Lisp_Object(valobj)
+        self.child = None
+
+    def update(self):
+        if self.lisp_obj.lisp_type == "Lisp_Symbol":
+            self.child = self.lisp_obj.get_symbol_name().Clone("name")
+            self.child.SetSyntheticChildGenerated(True)
+        elif self.lisp_obj.lisp_type == "Lisp_String":
+            self.child = self.lisp_obj.get_string_data().Clone("data")
+            self.child.SetSyntheticChildGenerated(True)
+        else:
+            self.child = self.lisp_obj.value.Clone("untagged")
+            self.child.SetSyntheticChildGenerated(True)
+
+    def has_children(self):
+        return True
+
+    def num_children(self):
+        return 1
+
+    def get_child_index(self, name):
+        return 0
+
+    # This works insofar as struct frame * works, but it doesn't work
+    # Lisp_Symbol, for example.
+    def get_child_at_index(self, index):
+        if index != 0:
+            return None
+        return self.child
+
 
 ########################################################################
 #                           Initialization
@@ -275,6 +317,17 @@ def define_type_summary(debugger, regex, function):
                            f"--python-function {python_function} "
                            + regex)
 
+# Define Python class CLS as a children provider for the types
+# matching REFEXP.  Providers are defined in the category Emacs, and
+# can be seen with 'type synthetic list -w Emacs', and deleted in a
+# similar way.
+def define_type_synthetic(debugger, regex, cls):
+    python_class = __name__ + "." + cls.__name__
+    debugger.HandleCommand(f"type synthetic add "
+                           f"--category Emacs "
+                           f"--python-class {python_class} "
+                           + regex)
+
 # Enable a given category of type summary providers.
 def enable_type_category(debugger, category):
     debugger.HandleCommand(f"type category enable {category}")
@@ -285,6 +338,7 @@ def __lldb_init_module(debugger, internal_dict):
     define_command(debugger, xdebug_print)
     define_command(debugger, xprint)
     define_type_summary(debugger, "Lisp_Object", type_summary_Lisp_Object)
+    define_type_synthetic(debugger, "Lisp_Object", Lisp_Object_Provider)
     enable_type_category(debugger, "Emacs")
     print('Emacs debugging support has been installed.')
 

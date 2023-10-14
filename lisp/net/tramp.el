@@ -67,7 +67,11 @@
 (declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
+(defvar ls-lisp-dirs-first)
+(defvar ls-lisp-emulation)
+(defvar ls-lisp-ignore-case)
 (defvar ls-lisp-use-insert-directory-program)
+(defvar ls-lisp-verbosity)
 (defvar tramp-prefix-format)
 (defvar tramp-prefix-regexp)
 (defvar tramp-method-regexp)
@@ -410,7 +414,7 @@ Another host name is useful only in combination with
   ;; an external method.
   (cond
    ;; PuTTY is installed.  We don't take it, if it is installed on a
-   ;; non-windows system, or pscp from the pssh (parallel ssh) package
+   ;; non-Windows system, or pscp from the pssh (parallel ssh) package
    ;; is found.
    ((and (eq system-type 'windows-nt) (executable-find "pscp")) "pscp")
    ;; There is an ssh installation.
@@ -3807,6 +3811,9 @@ Let-bind it when necessary.")
     (with-parsed-tramp-file-name name nil
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+      ;; Tilde expansion shall be possible also for quoted localname.
+      (when (string-prefix-p "~" (file-name-unquote localname))
+	(setq localname (file-name-unquote localname)))
       ;; Expand tilde.  Usually, the methods applying this handler do
       ;; not support tilde expansion.  But users could declare a
       ;; respective connection property.  (Bug#53847)
@@ -4159,7 +4166,7 @@ Let-bind it when necessary.")
 	  (tramp-error v 'file-error "Unsafe backup file name"))))))
 
 (defun tramp-handle-insert-directory
-  (filename switches &optional wildcard full-directory-p)
+    (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (require 'ls-lisp)
   (unless switches (setq switches ""))
@@ -4172,8 +4179,14 @@ Let-bind it when necessary.")
     (access-file filename "Reading directory"))
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
-      (let (ls-lisp-use-insert-directory-program start)
-	;; Silence byte compiler.
+      ;; We bind `ls-lisp-emulation' to nil (which is GNU).
+      ;; `ls-lisp-set-options' modifies `ls-lisp-ignore-case',
+      ;; `ls-lisp-dirs-first' and `ls-lisp-verbosity', so we bind them
+      ;; as well.  We don't want to use `insert-directory-program'.
+      (let (ls-lisp-emulation ls-lisp-ignore-case ls-lisp-dirs-first
+	    ls-lisp-verbosity ls-lisp-use-insert-directory-program start)
+	;; Set proper options based on `ls-lisp-emulation'.
+	(tramp-compat-funcall 'ls-lisp-set-options)
 	(tramp-run-real-handler
 	 #'insert-directory
 	 (list filename switches wildcard full-directory-p))

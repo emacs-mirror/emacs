@@ -37,7 +37,7 @@
 
 ;; We acknowledge many contributions and valuable suggestions by
 ;; Lawrence R. Dodd, Ralf Fassel, Ralph Finch, Stephen Gildea,
-;; Dr. Anil Gokhale, Ulrich Mueller, Mark Neale, Eric Prestemon,
+;; Dr. Anil Gokhale, Ulrich Müller, Mark Neale, Eric Prestemon,
 ;; Gary Sabot and Richard Stallman.
 
 ;;; Code:

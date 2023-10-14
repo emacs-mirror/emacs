@@ -94,7 +94,12 @@ Comments begin with `#'."
       (setq cmd `(eshell-as-subcommand ,cmd)))
     (throw 'eshell-replace-command
            `(let ((eshell-command-name ',file)
-                  (eshell-command-arguments ',args))
+                  (eshell-command-arguments ',args)
+                  ;; Don't print subjob messages by default.
+                  ;; Otherwise, if this function was called as a
+                  ;; subjob, then *all* commands in the script would
+                  ;; print start/stop messages.
+                  (eshell-subjob-messages nil))
               ,cmd))))
 
 (defun eshell/source (&rest args)

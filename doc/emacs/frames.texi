@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1985--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
 @chapter Frames and Graphical Displays
@@ -30,9 +29,9 @@ displays (@pxref{Exiting}).  To close just the selected frame, type
 frames.  On text terminals, many of these features are unavailable.
 However, it is still possible to create multiple frames on text
 terminals; such frames are displayed one at a time, filling the entire
-terminal screen (@pxref{Non-Window Terminals}).  It is also possible
-to use the mouse on some text terminals (@pxref{Text-Only Mouse}, for
-doing so on GNU and Unix systems; and
+terminal screen (@pxref{Text Terminals}).  It is also possible to use
+the mouse on some text terminals (@pxref{Text-Only Mouse}, for doing
+so on GNU and Unix systems; and
 @iftex
 @pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
@@ -62,7 +61,7 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
-* Non-Window Terminals::  Multiple frames on terminals that show only one.
+* Text Terminals::      Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text terminals.
 @end menu
 
@@ -593,7 +592,7 @@ the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
 
   The @kbd{C-x 5 1} (@code{delete-other-frames}) command deletes all
 other frames on the current terminal (this terminal refers to either a
-graphical display, or a text terminal; @pxref{Non-Window Terminals}).
+graphical display, or a text terminal; @pxref{Text Terminals}).
 If the Emacs session has frames open on other graphical displays or
 text terminals, those are not deleted.
 
@@ -1765,8 +1764,8 @@ You can also use the command @kbd{M-x mouse-avoidance-mode} to enable
 the mode.  Whenever Mouse Avoidance mode moves the mouse, it also
 raises the frame.
 
-@node Non-Window Terminals
-@section Non-Window Terminals
+@node Text Terminals
+@section Text Terminals
 @cindex text terminal
 
   On a text terminal, Emacs can display only one Emacs frame at a

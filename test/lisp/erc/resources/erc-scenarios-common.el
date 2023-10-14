@@ -341,7 +341,7 @@ See Info node `(emacs) Term Mode' for the various commands."
 
 ;;;; Fixtures
 
-(defun erc-scenarios-scrolltobottom--normal (test)
+(defun erc-scenarios-common-scrolltobottom--normal (test)
   (erc-scenarios-common-with-noninteractive-in-term
       ((erc-scenarios-common-dialog "scrolltobottom")
        (dumb-server (erc-d-run "localhost" t 'help))
@@ -402,6 +402,7 @@ See Info node `(emacs) Term Mode' for the various commands."
         (erc-cmd-MSG "NickServ help register")
         (save-excursion (erc-d-t-search-for 10 "End of NickServ"))
         (should (= 1 (point)))
+        (redisplay)
         (should (zerop (count-screen-lines (window-start) (window-point))))
         (should (erc-scenarios-common--prompt-past-win-end-p)))
 

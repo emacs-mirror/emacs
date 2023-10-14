@@ -4,8 +4,8 @@
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
-;; This is a GNU ELPA :core package.  Avoid using functionality that
-;; not compatible with the version of Emacs recorded above.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -2009,6 +2009,44 @@ would otherwise have the same name."
           (project-name proj)
           (file-relative-name dirname root))))
     dirname))
+
+;;; Project mode-line
+
+;;;###autoload
+(defcustom project-mode-line nil
+  "Whether to show current project name and Project menu on the mode line.
+This feature requires the presence of the following item in
+`mode-line-format': `(project-mode-line project-mode-line-format)'; it
+is part of the default mode line beginning with Emacs 30."
+  :type 'boolean
+  :group 'project
+  :version "30.1")
+
+(defvar project-menu-entry
+  `(menu-item "Project" ,menu-bar-project-menu))
+
+(defvar project-mode-line-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] project-menu-entry)
+    map))
+
+(defvar project-mode-line-face nil
+  "Face name to use for the project name on the mode line.")
+
+(defvar project-mode-line-format '(:eval (project-mode-line-format)))
+(put 'project-mode-line-format 'risky-local-variable t)
+
+(defun project-mode-line-format ()
+  "Compose the project mode-line."
+  (when-let ((project (project-current)))
+    (concat
+     " "
+     (propertize
+      (project-name project)
+      'face project-mode-line-face
+      'mouse-face 'mode-line-highlight
+      'help-echo "mouse-1: Project menu"
+      'local-map project-mode-line-map))))
 
 (provide 'project)
 ;;; project.el ends here

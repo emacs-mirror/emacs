@@ -3987,7 +3987,12 @@ be used as the image of the icon representing the frame.  */);
 
   DEFVAR_BOOL ("ns-use-proxy-icon", ns_use_proxy_icon,
                doc: /* When non-nil display a proxy icon in the titlebar.
-Default is t.  */);
+The proxy icon can be used to drag the file associated with the
+current buffer to other applications, a printer, the desktop, etc., in
+the same way you can from Finder.  Note that you might have to disable
+`tool-bar-mode' to see the proxy icon.
+
+The default value is t.  */);
   ns_use_proxy_icon = true;
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,

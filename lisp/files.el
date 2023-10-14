@@ -7574,7 +7574,8 @@ files, you could say something like:
 In this example, if you're in \"src/emacs/emacs-27/lisp/abbrev.el\",
 and a \"src/emacs/emacs-28/lisp/abbrev.el\" file exists, it's now
 defined as a sibling."
-  :type 'sexp
+  :type '(alist :key-type (regexp :tag "Match")
+                :value-type (repeat (string :tag "Expansion")))
   :version "29.1")
 
 (defun find-sibling-file (file)

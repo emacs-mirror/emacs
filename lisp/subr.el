@@ -3408,7 +3408,7 @@ causes it to evaluate `help-form' and display the result."
     (message "%s%s" prompt (char-to-string char))
     char))
 
-(defun sit-for (seconds &optional nodisp obsolete)
+(defun sit-for (seconds &optional nodisp)
   "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
 SECONDS may be a floating-point value.
 \(On operating systems that do not support waiting for fractions of a
@@ -3417,29 +3417,11 @@ second, floating-point values are rounded down to the nearest integer.)
 If optional arg NODISP is t, don't redisplay, just wait for input.
 Redisplay does not happen if input is available before it starts.
 
-Value is t if waited the full time with no input arriving, and nil otherwise.
-
-An obsolete, but still supported form is
-\(sit-for SECONDS &optional MILLISECONDS NODISP)
-where the optional arg MILLISECONDS specifies an additional wait period,
-in milliseconds; this was useful when Emacs was built without
-floating point support."
-  (declare (advertised-calling-convention (seconds &optional nodisp) "22.1")
-           (compiler-macro
-            (lambda (form)
-              (if (not (or (numberp nodisp) obsolete)) form
-                (macroexp-warn-and-return
-                 (format-message "Obsolete calling convention for `sit-for'")
-                 `(,(car form) (+ ,seconds (/ (or ,nodisp 0) 1000.0)) ,obsolete)
-                 '(obsolete sit-for))))))
+Value is t if waited the full time with no input arriving, and nil otherwise."
   ;; This used to be implemented in C until the following discussion:
   ;; https://lists.gnu.org/r/emacs-devel/2006-07/msg00401.html
   ;; Then it was moved here using an implementation based on an idle timer,
   ;; which was then replaced by the use of read-event.
-  (if (numberp nodisp)
-      (setq seconds (+ seconds (* 1e-3 nodisp))
-            nodisp obsolete)
-    (if obsolete (setq nodisp obsolete)))
   (cond
    (noninteractive
     (sleep-for seconds)

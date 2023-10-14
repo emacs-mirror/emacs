@@ -234,6 +234,14 @@ current buffer."
                 (eshell--mark-as-output start1 end1)))))
     (add-hook 'after-change-functions hook nil t)))
 
+(defun eshell--unmark-string-as-output (string)
+  "Unmark STRING as Eshell output."
+  (remove-list-of-text-properties
+   0 (length string)
+   '(rear-nonsticky front-sticky field insert-in-front-hooks)
+   string)
+  string)
+
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.

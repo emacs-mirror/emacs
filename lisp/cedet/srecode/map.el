@@ -49,7 +49,8 @@
   "The save location for SRecode's map file.
 If the save file is nil, then the MAP is not saved between sessions."
   :group 'srecode
-  :type 'file)
+  :type '(choice (const :tag "Don't save" nil)
+                 file))
 
 (defclass srecode-map (eieio-persistent)
   ((fileheaderline :initform ";; SRECODE TEMPLATE MAP")

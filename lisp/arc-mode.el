@@ -231,13 +231,27 @@ Archive and member name will be added."
   :group 'archive)
 
 (defcustom archive-zip-extract
-  (cond ((executable-find "unzip")   '("unzip" "-qq" "-c"))
+  (cond ((executable-find "unzip")
+         (if (and (eq system-type 'android)
+                  ;; Mind that the unzip provided by Android
+                  ;; does not understand -qq or -c, their
+                  ;; functions being assumed by -q and -p
+                  ;; respectively.  Furthermore, the user
+                  ;; might install an unzip executable
+                  ;; distinct from the system-provided unzip,
+                  ;; and such situations must be detected as
+                  ;; well.
+                  (member (executable-find "unzip")
+                          '("/bin/unzip"
+                            "/system/bin/unzip")))
+             '("unzip" "-q" "-p")
+           '("unzip" "-qq" "-c")))
 	(archive-7z-program          `(,archive-7z-program "x" "-so"))
 	((executable-find "pkunzip") '("pkunzip" "-e" "-o-"))
 	(t                           '("unzip" "-qq" "-c")))
   "Program and its options to run in order to extract a zip file member.
-Extraction should happen to standard output.  Archive and member name will
-be added."
+Extraction should happen to standard output.  Archive and member
+name will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t

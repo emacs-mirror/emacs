@@ -315,9 +315,8 @@ argument), then insert output into the current buffer at point."
 	;; make the output as attractive as possible, with no
 	;; extraneous newlines
 	(when intr
-	  (if (eshell-interactive-process-p)
-	      (eshell-wait-for-process (eshell-tail-process)))
-	  (cl-assert (not (eshell-interactive-process-p)))
+	  (apply #'eshell-wait-for-process (cadr eshell-foreground-command))
+	  (cl-assert (not eshell-foreground-command))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
