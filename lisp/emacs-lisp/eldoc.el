@@ -132,7 +132,9 @@ documentation in the echo area if the dedicated documentation
 buffer (displayed by `eldoc-doc-buffer') is already displayed in
 some window.  If the value is the symbol `maybe', then the echo area
 is only skipped if the documentation needs to be truncated there."
-  :type 'boolean)
+  :type '(choice (const :tag "Prefer ElDoc's documentation buffer" t)
+                 (const :tag "Prefer echo area" nil)
+                 (const :tag "Skip echo area if truncating" maybe)))
 
 (defface eldoc-highlight-function-argument
   '((t (:inherit bold)))
