@@ -1680,47 +1680,66 @@ This is a heuristic for guessing the width of a documentation
 string: `byte-compile--wide-docstring-p' assumes that any
 `substitute-command-keys' command substitutions are this long.")
 
-(defun byte-compile--wide-docstring-p (docstring col)
-  "Return t if string DOCSTRING is wider than COL.
+(defun bytecomp--docstring-line-width (str)
+  "An approximation of the displayed width of docstring line STR."
+  (when (string-search "\\`" str)
+    (setq str (replace-regexp-in-string
+               (rx "\\`" (group (* (not "'"))) "'")
+               "\\1"
+               str t)))
+  (when (string-search "\\[" str)
+    (setq str (replace-regexp-in-string
+               (rx "\\[" (* (not "]")) "]")
+               (make-string byte-compile--wide-docstring-substitution-len ?x)
+               str t t)))
+  (setq str
+        (replace-regexp-in-string
+         (rx (or
+              ;; Ignore some URLs.
+              (seq "http" (? "s") "://" (* nonl))
+              ;; Ignore these `substitute-command-keys' substitutions.
+              (seq "\\" (or "="
+                            (seq "<" (* (not ">")) ">")
+                            (seq "{" (* (not "}")) "}")))
+              ;; Ignore the function signature that's stashed at the end of
+              ;; the doc string (in some circumstances).
+              (seq bol "(" (+ (any word "-/:[]&"))
+                   ;; One or more arguments.
+                   (+ " " (or
+                           ;; Arguments.
+                           (+ (or (syntax symbol)
+                                  (any word "-/:[]&=()<>.,?^\\#*'\"")))
+                           ;; Argument that is a list.
+                           (seq "(" (* (not ")")) ")")))
+                   ")")))
+         "" str t t))
+  (length str))
+
+(defun byte-compile--wide-docstring-p (docstring max-width)
+  "Whether DOCSTRING contains a line wider than MAX-WIDTH.
 Ignore all `substitute-command-keys' substitutions, except for
 the `\\\\=[command]' ones that are assumed to be of length
-`byte-compile--wide-docstring-substitution-len'.  Also ignore
-URLs."
-  (string-match
-   (format "^.\\{%d,\\}$" (min (1+ col) #xffff)) ; Heed RE_DUP_MAX.
-   (replace-regexp-in-string
-    (rx (or
-         ;; Ignore some URLs.
-         (seq "http" (? "s") "://" (* nonl))
-         ;; Ignore these `substitute-command-keys' substitutions.
-         (seq "\\" (or "="
-                       (seq "<" (* (not ">")) ">")
-                       (seq "{" (* (not "}")) "}")))
-         ;; Ignore the function signature that's stashed at the end of
-         ;; the doc string (in some circumstances).
-         (seq bol "(" (+ (any word "-/:[]&"))
-              ;; One or more arguments.
-              (+ " " (or
-                      ;; Arguments.
-                      (+ (or (syntax symbol)
-                             (any word "-/:[]&=()<>.,?^\\#*'\"")))
-                      ;; Argument that is a list.
-                      (seq "(" (* (not ")")) ")")))
-              ")")))
-    ""
-    ;; Heuristic: We can't reliably do `substitute-command-keys'
-    ;; substitutions, since the value of a keymap in general can't be
-    ;; known at compile time.  So instead, we assume that these
-    ;; substitutions are of some length N.
-    (replace-regexp-in-string
-     (rx "\\[" (* (not "]")) "]")
-     (make-string byte-compile--wide-docstring-substitution-len ?x)
-     ;; For literal key sequence substitutions (e.g. "\\`C-h'"), just
-     ;; remove the markup as `substitute-command-keys' would.
-     (replace-regexp-in-string
-      (rx "\\`" (group (* (not "'"))) "'")
-      "\\1"
-      docstring)))))
+`byte-compile--wide-docstring-substitution-len'.  Also ignore URLs."
+  (let ((string-len (length docstring))
+        (start 0)
+        (too-wide nil))
+    (while (< start string-len)
+      (let ((eol (or (string-search "\n" docstring start)
+                     string-len)))
+        ;; Since `bytecomp--docstring-line-width' is almost always
+        ;; contractive, we can safely assume that if the raw length is
+        ;; within the allowed width, then so is the transformed width.
+        ;; This allows us to avoid the very expensive transformation in
+        ;; most cases.
+        (if (and (> (- eol start) max-width)
+                 (> (bytecomp--docstring-line-width
+                     (substring docstring start eol))
+                    max-width))
+            (progn
+              (setq too-wide t)
+              (setq start string-len))
+          (setq start (1+ eol)))))
+    too-wide))
 
 (defcustom byte-compile-docstring-max-column 80
   "Recommended maximum width of doc string lines.
