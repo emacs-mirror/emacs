@@ -921,6 +921,48 @@ public final class EmacsService extends Service
 
   /* Content provider functions.  */
 
+  /* Return a ContentResolver capable of accessing as many files as
+     possible, namely the content resolver of the last selected
+     activity if available: only they posses the rights to access drag
+     and drop files.  */
+
+  public ContentResolver
+  getUsefulContentResolver ()
+  {
+    EmacsActivity activity;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      /* Since the system predates drag and drop, return this resolver
+	 to avoid any unforseen difficulties.  */
+      return resolver;
+
+    activity = EmacsActivity.lastFocusedActivity;
+    if (activity == null)
+      return resolver;
+
+    return activity.getContentResolver ();
+  }
+
+  /* Return a context whose ContentResolver is granted access to most
+     files, as in `getUsefulContentResolver'.  */
+
+  public Context
+  getContentResolverContext ()
+  {
+    EmacsActivity activity;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      /* Since the system predates drag and drop, return this resolver
+	 to avoid any unforseen difficulties.  */
+      return this;
+
+    activity = EmacsActivity.lastFocusedActivity;
+    if (activity == null)
+      return this;
+
+    return activity;
+  }
+
   /* Open a content URI described by the bytes BYTES, a non-terminated
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
@@ -934,6 +976,9 @@ public final class EmacsService extends Service
     String name, mode;
     ParcelFileDescriptor fd;
     int i;
+    ContentResolver resolver;
+
+    resolver = getUsefulContentResolver ();
 
     /* Figure out the file access mode.  */
 
@@ -978,6 +1023,7 @@ public final class EmacsService extends Service
       }
     catch (Exception exception)
       {
+	exception.printStackTrace ();
 	return -1;
       }
   }
@@ -994,6 +1040,11 @@ public final class EmacsService extends Service
     ParcelFileDescriptor fd;
     Uri uri;
     int rc, flags;
+    Context context;
+    ContentResolver resolver;
+    ParcelFileDescriptor descriptor;
+
+    context = getContentResolverContext ();
 
     uri = Uri.parse (name);
     flags = 0;
@@ -1004,8 +1055,42 @@ public final class EmacsService extends Service
     if (writable)
       flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    rc = checkCallingUriPermission (uri, flags);
-    return rc == PackageManager.PERMISSION_GRANTED;
+    rc = context.checkCallingUriPermission (uri, flags);
+
+    if (rc == PackageManager.PERMISSION_GRANTED)
+      return true;
+
+    /* In the event checkCallingUriPermission fails and only read
+       permissions are being verified, attempt to query the URI.  This
+       enables ascertaining whether drag and drop URIs can be
+       accessed, something otherwise not provided for.  */
+
+    descriptor = null;
+
+    try
+      {
+	resolver = context.getContentResolver ();
+        descriptor = resolver.openFileDescriptor (uri, "r");
+	return true;
+      }
+    catch (Exception exception)
+      {
+	/* Ignored.  */
+      }
+    finally
+      {
+	try
+	  {
+	    if (descriptor != null)
+	      descriptor.close ();
+	  }
+	catch (IOException exception)
+	  {
+	    /* Ignored.  */
+	  }
+      }
+
+    return false;
   }
 
   /* Build a content file name for URI.
