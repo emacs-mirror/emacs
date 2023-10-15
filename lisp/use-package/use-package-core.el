@@ -1670,7 +1670,8 @@ indicating the latest commit) revision."
                          (_ (ensure-string v))))
                  (:vc-backend (ensure-symbol v))
                  (_ (ensure-string v)))))
-    (pcase-let ((valid-kws '(:url :branch :lisp-dir :main-file :vc-backend :rev))
+    (pcase-let ((valid-kws '( :url :branch :lisp-dir :main-file :vc-backend :rev
+                              :shell-command :make))
                 (`(,name . ,opts) arg))
       (if (stringp opts)                ; (NAME . VERSION-STRING) ?
           (list name opts)
