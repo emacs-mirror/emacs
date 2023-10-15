@@ -795,7 +795,9 @@ the current buffer is in `erc-mode'."
     (if (and (not (erc-buffer-visible (current-buffer)))
 	     (not (member this-channel erc-track-exclude))
 	     (not (and erc-track-exclude-server-buffer
-		       (erc-server-buffer-p)))
+                       ;; FIXME either use `erc--server-buffer-p' or
+                       ;; explain why that's unwise.
+                       (erc-server-or-unjoined-channel-buffer-p)))
 	     (not (erc-message-type-member
 		   (or (erc-find-parsed-property)
 		       (point-min))

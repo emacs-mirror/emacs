@@ -491,7 +491,9 @@ Use this defun with `erc-insert-modify-hook'."
          (message (buffer-substring message-beg (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
-			 (erc-server-buffer-p))))
+                         ;; FIXME replace with `erc--server-buffer-p'
+                         ;; or explain why that's unwise.
+                         (erc-server-or-unjoined-channel-buffer-p))))
       (mapc
        (lambda (match-type)
 	 (goto-char (point-min))

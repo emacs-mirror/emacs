@@ -1417,7 +1417,7 @@ Please be sure to use this function in server-buffers.  In
 channel-buffers it may not work at all, as it uses the LOCAL
 argument of `add-hook' and `remove-hook' to ensure multiserver
 capabilities."
-  (unless (erc-server-buffer-p)
+  (unless (erc--server-buffer-p)
     (error
      "You should only run `erc-once-with-server-event' in a server buffer"))
   (let ((fun (make-symbol "fun"))
@@ -1474,19 +1474,30 @@ the process buffer."
   (and (processp erc-server-process)
        (buffer-live-p (process-buffer erc-server-process))))
 
-(defun erc-server-buffer-p (&optional buffer)
+(define-obsolete-function-alias
+  'erc-server-buffer-p 'erc-server-or-unjoined-channel-buffer-p "30.1")
+(defun erc-server-or-unjoined-channel-buffer-p (&optional buffer)
   "Return non-nil if argument BUFFER is an ERC server buffer.
-
-If BUFFER is nil, the current buffer is used."
+If BUFFER is nil, use the current buffer.  For historical
+reasons, also return non-nil for channel buffers the client has
+parted or from which it's been kicked."
   (with-current-buffer (or buffer (current-buffer))
     (and (eq major-mode 'erc-mode)
          (null (erc-default-target)))))
+
+(defun erc--server-buffer-p (&optional buffer)
+  "Return non-nil if BUFFER is an ERC server buffer.
+Without BUFFER, use the current buffer."
+  (if buffer
+      (with-current-buffer buffer
+        (and (eq major-mode 'erc-mode) (null erc--target)))
+    (and (eq major-mode 'erc-mode) (null erc--target))))
 
 (defun erc-open-server-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC server buffer with an open IRC process.
 
 If BUFFER is nil, the current buffer is used."
-  (and (erc-server-buffer-p buffer)
+  (and (erc--server-buffer-p buffer)
        (erc-server-process-alive buffer)))
 
 (defun erc-query-buffer-p (&optional buffer)
@@ -1858,7 +1869,10 @@ All strings are compared according to IRC protocol case rules, see
 
 (defun erc-get-buffer (target &optional proc)
   "Return the buffer matching TARGET in the process PROC.
-If PROC is not supplied, all processes are searched."
+Without PROC, search all ERC buffers.  For historical reasons,
+skip buffers for channels the client has \"PART\"ed or from which
+it's been \"KICK\"ed.  Expect users to use a different function
+for finding targets independent of \"JOIN\"edness."
   (let ((downcased-target (erc-downcase target)))
     (catch 'buffer
       (erc-buffer-filter
@@ -4632,10 +4646,7 @@ the message given by REASON."
     ;; kill them
     (run-at-time
      4 nil
-     (lambda ()
-       (dolist (buffer (erc-buffer-list (lambda (buf)
-                                          (not (erc-server-buffer-p buf)))))
-         (kill-buffer buffer)))))
+     #'erc-buffer-do (lambda () (when erc--target (kill-buffer)))))
   t)
 
 (defalias 'erc-cmd-GQ #'erc-cmd-GQUIT)
@@ -7075,7 +7086,9 @@ See also `erc-downcase'."
 ;; continue to use `erc-default-target'.
 
 (defun erc-default-target ()
-  "Return the current default target (as a character string) or nil if none."
+  "Return the current channel or query target, if any.
+For historical reasons, return nil in channel buffers if not
+currently joined."
   (let ((tgt (car erc-default-recipients)))
     (cond
      ((not tgt) nil)
@@ -7637,15 +7650,14 @@ If it doesn't exist, create it."
   (unless (file-attributes dir) (make-directory dir))
   (or (file-accessible-directory-p dir) (error "Cannot access %s" dir)))
 
+;; FIXME make function obsolete or alias to something less confusing.
 (defun erc-kill-query-buffers (process)
-  "Kill all buffers of PROCESS.
-Does nothing if PROCESS is not a process object."
+  "Kill all target buffers of PROCESS, including channel buffers.
+Do nothing if PROCESS is not a process object."
   ;; here, we only want to match the channel buffers, to avoid
   ;; "selecting killed buffers" b0rkage.
   (when (processp process)
-    (erc-with-all-buffers-of-server process
-      (lambda ()
-	(not (erc-server-buffer-p)))
+    (erc-with-all-buffers-of-server process (lambda () erc--target)
       (kill-buffer (current-buffer)))))
 
 (defun erc-nick-at-point ()
