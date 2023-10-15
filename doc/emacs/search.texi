@@ -1158,6 +1158,8 @@ surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
 
 Full backtracking capability exists to handle multiple uses of @samp{\|}.
 
+@cindex sub-expressions, in regular expressions
+@cindex grouping, in regular expressions
 @item \( @dots{} \)
 is a grouping construct that serves three purposes:
 
