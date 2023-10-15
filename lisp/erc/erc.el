@@ -534,6 +534,8 @@ See also: `erc-remove-server-user' and
 
 Removes all users in the current channel.  This is called by
 `erc-server-PART' and `erc-server-QUIT'."
+  (when (erc--target-channel-p erc--target)
+    (setf (erc--target-channel-joined-p erc--target) nil))
   (when (and erc-server-connected
              (erc-server-process-alive)
              (hash-table-p erc-channel-users))
@@ -1391,16 +1393,6 @@ buffer during local-module setup and `erc-mode-hook' activation.")
              #'make-erc--target)
            :string string :symbol (intern (erc-downcase string))))
 
-(defvar-local erc--target nil
-  "Info about a buffer's target, if any.")
-
-;; Temporary internal getter to ease transition to `erc--target'
-;; everywhere.  Will be replaced by updated `erc-default-target'.
-(defun erc--default-target ()
-  "Return target string or nil."
-  (when erc--target
-    (erc--target-string erc--target)))
-
 (defun erc-once-with-server-event (event f)
   "Run function F the next time EVENT occurs in the `current-buffer'.
 
@@ -1504,7 +1496,7 @@ If BUFFER is nil, the current buffer is used."
   "Return non-nil if BUFFER is an ERC query buffer.
 If BUFFER is nil, the current buffer is used."
   (with-current-buffer (or buffer (current-buffer))
-    (let ((target (erc-default-target)))
+    (let ((target (erc-target)))
       (and (eq major-mode 'erc-mode)
            target
            (not (memq (aref target 0) '(?# ?& ?+ ?!)))))))
@@ -2492,10 +2484,13 @@ in here get called with three parameters, SERVER, PORT and NICK."
   :type '(repeat function))
 
 (defcustom erc-after-connect nil
-  "Functions called after connecting to a server.
-This functions in this variable gets executed when an end of MOTD
-has been received.  All functions in here get called with the
-parameters SERVER and NICK."
+  "Abnormal hook run upon establishing a logical IRC connection.
+Runs on MOTD's end when `erc-server-connected' becomes non-nil.
+ERC calls members with `erc-server-announced-name', falling back
+to the 376/422 message's \"sender\", as well as the current nick,
+as given by the 376/422 message's \"target\" parameter, which is
+typically the same as that reported by `erc-current-nick'."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-hooks
   :type '(repeat function))
 
@@ -5749,9 +5744,7 @@ See also: `erc-echo-notice-in-user-buffers',
         (erc-load-script f)))))
 
 (defun erc-connection-established (proc parsed)
-  "Run just after connection.
-
-Set user modes and run `erc-after-connect' hook."
+  "Set user mode and run `erc-after-connect' hook in server buffer."
   (with-current-buffer (process-buffer proc)
     (unless erc-server-connected ; only once per session
       (let ((server (or erc-server-announced-name
@@ -5770,14 +5763,11 @@ Set user modes and run `erc-after-connect' hook."
         (erc-update-mode-line)
         (erc-set-initial-user-mode nick buffer)
         (erc-server-setup-periodical-ping buffer)
-        (run-hook-with-args 'erc-after-connect server nick))))
-
-  (when erc-unhide-query-prompt
-    (erc-with-all-buffers-of-server proc
-      nil ; FIXME use `erc--target' after bug#48598
-      (when (and (erc-default-target)
-                 (not (erc-channel-p (car erc-default-recipients))))
-        (erc--unhide-prompt)))))
+        (when erc-unhide-query-prompt
+          (erc-with-all-buffers-of-server erc-server-process nil
+            (when (and erc--target (not (erc--target-channel-p erc--target)))
+              (erc--unhide-prompt))))
+        (run-hook-with-args 'erc-after-connect server nick)))))
 
 (defun erc-set-initial-user-mode (nick buffer)
   "If `erc-user-mode' is non-nil for NICK, set the user modes.
@@ -7065,25 +7055,11 @@ See also `erc-downcase'."
 ;; default target handling
 
 (defun erc--current-buffer-joined-p ()
-  "Return whether the current target buffer is joined."
-  ;; This may be a reliable means of detecting subscription status,
-  ;; but it's also roundabout and awkward.  Perhaps it's worth
-  ;; discussing adding a joined slot to `erc--target' for this.
+  "Return non-nil if the current buffer is a channel and is joined."
   (cl-assert erc--target)
   (and (erc--target-channel-p erc--target)
-       (erc-get-channel-user (erc-current-nick)) t))
-
-;; While `erc-default-target' happens to return nil in channel buffers
-;; you've parted or from which you've been kicked, using it to detect
-;; whether a channel is currently joined may become unreliable in the
-;; future.  For now, third-party code can use
-;;
-;;   (erc-get-channel-user (erc-current-nick))
-;;
-;; A predicate may be provided eventually.  For retrieving a target's
-;; name regardless of subscription or connection status, new library
-;; code should use `erc--default-target'.  Third-party code should
-;; continue to use `erc-default-target'.
+       (erc--target-channel-joined-p erc--target)
+       t))
 
 (defun erc-default-target ()
   "Return the current channel or query target, if any.
@@ -8315,6 +8291,7 @@ See also `kill-buffer'."
   :group 'erc-hooks
   :type 'hook)
 
+;; FIXME alias and deprecate current *-function suffixed name.
 (defun erc-kill-buffer-function ()
   "Function to call when an ERC buffer is killed.
 This function should be on `kill-buffer-hook'.
@@ -8328,7 +8305,7 @@ or `erc-kill-buffer-hook' if any other buffer."
     (cond
      ((eq (erc-server-buffer) (current-buffer))
       (run-hooks 'erc-kill-server-hook))
-     ((erc-channel-p (or (erc-default-target) (buffer-name)))
+     ((erc--target-channel-p erc--target)
       (run-hooks 'erc-kill-channel-hook))
      (t
       (run-hooks 'erc-kill-buffer-hook)))))

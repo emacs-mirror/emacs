@@ -425,6 +425,24 @@ use of 'insert-before-markers' instead of 'insert'.  As always, users
 feeling unduly inconvenienced by these changes are encouraged to voice
 their concerns on the bug list.
 
+*** Introducing new ways to detect ERC buffer types.
+The old standby 'erc-default-target' has served ERC well for over two
+decades.  But a lesser known gotcha affecting its use has always
+haunted an unlucky few, that is, the function has always returned
+non-nil in "unjoined" channel buffers (those that the client has
+parted with or been kicked from).  While perhaps not itself a major
+footgun, recessive pitfalls rooted in this subtlety continue to affect
+dependent functions, like 'erc-get-buffer'.
+
+To discourage misuse of 'erc-default-target', ERC 5.6 offers an
+alternative in the function 'erc-target', which is identical to the
+former except for its disregard for "joinedness."  As a related bonus,
+the dependent function 'erc-server-buffer-p' is being rebranded as
+'erc-server-or-unjoined-channel-buffer-p'.  Unfortunately, this
+release lacks a similar solution for detecting "joinedness" directly,
+but users can turn to 'xor'-ing 'erc-default-target' and 'erc-target'
+as a makeshift kludge.
+
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to
 third-party modules as 'erc-compat-call' and 'erc-compat-function'.

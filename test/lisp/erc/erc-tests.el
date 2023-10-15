@@ -69,26 +69,25 @@
     (with-current-buffer (get-buffer-create "#foo")
       (erc-mode)
       (setq erc-server-process proc-exnet)
-      (setq erc-default-recipients '("#foo")))
+      (setq erc--target (erc--target-from-string "#foo")))
 
     (with-current-buffer (get-buffer-create "#spam")
       (erc-mode)
       (setq erc-server-process proc-onet)
-      (setq erc-default-recipients '("#spam")))
+      (setq erc--target (erc--target-from-string "#spam")))
 
     (with-current-buffer (get-buffer-create "#bar")
       (erc-mode)
       (setq erc-server-process proc-onet)
-      (setq erc-default-recipients '("#bar")))
+      (setq erc--target (erc--target-from-string "#bar")))
 
     (with-current-buffer (get-buffer-create "#baz")
       (erc-mode)
       (setq erc-server-process proc-exnet)
-      (setq erc-default-recipients '("#baz")))
+      (setq erc--target (erc--target-from-string "#baz")))
 
     (should (eq (get-buffer-process "ExampleNet") proc-exnet))
-    (erc-with-all-buffers-of-server (get-buffer-process "ExampleNet")
-      nil
+    (erc-with-all-buffers-of-server (get-buffer-process "ExampleNet") nil
       (kill-buffer))
 
     (should-not (get-buffer "ExampleNet"))
@@ -102,8 +101,7 @@
            (calls 0)
            (get-test (lambda () (cl-incf calls) test)))
 
-      (erc-with-all-buffers-of-server proc-onet
-        (funcall get-test)
+      (erc-with-all-buffers-of-server proc-onet (funcall get-test)
         (kill-buffer))
 
       (should (= calls 1)))
@@ -812,7 +810,7 @@
 
 (ert-deftest erc--target-from-string ()
   (should (equal (erc--target-from-string "#chan")
-                 #s(erc--target-channel "#chan" \#chan)))
+                 #s(erc--target-channel "#chan" \#chan nil)))
 
   (should (equal (erc--target-from-string "Bob")
                  #s(erc--target "Bob" bob)))
@@ -820,7 +818,7 @@
   (let ((erc--isupport-params (make-hash-table)))
     (puthash 'CHANTYPES  '("&#") erc--isupport-params)
     (should (equal (erc--target-from-string "&Bitlbee")
-                   #s(erc--target-channel-local "&Bitlbee" &bitlbee)))))
+                   #s(erc--target-channel-local "&Bitlbee" &bitlbee nil)))))
 
 (ert-deftest erc--modify-local-map ()
   (when (and (bound-and-true-p erc-irccontrols-mode)
@@ -1846,6 +1844,7 @@
         (erc-mode)
         (setq erc-server-process (buffer-local-value 'erc-server-process
                                                      (get-buffer "ExampleNet"))
+              erc--target (erc--target-from-string "#chan")
               erc-default-recipients '("#chan")
               erc-channel-users (make-hash-table :test 'equal)
               erc-network 'ExampleNet)
