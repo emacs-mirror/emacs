@@ -854,14 +854,6 @@ This can help avoid some awkward skip conditions.  For example
 '(skip-unless (not noninteractive))' can be changed to the easier
 to read '(skip-when noninteractive)'.
 
-** Checkdoc
-
----
-*** New checkdock warning if not using lexical-binding.
-Checkdoc now warns if the first line of an Emacs Lisp file does not
-end with a "-*- lexical-binding: t -*-" cookie.  Customize the user
-option 'checkdoc-lexical-binding-flag' to nil to disable this warning.
-
 ** URL
 
 +++
@@ -1178,6 +1170,30 @@ that have defined 'sexp' in 'treesit-thing-settings' to enable
 sexp-related motion commands.
 
 ** New or changed byte-compilation warnings
+
+---
+*** Warn about missing 'lexical-binding' directive.
+The compiler now warns if an Elisp file lacks the standard
+'-*- lexical-binding: ... -*-' cookie on the first line.
+This line typically looks something like
+
+    ;;; My little pony mode  -*- lexical-binding: t -*-
+
+It is needed to inform the compiler about which dialect of ELisp
+your code is using: the modern dialect with lexical binding or
+the old dialect with only dynamic binding.
+
+Lexical binding avoids some name conflicts and allows the compiler
+to detect more mistakes and generate more efficient code.  To adapt
+your code to lexical binding, see the "(elisp) Converting to Lexical
+Binding" section in the manual.
+
+If you are unable to convert the code to lexical binding, you can insert
+the line
+
+    ;;; -*- lexical-binding: nil -*-
+
+first in the file to declare that it uses the old dialect.
 
 ---
 *** Warn about empty bodies for more special forms and macros.
