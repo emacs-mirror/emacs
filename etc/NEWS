@@ -491,6 +491,10 @@ When this option is non-nil, remote file names are not completed by
 Pcomplete.  Packages, like 'shell-mode', could set this in order to
 suppress remote file name completion at all.
 
+---
+*** Completion for the 'doas' command has been added.
+Command completion for 'doas' in Eshell and Shell mode will now work.
+
 ** Shell Mode
 
 +++
