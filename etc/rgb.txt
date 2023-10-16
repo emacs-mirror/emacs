@@ -93,14 +93,6 @@
 119 136 153		LightSlateGrey
 190 190 190		gray
 190 190 190		grey
-190 190 190		x11 gray
-190 190 190		X11Gray
-190 190 190		x11 grey
-190 190 190		X11Grey
-128 128 128		web gray
-128 128 128		WebGray
-128 128 128		web grey
-128 128 128		WebGrey
 211 211 211		light grey
 211 211 211		LightGrey
 211 211 211		light gray
@@ -149,7 +141,6 @@
  72 209 204		MediumTurquoise
  64 224 208		turquoise
   0 255 255		cyan
-  0 255 255		aqua
 224 255 255		light cyan
 224 255 255		LightCyan
  95 158 160		cadet blue
@@ -176,11 +167,6 @@
 124 252   0		lawn green
 124 252   0		LawnGreen
   0 255   0		green
-  0 255   0		lime
-  0 255   0		x11 green
-  0 255   0		X11Green
-  0 128   0		web green
-  0 128   0		WebGreen
 127 255   0		chartreuse
   0 250 154		medium spring green
   0 250 154		MediumSpringGreen
@@ -204,7 +190,7 @@
 255 255 224		light yellow
 255 255 224		LightYellow
 255 255   0		yellow
-255 215   0		gold
+255 215   0 		gold
 238 221 130		light goldenrod
 238 221 130		LightGoldenrod
 218 165  32		goldenrod
@@ -252,16 +238,11 @@
 219 112 147		pale violet red
 219 112 147		PaleVioletRed
 176  48  96		maroon
-176  48  96		x11 maroon
-176  48  96		X11Maroon
-128   0   0		web maroon
-128   0   0		WebMaroon
 199  21 133		medium violet red
 199  21 133		MediumVioletRed
 208  32 144		violet red
 208  32 144		VioletRed
 255   0 255		magenta
-255   0 255		fuchsia
 238 130 238		violet
 221 160 221		plum
 218 112 214		orchid
@@ -274,10 +255,6 @@
 138  43 226		blue violet
 138  43 226		BlueViolet
 160  32 240		purple
-160  32 240		x11 purple
-160  32 240		X11Purple
-128   0 128		web purple
-128   0 128		WebPurple
 147 112 219		medium purple
 147 112 219		MediumPurple
 216 191 216		thistle
@@ -304,7 +281,7 @@
 255 222 173		NavajoWhite1
 238 207 161		NavajoWhite2
 205 179 139		NavajoWhite3
-139 121  94		NavajoWhite4
+139 121	 94		NavajoWhite4
 255 250 205		LemonChiffon1
 238 233 191		LemonChiffon2
 205 201 165		LemonChiffon3
@@ -412,131 +389,131 @@
  84 255 159		SeaGreen1
  78 238 148		SeaGreen2
  67 205 128		SeaGreen3
- 46 139  87		SeaGreen4
+ 46 139	 87		SeaGreen4
 154 255 154		PaleGreen1
 144 238 144		PaleGreen2
 124 205 124		PaleGreen3
- 84 139  84		PaleGreen4
+ 84 139	 84		PaleGreen4
   0 255 127		SpringGreen1
   0 238 118		SpringGreen2
   0 205 102		SpringGreen3
-  0 139  69		SpringGreen4
-  0 255   0		green1
-  0 238   0		green2
-  0 205   0		green3
-  0 139   0		green4
-127 255   0		chartreuse1
-118 238   0		chartreuse2
-102 205   0		chartreuse3
- 69 139   0		chartreuse4
-192 255  62		OliveDrab1
-179 238  58		OliveDrab2
-154 205  50		OliveDrab3
-105 139  34		OliveDrab4
+  0 139	 69		SpringGreen4
+  0 255	  0		green1
+  0 238	  0		green2
+  0 205	  0		green3
+  0 139	  0		green4
+127 255	  0		chartreuse1
+118 238	  0		chartreuse2
+102 205	  0		chartreuse3
+ 69 139	  0		chartreuse4
+192 255	 62		OliveDrab1
+179 238	 58		OliveDrab2
+154 205	 50		OliveDrab3
+105 139	 34		OliveDrab4
 202 255 112		DarkOliveGreen1
 188 238 104		DarkOliveGreen2
-162 205  90		DarkOliveGreen3
-110 139  61		DarkOliveGreen4
+162 205	 90		DarkOliveGreen3
+110 139	 61		DarkOliveGreen4
 255 246 143		khaki1
 238 230 133		khaki2
 205 198 115		khaki3
-139 134  78		khaki4
+139 134	 78		khaki4
 255 236 139		LightGoldenrod1
 238 220 130		LightGoldenrod2
 205 190 112		LightGoldenrod3
-139 129  76		LightGoldenrod4
+139 129	 76		LightGoldenrod4
 255 255 224		LightYellow1
 238 238 209		LightYellow2
 205 205 180		LightYellow3
 139 139 122		LightYellow4
-255 255   0		yellow1
-238 238   0		yellow2
-205 205   0		yellow3
-139 139   0		yellow4
-255 215   0		gold1
-238 201   0		gold2
-205 173   0		gold3
-139 117   0		gold4
-255 193  37		goldenrod1
-238 180  34		goldenrod2
-205 155  29		goldenrod3
-139 105  20		goldenrod4
-255 185  15		DarkGoldenrod1
-238 173  14		DarkGoldenrod2
-205 149  12		DarkGoldenrod3
-139 101   8		DarkGoldenrod4
+255 255	  0		yellow1
+238 238	  0		yellow2
+205 205	  0		yellow3
+139 139	  0		yellow4
+255 215	  0		gold1
+238 201	  0		gold2
+205 173	  0		gold3
+139 117	  0		gold4
+255 193	 37		goldenrod1
+238 180	 34		goldenrod2
+205 155	 29		goldenrod3
+139 105	 20		goldenrod4
+255 185	 15		DarkGoldenrod1
+238 173	 14		DarkGoldenrod2
+205 149	 12		DarkGoldenrod3
+139 101	  8		DarkGoldenrod4
 255 193 193		RosyBrown1
 238 180 180		RosyBrown2
 205 155 155		RosyBrown3
 139 105 105		RosyBrown4
 255 106 106		IndianRed1
-238  99  99		IndianRed2
-205  85  85		IndianRed3
-139  58  58		IndianRed4
-255 130  71		sienna1
-238 121  66		sienna2
-205 104  57		sienna3
-139  71  38		sienna4
+238  99	 99		IndianRed2
+205  85	 85		IndianRed3
+139  58	 58		IndianRed4
+255 130	 71		sienna1
+238 121	 66		sienna2
+205 104	 57		sienna3
+139  71	 38		sienna4
 255 211 155		burlywood1
 238 197 145		burlywood2
 205 170 125		burlywood3
-139 115  85		burlywood4
+139 115	 85		burlywood4
 255 231 186		wheat1
 238 216 174		wheat2
 205 186 150		wheat3
 139 126 102		wheat4
-255 165  79		tan1
-238 154  73		tan2
-205 133  63		tan3
-139  90  43		tan4
-255 127  36		chocolate1
-238 118  33		chocolate2
-205 102  29		chocolate3
-139  69  19		chocolate4
-255  48  48		firebrick1
-238  44  44		firebrick2
-205  38  38		firebrick3
-139  26  26		firebrick4
-255  64  64		brown1
-238  59  59		brown2
-205  51  51		brown3
-139  35  35		brown4
+255 165	 79		tan1
+238 154	 73		tan2
+205 133	 63		tan3
+139  90	 43		tan4
+255 127	 36		chocolate1
+238 118	 33		chocolate2
+205 102	 29		chocolate3
+139  69	 19		chocolate4
+255  48	 48		firebrick1
+238  44	 44		firebrick2
+205  38	 38		firebrick3
+139  26	 26		firebrick4
+255  64	 64		brown1
+238  59	 59		brown2
+205  51	 51		brown3
+139  35	 35		brown4
 255 140 105		salmon1
-238 130  98		salmon2
-205 112  84		salmon3
-139  76  57		salmon4
+238 130	 98		salmon2
+205 112	 84		salmon3
+139  76	 57		salmon4
 255 160 122		LightSalmon1
 238 149 114		LightSalmon2
-205 129  98		LightSalmon3
-139  87  66		LightSalmon4
-255 165   0		orange1
-238 154   0		orange2
-205 133   0		orange3
-139  90   0		orange4
-255 127   0		DarkOrange1
-238 118   0		DarkOrange2
-205 102   0		DarkOrange3
-139  69   0		DarkOrange4
-255 114  86		coral1
-238 106  80		coral2
-205  91  69		coral3
-139  62  47		coral4
-255  99  71		tomato1
-238  92  66		tomato2
-205  79  57		tomato3
-139  54  38		tomato4
-255  69   0		OrangeRed1
-238  64   0		OrangeRed2
-205  55   0		OrangeRed3
-139  37   0		OrangeRed4
-255   0   0		red1
-238   0   0		red2
-205   0   0		red3
-139   0   0		red4
+205 129	 98		LightSalmon3
+139  87	 66		LightSalmon4
+255 165	  0		orange1
+238 154	  0		orange2
+205 133	  0		orange3
+139  90	  0		orange4
+255 127	  0		DarkOrange1
+238 118	  0		DarkOrange2
+205 102	  0		DarkOrange3
+139  69	  0		DarkOrange4
+255 114	 86		coral1
+238 106	 80		coral2
+205  91	 69		coral3
+139  62	 47		coral4
+255  99	 71		tomato1
+238  92	 66		tomato2
+205  79	 57		tomato3
+139  54	 38		tomato4
+255  69	  0		OrangeRed1
+238  64	  0		OrangeRed2
+205  55	  0		OrangeRed3
+139  37	  0		OrangeRed4
+255   0	  0		red1
+238   0	  0		red2
+205   0	  0		red3
+139   0	  0		red4
 255  20 147		DeepPink1
 238  18 137		DeepPink2
 205  16 118		DeepPink3
-139  10  80		DeepPink4
+139  10	 80		DeepPink4
 255 110 180		HotPink1
 238 106 167		HotPink2
 205  96 144		HotPink3
@@ -552,15 +529,15 @@
 255 130 171		PaleVioletRed1
 238 121 159		PaleVioletRed2
 205 104 137		PaleVioletRed3
-139  71  93		PaleVioletRed4
+139  71	 93		PaleVioletRed4
 255  52 179		maroon1
 238  48 167		maroon2
 205  41 144		maroon3
-139  28  98		maroon4
+139  28	 98		maroon4
 255  62 150		VioletRed1
 238  58 140		VioletRed2
 205  50 120		VioletRed3
-139  34  82		VioletRed4
+139  34	 82		VioletRed4
 255   0 255		magenta1
 238   0 238		magenta2
 205   0 205		magenta3
@@ -601,218 +578,211 @@
   5   5   5		grey2
   8   8   8		gray3
   8   8   8		grey3
- 10  10  10		gray4
- 10  10  10		grey4
- 13  13  13		gray5
- 13  13  13		grey5
- 15  15  15		gray6
- 15  15  15		grey6
- 18  18  18		gray7
- 18  18  18		grey7
- 20  20  20		gray8
- 20  20  20		grey8
- 23  23  23		gray9
- 23  23  23		grey9
- 26  26  26		gray10
- 26  26  26		grey10
- 28  28  28		gray11
- 28  28  28		grey11
- 31  31  31		gray12
- 31  31  31		grey12
- 33  33  33		gray13
- 33  33  33		grey13
- 36  36  36		gray14
- 36  36  36		grey14
- 38  38  38		gray15
- 38  38  38		grey15
- 41  41  41		gray16
- 41  41  41		grey16
- 43  43  43		gray17
- 43  43  43		grey17
- 46  46  46		gray18
- 46  46  46		grey18
- 48  48  48		gray19
- 48  48  48		grey19
- 51  51  51		gray20
- 51  51  51		grey20
- 54  54  54		gray21
- 54  54  54		grey21
- 56  56  56		gray22
- 56  56  56		grey22
- 59  59  59		gray23
- 59  59  59		grey23
- 61  61  61		gray24
- 61  61  61		grey24
- 64  64  64		gray25
- 64  64  64		grey25
- 66  66  66		gray26
- 66  66  66		grey26
- 69  69  69		gray27
- 69  69  69		grey27
- 71  71  71		gray28
- 71  71  71		grey28
- 74  74  74		gray29
- 74  74  74		grey29
- 77  77  77		gray30
- 77  77  77		grey30
- 79  79  79		gray31
- 79  79  79		grey31
- 82  82  82		gray32
- 82  82  82		grey32
- 84  84  84		gray33
- 84  84  84		grey33
- 87  87  87		gray34
- 87  87  87		grey34
- 89  89  89		gray35
- 89  89  89		grey35
- 92  92  92		gray36
- 92  92  92		grey36
- 94  94  94		gray37
- 94  94  94		grey37
- 97  97  97		gray38
- 97  97  97		grey38
- 99  99  99		gray39
- 99  99  99		grey39
-102 102 102		gray40
-102 102 102		grey40
-105 105 105		gray41
-105 105 105		grey41
-107 107 107		gray42
-107 107 107		grey42
-110 110 110		gray43
-110 110 110		grey43
-112 112 112		gray44
-112 112 112		grey44
-115 115 115		gray45
-115 115 115		grey45
-117 117 117		gray46
-117 117 117		grey46
-120 120 120		gray47
-120 120 120		grey47
-122 122 122		gray48
-122 122 122		grey48
-125 125 125		gray49
-125 125 125		grey49
-127 127 127		gray50
-127 127 127		grey50
-130 130 130		gray51
-130 130 130		grey51
-133 133 133		gray52
-133 133 133		grey52
-135 135 135		gray53
-135 135 135		grey53
-138 138 138		gray54
-138 138 138		grey54
-140 140 140		gray55
-140 140 140		grey55
-143 143 143		gray56
-143 143 143		grey56
-145 145 145		gray57
-145 145 145		grey57
-148 148 148		gray58
-148 148 148		grey58
-150 150 150		gray59
-150 150 150		grey59
-153 153 153		gray60
-153 153 153		grey60
-156 156 156		gray61
-156 156 156		grey61
-158 158 158		gray62
-158 158 158		grey62
-161 161 161		gray63
-161 161 161		grey63
-163 163 163		gray64
-163 163 163		grey64
-166 166 166		gray65
-166 166 166		grey65
-168 168 168		gray66
-168 168 168		grey66
-171 171 171		gray67
-171 171 171		grey67
-173 173 173		gray68
-173 173 173		grey68
-176 176 176		gray69
-176 176 176		grey69
-179 179 179		gray70
-179 179 179		grey70
-181 181 181		gray71
-181 181 181		grey71
-184 184 184		gray72
-184 184 184		grey72
-186 186 186		gray73
-186 186 186		grey73
-189 189 189		gray74
-189 189 189		grey74
-191 191 191		gray75
-191 191 191		grey75
-194 194 194		gray76
-194 194 194		grey76
-196 196 196		gray77
-196 196 196		grey77
-199 199 199		gray78
-199 199 199		grey78
-201 201 201		gray79
-201 201 201		grey79
-204 204 204		gray80
-204 204 204		grey80
-207 207 207		gray81
-207 207 207		grey81
-209 209 209		gray82
-209 209 209		grey82
-212 212 212		gray83
-212 212 212		grey83
-214 214 214		gray84
-214 214 214		grey84
-217 217 217		gray85
-217 217 217		grey85
-219 219 219		gray86
-219 219 219		grey86
-222 222 222		gray87
-222 222 222		grey87
-224 224 224		gray88
-224 224 224		grey88
-227 227 227		gray89
-227 227 227		grey89
-229 229 229		gray90
-229 229 229		grey90
-232 232 232		gray91
-232 232 232		grey91
-235 235 235		gray92
-235 235 235		grey92
-237 237 237		gray93
-237 237 237		grey93
-240 240 240		gray94
-240 240 240		grey94
-242 242 242		gray95
-242 242 242		grey95
-245 245 245		gray96
-245 245 245		grey96
-247 247 247		gray97
-247 247 247		grey97
-250 250 250		gray98
-250 250 250		grey98
-252 252 252		gray99
-252 252 252		grey99
-255 255 255		gray100
-255 255 255		grey100
+ 10  10  10 		gray4
+ 10  10  10 		grey4
+ 13  13  13 		gray5
+ 13  13  13 		grey5
+ 15  15  15 		gray6
+ 15  15  15 		grey6
+ 18  18  18 		gray7
+ 18  18  18 		grey7
+ 20  20  20 		gray8
+ 20  20  20 		grey8
+ 23  23  23 		gray9
+ 23  23  23 		grey9
+ 26  26  26 		gray10
+ 26  26  26 		grey10
+ 28  28  28 		gray11
+ 28  28  28 		grey11
+ 31  31  31 		gray12
+ 31  31  31 		grey12
+ 33  33  33 		gray13
+ 33  33  33 		grey13
+ 36  36  36 		gray14
+ 36  36  36 		grey14
+ 38  38  38 		gray15
+ 38  38  38 		grey15
+ 41  41  41 		gray16
+ 41  41  41 		grey16
+ 43  43  43 		gray17
+ 43  43  43 		grey17
+ 46  46  46 		gray18
+ 46  46  46 		grey18
+ 48  48  48 		gray19
+ 48  48  48 		grey19
+ 51  51  51 		gray20
+ 51  51  51 		grey20
+ 54  54  54 		gray21
+ 54  54  54 		grey21
+ 56  56  56 		gray22
+ 56  56  56 		grey22
+ 59  59  59 		gray23
+ 59  59  59 		grey23
+ 61  61  61 		gray24
+ 61  61  61 		grey24
+ 64  64  64 		gray25
+ 64  64  64 		grey25
+ 66  66  66 		gray26
+ 66  66  66 		grey26
+ 69  69  69 		gray27
+ 69  69  69 		grey27
+ 71  71  71 		gray28
+ 71  71  71 		grey28
+ 74  74  74 		gray29
+ 74  74  74 		grey29
+ 77  77  77 		gray30
+ 77  77  77 		grey30
+ 79  79  79 		gray31
+ 79  79  79 		grey31
+ 82  82  82 		gray32
+ 82  82  82 		grey32
+ 84  84  84 		gray33
+ 84  84  84 		grey33
+ 87  87  87 		gray34
+ 87  87  87 		grey34
+ 89  89  89 		gray35
+ 89  89  89 		grey35
+ 92  92  92 		gray36
+ 92  92  92 		grey36
+ 94  94  94 		gray37
+ 94  94  94 		grey37
+ 97  97  97 		gray38
+ 97  97  97 		grey38
+ 99  99  99 		gray39
+ 99  99  99 		grey39
+102 102 102 		gray40
+102 102 102 		grey40
+105 105 105 		gray41
+105 105 105 		grey41
+107 107 107 		gray42
+107 107 107 		grey42
+110 110 110 		gray43
+110 110 110 		grey43
+112 112 112 		gray44
+112 112 112 		grey44
+115 115 115 		gray45
+115 115 115 		grey45
+117 117 117 		gray46
+117 117 117 		grey46
+120 120 120 		gray47
+120 120 120 		grey47
+122 122 122 		gray48
+122 122 122 		grey48
+125 125 125 		gray49
+125 125 125 		grey49
+127 127 127 		gray50
+127 127 127 		grey50
+130 130 130 		gray51
+130 130 130 		grey51
+133 133 133 		gray52
+133 133 133 		grey52
+135 135 135 		gray53
+135 135 135 		grey53
+138 138 138 		gray54
+138 138 138 		grey54
+140 140 140 		gray55
+140 140 140 		grey55
+143 143 143 		gray56
+143 143 143 		grey56
+145 145 145 		gray57
+145 145 145 		grey57
+148 148 148 		gray58
+148 148 148 		grey58
+150 150 150 		gray59
+150 150 150 		grey59
+153 153 153 		gray60
+153 153 153 		grey60
+156 156 156 		gray61
+156 156 156 		grey61
+158 158 158 		gray62
+158 158 158 		grey62
+161 161 161 		gray63
+161 161 161 		grey63
+163 163 163 		gray64
+163 163 163 		grey64
+166 166 166 		gray65
+166 166 166 		grey65
+168 168 168 		gray66
+168 168 168 		grey66
+171 171 171 		gray67
+171 171 171 		grey67
+173 173 173 		gray68
+173 173 173 		grey68
+176 176 176 		gray69
+176 176 176 		grey69
+179 179 179 		gray70
+179 179 179 		grey70
+181 181 181 		gray71
+181 181 181 		grey71
+184 184 184 		gray72
+184 184 184 		grey72
+186 186 186 		gray73
+186 186 186 		grey73
+189 189 189 		gray74
+189 189 189 		grey74
+191 191 191 		gray75
+191 191 191 		grey75
+194 194 194 		gray76
+194 194 194 		grey76
+196 196 196 		gray77
+196 196 196 		grey77
+199 199 199 		gray78
+199 199 199 		grey78
+201 201 201 		gray79
+201 201 201 		grey79
+204 204 204 		gray80
+204 204 204 		grey80
+207 207 207 		gray81
+207 207 207 		grey81
+209 209 209 		gray82
+209 209 209 		grey82
+212 212 212 		gray83
+212 212 212 		grey83
+214 214 214 		gray84
+214 214 214 		grey84
+217 217 217 		gray85
+217 217 217 		grey85
+219 219 219 		gray86
+219 219 219 		grey86
+222 222 222 		gray87
+222 222 222 		grey87
+224 224 224 		gray88
+224 224 224 		grey88
+227 227 227 		gray89
+227 227 227 		grey89
+229 229 229 		gray90
+229 229 229 		grey90
+232 232 232 		gray91
+232 232 232 		grey91
+235 235 235 		gray92
+235 235 235 		grey92
+237 237 237 		gray93
+237 237 237 		grey93
+240 240 240 		gray94
+240 240 240 		grey94
+242 242 242 		gray95
+242 242 242 		grey95
+245 245 245 		gray96
+245 245 245 		grey96
+247 247 247 		gray97
+247 247 247 		grey97
+250 250 250 		gray98
+250 250 250 		grey98
+252 252 252 		gray99
+252 252 252 		grey99
+255 255 255 		gray100
+255 255 255 		grey100
 169 169 169		dark grey
 169 169 169		DarkGrey
 169 169 169		dark gray
 169 169 169		DarkGray
-  0   0 139		dark blue
-  0   0 139		DarkBlue
-  0 139 139		dark cyan
-  0 139 139		DarkCyan
+0     0 139		dark blue
+0     0 139		DarkBlue
+0   139 139		dark cyan
+0   139 139		DarkCyan
 139   0 139		dark magenta
 139   0 139		DarkMagenta
 139   0   0		dark red
 139   0   0		DarkRed
 144 238 144		light green
 144 238 144		LightGreen
-220  20  60		crimson
- 75   0 130		indigo
-128 128   0		olive
-102  51 153		rebecca purple
-102  51 153		RebeccaPurple
-192 192 192		silver
-  0 128 128		teal
