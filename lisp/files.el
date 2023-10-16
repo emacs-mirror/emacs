@@ -5933,9 +5933,10 @@ Before and after saving the buffer, this function runs
                            buffer-file-name)
                          t))
 	;; If file not writable, see if we can make it writable
-	;; temporarily while we write it.
-	;; But no need to do so if we have just backed it up
-	;; (setmodes is set) because that says we're superseding.
+	;; temporarily while we write it (its original modes will be
+	;; restored in 'basic-save-buffer').  But no need to do so if
+	;; we have just backed it up (setmodes is set) because that
+	;; says we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
 	       (setq setmodes
@@ -5944,12 +5945,12 @@ Before and after saving the buffer, this function runs
                                "Error getting extended attributes: %s"
 			     (file-extended-attributes buffer-file-name))
 			   buffer-file-name))
-	       ;; If set-file-extended-attributes fails, fall back on
-	       ;; set-file-modes.
-	       (unless
-		   (with-demoted-errors "Error setting attributes: %s"
-		     (set-file-extended-attributes buffer-file-name
-						   (nth 1 setmodes)))
+	       ;; If set-file-extended-attributes fails to make the
+	       ;; file writable, fall back on set-file-modes.
+	       (with-demoted-errors "Error setting attributes: %s"
+		 (set-file-extended-attributes buffer-file-name
+					       (nth 1 setmodes)))
+	       (unless (file-writable-p buffer-file-name)
 		 (set-file-modes buffer-file-name
 				 (logior (car setmodes) 128)))))
 	(let (success)
