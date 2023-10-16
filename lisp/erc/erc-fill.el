@@ -539,7 +539,8 @@ See `erc-fill-wrap-mode' for details."
     (goto-char (point-min))
     (let ((len (or (and erc-fill--wrap-length-function
                         (funcall erc-fill--wrap-length-function))
-                   (and-let* ((msg-prop (erc--check-msg-prop 'erc-msg)))
+                   (and-let* ((msg-prop (erc--check-msg-prop 'erc-msg))
+                              ((not (eq msg-prop 'unknown))))
                      (when-let ((e (erc--get-speaker-bounds))
                                 (b (pop e))
                                 ((or erc-fill--wrap-action-dedent-p

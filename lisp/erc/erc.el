@@ -3015,13 +3015,26 @@ Expect callers to know that this doesn't wrap BODY in
 (defvar erc--insert-marker nil
   "Internal override for `erc-insert-marker'.")
 
-(defun erc-display-line-1 (string buffer)
-  "Display STRING in `erc-mode' BUFFER.
-Auxiliary function used in `erc-display-line'.  The line gets filtered to
-interpret the control characters.  Then, `erc-insert-pre-hook' gets called.
-If `erc-insert-this' is still t, STRING gets inserted into the buffer.
-Afterwards, `erc-insert-modify' and `erc-insert-post-hook' get called.
-If STRING is nil, the function does nothing."
+(define-obsolete-function-alias 'erc-display-line-1 'erc-insert-line "30.1")
+(defun erc-insert-line (string buffer)
+  "Insert STRING in an `erc-mode' BUFFER.
+When STRING is nil, do nothing.  Otherwise, start off by running
+`erc-insert-pre-hook' in BUFFER with `erc-insert-this' bound to
+t.  If the latter remains non-nil afterward, insert STRING into
+BUFFER, ensuring a trailing newline.  After that, narrow BUFFER
+around STRING, along with its final line ending, and run
+`erc-insert-modify' and `erc-insert-post-hook', respectively.  In
+all cases, run `erc-insert-done-hook' unnarrowed before exiting,
+and update positions in `buffer-undo-list'.
+
+In general, expect to be called from a higher-level insertion
+function, like `erc-display-message', especially when modules
+should consider STRING as a candidate for formatting with
+enhancements like indentation, fontification, timestamping, etc.
+Otherwise, when called directly, allow built-in modules to ignore
+STRING, which may make it appear incongruous in situ (unless
+preformatted or anticipated by third-party members of the various
+modification hooks)."
   (when string
     (with-current-buffer (or buffer (process-buffer erc-server-process))
       (let ((insert-position (marker-position erc-insert-marker)))
@@ -3033,7 +3046,7 @@ If STRING is nil, the function does nothing."
             (when (erc-string-invisible-p string)
               (erc-put-text-properties 0 (length string)
                                        '(invisible intangible) string)))
-          (erc-log (concat "erc-display-line: " string
+          (erc-log (concat "erc-display-message: " string
                            (format "(%S)" string) " in buffer "
                            (format "%s" buffer)))
           (setq erc-insert-this t)
@@ -3103,39 +3116,45 @@ If STRING is nil, the function does nothing."
   "Check if NICK is a valid IRC nickname."
   (string-match (concat "\\`" erc-valid-nick-regexp "\\'") nick))
 
-(defun erc-display-line (string &optional buffer)
-  "Display STRING in the ERC BUFFER.
-All screen output must be done through this function.  If BUFFER is nil
-or omitted, the default ERC buffer for the `erc-session-server' is used.
-The BUFFER can be an actual buffer, a list of buffers, `all' or `active'.
-If BUFFER = `all', the string is displayed in all the ERC buffers for the
-current session.  `active' means the current active buffer
-\(`erc-active-buffer').  If the buffer can't be resolved, the current
-buffer is used.  `erc-display-line-1' is used to display STRING.
-
-If STRING is nil, the function does nothing."
-  (let (new-bufs)
+(defun erc--route-insertion (string buffer)
+  "Insert STRING in BUFFER.
+See `erc-display-message' for acceptable BUFFER types."
+  (let (seen msg-props)
     (dolist (buf (cond
                   ((bufferp buffer) (list buffer))
-                  ((listp buffer) buffer)
+                  ((consp buffer)
+                   (setq msg-props erc--msg-props)
+                   buffer)
                   ((processp buffer) (list (process-buffer buffer)))
                   ((eq 'all buffer)
                    ;; Hmm, or all of the same session server?
                    (erc-buffer-list nil erc-server-process))
-                  ((and (eq 'active buffer) (erc-active-buffer))
-                   (list (erc-active-buffer)))
+                  ((and-let* (((eq 'active buffer))
+                              (b (erc-active-buffer)))
+                        (list b)))
                   ((erc-server-buffer-live-p)
                    (list (process-buffer erc-server-process)))
                   (t (list (current-buffer)))))
       (when (buffer-live-p buf)
-        (erc-display-line-1 string buf)
-        (push buf new-bufs)))
-    (when (null new-bufs)
-      (erc-display-line-1 string (if (erc-server-buffer-live-p)
-                                     (process-buffer erc-server-process)
-                                   (current-buffer))))))
+        (when msg-props
+          (setq erc--msg-props (copy-hash-table msg-props)))
+        (erc-insert-line string buf)
+        (setq seen t)))
+    (unless (or seen (null buffer))
+      (erc--route-insertion string nil))))
 
-(defvar erc--compose-text-properties nil
+(defun erc-display-line (string &optional buffer)
+  "Insert STRING in BUFFER as a plain \"local\" message.
+Take pains to ensure modification hooks see messages created by
+the old pattern (erc-display-line (erc-make-notice) my-buffer) as
+being equivalent to a `erc-display-message' TYPE of `notice'."
+  (let ((erc--msg-prop-overrides erc--msg-prop-overrides))
+    (when (eq 'erc-notice-face (get-text-property 0 'font-lock-face string))
+      (unless (assq 'erc-msg erc--msg-prop-overrides)
+        (push '(erc-msg . notice) erc--msg-prop-overrides)))
+    (erc-display-message nil nil buffer string)))
+
+(defvar erc--merge-text-properties-p nil
   "Non-nil when `erc-put-text-property' defers to `erc--merge-prop'.")
 
 ;; To save space, we could maintain a map of all readable property
@@ -3444,14 +3463,24 @@ returns non-nil."
 Insert MSG or text derived from MSG into an ERC buffer, possibly
 after applying formatting by way of either a `format-spec' known
 to a message-catalog entry or a TYPE known to a specialized
-string handler.  Additionally, derive internal metadata, faces,
-and other text properties from the various overloaded parameters,
-such as PARSED, when it's an `erc-response' object, and MSG, when
-it's a key (symbol) for a \"message catalog\" entry.  Expect
-ARGS, when applicable, to be `format-spec' args known to such an
-entry, and TYPE, when non-nil, to be a symbol handled by
+string handler.  Additionally, derive metadata, faces, and other
+text properties from the various overloaded parameters, such as
+PARSED, when it's an `erc-response' object, and MSG, when it's a
+key (symbol) for a \"message catalog\" entry.  Expect ARGS, when
+applicable, to be `format-spec' args known to such an entry, and
+TYPE, when non-nil, to be a symbol handled by
 `erc-display-message-highlight' (necessarily accompanied by a
-string MSG).
+string MSG).  Expect BUFFER to be among the sort accepted by the
+function `erc-display-line'.
+
+Expect BUFFER to be a live `erc-mode' buffer, a list of such
+buffers, or the symbols `all' or `active'.  If `all', insert
+STRING in all buffers for the current session.  If `active',
+defer to the function `erc-active-buffer', which may return the
+session's server buffer if the previously active buffer has been
+killed.  If BUFFER is nil or a network process, pretend it's set
+to the appropriate server buffer.  Otherwise, use the current
+buffer.
 
 When TYPE is a list of symbols, call handlers from left to right
 without influencing how they behave when encountering existing
@@ -3463,24 +3492,31 @@ expect a TYPE of (t notice error) to result in `font-lock-face'
 being (erc-error-face erc-notice-face) throughout MSG when
 `erc-notice-highlight-type' is left at its default, `all'.
 
-As of ERC 5.6, assume user code will use this function instead of
-`erc-display-line' when it's important that insert hooks treat
-MSG in a manner befitting messages received from a server.  That
-is, expect to process most nontrivial informational messages, for
-which PARSED is typically nil, when the caller desires
-buttonizing and other effects."
+As of ERC 5.6, assume third-party code will use this function
+instead of lower-level ones, like `erc-insert-line', when needing
+ERC to process arbitrary informative messages as if they'd been
+sent from a server.  That is, guarantee \"local\" messages, for
+which PARSED is typically nil, will be subject to buttonizing,
+filling, and other effects."
   (let ((string (if (symbolp msg)
                     (apply #'erc-format-message msg args)
                   msg))
         (erc--msg-props
          (or erc--msg-props
-             (let* ((table (make-hash-table :size 5))
-                    (cmd (and parsed (erc--get-eq-comparable-cmd
-                                      (erc-response.command parsed))))
-                    (m (cond ((and msg (symbolp msg)) msg)
-                             ((and cmd (memq cmd '(PRIVMSG NOTICE)) 'msg))
-                             (t 'unknown))))
-               (puthash 'erc-msg m table)
+             (let ((table (make-hash-table :size 5))
+                   (cmd (and parsed (erc--get-eq-comparable-cmd
+                                     (erc-response.command parsed)))))
+               (puthash 'erc-msg
+                        (cond ((and msg (symbolp msg)) msg)
+                              ((and cmd (memq cmd '(PRIVMSG NOTICE)) 'msg))
+                              (type (pcase type
+                                      ((pred symbolp) type)
+                                      ((pred listp)
+                                       (intern (mapconcat #'prin1-to-string
+                                                          type "-")))
+                                      (_ 'unknown)))
+                              (t 'unknown))
+                        table)
                (when cmd
                  (puthash 'erc-cmd cmd table))
                (and erc--msg-prop-overrides
@@ -3493,7 +3529,7 @@ buttonizing and other effects."
            ((null type)
             string)
            ((listp type)
-            (let ((erc--compose-text-properties
+            (let ((erc--merge-text-properties-p
                    (and (eq (car type) t) (setq type (cdr type)))))
               (dolist (type type)
                 (setq string (erc-display-message-highlight type string))))
@@ -3502,13 +3538,13 @@ buttonizing and other effects."
             (erc-display-message-highlight type string))))
 
     (if (not (erc-response-p parsed))
-        (erc-display-line string buffer)
+        (erc--route-insertion string buffer)
       (unless (erc-hide-current-message-p parsed)
         (erc-put-text-property 0 (length string) 'erc-parsed parsed string)
 	(when (erc-response.tags parsed)
 	  (erc-put-text-property 0 (length string) 'tags (erc-response.tags parsed)
 				 string))
-	(erc-display-line string buffer)))))
+        (erc--route-insertion string buffer)))))
 
 (defun erc-message-type-member (position list)
   "Return non-nil if the erc-parsed text-property at POSITION is in LIST.
@@ -6493,7 +6529,7 @@ OBJECT is modified without being copied first.
 
 You can redefine or `defadvice' this function in order to add
 EmacsSpeak support."
-  (if erc--compose-text-properties
+  (if erc--merge-text-properties-p
       (erc--merge-prop start end property value object)
     (put-text-property start end property value object)))
 

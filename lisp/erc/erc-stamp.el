@@ -219,7 +219,9 @@ This becomes the message's `erc-ts' text property."
   (erc-compat--current-lisp-time))
 
 (cl-defmethod erc-stamp--current-time :around ()
-  (or erc-stamp--current-time (cl-call-next-method)))
+  (or erc-stamp--current-time
+      (and erc--msg-props (gethash 'erc-ts erc--msg-props))
+      (cl-call-next-method)))
 
 (defvar erc-stamp--skip nil
   "Non-nil means inhibit `erc-add-timestamp' completely.")

@@ -1206,7 +1206,7 @@
           calls)
       (erc-mode)
 
-      (cl-letf (((symbol-function 'erc-display-line)
+      (cl-letf (((symbol-function 'erc--route-insertion)
                  (lambda (&rest r) (push r calls))))
 
         (ert-info ("Signals when `erc-server-announced-name' unset")

@@ -1938,6 +1938,69 @@
                2 5 (erc-speaker "Bob" font-lock-face erc-nick-default-face)
                5 12 (font-lock-face erc-default-face))))))
 
+(ert-deftest erc--route-insertion ()
+  (erc-tests--send-prep)
+  (erc-tests--set-fake-server-process "sleep" "1")
+  (setq erc-networks--id (erc-networks--id-create 'foonet))
+
+  (let* ((erc-modules) ; for `erc--open-target'
+         (server-buffer (current-buffer))
+         (spam-buffer (save-excursion (erc--open-target "#spam")))
+         (chan-buffer (save-excursion (erc--open-target "#chan")))
+         calls)
+    (cl-letf (((symbol-function 'erc-insert-line)
+               (lambda (&rest r) (push (cons 'line-1 r) calls))))
+
+      (with-current-buffer chan-buffer
+
+        (ert-info ("Null `buffer' routes to live server-buffer")
+          (erc--route-insertion "null" nil)
+          (should (equal (pop calls) `(line-1 "null" ,server-buffer)))
+          (should-not calls))
+
+        (ert-info ("Cons `buffer' routes to live members")
+          ;; Copies a let-bound `erc--msg-props' before mutating.
+          (let* ((table (map-into '(erc-msg msg) 'hash-table))
+                 (erc--msg-props table))
+            (erc--route-insertion "cons" (list server-buffer spam-buffer))
+            (should-not (eq table erc--msg-props)))
+          (should (equal (pop calls) `(line-1 "cons" ,spam-buffer)))
+          (should (equal (pop calls) `(line-1 "cons" ,server-buffer)))
+          (should-not calls))
+
+        (ert-info ("Variant `all' inserts in all session buffers")
+          (erc--route-insertion "all" 'all)
+          (should (equal (pop calls) `(line-1 "all" ,chan-buffer)))
+          (should (equal (pop calls) `(line-1 "all" ,spam-buffer)))
+          (should (equal (pop calls) `(line-1 "all" ,server-buffer)))
+          (should-not calls))
+
+        (ert-info ("Variant `active' routes to active buffer if alive")
+          (should (eq chan-buffer (erc-with-server-buffer erc-active-buffer)))
+          (erc-set-active-buffer spam-buffer)
+          (erc--route-insertion "act" 'active)
+          (should (equal (pop calls) `(line-1 "act" ,spam-buffer)))
+          (should (eq (erc-active-buffer) spam-buffer))
+          (should-not calls))
+
+        (ert-info ("Variant `active' falls back to current buffer")
+          (should (eq spam-buffer (erc-active-buffer)))
+          (kill-buffer "#spam")
+          (erc--route-insertion "nact" 'active)
+          (should (equal (pop calls) `(line-1 "nact" ,server-buffer)))
+          (should (eq (erc-with-server-buffer erc-active-buffer)
+                      server-buffer))
+          (should-not calls))
+
+        (ert-info ("Dead single buffer defaults to live server-buffer")
+          (should-not (get-buffer "#spam"))
+          (erc--route-insertion "dead" 'spam-buffer)
+          (should (equal (pop calls) `(line-1 "dead" ,server-buffer)))
+          (should-not calls))))
+
+    (should-not (buffer-live-p spam-buffer))
+    (kill-buffer chan-buffer)))
+
 (defvar erc-tests--ipv6-examples
   '("1:2:3:4:5:6:7:8"
     "::ffff:10.0.0.1" "::ffff:1.2.3.4" "::ffff:0.0.0.0"
