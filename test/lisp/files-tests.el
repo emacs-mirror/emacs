@@ -685,7 +685,8 @@ unquoted file names."
 
 (ert-deftest files-tests-file-name-non-special-expand-file-name-tilde ()
   (let ((process-environment
-         (cons (format "HOME=%s" temporary-file-directory) process-environment))
+         (cons (format "HOME=%s" (file-truename temporary-file-directory))
+               process-environment))
         abbreviated-home-dir)
     (files-tests--with-temp-non-special (tmpfile nospecial)
       (let (file-name-handler-alist)
