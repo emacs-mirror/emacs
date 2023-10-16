@@ -283,6 +283,15 @@ functions in CJK locales.
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
++++
+** New command 'lldb'.
+Run the LLDB debugger, analogous to the 'gud-gdb' command.  Note that
+you might want to add these settings to your .lldbinit file, to reduce
+the output in the LLDB output when stepping through source files.
+
+    settings set stop-line-count-before 0
+    settings set stop-line-count-after 0
+
 ** gdb-mi
 
 ---

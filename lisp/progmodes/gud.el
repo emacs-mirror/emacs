@@ -80,7 +80,7 @@
 
 (defgroup gud nil
   "The \"Grand Unified Debugger\" interface.
-Supported debuggers include gdb, sdb, dbx, xdb, perldb,
+Supported debuggers include gdb, lldb, sdb, dbx, xdb, perldb,
 pdb (Python), and jdb."
   :group 'processes
   :group 'tools)
@@ -173,13 +173,13 @@ Check it when `gud-running' is t")
   "<next>" `(,(propertize "next" 'face 'font-lock-doc-face) . gud-next)
   "<until>" `(menu-item
               ,(propertize "until" 'face 'font-lock-doc-face) gud-until
-              :visible (memq gud-minor-mode '(gdbmi gdb perldb)))
+              :visible (memq gud-minor-mode '(gdbmi gdb lldb perldb)))
   "<cont>" `(menu-item
            ,(propertize "cont" 'face 'font-lock-doc-face) gud-cont
            :visible (not (eq gud-minor-mode 'gdbmi)))
   "<run>" `(menu-item
           ,(propertize "run" 'face 'font-lock-doc-face) gud-run
-          :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
+          :visible (memq gud-minor-mode '(gdbmi gdb lldb dbx jdb)))
   "<go>" `(menu-bar-item
          ,(propertize " go " 'face 'font-lock-doc-face) gud-go
          :visible (and (eq gud-minor-mode 'gdbmi)
@@ -231,13 +231,13 @@ Check it when `gud-running' is t")
      :enable (not gud-running)]
     ["Next Instruction" gud-nexti
      :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb dbx))]
+     :visible (memq gud-minor-mode '(gdbmi gdb lldb dbx))]
     ["Step Instruction" gud-stepi
      :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb dbx))]
+     :visible (memq gud-minor-mode '(gdbmi gdb lldb dbx))]
     ["Finish Function" gud-finish
      :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb guiler xdb jdb pdb))]
+     :visible (memq gud-minor-mode '(gdbmi gdb lldb guiler xdb jdb pdb))]
     ["Watch Expression" gud-watch
      :enable (not gud-running)
      :visible (eq gud-minor-mode 'gdbmi)]
@@ -248,7 +248,7 @@ Check it when `gud-running' is t")
 	        "Dump object"
               "Print Dereference")
      :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb jdb))]
+     :visible (memq gud-minor-mode '(gdbmi gdb lldb jdb))]
     ["Print S-expression" gud-pp
      :enable (and (not gud-running)
 		  (bound-and-true-p gdb-active-process))
@@ -259,23 +259,23 @@ Check it when `gud-running' is t")
 		   (eq gud-minor-mode 'gdbmi))]
     ["Down Stack" gud-down
      :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb guiler dbx xdb jdb pdb))]
+     :visible (memq gud-minor-mode '(gdbmi gdb lldb guiler dbx xdb jdb pdb))]
     ["Up Stack" gud-up
      :enable (not gud-running)
      :visible (memq gud-minor-mode
-		    '(gdbmi gdb guiler dbx xdb jdb pdb))]
+		    '(gdbmi gdb lldb guiler dbx xdb jdb pdb))]
     ["Set Breakpoint" gud-break
      :enable (or (not gud-running) gud-async-running)
      :visible (gud-tool-bar-item-visible-no-fringe)]
     ["Temporary Breakpoint" gud-tbreak
      :enable (or (not gud-running) gud-async-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb sdb xdb))]
+     :visible (memq gud-minor-mode '(gdbmi gdb lldb sdb xdb))]
     ["Remove Breakpoint" gud-remove
      :enable (or (not gud-running) gud-async-running)
      :visible (gud-tool-bar-item-visible-no-fringe)]
     ["Continue to selection" gud-until
      :enable (not gud-running)
-     :visible (and (memq gud-minor-mode '(gdbmi gdb perldb))
+     :visible (and (memq gud-minor-mode '(gdbmi gdb lldb perldb))
 		   (gud-tool-bar-item-visible-no-fringe))]
     ["Stop" gud-stop-subjob
      :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
@@ -288,7 +288,7 @@ Check it when `gud-running' is t")
                    (gdb-show-run-p))]
     ["Run" gud-run
      :enable (or (not gud-running) gud-async-running)
-     :visible (or (memq gud-minor-mode '(gdb dbx jdb))
+     :visible (or (memq gud-minor-mode '(gdb lldb dbx jdb))
 		  (and (eq gud-minor-mode 'gdbmi)
 		       (or (not (gdb-show-run-p))
 			   (bound-and-true-p
@@ -299,7 +299,7 @@ Check it when `gud-running' is t")
 		  (display-graphic-p)
 		  (fboundp 'x-show-tip))
      :visible (memq gud-minor-mode
-		    '(gdbmi guiler dbx sdb xdb pdb))
+		    '(gdbmi lldb guiler dbx sdb xdb pdb))
      :button (:toggle . gud-tooltip-mode)]
     ["Info (debugger)" gud-goto-info]))
 
@@ -973,6 +973,7 @@ It is passed through `gud-gdb-marker-filter' before we look at it."
       (setq gud-gdb-fetch-lines-string string)
       "")))
 
+
 ;; gdb speedbar functions
 
 ;; Part of the macro expansion of dframe-with-attached-buffer.
@@ -2702,10 +2703,12 @@ gud, see `gud-mode'."
 (define-derived-mode gud-mode comint-mode "Debugger"
   "Major mode for interacting with an inferior debugger process.
 
-   You start it up with one of the commands \\[gdb], \\[sdb], \\[dbx],
-\\[perldb], \\[xdb], or \\[jdb].  Each entry point finishes by executing a
-hook; `gdb-mode-hook', `sdb-mode-hook', `dbx-mode-hook',
-`perldb-mode-hook', `xdb-mode-hook', or `jdb-mode-hook' respectively.
+   You start it up with one of the commands \\[gdb], \\[lldb],
+\\[sdb], \\[dbx], \\[perldb], \\[xdb], or \\[jdb].  Each entry
+point finishes by executing a hook; `gdb-mode-hook',
+`lldb-mode-hook' `sdb-mode-hook', `dbx-mode-hook',
+`perldb-mode-hook', `xdb-mode-hook', or `jdb-mode-hook'
+respectively.
 
 After startup, the following commands are available in both the GUD
 interaction buffer and any source buffer GUD visits due to a breakpoint stop
@@ -2735,11 +2738,11 @@ Under gdb, sdb and xdb, \\[gud-tbreak] behaves exactly like \\[gud-break],
 except that the breakpoint is temporary; that is, it is removed when
 execution stops on it.
 
-Under gdb, dbx, and xdb, \\[gud-up] pops up through an enclosing stack
-frame.  \\[gud-down] drops back down through one.
+Under gdb, lldb, dbx, and xdb, \\[gud-up] pops up through an
+enclosing stack frame.  \\[gud-down] drops back down through one.
 
-If you are using gdb or xdb, \\[gud-finish] runs execution to the return from
-the current function and stops.
+If you are using gdb, lldb, or xdb, \\[gud-finish] runs execution
+to the return from the current function and stops.
 
 All the keystrokes above are accessible in the GUD buffer
 with the prefix C-c, and in all buffers through the prefix C-x C-a.
@@ -3767,13 +3770,17 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 ; gdb-mi.el gets around this problem.
 (defun gud-tooltip-process-output (process output)
   "Process debugger output and show it in a tooltip window."
-  (remove-function (process-filter process) #'gud-tooltip-process-output)
-  (tooltip-show (tooltip-strip-prompt process output)
-                (or gud-tooltip-echo-area (not tooltip-mode))))
+  ;; First line is the print command itself.
+  (unless (string-search (gud-tooltip-print-command "") output)
+    (remove-function (process-filter process)
+                     #'gud-tooltip-process-output)
+    (tooltip-show (tooltip-strip-prompt process output)
+                  (or gud-tooltip-echo-area (not tooltip-mode)))))
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
   (pcase gud-minor-mode
+    ('lldb (format "dwim-print -- %s" expr))
     ('gdbmi (concat "-data-evaluate-expression \"" expr "\""))
     ('guiler expr)
     ('dbx (concat "print " expr))
@@ -3835,10 +3842,149 @@ so they have been disabled."))
                       (gdb-input
 		       (concat cmd "\n")
 		       (lambda () (gdb-tooltip-print expr))))
+                  ;; Not gdbmi.
                   (add-function :override (process-filter process)
                                 #'gud-tooltip-process-output)
 		  (gud-basic-call cmd))
 		expr))))))))
+
+
+;; 'gud-lldb-history' and 'gud-gud-lldb-command-name' are required
+;; because gud-symbol uses their values if they are present.  Their
+;; names are deduced from the minor-mode name.
+(defvar gud-lldb-history nil)
+
+(defcustom gud-gud-lldb-command-name "lldb"
+  "Default command to run an executable under LLDB in text command mode."
+  :type 'string)
+
+(defun gud-lldb-marker-filter (string)
+  "Deduce interesting stuff from output STRING."
+  (cond (;; Process 72668 stopped
+         ;; * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+         ;;     frame #0: ...) at emacs.c:1310:9 [opt]
+         (string-match (rx (and line-start (0+ blank) "frame"
+                                (0+ not-newline) " at "
+                                (group (1+ (not ":")))
+                                ":"
+                                (group (1+ digit))))
+                       string)
+         (setq gud-last-frame
+               (cons (match-string 1 string)
+                     (string-to-number (match-string 2 string)))))
+        (;; Process 72874 exited with status = 9 (0x00000009) killed
+         (string-match (rx "Process " (1+ digit) " exited with status")
+                       string)
+         (setq gud-last-last-frame nil)
+         (setq gud-overlay-arrow-position nil)))
+  string)
+
+;;;###autoload
+(defun lldb (command-line)
+  "Run lldb passing it COMMAND-LINE as arguments.
+If COMMAND-LINE names a program FILE to debug, lldb will run in
+a buffer named *gud-FILE*, and the directory containing FILE
+becomes the initial working directory and source-file directory
+for your debugger.  If you don't want `default-directory' to
+change to the directory of FILE, specify FILE without leading
+directories, in which case FILE should reside either in the
+directory of the buffer from which this command is invoked, or
+it can be found by searching PATH.
+
+If COMMAND-LINE requests that lldb attaches to a process PID, lldb
+will run in *gud-PID*, otherwise it will run in *gud*; in these
+cases the initial working directory is the `default-directory' of
+the buffer in which this command was invoked."
+  (interactive (list (gud-query-cmdline 'lldb)))
+
+  (when (and gud-comint-buffer
+	     (buffer-name gud-comint-buffer)
+	     (get-buffer-process gud-comint-buffer)
+	     (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gud-lldb)))
+    (gdb-restore-windows)
+    ;; FIXME: Copied from gud-gdb, but what does that even say?
+    (error "Multiple debugging requires restarting in text command mode"))
+
+  (gud-common-init command-line nil 'gud-lldb-marker-filter)
+  (setq-local gud-minor-mode 'lldb)
+
+  (gud-def gud-break
+           "breakpoint set --joint-specifier %f:%l"
+           "\C-b"
+           "Set breakpoint at current line.")
+  (gud-def gud-tbreak
+           "_regexp-break %f:%l"
+           "\C-t"
+	   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove
+           "breakpoint clear  --line %l --file %f"
+           "\C-d"
+           "Remove breakpoint at current line")
+  (gud-def gud-step "thread step-in --count %p"
+           "\C-s"
+           "Step one source line with display.")
+  (gud-def gud-stepi
+           "thread step-inst --count %p"
+           "\C-i"
+           "Step one instruction with display.")
+  (gud-def gud-next
+           "thread step-over --count %p"
+           "\C-n"
+           "Step one line (skip functions).")
+  (gud-def gud-nexti
+           "thread step-inst-over --count %p"
+           nil
+           "Step one instruction (skip functions).")
+  (gud-def gud-cont
+           "process continue --ignore-count %p"
+           "\C-r"
+           "Continue with display.")
+  (gud-def gud-finish
+           "thread step-out"
+           "\C-f"
+           "Finish executing current function.")
+  (gud-def gud-jump
+	   (progn
+             (gud-call "_regexp-break %f:%l" arg)
+             (gud-call "_regexp-jump %f:%l"))
+	   "\C-j"
+           "Set execution address to current line.")
+  (gud-def gud-up
+           "_regexp-up %p"
+           "<"
+           "Up N stack frames (numeric arg).")
+  (gud-def gud-down
+           "_regexp-down %p"
+           ">"
+           "Down N stack frames (numeric arg).")
+  (gud-def gud-print
+           "dwim-print %e"
+           "\C-p"
+           "Evaluate C expression at point.")
+  (gud-def gud-pstar
+           "dwim-print *%e"
+           nil
+	   "Evaluate C dereferenced pointer expression at point.")
+  (gud-def gud-pv
+           "xprint %e"
+           "\C-v"
+           "Print value of lisp variable (for debugging Emacs only).")
+  (gud-def gud-until
+           "thread until %l"
+           "\C-u"
+           "Continue to current line.")
+  (gud-def gud-run
+           ;; Extension for process launch --tty?
+           "process launch -X true"
+	   nil
+           "Run the program.")
+
+  (gud-set-repeat-map-property 'gud-gdb-repeat-map)
+  (setq comint-prompt-regexp (rx line-start "(lldb)" (0+ blank)))
+  (setq paragraph-start comint-prompt-regexp)
+  (setq gud-running nil)
+  (setq gud-filter-pending-text nil)
+  (run-hooks 'lldb-mode-hook))
 
 (provide 'gud)
 
