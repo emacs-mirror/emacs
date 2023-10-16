@@ -1,5 +1,5 @@
 .\" See section COPYING for conditions for redistribution.
-.TH EMACSCLIENT 1 "2022-09-05" "GNU Emacs" "GNU"
+.TH EMACSCLIENT 1 "2023-10-16" "GNU Emacs" "GNU"
 .\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
 .\" other params are allowed: see man(7), man(1)
 .SH NAME
@@ -94,12 +94,36 @@ Emacs.  If combined with --eval, this option is ignored.
 How long to wait, in seconds, for Emacs to respond before giving up.
 The default is 0, which means to wait forever.
 .TP
-.B \-nw, \-t, \-\-tty
-Open a new Emacs frame on the current terminal.
+.B \-\-parent-id=ID
+Open an
+.B emacsclient
+frame as a client frame in the parent X window with id ID.
+.TP
+.B \-q, \-\-quiet
+Do not let
+.B emacsclient
+display messages about waiting for Emacs or connecting to remote
+server sockets.
+.TP
+.B \-u, \-\-suppress-output
+Do not let
+.B emacsclient
+display results returned from the server.  Mostly useful in
+combination with --eval when the evaluation performed is for
+side-effect rather than result.
 .TP
 .B \-s, \-\-socket-name=FILENAME
 Use socket named FILENAME for communication.
 This can also be specified via the EMACS_SOCKET_NAME environment variable.
+.TP
+.B \-nw, \-t, \-\-tty
+Open a new Emacs frame on the current terminal.
+.TP
+.B \-T, \-\-tramp-prefix=PREFIX
+Set PREFIX to add to filenames for Emacs to locate files on remote
+machines using TRAMP.  This is mostly useful in combination with using
+the Emacs server over TCP with --server-file.  This can also be
+specified via the EMACSCLIENT_TRAMP environment variable.
 .TP
 .B \-V, \-\-version
 Print version information and exit.
