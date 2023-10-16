@@ -1025,6 +1025,10 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 ** The obsolete calling convention of 'sit-for' has been removed.
 That convention was: (sit-for SECONDS MILLISEC &optional NODISP)
 
+** 'eshell-process-wait-{seconds,milliseconds}' options are now obsolete.
+Instead, use 'eshell-process-wait-time', which supports floating-point
+values.
+
 
 * Lisp Changes in Emacs 30.1
 
