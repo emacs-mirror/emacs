@@ -586,7 +586,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
 
 (defcustom eshell-kill-process-wait-time 5
   "Seconds to wait between sending termination signals to a subprocess."
-  :type 'integer)
+  :type 'number)
 
 (defcustom eshell-kill-process-signals '(SIGINT SIGQUIT SIGKILL)
   "Signals used to kill processes when an Eshell buffer exits.
