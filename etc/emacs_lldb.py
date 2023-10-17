@@ -203,14 +203,34 @@ def xdebug_print(debugger, command, result, internal_dict):
     """Print Lisp_Objects using safe_debug_print()"""
     debugger.HandleCommand(f"expr safe_debug_print({command})")
 
+# According to SBCommanInterpreter.cpp, the return value of
+# HandleCompletions is as follows:
+#
+# Index 1 to the end contain all the completions.
+#
+# At index 0:
+#
+# If all completions have a common prefix, this is the shortest
+# completion, with the common prefix removed from it.
+#
+# If it is the completion for a whole word, a space is added at the
+# end.
+#
+# So, the prefix is what could be added to make the command partially
+# complete.
+#
+# If there is no common prefix, index 0 has an empty string "".
+
 def xcomplete(debugger, command, result, internal_dict):
     """Print completions for COMMAND."""
     interpreter = debugger.GetCommandInterpreter()
     string_list = lldb.SBStringList()
     interpreter.HandleCompletion(command, len(command), len(command),
                                  -1, string_list)
+    list = ""
     for i in range(string_list.GetSize()):
-        result.AppendMessage(string_list.GetStringAtIndex(i))
+        list += '"' + string_list.GetStringAtIndex(i) + '" '
+    result.AppendMessage("(" + list + ")")
 
 
 ########################################################################
