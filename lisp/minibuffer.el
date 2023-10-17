@@ -1314,14 +1314,27 @@ completion candidates than this number."
 (defcustom completions-sort 'alphabetical
   "Sort candidates in the *Completions* buffer.
 
-The value can be nil to disable sorting, `alphabetical' for
-alphabetical sorting or a custom sorting function.  The sorting
-function takes and returns a list of completion candidate
-strings."
+Completion candidates in the *Completions* buffer are sorted
+depending on the value.
+
+If it's nil, sorting is disabled.
+If it's the symbol `alphabetical', candidates are sorted by
+`minibuffer-sort-alphabetically'.
+If it's the symbol `historical', candidates are sorted by
+`minibuffer-sort-by-history'.
+If it's a function, the function is called to sort the candidates.
+The sorting function takes a list of completion candidate
+strings, which it may modify; it should return a sorted list,
+which may be the same.
+
+If the completion-specific metadata provides a
+`display-sort-function', that function overrides the value of
+this variable."
   :type '(choice (const :tag "No sorting" nil)
                  (const :tag "Alphabetical sorting" alphabetical)
+                 (const :tag "Historical sorting" historical)
                  (function :tag "Custom function"))
-  :version "29.1")
+  :version "30.1")
 
 (defcustom completions-group nil
   "Enable grouping of completion candidates in the *Completions* buffer.
@@ -1646,6 +1659,44 @@ Remove completion BASE prefix string from history elements."
                    (when (string-prefix-p base c)
                      (substring c base-size)))
                  hist)))))
+
+(defun minibuffer-sort-alphabetically (completions)
+  "Sort COMPLETIONS alphabetically.
+
+COMPLETIONS are sorted alphabetically by `string-lessp'.
+
+This is a suitable function to use for `completions-sort' or to
+include as `display-sort-function' in completion metadata."
+  (sort completions #'string-lessp))
+
+(defvar minibuffer-completion-base nil
+  "The base for the current completion.
+
+This is the part of the current minibuffer input which comes
+before the current completion field, as determined by
+`completion-boundaries'.  This is primarily relevant for file
+names, where this is the directory component of the file name.")
+
+(defun minibuffer-sort-by-history (completions)
+  "Sort COMPLETIONS by their position in `minibuffer-history-variable'.
+
+COMPLETIONS are sorted first by `minibuffer-sort-alphbetically',
+then any elements occuring in the minibuffer history list are
+moved to the front based on the chronological order they occur in
+the history.  If a history variable hasn't been specified for
+this call of `completing-read', COMPLETIONS are sorted only by
+`minibuffer-sort-alphbetically'.
+
+This is a suitable function to use for `completions-sort' or to
+include as `display-sort-function' in completion metadata."
+  (let ((alphabetized (sort completions #'string-lessp)))
+    ;; Only use history when it's specific to these completions.
+    (if (eq minibuffer-history-variable
+            (default-value minibuffer-history-variable))
+        alphabetized
+      (minibuffer--sort-by-position
+       (minibuffer--sort-preprocess-history minibuffer-completion-base)
+       alphabetized))))
 
 (defun minibuffer--group-by (group-fun sort-fun elems)
   "Group ELEMS by GROUP-FUN and sort groups by SORT-FUN."
@@ -2440,6 +2491,7 @@ The candidate will still be chosen by `choose-completion' unless
       (let* ((last (last completions))
              (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
+             (minibuffer-completion-base (substring string 0 base-size))
              (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
                                             (+ start base-size)))
              (base-suffix
@@ -2506,7 +2558,8 @@ The candidate will still be chosen by `choose-completion' unless
                                             (funcall sort-fun completions)
                                           (pcase completions-sort
                                             ('nil completions)
-                                            ('alphabetical (sort completions #'string-lessp))
+                                            ('alphabetical (minibuffer-sort-alphabetically completions))
+                                            ('historical (minibuffer-sort-by-history completions))
                                             (_ (funcall completions-sort completions)))))
 
                       ;; After sorting, group the candidates using the

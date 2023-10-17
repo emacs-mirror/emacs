@@ -637,6 +637,11 @@ new command 'minibuffer-choose-completion-or-exit' (bound by
 contents instead.  The deselection behavior can be controlled with the
 new user option 'completion-auto-deselect'.
 
+*** New value 'historical' for user option 'completions-sort'
+When 'completions-sort' is set to 'historical', completion candidates
+will be sorted by their chronological order in the minibuffer history,
+with more recent candidates appearing first.
+
 ** Pcomplete
 
 ---
