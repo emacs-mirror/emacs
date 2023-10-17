@@ -42,6 +42,7 @@ finish."
 
 (defcustom eshell-process-wait-time 0.05
   "The number of seconds to delay waiting for a synchronous process."
+  :version "30.1"
   :type 'number)
 
 (defcustom eshell-process-wait-seconds 0
