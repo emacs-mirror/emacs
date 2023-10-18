@@ -33,8 +33,4 @@ command script import emacs_lldb
 # Print with children provider, depth 2.
 command alias xprint frame variable -P 2
 
-# This is for M-x lldb: don't show source lines when stopping.
-settings set stop-line-count-before 0
-settings set stop-line-count-after 0
-
 # end.

@@ -3850,7 +3850,7 @@ so they have been disabled."))
 
 
 ;; 'gud-lldb-history' and 'gud-gud-lldb-command-name' are required
-;; because gud-symbol uses their values if they are present.  Their
+;; because 'gud-symbol' uses their values if they are present.  Their
 ;; names are deduced from the minor-mode name.
 (defvar gud-lldb-history nil)
 
@@ -3859,7 +3859,7 @@ so they have been disabled."))
   :type 'string)
 
 (defun gud-lldb-marker-filter (string)
-  "Deduce interesting stuff from output STRING."
+  "Deduce interesting stuff from process output STRING."
   (cond (;; Process 72668 stopped
          ;; * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
          ;;     frame #0: ...) at emacs.c:1310:9 [opt]
@@ -3878,6 +3878,96 @@ so they have been disabled."))
          (setq gud-last-last-frame nil)
          (setq gud-overlay-arrow-position nil)))
   string)
+
+;; According to SBCommanInterpreter.cpp, the return value of
+;; HandleCompletions is as follows:
+;;
+;; Index 1 to the end contain all the completions.
+;;
+;; At index 0:
+;;
+;; If all completions have a common prefix, this is the shortest
+;; completion, with the common prefix removed from it.
+;;
+;; If it is the completion for a whole word, a space is added at the
+;; end.
+;;
+;; So, the prefix is what could be added to make the command partially
+;; complete.
+;;
+;; If there is no common prefix, index 0 has an empty string "".
+
+(defun gud-lldb-fetch-completions (context command)
+  "Return the data to complete the LLDB command before point.
+This is what the Python function we installed at initialzation
+time returns, as a Lisp list."
+  (let* ((process (get-buffer-process gud-comint-buffer))
+         (to-complete (concat context command))
+         (output-buffer (get-buffer-create "*lldb-completions*")))
+    ;; Send the completion command with output to our buffer
+    (with-current-buffer output-buffer
+      (erase-buffer))
+    (comint-redirect-send-command-to-process
+     (format "script --language python -- gud_complete('%s')"
+             to-complete)
+     output-buffer process nil t)
+    ;; Wait for output
+    (unwind-protect
+        (while (not comint-redirect-completed)
+          (accept-process-output process))
+      (comint-redirect-cleanup))
+    ;; Process the completion output.
+    (with-current-buffer output-buffer
+      (goto-char (point-min))
+      (when (search-forward "gud-completions:" nil t)
+        (read (current-buffer))))))
+
+(defun gud-lldb-completions (context command)
+  "Completion table for LLDB commands."
+  (let ((completions (gud-lldb-fetch-completions context command)))
+    ;; If this is a cmpletion for w whole word, return a completion
+    ;; list that contains that word only, with a space appended.
+    (if (string-suffix-p " " (car completions))
+        (list (concat (cadr completions) " "))
+      (cdr completions))))
+
+(defun gud-lldb-completion-at-point ()
+  "Return the data to complete the LLDB command before point."
+  (let* ((end (point))
+         (line-start (comint-line-beginning-position))
+         (start (save-excursion
+                  (skip-chars-backward "^ " line-start)
+                  (point)))
+         (context (buffer-substring line-start start)))
+    (list (copy-marker start t)
+          end
+          (completion-table-dynamic
+           (apply-partially #'gud-lldb-completions context)))))
+
+(defvar gud-lldb-def-python-completion-function
+  "
+def gud_complete(s):
+    interpreter = lldb.debugger.GetCommandInterpreter()
+    string_list = lldb.SBStringList()
+    interpreter.HandleCompletion(s, len(s), len(s), -1, string_list)
+    print('gud-completions: (')
+    for i in range(string_list.GetSize()):
+        print(f'\"{string_list.GetStringAtIndex(i)}\" ')
+    print(')')
+"
+  "LLDB command to define a Python function for completion.")
+
+(defun gud-lldb-send-python (python)
+  (gud-basic-call "script --language python --")
+  (mapc #'gud-basic-call (split-string python "\n"))
+  (gud-basic-call "exit()"))
+
+(defun gud-lldb-initialize ()
+  "Initialize the LLDB process as needed for this debug session."
+  (gud-lldb-send-python gud-lldb-def-python-completion-function)
+  (gud-basic-call "settings set stop-line-count-before 0")
+  (gud-basic-call "settings set stop-line-count-after 0")
+  (gud-basic-call "script --language python -- print('Gud initialized')"))
 
 ;;;###autoload
 (defun lldb (command-line)
@@ -3979,11 +4069,17 @@ the buffer in which this command was invoked."
 	   nil
            "Run the program.")
 
+  (add-hook 'completion-at-point-functions
+            #'gud-lldb-completion-at-point
+            nil 'local)
+  (keymap-local-set "<tab>" #'completion-at-point)
+
   (gud-set-repeat-map-property 'gud-gdb-repeat-map)
   (setq comint-prompt-regexp (rx line-start "(lldb)" (0+ blank)))
+  (setq comint-process-echoes t)
   (setq paragraph-start comint-prompt-regexp)
   (setq gud-running nil)
-  (setq gud-filter-pending-text nil)
+  (gud-lldb-initialize)
   (run-hooks 'lldb-mode-hook))
 
 (provide 'gud)
