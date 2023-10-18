@@ -1797,7 +1797,7 @@ If @var{newname} exists, then it must be an empty directory if
 @var{oldname} is a directory and a non-directory otherwise.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-already-exists time preserve-uid-gid preserve-extended-attributes
+@deffn Command copy-file oldname newname &optional ok-if-already-exists time preserve-uid-gid preserve-permissions
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} is not a regular file.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
