@@ -43,6 +43,12 @@ For 'newline' commands, Eglot sometimes sent the wrong character code
 to the server.  Also made this feature less chatty in the mode-line
 and messages buffer.
 
+** Fixed completion sorting
+
+In some situations, Eglot was not respecting the completion sort order
+decided by the language server, falling back on the sort order
+determined by the 'flex' completion style instead.  See github#1306.
+
 ** Improve mouse invocation of code actions
 
 When invoking code actions by middle clicking with the mouse on
