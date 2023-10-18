@@ -2784,7 +2784,9 @@ sfntfont_setup_interpreter (struct sfnt_font_info *info,
 static void
 sfnt_close_tables (struct sfnt_font_tables *tables)
 {
+#ifdef HAVE_MMAP
   int rc;
+#endif /* HAVE_MMAP */
 
   xfree (tables->cmap);
   xfree (tables->hhea);
@@ -2839,7 +2841,10 @@ sfnt_open_tables (struct sfnt_font_desc *desc)
 {
   struct sfnt_font_tables *tables;
   struct sfnt_offset_subtable *subtable;
-  int fd, i, rc;
+  int fd, i;
+#ifdef HAVE_MMAP
+  int rc;
+#endif /* HAVE_MMAP */
   struct sfnt_cmap_encoding_subtable *subtables;
   struct sfnt_cmap_encoding_subtable_data **data;
   struct sfnt_cmap_format_14 *format14;
