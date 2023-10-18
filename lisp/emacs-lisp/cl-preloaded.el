@@ -58,8 +58,8 @@
     ;; Markers aren't `numberp', yet they are accepted wherever integers are
     ;; accepted, pretty much.
     (marker number-or-marker atom)
-    (overlay atom) (float number atom) (window-configuration atom)
-    (process atom) (window atom)
+    (overlay atom) (float number number-or-marker atom)
+    (window-configuration atom) (process atom) (window atom)
     ;; FIXME: We'd want to put `function' here, but that's only true
     ;; for those `subr's which aren't special forms!
     (subr atom)
