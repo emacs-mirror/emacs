@@ -217,7 +217,16 @@
       ;; 87
       ((and (or null integer) (not (or null integer))) . nil)
       ;; 88
-      ((and (or (member a b c)) (not (or (member a b)))) . (member c)))
+      ((and (or (member a b c)) (not (or (member a b)))) . (member c))
+      ;; 89
+      ((or cons symbol) . list)
+      ;; 90
+      ((or string char-table bool-vector vector) . array)
+      ;; 91
+      ((or string char-table bool-vector vector number) . (or array number))
+      ;; 92
+      ((or string char-table bool-vector vector cons symbol number) .
+       (or number sequence)))
     "Alist type specifier -> expected type specifier."))
 
 (defmacro comp-cstr-synthesize-tests ()
