@@ -2047,6 +2047,7 @@ removed from the list will be disabled."
                    (when (symbol-value f)
                      (message "Disabling `erc-%s'" module)
                      (funcall f 0))
+                   ;; Disable local module in all ERC buffers.
                    (unless (or (custom-variable-p f)
                                (not (fboundp 'erc-buffer-filter)))
                      (erc-buffer-filter (lambda ()
@@ -2055,8 +2056,8 @@ removed from the list will be disabled."
                                           (kill-local-variable f)))))))))
          ;; Calling `set-default-toplevel-value' complicates testing.
          (set sym (erc--sort-modules val))
-         ;; this test is for the case where erc hasn't been loaded yet
-         ;; FIXME explain how this ^ can occur or remove comment.
+         ;; Don't initialize modules on load, even though the rare
+         ;; third-party module may need it.
          (when (fboundp 'erc-update-modules)
            (unless erc--inside-mode-toggle-p
              (erc-update-modules))))
@@ -2129,11 +2130,16 @@ Except ignore all local modules, which were introduced in ERC 5.5."
 (defun erc--warn-about-aberrant-modules ()
   (when (and erc--aberrant-modules (not erc--target))
     (erc-button--display-error-notice-with-keys-and-warn
-     "The following modules exhibited strange loading behavior: "
+     "The following modules likely engage in unfavorable loading practices: "
      (mapconcat (lambda (s) (format "`%s'" s)) erc--aberrant-modules ", ")
      ". Please contact ERC with \\[erc-bug] if you believe this to be untrue."
      " See Info:\"(erc) Module Loading\" for more.")
     (setq erc--aberrant-modules nil)))
+
+(defvar erc--requiring-module-mode-p nil
+  "Non-nil while doing (require \\='erc-mymod) for `mymod' in `erc-modules'.
+Used for inhibiting potentially recursive `erc-update-modules'
+invocations by third-party packages.")
 
 (defun erc--find-mode (sym)
   (setq sym (erc--normalize-module-symbol sym))
@@ -2144,10 +2150,16 @@ Except ignore all local modules, which were introduced in ERC 5.5."
                 (symbol-file mode)
                 (ignore (cl-pushnew sym erc--aberrant-modules)))))
       mode
-    (and (require (or (get sym 'erc--feature)
-                      (intern (concat "erc-" (symbol-name sym))))
-                  nil 'noerror)
-         (setq mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
+    (and (or (and erc--requiring-module-mode-p
+                  ;; Also likely non-nil: (eq sym (car features))
+                  (cl-pushnew sym erc--aberrant-modules))
+             (let ((erc--requiring-module-mode-p t))
+               (require (or (get sym 'erc--feature)
+                            (intern (concat "erc-" (symbol-name sym))))
+                        nil 'noerror))
+             (memq sym erc--aberrant-modules))
+         (or mode (setq mode (intern-soft (concat "erc-" (symbol-name sym)
+                                                  "-mode"))))
          (fboundp mode)
          mode)))
 

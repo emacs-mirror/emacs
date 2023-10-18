@@ -412,16 +412,18 @@ One way to add functionality to ERC is to customize which of its many
 modules are loaded.
 
 There is a spiffy customize interface, which may be reached by typing
-@kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.
-When removing a module outside of the Custom ecosystem, you may wish
-to ensure it's disabled by invoking its associated minor-mode toggle
-with a nonpositive prefix argument, for example, @kbd{C-u - M-x
+@kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.  When
+removing a module outside of Customize, you may wish to ensure it's
+disabled by invoking its associated minor-mode toggle with a
+nonpositive prefix argument, for example, @kbd{C-u - M-x
 erc-spelling-mode @key{RET}}.  Additionally, if you plan on loading
 third-party modules that perform atypical setup on activation, you may
 need to arrange for calling @code{erc-update-modules} in your init
 file.  Examples of such setup might include registering an
 @code{erc-before-connect} hook, advising @code{erc-open}, and
-modifying @code{erc-modules} itself.
+modifying @code{erc-modules} itself.  On Emacs 29 and greater, you can
+also run @code{erc-update-modules} indirectly, via @code{(setopt
+erc-modules erc-modules)}.
 
 The following is a list of available modules.
 
@@ -652,41 +654,54 @@ buffers belonging to their connection (when called interactively).
 And unlike global toggles, none of these ever mutates
 @code{erc-modules}.
 
-
+@c FIXME add section to Advanced chapter for creating modules, and
+@c move this there.
 @anchor{Module Loading}
-@subheading Module Loading
+@subheading Loading
 @cindex module loading
 
 ERC loads internal modules in alphabetical order and third-party
 modules as they appear in @code{erc-modules}.  When defining your own
 module, take care to ensure ERC can find it.  An easy way to do that
 is by mimicking the example in the doc string for
-@code{define-erc-module}.  For historical reasons, ERC also falls back
-to @code{require}ing features.  For example, if some module
-@code{<mymod>} in @code{erc-modules} lacks a corresponding
-@code{erc-<mymod>-mode} command, ERC will attempt to load the library
-@code{erc-<mymod>} prior to connecting.  If this fails, ERC signals an
-error.  Users wanting to define modules in an init files should
-@code{(provide 'erc-<my-mod>)} somewhere to placate ERC.  Dynamically
-generating modules on the fly is not supported.
+@code{define-erc-module} (also shown below).  For historical reasons,
+ERC falls back to @code{require}ing features.  For example, if some
+module @code{my-module} in @code{erc-modules} lacks a corresponding
+@code{erc-my-module-mode} command, ERC will attempt to load the
+library @code{erc-my-module} prior to connecting.  If this fails, ERC
+signals an error.  Users defining personal modules in an init file
+should @code{(provide 'erc-my-module)} somewhere to placate ERC.
+Dynamically generating modules on the fly is not supported.
 
-Sometimes, packages attempt to autoload a module's definition instead
-of its minor-mode command, which breaks the link between the library
-and the module.  This means that enabling the mode by invoking its
-command toggle isn't enough to load its defining library.  Such
-packages should instead only supply autoload cookies featuring an
-explicit @code{autoload} form for their module's minor-mode command.
-As mentioned above, packages can also usually avoid autoload cookies
-entirely so long as their module's prefixed name matches that of its
-defining library and the latter's provided feature.
+Some packages have been known to autoload a module's definition
+instead of its minor-mode command, which severs the link between the
+library and the module.  This means that enabling the mode by invoking
+its command toggle isn't enough to load its defining library.  As
+such, packages should only supply module-related autoload cookies with
+an actual @code{autoload} form for their module's minor-mode command,
+like so:
 
-Packages have also been seen to specify unnecessary top-level
-@code{eval-after-load} forms, which end up being ineffective in most
-cases.  Another unfortunate practice is mutating @code{erc-modules}
-itself in an autoloaded form.  Doing this tricks Customize into
-displaying the widget for @code{erc-modules} incorrectly, with
-built-in modules moved from the predefined checklist to the
-user-provided free-form area.
+@lisp
+;;;###autoload(autoload 'erc-my-module-mode "erc-my-module" nil t)
+(define-erc-module my-module nil
+  "My doc string."
+  ((add-hook 'erc-insert-post-hook #'erc-my-module-on-insert-post))
+  ((remove-hook 'erc-insert-post-hook #'erc-my-module-on-insert-post)))
+@end lisp
+
+@noindent
+As implied earlier, packages can usually omit such cookies entirely so
+long as their module's prefixed name matches that of its defining
+library and the library's provided feature.
+
+Finally, packages have also been observed to run
+@code{erc-update-modules} in top-level forms, forcing ERC to take
+special precautions to avoid recursive invocations.  Another
+unfortunate practice is mutating @code{erc-modules} itself upon
+loading @code{erc}, possibly by way of an autoload.  Doing this tricks
+Customize into displaying the widget for @code{erc-modules}
+incorrectly, with built-in modules moved from the predefined checklist
+to the user-provided free-form area.
 
 @c PRE5_4: Document every option of every module in its own subnode
 
