@@ -5332,11 +5332,6 @@ The following properties have special meanings for this widget:
 :hidden-states should be a list of widget states for which the
   widget's initial contents are to be hidden.
 
-:custom-form should be a symbol describing how to display and
-  edit the variable---either `edit' (using edit widgets),
-  `lisp' (as a Lisp sexp), or `mismatch' (should not happen);
-  if nil, use the return value of `custom-variable-default-form'.
-
 :shown-value, if non-nil, should be a list whose `car' is the
   variable value to display in place of the current value.
 
@@ -5349,11 +5344,34 @@ The following properties have special meanings for this widget:
   :custom-category 'option
   :custom-state nil
   :custom-form nil
-  :value-create 'custom-icon-value-create
+  :value-create #'custom-icon-value-create
   :hidden-states '(standard)
-  :custom-set 'custom-icon-set
-  :custom-reset-current 'custom-redraw
-  :custom-reset-saved 'custom-variable-reset-saved)
+  :action #'custom-icon-action
+  :custom-set #'custom-icon-set
+  :custom-reset-current #'custom-redraw)
+  ;; Not implemented yet.
+  ;; :custom-reset-saved 'custom-icon-reset-saved)
+
+(defvar custom-icon-extended-menu
+  (let ((map (make-sparse-keymap)))
+    (define-key-after map [custom-icon-set]
+      '(menu-item "Set for Current Session" custom-icon-set
+                  :enable (eq (widget-get custom-actioned-widget :custom-state)
+                              'modified)))
+    (when (or custom-file init-file-user)
+      (define-key-after map [custom-icon-save]
+        '(menu-item "Save for Future Sessions" custom-icon-save
+                    :enable (memq
+                             (widget-get custom-actioned-widget :custom-state)
+                             '(modified set changed)))))
+    (define-key-after map [custom-redraw]
+      '(menu-item "Undo Edits" custom-redraw
+                  :enable (memq
+                           (widget-get custom-actioned-widget :custom-state)
+                           '(modified changed))))
+    map)
+  "A menu for `custom-icon' widgets.
+Used in `custom-icon-action' to show a menu to the user.")
 
 (defun custom-icon-value-create (widget)
   "Here is where you edit the icon's specification."
@@ -5483,6 +5501,24 @@ The following properties have special meanings for this widget:
 	  (custom-add-parent-links widget))
 	(custom-add-see-also widget)))))
 
+(defun custom-icon-action (widget &optional event)
+  "Show the menu for `custom-icon' WIDGET.
+Optional EVENT is the location for the menu."
+  (if (eq (widget-get widget :custom-state) 'hidden)
+      (custom-toggle-hide widget)
+    (unless (eq (widget-get widget :custom-state) 'modified)
+      (custom-icon-state-set widget))
+    (custom-redraw-magic widget)
+    (let* ((completion-ignore-case t)
+           (custom-actioned-widget widget)
+           (answer (widget-choose (concat "Operation on "
+                                          (custom-unlispify-tag-name
+                                           (widget-get widget :value)))
+                                  custom-icon-extended-menu
+                                  event)))
+      (when answer
+        (funcall answer widget)))))
+
 (defun custom-toggle-hide-icon (visibility-widget &rest _ignore)
   "Toggle the visibility of a `custom-icon' parent widget.
 By default, this signals an error if the parent has unsaved
@@ -5519,10 +5555,21 @@ changes."
       (user-error "Cannot update hidden icon"))
 
     (setq val (custom--icons-widget-value child))
-    (unless (equal val (icon-complete-spec symbol))
-      (custom-variable-backup-value widget))
+    ;; FIXME: What was the intention here?
+    ;; (unless (equal val (icon-complete-spec symbol))
+    ;;   (custom-variable-backup-value widget))
     (custom-push-theme 'theme-icon symbol 'user 'set val)
-    (custom-redraw-magic widget)))
+    (custom-redraw widget)))
+
+(defun custom-icon-save (widget)
+  "Save value of icon edited by widget WIDGET."
+  (custom-set-icons (cons (widget-value widget)
+                          (list
+                           (custom--icons-widget-value
+                            (car (widget-get widget :children))))))
+  (custom-save-all)
+  (custom-icon-state-set widget)
+  (custom-redraw-magic widget))
 
 ;;;###autoload
 (defun customize-icon (icon)
