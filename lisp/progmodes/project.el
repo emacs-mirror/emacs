@@ -1941,6 +1941,15 @@ Otherwise, use the face `help-key-binding' in the prompt."
   :version "30.1")
 
 (defun project--keymap-prompt ()
+  "Return a prompt for the project switching using the prefix map."
+  (let (keys)
+    (map-keymap
+     (lambda (evt _)
+       (when (characterp evt) (push evt keys)))
+     project-prefix-map)
+    (mapconcat (lambda (key) (help-key-description (string key) nil)) keys " ")))
+
+(defun project--menu-prompt ()
   "Return a prompt for the project switching dispatch menu."
   (mapconcat
    (pcase-lambda (`(,cmd ,label ,key))
@@ -1979,11 +1988,22 @@ Otherwise, use the face `help-key-binding' in the prompt."
               (when-let ((cmd (nth 0 row))
                          (keychar (nth 2 row)))
                 (define-key temp-map (vector keychar) cmd)))))
-         command)
+         command
+         choice)
     (while (not command)
       (let* ((overriding-local-map commands-map)
-             (choice (read-key-sequence (project--keymap-prompt))))
+             (prompt (if project-switch-use-entire-map
+                         (project--keymap-prompt)
+                       (project--menu-prompt))))
+        (when choice
+          (setq prompt (concat prompt
+                               (format " %s: %s"
+                                       (propertize "Unrecognized input"
+                                                   'face 'warning)
+                                       (help-key-description choice nil)))))
+        (setq choice (read-key-sequence (concat "Choose: " prompt)))
         (when (setq command (lookup-key commands-map choice))
+          (when (numberp command) (setq command nil))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))
             ;; TODO: Add some hint to the prompt, like "key not
