@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT([GNU Emacs], [29.1.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([GNU Emacs], [29.1.90], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
