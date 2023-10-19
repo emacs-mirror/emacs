@@ -5202,6 +5202,24 @@ or call the function `dynamic-completion-mode'.")
 (autoload 'dynamic-completion-mode "completion" "\
 Toggle dynamic word-completion on or off.
 
+When this minor mode is turned on, typing \\`M-RET' or \\`C-RET'
+invokes the command `complete', which completes the word or
+symbol at point using the record of words/symbols you used
+previously and the previously-inserted completions.  Typing
+a word or moving point across it constitutes \"using\" the
+word.
+
+By default, the database of all the dynamic completions that
+were inserted by \\[complete] is saved on the file specified
+by `save-completions-file-name' when you exit Emacs, and will
+be loaded from that file when this mode is enabled in a future
+Emacs session.
+
+The following important options control the various aspects of
+this mode: `enable-completion', `save-completions-flag', and
+`save-completions-retention-time'.  Few other less important
+options can be found in the `completion' group.
+
 This is a global minor mode.  If called interactively, toggle the
 `Dynamic-Completion mode' mode.  If the prefix argument is
 positive, enable the mode, and if it is zero or negative, disable
@@ -8938,7 +8956,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files.
 (autoload 'ediff-windows-wordwise "ediff" "\
 Compare WIND-A and WIND-B, which are selected by clicking, wordwise.
 This compares the portions of text visible in each of the two windows.
-With prefix argument, DUMB-MODE, or on a non-windowing display, works as
+With prefix argument, DUMB-MODE, or on a non-graphical display, works as
 follows:
 If WIND-A is nil, use selected window.
 If WIND-B is nil, use window next to WIND-A.
@@ -8949,7 +8967,7 @@ arguments after setting up the Ediff buffers.
 (autoload 'ediff-windows-linewise "ediff" "\
 Compare WIND-A and WIND-B, which are selected by clicking, linewise.
 This compares the portions of text visible in each of the two windows.
-With prefix argument, DUMB-MODE, or on a non-windowing display, works as
+With prefix argument, DUMB-MODE, or on a non-graphical display, works as
 follows:
 If WIND-A is nil, use selected window.
 If WIND-B is nil, use window next to WIND-A.
@@ -17701,9 +17719,8 @@ it is disabled.
 
 (fn &optional ARG)" t)
 (autoload 'image-mode-to-text "image-mode" "\
-Set a non-image mode as major mode in combination with image minor mode.
-A non-mage major mode found from `auto-mode-alist' or fundamental mode
-displays an image file as text.")
+Set current buffer's modes be a non-image major mode, plus `image-minor-mode'.
+A non-image major mode displays an image file as text.")
 (autoload 'image-bookmark-jump "image-mode" "\
 
 
@@ -19184,6 +19201,13 @@ If you nest `let-alist' invocations, the inner one can't access
 the variables of the outer one.  You can, however, access alists
 inside the original alist by using dots inside the symbol, as
 displayed in the example above.
+
+Note that there is no way to differentiate the case where a key
+is missing from when it is present, but its value is nil.  Thus,
+the following form evaluates to nil:
+
+    (let-alist \\='((some-key . nil))
+      .some-key)
 
 (fn ALIST &rest BODY)" nil t)
 (function-put 'let-alist 'lisp-indent-function 1)
@@ -22474,7 +22498,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 6)) package--builtin-versions)
+(push (purecopy '(org 9 6 10)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -28325,7 +28349,7 @@ Like `mail' command, but display mail buffer in another frame.
 
 ;;; Generated autoloads from emacs-lisp/seq.el
 
-(push (purecopy '(seq 2 23)) package--builtin-versions)
+(push (purecopy '(seq 2 24)) package--builtin-versions)
 
 
 ;;; Generated autoloads from server.el
@@ -32199,7 +32223,10 @@ Convert SECONDS to a proper time, like `current-time' would.
 
 (fn SECONDS)")
 (autoload 'days-to-time "time-date" "\
-Convert DAYS into a time value.
+Convert Emacs-epoch DAYS into a time value.
+Note that this does not use the same epoch as `time-to-days'; you
+must subtract (time-to-days 0) first to convert, and may get nil
+if the result is before the start.
 
 (fn DAYS)")
 (autoload 'time-since "time-date" "\
@@ -32228,7 +32255,7 @@ Return the day number within the year corresponding to TIME.
 
 (fn TIME)")
 (autoload 'time-to-days "time-date" "\
-The absolute date corresponding to TIME, a time value.
+The absolute pseudo-Gregorian date for TIME, a time value.
 The absolute date is the number of days elapsed since the imaginary
 Gregorian date Sunday, December 31, 1 BC.
 
@@ -32844,7 +32871,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/trampver.el
 
-(push (purecopy '(tramp 2 6 0 29 1)) package--builtin-versions)
+(push (purecopy '(tramp 2 6 2 -1)) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -33186,7 +33213,9 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;;; Generated autoloads from progmodes/typescript-ts-mode.el
 
 (autoload 'typescript-ts-base-mode "typescript-ts-mode" "\
-Major mode for editing TypeScript.
+Generic major mode for editing TypeScript.
+
+This mode is intended to be inherited by concrete major modes.
 
 (fn)" t)
 (autoload 'typescript-ts-mode "typescript-ts-mode" "\
@@ -33205,7 +33234,7 @@ The JSX-specific faces are used when `treesit-font-lock-level' is
 at least 3 (which is the default value).
 
 (fn)" t)
-(register-definition-prefixes "typescript-ts-mode" '("tsx-ts-mode--" "typescript-ts-mode-"))
+(register-definition-prefixes "typescript-ts-mode" '("tsx-ts-" "typescript-ts-"))
 
 
 ;;; Generated autoloads from international/ucs-normalize.el
@@ -34087,7 +34116,7 @@ Normalize arguments to delight.
 
 ;;; Generated autoloads from use-package/use-package-ensure-system-package.el
 
-(push (purecopy '(use-package-ensure-system-package 0 2)) package--builtin-versions)
+(push (purecopy '(use-package 0 2)) package--builtin-versions)
 (autoload 'use-package-normalize/:ensure-system-package "use-package-ensure-system-package" "\
 Turn ARGS into a list of conses of the form (PACKAGE-NAME . INSTALL-COMMAND).
 
@@ -34254,18 +34283,23 @@ responsible for the given file.
 (autoload 'vc-next-action "vc" "\
 Do the next logical version control operation on the current fileset.
 This requires that all files in the current VC fileset be in the
-same state.  If not, signal an error.
+same state.  If they are not, signal an error.  Also signal an error if
+files in the fileset are missing (removed, but tracked by version control),
+or are ignored by the version control system.
 
-For merging-based version control systems:
-  If every file in the VC fileset is not registered for version
-   control, register the fileset (but don't commit).
-  If every work file in the VC fileset is added or changed, pop
-   up a *vc-log* buffer to commit the fileset.
+For modern merging-based version control systems:
+  If every file in the fileset is not registered for version
+   control, register the fileset (but don't commit).  If VERBOSE is
+   non-nil (interactively, the prefix argument), ask for the VC
+   backend with which to register the fileset.
+  If every work file in the VC fileset is either added or modified,
+   pop up a *vc-log* buffer to commit the fileset changes.
   For a centralized version control system, if any work file in
    the VC fileset is out of date, offer to update the fileset.
 
 For old-style locking-based version control systems, like RCS:
-  If every file is not registered, register the file(s).
+  If every file is not registered, register the file(s); with a prefix
+   argument, allow to specify the VC backend for registration.
   If every file is registered and unlocked, check out (lock)
    the file(s) for editing.
   If every file is locked by you and has changes, pop up a
@@ -34273,14 +34307,21 @@ For old-style locking-based version control systems, like RCS:
    read-only copy of each changed file after checking in.
   If every file is locked by you and unchanged, unlock them.
   If every file is locked by someone else, offer to steal the lock.
+  If files are unlocked, but have changes, offer to either claim the
+   lock or revert to the last checked-in version.
+
+If this command is invoked from a patch buffer under `diff-mode', it
+will apply the diffs from the patch and pop up a *vc-log* buffer to
+check-in the resulting changes.
 
 When using this command to register a new file (or files), it
 will automatically deduce which VC repository to register it
 with, using the most specific one.
 
 If VERBOSE is non-nil (interactively, the prefix argument),
-you can specify a VC backend or (for centralized VCS only)
-the revision ID or branch ID.
+you can specify another VC backend for the file(s),
+or (for centralized VCS only) the revision ID or branch ID
+from which to check out the file(s).
 
 (fn VERBOSE)" t)
 (autoload 'vc-register "vc" "\
@@ -36828,6 +36869,10 @@ updated (e.g. to re-interpret the current directory).
 
 Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching.
+
+Note that `M-x woman' doesn’t yet support the latest features of
+modern man pages, so we recommend using `M-x man' if that is
+available on your system.
 
 (fn &optional TOPIC RE-CACHE)" t)
 (autoload 'woman-dired-find-file "woman" "\
