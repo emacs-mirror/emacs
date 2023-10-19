@@ -3855,7 +3855,7 @@ so they have been disabled."))
 (defvar gud-lldb-history nil)
 
 (defcustom gud-gud-lldb-command-name "lldb"
-  "Default command to run an executable under LLDB in text command mode."
+  "Default command to run an executable under LLDB."
   :type 'string)
 
 (defun gud-lldb-marker-filter (string)
@@ -3897,6 +3897,25 @@ so they have been disabled."))
 ;;
 ;; If there is no common prefix, index 0 has an empty string "".
 
+(defcustom gud-lldb-max-completions 20
+  "Maximum number of completions to request from LLDB."
+  :type 'integer)
+
+(defvar gud-lldb-def-python-completion-function
+  "
+def gud_complete(s, max):
+    interpreter = lldb.debugger.GetCommandInterpreter()
+    string_list = lldb.SBStringList()
+    interpreter.HandleCompletion(s, len(s), len(s), max, string_list)
+    print('gud-completions: (')
+    # Specifying a max count doesn't seem to work in LLDB 17.
+    max = min(max, string_list.GetSize())
+    for i in range(max):
+        print(f'\"{string_list.GetStringAtIndex(i)}\" ')
+    print(')')
+"
+  "LLDB Python function for completion.")
+
 (defun gud-lldb-fetch-completions (context command)
   "Return the data to complete the LLDB command before point.
 This is what the Python function we installed at initialzation
@@ -3908,8 +3927,8 @@ time returns, as a Lisp list."
     (with-current-buffer output-buffer
       (erase-buffer))
     (comint-redirect-send-command-to-process
-     (format "script --language python -- gud_complete('%s')"
-             to-complete)
+     (format "script --language python -- gud_complete('%s', %d)"
+             to-complete gud-lldb-max-completions)
      output-buffer process nil t)
     ;; Wait for output
     (unwind-protect
@@ -3944,19 +3963,6 @@ time returns, as a Lisp list."
           (completion-table-dynamic
            (apply-partially #'gud-lldb-completions context)))))
 
-(defvar gud-lldb-def-python-completion-function
-  "
-def gud_complete(s):
-    interpreter = lldb.debugger.GetCommandInterpreter()
-    string_list = lldb.SBStringList()
-    interpreter.HandleCompletion(s, len(s), len(s), -1, string_list)
-    print('gud-completions: (')
-    for i in range(string_list.GetSize()):
-        print(f'\"{string_list.GetStringAtIndex(i)}\" ')
-    print(')')
-"
-  "LLDB command to define a Python function for completion.")
-
 (defun gud-lldb-send-python (python)
   (gud-basic-call "script --language python --")
   (mapc #'gud-basic-call (split-string python "\n"))
@@ -3967,7 +3973,7 @@ def gud_complete(s):
   (gud-lldb-send-python gud-lldb-def-python-completion-function)
   (gud-basic-call "settings set stop-line-count-before 0")
   (gud-basic-call "settings set stop-line-count-after 0")
-  (gud-basic-call "script --language python -- print('Gud initialized')"))
+  (gud-basic-call "script --language python -- print('Gud initialized.')"))
 
 ;;;###autoload
 (defun lldb (command-line)
