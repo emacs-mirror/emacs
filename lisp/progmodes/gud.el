@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'comint)
+(require 'cl-macs)
 
 (defvar gdb-active-process)
 (defvar gdb-define-alist)
@@ -708,7 +709,7 @@ The option \"--fullname\" must be included in this value."
   (setq gud-marker-acc (concat gud-marker-acc string))
   (let ((output ""))
 
-    ;; Process all the complete markers in this chunk.
+    ;; Processn all the complete markers in this chunk.
     (while (string-match gud-gdb-marker-regexp gud-marker-acc)
       (setq
 
@@ -3858,25 +3859,24 @@ so they have been disabled."))
   "Default command to run an executable under LLDB."
   :type 'string)
 
+(cl-defun gud-lldb-stop (&key file line _column)
+  (setq gud-last-frame (cons file line)))
+
 (defun gud-lldb-marker-filter (string)
   "Deduce interesting stuff from process output STRING."
-  (cond (;; Process 72668 stopped
-         ;; * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
-         ;;     frame #0: ...) at emacs.c:1310:9 [opt]
-         (string-match (rx (and line-start (0+ blank) "frame"
-                                (0+ not-newline) " at "
-                                (group (1+ (not ":")))
-                                ":"
-                                (group (1+ digit))))
-                       string)
-         (setq gud-last-frame
-               (cons (match-string 1 string)
-                     (string-to-number (match-string 2 string)))))
-        (;; Process 72874 exited with status = 9 (0x00000009) killed
-         (string-match (rx "Process " (1+ digit) " exited with status")
-                       string)
-         (setq gud-last-last-frame nil)
-         (setq gud-overlay-arrow-position nil)))
+  (cond
+   ;; gud-info: (function-name args...)
+   ((string-match (rx line-start (0+ blank) "gud-info:" (0+ blank)
+                      (group "(" (1+ (not ")")) ")"))
+                  string)
+    (let ((form (string-replace "///" "\"" (match-string 1 string))))
+      (eval (car (read-from-string form)))))
+   ;; Process 72874 exited with status = 9 (0x00000009) killed.
+   ;; Doesn't seem to be changeable as of LLDB 17.0.2.
+    ((string-match (rx "Process " (1+ digit) " exited with status")
+                   string)
+     (setq gud-last-last-frame nil)
+     (setq gud-overlay-arrow-position nil)))
   string)
 
 ;; According to SBCommanInterpreter.cpp, the return value of
@@ -3963,6 +3963,15 @@ time returns, as a Lisp list."
           (completion-table-dynamic
            (apply-partially #'gud-lldb-completions context)))))
 
+(defvar gud-lldb-frame-format
+  (concat "gud-info: (gud-lldb-stop "
+          ;; Quote the filename this way to avoid quoting issues in
+          ;; the interplay between Emacs and LLDB.  The quotes are
+          ;; corrected in the process filter.
+          ":file ///${line.file.fullpath}/// "
+          ":line ${line.number} "
+          ":column ${line.column})\\n"))
+
 (defun gud-lldb-send-python (python)
   (gud-basic-call "script --language python --")
   (mapc #'gud-basic-call (split-string python "\n"))
@@ -3973,6 +3982,9 @@ time returns, as a Lisp list."
   (gud-lldb-send-python gud-lldb-def-python-completion-function)
   (gud-basic-call "settings set stop-line-count-before 0")
   (gud-basic-call "settings set stop-line-count-after 0")
+  (gud-basic-call (format "settings set frame-format \"%s\""
+                          gud-lldb-frame-format))
+  (gud-basic-call "script --language python -- print('Gud initialized')")
   (gud-basic-call "script --language python -- print('Gud initialized.')"))
 
 ;;;###autoload
