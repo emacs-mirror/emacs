@@ -19,6 +19,7 @@
 set $dummy = main + 8
 # With some compilers, we need this to give us struct Lisp_Symbol etc.:
 set $dummy = Fmake_symbol + 8
+set annotate 1
 
 # Find lwlib source files too.
 dir ../lwlib
