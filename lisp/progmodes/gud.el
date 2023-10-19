@@ -3021,7 +3021,12 @@ Obeying it means displaying in another window the specified file and line."
   (interactive)
   (when gud-last-frame
     (gud-set-buffer)
-    (gud-display-line (car gud-last-frame) (cdr gud-last-frame))
+    ;; Support either (file . line) or (file line column).
+    (if (consp (cdr gud-last-frame))
+        (let ((line (cadr gud-last-frame))
+              (column (caddr gud-last-frame)))
+          (gud-display-line (car gud-last-frame) line column))
+      (gud-display-line (car gud-last-frame) (cdr gud-last-frame)))
     (setq gud-last-last-frame gud-last-frame
 	  gud-last-frame nil)))
 
@@ -3054,7 +3059,7 @@ line, until it is displaced by subsequent cursor motion."
   "Face for highlighting the source code line being executed."
   :version "30.1")
 
-(defun gud-display-line (true-file line)
+(defun gud-display-line (true-file line &optional column)
   (let* ((last-nonmenu-event t)	 ; Prevent use of dialog box for questions.
 	 (buffer
 	  (with-current-buffer gud-comint-buffer
@@ -3080,6 +3085,8 @@ line, until it is displaced by subsequent cursor motion."
 	  (goto-char (point-min))
 	  (forward-line (1- line))
 	  (setq pos (point))
+          (when column
+            (forward-char (1- column)))
 	  (or gud-overlay-arrow-position
 	      (setq gud-overlay-arrow-position (make-marker)))
 	  (set-marker gud-overlay-arrow-position (point) (current-buffer))
@@ -3859,8 +3866,8 @@ so they have been disabled."))
   "Default command to run an executable under LLDB."
   :type 'string)
 
-(cl-defun gud-lldb-stop (&key file line _column)
-  (setq gud-last-frame (cons file line)))
+(cl-defun gud-lldb-stop (&key file line column)
+  (setq gud-last-frame (list file line column)))
 
 (defun gud-lldb-marker-filter (string)
   "Deduce interesting stuff from process output STRING."
