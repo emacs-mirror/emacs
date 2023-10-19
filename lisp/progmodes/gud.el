@@ -3991,7 +3991,6 @@ time returns, as a Lisp list."
   (gud-basic-call "settings set stop-line-count-after 0")
   (gud-basic-call (format "settings set frame-format \"%s\""
                           gud-lldb-frame-format))
-  (gud-basic-call "script --language python -- print('Gud initialized')")
   (gud-basic-call "script --language python -- print('Gud initialized.')"))
 
 ;;;###autoload
