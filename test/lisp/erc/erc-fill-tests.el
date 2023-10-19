@@ -203,36 +203,39 @@
   (unless (>= emacs-major-version 29)
     (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
 
-  (erc-fill-tests--wrap-populate
+  (let ((erc-prompt (lambda () "ABC>")))
+    (erc-fill-tests--wrap-populate
 
-   (lambda ()
-     (should (= erc-fill--wrap-value 27))
-     (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-     (erc-fill-tests--compare "monospace-01-start")
-
-     (ert-info ("Shift right by one (plus)")
-       ;; Args are all `erc-fill-wrap-nudge' +1 because interactive "p"
-       (ert-with-message-capture messages
-         ;; M-x erc-fill-wrap-nudge RET =
-         (ert-simulate-command '(erc-fill-wrap-nudge 2))
-         (should (string-match (rx "for further adjustment") messages)))
-       (should (= erc-fill--wrap-value 29))
-       (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-       (erc-fill-tests--compare "monospace-02-right"))
-
-     (ert-info ("Shift left by five")
-       ;; "M-x erc-fill-wrap-nudge RET -----"
-       (ert-simulate-command '(erc-fill-wrap-nudge -4))
-       (should (= erc-fill--wrap-value 25))
-       (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-       (erc-fill-tests--compare "monospace-03-left"))
-
-     (ert-info ("Reset")
-       ;; M-x erc-fill-wrap-nudge RET 0
-       (ert-simulate-command '(erc-fill-wrap-nudge 0))
+     (lambda ()
        (should (= erc-fill--wrap-value 27))
        (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
-       (erc-fill-tests--compare "monospace-04-reset")))))
+       (erc-fill-tests--compare "monospace-01-start")
+
+       (ert-info ("Shift right by one (plus)")
+         ;; Args are all `erc-fill-wrap-nudge' +1 because interactive "p"
+         (ert-with-message-capture messages
+           ;; M-x erc-fill-wrap-nudge RET =
+           (ert-simulate-command '(erc-fill-wrap-nudge 2))
+           (should (string-match (rx "for further adjustment") messages)))
+         (should (= erc-fill--wrap-value 29))
+         (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
+         (erc-fill-tests--compare "monospace-02-right"))
+
+       (ert-info ("Shift left by five")
+         ;; "M-x erc-fill-wrap-nudge RET -----"
+         (ert-simulate-command '(erc-fill-wrap-nudge -4))
+         (should (= erc-fill--wrap-value 25))
+         (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
+         (erc-fill-tests--compare "monospace-03-left"))
+
+       (ert-info ("Reset")
+         ;; M-x erc-fill-wrap-nudge RET 0
+         (ert-simulate-command '(erc-fill-wrap-nudge 0))
+         (should (= erc-fill--wrap-value 27))
+         (erc-fill-tests--wrap-check-prefixes "*** " "<alice> " "<bob> ")
+         (erc-fill-tests--compare "monospace-04-reset"))
+
+       (erc--assert-input-bounds)))))
 
 (defun erc-fill-tests--simulate-refill ()
   ;; Simulate `erc-fill-wrap-refill-buffer' synchronously and without

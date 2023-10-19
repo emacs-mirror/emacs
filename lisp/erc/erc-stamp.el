@@ -704,10 +704,12 @@ left-sided stamps and date stamps inserted by this function."
   (unless erc-stamp--date-format-end
     (add-hook 'erc-insert-pre-hook #'erc-stamp--lr-date-on-pre-modify -95 t)
     (add-hook 'erc-send-pre-functions #'erc-stamp--lr-date-on-pre-modify -95 t)
-    (let ((erc--insert-marker (point-min-marker)))
+    (let ((erc--insert-marker (point-min-marker))
+          (end-marker (point-max-marker)))
       (set-marker-insertion-type erc--insert-marker t)
       (erc-stamp--lr-date-on-pre-modify nil)
-      (narrow-to-region erc--insert-marker (point-max))
+      (narrow-to-region erc--insert-marker end-marker)
+      (set-marker end-marker nil)
       (set-marker erc--insert-marker nil)))
   (let* ((ct (or erc-stamp--current-time (erc-stamp--current-time)))
          (ts-right (with-suppressed-warnings
