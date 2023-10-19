@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.6.2-pre
+;; Version: 2.6.2.29.2
 ;; Package-Requires: ((emacs "26.1"))
 ;; Package-Type: multi
 ;; URL: https://www.gnu.org/software/tramp/
@@ -40,7 +40,7 @@
 ;; ./configure" to change them.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.6.2-pre"
+(defconst tramp-version "2.6.2.29.2"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -78,7 +78,7 @@
 ;; Check for Emacs version.
 (let ((x   (if (not (string-version-lessp emacs-version "26.1"))
       "ok"
-    (format "Tramp 2.6.2-pre is not fit for %s"
+    (format "Tramp 2.6.2.29.2 is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
@@ -105,7 +105,7 @@
          ("2.3.5.26.3" . "26.3")
          ("2.4.3.27.1" . "27.1") ("2.4.5.27.2" . "27.2")
          ("2.5.2.28.1" . "28.1") ("2.5.3.28.2" . "28.2") ("2.5.4" . "28.3")
-         ("2.6.0.29.1" . "29.1")))
+         ("2.6.0.29.1" . "29.1") ("2.6.2.29.2" . "29.2")))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
