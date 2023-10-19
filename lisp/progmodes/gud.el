@@ -40,7 +40,6 @@
 ;;; Code:
 
 (require 'comint)
-(require 'cl-macs)
 
 (defvar gdb-active-process)
 (defvar gdb-define-alist)
@@ -3866,9 +3865,6 @@ so they have been disabled."))
   "Default command to run an executable under LLDB."
   :type 'string)
 
-(cl-defun gud-lldb-stop (&key file line column)
-  (setq gud-last-frame (list file line column)))
-
 (defun gud-lldb-marker-filter (string)
   "Deduce interesting stuff from process output STRING."
   (cond
@@ -3876,8 +3872,13 @@ so they have been disabled."))
    ((string-match (rx line-start (0+ blank) "gud-info:" (0+ blank)
                       (group "(" (1+ (not ")")) ")"))
                   string)
-    (let ((form (string-replace "///" "\"" (match-string 1 string))))
-      (eval (car (read-from-string form)))))
+    (let* ((form (string-replace "///" "\"" (match-string 1 string)))
+           (form (car (read-from-string form))))
+      (when (eq (car form) 'gud-lldb-stop)
+        (let ((plist (cdr form)))
+          (setq gud-last-frame (list (plist-get plist :file)
+                                     (plist-get plist :line)
+                                     (plist-get plist :column)))))))
    ;; Process 72874 exited with status = 9 (0x00000009) killed.
    ;; Doesn't seem to be changeable as of LLDB 17.0.2.
     ((string-match (rx "Process " (1+ digit) " exited with status")
@@ -3914,12 +3915,12 @@ def gud_complete(s, max):
     interpreter = lldb.debugger.GetCommandInterpreter()
     string_list = lldb.SBStringList()
     interpreter.HandleCompletion(s, len(s), len(s), max, string_list)
-    print('gud-completions: (')
+    print('gud-completions: ##(')
     # Specifying a max count doesn't seem to work in LLDB 17.
     max = min(max, string_list.GetSize())
     for i in range(max):
         print(f'\"{string_list.GetStringAtIndex(i)}\" ')
-    print(')')
+    print(')##')
 "
   "LLDB Python function for completion.")
 
@@ -3940,12 +3941,12 @@ time returns, as a Lisp list."
     ;; Wait for output
     (unwind-protect
         (while (not comint-redirect-completed)
-          (accept-process-output process))
+          (accept-process-output process 2))
       (comint-redirect-cleanup))
     ;; Process the completion output.
     (with-current-buffer output-buffer
       (goto-char (point-min))
-      (when (search-forward "gud-completions:" nil t)
+      (when (search-forward "gud-completions: ##" nil t)
         (read (current-buffer))))))
 
 (defun gud-lldb-completions (context command)
@@ -4008,7 +4009,13 @@ it can be found by searching PATH.
 If COMMAND-LINE requests that lldb attaches to a process PID, lldb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
 cases the initial working directory is the `default-directory' of
-the buffer in which this command was invoked."
+the buffer in which this command was invoked.
+
+Please note that completion framework that complete while you
+type, like Corfu, do not work well with this mode.  You should
+consider to turn them off in this mode.
+
+This command runs functions from `lldb-mode-hook'. "
   (interactive (list (gud-query-cmdline 'lldb)))
 
   (when (and gud-comint-buffer
