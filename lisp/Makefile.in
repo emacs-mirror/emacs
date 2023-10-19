@@ -95,6 +95,7 @@ COMPILE_FIRST = \
 ifeq ($(HAVE_NATIVE_COMP),yes)
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp-run.elc
 endif
 COMPILE_FIRST += $(lisp)/emacs-lisp/loaddefs-gen.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/radix-tree.elc
