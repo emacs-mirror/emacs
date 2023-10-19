@@ -492,8 +492,11 @@ and `erc-stamp--margin-left-p', before activating the mode."
     (put-text-property erc-insert-marker (1- erc-input-marker)
                        'display `((margin left-margin) ,prompt))))
 
-(cl-defmethod erc-insert-timestamp-left (string)
+(defun erc-insert-timestamp-left (string)
   "Insert timestamps at the beginning of the line."
+  (erc--insert-timestamp-left string))
+
+(cl-defmethod erc--insert-timestamp-left (string)
   (goto-char (point-min))
   (let* ((ignore-p (and erc-timestamp-only-if-changed-flag
 			(string-equal string erc-timestamp-last-inserted)))
@@ -504,13 +507,12 @@ and `erc-stamp--margin-left-p', before activating the mode."
     (erc-put-text-property 0 len 'invisible erc-stamp--invisible-property s)
     (insert s)))
 
-(cl-defmethod erc-insert-timestamp-left
+(cl-defmethod erc--insert-timestamp-left
   (string &context (erc-stamp--display-margin-mode (eql t)))
   (unless (and erc-timestamp-only-if-changed-flag
                (string-equal string erc-timestamp-last-inserted))
     (goto-char (point-min))
-    (insert-before-markers-and-inherit
-     (setq erc-timestamp-last-inserted string))
+    (insert-and-inherit (setq erc-timestamp-last-inserted string))
     (dolist (p erc-stamp--inherited-props)
       (when-let ((v (get-text-property (point) p)))
         (put-text-property (point-min) (point) p v)))
