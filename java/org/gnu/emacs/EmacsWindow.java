@@ -1601,7 +1601,7 @@ public final class EmacsWindow extends EmacsHandleObject
   {
     ClipData data;
     ClipDescription description;
-    int i, x, y;
+    int i, j, x, y, itemCount;
     String type;
     Uri uri;
     EmacsActivity activity;
@@ -1626,11 +1626,12 @@ public final class EmacsWindow extends EmacsHandleObject
 
 	data = event.getClipData ();
 	description = data.getDescription ();
+	itemCount = data.getItemCount ();
 
 	/* If there are insufficient items within the clip data,
 	   return false.  */
 
-	if (data.getItemCount () < 1)
+	if (itemCount < 1)
 	  return false;
 
 	/* Search for plain text data within the clipboard.  */
@@ -1662,12 +1663,14 @@ public final class EmacsWindow extends EmacsHandleObject
 	      {
 		/* If the item dropped is a URI, send it to the main
 		   thread.  */
+
 		uri = data.getItemAt (0).getUri ();
 
 		/* Attempt to acquire permissions for this URI;
 		   failing which, insert it as text instead.  */
 
-		if (uri.getScheme () != null
+		if (uri != null
+		    && uri.getScheme () != null
 		    && uri.getScheme ().equals ("content")
 		    && (activity = EmacsActivity.lastFocusedActivity) != null)
 		  {

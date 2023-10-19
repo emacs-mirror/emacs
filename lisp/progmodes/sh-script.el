@@ -869,7 +869,7 @@ See `sh-feature'.")
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-var-1
-  '((sh "[ \t]in\\>"))
+  '((sh "[ \t]\\(in\\|do\\)\\>"))
   "Subdued level highlighting for Shell Script modes.")
 
 (defvar sh-font-lock-keywords-var-2 ()
@@ -1809,8 +1809,8 @@ before the newline and in that case point should be just before the token."
   (concat "\\(?:^\\|[^\\]\\)\\(?:\\\\\\\\\\)*"
           "\\(" sh-smie--sh-operators-re "\\)"))
 
-(defun sh-smie--sh-keyword-in-p ()
-  "Assuming we're looking at \"in\", return non-nil if it's a keyword.
+(defun sh-smie--sh-keyword-in/do-p (tok)
+  "When looking at TOK (either \"in\" or \"do\"), non-nil if TOK is a keyword.
 Does not preserve point."
   (let ((forward-sexp-function nil)
         (words nil)                     ;We've seen words.
@@ -1832,7 +1832,10 @@ Does not preserve point."
        ((equal prev ";")
         (if words (setq newline t)
           (setq res 'keyword)))
-       ((member prev '("case" "for" "select")) (setq res 'keyword))
+       ((member prev (if (string= tok "in")
+                         '("case" "for" "select")
+                       '("for" "select")))
+        (setq res 'keyword))
        ((assoc prev smie-grammar) (setq res 'word))
        (t
         (if newline
@@ -1844,7 +1847,7 @@ Does not preserve point."
   "Non-nil if TOK (at which we're looking) really is a keyword."
   (cond
    ((looking-at "[[:alnum:]_]+=") nil)
-   ((equal tok "in") (sh-smie--sh-keyword-in-p))
+   ((member tok '("in" "do")) (sh-smie--sh-keyword-in/do-p tok))
    (t (sh-smie--keyword-p))))
 
 (defun sh-smie--default-forward-token ()

@@ -262,12 +262,57 @@ Return them as multiple value."
 
 ;;; Type handling.
 
+(defun comp--sym-lessp (x y)
+  "Like `string-lessp' but for strings."
+  (string-lessp (symbol-name x)
+                (symbol-name y)))
+
+(defun comp--direct-supertype (type)
+  "Return the direct supertype of TYPE."
+  (cl-loop
+   named outer
+   for i in (comp-cstr-ctxt-typeof-types comp-ctxt)
+   do (cl-loop for (j y) on i
+                   when (eq j type)
+                     do (cl-return-from outer y))))
+
+(defun comp--normalize-typeset0 (typeset)
+  ;; For every type search its supertype. If all the subtypes of that
+  ;; supertype are presents remove all of them, add the identified
+  ;; supertype and restart.
+  (when typeset
+    (while (eq 'restart
+               (cl-loop
+                named main
+                for i in typeset
+                for sup = (comp--direct-supertype i)
+                for subs = (comp--direct-subtypes sup)
+                when (and sup
+                          (length> subs 1)
+                          (cl-every (lambda (x) (member x typeset)) subs))
+                  do (cl-loop for s in subs
+                              do (setq typeset (cl-delete s typeset))
+                              finally (progn (push sup typeset)
+                                           (cl-return-from main 'restart))))))
+    typeset))
+
 (defun comp-normalize-typeset (typeset)
   "Sort TYPESET and return it."
-  (cl-sort (cl-remove-duplicates typeset)
-           (lambda (x y)
-             (string-lessp (symbol-name x)
-                           (symbol-name y)))))
+  (cl-sort (comp--normalize-typeset0 (cl-remove-duplicates typeset)) #'comp--sym-lessp))
+
+(defun comp--direct-subtypes (type)
+  "Return all the direct subtypes of TYPE."
+  ;; TODO memoize.
+  (cl-sort
+   (cl-loop for j in (comp-cstr-ctxt-typeof-types comp-ctxt)
+            for res = (cl-loop for i in j
+                               with last = nil
+                               when (eq i type)
+                                 return last
+                               do (setq last i))
+            when res
+              collect res)
+   #'comp--sym-lessp))
 
 (defun comp-supertypes (type)
   "Return a list of pairs (supertype . hierarchy-level) for TYPE."

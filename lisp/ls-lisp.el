@@ -811,7 +811,7 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 			  (fceiling (/ file-size 1024.0)))))
             (if (memq 'modes ls-lisp-verbosity)
 	        drwxrwxrwx      ; modes string
-              (substring drwxrwxrwx 0 1)) ; "d" or "-" for directory vs file
+              (substring drwxrwxrwx 0 4)) ; "d" or "-" for directory vs file
 	    (if (memq 'links ls-lisp-verbosity)
 		(format "%3d" (file-attribute-link-number file-attr)))
 	    ;; Numeric uid/gid are more confusing than helpful;

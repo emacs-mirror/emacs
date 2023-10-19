@@ -1122,8 +1122,8 @@ sfnt_lookup_glyph_2 (sfnt_char character,
 	  : 0);
 }
 
-/* Like `bsearch'.  However, return the highest element above KEY if
-   it could not be found.  */
+/* Like `bsearch', but return the element ordered exactly above KEY if
+   one exists and KEY itself cannot be located.  */
 
 static void *
 sfnt_bsearch_above (const void *key, const void *base,
@@ -1146,11 +1146,17 @@ sfnt_bsearch_above (const void *key, const void *base,
       mid = low + (high - low) / 2;
       sample = bytes + mid * size;
 
-      if (compar (key, sample) > 0)
+      if ((*compar) (key, sample) > 0)
 	low = mid + 1;
       else
 	high = mid;
     }
+
+  sample = bytes + low * size;
+
+  if (low == nmemb - 1
+      && (*compar) (key, sample) > 0)
+    return NULL;
 
   return (unsigned char *) bytes + low * size;
 }
@@ -1287,7 +1293,7 @@ sfnt_lookup_glyph_8 (sfnt_char character,
 				  sizeof format8->groups[0],
 				  sfnt_compare_char);
 
-      if (group->start_char_code > character)
+      if (!group || group->start_char_code > character)
 	/* No glyph matches this group.  */
 	return 0;
 
@@ -1336,7 +1342,7 @@ sfnt_lookup_glyph_12 (sfnt_char character,
 				  sizeof format12->groups[0],
 				  sfnt_compare_char);
 
-      if (group->start_char_code > character)
+      if (!group || group->start_char_code > character)
 	/* No glyph matches this group.  */
 	return 0;
 

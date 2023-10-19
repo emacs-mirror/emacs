@@ -55,6 +55,7 @@ repositioned to the first non-whitespace character on the line.
 * Tab Stops::             Stop points for indentation in Text modes.
 * Just Spaces::           Using only space characters for indentation.
 * Indent Convenience::    Optional indentation features.
+* Code Alignment::        Making common parts of lines start at the same column.
 @end menu
 
 @node Indentation Commands
@@ -265,3 +266,236 @@ indents the line after every @key{RET} you type.  This mode is enabled
 by default.  To toggle this minor mode, type @kbd{M-x
 electric-indent-mode}.  To toggle the mode in a single buffer,
 use @kbd{M-x electric-indent-local-mode}.
+
+@node Code Alignment
+@section Code Alignment
+@cindex code alignment
+@cindex aligning code
+
+  @dfn{Alignment} is the process of adjusting whitespace in a sequence
+of lines in the region such that in all lines certain parts begin at
+the same column.  This is usually something you do to enhance
+readability of a piece of text or code.  The classic example is
+aligning a series of assignments in C-like programming languages:
+
+@example
+int a = 1;
+short foo = 2;
+double blah = 4;
+@end example
+
+@noindent
+is commonly aligned to:
+
+@example
+int    a    = 1;
+short  foo  = 2;
+double blah = 4;
+@end example
+
+@cindex alignment rules
+@findex align
+  You can use the command @kbd{M-x align} to align lines in the
+current region.  This command knows about common alignment patterns
+across many markup and programming languages.  It encodes these
+patterns as a set of @dfn{alignment rules}, that say how to align
+different kinds of text in different contexts.
+
+@vindex align-rules-list
+@vindex align-mode-rules-list
+The user option @code{align-rules-list} says which alignment rules
+@kbd{M-x align} should consult.  The value of this option is a list
+with elements describing alignment rules.  Each element is a cons cell
+@code{(@var{title} . @var{attributes})}, where @var{title} is the name
+of the alignment rule as a symbol, and @var{attributes} is a list of
+rule attributes that define when the rule should apply and how it
+partitions and aligns lines.  Each rule attribute is a cons cell
+@code{(@var{attribute} . @var{value})}, where @var{attribute} is the
+name of attribute and @var{value} is its value.  The only required
+attribute is @code{regexp}, whose value is a regular expression with
+sub-expressions matching the parts of each line where @kbd{M-x align}
+should expand or contract whitespace (@pxref{Regexp Backslash}).  See
+the documentation string of @code{align-rules-list} (@kbd{C-h v
+align-rules-list @key{RET}}) for a full description of possible
+alignment rule attributes.  By default, this option is set to a long
+list of alignment rules for many languages that Emacs supports.  The
+default rules use the @code{modes} rule attribute to specify major
+modes in which @kbd{M-x align} should apply them.  Major modes can
+also override @code{align-rules-list} by setting the buffer-local
+variable @code{align-mode-rules-list} to a non-@code{nil} list of
+alignment rules.  When @code{align-mode-rules-list} is non-@code{nil},
+@kbd{M-x align} consults it instead of @code{align-rules-list}.
+
+@cindex align exclusion rules
+@vindex align-exclude-rules-list
+@vindex align-mode-exclude-rules-list
+Besides alignment rules, @kbd{M-x align} uses another kind of rules
+called @dfn{exclusion rules}.  The exclusion rules say which parts in
+the region @kbd{M-x align} should not align and instead leave them
+intact.  The user option @code{align-exclude-rules-list} specifies
+these exclusion rules.  Similarly to @code{align-rules-list}, the
+value of @code{align-exclude-rules-list} is also a list of cons cells
+that describe the exclusion rules.  By default,
+@code{align-exclude-rules-list} includes rules that exclude alignment
+in quoted strings and comments in Lisp, C and other languages.  Beyond
+the default exclusion rules in @code{align-exclude-rules-list}, major
+modes can define bespoke exclusion rules by setting
+@code{align-mode-exclude-rules-list} to a non-@code{nil} list of
+rules, this overrides @code{align-exclude-rules-list} just like
+@code{align-mode-rules-list} overrides @code{align-rules-list}.
+
+@cindex alignment sections
+@vindex align-region-separate
+@kbd{M-x align} splits the region into a series of @dfn{sections},
+usually sequences of non-blank lines, and aligns each section
+according to all matching alignment rule by expanding or contracting
+stretches of whitespace.  @kbd{M-x align} consistently aligns all
+lines inside a single section, but it may align different sections in
+the region differently.  The user option @code{align-region-separate}
+specifies how @kbd{M-x align} separates the region to sections.  This
+option can be one of the symbols @code{entire}, @code{group}, or a
+regular expression.  If @code{align-region-separate} is @code{entire},
+Emacs aligns the entire region as a single section.  If this option is
+@code{group}, Emacs aligns each group of consecutive non-blank lines
+in the region as a separate section.  If @code{align-region-separate}
+is a regular expression, @kbd{M-x align} scans the region for matches
+to that regular expression and treats them as section separators.  By
+default @code{align-region-separate} is set to a regular expression
+that matches blank lines and lines that contains only whitespace and a
+single curly brace (@samp{@{} or @samp{@}}).  For special cases where
+regular expressions are not accurate enough, you can also set
+@code{align-region-separate} to a function that says how to separate
+the region to alignment sections.  See the documentation string of
+@code{align-region-separate} for more details.  Specific alignment
+rules can override the value of @code{align-region-separate} and
+define their own section separator by specifying the @code{separate}
+rule attribute.
+
+If you call @kbd{M-x align} with a prefix argument (@kbd{C-u}), it
+enables more alignment rules that are often useful but may sometimes
+be too intrusive.  For example, in a Lisp buffer with the following
+form:
+
+@lisp
+(set-face-attribute 'mode-line-inactive nil
+                    :box nil
+                    :background nil
+                    :underline "black")
+@end lisp
+
+@noindent
+Typing (@kbd{C-u M-x align}) yields:
+
+@lisp
+(set-face-attribute 'mode-line-inactive nil
+                    :box                nil
+                    :background         nil
+                    :underline          "black")
+@end lisp
+
+In most cases, you should try @kbd{M-x align} without a prefix
+argument first, and if that doesn't produce the right result you can
+undo with @kbd{C-/} and try again with @kbd{C-u M-x align}.
+
+@findex align-highlight-rule
+@findex align-unhighlight-rule
+You can use the command @kbd{M-x align-highlight-rule} to visualize
+the effect of a specific alignment or exclusion rule in the current
+region.  This command prompts you for the title of a rule and
+highlights the parts on the region that this rule affects.  For
+alignment rules, this command highlights the whitespace that @kbd{M-x
+align} would expand or contract, and for exclusion this command
+highlights the parts that @kbd{M-x align} would exclude from
+alignment.  To remove the highlighting that this command creates, type
+@kbd{M-x align-unhighlight-rule}.
+
+@findex align-current
+@findex align-entire
+  The command @kbd{M-x align-current} is similar to @kbd{M-x align},
+except that it operates only on the alignment section that contains
+point regardless of the current region.  This command determines the
+boundaries of the current section according to the section separators
+that @code{align-region-separate} define.  @kbd{M-x align-entire} is
+another variant of @kbd{M-x align}, that disregards
+@code{align-region-separate} and aligns the entire region as a single
+alignment section with consistent alignment.  If you set
+@code{align-region-separate} to @code{entire}, @kbd{M-x align} behaves
+like @kbd{M-x align-entire} by default.  To illustrate the effect of
+aligning the entire region as a single alignment section, consider the
+following code:
+
+@example
+one = 1;
+foobarbaz = 2;
+
+spam = 3;
+emacs = 4;
+@end example
+
+@noindent
+when the region covers all of these lines, typing @kbd{M-x align}
+yields:
+
+@example
+one       = 1;
+foobarbaz = 2;
+
+spam  = 3;
+emacs = 4;
+@end example
+
+@noindent
+On the other hand, @kbd{M-x align-entire} aligns all of the lines as a
+single section, so the @samp{=} appears at the same column in all
+lines:
+
+@example
+one       = 1;
+foobarbaz = 2;
+
+spam      = 3;
+emacs     = 4;
+@end example
+
+@findex align-regexp
+  The command @kbd{M-x align-regexp} lets you align the current region
+with an alignment rule that you define ad-hoc, instead of using the
+predefined rules in @code{align-rules-list}.  @kbd{M-x align-regexp}
+prompts you for a regular expression and uses that expression as the
+@code{regexp} attribute for an ad-hoc alignment rule that this command
+uses to align the current region.  By default, this command adjusts
+the whitespace that matches the first sub-expression of the regular
+expression you specify.  If you call @kbd{M-x align-regexp} with a
+prefix argument, it also prompts you for the sub-expression to use and
+lets you specify the amount of whitespace to use as padding, as well
+as whether to apply the rule repeatedly to all matches of the regular
+expression in each line.  @xref{Regexp Backslash}, for more
+information about regular expressions and their sub-expressions.
+
+@vindex align-indent-before-aligning
+  If the user option @code{align-indent-before-aligning} is
+non-@code{nil}, Emacs indents the region before aligning it with
+@kbd{M-x align}.  @xref{Indentation}.  By default
+@code{align-indent-before-aligning} is set to @code{nil}.
+
+@vindex align-to-tab-stop
+  The user option @code{align-to-tab-stop} says whether aligned parts
+should start at a tab stop (@pxref{Tab Stops}).  If this option is
+@code{nil}, @kbd{M-x align} uses just enough whitespace for alignment,
+disregarding tab stops.  If this is a non-@code{nil} symbol, @kbd{M-x
+align} checks the value of that symbol, and if this value is
+non-@code{nil}, @kbd{M-x align} aligns to tab stops.  By default, this
+option is set to @code{indent-tabs-mode}, so alignment respects tab
+stops in buffers that use tabs for indentation.  @xref{Just Spaces}.
+
+@vindex align-default-spacing
+  The user option @code{align-default-spacing} specifies the default
+amount of whitespace that @kbd{M-x align} and its related commands use
+for padding between the different parts of each line when aligning it.
+When @code{align-to-tab-stop} is @code{nil}, the value of
+@code{align-default-spacing} is the number of spaces to use for
+padding; when @code{align-to-tab-stop} is non-@code{nil}, the value of
+@code{align-default-spacing} is instead the number of tab stops to
+use.  Each alignment rule can override the default that
+@code{align-default-spacing} specifies with the @code{spacing}
+attribute rule.

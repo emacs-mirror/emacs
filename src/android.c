@@ -1826,7 +1826,7 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   android_java_env = env;
 
   nelements = (*env)->GetArrayLength (env, argv);
-  c_argv = alloca (sizeof *c_argv * nelements);
+  c_argv = alloca (sizeof *c_argv * (nelements + 1));
 
   for (i = 0; i < nelements; ++i)
     {
@@ -1843,6 +1843,8 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
       strcpy (c_argv[i], c_argument);
       (*env)->ReleaseStringUTFChars (env, (jstring) argument, c_argument);
     }
+
+  c_argv[nelements] = NULL;
 
   android_init_emacs_service ();
   android_init_emacs_pixmap ();

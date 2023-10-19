@@ -2853,6 +2853,7 @@ Will not look before LIM."
 		   ;; in which case this line is the first argument decl.
 		   (skip-chars-forward " \t")
 		   (cperl-backward-to-noncomment (or old-indent (point-min)))
+                   ;; Determine whether point is between statements
 		   (setq state
 			 (or (bobp)
 			     (eq (point) old-indent) ; old-indent was at comment
@@ -2871,7 +2872,8 @@ Will not look before LIM."
 				    (looking-at
                                      (rx (sequence (0+ blank)
                                                    (eval cperl--label-rx))))))
-			     (get-text-property (point) 'first-format-line)))
+			     (get-text-property (1- (point)) 'first-format-line)
+                             (equal (get-text-property (point) 'syntax-type) 'format)))
 
 		   ;; Look at previous line that's at column 0
 		   ;; to determine whether we are in top-level decls
@@ -3973,8 +3975,8 @@ recursive calls in starting lines of here-documents."
 	   "\\([^\"'`\n]*\\)"		; 4 + 1
 	   "\\4"
 	   "\\|"
-	   ;; Second variant: Identifier or \ID (same as 'ID') or empty
-	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)?\\)" ; 5 + 1, 6 + 1
+	   ;; Second variant: Identifier or \ID (same as 'ID')
+	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)\\)" ; 5 + 1, 6 + 1
 	   ;; Do not have <<= or << 30 or <<30 or << $blah.
 	   ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
 	   "\\)"
@@ -4201,9 +4203,8 @@ recursive calls in starting lines of here-documents."
 		;; 1+6=7 extra () before this:
 		;;"^[ \t]*\\(format\\)[ \t]*\\([a-zA-Z0-9_]+\\)?[ \t]*=[ \t]*$"
 		(setq b (point)
-		      name (if (match-beginning 8) ; 7 + 1
-			       (buffer-substring (match-beginning 8) ; 7 + 1
-						 (match-end 8)) ; 7 + 1
+		      name (if (match-beginning 9) ; 7 + 2
+                               (match-string-no-properties 9)        ; 7 + 2
 			     "")
 		      tb (match-beginning 0))
 		(setq argument nil)
@@ -4236,10 +4237,10 @@ recursive calls in starting lines of here-documents."
 		(if (looking-at "^\\.$") ; ";" is not supported yet
 		    (progn
 		      ;; Highlight the ending delimiter
-		      (cperl-postpone-fontification (point) (+ (point) 2)
+		      (cperl-postpone-fontification (point) (+ (point) 1)
 						    'face font-lock-string-face)
-		      (cperl-commentify (point) (+ (point) 2) nil)
-		      (cperl-put-do-not-fontify (point) (+ (point) 2) t))
+		      (cperl-commentify (point) (+ (point) 1) nil)
+		      (cperl-put-do-not-fontify (point) (+ (point) 1) t))
 		  (setq warning-message
                         (format "End of format `%s' not found." name))
 		  (or (car err-l) (setcar err-l b)))

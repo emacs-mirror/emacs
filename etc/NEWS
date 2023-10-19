@@ -283,6 +283,15 @@ functions in CJK locales.
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
++++
+** New command 'lldb'.
+Run the LLDB debugger, analogous to the 'gud-gdb' command.  Note that
+you might want to add these settings to your .lldbinit file, to reduce
+the output in the LLDB output when stepping through source files.
+
+    settings set stop-line-count-before 0
+    settings set stop-line-count-after 0
+
 ** gdb-mi
 
 ---
@@ -862,6 +871,13 @@ neither of which have been supported by Emacs since version 23.1.
 The user option 'url-gateway-nslookup-program' and the function
 'url-gateway-nslookup-host' are consequently also obsolete.
 
+** socks
+
++++
+*** SOCKS supports version 4a.
+The 'socks-server' option accepts '4a' as a value for its version
+field.
+
 ** Edmacro
 
 +++
@@ -1024,6 +1040,10 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 
 ** The obsolete calling convention of 'sit-for' has been removed.
 That convention was: (sit-for SECONDS MILLISEC &optional NODISP)
+
+** 'eshell-process-wait-{seconds,milliseconds}' options are now obsolete.
+Instead, use 'eshell-process-wait-time', which supports floating-point
+values.
 
 
 * Lisp Changes in Emacs 30.1

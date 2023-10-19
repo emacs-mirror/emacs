@@ -2898,6 +2898,7 @@ android_check_content_access (const char *uri, int mode)
 {
   jobject string;
   jboolean rc, read, write;
+  jmethodID method;
 
   string = (*android_java_env)->NewStringUTF (android_java_env, uri);
   android_exception_check ();
@@ -2907,11 +2908,13 @@ android_check_content_access (const char *uri, int mode)
 
   read = (bool) (mode & R_OK || (mode == F_OK));
   write = (bool) (mode & W_OK);
+  method = service_class.check_content_uri;
 
-  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
-					       emacs_service,
-					       service_class.check_content_uri,
-					       string, read, write);
+  rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
+							 emacs_service,
+							 service_class.class,
+							 method, string, read,
+							 write);
   android_exception_check_1 (string);
   ANDROID_DELETE_LOCAL_REF (string);
   return rc;
@@ -3012,6 +3015,15 @@ android_authority_name (struct android_vnode *vnode, char *name,
     {
       if (*name == '/')
 	name++, length -= 1;
+
+      /* If the provided URI is a directory, return NULL and set errno
+	 to ENOTDIR.  Content files are never directories.  */
+
+      if (name[length - 1] == '/')
+	{
+	  errno = ENOTDIR;
+	  return NULL;
+	}
 
       /* NAME must be a valid JNI string, so that it can be encoded
 	 properly.  */

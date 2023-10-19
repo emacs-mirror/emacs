@@ -610,7 +610,7 @@ If the buffer runs `dired', the buffer is reverted."
   (interactive)
   (cond
    ((buffer-file-name)
-    (find-alternate-file (tramp-file-name-with-sudo (buffer-name))))
+    (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name))))
    ((tramp-dired-buffer-p)
     (dired-unadvertise (expand-file-name default-directory))
     (setq default-directory (tramp-file-name-with-sudo default-directory)

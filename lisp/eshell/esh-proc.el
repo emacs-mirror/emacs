@@ -40,13 +40,22 @@ finish."
   :version "24.1"			; removed eshell-proc-initialize
   :type 'hook)
 
+(defcustom eshell-process-wait-time 0.05
+  "The number of seconds to delay waiting for a synchronous process."
+  :version "30.1"
+  :type 'number)
+
 (defcustom eshell-process-wait-seconds 0
   "The number of seconds to delay waiting for a synchronous process."
   :type 'integer)
+(make-obsolete-variable 'eshell-process-wait-seconds
+                        'eshell-process-wait-time "30.1")
 
 (defcustom eshell-process-wait-milliseconds 50
   "The number of milliseconds to delay waiting for a synchronous process."
   :type 'integer)
+(make-obsolete-variable 'eshell-process-wait-milliseconds
+                        'eshell-process-wait-time "30.1")
 
 (defcustom eshell-done-messages-in-minibuffer t
   "If non-nil, subjob \"Done\" messages will display in minibuffer."
@@ -171,8 +180,7 @@ This is like `process-live-p', but additionally checks whether
       (while (eshell-process-active-p proc)
         (when (input-pending-p)
           (discard-input))
-        (sit-for eshell-process-wait-seconds
-                 eshell-process-wait-milliseconds)))))
+        (sit-for eshell-process-wait-time)))))
 
 (defalias 'eshell/wait #'eshell-wait-for-process)
 
@@ -579,7 +587,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
 
 (defcustom eshell-kill-process-wait-time 5
   "Seconds to wait between sending termination signals to a subprocess."
-  :type 'integer)
+  :type 'number)
 
 (defcustom eshell-kill-process-signals '(SIGINT SIGQUIT SIGKILL)
   "Signals used to kill processes when an Eshell buffer exits.

@@ -1620,7 +1620,7 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
                        (yes-or-no-p
                         (format "Kill %d buffers in %s? "
                                 (length bufs)
-                                (project-root pr))))))
+                                (project-name pr))))))
     (cond (no-confirm
            (mapc #'kill-buffer bufs))
           ((null bufs)

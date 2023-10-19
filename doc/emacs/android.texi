@@ -374,33 +374,32 @@ documents, so your mileage may vary.
 @cindex call-process, Android
 @vindex android-use-exec-loader
   Android 10 and later also prohibit Emacs itself from running
-executables inside the app data directory, obstensibly for security
-reasons.  On these systems, Emacs normally applies a workaround;
+executables inside the app data directory, ostensibly out of security
+concerns.  On these systems, Emacs normally applies a workaround;
 however, this workaround requires running all sub-processes through
 another subprocess which implements an executable loader and applies
-process tracing to all its children, which may prove to be problematic
-for various different reasons.  In that case, the workaround can be
-disabled by changing the variable @code{android-use-exec-loader} to
-@code{nil}.
+process tracing to all its children, which may prove problematic for a
+variety of reasons.  In that case, the workaround can be disabled by
+changing the variable @code{android-use-exec-loader} to @code{nil}.
 
   When this workaround is in effect, process IDs retrieved through the
 @code{process-id} function will be that of the executable loader
 process; its child will belong to the same process group as the
-loader.  As a result, @code{interrupt-process}, and other related
+loader.  Consequently, @code{interrupt-process}, and other related
 functions will work correctly, but using the process ID returned by
 @code{process-id} for other purposes will not.
 
-  One side effect of the mechanism by which process tracing is carried
-out is that job control facilities inside inferior shells
+  One ramification of the mechanism by which process tracing is
+carried out is that job control facilities inside inferior shells
 (@pxref{Interactive Shell}) will not be able to stop processes, and
-sending the @code{SIGSTOP} signal to a subprocess created by Emacs
-will appear to have no effect.
+@code{SIGSTOP} signals to subprocesses created by Emacs will not take
+effect.
 
   In addition, Android 12 also terminates subprocesses which are
 consuming CPU while Emacs itself is in the background.  The system
-determines which processes are consuming too much CPU in intervals of
-five minutes, and terminates the process that has consumed the most
-CPU time.
+judges which processes are consuming too much CPU at intervals of five
+minutes, and terminates the process that has consumed the most CPU
+time.
 
   Android 12.1 and Android 13 provide an option to disable this
 behavior; to use it, enable ``USB debugging'' (@pxref{Android
