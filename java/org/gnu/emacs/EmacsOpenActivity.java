@@ -470,7 +470,7 @@ public final class EmacsOpenActivity extends Activity
 	       whereupon Emacs should replace it with any address
 	       provided as EXTRA_EMAIL.  */
 
-	    if (fileName.equals ("mailto:"))
+	    if (fileName.equals ("mailto:") || fileName.equals ("mailto://"))
 	      {
 		tem = intent.getCharSequenceExtra (Intent.EXTRA_EMAIL);
 
