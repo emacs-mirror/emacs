@@ -263,7 +263,7 @@ Return them as multiple value."
 ;;; Type handling.
 
 (defun comp--sym-lessp (x y)
-  "Like `string-lessp' but for strings."
+  "Like `string-lessp' but for symbol names."
   (string-lessp (symbol-name x)
                 (symbol-name y)))
 
@@ -277,7 +277,7 @@ Return them as multiple value."
                      do (cl-return-from outer y))))
 
 (defun comp--normalize-typeset0 (typeset)
-  ;; For every type search its supertype. If all the subtypes of that
+  ;; For every type search its supertype.  If all the subtypes of that
   ;; supertype are presents remove all of them, add the identified
   ;; supertype and restart.
   (when typeset
@@ -302,7 +302,7 @@ Return them as multiple value."
 
 (defun comp--direct-subtypes (type)
   "Return all the direct subtypes of TYPE."
-  ;; TODO memoize.
+  ;; TODO: memoize.
   (cl-sort
    (cl-loop for j in (comp-cstr-ctxt-typeof-types comp-ctxt)
             for res = (cl-loop for i in j
