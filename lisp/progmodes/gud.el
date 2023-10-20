@@ -3862,8 +3862,9 @@ so they have been disabled."))
 (defvar gud-lldb-history nil)
 
 (defcustom gud-gud-lldb-command-name "lldb"
-  "Default command to run an executable under LLDB."
-  :type 'string)
+  "Default command to invoke LLDB in order to debug a progra with it."
+  :type 'string
+  :version "30.1")
 
 (defun gud-lldb-marker-filter (string)
   "Deduce interesting stuff from process output STRING."
@@ -3999,17 +4000,17 @@ by `gud-lldb-max-completions', which see."
 
 ;;;###autoload
 (defun lldb (command-line)
-  "Run lldb passing it COMMAND-LINE as arguments.
-If COMMAND-LINE names a program FILE to debug, lldb will run in
+  "Run LLDB passing it COMMAND-LINE as arguments.
+If COMMAND-LINE names a program FILE to debug, LLDB will run in
 a buffer named *gud-FILE*, and the directory containing FILE
 becomes the initial working directory and source-file directory
-for your debugger.  If you don't want `default-directory' to
+for the debug session.  If you don't want `default-directory' to
 change to the directory of FILE, specify FILE without leading
 directories, in which case FILE should reside either in the
 directory of the buffer from which this command is invoked, or
 it can be found by searching PATH.
 
-If COMMAND-LINE requests that lldb attaches to a process PID, lldb
+If COMMAND-LINE requests that LLDB attaches to a process PID, LLDB
 will run in *gud-PID*, otherwise it will run in *gud*; in these
 cases the initial working directory is the `default-directory' of
 the buffer in which this command was invoked.
