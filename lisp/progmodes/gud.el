@@ -3907,7 +3907,8 @@ so they have been disabled."))
 
 (defcustom gud-lldb-max-completions 20
   "Maximum number of completions to request from LLDB."
-  :type 'integer)
+  :type 'integer
+  :version "30.1")
 
 (defvar gud-lldb-def-python-completion-function
   "
@@ -3927,7 +3928,9 @@ def gud_complete(s, max):
 (defun gud-lldb-fetch-completions (context command)
   "Return the data to complete the LLDB command before point.
 This is what the Python function we installed at initialzation
-time returns, as a Lisp list."
+time returns, as a Lisp list.
+Maximum number of completions requested from LLDB is controlled
+by `gud-lldb-max-completions', which see."
   (let* ((process (get-buffer-process gud-comint-buffer))
          (to-complete (concat context command))
          (output-buffer (get-buffer-create "*lldb-completions*")))
