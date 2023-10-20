@@ -2006,13 +2006,12 @@ Otherwise, use the face `help-key-binding' in the prompt."
           (when (numberp command) (setq command nil))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))
-            ;; TODO: Add some hint to the prompt, like "key not
-            ;; recognized" or something.
             (setq command nil)))
         (let ((global-command (lookup-key (current-global-map) choice)))
           (when (memq global-command
                       '(keyboard-quit keyboard-escape-quit))
             (call-interactively global-command)))))
+    (message nil)
     command))
 
 ;;;###autoload
