@@ -462,10 +462,30 @@ public final class EmacsOpenActivity extends Activity
 	    /* Escape the special characters $ and " before enclosing
 	       the string within the `message-mailto' wrapper.  */
 	    fileName = uri.toString ();
+
+	    /* If fileName is merely mailto: (absent either an email
+	       address or content), then the program launching Emacs
+	       conceivably provided such an URI to exclude non-email
+	       programs from being enumerated within the Share dialog;
+	       whereupon Emacs should replace it with any address
+	       provided as EXTRA_EMAIL.  */
+
+	    if (fileName.equals ("mailto:"))
+	      {
+		tem = intent.getCharSequenceExtra (Intent.EXTRA_EMAIL);
+
+		if (tem != null)
+		  fileName = "mailto:" + tem;
+	      }
+
+	    /* Subsequently, escape fileName such that it is rendered
+	       safe to append to the command line.  */
+
 	    fileName = (fileName
 			.replace ("\\", "\\\\")
 			.replace ("\"", "\\\"")
 			.replace ("$", "\\$"));
+
 	    fileName = "(message-mailto \"" + fileName + "\" ";
 
 	    /* Parse the intent itself to ascertain if any
