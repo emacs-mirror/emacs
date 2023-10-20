@@ -6206,9 +6206,9 @@ bitch_at_user (void)
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
        doc: /* Pause, without updating display, for SECONDS seconds.
 SECONDS may be a floating-point value, meaning that you can wait for a
-fraction of a second.  Optional second arg MILLISECONDS specifies an
-additional wait period, in milliseconds; this is for backwards compatibility.
-\(Not all operating systems support waiting for a fraction of a second.)  */)
+fraction of a second.
+An optional second arg MILLISECONDS can be provided but is deprecated:
+it specifies an additional wait period, in milliseconds.  */)
   (Lisp_Object seconds, Lisp_Object milliseconds)
 {
   double duration = extract_float (seconds);

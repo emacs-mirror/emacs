@@ -1959,6 +1959,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 (set-advertised-calling-convention 'libxml-parse-xml-region '(&optional start end base-url) "27.1")
 (set-advertised-calling-convention 'libxml-parse-html-region '(&optional start end base-url) "27.1")
+(set-advertised-calling-convention 'sleep-for '(seconds) "30.1")
 (set-advertised-calling-convention 'time-convert '(time form) "29.1")
 
 ;;;; Obsolescence declarations for variables, and aliases.

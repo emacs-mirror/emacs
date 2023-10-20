@@ -1041,6 +1041,9 @@ Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
 ** The obsolete calling convention of 'sit-for' has been removed.
 That convention was: (sit-for SECONDS MILLISEC &optional NODISP)
 
+** The 'millisec' argument of 'sleep-for' has been declared obsolete.
+Use a float value for the first argument instead.
+
 ** 'eshell-process-wait-{seconds,milliseconds}' options are now obsolete.
 Instead, use 'eshell-process-wait-time', which supports floating-point
 values.
