@@ -1186,17 +1186,6 @@ wants the current value of a variable, it looks first in the lexical
 environment; if the variable is not specified in there, it looks in
 the symbol's value cell, where the dynamic value is stored.
 
-  (Internally, the lexical environment is a list whose members are
-usually cons cells that are symbol-value pairs, but some of its
-members can be symbols rather than cons cells.  A symbol in the list
-means the lexical environment declared that symbol's variable as
-locally considered to be dynamically bound.  This list can be passed
-as the second argument to the @code{eval} function, in order to
-specify a lexical environment in which to evaluate a form.
-@xref{Eval}.  Most Emacs Lisp programs, however, should not interact
-directly with lexical environments in this way; only specialized
-programs like debuggers.)
-
 @cindex closures, example of using
   Lexical bindings have indefinite extent.  Even after a binding
 construct has finished executing, its lexical environment can be
