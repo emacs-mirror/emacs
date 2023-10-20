@@ -14,7 +14,15 @@
 
 <ul>
 
-  <li class="toctree-11">
+  {# The class toctree-l1 seems to correspond to list items generated
+     by a Sphinx toctree directive that are at depth 1.  I have not
+     found documented confirmation of this but it is confirmed
+     `_toctree_add_classes
+     <https://github.com/sphinx-doc/sphinx/blob/bb74aec2b6aa1179868d83134013450c9ff9d4d6/sphinx/environment/adapters/toctree.py#L403-L430>`_
+     in the Sphinx source code.  If the list layout goes wonky, this
+     might be to blame.  RB 2023-10-20. #}
+
+  <li class="toctree-l1">
 
     <a class="reference internal" href="{{pathto('genindex.html', 1)}}">Index</a>
 
