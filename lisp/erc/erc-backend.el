@@ -1611,7 +1611,9 @@ Would expand to:
 
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
   (declare (debug (&define [&name "erc-response-handler@"
-                                  (symbolp &rest symbolp)]
+                                  ;; No `def-edebug-elem-spec' in 27.
+                                  ([&or integerp symbolp]
+                                   &rest [&or integerp symbolp])]
                            &optional sexp sexp def-body))
            (indent defun))
   (if (numberp name) (setq name (intern (format "%03i" name))))
