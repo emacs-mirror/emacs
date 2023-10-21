@@ -3376,7 +3376,7 @@ w32_construct_mouse_wheel (struct input_event *result, W32Msg *msg,
       if (w32_wheel_scroll_lines == UINT_MAX)
 	{
 	  Lisp_Object window = window_from_coordinates (f, p.x, p.y, NULL,
-							false, false);
+							false, false, false);
 	  if (!WINDOWP (window))
 	    {
 	      result->kind = NO_EVENT;
@@ -5335,7 +5335,7 @@ w32_read_socket (struct terminal *terminal,
 		{
 		  static Lisp_Object last_mouse_window;
 		  Lisp_Object window = window_from_coordinates
-		    (f, LOWORD (msg.msg.lParam), HIWORD (msg.msg.lParam), 0, 0, 0);
+		    (f, LOWORD (msg.msg.lParam), HIWORD (msg.msg.lParam), 0, 0, 0, 0);
 
 		  /* Window will be selected only when it is not
 		     selected now and last mouse movement event was
@@ -5407,7 +5407,7 @@ w32_read_socket (struct terminal *terminal,
 		    int x = XFIXNAT (inev.x);
 		    int y = XFIXNAT (inev.y);
 
-                    window = window_from_coordinates (f, x, y, 0, 1, 1);
+                    window = window_from_coordinates (f, x, y, 0, 1, 1, 1);
 
                     if (EQ (window, f->tab_bar_window))
                       {
@@ -5435,7 +5435,7 @@ w32_read_socket (struct terminal *terminal,
 		    int x = XFIXNAT (inev.x);
 		    int y = XFIXNAT (inev.y);
 
-                    window = window_from_coordinates (f, x, y, 0, 1, 1);
+                    window = window_from_coordinates (f, x, y, 0, 1, 1, 1);
 
                     if (EQ (window, f->tool_bar_window)
 			/* Make sure the tool bar was previously

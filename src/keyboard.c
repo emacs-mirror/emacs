@@ -5562,7 +5562,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
   int xret = 0, yret = 0;
   /* The window or frame under frame pixel coordinates (x,y)  */
   Lisp_Object window_or_frame = f
-    ? window_from_coordinates (f, mx, my, &part, true, true)
+    ? window_from_coordinates (f, mx, my, &part, true, true, true)
     : Qnil;
 #ifdef HAVE_WINDOW_SYSTEM
   bool tool_bar_p = false;

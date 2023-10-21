@@ -3472,7 +3472,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		if (!NILP (Vmouse_autoselect_window))
 		  {
 		    static Lisp_Object last_mouse_window;
-		    Lisp_Object window = window_from_coordinates (f, b->x, b->y, 0, 0, 0);
+		    Lisp_Object window = window_from_coordinates (f, b->x, b->y, 0, 0, 0, 0);
 
 		    if (WINDOWP (window)
 			&& !EQ (window, last_mouse_window)
@@ -3555,7 +3555,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		int x = b->x;
 		int y = b->y;
 
-		window = window_from_coordinates (f, x, y, 0, true, true);
+		window = window_from_coordinates (f, x, y, 0, true, true, true);
 		tab_bar_p = EQ (window, f->tab_bar_window);
 
 		if (tab_bar_p)
@@ -3573,7 +3573,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		int x = b->x;
 		int y = b->y;
 
-		window = window_from_coordinates (f, x, y, 0, true, true);
+		window = window_from_coordinates (f, x, y, 0, true, true, true);
 		tool_bar_p = (EQ (window, f->tool_bar_window)
 			      && (type != BUTTON_UP
 				  || f->last_tool_bar_item != -1));
@@ -3834,7 +3834,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    BView_get_mouse (FRAME_HAIKU_VIEW (f), &x, &y);
 
-	    wheel_window = window_from_coordinates (f, x, y, 0, false, false);
+	    wheel_window = window_from_coordinates (f, x, y, 0, false, false, false);
 
 	    if (NILP (wheel_window))
 	      {
