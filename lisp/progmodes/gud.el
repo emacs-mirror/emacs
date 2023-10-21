@@ -3862,7 +3862,7 @@ so they have been disabled."))
 (defvar gud-lldb-history nil)
 
 (defcustom gud-gud-lldb-command-name "lldb"
-  "Default command to invoke LLDB in order to debug a progra with it."
+  "Default command to invoke LLDB in order to debug a program with it."
   :type 'string
   :version "30.1")
 
