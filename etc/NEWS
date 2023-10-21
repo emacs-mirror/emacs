@@ -1194,6 +1194,14 @@ instead of "ctags", "ebrowse", "etags", "hexl", "emacsclient", and
 subprocess.
 
 +++
+** New variable 'case-symbols-as-words' affects case operations for symbols.
+If non-nil, then case operations such as 'upcase-initials' or
+'replace-match' (with nil FIXEDCASE) will treat the entire symbol name
+as a single word.  This is useful for programming languages and styles
+where only the first letter of a symbol's name is ever capitalized.
+It defaults to nil.
+
++++
 ** 'x-popup-menu' now understands touch screen events.
 When a 'touchscreen-begin' or 'touchscreen-end' event is passed as the
 POSITION argument, it will behave as if that event was a mouse event.

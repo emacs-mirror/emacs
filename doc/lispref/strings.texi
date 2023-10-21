@@ -1510,7 +1510,9 @@ case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
-table (@pxref{Syntax Class Table}).
+table (@pxref{Syntax Class Table}), or if @code{case-symbols-as-words}
+is non-nil, also characters assigned to the symbol constituent syntax
+class.
 
 When @var{string-or-char} is a character, this function does the same
 thing as @code{upcase}.
@@ -1542,7 +1544,9 @@ had its initial letter converted to upper case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
-table (@pxref{Syntax Class Table}).
+table (@pxref{Syntax Class Table}), or if @code{case-symbols-as-words}
+is non-nil, also characters assigned to the symbol constituent syntax
+class.
 
 When the argument to @code{upcase-initials} is a character,
 @code{upcase-initials} has the same result as @code{upcase}.
