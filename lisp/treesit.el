@@ -32,9 +32,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x)) ; For `string-join'.
-(require 'cl-seq)
+(require 'cl-lib)
 (require 'font-lock)
 (require 'seq)
 
@@ -2143,7 +2142,7 @@ If LANGUAGE is nil, return the first definition for THING in
                                     (copy-tree (cdr entry)))
                                   treesit-thing-settings)))))
 
-(defalias 'treesit-thing-defined-p 'treesit-thing-definition
+(defalias 'treesit-thing-defined-p #'treesit-thing-definition
   "Return non-nil if THING is defined.")
 
 (defun treesit-beginning-of-thing (thing &optional arg tactic)
