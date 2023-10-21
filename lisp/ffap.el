@@ -730,6 +730,7 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
 (defvar ffap-alist
   '(
     ("" . ffap-completable)		; completion, slow on some systems
+    ("" . ffap-in-project)		; maybe in the root of the project
     ("\\.info\\'" . ffap-info)		; gzip.info
     ("\\`info/" . ffap-info-2)		; info/emacs
     ("\\`[-[:lower:]]+\\'" . ffap-info-3) ; (emacs)Top [only in the parentheses]
@@ -792,6 +793,11 @@ to extract substrings.")
   (let* ((dir (or (file-name-directory name) default-directory))
 	 (cmp (file-name-completion (file-name-nondirectory name) dir)))
     (and cmp (concat dir cmp))))
+
+(declare-function project-root "project" (project))
+(defun ffap-in-project (name)
+  (when-let (project (project-current))
+    (file-name-concat (project-root project) name)))
 
 (defun ffap-home (name) (ffap-locate-file name t '("~")))
 
