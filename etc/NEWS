@@ -1353,6 +1353,11 @@ Since circular alias chains now cannot occur, 'function-alias-p',
 'indirect-function' and 'indirect-variable' will never signal an error.
 Their 'noerror' arguments have no effect and are therefore obsolete.
 
++++
+** 'treesit-font-lock-rules' now accepts additional global keywords.
+When supplied with ':default-language LANGUAGE', rules after it will
+default to use 'LANGUAGE'.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 

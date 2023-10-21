@@ -892,6 +892,8 @@ Other keywords include:
              `append'   Append the new face to existing ones.
              `prepend'  Prepend the new face to existing ones.
              `keep'     Fill-in regions without an existing face.
+  :default-language  LANGUAGE  Every QUERY after this keyword
+                               will use LANGUAGE by default.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
