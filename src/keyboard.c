@@ -5961,7 +5961,8 @@ line_number_mode_hscroll (Lisp_Object start_pos, Lisp_Object end_pos)
   Lisp_Object start_col_row = Fnth (make_fixnum (6), start_pos);
   Lisp_Object end_col_row = Fnth (make_fixnum (6), end_pos);
   Lisp_Object window = Fcar (end_pos);
-  int col_width, pixel_width, start_col, end_col;
+  int col_width, pixel_width;
+  Lisp_Object start_col, end_col;
   struct window *w;
   if (!WINDOW_VALID_P (window))
     {
@@ -5974,7 +5975,7 @@ line_number_mode_hscroll (Lisp_Object start_pos, Lisp_Object end_pos)
   line_number_display_width (w, &col_width, &pixel_width);
   start_col = Fcar (start_col_row);
   end_col = Fcar (end_col_row);
-  return start_col == end_col
+  return EQ (start_col, end_col)
 	 && down_mouse_line_number_width >= 0
 	 && col_width != down_mouse_line_number_width;
 }
