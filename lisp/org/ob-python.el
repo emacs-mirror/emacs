@@ -235,7 +235,7 @@ then create.  Return the initialized session."
           ;; multiple prompts during initialization.
           (with-current-buffer py-buffer
             (while (not org-babel-python--initialized)
-              (sleep-for 0 10)))
+              (sleep-for 0.01)))
         (org-babel-comint-wait-for-output py-buffer))
       (setq org-babel-python-buffers
 	    (cons (cons session py-buffer)
@@ -403,7 +403,7 @@ last statement in BODY, as elisp."
 		      (body (org-babel-python-format-session-value
 			     tmp-src-file tmp-results-file result-params)))
 		 (org-babel-python--send-string session body)
-		 (sleep-for 0 10)
+                 (sleep-for 0.01)
 		 (org-babel-eval-read-file tmp-results-file)))))))
     (org-babel-result-cond result-params
       results
