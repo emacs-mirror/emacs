@@ -1432,6 +1432,80 @@
 
           (should-not calls))))))
 
+(ert-deftest erc--delete-inserted-message ()
+  (erc-mode)
+  (erc--initialize-markers (point) nil)
+  ;; Put unique invisible properties on the line endings.
+  (erc-display-message nil 'notice nil "one")
+  (put-text-property (1- erc-insert-marker) erc-insert-marker 'invisible 'a)
+  (let ((erc--msg-prop-overrides '((erc-msg . datestamp) (erc-ts . 0))))
+    (erc-display-message nil nil nil
+                         (propertize "\n[date]" 'field 'erc-timestamp)))
+  (put-text-property (1- erc-insert-marker) erc-insert-marker 'invisible 'b)
+  (erc-display-message nil 'notice nil "two")
+
+  (ert-info ("Date stamp deleted cleanly")
+    (goto-char 11)
+    (should (looking-at (rx "\n[date]")))
+    (should (eq 'datestamp (get-text-property (point) 'erc-msg)))
+    (should (eq (point) (field-beginning (1+ (point)))))
+
+    (erc--delete-inserted-message (point))
+
+    ;; Preceding line ending clobbered, replaced by trailing.
+    (should (looking-back (rx "*** one\n")))
+    (should (looking-at (rx "*** two")))
+    (should (eq 'b (get-text-property (1- (point)) 'invisible))))
+
+  (ert-info ("Markers at pos-bol preserved")
+    (erc-display-message nil 'notice nil "three")
+    (should (looking-at (rx "*** two")))
+
+    (let ((m (point-marker))
+          (n (point-marker))
+          (p (point)))
+      (set-marker-insertion-type m t)
+      (goto-char (point-max))
+      (erc--delete-inserted-message p)
+      (should (= (marker-position n) p))
+      (should (= (marker-position m) p))
+      (goto-char p)
+      (set-marker m nil)
+      (set-marker n nil)
+      (should (looking-back (rx "*** one\n")))
+      (should (looking-at (rx "*** three")))))
+
+  (ert-info ("Compat")
+    (erc-display-message nil 'notice nil "four")
+    (should (looking-at (rx "*** three\n")))
+    (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
+      (let ((erc-legacy-invisible-bounds-p t))
+        (erc--delete-inserted-message (point))))
+    (should (looking-at (rx "*** four\n"))))
+
+  (ert-info ("Deleting most recent message preserves markers")
+    (let ((m (point-marker))
+          (n (point-marker))
+          (p (point)))
+      (should (equal "*** four\n" (buffer-substring p erc-insert-marker)))
+      (set-marker-insertion-type m t)
+      (goto-char (point-max))
+      (erc--delete-inserted-message p)
+      (should (= (marker-position m) p))
+      (should (= (marker-position n) p))
+      (goto-char p)
+      (should (looking-back (rx "*** one\n")))
+      (should (looking-at erc-prompt))
+      (erc--assert-input-bounds)
+
+      ;; However, `m' is now forever "trapped" at `erc-insert-marker'.
+      (erc-display-message nil 'notice nil "two")
+      (should (= m erc-insert-marker))
+      (goto-char n)
+      (should (looking-at (rx "*** two\n")))
+      (set-marker m nil)
+      (set-marker n nil))))
+
 (ert-deftest erc--order-text-properties-from-hash ()
   (let ((table (map-into '((a . 1)
                            (erc-ts . 0)
@@ -2617,8 +2691,8 @@
               (obarray (obarray-make))
               (err (should-error (erc--update-modules erc-modules))))
          (should (equal (cadr err) "`foo' is not a known ERC module"))
-         (should (equal (funcall get-calls)
-                        `((req . ,(intern-soft "erc-foo")))))))
+         (should (equal (mapcar #'prin1-to-string (funcall get-calls))
+                        '("(req . erc-foo)")))))
 
      ;; Module's mode command exists but lacks an associated file.
      (ert-info ("Bad autoload flagged as suspect")
@@ -2627,10 +2701,8 @@
               (obarray (obarray-make))
               (erc-modules (list (intern "foo"))))
 
-         ;; Create a mode activation command.
+         ;; Create a mode-activation command and make mode-var global.
          (funcall mk-cmd "foo")
-
-         ;; Make the mode var global.
          (funcall mk-global "foo")
 
          ;; No local modules to return.
@@ -2639,7 +2711,7 @@
                         '("foo")))
          ;; ERC requires the library via prefixed module name.
          (should (equal (mapcar #'prin1-to-string (funcall get-calls))
-                        `("(req . erc-foo)" "(erc-foo-mode . 1)"))))))))
+                        '("(req . erc-foo)" "(erc-foo-mode . 1)"))))))))
 
 ;; A local module (here, `lo2') lacks a mode toggle, so ERC tries to
 ;; load its defining library, first via the symbol property

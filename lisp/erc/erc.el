@@ -2980,7 +2980,7 @@ POINT, search from POINT instead of `point'."
                           (and-let*
                               ((p (previous-single-property-change point
                                                                    'erc-msg)))
-                            (if (= p (1- point)) point (1- p)))))))
+                            (if (= p (1- point)) p (1- p)))))))
           ,@(and (member only '(nil 'end))
                  '((e (1- (next-single-property-change
                            (if at-start-p (1+ point) point)
@@ -3005,8 +3005,12 @@ Expect callers to know that this doesn't wrap BODY in
        ,@body)))
 
 (defun erc--traverse-inserted (beg end fn)
-  "Visit messages between BEG and END and run FN in narrowed buffer."
-  (setq end (min end (marker-position erc-insert-marker)))
+  "Visit messages between BEG and END and run FN in narrowed buffer.
+If END is a marker, possibly update its position."
+  (unless (markerp end)
+    (setq end (set-marker (make-marker) (or end erc-insert-marker))))
+  (unless (eq end erc-insert-marker)
+    (set-marker end (min erc-insert-marker end)))
   (save-excursion
     (goto-char beg)
     (let ((b (if (get-text-property (point) 'erc-msg)
@@ -3018,7 +3022,9 @@ Expect callers to know that this doesn't wrap BODY in
         (save-restriction
           (narrow-to-region b e)
           (funcall fn))
-        (setq b e)))))
+        (setq b e))))
+  (unless (eq end erc-insert-marker)
+    (set-marker end nil)))
 
 (defvar erc--insert-marker nil
   "Internal override for `erc-insert-marker'.")
@@ -3239,6 +3245,27 @@ don't bother including the preceding newline."
         (when (or (<= beg 4) (= ?\n (char-before (- beg 2))))
           (cl-incf beg))
         (erc--merge-prop (1- beg) (1- end) 'invisible value)))))
+
+(defun erc--delete-inserted-message (beg-or-point &optional end)
+  "Remove message between BEG and END.
+Expect BEG and END to match bounds as returned by the macro
+`erc--get-inserted-msg-bounds'.  Ensure all markers residing at
+the start of the deleted message end up at the beginning of the
+subsequent message."
+  (let ((beg beg-or-point))
+    (save-restriction
+      (widen)
+      (unless end
+        (setq end (erc--get-inserted-msg-bounds nil beg-or-point)
+              beg (pop end)))
+      (with-silent-modifications
+        (if erc-legacy-invisible-bounds-p
+            (delete-region beg (1+ end))
+          (save-excursion
+            (goto-char beg)
+            (insert-before-markers
+             (substring (delete-and-extract-region (1- (point)) (1+ end))
+                        -1))))))))
 
 (defvar erc--ranked-properties '(erc-msg erc-ts erc-cmd))
 

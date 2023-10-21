@@ -638,7 +638,8 @@ printed just after each line's text (no alignment)."
 (defun erc-stamp--propertize-left-date-stamp ()
   (add-text-properties (point-min) (1- (point-max))
                        '(field erc-timestamp erc-stamp-type date-left))
-  (erc--hide-message 'timestamp))
+  (erc--hide-message 'timestamp)
+  (run-hooks 'erc-stamp--insert-date-hook))
 
 ;; A kludge to pass state from insert hook to nested insert hook.
 (defvar erc-stamp--current-datestamp-left nil)
@@ -665,19 +666,18 @@ printed just after each line's text (no alignment)."
   (cl-assert string)
   (let ((erc-stamp--skip t)
         (erc--msg-props (map-into `((erc-msg . datestamp)
-                                    (erc-ts . ,erc-stamp--current-time))
+                                    (erc-ts . ,(erc-stamp--current-time)))
                                   'hash-table))
-        (erc-send-modify-hook `(,@erc-send-modify-hook
-                                erc-stamp--propertize-left-date-stamp
-                                ,@erc-stamp--insert-date-hook))
         (erc-insert-modify-hook `(,@erc-insert-modify-hook
-                                  erc-stamp--propertize-left-date-stamp
-                                  ,@erc-stamp--insert-date-hook)))
+                                  erc-stamp--propertize-left-date-stamp))
+        ;; Don't run hooks that aren't expecting a narrowed buffer.
+        (erc-insert-pre-hook nil)
+        (erc-insert-done-hook nil))
     (erc-display-message nil nil (current-buffer) string)
     (setq erc-timestamp-last-inserted-left string)))
 
 (defun erc-stamp--lr-date-on-pre-modify (_)
-  (when-let ((ct (or erc-stamp--current-time (erc-stamp--current-time)))
+  (when-let ((ct (erc-stamp--current-time))
              (rendered (erc-stamp--format-date-stamp ct))
              ((not (string-equal rendered erc-timestamp-last-inserted-left)))
              (erc-stamp--current-datestamp-left rendered)
@@ -723,7 +723,7 @@ left-sided stamps and date stamps inserted by this function."
       (narrow-to-region erc--insert-marker end-marker)
       (set-marker end-marker nil)
       (set-marker erc--insert-marker nil)))
-  (let* ((ct (or erc-stamp--current-time (erc-stamp--current-time)))
+  (let* ((ct (erc-stamp--current-time))
          (ts-right (with-suppressed-warnings
                        ((obsolete erc-timestamp-format-right))
                      (if erc-timestamp-format-right
