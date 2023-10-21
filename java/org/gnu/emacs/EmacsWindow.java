@@ -1605,6 +1605,7 @@ public final class EmacsWindow extends EmacsHandleObject
     String type;
     Uri uri;
     EmacsActivity activity;
+    StringBuilder builder;
 
     x = (int) event.getX ();
     y = (int) event.getY ();
@@ -1659,38 +1660,54 @@ public final class EmacsWindow extends EmacsHandleObject
 		EmacsNative.sendDndUri (handle, x, y, type);
 		return true;
 	      }
+	  }
+
+	/* There's no plain text data within this clipboard item, so
+	   each item within should be treated as a content URI
+	   designating a file.  */
+
+	/* Collect the URIs into a string with each suffixed
+	   by newlines, much as in a text/uri-list.  */
+	builder = new StringBuilder ();
+
+	for (i = 0; i < itemCount; ++i)
+	  {
+	    /* If the item dropped is a URI, send it to the
+	       main thread.  */
+
+	    uri = data.getItemAt (i).getUri ();
+
+	    /* Attempt to acquire permissions for this URI;
+	       failing which, insert it as text instead.  */
+		    
+	    if (uri != null
+		&& uri.getScheme () != null
+		&& uri.getScheme ().equals ("content")
+		&& (activity = EmacsActivity.lastFocusedActivity) != null)
+	      {
+		if ((activity.requestDragAndDropPermissions (event) == null))
+		  uri = null;
+	      }
+
+	    if (uri != null)
+	      builder.append (uri.toString ()).append ("\n");
 	    else
 	      {
-		/* If the item dropped is a URI, send it to the main
-		   thread.  */
-
-		uri = data.getItemAt (0).getUri ();
-
-		/* Attempt to acquire permissions for this URI;
-		   failing which, insert it as text instead.  */
-
-		if (uri != null
-		    && uri.getScheme () != null
-		    && uri.getScheme ().equals ("content")
-		    && (activity = EmacsActivity.lastFocusedActivity) != null)
-		  {
-		    if (activity.requestDragAndDropPermissions (event) == null)
-		      uri = null;
-		  }
-
-		if (uri != null)
-		  EmacsNative.sendDndUri (handle, x, y, uri.toString ());
-		else
-		  {
-		    type = (data.getItemAt (0)
-			    .coerceToText (EmacsService.SERVICE)
-			    .toString ());
-		    EmacsNative.sendDndText (handle, x, y, type);
-		  }
-
-		return true;
+		/* Treat each URI that Emacs cannot secure
+		   permissions for as plain text.  */
+		type = (data.getItemAt (i)
+			.coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndText (handle, x, y, type);
 	      }
 	  }
+
+	/* Now send each URI to Emacs.  */
+
+	if (builder.length () > 0)
+	  EmacsNative.sendDndUri (handle, x, y, builder.toString ());
+
+	return true;
       }
 
     return true;
