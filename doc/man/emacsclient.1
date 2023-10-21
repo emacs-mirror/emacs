@@ -62,9 +62,11 @@ This option applies only to the next file specified.
 .TP
 .B \-a, \-\-alternate-editor=COMMAND
 If the Emacs server is not running, run the specified shell command instead.
-This can also be specified via the ALTERNATE_EDITOR environment variable.
-If the value of ALTERNATE_EDITOR is the empty string, run "emacs \-\-daemon" to
+If the empty string is specified, run "emacs \-\-daemon" to
 start Emacs in daemon mode, and try to connect to it.
+
+See also the ALTERNATE_EDITOR environment variable, over which this
+option takes precedence.
 .TP
 .B -c, \-\-create-frame
 Create a new frame instead of trying to use the current Emacs frame.
@@ -84,7 +86,11 @@ Lisp expressions.
 .TP
 .B \-f, \-\-server-file=FILENAME
 Use TCP configuration file FILENAME for communication.
-This can also be specified via the EMACS_SERVER_FILE environment variable.
+Relative filenames are relative to "~/.emacs.d/server/" or
+"$XDG_CONFIG_HOME/emacs/server/", and the default is "server".
+
+See also the EMACS_SERVER_FILE environment variable, over which this
+option takes precedence.
 .TP
 .B \-n, \-\-no-wait
 Return immediately without waiting for you to "finish" the buffer in
@@ -114,7 +120,10 @@ side-effect rather than result.
 .TP
 .B \-s, \-\-socket-name=FILENAME
 Use socket named FILENAME for communication.
-This can also be specified via the EMACS_SOCKET_NAME environment variable.
+Relative filenames are relative to "$XDG_RUNTIME_DIR/emacs/" or "$TMPDIR/".
+
+See also the EMACS_SOCKET_NAME environment variable, over which this
+option takes precedence.
 .TP
 .B \-nw, \-t, \-\-tty
 Open a new Emacs frame on the current terminal.
@@ -122,8 +131,11 @@ Open a new Emacs frame on the current terminal.
 .B \-T, \-\-tramp=PREFIX
 Set PREFIX to add to filenames for Emacs to locate files on remote
 machines using TRAMP.  This is mostly useful in combination with using
-the Emacs server over TCP with --server-file.  This can also be
-specified via the EMACSCLIENT_TRAMP environment variable.
+the Emacs server on a remote host (either using TCP with
+--server-file, or a socket forwarded over SSH).
+
+See also the EMACSCLIENT_TRAMP environment variable, over which this
+option takes precedence.
 .TP
 .B \-V, \-\-version
 Print version information and exit.
@@ -133,10 +145,46 @@ Print this usage information message and exit.
 .SH "EXIT STATUS"
 Normally, the exit status is 0.  If emacsclient shuts down due to
 Emacs signaling an error, the exit status is 1.
+.SH ENVIRONMENT
+.TP
+.B ALTERNATE_EDITOR
+If the Emacs server is not running, run the shell command in this
+environment variable instead.  If set to the empty string, run
+"emacs \-\-daemon" to start Emacs in daemon mode, and try to connect
+to it.  Will be overridden by the
+.B \-\-alternate-editor
+option, if present.
+.TP
+.B EMACSCLIENT_TRAMP
+A prefix to add to filenames, intended to allow Emacs to locate files
+on remote machines using TRAMP.  Will be overridden by the
+.B \-\-tramp-prefix
+option, if present.
+.TP
+.B EMACS_SERVER_FILE
+Look in this file to discover where to find a TCP Emacs server.
+Relative filenames are relative to "~/.emacs.d/server/" or
+"$XDG_CONFIG_HOME/emacs/server/", and the
+default is "server".  Will be overridden by the
+.B \-\-server-file
+option, if present.
+.TP
+.B EMACS_SOCKET_NAME
+The filename of the socket to use for communication with the Emacs server.
+Relative filenames are relative to "$XDG_RUNTIME_DIR/emacs/" or "$TMPDIR/".
+Will be overridden by the
+.B \-\-socket-name
+option, if present.
 .SH "SEE ALSO"
 The program is documented fully in
 .IR "Using Emacs as a Server"
 available via the Info system.
+
+The XDG_ environment variables are described in detail in the
+.UR https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+XDG Base Directory Specification
+.UE .
+
 .SH AUTHOR
 This manual page was originally written by Stephane Bortzmeyer
 <bortzmeyer@debian.org>, for the Debian GNU/Linux system, but is not
