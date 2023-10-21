@@ -1183,12 +1183,12 @@ It is needed to inform the compiler about which dialect of ELisp
 your code is using: the modern dialect with lexical binding or
 the old dialect with only dynamic binding.
 
-Lexical binding avoids some name conflicts and allows the compiler
-to detect more mistakes and generate more efficient code.  To adapt
-your code to lexical binding, see the "(elisp) Converting to Lexical
-Binding" section in the manual.
+Lexical binding avoids some name conflicts and allows the compiler to
+detect more mistakes and generate more efficient code, so it is
+recommended.  For how to adapt your code to lexical binding, see the
+manual section "(elisp) Converting to Lexical Binding".
 
-If you are unable to convert the code to lexical binding, you can insert
+If your code cannot be converted to lexical binding, you can insert
 the line
 
     ;;; -*- lexical-binding: nil -*-
