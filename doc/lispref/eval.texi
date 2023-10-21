@@ -743,10 +743,13 @@ The argument @var{lexical} specifies the scoping rule for local
 variables (@pxref{Variable Scoping}).  If it is omitted or @code{nil},
 that means to evaluate @var{form} using the default dynamic scoping
 rule.  If it is @code{t}, that means to use the lexical scoping rule.
-The value of @var{lexical} can also be a non-empty alist specifying a
+
+The value of @var{lexical} can also be a non-empty list specifying a
 particular @dfn{lexical environment} for lexical bindings; however,
 this feature is only useful for specialized purposes, such as in Emacs
-Lisp debuggers.  @xref{Lexical Binding}.
+Lisp debuggers.  Each member of the list is either a cons cell which
+represents a lexical symbol-value pair, or a symbol representing a
+dynamically bound variable.
 
 Since @code{eval} is a function, the argument expression that appears
 in a call to @code{eval} is evaluated twice: once as preparation before

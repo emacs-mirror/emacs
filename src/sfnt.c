@@ -12297,18 +12297,47 @@ sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
 
 /* Unicode Variation Sequence (UVS) support.
 
-   Unicode defines a mechanism by which a two-codepoint sequence
-   consisting of a ``base character'' and ``variation selector'' is
-   able to produce a glyph that is a variant of the glyph that would
-   conventionally have been mapped to the ``base character''.
+   Unicode defines a mechanism by which two-codepoint sequences
+   comprising a ``base character'' and ``variation selector'' combine
+   to produce a glyph besides that which is mapped to the ``base
+   character'' itself.
 
-   TrueType describes variation selector sequences through a type of
-   character mapping table that is given the format 14.  The character
-   mapping table consists of an array of variation selectors, each of
-   which have a corresponding ``default UVS table'', which describes
-   ranges of ``base characters'' having no special variant glyphs, and
-   a ``non-default UVS table'', which is a map of ``base characters''
-   to their corresponding variant glyphs.  */
+   TrueType stores variation selector sequences inside a special type
+   of character mapping table that is given the format 14.  The
+   character mapping table consists of an array of variation
+   selectors, each of which is assigned a ``default UVS table''
+   recording ranges of ``base characters'' absent special variant
+   glyphs, and a ``non-default UVS table'', linking ``base
+   characters'' to their respective variant glyphs.
+
+   Unicode variation selectors occupy the range formed between 0xfe00
+   and 0xfe0f, along with that from 0xe0100 to 0xe01ef, within the
+   Unicode codespace.  When a variation selector is encountered as
+   text is being examined for display with a particular font, that
+   font's character mapping table is indexed by it, yielding a default
+   and non-default UVS table.  If the base character (which is
+   directly behind the variation selector) is subsequently located
+   within the default UVS table, then the glyph represented by this
+   union of base character and variation selector is that designated
+   by the base character within any UCS-4 or BMP character mapping
+   table in the font.  Since this glyph is at variance with that
+   derived from the base character only when the character set of the
+   character mapping table otherwise consulted is not UCS-4 or BMP,
+   the distinction between those two glyphs is largely notional.
+   Should the nondefault UVS table hold the base character, then the
+   glyph is conversely that enumerated in said table, whose indexing
+   is facilitated by sfnt_variation_glyph_for_char.  And if the base
+   character isn't present within either table or the tables for the
+   variation selector are absent in the first place, then the two
+   codepoints constituting the sequence are immiscible and therefore
+   the sequence cannot apply to the font.
+
+   The approach taken by Emacs character composition routines is
+   diametric to the approach illustrated above: in place of searching
+   for variation glyphs each time a variation selector character is
+   encountered, these routines ascertain which glyphs are linked to
+   each base character that they have adjudged subject to variation in
+   advance.  See sfntfont_get_variation_glyphs.  */
 
 /* Read a default UVS table from the font file FD, at the specified
    OFFSET.  Value is the default UVS table upon success, else
@@ -12843,9 +12872,13 @@ sfnt_read_table (int fd, struct sfnt_offset_subtable *subtable,
 
 /* Glyph variations.  Instead of defining separate fonts for each
    combination of weight, width and slant (bold, condensed, italic,
-   etc), some fonts specify a list of ``variation axes'', each of
-   which determines one delta to apply to each point in every
-   glyph.
+   etc), some fonts specify a list of ``variation axes'', which are
+   options that accept values consisting of numbers on scales
+   governing deltas applied to select points in their glyphs.
+
+   Particular styles within the font are then supplied as sets of
+   values on these scales to which their respective axes are set,
+   termed ``instances''.
 
    This optional information is specified in the `fvar' (font
    variation), `gvar' (glyph variation) and `cvar' (CVT variation)
