@@ -187,6 +187,11 @@ right-aligned to is controlled by the new user option
 It can be used to add, remove and reorder functions that change
 the appearance of every tab on the tab bar.
 
++++
+** New optional argument for modifying directory local variables
+The commands 'add-dir-local-variable', 'delete-dir-local-variable' and
+'copy-file-locals-to-dir-locals' now take an optional prefix argument,
+to enter the file you want to modify.
 ** Miscellaneous
 
 ---
@@ -1358,6 +1363,11 @@ Their 'noerror' arguments have no effect and are therefore obsolete.
 When supplied with ':default-language LANGUAGE', rules after it will
 default to use 'LANGUAGE'.
 
+---
+** New optional argument to 'modify-dir-local-variable'
+A 5th argument, optional, has been added to
+'modify-dir-local-variable'.  It can be used to specify which
+dir-locals file to modify.
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
