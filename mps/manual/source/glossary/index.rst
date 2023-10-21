@@ -36,594 +36,604 @@ Memory Management Glossary
 All
 ===
 
-:term:`absolute address <physical address>`
-:term:`activation frame <activation record>`
-:term:`activation record`
-:term:`activation stack <control stack>`
-:term:`active <live>`
-:term:`address`
-:term:`address space`
-:term:`address space layout randomization`
-:term:`address translation cache <translation lookaside buffer>`
-:term:`address-ordered first fit`
-:term:`aging space`
-:term:`algebraic data type`
-:term:`alignment`
-:term:`alive <live>`
-:term:`allocate`
-:term:`allocation frame`
-:term:`allocation mechanism`
-:term:`allocation pattern`
-:term:`allocation point`
-:term:`allocation point protocol`
-:term:`allocation policy`
-:term:`allocation strategy`
-:term:`allocator`
-:term:`ambiguous reference`
-:term:`ambiguous root`
-:term:`arena`
-:term:`arena class`
-:term:`ASLR <address space layout randomization>`
-:term:`assertion`
-:term:`asynchronous garbage collector`
-:term:`ATC <translation lookaside buffer>`
-:term:`atomic object <leaf object>`
-:term:`automatic memory management`
-:term:`automatic storage duration`
+.. Sphinx presents the terms in this list run together in paragraphs,
+   so we use a visual cue (comma) to separate them, and a wide space
+   to break up the wall-of-text effect.  See `this comment on GitHub
+   pull request #166
+   <https://github.com/Ravenbrook/mps/pull/166#pullrequestreview-1687977425>`__.
+   TODO: Perhaps something more elegant and robust by overriding
+   styles?
 
-:term:`backing store`
-:term:`barrier (1)`
-:term:`barrier (2)`
-:term:`barrier hit <protection fault>`
-:term:`base pointer`
-:term:`best fit`
-:term:`BIBOP`
-:term:`big bag of pages <BIBOP>`
-:term:`binary buddies`
-:term:`bit array <bitmap>`
-:term:`bit table <bitmap>`
-:term:`bit vector <bitmap>`
-:term:`bitmap`
-:term:`bitmap marking`
-:term:`bitmapped fit`
-:term:`bitmask`
-:term:`bitset <bitmap>`
-:term:`black`
-:term:`blacklisting`
-:term:`black-listing`
-:term:`block`
-:term:`bounds error <overwriting error>`
-:term:`boxed`
-:term:`break-table`
-:term:`brk`
-:term:`broken heart`
-:term:`bucket`
-:term:`buddy system`
-:term:`buffer`
-:term:`bus error`
-:term:`byte (1)`
-:term:`byte (2)`
-:term:`byte (3)`
-:term:`byte (4)`
+.. |emspace| unicode:: U+2003 .. visually wide space
 
-:term:`C89 <C90>`
-:term:`C90`
-:term:`C99`
-:term:`cache (1)`
-:term:`cache (2)`
-:term:`cache memory <cache (1)>`
-:term:`cache policy`
-:term:`caching (3)`
-:term:`cactus stack`
-:term:`card`
-:term:`card marking`
-:term:`cell <object>`
-:term:`Cheney collector`
-:term:`Cheney scan <Cheney collector>`
-:term:`clamped state`
-:term:`client arena`
-:term:`client object`
-:term:`client pointer`
-:term:`client program <mutator>`
-:term:`closure`
-:term:`coalesce`
-:term:`cold end`
-:term:`collect`
-:term:`collection <collection cycle>`
-:term:`collection cycle`
-:term:`collector (1) <garbage collector>`
-:term:`collector (2)`
-:term:`color`
-:term:`colour`
-:term:`commit limit`
-:term:`committed (1) <mapped>`
-:term:`committed (2)`
-:term:`compactifying <compaction>`
-:term:`compaction`
-:term:`composite object`
-:term:`comprehensive`
-:term:`concurrent garbage collection <parallel garbage collection>`
-:term:`condemned set`
-:term:`connected`
-:term:`cons (1)`
-:term:`cons (2) <allocate>`
-:term:`conservative garbage collection`
-:term:`constant root`
-:term:`constructor (1)`
-:term:`constructor (2)`
-:term:`continuation`
-:term:`control stack`
-:term:`cool`
-:term:`copying garbage collection`
-:term:`core`
-:term:`creation space`
-:term:`critical path`
-:term:`crossing map`
-:term:`cyclic data structure`
+:term:`absolute address <physical address>`,\ |emspace|
+:term:`activation frame <activation record>`,\ |emspace|
+:term:`activation record`,\ |emspace|
+:term:`activation stack <control stack>`,\ |emspace|
+:term:`active <live>`,\ |emspace|
+:term:`address`,\ |emspace|
+:term:`address space`,\ |emspace|
+:term:`address space layout randomization`,\ |emspace|
+:term:`address translation cache <translation lookaside buffer>`,\ |emspace|
+:term:`address-ordered first fit`,\ |emspace|
+:term:`aging space`,\ |emspace|
+:term:`algebraic data type`,\ |emspace|
+:term:`alignment`,\ |emspace|
+:term:`alive <live>`,\ |emspace|
+:term:`allocate`,\ |emspace|
+:term:`allocation frame`,\ |emspace|
+:term:`allocation mechanism`,\ |emspace|
+:term:`allocation pattern`,\ |emspace|
+:term:`allocation point`,\ |emspace|
+:term:`allocation point protocol`,\ |emspace|
+:term:`allocation policy`,\ |emspace|
+:term:`allocation strategy`,\ |emspace|
+:term:`allocator`,\ |emspace|
+:term:`ambiguous reference`,\ |emspace|
+:term:`ambiguous root`,\ |emspace|
+:term:`arena`,\ |emspace|
+:term:`arena class`,\ |emspace|
+:term:`ASLR <address space layout randomization>`,\ |emspace|
+:term:`assertion`,\ |emspace|
+:term:`asynchronous garbage collector`,\ |emspace|
+:term:`ATC <translation lookaside buffer>`,\ |emspace|
+:term:`atomic object <leaf object>`,\ |emspace|
+:term:`automatic memory management`,\ |emspace|
+:term:`automatic storage duration`,\ |emspace|
 
-:term:`dangling pointer`
-:term:`data stack`
-:term:`dead`
-:term:`deallocate <free (1)>`
-:term:`debugging pool`
-:term:`deferred coalescing`
-:term:`deferred reference counting`
-:term:`dependent object`
-:term:`derived pointer <interior pointer>`
-:term:`destructor (1)`
-:term:`destructor (2)`
-:term:`DGC <distributed garbage collection>`
-:term:`direct method`
-:term:`dirty bit`
-:term:`distributed garbage collection`
-:term:`double buddies`
-:term:`double free`
-:term:`doubleword`
-:term:`doubly weak hash table`
-:term:`DRAM <dynamic memory>`
-:term:`dynamic allocation <heap allocation>`
-:term:`dynamic extent`
-:term:`dynamic memory`
-:term:`dynamic RAM <dynamic memory>`
+:term:`backing store`,\ |emspace|
+:term:`barrier (1)`,\ |emspace|
+:term:`barrier (2)`,\ |emspace|
+:term:`barrier hit <protection fault>`,\ |emspace|
+:term:`base pointer`,\ |emspace|
+:term:`best fit`,\ |emspace|
+:term:`BIBOP`,\ |emspace|
+:term:`big bag of pages <BIBOP>`,\ |emspace|
+:term:`binary buddies`,\ |emspace|
+:term:`bit array <bitmap>`,\ |emspace|
+:term:`bit table <bitmap>`,\ |emspace|
+:term:`bit vector <bitmap>`,\ |emspace|
+:term:`bitmap`,\ |emspace|
+:term:`bitmap marking`,\ |emspace|
+:term:`bitmapped fit`,\ |emspace|
+:term:`bitmask`,\ |emspace|
+:term:`bitset <bitmap>`,\ |emspace|
+:term:`black`,\ |emspace|
+:term:`blacklisting`,\ |emspace|
+:term:`black-listing`,\ |emspace|
+:term:`block`,\ |emspace|
+:term:`bounds error <overwriting error>`,\ |emspace|
+:term:`boxed`,\ |emspace|
+:term:`break-table`,\ |emspace|
+:term:`brk`,\ |emspace|
+:term:`broken heart`,\ |emspace|
+:term:`bucket`,\ |emspace|
+:term:`buddy system`,\ |emspace|
+:term:`buffer`,\ |emspace|
+:term:`bus error`,\ |emspace|
+:term:`byte (1)`,\ |emspace|
+:term:`byte (2)`,\ |emspace|
+:term:`byte (3)`,\ |emspace|
+:term:`byte (4)`,\ |emspace|
 
-:term:`ecru <off-white>`
-:term:`edge`
-:term:`entry table (1)`
-:term:`entry table (2)`
-:term:`exact garbage collection`
-:term:`exact reference`
-:term:`exact root`
-:term:`exact segregated fit`
-:term:`execution stack <control stack>`
-:term:`exit table`
-:term:`extent <lifetime>`
-:term:`external fragmentation`
+:term:`C89 <C90>`,\ |emspace|
+:term:`C90`,\ |emspace|
+:term:`C99`,\ |emspace|
+:term:`cache (1)`,\ |emspace|
+:term:`cache (2)`,\ |emspace|
+:term:`cache memory <cache (1)>`,\ |emspace|
+:term:`cache policy`,\ |emspace|
+:term:`caching (3)`,\ |emspace|
+:term:`cactus stack`,\ |emspace|
+:term:`card`,\ |emspace|
+:term:`card marking`,\ |emspace|
+:term:`cell <object>`,\ |emspace|
+:term:`Cheney collector`,\ |emspace|
+:term:`Cheney scan <Cheney collector>`,\ |emspace|
+:term:`clamped state`,\ |emspace|
+:term:`client arena`,\ |emspace|
+:term:`client object`,\ |emspace|
+:term:`client pointer`,\ |emspace|
+:term:`client program <mutator>`,\ |emspace|
+:term:`closure`,\ |emspace|
+:term:`coalesce`,\ |emspace|
+:term:`cold end`,\ |emspace|
+:term:`collect`,\ |emspace|
+:term:`collection <collection cycle>`,\ |emspace|
+:term:`collection cycle`,\ |emspace|
+:term:`collector (1) <garbage collector>`,\ |emspace|
+:term:`collector (2)`,\ |emspace|
+:term:`color`,\ |emspace|
+:term:`colour`,\ |emspace|
+:term:`commit limit`,\ |emspace|
+:term:`committed (1) <mapped>`,\ |emspace|
+:term:`committed (2)`,\ |emspace|
+:term:`compactifying <compaction>`,\ |emspace|
+:term:`compaction`,\ |emspace|
+:term:`composite object`,\ |emspace|
+:term:`comprehensive`,\ |emspace|
+:term:`concurrent garbage collection <parallel garbage collection>`,\ |emspace|
+:term:`condemned set`,\ |emspace|
+:term:`connected`,\ |emspace|
+:term:`cons (1)`,\ |emspace|
+:term:`cons (2) <allocate>`,\ |emspace|
+:term:`conservative garbage collection`,\ |emspace|
+:term:`constant root`,\ |emspace|
+:term:`constructor (1)`,\ |emspace|
+:term:`constructor (2)`,\ |emspace|
+:term:`continuation`,\ |emspace|
+:term:`control stack`,\ |emspace|
+:term:`cool`,\ |emspace|
+:term:`copying garbage collection`,\ |emspace|
+:term:`core`,\ |emspace|
+:term:`creation space`,\ |emspace|
+:term:`critical path`,\ |emspace|
+:term:`crossing map`,\ |emspace|
+:term:`cyclic data structure`,\ |emspace|
 
-:term:`fencepost`
-:term:`fence post`
-:term:`fencepost error`
-:term:`fence post error`
-:term:`Fibonacci buddies`
-:term:`FIFO-ordered first fit`
-:term:`file mapping <memory mapping>`
-:term:`finalization`
-:term:`finalized block`
-:term:`first fit`
-:term:`fix`
-:term:`flip`
-:term:`floating garbage`
-:term:`foreign code`
-:term:`format`
-:term:`format method`
-:term:`formatted object`
-:term:`forward method`
-:term:`forwarding marker`
-:term:`forwarding object`
-:term:`forwarding pointer`
-:term:`fragmentation`
-:term:`frame <in-band header>`
-:term:`free (1)`
-:term:`free (2)`
-:term:`free (3)`
-:term:`free (4) <unmapped>`
-:term:`free block`
-:term:`free block chain`
-:term:`free list`
-:term:`free store <heap>`
-:term:`freestore <heap>`
-:term:`from space`
-:term:`fromspace`
-:term:`function pointer`
-:term:`function record <activation record>`
+:term:`dangling pointer`,\ |emspace|
+:term:`data stack`,\ |emspace|
+:term:`dead`,\ |emspace|
+:term:`deallocate <free (1)>`,\ |emspace|
+:term:`debugging pool`,\ |emspace|
+:term:`deferred coalescing`,\ |emspace|
+:term:`deferred reference counting`,\ |emspace|
+:term:`dependent object`,\ |emspace|
+:term:`derived pointer <interior pointer>`,\ |emspace|
+:term:`destructor (1)`,\ |emspace|
+:term:`destructor (2)`,\ |emspace|
+:term:`DGC <distributed garbage collection>`,\ |emspace|
+:term:`direct method`,\ |emspace|
+:term:`dirty bit`,\ |emspace|
+:term:`distributed garbage collection`,\ |emspace|
+:term:`double buddies`,\ |emspace|
+:term:`double free`,\ |emspace|
+:term:`doubleword`,\ |emspace|
+:term:`doubly weak hash table`,\ |emspace|
+:term:`DRAM <dynamic memory>`,\ |emspace|
+:term:`dynamic allocation <heap allocation>`,\ |emspace|
+:term:`dynamic extent`,\ |emspace|
+:term:`dynamic memory`,\ |emspace|
+:term:`dynamic RAM <dynamic memory>`,\ |emspace|
 
-:term:`garbage`
-:term:`garbage collection`
-:term:`garbage collector`
-:term:`GB <gigabyte>`
-:term:`GC <garbage collection>`
-:term:`General Protection Fault`
-:term:`generation`
-:term:`generation chain`
-:term:`generation scavenging <generational garbage collection>`
-:term:`generational garbage collection`
-:term:`generational hypothesis`
-:term:`gigabyte`
-:term:`good fit`
-:term:`GPF <General Protection Fault>`
-:term:`grain`
-:term:`graph`
-:term:`gray`
-:term:`grey`
-:term:`gray list`
-:term:`grey list`
+:term:`ecru <off-white>`,\ |emspace|
+:term:`edge`,\ |emspace|
+:term:`entry table (1)`,\ |emspace|
+:term:`entry table (2)`,\ |emspace|
+:term:`exact garbage collection`,\ |emspace|
+:term:`exact reference`,\ |emspace|
+:term:`exact root`,\ |emspace|
+:term:`exact segregated fit`,\ |emspace|
+:term:`execution stack <control stack>`,\ |emspace|
+:term:`exit table`,\ |emspace|
+:term:`extent <lifetime>`,\ |emspace|
+:term:`external fragmentation`,\ |emspace|
 
-:term:`handle`
-:term:`header <in-band header>`
-:term:`heap`
-:term:`heap allocation`
-:term:`hit`
-:term:`hit rate`
-:term:`hot`
-:term:`hot end`
-:term:`huge page`
+:term:`fencepost`,\ |emspace|
+:term:`fence post`,\ |emspace|
+:term:`fencepost error`,\ |emspace|
+:term:`fence post error`,\ |emspace|
+:term:`Fibonacci buddies`,\ |emspace|
+:term:`FIFO-ordered first fit`,\ |emspace|
+:term:`file mapping <memory mapping>`,\ |emspace|
+:term:`finalization`,\ |emspace|
+:term:`finalized block`,\ |emspace|
+:term:`first fit`,\ |emspace|
+:term:`fix`,\ |emspace|
+:term:`flip`,\ |emspace|
+:term:`floating garbage`,\ |emspace|
+:term:`foreign code`,\ |emspace|
+:term:`format`,\ |emspace|
+:term:`format method`,\ |emspace|
+:term:`formatted object`,\ |emspace|
+:term:`forward method`,\ |emspace|
+:term:`forwarding marker`,\ |emspace|
+:term:`forwarding object`,\ |emspace|
+:term:`forwarding pointer`,\ |emspace|
+:term:`fragmentation`,\ |emspace|
+:term:`frame <in-band header>`,\ |emspace|
+:term:`free (1)`,\ |emspace|
+:term:`free (2)`,\ |emspace|
+:term:`free (3)`,\ |emspace|
+:term:`free (4) <unmapped>`,\ |emspace|
+:term:`free block`,\ |emspace|
+:term:`free block chain`,\ |emspace|
+:term:`free list`,\ |emspace|
+:term:`free store <heap>`,\ |emspace|
+:term:`freestore <heap>`,\ |emspace|
+:term:`from space`,\ |emspace|
+:term:`fromspace`,\ |emspace|
+:term:`function pointer`,\ |emspace|
+:term:`function record <activation record>`,\ |emspace|
 
-:term:`immediate data`
-:term:`immune set`
-:term:`immutable`
-:term:`immutable object <value object>`
-:term:`in-band header`
-:term:`in parameter`
-:term:`in/out parameter`
-:term:`incremental garbage collection`
-:term:`incremental update`
-:term:`indefinite extent`
-:term:`indexed fit`
-:term:`indirect method`
-:term:`infant mortality <generational hypothesis>`
-:term:`inline allocation (1)`
-:term:`inline allocation (2)`
-:term:`inter-generational pointer`
-:term:`interior pointer`
-:term:`internal fragmentation`
-:term:`invalid page fault`
-:term:`inverted page table`
-:term:`inverted page-table`
-:term:`is-forwarded method`
+:term:`garbage`,\ |emspace|
+:term:`garbage collection`,\ |emspace|
+:term:`garbage collector`,\ |emspace|
+:term:`GB <gigabyte>`,\ |emspace|
+:term:`GC <garbage collection>`,\ |emspace|
+:term:`General Protection Fault`,\ |emspace|
+:term:`generation`,\ |emspace|
+:term:`generation chain`,\ |emspace|
+:term:`generation scavenging <generational garbage collection>`,\ |emspace|
+:term:`generational garbage collection`,\ |emspace|
+:term:`generational hypothesis`,\ |emspace|
+:term:`gigabyte`,\ |emspace|
+:term:`good fit`,\ |emspace|
+:term:`GPF <General Protection Fault>`,\ |emspace|
+:term:`grain`,\ |emspace|
+:term:`graph`,\ |emspace|
+:term:`gray`,\ |emspace|
+:term:`grey`,\ |emspace|
+:term:`gray list`,\ |emspace|
+:term:`grey list`,\ |emspace|
 
-:term:`kB <kilobyte>`
-:term:`keyword argument`
-:term:`kilobyte`
+:term:`handle`,\ |emspace|
+:term:`header <in-band header>`,\ |emspace|
+:term:`heap`,\ |emspace|
+:term:`heap allocation`,\ |emspace|
+:term:`hit`,\ |emspace|
+:term:`hit rate`,\ |emspace|
+:term:`hot`,\ |emspace|
+:term:`hot end`,\ |emspace|
+:term:`huge page`,\ |emspace|
 
-:term:`large object area`
-:term:`large page <huge page>`
-:term:`leaf object`
-:term:`leak <memory leak>`
-:term:`life <lifetime>`
-:term:`lifetime`
-:term:`LIFO-ordered first fit`
-:term:`limited-field reference count`
-:term:`linear addressing`
-:term:`live`
-:term:`load`
-:term:`locality of reference`
-:term:`location <memory location>`
-:term:`location dependency`
-:term:`lock free`
-:term:`logical address <virtual address>`
-:term:`longword <doubleword>`
+:term:`immediate data`,\ |emspace|
+:term:`immune set`,\ |emspace|
+:term:`immutable`,\ |emspace|
+:term:`immutable object <value object>`,\ |emspace|
+:term:`in-band header`,\ |emspace|
+:term:`in parameter`,\ |emspace|
+:term:`in/out parameter`,\ |emspace|
+:term:`incremental garbage collection`,\ |emspace|
+:term:`incremental update`,\ |emspace|
+:term:`indefinite extent`,\ |emspace|
+:term:`indexed fit`,\ |emspace|
+:term:`indirect method`,\ |emspace|
+:term:`infant mortality <generational hypothesis>`,\ |emspace|
+:term:`inline allocation (1)`,\ |emspace|
+:term:`inline allocation (2)`,\ |emspace|
+:term:`inter-generational pointer`,\ |emspace|
+:term:`interior pointer`,\ |emspace|
+:term:`internal fragmentation`,\ |emspace|
+:term:`invalid page fault`,\ |emspace|
+:term:`inverted page table`,\ |emspace|
+:term:`inverted page-table`,\ |emspace|
+:term:`is-forwarded method`,\ |emspace|
 
-:term:`machine word <word>`
-:term:`main memory`
-:term:`malloc`
-:term:`manual memory management`
-:term:`mapped`
-:term:`mapping`
-:term:`mark-compact`
-:term:`mark-sweep`
-:term:`mark-and-sweep`
-:term:`marking`
-:term:`MB <megabyte>`
-:term:`megabyte`
-:term:`memoization <caching (3)>`
-:term:`memory (1)`
-:term:`memory (2)`
-:term:`memory (3) <main memory>`
-:term:`memory (4)`
-:term:`memory bandwidth`
-:term:`memory cache <cache (1)>`
-:term:`memory hierarchy <storage hierarchy>`
-:term:`memory leak`
-:term:`memory location`
-:term:`memory management`
-:term:`Memory Management Unit <MMU>`
-:term:`memory manager`
-:term:`memory mapping`
-:term:`memory protection <protection>`
-:term:`message`
-:term:`message queue`
-:term:`message type`
-:term:`misaligned <unaligned>`
-:term:`miss`
-:term:`miss rate`
-:term:`mmap`
-:term:`MMU`
-:term:`mostly-copying garbage collection`
-:term:`mostly-exact garbage collection <semi-conservative garbage collection>`
-:term:`mostly-precise garbage collection <semi-conservative garbage collection>`
-:term:`moving garbage collector`
-:term:`moving memory manager`
-:term:`mutable`
-:term:`mutator`
+:term:`kB <kilobyte>`,\ |emspace|
+:term:`keyword argument`,\ |emspace|
+:term:`kilobyte`,\ |emspace|
 
-:term:`nailing <pinning>`
-:term:`natural alignment`
-:term:`nepotism`
-:term:`next fit`
-:term:`new space`
-:term:`newspace <tospace>`
-:term:`node`
-:term:`non-moving garbage collector`
-:term:`non-moving memory manager`
-:term:`nursery generation <nursery space>`
-:term:`nursery space`
+:term:`large object area`,\ |emspace|
+:term:`large page <huge page>`,\ |emspace|
+:term:`leaf object`,\ |emspace|
+:term:`leak <memory leak>`,\ |emspace|
+:term:`life <lifetime>`,\ |emspace|
+:term:`lifetime`,\ |emspace|
+:term:`LIFO-ordered first fit`,\ |emspace|
+:term:`limited-field reference count`,\ |emspace|
+:term:`linear addressing`,\ |emspace|
+:term:`live`,\ |emspace|
+:term:`load`,\ |emspace|
+:term:`locality of reference`,\ |emspace|
+:term:`location <memory location>`,\ |emspace|
+:term:`location dependency`,\ |emspace|
+:term:`lock free`,\ |emspace|
+:term:`logical address <virtual address>`,\ |emspace|
+:term:`longword <doubleword>`,\ |emspace|
 
-:term:`object`
-:term:`object format`
-:term:`object pointer`
-:term:`off-white`
-:term:`old space <fromspace>`
-:term:`oldspace <fromspace>`
-:term:`one-bit reference count`
-:term:`opaque type`
-:term:`out parameter`
-:term:`out-of-band header`
-:term:`overcommit`
-:term:`overwriting error`
+:term:`machine word <word>`,\ |emspace|
+:term:`main memory`,\ |emspace|
+:term:`malloc`,\ |emspace|
+:term:`manual memory management`,\ |emspace|
+:term:`mapped`,\ |emspace|
+:term:`mapping`,\ |emspace|
+:term:`mark-compact`,\ |emspace|
+:term:`mark-sweep`,\ |emspace|
+:term:`mark-and-sweep`,\ |emspace|
+:term:`marking`,\ |emspace|
+:term:`MB <megabyte>`,\ |emspace|
+:term:`megabyte`,\ |emspace|
+:term:`memoization <caching (3)>`,\ |emspace|
+:term:`memory (1)`,\ |emspace|
+:term:`memory (2)`,\ |emspace|
+:term:`memory (3) <main memory>`,\ |emspace|
+:term:`memory (4)`,\ |emspace|
+:term:`memory bandwidth`,\ |emspace|
+:term:`memory cache <cache (1)>`,\ |emspace|
+:term:`memory hierarchy <storage hierarchy>`,\ |emspace|
+:term:`memory leak`,\ |emspace|
+:term:`memory location`,\ |emspace|
+:term:`memory management`,\ |emspace|
+:term:`Memory Management Unit <MMU>`,\ |emspace|
+:term:`memory manager`,\ |emspace|
+:term:`memory mapping`,\ |emspace|
+:term:`memory protection <protection>`,\ |emspace|
+:term:`message`,\ |emspace|
+:term:`message queue`,\ |emspace|
+:term:`message type`,\ |emspace|
+:term:`misaligned <unaligned>`,\ |emspace|
+:term:`miss`,\ |emspace|
+:term:`miss rate`,\ |emspace|
+:term:`mmap`,\ |emspace|
+:term:`MMU`,\ |emspace|
+:term:`mostly-copying garbage collection`,\ |emspace|
+:term:`mostly-exact garbage collection <semi-conservative garbage collection>`,\ |emspace|
+:term:`mostly-precise garbage collection <semi-conservative garbage collection>`,\ |emspace|
+:term:`moving garbage collector`,\ |emspace|
+:term:`moving memory manager`,\ |emspace|
+:term:`mutable`,\ |emspace|
+:term:`mutator`,\ |emspace|
 
-:term:`padding`
-:term:`padding method`
-:term:`padding object`
-:term:`page`
-:term:`page fault`
-:term:`page marking`
-:term:`page protection <protection>`
-:term:`page table`
-:term:`paged in`
-:term:`paged out`
-:term:`paging`
-:term:`palimpsest`
-:term:`parallel garbage collection`
-:term:`parked state`
-:term:`perfect fit`
-:term:`phantom reachable`
-:term:`phantomly reachable`
-:term:`phantom reference`
-:term:`physical address`
-:term:`physical address space`
-:term:`physical memory (1)`
-:term:`physical memory (2)`
-:term:`physical storage <physical memory (2)>`
-:term:`pig in the python`
-:term:`pig in the snake <pig in the python>`
-:term:`pinning`
-:term:`placement policy <allocation policy>`
-:term:`platform`
-:term:`plinth`
-:term:`pointer`
-:term:`pool`
-:term:`pool class`
-:term:`postmortem state`
-:term:`precise garbage collection <exact garbage collection>`
-:term:`precise reference <exact reference>`
-:term:`precise root <exact root>`
-:term:`premature free`
-:term:`premature promotion <premature tenuring>`
-:term:`premature tenuring`
-:term:`primary storage <main memory>`
-:term:`promotion`
-:term:`protectable root`
-:term:`protected`
-:term:`protection`
-:term:`protection exception <protection fault>`
-:term:`protection fault`
-:term:`protection violation <protection fault>`
+:term:`nailing <pinning>`,\ |emspace|
+:term:`natural alignment`,\ |emspace|
+:term:`nepotism`,\ |emspace|
+:term:`next fit`,\ |emspace|
+:term:`new space`,\ |emspace|
+:term:`newspace <tospace>`,\ |emspace|
+:term:`node`,\ |emspace|
+:term:`non-moving garbage collector`,\ |emspace|
+:term:`non-moving memory manager`,\ |emspace|
+:term:`nursery generation <nursery space>`,\ |emspace|
+:term:`nursery space`,\ |emspace|
 
-:term:`quadword`
+:term:`object`,\ |emspace|
+:term:`object format`,\ |emspace|
+:term:`object pointer`,\ |emspace|
+:term:`off-white`,\ |emspace|
+:term:`old space <fromspace>`,\ |emspace|
+:term:`oldspace <fromspace>`,\ |emspace|
+:term:`one-bit reference count`,\ |emspace|
+:term:`opaque type`,\ |emspace|
+:term:`out parameter`,\ |emspace|
+:term:`out-of-band header`,\ |emspace|
+:term:`overcommit`,\ |emspace|
+:term:`overwriting error`,\ |emspace|
 
-:term:`RAM`
-:term:`random access memory <RAM>`
-:term:`ramp allocation`
-:term:`rank`
-:term:`rash`
-:term:`raw <unwrapped>`
-:term:`reachable`
-:term:`read barrier`
-:term:`read fault`
-:term:`read-only memory <ROM>`
-:term:`real memory (1)`
-:term:`real memory (2) <physical memory (1)>`
-:term:`reclaim`
-:term:`recycle`
-:term:`reference`
-:term:`reference counting`
-:term:`reference object`
-:term:`region inference`
-:term:`register`
-:term:`register set partitioning`
-:term:`relocation`
-:term:`remembered set`
-:term:`remote reference`
-:term:`replicating garbage collector`
-:term:`reserved`
-:term:`resident`
-:term:`resident set`
-:term:`result code`
-:term:`resurrection`
-:term:`ROM`
-:term:`root`
-:term:`root description`
-:term:`root mode`
-:term:`root set`
+:term:`padding`,\ |emspace|
+:term:`padding method`,\ |emspace|
+:term:`padding object`,\ |emspace|
+:term:`page`,\ |emspace|
+:term:`page fault`,\ |emspace|
+:term:`page marking`,\ |emspace|
+:term:`page protection <protection>`,\ |emspace|
+:term:`page table`,\ |emspace|
+:term:`paged in`,\ |emspace|
+:term:`paged out`,\ |emspace|
+:term:`paging`,\ |emspace|
+:term:`palimpsest`,\ |emspace|
+:term:`parallel garbage collection`,\ |emspace|
+:term:`parked state`,\ |emspace|
+:term:`perfect fit`,\ |emspace|
+:term:`phantom reachable`,\ |emspace|
+:term:`phantomly reachable`,\ |emspace|
+:term:`phantom reference`,\ |emspace|
+:term:`physical address`,\ |emspace|
+:term:`physical address space`,\ |emspace|
+:term:`physical memory (1)`,\ |emspace|
+:term:`physical memory (2)`,\ |emspace|
+:term:`physical storage <physical memory (2)>`,\ |emspace|
+:term:`pig in the python`,\ |emspace|
+:term:`pig in the snake <pig in the python>`,\ |emspace|
+:term:`pinning`,\ |emspace|
+:term:`placement policy <allocation policy>`,\ |emspace|
+:term:`platform`,\ |emspace|
+:term:`plinth`,\ |emspace|
+:term:`pointer`,\ |emspace|
+:term:`pool`,\ |emspace|
+:term:`pool class`,\ |emspace|
+:term:`postmortem state`,\ |emspace|
+:term:`precise garbage collection <exact garbage collection>`,\ |emspace|
+:term:`precise reference <exact reference>`,\ |emspace|
+:term:`precise root <exact root>`,\ |emspace|
+:term:`premature free`,\ |emspace|
+:term:`premature promotion <premature tenuring>`,\ |emspace|
+:term:`premature tenuring`,\ |emspace|
+:term:`primary storage <main memory>`,\ |emspace|
+:term:`promotion`,\ |emspace|
+:term:`protectable root`,\ |emspace|
+:term:`protected`,\ |emspace|
+:term:`protection`,\ |emspace|
+:term:`protection exception <protection fault>`,\ |emspace|
+:term:`protection fault`,\ |emspace|
+:term:`protection violation <protection fault>`,\ |emspace|
 
-:term:`sbrk`
-:term:`scalar data type`
-:term:`scan`
-:term:`scan method`
-:term:`scan state`
-:term:`scavenging garbage collection <copying garbage collection>`
-:term:`SDRAM`
-:term:`segmentation violation`
-:term:`segmented addressing`
-:term:`segregated allocation cache`
-:term:`segregated fit`
-:term:`segregated free list`
-:term:`segregated free-list`
-:term:`semi-conservative garbage collection`
-:term:`semi-space`
-:term:`semi-space collector <two-space collector>`
-:term:`sequential fit`
-:term:`sequential store buffer`
-:term:`shared memory`
-:term:`simple object`
-:term:`simple segregated storage`
-:term:`size`
-:term:`size class`
-:term:`skip method`
-:term:`smart pointer`
-:term:`snap-out`
-:term:`snapshot at the beginning`
-:term:`soft reference`
-:term:`softly reachable`
-:term:`space leak <memory leak>`
-:term:`spare commit limit`
-:term:`spare committed memory`
-:term:`spaghetti stack <cactus stack>`
-:term:`splat`
-:term:`split`
-:term:`SRAM <static memory (1)>`
-:term:`SSB <sequential store buffer>`
-:term:`stack`
-:term:`stack allocation`
-:term:`stack frame`
-:term:`stack record <stack frame>`
-:term:`static allocation`
-:term:`static memory (1)`
-:term:`static memory (2)`
-:term:`static object`
-:term:`static RAM <static memory (1)>`
-:term:`static storage duration`
-:term:`stepper function`
-:term:`sticky reference count <limited-field reference count>`
-:term:`stop-and-copy collection`
-:term:`storage <memory (1)>`
-:term:`storage hierarchy`
-:term:`storage level`
-:term:`storage management <memory management>`
-:term:`store (1)`
-:term:`store (2) <memory (1)>`
-:term:`stretchy vector`
-:term:`strict segregated fit`
-:term:`strong reference`
-:term:`strong root`
-:term:`strong tri-color invariant`
-:term:`strong tri-colour invariant`
-:term:`strong tricolor invariant`
-:term:`strong tricolour invariant`
-:term:`strongly reachable`
-:term:`suballocator`
-:term:`subgraph`
-:term:`superpage <huge page>`
-:term:`sure reference <exact reference>`
-:term:`swap space`
-:term:`swapped in`
-:term:`swapped out`
-:term:`swapping`
-:term:`sweeping`
-:term:`synchronous garbage collector`
+:term:`quadword`,\ |emspace|
 
-:term:`tabling <caching (3)>`
-:term:`tag`
-:term:`tagged architecture`
-:term:`tagged reference`
-:term:`TB (1) <terabyte>`
-:term:`TB (2) <translation lookaside buffer>`
-:term:`telemetry filter`
-:term:`telemetry label`
-:term:`telemetry stream`
-:term:`tenuring <promotion>`
-:term:`terabyte`
-:term:`termination <finalization>`
-:term:`thrash`
-:term:`thread`
-:term:`threatened set <condemned set>`
-:term:`TLB <translation lookaside buffer>`
-:term:`to space`
-:term:`tospace`
-:term:`trace`
-:term:`tracing garbage collection`
-:term:`translation buffer`
-:term:`translation lookaside buffer`
-:term:`transparent alias`
-:term:`transparent type`
-:term:`transport`
-:term:`transport snap-out <snap-out>`
-:term:`treadmill`
-:term:`tri-color invariant`
-:term:`tri-colour invariant`
-:term:`tricolor invariant`
-:term:`tricolour invariant`
-:term:`tri-color marking`
-:term:`tri-colour marking`
-:term:`tricolor marking`
-:term:`tricolour marking`
-:term:`two-space collector`
-:term:`two space collector`
-:term:`type-accurate garbage collection <exact garbage collection>`
-:term:`type punning`
+:term:`RAM`,\ |emspace|
+:term:`random access memory <RAM>`,\ |emspace|
+:term:`ramp allocation`,\ |emspace|
+:term:`rank`,\ |emspace|
+:term:`rash`,\ |emspace|
+:term:`raw <unwrapped>`,\ |emspace|
+:term:`reachable`,\ |emspace|
+:term:`read barrier`,\ |emspace|
+:term:`read fault`,\ |emspace|
+:term:`read-only memory <ROM>`,\ |emspace|
+:term:`real memory (1)`,\ |emspace|
+:term:`real memory (2) <physical memory (1)>`,\ |emspace|
+:term:`reclaim`,\ |emspace|
+:term:`recycle`,\ |emspace|
+:term:`reference`,\ |emspace|
+:term:`reference counting`,\ |emspace|
+:term:`reference object`,\ |emspace|
+:term:`region inference`,\ |emspace|
+:term:`register`,\ |emspace|
+:term:`register set partitioning`,\ |emspace|
+:term:`relocation`,\ |emspace|
+:term:`remembered set`,\ |emspace|
+:term:`remote reference`,\ |emspace|
+:term:`replicating garbage collector`,\ |emspace|
+:term:`reserved`,\ |emspace|
+:term:`resident`,\ |emspace|
+:term:`resident set`,\ |emspace|
+:term:`result code`,\ |emspace|
+:term:`resurrection`,\ |emspace|
+:term:`ROM`,\ |emspace|
+:term:`root`,\ |emspace|
+:term:`root description`,\ |emspace|
+:term:`root mode`,\ |emspace|
+:term:`root set`,\ |emspace|
 
-:term:`unaligned`
-:term:`unboxed`
-:term:`unclamped state`
-:term:`undead`
-:term:`unmapped`
-:term:`unprotected`
-:term:`unreachable`
-:term:`unsure reference <ambiguous reference>`
-:term:`unwrapped`
-:term:`use after free <premature free>`
+:term:`sbrk`,\ |emspace|
+:term:`scalar data type`,\ |emspace|
+:term:`scan`,\ |emspace|
+:term:`scan method`,\ |emspace|
+:term:`scan state`,\ |emspace|
+:term:`scavenging garbage collection <copying garbage collection>`,\ |emspace|
+:term:`SDRAM`,\ |emspace|
+:term:`segmentation violation`,\ |emspace|
+:term:`segmented addressing`,\ |emspace|
+:term:`segregated allocation cache`,\ |emspace|
+:term:`segregated fit`,\ |emspace|
+:term:`segregated free list`,\ |emspace|
+:term:`segregated free-list`,\ |emspace|
+:term:`semi-conservative garbage collection`,\ |emspace|
+:term:`semi-space`,\ |emspace|
+:term:`semi-space collector <two-space collector>`,\ |emspace|
+:term:`sequential fit`,\ |emspace|
+:term:`sequential store buffer`,\ |emspace|
+:term:`shared memory`,\ |emspace|
+:term:`simple object`,\ |emspace|
+:term:`simple segregated storage`,\ |emspace|
+:term:`size`,\ |emspace|
+:term:`size class`,\ |emspace|
+:term:`skip method`,\ |emspace|
+:term:`smart pointer`,\ |emspace|
+:term:`snap-out`,\ |emspace|
+:term:`snapshot at the beginning`,\ |emspace|
+:term:`soft reference`,\ |emspace|
+:term:`softly reachable`,\ |emspace|
+:term:`space leak <memory leak>`,\ |emspace|
+:term:`spare commit limit`,\ |emspace|
+:term:`spare committed memory`,\ |emspace|
+:term:`spaghetti stack <cactus stack>`,\ |emspace|
+:term:`splat`,\ |emspace|
+:term:`split`,\ |emspace|
+:term:`SRAM <static memory (1)>`,\ |emspace|
+:term:`SSB <sequential store buffer>`,\ |emspace|
+:term:`stack`,\ |emspace|
+:term:`stack allocation`,\ |emspace|
+:term:`stack frame`,\ |emspace|
+:term:`stack record <stack frame>`,\ |emspace|
+:term:`static allocation`,\ |emspace|
+:term:`static memory (1)`,\ |emspace|
+:term:`static memory (2)`,\ |emspace|
+:term:`static object`,\ |emspace|
+:term:`static RAM <static memory (1)>`,\ |emspace|
+:term:`static storage duration`,\ |emspace|
+:term:`stepper function`,\ |emspace|
+:term:`sticky reference count <limited-field reference count>`,\ |emspace|
+:term:`stop-and-copy collection`,\ |emspace|
+:term:`storage <memory (1)>`,\ |emspace|
+:term:`storage hierarchy`,\ |emspace|
+:term:`storage level`,\ |emspace|
+:term:`storage management <memory management>`,\ |emspace|
+:term:`store (1)`,\ |emspace|
+:term:`store (2) <memory (1)>`,\ |emspace|
+:term:`stretchy vector`,\ |emspace|
+:term:`strict segregated fit`,\ |emspace|
+:term:`strong reference`,\ |emspace|
+:term:`strong root`,\ |emspace|
+:term:`strong tri-color invariant`,\ |emspace|
+:term:`strong tri-colour invariant`,\ |emspace|
+:term:`strong tricolor invariant`,\ |emspace|
+:term:`strong tricolour invariant`,\ |emspace|
+:term:`strongly reachable`,\ |emspace|
+:term:`suballocator`,\ |emspace|
+:term:`subgraph`,\ |emspace|
+:term:`superpage <huge page>`,\ |emspace|
+:term:`sure reference <exact reference>`,\ |emspace|
+:term:`swap space`,\ |emspace|
+:term:`swapped in`,\ |emspace|
+:term:`swapped out`,\ |emspace|
+:term:`swapping`,\ |emspace|
+:term:`sweeping`,\ |emspace|
+:term:`synchronous garbage collector`,\ |emspace|
 
-:term:`value object`
-:term:`variety`
-:term:`vector data type`
-:term:`virtual address`
-:term:`virtual address space`
-:term:`virtual memory`
-:term:`virtual memory arena`
-:term:`visitor function <stepper function>`
-:term:`VM (1) <virtual memory>`
-:term:`VM (2)`
+:term:`tabling <caching (3)>`,\ |emspace|
+:term:`tag`,\ |emspace|
+:term:`tagged architecture`,\ |emspace|
+:term:`tagged reference`,\ |emspace|
+:term:`TB (1) <terabyte>`,\ |emspace|
+:term:`TB (2) <translation lookaside buffer>`,\ |emspace|
+:term:`telemetry filter`,\ |emspace|
+:term:`telemetry label`,\ |emspace|
+:term:`telemetry stream`,\ |emspace|
+:term:`tenuring <promotion>`,\ |emspace|
+:term:`terabyte`,\ |emspace|
+:term:`termination <finalization>`,\ |emspace|
+:term:`thrash`,\ |emspace|
+:term:`thread`,\ |emspace|
+:term:`threatened set <condemned set>`,\ |emspace|
+:term:`TLB <translation lookaside buffer>`,\ |emspace|
+:term:`to space`,\ |emspace|
+:term:`tospace`,\ |emspace|
+:term:`trace`,\ |emspace|
+:term:`tracing garbage collection`,\ |emspace|
+:term:`translation buffer`,\ |emspace|
+:term:`translation lookaside buffer`,\ |emspace|
+:term:`transparent alias`,\ |emspace|
+:term:`transparent type`,\ |emspace|
+:term:`transport`,\ |emspace|
+:term:`transport snap-out <snap-out>`,\ |emspace|
+:term:`treadmill`,\ |emspace|
+:term:`tri-color invariant`,\ |emspace|
+:term:`tri-colour invariant`,\ |emspace|
+:term:`tricolor invariant`,\ |emspace|
+:term:`tricolour invariant`,\ |emspace|
+:term:`tri-color marking`,\ |emspace|
+:term:`tri-colour marking`,\ |emspace|
+:term:`tricolor marking`,\ |emspace|
+:term:`tricolour marking`,\ |emspace|
+:term:`two-space collector`,\ |emspace|
+:term:`two space collector`,\ |emspace|
+:term:`type-accurate garbage collection <exact garbage collection>`,\ |emspace|
+:term:`type punning`,\ |emspace|
 
-:term:`weak-key hash table`
-:term:`weak-value hash table`
-:term:`weak hash table`
-:term:`weak reference (1)`
-:term:`weak reference (2)`
-:term:`weak root`
-:term:`weak tri-color invariant`
-:term:`weak tri-colour invariant`
-:term:`weak tricolor invariant`
-:term:`weak tricolour invariant`
-:term:`weakly reachable`
-:term:`weighted buddies`
-:term:`weighted reference counting`
-:term:`white`
-:term:`word`
-:term:`working set`
-:term:`worst fit`
-:term:`wrapped`
-:term:`wrapper`
-:term:`write barrier`
-:term:`write fault`
+:term:`unaligned`,\ |emspace|
+:term:`unboxed`,\ |emspace|
+:term:`unclamped state`,\ |emspace|
+:term:`undead`,\ |emspace|
+:term:`unmapped`,\ |emspace|
+:term:`unprotected`,\ |emspace|
+:term:`unreachable`,\ |emspace|
+:term:`unsure reference <ambiguous reference>`,\ |emspace|
+:term:`unwrapped`,\ |emspace|
+:term:`use after free <premature free>`,\ |emspace|
 
-:term:`ZCT <zero count table>`
+:term:`value object`,\ |emspace|
+:term:`variety`,\ |emspace|
+:term:`vector data type`,\ |emspace|
+:term:`virtual address`,\ |emspace|
+:term:`virtual address space`,\ |emspace|
+:term:`virtual memory`,\ |emspace|
+:term:`virtual memory arena`,\ |emspace|
+:term:`visitor function <stepper function>`,\ |emspace|
+:term:`VM (1) <virtual memory>`,\ |emspace|
+:term:`VM (2)`,\ |emspace|
+
+:term:`weak-key hash table`,\ |emspace|
+:term:`weak-value hash table`,\ |emspace|
+:term:`weak hash table`,\ |emspace|
+:term:`weak reference (1)`,\ |emspace|
+:term:`weak reference (2)`,\ |emspace|
+:term:`weak root`,\ |emspace|
+:term:`weak tri-color invariant`,\ |emspace|
+:term:`weak tri-colour invariant`,\ |emspace|
+:term:`weak tricolor invariant`,\ |emspace|
+:term:`weak tricolour invariant`,\ |emspace|
+:term:`weakly reachable`,\ |emspace|
+:term:`weighted buddies`,\ |emspace|
+:term:`weighted reference counting`,\ |emspace|
+:term:`white`,\ |emspace|
+:term:`word`,\ |emspace|
+:term:`working set`,\ |emspace|
+:term:`worst fit`,\ |emspace|
+:term:`wrapped`,\ |emspace|
+:term:`wrapper`,\ |emspace|
+:term:`write barrier`,\ |emspace|
+:term:`write fault`,\ |emspace|
+
+:term:`ZCT <zero count table>`,\ |emspace|
 :term:`zero count table`
