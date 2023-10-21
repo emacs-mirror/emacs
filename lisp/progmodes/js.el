@@ -3854,7 +3854,7 @@ See `treesit-thing-settings' for more information.")
     "pair"
     "jsx")
   "Nodes that designate sexps in JavaScript.
-See `treesit-sexp-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 ;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
