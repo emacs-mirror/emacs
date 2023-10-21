@@ -7535,10 +7535,8 @@ where:
   arguments: a buffer to display and an alist of the same form as
   ALIST.  See `display-buffer' for details.
 
-`display-buffer' scans this alist until it either finds a
-matching regular expression or the function specified by a
-condition returns non-nil.  In any of these cases, it adds the
-associated action to the list of actions it will try."
+`display-buffer' scans this alist until the CONDITION is satisfied
+and adds the associated ACTION to the list of actions it will try."
   :type `(alist :key-type
 		(choice :tag "Condition"
 			regexp

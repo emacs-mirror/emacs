@@ -961,6 +961,13 @@ the file listing's performance is still optimized.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+** `buffer-match-p and `match-buffers` take `&rest args`
+They used to take a single `&optional arg` and were documented to use
+an unreliable hack to try and support condition predicates that
+don't accept this optional arg.
+The new semantics makes no such accommodation, but the code still
+supports it (with a warning) for backward compatibility.
+
 ** 'post-gc-hook' runs after updating 'gcs-done' and 'gcs-elapsed'.
 
 ---

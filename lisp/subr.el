@@ -7278,13 +7278,15 @@ lines."
             (setq start (length string)))))
       (nreverse lines))))
 
-(defun buffer-match-p (condition buffer-or-name &optional arg)
+(defvar buffer-match-p--past-warnings nil)
+
+(defun buffer-match-p (condition buffer-or-name &rest args)
   "Return non-nil if BUFFER-OR-NAME matches CONDITION.
 CONDITION is either:
 - the symbol t, to always match,
 - the symbol nil, which never matches,
 - a regular expression, to match a buffer name,
-- a predicate function that takes BUFFER-OR-NAME and ARG as
+- a predicate function that takes BUFFER-OR-NAME plus ARGS as
   arguments, and returns non-nil if the buffer matches,
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
@@ -7309,9 +7311,18 @@ CONDITION is either:
                       ((pred stringp)
                        (string-match-p condition (buffer-name buffer)))
                       ((pred functionp)
-                       (if (eq 1 (cdr (func-arity condition)))
-                           (funcall condition buffer-or-name)
-                         (funcall condition buffer-or-name arg)))
+                       (if (cdr args)
+                           ;; New in Emacs>29.1. no need for compatibility hack.
+                           (apply condition buffer-or-name args)
+                         (condition-case-unless-debug err
+                             (apply condition buffer-or-name args)
+                           (wrong-number-of-arguments
+                            (unless (member condition
+                                            buffer-match-p--past-warnings)
+                              (message "%s" (error-message-string err))
+                              (push condition buffer-match-p--past-warnings))
+                            (apply condition buffer-or-name
+                                   (if args nil '(nil)))))))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)
@@ -7333,17 +7344,17 @@ CONDITION is either:
                 (throw 'match t)))))))
     (funcall match (list condition))))
 
-(defun match-buffers (condition &optional buffers arg)
+(defun match-buffers (condition &optional buffers &rest args)
   "Return a list of buffers that match CONDITION, or nil if none match.
 See `buffer-match-p' for various supported CONDITIONs.
 By default all buffers are checked, but the optional
 argument BUFFERS can restrict that: its value should be
 an explicit list of buffers to check.
-Optional argument ARG is passed to `buffer-match-p', for
+Optional arguments ARGS are passed to `buffer-match-p', for
 predicate conditions in CONDITION."
   (let (bufs)
     (dolist (buf (or buffers (buffer-list)))
-      (when (buffer-match-p condition (get-buffer buf) arg)
+      (when (apply #'buffer-match-p condition (get-buffer buf) args)
         (push buf bufs)))
     bufs))
 
