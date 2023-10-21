@@ -5941,6 +5941,8 @@ save_line_number_display_width (struct input_event *event)
     w = XWINDOW (event->frame_or_window);
   else if (FRAMEP (event->frame_or_window))
     w = XWINDOW (XFRAME (event->frame_or_window)->selected_window);
+  else
+    emacs_abort ();
   line_number_display_width (w, &down_mouse_line_number_width, &pixel_width);
 }
 
