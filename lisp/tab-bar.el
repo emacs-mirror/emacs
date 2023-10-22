@@ -1091,7 +1091,9 @@ tab bar might wrap to the second line when it shouldn't.")
                    ((< prev-width width)
                     (let* ((space (apply 'propertize " "
                                          (text-properties-at 0 name)))
-                           (ins-pos (- len (if close-p 1 0)))
+                           (ins-pos (- len (if close-p
+                                               (length tab-bar-close-button)
+                                             0)))
                            (prev-name name))
                       (while continue
                         (setf (substring name ins-pos ins-pos) space)
