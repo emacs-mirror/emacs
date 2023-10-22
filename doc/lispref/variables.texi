@@ -1015,7 +1015,7 @@ Lisp programs.
 * Lexical Binding::         The standard type of local variable binding.
 * Dynamic Binding::         A different type of local variable binding.
 * Dynamic Binding Tips::    Avoiding problems with dynamic binding.
-* Using Lexical Binding::   How to enable lexical binding.
+* Selecting Lisp Dialect::   How to select the Emacs Lisp dialect to use.
 * Converting to Lexical Binding:: Convert existing code to lexical binding.
 @end menu
 
@@ -1023,7 +1023,7 @@ Lisp programs.
 @subsection Lexical Binding
 
 Lexical binding is only available in the modern Emacs Lisp dialect.
-(@xref{Using Lexical Binding}.)
+(@xref{Selecting Lisp Dialect}.)
 A lexically-bound variable has @dfn{lexical scope}, meaning that any
 reference to the variable must be located textually within the binding
 construct.  Here is an example
@@ -1115,8 +1115,8 @@ cell).
 @subsection Dynamic Binding
 
   Local variable bindings are dynamic in the modern Lisp dialect for
-special variables, and for all variables in the old Lisp
-dialect.  (@xref{Using Lexical Binding}.)
+special variables (see below), and for all variables in the old Lisp
+dialect.  (@xref{Selecting Lisp Dialect}.)
 Dynamic variable bindings have their uses but are in general more
 error-prone and less efficient than lexical bindings, and the compiler
 is less able to find mistakes in code using dynamic bindings.
@@ -1180,6 +1180,54 @@ bound variable using @code{setq}:
 @end group
 @end example
 
+@cindex special variables
+  Even when lexical binding is enabled, certain variables will
+continue to be dynamically bound.  These are called @dfn{special
+variables}.  Every variable that has been defined with @code{defvar},
+@code{defcustom} or @code{defconst} is a special variable
+(@pxref{Defining Variables}).  All other variables are subject to
+lexical binding.
+
+@anchor{Local defvar example}
+Using @code{defvar} without a value, it is possible to bind a variable
+dynamically just in one file, or in just one part of a file while
+still binding it lexically elsewhere.  For example:
+
+@example
+@group
+(let (_)
+  (defvar x)      ; @r{Let-bindings of @code{x} will be dynamic within this let.}
+  (let ((x -99))  ; @r{This is a dynamic binding of @code{x}.}
+    (defun get-dynamic-x ()
+      x)))
+
+(let ((x 'lexical)) ; @r{This is a lexical binding of @code{x}.}
+  (defun get-lexical-x ()
+    x))
+
+(let (_)
+  (defvar x)
+  (let ((x 'dynamic))
+    (list (get-lexical-x)
+          (get-dynamic-x))))
+    @result{} (lexical dynamic)
+@end group
+@end example
+
+@defun special-variable-p symbol
+This function returns non-@code{nil} if @var{symbol} is a special
+variable (i.e., it has a @code{defvar}, @code{defcustom}, or
+@code{defconst} variable definition).  Otherwise, the return value is
+@code{nil}.
+
+Note that since this is a function, it can only return
+non-@code{nil} for variables which are permanently special, but not
+for those that are only special in the current lexical scope.
+@end defun
+
+  The use of a special variable as a formal argument in a function is
+not supported.
+
   Dynamic binding is implemented in Emacs Lisp in a simple way.  Each
 symbol has a value cell, which specifies its current dynamic value (or
 absence of value).  @xref{Symbol Components}.  When a symbol is given
@@ -1234,25 +1282,44 @@ variables like @code{case-fold-search}:
 @end example
 @end itemize
 
-@node Using Lexical Binding
-@subsection Using Lexical Binding
+@node Selecting Lisp Dialect
+@subsection Selecting Lisp Dialect
 
-  When loading an Emacs Lisp file or evaluating a Lisp buffer, lexical
-binding is enabled if the buffer-local variable @code{lexical-binding}
-is non-@code{nil}:
+  When loading an Emacs Lisp file or evaluating a Lisp buffer, the
+Lisp dialect is selected using the buffer-local variable
+@code{lexical-binding}.
 
 @defvar lexical-binding
 If this buffer-local variable is non-@code{nil}, Emacs Lisp files and
-buffers are evaluated using lexical binding instead of dynamic
-binding.  (However, special variables are still dynamically bound; see
-below.)  If @code{nil}, dynamic binding is used for all local
-variables.  This variable is typically set for a whole Emacs Lisp
-file, as a file local variable (@pxref{File Local Variables}).
-Note that unlike other such variables, this one must be set in the
-first line of a file.
+buffers are evaluated using the modern Lisp dialect that by default
+uses lexical binding instead of dynamic binding.  If @code{nil}, the
+old dialect is used that uses dynamic binding for all local variables.
+This variable is typically set for a whole Emacs Lisp file, as a
+file-local variable (@pxref{File Local Variables}).  Note that unlike
+other such variables, this one must be set in the first line of a
+file.
 @end defvar
 
 @noindent
+In practice, dialect selection means that the first line in an Emacs
+Lisp file looks like:
+
+@example
+;;; ...  -*- lexical-binding: t -*-
+@end example
+
+@noindent
+for the modern lexical-binding dialect, and
+
+@example
+;;; ...  -*- lexical-binding: nil -*-
+@end example
+
+@noindent
+for the old dynamic-only dialect.  When no declaration is present the
+old dialect is used, but this may change in a future release.
+The compiler will warn if no declaration is present.
+
 When evaluating Emacs Lisp code directly using an @code{eval} call,
 lexical binding is enabled if the @var{lexical} argument to
 @code{eval} is non-@code{nil}.  @xref{Eval}.
@@ -1265,54 +1332,6 @@ processing the @option{--eval} command-line options of Emacs
 (@pxref{Action Arguments,,, emacs, The GNU Emacs Manual}) and
 @command{emacsclient} (@pxref{emacsclient Options,,, emacs, The GNU
 Emacs Manual}).
-
-@cindex special variables
-  Even when lexical binding is enabled, certain variables will
-continue to be dynamically bound.  These are called @dfn{special
-variables}.  Every variable that has been defined with @code{defvar},
-@code{defcustom} or @code{defconst} is a special variable
-(@pxref{Defining Variables}).  All other variables are subject to
-lexical binding.
-
-@anchor{Local defvar example}
-Using @code{defvar} without a value, it is possible to bind a variable
-dynamically just in one file, or in just one part of a file while
-still binding it lexically elsewhere.  For example:
-
-@example
-@group
-(let (_)
-  (defvar x)      ; @r{Let-bindings of @code{x} will be dynamic within this let.}
-  (let ((x -99))  ; @r{This is a dynamic binding of @code{x}.}
-    (defun get-dynamic-x ()
-      x)))
-
-(let ((x 'lexical)) ; @r{This is a lexical binding of @code{x}.}
-  (defun get-lexical-x ()
-    x))
-
-(let (_)
-  (defvar x)
-  (let ((x 'dynamic))
-    (list (get-lexical-x)
-          (get-dynamic-x))))
-    @result{} (lexical dynamic)
-@end group
-@end example
-
-@defun special-variable-p symbol
-This function returns non-@code{nil} if @var{symbol} is a special
-variable (i.e., it has a @code{defvar}, @code{defcustom}, or
-@code{defconst} variable definition).  Otherwise, the return value is
-@code{nil}.
-
-Note that since this is a function, it can only return
-non-@code{nil} for variables which are permanently special, but not
-for those that are only special in the current lexical scope.
-@end defun
-
-  The use of a special variable as a formal argument in a function is
-not supported.
 
 @node Converting to Lexical Binding
 @subsection Converting to Lexical Binding
