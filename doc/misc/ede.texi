@@ -1515,7 +1515,8 @@ Make sure placeholder @var{THIS} is replaced with the real thing, and pass throu
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
 @item ede-project
 @table @asis
@@ -1801,9 +1802,11 @@ Commit change to local variables in @var{PROJ}.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
-@item @xref{ede-project}.
+@item ede-project
+@xref{ede-project}.
 @table @code
 @item ede-cpp-root-project
 No children
@@ -1923,9 +1926,11 @@ This knows details about or source tree.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
-@item @xref{ede-project}.
+@item ede-project
+@xref{ede-project}.
 @table @code
 @item ede-simple-project
 No children
@@ -1953,9 +1958,11 @@ Commit any change to @var{PROJ} to its file.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
-@item @xref{ede-project}.
+@item ede-project
+@xref{ede-project}.
 @table @code
 @item ede-simple-base-project
 No children
@@ -1983,9 +1990,11 @@ This one project could control a tree of subdirectories.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
-@item @xref{ede-project}.
+@item ede-project
+@xref{ede-project}.
 @table @code
 @item ede-proj-project
 No children
@@ -2173,9 +2182,11 @@ Commit change to local variables in @var{PROJ}.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
-@item @xref{ede-project}.
+@item ede-project
+@xref{ede-project}.
 @table @code
 @item project-am-makefile
 No children
@@ -2215,9 +2226,11 @@ buffer being in order to provide a smart default target type.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-project-placeholder}.
+@item ede-project-placeholder
+@xref{ede-project-placeholder}.
 @table @code
-@item @xref{ede-project}.
+@item ede-project
+@xref{ede-project}.
 @table @code
 @item ede-step-project
 No children
@@ -2577,7 +2590,8 @@ Retrieves the slot @code{menu} from an object of class @code{ede-target}
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
 @item ede-proj-target
 @table @asis
@@ -2766,9 +2780,11 @@ sources variable.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
 @item ede-proj-target-makefile
 @table @asis
@@ -2864,11 +2880,14 @@ Use @var{CONFIGURATION} as the current configuration to query.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
 @item semantic-ede-proj-target-grammar
 No children
@@ -2918,11 +2937,14 @@ Argument @var{THIS} is the target that should insert stuff.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
 @item ede-proj-target-makefile-objectcode
 @table @asis
@@ -2980,13 +3002,17 @@ Argument @var{THIS} is the target to get sources from.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
-@item @xref{ede-proj-target-makefile-objectcode}.
+@item ede-proj-target-makefile-objectcode
+@xref{ede-proj-target-makefile-objectcode}.
 @table @code
 @item ede-proj-target-makefile-archive
 No children
@@ -3023,13 +3049,17 @@ Makefile.am generator, so use it to add this important bin program.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
-@item @xref{ede-proj-target-makefile-objectcode}.
+@item ede-proj-target-makefile-objectcode
+@xref{ede-proj-target-makefile-objectcode}.
 @table @code
 @item ede-proj-target-makefile-program
 @table @asis
@@ -3102,15 +3132,20 @@ Insert bin_PROGRAMS variables needed by target @var{THIS}.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
-@item @xref{ede-proj-target-makefile-objectcode}.
+@item ede-proj-target-makefile-objectcode
+@xref{ede-proj-target-makefile-objectcode}.
 @table @code
-@item @xref{ede-proj-target-makefile-program}.
+@item ede-proj-target-makefile-program
+@xref{ede-proj-target-makefile-program}.
 @table @code
 @item ede-proj-target-makefile-shared-object
 No children
@@ -3162,11 +3197,14 @@ Makefile.am generator, so use it to add this important bin program.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
 @item ede-proj-target-elisp
 @table @asis
@@ -3238,13 +3276,17 @@ is found, such as a @code{-version} variable, or the standard header.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
-@item @xref{ede-proj-target-elisp}.
+@item ede-proj-target-elisp
+@xref{ede-proj-target-elisp}.
 @table @code
 @item ede-proj-target-elisp-autoloads
 No children
@@ -3353,11 +3395,14 @@ sources variable.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
 @item ede-proj-target-makefile-miscelaneous
 No children
@@ -3409,11 +3454,14 @@ Return a list of files which @var{THIS} target depends on.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
-@item @xref{ede-proj-target-makefile}.
+@item ede-proj-target-makefile
+@xref{ede-proj-target-makefile}.
 @table @code
 @item ede-proj-target-makefile-info
 No children
@@ -3495,9 +3543,11 @@ when working in Automake mode.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{ede-proj-target}.
+@item ede-proj-target
+@xref{ede-proj-target}.
 @table @code
 @item ede-proj-target-scheme
 No children
@@ -3539,7 +3589,8 @@ Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
 @item project-am-target
 @table @asis
@@ -3577,9 +3628,11 @@ Edit the target associated with this file.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
 @item project-am-objectcode
 @table @asis
@@ -3622,11 +3675,14 @@ There are no default header files.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
-@item @xref{project-am-objectcode}.
+@item project-am-objectcode
+@xref{project-am-objectcode}.
 @table @code
 @item project-am-program
 No children
@@ -3660,9 +3716,11 @@ Additional LD args.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
 @item @w{project-am-header.}
 @table @code
@@ -3693,9 +3751,11 @@ Return the default macro to 'edit' for this object.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
 @item @w{project-am-header.}
 @table @code
@@ -3726,9 +3786,11 @@ Return the default macro to 'edit' for this object.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
 @item project-am-lisp
 No children
@@ -3756,9 +3818,11 @@ Return the default macro to 'edit' for this object.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
 @item project-am-texinfo
 No children
@@ -3808,9 +3872,11 @@ files in the project.
 @table @code
 @item eieio-speedbar-directory-button
 @table @code
-@item @xref{ede-target}.
+@item ede-target
+@xref{ede-target}.
 @table @code
-@item @xref{project-am-target}.
+@item project-am-target
+@xref{project-am-target}.
 @table @code
 @item project-am-man
 No children
@@ -4071,7 +4137,8 @@ Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @table @code
 @item eieio-instance-inheritor
 @table @code
-@item @xref{ede-compilation-program}.
+@item ede-compilation-program
+@xref{ede-compilation-program}.
 @table @code
 @item ede-compiler
 @table @asis
@@ -4179,9 +4246,11 @@ Return a string based on @var{THIS} representing a make object variable.
 @table @code
 @item eieio-instance-inheritor
 @table @code
-@item @xref{ede-compilation-program}.
+@item ede-compilation-program
+@xref{ede-compilation-program}.
 @table @code
-@item @xref{ede-compiler}.
+@item ede-compiler
+@xref{ede-compiler}.
 @table @code
 @item ede-object-compiler
 No children
@@ -4222,7 +4291,8 @@ Insert variables needed by the compiler @var{THIS}.
 @table @code
 @item eieio-instance-inheritor
 @table @code
-@item @xref{ede-compilation-program}.
+@item ede-compilation-program
+@xref{ede-compilation-program}.
 @table @code
 @item ede-linker
 No children

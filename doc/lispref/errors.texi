@@ -246,7 +246,8 @@ signaled when @code{inhibit-interaction} is non-@code{nil} and a user
 interaction function (like @code{read-from-minibuffer}) is called.
 @end table
 
-@ignore    The following seem to be unused now.
+@c The following seem to be unused now.
+@ignore
   The following kinds of error, which are classified as special cases of
 @code{arith-error}, can occur on certain systems for invalid use of
 mathematical functions.  @xref{Math Functions}.

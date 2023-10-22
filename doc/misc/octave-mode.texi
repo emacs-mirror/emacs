@@ -146,9 +146,7 @@ An error is signaled if no block to close is found.
 @findex octave-insert-defun
 Insert a function skeleton, prompting for the function's name, arguments
 and return values which have to be entered without parentheses
-(@code{octave-insert-defun}).
-@noindent
-in one of your Emacs startup files.
+(@code{octave-insert-defun}) in one of your Emacs startup files.
 @end table
 
 The following variables can be used to customize Octave mode.
