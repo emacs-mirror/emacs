@@ -12717,6 +12717,26 @@ sfnt_compare_uvs_mapping (const void *k, const void *v)
   return 1;
 }
 
+/* Compare *(sfnt_char *) K to the Unicode value range V.  */
+
+static int
+sfnt_compare_unicode_value_range (const void *k, const void *v)
+{
+  const sfnt_char *key;
+  const struct sfnt_unicode_value_range *value;
+
+  key = k;
+  value = v;
+
+  if (*key < value->start_unicode_value)
+    return -1;
+  else if ((*key - value->start_unicode_value
+	    <= value->additional_count))
+    return 0;
+
+  return 1;
+}
+
 /* Return the ID of a variation glyph for the character C in the
    nondefault UVS mapping table UVS.
 
@@ -12734,6 +12754,21 @@ sfnt_variation_glyph_for_char (struct sfnt_nondefault_uvs_table *uvs,
 		     sfnt_compare_uvs_mapping);
 
   return mapping ? mapping->base_character_value : 0;
+}
+
+/* Return whether the character C is present in the default UVS
+   mapping table UVS.  */
+
+TEST_STATIC bool
+sfnt_is_character_default (struct sfnt_default_uvs_table *uvs,
+			   sfnt_char c)
+{
+  /* UVS->ranges comprises ranges of characters sorted in increasing
+     order; these ranges cannot overlap.  */
+
+  return (bsearch (&c, uvs->ranges, uvs->num_unicode_value_ranges,
+		   sizeof *uvs->ranges,
+		   sfnt_compare_unicode_value_range) != NULL);
 }
 
 
@@ -19191,10 +19226,11 @@ static void
 sfnt_test_uvs (int fd, struct sfnt_cmap_format_14 *format14)
 {
   struct sfnt_uvs_context *context;
-  size_t i, j;
+  size_t i, j, k;
   sfnt_glyph glyph;
   sfnt_char c;
   struct sfnt_nondefault_uvs_table *uvs;
+  struct sfnt_default_uvs_table *default_uvs;
 
   context = sfnt_create_uvs_context (format14, fd);
 
@@ -19209,6 +19245,27 @@ sfnt_test_uvs (int fd, struct sfnt_cmap_format_14 *format14)
 
       for (i = 0; i < context->num_records; ++i)
 	{
+	  if (context->records[i].default_uvs)
+	    {
+	      default_uvs = context->records[i].default_uvs;
+
+	      for (j = 0; j < default_uvs->num_unicode_value_ranges; ++j)
+		{
+		  fprintf (stderr, "   Default UVS: %u, %u\n",
+			   default_uvs->ranges[j].start_unicode_value,
+			   default_uvs->ranges[j].additional_count);
+
+		  c = default_uvs->ranges[j].start_unicode_value;
+		  k = 0;
+
+		  for (; k <= default_uvs->ranges[j].additional_count; ++k)
+		    {
+		      if (!sfnt_is_character_default (default_uvs, c + k))
+			abort ();
+		    }
+		}
+	    }
+
 	  if (!context->records[i].nondefault_uvs)
 	    continue;
 
