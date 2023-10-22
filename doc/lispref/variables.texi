@@ -1242,17 +1242,18 @@ the old value off the stack, and puts it in the value cell.
   Dynamic binding is a powerful feature, as it allows programs to
 refer to variables that are not defined within their local textual
 scope.  However, if used without restraint, this can also make
-programs hard to understand.  There are two clean ways to use this
-technique:
+programs hard to understand.
+
+First, choose the variable's name to avoid name conflicts
+(@pxref{Coding Conventions}).
 
 @itemize @bullet
 @item
-If a variable has no global definition, use it as a local variable
-only within a binding construct, such as the body of the @code{let}
-form where the variable was bound.  If this convention is followed
-consistently throughout a program, the value of the variable will not
-affect, nor be affected by, any uses of the same variable symbol
-elsewhere in the program.
+If the variable is only used when locally bound to a value, declare it
+special using a @code{defvar} form without an initial value, and never
+assign to it unless it is already bound.  This way, any attempt to
+refer to the variable when unbound will result in a
+@code{void-variable} error.
 
 @item
 Otherwise, define the variable with @code{defvar}, @code{defconst}
@@ -1260,8 +1261,7 @@ Otherwise, define the variable with @code{defvar}, @code{defconst}
 Definitions}).  Usually, the definition should be at top-level in an
 Emacs Lisp file.  As far as possible, it should include a
 documentation string which explains the meaning and purpose of the
-variable.  You should also choose the variable's name to avoid name
-conflicts (@pxref{Coding Conventions}).
+variable.
 
 Then you can bind the variable anywhere in a program, knowing reliably
 what the effect will be.  Wherever you encounter the variable, it will
