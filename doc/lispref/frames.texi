@@ -4506,10 +4506,11 @@ selections are generally supported, with the @code{XdndSelection}
 selection that records drag-and-drop data also available under
 Nextstep and Haiku.
 
-  GTK itself seeks to emulate the X selection system, but its
-emulations are not altogether dependable, with their overall quality
-subject to the GDK backend being used.  While Emacs built with PGTK
-will supply the same selection interface as Emacs built with X, many
+@cindex PGTK selections
+  GTK seeks to emulate the X selection system, but its emulations are
+not altogether dependable, with the overall quality of each subject to
+the GDK backend being used.  Therefore, Emacs built with PGTK will
+supply the same selection interface as Emacs built with X, but many
 selection targets will not be useful.
 
 @cindex MS-Windows selection emulation
@@ -4528,14 +4529,14 @@ Each subsequent call to @code{gui-get-selection} in turn returns its
 value, which is not subject to further examination (such as type
 checks and the like).  Under such circumstances, @var{data-type}
 argument is generally disregarded.  (But see below for the
-qualification concerning @code{TARGETS}.)
+qualification regarding @code{TARGETS}.)
 
 @cindex MS-Windows clipboard
   Where the clipboard selection is concerned (whenever @var{type} is
 @code{CLIPBOARD}), @code{gui-set-selection} verifies that the value
 provided is a string and saves it within the system clipboard once it
 is encoded by the coding system configured in
-@var{selection-coding-system}.  Callers of @code{gui-get-selection}
+@code{selection-coding-system}.  Callers of @code{gui-get-selection}
 are required to set @var{data-type} to either @code{STRING} or
 @code{TARGETS}.
 
@@ -4577,33 +4578,31 @@ charitable, and accepts requests for the following selection targets:
   The @code{XdndSelection} selection is also present under Nextstep,
 in the form of a repository that records values supplied to
 @code{gui-set-selection}.  Its sole purpose is to save such values for
-the benefit of the fundamental drag-and-drop function
-@code{x-begin-drag} (@pxref{Drag and Drop}); no guarantees exist
-concerning its value when read by anything else.
+the fundamental drag-and-drop function @code{x-begin-drag}
+(@pxref{Drag and Drop}); no guarantees exist concerning its value when
+read by anything else.
 
-  On Haiku, Emacs supports the same selection values as on X@.  In
-addition, Emacs fully implements the primary and secondary selections.
-However, instead of taking ownership over the selection data, Emacs
-transfers the selection data to the window server when
-@code{gui-set-selection} is called.  The Haiku window server expects
-selection data to be provided in the form of a ``message'', containing
-associations between data types and selection data.
+@cindex Haiku selections
+  Selections on Haiku systems comprise all three selections customary
+under X and the @code{XdndSelection} that records drag-and-drop data.
+
+  When @code{gui-set-selection} is called for the former three
+selections, the data supplied is converted into a window server
+``message'' by a list of @dfn{selection encoder} functions, which is
+sent to the window server.
 
 @defvar haiku-normal-selection-encoders
-List of functions which act as selection encoders.  When
-@code{gui-set-selection} is called, each function in this list is
-successively called with its @var{selection} and @var{value}
-arguments.  If the function returns non-@code{nil}, it should return a
-list of the form @w{@code{(@var{key} @var{type} @var{value})}}, where
-@var{key} is the name of the data type being transferred, @var{type}
-is either a number identifying a data type (in which case @var{value}
-should be a unibyte string that is directly transferred to the window
-server), or a symbol identifying both a data type and how @var{value}
-should be interpreted.
-@end defvar
-
-  Here are the meaningful values of @var{type}, and what they will
-cause Emacs to interpret @var{value} as:
+List of selection encoder functions.  When @code{gui-set-selection} is
+called, each function in this list is successively called with its
+@var{selection} and @var{value} arguments.  If such a function returns
+non-@code{nil}, its return value must be a list of the form
+@w{@code{(@var{key} @var{type} @var{value})}}.  In this list,
+@var{key} must be the name of the data being transferred, generally
+that of a MIME type, for example @samp{"text/plain"}, and @var{type}
+is a symbol or a number designating the type of the data, thus also
+governing the interpretation of @var{value}; following is a list of
+valid data types and how each of them will cause @var{value} to be
+interpreted.
 
 @table @code
 @item string
@@ -4611,8 +4610,8 @@ A unibyte string.  The string is NULL-terminated after being placed in
 the message.
 
 @item ref
-A file name.  The file is looked up and file system information
-identifying the file is placed in the message.
+A file name.  The file is located and the inode identifying the file
+is placed in the message.
 
 @item short
 A 16-bit integer value.
@@ -4645,16 +4644,33 @@ format.
 @item (haiku-numeric-enum MIME)
 A unibyte string containing data in a certain MIME type.
 @end table
+@end defvar
 
-  Under Haiku, @code{gui-get-selection} accepts either the targets
-@code{TARGETS} and @code{TIMESTAMP}, where the former returns a vector
-containing supported data types (much like on X), and the latter
-returns the number of times the selection has been set, the targets
-@code{STRING} and @code{UTF8_STRING}, which return text in ISO-Latin-1
-and UTF-8 format, or a MIME type, in which the data is returned
-undecoded as a unibyte string.
+  A call to @code{gui-get-selection} generally returns the the data
+named @var{data-type} within the selection message, albeit with
+@var{data-type} replaced by an alternative name should it be one of
+the following X selection targets:
 
-  Under Android, @code{gui-get-selection} is restricted to returning
+@table @code
+@item STRING
+This represents Latin-1 text under X: ``text/plain;charset=iso-8859-1''
+
+@item UTF8_STRING
+This represents UTF-8 text: ``text/plain''
+@end table
+
+  If @var{data-type} is a text type such as @code{STRING} or a MIME
+type matching the pattern @samp{`text/*}, the string data is decoded
+with the coding system apposite for it before being returned.
+
+  Furthermore, the two data types @var{TIMESTAMP} and @code{TARGETS}
+are afforded special treatment; the value returned for the first is
+the number of times the selection has been modified since system
+startup (@emph{not} a timestamp), and that for the other is a vector
+of available selection data types, as elsewhere.
+
+@cindex Android selections
+  Under Android, @code{gui-get-selection} is capable of returning
 UTF-8 string data of the type @code{STRING}, or image and application
 data associated with a MIME type.  @code{gui-set-selection} will only
 set string data, as on MS-Windows.
