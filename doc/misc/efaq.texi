@@ -3156,9 +3156,9 @@ Registry), like this:
 
 If possible, we recommend running Emacs inside @command{fbterm}, when
 in a Linux console.  This brings the Linux console on par with most
-terminal emulators under X.  To do this, install @command{fbterm}, for
-example with the package manager of your GNU/Linux distribution, and
-execute the command
+terminal emulators under X@.  To do this, install @command{fbterm},
+for example with the package manager of your GNU/Linux distribution,
+and execute the command
 
 @example
 $ fbterm

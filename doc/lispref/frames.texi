@@ -4104,7 +4104,7 @@ only used by Emacs to communicate with session managers, and is a
 separate topic.
 
 @menu
-* X Selections::        Selection data types (and more) on X.
+* X Selections::        Selection data types (and more) on X@.
 * Other Selections::    How they work on other window systems.
 @end menu
 
@@ -4497,28 +4497,68 @@ bounds of the selection data in the buffer @var{buf}.
 @node Other Selections
 @subsection Other Selections
 
-  Window systems such as MS-Windows, Nextstep, Haiku and Android do
-not provide selections corresponding to the X semantics.  Each window
-system provides its own ad-hoc emulation of selections, none of which
-make use of the ``selection converter'' mechanism described above.  In
-addition, only the @code{PRIMARY}, @code{CLIPBOARD}, and
-@code{SECONDARY} selections are typically supported, alongside the
-@code{XdndSelection} used for drag-and-drop operations.
+  Selections under such window systems as MS-Windows, Nextstep, Haiku
+and Android are not aligned with those under X@.  Each of these window
+system improvises its own selection mechanism without employing the
+``selection converter'' mechanism illustrated in the preceeding node.
+Only the @code{PRIMARY}, @code{CLIPBOARD}, and @code{SECONDARY}
+selections are generally supported, with the @code{XdndSelection}
+selection that records drag-and-drop data also available under
+Nextstep and Haiku.
 
-  GTK itself exposes emulations of X selections to applications, but
-those emulations are of varying completeness.  While Emacs built with
-PGTK will use the same selection interface as Emacs built with X, many
+  GTK itself seeks to emulate the X selection system, but its
+emulations are not altogether dependable, with their overall quality
+subject to the GDK backend being used.  While Emacs built with PGTK
+will supply the same selection interface as Emacs built with X, many
 selection targets will not be useful.
 
-  On MS-Windows, @code{gui-get-selection} accepts a single target,
-@code{STRING}.  The value returned is the selection data decoded
-using @code{selection-coding-system}.
+@cindex MS-Windows selection emulation
+@cindex MS-Windows primary and secondary selection
+  Although a clipboard exists, there is no concept of primary or
+secondary selections within the MS-Windows operating system.  On this
+system, Emacs simulates the presence of a primary and secondary
+selection, while saving to and retrieving from the clipboard when so
+requested.
 
-  @code{gui-set-selection} also only accepts strings, encodes them
-in the selection coding system, and saves them to the clipboard.
+  The simulation of the primary and secondary selections is conducted
+by saving values supplied to @code{gui-set-selection} within the
+@code{x-selections} property of the symbol designating the pertinent
+selection, namely the @var{type} argument to @code{gui-get-selection}.
+Each subsequent call to @code{gui-get-selection} in turn returns its
+value, which is not subject to further examination (such as type
+checks and the like).  Under such circumstances, @var{data-type}
+argument is generally disregarded.  (But see below for the
+qualification concerning @code{TARGETS}.)
 
-  On Nextstep, Emacs only supports saving strings to selections.
-However, requests for the following targets are accepted:
+@cindex MS-Windows clipboard
+  Where the clipboard selection is concerned (whenever @var{type} is
+@code{CLIPBOARD}), @code{gui-set-selection} verifies that the value
+provided is a string and saves it within the system clipboard once it
+is encoded by the coding system configured in
+@var{selection-coding-system}.  Callers of @code{gui-get-selection}
+are required to set @var{data-type} to either @code{STRING} or
+@code{TARGETS}.
+
+  When @var{data-type} is set to @code{TARGETS} in a call to
+@code{gui-get-selection}, a vector of symbols is returned when
+selection data exists, much as it is under X@.  It is impossible to
+request clipboard data in any format besides @code{STRING}, for the
+prerequisite data conversion routines are absent.  Just as strings
+saved into the clipboard are encoded by the
+@code{selection-coding-system}, so those read from the clipboard are
+decoded by that same coding system; this variable and its cousin
+@code{next-selection-coding-system} merit particular scrutiny when
+difficulties are encountered with saving selection text into the
+clipboard.
+
+@cindex Nextstep selections
+  All three selections standard in X exist in Nextstep as well, but
+Emacs is only capable of saving strings to such selections.
+Restrictions imposed upon calls to @code{gui-set-selection} there are
+much the same as those on MS-Windows, though text is uniformly encoded
+as @code{utf-8-unix} without regard to the value of
+@code{selection-coding-system}.  @code{gui-get-selection} is more
+charitable, and accepts requests for the following selection targets:
 
 @c FIXME: how is the text coding system determined, and do image/* or
 @c application/* return image data or file names?
@@ -4534,7 +4574,14 @@ However, requests for the following targets are accepted:
 @item image/tiff
 @end itemize
 
-  On Haiku, Emacs supports the same selection values as on X.  In
+  The @code{XdndSelection} selection is also present under Nextstep,
+in the form of a repository that records values supplied to
+@code{gui-set-selection}.  Its sole purpose is to save such values for
+the benefit of the fundamental drag-and-drop function
+@code{x-begin-drag} (@pxref{Drag and Drop}); no guarantees exist
+concerning its value when read by anything else.
+
+  On Haiku, Emacs supports the same selection values as on X@.  In
 addition, Emacs fully implements the primary and secondary selections.
 However, instead of taking ownership over the selection data, Emacs
 transfers the selection data to the window server when
