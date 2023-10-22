@@ -146,7 +146,7 @@ variable."
 			   (const :tag "Emacs version" :value emacs)
 			   (const :tag "Last location" :value lastloc)
 			   (const :tag "Browser identification" :value agent)
-			   (const :tag "No cookies" :value cookie)))
+                           (const :tag "No cookies" :value cookies)))
   :group 'url)
 
 (defcustom url-lastloc-privacy-level 'domain-match
