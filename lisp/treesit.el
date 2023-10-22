@@ -2955,7 +2955,7 @@ executable programs, such as the C/C++ compiler and linker."
                           " ")))
               ;; If success, Save the recipe for the current session.
               (setf (alist-get lang treesit-language-source-alist)
-                    recipe))))
+                    (cdr recipe)))))
       (error
        (display-warning
         'treesit
