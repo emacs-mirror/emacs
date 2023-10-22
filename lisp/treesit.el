@@ -2835,13 +2835,13 @@ window."
               (treesit--explorer-tree-mode)))
           (display-buffer treesit--explorer-buffer
                           (cons nil '((inhibit-same-window . t))))
+          (setq-local treesit--explorer-last-node nil)
           (treesit--explorer-refresh)
           ;; Set up variables and hooks.
           (add-hook 'post-command-hook
                     #'treesit--explorer-post-command 0 t)
           (add-hook 'kill-buffer-hook
                     #'treesit--explorer-kill-explorer-buffer 0 t)
-          (setq-local treesit--explorer-last-node nil)
           ;; Tell `desktop-save' to not save explorer buffers.
           (when (boundp 'desktop-modes-not-to-save)
             (unless (memq 'treesit--explorer-tree-mode
