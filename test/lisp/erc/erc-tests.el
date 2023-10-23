@@ -2615,7 +2615,9 @@
        (let* ((erc-modules '(foo))
               (obarray (obarray-make))
               (err (should-error (erc--update-modules erc-modules))))
-         (should (equal (cadr err) "`foo' is not a known ERC module"))
+         (should (string-match (rx bos (any "`‘") "foo" (any "'’")
+                                   " is not a known ERC module" eos)
+                               (cadr err)))
          (should (equal (funcall get-calls)
                         `((req . ,(intern-soft "erc-foo")))))))
 
