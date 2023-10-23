@@ -3216,7 +3216,7 @@ if address "sender" "sieve-admin@@extundo.com" @{
 @end example
 
 To generate tests for multiple email-addresses use a group parameter
-like @code{(sieve address "sender" ("name@@one.org" else@@two.org"))}.
+like @code{(sieve address "sender" ("name@@one.org" "else@@two.org"))}.
 When generating a sieve script (@pxref{Sieve Commands}) Sieve code
 like the following is generated:
 
