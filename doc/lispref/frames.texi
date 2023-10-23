@@ -4111,8 +4111,8 @@ requesting client with the selection data.
 
   Similarly, a program does not ``get'' selection data from the X
 server.  Instead, its selection requests are sent to the client with
-the window which last asserted ownership over the selection, which
-which is expected to respond with the requested data.
+the window which last asserted ownership over the selection, which is
+expected to respond with the requested data.
 
   Each selection request incorporates three parameters:
 
