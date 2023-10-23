@@ -112,7 +112,7 @@ You can toggle whether details are shown with \\<gnus-bookmark-bmenu-mode-map>\\
 
 (defcustom gnus-bookmark-bookmark-inline-details '(author)
   "Details to be shown with `gnus-bookmark-bmenu-toggle-infos'.
-The default value is \(subject)."
+The default value is (author)."
   :type '(list :tag "Gnus bookmark details"
 	       (set :inline t
 		    (const :tag "Author" author)

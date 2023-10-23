@@ -1147,7 +1147,8 @@ Note that these functions use `mail-citation-hook' if that is non-nil."
 This can also be a list of functions.  Each function can find the
 citation between (point) and (mark t).  And each function should leave
 point and mark around the citation text as modified."
-  :type 'function
+  :type '(choice function
+                 (repeat function))
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
@@ -1408,8 +1409,9 @@ This can also be a list of values."
   :group 'message
   :link '(custom-manual "(message)Mail Aliases")
   :type '(choice (const :tag "Use Mailabbrev" abbrev)
-		 (const :tag "Use ecomplete" ecomplete)
-		 (const :tag "No expansion" nil)))
+                 (const :tag "Use ecomplete" ecomplete)
+                 (set (const :tag "Use Mailabbrev" abbrev)
+                      (const :tag "Use ecomplete" ecomplete))))
 
 (defcustom message-self-insert-commands '(self-insert-command)
   "List of `self-insert-command's used to trigger ecomplete.
@@ -1453,8 +1455,9 @@ If a function email is passed as the argument."
   :group 'message
   :link '(custom-manual "(message)Wide Reply")
   :type '(choice (const :tag "Yourself" nil)
-		 regexp
-		 (repeat :tag "Regexp List" regexp)))
+                 regexp
+                 (repeat :tag "Regexp List" regexp)
+                 function))
 
 (defsubst message-dont-reply-to-names ()
   (if (functionp message-dont-reply-to-names)

@@ -64,7 +64,7 @@ The function must accept the arguments `host' and `report'."
 		 spam-report-url-ping-mm-url)
 	  (const :tag "Store request URLs in `spam-report-requests-file'"
 		 spam-report-url-to-file)
-	  (function :tag "User defined function" nil)))
+	  (function :tag "User defined function")))
 
 (defcustom spam-report-requests-file
   (nnheader-concat gnus-directory "spam/" "spam-report-requests.url")

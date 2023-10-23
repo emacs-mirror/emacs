@@ -315,7 +315,8 @@ This can either be a regular expression or list of regular expressions
 that will be removed from subject strings if fuzzy subject
 simplification is selected."
   :group 'gnus-thread
-  :type '(repeat regexp))
+  :type '(choice regexp
+                 (repeat regexp)))
 
 (defcustom gnus-show-threads t
   "If non-nil, display threads in summary mode."

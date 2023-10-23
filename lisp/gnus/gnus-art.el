@@ -1622,7 +1622,8 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   "The protocol used for encrypt articles.
 It is a string, such as \"PGP\".  If nil, ask user."
   :version "22.1"
-  :type 'string
+  :type '(choice (const :tag "Ask me" nil)
+                 string)
   :group 'mime-security)
 
 (defcustom gnus-use-idna t
@@ -7553,10 +7554,11 @@ must return `mid', `mail', `invalid' or `ask'."
   :version "22.1"
   :group 'gnus-article-buttons
   :type '(choice (function-item :tag "Heuristic function"
-				gnus-button-mid-or-mail-heuristic)
-		 (const ask)
-		 (const mid)
-		 (const mail)))
+                                gnus-button-mid-or-mail-heuristic)
+                 (const :tag "Query me" ask)
+                 (const :tag "Assume it's a message ID" mid)
+                 (const :tag "Assume it's a mail address" mail)
+                 function))
 
 (defcustom gnus-button-mid-or-mail-heuristic-alist
   '((-10.0 . ".+\\$.+@")
