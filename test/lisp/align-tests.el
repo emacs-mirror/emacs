@@ -49,6 +49,8 @@
   (ert-test-erts-file (ert-resource-file "latex-mode.erts")
                       (test-align-transform-fun #'latex-mode)))
 
+(autoload 'treesit-ready-p "treesit")
+
 (ert-deftest align-lua ()
   (skip-unless (treesit-ready-p 'lua))
   (let ((comment-column 20)
