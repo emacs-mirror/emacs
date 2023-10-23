@@ -37,7 +37,17 @@ if os.environ.get('MMREF'):
 else:
     project = u'Memory Pool System'
     master_doc = 'index'
-    html_theme = 'mps'
+    # We use the Read the Docs theme for Sphinx for smooth publishing
+    # at readthedocs.io, low maintenance overheads, local search, etc.
+    # See primarily `GitHub issue #98
+    # <https://github.com/Ravenbrook/mps/issues/98>`_ but also `GitHub
+    # issue #121 <https://github.com/Ravenbrook/mps/issues/121>`_ .
+    # See <https://sphinx-rtd-theme.readthedocs.io/> for theme
+    # documentation.
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_options = {
+        'includehidden': False,
+    }
     html_sidebars = {
         '**': ['localtoc.html', 'relations.html', 'links.html', 'contact.html'],
     }
