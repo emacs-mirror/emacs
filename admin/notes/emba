@@ -21,7 +21,7 @@ If you want to receive these notifications, please subscribe at
 <https://lists.gnu.org/mailman/listinfo/emacs-buildstatus>.
 
 Alternatively, these notifications can be read via gmane at
-<nntp+news.gmane.org:gmane.emacs.buildstatus>.
+<nntp+news.gmane.io:gmane.emacs.buildstatus>.
 
 The messages contain a URL to the log file of the failed job, like
 <https://emba.gnu.org/emacs/emacs/-/jobs/739/raw>.

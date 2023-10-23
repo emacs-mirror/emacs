@@ -49,7 +49,7 @@ instead."
   "Whether the article number (faster!) or the header should be used.
 
 You must set this to nil if you don't read Gmane groups directly
-from news.gmane.org, e.g. when using local newsserver such as
+from news.gmane.io, e.g. when using local newsserver such as
 leafnode."
   :type 'boolean)
 
@@ -149,6 +149,8 @@ submitted at once.  Internal variable.")
   (when (and gnus-newsgroup-name
 	     (or (null spam-report-gmane-regex)
 		 (string-match spam-report-gmane-regex gnus-newsgroup-name)))
+    ;; FIXME: These addresses are down.  There is also no
+    ;;        unspam.gmane.io or spam.gmane.io.
     (let ((rpt-host (if unspam "unspam.gmane.org" "spam.gmane.org")))
       (gnus-message 6 "Reporting article %d to %s..." article rpt-host)
       (cond

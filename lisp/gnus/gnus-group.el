@@ -286,10 +286,10 @@ If you want to modify the group buffer, you can use this hook."
   :type 'hook)
 
 (defcustom gnus-useful-groups
-  '(("(ding) mailing list mirrored at gmane.org"
+  '(("(ding) mailing list mirrored at gmane.io"
      "gmane.emacs.gnus.general"
      (nntp "Gmane"
-	   (nntp-address "news.gmane.org")))
+           (nntp-address "news.gmane.io")))
     ("Gnus bug archive"
      "gnus.gnus-bug"
      (nntp "news.gnus.org"

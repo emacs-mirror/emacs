@@ -3372,7 +3372,7 @@ You can define different sorting to different groups via
 group by reverse date to see the latest news at the top and an
 @acronym{RSS} group by subject.  In this example, the first group is the
 Debian daily news group @code{gmane.linux.debian.user.news} from
-news.gmane.org.  The @acronym{RSS} group corresponds to the Debian
+news.gmane.io.  The @acronym{RSS} group corresponds to the Debian
 weekly news RSS feed
 @url{https://packages.debian.org/unstable/newpkg_main.en.rdf},
 @xref{RSS}.
@@ -4426,7 +4426,7 @@ A select method can be very long, like:
 
 @lisp
 (nntp "gmane"
-      (nntp-address "news.gmane.org")
+      (nntp-address "news.gmane.io")
       (nntp-end-of-line "\n")
       (nntp-open-connection-function
        nntp-open-via-rlogin-and-telnet)
@@ -7279,7 +7279,7 @@ The server has to support @acronym{NOV} for any of this to work.
 @cindex Gmane, @code{gnus-fetch-old-headers}
 This feature can seriously impact performance it ignores all locally
 cached header entries.  Setting it to @code{t} for groups for a server
-that doesn't expire articles (such as news.gmane.org), leads to very
+that doesn't expire articles (such as news.gmane.io), leads to very
 slow summary generation.
 
 @item gnus-fetch-old-ephemeral-headers
@@ -18017,7 +18017,7 @@ Here is an example:
  (nnselect-args
   . [["nnimap+work:mail" 595 100]
      ["nnimap+home:sent" 223 100]
-     ["nntp+news.gmane.org:gmane.emacs.gnus.general" 23666 100]]))
+     ["nntp+news.gmane.io:gmane.emacs.gnus.general" 23666 100]]))
 @end lisp
 
 The function is the identity and the argument is just the list of
@@ -25152,9 +25152,9 @@ groups as spam and reports the to Gmane at group exit:
 @end lisp
 
 Additionally, I use @code{(setq spam-report-gmane-use-article-number nil)}
-because I don't read the groups directly from news.gmane.org, but
+because I don't read the groups directly from news.gmane.io, but
 through my local news server (leafnode).  I.e., the article numbers are
-not the same as on news.gmane.org, thus @code{spam-report.el} has to check
+not the same as on news.gmane.io, thus @code{spam-report.el} has to check
 the @code{X-Report-Spam} header to find the correct number.
 
 @node Spam Back Ends
@@ -29318,13 +29318,13 @@ have names like @samp{gnu.emacs.gnus}.
 You can also have any number of foreign groups active at the same
 time.  These are groups that use non-native non-secondary back ends
 for getting news.  Foreign groups have names like
-@samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
+@samp{nntp+news.gmane.io:gmane.emacs.gnus.devel}.
 
 @item secondary
 @cindex secondary
 Secondary back ends are somewhere half-way between being native and
 being foreign, but they mostly act like they are native, but they, too
-have names like @samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
+have names like @samp{nntp+news.gmane.io:gmane.emacs.gnus.devel}.
 
 @item article
 @cindex article
