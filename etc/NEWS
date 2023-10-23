@@ -961,6 +961,11 @@ For links in 'webjump-sites' without an explicit URI scheme, it was
 previously assumed that they should be prefixed with "http://".  Such
 URIs are now prefixed with "https://" instead.
 
+** Customize
++++
+*** New command customize-dirlocals
+This command pops up a buffer to edit the settings in .dir-locals.el
+
 
 * New Modes and Packages in Emacs 30.1
 
