@@ -1664,7 +1664,9 @@ see `dired-use-ls-dired' for more details.")
              (when (file-remote-p dir)
                (setq switches (string-replace "--dired" "" switches)))
              (let* ((default-directory (car dir-wildcard))
-                    (script (format "ls %s %s" switches (cdr dir-wildcard)))
+                    (script (format "%s %s %s"
+                                    insert-directory-program
+                                    switches (cdr dir-wildcard)))
                     (remotep (file-remote-p dir))
                     (sh (or (and remotep "/bin/sh")
                             (executable-find shell-file-name)
