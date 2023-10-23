@@ -2574,6 +2574,7 @@
   (let* ((calls nil)
          (custom-modes nil)
          (on-load nil)
+         (text-quoting-style 'grave)
 
          (get-calls (lambda () (prog1 (nreverse calls) (setq calls nil))))
 
@@ -2615,9 +2616,7 @@
        (let* ((erc-modules '(foo))
               (obarray (obarray-make))
               (err (should-error (erc--update-modules erc-modules))))
-         (should (string-match (rx bos (any "`‘") "foo" (any "'’")
-                                   " is not a known ERC module" eos)
-                               (cadr err)))
+         (should (equal (cadr err) "`foo' is not a known ERC module"))
          (should (equal (funcall get-calls)
                         `((req . ,(intern-soft "erc-foo")))))))
 
