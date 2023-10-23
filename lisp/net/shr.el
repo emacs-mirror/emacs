@@ -163,6 +163,30 @@ the specpdl size.  If nil, just give up."
   :version "28.1"
   :type 'boolean)
 
+(defcustom shr-fill-text t
+  "Non-nil means to fill the text according to the width of the window.
+If nil, text is not filled, and `visual-line-mode' can be used to reflow text."
+  :version "30.1"
+  :type 'boolean)
+
+
+(defcustom shr-sup-raise-factor 0.2
+  "The value of raise property for superscripts.
+Should be a non-negative float number between 0 and 1."
+  :version "30.1"
+  :type 'float)
+
+(defcustom shr-sub-raise-factor -0.2
+  "The value of raise property for subscripts.
+Should be a non-positive float number between 0 and 1."
+  :version "30.1"
+  :type 'float)
+
+(defcustom shr-image-ascent 100
+  "The value to be used for :ascent property when inserting images."
+  :version "30.1"
+  :type 'integer)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -741,7 +765,7 @@ size, and full-buffer size."
 			       (or shr-current-font 'shr-text)))))))))
 
 (defun shr-fill-lines (start end)
-  (if (<= shr-internal-width 0)
+  (if (or (not shr-fill-text) (<= shr-internal-width 0))
       nil
     (save-restriction
       (narrow-to-region start end)
@@ -1063,11 +1087,11 @@ element is the data blob and the second element is the content-type."
 	     (start (point))
 	     (image (cond
 		     ((eq size 'original)
-		      (create-image data nil t :ascent 100
+		      (create-image data nil t :ascent shr-image-ascent
 				    :format content-type))
 		     ((eq content-type 'image/svg+xml)
                       (when (image-type-available-p 'svg)
-		        (create-image data 'svg t :ascent 100)))
+		        (create-image data 'svg t :ascent shr-image-ascent)))
 		     ((eq size 'full)
 		      (ignore-errors
 			(shr-rescale-image data content-type
@@ -1114,7 +1138,7 @@ The size of the displayed image will not exceed
 MAX-WIDTH/MAX-HEIGHT.  If not given, use the current window
 width/height instead."
   (if (not (get-buffer-window (current-buffer) t))
-      (create-image data nil t :ascent 100)
+      (create-image data nil t :ascent shr-image-ascent)
     (let* ((edges (window-inside-pixel-edges
                    (get-buffer-window (current-buffer))))
            (max-width (truncate (* shr-max-image-proportion
@@ -1135,13 +1159,13 @@ width/height instead."
                (< (* height scaling) max-height))
           (create-image
            data (shr--image-type) t
-           :ascent 100
+           :ascent shr-image-ascent
            :width width
            :height height
            :format content-type)
         (create-image
          data (shr--image-type) t
-         :ascent 100
+         :ascent shr-image-ascent
          :max-width max-width
          :max-height max-height
          :format content-type)))))
@@ -1381,13 +1405,13 @@ ones, in case fg and bg are nil."
 (defun shr-tag-sup (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise 0.2))
+    (put-text-property start (point) 'display `(raise ,shr-sup-raise-factor))
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-sub (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise -0.2))
+    (put-text-property start (point) 'display `(raise ,shr-sub-raise-factor))
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-p (dom)
@@ -1840,7 +1864,7 @@ BASE is the URL of the HTML being rendered."
     (svg-rectangle svg 0 0 width height :gradient "background"
                    :stroke-width 2 :stroke-color "black")
     (let ((image (svg-image svg :scale 1)))
-      (setf (image-property image :ascent) 100)
+      (setf (image-property image :ascent) shr-image-ascent)
       image)))
 
 (defun shr-tag-pre (dom)
