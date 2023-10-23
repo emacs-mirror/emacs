@@ -4668,43 +4668,38 @@ set string data, as on MS-Windows.
 @node Yanking Media
 @section Yanking Media
 
-  If you choose, for instance, ``Copy Image'' in a web browser, that
-image is put onto the clipboard, and Emacs can access it via
-@code{gui-get-selection}.  But in general, inserting image data into
-an arbitrary buffer isn't very useful---you can't really do much with
-it by default.
-
-  So Emacs has a system to let modes register handlers for these
-``complicated'' selections.
+  Data saved within window system selections is not restricted to
+plain text.  It is possible for selection data to encompass images or
+other binary data of the like, as well as rich text content instanced
+by HTML, and also PostScript.  Since the selection data types incident
+to this data are at variance with those for plain text, the insertion
+of such data is facilitated by a set of functions dubbed
+@dfn{yank-media handlers}, which are registered by each major mode
+undertaking its insertion and called where warranted upon the
+execution of the @code{yank-media} command.
 
 @defun yank-media-handler types handler
-@var{types} can be a @acronym{MIME} media type symbol, a regexp to
-match these, or a list of these symbols and regexps.  For instance:
+Register a yank-media handler which applies to the current buffer.
+
+@var{types} can be a symbol designating a selection data type
+(@pxref{Accessing Selections}), a regexp against which such types are
+matched, or a list of these symbols and regexps.  For instance:
 
 @example
 (yank-media-handler 'text/html #'my-html-handler)
 (yank-media-handler "image/.*" #'my-image-handler)
 @end example
 
-A mode can register as many handlers as required.
-
-  The @var{handler} function is called with two parameters: The
-@acronym{MIME} media type symbol and the data (as a string).  The
-handler should then insert the object into the buffer, or save it, or
-do whatever is appropriate for the mode.
+When a selection offers a data type matching @var{types}, the function
+@var{handler} is called to insert its data, with the symbol
+designating the matching selection data type, and the data returned by
+@code{gui-get-selection}.
 @end defun
 
-  The @code{yank-media} command will consult the registered handlers in
-the current buffer, compare that with the available media types on the
-clipboard, and then pass on the matching selection to the handler (if
-any).  If there's more than one matching selection, the user is
-queried first.
-
-  The @code{yank-media-types} command can be used to explore the
-clipboard/primary selection.  It lists all the media types that are
-currently available, and can be handy when creating handlers---to see
-what data is actually available.  Some applications put a surprising
-amount of different data types on the clipboard.
+The @code{yank-media-types} command presents a list of selection data
+types that are currently available, which is useful when implementing
+yank-media handlers; for programs generally offer an eclectic and
+seldom consistent medley of data types.
 
 @node Drag and Drop
 @section Drag and Drop
