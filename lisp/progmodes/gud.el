@@ -3886,13 +3886,42 @@ so they have been disabled."))
                    string)
      (setq gud-last-last-frame nil)
      (setq gud-overlay-arrow-position nil)))
-  ;; While being attached to a process, LLDB emits control sequences,
-  ;; even if TERM is "dumb".  This is the case in at least LLDB
-  ;; version 14 to 17.  The control sequences are filtered out by
-  ;; Emacs after this process filter runs, but LLDB also prints an
-  ;; extra space after the prompt, which we fix here.
-  (replace-regexp-in-string (rx "(lldb)" (group (1+ blank)) "\e[8")
-                            " " string nil nil 1))
+
+  ;; LLDB sometimes emits certain ECMA-48 sequences even if TERM is "dumb":
+  ;; CHA (Character Horizontal Absolute) and ED (Erase in Display),
+  ;; seemingly to undo previous output on the same line.
+  ;; Filter out these sequences here while carrying out their edits.
+  (let ((bol (pos-bol)))
+    (when (> (point) bol)
+      ;; Move the current line to the string, so that control sequences
+      ;; can delete parts of it.
+      (setq string (concat (buffer-substring-no-properties bol (point))
+                           string))
+      (delete-region bol (point))))
+  (let ((ofs 0))
+    (while (string-match (rx (group (* (not (in "\e\n"))))  ; preceding chars
+                             "\e["                          ; CSI
+                             (? (group (+ digit)))          ; argument
+                             (group (in "GJ")))             ; CHA or ED
+                         string ofs)
+      (let* ((start (match-beginning 1))
+             (prefix-end (match-end 1))
+             (op (aref string (match-beginning 3)))
+             (end (match-end 0))
+             (keep-end
+              (if (eq op ?G)
+                  ;; Move to absolute column (CHA)
+                  (min prefix-end
+                       (+ start
+                          (if (match-beginning 2)
+                              (1- (string-to-number (match-string 2 string)))
+                            0)))
+                ;; Erase in display (ED): no further action.
+                prefix-end)))
+        (setq string (concat (substring string 0 keep-end)
+                             (substring string end)))
+        (setq ofs start))))
+  string)
 
 ;; According to SBCommanInterpreter.cpp, the return value of
 ;; HandleCompletions is as follows:
