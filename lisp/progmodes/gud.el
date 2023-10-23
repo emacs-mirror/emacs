@@ -3886,7 +3886,13 @@ so they have been disabled."))
                    string)
      (setq gud-last-last-frame nil)
      (setq gud-overlay-arrow-position nil)))
-  string)
+  ;; While being attached to a process, LLDB emits control sequences,
+  ;; even if TERM is "dumb".  This is the case in at least LLDB
+  ;; version 14 to 17.  The control sequences are filtered out by
+  ;; Emacs after this process filter runs, but LLDB also prints an
+  ;; extra space after the prompt, which we fix here.
+  (replace-regexp-in-string (rx "(lldb)" (group (1+ blank)) "\e[8")
+                            " " string nil nil 1))
 
 ;; According to SBCommanInterpreter.cpp, the return value of
 ;; HandleCompletions is as follows:
