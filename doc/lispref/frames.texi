@@ -4003,22 +4003,24 @@ defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
 @cindex secondary selection
 
   In window systems, such as X, data can be transferred between
-different applications by means of @dfn{selections}.  X defines an
-arbitrary number of @dfn{selection types}, each of which can store its
-own data; however, only three are commonly used: the @dfn{clipboard},
-@dfn{primary selection}, and @dfn{secondary selection}.  Other window
-systems support only the clipboard.  @xref{Cut and Paste,, Cut and
-Paste, emacs, The GNU Emacs Manual}, for Emacs commands that make use
-of these selections.  This section documents the low-level functions
-for reading and setting window-system selections.
+different applications by means of @dfn{selections}.  Each window
+system defines an arbitrary number of @dfn{selection types}, all
+storing their own data; however, only three are commonly used: the
+@dfn{clipboard}, @dfn{primary selection}, and @dfn{secondary
+selection}.  @xref{Cut and Paste,, Cut and Paste, emacs, The GNU Emacs
+Manual}, for Emacs commands that make use of these selections.  This
+section documents the low-level functions for reading and setting
+window-system selections; @xref{Accessing Selections} for
+documentation concerning selection types and data formats under
+particular window systems.
 
 @deffn Command gui-set-selection type data
 This function sets a window-system selection.  It takes two arguments:
 a selection type @var{type}, and the value to assign to it, @var{data}.
 
 @var{type} should be a symbol; it is usually one of @code{PRIMARY},
-@code{SECONDARY} or @code{CLIPBOARD}.  These are symbols with
-upper-case names, in accord with X Window System conventions.  If
+@code{SECONDARY} or @code{CLIPBOARD}.  These are generally symbols
+with upper-case names, in accord with X Window System conventions.  If
 @var{type} is @code{nil}, that stands for @code{PRIMARY}.
 
 If @var{data} is @code{nil}, it means to clear out the selection.
@@ -4046,15 +4048,8 @@ programs.  It takes two optional arguments, @var{type} and
 
 The @var{data-type} argument specifies the form of data conversion to
 use, to convert the raw data obtained from another program into Lisp
-data.  Meaningful values include @code{TEXT}, @code{STRING},
-@code{UTF8_STRING}, @code{TARGETS}, @code{LENGTH}, @code{DELETE},
-@code{FILE_NAME}, @code{CHARACTER_POSITION}, @code{NAME},
-@code{LINE_NUMBER}, @code{COLUMN_NUMBER}, @code{OWNER_OS},
-@code{HOST_NAME}, @code{USER}, @code{CLASS}, @code{ATOM}, and
-@code{INTEGER}.  (These are symbols with upper-case names in accord
-with X conventions.)  The default for @var{data-type} is
-@code{STRING}.  Window systems other than X usually support only a
-small subset of these types, in addition to @code{STRING}.
+data.  @xref{X Selections} for an enumeration of data types valid
+under X, and @xref{Other Selections} for those elsewhere.
 @end defun
 
 @defopt selection-coding-system
@@ -4064,13 +4059,6 @@ Systems}.  The default is @code{compound-text-with-extensions}, which
 converts to the text representation that X11 normally uses.
 @end defopt
 
-@cindex clipboard support (for MS-Windows)
-When Emacs runs on MS-Windows, it does not implement X selections in
-general, but it does support the clipboard.  @code{gui-get-selection}
-and @code{gui-set-selection} on MS-Windows support the text data type
-only; if the clipboard holds other types of data, Emacs treats the
-clipboard as empty.  The supported data type is @code{STRING}.
-
 For backward compatibility, there are obsolete aliases
 @code{x-get-selection} and @code{x-set-selection}, which were the
 names of @code{gui-get-selection} and @code{gui-set-selection} before
@@ -4079,27 +4067,25 @@ Emacs 25.1.
 @node Accessing Selections
 @section Accessing Selections
 
-  @code{gui-get-selection} is able to retrieve multiple different
-kinds of selection data from any number of selections.  However, the
-data types and selections that Emacs understands is not precisely
-specified and differs depending on the window system on which Emacs is
-running.
+  The data types and selections that @code{gui-get-selection} and
+@code{gui-set-selection} understand are not precisely specified and
+differ subject to the window system on which Emacs is running.
 
-  At the same time, @code{gui-set-selection} hides a great deal of
-complexity behind its back, at least on some systems: its @var{data}
-argument need not be a string, but is actually given verbatim to
-system specific code.
+  At the same time, @code{gui-set-selection} abstracts over plenty of
+complexity: its @var{data} argument is given verbatim to
+system-specific code to be rendered suitable for transfer to the
+window system or requesting clients.
 
-  Emacs's implementation of selections is most complete on the X
-Window System.  This is both an artifact of history (X was the first
-window system supported by Emacs) and one of technical reasons:
-instead of using selections only to transfer text and multimedia
-content between clients, X uses selections as a general inter-client
-communication system, leading to a great proliferation of selection
-data types.
+  The most comprehensive implementation of selections is that under
+the X Window System.  This is both an artifact of history (X was the
+first window system supported by Emacs) and one occasioned by
+technical considerations: X selections are not merely an expedient for
+the transfer of text and multimedia content between clients, but a
+general inter-client communication system, a design that has yielded a
+proliferation of selection and data types.
 
-  Even more confusingly, X also supports another inter-client
-communication mechanism: the Inter-Client Exchange.  However, ICE is
+  Compounding this confusion, there is another inter-client
+communication mechanism under X: the Inter-Client Exchange.  ICE is
 only used by Emacs to communicate with session managers, and is a
 separate topic.
 
@@ -4111,12 +4097,12 @@ separate topic.
 @node X Selections
 @subsection X Selections
 
-  X refrains from defining fixed data types for selection data, or a
-fixed number of selections.  Selections are instead identified by X
-``atoms'', which are unique 29-bit identifiers issued by the X server
-for a corresponding name.  In Emacs, you can simply write a symbol
-with the name of the atom, and Emacs will transparently request these
-identifiers where necessary.
+  X refrains from defining fixed data types for selection data or a
+fixed number of selections.  Selections are identified by X ``atoms'',
+which are unique 29-bit identifiers issued by the X server for string
+names.  This complexity is hidden by Emacs: when Lisp provides a
+symbol whose name is that of the atom, Emacs will request these
+identifiers without further intervention.
 
   When a program ``sets'' a selection under X, it actually makes
 itself the ``owner'' of the selection---the X server will then deliver
@@ -4125,27 +4111,29 @@ requesting client with the selection data.
 
   Similarly, a program does not ``get'' selection data from the X
 server.  Instead, its selection requests are sent to the client with
-the window which last took ownership over the selection, which then
-replies with the requested data.
+the window which last asserted ownership over the selection, which
+which is expected to respond with the requested data.
 
-  Each selection request contains three parameters:
+  Each selection request incorporates three parameters:
 
 @itemize @bullet
 @item
-The window which requested the selection; this is used to identify the
+The window which requested the selection, which identifies the
 @c Not a typo: X spells ``requestor'' with an o.
 requesting program, otherwise known as the @dfn{requestor}.
 
 @item
-An atom identifying the ``target'' to which the owner should convert
+An atom identifying the @dfn{target} to which the owner should convert
 the selection.  It is easiest to think of the conversion target as the
 kind of data that the requestor wants: in selection requests made by
-Emacs, the target is determined by the @dfn{type} argument to
+Emacs, the target is determined by the @var{type} argument to
 @code{gui-get-selection}.
 
 @item
-A 32-bit timestamp containing the X server time at which the requestor
-last obtained input.
+A 32-bit timestamp representing the X server time at which the
+requestor last received input; this parameter is not relevant to Lisp
+code, for it's only meant to abet synchronization between the X
+server, owner and requestor.
 @end itemize
 
   The selection owner responds by tranferring to the requestor a
@@ -4157,30 +4145,29 @@ owner to a Lisp representation, which @code{gui-get-selection}
 returns.
 
   By default, Emacs converts selection data consisting of any series
-of bytes to a unibyte string containing those bytes, selection data
-consisting of a single 16-bit or 32-bit word as an unsigned number,
-and selection data consisting of multiple such words as a vector of
-unsigned numbers.  However, Emacs applies special treatment for
-several selection data types:
+of bytes to a unibyte string holding those bytes, that consisting of a
+single 16-bit or 32-bit word as an unsigned number, and that
+consisting of multiple such words as a vector of unsigned numbers.
+However, Emacs applies special treatment for data from the following
+conversion targets:
 
 @table @code
 @item INTEGER
-16-bit or 32-bit words of this type are treated as signed integers,
-instead of unsigned ones.  If there are multiple words in the
-selection data, a vector is returned; otherwise, the integer is
-returned by itself.
+16-bit or 32-bit words of this type are treated as signed rather than
+unsigned integers.  If there are multiple words in the selection data,
+a vector is returned; otherwise, the integer is returned by itself.
 
 @item ATOM
 32-bit words of this type are treated as X atoms, and returned (either
-alone or as vectors) as Lisp symbols containing the names they
-identify.  Invalid atoms are returned as @code{nil}.
+alone or as vectors) as Lisp symbols by the names they identify.
+Invalid atoms are replaced by @code{nil}.
 
 @item COMPOUND_TEXT
 @item UTF8_STRING
 @item STRING
-Unibyte strings returned for these data types will have a single
-@code{foreign-selection} text property set to a symbol with the type
-of the selection data.
+A single @code{foreign-selection} text property set to the type of the
+selection data will be placed in unibyte strings derived from a
+request for these data types.
 @end table
 
   Each selection owner must return at least two selection targets:
@@ -4191,21 +4178,21 @@ number of other targets, some of which may be standardized by the X
 Consortium's
 @url{http://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html,
 Inter-Client Communication Conventions Manual}, while others, such as
-@code{UTF8_STRING}, were supposed to be standardized by the XFree86
-Project, which unfortunately did not happen.
+@code{UTF8_STRING}, were meant to be standardized by the XFree86
+Project, but their standardization was never completed.
 
   Requests for a given selection target may, by convention, return
 data in a specific type, or it may return data in one of several
 types, whichever is most convenient for the selection owner; the
 latter type of selection target is dubbed a @dfn{polymorphic target}.
-A selection target may also return no data at all: by convention, the
-selection owner performs some action a side effect upon responding to
-a selection request with that target, and as such these targets are
-referred to as @dfn{side-effect targets}.
+In response to a request, a selection target may also return no data
+at all, whereafter the selection owner executes some action as a side
+effect.  Targets that are thus replied to are termed @dfn{side-effect
+targets}.
 
-  Here are some selection targets which behave in a reasonably
-standard manner when used with the @code{CLIPBOARD}, @code{PRIMARY},
-or @code{SECONDARY} selections.
+  Here are some selection targets whose behavior is generally
+consistent with a standard when requested from the @code{CLIPBOARD},
+@code{PRIMARY}, or @code{SECONDARY} selections.
 
 @table @code
 @item ADOBE_PORTABLE_DOCUMENT_FORMAT
@@ -4271,7 +4258,7 @@ positions of the selection data in the text field containing it.
 
 @item MODULE
 This target returns the name of any function containing the selection
-data.  It is mainly used by text editors.
+data.  It is principally requested by text editors.
 
 @item STRING
 This target returns the selection data as a string of type
@@ -4303,17 +4290,18 @@ selection owner.
   When a request for the targets @code{STRING}, @code{COMPOUND_TEXT},
 or @code{UTF8_STRING} is made using the function
 @code{gui-get-selection}, and neither @code{selection-coding-system}
-nor @code{next-selection-coding-system} are set, the returned strings
-are additionally decoded using the appropriate coding system for those
-data types: @code{iso-8859-1}, @code{compound-text-with-extensions}
-and @code{utf-8} respectively.
+nor @code{next-selection-coding-system} is set, the resultant strings
+are decoded by the proper coding systems for those targets:
+@code{iso-8859-1}, @code{compound-text-with-extensions} and
+@code{utf-8} respectively.
 
   In addition to the targets specified above (and the many targets
 used by various programs for their own purposes), several popular
-programs and toolkits have decided to define selection data types of
-their own, without consulting the appropriate X standards bodies.
-These targets are usually named after MIME types, such as
-@code{text/html} or @code{image/jpeg}, and have been known to contain:
+programs and toolkits have defined selection data types of their own,
+without consulting the appropriate X standards bodies.  These targets
+are generally named after such MIME types as @code{text/html} or
+@code{image/jpeg}; they have been witnessed returning the following
+forms of data:
 
 @itemize @bullet
 @item
@@ -4324,54 +4312,56 @@ names of an image or text file.
 Image or text data in the appropriate format.
 
 @item
-@code{file://} URIs (or possibly newline or NUL terminated lists of
-URIs) leading to files in the appropriate format.
+@code{file://} URIs (or conceivably newline or NUL terminated lists of
+URIs) identifying files in the appropriate format.
 @end itemize
 
   These selection targets were first used by Netscape, but are now
-found in all kinds of programs, especially those based on recent
+proffered by all kinds of programs, especially those based on recent
 versions of the GTK+ or Qt toolkits.
 
-  Emacs is also capable of acting as a selection owner.  When
-@code{gui-set-selection} is called, the selection data specified is
-not transferred to the X server; instead, Emacs records it internally
-and obtains ownership of the selection.
+  Emacs is also capable of serving as a selection owner.  When
+@code{gui-set-selection} is called, the selection data provided is
+recorded internally and Emacs obtains ownership of the selection being
+set.
 
 @defvar selection-converter-alist
-  Alist of selection targets to ``selection converter'' functions.
-When a selection request is received, Emacs looks up the selection
-converter associated with the requested selection target.
+Alist of selection targets to ``selection converter'' functions.  When
+a selection request is received, Emacs looks up the selection
+converter pertaining to the requested selection target.
 
-  The selection converter is called with three arguments: the symbol
+Selection converters are called with three arguments: the symbol
 corresponding to the atom identifying the selection being requested,
 the selection target that is being requested, and the value set with
-@code{gui-set-selection}.  The value which it returns is either a cons
-of a symbol specifying the data type and a number, symbol, or a vector
-of numbers or symbols, or its cdr by itself.
+@code{gui-set-selection}.  The values which they must return are
+either conses of symbols designating the data type and numbers,
+symbols, vectors of numbers or symbols, or the cdrs of such conses by
+themselves.
 
-  If the value is the special symbol @code{NULL}, the data type is set
-to @code{NULL}, and no data is returned to the requestor.
+If a selection converter's value is the special symbol @code{NULL},
+the data type returned to its requestor is set to @code{NULL}, and no
+data is sent in response.
 
-  If the value is a string, it must be a unibyte string; should no
-data type be explicitly specified, the data is transferred to the
+If such a value is a string, it must be a unibyte string; should no
+data type be explicitly specified, the data is transferred to its
 requestor with the type @code{STRING}.
 
-  If the value is a symbol, its ``atom'' is retrieved, and it is
-transferred to the requestor as a 32-bit value---if no data type was
-specified, its type is @code{ATOM}.
+If it is a symbol, its ``atom'' is retrieved, and it is transferred to
+its requestor as a 32-bit value---if no data type is specified, its
+type is @code{ATOM}.
 
-  If the value is a number between @code{-32769} and @code{32768}, it
-is transferred to the requestor as a 16 bit value---if no data type
-was specified, its type is @code{INTEGER}.
+If it is a number between @code{-32769} and @code{32768}, it is
+transferred to its requestor as a 16 bit value---if no data type is
+specified, its type is @code{INTEGER}.
 
-  If the value is any other number, it is returned as a 32 bit value.
-Even if the number returned is unsigned, the requestor will treat
-words of type @code{INTEGER} as signed.  To return an unsigned value,
-specify the type @code{CARDINAL} instead.
+If it is any other number, it is accounted a 32 bit value.  Even if
+the number returned is unsigned, its requestor will treat words of
+type @code{INTEGER} as signed.  To return an unsigned value, specify
+the type @code{CARDINAL} in its place.
 
-  If the value is a vector of symbols or numbers, it is returned as a
-list of multiple atoms or numbers.  The data type returned by default
-is determined by that of its first element.
+If it is a vector of symbols or numbers, the response to its requestor
+will be a list of multiple atoms or numbers.  The data type returned
+when not expressly set is that of the list's first element.
 @end defvar
 
   By default, Emacs is configured with selection converters for the
@@ -4481,7 +4471,7 @@ These selection converters are used for internal purposes.
 @end table
 
   With the exception of @code{INTEGER}, all selection converters
-expect the value given to @code{gui-set-selection} to be one of the
+expect the data provided to @code{gui-set-selection} to be one of the
 following:
 
 @itemize @bullet
