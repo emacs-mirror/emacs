@@ -26434,12 +26434,12 @@ lines:
 (setq gnus-refer-article-method
       '(current
         (nnregistry)
-        (nnweb "gmane" (nnweb-type gmane))))
+        (nnweb "google" (nnweb-type google))))
 @end example
 
 The example above instructs Gnus to first look up the article in the
 current group, or, alternatively, using the registry, and finally, if
-all else fails, using Gmane.
+all else fails, using Google.
 
 @node Fancy splitting to parent
 @subsection Fancy splitting to parent

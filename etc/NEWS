@@ -732,6 +732,13 @@ interactive Python interpreter specified by 'python-interpreter'.
 *** New ':vc' keyword.
 This keyword enables the user to install packages using 'package-vc'.
 
+** Gnus
+
+*** The 'nnweb-type' option 'gmane' has been removed.
+The gmane.org website is, sadly, down since a number of years with no
+prospect of it coming back.  Therefore, it is no longer valid to set
+the user option 'nnweb-type' to the 'gmane'.
+
 ** Rmail
 
 ---

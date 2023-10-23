@@ -42,7 +42,7 @@
 
 (defvoo nnweb-type 'google
   "What search engine type is being used.
-Valid types include `google', `dejanews', and `gmane'.")
+Valid types include `google' and `dejanews'.")
 
 (defvar nnweb-type-definition
   '((google
@@ -55,6 +55,7 @@ Valid types include `google', `dejanews', and `gmane'.")
      (address . "https://groups.google.com/groups")
      (base    . "https://groups.google.com")
      (identifier . nnweb-google-identity))
+    ;; FIXME: Make obsolete?
     (dejanews ;; alias of google
      (id . "https://www.google.com/groups?as_umsgid=%s&hl=en&dmode=source")
      (result . "https://groups.google.com/group/%s/msg/%s?dmode=source")
@@ -64,15 +65,7 @@ Valid types include `google', `dejanews', and `gmane'.")
      (search . nnweb-google-search)
      (address . "https://groups.google.com/groups")
      (base    . "https://groups.google.com")
-     (identifier . nnweb-google-identity))
-    (gmane
-     (article . nnweb-gmane-wash-article)
-     (id . "http://gmane.org/view.php?group=%s")
-     (reference . identity)
-     (map . nnweb-gmane-create-mapping)
-     (search . nnweb-gmane-search)
-     (address . "http://search.gmane.org/nov.php")
-     (identifier . nnweb-gmane-identity)))
+     (identifier . nnweb-google-identity)))
   "Type-definition alist.")
 
 (defvoo nnweb-search nil
@@ -254,6 +247,8 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defun nnweb-definition (type &optional noerror)
   "Return the definition of TYPE."
+  (when (eq nnweb-type 'gmane)
+    (user-error "`gmane' is no longer a valid value for `nnweb-type'"))
   (let ((def (cdr (assq type (assq nnweb-type nnweb-type-definition)))))
     (when (and (not def)
 	       (not noerror))
@@ -277,6 +272,8 @@ Valid types include `google', `dejanews', and `gmane'.")
   (unless (gnus-buffer-live-p nnweb-buffer)
     (setq nnweb-buffer
 	  (save-current-buffer
+            (when (eq nnweb-type 'gmane)
+              (user-error "`gmane' is no longer a valid value for `nnweb-type'"))
             (nnheader-set-temp-buffer
              (format " *nnweb %s %s %s*"
                      nnweb-type nnweb-search server))
@@ -437,10 +434,11 @@ Valid types include `google', `dejanews', and `gmane'.")
     url))
 
 ;;;
-;;; gmane.org
+;;; gmane.org -- now obsolete as the gmane.org web interface is gone
 ;;;
 (defun nnweb-gmane-create-mapping ()
   "Perform the search and create a number-to-url alist."
+  (declare (obsolete nil "30.1"))
   (with-current-buffer nnweb-buffer
     (let ((case-fold-search t)
 	  (active (or (cadr (assoc nnweb-group nnweb-group-alist))
@@ -484,6 +482,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	    (sort (nconc nnweb-articles map) #'car-less-than-car)))))
 
 (defun nnweb-gmane-wash-article ()
+  (declare (obsolete nil "30.1"))
   (let ((case-fold-search t))
     (goto-char (point-min))
     (when (search-forward "<!--X-Head-of-Message-->" nil t)
@@ -495,6 +494,7 @@ Valid types include `google', `dejanews', and `gmane'.")
       (mm-url-remove-markup))))
 
 (defun nnweb-gmane-search (search)
+  (declare (obsolete nil "30.1"))
   (mm-url-insert
    (concat
     (nnweb-definition 'address)
@@ -511,6 +511,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defun nnweb-gmane-identity (url)
   "Return a unique identifier based on URL."
+  (declare (obsolete nil "30.1"))
   (if (string-match "group=\\(.+\\)" url)
       (match-string 1 url)
     url))
