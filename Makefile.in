@@ -421,7 +421,7 @@ advice-on-failure:
 
 sanity-check:
 	@[ -f .no-advice-on-failure ] && exit 0; true
-	@v=`src/emacs${EXEEXT} --batch --eval \
+	@v=`src/emacs${EXEEXT} --batch -Q --eval \
 	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
 	  2> /dev/null`; \
 	[ "X$$v" = "X3628800" ] && exit 0; \
