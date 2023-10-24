@@ -4886,30 +4886,30 @@ default directory.)
 
 @cindex initiating drag-and-drop
   It is also possible to drag content from Emacs to other programs
-whenever this is supported for the current window-system.  The
-functions which provide for this are as follows:
+when this is supported by the current window-system.  The functions
+which provide for this are as follows:
 
 @cindex drop target, in drag-and-drop operations
 @defun dnd-begin-text-drag text &optional frame action allow-same-frame
-This function commences a drag-and-drop operation from @var{frame} to
+This function starts a drag-and-drop operation from @var{frame} to
 another program (dubbed the @dfn{drop target}), and returns when
 @var{text} is dropped or the operation is canceled.
 
 @var{action} must be one of the symbols @code{copy} or @code{move},
 where @code{copy} means that @var{text} should be inserted by the drop
-target, and @code{move} means the same as @code{copy}, but furthermore
-enjoins the caller to delete @var{text} from its source as explained
-in the list below.
+target, and @code{move} means the same as @code{copy}, but the caller
+must also delete @var{text} from its source as explained in the list
+below.
 
 @var{frame} is the frame where the mouse is currently held down, or
 @code{nil}, which means to use the selected frame.  Since this
-function is liable to return promptly if no mouse buttons are held
-down, it should be only called in response to a @code{down-mouse-1} or
+function might return promptly if no mouse buttons are held down, it
+should be only called in response to a @code{down-mouse-1} or
 analogous event (@pxref{Mouse Events}), with @var{frame} set to the
 frame where that event was generated (@pxref{Click Events}).
 
 If @var{allow-same-frame} is @code{nil}, drops on top of @var{frame}
-will be disregarded.
+will be ignored.
 
 The return value reflects the action that the drop target actually
 performed, and thus also what action, if any, the caller should in
@@ -4934,7 +4934,7 @@ The drag-and-drop operation was canceled.
 @end defun
 
 @defun dnd-begin-file-drag file &optional frame action allow-same-frame
-This function commences a drag-and-drop operation from @var{frame} to
+This function starts a drag-and-drop operation from @var{frame} to
 another program (dubbed the @dfn{drop target}), and returns when
 @var{file} is dropped or the operation is canceled.
 
