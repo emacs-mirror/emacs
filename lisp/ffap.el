@@ -554,7 +554,7 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
     (concat "gopher://" mach "/"))
    ;; www.ncsa.uiuc.edu
    ((and (string-match "\\`w\\(ww\\|eb\\)[-.]" mach))
-    (concat "http://" mach "/"))
+    (concat "https://" mach "/"))
    ;; More cases?
    (ffap-ftp-regexp (ffap-host-to-filename mach))
    ))
