@@ -4090,6 +4090,10 @@ types.  */)
   if (!NILP (XCDR (Fall_threads ())))
     error ("No other Lisp threads can be running when this function is called");
 
+#ifdef HAVE_NATIVE_COMP
+  CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
+#endif
+
   check_pure_size ();
 
   /* Clear out any detritus in memory.  */
