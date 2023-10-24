@@ -484,7 +484,7 @@ because of MAC-then-encrypt.  This construction is vulnerable to
 padding oracle attacks[1].
 
 Since GnuTLS 3.4.0, the TLS encrypt-then-MAC extension[2] has
-been enabled by default[3]. If encrypt-then-MAC is negotiated,
+been enabled by default[3].  If encrypt-then-MAC is negotiated,
 this check has no effect.
 
 Reference:
