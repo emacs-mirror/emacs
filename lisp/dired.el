@@ -4877,22 +4877,30 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 (eval-when-compile (require 'desktop))
 (declare-function desktop-file-name "desktop" (filename dirname))
 
+(defun dired-desktop-save-p ()
+  "Should `dired-directory' be desktop saved?"
+  (if (consp dired-directory)
+      (not (string-match-p desktop-files-not-to-save (car dired-directory)))
+    (not (string-match-p desktop-files-not-to-save dired-directory))))
+
 (defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
-  (cons
-   ;; Value of `dired-directory'.
-   (if (consp dired-directory)
-       ;; Directory name followed by list of files.
-       (cons (desktop-file-name (car dired-directory) dirname)
-             (cdr dired-directory))
-     ;; Directory name, optionally with shell wildcard.
-     (desktop-file-name dired-directory dirname))
-   ;; Subdirectories in `dired-subdir-alist'.
-   (cdr
-    (nreverse
-     (mapcar
-      (lambda (f) (desktop-file-name (car f) dirname))
-      dired-subdir-alist)))))
+  (when (and (stringp desktop-files-not-to-save)
+             (dired-desktop-save-p))
+    (cons
+     ;; Value of `dired-directory'.
+     (if (consp dired-directory)
+         ;; Directory name followed by list of files.
+         (cons (desktop-file-name (car dired-directory) dirname)
+               (cdr dired-directory))
+       ;; Directory name, optionally with shell wildcard.
+       (desktop-file-name dired-directory dirname))
+     ;; Subdirectories in `dired-subdir-alist'.
+     (cdr
+      (nreverse
+       (mapcar
+        (lambda (f) (desktop-file-name (car f) dirname))
+        dired-subdir-alist))))))
 
 (defun dired-restore-desktop-buffer (_file-name
                                      _buffer-name
