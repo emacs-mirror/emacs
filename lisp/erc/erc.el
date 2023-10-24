@@ -2490,7 +2490,6 @@ ERC calls members with `erc-server-announced-name', falling back
 to the 376/422 message's \"sender\", as well as the current nick,
 as given by the 376/422 message's \"target\" parameter, which is
 typically the same as that reported by `erc-current-nick'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-hooks
   :type '(repeat function))
 
