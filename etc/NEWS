@@ -62,12 +62,14 @@ more details.
 
 ** Emacs now supports Unicode Standard version 15.1.
 
++++
 ** The Network Security Manager now warns about 3DES by default.
 This cypher is no longer recommended owing to a major vulnerability
 disclosed in 2016, and its small 112 bit key size.  Emacs now warns
 about its use also when 'network-security-level' is set to 'medium'
 (the default).  See 'network-security-protocol-checks'.
 
+---
 ** The Network Security Manager now warns about <2048 bits in DH key exchange.
 Emacs used to warn for Diffie-Hellman key exchanges with prime numbers
 smaller than 1024 bits.  Since more servers now support it, this
