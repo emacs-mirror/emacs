@@ -68,6 +68,11 @@ disclosed in 2016, and its small 112 bit key size.  Emacs now warns
 about its use also when 'network-security-level' is set to 'medium'
 (the default).  See 'network-security-protocol-checks'.
 
+** The Network Security Manager now warns about <2048 bits in DH key exchange.
+Emacs used to warn for Diffie-Hellman key exchanges with prime numbers
+smaller than 1024 bits.  Since more servers now support it, this
+number has been bumped to 2048 bits.
+
 ** Help
 
 *** 'describe-function' shows function inferred type when available.
