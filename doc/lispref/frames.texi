@@ -4076,12 +4076,12 @@ complexity: its @var{data} argument is given verbatim to
 system-specific code to be rendered suitable for transfer to the
 window system or requesting clients.
 
-  The most comprehensive implementation of selections is that under
-the X Window System.  This is both an artifact of history (X was the
-first window system supported by Emacs) and one occasioned by
-technical considerations: X selections are not merely an expedient for
-the transfer of text and multimedia content between clients, but a
-general inter-client communication system, a design that has yielded a
+  The most comprehensive implementation of selections exists under the
+X Window System.  This is both an artifact of history (X was the first
+window system supported by Emacs) and one occasioned by technical
+considerations: X selections are not merely an expedient for the
+transfer of text and multimedia content between clients, but a general
+inter-client communication system, a design that has yielded a
 proliferation of selection and data types.
 
   Compounding this confusion, there is another inter-client
@@ -4705,74 +4705,112 @@ seldom consistent medley of data types.
 @section Drag and Drop
 @cindex drag and drop
 
-  When the user drops something from another application over Emacs,
-Emacs will try to insert any text and open any URL that was dropped.
-If text was dropped, then it will always be inserted at the location
-of the mouse pointer where the drop happened, or saved in the kill
-ring if insertion failed, which could happen if the buffer was
-read-only.  If a URL was dropped instead, then Emacs will first try to
-call an appropriate handler function by matching the URL against
-regexps defined in the variable @code{dnd-protocol-alist}, and then
-against those defined in the variables @code{browse-url-handlers} and
-@code{browse-url-default-handlers}.  Should no suitable handler be
-located, Emacs will fall back to inserting the URL as plain text.
+  Data transferred by drag and drop is generally either plain text or
+a URL designating a file or another resource.  When text is dropped,
+it is inserted at the location of the drop, with recourse to saving it
+into the kill ring if that is not possible.
+
+  URLs dropped are supplied to pertinent @dfn{DND handler functions}
+in the variable @code{dnd-protocol-alist}, or alternatively ``URL
+handlers'' as set forth by the variables @code{browse-url-handlers}
+and @code{browse-url-default-handlers}; absent matching handlers of
+either type, they are treated as plain text and inserted in the
+buffer.
 
 @defvar dnd-protocol-alist
-  This variable is a list of cons cells of the form
-@w{@code{(@var{pattern} . @var{action})}}.  @var{pattern} is a regexp
-that URLs are matched against after being dropped.  @var{action} is a
-function that is called with two arguments, should a URL being dropped
-match @var{pattern}: the URL being dropped, and the action being
-performed for the drop, which is one of the symbols @code{copy},
-@code{move}, @code{link}, @code{private} or @code{ask}.
+This variable is an alist between regexps against which URLs are
+matched and DND handler functions called on the dropping of matching
+URLs.
 
-If @var{action} is @var{private}, then it means the program that
-initiated the drop wants Emacs to perform an unspecified action with
-the URL; a reasonable action to perform in that case is to open the URL
-or copy its contents into the current buffer.  Otherwise, @var{action}
-has the same meaning as the @var{action} argument to
+Each handler function is called with the URL that matched it and one
+of the symbols @code{copy}, @code{move}, @code{link}, @code{private}
+or @code{ask} identifying the action to be taken.
+
+If @var{action} is @code{private}, the program that initiated the drop
+does not insist on any particular behavior on the part of its
+recipient; a reasonable action to take in that case is to open the URL
+or copy its contents into the current buffer.  The other values of
+@var{action} imply much the same as in the @var{action} argument to
 @code{dnd-begin-file-drag}.
 @end defvar
 
 @cindex drag and drop, X
 @cindex drag and drop, other formats
-  Emacs implements receiving text and URLs individually for each
-window system, and does not by default support receiving other kinds
-of data as drops.  To support receiving other kinds of data, use the
-X-specific interface described below.
+  Emacs does not take measures to accept data besides text and URLs by
+default, for the window system interfaces which enable this are too
+far removed from each other to abstract over consistently.  Nor are
+DND handlers accorded the capacity to influence the action they are
+meant to take, as particular drag-and-drop protocols deny recipients
+such control.  The X11 drag-and-drop implementation rests on several
+underlying protocols that make use of selection transfer and share
+much in common, to which low level access is provided through the
+following functions and variables:
 
-@vindex x-dnd-test-function
-@vindex x-dnd-known-types
-  When a user drags something from another application over Emacs
-under the X Window System, that other application expects Emacs to
-tell it if Emacs understands the data being dragged.  The function in
-the variable @code{x-dnd-test-function} is called by Emacs to
-determine what to reply to any such inquiry.  The default value is
-@code{x-dnd-default-test-function}, which accepts drops if the type of
-the data to be dropped is present in @code{x-dnd-known-types}.
-Changing the variables @code{x-dnd-test-function} and
-@code{x-dnd-known-types} can make Emacs accept or reject drops based
-on some other criteria.
+@defvar x-dnd-test-function
+This function is called to ascertain whether Emacs should accept a
+drop.  It is called with three arguments:
 
-@vindex x-dnd-types-alist
-  If you want to change the way Emacs receives drops of different data
-types, or you want to enable it to understand a new type, change the variable
-@code{x-dnd-types-alist}.  Doing so correctly requires detailed
-knowledge of what data types other applications use for drag and drop.
+@itemize @bullet
+@item
+The window under the item being dragged, which is to say the window
+whose buffer is to receive the drop.  If the item is situated over a
+non-window component of a frame (such as scroll bars, tool bars and
+things to that effect), the frame itself is provided in its place.
 
-  These data types are typically implemented as special data types
-that can be obtained from an X selection provided by the other
-application.  In most cases, they are either the same data types that
-are typically accepted by @code{gui-set-selection}, or MIME types,
-depending on the specific drag-and-drop protocol being used.  For
-example, the data type used for plain text may be either
-@code{"STRING"} or @code{"text/plain"}.
+@item
+One of the symbols @code{move}, @code{copy}, @code{link} or
+@code{ask}, representing an action to take on the item data suggested
+by the drop source.  These symbols carry the same implications as in
+@code{x-begin-drag}.
+
+@item
+A vector of selection data types (@pxref{X Selections}) the item
+provides.
+@end itemize
+
+This function must return @code{nil} to reject the drop or a cons of
+the action that will be taken (such as through transfer to a DND
+handler function) and the selection data type to be requested.  The
+action returned in that cons may also be the symbol @code{private},
+which intimates that the action taken is as yet indeterminate.
+@end defvar
+
+@defvar x-dnd-known-types
+Modifying @code{x-dnd-test-function} is generally unwarranted, for its
+default set of criteria for accepting a drop can be adjusted by
+changing this list of selection data types.  Each element is a string,
+which if found as the symbol name of an element within the list of
+data types by the default ``test function'', will induce that function
+to accept the drop.
+
+Introducing a new entry into this list is not useful unless a
+counterpart handler function is appended to @code{x-dnd-types-alist}.
+@end defvar
+
+@defvar x-dnd-types-alist
+This variable is an alist between strings designating selection data
+types and functions which are called when things of such types are
+dropped.
+
+Each such function is supplied three arguments; the first is the
+window or frame below the location of the drop, as in
+@code{x-dnd-test-function}; the second is the action to be taken,
+which may be any of the actions returned by test functions, and third
+is the selection data itself (@pxref{Accessing Selections}).
+@end defvar
+
+  Selection data types as provided by X11 drag-and-drop protocols are
+sometimes distinct from those provided by the ICCCM and conforming
+clipboard or primary selection owners.  Frequently, the name of a MIME
+type, such as @code{"text/plain;charset=utf-8"} (with discrepant
+capitalization of the ``utf-8''), is substitued for a standard X
+selection name such as @code{UTF8_STRING}.
 
 @cindex XDS
 @cindex direct save protocol
 @vindex x-dnd-direct-save-function
-  When Emacs runs on X window system, it supports the X Direct Save
-(@acronym{XDS}) protocol, which allows users to save a file by
+  When Emacs runs on the X window system, it supports the X Direct
+Save (@acronym{XDS}) protocol, which allows users to save a file by
 dragging and dropping it onto an Emacs window, such as a Dired window.
 To comply with the unique requirements of @acronym{XDS}, these
 drag-and-drop requests are processed specially: instead of being
