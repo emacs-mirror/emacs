@@ -473,12 +473,6 @@ If nil, the value of `cperl-indent-level' will be used."
   :group 'cperl)
 (make-obsolete-variable 'cperl-under-as-char 'superword-mode "24.4")
 
-(defcustom cperl-extra-perl-args ""
-  "Extra arguments to use when starting Perl.
-Currently used with `cperl-check-syntax' only."
-  :type 'string
-  :group 'cperl)
-
 (defcustom cperl-message-electric-keyword t
   "Non-nil means that the `cperl-electric-keyword' prints a help message."
   :type 'boolean
@@ -631,10 +625,7 @@ imenu entries."
 ;;; Short extra-docs.
 
 (defvar cperl-tips 'please-ignore-this-line
-  "Note that to enable Compile choices in the menu you need to install
-mode-compile.el.
-
-If your Emacs does not default to `cperl-mode' on Perl files, and you
+  "If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
   (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
@@ -1055,12 +1046,6 @@ Unless KEEP, removes the old indentation."
     ["Indent region" cperl-indent-region (use-region-p)]
     ["Comment region" cperl-comment-region (use-region-p)]
     ["Uncomment region" cperl-uncomment-region (use-region-p)]
-    "----"
-    ["Run" mode-compile (fboundp 'mode-compile)]
-    ["Kill" mode-compile-kill (and (fboundp 'mode-compile-kill)
-                                   (get-buffer "*compilation*"))]
-    ["Next error" next-error (get-buffer "*compilation*")]
-    ["Check syntax" cperl-check-syntax (fboundp 'mode-compile)]
     "----"
     ["Debugger" cperl-db t]
     "----"
@@ -6560,13 +6545,6 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
       (setq setting (car cperl-old-style)
 	    cperl-old-style (cdr cperl-old-style))
       (set (car setting) (cdr setting)))))
-
-(defvar perl-dbg-flags)
-(defun cperl-check-syntax ()
-  (interactive)
-  (require 'mode-compile)
-  (let ((perl-dbg-flags (concat cperl-extra-perl-args " -wc")))
-    (eval '(mode-compile))))		; Avoid a warning
 
 (declare-function Info-find-node "info"
 		  (filename nodename &optional no-going-back strict-case
