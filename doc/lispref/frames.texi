@@ -4589,7 +4589,7 @@ non-@code{nil}, its return value must be a list of the form
 @w{@code{(@var{key} @var{type} @var{value})}}.  In this list,
 @var{key} must be the name of the data being transferred, generally
 that of a MIME type, for example @samp{"text/plain"}, and @var{type}
-is a symbol or a number designating the type of the data, thus also
+is a symbol or a number designating the type of the data; thus also
 governing the interpretation of @var{value}; following is a list of
 valid data types and how each of them will cause @var{value} to be
 interpreted.
@@ -4809,16 +4809,17 @@ selection name such as @code{UTF8_STRING}.
 @cindex XDS
 @cindex direct save protocol
 @vindex x-dnd-direct-save-function
-  When Emacs runs on the X window system, it supports the X Direct
-Save (@acronym{XDS}) protocol, which allows users to save a file by
-dragging and dropping it onto an Emacs window, such as a Dired window.
-To comply with the unique requirements of @acronym{XDS}, these
-drag-and-drop requests are processed specially: instead of being
-handled according to @code{x-dnd-types-alist}, they are handled by the
-@dfn{direct-save function} that is the value of the variable
-@code{x-dnd-direct-save-function}.  The value should be a function of
-two arguments, @var{need-name} and @var{filename}.  The @acronym{XDS}
-protocol uses a two-step procedure for dragging files:
+  The X Direct Save (@acronym{XDS}) protocol enables programs to
+devolve responsibility for naming a dropped file file upon the
+recipient.  When such a drop transpires, DND handlers and the forgoing
+X-specific interface are largely circumvented, tasking a different
+function with responding to the drop.
+
+@defvar x-dnd-direct-save-function
+This variable should be set to a function that registers and names
+files dropped using the @acronym{XDS} protocol in a two-step
+procedure.  It is provided two arguments, @var{need-name} and
+@var{filename}.
 
 @enumerate 1
 @item
@@ -4846,8 +4847,9 @@ Dired should update the directory on display by showing the new file
 there.
 @end enumerate
 
-The default value of @code{x-dnd-direct-save-function} is
+Its default @code{x-dnd-direct-save-function} is
 @code{x-dnd-save-direct}.
+@end defvar
 
 @defun x-dnd-save-direct need-name filename
 When called with the @var{need-name} argument non-@code{nil}, this
@@ -4873,48 +4875,47 @@ default directory.)
 @end defun
 
 @cindex initiating drag-and-drop
-  On capable window systems, Emacs also supports dragging contents
-from its frames to windows of other applications.
+  It is also possible to drag content from Emacs to other programs
+whenever this is supported for the current window-system.  The
+functions which provide for this are as follows:
 
 @cindex drop target, in drag-and-drop operations
 @defun dnd-begin-text-drag text &optional frame action allow-same-frame
-This function begins dragging text from @var{frame} to another program
-(known as the @dfn{drop target}), and returns the result of
-drag-and-drop operation when the text is dropped or the drag-and-drop
-operation is canceled.  @var{text} is the text that will be inserted
-by the drop target.
+This function commences a drag-and-drop operation from @var{frame} to
+another program (dubbed the @dfn{drop target}), and returns when
+@var{text} is dropped or the operation is canceled.
 
 @var{action} must be one of the symbols @code{copy} or @code{move},
 where @code{copy} means that @var{text} should be inserted by the drop
-target, and @code{move} means the same as @code{copy}, but in addition
-the caller may have to delete @var{text} from its source as explained
-below.
+target, and @code{move} means the same as @code{copy}, but furthermore
+enjoins the caller to delete @var{text} from its source as explained
+in the list below.
 
 @var{frame} is the frame where the mouse is currently held down, or
-@code{nil}, which means to use the selected frame.  This function may
-return immediately if no mouse buttons are held down, so it should be
-only called immediately after a @code{down-mouse-1} or similar event
-(@pxref{Mouse Events}), with @var{frame} set to the frame where that
-event was generated (@pxref{Click Events}).
+@code{nil}, which means to use the selected frame.  Since this
+function is liable to return promptly if no mouse buttons are held
+down, it should be only called in response to a @code{down-mouse-1} or
+analogous event (@pxref{Mouse Events}), with @var{frame} set to the
+frame where that event was generated (@pxref{Click Events}).
 
-@var{allow-same-frame} specifies whether or not drops on top of
-@var{frame} itself are to be ignored.
+If @var{allow-same-frame} is @code{nil}, drops on top of @var{frame}
+will be disregarded.
 
-The return value specifies the action that the drop target actually
-performed, and optionally what the caller should do.  It can be one of
-the following symbols:
+The return value reflects the action that the drop target actually
+performed, and thus also what action, if any, the caller should in
+turn take.  It is one of the following symbols:
 
 @table @code
 @item copy
 The drop target inserted the dropped text.
 
 @item move
-The drop target inserted the dropped text, but in addition the caller
-should delete @var{text} from wherever it originated, such as its
-buffer.
+The drop target inserted the dropped text, and the caller should
+delete @var{text} from the buffer where it was extracted from, if
+applicable.
 
 @item private
-The drop target performed some other unspecified action.
+The drop target took some other unspecified action.
 
 @item nil
 The drag-and-drop operation was canceled.
@@ -4923,11 +4924,12 @@ The drag-and-drop operation was canceled.
 @end defun
 
 @defun dnd-begin-file-drag file &optional frame action allow-same-frame
-This function begins dragging @var{file} from @var{frame} to another
-program, and returns the result of the drag-and-drop operation when
-the file is dropped or the drag-and-drop operation is canceled.
+This function commences a drag-and-drop operation from @var{frame} to
+another program (dubbed the @dfn{drop target}), and returns when
+@var{file} is dropped or the operation is canceled.
 
-If @var{file} is a remote file, then a temporary copy will be made.
+If @var{file} is a remote file, then a temporary local copy will be
+made.
 
 @var{action} must be one of the symbols @code{copy}, @code{move} or
 @code{link}, where @code{copy} means that @var{file} should be opened
@@ -4936,11 +4938,11 @@ move the file to another location, and @code{link} means the drop
 target should create a symbolic link to @var{file}.  It is an error to
 specify @code{link} as the action if @var{file} is a remote file.
 
-@var{frame} and @var{allow-same-frame} have the same meaning as in
-@code{dnd-begin-text-drag}.
+@var{frame} and @var{allow-same-frame} mean the same as they do in
+calls to @code{dnd-begin-text-drag}.
 
 The return value is the action that the drop target actually
-performed, which can be one of the following symbols:
+performed, which is one of the following symbols:
 
 @table @code
 @item copy
@@ -4969,19 +4971,18 @@ dropping multiple files, then the first file will be used instead.
 @end defun
 
 @defun dnd-direct-save file name &optional frame allow-same-frame
-This function is similar to @code{dnd-begin-file-drag} (with the
-default action of copy), but instead of specifying the action you
-specify the name of the copy created by the target program in
-@code{name}.
+The behavior of this function is akin to that of
+@code{dnd-begin-file-drag} (when the default action @code{copy} is
+used), except that it accepts a name under which the copy is meant to
+be filed.
 @end defun
 
 @cindex initiating drag-and-drop, low-level
   The high-level interfaces described above are implemented on top of
-a lower-level primitive.  If you need to drag content other than files
-or text, use the low-level interface @code{x-begin-drag}
-instead.  However, using it will require detailed knowledge of the
-data types and actions used by the programs to transfer content via
-drag-and-drop on each platform you want to support.
+a lower-level primitive.  The low-level interface @code{x-begin-drag}
+is also available for dragging content besides text and files.  It
+demands detailed knowledge of the data types and actions understood by
+programs on each platform its callers wish to support.
 
 @defun x-begin-drag targets &optional action frame return-frame allow-current-frame follow-tooltip
 This function begins a drag from @var{frame}, and returns when the
@@ -4993,60 +4994,59 @@ non-@code{nil}.  If no mouse buttons are held down when the
 drag-and-drop operation begins, this function may immediately return
 @code{nil}.
 
-@var{targets} is a list of strings describing selection targets, much
-like the @var{data-type} argument to @code{gui-get-selection}, that
-the drop target can request from Emacs (@pxref{Window System
+@var{targets} is a list of strings representing selection targets,
+much like the @var{data-type} argument to @code{gui-get-selection},
+that the drop target can request from Emacs (@pxref{Window System
 Selections}).
 
-@var{action} is a symbol describing the action recommended to the
-target.  It can either be @code{XdndActionCopy}, which
-means to copy the contents of the selection @code{XdndSelection} to
-the drop target; or @code{XdndActionMove}, which means copy as with
-@code{XdndActionCopy}, and in addition the caller should delete
-whatever was stored in that selection after copying it.
+@var{action} is a symbol designating the action recommended to the
+target.  It can either be @code{XdndActionCopy} or
+@code{XdndActionMove}; both imply copying the contents of the
+selection @code{XdndSelection} to the drop target, but the latter
+moreover conveys a promise to delete the contents of the selection
+after the copying.
 
 @var{action} may also be an alist which associates between symbols
-describing the available actions, and strings that the drop target is
-expected to present to the user to choose between the available
-actions.
+representing available actions, and strings that the drop target
+presents to the user for him to select between those actions.
 
 If @var{return-frame} is non-@code{nil} and the mouse moves over an
 Emacs frame after first moving out of @var{frame}, then the frame to
 which the mouse moves will be returned immediately.  If
-@var{return-frame} is the symbol @code{now}, then any frame underneath
+@var{return-frame} is the symbol @code{now}, then any frame beneath
 the mouse pointer will be returned without waiting for the mouse to
 first move out of @var{frame}.  @var{return-frame} is useful when you
 want to treat dragging content from one frame to another specially,
-while also being able to drag content to other programs, but it is not
-guaranteed to work on all systems and with all window managers.
+while also dragging content to other programs, but it is not
+guaranteed to function on all systems and with all window managers.
 
 If @var{follow-tooltip} is non-@code{nil}, the position of any tooltip
-(such as one shown by @code{tooltip-show}) will follow the location of
-the mouse pointer whenever it moves during the drag-and-drop
+(such as one displayed by @code{tooltip-show}) will follow the
+location of the mouse pointer as it moves during the drag-and-drop
 operation.  The tooltip will be hidden once all mouse buttons are
 released.
 
 If the drop was rejected or no drop target was found, this function
-returns @code{nil}.  Otherwise, it returns a symbol describing the
-action the target chose to perform, which can differ from @var{action}
-if that isn't supported by the drop target.  @code{XdndActionPrivate}
-is also a valid return value in addition to @code{XdndActionCopy} and
-@code{XdndActionMove}; it means that the drop target chose to perform
-an unspecified action, and no further processing is required by the
-caller.
+returns @code{nil}.  Otherwise, it returns a symbol representing the
+action the target opted to take, which can differ from @var{action} if
+that isn't supported by the drop target.  @code{XdndActionPrivate} is
+also a valid return value in addition to @code{XdndActionCopy} and
+@code{XdndActionMove}; it suggests that the drop target opted for an
+indeterminate action, and no further action is required of the caller.
 
-The caller must cooperate with the target to fully perform the action
-chosen by the target.  For example, callers should delete the buffer
-text that was dragged if this function returns @code{XdndActionMove}.
+The caller must cooperate with the target to complete the action
+selected by the target.  For example, callers should delete any buffer
+text that was dragged if this function returns @code{XdndActionMove},
+and likewise for other drag data where comparable criteria apply.
 @end defun
 
 @cindex drag and drop protocols, X
 
-  On X Windows, several different drag-and-drop protocols are
-supported by @code{x-begin-drag}.  When dragging content that is known
-to not be supported by a specific drag-and-drop protocol, it might be
-desirable to turn that protocol off, by changing the values of the
-following variables:
+  The function @code{x-begin-drag} leverages several drag-and-drop
+protocols ``behind the scenes''.  When dragging content that is known
+to not be supported by a specific drag-and-drop protocol, that
+protocol can be disabled by changing the values of the following
+variables:
 
 @defvar x-dnd-disable-motif-protocol
 When this is non-@code{nil}, the Motif drag and drop protocols are
@@ -5070,8 +5070,8 @@ events and the primary selection to insert the text if the drop target
 doesn't support any drag-and-drop protocol at all.
 
 A side effect is that Emacs will become the owner of the primary
-selection upon such a drop.  If that is not desired, then the drop
-emulation can be disabled by setting this variable to @code{nil}.
+selection upon such a drop.  Such emulation can be disabled by setting
+this variable to @code{nil}.
 @end defvar
 
 @node Color Names
