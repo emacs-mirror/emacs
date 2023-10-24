@@ -148,8 +148,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
   ;;
   ;; This function doesn't handle NotDashEscaped correctly.  EasyPG handles it
   ;; correctly.
-  ;; http://thread.gmane.org/gmane.emacs.gnus.general/66062/focus=66082
-  ;; http://thread.gmane.org/gmane.emacs.gnus.general/65087/focus=65109
+  ;; http://thread.gmane.org/gmane.emacs.gnus.general/66062/focus=66082 [dead link]
+  ;; http://thread.gmane.org/gmane.emacs.gnus.general/65087/focus=65109 [dead link]
   (goto-char (point-min))
   (forward-line)
   ;; We need to be careful not to strip beyond the armor headers.

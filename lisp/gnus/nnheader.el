@@ -85,7 +85,7 @@ Integer values will in effect be rounded up to the nearest multiple of
 
 (defvar nnheader-read-timeout
   (if (memq system-type '(windows-nt cygwin))
-      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
+      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de [dead link]
       ;;
       ;; IIRC, values lower than 1.0 didn't/don't work on Windows/DOS.
       ;;

@@ -25338,7 +25338,7 @@ added to a group's @code{spam-process} parameter, the spam-marked
 articles groups will be reported to the Gmane administrators via a
 HTTP request.
 
-Gmane was formerly found at @uref{http://gmane.org}.
+Gmane is at @uref{https://gmane.io}.
 
 @emph{WARNING}
 
@@ -28805,7 +28805,7 @@ be read correctly in Emacs 22 and below.  If you want to use Gnus across
 different Emacs versions, you may set @code{mm-auto-save-coding-system}
 to @code{emacs-mule}.
 @c FIXME: Untested.  (Or did anyone test it?)
-@c Cf. http://thread.gmane.org/gmane.emacs.gnus.general/66251/focus=66344
+@c Cf. http://thread.gmane.org/gmane.emacs.gnus.general/66251/focus=66344 [dead link]
 
 @item Lisp files are now installed in @file{.../site-lisp/gnus/} by default.
 It defaulted to @file{.../site-lisp/} formerly.  In addition to this,
