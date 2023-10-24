@@ -4811,9 +4811,9 @@ selection name such as @code{UTF8_STRING}.
 @vindex x-dnd-direct-save-function
   The X Direct Save (@acronym{XDS}) protocol enables programs to
 devolve responsibility for naming a dropped file file upon the
-recipient.  When such a drop transpires, DND handlers and the forgoing
-X-specific interface are largely circumvented, tasking a different
-function with responding to the drop.
+recipient.  When such a drop transpires, DND handlers and the
+foregoing X-specific interface are largely circumvented, tasking a
+different function with responding to the drop.
 
 @defvar x-dnd-direct-save-function
 This variable should be set to a function that registers and names
