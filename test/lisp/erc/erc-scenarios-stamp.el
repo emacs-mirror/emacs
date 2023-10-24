@@ -50,7 +50,6 @@
        (erc-stamp--current-time 704591940)
        (erc-stamp--tz t)
        (erc-server-flood-penalty 0.1)
-       (erc-timestamp-only-if-changed-flag nil)
        (erc-insert-timestamp-function #'erc-insert-timestamp-left)
        (erc-modules (cons 'fill-wrap erc-modules))
        (erc-timestamp-only-if-changed-flag nil)
@@ -86,5 +85,32 @@
             (goto-char erc-scenarios-stamp--user-marker)
             (should (looking-back "CEIMRUabefhiklmnoqstuv\n"))
             (should (looking-at (rx "[")))))))))
+
+(ert-deftest erc-scenarios-stamp--legacy-date-stamps ()
+  (with-suppressed-warnings ((obsolete erc-stamp-prepend-date-stamps-p))
+    (erc-scenarios-common-with-cleanup
+        ((erc-scenarios-common-dialog "base/reconnect")
+         (erc-stamp-prepend-date-stamps-p t)
+         (dumb-server (erc-d-run "localhost" t 'unexpected-disconnect))
+         (port (process-contact dumb-server :service))
+         (erc-server-flood-penalty 0.1)
+         (expect (erc-d-t-make-expecter)))
+
+      (ert-info ("Connect")
+        (with-current-buffer (erc :server "127.0.0.1"
+                                  :port port
+                                  :full-name "tester"
+                                  :nick "tester")
+          (funcall expect 5 "Opening connection")
+          (goto-char (1- (match-beginning 0)))
+          (should (eq 'erc-timestamp (field-at-pos (point))))
+          (should (eq 'unknown (erc--get-inserted-msg-prop 'erc-msg)))
+          ;; Force redraw of date stamp.
+          (setq erc-timestamp-last-inserted-left nil)
+
+          (funcall expect 5 "This server is in debug mode")
+          (while (and (zerop (forward-line -1))
+                      (not (eq 'erc-timestamp (field-at-pos (point))))))
+          (should (erc--get-inserted-msg-prop 'erc-cmd)))))))
 
 ;;; erc-scenarios-stamp.el ends here

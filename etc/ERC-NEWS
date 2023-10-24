@@ -228,6 +228,12 @@ with a legitimate use for this option likely also possesses the
 knowledge to rig up a suitable analog with minimal effort.  That said,
 the road to removal is long.
 
+** The 'track' module always ignores date stamps.
+Users of the stamp module who leave 'erc-insert-timestamp-function'
+set to its default of 'erc-insert-timestamp-left-and-right' will find
+that date stamps no longer affect the mode line, even for IRC commands
+not included in 'erc-track-exclude-types'.
+
 ** Option 'erc-warn-about-blank-lines' is more informative.
 Enabled by default, this option now produces more useful feedback
 whenever ERC rejects prompt input containing whitespace-only lines.
@@ -348,7 +354,9 @@ leading portion of message bodies as well as special casing to act on
 these areas without inflicting collateral damage.  It may also be
 worth noting that as consequence of these changes, the internally
 managed variable 'erc-timestamp-last-inserted-left' no longer records
-the final trailing newline in 'erc-timestamp-format-left'.
+the final trailing newline in 'erc-timestamp-format-left'.  If you
+must, see variable 'erc-stamp-prepend-date-stamps-p' for a temporary
+escape hatch.
 
 *** The role of a module's Custom group is now more clearly defined.
 Associating built-in modules with Custom groups and provided library

@@ -689,6 +689,16 @@ printed just after each line's text (no alignment)."
       (let (erc-timestamp-format erc-away-timestamp-format)
         (erc-add-timestamp)))))
 
+(defvar erc-stamp-prepend-date-stamps-p nil
+  "When non-nil, date stamps are not independent messages.
+Users should think twice about enabling this escape hatch.  It
+will likely degraded the user experience by causing post-5.5
+features, like `fill-wrap', dynamic invisibility, etc., to
+malfunction.  Basic support for the default configuration may
+expire earlier than normally expected.")
+(make-obsolete-variable 'erc-stamp-prepend-date-stamps-p
+                        "unsupported legacy behavior" "30.1")
+
 (defun erc-insert-timestamp-left-and-right (string)
   "Insert a stamp on either side when it changes.
 When the deprecated option `erc-timestamp-format-right' is nil,
@@ -703,7 +713,7 @@ requirements related to `erc-legacy-invisible-bounds-p'.
 Additionally, ensure every date stamp is identifiable as such so
 that internal modules can easily distinguish between other
 left-sided stamps and date stamps inserted by this function."
-  (unless erc-stamp--date-format-end
+  (unless (or erc-stamp--date-format-end erc-stamp-prepend-date-stamps-p)
     (add-hook 'erc-insert-pre-hook #'erc-stamp--lr-date-on-pre-modify -95 t)
     (add-hook 'erc-send-pre-functions #'erc-stamp--lr-date-on-pre-modify -95 t)
     (let ((erc--insert-marker (point-min-marker))
@@ -719,6 +729,13 @@ left-sided stamps and date stamps inserted by this function."
                      (if erc-timestamp-format-right
                          (erc-format-timestamp ct erc-timestamp-format-right)
                        string))))
+    ;; Maybe insert legacy date stamp.
+    (when-let ((erc-stamp-prepend-date-stamps-p)
+               (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
+               ((not (string= ts-left erc-timestamp-last-inserted-left))))
+      (goto-char (point-min))
+      (erc-put-text-property 0 (length ts-left) 'field 'erc-timestamp ts-left)
+      (insert (setq erc-timestamp-last-inserted-left ts-left)))
     ;; insert right timestamp
     (let ((erc-timestamp-only-if-changed-flag t)
 	  (erc-timestamp-last-inserted erc-timestamp-last-inserted-right))
