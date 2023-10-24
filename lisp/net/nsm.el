@@ -149,10 +149,11 @@ unencrypted."
     (dhe-prime-kx           medium)
     (sha1-sig               medium)
     (ecdsa-cbc-cipher       medium)
+    ;; Deprecated by NIST from 2016/2023 (see also CVE-2016-2183).
+    (3des-cipher            medium)
     ;; Towards TLS 1.3
     (dhe-kx                 high)
     (rsa-kx                 high)
-    (3des-cipher            high)
     (cbc-cipher             high))
   "This variable specifies what TLS connection checks to perform.
 It's an alist where the key is the name of the check, and the
@@ -169,13 +170,13 @@ otherwise.
 
 See also: `nsm-check-tls-connection', `nsm-save-host-names',
 `nsm-settings-file'"
-  :version "27.1"
   :type '(repeat (list (symbol :tag "Check function")
                        (choice :tag "Level"
                                :value medium
                                (const :tag "Low" low)
                                (const :tag "Medium" medium)
-                               (const :tag "High" high)))))
+                               (const :tag "High" high))))
+  :version "30.1")
 
 (defun nsm-save-fingerprint-maybe (host port status &rest _)
   "Save the certificate's fingerprint.

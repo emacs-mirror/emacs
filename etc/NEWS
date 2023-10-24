@@ -62,6 +62,12 @@ more details.
 
 ** Emacs now supports Unicode Standard version 15.1.
 
+** The Network Security Manager now warns about 3DES by default.
+This cypher is no longer recommended owing to a major vulnerability
+disclosed in 2016, and its small 112 bit key size.  Emacs now warns
+about its use also when 'network-security-level' is set to 'medium'
+(the default).  See 'network-security-protocol-checks'.
+
 ** Help
 
 *** 'describe-function' shows function inferred type when available.
