@@ -23,56 +23,56 @@ which is detailed here.
 @section Using Emacs on Touchscreens
 @cindex touchscreen input
 
-  Touchscreen input works by pressing and moving tools (which include
-fingers and some pointing devices--styluses, for example) onto a frame
-in order to manipulate its contents.
+  Touchscreen input is the manipulation of a frame's contents by the
+placement and motion of tools (instanced by fingers and such pointing
+devices as styluses) on a monitor or computer terminal where a frame
+is displayed.
 
-  When running under the X Window System or Android, Emacs
-automatically detects and maps the following sequences of movements
-(``gestures'') to common actions:
+  Under the X Window System or Android, Emacs detects and maps the
+following sequences of movements (``gestures'') to common actions:
 
 @itemize @bullet
 @item
 @cindex tapping, touchscreens
-  ``Tapping'', briefly placing and lifting a tool from the display,
-will result in Emacs selecting the window that was tapped, and
-executing any command bound to @code{mouse-1} at that location in the
-window.  If the tap happened on top of a link (@pxref{Mouse
-References}), then Emacs will follow the link instead.
-
-  If a command bound to @code{down-mouse-1} is bound to the location
-where the tap took place, Emacs will execute that command as well.
+  @dfn{Tapping}, briefly placing and lifting a tool from the display,
+will select the window that was tapped, and execute any command bound
+to @code{mouse-1} at that location in the window.  If a link
+(@pxref{Mouse References}) exists there, then Emacs will follow that
+link instead (insofar as such action differs from that taken upon the
+simulation of a @code{mouse-1} event).
 
 @item
 @cindex scrolling, touchscreens
-  ``Scrolling'', meaning to place a tool on the display and move it up
-or down, will result in Emacs scrolling the window contents in the
-direction where the tool moves.
-
-  If the tool is moved left or right, Emacs additionally scrolls the
-window horizontally to follow (@pxref{Horizontal Scrolling}.)
+@vindex touch-screen-enable-hscroll
+  @dfn{Scrolling}, which is continuous vertical or horizontal motion
+on the screen, will scroll the contents of the window beneath the
+tool's initial location in the direction of movement.  The user option
+@code{touch-screen-enable-hscroll} governs whether horizontal
+scrolling (@pxref{Horizontal Scrolling}) is performed in reaction to
+this gesture.
 
 @item
 @cindex dragging, touchscreens
 @cindex long-press, touchscreens
-  ``Dragging'', which is performing a @dfn{long-press} by placing a
-tool on the display and leaving it there for a while prior to moving
-the tool around will make Emacs set the point to where the tool was
-and begin selecting text under the tool as it moves around, as if
-@code{mouse-1} were to be held down.  @xref{Mouse Commands}.
+  @dfn{Dragging}, which is performing a @dfn{long-press} by placing a
+tool on the display and leaving it there awhile before moving it to
+another position, will move point to the tool's initial position, and
+commence selecting text under the tool as it continues its motion, as
+if @code{mouse-1} were to be held down and a mouse moved anologously.
+@xref{Mouse Commands}.
 
 @vindex touch-screen-word-select
 @cindex word selection mode, touchscreens
-  Some people find it difficult to position a tool accurately on a
-touch screen display, to the detriment of text selection.  The user
-option @code{touch-screen-word-select} enables ``word selection
-mode'', causing dragging to select the complete word, not only the
-character containing the position of the tool.
+  To the detriment of text selection, it can prove challenging to
+position a tool accurately on a touch screen display.  The user option
+@code{touch-screen-word-select}, which when enabled, prompts dragging
+to select the complete word under the tool.  (Normally, the selection
+is only extended to encompass the character beneath the tool.)
 
 @vindex touch-screen-extend-selection
 @cindex extending the selection, touchscreens
-  Similarly, it may be difficult to select all of the text intended
-within a single gesture.  If the user option
+  In the same vein, it may be difficult to select all of the text
+intended within a single gesture.  If the user option
 @code{touch-screen-extend-selection} is enabled, taps on the locations
 of the point or the mark within a window will begin a new ``drag''
 gesture, where the region will be extended in the direction of any
@@ -80,21 +80,19 @@ subsequent movement.
 
 @vindex touch-screen-preview-select
 @cindex previewing the region during selection, touchscreens
-  Difficulties in making accurate adjustments to the region can also
-be alleviated by indicating the position of the point relative to its
-containing line within the echo area, since the window cursor may be
-physically obscured by the tool.  If
+  Difficulties in making accurate adjustments to the region from the
+cursor being physically obscured by the tool can be mitigated by
+indicating the position of the point within the echo area.  If
 @code{touch-screen-preview-select} is non-@code{nil}, the line
-containing point is displayed in the echo area (@pxref{Echo Area})
-during the motion of the tool, followed by another line indicating the
-position of point within the first line.
+surrounding point is displayed in the echo area (@pxref{Echo Area})
+during the motion of the tool, below which is another line indicating
+the position of point relative to the first.
 @end itemize
 
 @vindex touch-screen-delay
-  By default, Emacs considers a tool as having been left on the
-display long enough to trigger a ``long-press'' after 0.7 seconds, but
-this can be changed by customizing the variable
-@code{touch-screen-delay}.
+  Emacs registers a long-press after the time a tool has been placed
+upon the screen exceeds 0.7 seconds.  This delay can be adjusted
+through customizing the variable @code{touch-screen-delay}.
 
 @node On-Screen Keyboards
 @section Using Emacs with Virtual Keyboards
