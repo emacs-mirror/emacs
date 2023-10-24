@@ -1272,7 +1272,11 @@ START, and END.  Note that START and END should be markers."
 
 (defun shr-heading (dom &rest types)
   (shr-ensure-paragraph)
-  (apply #'shr-fontize-dom dom types)
+  (let ((start (point))
+	(level (string-to-number
+		(string-remove-prefix "shr-h" (symbol-name (car types))))))
+   (apply #'shr-fontize-dom dom types)
+   (put-text-property start (pos-eol) 'outline-level level))
   (shr-ensure-paragraph))
 
 (defun shr-urlify (start url &optional title)
@@ -2068,6 +2072,41 @@ BASE is the URL of the HTML being rendered."
   (insert ?\N{FIRST STRONG ISOLATE})
   (shr-generic dom)
   (insert ?\N{POP DIRECTIONAL ISOLATE}))
+
+;;; Outline Support
+(defun shr-outline-search (&optional bound move backward looking-at)
+  "A function that can be used as `outline-search-function' for rendered html.
+See `outline-search-function' for BOUND, MOVE, BACKWARD and LOOKING-AT."
+  (if looking-at
+      (get-text-property (point) 'outline-level)
+    (let ((heading-found nil)
+	  (bound (or bound
+		     (if backward (point-min) (point-max)))))
+      (save-excursion
+	(when (and (not (bolp))
+		   (get-text-property (point) 'outline-level))
+	  (forward-line (if backward -1 1)))
+	(if backward
+	    (unless (get-text-property (point) 'outline-level)
+	      (goto-char (or (previous-single-property-change
+			      (point) 'outline-level nil bound)
+			     bound)))
+	  (goto-char (or (text-property-not-all (point) bound 'outline-level nil)
+			 bound)))
+	(goto-char (pos-bol))
+	(when (get-text-property (point) 'outline-level)
+	  (setq heading-found (point))))
+      (if heading-found
+	  (progn
+	    (set-match-data (list heading-found heading-found))
+	    (goto-char heading-found))
+	(when move
+	  (goto-char bound)
+	  nil)))))
+
+(defun shr-outline-level ()
+  "Function to be used as `outline-level' with `shr-outline-search'."
+  (get-text-property (point) 'outline-level))
 
 ;;; Table rendering algorithm.
 
