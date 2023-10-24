@@ -187,6 +187,24 @@ Should be a non-positive float number between 0 and 1."
   :version "30.1"
   :type 'integer)
 
+(defcustom shr-max-inline-image-size nil
+  "If non-nil, determines when the images can be displayed inline.
+If nil, images are never displayed inline.
+
+It non-nil, it should be cons (WIDTH . HEIGHT).
+
+WIDTH can be an integer which is interpreted as number of pixels.  If the width
+of an image exceeds this amount, the image is displayed on a separate line.
+WIDTH can also be floating point number, in which case the image is displayed
+inline if it occupies less than this fraction of window width.
+
+HEIGHT can be also be an integer or a floating point number.  If it is an
+integer and the pixel height of an image exceeds it, the image image is
+displyed on a separate line.  If it is a float number , the limit is
+interpreted as a multiple of the height of default font."
+  :version "30.1"
+  :type '(choice (const nil) (cons number number)))
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -721,7 +739,8 @@ size, and full-buffer size."
     (replace-match " " t t)))
 
 (defun shr-insert (text)
-  (when (and (not (bolp))
+  (when (and (not shr-max-inline-image-size)
+	     (not (bolp))
 	     (get-text-property (1- (point)) 'image-url))
     (insert "\n"))
   (cond
@@ -1073,6 +1092,19 @@ the mouse click event."
 (declare-function image-size "image.c" (spec &optional pixels frame))
 (declare-function image-animate "image" (image &optional index limit position))
 
+(defun shr--inline-image-p (image)
+  "Return non-nil if IMAGE should be displayed inline."
+  (when shr-max-inline-image-size
+    (let ((size (image-size image t))
+	  (max-width (car shr-max-inline-image-size))
+	  (max-height (cdr shr-max-inline-image-size)))
+      (unless (integerp max-width)
+	(setq max-width (* max-width (window-width nil t))))
+      (unless (integerp max-height)
+	(setq max-height (* max-height (frame-char-height))))
+      (and (< (car size) max-width)
+	   (< (cdr size) max-height)))))
+
 (defun shr-put-image (spec alt &optional flags)
   "Insert image SPEC with a string ALT.  Return image.
 SPEC is either an image data blob, or a list where the first
@@ -1103,19 +1135,25 @@ element is the data blob and the second element is the content-type."
                                            (plist-get flags :width)
                                            (plist-get flags :height)))))))
         (when image
+          ;; The trailing space can confuse shr-insert into not
+          ;; putting any space after inline images.
+	  (setq alt (string-trim alt))
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
-	  (when (and (> (current-column) 0)
-		     (> (car (image-size image t)) 400))
-	    (insert "\n"))
-          (let ((image-pos (point)))
-	    (if (eq size 'original)
-	        (insert-sliced-image image (or alt "*") nil 20 1)
-	      (insert-image image (or alt "*")))
-	    (put-text-property start (point) 'image-size size)
-	    (when (and shr-image-animate
-                       (cdr (image-multi-frame-p image)))
-              (image-animate image nil 60 image-pos))))
+	  (let ((inline (shr--inline-image-p image)))
+	    (when (and (> (current-column) 0)
+		     (not inline))
+		(insert "\n"))
+	    (let ((image-pos (point)))
+	      (if (eq size 'original)
+		  (insert-sliced-image image (or alt "*") nil 20 1)
+		(insert-image image (or alt "*")))
+	      (put-text-property start (point) 'image-size size)
+	      (when (and (not inline) shr-max-inline-image-size)
+		(insert "\n"))
+	      (when (and shr-image-animate
+			 (cdr (image-multi-frame-p image)))
+		(image-animate image nil 60 image-pos)))))
 	image)
     (insert (or alt ""))))
 
@@ -1676,7 +1714,8 @@ The preference is a float determined from `shr-prefer-media-type'."
 	    (and dom
 		 (or (> (length (dom-attr dom 'src)) 0)
                      (> (length (dom-attr dom 'srcset)) 0))))
-    (when (> (current-column) 0)
+    (when (and (not shr-max-inline-image-size)
+	       (> (current-column) 0))
       (insert "\n"))
     (let ((alt (dom-attr dom 'alt))
           (width (shr-string-number (dom-attr dom 'width)))
@@ -1727,8 +1766,14 @@ The preference is a float determined from `shr-prefer-media-type'."
           (when (image-type-available-p 'svg)
             (insert-image
              (shr-make-placeholder-image dom)
-             (or alt "")))
-          (insert " ")
+             (or (string-trim alt) "")))
+	  ;; Paradoxically this space causes shr not to insert spaces after
+	  ;; inline images. Since the image is temporary it seem like there
+	  ;; should be no downside to not inserting it but since I don't
+	  ;; understand the code well and for the sake of backward compatibility
+	  ;; we preserve it unless user has set `shr-max-inline-image-size'.
+          (unless shr-max-inline-image-size
+	      (insert " "))
 	  (url-queue-retrieve
            url #'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (point))
