@@ -4053,10 +4053,20 @@ under X, and @xref{Other Selections} for those elsewhere.
 @end defun
 
 @defopt selection-coding-system
-This variable specifies the coding system to use when reading and
-writing selections or the clipboard.  @xref{Coding
-Systems}.  The default is @code{compound-text-with-extensions}, which
-converts to the text representation that X11 normally uses.
+This variable provides a coding system (@pxref{Coding Systems}) which
+is used to encode selection data, and takes effect on MS-DOS,
+MS-Windows and X@.
+
+Under MS-DOS and MS-Windows, it is the coding system by which all
+clipboard text will be encoded and decoded, whereas on X it merely
+supplies the EOL format of the selection text sent in response to a
+request for text encoded by a matching coding system; which is to say
+that if its value is @code{utf-8-dos}, it will influence requests for
+@code{UTF8_STRING} data, but not those for @code{STRING}.
+
+Its default value is the system code page under MS-Windows 95, 98 or
+Me, @code{utf-16le-dos} under NT/W2K/XP, @code{iso-latin-1-dos} on
+MS-DOS, and @code{nil} elsewhere.
 @end defopt
 
 For backward compatibility, there are obsolete aliases
@@ -4810,10 +4820,10 @@ selection name such as @code{UTF8_STRING}.
 @cindex direct save protocol
 @vindex x-dnd-direct-save-function
   The X Direct Save (@acronym{XDS}) protocol enables programs to
-devolve responsibility for naming a dropped file file upon the
-recipient.  When such a drop transpires, DND handlers and the
-foregoing X-specific interface are largely circumvented, tasking a
-different function with responding to the drop.
+devolve responsibility for naming a dropped file upon the recipient.
+When such a drop transpires, DND handlers and the foregoing X-specific
+interface are largely circumvented, tasking a different function with
+responding to the drop.
 
 @defvar x-dnd-direct-save-function
 This variable should be set to a function that registers and names
