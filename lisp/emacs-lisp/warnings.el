@@ -106,6 +106,7 @@ so only the element (FOO) will match it."
   :type '(repeat (repeat symbol))
   :version "22.1")
 
+;;;###autoload
 (defcustom warning-suppress-types nil
   "List of warning types not to display immediately.
 If any element of this list matches the TYPE argument to `display-warning',
