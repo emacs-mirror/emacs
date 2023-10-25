@@ -978,6 +978,11 @@ For links in 'webjump-sites' without an explicit URI scheme, it was
 previously assumed that they should be prefixed with "http://".  Such
 URIs are now prefixed with "https://" instead.
 
+---
+*** 'bug-reference-mode' now supports 'thing-at-point'.
+Now, calling '(thing-at-point 'url)' when point is on a bug reference
+will return the URL for that bug.
+
 ** Customize
 
 +++
