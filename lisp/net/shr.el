@@ -1451,6 +1451,13 @@ ones, in case fg and bg are nil."
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-sub (dom)
+  ;; Why would a subscript be at the beginning of a line?  It does
+  ;; happen sometimes because of a <br> tag and the intent seems to be
+  ;; alignment of subscript and superscript but I don't think that is
+  ;; possible in Emacs.  So we remove the newline in that case.
+  (when (bolp)
+    (forward-char -1)
+    (delete-char 1))
   (let ((start (point)))
     (shr-generic dom)
     (put-text-property start (point) 'display `(raise ,shr-sub-raise-factor))
