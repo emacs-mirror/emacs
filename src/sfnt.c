@@ -14116,7 +14116,7 @@ sfnt_compute_tuple_scale (struct sfnt_blend *blend, bool intermediate_p,
       if (intermediate_p)
 	{
 	  start = intermediate_start[i] * 4;
-	  end = intermediate_start[i] * 4;
+	  end = intermediate_end[i] * 4;
 	}
 
       /* Ignore tuples that can be skipped.  */
@@ -14669,7 +14669,7 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
     coords = alloca (gvar->axis_count * sizeof *coords * 3);
 
   intermediate_start = coords + gvar->axis_count;
-  intermediate_end = coords + gvar->axis_count;
+  intermediate_end = intermediate_start + gvar->axis_count;
 
   /* Allocate arrays of booleans and fwords to keep track of which
      points have been touched.  */
@@ -15041,7 +15041,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
     coords = alloca (gvar->axis_count * sizeof *coords * 3);
 
   intermediate_start = coords + gvar->axis_count;
-  intermediate_end = coords + gvar->axis_count;
+  intermediate_end = intermediate_start + gvar->axis_count;
 
   while (ntuples--)
     {
