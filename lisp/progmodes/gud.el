@@ -3905,7 +3905,8 @@ so they have been disabled."))
       ;; can delete parts of it.
       (setq string (concat (buffer-substring-no-properties bol (point))
                            string))
-      (delete-region bol (point))))
+      (let ((inhibit-read-only t))
+        (delete-region bol (point)))))
   (let ((ofs 0))
     (while (string-match (rx (group (* (not (in "\e\n"))))  ; preceding chars
                              "\e["                          ; CSI
@@ -3926,12 +3927,13 @@ so they have been disabled."))
                             0)))
                 ;; Erase in display (ED): no further action.
                 prefix-end)))
+        ;; Delete the control sequence and possibly part of the preceding chars.
         (setq string (concat (substring string 0 keep-end)
                              (substring string end)))
         (setq ofs start))))
   string)
 
-;; According to SBCommanInterpreter.cpp, the return value of
+;; According to SBCommandInterpreter.cpp, the return value of
 ;; HandleCompletions is as follows:
 ;;
 ;; Index 1 to the end contain all the completions.
