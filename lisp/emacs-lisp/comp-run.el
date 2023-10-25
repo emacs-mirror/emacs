@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 (require 'warnings)
 
 (defgroup comp-run nil
@@ -209,7 +209,7 @@ LOAD and SELECTOR work as described in `native--compile-async'."
       ;; any of the regexps in
       ;; `native-comp-jit-compilation-deny-list' matches.
       (and (eq load 'late)
-           (cl-some (lambda (re)
+           (seq-some (lambda (re)
                       (string-match-p re file))
                     native-comp-jit-compilation-deny-list))))
 
@@ -433,14 +433,18 @@ bytecode definition was not changed in the meantime)."
             (t (signal 'native-compiler-error
                        (list "Not a file nor directory" file-or-dir)))))
     (dolist (file file-list)
-      (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
+      (if-let ((entry (seq-find (lambda (x) (string= file (car x))) comp-files-queue)))
           ;; Most likely the byte-compiler has requested a deferred
           ;; compilation, so update `comp-files-queue' to reflect that.
           (unless (or (null load)
                       (eq load (cdr entry)))
             (setf comp-files-queue
-                  (cl-substitute (cons file load) (car entry) comp-files-queue
-                                 :key #'car :test #'string=)))
+                  (cl-loop for i in comp-files-queue
+                           with old = (car entry)
+                           if (string= (car i) old)
+                             collect (cons file load)
+                           else
+                             collect i)))
 
         (unless (native-compile-async-skip-p file load selector)
           (let* ((out-filename (comp-el-to-eln-filename file))
