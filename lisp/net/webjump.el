@@ -123,7 +123,7 @@ external browser like IceCat."
     ;; Misc. general interest.
     ("National Weather Service" . webjump-to-iwin)
     ("Usenet FAQs" .
-     "www.faqs.org/faqs/")
+     "http://www.faqs.org/faqs/")
     ("RTFM Usenet FAQs by Group" .
      "ftp://rtfm.mit.edu/pub/usenet-by-group/")
     ("RTFM Usenet FAQs by Hierarchy" .
@@ -132,7 +132,7 @@ external browser like IceCat."
 
     ;; Computer social issues, privacy, professionalism.
     ("Association for Computing Machinery" . "www.acm.org")
-    ("Computer Professionals for Social Responsibility" . "www.cpsr.org")
+    ("Computer Professionals for Social Responsibility" . "http://www.cpsr.org")
     ("Electronic Frontier Foundation" . "www.eff.org")
     ("IEEE Computer Society" . "www.computer.org")
     ("Risks Digest" . webjump-to-risks)
@@ -194,7 +194,7 @@ If the symbol of a function is given, then the function will be called with the
 Web site name (the one you specified in the CAR of the alist cell) as a
 parameter.  This might come in handy for various kludges.
 
-For convenience, if the `http://', `ftp://', or `file://' prefix is missing
+For convenience, if the `https://', `ftp://', or `file://' prefix is missing
 from a URL, WebJump will make a guess at what you wanted and prepend it before
 submitting the URL."
   :type '(alist :key-type (string :tag "Name")
@@ -369,9 +369,11 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
       ((string-match "^[a-zA-Z]+:" url) url)
       ((string-match "^/" url) (concat "file://" url))
       ((string-match "^\\([^\\./]+\\)" url)
+       ;; FIXME: ftp.gnu.org and many others now prefer HTTPS instead
+       ;;        of FTP.  Does this heuristic make sense these days?
        (concat (if (string= (downcase (match-string 1 url)) "ftp")
 		   "ftp"
-		 "http")
+                 "https")
 	       "://"
 	       url))
       (t url)))))

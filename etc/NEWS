@@ -922,6 +922,14 @@ When this is non-nil, the lines of key sequences are displayed with
 the most recent line first.  This is can be useful when working with
 macros with many lines, such as from 'kmacro-edit-lossage'.
 
+** Miscellaneous
+
+---
+*** Webjump now assumes URIs are HTTPS instead of HTTP.
+For links in 'webjump-sites' without an explicit URI scheme, it was
+previously assumed that they should be prefixed with "http://".  Such
+URIs are now prefixed with "https://" instead.
+
 
 * New Modes and Packages in Emacs 30.1
 
