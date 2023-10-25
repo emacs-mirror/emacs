@@ -25,11 +25,12 @@ which is detailed here.
 
   Touchscreen input is the manipulation of a frame's contents by the
 placement and motion of tools (instanced by fingers and such pointing
-devices as styluses) on a monitor or computer terminal where a frame
-is displayed.
+devices as styluses) on a monitor or computer terminal where it is
+displayed.
 
-  Under the X Window System or Android, Emacs detects and maps the
-following sequences of movements (``gestures'') to common actions:
+  Under the X Window System or Android, Emacs detects and translates
+the following sequences of movements (@dfn{gestures}) to common
+actions:
 
 @itemize @bullet
 @item
@@ -58,7 +59,7 @@ this gesture.
 tool on the display and leaving it there awhile before moving it to
 another position, will move point to the tool's initial position, and
 commence selecting text under the tool as it continues its motion, as
-if @code{mouse-1} were to be held down and a mouse moved anologously.
+if @code{mouse-1} were to be held down and a mouse moved analogously.
 @xref{Mouse Commands}.
 
 @vindex touch-screen-word-select

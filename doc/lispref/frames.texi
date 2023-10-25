@@ -4670,10 +4670,17 @@ startup (@emph{not} a timestamp), and that for the other is a vector
 of available selection data types, as elsewhere.
 
 @cindex Android selections
-  Under Android, @code{gui-get-selection} is capable of returning
-UTF-8 string data of the type @code{STRING}, or image and application
-data associated with a MIME type.  @code{gui-set-selection} will only
-set string data, as on MS-Windows.
+  Much like MS-Windows, Android provides a clipboard but no primary or
+secondary selection; @code{gui-set-selection} simulates the primary
+selection by saving the value supplied into a variable subsequent
+calls to @code{gui-get-selection} return.
+
+  From the clipboard, @code{gui-get-selection} is capable of returning
+UTF-8 string data of the type @code{STRING}, the @code{TAREGTS} data
+type, or image and application data of any MIME type.
+@code{gui-set-selection} sets only string data, much as under
+MS-Windows, although this data is not affected by the value of
+@code{selection-coding-system}.
 
 @node Yanking Media
 @section Yanking Media
