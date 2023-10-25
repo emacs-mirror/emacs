@@ -7753,7 +7753,7 @@
 	* textmodes/remember.el (remember-buffer):
 	Use define-obsolete-function-alias rather than defalias.
 
-2007-11-03  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+2007-11-03  Ulrich Müller  <ulm@gentoo.org>  (tiny change)
 
 	* simple.el (bad-packages-alist): Anchor semantic regexp.
 
@@ -12516,7 +12516,7 @@
 	* net/tramp-ftp.el (top): Autoload `tramp-set-connection-property'.
 	(tramp-ftp-file-name-handler): Set "started" property.
 
-2007-08-24  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+2007-08-24  Ulrich Müller  <ulm@gentoo.org>  (tiny change)
 
 	* files.el (backup-buffer-copy): Don't wrap delete in
 	condition-case, only try to delete if file exists.

@@ -39,7 +39,7 @@
 	* language/korean.el (korean-cp949): New coding system.  Set cp949
 	as an alias to it.
 
-2009-06-18  Ulrich Mueller  <ulm@gentoo.org>
+2009-06-18  Ulrich Müller  <ulm@gentoo.org>
 
 	* pgg-gpg.el (pgg-gpg-lookup-key-owner): Handle colon listings
 	format used by GnuPG 2.0.11.
@@ -459,7 +459,7 @@
 
 	* subr.el (assoc-default): Doc fix.
 
-2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
+2009-04-29  Ulrich Müller  <ulm@gentoo.org>
 
 	* files.el (hack-local-variables-prop-line)
 	(hack-local-variables, dir-locals-read-from-file):
@@ -3281,7 +3281,7 @@
 	(ispell-find-aspell-dictionaries): Better error message.  Use correct
 	dictionary alist for default.  Better fallback default dictionary.
 
-2009-01-16  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2009-01-16  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* international/quail.el (quail-insert-kbd-layout):
 	Delete superfluous handling of 8-bit code.  (Bug#1418)
@@ -3736,7 +3736,7 @@
 
 	* simple.el (visual-line-mode-map): Remove M-[ and M-] bindings.
 
-2009-01-04  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2009-01-04  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* progmodes/sh-script.el (sh-ancestor-alist): Doc fix.
 
@@ -4380,7 +4380,7 @@
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/tramp.el (top): Don't fail if there is no current message.
-	[Ulrich Mueller sent a patch, which I saw too late.]  (Bug#1514)
+	[Ulrich Müller sent a patch, which I saw too late.]  (Bug#1514)
 
 2008-12-10  Kenichi Handa  <handa@m17n.org>
 
@@ -5317,7 +5317,7 @@
 	(math-standard-units): Fix typo in constant's description.
 	(math-additional-units): Fix typo in docstring.
 
-2008-11-19  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2008-11-19  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* calc/calc-units.el (math-standard-units): Add eps0,
 	permittivity of vacuum.
@@ -6087,7 +6087,7 @@
 
 	* progmodes/gud.el (gud-tooltip-mode): Use `tooltip-functions'.
 
-2008-10-29  Ulrich Mueller  <ulm@gentoo.org>
+2008-10-29  Ulrich Müller  <ulm@gentoo.org>
 
 	* server.el (server-socket-dir): Use TMPDIR (default /tmp) instead
 	of hardcoded /tmp.
@@ -6284,7 +6284,7 @@
 
 	* pcmpl-rpm.el (pcomplete/rpm): Make "rpm -qp" use file completion.
 
-2008-10-23  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2008-10-23  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* international/mule-cmds.el (describe-language-environment):
 	Indent sample text.
@@ -7198,7 +7198,7 @@
 	* play/fortune.el (fortune-program-options): Change to a list.
 	(fortune-in-buffer): Use apply.
 
-2008-09-20  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2008-09-20  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* emacs-lisp/authors.el: Change encoding of file to utf-8.
 	(authors-coding-system): Likewise.
