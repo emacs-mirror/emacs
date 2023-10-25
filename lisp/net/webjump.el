@@ -1,6 +1,6 @@
 ;;; webjump.el --- programmable Web hotlist  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author:     Neil W. Van Dyke <nwv@acm.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -262,33 +262,22 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 		(completing-read "WebJump to site: " webjump-sites nil t)
 		webjump-sites t))
 	 (name (car item))
-	 (expr (cdr item)))
-    (if webjump-use-internal-browser
-        (browse-url-with-browser-kind
-         'internal (webjump-url-fix
-                    (cond ((not expr) "")
-                          ((stringp expr) expr)
-                          ((vectorp expr) (webjump-builtin expr name))
-                          ((listp expr) (eval expr t))
-                          ((symbolp expr)
-                           (if (fboundp expr)
-                               (funcall expr name)
-                             (error "WebJump URL function \"%s\" undefined"
-                                    expr)))
-                          (t (error "WebJump URL expression for \"%s\" invalid"
-                                    name)))))
-      (browse-url (webjump-url-fix
-                   (cond ((not expr) "")
-                         ((stringp expr) expr)
-                         ((vectorp expr) (webjump-builtin expr name))
-                         ((listp expr) (eval expr t))
-                         ((symbolp expr)
-                          (if (fboundp expr)
-                              (funcall expr name)
-                            (error "WebJump URL function \"%s\" undefined"
-                                   expr)))
-                         (t (error "WebJump URL expression for \"%s\" invalid"
-                                   name))))))))
+         (expr (cdr item))
+         (fun (if webjump-use-internal-browser
+                  (apply-partially #'browse-url-with-browser-kind 'internal)
+                #'browse-url)))
+    (funcall fun (webjump-url-fix
+                  (cond ((not expr) "")
+                        ((stringp expr) expr)
+                        ((vectorp expr) (webjump-builtin expr name))
+                        ((listp expr) (eval expr t))
+                        ((symbolp expr)
+                         (if (fboundp expr)
+                             (funcall expr name)
+                           (error "WebJump URL function \"%s\" undefined"
+                                  expr)))
+                        (t (error "WebJump URL expression for \"%s\" invalid"
+                                  name)))))))
 
 (defun webjump-builtin (expr name)
   (if (< (length expr) 1)
