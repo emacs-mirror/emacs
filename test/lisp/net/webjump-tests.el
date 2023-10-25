@@ -58,7 +58,7 @@
 (ert-deftest webjump-tests-url-fix ()
   (should (equal (webjump-url-fix nil) ""))
   (should (equal (webjump-url-fix "/tmp/") "file:///tmp/"))
-  (should (equal (webjump-url-fix "gnu.org") "http://gnu.org/"))
+  (should (equal (webjump-url-fix "gnu.org") "https://gnu.org/"))
   (should (equal (webjump-url-fix "ftp.x.org") "ftp://ftp.x.org/"))
   (should (equal (webjump-url-fix "https://gnu.org")
                  "https://gnu.org/")))
