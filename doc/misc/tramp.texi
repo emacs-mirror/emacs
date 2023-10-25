@@ -5888,20 +5888,23 @@ wrapping the timer function body as follows:
 to 10.  @value{tramp} does not display all messages; only those with a
 verbosity level less than or equal to @code{tramp-verbose}.
 
+@noindent
 The verbosity levels are
 
-          @w{ 0}  silent (no @value{tramp} messages at all)
-@*@indent @w{ 1}  errors
-@*@indent @w{ 2}  warnings
-@*@indent @w{ 3}  connection to remote hosts (default verbosity)
-@*@indent @w{ 4}  activities
-@*@indent @w{ 5}  internal
-@*@indent @w{ 6}  sent and received strings
-@*@indent @w{ 7}  connection properties
-@*@indent @w{ 8}  file caching
-@*@indent @w{ 9}  test commands
-@*@indent @w{10}  traces (huge)
-@*@indent @w{11}  call traces (maintainer only)
+@indentedblock
+   @w{ 0}  silent (no @value{tramp} messages at all)
+@* @w{ 1}  errors
+@* @w{ 2}  warnings
+@* @w{ 3}  connection to remote hosts (default verbosity)
+@* @w{ 4}  activities
+@* @w{ 5}  internal
+@* @w{ 6}  sent and received strings
+@* @w{ 7}  connection properties
+@* @w{ 8}  file caching
+@* @w{ 9}  test commands
+@* @w{10}  traces (huge)
+@* @w{11}  call traces (maintainer only)
+@end indentedblock
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
@@ -5951,7 +5954,7 @@ this option with care, because it could decrease the performance of
 @value{tramp} actions.
 
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
-function call traces are written to the buffer @file{*trace-output*}.
+function call traces are written to a @value{tramp} trace buffer.
 
 
 @node GNU Free Documentation License
