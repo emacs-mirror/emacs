@@ -1279,6 +1279,13 @@ with Emacs.
 If non-nil, this variable contains a keymap of menu items that are
 displayed along tool bar items inside 'tool-bar-map'.
 
+** New variable 'completion-lazy-hilit'.
+Completion-presenting frontends may bind this variable non-nil around
+calls to functions such as `completion-all-completions'.  This hints
+at the underlying completion styles to skip eager fontification of
+completion candidates, which increases performance.  Frontends then
+use the 'completion-lazy-hilit' function to fontify just in time.
+
 ** Functions and variables to transpose sexps
 
 +++
