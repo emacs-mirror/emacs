@@ -119,28 +119,20 @@ may be nil, is the number of lines between `window-start' and
   "Commands to skip instead of force-scroll on `post-command-hook'.")
 
 (defun erc--scrolltobottom-on-post-command ()
-  "Restore window start or scroll to prompt and recenter.
-When `erc--scrolltobottom-window-info' is non-nil and its first
-item is associated with the selected window, restore start of
-window so long as prompt hasn't moved.  Expect buffer to be
-unnarrowed."
+  "Scroll selected window unless `this-command' is exempted."
   (when (eq (selected-window) (get-buffer-window))
     (unless (memq this-command erc--scrolltobottom-post-ignore-commands)
-      (erc--scrolltobottom-confirm))
-    (setq erc--scrolltobottom-window-info nil)))
+      (setq erc--scrolltobottom-window-info nil)
+      (erc--scrolltobottom-confirm))))
 
 ;; It may be desirable to also restore the relative line position of
 ;; window point after changing dimensions.  Perhaps stashing the
 ;; previous ratio of window line to body height and later recentering
 ;; proportionally would achieve this.
-(defun erc--scrolltobottom-at-prompt-minibuffer-active ()
+(defun erc--scrolltobottom-on-win-conf-change ()
   "Scroll window to bottom when at prompt and using the minibuffer."
-  ;; This is redundant or ineffective in the selected window if at
-  ;; prompt or if only one window exists.
-  (unless (or (input-pending-p)
-              (and (minibuffer-window-active-p (minibuffer-window))
-                   (eq (old-selected-window) (minibuffer-window))))
-    (erc--scrolltobottom-confirm)))
+  (setq erc--scrolltobottom-window-info nil)
+  (erc--scrolltobottom-confirm))
 
 (defun erc--scrolltobottom-all (&rest _)
   "Maybe put prompt on last line in all windows displaying current buffer.
@@ -176,17 +168,20 @@ function used `window-scroll-functions', which was replaced by
       (if erc-scrolltobottom-all
           (progn
             (setq-local read-minibuffer-restore-windows nil)
+            (when (zerop scroll-conservatively)
+              (setq-local scroll-step 1))
             (unless (eq erc-scrolltobottom-all 'relaxed)
               (add-hook 'window-configuration-change-hook
-                        #'erc--scrolltobottom-at-prompt-minibuffer-active 50 t)
+                        #'erc--scrolltobottom-on-win-conf-change 50 t)
               (add-hook 'post-command-hook
                         #'erc--scrolltobottom-on-post-command 50 t)))
         (add-hook 'post-command-hook #'erc-scroll-to-bottom nil t))
     (remove-hook 'post-command-hook #'erc-scroll-to-bottom t)
     (remove-hook 'post-command-hook #'erc--scrolltobottom-on-post-command t)
     (remove-hook 'window-configuration-change-hook
-                 #'erc--scrolltobottom-at-prompt-minibuffer-active t)
+                 #'erc--scrolltobottom-on-win-conf-change t)
     (kill-local-variable 'read-minibuffer-restore-windows)
+    (kill-local-variable 'scroll-step)
     (kill-local-variable 'erc--scrolltobottom-window-info)))
 
 (defun erc--scrolltobottom-on-pre-insert (_)
