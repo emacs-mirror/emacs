@@ -1355,6 +1355,7 @@ See also \\[mh-mh-to-mime]."
     ("ftp")             ; RFC2046 File Transfer Protocol
     ("gopher")          ; RFC1738 The Gopher Protocol
     ("http")            ; RFC1738 Hypertext Transfer Protocol
+    ("https")           ; RFC2818 HTTP Over TLS
     ("local-file")      ; RFC2046 Local file access
     ("mail-server")     ; RFC2046 mail-server Electronic mail address
     ("mailto")          ; RFC1738 Electronic mail address
