@@ -1,4 +1,3 @@
-Language: Cpp
 BasedOnStyle: GNU
 AlignEscapedNewlinesLeft: true
 AlignOperands: Align
@@ -35,6 +34,10 @@ PenaltyBreakBeforeFirstCallParameter: 2000
 SpaceAfterCStyleCast: true
 SpaceBeforeParens: Always
 UseTab: Always
+---
+Language: Cpp
+---
+Language: ObjC
 
 # Local Variables:
 # mode: yaml

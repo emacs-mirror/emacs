@@ -24676,7 +24676,7 @@
 	* frame.el (display-monitor-attributes-list): Add NS case.
 	(ns-display-monitor-attributes-list): Declare.
 
-2013-05-09  Ulrich Mueller  <ulm@gentoo.org>
+2013-05-09  Ulrich Müller  <ulm@gentoo.org>
 
 	* descr-text.el (describe-char): Fix %d/%x typo.  (Bug#14360)
 

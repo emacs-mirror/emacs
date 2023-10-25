@@ -118,7 +118,68 @@ treated literally, as a backslash and a newline."
      (format "echo #<buffer %s>" (buffer-name))
      (current-buffer))))
 
-(ert-deftest esh-arg-test/special-reference/special ()
+(ert-deftest esh-arg-test/special-reference/marker ()
+  "Test that \"#<marker N buf>\" refers to a marker in the buffer \"buf\"."
+  (with-temp-buffer
+    (rename-buffer "my-buffer" t)
+    (insert "hello")
+    (let ((marker (make-marker)))
+      (set-marker marker 1 (current-buffer))
+      (eshell-command-result-equal
+       (format "echo #<marker 1 %s>" (buffer-name))
+       marker))))
+
+(ert-deftest esh-arg-test/special-reference/quoted ()
+  "Test that '#<buffer \"foo bar\">' refers to the buffer \"foo bar\"."
+  (with-temp-buffer
+    (rename-buffer "foo bar" t)
+    (eshell-command-result-equal
+     (format "echo #<buffer \"%s\">" (buffer-name))
+     (current-buffer))
+    (eshell-command-result-equal
+     (format "echo #<buffer '%s'>" (buffer-name))
+     (current-buffer))))
+
+(ert-deftest esh-arg-test/special-reference/nested ()
+  "Test that nested special references work correctly."
+  (with-temp-buffer
+    (rename-buffer "my-buffer" t)
+    (insert "hello")
+    (let ((marker (make-marker)))
+      (set-marker marker 1 (current-buffer))
+      (eshell-command-result-equal
+       (format "echo #<marker 1 #<%s>>" (buffer-name))
+       marker)
+      (eshell-command-result-equal
+       (format "echo #<marker 1 #<buffer %s>>" (buffer-name))
+       marker))))
+
+(ert-deftest esh-arg-test/special-reference/var-expansion ()
+  "Test that variable expansion inside special references works."
+  (with-temp-buffer
+    (rename-buffer "my-buffer" t)
+    (let ((eshell-test-value (buffer-name)))
+      (eshell-command-result-equal
+       "echo #<buffer $eshell-test-value>"
+       (current-buffer))
+      (eshell-command-result-equal
+       "echo #<buffer \"$eshell-test-value\">"
+       (current-buffer)))))
+
+(ert-deftest esh-arg-test/special-reference/lisp-form ()
+  "Test that Lisp forms inside special references work."
+  (with-temp-eshell
+   (let ((marker (make-marker))
+         eshell-test-value)
+     (set-marker marker 1 (current-buffer))
+     (eshell-insert-command
+      "setq eshell-test-value #<marker 1 (current-buffer)>")
+     (should (equal eshell-test-value marker))
+     (eshell-insert-command
+      "setq eshell-test-value #<marker 1 #<buffer (buffer-name)>>")
+     (should (equal eshell-test-value marker)))))
+
+(ert-deftest esh-arg-test/special-reference/special-characters ()
   "Test that \"#<...>\" works correctly when escaping special characters."
   (with-temp-buffer
     (rename-buffer "<my buffer>" t)

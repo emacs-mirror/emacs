@@ -55,7 +55,9 @@
                              "temp\\([^>]\\|\\'\\)" temp
                              (string-replace
                               "#<buffer temp>"
-                              (concat "#<buffer " (buffer-name temp-buffer) ">")
+                              (format "#<buffer %s>"
+                                      (eshell-quote-argument
+                                       (buffer-name temp-buffer)))
                               input))))
                        ,@body)
                    (when (buffer-name temp-buffer)
@@ -110,7 +112,7 @@
    '(progn
       (ignore
        (eshell-set-output-handle 1 'overwrite
-				 (get-buffer-create "temp")))
+				 (eshell-get-buffer "temp")))
       (eshell-named-command "sh"
 			    (list "-c" "echo \"bar\" | rev"))))
   (with-substitute-for-temp
@@ -133,7 +135,7 @@
    '(progn
       (ignore
        (eshell-set-output-handle 1 'overwrite
-				 (get-buffer-create "quux")))
+				 (eshell-get-buffer "quux")))
       (ignore
        (eshell-set-output-handle 1 'append
 				 (get-process "other")))

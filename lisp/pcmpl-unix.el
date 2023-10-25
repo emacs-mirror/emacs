@@ -685,6 +685,14 @@ Includes files as well as host names followed by a colon."
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
 
+;;;###autoload
+(defun pcomplete/doas ()
+  "Completion for the `doas' command."
+  (pcomplete-opt "C(pcomplete-entries)Lnsu(pcmpl-unix-user-names)")
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+               pcomplete-default-completion-function)))
+
 (provide 'pcmpl-unix)
 
 ;;; pcmpl-unix.el ends here

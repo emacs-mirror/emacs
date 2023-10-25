@@ -687,9 +687,17 @@ android_handle_ime_event (union android_event *event, struct frame *f)
     {
     case ANDROID_IME_COMMIT_TEXT:
     case ANDROID_IME_SET_COMPOSING_TEXT:
+    case ANDROID_IME_REPLACE_TEXT:
       text = android_decode_utf16 (event->ime.text,
 				   event->ime.length);
       xfree (event->ime.text);
+
+      /* Return should text be long enough that it overflows ptrdiff_t.
+	 Such circumstances are detected within android_decode_utf16.  */
+
+      if (NILP (text))
+	return;
+
       break;
 
     default:
@@ -772,6 +780,12 @@ android_handle_ime_event (union android_event *event, struct frame *f)
 
     case ANDROID_IME_REQUEST_CURSOR_UPDATES:
       android_request_cursor_updates (f, event->ime.length);
+      break;
+
+    case ANDROID_IME_REPLACE_TEXT:
+      replace_text (f, event->ime.start, event->ime.end,
+		    text, event->ime.position,
+		    event->ime.counter);
       break;
     }
 }
@@ -1692,6 +1706,45 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       goto OTHER;
 
+    case ANDROID_DND_DRAG_EVENT:
+
+      if (!any)
+	goto OTHER;
+
+      /* Generate a drag and drop event to convey its position.  */
+      inev.ie.kind = DRAG_N_DROP_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.timestamp = ANDROID_CURRENT_TIME;
+      XSETINT (inev.ie.x, event->dnd.x);
+      XSETINT (inev.ie.y, event->dnd.y);
+      inev.ie.arg = Fcons (inev.ie.x, inev.ie.y);
+      goto OTHER;
+
+    case ANDROID_DND_URI_EVENT:
+    case ANDROID_DND_TEXT_EVENT:
+
+      if (!any)
+	{
+	  free (event->dnd.uri_or_string);
+	  goto OTHER;
+	}
+
+      /* An item was dropped over ANY, and is a file in the form of a
+	 content or file URI or a string to be inserted.  Generate an
+	 event with this information.  */
+
+      inev.ie.kind = DRAG_N_DROP_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.timestamp = ANDROID_CURRENT_TIME;
+      XSETINT (inev.ie.x, event->dnd.x);
+      XSETINT (inev.ie.y, event->dnd.y);
+      inev.ie.arg = Fcons ((event->type == ANDROID_DND_TEXT_EVENT
+			    ? Qtext : Quri),
+			   android_decode_utf16 (event->dnd.uri_or_string,
+						 event->dnd.length));
+      free (event->dnd.uri_or_string);
+      goto OTHER;
+
     default:
       goto OTHER;
     }
@@ -2515,7 +2568,8 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
       /* Intersect the destination rectangle with that of the row.
 	 Setting a clip mask overrides the clip rectangles provided by
-	 x_clip_to_row, so clipping must be performed by hand.  */
+	 android_clip_to_row, so clipping must be performed by
+	 hand.  */
 
       image_rect.x = p->x;
       image_rect.y = p->y;
@@ -4856,6 +4910,39 @@ NATIVE_NAME (finishComposingText) (JNIEnv *env, jobject object,
   android_write_event (&event);
 }
 
+JNIEXPORT void JNICALL
+NATIVE_NAME (replaceText) (JNIEnv *env, jobject object, jshort window,
+			   jint start, jint end, jobject text,
+			   int new_cursor_position, jobject attribute)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+  size_t length;
+
+  /* First, obtain a copy of the Java string.  */
+  text = android_copy_java_string (env, text, &length);
+
+  if (!text)
+    return;
+
+  /* Next, populate the event with the information in this function's
+     arguments.  */
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_REPLACE_TEXT;
+  event.ime.start = start + 1;
+  event.ime.end = end + 1;
+  event.ime.length = length;
+  event.ime.position = new_cursor_position;
+  event.ime.text = text;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
 /* Structure describing the context used for a text query.  */
 
 struct android_conversion_query_context
@@ -6545,6 +6632,10 @@ Emacs is running on.  */);
   pdumper_do_now_and_after_load (android_set_build_fingerprint);
 
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
+
+  /* Symbols defined for DND events.  */
+  DEFSYM (Quri, "uri");
+  DEFSYM (Qtext, "text");
 }
 
 void

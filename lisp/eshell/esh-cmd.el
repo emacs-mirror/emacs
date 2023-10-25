@@ -393,49 +393,6 @@ for a given process."
 
 ;; Command parsing
 
-(defsubst eshell--region-p (object)
-  "Return non-nil if OBJECT is a pair of numbers or markers."
-  (and (consp object)
-       (number-or-marker-p (car object))
-       (number-or-marker-p (cdr object))))
-
-(defmacro eshell-with-temp-command (command &rest body)
-  "Temporarily insert COMMAND into the buffer and execute the forms in BODY.
-
-COMMAND can be a string to insert, a cons cell (START . END)
-specifying a region in the current buffer, or (:file . FILENAME)
-to temporarily insert the contents of FILENAME.
-
-Before executing BODY, narrow the buffer to the text for COMMAND
-and and set point to the beginning of the narrowed region.
-
-The value returned is the last form in BODY."
-  (declare (indent 1))
-  (let ((command-sym (make-symbol "command"))
-        (begin-sym (make-symbol "begin"))
-        (end-sym (make-symbol "end")))
-    `(let ((,command-sym ,command))
-       (if (eshell--region-p ,command-sym)
-           (save-restriction
-             (narrow-to-region (car ,command-sym) (cdr ,command-sym))
-             (goto-char (car ,command-sym))
-             ,@body)
-         ;; Since parsing relies partly on buffer-local state
-         ;; (e.g. that of `eshell-parse-argument-hook'), we need to
-         ;; perform the parsing in the Eshell buffer.
-         (let ((,begin-sym (point)) ,end-sym)
-           (with-silent-modifications
-             (if (stringp ,command-sym)
-                 (insert ,command-sym)
-               (forward-char (cadr (insert-file-contents (cdr ,command-sym)))))
-             (setq ,end-sym (point))
-             (unwind-protect
-                 (save-restriction
-                   (narrow-to-region ,begin-sym ,end-sym)
-                   (goto-char ,begin-sym)
-                   ,@body)
-               (delete-region ,begin-sym ,end-sym))))))))
-
 (defun eshell-parse-command (command &optional args toplevel)
   "Parse the COMMAND, adding ARGS if given.
 COMMAND can be a string, a cons cell (START . END) demarcating a

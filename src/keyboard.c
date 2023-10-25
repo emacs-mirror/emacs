@@ -4999,6 +4999,7 @@ const char *const lispy_function_keys[] =
        function keys that Emacs recognizes.  */
     [111] = "escape",
     [112] = "delete",
+    [116] = "scroll",
     [120] = "sysrq",
     [121] = "break",
     [122] = "home",
@@ -5019,15 +5020,19 @@ const char *const lispy_function_keys[] =
     [140] = "f10",
     [141] = "f11",
     [142] = "f12",
+    [143] = "kp-numlock",
     [160] = "kp-ret",
     [164] = "volume-mute",
+    [165] = "info",
     [19]  = "up",
     [20]  = "down",
+    [211] = "zenkaku-hankaku",
     [213] = "muhenkan",
     [214] = "henkan",
     [215] = "hiragana-katakana",
     [218] = "kana",
     [21]  = "left",
+    [223] = "sleep",
     [22]  = "right",
     [23]  = "select",
     [24]  = "volume-up",
@@ -5035,6 +5040,7 @@ const char *const lispy_function_keys[] =
     [25]  = "volume-down",
     [268] = "kp-up-left",
     [269] = "kp-down-left",
+    [26]  = "power",
     [270] = "kp-up-right",
     [271] = "kp-down-right",
     [272] = "media-skip-forward",
@@ -5042,7 +5048,9 @@ const char *const lispy_function_keys[] =
     [277] = "cut",
     [278] = "copy",
     [279] = "paste",
+    [285] = "browser-refresh",
     [28]  = "clear",
+    [300] = "XF86Forward",
     [4]	  = "XF86Back",
     [61]  = "tab",
     [66]  = "return",
@@ -5056,6 +5064,7 @@ const char *const lispy_function_keys[] =
     [89]  = "media-rewind",
     [92]  = "prior",
     [93]  = "next",
+    [95]  = "mode-change",
   };
 
 #elif defined HAVE_NTGUI
@@ -5522,6 +5531,10 @@ static Lisp_Object button_down_location;
    the down mouse event.  */
 static Lisp_Object frame_relative_event_pos;
 
+/* The line-number display width, in columns, at the time of most
+   recent down mouse event.  */
+static int down_mouse_line_number_width;
+
 /* Information about the most recent up-going button event:  Which
    button, what location, and what time.  */
 
@@ -5917,6 +5930,57 @@ coords_in_tab_bar_window (struct frame *f, int x, int y)
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+static void
+save_line_number_display_width (struct input_event *event)
+{
+  struct window *w;
+  int pixel_width;
+
+  if (WINDOWP (event->frame_or_window))
+    w = XWINDOW (event->frame_or_window);
+  else if (FRAMEP (event->frame_or_window))
+    w = XWINDOW (XFRAME (event->frame_or_window)->selected_window);
+  else
+    w = XWINDOW (selected_window);
+  line_number_display_width (w, &down_mouse_line_number_width, &pixel_width);
+}
+
+/* Return non-zero if the change of position from START_POS to END_POS
+   is likely to be the effect of horizontal scrolling due to a change
+   in line-number width produced by redisplay between two mouse
+   events, like mouse-down followed by mouse-up, at those positions.
+   This is used to decide whether to converts mouse-down followed by
+   mouse-up event into a mouse-drag event.  */
+static bool
+line_number_mode_hscroll (Lisp_Object start_pos, Lisp_Object end_pos)
+{
+  if (!EQ (Fcar (start_pos), Fcar (end_pos)) /* different window */
+      || list_length (start_pos) < 7	     /* no COL/ROW info */
+      || list_length (end_pos) < 7)
+    return false;
+
+  Lisp_Object start_col_row = Fnth (make_fixnum (6), start_pos);
+  Lisp_Object end_col_row = Fnth (make_fixnum (6), end_pos);
+  Lisp_Object window = Fcar (end_pos);
+  int col_width, pixel_width;
+  Lisp_Object start_col, end_col;
+  struct window *w;
+  if (!WINDOW_VALID_P (window))
+    {
+      if (WINDOW_LIVE_P (window))
+	window = XFRAME (window)->selected_window;
+      else
+	window = selected_window;
+    }
+  w = XWINDOW (window);
+  line_number_display_width (w, &col_width, &pixel_width);
+  start_col = Fcar (start_col_row);
+  end_col = Fcar (end_col_row);
+  return EQ (start_col, end_col)
+	 && down_mouse_line_number_width >= 0
+	 && col_width != down_mouse_line_number_width;
+}
 
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
@@ -6320,6 +6384,8 @@ make_lispy_event (struct input_event *event)
 	    *start_pos_ptr = Fcopy_alist (position);
 	    frame_relative_event_pos = Fcons (event->x, event->y);
 	    ignore_mouse_drag_p = false;
+	    /* Squirrel away the line-number width, if any.  */
+	    save_line_number_display_width (event);
 	  }
 
 	/* Now we're releasing a button - check the coordinates to
@@ -6365,12 +6431,18 @@ make_lispy_event (struct input_event *event)
 			  it's probably OK to ignore it as well.  */
 		       && (EQ (Fcar (Fcdr (start_pos)),
 			       Fcar (Fcdr (position))) /* Same buffer pos */
+			   /* Redisplay hscrolled text between down- and
+                              up-events due to display-line-numbers-mode.  */
+			   || line_number_mode_hscroll (start_pos, position)
 			   || !EQ (Fcar (start_pos),
 				   Fcar (position))))) /* Different window */
+
 		  {
 		    /* Mouse has moved enough.  */
 		    button_down_time = 0;
 		    click_or_drag_modifier = drag_modifier;
+		    /* Reset the value for future clicks.  */
+		    down_mouse_line_number_width = -1;
 		  }
 		else if (((!EQ (Fcar (start_pos), Fcar (position)))
 			  || (!EQ (Fcar (Fcdr (start_pos)),

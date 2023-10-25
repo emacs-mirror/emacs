@@ -501,7 +501,8 @@ This includes downloading missing dependencies, generating
 autoloads, generating a package description file (used to
 identify a package as a VC package later on), building
 documentation and marking the package as installed."
-  (let (missing)
+  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
+        missing)
     ;; Remove any previous instance of PKG-DESC from `package-alist'
     (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
       (when pkgs
@@ -510,17 +511,29 @@ documentation and marking the package as installed."
     ;; In case the package was installed directly from source, the
     ;; dependency list wasn't know beforehand, and they might have
     ;; to be installed explicitly.
-    (let ((deps '()))
+    (let ((ignored-files
+           (if (plist-get pkg-spec :ignored-files)
+               (mapconcat
+                (lambda (ignore)
+                  (wildcard-to-regexp
+                   (if (string-match-p "\\`/" ignore)
+                       (concat pkg-dir ignore)
+                     (concat "*/" ignore))))
+                (plist-get pkg-spec :ignored-files)
+                "\\|")
+             regexp-unmatchable))
+          (deps '()))
       (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
-        (with-temp-buffer
-          (insert-file-contents file)
-          (when-let* ((require-lines (lm-header-multiline "package-requires")))
-            (thread-last
-              (mapconcat #'identity require-lines " ")
-              package-read-from-string
-              package--prepare-dependencies
-              (nconc deps)
-              (setq deps)))))
+        (unless (string-match-p ignored-files file)
+          (with-temp-buffer
+            (insert-file-contents file)
+            (when-let* ((require-lines (lm-header-multiline "package-requires")))
+              (thread-last
+                (mapconcat #'identity require-lines " ")
+                package-read-from-string
+                package--prepare-dependencies
+                (nconc deps)
+                (setq deps))))))
       (dolist (dep deps)
         (cl-callf version-to-list (cadr dep)))
       (setf missing (package-vc-install-dependencies (delete-dups deps)))
@@ -529,8 +542,7 @@ documentation and marking the package as installed."
                           missing)))
 
     (let ((default-directory (file-name-as-directory pkg-dir))
-          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir))
-          (pkg-spec (package-vc--desc->spec pkg-desc)))
+          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
       ;; Generate autoloads
       (let* ((name (package-desc-name pkg-desc))
              (auto-name (format "%s-autoloads.el" name))
@@ -941,18 +953,19 @@ for the last released version of the package."
     (find-file directory)))
 
 ;;;###autoload
-(defun package-vc-install-from-checkout (dir name)
+(defun package-vc-install-from-checkout (dir &optional name)
   "Install the package NAME from its source directory DIR.
+NAME defaults to the base name of DIR.
 Interactively, prompt the user for DIR, which should be a directory
 under version control, typically one created by `package-vc-checkout'.
 If invoked interactively with a prefix argument, prompt the user
-for the NAME of the package to set up.  Otherwise infer the package
-name from the base name of DIR."
-  (interactive (let ((dir (read-directory-name "Directory: ")))
-                 (list dir
-                       (if current-prefix-arg
-                           (read-string "Package name: ")
-                         (file-name-base (directory-file-name dir))))))
+for the NAME of the package to set up."
+  (interactive (let* ((dir (read-directory-name "Directory: "))
+                      (base (file-name-base (directory-file-name dir))))
+                 (list dir (and current-prefix-arg
+                                (read-string
+                                 (format-prompt "Package name" base)
+                                 nil nil base)))))
   (unless (vc-responsible-backend dir)
     (user-error "Directory %S is not under version control" dir))
   (package-vc--archives-initialize)

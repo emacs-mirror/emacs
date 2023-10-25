@@ -53,7 +53,6 @@
 (defvar erc-server-process)
 (defvar erc-session-server)
 
-(declare-function erc--default-target "erc" nil)
 (declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
 (declare-function erc-current-nick "erc" nil)
@@ -756,9 +755,8 @@ number, a list of numbers, or a list of port ranges."
 Each network is a list (NET MATCHER) where
 NET is a symbol naming that IRC network and
 MATCHER is used to find a corresponding network to a server while
-  connected to it.  If it is regexp, it's used to match against
-  `erc-server-announced-name'.  It can also be a function (predicate).
-  Then it is executed with the server buffer as current buffer."
+connected to it.  If it is a regexp, it's used to match against
+`erc-server-announced-name'."
   :type '(repeat
 	  (list :tag "Network"
 		(symbol :tag "Network name")
@@ -992,12 +990,11 @@ object."
                                       (erc-networks--id-qualifying-len nid))
   (erc-networks--rename-server-buffer (or proc erc-server-process) parsed)
   (erc-networks--shrink-ids-and-buffer-names-any)
-  (erc-with-all-buffers-of-server
-      erc-server-process #'erc--default-target
-      (when-let* ((new-name (erc-networks--reconcile-buffer-names erc--target
-                                                                  nid))
-                  ((not (equal (buffer-name) new-name))))
-        (rename-buffer new-name 'unique))))
+  (erc-with-all-buffers-of-server erc-server-process #'erc-target
+    (when-let
+        ((new-name (erc-networks--reconcile-buffer-names erc--target nid))
+         ((not (equal (buffer-name) new-name))))
+      (rename-buffer new-name 'unique))))
 
 (cl-defgeneric erc-networks--id-ensure-comparable (self other)
   "Take measures to ensure two net identities are in comparable states.")

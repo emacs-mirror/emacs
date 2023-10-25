@@ -1083,16 +1083,18 @@ This is a regular expression that matches the shell prompt.
 @defopt socks-server
 This specifies the default server, it takes the form
 @w{@code{("Default server" @var{server} @var{port} @var{version})}}
-where @var{version} can be either 4 or 5.
+where @var{version} can be 4, 4a, or 5.
 @end defopt
 @defvar socks-password
 If this is @code{nil} then you will be asked for the password,
 otherwise it will be used as the password for authenticating you to
-the @sc{socks} server.
+the @sc{socks} server.  You can often set this to @code{""} for
+servers on your local network.
 @end defvar
 @defvar socks-username
 This is the username to use when authenticating yourself to the
-@sc{socks} server.  By default this is your login name.
+@sc{socks} server.  By default, this is your login name.  In versions
+4 and 4a, ERC uses this for the @samp{ID} field.
 @end defvar
 @defvar socks-timeout
 This controls how long, in seconds, to wait for responses from the

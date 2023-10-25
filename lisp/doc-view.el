@@ -661,7 +661,9 @@ Typically \"page-%s.png\".")
   '("DocView (edit)"
     ("Toggle edit/display"
      ["Edit document"           (lambda ()) ; ignore but show no keybinding
-      :style radio :selected    (eq major-mode 'doc-view--text-view-mode)]
+      ;; This is always selected since its menu is singular to the
+      ;; display minor mode.
+      :style radio :selected    t]
      ["Display document"        doc-view-toggle-display
       :style radio :selected    (eq major-mode 'doc-view-mode)])
     ["Exit DocView Mode" doc-view-minor-mode]))

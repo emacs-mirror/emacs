@@ -55,6 +55,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.os.Parcelable;
 
 import android.util.Log;
 
@@ -66,6 +67,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+
+import java.util.List;
 
 public final class EmacsOpenActivity extends Activity
   implements DialogInterface.OnClickListener,
@@ -396,6 +399,7 @@ public final class EmacsOpenActivity extends Activity
      Finally, display any error message, transfer the focus to an
      Emacs frame, and finish the activity.  */
 
+  @SuppressWarnings ("deprecation") /* getParcelableExtra */
   @Override
   public void
   onCreate (Bundle savedInstanceState)
@@ -407,6 +411,11 @@ public final class EmacsOpenActivity extends Activity
     ParcelFileDescriptor fd;
     byte[] names;
     String errorBlurb, scheme;
+    String subjectString, textString, attachmentString;
+    CharSequence tem;
+    String tem1;
+    StringBuilder builder;
+    List<Parcelable> list;
 
     super.onCreate (savedInstanceState);
 
@@ -425,6 +434,7 @@ public final class EmacsOpenActivity extends Activity
     if (action.equals ("android.intent.action.VIEW")
 	|| action.equals ("android.intent.action.EDIT")
 	|| action.equals ("android.intent.action.PICK")
+	|| action.equals ("android.intent.action.SEND")
 	|| action.equals ("android.intent.action.SENDTO"))
       {
 	/* Obtain the URI of the action.  */
@@ -452,8 +462,130 @@ public final class EmacsOpenActivity extends Activity
 	    /* Escape the special characters $ and " before enclosing
 	       the string within the `message-mailto' wrapper.  */
 	    fileName = uri.toString ();
-	    fileName.replace ("\"", "\\\"").replace ("$", "\\$");
-	    fileName = "(message-mailto \"" + fileName + "\")";
+
+	    /* If fileName is merely mailto: (absent either an email
+	       address or content), then the program launching Emacs
+	       conceivably provided such an URI to exclude non-email
+	       programs from being enumerated within the Share dialog;
+	       whereupon Emacs should replace it with any address
+	       provided as EXTRA_EMAIL.  */
+
+	    if (fileName.equals ("mailto:") || fileName.equals ("mailto://"))
+	      {
+		tem = intent.getCharSequenceExtra (Intent.EXTRA_EMAIL);
+
+		if (tem != null)
+		  fileName = "mailto:" + tem;
+	      }
+
+	    /* Subsequently, escape fileName such that it is rendered
+	       safe to append to the command line.  */
+
+	    fileName = (fileName
+			.replace ("\\", "\\\\")
+			.replace ("\"", "\\\"")
+			.replace ("$", "\\$"));
+
+	    fileName = "(message-mailto \"" + fileName + "\" ";
+
+	    /* Parse the intent itself to ascertain if any
+	       non-standard subject, body, or something else of the
+	       like is set.  Such fields, non-standard as they are,
+	       yield to fields provided within the URL itself; refer
+	       to message-mailto.  */
+
+	    textString = attachmentString = subjectString = "()";
+
+	    tem = intent.getCharSequenceExtra (Intent.EXTRA_SUBJECT);
+
+	    if (tem != null)
+	      subjectString = ("\"" + (tem.toString ()
+				       .replace ("\\", "\\\\")
+				       .replace ("\"", "\\\"")
+				       .replace ("$", "\\$"))
+			       + "\" ");
+
+	    tem = intent.getCharSequenceExtra (Intent.EXTRA_TEXT);
+
+	    if (tem != null)
+	      textString = ("\"" + (tem.toString ()
+				    .replace ("\\", "\\\\")
+				    .replace ("\"", "\\\"")
+				    .replace ("$", "\\$"))
+			    + "\" ");
+
+	    /* Producing a list of attachments is prey to two
+	       mannerisms of the system: in the first instance, these
+	       attachments are content URIs which don't allude to
+	       their content types; and in the second instance, they
+	       are either a list of such URIs or one individual URI,
+	       subject to the type of the intent itself.  */
+
+	    if (Intent.ACTION_SEND.equals (action))
+	      {
+		/* The attachment in this case is a single content
+		   URI.  */
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+		  uri = intent.getParcelableExtra (Intent.EXTRA_STREAM,
+						   Uri.class);
+		else
+		  uri = intent.getParcelableExtra (Intent.EXTRA_STREAM);
+
+		if (uri != null
+		    && (scheme = uri.getScheme ()) != null
+		    && scheme.equals ("content"))
+		  {
+		    tem1 = EmacsService.buildContentName (uri);
+		    attachmentString = ("'(\"" + (tem1.replace ("\\", "\\\\")
+						  .replace ("\"", "\\\"")
+						  .replace ("$", "\\$"))
+					+ "\")");
+		  }
+	      }
+	    else
+	      {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+		  list
+		    = intent.getParcelableArrayListExtra (Intent.EXTRA_STREAM,
+							  Parcelable.class);
+		else
+		  list
+		    = intent.getParcelableArrayListExtra (Intent.EXTRA_STREAM);
+
+		if (list != null)
+		  {
+		    builder = new StringBuilder ("'(");
+
+		    for (Parcelable parcelable : list)
+		      {
+			if (!(parcelable instanceof Uri))
+			  continue;
+
+			uri = (Uri) parcelable;
+
+			if (uri != null
+			    && (scheme = uri.getScheme ()) != null
+			    && scheme.equals ("content"))
+			  {
+			    tem1 = EmacsService.buildContentName (uri);
+			    builder.append ("\"");
+			    builder.append (tem1.replace ("\\", "\\\\")
+					    .replace ("\"", "\\\"")
+					    .replace ("$", "\\$"));
+			    builder.append ("\"");
+			  }
+		      }
+
+		    builder.append (")");
+		    attachmentString = builder.toString ();
+		  }
+	      }
+
+	    fileName += subjectString;
+	    fileName += textString;
+	    fileName += attachmentString;
+	    fileName += ")";
 
 	    /* Execute emacsclient in order to execute this code.  */
 	    currentActivity = this;

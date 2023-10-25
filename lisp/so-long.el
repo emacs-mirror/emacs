@@ -310,7 +310,7 @@
 ;; possibly also `so-long-max-lines' and `so-long-skip-leading-comments' (these
 ;; latter two are not used by default starting from Emacs 28.1).  E.g.:
 ;;
-;;   (add-hook 'js-mode-hook 'my-js-mode-hook)
+;;   (add-hook 'js-mode-hook #'my-js-mode-hook)
 ;;
 ;;   (defun my-js-mode-hook ()
 ;;     "Custom `js-mode' behaviors."
@@ -324,7 +324,7 @@
 ;; set `bidi-inhibit-bpa' in XML files, on the basis that XML files with long
 ;; lines are less likely to trigger BPA-related performance problems:
 ;;
-;;   (add-hook 'nxml-mode-hook 'my-nxml-mode-hook)
+;;   (add-hook 'nxml-mode-hook #'my-nxml-mode-hook)
 ;;
 ;;   (defun my-nxml-mode-hook ()
 ;;     "Custom `nxml-mode' behaviors."
@@ -366,7 +366,7 @@
 ;; variable.  Refer to M-: (info "(emacs) Specifying File Variables") RET
 ;;
 ;; `so-long-minor-mode' can also be called directly if desired.  e.g.:
-;; (add-hook 'FOO-mode-hook 'so-long-minor-mode)
+;; (add-hook 'FOO-mode-hook #'so-long-minor-mode)
 ;;
 ;; In Emacs 26.1 or later (see "Caveats" below) you also have the option of
 ;; using file-local and directory-local variables to determine how `so-long'
@@ -1320,8 +1320,8 @@ This minor mode is a standard `so-long-action' option."
           (so-long--ensure-enabled)
           (setq so-long--active t
                 so-long-detected-p t
-                so-long-function 'turn-on-so-long-minor-mode
-                so-long-revert-function 'turn-off-so-long-minor-mode)
+                so-long-function #'turn-on-so-long-minor-mode
+                so-long-revert-function #'turn-off-so-long-minor-mode)
           (so-long-remember-all :reset)
           (unless (derived-mode-p 'so-long-mode)
             (setq so-long-mode-line-info (so-long-mode-line-info))))
@@ -1345,7 +1345,7 @@ This minor mode is a standard `so-long-action' option."
 
 (defvar so-long-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-c") 'so-long-revert)
+    (define-key map (kbd "C-c C-c") #'so-long-revert)
     ;; Define the major mode menu.  We have an awkward issue whereby
     ;; [menu-bar so-long] is already defined in the global map and is
     ;; :visible so-long-detected-p, but we also want this to be
@@ -1396,12 +1396,12 @@ configure the behavior."
     (so-long--ensure-enabled)
     (setq so-long--active t
           so-long-detected-p t
-          so-long-function 'so-long-mode
-          so-long-revert-function 'so-long-mode-revert))
+          so-long-function #'so-long-mode
+          so-long-revert-function #'so-long-mode-revert))
   ;; Use `after-change-major-mode-hook' to disable minor modes and override
   ;; variables.  Append, to act after any globalized modes have acted.
   (add-hook 'after-change-major-mode-hook
-            'so-long-after-change-major-mode :append :local)
+            #'so-long-after-change-major-mode :append :local)
   ;; Override variables.  This is the first of two instances where we do this
   ;; (the other being `so-long-after-change-major-mode').  It is desirable to
   ;; set variables here in order to cover cases where the setting of a variable
@@ -1591,8 +1591,8 @@ because we do not want to downgrade the major mode in that scenario."
     (when (and (symbolp (so-long-function))
                (provided-mode-derived-p (so-long-function) 'so-long-mode))
       ;; Downgrade from `so-long-mode' to the `so-long-minor-mode' behavior.
-      (setq so-long-function 'turn-on-so-long-minor-mode
-            so-long-revert-function 'turn-off-so-long-minor-mode))))
+      (setq so-long-function #'turn-on-so-long-minor-mode
+            so-long-revert-function #'turn-off-so-long-minor-mode))))
 
 (defun so-long-inhibit (&optional _mode)
   "Prevent `global-so-long-mode' from having any effect.
@@ -1897,7 +1897,6 @@ Use \\[so-long-commentary] for more information.
 Use \\[so-long-customize] to open the customization group `so-long' to
 configure the behavior."
   :global t
-  :group 'so-long
   (if global-so-long-mode
       ;; Enable
       (progn
@@ -2030,7 +2029,7 @@ If it appears in `%s', you should remove it."
   ;; Update to version 1.0 from earlier versions:
   (when (version< so-long-version "1.0")
     (remove-hook 'change-major-mode-hook 'so-long-change-major-mode)
-    (eval-and-compile (require 'advice)) ;; Both macros and functions.
+    (require 'advice) ;; It should already be loaded, but just in case.
     (declare-function ad-find-advice "advice")
     (declare-function ad-remove-advice "advice")
     (declare-function ad-activate "advice")

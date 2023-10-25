@@ -15382,7 +15382,7 @@
 	* calendar/calendar.el (calendar-mode):
 	Locally set scroll-margin to 0.  (Bug#10379)
 
-2012-01-06  Ulrich Mueller  <ulm@gentoo.org>
+2012-01-06  Ulrich Müller  <ulm@gentoo.org>
 
 	* play/doctor.el (doctor-death): Escape "," characters.  (Bug#10370)
 
@@ -17133,7 +17133,7 @@
 	(mouse-drag-vertical-line): Call mouse-drag-line.
 	* window.el (window-at-side-p, windows-at-side): New functions.
 
-2011-10-21  Ulrich Mueller  <ulm@gentoo.org>
+2011-10-21  Ulrich Müller  <ulm@gentoo.org>
 
 	* tar-mode.el (tar-grind-file-mode):
 	Fix handling of setuid/setgid, handle sticky bit.  (Bug#9817)

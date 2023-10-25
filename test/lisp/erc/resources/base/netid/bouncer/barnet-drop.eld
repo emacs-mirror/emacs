@@ -22,14 +22,14 @@
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":irc.barnet.org 305 tester :You are no longer marked as being away"))
 
-((join 1 "JOIN #chan")
+((join 10 "JOIN #chan")
  (0 ":tester!~u@awyxgybtkx7uq.irc JOIN #chan")
  (0 ":irc.barnet.org 353 tester = #chan :@joe mike tester")
  (0 ":irc.barnet.org 366 tester #chan :End of NAMES list")
  (0.1 ":joe!~u@awyxgybtkx7uq.irc PRIVMSG #chan :tester, welcome!")
  (0 ":mike!~u@awyxgybtkx7uq.irc PRIVMSG #chan :tester, welcome!"))
 
-((mode 1 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.barnet.org 324 tester #chan +nt")
  (0 ":irc.barnet.org 329 tester #chan 1620805269")
  (0.1 ":mike!~u@awyxgybtkx7uq.irc PRIVMSG #chan :joe: But you have outfaced them all.")

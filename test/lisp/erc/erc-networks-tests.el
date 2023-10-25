@@ -623,11 +623,6 @@
                                :symbol 'foonet/dummy
                                :parts [foonet "dummy"]
                                :len 2)
-             ;; `erc-kill-buffer-function' uses legacy target detection
-             ;; but falls back on buffer name, so no need for:
-             ;;
-             ;;   erc-default-recipients '("#a")
-             ;;
              erc--target (erc--target-from-string "#a")
              erc-server-process (with-temp-buffer
                                   (erc-networks-tests--create-dead-proc)))
@@ -1206,7 +1201,7 @@
           calls)
       (erc-mode)
 
-      (cl-letf (((symbol-function 'erc-display-line)
+      (cl-letf (((symbol-function 'erc--route-insertion)
                  (lambda (&rest r) (push r calls))))
 
         (ert-info ("Signals when `erc-server-announced-name' unset")

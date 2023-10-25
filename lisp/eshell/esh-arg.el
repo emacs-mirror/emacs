@@ -49,6 +49,8 @@ yield the values intended."
 (defvar eshell-arg-listified nil)
 (defvar eshell-nested-argument nil)
 (defvar eshell-current-quoted nil)
+(defvar eshell-current-argument-plain nil
+  "If non-nil, the current argument is \"plain\", and not part of a command.")
 (defvar eshell-inside-quote-regexp nil)
 (defvar eshell-outside-quote-regexp nil)
 
@@ -163,6 +165,43 @@ treated as a literal character."
   :type 'hook
   :group 'eshell-arg)
 
+(defvar eshell-special-ref-alist
+  '(("buffer"
+     (creation-function   eshell-get-buffer)
+     (insertion-function  eshell-insert-buffer-name)
+     (completion-function eshell-complete-buffer-ref))
+    ("marker"
+     (creation-function   eshell-get-marker)
+     (insertion-function  eshell-insert-marker)
+     (completion-function eshell-complete-marker-ref)))
+  "Alist of special reference types for Eshell.
+Each entry is a list of the form (TYPE (KEY VALUE)...).  TYPE is
+the name of the special reference type, and each KEY/VALUE pair
+represents a parameter for the type.  Eshell defines the
+following KEYs:
+
+* `creation-function'
+  A function taking any number of arguments that returns the Lisp
+  object for this special ref type.
+
+* `insertion-function'
+  An interactive function that returns the special reference in
+  string form.  This string should look like \"#<TYPE ARG...>\";
+  Eshell will pass the ARGs to `creation-function'.
+
+* `completion-function'
+  A function using Pcomplete to perform completion on any
+  arguments necessary for creating this special reference type.")
+
+(defcustom eshell-special-ref-default "buffer"
+  "The default type for special references when the type keyword is omitted.
+This should be a key in `eshell-special-ref-alist' (which see).
+Eshell will expand special refs like \"#<ARG...>\" into
+\"#<`eshell-special-ref-default' ARG...>\"."
+  :version "30.1"
+  :type 'string
+  :group 'eshell-arg)
+
 (defvar-keymap eshell-arg-mode-map
   "C-c M-b" #'eshell-insert-buffer-name)
 
@@ -183,11 +222,6 @@ treated as a literal character."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
               #'eshell-complete-special-reference nil t)))
-
-(defun eshell-insert-buffer-name (buffer-name)
-  "Insert BUFFER-NAME into the current buffer at point."
-  (interactive "BName of buffer: ")
-  (insert-and-inherit "#<buffer " buffer-name ">"))
 
 (defsubst eshell-escape-arg (string)
   "Return STRING with the `escaped' property on it."
@@ -505,42 +539,6 @@ leaves point where it was."
         (goto-char bound)
         (apply #'concat (nreverse strings))))))
 
-(defun eshell-parse-special-reference ()
-  "Parse a special syntax reference, of the form `#<args>'.
-
-args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
-type           := \"buffer\" or \"process\"
-arbitrary-args := any string of characters.
-
-If the form has no `type', the syntax is parsed as if `type' were
-\"buffer\"."
-  (when (and (not eshell-current-argument)
-             (not eshell-current-quoted)
-             (looking-at (rx "#<" (? (group (or "buffer" "process"))
-                                     space))))
-    (let ((here (point)))
-      (goto-char (match-end 0)) ;; Go to the end of the match.
-      (let ((buffer-p (if (match-beginning 1)
-                          (equal (match-string 1) "buffer")
-                        t)) ; With no type keyword, assume we want a buffer.
-            (end (eshell-find-delimiter ?\< ?\>)))
-        (when (not end)
-          (when (match-beginning 1)
-            (goto-char (match-beginning 1)))
-          (throw 'eshell-incomplete "#<"))
-        (if (eshell-arg-delimiter (1+ end))
-            (prog1
-                (list (if buffer-p #'get-buffer-create #'get-process)
-                      ;; FIXME: We should probably parse this as a
-                      ;; real Eshell argument so that we get the
-                      ;; benefits of quoting, variable-expansion, etc.
-                      (string-trim-right
-                       (replace-regexp-in-string
-                        (rx "\\" (group anychar)) "\\1"
-                        (buffer-substring-no-properties (point) end))))
-              (goto-char (1+ end)))
-          (ignore (goto-char here)))))))
-
 (defun eshell-parse-delimiter ()
   "Parse an argument delimiter, which is essentially a command operator."
   ;; this `eshell-operator' keyword gets parsed out by
@@ -591,41 +589,158 @@ If no argument requested a splice, return nil."
     (when splicep
       grouped-args)))
 
-;;;_* Special ref completion
+;;; Special references
+
+(defsubst eshell--special-ref-function (type function)
+  "Get the specified FUNCTION for a particular special ref TYPE.
+If TYPE is nil, get the FUNCTION for the `eshell-special-ref-default'."
+  (cadr (assq function (assoc (or type eshell-special-ref-default)
+                              eshell-special-ref-alist))))
+
+(defun eshell-parse-special-reference ()
+  "Parse a special syntax reference, of the form `#<args>'.
+
+args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
+type           := one of the keys in `eshell-special-ref-alist'
+arbitrary-args := any number of Eshell arguments
+
+If the form has no `type', the syntax is parsed as if `type' were
+`eshell-special-ref-default'."
+  (let ((here (point))
+        (special-ref-types (mapcar #'car eshell-special-ref-alist)))
+    (when (and (not eshell-current-argument)
+               (not eshell-current-quoted)
+               (looking-at (rx-to-string
+                            `(seq "#<" (? (group (or ,@special-ref-types))
+                                          (+ space)))
+                            t)))
+      (goto-char (match-end 0))         ; Go to the end of the match.
+      (let ((end (eshell-find-delimiter ?\< ?\>))
+            (creation-fun (eshell--special-ref-function
+                           (match-string 1) 'creation-function)))
+        (unless end
+          (when (match-beginning 1)
+            (goto-char (match-beginning 1)))
+          (throw 'eshell-incomplete "#<"))
+        (if (eshell-arg-delimiter (1+ end))
+            (prog1
+                (cons creation-fun
+                      (let ((eshell-current-argument-plain t))
+                        (eshell-parse-arguments (point) end)))
+              (goto-char (1+ end)))
+          (ignore (goto-char here)))))))
+
+(defun eshell-insert-special-reference (type &rest args)
+  "Insert a special reference of the specified TYPE.
+ARGS is a list of arguments to pass to the insertion function for
+TYPE (see `eshell-special-ref-alist')."
+  (interactive
+   (let* ((type (completing-read
+                 (format-prompt "Type" eshell-special-ref-default)
+                 (mapcar #'car eshell-special-ref-alist)
+                 nil 'require-match nil nil eshell-special-ref-default))
+          (insertion-fun (eshell--special-ref-function
+                          type 'insertion-function)))
+     (list :interactive (call-interactively insertion-fun))))
+  (if (eq type :interactive)
+      (car args)
+    (apply (eshell--special-ref-function type 'insertion-function) args)))
 
 (defun eshell-complete-special-reference ()
   "If there is a special reference, complete it."
-  (let ((arg (pcomplete-actual-arg)))
-    (when (string-match
-           (rx string-start
-               "#<" (? (group (or "buffer" "process")) space)
-               (group (* anychar))
-               string-end)
-           arg)
-      (let ((all-results (if (equal (match-string 1 arg) "process")
-                             (mapcar #'process-name (process-list))
-                           (mapcar #'buffer-name (buffer-list))))
-            (saw-type (match-beginning 1)))
-        (unless saw-type
-          ;; Include the special reference types as completion options.
-          (setq all-results (append '("buffer" "process") all-results)))
-        (setq pcomplete-stub (replace-regexp-in-string
-                              (rx "\\" (group anychar)) "\\1"
-                              (substring arg (match-beginning 2))))
-        ;; When finished with completion, add a trailing ">" (unless
-        ;; we just completed the initial "buffer" or "process"
-        ;; keyword).
-        (add-function
-         :before (var pcomplete-exit-function)
-         (lambda (value status)
-           (when (and (eq status 'finished)
-                      (or saw-type
-                          (not (member value '("buffer" "process")))))
-             (if (looking-at ">")
-                 (goto-char (match-end 0))
-               (insert ">")))))
-        (throw 'pcomplete-completions
-               (all-completions pcomplete-stub all-results))))))
+  (when (string-prefix-p "#<" (pcomplete-actual-arg))
+    (let ((special-ref-types (mapcar #'car eshell-special-ref-alist))
+          num-args explicit-type)
+      ;; When finished with completion, add a trailing ">" when
+      ;; appropriate.
+      (add-function
+       :around (var pcomplete-exit-function)
+       (lambda (oldfun value status)
+         (when (eq status 'finished)
+           ;; Don't count the special reference type (e.g. "buffer").
+           (when (or explicit-type
+                     (and (= num-args 1)
+                          (member value special-ref-types)))
+             (setq num-args (1- num-args)))
+           (let ((creation-fun (eshell--special-ref-function
+                                explicit-type 'creation-function)))
+             ;; Check if we already have the maximum number of
+             ;; arguments for this special ref type.  If so, finish
+             ;; the ref with ">".  Otherwise, insert a space and set
+             ;; the completion status to `sole'.
+             (if (eq (cdr (func-arity creation-fun)) num-args)
+                 (if (looking-at ">")
+                     (goto-char (match-end 0))
+                   (insert ">"))
+               (pcomplete-default-exit-function value status)
+               (setq status 'sole))
+             (funcall oldfun value status)))))
+      ;; Parse the arguments to this special reference and call the
+      ;; appropriate completion function.
+      (save-excursion
+        (eshell-with-temp-command (cons (+ 2 (pcomplete-begin)) (point))
+          (goto-char (point-max))
+          (let (pcomplete-args pcomplete-last pcomplete-index pcomplete-begins)
+            (when (let ((eshell-current-argument-plain t))
+                    (pcomplete-parse-arguments
+                     pcomplete-expand-before-complete))
+              (setq num-args (length pcomplete-args))
+              (if (= pcomplete-index pcomplete-last)
+                  ;; Call the default special ref completion function,
+                  ;; and also add the known special ref types as
+                  ;; possible completions.
+                  (throw 'pcomplete-completions
+                         (nconc
+                          (mapcar #'car eshell-special-ref-alist)
+                          (catch 'pcomplete-completions
+                            (funcall (eshell--special-ref-function
+                                      nil 'completion-function)))))
+                ;; Get the special ref type and call its completion
+                ;; function.
+                (let ((first (pcomplete-arg 'first)))
+                  (when (member first special-ref-types)
+                    ;; "Complete" the ref type (which we already
+                    ;; completed above).
+                    (pcomplete-here)
+                    (setq explicit-type first)))
+                (funcall (eshell--special-ref-function
+                          explicit-type 'completion-function))))))))))
+
+(defun eshell-get-buffer (buffer-or-name)
+  "Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
+This is equivalent to `get-buffer-create', but only accepts a
+single argument."
+  (get-buffer-create buffer-or-name))
+
+(defun eshell-insert-buffer-name (buffer-name)
+  "Insert BUFFER-NAME into the current buffer at point."
+  (interactive "BName of buffer: ")
+  (insert-and-inherit "#<buffer " (eshell-quote-argument buffer-name) ">"))
+
+(defun eshell-complete-buffer-ref ()
+  "Perform completion for buffer references."
+  (pcomplete-here (mapcar #'buffer-name (buffer-list))))
+
+(defun eshell-get-marker (position buffer-or-name)
+  "Return the marker for character number POSITION in BUFFER-OR-NAME.
+BUFFER-OR-NAME can be a buffer or a string.  If a string and a
+live buffer with that name exists, use that buffer.  If no such
+buffer exists, create a new buffer with that name and use it."
+  (let ((marker (make-marker)))
+    (set-marker marker (string-to-number position)
+                (get-buffer-create buffer-or-name))))
+
+(defun eshell-insert-marker (position buffer-name)
+  "Insert a marker into the current buffer at point.
+This marker will point to POSITION in BUFFER-NAME."
+  (interactive "nPosition: \nBName of buffer: ")
+  (insert-and-inherit "#<marker " (number-to-string position) " "
+                      (eshell-quote-argument buffer-name) ">"))
+
+(defun eshell-complete-marker-ref ()
+  "Perform completion for marker references."
+  (pcomplete-here)
+  (pcomplete-here (mapcar #'buffer-name (buffer-list))))
 
 (provide 'esh-arg)
 ;;; esh-arg.el ends here

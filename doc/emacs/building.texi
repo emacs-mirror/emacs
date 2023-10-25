@@ -567,7 +567,7 @@ see the Flymake Info manual, which is distributed with Emacs.
 
 The GUD (Grand Unified Debugger) library provides an Emacs interface
 to a wide variety of symbolic debuggers.  It can run the GNU Debugger
-(GDB), as well as DBX, SDB, XDB, Guile REPL debug commands, Perl's
+(GDB), as well as LLDB, DBX, SDB, XDB, Guile REPL debug commands, Perl's
 debugging mode, the Python debugger PDB, and the Java Debugger JDB.
 
   Emacs provides a special interface to GDB, which uses extra Emacs
@@ -608,6 +608,10 @@ exists, switch to it; otherwise, create the buffer and switch to it.
 
 The other commands in this list do the same, for other debugger
 programs.
+
+@item M-x lldb
+@findex lldb
+Run the LLDB debugger.
 
 @item M-x perldb
 @findex perldb
@@ -697,6 +701,20 @@ throw off the arrow's positioning, as Emacs has no way to figure out
 which edited source line corresponds to the line reported by the
 debugger subprocess.  To update this information, you typically have
 to recompile and restart the program.
+
+@cindex GUD and hl-line-mode
+@cindex highlighting execution lines in GUD
+@vindex gud-highlight-current-line
+  Moreover, GUD is capable of visually demarcating the current
+execution line within the window text itself in one of two fashions:
+the first takes effect when the user option
+@code{gud-highlight-current-line} is enabled, and displays that line
+in an overlay whose appearance is provided by the face
+@code{gud-highlight-current-line-face}.  The other takes effect when
+HL Line Mode (@pxref{Cursor Display}) is enabled, and moves the
+overlay introduced by HL Line Mode briefly to the execution line,
+until a subsequent editing command repositions it back beneath the
+cursor.
 
 @cindex GUD Tooltip mode
 @cindex mode, GUD Tooltip

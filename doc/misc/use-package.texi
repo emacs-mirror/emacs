@@ -451,7 +451,7 @@ docstring of @code{system-type} for other valid values.
 @item
 Window system
 
-The example below loads a package only on macOS and X.  See the
+The example below loads a package only on macOS and X@.  See the
 docstring of @code{window-system} for valid values.
 
 @lisp

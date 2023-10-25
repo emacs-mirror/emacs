@@ -22,10 +22,13 @@ package org.gnu.emacs;
 import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.Context;
 
 import android.graphics.Rect;
@@ -33,12 +36,15 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 
-import android.view.View;
-import android.view.ViewManager;
+import android.net.Uri;
+
+import android.view.DragEvent;
 import android.view.Gravity;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.InputDevice;
+import android.view.View;
+import android.view.ViewManager;
 import android.view.WindowManager;
 
 import android.util.Log;
@@ -93,7 +99,9 @@ public final class EmacsWindow extends EmacsHandleObject
   public EmacsWindow parent;
 
   /* List of all children in stacking order.  This must be kept
-     consistent with their Z order!  */
+     consistent with their Z order!
+
+     Synchronize access to this list with itself.  */
   public ArrayList<EmacsWindow> children;
 
   /* Map between pointer identifiers and last known position.  Used to
@@ -165,7 +173,11 @@ public final class EmacsWindow extends EmacsHandleObject
 
     if (parent != null)
       {
-	parent.children.add (this);
+	synchronized (parent.children)
+	  {
+	    parent.children.add (this);
+	  }
+
         EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	    @Override
 	    public void
@@ -214,7 +226,12 @@ public final class EmacsWindow extends EmacsHandleObject
   destroyHandle () throws IllegalStateException
   {
     if (parent != null)
-      parent.children.remove (this);
+      {
+	synchronized (parent.children)
+	  {
+	    parent.children.remove (this);
+	  }
+      }
 
     EmacsActivity.invalidateFocus ();
 
@@ -1163,10 +1180,20 @@ public final class EmacsWindow extends EmacsHandleObject
     /* Reparent this window to the other window.  */
 
     if (parent != null)
-      parent.children.remove (this);
+      {
+	synchronized (parent.children)
+	  {
+	    parent.children.remove (this);
+	  }
+      }
 
     if (otherWindow != null)
-      otherWindow.children.add (this);
+      {
+	synchronized (otherWindow.children)
+	  {
+	    otherWindow.children.add (this);
+	  }
+      }
 
     parent = otherWindow;
 
@@ -1239,9 +1266,12 @@ public final class EmacsWindow extends EmacsHandleObject
     if (parent == null)
       return;
 
-    /* Remove and add this view again.  */
-    parent.children.remove (this);
-    parent.children.add (this);
+    synchronized (parent.children)
+      {
+	/* Remove and add this view again.  */
+	parent.children.remove (this);
+	parent.children.add (this);
+      }
 
     /* Request a relayout.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
@@ -1261,9 +1291,12 @@ public final class EmacsWindow extends EmacsHandleObject
     if (parent == null)
       return;
 
-    /* Remove and add this view again.  */
-    parent.children.remove (this);
-    parent.children.add (this);
+    synchronized (parent.children)
+      {
+	/* Remove and add this view again.  */
+	parent.children.remove (this);
+	parent.children.add (this);
+      }
 
     /* Request a relayout.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
@@ -1274,6 +1307,86 @@ public final class EmacsWindow extends EmacsHandleObject
 	  view.lower ();
 	}
       });
+  }
+
+  public synchronized void
+  reconfigure (final EmacsWindow window, final int stackMode)
+  {
+    ListIterator<EmacsWindow> iterator;
+    EmacsWindow object;
+
+    /* This does nothing here.  */
+    if (parent == null)
+      return;
+
+    /* If window is NULL, call lower or upper subject to
+       stackMode.  */
+
+    if (window == null)
+      {
+	if (stackMode == 1) /* ANDROID_BELOW */
+	  lower ();
+	else
+	  raise ();
+
+	return;
+      }
+
+    /* Otherwise, if window.parent is distinct from this, return.  */
+    if (window.parent != this.parent)
+      return;
+
+    /* Synchronize with the parent's child list.  Iterate over each
+       item until WINDOW is encountered, before moving this window to
+       the location prescribed by STACKMODE.  */
+
+    synchronized (parent.children)
+      {
+	/* Remove this window from parent.children, for it will be
+	   reinserted before or after WINDOW.  */
+	parent.children.remove (this);
+
+	/* Create an iterator.  */
+	iterator = parent.children.listIterator ();
+
+	while (iterator.hasNext ())
+	  {
+	    object = iterator.next ();
+
+	    if (object == window)
+	      {
+		/* Now place this before or after the cursor of the
+		   iterator.  */
+
+		if (stackMode == 0) /* ANDROID_ABOVE */
+		  iterator.add (this);
+		else
+		  {
+		    iterator.previous ();
+		    iterator.add (this);
+		  }
+
+		/* Effect the same adjustment upon the view
+		   hiearchy.  */
+
+		EmacsService.SERVICE.runOnUiThread (new Runnable () {
+		    @Override
+		    public void
+		    run ()
+		    {
+		      if (stackMode == 0)
+			view.moveAbove (window.view);
+		      else
+			view.moveBelow (window.view);
+		    }
+		  });
+	      }
+	  }
+
+	/* parent.children does not list WINDOW, which should never
+	   transpire.  */
+	EmacsNative.emacsAbort ();
+      }
   }
 
   public synchronized int[]
@@ -1451,5 +1564,152 @@ public final class EmacsWindow extends EmacsHandleObject
 					 xPosition, yPosition,
 					 rect.width (), rect.height ());
       }
+  }
+
+
+
+  /* Drag and drop.
+
+     Android 7.0 and later permit multiple windows to be juxtaposed
+     on-screen, consequently enabling items selected from one window
+     to be dragged onto another.  Data is transferred across program
+     boundaries using ClipData items, much the same way clipboard data
+     is transferred.
+
+     When an item is dropped, Emacs must ascertain whether the clip
+     data represents plain text, a content URI incorporating a file,
+     or some other data.  This is implemented by examining the clip
+     data's ``description'', which enumerates each of the MIME data
+     types the clip data is capable of providing data in.
+
+     If the clip data represents plain text, then that text is copied
+     into a string and conveyed to Lisp code.  Otherwise, Emacs must
+     solicit rights to access the URI from the system, absent which it
+     is accounted plain text and reinterpreted as such, to cue the
+     user that something has gone awry.
+
+     Moreover, events are regularly sent as the item being dragged
+     travels across the frame, even if it might not be dropped.  This
+     facilitates cursor motion and scrolling in response, as provided
+     by the options dnd-indicate-insertion-point and
+     dnd-scroll-margin.  */
+
+  /* Register the drag and drop event EVENT.  */
+
+  public boolean
+  onDragEvent (DragEvent event)
+  {
+    ClipData data;
+    ClipDescription description;
+    int i, j, x, y, itemCount;
+    String type;
+    Uri uri;
+    EmacsActivity activity;
+    StringBuilder builder;
+
+    x = (int) event.getX ();
+    y = (int) event.getY ();
+
+    switch (event.getAction ())
+      {
+      case DragEvent.ACTION_DRAG_STARTED:
+	/* Return true to continue the drag and drop operation.  */
+	return true;
+
+      case DragEvent.ACTION_DRAG_LOCATION:
+	/* Send this drag motion event to Emacs.  */
+	EmacsNative.sendDndDrag (handle, x, y);
+	return true;
+
+      case DragEvent.ACTION_DROP:
+	/* Judge whether this is plain text, or if it's a file URI for
+	   which permissions must be requested.  */
+
+	data = event.getClipData ();
+	description = data.getDescription ();
+	itemCount = data.getItemCount ();
+
+	/* If there are insufficient items within the clip data,
+	   return false.  */
+
+	if (itemCount < 1)
+	  return false;
+
+	/* Search for plain text data within the clipboard.  */
+
+	for (i = 0; i < description.getMimeTypeCount (); ++i)
+	  {
+	    type = description.getMimeType (i);
+
+	    if (type.equals (ClipDescription.MIMETYPE_TEXT_PLAIN)
+		|| type.equals (ClipDescription.MIMETYPE_TEXT_HTML))
+	      {
+		/* The data being dropped is plain text; encode it
+		   suitably and send it to the main thread.  */
+		type = (data.getItemAt (0).coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndText (handle, x, y, type);
+		return true;
+	      }
+	    else if (type.equals (ClipDescription.MIMETYPE_TEXT_URILIST))
+	      {
+		/* The data being dropped is a list of URIs; encode it
+		   suitably and send it to the main thread.  */
+		type = (data.getItemAt (0).coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndUri (handle, x, y, type);
+		return true;
+	      }
+	  }
+
+	/* There's no plain text data within this clipboard item, so
+	   each item within should be treated as a content URI
+	   designating a file.  */
+
+	/* Collect the URIs into a string with each suffixed
+	   by newlines, much as in a text/uri-list.  */
+	builder = new StringBuilder ();
+
+	for (i = 0; i < itemCount; ++i)
+	  {
+	    /* If the item dropped is a URI, send it to the
+	       main thread.  */
+
+	    uri = data.getItemAt (i).getUri ();
+
+	    /* Attempt to acquire permissions for this URI;
+	       failing which, insert it as text instead.  */
+		    
+	    if (uri != null
+		&& uri.getScheme () != null
+		&& uri.getScheme ().equals ("content")
+		&& (activity = EmacsActivity.lastFocusedActivity) != null)
+	      {
+		if ((activity.requestDragAndDropPermissions (event) == null))
+		  uri = null;
+	      }
+
+	    if (uri != null)
+	      builder.append (uri.toString ()).append ("\n");
+	    else
+	      {
+		/* Treat each URI that Emacs cannot secure
+		   permissions for as plain text.  */
+		type = (data.getItemAt (i)
+			.coerceToText (EmacsService.SERVICE)
+			.toString ());
+		EmacsNative.sendDndText (handle, x, y, type);
+	      }
+	  }
+
+	/* Now send each URI to Emacs.  */
+
+	if (builder.length () > 0)
+	  EmacsNative.sendDndUri (handle, x, y, builder.toString ());
+
+	return true;
+      }
+
+    return true;
   }
 };

@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'esh-arg)
 (require 'esh-io)
 (require 'esh-util)
 
@@ -40,13 +41,22 @@ finish."
   :version "24.1"			; removed eshell-proc-initialize
   :type 'hook)
 
+(defcustom eshell-process-wait-time 0.05
+  "The number of seconds to delay waiting for a synchronous process."
+  :version "30.1"
+  :type 'number)
+
 (defcustom eshell-process-wait-seconds 0
   "The number of seconds to delay waiting for a synchronous process."
   :type 'integer)
+(make-obsolete-variable 'eshell-process-wait-seconds
+                        'eshell-process-wait-time "30.1")
 
 (defcustom eshell-process-wait-milliseconds 50
   "The number of milliseconds to delay waiting for a synchronous process."
   :type 'integer)
+(make-obsolete-variable 'eshell-process-wait-milliseconds
+                        'eshell-process-wait-time "30.1")
 
 (defcustom eshell-done-messages-in-minibuffer t
   "If non-nil, subjob \"Done\" messages will display in minibuffer."
@@ -113,6 +123,7 @@ subjob.
 To add or remove elements of this list, see
 `eshell-record-process-object' and `eshell-remove-process-entry'.")
 
+(declare-function eshell-reset "esh-mode" (&optional no-hooks))
 (declare-function eshell-send-eof-to-process "esh-mode")
 (declare-function eshell-interactive-filter "esh-mode" (buffer string))
 (declare-function eshell-tail-process "esh-cmd")
@@ -148,18 +159,18 @@ PROC and STATUS to functions on the latter."
 (defun eshell-proc-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the process handling code."
   (make-local-variable 'eshell-process-list)
+  (setq-local eshell-special-ref-alist
+              (cons
+               `("process"
+                 (creation-function   get-process)
+                 (insertion-function  eshell-insert-process)
+                 (completion-function eshell-complete-process-ref))
+               eshell-special-ref-alist))
+
   (eshell-proc-mode))
 
-(defun eshell-reset-after-proc (status)
-  "Reset the command input location after a process terminates.
-The signals which will cause this to happen are matched by
-`eshell-reset-signals'."
-  (declare (obsolete nil "30.1"))
-  (when (and (stringp status)
-	     (string-match eshell-reset-signals status))
-    (require 'esh-mode)
-    (declare-function eshell-reset "esh-mode" (&optional no-hooks))
-    (eshell-reset)))
+(define-obsolete-function-alias 'eshell-reset-after-proc
+  'eshell--reset-after-signal "30.1")
 
 (defun eshell-process-active-p (process)
   "Return non-nil if PROCESS is active.
@@ -178,8 +189,7 @@ This is like `process-live-p', but additionally checks whether
       (while (eshell-process-active-p proc)
         (when (input-pending-p)
           (discard-input))
-        (sit-for eshell-process-wait-seconds
-                 eshell-process-wait-milliseconds)))))
+        (sit-for eshell-process-wait-time)))))
 
 (defalias 'eshell/wait #'eshell-wait-for-process)
 
@@ -225,23 +235,6 @@ and signal names."
   nil)
 
 (put 'eshell/kill 'eshell-no-numeric-conversions t)
-
-(defun eshell-read-process-name (prompt)
-  "Read the name of a process from the minibuffer, using completion.
-The prompt will be set to PROMPT."
-  (completing-read prompt
-		   (mapcar
-                    (lambda (proc)
-                      (cons (process-name proc) t))
-		    (process-list))
-                   nil t))
-
-(defun eshell-insert-process (process)
-  "Insert the name of PROCESS into the current buffer at point."
-  (interactive
-   (list (get-process
-	  (eshell-read-process-name "Name of process: "))))
-  (insert-and-inherit "#<process " (process-name process) ">"))
 
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
@@ -586,7 +579,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
 
 (defcustom eshell-kill-process-wait-time 5
   "Seconds to wait between sending termination signals to a subprocess."
-  :type 'integer)
+  :type 'number)
 
 (defcustom eshell-kill-process-signals '(SIGINT SIGQUIT SIGKILL)
   "Signals used to kill processes when an Eshell buffer exits.
@@ -649,29 +642,41 @@ See the variable `eshell-kill-processes-on-exit'."
 	    (kill-buffer buf)))
       (message nil))))
 
+(defun eshell--reset-after-signal (status)
+  "Reset the prompt after a signal when necessary.
+STATUS is the status associated with the signal; if
+`eshell-reset-signals' matches status, reset the prompt.
+
+This is really only useful when \"signaling\" while there's no
+foreground process.  Otherwise, `eshell-resume-command' handles
+everything."
+  (when (and (stringp status)
+	     (string-match eshell-reset-signals status))
+    (eshell-reset)))
+
 (defun eshell-interrupt-process ()
   "Interrupt a process."
   (interactive)
   (unless (eshell-process-interact 'interrupt-process)
-    (run-hook-with-args 'eshell-kill-hook nil "interrupt")))
+    (eshell--reset-after-signal "interrupt\n")))
 
 (defun eshell-kill-process ()
   "Kill a process."
   (interactive)
   (unless (eshell-process-interact 'kill-process)
-    (run-hook-with-args 'eshell-kill-hook nil "killed")))
+    (eshell--reset-after-signal "killed\n")))
 
 (defun eshell-quit-process ()
   "Send quit signal to process."
   (interactive)
   (unless (eshell-process-interact 'quit-process)
-    (run-hook-with-args 'eshell-kill-hook nil "quit")))
+    (eshell--reset-after-signal "quit\n")))
 
 ;(defun eshell-stop-process ()
 ;  "Send STOP signal to process."
 ;  (interactive)
 ;  (unless (eshell-process-interact 'stop-process)
-;    (run-hook-with-args 'eshell-kill-hook nil "stopped")))
+;    (eshell--reset-after-signal "stopped\n")))
 
 ;(defun eshell-continue-process ()
 ;  "Send CONTINUE signal to process."
@@ -680,7 +685,32 @@ See the variable `eshell-kill-processes-on-exit'."
 ;    ;; jww (1999-09-17): this signal is not dealt with yet.  For
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
-;    (run-hook-with-args 'eshell-kill-hook nil "continue")))
+;    (eshell--reset-after-signal "continue\n")))
+
+;;; Special references
+
+(defun eshell-read-process-name (prompt)
+  "Read the name of a process from the minibuffer, using completion.
+The prompt will be set to PROMPT."
+  (completing-read prompt
+		   (mapcar
+                    (lambda (proc)
+                      (cons (process-name proc) t))
+		    (process-list))
+                   nil t))
+
+(defun eshell-insert-process (process)
+  "Insert the name of PROCESS into the current buffer at point."
+  (interactive
+   (list (get-process
+	  (eshell-read-process-name "Name of process: "))))
+  (insert-and-inherit "#<process "
+                      (eshell-quote-argument (process-name process))
+                      ">"))
+
+(defun eshell-complete-process-ref ()
+  "Perform completion for process references."
+  (pcomplete-here (mapcar #'process-name (process-list))))
 
 (provide 'esh-proc)
 ;;; esh-proc.el ends here

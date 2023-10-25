@@ -381,6 +381,9 @@ the result will be a local, non-Tramp, file name."
       ;; but to the root home directory.
       (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
+      ;; Tilde expansion shall be possible also for quoted localname.
+      (when (string-prefix-p "~" (file-name-unquote localname))
+	(setq localname (file-name-unquote localname)))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
       (when (string-match

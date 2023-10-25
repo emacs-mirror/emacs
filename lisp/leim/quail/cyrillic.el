@@ -38,12 +38,12 @@
 
 ;; This was `cyrillic-jcuken'.  Alexander Mikhailian
 ;; <mikhailian@altern.org> says:  "cyrillic-jcuken" is actually
-;; russian.  It is ok but a bit outdated.  This layout has been used
+;; Russian.  It is ok but a bit outdated.  This layout has been used
 ;; in typewriters for ages but it has been superseded on desktops by
 ;; a variation of this layout, implemented in M$ Windows software.
 ;; The Windows layout is greatly preferred because of the comma and
 ;; period being placed more conveniently and, of course, because of
-;; the popularity of Windows software. This layout is a common option
+;; the popularity of Windows software.  This layout is a common option
 ;; in X Windows and console layouts for GNU/Linux.  [See
 ;; `russian-computer' below.]
 (quail-define-package

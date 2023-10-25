@@ -957,10 +957,10 @@ with a @code{nil} @var{norecord} argument since this may lead to
 infinite recursion.
 @end defvar
 
-@defun buffer-match-p condition buffer-or-name &optional arg
+@defun buffer-match-p condition buffer-or-name &rest args
 This function checks if a buffer designated by @code{buffer-or-name}
-satisfies the specified @code{condition}.  Optional third argument
-@var{arg} is passed to the predicate function in @var{condition}.  A
+satisfies the specified @code{condition}.  Optional arguments
+@var{args} are passed to the predicate function in @var{condition}.  A
 valid @var{condition} can be one of the following:
 @itemize @bullet{}
 @item
@@ -969,23 +969,21 @@ satisfies the condition if the regular expression matches the buffer
 name.
 @item
 A predicate function, which should return non-@code{nil} if the buffer
-matches.  If the function expects one argument, it is called with
-@var{buffer-or-name} as the argument; if it expects 2 arguments, the
-first argument is @var{buffer-or-name} and the second is @var{arg}
-(or @code{nil} if @var{arg} is omitted).
+matches.  It is called with
+@var{buffer-or-name} as the first argument followed by @var{args}.
 @item
 A cons-cell @code{(@var{oper} . @var{expr})} where @var{oper} is one
 of
 @table @code
 @item (not @var{cond})
 Satisfied if @var{cond} doesn't satisfy @code{buffer-match-p} with
-the same buffer and @code{arg}.
+the same buffer and @code{args}.
 @item (or @var{conds}@dots{})
 Satisfied if @emph{any} condition in @var{conds} satisfies
-@code{buffer-match-p}, with the same buffer and @code{arg}.
+@code{buffer-match-p}, with the same buffer and @code{args}.
 @item (and @var{conds}@dots{})
 Satisfied if @emph{all} the conditions in @var{conds} satisfy
-@code{buffer-match-p}, with the same buffer and @code{arg}.
+@code{buffer-match-p}, with the same buffer and @code{args}.
 @item derived-mode
 Satisfied if the buffer's major mode derives from @var{expr}.
 @item major-mode
@@ -998,14 +996,14 @@ string) or @code{(and)} (empty conjunction).
 @end itemize
 @end defun
 
-@defun match-buffers condition &optional buffer-list arg
+@defun match-buffers condition &optional buffer-list &rest args
 This function returns a list of all buffers that satisfy the
 @code{condition}.  If no buffers match, the function returns
 @code{nil}.  The argument @var{condition} is as defined in
 @code{buffer-match-p} above.  By default, all the buffers are
 considered, but this can be restricted via the optional argument
 @code{buffer-list}, which should be a list of buffers to consider.
-Optional third argument @var{arg} will be passed to @var{condition} in
+Remaining arguments @var{args} will be passed to @var{condition} in
 the same way as @code{buffer-match-p} does.
 @end defun
 

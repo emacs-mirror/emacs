@@ -1963,6 +1963,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 (set-advertised-calling-convention 'libxml-parse-xml-region '(&optional start end base-url) "27.1")
 (set-advertised-calling-convention 'libxml-parse-html-region '(&optional start end base-url) "27.1")
+(set-advertised-calling-convention 'sleep-for '(seconds) "30.1")
 (set-advertised-calling-convention 'time-convert '(time form) "29.1")
 
 ;;;; Obsolescence declarations for variables, and aliases.
@@ -3412,7 +3413,7 @@ causes it to evaluate `help-form' and display the result."
     (message "%s%s" prompt (char-to-string char))
     char))
 
-(defun sit-for (seconds &optional nodisp obsolete)
+(defun sit-for (seconds &optional nodisp)
   "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
 SECONDS may be a floating-point value.
 \(On operating systems that do not support waiting for fractions of a
@@ -3421,29 +3422,11 @@ second, floating-point values are rounded down to the nearest integer.)
 If optional arg NODISP is t, don't redisplay, just wait for input.
 Redisplay does not happen if input is available before it starts.
 
-Value is t if waited the full time with no input arriving, and nil otherwise.
-
-An obsolete, but still supported form is
-\(sit-for SECONDS &optional MILLISECONDS NODISP)
-where the optional arg MILLISECONDS specifies an additional wait period,
-in milliseconds; this was useful when Emacs was built without
-floating point support."
-  (declare (advertised-calling-convention (seconds &optional nodisp) "22.1")
-           (compiler-macro
-            (lambda (form)
-              (if (not (or (numberp nodisp) obsolete)) form
-                (macroexp-warn-and-return
-                 (format-message "Obsolete calling convention for `sit-for'")
-                 `(,(car form) (+ ,seconds (/ (or ,nodisp 0) 1000.0)) ,obsolete)
-                 '(obsolete sit-for))))))
+Value is t if waited the full time with no input arriving, and nil otherwise."
   ;; This used to be implemented in C until the following discussion:
   ;; https://lists.gnu.org/r/emacs-devel/2006-07/msg00401.html
   ;; Then it was moved here using an implementation based on an idle timer,
   ;; which was then replaced by the use of read-event.
-  (if (numberp nodisp)
-      (setq seconds (+ seconds (* 1e-3 nodisp))
-            nodisp obsolete)
-    (if obsolete (setq nodisp obsolete)))
   (cond
    (noninteractive
     (sleep-for seconds)
@@ -7299,13 +7282,15 @@ lines."
             (setq start (length string)))))
       (nreverse lines))))
 
-(defun buffer-match-p (condition buffer-or-name &optional arg)
+(defvar buffer-match-p--past-warnings nil)
+
+(defun buffer-match-p (condition buffer-or-name &rest args)
   "Return non-nil if BUFFER-OR-NAME matches CONDITION.
 CONDITION is either:
 - the symbol t, to always match,
 - the symbol nil, which never matches,
 - a regular expression, to match a buffer name,
-- a predicate function that takes BUFFER-OR-NAME and ARG as
+- a predicate function that takes BUFFER-OR-NAME plus ARGS as
   arguments, and returns non-nil if the buffer matches,
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
@@ -7330,9 +7315,18 @@ CONDITION is either:
                       ((pred stringp)
                        (string-match-p condition (buffer-name buffer)))
                       ((pred functionp)
-                       (if (eq 1 (cdr (func-arity condition)))
-                           (funcall condition buffer-or-name)
-                         (funcall condition buffer-or-name arg)))
+                       (if (cdr args)
+                           ;; New in Emacs>29.1. no need for compatibility hack.
+                           (apply condition buffer-or-name args)
+                         (condition-case-unless-debug err
+                             (apply condition buffer-or-name args)
+                           (wrong-number-of-arguments
+                            (unless (member condition
+                                            buffer-match-p--past-warnings)
+                              (message "%s" (error-message-string err))
+                              (push condition buffer-match-p--past-warnings))
+                            (apply condition buffer-or-name
+                                   (if args nil '(nil)))))))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)
@@ -7354,17 +7348,17 @@ CONDITION is either:
                 (throw 'match t)))))))
     (funcall match (list condition))))
 
-(defun match-buffers (condition &optional buffers arg)
+(defun match-buffers (condition &optional buffers &rest args)
   "Return a list of buffers that match CONDITION, or nil if none match.
 See `buffer-match-p' for various supported CONDITIONs.
 By default all buffers are checked, but the optional
 argument BUFFERS can restrict that: its value should be
 an explicit list of buffers to check.
-Optional argument ARG is passed to `buffer-match-p', for
+Optional arguments ARGS are passed to `buffer-match-p', for
 predicate conditions in CONDITION."
   (let (bufs)
     (dolist (buf (or buffers (buffer-list)))
-      (when (buffer-match-p condition (get-buffer buf) arg)
+      (when (apply #'buffer-match-p condition (get-buffer buf) args)
         (push buf bufs)))
     bufs))
 

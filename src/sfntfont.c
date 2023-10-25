@@ -2784,7 +2784,9 @@ sfntfont_setup_interpreter (struct sfnt_font_info *info,
 static void
 sfnt_close_tables (struct sfnt_font_tables *tables)
 {
+#ifdef HAVE_MMAP
   int rc;
+#endif /* HAVE_MMAP */
 
   xfree (tables->cmap);
   xfree (tables->hhea);
@@ -2839,7 +2841,10 @@ sfnt_open_tables (struct sfnt_font_desc *desc)
 {
   struct sfnt_font_tables *tables;
   struct sfnt_offset_subtable *subtable;
-  int fd, i, rc;
+  int fd, i;
+#ifdef HAVE_MMAP
+  int rc;
+#endif /* HAVE_MMAP */
   struct sfnt_cmap_encoding_subtable *subtables;
   struct sfnt_cmap_encoding_subtable_data **data;
   struct sfnt_cmap_format_14 *format14;
@@ -3715,9 +3720,10 @@ sfntfont_get_variation_glyphs (struct font *font, int c,
 			       unsigned variations[256])
 {
   struct sfnt_font_info *info;
-  size_t i;
+  size_t i, index;
   int n;
   struct sfnt_mapped_variation_selector_record *record;
+  sfnt_glyph default_glyph;
 
   info = (struct sfnt_font_info *) font;
   n = 0;
@@ -3738,12 +3744,37 @@ sfntfont_get_variation_glyphs (struct font *font, int c,
 	 && info->uvs->records[i].selector < 0xfe00)
     ++i;
 
+  /* Get the glyph represented by C, used when C is present within a
+     default value table.  */
+
+  default_glyph = sfntfont_lookup_glyph (info, c);
+
   /* Fill in selectors 0 to 15.  */
 
   while (i < info->uvs->num_records
 	 && info->uvs->records[i].selector <= 0xfe0f)
     {
       record = &info->uvs->records[i];
+      index = info->uvs->records[i].selector - 0xfe00 + 16;
+
+      /* Handle invalid unsorted tables.  */
+
+      if (record->selector < 0xfe00)
+	return 0;
+
+      /* If there are default mappings in this record, ascertain if
+	 this glyph matches one of them.  */
+
+      if (record->default_uvs
+	  && sfnt_is_character_default (record->default_uvs, c))
+	{
+	  variations[index] = default_glyph;
+
+	  if (default_glyph)
+	    ++n;
+
+	  goto next_selector;
+	}
 
       /* If record has no non-default mappings, continue on to the
 	 next selector.  */
@@ -3751,18 +3782,13 @@ sfntfont_get_variation_glyphs (struct font *font, int c,
       if (!record->nondefault_uvs)
 	goto next_selector;
 
-      /* Handle invalid unsorted tables.  */
-
-      if (record->selector < 0xfe00)
-	return 0;
-
       /* Find the glyph ID associated with C and put it in
 	 VARIATIONS.  */
 
-      variations[info->uvs->records[i].selector - 0xfe00]
+      variations[index]
 	= sfnt_variation_glyph_for_char (record->nondefault_uvs, c);
 
-      if (variations[info->uvs->records[i].selector - 0xfe00])
+      if (variations[index])
 	++n;
 
     next_selector:
@@ -3782,6 +3808,26 @@ sfntfont_get_variation_glyphs (struct font *font, int c,
 	 && info->uvs->records[i].selector <= 0xe01ef)
     {
       record = &info->uvs->records[i];
+      index = info->uvs->records[i].selector - 0xe0100 + 16;
+
+      /* Handle invalid unsorted tables.  */
+
+      if (record->selector < 0xe0100)
+	return 0;
+
+      /* If there are default mappings in this record, ascertain if
+	 this glyph matches one of them.  */
+
+      if (record->default_uvs
+	  && sfnt_is_character_default (record->default_uvs, c))
+	{
+	  variations[index] = default_glyph;
+
+	  if (default_glyph)
+	    ++n;
+
+	  goto next_selector_1;
+	}
 
       /* If record has no non-default mappings, continue on to the
 	 next selector.  */
@@ -3789,18 +3835,13 @@ sfntfont_get_variation_glyphs (struct font *font, int c,
       if (!record->nondefault_uvs)
 	goto next_selector_1;
 
-      /* Handle invalid unsorted tables.  */
-
-      if (record->selector < 0xe0100)
-	return 0;
-
       /* Find the glyph ID associated with C and put it in
 	 VARIATIONS.  */
 
-      variations[info->uvs->records[i].selector - 0xe0100 + 16]
+      variations[index]
 	= sfnt_variation_glyph_for_char (record->nondefault_uvs, c);
 
-      if (variations[info->uvs->records[i].selector - 0xe0100 + 16])
+      if (variations[index])
 	++n;
 
     next_selector_1:
@@ -3836,7 +3877,7 @@ sfntfont_detect_sigbus (void *addr)
   return false;
 }
 
-#endif
+#endif /* HAVE_MMAP */
 
 
 

@@ -99,6 +99,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     /* The typeface.  */
     public Sdk7Typeface typeface;
 
+    @SuppressWarnings ("deprecation")
     public
     Sdk7FontEntity (Sdk7Typeface typeface)
     {
@@ -120,6 +121,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     /* The typeface.  */
     public Sdk7Typeface typeface;
 
+    @SuppressWarnings ("deprecation")
     public
     Sdk7FontObject (Sdk7Typeface typeface, int pixelSize)
     {

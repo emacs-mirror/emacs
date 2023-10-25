@@ -1305,7 +1305,7 @@ Default to the URL around or before point."
   (let* ((scheme (save-match-data
                    (if (string-match "\\(.+\\):/" url)
                        (match-string 1 url)
-                     "http")))
+                     browse-url-default-scheme)))
          (mime (concat "application/x-vnd.Be.URL." scheme)))
     (haiku-roster-launch mime (vector url))))
 

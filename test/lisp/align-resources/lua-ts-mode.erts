@@ -1,0 +1,67 @@
+Name: align assignments
+
+=-=
+local first=1
+local s <const> =2
+local last=3
+=-=
+local first     = 1
+local s <const> = 2
+local last      = 3
+=-=-=
+
+Name: align fields
+
+=-=
+local Table={
+first=1,
+second=2,
+last=3,
+}
+=-=
+local Table = {
+    first   = 1,
+    second  = 2,
+    last    = 3,
+}
+=-=-=
+
+Name: align comments
+
+=-=
+local first-- 1
+local second -- 2
+local last	 -- 3
+=-=
+local first         -- 1
+local second        -- 2
+local last          -- 3
+=-=-=
+
+Name: align assignments and comments
+
+=-=
+local first=1-- one
+local second=2 -- two
+local last=3	 -- three
+=-=
+local first  = 1    -- one
+local second = 2    -- two
+local last   = 3    -- three
+=-=-=
+
+Name: align fields and comments
+
+=-=
+local T={
+first=1,--one
+second=2, --two
+last=3,	 --three
+}
+=-=
+local T    = {
+    first  = 1,     --one
+    second = 2,     --two
+    last   = 3,     --three
+}
+=-=-=

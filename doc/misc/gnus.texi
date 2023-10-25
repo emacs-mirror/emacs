@@ -24841,7 +24841,7 @@ ends such as Bogofilter (@pxref{Bogofilter}) and the Spam Statistics
 package (@pxref{Spam Statistics Filtering}).
 
 The spam and ham processors that apply to each group are determined by
-the group's@code{spam-process} group parameter.  If this group
+the group's @code{spam-process} group parameter.  If this group
 parameter is not defined, they are determined by the variable
 @code{gnus-spam-process-newsgroups}.
 
@@ -26434,12 +26434,12 @@ lines:
 (setq gnus-refer-article-method
       '(current
         (nnregistry)
-        (nnweb "gmane" (nnweb-type gmane))))
+        (nnweb "google" (nnweb-type google))))
 @end example
 
 The example above instructs Gnus to first look up the article in the
 current group, or, alternatively, using the registry, and finally, if
-all else fails, using Gmane.
+all else fails, using Google.
 
 @node Fancy splitting to parent
 @subsection Fancy splitting to parent

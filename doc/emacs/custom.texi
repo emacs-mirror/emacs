@@ -1507,7 +1507,13 @@ mode or subdirectory, and for variable and value, and adds the
 entry defining the directory-local variable.  @kbd{M-x
 delete-dir-local-variable} deletes an entry.  @kbd{M-x
 copy-file-locals-to-dir-locals} copies the file-local variables in the
-current file into @file{.dir-locals.el}.
+current file into @file{.dir-locals.el}, or @file{.dir-locals-2.el} if
+that file is also present.
+
+With a prefix argument, all three commands prompt for the file you
+want to modify.  Although it doesn't have to exist, you must enter a
+valid filename, either @file{.dir-locals.el} or
+@file{.dir-locals-2.el}.
 
 @findex dir-locals-set-class-variables
 @findex dir-locals-set-directory-class
@@ -2924,6 +2930,7 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @node Early Init File
 @subsection The Early Init File
 @cindex early init file
+@cindex @file{early-init.el} file
 
   Most customizations for Emacs should be put in the normal init file.
 @xref{Init File}.  However, it is sometimes necessary

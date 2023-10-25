@@ -53,13 +53,14 @@ they are hidden or highlighted.  This is controlled via the variables
 you can decide whether the entire message or only the sending nick is
 highlighted."
   ((add-hook 'erc-insert-modify-hook #'erc-match-message 50)
-   (add-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
-   (unless erc--updating-modules-p
-     (erc-buffer-do #'erc-match--modify-invisibility-spec))
+   (add-hook 'erc-mode-hook #'erc-match--setup)
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-match--setup))
+   (add-hook 'erc-insert-post-hook #'erc-match--on-insert-post 50)
    (erc--modify-local-map t "C-c C-k" #'erc-go-to-log-matches-buffer))
   ((remove-hook 'erc-insert-modify-hook #'erc-match-message)
-   (remove-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
-   (erc-match--modify-invisibility-spec)
+   (remove-hook 'erc-insert-post-hook #'erc-match--on-insert-post)
+   (remove-hook 'erc-mode-hook #'erc-match--setup)
+   (erc-buffer-do #'erc-match--setup)
    (erc--modify-local-map nil "C-c C-k" #'erc-go-to-log-matches-buffer)))
 
 ;; Remaining customizations
@@ -490,7 +491,9 @@ Use this defun with `erc-insert-modify-hook'."
          (message (buffer-substring message-beg (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
-			 (erc-server-buffer-p))))
+                         ;; FIXME replace with `erc--server-buffer-p'
+                         ;; or explain why that's unwise.
+                         (erc-server-or-unjoined-channel-buffer-p))))
       (mapc
        (lambda (match-type)
 	 (goto-char (point-min))
@@ -657,7 +660,20 @@ See `erc-log-match-format'."
 
 (defun erc-hide-fools (match-type _nickuserhost _message)
   "Hide comments from designated fools."
-  (when (eq match-type 'fool)
+  (when (and erc--msg-props (eq match-type 'fool))
+    (puthash 'erc--invisible 'erc-match-fool erc--msg-props)))
+
+;; FIXME remove, make public, or only add locally.
+;;
+;; ERC modules typically don't add internal functions to public hooks
+;; globally.  However, ERC 5.6 will likely include a general
+;; (internal) facility for adding invisible props, which will obviate
+;; the need for this function.  IOW, leaving this internal for now is
+;; an attempt to avoid the hassle of the deprecation process.
+(defun erc-match--on-insert-post ()
+  "Hide messages marked with the `erc--invisible' prop."
+  (when (erc--check-msg-prop 'erc--invisible 'erc-match-fool)
+    (remhash 'erc--invisible erc--msg-props)
     (erc--hide-message 'match-fools)))
 
 (defun erc-beep-on-match (match-type _nickuserhost _message)
@@ -666,14 +682,13 @@ This function is meant to be called from `erc-text-matched-hook'."
   (when (member match-type erc-beep-match-types)
     (beep)))
 
-(defun erc-match--modify-invisibility-spec ()
+(defun erc-match--setup ()
   "Add an `erc-match' property to the local spec."
   ;; Hopefully, this will be extended to do the same for other
   ;; invisible properties managed by this module.
   (if erc-match-mode
       (erc-match-toggle-hidden-fools +1)
-    (erc-with-all-buffers-of-server nil nil
-      (erc-match-toggle-hidden-fools -1))))
+    (erc-match-toggle-hidden-fools -1)))
 
 (defun erc-match-toggle-hidden-fools (arg)
   "Toggle fool visibility.

@@ -2008,7 +2008,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       {
 	struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (obj);
 	print_c_string ("#<native compilation unit: ", printcharfun);
-	print_string (cu->file, printcharfun);
+	print_object (cu->file, printcharfun, escapeflag);
 	printchar (' ', printcharfun);
 	print_object (cu->optimize_qualities, printcharfun, escapeflag);
 	printchar ('>', printcharfun);

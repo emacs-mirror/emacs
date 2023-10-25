@@ -683,7 +683,10 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
   "Alist of values for `compilation-error-regexp-alist'.")
 
 (defcustom compilation-error-regexp-alist
-  (mapcar #'car compilation-error-regexp-alist-alist)
+  ;; Omit `omake' by default: its mere presence here triggers special processing
+  ;; and modifies regexps for other rules (see `compilation-parse-errors'),
+  ;; which may slow down matching (or even cause mismatches).
+  (delq 'omake (mapcar #'car compilation-error-regexp-alist-alist))
   "Alist that specifies how to match errors in compiler output.
 On GNU and Unix, any string is a valid filename, so these
 matchers must make some common sense assumptions, which catch
@@ -2725,7 +2728,7 @@ looking for the next message."
 	  (compilation-loop > compilation-next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))
 				"No more %ss yet"
-			      "Moved past last %s")
+			      "Past last %s")
 			    (point-max))
 	;; Don't move "back" to message at or before point.
 	;; Pass an explicit (point-min) to make sure pt is non-nil.

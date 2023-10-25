@@ -32,7 +32,7 @@
 
 ;;; Units operations.
 
-;;; Units table last updated 9-Jan-91 by Ulrich Mueller (ulm@vsnhd1.cern.ch)
+;;; Units table last updated 9-Jan-91 by Ulrich Müller (ulm@vsnhd1.cern.ch)
 ;;; with some additions by Przemek Klosowski (przemek@rrdstrad.nist.gov)
 ;;; Updated April 2002 by Jochen Küpper
 
@@ -57,12 +57,13 @@
     ( ft      "12 in"                "Foot")
     ( yd      "3 ft"                 "Yard" )
     ( mi      "5280 ft"              "Mile" )
-    ( au      "149597870691. m"      "Astronomical Unit" nil
-              "149597870691 m (*)")
-              ;; (approx) NASA JPL (https://neo.jpl.nasa.gov/glossary/au.html)
+    ( au      "149597870700 m"       "Astronomical Unit")
+              ;; "149 597 870 700 m exactly"
+              ;; http://www.iau.org/static/resolutions/IAU2012_English.pdf
     ( lyr     "c yr"                 "Light Year" )
-    ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
-              "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
+    ( pc      "(648000/pi) au"       "Parsec (**)")
+              ;; "The parsec is defined as exactly (648 000/π) au"
+              ;; http://www.iau.org/static/resolutions/IAU2015_English.pdf
     ( nmi     "1852 m"               "Nautical Mile" )
     ( fath    "6 ft"                 "Fathom" )
     ( fur     "660 ft"               "Furlong")
@@ -181,9 +182,9 @@
     ( hpm     "75 m kgf/s"           "Metric Horsepower") ;;ESUWM
 
     ;; Temperature
-    ( K       nil                    "*Degree Kelvin"     K )
-    ( dK      "K"                    "Degree Kelvin"      K )
-    ( degK    "K"                    "Degree Kelvin"      K )
+    ( K       nil                    "*Kelvin"            K )
+    ;; FIXME: Add °C and °F, but it requires that we sort out input etc for
+    ;; the ° sign.
     ( dC      "K"                    "Degree Celsius"     C )
     ( degC    "K"                    "Degree Celsius"     C )
     ( dF      "(5/9) K"              "Degree Fahrenheit"  F )
@@ -268,8 +269,8 @@
     ;; and mu0 no longer has the previous exact value of 4 pi 10^(-7) H/m.
     ( eps0    "ech^2 / (2 alpha h c)"       "Permittivity of vacuum" )
     ( ε0      "eps0"                        "Permittivity of vacuum" )
-    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum") ;; Exact
-    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
+    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum")
+    ( μ0      "mu0"                         "Permeability of vacuum")
     ( G       "6.67408*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67408 10^-11 m^3/(kg s^2) (*)")
     ( Nav     "6.02214076*10^(23) / mol"    "Avogadro's constant" nil
@@ -307,8 +308,24 @@
               "22.710947 10^-3 m^3/mol (*)")
     ;; Logarithmic units
     ( Np      nil    "*Neper")
-    ( dB      "(ln(10)/20) Np" "decibel")))
+    ( dB      "(ln(10)/20) Np" "decibel"))
+  "List of predefined units for Calc.
 
+Each element is (NAME DEF DESC TEMP-UNIT HUMAN-DEF), where:
+
+NAME      is the unit symbol.
+DEF       is a string defining the unit as a Calc expression; nil if base unit.
+DESC      is a string describing the unit (to a human reader).
+          A leading asterisk indicates that the unit is first in its group.
+TEMP-UNIT is `K', `C' or `F' for temperature units and is used to identify
+          the unit when doing absolute temperature conversion
+          (`calc-convert-temperature').  For other units, nil.
+HUMAN-DEF is a string defining the unit (to a human reader).
+          If absent or nil, DEF is used.
+
+(*) in HUMAN-DEF means that the definition is approximate, otherwise exact.
+(**) in DESC means that the unit name is different in TeX and LaTeX
+     display modes.")
 
 (defvar math-additional-units nil
   "Additional units table for user-defined units.

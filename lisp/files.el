@@ -1135,9 +1135,11 @@ the function needs to examine, starting with FILE."
     (while (not (or root
                     (null file)
                     (string-match locate-dominating-stop-dir-regexp file)))
-      (setq try (if (stringp name)
-                    (and (file-directory-p file)
-                         (file-exists-p (expand-file-name name file)))
+      (setq file (if (file-directory-p file)
+                     file
+                   (file-name-directory file))
+            try (if (stringp name)
+                    (file-exists-p (expand-file-name name file))
                   (funcall name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
@@ -5933,9 +5935,11 @@ Before and after saving the buffer, this function runs
                            buffer-file-name)
                          t))
 	;; If file not writable, see if we can make it writable
-	;; temporarily while we write it.
-	;; But no need to do so if we have just backed it up
-	;; (setmodes is set) because that says we're superseding.
+	;; temporarily while we write it (its original modes will be
+	;; restored in 'basic-save-buffer' or, in case of an error, in
+	;; the `unwind-protect' below).  But no need to do so if we
+	;; have just backed it up (setmodes is set) because that says
+	;; we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
 	       (setq setmodes
@@ -5944,12 +5948,17 @@ Before and after saving the buffer, this function runs
                                "Error getting extended attributes: %s"
 			     (file-extended-attributes buffer-file-name))
 			   buffer-file-name))
-	       ;; If set-file-extended-attributes fails, fall back on
-	       ;; set-file-modes.
-	       (unless
-		   (with-demoted-errors "Error setting attributes: %s"
-		     (set-file-extended-attributes buffer-file-name
-						   (nth 1 setmodes)))
+	       ;; If set-file-extended-attributes fails to make the
+	       ;; file writable, fall back on set-file-modes.  Calling
+	       ;; set-file-extended-attributes here may or may not be
+	       ;; actually necessary.  However, since its exact
+	       ;; behavior is highly port-specific, since calling it
+	       ;; does not do any harm, and since the call has a long
+	       ;; history, we decided to leave it in (bug#66546).
+	       (with-demoted-errors "Error setting attributes: %s"
+		 (set-file-extended-attributes buffer-file-name
+					       (nth 1 setmodes)))
+	       (unless (file-writable-p buffer-file-name)
 		 (set-file-modes buffer-file-name
 				 (logior (car setmodes) 128)))))
 	(let (success)
@@ -5962,12 +5971,22 @@ Before and after saving the buffer, this function runs
                               buffer-file-name nil t buffer-file-truename)
                 (when save-silently (message nil))
 		(setq success t))
-	    ;; If we get an error writing the new file, and we made
-	    ;; the backup by renaming, undo the backing-up.
-	    (and setmodes (not success)
-		 (progn
-		   (rename-file (nth 2 setmodes) buffer-file-name t)
-		   (setq buffer-backed-up nil)))))))
+            (cond
+             ;; If we get an error writing the file, and there is no
+             ;; backup file, then we (most likely) made that file
+             ;; writable above.  Attempt to undo the write-access.
+             ((and setmodes (not success)
+                   (equal (nth 2 setmodes) buffer-file-name))
+	      (with-demoted-errors "Error setting file modes: %S"
+		(set-file-modes buffer-file-name (car setmodes)))
+	      (with-demoted-errors "Error setting attributes: %s"
+		(set-file-extended-attributes buffer-file-name
+					      (nth 1 setmodes))))
+	     ;; If we get an error writing the new file, and we made
+	     ;; the backup by renaming, undo the backing-up.
+	     ((and setmodes (not success))
+	      (rename-file (nth 2 setmodes) buffer-file-name t)
+	      (setq buffer-backed-up nil)))))))
     setmodes))
 
 (declare-function diff-no-select "diff"
@@ -7572,7 +7591,8 @@ files, you could say something like:
 In this example, if you're in \"src/emacs/emacs-27/lisp/abbrev.el\",
 and a \"src/emacs/emacs-28/lisp/abbrev.el\" file exists, it's now
 defined as a sibling."
-  :type 'sexp
+  :type '(alist :key-type (regexp :tag "Match")
+                :value-type (repeat (string :tag "Expansion")))
   :version "29.1")
 
 (defun find-sibling-file (file)
@@ -8317,13 +8337,12 @@ arguments as the running Emacs)."
 	;; Get a list of the indices of the args that are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			'(;; The first eight are special because they
+			'(;; The first seven are special because they
 			  ;; return a file name.  We want to include
 			  ;; the /: in the return value.  So just
 			  ;; avoid stripping it in the first place.
                           (abbreviate-file-name)
                           (directory-file-name)
-                          (expand-file-name)
                           (file-name-as-directory)
                           (file-name-directory)
                           (file-name-sans-versions)
@@ -8332,6 +8351,10 @@ arguments as the running Emacs)."
 	                  ;; `identity' means just return the first
 			  ;; arg not stripped of its quoting.
 			  (substitute-in-file-name identity)
+                          ;; `expand-file-name' shall do special case
+                          ;; for the first argument starting with
+                          ;; "/:~".  (Bug#65685)
+                          (expand-file-name expand-file-name)
 			  ;; `add' means add "/:" to the result.
 			  (file-truename add 0)
                           ;;`insert-file-contents' needs special handling.
@@ -8387,6 +8410,10 @@ arguments as the running Emacs)."
     (let ((tramp-mode (and tramp-mode (eq method 'local-copy))))
       (pcase method
         ('identity (car arguments))
+        ('expand-file-name
+         (when (string-prefix-p "/:~" (car arguments))
+           (setcar arguments (file-name-unquote (car arguments) t)))
+         (apply operation arguments))
         ('add (file-name-quote (apply operation arguments) t))
         ('buffer-file-name
          (let ((buffer-file-name (file-name-unquote buffer-file-name t)))

@@ -2127,6 +2127,14 @@ This function returns the number of days between the beginning of year
 The operating system limits the range of time and zone values.
 @end defun
 
+@defun days-to-time days
+This is not quite the inverse of the @code{time-to-days} function, as
+it uses the Emacs epoch (instead of the year 1) for historical
+reasons.  To get the inverse, subtract @code{(time-to-days 0)} from
+@var{days}, in which case @code{days-to-time} may return @code{nil} if
+@var{days} is negative.
+@end defun
+
 @defun time-to-day-in-year time-value
 This returns the day number within the year corresponding to @var{time-value},
 assuming the default time zone.
@@ -3355,7 +3363,8 @@ reliably report file attribute changes when watching a directory.
 The @code{stopped} event means that watching the file has been
 discontinued.  This could be because @code{file-notify-rm-watch} was
 called (see below), or because the file being watched was deleted, or
-due to another error reported from the underlying library which makes
+because the filesystem of the file being watched was unmounted, or due
+to another error reported from the underlying library which makes
 further watching impossible.
 
 @var{file} and @var{file1} are the name of the file(s) whose event is

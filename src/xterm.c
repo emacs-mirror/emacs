@@ -11820,7 +11820,9 @@ x_frame_highlight (struct frame *f)
   x_stop_ignoring_errors (dpyinfo);
   unblock_input ();
   gui_update_cursor (f, true);
-  x_set_frame_alpha (f);
+
+  if (!FRAME_X_OUTPUT (f)->alpha_identical_p)
+    x_set_frame_alpha (f);
 }
 
 static void
@@ -11844,7 +11846,15 @@ x_frame_unhighlight (struct frame *f)
   unblock_input ();
 
   gui_update_cursor (f, true);
-  x_set_frame_alpha (f);
+
+  /* Eschew modifying the frame alpha when the alpha values for
+     focused and background frames are identical; otherwise, this will
+     upset the order in which changes to the alpha property
+     immediately subsequent to a focus change are propagated into a
+     frame's alpha property.  (bug#66398) */
+
+  if (!FRAME_X_OUTPUT (f)->alpha_identical_p)
+    x_set_frame_alpha (f);
 }
 
 /* The focus has changed.  Update the frames as necessary to reflect

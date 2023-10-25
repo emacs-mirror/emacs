@@ -4909,7 +4909,8 @@ If a fill prefix is specified, it overrides all the above."
 	   (setq c-lit-limits (c-literal-limits nil nil t)))
 	 (unless c-lit-type
 	   (setq c-lit-type (c-literal-type c-lit-limits)))
-	 (if (memq (cond ((c-query-and-set-macro-start) 'cpp)
+	 (if (memq (cond ((memq c-lit-type '(c c++ string)) c-lit-type)
+			 ((c-query-and-set-macro-start) 'cpp)
 			 ((null c-lit-type) 'code)
 			 (t c-lit-type))
 		   c-ignore-auto-fill)

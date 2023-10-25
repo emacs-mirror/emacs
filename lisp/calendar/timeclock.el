@@ -100,19 +100,21 @@ into account any discrepancy of time under-worked or over-worked on
 previous days.  This only affects the timeclock mode line display."
   :type 'boolean)
 
-(defcustom timeclock-get-project-function 'timeclock-ask-for-project
+(defcustom timeclock-get-project-function #'timeclock-ask-for-project
   "The function used to determine the name of the current project.
 When clocking in, and no project is specified, this function will be
 called to determine what is the current project to be worked on.
 If this variable is nil, no questions will be asked."
-  :type 'function)
+  :type '(choice (const :tag "Don't ask" nil)
+                 function))
 
-(defcustom timeclock-get-reason-function 'timeclock-ask-for-reason
+(defcustom timeclock-get-reason-function #'timeclock-ask-for-reason
   "A function used to determine the reason for clocking out.
 When clocking out, and no reason is specified, this function will be
 called to determine what is the reason.
 If this variable is nil, no questions will be asked."
-  :type 'function)
+  :type '(choice (const :tag "Don't ask" nil)
+                 function))
 
 (defcustom timeclock-get-workday-function nil
   "A function used to determine the length of today's workday.

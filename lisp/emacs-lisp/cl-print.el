@@ -175,7 +175,7 @@ Print the contents hidden by the ellipsis to STREAM."
 (defvar cl-print-compiled nil
   "Control how to print byte-compiled functions.
 Acceptable values include:
-- `full' to print out the full contents of the function using `prin1'.
+- `raw' to print out the full contents of the function using `prin1'.
 - `static' to print the vector of constants.
 - `disassemble' to print the disassembly of the code.
 - nil to skip printing any details about the code.")
@@ -209,10 +209,18 @@ into a button whose action shows the function's disassembly.")
     (if args
         (prin1 args stream)
       (princ "()" stream)))
-  (if (eq cl-print-compiled 'full)
-      (progn
+  (if (eq cl-print-compiled 'raw)
+      (let ((button-start
+             (and cl-print-compiled-button
+                  (bufferp stream)
+                  (with-current-buffer stream (1+ (point))))))
         (princ " " stream)
-        (prin1 object stream))
+        (prin1 object stream)
+        (when button-start
+          (with-current-buffer stream
+            (make-text-button button-start (point)
+                              :type 'help-byte-code
+                              'byte-code-function object))))
     (pcase (help-split-fundoc (documentation object 'raw) object)
       ;; Drop args which `help-function-arglist' already printed.
       (`(,_usage . ,(and doc (guard (stringp doc))))
@@ -576,7 +584,7 @@ node `(elisp)Output Variables'."
   "Return a string containing a printed representation of VALUE.
 Attempt to get the length of the returned string under LIMIT
 characters with appropriate settings of `print-level',
-`print-length.', and `cl-print-string-length'.  Use
+`print-length', and `cl-print-string-length'.  Use
 PRINT-FUNCTION to print, which should take the arguments VALUE
 and STREAM and which should respect `print-length',
 `print-level', and `cl-print-string-length'.  LIMIT may be nil or

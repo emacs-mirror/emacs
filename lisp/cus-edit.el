@@ -4148,7 +4148,10 @@ Optional EVENT is the location for the menu."
       ;; If recreating a widget that may have been edited by the user, remember
       ;; to always save the edited value into the :shown-value property, so
       ;; we use that value for the recreated widget.  (Bug#44331)
-      (widget-put widget :shown-value (custom-face-widget-to-spec widget))
+      (let ((child (car (widget-get widget :children))))
+        (if (eq (widget-type child) 'custom-face-edit)
+            (widget-put widget :shown-value `((t ,(widget-value child))))
+          (widget-put widget :shown-value (widget-value child))))
       (custom-face-edit-all widget)
       (widget-put widget :shown-value nil) ; Reset it after we used it.
       (custom-face-mark-to-save widget)

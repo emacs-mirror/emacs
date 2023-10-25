@@ -973,8 +973,7 @@ delivered."
             (setq file-notify--test-desc auto-revert-notify-watch-descriptor)
 
 	    ;; GKqueueFileMonitor does not report the `changed' event.
-	    (skip-unless
-             (not (eq (file-notify--test-monitor) 'GKqueueFileMonitor)))
+	    (skip-when (eq (file-notify--test-monitor) 'GKqueueFileMonitor))
 
 	    ;; Check, that file notification has been used.
 	    (should auto-revert-mode)
@@ -1707,6 +1706,71 @@ the file watch."
 
 (file-notify--deftest-remote file-notify-test11-symlinks
   "Check `file-notify-test11-symlinks' for remote files.")
+
+(ert-deftest file-notify-test12-unmount ()
+  "Check that file notification stop after unmounting the filesystem."
+  :tags '(:expensive-test)
+  (skip-unless (file-notify--test-local-enabled))
+  ;; This test does not work for w32notify.
+  (skip-when (string-equal (file-notify--test-library) "w32notify"))
+
+  (unwind-protect
+      (progn
+	(setq file-notify--test-tmpfile (file-notify--test-make-temp-name))
+	;; File monitors like kqueue insist, that the watched file
+	;; exists.  Directory monitors are not bound to this
+	;; restriction.
+	(when (string-equal (file-notify--test-library) "kqueue")
+	  (write-region
+	   "any text" nil file-notify--test-tmpfile nil 'no-message))
+
+	(should
+	 (setq file-notify--test-desc
+	       (file-notify--test-add-watch
+                file-notify--test-tmpfile
+                '(attribute-change change) #'file-notify--test-event-handler)))
+        (should (file-notify-valid-p file-notify--test-desc))
+
+        ;; Unmounting the filesystem should stop watching.
+        (file-notify--test-with-actions '(stopped)
+          ;; We emulate unmounting by calling
+          ;; `file-notify-handle-event' with a corresponding event.
+          (file-notify-handle-event
+           (make-file-notify
+            :-event
+            (list file-notify--test-desc
+                  (pcase (file-notify--test-library)
+                    ((or "inotify" "inotifywait") '(unmount isdir))
+                    ((or "gfilenotify" "gio") '(unmounted))
+                    ("kqueue" '(revoke))
+                    (err (ert-fail (format "Library %s not supported" err))))
+                  (pcase (file-notify--test-library)
+                    ("kqueue" (file-local-name file-notify--test-tmpfile))
+                    (_ (file-local-name file-notify--test-tmpdir)))
+                  ;; In the inotify case, there is a 4th slot `cookie'.
+                  ;; Since it is unused for `unmount', we ignore it.
+                  )
+            :-callback
+            (pcase (file-notify--test-library)
+              ("inotify" #'file-notify--callback-inotify)
+              ("gfilenotify" #'file-notify--callback-gfilenotify)
+              ("kqueue" #'file-notify--callback-kqueue)
+              ((or "inotifywait" "gio") #'file-notify-callback)
+              (err (ert-fail (format "Library %s not supported" err)))))))
+
+        ;; The watch has been stopped.
+        (should-not (file-notify-valid-p file-notify--test-desc))
+
+        ;; The environment shall be cleaned up.
+        (when (string-equal (file-notify--test-library) "kqueue")
+          (delete-file file-notify--test-tmpfile))
+        (file-notify--test-cleanup-p))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup)))
+
+(file-notify--deftest-remote file-notify-test12-unmount
+  "Check `file-notify-test12-unmount' for remote files.")
 
 (defun file-notify-test-all (&optional interactive)
   "Run all tests for \\[file-notify]."

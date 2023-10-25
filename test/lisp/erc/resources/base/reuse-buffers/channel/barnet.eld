@@ -56,7 +56,7 @@
  (0.1 ":mike!~u@wvys46tx8tpmk.irc PRIVMSG #chan :tester, welcome!")
  (0 ":joe!~u@wvys46tx8tpmk.irc PRIVMSG #chan :tester, welcome!"))
 
-((mode 1 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.barnet.org 324 tester #chan +nt")
  (0 ":irc.barnet.org 329 tester #chan 1620205534")
  (0.1 ":mike!~u@wvys46tx8tpmk.irc PRIVMSG #chan :joe: Chi non te vede, non te pretia.")

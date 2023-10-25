@@ -320,13 +320,16 @@ kqueue_callback (int fd, void *data)
        directory is monitored.  */
     if (kev.fflags & NOTE_RENAME)
       actions = Fcons (Qrename, actions);
+    if (kev.fflags & NOTE_REVOKE)
+      actions = Fcons (Qrevoke, actions);
 
     /* Create the event.  */
     if (! NILP (actions))
       kqueue_generate_event (watch_object, actions, file, Qnil);
 
-    /* Cancel monitor if file or directory is deleted or renamed.  */
-    if (kev.fflags & (NOTE_DELETE | NOTE_RENAME))
+    /* Cancel monitor if file or directory is deleted or renamed or
+       the file system is unmounted.  */
+    if (kev.fflags & (NOTE_DELETE | NOTE_RENAME | NOTE_REVOKE))
       Fkqueue_rm_watch (descriptor);
   }
   return;
@@ -351,6 +354,7 @@ following symbols:
   `attrib' -- a FILE attribute was changed
   `link'   -- a FILE's link count was changed
   `rename' -- FILE was moved to FILE1
+  `revoke' -- FILE was unmounted
 
 When any event happens, Emacs will call the CALLBACK function passing
 it a single argument EVENT, which is of the form
@@ -437,6 +441,7 @@ only when the upper directory of the renamed file is watched.  */)
   if (! NILP (Fmember (Qattrib, flags))) fflags |= NOTE_ATTRIB;
   if (! NILP (Fmember (Qlink, flags)))   fflags |= NOTE_LINK;
   if (! NILP (Fmember (Qrename, flags))) fflags |= NOTE_RENAME;
+  if (! NILP (Fmember (Qrevoke, flags))) fflags |= NOTE_REVOKE;
 
   /* Register event.  */
   EV_SET (&kev, fd, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR,
@@ -526,6 +531,7 @@ syms_of_kqueue (void)
   DEFSYM (Qattrib, "attrib");	/* NOTE_ATTRIB  */
   DEFSYM (Qlink, "link");	/* NOTE_LINK  */
   DEFSYM (Qrename, "rename");	/* NOTE_RENAME  */
+  DEFSYM (Qrevoke, "revoke");	/* NOTE_REVOKE  */
 
   staticpro (&watch_list);
 

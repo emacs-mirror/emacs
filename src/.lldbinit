@@ -30,4 +30,7 @@ script -- sys.path.append('../etc')
 # Load our Python files
 command script import emacs_lldb
 
+# Print with children provider, depth 2.
+command alias xprint frame variable -P 2
+
 # end.

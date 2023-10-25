@@ -52,7 +52,7 @@
  (0.1 ":alice!~u@yppdd5tt4admc.irc PRIVMSG #chan :tester, welcome!")
  (0 ":bob!~u@yppdd5tt4admc.irc PRIVMSG #chan :tester, welcome!"))
 
-((mode 1 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620205534")
  (0.1 ":bob!~u@yppdd5tt4admc.irc PRIVMSG #chan :alice: Thou desirest me to stop in my tale against the hair.")

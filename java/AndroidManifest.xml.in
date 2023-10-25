@@ -73,8 +73,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+  <!-- Under Android 14 or later to run within the background.  -->
+
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+
   <uses-sdk android:minSdkVersion="@ANDROID_MIN_SDK@"
-	    android:targetSdkVersion="33"/>
+	    android:targetSdkVersion="34"/>
 
   <application android:name="org.gnu.emacs.EmacsApplication"
 	       android:label="Emacs"
@@ -190,6 +194,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	     android:directBootAware="false"
 	     android:enabled="true"
 	     android:exported="false"
+	     android:foregroundServiceType="specialUse"
 	     android:label="GNU Emacs service"/>
   </application>
 </manifest>

@@ -124,10 +124,6 @@ Ulf Jasper
 	    lisp/net/newsticker.el
 	    test/lisp/net/newsticker-tests.el
 
-	Icalendar
-	    lisp/calendar/icalendar.el
-	    test/lisp/calendar/icalendar-tests.el
-
 Amin Bandali
 	ERC
 	    lisp/erc/*

@@ -309,12 +309,12 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
   :version "30.1")
 
 (defface dictionary-word-definition-face
-'((((supports (:family "DejaVu Serif")))
-   (:family "DejaVu Serif"))
-  (((type x))
-   (:font "Sans Serif"))
-  (t
-   (:font "default")))
+  '((((supports (:family "DejaVu Serif")))
+     (:family "DejaVu Serif"))
+    (((type x))
+     (:font "Sans Serif"))
+    (t
+     (:font "default")))
 "The face that is used for displaying the definition of the word."
 :group 'dictionary
 :version "28.1")
@@ -405,6 +405,22 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
   "M-SPC" #'scroll-down-command
   "DEL"   #'scroll-down-command)
 
+(easy-menu-define dictionary-mode-menu dictionary-mode-map
+  "Menu for the Dictionary mode."
+  '("Dictionary"
+    ["Search Definition" dictionary-search
+     :help "Look up a new word"]
+    ["List Matching Words" dictionary-match-words
+     :help "List all words matching a pattern"]
+    ["Lookup Word At Point" dictionary-lookup-definition
+     :help "Look up the word at point"]
+    ["Select Dictionary" dictionary-select-dictionary
+     :help "Select one or more dictionaries to search within"]
+    ["Select Match Strategy" dictionary-select-strategy
+     :help "Select the algorithm to match queries and entries with"]
+    ["Back" dictionary-previous
+     :help "Return to the previous match or location"]))
+
 (defvar dictionary-connection
   nil
   "The current network connection.")
@@ -422,6 +438,30 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic function providing startup actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar dictionary-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    ;; Most of these items are the same as in the default tool bar
+    ;; map, but with extraneous items removed, and with extra search
+    ;; and navigation items.
+    (tool-bar-local-item-from-menu 'find-file "new" map
+                                   nil :label "New File"
+			           :vert-only t)
+    (tool-bar-local-item-from-menu 'menu-find-file-existing "open" map
+                                   nil :label "Open" :vert-only t)
+    (tool-bar-local-item-from-menu 'dired "diropen" map nil :vert-only t)
+    (tool-bar-local-item-from-menu 'kill-this-buffer "close" map nil
+                                   :vert-only t)
+    (define-key-after map [separator-1] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'dictionary-search "search"
+			           map dictionary-mode-map :vert-only t
+                                   :help "Start a new search query.")
+    (tool-bar-local-item-from-menu 'dictionary-previous "left-arrow"
+			           map dictionary-mode-map
+                                   :vert-only t
+                                   :help "Go backwards in history.")
+    map)
+  "Like the default `tool-bar-map', but with additions for Dictionary mode")
 
 ;;;###autoload
 (define-derived-mode dictionary-mode special-mode "Dictionary"
@@ -452,6 +492,8 @@ This is a quick reference to this mode describing the default key bindings:
   (make-local-variable 'dictionary-positions)
   (make-local-variable 'dictionary-default-dictionary)
   (make-local-variable 'dictionary-default-strategy)
+  ;; Replace the tool bar map with `dictionary-tool-bar-map'.
+  (setq-local tool-bar-map dictionary-tool-bar-map)
   (add-hook 'kill-buffer-hook #'dictionary-close t t))
 
 ;;;###autoload

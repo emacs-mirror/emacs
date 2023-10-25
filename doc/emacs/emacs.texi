@@ -20,8 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2023 Free Software Foundation,
-Inc.
+Copyright @copyright{} 1985--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -553,7 +552,7 @@ Frames and Graphical Displays
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
-* Non-Window Terminals::  Multiple frames on terminals that show only one.
+* Text Terminals::      Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text terminals.
 
 International Character Set Support
@@ -595,6 +594,7 @@ Indentation
 * Tab Stops::             Stop points for indentation in Text modes.
 * Just Spaces::           Using only space characters for indentation.
 * Indent Convenience::    Optional indentation features.
+* Code Alignment::        Making common parts of lines start at the same column.
 
 Commands for Human Languages
 

@@ -63,21 +63,21 @@
     (process-put proc 'socks-state socks-state-waiting)
     (process-put proc 'socks-server-protocol 4)
     (ert-info ("Receive initial incomplete segment")
-      (socks-filter proc (concat [0 90 0 0 93 184 216]))
-      ;; From example.com: OK status ^      ^ msg start
+      (socks-filter proc (unibyte-string 0 90 0 0 93 184 216))
+      ;; From example.com: OK status       ^      ^ msg start
       (ert-info ("State still set to waiting")
         (should (eq (process-get proc 'socks-state) socks-state-waiting)))
       (ert-info ("Response field is nil because processing incomplete")
         (should-not (process-get proc 'socks-response)))
       (ert-info ("Scratch field holds stashed partial payload")
-        (should (string= (concat [0 90 0 0 93 184 216])
+        (should (string= (unibyte-string 0 90 0 0 93 184 216)
                          (process-get proc 'socks-scratch)))))
     (ert-info ("Last part arrives")
       (socks-filter proc "\42") ; ?\" 34
       (ert-info ("State transitions to complete (length check passes)")
         (should (eq (process-get proc 'socks-state) socks-state-connected)))
       (ert-info ("Scratch and response fields hold stash w. last chunk")
-        (should (string= (concat [0 90 0 0 93 184 216 34])
+        (should (string= (unibyte-string 0 90 0 0 93 184 216 34)
                          (process-get proc 'socks-response)))
         (should (string= (process-get proc 'socks-response)
                          (process-get proc 'socks-scratch)))))
@@ -133,17 +133,19 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 (defun socks-tests-canned-server-create ()
   "Create and return a fake SOCKS server."
   (let* ((port (nth 2 socks-server))
-         (name (format "socks-server:%d" port))
+         (name (format "socks-server:%s"
+                       (if (numberp port) port (ert-test-name (ert-running-test)))))
          (pats socks-tests-canned-server-patterns)
          (filt (lambda (proc line)
                  (pcase-let ((`(,pat . ,resp) (pop pats)))
                    (unless (or (and (vectorp pat) (equal pat (vconcat line)))
-                               (string-match-p pat line))
+                               (and (stringp pat) (string-match-p pat line)))
                      (error "Unknown request: %s" line))
+                   (setq resp (apply #'unibyte-string (append resp nil)))
                    (let ((print-escape-control-characters t))
                      (message "[%s] <- %s" name (prin1-to-string line))
                      (message "[%s] -> %s" name (prin1-to-string resp)))
-                   (process-send-string proc (concat resp)))))
+                   (process-send-string proc resp))))
          (serv (make-network-process :server 1
                                      :buffer (get-buffer-create name)
                                      :filter filt
@@ -151,8 +153,10 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
                                      :family 'ipv4
                                      :host 'local
                                      :coding 'binary
-                                     :service port)))
+                                     :service (or port t))))
     (set-process-query-on-exit-flag serv nil)
+    (unless (numberp (nth 2 socks-server))
+      (setf (nth 2 socks-server) (process-contact serv :service)))
     serv))
 
 (defvar socks-tests--hello-world-http-request-pattern
@@ -161,9 +165,9 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
                          "Content-Length: 13\r\n\r\n"
                          "Hello World!\n")))
 
-(defun socks-tests-perform-hello-world-http-request ()
+(defun socks-tests-perform-hello-world-http-request (&optional method)
   "Start canned server, validate hello-world response, and finalize."
-  (let* ((url-gateway-method 'socks)
+  (let* ((url-gateway-method (or method 'socks))
          (url (url-generic-parse-url "http://example.com"))
          (server (socks-tests-canned-server-create))
          ;;
@@ -191,8 +195,9 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 
 (ert-deftest socks-tests-v4-basic ()
   "Show correct preparation of SOCKS4 connect command (Bug#46342)."
-  (let ((socks-server '("server" "127.0.0.1" 10079 4))
+  (let ((socks-server '("server" "127.0.0.1" t 4))
         (url-user-agent "Test/4-basic")
+        (socks-username "foo")
         (socks-tests-canned-server-patterns
          `(([4 1 0 80 93 184 216 34 ?f ?o ?o 0] . [0 90 0 0 0 0 0 0])
            ,socks-tests--hello-world-http-request-pattern))
@@ -201,10 +206,34 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
       (cl-letf (((symbol-function 'socks-nslookup-host)
                  (lambda (host)
                    (should (equal host "example.com"))
-                   (list 93 184 216 34)))
-                ((symbol-function 'user-full-name)
-                 (lambda (&optional _) "foo")))
+                   (list 93 184 216 34))))
         (socks-tests-perform-hello-world-http-request)))))
+
+(ert-deftest socks-tests-v4a-basic ()
+  "Show correct preparation of SOCKS4a connect command."
+  (let ((socks-server '("server" "127.0.0.1" t 4a))
+        (socks-username "foo")
+        (url-user-agent "Test/4a-basic")
+        (socks-tests-canned-server-patterns
+         `(([4 1 0 80 0 0 0 1 ?f ?o ?o 0 ?e ?x ?a ?m ?p ?l ?e ?. ?c ?o ?m 0]
+            . [0 90 0 0 0 0 0 0])
+           ,socks-tests--hello-world-http-request-pattern)))
+    (ert-info ("Make HTTP request over SOCKS4A")
+      (socks-tests-perform-hello-world-http-request))))
+
+(ert-deftest socks-tests-v4a-error ()
+  "Show error signaled when destination address rejected."
+  (let ((socks-server '("server" "127.0.0.1" t 4a))
+        (url-user-agent "Test/4a-basic")
+        (socks-username "")
+        (socks-tests-canned-server-patterns
+         `(([4 1 0 80 0 0 0 1 0 ?e ?x ?a ?m ?p ?l ?e ?. ?c ?o ?m 0]
+            . [0 91 0 0 0 0 0 0])
+           ,socks-tests--hello-world-http-request-pattern)))
+    (ert-info ("Make HTTP request over SOCKS4A")
+      (let ((err (should-error
+                  (socks-tests-perform-hello-world-http-request))))
+        (should (equal err '(error "SOCKS: Rejected or failed")))))))
 
 ;; Replace first pattern below with ([5 3 0 1 2] . [5 2]) to validate
 ;; against curl 7.71 with the following options:
@@ -213,7 +242,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 (ert-deftest socks-tests-v5-auth-user-pass ()
   "Verify correct handling of SOCKS5 user/pass authentication."
   (should (assq 2 socks-authentication-methods))
-  (let ((socks-server '("server" "127.0.0.1" 10080 5))
+  (let ((socks-server '("server" "127.0.0.1" t 5))
         (socks-username "foo")
         (socks-password "bar")
         (url-user-agent "Test/auth-user-pass")
@@ -247,7 +276,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 (ert-deftest socks-tests-v5-auth-user-pass-blank ()
   "Verify correct SOCKS5 user/pass authentication with empty pass."
   (should (assq 2 socks-authentication-methods))
-  (let ((socks-server '("server" "127.0.0.1" 10081 5))
+  (let ((socks-server '("server" "127.0.0.1" t 5))
         (socks-username "foo") ; defaults to (user-login-name)
         (socks-password "") ; simulate user hitting enter when prompted
         (url-user-agent "Test/auth-user-pass-blank")
@@ -264,9 +293,9 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 ;; against curl 7.71 with the following options:
 ;; $ curl --verbose --proxy socks5h://127.0.0.1:10082 example.com
 
-(ert-deftest socks-tests-v5-auth-none ()
+(defun socks-tests-v5-auth-none (method)
   "Verify correct handling of SOCKS5 when auth method 0 requested."
-  (let ((socks-server '("server" "127.0.0.1" 10082 5))
+  (let ((socks-server '("server" "127.0.0.1" t 5))
         (socks-authentication-methods (append socks-authentication-methods
                                               nil))
         (url-user-agent "Test/auth-none")
@@ -278,7 +307,24 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
     (socks-unregister-authentication-method 2)
     (should-not (assq 2 socks-authentication-methods))
     (ert-info ("Make HTTP request over SOCKS5 with no auth method")
-      (socks-tests-perform-hello-world-http-request)))
+      (socks-tests-perform-hello-world-http-request method)))
   (should (assq 2 socks-authentication-methods)))
+
+(ert-deftest socks-tests-v5-auth-none ()
+  (socks-tests-v5-auth-none 'socks))
+
+;; This simulates the top-level advice around `open-network-stream'
+;; that's applied when loading the library with a non-nil
+;; `socks-override-functions'.
+(ert-deftest socks-override-functions ()
+  (should-not socks-override-functions)
+  (should-not (advice-member-p #'socks--open-network-stream
+                               'open-network-stream))
+  (advice-add 'open-network-stream :around #'socks--open-network-stream)
+  (unwind-protect (let ((socks-override-functions t))
+                    (socks-tests-v5-auth-none 'native))
+    (advice-remove 'open-network-stream #'socks--open-network-stream))
+  (should-not (advice-member-p #'socks--open-network-stream
+                               'open-network-stream)))
 
 ;;; socks-tests.el ends here

@@ -1526,6 +1526,12 @@ extern sfnt_glyph sfnt_variation_glyph_for_char (PROTOTYPE);
 
 #undef PROTOTYPE
 
+#define PROTOTYPE struct sfnt_default_uvs_table *, sfnt_char
+
+extern bool sfnt_is_character_default (PROTOTYPE);
+
+#undef PROTOTYPE
+
 
 
 #ifdef HAVE_MMAP

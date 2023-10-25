@@ -52,20 +52,20 @@
 
 (defconst cl--typeof-types
   ;; Hand made from the source code of `type-of'.
-  '((integer number number-or-marker atom)
+  '((integer number integer-or-marker number-or-marker atom)
     (symbol-with-pos symbol atom) (symbol atom) (string array sequence atom)
     (cons list sequence)
     ;; Markers aren't `numberp', yet they are accepted wherever integers are
     ;; accepted, pretty much.
-    (marker number-or-marker atom)
-    (overlay atom) (float number atom) (window-configuration atom)
-    (process atom) (window atom)
+    (marker integer-or-marker number-or-marker atom)
+    (overlay atom) (float number number-or-marker atom)
+    (window-configuration atom) (process atom) (window atom)
     ;; FIXME: We'd want to put `function' here, but that's only true
     ;; for those `subr's which aren't special forms!
     (subr atom)
     ;; FIXME: We should probably reverse the order between
     ;; `compiled-function' and `byte-code-function' since arguably
-    ;; `subr' and also "compiled functions" but not "byte code functions",
+    ;; `subr' is also "compiled functions" but not "byte code functions",
     ;; but it would require changing the value returned by `type-of' for
     ;; byte code objects, which risks breaking existing code, which doesn't
     ;; seem worth the trouble.

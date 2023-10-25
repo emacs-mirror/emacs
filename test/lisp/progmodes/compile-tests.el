@@ -121,9 +121,7 @@
     ;; cucumber
     (cucumber "Scenario: undefined step  # features/cucumber.feature:3"
      29 nil 3 "features/cucumber.feature")
-    ;; This rule is actually handled by the `cucumber' pattern but when
-    ;; `omake' is included, then `gnu' matches it first.
-    (gnu "      /home/gusev/.rvm/foo/bar.rb:500:in `_wrap_assertion'"
+    (cucumber "      /home/gusev/.rvm/foo/bar.rb:500:in `_wrap_assertion'"
      1 nil 500 "/home/gusev/.rvm/foo/bar.rb")
     ;; edg-1 edg-2
     (edg-1 "build/intel/debug/../../../struct.cpp(42): error: identifier \"foo\" is undefined"
@@ -312,10 +310,6 @@
      1 nil 109 "..\\src\\ctrl\\lister.c")
     (watcom "..\\src\\ctrl\\lister.c(120): Warning! W201: Unreachable code"
      1 nil 120 "..\\src\\ctrl\\lister.c")
-    ;; omake
-    ;; FIXME: This doesn't actually test the omake rule.
-    (gnu "      alpha.c:5:15: error: expected ';' after expression"
-     1 15 5 "alpha.c")
     ;; oracle
     (oracle "Semantic error at line 528, column 5, file erosacqdb.pc:"
      1 5 528 "erosacqdb.pc")
@@ -497,8 +491,22 @@ The test data is in `compile-tests--test-regexps-data'."
     (font-lock-mode -1)
     (let ((compilation-num-errors-found 0)
           (compilation-num-warnings-found 0)
-          (compilation-num-infos-found 0))
-      (mapc #'compile--test-error-line compile-tests--test-regexps-data)
+          (compilation-num-infos-found 0)
+          (all-rules (mapcar #'car compilation-error-regexp-alist-alist)))
+
+      ;; Test all built-in rules except `omake' to avoid interference.
+      (let ((compilation-error-regexp-alist (remq 'omake all-rules)))
+        (mapc #'compile--test-error-line compile-tests--test-regexps-data))
+
+      ;; Test the `omake' rule separately.
+      ;; This doesn't actually test the `omake' rule itself but its
+      ;; indirect effects.
+      (let ((compilation-error-regexp-alist all-rules)
+            (test
+             '(gnu "      alpha.c:5:15: error: expected ';' after expression"
+                   1 15 5 "alpha.c")))
+        (compile--test-error-line test))
+
       (should (eq compilation-num-errors-found 100))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))

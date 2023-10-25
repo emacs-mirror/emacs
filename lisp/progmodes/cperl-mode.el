@@ -473,12 +473,6 @@ If nil, the value of `cperl-indent-level' will be used."
   :group 'cperl)
 (make-obsolete-variable 'cperl-under-as-char 'superword-mode "24.4")
 
-(defcustom cperl-extra-perl-args ""
-  "Extra arguments to use when starting Perl.
-Currently used with `cperl-check-syntax' only."
-  :type 'string
-  :group 'cperl)
-
 (defcustom cperl-message-electric-keyword t
   "Non-nil means that the `cperl-electric-keyword' prints a help message."
   :type 'boolean
@@ -550,6 +544,18 @@ This way enabling/disabling of menu items is more correct."
   :version "29.1")
 ;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
+(defcustom cperl-fontify-trailer
+  'perl-code
+  "How to fontify text after an \"__END__\" or \"__DATA__\" token.
+If \"perl-code\", treat as Perl code for fontification, and
+examine for imenu entries.  Use this setting if you have trailing
+POD documentation, or for modules which use AutoLoad or
+AutoSplit.  If \"comment\", treat as comment, and do not look for
+imenu entries."
+  :type '(choice (const perl-code)
+		 (const comment))
+  :group 'cperl-faces)
+
 (defcustom cperl-ps-print-face-properties
   '((font-lock-keyword-face		nil nil		bold shadow)
     (font-lock-variable-name-face	nil nil		bold)
@@ -619,10 +625,7 @@ This way enabling/disabling of menu items is more correct."
 ;;; Short extra-docs.
 
 (defvar cperl-tips 'please-ignore-this-line
-  "Note that to enable Compile choices in the menu you need to install
-mode-compile.el.
-
-If your Emacs does not default to `cperl-mode' on Perl files, and you
+  "If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
   (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
@@ -1043,12 +1046,6 @@ Unless KEEP, removes the old indentation."
     ["Indent region" cperl-indent-region (use-region-p)]
     ["Comment region" cperl-comment-region (use-region-p)]
     ["Uncomment region" cperl-uncomment-region (use-region-p)]
-    "----"
-    ["Run" mode-compile (fboundp 'mode-compile)]
-    ["Kill" mode-compile-kill (and (fboundp 'mode-compile-kill)
-                                   (get-buffer "*compilation*"))]
-    ["Next error" next-error (get-buffer "*compilation*")]
-    ["Check syntax" cperl-check-syntax (fboundp 'mode-compile)]
     "----"
     ["Debugger" cperl-db t]
     "----"
@@ -2841,6 +2838,7 @@ Will not look before LIM."
 		   ;; in which case this line is the first argument decl.
 		   (skip-chars-forward " \t")
 		   (cperl-backward-to-noncomment (or old-indent (point-min)))
+                   ;; Determine whether point is between statements
 		   (setq state
 			 (or (bobp)
 			     (eq (point) old-indent) ; old-indent was at comment
@@ -2859,7 +2857,8 @@ Will not look before LIM."
 				    (looking-at
                                      (rx (sequence (0+ blank)
                                                    (eval cperl--label-rx))))))
-			     (get-text-property (point) 'first-format-line)))
+			     (get-text-property (1- (point)) 'first-format-line)
+                             (equal (get-text-property (point) 'syntax-type) 'format)))
 
 		   ;; Look at previous line that's at column 0
 		   ;; to determine whether we are in top-level decls
@@ -3961,8 +3960,8 @@ recursive calls in starting lines of here-documents."
 	   "\\([^\"'`\n]*\\)"		; 4 + 1
 	   "\\4"
 	   "\\|"
-	   ;; Second variant: Identifier or \ID (same as 'ID') or empty
-	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)?\\)" ; 5 + 1, 6 + 1
+	   ;; Second variant: Identifier or \ID (same as 'ID')
+	   "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)\\)" ; 5 + 1, 6 + 1
 	   ;; Do not have <<= or << 30 or <<30 or << $blah.
 	   ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
 	   "\\)"
@@ -4189,9 +4188,8 @@ recursive calls in starting lines of here-documents."
 		;; 1+6=7 extra () before this:
 		;;"^[ \t]*\\(format\\)[ \t]*\\([a-zA-Z0-9_]+\\)?[ \t]*=[ \t]*$"
 		(setq b (point)
-		      name (if (match-beginning 8) ; 7 + 1
-			       (buffer-substring (match-beginning 8) ; 7 + 1
-						 (match-end 8)) ; 7 + 1
+		      name (if (match-beginning 9) ; 7 + 2
+                               (match-string-no-properties 9)        ; 7 + 2
 			     "")
 		      tb (match-beginning 0))
 		(setq argument nil)
@@ -4224,10 +4222,10 @@ recursive calls in starting lines of here-documents."
 		(if (looking-at "^\\.$") ; ";" is not supported yet
 		    (progn
 		      ;; Highlight the ending delimiter
-		      (cperl-postpone-fontification (point) (+ (point) 2)
+		      (cperl-postpone-fontification (point) (+ (point) 1)
 						    'face font-lock-string-face)
-		      (cperl-commentify (point) (+ (point) 2) nil)
-		      (cperl-put-do-not-fontify (point) (+ (point) 2) t))
+		      (cperl-commentify (point) (+ (point) 1) nil)
+		      (cperl-put-do-not-fontify (point) (+ (point) 1) t))
 		  (setq warning-message
                         (format "End of format `%s' not found." name))
 		  (or (car err-l) (setcar err-l b)))
@@ -4913,8 +4911,9 @@ recursive calls in starting lines of here-documents."
 	       ;; 1+6+2+1+1+6+1+1=19 extra () before this:
 	       ;; "__\\(END\\|DATA\\)__"
 	       ((match-beginning 20)	; __END__, __DATA__
-		(setq bb (match-end 0))
-		;; (put-text-property b (1+ bb) 'syntax-type 'pod) ; Cheat
+                (if (eq cperl-fontify-trailer 'perl-code)
+		    (setq bb (match-end 0))
+                  (setq bb (point-max)))
 		(cperl-commentify b bb nil)
 		(setq end t))
 	       ;; "\\\\\\(['`\"($]\\)"
@@ -6049,35 +6048,6 @@ functions (which they are not).  Inherits from `default'.")
             ;; (matcher subexp facespec)
 	    '("^[ \t]*format[ \t]+\\([a-zA-Z_][a-zA-Z_0-9:]*\\)[ \t]*=[ \t]*$"
 	      1 font-lock-function-name-face)
-            ;; -------- bareword hash key: $foo{bar}, $foo[1]{bar}
-            ;; (matcher (subexp facespec) ...
-            `(,(rx (or (in "]}\\%@>*&")
-                       (sequence "$" (eval cperl--normal-identifier-rx)))
-                   (0+ blank) "{" (0+ blank)
-                   (group-n 1 (sequence (opt "-")
-                                        (eval cperl--basic-identifier-rx)))
-                   (0+ blank) "}")
-;;	    '("\\([]}\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
-	      (1 font-lock-string-face t)
-              ;; -------- anchored bareword hash key: $foo{bar}{baz}
-              ;; ... (anchored-matcher pre-form post-form subex-highlighters)
-              (,(rx point
-                    (0+ blank) "{" (0+ blank)
-                    (group-n 1 (sequence (opt "-")
-                                         (eval cperl--basic-identifier-rx)))
-                    (0+ blank) "}")
-	       ;; ("\\=[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
-	       nil nil
-	       (1 font-lock-string-face t)))
-            ;; -------- hash element assignments with bareword key => value
-            ;; (matcher subexp facespec)
-            `(,(rx (in "[ \t{,()")
-                   (group-n 1 (sequence (opt "-")
-                                        (eval cperl--basic-identifier-rx)))
-                   (0+ blank) "=>")
-              1 font-lock-string-face t)
-            ;;	    '("[[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
-            ;;	      font-lock-string-face t)
             ;; -------- labels
             ;; (matcher subexp facespec)
             `(,(rx
@@ -6177,32 +6147,33 @@ functions (which they are not).  Inherits from `default'.")
 	  (setq
 	   t-font-lock-keywords-1
 	   `(
-             ;; -------- arrays and hashes.  Access to elements is fixed below
-             ;; (matcher subexp facespec)
-             ;; facespec is an expression to distinguish between arrays and hashes
-             (,(rx (group-n 1 (group-n 2 (or (in "@%") "$#"))
-                            (eval cperl--normal-identifier-rx)))
-              1
-;;	     ("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
-	      (if (eq (char-after (match-beginning 2)) ?%)
-		  'cperl-hash-face
-		'cperl-array-face)
-	      nil)
-             ;; -------- access to array/hash elements
-             ;; (matcher subexp facespec)
-             ;; facespec is an expression to distinguish between arrays and hashes
-             (,(rx (group-n 1 (group-n 2 (in "$@%"))
-                            (eval cperl--normal-identifier-rx))
-                   (0+ blank)
-                   (group-n 3 (in "[{")))
-;;	     ("\\(\\([$@%]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)"
-	      1
-	      (if (= (- (match-end 2) (match-beginning 2)) 1)
-		  (if (eq (char-after (match-beginning 3)) ?{)
-		      'cperl-hash-face
-		    'cperl-array-face)             ; arrays and hashes
-		font-lock-variable-name-face)      ; Just to put something
-	      t)                                   ; override previous
+            ;; -------- bareword hash key: $foo{bar}, $foo[1]{bar}
+            ;; (matcher (subexp facespec) ...
+            (,(rx (or (in "]}\\%@>*&")
+                       (sequence "$" (eval cperl--normal-identifier-rx)))
+                   (0+ blank) "{" (0+ blank)
+                   (group-n 1 (sequence (opt "-")
+                                        (eval cperl--basic-identifier-rx)))
+                   (0+ blank) "}")
+;;	    '("\\([]}\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
+	      (1 font-lock-string-face)
+              ;; -------- anchored bareword hash key: $foo{bar}{baz}
+              ;; ... (anchored-matcher pre-form post-form subex-highlighters)
+              (,(rx point
+                    (0+ blank) "{" (0+ blank)
+                    (group-n 1 (sequence (opt "-")
+                                         (eval cperl--basic-identifier-rx)))
+                    (0+ blank) "}")
+	       ;; ("\\=[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
+	       nil nil
+	       (1 font-lock-string-face)))
+            ;; -------- hash element assignments with bareword key => value
+            ;; (matcher subexp facespec)
+            (,(rx (in "[ \t{,()")
+                   (group-n 1 (sequence (opt "-")
+                                        (eval cperl--basic-identifier-rx)))
+                   (0+ blank) "=>")
+              1 font-lock-string-face)
              ;; -------- @$ array dereferences, $#$ last array index
              ;; (matcher (subexp facespec) (subexp facespec))
              (,(rx (group-n 1 (or "@" "$#"))
@@ -6221,6 +6192,32 @@ functions (which they are not).  Inherits from `default'.")
 	     ;; ("\\(%\\)\\(\\$+\\([a-zA-Z_:][a-zA-Z0-9_:]*\\|[^ \t\n]\\)\\)"
 	      (1 'cperl-hash-face)
 	      (2 font-lock-variable-name-face))
+             ;; -------- access to array/hash elements
+             ;; (matcher subexp facespec)
+             ;; facespec is an expression to distinguish between arrays and hashes
+             (,(rx (group-n 1 (group-n 2 (in "$@%"))
+                            (eval cperl--normal-identifier-rx))
+                   (0+ blank)
+                   (group-n 3 (in "[{")))
+;;	     ("\\(\\([$@%]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)"
+	      1
+	      (if (= (- (match-end 2) (match-beginning 2)) 1)
+		  (if (eq (char-after (match-beginning 3)) ?{)
+		      'cperl-hash-face
+		    'cperl-array-face)             ; arrays and hashes
+		font-lock-variable-name-face)      ; Just to put something
+	      nil)                                 ; do not override previous
+             ;; -------- "Pure" arrays and hashes.
+             ;; (matcher subexp facespec)
+             ;; facespec is an expression to distinguish between arrays and hashes
+             (,(rx (group-n 1 (group-n 2 (or (in "@%") "$#"))
+                            (eval cperl--normal-identifier-rx)))
+              1
+;;	     ("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
+	      (if (eq (char-after (match-beginning 2)) ?%)
+		  'cperl-hash-face
+		'cperl-array-face)
+	      nil)
 ;;("\\([smy]\\|tr\\)\\([^a-z_A-Z0-9]\\)\\(\\([^\n\\]*||\\)\\)\\2")
 ;;; Too much noise from \s* @s[ and friends
 	     ;;("\\(\\<\\([msy]\\|tr\\)[ \t]*\\([^ \t\na-zA-Z0-9_]\\)\\|\\(/\\)\\)"
@@ -6548,13 +6545,6 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
       (setq setting (car cperl-old-style)
 	    cperl-old-style (cdr cperl-old-style))
       (set (car setting) (cdr setting)))))
-
-(defvar perl-dbg-flags)
-(defun cperl-check-syntax ()
-  (interactive)
-  (require 'mode-compile)
-  (let ((perl-dbg-flags (concat cperl-extra-perl-args " -wc")))
-    (eval '(mode-compile))))		; Avoid a warning
 
 (declare-function Info-find-node "info"
 		  (filename nodename &optional no-going-back strict-case

@@ -97,7 +97,7 @@ alternative common prefixes, so long as they make sense.
 @item
 We recommend enabling @code{lexical-binding} in new code, and
 converting existing Emacs Lisp code to enable @code{lexical-binding}
-if it doesn't already.  @xref{Using Lexical Binding}.
+if it doesn't already.  @xref{Selecting Lisp Dialect}.
 
 @item
 Put a call to @code{provide} at the end of each separate Lisp file.

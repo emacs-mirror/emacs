@@ -10675,10 +10675,10 @@ See also `normal-erase-is-backspace'."
 	  (t
 	   (if enabled
 	       (progn
-		 (keyboard-translate ?\C-h ?\C-?)
-		 (keyboard-translate ?\C-? ?\C-d))
-	     (keyboard-translate ?\C-h ?\C-h)
-	     (keyboard-translate ?\C-? ?\C-?))))
+                 (key-translate "C-h" "DEL")
+                 (key-translate "DEL" "C-d"))
+             (key-translate "C-h" "C-h")
+             (key-translate "DEL" "DEL"))))
 
     (if (called-interactively-p 'interactive)
 	(message "Delete key deletes %s"

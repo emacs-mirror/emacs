@@ -616,6 +616,12 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	  end = max (mark, PT);
 	}
 
+      /* If it transpires that the start of the compose region is not
+	 point, move point there.  */
+
+      if (start != PT)
+	set_point (start);
+
       /* Now delete whatever needs to go.  */
 
       del_range_1 (start, end, true, false);
@@ -635,7 +641,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	  record_buffer_change (start, PT, text);
 	}
 
-      /* Move to a the position specified in POSITION.  */
+      /* Move to the position specified in POSITION.  */
 
       if (position <= 0)
 	{
@@ -1154,6 +1160,135 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
   unbind_to (count, Qnil);
 }
 
+/* Remove the composing region.  Replace the text between START and
+   END in F's selected window with TEXT, then set point to POSITION
+   relative to it.  If the mark is active, deactivate it.  */
+
+static void
+really_replace_text (struct frame *f, ptrdiff_t start, ptrdiff_t end,
+		     Lisp_Object text, ptrdiff_t position)
+{
+  specpdl_ref count;
+  ptrdiff_t new_start, new_end, wanted;
+  struct window *w;
+
+  /* If F's old selected window is no longer alive, fail.  */
+
+  if (!WINDOW_LIVE_P (f->old_selected_window))
+    return;
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect (restore_selected_window,
+			 selected_window);
+
+  /* Make the composition region markers point elsewhere.  */
+
+  if (!NILP (f->conversion.compose_region_start))
+    {
+      Fset_marker (f->conversion.compose_region_start, Qnil, Qnil);
+      Fset_marker (f->conversion.compose_region_end, Qnil, Qnil);
+      f->conversion.compose_region_start = Qnil;
+      f->conversion.compose_region_end = Qnil;
+
+      /* Notify the IME of an update to the composition region,
+	 inasmuch as the point might not change if START and END are
+	 identical and TEXT is empty, among other circumstances.  */
+
+      if (text_interface
+	  && text_interface->compose_region_changed)
+	(*text_interface->compose_region_changed) (f);
+    }
+
+  /* Delete the composition region overlay.  */
+
+  if (!NILP (f->conversion.compose_region_overlay))
+    Fdelete_overlay (f->conversion.compose_region_overlay);
+
+  /* Temporarily switch to F's selected window at the time of the last
+     redisplay.  */
+  select_window (f->old_selected_window, Qt);
+
+  /* Sort START and END by magnitude.  */
+  new_start = min (start, end);
+  new_end   = max (start, end);
+
+  /* Now constrain both to the accessible region.  */
+
+  if (new_start < BEGV)
+    new_start = BEGV;
+  else if (new_start > ZV)
+    new_start = ZV;
+
+  if (new_end < BEGV)
+    new_end = BEGV;
+  else if (new_end > ZV)
+    new_end = ZV;
+
+  start = new_start;
+  end   = new_end;
+
+  /* This should deactivate the mark.  */
+  call0 (Qdeactivate_mark);
+
+  /* Go to start.  */
+  set_point (start);
+
+  /* Now delete the text in between, and save PT before TEXT is
+     inserted.  */
+  del_range_1 (start, end, true, false);
+  record_buffer_change (start, start, Qt);
+  wanted = PT;
+
+  /* So long as TEXT isn't empty, insert it now.  */
+
+  if (SCHARS (text))
+    {
+      /* Insert the new text.  Make sure to inherit text properties
+	 from the surroundings: if this doesn't happen, CC Mode
+	 fontification might grow confused and become very slow.  */
+
+      insert_from_string (text, 0, 0, SCHARS (text),
+			  SBYTES (text), true);
+      record_buffer_change (start, PT, text);
+    }
+
+  /* Now, move point to the position designated by POSITION.  */
+
+  if (position <= 0)
+    {
+      if (INT_ADD_WRAPV (wanted, position, &wanted)
+	  || wanted < BEGV)
+	wanted = BEGV;
+
+      if (wanted > ZV)
+	wanted = ZV;
+
+      set_point (wanted);
+    }
+  else
+    {
+      wanted = PT;
+
+      if (INT_ADD_WRAPV (wanted, position - 1, &wanted)
+	  || wanted > ZV)
+	wanted = ZV;
+
+      if (wanted < BEGV)
+	wanted = BEGV;
+
+      set_point (wanted);
+    }
+
+  /* Print some debugging information.  */
+  TEXTCONV_DEBUG ("text inserted: %s, point now: %zd",
+		  SSDATA (text), PT);
+
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
+  unbind_to (count, Qnil);
+}
+
 /* Complete the edit specified by the counter value inside *TOKEN.  */
 
 static void
@@ -1324,6 +1459,13 @@ handle_pending_conversion_events_1 (struct frame *f,
 
       if (w)
 	w->ephemeral_last_point = window_point (w);
+      break;
+
+    case TEXTCONV_REPLACE_TEXT:
+      really_replace_text (f, XFIXNUM (XCAR (data)),
+			   XFIXNUM (XCAR (XCDR (data))),
+			   XCAR (XCDR (XCDR (data))),
+			   XFIXNUM (XCAR (XCDR (XCDR (XCDR (data))))));
       break;
     }
 
@@ -1671,6 +1813,30 @@ textconv_barrier (struct frame *f, unsigned long counter)
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_BARRIER;
   action->data = Qnil;
+  action->next = NULL;
+  action->counter = counter;
+  for (last = &f->conversion.actions; *last; last = &(*last)->next)
+    ;;
+  *last = action;
+  input_pending = true;
+}
+
+/* Remove the composing region.  Replace the text between START and
+   END within F's selected window with TEXT; deactivate the mark if it
+   is active.  Subsequently, set point to POSITION relative to TEXT,
+   much as `commit_text' would.  */
+
+void
+replace_text (struct frame *f, ptrdiff_t start, ptrdiff_t end,
+	      Lisp_Object text, ptrdiff_t position,
+	      unsigned long counter)
+{
+  struct text_conversion_action *action, **last;
+
+  action = xmalloc (sizeof *action);
+  action->operation = TEXTCONV_REPLACE_TEXT;
+  action->data = list4 (make_fixnum (start), make_fixnum (end),
+			text, make_fixnum (position));
   action->next = NULL;
   action->counter = counter;
   for (last = &f->conversion.actions; *last; last = &(*last)->next)

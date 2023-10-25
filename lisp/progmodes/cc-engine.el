@@ -12266,11 +12266,14 @@ comment at the start of cc-engine.el for more info."
 		       ;; Each time around the following checks one
 		       ;; declaration (which may contain several identifiers).
 		       (while (and
-			       (consp (setq decl-or-cast
-					    (c-forward-decl-or-cast-1
-					     after-prec-token
-					     nil ; Or 'arglist ???
-					     nil)))
+			       (not (eq (char-after) ?{))
+			       (or
+				(consp (setq decl-or-cast
+					     (c-forward-decl-or-cast-1
+					      after-prec-token
+					      nil ; Or 'arglist ???
+					      nil)))
+				(throw 'knr nil))
 			       (memq (char-after) '(?\; ?\,))
 			       (goto-char (car decl-or-cast))
 			       (save-excursion

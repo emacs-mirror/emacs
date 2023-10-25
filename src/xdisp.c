@@ -35544,12 +35544,10 @@ note_mouse_highlight (struct frame *f, int x, int y)
     {
       note_tab_bar_highlight (f, x, y);
       if (tab_bar__dragging_in_progress)
-	{
 	  cursor = FRAME_OUTPUT_DATA (f)->hand_cursor;
-	  goto set_cursor;
-	}
       else
-	return;
+	cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
+      goto set_cursor;
     }
   else
     {
@@ -35567,7 +35565,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
   if (EQ (window, f->tool_bar_window))
     {
       note_tool_bar_highlight (f, x, y);
-      return;
+      cursor = FRAME_OUTPUT_DATA (f)->nontext_cursor;
+      goto set_cursor;
     }
 #endif
 
@@ -37046,14 +37045,15 @@ See also `overlay-arrow-string'.  */);
   Voverlay_arrow_position = Qnil;
 
   DEFVAR_LISP ("overlay-arrow-string", Voverlay_arrow_string,
-    doc: /* String to display as an arrow in non-window frames.
+    doc: /* String to display as an arrow in text-mode frames.
 See also `overlay-arrow-position'.  */);
   Voverlay_arrow_string = build_pure_c_string ("=>");
 
   DEFVAR_LISP ("overlay-arrow-variable-list", Voverlay_arrow_variable_list,
     doc: /* List of variables (symbols) which hold markers for overlay arrows.
 The symbols on this list are examined during redisplay to determine
-where to display overlay arrows.  */);
+where to display overlay arrows.
+See also `overlay-arrow-string'.  */);
   Voverlay_arrow_variable_list
     = list1 (intern_c_string ("overlay-arrow-position"));
 

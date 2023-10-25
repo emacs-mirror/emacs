@@ -565,9 +565,9 @@ looks like an email address, \"ftp://\" if it starts with
 	 ;; If it looks like ftp.example.com. treat it as ftp.
 	 (if (string-match "\\`ftp\\." str)
 	     (setq str (concat "ftp://" str)))
-	 ;; If it looks like www.example.com. treat it as http.
+         ;; If it looks like www.example.com. treat it as https.
 	 (if (string-match "\\`www\\." str)
-	     (setq str (concat "http://" str)))
+             (setq str (concat "https://" str)))
 	 ;; Otherwise, it just isn't a URI.
 	 (setq str nil)))
       str)))

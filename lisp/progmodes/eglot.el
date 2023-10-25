@@ -467,7 +467,9 @@ ACTION is the default value for commands not in the alist."
   "If non-nil, show progress of long running LSP server work.
 If set to `messages', use *Messages* buffer, else use Eglot's
 mode line indicator."
-  :type 'boolean
+  :type '(choice (const :tag "Don't show progress" nil)
+                 (const :tag "Show progress in *Messages*" messages)
+                 (const :tag "Show progress in Eglot's mode line indicator" t))
   :version "1.10")
 
 (defcustom eglot-ignored-server-capabilities (list)
@@ -503,10 +505,6 @@ under cursor."
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
 This can be useful when using docker to run a language server.")
-
-;; Customizable via `completion-category-overrides'.
-(when (assoc 'flex completion-styles-alist)
-  (add-to-list 'completion-category-defaults '(eglot (styles flex basic))))
 
 
 ;;; Constants
@@ -3036,11 +3034,32 @@ for which LSP on-type-formatting should be requested."
 
 (defun eglot--capf-session-flush (&optional _) (setq eglot--capf-session :none))
 
+(defun eglot--dumb-flex (pat comp ignorecase)
+  "Return destructively fontified COMP iff PAT matches it."
+  (cl-loop with lcomp = (length comp)
+           with case-fold-search = ignorecase
+           initially (remove-list-of-text-properties 0 lcomp '(face) comp)
+           for x across pat
+           for i = (cl-loop for j from (if i (1+ i) 0) below lcomp
+                            when (char-equal x (aref comp j)) return j)
+           unless i do (cl-return nil)
+           ;; FIXME: could do much better here and coalesce intervals
+           do (add-face-text-property i (1+ i) 'completions-common-part
+                                      nil comp)
+           finally (cl-return comp)))
+
+(defun eglot--dumb-allc (pat table pred _point) (funcall table pat pred t))
+
+(add-to-list 'completion-category-defaults '(eglot-capf (styles eglot--dumb-flex)))
+(add-to-list 'completion-styles-alist '(eglot--dumb-flex ignore eglot--dumb-allc))
+
 (defun eglot-completion-at-point ()
   "Eglot's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
   (when-let (completion-capability (eglot-server-capable :completionProvider))
     (let* ((server (eglot--current-server-or-lose))
+           (bounds (or (bounds-of-thing-at-point 'symbol)
+                       (cons (point) (point))))
            (sort-completions
             (lambda (completions)
               (cl-sort completions
@@ -3049,10 +3068,9 @@ for which LSP on-type-formatting should be requested."
                               (plist-get
                                (get-text-property 0 'eglot--lsp-item c)
                                :sortText)))))
-           (metadata `(metadata (category . eglot)
+           (metadata `(metadata (category . eglot-capf)
                                 (display-sort-function . ,sort-completions)))
            (local-cache :none)
-           (bounds (bounds-of-thing-at-point 'symbol))
            (orig-pos (point))
            (resolved (make-hash-table))
            (proxies
@@ -3068,9 +3086,7 @@ for which LSP on-type-formatting should be requested."
                        (cachep (and (listp resp) items
                                     eglot-cache-session-completions
                                     (eq (plist-get resp :isIncomplete) :json-false)))
-                       (bounds (or bounds
-                                   (cons (point) (point))))
-                       (proxies
+                       (retval
                         (mapcar
                          (jsonrpc-lambda
                              (&rest item &key label insertText insertTextFormat
@@ -3093,8 +3109,8 @@ for which LSP on-type-formatting should be requested."
                          items)))
                   ;; (trace-values "Requested" (length proxies) cachep bounds)
                   (setq eglot--capf-session
-                        (if cachep (list bounds proxies resolved orig-pos) :none))
-                  (setq local-cache proxies)))))
+                        (if cachep (list bounds retval resolved orig-pos) :none))
+                  (setq local-cache retval)))))
            (resolve-maybe
             ;; Maybe completion/resolve JSON object `lsp-comp' into
             ;; another JSON object, if at all possible.  Otherwise,
@@ -3108,7 +3124,6 @@ for which LSP on-type-formatting should be requested."
                             (eglot--request server :completionItem/resolve
                                             lsp-comp :cancel-on-input t)
                           lsp-comp))))))
-      (unless bounds (setq bounds (cons (point) (point))))
       (when (and (consp eglot--capf-session)
                  (= (car bounds) (car (nth 0 eglot--capf-session)))
                  (>= (cdr bounds) (cdr (nth 0 eglot--capf-session))))
@@ -3120,24 +3135,26 @@ for which LSP on-type-formatting should be requested."
       (list
        (car bounds)
        (cdr bounds)
-       (lambda (probe pred action)
+       (lambda (pattern pred action)
          (cond
           ((eq action 'metadata) metadata)               ; metadata
           ((eq action 'lambda)                           ; test-completion
-           (test-completion probe (funcall proxies)))
+           (test-completion pattern (funcall proxies)))
           ((eq (car-safe action) 'boundaries) nil)       ; boundaries
           ((null action)                                 ; try-completion
-           (try-completion probe (funcall proxies)))
+           (try-completion pattern (funcall proxies)))
           ((eq action t)                                 ; all-completions
-           (all-completions
-            ""
-            (funcall proxies)
-            (lambda (proxy)
-              (let* ((item (get-text-property 0 'eglot--lsp-item proxy))
-                     (filterText (plist-get item :filterText)))
-                (and (or (null pred) (funcall pred proxy))
-                     (string-prefix-p
-                      probe (or filterText proxy) completion-ignore-case))))))))
+           (let ((comps (funcall proxies)))
+             (dolist (c comps) (eglot--dumb-flex pattern c t))
+             (all-completions
+              ""
+              comps
+              (lambda (proxy)
+                (let* ((item (get-text-property 0 'eglot--lsp-item proxy))
+                       (filterText (plist-get item :filterText)))
+                  (and (or (null pred) (funcall pred proxy))
+                       (eglot--dumb-flex
+                        pattern (or filterText proxy) completion-ignore-case)))))))))
        :annotation-function
        (lambda (proxy)
          (eglot--dbind ((CompletionItem) detail kind)

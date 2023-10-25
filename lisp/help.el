@@ -192,7 +192,7 @@ buffer.")
                       max-key-len (max (length key) max-key-len))
                 (push (list key (cdr ent) (car ent)) keys))))
           (when keys
-            (let ((fmt (format "%%-%ds %%-%ds%s" max-key-len max-cmd-len
+            (let ((fmt (format "%%s %%-%ds%s" max-cmd-len
                                (make-string padding ?\s)))
                   (width (+ max-key-len 1 max-cmd-len padding)))
               (push `(,width
@@ -203,10 +203,12 @@ buffer.")
                         'face 'bold)
                       ,@(mapcar (lambda (ent)
                                   (format fmt
-                                          (propertize
-                                           (car ent)
-                                           'quick-help-cmd
-                                           (caddr ent))
+                                          (concat
+                                           (propertize
+                                            (car ent)
+                                            'quick-help-cmd
+                                            (caddr ent))
+                                           (make-string (- max-key-len (length (car ent))) ?\s))
                                           (cadr ent)))
                                 keys))
                     blocks)))))

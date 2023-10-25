@@ -87,4 +87,15 @@
   (should-not (test-sh-back "foo;bar"))
   (should (test-sh-back "foo#zot")))
 
+(ert-deftest sh-script-test-do-fontification ()
+  "Test that \"do\" gets fontified correctly, even with no \";\"."
+  (with-temp-buffer
+    (shell-script-mode)
+    (insert "for i do echo 1; done")
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (search-forward "do")
+    (forward-char -1)
+    (should (equal (get-text-property (point) 'face) 'font-lock-keyword-face))))
+
 ;;; sh-script-tests.el ends here

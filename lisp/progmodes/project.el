@@ -4,8 +4,8 @@
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
-;; This is a GNU ELPA :core package.  Avoid using functionality that
-;; not compatible with the version of Emacs recorded above.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -880,6 +880,17 @@ DIRS must contain directory names."
         (call-interactively cmd)
       (user-error "%s is undefined" (key-description key)))))
 
+(defun project--other-place-prefix (place &optional extra-keymap)
+  (cl-assert (member place '(window frame tab)))
+  (prefix-command-preserve-state)
+  (let ((inhibit-message t)) (funcall (intern (format "other-%s-prefix" place))))
+  (message "Display next project command buffer in a new %s..." place)
+  ;; Should return exitfun from set-transient-map
+  (set-transient-map (if extra-keymap
+                         (make-composed-keymap project-prefix-map
+                                               extra-keymap)
+                       project-prefix-map)))
+
 ;;;###autoload
 (defun project-other-window-command ()
   "Run project command, displaying resultant buffer in another window.
@@ -889,9 +900,11 @@ The following commands are available:
 \\{project-prefix-map}
 \\{project-other-window-map}"
   (interactive)
-  (project--other-place-command '((display-buffer-pop-up-window)
-                                  (inhibit-same-window . t))
-                                project-other-window-map))
+  (if (< emacs-major-version 30)
+      (project--other-place-command '((display-buffer-pop-up-window)
+                                      (inhibit-same-window . t))
+                                    project-other-window-map)
+    (project--other-place-prefix 'window project-other-window-map)))
 
 ;;;###autoload (define-key ctl-x-4-map "p" #'project-other-window-command)
 
@@ -904,8 +917,10 @@ The following commands are available:
 \\{project-prefix-map}
 \\{project-other-frame-map}"
   (interactive)
-  (project--other-place-command '((display-buffer-pop-up-frame))
-                                project-other-frame-map))
+  (if (< emacs-major-version 30)
+      (project--other-place-command '((display-buffer-pop-up-frame))
+                                    project-other-frame-map)
+    (project--other-place-prefix 'frame project-other-frame-map)))
 
 ;;;###autoload (define-key ctl-x-5-map "p" #'project-other-frame-command)
 
@@ -917,7 +932,9 @@ The following commands are available:
 
 \\{project-prefix-map}"
   (interactive)
-  (project--other-place-command '((display-buffer-in-new-tab))))
+  (if (< emacs-major-version 30)
+      (project--other-place-command '((display-buffer-in-new-tab)))
+    (project--other-place-prefix 'tab)))
 
 ;;;###autoload
 (when (bound-and-true-p tab-prefix-map)
@@ -1620,7 +1637,7 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
                        (yes-or-no-p
                         (format "Kill %d buffers in %s? "
                                 (length bufs)
-                                (project-root pr))))))
+                                (project-name pr))))))
     (cond (no-confirm
            (mapc #'kill-buffer bufs))
           ((null bufs)
@@ -1924,6 +1941,15 @@ Otherwise, use the face `help-key-binding' in the prompt."
   :version "30.1")
 
 (defun project--keymap-prompt ()
+  "Return a prompt for the project switching using the prefix map."
+  (let (keys)
+    (map-keymap
+     (lambda (evt _)
+       (when (characterp evt) (push evt keys)))
+     project-prefix-map)
+    (mapconcat (lambda (key) (help-key-description (string key) nil)) keys " ")))
+
+(defun project--menu-prompt ()
   "Return a prompt for the project switching dispatch menu."
   (mapconcat
    (pcase-lambda (`(,cmd ,label ,key))
@@ -1962,20 +1988,30 @@ Otherwise, use the face `help-key-binding' in the prompt."
               (when-let ((cmd (nth 0 row))
                          (keychar (nth 2 row)))
                 (define-key temp-map (vector keychar) cmd)))))
-         command)
+         command
+         choice)
     (while (not command)
       (let* ((overriding-local-map commands-map)
-             (choice (read-key-sequence (project--keymap-prompt))))
+             (prompt (if project-switch-use-entire-map
+                         (project--keymap-prompt)
+                       (project--menu-prompt))))
+        (when choice
+          (setq prompt (concat prompt
+                               (format " %s: %s"
+                                       (propertize "Unrecognized input"
+                                                   'face 'warning)
+                                       (help-key-description choice nil)))))
+        (setq choice (read-key-sequence (concat "Choose: " prompt)))
         (when (setq command (lookup-key commands-map choice))
+          (when (numberp command) (setq command nil))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))
-            ;; TODO: Add some hint to the prompt, like "key not
-            ;; recognized" or something.
             (setq command nil)))
         (let ((global-command (lookup-key (current-global-map) choice)))
           (when (memq global-command
                       '(keyboard-quit keyboard-escape-quit))
             (call-interactively global-command)))))
+    (message nil)
     command))
 
 ;;;###autoload
@@ -2009,6 +2045,44 @@ would otherwise have the same name."
           (project-name proj)
           (file-relative-name dirname root))))
     dirname))
+
+;;; Project mode-line
+
+;;;###autoload
+(defcustom project-mode-line nil
+  "Whether to show current project name and Project menu on the mode line.
+This feature requires the presence of the following item in
+`mode-line-format': `(project-mode-line project-mode-line-format)'; it
+is part of the default mode line beginning with Emacs 30."
+  :type 'boolean
+  :group 'project
+  :version "30.1")
+
+(defvar project-menu-entry
+  `(menu-item "Project" ,menu-bar-project-menu))
+
+(defvar project-mode-line-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] project-menu-entry)
+    map))
+
+(defvar project-mode-line-face nil
+  "Face name to use for the project name on the mode line.")
+
+(defvar project-mode-line-format '(:eval (project-mode-line-format)))
+(put 'project-mode-line-format 'risky-local-variable t)
+
+(defun project-mode-line-format ()
+  "Compose the project mode-line."
+  (when-let ((project (project-current)))
+    (concat
+     " "
+     (propertize
+      (project-name project)
+      'face project-mode-line-face
+      'mouse-face 'mode-line-highlight
+      'help-echo "mouse-1: Project menu"
+      'local-map project-mode-line-map))))
 
 (provide 'project)
 ;;; project.el ends here
