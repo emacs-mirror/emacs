@@ -237,7 +237,8 @@ for formatting."
     (cond ((listp contents)
            (mapc (lambda (i)
                    (if (and (stringp i)
-                            (string-match "^http://.*" i))
+                            (string-match
+                             (rx bol "http" (? "s") "://" (* nonl)) i))
                        (let ((pos (point)))
                          (insert i " ") ; avoid self-reference from the
                                         ; nt-link thing
@@ -248,7 +249,7 @@ for formatting."
                                 'help-echo
                                 (format "mouse-2: visit (%s)" i)
                                 'keymap keymap)))
-                         (insert (format "%s" i))))
+                     (insert (format "%s" i))))
                  contents))
           (t
            (insert (format "%s" contents))))
