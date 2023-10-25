@@ -6089,9 +6089,11 @@ wrapping the timer function body as follows:
 to 10.  @value{tramp} does not display all messages; only those with a
 verbosity level less than or equal to @code{tramp-verbose}.
 
+@noindent
 The verbosity levels are
 
-          @w{ 0}  silent (no @value{tramp} messages at all)
+@indentedblock
+   @w{ 0}  silent (no @value{tramp} messages at all)
 @* @w{ 1}  errors
 @* @w{ 2}  warnings
 @* @w{ 3}  connection to remote hosts (default verbosity)
@@ -6103,6 +6105,7 @@ The verbosity levels are
 @* @w{ 9}  test commands
 @* @w{10}  traces (huge)
 @* @w{11}  call traces (maintainer only)
+@end indentedblock
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to the @value{tramp} debug buffer @file{*debug
