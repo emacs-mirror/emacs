@@ -940,7 +940,7 @@ Examples:
 Remapping of commands with @code{:bind} and @code{bind-key} works as
 expected, because when the binding is a vector, it is passed straight
 to @code{define-key}.  @xref{Remapping Commands,,, elisp, GNU Emacs
-Lisp Reference Manual}), for more information about command remapping.
+Lisp Reference Manual}, for more information about command remapping.
 For example, the following declaration will rebind
 @code{fill-paragraph} (bound to @kbd{M-q} by default) to
 @code{unfill-toggle}:

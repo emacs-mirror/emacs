@@ -6092,20 +6092,32 @@ verbosity level less than or equal to @code{tramp-verbose}.
 @noindent
 The verbosity levels are
 
-@indentedblock
-   @w{ 0}  silent (no @value{tramp} messages at all)
-@* @w{ 1}  errors
-@* @w{ 2}  warnings
-@* @w{ 3}  connection to remote hosts (default verbosity)
-@* @w{ 4}  activities
-@* @w{ 5}  internal
-@* @w{ 6}  sent and received strings
-@* @w{ 7}  connection properties
-@* @w{ 8}  file caching
-@* @w{ 9}  test commands
-@* @w{10}  traces (huge)
-@* @w{11}  call traces (maintainer only)
-@end indentedblock
+@enumerate
+@item
+Silent (no @value{tramp} messages at all)
+@item
+Errors
+@item
+Warnings
+@item
+Connection to remote hosts (default verbosity)
+@item
+Activities
+@item
+Internal
+@item
+Sent and received strings
+@item
+Connection properties
+@item
+File caching
+@item
+Test commands
+@item
+Traces (huge)
+@item
+Call traces (maintainer only)
+@end enumerate
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to the @value{tramp} debug buffer @file{*debug
